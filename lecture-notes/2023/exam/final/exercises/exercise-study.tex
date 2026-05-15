@@ -1,0 +1,156 @@
+\subsection{Microdosing LSD}
+\totalscore{8}
+
+Microdosing psychedelic drugs like LSD recently gained increasing popularity.
+Microdosing is the practice of regularly using low doses of such psychedelic drugs, e.g.\ $\sim5\%$-$20\%$ of a typical recreational dose of LSD for about
+one to three times per week. Anecdotal reports claim that microdosing improves well-being, creativity and cognition. 
+During this exercise we want to have a causal look at two recent studies\footnote{For the purpose of this exam results are (over-)simplified and possibly misrepresented. We do not guarantee for the correctness of the representation of the studies in this exam. References are below in the footnotes.} that investigated such effects.
+
+\subsubsection*{Study A\footnote{R.\ Petranker et al., \textit{Microdosing psychedelics: Subjective benefits and challenges, substance testing behavior, and the relevance of intention}, Journal of Psychopharmacology, Oct.\ 2020. https://doi.org/10.1177/0269881120953994.}}
+
+The researchers of study A wrote:
+\begin{quote}
+``Method: The Global Drug Survey runs the world's largest online drug survey. Participants who reported last 
+year use of [LSD] in the Global Drug Survey 2019 were offered the opportunity 
+to answer a sub-section on microdosing. 
+  [..] 
+  We asked participants to indicate which benefits from the following 
+list applied to their experience of microdosing: (a) enhanced mood, (b) enhanced focus, (c) enhanced creativity, [..] (f) enhanced sociability [etc.].
+
+  [..]
+
+Results: Data from [4769] people who reported microdosing at least once in the last 12 months were used for analyses.
+Our results suggest a [..] replication of previously reported benefits [..:] enhanced mood, creativity, focus and sociability.''
+\end{quote}
+%``Conclusion: Our results suggest the perceived benefits associated with microdosing greatly outweigh the challenges. Microdosing may have utility for a variety of uses while having minimal side effects.''
+
+\begin{table}[h!]
+\caption{Study A: Reported benefits for microdosing LSD. Total number of responses: 4769.
+\label{tab:study-A}}
+\begin{center}
+\begin{tabular}{ l|l|l }
+    Reported Benefit & Count & Percentage \\
+ \hline
+   Enhanced mood & 2443 & 51.23 \\
+   Encanced creativity & 2223 & 46.61\\
+   Enhanced sociability & 1797 & 37.68\\
+   Enhanced focus & 1561 & 32.73
+\end{tabular}
+\end{center}
+\end{table}
+
+Carefully read the above summary and look at the table in Table~\ref{tab:study-A}.
+For simplicity, you may only focus on the outcome variable `enhanced mood' in answering the next question.
+\begin{enumerate}[label=\alph*)]
+  \item Explain what quantity one would like to estimate, what quantity the researchers actually measured, and how they came to their conclusion. 
+Explain the found association between the relevant variables. % from several points of views. 
+Discuss causal relations between the relevant variables. 
+You may draw a causal Bayesian network to aid your explanation.
+Discuss shortcomings in the design and evaluation of this study from a causal point of view. 
+\score{4}
+\answer{
+    Let $Y$ be the outcome variable (e.g.\ enhanced mood),
+     $X$ be the amount (or indicator) of microdosing in the past year,
+     $T$ the indicator variable if the person participated in the Global Drug Survey,
+     $S$ the indicator variable if the person participated in the microdosing study.
+     One is interested in the causal effect: $P(Y|\doit(X))$, i.e.\ in the difference between $P(Y|\doit(X=0))$ and $P(Y|\doit(X=1))$.
+     The researchers estimated the distribution of $P(Y|T=1,S=1,X=1)$, where they modelled $Y$ as binary.
+
+    A possible CBN could be:
+    \begin{center}\begin{tikzpicture}
+      \node[var] (Y) at (2,0) {$Y$};
+      \node[var] (X) at (0,0) {$X$};
+      \node[var] (S) at (1,-1.5) {$S$};
+      \node[var] (T) at (-1,-1.5) {$T$};
+      \draw[arr] (T) to (S);
+      \draw[arr] (X) to (Y);
+      \draw[arr] (X) to (S);
+      \draw[arr] (X) to (T);
+      \draw[biarr,bend left] (X) edge (Y);
+    \end{tikzpicture}\end{center}
+
+    This is solely an observational study. Furthermore, the data underlies at least two types of selection bias (only people in the drug survey, $T=1$, and only people who already microdose, indicated by $S=1$). Also no comparison group ($X=0$) was used.
+There could be further counfounding variables, e.g.\ possibly only persons who take drugs experience enhanced mood due to countering withdrawal effects, etc.
+}
+\points{4 points. It is hard to be specific at this stage about how to assign points to partially correct/incomplete answers.
+    What we want to measure: 1 pt for measuring causal effect $P(Y|\doit(X=1))-(Y|\doit(X=0))$ as goal (0.5 pt for $P(Y|\doit(X))$ and none for $P(Y|X=1)$).\\
+    What they measured: 1 pt for $P(Y|X=1,S=1,T=1)$  (0.5pt if some of the variables $S,T$ on the conditioning side are missing).\\
+    Reasonal explanation or drawing of causal Bayesian network: 1pt.\\
+    Explicitely pointing out that the study is non-interventional/solely observational: 0.5 pt.
+    Pointing out that there was not even a comparison group: 0.5 pt.\\
+After adding all points together, round up to integer points.
+}
+\end{enumerate}
+
+\subsubsection*{Study B\footnote{B.\ Szigeti et al., \textit{Self-blinding citizen science to explore psychedelic microdosing}, eLife, Mar.\ 2021. https://elifesciences.org/articles/62878.}}
+
+The researchers of study B designed their study as follows.
+
+LSD users were recruited through advertisement on relevant online and offline forums. 
+A total of 191 participants completed the study.
+Participants were randomly assigned to either a microdosing group (MD) or a placebo group (PL) with equal probability.
+During 4 weeks each participant was given two pills per week, each either containing a microdose of LSD if in group MD or a
+placebo if in group PL. 
+Before, during and after these weeks the participants were tested for cognitive performance, mental well-being,
+social connectedness, life satisfaction, etc.
+Furthermore, each participant was regularly asked to guess if they were in the MD or the PL group.
+
+\begin{table}[h!] %this is figure 5 from the study. numbers are just read off the figure there and rounded and rescaled
+\caption{Study B: Mean and 95\% confidence interval of the corresponding score (higher is better) 
+    adjusted for actual group and the guess of the participant in which group they are. 
+    The corresponding p-values for a mean difference test are either below 0.01 (very low) if the 
+  95\%-confidence intervals have no overlaps and between 0.1-0.9 (high) if they have overlap.\label{tab:study-B}}
+\begin{center}
+\begin{tabular}{ c|c|l|l|l|l}
+    Group & Guess  & Emotion Score & Mood Score & Well-Being Score & Cognitive Score \\
+ \hline
+    PL & PL & 12.8 $\pm$ 1.1 & 57 $\pm$ 2& 47.9 $\pm$ 1.1 & -9 $\pm$ 7\\
+    MD & PL & 13.9 $\pm$ 1.2 & 58 $\pm$ 3& 48.1 $\pm$ 1.2 & -8 $\pm$ 9\\
+    PL & MD &  18.1 $\pm$ 1.9& 69 $\pm$ 4& 51.1 $\pm$ 1.2 & -10 $\pm$ 9\\
+    MD & MD &   19.1 $\pm$ 1.4&72 $\pm$ 3& 50.9 $\pm$ 1.0 & -1 $\pm$ 9
+\end{tabular}
+\end{center}
+\end{table}
+
+Have a look at Table~\ref{tab:study-B}. It shows an extract of the estimated mean and 95\%-confidence intervals
+of each score (emotional, mood, well-being, cognitive performance, etc.) adjusted for the actual group the participants were
+in and also for the group the participants guessed they were in.
+For simplicity, you may only focus on the outcome variable `mood' in answering the next question.
+
+\begin{enumerate}[resume*]
+  \item 
+    Answer the same questions as in a) but now for study B.
+    \score{4}
+\answer{
+    Let $Y$ be the outcome variables (mood score).
+    We want to estimate the difference between $E(Y|\doit(X=1))$ and $E(Y|\doit(X=0))$ ($E$ denoting expectation).
+    The researchers of study B estimated $E(Y|G,T=1,\doit(X))$, where $G$ is the guess of the participant.
+    There is (pre-intervention) selection bias $T=1$ (as only LSD users were recruted).
+    A possible SCM could have the following graph:
+    \begin{center}\begin{tikzpicture}
+      \node[var] (Y) at (2,0) {$Y$};
+      \node[varc] (X) at (0,0) {$X$};
+      \node[var] (G) at (1,-1.5) {$G$};
+      \node[var] (T) at (1,1.5) {$T$};
+      \draw[arr] (X) to (Y);
+      \draw[arr] (T) to (Y);
+      \draw[arr,bend left] (G) edge (Y);
+      \draw[arr,bend left] (Y) edge (G);
+      \draw[biarr] (Y) edge (G);
+    \end{tikzpicture}\end{center}
+    The study is an interventional study, more specifically, a blind randomized controlled trial (the provided text doesn't say if it is double blind or not).
+    The results can be interpreted as that the expectation the participant has (guess $G=1$) is associated with outcome,
+    but not the actual microdose itself. Cognitive performance is unaltered. 
+    From the numbers alone we could not conclude that $G$ causes $Y$ as we only condition on $G$.
+    Whether we can restrict the possible causal relations between $G$ and $Y$ is not clear from the description of the experimental procedure (is $G$ measured before $Y$, or after $Y$?).
+    %but we could allow background knowledge about that expectations can causally change well-being, etc., to come to this conclusion.
+}
+\points{4 points. It is hard to be specific at this stage about how to assign points to partially correct/incomplete answers.\\
+What we want to measure: 1 pt for measuring causal effect $P(Y|\doit(X=1))-(Y|\doit(X=0))$ as goal (0.5 pt for $P(Y|\doit(X))$ and none for $P(Y|X=1)$).\\
+What they did measure: 1 pt for $P(Y|G,S=1,\doit(X))$ (table 2) (0.5 pt if some variables are missing on conditioning side).\\
+Explaining the association in table 2 in words: 1 pt.\\
+Explicitely pointing out that we have an interventional study: 0.5 pt,\\
+discussing that we still might have selection bias and not every quantity is provided to estimate the causal effect: 0.5 pt.\\
+After adding all points up, rounding up to interger points.
+}
+\end{enumerate}

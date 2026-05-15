@@ -1,0 +1,778 @@
+\title[Causality]{Causality: Lecture 15}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2022-05-16]{\normalsize May 16th (updated on May 23rd), 2022}
+\maketitle
+
+\part{Fast Causal Inference (FCI)}
+\frame{\partpage}
+
+\begin{frame}{Updates w.r.t.\ version May 16th}
+  \begin{itemize}
+    \item Change of terminology: ``inducing walk/path'' $\to$ ``$\sigma$-inducing walk/path''
+    \item Added Lemma \ref{lem:dpag_open_walk_implies_dmg_open_walk} and Proposition \ref{prp:dpag_open_walk_implies_dmg_open_walk}
+    \item The numbering changed (also in the lecture notes)
+    \item \alert{TODO: add slides on skeleton phase (for now, see lecture notes)}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{History}
+  \begin{itemize}
+    \item Fast Causal Inference (FCI) algorithm \cite{SMR1995} is a constraint-based causal discovery algorithm.
+    \item It extends the PC algorithm \cite{SGS2000} to deal with latent variables.
+    \item Later, it was extended to:
+      \begin{itemize}
+        \item selection bias \cite{SMR1999}
+        \item cycles \cite{MooijClaassen_UAI_20}
+        \item input variables \cite{Mooij++_JMLR_20}
+      \end{itemize}
+    \item FCI (extension to selection bias) is complete \cite{Zhang2008_AI}: its output characterizes the Markov equivalence class.
+  \end{itemize}
+  Our treatment here can deal with latent variables and cycles (but not yet with selection bias and input nodes).
+\end{frame}
+
+\section{Inducing walks}
+\frame{\sectionpage}
+
+\begin{frame}{Inducing walks: Preliminaries}
+
+We introduce the following shorthand terminology that is convenient when dealing with $\sigma$-open walks.
+  \begin{Def}[\ref{def:unblockable_noncollider}]
+  Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We call a non-endpoint non-collider $v_k$ on $\pi$ that only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$ an \emph{unblockable non-collider} on $\pi$. 
+  That is, it is one of the following patterns:
+  \[\begin{array}{ccl}
+    v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_{k})\\
+    v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_{k})\\
+    v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)
+  \end{array}\]
+\end{Def}
+\end{frame}
+
+\begin{frame}{Inducing walks: Definition}
+\begin{Def}[\ref{def:sigma-inducing_path}]
+Let $G = \lt V, E, L \rt$ be a directed mixed graph (DMG). 
+  A \emph{$\sigma$-inducing walk (path)} between two distinct nodes $i,j \in V$ is a walk (path) in $G$ between $i$ and $j$ on which every 
+  collider is in $\Anc_{G}(\{i,j\})$, 
+  and each non-endpoint non-collider is unblockable.\footnote{One can also define $d$-inducing paths.}
+\end{Def}
+
+\begin{example}
+Any edge between two adjacent nodes is a $\sigma$-inducing path. \\
+In each of the following graphs, a $\sigma$-inducing path between $i$ and $k$ is indicated in red:
+\begin{center}\scalebox{0.7}{\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout,black] (X1) at (-3,0) {$i$};
+      \node[ndout,black] (X2) at (-1.5,0) {$j$};
+      \node[ndout,black] (X3) at (0,0) {$k$};
+      \draw[arout,red] (X1) edge (X2);
+      \draw[arout,black] (X2) edge (X3);
+      \draw[arlat,bend left,red] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5.5cm]
+      \node[ndout,black] (X1) at (-3,0) {$i$};
+      \node[ndout,black] (X2) at (-1.5,0) {$j$};
+      \node[ndout,black] (X3) at (0,0) {$k$};
+      \draw[arout,red] (X1) edge (X2);
+      \draw[arout,black] (X2) edge (X3);
+      \draw[arout,bend left,red] (X3) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=11cm]
+      \node[ndout,black] (X1) at (-3,0) {$i$};
+      \node[ndout,black] (X2) at (-1.5,0) {$j$};
+      \node[ndout,black] (X3) at (0,0) {$k$};
+      \node[ndout,black] (X4) at (-1.5,-1) {$l$};
+      \draw[arout,red] (X1) edge (X2);
+      \draw[arout,red] (X2) edge (X3);
+      \draw[arout,black] (X3) edge (X4);
+      \draw[arout,black] (X4) edge (X1);
+    \end{scope}
+\end{tikzpicture}}\end{center}
+Note: $i$ cannot be $\sigma$-separated from $k$ given any set $V \sm \{i,k\}$.
+\end{example}
+\end{frame}
+
+\begin{frame}{Inducing walks: Key Property}
+This notion has the following important properties.
+  \begin{Prp}[\ref{prp:sigma-inducing_path_properties}]
+  Let $G = \lt V,E,L \rt$ be a DMG and $i,j \in V$ be distinct. Then the following are equivalent:
+  \begin{enumerate}
+    \item There is a $\sigma$-inducing path in $G$ between $i$ and $j$;
+    \item There is a $\sigma$-inducing walk in $G$ between $i$ and $j$;
+    \item $i \nPerp^\sigma_G j \given Z$ for all $Z \subseteq V \setminus \{i,j\}$;
+    \item $i \nPerp^\sigma_G j \given Z$ for $Z = \Anc_G(\{i,j\}) \setminus \{i,j\}$.
+  \end{enumerate}
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Terminology: Orientation of edges and walks}
+\begin{Def}
+  We introduce the following terminology regarding the orientation of edges:
+  \begin{center}\begin{tabular}{lll}
+    $i \hut j$ & \emph{into $i$}   & \emph{out of $j$} \\
+    $i \huh j$ & \emph{into $i$}   & \emph{into $j$} \\
+    $i \tuh j$ & \emph{out of $i$} & \emph{into $j$} 
+  \end{tabular}\end{center}
+  and walks:
+  \begin{center}\begin{tabular}{ll@{\qquad}l}
+    $i \hut \cdots j$  & \emph{into $i$}  & \\
+    $i \huh \cdots j$  & \emph{into $i$}  & (and similarly for $j$) \\
+    $i \tuh \cdots j$  & \emph{out of $i$} & \\
+  \end{tabular}\end{center}
+\end{Def}
+\end{frame}
+
+\begin{frame}{Orientations of inducing paths}
+  \begin{Lem}[\ref{lem:sigma-inducing_path_into_into} \& \ref{lem:sigma-inducing_path_out-of}]
+  Let $G$ be a DMG with vertex set $V$ and $i, j \subseteq V$ distinct.
+  If there exists a $\sigma$-inducing path between $i$ and $j$ in $G$, and
+  \begin{enumerate}
+    \item if it is into $j$ and also $i \notin \Anc_G(j)$, then there exists a $\sigma$-inducing path between $i$ and $j$ in $G$ that is both into $i$ and into $j$;
+    \item if all $\sigma$-inducing paths in $G$ between $i$ and $j$ are out of $i$, then $i \in \Anc_G(j)$.
+  \end{enumerate}
+\end{Lem}
+\end{frame}
+
+\begin{frame}{Sequence of inducing paths implies open paths}
+\begin{Lem}[\ref{lem:dpag_open_walk_implies_dmg_open_walk}]
+  Let $G$ be a DMG with vertex set $V$.
+  Let $q_0, q_1, \dots, q_n$ be a sequence of distinct vertices in $V$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$, $\mu_i$ is a $\sigma$-inducing path in $G$ between $q_{i-1}$ and $q_i$.
+%  \vspace{-0.2\baselineskip}
+%  They can be concatenated into a walk $\mu = (\mu_1,\dots,\mu_n)$ between $q_0$ and $q_n$:
+  \[\overunderbraces{&\br{2}{\mu_1}&&&&\br{2}{\mu_{n}}}{&q_0 \cdots \sus & q_1 & \sus \dots \sus q_2 & \sus \cdots \cdots \sus & q_{n-2} \sus \dots \sus & q_{n-1} & \sus \cdots q_n}{&&\br{2}{\mu_2}&&\br{2}{\mu_{n-1}}}\]
+%  \vspace{-1.2\baselineskip}
+  Let $Z \subseteq V \setminus \{q_0,q_n\}$.
+  Suppose that the following three assumptions hold:
+  \begin{enumerate}
+    \item $\forall i=1,\dots,n-1:$ if $q_i \in Z$ then both $\mu_i$ and $\mu_{i+1}$ are into $q_i$ or $q_i$ is unblockable on $\mu$;
+    \item $\forall i=1,\dots,n-1:$ if $\mu_{i}$ and $\mu_{i+1}$ are into $q_i$, then $q_i \in \Anc_G(Z)$;
+    \item $\forall i=1,\dots,n:$ if $\mu_i$ is out of $q_{i-1}$, then $q_{i-1} \in \Anc_G(\{q_i\})$, and if $\mu_i$ is out of $q_{i}$, then $q_i \in \Anc_G(\{q_{i-1}\})$;
+    \item $\forall i=1,\dots,n$: $\mu_i$ is not both out of $q_{i-1}$ and out of $q_i$.
+  \end{enumerate}
+%  Then there exists a $Z$-$\sigma$-open walk in $G$ between $q_0$ and $q_n$ such that all occurrences of $q_0$ and $q_n$ as non-endpoint non-collider are unblockable.
+  Then there exists a $Z$-$\sigma$-open path in $G$ between $q_0$ and $q_n$.
+\end{Lem}
+\end{frame}
+
+\begin{comment}
+\begin{frame}{Orientation of inducing paths}
+The orientation of the outermost edges on an inducing path contain important information:
+  \begin{Prp}[\ref{prp:inducing_path_orientations} (and Lemma~\ref{lem:inducing_paths_out_of})]
+  Let $G = \lt V,E,L \rt$ be a DMG and $i,j \in V$ be distinct such that there exists an inducing path in $G$ between $i$ and $j$.
+  Let $Z \subseteq V \setminus \{i,j\}$.
+  \begin{enumerate}
+    \item If there exists an inducing path in $G$ between $i$ and $j$ that is into $i$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is into $i$.
+    \item If there exists an inducing path in $G$ between $i$ and $j$ that is into $i$ and into $j$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is into $i$ and into $j$.
+    \item If all inducing paths in $G$ between $i$ and $j$ are out of $i$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is out of $i$, and furthermore, $i \in \Anc_G(j)$.
+  \end{enumerate}
+\end{Prp}
+\end{frame}
+\end{comment}
+
+\begin{comment}
+\begin{frame}{Concatenating inducing paths}
+Under certain conditions, we can concatenate inducing paths into an inducing walk.
+\begin{Lem}[\ref{lem:concatenating_inducing_paths_into_inducing_walk}]
+  Let $G = \lt V,E,L \rt$ be a DMG.
+  Suppose $q_0, q_1, \dots, q_n$ is a sequence of distinct vertices in $G$ such that each $q_i \in \Anc_G(\{q_0,q_n\})$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$, $\mu_i$ is an inducing path in $G$ between $q_{i-1}$ and $q_i$ that is into $q_{i-1}$ if $i > 1$ and into $q_i$ if $i < n$.
+  Then the concatenation of the paths $\mu = (\mu_1,\dots,\mu_n)$:
+  \[\overunderbraces{&\br{2}{\mu_1}&&&&\br{2}{\mu_{n}}}{&q_0 \cdots \suh & q_1 & \hus \dots \suh q_2 & \hus \cdots \cdots \suh & q_{n-2} \hus \dots \suh & q_{n-1} & \hus \cdots q_n}{&&\br{2}{\mu_2}&&\br{2}{\mu_{n-1}}}\]
+ is an inducing walk between $q_0$ and $q_n$ in $G$.
+\end{Lem}
+\end{frame}
+\end{comment}
+
+\section{Directed Partial Ancestral Graphs (DPAGs)}
+\frame{\sectionpage}
+
+\begin{frame}{DPAGs: overview}
+  \begin{itemize}
+    \item \emph{Partial ancestral graphs (PAGs)} were introduced to represent a set of DAGs compactly \cite{SMR1999}.
+    \item We restrict to \emph{directed PAGs (DPAGs)} because we assume no selection bias.
+    \item Our DPAGs represent DMGs (with possible cycles).
+  \end{itemize}
+
+  \begin{example}
+  \begin{center}\scalebox{0.7}{\begin{tikzpicture}
+    \begin{scope}
+      \node at (-2,0) {(a)};
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[car] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[car] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=6.5cm]
+      \node at (-4,0) {(b)};
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[carc] (X1) edge (X2);
+      \draw[carc] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6.5cm,yshift=-1.5cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[car] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm]
+      \node at (-4,0) {(c)};
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[carc] (X1) edge (X2);
+      \draw[carc] (X2) edge (X3);
+%      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[carc,bend right] (X1) edge (X3);
+    \end{scope}
+  \end{tikzpicture}}\end{center}
+  Example DPAGs. (a) DPAG representing all Y-structures in Figure~\ref{fig:Ystruct}. 
+  (b) Two different DPAGs that both represent all the LCD DMGs from Figure~\ref{fig:LCD}. 
+  (c) DPAG that represents the DMG in Figure~\ref{fig:sigma-inducing_path}(a).
+  \end{example}
+\end{frame}
+
+\begin{frame}{DPAGs: additional edge types}
+  \begin{itemize}
+    \item DPAGs have the following edge types: $\tuh$, $\hut$, $\huh, \huo,\ouo,\ouh$.
+    \item There are three possible \emph{edge marks}: \emph{arrowhead}, \emph{tail} or \emph{circle}.
+    \item Each edge has two \emph{edge marks}, one for each node.
+    \item Edges of the form $i \hut j, i \huo j, i \huh j$ are called \emph{into $i$}.
+    \item Edges of the form $i \tuh j, i \ouh j, i \huh j$ are called \emph{into $j$}. 
+    \item Edges of the form $i \tuh j$ and $j \hut i$ are called \emph{out of $i$}.
+    \item The ``$\asterisk$'' symbol denotes any of the three edge marks, e.g.,
+      $i \suh j$ edges are into $j$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Terminology extensions}
+We extend various definitions to cover these new edge types.
+\begin{Def}[\ref{def:more_walks}]
+  Let $H=(V,E)$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh\}$.
+  Let $v,w \in V$.
+  \begin{enumerate}
+    \item If there is an edge $v \sus w$ between $v$ and $w$ (of either type), we call $v$ and $w$ \emph{adjacent} in $H$.
+    \item A \emph{walk between $v$ and $w$} in $H$ is a finite alternating sequence of nodes and edges 
+        \[v=v_0, a_0, v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+        in $H$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+        we have that $v_{k},v_{k+1} \in V$ and $a_k = v_k \sus v_{k+1} \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+    \item A walk is called a \emph{path} if no node occurs more than once.
+  \end{enumerate}
+\end{Def}
+\end{frame}
+\begin{frame}{Terminology extensions}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{3}
+    \item A \emph{directed walk} (path) from $v$ to $w$ in $H$ is a walk (path) of the form:
+        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        for some $n \ge 0$.
+    \item A \emph{directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with
+      the directed edge $v \hut w$.
+    \item An \emph{almost directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated
+      with the bidirected edge $w \huh v$.
+    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called \emph{collider}
+      if it is of the form $v_{k-1} \suh v_k \hus v_{k+1}$.
+    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$v$ is ancestor of $w$ in $H$}, 
+      and we write $v \in \Anc_H(w)$. For $W \subseteq V$, we define $\Anc_H(W) := \bigcup_{w\in W} \Anc_H(w)$.
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{8}
+    \item A non-endpoint non-collider on a walk in $H$ such that all the neighboring nodes on the walk that it points to with a directed edge lie in the same strongly connected component of $H$ is called an \emph{unblockable non-collider}.
+    \item A walk between $v$ and $w$ in $H$ is called \emph{$\sigma$-inducing} if every collider on the walk is in $\Anc_H(\{v,w\})$, and every non-endpoint non-collider on the walk is unblockable.
+    \item A walk between $v$ and $w$ in $H$ is called \emph{$\sigma$-open given $Z \subseteq V$} if 
+      \begin{itemize}
+        \item every collider is in $\Anc_H(Z)$, and
+        \item every endpoint is not in $Z$, and
+        \item every non-endpoint non-collider is not in $Z$ or, if it is in $Z$, is unblockable.
+      \end{itemize}
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{DPAGs: Definition}
+\begin{Def}[\ref{def:dpag}]
+%  We call a graph $G = \lt V,E\rt$ with nodes $V$ and edges $E$ between ordered node pairs of the types $\{\ttt,\ttc,\to,\ot,\otc,\oto,\ctt,\ctc,\cto\}$ a \emph{partial ancestral graph (PAG)} if
+  A mixed graph $H = \lt V,E\rt$ with nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh\}$ is called a \emph{directed partial ancestral graph (DPAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no self-cycles;
+    \item The graph contains no directed or almost directed cycles (`ancestral');
+    \item There is no $\sigma$-inducing path between any two non-adjacent nodes (`maximal').
+  \end{enumerate}
+\end{Def}
+\begin{example}
+  \begin{topalignedcolumn}{0.2\textwidth}
+  \scalebox{0.7}{\begin{tikzpicture}
+    \begin{scope}
+%      \node at (-2,0) {(d)};
+      \node[ndout] (X1) at (-1,0) {$i$};
+      \node[ndout] (X2) at (-1,2) {$j$};
+      \node[ndout] (X3) at (1,2) {$k$};
+      \node[ndout] (X4) at (1,0) {$l$};
+      \draw[arlat] (X1) edge (X2);
+      \draw[arlat] (X2) edge (X3);
+      \draw[arlat] (X3) edge (X4);
+      \draw[arout] (X2) edge (X4);
+      \draw[arout] (X3) edge (X1);
+    \end{scope}
+  \end{tikzpicture}}\end{topalignedcolumn}
+    \begin{topalignedcolumn}{0.75\textwidth}
+  This mixed graph is not a valid DPAG, because it is not maximal: 
+  it has a $\sigma$-inducing path $i \huh j \huh  k \huh l$ while $i$ and $l$ are non-adjacent.
+  \end{topalignedcolumn}
+\end{example}
+\end{frame}
+
+\begin{frame}{DPAGs represent DMGs}
+DPAGs are used to represent a set of directed mixed graphs as follows.
+\begin{Def}[\ref{def:dpag_represents_dmg}]
+  Let $H = \lt V,E\rt$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh\}$, with at most one edge connecting any pair of distinct nodes.
+  Let $G$ be a directed mixed graph.
+  We say that \emph{$H$ represents $G$} if all of the following hold:
+  \begin{enumerate}
+    \item $G$ and $H$ have the same vertex set $V$;
+    \item two vertices $i,j$ are adjacent in $H$ if and only if there is a $\sigma$-inducing path between $i,j$ in $G$;
+    \item if $i \suh j$ in $H$ (i.e., $i \tuh j$ in $H$ or $i \ouh j$ in $H$ or $i \huh j$ in $H$), then $j \notin \Anc_{G}(i)$;
+    \item if $i \tuh j$ in $H$ then $i \in \Anc_{G}(j)$.
+  \end{enumerate}
+\end{Def}
+Hence, adjacencies represent $\sigma$-inducing paths, arrowheads represent non-ancestorship, and tails represent ancestorship.
+\end{frame}
+
+\begin{comment}
+\begin{frame}{DPAGs: orientation of edges}
+\begin{Lem}[\ref{lemm:sigma-inducing_path_into}]
+  Let $H$ be a DPAG that represents a DMG $G$. 
+  \begin{enumerate}
+    \item If $i \hus j$ in $H$, then there exists an inducing path in $G$ between $j$ and $i$ that is into $i$.
+    \item If $i \huh j$ in $H$, then there exists an inducing path in $G$ between $j$ and $i$ that is both into $j$ and into $i$.
+  \end{enumerate}
+\end{Lem}
+\end{frame}
+\end{comment}
+
+\begin{frame}{Valid DPAG}
+We will frequently use that every mixed graph (of a certain type) that represents a DMG must be a valid DPAG.
+\begin{Prp}[\ref{prp:dpag_represents_dmg_is_valid}]
+Let $H = \lt V,E\rt$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh\}$, with at most one edge connecting any pair of distinct nodes.
+If $H$ represents a directed mixed graph $G$, then $H$ is a DPAG.
+\end{Prp}
+\begin{proof}
+  Try this yourself!
+\end{proof}
+\end{frame}
+
+\begin{frame}{Every DMG is represented as a DPAG}
+\begin{Prp}[\ref{prp:from_dmg_to_dpag}]
+  Let $G$ be a DMG. There exists a DPAG $\DPAG(G)$ that represents $G$.
+\end{Prp}
+\begin{proof}
+  Denote the vertex set of $G$ as $V$.
+  Construct a mixed graph $H$ with vertex set $V$ as follows.
+  Let two vertices $i,j \in V$ be adjacent in $H$ if and only if there is a $\sigma$-inducing path between $i,j$ in $G$,
+  and orient the edge in $H$ as:
+    $$\begin{cases}
+      \text{$i \ouo j$} & \text{if $i \in \Anc_G(j)$ and $j \in \Anc_G(i)$}, \\
+      \text{$i \tuh  j$} & \text{if $i \in \Anc_G(j)$ and $j \notin \Anc_G(i)$}, \\
+      \text{$i \hut  j$} & \text{if $i \notin \Anc_G(j)$ and $j \in \Anc_G(i)$}, \\
+      \text{$i \huh j$} & \text{if $i \not\in \Anc_G(j)$ and $j \not\in \Anc_G(i)$.}
+    \end{cases}$$
+  By construction, $H$ represents $G$. It is a DPAG by 
+  Proposition~\ref{prp:dpag_represents_dmg_is_valid}.
+\end{proof}
+If $G$ is acyclic, $DPAG(G)$ (known as the directed maximal ancestral graph, or DMAG, in the literature) contains no circle edge marks.
+\end{frame}
+
+\begin{frame}{Open paths in DPAGs}
+An open path in a DPAG representing a DMG implies the existence of a similar $\sigma$-open path in the DMG.
+\begin{Prp}\label{prp:dpag_open_walk_implies_dmg_open_walk}
+  Let $H$ be a DPAG that represents DMG $G$, both with vertex set $V$.
+  Let
+    \[\pi = (q_0, a_1, q_1, \dots q_{n-1}, a_n, q_n)\] 
+  be a $Z$-open path in $H$, for $Z \subseteq V \setminus \{q_0,q_n\}$.
+  Then there exists a $Z$-$\sigma$-open path in $G$ between $q_0$ and $q_n$.
+ % such that all occurrences of $q_0$ and $q_n$ as non-endpoint non-collider are unblockable.
+\end{Prp}
+\begin{proof}
+  Apply Lemma~\ref{lem:dpag_open_walk_implies_dmg_open_walk}.
+\end{proof}
+\end{frame}
+
+\section{Unshielded triples}
+\frame{\sectionpage}
+
+\begin{frame}{Unshielded triples}
+%One of the key steps in the FCI algorithm is the orientation of ``unshielded triples''.
+\begin{Def}[\ref{def:unshielded_triple}]
+  Let $H$ be a mixed graph. A triple of distinct nodes $\lt i,j,k \rt$ in $H$ is called
+  an \emph{unshielded triple} if $i \sus j$ in $H$, and $j \sus k$ in $H$, but
+  $i$ and $k$ are not adjacent in $H$.
+\end{Def}
+\begin{Prp}[\ref{prp:orienting_unshielded_triples}]
+  Let $H$ be a DPAG that represents a DMG $G$ with vertex set $V$.
+  If $\lt i, j, k \rt$ form an unshielded triple in $H$, then either 
+  \begin{enumerate}
+    \item $j \notin Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \notin \Anc_G(\{i,k\})$, or
+    \item $j \in Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \in \Anc_G(\{i,k\})$.
+  \end{enumerate}
+\end{Prp}
+  In case (i), we can orient the edges as $i \suh j \hus k$ to obtain a DPAG $\tilde{H}$ that also represents $G$. 
+  In case (ii), we cannot orient an edge.
+\end{frame}
+
+\section{Minimal Separating Sets, Minimal Connecting Sets}
+\frame{\sectionpage
+\alert{Moved to chapter 9 (still need to update slides)}}
+
+\begin{frame}{Minimal separating sets}
+
+\begin{Def}[\ref{def:min_sep}]
+Let $X,Y,Z,S$ be sets of nodes in a DMG $G$. 
+We say that the \emph{minimal $\sigma$-separation}
+  $$X \Perp_{G}^\sigma Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \Perp_{G}^\sigma Y \mid S \cup Z \quad\land\quad \forall Q \subsetneq Z: X \nPerp_G^\sigma Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $\sigma$-separate $X$ from $Y$.
+Minimal $d$-separation $X \Perp_{G}^d Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Minimal separating sets: key property}
+Minimal separating sets imply the presence of certain ancestral relations (this generalizes a result of \cite{SMR1999}).
+\begin{Prp}[\ref{prp:min_sep}]
+Let $\{x\},\{y\},S,Z$ be mutually disjoint sets of nodes in a DMG $G$.
+Then:
+$$x \Perp^\sigma_G y \mid S \cup [Z] \implies Z \subseteq \Anc_{G}(\{x, y\} \cup S).$$
+A similar statement holds for $d$-separation.
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Minimal connections}
+Similarly, we define minimal connections.
+\begin{Def}[\ref{def:min_con}]
+Let $X,Y,Z,S$ be sets of nodes in a DMG $G$. 
+We say that the \emph{minimal $\sigma$-connection}
+  $$X \nPerp_G^\sigma Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \nPerp_G^\sigma Y \mid S \cup Z\quad\land\quad \forall Q \subsetneq Z: X \Perp_G^\sigma Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $\sigma$-connect $X$ with $Y$.
+Minimal $d$-connection $X \nPerp_G^d Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+Note that despite the notation, a minimal connection is not the logical negation of a minimal separation.
+\end{frame}
+
+\begin{frame}{Minimal connections: key property}
+Minimal connections imply the absence of ancestral relations \cite{ClaassenHeskes2011}:
+\begin{Prp}[\ref{prp:min_con}]
+Let $\{x\},\{y\},S,\{z\}$ be mutually disjoint sets of nodes in a DMG $G$. Then
+$$x \nPerp_G^\sigma y \mid S \cup [\{z\}] \implies z \notin \Anc_{G}(\{x, y\} \cup S)$$
+and a similar statement holds for $d$-separation.
+\end{Prp}
+\end{frame}
+
+
+\section{Discriminating paths}
+\frame{\sectionpage}
+
+\begin{frame}{Discriminating paths}
+Another step in FCI is related to the notion of ``discriminating paths''.
+This can be considered as an extension of the notion of unshielded triple.
+
+\begin{Def}[\ref{def:discriminating_path}]
+  A path $\pi = \lt i, q_1, \dots, q_n, j, k\rt$ (with $n \ge 1$) in a DPAG $H$ is
+  a \emph{discriminating path for $j$} if:
+  \begin{enumerate}
+    \item $i$ is not adjacent to $k$ in $H$, and
+    \item every node $q_i$ ($1 \le i \le n$) is a collider on $\pi$ and a parent of $k$ in $H$.
+  \end{enumerate}
+\end{Def}
+
+\begin{center}
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X) at (0,0) {$i$};
+      \node[ndout] (Q1) at (1.5,0) {$q_1$};
+      \node[ndout] (Q2) at (3,0) {$q_2$};
+      \node (dots) at (4.5,0) {$\cdots$};
+      \node[ndout] (Qn) at (6,0) {$q_n$};
+%      \node[ndout] (B) at (7.5,0.0) {$b$};
+%      \node[ndout] (Y) at (7.5,2) {$y$};
+      \node[ndout] (B) at (7,1.0) {$j$};
+      \node[ndout] (Y) at (8,0) {$k$};
+      \draw[sarr] (X) -- (Q1);
+      \draw[arlat] (Q1) -- (Q2);
+      \draw[arlat] (Q2) -- (dots);
+      \draw[arlat] (dots) -- (Qn);
+      \draw[arout,bend right,in=220] (Q1) edge (Y);
+      \draw[arout,bend right,in=200] (Q2) edge (Y);
+      \draw[arout] (Qn) edge (Y);
+      \draw[sarr]  (B) -- (Qn);
+      \draw[sars] (B) -- (Y);
+    \end{scope}
+  \end{tikzpicture}}
+\end{center}
+\vspace{-5mm}
+Discriminating path $\lt i,q_1,q_2,\dots,q_n,j,k \rt$ for $j$ between $i$ and $k$.
+\end{frame}
+
+\begin{comment}
+\begin{frame}{Concatenating open paths}
+\begin{Lem}[\ref{lem:dpag_concatenated_collider_walk}, Lemma 1 in \cite{SMR1999}]
+  Let $G$ be a DMG with vertex set $V$. 
+  Suppose $q_0, q_1, \dots, q_n$ is a sequence of distinct vertices in $G$.
+  Let $Z \subseteq V \setminus \{q_0,q_n\}$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$,
+  $\mu_i$ is a $Z\sm\{q_{i-1},q_i\}$-$\sigma$-open path between $q_{i-1}$ and $q_i$.
+  Suppose that for each $i=1,\dots,n-1$, if $q_i \in Z$ then both $\mu_{i-1}$ and $\mu_i$ are into $q_i$.
+  Suppose further that for each $i=1,\dots,n-1$, if $\mu_{i-1}$ and $\mu_i$ are into $q_i$, then $q_i \in \Anc_G(Z)$.
+  Then the concatenation of the paths $\mu = (\mu_1,\dots,\mu_n)$ is a $Z$-$\sigma$-open walk between $q_0$ and $q_n$ in $G$.
+%  \[\overunderbraces{&\br{2}{\mu_1}&&&&\br{2}{\mu_{n}}}{&q_0 \cdots \suh & q_1 & \hus \dots \suh q_2 & \hus \cdots \cdots \suh & q_{n-2} \hus \dots \suh & q_{n-1} & \hus \cdots q_n}{&&\br{2}{\mu_2}&&\br{2}{\mu_{n-1}}}\]
+\end{Lem}
+\end{frame}
+\end{comment}
+
+\begin{frame}{Discriminating paths}
+Discriminating paths behave like unshielded triples. 
+\begin{Prp}[\ref{prp:orienting_discriminating_paths}]
+  Let $H$ be a DPAG that represents a DMG $G$ with vertex set $V$.
+  If $\lt i, q_1, \dots, q_n, j, k \rt$ is a discriminating path in $H$ for $j$ between $i$ and $k$, then
+  either 
+  \begin{enumerate}
+    \item $j \notin Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \notin \Anc_G(\{q_n,k\})$, or
+    \item $j \in Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \in \Anc_G(k)$.
+  \end{enumerate}
+  In both cases, $k \notin \Anc_G(j)$.
+\end{Prp}
+  In case (i), we can orient $q_n \huh j \huh k$.
+  In case (ii), we can orient $j \tuh k$.
+  In both cases we then obtain a DPAG $\tilde{H}$ that also represents $G$. 
+\end{frame}
+
+
+\section{Independence models and Markov equivalence}
+\frame{\sectionpage}
+
+\begin{frame}{Independence models}
+In general, given an index set $V$, we call a subset of 
+$\{ \lt A, B, C \rt : A, B, C \subseteq V \}$
+an \emph{independence model over $V$}.
+\begin{Def}[\ref{def:independence_model}]
+  For a DMG $G = \lt V, E, L \rt$, define its \emph{$d$-independence model} to be
+  $$\IM_d(G) := \{ \lt A, B, C \rt : A, B, C \subseteq V, A \Perp_G^d B \mid C \},$$
+  i.e., the set of all $d$-separations entailed by the graph. Define its
+  \emph{$\sigma$-independence model} to be
+  $$\IM_\sigma(G) := \{ \lt A, B, C \rt : A, B, C \subseteq V, A \Perp_G^\sigma B \mid C \},$$
+  i.e., the set of all $\sigma$-separations entailed by the graph. 
+\end{Def}
+For ADMGs, $\sigma$-separation is equivalent to $d$-separation, and hence, if $G$ is acyclic, then
+$\IM_d(G) = \IM_\sigma(G)$.
+\end{frame}
+
+\section{FCI Algorithm}
+\frame{\sectionpage}
+
+\begin{frame}{FCI Algorithm: Overview}
+  \begin{itemize} 
+    \item Input: 
+      \begin{itemize}
+        \item Vertex set $V$
+        \item Independence model $I$ over $V$.
+      \end{itemize}
+    \item Output: 
+      \begin{itemize}
+        \item mixed graph $H$ with vertex set $V$.
+      \end{itemize}
+    \item Two phases:
+      \begin{enumerate}
+        \item \emph{Skeleton phase} aimed at deducing the adjacencies between the nodes, and to find sets that separate two nodes.
+        \item \emph{Orientation rules} that iteratively orient circle edge marks into tails and arrowheads, consisting of three parts:
+          \begin{itemize}
+        \item Orienting unshielded triples.
+        \item Orienting arrowheads.
+        \item Orienting tails.
+          \end{itemize}
+       \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Skeleton phase}
+\begin{Def}[\ref{def:skeleton}]
+Given a DPAG $H = \lt V, E \rt$, its \emph{skeleton} is the mixed graph 
+$\skel(H) = \lt V, F \rt$ with the same nodes, and with a bicircle edge $i \ouo j$ in $F$
+  if and only if $i \sus j$ in $E$ (i.e., if $i$ and $j$ are adjacent in $H$).
+\end{Def}
+\begin{block}{FCI Algorithm: Skeleton phase}
+\begin{enumerate}
+  \item Initialize $H$ to be the complete graph on $V$ with an edge $\ouo$ between each pair of distinct nodes.
+  \item For each unordered pair $i \ne j$ of nodes in $H$:
+    search for a subset $S \subseteq V \setminus \{i,j\}$ such that $\lt i, j, S \rt \in I$;
+    if such a set $S$ is found then remove the edge $i \ouo j$ from $H$ and record $S$ in $\sepset(\{i,j\})$.
+\end{enumerate}
+\end{block}
+
+Different ways of performing the skeleton phase have been proposed:
+  \begin{itemize}
+    \item Brute-force search (extremely slow and statistically unreliable);
+    \item Original proposal: use ``Possible-D-Sep'' sets (details follow);
+    \item FCI+ \cite{ClaassenMooijHeskes_UAI_13} provides a faster alternative;
+    \item RFCI \cite{Colombo++2012} also faster, but not complete.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Orientations (I)}
+  \begin{block}{FCI Algorithm: Orienting unshielded triples}
+  \begin{enumerate}
+  \setcounter{enumi}{2}
+  \item Orient unshielded triples in $H$:
+    \begin{description}
+    \item[$\C{R}0$] for each unshielded triple $\lt i,j,k \rt$ in $H$, orient it as a collider $i \suh j \hus k$ iff $j \notin \sepset(\{i,k\})$.
+    \end{description}
+  \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Orientations (II)}
+  \begin{block}{FCI Algorithm: Orienting arrow heads}
+  \begin{enumerate}
+  \setcounter{enumi}{3}
+  \item Perform the following orientation rules until none of them applies:
+    \begin{description}
+      \item[$\C{R}1$] If $i \suh j \ous k$ in $H$, and $i$ and $k$ are not adjacent in $H$, orient the triple as $i \suh j \tuh k$.
+      \item[$\C{R}2$] If $i \tuh j \suh k$ or $i \suh j \tuh k$ in $H$, and $i \suo k$ in $H$, orient $i \suh k$.
+      \item[$\C{R}3$] If $i \suh j \hus k$ in $H$, and $i \suo l \ous k$ in $H$, and $l \suo j$ in $H$, and $i$ and $k$ are not adjacent in $H$, orient $l \suh j$.
+      \item[$\C{R}4$] If $\lt i, q_1, \dots, q_n, j, k \rt$ is a discriminating path in $H$ for $j$, and if $j \ous k$ in $H$, orient:
+        \[\begin{cases}
+          \phantom{q_n \huh {}} j \tuh k & \text{if $j \in \sepset(\{i,k\})$, and} \\
+          q_n \huh j \huh k & \text{if $j \notin \sepset(\{i,k\})$.}
+        \end{cases}\]
+    \end{description}
+  \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Uncovered possibly directed paths}
+\begin{Def}[\ref{def:pdpath}]
+  A path $v_0 \sus v_1 \sus \dots \sus v_n$ between nodes $v_0$ and $v_n$ is called a \emph{possibly directed path from $v_0$ to $v_n$} if for each $i=1,\dots,n$, the edge $v_{i-1} \sus v_i$ is not into $v_{i-1}$ (i.e., is of the form $v_{i-1} \ouo v_i$, $v_{i-1} \ouh v_i$, or $v_{i-1} \tuh v_i$). 
+  The path is called \emph{uncovered} if every subsequent triple $\lt v_{i-1}, v_i, v_{i+1} \rt$ is unshielded, i.e., $v_{i-1}$ and $v_{i+1}$ are not adjacent for $i=1,\dots,n-1$.
+\end{Def}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Orientations (III)}
+  \begin{block}{FCI Algorithm: Orienting tails}
+  \begin{enumerate}
+  \setcounter{enumi}{4}
+  \item Perform the following orientation rules until none of them applies:
+    \begin{description}
+      \item[$\C{R}8$] If $i \tuh j \tuh k$ in $H$, and $i \ouh k$ in $H$, then orient $i \tuh k$.
+      \item[$\C{R}9$] If $i \ouh k$, and $\pi = \lt i, j, \dots, k \rt$ is an u.p.d.\ path in $H$ from $i$ to $k$ such that $j$ and $k$ are not adjacent in $H$, then orient $i \tuh k$.
+      \item[$\C{R}10$] Suppose that $i \ouh k$ in $H$, $j \tuh k \hut l$ in $H$, $\pi_1$ is an u.p.d.\ path in $H$ from $i$ to $j$, and $\pi_2$ is an u.p.d.\ path in $H$ from $i$ to $l$. Let $u_1$ be the vertex adjacent to $i$ on $\pi_1$ (possibly $u_1 = j$) and $u_2$ the vertex adjacent to $i$ on $\pi_2$ (possible $u_2 = l$). If $u_1 \ne u_2$, and $u_1$ and $u_2$ are not adjacent in $H$, then orient $i \tuh k$.
+    \end{description}
+  \item OUTPUT the mixed graph $H$.
+\end{enumerate}
+  \end{block}
+\end{frame}
+
+\section{Soundness and completeness of FCI}
+\frame{\sectionpage}
+
+\begin{frame}{FCI Algorithm: Soundness}
+\begin{Thm}[\ref{thm:fci_sound}]
+  FCI is sound: if the input consists of $I_\sigma(G)$ for a DMG $G$ with vertex set $V$, then its output will be a valid DPAG $H$ that represents $G$.
+\end{Thm}
+  \begin{proof}[Proof sketch (details in lecture notes)]
+  We assume the skeleton search phase to be sound, that is, 
+  the mixed graph $H$ has vertex set $V$ and has an edge between any pair of distinct nodes $i,j \in V$ iff there is no set $S \subseteq V \setminus \{i,j\}$ such that $i \Perp^\sigma_G j \given S$.
+  Furthermore, if there is no edge in $H$ between a pair of distinct nodes $i,j \in V$, then $i \Perp^\sigma_G j \given \sepset(\{i,j\})$.
+  By construction, the only edge type occurring at this stage in $H$ is $\ouo$, and hence $H$ is a valid DPAG that represents $G$. 
+
+  Every application of rule $\C{R}0$ in step \ref{alg:fci_R0} adapts $H$ by turning certain circle edge marks into arrowheads.
+  After each such orientation, according to Proposition~\ref{prp:orienting_unshielded_triples}, $H$ is still a valid DPAG that represents $G$.
+  The proof proceeds by induction:
+    after each possible orientation by rule $\C{R}1$--$\C{R}4$ or $\C{R}8$--$\C{R}10$, $H$ is still a valid DPAG that represents $G$.
+\end{proof}
+\end{frame} 
+ 
+\begin{frame}{FCI Algorithm: Completeness}
+  \begin{itemize}
+    \item \cite{Zhang2008_AI} showed that the FCI algorithm was complete in the sense that all edge marks that could possibly be oriented based on the information in $\IM_\sigma(G)$ will be oriented.
+    \item Using results on the characterization of Markov equivalence classes of DMAGs \cite{Ali++2005}, it can be shown that the DPAG output by FCI represents the Markov equivalence class of $G$ in case $G$ is acyclic.
+    \item By employing acyclifications, these results could easily be extended to cyclic $G$ \cite{MooijClaassen_UAI_20}.
+  \end{itemize}
+  The proofs are long and technical, so we only state the results.
+
+  \begin{Def}[\ref{def:Markov_equivalent}]
+    Let $G_1, G_2$ be two DMGs with vertex set $V$.
+    \begin{itemize}
+      \item
+We call $G_1$ and $G_2$ \emph{$\sigma$-Markov equivalent} and write $G_1 \stackrel{\sigma}{\sim} G_2$ if $\IM_\sigma(G_1) = \IM_\sigma(G_2)$.
+\item We call $G_1$ and $G_2$ \emph{$d$-Markov equivalent} and write $G_1 \stackrel{d}{\sim} G_2$ if $\IM_d(G_1) = \IM_d(G_2)$.
+    \end{itemize}
+\end{Def}
+
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Completeness}
+Consider FCI as a mapping $\FCI$ that maps an independence model (on $V$) to a mixed graph (with vertex set $V$).
+It maps the independence model $\IM_\sigma(G)$ of a DMG $G$ to the DPAG $\FCI(\IM_\sigma(G))$.
+\begin{Thm}[\ref{thm:fci_sound_complete} \cite{Zhang2008_AI,MooijClaassen_UAI_20}]
+The FCI algorithm is:
+  \begin{enumerate}
+    \item \emph{arrowhead complete}: for all DMGs $G$, if $i \notin \Anc_{\tilde{G}}(j)$ for all DMGs $\tilde{G} \stackrel{\sigma}{\sim} G$, then there is an arrowhead $i \hus j$ in $\FCI(\IM_\sigma(G))$;
+    \item \emph{tail complete}: for all DMGs $G$, if $i \in \Anc_{\tilde{G}}(j)$ for all DMGs $\tilde{G} \stackrel{\sigma}{\sim} G$, then there is a tail $i \tuh j$ in $\FCI(\IM_\sigma(G))$;
+    \item \emph{Markov complete}: for all DMGs $G_1$ and $G_2$, $G_1 \stackrel{\sigma}{\sim} G_2$ if and only if $\FCI(\IM_\sigma(G_1)) = \FCI(\IM_\sigma(G_2))$.
+  \end{enumerate}
+\end{Thm}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Completeness}
+  \begin{itemize}
+    \item Arrowhead and tail completeness express that the DPAG output by FCI is \emph{maximally oriented}: any arrowhead or tail that could possibly be deduced from $\IM_\sigma(G)$, will be oriented.
+    \item The soundness and Markov completeness properties together imply that the DPAG $\FCI(\IM_\sigma(G))$ output by FCI, when given as input the $\sigma$-independence model of a DMG $G$, represents the $\sigma$-Markov equivalence class of $G$.
+    \item FCI provides a \emph{graphical characterization} of the $\sigma$-Markov equivalence class of a DMG.
+    \item We read off more features from the DPAG output by FCI:
+      (non-)ancestral relations, direct causal relations, the absence of confounding, and the absence of cycles. 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Consistency}
+In practice, we do not know the independence model $\IM_\sigma(G)$, and have to resort to testing conditional independences in finite samples.
+  \begin{Cor}[FCI Consistency]
+  Let $M$ be a simple SCM with observed variables $O \subseteq V \cup W$, and without exogenous input variables (i.e., $J = \emptyset$).
+  Assume that $M$ is $\sigma$-faithful w.r.t.\ $O$.
+  Denote the observable causal graph as $G := G^O(M)$.
+  When using asymptotically consistent conditional independence tests on i.i.d.\ samples of the observational distribution $P_{M}(X_O)$, FCI provides an asymptotically consistent estimate $\hat{H}$ of the DPAG $\FCI(\IM_\sigma(G))$ that represents the $\sigma$-Markov equivalence class of $G$.
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Interpreting the estimated DPAG}
+\begin{Cor}[continued]
+From the estimated DPAG $\hat{H}$, we can read off consistent estimates for:
+  \begin{enumerate}
+  \item the absence/presence of (possibly indirect) causal relations according to $M$; 
+  \item the absence of confounding according to $M$;
+  \item the absence/presence of direct causal relations according to $M$;
+  \item the absence of causal cycles according to $M$.
+  \end{enumerate}
+\end{Cor}
+Note that these results also applies to L-CBNs and acyclic SCMs.
+
+\bigskip
+  \begin{block}{DISCLAIMER}
+    FCI looks very nice in theory, but has not yet been shown to work reliably in practice (why not?).
+  \end{block}
+\end{frame}

@@ -1,0 +1,39 @@
+\subsection{Vaccine effectiveness}
+\totalscore{5}
+
+On January 18th, 2021, the COVID-19 vaccination campaign started in The Netherlands.
+Until June 1st, about 89\% of residents of age 75 and higher has received at least one dose of a vaccine.
+The RIVM recently published their first scientific study on the effectiveness of COVID-19 vaccination in preventing infections, hospitalization and mortality due to COVID-19 amongst this age group in the Netherlands,\footnote{\url{https://www.rivm.nl/sites/default/files/2021-06/Effectiviteit\%20en\%20impact\%20van\%20COVID-19\%20vaccinatie\%20bij\%20ouderen\%20in\%20Nederland\%2C\%20januari-\%20mei\%202021.pdf}}
+based on the available data from January 18th until May 17th.
+The researchers studied three outcomes of interest: incidence of positive test results, hospitalization, and mortality due to COVID-19. 
+For all outcomes, we can distinguish \emph{cases} (e.g., persons that had to be admitted to a hospital due to COVID-19) from \emph{controls} (e.g., persons that had no record of hospital admission due to COVID-19).
+
+The researchers estimated vaccine effectivity by ``the screening method'', also known as ``Farrington's method''.
+This method compares the proportion of vaccinated amongst the cases with the proportion of vaccinated amongst the general population (cases and controls combined).
+More precisely, the vaccine effectivity is estimated as:
+$$VE = 1 - \frac{PCV}{1-PCV} \frac{1-PPV}{PPV}$$
+where $PCV$ is the fraction of vaccinated amongst the cases and $PPV$ is the fraction of vaccinated amongst the population (cases and controls together).
+
+\begin{enumerate}[label=\alph*)]
+  \item Mention one important confounder of vaccination status (i.e., whether a person is vaccinated or not) and an outcome variable.
+    \score{1}
+    \answer{Age. Or: ``vulnerability''. Or: time (week of the year): vaccination status depends strongly on time, as well as the probability of a positive test result due to the variation in how widespread the virus is.}
+  \item How could one correct for this confounder? Explain in detail how you would go about this.
+    \score{2}
+    \answer{Adjust for age.
+    If one is interested in estimating vaccine effectiveness in individual age groups, one could use the method in each age group separately, assuming that the variance of age within the groups can be ignored.
+    If one is interested in an overall estimate of vaccine effectiveness, one can adjust for age, i.e., apply back-door adjustement with age as adjustment variable.}
+    \points{1 point for mentioning the right technique, 1 point for a (sensible) detailed explanation.}
+  \item The researchers estimate with Farrington's method (corrected for the confounder) that three weeks after the second vaccine dose, the vaccine is 94\% effective in reducing hospital admissions amongst the elderly (75+) in the Netherlands.
+    They conclude that amongst the elderly, the vaccination campaign has resulted in a considerable reduction of serious COVID-19 infections.
+
+    Argue whether one can conclude from this estimated vaccine effectivity that vaccination indeed \emph{causes} a reduction in the (negative) outcomes amongst this subgroup of the population.
+    What assumptions do you make for arriving at your conclusion?
+    \score{2}
+    \answer{There could still be confounders that are not adjusted for. For example, if someone does not perceive COVID-19 as a serious threat, this person may be less willing to take a vaccine, but also less willing to apply other measures to prevent infection, increasing the chance of getting infected. However, the majority was vaccinated, so this can only induce a small bias. Under the assumption that strong confounders have been adjusted for, and that there is no selection bias in the data due to implicit conditioning on common \emph{effects} of vaccination status and outcome, the conclusion should be valid.}
+    \points{1 point for mentioning ``no unadjested confounding'', 1 point for mentioning ``no selection bias''.}
+\end{enumerate}
+
+%Here is a contingency table, with entries that were explicitly stated in the report:
+%Out of the 847 reported hospital admissions, 13 were patients that had already been fully vaccinated.
+%van de 847 ziekenhuisopnamen waren er 13 bij coronapatienten die al volledig waren gevaccineerd, en 237 bij mensen die een prik hadden gehad.

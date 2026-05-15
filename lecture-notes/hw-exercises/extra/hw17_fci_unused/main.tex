@@ -1,0 +1,170 @@
+% !TEX root = hw17-answers-graded.tex
+\chead{\textbf{Exercises week EXTRA}}
+\begin{document}
+\flushleft\textbf{Topic: Fast Causal Inference}
+
+\begin{enumerate}
+\item Consider the following DAG $G$:
+\begin{center}
+	\begin{tikzpicture}
+		\node[ndout] (X1) at (-1,0) {$X_1$};
+		\node[ndout] (X2) at (1,0) {$X_2$};
+		\node[ndout] (X3) at (0,-1) {$X_3$};
+		\node[ndout] (X4) at (0,-2.5) {$X_4$};
+		\draw[arout] (X1) edge (X3);
+		\draw[arlat,bend right] (X1) edge (X3);
+		\draw[arlat,bend left] (X2) edge (X3);
+		\draw[arout] (X3) edge (X4);
+	\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+	\item %\textbf{(1 point)}
+	Provide the $\sigma$-independence model of $G$, $\IM_\sigma(G)$. It's okay to only consider singleton sets $A, B\subseteq V$ (where $A,B$ relate to Definition \ref*{def:independence_model_graph}).
+	% \item Using the equivalence relation from Definition \ref*{def:Markov_equivalent}, we can define the Markov equivalence class of $G$ to be the set of graphs $\tilde{G}$ on the same vertex set $V$ as $G$, for which $G \sim \tilde{G}$. Give the members of the Markov equivalence class of $G$. \emph{Hint: last week's homework might be related to this question.} % SKIPPED, AS WE HAVEN't INTRODUCED MARKOV EQUIVALENCE CLASSES PROPERLY 
+	
+	\item %\textbf{(1 point)} 
+	List the combinations of nodes $\{i,j\}$ with $i,j\in V$ such that there is a $\sigma$-inducing path between $i$ and $j$ in all graphs $\tilde{G}$ that are $\sigma$-Markov equivalent to $G$.
+	
+ 	\emph{Hint: instead of checking this for all graphs individually, you can use exercise (a) and Proposition \ref*{prp:sigma-inducing_path_properties}}
+	\item %\textbf{(1 point)} 
+	Draw the unique skeleton $\skel(\sigmaPAG(G))$ and the representing $\sigmaPAG(G)$ that is most informative of the (non-)ancestral relations. (With \emph{most informative}, we mean that there are no circles as edge marks that can be oriented by, for example, applying Proposition \ref*{prp:from_cdmg_to_sigmapag}.)
+	\item %\textbf{(3 points)} 
+	By hand, 'run' FCI on $\IM_\sigma(G)$. Show for each step of the algorithm which rules apply and why they apply, provide the intermediate graph (if applicable), and finally, give the output $\FCI(\IM_\sigma(G))$.
+	\item %\textbf{(1 point)} 
+	List the ancestral and non-ancestral relations that can be read off from the output of FCI, and compare these conclusions with Proposition \ref*{prp:y-structures} (and in particular, the conclusions that can be drawn from Figure \ref*{fig:Ystruct} of the lecture notes).
+	% \item What would the output of FCI be if the data were generated according to the following graph $\tilde{G}$:
+	% \begin{center}
+	% 	\begin{tikzpicture}
+	% 		  \node[ndout] (X1) at (-1,0) {$X_1$};
+	% 		  \node[ndout] (X2) at (1,0) {$X_2$};
+	% 		  \node[ndout] (X3) at (0,-1) {$X_3$};
+	% 		  \node[ndout] (X4) at (0,-2.5) {$X_4$};
+	% 		  \draw[arout] (X1) edge (X3);
+	% 		  \draw[arout] (X2) edge (X3);
+	% 		  \draw[arout] (X3) edge (X4);
+	% 	\end{tikzpicture}
+	% \end{center} % SKIPPED, AS WE HAVEN't INTRODUCED MARKOV EQUIVALENCE CLASSES PROPERLY 
+\end{enumerate}
+\begin{ungradedsolution}
+	\begin{enumerate}
+		\item We have the following $\sigma$-separations:
+		\begin{align*}
+			&X_1 \Perp X_2 \\
+			&X_1\Perp X_4|X_3, ~~ X_1\Perp X_4|\{X_3, X_2\}, \\
+			&X_2\Perp X_4|X_3, ~~ X_2\Perp X_4|\{X_1, X_3\},
+		\end{align*}
+		which give the (partial) independence model $I = \{(\{X_1\}, \{X_2\}, \emptyset)$, $(\{X_1\}, \{X_4\}, \{X_3\})$, $(\{X_1\}, \{X_4\}, \{X_3, X_2\})$, $(\{X_2\}, \{X_4\}, \{X_3\})$, $(\{X_2\}, \{X_4\}, \{X_1, X_3\})\}$. Note that formally $I\subsetneq \IM_\sigma(G)$, as we only consider singleton sets on the l.h.s.\ of the conditioning bar.
+		% \item This is precisely the set of DAGs as depicted in Figure \ref*{fig:Ystruct} of the lecture notes. % SKIPPED, AS WE HAVEN't INTRODUCED MARKOV EQUIVALENCE CLASSES PROPERLY 
+		\item By Proposition \ref*{prp:sigma-inducing_path_properties} iii), the $\sigma$-inducing paths in $G$ are given by all nodes $\{i,j\}$ that do not occur on the left hand side of the $\sigma$-separations in answer (a). Hence, the $\sigma$-inducing paths are between the nodes: $\{X_1, X_3\}, \{X_2, X_3\}, \{X_3, X_4\}$.
+		
+		By the definition of Markov equivalence (Definition \ref*{def:Markov_equivalent}), every $\tilde{G}$ that is $\sigma$-Markov equivalent to $G$ has the same set of $\sigma$-separations, hence, it has $\sigma$-inducing paths between the same set of combinations of nodes.
+		\item Combining definitions \ref*{def:skeleton} and \ref*{def:sigmapag_represents_cdmg}, we have $\skel(\sigmaPAG(G))$ given by the graph containing a bicircle edge $i \ouo j$ if and only if there is a $\sigma$-inducing path between $i$ and $j$. Hence, $\skel(\sigmaPAG(G))$:
+		\begin{center}
+			\begin{tikzpicture}
+				\node[ndout] (X1) at (-1,0) {$X_1$};
+				\node[ndout] (X2) at (1,0) {$X_2$};
+				\node[ndout] (X3) at (0,-1) {$X_3$};
+				\node[ndout] (X4) at (0,-2.5) {$X_4$};
+				\draw[carc] (X1) edge (X3);
+				\draw[carc] (X2) edge (X3);
+				\draw[carc] (X3) edge (X4);
+			\end{tikzpicture}
+		\end{center}
+		We can orient the edges using Proposition \ref*{prp:from_cdmg_to_sigmapag} to obtain the following $\sigmaPAG(G)$:
+		\begin{center}
+			\begin{tikzpicture}
+				\node[ndout] (X1) at (-1,0) {$X_1$};
+				\node[ndout] (X2) at (1,0) {$X_2$};
+				\node[ndout] (X3) at (0,-1) {$X_3$};
+				\node[ndout] (X4) at (0,-2.5) {$X_4$};
+				\draw[arout] (X1) edge (X3);
+				\draw[arlat,bend left] (X2) edge (X3);
+				\draw[arout] (X3) edge (X4);
+			\end{tikzpicture}
+		\end{center}
+		\item 
+		\begin{enumerate}[label=\arabic*)]
+			\item $V = \{X_1, X_2, X_3, X_4\}$ and independence model $I$ given by $\IM_\sigma(G)$ as in exercise (a).
+			\item We initialize the skeleton:
+			\begin{center}
+				\begin{tikzpicture}
+					\node[ndout] (X1) at (-1,0) {$X_1$};
+					\node[ndout] (X2) at (1,0) {$X_2$};
+					\node[ndout] (X3) at (0,-1) {$X_3$};
+					\node[ndout] (X4) at (0,-2.5) {$X_4$};
+					\draw[carc] (X1) edge (X2);
+					\draw[carc] (X1) edge (X3);
+					\draw[carc] (X1) edge (X4);
+					\draw[carc] (X2) edge (X3);
+					\draw[carc] (X2) edge (X4);
+					\draw[carc] (X3) edge (X4);
+				\end{tikzpicture}
+			\end{center}
+   			\item From exercise (a), we see that 
+			\begin{align*}
+				\sepset(\{X_1, X_2\}) &= \emptyset \\
+				\sepset(\{X_1, X_4\}) &= \{X_3\} \\
+				\sepset(\{X_2, X_4\}) &= \{X_3\}
+			\end{align*}
+			and we obtain the skeleton:
+			\begin{center}
+				\begin{tikzpicture}
+					\node[ndout] (X1) at (-1,0) {$X_1$};
+					\node[ndout] (X2) at (1,0) {$X_2$};
+					\node[ndout] (X3) at (0,-1) {$X_3$};
+					\node[ndout] (X4) at (0,-2.5) {$X_4$};
+					\draw[carc] (X1) edge (X3);
+					\draw[carc] (X2) edge (X3);
+					\draw[carc] (X3) edge (X4);
+				\end{tikzpicture}
+			\end{center}
+			Note that for $\sepset(\{X_1, X_4\})$ and $\sepset(\{X_2, X_4\})$ we might as well have picked $\{X_2, X_3\}$ and $\{X_1, X_3\}$ respectively.
+			\item We apply $\Rcal0$ on $(X_1, X_3, X_2)$, as $X_3 \notin \sepset(\{X_1, X_2\}) = \emptyset$. So we get:
+			\begin{center}
+				\begin{tikzpicture}
+					\node[ndout] (X1) at (-1,0) {$X_1$};
+					\node[ndout] (X2) at (1,0) {$X_2$};
+					\node[ndout] (X3) at (0,-1) {$X_3$};
+					\node[ndout] (X4) at (0,-2.5) {$X_4$};
+					\draw[car] (X1) edge (X3);
+					\draw[car] (X2) edge (X3);
+					\draw[carc] (X3) edge (X4);
+				\end{tikzpicture}
+			\end{center}
+			The other unshielded triples $(X_1, X_3, X_4)$ and $(X_2, X_3, X_4)$ have $X_3$ in their sepset, so we continue.
+			\item We apply $\Rcal 1$ on $(X_1, X_3, X_4)$ to obtain:
+			\begin{center}
+				\begin{tikzpicture}
+					\node[ndout] (X1) at (-1,0) {$X_1$};
+					\node[ndout] (X2) at (1,0) {$X_2$};
+					\node[ndout] (X3) at (0,-1) {$X_3$};
+					\node[ndout] (X4) at (0,-2.5) {$X_4$};
+					\draw[car] (X1) edge (X3);
+					\draw[car] (X2) edge (X3);
+					\draw[arout] (X3) edge (X4);
+				\end{tikzpicture}
+			\end{center}
+			Then, rules $\Rcal2, \Rcal3, \Rcal4$ don't apply (check this!), so we continue.
+			\item Rules $\Rcal8, \Rcal9, \Rcal10$ don't apply (check this!), so we continue.
+			\item Output
+			\begin{center}
+				\begin{tikzpicture}
+					\node[ndout] (X1) at (-1,0) {$X_1$};
+					\node[ndout] (X2) at (1,0) {$X_2$};
+					\node[ndout] (X3) at (0,-1) {$X_3$};
+					\node[ndout] (X4) at (0,-2.5) {$X_4$};
+					\draw[car] (X1) edge (X3);
+					\draw[car] (X2) edge (X3);
+					\draw[arout] (X3) edge (X4);
+				\end{tikzpicture}
+			\end{center}
+		\end{enumerate}
+		\item Using Definition \ref*{def:sigmapag_represents_cdmg} we infer the ancestral relation $X_3 \in \Anc_G(X_4)$, and the non-ancestral relations $X_4 \notin \Anc_G(X_3), X_3 \notin \Anc_G(X_1)$ and $X_3 \notin \Anc_G(X_2)$.
+		
+		From Figure \ref*{fig:Ystruct} we conclude the ancestral relation $X_3\in\Anc_G(X_4)$, and the non-ancestral relations $X_4 \notin \Anc_G(X_3), X_3 \notin \Anc_G(X_1)$ and $X_3 \notin \Anc_G(X_2)$. So the output of Proposition \ref*{prp:y-structures} is, in terms of determining ancestral and non-ancestral relations, just as complete as FCI.
+		% \item From Proposition \ref*{prp:y-structures} we know that $G$ and $\tilde{G}$ are in the same Markov equivalence class (@Joris, actually, not precisely. How do we know for sure that the other possible d-separations that are not mentioned in the Proposition also belong to both equivalence classes?) Hence $\IM_\sigma(G) = \IM_\sigma(\tilde{G})$. As FCI is a deterministic algorithm, it will have the same output for the same input. % SKIPPED, AS WE HAVEN't INTRODUCED MARKOV EQUIVALENCE CLASSES PROPERLY 
+	\end{enumerate}
+\end{ungradedsolution}
+\end{enumerate}
+\end{document}

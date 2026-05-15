@@ -1,0 +1,421 @@
+% !TEX root = hw10-answers-graded.tex
+\chead{\textbf{Exercises week 10}}
+\externaldocument{../hw9/hw9}
+\begin{document}
+\flushleft\textbf{Topic: Structural Causal Models: equivalences and marginalisations}
+
+\begin{enumerate}[label=10.\arabic*]
+    \item For a simple SCM $M$ and a subset $L \subset V$ of endogenous variables, we have that $G(M_{\setminus L})$ is a subgraph $G(M)^{\setminus L}$. Notably, these graphs are not necessarily equal. Give a simple SCM $M$ and marginalised SCM $M_{\setminus L}$ for some subset of nodes $L\subset V$ for which $G(M_{\setminus L}) \neq G(M)^{\setminus L}$. (Explicitly give the graphs $G(M_{\setminus L})$ and $G(M)^{\setminus L}$.)
+
+    \emph{Hint: you can use exercise \ref*{ex:unfaithful_scm} for inspiration.}
+    \begin{ungradedsolution}
+        Consider the SCM $M$ with endogenous variables $V = \{X, Y, Z\}$, exogenous variables $W = \{\varepsilon_X, \varepsilon_Y, \varepsilon_Z\}$, structural equation
+        \begin{align*}
+            X & = \varepsilon_X         \\
+            Y & = X + \varepsilon_Y     \\
+            Z & = X - Y + \varepsilon_Z
+        \end{align*}
+        and exogenous distribution $\varepsilon_X, \varepsilon_Y, \varepsilon_Z \sim \Ncal(0, \sigma^2)$ independent for some $\sigma\in\mathbb{R}$. Its graph $G(M)$ and the subsequent marginalisation $G(M)_{\setminus \{Y\}}$ w.r.t.\ $Y$ are given by:
+        \begin{figure}[!htb]
+            \centering
+            \begin{subfigure}[]{0.45\textwidth}
+                \centering
+                \begin{tikzpicture}[scale=1, transform shape]
+                    \node[ndlat] (EX) at (-1, 1.5) {$\varepsilon_X$};
+                    \node[ndout] (X) at (0, 0) {$X$};
+                    \node[ndlat] (EY) at (1, 3) {$\varepsilon_Y$};
+                    \node[ndout] (Y) at (1, 1.5) {$Y$};
+                    \node[ndlat] (EZ) at (3, 1.5) {$\varepsilon_Z$};
+                    \node[ndout] (Z) at (2, 0) {$Z$};
+                    \draw[arlout] (EX) to (X);
+                    \draw[arlout] (EY) to (Y);
+                    \draw[arlout] (EZ) to (Z);
+                    \draw[arout] (X) to (Y);
+                    \draw[arout] (Y) to (Z);
+                    \draw[arout] (X) to (Z);
+                \end{tikzpicture}
+                \caption{$G(M)$}
+            \end{subfigure}
+            \begin{subfigure}[]{0.45\textwidth}
+                \centering
+                \begin{tikzpicture}[scale=1, transform shape]
+                    \node[ndlat] (EX) at (-1, 1.5) {$\varepsilon_X$};
+                    \node[ndout] (X) at (0, 0) {$X$};
+                    \node[ndlat] (EY) at (1, 3) {$\varepsilon_Y$};
+                    % \node[ndout] (Y) at (1, 1.5) {$Y$};
+                    \node[ndlat] (EZ) at (3, 1.5) {$\varepsilon_Z$};
+                    \node[ndout] (Z) at (2, 0) {$Z$};
+                    \draw[arlout] (EX) to (X);
+                    \draw[arlout] (EY) to (Z);
+                    \draw[arlout] (EZ) to (Z);
+                    % \draw[arout] (X) to (Y);
+                    % \draw[arout] (Y) to (Z);
+                    \draw[arout] (X) to (Z);
+                \end{tikzpicture}
+                \caption{$G(M)_{\setminus \{Y\}}$}
+            \end{subfigure}
+            % \caption{Causal graph $G$.}
+            % \label{fig:one}
+        \end{figure}
+
+        $M$ is simple so it is essentially uniquely solvable wrt.\ $Y$, with $g^{[Y]}(X, \varepsilon_Y) = X + \varepsilon_Y$ the corresponding partial solution function; substituting this into the structural equation for $(X, Z)$ gives the marginalised SCM $M_{\setminus \{Y\}}$ with endogenous variables $V = \{X, Z\}$, exogenous variables $W = \{\varepsilon_X, \varepsilon_Y, \varepsilon_Z\}$, structural equation
+        \begin{align*}
+            X & = \varepsilon_X                                                           \\
+            Z & = X - (X + \varepsilon_Y) + \varepsilon_Z = \varepsilon_Z - \varepsilon_Y
+        \end{align*}
+        and exogenous distribution $\varepsilon_X, \varepsilon_Y, \varepsilon_Z \sim \Ncal(0, \sigma^2)$ independent. The graph of this marginalised SCM is as follows:
+        \begin{figure}[!htb]
+            \centering
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndlat] (EX) at (-1, 1.5) {$\varepsilon_X$};
+                \node[ndout] (X) at (0, 0) {$X$};
+                \node[ndlat] (EY) at (1, 3) {$\varepsilon_Y$};
+                % \node[ndout] (Y) at (1, 1.5) {$Y$};
+                \node[ndlat] (EZ) at (3, 1.5) {$\varepsilon_Z$};
+                \node[ndout] (Z) at (2, 0) {$Z$};
+                \draw[arlout] (EX) to (X);
+                \draw[arlout] (EY) to (Z);
+                \draw[arlout] (EZ) to (Z);
+                % \draw[arout] (X) to (Y);
+                % \draw[arout] (Y) to (Z);
+                % \draw[arout] (X) to (Z);
+            \end{tikzpicture}
+            \caption{$G(M_{\setminus \{Y\}})$}
+        \end{figure}
+    \end{ungradedsolution}
+
+    \item % ($1 + 3\times 2$ points) 
+    Prove Proposition \ref*{prp:equivalent_scms}: Let $M = (J, V, W, \mathcal{X}, P, f)$ and $\tilde{M} = (J, V, W, \mathcal{X}, P, \tilde{f})$ be two SCMs which can only differ in their causal mechanisms, but such that $M \equiv \tilde{M}$. Prove the following claims:
+    \begin{enumerate}
+        \item Equivalence is preserved by interventions:
+        \begin{enumerate}
+            \item $M_{\doit(T\dots)} \equiv \tilde{M}_{\doit(T\dots)}$ for $T \subseteq V \cup J$ (hard interventions of all three types);
+            \item $M_{\doit(T\ot\hat{f}_T)} \equiv \tilde{M}_{\doit(T\ot\hat{f}_T)}$ for $T \subseteq V$ and $\hat f_T : \CX_J \times \CX_W \times \CX_V \to \CX_T$ a measurable function
+            (soft interventions);
+            \item $M_{\doit(I_B)} \equiv \tilde{M}_{\doit(I_B)}$ for $B \subseteq V \cup J$ (adding intervention variables);
+        \end{enumerate}
+        % \item Equivalence is preserved by twinning.
+        \item Equivalent iSCMs have equivalent submodels and composition preserves equivalence;
+        \item Equivalent iSCMs have the same null sets:
+        if $M \equiv \tilde{M}$ then $N$ is an $M$-null set if and only if it is an $\tilde{M}$-null set, and `$M\as$' means the same as `$\tilde{M}\as$';
+        \item Equivalent iSCMs have the same
+        \begin{enumerate}
+            \item potential outcomes
+            \item solutions
+            \item Markov kernels
+            \item (partial) solution functions;
+        \end{enumerate}
+        \item (Partial) solvability, essentially unique (partial) solvability, essential uniqueness of (partial) solution functions and simplicity are invariants under equivalence:
+        if $M \equiv \tilde{M}$ then
+        \begin{enumerate}
+            \item $M$ is solvable w.r.t.\ $L \ins V$ if and only if $\tilde{M}$ is solvable w.r.t.\ $L$,
+            \item $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$ if and only if it $\tilde{M}$ is essentially uniquely solvable w.r.t.\ $L$,
+            \item $g^{[L]}$ is an essentially unique solution function of $M$ w.r.t.\ $L \ins V$ if and only if it is an essentially unique solution function of $\tilde{M}$ w.r.t.\ $L$,
+            \item $M$ is simple if and only if $\tilde{M}$ is simple;
+        \end{enumerate}
+        \item Essential linearity is preserved.
+    \end{enumerate}
+    % \begin{enumerate}
+    %     \item Prove that equivalence of SCMs ($M \equiv \tilde{M}$) is indeed an equivalence relation.
+    %     \item \label{ex:equiv} Equivalence is preserved by hard interventions, i.e.: if $M$ is equivalent to $\tilde{M}$ and $T \subseteq J \cup V \cup W$ is an intervention target, then $M_{\doit(T\dots)}$ is equivalent to $\tilde{M}_{\doit(T\dots)}$. Do this for the three variants of hard interventions.
+    %     \item Show that equivalent SCMs have the same solution functions (Definition \ref*{def:solution-function}). Deduce from this and from Exercise \ref{ex:equiv} that unique solvability and simplicity are invariants of equivalence, i.e.: if $M$ is equivalent to $\tilde{M}$ and $M$ is uniquely solvable or simple, then $\tilde{M}$ is also uniquely solvable or simple, respectively.
+    %     \item Prove that equivalent SCMs have the same potential outcomes (Definition \ref*{def:scm_solutions_for_inputs}), solutions (Definition \ref*{def:scm_solutions}), and the same Markov kernels (Definition \ref*{def:scm_kernels}).
+    % \end{enumerate}
+    \begin{ungradedsolution}
+        In all parts we assume that $M = \langle J, V, W, \mathcal{X}, P, f \rangle$ and $\tilde{M} = \langle J, V, W, \mathcal{X}, P, \tilde{f} \rangle$ are two SCMs which can only differ in their causal mechanisms.
+
+        \begin{enumerate}
+            \item The first three claims follow directly from the definitions.
+            \item The first three claims follow directly from the definitions.
+            \item The first three claims follow directly from the definitions.
+            % Let $M \equiv \tilde{M}$.
+            % The condition
+            % $$\forall v \in V: x_v = f_v(\xJ,\xV,\xW) \iff x_v = \tilde{f}_v(\xJ,\xV,\xW) \qquad M\as$$
+            % implies $S = \tilde{S}\ M\as$, where
+            % $$S = \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = f(x_J,x_W,x_V) \},$$
+            % $$\tilde{S} = \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = \tilde{f}(x_J,x_W,x_V) \}.$$
+            % It even implies that $S \,\Delta\, \tilde{S}$ is measurable.
+            % % Indeed, for all $v \in V$, define the sets $S_v := \{x \in \CX : x_v = f_v(x)\}$ and
+            % % $\tilde{S}_v := \{x \in \CX : x_v = \tilde{f}_v(x)\}$, the functions
+            % % $$h_v : \CXJ \times \CXW \times \CXV \to \CX_v \times \CX_v : (\xJ,\xW,\xV) \mapsto (x_v, f_v(\xV,\xJ,\xW))$$
+            % % $$\tilde h_v : \CXJ \times \CXW \times \CXV \to \CX_v \times \CX_v : (\xJ,\xW,\xV) \mapsto (x_v, \tilde f_v(\xV,\xJ,\xW))$$
+            % % and the diagonals $\Delta_v = \{(x_v,x_v) : x_v \in \CX_v\} \subseteq \CX_v^2$.
+            % % Since $h_v$ is measurable and $\Delta_v$ is a measurable set (because $\CX_v$ is Hausdorff), $S_v = h_v^{-1}(\Delta_v)$ is a measurable set.
+            % % Similarly, $\tilde S_v = \tilde h_v^{-1}(\Delta_v)$ is a measurable set.
+            % % Hence $S_v \,\Delta\, \tilde S_v$ is measurable.
+            % The assumption $M \equiv \tilde M$ then implies that $S_v \,\Delta\, \tilde S_v$ is contained in an $M$-null set of the form $N_v = \tilde{N}_v \times \CX_V$ with $\tilde{N}_v \ins \CX_J \times \CX_W$ a measurable $M$-null set.
+
+            \item We prove the fourth point.
+            $M \equiv \tilde{M}$ implies that
+            \begin{equation}\label{eq:prp:equivalent_scms}
+                x_V = f(x) \iff x_V = \tilde{f}(x)\ M\as.
+            \end{equation}
+
+            \begin{enumerate}
+                \item
+                Potential outcomes are invariant.
+                Let $x_J \in \CX_J$.
+                We show that if a random variable $x^{\doit(x_J)}_{V,W}$ is a potential outcome of $M$, then it is a potential outcome of $\tilde{M}$.
+                Using Lemma~\ref{lem:M-as_to_rv-as}, \eref{eq:prp:equivalent_scms} implies:
+                $$X_V^{\doit(\xJ)} = f(x_J,X_W^{\doit(\xJ)},X_V^{\doit(\xJ)}) \iff X_V^{\doit(\xJ)} = \tilde{f}(x_J,X_W^{\doit(\xJ)},X_V^{\doit(\xJ)}) \text{ a.s.}.$$
+                Since $X_W^{\doit(\xJ)} \sim P_M(X_W$), this proves the claim.
+
+                \item
+                Solutions are invariant.
+                Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable.
+                We show that if $X$ is a solution of $M$, then it is a solution of $\tilde{M}$.
+                Using Lemma~\ref{lem:M-as_to_crv-as}, \eref{eq:prp:equivalent_scms} implies:
+                $$X_V = f(X_J,X_W,X_V) \iff X_V = \tilde{f}(X_J,X_W,X_V) \text{ a.s.}.$$
+                Since $K(X_W|X_J) = P_M(X_W$), this proves the claim.
+
+                \item
+                Markov kernels are invariant: this follows from the invariance of solutions.
+
+                \item
+                Partial solution functions are invariant.
+                Let $L \ins V$.
+                We show that if $g^{[L]}$ is a partial solution function of $M$ w.r.t.\ $L$, then it is a partial solution function of $\tilde{M}$ w.r.t\ $L$.
+                By assumption, $g^{[L]} : \CXJ \times \CX_{V\sm L} \times \CXW \to \CX_L$ is a measurable function.
+                Because $M\as$ and $\tilde{M}\as$ mean the same,
+                $$g^{[L]}(\xJ,x_{V\sm L},\xW) = f_L\big(\xJ, x_{V\sm L}, g^{[L]}(\xJ,x_{V\sm L},\xW), \xW\big) \quad M\as$$
+                together with \eref{eq:prp:equivalent_scms} implies:
+                $$g^{[L]}(\xJ,x_{V\sm L},\xW) = \tilde{f}_L\big(\xJ, x_{V\sm L}, g^{[L]}(\xJ,x_{V\sm L},\xW), \xW\big) \quad \tilde{M}\as,$$
+                which proves the claim.
+            \end{enumerate}
+
+            \item The fifth point follows straightforwardly because $M$ and $\tilde{M}$ have the same partial solution functions if they are equivalent.
+
+            \item The preservation of essential linearity follows because the coefficients of an affine mapping are identified if the mapping is known up to an $M$-null set.
+        \end{enumerate}
+        % In all parts we assume that $M = \langle J, V, W, \mathcal{X}, P, f \rangle$ and $\tilde{M} = \langle J, V, W, \mathcal{X}, P, \tilde{f} \rangle$ are two SCMs which can only differ in their causal mechanisms.
+        % \begin{enumerate}
+        %     \item This follows directly from Definition \ref*{def:scm_obs_interv_equiv} and the fact that logical equivalence ``$\Longleftrightarrow$'' is an equivalence relation.
+        %     \item We discuss only the case of hard interventions with specified target value, since the other two cases work the same way (and are even slightly easier to show).
+        %     Thus, let $T \subseteq J \cup V \cup W$ be an intervention target and $\xi_{T} \in \mathcal{X}_T$ be the intervention target value.
+        %     The intervened SCMs are then given by
+        %     \begin{align*}
+        %         M_{\doit(X_T = \xi_T)} = \left\langle J \setminus T, V \cup T, W \setminus T, \mathcal{X}, P_{W \setminus T}, (f_{V \setminus T}, \xi_T) \right\rangle, \\
+        %         \tilde{M}_{\doit(X_T = \xi_T)} = \left\langle J \setminus T, V \cup T, W \setminus T, \mathcal{X}, P_{W \setminus T}, (\tilde{f}_{V \setminus T}, \xi_T) \right\rangle.
+        %     \end{align*}
+        %     Now, set $f' := (f_{V \setminus T}, \xi_T)$ and $\tilde{f}' := (\tilde{f}_{V \setminus T}, \xi_T)$.
+
+        %     Then, for $v \in V \setminus T$ and arbitrary $x \in \mathcal{X}$ we obtain:
+        %     \begin{align*}
+        %         x_v = f'_v(x) & \Longleftrightarrow x_v = f_v(x)           \\
+        %                       & \Longleftrightarrow x_v = \tilde{f}_v(x)   \\
+        %                       & \Longleftrightarrow x_v = \tilde{f}'_v(x).
+        %     \end{align*}
+        %     Thereby, in the first step we used the definition of $f'$ and that $v \in V \setminus T$.
+        %     In the second step, we used the equivalence $M \equiv \tilde{M}$.
+        %     In the last step, we used the definition of $\tilde{f}'$ and again that $v \in V \setminus T$.
+
+        %     Finally, for $v \in T$ and arbitrary $x \in X$, we obtain:
+        %     \begin{align*}
+        %         x_v = f'_v(x) & \Longleftrightarrow x_v = \xi_v            \\
+        %                       & \Longleftrightarrow x_v = \tilde{f}'_v(x).
+        %     \end{align*}
+        %     Since $V \cup T = (V \setminus T) \cup T$, this proves the claim.
+        %     \item Let $M \equiv \tilde{M}$, and let $g: \mathcal{X}_J \times \mathcal{X}_W \to \mathcal{X}_V$ be any measurable function.
+        %     Then the following equivalences hold:
+        %     \begin{align*}
+        %         g \text{ is a solution function for } M & \Longleftrightarrow \forall x_J, \forall x_W: \ \ g(x_J, x_W) = f(x_J, g(x_J, x_W), x_W)                          \\
+        %                                                 & \Longleftrightarrow \forall v, \forall x_J, \forall x_W: \ \ g_v(x_J, x_W) = f_v(x_J, g(x_J, x_W), x_W)           \\
+        %                                                 & \Longleftrightarrow   \forall v, \forall x_J, \forall x_W: \ \ g_v(x_J, x_W) = \tilde{f}_v(x_J, g(x_J, x_W), x_W) \\
+        %                                                 & \Longleftrightarrow   \forall x_J, \forall x_W: \ \ g(x_J, x_W) = \tilde{f}(x_J, g(x_J, x_W), x_W)                \\
+        %                                                 & \Longleftrightarrow g \text{ is a solution function for } \tilde{M}.
+        %     \end{align*}
+        %     This shows that equivalent SCMs have the same solution functions, and consequently that unique solvability is an invariant of equivalence.
+
+        %     Now, assume that $M$ is simple and that $M \equiv \tilde{M}$.
+        %     We want to show that $\tilde{M}$ is also simple.
+        %     For this, let $T \subseteq J \cup V \cup W$ be any subset.
+        %     Then we need to show that $\tilde{M}_{\doit(T)}$ is uniquely solvable.
+        %     But note that due to the simplicity of $M$, $M_{\doit(T)}$ is uniquely solvable.
+        %     Furthermore, as was shown in Exercise \ref{ex:equiv}, $M_{\doit(T)} \equiv \tilde{M}_{\doit(T)}$. We have just shown that unique solvability is an invariant of equivalence, and thus the unique solvability of $\tilde{M}_{\doit(T)}$ automatically follows.
+
+        %     \item Let $M \equiv \tilde{M}$.
+        %     Let $X_{V\cup W}^{\doit(x_J)}$ be any random variable with codomain $\mathcal{X}_V \times \mathcal{X}_W$, and with $x_J \in \mathcal{X}_J$.
+        %     We have the following equivalences:
+        %     \begin{align*}
+        %                             & X_{V \cup W}^{\doit(x_J)} \text{ is a potential outcome of } M \text{ for input } x_J \in \mathcal{X}_J                                         \\
+        %         \Longleftrightarrow & X_W^{\doit(x_J)} \sim P \text{ and } X_V^{\doit(x_J)} = f(x_J, X_V^{\doit(x_J)}, X_W^{\doit(x_J)}) \text{ a.s. }                                \\
+        %         \Longleftrightarrow & X_W^{\doit(x_J)} \sim P \text{ and } \forall v \in V: \ \ X_v^{\doit(x_J)} = f_v(x_J, X_V^{\doit(x_J)}, X_W^{\doit(x_J)}) \text{ a.s. }         \\
+        %         \Longleftrightarrow & X_W^{\doit(x_J)} \sim P \text{ and } \forall v \in V: \ \ X_v^{\doit(x_J)} = \tilde{f}_v(x_J, X_V^{\doit(x_J)}, X_W^{\doit(x_J)}) \text{ a.s. } \\
+        %         \Longleftrightarrow & X_W^{\doit(x_J)} \sim P \text{ and } X_V^{\doit(x_J)} = \tilde{f}(x_J, X_V^{\doit(x_J)}, X_W^{\doit(x_J)}) \text{ a.s. }                        \\
+        %         \Longleftrightarrow & X_{V \cup W}^{\doit(x_J)} \text{ is a solution for } \tilde{M} \text{ with input } x_J \in \mathcal{X}_J.
+        %     \end{align*}
+        %     This shows that equivalent SCMs have the same potential outcomes. Since this holds for all $x_J \in \Xcal_J$ and potential outcomes are, by definition, just evaluations of a solution, we have that equivalent SCMs have the same solutions as well.
+
+        %     From Definition \ref*{def:scm_kernels} it is immediate that SCMs with the same solutions have the same Markov kernels as well.
+        % \end{enumerate}
+    \end{ungradedsolution}
+
+    \item % ($6 \times 1$ points) 
+    Given SCM: $M = \left\langle J=\emptyset, V=\{A, B, C, D\}, W=\{A', B', C', D'\}, \R^8, P, f \right\rangle$, where $P$ are four independent normal distributions with means and standard deviations $\mu_A, \sigma_A, \mu_B, ..., \sigma_D$, and
+    \[
+        \begin{pmatrix}
+            f_A(x, \varepsilon) \\ f_B(x, \varepsilon) \\ f_C(x, \varepsilon) \\ f_D(x, \varepsilon)
+        \end{pmatrix}
+        =
+        \begin{pmatrix}
+            0           & 0           & 0 & 0           \\
+            \alpha_{ab} & 0           & 0 & \alpha_{db} \\
+            0           & \alpha_{bc} & 0 & \alpha_{dc} \\
+            \alpha_{ad} & 0           & 0 & 0           \\
+        \end{pmatrix}
+        \begin{pmatrix}
+            x_A \\ x_B \\ x_C \\ x_D
+        \end{pmatrix}
+        +
+        \begin{pmatrix}
+            \varepsilon_{A'} \\ \varepsilon_{B'} \\ \varepsilon_{C'} \\ \varepsilon_{D'}
+        \end{pmatrix}
+    \]
+    for nonzero real numbers $\alpha_{(\cdot)}$. Note that we have a slightly different notation as in the lecture notes, as we refer to $x_V$ as $x$, and refer to $x_W$ as $\varepsilon$.
+    \begin{enumerate}
+        \item Construct a solution function.
+        \item Give the graph $G^+(M)$.
+        % TODO: G^+(M), and also in other exercises
+        \item For the set of latent variables $L=\{D\}$, give the marginal SCM $M_{\setminus L}$ and its solution function.
+        \item Show that $G^+(M_{\setminus L})$ is a subgraph of $G^+(M)^{\setminus L}$.
+        \item Show observational equivalence of $M$ and $M_{\setminus L}$ with respect to $V \setminus L$ directly using the solution functions and Markov kernels.
+        \item Show observational equivalence between $M_{\doit(B)}$ and ${\left(M_{\setminus L}\right)}_{\doit(B)}$ with respect to $\{A,C\}$.
+    \end{enumerate}
+
+    \begin{gradedsolution}
+        \begin{enumerate}
+            \item \points{1} As the SCM is acyclic with order e.g. $(A,D,B,C)$, the solution can be read off from $f$. Alternatively, use  $(1_4-B_{VV})^{-1}\varepsilon$ (where $B_{VV}$ relates to the notation in Proposition \ref*{prp:linear_scms}).
+            One finds:
+            \[\begin{cases}
+                    g_A(\varepsilon) = \varepsilon_{A'}                                                                                                                                                                                                                             \\
+                    g_B(\varepsilon) = \varepsilon_{A'} \left(\alpha _{ab}+\alpha _{ad} \alpha _{db}\right)+\varepsilon_{B'}+\varepsilon_{D'} \alpha _{db}                                                                                                                          \\
+                    g_C(\varepsilon) = \varepsilon_{A'} \left(\alpha _{ab} \alpha _{bc}+\alpha _{ad} \alpha _{bc} \alpha _{db}+\alpha _{ad} \alpha _{dc}\right)+\varepsilon_{B'} \alpha _{bc}+\varepsilon_{D'} \left(\alpha _{bc} \alpha _{db}+\alpha _{dc}\right)+\varepsilon_{C'} \\
+                    g_D(\varepsilon) = \varepsilon_{A'} \alpha _{ad}+\varepsilon_{D'}
+                \end{cases}\]
+            \item \points{0.5} $G(M):$
+            \begin{center}
+                \begin{tikzpicture}[scale=1, transform shape]
+                    \tikzstyle{every node} = [draw,shape=circle];
+                    \node (A) at (0, 2) {$A$};
+                    \node (B) at (1, 0) {$B$};
+                    \node (C) at (3, 0) {$C$};
+                    \node (D) at (2, 2) {$D$};
+                    \node (epsA) at (0, 4) {${A'}$};
+                    \node (epsB) at (1, -2) {${B'}$};
+                    \node (epsC) at (3, -2) {${C'}$};
+                    \node (epsD) at (2, 4) {${D'}$};
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (D);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (D) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (D) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsA) to (A);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsB) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsC) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsD) to (D);
+                \end{tikzpicture}
+            \end{center}
+
+            \item \points{1} Intervening on $\{A,B,C\}$, we solve for $x_D$ and find $g'_D(x_{(A, B, C)}, \varepsilon)=\alpha_{ad} x_A + \varepsilon_{D'}$ as a solution function of $M_{\doit(A, B, C)}$. Filling this in at $f$ leads to:
+            \begin{align*}
+                \begin{pmatrix}
+                    \tilde{f}_A(x) \\ \tilde{f}_B(x) \\ \tilde{f}_C(x)
+                \end{pmatrix}
+                 & =
+                \begin{pmatrix}
+                    0           & 0           & 0 & 0           \\
+                    \alpha_{ab} & 0           & 0 & \alpha_{db} \\
+                    0           & \alpha_{bc} & 0 & \alpha_{dc} \\
+                \end{pmatrix}
+                \begin{pmatrix}
+                    x_A \\ x_B \\ x_C \\ \alpha_{ad} x_A + \varepsilon_{D'}
+                \end{pmatrix}
+                +
+                \begin{pmatrix}
+                    \varepsilon_{A'} \\ \varepsilon_{B'} \\ \varepsilon_{C'}
+                \end{pmatrix} \\
+                 & =
+                \begin{pmatrix}
+                    0                                  & 0           & 0 \\
+                    \alpha_{ab}+\alpha_{ad}\alpha_{db} & 0           & 0 \\
+                    \alpha_{ad}\alpha_{dc}             & \alpha_{bc} & 0 \\
+                \end{pmatrix}
+                \begin{pmatrix}
+                    x_A \\ x_B \\ x_C
+                \end{pmatrix}
+                +
+                \begin{pmatrix}
+                    \varepsilon_{A'} \\ \varepsilon_{B'} +\alpha_{db}\varepsilon_{D'}\\ \varepsilon_{C'} + \alpha_{dc}\varepsilon_{D'}
+                \end{pmatrix}
+            \end{align*}
+            as the causal mechanism of $M_{\setminus L}$. The solution function of $M_{\setminus L}$ is
+            \[\begin{cases}
+                    \tilde{g}_A(\varepsilon) = \varepsilon_{A'}                                                                                                    \\
+                    \tilde{g}_B(\varepsilon) = \varepsilon_{A'} \left(\alpha _{ab}+\alpha _{ad} \alpha _{db}\right)+\varepsilon_{B'}+\varepsilon_{D'} \alpha _{db} \\
+                    \tilde{g}_C(\varepsilon) = \varepsilon_{A'} \left(\alpha _{ab} \alpha _{bc}+\alpha _{ad} \alpha _{bc} \alpha _{db}+\alpha _{ad} \alpha _{dc}\right)+\varepsilon_{B'} \alpha _{bc}+\varepsilon_{D'} \left(\alpha _{bc} \alpha _{db}+\alpha _{dc}\right)+\varepsilon_{C'},
+                \end{cases}\]
+            which follows directly from Lemma \ref*{lem:marginalization_preserves_unique_solvability}.
+
+            \item \points{0.5} $G(M_{\setminus L}):$
+            \begin{center}
+                \begin{tikzpicture}[scale=1, transform shape]
+                    \tikzstyle{every node} = [draw,shape=circle];
+                    \node (A) at (0, 2) {$A$};
+                    \node (B) at (1, 0) {$B$};
+                    \node (C) at (3, 0) {$C$};
+                    \node (epsA) at (0, 4) {${A'}$};
+                    \node (epsB) at (1, -2) {${B'}$};
+                    \node (epsC) at (3, -2) {${C'}$};
+                    \node (epsD) at (2, 4) {${D'}$};
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsD) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsD) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsA) to (A);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsB) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsC) to (C);
+                \end{tikzpicture}
+            \end{center}
+
+            $G(M)^{\setminus L}:$
+            \begin{center}
+                \begin{tikzpicture}[scale=1, transform shape]
+                    \tikzstyle{every node} = [draw,shape=circle];
+                    \node (A) at (0, 2) {$A$};
+                    \node (B) at (1, 0) {$B$};
+                    \node (C) at (3, 0) {$C$};
+                    \node (epsA) at (0, 4) {${A'}$};
+                    \node (epsB) at (1, -2) {${B'}$};
+                    \node (epsC) at (3, -2) {${C'}$};
+                    \node (epsD) at (2, 4) {${D'}$};
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (A) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsD) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsD) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsA) to (A);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsB) to (B);
+                    \draw[-{Latex[length=3mm, width=2mm]}] (epsC) to (C);
+                    \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, bend left] (B) to (C);
+                \end{tikzpicture}
+            \end{center}
+
+            We see that $G(M_{\setminus L})$ is a subgraph of $G(M)^{\setminus L}$.
+            \item \points{0.5} \label{ans:obs_equiv} The projections of both solution functions $g$ and $\tilde{g}$ onto $V\setminus L = \{A, B, C\}$ are the same, so the result follows directly from the definition of observable equivalence (Definition \ref*{def:scm_obs_interv_equiv}) and Remark \ref*{rem:using_solution_functions} (if the solutions functions are the same, then the Markov kernels coincide).
+            \item \points{0.5} For both SCMs we have the solution function
+            \[\begin{cases}
+                    g_A(x_B, \varepsilon) = \varepsilon_{A'} \\
+                    g_C(x_B, \varepsilon) = \varepsilon_{A'} \alpha_{ad} \alpha _{dc}+x_B \alpha _{bc}+\varepsilon_{C'}+\varepsilon_{D'} \alpha_{dc},
+                \end{cases}\]
+            so similar to \ref{ans:obs_equiv} we conclude that they are observably equivalent.
+        \end{enumerate}
+    \end{gradedsolution}
+
+    % \item BONUS: show that $M-as \implies M_{\doit(Y)}-as $ and $M^{[L]}-as$.
+    \item \textbf{BONUS:} Construct an iSCM $M$ with $L\subseteq O\subseteq V$ such that the marginalized iSCM $M_{\setminus L}$ is essentially uniquely solvable w.r.t. $O \setminus L$, but the iSCM $M$ is not essentially uniquely solvable w.r.t. $O$.
+\end{enumerate}
+
+\end{document}

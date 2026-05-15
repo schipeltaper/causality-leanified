@@ -1,0 +1,1229 @@
+\title[Causality]{Causality: Lecture 15}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2022-05-17]{\normalsize May 17th, 2023}
+\maketitle
+
+\part{Fast Causal Inference (FCI)}
+\frame{\partpage}
+
+\begin{frame}{History}
+  \begin{itemize}
+    \item Fast Causal Inference (FCI) algorithm \cite{SMR1995} is a constraint-based causal discovery algorithm
+      that extends the venerable PC algorithm \cite{SGS2000} to deal with \emph{latent variables}.
+    \item It was extended to deal with latent \emph{selection variables} \cite{SMR1999}, and this extension
+      was shown to be complete \cite{Zhang2008_AI}.
+    \item Recently, it was discovered that the FCI algorithm is also sound and complete in the
+      presence of \emph{cycles} (in the $\sigma$-separation setting) \cite{MooijClaassen_UAI_20}
+    \item Also, it was extended to allow for \emph{exogenous input} variables \cite{Mooij++_JMLR_20}
+    \item However, these two extensions do not allow for selection bias.
+  \end{itemize}
+  We provide here a unified extension of the FCI algorithm that can deal with latent variables, cycles, selection bias and input nodes.
+\end{frame}
+
+\section{Modeling selection bias}
+\frame{\sectionpage}
+
+\begin{frame}{Example of selection bias}
+\begin{Eg}
+  When evaluating a course, the teacher needs to be aware of possible selection bias.
+  \begin{itemize}
+    \item Evaluation of a course after the exam by means of evaluation form;
+    \item Not all students filled in the evaluation form;
+    \item Selection bias if the most dissatisfied students quit early on and never filled in the form;
+    \item Selection variable $S$ (binary): `student filled in the evaluation form'.
+  \end{itemize}
+  If variables $X_1,\dots,X_p$ encode the answers to the questions on the evaluation form,
+  $$P(X_1,\dots,X_p \given S=1) \ne P(X_1,\dots,X_p).$$
+
+  The entire population (all students that registered for the course) has a different distribution than the subpopulation of students with $S=1$ (the students that filled in the evaluation form).
+\end{Eg}
+\end{frame}
+
+\begin{frame}{Modeling selection bias}
+\begin{Not}
+  \begin{itemize}
+    \item Simple SCM $M = \lt \Sin, \Send^+, \Srnd, \CX, P, f \rt$, with endogenous variables $V^+ = V \dcup S$;
+    \item Observed variables: $V \cup J$; causal graph $G_{V^+|J}(M)$;
+    \item Latent \emph{selection variables}: $S$;
+    \item Data is distributed according to marginal Markov kernel of $M$ on $V$ after conditioning on $S$,
+     for some (unknown) measurable subset $\xi_S \subseteq \CX_S$:
+      $$P_M(X_V \mid X_S \in \xi_S, \doit(X_J));$$
+  \end{itemize}
+  This models a process that \emph{filters} the data according to the value of $X_S$ (like in a rejection sampler).
+\end{Not}
+\begin{block}{Goal}
+Our goal will be to deduce as much as possible about the causal graph from the marginal Markov kernel. 
+\end{block}
+\end{frame}
+
+\section{Inducing walks}
+\frame{\sectionpage}
+
+\begin{frame}{Inducing walks: Definition}
+  An important notion is \emph{$\sigma$-inducing walks}.
+We define $\sigma$-inducing walk as a generalization to CDMGs of the notion of inducing path \cite{VermaPearl1990} in DAGs. %(primitive inducing path in \cite{RichardsonSpirtes02}).
+  \begin{Def}[\ref{def:sigma-inducing_path}]
+Let $G$ be a CDMG with input nodes $J$, output nodes $V^+ = V \dcup S$ and let $i,j \in V \dcup J$ be distinct nodes.
+A walk $\pi$ in $G$ between $i$ and $j$ is called \emph{$\sigma$-inducing given $S$} if  each collider on $\pi$ is in $\Anc_{G}(\{i,j\}\cup S)$, and each non-endpoint non-collider on $\pi$ is unblockable. 
+If it is a path, it is called a \emph{$\sigma$-inducing path given $S$} between $i$ and $j$.
+\end{Def}
+  \begin{itemize}
+    \item Any edge between two adjacent nodes is a $\sigma$-inducing path given $S$;
+    \item If $i \in \Sc_G(j)$ then there exists a $\sigma$-inducing path given $S$ in $G$ between $i$ and $j$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Inducing walks: Examples}
+\begin{example}
+  Can you spot $\sigma$-inducing paths between $i$ and $k$ (given $\{s\}$)?
+
+  \bigskip
+  \begin{center}\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+    \end{scope}
+    \begin{scope}[yshift=-2cm,xshift=0cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \node[ndout] (X4) at (-1.5,-1) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh] (X3) edge (X4);
+      \draw[tuh] (X4) edge (X1);
+    \end{scope}
+    \begin{scope}[yshift=-2cm,xshift=5.5cm]
+      \node[ndint] (X1) at (-3,0) {$j$};
+      \node[ndint] (X2) at (-1.5,0) {$i$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4cm,xshift=0cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1,0) {$k$};
+      \node[ndout] (X3) at (-2,-1) {$s$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4cm,xshift=5.5cm]
+      \node[ndint] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$l$};
+      \node[ndout] (X3) at (-2.25,-1) {$s$};
+      \node[ndout] (X4) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh,bend left] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+      \draw[tuh] (X4) edge (X2);
+    \end{scope}
+  \end{tikzpicture}\medskip\end{center}
+\end{example}
+\end{frame}
+
+\begin{frame}{Inducing walks: Key Property}
+This notion has the following important properties.
+\begin{Prp}[\ref{prp:sigma-inducing_path_properties}]
+  Let $G$ be a CDMG with input nodes $J$, output nodes $V^+ = V \dcup S$ and let $i \in V$ (but $i \notin J$) and $j \in V \dcup J$ be distinct nodes. 
+  Then the following are equivalent:
+  \begin{enumerate}
+    \item There is a $\sigma$-inducing path given $S$ in $G$ between $i$ and $j$;
+    \item There is a $\sigma$-inducing walk given $S$ in $G$ between $i$ and $j$;
+    \item $i \nPerp^\sigma_G j \given S \cup Z$ for all $Z \subseteq (V \cup J) \sm \{i,j\}$;
+    \item $i \nPerp^\sigma_G j \given S \cup Z$ for $Z = (\Anc_G(\{i,j\} \cup S) \cup J) \sm \{i,j\}$.
+  \end{enumerate}
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Orientations of inducing paths}
+The orientations of the outermost edges on a $\sigma$-inducing path contain important information about ancestral relations.
+
+Let $G$ be a CDMG with input nodes $J$, output nodes $V^+ = V \dcup S$ and let $i,j \in V \dcup J$ be distinct.
+  \begin{Lem}[\ref{lem:sigma-inducing_path_out-of} \& \ref{lem:sigma-inducing_path_into_into}]
+  If there exists a $\sigma$-inducing path given $S$ between $i$ and $j$ in $G$, and
+  \begin{enumerate}
+      \item if all $\sigma$-inducing paths given $S$ in $G$ between $i$ and $j$ are out of $j$, then $j \in \Anc_G(\{i\} \cup S)$;
+      \item if it is into $j$, and $i \notin \Anc_G(\{j\} \cup S)$, then there exists a $\sigma$-inducing path given $S$ between $i$ and $j$ in $G$ that is both into $i$ and into $j$.
+  \end{enumerate}
+\end{Lem}
+\begin{Lem}[\ref{lem:induced_path_into_scc}]
+If there is an $\sigma$-inducing path in $G$ given $S$ between $i$ and $j$ that is into $j$, and $k \in \Sc_G(j)$, then there is an $\sigma$-inducing path in $G$ given $S$ between $i$ and $k$ that is into $k$.
+\end{Lem}
+\end{frame}
+
+\section{Partial Ancestral Graphs (PAGs)}
+\frame{\sectionpage}
+
+\begin{frame}{$\sigma$-PAGs: nodes and edges}
+  \begin{itemize}
+    \item \emph{Partial ancestral graphs (PAGs)} were introduced to represent a set of DAGs with latent (selection) variables compactly \cite{SMR1999},
+    \item Here we define the more general class of \emph{$\sigma$-PAGs} that represent CDMGs (with possible cycles and input nodes).
+  \end{itemize}
+  \begin{itemize}
+    \item $\sigma$-PAGs have two node types: input nodes, and output nodes.
+    \item $\sigma$-PAGs have the following edge types: $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.
+    \item There are three possible \emph{edge marks}: \emph{arrowhead}, \emph{tail} or \emph{circle}.
+    \item Each edge has two \emph{edge marks}, one for each node.
+    \item Edges of the form $i \hut j, i \huo j, i \huh j$ are called \emph{into $i$}.
+    \item Edges of the form $i \tuh j, i \ouh j, i \huh j$ are called \emph{into $j$}. 
+    \item Edges of the form $i \tuh j, i \tuo j, i \tut j$ are called \emph{out of $i$}.
+    \item Edges of the form $i \hut j, i \out j, i \tut j$ are called \emph{out of $j$}.
+    \item The ``$\asterisk$'' symbol denotes any of the three edge marks, e.g., $i \suh j$ edges are into $j$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions}
+We extend various graphical definitions to cover these new edge types.
+  \begin{Def}[\ref{def:more_walks}]
+  Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.\\
+  Let $v,w \in V \cup J$.
+  \begin{enumerate}
+    \item If there is an edge $v \sus w$ between $v$ and $w$ (of any type), we call $v$ and $w$ \emph{adjacent} in $H$.
+    \item Define $\Adj_H(v)$ to be the nodes adjacent to $v$ in $H$.
+    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ form a \emph{triangle} if each pair of nodes in the triple is adjacent in $H$.
+    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ is called \emph{unshielded} if $b$ is adjacent to both $a$ and $c$ in $H$, but $a$ is not adjacent to $c$ in $H$.
+  \end{enumerate}
+  \end{Def}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions, continued}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{4}
+    \item A \emph{walk between $v$ and $w$} in $H$ is a finite alternating sequence of nodes and edges 
+        \[v=v_0, a_0, v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+        in $H$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+        we have that $v_{k},v_{k+1} \in V \cup J$ and $a_k = v_k \sus v_{k+1} \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+    \item A walk is called a \emph{path} if no node occurs more than once on the walk.
+    \item A \emph{directed walk} (path) from $v$ to $w$ in $H$ is a walk (path) of the form:
+        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        for some $n \ge 0$.
+  \end{enumerate}
+  \end{Def}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions, continued}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{7}
+    \item A path $v_0 \sus \dots \sus v_n$ in $H$ is called a \emph{possibly directed path from $v_0$ to $v_n$} if for each $i=1,\dots,n$, the edge $v_{i-1} \sus v_i$ is not into $v_{i-1}$ and is not out of $v_i$ (i.e., each edge must be of the form $v_{i-1} \ouo v_i$, $v_{i-1} \ouh v_i$, $v_{i-1} \tuo v_i$ or $v_{i-1} \tuh v_i$).
+    \item A \emph{directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with
+      the directed edge $w \tuh v$.
+    \item An \emph{almost directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated
+      with the bidirected edge $w \huh v$.
+    \item A path of the form $v_0 \ouo \dots \ouo v_n$ (with each edge of the form $v_i \ouo v_{i+1}$) is called a \emph{circle path}.
+    \item A path $v_0 \sus \dots \sus v_n$ in $H$ is called \emph{uncovered} if every subsequent triple $\lt v_{k-1}, v_k, v_{k+1} \rt$ for $1 < k < n$ is unshielded.
+  \end{enumerate}
+  \end{Def}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions, continued}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{12}
+    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called \emph{definite collider}
+      if it is of the form $v_{k-1} \suh v_k \hus v_{k+1}$.
+    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called a \emph{definite non-collider}
+      if it is of the form $v_{k-1} \sus v_k \tus v_{k+1}$ or $v_{k-1} \sut v_k \sus v_{k+1}$.
+      Furthermore, we also refer to the end nodes $v_0$ and $v_n$ of a walk between $v_0$ and $v_n$ in $H$ as \emph{definite non-colliders}.
+    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$v$ is ancestor of $w$ in $H$}, 
+      and we write $v \in \Anc_H(w)$. For $W \subseteq V \cup J$, we define $\Anc_H(W) := \bigcup_{w\in W} \Anc_H(w)$.
+    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$w$ is descendant of $v$ in $H$}, 
+      and we write $w \in \Desc_H(v)$. For $W \subseteq V \cup J$, we define $\Desc_H(W) := \bigcup_{w\in W} \Desc_H(w)$.
+  \end{enumerate}
+  \end{Def}
+\end{frame}
+
+\begin{frame}[t]{Terminology extensions, continued}
+  \begin{Def}[\ref{def:more_walks}, continued]
+  \begin{enumerate}
+    \setcounter{enumi}{16}
+    \item A walk between $v,w \in V \cup J$ (with $v \ne w$) in $H$ is called \emph{definitely inducing} if every non-endpoint node is a definite collider in $\Anc_H(\{v,w\})$.
+    \item A walk between $v$ and $w$ in $H$ is called \emph{definitely open given $Z \subseteq V \cup J$} if
+      \begin{itemize}
+        \item every node on the walk is a definite collider or definite non-collider, and
+        \item every definite collider is in $\Anc_H(Z)$, and
+        \item every definite non-collider is not in $Z$.
+      \end{itemize}
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{$\sigma$-PAGs: Definition}
+We can now define:
+\begin{Def}[\ref{def:sigmapag}]
+%  We call a graph $G = \lt V,E\rt$ with nodes $V$ and edges $E$ between ordered node pairs of the types $\{\ttt,\ttc,\to,\ot,\otc,\oto,\ctt,\ctc,\cto\}$ a \emph{partial ancestral graph (PAG)} if
+  %It is called a \emph{directed partial ancestral graph (DPAG)} if it only has edges of the types $\{\to,\ot,\oto,\otc,\cto,\ctc\}$.
+  A mixed graph $H = \lt J,V,E\rt$ with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$ is called a \emph{partial $\sigma$-ancestral graph ($\sigma$-PAG)} if the following conditions all hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+    \item The graph contains no directed cycles, no almost directed cycles, and no unshielded triple of the form $i \suh j \tut k$ (\emph{$\sigma$-ancestral});
+    \item There is no definitely inducing path between any two distinct non-adjacent nodes (\emph{maximal});
+    \item No input node is adjacent to any other input node;
+    \item If there is an edge $j \sus v$ with $j \in J, v \in V$ then it must be of the form $j \tus v$.
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{$\sigma$-PAGs represent CDMGs}
+$\sigma$-PAGs are used to represent a set of CDMGs as follows.
+\begin{Def}[\ref{def:sigmapag_represents_cdmg}]
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.\\
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.\\
+  We say that \emph{$H$ represents $G$ given $S$} if all of the following hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes in $H$ there is at most one edge;
+    \item Nodes $i,j \in V \cup J$ are adjacent in $H$ if and only if $i \ne j$, $\{i,j\} \not\subseteq J$, and there is a $\sigma$-inducing path between $i$ and $j$ given $S$ in $G$;
+    \item If $i \hus j$ in $H$ then $i \notin \Anc_{G}(\{j\} \cup S)$;
+    \item If $i \tus j$ in $H$ then $i \in \Anc_{G}(\{j\} \cup S)$;
+    \item If $j \sus v$ in $H$ with $j \in J, v \in V$ then it must be of the form $j \tus v$. 
+  \end{enumerate}
+\end{Def}
+Hence, adjacencies represent $\sigma$-inducing paths, arrowheads represent non-ancestorship, and tails represent ancestorship.
+\end{frame}
+
+\begin{frame}{$\sigma$-PAGs: Examples}
+  The CDMG on the right is represented by the $\sigma$-PAG on the right:
+
+  \medskip
+  \begin{center}\scalebox{0.7}{\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-1.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+    \end{scope}
+    \begin{scope}[yshift=-3cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \node[ndout] (X4) at (-1.5,-1) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh] (X3) edge (X4);
+      \draw[tuh] (X4) edge (X1);
+    \end{scope}
+    \begin{scope}[yshift=-5.25cm]
+      \node[ndint] (X1) at (-3,0) {$j$};
+      \node[ndint] (X2) at (-1.5,0) {$i$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1,0) {$k$};
+      \node[ndout] (X3) at (-2,-1) {$s$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-8.5cm]
+      \node[ndint] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$l$};
+      \node[ndout] (X3) at (-2.25,-1) {$s$};
+      \node[ndout] (X4) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh,bend left] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+      \draw[tuh] (X4) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+%      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[tuh,bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-1.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[ouo] (X2) edge (X3);
+%      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[tuh,bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-3cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \node[ndout] (X4) at (-1.5,-1) {$l$};
+      \draw[tut] (X1) edge (X2);
+      \draw[tut, bend left] (X1) edge (X3);
+      \draw[tut] (X1) edge (X4);
+      \draw[tut] (X2) edge (X3);
+      \draw[tut] (X2) edge (X4);
+      \draw[tut] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-5.25cm]
+      \node[ndint] (X1) at (-3,0) {$i$};
+      \node[ndint] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-6.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$k$};
+      \draw[tut] (X1) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-8.5cm]
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$l$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tut] (X1) edge (X2);
+      \draw[tut] (X2) edge (X3);
+      \draw[tut,bend left] (X3) edge (X1);
+    \end{scope}
+  \end{tikzpicture}}\end{center}
+\end{frame}
+    
+\begin{frame}{$\sigma$-PAGs: Examples}
+Each of the DMGs on the left is represented by each $\sigma$-PAG on the right:
+
+\bigskip
+\centerline{\scalebox{0.85}{\begin{tikzpicture}
+    \begin{scope}
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm]
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[biarr,bend left] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[arr] (X1) edge (X2);
+      \draw[biarr,bend left] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-1cm,xshift=6cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[ouo] (X1) edge (X2);
+      \draw[ouo] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-3cm,xshift=6cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[ouh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+\end{tikzpicture}}}
+\end{frame}
+
+\begin{frame}{$\sigma$-PAGs: Examples}
+  The $\sigma$-PAG on the right represents all Y-structure DMGs on the left:
+
+  \bigskip
+  \scalebox{0.65}{\begin{tikzpicture}
+    \begin{scope}[xshift=15cm,yshift=-4cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[ouh] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[ouh] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[tuh] (X3) edge (X4);
+    \end{scope}
+
+    \begin{scope}
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=4cm,yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=4cm,yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+  \end{tikzpicture}}
+\end{frame}
+
+\begin{frame}{$\sigma$-PAGs: orientation of edges}
+\begin{Lem}[\ref{lem:sigmapag_ancestral_relations} \& \ref{lem:sigma-inducing_path_into}]
+  Let $H$ be a $\sigma$-PAG that represents a CDMG $G$ given $S$. \\
+  For two distinct nodes $i,j$ in $H$: 
+  \begin{enumerate}
+    \item $i \in \Anc_{H}(j)$ implies $i \in \Anc_{G}(\{j\} \cup S)$;
+    \item If $i \suh j$ in $H$, then there exists a $\sigma$-inducing path given $S$ in $G$ between $i$ and $j$ that is into $j$;
+    \item If $i \huh j$ in $H$, then there exists a $\sigma$-inducing path given $S$ in $G$ between $i$ and $j$ that is both into $i$ and into $j$.
+  \end{enumerate}
+\end{Lem}
+The following is an important result:
+\begin{Prp}[\ref{prp:sigmapag_represents_cdmg_is_valid}]
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.\\
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.\\
+  If $H$ represents $G$ given $S$, then $H$ is a $\sigma$-PAG.
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Every DMG can be represented by a $\sigma$-PAG}
+\begin{Prp}[\ref{prp:from_cdmg_to_sigmapag}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+  There exists a $\sigma$-PAG, denoted $\sigmaPAG(G \given S)$, that represents $G$ given $S$.
+\end{Prp}
+\begin{proof}
+  Construct a mixed graph $H$ with input nodes $J$ and output nodes $V$ as follows.
+  Let two nodes $i,j \in J\cup V$ be adjacent in $H$ if and only if $i \ne j$, $\{i,j\} \not\subseteq J$ and there is a $\sigma$-inducing path given $S$ between $i,j$ in $G$.
+  In that case, orient the edge between $i$ and $j$ in $H$ as follows:
+\setlength\abovedisplayskip{5pt}
+\setlength\belowdisplayskip{5pt}
+    $$\begin{cases}
+      \text{$i \tut j$} & \text{if $i \in \Anc_G(\{j\} \cup S)$ and $j \in \Anc_G(\{i\} \cup S)$}, \\
+      \text{$i \tuh  j$} & \text{if $i \in \Anc_G(\{j\} \cup S)$ and $j \notin \Anc_G(\{i\} \cup S)$}, \\
+      \text{$i \hut  j$} & \text{if $i \notin \Anc_G(\{j\} \cup S)$ and $j \in \Anc_G(\{i\} \cup S)$}, \\
+      \text{$i \huh j$} & \text{if $i \not\in \Anc_G(\{j\} \cup S)$ and $j \not\in \Anc_G(\{i\} \cup S)$.}
+    \end{cases}$$
+  By construction, $H$ represents $G$ given $S$.
+  It is a valid $\sigma$-PAG by Proposition~\ref{prp:sigmapag_represents_cdmg_is_valid}.
+\end{proof}
+If $G$ is acyclic, $\sigmaPAG(G)$ (known as the directed maximal ancestral graph, or DMAG, in the literature) contains no circle edge marks.
+\end{frame}
+
+\begin{frame}{Open paths in $\sigma$-PAGs}
+The existence of a definitely open path in a $\sigma$-PAG representing a CDMG may imply the existence of a corresponding $\sigma$-open path in the CDMG.
+\begin{Prp}[\ref{prp:sigmapag_open_walk_implies_cdmg_open_walk}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-PAG that represents $G$ given $S$.
+  Let, for $n \ge 2$,
+    \[\pi = q_0 \sus q_1 \suh q_2 \huh \dots \huh q_{n-1} \hus q_n\] 
+  be a definitely $Z$-open path in $H$, for $Z \subseteq (J \cup V) \sm \{q_0,q_n\}$,
+  such that $q_2, \dots, q_{n-1}$ are definite colliders, and $q_{1}$ is either a definite non-collider or a definite collider.
+  Then there exists a $(Z \cup S)$-$\sigma$-open path in $G$ between $q_0$ and $q_n$.
+\end{Prp}
+\end{frame}
+
+\section{Unshielded triples}
+\frame{\sectionpage}
+
+\begin{frame}{Orienting unshielded triples}
+A key step in the FCI algorithm is the orientation of unshielded triples.
+
+\medskip
+\begin{Prp}[\ref{prp:orienting_unshielded_triples}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-PAG that represents $G$ given $S$.
+  If $\lt i, j, k \rt$ form an unshielded triple in $H$ with $i \in V$ (and $j,k \in V \cup J$), then either 
+  \begin{enumerate}
+    \item $j \notin Z$ for each $Z \subseteq (V \cup J) \sm \{i,k\}$ such that $i \Perp^\sigma_G k \given Z \cup S$, and $j \notin \Anc_G(\{i,k\} \cup S)$, or
+    \item $j \in Z$ for each $Z \subseteq (V \cup J) \sm \{i,k\}$ such that $i \Perp^\sigma_G k \given Z \cup S$, and $j \in \Anc_G(\{i,k\} \cup S)$.
+  \end{enumerate}
+\end{Prp}
+
+\medskip
+  In the first case, we can orient the edges as $i \suh j \hus k$ to obtain a $\sigma$-PAG $\tilde{H}$ that also represents $G$. \\
+  In the second case, we cannot orient an edge.
+\end{frame}
+
+\section{Discriminating paths}
+\frame{\sectionpage}
+
+\begin{frame}{Discriminating paths}
+Discriminating paths extend unshielded triples.
+\begin{Def}[\ref{def:discriminating_path}]
+  A path $\pi = \lt i, j, q_1, \dots, q_n, k \rt$ (with $n \ge 1$) in a mixed graph $H$ is a \emph{discriminating path for $j$} if:
+  \begin{enumerate}
+    \item $i$ is not adjacent to $k$ in $H$, and
+    \item for $r=1,\dots,n$: $q_r$ is a definite collider on $\pi$ and a parent of $i$ in $H$.
+  \end{enumerate}
+\end{Def}
+
+  \begin{center}
+    \scalebox{0.8}{\begin{tikzpicture}
+      \node[ndout] (X) at (9,0) {$k$};
+      \node[ndint] at (9,0) {$k$};
+      \node[ndout] (Q1) at (7.5,0) {$q_n$};
+      \node[ndout] (Q2) at (6,0) {$q_{n-1}$};
+      \node (dots) at (4.5,0) {$\cdots$};
+      \node[ndout] (Qn) at (3,0) {$q_1$};
+%      \node[ndout] (B) at (1.5,0.0) {$b$};
+%      \node[ndout] (Y) at (1.5,2) {$y$};
+      \node[ndout] (B) at (1.5,0) {$j$};
+      \node[ndint] at (1.5,0) {$j$};
+      \node[ndout] (Y) at (0,0) {$i$};
+      \draw[suh] (X) -- (Q1);
+      \draw[huh] (Q1) -- (Q2);
+      \draw[huh] (Q2) -- (dots);
+      \draw[huh] (dots) -- (Qn);
+      \draw[tuh,bend right,in=240] (Q1) edge (Y);
+      \draw[tuh,bend right,in=225] (Q2) edge (Y);
+      \draw[tuh,bend right,in=210] (Qn) edge (Y);
+      \draw[suh]  (B) -- (Qn);
+      \draw[sus] (B) -- (Y);
+    \end{tikzpicture}}
+  \end{center}
+
+  Discriminating path $\lt i,j,q_1,\dots,q_n,k \rt$ for $j$ between $i$ and $k$.
+  Only $j$ and $k$ could be an input node, all other nodes must be output nodes.
+\end{frame}
+
+\begin{frame}{Orienting discriminating paths}
+Discriminating paths behave like unshielded triples. 
+
+  \medskip
+\begin{Prp}[\ref{prp:orienting_discriminating_paths}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-PAG that represents $G$ given $S$.
+  If $\lt i, j, q_1, \dots, q_n, k \rt$ is a discriminating path in $H$ for $j$ between $i$ and $k$, then
+  either 
+  \begin{enumerate}
+    \item $j \notin Z$ for each $Z \subseteq (V \cup J) \sm \{i,k\}$ such that $i \Perp^\sigma_G k | Z \cup S$, and $j \notin \Anc_G(\{q_1,i\} \cup S)$, or
+    \item $j \in Z$ for each $Z \subseteq (V \cup J) \sm \{i,k\}$ such that $i \Perp^\sigma_G k | Z \cup S$, and $j \in \Anc_G(\{i\} \cup S)$.
+  \end{enumerate}
+  In both cases, $i \notin \Anc_G(\{j\} \cup S)$.
+\end{Prp}
+
+  \medskip
+  In the first case, we can orient $q_n \huh j \huh k$.\\
+  In the second case, we can orient $j \tuh k$.\\
+  In both cases, we then obtain a $\sigma$-PAG $\tilde{H}$ that also represents $G$. 
+\end{frame}
+
+
+\section{Independence models and Markov equivalence}
+\frame{\sectionpage}
+
+\begin{frame}{Independence models}
+We start with an abstract definition of an ``independence model'', where we extend the common definition to allow for input nodes.
+\begin{Def}[\ref{def:independence_model}]
+  Given two disjoint sets $J,V$ (the `inputs' and `outputs', respectively), we call a subset of 
+  $$\{ \lt A, B, C \rt : A, B, C \subseteq J \cup V, A \cap J = \emptyset, J \subseteq B \cup C  \}$$
+  an \emph{independence model over $V \given J$}.
+  For an element $\lt A, B, C \rt$ of an independence model, we also say that \emph{$C$ separates $A$ from $B$}.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Independence model of a Markov kernel}
+Independence models can be used to encode all (conditional) independences in a Markov kernel.
+\begin{Def}[\ref{def:independence_model_Markov_kernel}]
+  For a Markov kernel $K(X_V|X_J) : \C{X}_J \dshto \C{X}_V$, we define its \emph{independence model} to be
+  \begin{equation*}\begin{split}
+    \IM(K(X_V | X_J)) := \{ \lt A, B, C \rt & : A, B, C \subseteq J \cup V, A \cap J = \emptyset, J \subseteq B \cup C \\
+                                            & : X_A \Indep_{K(X_V | X_J)} X_B \mid X_C \},
+  \end{split}\end{equation*}
+  i.e., the set of all conditional independences (of restricted form) that $K(X_V|X_J)$ satisfies.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Independence models of CDMGs}
+Independence models can also encode all separations in a graph.
+\begin{Def}[\ref{def:independence_model_graph}]
+  For a CDMG $G$ with input nodes $J$ and output nodes $V$, define its \emph{$\sigma$-independence model} to be
+  $$\IM_\sigma(G) := \{ \lt A, B, C \rt : A, B, C \subseteq J \cup V, A \cap J = \emptyset, J \subseteq B \cup C : A \Perp_G^\sigma B \mid C \},$$
+  i.e., the set of all $\sigma$-separations (of restricted form) entailed by the graph. 
+  Define its \emph{$d$-independence model} to be
+  $$\IM_d(G) := \{ \lt A, B, C \rt : A, B, C \subseteq J \cup V, A \cap J = \emptyset, J \subseteq B \cup C : A \Perp_G^d B \mid C \},$$
+  i.e., the set of all $d$-separations (of restricted form) entailed by the graph.
+\end{Def}
+For CADMGs, $\sigma$-separation is equivalent to $d$-separation, and hence, if $G$ is acyclic, then $\IM_d(G) = \IM_\sigma(G)$.
+\end{frame}
+
+\begin{frame}{Independence models of CDMGs given selection variables}
+When conditioning on a set of selection variables, we can also define conditional independence models from graphs as follows.
+\begin{Def}[\ref{def:conditional_independence_model_graph}]
+  For a CDMG $G$ with input nodes $J$ and output nodes $V^+ = V \dcup S$, define its \emph{$\sigma$-independence model given $S$} to be
+  \begin{equation*}\begin{split}
+    \IM_\sigma(G \given S) := \{ \lt A, B, C \rt & : A, B, C \subseteq J \cup V, A \cap J = \emptyset, J \subseteq B \cup C \\
+                                                 & : A \Perp_G^\sigma B \mid C \cup S \},
+  \end{split}\end{equation*}
+  i.e., the set of all $\sigma$-separations (of restricted form) involving nodes not in $S$, when also conditioning on $S$. 
+  Similarly for $d$-separation.
+\end{Def}
+Hence, $\IM_\sigma(G \given S)$ is an independence model over $V \given J$ (with $J$ the input nodes of $G$ and $V$ the output nodes of $G$ except for those in $S$).
+
+For CADMGs, $\sigma$-separation is equivalent to $d$-separation, and hence, if $G$ is acyclic, then $\IM_d(G \given S) = \IM_\sigma(G \given S)$.
+\end{frame}
+
+\begin{frame}{Markov equivalence}
+\begin{Def}[\ref{def:Markov_equivalent}]
+  Let $G_1, G_2$ be two CDMGs with input nodes $J$ and output nodes $V_1^+ = V \dcup S_1$, $V_2^+ = V \dcup S_2$, respectively.
+  We call $G_1$ and $G_2$ \emph{$\sigma$-Markov equivalent w.r.t.\ $V \given J$} if $\IM_\sigma(G_1 \given S_1) = \IM_\sigma(G_2 \given S_2)$, and \emph{$d$-Markov equivalent w.r.t.\ $V \given J$} if $\IM_d(G_1 \given S_1) = \IM_d(G_2 \given S_2)$.
+  %In these cases, we write $G_1 \underset{V \given J}{\overset{\sigma}{\sim}} G_2$, respectively $G_1 \underset{V \given J}{\overset{d}{\sim}} G_2$.
+\end{Def}
+
+\bigskip
+The input to the extended FCI algorithm will consist of an independence model over $V \given J$, and its output will consist of a mixed graph with input nodes $J$ and output nodes $V$.
+
+\bigskip
+If the input of FCI is the independence model of a CDMG given $S$, then the output of FCI will be a $\sigma$-PAG that represents the Markov equivalence class w.r.t.\ $V \given J$ of the CDMG.
+\end{frame}
+
+\section{Skeleton search}
+\frame{\sectionpage}
+
+\begin{frame}{FCI Algorithm: Overview}
+  \begin{itemize} 
+    \item Input: 
+      \begin{itemize}
+        \item Vertex sets $V$, $J$
+        \item Independence model $I$ over $V \given J$.
+      \end{itemize}
+    \item Output: 
+      \begin{itemize}
+        \item mixed graph $H$ with input nodes $V$, output nodes $J$.
+      \end{itemize}
+    \item Two phases:
+      \begin{enumerate}
+        \item \emph{Skeleton phase} aimed at deducing the adjacencies between the nodes, and to find sets that separate two nodes.
+        \item \emph{Orientation rules} that iteratively orient circle edge marks into tails and arrowheads, consisting of three parts:
+          \begin{itemize}
+        \item Orienting unshielded triples.
+        \item Orienting arrowheads.
+        \item Orienting tails.
+          \end{itemize}
+       \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Skeleton}
+\begin{Def}[\ref{def:skeleton}]
+Given a $\sigma$-PAG $H = \lt J, V, E \rt$, its \emph{skeleton} is the mixed graph 
+$\skel(H) := \lt J, V, F \rt$ with the same nodes, and with a bicircle edge $i \ouo j$ in $F$
+if and only if $i \sus j$ in $E$ (i.e., if $i$ and $j$ are adjacent in $H$).
+\end{Def}
+\begin{example}
+  The $\sigma$-PAG on the left has the skeleton shown on the right.
+
+  \medskip
+  \centerline{\scalebox{0.65}{\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[ouh] (X1) edge (X3);
+      \draw[ouh] (X2) edge (X3);
+      \draw[tuh] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[ouo] (X1) edge (X3);
+      \draw[ouo] (X2) edge (X3);
+      \draw[ouo] (X3) edge (X4);
+    \end{scope}
+  \end{tikzpicture}}}
+\end{example}
+\end{frame}
+
+\begin{frame}{Skeleton search phase}
+Aim of skeleton search phase: to construct the skeleton of the $\sigma$-PAG that represents a CDMG given $S$ from its $\sigma$-independence model given $S$.
+
+\bigskip
+The node pairs that might be adjacent in the skeleton are:
+\begin{Def}%
+%\setlength\abovedisplayskip{5pt}
+%\setlength\belowdisplayskip{5pt}
+  $\separable(V|J) :=  %\{ \{i,j\} : i \in V, j \in J \cup V, i \ne j \}
+  \{ \{i,j\} : i \in V, j \in V, i \ne j \} \cup \{ (i,j) : i \in V, j \in J \}.$
+\end{Def}
+
+\bigskip
+At high level, the skeleton search phase works as follows:
+\begin{block}{FCI Algorithm skeleton phase (high level)}
+\begin{enumerate}
+  \item Initialize $H$ to be the graph on $V$ with an edge $\ouo$ between each pair of separable nodes.
+  \item For each edge $i \ouo j$ in $H$:
+    search for a subset $Z \subseteq (V \cup J) \setminus \{i,j\}$ such that $\lt i, j, Z \rt \in I$;
+    if such a set $Z$ is found then remove the edge $i \ouo j$ from $H$ and record $Z$ as $\sepset(\{i,j\})$.
+\end{enumerate}
+\end{block}
+\end{frame}
+
+\begin{frame}{Brute-force skeleton search}
+A brute-force search over all possible subsets of $(J \cup V)\sm \{i,j\}$ is straightforward.
+However, it is computationally extremely expensive, and statistically not very reliable.
+
+\medskip
+\footnotesize
+  \begin{algorithmic}[1]
+    \Input Input node set $J$; output node set $V$; independence model $I$ over $V \given J$
+    \Output mixed graph $H$ with input nodes $J$ and output nodes $V$; separating sets $\sepset$
+    \State $H \leftarrow \lt J, V, \emptyset \rt$
+    \ForEach{$(i,j) \in \separable(V|J)$}
+      \State add edge $i \ouo j$ to $H$
+      \ForEach{$Z \subseteq (V \cup J) \sm \{i,j\}$}
+      \If{$\lt i, j, Z \rt \in I$}\Comment{found a separating set}
+        \State delete edge $i \ouo j$ from $H$
+        \State $\sepset(\{i,j\}) \leftarrow Z$
+        \Break
+      \EndIf
+      \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}{PC skeleton search}
+For DAGs, we can use the PC skeleton search \cite{SGS2000}.
+It searches for separating sets of increasing cardinality. 
+As candidates for a separating set between nodes $i,j \in H$, it considers all subsets of $\Adj_H(i)$ and all subsets of $\Adj_H(j)$.
+The rationale is that if $G$ is a DAG, then either $\Pa_G(i) \subseteq \Adj_H(i)$ or $\Pa_G(j) \subseteq \Adj_H(j)$ $d$-separates $i$ from $j$.
+
+\medskip
+\footnotesize
+  \begin{algorithmic}[1]
+  \Input Output node set $V$; independence model $I$ over $V \given \emptyset$
+  \Output mixed graph $H$ with output nodes $V$; separating sets $\sepset$
+  \State initialize $H$ as a complete graph with only bicircle ($\ouo$) edges
+  \State $n \leftarrow 0$
+    \Repeat
+    \Repeat
+    \State select $i,j \in V$ with $i \ouo j$ in $H$ and $\#(\Adj_H(i)\sm\{j\}) \ge n$
+    \State select a subset $Z \subseteq \Adj_H(i)\sm\{j\}$ of cardinality $n$
+    \If{$(i,j,Z) \in I$}
+      \State delete edge $i \ouo j$ from $H$
+      \State $\sepset(\{i,j\}) \leftarrow Z$
+    \EndIf
+    \Until{no more such tuples $(i,j,Z)$ can be selected}
+    \State $n \leftarrow n + 1$
+    \Until{for all $i,j \in V$ with $i \ouo j$ in $H$, $\#(\Adj_H(i)\sm\{j\}) < n$}
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}{Extended PC skeleton search}
+We extend this to deal with input nodes.
+We only need to consider subsets of neighbours of $i$ that are not in $J$, in increasing cardinality, and add all nodes of $J \sm \{j\}$.
+
+\medskip
+\footnotesize
+  \begin{algorithmic}[1]
+  \Input Input node set $J$; output node set $V$; independence model $I$ over $V \given J$
+  \Output mixed graph $H$ with input nodes $J$ and output nodes $V$; separating sets $\sepset$
+    \State $H \leftarrow \lt J, V, \{i \ouo j : (i,j) \in \separable(V|J)\} \rt$
+  \State $n \leftarrow 0$
+    \Repeat
+    \Repeat
+    \State select $i\in V, j \in V \cup J$ with $i \ouo j$ in $H$ and $\#(\Adj_H(i)\sm(J\cup\{j\})) \ge n$
+    \State select a subset $Z \subseteq \Adj_H(i)\sm(J\cup\{j\})$ of cardinality $n$
+    \If{$(i,j,Z \cup (J\sm\{j\})) \in I$} 
+      \State delete edge $i \ouo j$ from $H$
+      \State $\sepset(\{i,j\}) \leftarrow Z \cup (J \sm \{j\})$
+    \EndIf
+    \Until{no more such tuples $(i,j,Z)$ can be selected}
+    \State $n \leftarrow n + 1$
+    \Until{for all $i\in V, j \in V \cup J$ with $i \ouo j$ in $H$, $\#(\Adj_H(i)\sm(J\cup\{j\})) < n$}
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}{Beyond DAGs}
+The underlying idea may no longer hold if $G$ is a CADMG or a CDMG, or in case of selection bias.
+\cite{SMR1995} replace the subsets of adjacent nodes by so-called ``Possible-D-Sep'' sets.
+
+\begin{Def}[\ref{def:SEP}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  For distinct nodes $i,j \in V \dcup J$,
+  define $\SEP_G(i,j)$ as the set of nodes $k \in V$ such that
+  $k \ne i$ and there is a walk $\pi$ in $G$ between $i$ and $k$ such that every node
+  on $\pi$ is in $\Anc_G(\{i,j\}\cup S)$, and every non-endpoint non-collider on $\pi$ is unblockable.
+\end{Def}
+The name $\SEP_G(i,j)$ is motivated by the following property.
+\begin{Prp}[\ref{prp:SEP}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  Let $i \in V$ and $j \in J \cup V$ be distinct nodes.
+  If there exists no $\sigma$-inducing walk given $S$ between $i,j$ in $G$, then $\SEP_G(i,j) \cap \{i,j\} = \emptyset$ and $i \Perp^\sigma_G j \given \SEP_G(i,j) \cup (J \sm \{j\}) \cup S$.
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Possible-Sep sets}
+In practice, one does not know the set $\SEP_G(i,j)$ if $G$ is unknown.
+One can, however, easily obtain a `bound' on this set by identifying a superset.
+\begin{Def}[\ref{def:possep}]
+  Let $H_0 = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.
+  For $i \in V, j \in J \cup V$ distinct, we define $\PosSEP_{H_0}(i,j) \subseteq V$ to consist of those nodes
+  $k \in V$ such that $k \not\in \{i,j\}$ and there is a path between $i$ and $k$ in $H_0$ such that for
+  every subsequent triple $a \sus b \sus c$ on the path, either the triple is a definite collider in $H_0$,
+  or a triangle in $H_0$.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Extended FCI skeleton search, part I}
+  \medskip
+
+  {\footnotesize
+  \begin{algorithmic}[1]
+  \Input Input node set $J$; output node set $V$; independence model $I$ over $V \given J$
+  \Output mixed graph $H$ with input nodes $J$ and output nodes $V$; separating sets $\sepset$
+  \State $\lt H_0,\sepset \rt \leftarrow \mathtt{PCskeleton}(J,V,I)$
+  \ForEach{unshielded triple $\lt i,j,k \rt$ in $H_0$ with $i,j \in V$} \Comment{orient colliders}
+    \If{$j \notin \sepset(\{i,k\})$} % \sepset(k,i) if ordered!
+      \State orient it as $i \suh j \hus k$
+    \EndIf
+  \EndFor
+  %find PossibleDSep sets
+  \ForEach{$i \in V, j \in V \cup J$ with $i \ne j$} \Comment{construct Possible-D-Sep sets}
+    \State calculate $\PosSEP_{H_0}(i,j)$
+  \EndFor
+  \end{algorithmic}}
+
+\begin{Lem}[\ref{lem:possep}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  Let $H_0$ be the mixed graph constructed by lines 
+  \ref{alg:fci_skeleton2:cpc_skeleton}--\ref{alg:fci_skeleton2:oriented_unshielded_colliders}
+  when run on the independence model $\IM_\sigma(G \given S)$.
+  Then, for $i \in V$ and $j \in J \cup V$ distinct nodes, if there is no $\sigma$-inducing path given $S$ in $G$ between $i$ and $j$, then
+  $\SEP_G(i,j) \subseteq \PosSEP_{H_0}(i,j)$.
+\end{Lem}
+\end{frame}
+
+\begin{frame}{Extended FCI skeleton search, part II}
+We only need to search the subsets of $\PosSEP_{H_0}(i,j)$ for a separating set of $i,j$.
+%It first runs the extended PC skeleton phase (Algorithm~\ref{alg:pc_skeleton_extended}) and orients unshielded triples, obtaining a directed mixed graph $H_0$. 
+%Then it calculates the sets $\PosSEP_{H_0}(i,j)$ for all distinct pairs $(i,j)$ with $i \in V, j \in J \cup V$.
+%If $i \Perp^\sigma_G j \mid Z \cup S$ for some $Z \subseteq (J \cup V) \sm \{i,j\}$, then
+%$i \Perp^\sigma_G j \mid Z^* \cup S$ for some $Z^* \subseteq \PosSEP_{H_0}(i,j)$.
+Some arrowheads may be incorrect in $H_0$ (because the PC skeleton phase may not have found all separating sets), so we remove all orientations from $H_0$ and then continue similarly to the PC skeleton phase, but with $\PosSEP_{H_0}(i,j)$ instead of $\Adj_{H_0}(i)\sm\{j\}$.
+
+\bigskip
+  \footnotesize
+  \begin{algorithmic}[1]
+    \setcounter{ALG@line}{11}
+ % \Input Input node set $J$; output node set $V$; independence model $I$ over $V \given J$
+ % \Output mixed graph $H$ with input nodes $J$ and output nodes $V$; separating sets $\sepset$
+ % \State $\lt H_0,\sepset \rt \leftarrow \mathtt{PCskeleton}(J,V,I)$
+ % \ForEach{unshielded triple $\lt i,j,k \rt$ in $H_0$ with $i,j \in V$} \Comment{orient colliders}
+ %   \If{$j \notin \sepset(\{i,k\})$} % \sepset(k,i) if ordered!
+ %     \State orient it as $i \suh j \hus k$
+ %   \EndIf
+ % \EndFor
+ % %find PossibleDSep sets
+ % \ForEach{$i \in V, j \in V \cup J$ with $i \ne j$} \Comment{construct Possible-D-Sep sets}
+ %   \State calculate $\PosSEP_{H_0}(i,j)$
+ % \EndFor
+  %remove orientations
+    \State $H \leftarrow (J,V,\{i \ouo j : i \sus j \in H_0 \})$ \Comment{forget orientations}
+  %find more separating sets
+  \State $n \leftarrow 0$
+    \Repeat \Comment{search for separating sets}
+    \Repeat
+    \State select $i \in V, j \in V \cup J$ with $i \ouo j$ in $H$ and $\#(\PosSEP_{H_0}(i,j)) \ge n$
+    \State select a subset $Z \subseteq \PosSEP_{H_0}(i,j)$ of cardinality $n$
+    \If{$(i,j,Z \cup (J\sm\{j\})) \in I$} 
+      \State delete edge $i \ouo j$ from $H$
+      \State $\sepset(\{i,j\}) \leftarrow Z \cup (J \sm \{j\})$
+    \EndIf
+    \Until{no more such tuples $(i,j,Z)$ can be selected}
+    \State $n \leftarrow n + 1$
+    \Until{for all $i \in V, j \in V \cup J$ with $i \ouo j$ in $H$, $\#(\PosSEP_{H_0}(i,j)) < n$}
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}{Soundness of extended FCI skeleton search}
+\begin{Thm}[\ref{thm:fci_skeleton_sound}]
+  The extended FCI skeleton algorithm is \emph{sound}: if its input consists of the $\sigma$-independence model $\IM_\sigma(G \given S)$ given $S$ of a CDMG $G$, then its output will be $\skel(\sigmaPAG(G \given S))$. Furthermore, $i \Perp^\sigma j \given \sepset(\{i,j\})$ for all $i \in V, j \in V \cup J$ for node pairs $(i,j) \in \separable(V|J)$ that are non-adjacent in the skeleton.
+\end{Thm}
+\end{frame}
+
+\section{FCI Algorithm}
+\frame{\sectionpage}
+
+\begin{frame}{FCI Algorithm: Overview}
+  \begin{itemize} 
+    \item Input: 
+      \begin{itemize}
+        \item Vertex sets $V$, $J$
+        \item Independence model $I$ over $V \given J$.
+      \end{itemize}
+    \item Output: 
+      \begin{itemize}
+        \item mixed graph $H$ with input nodes $V$, output nodes $J$.
+      \end{itemize}
+    \item Two phases:
+      \begin{enumerate}
+        \item \emph{Skeleton phase} aimed at deducing the adjacencies between the nodes, and to find sets that separate two nodes.
+        \item \emph{Orientation rules} that iteratively orient circle edge marks into tails and arrowheads, consisting of three parts:
+          \begin{itemize}
+        \item Orienting unshielded triples.
+        \item Orienting arrowheads.
+        \item Orienting tails.
+          \end{itemize}
+       \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Extended FCI Algorithm}
+\begin{algorithmic}[1]
+  \Input Input node set $J$; output node set $V$; independence model $I$ over $V \given J$
+  \Output mixed graph $H$ with input nodes $J$ and output nodes $V$
+  \State $\lt H,\sepset \rt \leftarrow \mathtt{FCIskeleton}(J,V,I)$
+  \ForEach{edge $j \ouo v$ in $H$ with $j \in J$, $v \in V$}
+    \State orient $j \tuo v$
+  \EndFor
+  \State \textbf{repeat}edly apply rule $\C{R}0$ \textbf{until} done
+  \State \textbf{repeat}edly apply rules $\C{R}1$, $\C{R}2$, $\C{R}3$, $\C{R}4$ \textbf{until} done
+  \State \textbf{repeat}edly apply rule $\C{R}5$ \textbf{until} done
+  \State \textbf{repeat}edly apply rules $\C{R}6$, $\C{R}7$ \textbf{until} done
+  \State \textbf{repeat}edly apply rules $\C{R}8$, $\C{R}9$, $\C{R}10$ \textbf{until} done
+\end{algorithmic}
+
+\bigskip
+Note: the ordering in which orientation rules are applied matters.
+\end{frame}
+
+\begin{frame}{Extended FCI orientation rules 0--5}
+  \begin{description}
+    \item[$\C{R}0$] if $i \sus j \sus k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \suh j \hus k$ if $j \notin \sepset(\{i,k\})$ % \sepset(k,i) if ordered!
+  \end{description}
+  \begin{description}
+    \item[$\C{R}1$] if $i \suo j \hus k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \hut j$
+    \item[$\C{R}2$] if $i \tuh j \suh k$ or $i \suh j \tuh k$ in $H$, and $i \suo k$ in $H$, then orient $i \suh k$
+    \item[$\C{R}3$] if $i \suh j \hus k$ and $i \suo l \ous k$ and $l \suo j$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $l \suh j$
+    \item[$\C{R}4$] if $\lt i, j, q_1, \dots, q_n, k \rt$ is a discriminating path in $H$ for $j$, and if $i \suo j$ in $H$, then orient $i \hut j$ if $j \in \sepset(\{i,k\})$ and orient $i \huh j \huh q_1$ if $j \notin \sepset(\{i,k\})$ % \sepset(k,i) if ordered!
+  \end{description}
+  \begin{description}
+    \item[$\C{R}5$] if $i \ouo j$ in $H$, and there is an uncovered circle path $i \ouo k \ouo \cdots \ouo l \ouo j$ in $H$ such that $i$ is not adjacent to $l$ and $j$ is not adjacent to $k$, then orient $i \tut k \tut \cdots \tut l \tut j \tut i$
+  \end{description}
+\end{frame}
+
+\begin{frame}{Extended FCI orientation rules 6--10}
+  \begin{description}
+    \item[$\C{R}6$] if $i \tut j \ous k$ in $H$, then orient $j \tus k$
+    \item[$\C{R}7$] if $i \suo j \out k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \sut j$
+  \end{description}
+  \begin{description}
+    \item[$\C{R}8$] if $i \tuh j \tuh k$ in $H$, and $i \ouh k$ in $H$, then orient $i \tuh k$
+    \item[$\C{R}9$] if $i \ouh k$, and $\pi = \lt i, j, \dots, k \rt$ is an uncovered possibly directed path in $H$ from $i$ to $k$ such that $j$ and $k$ are not adjacent in $H$, then orient $i \tuh k$
+    \item[$\C{R}10$] if $i \ouh k$ in $H$, $j \tuh k \hut l$ in $H$, $\pi_1$ is a uncovered possibly directed path in $H$ from $i$ to $j$, and $\pi_2$ is a uncovered possibly directed path in $H$ from $i$ to $l$, then let $u_1$ be the node adjacent to $i$ on $\pi_1$ (possibly $u_1 = j$) and $u_2$ the node adjacent to $i$ on $\pi_2$ (possible $u_2 = l$); if $u_1 \ne u_2$, and $u_1$ and $u_2$ are not adjacent in $H$, then orient $i \tuh k$
+  \end{description}
+\end{frame}
+
+\begin{frame}{Uncovered circle paths \& uncovered possibly directed paths}
+
+The following two lemmata assume that rule $\C{R}0$ has been exhaustively applied.
+\begin{Lem}[\ref{lem:detecting_selection_bias}]
+  Let $H$ be a mixed graph that represents $G$ given $S$ in which rule $\C{R}0$ has been exhaustively applied.
+  If $i \ouo j$ in $H$, and there is an uncovered circle path $i \ouo k \ouo \cdots \ouo l \ouo j$ in $H$ such that $i$ is not adjacent to $l$ and $j$ is not adjacent to $k$, then every node on the path is in $\Anc_G(S)$.
+\end{Lem}
+\begin{Lem}[\ref{lem:upd_path}]
+Let $H$ be a mixed graph that represents $G$ given $S$ in which rule $\C{R}0$ has been exhaustively applied.
+Let $v_1 \sus \dots \sus v_n$ be an uncovered possibly directed path from $v_1$ to $v_n$ (with $n \ge 2$) in $H$.
+%If $v_1 \in \Anc_G(v_2 \cup S)$ and $v_2 \notin \Anc_G(v_1 \cup S)$, 
+If there is an edge $k \suh v_1$ in $H$ and if $v_1 \in \Anc_G(\{v_2\} \cup S)$, then we conclude that $v_1 \in \Anc_G(v_n)$.
+\end{Lem}
+\end{frame}
+
+\begin{frame}{Extended FCI algorithm: Soundness}
+\begin{Thm}[\ref{thm:fci_sound}]
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \cup S$ and $I = \IM_\sigma(G \given S)$ its $\sigma$-independence model given $S$.
+  For input $(J,V,I)$, the output of FCI is a valid $\sigma$-PAG $H$ that represents $G$ given $S$.
+\end{Thm}
+\begin{proof}
+  The skeleton phase is sound (Theorem~\ref{thm:fci_skeleton_sound}).
+  That is, it computes $H = \skel(\sigmaPAG(G \given S))$, and $\sepset$ will contain a separating set of $i$ and $j$ for every edge $i \ouo j$ absent in $H$ with $i \in V, j \in J \cup V, i \ne j$.
+  The next step, line \ref{alg:fci:orientJ}, orients the edges between input and output nodes in $H$. 
+  The result is then a valid $\sigma$-PAG that represents $G$ given $S$.
+
+  We show for each orientation rule that under the assumption that the current $H$ is a valid $\sigma$-PAG that represents $G$ given $S$, applying the rule yields an updated $H$ that is still a valid $\sigma$-PAG that represents $G$ given $S$.
+  For some of the rules, we need to assume also that some previous rules have been exhaustively applied.
+  For details, see lecture notes.
+%  Some of the rules ($\C{R}1$, $\C{R}3$, $\C{R}5$, $\C{R}6$, $\C{R}7$, $\C{R}9$, $\C{R}10$) assume that rule $\C{R}0$ has been exhaustively applied, which is the reason that rule $\C{R}0$ is performed before the other orientation rules are performed.
+%  Additionally, rule $\C{R}6$ assumes that rule $\C{R}5$ has been exhaustively applied.
+\end{proof}
+\end{frame}
+
+\section{Completeness and consistency}
+\frame{\sectionpage}
+
+\begin{frame}{FCI Algorithm: Completeness}
+  \begin{itemize}
+    \item \cite{Zhang2008_AI} showed that the FCI algorithm was complete in the sense that all edge marks that could possibly be oriented based on the information in $\IM_\sigma(G)$ will be oriented.
+    \item Using results on the characterization of Markov equivalence classes of MAGs \cite{Ali++2005}, it can be shown that the $\sigma$-PAG output by FCI represents the Markov equivalence class of $G$ in case $G$ is an ADMG.
+    \item By employing acyclifications, these results could be extended to cyclic $G$ \cite{MooijClaassen_UAI_20}.
+  \end{itemize}
+  The proofs are long and technical, so we only state the results.
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Assumption}
+  We make the following assumption for the completeness and consistency results.
+
+  \begin{block}{Assumption}
+    Given node set $V$, choose either:
+    \begin{itemize}
+      \item $\C{G}$ to be the set of all acyclic DMGs with output nodes $V^+ = V \dcup S$ for arbitrary disjoint $S$ (`acyclicity'), or
+      \item $\C{G}$ to be the set of all DMGs with output nodes $V^+ = V \dcup \emptyset$ (`no selection bias')
+    \end{itemize}
+    In both cases, all DMGs in $\C{G}$ have $J = \emptyset$ (`no input nodes').
+  \end{block}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Completeness results}
+%By Theorem~\ref{thm:fci_sound}, it maps $\IM_\sigma(G\given S)$, the $\sigma$-independence model of a DMG $G$ given $S$, to a $\sigma$-PAG $\FCI(\IM_\sigma(G \given S))$ that represents $G$ given $S$.
+\begin{Thm}[\ref{thm:fci_complete}]
+The Extended FCI algorithm is:
+  \begin{enumerate}
+%    \item \emph{sound}: for all DMGs $\C{G}$, $\FCI(\IM_\sigma(\C{G}))$ represents $\C{G}$;\label{theo:fci_sound_complete_sound}
+    % or (explicit version):} satisfies the following properties:
+    % \begin{compactenum}
+    %   \item two nodes $i,j$ are adjacent in $\C{P}$ if and only if $i,j$ cannot be $\sigma$-separated by any subset of nodes (not containing $i$ or $j$) in $\C{G}$;
+    %   \item if $i \sto j$ in $\C{P}$ (i.e., $i \to j$ in $\C{P}$ or $i \cto j$ in $\C{P}$ or $i \oto j$ in $\C{P}$), then $j \notin \ansub{\C{G}}{i}$;
+    %   \item if $i \to j$ in $\C{P}$ then $i \in \ansub{\C{G}}{j}$.
+    % \end{compactenum}
+    \item \emph{arrowhead complete}: for all $G \in \C{G}$ with nodes $V^+ = V \dcup S$, for all $i \ne j \in V$: there is an arrowhead $i \hus j$ in $\FCI(\IM_\sigma(G \given S))$ if $i \notin \Anc_{\tilde{G}}(\{j\} \cup S)$ for all $\tilde{G} \in \C{G}$ with nodes $\tilde{V}^+ = V \dcup \tilde{S}$ with $\IM_\sigma(\tilde{G} \given \tilde{S}) = \IM_\sigma(G \given S)$;
+    \item \emph{tail complete}: for all $G \in \C{G}$ with nodes $V^+ = V \dcup S$, for all $i \ne j \in V$: there is a tail $i \tus j$ in $\FCI(\IM_\sigma(G \given S))$ if $i \in \Anc_{\tilde{G}}(\{j\} \cup S)$ for all $\tilde{G} \in \C{G}$ with nodes $\tilde{V}^+ = V \dcup \tilde{S}$ with $\IM_\sigma(\tilde{G} \given \tilde{S}) = \IM_\sigma(G \given S)$;
+    \item \emph{Markov complete}: for all $G_1 \in \C{G}$ with nodes $V_1^+ = V \dcup S_1$ and $G_2 \in \C{G}$ with nodes $V_2^+ = V \dcup S_2$: $\IM_\sigma(G_1 \given S_1) = \IM_\sigma(G_2 \given S_2)$ if and only if $\FCI(\IM_\sigma(G_1 \given S_1)) = \FCI(\IM_\sigma(G_2 \given S_2))$.
+  \end{enumerate}
+\end{Thm}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Completeness}
+  \begin{itemize}
+    \item Arrowhead and tail completeness express that the $\sigma$-PAG output by FCI is \emph{maximally oriented}: any arrowhead or tail that could possibly be deduced from $\IM_\sigma(G \given S)$, will be oriented.
+    \item The soundness and Markov completeness properties together imply that the $\sigma$-PAG output by FCI, when given as input the $\sigma$-independence model of a DMG $G$ given $S$, represents the $\sigma$-Markov equivalence class of $G$.
+    \item FCI provides a \emph{graphical characterization} of the $\sigma$-Markov equivalence class of a DMG.
+    \item We can read off more features from the $\sigma$-PAG output by FCI. In particular, in the absence of selection bias:
+      (non-)ancestral relations, direct causal relations, the absence of confounding, and the absence of cycles. 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{FCI Algorithm: Consistency}
+\textbf{TODO: update from hereon}
+
+In practice, we do not know the independence model $\IM_\sigma(G)$, and have to resort to testing conditional independences in finite samples.
+  \begin{Cor}[FCI Consistency]
+  Let $M$ be a simple SCM with observed variables $O \subseteq V \cup W$, and without exogenous input variables (i.e., $J = \emptyset$).
+  Assume that $M$ is $\sigma$-faithful w.r.t.\ $O$.
+  Denote the observable causal graph as $G := G^O(M)$.
+  When using asymptotically consistent conditional independence tests on i.i.d.\ samples of the observational distribution $P_{M}(X_O)$, FCI provides an asymptotically consistent estimate $\hat{H}$ of the $\sigma$-PAG $\FCI(\IM_\sigma(G))$ that represents the $\sigma$-Markov equivalence class of $G$.
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Interpreting the estimated $\sigma$-PAG}
+\begin{Cor}[continued]
+From the estimated $\sigma$-PAG $\hat{H}$, we can read off consistent estimates for:
+  \begin{enumerate}
+  \item the absence/presence of (possibly indirect) causal relations according to $M$; 
+  \item the absence of confounding according to $M$;
+  \item the absence/presence of direct causal relations according to $M$;
+  \item the absence of causal cycles according to $M$.
+  \end{enumerate}
+\end{Cor}
+Note that these results also applies to L-CBNs and acyclic SCMs.
+
+\bigskip
+  \begin{block}{DISCLAIMER}
+    FCI looks very nice in theory, but has not yet been shown to work reliably in practice (why not?).
+  \end{block}
+\end{frame}

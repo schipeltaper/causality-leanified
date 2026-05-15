@@ -1,0 +1,17 @@
+Title: Causality
+
+Abstract:
+Many questions in science are of a causal nature. But how can we formalize the notion of causality? How to reason about cause and effect mathematically? How can we discover causal relations from data? How to predict the consequences of actions? How do causal predictions differ from ordinary predictions in statistics? This course will address all these questions, making use of the
+mathematical frameworks of causal Bayesian networks and structural causal models.
+
+Topics addressed will be causal modeling (definition of Markov kernels, conditional independences, causal Bayesian networks, structural causal models, marginalization, confounders, selection bias, feedback loops, causal graphs, interventions, Markov properties), causal reasoning (intervention variables, do-calculus, counterfactuals, covariate adjustment, back-door criterion, identifiability), and causal discovery (randomized controlled trials, local causal discovery, Y-structures, the FCI algorithm). 
+
+Prerequisites: bachelor-level probability, statistics and measure theory
+
+Level: M2
+
+Preference for second semester
+
+Lecturers:
+Joris Mooij, Korteweg-De Vries Institute for Mathematics, University of Amsterdam
+Patrick Forré, Informatics Institute, University of Amsterdam

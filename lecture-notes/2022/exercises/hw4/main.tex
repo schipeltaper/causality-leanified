@@ -1,0 +1,383 @@
+% !TEX root = hw4-answers.tex
+\chead{\textbf{Exercises week 4}}
+
+\begin{document}
+\flushleft\textbf{Topic: Markov Kernel Representation and Conditional Directed Mixed Graphs}
+\begin{enumerate}
+\item (2 + 0 points) 
+\begin{enumerate}
+  \item
+  Consider the Markov kernel 
+  $$K(X|T_1,T_2) : \RN\times(0,\infty) \dshto \RN,\quad (D,(t_1,t_2)) \mapsto \int \I_D(x) \C{N}(x \mid t_1,t_2) \,dx$$
+  where $\C{N}(x \mid t_1,t_2) = \frac{1}{\sqrt{2\pi t_2^2}} \exp\left(-\frac{(x-t_1)^2}{2 t_2^2}\right)$.
+  Derive a deterministic mapping for which this Markov kernel is obtained as the push-forward of the constant uniform Markov kernel $L(U)$ with $\Ucal = [0,1]$.
+
+  \emph{Hint: You may express your answer in terms of (inverse) error functions (see \href{https://en.wikipedia.org/wiki/Error_function}{wikipedia}).}
+
+  \item (\textbf{BONUS}) Same question for the exponential distribution with rate $\lambda > 0$, which has probability density function 
+  $$p(x;\lambda) = \I_{[0,\infty)}(x) \lambda e^{-\lambda x}.$$
+  First define a corresponding Markov kernel with input $\lambda$. Then derive a deterministic mapping for which that Markov kernel is obtained as the push-forward of the constant uniform Markov kernel $L(U)$ with $\Ucal = [0,1]$.
+\end{enumerate}
+\begin{gradedsolution}
+  \begin{enumerate}
+  \item
+  Define cumulative density function:
+  \[
+  F_{t_1,t_2} : \RN \to (0, 1) : x \mapsto \int_{-\infty}^x \C N(x \mid t_1, t_2)dx
+  \]
+  which is continuous and strictly monotonic, with its inverse being equal to
+  $$F^{-1}_{t_1, t_2}(u) = \inf(\{x\in \R : F_{t_1,t_2}(x) \geq u\}).$$
+  We may therefore directly apply Theorem \ref*{mk-uniform} to see that $K(X|T_1, T_2) = \delta_{F^{-1}_{t_1, t_2}}(X|U, T_1, T_2) \circ L(U)$.
+
+  From Wikipedia, we see that
+  \begin{align*}
+    F_{t_1, t_2}(x)&=\frac{1}{2}+ \frac{1}{2}\text{erf}(\frac{x-t_1}{\sqrt{2}t_2})\\
+    F^{-1}_{t_1, t_2}(u)&=\sqrt{2}t_2 \text{erf}^{-1}(2u-1)+t_1
+  \end{align*}
+  
+  \item
+  $$K : (0,\infty) \dshto [0,\infty) : (D,\lambda) \mapsto \int_0^\infty \I_D(x) \lambda e^{-\lambda x} \,dx$$
+  \begin{align*}
+    F_\lambda(b)&=\int_0^b \lambda e^{-\lambda x} dx = 1-e^{-\lambda b}\\
+    F_\lambda^{-1}(u)&=\frac{-1}{\lambda}\log(1-u)
+  \end{align*}
+\end{enumerate}
+\end{gradedsolution}
+
+\item (1 + 1 points) Given a graph (where $J,K$ are input nodes)
+\[
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue]
+      \node (v1) at (5,5) {$A$};
+      \node (v2) at (3,3) {$B$};
+      \node (v3) at (7,3) {$D$};
+      \node (v7) at (11,3) {$E$};
+      \node (v5) at (5,1) {$F$};
+      \node (v6) at (7,-1) {$G$};
+      \node (v12) at (4,6) {$H$};
+      \node (v13) at (6,6) {$I$};
+      \tikzstyle{every node} = [draw,shape=rectangle,color=teal]
+      \node (v4) at (1,4) {$J$};
+      \node (v11) at (11,5) {$K$}; 
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (v4) to (v2);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (v11) to (v7);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red, bend left] (v1) to (v3);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red, bend left] (v1) to (v7);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (v2) to (v3);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v2);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v12);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v12) to (v13);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v13) to (v1);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v3);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v2) to (v5);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v3) to (v5);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v5) to (v6);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v7) to (v6);
+    \end{tikzpicture}
+\]
+\begin{enumerate}
+  \item We define the length of a walk as the number of edges in the walk.
+  \begin{enumerate}
+    \item List all bidirected paths of length 3.
+    \item Give two examples of bidirected walks of length 3.
+    \item List all collider paths of length 5.
+    \item Give two examples of a collider walk of length 5.
+    \item Given an example of a trek of length 4.
+  \end{enumerate}
+  \item Find for node $A$ the
+  \begin{enumerate}
+    \item parents
+    \item children
+    \item siblings
+    \item ancestors
+    \item descendants
+    \item strongly connected component
+    \item district.
+  \end{enumerate}
+  % \item Find for each node in the graph the (d-separation) Markov blanket. (1pt)
+\end{enumerate}
+
+\begin{gradedsolution}
+  \begin{enumerate}
+    \item
+    \begin{enumerate}
+      \item Bidirected paths: $B\leftrightarrow D \leftrightarrow A \leftrightarrow E$
+      \item Bidirected walks: $B\leftrightarrow D \leftrightarrow A \leftrightarrow E$ and $B\leftrightarrow D \leftrightarrow A \leftrightarrow D$
+      \item Collider paths: $J \rightarrow B \leftrightarrow D \leftrightarrow A \leftrightarrow E \leftarrow K$
+      \item Collider walk: $A \rightarrow B\leftrightarrow D \leftrightarrow A \leftrightarrow E \leftarrow K$ and $I \rightarrow A \leftrightarrow D \leftrightarrow A \leftrightarrow E \leftarrow K$
+      \item Trek: $F\leftarrow B\leftarrow A \leftrightarrow E \rightarrow G$.
+    \end{enumerate}
+    \item
+    \begin{enumerate}
+      \item $\Pa(A) = \{I\}$
+      \item $\Ch(A) = \{H, B, D\}$
+      \item $\Sib(A) = \{D, E\}$
+      \item $\Anc(A) = \{H, I, A\}$
+      \item $\Desc(A) = \{H, I, A, B, D, F, G\}$
+      \item $\Sc(A) = \{H, I, A\}$
+      \item $\Dist(A) = \{B, D, A, E\}$
+    \end{enumerate}
+  \end{enumerate}
+\end{gradedsolution}
+
+\item ($3 \times 1$ points)
+Consider the following CDMG $G$, where $A,H$ are input nodes:
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \node (E) at (8, 0) {$E$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (H) at (8, -2) {$H$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+  \end{tikzpicture}
+\end{figure}
+\begin{enumerate}
+  \item Is this graph cyclic? If not, give a topological ordering.
+  % \item Do the following $d$-separations hold on graph $G$? Give a brief explanation for each answer. [Note, we write $C \Perp^d E \mid D$ for $\{C\} \Perp^d \{E\} \mid \{D\}$](4 $\times$ 1/4 pts)
+  % \begin{enumerate}
+  %   \item $\displaystyle  C \Perp^d E$
+  %   \item $\displaystyle C \Perp^d E \mid D$
+  %   \item $\displaystyle B \Perp^d D \mid \{A, H\}$
+  %   \item $\displaystyle B \Perp^d D \mid \{C, A, H\}$
+  % \end{enumerate}
+  \item
+  \begin{enumerate}
+  \item Give $G^{\setminus C}$.
+  \item Give ${G^{\setminus C}}^{\setminus E}$.
+  \item Give ${{G^{\setminus C}}^{\setminus E}}^{\setminus D}$.
+  \item Give $G^{\setminus E}$.
+  \item Give ${G^{\setminus E}}^{\setminus C}$.
+  \item Give $G^{\setminus \{C,E,D\}}$.
+  \end{enumerate}
+  Check that your answers agree with Lemma \ref*{marginalizations-commute}.
+  % \item Does d-separation $\displaystyle B \Perp^d F \mid \{A, H\}$ hold on graphs $G, G^{\setminus \{C,E\}},G^{\setminus \{C,E,D\}}$? Explain without using Lemma 6.3.6 and check your answer with Lemma 6.3.6.
+  \item
+  \begin{enumerate}
+    \item Give the graph $G_{\doit(\{D\})}$ after a hard intervention on $D$.
+    \item Give the graph $G_{\doit(\{I_B\})}$ after a soft intervention on $B$.
+    \item Give the graph $G(\{B, C, D, E^o, F\}|\doit(\{E^i, A, H\}))$ after a node-splitting intervention on $E$.
+  \end{enumerate}
+\end{enumerate}
+
+\begin{gradedsolution}
+\begin{enumerate}
+  \item No: let $V := \{A, B, C, D, E, F, H\}$ and define the map $f:V\rightarrow \N$ as follows: $f(A) = 1, f(C) = 2, f(H) = 3, f(E) = 4, f(B) = 5, f(D) = 6, f(F) = 7$. This induces a topological ordering on $V$ via: $v < w \iff f(v) < f(w)$.
+  \item
+  \begin{enumerate}
+    \item $G^{\setminus C}$:\\
+    \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle,color=blue];
+        \node (B) at (2, 0) {$B$};
+        \node (D) at (6, 0) {$D$};
+        \node (E) at (8, 0) {$E$};
+        \node (F) at (10, 0) {$F$};
+        \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+        \node (A) at (0, 0) {$A$};
+        \node (H) at (8, -2) {$H$};
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (B) to (D);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+    \end{tikzpicture}
+    \item ${G^{\setminus C}}^{\setminus E}$:\\
+    \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle,color=blue];
+        \node (B) at (2, 0) {$B$};
+        \node (D) at (6, 0) {$D$};
+        \node (F) at (10, 0) {$F$};
+        \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+        \node (A) at (0, 0) {$A$};
+        \node (H) at (8, -2) {$H$};
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (B) to (D);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (D) to (F);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (D);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (F);
+    \end{tikzpicture}
+    \item ${{G^{\setminus C}}^{\setminus E}}^{\setminus D}$: \\
+    \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle,color=blue];
+        \node (B) at (2, 0) {$B$};
+        \node (F) at (10, 0) {$F$};
+        \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+        \node (A) at (0, 0) {$A$};
+        \node (H) at (8, -2) {$H$};
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (F);
+    \end{tikzpicture}
+    \item $G^{\setminus E}$:\\
+    \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle,color=blue];
+        \node (B) at (2, 0) {$B$};
+        \node (C) at (4, 0) {$C$};
+        \node (D) at (6, 0) {$D$};
+        \node (F) at (10, 0) {$F$};
+        \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+        \node (A) at (0, 0) {$A$};
+        \node (H) at (8, -2) {$H$};
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (D) to (F);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (D);
+        \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (F);
+    \end{tikzpicture}
+    \item ${G^{\setminus E}}^{\setminus C}$:\\
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (D) at (6, 0) {$D$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (H) at (8, -2) {$H$};
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (B) to (D);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (D) to (F);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (F);
+    \end{tikzpicture}
+    \item $G^{\setminus \{C,E,D\}}$:\\
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (H) at (8, -2) {$H$};
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (F);
+    \end{tikzpicture}
+  \end{enumerate}
+  \item
+  \begin{enumerate}
+    \item $G_{\doit(\{D\})}$:
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (E) at (8, 0) {$E$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (D) at (6, 0) {$D$};
+      \node (H) at (8, -2) {$H$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+    \end{tikzpicture}
+    \item $G_{\doit(\{I_B\})}$:
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \node (E) at (8, 0) {$E$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (I_B) at (2, -2) {$I_B$};
+      \node (H) at (8, -2) {$H$};
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (I_B) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+    \end{tikzpicture}
+    \item $G(\{B, C, D, E^o, F\}|\doit(\{E^i, A, H\}))$:
+    \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \node (Eo) at (8,-.4) {$E^o$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (Ei) at (8,0.4) {$E^i$};
+      \node (H) at (8, -2) {$H$};
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (Ei) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (Ei) to (F);
+      \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (Eo);
+    \end{tikzpicture}
+  \end{enumerate}
+\end{enumerate}
+\end{gradedsolution}
+
+\item ($3 \times 1$ points) Provide an example of a real-world system, give an example of:
+\begin{enumerate}
+  \item a soft intervention
+  \item a hard intervention
+  \item a node-splitting intervention
+\end{enumerate}
+on this system and draw the CDMGs related to these interventions.
+
+\emph{Hint: When drawing the CDMG related to a (intervened) system, give appropriate names to the variables involved, and provide explicit descriptions of these variables. Also, make sure that all the variables and causal mechanisms that occur in the description of the system are represented in the graph.}
+
+\end{enumerate}
+
+% \section{Asymmetry}
+% For graphs with input nodes, the symmetry axiom
+% \[
+%   A \Perp^d B \mid C \implies B \Perp^d A \mid C
+% \]
+% does not hold in general. Write down a graph for which this implication does not hold and explain why. (1pt)
+
+% \begin{gradedsolution}
+% For example: $D \Perp^d B \mid C$ but, $B \not \Perp^d D \mid C$
+% \[
+%   \begin{tikzpicture}[scale=1, transform shape]
+%       \tikzstyle{every node} = [draw,shape=circle];
+%       \node (B) at (2, 0) {$B$};
+%       \node (C) at (4, 0) {$C$};
+%       \node (D) at (6, 0) {$D$};
+%       \tikzstyle{every node} = [draw,shape=rectangle];
+%       \node (A) at (0, 0) {$A$};
+%      \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+%      \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+%      \draw[-{Latex[length=3mm, width=2mm]}] (C) to (D);
+%   \end{tikzpicture}
+% \]
+% \end{gradedsolution}
+% \section{Construct graph}
+% Construct an acyclic directed mixed graph with three (non-input) nodes $A,B,C$, such that no edge (neither directed nor bidirected) exists between $A$ and $C$ and we have:
+% \[
+%   A \not \Perp^d C \quad\text{and}\quad A \not \Perp^d C \mid B
+% \]
+% \begin{gradedsolution}
+
+% \[
+%   \begin{tikzpicture}[scale=1, transform shape]
+%       \tikzstyle{every node} = [draw,shape=circle];
+%       \node (A) at (0, 0) {$A$};
+%       \node (B) at (2, 0) {$B$};
+%       \node (C) at (4, 0) {$C$};
+%      \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+%      \draw[-{Latex[length=3mm, width=2mm]}, bend left] (B) to (C);
+%      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, bend right] (B) to (C);
+%   \end{tikzpicture}
+% \]
+% \end{gradedsolution}
+
+% \section{$\sigma$-separation}
+% Write down a graph for which the $\sigma$-separations and $d$-separations do not agree and explain why. (1pt)
+\end{document}

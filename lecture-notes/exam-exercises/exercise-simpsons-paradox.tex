@@ -1,0 +1,247 @@
+\subsection{Simpson's Paradox}
+\totalscore{25}
+You are investigating the effectiveness of an experimental drug against a new deadly disease.
+You are given access to data collected by the RIVM (National Institute for Public Health and the Environment). 
+You divide the diseased patients into two groups: those that took the drug, and those that didn't take the drug.
+Some of the patients recovered, others unfortunately didn't recover and died. 
+The reasons why some patients were treated and others were not, are unknown to you.
+You find the following numbers:\footnote{Luckily, these numbers are made up.}
+\begin{center}\begin{tabular}{l|rr|r|r}
+          & Recovery & No recovery & Total & Recovery rate \\
+  \hline
+  Drug    & 2000       & 2000          & 4000    & 50\%       \\
+  No drug & 1600       & 2400          & 4000    & 40\%       \\
+  \hline
+  Total   & 3600       & 4400          & 8000    &               \\
+\end{tabular}\end{center}
+Upon closer inspection of the data, you notice something peculiar when you group patients according to sex.
+\begin{center}\begin{tabular}{l|rr|r|r}
+  Males & Recovery & No recovery & Total & Recovery rate \\
+  \hline
+  Drug           & 1800       & 1200          & 3000    & 60\%       \\
+  No drug        & 700        & 300           & 1000    & 70\%       \\
+  \hline
+  Total          & 2500       & 1500          & 4000    &               \\
+\end{tabular}
+
+\medskip
+\begin{tabular}{l|rr|r|r}
+  Females & Recovery & No recovery & Total & Recovery rate \\
+  \hline
+  Drug             & 200        & 800           & 1000    & 20\%       \\
+  No drug          & 900        & 2100          & 3000    & 30\%       \\
+  \hline
+  Total            & 1100       & 2900          & 4000    &               \\
+\end{tabular}\end{center}
+
+Interestingly, the probability that a male patient recovers is lower for the treated male patients than for the untreated male patients, and we observe a similar pattern for the female patients.
+Yet, if we look at all patients (not conditioning on sex), then the probability to recover is higher for the treated patients than for the untreated.
+This phenomenon is an example of ``Simpson's paradox''. It stems from our tendency to interpret the observed correlations as causation.
+
+\begin{figure}\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (Z) at (1,1) {$Z$};
+    \draw[tuh] (X) to (Y);
+    \draw[tuh] (Z) to (X);
+    \draw[tuh] (Z) to (Y);
+    \node at (1,-0.75) {(a)};
+  \end{scope}
+%  \node at (11,1) {\begin{tabular}{ll}
+%  $X$ & treatment \\
+%  $Z$ & sex \\
+%  $Y$ & outcome \\
+%  $L$ & unobserved confounder
+%  \end{tabular}};
+  \begin{scope}[xshift=4cm]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (Z) at (1,1) {$Z$};
+%    \node[ndlat] (L) at (0,2) {$L$};
+    \draw[tuh] (X) to (Y);
+%    \draw[tuh] (L) to (Z);
+%    \draw[tuh] (L) to (X);
+    \draw[huh] (X) edge (Z);
+    \draw[tuh] (Z) to (Y);
+    \node at (1,-0.75) {(b)};
+  \end{scope}
+  \begin{scope}[xshift=0cm,yshift=-3cm]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (Z) at (1,1) {$Z$};
+%    \node[ndlat] (L1) at (0,2) {$L_1$};
+%    \node[ndlat] (L2) at (2,2) {$L_2$};
+    \draw[tuh] (X) to (Y);
+%    \draw[tuh] (L1) to (Z);
+%    \draw[tuh] (L1) to (X);
+    \draw[huh] (X) edge (Z);
+%    \draw[tuh] (L2) to (Z);
+%    \draw[tuh] (L2) to (Y);
+    \draw[huh] (Z) edge (Y);
+    \node at (1,-0.75) {(c)};
+  \end{scope}
+  \begin{scope}[xshift=4cm,yshift=-3cm]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (Z) at (1,1) {$Z$};
+    \draw[tuh] (X) to (Y);
+    \draw[tuh] (X) to (Z);
+    \draw[tuh] (Z) to (Y);
+    \node at (1,-0.75) {(d)};
+  \end{scope}
+  \begin{scope}[xshift=8cm,yshift=-3cm]
+%      \draw[shadow] (-1,-2) rectangle (3,2);
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (Z) at (1,1) {$Z$};
+%    \node[ndlat] (L) at (1,-1) {$L$};
+    \draw[tuh] (X) to (Y);
+    \draw[tuh] (Z) to (X);
+    \draw[tuh] (Z) to (Y);
+%    \draw[tuh] (L) to (X);
+%    \draw[tuh] (L) to (Y);
+    \draw[huh,bend right] (X) edge (Y);
+    \node at (1,-0.75) {(e)};
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:simpson_paradox_causal_hypotheses}Different causal hypotheses (observable ADMGs of an L-CBN or SCM) to explain the patient data.}
+\end{figure}
+
+In this exercise we will make use of causal reasoning with L-CBNs or SCMs to resolve Simpson's paradox.
+Consider the following binary variables:
+\begin{center}\begin{tabular}{llll}
+  symbol & meaning & domain & meaning \\
+  \hline
+  $X$ & treatment & $\C{X} = \{0,1\}$ & no drug/drug \\
+  $Y$ & outcome   & $\C{Y} = \{0,1\}$ & died/recovered \\
+  $Z$ & sex       & $\C{Z} = \{0,1\}$ & male/female
+\end{tabular}\end{center}
+We will consider different possible causal hypotheses to explain the observed data.
+\begin{enumerate}[label=\alph*)]
+  \item Suppose that the data is generated by a causal model with observable graph depicted in Figure~\ref{fig:simpson_paradox_causal_hypotheses}(a). Derive an expression for
+    $$P(Y=1 \given \doit(X=x))$$
+    in terms of the observed distribution $P(X,Y,Z)$, if possible.
+    If you believe that such an expression does not exist, it suffices to state this without proof.
+    Do the same for
+    $$P(Y=1 \given Z=z,\doit(X=x)).$$
+    Would you advise a patient to take the drug? Would your advice depend on the sex of the patient? 
+    Motivate your answer numerically using the expressions just derived.
+    \score{5}
+    \answer{This can be ansered using the back-door criterion, or using the do-calculus.
+    The back-door criterion immediately yields an expression, noting that $\{Z\}$ is the valid adjustment set.
+    $$P(Y=1 \given \doit(X=x)) = \sum_{z \in \C{Z}} P(Y=1 \given Z=z, X=x) P(Z=z) \text{ a.s.}$$
+    This can also be obtained from applying the chain rule and the do-calculus with $Y \Perp I_X \given X, Z$ and $Z \Perp I_X$.
+    The conditional back-door criterion (with empty adjustment set), or the do-calculus with $Y \Perp I_X \given X, Z$, gives:
+    $$P(Y=1 \given Z=z,\doit(X=x)) = P(Y=1 \given Z=z,X=x) \text{ a.s.}$$
+    These conditional probabilities correspond with the recovery rates in the sex-specific tables. 
+    Hence, patients of both sexes are better off by \emph{not} taking the drug.
+    This implies that also a patient of unknown sex is better off by \emph{not} taking the drug.}
+    \points{2 pt for the derivation of the causal effect, 2 pt for the derivation of the conditional causal effect, 1 pt for a well-motivated sensible advice.}
+  \item The same question for hypothesis Figure~\ref{fig:simpson_paradox_causal_hypotheses}(b).
+    \score{1}
+    \answer{The same answer as for (a).}
+  \item The same question for hypothesis Figure~\ref{fig:simpson_paradox_causal_hypotheses}(c).
+    \score{5}
+    \answer{Under this hypothesis, $\{Z\}$ is no longer a valid adjustment set, but $\emptyset$ is:
+    $$P(Y=1 \given \doit(X=x)) = P(Y=1 \given X=x) \text{ a.s.}$$
+    This also follows from the do-calculus with $Y \Perp I_X \given X$.
+    These conditional probabilities correspond with the recovery rates in the aggregated table.
+    Hence, for a patient of unknown sex the rational choice is to take the drug.
+    There exists no valid adjustment set for the conditional treatment effect $P(Y=1 \given Z=z,\doit(X=x))$.
+    Also the do-calculus will not help to identify this quantity (it is not identifiable from the data).
+    Therefore, it seems that sex-specific advice would be hard to give based on these data
+    (Perhaps one could derive lower and upper bounds on these probabilities, though).}
+  \item The same question for hypothesis Figure~\ref{fig:simpson_paradox_causal_hypotheses}(d).
+    \score{5}
+    \answer{The empty set is still valid for adjustment:
+    $$P(Y=1 \given \doit(X=x)) = P(Y=1 \given X=x) \text{ a.s.}$$
+    which can also be derived from $Y \Perp I_X \given X$.
+    Hence, for a patient of unknown sex the rational choice is to take the drug.
+    In this case, we can also estimate the conditional treatment effect:
+    $$P(Y=1 \given Z=z,\doit(X=x)) = P(Y=1 \given Z=z,X=x) \text{ a.s.}$$
+    However, this may be misleading, because $Z$ is not a ``pre-treatment'' variable (but is caused by treatment under this hypothesis). 
+    $Z$ now corresponds to sex \emph{after} treatment, which may differ from sex before treatment
+    (perhaps the drug has the side effect of changing sex in some patients). 
+    Na\"ively interpreting this expression counterfactually seems to tell us that for those patients that are male or female after the treatment, they would have been better off without he drug.
+    Yet, we would advice a patient of unknown sex to take the drug.
+    That doesn't make sense!
+    So what looks mathematically like a `conditional treatment effect' does not tell anything useful for deciding on optimal actions under this hypothesis: it would compare apples with oranges.
+    If we wish to give sex-specific advice on whether someone should take the drug, we should condition on sex \emph{before} treatment, which is not available in the data (at least under this causal hypothesis, where $Z$ is an effect of $X$).
+    So what we can conclude from the data under this hypothesis is only that recovery will be higher if we treat the entire population than if we treat noone.}
+  \item The same question for hypothesis Figure~\ref{fig:simpson_paradox_causal_hypotheses}(e).
+    \score{2}
+    \answer{Under this hypothesis, both quantities cannot be identified (at best, they can be bounded).
+    Since the bounds will be non-informative (really?), no advice can be given here.}
+  \item Would you consider all hypotheses (a)-(e) equally likely, or would you reject some of these \emph{a priori} based on common sense background knowledge about causal relations? Motivate your answer.
+  \score{2}
+  \answer{A reasonable assumption seems to be that treatment $X$ does not cause sex $Z$, allowing to reject (d).
+  If we rule out selection bias in the past (the male/female ratio in the data is 50\%, so the data do not contain evidence that there has been selection bias), then it also seems unlikely that there are unobserved common causes of $Z$ and $X$, and of $Z$ and $Y$.
+  This would rule out hypotheses (b) and (c). 
+  But the validity of that assumption is debatable (and untestable from the available data).
+  }
+  \points{If a student interprets a bidirected edge $A \huh B$ as that $A$ and $B$ cause each other (a cycle), zero points (that is so wrong).}
+  \item A law suit is filed against the pharmaceutical company that developed the drug, because several male patients who took the drug died quickly afterwards.
+    The plaintiff claims that she inferred from the data that the probability that these patients would have recovered (and hence still be alive) had they not been treated, is 70\%.
+    The court asks you for your expert advice in the matter. 
+    What would be your response?
+  \score{2}
+  \answer{Such counterfactual quantities are generically unidentifiable from observed data, without making very strong modeling assumptions.
+    As reliable models probably don't exist (given that the disease is new and the drug is experimental), the inferred probability has to be taken with a large grain of salt.
+    At best, the data may lead to a lower and an upper bound on the counterfactual probability in the claim, instead of a point estimate as provided by the data scientist.}
+    \points{The answer ``the claim is not founded on a causal model'' is worth 1 point.}
+  \item Assume that treatment $X$ does not cause sex $Z$. 
+    \score{3}
+    Prove that Simpson's paradox cannot occur if the data come from a proper randomized controlled trial, in which treatment $X$ is completely randomized.
+    \answer{We model $X$ as an exogenous input variable.
+    We may assume the following CADMG (where $Z \huh Y$ and $Z \hut Y$ are unlikely, but leaving them in the model doesn't harm).
+    \begin{center}\begin{tikzpicture}
+    \begin{scope}[xshift=8cm,yshift=-3cm]
+  %      \draw[shadow] (-1,-2) rectangle (3,2);
+      \node[ndint] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (2,0) {$Y$};
+      \node[ndout] (Z) at (1,1) {$Z$};
+  %    \node[ndlat] (L) at (1,-1) {$L$};
+      \draw[tuh] (X) to (Y);
+  %    \draw[tuh] (Z) to (X);
+      \draw[tuh] (Z) to (Y);
+  %    \draw[tuh] (L) to (X);
+  %    \draw[tuh] (L) to (Y);
+      \draw[huh,bend right] (Z) edge (Y);
+      \draw[tuh,bend right] (Y) edge (Z);
+    \end{scope}\end{tikzpicture}\end{center}
+%Suppose treatment is beneficial for both sexes.
+%$$P(Y_1 = 1 \given Z=z) > P(Y_0 = 1 \given Z=z)$$
+%for all $z$ implies
+%$$P(Y_1 = 1) = \sum_{z} P(Y_1 = 1 \given Z=z) P(Z=z)
+%             > \sum_{z} P(Y_0 = 1 \given Z=z) P(Z=z)
+%             = P(Y_0 = 1)$$
+%Hence, treatment is beneficial overall.
+%
+Now
+$$P(Y = 1 \given Z=z, \doit(X=1)) > P(Y = 1 \given Z=z, \doit(X=0)) \text{ a.s.}$$
+for all $z$ implies
+  \begin{equation*}\begin{split}
+  P(Y = 1 \given \doit(X=1)) 
+    &= \sum_{z} P(Y = 1 \given Z=z, \doit(X=1)) P(Z=z \given \doit(X=1)) \\
+    &= \sum_{z} P(Y = 1 \given Z=z, \doit(X=1)) P(Z=z \given \doit(X=0)) \\
+    &> \sum_{z} P(Y = 1 \given Z=z, \doit(X=0)) P(Z=z \given \doit(X=0)) \\
+    &= P(Y = 1 \given \doit(X=0)) \text{ a.s.}
+  \end{split}\end{equation*}
+Here we first used the chain rule, and then $Z \Indep X$.
+  The latter follows from the assumptions ($X$ is completely randomized and does not cause $Z$).
+  Hence, the weird reversal of which treatment is best under additional conditioning on sex cannot occur.
+%
+%On the other hand,
+%$$P(Y = 1 \given X=1, Z=z) > P(Y = 1 \given X=0, Z=z)$$
+%for all $z$ does \emph{not} imply
+%  \begin{equation*}\begin{split}
+%  P(Y = 1 \given X=1) 
+%    &= \sum_{z} P(Y = 1 \given X=1, Z=z) P(Z=z \given X=1) \\
+%    &\ne \sum_{z} P(Y = 1 \given X=1, Z=z) P(Z=z \given X=0) \\
+%    &> \sum_{z} P(Y = 1 \given X=0, Z=z) P(Z=z \given X=0) \\
+%    &= P(Y = 1 \given X=1)
+%  \end{split}\end{equation*}
+  }
+\end{enumerate}

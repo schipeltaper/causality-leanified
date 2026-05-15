@@ -1,0 +1,224 @@
+\section{Identification of Causal Effects in CBNs}
+
+This section investigates under which circumstances one can \emph{identify causal effects} and estimate them just from observational data alone under the (strong) assumption that the underlying causal graph is known. More generally, we ask the question when an interventional Markov kernel of a causal Bayesian network can be identified from the causal graph $G$ and the observational Markov kernel alone.
+
+We will see that the main tool to allow for such statements is the global Markov property, see Theorem \ref{thm-gmp-mCBN}, applied to the causal Bayesian network that is augmented with further intervention variables.
+
+We first study under which graphical conditions interventions don't have an effect or when one essentially can replace interventions with conditioning operations. These rules will be summarized as the \emph{three rules of do-calculus}. The main references are \cite{Pearl93as,Pearl93bs,Pearl09}, also see \cite{Pearl95s,FM20,For21}.
+
+We then study under which graphical criteria one gets explicit \emph{adjustment formulas} to estimate interventional Markov kernels from observational ones. The literature mentions the \emph{backdoor criterion}, see \cite{Pearl93as,Pearl93bs,Pearl09}, 
+the \emph{extended backdoor criterion}, see \cite{PearlPaz13,SWR10s}, the \emph{selection backdoor criterion}, see \cite{BTP14s},
+criteria for \emph{selection without/partial external data}, see \cite{CB17s,CTB18s}, and all their generalizations to the cyclic case,  see \cite{FM20}, also see \cite{SP06s,PTKM15s,For21}.
+
+Finally, we present the \emph{ID-algorithm}, which can decide just by processing the causal graph $G$ if an interventional Markov kernel can be identified by the observational one (under further assumptions, like strict positivity, etc.). If the algorithm does not output FAIL then it also presents a formula to estimate the queried interventional Markov kernel. 
+The main references for the ID-algorithm are \cite{Pearl09,GP95s,Tian2002,TP02s,Tian04s,SP06,HV06s,HV08s,RERS17,FM20}.
+
+
+
+
+\subsection{Do-Calculus}
+
+\begin{Rem}[Recap]
+    \label{rem-bcn-notation}
+    Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.  \]
+        Then we get the joint  Markov kernel over all input, observed and unobserved output variables as follows:
+        \[ P\lp X_V,X_U,X_J|\doit(X_J) \rp := \bigotimes_{v \in U \cup V} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+        \bigotimes_{j \in J} \delta(X_j|X_j).\]
+    Further, for $D \ins J \cup V$ and $B \ins V \sm D$ we get the combined hard and soft interventions:
+    \[ P\lp X_{V \sm D},X_U,X_{J \cup D},X_{I_B}| \doit(X_{J \cup I_B \cup D}) \rp :=\] 
+    \[    \bigotimes_{v \in V \sm (B \cup D)} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+    \bigotimes_{v \in B} P_v\lp X_v|\doit(X_{\{I_v\}\cup\Pa^{G^+}(v)})\rp \otimes \]
+     \[   \bigotimes_{v \in U} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+     \bigotimes_{j \in J \cup D} \delta(X_j|X_j) \otimes\bigotimes_{v \in B} \delta(X_{I_v}|X_{I_v})  ,\]
+       where we need to reorder all the factors such that the product is in reverse order of a topological order and 
+       where we use the following Markov kernels to model hard interventions as  soft interventions, $v\in B$: 
+       \[ P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)},X_{I_v}=x_{I_v}\rp\rp := 
+         \left\{ \begin{array}{lll}
+                 P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)}\rp\rp, & \text{ if } & x_{I_v} = \star, \\
+    \delta(X_v|X_v =x_{I_v}),  & \text{ if } & x_{I_v} \neq \star. 
+                \end{array}\right.\]
+  Finally we can also marginalize (i.e.\ integrating out) and condition to get: 
+  \[ P\lp X_{A\cup B}|X_C, \doit(X_{J \cup I_B \cup D}) \rp ,\]
+  for any $A,B,C \ins V$, $D \ins V \cup J$ with $A,B,C,D$ disjoint (w.l.o.g.\ we can assume $A \ins V$, $B \cap C = \emptyset$ and $B \cap D = \emptyset$).
+  %for any $A,B,C,D \ins J \cup V$ \Joris{Really ``any''? I thought you assumed $B \ins V \sm D$? With the new convention on $\doit(I_J)$ the restrictions have become redundant; however Patrick noted that the way of writing things might matter: rather than $\doit(X_{I_B},X_{J \cup D})$ one should write $\doit(X_{J \cup D \cup I_B})$.\\
+For more suggestive formulas later on we also freely permute the order of symbols behind the conditioning line, e.g. (if $F \cap D = \emptyset$):
+\[ P\lp X_A|\doit(X_F),X_C, \doit(X_D) \rp := P\lp X_A|X_C, \doit(X_D,X_F) \rp := P\lp X_A|X_C, \doit(X_{D\cup F}) \rp.\]
+Please note that no matter in which order we write the $\doit$-part and conditioning part behind the conditioning line $|$, we always assume that we perform the intervention ($\doit$) first and afterwards condition.\\
+We will also make use of the following CADMG (for $I_B \cap D = \emptyset$):
+  \[ G_{\doit(I_B,D)} := G_{\doit(I_B\cup D)} = (G^+_{\doit(I_B \cup D)})^{\sm U}.  \]
+%W.l.o.g.\ we can assume: $B \cap D = \emptyset$. \Joris{This is mysterious: explain why, or remove assumption.}
+\end{Rem}
+
+
+
+
+\begin{restatable}{Thm}{restatethmasdocalculusdetail}[Almost-sure do-calculus---in detail]
+%\begin{Thm}[Almost-sure do-calculus---in detail]
+    \label{thm:as-do-calculus-1}
+    Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D$ are pairwise disjoint.\\
+    Further assume that we have reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$ that are each equivalent to a probability measure (in terms of absolute continuity).\footnote{Recall the connection between absolute continuity and strictly positive densities in Corollary \ref{cor:abs-cont-str-pos-den}. All $\sigma$-finite measures satisfy this assumption.} 
+    We then put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+\begin{enumerate}
+\item \underline{Insertion/deletion of observation}: Assume:
+        \[ A \idPerp_{G_{\doit(D)}} B \given C \cup D. \]
+        For a fixed finite index set $I$ consider subsets $B^{(i)} \ins B$, for $i \in I$, and pick for each $i \in I$ an arbitrary version of a conditional Markov kernel:
+            \[P\lp X_A|X_{B^{(i)}},X_C,\doit(X_{D\cup J})\rp:\;\Xcal_{B \cup C \cup D \cup J} \to \Xcal_{B^{(i)} \cup C \cup D \cup J} \to \Prob(\Xcal_A), \]
+            of $P(X_A,X_{B^{(i)}},X_C|\doit(X_{D\cup J}))$.
+            Then there exists a measurable $P(X_B,X_C|\doit(X_{D\cup J}))$-null set
+        $N \ins \Xcal_{B \cup C \cup D \cup J}$,
+        such that all those Markov kernels are equal on the complement $N^\cmpl$.
+    \item[] Note that if $\mu_{B \cup C} \ll P(X_B,X_C|\doit(X_{D\cup J}))$ then $N$ is also a $\mu_{B \cup C}$-null set, i.e.\ for every $x_{D \cup J} \in \Xcal_{D \cup J}$ we have:
+        $\mu_{B \cup C} (N_{x_{D \cup J}}) =0.$
+    \item[] If we also have the reverse $ P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C}$ then we can change 
+      the above conditional Markov kernels on a $\mu_{B \cup C}$-null set $N$ while they remain versions of the corresponding conditional Markov kernel.\footnote{Note that the absolute continuities: $\mu_{B \cup C}\ll P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C}$ hold if $P(X_B,X_C|\doit(X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_{B \cup C}$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_{B \cup C}$ by Corollary \ref{cor:abs-cont-str-pos-den}.}
+
+\item \underline{Action/observation exchange}: Assume:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given B \cup C \cup D.   \]
+            For a fixed finite index set $I$ consider decompositions
+            $B=B_1^{(i)} \dcup B_2^{(i)}$, for $i \in I$,
+            and pick for each $i \in I$ an arbitrary version of a conditional Markov kernel:
+            \[ P(X_A|X_{B_1^{(i)}},\doit(X_{B_2^{(i)}}),X_C,\doit(X_{D\cup J})): 
+            \;\Xcal_{B \cup C \cup D \cup J} \to \Prob(\Xcal_A), \]
+            of $P(X_A,X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}}$ 
+            and assume the following absolute continuities:
+            \[ \mu_{B \cup C} \ll  P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}} \]
+            for all $i \in I$.\footnote{If you instead expected to pick for each $i \in I$ an arbitrary version of a conditional Markov kernel:
+            \[ P(X_A|X_{B_1^{(i)}},\doit(X_{B_2^{(i)}}),X_C,\doit(X_{D\cup J})): \;\Xcal_{B \cup C \cup D \cup J} \to \Prob(\Xcal_A), \]
+            of $P(X_A,X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J}))$ and to assume the absolute continuities
+            \[ \mu_{B_1^{(i)} \cup C} \ll  P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \ll \mu_{B_1^{(i)} \cup C} \]
+            for all $i \in I$: that would lead to a similar, but slightly weaker statement.}
+        Then there exists a measurable $\mu_{B \cup C}$-null set
+        $N \ins \Xcal_{B \cup C \cup D \cup J}$,
+        such that all those conditional Markov kernels are equal on the complement $N^\cmpl$.
+      \item[] If we also assume the reverse absolute continuities for all $i \in I$:
+         \[  P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}} \ll \mu_{B \cup C}, \]
+         then all those conditional Markov kernels are versions of each other.\footnote{Note that the absolute continuities: $ \mu_{B \cup C} \ll P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}} \ll \mu_{B \cup C} $ hold if the absolute continuities: $\mu_{B_1^{(i)} \cup C} \ll P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \ll \mu_{B_1^{(i)} \cup C} $ hold, which hold if $P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_{B_1^{(i)} \cup C}$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_{B_1^{(i)} \cup C}$ by Corollary \ref{cor:abs-cont-str-pos-den}.}
+
+\item \underline{Insertion/deletion of action}: Assume:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given C  \cup D.  \]
+            For a fixed finite index set $I$ consider subsets $B^{(i)} \ins B$, for $i \in I$, and pick for each $i \in I$ an arbitrary version of a conditional Markov kernel:
+            \[ P(X_A|\doit(X_{B^{(i)}}),X_C,\doit(X_{D\cup J})):\; \Xcal_{B \cup C \cup D \cup J} \to \Xcal_{B^{(i)} \cup C \cup D \cup J} \to \Prob(\Xcal_A), \]
+            of $P(X_A,X_C|\doit(X_{B^{(i)}},X_{D\cup J}))$ and assume the following absolute continuities:
+            \[ \mu_C \ll  P(X_C|\doit(X_{B^{(i)}},X_{D\cup J})) \]
+            for all $i \in I$.
+            Then there exists a measurable $\mu_C$-null set
+        $N \ins \Xcal_{B \cup C \cup D \cup J}$,
+        such that all those conditional Markov kernels are equal on the complement $N^\cmpl$.
+    \item[] If we also assume the reverse absolute continuities for all $i \in I$:
+        \[ P(X_C|\doit(X_{B^{(i)}},X_{D\cup J})) \ll \mu_C, \]
+        then all those conditional Markov kernels are versions of each other.\footnote{Note that absolute continuities: $\mu_C \ll P(X_C|\doit(X_{B^{(i)}},X_{D\cup J})) \ll \mu_C$ hold if $P(X_C|\doit(X_{B^{(i)}},X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_C$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_C$ by Corollary \ref{cor:abs-cont-str-pos-den}.}
+\end{enumerate}
+%\end{Thm}
+\end{restatable}
+The proof can be found in at the end of this section.
+
+We now summarize on how to apply Theorem \ref{thm:as-do-calculus-1} more concretely as a corollary.
+\begin{Cor}[Almost-sure do-calculus---simplified]
+    \label{cor:as-do-calculus-2}
+        Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Further assume that we have %$\sigma$-finite 
+    reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$.
+    We then put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D$ are pairwise disjoint.
+    Then we have the following 4 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}, for $J \subseteq D$:
+            Assume that we want to establish the a.s.-equality:
+            \[ P(X_A|X_B,X_C,\doit(X_{D})) = P(X_A|X_C,\doit(X_{D})) \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(D)}} B \given C \cup D, &
+             \mu_{B \cup C} &\ll P(X_B,X_C|\doit(X_{D}))\ll \mu_{B \cup C}.
+         \end{align*}
+     \item \underline{Action/observation exchange}, for $J \subseteq D$: 
+         Assume that we want to establish the a.s.-equality:
+         \[ P(X_A|X_B,X_C,\doit(X_{D}))  = P(X_A|\doit(X_B),X_C,\doit(X_{D})) 
+         \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A & \idPerp_{G_{\doit(I_B\cup D)}} I_B \given B \cup C \cup D, &          
+                    \mu_{B \cup C} &\ll  P(X_B,X_C|\doit(X_{D})) \ll \mu_{B \cup C},\\
+                 &&   \mu_C &\ll  P(X_C|\doit(X_B,X_{D})) \ll \mu_C.
+         \end{align*}
+     \item \underline{Insertion/deletion of action}, for $J \subseteq D$: 
+         Assume that we want to establish the a.s.-equality:
+         \[ P(X_A|\doit(X_B),X_C,\doit(X_{D})) = P(X_A|X_C,\doit(X_{D})) \qquad \mu_C\text{-a.s.}, \]
+          then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(I_B\cup D)}} I_B \given C  \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_B,X_{D})) \ll \mu_C, \\
+                   && \mu_C &\ll P(X_C|\doit(X_{D})) \ll \mu_C.
+         \end{align*}
+       \item \underline{Deletion of input}:
+         If 
+         \begin{align*} 
+           A &\idPerp_{G_{\doit(D)}} J \given C \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+         then there exists a Markov kernel $P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$ such that:
+         \[ P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) = P(X_A|X_C,\doit(X_{D \cup J})) \qquad \mu_C\text{-a.s.}. \]
+%         That Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$.
+%         which actually means that it is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \times \Xcal_{J \sm D}$
+%         with $N \ins \Xcal_{C\cup D}$.
+%      \item \Joris{\underline{Action/observation exchange for input variable}
+%        We could also formulate a version of rule 2 that allows us to write
+%         \[ P(X_A|X_B,X_C,\doit(X_{D}))  = P(X_A|\doit(X_B),X_C,\doit(X_{D}))
+%         \qquad \mu_{C}\text{-a.s.}, \]
+%         for $B \subseteq J$.
+%        }
+    \end{enumerate}
+    Note that the two-sided absolute continuities hold for $\sigma$-finite reference measures iff the indicated Markov kernel has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ the corresponding reference product measure by Corollary \ref{cor:abs-cont-str-pos-den}.
+\end{Cor}
+\begin{proof}
+The proof follows directly from Theorem \ref{thm:as-do-calculus-1}.
+For the last rule (`Deletion of input'), one can take the Markov kernel as
+$$P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) := Q(X_A|X_C,X_D)$$
+where $Q(X_A|X_C,X_D)$ is defined in the proof of Proposition \ref{prp:do-calculus} point 3, for the special case $B = I_B = \emptyset$.
+The proof of Theorem \ref{thm:as-do-calculus-1} rule 3 then applies (as it doesn't depend crucially on the assumption $J \subseteq D$, or $B \ne \emptyset$), which shows the claim.
+%For the last rule (`Deletion of input'), one can take the Markov kernel
+%$$P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) := Q(X_A|X_C,X_D)$$
+%from Proposition \ref{prp:do-calculus} point 3, for the special case $B = I_B = \emptyset$.
+%That Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$, which actually means that it is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \times \Xcal_{J \sm D}$ with $N \ins \Xcal_{C\cup D}$.
+%It was shown in that proof that $Q(X_A|X_C,X_D)$ is a version of the conditional Markov kernel
+%$P\lp X_A|X_C,\doit(X_{D\cup J})\rp$ (see equation \ref{eq:3nd-do-int-2}):
+%$$  P\lp X_A,X_C|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{D\cup J})\rp$$
+%By the essential uniqueness of conditional Markov kernels, Theorem \ref{thm-regular-conditional-Markov-kernel}, the set 
+%\begin{align*}
+%  \tilde{N} := \bigl\{ x_{C \cup D \cup J} \in \Xcal_{C \cup D \cup J} \,\big|\, & Q(X_A|X_C=x_C,X_D=x_D)\\ 
+%       &\neq P(X_A|\doit(X_C=x_C,\doit(X_{D\cup J}=x_{D \cup J})) \bigr\}.
+%\end{align*}
+%is a measurable $P(X_C|\doit(X_{D\cup J}))$-null set.
+%By the absolute continuity $ \mu_C \ll P(X_C|\doit(X_{D\cup J}))$ we get that $\tilde{N}$ is a $\mu_C$-null set. 
+%Again, note that on the complement $N^\cmpl$ all Markov kernels agree with $Q(X_A|X_C,X_D)$ and are thus all equal on $N^\cmpl$.
+\end{proof}
+\begin{Rem}
+  We have made the following considerations in this particular formulation of the do-calculus.
+  \begin{itemize}
+    \item The additional assumptions $J \ins D$ in rule 1--3 were added because it is not clear whether (or how) a Markov kernel $P(X_A|X_C,\doit(X_{D}))$ is defined for $J \not\ins D$. 
+      Rule 4 was added to make this possible.
+    \item The assumption $J \subseteq D$ in rules 1--3 in Corollary~\ref{cor:as-do-calculus-2} can be made without loss of generality and without restricting the applicability of the result. For example, for rule 1, if $\tilde D$ with $J \not\ins \tilde D$, then $A \idPerp_{G_{\doit(\tilde D)}} B | C \cup \tilde D$ implies $A \idPerp_{G_{\doit(\tilde D)}} B \cup J | C \cup \tilde D$, which implies $A \idPerp_{G_{\doit(\tilde D \cup J)}} B | C \cup (\tilde D \cup J)$, and hence we can apply rule 1 to $D = \tilde D \cup J$ instead of $\tilde D$.
+      Similar reasoning can be applied to show for rules 2 and 3 that the assumptions $J \ins D$ can be made without loss of generality.
+    \item \Joris{Furthermore, one may assume $D = J$ in rules 1--3 and $D \ins J$ in rule 4. This can be done without loss of generality,
+      because one can always apply that special case to the intervened CBN $M_{\doit(\tilde{D})}$ for $\tilde{D} = D \sm J$ to obtain the general case.
+      In this way the rules become shorter and easier to remember.}
+    \item \Joris{Yet another possible formulation would be obtained by dropping the assumptions $J \ins D$ in rules 1--3, and replacing all occurrences of $D$ by $D \cup J$ in the various Markov kernels occurring in these rules.}
+  \end{itemize}
+\end{Rem}
+
+
+\begin{Rem}
+Note that in rules 1--3 of Corollary \ref{cor:as-do-calculus-2} (in contrast to Proposition \ref{prp:do-calculus} and Theorem \ref{thm:as-do-calculus-1})  we cannot easily formulate the independence of variables $X_{J \sm D}$ in the presented way. 
+ This is the reason we decided to simplify the formulas in Corollary \ref{cor:as-do-calculus-2} by assuming that $J \ins D$ and thus $D \cup J = D$, which makes then the $id$-separation requirements weaker (due to extra conditioning on $J$). 
+ To compensate for the ensuing loss of generality, we have added the fourth rule.
+For the case where $J$ does not fully lie in $D$ one has several options:
+  \begin{enumerate}
+    \item use Proposition~\ref{prp:do-calculus} or Theorem~\ref{thm:as-do-calculus-1}, or 
+    \item use the global Markov property (Theorem~\ref{thm-gmp-mCBN}) directly, or
+    \item combine rules 1--3 of Corollary~\ref{cor:as-do-calculus-2} with rule 4 of Corollary~\ref{cor:as-do-calculus-2}.
+  \Joris{TODO: Patrick and I agreed to replace this remark by one where we show how rule 1,2,3 can be combined by rule 4 to prove a stronger statement under stronger conditions.}
+  \end{enumerate}
+\end{Rem}

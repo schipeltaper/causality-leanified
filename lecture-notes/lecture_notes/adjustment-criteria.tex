@@ -1,0 +1,248 @@
+\subsection{Adjustment Criteria and Formulae}
+
+
+\begin{Motivation}
+    Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+For simplicity assume that there are no input variables, i.e.\ $J=\emptyset$.
+Then the joint distribution is ``$\doit$-free'' and given as:
+\[P(X_V,X_U) = \bigotimes_{v \in U\cup V}P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp,   \]
+with observational distribution as its marginal: $P(X_V)$.\\
+We also have all the interventional distributions for $W \ins V$:
+\[P(X_{V \sm W},X_U|\doit(X_W)) = \bigotimes_{v \in U \cup V \sm W}P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp,\]
+with marginals: $P(X_{V\sm W}|\doit(X_W))$.\\
+If we wanted to learn the distribution $P(X_V)$ we could do an observational study and apply the usual statistical or machine learning techniques.
+If, in contrast, we wanted to learn interventional distributions: $P(X_{V\sm W}|\doit(X_W))$ from data (e.g.\ 
+whether vaccination makes people immune to a disease),
+we typically would need to perform an interventional study where we intervene on the variables $X_W$ and set them to different values.
+This usually requires expensive, time-consuming randomized control trials with an own group for each possible 
+value of $X_W$.\\
+If we assume that we know the causal graph $G^+$ or $G$ we could try to leverage the rules of do-calculus in a clever way and might be able to go from expressions involving $\doit(W)$ to expressions only involving $\doit(D)$ 
+for a (much) smaller subset $D \ins W$, ideally $D=\emptyset$.\\
+Practically this would mean that we would need a much smaller randomized control trial and save time and resources.\\
+For example, if we have the graph only involving the edge: $v_1 \tuh v_2$ we have that:
+\[ P(X_2|\doit(X_1)) =  P(X_2|X_1), \]
+which can be estimated using observational data only, e.g.\ via supervised learning.\\
+So the question of identifiability is now: 
+Assuming that the causal graph is known, under which circumstances is a causal effect 
+$P(X_A|\doit(X_B))$ already determined by the observational distribution $P(X_V)$?
+When can causal effects be identified via distributions that have less interventions in them?
+\end{Motivation}
+
+\begin{Not}
+Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+We are interested in estimating the conditional causal effect:
+\[ P(X_A|X_C,\doit(X_B,X_D)), \]
+but we only have data from:
+\[ P(X_V|X_C,\doit(X_D)). \]
+We will consider the following disjoint subsets of variables:
+\begin{enumerate}
+    \item $A \subseteq V$: the outcome variables of interest;
+    \item $B \subseteq V$: the treatment or intervention variables;
+    \item $C \subseteq V$: general conditional (context) variables under which the data was collected;
+    \item $D \subseteq J \cup V$: general interventional (context) variables that were set by the experimenter (assuming w.l.o.g.\ $J \ins D$);
+    \item $F_0 \subseteq V$: core adjustment variables, i.e.\ features that were measured;
+    \item $F_1 \subseteq V$: additional measured adjustment variables;
+    \item $H \subseteq U$: additional unobserved variables;
+\end{enumerate}
+and write $F := F_0 \cup F_1$.
+\end{Not}
+
+
+\begin{Thm}[General adjustment formula]
+    \label{thm-gen-adjustment}
+Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Assume that all the following conditions hold in the graphs $G^+_{\doit(I_B,D)}$: 
+    \begin{align}
+        (F_0 \cup H) & \idPerp_{G^+_{\doit(I_B,D)}} I_B \given (C \cup D), \label{eq:adj-1} \\
+        A & \idPerp_{G^+_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup H \cup C \cup D),\label{eq:adj-3} \\
+       H &\idPerp_{G^+_{\doit(I_B,D)}} B \given (F \cup C \cup  I_B \cup D). \label{eq:adj-5} 
+   \end{align}
+   Further assume that we have reference measures $\mu_v$ on $\Xcal_v$, $v \in V \cup H$, such that:
+  \begin{align*}
+      \mu_{B \cup C \cup F \cup H} &\ll  P(X_B,X_C,X_F,X_H|\doit(X_D)) \ll \mu_{B \cup C \cup F \cup H},\\
+      \mu_{C \cup F \cup H} &\ll  P(X_C,X_F,X_H|\doit(X_B,X_D)) \ll \mu_{C \cup F \cup H}.
+  \end{align*}
+    Then we have the adjustment formula: 
+    \[ P(X_A|X_C,\doit(X_B,X_D)) = P(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P(X_F|X_C,\doit(X_D)) \qquad  \mu_{B \cup C}\text{-a.s.} \]
+\begin{proof}
+    \Claude{The proof applies the do-calculus to the augmented CBN (with $V\cup U$ as visible variables, graph $G^+$) while citing Cor.\ \texttt{cor:as-do-calculus-2} which is stated for~$V$.  This is valid but the reinterpretation is implicit.} \PF{It's fine to leave this implicit imho.} 
+With help of Corollary~\ref{cor:as-do-calculus-2} (2nd rule) we can establish the a.s.-equality:
+    \begin{align}
+        P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D)) &= P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)) &\mu_{F_0 \cup H \cup C \cup B} \text{-a.s.,} \label{eq:adj-eq-6}
+    \end{align}
+    using the assumptions (implied by eq.\ \ref{eq:adj-3}):
+\begin{align*}
+    A & \idPerp_{G^+_{\doit(I_B,D)}} I_B \given (B \cup F_0 \cup H \cup C \cup D),\\
+\mu_{F_0 \cup H \cup C \cup B} & \ll P(X_{F_0},X_H,X_C,X_B|\doit(X_D)) \ll \mu_{F_0 \cup H \cup C \cup B},\\
+\mu_{F_0 \cup H \cup C} & \ll P(X_{F_0},X_H,X_C|\doit(X_B,X_D)) \ll \mu_{F_0 \cup H \cup C}.
+\end{align*}
+
+With help of Corollary~\ref{cor:as-do-calculus-2} (3rd rule) we can establish the a.s.-equality:
+    \begin{align}
+        P(X_{F_0},X_H|X_C,\doit(X_B,X_D)) &= P(X_{F_0},X_H|X_C,\doit(X_D)) 
+         &\mu_C\text{-a.s.,} \label{eq:adj-eq-7}
+    \end{align}
+    using the assumptions (implied by eq.\ \ref{eq:adj-1}):
+\begin{align*}
+    (F_0 \cup H) & \idPerp_{G^+_{\doit(I_B,D)}} I_B \given (C \cup D),\\
+    \mu_C & \ll P(X_C|\doit(X_B,X_D)) \ll \mu_C,\\
+    \mu_C & \ll P(X_C|\doit(X_D)) \ll \mu_C.
+\end{align*}
+
+With help of Corollary~\ref{cor:as-do-calculus-2} (1st rule) we can establish the a.s.-equality:
+    \begin{align}
+        P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D)) &= P(X_A|X_{F_0},X_{F_1},X_H,X_C,X_B,\doit(X_D)) \label{eq:adj-eq-8}\\ 
+                           &\qquad \mu_{F_0 \cup F_1 \cup H \cup C \cup B}\text{-a.s.,} \notag 
+    \end{align}
+using the assumptions (implied by eq.\ \ref{eq:adj-3}):
+\begin{align*}
+    A & \idPerp_{G^+_{\doit(D)}} F_1 \given (B \cup F_0 \cup H \cup C \cup D),\\
+    \mu_{F_0 \cup F_1 \cup H \cup C \cup B} & \ll P(X_{F_0},X_{F_1},X_H,X_C,X_B|\doit(X_D)) \ll \mu_{F_0\cup F_1  \cup H \cup C \cup B}.
+\end{align*}
+
+With help of Corollary~\ref{cor:as-do-calculus-2} (1st rule) we can establish the a.s.-equality:
+    \begin{align}
+        P(X_H|X_F,X_C,\doit(X_D)) &= P(X_H|X_F,X_C,X_B,\doit(X_D)) &\mu_{F \cup C \cup B}\text{-a.s.,} \label{eq:adj-eq-9}
+    \end{align}
+using the assumptions (implied by eq.\ \ref{eq:adj-5}):
+\begin{align*}
+    H &\idPerp_{G^+_{\doit(D)}} B \given (F \cup C \cup D),\\
+    \mu_{F \cup C \cup B} & \ll P(X_F,X_C,X_B|\doit(X_D)) \ll \mu_{F \cup C \cup B}.
+\end{align*}
+
+These a.s.-equations together with the chain rule give us the following
+$\mu_{B \cup C}$-a.s.-equation:
+\begin{align*}
+ & P(X_A|X_C,\doit(X_B,X_D)) \\
+ &= P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)) \circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D))\\
+ &\stackrel{\ref{eq:adj-eq-6}}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D)) \\
+ &\stackrel{\ref{eq:adj-eq-7}}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_H|X_C,\doit(X_D)) \\
+ &\stackrel{}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_{F_1},X_H|X_C,\doit(X_D)) \\
+ & \stackrel{\ref{eq:adj-eq-8}}{=}
+ P(X_A|X_{F_0},X_{F_1},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_{F_1},X_H|X_C,\doit(X_D)) \\
+  & =
+ P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ P(X_F,X_H|X_C,\doit(X_D)) \\
+ & \stackrel{}{=}
+  P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ \lp P(X_H|X_F,X_C,\doit(X_D)) \otimes P(X_F|X_C,\doit(X_D)) \rp \\
+  & \stackrel{\ref{eq:adj-eq-9}}{=}
+ P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ \lp P(X_H|X_F,X_C,X_B,\doit(X_D)) \otimes P(X_F|X_C,\doit(X_D))  \rp \\
+   & \stackrel{}{=}
+ P(X_A|X_F,X_C,X_B,\doit(X_D))\circ  P(X_F|X_C,\doit(X_D)).
+    \end{align*}
+Note that the disintegration: 
+    \[ P(X_F,X_H|X_C,\doit(X_D)) = P(X_H|X_F,X_C,\doit(X_D)) \otimes P(X_F|X_C,\doit(X_D)) \]
+    holds (only) $P(X_C|\doit(X_D))$-a.s., as for the conditional $P(X_H|X_F,X_C,\doit(X_D))$ we have the ambiguity if it is considered a conditional of $P(X_F,X_H|X_C,\doit(X_D))$, for which then we have ``sure'' equality, or, if it is considered a conditional of $P(X_F,X_H,X_C|\doit(X_D))$, for which then we have only the above ``almost-sure'' equality.
+Further note, that by the assumption on the reference measures, the above equality then also holds $\mu_{C}$-a.s.
+\end{proof}
+\end{Thm}
+
+\begin{Cor}[Conditional interventional backdoor covariate adjustment formula]
+    \label{cor:backdoor-cond-int}
+    Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+  Assume that the \emph{conditional interventional backdoor criterion} in the graphs $G_{\doit(I_B,D)}$ holds:
+\begin{enumerate}
+    \item $\displaystyle F \idPerp_{G_{\doit(I_B,D)}} I_B  \given (C \cup D)$, and:
+    \item $\displaystyle A \idPerp_{G_{\doit(I_B,D)}} I_B  \given (B \cup F \cup C \cup D)$.
+\end{enumerate}
+    Further assume the following absolute continuities:
+  \begin{align*}
+      \mu_{B \cup C \cup F} &\ll  P(X_B,X_C,X_F|\doit(X_D)) \ll \mu_{B \cup C \cup F},\\
+      \mu_{C \cup F} &\ll  P(X_C,X_F|\doit(X_B,X_D)) \ll \mu_{C \cup F}.
+  \end{align*}
+Then we have the adjustment formula: 
+\[ P(X_A|X_C,\doit(X_B,X_D)) = P(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P(X_F|X_C,\doit(X_D)) \qquad \mu_{B \cup C}\text{-a.s.} \]
+\begin{proof}
+    It follows by the same arguments as in Theorem \ref{thm-gen-adjustment} with $F_1=H=\emptyset$.
+\end{proof}
+\end{Cor}
+
+Without the conditioning set, i.e.\ $C=\emptyset$, and direct careful analysis we get a version with slightly weaker positivity assumptions:
+
+\begin{Cor}[Interventional backdoor covariate adjustment formula]
+    \label{cor:backdoor-int}
+    Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+  Assume that the \emph{interventional backdoor criterion} in the graphs $G_{\doit(I_B,D)}$ holds:
+\begin{enumerate}
+    \item $\displaystyle F \idPerp_{G_{\doit(I_B,D)}} I_B  \given D$, and:
+    \item $\displaystyle A \idPerp_{G_{\doit(I_B,D)}} I_B  \given (B \cup F \cup D)$.
+\end{enumerate}
+    Further assume the following absolute continuity:
+  \begin{align*}
+      P(X_F|\doit(X_D)) \otimes P(X_B|\doit(X_D)) &\ll  P(X_F,X_B|\doit(X_D)).
+  \end{align*}
+Then we have the adjustment formulas: 
+\begin{align*}
+    P(X_A,X_F|\doit(X_B,X_D)) &= P(X_A|X_F,X_B,\doit(X_D)) \otimes P(X_F|\doit(X_D)) && P(X_B|\doit(X_D))\text{-a.s.}, \\
+    P(X_A|\doit(X_B,X_D)) &= P(X_A|X_F,X_B,\doit(X_D)) \circ P(X_F|\doit(X_D)) && P(X_B|\doit(X_D))\text{-a.s.}
+\end{align*}
+\begin{proof}
+ First, note that ``$\doit(X_D)$'' appears in every Markov kernel in the above formulas. So for readability, we will drop it in the following everywhere.
+
+By the first $id$-separation assumption we see by Proposition~\ref{prp:do-calculus} (rule 3) that we have the ``sure'' equality: $P(X_F|\doit(X_B)) = P(X_F)$.
+By the second $id$-separation assumption we see by Proposition~\ref{prp:do-calculus} (rule 2) that we have a Markov kernel $P(X_A|X_F,\doit(X_B))$ that is also a version of $P(X_A|X_F,X_B)$.
+So any version of $P(X_A|X_F,X_B)$ can be changed on a $P(X_F,X_B)$-null set $N \ins \Xcal_B \times \Xcal_F$ to get $P(X_A|X_F,\doit(X_B))$.
+The absolute continuity assumption implies that $N$ is also a $P(X_F) \otimes P(X_B)$-null set.
+This implies that we have the equations of Markov kernels:
+\begin{align*}
+        P(X_A|X_F,X_B) \otimes P(X_F) \otimes P(X_B) 
+        &= P(X_A|X_F,\doit(X_B)) \otimes P(X_F) \otimes P(X_B) \\
+        &= P(X_A|X_F,\doit(X_B)) \otimes P(X_F|\doit(X_B)) \otimes P(X_B) \\
+        &= P(X_A,X_F|\doit(X_B)) \otimes P(X_B).
+\end{align*}
+ By the essential uniqueness of conditional Markov kernels we get that:
+\[ P(X_A,X_F|\doit(X_B)) = P(X_A|X_F,X_B) \otimes P(X_F)  \qquad P(X_B)\text{-a.s.} \]
+Marginalizing out $X_F$ on both sides gives us the remaining claim.
+\end{proof}
+\end{Cor}
+
+
+We can now further specialize to the case with $C=D=J= \emptyset$ and immediately get:
+
+\begin{Cor}[Backdoor covariate adjustment]
+    \label{cor:backdoor_adjustment}
+    Assume that the \emph{backdoor criterion} holds:
+\begin{enumerate}
+    \item $\displaystyle F \idPerp_{G_{\doit(I_B)}} I_B$, and:
+    \item $\displaystyle A \idPerp_{G_{\doit(I_B)}} I_B  \given (B \cup F)$.
+\end{enumerate}
+    Further assume the following absolute continuity:
+  \begin{align*}
+      P(X_F) \otimes P(X_B) &\ll  P(X_F,X_B).
+  \end{align*}
+Then we have the adjustment formulas: 
+\begin{align*} 
+    P(X_A,X_F|\doit(X_B)) &= P(X_A|X_F,X_B) \otimes P(X_F)  && P(X_B)\text{-a.s.}, \\
+    P(X_A|\doit(X_B)) &= P(X_A|X_F,X_B) \circ P(X_F)   && P(X_B)\text{-a.s.}
+\end{align*}
+\end{Cor}
+
+\begin{comment}
+\begin{Cor}[Backdoor covariate adjustment]
+    \label{cor:backdoor_adjustment}
+    Let the situation be like in theorem \ref{thm-backdoor-cond-int} with $C=D=J= \emptyset$.
+    Assume that the \emph{backdoor criterion} holds:
+\begin{enumerate}
+    \item $\displaystyle F \idPerp_{G_{\doit(I_B)}} I_B$, and:
+    \item $\displaystyle A \idPerp_{G_{\doit(I_B)}} I_B  \given (B \cup F)$.
+\end{enumerate}
+    Further assume the following absolute continuities:
+  \begin{align*}
+      \mu_{B \cup F} &\ll  P(X_B,X_F) \ll \mu_{B \cup F},\\
+      \mu_{F} &\ll  P(X_{ F}|\doit(X_B)) \ll \mu_{F}.
+  \end{align*}
+Then we have the adjustment formula: 
+\[ P(X_A|\doit(X_B)) = P(X_A|X_B,X_F) \circ P(X_F)  \qquad \mu_B\text{-a.s.} \]
+\end{Cor}
+\end{comment}
+
+\begin{Rem}
+An example how the adjustment formula may fail if the strict positivity assumptions are not met is provided in Example~\ref{eg:counterexample_nonpositive_backdoor_adjustment}.
+\end{Rem}

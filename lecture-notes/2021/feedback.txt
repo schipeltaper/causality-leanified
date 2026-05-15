@@ -1,0 +1,35 @@
+Feedback on the Causality 2020 course for next year
+
+General:
+- publish the exercises and material 3-4 days before the class such that TAs can prepare.
+
+Lectures:
+-L3 - SCMs: the last part on using measure theoretic notation to formalize SCMs could
+be discussed more extensively. The first 30-40 minutes (informal definition of SCMs)
+is less challenging and could be shortened. [christina]
+- L5 & others: when first introducing a concept for the discrete case and then for the general case, perhaps mention that general here does not only refer to continuous case, perhaps mention what general case entails. [christina]
+- L5: draw pictures for examples with uniform and quantile function.
+- L4+5: Some students thought that the story on Markov kernels was too detailed and that talking about causality was "too much delayed".
+- Many commuting properties for SCMs and graphs were stated, but I think for markov kernels, they were not done separately. I.e., it would be good to state something like "first marginalizing out X_i and then intervening on X_j is the same as doing it the other way around" etc.
+
+Exercises:
+- hw2: in solution to 2.1, rename A \in H --> C \in H
+- hw3, exercise 3: The notation is bad, since the Y variable is part of curly X, and the X and Z variables are part of curly Y. Definitely needs to be changed, since students were somewhat confused.
+- hw3, exercise 3: I forgot to specify that the solution function should be "completely computed", i.e. there should not be non-evaluated functions anymore in the solution function.
+- hw3, exercise 2.a.4: Seems like "what are the consequences" triggers wildly different answers from different students. The question could be clarified.
+- hw3: The definition / notation etc. of SCMs changed throughout the lecture, and so the notations / definitions in this third exercise sheet are no longer valid.
+- hw4: The exercise which reinterprets Markov kernels as maps to probability measures seems too difficult. Most students did not do anything sensible. We should make a more step-by-step guide through the exercise.
+- hw5: exercise 2 (reparameterization trick) uses the pushforward, and the solution then looks a bit complicated. However, the pushforward is the same as the composition with a deterministic Markov kernel (in general!), and using this "composition" definition directly makes the solution cleaner and more straightforward. The exercise and solution could be reformulated with that in mind.
+- hw7: exercise 1 notation is a bit confusing: one might think that a,b,c correspond to A,B,C
+- hw7: exercise 2 is a bit degenerate, better to replace the do(X=0) with do(X=1).
+- hw7: In exercise 1.1, some students did only write down the *form* of the Markov kernels, but didn't write them down explicitly in terms of normal distributions. This could be made clearer.
+- hw8: Sometimes in applying the backdoor criterion, we only talk about backdoor paths, but not general backdoor *walks*. The difference is actually crucial, and the solutions should be reviewed next year.
+
+- hw9: One student notes: "I did not do the last exercises because they do not contain interesting proof steps and also are not quick to write down. Could you reduce the number of exercises of this type? Basically I either want the answer to be either short or interesting. I would appreciate that because I do not like spending time on pointless things but I do want to try my best in courses. Like I get that you could come up with all these questions, but that does not mean that it makes sense to require all students to do them."
+---> I think there's something to this feedback. Maybe exercise 2 could be replaced by a more interesting exercise on equivalence for next year.
+
+- hw9, on the coin toss exercise, physical modeling (exercise 1.3): Depending on how one models it physically (say, by either tossing an internal coin before the input coin is put in, or by internally tossing the coin which is put in), the physical model correctly or incorrectly represents the twinned models. Maybe the exercise could be made clearer to reflect this.
+
+- hw10: A student said it was lots of work to do everything completely.
+- hw10: Seems like the solution of 1.3 gives the causal mechanism of the marginal, but doesn't compute its solution, different from what's asked in the exercise.
+- Overall: A student notes that there were too few exercises on practicing basic stuff, like doing products, compositions, marginalizations, conditioning etc. of Markov kernels.

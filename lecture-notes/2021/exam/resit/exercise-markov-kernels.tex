@@ -1,0 +1,132 @@
+\subsection{Markov Kernels}
+
+\subsubsection*{Part 1: Product and Composition}
+
+Consider the discrete measurable spaces $\Xcal=\{\alpha,\beta\}$ and $\Ycal=\{0,1,2\}$ and $\Zcal=\{a,b\}$.
+Consider the following Markov kernels:
+\[ Q(Y|X):\, \Xcal \dshto \Ycal, \qquad K(Z|Y):\, \Ycal \dshto \Zcal,  \]
+given by:
+\begin{align*}
+    Q(Y=0|X=\alpha) &= \frac{1}{8}, &&& K(Z=a|Y=0) &= \frac{1}{6}, \\
+    Q(Y=1|X=\alpha) &= \frac{5}{8}, &&& K(Z=b|Y=0) &= \frac{5}{6}, \\
+    Q(Y=2|X=\alpha) &=\frac{2}{8}, &&& K(Z=a|Y=1) &= \frac{2}{6}, \\
+    Q(Y=0|X=\beta) &= \frac{3}{8}, &&& K(Z=b|Y=1) &= \frac{4}{6},\\
+    Q(Y=1|X=\beta) &= \frac{3}{8}, &&& K(Z=a|Y=2) &= \frac{3}{6},\\
+    Q(Y=2|X=\beta) &= \frac{2}{8}, &&& K(Z=b|Y=2) &= \frac{3}{6}.\\
+\end{align*}
+
+Let $P(Z,Y|X) := K(Z|Y) \otimes Q(Y|X)$ be their product Markov kernel and $P(Z|X):=K(Z|Y) \circ Q(Y|X)$ be their composed Markov kernel.
+Derive a representation for both of these Markov kernels similar to the above. %Explain all steps.
+
+\answer{
+    For the product $P(Z,Y|X)$ we get:
+\begin{align*}
+    P(Z=a,Y=0|X=\alpha) & = K(Z=a|Y=0) \cdot Q(Y=0|X=\alpha) &= \frac{1}{6} \cdot\frac{1}{8}   &= \frac{1}{48} ,\\   
+    P(Z=b,Y=0|X=\alpha) & = K(Z=b|Y=0) \cdot Q(Y=0|X=\alpha) &= \frac{5}{6} \cdot\frac{1}{8}   &= \frac{5}{48} ,\\   
+    P(Z=a,Y=1|X=\alpha) & = K(Z=a|Y=1) \cdot Q(Y=1|X=\alpha) &= \frac{2}{6} \cdot\frac{5}{8}   &= \frac{10}{48} ,\\   
+    P(Z=b,Y=1|X=\alpha) & = K(Z=b|Y=1) \cdot Q(Y=1|X=\alpha) &= \frac{4}{6} \cdot\frac{5}{8}   &= \frac{20}{48} ,\\   
+    P(Z=a,Y=2|X=\alpha) & = K(Z=a|Y=2) \cdot Q(Y=2|X=\alpha) &= \frac{3}{6} \cdot\frac{2}{8}   &= \frac{6}{48} ,\\   
+    P(Z=b,Y=2|X=\alpha) & = K(Z=b|Y=2) \cdot Q(Y=2|X=\alpha) &= \frac{3}{6} \cdot\frac{2}{8}   &= \frac{6}{48} ,\\   
+    P(Z=a,Y=0|X=\beta)  & = K(Z=a|Y=0) \cdot Q(Y=0|X=\beta)  &= \frac{1}{6} \cdot\frac{3}{8}   &= \frac{3}{48} ,\\   
+    P(Z=b,Y=0|X=\beta)  & = K(Z=b|Y=0) \cdot Q(Y=0|X=\beta)  &= \frac{5}{6} \cdot\frac{3}{8}   &= \frac{15}{48} ,\\   
+    P(Z=a,Y=1|X=\beta)  & = K(Z=a|Y=1) \cdot Q(Y=1|X=\beta)  &= \frac{2}{6} \cdot\frac{3}{8}   &= \frac{6}{48} ,\\   
+    P(Z=b,Y=1|X=\beta)  & = K(Z=b|Y=1) \cdot Q(Y=1|X=\beta)  &= \frac{4}{6} \cdot\frac{3}{8}   &= \frac{12}{48} ,\\   
+    P(Z=a,Y=2|X=\beta)  & = K(Z=a|Y=2) \cdot Q(Y=2|X=\beta)  &= \frac{3}{6} \cdot\frac{2}{8}   &= \frac{6}{48} ,\\   
+    P(Z=b,Y=2|X=\beta)  & = K(Z=b|Y=2) \cdot Q(Y=2|X=\beta)  &= \frac{3}{6} \cdot\frac{2}{8}   &= \frac{6}{48}. 
+\end{align*}
+For the composition $P(Z|X)$ we know:
+\[ P(Z \in C|X=x) = \sum_{y \in \Ycal} P(Z \in C, Y=y|X=x).  \]
+So we get:
+\begin{align*}
+    P(Z=a|X=\alpha) & = P(Z=a,Y=0|X=\alpha) + P(Z=a,Y=1|X=\alpha) + P(Z=a,Y=2|X=\alpha) \\
+                    &= \frac{1}{48} + \frac{10}{48} + \frac{6}{48} &= \frac{17}{48}, \\
+    P(Z=b|X=\alpha) & = P(Z=b,Y=0|X=\alpha) + P(Z=b,Y=1|X=\alpha) + P(Z=b,Y=2|X=\alpha) \\
+                    &= \frac{5}{48} + \frac{20}{48} + \frac{6}{48} &= \frac{31}{48},\\
+    P(Z=a|X=\beta) & = P(Z=a,Y=0|X=\beta) + P(Z=a,Y=1|X=\beta) + P(Z=a,Y=2|X=\beta) \\
+                   &= \frac{3}{48} + \frac{6}{48} + \frac{6}{48} &= \frac{15}{48},\\
+    P(Z=b|X=\beta) & = P(Z=b,Y=0|X=\beta) + P(Z=b,Y=1|X=\beta) + P(Z=b,Y=2|X=\beta) \\
+                   &\frac{15}{48} + \frac{12}{48} + \frac{6}{48} &= \frac{33}{48}.
+\end{align*}
+
+A solution using the product of the matrix representations of the corresponding mass functions is also valid if it is made clear
+what the matrix entries correspond to.
+}
+
+\subsubsection*{Part 2: Push-Forward}
+
+Let $\Wcal = \{ \rho,\gamma \}$ and $W:\, \Ycal \times \Xcal \to \Wcal$ the map given by:
+
+\begin{align*}
+    W(0,\alpha) &= \rho, &&& W(1,\alpha) &= \gamma, &&& W(2,\alpha) &= \rho,\\
+    W(0,\beta) &= \gamma, &&& W(1,\beta) &= \rho, &&& W(2,\beta) &= \gamma.
+\end{align*}
+
+Let $Q(W|X)=W_*Q(Y|X)$ be the push-forward Markov kernel of $Q(Y|X)$ from part 1 along $W$.
+Derive a representation of $Q(W|X)$ similar to the above.
+
+\answer{ 
+    Per definition of the push-forward Markov kernel we get:
+    \[Q(W = w|X=x) = Q(Y \in W^{-1}_x(w)|X=x) = \sum_{ y \in W^{-1}_x(w)}Q(Y =y|X=x) ,\]
+ with:
+    \[ W_x^{-1}(w) = \{ y \in \Ycal\,|\, W(y,x)=w\}.\]
+With this we get:
+\begin{align*}
+    Q(W=\rho|X=\alpha)  &= \sum_{y:\,W(y,\alpha)=\rho} Q(Y =y|X=\alpha) &= Q(Y=0|X=\alpha) + Q(Y=2|X=\alpha) \\
+                        &= \frac{1}{8} + \frac{2}{8} &= \frac{3}{8}, \\
+    Q(W=\gamma|X=\alpha)  &= \sum_{y:\,W(y,\alpha)=\gamma} Q(Y =y|X=\alpha) &= Q(Y=1|X=\alpha) \\
+                            &= \frac{5}{8} &= \frac{5}{8}, \\
+    Q(W=\rho|X=\beta)  &= \sum_{y:\,W(y,\beta)=\rho} Q(Y =y|X=\beta) &= Q(Y=1|X=\beta) \\
+    &= \frac{3}{8} &= \frac{3}{8}, \\
+    Q(W=\gamma|X=\beta)  &= \sum_{y:\,W(y,\beta)=\gamma} Q(Y =y|X=\beta) &= Q(Y=0|X=\beta) + Q(Y=2|X=\beta)  \\
+    &= \frac{3}{8} + \frac{2}{8} &= \frac{5}{8}.
+\end{align*}
+}
+
+
+\subsubsection*{Part 3: Marginals and Conditionals}
+
+Consider the Markov kernel:
+\[ R(W,Z|X):\, \Xcal \dshto \Wcal \times \Zcal,\]
+given by:
+\begin{align*}
+   R(W=\rho,Z=a|X=\alpha) &= \frac{2}{7}, &&& R(W=\rho,Z=b|X=\alpha) &= \frac{1}{7}, \\
+   R(W=\gamma,Z=a|X=\alpha) &= \frac{3}{7}, &&& R(W=\gamma,Z=b|X=\alpha) &= \frac{1}{7}, \\
+   R(W=\rho,Z=a|X=\beta) &= 0, &&& R(W=\rho,Z=b|X=\beta) &= 0, \\
+   R(W=\gamma,Z=a|X=\beta) &= \frac{4}{7}, &&& R(W=\gamma,Z=b|X=\beta) &= \frac{3}{7}, \\
+\end{align*}
+
+Derive a representation of the marginal Markov kernel $R(W|X)$ and a conditional Markov kernel $R(Z|W,X)$ similar to the above.
+
+\answer{
+    For the marginal Markov kernel we know:
+    \[ R(W=w|X=x) = \sum_{z \in \Zcal} R(W=w,Z=z|X=x). \]
+So we get:
+\begin{align*}
+    R(W=\rho|X=\alpha) &= R(W=\rho,Z=a|X=\alpha) + R(W=\rho,Z=b |X=\alpha) \\
+                       &= \frac{2}{7} + \frac{1}{7} &= \frac{3}{7},\\
+    R(W=\gamma|X=\alpha) &= R(W=\gamma,Z=a|X=\alpha) + R(W=\gamma,Z=b |X=\alpha) \\
+                       &= \frac{3}{7} + \frac{1}{7} &= \frac{4}{7},\\
+    R(W=\rho|X=\beta) &= R(W=\rho,Z=a|X=\beta) + R(W=\rho,Z=b |X=\beta) \\
+                       &= 0 + 0 &= 0,\\
+    R(W=\gamma|X=\beta) &= R(W=\gamma,Z=a|X=\beta) + R(W=\gamma,Z=b |X=\beta) \\
+                       &= \frac{4}{7} + \frac{3}{7} &= 1.
+\end{align*}
+
+For the conditional Markov kernel we know:
+\[R(Z=z|W=w,X=x)= \frac{R(W=w,Z=z|X=x)}{R(W=w|X=x)},\]
+if $R(W=w|X=x) >0$, otherwise we can take:
+\[R(Z=z|W=w,X=x)= R(Z=z|X=x) = \sum_{w \in \Wcal} R(W=w,Z=z|X=x).\]
+Any other choice for the latter case that provides a probability distribution in $Z$ for given $(w,x)$ is also valid, while putting all values to $0$
+is not valid.
+We get:
+\begin{align*}
+    R(Z=a|W=\rho,X=\alpha) &=  \frac{R(W=\rho,Z=a|X=\alpha)}{R(W=\rho|X=\alpha)} &= \frac{2}{7}/\frac{3}{7} &= \frac{2}{3}, \\ 
+    R(Z=b|W=\rho, X=\alpha) &= \frac{R(W=\rho,Z=b|X=\alpha)}{R(W=\rho|X=\alpha)} &= \frac{1}{7}/\frac{3}{7} &= \frac{1}{3}, \\
+    R(Z=a|W=\gamma,X=\alpha) &= \frac{R(W=\gamma,Z=a|X=\alpha)}{R(W=\gamma|X=\alpha)} &= \frac{3}{7}/\frac{4}{7} &= \frac{3}{4},\\ 
+    R(Z=b|W=\gamma, X=\alpha) &= \frac{R(W=\gamma,Z=b|X=\alpha)}{R(W=\gamma|X=\alpha)} &= \frac{1}{7}/\frac{4}{7} &= \frac{1}{4}, \\
+   R(Z=a|W=\rho,X=\beta) &= 0, \\
+   R(Z=b|W=\rho,X=\beta) &= 1, \\
+   R(Z=a|W=\gamma,X=\beta) &= \frac{R(W=\gamma,Z=a|X=\beta)}{R(W=\gamma|X=\beta)} &=  \frac{4}{7}/1 &= \frac{4}{7}, \\
+   R(Z=b|W=\gamma,X=\beta) &= \frac{R(W=\gamma,Z=b|X=\beta)}{R(W=\gamma|X=\beta)} &= \frac{3}{7}/1 &= \frac{3}{7}.
+\end{align*}
+}

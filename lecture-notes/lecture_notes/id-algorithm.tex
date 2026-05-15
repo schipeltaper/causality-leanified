@@ -1,0 +1,1293 @@
+
+\subsection{The ID-Algorithm}
+
+        Consider an L-CBN:
+            \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp,\]
+        with \observational CADMG $G$.
+        For disjoint subsets $A,B,C \ins V$ we want to infer the conditional interventional distribution $P(X_A|X_B,\doit(X_{J \cup C}))$ 
+        in terms of (repeated products and) conditional marginals of the \observational Markov kernel $P(X_V|\doit(X_J))$ 
+        and knowledge of $G$. 
+        In this subsection we will restrict ourselves to the case $P(X_A|\doit(X_{J \cup C}))$ with no conditioning and 
+        present the \emph{ID-algorithm}, which can tell if this is possible or not (in precise terms), 
+        and if so, provides us with a formula to do so. 
+        We will start this subsection with a series of necessary definitions, notations and lemmata.
+        The main references are \cite{Pearl09,GP95s,Tian2002,TP02s,Tian04s,SP06,HV06s,HV08s,RERS17,FM20}.
+
+\subsubsection{Core Definitions and Notations}
+
+\begin{Def}[Identifiability of interventional distributions/Markov kernels] 
+    \label{def:id-causal-effect}
+    Let $G=(J,V,E,L)$ be a CADMG and $B \ins V$ and $C \ins J \cup V$ disjoint subsets.
+    We say that the interventional distribution/Markov kernel of $C$ onto $B$ is \emph{identifiable} from $G$,
+    or, more in generic symbols, that $P(X_B|\doit(X_{J \cup C}))$ is \emph{identifiable} from $P(X_V|\doit(X_J))$ (and $G$),
+    if for every two L-CBNs $M_1$ and $M_2$ with the same:
+    \begin{enumerate}
+        \item \observational CADMG $G_1=G_2=G$, and: 
+        \item underlying spaces $\Xcal_{1,v}=\Xcal_{2,v}=:\Xcal_v$ for $v \in J \cup V$, and:
+        \item \observational Markov kernels $P_1(X_V|\doit(X_J)) =P_2(X_V|\doit(X_J))$,
+    \end{enumerate}
+    we also have the equality of the interventional Markov kernels:
+    \[ P_1(X_B|\doit(X_{J \cup C})) = P_2(X_B|\doit(X_{J \cup C})). \]
+    Sometimes we further restrict the class of CBNs to define/achieve identifiability, e.g.\ by adding
+    ``for linear Gaussian CBNs'' or ``for discrete CBNs with strictly positive mass functions'', etc., and then only require $M_1$ and $M_2$ 
+    to come from such classes.
+\end{Def}
+
+In the following we introduce a somewhat more vague, but constructive, notion of identifiability, which we coin \emph{\trackability} that allows us to follow certain marginalization, conditioning and multiplication steps to arrive at the wanted interventional Markov kernel.
+
+\begin{Def}[Trackability (up to specifications)]
+    Let $G=(J,V,E,L)$ be a CADMG and $B \ins V$ and $C \ins J \cup V$ disjoint subsets.
+    \begin{enumerate}
+        \item We say that the interventional distribution/Markov kernel of $C$ onto $B$ is \emph{\trackable} from $G$,
+            or simply that $P(X_B|\doit(X_{J \cup C}))$ is \emph{\trackable} from $P(X_V|\doit(X_J))$ (and $G$),
+    if there exists a finite sequence of operations, only involving marginalization, conditioning and multiplication of Markov kernels,
+    applied to previously determined Markov kernels, starting from $P(X_V|\doit(X_J))$, with predetermined target sets $T_n \ins G$,
+    indicating on which variable the operation is applied to, such that for every L-CBNs $M$ with \observational CADMG $G$ 
+    we can compute $P(X_B|\doit(X_{J \cup C}))$ from $P(X_V|\doit(X_J))$ when we follow the above sequence of operations (and this should work no matter which version of conditional Markov kernels were used).
+\item We say that $P(X_B|\doit(X_{J \cup C}))$ is \emph{\trackable\ up to specifications} ``xyz'' from $P(X_V|\doit(X_J))$ (and $G$), if the same as above holds true, but whenever we condition,  which leads to a Markov kernel only up so some null sets, we use the specifications ``xyz'' to pick a certain version of conditional Markov kernel at each step such that following the pre-specified operations leads to $P(X_B|\doit(X_{J \cup C}))$. 
+\item We say that $P(X_B|\doit(X_{J \cup C}))$ is \emph{\trackable\ up to oracle choices} from $P(X_V|\doit(X_J))$ (and $G$) if there exists a conditional Markov kernel at each conditioning step (``chosen by an oracle that knows $M$'') 
+    such that following these operations leads to $P(X_B|\doit(X_{J \cup C}))$. 
+\item    Again, we sometimes further restrict the class of CBNs to define/achieve \trackability\ (up to oracle choices), 
+    e.g.\ by adding ``for linear Gaussian CBNs'' or ``for discrete CBNs with strictly positive mass functions'', etc., 
+    and then only allow $M$ to come from such classes.
+    \end{enumerate}
+\end{Def}
+
+
+\begin{Eg}
+    To illustrate how such a series of operations could look like
+    consider the CADMG $G$ from Figure \ref{fig:dag-3} with $V=\lC v_1,v_2,v_3 \rC$. 
+    We assume that the observational distribution $P(X_1,X_2,X_3)$ is given.
+    A list of operations could look like:
+    \begin{enumerate}
+        \item Condition $P(X_1,X_2,X_3)$ on $(X_1,X_2)$ and get a version $P(X_3|X_1,X_2)$. 
+        \item[] Further specification could be (if possible): ``take a continuous version'' or ``take a version that is only dependent on variables $X_1$'' or ''take a strictly positive version''.
+        \item Marginalize out $(X_2,X_3)$ from $P(X_1,X_2,X_3)$ and get $P(X_1)$.
+        \item Take the product of the previous two Markov kernels: $P(X_3|X_1,X_2) \otimes P(X_1)$.
+        \item Marginalize out $X_1$ from the last Markov kernel and get: $P(X_3|X_1,X_2) \circ P(X_1)$.
+    \end{enumerate}
+\end{Eg}
+
+\begin{Lem}
+    Let $G=(J,V,E,L)$ be a CADMG.
+    \begin{enumerate} 
+        \item If $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ from $P(X_V|\doit(X_J))$ then it is also identifiable.
+        \item If $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ 
+            then it is also trackable (and thus identifiable) for discrete CBNs $M$ with strictly positive mass functions: 
+    $p(x_V|\doit(x_J))>0$ for all $x_V$, $x_J$.
+    \end{enumerate}
+    \begin{proof}
+        The first point is clear as the sequence of operations always ends in the same result.
+        For discrete CBNs $M$ with strictly positive mass functions conditional Markov kernels are unambiguous, thus a sequence
+        of marginalization, conditioning and products always leads to the same result.
+        Note that marginals, conditionals and products of strictly positive mass functions also are strictly positive mass functions.
+    \end{proof}
+\end{Lem}
+
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \draw[arout] (v1) to (v2);
+    \node (a) at (-1,0.5) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=5cm]
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \draw[arout] (v1) to (v2);
+    \draw[arlat, bend left] (v1) to (v2);
+    \node (a) at (-1,0.5) {(b)};
+  \end{scope}
+  \begin{scope}[xshift=10cm]
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v3) at (2,0) {$v_{3}$};
+    \node[ndout] (v2) at (4,0) {$v_2$};
+    \draw[arout] (v1) to (v3);
+    \draw[arout] (v3) to (v2);
+    \draw[arlat, bend left] (v1) to (v2);
+    \node (a) at (-1,0.5) {(c)};
+  \end{scope}
+\end{tikzpicture}
+\caption{(a) A DAG with two nodes. (b) An ADMG with two nodes. (c) An ADMG with three nodes.
+The interventional distribution $P(X_{2}|\doit(X_{1}))$ is trackable up to oracle choices from $P(X_{1},X_{2},X_{3})$ in (a) and (c), but not in (b).}
+\label{fig:dag-2}
+\end{figure}
+
+\begin{Eg}
+    Consider the DAG $G=(V,E)$ from Figure \ref{fig:dag-2} (a) with $V=\lC v_1,v_2 \rC$ and $E=\lC v_1\tuh v_2 \rC$.
+    Let $\Xcal_{1}:=\lC a,b,c\rC$ and $\Xcal_{2}:=\lC 0,1 \rC$.
+    Define the following Markov kernels $P_1(X_{1}) := P_1(X_{2}):=P(X_{1})$ via:
+    \begin{align*}
+        P(X_{1}=a) &:= \frac{1}{2}, &P(X_{1}=b) &:= \frac{1}{2}, & P(X_{1}=c) &:= 0,
+    \end{align*}
+    and further:
+   \begin{align*}
+        P_1(X_{2}|\doit(X_{1}=a)) & =  \mathrm{Bern}(1/4), & P_2(X_{2}|\doit(X_{1}=a)) & =  \mathrm{Bern}(1/4), \\
+        P_1(X_{2}|\doit(X_{1}=b)) & =  \mathrm{Bern}(3/4), & P_2(X_{2}|\doit(X_{1}=b)) & =  \mathrm{Bern}(3/4), \\
+        P_1(X_{2}|\doit(X_{1}=c)) & =  \mathrm{Bern}(1/8), & P_2(X_{2}|\doit(X_{1}=c)) & =  \mathrm{Bern}(7/8).
+    \end{align*}
+    Then we have two CBNs with \observational DAG $G$, the same underlying spaces 
+    and the same \observational Markov kernel: 
+    \[ P(X_{1},X_{2}) := P_1(X_{2}|\doit(X_{1})) \otimes P_1(X_{1}) = P_2(X_{2}|\doit(X_{1})) \otimes P_2(X_{1}), \]
+    given by:
+\begin{align*} M_1:=\lp G, \lp P_1(X_{1}),P_1(X_{2}|\doit(X_{1})) \rp \rp, \\
+               M_2:=\lp G, \lp P_2(X_{1}),P_2(X_{2}|\doit(X_{1})) \rp \rp. 
+\end{align*}
+    Furthermore, consider the Markov kernel $P(X_{2}|X_{1})$ given by:
+   \begin{align*}
+        P(X_{2}|X_{1}=a) & =  \mathrm{Bern}(1/4),\\
+        P(X_{2}|X_{1}=b) & =  \mathrm{Bern}(3/4), \\
+        P(X_{2}|X_{1}=c) & =  \mathrm{Bern}(5/8).
+    \end{align*}
+    We thus have three different versions of the conditional Markov kernels of $P(X_{1},X_{2})$: 
+ \[ P(X_{2}|X_{1}) \neq P_1(X_{2}|\doit(X_{1})) \neq P_2(X_{2}|\doit(X_{1})) \neq P(X_{2}|X_{1}). \]
+ This shows that the interventional distribution $P(X_{2}|\doit(X_{1}))$ is not identifiable (and thus not \trackable) from $P(X_{1},X_{2})$ and  $G$.
+ However, it is  \trackable\ up to oracle choices from $P(X_{1},X_{2})$ and $G$.
+ It would thus be trackable (and identifiable) for discrete CBNs with strictly positive mass functions, e.g.\ here if
+ we also put positive mass on $P(X_{1}=c) > 0$.
+\end{Eg}
+
+
+\begin{Not}
+    Let $G=(J,V,E,L)$  be a CADMG, $<$ a topological order of $G$ and let $v \in C \ins V$.
+    We then put:
+    \begin{align*}
+        \Anc^{[C]}(v) &:= \Anc^{G_{\doit(C^\cmpl)}}(v) \cap C, \\
+        \Pred^{[C]}_<(v)&:= \Pred_<^{G_{\doit(C^\cmpl)}}(v) \cap C &&= \Pred_<^{G}(v) \cap C, \\
+        \Dist^{[C]}(v)&:= \Dist^{G_{\doit(C^\cmpl)}}(v) \cap C &&= \Dist^{G_{\doit(C^\cmpl)}}(v) , \\
+        \Dist^{[C]}_<(v)&:= \Dist^{[C]}(v) \cap \Pred^{[C]}_<(v), \\
+        \Dst[C] &:= \lC \Dist^{[C]}(v) \st v \in C \rC.
+    \end{align*}
+    Similarly, if we use the subscript $\le$ we then also include $v$.
+    Also note that the dependence on $G$ in the above constructions is implicit.
+\end{Not}
+
+
+
+\begin{Not}[The key interventional Markov kernels]
+     Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and $C \ins V$ any subset.
+     We will abbreviate:
+    \begin{align*} \Qf[C] 
+        &:= P(X_C|\doit(X_{J \cup V \sm C})) 
+        = P(X_C|\doit(\cancel{X_{(J \cup V) \sm (\Pa^G(C) \cup C)}}, X_{\Pa^G(C)\sm C})),
+    \end{align*}
+    where the latter identification comes from Lemma \ref{lem:C-intPaC} (using the global Markov property), which is 
+    ``surely'' determined, and not just up to some null-set.
+    
+    Note that we have the corner cases:
+    \[ \Qf[V]=P(X_V|\doit(X_J)), \qquad \Qf[\emptyset]=\delta_\ast.  \]
+\end{Not}
+
+
+%\paragraph{Proofs - The Key Interventional Markov Kernels}\hfill
+
+\begin{Lem}
+    \label{lem:C-intPaC}
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and $C \ins V$ any subset.
+    Then we have the identification:
+    \[ P(X_C|\doit(X_{J \cup V \sm C})) = P(X_C|\doit(\cancel{X_{(J \cup V) \sm (\Pa^G(C) \cup C)}}, X_{\Pa^G(C)\sm C})). \]
+    \begin{proof}
+        This follows from the global Markov property with:
+        \[ C \idPerp_{G_{\doit(I_{V \sm (C \cup \Pa^G(C))},\Pa^G(C)\sm C)}} I_{V \sm (C \cup \Pa^G(C))} \given \Pa^G(C)\sm C.\]
+        To elaborate the latter, let $P:=\Pa^G(C)\sm C$ and $W := V \sm (C \cup \Pa^G(C))$ and:
+        \[ V':=V \sm P= C \dcup W, \qquad J':= (J\sm P) \dcup P, \qquad G':=G_{\doit(I_W,P)}.\]
+        Now consider a walk from a node $c \in C$ to a node $j \in J' \dcup I_W$ in $G'$:
+        \[\pi:\qquad c \sus \cdots \sus j.\]
+        If $j \in P$ then the walk is blocked by $P$ at the endnode $j \in P$.
+        So lets assume the case $j \notin P$. Then the walk is of the form:
+        \[\pi:\qquad c \sus \cdots \sus w \hut j,\]
+        with a $w \in W$. So we can write it further as:
+        \[\pi:\qquad c =c_0 \sus c_1 \sus \cdots c_k \sus v \sus \cdots \sus w \hut j,\]
+        with $c_0,\dots,c_k \in C$ for some $k \ge 0$, and $v \notin C$, the first occuring node not in $C$ (on $\pi$ from the left). 
+        Note that $v=w$ is possible.
+        If the edge $c_k \sus v$ is of the form $c_k \hut v$ then $v \in P$ and the walk is blocked by $P$ at the non-collider $v$.
+        So we can assume the case where the edge is of the form $c_k \suh v$. 
+        This means that on the subwalk $c_k \suh v \sus \cdots \sus w \hut j$ we must have at least one collider.
+        This collider is then blocked by $P$ as no collider can be an ancestor of a node in $P$ inside $G'$, because $P$ consists only of input nodes of $G'$. 
+
+        This shows the claim:
+        \[ C \idPerp_{G'} I_W \given P.\]
+        %Then $v \notin \lp C \cup J \cup P \cup I_W \rp$, thus $v \in W$. 
+        The rest then follows from the global Markov property.
+    \end{proof}
+\end{Lem}
+
+
+\subsubsection{The Interventional Ordered Local Markov Property}
+
+One of the ingredient for the ID-algorithm is the ability to \track\ (up to oracle choices) 
+the interventional Markov kernel $\Qf[D]$  for districts $D$ of $G$ from $\Qf[V]$.
+The key ingredient to achieve this is the \emph{interventional ordered local Markov property}, which
+provides us with certain well-behaved Markov kernels that appear in factorizations of both $\Qf[V]$ and $\Qf[D]$.
+
+\begin{Def}[The preceding Markov blanket of a node]
+    Let $G=(J,V,E,L)$ be a CADMG and $<$ a topological order.
+    For $v \in  V$ we make the following abbreviations:
+    \begin{align*}
+        G_\le(v) &:= \Pred^G_\le(v), \\% &  [A]_\le(v) &:= \Pred^{[A]}_\le(v), \\
+        \Di^G_\le(v) &:= \Dist^{G_\le(v)}(v),\\% &\Di^{[A]}_\le(v) &:= \Dist^{[A]_\le(v)}(v), \\
+        \Di^G_<(v) &:= \Di^G_\le(v) \sm \lC v \rC, \\%& \Di^{[A]}_<(v) &:= \Di^{[A]}_\le(v) \sm \lC v \rC, \\
+        \PaD^G_<(v) &:= \Pa^G(\Di^G_\le(v)) \sm \Di^G_\le(v), \\%& \PaD^{[A]}_<(v) &:= \Pa^G(\Di^{[A]}_\le(v)) \sm \Di^{[A]}_\le(v),\\
+        \MBl^G_<(v) &:= \PaD^G_<(v) \dcup \Di^G_<(v) \\ %, & \MBl^{[A]}_<(v) &:= \PaD^{[A]}_<(v) \dcup \Di^{[A]}_<(v).
+                    &= \Pa^G(\Dist^{G_\le(v)}(v)) \cup \Dist^{G_\le(v)}(v) \sm \lC v \rC.
+    \end{align*}
+    We call $\Di^G_\le(v)$ the \emph{preceding district} and
+    $\MBl^G_<(v)$ the  \emph{preceding Markov blanket} of $v$ in $G$ w.r.t.\ $<$.
+    Note that this definition depends on the topological order $<$ and that we have the inclusions: 
+    \[\Di^G_<(v) \ins  \MBl^G_<(v) \ins  \Pred_<^G(v).\] 
+\end{Def}
+
+
+
+\begin{Prp}[Interventional ordered local Markov property]
+    \label{prp:ioLMP}
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$.
+    Then for every $v \in V$ we have the conditional independence:
+    \[ X_v \Indep_{P(X_V|\doit(X_{I_{V \sm \Di^G_\le(v)}},X_J))}  X_{\Pred^G_<(v)} \given X_{\MBl^G_<(v)}.\]
+    %\[ X_v \Indep_{P(X_V|\doit(X_J))}  X_{\Pred^G_<(v)} \given X_{\MBl^G_<(v)}.\]
+    In particular, 
+    %when applied to $G_{\doit(I_{V \sm \Dist^G(v)})}$, 
+    there exists a Markov kernel, denoted by: 
+    \[Q(X_v|X_{\MBl^G_<(v)}) \qquad \text{or} \qquad Q(X_v|X_{\Di^G_<(v)},\doit(X_{\PaD^G_<(v)})), \] 
+    that simultaneously is a version of:
+    \[ P(X_v|X_{\Pred^{[V]}_<(v)},\doit(X_J)) \qquad \text{and} \qquad P(X_v|X_{\Pred^{[D]}_<(v)},\doit(X_{J \cup V\sm D})),\]
+    for every subset $D \ins V$ with $\Di^G_\le(v) \ins D$, e.g.\ $D=\Dist^G(v)$.
+    \begin{proof}
+        This follows from the global Markov property, Theorem \ref{thm-gmp-mCBN}, together with the $id$-separation statement:
+        \[ \lC v\rC \idPerp_{ G_{\doit(I_{V \sm \Di^G_\le(v)})}}  \Pred^G_<(v) \given \MBl^G_<(v).\]
+        See Lemma \ref{lem:id-d-sep-3} and Lemma \ref{lem:int-dist-per-node}.
+    \end{proof}
+\end{Prp}
+
+\paragraph{Proofs - The Interventional Ordered Local Markov Property}\hfill
+
+For the next two Lemmata we introduce some shorter notations:
+
+\begin{Not}
+    Let $G=(J,V,E,L)$ be a CADMG, $<$ a topological order for $G$ and $v \in V$ a fixed node.
+    For a subset $W \ins J \cup V$ we abbreviate:
+    \[ W_<:=\lC w \in W \st w < v \rC, \qquad W_\le:=\lC w \in W \st w < v \,\lor\, w=v \rC, \]
+    and $W_>$ and $W_\ge$ accordingly.
+\end{Not}
+
+The next Lemma is the graphical center piece that makes the ID-algorithm possible.
+It could be called the graphical version of an ``interventional ordered local Markov property'',
+whose distributional counterpart is stated in the Lemma after.
+
+
+\begin{Lem}
+    \label{lem:id-d-sep-3}
+   Let $G=(J,V,E,L)$ be a CADMG, $<$ a topological order for $G$ and $v \in V$ a fixed node.
+   Let $D \ins V$ be a subset such that $v \in D$ and $\Dist^{G_\le}(D_\le)\ins D$,
+   where $G_\le:=\Pred^G_\le(v)$ is the ancestral subgraph of predecessors of $v$ in $G$, e.g.\ $D=\Dist^G(v)$ or $D=\Dist^{G_\le}(v)$.
+   Then we have the $id$-separation statement:
+   \[ \lC v \rC \idPerp_{G_{\doit(I_{V\sm D_\le})}}  V_< \given \Pa^G(D_\le) \cup D_<.  \]
+   %\[ \lC v \rC \idPerp_{G_{\doit(I_{V\sm D_\le})}} I_{V\sm D_\le} \dcup J \dcup V_< \given \Pa^G(D_\le) \cup D_<.  \]
+   \begin{proof}
+       We abbreviate:
+       \[\tilde G := G_{\doit(I_{V\sm D_\le})}, \qquad F:= \Pa^G(D_\le) \cup D_<.\]
+       Assume the contrary to the claim and let $\pi$ be a shortest path from $v$ to a node $w \in J \dcup I_{V \sm D_\le} \dcup V_<$ \Claude{$I_{V \sm D}$ should be $I_{V \sm D_{\le}}$}\PF{solved} in the graph $\tilde G$. It is clear that $w \neq v$.
+
+       If $w \in F$ then $\pi$ is blocked by $F$ at the endnode $w$.
+       So we can assume that $w \notin F$, in particular, $w \notin D_\le$.
+       So there exist $v_0,\dots,v_k \in D_\le$ for some $k\ge 0$ and $\tilde w \notin D_\le$ such that $\pi$ is of the form:
+       \[\pi:\qquad v=v_0 \sus \cdots \sus v_k \sus \tilde w \sus \cdots  \sus w, \]
+       where $\tilde w$ is the first node from the left that is not in $D_\le$, which exists since $w \notin D_\le$. 
+       Since $v_k \in D_\le$ it is clear that $\tilde w \notin I_{V\sm D_\le}$. %even $\tilde w \notin I_{V\sm D_\le}$.  
+       So $\tilde w \in J \cup V \sm D_\le$. 
+      
+       If the edge $v_k \sus \tilde w$ is of the form $v_k \hut \tilde w$ then $\tilde w \in \Pa^G(D_\le)$. 
+       So in this case $\pi$ is blocked at the non-collider $\tilde w$ by $F$.
+
+       So we can assume the case $v_k \suh \tilde w$. This implies that $\tilde w$ cannot lie in the set of input nodes of $\tilde G$, 
+       which implies that $\tilde w \notin J \cup I_{V\sm D_\le}$. With this we then get that $\tilde w \in V \sm D_\le$. 
+
+       Assume the case that $\tilde w \in V_>$ and $\pi$ is of the form:
+        \[\pi:\qquad v=v_0 \sus \cdots \sus v_k \suh \tilde w = \tilde w_0 \sus  \cdots  \sus \tilde w_m =w, \]
+       where the subwalk $\tilde w_0 \sus  \cdots  \sus \tilde w_m$ has no colliders. 
+       Because of the edge $v_k \suh \tilde w$ this subwalk necessarily is directed to the right and we get:
+        \[\pi:\qquad v=v_0 \sus \cdots \sus v_k \suh \tilde w = \tilde w_0 \tuh  \cdots  \tuh \tilde w_m =w. \]
+       Then the endnode $w$ is not an input node, $w \notin J \cup I_{V\sm D_\le}$, and $v < \tilde w \le \tilde w_m= w$, thus $w \in V_>$. 
+       But this is a contradiction to $w \in J \dcup I_{V \sm D_\le} \dcup V_<$\Claude{$I_{V \sm D}$ should be $I_{V \sm D_{\le}}$}\PF{solved}. So this case cannot occur.
+
+       Now assume the case that $\tilde w \in V_>$ and $\pi$ is of the form:
+        \[\pi:\qquad v=v_0 \sus \cdots \sus v_k \suh \tilde w = \tilde w_0 \tuh  \cdots  \tuh \tilde w_m \hus \cdots  \sus w, \]
+        for some $m \ge 0$, with a directed subwalk $\tilde w_0 \tuh  \cdots  \tuh \tilde w_m$, where $\tilde w_m$ is the first node after $\tilde w$ where a collider occurs, which could be $\tilde w$ itself. Again we have $v < \tilde w \le \tilde w_m$ and thus 
+        $\tilde w_m \in V_>$. This implies that $\tilde w_m \notin \Anc^G(F)$, since $\Anc^G(F) \ins J \cup V_<$. 
+        So $\pi$ is blocked by $F$ at the collider $\tilde w_m$.
+
+       So we are left with the cases $v_k \suh \tilde w$ and $\tilde w \in V_<\sm D_\le$.
+ 
+       Now consider the case of a directed edge $v_k \tuh \tilde w$ and $\tilde w \in V_<\sm D_\le$.
+       If $v_k \neq v$ then $\pi$ is blocked at the non-collider $v_k \in D_<$ by $F$. 
+       So we can assume that $v_k=v$. This implies $v < \tilde w$ and thus $\tilde w \in V_>$, which contradicts $\tilde w \in V_<$.
+       %(or leads to the case already considered above). 
+       So this cannot occur.
+
+       Now consider the case of a bidirected edge $v_k \huh \tilde w$ and $\tilde w \in V_< \sm D_\le$.
+       Then both nodes $v_k,\tilde w \in G_\le$ and $\tilde w \in \Dist^{G_\le}(v_k)$. By the assumption of this Lemma we have:
+       \[ \tilde w \in \Dist^{G_\le}(v_k) \ins \Dist^{G_\le}(D_\le) \ins D \cap G_\le = D_\le. \]
+       So $\tilde w \in D_\le$, which contradicts $\tilde w \notin D_\le$. So this case cannot occur.
+
+       So we have shown that in all cases that can occur the path $\pi$ in $\tilde G$ is blocked by $F$. This shows the claim.
+   \end{proof}
+\end{Lem}
+
+
+
+
+The last Lemma allows us to use the global Markov property for the existence of special Markov kernels that are of importance for the ID-algorithm:
+
+
+\begin{Lem}[Interventional ordered local Markov property]
+    \label{lem:int-dist-per-node}
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$ and fixed $v \in V$.
+    Let $G_\le:=\Pred^G_\le(v)$ be the ancestral sub-CADMG of predecessors of $v$ in $G$ and let:
+    \[ D_\le := \Dist^{G_\le}(v), \qquad F:= \Pa^G(D_\le) \cup D_\le \sm \lC v \rC. \]
+   Then we have the conditional independence:
+   \[ X_v \Indep_{P(X_{V_\le}|\doit(X_{I_{V\sm D_\le}},X_J))}  X_{V_<} \given X_F.\]
+   In particular, there exists a Markov kernel:
+   \[ Q(X_v|X_F) \] 
+   that simultaneously is a version of:
+   \begin{align*} 
+       P(X_v|X_H,\doit(X_{J \cup V\sm S})), 
+    \end{align*}
+   for every subsets $H,S \ins V$ such that $D_\le \ins S \ins V$ and $F \cap S_< \ins  H \ins V_<$.
+  Note that this includes the corner cases: 
+  \begin{enumerate}
+      \item $P(X_v|X_{V_<},\doit(X_J))$,
+      \item $P(X_v|X_{F\cap V_<},\doit(X_J))$,
+      \item $P(X_v|X_{S_<},\doit(X_{J \cup V\sm S}))$,
+      \item $P(X_v|X_{F \cap S_<},\doit(X_{J \cup V\sm S}))$,
+      \item $P(X_v|X_{D_<},\doit(X_{J \cup V\sm D_\le}))$.
+  \end{enumerate}
+  % \[ P(X_v|X_{V_<},\doit(X_J)), \qquad P(X_v|X_F,\doit(X_J)) \qquad \text{and} \qquad P(X_v|X_{S_<},\doit(X_{J \cup V\sm S})), \]
+  % for every subset $S \ins V$ with $D_\le \ins S$.
+   %Furthermore, such a $Q(X_v|X_F)$ is unique up to a $P(X_{V_<}|\doit(X_{I_{V \sm D}},X_J))$-null set.
+ \begin{proof}
+        By Lemma \ref{lem:id-d-sep-3} we have the $id$-separation:
+   \[ \lC v \rC \idPerp_{G_{\doit(I_{V\sm D_\le})}} V_< \given F.  \]
+   By the global Markov property, Theorem \ref{thm-gmp-mCBN}, we get: 
+   \[ X_v \Indep_{P(X_{V_\le}|\doit(X_{I_{V\sm D_\le}},X_J))}  X_{V_<} \given X_F.\]
+   So there exists a Markov kernel $Q(X_v|X_F)$ such that:
+   \begin{align*}  P(X_{V_\le}|\doit(X_{I_{V\sm D_\le}},X_J)) = Q(X_v|X_F) \otimes P(X_{V_<}|\doit(X_{I_{V\sm D_\le}},X_J)). 
+       \label{eq:q-mk-1}\tag{\#}
+   \end{align*}
+   For a subset $S \ins V$ with $D_\le \ins S$ we have: 
+       \[ V\sm D_\le = (V\sm S) \dcup (S\sm D_\le). \] 
+   %Considering $X_{I_{S \sm D_\le}} = \star$ and the two corner cases $X_{I_{V \sm S}}=\star$ and $X_{I_{V \sm S}} = x_{V \sm S}$, we get:
+   By putting $X_{I_{S \sm D_\le}} = \star$ and $X_{I_{V \sm S}} = x_{V \sm S}$ we get:
+   \begin{align*}
+     %  P(X_{V_\le}|\doit(X_J)) &= Q(X_v|X_F) \otimes P(X_{V_<}|\doit(X_J)), \\
+       P(X_{V_\le}|\doit(X_{V \sm S},X_J)) &= Q(X_v|X_F) \otimes P(X_{V_<}|\doit(X_{V \sm S},X_J)).
+   \end{align*}
+ Now consider another subset $H \ins V_<$ with $F \cap S_< \ins  H$. 
+ Then marginalizing out $X_{V_\le \sm \lp \lC v \rC \cup H \rp}$ gives us:
+   \begin{align*}
+   P(X_v,X_H|\doit(X_{J \cup V \sm S})) &= Q(X_v|X_F) \otimes P(X_H|\doit(X_{J \cup V \sm S})).
+   \end{align*}
+ This shows that $Q(X_v|X_F)$, simultaneously, is a version of:
+   \begin{align*} P(X_v|X_H,\doit(X_{J \cup V\sm S})), 
+    \end{align*}
+   for every subsets $H,S \ins V$ such that $D_\le \ins S \ins V$ and $F \cap S_< \ins  H \ins V_<$.
+  This shows the claim.
+     \end{proof}
+\end{Lem}
+
+
+\subsubsection{Ancestral Sets and Districts}
+
+\begin{Lem}[Ancestral subsets are \trackable]
+    \label{lem:int-anc}
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and $A \ins V$ be a subset such that 
+    $A=\Anc^{[V]}(A)$.
+    Then we have the equality between the interventional distribution $\Qf[A]$ and the $A$-marginal of $\Qf[V]$:
+            \[ \Qf[A] = P(X_A|\doit(X_{J \cup V \sm A})) = P(X_A|\doit(X_J)). \]
+    \begin{proof}
+        By Lemma \ref{lem:C-intPaC} we only have to show the right identity:
+        \[ \Qf[A] = P(X_A|\doit(X_{J \cup V \sm A})) \stackrel{!}{=} P(X_A|\doit(X_J)). \]
+       The latter follows again from the global Markov property and the $id$-separation:
+       \[ A \idPerp_{G_{\doit(I_{V \sm A})}} I_{V \sm A} \given J.  \]
+      % The arguments are similar to \ref{lem:C-intPaC} with the  $\Pa^G(A) \sm A \ins J$.
+       This $id$-separation holds true since every walk from a node $v \in A$ to a node $j \in J \dcup I_{V \sm A}$ is either blocked by $J$ as the endnode $j \in J$ or is of the form:
+       \[\pi:\qquad v \sus a_1 \sus \cdots a_k \sus w' \sus \cdots \sus w \hut j,\]
+       with a $ w \in V \sm A$, $j \in I_{V\sm A}$, $a_1,\dots, a_k \in A$ for some $k \ge 0$ and $w' \notin A$, the first node not in $A$ on $\pi$ from the left ($w'=w$ possible).
+       In case the edge $a_k \sus w'$ is of the form $a_k \hut w'$ we have:
+       \[w' \in \Anc^G(A) \sm A = \Anc^G(A) \sm \Anc^{[V]}(A)  \ins J.\] 
+      So in this case the walk is blocked at the non-collider $w'$ by $J$. 
+       So we can consider the case where the edge is of the form $a_k \suh w'$.
+       Then the subwalk $a_k \suh w' \sus \cdots \sus w \hut j$ must contain a collider. This collider can not be an ancestor of $J$, as $J$ are the input nodes. So the walk is blocked by $J$ in all cases.
+    \end{proof}
+\end{Lem}
+
+\begin{Rem}[Districts are trackable up to oracle choices] 
+    \label{rem:Q-dist-ident}
+    Let $M$ be an L-CBN with \observational CADMG $G=(J,V,E,L)$.
+    \begin{enumerate}
+        \item Since the Markov kernel $Q(X_v|X_{\MBl^G_<(v)})$ coming from the interventional ordered local Markov property, 
+            see Proposition \ref{prp:ioLMP}, is a version of both:
+          \[ P(X_v|X_{\Pred^{[V]}_<(v)},\doit(X_J)) \qquad \text{and} \qquad P(X_v|X_{\Pred^{[D]}_<(v)},\doit(X_{J \cup V\sm D})),\]
+                for $D=\Dist^G(v)$, which are marginal conditionals of the interventional distributions $\Qf[V]$ and $\Qf[D]$, resp.,
+                the $Q(X_v|X_{\MBl^G_<(v)})$'s are \trackable\ from either quantity up to oracle choices.
+            \item We get the following factorization by the chain rule for every $D \in \Dst[V]$: %or unions thereof if Fa is adjusted
+               \begin{align*}
+                   \Qf[V] &= \bigotimes_{v \in V}^> P(X_v|X_{\Pred^{[V]}_<(v)},\doit(X_J)) &= \bigotimes_{v \in V}^> Q(X_v|X_{\MBl^G_<(v)}), \\
+                   \Qf[D] &= \bigotimes_{v \in D}^> P(X_v|X_{\Pred^{[D]}_<(v)},\doit(X_{J \cup V\sm D})) &= \bigotimes_{v \in D}^> Q(X_v|X_{\MBl^G_<(v)}).
+               \end{align*}
+           \item In particular, $\Qf[D]$ is \trackable\ from $\Qf[V]$ up to oracle choices 
+               by first determining $Q(X_v|X_{\MBl^G_<(v)})$ for $v \in D$  
+               via marginalization and conditioning and then taking the product of Markov kernels in reverse order of $<$.
+            \item The above seems to give us something like a factorization:
+       \begin{align*}
+           \Qf[V] &= \bigotimes_{v \in V}^> Q(X_v|X_{\MBl^G_<(v)}) 
+            && = \lB \bigotimes_{D \in \Dst[V]}^> \bigotimes_{v \in D}^>  \rB Q(X_v|X_{\MBl^G_<(v)}) \\
+            & = \lB \bigotimes_{D \in \Dst[V]}^> \rB \lp \bigotimes_{v \in D}^>  Q(X_v|X_{\MBl^G_<(v)}) \rp  
+            && = \lB \bigotimes_{D \in \Dst[V]}^>\rB \Qf[D],             
+       \end{align*}
+         where the products in brackets are not well-defined in the naive way, 
+         as the districts of a CADMG don't need to be topologically ordered.
+         Nonetheless, if we are given a fixed topological order $<$ and the interventional Markov kernels $\Qf[D]$ 
+         for every $D \in \Dst[V]$ 
+         then we can first \track\ $Q(X_v|X_{\MBl^G_<(v)})$ from $\Qf[D]$ up to oracle choices
+         for every $v \in D$ and every $D \in \Dst[V]$ and then take the product
+         on the top left. 
+    \end{enumerate}
+\end{Rem}
+
+\begin{Def}
+    \label{not:Q-dist}
+        Let $M$ be an L-CBN with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$.
+        Let  $\Dst \ins \Dst[V]$ be a set of districts of $G$. Then we put:
+         \[ \lB \bigotimes_{D \in \Dst}^>\rB \Qf[D] := \bigotimes_{v \in \bigcup_{D \in \Dst} D}^> Q(X_v|X_{\MBl^G_<(v)}),  \]
+         where the product on the right is taken in reverse topological order.
+         Note that for $G':=G_{\doit(D^\cmpl)}$ and $v \in D$ we have $\MBl_<^{G'}(v)=\MBl_<^G(v)$. So the set $\MBl_<^G(v)$ 
+         can be determined by the subgraph $G'$ and $<$ alone.
+\end{Def}
+
+
+
+
+\subsubsection{The ID-Algorithm}
+
+Now we come to the main part of this section, the \emph{ID-algorithm} for the identification of causal effects, or, more precisely, the \trackability\ up to oracle choices of interventional Markov kernels, from the \observational Markov kernel. 
+The main references are \cite{Pearl09,GP95s,Tian2002,TP02s,Tian04s,SP06,HV06s,HV08s,RERS17,FM20}.
+
+\begin{Alg}[ID-algorithm] \label{alg:id}
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$.
+    Let $\emptyset \neq B \ins V$ and $C \ins J \cup V$ be two disjoint subsets of nodes. 
+    We want to query if the interventional Markov kernel $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices
+    from the \observational Markov kernel $P(X_V|\doit(X_J))=\Qf[V]$ and $G$.
+    \begin{enumerate}
+        \item Put $B^C:=\Anc^{G_{\doit(C)}}(B) \sm (J \cup C) \ins V$. 
+        \item[] Then $P(X_B|\doit(X_{J \cup C}))$ is the 
+            $B$-marginal of $P(X_{B^C}|\doit(X_{J \cup C})) = \Qf[B^C]$.
+        \item[] So we are left to determine if we can \track\ $\Qf[B^C]$ from $\Qf[V]$ up to oracle choices.
+        \item Find the districts $\Dst[B^C]=\lC S_1,\dots,S_K\rC$ and put $A_{k,0}:=V$ for $k=1,\dots,K$.
+        \item[] Note that $\Qf[A_{k,0}]=\Qf[V]$ is trivially \track ed from $\Qf[V]$.
+        \item For each $k=1,\dots, K$ repeat the following steps recursively for $\ell \in \N$:
+            \begin{enumerate}
+                \item Take the district in $A_{k,\ell}$:
+                        \[ D_{k,\ell} := \Dist^{[A_{k,\ell}]}(S_k) \]
+                        We can \track\ $\Qf[D_{k,\ell}]$ from $\Qf[A_{k,\ell}]$ up to oracle choices by Remark \ref{rem:Q-dist-ident}.
+                \item Take the ancestral closure in $D_{k,\ell}$: 
+                    \[ A_{k,\ell+1}:=\Anc^{[D_{k,\ell}]}(S_k). \] 
+                    We can \track\ $\Qf[A_{k,\ell+1}]$ from $\Qf[D_{k,\ell}]$ via marginalization by Lemma \ref{lem:int-anc}.
+
+                \item If $D_{k,\ell}=A_{k,\ell}$ or $A_{k,\ell+1}=D_{k,\ell}$ then stop for this $k$ and put: 
+                    \[ \idc S_k:=D_{k,\ell}.\]
+                \item[] Otherwise, repeat with: $\ell \leftarrow \ell +1$.
+            \end{enumerate}
+                \item When the algorithm has stopped then for every $k=1,\dots,K$ we have:
+                    \[ \idc S_k=\Anc^{[\idc S_k]}(S_k)=\Dist^{[\idc S_k]}(S_k) \sni S_k.\]
+                    Furthermore, we have \track ed all $\Qf[\idc S_k]$'s recursively from $\Qf[V]$ up to oracle choices.
+                \item If there is any $k=1,\dots,K$ with $\idc S_k \neq S_k$ then the ID-algorithm outputs: FAIL.
+                \item Otherwise, we have for all $k=1,\dots,K$ that $\Qf[S_k]=\Qf[\idc S_k]$ and we can \track\
+                    $\Qf[B^C]$ from $\Qf[V]$ up to oracle choices via:
+                    \[ \Qf[B^C] = \lB \bigotimes_{S_k \in \Dst[B^C]}^> \rB \Qf[S_k],\]
+                    and $P(X_B|\doit(X_{J \cup C}))$ as the $B$-marginal thereof.
+    \end{enumerate}
+\end{Alg}
+
+
+
+\begin{Cor}[Soundness up to oracle choices]  
+    \label{cor:id-alg-sound-oracle}
+    The ID-algorithm \ref{alg:id} is sound up to oracle choices.
+    This means that if it does not produce FAIL for input $B, C \ins G$ 
+    then $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ and $G$.
+    \begin{proof}
+    This is clear as each step in the ID-algorithm is trackable up to oracle choices.
+    Note that the operations at each step can be formulated by knowing $G$, $B$ and $C$ alone 
+    without knowing $M$ in advance.
+ \begin{comment}
+   First note that all interventional Markov kernels $\Qf[C]$ are uniquely given by $M$ (not just up to null sets) for all $C \ins V$.
+    So every equality between such Markov kernels, like $\Qf[\idc S] = \Qf[S]$, is unambiguous.
+    The only source of ambiguity are the Markov kernels $Q(X_v|X_{\MBl^G_<(v)})$, which are only determined up to some form of null set.
+    However, they are always chosen w.r.t.\ a (sub-)CADMG $G$, a topological order $<$ and one of its district $D \in \Dst[V]$ such that 
+    $Q(X_v|X_{\MBl^G_<(v)})$ is a version of the marginal conditionals of both $\Qf[V]$ and $\Qf[D]$:
+ \[ P(X_v|X_{\Pred^{[V]}_<(v)},\doit(X_J)) \qquad \text{and} \qquad P(X_v|X_{\Pred^{[D]}_<(v)},\doit(X_{J \cup V\sm D})).\]
+ So if $<'$ is another topological order for $G$ and $Q'(X_v|X_{F(v)})$ another such version for each $v \in D$ 
+ w.r.t.\ $G$, $<'$ and $D$ 
+ like above, then we get the (sure) equality by the chain rule (or just the definition of conditional Markov kernels):
+  \begin{align*}
+      \bigotimes_{v \in D}^{>'}  Q'(X_v|X_{F(v)}) &= \Qf[D] = \bigotimes_{v \in D}^> Q(X_v|X_{\MBl^G_<(v)}).
+  \end{align*}
+    So, even though, the topological orders $<$ of $G$ and the $Q(X_v|X_{\MBl^G_<(v)})$'s are ambiguous up to some null sets, their product is not, when restricted to these joint choices. 
+    Similarly, the final product:
+    \[ \Qf[B^C] = \lB \bigotimes_{S_k \in \Dst[B^C]}^> \rB \Qf[S_k],\]
+    is unambiguous, as well as the equality $\Qf[\idc S_k]=\Qf[S_k]$, and its marginal $P(X_B|\doit(X_{J \cup C}))$.
+
+    This shows that in the non-FAIL case $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ and $G$ alone.
+\end{comment}
+    \end{proof}
+\end{Cor}
+
+\begin{Thm}[Soundness up to null-sets]
+    \label{thm:ID-as-soundness}
+    Let $G=(J,V,E,L)$ be a CADMG with a fixed topological order $<$. 
+    Consider the class of L-CBNs $M$ with \observational CADMG $G$ such that the following holds: 
+    \begin{enumerate}
+        \item Each measurable space $\Xcal_v$ comes equipped with a fixed measure $\mu_v$ for $v \in V$,
+        \item for every subset $D \ins V$ the interventional Markov kernel $\Qf[D]=P(X_D|\doit(X_{J \cup V \sm D}))$ is
+            \emph{absolute continuous} w.r.t.\ the product measure $\mu_D:=\bigotimes_{v \in D} \mu_v$ and vice versa:
+            \[ \mu_D \ll \Qf[D] \ll \mu_D.   \]
+    \end{enumerate}
+    If the ID-algorithm does not produce FAIL for input $B, C \ins G$,
+    then $P(X_B|\doit(X_{J \cup C}))$ is ``almost-surely'' \trackable\ from $P(X_V|\doit(X_J))$ and $G$ for such CBNs $M$, 
+    i.e.\ the Markov kernel that was output by the ID-algorithm equals $P(X_B|\doit(X_{J \cup C}))$ up to a
+    $\mu_{V\sm B^C}$-null set in $\Xcal_{J \cup V\sm B^C}$ (see Remark \ref{rem:ID-as-soundness} below).
+    \begin{proof}
+        See Theorem \ref{thm:ID-as-soundness-prf}.
+    \end{proof}
+\end{Thm}
+
+\begin{Rem}
+    \label{rem:ID-as-soundness}
+    \begin{enumerate}
+        \item For the almost-sure soundness in Theorem \ref{thm:ID-as-soundness} to hold one implicitely needs/is allowed
+            to make slight relaxations to the ID-algorithm \ref{alg:id}: 
+        \item[] Instead of insisting on taking the conditionals $Q(X_v|X_{\MBl^{G'}_<(v)})$ 
+            of $\Qf[D]$ for $v \in D \ins V$ one takes any version of that conditional of $\Qf[D]\otimes \mu_{V \sm D}$ 
+            that is only dependent on predecessors of $v$, 
+            which will always be possible as $Q(X_v|X_{\MBl^{G'}_<(v)})$ is an existing such version.
+        \item The conditions of Theorem \ref{thm:ID-as-soundness} are satisfied for a L-CBNs $M$ with CDAG
+            $G^+=(J, U \dcup V,E)$ if every Markov kernel $P_v(X_v|\doit(X_{\Pa^{G^+}(v)}))$ has a strictly positive Doob-Radon-Nikodym derivative/density w.r.t.\ the measure $\mu_v$ for all $v \in V$, see Lemma \ref{lem:cbn-str-pos-density}.
+            %and some additional measures $\mu_v$ for $v \in U$.
+    \end{enumerate}
+\end{Rem}
+
+\begin{Thm}[From almost-sure to sure soundness]
+    \label{thm:ID-as-soundness-cont}
+    In addition to the conditions in Theorem \ref{thm:ID-as-soundness} assume:
+          \begin{enumerate}
+              \item $\Xcal_v$ is a \emph{Polish space} for every $v \in J \cup V$,
+              \item $\mu_{V}$ is \emph{strictly positive} (on non-empty open subsets of $\Xcal_V$),
+              %\item $\mu_{V\sm B^C}$ is \emph{strictly positive} (on non-empty open subsets),
+              \item the queried interventional Markov kernel is \emph{continuous} as a map:
+                  \[ P(X_B|\doit(X_{J \cup C})):\, \Xcal_{J \cup C} \to \Prob(\Xcal_B).\]
+          \end{enumerate}
+          Then the output $\hat P(X_B|X_{J \cup V \sm B^C})$ of the ID-algorithm (in the not-FAIL case) 
+          can be changed on a $\mu_{V\sm B^C}$-null set in $\Xcal_{J \cup V \sm B^C}$ such that it becomes continuous as a map:
+        \[ \hat P(X_B|X_{J \cup V \sm B^C}):\, \Xcal_{J \cup V \sm B^C} \to \Prob(\Xcal_B). \]
+          Every such continuous version of $\hat P(X_B|X_{J \cup V \sm B^C})$ is then necessarily identical to
+          the interventional Markov kernel $P(X_B|\doit(X_{J \cup C}))$. 
+          These conditions thus allow us to recover from the ambiguity resulting from the null-sets.
+          \begin{proof}
+              The existence of such a null-set is clear, 
+              because $\hat P(X_B|X_{J \cup V \sm B^C})$ is $\mu_{V\sm B^C}$-almost-surely equal to
+              $P(X_B|\doit(X_{J \cup C}))$, and the latter was assumed to be continuous.
+              The uniqueness follows from Lemma \ref{lem:cont-cond-unique}.
+          \end{proof}
+\end{Thm}
+
+\begin{Rem}
+    The statement of Theorem \ref{thm:ID-as-soundness-cont} 
+    can be further relaxed by asking for Polish spaces $\Xcal_v$ only for $v \in V$,
+          strict positivity only for $\mu_{V\sm B^C}$ and only for the continuity of the maps:
+          \[  \Xcal_{C \sm J} \to \Prob(\Xcal_B),\quad x_{C\sm J} \mapsto P(X_B|\doit(X_{J \cup C}=(x_J,x_{C \sm J})), \]
+          for every $x_J \in \Xcal_J$ separately, by then applying the criterion from Theorem \ref{thm:ID-as-soundness-cont} 
+          for each partial input $x_J\in \Xcal_J$ separately.
+\end{Rem}
+
+\begin{Eg}
+    All stated assumptions of Theorems \ref{thm:ID-as-soundness} and \ref{thm:ID-as-soundness-cont} 
+    are satisfied if every Markov kernel of the L-CBN $M$ is linear Gaussian: 
+    \[P_v(X_v \in dx_v|\doit(X_{\Pa^{G^+}(v)}=x_{\Pa^{G^+}(v)})) = \Ncal(dx_v|\Gamma_v \cdot x_{\Pa^{G^+}(v)} + \gamma_v, \Sigma_v), \] 
+    with transition matrix $\Gamma_v$, translation vector $\gamma_v$ and positive definite covariance matrix $\Sigma_v \succ 0$ and Lebesgue measures $\mu_v$, $v \in U \cup V$.
+\end{Eg}
+
+\begin{Thm}[Completeness, see \cite{HV08s}] 
+    The ID-algorithm is complete.
+
+    More precisely, if the ID-algorithm outputs FAIL for subsets $B, C \ins G=(J,V,E,L)$ 
+    then there exist two L-CBNs $M_1$ and $M_2$ with the same \observational CADMG
+    $G$, the same and discrete underlying spaces $\Xcal_v$ for $v \in J \cup V$, and the same 
+    \observational Markov kernels $P_1(X_V|\doit(X_J)) =P_2(X_V|\doit(X_J))$ that have strictly positive mass functions such that:
+    \[ P_1(X_B|\doit(X_{J \cup C})) \neq P_2(X_B|\doit(X_{J \cup C})). \]
+    In particular, in case of FAIL, $P(X_B|\doit(X_{J \cup C}))$ is not identifiable from $P(X_V|\doit(X_J))$ and $G$.
+\end{Thm}
+
+
+\begin{Rem}[Identification of conditional causal effects, see \cite{Tian04s}] 
+    If we want to know if the conditional interventional Markov kernel $P(X_A|X_B,\doit(X_{J \cup C}))$
+    is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ and $G$ then we can run the ID-algorithm
+    for $A \cup B$ and $C$. If it does not output FAIL then $P(X_{A \cup B}|\doit(X_{J \cup C}))$ 
+    is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ and $G$ and by conditioning on $X_B$ afterwards so will 
+    $P(X_A|X_B,\doit(X_{J \cup C}))$ be.
+
+    However, note that there is a ``conditional'' version of the ID-algorithm, see \cite{Tian04s}, 
+    that can check if (and conclude that)
+    $P(X_A|X_B,\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices from $P(X_V|\doit(X_J))$ and $G$ 
+    even if the (unconditional) ID-algorithm outputs FAIL for $P(X_{A \cup B}|\doit(X_{J \cup C}))$.
+\end{Rem}
+
+\begin{comment}
+\begin{Def}[The ID-components]
+    Let $G=(J,V,E,L)$ be a CADMG. 
+    \begin{enumerate}
+        \item Let $B \ins V$ be a non-empty subset and $S \in \Dst[B]$ be a district. 
+        \item[] Iteratively define: $A_{S,0}:=V$ and for $n \in \N$:
+            \[ D_{S,n} := \Anc^{[A_{S,n}]}(S), \qquad A_{S,n+1}:=\Dist^{[D_{S,n}]}(S), \qquad  \idc S := \bigcap_{n \in \N} A_{S,n} \sni S. \]
+            We then define the set of \emph{ID-components} of $B$ as:
+            \[ \IDC[B]:=\lC \idc S \st S \in \Dst[B] \rC. \]
+        \item Let $\emptyset \neq B \ins V$ and $C \ins J \cup V$ disjoint subsets. We then put:
+            \[B^C := \Anc^{G_{\doit(C)}}(B) \sm (J \cup C) \ins V. \]
+            With this we also have the corresponding sets: $\Dst[B^C]$ and $\IDC[B^C]$.
+            %\begin{align*} \Dst[B|\doit(C)] &:= \Dst\lB \Anc^{G_{\doit(C)}}(B) \sm (J \cup C) \rB, \\
+            %    \IDC[B|\doit(C)] &:= \IDC\lB \Anc^{G_{\doit(C)}}(B) \sm (J \cup C) \rB. 
+           % \end{align*}
+    \end{enumerate}
+\end{Def}
+
+\begin{Lem}[ID-components are \trackable\ up to oracle choices]
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$.
+    Let $B \ins V$ any (non-empty) subset and $\idc S \in \IDC[B]$ any ID-component of $B$.
+    Then the interventional distribution $\Qf[\idc S]$ is \trackable\ from $\Qf[V]$ up to oracle choices.
+    \begin{proof}
+        This follows recursively from Remark \ref{rem:Q-dist-ident} and Lemma \ref{lem:int-anc}.
+    \end{proof}
+\end{Lem}
+
+\begin{Cor}[ID-algorithm rephrased]
+    Let $M$ be an L-CBN with with \observational CADMG $G=(J,V,E,L)$ and a fixed topological order $<$.
+    Let $\emptyset \neq B \ins V$ and $C \ins J \cup V$ be two disjoint subsets of nodes. 
+    Then the interventional Markov kernel $P(X_B|\doit(X_{J \cup C}))$ is \trackable\ up to oracle choices from 
+    the \observational Markov kernel $P(X_V|\doit(X_J))$ and $G$ if we have the inclusion:
+    \[\Dst[B^C]  \ins \IDC[B^C], \]
+    or, in other words, if $S=\idc S$ for every $S \in \Dst[B^C]$.
+    If this is the case then $P(X_B|\doit(X_{J \cup C}))$ is the $B$-marginal of:
+    %\[ \lB \bigotimes_{\idc S \in \IDC[B^C] }^> \rB \Qf[\idc S].  \]
+    \[ \Qf[B^C] = \lB \bigotimes_{S \in \Dst[B^C] }^> \rB \Qf[S] = \lB \bigotimes_{\idc S \in \IDC[B^C] }^> \rB \Qf[\idc S].  \]
+\end{Cor}
+
+\end{comment}
+
+
+\paragraph{Examples}
+%\subsubsection{Examples}
+
+
+\begin{Eg}
+    Consider the DAG $G=(V,E)$ from Figure \ref{fig:dag-2} (a) with $V=\lC v_1,v_2 \rC$, 
+    $E=\lC v_1 \tuh v_2 \rC$.
+     We want to determine if we can identify $P(X_2|\doit(X_1))$ from $P(X_1,X_2)$ in case we have a discrete CBN with strictly positive mass function: $p(x_1,x_2,x_3) >0$.  
+     For this let $B:=\lC v_2 \rC$ and $C:=\lC v_1 \rC$. Note that we have the topological order $v_1 < v_2$.
+    We then follow the steps of the ID-algorithm:
+    \begin{enumerate}
+        \item $\Qf[V](x_1,x_2) := p(x_1,x_2)$.
+        \item $B^C = \Anc^{G_{\doit(C)}}(B) \sm C = \lC v_2\rC$.
+        \item $\Dst[B^C] =\lC S=\lC v_2 \rC \rC$. So we compute:
+            \begin{enumerate}
+                \item $D_{0} = \Dist^{[V]}(S) = \lC v_2 \rC$. Compute:
+                    \begin{align*}
+                        \Qf[D_{0}](x_2|x_1) &= q(x_2|x_1) = \frac{\Qf[V](x_1,x_2)}{\Qf[V](x_1)} = p(x_2|x_1).
+                    \end{align*}
+                \item $A_{1} = \Anc^{[D_{0}]}(S) = \lC v_2\rC=D_{0}$, thus $\idc S = D_{0}=\lC v_2 \rC =S$. Compute:
+                    \begin{align*}
+                        \Qf[S](x_2|x_1) = \Qf[D_{0}](x_2|x_1) = p(x_2|x_1). 
+                    \end{align*}
+            \end{enumerate}
+        \item Since $\idc S = S = \lC v_2 \rC$ we can compute: 
+            \begin{align*}
+                   \Qf[B^C](x_2|x_1)  = \Qf[S_1](x_2|x_1) = p(x_2|x_1) . 
+               \end{align*}
+    \end{enumerate}
+    So we can identify $P(X_2|\doit(X_1))$ from $P(X_1,X_2)$ as the conditional $P(X_2|X_1)$ via the mass function from above.
+\end{Eg}
+
+\begin{Eg}
+    Consider the ADMG $G=(V,E,L)$ from Figure \ref{fig:dag-2} (b) with $V=\lC v_1,v_2 \rC$, 
+    $E=\lC v_1 \tuh v_2 \rC$ and $L=\lC v_1 \huh v_2 \rC$.
+     We want to determine if we can identify $P(X_2|\doit(X_1))$ from $P(X_1,X_2)$ in case we have a discrete CBN with strictly positive mass function: $p(x_1,x_2,x_3) >0$.  
+     For this let $B:=\lC v_2 \rC$ and $C:=\lC v_1 \rC$. Note that we have the topological order $v_1 < v_2$.
+    We then follow the steps of the ID-algorithm:
+    \begin{enumerate}
+        \item $\Qf[V](x_1,x_2) := p(x_1,x_2)$.
+        \item $B^C = \Anc^{G_{\doit(C)}}(B) \sm C = \lC v_2\rC$.
+        \item $\Dst[B^C] =\lC S=\lC v_2 \rC \rC$. So we compute:
+            \begin{enumerate}
+                \item $D_{0} = \Dist^{[V]}(S) = \lC v_1,v_2 \rC$. Compute:
+                    \begin{align*}
+                        q(x_1) &=  \Qf[V](x_1) &&= p(x_1), \\
+                        q(x_2|x_1) &= \frac{\Qf[V](x_1,x_2)}{\Qf[V](x_1)} && = p(x_2|x_1), \\
+                        \Qf[D_{0}](x_1,x_2) &= q(x_2|x_1) \cdot q(x_1) &&= p(x_1,x_2).
+                    \end{align*}
+                \item $A_{1} = \Anc^{[D_{0}]}(S) = \lC v_1,v_2\rC=D_{0}$, thus $\idc S = D_{0}=\lC v_1,v_2 \rC$. Compute:
+                    \begin{align*}
+                        \Qf[\idc S](x_1,x_2) = \Qf[D_{0}](x_1,x_2) = p(x_1,x_2). 
+                    \end{align*}
+            \end{enumerate}
+        \item Since $\idc S = \lC v_1,v_2 \rC \neq \lC v_2 \rC = S$ the ID-algorithms outputs: FAIL.
+    \end{enumerate}
+    So we can not identify $P(X_2|\doit(X_1))$ from $P(X_1,X_2)$ and $G$.
+\end{Eg}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+   \begin{scope}
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (-1.5,-2) {$v_2$};
+    \node[ndout] (v3) at (1.5,-2) {$v_3$};
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v1) to (v3);
+    \draw[arout] (v2) to (v3);
+    \node (a) at (-1.7,0.2) {(a)};
+  \end{scope} 
+   \begin{scope}[xshift=5.5cm]
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndint] (v2) at (-1.5,-2) {$v_2$};
+    \node[ndout] (v3) at (1.5,-2) {$v_3$};
+    \draw[arout] (v1) to (v3);
+    \draw[arint] (v2) to (v3);
+    \node (a) at (-1.7,0.2) {(b)};
+  \end{scope} 
+  \begin{scope}[xshift=11cm]
+    \node[ndint] (v1) at (0,0) {$v_1$};
+    \node[ndint] (v2) at (-1.5,-2) {$v_2$};
+    \node[ndout] (v3) at (1.5,-2) {$v_3$};
+    \draw[arint] (v1) to (v3);
+    \draw[arint] (v2) to (v3);
+    \node (a) at (-1.7,0.2) {(c)};
+  \end{scope}
+\end{tikzpicture}
+\caption{ A DAG with three nodes and its intervened graphs.}
+\label{fig:dag-3}
+\end{figure}
+
+\begin{Eg}
+   Consider the DAG $G=(V,E,L)$ from Figure \ref{fig:dag-3} with $V=\lC v_1,v_2,v_3 \rC$, 
+    $E=\lC v_1 \tuh v_2, v_1 \tuh v_3, v_2 \tuh v_3  \rC$.
+     We want to determine if we can identify $P(X_3|\doit(X_2))$ from $P(X_1,X_2,X_3)$ in case we have a discrete CBN with strictly positive mass function: $p(x_1,x_2,x_3) >0$.  
+     For this let $B:=\lC v_3 \rC$ and $C:=\lC v_2 \rC$. Note that we have the topological order $v_1 < v_2 < v_3$.
+    We then follow the steps of the ID-algorithm:
+        \begin{enumerate}
+        \item $\Qf[V](x_1,x_2,x_3) := p(x_1,x_2,x_3)$.
+        \item $B^C = \Anc^{G_{\doit(C)}}(B) \sm C = \lC v_1,v_3 \rC$.
+        \item $\Dst[B^C] =\lC S_1=\lC v_1 \rC, S_2=\lC v_3 \rC   \rC$, see Figure \ref{fig:dag-3} (b).
+        \item For $S_1=\lC v_1 \rC$:
+            \begin{enumerate}
+                \item $D_{1,0} = \Dist^{[V]}(S_1) = \lC v_1\rC$. Compute:
+                    \begin{align*}
+                        \Qf[D_{1,0}](x_1) &= q(x_1) = \Qf[V](x_1)= p(x_1).
+                    \end{align*}
+                \item $A_{1,1} = \Anc^{[D_{1,0}]}(S_1) = \lC v_1\rC = D_{1,0}$, thus $\idc S_1 =D_{1,0}$. Compute:
+                    \begin{align*}
+                        \Qf[\idc S_1](x_1) =    \Qf[D_{1,0}](x_1)   = p(x_1).
+                    \end{align*}
+                \item $ S_1 = \lC v_1 \rC = \idc S_1$. Compute:
+                    \begin{align*}
+                       \Qf[S_1](x_1) =    \Qf[\idc S_1](x_1) =  p(x_1).
+                    \end{align*}
+            \end{enumerate}
+       \item For $S_2=\lC v_3 \rC$:
+            \begin{enumerate}
+                \item $D_{2,0} = \Dist^{[V]}(S_2) = \lC v_3 \rC$. Compute:
+                    \begin{align*}
+                \Qf[D_{2,0}](x_3|x_1,x_2) =  q(x_3|x_1,x_2)  = \frac{\Qf[V](x_1,x_2,x_3)}{\Qf[V](x_1,x_2)}  = p(x_3|x_1,x_2).
+                    \end{align*}
+                \item $A_{2,1} = \Anc^{[D_{2,0}]}(S_1) = \lC v_3  \rC = D_{2,0}$. thus $\idc S_2 = D_{2,0}$. Compute:
+                 \begin{align*}
+               \Qf[\idc S_2](x_3|x_1,x_2)  = \Qf[D_{2,0}](x_3|x_1,x_2)  = p(x_3|x_1,x_2).
+                    \end{align*}
+                \item $S_2 = \lC v_3 \rC =\idc S_2$. Compute:
+                 \begin{align*}
+               \Qf[S_2](x_3|x_1,x_2)  = \Qf[\idc S_2](x_3|x_1,x_2)  = p(x_3|x_1,x_2).
+                    \end{align*}
+            \end{enumerate}
+        \item Since both $\idc S_1 = S_1 = \lC v_1 \rC$ and $\idc S_2 =S_2 = \lC v_3\rC$ we can compute:
+               \begin{align*}
+                   \Qf[B^C](x_1,x_3|x_2) &= \Qf[S_2](x_3|x_1,x_2) \cdot \Qf[S_1](x_1) \\ 
+                                         &= p(x_3|x_1,x_2) \cdot p(x_1), \\
+                   p(x_3|\doit(x_2)) & = \sum_{x_1} \Qf[B^C](x_1,x_3|x_2) \\ 
+                   & = \sum_{x_1} p(x_3|x_1,x_2) \cdot p(x_1). 
+               \end{align*}
+    \end{enumerate}
+    So we can identify $P(X_3|\doit(X_2))$ from $P(X_1,X_2,X_3)$ via the mass function from above.
+\end{Eg}
+
+\begin{Eg}[Counter example when mass functions are not strictly positive]\label{eg:counterexample_nonpositive_backdoor_adjustment}
+   Consider the DAG $G=(V,E,L)$ from Figure \ref{fig:dag-3} with $V=\lC v_1,v_2,v_3 \rC$, 
+    $E=\lC v_1 \tuh v_2, v_1 \tuh v_3, v_2 \tuh v_3  \rC$.
+     We want to determine if we can identify $P(X_3|\doit(X_2))$ from $P(X_1,X_2,X_3)$ in case we do NOT have a strictly positive mass function: $p(x_1,x_2,x_3) >0$. We assume $\Xcal_1=\Xcal_2=\Xcal_3 = \lC 0,1 \rC$.
+     \begin{align*}
+         p(x_1=1) & := \frac{1}{2}, &
+         p(x_2|\doit(x_1)) & := \delta_{x_1}(x_2),\\
+         p(x_3=1|\doit(x_1=0,x_2=0)) &:= \frac{1}{4}, & 
+         p(x_3=1|\doit(x_1=1,x_2=0)) &:= \frac{3}{4}, \\
+         p(x_3=1|\doit(x_1=0,x_2=1)) &:= \frac{1}{8}, &
+         p(x_3=1|\doit(x_1=1,x_2=1)) &:= \frac{3}{8}.
+     \end{align*}
+     Then we get for the $(X_1,X_2)$-marginal of the observational distribution
+     $P(X_1,X_2) = P(X_2|\doit(X_1)) \otimes P(X_1)$ the mass functions:
+    \begin{align*}
+         p(x_1=0,x_2=0) &=  p(x_1=1,x_2=1) = \frac{1}{2}, \\
+         p(x_1=1,x_2=0) &=  p(x_1=0,x_2=1) = 0.
+    \end{align*}
+    Note that this shows that $P(X_1,X_2)$ and thus $P(X_1,X_2,X_3)$ do not have a strictly positive mass functions.
+    With this a valid conditional for the observational joint distribution $P(X_1,X_2,X_3)$ conditioned on $(X_1,X_2)$ is:
+     \begin{align*}
+         p(x_3=1|x_1=0,x_2=0) &:= \frac{1}{4}, & 
+         p(x_3=1|x_1=1,x_2=0) &:= \frac{3}{8}, \\
+         p(x_3=1|x_1=0,x_2=1) &:= \frac{5}{8}, &
+         p(x_3=1|x_1=1,x_2=1) &:= \frac{3}{8}.
+     \end{align*}
+    The interventional distribution is given by:
+     \begin{align*}
+         p(x_3|\doit(x_2)) & = \sum_{x_1} p(x_3|\doit(x_1,x_2)) \cdot p(x_1),\\
+          %  & = \frac{1}{2} \lp p(x_3|\doit(x_1=0,x_2)) + p(x_3|\doit(x_1=1,x_2)) \rp,  \\ 
+            p(x_3=1|\doit(x_2=0)) & = \frac{1}{2} \lp p(x_3=1|\doit(x_1=0,x_2=0)) + p(x_3=1|\doit(x_1=1,x_2=0)) \rp  \\
+             &=\frac{1}{2} \lp \frac{1}{4} + \frac{3}{4}  \rp = \frac{1}{2} ,\\
+            p(x_3=1|\doit(x_2=1)) & = \frac{1}{2} \lp p(x_3=1|\doit(x_1=0,x_2=1)) + p(x_3=1|\doit(x_1=1,x_2=1)) \rp  \\ 
+            &= \frac{1}{2} \lp \frac{1}{8} + \frac{3}{8}  \rp = \frac{1}{4}.
+    \end{align*}
+    On the other hand, using the other conditional mass functions instead, gives us:
+    \begin{align*}
+         \hat p(x_3|x_2) & := \sum_{x_1} p(x_3|x_1,x_2) \cdot p(x_1),\\
+         \hat p(x_3=1|x_2=0) & = \frac{1}{2} \lp p(x_3=1|x_1=0,x_2=0) + p(x_3=1|x_1=1,x_2=0) \rp  \\
+         &= \frac{1}{2} \lp \frac{1}{4} + \frac{1}{2} \rp = \frac{3}{8} \\& \neq \frac{1}{2} =p(x_3=1|\doit(x_2=0)), \\
+         \hat p(x_3=1|x_2=1) & = \frac{1}{2} \lp p(x_3=1|x_1=0,x_2=1) + p(x_3=1|x_1=1,x_2=1) \rp  \\ 
+         &= \frac{1}{2} \lp \frac{5}{8} + \frac{1}{8}  \rp = \frac{3}{8} \\& \neq \frac{1}{4} =p(x_3=1|\doit(x_2=1)).
+     \end{align*}
+     This shows that the ``surrogate'' Markov kernel $\hat P(X_3|X_2) := P(X_3|X_1,X_2) \circ P(X_1)$, 
+     which would be proposed by both the ID-algorithm and the backdoor criterion, 
+     is NOT equal to the interventional Markov kernel
+     $P(X_3|\doit(X_2)) = P(X_3|\doit(X_1,X_2)) \circ P(X_1) $, not even $P(X_2)$-almost-surely.
+ \end{Eg}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \node[ndout] (v3) at (4,0) {$v_3$};
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v2) to (v3);
+    \draw[arlat, bend left] (v1) to (v3);
+    \node (a) at (-1,0.5) {(a)};
+  \end{scope}
+ \begin{scope}[xshift=7cm]
+    \node[ndint] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \node[ndout] (v3) at (4,0) {$v_3$};
+    \draw[arint] (v1) to (v2);
+    \draw[arout] (v2) to (v3);
+    \node (a) at (-1,0.5) {(b)};
+  \end{scope}
+  \begin{scope}[yshift=-2cm]
+    \node[ndint] (v1) at (0,0) {$v_1$};
+    \node[ndint] (v2) at (2,0) {$v_2$};
+    \node[ndout] (v3) at (4,0) {$v_3$};
+    \draw[arint] (v2) to (v3);
+    \node (a) at (-1,0.5) {(c)};
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=7cm]
+    \node[ndint] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \node[ndint] (v3) at (4,0) {$v_3$};
+    \draw[arint] (v1) to (v2);
+    \node (a) at (-1,0.5) {(d)};
+  \end{scope}
+  \begin{scope}[yshift=-4cm]
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (2,0) {$v_2$};
+    \node[ndint] (v3) at (4,0) {$v_3$};
+    \draw[arout] (v1) to (v2);
+    \node (a) at (-1,0.5) {(e)};
+  \end{scope}
+  \begin{scope}[yshift=-4cm,xshift=7cm]
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndint] (v2) at (2,0) {$v_2$};
+    \node[ndout] (v3) at (4,0) {$v_3$};
+    \draw[arint] (v2) to (v3);
+    \draw[arlat, bend left] (v1) to (v3);
+    \node (a) at (-1,0.5) {(f)};
+  \end{scope}
+\end{tikzpicture}
+\caption{An ADMG and its mutilations, corresponding to the interventional Markov kernels: (a) $\Qf[\lC v_1,v_2,v_3 \rC]$, (b) $\Qf[\lC v_2, v_3 \rC]$, (c) $\Qf[\lC v_3 \rC]$, (d) $\Qf[\lC v_2 \rC]$, (e) $\Qf[\lC v_1, v_2 \rC]$, (f)  $\Qf[\lC v_2, v_3 \rC]$. }
+\label{fig:admg-2}
+\end{figure}
+
+
+
+\begin{Eg}
+    Consider the ADMG $G=(V,E,L)$ from Figure \ref{fig:admg-2} with $V=\lC v_1,v_2,v_3 \rC$, 
+    $E=\lC v_1 \tuh v_2, v_2 \tuh v_3 \rC$, $J=\emptyset$ and $L=\lC v_1 \huh v_3 \rC$.
+     We want to determine if we can identify $P(X_3|\doit(X_1))$ from $P(X_1,X_2,X_3)$ in case we have a discrete CBN with strictly positive mass function: $p(x_1,x_2,x_3) >0$.  
+     For this let $B:=\lC v_3 \rC$ and $C:=\lC v_1 \rC$. Note that we have the topological order $v_1 < v_2 < v_3$.
+    We then follow the steps of the ID-algorithm:
+    \begin{enumerate}
+        \item $\Qf[V](x_1,x_2,x_3) := p(x_1,x_2,x_3)$.
+        \item $B^C = \Anc^{G_{\doit(C)}}(B) \sm C = \lC v_2,v_3 \rC$.
+        \item $\Dst[B^C] =\lC S_1=\lC v_3 \rC, S_2=\lC v_2 \rC   \rC$, see Figure \ref{fig:admg-2} (b).
+        \item For $S_1=\lC v_3 \rC$:
+            \begin{enumerate}
+                \item $D_{1,0} = \Dist^{[V]}(S_1) = \lC v_1, v_3\rC$, see Figure \ref{fig:admg-2} (a), (f). Compute:
+                    \begin{align*}
+                        q(x_1) & = \Qf[V](x_1) &&= p(x_1),\\
+                        q(x_3|x_1,x_2) & = \frac{\Qf[V](x_1,x_2,x_3)}{\Qf[V](x_1,x_2)} && = p(x_3|x_1,x_2), \\
+                        \Qf[D_{1,0}](x_1,x_3|x_2) &= q(x_3|x_1,x_2) \cdot q(x_1) && = p(x_3|x_1,x_2) \cdot p(x_1).
+                    \end{align*}
+                \item $A_{1,1} = \Anc^{[D_{1,0}]}(S_1) = \lC v_3\rC$. see Figure \ref{fig:admg-2} (f), (c). Compute:
+                    \begin{align*}
+                        \Qf[A_{1,1}](x_3|x_2) = \sum_{x_1} \Qf[D_{1,0}](x_1,x_3|x_2) = \sum_{x_1} p(x_3|x_1,x_2) \cdot p(x_1).
+                    \end{align*}
+                \item $D_{1,1} = \Dist^{[A_{1,1}]}(S_1) = \lC v_3\rC = A_{1,1}$, thus $\idc S_1 =A_{1,1}$ . Compute:
+                   \begin{align*}
+                       \Qf[\idc S_1](x_3|x_2) =    \Qf[A_{1,1}](x_3|x_2) = \sum_{x_1} p(x_3|x_1,x_2) \cdot p(x_1).
+                    \end{align*}
+                \item $ S_1 = \lC v_3 \rC = \idc S_1$. Compute:
+                    \begin{align*}
+                       \Qf[S_1](x_3|x_2) =    \Qf[\idc S_1](x_3|x_2) = \sum_{x_1} p(x_3|x_1,x_2) \cdot p(x_1).
+                    \end{align*}
+            \end{enumerate}
+       \item For $S_2=\lC v_2 \rC$:
+            \begin{enumerate}
+                \item $D_{2,0} = \Dist^{[V]}(S_2) = \lC v_2 \rC$, see Figure \ref{fig:admg-2} (a), (d). Compute:
+                    \begin{align*}
+                \Qf[D_{2,0}](x_2|x_1) =  q(x_2|x_1)  = \frac{\Qf[V](x_1,x_2)}{\Qf[V](x_1)}  = p(x_2|x_1).
+                    \end{align*}
+                \item $A_{2,1} = \Anc^{[D_{2,0}]}(S_1) = \lC v_2  \rC = D_{2,0}$. thus $\idc S_2 = D_{2,0}$. Compute:
+                 \begin{align*}
+               \Qf[\idc S_2](x_2|x_1)  = \Qf[D_{2,0}](x_2|x_1)  = p(x_2|x_1).
+                    \end{align*}
+                \item $S_2 = \lC v_2 \rC =\idc S_2$. Compute:
+                 \begin{align*}
+               \Qf[S_2](x_2|x_1)  = \Qf[\idc S_2](x_2|x_1)  = p(x_2|x_1).
+                    \end{align*}
+            \end{enumerate}
+        \item Since both $\idc S_1 = S_1 = \lC v_3 \rC$ and $\idc S_2 =S_2 = \lC v_2\rC$ we can compute:
+               \begin{align*}
+                   \Qf[B^C](x_2,x_3|x_1) &= \Qf[S_2](x_2|x_1) \cdot \Qf[S_1](x_3|x_2) \\ 
+                                         &= p(x_2|x_1) \cdot \sum_{x_1'} p(x_3|x_1',x_2) \cdot p(x_1'), \\
+                   p(x_3|\doit(x_1)) & = \sum_{x_2} \Qf[B^C](x_2,x_3|x_1) \\ 
+                   & = \sum_{x_2} p(x_2|x_1) \cdot \sum_{x_1'} p(x_3|x_1',x_2) \cdot p(x_1') \\
+                   & = \sum_{x_1',x_2'} p(x_3|x_1',x_2') \cdot p(x_1') \cdot p(x_2'|x_1).   
+               \end{align*}
+    \end{enumerate}
+    So we can identify $P(X_3|\doit(X_1))$ from $P(X_1,X_2,X_3)$ via the mass function from above.
+\end{Eg}
+
+
+
+
+
+
+
+
+
+\paragraph{Proofs - Soundness Criteria}
+%\subsubsection{Soundness Criteria}
+
+
+We have seen in Corollary \ref{cor:id-alg-sound-oracle} that the \emph{ID-Algorithm} \ref{alg:id} is \emph{sound up to oracle choices}.
+In this subsection we want to investigate the possibility of other forms of soundness that would allow for stronger forms of identifiability and/or \trackability.
+
+
+
+
+
+
+\begin{Thm}[Soundness up to null-sets]
+    \label{thm:ID-as-soundness-prf}
+    Let $G=(J,V,E,L)$ be a CADMG with a fixed topological order $<$. 
+    Consider the class of L-CBNs $M$ with \observational CADMG $G$ such that the following holds: 
+    \begin{enumerate}
+        \item The measurable spaces $\Xcal_v$ come equipped with a measure $\mu_v$, $v \in V$,
+        \item for every subset $D \ins V$ the interventional Markov kernel $\Qf[D]=P(X_D|\doit(X_{J \cup V \sm D}))$ is
+            \emph{absolute continuous} w.r.t.\ the product measure $\mu_D:=\otimes_{v \in D} \mu_v$ and vice versa:
+            \[ \mu_D \ll \Qf[D] \ll \mu_D.   \]
+    \end{enumerate}
+    If the ID-algorithm does not produce FAIL for input $B, C \ins G$,
+    then $P(X_B|\doit(X_{J \cup C}))$ is ``almost-surely'' \trackable\ from $P(X_V|\doit(X_J))$ and $G$ for such CBNs $M$, 
+    i.e.\ the Markov kernel that was output by the ID-algorithm equals $P(X_B|\doit(X_{J \cup C}))$ up to a
+    $\mu_{V\sm B^C}$-null set in $\Xcal_{J \cup V\sm B^C}$.
+    \begin{proof}
+        Since by the second assumption we have for each $\mu_v$ and any fixed value $x_{\lC v \rC^\cmpl}$:
+        \[  P(X_v|\doit(X_{\lC v \rC^\cmpl}=x_{\lC v \rC^\cmpl})) \ll \mu_v \ll P(X_v|\doit(X_{\lC v \rC^\cmpl}=x_{\lC v \rC^\cmpl})),  \]
+        we can w.l.o.g.\ assume that the $\mu_v$ are probability measures for $v \in V$.
+       
+        a) Now consider any subset $A \ins V$ and $D \in \Dst[A]$ and $v \in D$.  We abbreviate:
+        \[ G':= G_{\doit(V \sm A)}, \qquad A_<:=\Pred^{[A]}_<(v), \qquad D_<:=\Pred^{[D]}_<(v). \]
+         Assume that we have a Markov kernel:
+        \[ \Kcal[A]=\tilde P(X_{A}|\doit(X_{J \cup V \sm A})) :\, \Xcal_{J \cup V \sm A} \dshto \Xcal_A,  \]
+        such that:
+        \[ \Kcal[A] = \Qf[A]\qquad \mu_{V\sm A}\text{-a.s.}  \]
+         Note that the almost sure equality from above implies the equality:
+        \begin{align}
+            \Kcal[A] \otimes \mu_{V\sm A} = \Qf[A]\otimes \mu_{V\sm A}. \label{eq:K-Q-as} 
+        \end{align}
+        We want to show that if we perfom the steps of the ID-algorithm that computes $\Qf[D]$ from $\Qf[A]$
+        on $\Kcal[A]$ then the corresponding output, abbreviated as $\Kcal[D]$, satisfies:
+        \[ \Kcal[D] = \Qf[D]\qquad \mu_{V\sm D}\text{-a.s.}  \]
+        For this consider any version of the conditional of the following marginal of $\Kcal[A]$:
+        \[ \tilde P(X_{A_\le}|\doit(X_{J \cup V \sm A}))  \qquad \text{w.r.t.} \qquad \tilde P(X_{A_<}|\doit(X_{J \cup V \sm A})), \] 
+        which we will denote by:
+        \[ K(X_v|X_{J \cup V \sm A_\ge}). \]
+        This by definition will satisfy:
+        \begin{align}
+        \tilde P(X_{A_\le}|\doit(X_{J \cup V \sm A})) =  K(X_v|X_{J \cup V \sm A_\ge}) \otimes \tilde P(X_{A_<}|\doit(X_{J \cup V \sm A})).  \label{eq:K-cond}  \end{align}
+        This then implies:
+        \begin{align*}
+           & P(X_{A_\le}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & \stackrel{\text{Eq. }\ref{eq:K-Q-as}}{=} \tilde P(X_{A_\le}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & \stackrel{\text{Eq. }\ref{eq:K-cond}}{=} K(X_v|X_{J \cup V \sm A_\ge}) \otimes \tilde P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & \stackrel{\text{Eq. }\ref{eq:K-Q-as}}{=} K(X_v|X_{J \cup V \sm A_\ge}) \otimes  P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}).
+        \end{align*}
+        This shows that $K(X_v|X_{J \cup V \sm A_\ge})$ is a version of the conditional of:
+        \[  P(X_{A_\le}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A})  \qquad \text{w.r.t.} \qquad  P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}). \]
+        Note that by the interventional ordered local Markov property, Proposition \ref{prp:ioLMP},
+        there exists a Markov kernel $Q(X_v|X_{\MBl^{G'}_<(v)})$ that simultaneuously is a version of both:
+        \[ P(X_v|X_{A_<},\doit(X_{J\cup V \sm A})) \qquad \text{and} \qquad P(X_v|X_{D_<},\doit(X_{J\cup V \sm D})), \]
+        and is thus, in particular, another version of the conditional of:
+        \[  P(X_{A_\le}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A})  \qquad \text{w.r.t.} \qquad  P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}). \]
+        Now consider the (measurable) set where these two conditional Markov kernels deviate:
+        \[ \tilde N := \lC x_{J \cup V \sm A_\ge} \in \Xcal_{J \cup V \sm A_\ge}  
+            \st K(X_v|X_{J \cup V \sm A_\ge}=x_{J \cup V \sm A_\ge})
+        \neq Q(X_v|X_{\MBl^{G'}_<(v)} = x_{\MBl^{G'}_<(v)}) \rC, \]
+        and $N := \tilde N \times \Xcal_{A_\ge} \ins \Xcal_{J \cup V}$.
+        Since conditional Markov kernels are essentially unique we get that for every $x_J \in \Xcal_J$ we have:
+        \[ \lp \Qf[A] \otimes \mu_{V \sm A} \rp (N^{x_J}|x_J) = 0.   \]
+        Since, by assumption, we have: $\mu_A \ll \Qf[A]$, we get for every $x_J \in \Xcal_J$:
+        \[ \lp \mu_D \otimes \mu_{V \sm D} \rp (N^{x_J}) = \mu_V (N^{x_J}) = \lp \mu_A \otimes \mu_{V \sm A} \rp (N^{x_J}) = 0.  \]
+        Since, by assumption, we also have: $\Qf[D] \ll \mu_D$, we get for every $x_J \in \Xcal_J$:
+        \[ \lp \Qf[D] \otimes \mu_{V \sm D} \rp (N^{x_J}|x_J) = 0.   \]
+        %This holds in particular for $x_J':=x_J$.
+        Let $\hat N := \tilde N \times \Xcal_{A_\ge \sm D_\ge}$.
+        Since $D_\ge \ins A_\ge$ the set $N$ is of the form:
+         \[ N = \tilde N \times \Xcal_{A_\ge} = \hat N \times \Xcal_{D_\ge}. \]
+        So the above shows that we have for every $x_J \in \Xcal_J$:
+        \[ \lp P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V \sm D}) \rp (\hat N^{x_J}|x_J) = \lp \Qf[D] \otimes \mu_{V \sm D} \rp (N^{x_J}|x_J) = 0.  \]
+        This shows that $K(X_v|X_{J \cup V \sm A_\ge})$ and $Q(X_v|X_{\MBl^{G'}_<(v)})$
+        agree up to a measurable \\ $\lp P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V \sm D})\rp$-null set.
+        Remember that $Q(X_v|X_{\MBl^{G'}_<(v)})$ satisfies:
+        \[ P(X_{D_\le}|\doit(X_{J \cup V \sm D})) = Q(X_v|X_{\MBl^{G'}_<(v)}) \otimes P(X_{D_<}|\doit(X_{J \cup V \sm D})).\]
+        Together with the above we thus get:
+        \begin{align*} 
+            & P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V \sm D}) \\
+        & = Q(X_v|X_{\MBl^{G'}_<(v)}) \otimes P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V \sm D}) \\
+        & = K(X_v|X_{J \cup V \sm A_\ge}) \otimes P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V \sm D}).
+    \end{align*}
+       This shows that $K(X_v|X_{J \cup V \sm A_\ge})$ is version of the conditional of:
+               \[ P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \qquad \text{w.r.t.} \qquad
+        P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}). \] 
+       If we let $v$ run through $D = \lC v_1,\dots,v_K \rC$, $v_1 < v_2 < \cdots < v_K$ 
+       in reverse topological order we inductively get:
+       \begin{align*}
+           %&  \lp \bigotimes_{v \in D}^> Q(X_v|X_{\MBl^{G'}_<(v)}) \rp \otimes \mu_{V\sm D}(X_{V\sm D})
+           & \Qf[D] \otimes \mu_{V\sm D} \\
+           &= P(X_D|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \\
+           &= K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes P(X_{D_{< v_{K}}}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D})\\ 
+           &= K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes P(X_{D_{\le v_{K-1}}}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D})\\ 
+           &= K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes  K(X_{v_{K-1}}|X_{J \cup V \sm A_{\ge v_{K-1}}}) \otimes P(X_{D_{< v_{K-1}}}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D})\\ 
+           & = \cdots\\
+           &= \lp \bigotimes_{v \in D}^> K(X_v|X_{J \cup V \sm A_{\ge v}}) \rp \otimes \mu_{V\sm D}(X_{V\sm D}). 
+       \end{align*}
+       Since such factorizations are essentially unique we get that:
+       \[ \Qf[D] = \bigotimes_{v \in D}^> K(X_v|X_{J \cup V \sm A_{\ge v}}) =: \Kcal[D] \qquad \mu_{V\sm D}\text{-a.s.}  \]
+       %where $\mu_{V\sm D}(X_{V \sm D}|X_J)$, to be precise, indicates the constant Markov kernel:
+       %\[ \mu_{V\sm D}(X_{V \sm D}|X_J):\, \Xcal_J \to \Prob(\Xcal_{V\sm D}), \qquad x_J \mapsto \mu_{V\sm D}. \]
+       This shows the claim.
+
+       b) We now reverse the situation. For a subset $A \ins V$ and every $D \in \Dst[A]=\lC D_1,\dots,D_L\rC$, 
+       consider that we are given a Markov kernel:
+       \[ \Kcal[D]=\tilde P(X_{D}|\doit(X_{J \cup V \sm D})) :\, \Xcal_{J \cup V \sm D} \dshto \Xcal_{D}, \]
+        such that:
+       \[ \Kcal[D] = \Qf[D]\qquad \mu_{V\sm D}\text{-a.s.,}  \]
+       which implies the equality:
+        \begin{align}
+            \Kcal[D] \otimes \mu_{V\sm D} = \Qf[D]\otimes \mu_{V\sm D}. \label{eq:K-Q-D-as} 
+        \end{align}
+       We want to show that we then also have:
+       \[ \Kcal[A]:= \lB \bigotimes_{D \in \Dst[A]}^> \rB  \Kcal[D] = \Qf[A] \qquad \mu_{V\sm A}\text{-a.s.} \]
+       For this fix a node $v \in D$ and note that 
+        $Q(X_v|X_{\MBl^{G'}_<(v)})$ satisfies:
+        \begin{align} P(X_{D_\le}|\doit(X_{J \cup V \sm D})) = Q(X_v|X_{\MBl^{G'}_<(v)}) \otimes 
+            P(X_{D_<}|\doit(X_{J \cup V \sm D})). \label{eq:q-cond}
+        \end{align}
+        We then get the equalities:
+            \begin{align*}
+               & \tilde P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \\
+               &\stackrel{\text{Eq.\ }\ref{eq:K-Q-D-as}}{=}  P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \\
+               &\stackrel{\text{Eq.\ }\ref{eq:q-cond}}{=}  Q(X_v|X_{\MBl^{G'}_<(v)}) \otimes  P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \\ 
+               &\stackrel{\text{Eq.\ }\ref{eq:K-Q-D-as}}{=}  Q(X_v|X_{\MBl^{G'}_<(v)}) \otimes  \tilde P(X_{D_<}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}). 
+            \end{align*}
+             So $Q(X_v|X_{\MBl^{G'}_<(v)})$ is a conditional of:
+    \[  \tilde P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \qquad \text{w.r.t.} \qquad
+         \tilde P(X_{D_<}|\doit(X_{J \cup V \sm D}))\otimes \mu_{V\sm D}(X_{V\sm D}), \] 
+         that  does not depend on $X_{A_\ge}$ (as $\MBl^{G'}_<(v) \ins A_<$).
+
+      Now consider any other version of the conditional of:
+         \[  \tilde P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \qquad \text{w.r.t.} \qquad
+          \tilde P(X_{D_<}|\doit(X_{J \cup V \sm D}))\otimes \mu_{V\sm D}(X_{V\sm D}), \] 
+    that does not depend on variables attached to $A_\ge$ and which we will denote by:
+        \[ K(X_v|X_{J \cup V \sm A_\ge}). \]
+      Note that such a Markov kernel exists, as $Q(X_v|X_{\MBl^{G'}_<(v)})$ is such one.
+
+      The same argumentation with $K(X_v|X_{J \cup V \sm A_\ge})$ in place of $Q(X_v|X_{\MBl^{G'}_<(v)})$, 
+      using Eq.\ \ref{eq:K-Q-D-as}, shows that both, $Q(X_v|X_{\MBl^{G'}_<(v)})$ and $K(X_v|X_{J \cup V \sm A_\ge})$, 
+    are then conditionals of
+    \[  P(X_{D_\le}|\doit(X_{J \cup V \sm D})) \otimes \mu_{V\sm D}(X_{V\sm D}) \qquad \text{w.r.t.} \qquad
+          P(X_{D_<}|\doit(X_{J \cup V \sm D}))\otimes \mu_{V\sm D}(X_{V\sm D}), \] 
+    that do not depend on $X_{A_\ge}$.
+    Now let:
+       \[ \tilde N := \lC x_{J \cup V \sm A_\ge} \in \Xcal_{J \cup V \sm A_\ge}  
+            \st K(X_v|X_{J \cup V \sm A_\ge}=x_{J \cup V \sm A_\ge})
+        \neq Q(X_v|X_{\MBl^{G'}_<(v)} = x_{\MBl^{G'}_<(v)}) \rC, \]
+        \Claude{$\MBl^G_<(v)$ should be $\MBl^{G'}_<(v)$}\PF{solved.}
+        and $N:= \tilde N \times \Xcal_{A_\ge} \ins \Xcal_{J \cup V}$. 
+        Again, since both are versions of the same conditional we get:
+        \[ \lp \Qf[D] \otimes \mu_{V \sm D} \rp (N^{x_J}|x_J) = 0,\]
+        for every $x_J \in \Xcal_J$. Since $\Qf[D] \ll \mu_D$ we get for every $x_J \in \Xcal_J$:
+        \[ \lp \mu_A \otimes \mu_{V \sm A} \rp (N^{x_J}) = \mu_V (N^{x_J}) =\lp \mu_D \otimes \mu_{V \sm D} \rp (N^{x_J}) = 0.\]
+        Since also $\Qf[A] \ll \mu_A$ we get for every $x_J \in \Xcal_J$:
+            \[ \lp \Qf[A] \otimes \mu_{V \sm A} \rp (N^{x_J}|x_J) = 0.\]
+        Since $N= \tilde N \times \Xcal_{A_\ge}$ we get for every $x_J \in \Xcal_J$:
+        \[ \lp P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V\sm A}(X_{V \sm A}) \rp (\tilde N^{x_J}|x_J) = 
+        \lp \Qf[A] \otimes \mu_{V \sm A} \rp (N^{x_J}|x_J) = 0.  \]
+       This shows that the Markov kernels $Q(X_v|X_{\MBl^{G'}_<(v)})$ and $K(X_v|X_{J \cup V \sm A_\ge})$ are equal up to some
+        $\lp P(X_{A_<}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V\sm A}(X_{V \sm A}) \rp$-null set.
+        Note that with this we get the factorization, using $A=\lC v_1,\dots,v_K \rC$, $v_1 < \cdots < v_K$:
+        \begin{align*}
+           & \Qf[A] \otimes \mu_{V \sm A} \\
+           & = P(X_{A_{\le v_K}}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & = Q(X_{v_K}|X_{\MBl^{G'}_<(v_K)}) \otimes P(X_{A_{< v_K}}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & = K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes P(X_{A_{< v_K}}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & = K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes P(X_{A_{\le v_{K-1}}}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+       & = K(X_{v_K}|X_{J \cup V \sm A_{\ge v_K}}) \otimes Q(X_{v_K}|X_{\MBl^{G'}_<(v_K)}) \Claude{\text{should be:} K(X_{v_{K-1}}|X_{\MBl^{G'}_<(v_K)})}\PF{\text{disagree with Claude here.}} \otimes P(X_{A_{< v_{K-1}}}|\doit(X_{J \cup V \sm A})) \otimes \mu_{V \sm A}(X_{V \sm A}) \\
+           & = \cdots \\
+           & = \lp \bigotimes_{v \in A}^> K(X_v|X_{J \cup V \sm A_\ge}) \rp \otimes \mu_{V \sm A}(X_{V \sm A})\\
+           &=  \lp \lB \bigotimes_{D \in \Dst[A]}^> \rB \Kcal[D] \rp\otimes \mu_{V \sm A}(X_{V \sm A})\\
+           &= \Kcal[A] \otimes \mu_{V \sm A}(X_{V \sm A}).
+        \end{align*}
+        Since such factorizations are essentially unique we get:
+               \[ \Kcal[A] = \Qf[A] \qquad \mu_{V\sm A}\text{-a.s.} \]
+        This shows the claim.
+
+       c) Now let $D \ins V$ and $A \ins D$ with $A=\Anc^{[D]}(A)$. Consider that we are given a Markov kernel:
+       \[ \Kcal[D]=\tilde P(X_{D}|\doit(X_{J \cup V \sm D})) :\, \Xcal_{J \cup V \sm D} \dshto \Xcal_{D}, \]
+        such that:
+       \[ \Kcal[D] = \Qf[D]\qquad \mu_{V\sm D}\text{-a.s.,}  \]
+       which implies the equality:
+            \[  \Kcal[D] \otimes \mu_{V\sm D} = \Qf[D]\otimes \mu_{V\sm D}. \]
+            We want to show that the $A$-marginal of $\Kcal[D]$ equals $\Qf[A]$ up to $\mu_{V\sm A}$-null set.
+
+        For this let $\Kcal[A]$ be the $A$-marginal of $\Kcal[D]$:
+       \[ \Kcal[A]:=\tilde P(X_A|\doit(X_{J \cup V \sm D})) :\, \Xcal_{J \cup V \sm A} \to \Xcal_{J \cup V \sm D} \dshto \Xcal_A. \]
+        Note that $\Qf[A]$ is the $A$-marginal of $\Qf[D]$.
+        Marginalizing out $X_{D \sm A}$ on both sides in the above equation gives us:
+         \[ \Kcal[A] \otimes \mu_{V\sm D} = \Qf[A]\otimes \mu_{V\sm D}. \]
+        Multiplying both sides with $\mu_{D \sm A}$ gives:
+        \[ \Kcal[A] \otimes \mu_{V\sm A} = \Kcal[A] \otimes \mu_{V\sm D} \otimes \mu_{D \sm A} = \Qf[A]\otimes \mu_{V\sm D} \otimes \mu_{D \sm A} = \Qf[A] \otimes \mu_{V\sm A}. \]
+        Since such factorizations are essentially unique we get:
+               \[ \Kcal[A] = \Qf[A] \qquad \mu_{V\sm A}\text{-a.s.} \]
+        This shows the claim.
+
+        This covers all cases of the ID-algorithm and thus shows the claim.
+    \end{proof}
+\end{Thm}
+
+
+\begin{Thm}[Soundness up to continuous choices for strictly positive CBNs]
+    \label{thm:ID-soundness-cont}
+    Let $G=(J,V,E,L)$ be a CADMG with a fixed topological order $<$. % and $B \ins V$, $C \ins J \cup V$ two disjoint subsets.
+    Consider the class of L-CBNs $M$ with \observational CADMG $G$ such that the following holds: 
+    \begin{enumerate}
+        \item The spaces $\Xcal_v$ are Polish spaces for $v \in J \cup V$,
+        \item for every subset $D \ins V$ the interventional Markov kernel $\Qf[D]=P(X_D|\doit(X_{J \cup V \sm D}))$ 
+            is \emph{strictly positive} (on non-empty open subsets of $\Xcal_{D}$), and:
+        \item for every $v \in D$ the Markov kernel $Q(X_v|X_{\MBl^{G_{\doit(D^\cmpl)}}_<(v)})$ 
+            can be chosen to be \emph{continuous}, viewed as a map: $\Xcal_{\MBl^{G_{\doit(D^\cmpl)}}_<(v)} \to \Prob(\Xcal_v)$.
+    \end{enumerate}
+    If the ID-algorithm does not produce FAIL for input $B, C \ins G$,
+    then $P(X_B|\doit(X_{J \cup C}))$ is identifiable
+    and \trackable\ ``up to continuous choices of conditional Markov kernels'' 
+    from $P(X_V|\doit(X_J))$ and $G$ for such CBNs $M$, 
+    i.e.\ if every occuring conditional Markov kernel is chosen to be continuous (which will always be possible by the assumptions made).
+    \begin{proof}
+        For a district $D \in \Dst[V]$ and $v \in D$, 
+        by assumption, there exists a \emph{continuous} version of $Q(X_v|X_{\MBl^G_<(v)})$, which is also a version of:
+     \[ P(X_v|X_{\Pred^{[V]}_<(v)},\doit(X_J)) \qquad \text{and} \qquad P(X_v|X_{\Pred^{[D]}_<(v)},\doit(X_{J \cup V\sm D})).\]
+      We abbreviate $V_<:=\Pred^{[V]}_<(v)$ and $D_<:=\Pred^{[D]}_<(v)$ in the following.
+
+     Now consider any \emph{continuous} version of the conditional Markov kernel $P(X_v|X_{V_<},\doit(X_J))$.
+     Note that such a version always exists because $Q(X_v|X_{\MBl^G_<(v)})$ is already an existing continuous version.
+     Since $P(X_{V_<}|\doit(X_J))$ is strictly positive, as the marginal of $\Qf[V]$,
+      Lemma \ref{lem:cont-cond-unique} implies then the ``sure'' equality:
+	    \[ P(X_v|X_{V_<},\doit(X_J))=Q(X_v|X_{\MBl^G_<(v)}).  \]
+     So any continuous version of $P(X_v|X_{V_<},\doit(X_J))$ necessarily agrees with $Q(X_v|X_{\MBl^G_<(v)})$ on all points.
+
+     Similarly, using the same arguments, we get that $Q(X_v|X_{\MBl^G_<(v)})$ is ``surely'' equal to every \emph{continuous} version 
+     of the conditional
+     $P(X_v|X_{D_<},\doit(X_{J \cup V\sm D}))$, as also the Markov kernel $P(X_{D_<}|\doit(X_{J \cup V\sm D}))$ is strictly positive,
+     as a marginal of $\Qf[D]$. So we get:
+     \[ Q(X_v|X_{\MBl^G_<(v)}) = P(X_v|X_{D_<},\doit(X_{J \cup V\sm D})).  \]
+
+     This means that if we pick a/the \emph{continuous} version of the conditional $P(X_v|X_{V_<},\doit(X_J))$ 
+     then it is ``surely'' equal to
+     the/every \emph{continuous} version of the conditional $P(X_v|X_{D_<},\doit(X_{J \cup V\sm D}))$:
+      \[ P(X_v|X_{V_<},\doit(X_J))=Q(X_v|X_{\MBl^G_<(v)}) = P(X_v|X_{D_<},\doit(X_{J \cup V\sm D})).  \]
+
+     These arguments, repeated for subgraphs, then show that in the ID-algorithm for every occuring conditional and product
+     (e.g.\ for districts and the final product) we end up with 
+     distinct and correct choices for all Markov kernels. This then also shows the identifiability of such CBNs $M$
+     (in the not-FAIL case).
+     \Joris{TODO: let Claude work out the details for the recursion.}
+    \end{proof}
+\end{Thm}
+
+
+\begin{Lem}
+    \label{lem:cbn-str-pos-density}
+    Consider an L-CBN:
+        \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp,\]
+        with \observational CADMG $G=(J,V,E,L)$ and fixed topological order $<$.
+    Assume that for every $v \in V$ we have a measure $\mu_v$ on $\Xcal_v$ such that $P_v ( X_v|\doit( X_{\Pa^{G^+}(v)}))$
+    has a (strictly positive) density w.r.t.\ $\mu_v$:
+    \[ p(x_v|\doit(x_{\Pa^{G^+}(v)})) > 0. \]
+    Furthermore, we put for $x_V \in \Xcal_V$, $x_U \in \Xcal_U$, $x_J \in \Xcal_J$:
+    \[ p(x_V|x_U,\doit(x_J)) := \prod_{v \in V} p(x_v|\doit(x_{\Pa^{G^+}(v)})),  \]
+    and then integrate in reverse order of $<$:
+    \[ p(x_V|\doit(x_J)) := \idotsint_{\Xcal_U} p(x_V|x_U,\doit(x_J)) \, 
+    \bigotimes_{ u \in U}^> P_u (X_u \in dx_u|\doit( X_{\Pa^{G^+}(u)} = x_{\Pa^{G^+}(u)} )).   \]
+    \Claude{$\Pa^{G^+}(v)$ should be $\Pa^{G^+}(u)$}\PF{solved.}
+    Then the former is a (strictly positive) density of $P(X_V,X_U|\doit(X_J))$ w.r.t.\ 
+    \[ \bigotimes_{ v \in V}^> \mu_v \otimes^> \bigotimes_{ u \in U}^> P_u (X_u|\doit( X_{\Pa^{G^+}(v)} )), \]
+    and the latter a (strictly positive) density of $P(X_V|\doit(X_J))$ w.r.t.\ 
+    \[ \mu_V := \bigotimes_{ v \in V} \mu_v. \]
+    Similarly, for every $D \ins V$ the interventional Markov kernel $P(X_D|\doit(X_{J \cup V \sm D}))$ has
+    a (strictly positive) density w.r.t.\ $\mu_D:=\bigotimes_{ v \in D} \mu_v$.
+    \begin{proof}
+    The claim can be shown by integrating the above densities over product sets $A = \prod_v A_v$.
+    Inductively we can use Fubini's theorem and:
+    \[ \int_{A_v} p(x_v|\doit(x_{\Pa^{G^+}(v)}))\, \mu_v(dx_v) = P_v(X_v \in A_v|\doit( X_{\Pa^{G^+}(v)}=x_{\Pa^{G^+}(v)})).\]
+     Regarding strict positivity, note that if $f(x) > 0$ for all $x$, then $\int f\, d\mu >0$ for non-trivial $\mu$. 
+        So strict positivity is preserved through integration.
+    \end{proof}
+\end{Lem}
+

@@ -1,0 +1,186 @@
+% LaTeX-template for FNWI exams,
+% made by Jolien Kerssens (jolien.kerssens@student.uva.nl)
+
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{FNWIexam}[2014/04/02 exam layout FNWI]
+\RequirePackage{graphicx, eso-pic, kvoptions, kvoptions-patch}
+\RequirePackage{babel}
+\graphicspath{{./images/}}
+\addtolength{\textheight}{1in}
+
+% English is the standard language, open is the standard format for questions,
+\newcommand{\firstPageHeader}{firstPageHeaderEN.png}
+\newcommand{\pageHeader}{pageHeaderEN.png}
+\newcommand{\questionCounting}{At each question is indicated how many points it is worth.}
+\newcommand{\examPaper}{\textbf{each sheet} that you hand in. Also \textbf{number the pages}}
+
+\DeclareStringOption{courseTitle}
+\DeclareStringOption{progTitle}
+\DeclareStringOption{examType}
+\DeclareStringOption{examDate}
+\DeclareStringOption{examTime}
+\DeclareStringOption{toolsAllowed}
+\DeclareStringOption{numPages}
+\DeclareStringOption{numQuestions}
+\DeclareStringOption{maxPoints}
+\DeclareStringOption{notLeaveBefore}
+\DeclareStringOption{emergencyPhone}
+\DeclareStringOption{emergencyName}
+\DeclareBoolOption[false]{dutch}
+\DeclareBoolOption[false]{multipleChoice}
+\ProcessKeyvalOptions*
+
+% Front page
+% English version
+\ifFNWIexam@multipleChoice
+    \renewcommand{\questionCounting}{Every question is worth one point, unless stated otherwise. Fill in the answer form by checking off the appropriate box completely with a \textbf{pencil}.}
+    \renewcommand{\examPaper}{\textbf{your answer form}}
+\fi
+
+\newcommand{\firstPageText}{
+    \mbox{}\vspace{30mm}
+    
+    {\Huge\noindent\FNWIexam@courseTitle}\\
+    
+    {\huge\noindent\FNWIexam@progTitle}
+    \vspace{5mm}
+    
+    {\large\noindent\FNWIexam@examType}\\  
+    {\large\noindent Date: \FNWIexam@examDate}\\
+    {\large\noindent Time: \FNWIexam@examTime}
+
+    \vspace{2mm}
+    
+    \noindent Number of pages: \FNWIexam@numPages \ (including front page)\\
+    Number of questions: \FNWIexam@numQuestions\\
+    Maximum number of points to earn: \FNWIexam@maxPoints\\
+    \questionCounting
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}    
+   \noindent\textbf{\small UPLOADING INSTRUCTIONS}
+    \begin{itemize}
+        \item On the front page write \textbf{how many pages} you are submitting.
+        \item Inform the invigilator that you want to submit.
+        \item Take a photo of your solutions and \textbf{ID card}.
+        \item Make a \textbf{single pdf} file.
+        \item Submit your pdf on Canvas.
+        \item Inform the invigilator that you have submitted.
+        \item \textbf{Wait} for the invigilator to confirm that your submission is accepted before you leave the Zoom session.
+        \item You may not leave Zoom before \textbf{\FNWIexam@notLeaveBefore}.
+    \end{itemize}
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}
+    \textbf{\small PRACTICAL ANNOUNCEMENTS}
+    \begin{itemize}
+        \item \textbf{Emergency number:} call \FNWIexam@emergencyName\ on \FNWIexam@emergencyPhone.
+        \item\textbf{Bathroom:} raise your (Zoom-blue) hand and wait to be given permission. 
+        \item \textbf{Questions:} raise your (Zoom-blue) hand and wait for the invigilator to come to you.
+        \item \textbf{Chat:} Send only \textbf{private messages} to the invigilators.
+        \item \textbf{Printing:} You are allowed to print the exam questions.
+    \end{itemize}
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}
+    \textbf{\large Good luck!}
+}
+
+% Dutch version
+\ifFNWIexam@dutch
+    \renewcommand{\firstPageHeader}{firstPageHeaderNL.png}
+    \renewcommand{\pageHeader}{pageHeaderNL.png}
+    \renewcommand{\questionCounting}{Bij iedere vraag staat het bijbehorende aantal punten vermeld.}
+    \renewcommand{\examPaper}{\textbf{elk vel papier} dat u inlevert en \textbf{nummer de pagina's}}
+
+    \ifFNWIexam@multipleChoice
+        \renewcommand{\questionCounting}{Iedere vraag is \'e\'en punt waard, tenzij anders wordt vermeld. Vul op het antwoordformulier het juiste antwoord in door het betreffende vakje helemaal in te kleuren met een \textbf{potlood}.}
+        \renewcommand{\examPaper}{\textbf{uw antwoordformulier}}
+    \fi
+    
+    \renewcommand{\firstPageText}{
+    \mbox{}\vspace{30mm}
+    
+    {\Huge\noindent\FNWIexam@courseTitle}\\
+    
+    {\huge\noindent\FNWIexam@progTitle}
+    \vspace{5mm}
+    
+    {\large\noindent\FNWIexam@examType}\\ 
+    {\large\noindent Datum: \FNWIexam@examDate}\\
+    {\large\noindent Tijd: \FNWIexam@examTime}
+
+    \vspace{2mm}
+    
+    \noindent Aantal pagina's: \FNWIexam@numPages \ (inclusief voorblad)\\
+    Aantal vragen: \FNWIexam@numQuestions\\
+    Maximaal aantal te behalen punten: \FNWIexam@maxPoints\\
+    \questionCounting
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}
+    \noindent\textbf{\small INSTRUCTIES VOOR HET UPLOADEN}
+    \begin{itemize}
+        \item Schrijf op de voorpagina hoeveel bladzijden u inlevert.
+        \item Informeer de surveillant dat u wilt inleveren.
+        \item Maak een foto van uw uitwerkingen en uw \textbf{collegekaart}.
+        \item Maak \'e\'en pdf. 
+        \item Lever uw pdf in op Canvas.
+        \item Informeer via de chat de surveillant dat u ingeleverd hebt.
+        \item Wacht totdat de surveillant goedkeuring geeft dat uw bestand in orde is.
+        \item U mag niet vertrekken van het Zoom tentamen voor \textbf{\FNWIexam@notLeaveBefore}.
+    \end{itemize}
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}
+    \textbf{\small PRACTISCHE MEDEDELINGEN}
+    \begin{itemize}
+        \item \textbf{In geval van spoed:} bel \FNWIexam@emergencyName\ op \FNWIexam@emergencyPhone.
+        \item\textbf{Toilet:} Steek uw (Zoom-blauwe) hand op en wacht totdat de surveillant toestemming geeft.
+        \item \textbf{Vragen:} Steek uw (Zoom-blauwe) hand op en wacht totdat de surveillant reageert.
+        \item \textbf{Chat:} Stuur altijd priv\'e berichten naar de surveillant via de chat.
+        \item \textbf{Printen:} Het is toegestaan om het tentamen te printen.
+    \end{itemize}
+    \vspace{3mm}
+    \hrule
+    \vspace{3mm}
+    \textbf{\large Succes!}
+    }
+\fi
+
+% Commands for creating the exam
+% Large banner
+\newcommand\firstPagePic{
+    \put(0,0){
+        \parbox[b][\paperheight]{\paperwidth}{
+        \vfill
+        \centering
+        \includegraphics[width=\paperwidth,height=\paperheight, keepaspectratio]{\firstPageHeader}
+        \vfill
+        }
+    }
+}
+
+% Small banner
+\newcommand\backgroundPic{
+    \put(0,0){
+        \parbox[b][\paperheight]{\paperwidth}{
+        \vfill
+        \centering
+        \includegraphics[width=\paperwidth,height=\paperheight, keepaspectratio]{\pageHeader}
+        \vfill
+        }
+    }
+}
+
+\newcommand{\makeFirstPage}{
+    \AddToShipoutPicture{\firstPagePic}
+    \thispagestyle{empty}
+    \firstPageText
+    \newpage
+    % from here on, the smaller banner will be used
+    \AddToShipoutPicture{\backgroundPic}
+    \noindent
+}
+
+\endinput

@@ -1,0 +1,61 @@
+\subsection{Simple SCM with binary variables}
+\totalscore{6}
+
+\begin{enumerate}[label=\alph*)]
+  \item 
+    Let $M$ be an SCM with two endogenous variables $X, Y$, no exogenous input variables, and no exogenous random variables,
+    and graph $G^+(M)$:
+    \begin{center}\begin{tikzpicture}
+      \node[ndout] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (2,0) {$Y$};
+      \draw[tuh,bend left] (X) edge (Y);
+      \draw[tuh,bend left] (Y) edge (X);
+    \end{tikzpicture}\end{center}
+    Prove that $M$ cannot be simple if $X$ and $Y$ are both binary (that is, if they take values in the space \{0,1\}).
+\score{3}
+\answer{The structural equations can be written as:
+  $$X = f_X(Y)$$
+  $$Y = f_Y(X)$$
+  We need $f_X$ to be non-constant in $Y$, and $f_Y$ to be non-constant in $X$.
+  This just leaves two possibilities for $f_X$: $f_X(y) = y$, $f_X(y) = \lnot y$
+  and two for $f_Y$: $f_Y(x) = x$, $f_Y(x) = \lnot x$. 
+  In total this gives four combinations. Two of those admit no solution functions
+  ($f_X(y) = y, f_Y(x) = \lnot x$ and $f_X(y) = \lnot y, f_Y(x) = x$) and two of
+  those admit multiple solution functions ($f_X(y) = y, f_Y(x) = x$ and $f_X(y) = \lnot y, f_Y(x) = \lnot x$
+  both have $g(x,y)=(0,0)$ and $g(x,y)=(1,1)$ as solution functions).
+  
+  Since no choice gives a unique solution function, the SCM cannot be uniquely solvable, and hence not simple.
+}
+\points{1 point for setting up the right structural equations, 1 point for translating the question into properties of the solution function, 1 point for the remaining details.}
+
+\item Give an example of a simple SCM $\tilde{M}$ with two binary endogenous variables $X, Y$, no exogenous input variables, and one exogenous random variable $E$ that has graph $G^+(\tilde{M})$:
+\begin{center}\begin{tikzpicture}
+  \node[ndout] (X) at (0,0) {$X$};
+  \node[ndout] (Y) at (2,0) {$Y$};
+  \node[ndlat] (E) at (1,1) {$E$};
+  \draw[tuh,bend left] (X) edge (Y);
+  \draw[tuh,bend left] (Y) edge (X);
+  \draw[tuh] (E) edge (X);
+  \draw[tuh] (E) edge (Y);
+\end{tikzpicture}\end{center}
+Prove that it is indeed simple.
+\score{3}
+\answer{There are many possible answers. Here is just one.
+
+  For the value space of $E$,  we take $\{0,1,2,3\}$.
+  The following causal mechanism does the job.
+  $$f_X(Y,E) = \begin{cases}
+    Y & E = 0,1 \\
+    E-2 & E = 2,3
+  \end{cases}$$
+  $$f_Y(X,E) = \begin{cases}
+    E & E = 0,1 \\
+    X & E = 2,3
+  \end{cases}$$
+  Indeed, if $E \in \{0,1\}$ then we are in an acyclic setting with $X \tuh Y$ ``absent'',
+  while if $E \in \{2,3\}$ we are also in an acyclic setting but then with $Y \tuh X$ ``absent''.
+
+  Acyclic SCMs are simple, and a mixture of simple SCMs (with the mixture components chosen according to an exogenous random variable) is again simple.
+}
+\points{1 point for giving an example, 2 points for proving its simplicity.}
+\end{enumerate}

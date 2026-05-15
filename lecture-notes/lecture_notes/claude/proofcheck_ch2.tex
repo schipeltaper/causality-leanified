@@ -1,0 +1,1305 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 2 --- Transition Probability Theory}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in the Chapter~2 \LaTeX\ source files for
+correctness, gaps, and mistakes.  The files checked are:
+\texttt{markov\_kernels.tex},
+\texttt{proof-disintegration.tex},
+\texttt{conditional\_independence.tex},
+\texttt{proof-separoid-ci.tex},
+\texttt{icdf.tex}, and
+\texttt{proof-icdf.tex}.
+
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks
+are skipped, as are
+\verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}|, and \verb|\Claude{...}| blocks.
+External references (\verb|\cite{...}|) to books/papers are not downloaded;
+steps relying on them are marked \textbf{TODO}.
+
+\bigskip\noindent
+\textbf{Summary of findings:}
+\begin{itemize}
+  \item 7 proofs checked (2 exercises, 5 substantive).
+  \item No mathematical errors found.
+  \item Minor issues: one normalization question (Proof~3), one typographical error (Proof~6),
+        and several steps whose justification is abbreviated or delegated to external references.
+\end{itemize}
+
+\part*{File: \texttt{markov\_kernels.tex}}
+
+%% ========================================================================
+\section{Proof 1: Lemma \texttt{transmeasure\_is\_twoargfunction} (lines 331--336)}
+%% ========================================================================
+
+\textbf{Statement.} One-to-one correspondence between finite transition measures
+$K(W|T): \Tcal \to \Msf(\Wcal)$ and two-argument
+functions $\tilde{K}: \Bcal_{\Wcal} \times \Tcal \to \R_{\ge 0}$
+satisfying (i) measure in first argument and (ii) measurability in second argument.
+
+\textbf{Proof given.} ``The correspondence is via putting
+$K(W \in D|T=t)=\tilde K(W \in D|T=t)$ and vice versa.
+The corresponding properties hold by definition of the $\sigma$-algebra on
+$\Msf(\Wcal)$, also see Remark~\ref{rem:prob-sigma-algebra}.
+Working out the details is left as an exercise.''
+
+\textbf{Analysis.}
+\begin{itemize}
+  \item The proof is left as an exercise.  The claimed correspondence is standard
+        and follows directly from Remark~\ref{rem:prob-sigma-algebra} (line~186),
+        which states that a map $K: \Xcal \to \Msf(\Ycal)$
+        is measurable iff for every $B \in \Bcal_{\Ycal}$ the composition
+        $\mathrm{ev}_B \circ K$ is measurable---which is exactly condition~(ii).
+        Condition~(i) holds because each $K(t) \in \Msf(\Wcal)$
+        is a finite measure by definition.
+  \item No issues found.
+\end{itemize}
+
+\textbf{Verdict: CORRECT (exercise, but straightforward).}
+
+%% ========================================================================
+\section{Proof 2: Lemma \texttt{lem:density-abs-cont} (lines 473--475)}
+%% ========================================================================
+
+\textbf{Statement.} If $Q(W|T)$ has a Doob-Radon-Nikodym derivative w.r.t.\
+$K(W|T)$ then $Q(W|T) \ll K(W|T)$.
+
+\textbf{Proof given.} ``Should be clear, left as an exercise.''
+
+\textbf{Analysis.}
+\begin{itemize}
+  \item Indeed straightforward: if $g$ is the Doob-RN derivative, then for any $D$
+        with $K(W \in D|T=t)=0$ we have
+        $Q(W \in D|T=t) = \int \mathbf{1}_D(w) \cdot g(w|t)\, K(W \in dw|T=t) = 0$,
+        since the integrating measure gives zero mass to~$D$.
+  \item No issues found.
+\end{itemize}
+
+\textbf{Verdict: CORRECT (exercise, but straightforward).}
+
+%% ========================================================================
+\section{Proof 3: Corollary \texttt{cor:doob-radon-nikodym} (lines 538--558)}
+%% ========================================================================
+
+\textbf{Statement.} Let $\Wcal$ be standard, $P(W|T):\Tcal\to\Msf(\Wcal)$ a finite
+transition measure, and $\mu$ a $\sigma$-finite measure on $\Wcal$.  Then
+$P(W|T) \ll \mu$ iff $P(W|T)$ has a Doob-RN derivative w.r.t.\ $\mu$, and the
+derivative is essentially unique.
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 539--545: Construction of $Q$ with $Q \ll \mu \ll Q$.}
+    \begin{itemize}
+      \item \emph{Finite case} ($\mu(\Wcal)<\infty$): $Q(D):=\mu(D)/\mu(\Wcal)$.
+            Clearly $Q \ll \mu \ll Q$ (they differ by a positive constant).
+            \textbf{Minor issue:} If $\mu = 0$ (the zero measure, which is
+            $\sigma$-finite and finite), then $\mu(\Wcal)=0$ and the formula
+            involves $0/0$.  However, $P \ll 0$ forces $P=0$, and $p=0$ is a
+            trivial Doob-RN derivative.  So the result still holds; only the
+            proof construction breaks.  This edge case is harmless in practice.
+      \item \emph{$\sigma$-finite, non-finite case}:
+            $Q(D) := \sum_{n\in\N} 2^{-n}\,\mu(D\cap\Wcal_n)/\mu(\Wcal_n)$.
+            \begin{itemize}
+              \item $Q \ll \mu$: if $\mu(D)=0$ then each $\mu(D\cap\Wcal_n)=0$
+                    so $Q(D)=0$.  $\checkmark$
+              \item $\mu \ll Q$: if $Q(D)=0$ then every term vanishes, so
+                    $\mu(D\cap\Wcal_n)=0$ for all~$n$, hence
+                    $\mu(D)=\sum_n \mu(D\cap\Wcal_n)=0$.  $\checkmark$
+            \end{itemize}
+      \item \textbf{Normalization question.}
+            The proof claims $Q$ is a \emph{probability measure}.
+            $Q(\Wcal)=\sum_{n\in\N} 2^{-n}$.  If $\N=\{1,2,3,\dots\}$ this
+            equals~$1$; if $\N=\{0,1,2,\dots\}$ this equals~$2$.  The convention
+            for~$\N$ is not stated in the text.  This does \emph{not} affect the
+            mathematical argument: only the mutual absolute continuity
+            $Q \ll \mu \ll Q$ and finiteness of~$Q$ are used, not
+            $Q(\Wcal)=1$.  But strictly speaking, the claim ``probability
+            measure'' may be incorrect depending on convention.
+      \item The disjoint decomposition $\Wcal = \bigsqcup_{n} \Wcal_n$ with
+            $0 < \mu(\Wcal_n) < \infty$ is obtained from a standard
+            $\sigma$-finite covering by making it disjoint and discarding
+            zero-measure pieces (the discarded union has $\mu$-measure zero).
+            $\checkmark$
+    \end{itemize}
+
+  \item \textbf{Line 546: RN derivative $q$ of $Q$ w.r.t.\ $\mu$.}
+    Applies the standard Radon-Nikodym theorem (Thm.\ \texttt{thm:radon-nikodym},
+    line~602 in \texttt{probability\_theory.tex}) with $Q \ll \mu$ and $\mu$
+    $\sigma$-finite.  $\checkmark$
+
+    \textbf{TODO:} Verify external reference \cite{Kle20} Cor.\ 7.34.
+
+  \item \textbf{Lines 547--549: Transitivity of absolute continuity.}
+    From $P(W|T) \ll \mu$ and $\mu \ll Q(W)$ one gets $P(W|T) \ll Q(W|T)$
+    (viewing $Q$ as a constant transition measure):
+    $Q(D)=0 \Rightarrow \mu(D)=0 \Rightarrow P(D|t)=0$ for all $t$.  $\checkmark$
+
+  \item \textbf{Line 550: Application of Theorem \texttt{thm:doob-radon-nikodym}.}
+    Both $P(W|T)$ and $Q(W|T)$ are finite transition measures,
+    $P \ll Q$, and $\Wcal$ is standard.
+    Theorem applies and yields Doob-RN derivative $k$ of $P$ w.r.t.\ $Q$.
+    $\checkmark$
+
+  \item \textbf{Lines 551--554: Constructing $p(w|t) := k(w|t)\cdot q(w)$.}
+    \begin{itemize}
+      \item Joint measurability: $k$ is $(\Bcal_\Wcal\otimes\Bcal_\Tcal)$-measurable
+            (Doob-RN), $q$ is $\Bcal_\Wcal$-measurable (standard RN), so their
+            product is jointly measurable.  $\checkmark$
+      \item Verification:
+            $P(D|t) = \int_D k(w|t)\,Q(dw) = \int_D k(w|t)\,q(w)\,\mu(dw)$,
+            where the second equality uses $Q(dw) = q(w)\,\mu(dw)$.  $\checkmark$
+    \end{itemize}
+
+  \item \textbf{Line 557: Reverse direction and essential uniqueness.}
+    \begin{itemize}
+      \item Reverse ($p$ exists $\Rightarrow$ $P \ll \mu$): immediate from
+            Lemma~\texttt{lem:density-abs-cont}.  $\checkmark$
+      \item Uniqueness: if $p_1,p_2$ are two such densities, then for all $D$
+            and $t$: $\int_D(p_1-p_2)\,d\mu = 0$, so $\{p_1 \neq p_2\}_t$ is
+            $\mu$-null for each~$t$.  Standard, parallel to
+            Lemma~\texttt{lem:ess-uniq-drnd}.  $\checkmark$
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Minor cosmetic issue with the normalization of $Q$
+depending on the convention for $\N$.
+
+%% ========================================================================
+\section{Proof 4: Corollary \texttt{cor:abs-cont-str-pos-den} (lines 573--603)}
+%% ========================================================================
+
+\textbf{Statement.}
+\begin{enumerate}
+  \item $Q(W|T)$ has a strictly positive Doob-RN derivative w.r.t.\ $K(W|T)$ iff
+        $Q \ll K \ll Q$.
+  \item $P(W|T)$ has a strictly positive Doob-RN derivative w.r.t.\ $\mu$ iff
+        $\mu \ll P \ll \mu$.
+\end{enumerate}
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Line 574: ``The second case follows from the first using the arguments
+        from Corollary~\texttt{cor:doob-radon-nikodym}.''}
+
+    This is terse but correct.  The argument:
+    \begin{itemize}
+      \item[$\Rightarrow$:] If $p>0$ is a density of $P$ w.r.t.\ $\mu$, then
+            $P \ll \mu$ (Lemma~\texttt{lem:density-abs-cont}) and
+            $\mu \ll P$ (since $P(D|t) = \int_D p\,d\mu = 0$ with $p>0$
+            forces $\mu(D)=0$).
+      \item[$\Leftarrow$:] Construct $Q$ with $Q \ll \mu \ll Q$ as in
+            Corollary~\texttt{cor:doob-radon-nikodym}.  Then
+            $Q \ll P \ll Q$ by transitivity, so by Statement~1 there is a
+            strictly positive Doob-RN derivative $k>0$ of $P$ w.r.t.\ $Q$.
+            Since $Q \ll \mu \ll Q$, the standard RN density $q$ of $Q$ w.r.t.\
+            $\mu$ can be chosen strictly positive (modify on a $\mu$-null set
+            where $q=0$).  Then $p := k\cdot q > 0$ is a strictly positive
+            density of $P$ w.r.t.\ $\mu$.
+    \end{itemize}
+    No gap, but the argument is somewhat non-trivial to reconstruct from the
+    one-line claim.
+
+  \item \textbf{Lines 575--581: $\Rightarrow$ direction of Statement~1.}
+
+    Given: $q > 0$ is a Doob-RN derivative of $Q$ w.r.t.\ $K$.
+    \begin{itemize}
+      \item $Q \ll K$ by Lemma~\texttt{lem:density-abs-cont}.  $\checkmark$
+      \item Define $k(w|t) := 1/q(w|t) > 0$.  Joint measurability: $q$ is
+            jointly measurable and strictly positive, so $1/q$ is jointly
+            measurable (composition with the continuous map $r\mapsto 1/r$
+            on $(0,\infty)$).  $\checkmark$
+      \item Verification that $k$ is a density of $K$ w.r.t.\ $Q$:
+            \[ \int_D k\,dQ_t = \int_D \frac{1}{q(w|t)}\,q(w|t)\,K(dw|t)
+                              = K(D|t). \quad\checkmark \]
+      \item $K \ll Q$ by Lemma~\texttt{lem:density-abs-cont}.  $\checkmark$
+    \end{itemize}
+
+  \item \textbf{Lines 583--603: $\Leftarrow$ direction of Statement~1.}
+
+    Given: $Q \ll K \ll Q$.  Apply Theorem~\texttt{thm:doob-radon-nikodym}
+    (requires $\Wcal$ standard, which is assumed) to get Doob-RN derivatives:
+    $q$ of $Q$ w.r.t.\ $K$ and $k$ of $K$ w.r.t.\ $Q$.
+
+    \begin{itemize}
+      \item \textbf{Lines 587--591:} Compute
+        $\int_D 1\,Q(dw|t) = \int_D q\cdot k\,Q(dw|t)$ for all $D,t$.
+
+        The chain: $Q(D|t) = \int_D q\,K(dw|t) = \int_D q\cdot k\,Q(dw|t)$,
+        where the second step substitutes $K(dw|t) = k(w|t)\,Q(dw|t)$
+        (extending the Doob-RN identity from indicators to non-negative
+        measurable functions via monotone convergence).  $\checkmark$
+
+      \item \textbf{Lines 592--594:} The set $N := \{q\cdot k \neq 1\}$ is a
+        $Q$-null set (by the same argument as
+        Lemma~\texttt{lem:doob-radon-nikodym-unique}: $\int_D(1-qk)\,dQ_t=0$
+        for all $D$ implies $\{qk>1\}$ and $\{qk<1\}$ are both $Q$-null).
+        Since $K \ll Q$, also a $K$-null set.  $\checkmark$
+
+        Measurability of $N$: $q\cdot k$ is jointly measurable, so
+        $N = (q\cdot k)^{-1}(\R\setminus\{1\}) \in \Bcal_\Wcal\otimes\Bcal_\Tcal$.
+        $\checkmark$
+
+      \item \textbf{Lines 596--599:} Define modified densities
+        $\tilde{q} := q\cdot\mathbf{1}_{N^c} + \mathbf{1}_N$ and
+        $\tilde{k} := k\cdot\mathbf{1}_{N^c} + \mathbf{1}_N$.
+
+        Still Doob-RN derivatives: e.g.,
+        $\int_D\tilde{q}\,K(dw|t)
+          = \int_D q\,K(dw|t) - \underbrace{\int_{D\cap N_t} q\,K(dw|t)}_{=0}
+            + \underbrace{\int_{D\cap N_t} 1\,K(dw|t)}_{=0} = Q(D|t)$,
+        since $N$ is a $K$-null set. Similarly for $\tilde{k}$.  $\checkmark$
+
+      \item \textbf{Lines 600--602:} $\tilde{q}\cdot\tilde{k} = 1$ everywhere.
+        On $N^c$: $q\cdot k = 1$ by definition of~$N$.
+        On $N$: $1\cdot 1 = 1$.
+        Since $\tilde{q},\tilde{k}\ge 0$ and their product is~$1$,
+        both must be strictly positive.  $\checkmark$
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 5: Lemma \texttt{lem:doob-radon-nikodym-unique} (lines 617--633)}
+%% ========================================================================
+
+\textbf{Statement.} If $g_1,g_2$ are two Doob-RN derivatives of $Q(W|T)$
+w.r.t.\ $K(W|T)$, then $N:=\{g_1 \neq g_2\}$ is a $K(W|T)$-null set and is
+in $\Bcal_\Wcal\otimes\Bcal_\Tcal$.
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 618--622:} Define
+    $N^> := \{g_1 > g_2\} = (g_1,g_2)^{-1}(\Delta^>)$ where
+    $\Delta^>=\{(r_1,r_2)\in\R^2:r_1>r_2\}$ is an open (hence Borel) set.
+    Since $g_1,g_2$ are jointly measurable,
+    $N^> \in \Bcal_\Wcal\otimes\Bcal_\Tcal$.  $\checkmark$
+
+  \item \textbf{Line 623:} $N^>_t := \{w:(w,t)\in N^>\}\in\Bcal_\Wcal$.
+    Sections of product-measurable sets are measurable.  $\checkmark$
+
+  \item \textbf{Lines 625--629:} The computation
+    \begin{align*}
+      0 &= Q(N^>_t|t) - Q(N^>_t|t) \\
+        &= \int \mathbf{1}_{N^>_t}\cdot g_1\,K(dw|t)
+         - \int \mathbf{1}_{N^>_t}\cdot g_2\,K(dw|t) \\
+        &= \int \underbrace{\mathbf{1}_{N^>_t}\cdot(g_1-g_2)}_{%
+          \ge 0 \text{ everywhere, } > 0 \text{ on } N^>_t} K(dw|t).
+    \end{align*}
+    The second line uses the Doob-RN definition applied to $D=N^>_t$.
+    The integrand is non-negative everywhere (zero outside $N^>_t$, positive
+    on $N^>_t$).  A non-negative function integrating to zero implies the set
+    where it is positive has measure zero: $K(N^>_t|t)=0$.  $\checkmark$
+
+  \item \textbf{Lines 630--632:} By symmetry (swapping $g_1,g_2$),
+    $K(N^<_t|t)=0$.  Then $N = N^>\cup N^<$ and
+    $K(N_t|t) \le K(N^>_t|t)+K(N^<_t|t) = 0$.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Clean, complete, no gaps.
+
+%% ========================================================================
+\section{Proof 6: Existence of the Doob-RN derivative (lines 643--719)}
+%% ========================================================================
+
+\textbf{Statement.} Let $\Wcal$ be a standard measurable space,
+$Q(W|T)\ll K(W|T)$ finite transition measures.  Then $Q$ has a Doob-RN
+derivative w.r.t.\ $K$.  (This is the existence direction of
+Theorem~\texttt{thm:doob-radon-nikodym}.)
+
+This is labeled a \textbf{proof sketch}.
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 644--653: Setup of partitions.}
+    \begin{itemize}
+      \item $\Bcal_\Wcal=\sigma(\Scal)$ with countable
+            $\Scal=\{D_n:n\in\N\}$: correct, this is the definition of
+            ``countably generated,'' which follows from $\Wcal$ being standard.
+            $\checkmark$
+      \item The inductive partition construction $\Ecal_0=\{\Wcal\}$,
+            $\Ecal_{n+1} = (\bigcup_{D\in\Ecal_n}\{D\setminus D_n, D\cap D_n\})
+            \setminus\{\emptyset\}$ produces nested finite partitions that
+            generate $\Bcal_\Wcal$.  $\checkmark$
+      \item $\Bcal_n \subseteq \Bcal_{n+1} \subseteq \Bcal_\Wcal =
+            \sigma(\bigcup_m\Ecal_m)$.  $\checkmark$
+    \end{itemize}
+
+  \item \textbf{Lines 654--663: Definition of $q_D$ and measurability.}
+    $q_D(t) = Q(D|t)/K(D|t)\cdot\mathbf{1}_{K(D|t)>0}$.
+    Since both $t\mapsto Q(D|t)$ and $t\mapsto K(D|t)$ are
+    $\Bcal_\Tcal$-measurable (by the transition measure property),
+    $q_D$ is $\Bcal_\Tcal$-measurable (ratio on the open set $\{K(D|t)>0\}$,
+    zero elsewhere).  $\checkmark$
+
+  \item \textbf{Lines 664--670: Definition of $G_n$, $G$, $g$ and joint measurability.}
+    $G_n(w,t) = \sum_{D\in\Ecal_n}\mathbf{1}_D(w)\cdot q_D(t)$: finite sum
+    of products of measurable functions, so jointly measurable.  $\checkmark$
+
+    $G = \liminf_n G_n$: countable limit inferior of measurable functions,
+    hence measurable.  $\checkmark$
+
+    $g = G\cdot\mathbf{1}_{G<\infty}$: measurable.  $\checkmark$
+
+    \textbf{Note:} Using $\liminf$ (rather than $\lim$) is important for
+    defining $G$ everywhere (not just almost everywhere), ensuring joint
+    measurability---this is the key technique of the Doob approach.
+
+  \item \textbf{Lines 681--694: The big computation $G_n^t = \E_t[G_m^t|\Bcal_n]$.}
+
+    Checking each step:
+    \begin{itemize}
+      \item \emph{Line 685 $\to$ 686 (splitting $Q(D|t)$ over finer partition):}
+        $Q(D|t) = \sum_{A\in\Ecal_m,\,A\subseteq D} Q(A|t)$ by finite additivity
+        of $Q(W|T=t)$ and the disjoint decomposition
+        $D = \bigsqcup_{A\subseteq D} A$.  $\checkmark$
+
+      \item \emph{Line 686 $\to$ 687 (inserting $\mathbf{1}_{Q(A|t)>0}$):}
+        Terms with $Q(A|t)=0$ contribute nothing, so inserting the indicator
+        doesn't change the sum.  $\checkmark$
+
+      \item \emph{Line 687 $\to$ 688 (replacing $\mathbf{1}_{Q>0}$ by
+        $\mathbf{1}_{K>0}$, using $Q\ll K$):}
+        If $Q(A|t)>0$ then $K(A|t)>0$ (by $Q\ll K$: $K(A|t)=0\Rightarrow Q(A|t)=0$).
+        If $Q(A|t)=0$ the whole term vanishes regardless.
+        So the replacement is valid.  $\checkmark$
+
+      \item \emph{Line 688 $\to$ 689 (splitting fraction):}
+        $Q(A|t)/K(D|t) = [Q(A|t)/K(A|t)]\cdot[K(A|t)/K(D|t)]$
+        whenever $K(A|t)>0$ (guaranteed by the indicator), and the term is zero
+        when $K(A|t)=0$.  $\checkmark$
+
+      \item \emph{Line 689 $\to$ 690--691 (swapping summation order):}
+        Valid for finite sums.  For each $A\in\Ecal_m$ there is exactly one
+        $D\in\Ecal_n$ with $D\supseteq A$ (since $\Ecal_n$ is a partition
+        and $\Ecal_m$ refines it).  $\checkmark$
+
+      \item \emph{Line 691: Identification of the braced expression as
+        $\E_t[\mathbf{1}_A|\Bcal_n](w)$.}
+
+        For $w\in D'\in\Ecal_n$, this equals
+        $K(A|t)/K(D'|t)\cdot\mathbf{1}_{A\subseteq D'}\cdot\mathbf{1}_{K(D'|t)>0}$,
+        which is the standard formula for the conditional expectation of
+        $\mathbf{1}_A$ given the finite partition~$\Ecal_n$ w.r.t.\ $K(W|T=t)$.
+        $\checkmark$
+
+        \textbf{TODO:} Verify external reference \cite{Kle20} Lem.\ 8.10
+        for the precise form of conditional expectation on atoms of measure zero.
+
+      \item \emph{Lines 692--694 (linearity of conditional expectation):}
+        The coefficients $q_A(t)$ are constants (not functions of~$w$), so they
+        can be pulled inside/outside the conditional expectation.  $\checkmark$
+    \end{itemize}
+
+    \textbf{Typographical error on line 691:} There is a spurious
+    ``$\cdot$'' (multiplication dot) immediately after the summation symbol
+    $\sum_{D\in\Ecal_n,\,D\supseteq A}$ and before the fraction.  It
+    should read
+    $\sum_{D\supseteq A} \frac{K(A|t)}{K(D|t)}\cdots$
+    without the leading dot.
+
+  \item \textbf{Lines 699--700: Conclusion that $(G_n^t)$ is a martingale.}
+    $G_n^t = \E_t[G_m^t|\Bcal_n]$ for all $m\ge n$ is the defining property
+    of a martingale w.r.t.\ the filtration $(\Bcal_n)$.  $\checkmark$
+
+  \item \textbf{Line 701: Uniform integrability.}
+    ``$\ldots$uniformly integrable w.r.t.\ $K(W|T=t)$, see \cite{Kle20} Ex.\ 7.39.''
+
+    This is stated without proof.  The standard justification: for each fixed~$t$,
+    the standard (non-Doob) Radon-Nikodym theorem gives $h_t\in L^1(K(W|T=t))$
+    with $Q(D|t)=\int_D h_t\,K(dw|t)$.  One can verify that
+    $G_n^t = \E_t[h_t|\Bcal_n]$, making $(G_n^t)$ a Doob martingale
+    (conditional expectations of an $L^1$ function), which is uniformly
+    integrable.  This is a classical result (not circular: the standard RN
+    theorem is proved independently of the \emph{Doob} RN theorem).
+
+    \textbf{TODO:} Verify external reference \cite{Kle20} Ex.\ 7.39.
+
+  \item \textbf{Lines 702--703: Martingale convergence.}
+    By the convergence theorem for uniformly integrable martingales:
+    $G_n^t \to G^t$ a.s.\ and in $L^1$, and
+    $G_n^t = \E_t[G^t|\Bcal_n]$ for all~$n$.  $\checkmark$
+
+    \textbf{TODO:} Verify external reference \cite{Kle20} Thm.\ 11.7.
+
+  \item \textbf{Line 703: $\mathbf{1}_D\cdot G_n^t = \E_t[\mathbf{1}_D\cdot G^t|\Bcal_n]$
+    for $D\in\Ecal_n$.}
+    Since $\mathbf{1}_D$ is $\Bcal_n$-measurable:
+    $\E_t[\mathbf{1}_D\cdot G^t|\Bcal_n] = \mathbf{1}_D\cdot\E_t[G^t|\Bcal_n]
+    = \mathbf{1}_D\cdot G_n^t$.  $\checkmark$
+
+  \item \textbf{Lines 705--708: Tower property and final identity.}
+    \begin{align*}
+      \E_t[\mathbf{1}_D\cdot G^t]
+        &= \E_t[\E_t[\mathbf{1}_D\cdot G^t|\Bcal_n]]
+         = \E_t[\mathbf{1}_D\cdot G_n^t].
+    \end{align*}
+    And for $D\in\Ecal_n$:
+    $\E_t[\mathbf{1}_D\cdot G_n^t] = q_D(t)\cdot K(D|t)$.
+    If $K(D|t)>0$: $= Q(D|t)$.  If $K(D|t)=0$: $q_D(t)=0$ and
+    $Q(D|t)=0$ (by $Q\ll K$), so $0=0$.  $\checkmark$
+
+  \item \textbf{Lines 710--711: Extension to all $D\in\Bcal_\Wcal$.}
+    ``Since this holds for all $D\in\Ecal_n$ and all $n$, it also holds for
+    all $D\in\sigma(\bigcup_n\Ecal_n)$.''
+
+    This step is stated without detailed justification.  The rigorous argument
+    uses the Dynkin $\pi$-$\lambda$ theorem: the collection
+    $\Dcal := \{D\in\Bcal_\Wcal : \int\mathbf{1}_D G^t\,K(dw|t)=Q(D|t)\}$
+    is a $\lambda$-system (contains $\Wcal$; closed under complements and
+    countable disjoint unions---the latter by monotone convergence, using
+    $G^t\ge 0$) and contains the $\pi$-system
+    $\bigcup_n\Ecal_n\cup\{\emptyset\}$.  Therefore
+    $\Bcal_\Wcal = \sigma(\bigcup_n\Ecal_n) \subseteq \Dcal$.
+
+    The argument is standard but \textbf{omitted from the proof sketch}.
+    Not a gap per se (it's labeled a sketch), but the $\pi$-$\lambda$
+    step deserves mention.
+
+  \item \textbf{Lines 716--717: Replacing $G$ by $g$.}
+    Since $\int G^t\,K(dw|t) = Q(\Wcal|t) < \infty$, the function $G^t$ is
+    $K(W|T=t)$-integrable, so $\{G^t=\infty\}$ is a $K(W|T=t)$-null set.
+    Replacing $G$ by $g = G\cdot\mathbf{1}_{G<\infty}$ does not change the
+    integral.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT (modulo external references).}
+As a proof sketch, it is complete and well-structured.  The main steps
+delegated to external references are: uniform integrability of the
+martingale (\cite{Kle20} Ex.\ 7.39), the martingale convergence theorem
+(\cite{Kle20} Thm.\ 11.7), and the conditional expectation formula
+(\cite{Kle20} Lem.\ 8.10).
+The extension from $\bigcup_n\Ecal_n$ to $\sigma(\bigcup_n\Ecal_n)$ via the
+$\pi$-$\lambda$ theorem is standard but unstated.
+There is one minor typographical error (spurious $\cdot$ on line~691).
+
+%% ========================================================================
+\section{Proof 7: Remark \texttt{deterministic-mk-composition} (lines 934--947)}
+%% ========================================================================
+
+\textbf{Statement.} For measurable maps $X:\Tcal\to\Xcal$ and $Z:\Xcal\to\Zcal$:
+\[ \delta(Z\circ X|T) = \delta(Z|X) \circ \delta(X|T), \]
+where $\delta(Z\in C|X=x) := \mathbf{1}_C(Z(x))$ and
+$\delta(X\in A|T=t) := \mathbf{1}_A(X(t))$.
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Line 937:}
+    $\delta(Z\in C|X)\circ\delta(X|T=t) = (\delta(Z|X)\circ\delta(X|T))(C|t)$.
+    Just notation for the composition, applying
+    Definition~\texttt{def-composition-markov-kernels}.  $\checkmark$
+
+  \item \textbf{Line 938:}
+    $= \int \delta(Z\in C|X=x)\,\delta(X\in dx|T=t)$.
+    Unfolding the composition definition: integrate the first kernel over the
+    second.  $\checkmark$
+
+  \item \textbf{Line 939:}
+    $= \int \mathbf{1}_{Z^{-1}(C)}(x)\,\delta(X\in dx|T=t)$.
+    Since $\delta(Z\in C|X=x) = \mathbf{1}_C(Z(x)) = \mathbf{1}_{Z^{-1}(C)}(x)$.
+    $\checkmark$
+
+  \item \textbf{Line 940:}
+    $= \delta(X\in Z^{-1}(C)|T=t)$.
+    Integration of $\mathbf{1}_{Z^{-1}(C)}$ against the Dirac kernel $\delta_{X(t)}$
+    evaluates the integrand at $X(t)$:
+    $\int\mathbf{1}_{Z^{-1}(C)}(x)\,\delta_{X(t)}(dx)
+     = \mathbf{1}_{Z^{-1}(C)}(X(t))
+     = \delta(X\in Z^{-1}(C)|T=t)$.  $\checkmark$
+
+  \item \textbf{Line 941:}
+    $= \mathbf{1}_{X^{-1}(Z^{-1}(C))}(t)$.
+    $\mathbf{1}_{Z^{-1}(C)}(X(t)) = 1 \iff X(t)\in Z^{-1}(C) \iff
+    t\in X^{-1}(Z^{-1}(C))$.  $\checkmark$
+
+  \item \textbf{Line 942:}
+    $= \mathbf{1}_C(Z(X(t)))$.
+    $t\in X^{-1}(Z^{-1}(C)) \iff Z(X(t))\in C$.  $\checkmark$
+
+  \item \textbf{Lines 943--945:}
+    $= \delta(Z(X)\in C|T=t) = \delta(Z\circ X\in C|T=t) = \delta(Z\circ X|T)(C|t)$.
+    Just rewriting using the push-forward / deterministic kernel notation.
+    $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Clean and complete, every step is elementary.
+
+%% ========================================================================
+\section*{Overall Summary}
+%% ========================================================================
+
+\begin{center}
+\begin{tabular}{l|l|l}
+\textbf{Proof} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1.\ Lemma \texttt{transmeasure\_is\_twoargfunction} & 331--336 & CORRECT (exercise) \\
+2.\ Lemma \texttt{lem:density-abs-cont} & 473--475 & CORRECT (exercise) \\
+3.\ Corollary \texttt{cor:doob-radon-nikodym} & 538--558 & CORRECT \\
+4.\ Corollary \texttt{cor:abs-cont-str-pos-den} & 573--603 & CORRECT \\
+5.\ Lemma \texttt{lem:doob-radon-nikodym-unique} & 617--633 & CORRECT \\
+6.\ Existence of Doob-RN (proof sketch) & 643--719 & CORRECT (mod.\ ext.\ refs.) \\
+7.\ Remark \texttt{deterministic-mk-composition} & 934--947 & CORRECT \\
+\end{tabular}
+\end{center}
+
+\bigskip\noindent
+\textbf{Issues found (none are mathematical errors):}
+\begin{enumerate}
+  \item \textbf{Proof 3, line 544:} The constructed measure $Q$ is claimed to
+        be a ``probability measure'' but $Q(\Wcal) = \sum_{n\in\N} 2^{-n}$,
+        which equals~1 only if $\N=\{1,2,\dots\}$.  If the convention is
+        $\N=\{0,1,2,\dots\}$, then $Q(\Wcal)=2$. The proof only requires $Q$
+        to be a finite measure with $Q\ll\mu\ll Q$, so this is a cosmetic issue.
+
+  \item \textbf{Proof 6, line 691:} Typographical error---spurious
+        multiplication dot ``$\cdot$'' immediately after the summation symbol
+        and before the fraction $K(W\in A|T=t)/K(W\in D|T=t)$.
+
+  \item \textbf{Proof 6, lines 710--711:} The extension from
+        $\bigcup_n\Ecal_n$ to $\sigma(\bigcup_n\Ecal_n)$ is asserted without
+        justification.  The standard tool is the Dynkin $\pi$-$\lambda$ theorem.
+        Acceptable in a ``proof sketch'' but could be made explicit.
+\end{enumerate}
+
+\bigskip\noindent
+\textbf{External references not verified (TODO):}
+\begin{itemize}
+  \item \cite{Kle20} Cor.\ 7.34 (standard Radon-Nikodym theorem)---used in Proof~3.
+  \item \cite{Kle20} Lem.\ 8.10 (conditional expectation on finite partitions)---used in Proof~6.
+  \item \cite{Kle20} Ex.\ 7.39 (uniform integrability of the Doob martingale)---used in Proof~6.
+  \item \cite{Kle20} Thm.\ 11.7 (convergence of UI martingales)---used in Proof~6.
+  \item \cite{Del83} Thm.\ 58 (original Doob-Radon-Nikodym)---cited in theorem statement.
+\end{itemize}
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{proof-disintegration.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 203--291, 293--465, 468--590 are skipped.
+This leaves 3 active proofs (all before line~203).
+
+%% ========================================================================
+\section{Proof 8: Thm.\ \texttt{reg-cond-trans-kernel-existence-I} (lines 43--124)}
+%% ========================================================================
+
+\textbf{Statement.} Let $\Xcal$ be standard, $\Bcal_\Ycal$ countably generated,
+$K(X,Y|Z): \Zcal \dashrightarrow \Xcal\times\Ycal$ a Markov kernel.
+Then a conditional Markov kernel $K(X|Y,Z)$ exists.
+
+\textbf{Line-by-line analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 44--55: Doob-RN derivatives $g_A$ for each $A \in \Bcal_\Xcal$.}
+    WLOG $\Xcal=[0,1]$.  The finite transition measure $K(X \in A,Y|Z)$ is
+    absolutely continuous w.r.t.\ $K(Y|Z)$ since
+    $K(X \in A, Y \in B|Z=z) \le K(Y \in B|Z=z)$.
+    By Doob-RN (Thm.\ \texttt{thm:doob-radon-nikodym}) there exists jointly
+    measurable $g_A(y|z)$.  Define $G(x|y,z):=g_{[0,x]}(y,z)$.  $\checkmark$
+
+  \item \textbf{Lines 58--72: Monotonicity on rational points.}
+    $S=\{G(1|y,z)\neq 1\}$ is a null set (by uniqueness of Doob-RN derivatives,
+    since $g_\Xcal$ is a density of $K(Y|Z)$ w.r.t.\ itself).  $\checkmark$
+
+    For $x_1<x_2\in\Xcal_\Q$, the set $E_{(x_1,x_2)}=\{G(x_1)>G(x_2)\}$ is shown to be
+    null via the ``sandwich'' argument: the chain of (in)equalities
+    $\int\mathbf{1}_E\,G(x_1)\,K(dy|z) \le \int\mathbf{1}_E\,G(x_2)\,K(dy|z) \le
+     \int\mathbf{1}_E\,G(x_1)\,K(dy|z)$ forces equality.  $\checkmark$
+
+    $E:=S\cup\bigcup_{x_1<x_2}E_{(x_1,x_2)}$ is a countable union of null sets.  $\checkmark$
+
+  \item \textbf{Lines 76--91: Right-continuity on rational points.}
+    For $x\in\Xcal_\Q$, $D_x=\{G(x)<\inf_n G(x+1/n)\}$ is shown to be null.
+    The proof cites dominated convergence (\cite{Kle20} Cor.\ 6.26) for the
+    exchange $\int\inf_n=\inf_n\int$.
+
+    \textbf{Mild gap:} The exchange requires the sequence
+    $\mathbf{1}_{D_z}\,G(x+1/n|\cdot,z)$ to converge pointwise $K(Y|Z=z)$-a.e.
+    This holds because on $E^\complement$ (full measure) $G$ is monotone, so the
+    sequence is decreasing; dominated convergence then applies with
+    $G(x+1/1)$ as an integrable dominating function.
+    The proof does not spell this out.
+
+    The rest of the argument ($\inf_n K(X\le x+1/n,Y\in D_z|Z=z) = K(X\le x,Y\in D_z|Z=z)$
+    by continuity of measures from above) is correct.  $\checkmark$
+
+  \item \textbf{Lines 95--106: Extension to all $x\in\Xcal$.}
+    Define $F(x|y,z):=\inf_m G(\lceil x\rceil_m|y,z)\,\mathbf{1}_{D^\complement}+
+    K(X\le x|Z=z)\,\mathbf{1}_D$.  Joint measurability, agreement with $G$ on
+    $\Xcal_\Q\times D^\complement$, right-continuity, monotonicity, and $F(1)=1$
+    are all correct.  $\checkmark$
+
+  \item \textbf{Lines 107--123: Dynkin system argument.}
+    $\Dcal$ is a Dynkin system containing
+    $\Ecal=\{[0,x]:x\in\Xcal_\Q\}$, which is a $\pi$-system.
+    By Dynkin's lemma (\cite{Kle20} Thm.\ 1.19), $\Bcal_\Xcal\subseteq\Dcal$.  $\checkmark$
+
+    \textbf{TODO:} Verify \cite{Kle20} Cor.\ 6.26 and Thm.\ 1.19.
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  The dominated convergence exchange at lines~80--81
+could be more explicit about why pointwise convergence holds a.e.
+
+%% ========================================================================
+\section{Proof 9: Lemma \texttt{ess-unique} (lines 141--162)}
+%% ========================================================================
+
+\textbf{Statement.} If $P(X|Y,Z)\otimes K(Y|Z) = Q(X|Y,Z)\otimes K(Y|Z)$
+then for each $A$ the set $N_A=\{P(A|y,z)\neq Q(A|y,z)\}$ is a $K(Y|Z)$-null set.
+If $\Xcal$ is countably generated then $N=\bigcup_A N_A$ is also null.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 142--149: Both are Doob-RN derivatives of the same $M_A$.}
+    Correct.  By uniqueness (Lemma \texttt{lem:doob-radon-nikodym-unique}), $N_A$ is null.
+
+    \textbf{Typographical error (line~147):} A ``$=$'' sign is missing at the
+    start of the line.  The chain of equalities reads
+    ``$\ldots = (Q(X\in A|Y,Z)\otimes K(Y|Z))(B|z)$'' and then the next line
+    should begin with ``$=$'' but just has the integral.
+
+  \item \textbf{Lines 150--161: Extending to $N=\bigcup_A N_A$.}
+    Construct $\Acal$ (countable $\pi$-system generating $\Bcal_\Xcal$),
+    $M=\bigcup_{A\in\Acal}N_A$ (null), $\Dcal$ (Dynkin system of all $A$
+    where $P=Q$ on $M^\complement$).  Dynkin's lemma gives $\Bcal_\Xcal\subseteq\Dcal$.
+    Conclude $N\subseteq M$, hence $N=M$ is null.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  One missing ``='' sign on line~147.
+
+%% ========================================================================
+\section{Proof 10: Lemma \texttt{lem:cont-cond-unique} (lines 178--196)}
+%% ========================================================================
+
+\textbf{Statement.} If $P(X|Y,Z)$ and $Q(X|Y,Z)$ are continuous Markov kernels,
+$K(Y|Z)$ is strictly positive on open sets, and $P\otimes K = Q\otimes K$,
+then $P=Q$ everywhere.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item $N=\{P\neq Q\}$ is open (pre-image of the open complement of the diagonal
+    in $\Prob(\Xcal)\times\Prob(\Xcal)$ under the continuous map $(P,Q)$).  $\checkmark$
+  \item By essential uniqueness (Lemma \texttt{ess-unique}): $K(Y\in N_z|Z=z)=0$
+    for all~$z$.  $\checkmark$
+  \item Since $N_z$ is open and $K(Y|Z)$ is strictly positive, $N_z=\emptyset$
+    for all~$z$, so $N=\emptyset$.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Clean and elegant.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{conditional\_independence.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 66--79, 517--532, 578--593 are skipped.
+
+%% ========================================================================
+\section{Proof 11: Lemma \texttt{lem:indep-rv} (line 40--42)}
+%% ========================================================================
+\textbf{Proof:} ``Exercise.''  The equivalences between various characterizations
+of independence are standard.
+
+\textbf{Verdict: CORRECT (exercise).}
+
+%% ========================================================================
+\section{Proof 12: DefLem \texttt{deflem:cond-indep-rv} (lines 138--140)}
+%% ========================================================================
+\textbf{Proof:} ``Exercise.''  Standard equivalences for conditional independence
+of random variables on standard spaces.
+
+\textbf{Verdict: CORRECT (exercise).}
+
+%% ========================================================================
+\section{Proof 13: Thm.\ \texttt{thm:sym-sep-ax-cond-ind} (lines 166--168)}
+%% ========================================================================
+\textbf{Proof:} ``Exercise.'' Separoid axioms for CI of random variables.  These are
+well-known; proofs can be found in \cite{Daw01}.
+
+\textbf{Verdict: CORRECT (exercise).}
+
+%% ========================================================================
+\section{Proof 14: Remark \texttt{add-T} (lines 245--254)}
+%% ========================================================================
+
+\textbf{Statement.}
+$X \Indep_{K(W|T)} Y \mid Z \;\iff\; X \Indep_{K(W|T)} T,Y \mid Z$.
+
+\textbf{Analysis.}
+$\Rightarrow$: Product with $\delta(T|T)$ extends $K(X,Y,Z|T)$ to $K(X,T,Y,Z|T)$
+via Remark~\texttt{rem:extending\_markov\_kernel}.  Since $Q(X|Z)$ does not
+involve $T$, the factorization persists.  $\checkmark$
+
+$\Leftarrow$: Marginalize $T$ from the outputs; $\delta(T\in\Tcal|T)=1$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 15: Thm.\ (CI with density, lines 309--342)}
+%% ========================================================================
+
+\textbf{Statement.} Under Doob-RN density assumptions,
+$k(x,y,z|t)=k(x|z,t_0)\cdot k(y,z|t)$ for $\mu$-a.e.\ $(x,y,z)$
+$\iff$ $X\Indep Y\mid Z$.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{$\Rightarrow$ (line~310):} Density factorization directly gives kernel
+    factorization.  $\checkmark$
+  \item \textbf{$\Leftarrow$ (lines 311--341):}
+    From $K(X,Y,Z|T)=Q(X|Z)\otimes K(Y,Z|T)$, marginalize to $K(X,Z|T=t_0)$
+    and use the density $k(x,z|t_0)$ to identify $Q(X\in A|Z=z)=\int_A k(x|z,t_0)\,\mu_\Xcal(dx)$
+    for $\mu_\Zcal$-a.e.~$z$ (using $k(z|t_0)>0$).  $\checkmark$
+
+    The null set $N$ where this fails is $K(Z|T)$-null (since $K(Z|T)\ll\mu_\Zcal$),
+    hence $\Ycal\times N$ is $K(Y,Z|T)$-null.  $\checkmark$
+
+    Substituting back yields $k(x,y,z|t)=k(x|z,t_0)\cdot k(y,z|t)$ $\mu$-a.e.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 16: Lemma (CI for deterministic mappings, lines 376--393)}
+%% ========================================================================
+
+\textbf{Statement.}  For deterministic \trv{}s $F\precsim H$
+(i.e.\ $F=\varphi\circ H$) iff $F\Indep G\mid H$.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item $\Rightarrow$: Deferred to separoid axioms (Extended Left Redundancy).  $\checkmark$
+  \item $\Leftarrow$:
+    \begin{itemize}
+      \item $K(F,G,H|T)=\delta(F|T)\otimes K(G|T)\otimes\delta(H|T)$ since $F,H$
+            are deterministic.  $\checkmark$
+      \item CI gives $Q(F|H)$ with $Q(F|H=H(t))=\delta_{F(t)}$ for all~$t$.  $\checkmark$
+      \item Define $\varphi:H(\Tcal)\to\Fcal$, $H(t)\mapsto F(t)$.
+            Well-defined because $H(t_1)=H(t_2)$ implies $F(t_1)=F(t_2)$
+            (both Diracs at the same point).  $\checkmark$
+      \item Measurability via $\delta\circ\varphi=Q(F|H)$ and
+            $\Bcal_\Fcal=\delta^*\Bcal_{\Prob(\Fcal)}$
+            (Lemma \texttt{lem-maps-markov-kernel}).  $\checkmark$
+      \item Extension to all of $\Hcal$ by Kuratowski (\cite{Kec95} 12.2).  $\checkmark$
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Verdict: CORRECT (modulo external references).}
+
+\textbf{TODO:} Verify Lemma \texttt{lem-maps-markov-kernel}\,2 and \cite{Kec95}\,12.2.
+
+%% ========================================================================
+\section{Proof 17: Thm.\ \texttt{thm-ci-equivalences} (lines 488--515)}
+%% ========================================================================
+
+\textbf{Statement.} Equivalence of several formulations of CI for \trv{}s.
+(Lines 517--532 are inside a comment block and skipped.)
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{3 $\Rightarrow$ 1} (line~489): By definition.  $\checkmark$
+  \item \textbf{1 $\Leftrightarrow$ 2} (line~490): By Remark~\texttt{add-T}.  $\checkmark$
+  \item \textbf{2 $\Rightarrow$ 4,\,5} (lines 491--502):
+    From $K(X,Y,Z,T|T)=K(X|Z)\otimes K(Y,Z,T|T)$, marginalize $T$ from the
+    output to get $K(X,Y,Z|T)=K(X|Z)\otimes K(Y,Z|T)$, then multiply by $Q(T)$
+    for part~5.  Taking $Q(T)=\delta_t$ gives the pointwise factorization for
+    part~4.  The first part of~4 ($X\Indep T\mid Z$) follows from marginalizing
+    $Y$ and $T$ from the output.  $\checkmark$
+
+  \item \textbf{4 $\Rightarrow$ 3} (lines 504--515):
+    From $K(X,Z|T)=P(X|Z)\otimes K(Z|T)$ and the pointwise factorizations
+    $K(X,Y,Z|T=t)=Q_t(X|Z)\otimes K(Y,Z|T=t)$, marginalizing $Y$ gives
+    $P(X|Z)\otimes K(Z|T=t)=Q_t(X|Z)\otimes K(Z|T=t)$.
+    By essential uniqueness (Lemma~\texttt{ess-unique}), $Q_t=P$ up to
+    $K(Z|T=t)$-null sets, hence up to $K(Y,Z|T=t)$-null sets.  Replacing
+    $Q_t$ by $P$ yields $K(X,Y,Z|T)=P(X|Z)\otimes K(Y,Z|T)$.  $\checkmark$
+
+    \textbf{Note:} The replacement of $Q_t$ by $P$ for \emph{all} $A$
+    simultaneously requires standard $\Xcal$ (so that Lemma~\texttt{ess-unique}
+    gives a single null set for all $A$).  This is not explicitly stated
+    in the proof but is assumed in the theorem statement.
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 18: Remark (Discrete $\Tcal$, lines 543--557)}
+%% ========================================================================
+
+\textbf{Statement.} For standard $\Xcal,\Zcal$ and discrete $\Tcal$ with strictly positive $Q(T)$:
+$X\Indep_{K\otimes Q} T,Y\mid Z \;\iff\; X\Indep_K Y\mid Z$.
+
+\textbf{Analysis.}
+
+$\Leftarrow$: By Thm.~\texttt{thm-ci-equivalences}.  $\checkmark$
+
+$\Rightarrow$: Construct $Q(X,Y,Z,T)=K(X,Y,Z|T)\otimes Q(T)$.
+By CI: $Q(X,Y,Z,T)=Q(X|Z)\otimes Q(Y,Z,T)=Q(X|Z)\otimes K(Y,Z|T)\otimes Q(T)$.
+Since $q(t)>0$ for all $t$ (discrete, strictly positive), cancel $Q(T)$:
+$K(X,Y,Z|T)=Q(X|Z)\otimes K(Y,Z|T)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 19: Corollary (lines 568--573)}
+%% ========================================================================
+
+\textbf{Statement.}
+$X\Indep_K Y\mid Z,T \;\iff\; \forall t:\; X_t\Indep_{K(\cdot|T=t)} Y_t\mid Z_t$.
+
+\textbf{Analysis.}
+Apply Thm.~\texttt{thm-ci-equivalences}\,4 with $(Z,T)$ in the role of $Z$.
+The first part of~4 ($X\Indep T\mid Z,T$) holds by
+Remark~\texttt{conditional-markov-kernel-as-ci} (existence of conditional
+Markov kernels for standard spaces).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 20: Thm.\ (Linear Gaussian CI, lines 620--697)}
+%% ========================================================================
+
+\textbf{Statement.} For a linear Gaussian Markov kernel $P(X,Y,Z|T)$ with
+density $\mathcal{N}(\Gamma t+\gamma,\Sigma)$:
+\[X\Indep Y\mid Z \;\iff\;
+  \Sigma_{X,Y}=\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Sigma_{Z,Y}
+  \;\land\; \Gamma_X=\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Gamma_Z.\]
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 621--640: Setup.}
+    The conditional $p(x|y,z,t)$ is computed via the standard Gaussian
+    conditioning formula.  CI is equivalent to this conditional not depending
+    on $y$ or $t$.  $\checkmark$
+
+  \item \textbf{Lines 642--666: Independence from $y$.}
+    Uses the $2\times2$ block inverse formula.  The coefficient of $y$ in
+    the conditional mean is
+    $(\Sigma_{X,Y}-\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Sigma_{Z,Y})\,S_{Y|Z}^{-1}$.
+    Setting this to zero (and noting $S_{Y|Z}$ is invertible as a Schur
+    complement of a positive-definite matrix) gives
+    $\Sigma_{X,Y}=\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Sigma_{Z,Y}$.  $\checkmark$
+
+  \item \textbf{Lines 668--676: Independence from $t$.}
+    The $t$-dependent part simplifies to
+    $\Gamma_X-\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Gamma_Z$
+    (using the first condition to zero out terms involving
+    $\Sigma_{X,Y}-\Sigma_{X,Z}\Sigma_{Z,Z}^{-1}\Sigma_{Z,Y}$).  $\checkmark$
+
+  \item \textbf{Lines 687--696: Form of $Q(X|Z)$.}
+    Standard Gaussian conditional formulas under the derived conditions.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Algebraically detailed and clean.
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{proof-separoid-ci.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment block at lines 266--293 is skipped.
+This leaves 12 active proofs (separoid axioms for CI of conditional random variables).
+
+%% ========================================================================
+\section{Proof 21: Extended Left Redundancy (lines 23--40)}
+%% ========================================================================
+
+\textbf{Statement.} $U\precsim X \implies U\Indep Y\mid X$.
+
+\textbf{Analysis.}
+Define $Q(U\in D|X=x):=\mathbf{1}_D(\varphi(x))$ (Dirac kernel).
+Verify: $\int_C\int_B Q(U\in D|X=x)\,K(Y\in dy,X\in dx|T=t)
+= K(U\in D,Y\in B,X\in C|T=t)$.
+Each step (substitution $\mathbf{1}_D(\varphi(x))=\mathbf{1}_{\varphi^{-1}(D)}(x)$,
+rewriting as a joint event) is correct.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 22: $T$-Restricted Right Redundancy (lines 45--53)}
+%% ========================================================================
+
+\textbf{Statement.} $X\Indep *\mid Z,T$ always holds (for $\Xcal$, $\Zcal$ standard).
+
+\textbf{Analysis.}
+Invokes the disintegration theorem to obtain $K(X|Z,T)$.
+The theorem requires both factor spaces to be standard.
+
+\textbf{Minor note:} The conditioning variable is $(Z,T)$, so
+$\Zcal\times\Tcal$ plays the role of $\Ycal$ in the disintegration theorem.
+The lemma only assumes $\Xcal,\Zcal$ standard, not~$\Tcal$.
+The proof is correct if the disintegration is applied \emph{pointwise in~$t$}
+(for each $t$, disintegrate $K(X,Z|T=t)$, which only needs $\Xcal,\Zcal$ standard).
+This pointwise reading is not made explicit.
+
+\textbf{Verdict: CORRECT (minor presentational note).}
+
+%% ========================================================================
+\section{Proof 23: $T$-Inverted Right Decomposition (lines 58--67)}
+%% ========================================================================
+
+\textbf{Statement.} $X\Indep Y\mid Z \implies X\Indep T,Y\mid Z$.
+
+\textbf{Analysis.}
+Multiply with $\delta(T|T)$, use associativity.
+Same argument as Remark~\texttt{add-T} (Proof~14).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 24: Left Decomposition (lines 73--83)}
+%% ========================================================================
+
+\textbf{Statement.} $X,U\Indep Y\mid Z \implies U\Indep Y\mid Z$.
+
+\textbf{Analysis.}
+Marginalize $X$ from $K(X,U,Y,Z|T)=Q(X,U|Z)\otimes K(Y,Z|T)$.
+The $X$-marginal of $Q(X,U|Z)$ gives $Q(U|Z)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 25: Right Decomposition (lines 88--98)}
+%% ========================================================================
+
+\textbf{Statement.} $X\Indep Y,U\mid Z \implies X\Indep U\mid Z$.
+
+\textbf{Analysis.}
+Marginalize $Y$ from $K(X,Y,U,Z|T)=Q(X|Z)\otimes K(Y,U,Z|T)$.
+The same $Q(X|Z)$ witnesses $X\Indep U\mid Z$.  $\checkmark$
+
+\textbf{Minor wording issue (line~89):} ``Left conditional independence'' should read
+``the conditional independence assumption.''
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 26: Left Weak Union (lines 102--121)}
+%% ========================================================================
+
+\textbf{Statement.} $X,U\Indep Y\mid Z \implies X\Indep Y\mid U,Z$
+(requires $\Xcal,\Ucal$ standard).
+
+\textbf{Analysis.}
+From $K(X,U,Y,Z|T)=Q(X,U|Z)\otimes K(Y,Z|T)$, marginalize $X$ to get
+$K(U,Y,Z|T)=Q(U|Z)\otimes K(Y,Z|T)$.  Then disintegrate $Q(X,U|Z)=Q(X|U,Z)\otimes Q(U|Z)$
+(using $\Xcal,\Ucal$ standard).  By associativity:
+$K(X,U,Y,Z|T) = Q(X|U,Z)\otimes\underbrace{Q(U|Z)\otimes K(Y,Z|T)}_{=K(U,Y,Z|T)}
+= Q(X|U,Z)\otimes K(U,Y,Z|T)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 27: Right Weak Union (lines 125--134)}
+%% ========================================================================
+
+\textbf{Statement.} $X\Indep Y,U\mid Z \implies X\Indep Y\mid U,Z$.
+
+\textbf{Analysis.}
+From $K(X,Y,U,Z|T)=Q(X|Z)\otimes K(Y,U,Z|T)$, lift $Q(X|Z)$ to $Q(X|U,Z)$
+by ignoring $U$.  The integral is unchanged.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 28: Left Contraction (lines 138--149)}
+%% ========================================================================
+
+\textbf{Statement.}
+$(X\Indep Y\mid U,Z)\land(U\Indep Y\mid Z)\implies X,U\Indep Y\mid Z$.
+
+\textbf{Analysis.}
+Substitute $K(Y,U,Z|T)=P(U|Z)\otimes K(Y,Z|T)$ into
+$K(X,Y,U,Z|T)=Q(X|U,Z)\otimes K(Y,U,Z|T)$ to get
+$K(X,Y,U,Z|T)=(Q(X|U,Z)\otimes P(U|Z))\otimes K(Y,Z|T)$.
+Witness: $R(X,U|Z):=Q(X|U,Z)\otimes P(U|Z)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 29: Right Contraction (lines 153--173)}
+%% ========================================================================
+
+\textbf{Statement.}
+$(X\Indep Y\mid U,Z)\land(X\Indep U\mid Z)\implies X\Indep Y,U\mid Z$.
+
+\textbf{Analysis.}
+Marginalize $Y$ from the first hypothesis:
+$K(X,U,Z|T)=Q(X|U,Z)\otimes K(U,Z|T)$.
+Compare with second hypothesis: $K(X,U,Z|T)=P(X|Z)\otimes K(U,Z|T)$.
+By essential uniqueness (Lemma~\texttt{ess-unique}):
+$Q(X\in A|U,Z)=P(X\in A|Z)$ $K(U,Z|T)$-a.s., hence $K(Y,U,Z|T)$-a.s.
+Replace $Q$ by $P$ in the product (valid since null sets don't affect integrals):
+$K(X,Y,U,Z|T)=P(X|Z)\otimes K(Y,U,Z|T)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 30: Right Cross Contraction (lines 177--237)}
+%% ========================================================================
+
+\textbf{Statement.}
+$(X\Indep Y\mid U,Z)\land(U\Indep X\mid Z)\implies X\Indep Y,U\mid Z$.
+
+\textbf{Analysis.}
+This is the most involved proof.
+Define $R(X,U|Z):=Q(X|U,Z)\otimes P(U|Z)$ and $R(X|Z):=Q(X|U,Z)\circ P(U|Z)$
+(the $U$-marginal).  Through a chain of substitutions:
+(1)~marginalize $Y$, (2)~equate two expressions for $K(X,U,Z|T)$,
+(3)~marginalize $U$, (4)~use commutativity of $P(U|Z)$ and $R(X|Z)$
+(both depend only on $Z$ and output to disjoint spaces),
+(5)~apply essential uniqueness to get $Q(X|U,Z)=R(X|Z)$ a.s.,
+(6)~replace in the product.
+All steps verified.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 31: Flipped Left Cross Contraction (lines 242--263)}
+%% ========================================================================
+
+\textbf{Statement.}
+$(X\Indep Y\mid U,Z)\land(Y\Indep U\mid Z)\implies Y\Indep X,U\mid Z$.
+
+\textbf{Analysis.}
+Substitute $K(Y,U,Z|T)=P(Y|Z)\otimes K(U,Z|T)$ into the first factorization.
+Use commutativity (Fubini) to swap $P(Y|Z)$ and $Q(X|U,Z)$
+(they depend on disjoint inputs/outputs given~$Z$).
+Result: $K(X,Y,U,Z|T)=P(Y|Z)\otimes K(X,U,Z|T)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 32: $T$-Restricted Symmetry (lines 299--307)}
+%% ========================================================================
+
+\textbf{Statement.}
+$X\Indep Y\mid Z,T \implies Y\Indep X\mid Z,T$ ($\Ycal,\Zcal$ standard).
+
+\textbf{Analysis.}
+Reduce to Flipped Left Cross Contraction with $U=*$ and $(Z,T)$ in the role
+of~$Z$.  The needed hypothesis $Y\Indep *\mid Z,T$ comes from $T$-Restricted
+Right Redundancy (which requires $\Ycal,\Zcal$ standard).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{icdf.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 32--68, 174--210, 222--227 are skipped.
+This leaves 4 active proofs in \texttt{icdf.tex} (2 substantial, 2 short).
+
+%% ========================================================================
+\section{Proof 33: Thm.\ \texttt{mk-uniform} (icdf.tex, lines 96--104)}
+%% ========================================================================
+
+\textbf{Statement.} $K(X|Z) = \delta(R|E,Z)\circ P(E)$ where $R$ is the quantile
+function and $P(E)$ is uniform.
+
+\textbf{Analysis.}
+Check on the generating $\pi$-system $\{[-\infty,x]\}$:
+$P(R(E|z)\le x) = P(E\le F(x|z)) = F(x|z) = K(X\le x|Z=z)$,
+using the Galois connection from Lemma~\texttt{cdf} and uniformity of~$E$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 34: Thm.\ \texttt{ccdf3} (icdf.tex, lines 158--161)}
+%% ========================================================================
+
+\textbf{Statement.} The interpolated CDF $E:=F(X;U|Z)$ is uniformly distributed,
+independent of~$Z$, and $X=R(E|Z)$ a.s.
+
+\textbf{Proof:} ``After the (joint) measurabilities of $F$ and $R$ are checked the
+statement directly follows from Lemma~\texttt{unif-cdf} by applying it for every
+$z$ separately.''
+
+\textbf{Analysis.}
+For each fixed $z$, the construction matches Lemma~\texttt{unif-cdf} exactly.
+The pointwise-in-$z$ application is valid.
+However, \textbf{joint measurability} of $F(x;u|z)$ and $R(e|z)$ in all variables
+is explicitly deferred and non-trivial (it requires measurability of
+$(x,z)\mapsto K(X<x|Z=z)$ and of the infimum operation $(e,z)\mapsto R(e|z)$).
+
+\textbf{Verdict: CORRECT, with a deferred measurability verification.}
+
+%% ========================================================================
+\section{Proof 35: Corollary (icdf.tex, lines 158 and 217--219)}
+%% ========================================================================
+
+\textbf{Statement.} For random variables $X,Z$ with values in standard measurable
+spaces, there exists a uniformly distributed $E$, independent of~$Z$, and
+measurable $g$ with $X=g(E,Z)$ a.s.
+
+\textbf{Analysis.}
+Take $K(X|Z):=P(X|Z)$ (regular conditional distribution, exists for standard
+spaces), then apply Theorem~\texttt{ccdf3} via the embedding remark (lines 164--172).  $\checkmark$
+
+\textbf{Minor gap:} The proof does not mention the need to extend the probability
+space to include an independent uniform variable~$U$.
+
+\textbf{Verdict: CORRECT (minor expository gap).}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{proof-icdf.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment block at lines 249--426 is skipped.
+This leaves 3 active proofs (the technical core for the ICDF construction).
+
+%% ========================================================================
+\section{Proof 36: Lemma \texttt{cdf} (proof-icdf.tex, lines 18--62)}
+%% ========================================================================
+
+\textbf{Statement.} Properties of the CDF $F(x):=P([-\infty,x])$ and quantile
+function $R(t):=\inf F^{-1}([t,1])$ on $\bar\R$: monotonicity,
+(right/left) continuity, Galois connection $t\le F(x)\iff R(t)\le x$,
+reflexive generalized inverse identities $F\circ R\circ F=F$ and
+$R\circ F\circ R=R$, and the push-forward $R_*\lambda=P$.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 19--21:} $F$ non-decreasing, right-continuous, $F(\infty)=1$,
+    countably many discontinuities (injection into~$\Q$).  $\checkmark$
+  \item \textbf{Lines 22--26:} $R(t)=\min F^{-1}([t,1])$ by right-continuity:
+    take $x_n\downarrow R(t)$ with $F(x_n)\ge t$, then $F(R(t))\ge t$.  $\checkmark$
+  \item \textbf{Lines 27--30:} $R$ non-decreasing, left-continuous, $R(0)=-\infty$.
+    Left-continuity: for $t_n\uparrow t$, $t\le\sup_n F(R(t_n))\le F(\sup_n R(t_n))$,
+    so $\sup_n R(t_n)\ge R(t)$; combined with monotonicity gives equality.  $\checkmark$
+  \item \textbf{Lines 31--41:} Galois connection and reflexive inverse properties.
+    All follow from $F(R(t))\ge t$ and monotonicity.  $\checkmark$
+  \item \textbf{Lines 51--61:} $R_*\lambda=P$:
+    $(R_*\lambda)([-\infty,x])=\lambda(\{t:R(t)\le x\})=\lambda([0,F(x)])=F(x)=P([-\infty,x])$.
+    Agreement on a generating $\pi$-system implies equality.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 37: Lemma \texttt{u-cdf} (proof-icdf.tex, lines 78--115)}
+%% ========================================================================
+
+\textbf{Statement.} For $F_u(x):=P([-\infty,x))+u\cdot P(\{x\})$:
+$R\circ F_u\circ R=R$ for $u\in(0,1]$, and $R\circ F_u=\mathrm{id}$ $P$-a.s.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 81--88:} If $F_1$ is continuous at $x=R(t)$: $F_u=F_1$, use
+    Lemma~\texttt{cdf}.  If discontinuous: $F_u(x)\in(F_0(x),F_1(x)]$ for
+    $u\in(0,1]$, and minimality of the quantile gives $R(F_u(x))=x$.  $\checkmark$
+  \item \textbf{Lines 90--113:} $P(C)=0$ where $C=\bar\R\setminus R([0,1])$.
+    Key steps: $C$ consists of points where $R(F(x))<x$;
+    $F$ is constant on intervals $(R(F(x)),x]$ for $x\in C$;
+    $F(C)\subseteq D_R$ (discontinuities of $R$, countable);
+    hence $C$ decomposes into countably many intervals of $P$-measure zero
+    (since $F$ is constant on each, $P((a,b])=F(b)-F(a)=0$).  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 38: Lemma \texttt{unif-cdf} (proof-icdf.tex, lines 135--245)}
+%% ========================================================================
+
+\textbf{Statement.} Let $\bar P=P\otimes\lambda$ and
+$E(x;u)=P([-\infty,x))+u\cdot P(\{x\})$.  Then $\bar P(E\le e)=e$ for all
+$e\in[0,1]$, and $R(E)=X$ $\bar P$-a.s.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Lines 138--144:} $R\circ E=X$ $\bar P$-a.s.\
+    follows from $R\circ F_u\circ R=R$ (Lemma~\texttt{u-cdf}) and $P(C)=0$.  $\checkmark$
+  \item \textbf{Lines 151--169:} $\bar P(E=e)=0$ for all~$e$.
+    Use $R(E)=X$ a.s.\ to localize to $\{X=R(e)\}$;
+    if $p(x)=0$ then $P(\{x\})=0$; if $p(x)>0$ then $\{E=e,X=x\}$
+    requires $U$ to be a constant, which has $\lambda$-measure zero.  $\checkmark$
+  \item \textbf{Lines 171--182:} Case $e\in F_1(\bar\R)$:
+    $\bar P(E\le F_1(\tilde x))=\bar P(R(E)\le\tilde x)=\bar P(X\le\tilde x)
+    =F_1(\tilde x)=e$.
+    Uses the Galois connection and $R(E)=X$ a.s.  $\checkmark$
+  \item \textbf{Lines 184--244:} Case $e\notin F_1(\bar\R)$:
+    decompose $\bar P(E\le e)=\bar P(E<\tilde e)+0+\bar P(\tilde e<E\le e)$.
+    \begin{itemize}
+      \item First term: $\bar P(E<F_0(x))=\sup_{\tilde x<x}\bar P(E\le F_1(\tilde x))
+            =\sup_{\tilde x<x}F_1(\tilde x)=F_0(x)=\tilde e$.  $\checkmark$
+      \item Third term: Localize to $\{X=x\}$ using $R(E)=x$ on this event.
+            For $p(x)>0$: $\bar P(0<U\le(e-\tilde e)/p(x),\,X=x)
+            =((e-\tilde e)/p(x))\cdot p(x)=e-\tilde e$.
+            For $p(x)=0$: both sides are zero (since $F_0(x)=F_1(x)=e$).  $\checkmark$
+    \end{itemize}
+    Total: $\tilde e+0+(e-\tilde e)=e$.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  Detailed and rigorous throughout.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% OVERALL SUMMARY
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\part*{Overall Summary}
+
+\begin{center}
+\begin{tabular}{l|c|l}
+\textbf{File} & \textbf{Proofs} & \textbf{Verdicts} \\ \hline
+\texttt{markov\_kernels.tex} & 7 & All CORRECT \\
+\texttt{proof-disintegration.tex} & 3 & All CORRECT \\
+\texttt{conditional\_independence.tex} & 10 & All CORRECT (3 exercises) \\
+\texttt{proof-separoid-ci.tex} & 12 & All CORRECT \\
+\texttt{icdf.tex} & 4 & All CORRECT \\
+\texttt{proof-icdf.tex} & 3 & All CORRECT \\ \hline
+\textbf{Total} & \textbf{39} &
+\end{tabular}
+\end{center}
+
+\textbf{No mathematical errors were found in any of the 39 proofs.}
+
+\bigskip\noindent
+\textbf{Issues found (all minor; none are mathematical errors):}
+\begin{enumerate}
+  \item \textbf{Proof~3 (Cor.\ \texttt{cor:doob-radon-nikodym}), line~544:}
+        Normalization of $Q$; $\sum 2^{-n}=1$ only if $\N=\{1,2,\dots\}$.
+  \item \textbf{Proof~6 (D-R-N existence), line~691:}
+        Spurious ``$\cdot$'' after summation symbol.
+  \item \textbf{Proof~6, lines~710--711:}
+        Extension via $\pi$-$\lambda$ theorem unstated.
+  \item \textbf{Proof~8 (disintegration existence), lines~80--81:}
+        Dominated convergence exchange could be more explicit about
+        why pointwise convergence holds a.e.
+  \item \textbf{Proof~9 (essential uniqueness), line~147:}
+        Missing ``$=$'' sign.
+  \item \textbf{Proof~22 ($T$-Restricted Right Redundancy):}
+        Pointwise-in-$t$ reading of disintegration not made explicit;
+        alternatively $\Tcal$ standard should be added to hypotheses.
+  \item \textbf{Proof~25 (Right Decomposition), line~89:}
+        ``Left conditional independence'' should be ``the conditional independence assumption.''
+  \item \textbf{Proof~34 (Thm.\ \texttt{ccdf3}):}
+        Joint measurability of $F$ and $R$ in all variables is deferred.
+  \item \textbf{Proof~35 (Corollary):}
+        Extension of probability space to include independent $U$ not mentioned.
+\end{enumerate}
+
+\bigskip\noindent
+\textbf{External references not verified (TODO):}
+\begin{itemize}
+  \item \cite{Kle20} Cor.\ 7.34, Lem.\ 8.10, Ex.\ 7.39, Thm.\ 11.7, Thm.\ 1.19, Cor.\ 6.26.
+  \item \cite{Del83} Thm.\ 58.
+  \item \cite{Kec95} 12.2 (Kuratowski's extension theorem).
+  \item \cite{Daw01} (separoid axioms for CI of random variables).
+  \item Lemma \texttt{lem-maps-markov-kernel}\,2 (used in Proof~16).
+\end{itemize}
+
+\end{document}

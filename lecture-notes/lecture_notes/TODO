@@ -1,0 +1,79 @@
+- In SCM stuff: change quantifiers and take proper care of null sets
+- Add lemmata regarding 'nullset calculus'
+- Terminology: i* is * with input node; s* is * with selection mechanism
+
+----
+
+- There are roughly two approaches to turning an isSCM into an iSCM:
+  1) work with subprobability measures (normalization <= 1); Patrick points out that this may give rise to issues when looking at marginal probabilities because 
+     if the marginal is defined as integrating out some part (in the conventional way) probability may 'leak', so then the X2-marginal of p(X_2|X_1) \otimes p(X_1)
+     is not =p(X_2) but <=p(X_2). A way out, proposed by Patrick, is to represent the subprobability measures as probability measures on an extended space which has one additional point
+     (so it is a mixture component where the other component represents the 'leaked' samples). Then you can stick to the default operations.
+  2) just avoid talking about interventions that would lead to 0 samples under the selection mechanism; for that you can restrict the range of the input nodes, but in addition you still have to add a qualifier for any additional intervention that you contemplate
+  It's an intriguing question whether the 'expressiveness' of the first approach would be slightly larger than that of the second approach, because the isSCM can actually predict that under certain observations we'll see 0 samples
+
+------------------------
+
+- check whether we really anywhere need to interpret an exogenous random variable as causal; I guess one can always workaround in that case by making an endogenous copy.
+  So indeed it makes sense to interpret all exogenous random variables as \emph{non-causal}. This then changes the terminology of common cause (9.3) and we should rename this into `confounder'; on the other hand, `confounder' is a slippery object so perhaps it's even better to call it `confounding'. Only for endogenous variables can we then speak about common causes. This allows to interpret bidirected edges as dependencies introduced by latent pre-interventional selection/conditioning, or as introduced by a common cause. This should fix the issues with 9.3 and higher.
+- selection bias (conditioning operation, data generating processes)
+- node splitting operation to model counterfactuals (include NDE, COVID-19 modeling, ETT, SWIGs)
+- can we do something with the insight: counterfactuals make sense if you don't condition on factual versions of descendants of the counterfactually intervened variables, or if the mechanisms are deterministic
+ conditioning operation (once extended to input nodes).
+- Bell inequalities
+- fairness (Berkeley case; interesting note: at booking for the fraud case they have as a definition of fairness that different countries have the same FPR for their users submitting payment requests)
+- explicitly add J to the observed set O everywhere (now it is confusing, J is treated as observed but not part of O)?
+- change the effect of adding intervention node on J node (add I_a -> a to graph, make a endogenous)?
+- update and use notation for graphical marginalization: $G^{A} := G_{\sm (V \sm A)}$ and $G^{\sm A}$ becomes $G_{\sm A}$
+- Patrick suggested: if hard intervening and marginalizing on $G$, write $G_{A\given\doit(B)}$ e.g.
+
+Perhaps: 
+- add conditional version of LCD?
+- investigate the consistency conditions for the test; in particular, it is weird that by throwing away data, we can weaken the condition to get a consistent test...? (of course, that would be another test, not the one that the theorem talks about!) if the influence on the test statistic of a $C=c$ value that occurs at asymptotically vanishing rate becomes negligible, this may explain things...
+
+- regarding reductions: it seems one can formulate a general notion of reduction for a CBN. First, one can bring
+it into standard form, such that each latent is parent of at least two observed nodes, and each latent is exogenous.
+For each latent, one can then apply the reduction trick to any node in its set of children
+that is not a descendant of another child (there is always at least one such node, but there could be multiple, 
+which allows one to choose one e.g. the one with smallest cardinality).
+This also allows us to construct a canonical CBN given a CADMG and the spaces of the observed nodes, which can
+be constructed to be interventionally equivalent to any CBN with that observational CADMG.
+
+- idea for Simpson's paradox: to make it easier to setup exercises in which Simpson's paradox happens,
+one can use (for Z confounder, X cause and Y effect) the parameterization 
+ p(x,y,z) = \exp(\zeta z) \exp((\alpha + \beta z)x) \exp((\gamma + \delta x + \epsilon z)y)
+Now take \delta < 0 (causal effect of x on y is negative), \zeta = 0 (for simplicity, or male/female situation),
+\beta = \epsilon (for simplicity), \beta > -\delta + \log(2)/2 (to get a reversal).
+
+- There is an inconsistency in the setup. To derive the Markov property for SCMs, we rely on the (weaker)
+Markov property for CBNs. It is weaker in the sense that it is not able to distinguish between an endogenous 
+node without parents (which must be constant) and an exogenous random variable, while in the SCM, we could.
+But actually, something similar not only holds for "exogenous" nodes: it seems we could formulate a stronger
+Markov property by using D-separation. The SCM graph does contain more information that can be exploited to
+derive conditional independences. When marginalizing out all exogenous random nodes, this information is lost.
+This also connects to definitions like 'confounder', where if we want a sharp definition, we want the confounder
+to show variation (i.e. not be constant). 
+One could decide to copy Geiger's graphical notation and introduce D-separation.
+If not, it makes sense to assume that there are no endogenous variables without parents, i.e., every
+'output' variable without parents is an exogenous random variable.
+Still, then, we can have exogenous random variables that are a.s. constant and not recognized as such.
+Also, one might want to add a cleanup operation to remove constant parts of an SCM. But then, do we always
+cleanup after some operation (like intervention)? Then we no longer have commutation, as this information is
+not present in the graph. Or we should add it to the graph. But then the whole formalism becomes much heavier still.
+So this seems overkill.
+This point also interacts with the chosen quantifiers: ideally, we would like to have 
+``for all x_J, for almost all x_W, for all x_V'' but then we should not allow interventions on W variables.
+So this might make sense if we start to distinguish intervenable and non-intervenable variables as well.
+Which will also make the formalism much heavier.
+I guess there will always be subtle information in the model specification that we don't want to add to the
+graph; so if one demands commutativity/compatibility we have to make choices.
+One also sees this with the definition of confounder/confounding: our notion of confounding implies exchangeability,
+but not vice versa.
+This, by the way, is not actually that different from the definition of (direct) cause: that also does not imply
+necessarily identifiability from observational or interventional data.
+
+- Better notation for variable sets, perhaps:
+    V = V_O \dot\cup V_L (observed and latent) 
+      = V_F \dot\cup V_R \dot\cup V_F (free, random, functional)?
+- do we actually _need_ to distinguish the two types of nodes in a graph in all definitions?
+- we could define a 'causal graph' that consists of a graph plus meta-information regarding node types

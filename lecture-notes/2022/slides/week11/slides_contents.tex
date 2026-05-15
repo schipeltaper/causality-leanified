@@ -1,0 +1,944 @@
+\title[Causality]{Causality: Lecture 11}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2022-04-19]{\normalsize April 19th, 2022}
+\maketitle
+
+\part{Examples of cyclic SCMs}
+\frame{\partpage}
+
+\begin{frame}{Modeling feedback loops}
+  \begin{itemize}
+    \item Feedback loops are often present in systems;
+    \item Such systems are usually described as a system of (random) differential equations;
+  \end{itemize}
+
+  \bigskip
+The \emph{equilibrium} states of such systems can often be causally modelled by a (cyclic) SCM.
+
+\bigskip
+We consider two examples:
+  \begin{enumerate}
+    \item Damped coupled harmonic oscillator (simple SCM)
+    \item Price-supply-demand (non-simple SCM)
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Example I: Damped Coupled Harmonic Oscillator}
+  \centerline{\scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \fill[pattern=north east lines,draw=none] (-1,-1) rectangle (0,1);
+      \draw (0,-1) -- (0,1);
+      \begin{scope}[yshift=5mm]
+      \node (Q1) at (2,0) {$m_1$};
+      \node (Q2) at (4,0) {$m_2$};
+      \node (Q3) at (6,0) {$m_3$};
+      \node (Q4) at (8,0) {$m_4$};
+      \node (Q5) at (10,0) {$m_5$};
+      \end{scope}
+      \begin{scope}[yshift=-5mm]
+        \node (l0) at (1,0) {$\ell_0$};
+        \node (l1) at (3,0) {$\ell_1$};
+        \node (l2) at (5,0) {$\ell_2$};
+        \node (l3) at (7,0) {$\ell_3$};
+        \node (l4) at (9,0) {$\ell_4$};
+        \node (l5) at (11,0) {$\ell_5$};
+      \end{scope}
+      \fill[black] (2,0) circle (.2);
+      \fill[black] (4,0) circle (.2);
+      \fill[black] (6,0) circle (.2);
+      \fill[black] (8,0) circle (.2);
+      \fill[black] (10,0) circle (.2);
+      \draw (12,-1) -- (12,1);
+      \fill[pattern=north east lines,draw=none] (12,-1) rectangle (13,1);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (0,0) -- (2,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (2,0) -- (4,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (4,0) -- (6,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (6,0) -- (8,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (8,0) -- (10,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (10,0) -- (12,0);
+      \node at (0,1.3) {\tiny $Q_0$};
+      \node at (12,1.3) {\tiny $Q_6$};
+    \end{scope}
+  \end{tikzpicture}}}
+
+Dynamics:
+$$ \frac{d^2Q_i}{dt^2} = \frac{k_i}{m_i} (Q_{i+1} - Q_i - \ell_i) + \frac{k_{i-1}}{m_i} (Q_{i-1} - Q_i + \ell_{i-1}) -\frac{b_i}{m_i} \frac{dQ_i}{dt} \qquad i=1,\dots,d.  $$
+At equilibrium (set $\frac{d^2Q_i}{dt^2} = \frac{d Q_i}{dt} = 0$ and solve each equation for $Q_i$):
+$$Q_i = \frac{k_i(Q_{i+1} - \ell_i) + k_{i-1}(Q_{i-1}+\ell_{i-1})}{k_i + k_{i-1}} \qquad i=1,\dots,d.$$
+
+  \centerline{\scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}[yshift=-3cm]
+      \node[varc] (Q0) at (0,0) {$Q_0$};
+      \node[var] (Q1) at (2,0) {$Q_1$};
+      \node[var] (Q2) at (4,0) {$Q_2$};
+      \node[var] (Q3) at (6,0) {$Q_3$};
+      \node[var] (Q4) at (8,0) {$Q_4$};
+      \node[var] (Q5) at (10,0) {$Q_5$};
+      \node[varc] (Q6) at (12,0) {$Q_6$};
+      \node[varc] (K0) at (1,1) {$k_0$};
+      \node[varc] (K1) at (3,1) {$k_1$};
+      \node[varc] (K2) at (5,1) {$k_2$};
+      \node[varc] (K3) at (7,1) {$k_3$};
+      \node[varc] (K4) at (9,1) {$k_4$};
+      \node[varc] (K5) at (11,1) {$k_5$};
+      \node[varc] (L0) at (1,-1) {$\ell_0$};
+      \node[varc] (L1) at (3,-1) {$\ell_1$};
+      \node[varc] (L2) at (5,-1) {$\ell_2$};
+      \node[varc] (L3) at (7,-1) {$\ell_3$};
+      \node[varc] (L4) at (9,-1) {$\ell_4$};
+      \node[varc] (L5) at (11,-1) {$\ell_5$};
+      \draw[arr] (Q0) to (Q1);
+      \draw[arr,bend left=20] (Q1) to (Q2);
+      \draw[arr,bend left=20] (Q2) to (Q3);
+      \draw[arr,bend left=20] (Q3) to (Q4);
+      \draw[arr,bend left=20] (Q4) to (Q5);
+      \draw[arr,bend left=20] (Q5) to (Q4);
+      \draw[arr,bend left=20] (Q4) to (Q3);
+      \draw[arr,bend left=20] (Q3) to (Q2);
+      \draw[arr,bend left=20] (Q2) to (Q1);
+      \draw[arr] (Q6) to (Q5);
+      \draw[arr] (K0) -- (Q1);
+      \draw[arr] (K1) -- (Q1);
+      \draw[arr] (K1) -- (Q2);
+      \draw[arr] (K2) -- (Q2);
+      \draw[arr] (K2) -- (Q3);
+      \draw[arr] (K3) -- (Q3);
+      \draw[arr] (K3) -- (Q4);
+      \draw[arr] (K4) -- (Q4);
+      \draw[arr] (K4) -- (Q5);
+      \draw[arr] (K5) -- (Q5);
+      \draw[arr] (L0) -- (Q1);
+      \draw[arr] (L1) -- (Q1);
+      \draw[arr] (L1) -- (Q2);
+      \draw[arr] (L2) -- (Q2);
+      \draw[arr] (L2) -- (Q3);
+      \draw[arr] (L3) -- (Q3);
+      \draw[arr] (L3) -- (Q4);
+      \draw[arr] (L4) -- (Q4);
+      \draw[arr] (L4) -- (Q5);
+      \draw[arr] (L5) -- (Q5);
+  \end{scope}
+  \end{tikzpicture}}}
+\end{frame}
+
+\begin{frame}{Example II: Price, supply and demand}
+  \begin{topalignedcolumn}{0.65\linewidth}
+  \begin{description}
+     \item[$D$] demand of a quantity of a product
+     \item[$S$] supply of a quantity of a product
+     \item[$R$] price of the product
+  \end{description}
+  \end{topalignedcolumn}\hfill%
+  \begin{topalignedcolumn}{0.3\linewidth}
+    \scalebox{0.8}{\begin{tikzpicture}
+%      \node at (-2.5,2) {(c)};
+    \node[var] (ED) at (1.5,0) {$E_D$};
+    \node[var] (D) at (1.5,-1) {$D$};
+    \node[var] (ES) at (-1.5,0) {$E_S$};
+    \node[var] (S) at (-1.5,-1) {$S$};
+    \node[var] (P) at (0,-1) {$R$};
+    \draw[arr, bend left=20] (P) edge (S);
+    \draw[arr, bend left=20] (P) edge (D);
+    \draw[arr, bend left=20] (S) edge (P);
+    \draw[arr, bend left=20] (D) edge (P);
+    \draw[arr] (ED) to (D);
+    \draw[arr] (ES) to (S);
+    \draw[arr] (P)  to [out=62,in=118,looseness=4.4] (P);
+    \end{tikzpicture}}
+  \end{topalignedcolumn}
+
+  \medskip
+  Market dynamics:
+$$\begin{aligned}
+    D &= \beta_D R + E_D \\
+    S &= \beta_S R + E_S \\
+    \frac{dR}{dt} &= D - S,
+  \end{aligned}$$
+  At market equilibrium ($\frac{dR}{dt}=0$) we get an SCM with causal mechanism:
+$$
+  \begin{aligned}
+    f_D(d,s,r,e_D,e_S) &:= \beta_D r + e_D \\
+    f_S(d,s,r,e_D,e_S) &:= \beta_S r + e_S \\
+    f_P(d,s,r,e_D,e_S) &:= r + (d - s).
+  \end{aligned}
+$$
+  Note the self-cycle at $R$!
+\end{frame}
+
+\begin{frame}{Relations between causal models}
+  \centerline{\begin{tikzpicture}
+      \begin{scope}
+%        \draw[draw=green,fill=green,opacity=0.2] (0,0) ellipse (1.5cm and 0.5cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.3) ellipse (2cm and 1cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.6) ellipse (3cm and 1.5cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.9) ellipse (4cm and 2cm);
+        \node at (0,0) {IL-CBNs};
+        \node at (0,0.6) {acyclic SCMs};
+        \node at (0,1.6) {simple SCMs};
+        \node at (0,2.4) {SCMs};
+      \end{scope}
+  \end{tikzpicture}}
+
+  \bigskip
+  \begin{itemize}
+    \item IL-CBNs are interventionally equivalent to acyclic SCMs.
+    \item Simple SCMs are more expressive than acyclic SCMs (or IL-CBNs), because they
+  can model causal cycles due to weak feedback loops.
+  \item SCMs are even more expressive, but also much more complicated to work with.
+  \end{itemize}
+  In the next part, we will extend the acyclic causal reasoning theory (global Markov property, do-calculus,
+  adjustment) to simple SCMs.
+\end{frame}
+
+\begin{frame}{Interventional equivalence of acyclic SCMs and IL-CBNs}
+  \begin{Def}[Informal, for precise version see lecture notes]
+    An SCM and an IL-CBN are interventionally equivalent w.r.t.\ a subset of variables if all their interventional Markov kernels have the same marginal on this subset.
+  \end{Def}
+  \begin{Prp}
+  \begin{enumerate}
+    \item Given an acyclic SCM $M$, we can construct an I-CBN $\tilde{M}$ that is interventionally equivalent to it (w.r.t.\ $O = V \cup W$).
+    \item Given an acyclic SCM $M$ and an observed subset $O \subseteq V \cup W$, we can construct an IL-CBN $\tilde{M}$ with observed variables $\tilde{V} = O$ that is interventionally equivalent to $M$ w.r.t.\ $O$.
+    \item Given an IL-CBN $\tilde{M}$ with observed variables $V$, we can construct an acyclic SCM $M$ that is interventionally equivalent to it w.r.t.\ $V$.
+  \end{enumerate}
+  \end{Prp}
+\end{frame}
+
+\part{$\sigma$-Separation and Acyclifications}
+\frame{\partpage}
+
+\frame{\frametitle{$\sigma$-Blocking and $\sigma$-Separation}
+Remember: $\Sc^G(v) := \Anc^G(v) \cap \Desc^G(v)$.
+\begin{definition}
+  Let $G = \lt J,E,V,L \rt$ be a CDMG and $C \subseteq J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+  $$\pi = v_0 \sts \dots \sts v_n.$$
+  $\pi$ is called \emph{$C$-$\sigma$-blocked}, or \emph{$\sigma$-blocked by $C$}, iff
+  \begin{itemize}
+    \item $v_0 \in C$ or $v_n \in C$, or
+    \item it contains a collider $v_{k-1} \sto v_k \ots v_{k+1}$ with $v_k \not\in \Anc^G(C)$, or
+    \item it contains a non-collider
+      $v_{k-1} \sts v_k \to v_{k+1}$  with $v_k \in C$
+    \alert{and such that $v_{k+1} \notin \Sc^{G}(v_k)$}, or
+    \item it contains a non-collider
+      $v_{k-1} \ot  v_k \sts v_{k+1}$ with $v_k \in C$
+    \alert{and such that $v_{k-1} \notin \Sc^{G}(v_k)$}.
+  \end{itemize}
+  We say that \emph{$A$ is $\sigma$-separated from $B$ by $C$}, denoted \emph{$A \Perp^{\alert{\sigma}}_G B \mid C$}, if every walk with one end node in $A$ and one end node in $B \cup J$ is $\sigma$-blocked by $C$.
+\end{definition}
+}
+
+\frame{\frametitle{Example: $\sigma$-Separation}
+\begin{example}
+  \begin{tikzpicture}
+      \node at (1,3.5) {Graph $G(M)$:};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (1.5,0) {$X_2$};
+      \node[var] (X3) at (1.5,1.5) {$X_3$};
+      \node[var] (X4) at (0,1.5) {$X_4$};
+      \node[varh] (W1) at (-1,-1) {$W_1$};
+      \node[varh] (W2) at (2.5,-1) {$W_2$};
+      \node[varh] (W3) at (2.5,2.5) {$W_3$};
+      \node[varh] (W4) at (-1,2.5) {$W_4$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+      \draw[arr] (X4) edge (X1);
+      \draw[arrh] (W1) edge (X1);
+      \draw[arrh] (W2) edge (X2);
+      \draw[arrh] (W3) edge (X3);
+      \draw[arrh] (W4) edge (X4);
+      \node at (-3,3.5) {SCM $M$:};
+      \node[text width=4cm] at (-3,1) {\small $X_1=X_4+W_1$\\
+      $X_2=X_1 \cdot W_2$\\
+      $X_3=X_2+W_3$\\
+      $X_4=X_3\cdot W_4$\\
+      \,\\
+      $W_1,W_2,W_3,W_4$\\ independent};
+      \node at (5,1.75) {$X_1 \displaystyle\Perp^d X_3 \given X_2, X_4$};
+      \node at (5,1) {but};
+      \node at (5,0.25) {$X_1 \displaystyle\nPerp^\sigma X_3 \given X_2, X_4$};
+  \end{tikzpicture}
+\end{example}
+
+\bigskip
+In general: No $\sigma$-separations between nodes within the same strongly connected component (for any separation set).
+}
+
+\begin{frame}{Graphical Acyclifications: Definition}
+Remember:
+\begin{Def}
+  Given a CDMG $G = \lt J, V, E, L \rt$, we call a CADMG $G' = \lt J, V, E', L' \rt$
+  an \emph{acyclification of $G$} if
+  \begin{enumerate}
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes $J$ and output nodes $V$ as $G$;
+    \item for any pair of nodes $\{i,j\}$ such that $i \not\in\Sc^G(j)$:
+      \begin{enumerate}
+      \item $i \to j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \to j' \in E$;
+      \item $i \oto j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \oto j' \in L$;
+      \end{enumerate}
+    \item for any pair of distinct nodes $\{i,j\}$ such that $i \in\Sc^G(j)$: $i \to j \in E'$ or $i \ot j \in E'$ or $i \oto j \in L'$.
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{Graphical Acyclifications: Example}
+  \centering
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node at (0.75,1) {CDMG $G$:};
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+    \node at (0.75,-4) {Two acyclifications of $G$:};
+    \begin{scope}[yshift=-5cm,xshift=-3.5cm]
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X4) -- (X6);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=3.5cm]
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arlat] (X4) -- (X5);
+      \draw[arlat] (X5) -- (X6);
+      \draw[arlat] (X4) -- (X6);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    \end{scope}
+  \end{tikzpicture}}
+\end{frame}
+
+\begin{comment}
+\begin{frame}{Graphical Acyclifications: Example}
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node at (1.5,2) {Graph:};
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+      \draw[arr,bend left=20] (X3) edge (X4);
+      \draw[arr,bend left=20] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=-5cm]
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X3) -- (X4);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm]
+      \node at (1.5,2) {Various acyclifications:};
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X4) -- (X3);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=5cm]
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr] (X4) -- (X3);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+  \end{tikzpicture}}
+\end{frame}
+\end{comment}
+
+\begin{frame}{Graphical Acyclifications: Purpose}
+The important property of acyclifications is that they can be used to express $\sigma$-separation in a (possibly cyclic) graph
+in terms of $d$-separation in an acyclification.
+\begin{Prp}
+  Let $G = \lt J, V, E, L \rt$ be a CDMG and $G' = \lt J, V, E', L' \rt$ an acyclification of $G$.
+  Then for $A, B, C \subseteq V \cup J$ (not necessarily disjoint) subsets of nodes,
+  $$A \Perp^\sigma_G B \given C \iff A \Perp^\sigma_{G'} B \given C \iff A \Perp^d_{G'} B \given C$$
+\end{Prp}
+\begin{proof}
+  Requires constructing $\sigma$-open paths in $G'$ from those in $G$, and vice versa. 
+  See lecture notes.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Acyclification of SCM: Definition}
+  We also define an acyclification operation on simple SCMs:
+  \begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G = G(M)$.
+  For each strongly connected component $C$ of $G$ (i.e., a set of the form
+  $\Sc^G(v)$ for $v \in \Send$), let
+  $g_C : \CX_{\Sin \cup (\Send \setminus C) \cup \Srnd} \to \CX_C$
+  be the unique solution function for $M_{\doit(\Send \setminus C)}$.
+  Define $\tilde{f} : \CXJ \times \CXV \times \CXW \to \CXV$ by its components
+  $$\tilde{f}_v(\xJ,\xV,\xW) = (g_{\Sc^G(v)})_v(\xJ,x_{\Send\setminus C},\xW)$$
+  for $v \in V$.
+  $M^\acy = \ltuple \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rtuple$ is called the
+  \emph{acyclification of $M$}.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Acyclification of SCM: Purpose}
+  \begin{Prp}
+    The acyclification $M^\acy$ of a simple SCM $M$ is acyclic, observationally equivalent to $M$,
+    and $G(M^\acy) \subseteq G'$ for any acyclification $G'$ of $G(M)$.
+  \end{Prp}
+  \begin{proof}
+    By example. For a formal proof, see lecture notes.
+    \begin{wrapfigure}{r}{0.4\linewidth}
+    \scalebox{0.8}{\begin{tikzpicture}
+      \begin{scope}
+        \node[varh] (W1) at (1,1) {$W_1$};
+        \node[varh] (W2) at (2,1) {$W_2$};
+        \node[varh] (W3) at (1,0) {$W_3$};
+        \node[varh] (W4) at (2,0) {$W_4$};
+        \node[var] (X1) at (0,0.2) {$X_1$};
+        \node[var] (X2) at (3,0.2) {$X_2$};
+        \node[var] (X3) at (0,-1) {$X_3$};
+        \node[var] (X4) at (3,-1) {$X_4$};
+        \draw[arrh] (W1) -- (X1);
+        \draw[arrh] (W2) -- (X2);
+        \draw[arrh] (W3) -- (X3);
+        \draw[arrh] (W4) -- (X4);
+        \draw[arr] (X1) -- (X3);
+        \draw[arr] (X2) -- (X4);
+        \draw[arr,bend left] (X3) edge (X4);
+        \draw[arr,bend left] (X4) edge (X3);
+      \end{scope}
+      \begin{scope}[yshift=-3cm]
+        \node[varh] (W1) at (1,1) {$W_1$};
+        \node[varh] (W2) at (2,1) {$W_2$};
+        \node[varh] (W3) at (1,0.2) {$W_3$};
+        \node[varh] (W4) at (2,0.2) {$W_4$};
+        \node[var,fill=red] (X1) at (0,0) {$X_1$};
+        \node[var,fill=green] (X2) at (3,0) {$X_2$};
+        \node[var,fill=blue] (X3) at (0,-1) {$X_3$};
+        \node[var,fill=blue] (X4) at (3,-1) {$X_4$};
+        \draw[arrh] (W1) -- (X1);
+        \draw[arrh] (W2) -- (X2);
+        \draw[arrh] (W3) -- (X3);
+        \draw[arrh] (W4) -- (X4);
+        \draw[arrh] (W3) -- (X4);
+        \draw[arrh] (W4) -- (X3);
+        \draw[arr] (X1) -- (X3);
+        \draw[arr] (X2) -- (X4);
+        \draw[arr] (X1) edge (X4);
+        \draw[arr] (X2) edge (X3);
+      \end{scope}
+    \end{tikzpicture}}
+  \end{wrapfigure}
+  Structural equations:
+  \begin{align*}
+    X_1 &= W_1 \qquad X_3 = X_1 X_4 + W_3 \\
+    X_2 &= W_2 \qquad X_4 = X_2 X_3 + W_4
+  \end{align*}
+  Acyclification:
+  \begin{align*}
+    &{\color{red}X_1} = W_1 \qquad {\color{blue}X_3} = \frac{W_3 + {\color{red}X_1} W_4}{1 - {\color{red}X_1} {\color{green}X_2}} \\
+    &{\color{green}X_2} = W_2 \qquad {\color{blue}X_4} = \frac{{\color{green}X_2} W_3 + W_4}{1 - {\color{red}X_1} {\color{green}X_2}}
+  \end{align*}
+  \end{proof}
+\end{frame}
+
+\part{Global Markov Property}
+\frame{\partpage}
+
+\begin{frame}{Global Markov Property for Simple SCMs}
+  With the help of the acyclification, we immediately derive a Markov property for simple SCMs from the one for causal Bayesian networks:
+  \begin{Cor}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G = G(M)$
+  and observational Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  Then for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint) we have the implication:
+  $$A \Perp^\sigma_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+    $$A \Perp^\sigma_{G(M)} J \cup B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+\end{Cor}
+\end{frame}
+\begin{frame}{Proof of Global Markov Property for Simple SCMs}
+\begin{proof}
+  \setlength\abovedisplayskip{10pt}
+  \setlength\belowdisplayskip{0pt}
+  Choose an acyclification $G'$ of $G(M)$. Then:
+  \begin{align*}
+    A \Perp^\sigma_{G(M)} B \given C &\stackrel{1}{\iff} A \Perp^d_{G'} B \given C \\
+    &\stackrel{2}{\implies} A \Perp^d_{G(M^\acy)} B \given C \\
+    &\stackrel{3}{\implies} X_A \Indep_{P_{M^{\acy}}(X_V,X_W \given \doit(\XJ))} X_B \given X_C \\
+    &\stackrel{4}{\iff} X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{align*}
+  \begin{enumerate}
+    \item $G'$ is an acyclification of $G(M)$; 
+    \item $G(M^\acy) \subseteq G'$, removing edges preserves $d$-separations; 
+    \item the GMP for $M^\acy$ interpreted as a causal Bayesian network;
+    \item $M^\acy$ is observationally equivalent to $M$.
+  \end{enumerate}
+\end{proof}
+\end{frame}
+
+\part{Do-Calculus}
+\frame{\partpage}
+
+\begin{frame}{Notation}
+  \begin{enumerate}
+    \item Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM;
+    \item To model hard interventions $\doit(B)$ for $B \subseteq V \cup W$, introduce \emph{intervention variable} $I_B$;
+    \item Extended SCM $\tilde{M} = \lt \Sin \cup \{I_B\}, \Send, \Srnd, \CX \times (\CX_B \dot\cup \{\star\}), P, \tilde{f} \rt$ with causal mechanism
+$$\tilde{f}(x,x_{I_B}) := \begin{cases}
+  f(x) & x_{I_B} = \star \\
+  (f_{\setminus B}(x), x_{I_B}) & x_{I_B} \in \CX_B
+\end{cases}$$
+    \item $x_{I_B} = \star$ encodes that there is no intervention on $B$,\\
+while $x_{I_B} \ne \star$ encodes that the hard intervention $\doit(X_B = x_{I_B})$ is performed.
+\item The graph of $\tilde{M}$, $G_{\doit(I_B)}$, has an additional variable $I_B$ with no incoming edges
+  and outgoing edges to all $b \in B$.
+  \end{enumerate}
+%In the do-calculus, we make use of the extended graph $G_{\doit(I_B)}$ to test the separation statement, while the conclusion
+%about the existence and identity of particular Markov kernels concerns those of the original SCM $M$.
+\end{frame}
+
+\begin{frame}{Reminder: Notation of Markov kernels}
+  For a simple SCM $M$:
+  \begin{enumerate}
+    \item Its \emph{observational Markov kernel} is denoted $P_{M}(X_{V\cup W} \mid \doit(X_J))$.
+    \item For a subset $T \subseteq V \cup W$, we write the \emph{interventional Markov kernel}
+$$P_{M}(X_{(V\cup W)\setminus T} \mid \doit(X_J,X_T)) = P_{M_{\doit(T)}}(X_{(V\cup W)\setminus T} \mid \doit(X_J,X_T)).$$
+\item By conditioning on a subset $S \subseteq (V \cup W) \setminus T$, we obtain the conditional interventional Markov kernel
+$$P_{M}(X_{(V\cup W)\setminus (T \cup S)} \mid \doit(X_J,X_T), X_S).$$
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Do-Calculus for simple SCMs (on one slide!)}
+  Let $A,B,C \ins V \cup W$ and $D \ins V \cup W \cup J$ be such that $A,B,C,D$ are pairwise disjoint.
+  \begin{enumerate}
+    \item \emph{Insertion/deletion of observation}: 
+      $A \Perp^\sigma_{G_{\doit(D)}} B \given C \cup D$ implies
+      \[ P_{M}\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_D)\rp.\]
+    \item \emph{Action/observation exchange}: $A \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D$ implies
+      \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_D)\rp  =  P_{M}\lp X_A|X_B,X_C,\doit(X_D)\rp.\]
+    \item \emph{Insertion/deletion of action}: $A \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given C  \cup D$ implies
+      \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_{D})\rp.\]
+  \end{enumerate}
+  Note: all kernels should be interpreted as $\CX_{J \cup \dots} \dshto \dots$, but some are constant in $x_J$!
+\end{frame}
+
+\begin{frame}{Proof}
+  \begin{proof}
+    Same proof as do-calculus for IL-CBNs, except that all $d$-separations need to be replaced with $\sigma$-separations,
+    and we invoke the GMP for simple SCMs rather than the GMP for IL-CBNs.
+  \end{proof}
+\end{frame}
+
+\part{Adjustment}
+\frame{\partpage}
+
+\begin{frame}{Adjustment formula for simple SCMs}
+Same notation as for do-calculus. Now assume $J \subseteq D$.
+\begin{block}{Problem setting}
+We want to estimate the \emph{conditional causal effect}
+$P_{M}(X_A|X_C,\doit(X_B,X_D))$
+from
+$P_{M}(X_A,X_B,X_F|X_C,\doit(X_D)).$
+\end{block}
+The following (pairwise disjoint) index sets have the following roles:\\
+\begin{description}\small
+  \item[$A$]: the outcome variables of interest.
+  \item[$B$]: the treatment or intervention variables.
+  \item[$C$]: general conditional (context) variables under which the data was collected.
+  \item[$D$]: general interventional (context) variables that were set by the experimenter, $J \ins D$.
+  \item[$F_0$]: core adjustment variables, i.e.\ features that were measured.
+  \item[$F_1$]: additional measured adjustment variables, with $F = F_0 \cup F_1$.
+  \item[$H$]: additional unobserved variables.
+\end{description}
+\end{frame}
+
+\begin{frame}{General adjustment formula for simple SCMs}
+  \begin{Thm}
+    Assume that all the following conditions hold in the graph $G_{\doit(I_B,D)}$:
+    \begin{align}
+        (F_0 \cup H) & \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given (C \cup D), \\
+        A & \Perp^\sigma_{G_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup H \cup C \cup D), \\
+                      H &\Perp^\sigma_{G_{\doit(I_B,D)}} B \given (F \cup C \cup  I_B \cup D).
+    \end{align}
+Then we have the adjustment formula:\small
+    \[ P_{M}(X_A|X_C,\doit(X_B,X_D)) \stackrel{\text{a.s.}}{=}
+    P_{M}(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P_{M}(X_F|X_C,\doit(X_D))
+\]
+\end{Thm}
+\begin{proof}
+  Analogous to that for IL-CBNs, but now use GMP for simple SCMs and replace all d-separations with $\sigma$-separations.
+\end{proof}
+
+\end{frame}
+
+
+\part{Counterfactuals}
+\frame{\partpage}
+
+\begin{frame}{Informal definition}
+  \begin{definition}[Informal]
+Counterfactuals are hypothetical statements regarding the effects of some change that is contrary-to-fact.
+  \end{definition}
+
+  A counterfactual statement invites one to imagine an alternative (counterfactual) world, in which 
+  everything is the same as in the actual world, except that one aspect of it is changed.
+  We use our causal model of the world to predict the consequences of this imaginary change.
+
+  \begin{example}
+  Suppose you are healthy but drank too much beer last night and now suffer from a hangover. 
+  A counterfactual statement is then: ``If I had not drunk so much beer yesterday, I would feel much better now.''
+  \end{example}
+
+  Counterfactual thinking is very common in humans, and toddlers already bombard
+  their parents with counterfactual questions, presumably as a means for them
+  to build internal causal models of the world.
+\end{frame}
+
+\begin{frame}{Twin SCM}
+\begin{definition}
+  We define the \emph{twinned SCM} $\C{M}^\twin = \langle \Sin \dot\cup \Sin', \Send \dot\cup \Send', \Srnd, \tilde{\CX}, P, \tilde{f} \rangle$
+  with 
+  \begin{enumerate}
+    \item $\Sin' = \{j' : j \in \Sin\}$ a copy of $\Sin$,
+    \item $\Send' = \{v' : v \in \Send\}$ a copy of $\Send$, 
+    \item the twinned domain given by
+  $$\tilde{\CX} = \CXJ \times \CXJ \times \CXV \times \CXV \times \CXW$$
+  (i.e., with $\CX_{\Sin'} = \CX_{\Sin}$ and $\CX_{\Send'} = \CX_{\Send}$),
+    \item the twinned causal mechanism components given by
+  $$\tilde{f}_v\big((x_J,x_{J'}),(x_V,x_{V'}),\xW\big) = 
+  \begin{cases}
+    f_v(\xJ,\xV,\xW) & v \in \Send,  \\
+    f_v(x_{J'},x_{V'},\xW) & v \in \Send'.
+  \end{cases}$$
+  \end{enumerate}
+\end{definition}
+  This creates copies of some variables so that their values can differ in the counterfactual world with respect to the actual world.
+\end{frame}
+
+\begin{frame}{Counterfactuals: Example}
+  \begin{example}
+  Variables:\\
+    \quad $T$ : number of hours studied (exogenous input variable)\\
+    \quad $E$ : study efficiency (exogenous input variable)\\
+    \quad $D$ : exam difficulty (exogenous random variable)\\
+    \quad $G$ : grade (endogenous variable)\\
+  Structural equation:\\
+  \smallskip
+  \centerline{$G = f(T,D,E).$}
+  \smallskip
+  Counterfactual query: {\it ``I studied 20 hours for the exam and
+got a 4.5; if I had studied 30 hours instead, what would have been my grade?''}\\
+
+    \medskip
+    Twin SCM has copies $T'$, $E'$ and $G'$, and structural equations:\\
+    \smallskip
+    \centerline{$G = f(T,D,E) \qquad G' = f(T',D,E').$}
+    \smallskip
+    The answer to the counterfactual query is:\\
+    \smallskip
+    \centerline{$P(G' \given \doit(E=e), \doit(E'=e), \doit(T'=30), \doit(T=20), G=4.5)$}
+    \smallskip
+  \end{example}
+\end{frame}
+
+\begin{frame}{Discussion}
+The English language has a grammatical construct for counterfactuals:\\
+\quad ``If I had studied better, I would have passed the exam,''\\
+instead of\\
+\quad ``If I study well, I will pass the exam.''\\
+For the former statement, we first twin the SCM and then intervene on it, for the latter, we only intervene on the SCM (no need for twinning!). 
+
+\bigskip
+So not only from the grammatical, but also from the modeling point of view, these are quite different questions!
+
+\bigskip
+\setbeamercolor{block title}{use=structure,fg=white,bg=purple!75!black}
+\setbeamercolor{block body}{use=structure,fg=black,bg=white!20!white}
+  \begin{block}{Warnings}
+    \begin{itemize}
+      \item
+  Unfortunately, in large part of the causality literature, the term ``counterfactuals'' is also used 
+  as a synonym for potential outcomes, which are not necessarily contrary-to-fact. This may
+  cause confusion.
+%  (for example, ``If you drink too much beer you will get a hangover'').
+\item Generally, in situations where the full causal mechanism is unknown, or exogenous
+randomness is latent, counterfactuals may be VERY model-dependent.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\end{document}
+
+\begin{frame}{Properties of the twinning operation I}
+The twinning operation has the following properties:
+\begin{Prp}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and $\tilde{M} = \ltuple \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rtuple$ be SCMs.
+  \begin{enumerate}
+\item Twinning preserves equivalence: $M \equiv \tilde{M} \implies M^\twin \equiv \tilde{M}^\twin$.
+\item 
+For $L \subseteq V$ such that $M_{\doit(V\setminus L)}$ is uniquely solvable,
+$$(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L\cup L')}.$$
+\item If $M$ is uniquely solvable, then $M^{\twin}$ is uniquely solvable.
+\item If $M$ is simple, then $M^{\twin}$ is simple.
+\end{enumerate}
+\end{Prp}
+%\begin{Lem}
+%Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be a simple SCM. Then
+%$\C{M}$ and $\C{M}^\twin$ are interventionally equivalent w.r.t.\ $V \cup W$.
+%\end{Lem}
+\end{frame}
+
+\begin{frame}{Properties of the twinning operation II}
+Hard interventions are compatible with twinning:
+\begin{Prp}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+\begin{itemize}
+  \item For $T \subseteq \Sin \cup \Send$, $\xT \in \CXT$:
+    $$(M^\twin)_{\doit(X_T=\xT,X_{T'}=\xT)} = (M_{\doit(\XT=\xT)})^\twin.$$
+  \item For $T \subseteq \Srnd$, $Q_T \in \prod_{t\in T} \C{P}(\CX_t)$:
+    $$(M^\twin)_{\doit(X_T\sim Q_T)} = (M_{\doit(\XT\sim Q_T)})^\twin.$$
+  \item For $T \subseteq \Sin \cup \Send$:
+    $$(M^\twin)_{\doit(T,T')} = (M_{\doit(T)})^\twin.$$
+\end{itemize}
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Graphical twinning operation}
+We can also define a twinning operation on graphs.
+\begin{Def}\label{def:G_twinning}
+  Let $G=\lt J,V \cup W,E\rt$ be a CDG such that $\Pa^G(W) = \emptyset$. Write $J' := \{j' : j \in J\}$
+  and $V' := \{v' : v \in V\}$ for copies of $J$ and $V$.
+  The \emph{twinned graph
+  $G^{\twin(J,V)}$} is defined as the CDG $\ltuple J \dot\cup J', V \dot\cup V' \cup W, \tilde{E}\rtuple$ with directed edges
+  \begin{equation*}\begin{split}
+    \tilde{E} := E & \cup \{w \tuh v' : w \in W, v \in V, w \tuh v \in E\}\\
+                   & \cup \{i' \tuh v' : i \in J \cup V, v \in V, i \tuh v \in E\}.
+  \end{split}\end{equation*}
+\end{Def}
+In words, we copy the nodes $J \cup V$ (but not the nodes $W$) and copy the edges accordingly.
+The graphical and the SCM twinning operations are compatible:
+\begin{Prp}\label{prp:compatibility_graph_twinning}
+  For SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, $G(M)^{\twin(J\cup V)} = G(M^\twin).$
+\end{Prp}
+\end{frame}
+
+\part{Counterfactual Equivalence}
+\frame{\partpage}
+
+\begin{frame}{Counterfactual equivalence: definition}
+\begin{definition}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ and
+  $\tilde{\C{M}} = \langle \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rangle$ be two simple SCMs
+  and $O \subseteq (\Send \cap \tilde{\Send}) \cup (\Srnd \cap \tilde{\Srnd})$ a subset.
+  We say that:
+  \begin{enumerate}
+    \item {\color{gray}$\C{M}$ and $\tilde{\C{M}}$ are \emph{observationally equivalent w.r.t.\ $O$} if $\CX_O = \tilde{\CX}_O$, $J = \tilde{J}$, $\CX_J = \tilde{\CX}_J$ and $P_{\C{M}}(X_O \mid \doit(\XJ)) = P_{\tilde{\C{M}}}(X_O \mid \doit(\XJ))$;}
+    \item {\color{gray}$\C{M}$ and $\tilde{\C{M}}$ are \emph{interventionally equivalent w.r.t.\ $O$} if for every subset $T \subseteq O$ the intervened SCMs $\C{M}_{\doit(T)}$ and $\tilde{\C{M}}_{\doit(T)}$ are observationally equivalent w.r.t.\ $O \setminus T$;}
+    \item $\C{M}$ and $\tilde{\C{M}}$ are said to be \emph{counterfactually equivalent w.r.t.\ $O$} if the twin SCMs $\C{M}^\twin$ and $\tilde{\C{M}}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$, where
+  $O'$ is the copy of $O$ in $\Send' \cap \tilde{\Send}'$.
+  \end{enumerate}
+%  In case the variables in $(V \cup W) \setminus O$ are considered latent, we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $\C{M}$ and $\tilde{\C{M}}$ observationally equivalent, interventionally equivalent and counterfactually equivalent, respectively).
+\end{definition}
+\end{frame}
+
+\begin{frame}{Marginalization preserves counterfactual semantics}
+\begin{Thm}
+  If $M$ is simple, $L \subseteq \Send$, and
+  $M_{\setminus L}$ is its marginalization over $L$. Then $M$ and $M_{\setminus L}$ are {\color{gray}observationally,
+  interventionally} and counterfactually equivalent w.r.t.\ $(V \cup W) \setminus L$.
+\end{Thm}
+\begin{proof}
+  Write $K := V \setminus L$.
+  Note that $(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L \cup L')}$. 
+  Since $M^\twin$ and its marginalization
+  $(M^\twin)_{\setminus (L \cup L')}$ are interventionally equivalent w.r.t.\ $K \cup K' \cup W$,
+  $M$ and $M_{\setminus L}$ are counterfactually equivalent w.r.t.\ $K \cup W$.
+\end{proof}
+Note: this can be shown for general (non-simple) SCMs as well.
+\end{frame}
+
+\begin{frame}{Implications between equivalences}
+\begin{block}{Proposition}
+  For simple SCMs $\C{M}, \tilde{\C{M}}$ and a subset $O \subseteq (\Send \cap \tilde{\Send}) \cup (\Srnd \cap \tilde{\Srnd})$:
+  \begin{enumerate}
+    \item If $\C{M} \equiv \tilde{\C{M}}$ then $\C{M}$ and $\tilde{\C{M}}$ are counterfactually equivalent w.r.t.\ $O$;
+    \item If $\C{M}$ and $\tilde{\C{M}}$ are counterfactually equivalent w.r.t.\ $O$ then 
+      $\C{M}$ and $\tilde{\C{M}}$ are interventionally equivalent w.r.t.\ $O$;
+    \item {\color{gray}If $\C{M}$ and $\tilde{\C{M}}$ are interventually equivalent w.r.t.\ $O$ then 
+      $\C{M}$ and $\tilde{\C{M}}$ are observationally equivalent w.r.t.\ $O$.}
+  \end{enumerate}
+\end{block}
+The reverse implications do not hold in general. This expresses that causal modeling is more refined than
+probabilistic modeling, and counterfactual modeling is more refined than interventional modeling.
+\end{frame}
+
+\begin{frame}{Pearl's Ladder of Causation}
+  \centering
+  \begin{tikzpicture}
+    \node (0,0) {\includegraphics[width=0.45\textwidth]{ladder.jpg}};
+    \draw[line width=1mm,fill=green,draw=green,->] (-4,2) -- node[below,sloped] {data-driven} (-4,-2);
+    \draw[line width=1mm,fill=red,draw=red,->] (4,-2) -- node[below,sloped] {model-based} (4,2);
+  \end{tikzpicture}
+  \centerline{\tiny Image from Pearl \& Mackenzie, {\it The Book of Why}}
+\end{frame}
+
+\begin{frame}{Counterexample 2 (Dawid, 2002)}
+\begin{example}[1/2]
+  For parameter $\rho\in[0,1]$, consider the SCM $\C{M}_\rho$ with binary exogenous input variable $X \in \{0,1\}$, endogenous variable $Y$, a single latent exogenous random variable $W = (W_1,W_2) \in \RN^2$ with
+exogenous distribution 
+  $$\begin{pmatrix} W_1 \\ W_2 \end{pmatrix}\sim\C{N}\left(\begin{pmatrix}0 \\ 0\end{pmatrix},\begin{pmatrix}1&\rho\\ \rho&1\end{pmatrix}\right)$$
+and structural equation
+  $$Y = W_1 (1 - X) + W_2 X.$$
+In a medical setting, this SCM could be used to model whether a patient was treated ($X$) and the corresponding outcome for that patient ($Y$).
+\end{example}
+\end{frame}
+
+\begin{frame}{Counterexample 2 (Dawid, 2002)}
+\begin{example}[2/2]
+  Suppose in the actual world, $X = 0$ and $Y^0 = y \in \RN$.
+  Consider the counterfactual: {\it ``What would the outcome have been, had we assigned treatment to this patient?''}.
+
+  Construct the twin SCM $\C{M}_{\rho}^{\twin}$.
+The counterfactual query then asks for $P((Y')^1=y'\mid Y^0=y)$. One can calculate that
+$$
+  P\big((Y')^1,Y^0\big) = \C{N}\left(\begin{pmatrix}0\\ 0\end{pmatrix}, \begin{pmatrix} 1 & \rho \\ \rho & 1 \end{pmatrix}\right)
+$$
+and hence $P((Y')^1 \mid Y^0=y) = \C{N}(\rho y,1-\rho^2)$. Note that the answer to the counterfactual query depends on a quantity $\rho$ that we cannot identify from the Markov kernel $P(Y\given \doit X)$, since this is independent of $\rho$. 
+Indeed, SCMs $\C{M}_{\rho}$ and $\C{M}_{\rho'}$ with $\rho\neq\rho'$ are interventionally equivalent, but not counterfactually equivalent.
+%If we obtain the SCM from a reduction, we find the one with $\rho = 1$.
+\end{example}
+  \alert{Take-home message: counterfactuals cannot be learned from data alone!}
+\end{frame}
+

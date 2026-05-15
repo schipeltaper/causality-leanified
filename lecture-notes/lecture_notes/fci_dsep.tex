@@ -1,0 +1,134 @@
+\section{The Fast Causal Inference Algorithm ($d$-separation version)}\label{sec:fci}
+
+Here we will study some properties of $d$-separation in cyclic graphs to prepare for a suitable FCI version (CCD extension).
+
+\subsection{Inducing walks}
+
+The key notion in this chapter is that of \emph{$d$-inducing walks}.
+We define $d$-inducing walk as a generalization to DMGs of the notion of inducing path \cite{VermaPearl1990} in DAGs. %(primitive inducing path in \cite{RichardsonSpirtes02}).
+\begin{Def}\label{def:d-inducing_path}
+Let $G$ be a DMG with nodes $V$ and let $i,j \in V$ be distinct nodes.
+A walk $\pi$ in $G$ between $i$ and $j$ is called \emph{$d$-inducing} if each collider on $\pi$ is in $\Anc_{G}(\{i,j\})$,
+and it has no non-endpoint non-colliders. %, and each non-endpoint non-collider on $\pi$ is unblockable. 
+If it is a path, it is called a \emph{$d$-inducing path} between $i$ and $j$.\footnote{In most of the literature, the graph is assumed to be acyclic, and then the notion is referred to simply as ``inducing''.}
+\end{Def}
+If two nodes are adjacent in $G$, any edge connecting the two is a $d$-inducing walk (path) between them.
+%Figure~\ref{fig:d-inducing_path} shows some simple nontrivial examples of d-inducing paths.
+\begin{Rem}
+Let $G$ be a DMG with nodes $V$ and let $i,j \in V$ be distinct nodes.
+If $i \in \Sc_G(j)$ then there is not necessarily a $d$-inducing path between $i$ and $j$ (although there is a $\sigma$-inducing path between $i$ and $j$!).
+\end{Rem}
+
+\begin{comment}
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (-4,0) {(a)};
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5.5cm]
+      \node at (-4,0) {(b)};
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=11cm]
+      \node at (-4,0) {(c)};
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$j$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \node[ndout] (X4) at (-1.5,-1) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh] (X3) edge (X4);
+      \draw[tuh] (X4) edge (X1);
+    \end{scope}
+    \begin{scope}[yshift=-2cm]
+      \node at (-4,0) {(d)};
+      \node[ndint] (X1) at (-3,0) {$j$};
+      \node[ndint] (X2) at (-1.5,0) {$i$};
+      \node[ndout] (X3) at (0,0) {$k$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm,xshift=5.5cm]
+      \node at (-4,0) {(e)};
+      \node[ndout] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1,0) {$k$};
+      \node[ndout] (X3) at (-2,-1) {$s$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm,xshift=11cm]
+      \node at (-4,0) {(f)};
+      \node[ndint] (X1) at (-3,0) {$i$};
+      \node[ndout] (X2) at (-1.5,0) {$l$};
+      \node[ndout] (X3) at (-2.25,-1) {$s$};
+      \node[ndout] (X4) at (0,0) {$k$};
+      \draw[tuh] (X1) edge (X3);
+      \draw[tuh,bend left] (X2) edge (X3);
+      \draw[tuh,bend left] (X3) edge (X2);
+      \draw[tuh] (X4) edge (X2);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Examples of non-trivial $\sigma$-inducing paths in CDMGs. (a) The path $i \tuh j \huh k$ is a $\sigma$-inducing path between $i$ and $k$. (b) The path $i \tuh j \tuh k$ is a $\sigma$-inducing path between $i$ and $k$. (c) The path $i \tuh j \tuh k$ is a $\sigma$-inducing path between $i$ and $k$. The nodes $i$ and $k$ cannot be $\sigma$-separated by any subset not containing $i,k$ (indeed, $i \nPerp^\sigma k$ and $i \nPerp^\sigma k \mid j$ in all three graphs, and additionally $i \nPerp^\sigma k \mid l$ and $i \nPerp^\sigma k \mid \{j,l\}$ in the graph in (c)). (d) The path $i \tuh k$ is $\sigma$-inducing, while there is no $\sigma$-inducing path between $i$ and $j$, nor between $j$ and $k$. (e) The path $i \tuh s \hut k$ is $\sigma$-inducing given $\{s\}$. (f) The path $i \tuh s \tuh l \hut k$ is $\sigma$-inducing given $\{s\}$.\label{fig:sigma-inducing_path}}
+\end{figure}
+\end{comment}
+
+The notion of $d$-inducing walk has the following important properties.
+\begin{Prp}\label{prp:d-inducing_path_properties}
+  Let $G$ be a DMG with nodes $V$ and let $i,j \in V$ be distinct nodes. 
+  Then the following are equivalent:
+  \begin{enumerate}[label=(\roman*)]
+    \item There is a $d$-inducing path in $G$ between $i$ and $j$;\label{prp:d-inducing_path_properties2:i}
+    \item There is a $d$-inducing walk in $G$ between $i$ and $j$;\label{prp:d-inducing_path_properties2:ii}
+    \item $i \nPerp^d_G j \given Z$ for all $Z \subseteq V \sm \{i,j\}$;\label{prp:d-inducing_path_properties2:iii}
+    \item $i \nPerp^d_G j \given Z$ for $Z = \Anc_G(\{i,j\}) \sm \{i,j\}$.\label{prp:d-inducing_path_properties2:iv}
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  The proof is similar to that of Theorem 4.2 in \cite{RichardsonSpirtes02}.
+
+  \ref{prp:d-inducing_path_properties2:i} $\implies$ \ref{prp:d-inducing_path_properties2:ii} is trivial.
+
+  \ref{prp:d-inducing_path_properties2:ii} $\implies$ \ref{prp:d-inducing_path_properties2:iii}: Assume the existence of a $d$-inducing walk between $i$ and $j$ in $G$. 
+  Let $Z \subseteq V \sm\{i,j\}$. 
+  Consider all walks in $G$ between $i$ and $j$ with the property that all colliders on it are in $\Anc_{G}({\{i,j\} \cup Z)}$, and each non-endpoint non-collider on it is not in $Z$.
+  Such walks exist, since the $d$-inducing walk is one. 
+  Let $\mu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$.
+  It is either ancestor of $i$ or of $j$, by assumption.
+  We can assume it to be ancestor of $i$ without loss of generality.
+  Then there is a directed path $\pi$ from $k$ to $i$ in $G$ that does not pass through any node of $Z$.
+%  Let $k$ be the vertex closest to $j$ on $\mu$ that is also on $\pi$. 
+  Then the subwalk of $\mu$ between $k$ and $j$ can be concatenated with the directed path $\pi$
+  into a walk between $i$ and $j$ that has the property, but has fewer colliders than $\mu$: a contradiction. 
+  Therefore, $\mu$ is $d$-open given $Z$.
+  %can be extended to a walk that is $\sigma$-open given $Z$, by replacing each collider $k$ on
+  %it by a walk $k \to \dots \to z \ot \dots \ot k$ for some closest descendant $z \in Z$ of $k$ (with possibly $z=k$).
+  Hence, $i$ and $j$ are $d$-connected given $Z$.
+
+  \ref{prp:d-inducing_path_properties2:iii} $\implies$ \ref{prp:d-inducing_path_properties2:iv} is trivial.
+
+  \ref{prp:d-inducing_path_properties2:iv} $\implies$ \ref{prp:d-inducing_path_properties2:i}:
+  Suppose that %$i$ and $j$ are $\sigma'$-connected given any $Z \subseteq V \sm \{i,j\}$.
+  %In particular, 
+  $i$ and $j$ are $d$-connected given $Z = \Anc_{G}(\{i,j\}) \sm \{i,j\}$. 
+  Let $\pi$ be a path between $i$ and $j$ that is $d$-open given $Z$. % and contains $i$ and $j$ only once.
+  We show that $\pi$ must be a $d$-inducing path. 
+  First, all colliders on $\pi$ are in $\Anc_G(Z)$, and hence in $\Anc_{G}(\{i,j\})$.
+  Second, let $k$ be any non-endpoint non-collider on $\pi$.
+  Then there must be a directed subpath of $\pi$ starting at $k$ that ends either at the first collider on $\pi$ next to $k$ or at an end node of $\pi$, and hence $k$ must be in $Z$. 
+  Since $\pi$ is $d$-open given $Z$, this is a contradiction.
+  Hence, $\pi$ cannot have any non-endpoint non-colliders.
+\end{proof}
+In words: there is a $d$-inducing path between two nodes in a CDMG (provided they are not both input nodes) if and only if the two nodes cannot be $d$-separated by any subset of the other nodes.
+%A similar property holds for $d$-inducing walks and paths, but with $\sigma$-separation replaced by $d$-separation in points (iii) and (iv).

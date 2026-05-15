@@ -1,0 +1,135 @@
+\section{Ideas on generalizing the framework}
+
+\subsection{Conditioning operation with input nodes}
+\Joris{Consider this. To incorporate possible selection bias on input nodes, there seem to be several options:
+\begin{enumerate}
+  \item merge the input nodes whose value range is no longer a Cartesian product, and keep their causal interpretation
+  \item merge the input nodes whose value range is no longer a Cartesian product, and remove their causal interpretation
+  \item add undirected edges between cliques of input nodes whose value range is no longer a Cartesian product
+\end{enumerate}
+Either of the two should address the factorization / CI properties.
+However, it might be that undirected edges have the advantage that they express more CI statements!
+Indeed, if instead of dashing endogenous ancestors of selection nodes in the conditioning SCM operation
+we would merge them we may loose CI information.
+
+Then the causal interpretation. 
+\begin{enumerate}
+  \item When merging nodes, the hope is that we keep the causal interpretation.
+But I am not sure. So we should see if we can think of a counterexample (an s-SCM with a given causal
+interpretation that gives contradictions when we exist on keeping the causal interpretation of the
+merged input nodes).
+  \item When adding undirected edges, I guess we would like to restrict the causal interpretation
+    to joint interventions on cliques only.
+\end{enumerate}
+I think for a causal interpretation we have two desiderata: (i) it is a valid \emph{causal} interpretation
+(so far, I believe that requires input nodes to be variation independent); (ii) it preserves the old 
+causal interpretation, or indicates which part of it is lost (using e.g. dashed nodes).
+
+One thing to check: are the $i\sigma$-separations in a CDMG preserved when putting any types of edges between input nodes?
+And are the $im$-separations in a $\sigma$-iMAG preserved when putting any types of edges between input nodes?
+
+Perhaps it's also useful to think about the purest setting with \emph{only} input variables and selection bias.
+What happens to the causal interpretation there? We could limit the Cartesian product range of the input variables
+through selection on a common child to any arbitrary subset of that range. 
+
+Regarding FCI: if we are not going to test for factorization structure of the joint range of input variables, then
+perhaps the conservative option is to connect them all via undirected edges. Interestingly, in the real world, the
+input variables often correspond to \emph{causally independent experimental settings before filtering}. For example,
+in the yeast case, we can independently knock out any number of genes (at least hypothetically). But for some 
+combinations, the yeast cells won't live, and no data is produced. If we were to assume boldly that the conditioned
+iMAG has independent inputs, then this communicates that we could choose any joint setting of the input nodes and
+have data. This may not be true in general. Because we are assuming that the data generating mechanism is that of 
+an s-SCM, we are assuming that in the absence of any selection, the input nodes are variation independent, and hence
+no edges are needed. Any edge between input nodes in the presence of selection must hence be due to selection, and
+hence be undirected. But to be completely honest, we could also let FCI act as if it doesn't know whether input
+nodes are adjacent or not.
+
+Aha! Note that so far we always consider a JOINT intervention on all input nodes. The ONLY two reasons to have more
+than one input node are (i) so we can consider this joint intervention to be a combination of ``independent'' 
+interventions; (ii) so that we can utter more refined independence statements about $P(X \mid \doit(J))$.
+Note that to be able to consider the joint intervention to be a combination of ``independent'' interventions 
+we need to assume that these ``independent'' interventions commute (temporally): it does not matter in which
+ordering we apply them.
+}
+
+\subsection{Too good to be true?}
+
+Here's an idea:
+\begin{enumerate}
+  \item Check whether for $i\sigma$-separation any additional edges between input nodes don't make any difference.
+  \item Prove that SCMs also imply a variation independence Markov property.
+  \item Check that Patrick's notion of CI defaults to 'independence' if it doesn't convey information.
+  \item Broaden the framework by thinking of a suitable graphical representation of variation dependence between input nodes.
+  \item For conditioning, work out whether it is compatible with the graphical representation or whether it suggests refining the graphical representation.
+  \item (Check whether for $im$-separation any additional undirected edges between input nodes matter for the restricted separations).
+\end{enumerate}
+
+\begin{Lem}
+  Let $G$ be a CDMG. Let $\tilde{G}$ denote the same ``CDMG''\footnote{Formally it's not a CDMG because we defined those without allowing for edges between input nodes, but let's still call it a CDMG for convenience.} but with additional arbitrary (directed, bidirected) edges between all input nodes of $G$.
+  For $A, B, C \subseteq V \cup J$ with $A \cap J = \emptyset$ and $J \subseteq B \cup C$ we have that
+    $$A \isPerp_G B \given C \iff A \isPerp_{\tilde{G}} \given C$$
+\end{Lem}
+\begin{proof}
+  Note that the strongly connected components in $\tilde{G}$ consist of those in $G$ and in addition possible scc's within $J$.
+
+  Suppose $A \nPerp^\sigma_G B \given C$. 
+  Then there exists a $\sigma$-open path $\pi$ between $A$ and $B \cup J$ given $C$ in $G$.
+  WLOG we can assume that the only node on $\pi$ that is in $J$ is its endpoint in $B \cup J$.
+  The same path must be present in $\tilde{G}$.
+  Any collider on $\pi$ must be in $\Anc_G(C)$.
+  Hence it must be in $\Anc_{\tilde{G}}(C)$.
+  Any non-collider on $\pi$ must be unblockable in $G$, or not in $C$.
+  Suppose it's unblockable in $G$.
+  If it's a node in $V$ then it can only point to nodes in $V$, and hence (since the scc of the node is the same in $G$ as in $\tilde{G}$) must also be unblockable in $\tilde{G}$.
+  It cannot be a node in $J$ because then it must be an end node of $\pi$ and it cannot point to a node in the same scc in $G$.
+  So any non-collider on $\pi$ that is unblockable in $G$ is also unblockable in $\tilde{G}$.
+  But this implies that any non-collider on $\pi$ is unblockable in $\tilde{G}$, or not in $C$.
+  So $\pi$ is a $\sigma$-open path between $A$ and $B \cup J$ given $C$ in $\tilde{G}$ as well.
+
+  Suppose $A \nPerp^\sigma_{\tilde{G}} B \given C$. 
+  Then there exists a $\sigma$-open path $\tilde{\pi}$ between $A$ and $B \cup J$ given $C$ in $\tilde{G}$.
+  WLOG we can assume that the only node on $\tilde{\pi}$ that is in $J$ is its endpoint in $B \cup J$.
+  The same path must be present in $G$.
+  Any collider on $\tilde{\pi}$ must be in $V \cap \Anc_{\tilde{G}}(C)$.
+  Hence it must be in $\Anc_G(C)$.
+  Any non-collider on $\tilde{\pi}$ must be unblockable in $\tilde{G}$, or not in $C$.
+  Suppose it's unblockable in $\tilde{G}$.
+  If it's a node in $V$ then it can only point to nodes in the same scc according to $\tilde{G}$, and hence, according to $G$.
+  It cannot be a node in $J$, because then it must be an endnode of $\tilde{\pi}$ and it cannot point to a node in the same scc in $\tilde{G}$.
+  So any non-collider on $\tilde{\pi}$ that is unblockable in $\tilde{G}$ is also unblockable in $G$.
+  But this implies that any non-collider on $\tilde{\pi}$ is unblockable in $G$, or not in $C$.
+  So $\tilde{\pi}$ is a $\sigma$-open path between $A$ and $B \cup J$ given $C$ in $G$ as well.
+
+  (TODO: clean up this proof because the two directions turned out to be identical proofs)
+\end{proof}
+
+Let's see if Patrick's notion of CI defaults to `independence' for ``non-meaningful'' cases. 
+First, let's make a list of those cases.
+I think we can look at the single-node CI statements that are not of restricted form.
+\begin{itemize}
+  \item $j_1 \idPerp j_2 \given C$: important! this is the heart of the matter!
+    $$X_{j_1} \Indep X_{j_2} \given X_C \iff \exists Q(X_{j_1} \given X_C):$$
+    $$ P(X_{j_1},X_{j_2},X_C \given \doit(X_J)) = Q(X_{j_1} \given X_C) \otimes P(X_{j_2},C \given \doit(X_J))$$
+    Too bad! It doesn't work (take e.g.\ $C=\emptyset$).
+    This might only work if we allow $Q$ to also depend on $\doit(X_J)$.
+  \item $j_1 \idPerp v_1 \given C$: ignore at first (we could define it to be equivalent to $v_1 \idPerp j_1 \given C$)
+  \item $v_1 \idPerp j_1 \given C$: it's not clear whether we need this in unrestricted form? (similar as in JCI paper?)
+  \item $v_1 \idPerp v_2 \given C$: it's not clear whether we need this in unrestricted form? (similar as in JCI paper?)
+\end{itemize}
+
+So the only remaining option is to prove a node-dependent Markov property:
+$X_{j_1} \Indep X_{j_2} \given C$ should be read as variation independence, while CI statements in restricted form should be read as Patrick's notion.
+This looks promising for FCI purposes, but is not really very elegant.
+(Much more elegant would be a unified notion of independence that reduces to these special cases but does not explicitly look at the node type!)
+
+\subsubsection{New idea}
+
+Here's yet another possibility, which is relatively straightforward to implement.
+Define an sSCM by a tuple $\lt M, S, \C{S}, T, \C{T} \rt$ where the idea is that this models an SCM $M$ plus filtering mechanisms $X_S \in \C{S}$ (with $S \subseteq V$) and $X_T \in \C{T}$ (with $T \subseteq J$) (perhaps even multiple ones).
+Or perhaps we can even introduce new endogenous nodes $S$ which are selection indicators.
+They can be children of input nodes only, or more generally, of any subset of the nodes in $V \cup W \cup J$.
+
+We can define its graph by using the factorization structure in $\C{T}$ to define edges between the input nodes.
+This is an ideal basis for doing FCI.
+The sSCM can be mapped to an SCM by performing the conditioning operation with input nodes.
+Its graph can also directly be mapped to a MAG and subsequently to a PAG.

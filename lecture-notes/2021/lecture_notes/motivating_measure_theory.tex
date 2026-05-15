@@ -1,0 +1,215 @@
+%\subsection{Measure Theoretic Probability Theory}%
+
+%
+\subsection{Crash Course: Measure Theoretic Probability}%
+
+\subsubsection{Elementary Probability Theory - Recap and Beyond}
+
+\begin{Eg}[Winning a pie with a biased die]%
+    \label{example-die}
+    You are allowed to roll a biased die with 6 sides. If you roll a $5$ or $6$ you win a \emph{car}, a $4$ 
+    gives you a \emph{mug} 
+    and $1,2,3$ wins you an apple \emph{pie}. 
+    In this case the sample space is $\Wcal :=\{1,2,3,4,5,6\}$ and the die introduces a probability distribution $P$ on $\Wcal$.
+    Since the die is biased, we have to specify 
+    %for the probability distribution $P$
+    each of the probability masses to throw those numbers separately: 
+    \begin{align*}
+        p(1) & = 0.5, &
+        p(2) & = p(3) = p(4) = 0.1, &
+        p(5) & = 0.15 , & 
+        p(6) & = 0.05.
+    \end{align*}
+    We are now interested in the probabilities of the events of winning those 3 different prices. 
+    For this we consider the 'prize' space: $\Zcal :=\{\mathrm{pie}, \mathrm{mug}, \mathrm{car}\}$. 
+    We can then formalize the outcome via the map $F$:
+    \[\begin{array}{cccc}
+        F: & \Wcal &\to& \Zcal,\\
+           &1,2,3 &\mapsto& \mathrm{pie},\\
+        & 4 & \mapsto& \mathrm{mug},\\
+        & 5,6 & \mapsto& \mathrm{car}.
+    \end{array}\]
+    To compute the probability of winning each of the prizes we need to 'push' the probability distribution $P$, which lives on the space $\Wcal$, to the space $\Zcal$. We can do this as follows:
+    \begin{align*}
+        P(F=\mathrm{pie}) &= P(F^{-1}(\{\mathrm{pie}\})) && = P(\{1,2,3\}) && = p(1)+p(2)+p(3) && = 0.7,\\
+            P(F=\mathrm{mug}) &= P(F^{-1}(\{\mathrm{mug}\})) && = P(\{4\}) && = p(4) && = 0.1,\\
+            P(F=\mathrm{car}) &= P(F^{-1}(\{\mathrm{car}\})) && = P(\{5,6\}) && = p(5)+p(6) && = 0.2,
+    \end{align*}
+    where $F^{-1}(C) := \{w \in \Wcal\,|\,F(w) \in C\}$ is the \emph{pre-image} of $C \ins \Zcal$.
+\end{Eg}
+
+\begin{Disc}%
+    The simple example \ref{example-die} already provides us with the main examples for the typical 
+    probability-theoretic terminology and important insights:
+    \begin{enumerate}
+        \item We call the tuple $(\Wcal,P)$ a \emph{probability space}. It is important to note that $P$ was defined on $\Wcal$, not $\Zcal$.
+        \item We call the map $F$ a \emph{random variable}, which is really nothing else than a map from a probability space to another space.
+        \item \emph{Events} are modelled by \emph{subsets} $B \ins \Wcal$, not just by single elements $w \in \Wcal$. For example consider the event that you don't win a car. This event can't be represented by a single element in $\Wcal$ or $\Zcal$.
+        \item In this example we can compute the probability of an event by \emph{additivity} of $P$ and the use of the probability mass function,
+            via $P(B) = \sum_{ w \in B} p(w)$.
+        \item The distribution of the prizes, i.e.\ the distribution of random variable $F$, assigns 
+               probabilities to events $C \ins \Zcal$ and can be computed using the \emph{pre-image} of $F$ 
+               via $P(F \in C) = P(F^{-1}(C))$, where the latter is now an event $F^{-1}(C) \ins \Wcal$, 
+               which we already know how to deal with. 
+           \item The distribution of $F$ on $\Zcal$ here is also called the \emph{push-forward} distribution or \emph{image} distribution 
+            of $P$ via $F$ or just the \emph{law} of $F$. It is often abbreviated as: $P_F$, $P^F$, $F_*P$ or $P(F)$. 
+            Again note: $P(F)(C) := P(F \in C)= P(F^{-1}(C))$.
+        \item So $(\Zcal,P(F))$ forms a probability space on its own and as soon as we know $P(F)$ we don't need any information about $(\Wcal,P)$ anymore if all we are interested in is the events in $\Zcal$ and the law of $F$. All randomness on $\Zcal$ is fully specified by $P(F)$.
+    \end{enumerate}
+\end{Disc}
+
+\begin{Eg}%
+    \label{example-normal}
+    Now consider the standard normal distribution $\Ncal(0,1)$ on $\R$, which is given by the \emph{probability density} function:
+    \[ p(w) = \frac{1}{\sqrt{2 \pi}} \exp\lp - \frac{1}{2} \cdot w^2 \rp.   \]
+    The probability of an event $A \ins \R$ is then given by:
+    \[ P(A) = \int_A p(w) \, dw,\]
+    in case $A$ can be integrated (i.e.\ if it is not a too pathological set).
+    For instance, if $A= [a,b] \cup [c,d]$ with $a \le b <c\le d$ we get:
+    \[P(A) = \int_a^b p(w)\,dw + \int_c^d p(w)\,dw.\]
+    Note that, even though $p(w) >0$ for every $w \in \R$, we have:
+\[  P(\{x\}) = 0.\]
+Now consider random variable $F: \R \to \R$ with $F(w)=\sin(w)$. 
+It is not immediately clear how to define the probability distribution of $F$ when only working with probability densities. It is even more difficult to derive the probability density for $F$ in this setting.
+\end{Eg}%
+
+\begin{Disc}%
+    \begin{enumerate}
+        \item The examples \ref{example-die} and \ref{example-normal} show that many probability distributions can be represented either by \emph{probability mass} functions (\emph{discrete} case), $w \mapsto p(w)$, or \emph{probability density} functions (\emph{absolute continuous} case), $w \mapsto p(w)$.
+        \item Both cases have in common that one only needs a function that takes elements $w \in \Wcal$ as arguments, in contrast to subsets $A \ins \Wcal$. This is usually the reason why only the discrete and absolute continuous cases are taught in e.g.\ Machine Learning classes.
+        \item Note that, in the discrete case with $K$ classes, one only needs to specify the $K$ values $p(1),\dots,p(K)$, in contrast to the $2^K$ values on subsets $P(A)$ for $A \in 2^\Wcal$ (the \emph{power set} of $\Wcal$ consisting of all subsets $A \ins \Wcal$), as those values can be derived from $p(w)$ values using additivity.
+        \item We have problems defining probability distributions of random variables for absolute continuous distributions when we are only allowed to work with probability densities.
+        \item Measure theory is the framework that directly works with subsets $A \ins \Wcal$, in contrast to elements $w \in \Wcal$.
+
+    \end{enumerate}
+\end{Disc}%
+
+
+\subsubsection{Why Measure Theory?}%
+%
+\paragraph{Discrete and absolute continuous distributions are not general enough}%
+
+\begin{Eg}[Simple example of a non-discrete non-absolute-continuous distribution]%
+    Consider a uniformly distributed random variable on the interval $\Xcal:=[0,1]$, i.e.\ $X \sim \Ucal[0,1]$, which has probability density:
+    \[ p(x) = \I_{[0,1]}(x).\]
+    Consider an exact copy of $X$, which we call $Y:=X$, on $\Ycal :=[0,1]$. Now consider the joint distribution of $(X,Y)$ 
+    on $\Xcal \times \Ycal = [0,1]^2$.
+    Then only values on the diagonal $\Delta:=\{ (x,x) \,|\, x \in [0,1]\}$ can be realized by $(X,Y)$.
+    This simple distribution on $[0,1]^2$ is not discrete (as it can attain uncountably many values), and it is also not 
+    absolute continuous, since we have: $\int_\Delta \,dx\,dy = 0$, i.e.\ the (2-dimensional) area of the (1-dimensional) line is zero. 
+    This implies that any density function $p$ would satisfy: $\int_\Delta p(x,y)\,dx\,dy =0$ as well. This is in contrast to the fact that a probability distribution should always be normalized:
+    \[ 1 = P((X,Y) \in \Delta) = \int_\Delta p(x,y)\,dx\,dy.\]
+    Note that we don't need a probability density to be able to assign probabilities to subsets $D \ins [0,1]^2$.
+    We can just use  the push-forward map:
+    \[(X,Y):\; [0,1] \to [0,1] \times [0,1], \quad x \mapsto (x,x).\]
+    and compute:
+    \[P((X,Y) \in D) = P(\{x \in [0,1]\,|\, (x,x) \in D\}),\]
+    where $P$ on the right here denotes the uniform distribution on $[0,1]$.
+\end{Eg}%
+
+\begin{Not}[Unifying the notations to measure theoretic ones]%
+    Let $X$ be a  random variable taking values in space $\Xcal$ and with probability distribution $P$.
+    Let $F: \Xcal \to \R$ be a function. Then we will change the notations for expectation values as follows.
+ \begin{enumerate}
+     \item Let $X$ be a \emph{discrete} random variable with \emph{probability mass function} $p$. Then define:
+ \begin{align*}
+     \E[F(X)] &= \sum_{x \in \Xcal} F(x) \cdot p(x) \\
+         &=: \int F(x)  \, P(dx)\\
+         &=: \int F(x)  \, dP(x)\\
+         &=: \int F  \, dP.
+ \end{align*}
+  We will consider sums to be special cases of measure integrals.
+     \item Let $X$ be a \emph{absolute continuous} random variable with \emph{probability density function} $p$. Then define:
+ \begin{align*}
+     \E[F(X)] &= \int_\Xcal F(x) \cdot p(x)\,dx \\
+         &=: \int F(x)  \, P(dx)\\
+         &=: \int F(x)  \, dP(x)\\
+         &=: \int F  \, dP.
+ \end{align*}
+ \end{enumerate}
+ So both cases can be unified with the 3 commonly used notations:
+ \[ \E[F(X)] = \int F\,dP = \int F(x)\,dP(x) = \int F(x)\,P(dx).  \]
+ Note that in both cases we also can write: $P(A) = \int \I_A \, dP$.
+\end{Not}
+
+\begin{Exc}
+    Show that the following relation holds:
+    \[ \int F(x)\,P(dx) = \int z \,P^F(dz).\]
+\end{Exc}
+
+\paragraph{Defining probability distributions on all subsets is too general}%
+
+\begin{Rem}\label{rem-power-set}
+    When we want to work with a (probability) measure $\mu$ we at least want to require that it is \emph{countably additive}, i.e.\ that for pairwise \emph{disjoint} subsets $A_n \ins \Xcal$, $n \in \N$, we have:
+    \[\mu\lp\bigcup_{n \in \N} A_n\rp = \sum_{n \in \N} \mu(A_n).\]
+%    where $\bigdcup$ is the symbol for disjoint union.
+    We will see below that if we do not restrict the subsets $A_n$ in some way we will encounter strange behaviour.
+\end{Rem}
+
+\begin{Thm}[Vitali, non-existence of Lebesgue measure on all subsets]%
+   \label{thm-non-lebesgue}
+    There does NOT exist a measure $\lambda$ on $[0,1]$ such that:
+    \begin{enumerate}
+        \item $\lambda$ can measure every $A \in 2^{[0,1]}$, and:
+        \item $\lambda\lp[a,b] \rp = b-a$ for all $a\le b \in [0,1]$.
+    \end{enumerate}
+    In other words, there does NOT exist a uniform distribution on $[0,1]$ that can consistently assign values to all subsets.\\
+    But: such a measure with property 2. exists on the set $\Bcal_{[0,1]}$ of all so called \emph{Borel subsets} (or even Lebesgue subsets) 
+    of $[0,1]$.
+    %It is called the \emph{Lebesgue measure} on $\R$ (or, more precisely, on $\Bcal_\R$). 
+    Similar statements hold for higher dimensions and $\R^D$ and higher dimensional volumes.
+\end{Thm}
+
+\begin{Eg}[Vitali set]
+    Consider the following equivalence relation on $[0,1]$:
+    \[ r_1 \sim r_2 \qquad :\iff \qquad r_2-r_1 \in \Q.\]
+    Let $[0,1]/\mathord{\sim}$ be the set of equivalence classes.
+    By the axiom of choice there exists a representative system $V \ins [0,1]$ for $[0,1]/\mathord{\sim}$.
+    This means that the map:
+    \[ V \to [0,1]/\mathord{\sim}, \qquad v \mapsto [v],\]
+    is bijective. For $q \in \Q$ consider the subset:
+    \[V_q :=  V+q := \lC v + q \,|\, v \in V \rC  \ins \R. \]
+    Let $\Qcal := [-1,1] \cap \Q$.  Note that $[0,1]$ and $V_q$ are uncountable while $\Q$ and $\Qcal$ are countably infinite. 
+    We then have the inclusions:
+    \[ [0,1] \ins  \bigcup_{ q \in \Qcal} V_q \ins [-1,2].\]
+    The right inclusion is clear as:
+     \[V + [-1,1] \ins [0,1]+[-1,1] \ins [-1,2].\]
+    For the left inclusion let $ x\in [0,1]$. By construction there exists a $v \in V$ such that $v \sim x$. 
+    So $x - v \in \Q$. Since $x,v \in [0,1]$ we also have that $x-v \in [-1,1]$. So $q := x-v \in [-1,1] \cap \Q =\Qcal$.
+    This shows that $ x \in V_q$ for a $q \in \Qcal$. Thus both inclusions are shown.\\
+    If we now assumed that $V$ would be Lebesgue-measurable then every $V_q$ would be as well as a translated version of $V$.
+    We then would get that: $\lambda(V_q) = \lambda(V)$ for every $q\in \Q$. So we would get:
+    \[ 1 = \lambda \lp[0,1]\rp \le \lambda\lp\bigcup_{ q \in \Qcal} V_q \rp   \le \lambda \lp[-1,2]\rp =3  ,\]
+    which implies:
+    \[ [1,3] \ni \lambda\lp\bigcup_{ q \in \Qcal} V_q \rp = \sum_{ q\in \Qcal} \lambda(V_q) = 
+    \sum_{ q\in \Qcal} \lambda(V), \]
+    which is contradictory. Indeed, $\lambda(V) =0$ can be ruled out as the sum would sum up to $0 \notin [1,3]$.
+    But also $\lambda(V)>0$ can be ruled out as this would sum up to $\infty \notin [1,3]$.
+    So the \emph{Vitali set} $V$ can not be Lebesgue-measurable.
+\end{Eg}
+
+
+
+
+\begin{Thm}[Banach-Tarski paradox]
+    \label{thm-banach-tarski}
+    The 3-dimensional unit ball $B_1(z)=\{ x \in \R^3\,|\, \|x-z\| \le 1\}$ centered at $z \in \R^3$ can be partitioned into a finite number of disjoint sets $A_1,\dots,A_K$ (e.g.\ $K=5$) such that each can then be rotated and translated in $\R^3$ such that they form TWO 3-dimensional unit balls $B_1(y_1)$ and $B_1(y_2)$.\\
+    Note that the unit balls have well-defined volume (i.e.\ 3-dimensional Lebesgue measure) and translation and rotations are very well behaved and preserve volume, while the subsets $A_k$ are very pathological (i.e.\ non-Lebesgue-measurable).
+\end{Thm}
+
+
+\begin{figure}[ht]
+    \centering
+\includegraphics[scale=0.33]{Banach-Tarski-Paradox}
+\caption[Banach-Tarski paradox]{Illustration of the Banach-Tarski paradox.\footnotemark}
+\label{fig:banach-tarski}
+\end{figure}
+\footnotetext{\href{https://en.wikipedia.org/wiki/Banach\%E2\%80\%93Tarski\_paradox
+}{https://en.wikipedia.org/wiki/Banach-Tarski\_paradox} }
+
+
+
+\textbf{$\Longrightarrow$ Measure theory is the unifying `safe space' for probability theory!}
+
+
+

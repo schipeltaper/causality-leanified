@@ -1,0 +1,139 @@
+\subsection{Selection Bias}
+\totalscore{9}
+
+\answer{Oops, this question is problematic! The problem is that the meaning/value of $Y$ is unspecified if $S=0$. 
+If we would define $Y=0$ if $S=0$ (or $Y=?$ if $S=0$) then we would get an additional edge $S \to Y$, invalidating the rest of the exercise.
+One possibility to fix this and simplify everything conceptually is to define $Y$ as whether the item is fake or not, and assume that buyers always recognize fake items as such. Perhaps one could also add a ``chargeback'' variable so that we can explicitly model how that depends on the item being fake (and other things).}
+\points{Because the exercise was too confusing and ambiguous, we decided to give all students all 9 points, irrespective of their answers.}
+
+An art auctioning website provides a market place where sellers can offer
+art items for sale to interested buyers.
+Unfortunately, some of the items that are sold via the website turn out to be fake. 
+If the buyer reports the bought item to be fake within four weeks, 
+the website legally has to pay a chargeback to the buyer.
+Hence, the company has decided to screen every item that is offered for sale 
+on their website, with the intent of rejecting all fakes.
+Because of the large number of items traded, the website makes use of an algorithm
+to automate the screening process. The screening process works as follows:
+%To avoid this from happening, an art auctioning website algorithmically screens every newly uploaded piece for potential fakes. 
+%Let $L$ denote the latent 'true' action of the reseller uploading a item to the website. 
+\begin{itemize}
+  \item Sold items that are reported as fake within four weeks by the buyer are labelled as `fake' ($Y=1$).
+   If the buyer does not report a bought item as fake within four weeks, it is labelled as `not fake' ($Y=0$).
+  \item The website registers all data (features) $X$ that are related to a particular item.% $L$. 
+  \item Based on these features, a machine learning algorithm makes a prediction $\hat{Y}$ of the probability $P(Y=1|X=x)$: certainly fake ($\hat{Y}=1$), certainly not fake ($\hat{Y}=0$), or any probability in between ($0 < \hat{Y} < 1$).
+%\item By means of extra insurance, the website makes use of the services of an external company, which (digitally) investigates the item and reseller and offers their advise $E$. 
+  \item Based on the prediction $\hat{Y}$, the algorithm decides to either accept the item ($S=1$) or to reject it ($S=0$). Only the accepted items are offered for sale via the website.
+\end{itemize}
+
+The data scientist at the company in charge of the screening algorithm has learned about causal models and decides to put them to use. 
+As always, the first step is to come up with a proper mathematical model.
+\begin{enumerate}[label=\alph*)]
+  \item Draw the observed graph $G^O(M)$ of an SCM $M$ that corresponds with the screening process as described above,
+    treating all the variables $O = \{Y,X,\hat{Y},S\}$ as if they would be observed. 
+    Clearly distinguish exogenous input variables from endogenous and exogenous random variables. 
+    Indicate with bidirected edges all variable pairs that may be influenced by a latent common cause.
+    Motivate your answer.
+    \label{ex:cond_dist_selection_graph}
+    \score{2}
+    \answer{%
+        $G^O(M)$:
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (X) at (0,0) {$X$};
+                \node[ndout] (Y) at (4,0) {$Y$};
+                % \node[ndout] (M) at (1,1) {$M$};
+                % \node[ndout] (L) at (2,1) {$L$};
+                \node[ndout] (Yhat) at (1,-1) {$\hat{Y}$};
+%                \node[ndout] (E) at (2,-.7) {$E$};
+                \node[ndout] (S) at (2,-2) {$S$}; 
+                % \draw[arout] (X) to (Y);
+                \draw[arout] (X) to (Yhat);
+                % \draw[arout] (L) to (M);
+                %\draw[arout] (L) to (X);
+                %\draw[arout] (L) to (Y);
+                \draw[arlat] (X) edge (Y);
+%                \draw[arlat] (X) edge (E);
+%                \draw[arlat] (E) edge (Y);
+%                \draw[arout] (E) to (S);
+                \draw[arout] (Yhat) to (S);
+            \end{tikzpicture}
+        \end{center}
+        \begin{itemize}
+          \item Fraudulent sellers may be more likely to offer a fake item, which could be a latent common cause of $X$ and $Y$.
+          \item The prediction $\hat{Y}$ is a function of $X$ (and possibly an independent random number), hence the edge $X \tuh \hat{Y}$.
+          \item The decision $S$ is a function of $\hat{Y}$ (and possibly a threshold and an independent random number), hence the edge $\hat{Y} \tuh S$.
+        \end{itemize}
+    }
+    \points{1 point for the correct graph, 1 point for a good motivation.}
+  \item Describe accurately in words/equations which variables are actually observed under what circumstances, while the screening algorithm is running.\\
+    \emph{Hint:  don't let the graphical representation mislead you here: it may not be sophisticated enough to encode this properly.}
+    \score{1}
+    \answer{If $S=1$ then $O = \{Y,X,\hat{Y},S\}$ are all observed, if $S = 0$ then only $\{X,\hat{Y},S\}$ are observed.}
+\end{enumerate}
+The auctioning company recently noticed that their predictor $\hat{Y}$ marks relatively many non-fake items as almost-certain fakes, and wishes to replace it with a new, state-of-the-art predictor. Technically, what this predictor should do is for every new observation $X=x$, compute the probability of a fake, $P(Y=1|X=x)$. However, the data scientist expects that straightforwardly training a predictor on past observations $P(X, Y|S=1)$ will provide an estimate that suffers from selection bias.
+\begin{enumerate}[resume*]
+  \item Explain what effect the selection bias has on the distribution of the observations for which the company observes the label $Y$; more specifically, do you expect that $P(Y=1|X=x,S=1)$ is larger than/smaller than/equal to $P(Y=1|X=x)$? 
+    Explain your answer.
+    \score{2}
+    \answer{Assume that decision $S$ is taken by thresholding $\hat{Y}$. 
+    If the old predictor is any better than random guessing, the accepted items will less likely be fake than the rejected items: $P(Y=1|S=1) < P(Y=1|S=0)$. 
+    Therefore, also $P(Y=1|S=1) < P(Y=1)$.
+    This is the selection bias that the data scientist was worried about.
+    However, since the predictor output depends on the features $X$, that is irrelevant.
+    From the graph of the SCM above we read off that $Y \Perp S \given X$, and hence by the Markov property
+    $Y \Indep S \given X$, and hence $P(Y=1|X,S=1) = P(Y=1|X)$.}
+    \points{1 pt.\ for the correct answer, 1 pt.\ for a sensible explanation.}
+\end{enumerate}
+
+As an additional measure to prevent fake items being sold, the auctioning website makes use of the services of an external company that (digitally) investigates the item and the seller and offers their advise $E$.
+If their advice is positive ($E=1$), the auctioning website decides to accept an item based on their own predictor $\hat{Y}$, while for negative advice ($E=0$), the auctioning website will always reject the item ($S=0$).
+\begin{enumerate}[resume*]
+  \item As in question \ref{ex:cond_dist_selection_graph}, draw the observed graph that corresponds to the (extended) SCM that corresponds with this (extended) process, including now the variable $E$ as an observed variable.
+    Motivate your answer.
+    \score{2}
+    \answer{%
+        $G^O(M)$:
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (X) at (0,0) {$X$};
+                \node[ndout] (Y) at (4,0) {$Y$};
+                % \node[ndout] (M) at (1,1) {$M$};
+                % \node[ndout] (L) at (2,1) {$L$};
+                \node[ndout] (Yhat) at (1,-1) {$\hat{Y}$};
+                \node[ndout] (E) at (2,-.7) {$E$};
+                \node[ndout] (S) at (2,-2) {$S$}; 
+                % \draw[arout] (X) to (Y);
+                \draw[arout] (X) to (Yhat);
+                % \draw[arout] (L) to (M);
+                %\draw[arout] (L) to (X);
+                %\draw[arout] (L) to (Y);
+                \draw[arlat] (X) edge (Y);
+                \draw[arlat] (X) edge (E);
+                \draw[arlat] (E) edge (Y);
+                \draw[arout] (E) to (S);
+                \draw[arout] (Yhat) to (S);
+            \end{tikzpicture}
+        \end{center}
+      Now in addition to the edges in question \ref{ex:cond_dist_selection_graph}, we also have an edge from $E$ to $S$
+      (since the decision is affected also by the external advice) and bidirected edges $X \huh E \huh Y$ since also the
+      external advice may be influenced by a fraudulent intent of the seller.
+    }
+    \points{1 pt.\ for the right graph, 1 pt.\ for a sensible motivation.}
+  \item Based on this SCM, find an expression for $P(Y|X)$ in terms of the available distributions $P(X, Y, \hat{Y}, E|S=1)$ and $P(X, \hat{Y}, E, S)$.\\
+    \emph{Hint: find a set of variables $Z$ such that $Y \Perp^\sigma S \mid X, Z$.}
+    \score{2}
+      %\textcolor{red}{PB: Give a hint? Use the law of total probability, and search for a set $Z$ such that the conditional independence $Y\perp S|X, Z$ allows us to include $S=1$ in one of the probabilities in the expression.}
+    \answer{%
+        \begin{align*}
+            P(Y|X) & = P(Y|X, E)\circ P(E|X) &&\text{law of total probability} \\
+            & = P(Y|X, E, S=1)\circ P(E|X) &&\text{using $Y\perp S|X, E$}
+        \end{align*}
+    }
+    \points{1 pt.\ for finding $Z = \{E\}$, 1 pt.\ for deriving a correct expression as asked for.}
+%    \item How could the company implement this formula? What classifiers should be trained on what data?
+%    \answer{%
+%        Train two classifiers: one for $P(Y=1|X=x, E=e, S=1)$ trained on the data $P(X, E, Y|S=1)$, and one for $P(E=e|X=x)$, trained on the data $P(X, E)$.
+%    }
+%    \points{points?}
+\end{enumerate}

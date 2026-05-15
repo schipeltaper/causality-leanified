@@ -1,0 +1,539 @@
+\subsection{Unique solvability and simple SCMs}
+
+\begin{Def}\label{def:scm_unique_solvability}
+  An SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is called \emph{uniquely solvable} if it has a unique solution function. This means two things: (i) it has a solution function $g : \CXJ \times \CXW \to \CXV$, i.e., a measurable function
+  that satisfies
+  \begin{equation}\label{eq:scm_unique_solvability}
+    \forall \xW\in\CXW \forall \xJ\in\CXJ: \quad g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big);
+  \end{equation}
+  (ii) all its solution functions must equal $g$, i.e., for any solution function $\tilde{g} : \CXJ \times \CXW \to \CXV$,
+%  we have that for $P$-almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$:
+  we have that for all $\xW\in\CXW$, for all $\xJ\in\CXJ$:
+  $$g(\xJ,\xW) = \tilde{g}(\xJ,\xW).$$
+  %We will call such a solution function \emph{unique} since it is unique up to $P$-null sets.
+\end{Def}
+The following result gives two useful properties of unique solvability. 
+The first provides an equivalent formulation that makes it easier to check whether an SCM
+is uniquely solvable, the second provides an important consequence regarding
+the Markov kernels of the SCM.
+\begin{Thm}\label{thm:scm_unique_solvability}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+  \begin{enumerate}
+    \item $M$ is uniquely solvable if and only if 
+      for all $\xW\in\CXW$, for all $\xJ \in \CXJ$, the equation
+      $$\xV = f(\xJ,\xV,\xW)$$
+      has a unique solution for $\xV\in\CXV$.
+%    \item If $M$ is uniquely solvable, then for all $\xJ\in\CXJ$, $M_{\doit(\XJ=\xJ)}$ is uniquely solvable.
+    \item If $M$ is uniquely solvable, it has a unique Markov kernel 
+      $$P_{M}(\XV,\XW \mid\doit(\XJ)) = (g,\id_{\CXW})_* \lp \bigg( \bigotimes_{w\in W} P_w(X_w) \bigg) \otimes \delta(X_J|X_J) \rp $$
+      where $g$ is the unique solution function of $M$.
+    \item If $M$ is uniquely solvable, the distribution of a potential outcome $X^{\doit(\xJ)}_{V\cup W}$ for input $\xJ\in\XJ$ is given by $P_{M}(\XV,\XW \mid \doit(\XJ=\xJ))$.
+  \end{enumerate}
+\end{Thm}
+\begin{proof}
+  \begin{enumerate}
+    \item 
+    ``$\implies$'': Let $g : \CXJ \times \CXW \to \CXV$ be a solution function for $M$. 
+    Let $\xi_W\in\CXW$, $\xi_J\in\CXJ$. The equation $\xV = f(\xV,\xi_J,\xi_W)$ does have a solution for
+    $\xV$ (indeed, $g(\xi_J,\xi_W)$ is such a solution). Suppose its solution is not unique, i.e., it has another
+    solution $\tilde{x}_v \ne g(\xi_J,\xi_W)$. Consider the modified function
+      $$\tilde{g} : \CXJ \times \CXW \to \CXV : (\xJ,\xW) \mapsto \begin{cases}
+        \tilde{x}_V & \xJ = \xi_J \land \xW = \xi_W \\
+        g(\xJ,\xW)  & \text{otherwise}
+      \end{cases}$$
+    $\tilde{g}$ is measurable (because $g$ is measurable), satisfies \eref{eq:scm_unique_solvability}, and hence it provides a solution function. 
+    However, $\tilde{g} \ne g$, which contradicts the assumed unique solvability.
+
+    ``$\impliedby$'':
+    This boils down to proving that the measurability of $f$ and the uniqueness of the solutions implies the measurability of the solution function.
+    %The proof makes use of some more advanced results in measure theory and can be found as part of the proof of Theorem 3.6 in \cite{BFPM21}.
+    We exploit that we are dealing with standard measurable spaces.
+    Define the function $g : \CXJ \times \CXW \to \CXV$ by letting $g(\xJ,\xW)$ be the (unique) solution $\xV$ of the
+    equation $\xV = f(\xV,\xJ,\xW)$, with $\xV\in\CXV$. The graph of this function is
+    $$\mathrm{graph}(g) = \{(\xJ,\xW,\xV) \in \CXJ \times \CXW \times \CXV : \xV = g(\xJ,\xW)\}.$$
+    By assumption, we have that $\xV = g(\xJ,\xW) \iff \xV = f(\xV,\xJ,\xW)$ for all $x \in \CX$. Hence,
+    $$\mathrm{graph}(g) = \{(\xJ,\xW,\xV) \in \CXJ \times \CXW \times \CXV : \xV = f(\xV,\xJ,\xW)\}.$$
+    Defining the function 
+    $$h : \CXJ \times \CXW \times \CXV \to \CXV \times \CXV : (\xJ,\xW,\xV) \mapsto (\xV, f(\xV,\xJ,\xW))$$
+    and the diagonal $\Delta = \{(\xV,\xV) : \xV \in \CXV\} \subseteq \CXV^2$, this shows that
+    $$\mathrm{graph}(g) = h^{-1}(\Delta).$$
+    Since $h$ is measurable and $\Delta$ is a measurable set (because $\CXV$ is Hausdorff), $h^{-1}(\Delta)$ is a measurable set.
+    By \cite[14.12]{Kec95}, because all spaces are (isomorphic to) Borel spaces, the fact that $\mathrm{graph}(g)$ is a measurable set implies that $g$ is a measurable function. Hence $g$ is a solution function. The unique solvability of $M$ follows since this is the only possible solution function.
+% perhaps Fremlin 418R
+
+%\item
+%  This easily follows by using the equivalent formulation of unique solvability from the first point.
+%  If $M$ is uniquely solvable, then
+%  for $P$-almost all $\xW\in\CXW$, for all $\xJ \in \CXJ$, the equation
+%  $$\xV = f(\xJ,\xV,\xW)$$
+%  has a unique solution for $\xV\in\CXV$.
+%  This implies that we can swap the quantifiers, i.e., the equation has a unique solution for $\xV\in\CXV$ for all $\xJ \in \CXJ$, for $P$-almost all $\xW\in\CXW$.
+%  This then shows that for all $\xJ\in\CXJ$, the intervened SCM $M_{\doit(\XJ=\xJ)}$ is uniquely solvable (again by the first point).
+\item
+  Assume $M$ to be uniquely solvable and let $g : \CXJ \times \CXW \to \CXV$ be its unique solution function.
+  The push-forward $(g,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $M$ (interpreted as a constant 
+  Markov kernel from $\CXJ$ to $\CXW$) provides a Markov kernel for $M$.
+  
+  Let $K(\XV,\XW \mid \XJ)$ denote any Markov kernel for $M$ corresponding to a solution $X : \C{U} \times \CXJ \to \CX$.
+  Pick any $\xJ\in\CXJ$. 
+  We have to show that $K(\XV,\XW \mid \XJ=\xJ)$ is a unique distribution.
+  The distribution $K(\XV,\XW \mid \XJ=\xJ)$ is that of $X_{V\cup W}^{\doit(\xJ)}$, which is a potential outcome of $M$.
+  Since $X_{V\cup W}^{\doit(\xJ)}$ is a potential outcome of $M$, we have that $\XW^{\doit(\xJ)} \sim P$ and
+    $$\XV^{\doit(\xJ)} = f(\xJ,\XV^{\doit(\xJ)},\XW^{\doit(\xJ)}) \quad\text{a.s.}$$
+  This implies that
+    $$\XV^{\doit(\xJ)} = g(\xJ,\XW^{\doit(\xJ)}) \quad\text{a.s.}$$
+   By modifying the random variable $X_{V\cup W}^{\doit(\xJ)}$ on a null set, we can obtain a random variable $Y_{V\cup W}^{\doit(\xJ)}$ such that we get equality everywhere:
+  $$Y_V^{\doit(\xJ)} = g(\xJ,Y_W^{\doit(\xJ)}).$$
+  This shows that the distribution of $Y_{V\cup W}^{\doit(\xJ)}$, and hence that of $X_{V\cup W}^{\doit(\xJ)}$, 
+  is that of the push-forward of the exogenous distribution $P$ through the unique function
+  $g_{\xJ} : \CXW \to \CXV : \xW \mapsto (g(x_J,\xW),\xW)$.
+  The latter push-forward distribution is unique.
+  \end{enumerate}
+\end{proof}
+The first equivalence states that one gets the \emph{measurability}
+of the solution function for free from the measurability of the causal mechanism $f$ and 
+the uniqueness of the solutions of the structural equations.
+Note that for the special case of no exogenous input variables ($\Sin = \emptyset$), 
+the above shows that uniquely solvable SCMs induce a unique distribution.
+
+For SCMs whose causal mechanism is linear in terms of the endogenous variables, we can
+give a sufficient condition for unique solvability, and explicitly write down the form
+of their solution function.
+\begin{Prp}\label{prp:linear_scms}
+Let $M=\lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM such that all its
+endogenous variables are real-valued (i.e., $\CX_v = \RN$ for $v \in V$), and each
+component of the causal mechanism is an affine combination of endogenous variables
+with coefficients that may depend on exogenous variables, i.e., of the form
+$$
+  f_v(x) = \sum_{u\in V} B_{vu}(x_J,x_W) x_u + c_v(x_J,x_W),
+$$
+where $B(x_J,x_W)\in\RN^{V \times V}$ is a family of matrices (or: a matrix-valued function $\CXJ\times\CXW \to \RN^{V\times V}$) and
+$c(x_J,x_W) \in \RN^V$ is a family of real-valued offsets (or: a vector-valued function $\CXJ\times\CXW \to \RN^V$).
+
+Then, for any set $L \subseteq V$,
+$(M)_{\doit(V\setminus L)}$ is uniquely solvable if and only if the matrices 
+$I_{L}-B_{LL}(x_J,x_W)$ are invertible for all $x_J \in \CX_J, x_W \in \CX_W$,
+where $I_L \in \RN^{L \times L}$ the identity matrix and 
+$B_{LL}(x_J,x_W) \in \RN^{L \times L}$ the submatrix of $B(x_J,x_W)$.
+Its unique solution function is then:
+  \begin{equation*}\begin{split}
+    g &: \RN^{V\setminus L} \times \RN^{J\cup W} \to \RN^L \\
+      &: (x_{V\setminus L},x_J,x_W) \mapsto (I_L - B_{LL}(x_J,x_W))^{-1} \big(B_{L,{V\setminus L}}(x_J,x_W) x_{V\setminus L} + c_{L}(x_J,x_W)\big).
+  \end{split}\end{equation*}
+\end{Prp}
+%A non-zero coefficient $B_{ij}$ for $i,j\in\C{I}$ such that $i\neq j$ corresponds with a directed edge $j\to i$ in the (augmented) graph, and a coefficient $B_{ii}=1$ for $i\in\C{I}$ corresponds with a self-cycle $i\to i$ in the (augmented) graph of the SCM. A non-zero coefficient $\Gamma_{ij}$ for $i\in\C{I}$, $j\in\C{J}$ with $\Prb_{\C{E}_j}$ a non-degenerate probability distribution over $\RN$ corresponds with a directed edge $j \to i$ in the augmented graph. A non-zero entry $(\Gamma \Gamma^T)_{ij}$ for $i,j\in\C{I}$ with $i\neq j$ such that there exists a $k\in\C{J}$ for which $\Gamma_{ik},\Gamma_{jk}\neq 0$ and $\Prb_{\C{E}_k}$ a non-degenerate probability distribution over $\RN$ corresponds with a bidirected edge $i \oto j$ in the graph of the SCM.
+
+If an SCM is uniquely solvable, this does not necessarily mean that it is still uniquely solvable
+after performing some intervention. 
+To avoid the complications introduced in case solutions are absent, or present but not unique,
+we will henceforth make strong assumptions regarding the existence and uniqueness of solutions. 
+We (mostly) restrict our attention to a subclass of SCMs that we refer to as \emph{simple SCMs},
+which are SCMs that are uniquely solvable and remain so after any hard intervention:
+\begin{Def}\label{def:simple_scm}
+  An SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ 
+  is called \emph{simple} if for any $T \subseteq \Sin \cup \Send \cup \Srnd$, the intervened SCM
+  $M_{\doit(T)}$ is uniquely solvable.
+\end{Def}
+Note that this includes unique solvability of $M$ itself for $T = \emptyset$.
+
+\begin{Eg}
+Consider an SCM with structural equations
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= X_1 X_4 + W_3 \\
+    X_4 &= X_2 X_3 + W_4 
+  \end{align*}
+where the $X$'s are considered real-valued endogenous variables and the $W$'s exogenous variables with domains $(-1,1) \subset \RN$.
+We can solve the system of structural equations for $X$ in terms of $W$:
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 W_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 W_1}
+  \end{align*}
+Similarly, we can take any subset of the structural equations and solve it for the variables appearing on the l.h.s.\ of the equations in the subset, and obtain a unique solution. For example, only solving the structural equations for $X_3$ and $X_4$, we obtain:
+  \begin{align*}
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 X_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 X_1}
+  \end{align*}
+where the variables $X_1$ and $X_2$ are now considered as exogenous input variables (instead of endogenous variables).
+Hence, any subset of the structural equations has a unique solution for the variables appearing on the l.h.s.\ in terms
+of the remaining ones on the r.h.s., which means that this SCM is simple.
+\end{Eg}
+
+Theorem~\ref{thm:scm_unique_solvability} shows that the Markov kernels in the following definition are all uniquely defined.
+\begin{Def}\label{def:simple_scm_Markov_kernels}
+  If SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is simple, and $O \subseteq V \cup W$ is considered observed,
+  then $M$ induces the \emph{observational Markov kernel $P_{M}(X_O \mid \doit(X_J))$}, and for any intervention target 
+  $T \subseteq O$, it induces the \emph{interventional Markov kernel}
+  $$P_{M}(X_{O\setminus T} \mid \doit(X_J),\doit(X_T)) := P_{M_{\doit(T)}}(X_{O\setminus T} \mid \doit(X_{J \cup T})),$$
+  as the marginal Markov kernel of the intervened SCM $M_{\doit(T)}$.
+\end{Def}
+The two notations for interventional Markov kernels of simple SCMs will be used interchangeably.
+
+The fact that these SCMs are relatively simple to deal with (because we do not have to worry about non-existence or 
+non-uniqueness of solutions) motivated their name.
+Even though simplicity is a strong assumption, 
+the class of simple SCMs is more expressive than the class of IL-CBNs since it allows to model causal cycles, to some extent.
+%causal cycles, and (ii) it allows to define counterfactuals.
+
+\subsection{Equivalences}
+
+Equivalence relations are ubiquitous in mathematics. They capture the notion that mathematical objects can be ``equivalent'' 
+from some point of view.
+\begin{Def}\label{def:equivalent_scms}
+  Let $Z$ be a set and $R \subseteq Z^2$ be a relation on $Z$ (i.e., a subset of ordered pairs of $Z$). $R$ is called an \emph{equivalence relation} if 
+  \begin{enumerate}
+    \item $R$ is reflexive: $(a,a) \in R$ for all $a \in Z$;
+    \item $R$ is symmetric: $(a,b) \in R \iff (b,a) \in R$ for all $a,b \in Z$;
+    \item $R$ is transitive: if $(a,b) \in R$ and $(b,c) \in R$ then $(a,c) \in R$ for all $a,b,c\in Z$.
+  \end{enumerate}
+\end{Def}
+In this section, we will discuss several important equivalence relations between SCMs.
+
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \lt \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rt$ be two SCMs that may
+  differ only in terms of their causal mechanism. We say that
+  $M$ is \emph{equivalent} to $\tilde{M}$ and write $M \equiv \tilde{M}$ if for each $v \in \Send$,
+  $$\forall x \in \CX: \qquad x_v = f_v(\xJ,\xV,\xW) \iff x_v = \tilde{f}_v(\xJ,\xV,\xW).$$
+  In words, $M$ and $\tilde{M}$ are considered equivalent if they at most differ in terms of their
+  causal mechanisms, yet each of their structural equations has the same solutions.
+\end{Def}
+Equivalent SCMs are indeed equivalent for many purposes:
+\begin{Prp}
+\begin{enumerate}
+  \item Equivalence is preserved by hard interventions:\\
+    if $M \equiv \tilde{M}$ and $T \subseteq V \cup W \cup J$, then $M_{\doit(T\dots)} \equiv \tilde{M}_{\doit(T\dots)}$;
+    % \item Equivalence is preserved by twinning.
+  \item Unique solvability is an invariant of equivalence:\\
+    if $M \equiv \tilde{M}$ then $M$ is uniquely solvable if and only if $\tilde{M}$ is uniquely solvable;
+  \item Simplicity is an invariant of equivalence:\\
+    if $M \equiv \tilde{M}$ then $M$ is simple if and only if $\tilde{M}$ is simple;
+  \item Equivalent SCMs have the same solution functions, solutions, (potential) outcomes, and Markov kernels.
+\end{enumerate}
+\end{Prp}
+\begin{proof}
+  Exercise for the reader.
+\end{proof}
+
+\begin{Eg}\label{eg:equivalent_scm}
+  The SCM with the single structural equation
+  $$X = -X^3 + X + W$$
+  where $X$ is endogenous, and $W$ is exogenous, is equivalent to the SCM obtained by replacing the structural equation with
+  $$X = \sqrt[3]{W}.$$
+  Note that $X$ no longer appears on the r.h.s..
+\end{Eg}
+This notion of equivalence is rather strong. 
+\begin{Eg}\label{eg:self_cycle}
+  The SCM with endogenous variable $X \in \RN$ and exogenous random variable $W$ with co-domain $\RN$ and structural equation
+  $$X = W X + c$$
+  is not equivalent to the SCM obtained by replacing the structural equation with
+  $$X = \begin{cases}
+          \xi & W = 1 \\
+          \frac{c}{1 - W} & W \ne 1
+        \end{cases}$$
+  no matter how we choose $\xi$, even when $P(W=1) = 0$. 
+  If one does not model interventions on exogenous random variables, weaker notions of equivalence 
+  can be used that replace the ``for all'' quantifier over values of exogenous random variables by the
+  ``for almost all'' quantifier (see \cite{BFPM21}).
+\end{Eg}
+
+We often make use of other notions of equivalence as well.
+For simplicity of exposition, we provide the definitions only for simple SCMs 
+(the general definitions are provided in \cite{BFPM21} for SCMs without exogenous input variables).
+\begin{Def}\label{def:scm_obs_interv_equiv}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \ltuple \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be two simple SCMs
+  and $O \subseteq (\Send \cup \Srnd) \cap (\tilde{\Send} \cup \tilde{\Srnd})$ a subset.
+  We say that:
+  \begin{enumerate}
+    \item $M$ and $\tilde{M}$ are \emph{observationally equivalent w.r.t.\ $O$} if $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$ and their marginal Markov kernels coincide: 
+      $$P_{M}(X_O \mid \doit(X_J)) = P_{\tilde{M}}(X_O \mid \doit(X_{\tilde J})).$$
+    This has to be interpreted as both Markov kernels being a version of a Markov kernel $\CX_{J \cap \tilde{J}} \dshto \CX_O$,
+    i.e., $P_{M}(X_O \mid \doit(X_J))$ must be essentially constant in $x_{J \setminus \tilde{J}}$ and
+    $P_{\tilde{M}}(X_O \mid \doit(X_{\tilde{J}}))$ must be essentially constant in $x_{\tilde{J} \setminus J}$.\footnote{In other words,
+      $$P_{M}(X_O \mid \doit(X_J)) = P_{M}(X_O \mid \doit(X_{J \cap \tilde{J}})) =
+      P_{\tilde{M}}(X_O \mid \doit(X_{J \cap \tilde{J}})) = P_{\tilde{M}}(X_O \mid \doit(X_{\tilde{J}})).$$}
+    \item $M$ and $\tilde{M}$ are \emph{interventionally equivalent w.r.t.\ $O$} if for every subset $T \subseteq O$ the intervened SCMs $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are observationally equivalent w.r.t.\ $O \setminus T$;
+  \end{enumerate}
+%  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+%  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+%  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $M$ and $\tilde{M}$ observationally equivalent, interventionally equivalent, respectively).
+\end{Def}
+More generally, one could define interventional equivalence not only with respect to an observed set of variables, but also with respect to a given set of interventions.
+
+One can show the following properties of these equivalences:
+\begin{Prp}\label{prp:pearls_ladder_levels_1_and_2}
+  For simple SCMs $M, \tilde{M}$ and a subset $O \subseteq (\Send \cap \tilde{\Send}) \cup (\Srnd \cap \tilde{\Srnd})$:
+  \begin{enumerate}
+    \item If $M \equiv \tilde{M}$ then $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+    \item If $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$ then 
+      $M$ and $\tilde{M}$ are observationally equivalent w.r.t.\ $O$.
+  \end{enumerate}
+\end{Prp}
+\begin{comment}\begin{proof}
+  Let $O'$ be the copy of $O \cap (V \cap \tilde{V})$ in $V' \cap \tilde{V}'$.
+  \begin{enumerate}
+    \item 
+     Suppose $M \equiv \tilde{M}$. Then $M^\twin \equiv \tilde{M}^\twin$,
+     and for every $T \subseteq O \cup O'$, $(M^\twin)_{\doit(T)} \equiv (\tilde{M}^\twin)_{\doit(T)}$.
+     Since equivalent SCMs have the same Markov kernels, $(M^\twin)_{\doit(T)}$ and $(\tilde{M}^\twin)_{\doit(T)}$
+     are observationally equivalent w.r.t.\ $(O \cup O') \setminus T$ for every $T \subseteq O \cup O'$.
+
+  \item Suppose $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$. 
+    Then $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$. 
+  For every $T = T \subseteq O \cup O'$,
+  $(M^\twin)_{\doit(T)}$ and $(\tilde{M}^\twin)_{\doit(T)}$ are observationally equivalent w.r.t. $(O \cup O') \setminus T$.
+
+  We have to show that $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+  That is, we have to show that for every $S \subseteq O$, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$
+  are observationally equivalent w.r.t.\ $O \setminus S$.
+
+%  We first practice with a special case.
+%  Take $T_2 = T_1'$ with $T_1 \subseteq O \cap (V \cap \tilde{V})$ and $T_3 = \emptyset$; then
+%  $(M_{\doit(T_1)})^\twin = (M^\twin)_{\doit(T_1,T_1')}$ and $(\tilde{M}_{\doit(T_1)})^\twin = (\tilde{M}^\twin)_{\doit(T_1,T_1')}$ are observationally equivalent w.r.t. 
+%  $$(O \cup O') \setminus (T_1 \cup T_2) = (O \cap (V \cap \tilde{V}) \cup O \cap (W \cap \tilde{W}) \cup (O \cap (V \cap \tilde{V}))') \setminus (T_1 \cup T_1')$$
+%  $$ = O \setminus T_1 \cup ((O \cap (V \cap \tilde{V})) \setminus T_1)'$$
+%  and hence w.r.t.
+%  $$O \setminus T_1.$$
+%  Now by Lemma~\ref{lem:obs_equiv_twin_scm}, $(M_{\doit(T_1)})^\twin$ and $M_{\doit(T_1)}$ are observationally equivalent
+%  w.r.t.\ $V \setminus T_1 \cup W$ and hence w.r.t.\ $O \setminus T_1$.
+%  Similarly, $(\tilde{M}_{\doit(T_1)})^\twin$ and $\tilde{M}_{\doit(T_1)}$ are observationally equivalent w.r.t\ $O \setminus T_1$.
+%  Hence, by transitivity, $M_{\doit(T_1)}$ and $\tilde{M}_{\doit(T_1)}$ are observationally equivalent w.r.t\ $O \setminus T_1$.
+
+%  Let us now consider the general case.
+  Now take $S \subseteq O$ and then let $T_1 = S \cap V \cap \tilde{V}$, $T_2 = T_1'$ and $T_3 = S \cap W \cap \tilde{W}$; then $S = T_1 \cup T_3$.
+  Then by assumption,
+  $$((M_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((M^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (M^\twin)_{\doit(T_1,T_2,T_3)}$$
+  and 
+  $$((\tilde{M}_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((\tilde{M}^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (\tilde{M}^\twin)_{\doit(T_1,T_2,T_3)}$$
+  are observationally equivalent w.r.t.\ $(O \cup O') \setminus T = (O \setminus (T_1 \cup T_3)) \cup (O' \setminus T_2)$, and hence w.r.t.\ $O \setminus S = O \setminus (T_1 \cup T_3)$.
+  By Lemma~\ref{lem:obs_equiv_twin_scm}, $(M_{\doit(T_1)})^\twin$ and $M_{\doit(T_1)}$ are interventionally equivalent
+  w.r.t.\ $V \setminus T_1 \cup W$. Hence
+  $((M_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(M_{\doit(T_1)})_{\doit(T_3)} = M_{\doit(S)}$ are observationally equivalent 
+  w.r.t.\ $V \setminus T_1 \cup W \setminus T_3$, and hence also w.r.t.\ $O \setminus S$.
+  Similarly, $((\tilde{M}_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(\tilde{M}_{\doit(T_1)})_{\doit(T_3)} = \tilde{M}_{\doit(S)}$ are observationally equivalent w.r.t\ $O \setminus S$.
+  Hence, by transitivity, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$ are observationally equivalent w.r.t\ $O \setminus S$.
+  \item Trivial (take $T = \emptyset$).
+  \end{enumerate}
+\end{proof}
+\end{comment}
+However, the reverse implications do not hold in general. This expresses that causal modeling is more refined than probabilistic modeling.
+\begin{Eg}[Observational equivalence does not imply interventional equivalence]
+Consider the SCM $M$ with
+$$N \sim \C{N}(\mu,\sigma^2)$$
+$$C = \alpha + \beta N$$
+and the SCM $\tilde{M}$ with
+$$C \sim \C{N}(\tilde{\mu},\tilde{\sigma}^2)$$
+$$N = \tilde{\alpha} + \tilde{\beta} C$$
+These SCMs are simple and their observational distributions are respectively 
+  $$P_M(N,C) = \C{N}\left(\begin{pmatrix} \mu \\ \alpha + \beta \mu \end{pmatrix}, \begin{pmatrix} \sigma^2 & \beta\sigma^2 \\ \beta\sigma^2 & \beta^2\sigma^2\end{pmatrix}\right)$$
+and
+  $$P_{\tilde{M}}(N,C) = \C{N}\left(\begin{pmatrix} \tilde{\alpha} + \tilde{\beta} \tilde{\mu} \\ \tilde{\mu} \end{pmatrix}, \begin{pmatrix} \tilde{\beta}^2\tilde{\sigma}^2 & \tilde{\beta}\tilde{\sigma}^2 \\ \tilde{\beta}\tilde{\sigma}^2 & \tilde{\sigma}^2\end{pmatrix}\right)$$
+For certain parameter choices, they are observationally equivalent.
+%If $\mu = \tilde{\alpha}\tilde{\mu}$ and $\tilde{\mu} = \alpha \mu$ and
+%  $\sigma^2 = \tilde{\beta}^2\tilde{\sigma}^2$ and $\beta \sigma^2 = \tilde{\beta}\tilde{\sigma}^2$ and $\beta^2 = \tilde{\sigma}^2$ then they are observationally equivalent.
+However, they are not interventionally equivalent except for very special parameter choices.
+\end{Eg}
+
+\subsection{Marginalizations}
+
+When modeling a system, we sometimes want to ``hide'' details of a subsystem. The following operation
+on SCMs that we call ``marginalization'' is a causal analogue of the marginalization of probability distributions.
+The computer program analogy of the marginalization operation is to hide details within a subroutine.
+Intuitively, a marginalization of an SCM over a subset of endogenous variables $L$ is obtained by first 
+solving a subsystem (the structural equations
+corresponding to the endogenous variables in $L$) followed by substituting the solution function of the 
+subsystem into the remaining structural equations
+(corresponding to the endogenous variables in $V\setminus L$).
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM and $L \subseteq \Send$ such that
+  $M_{\doit(V\setminus L)}$ is uniquely solvable.
+  Write $K = V \setminus L$ and let $\tilde{g}_L : \CX_{\Sin \cup K} \times \CXW \to \CX_L$
+  be the unique solution function for $M_{\doit(K)}$.
+  Then we call $M_{\setminus L} = \ltuple \Sin, K, \Srnd, \CX_{\Sin} \times \CX_{K} \times \CX_{\Srnd}, P, \tilde{f} \rtuple$ with
+  $$\tilde{f}(\xJ,x_{K},\xW) = f_{K}(\xJ,x_{K},\tilde{g}_L(\xJ,x_{K},\xW),\xW)$$
+  the \emph{marginalization of $M$ over $L$}.
+\end{Def}
+For simple SCMs, marginalizations are obviously defined over any subset $L \subseteq \Send$.
+%Note that all marginalizations of $M$ are equivalent, i.e., the marginalized causal mechanism is essentially unique.
+
+Marginalization preserves unique solvability, as the following lemma shows.
+\begin{Lem}\label{lem:marginalization_preserves_unique_solvability}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM and $L \subseteq \Send$ such that
+  $M_{\doit(V \setminus L)}$ is uniquely solvable.
+  If $M$ is uniquely solvable then its marginalization $M_{\setminus L}$ is uniquely solvable, and the unique solution function for
+  $M_{\setminus L}$ is just $g_K = \pr_K \circ g$, where $g : \CX_J \times \CX_W \to \CX_V$ is the 
+  unique solution function for $M$, $K = V \setminus L$ and $\pr_K : \CXV \to \CX_K : x \mapsto x_K$ is the canonical projection on $K$.
+\end{Lem}
+\begin{proof}
+  Let $\tilde{g}_L : \CX_{\Sin \cup K} \times \CXW \to \CX_L$
+  be the unique solution function for $M_{\doit(K)}$.
+  From the properties of the solution functions, we derive that
+%  $M$ is uniquely solvable means there exists a measurable function $g : \CX_{J \cup W} \to \CX_V$ such  that
+  for all $x \in \CX$,
+  \begin{equation*}\begin{split}
+  & \begin{cases}
+    x_L = g_L(x_J,x_W) \\
+    x_K = g_K(x_J,x_W) \\
+  \end{cases}
+  \iff x_V = g(x_J,x_W) \iff x_V = f(x) 
+  \iff \begin{cases}
+    x_L = f_L(x) \\
+    x_K = f_K(x) \\
+  \end{cases} \\
+  & \iff \begin{cases}
+    x_L = \tilde{g}_L(x_J,x_K,x_W) \\
+    x_K = f_K(x_J,x_K,x_L,x_W) \\
+  \end{cases}
+  \iff \begin{cases}
+    x_L = \tilde{g}_L(x_J,x_K,x_W) \\
+    x_K = f_K(x_J,x_K,\tilde{g}_L(x_J,x_K,x_W),x_W) \\
+  \end{cases} \\
+  & \iff \begin{cases}
+    x_L = \tilde{g}_L(x_J,x_K,x_W) \\
+    x_K = \tilde{f}(x_J,x_K,x_W) \\
+  \end{cases}
+  \end{split}\end{equation*}
+where $\tilde{f}$ is the causal mechanism of $M_{\setminus L}$.
+Hence for all $x_J \in \CX_J, x_W \in \CX_W, x_K \in \CX_K$:
+$$x_K = g_K(x_J,x_W) \iff x_K = \tilde{f}(x_J,x_K,x_W).$$
+Therefore, $g_K = \pr_K \circ g$ is the unique solution function for $M_{\setminus L}$, and the marginalized SCM $M_{\setminus L}$ is uniquely solvable.
+\end{proof}
+\begin{Rem}
+This also directly implies that if $M$ is uniquely solvable and its marginalization $M_{\setminus L}$ over $L \subseteq V$ is defined, the Markov kernel of the marginalization is obtained by marginalizing the original Markov kernel:
+$$P_{M_{\setminus L}}(X_{V\setminus L},X_W \mid \doit(X_J)) = P_{M}(X_{V\setminus L},X_W \mid \doit(X_J)).$$
+\end{Rem}
+
+Under certain conditions, hard interventions and marginalization commute (i.e., it does not matter in which
+order we apply them).
+\begin{Prp}\label{prp:interventions_marginalizations_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+    For $L \subseteq V$ such that $M_{\doit(V\setminus L)}$ is uniquely solvable,
+    and a hard intervention $\doit(T\dots)$ with target $T \subseteq \Sin \cup \Srnd \cup \Send$ (of any of the three variants) such that $L \cap T = \emptyset$:
+    $$(M_{\doit(T\dots)})_{\setminus L} = (M_{\setminus L})_{\doit(T\dots)}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of
+  the operations performed on the various components of the SCM tuple one-by-one. 
+\end{proof}
+
+We will show that for simple SCMs, the marginalization operation preserves the causal semantics on the remaining variables. 
+A key step is the following proposition, which gives conditions under which it does not matter whether we marginalize at once or in steps.
+\begin{Prp}\label{prp:marginalization_commutes}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM and $L_1, L_2 \subseteq \Send$ such that $L_1 \cap L_2 = \emptyset$.
+  If $M_{\doit(V\setminus L_1)}$ is uniquely solvable, and
+  $(M_{\setminus L_1})_{\doit((V\setminus L_1)\setminus L_2)}$ is uniquely solvable, then $M_{\doit(V\setminus(L_1\cup L_2))}$ is uniquely solvable, and in that case it does not matter if we first marginalize over $L_1$ and then $L_2$, or both at once, i.e:
+  $$(M_{\setminus L_1})_{\setminus L_2} = M_{\setminus (L_1\cup L_2)}.$$
+\end{Prp}
+\begin{proof}
+  Write $K_1 = V \setminus L_1$.
+  Let $\tilde{g} : \CX_{J\cup K_1} \times \CXW \to \CX_{L_1}$ be the unique solution function of $M_{\doit(K_1)}$,
+  i.e., for all $x \in \CX$:
+  $$x_{L_1} = \tilde{g}(x_J,x_{K_1},x_W) \iff x_{L_1} = f_{L_1}(x).$$
+  Let $\tilde{f} : \CX_J \times \CX_{K_1} \times \CXW \to \CX_{K_1}$ with
+  $$\tilde{f}(x_J,x_{K_1},x_W) = f_{K_1}(x_J,x_{K_1},\tilde{g}(x_J,x_{K_1},x_W),x_W)$$
+  be the causal mechanism of the marginal SCM $M_{\setminus L_1}$.
+
+  If $(M_{\setminus L_1})_{\doit(V\setminus(L_1\cup L_2))}$ is uniquely solvable, it has a unique solution function
+  $\dbtilde{g} : \CXJ \times \CX_{V\setminus (L_1\cup L_2)} \times \CXW \to \CX_{L_2}$, i.e., for all $x \in \CX$:
+  $$x_{L_2} = \dbtilde{g}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) \iff x_{L_2} = \tilde{f}_{L_2}(x_J,x_{L_2},x_{K_1\setminus L_2},x_W)$$
+  Define the function $h : \CXJ \times \CX_{V\setminus(L_1\cup L_2)} \times \CXW \to \CX_{L_1 \cup L_2}$ by
+  \begin{align*}
+    h_{L_1}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) &= \tilde{g}(x_J,x_{K_1\setminus L_2},\dbtilde{g}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W),x_W) \\
+    h_{L_2}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) &= \dbtilde{g}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+  \end{align*}
+  Then for all $x \in \CX$:
+  \begin{equation*}\begin{split}
+%    & x_{L_1\cup L_2} = f_{L_1 \cup L_2}(x) \\
+%    \iff &
+    & \begin{cases}
+      x_{L_1} &= f_{L_1}(x) \\
+      x_{L_2} &= f_{L_2}(x) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= \tilde{g}(x_J,x_{K_1},x_W) \\
+      x_{L_2} &= f_{L_2}(x_J,x_{K_1},x_{L_1},x_W) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= \tilde{g}(x_J,x_{K_1},x_W) \\
+      x_{L_2} &= f_{L_2}(x_J,x_{K_1},\tilde{g}(x_J,x_{K_1},x_W),x_W) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= \tilde{g}(x_J,x_{K_1\setminus L_2},x_{L_2},x_W) \\
+      x_{L_2} &= \dbtilde{g}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= \tilde{g}(x_J,x_{K_1\setminus L_2},\dbtilde{g}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W),x_W) \\
+      x_{L_2} &= \dbtilde{g}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+    \end{cases} \\
+    \iff &
+      x_{L_1\cup L_2} = h(x_J,x_{V\setminus(L_1\cup L_2)},x_W) 
+  \end{split}\end{equation*}
+  where in the first equivalence we used the unique solvability of $M_{\doit(K_1)}$, in the second
+  equivalence we used substitution, in the third equivalence we used the unique solvability of
+  $(M_{\setminus L_1})_{\doit(V\setminus (L_1\cup L_2))}$, in the fourth equivalence we used
+  substitution again, and in the fifth equivalence we used the definition of $h$.
+  Therefore, $h$ is the unique solution function for $M_{\doit(V\setminus(L_1\cup L_2)}$, which must therefore
+  be uniquely solvable. By checking the definition, one concludes that $(M_{\setminus L_1})_{\setminus L_2} = M_{\setminus(L_1 \cup L_2)}$.
+\end{proof}
+\begin{Prp}\label{prp:marginalization_preserves_simplicity}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM. For any $L \subseteq \Send$, 
+  its marginalization $M_{\setminus L}$ is also simple.
+\end{Prp}
+\begin{proof}
+  Let $T \subseteq J \cup W \cup V \setminus L$. 
+  By Proposition~\ref{prp:interventions_marginalizations_commute}, 
+  the marginalization commutes with the hard intervention:
+  $$(M_{\setminus L})_{\doit(T)} = (M_{\doit(T)})_{\setminus L}.$$
+  Because $M$ is simple, also $M_{\doit(T)}$ is simple (by Proposition~\ref{prp:hard_interventions_commute}), 
+  and in particular it is
+  uniquely solvable. From Lemma~\ref{lem:marginalization_preserves_unique_solvability} it follows that also
+  its marginalization $(M_{\doit(T)})_{\setminus L}$ is uniquely solvable. 
+  This means that $(M_{\setminus L})_{\doit(T)}$ is uniquely solvable. Since this
+  holds for any $T \subseteq J \cup W \cup V \setminus L$, $M_{\setminus L}$ is simple.
+\end{proof}
+\begin{Cor}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  For $L_1, L_2 \subseteq \Send$ with $L_1 \cap L_2 = \emptyset$,
+    $$(M_{\setminus L_1})_{\setminus L_2} = (M_{\setminus L_2})_{\setminus L_1} = M_{\setminus (L_1 \cup L_2)}.$$
+\end{Cor}
+
+These commutation relations and compatibilities now allow us to give a straightforward proof that
+the causal semantics are preserved under marginalization.
+While this holds generally \cite{BFPM21}, we will here only prove this for simple SCMs.
+\begin{Thm}\label{Thm:various_equiv_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM, $L \subseteq \Send$, and
+  $M_{\setminus L}$ its marginalization over $L$. Then $M$ and $M_{\setminus L}$ are observationally
+  and interventionally equivalent w.r.t.\ $(V \cup W) \setminus L$.
+  % counterfactual equivalence moved to a corollary later on
+\end{Thm}
+\begin{proof}
+  %The statement that $M$ and $M_O$ are observationally equivalent w.r.t.\ $O$ is Lemma~\ref{lem:obs_equiv_marginalization}.
+  Write $K = V \setminus L$.
+  We first show that the marginal Markov kernels $P_{M}(X_K,X_W \mid \doit(X_J))$ and $P_{M_{\setminus L}}(X_K,X_W \mid \doit(X_J))$ are the same.
+%  By Theorem~\ref{thm:scm_unique_solvability}, the observational Markov kernels $P_{M}(X_V, X_W \mid X_J)$ and $P_{M_K}(X_K, X_W \mid X_J)$ exist and are unique. Hence, the marginal observational Markov kernels $P_{M}(X_K,X_W \mid X_J)$ and $P_{M_K}(X_K,X_W \mid X_J)$ exist and are unique. 
+  The former is obtained as:
+  $$P_{M}(X_K,X_W \mid \doit(X_J)) = (\pr_{K\cup W} \circ (g,\id_{\CXW}))_*(P) = (g_{K},\id_{\CXW})_*(P),$$
+  where $g : \CXJ \times \CXW \to \CXV$ is the unique solution function of $M$ and
+  $\pr_{K\cup W} : \CX_{V \cup W} \to \CX_{K\cup W}$ is the canonical projection on the $K\cup W$ components. 
+  The latter is obtained as:
+  $$P_{M_{\setminus L}}(X_K,X_W \mid \doit(X_J)) = (g_K,\id_{\CXW})_*(P)$$
+  since by Lemma~\ref{lem:marginalization_preserves_unique_solvability}, $g_K$ is the (unique) solution function of $M_{\setminus L}$.
+  This means that both push-forwards are identical.
+
+  Let $T \subseteq K \cup W$. Then $(M_{\setminus L})_{\doit(T)} = (M_{\doit(T)})_{\setminus L}$ by
+  Proposition~\ref{prp:interventions_marginalizations_commute}. 
+  The observational equivalence of $M_{\doit(T)}$ and $(M_{\doit(T)})_{\setminus L}$ w.r.t.\ $(K \cup W) \setminus T$ hence implies the observational equivalence of $M_{\doit(T)}$ and $(M_{\setminus L})_{\doit(T)}$ w.r.t.\ $(K \cup W) \setminus T$. 
+  Since this holds for all $T \subseteq K \cup W$, $M$ and $M_{\setminus L}$ are interventionally equivalent w.r.t.\ $K \cup W$.
+%  Finally, $(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L \cup L')}$ by Proposition~\ref{prp:twinning_marginalization_commute}. Since $M^\twin$ and its marginalization
+%  $(M^\twin)_{\setminus (L \cup L')}$ are interventionally equivalent w.r.t.\ $M \cup M' \cup W$, 
+%  $M$ and $M_{\setminus L}$ are counterfactually equivalent w.r.t.\ $M \cup W$.
+\end{proof}
+So the marginalization operation indeed effectively hides the details of a subsystem, while preserving the causal semantics on the remaining part.

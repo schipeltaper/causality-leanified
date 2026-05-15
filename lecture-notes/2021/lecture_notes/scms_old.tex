@@ -1,0 +1,796 @@
+\subsection{Structural Causal Models}
+
+Structural Causal Models (SCMs), also known as Structural Equation Models (SEMs), provide a very
+general class of causal models. They trace back to the early work on path analysis by geneticist
+Sewall Wright (1921), made their
+way to econometrics (Strotz \& Wold, 1960), and then became popular in AI due to the work of Judea Pearl (and many others).
+In these lecture notes, we give a modern treatment inspired by our own research on the matter.
+
+\subsubsection{Deterministic Examples}\label{sec:deterministic_scms}
+
+Before giving a formal definition of SCMs, let us revisit the example regarding chocolate consumption and Nobel prizes
+and try to come up with quantitative causal models for the data generating process.
+
+For a given country, let us consider two real-valued variables: annual chocolate consumption in kilograms per capita ($C$), and the number of Nobel prize winners per year per capita ($N$). We consider the following simplified hypothetical causal models:
+\begin{enumerate}[label=(\roman*)]
+  \item $N$ causes $C$ (``Nobel prize winning countries celebrate with massive chocolate consumption''). 
+    A tacit but important assumption that underlies this model is that $N$ is not caused by $C$. 
+    Assuming an affine relationship, we can model this with the \emph{structural equation}
+    \begin{equation}\label{eq:scm_N_causes_C}
+    C = \alpha + \beta N
+    \end{equation}
+    where $\alpha, \beta \in \RN$ are two parameters.
+%    For didactical reasons, we use here the ``$\gets$'' symbol to denote that the value of $C$ is \emph{set} to the value of $\alpha + \beta N$, similar to assignment operators in programming languages.\footnote{E.g., in \texttt{R} the assignment operator is \texttt{<-}, in \texttt{Pascal} it is \texttt{:=}, and in \texttt{C} and \texttt{python} it is \texttt{=}.} 
+%    In most literature, you will see the notation 
+%    $$C = \alpha + \beta N$$ 
+%    instead, 
+    The convention for such a structural equation is that there must be a single variable on the l.h.s.\ of the equality sign, which indicates that this is the structural equation corresponding to that variable. In the absence of causal cycles,
+    the value of the variable on the l.h.s.\ is set to the value of the expression on the r.h.s.\ of the equality sign.
+    %(i.e., similarly as in popular programming languages). 
+    %We here prefer the ``$\gets$'' notation because it more clearly expresses the asymmetry between cause and effect.
+    While the ordinary (``non-structural'') equation $C = \alpha + \beta N$ is usually considered to be equivalent to the equation $N = (C - \alpha) / \beta$ in the sense that their solutions are the same (at least for $\beta \ne 0$), the structural equation $C = \alpha + \beta N$ has an entirely different meaning than the structural equation $N = (C - \alpha) / \beta$ (even for $\beta \ne 0$).
+    We will make this difference more precise when we discuss the causal semantics in terms of interventions in the next section.
+    For now, we will just note that in the absence of causal cycles, the effect is on the l.h.s.\ of the structural equation, and its direct causes appear on the r.h.s..
+
+    In this model, the variable $C$ is \emph{endogenous}, i.e., its structural equation \eref{eq:scm_N_causes_C} describes how its value is determined by other variables in the model (only $N$ in this case) and model parameters ($\alpha$ and $\beta$ in this case).
+    The variable $N$ is \emph{exogenous}, since its value is determined by something external to our model: the model remains silent about what determines the value of $N$.
+
+    The model does make two tacit important assumptions about how the values of $N$ are determined that are not apparent from equation \eref{eq:scm_N_causes_C}. These are:
+    \begin{enumerate}[label=\arabic*)]
+      \item the exogenous variable $N$ is \emph{not caused by} the endogenous variable $C$, and 
+      \item there is \emph{no common cause} of $N$ and $C$. 
+    \end{enumerate}
+    The first assumption roughly means that if we were to intervene on chocolate consumption $C$ (e.g., by increasing advertizing for chocolate), this would not lead to a change of $N$. The second assumption roughly means that any factor (apart from $N$ and $C$) that causes $N$ does not cause $C$ in any other way than through its effect on $N$. In particular, this means that the parameters $\alpha$ and $\beta$ are assumed to not depend on the value of $N$. In reality, this second assumption is likely to be violated, as the wealth of a country probably causes both $C$ and $N$ directly.
+
+    One concrete way to think about the model (and a very useful analogy) is as a small computer program, for example in the language \texttt{R}:
+    \begin{lstlisting}
+    N_causes_C <- function(N) {
+      C <- alpha + beta * N
+      return(C)
+    }
+    \end{lstlisting}
+    The function takes the value of exogenous variable $N$ as input, applies the structural equation \eref{eq:scm_N_causes_C} to calculate the value of endogenous variable $C$, and returns that as its output. The variable $N$ is ``exogenous'' to the function (its value is set externally), while $C$ is ``endogenous'' (its value is set internally).
+The computer program analogy also shows that changing the value of $C$ by adapting the code inside the function body does not lead to a change in $N$.
+  \item $C$ causes $N$ (``chocolate contains brain enhancing chemicals''). 
+    We can model this with the structural equation
+    \begin{equation}\label{eq:scm_C_causes_N}
+    N = \gamma + \delta C
+    \end{equation}
+    with two parameters $\gamma,\delta \in \RN$.
+    For this model, we again distinguish exogenous and endogenous variables, 
+    but now $C$ is considered the exogenous variable, and $N$ the endogenous variable.
+    A computer program representation of this model in \texttt{R} is:
+    \begin{lstlisting}
+    C_causes_N <- function(C) {
+      N <- gamma + delta * C
+      return(N)
+    }
+    \end{lstlisting}
+    The tacit assumptions are that $N$ does not cause $C$, and that $N$ and $C$ are not confounded.
+  \item $C$ and $N$ have a common cause, wealth $W$ (``The wealth of a country determines both how much money goes to science and also how much people can spend on chocolate'').
+    We could model this using two structural equations:
+    \begin{align}\label{eq:scm_W_causes_C_and_N}
+      C &= \alpha + \beta W \\
+      N &= \gamma + \delta W
+    \end{align} 
+    In this case, we treat the variables $C$ and $N$ both as endogenous, and we treat $W$ as exogenous.
+    The following tacit assumptions are made:
+    \begin{enumerate}[label=\arabic*)]
+      \item $W$ is not caused by $C$, nor by $N$;
+      \item none of the variables is confounded, i.e., there is no other variable that is a common cause of any pair of $\{N,C,W\}$, or even the triple $(N,C,W)$.
+    \end{enumerate}
+    Another way to formulate the second assumption is that the values of $W$, the parameters $(\alpha,\beta)$ and the parameters $(\gamma,\delta)$ are all determined ``independently''.
+
+    A computer program representation of this model in \texttt{R} is:
+    \begin{lstlisting}
+    W_causes_C_and_N <- function(W) {
+      C <- alpha + beta * W
+      N <- gamma + delta * W
+      return(c(C,N))
+    }
+    \end{lstlisting}
+    It takes as input the value of the exogenous variable $W$, applies the structural equations to calculate the values of the endogenous variables $C$ and $N$ accordingly, and returns a tuple with both values as output.
+\end{enumerate}
+Even with only two (or three) variables, many different causal models can be made, and the above three illustrate just a small subset of those. Indeed, we could for example combine the third model with a direct causal effect of $C$ on $N$ (or the other way around), and we could assume more complicated confounding relationships involving latent confounders between the variables.
+In case you wonder how to model the other causal hypotheses (cyclic relationship, selection bias, and functional constraints):
+we will postpone discussion of these since they are inherently more complicated.
+
+\subsubsection{Hard Interventions}
+
+So far, we have been rather informal about the causal meaning of the models (i), (ii) and (iii), which provide different causal explanations for the observed correlation between $C$ and $N$. 
+We will now make this more precise in terms of hypothetical \emph{interventions} that we could perform on the ``system'' (a country) consisting of the two variables $C$ and $N$.
+
+Let us start again with discussing the first model ($N$ causes $C$), with structural equation \eref{eq:scm_N_causes_C}.
+We consider two interventions:
+\begin{itemize}
+  \item What would happen if Putin forced the Russians to eat $c$ kilograms of chocolate every year?
+    We can model this \emph{intervention on (the structural equation for) $C$} by modifying structural equation \eref{eq:scm_N_causes_C} into the following intervened structural equation:
+    \begin{equation}\label{eq:scm_N_causes_C_do_C}
+    C = c.
+    \end{equation}
+    This intervention would obviously lead to a change of the value of $C$ (for most choices of $c$, i.e., except if $c$ happens to equal $\alpha + \beta N$). It would, however, have no effect on the number of Russian Nobel prize winners: the value of $N$ would remain unaltered, since exogenous variables (in this model, $N$) are assumed not to be caused by endogenous ones (for this model, $C$).
+    
+    Following Pearl, we will denote this intervention as $\doit(C=c)$. It is often called a \emph{hard} (or ``\emph{surgical}'', or ``\emph{atomic}'', or ``\emph{perfect}'') intervention because it completely overrides the default causal mechanism that normally determines the value of $C$ expressed by structural equation \eref{eq:scm_N_causes_C}.
+
+    The computer program equivalent of this intervention is to replace the line of code \texttt{C <- alpha + beta * N} with the assignment \texttt{C <- c}. If we consider $c$ to be a (constant) parameter, we get the following ``intervened'' program:
+    \begin{lstlisting}
+    N_causes_C.do_c <- function(N) {
+      C <- c
+      return(C)
+    }
+    \end{lstlisting}
+  \item
+    What would happen if we somehow enforced that the Russians win a certain number of Nobel prizes (e.g., by manipulating the Nobel prize committee members)?
+    In this case, the causal mechanism determining the chocolate consumption modeled by structural equation \eref{eq:scm_N_causes_C} would still be in place. Therefore, changing the exogenous value $N$ would generically (i.e., if $\beta \ne 0$) lead to a change of $C$. In other words, if before the intervention the chocolate consumption is $c = \alpha + \beta n$, and we intervene to set $N=n'$, then after the intervention the value of $C$ will become $c' = \alpha + \beta n'$. This hard intervention is denoted as $\doit(N=n')$.
+    It leaves the structural equation \eref{eq:scm_N_causes_C} invariant. However, to
+    reflect that the value of $N$ is now set to $n'$, we will add the structural equation
+    $$N = n'$$
+    to the model, and from now on will treat $N$ as endogenous to reflect that its value has been set.
+    Thus, the intervened model has structural equations:
+    \begin{align*}
+      N & = n' \\
+      C & = \alpha + \beta N
+    \end{align*}
+    and treats both $C$ and $N$ as endogenous variables.
+% We actually have two modeling options here. The first is to add a structural equation $N \to n'$ and from now on, treat $N$ as endogenous (with its value hardcoded to $n'$ as a result of the intervention). This corresponds with the intervention $\doit(N=n)$. The second is to still treat $N$ as exogenous, and simply keep using the original structural causal model, which does not specify the value of $n'$. The latter corresponds with the intervention (family) $\doit(N)$.
+\end{itemize}
+We summarize this discussion in terms of a larger computer program example (in Figure~\ref{fig:scm_N_causes_C}) that illustrates what this causal model predicts under different interventions.
+
+\begin{figure}\centering
+\begin{lstlisting}
+### observational model
+alpha <- 2.0
+beta <- 0.5
+N_causes_C <- function(N) {
+  C <- alpha + beta * N
+  return(C)
+}
+# query model for the Dutch (n=11):
+N_causes_C(11)
+
+### hard intervention: do (C=c)
+c <- 12 # observed value for Switzerland
+N_causes_C.do_c <- function(N) {
+  C <- c
+  return(C)
+}
+# query model for the Dutch (n=11):
+N_causes_C.do_c(11)
+
+### hard intervention: do (N=n)
+n <- 32 # observed value for Switzerland
+N_causes_C.do_n <- function() {
+  N <- n
+  C <- alpha + beta * N
+  return(c(C,N))
+}
+# query model:
+N_causes_C.do_n()
+\end{lstlisting}
+\caption{Computer program illustrating how to simulate from the causal model ``$N$ causes $C$'' under various interventions.\label{fig:scm_N_causes_C}}
+\end{figure}
+
+\begin{Exc}
+  Write an analogous \texttt{R} program for the second model, $C$ causes $N$. Remember that it
+  treats $C$ as exogenous, $N$ as endogenous, and has structural equation \eref{eq:scm_C_causes_N}.
+  Simulate from the model in the observational setting, after the hard intervention
+  $\doit(C=c)$ and after the hard intervention $\doit(N=n)$.
+\end{Exc}
+
+For what is presumably the most realistic model ($C$ and $N$ are caused by $W$) with structural equations
+\eref{eq:scm_W_causes_C_and_N} and where $W$ is treated as exogenous, and $C$ and $N$ as endogenous, we discuss three hard interventions:
+\begin{itemize}
+  \item $\doit(C=c)$. This changes the structural equations into:
+    \begin{align}\label{eq:scm_W_causes_C_and_N_do_C}
+      C &= c \\
+      N &= \gamma + \delta W
+    \end{align} 
+    Note that while the structural equation for $C$ is changed by the intervention, the structural equation for $N$ is not (i.e., it remains invariant). This reflects the ``perfect'' character of the intervention: it only changes the structural equation(s) of the intervention target(s) (only $C$ in this case), without any side effects on other structural equations.
+  \item $\doit(N=n)$. Similarly, this only changes the structural equation for $N$, without modifying the structural equation for $C$, and yields the following intervened structural equations:
+    \begin{align}\label{eq:scm_W_causes_C_and_N_do_N}
+      C &= \alpha + \beta W \\
+      N &= n
+    \end{align} 
+  \item $\doit(W=w)$. Since $W$ is exogenous, the structural equations for $C$ and $N$ remain the same as in the ``observational'' (pre-interventional) setting, i.e., as in \eref{eq:scm_W_causes_C_and_N}, and we add a structural equation for $W$:
+    \begin{align*}
+      C &= \alpha + \beta W \\
+      N &= \gamma + \delta W \\
+      W &= w
+    \end{align*}
+  In this intervened model, all three variables are treated as endogenous variables.
+\end{itemize}
+
+%We finish by giving a deterministic version of Definition~\ref{def-causality-real}:
+%\begin{Def}[Causal effect---deterministic version]
+%    \label{def:causality-real-deterministic}
+%    We say that endogenous variable $X$ has \emph{causal effect} on another endogenous variable $Y$ if
+%    under the hard intervention $\doit(X=x)$, the value of $Y$ depends on $x$. In other words,
+%    if there exist two values $x,x'$ such that $Y_x \ne Y_{x'}$.
+%\end{Def}
+
+\begin{Exc}
+  For each of the three hard interventions considered above: what variable values are changed due to the intervention (comparing with the pre-interventional ``observational'' model)? 
+  How do these correspond to the intuitive causal effects between the three variables?
+\end{Exc}
+
+\subsubsection{Soft Interventions}
+
+A more general class of interventions are \emph{soft interventions}. These modify 
+the expression on the r.h.s.\ of a structural equation, but without adding new variables
+to that expression. Special casees are hard interventions on endogenous variables.
+
+As an example, consider the model with the confounder $W$ for $C$ and $N$, with 
+structural equations:
+    \begin{align*}
+      C &= \alpha + \beta W \\
+      N &= \gamma + \delta W.
+    \end{align*}
+An example of a soft intervention on $C$ is a change in the parameter $\beta$, replacing it
+with $\beta'$ (perhaps to reflect a change in the chocolate price):
+    \begin{align*}
+      C &= \alpha + \beta' W \\
+      N &= \gamma + \delta W.
+    \end{align*}
+Another example would be to change the functional form of the structural equation:
+    \begin{align*}
+      C &= \beta\gamma + \alpha W^3 \\
+      N &= \gamma + \delta W.
+    \end{align*}
+In contrast to a hard intervention on $C$, which would remove all occurrences of 
+endogenous and exogenous variables at the r.h.s.\ of the structural equation for $C$,
+this soft intervention only changes the functional / parametric form of the equation,
+but its value may still depend on the variables that appeared in the original 
+structural equation.
+
+In general, a soft intervention on $C$ will result in the following structural equations:
+    \begin{align*}
+      C &= f_{\B{\theta}}(W) \\
+      N &= \gamma + \delta W
+    \end{align*}
+for some function $f_{\B{\theta}} : \RN \to \RN$ parameterized by some parameter $\B{\theta} \in \B{\Theta}$.
+Similarly, a soft intervention on $N$ will result in
+    \begin{align*}
+      C &= \alpha + \beta W \\
+      N &= g_{\B{\theta}}(W)
+    \end{align*}
+for some function $g_{\B{\theta}} : \RN \to \RN$ parameterized by some parameter $\B{\theta} \in \B{\Theta}$.
+
+\subsubsection{Intervention Variables}\label{sec:intervention_variables}
+
+It can be very convenient to introduce explicit variables that indicate whether or how
+interventions have been performed. These are often referred to as \emph{intervention variables}
+(and are special cases of so-called \emph{context variables}, \emph{environment variables} and \emph{domain indicators}).
+
+Often, intervention variables can be considered as exogenous. For instance, if their values (i.e., which intervention
+is performed, and how) are determined earlier in time than the values of the endogenous variables, 
+which means that the endogenous variables cannot cause the intervention variables (except, perhaps, if
+time travel becomes possible). An
+example is a scientific experiment in which the experimenter prepares the system in some 
+experimental condition before performing measurements, which implies that the experimental condition 
+cannot be influenced by the measured state of the system. 
+A concrete instance of such an intervention variable is 
+the coin flip that determines whether a subject enters the treatment or control group in a
+randomized controlled trial. 
+However, if a doctor prescribes a certain treatment based on 
+the state of the patient determined through a diagnosis, then the treatment variable is 
+influenced by the patient's state and should therefore not be considered to be exogenous with
+respect to the patient's state.
+
+Let us discuss the randomized controlled trial example as described in Principle~\ref{prn:rct} in more detail.
+Let $X$ be the variable that describes treatment, and $Y$ be the variable that describes the outcome.
+Introduce the binary intervention variable $C$ that indicates whether the subject enters the
+test group ($C=1$) or the control group ($C=0$). In practice, one uses a coin or, nowadays, a 
+random number generator, to determine the value of $C$. Due to the experimental setup of the RCT, 
+we may therefore safely assume $Y$ and $X$ not to cause $C$. Thus we can consider $C$ as an 
+exogenous variable, and can write down the following structural equations to model the RCT,
+treating $X$ and $Y$ as endogenous variables:
+  \begin{align*}
+    X &= \begin{cases}
+      x_0 & \text{if $C=0$,} \\
+      x_1 & \text{if $C=1$} 
+    \end{cases} \\
+    Y &= \alpha + \beta X.
+  \end{align*}
+The parameter $\beta$ is often referred to as ``the causal effect of $X$ on $Y$'', in the sense
+of being the effect that a unit change of $X$ has on $Y$.
+In addition to the assumption that $C$ is not caused by $X$ or $Y$, an important assumption is
+also that there is no confounding between $C$ and $Y$. This boils down to assuming that the outcome
+of the coin flip is not determined by anything else that causally influences the outcome $Y$
+(in particular, there is no room for God's will in this model).
+
+%Alternatively, we could consider $X$ itself to be the intervention variable; then there is no
+%need to introduce the variable $C$, we would consider $X$ as exogenous and $Y$ as endogenous,
+%and the model would only consist of the structural equation for $Y$:
+%    $$Y \gets \alpha + \beta X.$$
+
+There is no need for an intervention variable to be binary or discrete. An example of a continuous
+intervention variable is the dose of the drug used for treatment. The dose often quantitatively
+affects the outcome. This dependence is visualized in dose-response curves that link 
+a quantitative response to the dose of the drug that was administered. 
+The following so-called Hill model is often used:
+$$Y = \frac{Y_{max}}{1 + \left(\frac{D}{D_{50}}\right)^{-n}}$$
+where $Y$ is the response, $D$ the dose, and $Y_{max}$, $D_{50}$ and $n$ are parameters
+(the maximum response, the potency, and the Hill coefficient, respectively).
+We can consider $D$ to be a continuous (non-negative) intervention variable, that not only indicates
+whether an intervention was performed ($D > 0$?), but also 
+how the intervention was performed (the administered dose).
+It is again obvious from the setting that the response does not causally influence the dose.
+However, if there is no explicit and careful randomization, one cannot always assume that
+there is no common cause of dose and response. For example, if physicians decide not to treat
+patients with terminal cancer, then the stage of the cancer is a common cause of dose and response.
+%\footnote{However, 
+%one has to be careful about implicit temporal aspects: if the response $Y$ refers
+%to the response of a previous treatment, and $D$ is the dose of a next treatment, then it
+%could be very well the case that $Y$ causes $D$, for example, if a doctor is in the process
+%of adjusting the dose to obtain an optimal response.}
+
+
+\subsubsection{Modeling Uncertainty}
+
+So far, we have not introduced any randomness into our causal models. This is
+often an important step when modeling a system. While this is a \emph{sine qua
+non} for purely probabilistic/statistical modeling, it is optional---yet
+common---in causal modeling. 
+
+The main reason for introducing stochasticity into a model is to deal with
+missing information about the system state. For example, when
+rolling a die, if one would have access to the exact initial state (position, momentum,
+angular momentum) of the die once released, one could calculate the outcome of the 
+roll as a (complicated) deterministic function of the initial state. In
+practice, it is neither feasible to measure or control the initial state of the die
+after it is released from the hand, nor to calculate this deterministic function. 
+Therefore, instead of attempting to model this
+meticulously, one can deal with any remaining uncertainty by modeling its probability distribution
+(which could either describe the subjective beliefs about the value of a variable
+in a Bayesian interpretation, or, in a frequentist interpretation, a description of 
+its statistics given an infinite ensemble consisting of copies of the system). 
+
+In causal modeling, we often have to 
+incorporate stochasticity in this way. Therefore, in a structural causal model,
+we will specify certain probability distributions on subsets of the \emph{exogenous}
+variables to explicitly represent ``noise'' that may affect the values of the
+endogenous variables. This leads us to distinguish three types of variables:
+endogenous variables, exogenous input variables, and exogenous random variables.
+The only difference between the exogenous input variables and the exogenous
+random variables is that the model specifies the probability distributions of the
+latter, while not making any assumptions on the values assumed by the former.
+Often, the exogenous random variables are introduced to model ``noise'' and 
+are considered latent; hence they are sometimes referred to as ``noise'' or
+``disturbance'' variables.
+
+As an example, we will again revisit the chocolate consumption and Nobel price
+winners example. Consider the causal model $C$ causes $N$, based on the hypothesis
+that chocolate consumption enhances cognitive abilities. When looking at the data
+in Figure~\ref{fig:choco-nobel}, it is obvious that an exact affine relationship
+of the form $N = \gamma + \delta C$ cannot be very accurate, as for example
+The Netherlands has the same chocolate consumption as Australia, but obtained 
+considerably more Nobel prizes per capita. We can hypothesize that 
+other factors determine the value of $N$, apart from $C$. Rather than attempting to meticuluously
+model all of these factors, we will introduce just a single ``effective'' or 
+``aggregated'' exogenous random
+variable $E$ that expresses their residual influence on $N$. We thus refine our
+structural equation for $N$ to:
+  \begin{equation}\label{eq:se_C_causes_N_noisy}
+  N = \gamma + \delta C + E
+  \end{equation}
+and in addition we assume that $E$ has a certain probability distribution $P^E$.
+For concreteness, we could assume that $E \sim \Ncal(0,\sigma^2)$, i.e., that $E$
+has a Gaussian distribution with zero mean and variance $\sigma^2$, where we 
+introduced a new parameter $\sigma^2$ to the model. Summarizing, the stochastic
+structural causal model then becomes:
+  \begin{align*}\label{eq:scm_C_causes_N_noisy}
+      E \sim {} & \Ncal(0,\sigma^2) \\
+      N = {} & \gamma + \delta C + E,
+  \end{align*}
+with $C$ an exogenous input variable, $E$ an exogenous random variable,
+and $N$ an endogenous variable, and parameters $\gamma,\delta,\sigma^2$.
+
+The model can again be implemented as a computer program in \texttt{R}:
+    \begin{lstlisting}
+    C_causes_N_stoch <- function(C) {
+      E <- rnorm(1,mean = 0,sd = sigma)
+      N <- gamma + delta * C + E
+      return(N)
+    }
+    \end{lstlisting}
+This function takes as input the value of $C$, then samples an (independent) random 
+value for $E$, and uses that to calculate the value for $N$ that is returned.
+Here, $N$ is the endogenous variable, $C$ is an exogenous input variable, and $E$ is an exogenous random variable.
+
+Note that the analogy is not entirely accurate, as the structural causal model
+prescribes the probability distribution of $E$, while the computer program samples 
+a value from this distribution. The reason is that a language like \texttt{R} does
+not allow us to express probability distributions; for that, we would need a 
+probabilistic programming language, but those are less well known and therefore less
+useful for our didactic purpose. Henceforth we will think of computer implementations
+of a structural causal model as programs that \emph{sample} from the model, and 
+whose elements correspond directly with those of the model.
+
+\subsubsection{Formal Definitions: Structural Causal Models}
+
+After this lengthy motivation, we will now define structural causal models formally.
+In contrast with many definitions encountered in the literature,\footnote{For
+example, \cite{Pearl09} only formally distinguishes exogenous random variables and 
+endogenous variables.} we will explicitly distinguish
+three types of variables: exogenous random variables and endogenous variables, and exogenous
+input variables. This may appear to complicate matters at first sight, but will instead provide 
+formal clarity later on.
+%To emphasize this distinction from the more common notion of Structural Causal Models
+%we will call these SCMs \emph{contextual}. The reason is that the exogenous input variables are often
+%used to specify the \emph{context}.
+\begin{Def}[Structural Causal Model]\label{def:scm}
+  A Structural Causal Model is a tuple $\langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$ 
+  with\footnote{Not all types of variables need to be present. Rather than giving separate definitions for `degenerate' cases, we can stay in the formalism by defining what happens for empty label sets. For example, suppose the SCM is deterministic, i.e., $\S{Z} = \emptyset$. Then $\BC{Z}$ is an empty product (i.e., a product over 0 spaces), and by definition becomes a space $\Asterisk = \{\asterisk\}$ with a single element $\asterisk$, with the trivial sigma algebra $\{\emptyset,\{\asterisk\}\}$. The only possible probability distribution on such a space is the trivial distribution, i.e., $P(\{\asterisk\}) = 1$. In practice, we often just act as if $\BC{Z}$ and everything associated to it (e.g., $P$) was not even part of the definition in such cases. Similarly, it often happens that there are no exogenous input variables (if $\S{X}$ is empty).}
+  \begin{itemize}
+    \item $\BC{X} = \prod_{i\in\S{X}} \C{X}_i$ where each $\C{X}_i$ is a standard measurable space defining the value space of \emph{exogenous (input) variable} $X_i$, with $\S{X}$ a finite set of labels;
+    \item $\BC{Y} = \prod_{j\in\S{Y}} \C{Y}_j$ where each $\C{Y}_j$ is a standard measurable space defining the value space of \emph{endogenous (output) variable} $Y_j$, with $\S{Y}$ a finite set of labels;
+    \item $\BC{Z} = \prod_{k\in\S{Z}} \C{Z}_k$ where each $\C{Z}_k$ is a standard measurable space defining the value space of \emph{exogenous random variable} $Z_k$, with $\S{Z}$ a finite set of labels;
+    \item $P = \prod_{k\in\S{Z}} P_k$ specifies the \emph{exogenous distribution} as a product of probability distributions $P_k$ on each exogenous space $\C{Z}_k$;
+    \item the measurable function $\B{f} : \BC{X} \times \BC{Y} \times \BC{Z} \to \BC{Y}$ specifies the \emph{causal mechanisms}.
+  \end{itemize}
+\end{Def}
+Often, the causal mechanism $\B{f}$ and the exogenous distribution $P$ depend on 
+\emph{exogenous parameters} $\B{\theta}\in\B{\Theta}$, which we may make explicit by writing
+$\B{f}_{\B{\theta}}$ and $P_{\B{\theta}}$ instead. Note that a statistical model can
+be seen as a special case of a SCM that has no endogenous variables, nor any exogenous
+input variables. A complementary subclass is formed by deterministic models with 
+exogenous inputs and endogenous outputs (but without exogenous random variables)
+that we discussed in Section~\ref{sec:deterministic_scms}. In this sense, structural 
+causal models can be regarded as a marriage of statistical models as traditionally used 
+in statistics with deterministic causal models that are used informally in disciplines
+like physics and engineering.
+
+\begin{Rem}
+There are three crucial assumptions embodied in the modeling approach using SCMs:
+\begin{enumerate}
+  \item The distinction between endogenous and exogenous variables: exogenous variables
+    (i.e., exogenous input variables, exogenous random variables, and exogenous parameters)
+    are not caused by endogenous variables, by assumption;
+  \item Exogenous random variables are mutually independent, and independent of the
+    exogenous input variables in the sense that their probability distribution does
+    not depend on the joint value of all exogenous input variables; however, we do
+    allow for ``dependencies'' between exogenous input variables;
+  \item Exogenous parameters are distinguished from exogenous random variables in that
+    the former describe ``population'' properties whereas the latter describe ``individual''
+    quantities.\footnote{In line with the convention in ML, the word ``model'' refers to a SCM
+    with a fixed choice of the parameters, and ``model family'' to a family of models
+    indexed measurably by parameters.} 
+\end{enumerate}
+Often (but not always) the exogenous random variables are latent (i.e., not observed),
+and are used as ``noise'' variables to incorporate remaining uncertainty in the values of the endogenous variables.
+However, since it may depend on the context whether variables are observed or latent 
+(e.g., in a training data set, the prediction target is typically observed, whereas
+it is latent in a test data set), we will not incorporate formal assumptions regarding
+which variables are observed and which are latent into the model.
+%In other words: they have a probabilistic interpretation, but not a causal one.
+
+%Usually, the endogenous variables correspond with the variables in the system that we are
+%modeling. The model remains silent about the environment of the system.
+%The exogenous variables can be thought of as if they reside in the boundary between the
+%system and its environment: we model how they directly affect the system variables, 
+%and for exogenous random variables we model the distribution of their values,
+%but we do not model what determines the values of the exogenous variables since that
+%is assumed to be completely outside of the system.
+\end{Rem}
+
+In our informal motivation, models were defined by structural equations (with specified
+probability distributions on exogenous random variables). These structural equations are not 
+explicitly included in Definition~\ref{def:scm} but can be derived from the causal mechanism
+as the equations that determine the solutions of the model. This is done as follows.
+
+\begin{Def}[Outcomes and solutions]\label{def:scm_outcomes}
+  Let $\C{M} = \langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$ be an SCM
+  and $\B{x} \in \BC{X}$ an input value.
+  A random variable $(\B{Y}^{\B{x}},\B{Z})$ with codomain $\BC{Y}\times\BC{Z}$ is called a
+  \emph{solution of $\C{M}$ for input $\B{x}$} if the following two conditions hold:
+    \begin{enumerate}
+      \item its $\B{Z}$-component has the exogenous distribution specified by $\C{M}$: 
+        $$\B{Z} \sim P,$$
+      \item it satisfies the structural equations entailed by $\C{M}$:
+        \begin{equation}\label{eq:cscm_structural_equations}
+          \B{Y}^{\B{x}} = \B{f}\big(\B{x}, \B{Y}^{\B{x}}, \B{Z}\big) \text{ a.s.}.
+        \end{equation}
+    \end{enumerate}
+  In that case, $\B{Y}^{\B{x}}$ is called an \emph{outcome of $\C{M}$ for input $\B{x}$}.
+  
+  For the special case of an SCM with no exogenous input variables ($\S{X} = \emptyset$), the
+  structural equations reduce to the form mostly encountered in the literature:
+  \begin{equation}\label{eq:scm_structural_equations}
+    \B{Y} = \B{f}\big(\B{Y}, \B{Z}\big) \text{ a.s.},
+  \end{equation}
+  or explicitly in terms of the components:
+  \begin{equation}\label{eq:scm_structural_equations_componentwise}
+    Y_j = f_j\big(\B{Y}, \B{Z}\big) \text{ a.s.}, \quad j \in \S{Y}.
+  \end{equation}
+\end{Def}
+We often construct outcomes by making use of the solution functions of an SCM:
+\begin{Def}[Solution function of an SCM]\label{def:scm_solution_functions}
+  Given an SCM $\C{M} = \langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$, we call a measurable function
+  $\B{g} : \BC{X} \times \BC{Z} \to \BC{Y}$ a \emph{solution function of $\C{M}$} if it satisfies the structural equations
+  for $P$-almost all $\B{z}\in\BC{Z}$, for all $\B{x}\in\BC{X}$:\footnote{NB: The ordering of the quantifiers matters here, i.e., ``for almost all $\B{z}\in\BC{Z}$, for all $\B{x}\in\BC{X}$'' is a stronger condition than ``for all $\B{x}\in\BC{X}$, for almost all $\B{z}\in\BC{Z}$''. In any case, if a property holds for all $\B{z}\in\BC{Z}$, then it also hold for almost all $\B{z}\in\BC{Z}$ .} 
+  $$\B{g}(\B{x},\B{z}) = \B{f}\big(\B{x}, \B{g}(\B{x},\B{z}), \B{z}\big).$$
+%  More explicitly, in components, the structural equations read:
+%  $$g_j(\B{x},\B{z}) = \B{f}_j\big(\B{x}, \B{g}(\B{x},\B{z}), \B{z}\big) \qquad \forall j \in \S{Y}.$$
+  In that case, $(\B{g}(\B{x}, \B{Z}),\B{Z})$ is a solution of $\C{M}$ for input $\B{x}$, and 
+  $\B{Y}^{\B{x}} := \B{g}(\B{x}, \B{Z})$ is an outcome for $\C{M}$ for input $\B{x}$,
+  for all values $\B{x}\in\BC{X}$ and random variables $\B{Z} \sim P$.
+\end{Def}
+
+Note that not every SCM has solutions, since not every set of equations has a solution. 
+For example, consider (structural) equations
+$$\begin{cases}
+  X_1 = \alpha X_2 & \\
+  X_2 = \beta X_1 + c &
+\end{cases}$$
+If $\alpha \beta = 1$ and $c = 0$, then $(X_1,X_2) = (\alpha x,x)$ is a solution for any value $x\in\RN$. 
+If $\alpha \beta = 1$ and $c \ne 0$, then there is no solution. 
+If $\alpha \beta \ne 1$, then the solution is unique: $(X_1,X_2) = (\frac{\alpha c}{1 - \alpha\beta},\frac{c}{1 - \alpha\beta})$.
+
+\begin{Def}\label{def:scm_unique_solvability}
+  An SCM $\C{M} = \langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$ is called \emph{uniquely solvable} if it has a solution function, and if in addition,
+  for any two solution functions $\B{g} : \BC{X} \times \BC{Z} \to \BC{Y}$, $\tilde{\B{g}} : \BC{X} \times \BC{Z} \to \BC{Y}$,
+  we have that for $P$-almost all $\B{z}\in\BC{Z}$, for all $\B{x}\in\BC{X}$:
+  $$\B{g}(\B{x},\B{z}) = \tilde{\B{g}}(\B{x},\B{z}).$$
+  We will call such a solution function \emph{essentially unique} since it is unique up to $P$-null sets.
+\end{Def}
+
+\begin{Eg}\label{ex:scms_formal}
+  We formalize the three models we discussed in Section~\ref{sec:deterministic_scms} (and a variant) as SCMs.
+  \begin{itemize}
+    \item $N$ causes $C$:
+      $\S{X} = \{N\}$, $\S{Y} = \{C\}$, $\S{Z} = \emptyset$, $\B{\theta} = (\alpha,\beta) \in \RN^2$, 
+      $\BC{X} = \RN$, $\BC{Y} = \RN$, $\BC{Z} = \Asterisk$, $f : (x_N,y_C) \mapsto \alpha + \beta x_N$.
+      %\footnote{If we are in a uber-formal mood, we would define $f : \BC{X} \times \BC{Z} \to \BC{Y} : (X_N,\emptyset) \mapsto \alpha + \beta X_N$, but we will normally just ignore the ``constant'' inputs for empty Cartesian products.}
+      It has a unique solution function, $g : x_N \mapsto \alpha + \beta x_N$.
+      It also has unique outcomes of the form $Y_C^{x_N} = \alpha + \beta x_N$.
+    \item $C$ causes $N$:
+      $\S{X} = \{C\}$, $\S{Y} = \{N\}$, $\S{Z} = \emptyset$, $\B{\theta} = (\gamma,\delta) \in \RN^2$, 
+      $\BC{X} = \RN$, $\BC{Y} = \RN$, $\BC{Z} = \Asterisk$, $f : (x_C,y_N) \mapsto \gamma + \delta x_C$.
+      It has a unique solution function, $g : x_C \mapsto \gamma + \delta x_C$.
+      It also has unique outcomes of the form $Y_N^{x_C} = \gamma + \delta x_C$.
+    \item $W$ causes $C$ and $N$:
+      $\S{X} = \{W\}$, $\S{Y} = \{C,N\}$, $\S{Z} = \emptyset$, $\B{\theta} = (\alpha,\beta,\gamma,\delta) \in \RN^4$, 
+      $\BC{X} = \RN$, $\BC{Y} = \RN \times \RN$, $\BC{Z} = \Asterisk$, $\B{f} : (x_W,y_C,y_N) \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \BC{Y}_C \times \BC{Y}_N$.
+      It has a unique solution function, $\B{g} : x_W \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \BC{Y}_C \times \BC{Y}_N$.
+      It also has unique outcomes of the form $\B{Y}^{x_W} = (\alpha + \beta x_W, \gamma + \delta x_W)$.
+    \item $W$ causes $C$ and $N$, stochastic version:
+      $\S{X} = \emptyset$, $\S{Y} = \{C,N\}$, $\S{Z} = \{W\}$, $\B{\theta} = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+      $\BC{X} = \Asterisk$, $\BC{Y} = \RN \times \RN$, $\BC{Z} = \RN$, $f : (y_C,y_N,z_W) \mapsto (\alpha + \beta z_W, \gamma + \delta z_W) \in \C{Y}_C \times \C{Y}_N$, $P = \C{N}(0,\sigma^2)$.
+      One of its solution functions is $\B{g} : z_W \mapsto (\alpha + \beta z_W, \gamma + \delta z_W) \in \C{Y}_C \times \C{Y}_N$ (and another one is $\tilde{\B{g}} : z_W \mapsto \B{g}(z_W) + \I_{\{\pi\}}(z_W)$, but note that $\B{g}(Z_W) = \tilde{\B{g}}(Z_W)$ a.s.\ for $Z_W \sim P$).
+      Its outcomes are essentially of the form $\B{Y} = (\alpha + \beta Z_W, \gamma + \delta Z_W)$ for any random variable $Z_W \sim \C{N}(0,\sigma^2)$.
+  \end{itemize}
+\end{Eg}
+
+In practice, an SCM is often specified more informally by writing down the corresponding structural
+equations \eref{eq:scm_structural_equations} and the exogenous distribution. Any variables appearing
+on the r.h.s.\ of some structural equation that do not correspond with a structural equation for which
+that variable appears on the l.h.s., nor have a distribution specified, are then implicitly taken as
+exogenous inputs or parameters.
+
+The reason that equations \eref{eq:scm_structural_equations} are called \emph{structural} is that one cannot simply rewrite them 
+in the way one is used to when solving a set of equations without changing the causal semantics of 
+the model. This should become clear after the next section.
+%Previously, we reflected this by using the assignment operator $\gets$, but from here on
+%we will use the more common notation using the equality sign $=$. There are two reasons for this:
+%(i) this notation is consistent with the interpretation in case of causal cycles, whereas the 
+%assignment operator only works in case cycles are absent, and (ii) our formal definition of SCM in 
+%terms of the causal mechanism (rather than in terms of the corresponding set of 
+%structural equations) removes this ambiguity.
+
+\subsubsection{Formal Definitions: Interventions}
+
+Formally, an intervention is a change in the causal mechanism of an SCM that
+leaves other aspects (in particular, the exogenous distribution) unmodified.
+This general notion encompasses hard interventions, soft interventions and other interventions. 
+
+A hard intervention that sets a specific subset of endogenous variables (the intervention target)
+to certain specified values, overriding
+the default causal mechanisms that normally determine their values, is modeled in the following way.
+\begin{Def}[Hard intervention on endogenous variables with specified target values]\label{def:intervened_scm_set}
+  Given an SCM $\C{M}$, an intervention target $T \subseteq \S{Y}$ 
+  and an intervention value $\hat{\B{y}}_T \in \BC{Y}_T$, we define the \emph{intervened SCM
+  $\C{M}_{\doit(\B{Y}_T=\hat{\B{y}}_T)}$} as the tuple $\langle \BC{X},\BC{Y},\BC{Z},P,\hat{\B{f}} \rangle$ where
+  the components of the intervened causal mechanism $\hat{\B{f}} : \BC{X} \times \BC{Y} \times \BC{Z} \to \BC{Y}$ are given by:
+    $$\hat{f_j}(\B{x},\B{y},\B{z}) = \begin{cases}
+        \hat{y}_j & j \in T \\
+        f_j(\B{x},\B{y},\B{z}) & j \notin T.
+    \end{cases}$$
+  for $j \in \S{Y}$.
+\end{Def}
+In terms of the structural equations, this replaces the structural equations of the form
+$Y_j^{\B{x}} = f_j(\B{x},\B{Y}^{\B{x}},\B{Z})$ for $j \in T$ to structural equations of the simple form $Y_j^{\B{x}} = \hat{y}_j$,
+and leaves the other structural equations invariant.
+This reflects that after this hard intervention, the values for
+the intervention target variables are no longer determined by other variables, but are set to 
+certain prescribed values, while the values of the other endogenous variables are still
+determined by their original causal mechanisms.
+
+This provides a bridge to the ``potential outcome framework'' that is very popular in the statistics and econometrics literature:
+\begin{Def}[Potential Outcomes]\label{def:scm_potential_outcomes}
+  Let $\C{M} = \langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$ be an SCM,
+  and $T \subseteq \S{Y}$ an intervention target.
+  For any values $\B{x} \in \BC{X}$ and $\B{y}_T \in \BC{Y}_T$, a random variable 
+  $\B{Y}^{\B{x},\B{y}_T}$ with codomain $\BC{Y}$ is called a 
+  \emph{potential outcome for $\C{M}$} if
+  it is an outcome for the intervened SCM $\C{M}_{\doit(\B{Y}_T=\B{y}_T)}$.\footnote{Other notations for potential outcomes frequently used in the SCM literature are $\B{Y}_{\B{y}_T}$ and $\B{Y}_{\hat{\B{y}}_T}$ in case $\S{X} = \emptyset$, and simply $\B{Y}$ in case also $T = \emptyset$.}
+\end{Def}
+
+For SCMs without exogenous input variables, we introduce the following terminology.\footnote{We will generalize this to SCMs with exogenous input variables in Definition~\ref{def:scm_kernels} 
+once Markov kernels have been defined.}
+\begin{Def}\label{def:scm_distributions}
+  Given an SCM $\C{M} = \langle \Asterisk, \BC{Y}, \BC{Z}, P, \B{f} \rangle$
+  and a solution $(\B{Y},\B{Z})$ of $\C{M}$, the distribution
+  $P(\B{Z},\B{Y})$ is called an \emph{observational distribution} of $\C{M}$.
+  Often, when $\B{Z}$ is considered latent, we will also call its marginal
+  $P(\B{Y})$ an observational distribution of $\C{M}$.
+
+  For an intervention target $T \subseteq \S{Y}$ and an intervention value $\B{y}_T\in\BC{Y}_T$,
+  the distribution of a solution of $\C{M}_{\doit(\B{Y}_T=\B{y}_T)}$ is called an
+  \emph{interventional distribution} of $\C{M}$ for intervention $\doit(\B{Y}_T=\B{y}_T)$.
+\end{Def}
+A common way to obtain observational (and interventional) distributions is by making use of the push-forward.
+\begin{Rem}
+  Given an SCM $\C{M} = \langle \Asterisk, \BC{Y}, \BC{Z}, P, \B{f} \rangle$
+  and a solution function $\B{g} : \BC{Z} \to \BC{Y}$, an observational distribution of $\C{M}$ is obtained as
+  $(\id,\B{g})_*(P)$. Interventional distributions can be obtained from solution functions of the intervened SCM 
+  via the push-forward as well.
+\end{Rem}
+%{\color{blue}
+%\begin{Rem}
+%  Given an SCM $\C{M} = \langle \BC{X}, \BC{Y}, \BC{Z}, P, \B{f} \rangle$
+%  and a solution function $\B{g} : \BC{X} \times \BC{Z} \to \BC{Y}$, an observational Markov kernel of $\C{M}$ is obtained as
+%  the push-forward
+%  $$K(\B{Z},\B{Y} \mid \B{X}) = (\id_{\B{Z}},\B{g})_* K(\B{Z} \mid \B{X})$$
+%  of the Markov kernel
+%  $$K(\B{Z} \mid \B{X}) := \bigotimes_{z\in\S{Z}} P(Z_j)$$
+%  which basically interprets the exogenous distribution as a Markov kernel that does not depend on the value $\B{x}$ of $\B{X}$.
+%  
+%  Interventional Markov kernels can be obtained from solution functions of the intervened SCM via the push-forward as well.
+%\end{Rem}
+%}
+
+\begin{Eg}
+  The observational distribution for the stochastic SCM ``$W$ causes $C$ and $N$'' from Example~\ref{ex:scms_formal} is
+  unique and given by (treating $Z_W$ as latent):
+  $$\C{N}\left( \begin{pmatrix}\alpha \\ \beta\end{pmatrix} \,\Big|\, \sigma^2 \begin{pmatrix} \beta^2 & \beta\gamma \\ \beta\gamma & \delta^2 \end{pmatrix} \right).$$
+  The marginal observational distributions are given by $P(Y_C) = \C{N}(\alpha,\beta^2\sigma^2)$ and $P(Y_N) = \C{N}(\gamma,\delta^2\sigma^2)$, respectively.
+
+  A hard intervention $\doit(Y_N=\hat{y}_N)$ changes the model into:
+  $\S{X} = \emptyset$, $\S{Y} = \{C,N\}$, $\S{Z} = \{W\}$, $\B{\theta} = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\BC{X} = \Asterisk$, $\BC{Y} = \RN^2$, $\BC{Z} = \RN$, $\hat{\B{f}} : (y_C, y_N, z_W) \mapsto (\alpha + \beta z_W, \hat{y}_N) \in \C{Y}_C \times \C{Y}_N$, $P = \C{N}(0,\sigma^2)$.
+  One of its solution functions is $\hat{\B{g}} : z_W \mapsto (\alpha + \beta z_W, \hat{y}_N)$. 
+  Treating $Z_W$ as latent, the interventional distribution is unique and given by $\C{N}(\alpha,\beta^2 \sigma^2) \otimes \delta_{\hat{y}_N}$. The marginal distribution of $Y_C$ is unaffected by the intervention, whereas the marginal distribution of $Y_N$ ``collapses'' on the point $\hat{y}_N$.
+
+  The potential outcomes $Y_C^{\hat{y}_N} = \alpha + \beta Z_W$ for
+  $Z_W \sim \C{N}(0,\sigma^2)$ do not depend on the value $\hat{y}_N$ used for the hard intervention on $N$,
+  reflecting that $Y_N$ does not cause $Y_C$ in this model. On the other hand,
+  the potential outcomes $Y_N^{\hat{y}_N} = \hat{y}_N$ reflect that a hard intervention on
+  $Y_N$ does affect the value of $Y_N$ (obviously).
+\end{Eg}
+
+Another type of hard interventions often discussed are stochastic hard interventions. Here, the intervention
+values are set randomly from a specified (independent) distribution.
+\begin{Def}[Stochastic hard intervention on endogenous variables]\label{def:intervened_scm_stochastic}
+  Given an SCM $\C{M}$, an intervention target $T \subseteq \S{Y}$ 
+  and an intervention product distribution $Q_T \in \prod_{t\in T} \C{P}(\C{Y}_t)$, we define the \emph{intervened SCM
+  $\C{M}_{\doit(\B{Y}_T\sim Q_T)}$} as the tuple 
+  $\langle \BC{X},\BC{Y}',\BC{Z}',P \otimes Q_T,\hat{\B{f}} \rangle$,
+  where $\BC{Y}' = \prod_{j\in\S{Y}\setminus T} \C{Y}_j$ and
+  $\BC{Z}' = \prod_{k\in\S{Z}} \C{Z}_k \times \prod_{j\in T} \C{Y}_j$
+  with new label sets $\S{Y}' = \S{Y}\setminus T$ and $\S{Z}' = \S{Z} \dot\cup T$, 
+  and the intervened causal mechanism
+  $\hat{\B{f}} : \BC{X} \times \BC{Y}' \times \BC{Z}' \to \BC{Y}'$ given by:
+  $$\hat{\B{f}}\big(\B{x},\B{y}',\B{z}'\big) = \B{f}_{\S{Y}'}\big(\B{x},(\B{y}',\B{z}'_T),\B{z}'_{\S{Z}}\big).$$
+\end{Def}
+Intuitively, this replaces the causal mechanisms for the intervention target variables
+by a random sampling from the intervention distribution $Q_T$, which turns these endogenous
+variables into exogenous random variables.
+
+Finally, for a family of hard interventions with common intervention
+target but unspecified intervention value, we can also make use of the following
+formal operation:
+\begin{Def}[Hard intervention on endogenous variables]\label{def:intervened_scm}
+  Given an SCM $\C{M}$ and an intervention target $T \subseteq \S{Y}$, we define the \emph{intervened SCM
+  $\C{M}_{\doit(T)}$} as the tuple $\langle \BC{X}',\BC{Y}',\BC{Z},P,\B{f}' \rangle$ where
+  $\BC{X}' = \prod_{i\in\S{X}} \C{X}_i \times \prod_{j\in T} \C{Y}_j$,
+  $\BC{Y}' = \prod_{j\in\S{Y}\setminus T} \C{Y}_j$,
+  with new label sets $\S{X}' = \S{X} \dot\cup T$ and $\S{Y}' = \S{Y} \setminus T$, and the
+  intervened causal mechanism $\hat{\B{f}} : \BC{X}' \times \BC{Y}' \times \BC{Z} \to \BC{Y}'$ is given by:
+%  $$\B{f}'\big((\B{x},\B{y}_T),\B{y}_{\setminus T},\B{z}\big) = \B{f}_{\S{Y}'}\big(\B{x},(\B{y}_T,\B{y}_{\setminus T}),\B{z}\big)$$
+%  where we wrote $\B{y} = (\B{y}_T, \B{y}_{\setminus T})$.
+  $$\hat{\B{f}}\big(\B{x}',\B{y}',\B{z}\big) = \B{f}_{\S{Y}'}\big(\B{x}'_{\S{X}},(\B{x}'_{T},\B{y}'),\B{z}\big).$$
+\end{Def}
+Intuitively, this operation replaces endogenous variables $(Y_t)_{t\in T}$ with exogenous input variables $(X_t)_{t\in T}$.
+The intervened model no longer specifies the causal mechanisms that determine the values of these variables, 
+but treats them as exogenous inputs instead that are independent of the exogenous random variables in the model. 
+This reflects that after this hard intervention, the values for
+these variables are no longer determined by the system, but are set externally (e.g., by the 
+experimenter performing the intervention) to values chosen independent of the values of the exogenous
+random variables, while the values of the other endogenous variables are still
+determined by their original causal mechanisms.
+%We have allowed the intervention target to also contain exogenous input variables
+%in $\C{M}$ to make the operation more general, even though the operation does not actually change
+%anything for those components.
+\begin{Eg}
+  A hard intervention $\doit(N)$ on the stochastic SCM ``$W$ causes $C$ and $N$'' from Example~\ref{ex:scms_formal} 
+  changes the model into:
+  $\S{X}' = \{N\}$, $\S{Y}' = \{C\}$, $\S{Z} = \{W\}$, $\B{\theta} = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\BC{X}' = \RN$, $\BC{Y}' = \RN$, $\BC{Z} = \RN$, $\hat{f} : (x_N', y_C', z_W) \mapsto \alpha + \beta z_W$, $P = \C{N}(0,\sigma^2)$.
+  One of its solution functions is $g : (x_N', z_W) \mapsto \alpha + \beta z_W$. 
+  It has outcomes $Y_C^{x_N} = \alpha + \beta Z_W$ for
+  $Z_W \sim \C{N}(0,\sigma^2)$ that do not depend on the value $x_N$ used for the hard intervention on $N$.
+  These correspond with the potential outcomes $Y_C^{y_N}$ of the original SCM.
+\end{Eg}
+
+Summarizing, we have now seen three different ways of representing hard interventions,
+which are all hard in the sense that they completely override the ``default''
+causal mechanism so that the values of the intervened endogenous variables are
+no longer determined by other endogenous variables, but differ in how we decide
+to model the intervened variables: as exogenous inputs, as exogenous random
+variables, or as endogenous variables with a constant value.
+Since most accounts on SCMs do not offer exogenous input variables, the two variants 
+most often seen in the literature are the latter two.
+
+We can also encode hard interventions on exogenous input variables, either by turning
+them into endogenous variables with a specified value, or by turning them into 
+exogenous random variables with a specified distribution. We formally define the
+former as follows.
+\begin{Def}[Hard intervention on exogenous inputs with specified target values]
+  Given an SCM $\C{M}$, an intervention target $T \subseteq \S{X}$ 
+  and an intervention value $\hat{\B{x}}_T \in \BC{X}_T$, we define the \emph{intervened SCM
+  $\C{M}_{\doit(\B{X}_T=\hat{\B{x}}_T)}$} as the tuple $\langle \BC{X}',\BC{Y}',\BC{Z},P,\hat{\B{f}} \rangle$
+  where $\BC{X}' = \prod_{i\in\S{X}\setminus T} \C{X}_i$ and
+  $\BC{Y}' = \prod_{j\in\S{Y}} \C{Y}_j \times \prod_{i\in T} \C{X}_i$
+  with new label sets $\S{X}' = \S{X}\setminus T$ and $\S{Y}' = \S{Y} \dot\cup T$, 
+  with the components of the intervened causal mechanism $\hat{\B{f}} : \BC{X}' \times \BC{Y}' \times \BC{Z} \to \BC{Y}'$ 
+  given by:
+    $$\hat{f_j}(\B{x}',\B{y}',\B{z}) = \begin{cases}
+        \hat{x}_j & j \in T \\
+        f_j\big((\B{x}',\hat{\B{x}}_T),\B{y}'_{\S{Y}},\B{z}) & j \notin T.
+    \end{cases}$$
+  for $j \in \S{Y}'$.
+\end{Def}
+In other words, we replace the targeted exogenous variables by endogenous variables and add
+structural equations to set their values as specified. This operation ``endogenizes'' exogenous input variables.
+
+A hard intervention on an exogenous input variable turning it into an exogenous random variable
+can be interpreted as ``imposing a distribution'' on the exogenous input variable.
+For example, if the model did not specify how treatment is determined by a physician,
+and we then let treatment be determined by a coin flip to set up an RCT,
+we are imposing a distribution on the treatment variable. Formally, this becomes:
+\begin{Def}[Stochastic hard intervention on exogenous inputs]
+  Given an SCM $\C{M}$, an intervention target $T \subseteq \S{X}$ 
+  and an intervention product distribution $Q_T \in \prod_{t\in T} \C{P}(\C{X}_t)$, we define the \emph{intervened SCM
+  $\C{M}_{\doit(\B{X}_T\sim Q_T)}$} as the tuple 
+  $\langle \BC{X}',\BC{Y},\BC{Z}',P \otimes Q_T,\hat{\B{f}} \rangle$,
+  where $\BC{X}' = \prod_{i\in\S{X}\setminus T} \C{X}_i$ and
+  $\BC{Z}' = \prod_{k\in\S{Z}} \C{Z}_k \times \prod_{i\in T} \C{X}_i$
+  with new label sets $\S{X}' = \S{X}\setminus T$ and $\S{Z}' = \S{Z} \dot\cup T$, 
+  and the intervened causal mechanism
+  $\hat{\B{f}} : \BC{X}' \times \BC{Y} \times \BC{Z}' \to \BC{Y}$ given by:
+  $$\hat{\B{f}}\big(\B{x}',\B{y},\B{z}'\big) = \B{f}\big((\B{x}',\B{z}'_T),\B{y},\B{z}'_{\S{Z}}\big).$$
+\end{Def}
+
+Similarly, we could define three variations of hard interventions on exogenous random variables, 
+either turning them into endogenous variables with constant values, or changing their distributions,
+or turning them into exogenous input variables whose values are left unspecified. We will not do so
+here since in many cases, exogenous random variables are considered latent and no interventions on
+those will be considered.
+
+Finally, we will discuss how soft interventions can be formally modeled.
+While perhaps the simplest way would be to replace the targeted components $f_j$ of the
+causal mechanism by other functions $\hat f_j$, the use of intervention variables as
+discussed in Section~\ref{sec:intervention_variables} is often very convenient.
+
+%If we think about an SCM as modeling a ``system'', then we also obtain a model for any
+%``subsystem'' in the following way:
+%\begin{Def}[Taking a submodel of an SCM]\label{def:sub_scm}
+%  Given an SCM $\C{M}$ and a subset $\S{Y}' \subseteq \S{Y}$ of endogenous variables, we
+%  define the \emph{sub-SCM $\C{M}_{\S{Y}'}$} as the tuple
+%  $\langle \BC{X},\BC{Y}',\BC{Z},P,\B{f}' \rangle$ where
+%  $\BC{Y}' = \prod_{j\in\S{Y}'} \C{Y}_j$ and the causal mechanism
+%  $\B{f}' : \BC{X} \times \BC{Y}' \times \BC{Z} \to \BC{Y}'$ is given by:
+%  $$\B{f}'\big(\B{x}',\B{y},\B{z}\big) = \B{f}\big((\B{x}',\B{x}_C),\B{y},\B{z}\big).$$
+%\end{Def}
+%
+%Other operations: composition and taking sub-models.

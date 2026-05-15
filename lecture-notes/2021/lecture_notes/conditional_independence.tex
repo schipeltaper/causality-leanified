@@ -1,0 +1,334 @@
+\subsection*{Markov Kernels - Continued}
+\subsubsection{Conditional Independence}
+
+In this section we will introduce the notion of conditional independence for \trv{}s from \cite{For21}. It generalizes and
+unifies stochastic conditional independence and some forms of functional conditional independence. 
+Other versions of extended conditional independence can be found in \cite{Daw79, Daw80, Daw01, CD17, RERS17, FM20}.
+
+
+\begin{Def}[Conditional independence for \trv{}s]
+\label{cond-indep-markov-kernels-def}
+Let $(\Wcal \times \Tcal, K(W|T))$ be a transition probability space with Markov kernel:
+\[K(W|T): \, \Tcal \dashrightarrow  \Wcal.\]
+Consider \trv{}s $X$, $Y$, $Z$ with common domain $\Wcal\times \Tcal$ and codomains $\Xcal$, 
+$\Ycal$ and $\Zcal$, resp.
+We say that \emph{$X$ is independent of $Y$ conditioned on $Z$ w.r.t.\ $K(W|T)$}, in symbols:
+\[X \Indep_{K(W|T)} Y \given Z, \]
+if there \underline{\emph{exists} a Markov kernel}: 
+\[ Q(X|Z):\; \Zcal \dashrightarrow \Xcal,\]
+such that:
+\[ K(X,Y,Z|T) = Q(X|Z) \otimes K(Y,Z|T),\]
+where $K(Y,Z|T)$ is the marginal of $K(X,Y,Z|T)$.\\
+For the equation above to hold it is sufficient to check that for all $t \in \Tcal$ and all measurable $A \ins \Xcal$, $B \ins \Ycal$, $C \ins \Zcal$ one has that:
+\[ \E_t\lB\I_A(X_t) \cdot \I_B(Y_t) \cdot \I_C(Z_t) \rB =\E_t\lB Q(X \in A|Z_t) \cdot \I_B(Y_t) \cdot \I_C(Z_t)\rB,   \]
+where the expectation value $\E_t$ is w.r.t.\ $K(W|T=t)$, which is short notation for:
+\begin{align*}
+    K(X_t \in A, Y_t \in B, Z_t \in C|T=t) & = \int_C \int_B  Q(X \in A|Z=z)\,K(Y_t \in dy,Z_t \in dz|T=t).
+\end{align*}
+Special case:
+\[X \Indep_{K(W|T)} Y \qquad :\iff \qquad X \Indep_{K(W|T)} Y \given \ast. \]
+\end{Def}
+
+
+\begin{Rem}[Essential uniqueness]
+    \label{ess-unique-ci}
+    The Markov kernel $Q(X|Z)$ appearing in the conditional independence $X \Indep_{K(W|T)} Y \given Z$ in definition \ref{cond-indep-markov-kernels-def} is then a version of a conditional Markov kernel $K(X|Y,Z,T)$ and is thus essentially unique in the sense of \ref{ess-unique}.
+\end{Rem}
+
+\begin{Not}
+    The Markov kernel $Q(X|Z)$ appearing in the conditional independence $X \Indep_{K(W|T)} Y \given Z$ is essentially unique
+    by \ref{ess-unique-ci} and we can write it as:
+    \[ K(X|\cancel{T,Y},Z),\]
+    or similarly with crossed variables in different order.
+    So we have in case of $X \Indep_{K(W|T)} Y \given Z$:
+\[ K(X,Y,Z|T) = K(X|\cancel{T,Y},Z)\otimes K(Y,Z|T).\]
+Note that $K(X|\cancel{T,Y},Z)$ is a version of the conditional Markov kernel $K(X|Y,Z,T)$ and does not depend on arguments $y$ and $t$.
+\end{Not}
+
+\begin{Rem}[Conditional independence includes conditional independence from $T$]
+    \label{add-T}
+ We have the equivalence:
+ \[X \Indep_{K(W|T) } Y \given Z \quad\iff \quad X \Indep_{K(W|T)} T,Y \given Z,\]
+where $T :\, \Wcal \times \Tcal \to \Tcal$, $(w,t) \mapsto t$, is the canonical projection map.
+\begin{proof}
+\begin{align*}
+&X \Indep_{K(W|T)} Y \given Z \\
+\iff &\, \exists Q(X|Z):\, K(X,Y,Z|T) &&= Q(X|Z) \otimes K(Y,Z|T)\\
+\iff &\, \exists Q(X|Z):\, K(X,T,Y,Z|T) &&= Q(X|Z)\otimes \underbrace{ K(Y,Z|T)  \otimes  \delta(T|T)  }_{K(T,Y,Z|T)}\\
+\iff& X \Indep_{K(W|T)} T,Y \given Z.
+\end{align*}
+The middle implication ``$\Longrightarrow$'' follows by taking the product with $\delta(T|T)$, 
+and the reverse implication ``$\Longleftarrow$'' by marginalizing out $T$, i.e.\ via $\delta(T \in \Tcal|T)=1$.
+\end{proof}
+\end{Rem}
+
+
+\begin{Eg}[Conditional independence for discrete \trv{}s]
+    Let the situation be like in definition \ref{cond-indep-markov-kernels-def} and assume all spaces to be (finite) discrete.
+    Let $k$ be the mass function for $K(X,Y,Z|T)$.
+    Then we have: 
+    \[X \Indep_{K(W|T)} Y \given Z, \]
+    if and only if there is a probability mass function $q$ such that for all values $x,y,z,t$:
+    \[ k(x,y,z|t) = q(x|z) \cdot k(y,z|t). \]
+    This is the case if, for example, $k(y,z|t) >0$ for all values and the quotient function:
+    \[ \tilde q(x|y,z,t) :=  \frac{k(x,y,z|t)}{k(y,z|t)}   \]
+    is - as a function - independent of the arguments $y$ and $t$. % (modulo the problem of possibly dividing by $0$).
+\end{Eg}
+
+\begin{Rem}[Conditional independence for random variables]
+    \label{ci-random-variables}
+We recover the conditional independence for random variables by taking $\Tcal$ to be the one-point space $\Asterisk =\{\ast\}$.
+Then $(\Wcal, P)$ is a probability space and $X,Y,Z$ random variables. We then get:
+\[ X \Indep_{P} Y \given Z \qquad \iff \qquad \exists Q(X|Z):\, P(X,Y,Z) = Q(X|Z) \otimes P(Y,Z).\]
+If such an $Q(X|Z)$ exists it is clearly a regular conditional probability distribution of $P(X,Z)$ conditioned on $Z$.
+In suggestive notations:
+\[P(X|\cancel{Y},Z) = P(X|Z).\]
+By theorem \ref{thm-regular-conditional-Markov-kernel} such a conditional probability distributions
+always exists and is essentially unique in case $\Xcal$ and $\Zcal$ are standard measurable spaces.
+So we could write:
+\[P(X|\cancel{Y},Z) = P(X|Z).\]
+So for the case of standard measurable spaces $\Xcal$, $\Zcal$ we get:
+\[ X \Indep_{P} Y \given Z \qquad \iff \qquad  P(X,Y,Z) = P(X|Z) \otimes P(Y,Z).\]
+If all three spaces $\Xcal$, $\Ycal$ and $\Zcal$ are standard one can show the equivalences:
+\begin{align*}
+    X \Indep_{P} Y \given Z \quad & \iff \quad  P(X,Y|Z) = P(X|Z) \otimes P(Y|Z) \quad P(Z)\text {-a.s.}\\
+    & \iff \quad P(X|Y,Z) = P(X|Z)  \quad P(Y,Z)\text {-a.s.}\\
+    & \iff \quad \forall A \in \Bcal_\Xcal:\, \E[\I_A(X)|Y,Z] = \E[\I_A(X)|Z]\quad P\text{-a.s.}
+\end{align*}
+%which is the classical definition of conditional independence for probability distributions and random variables.
+%Furthermore, this implies the (weakest) of conditional independence used for random variables:
+%\[\forall A \in \Bcal_\Xcal:\, \E[\I_A(X)|Y,Z] = \E[\I_A(X)|Z]\quad P\text{-a.s.} \]
+\end{Rem}
+
+
+
+\begin{Lem}[Conditional independence for deterministic mappings]
+    Let $F:\, \Tcal \to \Fcal$ and $H:\,\Tcal \to \Hcal$ be measurable mappings, with $\Fcal$ standard.
+    We now consider them as (deterministic) \trv{}s on the transition probability space $(\Wcal \times \Tcal,K(W|T))$ via:
+    \[\begin{array}{ccccc} 
+        F: & \Wcal  \times \Tcal &\to &\Fcal,\\
+           &(w,t) &\mapsto& F(t), \\
+        H: & \Wcal  \times \Tcal &\to &\Hcal,\\
+           &(w,t) &\mapsto& H(t), \\
+       % G: & \Wcal  \times \Tcal &\to &\Gcal,\\
+       %    &(w,t) &\mapsto& G(t), \\
+    \end{array}\]
+    which do not depend on the 'probabilistic part' $\Wcal$ of $K(W|T)$. Let $G:\, \Wcal \times \Tcal \to \Gcal$ be another \trv{}.\\
+    Recall that we write $F \precsim H$ if there exists a measurable mapping $\varphi:\,\Hcal \to \Fcal$ such that $F = \varphi \circ H$.\\
+    Then we have the equivalence\footnote{The full equivalence needs Kuratowski's extension theorem for standard measurable spaces
+    (see \cite{Kec95} 12.2): Any measurable map from a (not necessarily measurable) subset of a measurable space to a standard measurable space extends to a measurable map on the whole space. Alternatively, one could define $F \precsim H$ via existence of measurable $\varphi:\, H(\Wcal \times \Tcal) \to \Fcal$ such that $F=\varphi \circ H$, but this moves problems elsewhere.}:
+    \[ F \precsim H \qquad \iff\qquad F \Indep_{K(W|T)} G \given H.\]
+    So $F$ is a deterministic measurable map of $H$ iff $F$ is independent of $G$ given $H$. Note that the first part of the statement is independent of $G$.% and we as well take $G=T$.
+\begin{proof}
+ ``$\implies$'': This direction is rather easy. See the later separoid axioms.\\
+ ``$\Longleftarrow$'': Since $F$ and $H$ are deterministic and only dependent on $T$ we get that:
+    \[ K(F,G,H|T) = \delta(F|T) \otimes \delta(H|T) \otimes K(G|T).  \]
+    By the conditional independence we now have a Markov kernel $Q(F|H)$ such that we have the factorization:
+    \[ K(F,G,H|T) = Q(F|H) \otimes K(G,H|T) = Q(F|H) \otimes \delta(H|T) \otimes K(G|T).  \]
+    Marginalizing out $G$, $H$ and taking $T=t$ we get from these equations:
+    \[ \delta_{F(t)} = \delta(F|T=t) = Q(F|H(t)),\]
+    which is a Dirac measure centered at $F(t)$.
+    We can now define the mapping:
+    \[\varphi:\, H(\Tcal) \to \Fcal, \quad H(t) \mapsto F(t), \]
+    which is well-defined, because $h:=H(t_1)=H(t_2)$ implies that $Q(F|H=h)$ is a Dirac measure centered at $F(t_1)$ and $F(t_2)$, so $F(t_1)=F(t_2)$.
+    $\varphi$ is measurable.
+    Indeed, its composition with $\delta:\,\Fcal \to \Pcal(\Fcal), \, z \mapsto \delta_z$ equals $Q(F|H)$, which is measurable.
+    Since $\Bcal_\Fcal = \delta^*\Bcal_{\Pcal(\Fcal)}$, see lemma \ref{lem-maps-markov-kernel} 2., also $\varphi$ is measurable.
+    Since $\Fcal$ is a standard measurable space, $\varphi$ extends to a measurable mapping $\varphi:\, \Hcal \to \Fcal$ by Kuratowski's extension theorem for standard measurable spaces (see \cite{Kec95} 12.2). 
+    Finally, note that we have $F(t) = \varphi(H(t))$ for all $(w,t) \in \Wcal \times \Tcal$, which shows the claim.
+\end{proof}
+\end{Lem}
+
+
+\begin{Eg}[Conditional independence for deterministic mappings]
+    If for example, $\Tcal = \Tcal_1 \times \Tcal_2$ and $T_i:\,\Wcal \times \Tcal_1 \times \Tcal_2 \to \Tcal_i$ the canonical projection onto $\Tcal_i$,
+    then $F$ is a function in two variables $(t_1,t_2)$.
+    We then  have:
+    \[ F \Indep_{K(W|T)} T_1 \given T_2,\]
+    if and only if $F$ - as a function - is only dependent on the argument $t_2$ (and not on $t_1$).
+    %So $F$ is then independent of all the (other) arguments $t=(t_1,t_2)$ given/besides $t_2$.
+\end{Eg}
+
+Another example of what conditional independence of \trv{}s can encode is the following.
+
+\begin{Rem}[Existence of conditional Markov kernels expressed as conditional independence]
+    \label{conditional-markov-kernel-as-ci}
+    Let $X$, $Y$ be \trv{}s on transition probability space $(\Wcal \times \Tcal, K(W|T))$.
+    Then we can express the existence of a conditional Markov kernel $K(X|Y,T)$ as the conditional independence:
+    \[ X\Indep_{K(W|T)} \ast|Y,T,  \]
+    where $\ast$ is the constant \trv{}. Alternatively and equivalently, we could also write:
+    \[ X\Indep_{K(W|T)} T|Y,T.  \]
+    Note that for standard measurable spaces $\Xcal$ and $\Ycal$ the above statement always holds.
+    In suggestive symbols:
+    \[ K(X|\cancel{T},Y,T) = K(X|Y,T). \]
+\end{Rem}
+
+\begin{Eg}[Certain statistics expressed as conditional independence] Let $P(W|\Theta)$ be a statistical model, considered as a Markov kernel $\Fcal \dshto \Wcal$. Let $X$ and $Y$ be two \trv{}s w.r.t.\ $P(W|\Theta)$.
+    A \emph{statistic} of $X$ is a measurable map $S:\,\Xcal \to \Scal$, which we consider as the  \trv{} $S\precsim X$ given via::
+    \[ S:\,\Wcal \times \Fcal \to \Scal,\quad (w,\theta) \mapsto S(X(w,\theta)). \]
+\begin{enumerate}
+\item \emph{Ancillarity}. $S$ is an \emph{ancillary statistic} of $X$ w.r.t.\ $\Theta$ if and only if:
+\[ S \Indep_{P(W|\Theta)} \Theta.\]
+This means that every parameter $\Theta=\theta$ induces the same distribution for $S$: 
+\[P(S|\Theta=\theta) = P(S|\cancel{\Theta}).\]
+\item \emph{Sufficiency}. $S$ is a \emph{sufficient statistic} of $X$ w.r.t.\ $\Theta$ if and only if:
+\[ X \Indep_{P(W|\Theta)} \Theta \given S.\]
+This means that there is a Markov kernel $P(X|S,\cancel{\Theta})$ such that:
+\[ P(X,S|\Theta) = P(X|S,\cancel{\Theta}) \otimes P(S|\Theta).\]
+So $X$ only ``interacts'' with the parameters $\Theta$ through $S$.
+%\item[] A measurable map $\Phi: \Tcal \to \Fcal$ is called \emph{sufficient parameterization} for $X$ w.r.t.\ $P(W|T)$ if and only if:
+%\[ X \Indep_{P(W|T),\exists} T \given \Phi.\]
+%For example, $\Phi$ defined by $\Phi(t):=P(X|T=t) \in \Pcal(\Xcal)=:\Fcal$ is always a sufficient parameterization for $X$ (by the same arguments as in example \ref{propensity}).
+\item \emph{Adequacy}. $S$ is an \emph{adequate statistic} of $X$ for $Y$ w.r.t.\ $\Theta$ if and only if:
+\[ X \Indep_{P(W|\Theta)} \Theta,Y \given S.\]
+This means we have a factorization:
+\[ P(X,Y,S|\Theta) = P(X|\cancel{\Theta,Y},S) \otimes P(Y,S|\Theta),\]
+for some Markov kernel $P(X|\cancel{\Theta,Y},S)$.
+This means that all information of $X$ about the (parameters and/or) labels $Y$ are fully captured already by $S$.
+\end{enumerate}
+\end{Eg}
+
+%\begin{comment}
+\begin{Thm}
+    \label{thm-ci-equivalences}
+Let $(\Wcal \times \Tcal, K(W|T))$ be a transition probability space with Markov kernel:
+\[K(W|T): \, \Tcal \dashrightarrow  \Wcal.\]
+Consider \trv{}s $X$, $Y$, $Z$ with common domain $\Wcal\times \Tcal$ and codomains $\Xcal$, 
+$\Ycal$ and $\Zcal$, resp., and $T:\,\Wcal\times \Tcal \to \Tcal$ the canonical projection map.
+We will write $P(X|Z)=K(X|\cancel{T},Z)$ 
+for a fixed version of the Markov kernel appearing in the conditional independence $X \Indep_{K(W|T)} T \given Z$ (only in case it holds).\\
+With these notations, the following are equivalent:
+\begin{enumerate}
+    \item $\displaystyle X \Indep_{K(W|T)} Y \given Z,$
+    \item $\displaystyle X \Indep_{K(W|T)} T, Y \given Z,$
+    \item  $\displaystyle X \Indep_{K(W|T)} T \given Z$ and  $ \displaystyle K(X,Y,Z|T) = P(X|Z) \otimes K(Y,Z|T)$.
+    \item  $\displaystyle  X \Indep_{K(W|T)} T \given Z$ and for every $t \in \Tcal$ we have:
+            $\displaystyle X_t \Indep_{K(W|T=t)} Y_t \given Z_t.$
+    % \item  $\displaystyle  X \Indep_{K(W|T)} T \given Z$ and for every $t \in \Tcal$ and $A \in \Bcal_\Xcal$ we have:
+    %     \[\displaystyle \E_t[\I_A(X_t)|Y_t,Z_t] = \E_t[\I_A(X_t)|Z_t] \qquad K(W|T=t)\text{-a.s.,}\]
+    %     where the conditional expectation $\E_t$ is w.r.t.\ $K(W|T=t)$ (for each $t \in \Tcal$ individually).
+\end{enumerate}
+Furthermore, any of those points implies:
+\[ K(X|\cancel{T,Y},Z) = K(X|\cancel{T},Z) \qquad K(Y,Z|T)\text{-a.s.}.\]
+and the following:
+\begin{enumerate}[resume]
+    \item For every probability distribution $Q(T) \in \Pcal(\Tcal)$ we have the conditional independence:
+        \[ X \Indep_{K(W|T)\otimes Q(T) } T,Y \given Z.\]
+\end{enumerate}
+\begin{proof}
+    3. $\implies$ 1. is clear by definition.\\
+    1. $\iff$ 2.: by \ref{add-T}.\\
+    2. $\implies$ 4.,5.:
+    By assumption we have the factorization:
+    \[K(X,Y,Z,T|T) = K(X|Z) \otimes K(Y,Z,T|T),\]
+    for some Markov kernel $K(X|Z)$. Via marginalization and multiplication this implies the two equations:
+    \begin{align*}
+        K(X,Z,T|T)            &= K(X|Z) \otimes K(Z,T|T),\\
+        \underbrace{K(X,Y,Z|T)\otimes Q(T)}_{=:Q(X,Y,Z,T)} &= K(X|Z) \otimes \underbrace{K(Y,Z|T) \otimes Q(T)}_{=Q(Y,Z,T)},
+    \end{align*}
+    for every $Q(T) \in \Pcal(\Tcal)$. The last equation shows 5.\\ 
+    If we take $Q(T)=\delta_t$ we get:
+    \[K(X_t,Y_t,Z_t|T=t) = K(X|Z_t) \otimes K(Y_t,Z_t|T=t). \]
+    Together with the first of the above equations this shows 4.\\
+\begin{comment}
+    4. $\implies$ 3.: By $X \Indep_{K(W|T)} T \given Z$ we have:
+    \[K(X,Z|T) = P(X|Z) \otimes K(Z|T).\]
+    By the assumption $ X_t \Indep_{K(W|T=t)} Y_t \given Z_t$, on the other hand, we have - for each $t \in \Tcal$ individually - a factorization:
+    \[ K(X,Y,Z|T=t) = Q_t(X|Z) \otimes K(Y,Z|T=t),  \]
+    with a Markov kernel $Q_t$, which might depend on $t \in \Tcal$, where we suppress the indices $t$ on all the variables for readability everywhere.
+Marginalizing out $Y$ and comparing to the above we then get the two equalities:
+\[ P(X|Z) \otimes K(Z|T=t) = K(X,Z|T=t)  = Q_t(X|Z) \otimes K(Z|T=t).\]
+By the essential uniqueness of such a factorization we see that $P(X \in A|Z)$ only differs from $Q_t(X \in A|Z)$ on a $K(Z|T=t)$-null set. Considered as functions of $(y,z)$ (by ignoring $y$) they are equal up to $K(Y,Z|T=t)$-null set. This means that we can replace $Q_t(X \in A|Z)$ with $P(X\in A|Z)$ for every $A \in \Bcal_\Xcal$ and $t \in \Tcal$. So we get the equation:
+        \[ K(X,Y,Z|T=t) = P(X|Z) \otimes K(Y,Z|T=t),  \]
+        for all $t \in \Tcal$ and thus:
+  \[ K(X,Y,Z|T) = P(X|Z) \otimes K(Y,Z|T).  \]
+  This shows 3.\\ 
+\end{comment}
+%proof with even weaker assumptions, only using conditional expectations:
+    4. $\implies$ 3.:  By $X \Indep_{K(W|T)} T \given Z$ we have the factorization:
+    \[K(X,Z|T) = P(X|Z) \otimes K(Z|T).\]
+    This means that for every $t \in \Tcal$ and every measurable $A \ins \Xcal$, $C \ins \Zcal$ we have:
+    \[ \E_t\lB \I_A(X_t) \cdot \I_C(Z_t)\rB = \E_t\lB P(X \in A|Z_t) \cdot \I_C(Z_t)\rB,  \]
+    where the expectation $\E_t$ is w.r.t.\ $K(W|T=t)$. This shows that $P(X \in A|Z_t)$ is a version of $\E_t[\I_A(X_t)|Z_t]$ for every $t \in \Tcal$, 
+    by the defining properties of conditional expectation.\\
+    By the assumption $ X_t \Indep_{K(W|T=t)} Y_t \given Z_t$ we then have for every fixed $t\in \Tcal$ and measurable $A \ins \Xcal$:
+    \[ \E_t[\I_A(X_t)|Y_t,Z_t] = \E_t[\I_A(X_t)|Z_t] = P(X \in A|Z_t)\qquad K(W|T=t)\text{-a.s.}\]
+    By the defining properties of conditional expectation for $\E_t[\I_A(X_t)|Y_t,Z_t]$  we then get that for every measurable  $A \ins \Xcal$, $B \ins \Ycal$, $C \ins \Zcal$:
+    \[ \E_t\lB \I_A(X_t) \cdot \I_B(Y_t) \cdot \I_C(Z_t)\rB = \E_t\lB P(X \in A|Z_t) \cdot \I_B(Y_t) \cdot \I_C(Z_t)\rB. \]
+    Since this holds for every $t \in \Tcal$ we get:
+    \[ K(X,Y,Z|T) = P(X|Z) \otimes K(Y,Z|T).\]
+\end{proof}
+\end{Thm}
+%\end{comment}
+
+\begin{Cor}
+%Let $(\Wcal \times \Tcal, K(W|T))$ be a transition probability space with Markov kernel:
+%\[K(W|T): \, \Tcal \dashrightarrow  \Wcal.\]
+%Consider \trv{}s $X$, $Y$, $Z$ with common domain $\Wcal\times \Tcal$ and codomains $\Xcal$, 
+%$\Ycal$ and $\Zcal$, resp., where 
+If $\Xcal$, $\Zcal$ are standard measurable spaces
+then we have the equivalence:
+\[ X \Indep_{K(W|T)} Y \given Z,T \qquad \iff \qquad \forall t \in \Tcal:\quad X_t \Indep_{K(W|T=t)} Y_t \given Z_t.\]
+\begin{proof}
+    This directly follows from theorem \ref{thm-ci-equivalences} 4.\ with $(Z,T)$ in the role of $Z$ 
+    and remark \ref{conditional-markov-kernel-as-ci} to get the first part of 4.
+    In suggestive symbols:
+    \[ K(X|\cancel{T,Y},Z,T) = K(X|Z,T) \qquad K(Z|T)-\text{a.s.}\]
+\end{proof}
+\end{Cor}
+
+
+
+
+\paragraph{Separoid Axioms for Conditional Independence}
+
+\begin{DefThm}[(Asymmetric) separoid axioms for conditional independence\footnote{The symmetric separoid axioms are due to A.P. Dawid \cite{Daw01} and the similar graphoid axioms due to J. Pearl and A. Paz \cite{PP85}.}]
+    \label{ci-separoid-axioms}
+    Let $(\Wcal \times \Tcal, K(W|T))$ be a transition probability space with Markov kernel:
+\[K(W|T): \, \Tcal \dashrightarrow  \Wcal.\]
+Consider \trv{}s $X$, $Y$, $Z$, $U$ with common domain $\Wcal\times \Tcal$ and standard measurable spaces $\Xcal$, 
+$\Ycal$, $\Zcal$, $\Ucal$, resp., as codomains.
+Let $T:\, \Wcal \times \Tcal \to \Tcal$ be the canonical projection and $\ast$ the constant \trv{}.\\
+Recall that we write $U \precsim X$ if there exists a measurable function %$G:\,X(\Wcal\times \Tcal) \to \Ucal$ 
+$G:\, \Xcal \to \Ucal$ 
+such that $U = G \circ X$.\\
+%We write $X \lor Y$ to mean the \trv{} $(X,Y)$
+Then the ternary relation $\Indep = \Indep_{K(W|T)}$ satisfies the following rules:
+\begin{enumerate}[label=\alph*)]
+	\item Extended Left Redundancy: 
+    \item[] $U \precsim X \implies U \Indep  Y \given X$.
+    \item $T$-Restricted Right Redundancy\footnote{\label{fn:sep-ax-std}(Only) $T$-Restricted Right Redundancy, Left Weak Union and Symmetry need the existence of conditional Markov kernels. That is the reason we assumed standard measurable spaces.}:
+    \item[] $X\Indep \ast|Z,T$ always holds.
+    \item $T$-Inverted Right Decomposition: 
+    \item[] $X \Indep  Y \given Z \implies X \Indep  T, Y \given Z$.
+	\item Left Decomposition:  
+	\item[]$X,U \Indep  Y \given Z \implies U \Indep  Y \given Z$.
+  \item Right Decomposition:  	
+    \item[] $X \Indep  Y,U \given Z \implies X \Indep  U \given Z$.
+    \item Left Weak Union\footref{fn:sep-ax-std}:
+    \item[] $X , U \Indep  Y  \given Z \implies X \Indep  Y \given U , Z$.
+  \item Right Weak Union:\item[] $X \Indep  Y , U \given Z \implies X \Indep  Y \given U , Z$.
+\item Left Contraction:\item[] 
+ $ (X \Indep  Y \given U , Z) \land (U \Indep  Y \given Z) \implies X , U \Indep  Y \given Z$.
+\item Right Contraction:
+\item[] $ (X \Indep  Y \given U , Z) \land (X \Indep  U \given Z)  \implies X \Indep  Y , U \given Z$.
+\item Right Cross Contraction:
+\item[] $ (X \Indep  Y \given U , Z) \land (U \Indep  X \given Z) \implies X  \Indep  Y , U \given Z$.
+\item Flipped Left Cross Contraction: 
+\item[] $ (X \Indep  Y \given U , Z) \land (Y \Indep  U \given Z) \implies Y \Indep  X , U \given Z$.
+\end{enumerate}
+In particular, we have the equivalences:
+$$ (X \Indep  Y , U \given Z) \quad\iff\quad (X \Indep  Y \given U , Z) \quad\land\quad (X \Indep  U \given Z)  ,$$
+%and:
+$$ (X , U \Indep  Y \given Z) \quad\iff\quad (X \Indep  Y \given U , Z) \quad\land\quad (U \Indep  Y \given Z).$$
+We also get:
+\begin{enumerate}[resume,label=\alph*)]
+    \item $T$-Restricted Symmetry\footref{fn:sep-ax-std}: %If $\Tcal =\Asterisk$ then: 
+	\item[] $X \Indep  Y \given Z,T \implies Y \Indep X \given Z,T$. 
+\end{enumerate}
+In the special case of $\Tcal = \Asterisk = \{\ast\}$,the one-point space, (i.e.\ in the case of probability distributions and random variables mapping to standard measurable spaces) we
+thus have (Unrestricted) Symmetry.
+\end{DefThm}
+
+
+

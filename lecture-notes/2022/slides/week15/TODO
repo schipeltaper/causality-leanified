@@ -1,0 +1,3 @@
+- replace inducing by $\sigma$-inducing
+- consistently use $G$ for DMG and $H$ for mixed graph
+- sync statements a bit with lecture notes

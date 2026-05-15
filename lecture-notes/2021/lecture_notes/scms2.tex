@@ -1,0 +1,590 @@
+\subsection{Structural Causal Models}
+
+\subsubsection{Unique solvability}
+
+\begin{Def}\label{def:scm_unique_solvability}
+  An SCM $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ is called \emph{uniquely solvable} if it has a unique solution function. This means two things: (i) it has a solution function $g : \CXJ \times \CXW \to \CXV$, i.e., a measurable function
+  that satisfies
+  $$\forall \xW\in\CXW \forall \xJ\in\CXJ: \quad g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big);$$
+  (ii) all its solution functions must equal $g$, i.e., for any solution function $\tilde{g} : \CXJ \times \CXW \to \CXV$,
+%  we have that for $P$-almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$:
+  we have that for all $\xW\in\CXW$, for all $\xJ\in\CXJ$:
+  $$g(\xJ,\xW) = \tilde{g}(\xJ,\xW).$$
+  %We will call such a solution function \emph{unique} since it is unique up to $P$-null sets.
+\end{Def}
+The following result gives two useful properties of unique solvability. 
+The first provides an equivalent formulation that makes it easier to check whether an SCM
+is uniquely solvable, the second provides an important consequence regarding
+the Markov kernels of the SCM.
+\begin{Thm}\label{thm:scm_unique_solvability}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM.
+  \begin{enumerate}
+    \item $\C{M}$ is uniquely solvable if and only if 
+      for all $\xW\in\CXW$, for all $\xJ \in \CXJ$, the equation
+      $$\xV = f(\xJ,\xV,\xW)$$
+      has a unique solution for $\xV\in\CXV$.
+%    \item If $\C{M}$ is uniquely solvable, then for all $\xJ\in\CXJ$, $\C{M}_{\doit(\XJ=\xJ)}$ is uniquely solvable.
+    \item If $\C{M}$ is uniquely solvable, it has a unique Markov kernel 
+      $$P_{\C{M}}(\XV,\XW \mid\doit(\XJ)) = (g,\id_{\CXW})_* \bigotimes_{w\in W} P_w.$$
+  \end{enumerate}
+\end{Thm}
+\begin{proof}
+  \begin{enumerate}
+    \item 
+    ``$\implies$'': Let $g : \CXJ \times \CXW \to \CXV$ be a solution function for $\C{M}$. 
+    Let $\xi_W\in\CXW$, $\xi_J\in\CXJ$. The equation $\xV = f(\xV,\xi_J,\xi_W)$ does have a solution for
+    $\xV$ (indeed, $g(\xi_J,\xi_W)$ is such a solution). Suppose its solution is not unique, i.e., it has another
+    solution $\tilde{x}_v \ne g(\xi_J,\xi_W)$. Consider the modified function
+      $$\tilde{g} : \CXJ \times \CXW \to \CXV : (\xJ,\xW) \mapsto \begin{cases}
+        \tilde{x}_V & \xJ = \xi_J \land \xW = \xi_W \\
+        g(\xJ,\xW)  & \text{otherwise}
+      \end{cases}$$
+    $\tilde{g}$ is measurable (because $g$ is measurable), and hence it provides a solution function. 
+    However, $\tilde{g} \ne g$, which contradicts the assumed unique solvability.
+
+    ``$\impliedby$'':
+    This boils down to proving that the measurability of $f$ and the uniqueness of the solutions implies the measurability of the solution function.
+    %The proof makes use of some more advanced results in measure theory and can be found as part of the proof of Theorem 3.6 in \cite{BFPM21}.
+    We exploit that we are dealing with standard measurable spaces.
+    Define the function $g : \CXJ \times \CXW \to \CXV$ by letting $g(\xJ,\xW)$ be the (unique) solution $\xV$ of the
+    equation $\xV = f(\xV,\xJ,\xW)$, with $\xV\in\CXV$. The graph of this function is
+    $$\mathrm{graph}(g) = \{(\xJ,\xW,\xV) \in \CXJ \times \CXW \times \CXV : \xV = g(\xJ,\xW)\}.$$
+    By assumption, we have that $\xV = g(\xJ,\xW) \iff \xV = f(\xV,\xJ,\xW)$ for all $x \in \CX$. Hence,
+    $$\mathrm{graph}(g) = \{(\xJ,\xW,\xV) \in \CXJ \times \CXW \times \CXV : \xV = f(\xV,\xJ,\xW)\}.$$
+    Defining the function 
+    $h : \CXJ \times \CXW \times \CXV \to \CXV \times \CXV : (\xJ,\xW,\xV) \mapsto (\xV, f(\xV,\xJ,\xW))$ and the diagonal
+    $\Delta = \{(\xV,\xV) : \xV \in \CXV\} \subseteq \CXV^2$, this shows that
+    $$\mathrm{graph}(g) = h^{-1}(\Delta).$$
+    Since $h$ is measurable and $\Delta$ is a measurable set (because $\CXV$ is Hausdorff), $h^{-1}(\Delta)$ is a measurable set.
+    By \cite[14.12]{Kec95}, because all spaces are (isomorphic to) Borel spaces, the fact that $\mathrm{graph}(g)$ is a measurable set implies that $g$ is a measurable function. Hence $g$ is a solution function. The unique solvability of $\C{M}$ follows since this is the only possible solution function.
+% perhaps Fremlin 418R
+
+%\item
+%  This easily follows by using the equivalent formulation of unique solvability from the first point.
+%  If $\C{M}$ is uniquely solvable, then
+%  for $P$-almost all $\xW\in\CXW$, for all $\xJ \in \CXJ$, the equation
+%  $$\xV = f(\xJ,\xV,\xW)$$
+%  has a unique solution for $\xV\in\CXV$.
+%  This implies that we can swap the quantifiers, i.e., the equation has a unique solution for $\xV\in\CXV$ for all $\xJ \in \CXJ$, for $P$-almost all $\xW\in\CXW$.
+%  This then shows that for all $\xJ\in\CXJ$, the intervened SCM $\C{M}_{\doit(\XJ=\xJ)}$ is uniquely solvable (again by the first point).
+\item
+  Assume $\C{M}$ to be uniquely solvable and let $g : \CXJ \times \CXW \to \CXV$ be its unique solution function.
+  The push-forward $(g,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $\C{M}$ (interpreted as a constant 
+  Markov kernel from $\CXJ$ to $\CXW$) provides a Markov kernel for $\C{M}$.
+  
+  Let $K(\XV,\XW \mid \XJ)$ denote any Markov kernel for $\C{M}$ obtained from a family
+  $(\XV^{\doit(\xJ)},\XW)_{\xJ\in\CXJ}$ of solutions. Pick any $\xJ\in\CXJ$. We have to show that
+  $K(\XV,\XW \mid \XJ=\xJ)$ is a unique distribution.
+  Since $(\XV^{\doit(\xJ)},\XW)$ is a solution of $\C{M}$, we have that $\XW \sim P$ and
+  $$\XV^{\doit(\xJ)} = f(\xJ,\XV^{\doit(\xJ)},\XW) \quad\text{a.s.}$$
+  This implies that
+  $$\XV^{\doit(\xJ)} = g(\xJ,\XW) \quad\text{a.s.}$$
+  By modifying the random variable $\XV^{\doit(\xJ)}$ on a null set, we can obtain a random variable $\tilde{\XV}^{\doit(\xJ)}$ such that we get equality everywhere:
+  $$\tilde{\XV}^{\doit(\xJ)} = g(\xJ,\XW).$$
+  This shows that the distribution of $(\tilde{\XV}^{\doit(\xJ)},\XW)$, and hence that of $(\XV^{\doit(\xJ)},\XW)$, 
+  is that of the push-forward of $P$ through the unique function
+  $g_{\xJ} : \CXW \to \CXV : \xW \mapsto (g(x_J,\xW),\xW)$, which is unique.
+  \end{enumerate}
+\end{proof}
+The first equivalence states that one gets the \emph{measurability}
+of the solution function for free from the measurability of the causal mechanism $f$ and 
+the uniqueness of the solutions of the structural equations.
+Note that for the special case of no exogenous input variables ($\Sin = \emptyset$), 
+the above shows that uniquely solvable SCMs induce a unique observational distribution.
+
+For SCMs whose causal mechanism are linear in terms of the endogenous variables, we can
+give a sufficient condition for unique solvability, and explicitly write down the form
+of their solution function.
+\begin{Prp}\label{prp:linear_scms}
+Let $\C{M}=\langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM such that all its
+endogenous variables are real-valued (i.e., $\CX_v = \RN$ for $v \in V$), and each
+component of the causal mechanism is an affine combination of endogenous variables
+with coefficients that may depend on exogenous variables, i.e., of the form
+$$
+  f_v(x) = \sum_{u\in V} B_{vu}(x_J,x_W) x_u + c_v(x_J,x_W),
+$$
+where $B(x_J,x_W)\in\RN^{V \times V}$ is a family of matrices and
+$c(x_J,x_W) \in \RN^V$ is a family of real-valued offsets.
+
+Then, for any set $L \subseteq V$,
+$(\C{M})_{\doit(V\setminus L)}$ is uniquely solvable if and only if the matrices 
+$I_{L}-B_{LL}(x_J,x_W)$ are invertible for all $x_J \in \CX_J, x_W \in \CX_W$,
+where $I_L \in \RN^{L \times L}$ the identity matrix and 
+$B_{LL}(x_J,x_W) \in \RN^{L \times L}$ the submatrix of $B(x_J,x_W)$.
+Its unique solution function is then:
+  \begin{equation*}\begin{split}
+    g &: \RN^{V\setminus L} \times \RN^{J\cup W} \to \RN^L \\
+      &: (x_{V\setminus L},x_J,x_W) \mapsto (I_L - B_{LL}(x_J,x_W))^{-1} \big(B_{L,{V\setminus L}}(x_J,x_W) x_{V\setminus L} + c_{L}(x_J,x_W)\big).
+  \end{split}\end{equation*}
+\end{Prp}
+%A non-zero coefficient $B_{ij}$ for $i,j\in\C{I}$ such that $i\neq j$ corresponds with a directed edge $j\to i$ in the (augmented) graph, and a coefficient $B_{ii}=1$ for $i\in\C{I}$ corresponds with a self-cycle $i\to i$ in the (augmented) graph of the SCM. A non-zero coefficient $\Gamma_{ij}$ for $i\in\C{I}$, $j\in\C{J}$ with $\Prb_{\C{E}_j}$ a non-degenerate probability distribution over $\RN$ corresponds with a directed edge $j \to i$ in the augmented graph. A non-zero entry $(\Gamma \Gamma^T)_{ij}$ for $i,j\in\C{I}$ with $i\neq j$ such that there exists a $k\in\C{J}$ for which $\Gamma_{ik},\Gamma_{jk}\neq 0$ and $\Prb_{\C{E}_k}$ a non-degenerate probability distribution over $\RN$ corresponds with a bidirected edge $i \oto j$ in the graph of the SCM.
+
+If an SCM is uniquely solvable, this does not necessarily mean that it is still uniquely solvable
+after performing some intervention. 
+To avoid the complications introduced in case solutions are absent, or present but not unique,
+we will henceforth make strong assumptions regarding the existence and uniqueness of solutions. 
+We (mostly) restrict our attention to a subclass of SCMs that we refer to as \emph{simple SCMs},
+which are SCMs that are uniquely solvable and remain so after any hard intervention:
+\begin{Def}
+  An SCM $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ 
+  is called \emph{simple} if for any $T \subseteq \Sin \cup \Send \cup \Srnd$, the intervened SCM
+  $\C{M}_{\doit(T)}$ is uniquely solvable.
+\end{Def}
+Note that this includes unique solvability of $\C{M}$ itself for $T = \emptyset$.
+
+\begin{Eg}
+Consider an SCM with structural equations
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= X_1 X_4 + W_3 \\
+    X_4 &= X_2 X_3 + W_4 
+  \end{align*}
+where the $X$'s are considered real-valued endogenous variables and the $W$'s exogenous variables with domains $(-1,1) \subset \RN$.
+We can solve the system of structural equations for $X$ in terms of $W$:
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 W_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 W_1}
+  \end{align*}
+Similarly, we can take any subset of the structural equations and solve it for the variables appearing on the l.h.s.\ of the equations in the subset, and obtain a unique solution. For example, only solving the structural equations for $X_3$ and $X_4$, we obtain:
+  \begin{align*}
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 X_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 X_1}
+  \end{align*}
+where the variables $X_1$ and $X_2$ are now considered as exogenous input variables (instead of endogenous variables).
+Hence, any subset of the structural equations has a unique solution for the variables appearing on the l.h.s.\ in terms
+of the remaining ones on the r.h.s., which means that this SCM is simple.
+\end{Eg}
+
+Theorem~\ref{thm:scm_unique_solvability} shows that the Markov kernels in the following definition are all uniquely defined.
+\begin{Def}\label{def:simple_scm_Markov_kernels}
+  If SCM $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ is simple, and $O \subseteq V \cup W$ is considered observed,
+  then $\C{M}$ induces the \emph{observational Markov kernel $P_{\C{M}}(X_O \mid \doit(X_J))$}, and for any intervention target 
+  $T \subseteq O$, it induces the \emph{interventional Markov kernel}
+  $$P_{\C{M}}(X_{O\setminus T} \mid \doit(X_J),\doit(X_T)) := P_{\C{M}_{\doit(T)}}(X_{O\setminus T} \mid \doit(X_{J \cup T})),$$
+  as the marginal Markov kernel of the intervened SCM $\C{M}_{\doit(T)}$.
+\end{Def}
+The two notations for interventional Markov kernels of simple SCMs will be used interchangeably.
+
+The fact that these SCMs are relatively simple to deal with (because we do not have to worry about non-existence or 
+non-uniqueness of solutions or partial solutions) motivated their name.
+Even though simplicity is a strong assumption, 
+the class of simple SCMs is more expressive than the class of IL-CBNs for two reasons: (i) it allows for
+causal cycles, and (ii) it allows to define counterfactuals.
+
+\subsubsection{Counterfactuals through twinning}\label{sec:counterfactuals}
+
+Counterfactuals are hypothetical statements (or questions) regarding the effects of some change that is contrary-to-fact.
+For example, suppose you are healthy but drank too much beer last night and now suffer from a hangover. 
+A counterfactual statement is then: ``If I had not drunk so much beer yesterday, I would feel much better now.''
+This statement invites one to imagine an alternative world in which everything is the same as in the actual world,
+with the sole difference that you did not drink beer last night. We can then use our causal model of the world to predict the
+consequences of this change (e.g., since you were in a healthy state and did not drink alcohol, you most likely will
+feel well in this alternative world).\footnote{The word ``counterfactual'' is also often used in the causality literature 
+as a synonym for potential outcomes, which are not necessarily contrary-to-fact. This would correspond with ``If you drink
+too much beer you will get a hangover.'' It is important to be aware of this to avoid possible confusion.}
+
+The truth value of such statements is often hard to determine in case the ``world'' is partially latent or not
+fully understood. When debugging a computer program, one makes heavy use of counterfactuals: ``if I had put a minus sign
+there, then the output of my program would have been correct''. In case the full source code is available, it is in 
+principle straightforward to work out whether such a statement is correct or not, but it becomes more difficult if 
+the full source code is not available. It becomes even more challenging when the output of the computer program is
+stochastic or it is impossible to reproduce its complete input. 
+Generally, in situations where the full causal mechanism is unknown, or exogenous
+randomness is latent, counterfactuals may not be well-defined quantities. Nevertheless, counterfactual thinking is 
+very common in humans, and toddlers already bombard their parents with counterfactual questions, 
+presumably as a means for them to build internal causal models of the world.
+
+The mathematical formalization of counterfactuals proposed by Pearl provides some clarification, but it also points out their 
+inherent complexity and strong dependence on the chosen model.\footnote{Consider this a warning before attempting to 
+predict counterfactual statements in a data-driven way, for example, using a neural network.}
+It mimics the reasoning steps we mentally perform when thinking about counterfactuals by constructing an ``actual''
+(``factual'') world and a parallel ``counterfactual'' world, which is minimally different in some aspect.
+The crucial (and often untestable) assumption is that the exogenous random variables have the same values in both worlds.
+A good analogy here is that of two identical twins that share the same latent genetics. 
+Before we give the definition, we will introduce some bookkeeping notation.
+\begin{Not}
+  Given an index set $Z$ we define a primed copy $Z' := \{z' : z \in Z\}$, where each $z'$ is a ``primed'' copy of $z$ 
+  (distinguishable from $z$ itself because of the attached prime symbol). 
+  We will also write $(z')^\circ = z$ for $z \in Z$, where the superscript $\circ$ removes the prime, i.e., it
+  maps back to the original of the primed index.
+\end{Not}
+The key definition is:
+\begin{Def}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM. We define the \emph{twinned SCM of $\C{M}$} as
+  the SCM $\C{M}^\twin = \langle \Sin \dot\cup \Sin', \Send \dot\cup \Send', \Srnd, \tilde{\CX}, P, \tilde{f} \rangle$
+  with $\Sin' = \{j' : j \in \Sin\}$ a copy of $\Sin$ and
+  $\Send' = \{v' : v \in \Send\}$ a copy of $\Send$, the twinned domain given by
+  $$\tilde{\CX} = \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$$
+  where $\CX_{j'} = \CX_j$ for all $j \in J$ and $\CX_{v'} = \CX_v$ for all $v \in V$,
+  and the twinned causal mechanism components given by
+  $$\tilde{f}_u\big((x_J,x_{J'}),(x_V,x_{V'}),\xW\big) = 
+  \begin{cases}
+    f_u(\xJ,\xV,\xW) & u \in \Send,  \\
+    f_{u^\circ}(x_{J'},x_{V'},\xW) & u \in \Send'.
+  \end{cases}$$
+\end{Def}
+The twinning operation is used to create copies of variables (so that in addition to the one in the factual world, 
+we have its copy in the counterfactual world) that can have different values to describe contrary-to-fact situations.
+The English language has a special grammatical construct to express counterfactuals:
+``If I had studied better, I would have passed the exam,'' instead of ``If I study better, I will pass the exam.''
+For the first statement, we first twin the SCM and then intervene on it, for the second, we just intervene on the SCM and there is no need for twinning. 
+
+Hard interventions are compatible with the twinning operation, in the following sense:
+\begin{Prp}
+Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM.
+\begin{itemize}
+  \item For $T \subseteq \Sin \cup \Send$, $\xT \in \CXT$:
+    $$(\C{M}^\twin)_{\doit(X_T=\xT,X_{T'}=\xT)} = (\C{M}_{\doit(\XT=\xT)})^\twin.$$
+  \item For $T \subseteq \Srnd$, $Q_T \in \prod_{t\in T} \C{P}(\CX_t)$:
+    $$(\C{M}^\twin)_{\doit(X_T\sim Q_T)} = (\C{M}_{\doit(\XT\sim Q_T)})^\twin.$$
+  \item For $T \subseteq \Sin \cup \Send$:
+    $$(\C{M}^\twin)_{\doit(T,T')} = (\C{M}_{\doit(T)})^\twin.$$
+%  \item If $\C{M}_{\doit(B)}$ is uniquely solvable for $B \subseteq \Send$, then
+%    $(\C{M}_B)^\twin \equiv (\C{M}^\twin)_{B\dot\cup B'}$.
+\end{itemize}
+\end{Prp}
+\begin{proof}
+  These properties all follow by writing out the definitions and checking commutativity of
+  the operations performed on the various components of the SCM tuple one-by-one.
+\end{proof}
+Another important property of the twinning operation is that it preserves unique solvability and simplicity.
+\begin{Lem}\label{lem:sol_fns_intervened_twin_scm}
+Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM.
+Let $T_1 \subseteq J \cup V$, $T_2 \subseteq J' \cup V'$ and $T_3 \subseteq W$. 
+If $g_{\doit(T_1\cup T_3)} : \CX_{J \cup T_1 \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1}$ is a solution function of $\C{M}_{\doit(T_1\cup T_3)}$ 
+and $g_{\doit(T_2^\circ\cup T_3)} : \CX_{J \cup T_2^\circ \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_2^\circ}$ is a solution function of $\C{M}_{\doit(T_2^\circ \cup T_3)}$ 
+then
+%$$(g_{\doit(T_1)},g_{\doit(T_2^\circ)}) : \CX_{J \cup J' \cup T_1 \cup T_2 \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2}$$
+  \begin{equation*}\begin{split}
+    \tilde{g} & : \CX_{(J \cup T_1 \cup T_3) \cup (J' \cup T_2)} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2} \\
+    & : (x_{(J \cup T_1 \cup T_3) \cup (J' \cup T_2)}, x_{W \setminus T_3}) \mapsto \big(g_{\doit(T_1\cup T_3)}(x_{J \cup T_1 \cup T_3},x_{W\setminus T_3}),g_{\doit(T_2^\circ\cup T_3)}(x_{J' \cup T_2 \cup T_3},x_{W \setminus T_3})\big) 
+  \end{split}\end{equation*}
+is a solution function of $(\C{M}^{\twin})_{\doit(T_1 \cup T_2 \cup T_3)}$.
+  In case $g_{\doit(T_1\cup T_3)}$ and $g_{\doit(T_2^\circ \cup T_3)}$ are unique, $\tilde{g}$ is also the
+  unique solution function of $(\C{M}^{\twin})_{\doit(T_1 \cup T_2 \cup T_3)}$.
+\end{Lem}
+\begin{proof}
+Let $\tilde{f}$ denote the causal mechanism of $\C{M}^\twin$.
+For all $x \in \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$,
+  \begin{equation*}\begin{split}
+    & x_{(V \cup V') \setminus (T_1 \cup T_2)} = \tilde{f}_{(V \cup V') \setminus (T_1 \cup T_2)}(x) \\
+    & \iff \begin{cases}
+      x_{V\setminus T_1}  &= f_{V\setminus T_1}(x_J,x_V,x_W) \\
+      x_{V'\setminus T_2} &= f_{(V'\setminus T_2)^\circ}(x_{J'},x_{V'},x_W)
+    \end{cases} \\
+%    & \impliedby \begin{cases}
+%      x_{V\setminus T_1} &= g_{\doit(T_1)}(x_{J\cup T_1},x_W) \\
+%      x_{V'\setminus T_2} &= g_{\doit(T_2^\circ)}(x_{J'\cup T_2},x_W)
+%    \end{cases}\\
+    & \impliedby \begin{cases}
+      x_{V\setminus T_1} &= g_{\doit(T_1\cup T_3)}(x_{J\cup T_1\cup T_3},x_{W\setminus T_3}) \\
+      x_{V'\setminus T_2} &= g_{\doit(T_2^\circ \cup T_3)}(x_{J'\cup T_2 \cup T_3},x_{W\setminus T_3})
+    \end{cases}\\
+    & \iff 
+    x_{(V \cup V') \setminus (T_1 \cup T_2)} = \tilde{g}(x_{J \cup T_1 \cup T_3}, x_{J' \cup T_2}, x_{W \setminus T_3})
+  \end{split}\end{equation*}
+In case $g_{\doit(T_1 \cup T_3)}$ and $g_{\doit(T_2^\circ \cup T_3)}$ are unique, the ``$\impliedby$'' becomes an ``$\iff$''.
+\end{proof}
+\begin{Prp}
+Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM.
+If $\C{M}$ is uniquely solvable, then $\C{M}^{\twin}$ is uniquely solvable.
+Furthermore, if $\C{M}$ is simple, then $\C{M}^{\twin}$ is simple.
+\end{Prp}
+\begin{proof}
+  The first statement follows directly from Lemma~\ref{lem:sol_fns_intervened_twin_scm} by taking $T_1 = T_2 = \emptyset$.
+  The second statement follows from Lemma~\ref{lem:sol_fns_intervened_twin_scm} in combination with
+  Theorem~\ref{thm:scm_unique_solvability}.
+\end{proof}
+
+\subsubsection{Equivalences}
+
+Equivalence relations are ubiquitous in mathematics. They capture the notion that mathematical objects can be ``equivalent'' 
+from some point of view.
+\begin{Def}
+  Let $Z$ be a set and $R \subseteq Z^2$ be a relation on $Z$ (i.e., a subset of ordered pairs of $Z$). $R$ is called an \emph{equivalence relation} if 
+  \begin{enumerate}
+    \item $R$ is reflexive: $(a,a) \in R$ for all $a \in Z$;
+    \item $R$ is symmetric: $(a,b) \in R \iff (b,a) \in R$ for all $a,b \in Z$;
+    \item $R$ is transitive: if $(a,b) \in R$ and $(b,c) \in R$ then $(a,c) \in R$ for all $a,b,c\in Z$.
+  \end{enumerate}
+\end{Def}
+In this section, we will discuss several important equivalence relations between SCMs.
+
+We define the following equivalences amongst SCMs.
+\begin{Def}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ and
+  $\tilde{\C{M}} = \langle \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rangle$ be two SCMs that may
+  differ only in terms of their causal mechanism. We say that
+  $\C{M}$ is \emph{equivalent} to $\tilde{\C{M}}$ and write $\C{M} \equiv \tilde{\C{M}}$ if for each $v \in \Send$,
+  $$\forall x \in \CX: \qquad x_v = f_v(\xJ,\xV,\xW) \iff x_v = \tilde{f}_v(\xJ,\xV,\xW).$$
+  In words, $\C{M}$ and $\tilde{\C{M}}$ are considered equivalent if they at most differ in terms of their
+  causal mechanisms, yet each of their structural equations has the same solutions.
+\end{Def}
+\begin{Rem}
+Equivalent SCMs are equivalent for many purposes:
+\begin{enumerate}
+  \item Equivalence is preserved by hard interventions.
+  \item Equivalence is preserved by twinning.
+  \item Unique solvability and simplicity are invariants of equivalence.
+  \item Equivalent SCMs have the same solution functions, solutions, outcomes, and Markov kernels.
+\end{enumerate}
+\end{Rem}
+\begin{Exc}
+  Prove this remark.
+\end{Exc}
+
+\begin{Eg}\label{eg:equivalent_scm}
+  The SCM with the single structural equation
+  $$X = -X^3 + X + W$$
+  where $X$ is endogenous, and $W$ is exogenous, is equivalent to the SCM obtained by replacing the structural equation with
+  $$X = \sqrt[3]{W}.$$
+  Note that $X$ no longer appears on the r.h.s..
+\end{Eg}
+This notion of equivalence is rather strong. 
+\begin{Eg}\label{eg:self_cycle}
+  The SCM with endogenous variable $X \in \RN$ and exogenous random variable $W$ with domain $\RN$ and structural equation
+  $$X = W X + c$$
+  is not equivalent to the SCM obtained by replacing the structural equation with
+  $$X = \begin{cases}
+          \xi & W = 1 \\
+          \frac{c}{1 - W} & W \ne 1
+        \end{cases}$$
+  no matter how we choose $\xi$, even when $P(W=1) = 0$. 
+  If one does not model interventions on exogenous random variables, weaker notions of equivalence 
+  can be used that replace the ``for all'' quantifier over values of exogenous random variables by the
+  ``for almost all'' quantifier (see \cite{BFPM21}).
+\end{Eg}
+
+We often also make use of other notions of equivalence as well.
+For simplicity of exposition, we provide the definitions only for simple SCMs 
+(the general definitions are provided in \cite{BFPM21} for SCMs without exogenous input variables).
+\begin{Def}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ and
+  $\tilde{\C{M}} = \langle \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rangle$ be two simple SCMs
+  and $O \subseteq (\Send \cup \Srnd) \cap (\tilde{\Send} \cup \tilde{\Srnd})$ a subset.
+  We say that:
+  \begin{enumerate}
+    \item $\C{M}$ and $\tilde{\C{M}}$ are \emph{observationally equivalent w.r.t.\ $O$} if $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$ and their marginal Markov kernels coincide: 
+      $$P_{\C{M}}(X_O \mid \doit(X_J)) = P_{\tilde{\C{M}}}(X_O \mid \doit(X_{\tilde J})).$$
+    This has to be interpreted as both Markov kernels being a version of a Markov kernel $\CX_{J \cap \tilde{J}} \dshto \CX_O$,
+    i.e., $P_{\C{M}}(X_O \mid \doit(X_J))$ must be essentially constant in $x_{J \setminus \tilde{J}}$ and
+    $P_{\tilde{\C{M}}}(X_O \mid \doit(X_{\tilde{J}}))$ must be essentially constant in $x_{\tilde{J} \setminus J}$.
+%      $$P_{\C{M}}(X_O \mid \doit(X_J)) = P_{\C{M}}(X_O \mid \doit(X_{J \cap \tilde{J}})) =
+%      P_{\tilde{\C{M}}}(X_O \mid \doit(X_J)) = P_{\tilde{\C{M}}}(X_O \mid \doit(X_J));$$
+    \item $\C{M}$ and $\tilde{\C{M}}$ are \emph{interventionally equivalent w.r.t.\ $O$} if for every subset $T \subseteq O$ the intervened SCMs $\C{M}_{\doit(T)}$ and $\tilde{\C{M}}_{\doit(T)}$ are observationally equivalent w.r.t.\ $O \setminus T$;
+    \item $\C{M}$ and $\tilde{\C{M}}$ are said to be \emph{counterfactually equivalent w.r.t.\ $O$} if the twin SCMs $\C{M}^\twin$ and $\tilde{\C{M}}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$, where
+    $O'$ is the copy of $O \cap (V \cap \tilde{V})$ in $V' \cap \tilde{V}'$.
+  \end{enumerate}
+  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $\C{M}$ and $\tilde{\C{M}}$ observationally equivalent, interventionally equivalent and counterfactually equivalent, respectively).
+\end{Def}
+More generally, one could define interventional and counterfactual equivalence not only with respect to an observed set of variables, but also with respect to a given set of interventions.
+
+\begin{Lem}\label{lem:obs_equiv_twin_scm}
+Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be a simple SCM. Then
+$\C{M}$ and $\C{M}^\twin$ are interventionally equivalent w.r.t.\ $V \cup W$.
+\end{Lem}
+\begin{proof}
+%  We have to show that for all $x_{J'} \in \CX_{J'}$,
+%  $$P_{\C{M}}(X_V,X_W \mid \doit(X_J)) = P_{\C{M}^\twin}(X_V,X_W \mid \doit(X_J),\doit(X_{J'}=x_{J'})).$$
+%  Let $g : \CXJ \times \CXW \to \CXV$ be the unique solution function of $\C{M}$.
+%  Then $P_{\C{M}}(X_V,X_W \mid \doit(X_J))$ is 
+%  the push-forward $(g,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $\C{M}$ (interpreted as a constant 
+%  Markov kernel $\CXJ \dshto \CXW$).
+%  Then $\tilde{g} : \CXJ \times \CX_{J'} \times \CXW \to \CXV \times \CX_{V'} : (x_J,x_{J'},x_W) \mapsto \big(g(x_J,x_W),g(x_{J'},x_W)\big)$ is the unique solution function of $\C{M}^\twin$ by Lemma~\ref{lem:sol_fns_intervened_twin_scm}.
+%  We obtain the marginal Markov kernel $P_{\C{M}^\twin}(X_V,X_W \mid \doit(X_{J\cup J'}))$ as the push-forward 
+%  $(\tilde{g}_V,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $\C{M}$, now interpreted as a constant
+%  Markov kernel $\CXJ \times \CX_{J'} \to \CXW$. Since $g \circ \pr_{\CX_J \times \CX_W} = \tilde{g}_V$, we obtain
+%  the desired conclusion.
+  We have to show that for any $T \subseteq V \cup W$, 
+  $\C{M}_{\doit(T)}$ and $(\C{M}^{\twin})_{\doit(T)}$ are observationally equivalent w.r.t.\ $(V \cup W) \setminus T$.
+  Let $T \subseteq V \cup W$, and write $T_1 = T \cap V$, $T_2 = \emptyset$, $T_3 = T \cap W$. Then $T = T_1 \cup T_3$.
+
+  By Lemma~\ref{lem:sol_fns_intervened_twin_scm},
+with $g_{\doit(T)} : \CX_{J \cup T} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1}$ the solution function of $\C{M}_{\doit(T)}$ 
+and $g_{\doit(T_3)} : \CX_{J \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V}$ the solution function of $\C{M}_{\doit(T_3)}$,
+  \begin{equation*}\begin{split}
+    \tilde{g} & : \CX_{(J \cup T) \cup J'} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V'} \\
+    & : (x_{(J \cup T) \cup J'}, x_{W \setminus T_3}) \mapsto \big(g_{\doit(T)}(x_{J \cup T},x_{W\setminus T_3}),g_{\doit(T_3)}(x_{J' \cup T_3},x_{W \setminus T_3})\big) 
+  \end{split}\end{equation*}
+  is the unique solution function of $(\C{M}^{\twin})_{\doit(T)}$. 
+  Note that $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_{W\setminus T_3}} = \tilde{g}_{V\setminus T}$.
+
+  Then $P_{\C{M}_{\doit(T)}}(X_{(V \cup W)\setminus T} \mid \doit(X_{J\cup T}))$ is 
+  the push-forward $(g_{\doit(T)},\id_{\CX_{W\setminus T}})_*(P_{W\setminus T})$ of the marginal exogenous distribution 
+  $P_{W\setminus T}$ of $\C{M}_{\doit(T)}$ (interpreted as a constant Markov kernel $\CX_{J \cup T} \dshto \CX_{W \setminus T}$).
+  We obtain the marginal Markov kernel $P_{(\C{M}^\twin)_{\doit(T)}}(X_{(V \cup W) \setminus T} \mid \doit(X_{J\cup T\cup J'}))$ as the push-forward 
+  $(\tilde{g}_{V\setminus T},\id_{\CX_{W\setminus T}})_*(P_{W\setminus T})$ of the marginal exogenous distribution $P_{W\setminus T}$ of $(\C{M}^\twin)_{\doit(T)}$, now interpreted as a constant
+  Markov kernel $\CX_{J\cup T} \times \CX_{J'} \to \CX_{W\setminus T}$. 
+  Since $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_{W\setminus T_3}} = \tilde{g}_{V\setminus T}$,
+  we obtain the desired conclusion.
+\end{proof}
+One can show the following properties of these equivalences:
+\begin{Prp}
+  For simple SCMs $\C{M}, \tilde{\C{M}}$ and a subset $O \subseteq (\Send \cap \tilde{\Send}) \cup (\Srnd \cap \tilde{\Srnd})$:
+  \begin{enumerate}
+    \item If $\C{M} \equiv \tilde{\C{M}}$ then $\C{M}$ and $\tilde{\C{M}}$ are counterfactually equivalent w.r.t.\ $O$.
+    \item If $\C{M}$ and $\tilde{\C{M}}$ are counterfactually equivalent w.r.t.\ $O$ then 
+      $\C{M}$ and $\tilde{\C{M}}$ are interventionally equivalent w.r.t.\ $O$.
+    \item If $\C{M}$ and $\tilde{\C{M}}$ are interventionally equivalent w.r.t.\ $O$ then 
+      $\C{M}$ and $\tilde{\C{M}}$ are observationally equivalent w.r.t.\ $O$.
+  \end{enumerate}
+\end{Prp}
+\begin{comment}\begin{proof}
+  Let $O'$ be the copy of $O \cap (V \cap \tilde{V})$ in $V' \cap \tilde{V}'$.
+  \begin{enumerate}
+    \item 
+     Suppose $\C{M} \equiv \tilde{\C{M}}$. Then $\C{M}^\twin \equiv \tilde{\C{M}}^\twin$,
+     and for every $T \subseteq O \cup O'$, $(\C{M}^\twin)_{\doit(T)} \equiv (\tilde{\C{M}}^\twin)_{\doit(T)}$.
+     Since equivalent SCMs have the same Markov kernels, $(\C{M}^\twin)_{\doit(T)}$ and $(\tilde{\C{M}}^\twin)_{\doit(T)}$
+     are observationally equivalent w.r.t.\ $(O \cup O') \setminus T$ for every $T \subseteq O \cup O'$.
+
+  \item Suppose $\C{M}$ and $\tilde{\C{M}}$ are counterfactually equivalent w.r.t.\ $O$. 
+    Then $\C{M}^\twin$ and $\tilde{\C{M}}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$. 
+  For every $T = T \subseteq O \cup O'$,
+  $(\C{M}^\twin)_{\doit(T)}$ and $(\tilde{\C{M}}^\twin)_{\doit(T)}$ are observationally equivalent w.r.t. $(O \cup O') \setminus T$.
+
+  We have to show that $\C{M}$ and $\tilde{\C{M}}$ are interventionally equivalent w.r.t.\ $O$.
+  That is, we have to show that for every $S \subseteq O$, $\C{M}_{\doit(S)}$ and $\tilde{\C{M}}_{\doit(S)}$
+  are observationally equivalent w.r.t.\ $O \setminus S$.
+
+%  We first practice with a special case.
+%  Take $T_2 = T_1'$ with $T_1 \subseteq O \cap (V \cap \tilde{V})$ and $T_3 = \emptyset$; then
+%  $(\C{M}_{\doit(T_1)})^\twin = (\C{M}^\twin)_{\doit(T_1,T_1')}$ and $(\tilde{\C{M}}_{\doit(T_1)})^\twin = (\tilde{\C{M}}^\twin)_{\doit(T_1,T_1')}$ are observationally equivalent w.r.t. 
+%  $$(O \cup O') \setminus (T_1 \cup T_2) = (O \cap (V \cap \tilde{V}) \cup O \cap (W \cap \tilde{W}) \cup (O \cap (V \cap \tilde{V}))') \setminus (T_1 \cup T_1')$$
+%  $$ = O \setminus T_1 \cup ((O \cap (V \cap \tilde{V})) \setminus T_1)'$$
+%  and hence w.r.t.
+%  $$O \setminus T_1.$$
+%  Now by Lemma~\ref{lem:obs_equiv_twin_scm}, $(\C{M}_{\doit(T_1)})^\twin$ and $\C{M}_{\doit(T_1)}$ are observationally equivalent
+%  w.r.t.\ $V \setminus T_1 \cup W$ and hence w.r.t.\ $O \setminus T_1$.
+%  Similarly, $(\tilde{\C{M}}_{\doit(T_1)})^\twin$ and $\tilde{\C{M}}_{\doit(T_1)}$ are observationally equivalent w.r.t\ $O \setminus T_1$.
+%  Hence, by transitivity, $\C{M}_{\doit(T_1)}$ and $\tilde{\C{M}}_{\doit(T_1)}$ are observationally equivalent w.r.t\ $O \setminus T_1$.
+
+%  Let us now consider the general case.
+  Now take $S \subseteq O$ and then let $T_1 = S \cap V \cap \tilde{V}$, $T_2 = T_1'$ and $T_3 = S \cap W \cap \tilde{W}$; then $S = T_1 \cup T_3$.
+  Then by assumption,
+  $$((\C{M}_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((\C{M}^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (\C{M}^\twin)_{\doit(T_1,T_2,T_3)}$$
+  and 
+  $$((\tilde{\C{M}}_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((\tilde{\C{M}}^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (\tilde{\C{M}}^\twin)_{\doit(T_1,T_2,T_3)}$$
+  are observationally equivalent w.r.t.\ $(O \cup O') \setminus T = (O \setminus (T_1 \cup T_3)) \cup (O' \setminus T_2)$, and hence w.r.t.\ $O \setminus S = O \setminus (T_1 \cup T_3)$.
+  By Lemma~\ref{lem:obs_equiv_twin_scm}, $(\C{M}_{\doit(T_1)})^\twin$ and $\C{M}_{\doit(T_1)}$ are interventionally equivalent
+  w.r.t.\ $V \setminus T_1 \cup W$. Hence
+  $((\C{M}_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(\C{M}_{\doit(T_1)})_{\doit(T_3)} = \C{M}_{\doit(S)}$ are observationally equivalent 
+  w.r.t.\ $V \setminus T_1 \cup W \setminus T_3$, and hence also w.r.t.\ $O \setminus S$.
+  Similarly, $((\tilde{\C{M}}_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(\tilde{\C{M}}_{\doit(T_1)})_{\doit(T_3)} = \tilde{\C{M}}_{\doit(S)}$ are observationally equivalent w.r.t\ $O \setminus S$.
+  Hence, by transitivity, $\C{M}_{\doit(S)}$ and $\tilde{\C{M}}_{\doit(S)}$ are observationally equivalent w.r.t\ $O \setminus S$.
+  \item Trivial (take $T = \emptyset$).
+  \end{enumerate}
+\end{proof}
+\end{comment}
+However, the reverse implications do not hold in general. This expresses that causal modeling is more refined than 
+probabilistic modeling, and counterfactual modeling is more refined than interventional modeling.
+This formalizes what Pearl refers to as the ``causal hierarchy'' or ``ladder of causation''.
+\begin{Eg}[Observational equivalence does not imply interventional equivalence]
+Consider the SCM $\C{M}$ with
+$$N \sim \C{N}(\mu,\sigma^2)$$
+$$C = \alpha + \beta N$$
+and the SCM $\tilde{\C{M}}$ with
+$$C \sim \C{N}(\tilde{\mu},\tilde{\sigma}^2)$$
+$$N = \tilde{\alpha} + \tilde{\beta} C$$
+These SCMs are simple and their observational distributions are respectively 
+  $$P(N,C) = \C{N}\left(\begin{pmatrix} \mu \\ \alpha \mu \end{pmatrix}, \begin{pmatrix} \sigma^2 & \beta\sigma^2 \\ \beta\sigma^2 & \beta^2\sigma^2\end{pmatrix}\right)$$
+and
+  $$P(N,C) = \C{N}\left(\begin{pmatrix} \tilde{\alpha}\tilde{\mu} \\ \tilde{\mu} \end{pmatrix}, \begin{pmatrix} \tilde{\beta}^2\tilde{\sigma}^2 & \tilde{\beta}\tilde{\sigma}^2 \\ \tilde{\beta}\tilde{\sigma}^2 & \tilde{\sigma}^2\end{pmatrix}\right)$$
+For certain parameter choices, they are observationally equivalent.
+%If $\mu = \tilde{\alpha}\tilde{\mu}$ and $\tilde{\mu} = \alpha \mu$ and
+%  $\sigma^2 = \tilde{\beta}^2\tilde{\sigma}^2$ and $\beta \sigma^2 = \tilde{\beta}\tilde{\sigma}^2$ and $\beta^2 = \tilde{\sigma}^2$ then they are observationally equivalent.
+However, they are not interventionally equivalent except for very special parameter choices.
+\end{Eg}
+
+In general, interventional equivalence does not imply counterfactual equivalence. Even interventionally equivalent SCMs with the same causal mechanism (that differ only in terms of their exogenous distributions) may not be counterfactually equivalent. For example, the SCMs $\C{M}_{\rho}$ and $\C{M}_{\rho'}$ with $\rho\neq\rho'$ in the following example are interventionally equivalent, but not counterfactually equivalent.
+\begin{Eg}[Interventional equivalence does not imply counterfactual equivalence \cite{Daw02}]\label{ex:Counterfactuals}
+  For parameter $\rho\in[0,1]$, consider the SCM $\C{M}_\rho$ with binary exogenous input variable $X \in \{0,1\}$, endogenous variable $Y$, a single latent exogenous random variable $W = (W_1,W_2) \in \RN^2$ with
+exogenous distribution 
+  $$\begin{pmatrix} W_1 \\ W_2 \end{pmatrix}\sim\C{N}\left(\begin{pmatrix}0 \\ 0\end{pmatrix},\begin{pmatrix}1&\rho\\ \rho&1\end{pmatrix}\right)$$
+and structural equation
+  $$Y = W_1 (1 - X) + W_2 X.$$
+In a medical setting, this SCM could be used to model whether a patient was treated or not ($X$) and the corresponding outcome for that patient ($Y$).
+
+Suppose in the actual world we did not assign treatment to a patient ($X=0$) and the outcome was $Y^{\doit(0)}=y \in\RN$. 
+Consider the counterfactual query ``What would the outcome have been, had we assigned treatment to this patient?''. 
+We can answer this question by introducing a parallel counterfactual world in which the exogenous random variables for each
+patient have the same values as in the actual world, but treatment and outcome may differ. For this, consider the
+twin SCM $\C{M}_{\rho}^{\twin}$.
+The counterfactual query then asks for $P((Y')^{\doit(1)}=y'\mid Y^{\doit(0)}=y)$, where $Y^0$ is the factual outcome, and
+$(Y')^{\doit(1)}$ is the counterfactual outcome (which are both marginal potential outcomes of the twinned SCM). One can calculate that
+$$
+  P\big((Y')^{\doit(1)},Y^{\doit(0)}\big) = \C{N}\left(\begin{pmatrix}0\\ 0\end{pmatrix}, \begin{pmatrix} 1 & \rho \\ \rho & 1 \end{pmatrix}\right)
+$$
+and hence $P((Y')^{\doit(1)} \mid Y^{\doit(0)}=y) = \C{N}(\rho y,1-\rho^2)$ (by the general formula for conditioning a multivariate Gaussian distribution). Note that the answer to the counterfactual query depends on a quantity $\rho$ that we cannot identify from the Markov kernel $P(Y\given \doit (X))$, since this is independent of $\rho$. Therefore, even unlimited data from a randomized controlled trial would not suffice to determine the value of this particular counterfactual query.
+Indeed, SCMs $\C{M}_{\rho}$ and $\C{M}_{\rho'}$ with $\rho\neq\rho'$ are interventionally equivalent, but not counterfactually equivalent.
+%If we obtain the SCM from a reduction, we find the one with $\rho = 1$.
+\end{Eg}
+The lesson of this example is that if one attempts to learn an SCM from data (even from randomized controlled trials with arbitrarily large sample size) it can happen that one still cannot identify the values of some counterfactual queries. 
+In other words, data-driven estimation of counterfactuals can be an ill-posed problem. 
+Nevertheless, counterfactuals are central in court cases (e.g., to determine responsibility, ``the physician treated the patient with drug A and the patient died, would the patient still be alive if the physician had abstained from the treatment?''). 
+The above example shows that one is on very slippery terrain when it comes to answering such questions. 
+Unless one is willing to make very strong modeling assumptions, giving objective answers (even probabilistic ones) can be an impossible task.
+In certain cases, though, it is possible to derive \emph{bounds} on counterfactual queries from the observational and interventional Markov kernels.
+
+%Twinning preserves observational equivalence w.r.t.\ a subset. Example~\ref{ex:Counterfactuals} shows that twinning
+%does not preserve interventional equivalence w.r.t.\ a subset. 
+%Hard interventions do not preserve observational equivalence w.r.t.\ a subset, but they
+%do preserve interventional and counterfactual equivalence w.r.t.\ a subset.
+
+%\begin{example}[The Oswald-Kennedy case]
+%A classical example of a counterfactual query is ``What if Oswald were not
+%to have shot Kennedy, then would Kennedy still be alive?'', which presumes the
+%factual knowledge of Oswald shooting Kennedy and the dead of Kennedy
+%  \citep{BP94}. This query can in principle be modeled by an SCM. Assume the following underlying SCM $\C{M} = \langle \B{2}, \B{2}, \{0,1\}^2, \{0,1\}^3, f, \Prb_{\BC{E}} \rangle$ where the causal mechanism is given by
+%$$
+%    f_1(\B{x},\B{e}) = e_1 \,, \quad f_2(\B{x},\B{e}) = (1-x_1 e_{21}) e_{22} 
+%$$
+%and $\Prb_{\BC{E}}=\Prb^{(E_1,\B{E}_2)}$ with $\B{E}_2=(E_{21},E_{22})^T$ and $E_1,E_{21}, E_{22} \sim
+%\mathrm{Bernoulli}(4/5)$ and mutually independent. In this model $X_1$ denotes
+%whether Oswald shot Kennedy or not and $X_2$ whether Kennedy is alive or not.
+%The exogenous variables could model several external influences, i.e., $E_1$
+%could model Oswald's willingness to shoot, $E_{21}$ could model his shooting
+%accuracy, and $E_{22}$ could model any other external circumstances that causes
+%Kennedy's death. The above counterfactual query can now be answered using the
+%twin SCM, where both the factual and counterfactual worlds are tied together, as
+%depicted in Figure~\ref{fig:twinSCM}. The knowledge of Oswald shooting Kennedy
+%($X_1=1$) and the observation that Kennedy is not alive ($X_2=0$) in the factual world, together with the knowledge of Oswald not shooting Kennedy in the counterfactual world ($X_{1'}=0$), allows us to answer the counterfactual query $p(X_{2'}=1 \given \intervene(X_{1'}=0),\intervene(X_1=1),X_2=0)=4/5$. 
+%That is, under the model assumptions there is an 80\% chance that Kennedy would still have been alive, if Oswald had been prevented to shoot Kennedy.
+%\begin{figure}
+%  \begin{center}
+%    \begin{tikzpicture}
+%      \begin{scope}
+%      \node[exvar] (E2) at (1.25,0.75) {$\B{E}_2$};
+%      \node[exvar] (E1) at (1.25,2.0) {$E_1$};
+%      \node[var] (X1) at (0,1.25) {$X_1$}; 
+%      \node[var] (X2) at (0,0) {$X_2$}; 
+%      \draw[arr] (X1) -- (X2);
+%      \draw[arr] (E1) -- (X1);
+%      \draw[arr] (E2) -- (X2);
+%       \end{scope}
+%    \begin{scope}[shift={(4.5cm,0cm)}]
+%      \node[exvar] (E2) at (1.25,0.75) {$\B{E}_2$};
+%      \node[exvar] (E1) at (1.25,2.0) {$E_1$};
+%      \node[var] (X1) at (0,1.25) {$X_1$}; 
+%      \node[var] (X2) at (0,0) {$X_2$}; 
+%      \node[var] (X1a) at (2.5,1.25) {$X_{1'}$};
+%      \node[var] (X2a) at (2.5,0) {$X_{2'}$};
+%      \draw[arr] (X1) -- (X2);
+%      \draw[arr] (E2) -- (X2);
+%      \draw[arr] (E1) -- (X1);
+%      \draw[arr] (E2) -- (X2a);
+%      \draw[arr] (E1) -- (X1a);
+%      \draw[arr] (X1a) -- (X2a);
+%    \end{scope}
+%    \end{tikzpicture}
+%  \end{center}
+%  \caption{The augmented graph of the SCM (left) and its twin SCM (right) of Example~\ref{ex:classicalexamplecounterfactuals} and \ref{ex:Counterfactuals}.}
+%%  \label{fig:twinSCM}
+%\end{figure}
+%\end{example}
+

@@ -1,0 +1,83 @@
+A: Why did you register for this course?
+B: In which way does the course meet your expectations?
+C: In which way does the course not meet your expectations?
+D: If you decided to stop participating in the course: why did you take that decision?
+E: What suggestions do you have to improve the course?
+
+-----
+
+A. I wanted to learn more about causal models and the (mathematical) formalization of causality as a phenomenon. I also thought this to be a well taught course (given the lecturer's background).
+
+B. It does teach a lot (both in depth and breadth) about causality, which is fortunate. The lectures are very well-structured. I am generally happy about the course.
+
+C. I am however surprised by the level of measure theoretical involvement in the subject. I suspected a more state-space model/graph theory/Markov chains kind of course. 
+
+I also think that the amount of homework assignments is high for a 6pnt (2 period) course, especially since it is optional for many students (except SFM/Math MSc students). Likewise, I think a maximum of 2 or 3 assignments to be more suitable for a weekly hand-in than the current work-load.
+
+Some additional practical examples more aligned with the assignments could help, since there are quite a few challenging theoretical concepts throughout the course. It is helpful if homework/exam-problems are to some extent 1 to 1 with relatively easy examples you have seen that had been solved in the lectures. Many courses instead are poorly helpful in instructing how to apply taught theory to problems (not per se this course).
+
+D. I will continue to participate, but the amount of work for other courses (mandatory courses) ensures that I don't have time to deliver the homework assignments in period 4. I will likely catch up in period 5 and miss points for the assignment in period 4.
+
+E. As an econometrics MSc student, I really like this course. I hope you can keep it as an optional course for non-mathematics majors. But do warn them about the heavy reliance on measure theory and the need for mathematical maturity. 
+
+Perhaps splitting the course into two 3 point courses could be considered. Then it is possible to focus one period - say period 4 - on topics in causality that are more suitable for AI/CS/Econometrics/Computational science majors. Then a second follow-up course (period 5) could be more explicitly mathematical and measure theoretical, which would be interesting to people familiar with/interested in that level of mathematical depth.
+
+-----
+
+A. Learn about causality and it's applications in machine learning.
+B. In the beginning, it didn't. During the last weeks, I see more topics with the potential to have practical applications.
+C. Too much theory without any applications.
+D. I haven't stopped yet.
+E. I would like more applied assignments in order to understand the material better.
+
+-----
+
+A. I am working on my master thesis project, it's about causal inference.
+B. The material about causal inference
+C. I think the course focus more on the causal discovery, ie discovering the underlying causal graph. However, my research focuses more on measuring the causal impact from the data.
+D. I am not sure what you mean by "stop participating", if you mean  not submitting the homework, it's because I am working on my thesis project full time and don't have much time for the homework
+E. Currently no suggestions, I think it's a good course.
+
+-----
+
+A. I'm a student from MSc AI. Causality is quite interesting and I'm very keen to master the subject. But I believe I need more background knowledge to do so. Although I'm trying to follow the lectures and read the material, I'm finding it difficult and don't feel comfortable.
+
+Even if I fail to achieve my objectives for the course in current period, I plan to build my knowledge in Measure Theoretic  Probability, Graph Theory during next summer and will definitely register back in the course.  
+
+ I've already tried finding textbooks for the prerequisites and also found a course in MasterMath for Measure Theoretic Probability. I might take it up if needed as well.
+
+I'll be very happy if I can get any help in my preparation for mastering Causality. I really hope I can take up my thesis around this area.
+
+B. I'm happy at least I now know what prerequisites are needed for causality and I can accordingly prepare myself.
+
+C. I really can't comment on this. I believe I have to work on the prerequisites myself and can't complain if I find the course difficult. I'll try my best and hope to master the subject eventually.
+
+D. 
+
+E. Can you please provide resources for the prerequisites? I really appreciate that you have given a brief introduction to measure theoretic probability. But honestly, it was quite hard to understand especially coming from a non-mathematics background.
+
+-----
+
+A. The name is excellent; I was very interested in how conditional distributions actually work, in measure theory we didn't define E[Y| X=x]  for X real since {X=x} is a null set; I'm also interested because randomised trials are very common in (marketing) data science so this could be useful.
+
+B. It tackles what I thought it would
+
+C. a lot more measure theory and abstract stuff than expected but I presume this gets better towards the end of the course
+
+D.
+
+E. The chapter in the notes on operations with Markov kernels feels fairly messy / I'd prefer  a lot more examples or at least a summary Proposition listing all the rules for these operations. I realise that we had to show some of this in the homework but I think I'd be more comfortable with it if it was clearer from the start. 
+
+It feels like there's a lot of homework given that it's individual, I'd prefer to work in pairs / fewer questions.
+
+-----
+
+A. I think this course fits well with my interests but also with the other courses I take.
+
+B. there is a lot of variation of material: measure theory, graph theory, some more practical material, and it seems later on some machine learning (or subjects related to machine learning)
+
+C. The work load is quite high for a 6 EC course.
+
+D. I’m still participating. However, this week I had COVID so didn’t go to the lecture and in general I cannot attend tutorials. So if attendance is low, this is why I didn’t show up.
+
+E. I do think the work load is really high. I did hear the other students say that as well. For example, Markov kernels are for us a new concept and we learn a lot about them only in one week. It costs some time to understand the material. Then there is also a big homework set, so time to understand the material is limited.

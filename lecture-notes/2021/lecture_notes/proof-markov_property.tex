@@ -1,0 +1,269 @@
+\subparagraph{Proofs - Global Markov Property }\hfill
+
+The proof of the global Markov property follows similar arguments as used in \cite{Lau90, Ver93, Ric03, FM17, FM18, RERS17}, 
+namely chaining the separoid axioms together in an inductive way.
+The main difference here is that we never rely on the Symmetry property but instead use 
+the left and right versions of the separoid axioms separately.
+
+
+\begin{Thm}[Global Markov property for causal Bayesian networks]
+\label{GMP-CCBN}
+Consider a causal Bayesian network (with input and latent variables) with observational CADMG $G=(J,V,E,L)$ 
+and observational Markov kernel $P(X_V|\doit(X_J))$.
+Then for all $A, B, C \ins J \cup V$ (not-necessarily disjoint) we have the implication:
+\[ A \Perp^d_G B \given C \qquad \implies \qquad X_A \Indep_{P(X_V|\doit(X_J))} X_B \given X_C.   \]
+If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+\[ A \Perp^d_G J \cup B \given C \qquad \implies \qquad X_A \Indep_{P(X_V|\doit(X_J))} X_J,X_{B} \given X_C.   \]
+\begin{proof}
+Because d-separation is preserved under marginalization:
+\[ A \Perp^d_G B \given C \quad \iff \quad A \Perp^d_{G^+} B \given C,   \]
+we can directly assume that we work with the causal Bayesian networks without latent variables that marginalizes to the given one.
+So w.l.o.g.\ $L=\emptyset$ and $G$ is a CDAG.\\
+We then do induction by $\#V$. \\
+
+%For this let $<$ be a topological order of $G$ where all elements of $J$ are ordered first.
+%With this we have:
+%\[ P(X_V|\doit(X_J)) = \bigotimes_{v \in V} P_v(X_v|\doit(X_{\Pa^G(v)})),\]
+%where the product goes in reverse order of $<$. We will write $\Perp$ for $\Perp^d_G$ and $\Indep$ for 
+%$\Indep_{P(X_V|\doit(X_J))}$ in the following.\\
+
+0.) Induction start:  $V= \emptyset$. This means that $A,B,C \ins J$.
+The assumption: 
+\[A \Perp^d_G J \cup B \given C,\] 
+implies that we must have that $A \ins C$. Otherwise a trivial walk from $A \ins J$ to $J \cup B$ would be $C$-open.
+Since $A,B,C \ins J$ we have the factorization:
+\[ P(X_A,X_B,X_C|\doit(X_J)) = \underbrace{\bigotimes_{w \in A} \delta(X_w|X_w)}_{=:Q(X_A|X_C)} \otimes 
+ \underbrace{\bigotimes_{w \in B} \delta(X_w|X_w) \otimes \bigotimes_{w \in C} \delta(X_w|X_w)}_{=P(X_B,X_C|\doit(X_J))}.  \]
+ Because $A \ins C$ the Markov kernel $Q(X_A|X_C):= \bigotimes_{w \in A} \delta(X_w|X_w) $ 
+ really is a Markov kernel from $\Xcal_C \dshto \Xcal_A$.
+This already shows:
+\[ X_A \Indep_{P(X_V|\doit(X_J))} X_B |X_C.\]
+
+(IND): Induction assumption: 
+The global Markov property holds for all causal Bayesian networks 
+(with input variables, but without latent variables and bi-directed edges) 
+with $\#V < n$ (and arbitrary $J$).\\
+
+1.) Now assume: $\#V =n>0$ and $A \Perp^d_G J \cup B \given C$.
+
+Since $G$ is acyclic we can find a topological order $<$ for $G$ where the elements of $J$ are ordered first.  
+Let $v \in V$ be its last element, which is thus  childless.  \\
+Note that, since $\Ch^G(v) = \emptyset$, the marginalization $G^{\sm \{v\}}$ has no bi-directed edges and thus induces again 
+a causal Bayesian network without latent variables with $\#V^{\sm \{v\}}=n-1 <n$.\\
+Furthermore, we have the factorization:
+\begin{align*} P(X_V|\doit(X_J)) &= P_v(X_v|\doit(X_{\Pa^G(v)})) \otimes 
+    \underbrace{\bigotimes_{w \in \Pred^G_<(v) \sm J} P_w(X_w|\doit(X_{\Pa^G(w)}))}_{P(X_{\Pred_<^G(v) \sm J}|\doit(X_J))}.
+%   &= P_v(X_v|\doit(X_{\Pa^G(v)})) \otimes  P(X_{\Pred_<^G(v)}|\doit(X_J)).
+\end{align*}
+This factorization implies that we already have the conditional independence:
+\begin{align*}
+    X_v \Indep_{P(X_V|\doit(X_J)) } X_{\Pred^G_<(v)} \given X_D,     \label{eq:pred}
+\end{align*}
+where we put $D:=\Pa^{G}(v)$.\\
+
+In the following we will distinguish between 4 cases: 
+\begin{enumerate}[label = \Alph*.)]
+    \item $v \in A \sm C$,
+    \item $v \in B \sm C$,
+    \item $v \in C$,
+    \item $ v \notin A \cup J \cup B \cup C$,
+\end{enumerate}
+Note that $v \in V$, thus $v \notin J$, which shows that the above cover all possible cases.\\
+Further note that:
+\[A \Perp^d_G J \cup B \given C,\] 
+implies that:
+\[ A \cap ( J \cup B) \ins C.  \]
+Otherwise a trivial walk from $A$ to $J \cup B$ would be $C$-open. 
+This shows that $A\sm C$, $(J \cup B) \sm C$ and $C$ are pairwise disjoint.\\
+
+
+Case D.):  $v \notin A \cup J \cup B \cup C$. Then we can marginalize out $v$ and use the equivalence: 
+\[A \Perp^d_{G} J \cup B \given C\quad \iff \quad A \Perp^d_{G^{\sm v}} J \cup B \given C.\]
+With $\#V^{\sm \{v\}}<n$ and induction (IND) we then get:
+\[X_A \Indep_{P(X_V|\doit(X_J))} X_B \given X_C.\]
+This shows the claim in case D.\\
+
+Case A.):  $v \in A\sm C$. Then we can write:
+\begin{align*}
+    A &= A' \dcup (A \cap C) \dcup \{v\}, \\
+    B &= B' \dcup (B \cap C),
+\end{align*}
+with some disjoint $A' \ins A \sm C$ and $B' \ins B \sm C$.
+We then have the implications:
+\begin{align*}
+    A \Perp^d_G J \cup B \given C & \xRightarrow{\text{Right Decomposition}}  & A \Perp^d_G J \cup B' \given C \\
+    & \xRightarrow{\text{Left Decomposition}}  & A' \Perp^d_G J \cup B' \given C \\
+    & \xRightarrow{\text{marginalization, } v \notin A'\cup J \cup B' \cup C}  & A' \Perp^d_{G^{\sm \{v\}}} J \cup B' \given C \\
+ & \xRightarrow{\text{induction (IND)}}  & X_{A'} \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_C. \label{eqn:bli} \tag{\#1}\\
+\end{align*}
+On the other hand we have with $D = \Pa^G(v)$:
+\begin{align*}
+ A \Perp^d_G J \cup B \given C & \xRightarrow{\text{Right Decomposition, }B' \ins B}  & A \Perp^d_G J \cup  B' \given C   \\
+  & \xRightarrow{\text{Left Weak Union, } A= A' \dcup (A \cap C) \dcup \{v\}}  & \{v\} \Perp^d_G J \cup  B' \given A' \dcup C.    \\
+ & \xRightarrow{(*), \text{ see below}}  & D  \Perp^d_G J \cup  B' \given A' \dcup C \\ 
+ & \xRightarrow{\text{marginalization, } v \notin D \cup J \cup B' \cup A' \cup C}  & D \Perp^d_{G^{\sm \{v\}}} J \cup B' \given A' \dcup C \\
+& \xRightarrow{\text{induction (IND)}}  &   X_D  \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_{A' \dcup C}\\
+& \xRightarrow{A'\dcup C}  &   X_D  \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_{A'}, X_C. \label{eqn:bla} \tag{\#2}
+\end{align*}
+(*) holds since every $(A' \dcup C)$-open walk $ w \sus \cdots$ from a  $w \in D=\Pa^G(v)$ to $J \cup B'$ 
+extends to an $(A' \dcup C)$-open walk from $v$ to $J \cup B'$ via  $v \hut w \sus \cdots$, as $w$ stays a 
+non-collider in the extended walk (not in $A' \dcup C$) and $v \notin A' \dcup C$.\\
+
+As discussed above we also already have the conditional independence:
+\[ X_v \Indep_{P(X_V|\doit(X_J))}  X_{\Pred^G_<(v)} \given X_D. \]
+With this and $A' \dcup B' \dcup C \ins \Pred^G_<(v)$ we get the implications:
+\begin{align*}
+&&X_v \Indep_{P(X_V|\doit(X_J))}  X_{\Pred^G_<(v)} \given X_D\\ 
+&\xRightarrow{\text{Right Decomposition}} & 
+X_v \Indep_{P(X_V|\doit(X_J))}  X_{A'}, X_{B'}, X_C \given X_D \\
+& \xRightarrow{\text{Right Weak Union}}  & 
+X_v \Indep_{P(X_V|\doit(X_J))} X_{B'} \given X_{A'}, X_C, X_D \\ 
+& \xRightarrow{\text{Left Contraction, }\eqref{eqn:bla}}  & X_v, X_D  \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_{A'}, X_C \\
+& \xRightarrow{\text{Left Decomposition}}  & X_v \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_{A'}, X_C\\
+& \xRightarrow{\text{Left Contraction, } \eqref{eqn:bli}}  &  X_{A'},X_v \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_C\\
+& \xRightarrow{X_J\text{-Inverted Right Decomposition}}  & X_{A'}, X_v \Indep_{P(X_V|\doit(X_J))}  X_J,X_{B'},X_C \given X_C\\
+& \xRightarrow{\text{Right Decompositon, } B \ins B' \dcup C}  & X_{A'}, X_v \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C.
+ \label{eqn:bloop} \tag{\#3}
+\end{align*}
+By (Extended) Left Redundancy we have:
+\[ X_{A'},X_v, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{A'},X_v,X_C. \]
+With this we get the implications:
+\begin{align*}
+&&X_{A'},X_v, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{A'},X_v,X_C\\
+& \xRightarrow{\text{Left Contraction, } \eqref{eqn:bloop}}  &  
+X_{A'},X_v,X_{A'},X_v, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C\\
+& \xRightarrow{\text{Left Decomposition, } A \ins A' \dcup \{v\} \dcup C}  &    
+X_A \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C. 
+\end{align*}
+This shows the claim in case A.\\
+
+%%%%%%%%
+%
+Case B.):  $v \in B\sm C$. Then we can write:
+\begin{align*}
+    A &= A' \dcup (A \cap C), \\
+    B &= B' \dcup (B \cap C) \dcup \{v\},
+\end{align*}
+with some disjoint $A' \ins A \sm C$ and $B' \ins B \sm C$.
+
+%Then $B= \{v\} \dot \cup B'$ and $A \Indep_{G^+}^\sigma \{v\},B',J \given C$ holds.
+We then have the implications:
+\begin{align*}
+A  \Perp^d_G J \cup B \given C 
+& \xRightarrow{\text{Left Decomposition}}  & A' \Perp^d_G J \cup B \given C \\
+& \xRightarrow{\text{Right Decomposition}}  & A' \Perp^d_G J \cup B' \given C \\
+ & \xRightarrow{\text{marginalization, } v \notin A'\cup J \cup B' \cup C}  & A' \Perp^d_{G^{\sm \{v\}}} J \cup B' \given C \\
+ & \xRightarrow{\text{induction (IND)}}  & X_{A'} \Indep_{P(X_V|\doit(X_J))}  X_{B'} \given X_C. \label{eqn:bli'} \tag{\#1'}
+\end{align*}
+Again with $D = \Pa^G(v)$ we get:
+\begin{align*}
+A  \Perp^d_G J \cup B \given C  & \xRightarrow{\text{Left Decomposition}}  & A' \Perp^d_G J \cup B \given C \\
+ & \xRightarrow{\text{Right Decomposition}}  & A' \Perp^d_G J \cup B' \cup \{v\} \given C \\
+& \xRightarrow{\text{Right Weak Union}}  & A' \Perp^d_G J \cup \{v\} \given B' \dcup C  \\
+ & \xRightarrow{(\bullet), \text{ see below}}  & A'  \Perp^d_G J \cup D \given B' \dcup C \\  
+& \xRightarrow{\text{induction (IND)}}  &   X_{A'}  \Indep_{P(X_V|\doit(X_J))}  X_D \given X_{B' \dcup C}\\
+& \xRightarrow{ B' \dcup C}  &   X_{A'}  \Indep_{P(X_V|\doit(X_J))}  X_D \given X_{B'}, X_C. \label{eqn:bla'} \tag{\#2'} 
+\end{align*}
+$(\bullet)$ holds since every $(B' \dcup C)$-open walk $\cdots \sus w$ from $A'$ to a $w \in J \cup D$ extends to 
+a $(B' \dcup C)$-open walk from $A'$ to $J \cup \{v\}$, either because $w \in J$ or via $\cdots \sus w \tuh v$ if 
+$w \in D=\Pa^G(v)$.
+Note again that $w$ stays a non-collider in the extended walk (outside of $B'\dcup C$) and $v \notin B'\dcup C$.\\
+
+As before we will use the following conditional independence:
+\[ X_v \Indep_{P(X_V|\doit(X_J))}  X_{\Pred^G_<(v)} \given X_D. \]
+With this and $A' \cup J \cup B' \cup C \ins \Pred^G_<(v)$ we get the implications:
+\begin{align*}
+   && X_v \Indep_{P(X_V|\doit(X_J))} X_{\Pred^G_<(v)} \given X_D \\
+    &\xRightarrow{\text{Right Decomposition}} & X_v \Indep_{P(X_V|\doit(X_J))} X_{A'},X_{B'},X_C \given X_D\\
+& \xRightarrow{\text{Right Weak Union}}  &  X_v \Indep_{P(X_V|\doit(X_J))} X_{A'} \given X_{B'},X_C,X_D\\
+& \xRightarrow{\text{Flipped Left Cross Contraction, }\eqref{eqn:bla'}}  
+& X_{A'}  \Indep_{P(X_V|\doit(X_J))} X_D,X_v \given X_{B'},X_C \\
+& \xRightarrow{\text{Right Decomposition}}  
+& X_{A'}  \Indep_{P(X_V|\doit(X_J))} X_v \given X_{B'},X_C \\
+& \xRightarrow{\text{Right Contraction, }\eqref{eqn:bli'}}  
+& X_{A'}  \Indep_{P(X_V|\doit(X_J))} X_{B'},X_v \given X_C \\
+& \xRightarrow{\text{$X_J$-Inverted Right Decomposition}}  & X_{A'}  \Indep_{P(X_V|\doit(X_J))} X_J,X_{B'},X_v,X_C \given X_C \\
+& \xRightarrow{\text{Right Decomposition, } B \ins B'\dcup \{v\} \dcup C}  & X_{A'}  \Indep_{P(X_V|\doit(X_J))} X_B \given X_C.  \label{eqn:bloop'} \tag{\#3'}
+\end{align*}
+By Redundancy we have:
+\[ X_{A'}, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{A'},X_C. \]
+With this we get the implications:
+\begin{align*}
+&&X_{A'}, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{A'},X_C\\
+& \xRightarrow{\text{Left Contraction, } \eqref{eqn:bloop'}}  &  
+X_{A'},X_{A'}, X_C \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C.\\
+& \xRightarrow{\text{Left Decomposition, } A \ins A' \dcup C}  &    
+X_A \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C. 
+\end{align*}
+This shows the claim in case B.\\
+
+
+Case C.): $v \in C$.
+ Then we can write:
+\begin{align*}
+    A &= A' \dcup (A \cap C), \\
+    %J \cup B &= B' \dcup ((J \cup B) \cap C),\\
+    B &= B' \dcup (B \cap C),\\
+    C &= C' \dcup \{v\},
+\end{align*}
+with some pairwise disjoint $A' \ins A \sm C$, 
+%$B' \ins (J \cup B) \sm C$, 
+$B' \ins B \sm C$ and
+$C' \ins C$.
+
+We then get the implications.
+\begin{align*}
+A  \Perp^d_G J \cup B \given C 
+& \xRightarrow{\text{Left Decomposition}}  & A' \Perp^d_G J \cup B \given C \\
+& \xRightarrow{\text{Right Decomposition}}  & A' \Perp^d_G J \cup B' \given C \\
+& \xRightarrow{C = C' \dcup \{v\}}  & A' \Perp^d_G J \cup B' \given C'\dcup\{v\} \\
+\end{align*}
+
+
+%Now assume the case when $v \in C$, so $C= \{v \} \dot \cup C'$.
+%Using the same arguments as in A.0 before we can w.l.o.g.\ assume that $A$ is disjoint from $J$ (this is to avoid making assumptions about standardness of $\Xcal_j$, $j \in J$). %\Patrick{$v  \notin J$ !!}
+%Then we have: $A \Indep_{G^+}^\sigma B,J \given \{v\},C'$.
+
+We now claim that:
+\[A' \Perp^d_G J \cup B' \given C'\dcup\{v\}\]
+implies that one of the following statements holds:
+\[  A' \dcup \{v\} \Perp^d_G J \cup B' \given C' \qquad \lor \qquad A' \Perp^d_G J \cup (B' \dcup \{v\}) \given C'. \]
+Assume the contrary:
+\[  A' \dcup \{v\} \nPerp^d_G J \cup B' \given C' \qquad \land \qquad A' \nPerp^d_G J \cup (B' \dcup \{v\}) \given C'. \]
+So there exist shortest $C'$-open walks $\pi_1$ and $\pi_2$ in $G$:
+\[ \pi_1:\quad  A' \cup \{v\}\ni u_0 \sus \cdots \sus u_k \in J \cup B',  \]
+and:
+\[ \pi_2:\quad  A' \ni w_0 \sus \cdots \sus w_m \in J \cup (B' \dcup \{v\}).  \]
+So all colliders of $\pi_1$ and $\pi_2$ are in $C'$ and all non-colliders outside of $C'$.
+Since we consider shortest walks and $v \notin C'$ at most an end node of $\pi_1$ and $\pi_2$ could be equal to $v$.
+Otherwise one could shorten the walk.\\
+Then note that $v \notin A'$ and $v \notin J \cup B'$, thus: $u_k \neq v$ and $w_0 \neq v$.\\
+If now $\pi_i$ does not contain $v$ as an (end) node, then $\pi_i$ would be $(C'\dcup \{v\})$-open,
+which is a contradiction to the assumption:
+\[A' \Perp^d_G J \cup B' \given C'\dcup\{v\}.\]
+So we can assume that the other end nodes equal $v$, i.e.: $u_0=v$ and $w_m =v$.\\
+Furthermore, both $\pi_1$ and $\pi_2$ are non-trivial walks, since $u_0 \neq u_k$ and $w_0 \neq w_m$.
+%Otherwise $v=u_k \in J \cup B'$ or $v=w_0 \in A'$, both of which are not true.
+%So $k,m \ge 1$.\\
+Since $v$ is childless and $k,m \ge 1$ we have that the $\pi_i$ are of the forms:
+\[ \pi_1:\quad   v \hut u_1 \sus \cdots \sus u_k,  \]
+and:
+\[ \pi_2:\quad  w_0 \sus \cdots \sus w_{m-1} \tuh v,  \]
+with $u_1, w_{m-1} \in D=\Pa^G(v)$. Then the following walk:
+\[ A' \ni  w_0 \sus \cdots \sus w_{m-1} \tuh v \hut u_1 \sus \cdots \sus u_k \in J \cup B',  \]
+is a $(C' \dcup \{v\})$-open walk from $A'$ to $J \cup B'$, in contradiction to:
+\[A' \Perp^d_G J \cup B' \given C'\dcup\{v\}.\]
+So the claim:
+\[  A' \dcup \{v\} \Perp^d_G J \cup B' \given C' \qquad \lor \qquad A' \Perp^d_G J \cup (B' \dcup \{v\}) \given C', \]
+must be true. 
+So we reduced case C. to case A. or case B., which then imply:
+\[ X_A,X_v \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{C'} \qquad \lor \qquad X_A \Indep_{P(X_V|\doit(X_J))}  X_B,X_v \given X_{C'}.\]
+If we apply Left Weak Union to the left and Right Weak Union to the right we get:
+\[ X_A \Indep_{P(X_V|\doit(X_J))}  X_B \given X_{C'},X_v,\]
+which implies:
+\[ X_A \Indep_{P(X_V|\doit(X_J))}  X_B \given X_C.\]
+This shows the claim in case C.
+\end{proof}
+
+\end{Thm}
+

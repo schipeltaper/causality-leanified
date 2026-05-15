@@ -1,0 +1,250 @@
+\subsection{Variation independence}
+
+\cite{Daw01b} defines variation independence in the following way.
+For an underlying outcome space $\Tcal$ (just a set) and functions (``deterministic variables'') 
+$X : \Tcal \to \C{X}$, $Y : \Tcal \to \C{Y}$ and $Z : \Tcal \to \C{Z}$ (with $\C{X},\C{Y},\C{Z}$ arbitrary spaces), define
+the range of $Y$ as $R(Y) := \{Y(t) : t \in \Tcal\} \subseteq \C{Y}$ and the conditional range of $X$ given $Y=y \in R(Y)$ as
+$R(X|Y=y) := \{X(t) : t \in \Tcal, Y(t) = y\}$. One can then define the notion of variation independence as follows:
+\begin{align*}
+  X \Indep^v_\Tcal Y | Z 
+  &\iff \forall (y,z) \in R(Y,Z): R(X | y,z) = R(X|z) \\
+  &\iff \forall (y,z) \in R(Y,Z), (y',z) \in R(Y,Z): R(X|Y=y,Z=z) = R(X|Y=y',Z=z) \\
+  &\iff \forall z\in R(Z) : R(X,Y|z) = R(X|z) \times R(Y|z).
+\end{align*}
+This is easily shown to be a separoid (with ``being a function of'' as the ordering).
+This allows to catch the notion that a function does not depend on some input:
+If $X_i : \Tcal \to \C{X}_i$ and $f(X_1,X_2,X_3,\dots,X_n)$ is a function then
+$f(X_1,\dots,X_n) \Indep^v_\Tcal X_j \given X_1,\dots,X_{j-1},X_{j+1},X_n$ means
+that $f$ does not actually depend on $X_j$. Note that this is a conditional independence
+statement, a marginal independence statement is much weaker. 
+
+We can also consider an almost-sure version of variation independence, as follows.
+Replace the outcome space $\Tcal$ by a measurable space $(\Omega,\Sigma)$ and a set of nullsets $\Ncal_\Omega$.
+For measurable functions  
+$X : \Tcal \to \C{X}$, $Y : \Tcal \to \C{Y}$ and $Z : \Tcal \to \C{Z}$ (with $\C{X},\C{Y},\C{Z}$ arbitrary measurable spaces), define
+the range of $Y$ as $R(Y) := \{Y(t) : t \in \Tcal\} \subseteq \C{Y}$ and the conditional range of $X$ given $Y=y \in R(Y)$ as
+$R(X|Y=y) := \{X(t) : t \in \Tcal, Y(t) = y\}$. One can then define the notion of variation independence as follows:
+
+\Joris{Perhaps define a version of variation independence by $R(A,B|C(x)) = R(A|C(x)) \times R(B|C(x))\ M\as$?
+Can we e.g.\ show that
+$R(A|B(x),C(x)) = R(A|C(x))\ M\as$ implies $R(A,B|C(x)) = R(A|C(x)) \times R(B|C(x))\ M\as$?
+Here $R(A|C(x)) := \{A(x') | C(x') = C(x)\}$ for $A,B,C$ functions on $\CX$.
+Let $N$ be an $M$-null set such that $R(A|B(x),C(x)) = R(A|C(x))$ for all $x \in N^c := \CX \sm N$.
+By definition:
+$R(A,B|C(x)) = \{(A(x'),B(x')) | C(x') = C(x)\}$, and
+$R(A|C(x)) = \{A(x') | C(x') = C(x)\}$, and $R(B|C(x)) = \{B(x') | C(x') = C(x)\}$.
+Let $x \in N^c$.
+Suppose $x'$ is such that $C(x') = C(x)$, then $A(x') \in R(A|C(x))$ and $B(x') \in R(B|C(x))$ and $(A(x'),B(x')) \in R(A,B|C(x))$.
+It is clear that $R(A,B|C(x)) \ins R(A|C(x)) \times R(B|C(x))$.
+For an element of $R(A|C(x)) \times R(B|C(x))$, there exist $x',x''$ such that $C(x')=C(x'')=C(x)$ and the element is of the form $(A(x'),B(x''))$.
+Then in any case $B(x'') \in R(B|C(x'')) = R(B|C(x))$.
+If $R(A|B(x''),C(x'')) = R(A|C(x''))$ then we could conclude that also $A(x') \in R(A|B(x''),C(x''))$ and hence that there is an $x'''$ with $C(x''')=C(x)$, $B(x''')=B(x'')$ and $A(x''') = A(x')$.
+Then $(A(x'''),B(x''')) \in R(A|B(x''),C(x''))$.
+This works with the forall-quantifiers.
+Does it work $M\as$?
+We need that $x'' \in N^c$ (to ensure that $R(A|B(x''),C(x'')) = R(A|C(x''))$).
+So we need that for any element $b$ of $R(B|C(x))$, we can pick $x'' \in N^c$ with $C(x'')=C(x)$ and $B(x'') = b$.
+It is not immediately obvious whether that holds!?!?!
+}
+
+\subsection{Variation Independence Markov Property}
+
+Can we prove a variation-independence Markov property for SCMs?
+
+Let us take a slightly extended SCM, where $\C{X}_J$ is not necessarily a Cartesian product,
+and we have a partition $H = \{H_1,\dots,H_h\}$ of $J$ such that $X_{H_i} \Indep X_{J\sm H_i}$. 
+We add edges in $G(M)$ between all input nodes within each $H_i$, for all $H_i$ in $H$.
+
+Then, the $id$-separation Markov property holds for $X_J$ with respect to $G(M)_J$
+(or: for $R(X_J)$ with respect to $G(M_J)$).
+
+So the question is if it continues to hold further downstream.
+For that, we can use the original proof by Lauritzen.
+
+Let us start simple and derive a Markov property for an SCM without input nodes.
+(Note: if we remove the exogenous distribution, then there is no longer any difference between the exogeonous input nodes and the exogenous random nodes, so this is actually the general case).
+Hm, perhaps we should assume an SCM without exogenous random nodes instead.
+Philosophically that is cleaner.
+
+\begin{Thm}[Variation-Independence Global Markov property for Acyclic SCMs]\label{thm:vi_gmp_acyclic_scms}
+  Let $M = \lt V,J,\CX,f \rt$ be a acyclic SCM without exogenous random nodes (with trivial $W=\emptyset$ and $P = \ind_\star$ that we suppressed in the notation).
+  Let $G^+(M)$ denote its graph.
+  $R_M(X_V \given \doit(X_J))$, the joint range of $X_V$ conditional on the input $X_J$, satisfies the directed global Markov property.
+  In other words, for any subsets $A,B,C \subseteq V \cup J$ (not necessarily disjoint), we have that:
+  $$A \idPerp_{G^+(M)} B \given C \implies X_A \Indep_{R_M(X_V \given \doit(X_J))} X_B \given X_C$$
+\end{Thm}
+\begin{proof}
+  We write $G := G^+(M)$ and $R := R_M(X_V \given \doit(X_J))$.
+  Note that:
+  \[A \idPerp_G  B \given C,\] 
+  implies that:
+  \[ A \cap B \ins C.  \]
+  Otherwise a trivial walk from $A$ to $B$ would be $C$-open. 
+  This shows that $A\sm C$, $B \sm C$ and $C$ are pairwise disjoint.
+
+  Induction start: $V=\emptyset$. 
+  This means that $A,B,C \ins J$.
+  The observation $A \cap B \ins C$ implies that for all $c \in R(X_C):$
+  $$ R(X_A,X_B \given X_C=c) = \{(c_A,c_B)\} = \{c_a\} \times \{c_b\} = R(X_A \given X_C=c) \times R(X_B \given X_C=c).$$
+  Hence $X_A \Indep_R X_B \given X_C$.
+
+  We now assume that the claim holds for $\#V < n$ and arbitrary $J$.
+  We consider the case $\#V=n>0$.
+  Let $v$ be a node in $V$ without children (which always exists because we assumed $M$ to be acyclic).
+  Write $D := \Pa^G(v)$.
+  Its structural equation implies that $x_v = f_v(x_D)$.
+  Hence,
+  $$X_v \Indep_R X_{V \cup J \sm \{v\}} \given X_D.$$
+
+  For the following we first note that if we have $A', B', C' \subseteq V \cup J$ with $v \notin A' \cup B' \cup C'$, 
+  the induction hypothesis already implies that 
+  \[A' \idPerp_{G} B' \given C' \implies X_{A'} \Indep_{R} X_{B'} \given X_{C'}.\]
+  Indeed: 
+    \begin{align*}
+      A' \idPerp_{G} B' \given C'
+      & \xRightarrow{\text{marginalization}} &  A' \idPerp_{G^{\sm v}}  B' \given C'\\
+      & \xRightarrow{\text{induction}} & X_{A'} \Indep_{R_{M_{\sm \{v\}}}} X_{B'} \given X_{C'}\\
+      & \xRightarrow{\text{marginalization}} & X_{A'} \Indep_{R} X_{B'} \given X_{C'}.
+    \end{align*}
+
+  In the following we will distinguish between 4 cases: 
+  $v \in A \sm C$, $v \in B \sm C$, $v \in C$, $v \notin A \cup B \cup C$.
+  Since $v \notin J$, this covers all possible cases.
+
+  \begin{enumerate}[label=(\roman*)]
+    \item $v \in A\sm C$. Then we can write:
+    \begin{align*}
+      A &= A' \dcup (A \cap C) \dcup \{v\}, \\
+      B &= B' \dcup (B \cap C),
+    \end{align*}
+    with some disjoint $A' \ins A \sm C$ and $B' \ins B \sm C$.
+    We then have the implications:
+    \begin{align*}
+        A \idPerp_G  B \given C & \xRightarrow{\text{decomposition}}  & A' \idPerp_G B' \given C \\
+        & \xRightarrow{\text{induction}} & X_{A'} \Indep_{R}  X_{B'} \given X_C. \tag{\#1}
+    \end{align*}
+    On the other hand we have:
+    \begin{align*}
+     A \idPerp_G  B \given C & \xRightarrow{\text{decomposition}}  & A \idPerp_G   B' \given C   \\
+      & \xRightarrow{\text{weak union}}  & \{v\} \idPerp_G  B' \given A' \dcup C    \\
+     & \xRightarrow{(*), \text{ see below}}  & D  \idPerp_G   B' \given A' \dcup C \\ 
+      & \xRightarrow{\text{induction}}  &   X_D  \Indep_{R}  X_{B'} \given X_{A'},X_C \tag{\#2}
+    \end{align*}
+    (*) holds since every $(A' \dcup C)$-open walk $ w \sus \cdots$ from a  $w \in D=\Pa^G(v)$ to $B'$ 
+    extends to an $(A' \dcup C)$-open walk from $v$ to $B'$ via  $v \hut w \sus \cdots$, as $w$ stays a 
+    non-collider in the extended walk (not in $A' \dcup C$) and $v \notin A' \dcup C$.
+
+    The local Markov property for $v$ now implies:
+    \begin{align*}
+    &&X_v \Indep_{R}  X_{(V \cup J) \sm \{v\}} \given X_D\\ 
+    &\xRightarrow{\text{decomposition}} & 
+    X_v \Indep_{R}  X_{A'}, X_{B'}, X_C \given X_D \\
+    & \xRightarrow{\text{weak union}}  & 
+    X_v \Indep_{R} X_{B'} \given X_{A'}, X_C, X_D \\ 
+    & \xRightarrow{\text{contraction}\eqref{eqn:bla}}  & X_v, X_D  \Indep_{R}  X_{B'} \given X_{A'}, X_C \\
+    & \xRightarrow{\text{decomposition}}  & X_v \Indep_{R}  X_{B'} \given X_{A'}, X_C\\
+    & \xRightarrow{\text{contraction} \eqref{eqn:bli}}  &  X_{A'},X_v \Indep_{R}  X_{B'} \given X_C\\
+    & \xRightarrow{\text{redundancy}}  & X_{A'}, X_v \Indep_{R}  X_B \given X_C.
+     \tag{\#3}
+    \end{align*}
+    From redundancy we get the implications:
+    \begin{align*}
+      &&X_{A\sm C} \Indep_{R} X_B \given X_{A'},X_v,X_C\\
+    & \xRightarrow{\text{contraction} \eqref{eqn:bloop}}  &  
+      X_{A'},X_v,X_{A\sm C} \Indep_{R}  X_B \given X_C\\
+    & \xRightarrow{\text{decomposition}}  &    
+    X_A \Indep_{R}  X_B \given X_C. 
+    \end{align*}
+    This shows the claim in the first case.
+
+  \item $v \in B\sm C$. This follows from the first case by symmetry.
+
+  \item $v \in C$.
+     Then we can write:
+    \begin{align*}
+        A &= A' \dcup (A \cap C), \\
+        %J \cup B &= B' \dcup ((J \cup B) \cap C),\\
+        B &= B' \dcup (B \cap C),\\
+        C &= C' \dcup \{v\},
+    \end{align*}
+    with some pairwise disjoint $A' \ins A \sm C$, 
+    %$B' \ins (J \cup B) \sm C$, 
+    $B' \ins B \sm C$ and
+    $C' \ins C$.
+
+    \Joris{The following is identical to the part in Patrick's proof and is just a property of (ordinary) $id$-separation.
+    So we should turn it into a lemma.}
+    {\color{gray}
+    We now claim that:
+    \[A' \idPerp_G  B' \given C'\dcup\{v\}\]
+    implies that one of the following statements holds:
+    \[  A' \dcup \{v\} \idPerp_G  B' \given C' \qquad \lor \qquad A' \idPerp_G B' \dcup \{v\} \given C'. \]
+    Assume the contrary:
+    \[  A' \dcup \{v\} \nidPerp_G  B' \given C' \qquad \land \qquad A' \nidPerp_G B' \dcup \{v\} \given C'. \]
+    So there exist shortest $C'$-open walks $\pi_1$ and $\pi_2$ in $G$ such that all colliders are in $C'$:
+    \[ \pi_1:\quad  A' \cup \{v\}\ni u_0 \sus \cdots \sus u_k \in B',  \]
+    and:
+    \[ \pi_2:\quad  A' \ni w_0 \sus \cdots \sus w_m \in (B' \dcup \{v\}).  \]
+    So all non-colliders of $\pi_1$ and $\pi_2$ are outside of $C'$.
+    Since we consider shortest walks and $v \notin C'$ at most an end node of $\pi_1$ and $\pi_2$ could be equal to $v$.
+    Otherwise one could shorten the walk.\\
+    Then note that $v \notin A'$ and $v \notin B'$, thus: $u_k \neq v$ and $w_0 \neq v$.\\
+    If now $\pi_i$ does not contain $v$ as an (end) node, then $\pi_i$ would be $(C'\dcup \{v\})$-open,
+    which is a contradiction to the assumption:
+    \[A' \idPerp_G  B' \given C'\dcup\{v\}.\]
+    So we can assume that the other end nodes equal $v$, i.e.: $u_0=v$ and $w_m =v$.\\
+    Furthermore, both $\pi_1$ and $\pi_2$ are non-trivial walks, since $u_0 \neq u_k$ and $w_0 \neq w_m$.
+    %Otherwise $v=u_k \in B'$ or $v=w_0 \in A'$, both of which are not true.
+    %So $k,m \ge 1$.\\
+    Since $v$ is childless and $k,m \ge 1$ we have that the $\pi_i$ are of the forms:
+    \[ \pi_1:\quad   v \hut u_1 \sus \cdots \sus u_k,  \]
+    and:
+    \[ \pi_2:\quad  w_0 \sus \cdots \sus w_{m-1} \tuh v,  \]
+    with $u_1, w_{m-1} \in D=\Pa^G(v)$. Then the following walk:
+    \[ A' \ni  w_0 \sus \cdots \sus w_{m-1} \tuh v \hut u_1 \sus \cdots \sus u_k \in B',  \]
+    is a $(C' \dcup \{v\})$-open walk from $A'$ to $B'$, in contradiction to:
+    \[A' \idPerp_G B' \given C'\dcup\{v\}.\]
+    So the claim:
+    \[  A' \dcup \{v\} \idPerp_G  B' \given C' \qquad \lor \qquad A' \idPerp_G B' \dcup \{v\} \given C', \]
+    must be true.
+    }
+    
+    Therefore we get the implications:
+    \begin{align*}
+    A  \idPerp_G  B \given C 
+      & \xRightarrow{\text{decomposition}}  & A' \idPerp_G  B' \given C'\dcup\{v\} \\
+      & \xRightarrow{\text{lemma}} &  A' \dcup \{v\} \idPerp_G  B' \given C' \qquad \lor \qquad A' \idPerp_G B' \dcup \{v\} \given C' \\
+      & \xRightarrow{\text{cases (i),(ii)}} &  X_{A'},X_v \Indep_{R}  X_{B'} \given X_{C'} \quad \lor \quad X_{A'} \Indep_{R}  X_{B'},X_v \given X_{C'} \\
+      & \xRightarrow{\text{weak union}} &  X_{A'} \Indep_{R}  X_{B'} \given X_{C} \quad \lor \quad X_{A'} \Indep_{R}  X_{B'} \given X_{C} \\
+      & \xRightarrow{\text{redundancy}} &  X_A \Indep_{R}  X_B \given X_{C} \quad \lor \quad X_A \Indep_{R}  X_B \given X_{C}
+    \end{align*}
+    This shows the claim in case (iii).
+
+  \item $v \notin A \cup B \cup C$. This follows from the induction hypothesis.
+\end{enumerate}
+\end{proof}
+So the only properties of variation independence we needed were:
+(i) stability under marginalization; (ii) local Markov property (a single childless node is independent of all others given its parents); (iii) (asymmetric) separoid axioms;
+(iv) the global Markov property holds for $V=\emptyset$ and $J$ arbitrary. 
+
+Beautiful, this gives a nice foundation for JCI with input nodes!
+
+
+By the way: this allows us to strengthen this to $iD$-separation!
+
+This is inspired by \cite{GVP1990}:
+\begin{Def}
+  A node $v$ is \emph{functionally determined} by $Z$ if $v \in Z$ or $v$ is a deterministic node and all its parents are functionally determined by $Z$.
+  If $v$ is a deterministic node with no parents, then it is functionally determined by $Z$.
+  A set of nodes is functionally determined by $Z$ if each of its members is determined by $Z$.
+\end{Def}
+Perhaps we can just say: $|R(X_v | X_Z)| = 1$.
+
+\begin{Def}
+  For $A,B,C$ disjoint, we say that $C$ \emph{D-separates} $A$ from $B$ if there exists no path between a node in $A$ and a node in $B$ along which (i) every collider is in $\Anc(C)$, (ii) every non-collider is not in $C$, and (iii) no tail-to-tail node on the path is functionally determined by $C$.
+\end{Def}
+
+Actually \cite{GVP1990} give quite a nice general exposition for separoids!
+So before setting out to prove the corresponding Markov property yourself, see that paper!
+
+Also, we may be able to derive stronger results because D-separation is not complete (see our \texttt{detsep.tex}).

@@ -1,0 +1,96 @@
+\subsection{The birth-weight paradox}
+\totalscore{6}
+
+In this exercise we investigate the \emph{birth-weight paradox}.
+In his \emph{Book of Why}, Judea Pearl describes this paradox as follows:
+\begin{quote}
+In the mid-1960's, Jacob Yerushalmy pointed out that a mother's smoking during
+pregnancy seemed to benefit the health of her newborn baby, if the baby happened to be born underweight.
+This puzzle, called the birth-weight paradox, flew in the face of the emerging medical consensus 
+about smoking and was not satisfactorily explained until 2006---more than forty years after
+Yerushalmy's original paper.
+[...]
+
+In 1959, Yerushalmy had launched a long-term public health study that collected pre- and postnatal
+data on more than 15,000 children in the San Francisco Bay Area. The data included information on 
+mother's smoking habits, as well as the birth weights and mortality rates of their babies in the first month of life.
+Several studies had already shown that the babies of smoking mothers weighed less at birth on average than the babies of
+nonsmokers, and it was natural to suppose that this would translate to poorer survival. Indeed, a nationwide study of
+low-birth-weight infants had shown that their death rate was more than twenty times higher than that of normal-birth-weight infants.
+Thus, epidemiologists posited a chain of causes and effects: smoking causes low birth weight, which causes mortality.
+[...]
+
+What Yerushalmy found in the data was unexpected even to him. It was true that the babies of smokers were lighter
+on average than the babies of nonsmokers. However, the low-birth-weight babies of smoking mothers had a \emph{better}
+survival rate than those of nonsmoking mothers. It was as if the mother's smoking actually had a protective effect.
+[...]
+
+Most modern epidemiologists believe that smoking does increase neonatal mortality---for example, because it 
+interferes with oxygen transfer across the placenta. But how can we reconcile this hypothesis with the data?
+[...]
+
+In fact, Yerushalmy's data were completely consistent with the model that smoking causes low birth weight
+which causes mortality, once we add a little more to it. Smoking may be harmful in that it contributes to
+low birth weight, but certain other causes of low birth weight, such as serious or life-threatening 
+genetic abnormalities, are much more harmful.
+% There are two possible explanations for low birth weight in one particular baby: it might have a smoking mother, or it might be affected by one of those other causes.
+\end{quote}
+
+\begin{enumerate}[label=\alph*)]
+  \item Draw a causal graph that matches with Pearl's story.
+    Make sure to include the four observed variables in the table:
+    \begin{center}\small\begin{tabular}{lll}
+      Symbol & Meaning & Values \\
+      \hline
+      $S$ & Smoking mother               & 0: does not smoke, 1: smokes \\ 
+      $W$ & Birth weight of child        & 0: normal, 1: low \\
+      $A$ & Genetic abnormality of child & 0: normal, 1: abnormality \\
+      $M$ & Mortality of child           & 0: lives, 1: died \\
+    \end{tabular}\end{center}
+    Include the minimal number of edges that you need to make it compatible with the story.
+    \score{3}
+    \answer{
+    \begin{tikzpicture}
+      \node[ndout] (S) at (0,0) {$S$};
+      \node[ndout] (W) at (2,-1) {$W$};
+      \node[ndout] (A) at (4,0) {$A$};
+      \node[ndout] (M) at (2,-3) {$M$};
+      \draw[tuh] (S) to (W);
+      \draw[tuh] (S) to (M);
+      \draw[tuh] (W) to (M);
+      \draw[tuh] (A) to (W);
+      \draw[tuh] (A) to (M);
+    \end{tikzpicture}
+    }
+
+  \item With the help of the causal graph, explain in words how the paradox can be resolved.
+    \score{3}
+    \answer{
+    Let us assume smoking increases the risk of mortality, but not as much as a genetic abnormality does.
+
+    Then this is a classical ``explaining away'' phenomenon.
+    While $S$ and $A$ are independent, they become negatively correlated when conditioning on $W$ (low birth-weight).
+    There are two possible explanations for low birth weight in one particular baby: it might have a smoking mother, or it might be affected by a genetic abnormality.
+    Therefore, for low-birth weight babies: if the mother is found to be non-smoking, it is quite likely a genetic abnormality, strongly increasing the risk of mortality;
+    while if the mother is found to be smoking, this already explains the low birth-weight, and the chance of a genetic abnormality stays small (as these are rare in the general population), and the risk of mortality increases, but not as much.
+  }
+   \points{This can be formalized as follows.
+    %Assume $P(W=1 \given \doit(S,A)) = w_0 e^{\omega_S S + \omega_A A}$, which models $S$ and $A$ as two independent risk factors for low birthweight.
+    For simplicity, we assume that $P(W=1 \given \doit(S,A)) = 1_{S \vee A}$, that is, a baby has low birth weight iff the mother smokes or the baby has a genetic abnormality.
+    Assume $P(M=1 \given \doit(S,A,W)) = m_0 e^{\mu_S S + \mu_A A + \mu_W W}$, which models $S,A,W$ as three independent risk factors of neonatal mortality.
+    The story suggests $\omega_S > 0$, $\omega_A > 0$.
+    Also $\mu_S > 0$, $\mu_A \gg 0$, $\mu_W > 0$.
+    Finally, we will assume that $P(A=1)$ is very small.
+    We can now look at the risk factor for smoking on mortality, for low birth-weight babies:
+    \begin{equation*}\begin{split}
+      \frac{P(M=1 \given \doit(S)=1,W=1)}{P(M=1 \given \doit(S)=0,W=1)} 
+      &= \frac{\sum_a P(M=1 \given \doit(S)=1,W=1,A=a) P(A=a \given \doit(S=1),W=1)}{\sum_a P(M=1 \given \doit(S)=0,W=1,A=a) P(A=a \given \doit(S=0),W=1)} \\
+      &= \frac{\sum_a m_0 e^{\mu_S} e^{\mu_W} e^{\mu_A a} P(A=a \given \doit(S=1),W=1)}{\sum_a m_0 e^{\mu_W} e^{\mu_A a} P(A=a \given \doit(S=0),W=1)} \\
+      &= \frac{e^{\mu_S} (e^{\mu_A} P(A=1) + P(A=0))}{e^{\mu_A}} \\
+      &= e^{\mu_S} (P(A=1) + e^{-\mu_A} P(A=0)) 
+    \end{split}\end{equation*}
+    We can now end up in the situation of the paradox if
+      $$e^{\mu_S} (P(A=1) + e^{-\mu_A} P(A=0)) < 1 $$
+    which can happen if the risk factor $e^{\mu_S}$ is not too big, while the incidence of genetic abnormalities is very small and the risk of dying from that is larger than that of the risk of dying from a smoking mother.
+    }
+\end{enumerate}

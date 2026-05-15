@@ -1,0 +1,49 @@
+% !TEX root = hw14.tex
+\chead{\textbf{Exercises week 14}}
+\begin{document}
+\flushleft\textbf{Topic: Causal Discovery}
+
+\begin{enumerate}
+	\item %(2 points)
+	Two key assumptions of Randomized Controlled Trials with treatment variable $C$ and outcome variable $X$ are:
+	\begin{enumerate}
+		\item outcome $X$ does not cause treatment $C$;
+		\item outcome $X$ and treatment $C$ are not confounded, i.e., the values for
+		the treatment variable are assigned independently of other (latent) factors that may influence
+		the outcome.
+	\end{enumerate}
+
+	Think like a conspiracy theorist and describe a situation in which the first assumption is not valid. Do the same for the second assumption.
+
+	\begin{ungradedsolution}
+		For example:
+		\begin{enumerate}
+			\item Consider the system $X_1 \to C \to X_2$, where $X_1, X_2$ are measurements of health. Based on the measurement $X_1$ the patient is assigned treatment $C$. After a period of time, the outcome $X_2$ is measured. However, the doctors overseeing this RCT mistakenly mix up the columns $X_1$ and $X_2$, and report $X_1$ as outcome.\\
+			Another example would be: the patient obtains treatment $C$ after which we measure the unfavourable outcome $X$. A time traveller decides to take action, and changes the value of $C$ (based on $X$) to improve the outcome.
+			\item If a pharmaceutical company wants to have a favourable outcome for a new medicine, they can setup a fraudulent RCT where they only provide patients with a high probability of recovery (patients that are mildly ill) with treatment. In this way, the measured illness is a cause of both treatment and outcome.
+		\end{enumerate}
+	\end{ungradedsolution}
+
+	\item %(3 points)
+	Prove Proposition \ref*{prp:y-structures} on Y-structures by using the global Markov property and the faithfulness assumption, and showing that the only (cyclic or acyclic) graphs that are compatible with the observed
+	conditional independences are the ones in Figure \ref*{fig:Ystruct}, similarly as how is done in the proof of LCD (Proposition \ref*{prp:LCD}).
+
+	\begin{ungradedsolution}
+		We have the conditional (in)dependencies:
+
+		$$\begin{array}{lll}
+				X_1 \nIndep X_4,           & X_2 \nIndep X_4,           & X_1 \Indep X_2,             \\
+				X_1 \Indep X_4 \given X_3, & X_2 \Indep X_4 \given X_3, & X_1 \nIndep X_2 \given X_3,
+			\end{array}$$
+
+		By faithfulness assumption, from $X_1 \Indep X_2$, $X_1 \Indep X_4 \given X_3$ and $ X_2 \Indep X_4 \given X_3$ it respectively follows that there can be no direct edge between $X_1$ and $X_2$, between $X_1$ and $X_4$ and between $X_2$ and $X_4$, because otherwise the corresponding $\sigma$-separations do not hold. However, since $X_1 \nIndep X_4$ and  $X_2 \nIndep X_4$, there must exists a walk from $X_1$ to $X_4$ and a walk from $X_2$ to $X_4$, which by necessity must go through the only other node $X_3$. These facts together imply that there can only be edges between $X_3$ and the other nodes, and the graph is connected.
+
+		Since $X_1 \Indep X_2$ and $X_1 \nIndep X_2 \given X_3$, it follows that $X_3$ is a collider on the walk from $X_1$ to $X_2$. Therefore, any edges between $X_1$ and $X_3$ and $X_2$ and $X_3$ must have an arrowhead pointing into $X_3$.
+
+		Finally, since $X_1 \nIndep X_4$ and $X_1 \Indep X_4 \given X_3$, conditioning on $X_3$ must block the path from $X_1$ to $X_4$, therefore it cannot be a collider on this walk. As we have shown, edges between $X_1$ and $X_3$ must have an arrow pointing into $X_3$. Therefore, the edge between $X_4$ and $X_3$ cannot have an arrow pointing into $X_3$. It follows that $X_3 \to X_4$.
+
+		With these facts taken together, it is easy to see that the only possible graphs are those drawn in Figure \ref*{fig:Ystruct}.
+	\end{ungradedsolution}
+
+\end{enumerate}
+\end{document}

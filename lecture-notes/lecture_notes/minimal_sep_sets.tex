@@ -1,0 +1,95 @@
+\subsection{Minimal Separating Sets, Minimal Connecting Sets}
+
+Minimal separating sets and minimal connecting sets are useful in that they give a relationship between
+certain separation properties of the graph and ancestral relations in the graph \cite{SMR1999,ClaassenHeskes2011}.
+This can also be seen as a simple form of causal discovery.
+
+\begin{Def}\label{def:min_sep}
+Let $X,Y,Z,S$ be sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. 
+We say that the \emph{minimal $i\sigma$-separation}
+  $$X \isPerp_{G} Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \isPerp_{G} Y \mid S \cup Z \quad\land\quad \forall Q \subsetneq Z: X \nisPerp_G Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $i\sigma$-separate $X$ from $Y$.
+The \emph{minimal $id$-separation} $X \idPerp_{G} Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+
+Minimal separating sets imply the presence of certain ancestral relations (this generalizes a result of \cite{SMR1999}).
+But first we prove a little lemma.
+\begin{Lem}\label{lem:ancestral_relations_open_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$. Let $i, j \in J \cup V$ and $Z \subseteq J \cup V$.
+  If $\pi$ is a $Z$-$\sigma$-open or $Z$-$d$-open walk between $i$ and $j$ in $G$, then every node on $\pi$ is in $\Anc_G((\{i,j\} \sm J) \cup Z)$.
+\end{Lem}
+\begin{proof}
+  Suppose $k$ is a node on $\pi$. 
+  Then either $k$ is a collider, or there is a directed subwalk from $k$ to a collider on $\pi$, or to an endnode of $\pi$ that is not in $J$. 
+  In all cases, $k \in \Anc_G((\{i,j\}\sm J)\cup Z)$.
+  This holds for both $id$-separation and $i\sigma$-separation.
+\end{proof}
+\begin{Prp}\label{prp:min_sep}
+Let $\{x\},\{y\},S,Z$ be mutually disjoint sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$.
+Then:
+$$x \isPerp_G y \mid S \cup [Z] \implies Z \subseteq \Anc_{G}(\{x, y\} \cup S).$$
+A similar statement holds for $id$-separation.
+\end{Prp}
+\begin{proof}
+  Write $A := \Anc_G(\{x,y\} \cup S)$.
+  Let $z \in Z$. 
+  Suppose that $z \notin A$. 
+  Let $Q = A \cap Z$.
+  Then $z \notin Q$, and therefore $Q \subseteq Z \sm \{z\}$.
+  Then there is a $(Q \cup S)$-$\sigma$-open path $\pi$ between $x$ and $\{y\} \cup J$ in $G$.
+  Then every node on $\pi$ is in $\Anc_G((\{x,y\} \sm J) \cup Q \cup S)$ (Lemma~\ref{lem:ancestral_relations_open_path}).
+  Therefore, every node on $\pi$ is in $A$.
+  Hence no node in $Z \sm Q$ is on $\pi$.
+  Therefore, adding $(Z \sm Q)$ to $(Q \cup S)$ cannot $\sigma$-block $\pi$.
+  Hence $x \nisPerp_G y \mid Z \cup S$. Contradiction.
+\end{proof}
+
+Similarly, we define minimal connections.
+\begin{Def}\label{def:min_con}
+Let $X,Y,Z,S$ be sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. 
+We say that the \emph{minimal $\sigma$-connection}
+  $$X \nisPerp_G Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \nisPerp_G Y \mid S \cup Z\quad\land\quad \forall Q \subsetneq Z: X \isPerp_G Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $\sigma$-connect $X$ with $Y$.
+The \emph{minimal $d$-connection} $X \nidPerp_G Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+Note that despite the notation, a minimal connection is \emph{not} the logical negation of a minimal separation.
+
+Minimal connections imply the absence of certain ancestral relations:
+\begin{Prp}\label{prp:min_con}
+Let $\{x\},\{y\},S,\{z\}$ be mutually disjoint sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. Then
+$$x \nisPerp_G y \mid S \cup [\{z\}] \implies z \notin \Anc_{G}(\{x, y\} \cup S)$$
+and a similar statement holds for $id$-separation.
+\end{Prp}
+\begin{proof}
+%The minimal connection means that all paths between $x$ and
+%$y$ are closed when conditioning on $S$ and there exists at least one
+%path between $x$ and $y$ that is open when conditioning on $S \cup \{z\}$.
+%For $id$-separation, this means that such a path (i) contains a collider not in $\Anc_{G}(S)$, 
+%  (ii) every collider is in $\Anc_{G}(S \cup \{z\})$,
+%(iii) every non-collider is not in $S \cup \{z\}$. 
+%For $i\sigma$-separation, this means that such a path 
+%  (i) contains a collider not in $\Anc_{G}(S)$, (ii) every collider is in 
+%  $\Anc_{G}(S \cup \{z\})$,
+%(iii) every non-collider is either not in $S \cup \{z\}$, or if it is,
+%it points to neighboring nodes in the same strongly-connected component only.
+\Claude{Double-check, it contained a mistake.}
+There exists a $S \cup \{z\}$-$\sigma$-open path between $x$ and $y'$ with $y' \in \{y\} \cup J$ in $G$ that contains a collider in $\Anc_{G}(\{z\})$ that is not in $\Anc_{G}(S)$. 
+If $z \in \Anc_{G}(S)$ this would be a contradiction.
+If $z \in \Anc_{G}(x)$, then we can consider the walk between $x$ and $y'$ obtained from composing the subpath of the original path between $y'$ and the first collider (starting from $y'$) in $\Anc_{G}(\{z\}) \setminus \Anc_{G}(S)$ with a directed path to $z$ and then on to $x$, without passing through nodes in $S$.
+This walk between $x$ and $y'$ must be $\sigma$-open given $S$, a contradiction.
+Similarly we obtain a contradiction if $z \in \Anc_{G}(y)$.
+
+The same proof works also for $id$-separation.
+%For $id$-separation: Hence every non-collider cannot 
+%be in $S \cup \{Z\}$. However, since $Z$ is a non-collider on this path
+%this gives a contradiction.
+%For $i\sigma$-separation: Hence every non-collider is either not in $S \cup \{Z\}$,
+%or if it is, it points to neighboring nodes in the same strongly-connected
+%component only. Since $Z$ is a non-collider on this path that is in $S \cup \{Z\}$,
+%$Z$ must point to neighboring nodes in the same strongly-connected component
+%only. Hence $X \in \an{Z}$.
+\end{proof}

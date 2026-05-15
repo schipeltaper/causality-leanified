@@ -1,0 +1,57 @@
+\subsection{Reading PAGs}
+\JorisTODO{This subsection is work in progress! Ignore it for now.}
+
+\Joris{Tom conjectured that the identifiable non-ancestors of selection nodes are exactly the nodes with an invariant arrowhead. He suggested the proof strategy: 
+find a MAG representative, add selection bias on that node, go back to PAG and conclude that the PAG is still the same. 
+(By the way, perhaps we can actually exclude as a JCI-type assumption on input nodes that the input nodes themselves were subject to selection bias?)}
+
+The causal interpretation of the $\sigma$-PAG output by FCI is subtle, and not quite as transparent as that of a DMG.
+When assuming no selection bias ($S = \emptyset$), the soundness of FCI allows us to directly read off some (non-)ancestral relations from the $\sigma$-PAG output by FCI. 
+However, this is not yet all causal information that is identifiable from the $\sigma$-Markov equivalence class. 
+With more effort, one can also read off additional (non-)ancestral relations, direct causal relations, the absence of confounding, and the absence of cycles. 
+
+If selection bias can be ruled out, we can read off from the estimated $\sigma$-PAG consistent estimates for:
+  \begin{enumerate}[label=(\roman*)]
+%  \item the absence of causal cycles according to $\C{M}$ (via Proposition~\ref{prop:noncycles});
+%  \item the absence/presence of (possibly indirect) causal relations according to $\C{M}$ (via Propositions~\ref{prop:cdpag_ancestors_cdmg} and \ref{prop:cdpag_nonancestors}); 
+%  \item the absence of confounders according to $\C{M}$ (via Proposition~\ref{prop:identify_nonconfounders});
+%  \item the absence/presence of direct causal relations according to $\C{M}$ (via Proposition~\ref{prop:identifiable_direct_causes}). 
+%  \end{compactenum}
+  \item the absence/presence of (possibly indirect) causal relations according to $M$; 
+  \item the absence of latent common causes according to $M$;
+  \item the absence/presence of direct causal relations according to $M$;
+  \item the absence of causal cycles according to $M$,
+  \end{enumerate}
+as explained in detail in \cite{MooijClaassen_UAI_20}.
+To the best of our knowledge, if selection bias is not ruled out, the causal interpretation of the $\sigma$-PAG output by FCI is not fully understood at present.
+%Note that this corollary also applies to L-CBNs, as these can be considered to be special cases of simple SCMs.
+
+Here we formulate some conjectures that have been proven under additional assumptions.
+
+"\cite{Zhang2006} conjectured soundness and completeness of a criterion to read off all invariant ancestral relations from a complete DPAG.
+Roumpelaki \emph{et al.} (2016) proved soundness of the criterion (and claim completeness, but their proof seems incomplete)."
+\begin{Prp}[Proposition 4 in \cite{MooijClaassen_UAI_20}]
+Let $G$ be a CDMG with input nodes $J$ and output nodes $V$, and $H$ be a $\sigma$-PAG that represents $G$.
+Assume that all unshielded triples in $H$ have been oriented according to FCI rule $\C{R}0$ (and the background knowledge?) using $\IM_\sigma(G)$.
+For two output nodes $i \ne j \in V$:
+  \begin{enumerate}
+    \item if there exists a directed path from $i$ to $j$ in $H$, or
+    \item if there exist uncovered possibly directed paths from $i$ to $j$ in $H$ of the form $i, u, \dots, j$ and $i, v, \dots, j$ such that $u$ and $v$ are distinct non-adjacent output nodes in $H$
+  \end{enumerate}
+then $i \in \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  Mooij \& Claassen extended this result to DMGs.
+  Still, no selection bias is assumed, and no input nodes either.
+\end{proof}
+
+\cite[p. 137]{Zhang2006} provides a sound and complete criterion to read off non-ancestors from a complete DPAG. 
+\begin{Prp}[Proposition 5 in \cite{MooijClaassen_UAI_20}]
+Let $G$ be a CDMG with input nodes $J$ and output nodes $V$, and $H$ be a $\sigma$-PAG that represents $G$.
+For two output nodes $i \ne j \in V$:
+if there is no possibly directed path from $i$ to $j$ in $H$, then $i \notin \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  Zhang proves this for ADMGs, Mooij \& Claassen extend it to DMGs.
+  Two additional extensions are needed: selection bias, and input nodes.
+\end{proof}

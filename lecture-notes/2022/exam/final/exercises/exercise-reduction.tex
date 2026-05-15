@@ -1,0 +1,292 @@
+\tikzstyle{var}=[circle,draw,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varh}=[circle,draw,thick,minimum size=20pt,inner sep=0pt,dashed] % fill=gray,draw=gray
+\tikzstyle{arr}=[->,>=stealth',draw,fill,thick]
+\tikzstyle{carr}=[o->,>=stealth',draw,fill,thick]
+\tikzstyle{carc}=[o-o,>=stealth',draw,fill,thick]
+%\tikzstyle{arr}=[->,>=stealth',draw=black,fill=black,line width=1pt]
+%\tikzstyle{arrh}=[->,>=stealth',draw=gray,thin]
+\tikzstyle{arrh}=[->,>=stealth',draw,fill,thick,dashed] % fill=gray,draw=gray
+\tikzstyle{biarr}=[<->,>=stealth',draw,fill,thick]
+\tikzstyle{biarrh}=[<->,>=stealth',draw,fill,thick,dashed] % fill=gray,draw=gray
+\tikzstyle{noarr}=[draw,fill,thick]
+\tikzstyle{noarrh}=[draw,fill,thick,dashed] %fill=gray, draw=gray
+%\tikzstyle{fac}=[rectangle,draw=black!50,fill=black!20,thick,minimum size=10pt] %or 15pt
+\tikzstyle{varc}=[rectangle,draw,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varch}=[rectangle,draw,thick,minimum size=20pt,inner sep=0pt,dashed]
+\tikzstyle{sarr}=[{Rays[n=6]}->,>=stealth',draw,fill,thick]
+\tikzstyle{sars}=[{Rays[n=6]}-{Rays[n=6]},>=stealth',draw,fill,thick]
+
+\subsection{Causal Reductions (BONUS!)}
+\totalscore{3}
+
+Suppose we are interested in modeling the causal relation between a cause $X \in \mathcal{X}$ and its effect $Y \in \mathcal{Y}$, allowing for one or more latent confounders $Z_1 \in \mathcal{Z}_1, Z_2 \in \mathcal{Z}_2, \dots, Z_K \in \mathcal{Z}_K$ of $X$ and $Y$.
+In this exercise, we will construct a ``reduced'' representation for the latent confounder space, replacing $\prod_{i=1}^i \C{Z}_K$ by $\C{X}$.
+In other words, we will represent the $K$ latent confounders $Z_1,\dots,Z_K$ by a single latent confounder $W$ that takes values in $\C{X}$.
+
+Our starting point is the causal Bayesian network with a graph that could look as follows:
+\begin{center}\begin{tikzpicture}
+\begin{scope}
+  \node [var](x) {$X$};
+  \node [var, right =1cm of x](y) {$Y$};
+  \node [varh, above =1cm of y](z3) {$Z_3$};
+  \node [varh, left =1cm of z3](z4) {$Z_4$};
+  \node [varh, above left =1cm of z4](z1) {$Z_1$};
+  \node [varh, right =1cm of z1](z2) {$Z_2$};
+  \node [varh, right =1.5cm of z2](zd) {$Z_K$};
+  \node [right =0.5cm of z2](dots) {$\dots$};
+
+  \draw [arrh] (z1) -- (z2);
+  \draw [arrh] (z1) -- (z3);
+  \draw [arrh] (z2) -- (z3);
+  \draw [arrh] (z3) -- (z4);
+  \draw [arrh] (zd) -- (z4);
+  \draw [arrh] (zd) -- (z3);
+  \draw [arrh] (z4) -- (x);
+  \draw [arrh] (z4) -- (y);
+  \draw [arrh] (z3) -- (y);
+  \draw [arr] (x) -- (y);
+  \draw [arrh] (zd) edge [out=-90,in=45] (y);
+\end{scope}
+\end{tikzpicture}\end{center}
+It contains observed cause $X$ with observed direct effect $Y$, and $K$ latent confounders $Z_1,\dots,Z_K$ of $X$ and $Y$ with arbitrary causal relations between the confounders (this graph is just one of the many possibilities).
+
+To reduce the bookkeeping, 
+we will first combine all latent confounders $Z_1,\dots,Z_K$ into a single latent confounder
+$\B{Z} = (Z_1,\dots,Z_K) \in \BC{Z} :=  \prod_{i=1}^K \mathcal{Z}_i$.
+This means that our starting point will be the L-CBN with graph
+\begin{center}\begin{tikzpicture}
+\begin{scope}[xshift=6cm]
+  \node [var](x) {$X$};
+  \node [var, right =1cm of x](y) {$Y$};
+  \node [varh, above =1cm of x, xshift=0.8cm](z) {$\B{Z}$};
+
+  \draw [arrh] (z) -- (y);
+  \draw [arrh] (z) -- (x);
+  \draw [arr] (x) -- (y);
+\end{scope}
+\end{tikzpicture}\end{center}
+and Markov kernels 
+\begin{align*}
+  & P_{\B{Z}}(\B{Z}) : \Asterisk \dshto \BC{Z}, \\
+  & P_X(X \given \doit(\B{Z})) : \BC{Z} \dshto \C{X}, \\
+  & P_Y(Y \given \doit(X,\B{Z})) : \C{X} \times \BC{Z} \dshto \C{Y}.
+\end{align*}
+
+We will now perform the following sequence of steps:
+\begin{enumerate}
+  \item We introduce a new latent random variable $W \in \C{W}$ taking values in space $\C{W} := \C{X}$ that is going to be an exact copy of $X$:
+\begin{center}\begin{tikzpicture}
+  \node [var](x) {$X$};
+  \node [var, right = of x] (y) {$Y$};
+  \node [varh, above = of y](z) {$\B{Z}$};
+  \node [varh, left = of z](w) {$W$};
+  \draw [arrh] (w) -- (x);
+  \draw [arr] (x) -- (y);
+  \draw [arrh] (z) -- (w);
+  \draw [arrh] (z) -- (y);
+\end{tikzpicture}\end{center}
+where we define the kernels $P_W(W \given \doit(\B{Z}))$ and $\tilde{P}_X(X \given \doit(W))$ by:
+\begin{align*}
+  P_W(W \in A \given \doit(\B{Z}=\B{z})) & := P_X(X \in A \given \doit(\B{Z}=\B{z})) \text{ for all $A \in \C{B}_{\C{W}}$ and $\B{z}\in\BC{Z}$} \\
+  \tilde{P}_X(X \in B \given \doit(W=w)) & := \I_B(w) \text{ for all $B \in \C{B}_{\C{X}}$ and $w \in \C{W}$}
+  %\delta(X \given \doit(W))
+\end{align*}
+to ensure that $X$ has the same value as $W$.
+
+\item We refactorize 
+$$P_W(W \given \doit(\B{Z})) \otimes P_{\B{Z}}(\B{Z}) = P(W,\B{Z}) = P(\B{Z} \given W) P(W) =: \tilde{P}_{\B{Z}}(\B{Z} \given \doit(W)) \tilde{P}_W(W)$$
+with $\tilde{P}_{\B{Z}}(\B{Z} \given \doit(W))$ the conditional Markov kernel. This leads to the graph:
+\begin{center}\begin{tikzpicture}
+  \node [var](x) {$X$};
+  \node [var, right = of x] (y) {$Y$};
+  \node [varh, above = of y](z) {$\B{Z}$};
+  \node [varh, left = of z](w) {$W$};
+  \draw [arrh] (w) -- (x);
+  \draw [arr] (x) -- (y);
+  \draw [arrh] (w) -- (z);
+  \draw [arrh] (z) -- (y);
+\end{tikzpicture}\end{center}
+
+\item We marginalize over $\B{Z}$:
+\begin{center}\begin{tikzpicture}
+  \node [var](x) {$X$};
+  \node [var, right = of x](y) {$Y$};
+  \node [varh, above =1cm of x, xshift=0.8cm](z) {$W$};
+
+  \draw [arrh] (z) -- (y);
+  \draw [arrh] (z) -- (x);
+  \draw [arr] (x) -- (y);
+\end{tikzpicture}\end{center}
+    introducing the kernel $\tilde P_Y(Y \given \doit(X,W)) := P_Y(Y \given \doit(X, \B{Z})) \circ \tilde{P}_{\B{Z}}(\B{Z} \given \doit(W))$, i.e.,
+\begin{equation*}\begin{split}
+  \tilde P_Y(Y \in A \given \doit(X=x, W=w)) 
+  &:= \int \I_A(y) P_Y(Y \in dy \given \doit(X=x, \B{Z}=\B{z})) \tilde{P}_{\B{Z}}(\B{Z} \in d\B{z} \given \doit(W=w))
+\end{split}\end{equation*}
+\end{enumerate}
+
+Note that the observational distribution $P(X,Y)$ is preserved along this sequence of operations:
+\begin{align*}
+  P(Y \in B, X \in A)
+  &= P(Y \in B, X \in A, \B{Z} \in \BC{Z}) \\
+  &= \Big(P_Y(Y \given \doit(X,\B{Z})) \otimes P_X(X \given \doit(\B{Z})) \otimes P_{\B{Z}}(\B{Z})\Big)(Y \in B, X \in A, \B{Z} \in \BC{Z}) \\
+  &= \int \I_{A\times B \times \BC{Z}}(x,y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) P_X(X \in dx \given \doit(\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{1.}{=} \int \I_{A\times B \times \BC{Z}}(x,y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \\
+   & \qquad \left( \int_{\C{W}} \tilde{P}_X(X \in dx \given \doit(W=w)) P_W(W \in dw \given \doit(\B{Z}=\B{z})) \right) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &= \int \I_{A\times B \times \C{W} \times \BC{Z}}(x,y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \tilde{P}_X(X \in dx \given \doit(W=w)) \\
+   & \qquad P_W(W \in dw \given \doit(\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{2.}{=} \int \I_{A\times B \times \C{W} \times \BC{Z}}(x,y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \tilde{P}_X(X \in dx \given \doit(W=w)) \\
+   & \qquad \tilde{P}_{\B{Z}}(\B{Z} \in d\B{z} \given \doit(W=w)) \tilde{P}_W(W \in dw) \\
+  &\stackrel{3.}{=} \int \I_{A\times B \times \C{W}}(x,y,w) \tilde{P}_Y(Y \in dy \given \doit(X=x,W=w)) \tilde{P}_X(X \in dx \given \doit(W=w)) \tilde{P}_W(W \in dw) \\
+  &= \Big(\tilde{P}_Y \otimes \tilde{P}_X \otimes \tilde{P}_W\Big)(Y \in B, X \in A, W \in \C{X}).
+\end{align*}
+%For convenience, we rewrite the same reasoning using a shorter notation:
+%\begin{align*}
+%  P(Y \in dy, X \in dx) 
+%  &= P(Y \in dy, X \in dx, \B{Z} \in \BC{Z}) \\
+%  &= \Big(P_Y \otimes P_X \otimes P_{\B{Z}}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}) \\
+%  &= \int_{\BC{Z}} P_Y(dy \given x,z) P_X(dx \given \B{z}) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{1.}{=} \int_{\BC{Z}} P_Y(dy \given x,\B{z}) 
+%     \left( \int_{\C{W}} \tilde{P}_X(dx \given w) P_W(dw \given \B{z}) \right) P_{\B{Z}}(d\B{z}) \\
+%  &= \int_{\BC{Z} \times \C{W}} P_Y(dy \given x,\B{z}) \tilde{P}_X(dx \given w) P_W(dw \given \B{z}) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{2.}{=} \int_{\BC{Z} \times \C{W}} P_Y(dy \given x,\B{z}) \tilde{P}_X(dx \given w) \tilde{P}_{\B{Z}}(d\B{z} \given w) \tilde{P}_W(dw) \\
+%  &\stackrel{3.}{=} \int_{\C{W}} \tilde{P}_Y(dy \given x,w) \tilde{P}_X(dx \given w) \tilde{P}_W(dw) \\
+%  &= \Big(\tilde{P}_Y \otimes \tilde{P}_X \otimes \tilde{P}_W\Big)(Y \in dy, X \in dx, W \in \C{X})
+%\end{align*}
+
+\begin{enumerate}[label=\alph*)]
+  \item Show with a similar calculation (where you can make use of the same shorthand notation) that also the interventional Markov kernel $P(Y \given \doit(X))$ is preserved along this sequence of operations.
+    \score{2}
+%    \answer{
+%\begin{align*}
+%  P(Y \in B \given \doit(X=x)) 
+%  &= P(Y \in B, \B{Z} \in \BC{Z} \given \doit(X=x)) \\
+%  &= \Big(P_Y(Y \given \doit(X=x,\B{Z})) \otimes P_{\B{Z}}(\B{Z})\Big)(Y \in B, \B{Z} \in \BC{Z}) \\
+%  &= \int_{\BC{Z}} P_Y(B \given \doit(X=x,\B{Z}=\B{z})) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{1.}{=} \int_{\BC{Z}} P_Y(B \given x,\B{z}) 
+%     \left( \int_{\C{W}} P_W(dw \given \B{z}) \right) P_{\B{Z}}(d\B{z}) \\
+%  &= \int_{\BC{Z} \times \C{W}} P_Y(B \given x,\B{z}) P_W(dw \given \B{z}) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{2.}{=} \int_{\BC{Z} \times \C{W}} P_Y(B \given x,\B{z})  \tilde{P}_{\B{Z}}(d\B{z} \given w) \tilde{P}_W(dw) \\
+%  &\stackrel{3.}{=} \int_{\C{W}} \tilde{P}_Y(B \given x,w) \tilde{P}_W(dw) \\
+%  &= \Big(\tilde{P}_Y \otimes \tilde{P}_W\Big)(Y \in B, W \in \C{X})
+%\end{align*}
+%    }
+    \answer{For all measurable $B \subseteq \C{Y}$, for all $x \in \C{X}$:
+\begin{align*}
+  P(Y \in B \given \doit(X=x)) 
+  &= P(Y \in B, \B{Z} \in \BC{Z} \given \doit(X=x)) \\
+  &= \Big(P_Y(Y \given \doit(X,\B{Z})) \otimes P_{\B{Z}}(\B{Z})\Big)(Y \in B, \B{Z} \in \BC{Z} \given X=x) \\
+  &= \int \I_{B \times \BC{Z}}(y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{1.}{=} \int \I_{B \times \BC{Z}}(y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \\
+    & \qquad \left( \int_{\C{W}} P_W(W \in dw \given \doit(\B{Z}=\B{z})) \right) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &= \int \I_{B \times \C{W} \times \BC{Z}}(y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \\
+   & \qquad P_W(W \in dw \given \doit(\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{2.}{=} \int \I_{B \times \C{W} \times \BC{Z}}(y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \\
+   & \qquad \tilde{P}_{\B{Z}}(\B{Z} \in d\B{z} \given \doit(W=w)) \tilde{P}_W(W \in dw) \\
+  &\stackrel{3.}{=} \int \I_{B \times \C{W}}(y,w) \tilde{P}_Y(Y \in dy \given \doit(X=x,W=w)) \tilde{P}_W(W \in dw) \\
+  &= \Big(\tilde{P}_Y \otimes \tilde{P}_W\Big)(Y \in B, W \in \C{X} \given X=x).
+\end{align*}}
+%\begin{align*}
+%  P(Y \in B \given \doit(X=x)) 
+%  &= P(Y \in B, \B{Z} \in \BC{Z} \given \doit(X=x)) \\
+%  &= \Big(P_Y(Y \given \doit(X=x,\B{Z})) \otimes P_{\B{Z}}(\B{Z})\Big)(Y \in B, \B{Z} \in \BC{Z}) \\
+%  &= \int_{\BC{Z}} P_Y(B \given \doit(X=x,\B{Z}=\B{z})) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{1.}{=} \int_{\BC{Z}} P_Y(B \given x,\B{z}) 
+%     \left( \int_{\C{W}} P_W(dw \given \B{z}) \right) P_{\B{Z}}(d\B{z}) \\
+%  &= \int_{\BC{Z} \times \C{W}} P_Y(B \given x,\B{z}) P_W(dw \given \B{z}) P_{\B{Z}}(d\B{z}) \\
+%  &\stackrel{2.}{=} \int_{\BC{Z} \times \C{W}} P_Y(B \given x,\B{z})  \tilde{P}_{\B{Z}}(d\B{z} \given w) \tilde{P}_W(dw) \\
+%  &\stackrel{3.}{=} \int_{\C{W}} \tilde{P}_Y(B \given x,w) \tilde{P}_W(dw) \\
+%  &= \Big(\tilde{P}_Y \otimes \tilde{P}_W\Big)(Y \in B, W \in \C{X})
+%\end{align*}
+    \points{1 point for the right approach, 1/2 point for each of the 3 steps.}
+%  \item Show that also the interventional Markov kernel $P(X \given \doit(Y))$ is preserved along this sequence of operations.
+%    \answer{$$P(X \given \doit(Y)) = P_X(X \given Z) \otimes P_Z(Z)$$}
+  \item Is the final L-CBN interventionally equivalent to the original one w.r.t.\ $\{X,Y\}$? Motivate your answer.
+    \score{1}
+    \answer{Yes! Note that also the interventional Markov kernel $P(X \given \doit(Y))$ is preserved. This means that for any perfect intervention on any subset of $\{X,Y\}$, the two models induce the same distribution.}
+    \points{1 point for a motivated correct answer.}
+\end{enumerate}
+This ``reduction'' can be useful when one wants to learn the model from a combination of observational and interventional data.
+
+\begin{comment}
+\begin{figure*}[tbp]\centering
+\scalebox{0.7}{\begin{tikzpicture}
+\begin{scope}
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(a)};
+  \node [var, right =1cm of x](y) {$Y$};
+  \node [varh, above =1cm of y](z3) {$Z_3$};
+  \node [varh, left =1cm of z3](z4) {$Z_4$};
+  \node [varh, above left =1cm of z4](z1) {$Z_1$};
+  \node [varh, right =1cm of z1](z2) {$Z_2$};
+  \node [varh, right =1.5cm of z2](zd) {$Z_K$};
+  \node [right =0.5cm of z2](dots) {$\dots$};
+
+  \draw [arr] (z1) -- (z2);
+  \draw [arr] (z1) -- (z3);
+  \draw [arr] (z2) -- (z3);
+  \draw [arr] (z3) -- (z4);
+  \draw [arr] (zd) -- (z4);
+  \draw [arr] (zd) -- (z3);
+  \draw [arr] (z4) -- (x);
+  \draw [arr] (z4) -- (y);
+  \draw [arr] (z3) -- (y);
+  \draw [arr] (x) -- (y);
+  \draw [arr] (zd) edge [out=-90,in=45] (y);
+\end{scope}
+\begin{scope}[xshift=6cm]
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(b)};
+  \node [var, right =1cm of x](y) {$Y$};
+  \node [varh, above =1cm of x, xshift=0.8cm](z) {$\B{Z}$};
+
+  \draw [arr] (z) -- (y);
+  \draw [arr] (z) -- (x);
+  \draw [arr] (x) -- (y);
+\end{scope}
+\begin{scope}[xshift=12cm]
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(c)};
+  \node [var, right = of x] (y) {$Y$};
+  \node [varh, above = of y](z) {$\B{Z}$};
+  \node [varh, left = of z](w) {$W$};
+  \draw [arr] (w) -- (x);
+  \draw [arr] (x) -- (y);
+  \draw [arr] (z) -- (w);
+  \draw [arr] (z) -- (y);
+\end{scope}
+\begin{scope}[yshift=-4cm]
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(d)};
+  \node [var, right = of x](y) {$Y$};
+  \node [varh, above =1cm of x, xshift=0.8cm](z) {$W,\B{Z}$};
+
+  \draw [arr] (z) -- (y);
+  \draw [arr] (z) -- (x);
+  \draw [arr] (x) -- (y);
+\end{scope}
+\begin{scope}[yshift=-4cm,xshift=6cm]
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(e)};
+  \node [var, right = of x] (y) {$Y$};
+  \node [varh, above = of y](z) {$\B{Z}$};
+  \node [varh, left = of z](w) {$W$};
+  \draw [arr] (w) -- (x);
+  \draw [arr] (x) -- (y);
+  \draw [arr] (w) -- (z);
+  \draw [arr] (z) -- (y);
+\end{scope}
+\begin{scope}[yshift=-4cm,xshift=12cm]
+  \node [var](x) {$X$};
+  \node [left =1cm of x] {(f)};
+  \node [var, right = of x](y) {$Y$};
+  \node [varh, above =1cm of x, xshift=0.8cm](z) {$W$};
+
+  \draw [arr] (z) -- (y);
+  \draw [arr] (z) -- (x);
+  \draw [arr] (x) -- (y);
+\end{scope}
+\end{tikzpicture}}
+    \caption{A graphical explanation of our causal reduction technique. (a) We assume a treatment variable $\mathbf{X}$, an outcome variable $\mathbf{Y}$, and $K$ latent confounders $Z_1, \dots, Z_K$ with an arbitrary dependency structure. (b) We represent the $K$ latent confounders $Z_1, \dots, Z_K$ by $\mathbf{Z} \in \mathcal{Z}=\mathbb{R}^K$. (c) We create a copy of $\mathbf{X}$ called $\mathbf{W}$. We use a double circle to indicate that a variable is a deterministic function of its parents. (d, e) Instead of using the factorization from (c), $p(\mathbf{w, z})=p(\mathbf{w}|\mathbf{z})p(\mathbf{z})$, we choose $p(\mathbf{w, z})=p(\mathbf{z}|\mathbf{w})p(\mathbf{w})$. (f) Last, we marginalize over $\mathbf{Z}$. Note that at every step (a--f) the Bayesian networks are interventionally equivalent with respect to interventions on $\mathbf{X}$ and $\mathbf{Y}$.}
+    \label{fig:graphical_explanation}
+\end{figure*}
+\end{comment}

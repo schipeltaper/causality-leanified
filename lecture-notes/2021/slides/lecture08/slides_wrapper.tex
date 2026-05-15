@@ -1,0 +1,103 @@
+\documentclass{beamer}
+
+\mode<presentation>
+  {\usetheme{MooijTalk}}
+\definecolor{beamer@blendedblue}{rgb}{0.0,0.47,0.44}
+%\definecolor{beamer@blendedblue}{rgb}{0.75,0.19,0.10}
+\usepackage{appendixnumberbeamer}
+\setbeamercovered{invisible}
+%\setbeamercolor*{example text}{fg=blue!50!black}
+\setbeamercolor*{example text}{fg=beamer@blendedblue}
+
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{mathabx}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{patterns}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{positioning}
+
+\newdimen\arrowsize
+\pgfarrowsdeclare{arcsq}{arcsq}
+{
+  \arrowsize=0.2pt
+  \advance\arrowsize by .5\pgflinewidth
+  \pgfarrowsleftextend{-4\arrowsize-.5\pgflinewidth}
+  \pgfarrowsrightextend{.5\pgflinewidth}
+}
+{
+  \arrowsize=1.5pt
+  \advance\arrowsize by .5\pgflinewidth
+  \pgfsetdash{}{0pt} % do not dash
+  \pgfsetroundjoin   % fix join
+  \pgfsetroundcap    % fix cap
+  \pgfpathmoveto{\pgfpoint{0\arrowsize}{0\arrowsize}}
+  \pgfpatharc{-90}{-160}{4\arrowsize}
+  \pgfusepathqstroke
+  \pgfpathmoveto{\pgfpointorigin}
+  \pgfpatharc{90}{160}{4\arrowsize}
+  \pgfusepathqstroke
+}
+
+%\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{latexsym}
+\usepackage{comment}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+%\usepackage{mymacros}
+\usepackage[english]{babel}
+
+\graphicspath{{fig/}}
+
+\definecolor{mpglogogreen}{RGB}{0,124,121}
+\definecolor{mpgdarkgreen}{RGB}{124,166,166}
+\definecolor{mpgmidgreen}{RGB}{201,219,216}
+\definecolor{mpglightgreen}{RGB}{230,242,242}
+\definecolor{mpgdarkgray}{RGB}{102,102,102}
+\definecolor{mpgalert}{RGB}{204,51,40} % red
+\definecolor{mpi}{rgb}{0.0,0.47,0.44}
+\definecolor{ru}{rgb}{0.75,0.19,0.10}
+
+\title[Causality]{Causality: Lecture 8, part 2}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{
+%\begin{tikzpicture}
+%  \node at (0,0) {\includegraphics[height=15mm]{amlab}};
+%  \node at (6,0) {\includegraphics[height=7mm]{uva_logo_en}};
+%  \node[text width=4cm,text centered] at (0,1) {\small Institute for Computing\\ and Information Sciences};
+%  \node[text width=4cm,text centered] at (7,1) {\small Informatics Institute};
+%\end{tikzpicture}
+University of Amsterdam
+}
+\date[2021-03-29]{\normalsize March 29, 2021}
+
+\input{../../lecture_notes/shorts.tex}
+\input{../../lecture_notes/shortsjoris.tex}
+
+\tikzstyle{var}=[circle,draw=black,fill=white,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varc}=[draw=black,fill=white,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varh}=[circle,draw=gray,fill=gray!10,thick,minimum size=20pt,inner sep=0pt,dotted]
+\tikzstyle{arr}=[->,>=stealth',draw=black,thick]
+%\tikzstyle{arr}=[->,>=stealth',draw=black,fill=black,line width=1pt]
+%\tikzstyle{arrh}=[->,>=stealth',draw=gray,thin]
+\tikzstyle{arrh}=[->,>=stealth',draw=gray,fill=gray,thick,dotted]
+\tikzstyle{biarr}=[<->,>=stealth',draw=black,fill=black,thick]
+\tikzstyle{biarrh}=[<->,>=stealth',draw=gray,fill=gray,thick,dotted]
+\tikzstyle{fac}=[rectangle,draw=black!50,fill=black!20,thick,minimum size=10pt] %or 15pt
+\tikzstyle{vari}=[circle,draw=white,fill=red,thick,minimum size=20pt,inner sep=0pt]
+
+\renewcommand\emph[1]{\textbf{#1}}
+
+\begin{document}
+
+\maketitle
+
+\input{slides_contents.tex}
+
+\end{document}

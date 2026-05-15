@@ -1,0 +1,277 @@
+\paragraph{Proofs - Do-Calculus}\hfill%
+
+
+\begin{Lem}\label{lem:int-null-set}
+    For $B,C \ins V$ and $D \ins V \cup J$ with $B,C,D$ pairwise disjoint, and a measurable subset $N \ins \Xcal_{B \cup C\cup D \cup J}$ the following statements are equivalent:
+    \begin{enumerate}
+        \item $N$ is a $P(X_B,X_C|\doit(X_{I_B},X_{D\cup J}))$-null set.
+        \item For every decomposition $B=B_1 \dcup B_2$ the set $N$ is a 
+            $P(X_B,X_C|\doit(X_{B_2},X_{D\cup J}))$-null set.
+        \item For every decomposition $B=B_1 \dcup B_2$ the set $N$ is a 
+            $P(X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J}))$-null set.
+    \end{enumerate}
+\begin{proof}
+    Every value $x_{I_B}=(x_{I_v})_{v \in B} \in \Xcal_{I_B}$ defines a decomposition $B=B_1 \dcup B_2$ via:
+    \[ B_1 := \lC v \in B \st x_{I_v} = \star \rC, \qquad B_2 := \lC v \in B \st x_{I_v} \in \Xcal_v \rC.  \]
+    So running through all values $x_{I_B} \in \Xcal_{I_B}$ is the same as running through all subsets $B_2 \ins B$ and all values $x_{B_2} \in \Xcal_{B_2}$, while putting $x_{I_{B_1}}=\star$ for $B_1 = B \sm B_2$.
+    Furthermore, we have the following identities:
+    \begin{align*}
+          &   P((X_B,X_C) \in N_{x_{D\cup J}}|\doit(X_{I_B}=x_{I_B},X_{D\cup J}=x_{D\cup J})) \\
+        &=   P((X_B,X_C) \in N_{x_{D\cup J}}|\doit(X_{I_{B_1}} = \star ,X_{I_{B_2}}=x_{B_2},X_{D\cup J}=x_{D\cup J})) \\
+     &=   P((X_B,X_C) \in N_{x_{D\cup J}}|\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D\cup J})) \\
+     &= \lp P(X_{B_1},X_C|\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D\cup J})) \otimes \delta(X_{B_2}|X_{B_2}=x_{B_2})\rp\lp N_{x_{D\cup J}} \rp \\
+     &= P((X_{B_1},X_C) \in N_{(x_{B_2},x_{D\cup J})}|\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D\cup J})).
+    \end{align*}
+    So the first line vanishes for all values $x_{I_B} \in \Xcal_{I_B}$ and $x_{D\cup J} \in \Xcal_{D\cup J}$ if and only if any other line vanishes
+    for all subsets $B_2 \ins B$ and all values $x_{B_2} \in \Xcal_{B_2}$ and $x_{D\cup J} \in \Xcal_{D\cup J}$.
+    This shows the claim.
+\end{proof}
+\end{Lem}
+
+%\Joris{Suggestion: explain what it means that a Markov kernel $K(X_A|X_B,X_C,X_D)$ is unique up to a measurable $K(X_B|X_C,X_D)$-null set in $\Xcal_{B\cup C}$ (rather than in $\Xcal_{B \cup C \cup D}$): that the null set can be considered constant in $X_{D \sm (B \cup C)}$.}
+
+\begin{Rem}[Null sets---again]\label{rem:null-sets}
+    In the following we will often make statements like:
+    ``The Markov kernel $K(X_A|X_B,X_C,X_D)$ is unique up to a measurable $K(X_B|X_C,X_D)$-null set in $\Xcal_{B\cup C}$'',  (rather than in $\Xcal_{B \cup C \cup D}$). 
+This means that the corresponding null set $N$ can be considered constant in $X_{D \sm (B \cup C)}$, or, more precisely, 
+that $N$ is of the form:
+\[ N = M \times \Xcal_{D \sm (B \cup C)}  \ins \Xcal_{B \cup C \cup D},  \]
+with $M \ins \Xcal_{B\cup C}$.
+\end{Rem}
+
+
+\begin{Prp}[Do-calculus---existence and uniqueness]
+    \label{prp:do-calculus}
+    Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D$ are pairwise disjoint.\\
+%    \Joris{In rule 3, should we allow for $B \subseteq V \cup J$? Or: does rule 4 reduce to an existing rule now that we identify $I_j$ with $j$ for $j \in J$? Patrick pointed out that part of the statement is about the existence of a certain Markov kernel, and this aspect of rule 4 may NOT reduce to a special case of an (extended) rule 3. One should also be very careful when dropping the assumption $B \subseteq V$ because it is used \emph{extensively} throughout all the proofs. It seems that rule 4 can more easily be obtained as the special case $B=I_B=\emptyset$ rather than $B \subseteq V \cup J$.}
+    Then we have the following 3 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}: If we have:
+            \[ A \idPerp_{G_{\doit(D)}} B \given C \cup D,   \]
+            then there exists a Markov kernel:
+            \[ P\lp X_A|\cancel{X_B},X_C,\doit(X_{D\cup \cancel{J}})\rp:\;  \Xcal_C \times \Xcal_{D} \dshto \Xcal_A, \]
+            that is a version of:
+            \[P\lp X_A|X_{B_2},X_C,\doit(X_{D\cup J})\rp,\] 
+            for every subset $B_2 \ins B$ simultaneously.
+            Note that this Markov kernel is only dependent on $x_C$ and $x_D$, and constant in $x_{J\setminus D}$.
+        \item[] Such a Markov kernel is unique up to a measurable $P(X_C|\doit(X_{D\cup J}))$-null set in $\Xcal_{C\cup D}$. 
+         \item \underline{Action/observation exchange}: If we have:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given B \cup C \cup D,   \]
+            then there exists a Markov kernel:
+            \[P\lp X_A|\cancel{\doit}(X_B),X_C,\doit(X_{D\cup \cancel{J}})\rp: \;\Xcal_B \times \Xcal_C \times \Xcal_{D} \dshto \Xcal_A,\]
+            that is a version of:            
+            \[ P\lp X_A|X_{B_1},\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp, \]
+            for every decomposition: $B=B_1\dcup B_2$, simultaneously.
+        \item[] Such a Markov kernel is unique up to a measurable $P(X_B,X_C|\doit(X_{I_B},X_{D\cup J}))$-null set $N \ins \Xcal_{B \cup C\cup D}$, i.e.\ $N$ is a $P(X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J}))$-null set
+            for every decomposition $B=B_1\dcup B_2$ simultaneously.
+        \item \underline{Insertion/deletion of action}: If we have:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given C  \cup D,   \]
+            then there exists a Markov kernel: 
+            \[P\lp X_A|\cancel{\doit(X_B)},X_C,\doit(X_{D\cup \cancel{J}})\rp:\; \Xcal_C \times \Xcal_{D} \dshto \Xcal_A,\] 
+            that is a version of:  
+            \[ P\lp X_A|\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp\]
+            for every subset $B_2 \ins B$ simultaneously. 
+            Note that this Markov kernel is only dependent on $x_C$ and $x_D$, and constant in $x_{J \sm D}$.
+        \item[] Such a Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{I_B},X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$, i.e.\ $N$ is a $P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set for every subset $B_2 \ins B$ simultaneously.
+    \end{enumerate}
+\begin{proof}
+    We make use of the global Markov property (GMP), theorem \ref{thm-gmp-mCBN}.
+
+1.) The assumption:
+            \[ A \idPerp_{G_{\doit(D)}} B \given C \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+  \[ X_A \Indep_{P(X_V|\doit(X_{D\cup J}))} X_B \given X_C,X_D.\]
+So  we get the following factorization, where we can omit the deterministic variables from $X_D$ on the left of the conditioning lines:
+  \[ P\lp X_A,X_B,X_C|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{D\cup J})\rp,\]
+for some Markov kernel $Q(X_A|X_C,X_D)$. Here
+$Q(X_A|X_C,X_D)$ serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp.\]
+If we marginalize out $X_{B_1}$ for any decomposition $B=B_1 \dcup B_2$ 
+in the above factorization we also get:
+  \[ P\lp X_A,X_C,X_{B_2}|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_C,X_{B_2}|\doit(X_{D\cup J})\rp,\]
+showing that $Q(X_A|X_C,X_D)$ is also a version of:
+  \[P\lp X_A|X_{B_2},X_C,\doit(X_{D\cup J})\rp.\]
+In particular, this holds for $B_2 = \emptyset$. This shows all the claimed properties for $Q(X_A|X_C,X_D)$.
+
+Now consider another Markov kernel $K(X_A|X_C,X_D)$ and the measurable sets:
+\begin{align*}
+    \tilde N &:= \lC x_{C \cup D} \in \Xcal_{C \cup D} \st Q(X_A|X_C=x_C,X_D=x_D) \neq K(X_A|X_C=x_C,X_D=x_D)  \rC,\\
+     N &:= \lC x_{C \cup D \cup J} \in \Xcal_{C \cup D \cup J} \st Q(X_A|X_C=x_C,X_D=x_D) \neq K(X_A|X_C=x_C,X_D=x_D)  \rC \\
+       &= \tilde N \times \Xcal_{J \sm D}.
+\end{align*}
+If $K(X_A|X_C,X_D)$ is a version of: 
+\[P(X_A|X_{B_2},X_C,\doit(X_{D\cup J})),\] 
+for every subset $B_2 \ins B$ simultaneously, then this holds, in particular, for $B_2 = \emptyset$.
+Since conditional Markov kernels are essentially unique, by Theorem \ref{thm-regular-conditional-Markov-kernel}, we have that $N$ is a $P(X_C|\doit(X_{D\cup J}))$-null set.
+%Note that then automatically the product $\Xcal_{B_2} \times N$ is a $P(X_{B_2},X_C|\doit(X_{D\cup J}))$-null set for every $B_2 \ins B$. 
+%\Joris{The last sentence proves something redundant (not part of the claim). If it is important, expand the claim accordingly. If not, then what is its purpose here?}
+\\
+
+2.) The assumption:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given B \cup C \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+  \[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{D\cup J}))} X_{I_B} \given X_B,X_C,X_D.\]
+So we have the following factorization:
+\begin{align}
+    P\lp X_A,X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp,\label{eq:2nd-do-int-1}  
+\end{align}
+for some Markov kernel $Q(X_A|X_B,X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_B,X_C,\doit(X_{I_B},X_{D\cup J})\rp,\]
+and which is independent of $X_{I_B}$.
+
+We first claim that for a Markov kernel $Q(X_A|X_B,X_C,X_D)$ the equation \ref{eq:2nd-do-int-1} is equivalent to the system of equations \ref{eq:2nd-do-int-2} indexed by subsets $B_2 \ins B$ and with $B_1 := B \sm B_2$:
+\begin{align}
+    P\lp X_A,X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp. \label{eq:2nd-do-int-2} 
+\end{align}
+Indeed, we can look at the different input values for
+$X_{I_{B}} = (X_{I_{B_1}},X_{I_{B_2}})$ in equation \ref{eq:2nd-do-int-1}.
+For $B_1$ we put: $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and for $B_2$ we take values: 
+$X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+This implies: 
+\begin{align*} 
+  & P\lp X_A,X_B,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= P\lp X_A,X_B,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp,\\
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp.
+\end{align*}
+So we get the equations:
+\begin{align*}
+    P\lp X_A,X_B,X_C|\doit(X_{B_2},X_{D\cup J})\rp 
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{B_2},X_{D\cup J})\rp, 
+\end{align*}
+  where we can further marginalize out the deterministic $X_{B_2}$:
+  \begin{align*} P\lp X_A,X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp 
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp. %\label{eq:2nd-do-int-3} 
+  \end{align*}
+  Note  that we can also go back by multiplying with $\delta(X_{B_2}|X_{B_2})$. This shows the intermediate claim.
+
+The equation \ref{eq:2nd-do-int-2} already implies that $Q(X_A|X_B,X_C,X_D)$ is a version of the conditional Markov kernel:
+\begin{align} P\lp X_A|X_{B_1},X_C,\doit(X_{B_2},X_{D\cup J})\rp, \label{eq:2nd-do-int-4} 
+\end{align}
+for every decomposition: $B=B_1 \dcup B_2$ simultaneously.
+
+Now consider another Markov kernel $K(X_A|X_B,X_C,X_D)$ and the measurable sets:
+\begin{align*}
+    \tilde N &:= \bigl\{ x_{B \cup C \cup D} \in \Xcal_{B \cup C \cup D} \,\big|\,  Q(X_A|X_B=x_B,X_C=x_C,X_D=x_D) \\ 
+    & \qquad \qquad  \neq K(X_A|X_B=x_B,X_C=x_C,X_D=x_D)  \bigr\},\\
+  N &:= \tilde N \times \Xcal_{J \sm D}.
+\end{align*}
+If $K(X_A|X_B,X_C,X_D)$ now is also a version of the conditional Markov kernel \eref{eq:2nd-do-int-4} 
+for every decomposition $B=B_1 \dcup B_2$ simultaneously, then $N$ is a 
+$P(X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J}))$-null set for every decomposition $B=B_1 \dcup B_2$, 
+because conditional Markov kernels are essentially unique, see Theorem \ref{thm-regular-conditional-Markov-kernel}. 
+By Lemma \ref{lem:int-null-set} this statement is equivalent for $N$ to be a 
+$P(X_B,X_C|\doit(X_{I_B},X_{D\cup J}))$-null set.\\
+
+
+3.) The assumption:
+            \[ A \idPerp_{G_{\doit(I_B \cup D)}} I_B \given C  \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{D\cup J}))} X_{I_B} \given X_C,X_D.\]
+So we have the following factorization:
+\begin{align} 
+    P\lp X_A,X_C|\doit(X_{I_B},X_{D\cup J})\rp &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{I_B},X_{D\cup J})\rp,
+\label{eq:3nd-do-int-1} 
+\end{align}
+for some Markov kernel $Q(X_A|X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_C,\doit(X_{I_B},X_{D\cup J})\rp,\]
+and which is independent of $X_{I_B}$.\\ 
+We can now look at the different input values for any decomposition: $B=B_1 \dcup B_2$.
+For this we put: $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and  $ X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+This implies:
+\begin{align*} 
+  & P\lp X_A,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= P\lp X_A,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp,\\
+  &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp.
+\end{align*}
+So we get for every subset $B_2 \ins B$:
+\begin{align} 
+    P\lp X_A,X_C|\doit(X_{B_2},X_{D\cup J})\rp &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{B_2},X_{D\cup J})\rp, \label{eq:3nd-do-int-2} 
+\end{align}
+which shows that $Q(X_A|X_C,X_D)$ is a version of the conditional Markov kernel:
+\begin{align} P\lp X_A|X_C,\doit(X_{B_2},X_{D\cup J})\rp, \label{eq:3nd-do-int-3}  \end{align}
+for every subset $B_2 \ins B$ simultaneously.
+
+Now consider another Markov kernel $K(X_A|X_C,X_D)$ and the measurable sets:
+\begin{align*}
+    \tilde N &:= \lC x_{C \cup D} \in \Xcal_{C \cup D} \st Q(X_A|X_C=x_C,X_D=x_D) \neq K(X_A|X_C=x_C,X_D=x_D)  \rC,\\
+    N_{B_2} &:= \Xcal_{B_2} \times \tilde N \times \Xcal_{J \sm D}.
+\end{align*}
+Now assume that $K(X_A|X_C,X_D)$ is a version of the conditional Markov kernel in (\ref{eq:3nd-do-int-3})
+for every subset $B_2 \ins B$ simultaneously. 
+Then for every subset $B_2 \ins B$ set $N_{B_2}$ is a
+$P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set, because of the essential uniqueness of conditional Markov kernels, see Theorem \ref{thm-regular-conditional-Markov-kernel}. More concretely, for $x_{B_2} \in \Xcal_{B_2}$ 
+and $x_{D \cup J} \in \Xcal_{D \cup J}$ we get the equations:
+\begin{align*}
+  0 &=P(X_C \in (N_{B_2})_{(x_{B_2},x_{D\cup J})} |\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D \cup J})) \\
+      &=P(X_C \in \tilde N_{x_D} |\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D \cup J}))\\
+      &=P(X_C \in \tilde N_{x_D} |\doit(X_{I_{B_1}}=\star, X_{I_{B_2}}=x_{B_2},X_{D\cup J}=x_{D \cup J}))\\
+      &=P(X_C \in \tilde N_{x_D} |\doit(X_{I_B}=(\star,x_{B_2}),X_{D\cup J}=x_{D \cup J})).
+\end{align*}
+Since we have this for all decompositions $B=B_1 \dcup B_2$ and all values $x_{B_2} \in \Xcal_{B_2}$ 
+we are running through all values $x_{I_B} \in \Xcal_{I_B}$. 
+This shows that $\tilde N$ is a $P(X_C|\doit(X_{I_B},X_{D\cup J}))$-null set in $\Xcal_{C \cup D}$.
+\end{proof}
+\end{Prp}
+
+\restatethmasdocalculusdetail*
+\begin{proof}
+ W.l.o.g.\ we can assume all $\mu_v$ to be probability measures.
+
+ 1.) Let $Q(X_A|X_C,X_D)$ be the Markov kernel from Proposition \ref{prp:do-calculus} point 1.
+Recall that conditional Markov kernels are essentially unique by Theorem \ref{thm-regular-conditional-Markov-kernel}. 
+    This shows that the set:
+\begin{align*}
+    \tilde N^{(i)} := \bigl\{ x_{B^{(i)} \cup C \cup D \cup J} \in \Xcal_{B^{(i)} \cup C \cup D \cup J} \,\big|\,
+       & Q(X_A|X_C=x_C,X_D=x_D)\\ 
+       &\neq P(X_A|X_{B^{(i)}}=x_{B^{(i)}},X_C=x_C,\doit(X_{D\cup J}=x_{D \cup J})) \bigr\},
+\end{align*}
+is a (measurable) $P(X_{B^{(i)}},X_C|\doit(X_{D\cup J}))$-null set. So the lifted set:
+\begin{align*}
+    N^{(i)} := \bigl\{ x_{B \cup C \cup D \cup J} \in \Xcal_{B \cup C \cup D \cup J} \,\big|\,
+       & Q(X_A|X_C=x_C,X_D=x_D)\\ 
+       &\neq P(X_A|X_{B^{(i)}}=x_{B^{(i)}},X_C=x_C,\doit(X_{D\cup J}=x_{D \cup J})) \bigr\},
+\end{align*}
+is then a (measurable) $P(X_B,X_C|\doit(X_{D\cup J}))$-null set. Then also the finite union:
+ \[ N := \bigcup_{i \in I} N^{(i)}  \ins \Xcal_{B \cup C \cup D \cup J},  \]
+ is a (measurable) $P(X_B,X_C|\doit(X_{D\cup J}))$-null set as well. 
+ Note that on the complement $N^\cmpl$ all Markov kernels agree with $Q(X_A|X_C,X_D)$ and are thus all equal on $N^\cmpl$.\\
+
+2.) Consider the Markov kernel $Q(X_A|X_B,X_C,X_D)$ from Proposition \ref{prp:do-calculus} point 2
+    and for $i \in I$ the measurable set:
+\begin{align*}
+     N^{(i)} :=  \bigl\{ & x_{B \cup C \cup D \cup J} \in \Xcal_{B \cup C \cup D \cup J} \,\big|\,
+        Q(X_A|X_B=x_B,X_C=x_C,X_D=x_D)\\ 
+       &\neq P(X_A|X_{B_1^{(i)}}=x_{B_1^{(i)}},\doit(X_{B_2^{(i)}}=x_{B_2^{(i)}}),X_C=x_C,\doit(X_{D\cup J}=x_{D\cup J}))  \bigr\}.
+\end{align*}
+Again, by the essential uniqueness of conditional Markov kernels, Theorem \ref{thm-regular-conditional-Markov-kernel}, the set $N^{(i)}$ is 
+%a $P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J}))$-null set and thus
+a $P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}}$-null set.
+The absolute continuity:
+ \[ \mu_{B \cup C} \ll  P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}}, \]
+ then renders $N^{(i)}$ a $\mu_{B \cup C}$-null set. 
+ This shows that the finite union:
+ \[ N := \bigcup_{i \in I} N^{(i)}, \]
+ is a $\mu_{B \cup C}$-null set as well.  Again, note that on the complement $N^\cmpl$ all Markov kernels agree with $Q(X_A|X_B,X_C,X_D)$ and are thus all equal on $N^\cmpl$. \\
+
+3.) Consider the Markov kernel $Q(X_A|X_C,X_D)$ from Proposition \ref{prp:do-calculus} point 3 and
+for $i \in I$ the measurable set:
+\begin{align*}
+    \tilde N^{(i)} := \bigl\{ x_{B^{(i)} \cup C \cup D \cup J} &\in \Xcal_{B^{(i)} \cup C \cup D \cup J} \,\big|\,
+        Q(X_A|X_C=x_C,X_D=x_D)\\ 
+       &\neq P(X_A|\doit(X_{B^{(i)}}=x_{B^{(i)}}),X_C=x_C,\doit(X_{D\cup J}=x_{D \cup J})) \bigr\}.
+\end{align*}
+Again, by the essential uniqueness of conditional Markov kernels, Theorem \ref{thm-regular-conditional-Markov-kernel}, the set $\tilde N^{(i)}$ is a $P(X_C|\doit(X_{B^{(i)}},X_{D\cup J}))$-null set. By the absolute continuity $ \mu_C \ll P(X_C|\doit(X_{B^{(i)}},X_{D\cup J}))$ we get that $\tilde N^{(i)}$ is a $\mu_C$-null set. This shows that the measurable set:
+\begin{align*}
+    N^{(i)} := \bigl\{ x_{B \cup C \cup D \cup J} &\in \Xcal_{B \cup C \cup D \cup J} \,\big|\,
+        Q(X_A|X_C=x_C,X_D=x_D)\\ 
+       &\neq P(X_A|\doit(X_{B^{(i)}}=x_{B^{(i)}}),X_C=x_C,\doit(X_{D\cup J}=x_{D \cup J})) \bigr\}.
+\end{align*}
+is a $\mu_C$-null set as well. Then the finite union:
+ \[ N := \bigcup_{i \in I} N^{(i)}, \]
+ is also a $\mu_C$-null set. 
+Again, note that on the complement $N^\cmpl$ all Markov kernels agree with $Q(X_A|X_C,X_D)$ and are thus all equal on $N^\cmpl$.
+\end{proof}

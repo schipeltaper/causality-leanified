@@ -1,0 +1,132 @@
+Prerequisites
+
+Before the course, the student should be able to:
+
+• work with (elementary) probability theory, write down the main definitions and compute probabilities and expectation values;
+• translate measure theoretic notations, like measure integrals or expectation values, into familiar ones in the discrete and absolute continuous cases;
+• understand, memorize and explain the ’core’ definitions and constructions in Appendix A;
+• work with the d-dimensional Euclidean space R as ’the’ standard measurable space;
+• translate measure integrals to the two basic cases of either 1. discrete spaces/random variables/distributions (with probability mass functions) or 2. absolute continuous random variables (with probability densities w.r.t. Lebesgue measure) and compute those integrals (with the usual rules of anti-derivatives, etc.);
+• understand and apply the transformation rules for discrete and absolute continuous variables to compute mass functions/densities of push-forward measures (in the absolute continuous case only for differentiable bijections);
+
+
+Intended learning outcomes
+
+After the course, the student should be able to:
+
+Chapter 1:
+• explain why correlation does not imply causation;
+• explain 6 correlation inducing scenarios (e.g. cause-effect, effect-cause, feedback, confounding, selection bias, deterministic constraints, etc.);
+• write down and explain the definition of causal effect (in real world terms);
+• explain how one can detect causal relationships experimentally;
+• explain randomized controlled trials and argue about advantages and disadvantages;
+• explain the difference between (conditional) observational distributions and interventional distributions, when they are different, when they are  the same;
+• analyse real world studies and claims according to the concepts introduced above.
+
+Chapter 2:
+• explain what a Markov kernel is and how to represent them in the discrete and absolute continuous case;
+• give examples of Markov kernels;
+• properly work with discrete Markov kernels and linear Gaussians ones;
+• explain how Markov kernels relate to deterministic maps and probability distributions;
+• explain transition probability spaces and null-sets;
+• explain and work with the 5 constructions of Markov kernels from others (composition, product, marginal, conditional, push-forward) and how to work with them in the discrete and absolute continuous case;
+• Write down the definition of conditional independence for conditional random variables and work with them in the discrete and continuous cases;
+• Write down the separoid axioms for conditional independence of conditional random variables;
+• prove separoid axioms for random variables in the discrete and continuous case (in RD);
+• explain how one can get a given Markov kernel by a deterministic mapping and a probability distribution.
+
+Chapter 3
+• write down the definition of CDMGs and explain the meaning;
+• explain all the different concepts of walks (directed, bi-directed, collider, fork, path, etc.);
+• explain all the different node/edge relationships (parents, children, etc.);
+• explain the notion of acyclicity;
+• write down the definition of topological order and how it relates to acyclicity;
+• explain the different operations on graphs (hard/soft interventions, marginalization);
+• write down the definition of d-separation and check if sets are d-separated in given graphs;
+• write down the most important separoid axioms for d-separation, reason with them and prove them;
+• know and understand the definition of σ-separation;
+• check if sets are σ-separated in given graphs.
+
+Chapter 4
+• write down the definition of causal Bayesian network with input and latent variables, motivate the meaning and reason about them;
+• work with the operations on causal Bayesian networks, like hard interventions, soft interventions, marginalization;
+• precisely state the global Markov property, write it down, reason about it and apply it to different causal Bayesian networks where the graph is given;
+• know the main ingredients and steps for the proof of the global Markov property (not necessarily every single step);
+• write down what interventional equivalence means and reason about it;
+• write down how a standard forms (SCM form, canonical form) of causal Bayesian network looks like and reason about it.
+
+Chapter 5
+• write down the 3 do-calculus rules and reason with them;
+• prove the 3 rules of do-calculus using the global Markov property;
+• apply the 3 rules of do-calculus in an iterative manner on (small, not too complicated) graphs for the identification of causal effects (i.e. reducing the number do-terms);
+• state and apply the back-door covariate adjustment criterion and formula;
+• explain the general idea of the ID-algorithm.
+
+Chapter 6
+• know and understand the definition of structural causal model (SCM);
+• know the differences between endogenous variables, exogenous input variables and exogenous random variables;
+• understand the implicit assumptions made when using a SCM;
+• know and understand the definitions of (potential) outcomes, solutions, their Markov kernels, and solution functions of SCMs;
+• know how to sample from a SCM;
+• know and understand the definitions of the different variants of hard interventions on SCMs;
+• understand how soft interventions can be modeled in SCMs;
+• understand how intervention variables can be used to model different interventions in the same causal model;
+• understand how to compose and decompose SCMs;
+• propose an appropriate SCM for a given real-world system, and to appropriately model interventions on the system using the model;
+• know and understand the definition and consequences of unique solvability for SCMs;
+• know and understand the definition and consequences of an SCM being simple;
+• be able to check whether a given SCM is uniquely solvable/simple;
+• construct observable and intervened Markov kernels for simple SCMs;
+• understand the different equivalence relations for SCMs (see also Chapter 8);
+• know and understand the definition of marginalization of SCMs;
+• construct a marginalized SCM;
+• know and apply the basic commutation and compatibility properties of basic operations on SCMs (intervening, marginalization, preservation of unique solvability / simplicity / equivalence);
+• know and understand the definition of the graph of an SCM;
+• be able to draw the graph of a given SCM, and to construct an SCM with a given graph;
+• know and apply the basic compatibility relations between the operation that maps an SCM to a graph and other basic SCM operations;
+• give a causal interpretation of the graph of an SCM (see Chapter 9);
+• know the definition of acyclic SCM;
+• understand and appreciate the differences between different causal model classes.
+
+Chapter 7
+• know and understand the definitions of acyclification of a graph and of a simple SCM, and their relation;
+• know the relation between σ-separation and d-separation on an acyclification;
+• know and understand the global Markov property for simple SCMs;
+• apply the global Markov property for simple SCMs;
+• know and understand the 3 do-calculus rules for simple SCMs;
+• apply the 3 do-calculus rules for simple SCMs;
+• state and apply the back-door covariate adjustment criterion and formula for simple SCMs.
+
+Chapter 8
+• construct a twin SCM;
+• construct a twin graph;
+• know and understand the basic commutation and compatibility properties of twinning with other basic operations on and properties of SCMs;
+• be able to reason about counterfactuals by using the twin SCM;
+• be aware of the empirical limitations of working with counterfactuals.
+
+Chapter 9
+• know and understand the definitions of indirect causal relations, direct causal relations, and common causes according to simple SCMs;
+• understand the relation between having a common cause and being confounded;
+• express the notion of “no confounding” in terms of potential outcomes;
+• know how to detect the presence of such relations from Markov kernels induced by simple SCMs;
+• deal formally with a situation in which only part of the variables in an SCM are observed, whereas the others are latent;
+• formally model a randomized controlled trial with SCMs in various ways, and prove in the SCM formalism the main properties of RCTs;
+• know and understand the definition of faithfulness;
+• understand different ways of how faithfulness violations can occur;
+• understand the LCD algorithm;
+• prove the correctness of the LCD algorithm;
+• understand the Y-structures approach to causal discovery;
+• prove the correctness of the Y-structures approach to causal discovery;
+• know how minimal separating/connecting sets relate to ancestral relations.
+
+Chapter 10
+• understand how to use the G test for conditional independence;
+• understand under which conditions the G test is valid (at level α);
+• understand under which conditions the G test is asymptotically consistent;
+• implement the G test in a computer program;
+
+Chapter 11
+• know and understand the definition of σ-inducing path;
+• know and understand the definition of a σ-PAG;
+• know which CDMGs a σ-PAG represents;
+• construct a σ-PAG representing a given CDMG.

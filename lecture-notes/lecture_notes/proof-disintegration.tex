@@ -1,0 +1,599 @@
+\paragraph{Proofs - Disintegration of Markov Kernels}
+
+In this subsection we will give a proof for the existence and essential uniqueness of conditional Markov kernels.
+Another source for similar results can be found in \cite{Kal17}.
+
+
+\begin{Rem}[Existence of conditional Markov kernels]
+    If $ K(X,Y|Z)$ is a Markov kernel then we want $ K(X|Y,Z)$ such that:
+    \[ K(X,Y|Z) =  K(X|Y,Z) \otimes  K(Y|Z)\]
+    holds. The heuristic here is to make use of Doob-Radon-Nikodym derivatives, see Theorem \ref{thm:doob-radon-nikodym}, 
+    for each $A \in \Bcal_\Xcal$:
+    \[  K(X \in A| Y=y,Z=z) = \frac{ K(X \in A,Y \in dy |Z=z)}{\phantom{X\in A,\,} K(Y \in dy|Z=z)}(y).  \]
+    The problem is that they are only unique up to $K(Y|Z)$-null sets and might not be coordinated in such a way
+    that $K(X \in A| Y=y,Z=z)$ becomes a probability measure in $A$ for every $(y,z)$. 
+    To ensure this we will take extra steps: 
+    We will first take the Doob-Radon-Nikodym derivative
+    $K(X \le x| Y=y,Z=z)$ for rational points $x \in \Q$
+    and then for general $x \in \R$ put:
+    \[  K(X \le x| Y=y,Z=z) =
+            \inf_{m \in \N} K(X \le \lceil x\rceil_m| Y=y,Z=z),
+    \]
+    where $ \lceil x\rceil_m:=\frac{\lfloor mx+1\rfloor}{m} \in \Q$ for $m \in \N$.
+    This approach will work for $K(Y|Z)$-almost-all $(y,z)$.
+    On the remaining points $(y,z)$  we can then make a somewhat arbitrary choice, e.g.\ we can put:
+    \[ K(X \le x|Y=y,Z=z) :=  K(X\le x|Z=z).\]
+    This will turn $K(X \le x|Y=y,Z=z)$ into a valid cumulative distribution function in $x$ for all $(y,z)$, 
+    which then corresponds to a proper probability measure.
+    One then checks that this $K(X|Y,Z)$ is a desired conditional Markov kernel.
+\end{Rem}
+
+
+
+\begin{Thm}[Existence of conditional Markov kernels]
+    \label{reg-cond-trans-kernel-existence-I}
+    Let $\Xcal, \Ycal, \Zcal$ be measurable spaces where $\Xcal$ is a standard measurable space and $\Bcal_\Ycal$ is countably generated (e.g.\ $\Ycal$ is also a standard measurable space).
+Let 
+\[ K(X,Y|Z): \, \Zcal \dshto  \Xcal \times \Ycal,\]
+be a Markov kernel in two variables. 
+Then a conditional Markov kernel
+conditioned on $Y$ given $Z$:
+\[ K(X|Y,Z): \, \Ycal \times \Zcal \dshto  \Xcal,\]
+exists.
+\begin{proof}
+    Since $\Xcal$ is standard we can without loss of generality assume that $\Xcal=[0,1]$.
+    For fixed $A \in \Bcal_\Xcal$
+    we have a finite transition measure $ K(X\in A, Y|Z)$ from $\Zcal$ to $\Ycal$, which is 
+    absolute continuous w.r.t.\ the marginal $ K(Y|Z)$, because of the inequality:
+    \[ 0 \le  K(X\in A, Y \in B |Z=z) \le K(X\in \Xcal, Y \in B |Z=z) = K(Y \in B |Z=z).   \]
+    Since also $\Bcal_\Ycal$ is countably generated, by Doob-Radon-Nikodym, see Theorem \ref{thm:doob-radon-nikodym},
+    we get a Doob-Radon-Nikodym derivative, i.e.\ a (jointly) measurable map:
+    \[g_A:\, \Ycal \times \Zcal \to \R_{\ge 0},\]
+    such that for all $z \in \Zcal$ and $B \in \Bcal_\Ycal$:
+    \[  K(X \in A, Y \in B|Z=z) = \int \I_B(y) \cdot g_A(y,z)\,  K(Y \in dy|Z=z).\]
+    For $x \in \Xcal$ we will define:
+    \[ G(x|y,z) := g_{[0,x]}(y,z).\] 
+As a next step we want to modify  $G(x|y,z)$ such that it becomes a cumulative distribution function in $x$, i.e.\ it corresponds to a probability distribution on $\Xcal$. 
+For this define $\Xcal_\Q:= \Xcal \cap \Q$, which is countable and dense in $\Xcal$.
+First note that:
+\[ S:=\lC (y,z) \in \Ycal \times \Zcal \,|\, G(1|y,z) \neq 1 \rC  \]
+is a measurable $ K(Y|Z)$-null set.
+Then, for every pair $x_1<x_2$ in $\Xcal_\Q$ consider:
+\[ E_{(x_1,x_2)} := \{ (y,z) \,|\, G(x_1|y,z) > G(x_2|y,z) \} \in \Bcal_\Ycal \otimes \Bcal_\Zcal. \]
+Since we have the equations:
+\[ \begin{array}{rcl}
+ &&\int \I_{E_{(x_1,x_2),z}}(y) \cdot G(x_1|y,z) \,  K(Y \in dy|Z=z) \\
+&=&  K(X \le x_1, Y \in E_{(x_1,x_2),z} |Z=z) \\
+&\stackrel{x_1 < x_2}{\le}&  K(X \le x_2, Y \in E_{(x_1,x_2),z} |Z=z)  \\
+&=& \int \I_{E_{(x_1,x_2),z}}(y) \cdot G(x_2|y,z) \,  K(Y \in dy|Z=z) \\
+&\stackrel{G(x_2|y,z) < G(x_1|y,z)}{\le} & \int \I_{E_{(x_1,x_2),z}}(y) \cdot G(x_1|y,z) \,  K(Y \in dy|Z=z)
+\end{array}\]
+we necessarily have $ K(Y \in E_{(x_1,x_2),z} |Z=z) = 0$ for every $z \in \Zcal$.\\
+Then $E:= S \cup  \bigcup_{x_1 < x_2 \in \Xcal_\Q} E_{(x_1,x_2)}$ is also a $ K(Y|Z)$-null set in $\Bcal_\Ycal \otimes \Bcal_\Zcal$.\\
+So far, we achieved that for every $(y,z) \in E^\cmpl$ and every $x_1,x_2 \in \Xcal_\Q$ with $x_1 \le x_2$, we have:
+\[ G(x_1|y,z) \le G(x_2|y,z) \qquad \text{ and } \qquad G(1|y,z)=1. \]
+Now for $x \in \Xcal_\Q$ we can define: 
+\[ D_x := \{ (y,z) \,|\, G(x|y,z) <  \inf_{n \in \N} G(x+1/n|y,z)  \} \in \Bcal_\Ycal \otimes \Bcal_\Zcal.\]
+Then for $(y,z) \in E^\cmpl$  and $x \in \Xcal_\Q$ the sequence:
+\[  \lp \I_{D_{x,z}}(y) \cdot G(x+1/n|y,z) \rp_{n \in \N} \]
+is monotone non-increasing, non-negative, bounded by $1$ and convergences to:
+\[ \inf_{n \in \N} \I_{D_{x,z}}(y) \cdot G(x+1/n|y,z) =  \I_{D_{x,z}}(y) \cdot \inf_{n \in \N} G(x+1/n|y,z). \]
+These properties and the dominated convergence theorem (see \cite{Kle20}  Cor. 6.26) allows us to interchange $\inf_{n \in \N}$ and the integral in the following chain of (in-)equalities:
+\[ \begin{array}{rcl}
+&&  \int \I_{D_{x,z}}(y) \cdot G(x|y,z) \,  K(Y \in dy|Z=z) \\
+&\stackrel{D_x}{\le}& \int \I_{D_{x,z}}(y) \cdot \inf_{n \in \N} G(x+\frac{1}{n}|y,z) \,  K(Y \in dy|Z=z) \\
+&=& \inf_{n \in \N} \int \I_{D_{x,z}}(y) \cdot G(x+\frac{1}{n}|y,z) \,  K(Y \in dy|Z=z) \\
+&=& \inf_{n \in \N}  K(X \le x + \frac{1}{n}, Y \in D_{x,z} |Z=z) \\
+&=&   K(X \le x, Y \in D_{x,z} |Z=z) \\
+&=& \int \I_{D_{x,z}}(y) \cdot G(x|y,z) \,  K(Y \in dy|Z=z).
+\end{array}\]
+\Claude{The exchange requires the sequence $\mathbf{1}_{D_z}\,G(x+1/n|\cdot,z)$ to converge pointwise $K(Y|Z=z)$-a.e.  This holds because on $E^\complement$ (full measure) $G$ is monotone, so the sequence is decreasing; dominated convergence then applies with $G(x+1/1)$ as an integrable dominating function.  The proof does not spell this out.}\PF{solved.} 
+This implies that equality must hold, which then implies that:
+\[
+    \int \I_{D_{x,z}}(y) \cdot \underbrace{\lp \inf_{n \in \N} G(x+\frac{1}{n}|y,z) - G(x|y,z) \rp}_{> 0 \text{ for } y \in D_{x,z}} \,  K(Y \in dy|Z=z) =0.
+\]
+This shows that $ K(Y \in D_{x,z}|Z=z)=0$ for all $z \in \Zcal$.
+So $D:= E \cup \bigcup_{x \in \Xcal_\Q} D_x$ is again a $ K(Y|Z)$-null set in $\Bcal_\Ycal \otimes \Bcal_\Zcal$.\\
+So far, we got that $G$, when restricted to $\Xcal_\Q \times D^\cmpl$,
+is jointly measurable in $(y,z)$ for fixed $x$ and monotone non-decreasing and continuous from above in $x$ for fixed $(y,z)$ with $G(1|y,z)=1$.
+We now aim to extend $G$ to $\Xcal \times \Ycal \times \Zcal$.\\
+For  $x \in \Xcal =[0,1]$ and $m \in \N$ put $\lceil x\rceil_m:=\min(1,\lfloor mx+1\rfloor/m)$. 
+Then $\lceil x\rceil_m \in [0,1] \cap \Q = \Xcal_\Q$. 
+The map $x \mapsto \lceil x\rceil_m$ is measurable and for $x \in [0,1)$ we have: 
+\[ x < \lceil x\rceil_m \le x + \frac{1}{m}.\]
+So $\lceil 1\rceil_m=1$ and  $\lceil x\rceil_m \in \Xcal_\Q$ converges to $x \in \Xcal$, $x \neq 1$, from above for $m \to \infty$.\\
+We then define for all $(x,y,z) \in \Xcal \times \Ycal \times \Zcal$: 
+\[ F(x|y,z) := \inf_{m \in \N} \left \{ G(\lceil x\rceil_m|y,z)\right\} \cdot \I_{D^\cmpl}(y,z) +  K(X \le x|Z=z) \cdot \I_D(y,z). \]
+It is clear that $F$ is again jointly measurable in $(y,z)$ for fixed $x$ and agrees with $G$  on $\Xcal_\Q \times D^\cmpl$ by construction.
+As a monotone approximation from above it is clearly continuous from above, monotone non-decreasing and satifies $F(1|y,z)=1$ for all $(y,z)$.
+So for fixed $(y,z)$ now $F(\cdot|y,z)$ corresponds to a probability distribution $ K(X|Y=y,Z=z)$ on $\Bcal_\Xcal$, uniquely given by the defining relations on sets $[0,x]$:
+\[ F(x|y,z) =:  K(X \le x|Y=y,Z=z),\]
+for all $x \in \Xcal$. \\
+Now define $\Dcal \ins \Bcal_\Xcal$ as the set of all $A \in \Bcal_\Xcal$ that satisfy:
+\begin{enumerate}
+    \item the map $(y,z) \mapsto  K(X \in A|Y=y,Z=z)$ is $(\Bcal_\Ycal\otimes\Bcal_\Zcal)$-$\Bcal_\R$-measurable, and:
+    \item for all $z \in \Zcal$ and $B \in \Bcal_\Ycal$ the following equation holds:
+        \[  K(X \in A, Y \in B |Z=z) = \int \I_B(y) \cdot  K(X \in A | Y=y,Z=z) \,  K(Y \in dy | Z=z). \]
+\end{enumerate}
+Since $ K(X,Y \in B|Z=z)$ and $ K(X|Y=y,Z=z)$ are measures in $X$ the system $\Dcal$ is closed under countable disjoint unions. One can also check that $\Dcal$ is closed under
+complements and contains $\Xcal=[0,1]$. So $\Dcal$ is a Dynkin system.
+We already know that for $x \in \Xcal_\Q$ the map $(y,z) \mapsto  K(X \le x|Y=y,Z=z)=F(x|y,z)$ is measurable.
+Since for $x \in \Xcal_\Q$ and every $B \in \Bcal_\Ycal$, $z \in \Zcal$, we have:
+\[ \I_B(y) \cdot  K(X \le x | Y=y,Z=z) = \I_B(y) \cdot G(x|y,z) \]
+up to the $ K(Y|Z=z)$-null set $D_z$ we already get for those $x \in \Xcal_\Q$:
+\[  K(X \le x, Y \in B |Z=z) = \int \I_B(y) \cdot  K(X \le x | Y=y,Z=z) \,  K(Y \in dy | Z=z). \]
+This shows that $\Ecal:=\{ [0,x] \,|\, x \in \Xcal_\Q\} \ins \Dcal$. Since $\Ecal$ is closed under finite intersections 
+Dynkin's lemma (see \cite{Kle20} Thm. 1.19) implies: 
+\[\Bcal_\Xcal=\sigma(\Ecal) \ins \Dcal.\]
+This shows that the two conditions hold for all $A \in \Bcal_\Xcal$ and thus that $ K(X|Y,Z)$ is the desired conditional Markov kernel.
+\end{proof}
+\end{Thm}
+
+
+\begin{Lem}[Essential uniqueness]
+    \label{ess-unique}
+    If we have Markov kernels:    
+    \[P(X|Y,Z),\,Q(X|Y,Z):\, \Ycal\times \Zcal \dshto \Xcal,\]
+    and 
+    \[K(Y|Z):\,\Zcal \dshto \Ycal\]
+    with any measurable spaces $\Xcal$, $\Ycal$, $\Zcal$ such that:
+    \[ P(X|Y,Z) \otimes K(Y|Z) = Q(X|Y,Z) \otimes K(Y|Z), \]
+    then for every $A \in \Bcal_\Xcal$ the set:
+    \[N_A := \lC (y,z) \in \Ycal \times \Zcal \,|\, P(X \in A|Y=y,Z=z) \neq Q(X \in A|Y=y,Z=z)\rC\]
+     is a measurable $K(Y|Z)$-null set. \\
+     If, furthermore, $\Xcal$ is countably generated, e.g.\ a standard measurable space,
+     then also $N := \bigcup_{A \in \Bcal_\Xcal} N_A$ is a measurable $K(Y|Z)$-null set.
+     \begin{proof}
+         For fixed $A \in \Bcal_\Xcal$ both $P(X \in A|Y,Z)$ and $Q(X \in A|Y,Z)$ can be considered
+         a Doob-Radon-Nikodym derivative of the same finite transition measure $M_A(Y|Z)$ given by:
+         \begin{align*} M_A(Y \in B|Z=z)&:= \int \I_B(y) \cdot P(X \in A|Y,Z)\, K(Y \in dy|Z=z) \\
+             & = \lp P(X \in A|Y,Z) \otimes K(Y|Z) \rp(B|z) \\
+             & = \lp Q(X \in A|Y,Z) \otimes K(Y|Z) \rp(B|z) \\
+             & = \int \I_B(y) \cdot Q(X \in A|Y,Z)\, K(Y \in dy|Z=z).
+         \end{align*}
+         The uniqueness statement then follows from that of Doob-Radon-Nikodym derivatives, see Lemma \ref{lem:doob-radon-nikodym-unique}.
+         If now $\Bcal_\Xcal$ is countably generated then $\Bcal_\Xcal =\sigma\lp \Acal\rp$ 
+         with a countable set $\Acal$ that is closed under finite intersections, e.g.\ 
+         $\Bcal_{[0,1]}=\sigma\lp\lC[0,c]\,|\, c \in [0,1] \cap \Q\rC\rp$. 
+         One then puts $M:=\bigcup_{A \in \Acal} N_A$, which is, as countable union of $K(Y|Z)$-null sets, a $K(Y|Z)$-null set.
+         Then one can define:
+         \[ \Dcal := \{ A \in \Bcal_\Xcal \,|\, \forall (y,z) \in M^\cmpl:\, P(X \in A|Y=y,Z=z)=Q(X \in A|Y=y,Z=z) \}.\]
+         One easily sees that $\Dcal$ is closed under complements, countable disjoint unions and contains $\Xcal$.
+         This shows that $\Dcal$ is a Dynkin system (aka $\lambda$-system).
+         Furthermore, we have: $\Acal \ins \Dcal$ and that $\Acal$ is closed under finite intersections. 
+         By Dynkin's lemma we get that:
+         \[\Bcal_\Xcal = \sigma(\Acal) \ins \Dcal.\]
+         This shows that $N = \bigcup_{A \in \Bcal_\Xcal}N_A \ins M$, thus $N = M$ which is a measurable $K(Y|Z)$-null set.
+     \end{proof}
+ \end{Lem}
+
+We now want to prove that we can recover from the ambiguity of the null sets for conditional Markov kernel under continuity assumptions and strictly positive marginals.
+
+\begin{Lem}[Uniqueness for continuous conditional Markov kernels and strictly positive marginals]
+    \label{lem:cont-cond-unique}
+    Let $\Xcal$, $\Ycal$, $\Zcal$ be Polish spaces endowed with their Borel-$\sigma$-algebra and:
+    \[P(X|Y,Z),\,Q(X|Y,Z):\, \Ycal\times \Zcal \to \Prob(\Xcal),\]
+    two \emph{continuous} Markov kernels, where $\Prob(\Xcal)$ carries any Hausdorff topology $\Tcal_\Xcal \ins \Bcal_{\Prob(\Xcal)}$, e.g.\ the weak$^*$-topology.
+    Let  \[K(Y|Z):\,\Zcal \dshto \Ycal\]
+    be a Markov kernel that is \emph{strictly positive} (on non-empty open subsets of $\Ycal$).
+    If we have the equality of Markov kernels $\Zcal \dshto \Xcal \times \Ycal$:
+    \[ P(X|Y,Z) \otimes K(Y|Z) = Q(X|Y,Z) \otimes K(Y|Z), \]
+    then we already have the equality of Markov kernels:
+    \[ P(X|Y,Z)  = Q(X|Y,Z). \]
+    \begin{proof}
+      Consider the set:
+      \[ \Delta_{\Prob(\Xcal)} := \lC (P,P) \in \Prob(\Xcal) \times \Prob(\Xcal) \st P \in \Prob(\Xcal) \rC, \]
+      which is a closed subset of $\Prob(\Xcal)\times \Prob(\Xcal)$ because $\Prob(\Xcal)$ is Hausdorff.
+     Then the set:
+        \begin{align*}
+          N &:= \lC (y,z) \in \Ycal \times \Zcal \st P(X|Y=y,Z=z)  \neq Q(X|Y=y,Z=z) \rC \\
+            &= \lC (y,z) \in \Ycal \times \Zcal \st (P(X|Y=y,Z=z),Q(X|Y=y,Z=z)) \notin \Delta_{\Prob(\Xcal)} \rC \\
+            &=(P(X|Y,Z), Q(X|Y,Z))^{-1}(\Delta_{\Prob(\Xcal)}^\cmpl), 
+        \end{align*}
+        is an open subset of $\Ycal \times \Zcal$ as both Markov kernels are continuous.
+        By the essential uniqueness from Lemma \ref{ess-unique} we know that for all $z \in \Zcal$ we have:
+        \[ K(Y \in N^z|Z=z) =0.  \]
+        The fact that the section $N^z$ is open in $\Ycal$ and that $K(Y|Z)$ is strictly positive 
+        implies that either $K(Y \in N^z|Z=z) >0$ or that $N^z=\emptyset$.
+        Since the former was ruled out by the essential uniqueness we get $N^z=\emptyset$ for all $z \in \Zcal$ and thus $N=\emptyset$.
+        This shows the claim:
+    \[ P(X|Y,Z)  = Q(X|Y,Z). \]
+    \end{proof}
+\end{Lem}
+
+
+%%%%%%%%\paragraph{Old Proof}
+
+
+\begin{comment}
+
+\begin{Rem}[Existence of conditional Markov kernels]
+    If $K(X,Y|Z)$ is a Markov kernel then we want $K(X|Y,Z)$ such that:
+    \[K(X,Y|Z) = K(X|Y,Z) \otimes K(Y|Z)\]
+    holds. The heuristic here is to find something like a Radon-Nikodym derivative:
+    \[ K(X \in A|Y=y,Z=z) = \frac{K(X \in A,Y \in dy |Z=z)}{\phantom{X\in A,\,}K(Y \in dy|Z=z)}(y),  \]
+    in a way that it is still a probability measure in $X$ and jointly measurable in $(y,z)$.\\
+    To achieve measurability from the start we will  make use of Besicovitch density theorem \ref{besicovitch-density}:
+    \[ \frac{K(X \in A,Y \in dy |Z=z)}{\phantom{X\in A,\,}K(Y \in dy|Z=z)}(y) = \lim_{\varepsilon \to 0} \frac{K(X \in A,Y \in B_{\varepsilon}(y) |Z=z)}{\phantom{X\in A,\,}K(Y \in B_{\varepsilon}(y) |Z=z)},   \]
+    and the fact that limits of countably many measurable functions stay measurable. 
+    To make sure we get a probability measure out we need to evaluate on sufficiently many sets $A$, which we will 
+    restrict to sets of the form $A=[0,x]$.
+    We will adjust the construction above on null-sets to make sure it will be a probability measure everywhere.\\
+    We will show for $\Xcal=\Ycal=\R$ (or $\bar \R$ or $[0,1]$, etc.) and $K(Y|Z)$-almost-all $(y,z) \in \Ycal \times \Zcal$ 
+    and all $x\in \Xcal$ that we have that:
+    \[  K(X \le x|Y=y,Z=z) = \inf_{m \in \N} \limsup_{n \in \N} 
+        \frac{K(X \le\lceil x\rceil_m,
+    Y \in [y-\frac{1}{n},y+\frac{1}{n}] |Z=z)}{\phantom{X \le\lceil x\rceil_m,\,}K(Y \in [y-\frac{1}{n},y+\frac{1}{n}] |Z=z)},  \]
+    where $x < \lceil x\rceil_m:=\frac{\lfloor mx+1\rfloor}{m} \le x + \frac{1}{m}$ for $m \in \N$.
+    On the remaining points $(y,z)$ of the $K(Y|Z)$-null set we can take a somewhat arbitrary choice, e.g.\ we can put:\\
+    $K(X \le x|Y=y,Z=z) := K(X\le x|Z=z)$.
+\end{Rem}
+@article{Mah75,
+  title={{On Smoothing Compact Measure Spaces by Multiplication}},
+  author={Maharam, Dorothy},
+  journal={Transactions of the American Mathematical Society},
+  volume={204},
+  pages={1--39},
+  year={1975}
+}    
+\begin{Lem}[Also see \cite{Mah75} 3.2]
+\label{bi-measurable}
+Let $\Ycal := \R^D$ endowed with its Borel $\sigma$-algebra and $\Zcal$ be any measurable space.
+Let  
+\[F:\Ycal \times \Zcal \to [0,1], \quad (y,z) \mapsto F(y,z)\]
+be a function such that:
+\begin{enumerate}
+    \item For each fixed $y \in \Ycal$ the function:
+        \[ \Zcal \to [0,1], \quad z \mapsto F(y,z) \]
+	is measurable.
+    \item For each fixed $z \in \Zcal$ the function:
+	$$  \Ycal \to [0,1], \quad y \mapsto F(y,z) $$
+	is:
+	\begin{enumerate}
+		\item monotone non-decreasing (i.e.\ $F(y,z) \le F(y',z)$ if $y_d \le y_d'$ for all $d=1,\dots,D$), and: 
+	\item continuous from above (i.e. $F(y^{(n)},z) \to F(y,z)$ for any sequence $y^{(n)} \to y$ of elements $y^{(n)} \in \Ycal$ with 
+	$y^{(n)}_d \ge y^{(n+1)}_d \ge y_d$ for all $d=1,\dots,D$.)
+	\end{enumerate} 
+\end{enumerate}
+Then $F$ is (jointly) $(\Bcal_\Ycal\otimes \Bcal_\Zcal)$-$\Bcal_{[0,1]}$-measurable.
+\begin{proof}
+    Define for $m \in \N$ and $x \in \R$:
+    $\lceil x\rceil_m :=  \frac{ \lfloor m \cdot x +1 \rfloor}{m}$.
+    Then $\lceil x\rceil_m \in \Q$ and:
+    \[ x - \frac{1}{m} < \left\lceil x - \frac{1}{m}\right\rceil_m  \le  x < \lceil x\rceil_m  \le x + \frac{1}{m}.  \]
+    For $y \in \Ycal$ we define component-wise:
+    \[ \lceil y\rceil_m := \lp \lceil y_1\rceil_m , \dots, \lceil y_D\rceil_m \rp. \]
+    Note that $y \mapsto \lceil y\rceil_m $ is measurable and $\lceil y\rceil_m$ converges to $y$ from above for $m \to \infty$.
+    Now define:
+    \begin{align*}
+        F_m(y,z) &:= F(\lceil y\rceil_m,z)\\
+        & = \sum_{k \in \Z^D}  F\lp\frac{k}{m} ,z\rp \cdot \prod_{d=1}^D \I_{\left[\frac{k_d-1}{m}\,\frac{k_d}{m}\right)}(y_d).
+    \end{align*}
+    Since $F$ is measurable in $z$ for fixed $y=\frac{k}{m}$ the functions $F_m$ are jointly measurable for every $m \in \N$.
+    Since $F$ is monotonous non-decreasing and continuous from the above we have for fixed $(y,z)$:
+    \begin{align*} 
+        F_m(y,z)  & = F(\lceil y\rceil_m,z) 
+                 \longrightarrow F(y,z),
+    \end{align*}
+    for $m \to \infty$.
+    This means that $F$ is the countable limit of (jointly) measurable functions and thus (jointly) measurable itself.
+\end{proof}
+\end{Lem}
+
+\begin{Exc}
+    \label{ccdf-measurable}
+    Let $\Zcal$ be any measurable space and $\Xcal=\Ycal=\bar\R$ (or $\R$ or $[0,1]$) and:
+    \[ K(X,Y|Z):\, \Zcal \dshto \Xcal \times \Ycal \]
+    be a Markov kernel. Define for $x \in \Xcal$, $y \in \Ycal$, $z \in \Zcal$:
+    \begin{align*}
+        F_0(x,y|z) &:= K(X \le x, Y< y|Z=z),\\
+        F_1(x,y|z) &:= K(X \le x, Y\le y|Z=z).
+    \end{align*}
+    Then the functions:
+    \[ F_0,\,F_1:\, \Xcal \times \Ycal \times \Zcal \to [0,1],\]
+    are both (jointly) measurable.
+\end{Exc}
+\end{comment}
+
+\begin{comment}
+\begin{Lem}[See \cite{Mah1975} \S3.2]
+\label{cdf-measurable}
+Let $\Ycal := [0,1]^k$, $k \ge 1$, endowed with the Borel $\sigma$-algebra $\Bcal_\Ycal$ and $(\Zcal,\Bcal_\Zcal)$ be any measurable space.
+Let  
+$$F:\Ycal \times \Zcal \to [0,1], \quad (y,z) \mapsto F(y,z)$$ 
+be a function such that:
+\begin{enumerate}
+	\item For each $y \in \Ycal$ the function
+	$$F_y:\, \Zcal \to [0,1], \quad z \mapsto F(y,z) $$
+	is measurable.
+	\item For each $z \in \Zcal$ the function
+	$$ F^z:\, \Zcal \to [0,1], \quad y \mapsto F(y,z) $$
+	is
+	\begin{enumerate}
+		\item monotone non-decreasing (i.e.\ $F(y,z) \le F(y',z)$ if $y_i \le y_i'$ for all $i=1,\dots,k$) and 
+	\item continuous from above (i.e. $F(y^{(n)},z) \to F(y,z)$ for any sequence $y^{(n)} \to y$ of elements $y^{(n)} \in \Ycal$ with 
+	$y^{(n)}_i \ge y^{(n+1)}_i \ge y_i$ for all $i=1,\dots,k$.)
+	\end{enumerate} 
+\end{enumerate}
+Then $F$ is $(\Bcal_\Ycal\otimes \Bcal_\Zcal)$-$\Bcal_{[0,1]}$-measurable.
+\begin{proof}
+For $k=1$ this theorem is proven in \cite{Mah1975} \S3.2. We will do induction by $k$.
+Put $\Xcal:=[0,1]^{k-1}$.
+Then $F$ can be written as:
+$$ F:\, \Xcal \times [0,1]  \times \Zcal \to [0,1],\quad (x,y,z) \mapsto F(x,y,z).$$
+For every $x \in \Xcal$ consider the function:
+$$ F_x:\, [0,1]  \times \Zcal \to [0,1],\quad (y,z) \mapsto F(x,y,z).$$
+It directly follows from the assumptions that $(F_x)^z$ is monotone non-decreasing and continuous from above and $(F_x)_y$ is measurable for every 
+$z \in \Zcal$ and $y \in [0,1]$. 
+So $F_x$ satisfies aboves conditions for the $1$-dimensional case.
+An application of \cite{Mah1975} \S3.2 then shows that $F_x$ is measurable for every $x \in \Xcal$. 
+Again by assumptions $F^{(y,z)}$ is monotone non-decreasing and continuous from above. 
+So $F$ satisfies the conditions of the theorem for $\Ycal' := \Xcal =[0,1]^{k-1}$ and $\Zcal':=[0,1] \times \Zcal$ viewed now as the function:
+$$ F:\, \Ycal'  \times \Zcal' \to [0,1],\quad (y',z') \mapsto F(y',z').$$
+So $F$ is measurable by induction on $k$ (since $\dim \Ycal'=k-1 <k$).
+\end{proof}
+\end{Lem}
+
+
+
+
+
+\begin{Thm}[Existence of conditional Markov kernels]
+\label{reg-cond-trans-kernel-existence-I}
+Let $\Xcal$ and $\Ycal$ be standard measurable spaces and $\Zcal$ any measurable space. Let 
+\[K(X,Y|Z): \, \Zcal \dshto  \Xcal \times \Ycal,\]
+be a Markov kernel in two variables. 
+Then a conditional Markov kernel
+conditioned on $Y$ given $Z$:
+\[K(X|Y,Z): \, \Ycal \times \Zcal \dshto  \Xcal,\]
+satisfying:
+\[K(X,Y|Z) = K(X|Y,Z) \otimes K(Y|Z),\]
+exists and is essentially unique.
+\begin{proof}
+    Since $\Xcal$ and $\Ycal$ are standard measurable spaces we can
+without loss of generality assume that $\Xcal=\Ycal=[0,1]$.\\
+%The strategy of the proof now is to get an expression for the conditional Markov kernel as a Radon-Nikodym derivative.
+%The main problem is to get the measurability, not only in $y$ for fixed $z$, but jointly in $(y,z)$.
+For $x \in \Xcal$, $y \in \Ycal$ and $z \in \Zcal$ we put:
+    \begin{align*}
+        F_0(x,y|z) &:= K(X \le x, Y< y|Z=z),\\
+        F_1(x,y|z) &:= K(X \le x, Y\le y|Z=z).
+    \end{align*}
+Then the functions:
+    \[ F_0,\,F_1:\, \Xcal \times \Ycal \times \Zcal \to [0,1],\]
+are both (jointly) measurable by \ref{ccdf-measurable}.\\
+For $n \in \N$  we further want to define the following functions, anticipating the use of the Besocovitch density theorem \ref{besicovitch-density} 
+for the closed balls/intervals
+$B_{1/n}(y)=[y-\frac{1}{n},y+\frac{1}{n}]$):
+\[F_n(x|y,z):=\frac{K(X \le x, Y \in [y-\frac{1}{n},y+\frac{1}{n}]|Z=z)}%
+{\phantom{X \le x,\,}K(Y \in [y-\frac{1}{n},y+\frac{1}{n}]|Z=z)},\] 
+as long as we do not divide by $0$.
+More formally, using the functions from above, we then actually define:
+$$\begin{array}{rcrl}
+F_n(x|y,z)
+&:=&  \frac{F_1(x,y+\frac{1}{n}|z) - F_0(x,y-\frac{1}{n}|z) }{F_1(1,y+\frac{1}{n}|z) - F_0(1,y-\frac{1}{n}|z)} &\cdot \I_{ F_1(1,y+\frac{1}{n}|z) > F_0(1,y-\frac{1}{n}|z)}   \\
+&& + F_1(x,1|z) &\cdot \I_{ F_1(1,y+\frac{1}{n}|z) = F_0(1,y-\frac{1}{n}|z) }.
+\end{array} $$
+Since $F_0,F_1$ from above are measurable so are all the $F_n$, $n \in \N$.
+Since measurability is preserved under $\inf_{n \in \N}$ and $\sup_{n \in \N}$ also the following maps are jointly measurable:
+$$\begin{array}{rcrl}
+\overline  F(x|y,z) &:=&  \limsup_{ n \to \infty} F_n(x|y,z), \\
+\underline F(x|y,z) &:=&  \liminf_{ n \to \infty} F_n(x|y,z).
+\end{array}$$
+It follows that the set $S \ins \Xcal \times \Ycal \times \Zcal$ of all points $(x,y,z)$ where either $\overline  F(x|y,z) \neq \underline  F(x|y,z)$ or $\overline  F(x|y,z) \notin \R_{\ge 0}$ or $\underline  F(x|y,z) \notin \R_{\ge 0}$ lies in 
+$\Bcal_\Xcal \otimes \Bcal_\Ycal \otimes \Bcal_\Zcal$.
+Now the Besicovitch density theorem \ref{besicovitch-density} shows that for fixed $x \in \Xcal$ and $z \in \Zcal$
+the limits from above agree and are finite $K(Y|Z=z)$-almost everywhere. In other words:
+$$ K(Y \in S_{(x,z)} | Z=z) =0, $$
+with $S_{(x,z)}:=\{ y \in \Ycal \,|\, (x,y,z) \in S \}$. Furthermore, the Besicovitch density theorem \ref{besicovitch-density} says that for every 
+$y \in S_{(x,z)}^\cmpl$ we have:
+\[\overline  F(x|y,z) = \underline  F(x|y,z) = \frac{K(X \le x, Y \in dy|Z=z)}{\phantom{X \le x,\,}K(Y \in dy|Z=z) }(y), \]
+in other words that both left hand sides are versions of the Radon-Nikodym derivative in $y$ (for fixed $x$ and $z$).\\
+By the defining property of Radon-Nikodym derivative we get that for fixed $x$ and $z$ and every $B \in \Bcal_\Ycal$ we have the equation:
+\[  K(X \le x, Y \in B |Z=z) = \int \I_B(y) \cdot \overline F(x|y,z) \, K(Y \in dy|Z=z).\]
+%(plus the joint measurability mentioned above).\\ 
+As a next step we want to modify  $\overline F(x|y,z)$ such that it becomes a cumulative distribution function in $x$, i.e.\ it corresponds to a probability distribution on $\Xcal$. 
+For this define $\Xcal_\Q:= \Xcal \cap \Q$, which is countable and dense in $\Xcal$.
+First note that $F_n(1|y,z)=1$ for all $(y,z)$, which implies that:
+$$\overline  F(1|y,z) = \underline  F(1|y,z) = 1 $$
+for all $(y,z) \in \Ycal \times \Zcal$. \\
+Then define $S':= \bigcup_{x \in \Xcal_\Q} S_x$ with $S_x:=\{(y,z)\,|\, (x,y,z) \in S\}$. 
+$$ K(Y \in S'_z | Z=z) = K(Y \in \bigcup_{x \in \Xcal_\Q} S_{(x,z)} | Z=z) = 0 $$
+then shows that $S'$ is a $K(Y|Z)$-zero set in $\Bcal_\Ycal \otimes \Bcal_\Zcal$.\\
+For every pair $x_1<x_2$ in $\Xcal_\Q$ consider:
+$$ E_{(x_1,x_2)} := \{ (y,z) \,|\, \overline F(x_1|y,z) > \overline F(x_2|y,z) \} \in \Bcal_\Ycal \otimes \Bcal_\Zcal. $$ 
+Since we have the equations:
+$$ \begin{array}{rcl}
+ &&\int \I_{E_{(x_1,x_2),z}}(y) \cdot \overline F(x_1|y,z) \, K(Y \in dy|Z=z) \\
+&=& K(X \le x_1, Y \in E_{(x_1,x_2),z} |Z=z) \\
+&\stackrel{x_1 < x_2}{\le}& K(X \le x_2, Y \in E_{(x_1,x_2),z} |Z=z)  \\
+&=& \int \I_{E_{(x_1,x_2),z}}(y) \cdot \overline F(x_2|y,z) \, K(Y \in dy|Z=z) \\
+&\stackrel{\overline F(x_2|y,z) < \overline F(x_1|y,z)}{\le} & \int \I_{E_{(x_1,x_2),z}}(y) \cdot \overline F(x_1|y,z) \, K(Y \in dy|Z=z)
+\end{array}$$
+we necessarily have $K(Y \in E_{(x_1,x_2),z} |Z=z) = 0$ for every $z \in \Zcal$.
+Then $E:= \bigcup_{x_1 < x_2 \in \Xcal_\Q} E_{(x_1,x_2)} \cup S'$ is also a $K(Y|Z)$-zero set in $\Bcal_\Ycal \otimes \Bcal_\Zcal$.
+So for every $(y,z) \in E^\cmpl$ and every $x_1,x_2 \in \Xcal_\Q$, $x_1 \le x_2$, we get:
+$$\underline F(x_1|y,z) = \overline F(x_1|y,z) \le \overline F(x_2|y,z) = \underline F(x_2|y,z). $$
+Now for $x \in \Xcal_\Q$ put: 
+$$ D_x := \{ (y,z) \,|\, \overline F(x|y,z) <  \inf_{n \in \N} \overline F(x+1/n|y,z)  \} \in \Bcal_\Ycal \otimes \Bcal_\Zcal.$$
+By the dominated convergence theorem (see \cite{Kle14}  Cor. 6.26) we get:
+$$ \begin{array}{rcl}
+&&  \int \I_{D_{x,z}}(y) \cdot \overline F(x|y,z) \, K(Y \in dy|Z=z) \\
+&\stackrel{D_x}{\le}& \int \I_{D_{x,z}}(y) \cdot \inf_{n \in \N} \overline F(x+\frac{1}{n}|y,z) \, K(Y \in dy|Z=z) \\
+&=& \inf_{n \in \N} \int \I_{D_{x,z}}(y) \cdot  \overline F(x+\frac{1}{n}|y,z) \, K(Y \in dy|Z=z) \\
+&=& \inf_{n \in \N} K(X \le x + \frac{1}{n}, Y \in D_{x,z} |Z=z) \\
+&=&  K(X \le x, Y \in D_{x,z} |Z=z) \\
+&=& \int \I_{D_{x,z}}(y) \cdot \overline F(x|y,z) \, K(Y \in dy|Z=z).
+\end{array}$$
+This shows that $K(Y \in D_{x,z}|Z=z)=0$ for all $z \in \Zcal$.
+So $D:= \bigcup_{x \in \Xcal_\Q} D_x \cup E$ is again a $K(Y|Z)$-zero set in $\Bcal_\Ycal \otimes \Bcal_\Zcal$.\\
+So for all 
+%$x \in \Xcal_\Q$ and $(y,z) \in D^\cmpl$ 
+$(x,y,z) \in \Xcal_\Q \times D^\cmpl$
+the following is then well-defined:
+\[ F_+(x|y,z) := \overline F(x|y,z) = \underline F(x|y,z).\]
+When restricted to $\Xcal_\Q \times D^\cmpl$ the function $F_+$ is thus 
+well-defined, jointly measurable and monotone non-decreasing and continuous from above in $x$ and with $F_+(1|x,z)=1$.
+We now aim to extend $F_+$ to $\Xcal \times \Ycal \times \Zcal$.\\
+For $x \in \Xcal =[0,1]$ and $n \in \N$ put $\lceil x\rceil_n:=\min(1,\lfloor nx+1\rfloor/n)$. 
+Then $\lceil x\rceil_n \in [0,1] \cap \Q = \Xcal_\Q$. 
+The map $x \mapsto \lceil x\rceil_n$ is measurable and for $x \in [0,1)$ we have: 
+$$x < \lceil x\rceil_n \le x + \frac{1}{n}.$$ 
+So $\lceil 1\rceil_n=1$ and  $\lceil x\rceil_n \in \Xcal_\Q$ converges to $x \in \Xcal$, $x \neq 1$, from above for $n \to \infty$.\\
+We then define for all $(x,y,z) \in \Xcal \times \Ycal \times \Zcal$: 
+$$ F_+(x|y,z) := \inf_{n \in \N} \left \{ \overline F(\lceil x\rceil_n|y,z)\right\} \cdot \I_{D^\cmpl}(y,z) + F_1(x,1|z) \cdot \I_D(y,z). $$ 
+It is clear that $F_+$ is again jointly measurable and agrees with the $F_+$, $\overline F$ and $\underline F$ from before on $\Xcal_\Q \times D^\cmpl$ by construction.
+As a monotone approximation from above it is clearly continuous from above, monotone non-decreasing and satisfies $F_+(1|y,z)=1$ for all $(y,z)$.
+%agrees with $\overline F$ in all (right-)continuity points in $x$.
+So for fixed $(y,z)$ now $F_+(\cdot|y,z)$ corresponds to a probability distribution $K(X|Y=y,Z=z)$ on $\Bcal_\Xcal$, uniquely given by the defining relations on sets $[0,x]$:
+$$F_+(x|y,z) =: K(X \le x|Y=y,Z=z)$$
+for all $x \in \Xcal$. We now show that $(y,z) \mapsto K(X \in A|Y=y,Z=z)$ is measurable for all $A \in \Bcal_\Xcal$.
+For this define:
+$$ \Dcal:= \{ A \in \Bcal_\Xcal \,|\, (y,z) \mapsto K(X \in A|Y=y,Z=z) \text{ is } (\Bcal_\Ycal\otimes\Bcal_\Zcal)\text{-}\Bcal_\R\text{-measurable} \}. $$
+Since $K(X|Y=y,Z=z)$ is a probability measure in $X$ the system $\Dcal$ is closed under countable disjoint unions and complements and contains $\Xcal=[0,1]$.
+So $\Dcal$ is a Dynkin system.  
+Since the map $(y,z) \mapsto K(X \le x|Y=y,Z=z)=F_+(x|y,z)$ is measurable in $(y,z)$ for all $x \in \Xcal_\Q$ we have 
+$\Ecal:=\{ [0,x] \,|\, x \in \Xcal_\Q\} \ins \Dcal$. Since $\Ecal$ is closed under finite intersections 
+Dynkin's lemma (see \cite{Kle14} Thm. 1.19) gives $\Bcal_\Xcal=\sigma(\Ecal) \ins \Dcal$ and $K(X|Y,Z)$ is shown to be measurable in $(y,z)$ for all $A \in \Bcal_\Xcal$. So $K(X|Y,Z)$ is a Markov kernel.\\
+Finally, we need to show that for all $A \in \Bcal_\Xcal$, $B \in \Bcal_\Ycal$ and $z \in \Zcal$:
+$$ K(X \in A, Y \in B |Z=z) = \int \I_B(y) \cdot K(X \in A | Y=y,Z=z) \, K(Y \in dy | Z=z) $$ 
+holds. 
+Since for any $B \in \Bcal_\Ycal$ and $A=[0,x]$ for $x \in \Xcal_\Q$ we have:
+$$\I_B(y) \cdot K(X \le x | Y=y,Z=z) = \I_B(y) \cdot \overline F(x|y,z)$$
+up to the $K(Y|Z=z)$-zero set $D_z$ we already have aboves equation on a generating set that is stable under finite intersections.
+Again Dynkin's lemma (see \cite{Kle14} Thm. 1.19) shows that the equality from above holds for all sets $A \in \Bcal_\Xcal$, $B \in \Bcal_\Ycal$ and every $z \in \Zcal$.
+This concludes the proof.
+For the essential uniqueness see \ref{ess-unique}.
+\end{proof}
+\end{Thm}
+
+\end{comment}
+
+
+\begin{comment}
+\begin{Prp}%[Existence of regular conditional Markov kernels for unit intervals]
+\label{reg-cond-trans-kernel-existence-II}
+%Let $(\Xcal, \Bcal_\Xcal)$ be a standard measurable space, 
+Let $(\Xcal, \Bcal_\Xcal)=([0,1],\Bcal_{[0,1]})$, 
+$(\Ycal,\Bcal_\Ycal)$ be a measure space with countably generated $\sigma$-algebra $\Bcal_\Ycal$ (i.e.\ $\Bcal_\Ycal = \sigma(\{ B_n \,|\, n \in \N\})$; e.g.\ $(\Ycal, \Bcal_\Ycal)$ a standard or analytic measurable space) and $(\Zcal,\Bcal_\Zcal)$ be any measurable space. 
+Let 
+$$K(X,Y|Z): \, (\Zcal, \Bcal_\Zcal) \dashrightarrow  (\Xcal \times \Ycal,\Bcal_\Xcal \otimes \Bcal_\Ycal),$$
+be a Markov kernel in two variables. 
+Then a regular conditional Markov kernel (Def. \ref{reg-cond-trans-kernel-def}) 
+conditioned on $Y$ given $Z$:
+$$K(X|Y,Z): \, (\Ycal \times \Zcal, \Bcal_\Ycal\otimes \Bcal_\Zcal) \dashrightarrow  (\Xcal,\Bcal_\Xcal),$$
+exists and is essentially unique in the sense of Thm. \ref{reg-cond-trans-kernel-unique}.
+\begin{proof}
+Since $\Bcal_\Ycal$ is countably generated by \cite{Bogachev2007} Thm. 6.5.5 we can find a measurable map 
+$\psi:\, (\Ycal, \Bcal_\Ycal) \to ([0,1],\Bcal_{[0,1]})=:(\Ycal', \Bcal_{\Ycal'}) $ such that 
+$\Bcal_\Ycal = \{ \psi^{-1}(B')\,|\, B' \in \Bcal_{\Ycal'}\}$. \\
+Now consider the push-forward Markov kernel $K(X,Y'|Z):= K(X,\psi(Y)|Z)$:
+$$K(X,Y'|Z): \, (\Zcal, \Bcal_\Zcal) \stackrel{K(X,Y|Z)}{\dashrightarrow}  (\Xcal \times \Ycal,\Bcal_{\Xcal} \otimes \Bcal_{\Ycal}) 
+\stackrel{\id_\Xcal \times \psi }{\longrightarrow}  (\Xcal \times \Ycal',\Bcal_{\Xcal} \otimes \Bcal_{\Ycal'}).$$
+Since $\Xcal$ and $\Ycal'$ are standard measurable spaces we can apply Thm. \ref{reg-cond-trans-kernel-existence-I}.
+By Thm. \ref{reg-cond-trans-kernel-existence-I} we then get the regular conditional Markov kernel  $K(X|Y',Z)$: 
+$$K(X|Y',Z): \, (\Ycal' \times \Zcal, \Bcal_{\Ycal'}\otimes \Bcal_\Zcal) \dashrightarrow  (\Xcal,\Bcal_{\Xcal}).$$
+%with $Y'=\id_{[0,1]_\Ycal}$.
+Composing $K(X|Y',Z)$ with 
+$\Ycal \times \Zcal \stackrel{\psi \times \id_\Zcal}{\longrightarrow} \Ycal' \times \Zcal$
+we get the Markov kernel:
+%$$K(\varphi(X)|Y,Z): \, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \dashrightarrow  ([0,1]_\Xcal,\Bcal_{[0,1]_\Xcal}).$$
+$$K(X|Y,Z): \, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \stackrel{\psi \times \id_\Zcal}{\longrightarrow} (\Ycal' \times \Zcal, \Bcal_{\Ycal'}\otimes \Bcal_\Zcal)  \stackrel{K(X|Y',Z)}{\dashrightarrow}  (\Xcal,\Bcal_{\Xcal}).$$
+For any $z \in \Zcal$, $A \in \Bcal_{\Xcal}$, $B \in \Bcal_\Ycal$ and any $B' \in \Bcal_{\Ycal'}$ with $B=\psi^{-1}(B')$ we then get the equations:
+$$\begin{array}{rcl}
+&& K(X \in A, Y \in B |Z=z) \\ 
+&=& K(X \in A, Y \in \psi^{-1}(B') |Z=z) \\ 
+&=& K(X \in A, \psi(Y) \in B' |Z=z) \\
+&=& K(X \in A, Y' \in B' |Z=z) \\
+&\stackrel{\text{def. }K(X|Y',Z)}{=}&  \int \I_{B'}(y') \cdot K(X \in A | Y'=y',Z=z) \, K(Y' \in dy' | Z=z) \\
+&\stackrel{y'=\psi(y)}{=}&  \int \I_{B'}(\psi(y)) \cdot K(X \in A | Y'=\psi(y),Z=z) \, K(\psi(Y) \in dy' | Z=z) \\
+&\stackrel{\text{def. }K(X|Y,Z)}{=}&	\int \I_B(y) \cdot K(X \in A | Y=y,Z=z) \, K(Y \in dy | Z=z).
+\end{array}$$
+So $K(X|Y,Z)$ is a regular conditional Markov kernel for $K(X,Y|Z)$.
+\end{proof}
+\end{Prp}
+\begin{Thm}[Existence of regular conditional Markov kernels]
+\label{reg-cond-trans-kernel-existence-V}
+Let $(\Xcal, \Bcal_\Xcal)$ be a  standard measurable space (an analytic or a universal measurable space, resp.), 
+$(\Ycal,\Bcal_\Ycal)$ a measurable space with countably generated $\Bcal_\Ycal$ 
+%(e.g.\ also a standard measurable space, an analytic measurable space or a universally measurable space) 
+and $(\Zcal,\Bcal_\Zcal)$ be any measurable space. 
+%We might only need that $(\Ycal,\Bcal_\Ycal)$ is countable generated and/or countably separated to get map to [0,1].
+Let 
+$$K(X,Y|Z): \, (\Zcal, \Bcal_\Zcal) \dashrightarrow  (\Xcal \times \Ycal,\Bcal_\Xcal \otimes \Bcal_\Ycal),$$
+be a Markov kernel in two variables. 
+%
+%A \emph{regular ($\sigma\Sous$-regular, $\bullet$-regular, resp.) conditional Markov kernel} of $K(X,Y|Z)$ conditioned on $Y$ given $Z$ is a Markov kernel:
+%$$\begin{array}{rclccc}
+ %K(X|Y,Z) &:&  (\Ycal \times \Zcal,& \Bcal_\Ycal\otimes \Bcal_\Zcal)& \dashrightarrow  &(\Xcal,\Bcal_\Xcal),\\
+%K(X|Y,Z) &:&  (\Ycal \times \Zcal,& \sigma\Sous(\Bcal_\Ycal\otimes \Bcal_\Zcal))& \dashrightarrow  &(\Xcal,\Bcal_\Xcal),\\
+%K(X|Y,Z) &:&  (\Ycal \times \Zcal,& (\Bcal_\Ycal\otimes \Bcal_\Zcal)_\bullet)& \dashrightarrow  &(\Xcal,\Bcal_\Xcal),\\
+%\end{array}$$
+Then there exists a regular ($\sigma\Sous$-regular, $\bullet$-regular, resp.) conditional Markov kernel $K(X|Y,Z)$,
+i.e.\ measurable w.r.t.\ $\Bcal_\Ycal\otimes \Bcal_\Zcal$ (w.r.t.\ $\sigma\Sous(\Bcal_\Ycal\otimes \Bcal_\Zcal)$, w.r.t.\ $(\Bcal_\Ycal\otimes \Bcal_\Zcal)_\bullet$, resp.) 
+such that for all $A \in \Bcal_\Xcal$, $B \in \Bcal_\Ycal$ and $z \in \Zcal$ we have:
+$$ K(X \in A|Y=y,Z=z) 
+ = \int \I_{B}(y) \cdot K(X \in A | Y=y,Z=z) \, K(dy | Z=z).$$ 
+Two such conditional Markov kernels are equal up to a $K(Y|Z)$-zero set $N \in \Bcal_{\Ycal}\otimes \Bcal_\Zcal$
+($N \in \sigma\Sous(\Bcal_\Ycal\otimes \Bcal_\Zcal)$, $N\in (\Bcal_\Ycal\otimes \Bcal_\Zcal)_\bullet$, resp.), see Thm. \ref{reg-cond-trans-kernel-unique}.
+\begin{proof}
+By assumption we find an injective Borel measurable map
+$\varphi:\, (\Xcal, \Bcal_\Xcal) \inj ([0,1],\Bcal_{[0,1]})=:(\Xcal', \Bcal_{\Xcal'})$  
+ that induces  a measurable isomorphism $(\Xcal, \Bcal_\Xcal) \cong (\varphi(\Xcal), \Bcal_{\Xcal|\varphi(\Xcal)})$
+and $\varphi(\Xcal) \in \Bcal_{\Xcal'}$ ($\ins \Sous(\Bcal_{\Xcal'}) \ins (\Bcal_{\Xcal'})_\bullet$, resp.; for the latter we replace $\Bcal_\Xcal$ with $\Bcal_{|\Xcal}$).
+So we can consider the push-forward Markov kernel $K(X',Y|Z):= K(\varphi(X),Y|Z)$:
+$$K(X',Y|Z): \, (\Zcal, \Bcal_\Zcal) \stackrel{K(X,Y|Z)}{\dashrightarrow}  (\Xcal \times \Ycal,\Bcal_{\Xcal} \otimes \Bcal_{\Ycal}) 
+\stackrel{\varphi \times \id_\Ycal }{\longrightarrow}  (\Xcal' \times \Ycal,\Bcal_{\Xcal'} \otimes \Bcal_{\Ycal}).$$
+Since $\Xcal'=[0,1]$ and $\Bcal_\Ycal$ is countably generated we can apply Prp. \ref{reg-cond-trans-kernel-existence-II} and we then get the regular conditional Markov kernel  $K(X'|Y,Z)$:
+$$K(X'|Y,Z): \, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \dashrightarrow  (\Xcal',\Bcal_{\Xcal'}).$$
+If we put $A':=\Xcal' \sm \varphi(\Xcal)$ we have $A' \in \Bcal_{\Xcal'}$ ($\ins \sigma\Sous(\Bcal_{\Xcal'}) \ins (\Bcal_{\Xcal'})_\bullet$, resp.). 
+So $K(X' \in A' |Y=y,Z=z)$ is well-defined for every $(y,z) \in \Ycal \times \Zcal$.
+Consider the set:
+$$D:=\{(y,z) \in \Ycal \times \Zcal | K(X' \in A'|Y=y,Z=z) >0 \}.$$
+We first show that $D \in \Bcal_\Ycal \otimes \Bcal_\Zcal$ ($\ins \sigma\Sous(\Bcal_\Ycal \otimes \Bcal_\Zcal) \ins (\Bcal_\Ycal \otimes \Bcal_\Zcal)_\bullet$, resp.)
+We now consider the Markov kernel $K(X'|Y,Z)$ as the measurable map:
+$$ K(X'|Y,Z):\, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \longrightarrow (\Pcal(\Bcal_{\Xcal'}), \Bcal_{\Pcal(\Bcal_{\Xcal'})}).$$
+Now consider the map:
+$$ j_{A'}:\, \Pcal(\Bcal_{\Xcal'}) \to [0,1],\quad \mu \mapsto \mu(A').$$
+By \ref{j-map-measurable} (or \cite{Res1977} Thm. 3+4)
+the map $j_{A'}$ is measurable w.r.t.\ $\Bcal_{\Pcal(\Bcal_{\Xcal'})}$ (w.r.t.\ $\sigma\Sous(\Bcal_{\Pcal(\Bcal_{\Xcal'})})$, w.r.t.\ $(\Bcal_{\Pcal(\Bcal_{\Xcal'})})_\bullet$, resp.).
+Then the composition:
+$$H:\, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \stackrel{K(X'|Y,Z)}{\longrightarrow} 
+(\Pcal(\Bcal_{\Xcal'}), \Bcal_{\Pcal(\Bcal_{\Xcal'})}) \stackrel{j_{A'}}{\longrightarrow} ([0,1],\Bcal_{[0,1]}) $$
+is measurable w.r.t.\ $\Bcal_{\Ycal}\otimes \Bcal_\Zcal$ (w.r.t.\ $\sigma\Sous(\Bcal_{\Ycal}\otimes \Bcal_\Zcal)$, w.r.t.\ $(\Bcal_{\Ycal}\otimes \Bcal_\Zcal)_\bullet$, resp.).
+It follows that $D = H^{-1}((0,1]) \in \Bcal_{\Ycal}\otimes \Bcal_\Zcal$ ( $\ins \sigma\Sous(\Bcal_{\Ycal}\otimes \Bcal_\Zcal) \ins (\Bcal_{\Ycal}\otimes \Bcal_\Zcal)_\bullet$, resp.)
+Since $y \mapsto (y,z)$ is $\Bcal_\Ycal$-$(\Bcal_\Ycal\otimes\Bcal_\Zcal)$-measurable it follows that $D_z \in (\Bcal_\Ycal)_\bullet$.
+So we can evaluate $K(Y \in D_z|Z=z)=K((Y,Z) \in D|Z=z)$ for every $z \in \Zcal$ and the map:
+$$ \Zcal \stackrel{K(Y,Z|Z)}{\longrightarrow} \Pcal(\Bcal_\Ycal\otimes\Bcal_\Zcal) \stackrel{j_D}{\longrightarrow} [0,1],\quad z \mapsto K(Y \in D_z|Z=z),$$
+is measurable w.r.t.\ $\Bcal_\Zcal$ (w.r.t.\ $\sigma\Sous(\Bcal_\Zcal)$, w.r.t.\ $(\Bcal_\Zcal)_\bullet$, resp.) again  by \ref{j-map-measurable} 
+(or \cite{Res1977} Thm. 3+4). 
+So we can integrate:
+$$\begin{array}{rcl}
+0 &=& K(\varphi(X) \in A', Y \in D_z |Z=z) \\
+ &=& \int \I_{D_z}(y) \cdot K(X' \in A' | Y=y,Z=z) \, K(dy | Z=z). 
+\end{array}$$
+It follows that for all $z \in \Zcal$ we have: $K(Y \in D_z|Z=z)=0$. \\
+For $A \in \Bcal_\Xcal$ let $\tilde A \in \Bcal_{\Xcal'}$ such that $A =\varphi^{-1}(\tilde A)$.
+Since $\varphi$ is injective we have $\varphi(A)=\tilde A \cap f(\Xcal) \in \Bcal_{\Xcal'}$ ($\ins \sigma\Sous(\Bcal_{\Xcal'}) \ins (\Bcal_{\Xcal'})_\bullet$, resp.). 
+So we can define:
+$$\begin{array}{rcl} 
+&& K(X \in A|Y=y,Z=z) \\
+&:=& K(X' \in \varphi(A) |Y=y,Z=z) \cdot \I_{D^c}(y,z) + K_0(X \in A) \cdot \I_{D}(y,z),
+\end{array}$$
+with any probability distribution $K_0$.
+So we get the Markov kernel:
+$$K(X|Y,Z): \, (\Ycal \times \Zcal, \Bcal_{\Ycal}\otimes \Bcal_\Zcal) \dashrightarrow  (\Xcal,\Bcal_{\Xcal}),$$
+(with $\sigma\Sous(\Bcal_{\Ycal}\otimes \Bcal_\Zcal)$-measurability, $(\Bcal_{\Ycal}\otimes \Bcal_\Zcal)_\bullet$-measurability, resp., again  by \ref{j-map-measurable} 
+(or \cite{Res1977} Thm. 3+4)).
+Furthermore, we have that for all $A \in \Bcal_\Xcal$, $B \in \Bcal_\Ycal$ and $z \in \Zcal$:
+$$ K(X \in A|Y=y,Z=z) 
+ = \int \I_{B}(y) \cdot K(X \in A | Y=y,Z=z) \, K(dy | Z=z).$$ 
+This shows the claim. 
+The uniqueness follows from Thm. \ref{reg-cond-trans-kernel-unique}.
+\end{proof}
+\end{Thm}
+\end{comment}
+
+
+
+

@@ -1,0 +1,199 @@
+%-------Dokumentklasse------------------
+
+\documentclass[12pt, a4paper]{scrartcl}
+
+%---------packages------------------------
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+%\usepackage{amsopn}
+\usepackage{stmaryrd}  % for \llbracket, \rrbracket
+%\newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
+\usepackage{cite}		%nichtmit natmib zusammen
+%\usepackage[euler]{textgreek}
+\usepackage{enumerate}
+
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{amsthm}
+%\usepackage{latexsym,color,mathrsfs,nicefrac,stmaryrd} 
+%\usepackage[all]{xy}
+%\usepackage{mathabx}  % was used for \asterisk, \Asterisk, but makes too many incompatible changes to other macros, like \not
+%\usepackage{mathrsfs}
+
+\usepackage{cancel}
+\usepackage{bbm}
+\usepackage{enumitem}
+%\usepackage{wasysym}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta, calc}
+\usetikzlibrary{shapes,positioning,decorations.markings}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{arrows,fit}
+\usetikzlibrary{matrix,decorations.pathmorphing}
+\usetikzlibrary{patterns}
+
+\usepackage{graphicx}
+\graphicspath{ {./graphics/} }
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatim}
+\usepackage{bm}
+%\usepackage{etoolbox}
+%\patchcmd{\figure}{\normalsize}{\normalsize\centering}{}{}
+\usepackage{calc}
+\usepackage{accents}
+\usepackage{esvect}
+
+\usepackage{listings}
+\lstset{language=R,basicstyle=\footnotesize\ttfamily\color{blue!60!red},commentstyle=\itshape,keywordstyle=\bfseries,showstringspaces=false}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+%    citecolor=black,
+%    filecolor=black,
+    linkcolor=blue,
+%    urlcolor=black,
+    pdfpagemode=UseOutlines
+}
+
+%-------------theorem envirionments --  abbreviations ------------------
+
+\input{thm}
+\input{shorts}
+\input{shortsjoris}
+
+%--------------Renumbering of sections, chapters, subsections----------------
+\usepackage{chngcntr}
+
+\renewcommand{\thesa}{\arabic{subsection}.\arabic{subsubsection}.\arabic{sa}}
+%\renewcommand{\thechapter}{\arabic{chapter}}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{subsection}}
+%\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+%\counterwithout{section}{chapter} %make sections independent of chapters
+\counterwithout{subsection}{section} %make sections independent of chapters
+\counterwithout{section}{subsection}
+
+% --------------------------------------------------
+% Throughout the text \subsection* is used which resets the \subsubsection counts.
+% The following fixes this issue:
+% --------------------------------------------------
+% \counterwithout{subsubsection}{subsection}
+% \newcounter{customsubsub}
+% \renewcommand{\thesa}{\arabic{subsection}.\arabic{customsubsub}.\arabic{sa}}
+% \renewcommand{\thesubsubsection}{\arabic{subsection}.\arabic{customsubsub}}
+% \let\origsubsection\subsection
+% \let\origsubsubsection\subsubsection
+% \makeatletter
+% \renewcommand{\subsection}{\@ifstar{\origsubsection*}{\setcounter{customsubsub}{0}\origsubsection}}
+% \renewcommand{\subsubsection}{\stepcounter{customsubsub}\origsubsubsection}
+% \makeatother
+
+
+%--------------------------------------------------
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{3}
+
+%-------------------
+\begin{document}
+
+
+%-----------title-page---------------------------------------------------------
+
+\input{title-abstract}
+%\tableofcontents
+
+%------------chapters-----------------------------------
+
+  
+
+%\setcounter{section}{-1}
+\renewcommand{\thesection}{\Roman{section}}
+
+\clearpage
+\section{Lecture 01}
+\input{ilo-01}
+\input{correlations}
+\input{experimental_causality}
+\input{motivating_measure_theory}
+
+\clearpage
+\section{Lecture 02}
+%\addtocounter{subsection}{-1}
+\input{ilo-02}
+\input{probability_theory}
+
+\clearpage
+\section{Lecture 03}
+\input{ilo-03}
+\input{scms}
+
+\clearpage
+\section{Lecture 04}
+\input{ilo-04}
+\input{markov_kernels}
+\input{proof-disintegration}
+
+\clearpage
+\section{Lecture 05}
+\input{ilo-05}
+\input{conditional_independence}
+\input{proof-separoid-ci}
+\input{icdf}
+\input{proof-icdf}
+\input{scm_markov_kernels}
+
+\clearpage
+\section{Lecture 06}
+\input{ilo-06}
+\input{graphs}
+\input{proof-separoid-d-sep}
+
+\clearpage
+\section{Lecture 07}
+\input{ilo-07}
+\input{causal_bayesian_networks}
+
+\clearpage
+\section{Lecture 08}
+\input{ilo-08}
+\input{do-calculus}
+\input{identification_causal_effects}
+\input{scms2}
+
+\clearpage
+\section{Lecture 09}
+\input{ilo-09}
+\input{scms3}
+
+\clearpage
+\section{Lecture 10}
+\input{ilo-10}
+\input{causal_discovery}
+
+\clearpage
+\section{Lecture 11}
+\input{ilo-11}
+\input{ci_testing}
+\input{ci_testing2}
+
+\clearpage
+\section{Lecture 12}
+\input{ilo-12}
+\input{fci}
+
+%\clearpage
+%\section{Additional Material}
+%\input{future_work}
+
+\clearpage
+%------------ BibTeX---========================----------
+\addcontentsline{toc}{section}{References}
+\nocite{*}
+\bibliographystyle{alphaurl}
+\bibliography{references}
+
+\end{document}

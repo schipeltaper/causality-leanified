@@ -1,0 +1,114 @@
+\subsection{Experimental Causal Discovery}
+
+\subsubsection{Causal Effects in the Real World}
+
+\begin{Eg}[Does the thermometer cause the sun to rise?]
+    \label{therm-sun}
+    Consider an old type of thermometer ($T$) with a needle that can - for simplicity of arguments - either point to higher temperatures (up) or to lower temperatures (down).
+    We also consider the state of the sun ($S$), which can either be up ($u$) or down ($d$).
+    We then observe that $T$ correlates with $S$. For simplicity, we assume a one-to-one relationship:
+    \[\begin{array}{c|c} 
+        T & S \\ 
+        \hline
+        u & u \\
+        d & d
+    \end{array}\]
+    The conditional distribution $P(S|T)$ then looks like this:
+    \begin{align*}
+        P(S=u|T=u) & = 1, \\
+        P(S=u|T=d) & = 0, \\
+        P(S=d|T=u) & = 0, \\
+        P(S=d|T=d) & = 1.
+    \end{align*}
+    If we are cold we are now tempted to try changing the needle in the thermometer in order to make the sun rise and warm us up.\\
+What is wrong with our analysis?
+\end{Eg}
+
+\begin{Disc}
+    The example \ref{therm-sun} makes clear that there is a difference between:
+    \begin{enumerate}
+        \item \emph{Observing} the movement of the the thermometer needle $T$ and the sun $S$, using 1 \emph{observational} data set, 
+            leading to an estimate of $P(S|T)$.
+        \item \emph{Interacting} with the thermometer needle $T$ and getting the sun's response $S$, using probably many \emph{interventional} data sets, leading to estimates for $P(S|\doit(T))$:
+                \begin{align*}
+                    P(S=u|\doit(T=u)) & = 0.5, \\
+                    P(S=u|\doit(T=d)) & = 0.5, \\
+                    P(S=d|\doit(T=u)) & = 0.5, \\
+                    P(S=d|\doit(T=d)) & = 0.5.
+    \end{align*}
+    \end{enumerate}
+\end{Disc}
+
+\begin{Def}[Causal effect---real world definition]
+    \label{def-causality-real}
+    We say that a variable $X$ has \emph{causal effect} onto another variable $Y$ if
+    when \emph{forcing} $X$ to take different values $x_0$, $x_1$ then also the distribution of $Y$ changes, in symbols:
+    \[ \exists x_0,x_1 \in \Xcal:\qquad P(Y|\doit(X=x_0)) \neq P(Y|\doit(X=x_1)). \]
+\end{Def}
+
+\begin{Rem}
+    \begin{enumerate}
+        \item 
+    Again, note that example \ref{therm-sun} shows that the condition in definition \ref{def-causality-real} is different from:
+    \[ \exists x_0,x_1 \in \Xcal:\qquad P(Y|X=x_0) \neq P(Y|X=x_1), \]
+    which just uses the conditional distribution instead of the interventional distribution.
+        \item Also note, that the '$\doit$-operators' are not operators on the observational distribution $P(X,Y)$ or $P(Y|X)$, etc., or on the corresponding observational data sets. They reflect actions/interventions in the real world leading to different distributions and corresponding data sets. 
+        \item There are usually many possible intervention values and targets one can think of leading to many different interventional distributions and data sets.
+        \item One can consider the observational distribution as a special case of an interventional distribution (where we intervene by doing nothing).
+    \end{enumerate}
+\end{Rem}
+
+
+\subsubsection{Randomized Controlled Trials (RCT)} % - The gold standard for experimental causal discovery }
+
+
+\begin{Prn}[Randomized Controlled Trial (RCT)]\label{prn:rct}
+ Assume we want to know if variable $X$ has causal influence on outcome variable $Y$, i.e.\ we want to estimate the deviation between:
+$ P(Y|\doit(X=x_0))$ and  $P(Y|\doit(X=x_1))$. For this we have test subjects $w_1,\dots,w_N$.
+A \emph{Randomized Controlled Trial} then follows the following steps:
+\begin{enumerate}
+    \item Split the population of test subjects into 2 groups ('test group' $C_1$ vs. 'control group' $C_0$) by random lot (or fair coin flips).
+    \item Give every test subject $w_n \in C_1$ from 'test group' the treatment $x_1$ and the ones  $w_m \in C_0$ from 'control group' the control treatment $x_0$.
+    \item Measure the outcome $y_n$ for each test subject $w_n$ and estimate the deviation: \[D:=d(P(Y|\doit(X=x_0)),P(Y|\doit(X=x_1))).\]
+    \item Do a statistical test if the deviation $D$ is significantly different from $0$. 
+    \item If it is significantly different we can conclude a \emph{causal effect} of $X$ onto $Y$, otherwise not.
+\end{enumerate}
+\end{Prn}
+
+
+\begin{Eg}
+    Example application of randomized controlled trials are:
+    \begin{enumerate}
+        \item drug or vaccine testing,
+        \item advertisement placement,
+        \item evaluating public policies, etc.
+        \item A. Banerjee, E. Duflo, M. Kremer got the Nobel Prize in Economics 2019 for using RCTs in poverty research, e.g.\: improving school attendance and performance in poor areas via giving different towns different incentives (e.g.\ text books vs. deworming medicine vs. control groups).
+    \end{enumerate}
+\end{Eg}
+
+\begin{Disc}
+    \begin{enumerate}
+        \item An RCT is an 'interventional study' (in contrast to just 'observational study') since we can control the treatment and 'force' it onto the test subjects.
+        \item Randomized Controlled Trials are considered the gold standard for experimental causal discovery.
+        \item To further avoid biases one usually insists on double/triple blind RCT studies, 
+            i.e.\ noone directly involved in the study knows who got which treatment 
+            (e.g.\ neither the doctor, the experimenter, the patient, etc.). 
+        \item Often RCTs cannot be done for ethical reasons (e.g.\ "smoking causes cancer" research).
+        \item Sometimes RCTs require too many resources to be feasible.
+    \end{enumerate}
+\end{Disc}
+
+
+\begin{Exc}
+    Go online, find news like "drinking wine every day is good for your health" or "chewing gum causes diabetes", etc., 
+    look up the original research paper and check:
+    \begin{enumerate}
+        \item if they did interventional studies (like RCT) or just observational studies,
+        \item if and/how they did doubly/triply blind RCTs (in case they did one),
+        \item otherwise, if and/or how they ruled out other correlation inducing scenarios,
+        \item what bias could have possibly introduced through the data collecting process,
+        \item how big the data set was, what assumptions were made, what statistical methods were used, etc.,
+        \item what other 'stories' you could come up with in order to explain the data. Be creative, create 5 stories!
+    \end{enumerate}
+    Write your findings down and talk to others about it.
+\end{Exc}

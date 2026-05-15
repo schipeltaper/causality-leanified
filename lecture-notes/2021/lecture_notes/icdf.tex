@@ -1,0 +1,142 @@
+
+\subsubsection{Markov Kernels from Deterministic Mappings}
+
+
+
+\begin{Lem}
+    \label{lem-maps-markov-kernel}
+Let $\Xcal$, $\Ycal$, $\Zcal$ be measurable spaces.
+\begin{enumerate}
+	\item If $f:\, \Xcal \to \Ycal$ is measurable then the induced map:
+        \[f_*:\, \Pcal(\Xcal) \to \Pcal(\Ycal),\quad P \mapsto f_*P = (B \mapsto P(f^{-1}(B))), \]
+	 is measurable as well.
+	\item The map: 
+        \[  \delta:\, \Xcal \to \Pcal(\Xcal),\quad x \mapsto \delta_x =(A \mapsto \I_A(x)), \]
+	is measurable and $\delta^*\Bcal_{\Pcal(\Xcal)} = \Bcal_\Xcal$. $\delta$ is injective iff $\Bcal_\Xcal$ separates points.
+	\item The map:
+	 \[ \begin{array}{ccl} 
+	 \Pcal(\Xcal) \times \Pcal(\Ycal) &\to& 
+	\Pcal(\Xcal \times \Ycal), \\
+	( P, Q ) &\mapsto & P \otimes Q,
+\end{array}\]
+	is measurable.
+	\item If $g:\,\Xcal \times \Ycal  \to \Zcal$ is measurable then the map:
+	\[ \begin{array}{crlll}
+	   \Pcal(\Xcal) \times \Ycal  &\to& \Pcal(\Zcal), \\
+       (P, y) &\mapsto&  g_*(P\otimes \delta_y)\\
+                 & =& ( C \mapsto P( \{ x \in \Xcal \,|\, g(x,y) \in C \}) )
+		\end{array}
+    \]
+	is measurable as well.
+\end{enumerate}
+\begin{comment}
+\begin{proof}
+1.) For every $B \in \Bcal_\Ycal$ we have:
+ $$ (j_B \circ f_*)(\mu) = \mu (f^{-1}(B)) = j_{f^{-1}(B)}(\mu). $$
+Since the latter is measurable in $\mu$ by definition the former is as well. Since this holds for all $B \in \Bcal_\Ycal$ the measurability of $f_*$is shown.  \\
+2.) Let $A \in \Bcal_\Xcal$ then we have:
+$$ x \mapsto j_A \circ \delta_x = \I_A(x) $$
+is measurable in $x$. So $x \mapsto \delta_x$ is measurable. \\
+3.) For $A \in \Bcal_\Xcal$ and $B \in \Bcal_\Ycal$ the composition of  maps:
+$$ \Pcal(\Xcal) \times \Pcal(\Ycal) \stackrel{j_A \times j_B }\longrightarrow [0,1] \times [0,1] \stackrel{\cdot}{\longrightarrow} [0,1],\quad (\mu,\nu) \mapsto \mu(A) \cdot \nu(B), $$
+is clearly measurable. Since this map agrees with the following map: 
+$$ \Pcal(\Xcal) \times \Pcal(\Ycal) \to \Pcal(\Xcal \times \Ycal) \stackrel{j_{A \times B}}{\longrightarrow} [0,1],\quad (\mu,\nu) \mapsto \mu(A) \cdot \nu(B), $$
+we have the measurability of the latter map as well.
+Now let:
+$$\Dcal:=\{ D \in \Bcal_\Xcal \otimes \Bcal_\Ycal \,|\, (\mu, \nu) \mapsto (\mu\otimes\nu)(D) \text{ is measurable} \}.$$
+By aboves arguments we see that $\Dcal$ contains the system $\Ecal:=\{ A \times B \,|\, A \in \Bcal_\Xcal, B \in \Bcal_\Ycal \}$, which is stable under finite intersections.
+Since $\mu\otimes\nu$ are probability measures it is easily verified that with $D \in \Dcal$ also $D^c \in \Dcal$ and with $D_n \in \Dcal$, $n \in \N$, pairwise disjoint also $\bigcup_{n \in \N} D_n \in \Dcal$. So $\Dcal$ is a Dynkin system. By Dynkin's lemma (see \cite{Kle14} Thm. 1.19) we see that:
+$$ \Bcal_\Xcal \otimes \Bcal_\Ycal = \sigma(\Ecal) \ins \Dcal. $$
+This means that for every $D \in \Bcal_\Xcal \otimes \Bcal_\Ycal$ the composition of  maps:
+$$ \Pcal(\Xcal) \times \Pcal(\Ycal) \to \Pcal(\Xcal \times \Ycal) \stackrel{j_{D}}{\longrightarrow} [0,1],\quad (\mu,\nu) \mapsto (\mu\otimes\nu)(D), $$
+is measurable. So the map 
+$$ \Pcal(\Xcal) \times \Pcal(\Ycal) \to \Pcal(\Xcal \times \Ycal), \quad (\mu,\nu) \mapsto \mu \otimes \nu, $$
+is measurable by definition of the induced $\sigma$-algebras. \\
+4.) If $g: \Xcal \times \Ycal \to \Zcal$ and $C \in \Bcal_\Zcal$ then by the previous points we get the measurability of the maps:
+$$ \Pcal(\Xcal) \times \Ycal \stackrel{\id \times \delta}{\longrightarrow} \Pcal(\Xcal) \times \Pcal(\Ycal) \stackrel{\otimes}{\longrightarrow}
+ \Pcal(\Xcal\otimes \Bcal_\Ycal) \stackrel{g_*}{\longrightarrow} \Pcal(\Zcal)\stackrel{j_C}{\longrightarrow} [0,1]. $$
+It maps $(\mu,y) \mapsto (g_*(\mu \otimes \delta_y))(C)$. Furthermore, we have:
+$$ g^{-1}(C)_y = \{ x \in \Xcal \,|\, g(x,y) \in C \} = (g_y)^{-1}(C).$$
+Furthermore, for $D \in \Bcal_\Xcal \otimes \Bcal_\Ycal$ we have:
+$$ (\mu \otimes \delta_y)(D) = \mu (D_y), $$
+which again by Dynkin's lemma is enough to test on sets $D=A \times B$, where it is obvious:
+$$ (\mu \otimes \delta_y)(A \times B) = \mu(A) \cdot \I_B(y) = \mu ( (A \times B)_y). $$
+Together we get:
+$$ j_C(g_{y,*}\mu) = (g_{y,*}\mu)(C) = \mu( g^{-1}(C)_y ) =(\mu \otimes \delta_y)(g^{-1}(C)) = j_C (g_*(\mu \otimes \delta_y)).$$
+Since the latter is measurable in $(\mu,y)$ by aboves arguments also the former is. Since this holds for all $C \in \Bcal_\Zcal$ we have shown the measurability of the claimed map: $(\mu,y) \mapsto g^y_*\mu$. 
+\end{proof}
+\end{comment}
+\end{Lem}
+
+
+
+
+
+\begin{Rem}\label{rem:Markov_kernel_from_family_of_distributions}
+    Let $f:\, \Ycal \times \Zcal \to \Xcal$ be measurable
+    %Then the map:
+    %\[ \Pcal(\Ycal) \times \Zcal \to \Pcal(\Xcal),\quad (P(Y),z) \mapsto P(f(Y,z))   \]
+    %is also measurable. 
+    %Furthermore, for fixed 
+    and $P(Y) \in \Pcal(\Ycal)$ a fixed probability distribution.
+    Then the map:
+    \[ K(X|Z):\,\Zcal \dshto \Xcal,\quad (A,z) \mapsto P(f(Y,z) \in A)=:K(X \in A|Z=z)  \]
+    is a Markov kernel.
+\end{Rem}
+
+\begin{Thm}
+    Let $\Zcal$ be any measurable space and $\Xcal$ be a standard measurable space with a fixed embedding $\iota: \Xcal \inj \bar\R=[-\infty,\infty]$ onto a Borel subset (which always exists, so w.l.o.g.\ $\Xcal = \bar\R$ endowed with the Borel $\sigma$-algebra).
+    Let $K(X|Z) : \Zcal \dasharrow \Xcal$ be a Markov kernel, $P(E)$ be the uniform distribution on $\Ecal:=[0,1]$ (i.e.\ $\lambda$) and:
+    \[ 	R(e|z) := \inf \lC \tilde{x} \in \Xcal\,| K(X \le \tilde{x}|z) \ge e \rC,\]
+    the (conditional) \emph{quantile function (aka inverse cumulative distribution function)} of $K(X|Z)$.
+    Then we can write $K(X|Z)$ as the push-forward of the constant uniform one:
+    \[ K(X|Z) = \delta(R|E,Z) \circ P(E).\]
+%    Then the two Markov kernels $\Zcal \dshto \Xcal$:
+%    \begin{align*}
+%        (A,z) &\qquad \mapsto \qquad  K(X \in A|Z=z),\\
+%        (A,z) & \qquad \mapsto \qquad  P(R(E|z) \in A),
+%    \end{align*}
+%    are the same, i.e.:
+%    \[K(X \in A| Z=z) = P(R(E|z) \in A) = P\lp\lC e \in [0,1]\,|\, R(e|z) \in A \rC\rp. \]
+%    In other words, every Markov kernel on standard measurable spaces is the push-forward of the constant Markov kernel $P(E)$ from %    transition space $(\Ecal \times \Zcal, P(E))$.
+\end{Thm}
+
+In terms of random variables the theorem above states that every distribution $Q$ can be generated by the uniform one $U[0,1]$ and a deterministic map. The theorem below strengthens this claim. It says that every random variable $X$ can be represented as a 
+uniformly distributed random variable $E$ and a measurable map. In short, the above is about 'in distribution' and the one below about 'almost-surely' statements.
+
+\begin{Thm}
+    \label{ccdf3}
+    Let $\Zcal$ be any measurable space and $\Xcal$ be a standard measurable space with a fixed embedding $\iota: \Xcal \inj \bar\R=[-\infty,\infty]$ onto a Borel subset (which always exists, so w.l.o.g.\ $\Xcal = \bar\R$ endowed with the Borel $\sigma$-algebra).
+    Let $K(X|Z) : \Zcal \dasharrow \Xcal$ be a Markov kernel.
+    Furthermore, let $\Ucal:=[0,1]$ and $K(U)$ be the uniform distribution/Markov kernel on $\Ucal$. We write:
+    \[ K(U,X|Z) := K(U)\otimes K(X|Z).\]
+    We then define the interpolated (conditional) cumulative distribution function and its corresponding quantile function:
+\begin{align*}
+    F(x;u|z) &:= K(X<x|Z=z) + u \cdot K(X=x|Z=z)\\
+	R(e|z) &:= \inf \left\{ \tilde{x} \in \Xcal\,| F(\tilde{x};1|z) \ge e \right\}.
+\end{align*}
+%Let $E:= F(X;U|Z)$. 
+We then consider the \trv{}s $X,U,Z,E$ given via:
+\[\begin{array}{cccl}
+    X: & \Xcal \times \Ucal \times \Zcal &\to& \Xcal,\\
+     & (x,u,z) &\mapsto& x,\\
+    U: & \Xcal \times \Ucal \times \Zcal &\to& \Ucal,\\
+     & (x,u,z) &\mapsto& u,\\
+    Z: & \Xcal \times \Ucal \times \Zcal &\to& \Zcal,\\
+     & (x,u,z) &\mapsto& z,\\
+    E: & \Xcal \times \Ucal \times \Zcal &\to& \Ecal:=[0,1],\\
+     & (x,u,z) &\mapsto& F(x;u|z).
+\end{array}\]%
+%
+Then for all $e \in \Ecal$ and $z \in \Zcal$ we have:
+\[ K( E \le e | Z=z ) = e, \]
+which is independent of $z$, which means that:
+\[  E \Indep_{K(U,X|Z)} Z,  \]
+with uniform distribution $K(E) = K(E|\cancel{Z})$ on $[0,1]$. % and that $E$ is uniformly distributed on $[0,1]$.
+Furthermore, we have:
+\[ X = R(E|Z) \quad K(U,X|Z)\text{-a.s.}.\]
+So that means that $X$ in the Markov kernel $K(X|Z)$ can be replaced by a deterministic map of $Z$ and independent uniformly distributed noise $E$.\\
+In particular, we get that with $K(E)$ the uniform distribution on $[0,1]$ from above that:
+\[ K(X|Z) = \delta(R|E,Z) \circ K(E).\]
+\end{Thm}
+

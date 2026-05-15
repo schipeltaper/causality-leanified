@@ -1,0 +1,137 @@
+% !TEX root = hw6-answers.tex
+\chead{\textbf{Exercises week 6}}
+
+\begin{document}
+\flushleft\textbf{Topic: Contextual Directed Mixed Graphs}
+\section{Graph}
+Consider the following CDMG $\C G$, where $A,H$ are input nodes:
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \node (E) at (8, 0) {$E$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (H) at (8, -2) {$H$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+  \end{tikzpicture}
+  \label{fig:cadmg}
+\end{figure}
+\begin{enumerate}
+  \item Is this graph cyclic? If not, give a topological ordering. (1pt)
+  \item Do the following $d$-separations hold on graph $\C G$? Give a brief explanation for each answer. [Note, we write $C \Perp^d E \mid D$ for $\{C\} \Perp^d \{E\} \mid \{D\}$](4 $\times$ 1/4 pts)
+  \begin{enumerate}
+    \item $\displaystyle  C \Perp^d E$
+    \item $\displaystyle C \Perp^d E \mid D$
+    \item $\displaystyle B \Perp^d D \mid \{A, H\}$
+    \item $\displaystyle B \Perp^d D \mid \{C, A, H\}$
+  \end{enumerate}
+  \item
+  \begin{enumerate}
+  \item Give $\C G^{\setminus C}$.
+  \item Give ${\C G^{\setminus C}}^{\setminus E}$.
+  \item Give ${{\C G^{\setminus C}}^{\setminus E}}^{\setminus D}$.
+  \item Give $\C G^{\setminus E}$.
+  \item Give ${\C G^{\setminus E}}^{\setminus C}$.
+  \item Give $\C G^{\setminus \{C,E,D\}}$.
+  \end{enumerate}
+  Check your answers agree with Lemma 6.2.9. ($6 \times 1/6$ pt)
+  \item Does d-separation $\displaystyle B \Perp^d F \mid \{A, H\}$ hold on graphs $\C G, \C G^{\setminus \{C,E\}},\C G^{\setminus \{C,E,D\}}$? Explain without using Lemma 6.3.6 and check your answer with Lemma 6.3.6.
+  \item
+  \begin{enumerate}
+    \item Give the graph $\C G_{\doit(\{D\})}$ after hard intervention on $D$. ($1/2$ pts)
+    \item Give the graph $\C G_{\doit(\{I_B\})}$ after soft intervention on $B$. ($1/2$ pts)
+  \end{enumerate}
+\end{enumerate}
+\section{Family relationships}
+Given a graph (where $J,K$ are input nodes)
+\[
+    \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle,color=blue]
+        \node (v1) at (5,5) {$A$};
+        \node (v2) at (3,3) {$B$};
+        \node (v3) at (7,3) {$D$};
+        \node (v7) at (11,3) {$E$};
+        \node (v5) at (5,1) {$F$};
+        \node (v6) at (7,-1) {$G$};
+        \node (v12) at (4,6) {$H$};
+        \node (v13) at (6,6) {$I$};
+        \tikzstyle{every node} = [draw,shape=rectangle,color=teal]
+       \node (v4) at (1,4) {$J$};
+        \node (v11) at (11,5) {$K$}; 
+       \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (v4) to (v2);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (v11) to (v7);
+       \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red, bend left] (v1) to (v7);
+       \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, color=red] (v2) to (v3);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v2);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v12);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v12) to (v13);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v13) to (v1);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v1) to (v3);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v2) to (v5);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v3) to (v5);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v5) to (v6);
+       \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (v7) to (v6);
+    \end{tikzpicture}
+\]
+\begin{enumerate}
+  \item Find for node $A$ the set of parents, children, siblings, ancestors, descendants, strongly connected component and district. (1pt)
+  \item Find for each node in the graph the (d-separation) Markov blanket. (1pt)
+\end{enumerate}
+
+
+\section{Asymmetry}
+For graphs with input nodes, the symmetry axiom
+\[
+  A \Perp^d B \mid C \implies B \Perp^d A \mid C
+\]
+does not hold in general. Write down a graph for which this implication does not hold and explain why. (1pt)
+
+\begin{gradedsolution}
+For example: $D \Perp^d B \mid C$ but, $B \not \Perp^d D \mid C$
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \tikzstyle{every node} = [draw,shape=rectangle];
+      \node (A) at (0, 0) {$A$};
+     \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+     \draw[-{Latex[length=3mm, width=2mm]}] (C) to (D);
+  \end{tikzpicture}
+\]
+\end{gradedsolution}
+\section{Construct graph}
+Construct an acyclic directed mixed graph with three (non-input) nodes $A,B,C$, such that no edge (neither directed nor bidirected) exists between $A$ and $C$ and we have:
+\[
+  A \not \Perp^d C \quad\text{and}\quad A \not \Perp^d C \mid B
+\]
+\begin{gradedsolution}
+
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (A) at (0, 0) {$A$};
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+     \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, bend left] (B) to (C);
+     \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, bend right] (B) to (C);
+  \end{tikzpicture}
+\]
+\end{gradedsolution}
+
+% \section{$\sigma$-separation}
+% Write down a graph for which the $\sigma$-separations and $d$-separations do not agree and explain why. (1pt)
+\end{document}

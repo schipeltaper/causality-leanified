@@ -1,0 +1,206 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 9 --- Causal Discovery and Minimal Separating Sets\\
+(\texttt{causal\_discovery\_estimation.tex}, \texttt{minimal\_sep\_sets.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{causal\_discovery\_estimation.tex}
+(696 lines) and \texttt{minimal\_sep\_sets.tex} (94 lines).
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(\texttt{causal\_discovery\_estimation.tex}: lines 93--117, 257--330, 498--532).
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks.
+\verb|\Claude{...}| blocks are \textbf{included} (none found).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{causal\_discovery\_estimation.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 93--117, 257--330, 498--532 skipped
+(proofs at lines 108, 518 are inside and skipped).
+
+\section{Proof 1: Prp.\ \texttt{prp:RCT1} (lines 88--90)}
+
+\textbf{Statement.} A dependence $X\not\!\perp C$ in a simple iSCM with
+one input $C$ and one endogenous $X$ implies $C$ causes $X$ in $G(M)$.
+
+\textbf{Analysis.}
+Contrapositive of Thm.\ \texttt{thm:scm\_causes}:
+(iii)~rung-2 causation $\Rightarrow$ (i)~graphical causation.
+The rung-2 condition for $C\in J$ reduces to $X\not\!\perp C$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 2: Prp.\ \texttt{prp:RCT3} (lines 152--226)}
+
+\textbf{Statement.} For a simple iSCM with two endogenous variables $C,X$
+($J=\emptyset$), if $X$ does not cause $C$ and $C,X$ are unconfounded,
+then $C\not\!\perp X$ implies $C$ causes $X$ and
+$P(X\mid\doit(C))=P(X\mid C)$ a.s.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item Graph enumeration: 8 possible DMGs on $\{C,X\}$; assumptions~(1)--(2)
+    eliminate 6, leaving empty graph and $C\to X$.  $\checkmark$
+  \item Markov property: empty graph $\Rightarrow$ $X\perp C$, so
+    $X\not\!\perp C$ forces $C\to X$.  $\checkmark$
+  \item Do-calculus rule~2: in both graphs, $X\perp_{G_{\doit(I_C)}} I_C\mid C$,
+    giving $P(X\mid\doit(C))=P(X\mid C)$.  $\checkmark$
+\end{enumerate}
+
+\textbf{Minor:} Line~225 uses ``$\tilde G$'' instead of ``$G(\tilde M)$''.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 3: Prp.\ \texttt{prp:LCD} (lines 445--458)}
+
+\textbf{Statement.} LCD (Linear non-Gaussian Discovery) criterion: for a
+$\sigma$-faithful simple iSCM on $\{1,2,3\}$, the CI pattern
+$X_1\not\!\perp X_2$, $X_2\not\!\perp X_3$, $X_1\perp X_3\mid X_2$
+plus $X_2$ not causing $X_1$ identifies the causal graph as one of three DMGs,
+all with $X_2\to X_3$ and $P(X_3\mid\doit(X_2))=P(X_3\mid X_2)$.
+
+\textbf{Analysis.}
+Systematic elimination:
+\begin{itemize}
+  \item No edge $X_2\to X_1$ (assumption).  $\checkmark$
+  \item No edge $X_1$--$X_3$ ($\sigma$-faithfulness + $X_1\perp X_3\mid X_2$).
+    $\checkmark$
+  \item $X_1$--$X_2$ adjacent (Markov property + $X_1\not\!\perp X_2$).  $\checkmark$
+  \item $X_2$--$X_3$ adjacent (similarly).  $\checkmark$
+  \item $X_2$ cannot be a collider on $X_1$--$X_2$--$X_3$ walks
+    ($\sigma$-faithfulness), ruling out $X_3\to X_2$ and
+    $X_2\leftrightarrow X_3$.  So $X_2\to X_3$ only.  $\checkmark$
+  \item Three remaining graphs match Figure LCD.  Do-calculus rule~2 gives
+    the identification.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 4: Prp.\ \texttt{prp:y-structures} (lines 560--565)}
+
+\textbf{Statement.} Y-structure criterion: for a $\sigma$-faithful simple iSCM
+on $\{1,2,3,4\}$, the CI pattern identifies 9 possible DMGs, all with
+$X_3\to X_4$ and $P(X_4\mid\doit(X_3))=P(X_4\mid X_3)$.
+
+\textbf{Analysis.}
+The proof says ``one can check'' without providing the case analysis.
+The claim is correct (verified by systematic elimination analogous to Proof~3):
+no edge $X_1$--$X_2$ ($\sigma$-faithfulness + $X_1\perp X_2$);
+no edge $X_1$--$X_4$ or $X_2$--$X_4$ ($X_1\perp X_4\mid X_3$, etc.);
+$X_3$ must be collider on $X_1$--$X_3$--$X_2$ walks
+($X_1\perp X_2$ but $X_1\not\!\perp X_2\mid X_3$);
+$X_3\to X_4$ only (no $X_4\to X_3$ or $X_3\leftrightarrow X_4$).
+Nine graphs from $3\times 3$ edge choices for $X_1$--$X_3$ and $X_2$--$X_3$.
+
+\textbf{GAP:} The proof is a one-line sketch; the detailed case analysis
+(which is correct) is entirely omitted.
+
+\textbf{Verdict: GAP} (claim correct but proof omitted).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{minimal\_sep\_sets.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+No comment blocks.
+
+\section{Proof 5: Lem.\ \texttt{lem:ancestral\_relations\_open\_path}
+(lines 23--28)}
+
+\textbf{Statement.} Every node on a $C$-$\sigma$-open path from $i$ to
+$\{j\}\cup J$ lies in $\Anc_G((\{i,j\}\setminus J)\cup C)$.
+
+\textbf{Analysis.}
+From any non-collider~$k$ not in $C$, follow the outgoing directed subwalk
+to reach either a collider in $\Anc^G(C)$ or an endpoint not in~$J$.
+Input nodes have no incoming edges, so directed subwalks cannot reach
+$J$-endpoints.  Hence $k\in\Anc^G((\{i,j\}\setminus J)\cup C)$.
+Colliders in $\Anc^G(C)$ are already in the ancestral set.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 6: Prp.\ \texttt{prp:min\_sep} (lines 35--47)}
+
+\textbf{Statement.} If $x\perp^{i\sigma}_G y\mid S\cup[Z]$ (minimal
+$i\sigma$-separation), then $Z\subseteq\Anc_G(\{x,y\}\cup S)$.
+
+\textbf{Analysis.}
+By contradiction: take $z\in Z\setminus A$ where $A=\Anc_G(\{x,y\}\cup S)$.
+Let $Q=A\cap Z\subsetneq Z$.  By minimality, $\exists$ $(Q\cup S)$-$\sigma$-open
+path $\pi$.  By Lem.~5, all nodes on $\pi$ are in~$A$.  So no node
+of $Z\setminus Q$ lies on $\pi$.  Adding $Z\setminus Q$ to the conditioning
+set cannot block $\pi$ (no new blockable non-colliders; collider openness
+only improves).  Hence $\pi$ is $(Z\cup S)$-$\sigma$-open, contradicting
+the separation.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 7: Prp.\ \texttt{prp:min\_con} (lines 67--94)}
+
+\textbf{Statement.} If $x\not\!\perp^{i\sigma}_G y\mid S\cup[\{z\}]$
+(minimal connection via~$z$), then $z\notin\Anc_G(\{x,y\}\cup S)$.
+
+\textbf{Analysis.}
+Hypothesis: $x\perp^{i\sigma}_G y\mid S$ but
+$x\not\!\perp^{i\sigma}_G y\mid S\cup\{z\}$.
+Adding $z$ can only help by activating a collider in
+$\Anc^G(\{z\})\setminus\Anc^G(S)$.
+Three cases:
+\begin{itemize}
+  \item $z\in\Anc_G(S)$: then $\Anc(\{z\})\subseteq\Anc(S)$, no new
+    collider possible---contradiction.  $\checkmark$
+  \item $z\in\Anc_G(\{x\})$ (and $z\notin\Anc_G(S)$ by case~1):
+    construct $S$-$\sigma$-open walk by concatenating the subpath from the
+    far endpoint to the first relevant collider~$c$, a directed path
+    $c\to z$, and a directed path $z\to x$.
+    Both directed paths avoid~$S$ (since $c,z\notin\Anc(S)$).
+    At junction points: $c$ becomes a non-collider (right chain) not in~$S$;
+    $z$ becomes a non-collider (right chain) not in~$S$.
+    Contradicts $x\perp^{i\sigma} y\mid S$.  $\checkmark$
+  \item $z\in\Anc_G(\{y\})$: symmetric.  $\checkmark$
+\end{itemize}
+
+\textbf{Minor:} ``Between $x$ and $y$'' should read ``between $x$ and
+$\{y\}\cup J$'' (lines 81--82).
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~9}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l|l}
+\textbf{\#} & \textbf{File} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & causal\_discovery  & 88--90    & CORRECT \\
+2  & causal\_discovery  & 152--226  & CORRECT \\
+3  & causal\_discovery  & 445--458  & CORRECT \\
+4  & causal\_discovery  & 560--565  & GAP \\
+5  & minimal\_sep\_sets & 23--28    & CORRECT \\
+6  & minimal\_sep\_sets & 35--47    & CORRECT \\
+7  & minimal\_sep\_sets & 67--94    & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{7 proofs checked.  6 correct, 1 gap.}
+
+\bigskip\noindent
+\textbf{Issues found:}
+\begin{enumerate}
+  \item \textbf{Proof~2, line~225:} ``$\tilde G$'' should be ``$G(\tilde M)$''.
+  \item \textbf{Proof~4 (Prp.\ \texttt{prp:y-structures}):}
+    Proof is a one-line sketch (``one can check'') omitting the entire
+    case analysis.  The claim is mathematically correct.
+  \item \textbf{Proof~7, lines 81--82:} ``Between $x$ and $y$'' should be
+    ``between $x$ and $\{y\}\cup J$'' to handle $i\sigma$-separation targets.
+\end{enumerate}
+
+\end{document}

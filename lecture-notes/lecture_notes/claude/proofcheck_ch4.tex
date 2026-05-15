@@ -1,0 +1,155 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 4 --- Causal Bayesian Networks\\(\texttt{causal\_bayesian\_networks.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{causal\_bayesian\_networks.tex} for
+correctness, gaps, and mistakes.
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(lines 116--122, 207--218, 583--708).
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks.
+\verb|\Claude{...}| blocks are \textbf{included}.
+External references (\verb|\cite{...}|) are not downloaded; steps relying on
+them are marked \textbf{TODO}.
+
+The file contains 3 proof blocks; 2 are inside the comment block at lines
+583--708 and are skipped.  This leaves \textbf{1 active proof}.
+
+%% ========================================================================
+\section{Proof 1: Standard forms of L-CBNs (lines 508--579)}
+%% ========================================================================
+
+\textbf{Statement (DefThm.\ \texttt{bcn-standard-form}, line 448).}
+Any L-CBN $M$ with observational CADMG $G=(J,V,E,L)$ can be put into
+\emph{structural causal model form} (all Markov kernels for $v\in V$ are
+deterministic) or \emph{canonical form} (only latent variables for maximal
+cliques of size $\ge 2$), while preserving interventional equivalence and
+the observational CADMG.
+
+\textbf{Line-by-line analysis.}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Step 1 (lines 509--524): Deterministic decomposition.}
+    For every $v\in V\cup U$, write $P_v(X_v|X_{\Pa(v)})
+    = \delta(R_v|X_{\bar v},X_{\Pa(v)}) \circ P_{\bar v}(X_{\bar v})$
+    using the ICDF construction (Remark~\texttt{rem:R-to-std-ms} in
+    \texttt{icdf.tex}, verified in Chapter~2).
+
+    New latent variables $\bar v$ are introduced for each $v\in V\cup U$, with
+    $P_{\bar v}$ uniform on $[0,1]$.  The extended L-CBN $\bar M$ has
+    $\bar U = U \sqcup \{\bar v : v\in V\cup U\}$ and
+    $\bar E^+ = E^+ \sqcup \{\bar v\to v : v\in V\cup U\}$.
+
+    Marginalizing out all $\bar v$ recovers $M$: the marginal of
+    $\bar P_v(X_v|X_{\bar v},X_{\Pa(v)})\otimes P_{\bar v}(X_{\bar v})$
+    is $P_v(X_v|X_{\Pa(v)})$ by construction.  $\checkmark$
+
+  \item \textbf{Step 2 (lines 525--548): Marginalize out original latent variables.}
+    For each $u\in U$, $\bar P_u$ is deterministic ($\delta(R_u|\ldots)$).
+    Integrating $X_u$ out of the joint product substitutes $X_u=R_u(X_{\Pa(u)})$
+    into the children's kernels.  The product structure is preserved precisely
+    because the marginalized kernel is deterministic.  $\checkmark$
+
+    New parent sets: $\Pa^{\hat G^+}(v) = (\Pa^{\bar G^+}(v)\setminus\{u\})
+    \cup \Pa^{\bar G^+}(u)$---the standard marginalization rule.  $\checkmark$
+
+    The chain of equalities
+    $(\hat G^+)^{\setminus\hat U} = (\bar G^+)^{\setminus\bar U}
+    = (G^+)^{\setminus U} = G$
+    uses commutativity/associativity of marginalization (Lemma
+    \texttt{marginalizations-commute}, proved in \texttt{graphs.tex}).  $\checkmark$
+
+    Key identity (line 546):
+    $\Ch^{\bar G^+}(u) = \Ch^{(\bar G^+)^{\setminus U}}(\bar u)$:
+    since $\bar u\to u$ and $u\to v$ for $v\in\Ch(u)$,
+    marginalizing $u$ creates $\bar u\to v$, so $\Ch(\bar u)$ in the
+    marginalized graph equals $\Ch(u)$ in the original.  $\checkmark$
+
+    Bidirected edge recovery (lines 547--548): marginalizing $\bar u$
+    creates bifurcations between all pairs in $\Ch(\bar u) = \Ch^{G^+}(u)$,
+    reproducing exactly the bidirected edges of $G$.  $\checkmark$
+
+  \item \textbf{Step 3 (lines 550--553): Remove childless latent nodes.}
+    If $u\in\hat U$ has $\Ch^{\hat G^+}(u)=\emptyset$, its Markov kernel
+    appears as an independent factor; marginalizing $X_u$ removes it without
+    affecting the rest.  $\checkmark$
+
+  \item \textbf{Step 4 (lines 554--567): Assign to maximal cliques.}
+    Since $(\hat G^+)^{\setminus\hat U}=G$, the children of each $u\in\hat U$
+    form a clique in $(V,L)$: any $v_1,v_2\in\Ch(u)$ yield a bifurcation
+    $v_1\leftarrow u\to v_2$, creating a bidirected edge $v_1\leftrightarrow v_2$
+    in~$G$.  $\checkmark$
+
+    Each $u$ is assigned to a maximal clique $W\supseteq\Ch(u)$.
+    All $u$'s assigned to the same $W$ are combined into a single latent node
+    $\tilde u_W$ with product space
+    $\Xcal_{\tilde u_W}:=\prod_\ell\Xcal_{u_\ell}$.
+    Markov kernels that depended on individual $X_{u_\ell}$ now depend on the
+    corresponding component of $X_{\tilde u_W}$.  $\checkmark$
+
+    Resulting edges: $\tilde E^+ = E \sqcup \{\tilde u_W\to w : W\in\Ccal,\,w\in W\}$,
+    matching the statement.  $\checkmark$
+
+    \textbf{Mild gap (line~566):} The claim that each step yields an
+    interventionally equivalent L-CBN is stated as ``one can convince oneself''
+    rather than verified in detail.  Interventional equivalence requires checking
+    that for every $W'\subseteq V$, the hard-intervened marginal Markov kernels
+    are the same.  Steps~1--3 are straightforward (marginalization preserves the
+    joint on $V$, and hard interventions commute with marginalization of $U$).
+    Step~4 (combining latent variables) is purely a reparametrization of the
+    latent space and does not change any marginal.  The claim is correct but
+    a formal argument is omitted.
+
+  \item \textbf{Canonical form (lines 569--578).}
+    Marginalize out latent variables with $|\Ch|\le 1$.
+    If $|\Ch(\tilde u_W)|=1$, the product
+    $P_v(X_v|\ldots,X_u)\otimes P_u(X_u)$
+    is replaced by the composition $P_v(X_v|\ldots,X_u)\circ P_u(X_u)$,
+    which may no longer be deterministic (the randomness of $X_u$ is absorbed).
+    $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}  One mild gap: interventional equivalence at each
+step is claimed (line~566) but not formally verified.  The claim is true---each
+step is either a marginalization (preserving the joint on $V$) or a
+reparametrization of the latent space.
+
+%% ========================================================================
+\section*{Overall Summary for Chapter~4}
+%% ========================================================================
+
+\begin{center}
+\begin{tabular}{r|l|l}
+\textbf{\#} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1 & 508--579 & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{1 proof checked.  No errors found.}
+
+\bigskip\noindent
+\textbf{Minor issue:}
+\begin{enumerate}
+  \item \textbf{Line~566:} Interventional equivalence at each construction step
+    is claimed with ``one can convince oneself'' rather than formally verified.
+\end{enumerate}
+
+\bigskip\noindent
+\textbf{External references used (TODO):}
+\begin{itemize}
+  \item Remark~\texttt{rem:R-to-std-ms} from \texttt{icdf.tex}
+    (ICDF construction---verified in Chapter~2 proof check).
+  \item Lemma~\texttt{marginalizations-commute} from \texttt{graphs.tex}
+    (verified in Chapter~3 proof check).
+\end{itemize}
+
+\end{document}

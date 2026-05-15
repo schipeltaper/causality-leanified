@@ -1,0 +1,145 @@
+\subsection{Do-Calculus}
+\totalscore{9}
+
+\textbf{TODO: this exercise is wrong! The answer is wrong, and it could be that the correct answer is that the target
+quantity is not even identifiable from the given quantities (but we are not sure about this).}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndout] (R) at (3,2) {$R$};
+    \node[ndout] (L) at (0,2) {$L$};
+    \node[ndout] (S) at (3,-2) {$S$};
+    \node[ndout] (W) at (6,2) {$W$};
+    \draw[arout] (Z) to (S);
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (R) to (Y);
+    \draw[arout] (R) to (X);
+    \draw[arout] (L) to (X);
+    \draw[arlat, bend left] (L) to (R);
+    \draw[arlat, bend left] (R) to (W);
+\end{tikzpicture}
+\caption{Acyclic Directed Mixed Graph (ADMG).}
+\label{fig:cadmg-1}
+\end{figure}
+
+\noindent Consider the observational graph of a causal Bayesian network with latent variables in Figure \ref{fig:cadmg-1}.
+%We assume that the variables $X,Y,Z,W,L,S,R$ are observable with probability distribution $P(X,Y,Z,W,L,S,R)$.
+To avoid measure-theoretic subtleties, we assume that all occuring Markov kernels are discrete and have strictly positive mass functions.
+
+In this exercise we are interested in estimating the causal effect of $X$ and $W$ on $Y$, that is, the interventional distribution $P(Y|\doit(X,W))$. However, we are only able to perform certain interventional experiments:
+\begin{enumerate}[label=(\arabic*)]
+    \item We can perform experiments where we intervene on $W$, but this comes, unfortunately, with certain selection bias, $S=s$. In other words, we are only able to produce samples from the conditional interventional distribution: $P(X,Y,Z,L,R|\doit(W),S=s)$ for a fixed value $s$.
+    \item We can perform additional unbiased experiments where we intervene on $W$, but there we can only measure the output of $X$ and $Z$. This means that we can also produce samples from the (unbiased, unconditional)  interventional distribution $P(X,Z|\doit(W))$.
+\end{enumerate}
+
+Use the 3 rules of do-calculus together with the rules of probability (e.g.\ chain rule) to derive an expression for the Markov kernel $P(Y|\doit(X,W))$ in terms of $P(X,Y,Z,L,R|S=s,\doit(W))$ and $P(X,Z|\doit(W))$. This expression can contain combinations of marginals, conditionals, products and compositions of the latter two Markov kernels. 
+Provide all details of your arguments.
+When you use d-separation statements clearly indicate in which graph this should hold and draw the graph if it deviates from the one depicted in Figure \ref{fig:cadmg-1}.
+%The claimed d-separation statements itself need to be proven as well, by clearly indicating which paths need to be considered and why and where they are d-blocked.
+The claimed d-separation statements do not need to be proven (but should be correct, of course).
+
+\emph{Hint: There exists a solution, where the 3 rules of the do-calculus rules are each applied once. Maybe focus on the chain rule of the form $P(Y|\doit(X,W)) = P(Y|U,\doit(X,W)) \circ P(U|\doit(X,W))$ for suitable variables $U$ first and then remove/introduce expressions using the do-calculus rules.}
+
+
+\answer{%
+Since all occuring Markov kernels contain $\doit(W)$ we can restrict to the following CADMG:
+\points{1pt for drawing the correct interventional graph with intervention node in the following.}
+
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndout] (R) at (3,2) {$R$};
+    \node[ndout] (L) at (0,2) {$L$};
+    \node[ndout] (S) at (3,-2) {$S$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (Z) to (S);
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (R) to (Y);
+    \draw[arout] (R) to (X);
+    \draw[arout] (L) to (X);
+    \draw[arlat, bend left] (L) to (R);
+\end{tikzpicture}
+}
+
+We can then add the intervention node $I_X$ to the graph and also marginalize out $L$ and $R$. The latter is not important for the results but makes the graph easier to parse.
+
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IX) at (-2,1) {$I_X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndout] (S) at (3,-2) {$S$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (Z) to (S);
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arint] (IX) to (X);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+
+
+
+\begin{enumerate}
+    \item By the chain rule we get:
+        \begin{align*}
+            P(Y|\doit(X,W)) &= P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)).
+        \end{align*}
+        \points{1pt for the chain rule.}
+          \item To apply the 2nd rule of do-calculus to $P(Z|\doit(X,W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$:
+         \begin{align*}
+             Z \Perp^d_{G_{\doit(I_X,W)}} I_X \given X,W.
+         \end{align*}
+         The 2nd rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Z|\doit(X,W)) & = P(Z|X,\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement. 1pt for correct application of do-calculus rule.
+         }
+     \item To apply the 3rd rule of do-calculus to $P(Y|Z,\doit(X,W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$: 
+         \begin{align*}
+             Y \Perp^d_{G_{\doit(I_X,W)}} I_X \given Z,W.
+         \end{align*}
+         \textbf{TODO: this is wrong, because conditioning on $Z$ opens up its ancestor collider $X$.}
+         The 3rd rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Y|Z,\doit(X,W)) & = P(Y|Z,\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement.
+         1pt for correct application of do-calculus rule.
+         }
+     \item To apply the 1st rule of do-calculus to $P(Y|Z,\doit(W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$ (or $G_{\doit(W)}$) : 
+         \begin{align*}
+             Y \Perp^d_{G_{\doit(I_X,W)}} S \given Z,W.
+         \end{align*}
+         The 1st rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Y|Z,\doit(W)) & = P(Y|Z,S,\doit(W)).
+         \end{align*}
+         Since the left hand side is not dependent on $S$ we can evaluate at $S=s$ and get:
+         \begin{align*}
+             P(Y|Z,\doit(W)) & = P(Y|Z,S=s,\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement. 
+           1pt for correct application of do-calculus rule.  
+         }
+     \item Putting all points together we get:
+        \begin{align*}
+            P(Y|\doit(X,W)) &= P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)) \\
+                            &= P(Y|Z,S=s,\doit(W)) \circ P(Z|X,\doit(W)).
+        \end{align*}
+        \points{1pt for putting it all together.}
+\end{enumerate}
+}

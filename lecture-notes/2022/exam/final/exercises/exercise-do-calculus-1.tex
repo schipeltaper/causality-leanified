@@ -1,0 +1,110 @@
+\subsection{Do-Calculus}
+\totalscore{9}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+      \node[var] (X) at (2, 2) {$X$};
+      \node[var] (R) at (4, 2) {$R$};
+      \node[var] (Y) at (6, 2) {$Y$};
+      \node[var] (S) at (8, 2) {$S$};
+      \node[var] (Z) at (10, 2) {$Z$};
+      \node[varh] (U1) at (4, 4) {$U_1$};
+      \node[varh] (U2) at (8, 0) {$U_2$};
+     \draw[arr] (X) to (R);
+     \draw[arr] (R) to (Y);
+     \draw[arr] (S) to (Y);
+     \draw[arr] (Z) to (S);
+     \draw[arrh, bend right] (U1) edge (X);
+     \draw[arrh, bend left] (U1) edge (S);
+     \draw[arrh, bend left] (U2) edge (R);
+     \draw[arrh, bend right] (U2) edge (Z);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X) to (R);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (R) to (Y);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (S) to (Y);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (Z) to (S);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U1) to (X);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U1) to (S);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U2) to (R);
+%     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U2) to (Z);
+%      \node[varc] (IX) at (0, 2) {$I_X$};
+%      \draw[arr] (IX) to (X);
+%      \node[varc] (IZ) at (12, 2) {$I_Z$};
+%      \draw[arr] (IZ) to (Z);
+  \end{tikzpicture}
+  \caption{The graph of an L-CBN.}\label{fig:my_fig}
+  \end{figure}
+
+Look at the graph of an L-CBN in Figure \ref{fig:my_fig}.
+We assume that $X, R, Y, S$, and $Z$ are observed variables, whereas $U_1$ and $U_2$ are latent variables.
+Furthermore, we assume there are no input variables.\\
+%Do the following exercises, by using the chain-rule from above, the do-calculus, and your general understanding.
+\emph{Hint 1: it is not necessary to prove any $d$-separation statement that you claim.}\\
+\emph{Hint 2: you can make use of the chain rule for Markov kernels: for standard measurable spaces
+$\mathcal{X},\mathcal{Y},\mathcal{W}$ and Markov kernel $K: \mathcal{X} \dashrightarrow \mathcal{Y} \times \mathcal{W}$,
+\begin{equation*}
+  K(Y | X) = K(Y | W, X) \circ K(W | X),
+\end{equation*}
+where $K(Y | X)$ and $K(W | X)$ are the marginal Markov kernels and $K(Y | W, X)$ the conditional Markov kernel.}
+
+\begin{enumerate}[label=\alph*)]
+  \item Show that $P(Y |  \doit(X), \doit(Z)) = P(Y | R, S, \doit(X), \doit(Z)) \circ P(R, S | \doit(X), \doit(Z))$. 
+    \score{1}
+    \answer{Application of the chain rule.}
+    \points{1 point for mentioning the chain rule.}
+  \item Show that $P(Y | R, S, \doit(X), \doit(Z)) = P(Y | R, S)$. 
+    \score{1}
+    \answer{
+%    Introduce $I_X, I_Z$ are intervention variables modeling hard interventions on $X$ and $Z$, respectively.
+    $$Y \Perp_{G_{\doit(I_X,I_Z)}} I_X, I_Z \mid R,S$$
+    because any walk from $Y$ to $I_X$ or $I_Z$ has to pass through non-colliders $R$ or $S$ at some point.
+    Do-calculus rule 3 yields
+    $$P(Y \mid R,S,\doit(X),\doit(Z)) = P(Y \mid R,S).$$
+    }
+    \points{1 point for observing the right independence and invoking the corresponding do-calculus rule.}
+  \item Show that $P(R, S| \doit(X), \doit(Z)) = P(R | S, \doit(X), \doit(Z)) \otimes P(S | \doit(X), \doit(Z))$.
+    \score{1}
+    \answer{This holds by the definition of the conditional Markov kernel, and its existence by virtue of the spaces being assumed to be standard measurable.}
+    \points{1 point for mentioning the definition of the conditional Markov kernel.}
+  \item Show that $P(R | S, \doit(X), \doit(Z)) = P(R | X)$.
+    \score{3}
+    \answer{We use all three do-calculus rules.
+      We start with rule 1 to drop $S$:
+      $$R \Perp_{G_{\doit(X),\doit(Z)}} S \given X,Z$$
+      hence
+      $$P(R \mid S, \doit(X),\doit(Z)) = P(R \mid \doit(X),\doit(Z)).$$
+      Now use rule 2 to change $\doit(X)$ into $X$:
+      $$R \Perp_{G_{\doit(Z),\doit(I_X)}} I_X \given X,Z$$
+      hence
+      $$P(R \mid \doit(X),\doit(Z)) = P(R \mid X, \doit(Z)).$$
+      Finally we use rule 3 to drop $\doit(Z)$:
+      $$R \Perp_{G_{\doit(I_Z)}} I_Z \given X$$
+      hence
+      $$P(R \mid X,\doit(Z)) = P(R \mid X).$$
+    }
+    \points{For each of the three steps: 1 point for observing the right independence and invoking the corresponding do-calculus rule.}
+  \item Show that $P(S | \doit(X), \doit(Z)) =  P(S | Z)$.
+    \score{2}
+    \answer{We use two do-calculus rules.
+      We first use rule 2 to change $\doit(Z)$ into $Z$:
+      $$S \Perp_{G_{\doit(I_Z),\doit(X)}} I_Z \given Z, X$$
+      hence
+      $$P(S \mid \doit(Z),\doit(X)) = P(S \mid Z,\doit(X)).$$
+      Now use rule 3 to drop $\doit(X)$:
+      $$S \Perp_{G_{\doit(I_X)}} I_X \given Z$$
+      hence
+      $$P(S \mid \doit(X), Z) = P(S \mid Z).$$
+    }
+    \points{For each of the two steps: 1 point for observing the right independence and invoking the corresponding do-calculus rule.}
+  \item Argue that the causal effect $P(Y | \doit(X), \doit(Z))$ is identifiable by giving a formula in terms of observable probabilities.
+    \score{1}
+    \answer{
+      Combining everything:
+      \begin{equation*}\begin{split}
+        P(Y | \doit(X), \doit(Z)) %& = P(Y | R, S, \doit(X), \doit(Z)) \circ P(R, S | \doit(X), \doit(Z)) \\
+        & = P(Y | R, S) \circ \big(P(R | X) \otimes P(S | Z)\big).
+      \end{split}\end{equation*}
+      The expression on the r.h.s.\ only depends on observational quantities, i.e., the causal effect on the l.h.s.\ is identifiable (from observational quantities and knowledge of the causal graph).
+    }
+    \points{1 point for a correct combination of the results.}
+\end{enumerate}

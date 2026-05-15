@@ -1,0 +1,872 @@
+\title[Causality]{Causality: Lecture 11}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2025-04-17]{\normalsize April 17th, 2025}
+\maketitle
+
+\part{$\sigma$-Separation and Acyclifications}
+\frame{\partpage}
+
+\begin{frame}{(Un)blockable non-colliders}
+Remember: $\Sc^G(v) := \Anc^G(v) \cap \Desc^G(v)$.
+\begin{Def}[\ref{def:unblockable_noncollider}]
+  Let $G=(J,V,E,L)$ be a CDMG and $ \pi =\lp  v_0 \sus \cdots \sus v_n \rp $ a walk in $G$.
+  We call a non-collider $v_k$ on $\pi$ an \emph{unblockable non-collider} on $\pi$ if it is not an end-node ($k \notin \{0,n\}$) and it only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$. That is,
+  it is one of the following patterns:
+  \[\begin{array}{rccl}
+    v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_{k})\\
+    v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_{k})\\
+    v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)
+  \end{array}\]
+  Otherwise, $v_k$ is called a \emph{blockable non-collider} on $\pi$.
+  This means that $v_k$ is either an end-node ($k \in \lC 0,n\rC$) or it has at least one outgoing arrow 
+  $v_k \tuh v_{k\pm1}$ pointing to a node $v_{k\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\ $v_{k\pm1} \notin \Sc^G(v_k)$.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Running example}
+  \begin{Eg}
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Give an example of a walk with an unblockable noncollider;
+    \item Give an example of a walk with an blockable noncollider.
+  \end{itemize}
+  \end{Eg}
+\end{frame}
+
+\begin{frame}{$\sigma$-blocked walks}
+\begin{Def}[\ref{def:sigma_blocking}]
+  Let $G=(J,V,E,L)$ be a CDMG and $ \pi =\lp  v_0 \sus \cdots \sus v_n \rp $ a walk in $G$,
+  and $C \ins J \cup V$ a subset of nodes.
+  We say that the walk $\pi$ is:
+    \emph{$C$-$\sigma$-open} (or \emph{$\sigma$-open given $C$}) if and only if:
+  \begin{enumerate}
+      \item all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
+    \item all blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+  \end{enumerate}
+  Otherwise, we say that the walk $\pi$ is
+  \emph{$C$-$\sigma$-blocked}  (or \emph{$\sigma$-blocked given $C$}), that is:
+  \begin{enumerate}
+    \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^G(C)$, \emph{or}:
+    \item there exists a blockable non-collider $v_k$ on $\pi$ in $C$.
+  \end{enumerate}  
+  Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+\end{Def}
+If $G$ is acyclic then all non-colliders are blockable, and then $\pi$ is $C$-$\sigma$-open iff $\pi$ is $C$-$d$-open.
+\end{frame}
+
+\begin{frame}{Running example}
+  \begin{Eg}
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Give an example of a walk that is $\sigma$-blocked given $X_4$;
+    \item Give an example of a walk that is $\sigma$-open given $X_4$;
+  \end{itemize}
+  \end{Eg}
+\end{frame}
+
+%\frame{\frametitle{$\sigma$-Blocking and $\sigma$-Separation}
+%\begin{definition}
+%  Let $G = \lt J,E,V,L \rt$ be a CDMG and $C \subseteq J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+%  $$\pi = v_0 \sus \dots \sus v_n.$$
+%  $\pi$ is called \emph{$C$-$\sigma$-blocked}, or \emph{$\sigma$-blocked by $C$}, iff
+%  \begin{itemize}
+%    \item $v_0 \in C$ or $v_n \in C$, or
+%    \item it contains a collider $v_{k-1} \suh v_k \hus v_{k+1}$ with $v_k \not\in \Anc^G(C)$, or
+%    \item it contains a non-collider
+%      $v_{k-1} \sus v_k \tuh v_{k+1}$  with $v_k \in C$
+%    \alert{and such that $v_{k+1} \notin \Sc^{G}(v_k)$}, or
+%    \item it contains a non-collider
+%      $v_{k-1} \hut v_k \sus v_{k+1}$ with $v_k \in C$
+%    \alert{and such that $v_{k-1} \notin \Sc^{G}(v_k)$}.
+%  \end{itemize}
+%  We say that \emph{$A$ is $\sigma$-separated from $B$ by $C$}, denoted \emph{$A \Perp^{\alert{\sigma}}_G B \mid C$}, if every walk with one end node in $A$ and one end node in $B \cup J$ is $\sigma$-blocked by $C$.
+%\end{definition}
+%}
+
+\begin{frame}{$\sigma$-Blocking and $\sigma$-Separation}
+\begin{Def}[\ref{def:sigma_separation}]
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $\sigma$-separated from $B$ given $C$ in $G$}, in symbols:
+    \[ A \Perp^\sigma_G B \given C, \]
+      if every walk from a node in $A$ to a node in $B \alert{\cup J}$ is $C$-$\sigma$-blocked by $C$.
+        \item If that property does not hold we will write:
+            \[ A \nPerp^\sigma_G B \given C. \]
+        \item We also define the special case:
+                \[ A \Perp^\sigma_G B \qquad :\iff \qquad A \Perp^\sigma_GB \given \emptyset.\]
+    \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{Running example}
+  \begin{Eg}
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+  \end{tikzpicture}
+  \begin{itemize}
+    \item Give an example of a $\sigma$-separation given $X_4$;
+    \item Give an example of a $\sigma$-connection given $X_4$.
+  \end{itemize}
+  \end{Eg}
+\end{frame}
+
+\frame{\frametitle{Example: $\sigma$-Separation}
+\begin{example}
+  \begin{tikzpicture}
+      \node at (1,3.5) {Graph $G^+(M)$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (1.5,1.5) {$X_3$};
+      \node[ndout] (X4) at (0,1.5) {$X_4$};
+      \node[ndlat] (W1) at (-1,-1) {$W_1$};
+      \node[ndlat] (W2) at (2.5,-1) {$W_2$};
+      \node[ndlat] (W3) at (2.5,2.5) {$W_3$};
+      \node[ndlat] (W4) at (-1,2.5) {$W_4$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+      \draw[arout] (X4) edge (X1);
+      \draw[arout] (W1) edge (X1);
+      \draw[arout] (W2) edge (X2);
+      \draw[arout] (W3) edge (X3);
+      \draw[arout] (W4) edge (X4);
+      \node at (-3,3.5) {SCM $M$:};
+      \node[text width=4cm] at (-3,1) {\small $X_1=X_4+W_1$\\
+      $X_2=X_1 \cdot W_2$\\
+      $X_3=X_2+W_3$\\
+      $X_4=X_3\cdot W_4$\\
+      \,\\
+      $W_1,W_2,W_3,W_4$\\ independent};
+      \node at (5,1.75) {is $X_1 \displaystyle\Perp^d_{G^+(M)} X_3 \given X_2, X_4$?};
+%      \node at (5,1) {but};
+      \node at (5,0.25) {is $X_1 \displaystyle\Perp^\sigma_{G^+(M)} X_3 \given X_2, X_4$?};
+  \end{tikzpicture}
+\end{example}
+
+\bigskip
+In general: No $\sigma$-separations (given any set) between nodes within the same strongly connected component.
+}
+
+\begin{frame}{Graphical Acyclifications: Definition}
+\begin{Def}[\ref{def:cdg_acyclification}]
+  Given a CDMG $G = ( J, V, E, L)$, we call a CADMG $G' = (J, V, E', L')$
+  an \emph{acyclification of $G$} if
+  \begin{enumerate}
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes $J$ and output nodes $V$ as $G$;
+    \item for every pair of nodes $(i,j)$ such that $i \not\in\Sc^G(j)$:
+      \begin{enumerate}
+      \item $i \tuh j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \tuh j' \in E$;
+      \item $i \huh j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \huh j' \in L$;
+      \end{enumerate}
+  \item for every pair of distinct nodes $(i,j)$ such that $i \in\Sc^G(j)$: $i \tuh j \in E'$ or $i \hut j \in E'$ or $i \huh j \in L'$.
+  \end{enumerate}
+\end{Def}
+\end{frame}
+
+\begin{frame}{Graphical Acyclifications: Example}
+  \centering
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node at (0.75,1) {CDMG $G$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+    \node at (0.75,-4) {Two acyclifications of $G$:};
+    \begin{scope}[yshift=-5cm,xshift=-3.5cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+    \uncover<2- |handout:0>{
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X7) -- (X8);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X4) -- (X6);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    }
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=3.5cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+    \uncover<2- |handout:0>{
+      \draw[arout] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+      \draw[arlat] (X4) -- (X5);
+      \draw[arlat] (X5) -- (X6);
+      \draw[arlat] (X4) -- (X6);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    }
+    \end{scope}
+  \end{tikzpicture}}
+\end{frame}
+
+\begin{comment}
+\begin{frame}{Graphical Acyclifications: Example}
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node at (1.5,2) {Graph:};
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+      \draw[arr,bend left=20] (X3) edge (X4);
+      \draw[arr,bend left=20] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=-5cm]
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X3) -- (X4);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm]
+      \node at (1.5,2) {Various acyclifications:};
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X4) -- (X3);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=5cm]
+      \node[varh] (W1) at (0,1.25) {$W_1$};
+      \node[varh] (W2) at (3,1.25) {$W_2$};
+      \node[varh] (W3) at (1,0.5) {$W_3$};
+      \node[varh] (W4) at (2,0.5) {$W_4$};
+      \node[varh] (W5) at (1,-2) {$W_5$};
+      \node[varh] (W6) at (2,-2) {$W_6$};
+      \node[var] (X1) at (0,0) {$X_1$};
+      \node[var] (X2) at (3,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (3,-1) {$X_4$};
+      \node[var] (X5) at (0,-2) {$X_5$};
+      \node[var] (X6) at (3,-2) {$X_6$};
+      \draw[arrh] (W1) -- (X1);
+      \draw[arrh] (W2) -- (X2);
+      \draw[arrh] (W3) -- (X3);
+      \draw[arrh] (W4) -- (X4);
+      \draw[arrh] (W3) -- (X4);
+      \draw[arrh] (W4) -- (X3);
+      \draw[arrh] (W5) -- (X5);
+      \draw[arrh] (W6) -- (X6);
+      \draw[arr] (X1) -- (X3);
+      \draw[arr] (X2) -- (X4);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr] (X4) -- (X3);
+      \draw[arr] (X3) -- (X5);
+      \draw[arr] (X4) -- (X6);
+    \end{scope}
+  \end{tikzpicture}}
+\end{frame}
+\end{comment}
+
+\begin{frame}{Graphical Acyclifications: Purpose}
+The important property of acyclifications is that they can be used to express $\sigma$-separation in a (possibly cyclic) graph
+in terms of $d$-separation in an acyclification.
+
+\begin{Prp}[\ref{prp:sigma_sep_as_d_sep}]
+  Let $G = \lt J, V, E, L \rt$ be a CDMG and $G' = \lt J, V, E', L' \rt$ an acyclification of $G$.
+  Then for $A, B, C \subseteq V \cup J$ (not necessarily disjoint) subsets of nodes,
+  $$A \Perp^\sigma_G B \given C \iff A \Perp^\sigma_{G'} B \given C \iff A \Perp^d_{G'} B \given C$$
+\end{Prp}
+\begin{proof}
+  Requires constructing $\sigma$-open paths in $G'$ from those in $G$, and vice versa. 
+  See lecture notes.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Acyclification of iSCM: Definition}
+  We also define an acyclification operation on simple iSCMs:
+  \begin{Def}[\ref{def:scm_acyclification}]
+    Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+    For each strongly connected component $C$ of $G(M)$, let 
+    $g^{[C]} : \CX_{\Sin \cup (\Send \setminus C) \cup \Srnd} \to \CX_C$
+    be a (essentially unique) solution function for $M$ w.r.t.\ $C$.
+    Define $\tilde{f} : \CXJ \times \CXV \times \CXW \to \CXV$ by its components
+    $$\tilde{f}_v(\xJ,\xV,\xW) = g^{[\Sc^{G(M)}(v)]}_v(\xJ,x_{\Send\setminus C},\xW)$$
+    for $v \in V$.
+    $M^\acy = \ltuple \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rtuple$ is called an
+    \emph{acyclification of $M$}.
+  \end{Def}
+  Acyclifications are unique up to equivalence.
+\end{frame}
+
+\begin{frame}{Acyclification of iSCM: Purpose}
+  \begin{Prp}[\ref{prp:scm_acyclification_properties}]
+    The acyclifications $M^\acy$ of a simple iSCM $M$ are acyclic and observably equivalent to $M$.
+%    The acyclification $M^\acy$ of a simple iSCM $M$ is acyclic, observably equivalent to $M$, and $G(M^\acy) \subseteq G'$ for any acyclification $G'$ of $G(M)$.
+  \end{Prp}
+  \begin{proof}
+    By example. For a formal proof, see lecture notes.
+    \begin{wrapfigure}{r}{0.4\linewidth}
+    \scalebox{0.8}{\begin{tikzpicture}
+      \begin{scope}
+        \node[varh] (W1) at (1,1) {$W_1$};
+        \node[varh] (W2) at (2,1) {$W_2$};
+        \node[varh] (W3) at (1,0) {$W_3$};
+        \node[varh] (W4) at (2,0) {$W_4$};
+        \node[var] (X1) at (0,0.2) {$X_1$};
+        \node[var] (X2) at (3,0.2) {$X_2$};
+        \node[var] (X3) at (0,-1) {$X_3$};
+        \node[var] (X4) at (3,-1) {$X_4$};
+        \draw[arrh] (W1) -- (X1);
+        \draw[arrh] (W2) -- (X2);
+        \draw[arrh] (W3) -- (X3);
+        \draw[arrh] (W4) -- (X4);
+        \draw[arr] (X1) -- (X3);
+        \draw[arr] (X2) -- (X4);
+        \draw[arr,bend left] (X3) edge (X4);
+        \draw[arr,bend left] (X4) edge (X3);
+      \end{scope}
+      \begin{scope}[yshift=-3cm]
+        \node[varh] (W1) at (1,1) {$W_1$};
+        \node[varh] (W2) at (2,1) {$W_2$};
+        \node[varh] (W3) at (1,0.2) {$W_3$};
+        \node[varh] (W4) at (2,0.2) {$W_4$};
+        \node[var,fill=red] (X1) at (0,0) {$X_1$};
+        \node[var,fill=green] (X2) at (3,0) {$X_2$};
+        \node[var,fill=blue] (X3) at (0,-1) {$X_3$};
+        \node[var,fill=blue] (X4) at (3,-1) {$X_4$};
+        \draw[arrh] (W1) -- (X1);
+        \draw[arrh] (W2) -- (X2);
+        \draw[arrh] (W3) -- (X3);
+        \draw[arrh] (W4) -- (X4);
+        \draw[arrh] (W3) -- (X4);
+        \draw[arrh] (W4) -- (X3);
+        \draw[arr] (X1) -- (X3);
+        \draw[arr] (X2) -- (X4);
+        \draw[arr] (X1) edge (X4);
+        \draw[arr] (X2) edge (X3);
+      \end{scope}
+    \end{tikzpicture}}
+  \end{wrapfigure}
+  Structural equations of $M$:
+  \begin{align*}
+    X_1 &= W_1 \qquad X_3 = X_1 X_4 + W_3 \\
+    X_2 &= W_2 \qquad X_4 = X_2 X_3 + W_4
+  \end{align*}
+  Structural equations of $M^\acy$:
+  \begin{align*}
+    &{\color{red}X_1} = W_1 \qquad {\color{blue}X_3} = \frac{W_3 + {\color{red}X_1} W_4}{1 - {\color{red}X_1} {\color{green}X_2}} \\
+    &{\color{green}X_2} = W_2 \qquad {\color{blue}X_4} = \frac{{\color{green}X_2} W_3 + W_4}{1 - {\color{red}X_1} {\color{green}X_2}}
+  \end{align*}
+  \end{proof}
+\end{frame}
+
+\begin{frame}{Compatibility of Graphical and iSCM Acyclification}
+  The iSCM notion of acyclification is compatible with the graphical notion of acyclification:
+  \begin{Prp}[\ref{prp:acyclifications_compatible}]
+    Let $M$ be a simple iSCM.
+    Then:
+    \begin{itemize}
+      \item $G^+(M^\acy) \subseteq \tilde{G}^+$ for any graphical acyclification $\tilde{G}^+$ of $G^+(M)$, and
+      \item $G(M^\acy) \subseteq \tilde{G}$ for any graphical acyclification $\tilde{G}$ of $G(M)$.
+    \end{itemize}
+  \end{Prp}
+\end{frame}
+
+\part{Global Markov Property for Simple iSCMs}
+\frame{\partpage}
+
+\begin{frame}{Global Markov Property for Simple iSCMs}
+  With the help of the acyclification, we immediately derive a Markov property for simple iSCMs from the one for causal Bayesian networks:
+  \begin{Cor}[\ref{cor:gmp_simple_scm}]
+    Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with graph $G^+(M)$, causal graph $G(M)$
+    and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+    Then for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint) we have the implication:
+    $$A \Perp^\sigma_{G^+(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C$$
+    and for all $A, B, C \ins J \cup V$:
+    $$A \Perp^\sigma_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C.$$
+%    If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+%    $$A \Perp^\sigma_{G^+(M)} J \cup B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+  \end{Cor}
+\end{frame}
+
+\begin{frame}{Proof of Global Markov Property for Simple iSCMs}
+\begin{proof}
+  \setlength\abovedisplayskip{10pt}
+  \setlength\belowdisplayskip{0pt}
+  Choose an acyclification $\tilde{G}^+$ of $G^+(M)$. Then:
+  \begin{align*}
+    A \Perp^\sigma_{G^+(M)} B \given C &\stackrel{1}{\iff} A \Perp^d_{\tilde{G}^+} B \given C \\
+    &\stackrel{2}{\implies} A \Perp^d_{G^+(M^\acy)} B \given C \\
+    &\stackrel{3}{\implies} X_A \Indep_{P_{M^{\acy}}(X_V,X_W \given \doit(\XJ))} X_B \given X_C \\
+    &\stackrel{4}{\iff} X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{align*}
+  \begin{enumerate}
+    \item $\tilde{G}^+$ is an acyclification of $G^+(M)$; 
+    \item $G^+(M^\acy) \subseteq \tilde{G}^+$, removing edges preserves $d$-separations; 
+    \item the GMP for $M^\acy$ interpreted as a causal Bayesian network;
+    \item $M^\acy$ is observably equivalent to $M$.
+  \end{enumerate}
+\end{proof}
+\end{frame}
+
+\part{Do-Calculus for Simple iSCMs}
+\frame{\partpage}
+
+\begin{frame}{Hard Interventions Via Intervention Variables}
+  \begin{Def}[\ref{def:scm_intervention_variables}]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM, and $B \subseteq V \cup J$.
+  For each $b \in B \cap V$, we introduce an additional `intervention variable' $I_b$ as exogenous input variable; for $j \in B \cap J$, we just set $I_j := j$.
+  We denote $I_B := (I_b)_{b \in B}$.
+  We define an extended iSCM 
+  \vskip-2mm
+  $$\textstyle M_{\doit(I_B)} := \lt \Sin \cup I_B, \Send, \Srnd, \CX \times \prod_{b \in B \cap V} \CX_{I_b}, P, \tilde{f} \rt$$
+  with $\CX_{I_b} := \CX_b \,\dot\cup\, \{\star\}$, with causal mechanism $\tilde{f}$ with components
+  \vskip-6mm
+  \begin{align*}
+    v \in V \cap B: \qquad &\tilde{f}_v(x_{V \cup J \cup W \cup I_B}) := \begin{cases}
+      f_v(x_{V \cup J \cup W}) & x_{I_v} = \star \\
+      x_{I_v} & x_{I_v} \in \CX_v
+    \end{cases}\\
+    v \in V \sm B: \qquad & \tilde{f}_v(x_{V \cup J \cup W \cup I_B}) := f_v(x_{V \cup J \cup W})
+  \end{align*}
+  \vskip-2mm
+  For $b \in B \cap V$, $x_{I_b} = \star$ encodes that there is no intervention on $b$, while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+\end{Def}
+Purpose: jointly encode $\{M_{\doit(X_C)} : C \subseteq B\}$ into a single iSCM $M_{\doit(I_B)}$.
+\end{frame}
+
+%\begin{frame}{Notation}
+%  \begin{enumerate}
+%    \item Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G = G(M)$;
+%    \item To model hard interventions $\doit(B)$ for $B \subseteq V \cup W$, introduce \emph{intervention variable} $I_B$;
+%    \item Extended iSCM $\tilde{M} = \lt \Sin \cup \{I_B\}, \Send, \Srnd, \CX \times (\CX_B \dot\cup \{\star\}), P, \tilde{f} \rt$ with causal mechanism
+%$$\tilde{f}(x,x_{I_B}) := \begin{cases}
+%  f(x) & x_{I_B} = \star \\
+%  (f_{\setminus B}(x), x_{I_B}) & x_{I_B} \in \CX_B
+%\end{cases}$$
+%    \item $x_{I_B} = \star$ encodes that there is no intervention on $B$,\\
+%$x_{I_B} \ne \star$ encodes that the hard intervention $\doit(X_B = x_{I_B})$ is performed.
+%\item The graph of $\tilde{M}$, $G_{\doit(I_B)}$, has an additional variable $I_B$ with no incoming edges
+%  and outgoing edges to all $b \in B$.
+%  \end{enumerate}
+%%In the do-calculus, we make use of the extended graph $G_{\doit(I_B)}$ to test the separation statement, while the conclusion
+%%about the existence and identity of particular Markov kernels concerns those of the original iSCM $M$.
+%\end{frame}
+
+\begin{frame}{Reminder: Notation of Markov kernels}
+  For a simple iSCM $M$:
+  \begin{enumerate}
+    \item Its \emph{Markov kernel} is denoted $P_{M}(X_V \mid \doit(X_J))$.
+    \item For a subset $T \subseteq V$, we write the \emph{intervened Markov kernel}
+      $$P_{M}(X_{V\setminus T} \mid \doit(X_J,X_T)) = P_{M_{\doit(T)}}(X_{V\setminus T} \mid \doit(X_J,X_T)).$$
+    \item By conditioning on a subset $S \subseteq V \sm T$, we obtain the conditional intervened Markov kernel
+      $$P_{M}(X_{V\sm (T \cup S)} \mid \doit(X_J,X_T), X_S).$$
+    \item Assume that we have $\sigma$-finite reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$
+      and put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+  \end{enumerate}
+\end{frame}
+
+%\begin{frame}{Do-Calculus for simple iSCMs (on one slide!)}
+%  Let $A,B,C \ins V \cup W$ and $D \ins V \cup W \cup J$ be such that $A,B,C,D$ are pairwise disjoint.
+%  \begin{enumerate}
+%    \item \emph{Insertion/deletion of observation}: 
+%      $A \Perp^\sigma_{G_{\doit(D)}} B \given C \cup D$ implies
+%      \[ P_{M}\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_D)\rp.\]
+%    \item \emph{Action/observation exchange}: $A \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D$ implies
+%      \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_D)\rp  =  P_{M}\lp X_A|X_B,X_C,\doit(X_D)\rp.\]
+%    \item \emph{Insertion/deletion of action}: $A \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given C  \cup D$ implies
+%      \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_{D})\rp.\]
+%  \end{enumerate}
+%  Note: all kernels should be interpreted as $\CX_{J \cup \dots} \dshto \dots$, but some are constant in $x_J$!
+%\end{frame}
+
+\begin{frame}{Do-Calculus for simple iSCMs, part I}
+  \begin{Thm}[\ref{thm:as-do-calculus-scms-simplified}]
+    Let $M$ be a simple iSCM with graph $G = G(M)$.
+    Let $A,B,C \ins V$ and $D \ins V \cup J$ be such that $A,B,C,D$ are pairwise disjoint.
+  \small
+  \begin{enumerate}
+      \item \emph{Insertion/deletion of observation}: if $J \ins D$, 
+       \begin{align*} 
+           A &\Perp^\sigma_{G_{\doit(D)}} B \given C \cup D, &
+           \mu_{B \cup C} &\ll P_M(X_B,X_C|\doit(X_{D}))\ll \mu_{B \cup C},
+       \end{align*}
+          \[ \implies P_M(X_A|X_B,X_C,\doit(X_{D})) = P_M(X_A|X_C,\doit(X_{D})) \quad \mu_{B \cup C}\text{-a.s.}.\]
+     \item \emph{Action/observation exchange}: if $J \ins D$,
+       \begin{align*} 
+           A & \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D, &          
+                  \mu_{B \cup C} &\ll  P_M(X_B,X_C|\doit(X_{D})) \ll \mu_{B \cup C},\\
+               &&   \mu_C &\ll  P_M(X_C|\doit(X_B,X_{D})) \ll \mu_C,
+       \end{align*}
+       \[ \implies P_M(X_A|X_B,X_C,\doit(X_{D}))  = P_M(X_A|\doit(X_B),X_C,\doit(X_{D})) \quad \mu_{B \cup C}\text{-a.s.}.\]
+    \end{enumerate}
+\end{Thm}
+\end{frame}
+
+\begin{frame}{Do-Calculus for simple iSCMs, part II}
+  \begin{Thm}[\ref{thm:as-do-calculus-scms-simplified}, continued]
+  \small
+  \begin{enumerate}
+     \setcounter{enumi}{2}
+     \item \emph{Insertion/deletion of action}: if $J \ins D$,
+       \begin{align*} 
+           A &\Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given C  \cup D, &          
+           \mu_C &\ll P_M(X_C|\doit(X_B,X_{D})) \ll \mu_C, \\
+                 && \mu_C &\ll P_M(X_C|\doit(X_{D})) \ll \mu_C,
+       \end{align*}
+       \[ \implies  P_M(X_A|\doit(X_B),X_C,\doit(X_{D})) = P_M(X_A|X_C,\doit(X_{D})) \quad \mu_C\text{-a.s.}.\]
+     \item \emph{Deletion of input}: 
+         If 
+         \begin{align*} 
+           A &\Perp^\sigma_{G_{\doit(D)}} J \given C \cup D, &
+             \mu_C &\ll P_M(X_C|\doit(X_{D\cup J})) \ll \mu_C,
+         \end{align*}
+         then there exists a Markov kernel $P_M(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$ such that:
+         \[ P_M(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) = P_M(X_A|X_C,\doit(X_{D \cup J})) \quad \mu_C\text{-a.s.}. \]
+    \end{enumerate}
+\end{Thm}
+\end{frame}
+
+%\begin{frame}{Proof of Do-Calculus for Simple iSCMs}
+%  \begin{proof}
+%  The proof is analogous to that of Corollary~\ref{cor:as-do-calculus-2}, except that it applies the global Markov property for simple iSCMs, Corollary~\ref{cor:gmp_simple_scm}, instead of the one for causal Bayesian networks, Theorem~\ref{thm-gmp-mCBN}.
+%  \end{proof}
+%\end{frame}
+
+\begin{frame}{Adjustment formula for simple iSCMs}
+Same notation as for do-calculus.
+  \begin{block}{Problem setting (special case of ``Causal domain adaptation'')}
+We want to estimate the \emph{conditional causal effect}
+$P_{M}(X_A|X_C,\doit(X_B,X_D))$
+from
+$P_{M}(X_A,X_B,X_F|X_C,\doit(X_D)).$
+\end{block}
+The following (pairwise disjoint) index sets have the following roles:\\
+\begin{description}\small
+  \item[$A\ins V$]: the outcome variables of interest.
+  \item[$B\ins V$]: the treatment or intervention variables.
+  \item[$C\ins V$]: general conditional (context) variables under which the data was collected.
+  \item[$J\ins D\ins V \cup J$]: general interventional (context) variables that were set by the experimenter, with $J \ins D$.
+  \item[$F_0\ins V$]: core adjustment variables, i.e.\ features that were measured.
+  \item[$F_1\ins V$]: additional measured adjustment variables, with $F = F_0 \cup F_1$.
+%  \item[$H$]: additional unobserved variables.
+\end{description}
+\end{frame}
+
+\begin{frame}{General adjustment formula for simple iSCMs}
+  \begin{Thm}[\ref{thm:gen-adjustment-scms}]
+    \small
+Assume that all the following $\sigma$-separations hold in the graph $G_{\doit(I_B,D)}$:
+    \begin{align*}
+        F_0 & \Perp^\sigma_{G_{\doit(I_B,D)}} I_B \given (C \cup D), \\
+        A & \Perp^\sigma_{G_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup C \cup D).
+%                      H &\Perp^\sigma_{G_{\doit(I_B,D)}} B \given (F \cup C \cup  I_B \cup D).
+    \end{align*}
+Further assume that we have reference measures $\mu_v$ on $\Xcal_v$, $v \in V$, such that:
+  \begin{align*}
+      \mu_{B \cup C \cup F} &\ll  P(X_B,X_C,X_F|\doit(X_D)) \ll \mu_{B \cup C \cup F},\\
+      \mu_{C \cup F} &\ll  P(X_C,X_F|\doit(X_B,X_D)) \ll \mu_{C \cup F}.
+  \end{align*}
+Then we have the $\mu_{B \cup C}\text{-a.s.}$ adjustment formula:
+      \[ P_{M}(X_A|X_C,\doit(X_B,X_D)) = P_{M}(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P_{M}(X_F|X_C,\doit(X_D)) \]
+\end{Thm}
+\end{frame}
+
+\begin{frame}{Proofs}
+  \begin{proof}
+    All proofs proceed the same as for L-CBNs, except that all $d$-separations need to be replaced with $\sigma$-separations, and we invoke the GMP for simple iSCMs rather than the GMP for L-CBNs.
+  \end{proof}
+
+  \bigskip
+  Similarly:
+  \begin{itemize}
+    \item The more detailed statements of the do-calculus (Proposition~\ref{prp:do-calculus} and Theorem~\ref{thm:as-do-calculus-1}) are also valid for simple iSCMs;
+    \item The interventional backdoor covariate adjustment formula (Corollary~\ref{cor:backdoor-int}) is also valid for simple iSCMs;
+  \end{itemize}
+  where we just need to replace $\Perp^d$ by $\Perp^\sigma$.
+  
+  \bigskip
+  \begin{block}{Caveat}
+  The literature often fails to mention the strict positivity assumptions, even though without sufficient positivity, the various backdoor criteria may not hold
+    (e.g.~Example~\ref{eg:counterexample_nonpositive_backdoor_adjustment})!
+  \end{block}
+\end{frame}
+
+
+\part{Bounds on causal effects}
+\frame{\partpage}
+
+\begin{frame}{Bounding non-identifiable causal effects}
+
+  If causal effects cannot be identified from the observable distribution, we may still be able to derive informative \textbf{bounds}.
+
+  \bigskip
+    \begin{tikzpicture}
+      \begin{scope}[xshift=0]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (3,0) {$X_2$};
+        \node[ndout] (X3) at (1.5,2.5) {$X_3$};
+%        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \draw[arout] (X1) -- (X2);
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X3) -- (X2);
+        \node at (-1,2.5) {$G(M)$:};
+      \end{scope}
+      \begin{scope}[xshift=6cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (3,0) {$X_2$};
+        \node[ndout] (X3) at (1.5,2.5) {$X_3$};
+%        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \draw[arout] (X1) -- (X2);
+        \draw[arout, bend left] (X2) edge (X1);
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X3) -- (X2);
+        \draw[arout, bend left] (X1) edge (X3);
+        \draw[arout, bend right] (X2) edge (X3);
+        \draw[huh, bend right] (X2) edge (X1);
+        \draw[huh, bend left] (X3) edge (X1);
+        \draw[huh, bend left] (X2) edge (X3);
+        \node at (-1,2.5) {$G(\tilde{M})$:};
+      \end{scope}
+    \end{tikzpicture}
+
+  \bigskip
+    \begin{itemize}
+      \item $P_M(X_2 \given \doit(X_1), X_3)$ is identifiable (under positivity assumptions) from $P_M(X_1,X_2,X_3)$.% via adjustment on $X_3$. 
+      \item $P_{\tilde{M}}(X_2 \given \doit(X_1), X_3)$ is not identifiable from $P_{\tilde{M}}(X_1,X_2,X_3)$, but we can still bound it using the natural bounds (if both $X_1$ and $X_3$ are discrete).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Natural bounds}
+\cite{ManskiNagin1998} proved the following `natural' bounds. We point out here that they also hold for simple iSCMs.
+\begin{Thm}[\ref{thm:natural_bounds}, Natural bounds on causal effect]
+  Let $M$ be a simple iSCM with endogenous variables $V \supseteq \{1,2,3\}$ and no exogenous input variables.
+  Assume that $\CX_1$ is discrete.
+  Then
+  \begin{equation*}\begin{split}
+    &P_M(X_1=a,X_2 \in B|X_3 \in C) \\
+    &\quad\le P_M(X_2\in B|X_3 \in C, \doit(X_1=a)) \\
+    &\quad\le P_M(X_1=a,X_2\in B|X_3 \in C) + P_M(X_1\ne a|X_3 \in C).
+  \end{split}\end{equation*}
+  for any $a\in\C{X}_1$, measurable $B \subseteq \C{X}_2$, and measurable $C \ins \C{X}_3$ with $P_M(X_3 \in C) > 0$.
+\end{Thm}
+\end{frame}
+
+\begin{frame}{Consistency of solutions of simple iSCMs}
+\begin{Prp}[\ref{prp:simple_scm_consistency}]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $g : \CXJ \times \CXW \to \CXV$ be a solution function of $M$.
+  Let $V = A \dcup B$ be a partition of the endogenous variables of $M$,
+  and let $g^{[B]} : \CX_A \times \CXJ \times \CXW \to \CX_B$ be a partial solution function of $M$ w.r.t.\ $B$.
+  Then
+  $$g_B(x_J,x_W) = g^{[B]}(g_A(x_J,x_W),x_J,x_W)\quad M\as.$$
+\end{Prp}
+
+\bigskip
+\begin{block}{Remark}
+  This proposition shows that the ``consistency assumption'' commonly made in the potential outcomes framework
+  holds true for potential outcomes defined by simple iSCMs.
+\end{block}
+\end{frame}
+
+\begin{frame}{Natural bounds: proof}
+\begin{proof}
+  We use consistency $X_2=X_2^{\doit(X_1=X_1)}$ and elementary probability theory:
+    \begin{align*}
+      & P_M(X_1=a,X_2\in B|X_3 \in C) \\
+      & = P_M(X_1=a,X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      & \le P_M(X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      & = P_M(X_1=a,X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      & + P_M(X_1\ne a,X_2^{\doit(X_2=a)}\in B|X_3 \in C) \\
+      & \le P_M(X_1=a,X_2\in B|X_3 \in C) + P_M(X_1 \ne a|X_3 \in C)
+    \end{align*}
+  The statement follows since
+  $$ P_M(X_2\in B|X_3 \in C, \doit(X_1=a)) = P_M(X_2^{\doit(X_1=a)}\in B|X_3 \in C).$$
+\end{proof}
+\end{frame}
+
+\begin{frame}{Natural bounds: real-valued outcome $X_2$}
+If one has a priori knowledge about the range of $X_2$ (in case it is real-valued), one can also derive a bound on the expected result of an intervention \cite{ManskiPepper2013}.
+\begin{Cor}[\ref{cor:natural_bounds}]
+  In the situation of Theorem~\ref{thm:natural_bounds}, suppose that $\CX_2 = [\alpha,\beta]$ and $0 < P_M(X_1=a|X_3\in C) < 1$. Then
+  \begin{equation*}\begin{split}
+    & P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C) + \alpha P_M(X_1\ne a|X_3\in C) \\
+    {}\le {}& \Exp_M(X_2|X_3\in C,\doit(X_1=a)) \\
+    {}\le {}& P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C) + \beta P_M(X_1\ne a|X_3\in C).
+  \end{split}\end{equation*}
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Discussion}
+  \begin{itemize}
+    \item The natural bound can be shown to be tight. 
+    \item No assumptions regarding the causal relations between the three endogenous variables are necessary.
+    \item We can bound the causal effect of $X_1$ on $X_2$ in the presence of both confounding and cycles.
+    \item There exists no analogous bound in case $X_1$ is real-valued.
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,719 @@
+\section{Structural Causal Models}
+
+\Joris{Slightly improved notation for SCMs:
+\begin{itemize}
+  \item $M^\theta$ : SCM with parameter $\theta$
+  \item $M_A$: marginalized SCM $M_{\sm (V\sm A)}$
+  \item $M^{[A]}$: subSCM $M$ on $A$
+  \item $M^\twin$: twinned SCM
+  \item $g^{[A]}_B$: $X_B$ component of solution function of SCM $M^{[A]}$ 
+  \item $M^{(1)}$, $M^{(2)}$, $M^{(3)}$, \dots, $M^{(a)}$: indexed SCMs
+\end{itemize}
+}
+
+Structural Causal Models (SCMs), also known as Structural Equation Models (SEMs), or Non-Parametric Structural Equation Models (NP-SEMs), provide a class of causal models that can model causal cycles. 
+SCMs trace back to the early work on path analysis by geneticist Sewall Wright \cite{Wri21}, made their way to econometrics \cite{Haa43,StrotzWold1960}, and became popular in AI due to the work of Judea Pearl \cite{Pearl09} and many others.
+In these lecture notes, we give a modern treatment inspired by our own research on the matter \cite{BFPM21,FM20}.
+
+\subsection{Motivation}
+
+While causal Bayesian networks (with input nodes and latent variables) provide a powerful causal modeling class, there is an important aspect of causality that cannot be modeled with causal Bayesian networks, namely causal \emph{cycles}.
+For example, increasing temperature at the poles may cause sea ice to melt, which leads to more absorption of sunlight because white ice is replaced by blue sea water, which in turn leads to further temperature increase (see also Figure~\ref{fig:dg}(a)).
+Because a causal Bayesian network is acyclic by definition, such a model can only be described by a causal Bayesian network by introducing multiple variables corresponding with measurements of the same quantities at different points in time (Figure~\ref{fig:dg}(b)).
+In contrast, an SCM can directly represent causal cycles and is often appropriate for modeling systems with feedback loops that are stable, i.e., where negative feedback dominates potential positive feedback. 
+An illustrative example is a system composed of different masses connected via springs in an environment with friction (see also Section~\ref{sec:scm_examples}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,2.8) {$v_1$};
+    \node[ndout] (v2) at (2,2.8) {$v_2$};
+    \node[ndout] (v3) at (1,1.2) {$v_3$};
+%    \draw[arout, out=30, in=150] (v1) to (v2);
+%    \draw[arout, out=-90, in=30] (v2) to (v3);
+%    \draw[arout, out=150, in=-90] (v3) to (v1);
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v2) to (v3);
+    \draw[arout] (v3) to (v1);
+    \node (a) at (-1,4) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[ndout] (v1a) at (0,4) {$v_{1;t_0}$};
+    \node[ndout] (v2a) at (0,2) {$v_{2;t_0}$};
+    \node[ndout] (v3a) at (0,0) {$v_{3;t_0}$};
+    \node[ndout] (v1b) at (2,4) {$v_{1;t_1}$};
+    \node[ndout] (v2b) at (2,2) {$v_{2;t_1}$};
+    \node[ndout] (v3b) at (2,0) {$v_{3;t_1}$};
+    \node[ndout] (v1c) at (4,4) {$v_{1;t_2}$};
+    \node[ndout] (v2c) at (4,2) {$v_{2;t_2}$};
+    \node[ndout] (v3c) at (4,0) {$v_{3;t_2}$};
+    \node[ndout] (v1d) at (6,4) {$v_{1;t_3}$};
+    \node[ndout] (v2d) at (6,2) {$v_{2;t_3}$};
+    \node[ndout] (v3d) at (6,0) {$v_{3;t_3}$};
+    \draw[arout] (v1a) to (v1b);
+    \draw[arout] (v1a) to (v2b);
+    \draw[arout] (v1a) to (v3b);
+    \draw[arout] (v2a) to (v1b);
+    \draw[arout] (v2a) to (v2b);
+    \draw[arout] (v2a) to (v3b);
+    \draw[arout] (v3a) to (v1b);
+    \draw[arout] (v3a) to (v2b);
+    \draw[arout] (v3a) to (v3b);
+    \draw[arout] (v1b) to (v1c);
+    \draw[arout] (v1b) to (v2c);
+    \draw[arout] (v1b) to (v3c);
+    \draw[arout] (v2b) to (v1c);
+    \draw[arout] (v2b) to (v2c);
+    \draw[arout] (v2b) to (v3c);
+    \draw[arout] (v3b) to (v1c);
+    \draw[arout] (v3b) to (v2c);
+    \draw[arout] (v3b) to (v3c);
+    \draw[arout] (v1c) to (v1d);
+    \draw[arout] (v1c) to (v2d);
+    \draw[arout] (v1c) to (v3d);
+    \draw[arout] (v2c) to (v1d);
+    \draw[arout] (v2c) to (v2d);
+    \draw[arout] (v2c) to (v3d);
+    \draw[arout] (v3c) to (v1d);
+    \draw[arout] (v3c) to (v2d);
+    \draw[arout] (v3c) to (v3d);
+    \node (b) at (-1.5,4) {(b)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{(a) Directed Graph (DG) representing a causal cycle. As an example, $v_1$ could be the average temperature in a certain area at the North pole, $v_2$ the amount of sea ice present in the area, and $v_3$ the amount of sunlight absorbed in the area. This gives an example of a positive (self-reinforcing) feedback loop. (b) Alternative Directed Acyclic Graph (DAG) where the variables correspond with the same quantities but measured at different time points $t_0<t_1<t_2<t_3$.}
+\label{fig:dg}
+\end{figure}
+
+Even if a `fine-grained' causal model is acyclic, merging variables may introduce cycles at a more `coarse-grained' level of description.
+\begin{Eg}
+Suppose that we have a CBN with the ADMG in Figure~\ref{fig:coarsening_variables_introduces_cycles}(a),
+representing four variables $X_1,X_2,X_3,X_4$. If we chose an alternative representation in terms of 
+pairs $X_{13}:=(X_1,X_3)$ and $X_{24}:=(X_2,X_4)$, then we would end up with a CBN with the DMG in Figure~\ref{fig:coarsening_variables_introduces_cycles}(b). However, that is a contradiction as the graph of a CBN is acyclic by definition.
+\end{Eg}
+This example shows that the class of CBNs is not closed under the operation of merging variables.
+The class of (simple) SCMs to be introduced later is actually closed under the operation of merging variables.
+
+\begin{figure}[tb]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (0,-2) {$v_2$};
+    \node[ndout] (v3) at (1.5,0) {$v_3$};
+    \node[ndout] (v4) at (1.5,-2) {$v_4$};
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v4) to (v3);
+    \node (a) at (-1,0) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[ndout] (v13) at (0,0) {$v_{13}$};
+    \node[ndout] (v24) at (0,-2) {$v_{24}$};
+%    \node[ndout] (v3) at (1,0) {$v_3$};
+%    \node[ndout] (v4) at (1,-2) {$v_4$};
+    \draw[arout,bend left] (v13) to (v24);
+    \draw[arout,bend left] (v24) to (v13);
+    \node (b) at (-1,0) {(b)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{(a) ADMG with output nodes $v_1, v_2, v_3, v_4$ corresponding with endogenous variables $X_1, X_2, X_3, X_4$.
+  (b) DMG corresponding to a coarser representation obtained by merging variables into $X_{13} := (X_1,X_3)$ and $X_{24} := (X_2,X_4)$.
+  }
+\label{fig:coarsening_variables_introduces_cycles}
+\end{figure}
+
+Finally, there exist systems in which the directionality of causal relations is context-dependent.
+\begin{Eg}
+Consider Ohm's law $V = I R$ (voltage equals current times resistance) to model the voltage across and current through a resistance.
+If we connect the resistance to a voltage source, the voltage determines the current.
+If we connect the resistance to a current source, then it is the other way around: the current determines the voltage.
+Both cases separately can be modeled with a CBN (Figure~\ref{fig:context_specific_causality}(a--b), respectively).
+If we let a coin flip determine which of the two sources the resistance is connected to, we obtain a mixture which cannot be modeled as a single CBN (Figure~\ref{fig:context_specific_causality}(c)).
+\end{Eg}
+Similar behavior is often encountered in complex systems in biology, chemistry, engineering and economy.
+This is yet another motivation to extend the causal modeling framework to allow for cycles.
+
+In this chapter, we will introduce the class of SCMs, which generalize CBNs to allow for cycles, which allows us to deal elegantly with all motivating examples discussed here.
+
+\begin{figure}[tb]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}[xshift=0cm]
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (V) to (I);
+    \draw[arint] (R) to (I);
+    \node (a) at (-1,0) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=5cm]
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (I) to (V);
+    \draw[arint] (R) to (V);
+    \node (b) at (-1,0) {(b)};
+  \end{scope}
+  \begin{scope}[xshift=10cm]
+    \node[ndout] (C) at (1,1.5) {$C$};
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (C) to (V);
+    \draw[arout] (C) to (I);
+    \draw[arout,bend left] (I) to (V);
+    \draw[arout,bend left] (V) to (I);
+    \draw[arint] (R) to (I);
+    \draw[arint] (R) to (V);
+    \node (c) at (-1,0) {(c)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{Different causal models corresponding to modeling the current through a resistance using Ohm's law. (a) Voltage causes current. (b) Current causes voltage. (c) Mixture model where the causal relationship between voltage and current depends on the result of a coin flip.}
+\label{fig:context_specific_causality}
+\end{figure}
+
+\subsection{Solving SCMs}
+
+An SCM is specified in terms of (deterministic) functions and distributions,
+rather than in terms of Markov kernels (stochastic functions).
+
+In contrast with many definitions encountered in the literature,\footnote{For
+example, \cite{Pearl09} only formally distinguishes exogenous random variables and 
+endogenous variables.} we will explicitly distinguish
+three types of variables: exogenous random variables, exogenous input variables, and endogenous variables.
+\begin{Def}[Structural Causal Model]\label{def:scm}
+  A Structural Causal Model is a tuple $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ such that
+  \begin{itemize}
+    \item $\Sin, \Send, \Srnd$ are disjoint finite sets of labels for the \emph{exogenous input variables}, the \emph{endogenous variables} and the \emph{exogenous random variables}, respectively;
+    \item the \emph{domain} $\CX = \prod_{i\in \Sin \dcup \Send \dcup \Srnd} \C{X}_i$ is a product of standard measurable spaces $\C{X}_i$;
+    \item the \emph{exogenous distribution} $P$ is a probability distribution on $\CXW$ that factorizes as a product $P = \bigotimes_{w\in\Srnd} P_w$ of probability distributions $P_w \in \C{P}(\C{X}_w)$;
+    \item the \emph{causal mechanism} is specified by the measurable function $f : \CX \to \CXV$.
+  \end{itemize}
+Often, the causal mechanism $f$ and the exogenous distribution $P$ depend (in a measurable way) on 
+\emph{exogenous parameters} $\theta\in\CX_\Theta$, which we may make explicit by writing
+$f^{\theta}$ and $P^{\theta}$ instead, giving a parameterized SCM
+$M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^{\theta}, f^{\theta} \rt$.
+The family $(M^{\theta})_{\theta \in \CX_\Theta}$ is then an SCM family.\footnote{In line with the convention in machine learning, the word ``model'' refers to a SCM with a fixed choice of the parameters, and ``model family'' to a family of models
+indexed measurably by parameters. This contrasts with the terminology in statistics, where a family
+of distributions indexed measurably by parameters is called a ``statistical model''.} 
+\end{Def}
+One can also think about an SCM as describing an input/output system, with free inputs
+$\Sin$, random inputs $\Srnd$ with distribution $P$, outputs $\Send$ and input/output mechanism $f$.
+%Note that a statistical model can be seen as a special case of a SCM that only has exogenous random variables ($\Sin = \Send = \emptyset$).
+%A complementary subclass is formed by deterministic models without exogenous random variables ($\Srnd = \emptyset$). 
+Structural causal models can be regarded as a marriage of statistical models as traditionally used in statistics (a parameterized family of distributions) with deterministic causal models (deterministic input/output systems) that are used informally in disciplines like physics and engineering.
+
+\begin{Rem}
+There are three crucial assumptions embodied in the modeling approach using SCMs:
+\begin{enumerate}
+  \item The distinction between endogenous and exogenous variables: exogenous variables
+    (i.e., exogenous input variables, exogenous random variables, and exogenous parameters)
+    are \textbf{not caused} by endogenous variables, by assumption;
+  \item Exogenous random variables are \textbf{mutually independent}, and independent of the
+    exogenous input variables in the sense that their probability distribution does
+    not depend on the joint value of all exogenous input variables; however, we do
+    allow for ``dependencies'' between exogenous input variables;
+  \item Exogenous parameters are distinguished from exogenous random variables in that
+    the former describe ``population'' properties whereas the latter describe ``individual''
+    quantities.
+\end{enumerate}
+\end{Rem}
+
+\begin{Rem}
+  Not all types of variables need to be present. Rather than giving separate definitions for `degenerate' cases, we can stay in the formalism by defining what happens for empty label sets. For example, suppose the SCM is deterministic, i.e., $\Srnd = \emptyset$. Then $\CXW$ is an empty product (i.e., a product over 0 spaces), and by definition becomes a space $\Asterisk = \{\asterisk\}$ with a single element $\asterisk$, with the trivial sigma algebra $\{\emptyset,\{\asterisk\}\}$. The only possible probability distribution on such a space is the trivial distribution, i.e., $P(\{\asterisk\}) = 1$. Similarly, it often happens that there are no exogenous input variables (if $\Sin$ is empty).
+\end{Rem}
+
+\begin{Rem}
+Often the exogenous random variables are latent and thought of as ``noise''.
+However, since it may depend on the context whether a variable is observed or latent 
+(e.g., in a training data set, the prediction target is typically observed, whereas
+it is latent in a test data set), we will not formally incorporate into the model 
+any assumptions regarding which variables are observed and which are latent. 
+In this aspect, our exposition deviates from many accounts on SCMs in the literature.\footnote{For 
+example, \cite{Pearl09} assumes exogenous (random) variables to be latent, and
+endogenous variables to be observed.}
+%In other words: they have a probabilistic interpretation, but not a causal one.
+%Usually, the endogenous variables correspond with the variables in the system that we are
+%modeling. The model remains silent about the environment of the system.
+%The exogenous variables can be thought of as if they reside in the boundary between the
+%system and its environment: we model how they directly affect the system variables, 
+%and for exogenous random variables we model the distribution of their values,
+%but we do not model what determines the values of the exogenous variables since that
+%is assumed to be completely outside of the system.
+\end{Rem}
+
+\subsubsection{Potential Outcomes}
+
+An SCM defines \emph{structural equations}, which are used to define the \emph{potential outcomes} of the SCM.
+\begin{Def}[Potential outcomes, structural equations]\label{def:scm_solutions_for_inputs}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM
+  and $\xJ \in \CXJ$ an input value.
+  A random variable $X_{V \cup W}^{\doit(\xJ)}$ with codomain $\CXV \times \CXW$ is called
+  a \emph{potential outcome of $M$ for input $\xJ$} 
+  if the following two conditions hold:\footnote{Another notation for potential outcomes, commonly encountered in the literature, is $X_{V\cup W}(\xJ)$.}
+    \begin{enumerate}
+      \item its $\Srnd$-component has the exogenous distribution specified by $M$: 
+        $$\XW^{\doit(\xJ)} \sim P,$$
+      \item it satisfies the \emph{structural equations entailed by $M$ for input $\xJ$}:
+        \begin{equation}\label{eq:cscm_structural_equations}
+          \XV^{\doit(\xJ)} = f\big(\xJ, \XV^{\doit(\xJ)}, \XW^{\doit(\xJ)}\big) \text{ a.s.}.
+        \end{equation}
+    \end{enumerate}
+%  \footnote{Note that when considering two
+%  potential outcomes $X^{\doit(x_J)},X^{\doit(x_J')}$ of $M$ for different inputs $\xJ, \xJ'$
+%  we do \emph{not} necessarily assume that the two random variables
+%  $\XW^{\doit(x_J)}$ and $\XW^{\doit(x_J')}$ are the same; we only assume that they have the
+%  same distribution. This choice has been made to avoid introducing implicitly defined ``cross-world'' counterfactuals.
+%  In our opinion, it is better to explicitly introduce such these with the twinning construction, as will be
+%  described in Section \ref{sec:counterfactuals}, because this enforces one to think about which 
+%  variables are shared across potential worlds and which are copied (resampled).}
+  In case $J = \emptyset$ we also write $X_{V \cup W} := X_{V \cup W}^{\doit(\asterisk)}$ and refer to it simply as an \emph{outcome of $M$}.
+\end{Def}
+
+The SCM encodes the probability distributions of its (potential) outcomes.
+However, the structural equations \eref{eq:cscm_structural_equations} may have no solution or may have multiple different solutions.
+Therefore, even if a (potential) outcome exists (for a given input), it could be that its distribution is not uniquely determined by the SCM.
+\begin{Eg}
+Consider an SCM with parameters $\alpha,\beta \in \RN$, endogenous real-valued variables $X_1,X_2$, real-valued exogenous input $X_3$, and structural equations
+$$\begin{cases}
+  X_1^{\doit(x_3)} = \alpha X_2^{\doit(x_3)} & \\
+  X_2^{\doit(x_3)} = \beta X_1^{\doit(x_3)} + x_3. &
+\end{cases}$$
+  If $\alpha \beta = 1$, then $(X_1^{\doit(x_3=0)},X_2^{\doit(x_3=0)}) = (\alpha x,x)$ is a potential outcome for input $x_3=0$ for any value of $x\in\RN$. Any mixture of these potential outcomes is also a potential outcome for input  $x_3=0$.
+  If $\alpha \beta = 1$, then for input $x_3 \ne 0$, the SCM admits no potential outcomes.
+  If $\alpha \beta \ne 1$, then the potential outcomes are unique and given by
+  $(X_1^{\doit(x_3)},X_2^{\doit(x_3)}) = (\frac{\alpha x_3}{1 - \alpha\beta},\frac{x_3}{1 - \alpha\beta})$.
+\end{Eg}
+
+In practice, an SCM is often specified more informally by writing down the corresponding structural
+equations and by giving the exogenous distribution of $\XW$. 
+Any variables appearing
+on the r.h.s.\ of some structural equation that do not correspond with a structural equation for which
+that variable appears on the l.h.s., nor have a specified distribution, are then implicitly taken as
+exogenous inputs or parameters.
+\begin{Eg}[Linear regression model with fixed design for the effect in terms of its cause]
+  Assume that $Y = \alpha X + \beta + \epsilon$ with $Y \in \RN$ representing the effect, $X \in \RN$
+  the cause, $\epsilon \sim \C{N}(0,\sigma^2)$ independent normally distributed measurement noise, and
+  $\alpha,\beta,\sigma^2 \in \RN$ parameters.
+
+  This can be understood as the specification of an SCM
+  $M^{(\alpha,\beta,\sigma^2)} = \lt \Sin, \Send, \Srnd, \CX, P_{\sigma^2}, f_{\alpha,\beta} \rt$ 
+  with $\Sin = \{X\}$, $\Send = \{Y\}$, $\Srnd = \{\epsilon\}$, $\CX = \RN^3$, 
+  exogenous distribution $P_{\sigma^2}(X_\epsilon) = \C{N}(0,\sigma^2)$
+  and causal mechanism $f_{\alpha,\beta} : \RN^3 \to \RN : (x,y,\epsilon) \mapsto \alpha x + \beta + \epsilon$.
+
+  If $\epsilon \sim \C{N}(0,\sigma^2)$, then $(Y^{\doit(x)},\epsilon^{\doit(x)}) := (\alpha x + \beta + \epsilon, \epsilon)$ is
+  a potential outcome of $M$. 
+  If $\epsilon$ is latent (which is usually the case), we just refer to $Y^{\doit(x)}$ as the potential outcome.
+\end{Eg}
+
+\subsubsection{Solutions}
+
+The language of conditional random variables allows us to give a neat definition of the \emph{solution} of an SCM, which can also be thought of as a measurable family of (potential) outcomes with a shared underlying probability space.
+
+\begin{Def}[Solutions of an SCM]\label{def:scm_solutions}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+  Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable.
+  If its push-forward Markov kernel $K(X | \XJ)$ satisfies
+  $$K(X_W | \XJ) = P(X_W),$$
+  $$K(X_J | \XJ) = \delta(\XJ|\XJ)$$
+  and $X$ satisfies the \emph{structural equations}
+    \begin{equation}\label{eq:scm_structural_equations}
+      \XV = f(\XJ, \XV, \XW) \qquad \text{$K(X|\XJ)$-a.s.}.
+    \end{equation}
+  then $X$ is called a \emph{solution of $M$}.
+  Since the $X_J$ component is trivial, we also refer to the component 
+  $$X_{\Send\cup \Srnd} : \C{U} \times \CXJ \to \CX_{\Send \cup \Srnd}$$
+  as a solution of $M$.
+\end{Def}
+\begin{Rem}\label{def:scm_potential_outcome}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM and $X : \C{U} \times \CXJ \to \CX_{V\cup W}$ be a solution of $M$. 
+  Then for any $\xJ \in \CXJ$, 
+  $$X^{\doit(\xJ)}_{V\cup W} : \C{U} \to \CX_{V\cup W} : u \mapsto X(u,\xJ)$$ 
+  is a (potential) outcome of $M$ for input $\xJ$.
+\end{Rem}
+Not every SCM has solutions. Also, if they exist,
+solutions  are not necessarily unique, even if they have the same underlying transition probability space.
+\begin{Eg}\label{eg:not_every_scm_has_solutions}
+Consider an SCM with parameters $\alpha,\beta,\mu,\sigma \in \RN$, endogenous real-valued variables $X_1,X_2$, exogenous random real-valued variable $W_1$, structural equations
+$$\begin{cases}
+  X_1 = \alpha X_2 & \\
+  X_2 = \beta X_1 + W_1, &
+\end{cases}$$
+and exogenous distribution $\C{N}(\mu,\sigma^2)$.
+If $\alpha \beta = 1$, $\mu = 0$ and $\sigma^2=0$, then $(X_1,X_2,W_1) = (\alpha x,x,W_1)$ is a solution for any $x\in\RN$ and $W_1 \sim \C{N}(\mu,\sigma^2)$.
+Any mixture of those solutions is also a solution in that case.
+If $\alpha \beta = 1$ and $\mu \ne 0$ or $\sigma^2\ne 0$, then the SCM admits no solutions. 
+If $\alpha \beta \ne 1$, then all solutions $(X_1,X_2,W_1)$ satisfy $(X_1,X_2) = (\frac{\alpha W_1}{1 - \alpha\beta},\frac{W_1}{1 - \alpha\beta})$ a.s.\ and $W_1 \sim \C{N}(\mu,\sigma^2)$.
+\end{Eg}
+
+The following remark relates the terminology to the cases most often considered in the literature.
+\begin{Rem}\label{rem:scm_no_inputs_solutions}
+  If $\Sin = \emptyset$, a solution of an SCM can be identified with a random variable 
+  $X_{V \cup W}$ with codomain $\CXV \times \CXW$ such that $\XW \sim P$ and that
+  satisfies the structural equations:
+  \begin{equation}\label{eq:scm_structural_equations_componentwise}
+    X_v = f_v\big(\XV, \XW\big) \text{ a.s.}
+  \end{equation}
+  for each $v \in \Send$.
+\end{Rem}
+
+\subsubsection{Markov Kernels of Solutions}
+
+Each solution of an SCM ``has'' a Markov kernel (similarly to how each random variable has a distribution).
+\begin{Not}\label{def:scm_kernels}
+  Let conditional random variable $X : \C{U} \times \CXJ \to \CX$ on transition space $(\C{U} \times \CXJ, K(U|\XJ))$ be a solution of an SCM
+  $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+  Its push-forward 
+  $$P(X \mid \doit(X_J)) := K(X|\XJ) = X_* K(U|X_J)$$
+  is a Markov kernel $\CXJ \dshto \CX$ that we refer to as \emph{the Markov kernel of $M$ corresponding to $X$}.
+  Since the $J$-component is trivial, we also refer to its marginal $P(X_{V\cup W}\mid \doit(\XJ))$ as such.
+%  Furthermore, if only a subset $O \subseteq V \cup W$ is observed, we also refer to its marginal $P(X_O \mid \doit(X_J))$ as a Markov kernel of $M$.
+\end{Not}
+
+Not all solutions of an SCM may yield the same Markov kernel (see also Example~\ref{eg:not_every_scm_has_solutions}).
+Therefore, even if the SCM $M$ is specified, the notation ``$P(X \mid \doit(X_J))$'' is ambiguous, since it does not specify which solution the Markov kernel comes from. 
+Because we will mostly restrict attention to so-called `simple' SCMs for which the Markov kernel turns out to be unique, we will not worry about this.
+
+\begin{Rem}
+In case $J = \emptyset$, the Markov kernel $P(X \mid \doit(X_J))$ corresponding to a solution $X$ can be identified with its distribution $P(X)$, and one often refers to it as the \emph{distribution of $M$ corresponding to $X$}.
+\end{Rem}
+
+\subsubsection{Solution functions}
+We can construct solutions and (potential) outcomes in terms of solution functions of an SCM:
+\begin{Def}[Solution function of an SCM]\label{def:scm_solution_functions}\label{def:solution-function}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, we call a measurable function
+  $g : \CXJ \times \CXW \to \CXV$ a \emph{solution function of $M$} if 
+  for all $\xW\in\CXW$, for all $\xJ\in\CXJ$, $g(\xJ,\xW)$ satisfies the structural equations:\footnote{One can weaken this requirement by replacing the quantifiers by ``for all $\xJ\in\CXJ$, for $P$-almost all $\xW\in\CXW$'' but we will not do so here, as the additional generality of the resulting theory comes at the cost of more technicalities in most definitions and proofs.}
+%  for $P$-almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$:\footnote{NB: The ordering of the quantifiers matters here, i.e., ``for almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$'' is a stronger condition than ``for all $\xJ\in\CXJ$, for almost all $\xW\in\CXW$''. In any case, if a property holds for all $\xW\in\CXW$, then it also holds for $P$-almost all $\xW\in\CXW$ for any probability measure $P$ on $\CXW$.}
+  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big).$$
+\end{Def}
+\begin{Rem}\label{rem:using_solution_functions}
+  If $g$ is a solution function for SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$,
+  then for any random variable $\XW$ with codomain $\CXW$ and distribution $P$:
+  \begin{enumerate}
+    \item
+      $X_{V,W}^{\doit(\xJ)} := (g(\xJ, \XW),\XW)$ is a (potential) outcome for $M$ for input $\xJ\in\CXJ$;
+    \item
+      $X_{V,W} := (g(\XJ, \XW),\XW)$ is a solution of $M$;
+      %with underlying transition probability space $(\C{U} \times \CXJ, P(X_W))$;
+    \item its corresponding Markov kernel is the push-forward
+      $$(g,\id_{\CXW})_* (P \otimes \delta(X_J|X_J)).$$
+%      where 
+%      $$P(\XW \mid \doit(\XJ)) := P = \bigotimes_{w\in\Srnd} P(X_w) $$
+%      is the exogenous distribution of $M$ interpreted as constant Markov kernel.
+  \end{enumerate}
+\end{Rem}
+Not all (potential) outcomes, solutions and Markov kernels of an SCM can be obtained in this way. 
+For example, mixtures of solutions are also solutions, but not all mixtures can be obtained as the push-forward through a solution function.
+\begin{Eg}\label{eg:not_each_solution_from_push_forward}
+For an SCM with endogenous real variables $X_1,X_2$ and structural equations 
+$$\begin{cases}
+  X_1 &= X_2,\\
+  X_2 &= X_1^3,
+\end{cases}$$
+any real-valued random variable $Y$ for which $P(Y \in \{-1,0,1\}) = 1$
+provides a solution $(X_1,X_2) := (Y,Y)$. This includes all mixtures over the three
+possible states $(-1,-1)$, $(0,0)$, $(1,1)$, which form a two-dimensional convex
+space. However, it has only three solution functions (mapping $\asterisk$ to
+either $(-1,-1)$, $(0,0)$ or $(1,1)$).
+Therefore, only three solutions can be constructed from a solution function as in Remark~\ref{rem:using_solution_functions} (namely the extreme points of the convex space).
+\end{Eg}
+
+One can also use the solution function to sample from the corresponding Markov kernel of an SCM. 
+\begin{Rem}\label{rem:sampling_from_scm}
+  Given a solution function $g : \CXJ \times \CXW \to \CXV$ of an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$,
+  we can sample from its corresponding Markov kernel in the following way:
+\begin{enumerate}
+  \item Input $x_J$;
+  \item For $w \in W$: sample $x_w \sim P(X_w)$;
+  \item Calculate $x_{V} := g(x_J,x_W)$;
+  \item Output $(x_J,x_V,x_W)$.
+\end{enumerate}
+\end{Rem}
+We can think of this as modeling some data-generating process.
+If the SCM admits multiple solution functions, this sampler depends explicitly on the choice of the solution function.
+So one way to think about SCMs that admit multiple solution functions is that they are \emph{incomplete} models of a data-generating process.
+
+Let us now, as a more extensive example, formalize the chocolate-Nobel prize example discussed in Section~\ref{sec:chocolote-Nobel-prize} as different SCMs according to some of the causal hypotheses.
+\begin{Eg}\label{ex:scms_formal}
+   For a given country, consider two real-valued variables: annual chocolate consumption in kilograms per capita ($C$), and the number of Nobel prize winners per year per capita ($N$).
+  We can consider the following linear SCM families $M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^\theta, f^\theta \rt$. 
+  \begin{enumerate}
+    \item $N$ causes $C$: (``Nobel prizes are celebrated with massive chocolate feasts'')\\
+      $\Sin = \{N\}$, $\Send = \{C\}$, $\Srnd = \emptyset$, $\theta = (\alpha,\beta) \in \CX_{\Theta} := \RN^2$, 
+      $\C{X}_N = \RN$, $\C{X}_C = \RN$, $f^{\alpha,\beta} : (x_N,x_C) \mapsto \alpha + \beta x_N$.
+      It has structural equations
+      $$X_C^{\doit(x_N)} = \alpha + \beta x_N.$$
+      For a given parameter $\theta$, the SCM $M^{\theta}$ has 
+      a unique solution function, $g^{\alpha,\beta} : x_N \mapsto \alpha + \beta x_N$, and
+      unique potential outcomes of the form $X_C^{\doit(x_N)} = \alpha + \beta x_N$.
+    \item $C$ causes $N$: (``chocolate contains brain enhancing chemicals'')\\
+      $\Sin = \{C\}$, $\Send = \{N\}$, $\Srnd = \emptyset$, $\theta = (\gamma,\delta) \in \CX_\Theta := \RN^2$, 
+      $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\gamma,\delta} : (x_C,x_N) \mapsto \gamma + \delta x_C$.
+      It has structural equations
+      $$X_N^{\doit(x_C)} = \gamma + \delta x_C.$$
+      For a given parameter $\theta$, the SCM $M^{\theta}$ has 
+      a unique solution function, $g^{\gamma,\delta} : x_C \mapsto \gamma + \delta x_C$, and
+      unique potential outcomes of the form $X_N^{\doit(x_C)} = \gamma + \delta x_C$.
+    \item $W$ causes $C$ and $N$, version 1: (``inhabitants of wealthy countries eat more chocolate and conduct more scientific research'')\\
+      $\Sin = \{W\}$, $\Send = \{C,N\}$, $\Srnd = \emptyset$, $\theta = (\alpha,\beta,\gamma,\delta) \in \CX_\Theta := \RN^4$, 
+      $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\theta} : (x_W,x_C,x_N) \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$.
+      It has structural equations
+      \begin{align*}
+        X_C^{\doit(x_W)} & = \alpha + \beta x_W, \\
+        X_N^{\doit(x_W)} & = \gamma + \delta x_W.
+      \end{align*}
+      For a given parameter $\theta$, the SCM $M^{\theta}$ has 
+      unique solution function $g^\theta : x_W \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$
+      and it has unique potential outcomes of the form $X_{C,N}^{\doit(x_W)} = (\alpha + \beta x_W, \gamma + \delta x_W)$.
+    \item $W$ causes $C$ and $N$, version 2: (``similar to version 1, but now the probability distribution of wealth is modeled''):\\
+      $\Sin = \emptyset$, $\Send = \{C,N\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \CX_\Theta := \RN^4 \times [0,\infty)$, 
+      $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\theta} : (x_C,x_N,x_W) \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$, $P^{\theta} = \C{N}(0,\sigma^2)$.
+      It has structural  equations
+      \begin{align*}
+        X_C & = \alpha + \beta X_W, \\
+        X_N & = \gamma + \delta X_W.
+      \end{align*}
+      For a given parameter $\theta$, the SCM $M^{\theta}$ has 
+      unique solution function $g^\theta : x_W \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$ and
+      it has outcomes of the form $X_{C,N} = (\alpha + \beta X_W, \gamma + \delta X_W)$ for some random variable $X_W \sim \C{N}(0,\sigma^2)$.
+  \end{enumerate}
+\end{Eg}
+
+\subsection{Interventions}
+
+The reason that equations \eref{eq:cscm_structural_equations} are called \emph{structural} is that one cannot simply rewrite them in the way one is used to when solving a set of equations without changing the causal semantics of the model.
+This can be formalized by defining how interventions affect an SCM.
+
+In this section we define interventions as \emph{operations} on SCMs that map a given SCM and an intervention target (and optionally, an intervention value or distribution) to an intervened SCM. 
+The operation may change the variable types. 
+We will consider four intervention types: three variants of a hard intervention, and soft interventions. 
+The three hard intervention variants differ in what type of variables the intervened variables become: endogenous variables, exogenous random variables, or exogenous input variables.
+As there are many ways in the real world to intervene on (or ``to perturb'', or simply ``to change'') a given system, this is only the tip of an iceberg of how one could formalize such interventions.\footnote{We do not introduce node-splitting interventions for SCMs, as it is not entirely obvious to us how to do this in a sensible way; a possibility might be to generalize these to scc-splitting interventions.}
+
+\subsubsection{Hard interventions}
+
+We start with hard interventions that turn all intervened variables into
+endogenous variables with specified values, overriding
+the default causal mechanisms that determined their values before the
+intervention was performed.
+\begin{Def}[Hard intervention with specified target values]\label{def:scm_hard_intervention}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, an intervention target $T \subseteq \Sin \cup \Send \cup \Srnd$ 
+  and an intervention value $\xi_T \in \CXT$, we define the \emph{intervened SCM}
+  $$M_{\doit(\XT=\xi_T)} := \lt \Sin\setminus T,\Send \cup T,\Srnd \setminus T,\CX,P_{\Srnd\setminus T},(f_{\Send\setminus T},\xi_T) \rt.$$
+  More explicitly, the components of the intervened causal mechanism $\tilde{f} : \CX \to \CX_{\Send \cup T}$ are
+  given by:
+    $$\tilde{f_j}(x) = \begin{cases}
+      \xi_j & j \in T \\
+        f_j(x) & j \in V \setminus T,
+    \end{cases}$$
+  for $j \in \Send \cup T$, and the intervened exogenous distribution is obtained by marginalizing:
+  $$P_{\Srnd\setminus T} = \bigotimes_{w\in\Srnd\setminus T} P_w.$$
+\end{Def}
+This replaces the targeted exogenous variables by endogenous variables and adds structural equations
+to set their values as specified, replaces the existing structural equations of the form
+$X_j^{\doit(\xJ)} = f_j(\xJ,\XV^{\doit(\xJ)},\XW^{\doit(\xJ)})$ for $j \in T \cap \Send$ to structural equations of the simple form 
+$X_j^{\doit(x_{\Sin\setminus T})} = \xi_j$, and leaves the other structural equations invariant.
+This operation ``endogenizes'' exogenous input variables and exogenous random variables,
+reflecting that the intervened model now specifies their values as prescribed by the hard intervention.
+The values of the other endogenous variables are still determined by their original causal mechanisms.
+
+\begin{Eg}
+  A hard intervention $\doit(X_N=\xi_N)$ changes the SCM ``$W$ causes $C$ and $N$, version 2'' from Example~\ref{ex:scms_formal} into the SCM with
+  $\Sin = \emptyset$, $\Send = \{C,N\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $\tilde{f}_\theta : (x_C, x_N, x_W) \mapsto (\alpha + \beta x_W, \xi_N) \in \C{X}_C \times \C{X}_N$, $P_\theta = \C{N}(0,\sigma^2)$.
+  It has structural equations
+      \begin{align*}
+        X_C & = \alpha + \beta X_W, \\
+        X_N & = \xi_N.
+      \end{align*}
+%  For a given parameter $\theta$, its solution function is unique and given by $\tilde{g}_\theta : x_W \mapsto (\alpha + \beta x_W, \xi_N)$.
+%  Treating $W$ as latent, its Markov kernel is $P(X_C,X_N | \doit(X_N=\xi_N)) = \C{N}(X_C | \alpha,\beta^2\sigma^2) \otimes \delta(X_N | \xi_N)$.
+%  The marginal distribution of $X_C$ is unaffected by the intervention, whereas the marginal distribution of $X_N$ ``collapses'' on the point $\xi_N$.
+\end{Eg}
+
+Another common variant of hard interventions are stochastic hard interventions, where the intervention
+values are drawn independently from a specified (independent) distribution.
+\begin{Def}[Stochastic hard intervention]\label{def:scm_hard_intervention_stochastic}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, an intervention target $T \subseteq \Sin \cup \Send \cup \Srnd$ 
+  and an intervention target distribution $Q_T \in \bigotimes_{t\in T} \C{P}(\C{X}_t)$, we define the \emph{intervened SCM}
+  $$M_{\doit(\XT\sim Q_T)} := \lt \Sin\setminus T,\Send\setminus T,\Srnd \cup T,\CX,P_{\Srnd\setminus T} \otimes Q_T,f_{\Send\setminus T} \rt.$$
+  More explicitly, the intervened exogenous distribution is given by
+  $$P_{\Srnd\setminus T} \otimes Q_T = \left[\bigotimes_{w \in \Srnd\setminus T} P_w\right] \otimes \left[\bigotimes_{t \in T} Q_t\right].$$
+\end{Def}
+Intuitively, this assigns random values to the intervention target variables
+by sampling from an independent and factorizing intervention distribution $Q_T$, thereby
+turning the targeted variables into exogenous random variables.
+A hard intervention on an exogenous input variable turning it into an exogenous random variable
+can be interpreted as ``imposing a distribution'' on the exogenous input variable.
+For example, if treatment is considered an exogenous input variable (the model does not specify 
+how treatment is determined by the physician for each patient), and we then intervene to let 
+treatment be determined by a coin flip instead (when setting up an RCT),
+we are imposing a distribution on the treatment variable.
+\begin{Eg}
+  The SCM ``$W$ causes $C$ and $N$, version 2'' from Example~\ref{ex:scms_formal} is obtained from 
+  a stochastic intervention on the SCM ``$W$ causes $C$ and $N$, version 1'' from that example.
+\end{Eg}
+
+The third variant of hard interventions only specifies the intervention targets, but makes
+no assertions about the intervention values (not even their distribution).
+\begin{Def}[Hard intervention with unspecified value]\label{def:scm_hard_intervention_unspecified}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$
+  and an intervention target $T \subseteq \Sin \cup \Send \cup \Srnd$, we define the \emph{intervened SCM}
+  $$M_{\doit(T)} := \lt \Sin \cup T,\Send \setminus T,\Srnd \setminus T,\CX,P_{\Srnd\setminus T},f_{\Send\setminus T} \rt.$$
+\end{Def}
+Intuitively, this operation replaces endogenous variables and exogenous random variables with exogenous input variables.
+The intervened model no longer specifies the causal mechanisms that determine the values of these variables, 
+but instead treats them as exogenous inputs that are independent of the (remaining) exogenous random variables in the model. 
+This reflects that after this hard intervention, the values for
+these variables are no longer determined by the system, but are set externally (e.g., by the 
+experimenter performing the intervention) to values chosen independently of the values of the exogenous
+random variables, while the values of the other endogenous variables are still
+determined by their original causal mechanisms.
+\begin{Eg}
+  A hard intervention $\doit(N)$ changes the SCM ``$W$ causes $C$ and $N$, version 2'' from Example~\ref{ex:scms_formal} 
+  into the intervened SCM with:
+  $\Sin = \{N\}$, $\Send = \{C\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $\tilde{f}_\theta : (x_N, x_C, x_W) \mapsto \alpha + \beta x_W$, $P_\theta = \C{N}(0,\sigma^2)$.
+  It has structural equation
+  $$X_C^{\doit(x_N)} = \alpha + \beta X_W^{\doit(x_N)}.$$
+  For a given parameter $\theta$, its solution function is unique and given by $\tilde{g}_\theta : (x_N, x_W) \mapsto \alpha + \beta x_W$. 
+  It has potential outcomes of the form $X_C^{\doit(x_N)} = \alpha + \beta X^{\doit(x_N)}_W$ for some random variable $X_W^{\doit(x_N)} \sim \C{N}(0,\sigma^2)$. 
+\end{Eg}
+
+Summarizing, we have now seen three different ways of representing hard interventions, which are all `hard' in the sense that they completely override the default causal mechanisms of their endogenous targets, so that their values are no longer determined by those of other endogenous variables. 
+The three variants differ in how we decide to model the intervened variables: as exogenous inputs, as exogenous random variables, or as endogenous variables with a constant value.\footnote{Since most accounts on SCMs do not provide for the possibility of exogenous input variables, the two variants most often seen in the literature are the latter two.}
+
+\begin{Prp}\label{prp:hard_interventions_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+Hard interventions $\doit(T_1\dots)$, $\doit(T_2\dots)$ with disjoint targets $T_1, T_2 \subseteq \Sin \cup \Srnd \cup \Send$ (of any of the three variants) commute:
+  $$(M_{\doit(T_1\dots)})_{\doit(T_2\dots)} = (M_{\doit(T_2\dots)})_{\doit(T_1\dots)}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of
+  the operations performed on the various components of the SCM tuple one-by-one.
+\end{proof}
+
+%\subsubsection{Node-splitting interventions}
+
+%We make two copies of $T \subseteq V$, $T^o$ and $T^i$.
+%\begin{Def}[Node-splitting hard intervention]\label{def:scm_hard_intervention_splitting}
+%  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$
+%  and an intervention target $T \subseteq \Srnd$, we define the \emph{intervened SCM}
+%  $$M_{\doit(T^{io})} := \lt \Sin \cup T^i,\Send \setminus T \cup T^o,\Srnd,\tilde{\CX},P,\tilde{f} \rt$$
+%  with
+%  $$\tilde{\CX} := $$
+%  $$\tilde{f} := $$
+%\end{Def}
+
+\subsubsection{Soft interventions (mechanism changes)}
+
+Soft interventions replace the causal mechanism of an endogenous variable by another causal mechanism (also known as mechanism changes),
+or the exogenous distribution of an exogenous random variable by another distribution.
+
+\begin{Def}[Soft intervention]\label{def:scm_soft_intervention}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$
+  and an intervention target $T \subseteq \Send \cup \Srnd$, a \emph{soft intervention on $M$ targeting $T$}
+  yields an intervened SCM of the form
+  $$\tilde{M} := \lt \Sin,\Send,\Srnd,\CX,\tilde{P},\tilde{f} \rt$$
+  where
+  $$\tilde{P} = \lp\bigotimes_{w \in \Srnd \sm T} P_w \rp \otimes \lp \bigotimes_{w \in T \cap \Srnd} \tilde{P}_w \rp$$
+  and
+  $$\tilde{f}(x) = \begin{cases} 
+      f_v(x) & v \in \Send\sm T \\
+      \tilde{f}_v(x) & v \in T \cap \Send \\
+  \end{cases}$$
+  for some distributions $\tilde{P}_w \in \C{P}(\CX_w)$ and measurable functions $\tilde{f}_v : \CX \to \CX_v$.
+\end{Def}
+
+\subsubsection{Intervention variables}
+
+It is often convenient to combine an SCM and one or more intervened versions of the SCM together in a single SCM.
+This can be done by introducing \emph{intervention variables} that indicate whether, and possibly encode how, an intervention is performed.
+
+We give no rigorous definition---deciding on how to make use of intervention variables is a modeling issue---but provide a brief discussion.
+
+Often, intervention variables can be considered as exogenous. 
+For instance, if their values (which intervention is performed, and how) are determined earlier in time than the values of all endogenous variables, then the endogenous variables cannot cause the intervention variables. 
+An example is a scientific experiment in which the experimenter prepares the system in some experimental condition before performing measurements. 
+This experimental condition then cannot be influenced by the measured state of the system.  
+A concrete instance of such an intervention variable is the coin flip that determines whether a subject enters the treatment or control group in a randomized controlled trial.  
+%However, if a doctor prescribes a certain treatment based on the state of the patient determined through a diagnosis, then the treatment variable is influenced by the patient's state and should therefore not be considered to be exogenous with respect to the patient's state that was measured before the treatment is prescribed.
+
+There is no need for an intervention variable to be binary or discrete.
+An example of a continuous intervention variable is the dose of the drug used for treatment.
+The dose of a drug used for treatment often quantitatively affects the outcome. 
+However, if there is no explicit and careful randomization, one cannot always assume that there is no common cause of dose and response. 
+For example, if physicians decide to not treat patients with terminal cancer because of the strong side effects of the treatment, then the stage of the cancer is a common cause of dose and response.
+
+Therefore, for intervention variables (like for any other variable that is modeled) one needs to take care to decide whether they
+are modeled as exogenous input variables, exogenous random variables, or endogenous variables.
+
+\subsection{Node splitting}
+\Joris{This is experimental! In particular, it isn't clear to me how to do this in cyclic SCMs.
+My guess would be that we'll end up ``scc splitting''. That would give an intuitive interpretation: we wait until the
+first copy has equilibrated, then we may intervene on some variable in the scc, then we wait again until it has equilibrated.}
+
+One versatile modeling tool for SCMs is the ``node splitting'' operation.
+\begin{Def}
+Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+We define the SCM $M_{\splt{w}}$ for $w \in \Srnd$ as
+$M_{\splt(w)} := \lt \Sin \cup \{w'\}, \Send, \Srnd, \CX', P, f' \rt$
+where $\CX' := \CX \times \CX_{w'}$ with $\CX_{w'} := \CX_w$, 
+  $$f_v'(x_J,x_{W\sm w},x_V) := \begin{cases}
+    f_v(x_J,x_W,x_V) & v \in V \\
+    x_w & v = w'
+  \end{cases}
+  $$
+\end{Def}
+In words, we add an endogenous copy of $w$.
+
+We can do the same to split an endogenous variable $v$ (as long as it is not part of a cycle).
+
+\subsection{Composition and decomposition}
+
+If we think about an SCM as modeling a ``system'', then we also obtain a model for any ``subsystem'' in the following way.
+\begin{Def}[Taking a submodel of an SCM]\label{def:sub_scm}
+  Given an SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and a subset $V' \subseteq V$ of its endogenous variables, we define its \emph{submodel on $V'$} as the SCM
+  $$M^{[V']} := \lt \Sin \cup (V \sm V'), V', W,\CX,P,f_{V'} \rt.$$
+\end{Def}
+\begin{Rem}
+  Note that this is just the intervened SCM $M_{\doit(V \sm V')}$.
+\end{Rem}
+
+Given two SCMs, such that some of the variables of one SCM can be used as (part of the) exogenous input of the other, and possibly vice versa, we can compose them into a single SCM.\footnote{In practice, one may have to relabel the variables first before one can perform this composition operation, by changing the index sets of the SCMs to ensure that the right variables become coupled.}
+\begin{Def}[Composing two SCMs]\label{def:compose_scm}
+  Given two SCMs $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and $\tilde M = \lt \tilde \Sin, \tilde \Send, \tilde \Srnd, \tilde \CX, \tilde P, \tilde f \rt$ and two subsets $C \subseteq \Sin \cap (\tilde \Send \cup \tilde \Srnd)$ and $\tilde C \subseteq (\Send \cup \Srnd) \cap \tilde \Sin$ satisfying the following conditions:
+  \begin{enumerate}
+    \item for all $c \in C$, $(\CX)_c = (\tilde \CX)_c$,
+    \item for all $c \in \tilde C$, $(\CX)_c = (\tilde \CX)_c$,
+    \item $(\Sin \sm C) \cap (\tilde \Sin \sm \tilde C) = \emptyset$,
+    \item $\Send \cap \tilde \Send = \emptyset$,
+    \item $\Srnd \cap \tilde \Srnd = \emptyset$,
+  \end{enumerate}
+  we define the \emph{composed SCM}
+  $$\compose(M,C,\tilde{M},\tilde{C}) := \lt (\Sin \sm C) \dcup (\tilde \Sin \sm \tilde C), \Send \dcup \tilde \Send, \Srnd \dcup \tilde \Srnd, \CX^\circ, P^\circ, f^\circ \rt,$$
+  where
+  \begin{align*}
+    \CX^\circ &:= \CX_{(\Sin \sm C) \dcup \Send \dcup \Srnd} \times (\tilde \CX)_{(\tilde \Sin \sm \tilde C) \dcup \tilde \Send \dcup \tilde \Srnd}, \\
+    P^\circ &:= P \otimes \tilde P, \\
+    f^\circ &:= (f, \tilde f).
+  \end{align*}
+  The special case $C = \emptyset$ will also be denoted as $\tilde M \circ M$, and likewise the special case $\tilde C = \emptyset$ will be denoted as $M \circ \tilde M$.
+\end{Def}
+\begin{comment}
+The composed SCM can again be decomposed into its composite submodels.
+\begin{Prp}\label{prp:decomposing_composed_scms}
+  Let the setting be as in Definition~\ref{def:compose_scm}. Then $(\compose(M,C,\tilde{M},\tilde{C}))^{[V \dcup W]} = M$ and $(\compose(M,C,\tilde{M},\tilde{C}))^{[\tilde V \dcup \tilde W]} = \tilde M$.
+\end{Prp}
+\begin{proof}
+  It is not quite correct. Instead, additional isolated input nodes remain:
+%  $$M_{12} := \lt (\Sin_1 \sm C_1) \dcup (\Sin_2 \sm C_2), \Send_1 \dcup \Send_2, \Srnd_1 \dcup \Srnd_2, \CX_{12}, P_{12} \rt,$$
+  $$(\compose(M,C,\tilde{M},\tilde{C}))_{[V \dcup W]} := \lt \Sin \cup \tilde V \cup \tilde W, V, W,\CX,P,f \rt.$$
+  This means that composition followed by decomposition is interventionally equivalent to the original SCM.
+\end{proof}
+\end{comment}
+One can consider the decomposition (taking submodels) as `dual to' the composition (combining submodels).
+These operations formalize the notion of \emph{modularity}, that is, an SCM can be thought of modeling a system consisting of interacting components by modeling for each component separately how it interacts with the other components.
+The submodels on individual variables correspond with `atomic' subsystems that cannot be (or won't be) decomposed into smaller parts.

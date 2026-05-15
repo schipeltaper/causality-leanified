@@ -1,0 +1,166 @@
+\usepackage{fullpage}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage[svgnames]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xr}
+\externaldocument{../lecture_notes/main}
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=28mm,
+  right=28mm,
+  top=28mm,
+}
+\usepackage{tikz}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{fancyhdr}
+\usetikzlibrary{automata, positioning}
+\usepackage[explicit]{titlesec}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsopn}
+\usepackage{enumerate}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{cancel}
+\usepackage{bbm}
+\usepackage{enumitem}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  %    citecolor=black,
+  %    filecolor=black,
+  linkcolor=blue,
+  %    urlcolor=black,
+  pdfpagemode=UseOutlines
+}
+
+%-------------theorem envirionments --  abbreviations ------------------
+
+\input{../lecture_notes/thm}
+\input{../lecture_notes/shorts}
+\input{../lecture_notes/shortsjoris}
+\usetikzlibrary{arrows,arrows.meta,calc,fit}
+\usetikzlibrary{positioning,patterns,matrix}
+\usetikzlibrary{decorations.markings,decorations.pathreplacing,decorations.pathmorphing}
+\usetikzlibrary{shapes,shapes.arrows,shapes.geometric,shapes.multipart}
+
+\tikzstyle{var}=[circle,draw,fill=white,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varh}=[circle,draw,fill=gray!10,thick,minimum size=20pt,inner sep=0pt,dotted]
+\tikzstyle{arr}=[->,>=stealth',draw,thick]
+\tikzstyle{arrh}=[->,>=stealth',draw,fill=gray,thick,dotted]
+\tikzstyle{biarr}=[<->,>=stealth',draw,fill=black,thick]
+\tikzstyle{fac}=[rectangle,draw=black!50,fill=black!20,thick,minimum size=10pt] %or 15pt
+\tikzstyle{vari}=[circle,draw=white,fill=red,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{car} = [style={o->,>=Latex,thick,purple}]
+\tikzstyle{carc} = [style={o-o,>=Latex,thick,purple}]
+\tikzstyle{ndint} = [draw, line width=1pt, color=teal, shape=rectangle, minimum size=20pt,inner sep=0pt, text=black]
+\tikzstyle{ndout} = [draw, line width=1pt, shape=circle, color=blue, minimum size=20pt,inner sep=0pt, text=black]
+\tikzstyle{ndlat} = [draw, line width=1pt, shape=circle, color=red, minimum size=20pt,inner sep=0pt, text=black]
+\tikzstyle{arint} = [style={->,>=Latex,thick,teal}]
+\tikzstyle{arout} = [style={->,>=Latex,thick,blue}]
+\tikzstyle{arlout} = [style={->,>=Latex,thick,red}]
+\tikzstyle{arlat} = [style={<->,>=Latex,thick,red}]
+
+%--------------Renumbering of sections, chapters, subsections----------------
+\usepackage{chngcntr}
+
+\usepackage{titlesec}
+\titleformat{\section}
+{\normalfont\normalsize\bfseries}{\thesection.}{1em}{#1}
+\titleformat{\subsection}
+{\normalfont\normalsize\bfseries}{\thesubsection.}{1em}{#1}
+
+% Solutions to exercises (toggling)
+\definecolor{deepcarrotorange}{rgb}{0.91, 0.41, 0.17}
+\usepackage{environ}
+\newif\ifgradedsolutions
+\newif\ifungradedsolutions
+\NewEnviron{gradedsolution}{%
+  \ifgradedsolutions
+    \color{red}%
+    \begin{flushleft}%
+      \textbf{Solution}
+    \end{flushleft}%
+    \expandafter%
+    \begin{flushleft}%
+      \BODY%
+    \end{flushleft}%
+  \fi}
+\newcommand{\points}[1]{\textbf{(#1 points)}}
+
+\NewEnviron{ungradedsolution}{%
+  \ifungradedsolutions
+    \color{deepcarrotorange}
+    \begin{flushleft}%
+      \textbf{Solution}
+    \end{flushleft}%
+    \expandafter%
+    \begin{flushleft}%
+      \BODY%
+    \end{flushleft}%
+  \fi}
+
+\newif\ifsolutions
+\NewEnviron{gradingremarks}{%
+  \ifgradedsolutions
+    \color{red}
+    \begin{flushleft}%
+      \textbf{Grading Remarks}
+    \end{flushleft}%
+    \expandafter%
+    \begin{flushleft}%
+      \BODY%
+    \end{flushleft}%
+  \fi}
+
+\IfFileExists{showsolutions.tmpfile}{%
+  \solutionstrue
+}{%
+  \solutionsfalse
+}
+
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0mm} % remove line under header
+\setlength{\headheight}{14pt}
+\lhead{{Causality}}
+\rhead{Page \thepage \hspace{1pt} of \pageref*{LastPage}}
+\setlength{\headsep}{20pt}
+
+\usepackage{subcaption}
+
+\usepackage{listings}
+\lstset{language=R,
+  frame=tb,
+  basicstyle=\small\ttfamily,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\tiny\color{gray},
+  commentstyle=\color{DarkGreen},
+  stringstyle=\color{DarkGreen},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2
+}

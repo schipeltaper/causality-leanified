@@ -1,0 +1,1039 @@
+\section{Maximal Ancestral Graphs}
+\newcommand\NewEFCI[1]{{\color{orange}NewEFCI: #1}}
+
+While the CDMG is already an abstraction of an SCM, we may wish to abstract the representation even further.
+This will be especially useful for formulating constraint-based causal discovery.
+A particular more abstract graphical representation that has seen much attention are \emph{maximal ancestral graphs (MAGs)} \cite{SMR1999,RichardsonSpirtes02}.
+In order to deal with possible cycles (in simple SCMs), selection bias and exogenous input nodes, we extend the definition to what we will call $\sigma$-iMAGs.
+
+\subsection{Additional graph terminology}
+
+In this chapter, we will consider certain mixed graphs.
+These mixed graphs can have two node types, where the default is `output' nodes, and optionally there can be `input' nodes (analogously to CDMGs).
+The mixed graphs can have multiple edge types;
+In addition to the three edge types for CDMGs ($\tuh$, $\hut$, $\huh$), there can be undirected edges ($\tut$).
+Formally, we no longer introduce separate sets to represent the edges of each type, but merge them into the single set $E$.\footnote{So formally, every edge in $E$ is a tuple $(v_1,v_2,t)$ that consists of a pair of nodes $(v_1,v_2)$ and an edge type $t$, which is one of the four possibilities $\tuh$, $\hut$, $\huh$, $\tut$. We identify $(v_1,v_2,\tuh)\equiv (v_2,v_1,\hut)$, $(v_1,v_2,\tut)\equiv (v_2,v_1,\tut)$, $(v_1,v_2,\huh)\equiv (v_2,v_1,\huh)$.}
+%Hence, a mixed graph is formally a tuple consisting of a set of nodes $V$ and a set of edges $E$ where each pair of nodes $(v_1,v_2)$ can be connected by a subset of the four edge types, i.e., $v_1 \tuh v_2$ and/or $v_1 \hut v_2$ and/or $v_1 \huh v_2$ and/or $v_1 \tut v_2$.}
+Each edge $i \sus j$ has two \emph{edge marks}, one at each node, with each edge mark either a \emph{tail} or an \emph{arrowhead}. 
+For example, the directed edge $i \tuh j$ has a tail at $i$ and an arrowhead at $j$, while the undirected edge $i \tut j$ has two tail edge marks.
+All four possible combinations of edge marks can occur on an edge in a mixed graph. 
+We will make use of the `$\asterisk$' symbol to denote any of the two edge marks. 
+So the notation $i \sus j$ can stand for all four possible edge types between $i$ and $j$, whereas $i \hus j$ is shorthand for two possible edge types, as is $i \tus j$.
+Edges of the form $i \hus j$ and $j \suh i$ are called \emph{into $i$}. 
+Edges of the form $i \tus j$ and $j \sut i$ are called \emph{out of $i$}.
+
+We extend various definitions of (directed) walks, (directed) paths and colliders to cover these new edge types in mixed graphs.
+%\begin{Def}\label{def:mixed_graph_terminology}
+%  Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.\footnote{Formally, we no longer introduce separate sets to represent the edges of each type, but merge them into the single set $E$.}
+%  Let $v,w \in V \cup J$.
+%  \begin{enumerate}
+%    \item If there is an edge $v \sus w$ between $v$ and $w$ (of any type), we call $v$ and $w$ \emph{adjacent} in $H$.
+%    \item Define $\Adj_H(v)$ to be the nodes adjacent to $v$ in $H$.
+%    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ form a \emph{triangle} if each pair of nodes in the triple is adjacent in $H$.
+%    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ is called \emph{unshielded} if $b$ is adjacent to both $a$ and $c$ in $H$, but $a$ is not adjacent to $c$ in $H$.
+%    \item A \emph{walk between $v$ and $w$} in $H$ is a finite alternating sequence of nodes and edges 
+%        \[v=v_0, a_0, v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+%        in $H$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+%        we have that $v_{k},v_{k+1} \in V \cup J$ and $a_k = v_k \sus v_{k+1} \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+%    \item A walk is called a \emph{path} if no node occurs more than once on the walk.
+%    \item A \emph{directed walk} (path) from $v$ to $w$ in $H$ is a walk (path) of the form:
+%        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+%        for some $n \ge 0$.
+%    \item A \emph{directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with the directed edge $w \tuh v$.
+%    \item An \emph{almost directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with the bidirected edge $w \huh v$.
+%    \item A path $v_0 \sus \dots \sus v_n$ in $H$ is called \emph{uncovered} if every subsequent triple $\lt v_{k-1}, v_k, v_{k+1} \rt$ for $1 < k < n$ is unshielded.
+%    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called \emph{collider} if it is of the form $v_{k-1} \suh v_k \hus v_{k+1}$.
+%    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called a \emph{non-collider} if it is of the form $v_{k-1} \sus v_k \tus v_{k+1}$ or $v_{k-1} \sut v_k \sus v_{k+1}$.  Furthermore, we also refer to the end nodes $v_0$ and $v_n$ of a walk between $v_0$ and $v_n$ in $H$ as \emph{non-colliders}.
+%    \item A path between $v$ and $w$ in $H$ is called a \emph{collider path} if every non-endpoint node on the path is a collider on the path.
+%    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$v$ is ancestor of $w$ in $H$}, and we write $v \in \Anc_H(w)$. For $W \subseteq V \cup J$, we define $\Anc_H(W) := \bigcup_{w\in W} \Anc_H(w)$.
+%    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$w$ is descendant of $v$ in $H$}, and we write $w \in \Desc_H(v)$. For $W \subseteq V \cup J$, we define $\Desc_H(W) := \bigcup_{w\in W} \Desc_H(w)$.
+%    \item A walk between $v,w \in V \cup J$ (with $v \ne w$) in $H$ is called \emph{inducing} if every non-endpoint node is a collider in $\Anc_H(\{v,w\})$.
+%    \item If $v \tut w$ in $H$ then $v,w$ are called \emph{neighbors} in $H$.
+%    \item The set of neighbors of a node $v$ in $H$ is denoted $\Nb^H(v) := \{w : v \tut w \in H\}$ and called the \emph{neighborhood of $v$}; 
+%      for a subset $A$ of nodes in $H$, we define $\Nb^H(A) := \bigcup_{v \in A} \Nb^H(v)$.
+%      If for each pair $w_1,w_2 \in \Nb^H(v)$ there is an edge $w_1 \tut w_2$ in $H$ provided $w_1 \ne w_2$, we say that the neighborhood of $v$ is \emph{complete}.
+%  \end{enumerate}
+%\end{Def}
+\begin{Def}\label{def:mixed_graph_terminology_adjacency}
+  \Joris{These are literally the same for PAGs.}
+  Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  %Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.
+  Let $v,w \in V \cup J$.
+  \begin{enumerate}
+    \item If there is an edge $v \sus w$ between $v$ and $w$ (of any type), we call $v$ and $w$ \emph{adjacent} in $H$.
+    \item Define $\Adj_H(v)$ to be the nodes adjacent to $v$ in $H$.
+    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ form a \emph{triangle} if each pair of nodes in the triple is adjacent in $H$.
+    \item A triple of distinct nodes $\lt a,b,c \rt$ in $H$ is called \emph{unshielded} if $b$ is adjacent to both $a$ and $c$ in $H$, but $a$ is not adjacent to $c$ in $H$.
+    \item A \emph{walk between $v$ and $w$} in $H$ is a finite alternating sequence of nodes and edges 
+        \[v=v_0, a_0, v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+        in $H$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+        we have that $v_{k},v_{k+1} \in V \cup J$ and $a_k = v_k \sus v_{k+1} \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+    \item A walk is called a \emph{path} if no node occurs more than once on the walk.
+    \item A path $v_0 \sus \dots \sus v_n$ in $H$ is called \emph{uncovered} if every subsequent triple $\lt v_{k-1}, v_k, v_{k+1} \rt$ for $1 < k < n$ is unshielded.
+  \end{enumerate}
+\end{Def}
+\begin{Def}\label{def:mixed_graph_terminology_orientations}
+  \Joris{These translate into `definite' and `possible' notions in PAGs.}
+  Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  Let $v,w \in V \cup J$.
+  \begin{enumerate}
+    \item A \emph{directed walk} (path) from $v$ to $w$ in $H$ is a walk (path) of the form:
+        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        for some $n \ge 0$.
+    \item A \emph{directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with the directed edge $w \tuh v$.
+    \item An \emph{almost directed cycle} is a directed walk $v \tuh \dots \tuh w$, concatenated with the bidirected edge $w \huh v$.
+    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$v$ is ancestor of $w$ in $H$}, and we write $v \in \Anc_H(w)$. For $W \subseteq V \cup J$, we define $\Anc_H(W) := \bigcup_{w\in W} \Anc_H(w)$.
+    \item If there is a directed walk from $v$ to $w$ in $H$ then we say that \emph{$w$ is descendant of $v$ in $H$}, and we write $w \in \Desc_H(v)$. For $W \subseteq V \cup J$, we define $\Desc_H(W) := \bigcup_{w\in W} \Desc_H(w)$.
+    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called \emph{collider} if it is of the form $v_{k-1} \suh v_k \hus v_{k+1}$.
+    \item A triple of consecutive nodes $v_{k-1} \sus v_k \sus v_{k+1}$ on a walk in $H$ is called a \emph{non-collider} if it is of the form $v_{k-1} \sus v_k \tus v_{k+1}$ or $v_{k-1} \sut v_k \sus v_{k+1}$. 
+      Furthermore, we also refer to the end nodes $v_0$ and $v_n$ of a walk between $v_0$ and $v_n$ in $H$ as \emph{non-colliders}.
+    \item A path between $v$ and $w$ in $H$ is called a \emph{collider path} if every non-endpoint node on the path is a collider on the path.
+    \item A walk between $v,w \in V \cup J$ (with $v \ne w$) in $H$ is called \emph{inducing} if every non-endpoint node is a collider in $\Anc_H(\{v,w\})$.
+  \end{enumerate}
+  \Joris{Some recently added ones:}
+  \begin{enumerate}
+    \item If $v \tut w$ in $H$ then $v,w$ are called \emph{neighbors} in $H$.
+    \item The set of neighbors of a node $v$ in $H$ is denoted $\Nb^H(v) := \{w : v \tut w \in H\}$ and called the \emph{neighborhood of $v$}; 
+      for a subset $A$ of nodes in $H$, we define $\Nb^H(A) := \bigcup_{v \in A} \Nb^H(v)$.
+      If for each pair $w_1,w_2 \in \Nb^H(v)$ there is an edge $w_1 \tut w_2$ in $H$ provided $w_1 \ne w_2$, we say that the neighborhood of $v$ is \emph{complete}.
+    \item An \emph{anterior walk} (path) from $v$ to $w$ in $H$ is a walk (path) of the form:
+        \[v=v_0 \tus v_1 \tus \cdots \tus v_{n-1} \tus v_n=w,\]
+        for some $n \ge 0$.
+    \item If there exists an anterior walk from $v$ to $w$ in $H$ then we say that \emph{$v$ is anterior to $w$ in $H$}, and we write $v \in \Ant^H(w)$. For $W \subseteq V \cup J$, we define $\Ant^H(W) := \bigcup_{w\in W} \Ant^H(w)$.
+  \end{enumerate}
+\end{Def}
+
+\subsection{Acyclic setting}
+
+MAGs were introduced in \cite{RichardsonSpirtes02}; we have slightly modified the definition to allow for input nodes, and refer to these objects as `iMAGs' to avoid possible confusion with MAGs.
+\begin{Def}\label{def:imag}
+  A mixed graph $H = \lt J,V,E\rt$ with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$ is called a \emph{maximal ancestral graph with input nodes (iMAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+    \item The pattern $a \suh b \tut c$ (an edge into an undirected edge) does not occur in $H$;
+    \item If $H$ contains an anterior path $a \tus \dots \tus b$ (for $a \ne b$) then it does not contain an edge $a \hus b$; (`ancestral');
+    \item There is no inducing path between any two distinct non-adjacent nodes (`maximal');
+    \item Only undirected edges are allowed between pairs of input nodes (if $j_1,j_2 \in J$ are adjacent in $H$, then $j_1 \tut j_2$ in $H$); 
+      furthermore, an edge between an input node $j \in J$ and an output node $v \in V$ must be of the form $j \tus v$.
+  \end{enumerate}
+  We call it a \emph{maximal ancestral graph (MAG)} if it has no input nodes (i.e., $J=\emptyset$).
+\end{Def}
+\Joris{Note that alternatively, we might reorganize this definition by first defining MAGs (without inputs), and then defining
+an iMAG as a MAG with nodes $J \dcup V$ such that the last item in Definition~\ref{def:imag} holds (in addition to the other 
+points, which don't distinguish between the two node types and hold when thinking about the iMAG just as a MAG). This would
+show very clearly that all properties that hold for MAGs are automatically true for iMAGs, but iMAGs have
+some additional constraints regarding the distinction of input/output nodes. In other words, iMAGs behave like MAGs when
+ignoring the difference between input/output nodes, but have some additional properties that concern the differences of the two nodes types.}
+We use iMAGs to represent sets of CADMGs in the following sense.
+\begin{Def}\label{def:imag_represents_cadmg}
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  We say that \emph{$H$ represents $G$ given $S$} if all of the following hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes in $H$ there is at most one edge, and there are no edges between a node and itself;
+    \item Two distinct nodes $i,j \in V \cup J$ are adjacent in $H$ if and only if there is a inducing path between $i$ and $j$ given $S$ in $G$;
+    \item If $i \hus j$ in $H$ then $i \notin \Anc_{G}(\{j\} \cup S)$;
+    \item If $i \tus j$ in $H$ then $i \in \Anc_{G}(\{j\} \cup S)$.
+  \end{enumerate}
+\end{Def}
+If input nodes are absent ($J=\emptyset$) this specializes to how MAGs represent ADMGs.
+We conjecture that the abstract Definition~\ref{def:imag} provides an axiomatic characterization of the class of mixed graphs that represent a CADMG:
+\begin{Con}\label{con:imags_represent_cadmgs}
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  The following equivalence holds:  
+  $H$ is an iMAG $\iff$ there exists a CADMG $G$ with input nodes $J$ and output nodes $V^+ = V \dcup S$ such that $H$ is a mixed graph that represents $G$ given $S$.
+\end{Con}
+\begin{proof}
+  \Joris{I don't remember having seen a proof for this statement for the case $J=\emptyset$, but it must be true because that's precisely how MAGs are used to represent ADMGs and what must have inspired the axiomatic definition of MAGs in the first place.
+
+  The next bit considers what happens in case $J\ne \emptyset$:
+
+  If $H$ represents $G$ given $S$ then if there is an edge between input nodes $j_1, j_2$ then there must be a $d$-inducing path in $G$ between $i$ and $j$ given $S$.
+  Every non-endpoint node must be a collider that is ancestor of $S$ (because it cannot be ancestor of $j_1$ or $j_2$ by assumption of the class of CADMGs).
+  It must have at least one collider because otherwise $j_1,j_2$ would be adjacent in the CADMG.
+  Hence, on that path, $j_1$ must be ancestor of $S$, and $j_2$ must be ancestor of $S$. 
+  Hence we end up with an undirected edge between $j_1$ and $j_2$ in $H$!
+  Can we ever end up with an arrowhead at $j$ in $H$?
+  Not on an edge connecting it with another input node as we have just seen.
+  So consider an edge $j \sus v$ in $H$.
+  There must be a $d$-inducing path between $j$ and $v$ given $S$ in $G$ of the form $j \tuh ... \sus v$.
+  This path either continues as a directed path the whole way (in which case $j$ is ancestor of $v$ in $G$) or it must meet a collider in between.
+  The collider must be ancestor of $v \cup S$.
+  Hence $j$ must be ancestor of $v \cup S$.
+  Hence we must have a tail $j \tus v$ in $H$.
+  So this together gives one direction of the equivalence.
+  The other still needs to be written down (by explicit construction of such a $G$).}
+\end{proof}
+
+\subsection{Abstract definition of $\sigma$-iMAGs}
+
+We will now consider the cyclic setting so that we can represent CDMGs corresponding to simple SCMs.
+This combines three extensions of the usual definition of MAG: we allow for input nodes, 
+there can now be edges into undirected edges (under certain conditions), and we have weakened the 
+condition of being ancestral to $\sigma$-ancestral.
+\begin{Def}\label{def:sigmaimag}
+  A mixed graph $H = \lt J,V,E\rt$ with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$ is called a \emph{$\sigma$-maximal ancestral graph with input nodes ($\sigma$-iMAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+    \item If $H$ contains an anterior path $a \tus \dots \tus b$ (for $a \ne b$) then it does not contain an edge $a \hus b$; (`ancestral');
+    \item $H$ is `$\sigma$-maximal':
+      \begin{enumerate}
+        \item There is no inducing path between any two distinct non-adjacent nodes (`maximal'), and
+        \item If $a \suh b \tut c$ is in $H$ then $a$ and $c$ must be adjacent in $H$;
+          if furthermore $b \tut d$ is in $H$ then $b$ and $d$ must also be adjacent in $H$ (`$\sigma$-complete').
+          \Joris{This somewhat weird looking axiom might be due to our definition of `inducing path'; perhaps if 
+          we were to also consider $a \suh b \tut c$ to be inducing paths we could drop this second point 
+          because it would already be implied by the first one (`maximal'); however, the notion of `inducing path'
+          needs to satisfy various other `natural' properties as well, so if one starts to extend the definition
+          to also consider $a \suh b \tut c$ one should think which other paths should then also be considered
+          inducing in order to preserve/obtain the nice properties. Essentially the goal should be to find the
+          `right' definition of inducing path that leads to the simplest proofs overall... This might actually
+          also involve redefining the notion of $\sigma$-inducing path to make the two notions nicely compatible...
+          it's not clear currently whether this would bring any advantages}
+      \end{enumerate}
+    \item Only undirected edges are allowed between pairs of input nodes (if $j_1,j_2 \in J$ are adjacent in $H$, then $j_1 \tut j_2$ in $H$); 
+      furthermore, an edge between an input node $j \in J$ and an output node $v \in V$ must be of the form $j \tus v$.
+  \end{enumerate}
+  We call it a \emph{$\sigma$-maximal ancestral graph ($\sigma$-MAG)} if it has no input nodes (i.e., $J=\emptyset$).
+\end{Def}
+\Joris{Note that alternatively, we might reorganize this definition by first defining $\sigma$-MAGs (without inputs), and then defining
+a $\sigma$-iMAG as a $\sigma$-MAG with nodes $J \dcup V$ such that the last item in Definition~\ref{def:sigmaimag} holds. This would
+show very clearly that all properties that hold for $\sigma$-MAGs are automatically true for $\sigma$-iMAGs, but $\sigma$-iMAGs have
+some additional properties regarding the distinction of input/output nodes.}
+We use $\sigma$-iMAGs to represent sets of CDMGs in the following sense.
+\begin{Def}\label{def:sigmaimag_represents_cdmg}
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  We say that \emph{$H$ represents $G$ given $S$} if all of the following hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes in $H$ there is at most one edge, and there are no edges between a node and itself;
+    \item Two distinct nodes $i,j \in V \cup J$ are adjacent in $H$ if and only if there is a $\sigma$-inducing path between $i$ and $j$ given $S$ in $G$;
+    \item If $i \hus j$ in $H$ then $i \notin \Anc_{G}(\{j\} \cup S)$;
+    \item If $i \tus j$ in $H$ then $i \in \Anc_{G}(\{j\} \cup S)$.
+  \end{enumerate}
+\end{Def}
+This is almost literally the same as Definition~\ref{def:imag_represents_cadmg}, except that `inducing path' is replaced by `$\sigma$-inducing path'.
+If input nodes are absent ($J=\emptyset$) this specializes to how $\sigma$-MAGs represent DMGs.
+We conjecture that the abstract Definition~\ref{def:sigmaimag} provides an axiomatic characterization of the class of mixed graphs that represent a CDMG:
+\begin{Con}\label{con:sigmaimags_represent_cdmgs}
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  The following equivalence holds:  
+  $H$ is a $\sigma$-iMAG $\iff$ there exists a CDMG $G$ with input nodes $J$ and output nodes $V^+ = V \dcup S$ such that $H$ is a mixed graph that represents $G$ given $S$.
+\end{Con}
+\begin{proof}
+  \Joris{Binghua and I proved the special case $J=\emptyset$.
+
+  The next bit considers what happens in case $J\ne \emptyset$:
+  
+  If $H$ represents $G$ given $S$ then if there is an edge between input nodes $j_1, j_2$ then there must be a $\sigma$-inducing path in $G$ between $i$ and $j$ given $S$.
+  Every non-endpoint node must either be an unblockable non-collider, or a collider that is ancestor of $S$ (because it cannot be ancestor of $j_1$ or $j_2$ by assumption of the class of DMGs).
+  It must have at least one collider because otherwise $j_1,j_2$ end up in the same scc.
+  Hence, on that path, $j_1$ must be ancestor of $S$, and $j_2$ must be ancestor of $S$. 
+  Hence we end up with an undirected edge between $j_1$ and $j_2$ in $H$!
+  Can we ever end up with an arrowhead at $j$ in $H$?
+  Not on an edge connecting it with another input node as we have just seen.
+  So consider an edge $j \sus v$ in $H$.
+  There must be a $\sigma$-inducing path between $j$ and $v$ given $S$ in $G$ of the form $j \tuh ... \sus v$.
+  This path either continues as a directed path the whole way (in which case $j$ is ancestor of $v$ in $G$) or it must meet a collider in between.
+  The collider must be ancestor of $v \cup S$.
+  Hence $j$ must be ancestor of $v \cup S$.
+  Hence we must have a tail $j \tus v$ in $H$.
+
+  So this together gives one direction of the equivalence.
+  The other still needs to be written down (by explicit construction of such a $G$).
+  I would just hope that the construction designed for the case $J=\emptyset$ automatically works as well for $J\ne \emptyset$?}
+\end{proof}
+
+
+\Joris{
+  The current setting appears to be `internally consistent', that is, because we have chosen (variation) independent input nodes in the CDMG setting,
+  we never need edges between input nodes for CDMGs, and because we assume that the exogenous random variables are `randomized' (that is, probabilistically
+  independent) w.r.t.\ the exogenous inputs, and the endogenous variables can never cause the exogenous inputs, hence there can be only outgoing directed
+  edges from input nodes to output nodes in CDMGs, we end up working with this specific class of ($\sigma$-)iMAGs.
+
+  We might consider relaxing the framework at the CDMG level, in two ways:
+  \begin{enumerate}
+    \item We could allow CDMGs to have undirected edges between inputs (to model variation dependencies between inputs stemming from a
+      selection mechanism that is chronologically \emph{after} the interventions modeled by the input nodes but \emph{before} the possible
+      interventions on endogenous variables. I would guess that this does \emph{not} require changing the definition of ($\sigma$-)iMAGs.
+      Actually, now that I write this down, it seems a very sensible/natural way to define the conditioning operation on the CDMG level!
+    \item We could further relax by allowing CDMGs to have any type of edges (undirected, directed, bidirected) between inputs, and even 
+      multiple ones. The idea would be that we may have background knowledge about the causal relationships between the input variables.
+      One may ask whether it would be \emph{useful} to do this because one may believe that this is `overly specific' modeling: the 
+      precise edge types between input nodes may have no consequences down the road, and WLOG one could replace them by only one edge
+      type (e.g., undirected). So currently this seems not of high priority; but we can still ask: if we would allow this, would this just lead
+      us to drop the point 5 in Definition~\ref{def:imag} and point 4 in Definition~\ref{def:sigmaimag}, that is, they just don't need to 
+      distinguish between input/output nodes anymore?
+  \end{enumerate}
+}
+
+\subsubsection{Obsolete?}
+
+\begin{Def}\label{def:sigmamag_alt2}
+  A mixed graph $H = \lt J,V,E\rt$ with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$ is called a \emph{maximal $\sigma$-ancestral graph with input nodes ($\sigma$-iMAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+    \item If $a \suh b$ then $\Nb^H(b)$ must be complete; also, $H$ contains no unshielded triples of the form $a \suh b \tut c$ (`$\sigma$-complete');
+%    \item $H$ contains no directed cycles and no almost directed cycles; %, and no unshielded triples $a \suh b \tut c$;
+%      if $a \tuh b \tut c$ in $H$, then $a \tuh c$ in $H$, and if $a \huh b \tut c$ in $H$ then $a \huh c$ in $H$ (`$\sigma$-ancestral');
+    \item If $H$ contains an anterior path $a \tus \dots \tus b$ (for $a \ne b$) then it does not contain an edge $a \hus b$; (`$\sigma$-ancestral');
+    \item There is no inducing path between any two distinct non-adjacent nodes (`maximal');
+    \item No input node is adjacent to any other input node. \Joris{perhaps we should just drop this one and replace it with: only undirected edges allowed between input nodes; or even that is not general enough?}
+  \end{enumerate}
+  We call it a \emph{maximal $\sigma$-ancestral graph ($\sigma$-MAG)} if it has no input nodes (i.e., $J=\emptyset$).
+\end{Def}
+
+An alternave (less generalizable) definition would be:
+\begin{Def}\label{def:sigmamag_alt}
+  A mixed graph $H = \lt J,V,E\rt$ with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$ is called a \emph{maximal $\sigma$-ancestral graph with input nodes ($\sigma$-iMAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+%    \item If $a \suh b$ then $\Nb^H(b)$ must be complete; also, $H$ contains no unshielded triples of the form $a \suh b \tut c$ (`$\sigma$-complete');
+    \item $H$ contains no directed cycles and no almost directed cycles; %, and no unshielded triples $a \suh b \tut c$;
+      if $a \tuh b \tut c$ in $H$, then $a \tuh c$ in $H$, and if $a \huh b \tut c$ in $H$ then $a \huh c$ in $H$ (`$\sigma$-ancestral');
+%    \item If $H$ contains an anterior path $a \tus \dots \tus b$ (for $a \ne b$) then it does not contain an edge $a \hus b$; (`$\sigma$-ancestral');
+    \item There is no inducing path between any two distinct non-adjacent nodes (`maximal');
+    \item No input node is adjacent to any other input node. \Joris{perhaps we should just drop this one and replace it with: only undirected edges allowed between input nodes; or even that is not general enough?}
+  \end{enumerate}
+  We call it a \emph{maximal $\sigma$-ancestral graph ($\sigma$-MAG)} if it has no input nodes (i.e., $J=\emptyset$).
+\end{Def}
+
+The following states that there are no `(almost) anterior cycles' in a $\sigma$-iMAG, analogously to how there are no (almost) directed cycles.
+This shows the equivalence of both definitions.
+\begin{Lem}\label{lem:sigmamag_no_(almost)_anterior_path_cycles}
+  Let $H$ be a $\sigma$-iMAG with input nodes $V$ and output nodes $J$.
+  Let $a, b \in V \cup J$ be two distinct nodes.
+  If there is an anterior path from $a$ to $b$ in $H$, there cannot be an edge $a \hus b$ in $H$.
+\end{Lem}
+\begin{proof}
+  Let $\pi = (x_0 \tus x_1 \tus \dots \tus x_n)$ be a shortest anterior path from $a=x_0$ to $b=x_n$ in $H$.
+  We must have $n > 0$ because $a \ne b$, and $n \ne 1$ because otherwise we would have both $a \tus b$ and $a \hus b$ in $H$.
+  Hence $n \ge 2$.
+
+  Suppose an edge $a \hus b$ is in $H$.
+
+  First assume $\pi$ is undirected.
+  Then we have $b \suh a \tut x_1$ in $H$, and hence also $b \suh x_1$ in $H$.
+  Furthermore, $\Nb^H(x_1)$ must be complete.
+  Hence, since $x_0 \tut x_1$ and $x_2 \tut x_2$ in $H$, we must also have $x_0 \tut x_2$ in $H$.
+  But then $x_0 \tut x_2 \tut x_3 \dots \tut x_n$ would have been a shorter anterior path from $a$ to $b$ in $H$, a contradiction.
+
+  So the anterior path must have a directed edge.
+  Let $k$ be the smallest integer such that $x_k \tuh x_{k+1}$ on $\pi$.
+  Note that such $k$ exists and $0 \le k < n$.
+  Then the subpath of $\pi$ between $x_k$ and $x_n$ is an anterior path that starts with a directed edge, so there must actually be a directed path from $x_k$ to $x_n = b$ in $H$ by Lemma~\ref{lem:sigmamag_anterior_path_is_ancestral}.
+  The (possibly trivial) subpath of $\pi$ between $x_0$ and $x_k$ can only contain undirected edges, by assumption.
+  The presence of the edge $b \suh a$ then implies the presence of edges (of the same type) $b \suh x_0$, $b \suh x_1$, \dots, $b \suh x_k$.
+  So we would have an edge $b \suh x_k$ and a directed path from $x_k$ to $b$ in $H$, a contradiction.
+\end{proof}
+
+Figure~\ref{fig:invalid_sigmamags} provides an example of a mixed graph that satisfies all conditions of a $\sigma$-iMAG except the maximality.
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+%      \node at (-2,0) {(d)};
+      \node[ndout] (X1) at (-1,0) {$i$};
+      \node[ndout] (X2) at (-1,2) {$j$};
+      \node[ndout] (X3) at (1,2) {$k$};
+      \node[ndout] (X4) at (1,0) {$l$};
+      \draw[huh] (X1) edge (X2);
+      \draw[huh] (X2) edge (X3);
+      \draw[huh] (X3) edge (X4);
+      \draw[tuh] (X2) edge (X4);
+      \draw[tuh] (X3) edge (X1);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{This mixed graph is not a valid $\sigma$-iMAG, because it is not maximal: it has an inducing path $i \huh j \huh  k \huh l$ while $i$ and $l$ are non-adjacent.\label{fig:invalid_sigmamags}}
+\end{figure}
+
+The property is an elementary consequences of the definition of $\sigma$-iMAG that we will make use of frequently.
+\begin{Lem}\label{lem:sigmamag_anterior_path_is_ancestral}
+  Let $H$ be a $\sigma$-iMAG with input nodes $V$ and output nodes $J$.
+  Let $a, b \in V \cup J$ be two nodes in $H$.
+  If there exists an anterior path from $a$ to $b$ in $H$ that starts with a directed edge, then $a \in \Anc^H(b)$.
+\end{Lem}
+\begin{proof}
+  There exist anterior paths from $a$ to $b$ that start with a directed edge.
+  Let $x_0 \tuh x_1 \tus \dots \tus x_n$ be such a path of minimal length.
+  If $n=1$ we are done.
+  If $n>1$, then consider the edge $x_1 \tus x_2$. 
+  If it were undirected, then we would have $x_0 \tuh x_1 \tut x_2$ and hence $x_0 \tuh x_2$; in that case $x_0 \tuh x_2 \tus \dots \tus x_n$ would be a shorter anterior path from $a$ to $b$ that starts with a directed edge, a contradiction.
+  Hence it must be directed.
+  We can repeat this reasoning and conclude that all edges must be directed.
+  Hence $x_0 \in \Anc^H(b)$, that is, $a \in \Anc^H(b)$.
+\end{proof}
+
+\subsection{$\sigma$-iMAGs represent CDMGs}
+
+The purpose of $\sigma$-iMAGs is to represent a set of CDMGs. 
+That can be seen as a special case of the more general Definition~\ref{def:mixed_graph_represents_cdmg}.
+Also, the more general Lemma~\ref{lem:mixed_graph_represents_CDMG} shows some elementary properties of a CDMG that are encoded in a mixed graph that represents it.
+
+The definition of $\sigma$-iMAGs was designed to be a characterization of the mixed graphs (with certain edge types) that represent some CDMG.
+\begin{Prp}\label{prp:sigmamag_represents_cdmg_is_valid}
+  Let $H = \lt J,V,E\rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\tut\}$.
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$.
+  If $H$ represents $G$ given $S$, then $H$ is a $\sigma$-iMAG.
+\end{Prp}
+\begin{proof}
+  By assumption: there is at most one edge between two distinct nodes; there are no edges between a node and itself;
+  no input node is adjacent to any other input node. 
+  %if there is an edge $j \sus v$ in $H$ with $j \in J, v \in V$ then it must be of the form $j \tus v$.
+  
+  We show that $H$ is $\sigma$-ancestral. 
+  First, suppose that $H$ contained a directed path $i = v_0 \tuh \dots \tuh v_n = j$.
+  By Lemma~\ref{lem:mixed_graph_represents_CDMG}, then $i \in \Anc_G(\{j\} \cup S)$.
+  If $H$ contained an edge $j \suh i$, this would imply $i \notin \Anc_G(\{j\} \cup S)$, a contradiction. 
+  Hence such edges cannot occur.
+  This means that no directed cycles and no almost directed cycles occur in $H$.
+  %The remaining statement to prove that $H$ is $\sigma$-ancestral follows by Lemma~\ref{lem:into_undirected_edge}.
+%  Second, suppose that an unshielded triple of the form $i \suh j \tut k$ occured in $H$.
+%  Since $j \in \Anc_G(\{k\} \cup S)$ but $j \notin \Anc_G(\{i\} \cup S)$, we must have $j \in \Anc_G(k)$.
+%  Also, $k \in \Anc_G(\{j\} \cup S)$.
+%  Since $j \in \Anc_G(k)$ and $j \notin \Anc_G(S)$, we must have $k \in \Anc_G(j)$.
+%  But then $j \in \Sc_G(k)$, which is not possible according to Lemma~\ref{lem:induced_path_into_scc}.
+%  Hence such unshielded triples cannot occur in $H$.
+%  Together, this shows that $H$ is $\sigma$-ancestral.
+  It remains to show that no unshielded triple of the form $i \suh j \tut k$ can occur in $H$.
+  We prove this by contradiction.
+  Since $j \in \Anc_G(\{k\} \cup S)$ but $j \notin \Anc_G(\{i\} \cup S)$, we must have $j \in \Anc_G(k)$.
+  Also, $k \in \Anc_G(\{j\} \cup S)$.
+  Since $j \in \Anc_G(k)$ and $j \notin \Anc_G(S)$, we must have $k \in \Anc_G(j)$.
+  But then $j \in \Sc_G(k)$, which gives a contradiction with Lemma~\ref{lem:inducing_path_into_scc}.
+  Hence there must be an edge $i \sus k$ in $H$.
+  Now if $i \tuh j$, then $i \in \Anc_G(j)$ or $i \in \Anc_G(S)$, hence $i \in \Anc_G(k)$ or $i \in \Anc_G(S)$, hence the edge between $i$ and $k$ must be of the form $i \tuh k$.
+  Otherwise, if $i \huh k$, then $i \notin \Anc_G(j)$ and $i \notin \Anc_G(S)$, hence $i \notin \Anc_G(k)$ and $i \notin \Anc_G(S)$, hence the edge between $i$ and $k$ must be of the form $i \huh k$.
+  Finally, if $l_1 \tut j$ and $l_2 \tut j$ with $l_1 \ne l_2$ then both $l_1, l_2 \in \Sc_G(j)$ (since $j \notin \Anc_G(S)$).
+  Hence, $l_1 \tut l_2$ must be in $H$.
+  Similarly, if $l_1 \tut k$ and $l_2 \tut k$ with $l_1 \ne l_2$ then both $l_1, l_2 \in \Sc_G(j)$, and hence $l_1 \tut l_2$ must be in $H$.
+
+  We continue to show that $H$ is maximal.
+  Suppose there is a inducing path $\mu$ in $H$ between two distinct nodes $u,v \in V \cup J$. 
+  We first show that this implies that $\{u,v\} \not\subseteq J$.
+  If $u,v \in J$, then a inducing path between them cannot consist of a single edge, because all node pairs in $J$ are non-adjacent in $H$ by assumption.
+  Hence it must be of the form $u \suh w_1 \dots w_n \hus v$ (with $n \ge 1$) with $w_1, w_n \in V$. 
+  But since all nodes $w_1,\dots,w_n$ are colliders, none of them is in $\Anc_G(S)$.
+  Since all nodes $w_1,\dots,w_n$ are in $\Anc_H(\{u,v\})$, by Lemma~\ref{lem:mixed_graph_represents_CDMG}, they must all be in $\Anc_G(\{u,v\})$.
+  Since $G$ is a CDMG, they must all be in $\{u,v\} \subseteq J$, a contradiction.
+  %Both $w_1$ and $w_n$ must be in $\Anc_H(\{u,v\})$, and hence $w_1, w_n \in \Anc_G(\{u,v\} \cup S)$ by Lemma~\ref{lem:mixed_graph_represents_CDMG}.
+  %Both $w_1$ and $w_n$ are colliders, hence $w_1 \notin \Anc_G(\{u\} \cup S)$ and $w_n \notin \Anc_G(\{v\} \cup S)$.
+  %Therefore, $w_1 \in \Anc_G(v)$ and $w_n \in \Anc_G(w)$.
+  %This gives a contradiction with Lemma~\ref{lem:inducing_path_out_of_input}.
+  Hence, there cannot be a inducing path in $H$ between two nodes in $J$.
+
+  Every edge $i \sus j$ on $\mu$ corresponds with a $\sigma$-inducing path $\pi_{ij}$ given $S$ in $G$ between $i$ and $j$.
+  By Lemma~\ref{lem:mixed_graph_represents_CDMG}, these $\sigma$-inducing paths can be chosen to be into $i$ if the edge is $i \hus j$, into $j$ if the edge is $i \suh j$, and both into $i$ and $j$ if the edge is $i \huh j$. 
+  Concatenate all $\pi_{ij}$ (following the edge ordering of $\mu$) into a walk $\pi$ in $G$ between $u$ and $v$.
+  Every non-endpoint node on $\mu$ is a collider on $\mu$, by assumption.
+  By construction, these nodes then become colliders on $\pi$.
+  Since colliders on $\mu$ are in $\Anc_H(\{u,v\})$ by assumption, they are in $\Anc_G(\{u,v\} \cup S)$ by Lemma~\ref{lem:mixed_graph_represents_CDMG}.
+  All colliders on some $\pi_{ij}$ are in $\Anc_G(\{i,j\}\cup S)$.
+  Hence, they are in $\Anc_G(\{u,v\}\cup S)$.
+  So, all colliders on $\pi$ are in $\Anc_G(\{u,v\}\cup S)$.
+  All non-endpoint non-colliders on some $\pi_{ij}$ are unblockable, and therefore all non-endpoint non-colliders on $\pi$ are unblockable.
+  Therefore, $\pi$ is a $\sigma$-inducing walk given $S$ in $G$.
+  So there must also be a $\sigma$-inducing path given $S$ in $G$ between $u$ and $v$.
+  Because $H$ represents $G$ given $S$, we conclude that $u,v$ must be adjacent in $H$.
+\end{proof}
+\Joris{Note that we can propagate the new condition on $\sigma$-MAGs to $\sigma$-PAGs as well and extend the proof of the analogous proposition for $\sigma$-PAGs.
+Then, the proof above becomes just a special case of the more general result.
+
+Here is the novel piece:
+\begin{Lem}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  If $a \tuh b \tut c$ in $H$, then $a \tuh c$ in $H$; if $a \huh b \tut c$ in $H$, then $a \huh c$ in $H$.
+\end{Lem}
+\begin{proof}
+  Suppose $a \suh b \tut c$ in $H$.
+  Then there exists a $\sigma$-inducing path between $a$ and $b$ in $G$ given $S$ that is into $b$.
+  We can extend it with a directed path from $b$ to $c$ into a $\sigma$-inducing path between $a$ and $c$ in $G$ given $S$.
+  Hence, $a$ and $c$ must be adjacent in $H$.
+  Furthermore, $b,c$ must lie in the same strongly-connected component of $G$, and $b,c \notin \Anc_G(S)$.
+  Since $b \notin \Anc_G(a)$, also $c \notin \Anc_G(a)$. 
+  So the edge $a \sus c$ must be of the form $a \suh c$.
+  If $a \suh b$ is actually $a \tuh b$ then $a \in \Anc_G(b)$; since also $b \in \Anc_G(c)$, the edge $a \suh c$ must be $a \tuh c$.
+  If $a \suh b$ is actually $a \huh b$ then $a \notin \Anc_G(b)$; since $c \in \Anc_G(b)$, the edge $a \suh c$ must be $a \huh c$.
+\end{proof}
+}
+
+The notion of `anterior' was proposed by \cite{RichardsonSpirtes02} for ancestral graphs, and we (trivially) extended its definition to $\sigma$-MAGs.
+%\begin{Def}\label{def:sigmamag_anterior}
+%  %Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+%  Let $H=\lt J,V,E \rt$ be a mixed graph with input nodes $J$, output nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huo,\huh,\ouo,\ouh,\tuo,\out,\tut\}$.
+%  If there exists a walk in $H$ of the form $v_0 \tus \cdots \tus v_n$ such that each edge is of the form $v_k \tuh v_{k+1}$ or $v_k \tut v_{k+1}$, we say that \emph{$v_0$ is anterior to $v_n$}.
+%  For $b \in V \cup J$ we denote by $\Ant^H(b)$ the set of nodes $a \in V \cup J$ that are anterior to $b$.
+%  For $B \subseteq V \cup J$ we define $\Ant^H(B) := \bigcup_{b\in B} \Ant^H(b)$.
+%\end{Def}
+The basic property of this notion is:
+\begin{Lem}\label{lem:sigmamag_anterior}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Then for $a \in V \cup J$, $B \subseteq V \cup J$:
+  $$a \in \Ant^H(B) \iff a \in \Anc^G(B \cup S).$$
+\end{Lem}
+\begin{proof}
+  Suppose $a \in \Ant^H(b)$ for some $b \in B$.
+  Then there exists an anterior path $v_0 \tus v_1 \tus \dots \tus v_n$ in $H$ with $a = v_0$ and $b = v_n$.
+  For every edge $v_k \tus v_{k+1}$, we have $v_k \in \Anc^G(\{v_{k+1}\} \cup S)$.
+  By transitivity, $v_0 \in \Anc^G(\{v_n\} \cup S)$, that is, $a \in \Anc^G(\{b\} \cup S)$.
+
+  Suppose $a \in \Ant^G(\{b\} \cup S)$ for some $b \in B$.
+  Then there exists a directed path $v_0 \tuh v_1 \tuh \dots \tuh v_n$ in $G$ with $a = v_0$ and $b = v_n$.
+  Each edge on the path is also present in $H$, and will be of the form $v_k \tus v_{k+1}$.
+  Hence $a \in \Ant^H(\{b\})$.
+\end{proof}
+
+\Joris{Actually, all the above can be easily pushed towards the $\sigma$-PAGs section and then $\sigma$-iMAGs are just a special case of $\sigma$-PAGs.
+The only thing we may want to keep is the following result.}
+
+The following result is due to Binghua Yao [private communication] and myself:\footnote{Binghua realized that $\sigma$-MAGs representing a CDMG
+have the additional property `$a \tuh b \tut c$ in $H$ implies $a \tuh c$ in $H$, and $a \huh b \tut c$ in $H$ implies $a \huh c$ in $H$; in both cases, $\Nb^H(b)$ and $\Nb^H(c)$ must be complete'
+and that together with the other properties, this characterizes the class of $\sigma$-MAGs representing a CDMG.}
+\begin{Prp}\label{lem:representing_CDMG_of_sigmamag}
+  Let $H$ be a $\sigma$-iMAG with input nodes $J$ and output nodes $V$.
+  Then there exists a CDMG $G$ with input nodes $J$ and output nodes $V^+ = V \dcup S$ such that $H$ represents $G$ given $S$.
+\end{Prp}
+\begin{proof}
+  \Joris{TODO: cleanup. Can we think of a more convenient construction? At least it looks as if this one is fairly 'minimal' and could be extended in various ways.}
+
+  We construct the CDMG $G$ as follows.
+  It has nodes input nodes $J$ and output nodes $V^+$ with $V^+ = V \cup S$, where 
+  %$S := \{s_{\{x,y\}} : x \tut y \in H\}$.
+    $$S := \{s_{\{x,y\}} : x \tut y \in H \land (\Nb^H(x) \text{ is incomplete} \lor \Nb^H(y) \text{ is incomplete}) \}.$$
+  We add all edges $x \suh y$ for $x,y \in V\cup J$ that are present in $H$ to $G$.
+  For each undirected edge $x \tut y$ in $H$: if $\Nb^H(x)$ is incomplete or if $\Nb^H(y)$ is incomplete, we add $x \tuh s_{\{x,y\}} \hut y$ to $G$;
+  if both $\Nb^H(x)$ and $\Nb^H(y)$ are complete, we add both directed edges $x \tuh y$ and $x \hut y$ to $G$.
+  Since all directed edges in $H$ are also present in $G$, for $x,y \in V \cup J$, $x \in \Anc_H(y) \implies x \in \Anc_{G}(y)$.
+  Further, for $x,y \in V \cup J$, $x \in \Anc_G(y)$ implies $x \in \Ant^G(y)$.
+  Indeed, by construction of $G$, a directed edge $a \tuh b$ in $G$ implies that $a \tuh b$ or $a \tut b$ must be in $H$.
+
+  For showing that $H$ represents $G$ given $S$, we need to show:
+  \begin{enumerate}
+    \item For all $x \in V \cup J, y \in V$: $x \sus y$ is in $H$ if and only if there is a $\sigma$-inducing path between $x$ and $y$ given $S$ in $G$;
+    \item If $x \hus y$ in $H$ then $x \notin \Anc_{G}(\{y\} \cup S)$;
+    \item If $x \tus y$ in $H$ then $x \in \Anc_{G}(\{y\} \cup S)$;
+  \end{enumerate}
+  
+  \Joris{replace $z$ by $a$ and $x$ by $b$ below}
+  We now show: if $z \hus x$ in $H$, then $z \notin \Anc_{G}(S)$.
+  Assume $z \hus x$ in $H$.
+  Suppose $z \in \Anc_{G}(S)$.
+  Then there must be a shortest directed path $z = z_0 \tuh \dots \tuh z_k \tuh s$ in $G$ such that $s \in S$, and all other nodes on the directed path are in $V \cup J$ (possibly $k=0$).
+  This must correspond with an anterior path from $z$ to $w$ in $H$.
+  As $z_k \tuh s$ in $G$ with $s \in S$, by construction of $G$, there must be a $w$ in $H$ such that $z_k \tut w$ in $H$ and $\Nb^H(z_k)$ is incomplete or $\Nb^H(w)$ is incomplete.
+  There cannot be any edge $v \suh z_k$ in $H$, because if it were, then $v \suh z_k \tut w$ would be in $H$, and hence both $\Nb^H(z_k)$ and $\Nb^H(w)$ would be complete, a contradiction.
+  Hence, if $k \ge 1$, the edge $z_{k-1} \tus z_k$ in $H$ cannot be $z_{k-1} \tuh z_k$ but must be $z_{k-1} \tut z_k$.
+  If $k \ge 2$, the edge $z_{k-2} \tut z_{k-1}$ must be in $H$, because if instead $z_{k-2} \tuh z_{k-1}$ were in $H$, then also $z_{k-2} \tuh z_k$ in $H$ and hence in $G$, a contradiction.
+  We can use this reasoning repeatedly to conclude that $z_0 \tut z_1 \tut \dots \tut z_k$ must be in $H$.
+  But since we assumed $x \suh z$ in $H$, this then implies $x \suh z_k$ is also in $H$, a contradiction.
+
+  We now show: if $z \hus x$ in $H$, then $z \notin \Anc_G(x)$.
+  First assume $z \hut x$ in $H$. 
+  Then also $z \hut x$ in $G$. 
+  If $z \in \Anc_G(x)$ then there is a directed path from $z$ to $x$ in $G$.
+  The directed path in $G$ corresponds to an anterior path in $H$ from $z$ to $x$.
+  But then we have in $H$ an anterior path from $z$ to $x$ and an edge $z \hut x$, a contradiction.
+  Hence $z \notin \Anc_G(x)$.
+
+  So together we have shown that $z \hus x$ in $H$ implies $z \notin \Anc_G(\{x\} \cup S)$.
+  Now suppose $a \tus b$ in $H$. 
+  Then either $a \tut b$ in $H$ or $a \tuh b$ in $H$.
+  In the first case, by construction of $G$ we conclude $a \in \Anc_G(\{b\} \cup S)$.
+  In the second case, by construction of $G$ we have $a \in \Anc_G(b)$.
+
+  Finally, adjacency.
+  Let $x \in V \cup J$, $y \in V$.
+  Suppose $x$ and $y$ are adjacent in $H$.
+  Then they are either adjacent in $G$ (in which case there exists a $\sigma$-inducing path between $x$ and $y$ given $S$ in $G$), or we have $x \tuh s_{\{x,y\}} \hut y$ in $G$ (in which case that would be a $\sigma$-inducing path between $x$ and $y$ given $S$ in $G$).
+
+  Suppose $x$ and $y$ are not adjacent in $H$.
+  We must show that in $G$ there is no $\sigma$-inducing path between $x$ and $y$ given $S$.
+  Suppose there is one.
+  Pick such a path $\pi$ of minimal length, say $x = x_0 \sus \dots \sus x_n = y$.
+  It must be a path in which every collider is in $\Anc_{G}(\{x,y\} \cup S)$, and every non-endpoint non-collider is unblockable.
+
+  Suppose $\pi$ contains a node of $S$.
+  Then it has to be of the form $x \dots a \tuh s_{\{a,b\}} \hut b \dots y$ with $a \tut b$ in $H$.
+  Here, $s_{\{a,b\}}$ lies in another strongly-connected component than $a$, and therefore $a$ is blockable.
+  Similarly, $b$ is blockable.
+  Since only the endpoint nodes can be blockable non-colliders, the path must be $x \tuh s_{\{x,y\}} \hut y$ with $x \tut y$ in $H$. 
+  Contradiction, since $x$ and $y$ were assumed to be non-adjacent in $H$.
+  We conclude that the path can only contain nodes in $V \cup J$.
+  Also, there must be a corresponding path $\tilde{\pi}$ of the form $x_0 \dots x_n$ in $H$ (with the same nodes but possibly different edges).
+
+  Suppose $\pi$ contains a non-endpoint non-collider.
+  If it is $x_{k-1} \sus x_k \tuh x_{k+1}$ then $x_k$ and $x_{k+1}$ must be in the same strongly-connected component of $G$, otherwise $x_k$ would be blockable.
+  Hence we must have $x_k \tut x_{k+1}$ in $H$, and both $\Nb^H(x_k)$ and $\Nb^H(x_{k+1})$ complete.
+
+  If we have $x_{k-1} \huh x_k$ on $\pi$, then also $x_{k-1} \huh x_k$ in $H$, and therefore $x_{k-1} \huh x_{k+1}$ in $H$, and hence $x_{k-1} \huh x_{k+1}$ in $G$, and hence there exists a shorter $\sigma$-inducing path between $x$ and $y$ given $S$ in $G$, a contradiction.\\
+  If we have $x_{k-1} \tuh x_k$ on $\pi$, then either $x_{k-1} \tuh x_k$ in $H$, or $x_{k-1} \tut x_k$ in $H$ and $x_{k-1}$ and $x_k$ are in the same strongly-connected component of $G$ and both $\Nb^H(x_{k-1})$ nd $\Nb^H(x_k)$ are complete.\\
+  If we have $x_{k-1} \hut x_k$ on $\pi$, then either $x_{k-1} \hut x_k$ in $H$, or $x_{k-1} \tut x_k$ in $H$ and $x_{k-1}$ and $x_k$ are in the same strongly-connected component of $G$ and both $\Nb^H(x_{k-1})$ nd $\Nb^H(x_k)$ are complete.\\
+  If $x_{k-1} \tuh x_k$ in $H$, then also $x_{k-1} \tuh x_{k+1}$ in $H$, and hence $x_{k-1} \tuh x_{k+1}$ in $G$.
+  Since $x_{k-1} \tuh x_k$ on $\pi$, either $x_{k-1}$ is an endpoint or $x_{k-1}$ and $x_k$ must be in the same strongly-connected component of $G$.
+  In the first case, there would exist a shorter $\sigma$-inducing path $x_{k-1} \tuh x_{k+1} \dots$ in $G$, a contradiction.
+  In the second case, we get a contradiction because it would require $x_{k-1} \tut x_k$ in $H$.\\
+  If $x_{k-1} \hut x_k$ in $H$, then also $x_{k-1} \hut x_k$ in $G$, and then we must have $x_{k-1} \hut x_k \tuh x_{k+1}$ on $\pi$.
+  But then all three of $x_{k-1}$, $x_k$ and $x_{k+1}$ must be in the same strongly-connected component of $G$, which contradicts the arrowhead $x_{k-1} \hut x_k$ in $H$.
+  If $x_{k-1} \tut x_k$ in $H$ and $x_{k-1}$ and $x_k$ are in the same strongly-connected component of $G$ and both $\Nb^H(x_{k-1})$ nd $\Nb^H(x_k)$ are complete, then also $x_{k-1} \tut x_{k+1}$ in $H$ (because $\Nb^H(x_k)$ is complete) and therefore both $x_{k-1} \tuh x_{k+1}$ and $x_{k-1} \hut x_{k+1}$ in $G$ (because both $\Nb^H(x_{k-1})$ and $\Nb^H(x_{k+1})$ are complete); then we could have shortened $\pi$ by replacing $x_{k-1} \tuh x_k \tuh x_{k+1}$ by $x_{k-1} \tuh x_{k+1}$ or $x_{k-1} \hus x_k \tuh x_{k+1}$ by $x_{k-1} \tuh x_{k+1}$
+  (note that if this replacement would turn $x_{k-1}$ into a collider, then it would be in $\Anc_G(\{x,y\} \cup S)$, because \emph{any} node on $\pi$ must be in $\Anc_G(\{x,y\} \cup S)$).
+
+  Note that each edge on $\pi$, except possibly for the ones at the end points, must be bidirected, and hence be present in $H$ as well.
+  For each undirected edge on $\tilde{\pi}$, its corresponding nodes must have complete neighborhoods in $H$.
+  So if $\tilde{\pi}$ would be of the form $x \tut z \tut y$ we conclude that also $x \tut y$ in $H$, a contradiction.
+  Also, if $\tilde{\pi}$ were of the form $x \tut z \hus y$ we arrive at $x \hus y$ in $H$, a contradiction.
+  Similarly, if $\tilde{\pi}$ were of the form $x \suh z \tut y$ we arrive at $x \suh y$ in $H$, a contradiction.
+  Hence if $\tilde{\pi}$ consists of two edges, it must be of the form $x \suh z \hus y$.
+  If $\tilde{\pi}$ consists of three edges, then if it is $x \tut a \huh b \tut y$, we must have $x \huh y$ in $H$, a contradiction.
+  So if $\tilde{\pi}$ consists of three edges and contains undirected edges, it must be either of the form $x \suh a \huh b \tut y$ or $x \tut a \huh b \hus y$.
+  In general, if $\tilde{\pi}$ is of the form $x_0 \tut x_1 \hus x_2 \dots x_n$ then we shorten it to $x_0 \hus x_2 \dots x_n$.
+  Then, if (the shortened) $\tilde{\pi}$ is of the form $x_0 \dots x_{n-2} \suh x_{n-1} \tut x_n$ we shorten it to $x_0 \dots x_{n-2} \suh x_n$.
+  The (shortened) $\tilde{\pi}$ is then a collider path in $H$.
+  Each collider is in $\Anc_G(\{x,y\} \cup S)$, and not in $\Anc_G(S)$ (because of the arrowheads in $H$), hence in $\Anc_G(\{x,y\})$.
+  Therefore, it must be in $\Ant^H(\{x,y\})$.
+  Now by Lemma~\ref{lem:sigmamag-inducing_path_anterior}, there must exist an inducing path in $H$ between $x$ and $y$.
+  Because $H$ is assumed to be maximal, this contradicts the assumed non-adjacency of $x$ and $y$ in $H$.
+\end{proof}
+
+\subsection{$im$-separation in $\sigma$-iMAGs}
+
+Perhaps we can prove a more general result that allows us to quickly see this.
+\begin{Lem}\label{lem:sigmamag_collider_anterior_or_ancestral}
+  Let $H$ be a $\sigma$-iMAG with input nodes $V$ and output nodes $J$.
+  Let $x_0 \dots x_n$ be a walk in $H$ that contains a collider $x_k$ that is in $\Ant^H(C)$ for some subset $C \subseteq V \cup J$.
+  Then we can replace the subpath $x_{k-1} \suh x_k \hus x_{k+1}$ by $x_{k-1} \suh \tilde{x}_k \hus x_{k+1}$, where $\tilde{x}_k \in \Anc^H(C)$ and the edge marks at $x_{k-1}$ and at $x_{k+1}$ are preserved.
+%  If $x_k \in \Anc^H(C)$ then obviously $x_k \in \Ant^H(C)$ without the need for replacement.
+\end{Lem}
+\begin{proof}
+  There exists a shortest anterior path from $v_k$ to $C$.
+  Suppose $w_0 \tus \dots \tus w_r$ with $w_0 = v_k$ and $w_r \in C$ is such a path.
+  If $v_k \in C$ then there is nothing left to do because then also $v_k \in \Anc^H(C)$.
+  If $v_k \notin C$, then the anterior path consists of at least one edge.
+  Suppose the anterior path starts with an undirected edge: $w_0 \tut w_1 \tus \dots \tus w_r$ (with possibly $r=1$).
+  Since $v_{k-1} \suh v_k \tut w_1$ in $H$, we have $v_{k-1} \suh w_1$ in $H$ with $v_{k-1} \suh w_1$ the same edge type as $v_{k-1} \suh v_k$.
+  Similarly, since $v_{k+1} \suh v_k \tut w_1$ in $H$, we have $v_{k+1} \suh w_1$ in $H$ with $v_{k+1} \suh w_1$ the same edge type as $v_{k+1} \suh w_1$.
+  We can now replace the subpath $v_{k-1} \suh v_k \hus v_{k+1}$ of $\pi$ with the subpath $v_{k-1} \suh w_1 \hus v_{k+1}$.
+  Since the only change is the node $w_1$ instead of $v_k$, while all edges remain the same, and $w_1 \in \Ant^H(C)$, this new path has the same property of $\pi$.
+  We can extend this reasoning actually to the first undirected segment rather than just the first undirected edge of the anterior path $w_0 \tus \dots \tus w_r$.
+  We set $\tilde{v}_k := w_s$.
+  
+  We have an anterior path $w_s \tus \dots \tus w_r$ that starts with a directed edge in case $s < r$.
+  By Lemma~\ref{lem:sigmamag_anterior_path_is_ancestral} we conclude that $\tilde{v}_k = w_s \in \Anc^H(w_r) \subseteq \Anc^H(C)$.
+  If $s=r$ it is obvious that $\tilde{v}_k = w_s = w_r \in \Anc^H(C)$.
+\end{proof}
+
+The cases in Figure~\ref{fig:sigmapags_funky_separations} are helpful for the following proof.
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (-2,1.5) {(a)};
+      \node[ndout] (X1) at (-1,1.5) {$i$};
+      \node[ndout] (X2) at (-1,0) {$j$};
+      \node[ndout] (X3) at (1,1.5) {$k$};
+      \node[ndout] (X4) at (1,0) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X3) edge (X4);
+      \draw[tuh,bend left] (X2) edge (X4);
+      \draw[tuh,bend left] (X4) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node at (-2,1.5) {(b)};
+      \node[ndout] (X1) at (-1,1.5) {$i$};
+      \node[ndout] (X2) at (-1,0) {$j$};
+      \node[ndout] (X3) at (1,1.5) {$k$};
+      \node[ndout] (X4) at (1,0) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X3) edge (X2);
+      \draw[tuh,bend left] (X2) edge (X4);
+      \draw[tuh,bend left] (X4) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=11cm]
+      \node at (-2,1.5) {(c)};
+      \node[ndout] (X1) at (-1,1.5) {$i$};
+      \node[ndout] (X2) at (-1,0) {$j$};
+      \node[ndout] (X3) at (1,1.5) {$k$};
+      \node[ndout] (X4) at (1,0) {$l$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X3) edge (X4);
+      \draw[tut] (X2) edge (X4);
+      \draw[tuh] (X1) edge (X4);
+      \draw[tuh] (X3) edge (X2);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Useful examples for relating the existence of $\sigma$-open paths in a CDMG with the existence of $m$-open paths in a $\sigma$-MAG that represents it.
+  (a) and (b) are two CDMGs that are both represented by the $\sigma$-MAG in (c).
+  In (a), $i \isPerp k$. 
+  In (b), a $\sigma$-open path $i \tuh j \hut k$ given $\{l\}$ exists.
+  In (c), there is a $d$-open path $i \tuh j \tut l \hut k$, but no $m$-open path between $i$ and $k$.
+  Furthermore, in (c), the path $i \tuh j \hut k$ is $m$-open given $\{l\}$ because we use $\Ant$ instead of $\Anc$.
+  \label{fig:sigmapags_funky_separations}}
+\end{figure}
+
+We extend the notion of $m$-blocking defined for MAGs \cite{RichardsonSpirtes02} to $\sigma$-MAGs:
+\begin{Def}\label{def:sigmamag_blocking}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $\pi$ be a walk in $H$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  Let $C \subseteq J \cup V$. We say that the walk $\pi$ is:
+  \begin{enumerate}
+    \item \emph{$C$-$m$-open} (or \emph{$m$-open given $C$}) if and only if:
+      \begin{enumerate}[label=\roman*)]
+        %\item all colliders $v_k$ on $\pi$ are in $\Anc^H(C)$, \emph{and}
+        \item all colliders $v_k$ on $\pi$ are in $\Ant^H(C)$, \emph{and}
+        \item all non-colliders $v_k$ on $\pi$ are \emph{not} in $C$, \emph{and}:
+        \item it contains no subwalks of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+      \end{enumerate}
+    \item \emph{$C$-$m$-blocked} (or \emph{$m$-blocked given $C$}) if and only if:
+      \begin{enumerate}[label=\roman*)]
+        %\item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^H(C)$
+        \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Ant^H(C)$, \emph{or}:
+        \item there exists a non-collider $v_k$ on $\pi$ in $C$, \emph{or}:
+        \item there exists a subwalk of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+      \end{enumerate}  
+  \end{enumerate}
+  Hence the walk is $C$-$m$-open if and only if it is not $C$-$m$-blocked.
+\end{Def}
+
+Lemma~\ref{lem:ancestral_relations_open_path} can be generalized to $\sigma$-MAGs:
+\begin{Lem}\label{lem:sigmamag_ancestral_relations_open_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $i, j \in J \cup V$ and $Z \subseteq J \cup V$.
+  If $\pi$ is an $m$-open walk given $Z$ between $i$ and $j$ in $H$, then 
+  %every node on $\pi$ is in $\Anc_G(\{i,j\} \cup Z \cup S)$.
+%  \Joris{In case you expected the statement ``If $\pi$ is a $Z$-open walk between $i$ and $j$ in $H$, then every node on $\pi$ is in $\Anc_H(\{i,j\} \cup Z)$.'' then this is not true. Indeed, consider $i \tuh s_1 \hut k \tuh s_2 \hut j$. We could however conclude that every node on $\pi$ is in $\Ant^H(\{i,j\} \cup Z)$?}
+  every node on $\pi$ is in $\Ant^H(\{i,j\} \cup Z)$.
+\end{Lem}
+\begin{proof}
+  Note that all colliders on $\pi$ are in $\Ant^H(Z)$.
+% Note that a collider on $\pi$ cannot be in $\Ant^H(J)$. Because then there must be an anterior path with an incoming arrowhead $\suh v_0 \tus \dots \tus v_n$ with $v_n \in J$, a contradiction.
+  Consider now a non-collider $k$ on $\pi$. 
+  Then there is an anterior subwalk from $k$ to an endnode of $\pi$, in which case $k \in \Ant_H(\{i,j\})$,
+% \Joris{which might be in $J$ in case the anterior path has no incoming arrowhead?}
+  or there is an anterior subwalk from $k$ to a collider on $\pi$, in which case $k \in \Ant_H(Z)$,
+  So each node on $\pi$ is in $\Ant^H(\{i,j\}\cup Z)$.
+\end{proof}
+We can also straightforwardly generalize Lemma 17 in \cite{SpirtesRichardson97} to $\sigma$-MAGs.
+\begin{Lem}\label{lem:sigmamag_open_path_implies_cdmg_sigma-open_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $Z \subseteq J \cup V$ and
+    \[\pi = (q_0, a_1, q_1, \dots q_{n-1}, a_n, q_n)\] 
+  be an $m$-open path given $Z$ in $H$.
+  Then there exists a $\sigma$-open path given $(Z \cup S)$ in $G$ between $q_0$ and $q_n$.
+\end{Lem}
+\begin{proof}
+  For $i=1,\dots,n$, let $\mu_i$ be a $\sigma$-inducing path in $G$ between $q_{i-1}$ and $q_i$ that is into $q_{i-1}$ if the edge $q_{i-1} \hus q_i$ on $\pi$, and into $q_{i}$ if the edge $q_{i-1} \suh q_i$ on $\pi$ (see Lemma~\ref{lem:mixed_graph_represents_CDMG}).
+  These can be concatenated into a walk $\mu = (\mu_1,\dots,\mu_n)$ in $G$ between $q_0$ and $q_n$:
+  \[\overunderbraces{&\br{2}{\mu_1}&&&&\br{2}{\mu_{n}}}{&q_0 \cdots \sus & q_1 & \sus \dots \sus q_2 & \sus \cdots \cdots \sus & q_{n-2} \sus \dots \sus & q_{n-1} & \sus \cdots q_n}{&&\br{2}{\mu_2}&&\br{2}{\mu_{n-1}}}\]
+
+  Consider all walks in $G$ between $q_0$ and $q_n$ with the property that 
+  \begin{enumerate}
+    \item all colliders on it are in $\Anc_{G}(\{q_0,q_n\} \cup Z \cup S)$, and 
+    \item each non-endpoint non-collider on it is not in $\{q_0,q_n\} \cup Z \cup S$ or is unblockable.
+  \end{enumerate}
+  Such walks exist, since the concatenation $\mu = (\mu_1, \dots, \mu_n)$ is one, as we will now show. 
+
+  To show the first property, note that by Lemma~\ref{lem:sigmamag_ancestral_relations_open_path}, all $q_i \in \Anc_G(\{q_0,q_n\} \cup Z \cup S)$.
+  This holds in particular for all $q_i$ that are a collider on $\mu$.
+  Every internal collider on some $\mu_i$ is in $\Anc_G(\{q_{i-1},q_i\} \cup S)$, and hence also these internal colliders are in $\Anc_G(\{q_0,q_n\} \cup Z \cup S)$.
+
+  For the second property, note that all internal non-colliders on some $\mu_i$ are unblockable by assumption.
+  Suppose that $q_i$ ($0 < i < n$) is a non-collider on $\mu$. 
+  Then $q_i \notin \{q_0,q_n\}$ because all nodes $q_0,\dots,q_n$ are distinct.
+  $q_i$ cannot be a collider on $\pi$, as it would then also be a collider on $\mu$.
+  Hence $q_i$ is a non-collider on $\pi$, and therefore not in $Z$.
+  Obviously, $q_i \notin S$.
+  Hence, $q_i \notin \{q_0,q_n\} \cup Z \cup S$.
+
+  Now let $\nu$ be such a walk with a minimal number of colliders and such that $q_0$ and $q_n$ only occur once on $\nu$.
+  We show that all colliders on $\nu$ must be in $\Anc_{G}(Z \cup S)$. 
+
+  Suppose on the contrary the existence of a collider $k$ on $\nu$ that is not in $\Anc^G(Z \cup S)$.
+  It is in $\Anc^G(\{q_0,q_n\})$, by assumption.
+  Then there exists a directed path in $G$ from $k$ to $q_0$ that does not pass through $q_n$, or there exists a directed path in $G$ from $k$ to $q_n$ that does not pass through $q_0$.
+  Without loss of generality, assume the former:
+  there is a directed path from $k$ to $q_0$ in $G$ that does not pass through $\{q_n\} \cup Z \cup S$.
+  Let $\tau$ be a shortest path (possibly trivial) of that type.
+  The directed path $\tau$ from $k$ to $q_0$ can be concatenated with the subwalk of $\nu$ between $k$ and $q_n$ (which is into $k$) into a walk between $q_0$ and $q_n$.
+  This walk has the properties above, but with fewer colliders than $\nu$: a contradiction.
+
+%  Therefore, $\nu$ is $\sigma$-open given $Z$ and all occurrences of $q_0$ and $q_n$ as non-endpoint non-collider are unblockable.
+  Therefore, $\nu$ is a $\sigma$-open walk given $Z \cup S$ in $G$ between $q_0$ and $q_n$.
+  This means that there must also exist a $\sigma$-open path in $G$ between $q_0$ and $q_n$ given $Z \cup S$.
+\end{proof}
+
+It is somewhat more involved to generalize its converse, Lemma 18 in \cite{SpirtesRichardson97}, to our more general setting:
+\begin{Lem}\label{lem:cdmg_sigma-open_path_implies_sigmamag_open_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $Z \subseteq (J \cup V)$ and $a,b \in J \cup V$.
+  If there exists a $\sigma$-open walk given $Z \cup S$ between $a$ and $b$ in $G$, then there exists an $m$-open path given $Z$ between $a$ and $b$ in $H$.
+\end{Lem}
+\begin{proof}
+  Assume (without loss of generality) that $\mu = q_0 \sus q_1 \sus \dots \sus q_n$ is a $\sigma$-open path between $q_0=a$ and $q_n=b$ given $Z \cup S$ in $G$ such that if $q_i \in \Sc^G(q_j)$ for $i < j$, then the subpath of $\mu$ between $q_i$ and $q_j$ is a directed path consisting only of nodes in $\Sc^G(q_i)$.
+  For $0 \le i < j \le n$, denote by $\mu(q_i,q_j)$ the subpath of $\mu$ between $q_i$ and $q_j$.
+  Note: all blockable non-colliders on $\mu$ are not in $Z \cup S$, all colliders on $\mu$ are in $\Anc_G(Z \cup S)$.
+
+  Consider the subsequence $v^0_{0}, \dots, v^0_{m_0}$ of nodes on $\mu$ that are blockable non-colliders on $\mu$ or colliders that are not in $\Anc_G(S)$, with $v^0_{0} = q_0$ and $v^0_{m_0} = q_n$.
+  That is, we skip the unblockable non-colliders and the colliders that are in $\Anc_G(S)$; in other words, we skip all non-endpoint nodes on $\mu$ that cannot be $\sigma$-blocked no matter what $Z$ would be.
+
+  Note that for $0 \le i < m_0$, $\mu(v^0_{i},v^0_{i+1})$ is a $\sigma$-inducing path given $S$.
+  Indeed, all non-endpoint non-colliders on it are unblockable, and all colliders are in $\Anc_G(S)$.
+  If $\mu(v^0_{i},v^0_{i+1})$ is out of $v^0_{i}$, then $v^0_{i} \in \Anc^G(\{v^0_{i+1}\} \cup S)$.
+  Indeed, any non-endpoint nodes on this subpath must be unblockable non-colliders or colliders in $\Anc_G(S)$.
+  Hence there exists a subpath $\mu(v^0_{i},q_l)$ such that $q_l$ is a collider in $\Anc_G(S)$ or $q_l = v^0_{i+1}$, and with all non-endpoint nodes being unblockable non-colliders and hence in the same strongly-connected component of $G$ as $v^0_{i}$.
+  Similarly, if $\mu(v^0_{i},v^0_{i+1})$ is out of $v^0_{i+1}$, then $v^0_{i+1} \in \Anc^G(\{v^0_{i}\} \cup S)$.
+
+  So there is a path $\pi^0 := v^0_{0} \sus v^0_{1} \sus \dots \sus v^0_{m_0}$ in $H$.
+  If $v^0_{i}$ is a non-endpoint non-collider on $\mu$, then it is in $\Anc_G(\{v^0_{i-1}\} \cup S)$ or in $\Anc_G(\{v^0_{i+1}\} \cup S)$ as we saw before, and hence a non-collider on $\pi^0$ as well.
+  If $v^0_{i}$ is a collider on $\mu$, then it is not in $\Anc_G(S)$ but it could be $\Anc_G(v^0_{i-1})$ or in $\Anc_G(v^0_{i+1})$.
+  The following algorithm removes such colliders.
+  \begin{algorithmic}[1]
+    \State $k \leftarrow 0$
+    \Repeat
+      \State $I \leftarrow \{0 < i < m_k : v^{k}_{i} \in \Anc_G(\{v^k_{i-1},v^k_{i+1}\}) \text{ and } \text{$v^k_{i}$ is a collider on $\mu$} \}$
+      \If{$I \ne \emptyset$}
+        \State form sequence $v^{k+1}$ from $v^k$ by removing some $v^k_{i}$ with $i \in I$
+        \State $k \leftarrow k+1$
+      \EndIf
+      \Until{$I = \emptyset$}
+    \State $K \leftarrow k$
+  \end{algorithmic}
+  Note that in each iteration $k$, $\mu(v^{k+1}_{i-1},v^{k+1}_{i})$ is a $\sigma$-inducing path between $v^{k+1}_{i-1}$ and $v^{k+1}_{i}$ given $S$ in $G$.
+  Indeed, concatenating the two paths $\mu(v^k_{i-1},v^k_i)$, $\mu(v^k_i,v^k_{i+1})$ at $v^k_i$, that are both $\sigma$-inducing given $S$, into $v^k_i$, and where $v^k_i \in \Anc_G(\{v^k_{i-1},v^k_{i+1})$, gives the concatenated path $\mu(v^k_{i-1},v^k_{i+1})$ which must be $\sigma$-inducing given $S$.
+  Therefore, there is a path $\pi^{k+1} := v^{k+1}_{1} \sus v^{k+1}_{2} \sus \dots \sus v^{k+1}_{m_{k+1}}$ in $H$ (with $m_{k+1} := m_k - 1$).
+  Note that we never remove an end-point node, so $v^k_{0} = q_0$ for all $k$, and $v^k_{m_k} = q_n$ for all $k$.
+  We will show that the path $\pi^K$ in $H$ is $m$-open given $Z$.
+
+  In the remainder of the proof, we will use the following terminology: we call a node $q_i$ ($0 \le i < n$) on $\mu$ \emph{acyclically right-out-of} if $\mu(q_i,q_{i+1}) = q_i \tuh q_{i+1}$ with $q_{i+1} \notin \Sc_G(q_i)$, and we call a node $q_i$ ($0 < i \le n$) \emph{acyclically left-out-of} if $\mu(q_{i-1},q_i) = q_{i-1} \hut q_i$ with $q_{i-1} \notin \Sc^G(q_i)$.
+%  We will prove by induction that for $k=0,\dots,K$: for any $0 \le i < m_k$, if $\mu(v^k_{i},v^k_{i+1})$ is out of $v^k_{i}$ then $v^k_{i} \in \Anc_G(\{v^k_{i+1}\} \cup S)$, and if $\mu(v^k_{i},v^k_{i+1})$ is out of $v^k_{i+1}$ then $v^k_{i+1} \in \Anc_G(\{v^k_{i}\} \cup S)$.
+  We will prove by induction that for $0 \le k \le K$: if $v^k_i$ ($0 \le i < m_k$) is acyclically right-out-of then $v^k_{i} \in \Anc_G(\{v^k_{i+1}\} \cup S)$, and if $v^k_i$ ($0 < i \le m_k$) is acyclically left-out-of then $v^k_{i} \in \Anc_G(\{v^k_{i-1}\} \cup S)$.
+  The base case $k=0$ has been shown already.
+  So suppose the claim holds for $0\le k<K$.
+  Suppose $v^{k+1}$ is formed by removing $v^k_{i}$:
+  $$\begin{array}{lllllllllll}
+    v^k =     & v^k_{0},     & \dots, & v^k_{i-2},     & v^k_{i-1},     & v^k_{i}, & v^k_{i+1},   & v^k_{i+2},     & \dots, & v^k_{m_k} \\ 
+    \\
+    v^{k+1} = & v^{k+1}_{0}, & \dots, & v^{k+1}_{i-2}, & v^{k+1}_{i-1}, & \cancel{v^k_{i},}         & v^{k+1}_{i}, & v^{k+1}_{i+1}, & \dots, & v^{k+1}_{m_{k+1}}
+  \end{array}$$
+%  We have to check whether the claim still holds for $v^{k+1}_{i-1}$ (who got a new right neighbor $v^{k+1}_{i} = v^k_{i+1}$) and for $v^{k+1}_{i}$ (who got a new left neighbor $v^{k+1}_{i-1} = v^k_{i-1}$).
+%  All other nodes on $v^{k+1}$ keep their neighbors and hence the property is preserved for those nodes.
+  We could only have removed $v^k_{i}$ if $v^k_{i} \in \Anc_G(\{v^k_{i-1},v^k_{i+1}\})$.
+  Let us first consider the case that $v^k_{i} \in \Anc_G(v^k_{i+1})$.
+  Note that it suffices to check whether the claim still holds for the nodes that got a new neighbor in the sequence: $v^{k+1}_{i-1}$ and $v^{k+1}_{i}$.
+  \begin{itemize}
+    \item Suppose $v^{k+1}_{i-1}$ is acyclically right-out-of on $\mu$. 
+      In other words, $v^k_{i-1}$ is acyclically right-out-of on $\mu$.
+      By the induction hypothesis, $v^k_{i-1} \in \Anc_G(\{v^k_{i}\} \cup S)$.
+      Since we assumed $v^k_{i} \in \Anc_G(v^k_{i+1})$, we conclude $v^k_{i-1} \in \Anc_G(\{v^k_{i+1}\} \cup S)$.
+      Hence $v^{k+1}_{i-1} \in \Anc_G(\{v^{k+1}_{i}\} \cup S)$.
+      If $v^{k+1}_{i-1}$ is acyclically left-out-of on $\mu$, the claim follows immediately from the induction hypothesis.
+%      \begin{itemize}
+%        \item Suppose $\mu(v^{k+1}_{i-1},v^{k+1}_{i})$ is seriously out of $v^{k+1}_{i-1}$.
+%          Then $\mu(v^k_{i-1},v^k_{i})$ is seriously out of $v^k_{i-1}$.
+%          By the induction hypothesis, $v^k_{i-1} \in \Anc_G(\{v^k_{i}\} \cup S)$.
+%          Since we assumed $v^k_{i} \in \Anc_G(v^k_{i+1})$, we conclude $v^k_{i-1} \in \Anc_G(\{v^k_{i+1}\} \cup S)$.
+%          Hence $v^{k+1}_{i-1} \in \Anc_G(\{v^{k+1}_{i}\} \cup S)$.
+%        \item (nothing to show!) Suppose $\mu(v^{k+1}_{i-2},v^{k+1}_{i-1})$ is seriously out of $v^{k+1}_{i-1}$.
+%          Then $\mu(v^k_{i-2},v^k_{i-1})$ is seriously out of $v^k_{i-1}$.
+%          By the induction hypothesis, $v^k_{i-1} \in \Anc_G(\{v^k_{i-2}\} \cup S)$.
+%          Hence $v^{k+1}_{i-1} \in \Anc_G(\{v^{k+1}_{i-2}\} \cup S)$.
+%      \end{itemize}
+    \item If $v^{k+1}_{i}$ is acyclically right-out-of on $\mu$, the claim follows immediately from the induction hypothesis.
+      Suppose $v^{k+1}_{i}$ is acyclically left-out-of on $\mu$.
+      In other words, $v^k_{i+1}$ is acyclically left-out-of on $\mu$.
+      By the induction hypothesis, $v^{k}_{i+1} \in \Anc_G(\{v^k_{i}\} \cup S)$.
+      Remember that we assumed that $v^k_{i} \in \Anc_G(v^k_{i+1})$. 
+      Hence, $v^{k}_{i+1} \in \Anc_G(v^k_i)$ would imply $v^k_i \in \Sc_G(v^k_{i+1})$.
+      By assumption on the form of $\mu$, this would contradict that $v^k_{i+1}$ is acyclically left-out-of on $\mu$.
+      Hence $v^{k}_{i+1} \in \Anc_G(S)$.
+      But then also $v^k_i \in \Anc_G(S)$, a contradiction (since all colliders on $\mu$ in $\Anc_G(S)$ were already removed in an earlier stage). %, implying $v^{k+1}_{i} \in \Anc_G(\{v^{k+1}_{i-1}\} \cup S)$.
+%      \begin{itemize}
+%        \item (nothing to show!) Suppose $\mu(v^{k+1}_{i},v^{k+1}_{i+1})$ is seriously out of $v^{k+1}_{i}$.
+%          Then $\mu(v^k_{i+1},v^k_{i+2})$ is seriously out of $v^k_{i+1}$.
+%          By the induction hypothesis, $v^k_{i+1} \in \Anc_G(\{v^k_{i+2}\} \cup S)$.
+%          Hence $v^{k+1}_{i} \in \Anc_G(\{v^{k+1}_{i+1}\} \cup S)$.
+%        \item Suppose $\mu(v^{k+1}_{i-1},v^{k+1}_{i})$ is seriously out of $v^{k+1}_{i}$.
+%          That is, $\mu$ is of the form $v^{k+1}_{i-1} \dots v \hut v^{k+1}_{i} \dots$ with $v \notin \Sc_G(v^{k+1}_{i})$ ($v = v^{k+1}_{i-1}$ cannot occur since $v^k_{i}$ lies in between).
+%          By the induction hypothesis, $v^{k}_{i+1} \in \Anc_G(\{v^k_{i}\} \cup S)$.
+%          If $v^k_{i+1} \notin \Anc_G(S)$ then $v^{k}_{i} \in \Sc_G(v^k_{i+1})$.
+%          But then also $v \in \Sc_G(v^k_{i+1})$ by assumption on $\mu$.
+%          Contradiction.
+%          Hence $v^k_{i+1} \in \Anc_G(S)$.
+%          Then certainly $v^{k+1}_{i} \in \Anc_G(\{v^{k+1}_{i-1}\} \cup S)$, which is what we had to show.
+%          Then $\mu(B_k(i),B_{k}(i+1))$ is out of $B_{k}(i+1)$.
+%          By the induction hypothesis, $B_{k}(i+1) \in \Anc_G(\{B_k(i)\} \cup S)$.
+%          \Joris{NEW PROOF: since $B_k(i+1) \notin \Anc_G(B_k(i))$, we conclude $B_k(i+1) \in \Anc_G(S)$. Therefore, $B_{k+1}(i) \in \Anc_G(\{B_{k+1}(i-1)\} \cup S)$. DONE WITH THIS CASE}
+%          We also assumed $B_k(i) \in \Anc_G(B_k(i+1))$.
+%          Suppose $B_k(i+1) \in \Anc_G(B_k(i))$.
+%          Then both nodes (and all intermediate nodes on $\mu$, by assumption) lie in the same strongly-connected component of $G$.
+%          $B_k(i+1)$ is a blockable non-collider on $\mu$ by construction, and hence on $\mu$ it must point to at least one node in another strongly-connected component.
+%          Therefore, $\mu(B_k(i+1),B_k(i+2))$ must be out of $B_k(i+1)$.
+%          By the induction hypothesis, $B_k(i+1) \in \Anc_G(\{B_k(i+2)\} \cup S)$.
+%          Hence $B_{k+1}(i) \in \Anc_G(\{B_{k+1}(i+1)\} \cup S)$.
+%          This conclusion also follows (trivially) if $B_k(i+1) \notin \Anc_G(B_k(i))$ because then $B_k(i+1) \in \Anc_G(S)$.
+%          \Joris{HUH? Wrong conclusion!
+%          We want to conclude that $B_{k+1}(i) \in \Anc_G(\{B_{k+1}(i-1)\} \cup S)$.
+%          $\mu$ must look like:
+%          $$\footnotesize\begin{array}{lllllllll}
+%            B_k(1)     & \dots & B_k(i-2)     & B_k(i-1)     & \suh B_k(i) & \hut \dots \hut B_k(i+1) \tuh \dots  & B_k(i+2)     & \dots & B_k(m_k) \\ 
+%            B_{k+1}(1) & \dots & B_{k+1}(i-2) & B_{k+1}(i-1) & \dots  & \hut \dots \hut B_{k+1}(i) \tuh \dots & B_{k+1}(i+1) & \dots & B_{k+1}(m_{k+1})
+%          \end{array}$$
+%          Not so easy. 
+%          Perhaps take a shortcut?
+%          Or switch around the directed path between $B_k(i)$ and $B_k(i+1)$?
+%          Note that $\mu(B_k(i-1),B_k(i))$ is an inducing path given $S$ that is into $B_k(i)$.
+%          By switching the direction of the directed path between $B_k(i)$ and $B_k(i+1)$ we get $B_k(i-1) \dots \suh B_k(i) \tuh \dots \tuh B_k(i+1)$.
+%          This is inducing (because $B_k(i)$ and all the nodes leading up to $B_k(i+1)$ are unblockable non-colliders) given $S$, and into $B_k(i+1)$.
+%          Let $r_{s-1}$ denote the left neighbor of $B_k(i)$ on $\mu$.
+%          Then $r_{s-1} \suh B_k(i) \hut \dots \hut B_{k}(i+1)$ is a subpath of $\mu$.
+%          This means that we can take the shortcut $r_{s-1} \suh B_{k}(i+1)$.
+%          Let $B_k(i-1) \sus r_1 \sus r_2 \sus \dots \sus r_{s-1} \suh B_k(i) \hut \dots \hut B_k(i+1)$ be subpath of $\mu$.
+%          The $r$'s are either unblockable non-colliders, or colliders that are in $\Anc_G(S)$ or ancestor of one of their (former) neighbors.
+%          If $r_{s-1}$ would be a non-collider, it would be unblockable, giving a contradiction (because then we have $r_{s-1}$ and $B_k(i+1)$ in the same scc, but $\mu(r_{s-1},B_k(i+1))$ is not directed).
+%          Hence, $r_{s-1}$ must be a collider if it is not $B_k(i-1)$:
+%          $B_k(i-1) \sus r_1 \sus r_2 \sus \dots \suh r_{s-1} \huh B_k(i) \hut \dots \hut B_k(i+1)$.
+%          Example: $i \tuh j \tuh l \hut k$ with $j \hut l$.
+%          $j$ is an unblockable non-collider so already left out.
+%          }
+%      \end{itemize}
+  \end{itemize}
+  The case that $v^k_{i} \in \Anc_G(v^k_{i-1})$ proceeds in a similar way.
+
+  We will now show that $\pi_K$ in $H$ is $m$-open given $Z$.
+  Consider a node $v^K_i$ on $\pi_K$.
+%  It follows that if $\mu(v^K_{i},v^K_{i+1})$ is out of $v^K_{i}$, then $v^K_{i} \tus v^K_{i+1}$ on $\pi^K$,
+%  and if $\mu(v^K_{i},v^K_{i+1})$ is out of $v^K_{i+1}$, then $v^K_{i} \sut v^K_{i+1}$ on $\pi^K$.
+%  Therefore, if $v^K_{i}$ is a non-collider on $\mu$, then $v^K_{i}$ is a non-collider on $\pi^K$ as well (and is not in $Z$).
+  \begin{itemize}
+    \item
+  Suppose $v^K_{i}$ is a non-collider on $\mu$. 
+  Then it must be blockable, and hence it must be acyclically left-out-of or acyclically right-out-of.
+  By the property just shown, we obtain that on $\pi^K$, we have $v^K_{i-1} \sut v^K_i$, or $v^K_{i} \tus v^K_{i+1}$, respectively. 
+  Hence $v^K_{i}$ is a non-collider on $\pi^K$ as well.
+  It is not in $Z$ (because all blockable non-colliders on $\mu$ are not in $Z$).
+    \item
+  If $v^K_{i}$ is a collider on $\mu$, then it cannot be in $\Anc_G(v^K_{i-1},v^K_{i+1})$ (otherwise the algorithm would have continued to remove $v^K_{i}$).
+  Being a collider on $\mu$ that was not skipped initially, it is in $\Anc_G(Z) \setminus \Anc_G(S)$.
+  %Hence it must be a collider on $\pi_K$ as well, and it must be in $\Anc_H(Z)$ \Joris{little lemma! $\Anc_G(Z) \setminus \Anc_G(S) \subseteq \Anc_H(Z)$: if $a \in \Anc_G(Z) \sm \Anc_G(S)$ then there is a directed path $v_1 \tuh \dots \tuh v_n$ with $v_1 = a$ and $v_n \in Z$ such that no node on that directed path is in $\Anc_G(S)$. Hence there is a corresponding path $v_1 \dots v_n$ in $H$ with the same nodes (but possibly different edges. For each $i<n$, $v_i \in \Anc_G(v_{i+1})$. For each $i<n$, $v_{i+1} \notin \Anc_G(v_i) \cup \Anc_G(S)$ if $G$ is acyclic. Hence the same directed path $v_1 \dots v_n$ is in $H$ if $G$ is acyclic. Aha. But since $G$ can be cyclic, we could only conclude at best that $a \in \Ant_H(Z)$...}.
+  Hence it must be a collider on $\pi^K$ as well.
+  Since it is in $\Anc_G(Z) \sm \Anc_G(S)$, it is in $\Ant_H(Z)$.
+  \end{itemize}
+
+  The only thing left to prove is that $\pi^K$ does not contain a subpath of the form $v^K_{i-1} \suh v^K_{i} \tut v^K_{i+1}$ or $v^K_{i-1} \tut v^K_{i} \hus v^K_{i+1}$.
+  Suppose it contained a subpath of the form $v^K_{i-1} \suh v^K_{i} \tut v^K_{i+1}$.
+  Then $v^K_{i}, v^K_{i+1}$ must be in the same strongly-connected component of $G$, and both are not in $\Anc_G(S)$.
+  Note that $v^K_i$ can neither be acyclically left-out-of on $\mu$, nor an unblockable non-collider on $\mu$.
+  %Therefore $\mu$ must look like $\suh v^K_{i} \tuh \dots \tuh v^K_{i+1}$ or $\suh v^K_{i} \hut \dots \hut v^K_{i+1}$.
+  %Then $v^K_{i}$ cannot be acyclically left-out-of on $\mu$, otherwise $v^K_{i} \in \Anc_G(\{v^K_{i-1}\} \cup S)$ which would contradict the arrowhead at $v^K_{i}$.
+  %\Joris{Even more, $\mu$ cannot be of the form $\dots \sut v^K_i \dots$ because then it would be an unblockable non-collider!}
+  %Hence, $\mu(v^K_{i}, v^K_{i+1})$ is a directed path within a single strongly-connected component of $G$ (by assumption on the form of $\mu$).
+  %In the former case, $v^K_{i}$ would be an unblockable non-collider on $\mu$, a contradiction.
+  Therefore $\mu$ must look like $\suh v^K_{i} \hut \dots \hut v^K_{i+1}$.
+  But then $v^K_{i}$ would have been removed by the algorithm, a contradiction.
+  Hence $\pi^K$ cannot contain such a subpath $v^K_{i-1} \suh v^K_{i} \tut v^K_{i+1}$.
+  One can show in a similar way that it cannot contain a subpath $v^K_{i-1} \tut v^K_{i} \hus v^K_{i+1}$ either.
+  
+  We now have shown the existence of a path $\pi_K$ in $H$ between $a$ and $b$ that almost qualifies for being $m$-open given $Z$, except that some of its colliders may not be in $\Anc_H(Z)$ (yet all colliders are in $\Ant^H(Z)$).
+  By using Lemma~\ref{lem:sigmamag_collider_anterior_or_ancestral} repetiviely, we can construct from this an $m$-open path $\tilde{\pi}_K$ in $H$ between $a$ and $b$.
+\end{proof}
+We can now also define:
+\begin{Def}[$im$-separation]\label{def:sigmamag_separation}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $A,B,C \ins J \cup V$ be (not necessarily disjoint) subsets of nodes in $H$.
+  We then say that:
+  \begin{enumerate}
+    \item \emph{$A$ is $im$-separated from $B$ given $C$ in $H$}, in symbols:
+    \[ A \imPerp_H B \given C, \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!) is $m$-blocked by $C$.
+    \item If that property does not hold we will write:
+      \[ A \nimPerp_H B \given C. \]
+    \item We also define the special case:
+      \[ A \imPerp_H B \qquad :\iff \qquad A \imPerp_H B \given \emptyset.\]
+    \end{enumerate}
+\end{Def}
+Then we conclude:
+\begin{Thm}\label{thm:sigmamag_preserves_independence_model}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $A,B,C \ins J \cup V$ be (not necessarily disjoint) subsets of nodes in $H$.
+  Then:
+    \[ A \imPerp_H B \given C \iff A \isPerp_G B \given C \cup S. \]
+\end{Thm}
+\begin{proof}
+  This follows from Lemma~\ref{lem:sigmamag_open_path_implies_cdmg_sigma-open_path} and Lemma~\ref{lem:cdmg_sigma-open_path_implies_sigmamag_open_path}.
+\end{proof}
+
+\Joris{Cannot we also define $m$-blockedness as follows?}
+\begin{Def}\label{def:sigmamag_blocking2}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $\pi$ be a walk in $H$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  Let $C \subseteq J \cup V$. We say that the walk $\pi$ is:
+  \begin{enumerate}
+    \item \emph{$C$-$m$-open} (or \emph{$m$-open given $C$}) if and only if:
+      \begin{enumerate}[label=\roman*)]
+        \item all colliders $v_k$ on $\pi$ are in $\Anc^H(C)$, \emph{and}
+        %\item all colliders $v_k$ on $\pi$ are in $\Ant^H(C)$, \emph{and}
+        \item all non-colliders $v_k$ on $\pi$ are \emph{not} in $C$, \emph{and}:
+        \item it contains no subwalks of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+      \end{enumerate}
+    \item \emph{$C$-$m$-blocked} (or \emph{$m$-blocked given $C$}) if and only if:
+      \begin{enumerate}[label=\roman*)]
+        \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^H(C)$
+        %\item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Ant^H(C)$, \emph{or}:
+        \item there exists a non-collider $v_k$ on $\pi$ in $C$, \emph{or}:
+        \item there exists a subwalk of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+      \end{enumerate}  
+  \end{enumerate}
+  Hence the walk is $C$-$m$-open if and only if it is not $C$-$m$-blocked.
+\end{Def}
+So we have reverted $\Ant$ back to $\Anc$.
+\begin{Prp}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $C \subseteq J \cup V$ and $a, b \in J \cup V$.
+  If there exists a walk in $H$ between $a$ and $b$ that is $m$-open given $C$, then there exists a walk in $H$ between $a$ and $b$ such that
+    \begin{enumerate}[label=\roman*)]
+      \item all colliders $v_k$ on $\pi$ are in $\Anc^H(C)$, \emph{and}
+      \item all non-colliders $v_k$ on $\pi$ are \emph{not} in $C$, \emph{and}:
+      \item it contains no subwalks of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+    \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Let $\pi = v_1 \sus \dots \sus v_n$ be a walk in $H$ between $v_1=a$ and $v_n=b$ that is $m$-open given $C$, that is, such that
+    \begin{enumerate}[label=\roman*)]
+      \item all colliders $v_k$ on $\pi$ are in $\Ant^H(C)$, \emph{and}
+      \item all non-colliders $v_k$ on $\pi$ are \emph{not} in $C$, \emph{and}:
+      \item it contains no subwalks of the form $v_{k-1} \suh v_k \tut v_{k+1}$ or $v_{k-1} \tut v_k \hus v_{k+1}$.
+    \end{enumerate}
+  Let $k_1, \dots, k_l$ denote (in ascending order) the indices of collider nodes on $\pi$. 
+  We go through them one by one in ascending order and, if necessary, make a local modification of the walk $\pi$ by applying Lemma~\ref{lem:sigmamag_collider_anterior_or_ancestral} to each collider.
+  We then obtain a walk that satisfies the claimed property.
+\end{proof}
+Note that the same applies also to an inducing walk: if there exists an `$m$-inducing' walk (with all colliders anterior to an end node) then there exists an inducing walk (with all colliders ancestor of an end node) and vice versa.
+Also we need not consider $a \tuh b \tut c$ to be `$m$-inducing' in the same way that we do not need to consider it to be `$m$-open': we can instead shift attention to the path $a \tuh c$.
+\begin{Def}\label{def:sigmamag-inducing_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  A walk $\pi$ in $H$ between $i$ and $j$ is called \emph{inducing} if each collider on $\pi$ is in $\Anc^H(\{i,j\})$, and it contains no non-colliders except for the endpoints. 
+  If it is a path, it is called an \emph{inducing path} between $i$ and $j$.
+\end{Def}
+\begin{Lem}\label{lem:sigmamag-inducing_path_anterior}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $i,j \in V$.
+  There exists an inducing walk $\pi$ between $i$ and $j$ in $H$ if and only if there exists a walk $\tilde{\pi}$ in $H$ between $i$ and $j$ such that each collider on $\pi$ is in $\Ant^H(\{i,j\})$, and it contains no non-colliders except for the endpoints; $\pi$ is into $i$ iff $\tilde{\pi}$ is into $i$, and $\pi$ is into $j$ iff $\tilde{\pi}$ is into $j$.
+\end{Lem}
+\begin{proof}
+  We go through the colliders on $\pi$ one by one and, if necessary, make a local modification of the walk by applying Lemma~\ref{lem:sigmamag_collider_anterior_or_ancestral} to each collider which is not already in $\Ant^H(\{i,j\})$.
+\end{proof}
+
+
+\subsubsection{What about $im$-separation in $\sigma$-PAGs?}
+
+\Joris{Zhang (2008) writes: "It is not hard to see that if there is a definite
+m-connecting path between X and Y given Z in a PAG, then in every MAG
+represented by the PAG, the corresponding path is an m-connecting path between
+X and Y given Z. ... A quite surprising result is that if there is an m-connecting
+path between X and Y given Z in a MAG, then there must be a definite
+m-connecting path (not necessarily the same path) between X and Y given Z in
+its CPAG ...."
+So we can just look at the presence of a definite m-connecting path in the CPAG!
+
+The preservation of the independence model in MAGs also follows from Theorem 4.18 in Richardson \& Spirtes (2002).
+Lemmas 20 and 26 in Zhang (2008) are useful! The latter points to Lemma 5.1.7 in Zhang (2006), the proof of which is on p.~208--216, the former points to Lemma 5.1.3.  Note that it would be VERY useful if we could extend (the first part of) Lemma 5.1.7 to the selection bias setting!
+This also provides us with what we need to extend the do-calculus for MAGs to a do-calculus for PAGs.
+Note that the negation of `definitely m-connecting' is `possibly m-closed'.}

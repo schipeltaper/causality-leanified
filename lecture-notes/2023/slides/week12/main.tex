@@ -1,0 +1,731 @@
+\title[Causality]{Causality: Lecture 12}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2022-04-26]{\normalsize April 26th, 2023}
+\maketitle
+
+\begin{frame}{Terminology change}
+  I changed:
+  \begin{itemize}
+    \item `observationally equivalent' $\mapsto$ `observably equivalent', and
+    \item `observational equivalence' $\mapsto$ `observable equivalence'
+  \end{itemize}
+  throughout the second part of the lecture notes.
+
+  \bigskip
+  This makes it compatible with the common terminology:
+  \begin{description}
+    \item[observational] non-experimental (in the absence of any intervention),\\
+      e.g., `observational data', `observational distribution'
+    \item[observable] something that can be measured (the opposite of latent),\\
+      e.g., `observable variable'
+    \item[observed] something that has been measured,\\
+      e.g., `observed variable'
+  \end{description}
+
+  \bigskip
+  `Observationally equivalent' then means: observably equivalent and $J = \emptyset$.
+\end{frame}
+
+\part{Counterfactuals}
+\frame{\partpage}
+
+\begin{frame}{Counterexample (Dawid, 2002)}
+\begin{example}[1/2]
+  For parameter $\rho\in[0,1]$, consider the SCM $\C{M}_\rho$ with binary exogenous input variable $X \in \{0,1\}$, endogenous variable $Y \in \RN$, a single latent exogenous random variable $W = (W_1,W_2) \in \RN^2$ with
+exogenous distribution 
+  $$\begin{pmatrix} W_1 \\ W_2 \end{pmatrix}\sim\C{N}\left(\begin{pmatrix}0 \\ 0\end{pmatrix},\begin{pmatrix}1&\rho\\ \rho&1\end{pmatrix}\right)$$
+and structural equation
+  $$Y = W_1 (1 - X) + W_2 X.$$
+  In a medical setting, this SCM could be used to model whether a patient was treated ($x$) and the corresponding outcome for that patient ($Y^{\doit(x)}$).
+\end{example}
+\end{frame}
+
+\begin{frame}{Counterexample (Dawid, 2002)}
+\begin{example}[2/2]
+  Suppose in the actual world, $x = 0$ and $Y^{\doit(x=0)} = y \in \RN$.
+  Consider the counterfactual: {\it ``What would the outcome have been, had we assigned treatment to this patient?''}.
+
+  Construct the twin SCM $\C{M}_{\rho}^{\twin}$.
+  The counterfactual query then asks for $p_{M_{\rho}^\twin}((Y')^{\doit(x'=1)}\mid Y^{\doit(x=0)}=y)$. One can calculate that
+$$
+  P_{M_{\rho}^\twin}\big((Y')^{\doit(x'=1)},Y^{\doit(x=0)}\big) = \C{N}\left(\begin{pmatrix}0\\ 0\end{pmatrix}, \begin{pmatrix} 1 & \rho \\ \rho & 1 \end{pmatrix}\right)
+$$
+  and hence $P_{M_{\rho}^\twin}((Y')^{\doit(x'=1)} \mid Y^{\doit(x=0)}=y) = \C{N}(\rho y,1-\rho^2)$. Note that the answer to the counterfactual query depends on a quantity $\rho$ that we cannot identify from the Markov kernel $P_{M_{\rho}}(Y\given \doit X)$, since this is independent of $\rho$. 
+Indeed, SCMs $\C{M}_{\rho}$ and $\C{M}_{\rho'}$ with $\rho\neq\rho'$ are interventionally equivalent, but not counterfactually equivalent.
+%If we obtain the SCM from a reduction, we find the one with $\rho = 1$.
+\end{example}
+  \textbf{Conclusion: counterfactuals cannot be learned from data alone!}
+\end{frame}
+
+\begin{frame}{Response functions (Balke \& Pearl, 1994)}
+  \begin{itemize}
+    \item Technique of \emph{response functions} can be used to parameterize SCMs.
+    \item We give an example rather than a general treatment.
+  \end{itemize}
+
+\begin{Def}[\ref{def:response_functions}]
+  Let $M = \lt J=\{j\}, V=\{v\}, W=\{w\}, \CX_J \times \CX_V \times \CX_W, P, f \rt$ be a simple SCM
+  with $\C{X}_j$ and $\C{X}_v$ both discrete (and $\C{X}_W$ arbitrary).
+  \begin{itemize}
+    \item The space of measurable functions
+  $\tilde{\C{X}}_w = (\C{X}_v)^{\C{X}_j} = \{\phi : \C{X}_j \to \C{X}_v\}$
+  were called ``response functions'' \cite{BalkePearl1994b}.
+\item $M$ defines a function $\Phi_w : \C{X}_w \to \tilde{\C{X}}_w$ that assigns to each $x_w \in \C{X}_w$ the corresponding response function in $\tilde{\C{X}}_w$:
+  $\Phi_w(x_w) : x_j \mapsto f_v(x_j, x_w)$.
+  \item Define $\tilde{M} := \lt J=\{j\}, V=\{v\}, W=\{w\}, \CX_j \times \CX_v \times \tilde{\C{X}}_w, \tilde{P}, \tilde{f}_v \rp$,
+    \begin{itemize}
+      \item with exogenous distribution $\tilde{P} = (\Phi_w)_* (P)$,
+      \item and causal mechanism $\tilde{f}_v(x_j,\tilde{x}_w) = \tilde{x}_w(x_j)$\\
+        (which just evaluates the response function $\tilde{x}_w$ in the input $x_j$).
+    \end{itemize}
+  \end{itemize}
+  \end{Def}
+\end{frame}
+
+\begin{frame}{Response functions, continued}
+\begin{Prp}[\ref{prp:counterfactual_equivalence_response_functions}]
+  $\tilde{M}$ in Definition~\ref{def:response_functions} is counterfactually equivalent to $M$ w.r.t.\ $V$.
+\end{Prp}
+\begin{block}{Proof}
+\setlength\abovedisplayskip{5pt}
+\setlength\belowdisplayskip{5pt}
+%  Note that:
+%    $$f_v(x_j,x_w) = \Phi_w(x_w)(x_j) = \tilde{f}_v(x_j,\Phi_w(x_w))$$
+%  for all $x_j \in \CX_j, x_w \in \CX_w$.
+%  Hence, by Theorem~\ref{thm:scm_unique_solvability}, 
+%  \begin{align*}
+%    P_{M}(X_v \mid \doit(X_j)) & = (f_v)_* \lp \delta(X_j|X_j) \otimes P(X_w) \rp \\
+%    & = (\tilde{f}_v)_* \lp \delta(X_j|X_j) \otimes (\Phi_w)_* P(X_w) \rp \\
+%    & = (\tilde{f}_v)_* \lp \delta(X_j|X_j) \otimes \tilde{P}(\tilde{X}_w)  \rp \\
+%    & = P_{\tilde{M}}(X_v \mid \doit(X_j)).
+%  \end{align*}
+%
+%  It is obvious that a hard intervention targeting $\{v\}$ will lead to the same intervened Markov kernel in both SCMs.
+%  Hence they are interventionally equivalent w.r.t.\ $V$.
+%
+  Consider $M^\twin$ and $\tilde{M}^\twin$.
+  The causal mechanism of $M^\twin$ is given by:
+  $$\begin{cases}
+    f^\twin_v(x_j,x_{j'},x_w) = f_v(x_j,x_w), \\
+    f^\twin_{v'}(x_j,x_{j'},x_w) = f_v(x_{j'},x_w)
+  \end{cases}$$
+  for $x_j, x_{j'} \in \CX_j$ and $x_w \in \CX_w$, while that of $\tilde{M}^\twin$ satifies:
+  $$\begin{cases}
+    \tilde{f}^\twin_v(x_j,x_{j'},\tilde{x}_w) = \tilde{f}_v(x_j,\tilde{x}_w) = \tilde{x}_w(x_j), \\
+    \tilde{f}^\twin_{v'}(x_j,x_{j'},\tilde{x}_w) = \tilde{f}_v(x_{j'},\tilde{x}_w) = \tilde{x}_w(x_{j'})
+  \end{cases}$$
+  for $x_j, x_{j'} \in \CX_j$ and $\tilde{x}_w \in \tilde{\CX}_w$. 
+  Hence, for all  for $x_j, x_{j'} \in \CX_j$ and $x_w \in \CX_w$:
+  $$\begin{cases}
+    \tilde{f}^\twin_v(x_j,x_{j'},\Phi_w(x_w)) = \tilde{f}_v(x_j,\Phi_w(x_w)) = f_v(x_j,x_w) = f^\twin_v(x_j,x_{j'},x_w), \\
+    \tilde{f}^\twin_{v'}(x_j,x_{j'},\Phi_w(x_w)) = \tilde{f}_v(x_{j'},\Phi_w(x_w)) = f_v(x_{j'},x_w) = f^\twin_{v'}(x_j,x_{j'},x_w).
+  \end{cases}$$
+\end{block}
+\end{frame}
+
+\begin{frame}{Response functions, continued}
+  \begin{proof}[Proof (continued)]
+  Writing this more compactly:
+  $$\tilde{f}^\twin_v(x_j,x_{j'},\Phi_w(x_w)) = f^\twin(x_j,x_{j'},x_w).$$
+  Hence, by Theorem~\ref{thm:scm_unique_solvability}: 
+  \begin{align*}
+    P_{M^\twin}(X_v,X_{v'} \mid \doit(X_j,X_{j'})) & = (f^\twin)_* \lp \delta(X_j,X_{j'}|X_j,X_{j'}) \otimes P(X_w)\rp \\
+    & = (\tilde{f}^\twin)_* \lp \delta(X_j,X_{j'}|X_j,X_{j'}) \otimes (\Phi_w)_* P(X_w) \rp \\
+    & = (\tilde{f}^\twin)_* \lp \delta(X_j,X_{j'}|X_j,X_{j'}) \otimes \tilde{P}(\tilde{X}_w) \rp \\
+    & = P_{\tilde{M}^\twin}(X_v,X_{v'} \mid \doit(X_j,X_{j'})).
+  \end{align*}
+  It is obvious that a hard intervention targeting any subset of $\{v,v'\}$ will lead to the same intervened Markov kernel in $M^\twin$ and $\tilde{M}^\twin$.
+  Hence $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $V \cup V'$, which shows that $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $V$.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Response functions, continued}
+\begin{Cor}[\ref{cor:counterfactual_equivalence_response_functions}]
+  Let $M = \lt J, V, W, \CX_J \times \CX_V \times \CX_W, P, f \rt$ be a simple SCM with a discrete exogenous input space $\CX_J$.
+  Let $v \in V$ be an endogenous variable in $M$ taking values in a discrete space $\C{X}_v$.
+  Then there exists an SCM that is counterfactually equivalent to $M$ w.r.t.\ $\{v\}$.
+\end{Cor}
+\begin{proof}
+  \begin{enumerate}
+    \item Merge all exogenous input variables into a single one;
+    \item Marginalize out all endogenous variables except $v$;
+    \item Merge all exogenous random variables into a single one;
+    \item Encode it by using response functions as in Definition~\ref{def:response_functions};
+    \item Unmerge the exogenous input variables.
+  \end{enumerate}
+  Each step yields an SCM that is counterfactually equivalent w.r.t.\ $\{v\}$ to the previous one (when identifying $\CX_J$ with $\prod_{j\in J} \CX_j$).
+\end{proof}
+\end{frame}
+
+\begin{frame}{Bounding counterfactuals}
+  We can sometimes derive a \emph{bound} on counterfactual probabilities \cite{BalkePearl1994b}.
+
+  \begin{block}{Motivation}
+    Joe participated in a randomized controlled trial. He was assigned to the placebo group, and was not cured.
+    His physician asks: would Joe have been cured if he had been assigned to the treatment group?
+  \end{block}
+
+  \begin{Eg}[\ref{ex:Bounding_counterfactuals}]
+    Consider the family of SCMs $M_\rho$ with binary exogenous input variable $X \in \{0,1\}$, binary endogenous variable $Y \in \{0,1\}$, a single latent exogenous random variable $W \in \{0,1\}^{\{0,1\}}$ with exogenous distribution $P(W=w) = \rho_w$
+  for parameter $\rho \in \Delta_4$, and structural equation $$Y^{\doit(x)} = W(x).$$
+  \end{Eg}
+
+  Note: By Corollary~\ref{prp:counterfactual_equivalence_response_functions}, the assumptions about the latent
+  space $\C{X}_W$ can be made without loss of generality.
+\end{frame}
+
+\begin{frame}{Bounding counterfactuals, continued}
+  \begin{Eg}[\ref{ex:Bounding_counterfactuals}, continued]
+  We can define the possible response functions $f_{00},f_{01},f_{10},f_{11} : \{0,1\} \to \{0,1\}$ by:
+  \begin{align*}
+    f_{00} &: 0 \mapsto 0, 1 \mapsto 0;\\
+    f_{01} &: 0 \mapsto 0, 1 \mapsto 1;\\
+    f_{10} &: 0 \mapsto 1, 1 \mapsto 0;\\
+    f_{11} &: 0 \mapsto 1, 1 \mapsto 1.
+  \end{align*}
+  We will derive a bound on the counterfactual probability
+    $$P_{M_{\rho}^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y^{\doit(x=0)}=0),$$
+  where $Y^{\doit(x=0)}$ is the factual outcome, and $(Y')^{\doit(x'=1)}$ is the counterfactual outcome.
+  \end{Eg}
+\end{frame}
+
+\begin{frame}{Bounding counterfactuals, continued}
+  \begin{Eg}[\ref{ex:Bounding_counterfactuals}, continued]
+    \begin{description}
+      \item[Abduction] Update the exogenous distribution with the factual outcome.
+        {\small
+  $$P_{M_{\rho}^{\twin}}(W=w | Y^{\doit(x=0)}=0) = 
+    \begin{cases}
+      \frac{\rho_{00}}{\rho_{00} + \rho_{01}} & w = f_{00}, \\
+      \frac{\rho_{01}}{\rho_{00} + \rho_{01}} & w = f_{01}, \\
+      0 & w = f_{10}, \\
+      0 & w = f_{11}.
+    \end{cases}$$}
+  \item[Prediction] Predict the counterfactual outcome, using the updated distribution of $W$.
+    We can calculate
+  $$P_{M_{\rho}^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) = \frac{\rho_{01}}{\rho_{00} + \rho_{01}}.$$
+    \end{description}
+  \end{Eg}
+\end{frame}
+\begin{frame}{Bounding counterfactuals, continued}
+  \begin{Eg}[\ref{ex:Bounding_counterfactuals}, continued]
+\setlength\abovedisplayskip{5pt}
+\setlength\belowdisplayskip{5pt}
+  Introduce the shorthand $q_{y|x} := P_{M_{\rho}^\twin}(Y=y\given \doit(X=x))$: \\
+  \smallskip
+  \centerline{\small\begin{tabular}{ccl}
+    $x$ & $y$ & $q_{y|x}$ \\
+    \hline
+    0   & 0   & $\rho_{00} + \rho_{01}$ \\ % = 1-eps
+    0   & 1   & $\rho_{10} + \rho_{11}$ \\ %= eps
+    1   & 0   & $\rho_{00} + \rho_{10}$ \\ %= delta
+    1   & 1   & $\rho_{01} + \rho_{11}$ \\ %= 1-delta
+    \end{tabular}}
+
+    \medskip
+The non-negativity of the $\rho$'s implies the bound:
+$$q_{0|0} - \min(q_{0|0},q_{0|1}) \le \rho_{01} \le \min(q_{0|0},q_{1|1})$$
+and hence
+{\small $$\frac{q_{0|0} - \min(q_{0|0},q_{0|1})}{q_{0|0}} \le P_{M_{\rho}^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \le \frac{\min(q_{0|0},q_{1|1})}{q_{0|0}}.$$}
+\vspace{-0.5\baselineskip}
+\end{Eg}
+Example: in the almost-deterministic case ($q_{0|0} \approx 1$ and $q_{1|1} \approx 1$),
+the bound tells us that $P_{M_{\rho}^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \approx 1$.
+\end{frame}
+
+
+\part{Causal Discovery: The Basics}
+\frame{\partpage}
+
+\begin{frame}{Outline}
+  We give mathematical definitions for:
+  \begin{itemize}
+    \item $a$ causes $b$;
+    \item $a$ is a direct cause of $b$;
+    \item $a$ and $b$ have a common cause
+  \end{itemize}
+  and relate this to properties of the (intervened) Markov kernels.
+
+  \medskip
+  We then study three causal discovery methods:
+  \begin{enumerate}
+    \item Randomized Controlled Trials
+    \item Local Causal Discovery
+    \item Y-structures
+  \end{enumerate}
+
+  \bigskip
+  In the following slides, we always assume that
+  $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is a simple SCM with graph $G = G(M)$.
+
+  \bigskip
+  For L-CBNs, everything can be done analogously.
+\end{frame}
+
+\begin{frame}{Defining Causal Relations}\label{frame:causes}
+\begin{Def}[\ref{def:cause_of}]
+  If $a \in \Anc^G(b)\sm \{b\}$ for $a, b \in J \cup V \cup W$ we say that \emph{$a$ is a cause of $b$ according to $M$}.
+\end{Def}
+Only if $a$ causes $b$ according to $M$, a hard intervention on $a$ can change the distribution of $b$: 
+\begin{Prp}[\ref{prp:scm_causes_separation}]
+  Let $a \in V \cup W \cup J$ and $b \in V$. Suppose that $a \notin \Anc^{G(M)}(b)$.
+  $$\begin{cases}
+    \text{If } a \in V \cup W & \text{then\quad} P_{M}(X_b \given \doit(X_J), \doit(X_a)) = P_{M}(X_b \given \doit(X_J)) \\
+    \text{If } a \in J        & \text{then\quad} P_{M}(X_b \given \doit(X_J)) = P_{M}(X_b \given \doit(X_{J\setminus \{a\}}),\cancel{\doit(X_a)}).
+  \end{cases}$$
+  Note: both cases can also be combined into a single statement:
+    $$a \notin \Anc^{G(M)}(b) \implies P_{M}(X_b \given \doit(X_{J \cup \{a\}}) = P_{M}(X_b \given \doit(X_{J\sm\{a\}})).$$
+\end{Prp}
+Proof: Application of rules 3 and 4 of the do-calculus.
+\end{frame}
+
+\begin{frame}{Detecting Causal Relations}
+This leads to a practical way of detecting the presence of a causal relation.
+  \begin{Cor}[\ref{cor:scm_identify_causal_relation}]
+  Let $b \in V$.
+  For $a \in V \cup W \cup J$ with $a \ne b$, if
+  there exist $x_{J\sm\{a\}} \in \CX_{J\sm\{a\}}$, $x_a,x_a' \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+      \end{split}\end{equation*}
+  then $a$ is a cause of $b$ according to $M$, that is, $a \in \Anc^{G(M)}(b)$.
+
+  Also, for $a \in V \cup W$ with $a \ne b$, if
+  there exist $x_J \in \CX_J$, $x_a \in \CX_a$ such that
+  $$P_{M}(X_b \given \doit(X_a=x_a),\doit(X_J=x_J)) \ne P_{M}(X_b \given \doit(X_J=x_J)),$$
+  then $a$ is a cause of $b$ according to $M$.  
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Defining Direct Causal Relations}
+The notion of direct causation is always relative to some set of variables.
+\begin{Def}[\ref{def:direct_cause_of}]
+  If $a \in \Pa^{G(M)}(b)$ for $a, b \in J \cup V \cup W$ with $a\ne b$ we say that \emph{$a$ is a direct cause of $b$ w.r.t.\ $V \cup W \cup J$ according to $M$}.
+\end{Def}
+This property is not necessarily preserved under marginalization!
+
+\bigskip
+Direct causation can be expressed in terms of causation in an intervened SCM:
+\begin{Prp}[\ref{prp:direct_cause_of}]
+  For $a,b \in J \cup V \cup W$, $a$ is a direct cause of $b$ w.r.t.\ $J \cup V \cup W$ according to $M$ if and only if $a$ is a cause of $b$ according to $M_{\doit((V \cup W \sm \{b\})}$.
+\end{Prp}
+
+\end{frame}
+
+\begin{frame}{Detecting Direct Causal Relations}
+\begin{Cor}[\ref{cor:scm_identify_direct_causal_relation}]
+  Let $b \in V$.
+  For $a \in V \cup W \cup J$ with $a \ne b$, if there exist $x_{J\setminus\{a\}} \in \CX_{J\sm\{a\}}$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a,x_a' \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+      \end{split}\end{equation*}
+  then $a$ is a direct cause of $b$ w.r.t.\ $V \cup J \cup W$ according to $M$.
+
+  Also, for $a \in V \cup W$ with $a \ne b$, if there exist $x_J \in \CX_J$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)),
+      \end{split}\end{equation*}
+  then $a$ is a direct cause of $b$ w.r.t.\ $V \cup J \cup W$ according to $M$.
+  
+  Thus in both cases, $a \in \Pa^{G(M)}(b)$.
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Bifurcations}
+  \begin{Def}
+    Let $G = \lt J, V, E, L \rt$ be a CDMG. 
+    A \emph{bifurcation} from $v$ to $w$ in $G$ is a walk of the form:
+        \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \hus v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+   %             \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \huh v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        such that $v \ne w$, the walk contains both endnodes exactly once, 
+        every node has at most one arrowhead pointing towards it, and 
+        both endnodes have exactly one arrowhead pointing towards them. 
+          If the edge $v_{k-1} \hus v_k$ is directed ($v_{k-1} \hut v_k$) then we say that the bifurcation has \emph{source} $v_{k}$.
+  \end{Def}
+\begin{Prp}[\ref{prp:bifurcations_alternative}]
+  Let $G = \lt J, V, E, L \rt$ be a CMDG. For $a, b, c \in V \cup J$:
+  there exists a bifurcation between $a$ and $b$ in $G$ with source $c$ if and only if $a \ne b$ and $c \in \Anc^{G_{\doit(b)}}(a) \sm \{a\}$ and $c \in \Anc^{G_{\doit(a)}}(b) \sm \{b\}$.
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Common Causes and Confounding Bias}
+Back to the SCM $M$ with graph $G(M)$.
+\begin{Def}[\ref{def:common_cause_of}]
+  If there exists a bifurcation with source $c \in V \cup W \cup J$ in $G(M)$ between $a,b \in V$, we say that \emph{$c$ is a common cause of $a$ and $b$ according to $M$}.
+\end{Def}
+Without common causes, there can be no bias due to confounding.
+\begin{Prp}[\ref{prp:scm_confounded_separation}]
+Let $a \ne b \in V$.
+If $b \notin \Anc^{G(M)}(a)$ and $a$ and $b$ do not have a common cause in $V \cup W$ according to $M$, then
+$a$ and $b$ do not have confounding bias. That is,
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+for any reference measure $\mu_a$ on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+\end{Prp}
+Proof: Application of rule 2 of the do-calculus.
+\end{frame}
+
+\begin{frame}{Detecting Common Causes}
+\begin{Cor}[\ref{cor:scm_identify_confounder}]
+\setlength\abovedisplayskip{5pt}
+\setlength\belowdisplayskip{5pt}
+Let $a, b \in V$ with $a \ne b$.
+Let $\mu_a$ be a reference measure on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+If $b$ is not a cause of $a$ according to $M$, and the following does \emph{not} hold:
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.},$$
+then $a$ and $b$ have a common cause in $V \cup W$ according to $M$.
+
+If for some $c \in J$, 
+there exist $x_{J\sm\{c\}} \in \CX_{J\sm\{c\}}$, $x_c,x_c' \in \CX_c$ s.t.
+  \begin{equation*}\begin{split}
+        & P_{M}(X_a \given \doit(X_c=x_c),\doit(X_{J\setminus \{c\}}=x_{J\setminus \{c\}})) \\
+        {} \ne {} & P_{M}(X_a \given \doit(X_c=x_c'),\doit(X_{J\setminus\{c\}}=x_{J\setminus\{c\}})),
+  \end{split}\end{equation*}
+and there exist $x_{J\sm\{c\}} \in \CX_{J\sm\{c\}}$, $x_c,x_c' \in \CX_c$ s.t.
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_c=x_c),\doit(X_{J\setminus \{c\}}=x_{J\setminus \{c\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_c=x_c'),\doit(X_{J\setminus\{c\}}=x_{J\setminus\{c\}})),
+      \end{split}\end{equation*}
+then $c$ is a common cause of $a$ and $b$ according to $M$.
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Discussion}
+  \begin{itemize}
+    \item
+      Corollary~\ref{cor:scm_identify_causal_relation}, \ref{cor:scm_identify_direct_causal_relation} and \ref{cor:scm_identify_confounder}
+      (for detecting a causal relation, a direct causal relation, and a common cause)
+      are sufficient, but not necessary.
+    \item Corollary~\ref{cor:scm_identify_confounder} ascribes confounding bias to a common cause;
+      this assumes the absence of selection bias.
+    \item We do not know how to identify a common cause of two variables that cause each other.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Exchangeability}
+In the potential outcome literature, unconfoundedness is typically expressed in terms of counterfactuals.
+\begin{Prp}[\ref{prp:potential_outcome_unconfoundedness}]
+Let $a \ne b \in V$.
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ have no common cause according to $M$, then
+  \begin{equation}\label{slides-eq:potential_outcome_unconfoundedness}
+    \forall x_{a'} \in \CX_a: \qquad X_a \Indep_{P_{M^\twin_{\doit(X_{a'}=x_{a'})}}} X_{b'} \given X_J.
+  \end{equation}
+\end{Prp}
+If $J = \emptyset$, equation \eref{slides-eq:potential_outcome_unconfoundedness} is typically written as
+  $$\forall x_{a'} \in \CX_A : \qquad X_a \Indep X_{b'}^{\doit(x_{a'})}.$$
+It is referred to as \emph{exchangeability} in the potential outcome framework, and 
+expresses the assumption of ``no confounding'' when the task is to estimate the causal effect of $a$ on $b$. 
+\end{frame}
+
+\begin{frame}{Properties of Graphical Marginalization}
+\begin{Prp}[Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}]
+  Let $G = \lt J, V, E, L \rt$ be a CDMG, and let $U \subseteq V$. For $a,b \in J \cup V$ with $\{a,b\} \cap U = \emptyset$:
+\begin{enumerate}
+  \item {\color{gray}there is a directed path from $a$ to $b$ in $G$ if and only if there is a directed path from $a$ to $b$ in $G^{\setminus U}$};
+%  \item $a \in \Anc^G(b)$ if and only if $a \in \Anc^{G^{\setminus U}}(b)$ for $U \subseteq V$ with $\{a,b\} \cap U = \emptyset$;
+  \item there is a bifurcation between $a$ and $b$ in $G$ if and only if there is a bifurcation between $a$ and $b$ in $G^{\setminus U}$.
+\end{enumerate}
+\end{Prp}
+\begin{Rem}
+  As special cases, we obtain:
+    \begin{enumerate}
+      \item there is a directed path from $a$ to $b$ in $G$ if and only if $a \tuh b$ is present in $G^{\setminus (V\setminus\{a,b\})}$;
+      \item there is a bifurcation between $a$ and $b$ in $G$ if and only if $a \huh b$ in $G^{\setminus (V\setminus\{a,b\})}$.
+    \end{enumerate}
+\end{Rem}
+\end{frame}
+
+\begin{frame}{Marginalizing out unobserved variables}
+We often deal with the situation that only part of the variables are observed or observable, and others are latent.
+\begin{Not}
+\setlength\abovedisplayskip{5pt}
+\setlength\belowdisplayskip{5pt}
+For a simple SCM $M$, let $O \subseteq V \cup W$ be the set of observable variables,
+where we will always assume $J$ to be observable as well.
+We refer to the marginalized graph
+$$G_{O|J}(M) := (G(M))^{\setminus((V \cup W) \setminus O)}$$
+as the \emph{observable} graph of $M$. It has input nodes $J$ and output nodes $O$.
+The corresponding observable Markov kernel is denoted 
+  $$P_{M}(X_O \mid \doit(X_J)),$$
+and the observable intervened Markov kernel resulting from a hard intervention targeting $T \subseteq O$ is 
+  $$P_{M}(X_{O\setminus T} \mid \doit(X_{J\cup T})) := P_{M_{\doit(T)}}(X_{O\sm T} \mid \doit(X_{J\cup T})).$$
+\end{Not}
+\end{frame}
+
+\begin{frame}{Abstraction through Marginalization}
+  \begin{block}{Important insight}
+  Graphical marginalization preserves:
+    \begin{enumerate}
+      \item ancestral relations, 
+      \item bifurcations, 
+      \item $d/\sigma$-separations.
+    \end{enumerate}
+  Probabilistic marginalization preserves:
+    \begin{enumerate}
+      \item conditional independences.
+    \end{enumerate}
+    \emph{This means that we can ignore latent details when performing causal reasoning / discovery.}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Example: Reichenbach's Principle of Common Cause}
+\begin{Exc}
+  Reichenbach's \emph{Principle of Common Cause} states that if two events are dependent,
+  then one must cause the other or the events must have a common cause (or any combination of these three possibilities).
+
+  \bigskip
+  We can make this precise for simple SCMs in the following way. Assume that $M$
+  is a simple SCM with two observed endogenous variables $X,Y$ (and possibly other
+  latent variables as well, but no exogenous input nodes). Prove that 
+  $X \nIndep_{P_{M}(X,Y)} Y$
+  implies that $X \tuh Y$,
+  $X \hut Y$ or $X \huh Y$ in $G_{\{X,Y\}}(M)$.
+
+  \bigskip
+  Thus, either $X$ causes $Y$ according to $M$, 
+  or $Y$ causes $X$ according to $M$,
+  or $X$ and $Y$ have a common cause according to $M$.
+\end{Exc}
+\end{frame}
+
+
+\part{Causal Discovery: Randomized Controlled Trials}
+\frame{\partpage}
+
+\begin{frame}{Randomized Controlled Trials / A-B Testing}
+  Gold standard for causal discovery (\cite{vanHelmont1648}):
+  \begin{block}{Randomized Controlled Trials}
+  Treatment variable $C$ (e.g.\ binary), outcome variable $X$.
+  Randomize treatment for each patient.
+  Measure data $(C_n,X_n)_{n=1}^N$.
+  If outcome depends significantly on treatment, conclude that treatment causes outcome.
+  \end{block}
+
+  Assumptions:
+  \begin{enumerate}
+    \item Outcome $X$ does not cause treatment $C$;
+    \item Outcome $X$ and treatment $C$ have no common cause.
+  \end{enumerate}
+
+  \bigskip
+  To model this with an SCM, we can model treatment $C$ as an:
+  \begin{enumerate}
+    \item exogenous input variable, or
+    \item exogenous random variable, or
+    \item endogenous variable (e.g., in case of ``imperfect compliance'').
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version I)}
+\begin{Prp}[\ref{prp:RCT1}]
+Let $M$ be a simple SCM with a single exogenous input variable $C$ and an 
+endogenous variable $X$, both of which are observed (and possibly other latent variables as well).
+A dependence 
+  $$X \nIndep_{P_{M}(X\mid\doit(C))} C $$
+implies that $C$ causes $X$ according to $M$. 
+
+The causal effect of $C$ on $X$ is by definition:
+  $$P_{M}\big(X \given \doit(C)\big)$$
+\end{Prp}
+\begin{proof}
+  Apply Proposition~\ref{prp:scm_causes_separation}.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version II)}
+\begin{Prp}[\ref{prp:RCT2}]
+Let $M$ be a simple SCM with an exogenous random variable $C$ and an endogenous 
+variable $X$, both of which are observed (and possibly other latent variables as well).
+A dependence 
+  $X \nIndep_{P_{M}(X,C)} C $
+implies that $C$ causes $X$ according to $M$.
+
+The causal effect of $C$ on $X$ satisfies:
+  $$P_{M}\big(X \given \doit(C)\big) = P_{M}(X \given C) \qquad P_{M}(C)\text{-a.s.}.$$
+\end{Prp}
+\begin{proof}
+Denote the observable graph as $G := G_{\{C,X\}}(M)$.
+It has two nodes, and it either has no edge at all, in which case $C$ does not cause $X$ according to
+$M$, or it has a single edge $C \tuh X$, in which case $C$ causes $X$ according to $M$.
+By the Markov property, if the edge $C \tuh X$ were absent in $G$, 
+then $X \Indep_{P_{M}(X,C)} C$. 
+%Therefore, if $X \nIndep C$, the edge $C \to X$ must be in $\tilde{G}$. 
+In both cases, rule 2 of the causal do-calculus applied to $G$ yields the identity of the two Markov kernels. 
+\end{proof}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version III)}
+\begin{Prp}[\ref{prp:RCT3}]
+Let $M$ be a simple SCM with two observed endogenous variables $C, X$
+(and possibly other latent variables as well). If:
+  \begin{enumerate}
+    \item $X$ does not cause $C$ according to $M$, and
+    \item $C$ and $X$ do not have a common cause according to $M$,
+  \end{enumerate}
+then a dependence 
+  $$X \nIndep_{P_{M}(X,C)} C$$
+  implies that $C$ causes $X$ according to $M$, and the causal effect of $C$ on $X$ satisfies:
+  $$P_{M}\big(X \given \doit(C)\big) = P_{M}(X \given C) \qquad P_{M}(C)\text{-a.s.}.$$
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version III)}
+\begin{proof}
+Denote the observable graph as $G := G_{\{C,X\}}(M)$.
+The first assumption is equivalent to 
+$C \hut X \notin G$, and the second assumption is equivalent to
+$C \huh X \notin G$.
+Hence, out of the eight possible graphs $G$, only two satisfy the assumptions:\\
+  \begin{center}\scalebox{0.8}{\begin{tikzpicture}
+  \begin{scope}
+%    \node at (0,-0.8) {$X \Indep C$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+  \end{scope}
+  \begin{scope}[xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \end{tikzpicture}}\end{center}
+By the Markov property, if the edge $C \tuh X$ were absent in $G$, 
+then $X \Indep_{P_{M}(X,C)} C$. 
+In both cases, rule 2 of the causal do-calculus applied to $G$ yields the identity  
+of the two Markov kernels.
+\end{proof}
+\end{frame}
+
+\part{Causal Discovery: Faithfulness}
+\frame{\partpage}
+
+\begin{frame}{Faithfulness}
+A simple SCM is called $\sigma$-faithful ($d$-faithful) if each conditional independence in its Markov kernel
+is due to a $\sigma$-separation ($d$-separation).
+\begin{Def}[\ref{def:faithfulness}]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  $M$ is called \emph{$\sigma$-faithful} if 
+  for all $A, B, C \ins J \cup V \cup W$:
+  \begin{equation}\label{eq:sigma_faithful}
+    A \Perp^\sigma_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{equation}
+  It is called \emph{$d$-faithful} if
+  for all $A, B, C \ins J \cup V \cup W$:
+  \begin{equation*}
+    A \Perp^d_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{equation*}
+%  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+%  $$A \Perp^\sigma_{G(M)} J \cup B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+  For a subset $O \subseteq V \cup W$, we say that $M$ is \emph{$\sigma$-faithful w.r.t.\ $O$} if
+  \eref{eq:sigma_faithful} holds for all $A, B, C \ins J \cup O$, and define
+  \emph{$d$-faithful w.r.t.\ $O$} analogously.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Faithfulness Violations}
+These definitions behave properly under marginalization:
+\begin{Rem}
+A simple SCM $M$ is $\sigma$/$d$-faithful w.r.t.\ $O$ if and only if
+its marginalization $M_O$ is $\sigma$/$d$-faithful.
+\end{Rem}
+
+\bigskip
+Faithfulness may fail for various reasons:
+\begin{itemize}
+  \item Deterministic relationships may lead to additional conditional independences, but are not exploited by the Markov property;
+  \item Effects may cancel out;
+  \item If cycles are present, and (i) all variables are discrete, or (ii) interactions are linear;
+  \item If cycles are present, and the system is ``perfectly adapting''.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Faithfulness Violation Examples}
+\begin{Eg}[Determinism]
+  Take an SCM with three endogenous variables $X,Y,Z$ and two exogenous random variables $U,W$, with structural equations
+  $$X = 5, \qquad Y = X + U, \qquad Z = X + W.$$
+  Then $Y \nPerp Z$ but $Y \Indep Z$.
+  This simple (even acyclic) SCM is not faithful due to $X$ being constant.
+\end{Eg}
+
+\begin{Eg}[Canceling Effects]
+  Take an SCM with three endogenous variables $X,Y,Z$ and three exogenous random variables $W_X,W_Y,W_Z$, with structural equations
+  $$X = W_X, \qquad Y = X + W_Y, \qquad Z = Y - X + W_Z.$$
+  Then $X \nPerp Z$ but $X \Indep Z$.
+\end{Eg}
+\end{frame}
+
+\begin{frame}{$\sigma$-Faithfulness Violation}
+One can show that in certain special cases, the global Markov property in terms of $d$-separation even holds for simple SCMs.
+\begin{Prp}[\ref{prp:when_d-separation_holds}]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  If $J = \emptyset$ and one of the three conditions applies:
+  \begin{enumerate}
+    \item all spaces $\CX_v$ with $v \in V$ are discrete, or
+    \item the causal mechanism $f$ is affine and the exogenous distribution has a density w.r.t.\ Lebesgue measure, or
+    \item $M$ is acyclic,
+  \end{enumerate} 
+  then for all $A, B, C \ins J \cup V \cup W$:
+  $$A \Perp^d_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+\end{Prp}
+\end{frame}

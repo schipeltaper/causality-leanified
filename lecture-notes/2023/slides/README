@@ -1,0 +1,14 @@
+TODO for '23 edition:
+- remove notion of equivalence from slides (and how this relates to other equivalence notions)
+- Slightly improved notation for SCMs:
+\begin{itemize}
+  \item $M^\theta$ : SCM with parameter $\theta$
+  \item $M_A$: marginalized SCM $M_{\sm (V\sm A)}$
+  \item $M^{[A]}$: subSCM $M$ on $A$
+  \item $M^\twin$: twinned SCM
+  \item $g^{[A]}_B$: $X_B$ component of solution function of SCM $M^{[A]}$ 
+  \item $M^{(1)}$, $M^{(2)}$, $M^{(3)}$, \dots, $M^{(a)}$: indexed SCMs
+\end{itemize}
+- CI testing: parameter space is \CX_\Theta instead of \Theta, and \CX_\Theta^0 instead of \Theta_0 (and likewise for 1) to allow for the usual distinction between value \theta and random variable \Theta
+- CI testing: should now distinguish $P(..\mid \theta)$ from $P(..\mid \Theta)$, and write $P(..\mid \theta)$ rather than just $P(..)$
+- changed notation for composing SCMs

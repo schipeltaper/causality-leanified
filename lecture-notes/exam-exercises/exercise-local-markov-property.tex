@@ -1,0 +1,56 @@
+\subsection{Local Markov Property}
+\totalscore{6}
+
+Consider a causal Bayesian network with graph $G$, output variables $V$, and without any input or latent variables.
+The so-called ``local Markov property'' then states:
+for $i \in V$, 
+%$$i \Perp^d_G \NonDesc^G(i) \given \Pa^G(i)$$
+%implies
+$$X_i \Indep_{P(X)} X_{\NonDesc^G(i)} \given X_{\Pa^G(i)}.$$
+Here, $\NonDesc^G(i) = V \sm \Desc^G(i)$ are the non-descendants of $i$ according to the graph $G$.
+\begin{enumerate}[label=\alph*)]
+  \item Prove the local Markov property (for example, by making use of the global Markov property for CBNs).
+  \score{3}
+    \answer{Let $i \in V$.
+      Suppose there is a path between $i$ and a node $j \in \NonDesc^G(i)$.
+      Then it cannot be a directed path $i \tuh \dots \tuh j$.
+      If the path starts as $i \hut k \dots j$, then it is blocked given $\Pa^G(i)$ because $k$ is a non-collider in $\Pa^G(i)$.
+      If the path starts as $i \tuh \dots j$, it must encounter a collider at some point (otherwise it would be a directed path).
+      So assume that it is of the form $i \tuh \dots \tuh k \hus \dots j$.
+      If the collider $k$ were in $\Anc^G(\Pa^G(i))$, then we would obtain a cycle $i \tuh \dots \tuh k \tuh \dots \tuh i$, which is not possible in a DAG.
+      Therefore, $k \notin \Anc^G(\Pa^G(i))$ and hence $k$ blocks the path given $\Pa^G(i)$.
+      So, any such path is blocked given $\Pa^G(i)$.
+      Hence, 
+      $$i \Perp^d \NonDesc^G(i) \given \Pa^G(i).$$
+      By the global Markov property for CBNs,
+      $$X_i \Indep_{P(X)} X_{\NonDesc^G(i)} \given X_{\Pa^G(i)}.$$
+    }
+\end{enumerate}
+The local Markov property for CBNs does not generalize to simple SCMs. 
+\begin{enumerate}[resume*]
+\item Prove that 
+    $$X_i \Indep_{P_M(X)} X_{\NonDesc^{G(M)}(i)} \given X_{\Pa^{G(M)}(i)}$$
+    does not necessarily hold if $M$ is a simple SCM with directed graph $G(M)$ (containing no bidirected edges) and $i \in V$ an endogenous variable in $M$.
+
+    You may use the so-called ``weak completeness'' property of $\sigma$-separation: if $A \nPerp^\sigma_G B \given C$ for sets $A,B,C\ins V$ of nodes in a directed graph $G$, then there exists a simple SCM $M$ with $G(M) = G$ and such that $X_A \nIndep_{P_M(X)} X_B \given X_C$.
+  \score{3}
+  \answer{Consider the following directed graph $G$:
+    \begin{center}
+    \begin{tikzpicture}
+      \begin{scope}
+        \node[ndout] (a) at (0,0) {$a$};
+        \node[ndout] (b) at (1.5,0) {$b$};
+        \node[ndout] (c) at (3,0) {$c$};
+        \draw[arout,bend left=20] (a) edge (b);
+        \draw[arout] (c) edge (b);
+        \draw[arout,bend left=20] (b) edge (a);
+      \end{scope}
+      \end{tikzpicture}
+    \end{center}
+      Note that $a \nPerp^\sigma_G c \given b$.
+      For $i=a$, we have $\NonDesc^G(a) = \{c\}$ and $\Pa^G(a) = \{b\}$.
+      Now using weak completeness, there exists an SCM $M$ with graph $G(M) = G$ such that
+      $$X_a \nIndep_{P_M(X)} X_c \given X_b.$$
+      }
+      \points{There are many possible counterexamples.}
+\end{enumerate}

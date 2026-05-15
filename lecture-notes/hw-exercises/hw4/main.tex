@@ -1,0 +1,181 @@
+% !TEX root = hw4-answers-graded.tex
+\chead{\textbf{Exercises week 4}}
+
+\begin{document}
+\flushleft\textbf{Topic: Conditional Independence, Markov Kernel Representation}
+\begin{enumerate}[label=4.\arabic*]
+    \item % (1 point) 
+    Consider the discrete random vector $(X, Y, Z)$ with joint PMF given in table 1.
+
+    \begin{table}[htb]
+        \centering
+        \begin{tabular}{llll}
+            \cline{3-4}
+                                                         & \multicolumn{1}{l|}{}      & \multicolumn{1}{l|}{$y=1$} & \multicolumn{1}{l|}{$y=2$} \\ \hline
+            \multicolumn{1}{|c|}{\multirow{3}{*}{$z=1$}} & \multicolumn{1}{l|}{$x=1$} & \multicolumn{1}{l|}{2}     & \multicolumn{1}{l|}{4}     \\ \cline{2-4}
+            \multicolumn{1}{|c|}{}                       & \multicolumn{1}{l|}{$x=2$} & \multicolumn{1}{l|}{3}     & \multicolumn{1}{l|}{6}     \\ \cline{2-4}
+            \multicolumn{1}{|c|}{}                       & \multicolumn{1}{l|}{$x=3$} & \multicolumn{1}{l|}{1}     & \multicolumn{1}{l|}{2}     \\ \hline
+            \multicolumn{1}{|l|}{\multirow{3}{*}{$z=2$}} & \multicolumn{1}{l|}{$x=1$} & \multicolumn{1}{l|}{12}    & \multicolumn{1}{l|}{12}    \\ \cline{2-4}
+            \multicolumn{1}{|l|}{}                       & \multicolumn{1}{l|}{$x=2$} & \multicolumn{1}{l|}{6}     & \multicolumn{1}{l|}{6}     \\ \cline{2-4}
+            \multicolumn{1}{|l|}{}                       & \multicolumn{1}{l|}{$x=3$} & \multicolumn{1}{l|}{0}     & \multicolumn{1}{l|}{0}     \\ \hline
+        \end{tabular}
+        \caption{Unnormalized joint probability mass function $p(x, y, z)$.}
+    \end{table}\label{discrete-ci}
+
+    Check if $X$ is conditionally independent of $Y$ given $Z$. Provide the steps through your derivations.
+    \begin{ungradedsolution}
+        % The matrix rank of both $3\times 2$ of unnormalized $P(XY|Z)$ is 1, implying that it arises from an outer product $p(x,y|z)=p(x|z)p(y|z)$.
+        % If non-negative matrix $M$ can be factorised as $M=vw^T$, then either $v$ and $w$ are non-negative or $v$ and $w$ are non-positive (as the outer product would otherwise have a negative number). Consequently, taking if necessary $(v,w) \mapsto (-v, -w)$, we can choose a factorization into non-negative $v,w$.
+        Given a rank one matrix $M$ with factorization $M=vw^T$, all other factorizations are related to this factorization by $M=(v \lambda)(w / \lambda)^T$ for $\lambda \in \mathbb{R}\setminus\{0\}$. Choose $\lambda$ such that $\sum v_i=1$. Then if $M$ is normalized, $1=\sum_{ij}M_{ij}=\sum_{ij}v_iw_j=\sum_jw_j$, $w$ is also normalized. Consequently, $v_i=v_i \sum_j w_j = \sum_j M_{ij}$ and $w_j= w_j \sum_i v_i = \sum_i M_{ij} $. If $M$ is non-negative, then $v$ and $w$ are also non-negative. Hence, $v$ and $w$ are the marginals of $M$.
+
+        Hence, for any joint distribution $P(X, Y|Z=z)$, we only need to check if the matrix $p(x, y|z)$ is rank-one, as it can then be written as $p(x,y|z)=p(x|z)p(y|z)$. This is here the case.
+
+        Alternatively, it's easy to read off $p(x|z)$ and $p(y|z)$ from the joint distribution and verify $p(x,y|z)=p(x|z)p(y|z)$, or read off $p(x|z)$ and $p(x|y,z)$ and verify $p(x|z) = p(x|y,z)$.
+    \end{ungradedsolution}
+
+    \item %($6 \times 1$ points)
+    Let $X,Y,Z,U$ be discrete random variables (on discrete spaces) with joint probability mass function $p(x,y,z,u)$. Show that the following 6 separoid axioms for conditional independence hold:
+
+    \begin{enumerate}
+        \item Redundancy: $X \Indep Y \;|\; X$
+
+        \item Symmetry: $X \Indep Y\; |\; Z \implies Y \Indep X\; |\; Z$
+
+        \item (Left) Decomposition: $X, U \Indep Y \; | \; Z \implies U \Indep Y | Z\; $
+
+        \item (Left) Weak Union: $X,U \;\Indep \;  Y \; | \; Z \implies  \; X \Indep Y \; |\; U,Z $
+
+        \item (Left) Contraction: $(X \Indep Y\; |\; U, Z) \; \land \; (U \Indep Y | Z) \implies X, U \Indep Y \; | \; Z$ \\
+
+        \item Intersection: For the following part, assume that $p$ is strictly positive, i.e. for all values $x,y,z,u$ we have that $p(x, y, z, u) > 0$. Then show that also the Intersection property holds:
+        $$(X \Indep Y \;|\;U,Z) \land (X \Indep U \; | \; Y,Z)  \implies  X \Indep U,Y \; | \; Z.$$
+    \end{enumerate}
+
+    \begin{ungradedsolution}
+        $X \Indep Y \; | \; Z$ is true w.r.t. a PMF $p(x, y, z)$ if a PMF $q(x|z)$ exists, such that for all $x \in \Xcal, y \in \Ycal, z \in \Zcal$:
+        \[
+            p(x,y,z)=q(x|z)p(y,z)
+        \]
+        where $p(y,z)$ is the marginal of $p(x,y,z)$.
+        \begin{enumerate}
+            \item Redundancy: $X \Indep Y \;|\; X$
+
+            \begin{align*}
+                p(x_1,y,x_2) & =\mathbbm{1}_{\{x_1\}}(x_2)p(y, x_2) \\
+                q(x_1|x_2)   & :=\mathbbm{1}_{\{x_1\}}(x_2)
+            \end{align*}
+
+            \item Symmetry: $X \Indep Y\; |\; Z \implies Y \Indep X\; |\; Z$
+
+            We are given a $q(x|z)$ s.t. $p(x,y,z)=q(x|z)p(y,z)$. By marginalisation over $Y$: $p(x, z)=q(x|z)p(z)$. By conditioning, we have $q'(y|z)$ s.t. $p(y,z)=q'(y|z)p(z)$. Therefore we have:
+            \begin{align*}
+                p(x,y,z)
+                 & =q(x|z)p(y,z)      \\
+                 & =q(x|z)q'(y|z)p(z) \\
+                 & =q'(y|z)p(x,z)
+            \end{align*}
+
+            \item (Left) Decomposition: $X, U \Indep Y \; | \; Z \implies U \Indep Y | Z\; $
+
+            We are given a $q(x,u|z)$ s.t. $p(x, u, y, z)=q(x, u|z)p(y, z)$.
+            The result follows by marginalisation over $X$.
+
+            \item (Left) Weak Union: $X,U \;\Indep \;  Y \; | \; Z \implies  \; X \Indep Y \; |\; U,Z $
+
+            We are given a $q(x,u|z)$ s.t. $p(x, u, y, z)=q(x, u|z)p(y, z)$. By marginalisation over $X$, $p(u, y, z)=q(u|z)p(y, z)$. By conditioning, we have a $q'(x|u,z)$ s.t. $q(x,u|z)=q'(x|u,z)q(u|z)$. Then:
+            \begin{align*}
+                p(x,u,y,z)
+                 & =q(x,u|z)p(y,z)        \\
+                 & =q'(x|u,z)q(u|z)p(y,z) \\
+                 & =q'(x|u,z)p(u,y,z)
+            \end{align*}
+
+            \item (Left) Contraction: $(X \Indep Y\; |\; U, Z) \; \land \; (U \Indep Y | Z) \implies X, U \Indep Y \; | \; Z$ \\
+
+            We are given $q(x|u,z)$, $q'(u|z)$ s.t.
+            \begin{align*}
+                p(x, u, y, z) & =q(x|u,z)p(y, u, z) \\
+                p(u, y, z)    & =q'(u|z)p(y, z)
+            \end{align*}
+            We define the product Markov kernel $q''(x,u|z)=q(x|u,z)q'(u|z)$ and have
+            \begin{align*}
+                p(x, u, y, z) & =q(x|u,z)q'(u|z)p(y, z) \\
+                              & =q''(x,u|z)p(y, z)
+            \end{align*}
+
+            \item Intersection: For the following part, assume that p is strictly positive, i.e. for all values $x,y,z,u$ we have that $p(x, y, z, u) > 0$. Then show that also the Intersection property holds:
+            $$(X \Indep Y \;|\;U,Z) \land (X \Indep U \; | \; Y,Z)  \implies  X \Indep U,Y \; | \; Z.$$
+
+            We are given $q(x|u,z)$, $q'(x|y,z)$ s.t.
+            \begin{align*}
+                p(x, u, y, z) & =q(x|u,z)p(u, y, z) \\
+                              & =q'(x|y,z)p(u,y, z)
+            \end{align*}
+            as $p$ is strictly positive, these equalities imply that $\forall x, u, y, z, q(x|u,z)=q'(x|y,z)$. A Markov kernel $q''(x|z)$ thus exists with $\forall x,u,y,z, q''(x|z)=q(x|u,z)=q'(x|y,z)$
+        \end{enumerate}
+    \end{ungradedsolution}
+
+    \item %(2 + 0 points)
+    For this exercise we'll consider the following concept, as described in section 2.7 of the lecture notes. Let $X$ be a random variable on $\R$ with distribution $P(X)$. The cumulative distribution function $F:\R \to [0,1], x \mapsto P(X\leq x)$ is monotinically increasing, but not necessarily continuous. Hence, we cannot always considers it's inverse, but we can consider it's generalised inverse:
+    $$F^{-1}: [0,1] \to \R,\quad p \mapsto \inf\{x \in \R : F(x)\geq p\}.$$
+    \emph{As an exercise, draw the graph a CDF that is not continuous, and draw the graph of its corresponding generalized inverse.}\\
+    We have the following results:
+    \begin{itemize}
+        \item $F^{-1}(F(X)) = X$ a.s.
+        \item If $F$ is continuous, then $F(X) \sim \textrm{Unif}[0,1]$
+        \item If $U\sim \textrm{Unif}[0,1]$ then $F^{-1}(U) \sim X$.
+    \end{itemize}
+    Theorem \ref*{mk-uniform} generalises the third result to Markov kernels. Now make the following exercises:
+    \begin{enumerate}
+        \item
+        Consider the Markov kernel
+        $$K(X|T_1,T_2) : \RN\times(0,\infty) \dshto \RN,\quad (D,(t_1,t_2)) \mapsto \int \I_D(x) \C{N}(x \mid t_1,t_2) \,dx$$
+        where $\C{N}(x \mid t_1,t_2) = \frac{1}{\sqrt{2\pi t_2^2}} \exp\left(-\frac{(x-t_1)^2}{2 t_2^2}\right)$.
+        Derive a deterministic mapping for which this Markov kernel is obtained as the push-forward of the constant uniform Markov kernel $L(U)$ with $\Ucal = [0,1]$.
+
+        \emph{Hint: You may express your answer in terms of (inverse) error functions (see \href{https://en.wikipedia.org/wiki/Error_function}{wikipedia}).}
+
+        \item %(\textbf{BONUS}) 
+        Same question for the exponential distribution with rate $\lambda > 0$, which has probability density function
+        $$p(x;\lambda) = \I_{[0,\infty)}(x) \lambda e^{-\lambda x}.$$
+        First define a corresponding Markov kernel with input $\lambda$. Then derive a deterministic mapping for which that Markov kernel is obtained as the push-forward of the constant uniform Markov kernel $L(U)$ with $\Ucal = [0,1]$.
+    \end{enumerate}
+    \begin{gradedsolution}
+        \begin{enumerate}
+            \item \points{2}
+            Define cumulative density function:
+            \[
+                F(x|t_1, t_2):= \int_{-\infty}^x \C N(z \mid t_1, t_2)dz
+            \]
+            which is continuous and strictly monotonic, with its inverse being equal to
+            $$F^{-1}(u|t_1, t_2) = \inf(\{x\in \R : F(x | t_1,t_2) \geq u\}).$$
+            We may therefore directly apply Theorem \ref*{mk-uniform} to see that $K(X|T_1, T_2) = \delta(F^{-1}|U, T_1, T_2) \circ L(U)$.
+
+            The error function is defined as
+            \begin{equation*}
+                \textrm{erf}(x) := \frac{2}{\sqrt{\pi}}\int_0^x e^{-z^2}dz,
+            \end{equation*}
+            and so
+            \begin{align*}
+                F(x| t_1, t_2)       & =\frac{1}{2}+ \frac{1}{2}\text{erf}\left(\frac{x-t_1}{\sqrt{2}t_2}\right) \\
+                F^{-1}(u | t_1, t_2) & =\sqrt{2}t_2 \text{erf}^{-1}(2u-1)+t_1.
+            \end{align*}
+
+            Alternatively, if $\Phi$ denotes the CDF of the standard Gaussian distribution, we have
+            \begin{align*}
+                F(x| t_1, t_2)       & = \Phi\left(\frac{x-t_1}{t_2}\right) \\
+                F^{-1}(u | t_1, t_2) & = t_1 + t_2 \Phi^{-1}(u).
+            \end{align*}
+
+            \item \points{1}
+            $$K : (0,\infty) \dshto [0,\infty) : (D,\lambda) \mapsto \int_0^\infty \I_D(x) \lambda e^{-\lambda x} \,dx$$
+            \begin{align*}
+                F(x|\lambda)      & =\int_0^x \lambda e^{-\lambda z} dz = 1-e^{-\lambda x} \\
+                F^{-1}(u|\lambda) & =\frac{-1}{\lambda}\log(1-u)
+            \end{align*}
+        \end{enumerate}
+    \end{gradedsolution}
+
+\end{enumerate}
+
+\end{document}

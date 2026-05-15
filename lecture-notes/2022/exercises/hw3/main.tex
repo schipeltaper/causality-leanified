@@ -1,0 +1,205 @@
+% !TEX root = hw3-answers.tex
+\chead{\textbf{Exercises week 3}}
+
+\begin{document}
+\flushleft\textbf{Topic: Markov Kernels and Conditional Independence}
+
+\begin{enumerate}
+\item (1 point) Consider the discrete random vector $(X, Y, Z)$ with joint PMF given in table 1.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{llll}
+\cline{3-4}
+                                           & \multicolumn{1}{l|}{}    & \multicolumn{1}{l|}{$y=1$} & \multicolumn{1}{l|}{$y=2$} \\ \hline
+\multicolumn{1}{|c|}{\multirow{3}{*}{$z=1$}} & \multicolumn{1}{l|}{$x=1$} & \multicolumn{1}{l|}{2}  & \multicolumn{1}{l|}{4}  \\ \cline{2-4} 
+\multicolumn{1}{|c|}{}                     & \multicolumn{1}{l|}{$x=2$} & \multicolumn{1}{l|}{3}  & \multicolumn{1}{l|}{6}  \\ \cline{2-4} 
+\multicolumn{1}{|c|}{}                     & \multicolumn{1}{l|}{$x=3$} & \multicolumn{1}{l|}{1}  & \multicolumn{1}{l|}{2}  \\ \hline
+\multicolumn{1}{|l|}{\multirow{3}{*}{$z=2$}} & \multicolumn{1}{l|}{$x=1$} & \multicolumn{1}{l|}{12}  & \multicolumn{1}{l|}{12}  \\ \cline{2-4} 
+\multicolumn{1}{|l|}{}                     & \multicolumn{1}{l|}{$x=2$} & \multicolumn{1}{l|}{6}  & \multicolumn{1}{l|}{6}    \\ \cline{2-4} 
+\multicolumn{1}{|l|}{}                     & \multicolumn{1}{l|}{$x=3$} & \multicolumn{1}{l|}{0}    & \multicolumn{1}{l|}{0}  \\ \hline
+\end{tabular}
+\caption{Unnormalized joint probability mass function $p(x, y, z)$.}
+\end{table}\label{discrete-ci}
+
+Check if $X$ is conditionally independent of $Y$ given $Z$. Provide the steps through your derivations.
+\begin{gradedsolution}
+  % The matrix rank of both $3\times 2$ of unnormalized $P(XY|Z)$ is 1, implying that it arises from an outer product $p(x,y|z)=p(x|z)p(y|z)$.
+  % If non-negative matrix $M$ can be factorised as $M=vw^T$, then either $v$ and $w$ are non-negative or $v$ and $w$ are non-positive (as the outer product would otherwise have a negative number). Consequently, taking if necessary $(v,w) \mapsto (-v, -w)$, we can choose a factorization into non-negative $v,w$.
+  Given a rank one matrix $M$ with factorization $M=vw^T$, all other factorizations are related to this factorization by $M=(v \lambda)(w / \lambda)^T$ for $\lambda \in \mathbb{R}\setminus\{0\}$. Choose $\lambda$ such that $\sum v_i=1$. Then if $M$ is normalized, $1=\sum_{ij}M_{ij}=\sum_{ij}v_iw_j=\sum_jw_j$, $w$ is also normalized. Consequently, $v_i=v_i \sum_j w_j = \sum_j M_{ij}$ and $w_j= w_j \sum_i v_i = \sum_i M_{ij} $. If $M$ is non-negative, then $v$ and $w$ are also non-negative. Hence, $v$ and $w$ are the marginals of $M$.
+
+  Hence, for any joint distribution $P(X, Y|Z=z)$, we only need to check if the matrix $p(x, y|z)$ is rank-one, as it can then be written as $p(x,y|z)=p(x|z)p(y|z)$. This is here the case.
+
+  Alternatively, it's easy to read off $p(x|z)$ and $p(y|z)$ from the joint distribution and verify $p(x,y|z)=p(x|z)p(y|z)$, or read off $p(x|z)$ and $p(x|y,z)$ and verify $p(x|z) = p(x|y,z)$.
+\end{gradedsolution}
+
+\item ($6 \times 1$ points) Let $X,Y,Z,U$ be discrete random variables (on discrete spaces) with joint probability mass function $p(x,y,z,u)$. Show that the following 6 separoid axioms for conditional independence hold:
+
+\begin{enumerate}
+  \item Redundancy: $X \Indep Y \;|\; X$
+
+  \item Symmetry: $X \Indep Y\; |\; Z \implies Y \Indep X\; |\; Z$ 
+
+  \item (Left) Decomposition: $X, U \Indep Y \; | \; Z \implies U \Indep Y | Z\; $
+
+  \item (Left) Weak Union: $X,U \;\Indep \;  Y \; | \; Z \implies  \; X \Indep Y \; |\; U,Z $
+
+  \item (Left) Contraction: $(X \Indep Y\; |\; U, Z) \; \land \; (U \Indep Y | Z) \implies X, U \Indep Y \; | \; Z$ \\
+
+  \item Intersection: For the following part, assume that $p$ is strictly positive, i.e. for all values $x,y,z,u$ we have that $p(x, y, z, u) > 0$. Then show that also the Intersection property holds:
+  $$(X \Indep Y \;|\;U,Z) \land (X \Indep U \; | \; Y,Z)  \implies  X \Indep U,Y \; | \; Z.$$
+\end{enumerate}
+
+\begin{gradedsolution}
+  $X \Indep Y \; | \; Z$ is true w.r.t. a PMF $p(x, y, z)$ if a PMF $q(x|z)$ exists, such that for all $x \in \Xcal, y \in \Ycal, z \in \Zcal$:
+  \[
+    p(x,y,z)=q(x|z)p(y,z)
+  \]
+  where $p(y,z)$ is the marginal of $p(x,y,z)$.
+  \begin{enumerate}
+    \item Redundancy: $X \Indep Y \;|\; X$
+
+    \begin{align*}
+      p(x_1,y,x_2)&=\mathbbm{1}_{\{x_1\}}(x_2)p(y, x_2)\\
+      q(x_1|x_2)&:=\mathbbm{1}_{\{x_1\}}(x_2)
+    \end{align*}
+    
+    \item Symmetry: $X \Indep Y\; |\; Z \implies Y \Indep X\; |\; Z$ 
+    
+    We are given a $q(x|z)$ s.t. $p(x,y,z)=q(x|z)p(y,z)$. By marginalisation over $Y$: $p(x, z)=q(x|z)p(z)$. By conditioning, we have $q'(y|z)$ s.t. $p(y,z)=q'(y|z)p(z)$. Therefore we have:
+    \begin{align*}
+      p(x,y,z)
+      &=q(x|z)p(y,z)\\
+      &=q(x|z)q'(y|z)p(z)\\
+      &=q'(y|z)p(x,z)
+    \end{align*}
+
+    \item (Left) Decomposition: $X, U \Indep Y \; | \; Z \implies U \Indep Y | Z\; $
+
+    We are given a $q(x,u|z)$ s.t. $p(x, u, y, z)=q(x, u|z)p(y, z)$.
+    The result follows by marginalisation over $X$.
+
+    \item (Left) Weak Union: $X,U \;\Indep \;  Y \; | \; Z \implies  \; X \Indep Y \; |\; U,Z $
+
+    We are given a $q(x,u|z)$ s.t. $p(x, u, y, z)=q(x, u|z)p(y, z)$. By marginalisation over $X$, $p(u, y, z)=q(u|z)p(y, z)$. By conditioning, we have a $q'(x|u,z)$ s.t. $q(x,u|z)=q'(x|u,z)q(u|z)$. Then:
+    \begin{align*}
+      p(x,u,y,z)
+      &=q(x,u|z)p(y,z) \\
+      &=q'(x|u,z)q(u|z)p(y,z) \\
+      &=q'(x|u,z)p(u,y,z)
+    \end{align*}
+
+    \item (Left) Contraction: $(X \Indep Y\; |\; U, Z) \; \land \; (U \Indep Y | Z) \implies X, U \Indep Y \; | \; Z$ \\
+
+    We are given $q(x|u,z)$, $q'(u|z)$ s.t.
+    \begin{align*}
+      p(x, u, y, z)&=q(x|u,z)p(y, u, z)\\
+      p(u, y, z)&=q'(u|z)p(y, z)
+    \end{align*}
+    We define the product Markov kernel $q''(x,u|z)=q(x|u,z)q'(u|z)$ and have
+    \begin{align*}
+      p(x, u, y, z)&=q(x|u,z)q'(u|z)p(y, z)\\
+      &=q''(x,u|z)p(y, z)
+    \end{align*}
+
+    \item Intersection: For the following part, assume that p is strictly positive, i.e. for all values $x,y,z,u$ we have that $p(x, y, z, u) > 0$. Then show that also the Intersection property holds:
+    $$(X \Indep Y \;|\;U,Z) \land (X \Indep U \; | \; Y,Z)  \implies  X \Indep U,Y \; | \; Z.$$
+
+    We are given $q(x|u,z)$, $q'(x|y,z)$ s.t.
+    \begin{align*}
+      p(x, u, y, z)&=q(x|u,z)p(u, y, z)\\
+      &=q'(x|y,z)p(u,y, z)
+    \end{align*}
+    as $p$ is strictly positive, these equalities imply that $\forall x, u, y, z, q(x|u,z)=q'(x|y,z)$. A Markov kernel $q''(x|z)$ thus exists with $\forall x,u,y,z, q''(x|z)=q(x|u,z)=q'(x|y,z)$
+  \end{enumerate}
+\end{gradedsolution}
+
+\item ($3 \times 1$ points)
+\begin{enumerate}
+  \item 
+  Consider the Markov kernels
+  \begin{align*}
+    K(W, U | T, X)&: \Tcal\times \Xcal \dshto \Wcal \times \Ucal \\
+    Q(Z | Y, W, T)&: \Ycal \times \Wcal \times \Tcal \dshto \Zcal \\
+    P(H|Z, T)&: \Zcal \times \Tcal \dshto \Hcal.
+  \end{align*}
+  Show that the product of Markov kernels is associative:
+  \begin{multline*}
+    P(H|Z, T) \otimes \left[ Q(Z | Y, W, T) \otimes K(W, U|T, X) \right]\\
+    = \left[P(H|Z, T) \otimes  Q(Z | Y, W, T) \right] \otimes K(W, U|T, X)
+  \end{multline*}
+  \begin{gradedsolution}
+    For sets $E\in\Bcal_{\Zcal\times\Wcal \times\Ucal}$, $F\in\Bcal_{\Hcal\times\Zcal\times \Wcal \times \Ucal}$ and $G\in\Bcal_{\Hcal\times\Zcal}$ we have
+    \begin{align*}
+      &P(H|Z, T) \otimes \left[ Q(Z | Y, W, T) \otimes K(W, U|T, X) \right] \\
+      & = P(H|Z, T) \otimes \left[(E, y, t, x) \mapsto \int \mathbbm{1}_{E}(z, w, u)Q(dz | y,w, t)K(dw, du| t, x) \right] \\
+      & = (F, y, t, x) \mapsto \int \mathbbm{1}_{F}(h, z, w, u)P(dh|z, t)Q(dz | y,w, t)K(dw, du| t, x) \\
+      & = \left[(G, y, w, t) \mapsto \int \mathbbm{1}_{G}(h, z)P(dh|z, t)Q(dz | y,w, t) \right] \otimes K(W, U|T, X) \\
+      & = \left[P(H|Z, T) \otimes Q(Z | Y, W, T) \right] \otimes K(W, U|T, X).
+    \end{align*}
+  \end{gradedsolution}
+  \item
+  Show why the product of Markov kernels $Q(Z | Y, W, T) \otimes K(W, U|T, X)$ does not commute, and state general conditions under which products of Markov kernels do commute.
+
+  \begin{gradedsolution}
+    Consider
+    \begin{align*}
+      Q(Z | &Y, W, T) \otimes K(W, U|T, X) \\
+      &= (E, y, t, x) \mapsto \int_{\Wcal\times \Ucal}\int_{\Zcal} \mathbbm{1}_{E}(z, w, u)Q(dz | y,w, t)K(dw, du| t, x) 
+    \end{align*}
+    for $E \in \Bcal_{\Zcal\times\Wcal\times\Ucal}$. Now, if we were to swap the integration order, we'd end up with an ill-posed expression
+    \begin{align*}
+      (E, y, t, x) \mapsto \int_{\Zcal}\int_{\Wcal\times \Ucal} \mathbbm{1}_{E}(z, w, u)K(dw, du| t, x) Q(dz | y,w, t)
+    \end{align*}
+    as the variable $w$ is undefined. On the other hand, we have
+    \begin{align*}
+      &K(W, U|T, X) \otimes Q(Z | Y, \widetilde{W}, T) : \Tcal \times \Xcal \times \Ycal \times \Wcal \dshto \Wcal \times \Ucal \times \Zcal, \\
+      &(E, t, x, y, \tilde{w}) \mapsto \int_{\Zcal}\int_{\Wcal\times \Ucal} \mathbbm{1}_{E}(w, u, z)K(dw, du|t, x)Q(dz|y, \tilde{w}, t).
+    \end{align*}
+    From this we see that in general the product of Markov kernels commutes when no variable on the left hand side of the conditioning bar in one Markov kernel is also on the right hand side of the conditioning bar of the other Markov kernel.
+  \end{gradedsolution}
+  \item Show under which conditions the composition of Markov kernels is commutative.
+
+  \begin{gradedsolution}
+    We may write
+    $$Q(Z | Y, W, T) \circ K(W, U|T, X) = \int_\Ucal Q(Z | Y, W, T) \otimes K(W, du|T, X).$$ For $Q(Z | Y, W, T) \otimes K(W, du|T, X)$ the same reasoning holds as in the previous exercise, so we require the same conditions as for the commutativity of the product of Markov kernels. For two such Markov kernels $M(X, A| Y, C)$, $N(X, B| Y, D)$ we have 
+    $$M(X, A| Y, C) \circ N(X, B| Y, D): \Ycal \times \Ccal \times \Dcal \dshto \Xcal \times \Acal$$
+    and
+    $$N(X, B| Y, D) \circ M(X, A| Y, C): \Ycal \times \Dcal \times \Ccal \dshto \Xcal \times \Bcal.$$
+    For these compositions to be equal, we see that we require the codomains of the two Markov kernels to be equal, i.e.\ $\Acal = \Bcal$. Additionally, we see that
+    \begin{align*}
+      M(X, A&| Y, C) \circ N(X, B| Y, D) \\
+      &= (F, (y,c,d)) \mapsto \int_{\Xcal\times \Acal}\mathbbm{1}_{F}(x,a)M(dx, da|y, c)N(X\in\Xcal, B\in\Bcal|y, d) \\
+      &= M(X, A|Y,C)
+    \end{align*}
+    where $F\in\Bcal_{\Xcal\times\Acal}$, and similarly
+    $$N(X, B| Y, D) \circ M(X, A| Y, C) = N(X, B| Y, D).$$
+    So we require that $M(X, A|Y, C=c) = N(X, B|Y, D=d)$ for all $c\in\Ccal$ and for all $d\in\Dcal$.
+  \end{gradedsolution}
+\end{enumerate}
+
+\item \textbf{BONUS} Provide an example of Markov kernels 
+\begin{align*}
+  X : \Wcal \times \Tcal \rightarrow \Xcal, \quad Y : \Wcal \times \Tcal \rightarrow \Ycal, \quad Z : \Wcal \times \Tcal \rightarrow \Zcal
+\end{align*}
+such that $$X \Indep_{K(W|T)} Y \given Z \quad \text{but} \quad Y \nIndep_{K(W|T)} X \given Z.$$
+\begin{gradedsolution}
+  Given $\Tcal := \{0,1\}$, standard measurable space $\Xcal$ and distribution $\mathbb{P}(X)$, define Markov kernel $K(X|T):=\mathbb{P}(X)$. Consider
+  \begin{align*}
+    X&: \Wcal \times \Tcal \rightarrow \Xcal \quad \text{constant in $\Tcal$}\\
+    T&:\Wcal\times \Tcal \rightarrow \Tcal, \quad (w, t) \mapsto t \\
+    *&: \Wcal \times \Tcal \rightarrow \{*\}, \quad (w, t) \mapsto *,
+  \end{align*}
+  then we have $X\Indep T|*$ since
+  \begin{align*}
+    K(X, T, *|T) = Q(X|*) \otimes K(T, *|T)
+  \end{align*}
+  for $Q(X|*) := \mathbb{P}(X)$.  However, $T\nIndep X|*$ since there can be no $Q(*|X)$ (which is equal to 1 for all $x\in\Xcal$) such that $K(T, X, *|T) = Q(*|X)\otimes K(X, *|T)$, as
+  $$K(T, X, *|T) = \delta(T|T)\otimes K(X|T) = \delta(T|T)\otimes \mathbb{P}(X)$$
+  and 
+  $$Q(*|X)\otimes K(X, *|T) = 1\otimes K(X|T) = \mathbb{P}(X).$$
+\end{gradedsolution}
+
+\end{enumerate}
+
+\end{document}

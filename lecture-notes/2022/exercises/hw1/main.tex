@@ -1,0 +1,211 @@
+% !TEX root = hw1-answers.tex
+\chead{\textbf{Exercises week 1}}
+
+\begin{document}
+
+\flushleft\textbf{Topic: basic causality, taking expectations}
+
+
+\section{Causal stories}
+($3 \times 3 \times 0.5$ points) The following fictional news headlines state a correlation and suggest a causal relationship. However, we know that correlations do not always imply the ``obvious'' causation. For each headline, come up with three different hypotheses about the causal relationships, potentially including variables that are not mentioned in the headlines. Describe the hypotheses briefly in words and with a graphical representation, such as the ones given in ``Explanation 1.1'' in the lecture notes.
+% For 2023: graphical representation means actually drawing a graph!
+
+\begin{enumerate}
+    \item A vaccine is tested in country A and country B. In country A, patients received half a dose of the vaccine and it immunized $90\%$ of patients, while in country B, patients received the full dose and it immunized $60\%$ of patients.
+    \item Of a population, 10\% belong to group A and 90\% to group B, but 90\% of those arrested for criminal offences belong to group A.
+    \item High school graduation grades are highly predictive for future career success.
+\end{enumerate}
+\begin{gradedsolution}
+Other correct answers exist. These are just examples.
+\begin{enumerate}
+    \item (1) Half a dose is more effective: dose $\to$ immunization. (2) the populations differed (e.g. younger in country A): country $\to$ age $\to$ protection. (3) the virus in B is more resistant than the virus in country A: country $\to$ virus $\to$ protection.
+    \item (1) Group A is more predisposed to commit crime: group $\to$ predisposition to crime $\to$ crime $\to$ arrests. (2) Group A is more heavily policed so that crimes more often lead to arrests: group $\to$ policing $\to$ arrests. (3) Group A is poorer and poverty causes crime: group $\to$ poverty $\to$ crime $\to$ arrests. (4) Group A are those with a prior conviction: group $\leftarrow$ predisposition to crime $\to$ crime $\to$ arrests.
+    \item (1) Working hard on high school prepares the students well for career success: HS grades $\leftarrow$ worked hard at HS $\rightarrow$ good career. (2) Students with well-educated/rich parents do well in high school and also in their career: HS grades $\leftarrow$ parents $\to$ good career. (3) employers hire from certain schools that only give high grades: HS grades $\leftarrow$ school $\to$ good career.
+\end{enumerate}
+\end{gradedsolution}
+
+\section{Causal and non-causal predictions}
+%Given some probabilistic graphical model, one can do probabilistic inference - using Bayes rule, marginalization and conditioning to obtain conditional probability distributions. However, some queries are causal in nature and not answerable by just probabilistic inference.
+($3 \times 2 \times 0.5$ points ) In statistics, machine learning and data science, one is often interested in making predictions based on data.
+Some predictions are of a non-causal nature (for example: predict what the weather will be tomorrow),
+other predictions are of a causal nature (for example: predict the effect of CO$_2$ emission on global temperature).
+State three systems and for each system provide an example of a causal prediction and an example of a non-causal prediction that one could try to make based on data from the system.
+
+\begin{gradedsolution}
+Not applicable
+\end{gradedsolution}
+
+
+\section{FDA approval of Aduhelm}
+($1+1$ points) In the brains of Alzheimer's disease patients, amino acids called amyloid beta plaque are found. On June 7th, 2021, the FDA gave accelerated approval to the Alzheimer's drug Aduhelm, releasing the following statement:\\
+\bigbreak
+``Today, the U.S. Food and Drug Administration approved Aduhelm (aducanumab) for the treatment of Alzheimer's, a debilitating disease affecting 6.2 million Americans. Aduhelm was approved using the accelerated approval pathway, which can be used for a drug for a serious or life-threatening illness that provides a meaningful therapeutic advantage over existing treatments. Accelerated approval can be based on the drug's effect on a surrogate endpoint that is reasonably likely to predict a clinical benefit to patients, with a required post-approval trial to verify that the drug provides the expected clinical benefit.(...)\\
+\bigbreak
+Researchers evaluated Aduhelm's efficacy in three separate studies representing a total of 3,482 patients. The studies consisted of double-blind, randomized, placebo-controlled dose-ranging studies in patients with Alzheimer's disease. Patients receiving the treatment had significant dose-dependent and time-dependent reduction of amyloid beta plaque, while patients in the control arm of the studies had no reduction of amyloid beta plaque. These results support the accelerated approval of Aduhelm, which is based on the surrogate endpoint of reduction of amyloid beta plaque in the brain---a hallmark of Alzheimer's disease.''\footnote{\url{https://www.fda.gov/drugs/news-events-human-drugs/fdas-decision-approve-new-treatment-alzheimers-disease}}\\
+\begin{enumerate}
+    \item The FDA bases the accelerated approval on certain assumed causal relations between the variables for treatment with Aduhelm $T$, the level of amyloid beta plaque in the patient's brain $\beta$, and the clinical outcome of the Alzheimer's patient $O$. Let $E$ be the set of causal relations, where $(A,B) \in E$ if $A$ causes $B$. What is the set of causal relations between $T$, $\beta$ and $O$ assumed by the FDA in the evaluation of this drug?
+    \item This decision has faced much controversy. For example, Karlawish and Grill write:\\
+     ``Substantial evidence from two randomized, placebo-controlled phase III trials shows that aducanumab treatment is associated with a reduction in amyloid beta plaque signal in the brains of individuals with Alzheimer's disease. However, these same trials produced insufficient evidence that this reduction slows cognitive and functional decline. Indeed, there is a lack of correlation between changes in amyloid beta plaque and clinical outcomes in patients receiving Aduhelm.''\footnote{\url{https://www.nature.com/articles/s41582-021-00540-6}}\\
+    \bigbreak
+     Propose an alternate set of causal relations $E'$, which could explain the correlation between amyloid beta plaque and Alzheimer's disease and the proven effect of Aduhelm on amyloid beta plaque, but where Aduhelm does not influence the clinical outcome.
+\end{enumerate}
+
+\begin{gradedsolution}
+    \begin{enumerate}
+        \item $E = \{(T, \beta), (\beta, O), (T, O)\}$
+        \item $E' = \{(T, \beta), (O, \beta)\}$. Other correct answers exist.
+    \end{enumerate}
+\end{gradedsolution}
+
+\section{Change of variables}
+($1+1$ points)
+\begin{enumerate}
+\item Let $X$ be distributed according to the discrete uniform distribution on $\{-M, -M+1, \dots, N-1, N\}$ where $M,N \in \mathbb{N}$ and $M>N$. Compute the probability mass function of the absolute value $Y=|X|$ w.r.t. counting measure.
+\item Let $X$ be distributed according to the standard normal distribution $\mathcal{N}(0,1)$. Furthermore, let $Y = \exp (X)$. Compute the density of $Y$ w.r.t. Lebesgue measure, where the codomain of $Y$ is $\mathbb{R}^+$.
+\end{enumerate}
+\begin{gradedsolution}
+    \begin{enumerate}
+        \item Note here that the probability mass function w.r.t. counting measure is just the regular probability mass function. Since there are $M+N+1$ values for $X$, on the original domain each value has a probability mass $\frac{1}{M+N+1}$. Then for $Y$ we calculate the probability density $P[Y=y]$ by taking the push-forward measure of single elements: $P^Y(y) = P^X(Y^{-1}(y)) = \frac{|Y^{-1}(y)|}{M+N+1}$. That is, we calculate the pre-images of each element of $Y$, and calculate the probability of this set using the original law $P^X$. For $1, \dots, N$ two values map to these values. For $0$ and $N < Y \leq M$, only one value maps to these values, so:
+        \[
+            P[Y=y] = \begin{cases}
+            \frac{1}{M+N+1}, \text{ if } y = 0,\\
+            \frac{2}{M+N+1}, \text{ if } 0 < y \leq N,\\
+            \frac{1}{M+N+1}, \text{ if } N < y \leq M,\\
+            0, \text{ otherwise.}
+          \end{cases}
+        \]
+        \item Let $p_X(x)=\frac{1}{\sqrt{2\pi}} e^{-x^2/2}$ be the pdf of the standard normal function. We can directly apply Corollary \ref*{lebesgue-density-transformation} (from the appendix) to obtain:
+        \[
+          p_Y(y) = p_X(\log y) (\exp(\log y))^{-1} = \frac{1}{y\sqrt{2\pi}} e^{-\log^2 y/2}
+        \]
+    \end{enumerate}
+\end{gradedsolution}
+
+\newpage
+\part*{Ungraded practice exercises}
+
+These exercises can be helpful to get acquainted with (or refresh your knowledge of) measure theory.
+
+% EXERCISE FROM LAST YEAR:
+\section{Discrete and Continuous Dice}
+A discrete die has as sample space the six sides $\Xcal=\{a, b, c, d, e, f\}$ with uniform measure $P_D$ with probability mass function $p_D$. The value is a random variable $V_D:\Xcal \to \R$ with:
+ \[
+     V(a)=1, V(b)=2, V(c)=3, V(d)=4, V(e)=5, V(f)=6.
+ \]
+ A continuous die has as sample space the unit interval $[0, 1]$ with uniform measure $P_C$ with probability density function $p_C$. The value is a random variable $V_C:[0,1] \to \R : x \mapsto 5 x + 1$. Using the measure theoretical notation introduced in Lecture 1, compute the expected value of the discrete and continuous dice (2+2pts).
+
+ \begin{gradedsolution}
+ \begin{align*}
+     \E[V_D(X)]&=\int V_D dP_D= \sum_{x \in \Xcal}V_D(x)p_D(x)=6 \times 7/2 \times 1/6 = 7/2\\
+     \E[V_C(X)]&=\int V_C dP_C= \int_{[0,1]}V_C(x)p(x)dx=\int_{[0,1]}V_C(x)dx \\
+     &=\int_{[0,1]}5x+1dx=1+5 \times \int_{[0,1]}x dx = 1 + 5 \times 1/2=7/2
+ \end{align*}
+ \end{gradedsolution}
+
+\section{Proving properties}
+ (1+2+1+1 points)
+
+\begin{enumerate}
+    \item Consider spaces $A$, $B$ and $C$ with respective sigma algebras $\mathcal{F}, \mathcal{G}$ and $\mathcal{H}$. Show that if the function $f: A \rightarrow B$ is $\mathcal{F}$-$\mathcal{G}$-measurable and the function $g: B \rightarrow C$ is $\mathcal{G}$-$\mathcal{H}$ measurable, then their composition $g \circ f$ is $\mathcal{F}$-$\mathcal{H}$-measurable.
+    \item Let $\mathcal{U}$ be an arbitrary set, $(\mathcal{V}, \Sigma)$ a measurable space, and $X: \mathcal{U} \rightarrow \mathcal{V}$ an arbitrary function. Show that $\Sigma_X = \{X^{-1}(A): A \in \Sigma\}$ is a $\sigma$-algebra over $\mathcal{U}$. Furthermore, show that $\Sigma_X$ is the $\emph{smallest}$ sigma algebra that makes the map measurable. More specifically, show that if $\mathcal{F}$ is a sigma algebra for $U$ such that $X$ is $\mathcal{F}$-$\Sigma$-measurable, then $\Sigma_X \subseteq \mathcal{F}$.
+    \item Show that the indicator function $\I_A: \Omega \rightarrow \{0,1\}$ is $\mathcal{B}_{\Omega}$-$2^{\{0,1\}}$ measurable if $A \in \mathcal{B}_{\Omega}$.
+    \item Consider the Lebesgue measure $\lambda$ on $(\mathbb{R}, \mathcal{B}_{\mathbb{R}})$. Show that $\lambda(\{1, \frac{1}{2}, \frac{1}{3}, \dots\})=0$.
+\end{enumerate}
+\begin{gradedsolution}
+    \begin{enumerate}
+        \item Let $h = g \circ f$. Let $A \in \mathcal{H}$. Then our goal is to show that $h^{-1}(A) \in \mathcal{F}$. We do this in two steps:
+        \begin{itemize}
+            \item We first show that $h^{-1}(A) = f^{-1}(g^{-1}(A))$, by two-sided containment. To show $h^{-1}(A) \subseteq f^{-1}(g^{-1}(A))$, let $x \in h^{-1}(A)$. Thus $h(x) \in A$. By definition, $h(x) = g(f(x))$, and thus $f(x) \in g^{-1}(A)$ and thus $x \in f^{-1}(g^{-1}(A))$.\\
+            For the other direction, let $x \in f^{-1}(g^{-1}(A))$. This implies that $f(x) \in g^{-1}(A)$ which implies that $g(f(x)) \in A$ which equals $h(x)$. 
+            \item Then because $g$ is $\mathcal{G}/\mathcal{H}$ measurable, it holds that $g^{-1}(A) \in \mathcal{G}$ and then because $f$ is $\mathcal{F}/\mathcal{G}$ measurable it follows that $f^{-1}(g^{-1}(A)) = h^{-1}(A) \in \mathcal{F}$, completing the proof.
+        \end{itemize}
+        \item Since $X(u) \in \mathcal{V}$ for all $u \in \mathcal{U}$, we have $X^{-1}(\mathcal{V}) = \mathcal{U}$, and thus $\mathcal{U} \in \Sigma_X$. Suppose that $U \in \Sigma_X$, then by definition there exists a $V \in \Sigma$ such that $X^{-1}(V) = U$. But then because $\Sigma$ is a $\sigma$-algebra we have $V^c \in \Sigma$ and thus by definition of $\Sigma_X$ we have $U^c = X^{-1}(V^c) \in \Sigma_X$. Therefore, $\Sigma_X$ is closed under complements. Finally, let $(U_i)_i$ be a countable sequence with $U_i \in \Sigma_X$. Then for each of these there exists some $V_i \in \Sigma$ s.t. $X^{-1}(V_i) = U_i$. Then $\bigcup_i U_i = \bigcup_i X^{-1}(V_i) = X^{-1}(\bigcup_i V_i) \in \Sigma_X$, because $\bigcup_i V_i \in \Sigma$, and thus $\Sigma_X$ is closed under countable unions. And thus $\Sigma_X$ is indeed a sigma algebra.\\
+        For the second part, let $S \in \Sigma_X$. Then, by definition of $\Sigma_X$, it follows that there exists $A \in \Sigma$ such that $X^{-1}(A) = S$. But then since $X$ is $\mathcal{F}/\Sigma$-measurable, it follows that $S = X^{-1}(A) \in \mathcal{F}$, completing the proof.
+        \item We need to show that the preimage $\I_A^{-1}$ is in $\mathcal{B}_{\Omega}$ for all possible subsets of $\{0, 1\}$. There are four of these. Obviously $\I_A^{-1}(\{0,1\}) = \Omega \in \mathcal{B}_{\Omega}$ since $\mathcal{B}_{\Omega}$ is a $\sigma$-algebra. The pre-image of an empty set is empty, which is in $\mathcal{B}_{\Omega}$ since it is a $\sigma$-algebra. $\I_A^{-1}(\{1\}) = A$ is in $\mathcal{B}_{\Omega}$ by definition of the exercise. Finally, $\I_A^{-1}(\{0\}) = A^c$ is in $\mathcal{B}_{\Omega}$ since it is a sigma algebra. And thus the indicator function is $\mathcal{B}_{\Omega} / 2^{\{0,1\}}$-measurable.
+        \item We first show that a singleton has measure $0$. Note that for any $x \in \mathbb{R}$, $\{x\} \subset (x - 1/n, x+1/n)$ for all $n \in \mathbb{N}$, and hence $\lambda(\{x\}) \leq 2/n$ for all $n \in \mathbb{N}$. Since $n$ may be arbitrarily large, it follows that $\lambda(\{x\}) = 0$. Now, since the set in question is a countable union of singletons, by additivity of the measure we get that any countable union of singleton sets also has $0$ measure.
+    \end{enumerate}
+    Basic statements about pre-images for use with ex 1.2:
+    \begin{enumerate}
+        \item $f: X \to Y$, show for all $B \in 2^Y$, $f^{-1}(B^c)=f^{-1}(B)^c$. Let $x \in X$, then:
+        \[
+            x \in f^{-1}(B^c) \Leftrightarrow f(x) \in B^c \Leftrightarrow f(x) \not \in B \Leftrightarrow x \not \in f^{-1}(B) \Leftrightarrow x \in f^{-1}(B)^c
+        \]
+        \item $f: X \to Y$, $A,B \in 2^Y$
+        \begin{align*}
+            f^{-1}(A \cup B)
+            &= \{x \in X | f(x) \in A \cup B\}\\
+            &= \{x \in X | f(x) \in A \vee f(x) \in B\}\\
+            &= \{x \in X | f(x) \in A\} \cup \{x \in X | f(x) \in B\}\\
+            &= f^{-1}(A) \cup f^{-1}(B)
+        \end{align*}
+    \end{enumerate}
+\end{gradedsolution}
+
+\section{Expectation and integration}
+(1 point) Let $X: \Omega \rightarrow \mathbb{R}$ be a random variable. Show from first principles that for simple functions $\mathbb{E}[cX] = c\mathbb{E}[X]$ (i.e. you are \textbf{not} allowed to just apply the linearity of the integral, you must show this yourself).\\
+\emph{Bonus:} Generalize this statement to the general case.
+\begin{gradedsolution}
+    Suppose $X(\omega) = \sum_{n=1}^N a_n \I_{A_n}(\omega)$ is simple. Then $cX$ is also simple and
+    \[
+      \mathbb{E}[cX] = \int cX \,dP = \sum_{n=1}^N c a_n P(A_n) = c \sum_{n=1}^N a_n P(A_n) = c \mathbb{E}[X]
+    \]
+    This completes the non-bonus part. Now. Suppose $X$ is positive (but maybe not simple) and $c>0$. Then $cX$ is also positive, and:
+    \begin{align*}
+        \mathbb{E}[cX] = \int cX \,dP &= \sup \{ \int g dP \mid g \text{ is simple and } g \leq cX \} \\
+        &=  \sup \{ \int cg \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &=  \sup \{c \int g \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &= c \sup \{\int g \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &= c \int X dP = c \mathbb{E}[X]
+    \end{align*}
+    Finally, for arbitrary random variables and $c>0$ we have:
+    \[
+      \mathbb{E}[cX] = \mathbb{E}[(cX)^+] - \mathbb{E}[(cX)^-] = c \mathbb{E}[(X)^+] - \mathbb{E}[(X)^-] = c \mathbb{E}[X]
+      \]
+    For negative $c$ simply note that $(cX)^+ = -c(X)^-$ and $(cX)^- = -c(X)^+$ and repeat the above argument.
+\end{gradedsolution}
+
+
+
+
+% POTENTIALLY USABLE FOR A LATER EXERCISE
+% \section{Graphical Models \& Collider}
+% It is known that men that are overweight are at high risk of contracting COVID19 and then needing intensive care. We assume that the population consists of 50\% men and 50\% woman and that half of each group is overweight. Clearly, gender is independent from being overweight. Still, when visiting an intensive care unit, one may find a higher proportion of men among the patients with a healthy weight than among the overweight patients. This is an example of the ``explain away'' effect, which occurs when the graphical model is a collider.
+
+% We have three Boolean variables: whether the patient is male ($M$), overweight ($O$) and in need of intensive care ($C$). Given the assumption that $M$ and $O$ are independent, we can system with following graphical model:
+% \begin{equation*}
+%     \begin{tikzpicture}[scale=1, transform shape]
+%         \tikzstyle{every node} = [draw,shape=circle]
+%         \node (M) at (0,0) {$M$};
+%         \node (O) at (3,0) {$O$};
+%         \node (C) at (1.5,-1) {$C$};
+%         \draw[-{Latex[length=3mm, width=2mm]}] (M) to (C);
+%         \draw[-{Latex[length=3mm, width=2mm]}] (O) to (C);
+%     \end{tikzpicture}
+% \end{equation*}
+% This model simply represents the fact that the joint probability $P(M, O, C)$ distribution can be factorised as:
+% \[
+%     P(M, O, C) = P(M)P(O)P(C|M, O)
+% \]
+% Because this is a collider, we have that while $M$ and $O$ are independent, $M$ and $O$ become dependent when conditioning on $C$. We study this in the particular case with conditional probability distributions:
+% \begin{align*}
+%     P(M=1)=P(O=1)&=1/2\\
+%     P(C=1|M=0, O=0) &= 1/4\\
+%     P(C=1|M=1, O=0)=P(C|M=0, O=1) &= 1/2\\
+%     P(C=1|M=1, O=1)&=3/4
+% \end{align*}
+
+% Use basic probability rules to give the probability $P(M=1 | O=1, C=1)$ that an overweight patient in need of intensive care is male and the probability $P(M=1 | O=0, C=1)$ that a not-overweight patient in need of intensive care is male. (4pts)
+
+% \begin{gradedsolution}
+% \begin{align*}
+% P(M=1, O=1, C=1)=3/4 \times 1/4&=3/16\\
+% P(M=0, O=1, C=1)=1/2 \times 1/4&=2/16\\
+% P(M=1|O=1,C=1)&=3/5\\
+% P(M=1, O=0, C=1)=2/4 \times 1/4&=2/16\\
+% P(M=0, O=0, C=1)=1/4 \times 1/4&=1/16\\
+% P(M=1|O=0,C=1)&=2/3\\
+% \end{align*}
+
+% \end{gradedsolution}
+
+%\end{document}

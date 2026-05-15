@@ -1,0 +1,851 @@
+\begin{comment}
+\subsection{Bayesian Test}
+
+One problem with the $G$ test is its finite-sample behaviour. 
+One can ``smoothen'' it by using a related Bayesian test.
+We will compare two Bayesian models for the joint distribution $P(X,Y)$.
+In the ``dependent'' model we take the same likelihood as before, and now
+we put a Dirichlet prior on the parameters $\theta_{xy} \sim \mathrm{Dir}(\alpha_{xy})$. 
+We can think of the hyperparameters $\alpha_{xy}$ as ``pseudo-counts''.
+The Bayesian test can be implemented as model comparison for two (nested) models, one corresponding with the
+null hypothesis of independence, i.e., with $\theta_{xy} = \theta_{+ x} \theta_{y +}$, and one without
+such a restriction on the parameters. 
+The \emph{Bayes factor} is the ratio of the two \emph{model evidences} (\emph{marginal likelihoods}).
+$$BF = \frac{\int P_{H_1}((X_n,Y_n)_{n=1}^N \mid \theta) dP_{H_1}(\theta)}{\int P_{H_0}((X_n,Y_n)_{n=1}^N \mid \theta) dP_{H_0}(\theta)}$$
+The likelihood ratio is replaced by the ratio of the model evidences:
+
+\begin{Def}
+  The \emph{Dirichlet distribution} with parameters $\alpha_a,\dots,\alpha_K > 0$
+  has probability density with respect to Lebesgue measure in $\RN^{K-1}$ given by
+\end{Def}
+
+Dirichlet prior:
+$$\mathrm{Dir}(\B{\mu} \given \B{\alpha}) = \frac{\Gamma(\sum_k \alpha_k)}{\prod_k \Gamma(\alpha_k)} \prod_k \mu_k^{\alpha_k - 1}$$
+Multinomial likelihood:
+$$\mathrm{Mult}(\B{N} \given \B{\mu}) = \frac{N!}{\prod_k N_k!} \prod_k \mu_k^{N_k}$$
+The marginal likelihood of the \emph{data} is:
+$$p(\B{X} \given \B{\alpha}) = \frac{\Gamma(\sum_k \alpha_k)}{\prod_k \Gamma(\alpha_k)} \frac{\prod_k \Gamma(\alpha_k + N_k)}{\Gamma(N + \sum_k \alpha_k)}$$
+The marginal likelihood of the \emph{counts} is:
+$$p(\B{N} \given \B{\alpha}) = \int \mathrm{Mult}(\B{N} \given \B{\mu}) \mathrm{Dir}(\B{\mu} \given \B{\alpha}) d\B{\mu} = \frac{\Gamma(\sum_k \alpha_k)}{\prod_k \Gamma(\alpha_k)} \frac{\Gamma(N + 1)}{\prod_k \Gamma(N_k + 1)} \frac{\prod_k \Gamma(\alpha_k + N_k)}{\Gamma(N + \sum_k \alpha_k)}$$
+For the special case that $\B{\alpha} = \B{1}$, this simplifies to
+$$p(\B{N} \given \B{\alpha} = 1) = \frac{\Gamma(K) \Gamma(N + 1)}{\Gamma(N + K)}$$
+where $K := \sum_k 1$.
+
+Taking $(X,Y)$ to have a multinomial distribution with parameters $\mu^{XY} \sim \mathrm{Dir}(\B{\alpha}^{XY})$, we obtain the following marginal likelihood:
+$$p(\B{N}^{XY} \given \B{\alpha}^{XY}) = \frac{\Gamma(\sum_k \sum_l \alpha^{XY}_{kl})}{\prod_k \prod_l \Gamma(\alpha^{XY}_{kl})} \frac{\Gamma(N^{XY} + 1)}{\prod_k \prod_l \Gamma(N^{XY}_{kl} + 1)} \frac{\prod_k \prod_l \Gamma(\alpha^{XY}_{k,l} + N^{XY}_{k,l})}{\Gamma(N^{XY} + \sum_k \sum_l \alpha^{XY}_{kl})}$$
+
+Now taking $(X,Y)$ to have a multinomial distribution with parameters $(\mu^{XY})_{kl} = (\mu^X)_k (\mu^Y)_l$, where $\mu^X \sim \mathrm{Dir}(\B{\alpha}^X)$ and
+$\mu^Y \sim \mathrm{Dir}(\B{\alpha}^Y)$, we obtain:
+\begin{equation*}\begin{split}
+& p(\B{N}^{XY} \given \B{\alpha}^X, \B{\alpha}^Y) \\
+& = \int \frac{\Gamma(N^{XY} + 1)}{\prod_k \prod_l \Gamma(N^{XY}_{kl} + 1)} \prod_k \prod_l (\mu^X_k \mu^Y_l)^{N^{XY}_{kl}} 
+  \frac{\Gamma(\sum_k \alpha^X_k)}{\prod_k \Gamma(\alpha^X_k)} \prod_k (\mu^X_k)^{\alpha^X_k - 1} \frac{\Gamma(\sum_l \alpha^Y_l)}{\prod_l \Gamma(\alpha^Y_l)} \prod_l (\mu^Y_l)^{\alpha^X_l - 1} d\B{\mu^X} d\B{\mu^Y} \\
+& = \frac{\Gamma(N^{XY} + 1)}{\prod_k \prod_l \Gamma(N^{XY}_{kl} + 1)} \frac{\Gamma(\sum_k \alpha^X_k)}{\prod_k \Gamma(\alpha^X_k)} \frac{\Gamma(\sum_l \alpha^Y_l)}{\prod_l \Gamma(\alpha^Y_l)} 
+  \int \prod_k \prod_l (\mu^X_k \mu^Y_l)^{N^{XY}_{kl}} \prod_k (\mu^X_k)^{\alpha^X_k - 1} \prod_l (\mu^Y_l)^{\alpha^X_l - 1} d\B{\mu^X} d\B{\mu^Y} \\
+& = \frac{\Gamma(N^{XY} + 1)}{\prod_k \prod_l \Gamma(N^{XY}_{kl} + 1)} \frac{\Gamma(\sum_k \alpha^X_k)}{\prod_k \Gamma(\alpha^X_k)} \frac{\Gamma(\sum_l \alpha^Y_l)}{\prod_l \Gamma(\alpha^Y_l)}
+  \int \prod_k (\mu^X_k)^{N^X_k + \alpha^X_k - 1} d\B{\mu^X} \int \prod_l (\mu^Y_l)^{N^Y_l + \alpha^X_l - 1} d\B{\mu^Y} \\
+& = \frac{\Gamma(N + 1)}{\prod_k \prod_l \Gamma(N^{XY}_{kl} + 1)} \frac{\Gamma(\sum_k \alpha^X_k)}{\prod_k \Gamma(\alpha^X_k)} \frac{\Gamma(\sum_l \alpha^Y_l)}{\prod_l \Gamma(\alpha^Y_l)}
+  \frac{\prod_k \Gamma(N^X_k + \alpha^X_k)}{\Gamma(N + \sum_k \alpha^X_k)} \frac{\prod_l \Gamma(N^Y_l + \alpha^Y_l)}{\Gamma(N + \sum_l \alpha^Y_l)} 
+\end{split}\end{equation*}
+where $N = \sum_k N^X_k = \sum_l N^Y_l = \sum_{k,l} N^{XY}_{kl}$.
+
+So the Bayes factor (independence vs.\ dependence) is given by:
+\begin{equation}\label{eq:Bayesian_indep_test}\begin{split}
+& \frac{p(\B{N}^{XY} \given \B{\alpha}^X, \B{\alpha}^Y)}{p(\B{N}^{XY} \given \B{\alpha}^{XY})} = 
+  \frac{\prod_k \prod_l \Gamma(\alpha^{XY}_{kl})}{\Gamma(\sum_k \sum_l \alpha^{XY}_{kl})} \frac{\Gamma(N + \sum_k \sum_l \alpha^{XY}_{kl})}{\prod_k \prod_l \Gamma(\alpha^{XY}_{k,l} + N^{XY}_{k,l})} \\
+& \frac{\Gamma(\sum_k \alpha^X_k)}{\prod_k \Gamma(\alpha^X_k)} \frac{\Gamma(\sum_l \alpha^Y_l)}{\prod_l \Gamma(\alpha^Y_l)} \frac{\prod_k \Gamma(N^X_k + \alpha^X_k)}{\Gamma(N + \sum_k \alpha^X_k)} \frac{\prod_l \Gamma(N^Y_l + \alpha^Y_l)}{\Gamma(N + \sum_l \alpha^Y_l)} \\
+\end{split}\end{equation}
+This looks pretty complicated, but is straightforward to compute. It simplifies considerably if we take all $\alpha$ components to be 1:
+\begin{equation*}\begin{split}
+& \frac{p(\B{N}^{XY} \given \B{\alpha}^X = \B{1}, \B{\alpha}^Y = \B{1})}{p(\B{N}^{XY} \given \B{\alpha}^{XY} = \B{1})} = 
+  \frac{\Gamma(|X|) \Gamma(|Y|)}{\Gamma(|X||Y|)} \frac{\Gamma(N + |X||Y|)}{\prod_k \prod_l \Gamma(N^{XY}_{k,l} + 1)} 
+  \frac{\prod_k \Gamma(N^X_k + 1)}{\Gamma(N + |X|)} \frac{\prod_l \Gamma(N^Y_l + 1)}{\Gamma(N + |Y|)} \\
+\end{split}\end{equation*}
+
+\Joris{Approach: obtain asymptotic marginal likelihoods by BIC. It uses a similar regularity condition, hence we will again
+only consider the case with positive parameters. The advantage is that the proof is pretty short, so we may be able to figure
+out what changes in the ``conditional'' setting. A few steps todo: link the Dirichlet-multinomial to the notation and
+assumptions in Schwartz 1978. We still have to solve the ML estimate, and then correct it with a BIC. This will turn out to
+be a simple correction on the likelihood ratio, but with pseudocounts added. We will get the most general approach if we do
+the asymptotic analysis ``by hand'', not relying too much on standard statistical results.
+
+With the BIC correction, we get an additional
+correction term. It says: log marginal likelihood converges to maximized log likelihood
+minus half dim $\log N$ plus order one remainder. But that means that the log Bayes factor
+converges to the log likelihood ratio plus some $O(\log N)$ correction. Converges in which sense?
+Note that under $H_1$, $G_N = O_P(N)$, and hence $G_N \stackrel{P}{\to} \infty$, and therefore
+$BF_N \stackrel{P}{\to} +\infty$, while under $H_0$, $G_N = O_P(1)$, and hence $BF_N \stackrel{P}{\to} -\infty$.
+}
+\end{comment}
+
+\subsection{Marginal Independence of a Random and a Non-Random Variable}
+
+Consider two variables $X,C$ taking values in finite spaces $\C{X},\C{C}$, respectively,
+(i.e., with $2\le|\C{X}|<\infty$ and $2\le|\C{C}|<\infty$).
+Assume that $X$ is a random variable, while $C$ is an input variable, 
+and consider a Markov kernel $K(X\mid C) : \C{C} \dshto \C{X}$. 
+We will derive a test for the independence $$X \Indep_{K(X\mid C)} C.$$
+%We can represent this Markov kernel in a table, e.g., for the binary case:
+%\begin{center}\begin{tabular}{l|ll}
+%        & $C=0$         & $C=1$ \\
+%        \hline
+%  $X=0$ & $p_{0|0}$      & $p_{0|1}$ \\
+%  $X=1$ & $p_{1|0}$      & $p_{1|1}$ \\
+%  \hline
+%        & 1              & 1
+%\end{tabular}\end{center}
+%where $p_{x|c} = K(X=x|C=c)$. 
+With Definition~\ref{cond-indep-markov-kernels-def}, this independence holds
+%$$X \Indep_{K(X|C)} C$$
+if and only if there exists a Markov kernel $Q(X) : \Asterisk \dshto \C{X}$ such that:
+\[ K(X\mid C) = Q(X).\]
+The latter means that
+\begin{equation}\label{eq:indep_test_CX}
+  K(X \mid C=c) = Q(X)
+\end{equation}
+for all $c \in \C{C}$.
+%For a binary context, the independence is equivalent to $p_{x|0} = p_{x|1}$ for all $x \in \C{X}$.
+
+Suppose we obtain data $(X_n,c_n)_{n=1}^N$ such that the
+$X_n$ are conditionally independent and identically distributed given $c_n$ for all $n=1,\dots,N$.
+In other words, we assume the data is sampled from the following Markov kernel:
+$$K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N) = \bigotimes_{n=1}^N K(X_n \mid C_n=c_n),$$
+where each $K(X_n \mid C_n)$ is a copy of the (``true'' but unknown kernel) $K(X \mid C)$.
+
+Note that this is a weaker assumption regarding the sampling scheme than
+we would have made if $C$ were random. In particular, we make no assumption
+at all regarding how the sequence of values $c_1,c_2,\dots,c_N$ is chosen.
+It could be a sequence like $0,1,0,1,0,1,0,1,\dots$, for example, which would
+be (if sufficiently long) very unlikely to occur if all $c_n$ would be independently
+sampled from some distribution. This extends the possible experimental designs that
+we can handle to include for example randomized controlled trials in which the 
+protocol is such that a certain prespecified number $N_{+|0}$ of subjects enters the control
+group, and a certain prespecified number $N_{+|1}$ enters the treatment group. If the values
+of $c_n$ were chosen i.i.d.\ with a coin flip, then it would be very unlikely that
+this assignment satisfies the protocol. Considering $C$ to be an exogenous input
+variable instead (with values that are not necessarily randomly assigned), allows us to test for the 
+independence of outcome $X$ and treatment $C$ under a broader range of experimental
+protocols.
+
+We define the \emph{counts} as the number of observations with a given value $(x,c)\in\C{X}\times\C{C}$:
+$$N_{x|c} := \sum_{n=1}^N \ind_{(x,c)}(X_n,c_n).$$
+%In the binary case, we can represent them in a table:
+%\begin{center}\begin{tabular}{l|ll}
+%        & $C=0$         & $C=1$ \\
+%        \hline
+%  $X=0$ & $N_{0|0}$      & $N_{0|1}$     \\
+%  $X=1$ & $N_{1|0}$      & $N_{1|1}$     \\
+%  \hline
+%        & $N_{+|0}$ & $N_{+|1}$ 
+%\end{tabular}\end{center}
+%where we used a similar summation convention as before:
+%$$N_{+|c} := \sum_{x\in\C{X}} N_{x|c}.$$
+
+We will take $H_0 : X \Indep C$ as the null hypothesis of a frequentist test for the independence of $X$ and $C$.
+We parameterize the Markov kernel $K(X \mid C)$ in terms of parameters
+$(\theta_{x|c})_{x\in\C{X},c\in\C{C}} := K(X = x \mid C = c)$ in a space
+$$\CX_\Theta := %\{ \theta \in \prod_{z\in\C{Z}} [0,1] : \sum_{z\in\C{Z}} \theta_z = 1\} \times
+\{ \theta \in \prod_{x\in\C{X},c\in\C{C}} [0,1] : \forall_{c\in\C{C}} \sum_{x\in\C{X}} \theta_{x|c} = 1\}.$$
+With the summation convention, we can write the normalization condition as $\theta_{+|c} = 1$ for all $c \in \C{C}$.
+The null hypothesis $H_0 : X \Indep C$, equivalent to \eref{eq:indep_test_CX}, can be expressed
+in terms of the parameters as $H_0 : \theta \in \CX_\Theta^0$, where we introduced the restricted parameter space
+$$\CX_\Theta^0 := \{ \theta \in \CX_\Theta : \forall_{x\in\C{X},c\in\C{C},c'\in\C{C}}: \theta_{x|c} = \theta_{x|c'} \}.$$
+%which is also equivalent to
+%$$\exists_{\theta_x} : \forall_{x\in\C{X},c\in\C{C}}: \theta_{x|c} = \theta_{x}.$$
+As alternative hypothesis we will take $H_1 : X \nIndep C$, the negation of the null hypothesis, i.e.,
+$H_1 : \theta \in \CX_\Theta^1$ with $\CX_\Theta^1 := \CX_\Theta \setminus \CX_\Theta^0$.
+
+We will again work out the likelihood ratio test.
+%\PF{Don't we need first a justification of some sort that conditional maximal likelihood is a valid fitting principle?} 
+%\Joris{Do you have one? It appears to me to be the same principle as maximum likelihood, except that we have kernels instead of distributions for each data point?}
+We first write down the ``conditional'' likelihood:
+$$\theta \mapsto K\big((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta\big)
+= \prod_{n=1}^N \theta_{X_n|c_n} 
+= \prod_{x\in\C{X}} \prod_{c\in\C{C}} \theta_{x|c}^{N_{x|c}}$$
+where we used the counts as a sufficient statistic.
+Maximizing the likelihood with respect to the parameters, we obtain the maximum likelihood estimator
+$$\hat \theta_{x|c} = \frac{N_{x|c}}{N_{+|c}},$$
+i.e., the fractions of the different outcomes within each subgroup with $C = c$.
+Under $H_0$, we can write $\theta_{x|c} = \theta_{x|\ast}$ for some $\theta_{x|\ast} \in \CX_\Theta^0$, 
+and the likelihood simplifies:
+$$\theta \in \CX_\Theta^0 \implies \prod_{x\in\C{X}} \prod_{c\in\C{C}} \theta_{x|\ast}^{N_{x|c}} = 
+\prod_{x\in\C{X}} \theta_{x|\ast}^{N_{x|+}}.$$
+The maximum likelihood estimator under $H_0$ is then
+$$\hat \theta^0_{x|c} = \frac{N_{x|+}}{N}.$$
+
+The likelihood ratio is obtained by dividing the likelihood for $\hat \theta$ by the likelihood for $\hat \theta^0$:
+\begin{equation}\label{eq:ext_G_test_statistic}
+  \frac{\sup_{\theta\in\CX_\Theta^0 \cup \CX_\Theta^1} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)}{\sup_{\theta\in\CX_\Theta^0} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)}
+= \prod_{x\in\C{X}} \prod_{c\in\C{C}} \left(\frac{\hat \theta_{x|c}}{\hat \theta^0_{x|c}}\right)^{N_{x|c}} 
+= \prod_{x\in\C{X}} \prod_{c\in\C{C}} \left(\frac{N_{x|c}}{N_{+|c}} \frac{N}{N_{x|+}}\right)^{N_{x|c}}.
+\end{equation}
+This is of \emph{exactly} the same form as the likelihood ratio \eref{eq:indep_test_XY_likelihood_ratio} for testing
+$X \Indep_{P(X,C)} C$ with two random variables $X,C$.
+The likelihood ratio test statistic is defined as 2 times the natural logarithm of this ratio:
+$$G_N := 2 \log \frac{\sup_{\theta\in\CX_\Theta^0 \cup \CX_\Theta^1} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)}{\sup_{\theta\in\CX_\Theta^0} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)} = 2 \sum_{x\in\C{X}} \sum_{c\in\C{C}} N_{x|c} \log \frac{N_{x|c} N}{N_{x|+} N_{+|c}}$$
+
+We (miraculously?!) arrived at the same test statistic as before.
+This time, we cannot make use of the general result on the asymptotic distribution under the null hypothesis of 
+likelihood ratio tests. Indeed, that result pertains when dealing
+with a likelihood with only a finite number of parameters to be estimated, whereas here we have an asymptotically infinite number
+of ``parameters'' $c_1,c_2,\dots$. Therefore, we will resort to a more direct analysis of the case at hand. The end result will
+recover the previous results for random variables as a special case. Perhaps surprisingly, it turns out that under reasonable 
+assumptions on the sequence $c_1,c_2,\dots$ we can apply the standard $G$ test and ignore the non-random nature of the $c_n$'s.
+
+We will start with rewriting the test statistic. We introduce the space
+$$\CX_{\Theta_C} := \{ \gamma \in \prod_{c\in\C{C}} [0,1] : \sum_{c\in\C{C}} \gamma_c = 1 \}.$$
+%\PF{It seems to me here that we are making the implicit assumption that we can model the sequence $c_1,\dots,c_n,$ as i.i.d.\ samples with an unknown distribution $\gamma$.}
+%\Joris{We are not, the notation is just reminiscent of that.}
+Consider now the function
+\begin{equation}\label{eq:G_test_statistics_limit}
+  \begin{split}
+    g : \CX_\Theta \times \CX_{\Theta_C} : (\theta,\gamma) \mapsto
+    &:= \sum_{c\in\C{C}} \gamma_c \sum_{x\in\C{X}} \theta_{x|c} \log \frac{\theta_{x|c}}{\sum_{c\in\C{C}} \gamma_c \theta_{x|c}} \\
+    & = \sum_{c\in\C{C}} \gamma_c \mathrm{KL}\Big(\theta_{X|c} \,\Vert\, \sum_{c\in\C{C}} \gamma_c \theta_{X|c}\Big),
+\end{split}\end{equation}
+%\PF{So we are using $\E_{\gamma(C)} \KL(P(X|C) \| P(X|C') \circ \gamma(C'))$? }\Joris{I guess you could also write it like that indeed.}
+where we introduced the notation $\theta_{X|c} := (\theta_{x|c})_{x\in\C{X}} \in \RN^{\C{X}}$, and where
+the Kullback-Leibler divergence between two probability distributions $P,Q \in \C{P}(\C{X})$ is defined as:
+$$\mathrm{KL}(P \,\Vert\, Q) := \sum_{x\in\C{X}} P(X=x) \log \frac{P(X=x)}{Q(X=x)}$$
+(and we identified a probability distribution on $\C{X}$ with its probability mass function, encoded as a parameter vector in 
+$\RN^\C{X}$).
+Note that
+$$G_N = 2 N g(\hat\theta, \hat\gamma)$$
+with
+$$\hat\gamma_c := \frac{N_{+|c}}{N}$$
+for all $c\in\C{C}$.\footnote{We write $\hat\gamma$ rather than $\gamma$ to indicate that it is an ($N$-dependent) function of the observed data, rather than a ``true'' fixed quantity.}
+The components of $\hat\gamma$ are just the fractions of observations with a certain value of $c$. 
+The asymptotic analysis will be conditional on the sequence of $\hat\gamma$'s, or equivalently,
+on the sequence of counts $N_{+|c}$.
+
+Because the counts $(N_{x|c})_{x\in\C{X}}$ have a multinomial distribution for each $c\in\C{C}$, we can calculate that
+$$\Exp \hat\theta_{x|c} = \frac{1}{N_{+|c}} \sum_{n=1}^N \I_c(c_n) \theta_{x|c} = \theta_{x|c}$$
+and
+\begin{equation*}\begin{split}
+  \Cov(\hat \theta_{x|c}, \hat \theta_{x'|c'}) 
+  & = \frac{1}{N_{+|c} N_{+|c'}} \sum_{n=1}^N \sum_{n'=1}^N \Cov\big( \I_{(x,c)}(X_n,c_n) \I_{(x',c')}(X_{n'},c_{n'}) \big) \\
+%  & = \frac{1}{N_{+|c} N_{+|c'}} \sum_{n=1}^N \sum_{n'=1}^N \I_c(c_n) \I_{c'}(c_{n'}) \big( P(X_n=x,X_{n'}=x' \mid c_n=c,c_{n'}=c') - P(X_n=x \mid c_n=c) P(X_{n'}=x' \mid c_{n'}=c') \big) \\
+  & = \frac{1}{N_{+|c} N_{+|c'}} \sum_{n=1}^N \I_c(c_n) \I_{c'}(c_{n}) \big( \delta_{xx'} \theta_{x|c} - \theta_{x|c} \theta_{x'|c} \big) \\
+  & = \frac{1}{N_{+|c}} \delta_{cc'} \theta_{x|c} (\delta_{xx'} - \theta_{x'|c}).
+\end{split}\end{equation*}
+Assume that $N_{+|c} \to \infty$ for every $c \in \C{C}$.
+Because
+  $$N_{x|c} = \sum_{\substack{n=1 \\ c_n=c}}^N \I_{x}(X_n),$$
+where the $\I_{x}(X_n)$ can be seen as i.i.d.\ vectors in $\RN^{\C{X}}$, we can apply the multivariate
+central limit theorem to conclude that
+  \begin{equation}\label{eq:multinomial_clt}
+    \sqrt{N_{+|c}} (\hat\theta_{x|c} - \theta_{x|c}) \leadsto \C{N}(0,\Sigma)
+  \end{equation}
+with covariance matrix $\Sigma$ with entries
+  \begin{equation}\label{eq:multinomial_cov}
+    (\Sigma)_{x|c,x'|c'} = \delta_{cc'} \theta_{x|c} (\delta_{xx'} - \theta_{x'|c}).
+  \end{equation}
+
+The central limit theorem thus provides the rate at which the ML estimate $\hat \theta$ converges to the true parameter $\theta$.
+The likelihood ratio statistic $G_N$ is a function of $\hat \theta$ and $\hat\gamma$. 
+The asymptotic analysis of $G_N$ can be obtained by performing a Taylor expansion of $g$ around the true $\theta$. 
+This expansion can be done ``uniformly'' in $\hat\gamma$.
+
+\begin{Lem}\label{lem:g_derivatives_H0}
+  Let $\theta \in \CX_\Theta^0$ be positive, i.e., such that there exists a $\delta > 0$ with $\theta_{x|c} \ge \delta$ for all $x \in \C{X}, c \in \C{C}$.
+  Let $\gamma \in \CX_{\Theta_C}$.
+  For $\hat\theta$ with $\lVert \hat\theta - \theta \rVert$ sufficiently small and $\hat\theta \stackrel{P}{\to} \theta$,
+  \begin{equation}
+    g(\hat\theta, \gamma) = \frac{1}{2} (\hat\theta - \theta)^T \nabla^2_\theta g(\theta,\gamma) (\hat\theta - \theta) + o_P(\lVert\hat\theta - \theta\rVert^2),
+  \end{equation}
+  with
+%  $g(\theta,\gamma) = 0$, 
+%  $\nabla_\theta g(\theta,\gamma) = 0$, and
+  $$\nabla^2_{\theta} g(\theta,\gamma) 
+  %= \diag\bigg(\frac{1}{\theta_{X|\ast}}\bigg) \otimes \big(\diag(\gamma) - \gamma \gamma^T\big)
+    = \diag\bigg(\frac{1}{\theta_{X|\ast}}\bigg) \otimes \Big(\diag(\sqrt{\gamma}) \big(I_{\C{C}} - \sqrt{\gamma} \sqrt{\gamma}^T\big)\diag(\sqrt{\gamma})\Big)$$
+  where $\theta_{X|\ast} = (\theta_{x|c})_{x\in\C{X}}$ for an arbitrary $c \in \C{C}$.\footnote{Here, we used the Kronecker product notation for matrices, and $\diag(v)$ is a diagonal matrix with the components of vector $v$ on the diagonal.}
+  The remainder term $o_P(\lVert\hat\theta - \theta\rVert^2)$ can be chosen to be a function $f(\theta,\hat\theta)$ that does not depend on $\gamma$, and for which
+  $$\frac{f(\theta,\hat\theta)}{\lVert\theta - \hat\theta\rVert^2} \stackrel{P}{\to} 0.$$
+\end{Lem}
+\begin{proof}
+The second order Taylor expansion of $g$ around the true $\theta$ is:
+$$g(\theta + \epsilon, \gamma) = g(\theta,\gamma) + \epsilon^T \nabla_\theta g(\theta,\gamma) + \frac{1}{2} \epsilon^T \nabla^2_\theta g(\theta,\gamma) \epsilon + o(\lVert\epsilon\rVert^2),$$
+where $\nabla_\theta g$ is the (partial) gradient of $g$ with respect to $\theta$, and
+$\nabla_\theta^2 g$ is the Hessian of $g$ with respect to $\theta$, and the remainder
+term $o(\lVert\epsilon\rVert^2)$ can be taken of the form $M \lVert\epsilon\rVert^3$ if the 
+third-order partial derivatives of $g$ at $(\theta,\gamma)$ are bounded.
+For a random $\epsilon = \hat\theta - \theta$ we obtain
+  \begin{equation}
+    g(\hat\theta, \gamma) - g(\theta,\gamma) = (\hat\theta - \theta)^T \nabla_\theta g(\theta,\gamma) + \frac{1}{2} (\hat\theta - \theta)^T \nabla^2_\theta g(\theta,\gamma) (\hat\theta - \theta) + o_P(\lVert\hat\theta - \theta\rVert^2),
+  \end{equation}
+where the remainder term is now random, and converges 
+in probability to 0 at rate $\lVert\hat\theta - \theta\rVert^2$.
+We will proceed by calculating the terms in the Taylor expansion.
+
+The Kullback-Leibler divergence has the important property that $\mathrm{KL}(P \,\Vert\, Q) \ge 0$ and $\mathrm{KL}(P \,\Vert\, Q) = 0 \iff P = Q$ for all $P,Q \in \C{P}(\C{X})$. 
+Together with the definition \eref{eq:G_test_statistics_limit}, 
+this immediately implies that under $H_0$, $g(\theta,\gamma) = 0$ for all $\gamma \in \CX_{\Theta_C}$.
+
+The gradient $\nabla_\theta g$ of $g$ w.r.t.\ $\theta$ has components:
+  $$\frac{\partial g}{\partial \theta_{x|c}} 
+%  = \gamma_c \log \frac{\theta_{x|c}}{\sum_{c'\in\C{C}} \gamma_c' \theta_{x|c'}} + \gamma_c - \sum_{c'\in\C{C}} \gamma_{c'} \theta_{x|c'} \frac{\gamma_c}{\sum_{c''\in\C{C}} \gamma_{c''} \theta_{x|c''}}
+  = \gamma_c \log \frac{\theta_{x|c}}{\sum_{c'\in\C{C}} \gamma_c' \theta_{x|c'}}.$$
+Under $H_0$, $\theta_{x|c} = \theta_{x|\ast}$ for all $x\in\C{X},c\in\C{C}$, and it follows that
+the gradient vanishes for all $\gamma\in\CX_{\Theta_C}$.
+
+Next, the Hessian w.r.t.\ $\theta$:
+  $$\frac{\partial^2 g}{\partial \theta_{x|c} \partial \theta_{x'|c'}} = 
+  \gamma_c \left( \frac{1}{\theta_{x|c}} \delta_{xx'} \delta_{cc'} - \frac{\gamma_{c'}}{\sum_{c''\in\C{C}} \gamma_{c''} \theta_{x|c''}} \delta_{xx'} \right).
+  $$
+Under $H_0$, $\theta_{x|c} = \theta_{x|\ast}$ for all $x\in\C{X},c\in\C{C}$, this simplifies to
+  $$\frac{\partial^2 g}{\partial \theta_{x|c} \partial \theta_{x'|c'}} = 
+  \frac{1}{\theta_{x|\ast}} \gamma_c \left( \delta_{xx'} \delta_{cc'} - \gamma_{c'} \delta_{xx'} \right).
+  $$
+By using the Kronecker product notation, this can be written as stated in the lemma.
+
+Finally, to obtain the remainder term, we calculate the third order partial derivatives:
+  $$\frac{\partial^3 g}{\partial \theta_{x|c} \partial \theta_{x'|c'} \partial \theta_{x''|c''}} = 
+  \gamma_c \delta_{x,x''} \delta_{x,x'} \left( -\frac{1}{\theta_{x|c}^2} \delta_{c,c''} \delta_{cc'} + \frac{\gamma_{c'}\gamma_{c''} }{(\sum_{c'''\in\C{C}} \gamma_{c'''} \theta_{x|c'''})^2} \right).
+  $$
+These can be bounded uniformly in $\gamma$, using the assumption that all components of $\theta$ are bounded away from zero.
+\end{proof}
+We are now ready to prove the following result on the asymptotic distribution of $G_N$ under the null hypothesis, which is (surprisingly?) similar to Proposition~\ref{prp:G_test_asymptotics_H0}.
+\begin{Prp}\label{prp:ext_G_test_asymptotics_H0}
+  Let $\theta \in \CX_\Theta$ be positive, i.e., such that $\theta_{x|c} > 0$ for all $x \in \C{X}, c \in \C{C}$.
+  Assume that $N_{+|c} \to \infty$ for all $c \in \C{C}$.
+  Under $H_0 : X \Indep_{K(X \given C)} C$, the likelihood ratio test statistic \eref{eq:ext_G_test_statistic} converges
+  to a $\chi^2$ distribution,
+  $$G_N \leadsto \chi^2_\nu,$$
+  with $\nu = (|\C{X}| - 1)(|\C{C}| - 1)$ degrees of freedom.
+\end{Prp}
+\begin{proof}
+  We first note that $\hat\theta \stackrel{a.s.}{\to} \theta$ (for any $\theta \in \CX_\Theta$) by applying the strong law of large numbers.
+  Indeed, since the $X_n$ are assumed to be conditionally i.i.d.\ given $c_n$, and 
+    $$\Exp \big(\I_{(x,c)}(X_n,c_n)\big) = \theta_{x|c} \I_c(c_n)$$
+  for all $x \in \C{X}, c \in \C{C}$, and $N_{+|c} \to \infty$ for all
+  $c \in \C{C}$, we conclude that $N_{x|c} / N_{+|c} \stackrel{a.s.}{\to} \theta_{x|c}$ 
+  for all $x \in \C{X}, c \in \C{C}$
+  by the strong law of large numbers.
+
+  Since this implies convergence in probability $\hat\theta \stackrel{P}{\to} \theta$,
+  Lemma \ref{lem:g_derivatives_H0} gives that under $H_0$,
+%  $$g(\hat\theta, \hat\gamma) - g(\theta,\hat\gamma) = (\hat\theta - \theta)^T g'(\theta,\hat\gamma) + \frac{1}{2} (\hat\theta - \theta)^T g''(\theta,\hat\gamma) (\hat\theta - \theta) + o_P(\lVert\hat\theta - \theta\rVert^2)$$
+%  i.e.,
+  $$g(\hat\theta, \hat\gamma) = \frac{1}{2} (\hat\theta - \theta)^T \nabla_\theta^2 g(\theta,\hat\gamma) (\hat\theta - \theta) + o_P(\lVert\hat\theta - \theta\rVert^2)$$
+  where
+  $$\nabla^2_{\theta} g(\theta,\hat\gamma) = \diag\bigg(\frac{1}{\theta_{X|\ast}}\bigg) \otimes \left(\diag(\sqrt{\hat\gamma}) \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\diag(\sqrt{\hat\gamma})\right)$$
+  and the remainder term does not depend on $\hat\gamma$.
+  Defining
+  $$S_N := \sqrt{N} \diag\bigg(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}\bigg) (\hat\theta - \theta)$$
+  where $\otimes$ denotes the Kronecker product of two vectors (in this case the all-ones vector $1_{\C{X}} \in \RN^{\C{X}}$ and the vector $\sqrt{\hat\gamma} \in \RN^{\C{C}}$),
+  \Claude{parenthetical incorrectly describes the Kronecker vector as ``the all-ones vector $1_\mathcal{X}$''; the actual vector is $1/\sqrt{\theta_{X|\ast}}$}
+  and the orthogonal projection\footnote{That is, $\hat\Gamma^T = \hat\Gamma = \hat\Gamma^2$.}
+  $$\hat\Gamma := I_{\C{X}} \otimes \Big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\Big),$$
+  we can write
+  \begin{equation*}\begin{split}
+     N (\hat\theta - \theta)^T \nabla_\theta^2(\theta,\hat\gamma) (\hat\theta - \theta) 
+%    & = \sqrt{N} (\hat\theta - \theta)^T \diag\bigg(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}\bigg) \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) \diag\bigg(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}\bigg) (\hat\theta - \theta) \sqrt{N} \\
+%    & = S_N^T \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) S_N \\
+    & = S_N^T \hat \Gamma S_N 
+%    & = \bigg\lVert \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) \diag\bigg(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}\bigg) (\hat\theta - \theta) \sqrt{N} \bigg\rVert^2.
+%    & = \Big\lVert \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) S_N \Big\rVert^2.
+    = \lVert \hat\Gamma S_N \rVert^2.
+  \end{split}\end{equation*}
+
+%  Therefore,
+%  \begin{equation*}\begin{split}
+%    & \lVert \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) \diag(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}) (\hat\theta - \theta) \sqrt{N} \rVert^2 \\
+%    & = \lVert (U \otimes \hat V) \Big(I_{\C{X}} \otimes \big(I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T\big)\Big) (U^T \otimes I) (U \otimes I)\diag(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}) (\hat\theta - \theta) \sqrt{N} \rVert^2 
+% \end{split}\end{equation*}
+  Under $H_0$, $\theta_{x|c} = \theta_{x|\ast}$ for all $c \in \C{C}$, and therefore \eref{eq:multinomial_clt} simplifies to:
+  \begin{equation*}
+    \sqrt{N} \sqrt{\hat\gamma_c} (\hat\theta_{x|c} - \theta_{x|\ast}) \leadsto \C{N}(0,\Sigma)
+  \end{equation*}
+  where the covariance matrix $\Sigma$ from \eref{eq:multinomial_cov} simplifies to
+  \begin{equation*}
+    (\Sigma)_{x|c,x'|c'} = \delta_{cc'} \theta_{x|\ast} (\delta_{xx'} - \theta_{x'|\ast}).
+  \end{equation*}
+  Hence, scaling with $\sqrt{\theta_{x|\ast}}$ gives
+  \begin{equation*}
+    S_N = \sqrt{N} \sqrt{\hat\gamma_c} \frac{1}{\sqrt{\theta_{x|\ast}}} (\hat\theta_{x|c} - \theta_{x|\ast}) \leadsto \C{N}(0,\tilde{\Sigma})
+  \end{equation*}
+  where the covariance matrix $\Sigma$ from \eref{eq:multinomial_cov} simplifies to
+  \begin{equation*}
+    (\tilde{\Sigma})_{x|c,x'|c'} = \delta_{cc'} \Big(\delta_{xx'} - \sqrt{\theta_{x|\ast}} \sqrt{\theta_{x'|\ast}}\Big),
+  \end{equation*}
+  which can be written using Kronecker product notation as
+  $$\tilde\Sigma = \Big(I_{\C{X}} - \sqrt{\theta_{X|\ast}} \sqrt{\theta_{X|\ast}^T}\Big) \otimes I_{\C{C}}.$$
+%  and is seen to be an orthogonal projection on $\sqrt{\theta_{X|\ast}}$.
+%  Under $H_0$, \eref{eq:multinomial_clt} can be written as
+%  $$\sqrt{N} \diag(1_{\C{X}} \otimes \sqrt{\hat\gamma}) (\hat\theta - \theta)  \leadsto N(0,\Sigma),$$
+%  where $\otimes$ denotes the Kronecker product of two vectors (in this case the all-ones vector $1_{\C{X}} \in \RN^{\C{X}}$
+%  and the vector $\sqrt{\hat\gamma} \in \RN^{\C{C}}$).
+%  Furthermore, under $H_0$, $\theta = \theta_{X|\ast} \otimes 1_{\C{C}}$, and
+%  the covariance matrix $\Sigma$ given in \eref{eq:multinomial_cov} can be written as
+%  $$(\Sigma)_{x|c,x'|c'} = \delta_{cc'} \theta_{x|c} (\delta_{xx'} - \theta_{x'|c}).$$
+%           = \Bigg(\diag\bigg(\sqrt{\theta_{X|\ast}}\bigg) \bigg(I_{\C{X}} - \sqrt{\theta_{X|\ast}}\sqrt{\theta_{X|\ast}^T}\bigg) \diag\bigg(\sqrt{\theta_{X|\ast}}\bigg)\Bigg) \otimes I_{\C{C}}.$$
+%  Hence, by rescaling with $\sqrt{\theta}$,
+%  $$%\sqrt{N} \diag\bigg(\frac{1}{\sqrt{\theta_{X|\ast}}} \otimes \sqrt{\hat\gamma}\bigg) (\hat\theta - \theta) 
+%    S_N \leadsto N(0,\tilde\Sigma),$$
+%  with
+%  $$\tilde\Sigma = \Big(I_{\C{X}} - \sqrt{\theta_{X|\ast}} \sqrt{\theta_{X|\ast}^T}\Big) \otimes I_{\C{C}}.$$
+%  Note that $\tilde\Sigma$ is an orthogonal projection, hence $\tilde\Sigma = \tilde\Sigma^T \tilde\Sigma$.
+
+  Let $\hat V \in SO(\RN^{\C{C}})$ be rotations that map $\sqrt{\hat\gamma}$ to $e_1$. Then
+  $$I_{\C{C}} - \sqrt{\hat\gamma} \sqrt{\hat\gamma}^T = P_{\sqrt{\hat\gamma}^\perp} = \hat V^T P_{e_1^\perp} \hat V$$
+  (where $P_{v^\perp}$ is the orthogonal projection on the subspace orthogonal to $v$),
+  and therefore
+  $$\lVert \hat\Gamma S_N \rVert^2 = \lVert (I_{\C{X}} \otimes \hat V^T P_{e_1^\perp} \hat V) S_N \rVert^2
+    = \lVert (I_{\C{X}} \otimes P_{e_1^\perp})(I_{\C{X}} \otimes \hat V) S_N \rVert^2.$$
+  We can apply Lemma~\ref{lem:weak_convergence_to_rotationally_symmetric_distribution} to conclude that $(I_{\C{X}} \otimes \hat V) S_N \leadsto \C{N}(0,\tilde\Sigma)$ as well (even though $\hat V$ is an $N$-dependent rotation).
+  \Claude{Gap: the Lemma requires full rotational symmetry of the limiting distribution, but the actual limit $\mathcal{N}(0,\tilde\Sigma)$ has only partial rotational symmetry (invariant under $I_\mathcal{X}\otimes U$, not all rotations).  The argument is fixable by generalizing the lemma, but as written there is a mismatch.}
+  Then 
+  $$(I_{\C{X}} \otimes P_{e_1^\perp})(I_{\C{X}} \otimes \hat V) S_N \leadsto \C{N}\Big(0,P_{\sqrt{\theta_{X|\ast}}^\perp} \otimes P_{e_1^\perp}\Big)$$
+  and hence
+  $$\lVert \hat\Gamma S_N \rVert^2 \leadsto \chi^2_{\nu}$$
+  with $\nu = (|\C{X}|-1)(|\C{C}|-1)$.
+  With Slutsky's Lemma, also
+  $$G_N = 2N g(\hat\theta,\hat\gamma) = N (\hat\theta - \theta)^T \nabla_\theta^2(\theta,\hat\gamma) (\hat\theta - \theta) + N o_P(\lVert\hat\theta - \theta\rVert^2) \leadsto \chi^2_{\nu}.$$
+  \Claude{Gap: The Slutsky step $N\cdot o_P(\|\hat\theta-\theta\|^2)\to 0$ requires $N\|\hat\theta-\theta\|^2=O_P(1)$.  Under only $N_{+|c}\to\infty$ (not $N_{+|c}/N\ge\epsilon$), this is not guaranteed.}
+\end{proof}
+So, also the asymptotic distribution under the null hypothesis is the same as for the case of two random variables, 
+even though we used a different parameterization,
+and we relaxed the assumption that the $c_n$'s are i.i.d.:
+we only assumed that $N_{+|c} \to \infty$ for each $c$.\footnote{If some of the $N_{+|c}$ stay finite asymptotically, then these $c$'s can be ignored, and we still get asymptotically a chi-square distribution, but with less degrees of freedom.}
+In particular, this result applies also to the case when
+$C$ is a random variable. Hence, we have reobtained Proposition~\ref{prp:G_test_asymptotics_H0} as a special case.
+
+\begin{Lem}\label{lem:weak_convergence_to_rotationally_symmetric_distribution}
+  Let $Q$ be a rotationally symmetric probability measure on the standard Borel space $\RN^k$ (i.e., $Q \circ U = Q$ for all $U \in SO(\RN^k)$),
+  and $P_1,P_2,\dots$ a sequence of probability measures on $\RN^k$. Then
+  $$P_n \leadsto Q \iff P_n \circ U_n \leadsto Q$$
+  for any sequence $U_1,U_2,\dots$ of rotations in $SO(\RN^k)$.
+\end{Lem}
+\begin{proof}
+  We make use of the L\'evy-Prokhorov metrization of the weak topology. For two probability distributions $P,Q$ on
+  $\RN^k$ (with its Borel $\sigma$-algebra $\C{B}_{\RN^k}$), 
+  it is defined as
+  $$d(P,Q) := \inf \{ \epsilon > 0 : \forall A \in \C{B}_{\RN^k} : P(A) \le Q(A^\epsilon) + \epsilon \ \land\ Q(A) \le P(A^\epsilon) + \epsilon \},$$
+  where $A^\epsilon := \cup_{a \in A} B_\epsilon(a)$ with $B_\epsilon(a) := \{v \in \RN^k : \lVert v - a \rVert < \epsilon\}$.
+  The L\'evy-Prokhorov metric is invariant under rotations. 
+  Indeed, for $U \in SO(\RN^k)$, we have that $UA \in \C{B}_{\RN^k} \iff A \in \C{B}_{\RN^k}$, and $(UA)^\epsilon = U(A^\epsilon)$ for $A \in \C{B}_{\RN^k}$ and $\epsilon > 0$, hence $d(P\circ U, Q\circ U) = d(P,Q)$ for all probability measures $P,Q$ on $\RN^k$. 
+  The rotation invariance of the L\'evy-Prokhorov metric implies that if $Q$ is rotationally symmetric (i.e., $Q = Q \circ U$ for all $U \in SO(\RN^k)$), then
+  \begin{equation*}\begin{split}
+    P_n \leadsto Q 
+    &\iff d(P_n,Q) \to 0 \\
+    &\iff d(P_n \circ U_n,Q \circ U_n) \to 0 \\
+    &\iff d(P_n \circ U_n, Q) \to 0 \\
+    &\iff P_n \circ U_n \leadsto Q
+  \end{split}\end{equation*}
+\end{proof}
+
+Summarizing, we started from quite a different sampling scheme, and did not treat $C$ as a random variable, yet we
+ended up with exactly the same likelihood ratio test for testing $X \Indep_{K(X|C)} C$ as we derived 
+for testing the independence $X \Indep_{P(X,C)} C$ between two random variables.
+
+What about the consistency of this test? To show consistency, it turns out that we need a stronger assumption
+than $N_{+|c} \to \infty$, but it will still be weaker than the i.i.d.\ assumption we made for the case that $C$ is random.
+\begin{Cor}\label{cor:ext_G_test_consistency}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,c_n)_{n=1}^\infty$,
+where one accepts $H_1 : X \nIndep C$ if $G_N \ge \tau_N$, and otherwise accepts $H_0 : X \Indep C$, 
+for some given sequence of thresholds $\tau_N$.
+Assume that $\theta \in \CX_\Theta$ is positive, i.e., such that $\theta_{x|c} > 0$ for all $x \in \C{X}, c \in \C{C}$.
+Assume further that the fractions $N_{+|c} / N$ are bounded away from zero asymptotically,
+i.e., there exists $\epsilon > 0$ such that for all $c \in \C{C}$, $N_{+|c} / N \ge \epsilon$ for large $N$.
+Then this sequence of tests is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+\begin{proof}
+%Under $H_1$, there is a pair $c,c' \in \C{C}$ such that $\theta_{X|c} \ne \theta_{X|c'}$, and hence,
+%  $$\delta = KL\Big(\theta_{X|c} \,\Vert\, \sum_{c\in\C{C}} \gamma_c \theta_{X|c}\Big) > 0.$$
+%Therefore, $g(\theta,\hat\gamma) \ge \epsilon \delta > 0$ for large $N$.
+%If $\hat\theta \stackrel{a.s.}{\to} \theta$, then by the uniform \Joris{check!} continuity of $g$, 
+%also $g(\hat\theta,\hat\gamma)$ a.s.\ has a positive lower bound for large $N$.
+%The same then holds for $G_N / N = 2g(\hat\theta,\hat\gamma)$.
+In the proof of Proposition~\ref{prp:ext_G_test_asymptotics_H0}
+we already saw that $\hat\theta \stackrel{a.s.}{\to} \theta$ for any $\theta \in \CX_\Theta$.
+\Claude{Type~I: The stronger assumption $N_{+|c}/N\ge\epsilon$ closes the Slutsky gap from Proof~6, making the chi-squared approximation valid.}
+
+Assume that $H_1$ holds, i.e., $\theta \in \CX_\Theta^1$.
+Then $g(\theta,\gamma) = I(\gamma, \theta \circ \gamma) > 0$ for all $\gamma \in \CX_{\Theta_C}$.
+$\CX_\Theta^1$ is open in $\CX_\Theta$, so $\bar B_{\delta}(\theta) \cap \CX_\Theta = \{\tilde{\theta} \in \CX_\Theta : \lVert \theta - \tilde{\theta} \rVert \le \delta \} \subseteq \CX_\Theta^1$ for $\delta$ small enough.
+Since $\hat\theta \stackrel{a.s.}{\to} \theta$, $\hat\theta \in \bar B_{\delta}(\theta) \cap \CX_\Theta$ for large $N$ a.s..
+By assumption, for large $N$ $\hat\gamma \in \{\tilde{\gamma} \in [\epsilon,1]^{|\C{C}|} : \tilde{\gamma}_+ = 1\}$,
+which is a closed subset of $\CX_{\Theta_C}$.
+Since $I$ is continuous, it attains a (positive) minimum value over the closed subset
+$(\bar B_{\delta}(\theta) \cap \CX_\Theta) \times \{\tilde{\gamma} \in [\epsilon,1]^{|\C{C}|} : \tilde{\gamma}_+ = 1\} \subseteq \CX_\Theta \times \CX_{\Theta_C}$.
+Hence, $G_N / N = 2g(\hat\theta,\hat\gamma)$ a.s.\ has a positive lower bound for large $N$.
+We can now reason analogously as in the proof of Corollary~\ref{cor:G_test_consistency} to conclude that
+the probability of a Type II error vanishes asymptotically.
+
+For an asymptotic estimate of the probability of a Type I error,
+we can make use of Proposition~\ref{prp:ext_G_test_asymptotics_H0},
+which states that $G_N \leadsto \chi_{\nu}^2$ under $H_0$. 
+This part of the proof is identical to the corresponding part of the proof of Corollary~\ref{cor:G_test_consistency}.
+\end{proof}
+The conditions in this corollary are sufficient, but not necessary. For example,
+not all the rates $N_{+|c}$ have to be lower bounded, it suffices if this is
+the case for a subset of $\C{C}$ for which the distributions $K(X \mid C=c)$ differ.
+It also shows how consistency could fail: e.g., if the distributions
+$K(X \mid C=c)$ only differ on some subset of $\C{C}$, but that subset is not 
+observed sufficiently often asymptotically. This is in line with the intuition that
+when testing for the presence of a causal effect of $C$ on $X$ in a controlled
+setting (not necessarily randomized, i.e., as in Proposition~\ref{prp:RCT1}), if
+nothing is known about how $X$ might depend on $C$, it is best to gather sufficient
+data for each value that $C$ can take.
+
+%\Joris{But it seems we can weaken that assumption: if we don't want to use prior knowledge on which distributions $K(X \mid C=c)$ might differ, i.e., we need to sample from all values $c \in \C{C}$, it should suffice if $N_{+|c} \to \infty$, as in principle we could always throw away observations that occur too frequently asymptotically (resulting in $N_{x+c} / N \to 0$, for example). Perhaps we can choose the $\gamma_c$'s differently to reweight the data according to the value of $c$.}
+
+%\Joris{For consistency of this test, we need that $N_{+|c} \to \infty$ for each value of $c$.
+%In the binary case, suppose $N_{+|0} \to\infty$ and $N_{+|1}$ stays fixed, then we obtain
+%a likelihood ratio test statistic for the test $H_0 : p_{+|1} = q_0$ based only on the data for $c=1$,
+%where $q_0 := \lim_{N\to\infty} N_{+|0} / N$. That is nice.
+%}
+
+%\PF{We could also use a split-likelihood-ratio test or an E-value approach. Might even be easier as won't need the asymptotics to $\chi^2$ and no regularity assumptions.}
+
+\subsection{The general categorical case}
+
+Finally, let us consider the most general case of testing a conditional independence involving transitional
+random variables (including ``purely random'' and ``purely non-random'' variables as special cases).
+Again, we will restrict ourselves to the case that all variables take values in finite spaces.
+We will formulate a general version of the $G$ test.
+
+%Let $\langle \C{W} \times \C{T}, K(W\mid T) \rangle$ be a finite transition space (i.e., with $|\C{W}| < \infty$ and
+%$|\C{T}| < \infty$) with Markov kernel $K(W \mid T): \C{T} \dshto \C{W}$. Consider random fields $X,Y,Z,D$ with common
+%domain $\C{W} \times \C{T}$ and (finite) codomains $\C{X},\C{Y},\C{Z}$, respectively, and $T : \C{W} \times \C{T} \to \C{T}$
+%the canonical projection map. 
+
+%\Joris{This was too general: take transitional random variables $X,Y,Z$ and kernel $K(X,Y,Z \mid C)$.
+%This corresponds with taking $D = \emptyset$.}
+Suppose we have three transitional random variables $X,Y,Z$ and an input variable $C$,
+taking values in spaces $\C{X}, \C{Y}, \C{Z}, \C{C}$, respectively. 
+Assume that all the spaces $\C{X},\C{Y},\C{Z},\C{C}$ are finite.
+Suppose we have a kernel $K(X,Y,Z|C) : \C{C} \dshto \C{X} \times \C{Y} \times \C{Z}$.
+We formulate a statistical test for testing the conditional independence
+$$H_0 : X \Indep_{K(X,Y,Z|C)} Y \given Z$$
+against the alternative
+$$H_1 : X \nIndep_{K(X,Y,Z|C)} Y \given Z.$$
+The null hypothesis is equivalent, by definition, to the existence of a kernel $K(X|Z)$ such that
+$$K(X,Y,Z \mid C) = K(X \mid Z) \otimes K(Y,Z \mid C).$$
+%In terms of transition probabilities:
+%$$\tilde{K}_{x,y,z|c,d} = \tilde{L}_{x|z,d} \tilde{K}_{+,y,z|c,d}$$
+It will turn out to be helpful to consider the equivalent hypotheses
+$$H_0 : X \Indep_{K(X,Y,Z|C)} Y,C \given Z$$
+against the alternative
+$$H_1 : X \nIndep_{K(X,Y,Z|C)} Y,C \given Z$$
+instead.
+
+Suppose we obtain data $(X_n,Y_n,Z_n,c_n)_{n=1}^N$ such that the
+$(X_n,Y_n,Z_n)$ are conditionally independent and identically distributed given $c_n$ for all $n=1,\dots,N$.
+In other words, we assume the data is sampled from the following Markov kernel:
+$$K((X_n,Y_n,Z_n)_{n=1}^N \mid (c_n)_{n=1}^N) = \bigotimes_{n=1}^N K(X_n,Y_n,Z_n \mid C_n=c_n),$$
+where each $K(X_n,Y_n,Z_n \mid C_n)$ is a copy of the (``true'' but unknown kernel) $K(X,Y,Z \mid C)$.
+We parameterize this kernel $K(X,Y,Z \mid C)$ as
+$$K(X=x,Y=y,Z=z \mid C=c) = \theta_{xyz|c}$$
+with $\theta$ in 
+$$\CX_\Theta = \{ \theta \in \prod_{(x,y,z,c) \in \C{X}\times\C{Y}\times\C{Z}\times\C{C}} : \theta_{+++|c} = 1 \ \forall c\in\C{C} \}.$$
+
+We will not work out the details, as these are analogous to what we have seen before, but will directly formulate
+the likelihood ratio test statistic:
+\begin{equation}\label{eq:general_G_test_statistic}
+  G_N = 2 \sum_{x\in\C{X}}\sum_{y\in\C{Y}}\sum_{z\in\C{Z}}\sum_{c\in\C{C}}
+  N_{xyzc} \log \frac{N_{xyzc} N_{++z+}}{N_{x+z+} N_{+yzc}}.
+\end{equation}
+With the correspondence $(X,(Y,C),Z) \leftrightarrow (X,Y,Z)$, this likelihood
+ratio statistic is seen to be identical to \eref{eq:cond_G_test_statistic}, the one for the case
+of three random variables. Note that this likelihood ratio treats $C$ and $Y$ on equal footing. 
+This, again, suggests that for the asymptotic analysis we will obtain
+a similar result as that for the conditional $G$ test with purely random variables, albeit under milder
+assumptions on the sampling scheme for $C$. We will not work out the details here, but directly
+formulate the result.
+
+\begin{Prp}\label{prp:general_G_test_asymptotics_H0}
+  Let $\theta \in \CX_\Theta$ be positive, i.e., such that $\theta_{xyz|c} > 0$ for all $x \in \C{X}, y \in \C{Y}, z \in \C{Z}, c \in \C{C}$.
+  Assume that $N_{+++|c} \to \infty$ for all $c \in \C{C}$.
+  Under $H_0 : X \Indep_{K(X,Y,Z \given C)} Y,C \given Z$, the likelihood ratio test statistic \eref{eq:general_G_test_statistic} converges
+  to a $\chi^2$ distribution,
+  $$G_N \leadsto \chi^2_\nu,$$
+  with $\nu = |\C{Z}|\,(|\C{X}| - 1)(|\C{Y}||\C{C}| - 1)$ degrees of freedom.
+\end{Prp}
+\begin{proof}
+  Note that the likelihood ratio test statistic \eref{eq:general_G_test_statistic} is a sum
+  over $z \in \C{Z}$ of a likelihood ratio test statistic of the form 
+  \eref{eq:ext_G_test_statistic} (where $(Y,C)$ in the former corresponds with $C$ in the latter). 
+%  \Joris{Elaborate?}
+  \Claude{Proof sketch with key steps omitted:
+	\begin{itemize}
+  \item Per-stratum assumptions of Proposition~\ref{prp:ext_G_test_asymptotics_H0} (positivity of all cell counts).
+  \item Asymptotic independence of per-stratum statistics.
+  \item Inherits the Slutsky remainder gap from Proposition~\ref{prp:ext_G_test_asymptotics_H0}.
+	\end{itemize}}
+\end{proof}
+%It is possible to drop the positivity assumption for $\theta$. This leads to a reduction in the degrees of
+%freedom, but the statement that $G_N$ converges in distribution to a chi-square distribution remains valid,
+%but the number of degrees of freedom of that distribution is reduced.
+We also obtain a similar result as before on the asymptotic consistency.
+\begin{Cor}\label{cor:gen_G_test_consistency}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,Y_n,Z_n,c_n)_{n=1}^\infty$,
+where one decides
+  $$\begin{cases}
+    H_0 : X \Indep_{K(X,Y,Z \given C)} Y,C \given Z     & \text{if $G_N < \tau_N$},\\
+    H_1 : X \nIndep_{K(X,Y,Z \given C)} Y,C \given Z & \text{if $G_N \ge \tau_N$,}
+  \end{cases}$$
+for some given sequence of thresholds $\tau_N$.
+Assume that $\theta \in \CX_\Theta$ is positive, i.e., such that $\theta_{xyz|c} > 0$ for all $x \in \C{X}, y \in \C{Y}, z \in \C{Z}, c \in \C{C}$.
+Assume further that the fractions $N_{+++|c} / N \to \infty$ are bounded away from zero asymptotically,
+i.e., there exists $\epsilon > 0$ such that for all $c \in \C{C}$, $N_{+++|c} / N > \epsilon$ for large $N$.
+Then this sequence of tests is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+
+%CI testing: $X \Indep Y, J_1 \mid Z, J_2$ (with $J = J_1 \dot\cup J_2$)
+%    iff $\forall j_2: X \Indep Y, J_1 \mid Z, j_2$
+%    iff $\forall j_2: P(X \mid Y,J_1,Z,j_2) = P(X \mid Z, j_2)$
+
+\begin{comment}
+\subsection{Leftovers}
+
+Miller and Madow (1954) give the asymptotic distributions for the plug-in estimator of Shannon entropy.
+While for generic parameter choices, this just yields the expected normal distribution, funny stuff
+happens if some of the $p_x$ are zero and at the same time, the non-zero ones are uniform. Then one
+gets a chi-squared distribution instead. 
+%@report{MillerMadow1954,
+%  author = {G. A. Miller and W. G. Madow},
+%  title = {On the maximum likelihood estimate of the {S}hannon-{W}eaver measure of information},
+%  institution = {Air Force Cambridge Research Center},
+%  number = {54-75},
+%  year = 1954
+%}
+
+\url{https://stats.stackexchange.com/questions/4816/what-are-the-sharpest-known-tail-bounds-for-chi-k2-distributed-variables}
+mentions a bound 
+$$P(\chi_{\nu}^2 \ge \nu + 2\sqrt{\nu x} + 2x) \le e^{-x}$$
+which I quickly turned into
+$$\chi^2_{\nu,1-\alpha} \le \nu + 2\sqrt{\nu \log \alpha^{-1}} + 2 \log \alpha^{-1}$$
+This should allow us to find a sufficient condition for $\chi^2_{\nu,1-\alpha_N} / N \to 0$.
+Not sure if this is entirely correct.
+
+\begin{Cor}
+Consider the sequence of $G$-tests where one rejects $H_0 : X \Indep Y$ if $G_N \ge \tau_N$ for some given
+sequence of thresholds $\tau_N$.
+Under the regularity assumption \eref{eq:G_test_regularity}, this sequence is
+asymptotically valid with level $\alpha$ if $\tau_N \to \chi_{\nu,1-\alpha}^2$,
+where $\nu = (|\C{X}|-1)(|\C{Y}|-1)$.
+\end{Cor}
+\begin{proof}
+By Proposition~\ref{prp:G_test_asymptotics_H0}, under $H_0$,
+$G_N \leadsto \chi_{\nu}^2$. Since the distribution function of $\chi_{\nu}^2$ is continuous,
+this implies uniform convergence of the distribution functions:
+  $$\sup_{x \in \RN} |F_{G_N}(x) - F_{\chi_{\nu}^2}(x)| \to 0.$$
+Hence
+  $$|F_{G_N}(\tau_N) - F_{\chi_{\nu}^2}(\tau_N)| \le \sup_{x\in\RN} |F_{G_N}(x) - F_{\chi_{\nu}^2}(x)| \to 0.$$
+Since $\tau_N \to F^{-1}_{\chi_{\nu}^2}(1-\alpha)$ and $F_{\chi_{\nu}^2}$ is continuous,
+  $$F_{\chi_\nu^2}(\tau_N) \to F_{\chi_\nu^2}(F^{-1}_{\chi_\nu^2}(1-\alpha)) = 1-\alpha.$$
+Combining these two, we conclude
+  $$F_{G_N}(\tau_N) \to 1-\alpha$$
+and hence the probability of a Type I error converges to $\alpha$,
+  $$P(G_N \ge \tau_N) \to \alpha.$$
+\end{proof}
+
+To obtain the asymptotic behavior of the distribution of the test statistic under the alternative hypothesis,
+one can find a general analysis in \cite{LomnickiZaremba1959} (for arbitrary $\theta_{xy} \in \CX_\Theta$). 
+Here we will again make the
+simplifying assumption that $\theta_{xy} > 0$ for all $x\in\C{X},y\in\C{Y}$.
+\begin{Prp}\label{prp:G_test_asymptotics_H1}
+Under $H_1 : X \nIndep Y$ (equivalently, if $I := I(X;Y) > 0$), and with regularity assumption \eref{eq:G_test_regularity},
+  $$\sqrt{N}(\hat I_N - I) \leadsto \C{N}(0,\sigma^2)$$
+where
+  $$\sigma^2 := \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \theta_{xy} \left(\log\frac{\theta_{xy}}{\theta_{x+} \theta_{+ y}}\right)^2 - I^2$$
+and $I = I(X;Y)$ as sample size $N \to \infty$.
+\end{Prp}
+\begin{proof}
+%  \begin{equation*}\begin{split}
+%    &\Cov (\I_{xy}(X_n,Y_n), \I_{x'y'}(X_n,Y_n)) \\
+%    &= \Exp(\I_{xy}(X_n,Y_n)\I_{x'y'}(X_n,Y_n)) - \Exp(\I_{xy}(X_n,Y_n)) \Exp(\I_{x'y'}(X_n,Y_n))\\
+%    &= \delta_{xy,x'y'} \theta_{xy} - \theta_{xy} \theta_{x'y'} \\
+%    &=: \Sigma
+%  \end{split}\end{equation*}
+  For $x,x' \in \C{X}$, $y,y' \in \C{Y}$, we calculate:
+  \begin{equation*}\begin{split}
+    &N \Cov (\hat\theta_{xy}, \hat\theta_{x'y'}) \\
+    &= N \Cov \left(\frac{1}{N} \sum_{n=1}^N \I_{xy}(X_n,Y_n), \frac{1}{N} \sum_{n'=1}^N \I_{x'y'}(X_{n'},Y_{n'})\right) \\
+    &= \frac{1}{N} \sum_{n=1}^N \sum_{n'=1}^N \Cov (\I_{xy}(X_n,Y_n), \I_{x'y'}(X_{n'},Y_{n'})) \\
+    &= \Cov (\I_{xy}(X_1,Y_1), \I_{x'y'}(X_{1},Y_{1})) \\
+    &= \theta_{xy} (\delta_{xy,x'y'} - \theta_{x'y'}) \\
+    &=: \Sigma_{xy,x'y'}
+  \end{split}\end{equation*}
+  Asymptotically, therefore,
+  $$\sqrt{N}(\hat\theta - \theta) \leadsto \C{N}(0,\Sigma)$$
+  with the multivariate central limit theorem.
+
+  With the multivariate delta method we can obtain the limiting distribution of the sequence
+  $\sqrt{N}(I(\hat\theta) - I(\theta))$. The delta method consists of an asymptotic linearization
+  around $\theta$, and asserts that the limiting distribution is the same as that of
+  $\sqrt{N}I'(\theta)(\hat\theta - \theta)$. In this case, we obtain
+  $$\sqrt{N}I'(\theta)(\hat\theta - \theta) \leadsto %I'(\theta) N(0,\Sigma) = 
+  N\big(0,I'(\theta)^T \Sigma I'(\theta)\big).$$
+  The gradient of
+  $$\theta \mapsto I(\theta) := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}}
+       = \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \theta_{xy}
+       - \sum_{x\in\C{X}} \theta_{x+} \log \theta_{x +}
+       - \sum_{y\in\C{Y}} \theta_{+ y} \log \theta_{+ y}$$
+  is given by
+%  = \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \theta_{xy}
+%  - \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \sum_{y'} \theta_{xy'} 
+%  - \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \sum_{x'} \theta_{x'y}$$
+  $$I'(\theta) = \frac{\partial I(\theta)}{\partial \theta_{xy}} = 
+    \log \theta_{xy} + 1
+    - \log \theta_{x +} - 1
+    - \log \theta_{+ y} - 1
+   = \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1$$
+  Hence
+   \begin{equation*}\begin{split}
+   & I'(\theta)^T \Sigma I'(\theta) \\
+   & = \sum_{xy} \sum_{x'y'} \left( \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1 \right)
+     \Sigma_{xy,x'y'}
+     \left( \log \frac{\theta_{x'y'}}{\theta_{x' +} \theta_{+ y'}} - 1 \right)\\
+   & = \sum_{xy} \sum_{x'y'} \left( \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1 \right)
+     (\delta_{xy,x'y'} \theta_{xy} - \theta_{xy} \theta_{x'y'})
+     \left( \log \frac{\theta_{x'y'}}{\theta_{x' +} \theta_{+ y'}} - 1 \right)\\
+   & = \sum_{xy} \theta_{xy} \left( \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1 \right)^2 -
+     \sum_{xy} \theta_{xy} \left( \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1 \right) \sum_{x'y'} 
+     \theta_{x'y'}
+     \left( \log \frac{\theta_{x'y'}}{\theta_{x' +} \theta_{+ y'}} - 1 \right) \\
+   & = \sigma^2.
+   \end{split}\end{equation*} 
+   which completes the proof.
+\end{proof}
+Note that this is not very useful in practice to estimate the Type II error if one does not know the true $I(\theta)$.
+
+We provide a more direct proof of Proposition~\ref{prp:G_test_asymptotics_H0} as well, 
+in the hope that it will be useful in generalizing
+the analysis later on. It is based on the delta method, which exploits a Taylor expansion.
+We start with a little lemma on the Taylor expansion of the mutual information.
+In the rest of this subsection, we let $\theta \in \RN^{\C{X}\times \C{Y}}$ denote a vector
+with components $\theta_{xy}$ for $x \in \C{X}$, $y \in \C{Y}$. We let $\theta_X \in \RN^{\C{X}}$
+denote the vector with components $(\theta_X)_x = \theta_{x+} = \sum_{y\in\C{Y}} \theta_{xy}$, 
+and $\theta_Y \in \RN^{\C{Y}}$ the vector with components $(\theta_Y)_y = \theta_{+ y} = \sum_{x\in\C{X}} \theta_{xy}$.
+\begin{Lem}
+  The gradient of the mutual information
+  $$\theta \mapsto I(\theta) := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}}$$
+%       = \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \theta_{xy}
+%       - \sum_{x\in\C{X}} \theta_{x+} \log \theta_{x +}
+%       - \sum_{y\in\C{Y}} \theta_{+ y} \log \theta_{+ y}$$
+  is given by
+%  = \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \theta_{xy}
+%  - \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \sum_{y'} \theta_{xy'} 
+%  - \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \sum_{x'} \theta_{x'y}$$
+  $$\big(I'(\theta))_{xy} = \frac{\partial I(\theta)}{\partial \theta_{xy}}
+%    \log \theta_{xy} + 1
+%    - \log \theta_{x +} - 1
+%    - \log \theta_{+ y} - 1
+   = \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} - 1$$
+  In other words,
+  $$I'(\theta) = \log \frac{\theta}{\theta_X \otimes \theta_Y} - 1.$$
+  When applied on differences of the form $(\hat\theta - \theta) \in 1^\perp$, we get
+  $$I'(\theta)(\hat\theta - \theta) = (\log \frac{\theta}{\theta_X \otimes \theta_Y})^T (\hat\theta - \theta).$$
+  The Hessian is given by
+   $$\big(I''(\theta)\big)_{xy,x'y'} = \frac{\partial^2 I(\theta)}{\partial \theta_{xy} \partial \theta_{x'y'}}
+     = \frac{\partial}{\partial \theta_{x'y'}} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}}
+     = \frac{1}{\theta_{xy}} \delta_{xy,x'y'} - \delta_{x,x'} \frac{1}{\theta_{x +}} - \delta_{y,y'} \frac{1}{\theta_{+ y}}$$
+\end{Lem}
+\begin{proof}
+  Direct calculation.
+\end{proof}
+We also make use of the following lemma regarding the categorical distribution.
+\begin{Lem}
+  Let $X \sim \mathrm{Cat}(\theta_1,\dots,\theta_k)$ have a categorical distribution with parameter
+  $\theta \in \RN^k$ such that $\sum_{i=1}^k \theta_i = 1$. In other words, $P(X = x) = \theta_x$ for $x=1,\dots,k$. Then
+  $$\Exp \big(\I_x(X)\big) = \theta_x$$
+  and
+  $$\Cov (\I_x(X), \I_{x'}(X)) = \theta_x (\delta_{x,x'} - \theta_{x'}).$$
+\end{Lem}
+
+Now we continue with the direct proof of Proposition~\ref{prp:G_test_asymptotics_H0}.
+\begin{proof}
+  For $x,x' \in \C{X}$, $y,y' \in \C{Y}$, we calculate:
+  \begin{equation*}\begin{split}
+    &N \Cov (\hat\theta_{xy}, \hat\theta_{x'y'}) \\
+    &= N \Cov \left(\frac{1}{N} \sum_{n=1}^N \I_{xy}(X_n,Y_n), \frac{1}{N} \sum_{n'=1}^N \I_{x'y'}(X_{n'},Y_{n'})\right) \\
+    &= \frac{1}{N} \sum_{n=1}^N \sum_{n'=1}^N \Cov (\I_{xy}(X_n,Y_n), \I_{x'y'}(X_{n'},Y_{n'})) \\
+    &= \theta_{xy} (\delta_{xy,x'y'} - \theta_{x'y'}) \\
+    &=: \Sigma_{xy,x'y'}
+  \end{split}\end{equation*}
+  Asymptotically, therefore,
+  \begin{equation}\label{eq:asymptotics_categorial_ML_estimators}
+    \sqrt{N}(\hat\theta - \theta) \leadsto \C{N}(0,\Sigma)
+  \end{equation}
+  with the multivariate central limit theorem.
+%  with the help of e.g.\ Theorem 5.9 and the remarks in paragraph 5.4.2 in \cite{Bijma++2017}
+%  (and \cite{Vandervaart1998} for the complete proof),
+%  where again we have to choose a parameterization of the right dimensionality when checking the
+%  regularity conditions.
+
+  With the multivariate delta method we can obtain the limiting distribution of the sequence
+  $\sqrt{N}(I(\hat\theta) - I(\theta))$. The delta method consists of an asymptotic linearization
+  around $\theta$, and asserts that the limiting distribution is the same as that of
+  $\sqrt{N}I'(\theta)(\hat\theta - \theta)$. In this case, we obtain
+  $$\sqrt{N}I'(\theta)(\hat\theta - \theta) \leadsto %I'(\theta) N(0,\Sigma) = 
+  N\big(0,I'(\theta)^T \Sigma I'(\theta)\big).$$
+
+  With the Lemma on the gradient of the mutual information,
+  under $H_0$, $I'(\theta)(\hat\theta - \theta) = 0$.
+  Therefore, in that case we conclude that
+  $$\sqrt{N}(I(\hat\theta) - I(\theta)) \leadsto \delta_{0}.$$
+
+  Under $H_0$, we go beyond a first order Taylor expansion (see also section 3.4. in \cite{Vandervaart1998}).
+  By rescaling (a trick due to Pearson), we obtain from \eref{eq:asymptotics_categorial_ML_estimators} that
+  $$\sqrt{N}\frac{\hat\theta - \theta}{\sqrt{\theta}} \leadsto \C{N}(0,\tilde\Sigma)$$
+  with
+  $$\tilde\Sigma = \frac{1}{\sqrt{\theta}} \Sigma \frac{1}{\sqrt{\theta}}^T = I - \sqrt{\theta} \sqrt{\theta}^T.$$
+   This is the projection on the orthocomplement of the linear subspace spanned by the vector $\sqrt{\theta}$, i.e.,
+   a subspace we denote as $\llbracket\sqrt{\theta}\rrbracket^T$.
+   Hence $N \lVert \frac{\hat\theta - \theta}{\sqrt{\theta}} \rVert^2 \leadsto \chi^2_{|\C{X}||\C{Y}|-1}$
+   (which, incidentally, provides the asymptotic validity analysis for the so-called $\chi^2$-test).
+   Furthermore, since $\tilde\Sigma$ is a projection, also
+   $$\sqrt{N} \tilde{\Sigma} \frac{\hat\theta - \theta}{\sqrt{\theta}} \leadsto \C{N}(0,\tilde\Sigma)$$
+     
+   Under $H_0$, $I'(\theta) = 0$ and hence we need to go beyond the first order expansion.
+   $$I''(\theta) = \frac{\partial^2 I(\theta)}{\partial \theta_{xy} \partial \theta_{x'y'}}
+     = \frac{\partial}{\partial \theta_{x'y'}} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}}
+     = \frac{1}{\theta_{xy}} \delta_{xy,x'y'} - \delta_{x,x'} \frac{1}{\theta_{x +}} - \delta_{y,y'} \frac{1}{\theta_{+ y}}$$
+   Then, by the second-order delta method,
+   $$N (I(\hat\theta) - I(\theta)) \leadsto \frac{1}{2} \sqrt{N}(\hat\theta - \theta)^T I''(\theta) \sqrt{N}(\hat\theta - \theta)$$
+   With the rescaling trick, we can write:   
+   $$N (I(\hat\theta) - I(\theta)) \leadsto \frac{1}{2} \sqrt{N}\frac{\hat\theta - \theta}{\sqrt{\theta}}^T \big(\sqrt{\theta}^T I''(\theta) \sqrt{\theta}\big) \sqrt{N} \frac{\hat\theta - \theta}{\sqrt{\theta}}$$
+   Making use of the Kronecker product notation for matrices, 
+   and denoting the $|\C{X}|$-dimensional vector with components $\theta_{x +}$ as $\theta_X$ and the
+   $|\C{Y}|$-dimensional vector with components $\theta_{+ y}$ as $\theta_Y$, we can write
+   $$\sqrt{\theta}^T I''(\theta) \sqrt{\theta} = I \otimes I - I \otimes (\sqrt{\theta_Y} \sqrt{\theta_Y}^T) - (\sqrt{\theta_X}\sqrt{\theta_X}^T) \otimes I.$$
+   It has an eigenspace with eigenvalue 0 spanned by vectors of the form
+   $\sqrt{\theta_X}^\perp \otimes \sqrt{\theta_Y}$ and
+   $\sqrt{\theta_X} \otimes \sqrt{\theta_Y}^\perp$.
+   It also has eigenvalue $-1$ corresponding to the space spanned by $\sqrt{\theta_X} \otimes \sqrt{\theta_Y}$.
+   Finally, it has eigenvalue 1 corresponding to the space spanned by
+   $\sqrt{\theta_X}^\perp \otimes \sqrt{\theta_Y}^\perp$.
+   %and $\sqrt{\theta_X} \otimes \sqrt{\theta_Y}$.
+   After ``sandwiching'' with $\tilde{\Sigma}$, we conclude that
+   $$\tilde{\Sigma}^T \sqrt{\theta}^T I''(\theta) \sqrt{\theta} \tilde{\Sigma}$$
+   has eigenvalue 1 with multiplicity $(|\C{X}|-1)(|\C{Y}|-1)$, and eigenvalue 0 with multiplicity $|\C{X}| + |\C{Y}| - 1$.
+   Hence, 
+   $$2N (I(\hat\theta) - I(\theta)) \leadsto \chi^2_{\nu},$$
+   and since $I(\theta)=0$ under $H_0$,
+   $$2N I(\hat\theta) \leadsto \chi^2_{\nu}.$$
+\end{proof}
+
+\Joris{Overview:
+$$\hat\theta \stackrel{a.s.}{\to} \theta$$
+$$I(\hat\theta) \stackrel{a.s.}{\to} I(\theta)$$
+hence:
+$$G_N/N \stackrel{a.s.}{\to} 2 I(\theta)$$
+Delta method:
+$$\sqrt{N}(I(\hat\theta)-I(\theta)) \leadsto \delta_0$$
+hence under $H_0$:
+$$G_N/\sqrt{N} \leadsto \delta_0$$
+Second order delta method under $H_0$:
+$$G_N \leadsto \chi^2_{\nu}.$$
+}
+\end{comment}
+
+
+
+%\section{Conditional Independence Testing?}
+%
+%\PF{Do we want to do some more conditional independence testing this year in the lecture?}

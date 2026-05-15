@@ -1,0 +1,102 @@
+\subsection{Separoid Rules}
+\totalscore{12}
+
+In the following let $\Xcal$, $\Ycal$, $\Zcal$, $\Wcal$, $\Ucal$ and $\Tcal$ be standard measurable spaces and $K(W|T) : \Tcal \dshto \Wcal$ be a Markov kernel.
+Furthermore, we consider corresponding conditional random variables:
+\begin{align}
+    X: \Wcal \times \Tcal &\to \Xcal, &
+    Y: \Wcal \times \Tcal &\to \Ycal, &
+    Z: \Wcal \times \Tcal &\to \Zcal, 
+\end{align}
+and so on, and let $T: \Wcal \times \Tcal \to \Tcal$ be the canonical projection onto the second argument, and let $\Asterisk$ be the constant map.
+We write $X \Indep Y | Z$ for the conditional independence w.r.t.\ $K(W|T)$.
+
+Recall that we write: $X \precsim Y$ iff there exists a measurable map $f:\Ycal \to \Xcal$ such that $X = f \circ Y$. We also write: $X \approx Y$ iff $X \precsim Y$ and $Y \precsim X$.
+
+Prove the following implications:
+\begin{enumerate}[label=\alph*)]
+    \item $T \precsim Z \implies X \Indep T |Z$,
+      \score{4}
+    \item $U \precsim (Y,Z)$ and $X \Indep Y|Z \; \implies \; X \Indep U,Y|Z$,
+      \score{2}
+    \item $U \approx Z$ and  $X \Indep Y |Z \;\implies\; X \Indep Y|U$.
+      \score{6}
+\end{enumerate}
+\emph{Hint: All those rules can be proven only with help of the standard (asymmetric) separoid rules and the following (trivial) observation:
+\begin{align}
+    U \precsim Z \implies U \precsim (Y,Z).
+\end{align}
+You are also allowed to use rule b) to prove rule c) above.
+}
+
+\bigskip
+For your convenience we list here all (asymmetric) separoid rules for conditional independence:
+\begin{enumerate}
+	\item Extended Left Redundancy: 
+    %\item[] 
+        $U \precsim X \implies U \Indep  Y \given X$.
+    \item $T$-Restricted Right Redundancy:
+    %\item[] 
+        $X\Indep \Asterisk|Z,T$ always holds.
+    \item $T$-Inverted Right Decomposition:
+    %\item[] 
+        $X \Indep  Y \given Z \implies X \Indep  T, Y \given Z$.
+	\item Left Decomposition:  
+	%\item[]
+        $X,U \Indep  Y \given Z \implies U \Indep  Y \given Z$.
+  \item Right Decomposition:  	
+    %\item[] 
+        $X \Indep  Y,U \given Z \implies X \Indep  U \given Z$.
+    \item Left Weak Union:
+    %\item[] 
+        $X , U \Indep  Y  \given Z \implies X \Indep  Y \given U , Z$.
+  \item Right Weak Union: 
+  %\item[] 
+      $X \Indep  Y , U \given Z \implies X \Indep  Y \given U , Z$.
+\item Left Contraction:
+    %\item[] 
+ $ (X \Indep  Y \given U , Z) \land (U \Indep  Y \given Z) \implies X , U \Indep  Y \given Z$.
+\item Right Contraction:
+    %\item[] 
+    $ (X \Indep  Y \given U , Z) \land (X \Indep  U \given Z)  \implies X \Indep  Y , U \given Z$.
+\item Right Cross Contraction:
+    %\item[] 
+    $ (X \Indep  Y \given U , Z) \land (U \Indep  X \given Z) \implies X  \Indep  Y , U \given Z$.
+\item Flipped Left Cross Contraction: 
+    %\item[] 
+    $ (X \Indep  Y \given U , Z) \land (Y \Indep  U \given Z) \implies Y \Indep  X , U \given Z$.
+\end{enumerate}
+
+%%%%%%%%%%%%%
+\answer{
+\points{Each needed separoid rule gives 1pt.}
+
+a) We have the implications:
+\begin{align}
+    & \stackrel{T\text{-R.R.Red.}}{\implies} X \Indep \Asterisk |Z,T.\\
+    T \precsim Z & \stackrel{\text{E.L.Red.}}{\implies} T \Indep X | Z.\\
+    \lp X \Indep \Asterisk |Z,T \rp \;\land\; \lp T \Indep X | Z \rp & \stackrel{\text{R.C.Contr.}}{\implies} X \Indep T,\Asterisk | Z \\
+    &\stackrel{\text{R.Dec.}}{\implies} X \Indep T |Z.
+\end{align}
+
+
+b) We have the implications:
+\begin{align}
+%    & \stackrel{T\text{-I.R.Red.}}{\implies} X \Indep T,Y|Z. \\
+%    U \precsim Z &\stackrel{\text{O}}{\implies} U \precsim (Y,Z) \\
+  U \precsim (Y,Z)  & \stackrel{\text{E.L.Red.}}{\implies} U \Indep X | Y,Z. \\
+\lp U \Indep X | Y,Z \rp \; \land \;\lp X \Indep Y|Z \rp    & \stackrel{\text{F.L.C.Contr.}}{\implies} X \Indep U,Y|Z.
+\end{align}
+
+c) We have the implications:
+\begin{align}
+    U \precsim Z & \stackrel{\text{O}}{\implies} U \precsim (Y,Z). \\
+    \lp U \precsim (Y,Z) \rp \;\land\;   \lp X \Indep Y |Z \rp &\stackrel{\text{point }(2)}{\implies} X \Indep U,Y|Z \\
+    &\stackrel{\text{R.W.Union}}{\implies} X \Indep Y|U,Z. \\
+    Z \precsim U & \stackrel{\text{E.L.Red.}}{\implies} Z \Indep Y |U.\\
+    \lp X \Indep Y|U,Z \rp \;\land\; \lp Z \Indep Y|U \rp & \stackrel{\text{L.Contr.}}{\implies} X,Z \Indep Y|U \\
+    &\stackrel{\text{L.Dec.}}{\implies} X \Indep Y |U.
+\end{align}
+
+
+}

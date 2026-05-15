@@ -1,0 +1,696 @@
+\subsection{Graphs of SCMs}
+
+A useful abstraction of an SCM is its graph. 
+The directed edges in the graph of an SCM will express the following ``parent''-relation that captures \emph{functional dependencies} in the structural equations / causal mechanisms.
+\begin{Def}\label{def:scm_parent}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+  For $i \in \Sin \cup \Send \cup \Srnd$ and $j \in \Send$, we say that
+  \emph{$i$ is a parent of $j$ according to $M$} if there does not exist a measurable function 
+  $\tilde f_j : \CX_{(\Sin\cup\Send\cup\Srnd) \setminus \{i\}} \to \CX_j$
+  such that for all $x \in \CX$,
+  $$x_j = f_j(x) \iff x_j = \tilde f_j(x_{\setminus i}),$$
+  where $x_{\setminus i}$ is shorthand for $x_{(\Sin\cup\Send\cup\Srnd)\setminus\{i\}}$.
+\end{Def}
+In words, $i$ is parent of $j$ if the causal mechanism for $j$ is equivalent to one that is constant with respect to its input component $i$.
+By definition, exogenous (input and random) variables have no parents.
+Note that the parent-relationship is preserved under equivalence.
+Using directed edges to encode the parent-relationship, we define the graph of the SCM.
+\begin{Def}\label{def:scm_graph}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+  The CDG $\lt \Sin, \Send \cup \Srnd, E \rt$ with
+  input nodes $\Sin$, output nodes $\Send\cup\Srnd$, and
+  directed edges 
+  $$E = \{i \tuh j : i \in \Sin\cup\Srnd\cup\Send, j\in\Send: \text{$i$ is parent of $j$ according to $M$}\}$$
+  is called the \emph{graph of the SCM} and will be denoted as $G(M)$.
+\end{Def}
+Since the parent-relationship is preserved under equivalence, equivalent SCMs have the same graphs.
+However, observationally equivalent SCMs may have different graphs, and even interventionally equivalent
+SCMs may have different graphs.
+\begin{Eg}\label{eg:interventionally_equivalent_but_different_graphs}
+Consider the acyclic SCM $M$ with endogenous variables $X_1,X_2,X_3$ with co-domains $\{-1,1\}$, $\{-1,1\}$, $\{-2,0,2\}$, respectively, and structural equations
+$$
+  \begin{aligned} 
+    X_1 &= X_A \\
+    X_2 &= X_1 X_B \\
+    X_3 &= X_2 + X_B,
+  \end{aligned} 
+$$
+with independent exogenous random variables $X_A,X_B \sim \mathrm{Uni}(\{-1,1\})$.
+Its graph $G(M)$ is depicted in Figure~\ref{fig:interventionally_equivalent_but_different_graphs} (left).
+
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{scope}[xshift=0]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (4,0) {$X_3$};
+        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \node[ndlat] (E2) at (3,1.5) {$X_B$};
+        \draw[arout] (E1) -- (X1);
+        \draw[arout] (X1) -- (X2);
+        \draw[arout] (X2) -- (X3);
+        \draw[arout] (E2) -- (X2);
+        \draw[arout] (E2) -- (X3);
+        \node at (2,-1) {$G(M)$};
+      \end{scope}
+      \begin{scope}[xshift=12cm,yshift=2cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (4,0) {$X_3$};
+        \draw[arout] (X1) -- (X2);
+        \draw[arout] (X2) -- (X3);
+        \draw[arlat,bend left] (X2) edge (X3);
+        \node at (2,-1) {$G(M)^{\sm\{A,B\}}$};
+      \end{scope}
+      \begin{scope}[xshift=6cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (4,0) {$X_3$};
+        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \node[ndlat] (E2) at (3,1.5) {$X_C$};
+        \draw[arout] (E1) -- (X1);
+%        \draw[arout] (X1) -- (X2);
+        \draw[arout] (E2) -- (X2);
+        \draw[arout,bend right] (X1) edge (X3);
+        \draw[arout] (X2) -- (X3);
+        \draw[arout] (E2) -- (X3);
+        \node at (2,-1) {$G(\tilde{M})$};
+      \end{scope}
+      \begin{scope}[xshift=12cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (4,0) {$X_3$};
+        \draw[arout,bend right] (X1) edge (X3);
+        \draw[arout] (X2) -- (X3);
+        \draw[arlat,bend left] (X2) edge (X3);
+        \node at (2,-1) {$G(\tilde{M})^{\sm \{A,C\}}$};
+      \end{scope}
+    \end{tikzpicture}
+  \end{center}
+  \caption{The graphs of the interventionally equivalent SCMs $M$ (left) and $\tilde{M}$ (center) corresponding to Example~\ref{eg:interventionally_equivalent_but_different_graphs}. If we consider only the endogenous variables $X_1,X_2,X_3$ to be observed, and the other (exogenous random) variables to be latent, we can represent this with the two marginal graphs on the right.\label{fig:interventionally_equivalent_but_different_graphs}}
+\end{figure}
+Consider also the acyclic SCM $\tilde{M}$ with endogenous variables $X_1,X_2,X_3$ with co-domains $\{-1,1\}$, $\{-1,1\}$, $\{-2,0,2\}$, respectively, and structural equations
+$$
+  \begin{aligned} 
+    X_1 &= X_A \\
+    X_2 &= X_C \\
+    X_3 &= X_2 + X_1 X_C,
+  \end{aligned} 
+$$
+with independent exogenous random variables $X_A,X_C \sim \mathrm{Uni}(\{-1,1\})$.
+Its graph $G(\tilde{M})$ is depicted in Figure~\ref{fig:interventionally_equivalent_but_different_graphs} (center).
+$\tilde{M}$ was obtained from $M$ by making a change of variables $x_C = x_1 x_B$.
+One can check that $\tilde{M}$ is interventionally equivalent to $M$ with respect to
+$\{1,2,3\}$ (that is, if we observe and can intervene on $X_1,X_2,X_3$, while the
+other variables are latent and non-intervenable), even though its the graph $G(M)$ differs from the graph $G(\tilde{M})$,
+and the marginal graph $G(M)^{\sm \{A,B\}}$ differs from the marginal graph $G(\tilde{M})^{\sm \{A,C\}}$.
+\end{Eg}
+
+%\begin{Exc}
+%  Do graphs of counterfactually equivalent SCMs have the same directed edges between endogenous variables?
+%  Give a proof or a counterexample.
+%\end{Exc}
+Our goal was to allow for possible cycles in an SCM. This means that we may also encounter \emph{self-cycles}.
+\begin{Eg}
+  The SCM in Example~\ref{eg:equivalent_scm}, 
+  with endogenous variable $X$ and exogenous random variable $W$ and structural equation
+  $$X = -X^3 + X + W$$
+  has graph:\\
+  \centerline{\begin{tikzpicture}
+    \node[ndout] (W) at (0,0) {$W$};
+    \node[ndout] (X) at (1.5,0) {$X$};
+    \draw[arout] (W) -- (X);
+  \end{tikzpicture}}
+  It does not have a self-cycle at $X$, since $X$ is not a parent to itself: 
+  the structural equation is equivalent to $$X = \sqrt[3]{W},$$
+  where $X$ does not appear on the r.h.s..
+  
+  On the other hand, the graph of the SCM in Example~\ref{eg:self_cycle} 
+  with structural equation 
+  $$X = W X + c$$
+  does have a self-cycle at $X$:\\
+  \centerline{\begin{tikzpicture}
+    \node[ndout] (W) at (0,0) {$W$};
+    \node[ndout] (X) at (1.5,0) {$X$};
+    \draw[arout] (W) -- (X);
+    \draw[arout,in=30,out=-30,looseness=5] (X) edge (X);
+  \end{tikzpicture}}
+\end{Eg}
+Self-cycles are a warning sign of complications with respect to solvability.
+
+To understand why self-cycles are in some sense inevitable, consider an SCM with structural equations
+\begin{align*}
+  X_1 &= X_2 \\
+  X_2 &= X_3 \\
+  X_3 &= X_1 
+\end{align*}
+Marginalizing out $X_2$ and $X_3$ gives an SCM with structural equation
+$$X_1 = X_1,$$
+which turns the cycle $X_1\tuh X_3 \tuh X_2\tuh X_1$ into a self-cycle $X_1\tuh X_1$.
+Self-cycles are of no concern, though, when restricting to the class of simple SCMs.
+\begin{Prp}
+  For $j \in V$, we have that there is a self-cycle $j \tuh j$ in $G(M)$ if and only if
+  $M_{\doit(V\setminus \{j\})}$ is \emph{not} uniquely solvable. 
+  In particular, graphs of simple SCMs have no self-cycles.
+\end{Prp}
+
+While the graph explicitly represents all exogenous random variables, coarser
+representations obtained via (graphical) marginalization are also useful.
+\begin{Rem}
+  An often used convention is to consider \emph{all} exogenous random variables to be latent. 
+  In that case, a useful graph
+  to consider is the marginalization $G^{\setminus \Srnd}(M)$ of the graph $G(M)$. 
+  The marginal CDMG $G^{\setminus \Srnd}(M) = \lt \Sin, \Send, E, L \rt$ has
+  input nodes $\Sin$, output nodes $\Send$, directed edges
+  $$E = \{i \tuh j : i \in \Sin\cup\Send, j\in\Send: \text{$i$ is parent of $j$ according to $M$}\}$$
+  and bidirected edges
+  $$L = \{j \huh k : j \in \Send, k \in \Send, j \ne k: \text{$j$ and $k$ have common parent $i\in\Srnd$ according to $M$}\}.$$
+  In other words, $G^{\setminus \Srnd}(M)$ is obtained from $G(M)$ by replacing the nodes representing the exogenous random
+  variables and their outgoing directed edges with bidirected edges, i.e.,
+  any pattern $\hut i \tuh$ with $i \in \Srnd$ is replaced by $\huh$.
+\end{Rem}
+
+We already provided definitions for hard interventions on graphs (Definition~\ref{def:G_hard_intervention})
+and for marginalizations (latent projections) of graphs (Definition~\ref{def:G_marginalization}). 
+
+The mapping that maps an SCM to its graph is compatible with the elementary operations on SCMs.
+\begin{Prp}\label{prp:compatibility_graph}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM. Then
+  \begin{itemize}
+    \item Hard interventions: for $T \subseteq J \cup V \cup W$, 
+      $$G(M_{\doit(T)}) = G(M)_{\doit(T)}.$$
+    \item Marginalizations: If $M$ is simple, then for $L \subseteq V$, 
+      $$G(M_{\setminus L}) \subseteq G(M)^{\setminus L}.$$
+  \end{itemize}
+\end{Prp}
+\begin{proof}
+  The first statement follows by writing out the definitions. The second statement is somewhat more involved. We will
+  first prove it in case $L = \{\ell\}$ consists of a single node. 
+  Let $G = G(M)$.
+  By using the definition of the parent relation (repeatedly), we can find a function $\tilde{f}_\ell : \CX_{\Pa^G(\ell)} \to \CX_\ell$ such that
+  for all $x \in \CX$:
+  $$x_\ell = f_\ell(x) \iff x_\ell = \tilde{f}_\ell(x_{\Pa^G(\ell)}).$$
+  Since $\ell \notin \Pa^G(\ell)$ because $M$ is simple, %(more generally: because $M_{\doit(V\setminus\{\ell\})}$ is uniquely solvable),
+  the unique solution function
+  $\tilde{g}_\ell : \CX_{J \cup V \setminus \{\ell\} \cup W} \to \CX_\ell$ of $M_{\doit(V\setminus \{\ell\})}$
+  satisfies $\tilde{g}_\ell(x_{\setminus \ell}) = \tilde{f}_\ell(x_{\Pa^G(\ell)})$, i.e., it only depends on the parents of $\ell$.
+  When constructing the marginalized causal mechanism for $M_{\setminus \{\ell\}}$, we substitute 
+  $\tilde{g}_\ell(x_{\setminus \ell})$ into the $\ell$'th input of the causal mechanism $f_j$ of $M$, for $j \in V\setminus \{\ell\}$.
+  Since $\tilde{g}_\ell$ only depends on $\Pa^G(\ell)$,
+  we get that $\Pa^{\tilde G}(j) \subseteq \Pa^G(j) \setminus \{\ell\} \cup \Pa^G(\ell)$, where $\tilde{G} = G(M_{\setminus \ell})$.
+  But we also have $\Pa^{G^{\setminus \{\ell\}}}(j) = \Pa^G(j) \setminus \{\ell\} \cup \Pa^G(\ell)$ by definition of the graphical marginalization. 
+  Hence $\Pa^{\tilde G}(j) \subseteq \Pa^{G^{\setminus \{\ell\}}}$ for all $j \in V\setminus \{\ell\}$, and we have shown that $G(M_{\setminus \{\ell\}}) \subseteq G(M)^{\setminus \{\ell\}}$.
+  For the general case, we can make use of induction and the facts that both for
+  graphs and simple SCMs, we can obtain a marginalization over a subset by repeatedly marginalizing out a single remaining node in the subset, in arbitrary order.
+\end{proof}
+
+\begin{figure}[t]\centering
+  \begin{tikzpicture}
+      \begin{scope}
+%        \draw[draw=green,fill=green,opacity=0.2] (0,0) ellipse (1.5cm and 0.5cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.3) ellipse (2cm and 1cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.6) ellipse (3cm and 1.5cm);
+        \draw[draw=green,fill=green,opacity=0.2] (0,0.9) ellipse (4cm and 2cm);
+        \node at (0,0) {IL-CBNs};
+        \node at (0,0.6) {acyclic SCMs};
+        \node at (0,1.6) {simple SCMs};
+        \node at (0,2.4) {SCMs};
+      \end{scope}
+  \end{tikzpicture}
+  \caption{Venn diagram for different causal modeling classes.\label{fig:venn_diagram_scms}}
+\end{figure}
+A subclass of SCMs that is often considered are acyclic SCMs.
+\begin{Def}
+  An SCM $M$ is called \emph{acyclic} if its graph $G(M)$ is acyclic.
+\end{Def}
+If one models static systems, then using acyclic SCMs
+rules out the presence of causal cycles (e.g., feedback loops) in the system.
+Acyclic SCMs are a subclass of the more general class of simple SCMs.
+\begin{Prp}
+  Acyclic SCMs are simple.
+\end{Prp}
+\begin{proof}
+  We first show that acyclic SCMs are uniquely solvable. Let $M$ be an acyclic SCM. Its
+  graph $G := G(M)$ is acyclic, and hence has a topological order $<$. Consider $f_v$, the
+  causal mechanism for $v \in V$. The parents $\Pa^G(v)$ precede $v$ in the topological order.
+  Since $f_v$ can be rewritten to be constant in the non-parents of $v$ (similar to how this
+  was done in the proof of Proposition~\ref{prp:compatibility_graph}), 
+  we can consider $f_v : \CX \to \CX_v$ as a function
+  $f_v : \CX_{\Pred_<^{G}(v)} \to \CX_v$ instead. We can then inductively define the components
+  $$g_v : \CXJ \times \CXW \to \CX_v : 
+    (\xJ,\xW) \mapsto f_v(g_{\Pred_<^{G}(v)}(\xJ,\xW))$$
+  that together form a solution function $g : \CX_{J\cup W} \to \XV$.
+  This construction also exhibits the uniqueness of $g : \CX_{J\cup W} \to \XV$.
+
+  Next consider $M_{\doit(T)}$, the intervened SCM for a hard intervention on $M$ with target $T \subseteq V \cup W \cup J$. 
+  It has graph $G(M_{\doit(T)}) = G_{\doit(T)}$, whose edges form a subset of the edges of $G$ (but
+  where some output nodes have become input nodes), and hence is also acyclic. 
+  Therefore, also $M_{\doit(T)}$ is uniquely solvable. Since this holds for all targets $T \subseteq V \cup W \cup J$,
+  we conclude that $M$ is simple.
+\end{proof}
+
+\subsection{Interventional equivalence of acyclic SCMs and I(L)-CBNs}
+
+Figure~\ref{fig:venn_diagram_scms} shows a Venn diagram to illustrate the relationships between the different
+classes of causal models that we introduced.
+We will show that in a precise sense, acyclic SCMs and IL-CBNs are equally expressive.
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM and let $\tilde{M}$ be an IL-CBN with graph
+  $\tilde{G} = (\tilde{J},\tilde{V}\dcup\tilde{U},\tilde{E})$, spaces $\tilde{\CX}_{\tilde v}$ for $\tilde{v} \in \tilde{V} \cup \tilde{U} \cup \tilde{J}$,
+  and Markov kernels $$P_{\tilde{v}}\lp X_{\tilde{v}} | \doit \lp X_{\Pa^{\tilde{G}}}(\tilde{v}) \rp\rp.$$
+  We say that \emph{$M$ is interventionally equivalent to $\tilde{M}$ w.r.t.\ $O \subseteq (V \cup W) \cap \tilde{V}$} if
+  $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$, and
+  for any hard intervention $\doit(T)$ with $T \subseteq O$, the interventional Markov kernel $P_M(X_{O\sm T}|X_{J\cup T})$ of $M$ equals the interventional Markov kernel $P(X_{O\sm T}|X_{\tilde{J}\cup T})$ of $\tilde{M}$.
+  %Special case $J = \tilde{J}$, $O = V \cup W$, $\tilde{V} = V \cup W$, $\tilde{U} = \emptyset$:
+\end{Def}
+\begin{Prp}
+  \begin{enumerate}
+%    \item Given an acyclic SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, we can construct an I-CBN $\tilde{M}$ with graph $G(M)$, spaces $\CX_v$ for $v \in V\cup W \cup J$, that is interventionally equivalent to $M$ (w.r.t.\ $O = V \cup W$).
+%    \item Given an acyclic SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and an observed subset $O \subseteq V \cup W$, we can construct an IL-CBN $\tilde{M}$ with observed variables $\tilde{V} = O$, latent variables $W$, graph $G(M_{\sm (V\sm O)})^{\sm (W\sm O)}$, that is interventionally equivalent to $M$ w.r.t.\ $O$.
+    \item Given an acyclic SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and an observed subset $O \subseteq V \cup W$, we can construct an IL-CBN $\tilde{M}$ (with observed output variables $\tilde{V} = O$, latent output variables $\tilde{U} = (V \cup W) \sm O$, input variables $J$, graph $G(M)$, and spaces $\CX_v$ for $v \in V\cup W \cup J$) that is interventionally equivalent to $M$ w.r.t.\ $O$.
+    \item Given an IL-CBN 
+      $\tilde{M} = \lp G^+=(J,(O,U),E^+), \; P\lp X_O,X_U| \doit\lp X_J \rp\rp \rp$
+      with observed variables $O$, we can construct an acyclic SCM $M$ that is interventionally equivalent to it w.r.t.\ $O$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+%    \item
+%      Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an acyclic SCM with graph $G := G(M) = (J, V \cup W, E)$.
+%      Define $\tilde{M}$ as the I-CBN with graph $G$, spaces $\CX_v$ for $v \in V\cup W \cup J$, and the following Markov kernels.
+%      For $v \in V$, we write its structural equation as:
+%      $$x_v = f_v(x_{\Pa^{G}(v)})$$
+%      with $f_v : \CX_{\Pa^{G}(v)} \to \CX_v$,
+%      where $v \notin \Pa^{G}(v)$ because the graph is acyclic. We then define the corresponding Markov kernel
+%      \[ P_v\lp X_v|\doit\lp X_{\Pa^{G}(v)}\rp\rp := \delta_{f_v}(X_v|X_{\Pa^G(v)}).\]
+%      The Markov kernels for $w \in W$ are defined as
+%      \[ P_w\lp X_w|\doit\lp X_{\Pa^{G}(w)}\rp\rp := P_w(X_w),\]
+%      where we note that $\Pa^G(w) = \emptyset$.
+%      One can check that this I-CBN $\tilde{M}$ does the job.
+%    \item
+%      Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an acyclic SCM with graph $G := G(M) = (J, V \cup W, E)$
+%      and let $O \subseteq V \cup W$. We construct the I-CBN $\hat{M}$ corresponding to the marginalization $M_{\sm (V\sm O)}$
+%      as in point 1.
+%      Finally, we marginalize out $W\sm O$ from I-CBN $\hat{M}$ to obtain an IL-CBN $\tilde{M}$.
+%      This IL-CBN does the job, as one can check.
+    \item
+      Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an acyclic SCM with graph $G(M) = (J, V \cup W, E)$.
+      Define $\tilde{M}$ as the IL-CBN with observed output variables $\tilde{V} = O$, latent output variables $\tilde{U} = (V \cup W) \sm O$, input variables $J$, graph $G^+:=G(M)$, spaces $\CX_v$ for $v \in V\cup W \cup J$, and the following Markov kernels.
+      For $v \in V$, we write its structural equation as:
+      $$x_v = f_v(x_{\Pa^{G^+}(v)})$$
+      with $f_v : \CX_{\Pa^{G^+}(v)} \to \CX_v$,
+      where $v \notin \Pa^{G^+}(v)$ because the graph is acyclic. We then define the corresponding (deterministic) Markov kernel
+      \[ P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)}\rp\rp := \delta_{f_v}(X_v|X_{\Pa^{G^+}(v)}),\]
+      encoding the causal mechanisms of $M$.
+      The Markov kernels for $w \in W$ are defined as:
+      \[ P_w\lp X_w|\doit\lp X_{\Pa^{G^+}(w)}\rp\rp := P_w(X_w),\]
+      encoding the exogenous distributions of $M$, where we note that $\Pa^{G^+}(w) = \emptyset$.
+      One can check that this IL-CBN $\tilde{M}$ does the job.
+    \item
+      Let 
+      \[ \tilde{M} = \lp G^+=(J,O,U,E^+), \; P\lp X_O,X_U| \doit\lp X_J \rp\rp \rp\]
+      be an IL-CBN.
+      For every $v \in O \dcup U$, we can write the Markov kernel $P_v$ as the composition of a deterministic one and 
+      a uniform distribution $P_{\bar v}(X_{\bar v})$ on $\Xcal_{\bar v}:=[0,1]$ by Remark \ref{rem:R-to-std-ms}:
+        \[ P_v(X_v|\doit(X_{\Pa^{G^+}(v)})) = \delta(R_v|X_{\bar v}, X_{\Pa^{G^+}(v)}) \circ P_{\bar v}(X_{\bar v}) \]
+      for some measurable function $R_v : \CX_{\bar v} \times \CX_{\Pa^{G^+}(v)} \to \CX_v$.
+      Here, we introduced new variables $\bar v$ for each $v \in O \dcup U$.
+
+      Define now the SCM $M = \lt J, O \dcup U, \bar O \dcup \bar U, \CX_J \times \CX_{O \dcup U} \times \CX_{\bar O \dcup \bar U}, P, f \rt$ by taking
+      $$P(X_{\bar O \dcup \bar U}) = \bigotimes_{\bar v \in \bar O \dcup \bar U} P_{\bar v}(X_{\bar v})$$
+      and
+      $$f = (R_v)_{v \in O \dcup U}.$$
+      That is, the uniformly distributed random variables $X_{\bar v}$ become the exogenous random variables,
+      all independent and uniformly distributed on $[0,1]$, and the components of the causal mechanism correspond to the deterministic functions used to represent the Markov kernels.
+      This SCM does the job, as one can check.
+  \end{enumerate}
+\end{proof}
+Simple SCMs are more expressive than acyclic SCMs because they can model (sufficiently
+weak) causal cycles. SCMs in general are even more expressive because they can also
+model stronger cycles that not necessarily lead to unique solvability under any hard
+intervention, but this generality comes with a substantially increased complexity of
+the theory and interpretability. Simple SCMs form a ``sweet spot'' in the sense that they allow cyclic
+relationships yet their theory is not much more complicated than that of acyclic SCMs:
+the main difference consists in replacing $d$-separation with $\sigma$-separation.
+
+Even SCMs may not be the ultimate way of modeling cyclic causal systems. Indeed, for such
+systems, it might be that the conceptual notion of interventions \emph{targeting variables} is misguided in general, 
+and perhaps should be replaced by the notion of intervening on \emph{functional constraints} \cite{BlomVanDiepenMooij_JMLR_21}.
+
+\subsection{Examples}\label{sec:scm_examples}
+
+In many systems occurring in the real world feedback loops between observed variables are present. 
+Such systems can often be described by a system of (random) differential equations. 
+The equilibrium states of such systems can often be causally modelled by an SCM \cite{BM18}.
+
+For illustration purposes we provide two examples, the first consisting of interacting masses that are attached to springs
+that can be described at equilibrium with a simple SCM, the second being the famous price-supply-demand model that has been
+very popular in econometrics, and which corresponds to a non-simple SCM at equilibrium.
+
+\begin{Eg}[Damped coupled harmonic oscillator]\label{ex:HarmonicOscillator}
+Consider a one-dimensional system of $d$ masses $m_i\in\RN$
+($i=1,\dots,d$) with positions $Q_i$. The masses are
+coupled by springs, with spring constants $k_i>0$ ($i=0,\dots,d$) and equilibrium lengths $\ell_i>0$
+($i=0,\dots,d-1$), under influence of friction with friction coefficients $b_i>0$ ($i=1,\dots,d$).
+The endpoints are considered fixed at positions
+$Q_0 < Q_{d+1}$ (see Figure~\ref{fig:MassSpringSystem} (top)).
+\begin{figure}\centering
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \fill[pattern=north east lines,draw=none] (-1,-1) rectangle (0,1);
+      \draw (0,-1) -- (0,1);
+      \begin{scope}[yshift=5mm]
+      \node (Q1) at (2,0) {$m_1$};
+      \node (Q2) at (4,0) {$m_2$};
+      \node (Q3) at (6,0) {$m_3$};
+      \node (Q4) at (8,0) {$m_4$};
+      \node (Q5) at (10,0) {$m_5$};
+      \end{scope}
+      \begin{scope}[yshift=-5mm]
+        \node (l0) at (1,0) {$\ell_0$};
+        \node (l1) at (3,0) {$\ell_1$};
+        \node (l2) at (5,0) {$\ell_2$};
+        \node (l3) at (7,0) {$\ell_3$};
+        \node (l4) at (9,0) {$\ell_4$};
+        \node (l5) at (11,0) {$\ell_5$};
+      \end{scope}
+      \fill[black] (2,0) circle (.2);
+      \fill[black] (4,0) circle (.2);
+      \fill[black] (6,0) circle (.2);
+      \fill[black] (8,0) circle (.2);
+      \fill[black] (10,0) circle (.2);
+      \draw (12,-1) -- (12,1);
+      \fill[pattern=north east lines,draw=none] (12,-1) rectangle (13,1);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (0,0) -- (2,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (2,0) -- (4,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (4,0) -- (6,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (6,0) -- (8,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (8,0) -- (10,0);
+      \draw[thick,decorate,decoration={coil,aspect=0.7,amplitude=4,segment length=3mm}] (10,0) -- (12,0);
+      \node at (0,1.3) {\tiny $Q_0$};
+      \node at (12,1.3) {\tiny $Q_6$};
+    \end{scope}
+    \begin{scope}[yshift=-3cm]
+      \node[ndint] (Q0) at (0,0) {$Q_0$};
+      \node[ndout] (Q1) at (2,0) {$Q_1$};
+      \node[ndout] (Q2) at (4,0) {$Q_2$};
+      \node[ndout] (Q3) at (6,0) {$Q_3$};
+      \node[ndout] (Q4) at (8,0) {$Q_4$};
+      \node[ndout] (Q5) at (10,0) {$Q_5$};
+      \node[ndint] (Q6) at (12,0) {$Q_6$};
+      \node[ndint] (K0) at (1,1) {$k_0$};
+      \node[ndint] (K1) at (3,1) {$k_1$};
+      \node[ndint] (K2) at (5,1) {$k_2$};
+      \node[ndint] (K3) at (7,1) {$k_3$};
+      \node[ndint] (K4) at (9,1) {$k_4$};
+      \node[ndint] (K5) at (11,1) {$k_5$};
+      \node[ndint] (L0) at (1,-1) {$\ell_0$};
+      \node[ndint] (L1) at (3,-1) {$\ell_1$};
+      \node[ndint] (L2) at (5,-1) {$\ell_2$};
+      \node[ndint] (L3) at (7,-1) {$\ell_3$};
+      \node[ndint] (L4) at (9,-1) {$\ell_4$};
+      \node[ndint] (L5) at (11,-1) {$\ell_5$};
+      \draw[arout] (Q0) to (Q1);
+      \draw[arout,bend left=20] (Q1) edge (Q2);
+      \draw[arout,bend left=20] (Q2) edge (Q3);
+      \draw[arout,bend left=20] (Q3) edge (Q4);
+      \draw[arout,bend left=20] (Q4) edge (Q5);
+      \draw[arout,bend left=20] (Q5) edge (Q4);
+      \draw[arout,bend left=20] (Q4) edge (Q3);
+      \draw[arout,bend left=20] (Q3) edge (Q2);
+      \draw[arout,bend left=20] (Q2) edge (Q1);
+      \draw[arout] (Q6) to (Q5);
+      \draw[arint] (K0) -- (Q1);
+      \draw[arint] (K1) -- (Q1);
+      \draw[arint] (K1) -- (Q2);
+      \draw[arint] (K2) -- (Q2);
+      \draw[arint] (K2) -- (Q3);
+      \draw[arint] (K3) -- (Q3);
+      \draw[arint] (K3) -- (Q4);
+      \draw[arint] (K4) -- (Q4);
+      \draw[arint] (K4) -- (Q5);
+      \draw[arint] (K5) -- (Q5);
+      \draw[arint] (L0) -- (Q1);
+      \draw[arint] (L1) -- (Q1);
+      \draw[arint] (L1) -- (Q2);
+      \draw[arint] (L2) -- (Q2);
+      \draw[arint] (L2) -- (Q3);
+      \draw[arint] (L3) -- (Q3);
+      \draw[arint] (L3) -- (Q4);
+      \draw[arint] (L4) -- (Q4);
+      \draw[arint] (L4) -- (Q5);
+      \draw[arint] (L5) -- (Q5);
+  \end{scope}
+  \end{tikzpicture}}
+  \caption{Damped coupled harmonic oscillator (top) and the graph of the SCM that describes the positions of the masses at equilibrium (bottom) of Example~\ref{ex:HarmonicOscillator} for $d=5$, where the spring lengths and constants are considered as exogenous input variables.\label{fig:MassSpringSystem}}
+\end{figure}
+From elementary physics, we know that the equations of motion of this system are given by the following differential equations 
+$$ \frac{d^2Q_i}{dt^2} = \frac{k_i}{m_i} (Q_{i+1} - Q_i - \ell_i) + \frac{k_{i-1}}{m_i} (Q_{i-1} - Q_i + \ell_{i-1}) -\frac{b_i}{m_i} \frac{dQ_i}{dt} \qquad i=1,\dots,d.  $$
+The dynamics of the masses, in terms of the position $Q_i$, velocity $\frac{dQ_i}{dt}$ and acceleration $\frac{dQ_i^2}{dt^2}$, is described by a single and separate equation of motion for each mass. Under friction, i.e., $b_i>0$ ($i=1,\dots,d$), there is a unique equilibrium position, where the sum of forces vanishes for each mass. If one moves one or several masses out of their equilibrium positions and releases them, then the masses will start to oscillate, but eventually these oscillations dampen out and the masses converge to their unique equilibrium position. At equilibrium (i.e., for $t\to\infty$) the velocity $\frac{dQ_i}{dt}$ and acceleration $\frac{d^2Q_i}{dt^2}$ of the masses vanish (i.e., $\frac{dQ_i}{dt},\frac{d^2Q_i}{dt^2}\to 0$), and thus the following equation holds at equilibrium
+$$
+  0 = \frac{k_i}{m_i} (Q_{i+1} - Q_i - \ell_i) + \frac{k_{i-1}}{m_i} (Q_{i-1} - Q_i + \ell_{i-1})
+$$
+for each mass ($i=1,\dots,d$). By solving each of these equations w.r.t.\ $Q_i$, we obtain that the equilibrium positions $Q_i$ of the masses are given by
+$$
+  Q_i = \frac{k_i(Q_{i+1} - \ell_i) + k_{i-1}(Q_{i-1}+\ell_{i-1})}{k_i + k_{i-1}}\,.
+$$
+By considering the $\ell_i$, $k_i$ and $Q_0$ and $Q_{d+1}$ as exogenous (input or random) variables, and the
+$Q_i$ ($i=1,\dots,d$) as endogenous variables, we arrive at an SCM with causal mechanism
+$$
+f_i(q) = \frac{k_i(q_{i+1} - \ell_i) + k_{i-1}(q_{i-1}+\ell_{i-1})}{k_i + k_{i-1}}.
+$$
+for $i=1,\dots,d$.
+Its graph is depicted in Figure~\ref{fig:MassSpringSystem} (bottom). This SCM allows us to describe the equilibrium behavior of the system under perfect intervention. For example, when forcing the mass $j$ to a fixed position $Q_j=\xi_j$ with $0\leq \xi_j\leq L$, the equilibrium positions of the masses correspond to the solutions of the intervened model $M_{\doit(Q_j=\xi_j)}$. 
+\end{Eg}
+\begin{Exc}
+Prove that the SCM that describes the equilibrium states of a damped coupled harmonic oscillator is simple
+(see also Proposition~\ref{prp:linear_scms}). Hint: you can use that the determinant of a tridiagonal matrix of the following
+form is given by the expression on the r.h.s.:
+  $$\det \begin{pmatrix}
+    k_0+k_1 & -k_1       &           &         & \\
+    -k_1     & k_1 + k_2 & -k_2       &         & \\
+            & -k_2       & k_2 + k_3 & \ddots  & \\
+            &           & \ddots    & \ddots  & -k_{d-1} \\
+            &           &           & -k_{d-1} & k_{d-1} + k_d \\
+  \end{pmatrix} = \sum_{i=0}^d \prod_{j=0 \atop j\ne i}^d k_j
+  $$
+\end{Exc}
+
+Next, we show that the well-known market equilibrium model from economics, can be described by a (non-simple) SCM. 
+This example illustrates how self-cycles enrich the class of SCMs.
+\begin{Eg}[Price, supply and demand]
+  \label{ex:PriceSupplyDemandDynamical}
+Let $D$ denote the demand and $S$ the supply of a quantity of a product. The
+price of the product is denoted by $R$. The following system of differential equations describes how the
+demanded and supplied quantities are determined by the price, and how price
+adjustments occur in the market:
+$$
+  \begin{aligned}
+    D &= \beta_D R + E_D \\
+    S &= \beta_S R + E_S \\
+    \frac{dR}{dt} &= D - S,
+  \end{aligned}
+$$
+where $E_D$ and $E_S$ are exogenous random influences on the demand and supply respectively, $\beta_D<0$ is the reciprocal of the slope of the demand curve, and $\beta_S>0$ is the reciprocal of the slope of the supply curve. At the situation known as a ``market equilibrium'', the price is determined implicitly by the condition that demanded and supplied quantities should be equal, since $\frac{dR}{dt}=0$ at equilibrium. 
+At equilibrium, hence, we obtain an SCM $M$ with causal mechanism defined by:
+$$
+  \begin{aligned}
+    f_D(d,s,r,e_D,e_S) &:= \beta_D r + e_D \\
+    f_S(d,s,r,e_D,e_S) &:= \beta_S r + e_S \\
+    f_R(d,s,r,e_D,e_S) &:= r + (d - s).
+  \end{aligned}
+$$
+Note how we use a self-cycle for $r$ in order to implement the equilibrium
+equation $d = s$ as the causal mechanism for the price $r$. 
+Its graph is depicted in Figure~\ref{fig:PriceSupplyDemand} (left).
+\begin{figure}\centering
+\begin{comment}
+\scalebox{0.8}{%
+    \begin{tikzpicture}
+    \begin{scope}
+%      \node at (-2.5,2) {(c)};
+      \node[var] (ED) at (1.5,0) {$E_D$};
+      \node[var] (D) at (1.5,-1.5) {$D$};
+      \node[var] (ES) at (-1.5,0) {$E_S$};
+      \node[var] (S) at (-1.5,-1.5) {$S$};
+      \node[var] (P) at (0,-1.5) {$R$};
+      \draw[arr, bend left=20] (P) edge (S);
+      \draw[arr, bend left=20] (P) edge (D);
+      \draw[arr, bend left=20] (S) edge (P);
+      \draw[arr, bend left=20] (D) edge (P);
+      \draw[arr] (ED) to (D);
+      \draw[arr] (ES) to (S);
+      \draw[arr] (P)  to [out=62,in=118,looseness=4.4] (P);
+      \node at (0,-2.4) {$G(M)$};
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+%      \node at (-2.5,2) {(c)};
+      \node[var] (ED) at (1.5,0) {$E_D$};
+      \node[var] (D) at (1.5,-1.5) {$D$};
+      \node[var] (D2) at (1.5,1.5) {$D'$};
+      \node[var] (ES) at (-1.5,0) {$E_S$};
+      \node[var] (S) at (-1.5,-1.5) {$S$};
+      \node[var] (S2) at (-1.5,1.5) {$S'$};
+      \node[var] (P) at (0,-1.5) {$R$};
+      \node[var] (P2) at (0,1.5) {$R'$};
+      \draw[arr, bend left=20] (P) edge (S);
+      \draw[arr, bend left=20] (P) edge (D);
+      \draw[arr, bend left=20] (S) edge (P);
+      \draw[arr, bend left=20] (D) edge (P);
+      \draw[arr, bend left=20] (P2) edge (S2);
+      \draw[arr, bend left=20] (P2) edge (D2);
+      \draw[arr, bend left=20] (S2) edge (P2);
+      \draw[arr, bend left=20] (D2) edge (P2);
+      \draw[arr] (ED) to (D);
+      \draw[arr] (ES) to (S);
+      \draw[arr] (ED) to (D2);
+      \draw[arr] (ES) to (S2);
+      \draw[arr] (P)  to [out=62,in=118,looseness=4.4] (P);
+      \draw[arr] (P2)  to [out=62,in=118,looseness=4.4] (P2);
+      \node at (0,-2.4) {$G(M^\twin)$};
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+%      \node at (-2.5,2) {(c)};
+      \node[var] (ED) at (1.5,0) {$E_D$};
+      \node[var] (D) at (1.5,-1.5) {$D$};
+      \node[var] (D2) at (1.5,1.5) {$D'$};
+      \node[var] (ES) at (-1.5,0) {$E_S$};
+      \node[varc] (S) at (-1.5,-1.5) {$S$};
+      \node[varc] (S2) at (-1.5,1.5) {$S'$};
+      \node[var] (P) at (0,-1.5) {$R$};
+      \node[var] (P2) at (0,1.5) {$R'$};
+%      \draw[arr, bend left=20] (P) edge (S);
+      \draw[arr, bend left=20] (P) edge (D);
+      \draw[arr, bend left=20] (S) edge (P);
+      \draw[arr, bend left=20] (D) edge (P);
+%      \draw[arr, bend left=20] (P2) edge (S2);
+      \draw[arr, bend left=20] (P2) edge (D2);
+      \draw[arr, bend left=20] (S2) edge (P2);
+      \draw[arr, bend left=20] (D2) edge (P2);
+      \draw[arr] (ED) to (D);
+%      \draw[arr] (ES) to (S);
+      \draw[arr] (ED) to (D2);
+%      \draw[arr] (ES) to (S2);
+      \draw[arr] (P)  to [out=62,in=118,looseness=4.4] (P);
+      \draw[arr] (P2)  to [out=62,in=118,looseness=4.4] (P2);
+      \node at (0,-2.4) {$G(M^\twin)_{\doit(\{S,S'\})}$};
+    \end{scope}
+  \end{tikzpicture}}
+  \caption{The graphs of the SCM $M$ (left), its twin SCM $M^{\twin}$ (center) and the intervened twin SCM $(M^{\twin})_{\doit(\{S,S'\},(s,s'))}$ (right) of Example~\ref{ex:PriceSupplyDemandDynamical}.}
+  \end{comment}
+    \begin{tikzpicture}
+    \begin{scope}
+%      \node at (-2.5,2) {(c)};
+      \node[ndout] (ED) at (1.5,0) {$E_D$};
+      \node[ndout] (D) at (1.5,-1.5) {$D$};
+      \node[ndout] (ES) at (-1.5,0) {$E_S$};
+      \node[ndout] (S) at (-1.5,-1.5) {$S$};
+      \node[ndout] (P) at (0,-1.5) {$R$};
+      \draw[arout, bend left=20] (P) edge (S);
+      \draw[arout, bend left=20] (P) edge (D);
+      \draw[arout, bend left=20] (S) edge (P);
+      \draw[arout, bend left=20] (D) edge (P);
+      \draw[arout] (ED) to (D);
+      \draw[arout] (ES) to (S);
+      \draw[arout] (P)  edge [out=62,in=118,looseness=4.4] (P);
+      \node at (0,-2.4) {$G(M)$};
+    \end{scope}
+    \end{tikzpicture}
+  \caption{The graph of the SCM $M$ of Example~\ref{ex:PriceSupplyDemandDynamical}.}
+   \label{fig:PriceSupplyDemand}
+\end{figure}
+
+\begin{comment}
+Even though this SCM is not simple, we can still formulate counterfactuals. 
+As an example of a counterfactual query, consider 
+$$P_{M}(R' \given \doit(S = s, {S'} = s'), R = r),$$
+which denotes the conditional distribution of counterfactual price $R'$ given 
+observed factual price $R=r$ for the intervened twin model $M^{\twin}_{\doit(\{S,S'\},(s,s'))}$. 
+In words: how would---\emph{ceteris paribus}---price have been distributed, 
+had we intervened to set supplied quantities equal to $s'$, given that actually
+we intervened to set supplied quantities equal to $s$ and observed that this
+led to price $r$? 
+The augmented graphs of the SCM, its twin graph, and its intervened twin graph are depicted
+in Figure~\ref{fig:PriceSupplyDemand}.
+\end{comment}
+\end{Eg}
+
+\begin{Exc}
+  Prove that the SCM $M$ that describes the equilibrium states of the price-supply-demand model is uniquely solvable, but not simple. 
+  Consider the following interventions: $\doit(D=\delta)$, $\doit(S=\sigma)$, $\doit(R=\rho)$, and all possible combinations thereof. Which of (the combinations of) these interventions give an intervened SCM that is still uniquely solvable?
+  Which of these interventions on the SCM correspond with the equilibrium state of a similarly intervened market dynamics model?
+  Summarizing: could this be a realistic causal equilibrium model of an ideal market, or is there something wrong with it (perhaps due to the self-cycle)?
+  %A straightforward calculation shows that this counterfactual distribution of price is the Dirac measure on $x_P' = p + (s' - s) / \beta_D$. 
+
+  (Bonus: can you model the market equilibrium with an SCM \emph{without} self-cycles?)
+\end{Exc}
+
+While the price-supply-demand example shows that not all cyclic SCMs that occur ``in the wild'' are simple, we have chosen
+to restrict ourselves mostly to simple SCMs for this lecture. Generalizations of the theory presented here for simple SCMs 
+to non-simple ones are provided in \cite{BFPM21}.
+
+We will finish this section by showing that SCMs are simple if the interactions are sufficiently weak and smooth.
+\begin{Prp}\label{prp:simple_scm_contraction}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM with real-valued endogenous variables, that is, $\CX_v = \RN$ for each $v \in V$.
+  If for each subset $U \subseteq \Send$, and for all values $\xW\in\CXW$, $\xJ \in \CXJ$, $x_{V\sm U} \in \CX_{V\sm U}$, the mapping
+  \begin{equation*}
+  \CX_U \to \CX_U : x_U \mapsto f(\xJ,x_{V\sm U},x_U,\xW)
+  \end{equation*}
+  is Lipschitz continuous with Lipschitz constant $L_U(\xJ,x_{V\sm U},\xW) < 1$ with respect to some norm $||\cdot||$, then $M$ is simple.
+\end{Prp}
+\begin{proof}
+  By definition, $M$ is simple if for all $U \subseteq \Send$, for all $\xW\in\CXW$, for all $\xJ \in \CXJ$, for all $x_{V\sm U} \in \CX_{V\sm U}$, the equation
+  \begin{equation}\label{eq:simple_scm_contraction}
+    x_U = f(\xJ,x_{V\sm U},x_U,\xW)
+  \end{equation}
+  has a unique solution for $x_U\in\CX_U$.
+  This is a fixed point equation for $x_U$, and hence it has a unique solution by Banach's fixed point theorem if it is a contraction (Lipschitz continuous with Lipschitz constant $<1$ with respect to some norm $||\cdot||$).
+\end{proof}
+
+\begin{Rem}
+  This also provides us with a method for sampling from a simple SCM that satisfies the assumption in Proposition~\ref{prp:simple_scm_contraction}. The solution to equation \eref{eq:simple_scm_contraction} 
+can be obtained by iterating the updates
+  $$x_U^{(n+1)} = f(\xJ,x_{V\sm U},x_U^{(n)},\xW)$$
+until convergence.
+\end{Rem}
+
+To give a more concrete example: a class of SCMs that satisfies the contractivity condition is given by neural networks with sufficiently weak weights.
+\begin{Eg}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM with real-valued variables, that is, $\CX_k = \RN$ for each $k \in V \cup W \cup J$.
+  Suppose that the causal mechanism is of the form
+  $$f_u = h\left(\sum_{j \in J} A_{uj} x_j + \sum_{w \in W} A_{uw} x_w + \sum_{v \in V} A_{uv} x_v + b_u\right),\qquad u\in V,$$
+  with weights $A \in \RN^{V \times (V \cup W \cup J)}$, biases $b \in \RN^V$ and activation function $h : \RN \to \RN$.
+
+  The conditions in Proposition~\ref{prp:simple_scm_contraction} are satisfied if the following conditions both hold:
+\begin{enumerate}
+  \item $\sup_{x\in\RN}|h'(x)| \le C $ with $0 < C < \infty$, and
+  \item $|| A_{UU} || < \frac{1}{C}$ for every subset $U \subseteq V$ of cardinality $\#(U) \ge 2$, where $||\cdot||$ can be one of the matrix norms: $||\cdot||_p$, $p \ge 1$, or $||\cdot||_\infty$.
+\end{enumerate}
+\end{Eg}
+\begin{proof}
+  By the mean value theorem, it suffices to show that for every subset $U \subseteq V$ of cardinality $\#(U) \ge 2$ and every value $(x_J,x_W,x_{V\sm U})$ the partial derivative is bounded:
+  \[ \sup_{x_U\in \CX_U} \left\lVert \frac{\partial f_U}{\partial x_U} (\xJ,x_{V\sm U},x_U,\xW) \right\rVert \le L_U(\xJ,x_{V\sm U},\xW) < 1  \]
+for $||\cdot||$ some matrix norm. In our case we have: 
+  $$\frac{\partial f_U}{\partial x_U} (\xJ,x_{V\sm U},x_U,\xW) = \diag(\eta)_{UU} A_{UU}.$$ 
+where $\eta$ is a vector in $\RN^V$ with entries
+  $$\eta_{v} = h'(A_v (\xJ,\xV,\xW)^\top + b_v).$$
+If $|h'(x)| \le C < \infty$ for all $x \in \RN$, and $||\cdot||$ is either $||\cdot||_p$, $p \ge 1$, or $||\cdot||_\infty$, then $||\diag(\eta)_{UU}|| \le C$.
+Since $||A_{UU}|| < \frac{1}{C}$ we get
+  $$|| \diag(\eta)_{UU} A_{UU} || \le ||\diag(\eta)_{UU}|| \cdot ||A_{UU}|| =: L_U(\xJ,x_{V\sm U},\xW) < C \frac{1}{C} = 1.$$
+\end{proof}
+
+\begin{Rem}
+Note that we can put $C=1$ for popular activation functions $h(x)$ like $\tanh(x)$, $\ReLU(x)=\max(0,x)$, $\sigma(x)=\frac{1}{1+\exp(-x)}$, LeakyRelu, and SoftPlus $(x)=\ln(1+e^x)$.
+Further note that by using one of these activation functions $h(x)$ and $||\cdot||=||\cdot||_\infty$ all the conditions are satisfied if we choose the weights $A_{v,k}$ such that for all $v \in V$:
+$$\sum_{k \in V \cup W \cup J} |A_{v,k}| < 1,$$
+and $A_{v,v} = 0$.
+While this is far from necessary, it is easy to check.
+\end{Rem}
+%\begin{Rem}
+%This analyis also holds if we have the error variables outside of the activation function as additive noise.
+%One can obtain a larger class by having every strongly connected component of the SCM be of this form, 
+%and apply additional arbitrary (measurable) functions to the incoming variables. That is, the ``input signal''
+%of each component can be transformed in an arbitrary nonlinear way, whereas the interactions between the 
+%nodes within the strongly connected component must be restricted somehow to satisfy the contractivity condition.
+%\end{Rem}

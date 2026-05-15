@@ -1,0 +1,310 @@
+\paragraph{Proofs - Separoid Axioms for Conditional Independence}\hfill%
+
+In the following let $(\Wcal \times \Tcal, K(W|T))$ be a transition probability space with Markov kernel:
+\[K(W|T): \, \Tcal \dashrightarrow  \Wcal,\]
+and \trv{}s $X$, $Y$, $Z$, $U$ with common domain $\Wcal\times \Tcal$ and measurable spaces $\Xcal$, 
+$\Ycal$, $\Zcal$, $\Ucal$, resp., as codomains. We indicate when we need to assume standard measurable spaces.\\
+We will use
+$T:\, \Wcal \times \Tcal \to \Tcal$ to denote the canonical projection and $\ast$ to denote the constant \trv{}.\\
+Recall that we write $U \precsim X$ if there exists a measurable function  
+$\varphi:\, \Xcal \to \Ucal$  such that $U = \varphi \circ X$.\\
+Recall that for proving:
+\[X \Indep_{K(W|T)} Y \given Z, \]
+we need to find/construct a Markov kernel $Q(X|Z)$ such that:
+\[ K(X,Y,Z|T) = Q(X|Z) \otimes K(Y,Z|T),\]
+which is equivalent to:\\ 
+For all $t \in \Tcal$ and all measurable $A \ins \Xcal$, $B \ins \Ycal$, $C \ins \Zcal$ we have the equation:
+\[ K(X \in A, Y \in B, Z \in C |T=t) = \int_C \int_B  Q(X \in A|Z=z)\, K(Y \in dy, Z \in dz|T=t). \]
+We abbreviate $\Indep := \Indep_{K(W|T)}$ in the following.
+
+
+\begin{Lem}[Extended Left Redundancy]
+    \[U \precsim X \implies U \Indep  Y \given X.\]
+\begin{proof}
+    If $U=\varphi(X)$ put
+    $Q(U \in D|X=x):=\delta_\varphi(U \in D|X=x):=\I_D(\varphi(x))$ for $D \subseteq \Ucal$. Then we get:
+%\begin{align*} 
+%    \E_t\lB \delta_\varphi(U \in D|X_t) \cdot \I_B(Y_t) \cdot \I_C(X_t) \rB &= \E_t\lB \I_D(U_t) \cdot \I_B(Y_t) \cdot \I_C(X_t) \rB .     
+%\end{align*}
+\begin{align*}
+&\int_C \int_B  Q(U \in D|X=x)\, K(Y \in dy, X \in dx|T=t) \\
+&= \int_C \int_B  \delta_\varphi(U \in D|X=x)\, K(Y \in dy, X \in dx|T=t) \\
+&= \int_C \int_B  \I_{\varphi^{-1}(D)}(x) \, K(Y \in dy, X \in dx|T=t) \\
+&= K(Y \in B, X \in C \cap \varphi^{-1}(D)|T=t) \\
+&= K(Y \in B, X \in C, \varphi(X) \in D |T=t)\\
+&= K(U \in D, Y \in B, X \in C |T=t).
+\end{align*}
+This shows the claim.
+In suggestive symbols:
+\[ K(U|\cancel{T,Y},X) = \delta_\varphi(U|X). \]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[$T$-Restricted Right Redundancy] Let $\Xcal$ and $\Zcal$ be standard measurable spaces. Then:
+    \[X \Indep  \ast \given Z,T \qquad \text{holds.}\]
+\begin{proof}
+    Because $\Xcal$ and $\Zcal$ are standard measurable spaces
+    we have a factorization:
+    \[ K(X,Z|T) = K(X|Z,T) \otimes K(Z|T),\]
+     with the conditional Markov kernel $K(X|Z,T)$ of $K(X,Z|T)$ (via theorem \ref{thm-regular-conditional-Markov-kernel}). 
+    Introducting $\ast$ and $T$ to both sides gives the factorization:
+    \[ K(X,\ast, Z,T|T) = K(X|Z,T) \otimes K(\ast, Z,T|T).\]
+    \Claude{The conditioning variable is $(Z,T)$, so $\Zcal\times\Tcal$ plays the role of $\Ycal$ in the disintegration theorem.  The lemma only assumes $\Xcal,\Zcal$ standard, not~$\Tcal$.  The proof is correct if the disintegration is applied \emph{pointwise in~$t$} (for each $t$, disintegrate $K(X,Z|T=t)$, which only needs $\Xcal,\Zcal$ standard).  This pointwise reading is not made explicit.}\PF{solved by introducing one further step on how the theorem is applied first. Claude's comment is rather misleading.}
+    This already shows the claim. 
+    In suggestive symbols:
+    \[K(X|\cancel{\ast,T},Z,T) = K(X|Z,T).\]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[$T$-Inverted Right Decomposition]
+    \[X \Indep  Y \given Z \implies X \Indep  T, Y \given Z.\]
+\begin{proof}
+    By assumption we have:
+    \[ K(X,Y,Z|T) = Q(X|Z) \otimes K(Y,Z|T). \]
+    Multiplying both sides with $\delta(T|T)$ we get:
+    \[ K(X,Y,Z,T|T) = Q(X|Z) \otimes K(T,Y,Z|T). \]
+    This shows the claim using the same $Q(X|Z)$. 
+    In suggestive symbols:
+\[ K(X|\cancel{T,T,Y},Z) = K(X|\cancel{T,Y},Z).  \]
+\end{proof}
+\end{Lem}
+
+
+
+\begin{Lem}[Left Decomposition]
+    \[X,U \Indep  Y \given Z \implies U \Indep  Y \given Z.\]
+\begin{proof}
+    Let $Q(X,U|Z)$ be given from the conditional independence assumption.
+    Then we have:
+    \[ K(X,U,Y,Z|T) = Q(X,U|Z) \otimes K(Y,Z|T).\]
+    Marginalizing out $X$ gives:
+    \[ K(U,Y,Z|T) = Q(U|Z) \otimes K(Y,Z|T).\]
+    This shows the claim.
+ In suggestive symbols:
+ \[ K(U|\cancel{T,Y},Z) = K(X \in \Xcal,U|\cancel{T,Y},Z). \]
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}[Right Decomposition]
+    \[X \Indep  Y,U \given Z \implies X \Indep  U \given Z.\]
+\begin{proof}
+    Let $Q(X|Z)$ be given from the conditional independence assumption. 
+    We then have:
+    \[ K(X,U,Y,Z|T) = Q(X|Z) \otimes K(Y,U,Z|T).\]
+    Marginalizing out $Y$ gives:
+    \[ K(X,U,Z|T) = Q(X|Z) \otimes K(U,Z|T).\]
+    This shows the claim.
+In suggestive symbols:
+\[ K(X|\cancel{T,U},Z) = K(X|\cancel{T,Y,U},Z). \]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Weak Union] Let $\Xcal$ and $\Ucal$ be standard measurable spaces. Then:
+    \[X , U \Indep  Y  \given Z \implies X \Indep  Y \given U,Z.\]
+\begin{proof}
+    By assumption we have:
+    \[K(X,U,Y,Z|T) = Q(X,U|Z) \otimes K(Y,Z|T),\]
+    for some Markov kernel $Q(X,U|Z)$. 
+    If we marginalize out $X$ we get:
+    \[K(U,Y,Z|T) = Q(U|Z) \otimes K(Y,Z|T).\]
+    Because $\Xcal$ and $\Ucal$ are standard measurable spaces
+    we have a factorization:
+    \[ Q(X,U|Z) = Q(X|U,Z) \otimes Q(U|Z).\]
+    with the conditional Markov kernel $Q(X|U,Z)$ (via theorem \ref{thm-regular-conditional-Markov-kernel}).\\
+    Putting these equations together we get:
+    \begin{align*}
+        K(X,U,Y,Z|T) &= Q(X,U|Z) \otimes K(Y,Z|T)\\
+                     &= Q(X|U,Z) \otimes Q(U|Z) \otimes K(Y,Z|T) \\
+                     &= Q(X|U,Z) \otimes  K(U,Y,Z|T).
+    \end{align*}
+  In suggestive symbols, this means that:
+  $K(X|\cancel{T,Y},U,Z)$ is the conditional of $K(X,U|\cancel{T,Y},Z)$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Weak Union] 
+    \[X \Indep  Y , U \given Z \implies X \Indep  Y \given U , Z.\]
+\begin{proof}
+    We have the factorization:
+    \[K(X,Y,U,Z|T) = Q(X|Z) \otimes K(Y,U,Z|T),\]
+    with some Markov kernel $Q(X|Z)$. If we view $Q(X|Z)$ as a function in $(u,z)$ via:
+    \[ (u,z) \mapsto Q(X|Z=z), \]
+    by just ignoring the argument $u$ then the claim follows from the same factorization above.\\
+    In suggestive symbols:
+    \[K(X|\cancel{T,Y},U,Z) = K(X|\cancel{T,Y,U},Z).\]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Contraction] 
+    \[ (X \Indep  Y \given U , Z) \land (U \Indep  Y \given Z) \implies X , U \Indep  Y \given Z.\]
+\begin{proof}
+    By assumption we have the two factorizations:
+    \begin{align*}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T),\\
+        K(Y,U,Z|T) & = P(U|Z) \otimes K(Y,Z|T),
+    \end{align*}
+    with some Markov kernels $Q(X|U,Z)$, $P(U|Z)$. Putting these equations together using $Q(X|U,Z) \otimes P(U|Z)$ we get:
+    \[ K(X,Y,U,Z|T) = \lp Q(X|U,Z) \otimes P(U|Z)\rp \otimes K(Y,Z|T).\]
+    In suggestive symbols:
+    \[K(X,U|\cancel{T,Y},Z) = K(X|\cancel{T,Y},U,Z) \otimes K(U|\cancel{T,Y},Z).\]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Contraction]
+    \[ (X \Indep  Y \given U , Z) \land (X \Indep  U \given Z)  \implies X \Indep  Y , U \given Z.\]
+\begin{proof}
+ By assumption we have the two factorizations:
+    \begin{align*}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T),\\
+        K(X,U,Z|T) & = P(X|Z) \otimes K(U,Z|T),
+    \end{align*}
+    with some Markov kernels $Q(X|U,Z)$, $P(X|Z)$.\\
+    Marginalizing out $Y$ we get the equalities:
+    \begin{align*}
+        K(X,U,Z|T) & = Q(X|U,Z) \otimes K(U,Z|T),\\
+        K(X,U,Z|T) & = P(X|Z) \otimes K(U,Z|T).
+    \end{align*}
+    By the essential uniqueness (see lemma \ref{ess-unique}) of such factorization we get that for every $A \in \Bcal_\Xcal$:
+\[ Q(X \in A|U,Z) = P(X \in A|Z) \qquad K(U,Z|T)\text{-a.s.}\]
+The same equation then holds also $K(Y,U,Z|T)$-a.s. (by ignoring argument $y$).
+Plugging that back into the first equation gives:
+\[ K(X,Y,U,Z|T) = P(X|Z) \otimes K(Y,U,Z|T).\]
+In suggestive symbols:
+\[ K(X|\cancel{T,Y,U},Z) = K(X|\cancel{T,Y},U,Z) =  K(X|\cancel{T,U},Z) \qquad \text{a.s.}\]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Cross Contraction]
+    \[ (X \Indep  Y \given U , Z) \land (U \Indep  X \given Z) \implies X  \Indep  Y , U \given Z.\]
+\begin{proof}
+     By assumption we have the two factorizations:
+    \begin{align}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T), \label{eq:rcc-a}\\
+        K(X,U,Z|T) & = P(U|Z) \otimes K(X,Z|T), \label{eq:rcc-b}
+    \end{align}
+     with some Markov kernels $Q(X|U,Z)$, $P(U|Z)$.\\
+     We then define the Markov kernel:
+    \begin{align}
+        R(X,U|Z) & := Q(X|U,Z) \otimes P(U|Z). \label{eq:rcc-c}
+    \end{align}
+    We will now show that its marginal: 
+    \begin{align}
+        R(X|Z) & = Q(X|U,Z) \circ P(U|Z). \label{eq:rcc-c2}
+    \end{align} 
+    will satisfy the claim.\\
+    If we marginalize out $Y$ from equation \ref{eq:rcc-a} we get:
+    \begin{align}
+        K(X,U,Z|T) & = Q(X|U,Z) \otimes K(U,Z|T). \label{eq:rcc-d}
+    \end{align}
+    Equating equations \ref{eq:rcc-b} and \ref{eq:rcc-d} gives:
+    \begin{align}
+        P(U|Z) \otimes K(X,Z|T) &=      K(X,U,Z|T)  
+                                 = Q(X|U,Z) \otimes K(U,Z|T). \label{eq:rcc-q}
+    \end{align}
+    Marginalizing out $X$ in equation \ref{eq:rcc-q} on both sides gives:
+    \begin{align}
+        K(U,Z|T) &=  P(U|Z) \otimes K(Z|T).  \label{eq:rcc-r}
+    \end{align}
+    If we now plug equation \ref{eq:rcc-r} into \ref{eq:rcc-d} then we get:
+    \begin{align}
+        K(X,U,Z|T) & = Q(X|U,Z) \otimes P(U|Z) \otimes K(Z|T) \\
+            &\stackrel{\ref{eq:rcc-c}}{=} R(X,U|Z) \otimes K(Z|T). \label{eq:rcc-e}
+    \end{align}
+    If we marginalize out $U$ in equation \ref{eq:rcc-e} and use equation \ref{eq:rcc-c2}  we arrive at:
+    \begin{align}
+        K(X,Z|T) & = R(X|Z) \otimes K(Z|T). \label{eq:rcc-f}
+    \end{align}
+    We now get:
+    \begin{align}
+        Q(X|U,Z) \otimes K(U,Z|T) 
+        & \stackrel{\ref{eq:rcc-d}}{=}  K(X,U,Z|T) \\
+        & \stackrel{\ref{eq:rcc-b}}{=} P(U|Z) \otimes K(X,Z|T) \\
+        &\stackrel{\ref{eq:rcc-f}}{=} P(U|Z) \otimes R(X|Z) \otimes K(Z|T) \\
+        &=  R(X|Z)  \otimes P(U|Z) \otimes K(Z|T) \\
+        &\stackrel{\ref{eq:rcc-r}}{=} R(X|Z)  \otimes  K(U,Z|T).
+    \end{align}
+    By the essential uniqueness (see lemma \ref{ess-unique}) of such a factorization we get that for every $A \in \Bcal_\Xcal$:
+    \begin{align}
+        Q(X \in A|U,Z) &= R(X \in A|Z) \qquad K(U,Z|T)\text{-a.s.}  \label{eq:ess-un}
+    \end{align}
+The same equation then holds also $K(Y,U,Z|T)$-a.s.\ (by ignoring the non-occurring argument $y$).
+Plugging equation \ref{eq:ess-un} back into the equation \ref{eq:rcc-a} we get:
+    \begin{align}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T),\\
+                     & = R(X|Z)  \otimes K(Y,U,Z|T).
+    \end{align}
+This shows the claim.\\
+In suggestive symbols:
+\[ K(X|\cancel{T,Y,U},Z) = K(X|\cancel{T,Y},U,Z) \circ K(U|\cancel{T,X},Z).\]
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Flipped Left Cross Contraction]
+    \[ (X \Indep  Y \given U , Z) \land (Y \Indep  U \given Z) \implies Y \Indep  X , U \given Z.\]
+\begin{proof}
+ By assumption we have the two factorizations:
+    \begin{align*}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T),\\
+        K(Y,U,Z|T) & = P(Y|Z) \otimes K(U,Z|T),
+    \end{align*}
+     with some Markov kernels $Q(X|U,Z)$, $P(Y|Z)$.\\
+     Marginalizing out $Y$ in the first equation we get the equality:
+    \begin{align*}
+        K(X,U,Z|T) & = Q(X|U,Z) \otimes K(U,Z|T).
+    \end{align*}
+Plugging all three equations into each other we get:
+    \begin{align*}
+        K(X,Y,U,Z|T) & = Q(X|U,Z) \otimes K(Y,U,Z|T)\\
+                     & = Q(X|U,Z) \otimes  P(Y|Z) \otimes K(U,Z|T)\\
+                     & = P(Y|Z) \otimes  Q(X|U,Z)   \otimes K(U,Z|T) \\
+                     & =  P(Y|Z)  \otimes   K(X,U,Z|T).
+    \end{align*}
+In suggestive symbols:
+\[ K(Y|\cancel{T,X,U},Z) = K(Y|\cancel{T,U},Z). \]
+\end{proof}
+\end{Lem}
+
+
+\begin{comment}
+\begin{Lem}[Symmetry]
+    Let $\Ycal$ and $\Zcal$ be standard measurable spaces and $\Tcal=\Asterisk=\{\ast\}$ the one-point space. 
+    Then:
+    \[X \Indep  Y \given Z \implies Y \Indep X \given Z.\]
+\begin{proof}
+    By assumption we have:
+    \[ K(X,Y,Z|\ast) = Q(X|Z) \otimes K(Y,Z|\ast).  \]
+    If we marginalize out $Y$ we get:
+    \[ K(X,Z|\ast) = Q(X|Z) \otimes K(Z|\ast).\]
+Because $\Ycal$ and $\Zcal$ are standard measurable spaces
+    we have a factorization:
+    \[ K(Y,Z|\ast) = K(Y|Z,\ast) \otimes K(Z|\ast),\]
+    with the conditional Markov kernel $K(Y|Z,\ast)$ (via theorem \ref{thm-regular-conditional-Markov-kernel}).\\
+ Using the above equations we get:
+    \begin{align*}
+        K(X,Y,Z|\ast) &= Q(X|Z) \otimes K(Y,Z|\ast)\\
+                      &= Q(X|Z) \otimes K(Y|Z,\ast) \otimes K(Z|\ast)\\
+                      &= K(Y|Z,\ast) \otimes Q(X|Z) \otimes K(Z|\ast)\\
+                      &= K(Y|Z,\ast) \otimes K(X,Z|\ast).
+    \end{align*}
+    If we put $P(Y|Z) := K(Y|Z,\ast)$ we get the claim.\\
+In suggestive symbols:
+%$K(Y|\cancel{X},Z)$ is the conditional of $K(Y,Z|\ast)$.
+\[ K(Y|\cancel{\ast,X},Z) = K(Y|Z,\ast).\]
+\end{proof}
+\end{Lem}
+\end{comment}
+
+\begin{Lem}[$T$-Restricted Symmetry]
+    Let $\Ycal$ and $\Zcal$ be standard measurable spaces. 
+    Then:
+    \[X \Indep  Y \given Z,T \implies Y \Indep X \given Z,T.\]
+\begin{proof}
+    This follows from Flipped Left Cross Contraction with $U=\ast$ and $(Z,T)$ for $Z$:
+\[ \lp X \Indep Y \given Z,T \rp \quad \land\quad \lp Y \Indep \ast \given Z,T \rp \implies Y \Indep X \given Z,T, \]
+together with $T$-Restricted Right Redundancy:
+\[ Y \Indep \ast \given Z,T.  \]
+In suggestive symbols:
+\[ K(Y|\cancel{\ast,T,X},Z) = K(Y|\cancel{T},Z,\ast).\]
+\end{proof}
+\end{Lem}

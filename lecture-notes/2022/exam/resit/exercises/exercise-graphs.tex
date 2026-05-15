@@ -1,0 +1,152 @@
+\subsection{Graphs}
+\totalscore{12}
+
+Consider the following DMG $G$:
+\begin{center}
+    \begin{tikzpicture}[scale=1, transform shape]
+        \node[ndout] (A) at (0,0) {$A$};
+        \node[ndout] (B) at (1.2,1) {$B$};
+        \node[ndout] (C) at (1.2,-1) {$C$};
+        \node[ndout] (D) at (2.8,-1) {$D$};
+        \node[ndout] (E) at (2.8,1) {$E$};
+        \node[ndout] (F) at (4,0) {$F$};
+        \draw[arlat] (A) to (B);
+        \draw[arout] (A) to (C);
+        \draw[arout] (B) to (C);
+        \draw[arout] (C) to (D);
+        \draw[arout] (D) to (E);
+        \draw[arout] (E) to (B);
+        \draw[arout] (E) to (F);
+        \draw[arout] (D) to (F);
+    \end{tikzpicture}
+\end{center}
+\begin{enumerate}[label=\alph*)]
+    \item For each of the following separation statements, state whether it holds or not, and justify your answer by either explaining for all relevant paths why they are blocked, or giving an example of an open path.
+      \begin{enumerate}[label=\roman*)]
+        \item $A\perp^\sigma_G F|C$
+        \item $A\perp^\sigma_G F|D$
+        \item $A\perp^d_G F|D$
+      \end{enumerate}
+    \score{3}
+    \answer{%
+      False, False, True. 
+      $A\nPerp^\sigma_G F|C$ as $C\to D$ with $D\in \Sc(C)$. 
+      $A\nPerp^\sigma_G F|D$ as $E\in \Sc(D)$.
+      $A\Perp^d_G F|D$ as $D$ blocks all paths coming from $C$, and $E$ cannot be reached from $A$ because either $B$ or $C$ becomes a collider.
+    }
+    \points{1 point for each correct and correctly justified separation statement.}
+    \item Draw a possible acyclification of $G$.
+    \score{1}
+    \answer{%
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (A) at (0,0) {$A$};
+                \node[ndout] (B) at (2,2) {$B$};
+                \node[ndout] (C) at (2,-2) {$C$};
+                \node[ndout] (D) at (6,-2) {$D$};
+                \node[ndout] (E) at (6,2) {$E$};
+                \node[ndout] (F) at (8,0) {$F$};
+                \draw[arlat,bend left] (A) edge (B);
+                \draw[arlat,bend right] (A) edge (C);
+                \draw[arlat,out=-3,in=150] (A) edge (D);
+                \draw[arlat,out=3,in=-150] (A) edge (E);
+                \draw[arout] (A) to (B);
+                \draw[arout] (A) to (C);
+                \draw[arout] (A) to (D);
+                \draw[arout] (A) to (E);
+                \draw[arlat] (B) to (C);
+                \draw[arlat] (B) to (D);
+                \draw[arlat] (B) to (E);
+                \draw[arlat] (C) to (D);
+                \draw[arlat] (C) to (E);
+                \draw[arlat] (D) to (E);
+                \draw[arout] (E) to (F);
+                \draw[arout] (D) to (F);
+            \end{tikzpicture}
+        \end{center}
+    }
+    \item Draw the most informative (that is, with fewest circles as edge marks) DPAG that represents $G$.
+      \score{3}
+      \answer{%
+\begin{center}
+     \begin{tikzpicture}[scale=1, transform shape]
+        \node[ndout] (A) at (0,0) {$A$};
+        \node[ndout] (B) at (1.5,1.5) {$B$};
+        \node[ndout] (C) at (1.5,-1.5) {$C$};
+        \node[ndout] (D) at (4.5,-1.5) {$D$};
+        \node[ndout] (E) at (4.5,1.5) {$E$};
+        \node[ndout] (F) at (6,0) {$F$};
+        \draw[arout] (A) to (B);
+        \draw[arout] (A) to (C);
+        \draw[arout] (A) to (D);
+        \draw[arout] (A) to (E);
+        \draw[carc] (B) to (C);
+        \draw[carc] (C) to (D);
+        \draw[carc] (D) to (E);
+        \draw[carc] (E) to (B);
+        \draw[carc] (C) to (E);
+        \draw[carc] (B) to (D);
+        \draw[arout] (E) to (F);
+        \draw[arout] (D) to (F);
+    \end{tikzpicture}
+\end{center}
+        }
+        \points{1 pt for adding the adjacencies $A,E$ and $A,F$ (because of the inducing paths).
+        1 pt for adding the adjacencies $C,E$ and $B,D$ (because of the inducing paths).
+        1 pt for the right edge orientations.}
+    \item Draw the graph $G_{\doit(B)}$. Clearly indicate the difference between input nodes and non-input nodes.
+    \score{1}
+    \answer{
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (A) at (0,0) {$A$};
+                \node[ndint] (B) at (1.2,1) {$B$};
+                \node[ndout] (C) at (1.2,-1) {$C$};
+                \node[ndout] (D) at (2.8,-1) {$D$};
+                \node[ndout] (E) at (2.8,1) {$E$};
+                \node[ndout] (F) at (4,0) {$F$};
+                \draw[arout] (A) to (C);
+                \draw[arout] (B) to (C);
+                \draw[arout] (C) to (D);
+                \draw[arout] (D) to (E);
+                \draw[arout] (E) to (F);
+                \draw[arout] (D) to (F);
+            \end{tikzpicture}
+        \end{center}
+    }
+  \item For each of the following separation statements, state whether it holds in $G_{\doit(B)}$ or not, and justify your answer by either explaining for all relevant paths why they are blocked, or giving an example of an open path.
+    \score{3}
+      \begin{enumerate}[label=\roman*)]
+        \item $A\perp^\sigma_{G_{\doit(B)}} F|C$
+        \item $A\perp^\sigma_{G_{\doit(B)}} F|D$
+        \item $A\perp^d_{G_{\doit(B)}} F|D$
+      \end{enumerate}
+    \answer{%
+      False, True, True.
+      We still have $A\nPerp^\sigma_{G_{\doit(B)}} F|C$ but for another reason: $A\to C \leftarrow B$ is $C$-open. 
+      We now have $A\perp^\sigma_{G_{\doit(B)}} F|D$ as $E\notin \Sc(D)$.
+      We still have $A\perp^\sigma_{G_{\doit(B)}} F|D$ for the same reason.
+    }
+    \points{1 point for each correct and correctly justified separation statement.}
+  \item Draw the graph $G^{\setminus\{B, D\}}$. Clearly indicate the difference between input nodes and non-input nodes.
+    \score{1}
+    \answer{%
+        $G^{\setminus\{B, D\}}$:
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (A) at (0,0) {$A$};
+                \node[ndout] (C) at (1.5,0) {$C$};
+                \node[ndout] (E) at (3,0) {$E$};
+                \node[ndout] (F) at (4.5,0) {$F$};
+                \draw[arout] (A) to (C);
+                \draw[arout, bend right] (C) to (E);
+                \draw[arout, bend right] (E) to (C);
+                \draw[arout] (E) to (F);
+                \draw[arout, bend right] (C) to (F);
+                \draw[arlat, bend left] (A) to (C);
+                \draw[arlat, bend left] (E) to (F);
+            \end{tikzpicture}
+        \end{center}
+    }
+    \points{TODO: perhaps more than 1 point would be appropriate for this question?}
+\end{enumerate}

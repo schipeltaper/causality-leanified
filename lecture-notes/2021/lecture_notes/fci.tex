@@ -1,0 +1,1133 @@
+\subsection{The Fast Causal Inference Algorithm}
+
+
+In this final episode, we will present the Fast Causal Inference (FCI)
+algorithm, one of the ``classic'' constraint-based causal discovery algorithms
+originally designed for purely observational (non-experimental) data.
+It has a higher complexity than LCD, but it is of special interest because
+it can be shown to be \emph{complete} in a certain sense. 
+One obtains a more informative output from FCI than from LCD about the
+causal relations between the variables. While FCI was originally designed for
+the acyclic setting, it was recently discovered that it also works in case cycles
+are present (more specifically, for $\sigma$-faithful simple SCMs). 
+Furthermore, it has been extended
+to deal with prior knowledge regarding exogeneity and unconfoundedness of context
+variables (of the same type that we used for modeling randomized controlled trials).
+
+In the rest of this chapter, we will not make use of exogenous input variables, since FCI and the accompanying theory has not yet been formulated to deal with those.
+In the proofs, we will often use the alternative formulation \ref{def:sigma_blocking_2} of $\sigma'$-open/closed,
+exploiting Proposition~\ref{prp:sigma_opens} which expresses the equivalence of the two notions.
+
+%\subsubsection{Setting and notation}
+
+%For convenience, we will fix some notation for the rest of this chapter.
+%Assume that $\C{M}$ is a simple SCM with observed variables $O \subseteq V \cup W$.
+%We will assume that it has no exogenous input variables, i.e., $J = \emptyset$.\footnote{The reason is
+%that FCI and the corresponding theory has not yet been formulated in that generality.}
+%Note that this also accommodates L-CBNs, so everything that follows will also hold for L-CBNs.
+%The advantage of formulating everything in terms of simple SCMs is that this will also allow for possible causal cycles.
+%We will assume that $\C{M}$ is $\sigma$-faithful w.r.t.\ $O$.
+%Our goal will be to deduce as much as possible about the observed causal graph $G^O(\C{M})$ from the
+%observed distribution $P_{\C{M}}(X_O)$.
+  
+\subsubsection{Inducing paths}
+
+The output of FCI will be a Partial Ancestral Graph (PAG), a certain type of graph to be defined later. 
+An important notion in its definition is that of ``inducing'' walks and paths.
+We define this for the $\sigma$-separation setting.
+\begin{Def}\label{def:inducing_path}
+Let $G = \langle V, E, L \rangle$ be directed mixed graph (DMG). 
+An \emph{inducing walk between two nodes $i,j \in V$} is a walk in $G$ between $i$ and $j$ on which every 
+  collider is in $\Anc_{G}(\{i,j\})$ \Joris{or in $S$ (Zhang 2006), or in $\Anc_G(S)$ (RS 2002)}, and each non-endpoint non-collider on the walk only has outgoing directed edges to neighboring nodes on the walk that lie in the same strongly connected component of $G$.
+  If it is a path, it is called an \emph{inducing path between $i,j \in V$}.
+\end{Def}
+If two nodes are adjacent, any edge connecting the two is an inducing walk (or path) between them.
+Figure~\ref{fig:inducing_path} shows some simple nontrivial examples of inducing paths.
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (-4,0) {(a)};
+      \node[var] (X1) at (-3,0) {$i$};
+      \node[var] (X2) at (-1.5,0) {$j$};
+      \node[var] (X3) at (0,0) {$k$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5.5cm]
+      \node at (-4,0) {(b)};
+      \node[var] (X1) at (-3,0) {$i$};
+      \node[var] (X2) at (-1.5,0) {$j$};
+      \node[var] (X3) at (0,0) {$k$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr,bend left] (X3) edge (X2);
+    \end{scope}
+    \begin{scope}[xshift=11cm]
+      \node at (-4,0) {(c)};
+      \node[var] (X1) at (-3,0) {$i$};
+      \node[var] (X2) at (-1.5,0) {$j$};
+      \node[var] (X3) at (0,0) {$k$};
+      \node[var] (X4) at (-1.5,-1) {$l$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+      \draw[arr] (X4) edge (X1);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Three examples of non-trivial inducing paths in directed mixed graphs. (a) The walk $i \to j \oto k$ is an inducing walk (path) between $i$ and $k$. The nodes $i$ and $k$ cannot be $\sigma$-separated by any subset not containing $i,k$ (indeed, $i \nPerp^\sigma k$ and $i \nPerp^\sigma k \mid j$). (b) The walk $i \to j \to k$ is an inducing walk (path) between $i$ and $k$. The nodes $i$ and $k$ cannot be $\sigma$-separated by any subset not containing $i,k$ (indeed, $i \nPerp^\sigma k$ and $i \nPerp^\sigma k \mid j$). (c) The walk $i \to j \to k$ is an inducing walk (path) between $i$ and $k$. The nodes $i$ and $k$ cannot be $\sigma$-separated by any subset not containing $i,k$ (indeed, $i \nPerp^\sigma k$ and $i \nPerp^\sigma k \mid j$).\label{fig:inducing_path}}
+  %(d) The walk $i \oto j \oto k \oto l$ is an inducing walk (path) between $i$ and $l$. The nodes $i$ and $l$ cannot be $\sigma$-separated by any subset not containing $i, l$ (indeed, $i \nPerp^\sigma l$, $i \nPerp^\sigma l \given j$, $i \nPerp^\sigma l \given k$, and $i \nPerp^\sigma l \given j,k$).\label{fig:inducing_path}}
+\end{figure}
+
+This notion has the following important properties.
+\begin{Prp}\label{prp:inducing_path_properties}
+  Let $G = \langle V,E,L \rangle$ be a DMG and $i,j \in V$ be distinct. Then the following are equivalent:
+  \begin{enumerate}[label=(\roman*)]
+%    \item There is an inducing path in $G$ between $i$ and $j$;
+    \item There is an inducing walk in $G$ between $i$ and $j$;
+    \item $i \nIndep^\sigma_G j \given Z$ for all $Z \subseteq V \setminus \{i,j\}$;
+    \item $i \nIndep^\sigma_G j \given Z$ for $Z = \Anc_G(\{i,j\}) \setminus \{i,j\}$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  The proof is similar to that of Theorem 4.2 in \cite{RichardsonSpirtes02}.
+
+%  (i) $\implies$ (ii) is trivial.
+
+  (i) $\implies$ (ii): Assume the existence of an inducing walk between $i$ and $j$ in $G$. 
+  Let $Z \subseteq V\setminus\{i,j\}$. 
+  Consider all walks in $G$ between $i$ and $j$ with the property that all colliders on it are in $\Anc_{G}({\{i,j\}) \cup Z}$, and each non-endpoint non-collider on it is not in $Z$ or points only to nodes in the same strongly connected component of $G$.
+  Such walks exist, since the inducing walk is one. 
+  Let $\mu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$. 
+  It is either ancestor of $i$ or of $j$, by assumption.
+  Without loss of generality, assume the latter.
+  Then there is a directed path $\pi$ from $k$ to $j$ in $G$ that does not pass through any node of $Z$. 
+%  Let $k$ be the vertex closest to $j$ on $\mu$ that is also on $\pi$. 
+  Then the subwalk of $\mu$ between $i$ and $k$ can be concatenated with the directed path $\pi$
+  into a walk between $i$ and $j$ that has the property, but has fewer colliders than $\mu$: a contradiction. 
+  Therefore, $\mu$ can be extended to a walk that is $\sigma$-open given $Z$, by replacing each collider $k$ on
+  it by a walk $k \to \dots \to z \ot \dots \ot k$ for some closest descendant $z \in Z$ of $k$ (with possibly $z=k$).
+  Hence, $i$ and $j$ are $\sigma$-connected given $Z$.
+
+  (ii) $\implies$ (iii) is trivial.
+
+  (iii) $\implies$ (i): Suppose that %$i$ and $j$ are $\sigma'$-connected given any $Z \subseteq V \setminus \{i,j\}$.
+  %In particular, 
+  $i$ and $j$ are $\sigma$-connected given $Z^* = \Anc_{G}(\{i,j\}) \setminus \{i,j\}$. 
+  Let $\pi$ be a walk between $i$ and $j$ that is $\sigma$-open given $Z^*$ and contains $i$ and $j$ only once.
+  We show that $\pi$ must be an inducing walk. 
+  First, all colliders on $\pi$ are in $Z^* \subseteq \Anc_{G}(\{i,j\})$. 
+  Second, let $k$ be any non-endpoint non-collider on $\pi$.
+  Then there must be a directed subwalk of $\pi$ starting at $k$ that ends either at the first collider on $\pi$ next to $k$ or at an end node of $\pi$, and hence $k$ must be in $Z^*$. 
+  Since $\pi$ is $\sigma$-open given $Z^*$, $k$ can only point to nodes in the same strongly connected component of $G$.
+  Hence, all non-endpoint non-colliders on $\pi$ can only point to nodes in the same strongly connected component of $G$.
+\end{proof}
+In words: there is an inducing walk between two nodes in a DMG if and only if the two nodes cannot be $\sigma$-separated by any subset of nodes that does not contain either of the two nodes.
+For completeness, to connect with the literature, we also formulate:
+\begin{Prp}\label{prp:inducing_path_or_walk}
+  Let $G = \langle V,E,L \rangle$ be a DMG and $i,j \in V$ be distinct. Then the following are equivalent:
+  \begin{enumerate}[label=(\roman*)]
+    \item There is an inducing path in $G$ between $i$ and $j$;
+    \item There is an inducing walk in $G$ between $i$ and $j$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  (i) $\implies$ (ii) is trivial.
+
+  We could go via (iii) and (iv):
+  \begin{enumerate}[label=(\roman*)]\setcounter{enumi}{2}
+    \item $i \nIndep^\sigma_G j \given Z$ for all $Z \subseteq V \setminus \{i,j\}$;
+    \item $i \nIndep^\sigma_G j \given Z$ for $Z = \Anc_G(\{i,j\}) \setminus \{i,j\}$,
+  \end{enumerate}
+  or a direct proof by cutting out a part between repeated nodes.
+
+  (ii) $\implies$ (iii): Assume the existence of an inducing walk between $i$ and $j$ in $G$. 
+  Let $Z \subseteq V\setminus\{i,j\}$. 
+  Consider all walks in $G$ between $i$ and $j$ with the property that all colliders on it are in $\Anc_{G}({\{i,j\}) \cup Z}$, and each non-endpoint non-collider on it is not in $Z$ or points only to nodes in the same strongly connected component of $G$.
+  Such walks exist, since the inducing walk is one. 
+  Let $\mu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$. 
+  It is either ancestor of $i$ or of $j$, by assumption.
+  Without loss of generality, assume the latter.
+  Then there is a directed path $\pi$ from $k$ to $j$ in $G$ that does not pass through any node of $Z$. 
+%  Let $k$ be the vertex closest to $j$ on $\mu$ that is also on $\pi$. 
+  Then the subwalk of $\mu$ between $i$ and $k$ can be concatenated with the directed path $\pi$
+  into a walk between $i$ and $j$ that has the property, but has fewer colliders than $\mu$: a contradiction. 
+  Therefore, $\mu$ can be extended to a walk that is $\sigma$-open given $Z$, by replacing each collider $k$ on
+  it by a walk $k \to \dots \to z \ot \dots \ot k$ for some closest descendant $z \in Z$ of $k$ (with possibly $z=k$).
+  Hence, $i$ and $j$ are $\sigma$-connected given $Z$.
+
+  (iii) $\implies$ (iv) is trivial.
+
+  (iv) $\implies$ (i): Suppose that %$i$ and $j$ are $\sigma'$-connected given any $Z \subseteq V \setminus \{i,j\}$.
+  %In particular, 
+  $i$ and $j$ are $\sigma'$-connected given $Z^* = \Anc_{G}(\{i,j\}) \setminus \{i,j\}$. 
+  Let $\pi$ be a path between $i$ and $j$ that is $\sigma'$-open given $Z^*$.
+  We show that $\pi$ must be an inducing path. 
+  First, all colliders on $\pi$ are in $\Anc_{G}(Z^*)$ and hence in $\Anc_{G}(\{i,j\})$. 
+  Second, let $k$ be any non-endpoint non-collider on $\pi$.
+  Then there must be a directed subwalk of $\pi$ starting at $k$ that ends either at the first collider on $\pi$ next to $k$ or at an end node of $\pi$, and hence $k$ must be in $Z^*$. 
+  Since $\pi$ is $\sigma'$-open given $Z^*$, $k$ can only point to nodes in the same strongly connected component of $G$.
+  Hence, all non-endpoint non-colliders on $\pi$ can only point to nodes in the same strongly connected component of $G$.
+\end{proof}
+
+We will introduce some terminology regarding the orientation of edges and of walks.
+\begin{Def}
+Edges of the form $i \ot j, i \oto j$ are called \emph{into $i$}, and similarly, edges of the form $i \to j, i \oto j$ are called \emph{into $j$}. 
+Edges of the form $i \to j$ and $j \ot i$ are called \emph{out of $i$}.
+A walk between $i$ and $j$ is called \emph{into $i$} if it is of the form $i \ots \cdots j$, and \emph{out of $i$} if it is of the form $i \to \cdots j$.
+\end{Def}
+The orientation of the outermost edges on an inducing walk (or path) contain important information.
+\begin{Lem}\label{lem:inducing_walks_out_of}
+  Let $G = \langle V,E,L \rangle$ be a DMG and $i,j \in V$ be distinct. 
+  If there exists an inducing walk between $i$ and $j$ in $G$,
+  and all inducing walks in $G$ between $i$ and $j$ are out of $i$, then:
+  \begin{enumerate}
+    \item $i \in \Anc_G(j)$, and
+    \item the first node next to $i$ on any inducing walk between $i$ and $j$ cannot be in $\Sc_G(i)$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  Let $\mu$ be an inducing walk between $i$ and $j$ in $G$. 
+  It must be of the form $i \to l \cdots j$ (with possibly $l = j$). 
+  First note that $l$ cannot be in $\Sc_G(i)$, because otherwise we could reverse the orientation of the first edge and obtain an inducing walk $i \ot l \cdots j$ that would be into $i$, contradicting the assumption.
+  If $\mu$ is a directed walk all the way to $j$, then clearly, $i \in \Anc_G(j)$.
+  Otherwise, it must contain a collider. 
+  Let $k$ be the collider on $\mu$ closest to $i$.
+  $k$ must be ancestor of $i$ or $j$. 
+  In the latter case, clearly $i \in \Anc_G(j)$.
+  In the former case, all nodes on the subwalk of $\mu$ between $i$ and $k$ must be in $\Sc_G(i)$, a contradiction.
+\end{proof}
+
+The same proof strategy of Proposition~\ref{prp:inducing_path_properties} (ii)$\implies$(iii) can be used to show two slightly stronger statements.
+\begin{Prp}\label{prp:inducing_path_orientations}
+  Let $G = \langle V,E,L \rangle$ be a DMG and $i,j \in V$ be distinct. Then:
+  \begin{enumerate}[label=(\roman*)]
+    \item if there is an inducing walk in $G$ into $i$, then for all 
+      $Z \subseteq V \setminus \{i,j\}$ there exists a $Z$-$\sigma'$-open walk in $G$ that is
+      into $i$.
+    \item if there is an inducing walk in $G$ between $i$ and $j$, and all such walks are out of $i$,
+      then for all $Z \subseteq V \setminus \{i,j\}$ there exists a $Z$-$\sigma'$-open walk of the form $i \to k \cdots j$
+      (with possibly $k = j$) such that $k \notin \Sc_G(i)$.
+  \end{enumerate}
+  In that latter case, we also conclude that $i \in \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  (i) Suppose there exists an inducing walk between $i$ and $j$ in $G$ that is into $i$.
+  Let $Z \subseteq V\setminus\{i,j\}$. 
+  Consider all walks in $G$ between $i$ and $j$ with the property that the walk is into $i$, all colliders on it are in $\Anc_{G}({\{i,j\}) \cup Z}$, and each non-endpoint non-collider on it is not in $Z$ or points only to nodes in the same strongly connected component of $G$.
+  Such walks exist, since the inducing walk is one. 
+  Let $\mu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$. 
+  It is either ancestor of $i$ or of $j$, by assumption.
+  If it is ancestor of $i$, there is a directed path $\pi$ from $k$ to $i$ in $G$ that does not pass through any node of $Z$.
+  The subwalk of $\mu$ between $j$ and $k$ can be concatenated with the directed path $\pi$ into a walk between $i$ and $j$ that has the property (in particular, it is still into $i$), but has fewer colliders than $\mu$: a contradiction.
+  If it is not ancestor of $i$, but of $j$, then a similar construction can be used to arrive at a contradiction, but now using a directed path from $k$ to $j$ instead.
+  Therefore, $\mu$ is $\sigma'$-open given $Z$, and it is into $i$.
+
+  (ii) Suppose there exists an inducing walk between $i$ and $j$ in $G$.
+  Assume that all inducing walks in $G$ between $i$ and $j$ are out of $i$.
+  Let $Z \subseteq V\setminus\{i,j\}$. 
+  Consider all walks in $G$ between $i$ and $j$ with the property that the walk is out of $i$, the first node next to $i$ is not in $\Sc_G(i)$, all colliders on it are in $\Anc_{G}({\{i,j\}) \cup Z}$, and each non-endpoint non-collider on it is not in $Z$ or points only to nodes in the same strongly connected component of $G$. 
+  Such walks exist, since the inducing walk is one. 
+  Let $\mu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$. 
+  It is either ancestor of $i$ or of $j$, by assumption.
+  By Lemma~\ref{lem:inducing_walks_out_of}, $i \in \Anc_G(j)$.
+  Hence, $k$ must be ancestor of $j$.
+  Therefore, there is a directed path $\pi$ from $k$ to $j$ in $G$ that does not pass through any node of $Z$.
+  The subwalk of $\mu$ between $i$ and $k$ can be concatenated with the directed path $\pi$ into a walk between $i$ and $j$ that has the property (in particular, it is still out of $i$, and the node next to $i$ is unchanged), but has fewer colliders than $\mu$: a contradiction.
+  Therefore, $\mu$ is $\sigma'$-open given $Z$, and it is out of $i$.
+
+  The last statement follows from Lemma~\ref{lem:inducing_walks_out_of}.
+\end{proof}
+
+\subsubsection{Directed Partial Ancestral Graphs (DPAGs)}
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (-2,0) {(a)};
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[carr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[carr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=6.5cm]
+      \node at (-4,0) {(b)};
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[carc] (X1) edge (X2);
+      \draw[carc] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6.5cm,yshift=-1.5cm]
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[carr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm]
+      \node at (-4,0) {(c)};
+      \node[var] (X1) at (-3,0) {$i$};
+      \node[var] (X2) at (-1.5,0) {$j$};
+      \node[var] (X3) at (0,0) {$k$};
+      \draw[carc] (X1) edge (X2);
+      \draw[carc] (X2) edge (X3);
+%      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[carc,bend right] (X1) edge (X3);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Example DPAGs. (a) DPAG containing the Y-structures in Figure~\ref{fig:Ystruct}. 
+  (b) Two different DPAGs that both contain all the LCD DMGs from Figure~\ref{fig:LCD}. 
+  (c) DPAG that contains the DMG in Figure~\ref{fig:inducing_path}(a).\label{fig:dpags}}
+\end{figure}
+
+It is often convenient when performing causal reasoning to be able to represent a set of DMGs in a compact way. 
+For this purpose, \emph{partial ancestral graphs (PAGs)} have been introduced \cite{Zhang2006}.
+Here we will assume no selection bias for simplicity, which allows us to restrict ourselves to discussing 
+\emph{directed} PAGs (henceforth abbreviated as DPAGs).
+
+Directed PAGs can have multiple edge types. In addition to the three edge types we have seen before
+($\to$, $\ot$, $\oto$), there are three new edge types involving a circle: $\otc,\ctc,\cto$.
+Each edge $i \sts j$ therefore has two \emph{edge marks}, one for each node, with each edge mark
+either a \emph{tail}, \emph{arrowhead} or \emph{circle}. For example, the directed edge $i \to j$ has a 
+tail at $i$ and an arrowhead at $j$, while the bi-circle edge $i \ctc j$ has two circle edge marks.\footnote{PAGs have more edge types than DPAGs: they can also have 
+undirected or circle-tail edges, i.e., edges of the form $\{\ttt,\ttc,\ctt\}$. This means that for PAGs,
+all combinations of edge marks may occur.}
+Only 6 out of the 9 possible combinations of edge marks can occur in directed PAGs. We will make use
+of the ``$\asterisk$'' symbol to denote any of the three edge marks. So the notation $i \sts j$
+includes all 6 possible edge types between $i$ and $j$, whereas $i \ots j$ is shorthand for three
+possible edge types.
+Edges of the form $i \ot j, i \otc j, i \oto j$ are called \emph{into $i$}, and similarly, edges of the form $i \to j, i \cto j, i \oto j$ are called \emph{into $j$}. Edges of the form $i \to j$ and $j \ot i$ are called \emph{out of $i$}.
+
+In order to define the subclass of DPAGs, we 
+extend the definitions of (directed) walks, (directed) paths and colliders to cover these new edge types.
+\begin{Def}\label{def:more_walks}
+  Let $G=(V,E)$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\to,\ot,\otc,\oto,\ctc,\cto\}$.\footnote{Formally, we no longer introduce separate sets to represent the edges of each type, but merge them into the single set $E$.}
+  Let $v,w \in V$.
+  \begin{enumerate}
+    \item If there is an edge $v \sts w$ between $v$ and $w$ (of either type), we call $v$ and $w$ \emph{adjacent} in $G$.
+    \item A \emph{walk between $v$ and $w$} in $G$ is a finite sequence of nodes and edges 
+        \[v=v_0 \sts v_1 \sts  \cdots \sts v_{n-1} \sts v_n=w\] 
+        in $G$ for some $n \ge 0$, i.e.\ such that for every $k=1,\dots,n$ 
+        we have that $v_{k-1},v_k \in V$ and $v_{k-1} \sts v_k \in E$, and with $v_0=v$ and $v_n=w$.
+        Here, the symbol ``$\asterisk$'' can stand for any edge mark (tail, arrowhead, or circle).
+    \item A walk is called a \emph{path} if no node occurs multiple times in the walk.
+    \item A \emph{directed walk} (path) from $v$ to $w$ in $G$ is a walk (path) of the form:
+        \[v=v_0 \to v_1 \to  \cdots \to v_{n-1} \to v_n=w,\]
+        for some $n \ge 0$.
+    \item A \emph{directed cycle} is a directed walk from $v \to \dots \to w$, concatenated with
+      the directed edge $w \to v$.
+    \item An \emph{almost directed cycle} is a directed walk from $v \to \dots \to w$, concatenated
+      with the bidirected edge $w \oto v$.
+    \item A triple of consecutive nodes $v_{k-1} \sts v_k \sts v_{k+1}$ on a walk is called \emph{collider}
+      if it is of the form $v_{k-1} \sto v_k \ots v_{k+1}$.
+    \item A walk $v \cdots w$ between $v$ and $w$ is called \emph{inducing} if every collider on the walk is in $\Anc_G(\{v,w\})$, and every non-collider on the walk (except the endpoints) only has outgoing directed edges to neighboring nodes on the walk that lie in the same strongly connected component of $G$.
+  \end{enumerate}
+\end{Def}
+We can now define:
+\begin{Def}\label{def:dpag}
+%  We call a graph $G = \langle V,E\rangle$ with nodes $V$ and edges $E$ between ordered node pairs of the types $\{\ttt,\ttc,\to,\ot,\otc,\oto,\ctt,\ctc,\cto\}$ a \emph{partial ancestral graph (PAG)} if
+  %It is called a \emph{directed partial ancestral graph (DPAG)} if it only has edges of the types $\{\to,\ot,\oto,\otc,\cto,\ctc\}$.
+  A mixed graph $H = \langle V,E\rangle$ with nodes $V$ and edges $E$ of the types $\{\to,\ot,\otc,\oto,\ctc,\cto\}$ is called a \emph{directed partial ancestral graph (DPAG)} if all of the following conditions hold:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no self-cycles;
+    \item The graph contains no directed or almost directed cycles (``ancestral'');
+    \item There is no inducing path between any two non-adjacent nodes (``maximal'').
+  \end{enumerate}
+\end{Def}
+We can define the skeleton of any mixed graph in the following way.
+\begin{Def}\label{def:skeleton}
+Given a DPAG $H = \langle V, E \rangle$, its induced \emph{skeleton} is the mixed graph 
+$\skel(H) = \langle V, F \rangle$ with the same nodes, and with a bicircle edge $i \ctc j$ in $F$
+  if and only if $i \sts j$ in $E$ (i.e., if $i$ and $j$ are adjacent in $H$).
+\end{Def}
+Hence, the only edge type occurring in the skeleton is the bicircle edge.
+DPAGs are used to represent a set of directed mixed graphs as follows.
+\begin{Def}\label{def:dpag_contains_dmg}
+  Let $H = \langle V,E\rangle$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\to,\ot,\otc,\oto,\ctc,\cto\}$, with at most one edge connecting any pair of distinct nodes.
+  Let $G$ be a directed mixed graph.
+  We say that \emph{$H$ contains $G$} if all of the following hold:
+  \begin{enumerate}
+    \item $G$ and $H$ have the same vertex set $V$;
+    \item two vertices $i,j$ are adjacent in $H$ if and only if there is an inducing path between $i,j$ in $G$;
+    \item if $i \sto j$ in $H$ (i.e., $i \to j$ in $H$ or $i \cto j$ in $H$ or $i \oto j$ in $H$), then $j \notin \Anc_{G}(i)$;
+    \item if $i \to j$ in $H$ then $i \in \Anc_{G}(j)$.
+  \end{enumerate}
+\end{Def}
+Hence, adjacencies represent inducing paths, arrowheads represent non-ancestorship, and tails represent ancestorship.
+Some examples are given in Figure~\ref{fig:dpags}. 
+Figure~\ref{fig:nonmaximal_ancestral_graph} provides an example of a mixed graph that satisfies all conditions of a DPAG except the maximality.
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+%      \node at (-2,0) {(d)};
+      \node[var] (X1) at (-1,0) {$i$};
+      \node[var] (X2) at (-1,2) {$j$};
+      \node[var] (X3) at (1,2) {$k$};
+      \node[var] (X4) at (1,0) {$l$};
+      \draw[biarr] (X1) edge (X2);
+      \draw[biarr] (X2) edge (X3);
+      \draw[biarr] (X3) edge (X4);
+      \draw[arr] (X2) edge (X4);
+      \draw[arr] (X3) edge (X1);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{This mixed graph is not a valid DPAG, because it is not maximal: 
+  it has an inducing path $i \oto j \oto  k \oto l$ while $i$ and $l$ are non-adjacent.\label{fig:nonmaximal_ancestral_graph}}
+\end{figure}
+
+We will frequently use that every mixed graph (of a certain type) that contains a DMG must be a valid DPAG.
+\begin{Prp}\label{prp:dpag_contains_dmg_is_valid}
+Let $H = \langle V,E\rangle$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\to,\ot,\otc,\oto,\ctc,\cto\}$, with at most one edge connecting any pair of distinct nodes.
+If $H$ contains a directed mixed graph $G$, then $H$ is a DPAG.
+\end{Prp}
+\begin{proof}
+  ``Ancestral''. Suppose that $H$ contains a directed path $i = v_1 \to \dots \to v_n = j$.
+  Then, each directed edge $v_k \to v_{k+1}$ along this directed path implies that $v_k \in \Anc_G(v_{k+1})$. 
+  By transitivity, $i \in \Anc_G(j)$. 
+  If $H$ contained an edge $j \sto i$, this would imply $j \notin \Anc_G(j)$, a contradiction. 
+  Hence such edges cannot occur.
+  This means that no directed or almost directed cycles occur in $H$.
+
+  ``Maximal''.
+  Suppose there were an inducing path $\mu$ in $H$ between any two distinct nodes $u,v \in V$. 
+  Every edge $i \sts j$ on $\mu$ corresponds with an inducing walk in $G$ between $i$ and $j$. 
+  By Lemma~\ref{lemm:inducing_walk_into}, these inducing walks can be chosen to be into $i$ if the edge is $i \ots j$ and also into $j$ if the edge is $i \sto j$. 
+  A collider on $\mu$ then stays a collider on the walk between $u$ and $v$ in $G$ obtained by concatenating all these inducing walks.
+  Since such colliders are in $\Anc_H(\{u,v\})$ by assumption, they are also in $\Anc_G(\{u,v\})$.
+  All intermediate colliders on some inducing walk in $G$ between $i$ and $j$ are ancestor in $G$ of $i$ or $j$, and
+  hence, of $u$ or $v$.
+  A non-collider on $\mu$ points to a neighboring node in the same strongly-connected component of $H$.
+  But $H$ has no non-trivial strongly connected components, since we already showed that it must be acyclic.
+  Therefore, it does not contain any non-colliders (except for the endpoints).
+  The walk in $G$ obtained by concatenating all inducing walks along $\mu$ is therefore actually an inducing walk in $G$.
+  Hence, $u,v$ must be adjacent in $H$, because $H$ contains $G$.
+  Hence all inducing paths in $H$ are between two adjacent nodes.
+\end{proof}
+
+The following result shows that every DMG can be represented by a DPAG that contains it.
+\begin{Prp}
+  Let $G$ be a directed mixed graph. There exists a DPAG $\DPAG(G)$ that contains $G$.
+\end{Prp}
+\begin{proof}
+  Denote the vertex set of $G$ as $V$.
+  We will construct a mixed graph $H$ with vertex set $V$ as follows.
+  Let two vertices $i,j \in V$ be adjacent in $H$ if and only if there is an inducing path between $i,j$ in $G$.
+  In that case, orient the edge between $i$ and $j$ in $H$ as follows:
+    $$\begin{cases}
+      \text{$i \ctc j$} & \text{if $i \in \Anc_G(j)$ and $j \in \Anc_G(i)$}, \\
+      \text{$i \to  j$} & \text{if $i \in \Anc_G(j)$ and $j \notin \Anc_G(i)$}, \\
+      \text{$i \ot  j$} & \text{if $i \notin \Anc_G(j)$ and $j \in \Anc_G(i)$}, \\
+      \text{$i \oto j$} & \text{if $i \not\in \Anc_G(j)$ and $j \not\in \Anc_G(i)$.}
+    \end{cases}$$
+%    \begin{compactitem}
+%      \item $u \to v \in \tilde{\C{E}}$ if and only if there is an inducing path between $u$ and $v$ in $\C{G}$ and $u \in \ansub{\C{G}}{v}$,
+%      \item $u \ot v \in \tilde{\C{E}}$ if and only if there is an inducing path between $u$ and $v$ in $\C{G}$ and $v \in \ansub{\C{G}}{u}$,
+%      \item $u \oto v \in \tilde{\C{F}}$ if and only if there is an inducing path between $u$ and $v$ in $\C{G}$ and $u \not\in \ansub{\C{G}}{v}$ and $v \not\in \ansub{\C{G}}{u}$.
+%    \end{compactitem}
+%This construction preserves the (non-)ancestral relations as well as the $d$-separations/connections.
+  It is obvious by construction that $H$ contains $G$.
+  It is a valid DPAG by Proposition~\ref{prp:dpag_contains_dmg_is_valid}.
+\end{proof}
+If $G$ is acyclic, the DPAG constructed in this way contains no circle edge marks (and is called the directed maximal ancestral graph (DMAG) induced by $G$ in the literature).
+
+The following lemma shows that the orientation of edges in a DPAG that contains a DMG contains
+information on the orientation of corresponding inducing paths in the DMG.
+\begin{Lem}\label{lemm:inducing_walk_into}
+  Let $H$ be a DPAG that contains DMG $G$. 
+  If $k \sto i$ in $H$, then there exists an inducing walk in $G$ between $k$ and $i$ that is into $i$.
+  If $k \oto i$ in $H$, then there exists an inducing walk in $G$ between $k$ and $i$ that is both into $k$ and into $i$.
+\end{Lem}
+\begin{proof}
+  If $k \sto i$ in $H$, then there %is an inducing walk between $k$ and $i$ in $G$ that is into $i$.
+  exists an inducing walk between $k$ and $i$ in $G$ because $k$ and $i$ are adjacent in $H$ and $H$ contains $G$.
+  If this inducing walk were out of $i$, it would be of the form $k \ldots \sto u_n \ot u_{n-1} \ot \dots \ot u_1 \ot i$, where $u_n$ is the first collider on the walk that one encounters when following the directed edges out of $i$ (note that it cannot be a directed walk from $i$ to $k$ because then $i \notin \Anc_G(k)$, contradicting the orientation $k \sto i$ in $H$).
+  $u_n$ must be ancestor of $i$ or $k$ in $G$, and it cannot be ancestor of $k$ (because then $i$ would be ancestor of $k$, contradicting the orientation $k \sto i$ in $H$), hence it must be ancestor of $i$.
+  Therefore, all nodes $i, u_1, \dots, u_n$ lie in the same strongly connected component of $G$.
+  Thus there exists a walk $k \ldots \sto u_n \to \dots \to i$ in $G$ where we replaced the subwalk $u_n \ot u_{n-1} \ot \dots \ot i$ by a directed path from $u_n$ to $i$. 
+  It is clear that this is an inducing walk in $G$ between $k$ and $i$ that is into $i$.
+
+  If $k \oto i$ in $H$, then by similar reasoning, we obtain an inducing walk in $G$ between $k$ and $i$ that is into $k$ as well as into $i$.
+\end{proof}
+
+\subsubsection{Unshielded triples}
+
+One of the key steps in the FCI algorithm is the orientation of ``unshielded triples''.
+\begin{Def}
+  Let $H$ be a mixed graph. A triple of distinct nodes $\langle i,j,k \rangle$ in $H$ is called
+  an \emph{unshielded triple} if $i \sts j$ in $H$, and $j \sts k$ in $H$, but
+  $i$ and $k$ are not adjacent in $H$.
+\end{Def}
+The following proposition will later be used to ``orient'' the edges in unshielded triples
+in a DPAG containing a DMG.
+
+\begin{Prp}\label{prp:orienting_unshielded_triples}
+  Let $H$ be a DPAG that contains a DMG $G$ with vertex set $V$.
+  If $\langle i, j, k \rangle$ form an unshielded triple in $H$, then
+  either 
+  \begin{enumerate}[label=(\roman*)]
+    \item $j \notin Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \notin \Anc_G(\{i,k\})$, or
+    \item $j \in Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \in \Anc_G(\{i,k\})$.
+  \end{enumerate}
+\end{Prp}
+%\begin{Prp}
+%  Let $G$ be a DMG with vertex set $V$. Suppose that there is an inducing path in $G$ between $i,j$
+%  and one between $j,k$, but not between $i,k$. Then either $j \in Z$ for each
+%  $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$, or 
+%  $j \notin Z$ for each such $Z$. In the former case, $j \in \Anc_G(\{i,k\})$,
+%  while in the latter case, $j \notin \Anc_G(\{i,k\})$.
+%\end{Prp}
+\begin{proof}
+  Because $H$ contains $G$ and $\langle i,j,k \rangle$ is an unshielded triple in $H$, there must exist an inducing walk in $G$ between $i$ and $j$, and one between $j$ and $k$, but there exists no inducing walk in $G$ between $i$ and $k$.
+%  $d$-connection given $\Anc_G(\{i,k\}) \setminus \{i,k\}$ is equivalent to the existence of an inducing path between $i$ and $k$.
+%  We know that $i$ is $d$-separated from $k$ given $\Anc_G(\{i,k\})$. 
+
+  Suppose there are inducing walks of the form $i \cdots \sto j$ and $j \ots \cdots k$ in $G$, i.e., both into $j$. 
+  Let $Z \subseteq V \setminus \{i,k\}$ be such that $i \Perp^\sigma_G k \given Z$.
+  By Proposition~\ref{prp:inducing_path_orientations}, we can find a $Z$-$\sigma'$-open walk in $G$ between $i$ and $j$ that is into $i$, and one between $j$ and $k$ that is into $j$.
+  By concatenating the two walks, we obtain a walk between $i$ and $k$ in $G$ that has $j$ as a collider, and that is $Z$-$\sigma'$-open if and only if $j \in \Anc_G(Z)$.
+  Since we assumed that $Z$ $\sigma$-separates $i$ from $k$ in $G$, we get $j \notin \Anc_G(Z)$.
+  In particular, this implies that $j \notin Z$.
+  Because there is no inducing walk between $i$ and $k$ in $G$, Proposition~\ref{prp:inducing_path_properties} tells us that $i \Perp^\sigma_G k \given \Anc_G(\{i,k\}) \setminus \{i,k\}$.
+  For the special case $Z = \Anc_G(\{i,k\}) \setminus \{i,k\}$ we then conclude that $j \notin \Anc_G(\{i,k\})$.
+
+  Alternatively, suppose that there are no inducing walks in $G$ between $i$ and $j$ that are into $j$, or no inducing walks in $G$ between $j$ and $k$ that are into $j$.
+  Without loss of generality, assume the former.
+  Then all inducing walks in $G$ between $i$ and $j$ must be out of $j$.
+  By Proposition~\ref{prp:inducing_path_orientations}, then $j \in \Anc_G(i)$.
+  Let $Z \subseteq V \setminus \{i,k\}$ be such that $i \Perp^\sigma_G k \given Z$.
+  By Proposition~\ref{prp:inducing_path_orientations}, we can find a $Z$-$\sigma'$-open walk in $G$ between $i$ and $j$ that is out of $j$ and on which $j$ points to a node in another strongly connected component of $G$. 
+  By Proposition~\ref{prp:inducing_path_properties} we can also find a $Z$-$\sigma'$-open walk in $G$ between $j$ and $k$.
+  By concatenating the two walks, we obtain a walk in $G$ between $i$ and $k$ that has $j$ as a non-endpoint non-collider, and that is $Z$-$\sigma'$-open if and only if $j \notin Z$ or $j$ only points to nodes in the same strongly connected component of $G$.
+  Since we assumed that $Z$ $\sigma$-separates $i$ from $k$ in $G$, we conclude that $j \in Z$.
+\end{proof}
+Note that in the first case, we can orient the edges as $i \sto j \ots k$ (if they were not already oriented in this way) to obtain a DPAG $\tilde{H}$ that also contains $G$. 
+In the second case, we cannot orient the edges, since we don't know whether $j \in \Anc_G(i)$ or $j \in \Anc_G(k)$ or both.
+
+\subsubsection{Discriminating paths}
+
+Another step in FCI is related to the notion of ``discriminating paths''.
+This can be considered as an extension of the notion of unshielded triple.
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[var] (X) at (0,0) {$x$};
+      \node[var] (Q1) at (1.5,0) {$q_1$};
+      \node[var] (Q2) at (3,0) {$q_2$};
+      \node (dots) at (4.5,0) {$\cdots$};
+      \node[var] (Qn) at (6,0) {$q_n$};
+%      \node[var] (B) at (7.5,0.0) {$b$};
+%      \node[var] (Y) at (7.5,2) {$y$};
+      \node[var] (B) at (7,1.0) {$b$};
+      \node[var] (Y) at (8,0) {$y$};
+      \draw[sarr] (X) -- (Q1);
+      \draw[biarr] (Q1) -- (Q2);
+      \draw[biarr] (Q2) -- (dots);
+      \draw[biarr] (dots) -- (Qn);
+      \draw[arr,bend right,in=220] (Q1) edge (Y);
+      \draw[arr,bend right,in=200] (Q2) edge (Y);
+      \draw[arr] (Qn) edge (Y);
+      \draw[sarr]  (B) -- (Qn);
+      \draw[sars] (B) -- (Y);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Discriminating path $\langle x,q_1,q_2,\dots,q_n,b,y \rangle$ for $b$ between $x$ and $y$.\label{fig:discriminating_path}}
+\end{figure}
+
+\begin{Def}\label{def:discriminating_path}
+  A path $\pi = \langle x, q_1, \dots, q_n, b, y\rangle$ (with $n \ge 1$) in a DPAG $H$ is
+  a \emph{discriminating path for $b$} if:
+  \begin{enumerate}[label=(\roman*)]
+    \item $x$ is not adjacent to $y$ in $H$, and
+    \item every node $q_i$ ($1 \le i \le n$) is a collider on $\pi$ and a parent of $y$ in $H$.
+  \end{enumerate}
+\end{Def}
+Figure~\ref{fig:discriminating_path} illustrates this notion.
+\begin{Rem}\label{rem:discriminating_path}
+  It is instructive to think about a discriminating path rather as a certain collection of paths:
+  \begin{align*}
+    &x \sto q_1 \to y \\
+    &x \sto q_1 \oto q_2 \to y \\
+    &\vdots \\
+    &x \sto q_1 \oto q_2 \oto \dots \oto q_n \to y \\
+    &x \sto q_1 \oto q_2 \oto \dots \oto q_n \ots b \sts y
+  \end{align*}
+  with the additional requirement that $x$ and $y$ are not adjacent.
+\end{Rem}
+\begin{Rem}
+Note that the discriminating must always be into $y$ if $H$ contains a DMG $G$. 
+Indeed, if $y$ were in $\Anc_G(b)$, then $q_n \in \Anc_G(b)$ because $q_n \in \Anc_G(y)$,
+contradicting the arrowhead at $q_n$ in $q_n \ots b$.
+\end{Rem}
+
+The following quintessential property of discriminating paths is analogous to that of unshielded triples. 
+\begin{Prp}\label{prp:orienting_discriminating_paths}
+Let $H$ be a DPAG that contains a DMG $G$ with vertex set $V$.
+  If $\langle i, q_1, \dots, q_n, j, k \rangle$ is a discriminating path in $H$ for $j$ between $i$ and $k$, then
+  either 
+  \begin{enumerate}[label=(\roman*)]
+    \item $j \notin Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \notin \Anc_G(\{q_n,k\})$, or
+    \item $j \in Z$ for each $Z \subseteq V \setminus \{i,k\}$ that $\sigma$-separates $i$ from $k$ in $G$, and $j \in \Anc_G(k)$.
+  \end{enumerate}
+  In both cases, $k \notin \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  Because the DPAG $H$ contains DMG $G$, every edge $i \sts j$ in the discriminating path in $H$ corresponds to an inducing walk in $G$. % that is into $i$ if $i \ots j$ and into $j$ if $i \sto j$.
+  With Lemma~\ref{lemm:inducing_walk_into}, we conclude that these inducing walks can be chosen to be into $i$ if $i \ots j$ in $H$ and into $j$ if $i \sto j$ in $H$. 
+  Furthermore, each $q_i \in \Anc_G(y)$ for $i = 1,\dots,n$. 
+  For all $i=1,\dots,n$, there cannot exist inducing walks in $G$ between $q_i$ and $y$ that are into $q_i$.
+  Indeed, if there were such a walk, one could concatenate the inducing walks in $G$ between $x, q_1, \dots, q_i$ and $y$ into one inducing walk in $G$ between $x$ and $y$, contradicting their non-adjacency in $H$.
+  Therefore, all inducing walks in $G$ between $q_i$ and $y$ must be out of $q_i$, for all $i=1,\dots,n$.
+
+  Suppose that $Z \subseteq V \setminus \{x,y\}$ $\sigma$-separates $x$ and $y$ in $G$. 
+  By Proposition~\ref{prp:inducing_path_orientations},
+  We can find $Z$-$\sigma'$-open walks between $i$ and $j$ replacing each adjacent $i \sts j$ in the paths above, which are into $i$ if the edge is into $i$ and into $j$ if the edge is into $j$.
+  For the edges $q_i \sts b$ we can find a $Z$-$\sigma'$-open walk between $q_i$ and $y$ that is out of $q_i$.
+  For each of the paths in Remark~\ref{rem:discriminating_path}, consider the corresponding concatenation of such $Z$-$\sigma'$-open walks in $G$.
+  Since $x$ and $y$ are non-adjacent in $H$, and $H$ contains $G$, these concatenated walks must be $Z$-$\sigma'$-closed. 
+  For the first path in Remark~\ref{rem:discriminating_path}, this implies that $q_1 \in Z$.
+  For the second path, this then means that $q_2 \in Z$.
+  Repeating this reasoning, we conclude that all $q_i \in Z$ for $i=1,\dots,n$.
+
+  For the last path that includes $b$, we now reason similarly as for the unshielded triple in Proposition~\ref{prp:orienting_unshielded_triples}.
+  Suppose there exists an inducing walk in $G$ between $q_n$ and $b$ that is into $b$, and an inducing walk in $G$ between $b$ and $y$ that is into $b$.
+  Let $Z \subseteq V \setminus \{x,y\}$ be such that $x \Perp^\sigma_G y \given Z$.
+  Concatenating all corresponding $Z$-$\sigma'$-open walks in $G$ between the all subsequent vertices of the discriminating path $x, q_1, \dots, q_n, b, y$, we get a walk in $G$ between $x$ and $y$ on which $b$ is a collider.
+  The only way in which this walk could be $Z$-$\sigma'$-closed is if $b \notin \Anc_G(Z)$.
+  Hence we need $b \notin Z$.
+  In particular, taking $Z = \Anc_G(\{x,y\}) \setminus \{x,y\}$ (which must $\sigma$-separate $x$ from $y$ in $G$ because we assumed that $x$ and $y$ are non-adjacent in $H$), we conclude that $b \notin \Anc_G(\{x,y\})$. 
+  In particular, this means that $b \notin \Anc_G(y)$.
+  Since $q_n \in \Anc_G(y)$, this also implies that $b \notin \Anc_G(q_n)$. 
+
+  Suppose now instead that all inducing walks in $G$ between $b$ and $q_n$ are out of $b$. 
+  Then $b \in \Anc_G(q_n)$ by Proposition~\ref{prp:inducing_path_orientations}.
+  Since $q_n \in \Anc_G(y)$, we get $b \in \Anc_G(y)$.
+  Let $Z \subseteq V \setminus \{x,y\}$ be such that $x \Perp^\sigma_G y \given Z$.
+  In this case, $b$ becomes a noncollider on the concatenated walk between $x$ and $y$, and in order to $Z$-$\sigma'$-close the walk, we need that $b \in Z$.
+
+  The last case to consider is that all inducing walks between $b$ and $y$ are out of $b$.
+  Then $b \in \Anc_G(y)$ by Proposition~\ref{prp:inducing_path_orientations}.
+  Let $Z \subseteq V \setminus \{x,y\}$ be such that $x \Perp^\sigma_G y \given Z$.
+  $b$ again becomes a noncollider on the concatenated walk between $x$ and $y$, and in order to $Z$-$\sigma'$-close the walk, we need that $b \in Z$.
+\end{proof}
+Note that in the first case, we can orient $q_n \oto b \oto y$ (as far as the edge marks were not already oriented in this way) to obtain a DPAG $\tilde{H}$ that also contains $G$. 
+In the second case, we can orient $b \to y$ (as far as the edge marks were not already oriented in this way) to obtain a DPAG $\tilde{H}$ that also contains $G$.
+
+\begin{comment}
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (-1,1) {$G_1$:};
+      \node[var] (X) at (0,0) {$x$};
+      \node[var] (Q) at (1.5,0) {$q$};
+      \node[var] (B) at (2.5,1.0) {$b$};
+      \node[var] (Y) at (3.5,0) {$y$};
+      \draw[biarr] (X) -- (Q);
+      \draw[arr]   (Q) -- (Y);
+      \draw[biarr] (Q) -- (B);
+      \draw[biarr] (B) -- (Y);
+    \end{scope}
+    \begin{scope}[yshift=-3cm]
+      \node at (-1,1) {$G_2$:};
+      \node[var] (X) at (0,0) {$x$};
+      \node[var] (Q) at (1.5,0) {$q$};
+      \node[var] (B) at (2.5,1.0) {$b$};
+      \node[var] (Y) at (3.5,0) {$y$};
+      \draw[arr] (X) -- (Q);
+      \draw[arr]   (Q) -- (Y);
+      \draw[biarr] (Q) -- (B);
+      \draw[biarr] (B) -- (Y);
+    \end{scope}
+    \begin{scope}[xshift=8cm]
+      \node at (-1,1) {$G_3$:};
+      \node[var] (X) at (0,0) {$x$};
+      \node[var] (Q) at (1.5,0) {$q$};
+      \node[var] (B) at (2.5,1.0) {$b$};
+      \node[var] (Y) at (3.5,0) {$y$};
+      \draw[arr] (X) -- (Q);
+      \draw[arr] (Q) -- (Y);
+      \draw[arr] (B) -- (Q);
+      \draw[arr] (B) -- (Y);
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-3cm]
+      \node at (-1,1) {$G_4$:};
+      \node[var] (X) at (0,0) {$x$};
+      \node[var] (Q) at (1.5,0) {$q$};
+      \node[var] (B) at (2.5,1.0) {$b$};
+      \node[var] (Y) at (3.5,0) {$y$};
+      \draw[arr] (X) -- (Q);
+      \draw[arr] (Q) -- (Y);
+      \draw[biarr] (B) -- (Q);
+      \draw[arr] (B) -- (Y);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{$\langle x,q,b,y \rangle$ is a discriminating path for $b$ between $x$ and $y$ in each of these directed mixed graphs.\label{fig:discriminating_paths}}
+\end{figure}
+\end{comment}
+
+\subsubsection{Independence models and Markov equivalence}
+
+\begin{Def}
+For a DMG $G = \langle V, E, L \rangle$, define its \emph{$d$-independence model} to be
+$$\IM_d(G) := \{ \langle A, B, C \rangle : A, B, C \subseteq V, A \Perp_G^d B \mid C \},$$
+i.e., the set of all $d$-separations entailed by the graph. Define its
+\emph{$\sigma$-independence model} to be
+$$\IM_\sigma(G) := \{ \langle A, B, C \rangle : A, B, C \subseteq V, A \Perp_G^\sigma B \mid C \},$$
+i.e., the set of all $\sigma$-separations entailed by the graph. 
+\end{Def}
+In general, given an index set $V$, we call a subset of 
+$\C{P}(V)^3 = \{ \langle A, B, C \rangle : A, B, C \subseteq V \}$
+an \emph{independence model over $V$}.\footnote{Here, $\C{P}(V)$ denotes the power set of $V$, i.e., the set of all subsets of $V$, rather than the space of probability distributions on $V$.}
+If $\langle A, B, C \rangle$ in an independence model, we also say that $C$ separates $A$ from $B$.
+Both $\IM_d(G)$ and $\IM_\sigma(G)$ are independence models over $V$, the vertices of $G$.
+For ADMGs, $\sigma$-separation is equivalent to $d$-separation, and hence, if $G$ is acyclic, then
+$\IM_d(G) = \IM_\sigma(G)$.
+
+The input to the FCI algorithm will consist of an independence model over $V$,
+and its output will consist of a mixed graph with vertices $V$.
+If the input of FCI is the independence model of a DMG, then the output of FCI
+will be a DPAG that represents the ``Markov equivalence class'' of the DMG, as
+we will see later.
+\begin{Def}
+We call two DMGs $G_1$ and $G_2$ \emph{$\sigma$-Markov equivalent} if $\IM_\sigma(G_1) = \IM_\sigma(G_2)$,
+and \emph{$d$-Markov equivalent} if $\IM_d(G_1) = \IM_d(G_2)$.
+\end{Def}
+
+\subsubsection{FCI Algorithm}
+
+We need one more definition before we can state the FCI algorithm.
+\begin{Def}\label{def:pdpath}
+  A path $v_0 \sts v_1 \sts \dots \sts v_n$ between nodes $v_0$ and $v_n$ in a DPAG $H$ is called a \emph{possibly directed path from $v_0$ to $v_n$} if for each $i=1,\dots,n$, the edge $v_{i-1} \sts v_i$ is not into $v_{i-1}$ (i.e., is of the form $v_{i-1} \ctc v_i$, $v_{i-1} \cto v_i$, or $v_{i-1} \to v_i$). 
+  The path is called \emph{uncovered} if every subsequent triple $\langle v_{i-1}, v_i, v_{i+1} \rangle$ is unshielded, i.e., $v_{i-1}$ and $v_{i+1}$ are not adjacent in $H$ for $i=1,\dots,n-1$.
+\end{Def}
+
+%First stage: skeleton phase. We will only give a simple description of it.
+
+%The soundness of this is obvious from the definitions.
+
+%"The algorithm constructs a set of variables
+%called Possible-D-Sep(A,B,G), which is a function of A, B, and the graphical
+%object G constructed by the algorithm thus far which has the following property: 
+%if A and B are independent conditional on any subset of O\ {A, B },
+%then they are independent given some subset of Possible-D-Sep(A,B,G) or
+%Possible-D-Sep(B,A,G).
+
+%Lemma 13: If G0 is the partially oriented graph constructed in step C of
+%the Fast Causal Inference Algorithm for G(O, S, L), A and B are in O,
+%and A is not an ancestor of B in G, then every vertex in D-SEP (A , B ) in
+%G(O , S, L ) is in Possible-D-SEP (A, B, G).
+
+%The PC skeleton phase returns a superskeleton: for every missing edge, we found
+%a separating set, and hence there is no inducing path, and hence no edge in the DPAG.
+%For the remaining edges: if they are NOT in the DPAG, i.e., there is NO inducing path,
+%they can be separated by some subset of nodes reachable through certain paths.
+
+%OK, we could do the Causal Inference algorithm instead of FCI / FCI+.
+
+We are now ready to describe a causal inference algorithm that is closely related to FCI.
+Its input is an independence model over an index set $V$. Its output is a mixed graph with vertex set $V$.
+It starts with a \emph{skeleton phase} that is aimed at deducing the adjacencies between the nodes, and to find sets that separate two nodes.
+Then, it runs various \emph{orientation rules} that iteratively orients edge marks into tails and arrowheads.
+\begin{enumerate}
+  \item INPUT: Vertex set $V$, independence model $I$ over index set $V$.
+  \item Initialize $H$ to be the complete graph on $V$ with an edge $\ctc$ between each pair of distinct nodes.
+  \item For each unordered pair $i \ne j$ of nodes in $H$:\\
+    search for a subset $S \subseteq V \setminus \{i,j\}$ such that $\langle i, j, S \rangle \in I$;
+    if such a set $S$ is found then remove the edge $i \ctc j$ from $H$ and record $S$ in $\sepset(\{i,j\})$.\label{alg:fci_skeleton}
+  \item Orient unshielded triples in $H$:\label{alg:fci_R0}
+    \begin{description}
+    \item[$\C{R}0$] for each unshielded triple $\langle i,j,k \rangle$ in $H$, orient it as a collider $i \sto j \ots k$ if and only if $j$ is not in $\sepset(\{i,k\})$.
+    \end{description}
+  \item Perform the following orientation rules until none of them applies:
+    \begin{description}
+      \item[$\C{R}1$] If $i \sto j \cts k$ in $H$, and $i$ and $k$ are not adjacent in $H$, orient the triple as $i \sto j \to k$.
+      \item[$\C{R}2$] If $i \to j \sto k$ or $i \sto j \to k$ in $H$, and $i \stc k$ in $H$, then orient $i \sto k$.
+      \item[$\C{R}3$] If $i \sto j \ots k$ in $H$, and $i \stc l \cts k$ in $H$, and $l \stc j$ in $H$, and $i$ and $k$ are not adjacent in $H$, then orient $l \sto j$.
+      \item[$\C{R}4$] If $\langle i, q_1, \dots, q_n, j, k \rangle$ is a discriminating path in $H$ for $j$, and if $j \cts k$ in $H$, then orient $j \to k$ if $j \in \sepset(\{i,k\})$ and orient $q_n \oto j \oto k$ if $j \notin \sepset(\{i,k\})$.
+    \end{description}
+  \item Perform the following orientation rules until none of them applies:
+    \begin{description}
+      \item[$\C{R}8$] If $i \to j \to k$ in $H$, and $i \cto k$ in $H$, then orient $i \to k$.
+      \item[$\C{R}9$] If $i \cto k$, and $\pi = \langle i, j, \dots, k \rangle$ is an uncovered possibly directed path in $H$ from $i$ to $k$ such that $j$ and $k$ are not adjacent in $H$, then orient $i \to k$.
+      \item[$\C{R}10$] Suppose that $i \cto k$ in $H$, $j \to k \ot l$ in $H$, $\pi_1$ is a uncovered possibly directed path in $H$ from $i$ to $j$, and $\pi_2$ is a u.p.d.\ path in $H$ from $i$ to $l$. Let $u_1$ be the vertex adjacent to $i$ on $\pi_1$ (possibly $u_1 = j$) and $u_2$ the vertex adjacent to $i$ on $\pi_2$ (possible $u_2 = l$). If $u_1 \ne u_2$, and $u_1$ and $u_2$ are not adjacent in $H$, then orient $i \to k$.
+    \end{description}
+  \item OUTPUT the mixed graph $H$.
+\end{enumerate}
+We have here omitted orientation rules $\C{R}5$--$\C{R}7$ since these are only necessary if selection bias is not ruled out a
+priori. 
+Those rules can yield edges of the form $\ttc, \ctt$ and $\ttt$ that are not valid in DPAGs, and require the more general
+formalism of PAGs.
+
+We did not specify yet how the search for a separating set is performed in the so-called skeleton phase.
+A brute-force search over all possible subsets of $V\setminus \{i,j\}$ is not only computationally extremely expensive for all but the largest cardinalities of $V$, but also statistically not very reliable.
+There have been three proposals of improved search techniques, but the details of these are somewhat too involved to reproduce here.
+The original proposal motivated the (somewhat optimistic) adjective ``Fast'' in the name of the FCI algorithm and involves the so-called ``Possible-D-Sep'' sets.
+Later, an alternative search strategy was proposed that can be considerably faster in practice than FCI, without sacrificing completeness, and for which it can be shown that the corresponding FCI+ algorithm is of polynomial-time complexity in the number of nodes, as long as the degree of the DPAG is bounded.
+Another variant, the ``Really Fast Causal Inference'' algorithm has also been proposed, which adapts both the skeleton phase and the orientation rules, and sacrifices some completeness but remains sound.
+
+\subsubsection{Soundness and completeness of FCI}
+
+\begin{Thm}\label{thm:fci_sound}
+  The FCI algorithm is \emph{sound}, i.e., if its input consists of $I_\sigma(G)$ for a DMG $G$ with vertex set $V$, then its output will be a valid DPAG $H$ that contains $G$.
+\end{Thm}
+\begin{proof}
+  Since the details of the skeleton phase are omitted, we will assume that the implementation of that step is sound, or a brute-force search is done.
+  We therefore assume that after step \ref{alg:fci_skeleton} of the FCI algorithm, the mixed graph $H$ has vertex set $V$ and has an edge between any pair of distinct nodes $i,j \in V$ if and only if there is no set $S \subseteq V \setminus \{i,j\}$ such that $i \Perp^\sigma_G j \given S$.
+  Furthermore, if there is no edge in $H$ between a pair of distinct nodes $i,j \in V$, then $i \Perp^\sigma_G j \given \sepset(\{i,j\})$.
+  By Proposition~\ref{prp:inducing_path_properties}, this implies that two distinct nodes $i,j \in V$ are adjacent in $H$ at this stage if and only if there is an inducing walk in $G$ between $i$ and $j$.
+  By construction, the only edge type occurring at this stage in $H$ is $\ctc$, and hence we conclude that $H$ is a valid DPAG that contains $G$. 
+
+  Every application of rule $\C{R}0$ in step \ref{alg:fci_R0} adapts $H$ by turning certain circle edge marks into arrowheads.
+  This does not invalidate the validity of the DPAG $H$, and it follows from Proposition~\ref{prp:orienting_unshielded_triples} that after each of these orientations, $H$ still contains $G$.
+
+  The proof proceeds by induction.
+  We just show for each of the orientation rules that under the assumption that the current $H$ is a valid DPAG that contains $G$, applying the rule yields an updated $H$ that is still a valid DPAG that contains $G$.
+  In the following, we will always assume that the antecedent of the rule holds for a mixed graph $H$ that is a valid DPAG that contains DMG $G$.
+
+  \begin{description}
+    \item[$\C{R}1$] ``If $i \sto j \cts k$ in $H$, and $i$ and $k$ are not adjacent in $H$, orient the triple as $i \sto j \to k$.''\\
+      We have to show that $j \in \Anc_G(k)$.
+      Since the triple $\langle i, j, k \rangle$ is an unshielded triple in $H$, but has not been oriented as a collider by $\C{R}0$, we conclude that $j \in \sepset(\{i,k\})$. 
+      By Proposition~\ref{prp:orienting_unshielded_triples}, $j \in \Anc_G(\{i,k\})$.
+      Since $H$ contains $G$ and $i \sto j$ in $H$, $j \not\in \Anc_G(i)$. 
+      Therefore, $j \in \Anc_G(k)$.
+      After orienting $j \to k$ in $H$, the resulting mixed graph $H$ still contains $G$.
+    \item[$\C{R}2$] ``If $i \to j \sto k$ or $i \sto j \to k$ in $H$, and $i \stc k$ in $H$, then orient $i \sto k$.''\\
+      By the antecedent of the rule, and since $H$ contains $G$, we have $k \notin \Anc_G(j)$.
+      In case $i \to j \sto k$, we have $i \in \Anc_G(j)$, so if $k$ were in $\Anc_G(i)$, it would follow that $k \in \Anc_G(j)$, a contradiction.
+      In case $i \sto j \to k$, we have on one hand $j \notin \Anc_G(i)$, and on the other $j \in \Anc_G(k)$, so if $k$ were in $\Anc_G(i)$, it would follow that $j \in \Anc_G(i)$, contradicting $j \notin \Anc_G(i)$.
+      Hence, in both cases, we must have $k \in \Anc_G(i)$.
+      After orienting $i \sto k$ in $H$, the resulting mixed graph still contains $G$.
+    \item[$\C{R}3$] ``If $i \sto j \ots k$ in $H$, and $i \stc l \cts k$ in $H$, and $l \stc j$ in $H$, and $i$ and $k$ are not adjacent in $H$, then orient $l \sto j$.''\\
+      Since $\langle i, l, k \rangle$ is an unshielded triple in $H$ that was not oriented as a collider by $\C{R}0$, we must have that $l \in \Anc_G(\{i,k\})$ by Proposition~\ref{prp:orienting_unshielded_triples}.
+      Assume, for the sake of contradiction, that $j \in \Anc_G(l)$. 
+      Then $j \in \Anc_G(\{i,k\})$.
+      This contradicts that $j \notin \Anc_G(\{i,k\})$ from $i \sto j \ots k$ in $H$.
+      Hence, $j \notin \Anc_G(l)$.
+      After orienting $l \sto j$ in $H$, the resulting mixed graph still contains $G$.
+    \item[$\C{R}4$] ``If $\langle i, q_1, \dots, q_n, j, k \rangle$ is a discriminating path in $H$ for $j$, and if $j \cts k$ in $H$, then orient $j \to k$ if $j \in \sepset(\{i,k\})$ and orient $q_n \oto j \oto k$ if $j \notin \sepset(\{i,k\})$.''\\
+      It follows immediately from Proposition~\ref{prp:orieting_discriminating_paths} that applying this rule yields an updated mixed graph that still contains $G$.
+    \item[$\C{R}8$] ``If $i \to j \to k$ in $H$, and $i \cto k$ in $H$, then orient $i \to k$.''\\
+      Clearly, $i \in \Anc_G(j)$ and $j \in \Anc_G(k)$ implies $i \in \Anc_G(k)$.
+      Thus applying this rule yields an updated mixed graph that still contains $G$.
+    \item[$\C{R}9$] ``If $i \cto k$, and $\pi = \langle i, j, \dots, k \rangle$ is an uncovered possibly directed path in $H$ from $i$ to $k$ such that $j$ and $k$ are not adjacent in $H$, then orient $i \to k$.''\\
+      Suppose $i \notin \Anc_G(k)$.
+      The unshielded triple $\langle j, i, k \rangle$ was not oriented as a collider by $\C{R}0$, and therefore $i \in \Anc_G(j)$.
+      We can repeat such reasoning for each subsequent unshielded triple along the uncovered possibly directed path between $i$ and $k$.
+      Overall, by transitivity this implies that $i \in \Anc_G(k)$.
+      This, however, contradicts the assumption $i \notin \Anc_G(k)$.
+      Therefore, the only possibility is $i \in \Anc_G(k)$.
+      Applying the rule therefore yields an updated mixed graph that still contains $G$.
+    \item[$\C{R}10$] ``Suppose that $i \cto k$ in $H$, $j \to k \ot l$ in $H$, $\pi_1$ is a uncovered possibly directed path in $H$ from $i$ to $j$, and $\pi_2$ is a u.p.d.\ path in $H$ from $i$ to $l$. Let $u_1$ be the vertex adjacent to $i$ on $\pi_1$ (possibly $u_1 = j$) and $u_2$ the vertex adjacent to $i$ on $\pi_2$ (possible $u_2 = l$). If $u_1 \ne u_2$, and $u_1$ and $u_2$ are not adjacent in $H$, then orient $i \to k$.''
+      The unshielded triple $\langle u_1, i, u_2 \rangle$ that was not oriented by rule $\C{R}0$ implies that $i \in \Anc_G(u_1)$ or $i \in \Anc_G(u_2)$.
+      If $i \in \Anc_G(u_1)$, similar reasoning for each subsequent unshielded triple along the uncovered possibly directed path $\pi_1$ leads us to conclude by transitivity that $i \in \Anc_G(j)$, and since $j \in \Anc_G(k)$, also $i \in \Anc_G(k)$.
+      In case $i \in \Anc_G(u_2)$, analogous reasoning for $\pi_2$ leads to the same conclusion, $i \in \Anc_G(k)$.
+      In both cases, applying the rule yields an updated mixed graph that still contains $G$.
+  \end{description}
+  Since each of these orientation rules leaves the skeleton (adjacencies) of $H$ invariant,
+  and each orientation of an edge mark leads to a valid edge,
+  by Proposition~\ref{prp:dpag_contains_dmg_is_valid}, 
+  and after each orientation rule, $H$ still contains $G$,
+  $H$ remains a valid DPAG throughout the orientation phase.
+\end{proof}
+
+For acyclic $G$, the FCI algorithm was shown to be complete \cite{Zhang2008_AI} in the sense that all edge marks that could possibly be oriented based on the information in $\IM_\sigma(G)$ will be oriented.
+Using results on the characterization of Markov equivalence classes of DMAGs \cite{Ali++2005}, it can be additionally shown that the DPAG output by FCI represents the Markov equivalence class of $G$ in case $G$ is acyclic.
+These completeness results are rather nontrivial and require very long proofs, and we will therefore not provide these here.
+By employing acyclifications, these results could easily be extended to cyclic $G$ \cite{MooijClaassen_UAI_20}.
+We will only state the completeness results here, and refer the interested reader to the original papers for the proofs.
+
+Consider FCI as a mapping $\FCI$ that maps an independence model (on $V$) to a mixed graph (with vertex set $V$).
+It maps the independence model of a DMG $G$ to the DPAG $\FCI(\IM_\sigma(G))$.
+For two DMGs $G_1,G_2$ with the same vertex set $V$, we will write $G_1 \stackrel{\sigma}{\sim} G_2$ if $\IM_\sigma(G_1) = \IM_\sigma(G_2)$, i.e., if $G_1$ and $G_2$ are $\sigma$-Markov equivalent.
+\begin{Thm}\label{thm:fci_sound_complete}
+The FCI algorithm is:
+  \begin{enumerate}[label=(\roman*)]
+%    \item \emph{sound}: for all DMGs $\C{G}$, $\FCI(\IM_\sigma(\C{G}))$ contains $\C{G}$;\label{theo:fci_sound_complete_sound}
+    % or (explicit version):} satisfies the following properties:
+    % \begin{compactenum}
+    %   \item two vertices $i,j$ are adjacent in $\C{P}$ if and only if $i,j$ cannot be $\sigma$-separated by any subset of nodes (not containing $i$ or $j$) in $\C{G}$;
+    %   \item if $i \sto j$ in $\C{P}$ (i.e., $i \to j$ in $\C{P}$ or $i \cto j$ in $\C{P}$ or $i \oto j$ in $\C{P}$), then $j \notin \ansub{\C{G}}{i}$;
+    %   \item if $i \to j$ in $\C{P}$ then $i \in \ansub{\C{G}}{j}$.
+    % \end{compactenum}
+    \item \emph{arrowhead complete}: for all DMGs $G$, if $i \notin \Anc_{\tilde{G}}(j)$ for all DMGs $\tilde{G} \stackrel{\sigma}{\sim} G$, then there is an arrowhead $i \ots j$ in $\FCI(\IM_\sigma(G))$;
+    \item \emph{tail complete}: for all DMGs $G$, if $i \in \Anc_{\tilde{G}}(j)$ for all DMGs $\tilde{G} \stackrel{\sigma}{\sim} G$, then there is a tail $i \to j$ in $\FCI(\IM_\sigma(G))$;
+    \item \emph{Markov complete}: for all DMGs $G_1$ and $G_2$, $G_1 \stackrel{\sigma}{\sim} G_2$ if and only if $\FCI(\IM_\sigma(G_1)) = \FCI(\IM_\sigma(G_2))$.
+  \end{enumerate}
+\end{Thm}
+\begin{proof}
+  We refer the reader to \cite{MooijClaassen_UAI_20}.
+  \begin{comment}
+
+  Sketch:
+  The main idea is the following (see also Figure~\ref{fig:different_graphs}). For all DMGs $\C{G}$, $\IM_\sigma(\C{G}) = \IM_d(\C{G}')$ for any acyclification $\C{G}'$ of $\C{G}$ (Proposition~\ref{prop:Markov_equivalence_acyclification}). 
+  Hence FCI maps any acyclification $\C{G}'$ of $\C{G}$ to the same DPAG $\FCI(\IM_\sigma(\C{G}))$, and thereby any conclusion we draw about these acyclifications can be transferred back to a conclusion about $\C{G}$ by means of Proposition~\ref{prop:acyclification}. A complete proof is given in Section~\ref{app:proofs} of the Supplementary Material.
+
+  Complte proof:
+  %  Note that an alternative formulation of the soundness of FCI in the $\sigma$-separation setting is that the DPAG $\FCI(\IM_\sigma(\C{G}))$ output by FCI contains all DMAGs induced by all acyclifications of $\C{G}$ (see also Figure~\ref{fig:different_graphs}).
+  To prove soundness, let $\C{G}$ be a DMG and let $\C{P} = \FCI(\IM_\sigma(\C{G}))$. 
+  The acyclic soundness of FCI means that for all ADMGs $\C{G}'$, $\FCI(\IM_d(\C{G}'))$ contains $\C{G}'$. 
+  Hence, by Proposition~\ref{prop:Markov_equivalence_acyclification}, $\C{P}$ contains $\C{G}'$ for all acyclifications $\C{G}'$ of $\C{G}$. 
+  But then $\C{P}$ must contain $\C{G}$:
+  \begin{itemize} 
+    \item if two vertices $i,j$ are adjacent in $\C{P}$ then there is an inducing path between $i,j$ in any acyclification of $\C{G}$, which holds if and only if there is an inducing path between $i,j$ in $\C{G}$ (Proposition~\ref{prop:acyclification}(\ref{prop:acyclification_inducing_path});
+    \item if $i \sto j$ in $\C{P}$, then $j \notin \Anc_{G'}(i)$ for any acyclification $\C{G}'$ of $\C{G}$, and hence $j \notin \Anc_{G}(i)$ (Proposition~\ref{prop:acyclification}(\ref{prop:acyclification_anc}));
+    \item if $i \to j$ in $\C{P}$, then $i \in \Anc_{G'}(j)$ for all acyclifications $\C{G}'$ of $\C{G}$, and hence $i \in \Anc_{G}(j)$ (Proposition~\ref{prop:acyclification}(\ref{prop:acyclification_non_anc})).
+  \end{itemize}
+
+  To prove arrowhead completeness, let $\C{G}$ be a DMG and suppose that $i \in \Anc_{G}(j)$ in any DMG $\tilde{\C{G}}$ that is $\sigma$-Markov equivalent to $\C{G}$.
+  Since $\C{G}^\acy$ is $\sigma$-Markov equivalent to $\C{G}$, this implies in particular that for all ADMGs $\tilde{\C{G}}$ that are $d$-Markov equivalent to $\C{G}^\acy$, $i \in \Anc_{\tilde{G}}(j)$.
+  Because of the acyclic arrowhead completeness of FCI, there must be an arrowhead $i \ots j$ in $\FCI(\IM_d(\C{G}^\acy)) = \FCI(\IM_\sigma(\C{G}))$.
+  Tail completeness is proved similarly.
+
+  To prove Markov completeness: Proposition~\ref{prop:Markov_equivalence_acyclification}
+  implies both $\IM_\sigma(\C{G}_1) = \IM_d(\C{G}_1^\acy)$ and
+  $\IM_\sigma(\C{G}_2) = \IM_d(\C{G}_2^\acy)$. From the acyclic Markov completeness of FCI
+  (Proposition~\ref{prop:PAG=MEC} in the Supplementary Material), it then follows that
+  $\C{G}_1^\acy$ must be $d$-Markov equivalent to $\C{G}_2^\acy$, and
+  hence $\C{G}_1$ must be $\sigma$-Markov equivalent to $\C{G}_2$.
+
+  Alternatively, the statement of this theorem can be seen to be a special case of Theorem~\ref{theo:generalizing_soundness_completeness}, applied with the trivial background knowledge $\Psi(\C{G}) = 1$ for all DMGs $\C{G}$, to $\Phi : \C{G} \mapsto \FCI(\IM_\sigma(\C{G}))$, combined with the known (acyclic) soundness and completeness results of FCI \cite{Zhang2008_AI}. 
+  Note here that the trivial background knowledge $\Psi(\C{G}) = 1$ satisfies Assumption~\ref{ass:acybk} as follows immediately from Proposition~\ref{prop:acyclification}.
+  \end{comment}
+\end{proof}
+Arrowhead and tail completeness express that the DPAG output by FCI is maximally oriented: any arrowhead or tail that could possibly be deduced from $\IM_\sigma(G)$, will be oriented.
+The soundness and Markov completeness properties together imply that the DPAG $\FCI(\IM_\sigma(\C{G}))$ output by FCI, when given as input the $\sigma$-independence model of a DMG $\C{G}$, represents the $\sigma$-Markov equivalence class of $\C{G}$.
+In other words, FCI provides a \emph{graphical characterization} of the $\sigma$-Markov equivalence class of a DMG.
+
+While the soundness of FCI allows us to directly read off some (non-)ancestral relations from the DPAG output by FCI, 
+this is not all causal information that is identifiable from the $\sigma$-Markov equivalence class. 
+Indirectly, one can also read off additional (non-)ancestral relations, direct causal relations, the absence of confounding, and the absence of cycles. 
+For details, see \cite{MooijClaassen_UAI_20}.
+
+In practice, of course we often do not know the independence model $\IM_\sigma(G)$, and have to resort to testing conditional independences in finite samples.
+The ``oracle'' soundness and completeness results formulated above, combined with asymptotically consistent conditional independence tests, leads (assuming $\sigma$-faithfulness) directly to the asymptotic consistency of the FCI algorithm.
+We formulate this as the following corollary.
+\begin{Cor}
+  Let $\C{M}$ be a simple SCM with observed variables $O \subseteq V \cup W$, and without exogenous input variables (i.e., $J = \emptyset$).
+  Assume that $\C{M}$ is $\sigma$-faithful w.r.t.\ $O$.
+  Denote the observable causal graph as $G := G^O(\C{M})$.
+%  Our goal will be to deduce as much as possible about the observed causal graph $G := G^O(\C{M})$ from the observed distribution $P_{\C{M}}(X_O)$.
+  When using asymptotically consistent conditional independence tests on i.i.d.\ samples of the observational distribution $P_{\C{M}}(X_O)$, FCI provides an asymptotically consistent estimate $\hat{H}$ of the DPAG $\FCI(\IM_\sigma(G))$ that represents the $\sigma$-Markov equivalence class of $G$. From the estimated DPAG $\hat{H}$, we can obtain consistent estimates for:
+  \begin{enumerate}[label=(\roman*)]
+%  \item the absence of causal cycles according to $\C{M}$ (via Proposition~\ref{prop:noncycles});
+%  \item the absence/presence of (possibly indirect) causal relations according to $\C{M}$ (via Propositions~\ref{prop:cdpag_ancestors_dmg} and \ref{prop:cdpag_nonancestors}); 
+%  \item the absence of confounders according to $\C{M}$ (via Proposition~\ref{prop:identify_nonconfounders});
+%  \item the absence/presence of direct causal relations according to $\C{M}$ (via Proposition~\ref{prop:identifiable_direct_causes}). 
+%  \end{compactenum}
+  \item the absence/presence of (possibly indirect) causal relations according to $\C{M}$; 
+  \item the absence of confounding according to $\C{M}$;
+  \item the absence/presence of direct causal relations according to $\C{M}$;
+  \item the absence of causal cycles according to $\C{M}$.
+  \end{enumerate}
+\end{Cor}
+\begin{proof}
+  We refer the reader to \cite{MooijClaassen_UAI_20}.
+\end{proof}
+Note that this corollary also applies to L-CBNs, as these can be considered to be special cases of simple SCMs.
+
+\begin{comment}
+\subsubsection{Leftovers}
+
+\subsubsection{DIRECTED MAXIMAL ANCESTRAL GRAPHS (DMAGs)}
+
+DMAGs can be defined as follows \cite{Zhang2008_JMLR}:
+\begin{Def}\label{def:DMAG}
+  A directed mixed graph $G = \langle V, E, F \rangle$ is called a \emph{directed maximal ancestral graph (DMAG)} if all of the following conditions hold: 
+  \begin{enumerate}
+    \item Between any two different nodes there is at most one edge, and there are no self-cycles;
+    \item The graph contains no directed or almost directed cycles (``ancestral'');
+    \item There is no inducing path between any two non-adjacent nodes (``maximal'').
+  \end{enumerate}
+\end{Def}
+With the following procedure from \cite{RichardsonSpirtes02}, one can define the DMAG induced by an ADMG:
+\begin{Def}\label{def:DMAG_induced_by_ADMG}
+  Let $G = \langle V, E, F \rangle$ be an ADMG. 
+  The \emph{directed maximal ancestral graph induced by $G$} is denoted $\DMAG(G)$ and is defined as
+  $\DMAG(G) = \langle \tilde{V}, \tilde{E}, \tilde{F} \rangle$ such that $\tilde{V} = V$ and
+  for each pair $u,v \in V$ with $u \ne v$, there is an edge in $\DMAG(G)$ between $u$ and $v$ if and only if 
+  there is an inducing path between $u$ and $v$ in $G$, and in that case the edge in $\DMAG(G)$ connecting $u$ and $v$ is:
+    $$\begin{cases}
+      \text{$u \to  v$} & \text{if $u \in \Anc_{G}(v)$}, \\
+      \text{$u \ot  v$} & \text{if $v \in \Anc_{G}(u)$}, \\
+      \text{$u \oto v$} & \text{if $u \not\in \Anc_{G}(v)$ and $v \not\in \Anc_{G}(u)$.}
+    \end{cases}$$
+\end{Def}
+This construction preserves the (non-)ancestral relations as well as the $d$-separations/connections.
+We sometimes identify a DMAG $\C{H}$ with the set of ADMGs $G$ that induce $\C{H}$, i.e., such that $\DMAG(G) = \C{H}$.
+
+For a DMAG $\C{H}$, we define its \emph{independence model} to be
+$$\IM(\C{H}) := \{ \langle A, B, C \rangle : A, B, C \subseteq V, A \Perp^d_{\C{H}} B \given C \},$$
+i.e., the set of all $d$-separations entailed by the DMAG. We call two DMAGs
+$\C{H}_1$ and $\C{H}_2$ \emph{Markov equivalent} if $\IM(\C{H}_1) = \IM(\C{H}_2)$. 
+
+One often identifies a DPAG with the set of all DMAGs that have the same skeleton as the DPAG, have an arrowhead (tail) on each edge mark for which the DPAG has an arrowhead (tail) at that corresponding edge mark, and for each circle in the DPAG, have either an arrowhead or a tail at the corresponding edge mark. 
+We then say that the DPAG \emph{contains} these DMAGs.
+The circles in a DPAG can thus be thought of as representing either an arrowhead or a tail.
+Since each ADMG induces a unique DMAG, we can say that a DPAG contains an ADMG if and only if it contains the DMAG induced by it.
+\end{comment}
+
+\subsubsection{Skeleton phase}
+
+We will now take a closer look at the skeleton search phase of the FCI algorithm.
+
+\begin{comment}
+\begin{Def}
+  Let $H = \DMAG(G)$ be the DMAG induced by an ADMG $G$ with vertex set $V$.
+  For $i,j \in H$, define $\DSEP_H(i,j)$ to be the set of nodes $v \in V$ such that
+  $v \ne i$ and there is a path $\pi$ in $H$ between $i$ and $v$ such that every node
+  on $\pi$ is in $\Anc_H(\{i,j\})$ and (except for the endpoints) is a collider on $\pi$.
+\end{Def}
+
+\begin{Prp}
+  Let $H = \DMAG(G)$ be the DMAG induced by a ADMG $G$ with vertex set $V$.
+  Let $i,j \in V$ be distinct.
+  If $i,j$ are not adjacent in $H$, then $i$ and $j$ are $d$-separated in $G$ given $\DSEP_H(i,j)$.
+\end{Prp}
+\begin{proof}
+  By contradiction.
+  Suppose $i,j$ are not adjacent in $H$.
+  Then there is no inducing walk between $i,j$ in $G$.
+  Suppose there exists a walk $\pi$ in $G$ between $i$ and $j$ that is $d$-open given $\DSEP_H(i,j)$.
+  Nodes in $\DSEP_H(i,j)$ are in $\Anc_H(\{i,j\})$ and hence in $\Anc_G(\{i,j\})$.
+  Any collider on $\pi$ must be in $\DSEP_H(i,j) \subseteq \Anc_H(\{i,j\}) = \Anc_G(\{i,j\})$.
+  No non-collider on $\pi$ is in $\DSEP_H(i,j)$.
+  Let $k$ be the first non-collider on $\pi$ after $i$.
+  Then $k \in \Anc_G(i)$ or $k \in \Anc_G(j)$ or $k \in \Anc_G(l)$ for some collider $l \in \DSEP_H(i,j))$.
+  In each case, $k \in \Anc_H(\{i,j\})$.
+  Hence $k \in \DSEP_H(i,j)$.
+  This is a contradiction.
+\end{proof}
+
+New attempt, now directly in terms of $G$ rather than $\DMAG(G)$.
+
+\begin{Def}
+  Let $G$ be an ADMG with vertex set $V$.
+  For $i,j \in G$, define $\DSEP_G(i,j)$ to be the set of nodes $v \in V$ such that
+  $v \ne i$ and there is a walk $\pi$ in $G$ between $i$ and $v$ such that every node
+  on $\pi$ is in $\Anc_G(\{i,j\})$ and (except for the endpoints) is a collider on $\pi$.
+\end{Def}
+Note that if $j \in \DSEP_G(i,j)$, there is an inducing path in $G$ between $i,j$.
+
+\begin{Prp}
+  Let $G$ be an ADMG with vertex set $V$.
+  Let $i,j \in V$ be distinct.
+  If there is no inducing path between $i,j$ in $G$, then $i$ and $j$ are $d$-separated in $G$ given $\DSEP_G(i,j)$,
+  with $\DSEP_G(i,j) \cap \{i,j\} = \emptyset$.
+\end{Prp}
+\begin{proof}
+  Suppose there is no inducing path between $i,j$ in $G$.
+  Hence, $j \notin \DSEP_G(i,j)$.
+  By definition, $i \notin \DSEP_G(i,j)$.
+  We prove the $d$-separation by contradiction.
+  Suppose there exists a walk $\pi$ in $G$ between $i$ and $j$ that is $d$-open given $\DSEP_G(i,j)$.
+%  Let $\pi$ be such a walk with the additional property that it has a minimal number of collider nodes between $i$ and the first non-collider on the path after $i$ (that could be $j$).
+  Nodes in $\DSEP_G(i,j)$ are in $\Anc_G(\{i,j\})$.
+  Any collider on $\pi$ must be in $\DSEP_G(i,j) \subseteq \Anc_G(\{i,j\})$.
+  No non-collider on $\pi$ is in $\DSEP_G(i,j)$.
+  Let $k$ be the first non-collider on $\pi$ after $i$ (this could be $j$).
+  Then $k \in \Pa_G(i)$ or $k \in \Anc_G(j)$ or $k \in \Anc_G(l)$ for some collider $l \in \DSEP_G(i,j)$ on $\pi$.
+  In each case, $k \in \Anc_G(\{i,j\})$.
+  Hence $k \in \DSEP_G(i,j)$.
+  This is a contradiction.
+\end{proof}
+
+Last attempt, now for DMGs.
+\end{comment}
+
+\begin{Def}\label{def:DSEP}
+  Let $G = \langle V, E, L \rangle$ be directed mixed graph (DMG). 
+  For $i,j \in V$, define $\DSEP_G(i,j)$ to be the set of nodes $v \in V$ such that
+  $v \ne i$ and there is a walk $\pi$ in $G$ between $i$ and $v$ such that every node
+  on $\pi$ is in $\Anc_G(\{i,j\})$, and 
+  every non-endpoint non-collider on $\pi$ only has outgoing directed edges to neighboring nodes on $\pi$ in the same strongly connected component of $G$.
+\end{Def}
+Note that if $j \in \DSEP_G(i,j)$, there is an inducing walk in $G$ between $i,j$.
+\begin{Prp}\label{prp:DSEP}
+  Let $G = \langle V, E, L \rangle$ be directed mixed graph (DMG). 
+  Let $i,j \in V$ be distinct.
+  If there is no inducing walk between $i,j$ in $G$, then $i$ and $j$ are $\sigma$-separated in $G$ given $\DSEP_G(i,j)$,
+  where $\DSEP_G(i,j) \cap \{i,j\} = \emptyset$.
+\end{Prp}
+\begin{proof}
+  Suppose there is no inducing walk between $i,j$ in $G$.
+  Hence, $j \notin \DSEP_G(i,j)$.
+  By definition, $i \notin \DSEP_G(i,j)$.
+  We prove the $\sigma$-separation by contradiction.
+  Suppose there exists a walk $\pi$ in $G$ between $i$ and $j$ that is $\sigma$-open given $\DSEP_G(i,j)$.
+  We may assume that $\pi$ contains $i$ and $j$ both only once.
+
+  We first show that every node on $\pi$ must be in $\Anc_G(\{i,j\})$.
+  This is trivial for the endpoints $i,j$.
+  Every collider on $\pi$ must be in $\DSEP_G(i,j) \subseteq \Anc_G(\{i,j\})$.
+  For every non-endpoint non-collider on $\pi$,
+  there must exist a directed subwalk of $\pi$ starting at that node and ending either at a collider on $\pi$ or at an end node of $\pi$, and hence it must also be in $\Anc_G(\{i,j\})$. 
+
+%  We will now show that every node on $\pi$, except for $i$, must be in $\DSEP_G(i,j)$.
+  Number the nodes on $\pi$ subsequently as $i = v_0, v_1, \dots, v_n = j$, with $n > 1$.
+  We will show that for all $k = 1,\dots,n$, the subwalk from $v_0$ to $v_k$ on $\pi$ has the property that all nodes on it are in $\Anc_G(\{i,j\})$ and every non-endpoint non-collider only has outgoing directed edges to neighboring nodes in the same strongly connected component of $G$ (and hence $v_1,\dots,v_k$ are in $\DSEP_G(i,j)$).
+  It is clear that this property holds for $k=1$. 
+  Suppose it holds for $k < n$.
+  Then $v_1,\dots,v_k$ are all in $\DSEP_G(i,j)$.
+  We will show the property holds for $k+1$.
+  Consider the subwalk $\pi'$ of $\pi$ from $v_0$ to $v_{k+1}$.
+  If $v_{k}$ is a collider on $\pi'$, the property obviously holds by the induction hypothesis.
+  If $v_{k}$ is a non-collider on $\pi'$, it only points to neighboring nodes on $\pi$ in the same strongly connected component of $G$ because $\pi$ is $\DSEP_G(i,j)$-$\sigma$-open and $v_k \in \DSEP_G(i,j)$ is a non-endpoint non-collider on $\pi'$.
+  In both cases, the property holds.
+
+  Hence all nodes on $\pi$ are in $\DSEP_G(i,j)$ except for $i$ itself.
+  This means that in particular $j \in \DSEP_G(i,j)$, a contradiction.
+\end{proof}
+
+We say that three nodes in a graph form a triangle if each pair of nodes in the triple is adjacent.
+In practice, one does not know the set $\DSEP_G(i,j)$ if $G$ is unknown.
+One can, however, easily obtain a ``bound'' on this set by identifying a superset.
+\begin{Def}
+  Let $H = \langle V,E\rangle$ be a mixed graph with nodes $V$ and edges $E$ of the types $\{\to,\ot,\otc,\oto,\ctc,\cto\}$, with at most one edge connecting any pair of distinct nodes.
+  For $i, j \in V$ distinct, we define $\PDS_H(i,j) \subseteq V$ to consist of those nodes
+  $v \in V$ such that $v \ne i$ and there is a path between $i$ and $v$ in $H$ such that for
+  every subsequent triple $a \sts b \sts c$ on the path, either $b$ is a collider in $H$,
+  or $a,b,c$ form a triangle in $H$.
+\end{Def}
+We can now show that
+\begin{Prp}
+  Let $H$ be a mixed graph constructed by the PC skeleton phase followed by applying orientation rule $\C{R}0$ on it, with as input $\IM_\sigma(G)$ for some DMG $G$ with vertex set $V$.
+  (In other words, in the first steps of FCI).
+  For $i, j \in V$ distinct, $\DSEP_G(i,j) \subseteq \PDS_H(i,j)$.
+\end{Prp}
+\begin{proof}
+  Note that the skeleton of $H$ is a supergraph of the skeleton of $\DPAG(G)$.
+  If $v \in \DSEP_G(i,j)$ there is a path $\pi$ in $G$ between $i$ and $v$.
+  There is a corresponding path $\pi'$ in $H$ between $i$ and $v$ that consists of the same sequence of nodes (but may have different edges between the nodes in general).
+  Consider a subsequent triple $a \sts b \sts c$ on $\pi$.
+  Suppose $b$ is a collider on $\pi$.
+  Also in $H$, $a$ must be adjacent to $b$, and $b$ to $c$.
+  If $a$ and $c$ are not adjacent in $H$, then there must be a separating set, and hence there cannot be an inducing path between $a$ and $c$ in $G$.
+  Therefore, rule $\C{R}0$ applies, and it will get oriented as a collider in $H$.
+  Otherwise, it forms a triangle in $H$.
+  If $b$ is a non-collider on $\pi$, then it can only point to nodes in the same strongly connected component of $G$.
+  But in that case, $a \sts b \sts c$ is an inducing walk between $a$ and $c$ in $G$.
+  Hence, $a,b,c$ will form a triangle in $H$.
+  Therefore, $v \in \PDS_H(i,j)$.
+\end{proof}
+
+Here is another interesting thing to think about:
+\begin{Lem}[Tom Claassen]
+In a graph G, X and Y are d-separated given Z, if and only if X and Y are d-separated given Z in the graph P* obtained from the completed PAG P(G) by replacing all circle marks in P by tail marks.
+\end{Lem}

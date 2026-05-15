@@ -1,0 +1,172 @@
+\subsection{The risk of dying from COVID-19}
+\totalscore{12}
+
+%IEEE TRANSACTIONS ON ARTIFICIAL INTELLIGENCE, VOL. 02, NO. 1, FEB. 2021 1
+%Simpson’s paradox in COVID-19 case fatality rates: a mediation analysis of age-related causal effects
+%Julius von K\"ugelgen, Luigi Gresele, Bernhard Sch\"olkopf
+
+In this exercise we investigate the influence of age and country on the risk of dying from a COVID-19 infection.
+Figure~\ref{fig:covid_cfrs} displays data from the beginning of the COVID-19 pandemic in 2020, which started
+with an outbreak in China followed a few weeks later by an outbreak in Italy.\footnote{Figure from
+``Simpson's paradox in COVID-19 case fatality rates: a mediation analysis of age-related causal effects'',
+Von K\"ugelgen, Gresele \& Sch\"olkopf, IEEE Transactions on Artificial Intelligence, 2(1), pp.\ 18--27, 2021.}
+Figure~\ref{fig:covid_cfrs} (left) shows COVID-19 CFRs (case fatality rates,
+that is, the proportion of confirmed COVID-19 cases that end with the death of the patient); 
+for both countries, the CFRs are displayed for different age groups separately, and in addition the
+total CFR for all age groups combined is shown.
+Figure~\ref{fig:covid_cfrs} (right) shows for both countries how the confirmed COVID-19 cases
+are distributed over the age groups.
+
+Interestingly, while for all age groups, CFRs in Italy are lower than in China, the total CFR in Italy is
+higher than that in China. This is an example of a phenomenon known as \emph{Simpson's paradox}.
+%An explanation of this is that the distribution of ages differs between
+%both countries. In particular, Italy recorded a much higher proportion of confirmed cases in older patients,
+%as shown in Figure~\ref{fig:covid_cfrs} (right).
+
+\begin{figure}
+\includegraphics[width=\textwidth,page=2,trim={1.5cm 20cm 1cm 2cm},clip]{exercises/2005.07180v3.pdf}
+  \caption{Left: COVID-19 CFRs for two countries (for different age groups, and total). Right: age distribution for confirmed COVID-19 cases in the two countries.\label{fig:covid_cfrs}}
+\end{figure}
+
+We decide to model the situation in the following way.
+For each confirmed case (that is, a person that was tested positive in a certain time frame and reported by health officials of a certain country), we consider the following three variables:
+\begin{center}\small\begin{tabular}{llll}
+  Name & Symbol & Meaning \\
+  \hline
+  Country  & $X$ & Country in which the case is reported \\
+  Age      & $Z$ & Age group to which the person belongs \\
+  Fatality & $Y$ & Binary indicator of whether the person has deceased by the time of reporting
+\end{tabular}\end{center}
+We assume that the data-generating process can be modeled with a structural causal model with the following causal graph:
+%\begin{figure}[!h]\centering
+\begin{center}\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Z) at (1.5,1) {$Z$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[huh] (X) to (Z);
+    \draw[tuh] (Z) to (Y);
+    \draw[tuh] (X) to (Y);
+  \end{scope}
+\end{tikzpicture}\end{center}
+%  \caption{Country ($X$) and age ($Z$) have an influence on COVID-19 fatality ($Y$).}
+%\end{figure}
+\begin{enumerate}[label=\alph*)]
+  \item Under what circumstances is it realistic to assume that the edges $Y \tuh X$ and $Y \tuh Z$ are both absent from the causal graph?
+    \score{1}
+    \answer{If the values of the variables ``country'' and ``age'' are measured \emph{before} ``fatality'' is measured.}
+  \item Explain why it is sensible to assume that $X \tuh Z$ and $Z \tuh X$ are both absent from the causal graph.
+    \score{1}
+    \answer{Intervening on the country where someone lives does not change the age of that person, hence $X \tuh Z$ is absent.
+    Similarly, intervening on the age of a person does not cause that person to move to another country, hence $Z \tuh X$ is absent.}
+  \item Prove that if the edge $X \huh Z$ were absent from the causal graph, then country and age would be independent.
+    \score{1}
+    \answer{This follows from the global Markov property.
+      If the bidirected edge $X \huh Z$ were absent from the graph $G(M)$ of the SCM $M$,
+      (that is, if $G(M)$ were $X \tuh Y \hut Z$), 
+      then $X \Perp^\sigma_G Z$, and hence (by the Markov property), $X \Indep_{P_M} Z$ where $P_M$ is the observational distribution associated to the SCM.}
+  \item Give the technical term for what the edge $X \huh Z$ represents. 
+    Explain with the help of Figure~\ref{fig:covid_cfrs} whether you think that the bidirected edge $X \huh Z$ should indeed be part of the model, or whether it could be safely omitted.
+    \score{2}
+    \answer{The bidirected edge $X \huh Z$ represents the confounding (spurious dependence, confounding bias) between ``country'' and ``age''.
+      Figure~\ref{fig:covid_cfrs} (right) shows that for the confirmed cases, the age distribution in Italy is significantly different from that in China.
+      In particular, in Italy there were many more confirmed cases among elderly persons. The observed dependence between age and country is explained by the
+      bidirected edge $X \huh Z$, and would not be explained without it. Hence, the causal model would be incompatible with the data without the bidirected edge.
+    }
+%      Finally, bidirected edges $X \huh Y$ and $Z \huh Y$ are absent, which corresponds to assuming that there is no confounding between $X$ and $Y$, nor between $Z$ and $Y$.
+%      Hence, the dependences between $(X,Z)$ and $Y$ are interpreted causally, that is, 
+\end{enumerate}
+
+%We now want to use the data and the causal model to answer the question:
+%\emph{what would be the effect on fatality of changing country from China to Italy?}
+One interesting quantity to consider is the
+average total causal effect of country on fatality, defined as:
+$$\rho := \Exp(Y \given \doit(X=1)) - \Exp(Y \given \doit(X=0))$$
+%Note that here we interpret ``changing country'' as ``forcing all patients to move to another country''.
+
+\begin{enumerate}[resume*]
+  \item Give an identity that expresses this quantity purely in terms of the observed distribution $P(X,Y,Z)$.
+    To simplify matters, you may assume that $P(X,Y,Z)$ is strictly positive.\\
+    \emph{Hint: you may make use of the backdoor criterion.}
+    \score{1}
+\answer{
+  The backdoor criterion states that,
+  since $Y \Perp I_X \given X, Z$ and $Z \Perp I_X$,
+    $$P(Y \given \doit(X)) = P(Y \given Z,X) \circ P(Z)$$
+  under the absolute continuity assumption 
+    $$P(Z) \otimes P(X) \ll P(Z,X).$$
+  Writing this out, we get:
+    $$\rho = \sum_z (\Exp(Y \given Z=z,X=1) - \Exp(Y \given Z=z,X=0)) P(Z=z) \text{ a.s.}$$
+}
+\end{enumerate}
+
+Another question of interest is: for the Chinese case demographic, would the Italian health-care system have been better?
+More specifically: what is the change in the risk of dying from COVID-19 when a randomly selected positive case from
+China is forced to move to Italy.
+We can model this by adding a copy $X'$ of $X$ (interpreted as the value of ``country'' measured later in time) and an intervention variable $I_{X'}$.
+The causal graph then becomes:
+\begin{center}\begin{tikzpicture}
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndlat] (XX) at (1.5,0) {$X'$};
+    \node[ndout] (Z) at (1.5,1) {$Z$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \node[ndint] (IXX) at (1.5,-1.5) {$I_{X'}$};
+    \draw[huh] (X) to (Z);
+    \draw[tuh] (Z) to (Y);
+    \draw[tuh] (X) to (XX);
+    \draw[tuh] (XX) to (Y);
+    \draw[tuh] (IXX) to (XX);
+\end{tikzpicture}\end{center}
+We assume that if we don't intervene on $X'$, its value is just $X' = X$.
+In this setting, we can consider the quantity:\footnote{This quantity is also sometimes called the ``effect of treatment on the treated''.}
+\begin{equation*}
+  \tau := \Exp(Y \given X=0, \doit(X'=1)) - \Exp(Y \given X=0).
+\end{equation*}
+%Or is this the \emph{effect-of-treatment-on-the-treated}?
+%Prove that the following \emph{mediation formula} holds:
+\begin{enumerate}[resume*]
+  \item Prove that $\tau$ can be expressed in terms of the observed distribution $P(X,Y,Z)$ as:
+  \begin{equation*}\begin{split}
+      \tau
+      &= \sum_z (\Exp(Y \given Z=z, X=1) - \Exp(Y \given Z=z, X=0)) P(Z=z \given X=0) \text{ a.s.}
+    \end{split}\end{equation*}
+    To simplify matters, you may assume that $P(X,Y,Z)$ is strictly positive.\\
+    \emph{Hint: the Markov kernel $P(X,X',Y,Z)$ is \emph{not} strictly positive.}
+    \score{5}
+\answer{
+From the definition:
+  $$\tau = \Exp(Y \given X=0, \doit(X'=1)) - \Exp(Y \given X=0).$$
+The first term can be rewritten, using the do-calculus, as:
+\begin{equation*}\begin{split}
+  &\Exp(Y \given X=0, \doit(X'=1)) \\
+  \text{[chain rule]} & = \sum_z \Exp(Y \given Z=z, X=0, \doit(X'=1)) P(Z=z \given X=0, \doit(X'=1)) \\
+  \text{[$Z \Indep I_{X'} \given X$]} & = \sum_z \Exp(Y \given Z=z, X=0, \doit(X'=1)) P(Z=z \given X=0) \text{ a.s.} \\
+  \text{[$Y \Indep X \given Z, X'$ under $\doit(X')$]} &= \sum_z \Exp(Y \given Z=z, \doit(X'=1)) P(Z=z \given X=0) \text{ a.s.} \\
+  \text{[$Y \Indep I_{X'} \given Z, X'$]} &= \sum_z \Exp(Y \given Z=z, X'=1) P(Z=z \given X=0) \text{ a.s.} \\
+  \text{[$X' = X$ a.s.]} &= \sum_z \Exp(Y \given Z=z, X=1) P(Z=z \given X=0) \text{ a.s.}
+\end{split}\end{equation*}
+
+For the second term we just use the chain rule:
+$$\Exp(Y \given X=0) = \sum_z \Exp(Y \given Z=z, X=0) P(Z=z \given X=0).$$
+
+Together, this proves the formula.
+}
+\points{The following alternative derivation that may look correct at first sight fails on positivity assumptions (because of the context-specific independence):
+  \begin{equation*}\begin{split}
+    &\Exp(Y \given X=0, \doit(X'=1)) \\
+    &= \sum_z \Exp(Y \given Z=z, X=0, \doit(X'=1)) P(Z=z \given X=0, \doit(X'=1)) \\
+    &= \sum_z \Exp(Y \given Z=z, X=0, X'=1) P(Z=z \given X=0) \text{ a.s.} \\
+    &= \sum_z \Exp(Y \given Z=z, X'=1) P(Z=z \given X=0) \text{ a.s.} \\
+    &= \sum_z \Exp(Y \given Z=z, X=1) P(Z=z \given X=0) \text{ a.s.}
+  \end{split}\end{equation*}
+  where we used the chain rule, $Y \Indep I_{X'} \given {X'}, Z, X$ and $Z \Indep I_{X'} \given X$, 
+  $Y \Indep X \given {X'}, Z$ and that $X' = X$ a.s.
+
+  I ended up subtracting 2 points if the positivity assumption was violated in the derivation.
+}
+
+\item How could you explain Simpson's paradox in this case?
+    \score{1}
+    \answer{While the risk of dying from COVID-19 is lower in Italy than in China for each age group (possibly reflecting the quality of the health-care system), it increases strongly with age.
+    This dependence is so strong that in Italy, on average the CFR was higher than in China, as the relatively large fraction of elderly cases in Italy dominated the CFR.}
+\end{enumerate}

@@ -1,0 +1,67 @@
+\subsection{Selection-Backdoor Criterion}
+\totalscore{0}
+%\score{1}
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[scale=1, transform shape]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (3,0) {$Y$};
+        \node[ndout] (Z) at (1.5,1.5) {$Z$};
+        \node[ndout] (S) at (1.5,-1.5) {$S$}; 
+        \draw[arout] (X) to (Y);
+        \draw[arout] (X) to (S);
+        \draw[arout] (Z) to (X);
+        \draw[arout] (Z) to (Y);
+        \draw[arout] (Z) to (S);
+    \end{tikzpicture}
+    \caption{Acyclic Directed Mixed Graph (ADMG) $\hat{G}$.}
+    \label{fig:cadmg-3}
+\end{figure}
+
+Recall that we can recover the causal effect $P(Y|\doit(X))$ using the backdoor criterion for simple SCMs via the adjustment formula $P(Y|\doit(X)) = P(Y|X, Z)\circ P(Z)$ for some set $Z\subseteq V$, if we have the following $\sigma$-separations:
+\begin{equation*}
+    Z\perp^\sigma I_X \quad \text{and} \quad Y\perp^\sigma I_X|X\cup Z
+\end{equation*}
+
+\begin{enumerate}
+    \item Draw the graph with the intervention node $I_X$, and apply the backdoor criterion to find an expression for $P(Y|\doit(X))$. \textcolor{red}{PB: perhaps use a more challenging graph, or use different variable names.}
+    \answer{%
+        If we draw the graph with the intervention node $I_X$:
+        \begin{center}
+            \begin{tikzpicture}[scale=1, transform shape]
+                \node[ndout] (IX) at (0,1.5) {$I_X$};
+                \node[ndout] (X) at (0,0) {$X$};
+                \node[ndout] (Y) at (3,0) {$Y$};
+                \node[ndout] (Z) at (1.5,1.5) {$Z$};
+                \node[ndout] (S) at (1.5,-1.5) {$S$}; 
+                \draw[arout] (IX) to (X);
+                \draw[arout] (X) to (Y);
+                \draw[arout] (X) to (S);
+                \draw[arout] (Z) to (X);
+                \draw[arout] (Z) to (Y);
+                \draw[arout] (Z) to (S);
+            \end{tikzpicture}
+        \end{center}
+        then we indeed have the $\sigma$-separations $Z\perp I_X$ and $Y\perp I_X|X, Z$. So we may directly apply the adjustment formula to obtain $P(Y|\doit(X)) = P(Y|X, Z)\circ P(Z)$.
+    }
+    \points{points?}
+    \item Prove the backdoor adjustment formula using rules 2 and 3 of do-calculus, and the law of total probability.
+    \answer{
+        \begin{align*}
+            P(Y|\doit(X)) & = P(Y|Z, \doit(X)) \circ P(Z|\doit(X)) &&\text{law of total probability} \\
+            & = P(Y|Z, \doit(X)) \circ P(G) &&\text{Rule 3: $Z\perp I_X$}\\
+            & = P(Y|Z, X) \circ P(Z) &&\text{Rule 2: $Y\perp I_X| Z, X$}\\
+        \end{align*}
+    }
+    \points{points?}
+\end{enumerate}
+Suppose that $S$ is a selection node, i.e., it indicates whether we will see the label $Y$ or not. More precisely, we have access to the distributions $P(X,Z)$ and $P(X, Z, Y|S=1)$.
+\begin{enumerate}[resume*]
+    \item Slightly adjust the backdoor adjustment formula to find an expression for $P(Y|\doit(X))$ in terms of the distributions that are available to us.
+    \answer{%
+        Notice that by the Markov property we have the conditional independence $Y\Indep S|X, Z$, so we can include the condition $S=1$ in one of the probabilities:
+        $$P(Y|\doit(X)) = P(Y|X, Z, S=1)\circ P(Z)$$
+    }
+    \points{points?}
+\end{enumerate}

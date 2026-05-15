@@ -1,0 +1,484 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 3 --- Graph Theory (\texttt{graphs.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{graphs.tex} for correctness,
+gaps, and mistakes.
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(lines 640--657, 690--725, 1155--1175, 1177--1195, 1197--1215, 1467--1481,
+1603--1813, 1815--1853, 1856--1890, 1892--1944).
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks, and the commented-out proof at line~1707.
+\verb|\Claude{...}| blocks are \textbf{included} in this check.
+External references (\verb|\cite{...}|) to books/papers are not downloaded;
+steps relying on them are marked \textbf{TODO}.
+
+%% ========================================================================
+\section{Proof 1: Acyclicity $\iff$ Topological order (lines 198--214)}
+%% ========================================================================
+
+\textbf{Statement.} A CDMG $G$ is acyclic iff it has a topological order.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item $(\Leftarrow)$: If a topological order $<$ exists and there were a non-trivial
+    directed walk $v_0 \to v_1 \to \cdots \to v_n = v_0$ ($n\ge 1$),
+    then $v_0 < v_1 < \cdots < v_n = v_0$, contradiction.  $\checkmark$
+  \item $(\Rightarrow)$: Inductive construction by repeatedly selecting a node with
+    no parents in the remaining induced subgraph.  Such a node exists because:
+    an acyclic finite graph has a node with no parents (otherwise following parent
+    edges would produce a directed cycle).  $\checkmark$
+
+    Correctness of the order: if $v_j \in \Pa^G(v_i)$, then when $v_i$ was
+    selected, $v_j$ was either already removed ($j < i$) or still present
+    (contradicting $\Pa^{G_i}(v_i)=\emptyset$).  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 2: Hard interventions commute (lines 285--313)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{hard-interventions-commute}).}
+$(G_{\doit(W_1)})_{\doit(W_2)} = (G_{\doit(W_2)})_{\doit(W_1)} = G_{\doit(W_1\cup W_2)}$.
+
+\textbf{Analysis.}
+Verified component by component:
+\begin{itemize}
+  \item Input nodes: $(J\cup W_1)\cup W_2 = J\cup(W_1\cup W_2)$.  $\checkmark$
+  \item Output nodes: $(V\setminus W_1)\setminus W_2 = V\setminus(W_1\cup W_2)$.  $\checkmark$
+  \item Directed edges: $(E\setminus\{v\to w:w\in W_1\})\setminus\{v\to w:w\in W_2\}
+    = E\setminus\{v\to w:w\in W_1\cup W_2\}$.  $\checkmark$
+  \item Bidirected edges: same pattern.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 3: Bifurcations alternative (lines 321--326)}
+%% ========================================================================
+
+\textbf{Statement (Prp.\ \texttt{prp:bifurcations\_alternative}).}
+A bifurcation between $v$ and $w$ with source $c$ exists iff $v\ne w$ and
+$c\in\Anc^{G_{\doit(w)}}(v)\setminus\{v\}$ and $c\in\Anc^{G_{\doit(v)}}(w)\setminus\{w\}$.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: A bifurcation $v\leftarrow\cdots\leftarrow c\to\cdots\to w$
+with both $v,w$ appearing exactly once gives directed paths from $c$ to $v$ (not
+through $w$, so surviving in $G_{\doit(w)}$) and from $c$ to $w$ (not through $v$).
+$\checkmark$
+
+$(\Leftarrow)$: The two directed paths can be concatenated to form a bifurcation.
+\textbf{Minor note:} The proof says ``directed path'' but only directed \emph{walks} are
+guaranteed.  However, a directed walk can always be shortened to a directed path
+(by removing cycles), and the non-passing-through conditions are preserved.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 4: Disjoint node-splittings commute (lines 412--438)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+For disjoint $W_1,W_2\subseteq V$:
+$(G_{\spl(W_1)})_{\spl(W_2)} = (G_{\spl(W_2)})_{\spl(W_1)} = G_{\spl(W_1\sqcup W_2)}$.
+
+\textbf{Analysis.}
+Component-by-component verification.  The key insight is that since $W_1\cap W_2=\emptyset$,
+each $w\in W_2$ is in $V\setminus W_1\subseteq V_{\spl(W_1)}$, so the second
+splitting is well-defined.  The superscript tracking ($v^{0_k},v^{1_k}$
+for $v\in W_k$) correctly shows that both orderings produce the same edge sets.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 5: Disjoint hard interventions and node-splittings commute (lines 448--476)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+For disjoint $W_1\subseteq J\cup V$, $W_2\subseteq V$:
+$(G_{\doit(W_1)})_{\spl(W_2)} = (G_{\spl(W_2)})_{\doit(W_1)}$.
+
+\textbf{Analysis.}
+Component-by-component.  The critical observations:
+\begin{itemize}
+  \item In directed edges: $\doit(W_1)$ removes edges into $W_1$, $\spl(W_2)$
+    replaces $v$ by $v^0/v^1$.  Since $W_1\cap W_2=\emptyset$, an edge head
+    $v_2^0\in W_1$ iff $v_2\in W_1$.  $\checkmark$
+  \item In bidirected edges: $v_k^0\in W_1$ iff $v_k\in W_1$.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 6: Disjoint SWIGs commute (lines 568--594)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+For disjoint $W_1,W_2\subseteq V$:
+$(G_{\swig(W_1)})_{\swig(W_2)} = G_{\swig(W_1\sqcup W_2)}$.
+
+\textbf{Analysis.}
+Same structure as Proof~4 but with $o/i$ superscripts instead of $0/1$.
+The case analysis tracks through correctly: for $v_1\in W_1$,
+$v_1^{i_1}\in W_1^i\subseteq J_{\swig(W_1)}$ and $v_1^{i_1}\notin W_2$,
+so $(v_1^{i_1})^{i_2}=v_1^{i_1}$.
+Similarly for $v_1\in W_2$: $v_1^{i_1}=v_1$, then $(v_1)^{i_2}=v_1^{i_2}$.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 7: Disjoint hard interventions and SWIGs commute (lines 604--630)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+For disjoint $W_1\subseteq J\cup V$, $W_2\subseteq V$:
+$(G_{\doit(W_1)})_{\swig(W_2)} = (G_{\swig(W_2)})_{\doit(W_1)}$.
+
+\textbf{Analysis.}
+Same structure as Proof~5 but with $o/i$ (SWIG) superscripts instead of $0/1$ (splitting).
+Component-by-component verification:
+\begin{itemize}
+  \item Node sets: $(J\cup W_1)\sqcup W_2^i$ and $(V\setminus W_1\setminus W_2)\sqcup W_2^o$.  $\checkmark$
+  \item Directed edges: $\{v_1^i\to v_2^o : v_1\to v_2\in E,\, v_2\notin W_1\}$.
+    Uses $v_2^o\in W_1\iff v_2\in W_1$ (since $W_1\cap W_2=\emptyset$).  $\checkmark$
+  \item Bidirected edges: $\{v_1^o\leftrightarrow v_2^o : v_1\leftrightarrow v_2\in L,\, v_1,v_2\notin W_1\}$.
+    Uses $v_k^o\in W_1\iff v_k\in W_1$.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 8: Intervention nodes commute with hard interventions (lines 765--793)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+Two equalities: (1)~$(G_{\doit(I_{W_1})})_{\doit(I_{W_2})} = G_{\doit(I_{W_1\cup W_2})}$,
+and (2)~$(G_{\doit(I_{W_1})})_{\doit(W_2)} = (G_{\doit(W_2)})_{\doit(I_{W_1})}$.
+
+\textbf{Analysis.}
+\begin{itemize}
+  \item Equality~(1): Intervention nodes $I_w$ are fresh, so $W_2\setminus J_1=W_2\setminus J$.
+    Union of input nodes and edge sets correctly simplifies.  $\checkmark$
+  \item Equality~(2): Edges $\{I_w\to w:w\in W_1\setminus J\}$ point into $W_1$, not $W_2$
+    ($W_1\cap W_2=\emptyset$), so unaffected by $\doit(W_2)$.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 9: Intervention nodes commute with SWIGs (lines 804--845)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+$(G_{\swig(W_1)})_{\doit(I_{W_2})} = (G_{\doit(I_{W_2})})_{\swig(W_1)}$.
+
+\textbf{Analysis.}
+Uses $I_w^i=I_w$ (intervention nodes are input nodes, unsplit by $\swig$)
+and $w^o=w$ for $w\in W_2\setminus J$ (since $W_1\cap W_2=\emptyset$).
+All four components verified in both orderings.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 10: Marginalization preserves bifurcations (lines 886--903)}
+%% ========================================================================
+
+\textbf{Statement (Remark~\texttt{rem:marg\_preserves\_ancestors\_bifurcations\_acyclicity}).}
+Bifurcations are preserved under marginalization.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: If $w$ appears on a bifurcation in~$G$, the two edges through~$w$
+collapse to a single edge in $G^{\setminus\{w\}}$.  $\checkmark$
+
+$(\Leftarrow)$: Each edge in $G^{\setminus W}$ expands to a walk/sub-bifurcation
+in~$G$ through~$W$.  Concatenation yields a bifurcation in~$G$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 11: Marginalizations commute (lines 914--1024)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{marginalizations-commute}).}
+$(G^{\setminus W_1})^{\setminus W_2} = G^{\setminus(W_1\cup W_2)}$.
+
+\textbf{Analysis.}
+This is the longest proof in this range.
+\begin{itemize}
+  \item Directed edges ($\Rightarrow$/$\Leftarrow$): walks through $W_2$ in
+    $G^{\setminus W_1}$ expand/contract to walks through $W_1\cup W_2$ in~$G$.  $\checkmark$
+  \item Bidirected edges ($\Rightarrow$): bifurcations in $G^{\setminus W_1}$
+    through $W_2$ expand to bifurcations in~$G$ through $W_1\cup W_2$.  $\checkmark$
+  \item Bidirected edges ($\Leftarrow$): the most delicate part.  The proof
+    identifies the first non-$W_1$ node from each arm of the bifurcation and
+    handles the cases $\beta\neq\gamma$ and $\beta=\gamma$ separately.
+    A corrected comment at line~1017 documents a previous error; the current
+    version handles the $\beta=\gamma$ case correctly.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 12: Marginalization and intervention commute (lines 1036--1067)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+$(G_{\doit(W_1)})^{\setminus W_2} = (G^{\setminus W_2})_{\doit(W_1)}$.
+
+\textbf{Analysis.}
+Directed edges: walks through $W_2$ in $G_{\doit(W_1)}$ never pass through $W_1$
+(since $W_1\cap W_2=\emptyset$ and intermediate nodes are in $W_2$),
+so no removed edges are used.  $\checkmark$
+
+Bidirected edges: same argument---bifurcations through $W_2$ have no node in~$W_1$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 13: Marginalizing SWIG output $=$ hard intervention (lines 1078--1111)}
+%% ========================================================================
+
+\textbf{Statement (Lemma).}
+$G_{\doit(W)} \cong (G_{\swig(W)})^{\setminus W^o}$ via $w\mapsto w^i$.
+
+\textbf{Analysis.}
+Key observation: in $G_{\swig(W)}$, nodes $w^o\in W^o$ have no outgoing directed edges
+(a tail $w^o$ would require $w^o=v^i$ for some~$v$, impossible by construction).
+Therefore marginalization over $W^o$ creates no new edges---the surviving
+edges correspond bijectively (via $w^i\mapsto w$) to $E_{\doit(W)}$.
+Same for bidirected edges: no bifurcation arm extends through~$W^o$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 14: $\sigma$-separation stable under marginalization (lines 1296--1449)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{lem:stability\_separation\_marginalization}).}
+$A$ is $i$-$\sigma$-separated from $B$ given $C$ in $G$ iff the same holds in
+$G^{\setminus D}$.
+
+\textbf{Analysis.}
+This is the most intricate proof in the file.
+\begin{enumerate}[leftmargin=*]
+  \item Reduces to $D=\{u\}$ by induction on $|D|$.  $\checkmark$
+  \item \textbf{Forward direction} (lift walk from $G^{\setminus u}$ to~$G$):
+    Each edge in $G^{\setminus u}$ lifts to a short walk through~$u$.
+    Arrowhead preservation at non-$u$ nodes verified.
+    Inserted $u$-nodes are non-colliders not in~$C$.  $\checkmark$
+  \item \textbf{Backward direction} (contract walk in~$G$ to $G^{\setminus u}$):
+    Uses Prp.~\texttt{prp:sigma\_opens}(3) to assume all colliders lie in~$C$.
+    The subtle case: an unblockable non-collider $b_j$ whose outgoing neighbor
+    $b_{j+1}\notin\Sc^{G^{\setminus u}}(b_j)$; a detour through $u$'s SCC restores
+    $\sigma$-openness.  All cases verified.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 15: Walk replacement in SCC (lines 1497--1516)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{lem:replace\_walk}).}
+Replacing a subwalk between $v_i,v_j\in\Sc^G(v_j)$ with a shortest directed
+path within the SCC preserves $\sigma$-openness.
+
+\textbf{Analysis.}
+Case~(i) (forward path): intermediate nodes are unblockable non-colliders.  $\checkmark$
+
+Case~(ii) (backward path): if both endpoints have incoming arrowheads, a collider
+must exist between positions $i$ and $j$, placing $v_i\in\Anc^G(C)$; after
+replacement $v_i$ becomes a $\sigma$-open collider.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 16: $\sigma$-open walks vs.\ paths (lines 1521--1538)}
+%% ========================================================================
+
+\textbf{Statement (Prp.\ \texttt{prp:sigma\_opens}).}
+Equivalent: (1)~$\exists$ $C$-$\sigma$-open path; (2)~$\exists$ $C$-$\sigma$-open
+walk; (3)~$\exists$ walk with all colliders in~$C$.
+
+\textbf{Analysis.}
+$2\Rightarrow 3$: splice directed paths to~$C$.  $\checkmark$\quad
+$2\Rightarrow 1$: apply Lem.~\texttt{lem:replace\_walk} iteratively.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 17: $\sigma$-separation via acyclification (lines 1978--2076)}
+%% ========================================================================
+
+\textbf{Statement (Prp.\ \texttt{prp:sigma\_sep\_as\_d\_sep}).}
+$A\stackrel{\sigma}{\perp}_G B\mid C \;\iff\;
+ A\stackrel{\sigma}{\perp}_{G'} B\mid C \;\iff\;
+ A\stackrel{d}{\perp}_{G'} B\mid C$,
+where $G'$ is an acyclification of~$G$.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Forward (lines 1983--2018):} Maximal subwalks within one SCC are
+    replaced by subwalks in~$G'$.  Four cases (collider/non-collider at endpoints)
+    handled.  Uses the acyclification's inter-SCC edge preservation.  $\checkmark$
+  \item \textbf{Backward (lines 2021--2075):} Inter-SCC walks in~$G'$ are
+    expanded back into~$G$ using directed walks within SCCs.
+    Inserted nodes are unblockable non-colliders.  $\checkmark$
+\end{enumerate}
+
+\textbf{Minor expository issue (line 2026):} ``This subwalk may not be present
+in~$G'$'' should read ``\ldots in~$G$.''
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 18: Standard acyclification is acyclic (lines 2091--2104)}
+%% ========================================================================
+
+\textbf{Statement.} The standard acyclification $G'$ is a CADMG.
+
+\textbf{Analysis.}
+Proof by contradiction: a directed cycle
+$v_1\to v_2\to\cdots\to v_k\to v_1$ in~$G'$ ($k\ge 2$, since self-loops are
+excluded by construction) lifts to a directed walk through the SCCs in~$G$,
+placing $v_2\in\Sc^G(v_1)$, contradicting $v_1\to v_2\in E'$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 19: $i$-$\sigma$-sep iff $\sigma$-sep in $\bar G$ (lines 2323--2338)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{lem:isep\_equiv\_sep}).}
+$A\stackrel{\sigma}{\perp}_G B\mid C \;\iff\;
+ A\stackrel{\sigma}{\perp}_{\bar G} B\cup J\mid C$,
+where $\bar G$ adds all $J$--$J$ bidirected edges.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: A minimal $\sigma$-open path in~$G$ from $A$ to $B\cup J$ also
+exists in $\bar G$ (which has all edges of~$G$); SCCs are unchanged (same directed
+edges).  $\checkmark$
+
+$(\Leftarrow)$: A minimal $\sigma$-open path in $\bar G$ cannot use added $J$--$J$
+edges by minimality (any $J$-node reached could serve as endpoint, giving a shorter
+path).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 20: Symmetrized $i$-$\sigma$-sep (lines 2347--2366)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{lem:symmetrized\_isep\_equiv\_sep}).}
+$(A\stackrel{\sigma}{\perp}_G B\mid C) \lor (B\stackrel{\sigma}{\perp}_G A\mid C)
+\;\iff\; A\stackrel{\sigma}{\perp}_{\bar G} B\mid C$.
+
+\textbf{Analysis.}
+$(\Leftarrow)$: Uses Right Decomposition and Lem.~\texttt{lem:isep\_equiv\_sep}.  $\checkmark$
+
+$(\Rightarrow)$ (lines 2356--2365): Concatenates two $\sigma$-open paths through
+$J$-nodes $j_1,j_2$.
+
+\textbf{GAP (lines 2362--2364):}
+The proof writes the combined walk with notation implying $j_1$ and $j_2$ are
+non-colliders (forks).  However, depending on the orientation of the last/first
+edges of the original paths, $j_1$ or $j_2$ could become \emph{colliders} in the
+concatenated walk (if both adjacent edges point inward).  In that case, one would
+need $j_1\in\Anc^{\bar G}(C)$ for $\sigma$-openness, which is not verified.
+The result is likely still true but the proof does not handle all edge-orientation
+cases.
+
+\textbf{Verdict: GAP in the forward direction.}
+
+%% ========================================================================
+\section{Proof 21: $i$-$\sigma$-sep with restricted $\bar G$ (lines 2377--2404)}
+%% ========================================================================
+
+\textbf{Statement (Lem.\ \texttt{lem:isep\_equiv\_sep\_restricted}).}
+Under conditions $A\cap J=\emptyset$ and $J\subseteq B\cup C$:
+$A\stackrel{\sigma}{\perp}_G B\mid C \;\iff\;
+ A\stackrel{\sigma}{\perp}_{\bar G} B\mid C$.
+
+\textbf{Analysis.}
+$(\Rightarrow)$ (lines 2381--2388): A minimal walk from $A$ to $B\cup J$ in~$G$
+must end in~$B$ (not $J\setminus B$, since $J\subseteq B\cup C$ and endpoints
+$\notin C$).  SCCs in~$V$ are unchanged.  $\checkmark$
+
+$(\Leftarrow)$ (lines 2390--2403):
+
+\textbf{GAP (line 2397):}
+The proof claims a $J$-node $j$ appearing as an interior node of a minimal
+$\sigma$-open walk ``must be a non-endpoint non-collider that is not unblockable,''
+but does not justify the ``not unblockable'' part.
+If $j$ were an unblockable non-collider in $C\setminus B$, it would not block the
+walk and would not be in~$B$, so the minimality contradiction would not apply.
+While this scenario may be impossible for structural reasons
+(the walk's structure near~$j$ may force a child outside $\Sc^{\bar G}(j)$),
+the proof does not argue this.
+
+\textbf{Verdict: GAP in the backward direction.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~3}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l}
+\textbf{\#} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1 & 198--214 & CORRECT \\
+2 & 285--313 & CORRECT \\
+3 & 321--326 & CORRECT \\
+4 & 412--438 & CORRECT \\
+5 & 448--476 & CORRECT \\
+6 & 568--594 & CORRECT \\
+7 & 604--630 & CORRECT \\
+8 & 765--793 & CORRECT \\
+9 & 804--845 & CORRECT \\
+10 & 886--903 & CORRECT \\
+11 & 914--1024 & CORRECT \\
+12 & 1036--1067 & CORRECT \\
+13 & 1078--1111 & CORRECT \\
+14 & 1296--1449 & CORRECT \\
+15 & 1497--1516 & CORRECT \\
+16 & 1521--1538 & CORRECT \\
+17 & 1978--2076 & CORRECT \\
+18 & 2091--2104 & CORRECT \\
+19 & 2323--2338 & CORRECT \\
+20 & 2347--2366 & \textbf{GAP} \\
+21 & 2377--2404 & \textbf{GAP} \\
+\end{tabular}
+\end{center}
+
+\textbf{21 proofs checked.  19 correct, 2 with gaps.}
+
+\bigskip\noindent
+\textbf{Issues found:}
+\begin{enumerate}
+  \item \textbf{Proof~17, line~2026:} ``$G'$'' should read ``$G$'' (expository typo).
+  \item \textbf{Proof~20 (Lem.\ \texttt{lem:symmetrized\_isep\_equiv\_sep}),
+    lines 2362--2364:} The forward direction concatenates two paths through
+    $J$-nodes.  The proof assumes these nodes become non-colliders (forks) in the
+    combined walk, but this depends on edge orientations---they could become
+    colliders, requiring $j_k\in\Anc^{\bar G}(C)$ which is not verified.
+  \item \textbf{Proof~21 (Lem.\ \texttt{lem:isep\_equiv\_sep\_restricted}),
+    line 2397:} The backward direction asserts that an interior $J$-node on
+    a minimal walk is ``not unblockable,'' without justification.  If a $J$-node
+    were unblockable and in $C\setminus B$, the minimality contradiction would
+    not apply.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,333 @@
+\subsection{Price, Supply, Demand}
+\totalscore{15}
+
+We will use an SCM $M$ to model an idealized free market where some product (e.g., chocolate ice cream) is traded.
+Let $D$ denote the demand and $S$ the supply of a quantity of the product, and its market price by $R$.
+Denote by $W_D$ latent random influences on demand (for example, the temperature) and $W_S$ latent random influences on supply (for example, the price of cocoa beans), assuming that $W_D \Indep W_S$.
+
+We will assume causal mechanisms of the form:
+$$
+  \begin{aligned}
+    f_D(d,s,r,w_D,w_S) &:= \beta_D r + w_D \\
+    f_S(d,s,r,w_D,w_S) &:= \beta_S r + w_S \\
+    f_R(d,s,r,w_D,w_S) &:= r + (d - s),
+  \end{aligned}
+$$
+where $\beta_D<0$ and $\beta_S>0$ are parameters that determine the strength of the influence of the price on demand and supply, respectively.
+\begin{enumerate}[label=\alph*)]
+  \item Argue why it is sensible to assume that $\beta_D<0$ and $\beta_S>0$.
+  \score{1}
+    \answer{If the price increases, consumers will be less willing to buy the product, so demand decreases ($\beta_D<0$);
+    on the other hand, more profit can be made, hence supply will increase ($\beta_S>0$).}
+\end{enumerate}
+In an idealized free trade market with many buyers and sellers, the price will adapt until supply equals demand (`market equilibrium'). 
+\begin{enumerate}[resume*]
+  \item Explain how the causal mechanism for $R$ captures the notion of market equilibrium.
+  \score{1}
+    \answer{The structural equation for $R$ is of the form:
+    $$R = f_R(D,S,R,W_D,W_S) = R + (D - S)$$
+    which is satisfied if and only if $D = S$, that is, supply equals demand.}
+    \points{Some students give a `dynamical' explanation: if $D > S$, price goes up, if $D < S$, price goes down, and $D = S$ at equilibrium. That however doesn't really connect it with the structural equation for $R$ so gives 0 points.}
+  \item Draw the graph $G^+(M)$ of the SCM $M$. 
+    Clearly indicate the type of variable (exogenous input, exogenous random, endogenous), and don't forget possible self-cycles (directed edges from a node to itself).
+  \score{2}
+  \answer{\begin{tikzpicture}
+      \begin{scope}
+    %    \node at (-2.5,2) {(c)};
+        \node[ndlat] (ED) at (1.5,0) {$W_D$};
+        \node[ndout] (D) at (1.5,-1.5) {$D$};
+        \node[ndlat] (ES) at (-1.5,0) {$W_S$};
+        \node[ndout] (S) at (-1.5,-1.5) {$S$};
+        \node[ndout] (P) at (0,-1.5) {$R$};
+        \draw[arout, bend left=20] (P) edge (S);
+        \draw[arout, bend left=20] (P) edge (D);
+        \draw[arout, bend left=20] (S) edge (P);
+        \draw[arout, bend left=20] (D) edge (P);
+        \draw[arout] (ED) to (D);
+        \draw[arout] (ES) to (S);
+        \draw[arout] (P)  edge [looseness=4.4] (P);
+    %    \draw[arout] (P)  edge [out=62,in=118,looseness=4.4] (P);
+        \node at (0,-2.4) {$G^+(M)$};
+      \end{scope}
+      \end{tikzpicture}
+
+  Note the self-cycle for $r$: there exists no function $\tilde f_R(d,s,w_D,w_S)$ such that $r = f_R(d,s,r)\quad M\as$ if and only if $r = \tilde f_R(d,s,w_D,w_S)\quad M\as$. 
+  }
+  \item Prove that the SCM $M$ is essentially uniquely solvable. 
+  \score{1}
+    \answer{For all $w_D,w_S$: 
+    \begin{align*}
+      d = f_D(d,s,r,w_D,w_S) &= \beta_D r + w_D \\
+      s = f_S(d,s,r,w_D,w_S) &= \beta_S r + w_S \\
+      r = f_R(d,s,r,w_D,w_S) &= r + (d - s)
+    \end{align*}
+    if and only if
+    \begin{align*}
+      d &= \beta_D \frac{w_S - w_D}{\beta_D - \beta_S} + w_D \\
+      s &= \beta_S \frac{w_S - w_D}{\beta_D - \beta_S} + w_S \\
+      r &= \frac{w_D - w_S}{\beta_S - \beta_D}
+    \end{align*}
+    Since there exists a unique solution of the structural equations for all $(w_D,w_S) \in \RN^2$, and therefore $M$-a.s., $M$ is essentially uniquely solvable.
+    }
+  \item Prove that the SCM $M$ is \emph{not} simple.
+    \score{1}
+    \answer{For $M$ to be simple, it has to be essentially uniquely solvable w.r.t.\ each subset of $\{D,S,R\}$.
+    Solvability problems arise when intervening simultaneously on supply and demand:
+    when picking values $d,s$ with $d \ne s$, the structural equation for $R$ cannot be satisfied (no matter the values of $w_D, w_S$).
+    Hence $M$ is not essentially uniquely solvable w.r.t.\ $\{R\}$, and therefore not simple.}
+    \points{Unintended (but correct) answer: simple SCMs have no self-loops.}
+\end{enumerate}
+Suppose now that the government intervenes to fix the price (for example, the Italian government has in the past regulated the price of a single shot espresso in a coffee shop to cost no more than 1.00 EUR).
+\begin{enumerate}[resume*]
+  \item Draw the graph $G^+(M_{\doit(R)})$ of the intervened SCM $M_{\doit(R)}$.
+    \score{1}
+  \answer{\begin{tikzpicture}
+      \begin{scope}
+    %    \node at (-2.5,2) {(c)};
+        \node[ndlat] (ED) at (1.5,0) {$W_D$};
+        \node[ndout] (D) at (1.5,-1.5) {$D$};
+        \node[ndlat] (ES) at (-1.5,0) {$W_S$};
+        \node[ndout] (S) at (-1.5,-1.5) {$S$};
+        \node[ndint] (P) at (0,-1.5) {$R$};
+        \draw[arout, bend left=20] (P) edge (S);
+        \draw[arout, bend left=20] (P) edge (D);
+%        \draw[arout, bend left=20] (S) edge (P);
+%        \draw[arout, bend left=20] (D) edge (P);
+        \draw[arout] (ED) to (D);
+        \draw[arout] (ES) to (S);
+  %      \draw[arout] (P)  edge [looseness=4.4] (P);
+    %    \draw[arout] (P)  edge [out=62,in=118,looseness=4.4] (P);
+        \node at (0,-2.4) {$G^+(M_{\doit(R)})$};
+      \end{scope}
+      \end{tikzpicture}
+  }
+  \item Is the intervened SCM $M_{\doit(R)}$ simple? Motivate your answer.
+    \score{1}
+    \answer{Yes, its graph is acyclic.}
+\end{enumerate}
+Consider now the counterfactual query ``given that the supply was fixed to $s$, leading to price $r$, what would the price $r'$ have been if we had instead fixed supply at $s'$''?
+%In other words: how would---\emph{ceteris paribus}---price have been distributed, had we intervened to set supplied quantities equal to $s'$, given that actually we intervened to set supplied quantities equal to $s$ and observed that this led to price $r$? 
+(This is the type of question that OPEC may face when reflecting upon their actions to influence the oil price on the world oil market.)
+\begin{enumerate}[resume*]
+  \item Formulate this as a probabilistic query on the twin SCM (i.e., express it in the form $P_{M^\twin}(\dots \given \doit(\dots), \dots)$).
+    \score{1}
+    \answer{
+      $$P_{M^\twin}(R' \given \doit(S = s, {S'} = s'), R = r)$$
+    }
+  \item Draw the graph $G^+(M^\twin)$ of the twinned SCM $M^\twin$.
+    \score{1}
+    \answer{
+    \begin{tikzpicture}
+    \begin{scope}[xshift=5cm]
+%      \node at (-2.5,2) {(c)};
+      \node[ndlat] (ED) at (1.5,0) {$W_D$};
+      \node[ndout] (D) at (1.5,-1.5) {$D$};
+      \node[ndout] (D2) at (1.5,1.5) {$D'$};
+      \node[ndlat] (ES) at (-1.5,0) {$W_S$};
+      \node[ndout] (S) at (-1.5,-1.5) {$S$};
+      \node[ndout] (S2) at (-1.5,1.5) {$S'$};
+      \node[ndout] (P) at (0,-1.5) {$R$};
+      \node[ndout] (P2) at (0,1.5) {$R'$};
+      \draw[arout, bend left=20] (P) edge (S);
+      \draw[arout, bend left=20] (P) edge (D);
+      \draw[arout, bend left=20] (S) edge (P);
+      \draw[arout, bend left=20] (D) edge (P);
+      \draw[arout, bend left=20] (P2) edge (S2);
+      \draw[arout, bend left=20] (P2) edge (D2);
+      \draw[arout, bend left=20] (S2) edge (P2);
+      \draw[arout, bend left=20] (D2) edge (P2);
+      \draw[arout] (ED) to (D);
+      \draw[arout] (ES) to (S);
+      \draw[arout] (ED) to (D2);
+      \draw[arout] (ES) to (S2);
+      \draw[arout] (P)  to [out=62,in=118,looseness=4.4] (P);
+      \draw[arout] (P2)  to [out=62,in=118,looseness=4.4] (P2);
+      \node at (0,-2.4) {$G^+(M^\twin)$};
+    \end{scope}
+    \end{tikzpicture}}
+\begin{comment}
+\item Draw the graph of the intervened twinned SCM $G^+(M^\twin_{\doit(S,S')})$.
+    \answer{\begin{tikzpicture}
+    \begin{scope}[xshift=10cm]
+%      \node at (-2.5,2) {(c)};
+      \node[ndlat] (ED) at (1.5,0) {$W_D$};
+      \node[ndout] (D) at (1.5,-1.5) {$D$};
+      \node[ndout] (D2) at (1.5,1.5) {$D'$};
+      \node[ndlat] (ES) at (-1.5,0) {$W_S$};
+      \node[ndint] (S) at (-1.5,-1.5) {$S$};
+      \node[ndint] (S2) at (-1.5,1.5) {$S'$};
+      \node[ndout] (P) at (0,-1.5) {$R$};
+      \node[ndout] (P2) at (0,1.5) {$R'$};
+%      \draw[arr, bend left=20] (P) edge (S);
+      \draw[arout, bend left=20] (P) edge (D);
+      \draw[arout, bend left=20] (S) edge (P);
+      \draw[arout, bend left=20] (D) edge (P);
+%      \draw[arr, bend left=20] (P2) edge (S2);
+      \draw[arout, bend left=20] (P2) edge (D2);
+      \draw[arout, bend left=20] (S2) edge (P2);
+      \draw[arout, bend left=20] (D2) edge (P2);
+      \draw[arout] (ED) to (D);
+%      \draw[arr] (ES) to (S);
+      \draw[arout] (ED) to (D2);
+%      \draw[arr] (ES) to (S2);
+      \draw[arout] (P)  to [out=62,in=118,looseness=4.4] (P);
+      \draw[arout] (P2)  to [out=62,in=118,looseness=4.4] (P2);
+      \node at (0,-2.4) {$G^+(M^\twin)_{\doit(\{S,S'\})}$};
+    \end{scope}
+  \end{tikzpicture}}
+\end{comment}
+\item Calculate the counterfactual distribution.
+  \score{2}
+  \answer{%A straightforward calculation shows that this counterfactual distribution of price is the Dirac measure on $x_P' = p + (s' - s) / \beta_D$.
+    Consider the SE's for $D,R$ according to $M^\twin_{\doit(S=s,S'=s')}$:
+    \begin{align*}
+      D &= \beta_D R + W_D \\
+      R &= R + (D - S) 
+    \end{align*}
+    Conditional on information $R=r$, $S=s$, this implies $W_D = s - \beta_D r$, hence the SE's for $D',R'$ according to $M^\twin_{\doit(S=s,S'=s')}$ become:
+    \begin{align*}
+      D' &= \beta_D R' + W_D = \beta_D R' + (s - \beta_D r)\\
+      R' &= R' + (D' - S')
+    \end{align*}
+    which implies
+    $$R' = r + \frac{s' - s}{\beta_D}$$
+    Hence 
+      $$P_{M^\twin}(R' \given \doit(S = s, {S'} = s'), R = r) = \delta(r + \frac{s' - s}{\beta_D})$$
+    }
+\end{enumerate}
+One might hope that by marginalizing out $R$, one obtains a simple SCM.
+\begin{enumerate}[resume*]
+  \item Why can we not just marginalize out $R$ by using the definition of marginalization as given in the lecture notes?
+    \score{1}
+    \answer{Because $M$ is not essentially uniquely solvable w.r.t.\ $\{R\}$, which is necessary for the definition to apply.}
+    \points{Unfortunately, the questions are ordered confusingly: some students interpreted this question as being about $M^{\twin}$ rather than $M$. In these cases, the answer was still counted as correct if it made sense.}
+  \item 
+    Prove that there does not even exist a simple SCM $\tilde{M}$ with two endogenous variables $D,S$ that is interventionally equivalent to $M$ w.r.t.\ $\{D,S\}$
+    (that is, such that $P_M(D,S) = P_{\tilde{M}}(D,S)$ and $P_M(D \given \doit(S)) = P_{\tilde{M}}(D \given \doit(S))$ and $P_M(S \given \doit(D)) = P_{\tilde{M}}(S \given \doit(D))$.
+    \score{2}
+  \answer{Consider the intervention $\doit(D)$. According to $M$, we must have $P_M(S\given \doit(D)) = \delta(S|D)$. 
+    Therefore, the structural equation for $S$ of $\tilde{M}$ must be essentially of the form $S = D$.
+    Similarly, by considering $\doit(S)$, we conclude that the structural equation of $\tilde{M}$ must be essentially of the form $D = S$.
+    But then $\tilde{M}$ cannot be essentially uniquely solvable.
+    (Indeed, it would only model that $D=S$ but cannot contain any information regarding to the value of $D,S$ at market equilibrium)
+  }
+\end{enumerate}
+
+\subsection{Tariffs}
+\totalscore{4}
+Sewall Wright (1889--1988) was a geneticist who is generally credited for having first proposed the concept of structural causal models.
+His father, Philip Green Wright (1861--1934), was an economist who is generally credited for having introduced the method of instrumental variables, a clever method for measuring
+a causal effect that does not require randomization but can make use of confounded observational data. He introduced this method in 1928 in his book, ``The tariff on animal and vegetable oils''.
+
+Because tariffs have become quite popular again recently, we will consider an SCM inspired by the model that Philip Wright studies in (Appendix B of) his book.
+It is an extension of the SCM of the previous exercise that considers two markets, a ``domestic'' market (e.g., the US market) and a ``foreign'' market (e.g., the Chinese market).
+A ``tariff'' or ``duty'' is a tax imposed by a government (say the US government) on goods and services that are imported from the foreign country.
+Because of the tariff, the price differs in the two markets.
+Denoting the domestic price by $R_d$, the foreign price by $R_f$, and the magnitude of the tariff by $T_f$, imposing a tariff means that
+$R_d = R_f + T_f$.
+At equilibrium, the total (domestic + foreign) supply should equal the total (domestic + foreign) demand:
+$$S_d + S_f = D_d + D_f$$
+
+\newpage
+Consider now an SCM $M$ with the following variables/parameters:
+\begin{center}\begin{tabular}{lll}
+$T_f$     &magnitude of tariff           &exogenous input \\
+$R_f$     &foreign price                 &endogenous \\
+$S_d$     &domestic supply               &endogenous \\
+$S_f$     &foreign supply                &endogenous \\
+$D_d$     &domestic demand               &endogenous \\
+$D_f$     &foreign demand                &endogenous \\
+%$R_d$     &domestic price                &endogenous \\
+$\beta_{S_d}$ &influence of price on domestic supply &parameter \\
+$\beta_{S_f}$ &influence of price on foreign supply  &parameter \\
+$\beta_{D_d}$ &influence of price on domestic demand &parameter \\
+$\beta_{D_f}$ &influence of price on foreign demand  &parameter \\
+  $W_{S_d}$   &random influences on domestic supply & exogenous random \\
+  $W_{S_f}$   &random influences on foreign supply & exogenous random \\
+  $W_{D_d}$   &random influences on domestic demand & exogenous random \\
+  $W_{D_f}$   &random influences on foreign demand & exogenous random 
+\end{tabular}\end{center}
+and structural equations:
+\begin{align*}
+  S_d &= \beta_{S_d} (R_f + T_f) + W_{S_d} \\
+  S_f &= \beta_{S_f} R_f + W_{S_f} \\
+  D_d &= \beta_{D_d} (R_f + T_f) + W_{D_d} \\
+  D_f &= \beta_{D_f} R_f + W_{D_f} \\
+  R_f &= R_f + ((S_d + S_f) - (D_d + D_f))
+\end{align*}
+
+\begin{enumerate}[label=\alph*)]
+  \item Draw the causal graph $G(M)$ of SCM $M$.
+    \score{2}
+  \answer{\begin{tikzpicture}
+      \begin{scope}
+    %    \node at (-2.5,2) {(c)};
+%        \node[ndlat] (EDd) at (1.5,-3) {$W_{D_d}$};
+        \node[ndout] (Dd) at (1.5,-1.5) {$D_d$};
+%        \node[ndlat] (ESd) at (-1.5,-3) {$W_{S_d}$};
+        \node[ndout] (Sd) at (-1.5,-1.5) {$S_d$};
+%        \node[ndout] (Pd) at (0,-1.5) {$R_d$};
+        \node[ndint] (Tf) at (0,-1.5) {$T_f$};
+%        \draw[arout] (EDd) to (Dd);
+%        \draw[arout] (ESd) to (Sd);
+%        \draw[arout] (Pd)  edge [looseness=4.4] (Pd);
+        \begin{scope}[yshift=1.5cm]
+%        \node[ndlat] (EDf) at (1.5,0) {$W_{D_f}$};
+        \node[ndout] (Df) at (1.5,-1.5) {$D_f$};
+%        \node[ndlat] (ESf) at (-1.5,0) {$W_{S_f}$};
+        \node[ndout] (Sf) at (-1.5,-1.5) {$S_f$};
+        \node[ndout] (Pf) at (0,-1.5) {$R_f$};
+        \draw[arout, bend left=20] (Pf) edge (Sf);
+        \draw[arout, bend left=20] (Pf) edge (Df);
+        \draw[arout, bend left=20] (Sf) edge (Pf);
+        \draw[arout, bend left=20] (Df) edge (Pf);
+%        \draw[arout] (EDf) to (Df);
+%        \draw[arout] (ESf) to (Sf);
+        \draw[arout] (Pf)  edge [looseness=4.4] (Pf);
+        \end{scope}
+    %    \draw[arout] (P)  edge [out=62,in=118,looseness=4.4] (P);
+        \draw[arout, bend left=20] (Sd) edge (Pf);
+        \draw[arout, bend left=20] (Dd) edge (Pf);
+        \draw[arout, bend left=20] (Pf) edge (Sd);
+        \draw[arout, bend left=20] (Pf) edge (Dd);
+        \draw[arout] (Tf) to (Dd);
+        \draw[arout] (Tf) to (Sd);
+        \node at (0,-2.4) {$G^+(M)$};
+      \end{scope}
+      \end{tikzpicture}
+  }
+    \points{}
+\end{enumerate}
+
+Wright considers the causal effect of the tariff on the foreign price, defined as
+$$\Delta R_f(t_f) := \Exp(R_f^{\doit(T_f=t_f)} - R_f^{\doit(T_f=0)})$$
+which is a function of $t_f$.
+
+\begin{enumerate}[resume*]
+  \item Calculate the causal effect of the tariff on the foreign price.
+    \score{2}
+    \answer{We first calculate the $R_f$-component of the solution function.
+    For that we substitute the structural equations for $S_d$, $S_f$, $D_d$, $D_f$ into that for $R_d$ and solve with respect to $R_f$:
+      $$\beta_{S_d} (R_f + T_f) + W_{S_d} + \beta_{S_f} R_f + W_{S_f} = \beta_{D_d} (R_f + T_f) + W_{D_d} + \beta_{D_f} R_f + W_{D_f}$$
+    iff
+      $$R_f (\beta_{S_d} + \beta_{S_f} - \beta_{D_d} - \beta_{D_f}) = (\beta_{D_d} - \beta_{S_d}) T_f + W_{D_d} + W_{D_f} - W_{S_d} - W_{S_f}$$
+    iff
+      $$R_f = \frac{(\beta_{D_d} - \beta_{S_d}) T_f + W_{D_d} + W_{D_f} - W_{S_d} - W_{S_f}}{\beta_{S_d} + \beta_{S_f} - \beta_{D_d} - \beta_{D_f}}$$
+%      $$R_d = \frac{- T_f (\beta_{S_f} - \beta_{D_f}) + W_{S_d} + W_{S_f} - W_{D_d} - W_{D_f}}{\beta_{S_d} + \beta_{S_f} - \beta_{D_d} - \beta_{D_f}}$$
+    We then calculate
+      $$\Delta R_f(t_f) = \Exp( R_f^{\doit(T_f=t_f)} - R_f^{\doit(T_f=0)} ) = \frac{(\beta_{D_d} - \beta_{S_d}) T_f}{\beta_{S_d} + \beta_{S_f} - \beta_{D_d} - \beta_{D_f}}$$
+%      $$\Delta R_d(t_f) = \Exp( R_d^{\doit(T_f=t_f)} - R_d^{\doit(T_f=0)} ) = t_f \frac{\beta_{S_f} - \beta_{D_f}}{\beta_{S_d} + \beta_{S_f} - \beta_{D_d} - \beta_{D_f}}$$
+    }
+\end{enumerate}
+
+% elasticity = change in quantity / change in price
+% elasticity = cotangent slope price / output
+%
+%From this we can also calculate the Delta's of domestic production, imports, domestic consumption
+
+% If you want to work this exercise out in more detail, consider:
+% - assume non-linear supply & demand curves
+% - the analysis of Wright essentially seems to be a linearization around equilibrium
+% - see the wikipedia page about elasticities to understand better how these are defined
+% - it's really a stretch to use an SCM; this is actually a really motivating example to work out using bipartite graphical causal models
+% - Wright and the editorial https://arxiv.org/pdf/2501.16395v2 also run into technical issues: when drawing a graph with potential outcomes as in Fig. 3 of that editorial, the problem is that the CI statement is problematic as it refers to an uncountable family of potential outcomes. Wright's version (as in Fig. 4 of the editorial), who puts the latent variables into the graph, is better. Also, it appears hard to graphically recognize the IV analysis that Wright does. So perhaps this is an opportunity to think of an extended IV analysis in the framework of bipartite graphs???

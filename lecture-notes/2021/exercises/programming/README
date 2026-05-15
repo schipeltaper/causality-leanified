@@ -1,0 +1,38 @@
+Here is a rough exercise sketch.
+
+The idea is to:
+(i) setup a simulation where one can sample from some causal model
+(ii) implement the LCD algorithm to discover causal relations
+(iii) evaluate the accuracy of the results (comparing to the true model)
+
+To avoid diverging answers that lead to difficult grading, we can
+specify all kinds of details. For example, how the simulation should
+be done. 
+
+One version could be:
+
+i) Implement the ASIA network, which is a toy example causal Bayesian network
+whose specification e.g. can be found at https://www.bayesserver.com/examples/networks/asia
+In particular: implement a sampler from that causal Bayes net in R.
+Generate 10000 samples with your sampler.
+(The idea would be to make an ancestral sampler, so to sample in a topological ordering,
+sampling each variable from its kernel p(x_i|do(pa(x_i))))
+
+ii) Implement the G-test in R. This reduces to implementing
+the G test statistic (which boils down to calculating an empirical mutual information
+between two discrete variables, conditioning on a third) and to invoke the 
+chi-squared quantile/cdf function. (All necessary math details will be in the lecture
+notes, the required functions regarding the chi^2 distribution are readily available in R)
+
+iii) Implement the LCD algorithm with this test. Input: a data set, a triple of variables
+where the first is known not to be caused by the other two, p-value threshold. Output:
+this triple fits the LCD pattern (TRUE/FALSE)
+
+iv) Run the LCD algorithm on the sampled data from the ASIA network. Use visit-to-Asia and
+smoking as context variables (i.e., those that are known not to be caused by the others).
+Study the precision/recall as a function of the number of samples.
+Use this to estimate the causal effect of 'has tuberculosis' on 'xray result'.
+
+v) Run also the FCI-JCI algorithm from the pcalg package on the same data, and read out the identified ancestral
+relations from the PAG it finds with the 'pag2anc' function. Again, study precision/recall as a function of the number
+of samples.

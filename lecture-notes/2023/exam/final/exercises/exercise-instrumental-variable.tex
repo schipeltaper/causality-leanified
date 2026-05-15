@@ -1,0 +1,198 @@
+\subsection{Instrumental Variables}
+\totalscore{12}
+
+\answer{TODO: see whether we could do the cyclic version, with an additional edge $X \hut Y$.}
+
+As a warm-up consider two real-valued random variables $S$, $T$ with a joint distribution $P(S,T)$ and 
+with $\E[|S|^2], \E[|T|^2] < \infty$.
+Recall the definition of the \emph{covariance} $\Cov(S,T)$ between $S$ and $T$ and the \emph{conditional expectation} $\E[S|T=t]$ of $S$ given $T=t$, resp.:
+\begin{align*}
+    \Cov(S,T) &:= \E[S\cdot T] - \E[S]\cdot \E[T], & \E[S|T=t] := \int s \, P(S \in ds|T=t),
+\end{align*}
+where $P(S|T)$ is a (regular) conditional probability distribution of $P(S,T)$ conditioned on $T$, which we know always exists and is unique up to a $P(T)$-null set.
+
+\begin{enumerate}[label=\alph*)]
+    \item Show that the covariance and the conditional expectation are linear functions in $S$. \score{2}
+\answer{%
+We exploit the fact that integrals and thus expectation values are linear, $a_1,a_2 \in \R$:
+\begin{align*}
+   & \Cov(a_1S_1+a_2S_2,T) \\
+   &= \E\lB (a_1S_1+a_2S_2) \cdot T \rB - \E\lB (a_1S_1+a_2S_2)\rB\cdot \E[T] && \text{definition}\\
+   &= \E\lB a_1S_1T+a_2S_2T\rB - \lp a_1\E[S_1]+a_2\E[S_2] \rp \cdot \E[T] && \text{linearity of }\E\\
+   &= \lp a_1\E[S_1\cdot T]+a_2\E[S_2\cdot T] \rp - \lp a_1\E[S_1]\cdot \E[T]+a_2\E[S_2]\cdot \E[T] \rp 
+   && \text{linearity of }\E\\
+   &= a_1 \cdot \lp  \E[S_1\cdot T]-\E[S_1]\cdot \E[T] \rp + a_2 \cdot \lp \E[S_2\cdot T] -\E[S_2]\cdot \E[T] \rp  
+   && \text{gathering terms} \\
+   &= a_1 \cdot \Cov(S_1,T) + a_2 \cdot \Cov(S_2,T) && \text{definition}.
+\end{align*}
+We also get:
+\begin{align*}
+   & \E[a_1S_1+a_2S_2|T=t]\\ 
+   &= \int s \, P((a_1S_1+a_2S_2) \in ds|T=t) && \text{definition} \\
+   &= \int (a_1 s_1+a_2s_2) \, P((S_1,S_2) \in d(s_1,s_2)|T=t) &&\text{general transformation rule}\\
+   &= a_1\int  s_1 \, P((S_1,S_2) \in d(s_1,s_2)|T=t)
+      + a_2 \int s_2 \, P((S_1,S_2) \in d(s_1,s_2)|T=t) && \text{linearity of }\int\\
+   &= a_1\int\int  s_1 \, P(S_1 \in ds_1,S_2 \in ds_2|T=t)
+     + a_2 \int\int s_2 \, P(S_1 \in ds_1,S_2 \in ds_2|T=t) &&\text{Fubini theorem}\\
+   &= a_1\int  s_1 \, P(S_1 \in ds_1|T=t) + a_2 \int s_2 \, P(S_2 \in ds_2|T=t) &&\text{integrating out } S_2, S_1\\
+   &= a_1\cdot\E[S_1|T=t] + a_2 \cdot\E[S_2|T=t] &&\text{definition}.
+\end{align*}
+}
+\points{1pt for each correct derivation. Jumping some steps is ok, as long as it is visible what happens between the shown steps.}
+
+    \item Now assume that $S$ and $T$ are \emph{independent}: $S \Indep_{P(S,T)} T$. 
+        Show that we then have:
+        \begin{enumerate}[label=\roman*)]
+            \item $\Cov(S,T) =0$. \score{1}
+            \item $\E[S|T=t] = \E[S]$ for $P(T)$-almost-all $t$. \score{1}
+        \end{enumerate}
+\end{enumerate}
+\emph{Hint: You may assume in all cases and without loss of points that $P(S,T)$ has a density $p(s,t)$ w.r.t.\ the Lebesgue measure $\lambda^2$.}
+\answer{%
+We now assume that $S$ and $T$ are independent: $S \Indep_{P(S,T)} T$. 
+Then we have $P(S,T) = P(S) \otimes P(T)$. This shows that $P(S)$ is a version of $P(S|T)$.
+With this we get:
+\begin{align*}
+    &\E[S\cdot T]\\
+    &= \int\int s \cdot t \, P(S \in ds,T \in dt) &&\text{definition/general transformatin rule} \\
+    &= \int\int s \cdot t \, P(S \in ds) \, P(T \in dt) && P(S,T) = P(S) \otimes P(T)\\
+    &= \int \lp \int s \, P(S \in ds) \rp \cdot t \, P(T \in dt) &&\text{Fubini theorem} \\
+    &= \int \E[S] \cdot t \, P(T \in dt) &&\text{definition}\\
+    &= \E[S] \cdot \int  t \, P(T \in dt) &&\text{linearity of } \int \\
+    &= \E[S] \cdot \E[T] &&\text{definition}.
+\end{align*}
+This shows:
+\begin{align*}
+    \Cov(S,T) &=  \E[S\cdot T] - \E[S] \cdot \E[T] = 0.
+\end{align*}
+Furthermore:
+\begin{align*}
+   & \E[S|T=t]\\ &= \int s \, P(S \in s|T=t) &&\text{definition} \\
+              &= \int s \, P(S \in s) && P(S|T=t)=P(S) \\
+              &= \E[S] &&\text{definition}.
+\end{align*}
+}
+\points{1pt for each correct derivation. Jumping some steps is ok, as long as it is visible what happens between the shown steps.}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (4,0) {$Y$};
+    \node[ndout] (Z) at (-2,2) {$Z$};
+    %\node[ndout] (Z) at (-4,0) {$Z$};
+    %\node[ndout] (W) at (-4,0) {$W$};
+    \node[ndlat] (U) at (2,2) {$U$};
+    \draw[arout] (X) to (Y);
+    \draw[arout] (Z) to (X);
+    %\draw[arout] (Z) to (W);
+    %\draw[arout] (W) to (Y);
+    \draw[arlout] (U) to (X);
+    \draw[arlout] (U) to (Y);
+\end{tikzpicture}
+\caption{A Directed Acylic Graph (DAG) with observed variables $X$, $Y$, $Z$ and unobserved latent variable $U$.}
+\label{fig:instr-var-1}
+\end{figure}
+
+We now consider a causal Bayesian network corresponding to the graph depicted in Figure \ref{fig:instr-var-1}. We assume that the variables $X$, $Y$, $Z$ are observed real-valued random variables and that $U$ is a real-valued unobserved latent random variable.
+Furthermore, we assume that $Y$ is given by a (semi-)linear structural equation:
+\begin{align*}
+    Y &=  \beta \cdot X + g(U),
+    %Y &:= f(X,U), & f(x,u) &:= \beta \cdot x + g(u),
+\end{align*}
+with some (potentially non-linear) measurable function $g$.
+The coefficient $\beta$ here measures by how many units $Y$ would change if we would change $X$ by one unit via intervention. So $\beta$ quantifies, in some sense, the causal effect $P(Y|\doit(X))$ of $X$ on $Y$.
+
+In the following we want to find different ways to determine $\beta$ by the knowledge of the graph $G$ in Figure \ref{fig:instr-var-1}, the use of the \emph{instrumental variable} $Z$, which we consider a continuously distributed real-valued random variable that correlates with $X$ (i.e.\ $\Cov(X,Z) \neq 0$), and the observational distribution $P(X,Y,Z)$.
+
+\begin{enumerate}[resume*]
+    \item Derive an expression for $\beta$ just in terms of the (observational) covariances between the variables $X$, $Y$, $Z$. Provide all arguments in detail. \\ \emph{Hint: Make use of the known graphical structure.}
+ \score{4}
+  \answer{%
+    First note that $U \Perp^d_G Z$. Indeed the only paths between $Z$ and $U$ are blocked:
+    \begin{align*}
+        Z \tuh X \hut U &&& \text{blocked at collider $X$}, \\
+        Z \tuh X \tuh Y \hut U &&& \text{blocked at collider $Y$}
+    \end{align*}
+    By the global Markov property this implies: $U \Indep_P Z$.
+    By the separoid axioms this implies: $g(U) \Indep_P Z$.
+    By the previous point this implies: $\Cov(g(U),Z) =0$.
+    With these observations we get:
+\begin{align*}
+    &\Cov(Y,Z) \\
+    &= \Cov(\beta \cdot X + g(U),Z) &&\text{definition of } Y \\
+    &= \beta \cdot \Cov(X,Z) + \Cov(g(U),Z) && \text{linearity of } \Cov\\
+    &= \beta \cdot \Cov(X,Z) && \text{as } \Cov(g(U),Z) =0.
+\end{align*}
+Dividing by $\Cov(X,Z) \neq 0$ gives the expression:
+\begin{align*}
+    \beta &= \frac{\Cov(Y,Z)}{\Cov(X,Z)}.
+\end{align*}
+    }
+\points{ 1pt for the d-separation statement and the paths, 1pt for mentioning global Markov property and separoid axioms. 1pt for covariance arguments. 1pt for a correct final expression for $\beta$.}
+     \label{ex:instrumental_variables_beta}
+    %\item[] \emph{Hint: Make use of the linearity of the covariance, the linearity of $f$ in $x$, certain (conditional) independencies and previous points.}
+\end{enumerate}
+
+%Now consider that we are given an i.i.d.\ sample $\Dcal = \lC (X_n,Y_n,Z_n) \st n =1,\dots N \rC$ of size $N$ from the observational distribution $P(X,Y,Z)$.
+%
+%\begin{enumerate}[resume*]
+%  \item For the expression of $\beta$ that you found in Exercise~\ref{ex:instrumental_variables_beta}, provide a consistent estimator in terms of those data points. \score{1}
+%\end{enumerate}
+%\answer{%
+%    We use the sample version of the covariance (biased or unbiased) and plug them into the formula:
+%\begin{align*}
+%    \hat \beta = \frac{ \lp \frac{1}{N} \sum_{n=1}^N Y_n\cdot Z_n \rp - \lp \frac{1}{N} \sum_{n=1}^N Y_n \rp  \cdot \lp \frac{1}{N} \sum_{n=1}^N Z_n \rp  }{\lp \frac{1}{N} \sum_{n=1}^N X_n\cdot Z_n \rp - \lp \frac{1}{N} \sum_{n=1}^N X_n \rp  \cdot \lp \frac{1}{N} \sum_{n=1}^N Z_n \rp }.
+%\end{align*}
+%\points{1pt for writing down the above formula (or reasonable alternatives).}
+%}
+
+Now assume that we pick a threshold $z_0$ for $Z$ and define the binary variable:
+        \begin{align*}
+          W &:= \I_{[Z > z_0]},
+        \end{align*}
+which indicates if $Z$ is bigger than $z_0$ or not. The threshold $z_0$ is chosen such that
+ $P(W=0), P(W=1) >0$ and $\E[X|W=0] \neq \E[X|W=1]$.
+
+\begin{enumerate}[resume*]
+    \item Derive an for expression for $\beta$ just in terms of conditional expectation values $\E[\_|W=0]$ 
+        and $\E[\_|W=1]$ of $X$, $Y$, $Z$ w.r.t.\ $P(X,Y,Z)$. Provide all arguments in detail. \\
+        \emph{Hint: Make use of the known graphical structure.}
+ \score{4}
+  % \item[] \emph{Hint: Make use of the known graphical structure.}
+    %\item[] \emph{Hint: Make use of the linearity of the conditional expectation, the linearity of $f$ in $x$, certain (conditional) independencies and previous points.}
+\answer{%
+    First note that we have: $g(U) \Indep_P Z$ and that $W=h(Z)$ is a measurable function of $Z$.
+    By the separoid rules we get: $g(U) \Indep_P W$. 
+    By the previous points we get: $\E[g(U)|W=w] = \E[g(U)]$ for $w=1,0$.
+Together we then get that:
+\begin{align*}
+ & \E[Y|W=1] - \E[Y|W=0] \\
+ &= \E[\beta \cdot X + g(U)|W=1] - \E[\beta \cdot X + g(U)|W=0] &&\text{definition of } Y \\
+ &= \lp \beta \cdot \E[X|W=1] + \E[g(U)|W=1] \rp - \lp \beta \cdot \E[X|W=0] + \E[g(U)|W=0] \rp 
+ && \text{linearity of } \E[\_|W=w]\\
+ &= \beta \cdot \lp \E[X|W=1] - \E[X|W=0] \rp + \lp \E[g(U)|W=1]-\E[g(U)|W=0] \rp &&\text{rearrange terms} \\
+ &= \beta \cdot \lp \E[X|W=1] - \E[X|W=0] \rp + \lp \E[g(U)]-\E[g(U)] \rp &&g(U) \Indep W, \text{ see above }\\
+ &= \beta \cdot \lp \E[X|W=1] - \E[X|W=0] \rp.
+\end{align*}
+Dividing by $\E[X|W=1] - \E[X|W=0]  \neq 0$ give us the formula:
+\begin{align*}
+ \beta &= \frac{\E[Y|W=1] - \E[Y|W=0]}{\E[X|W=1] - \E[X|W=0] }.
+\end{align*}
+\points{1pt for the independence argument $g(U) \Indep_P W$. (If $g(U) \Indep_P Z$ was not argued in the previous point those points could be gained here.) 2pt for the derivation. 1pt for final expression.   }
+}
+%    \item Give an estimator for this expression of $\beta$ in terms of the data points. \score{1}
+%\answer{%
+%Consider the set of indices and their cardinality:
+%\begin{align*}
+%    I_0 &:= \lC n \st Z_n \le z_0 \rC, & I_1&:= \lC n \st Z_n > z_0 \rC, \\
+%    N_0 &:= \# I_0, & N_1 &:= \#I_1.
+%\end{align*}
+%Then we can estimate the conditional expections given $W=w$ by their mean on those points that have $W_n=w$.
+%Plugging this into the expression for $\beta$ gives the estimator:
+%\begin{align*}
+%    \hat \beta &= \frac{ \frac{1}{N_1} \sum_{n\in I_1} Y_n - \frac{1}{N_0} \sum_{n\in I_0} Y_n   }{\frac{1}{N_1} \sum_{n\in I_1} X_n - \frac{1}{N_0} \sum_{n\in I_0} X_n }.
+%\end{align*}
+%\points{1pt for the above formula (or similar).}
+%}
+\end{enumerate}

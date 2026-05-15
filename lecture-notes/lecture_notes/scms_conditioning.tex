@@ -1,0 +1,41 @@
+\section{Conditioning}
+
+\Joris{THIS SECTION IS NOT READY YET}
+
+Often one wants to model filtering processes that accept or reject individual samples.
+Probabilistically, such processes can be modeled as conditioning on an event, say the
+event $X_S \in s$ for some measurable subset $s \subseteq \CX_S$.
+But in order to preserve the \emph{causal} semantics, we will have to define a conditioning
+operation on SCMs (analogously to how we defined a marginalization operation on SCMs).
+
+\begin{Def}\label{def:conditioned_scm}
+  SKETCH.
+
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+  Let $S \subseteq \Sin \cup \Srnd \cup \Send$ be a subset of the variables and $s \subseteq \CX_S$ a measurable set of values $X_S$ may take.
+  Write $K := (\Sin \cup \Srnd \cup \Send) \sm S$ for the complement of $S$.
+  If $K \not\subseteq \Anc^{G(M)}(S)$ then we can define a \emph{conditioned SCM}
+  $M_{|S\in s} := \lt \Sin \sm S, \Send \sm S, \Srnd \sm S, \CX_K, P^*, f_K \rt$
+  where $P(X_{\Srnd})$ is replaced by $P(X_{\Srnd} \given g_S(X_{\Anc^{G(M)}(S)}) \in s)$.
+  Aha: additionally we may need to merge some exogenous variables!
+  First we may have to merge exogenous input variables if they become variation dependent by the conditioning (if $S \in s$ rules out certain values of $X_J$ in the Cartesian product $\CX_J$).
+  Then, we may have to redefine the exogenous random variables to become independent of the exogenous input variables, as in an SCM we can only specify $P(X_W)$ rather than $K(X_W | X_J)$.
+  Finally, we may have to split the exogenous random variables into independent components as we need that $P(X_W) = \prod_{w \in W} P(X_w)$.
+  This will end up as a rather complicated definition in comparison to the marginalization operation!
+  It may also be hard to make it unique, so one might define different versions of it (which will hopefully all end up being at least interventionally equivalent w.r.t.\ $K$!).
+  Even if one makes it `graphically' unique by just merging \emph{all} exogenous input ancestors of $S$ and \emph{all} exogenous random ancestors of $S$, one may end up with different representations of these exogenous random ancestors of $S$.
+  So it appears that even though
+  $P(X_{W \cap \Anc^{G(M)}(S)} | g_S(X_{\Anc^{G(M)}(S)}) \in s, \doit(X_{J \cap \Anc^{G(M)}(S)}))$ is unique, its representation as a deterministic function of exogenous random variables whose
+  distribution doesn't depend on $X_J$ is highly non-unique).
+  In other words, the different versions of $M_{|S\in s}$ may be exogenous reparameterizations of each other (which is another operation that one can define on SCMs but hasn't really be published yet except in an old arxiv preprint of our AOS paper).
+\end{Def}
+
+TODO: fill in the details of the definition and derive nice properties of it (analogous to how we dealt with marginalization).
+
+IDEA: what if we extend the definition of SCM to allow for dependences between exogenous random variables, which are 
+expressed graphically by a MAG on the exogenous random variables? This might preserve all causal semantics for non-ancestors
+of $S$ when conditioning, but also perhaps all CI information of the original SCM. Or perhaps a MAG is a little bit too
+general; perhaps an undirected MAG suffices. Or a chain graph perhaps? Or something else? If we would like to apply 
+existing SCM theory on those new objects, we first have to ``project down'' on the independent-exogenous-variables
+SCM assumption, e.g., by merging dependent exogenous variables. If we omit that step from the conditioning operation,
+it conceptually simplifies.

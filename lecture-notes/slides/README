@@ -1,0 +1,4 @@
+TODO remaining:
+- CI testing: parameter space is \CX_\Theta instead of \Theta, and \CX_\Theta^0 instead of \Theta_0 (and likewise for 1) to allow for the usual distinction between value \theta and random variable \Theta
+- CI testing: should now distinguish $P(..\mid \theta)$ from $P(..\mid \Theta)$, and write $P(..\mid \theta)$ rather than just $P(..)$
+- expand chapter 9 explanation (give examples etc.)

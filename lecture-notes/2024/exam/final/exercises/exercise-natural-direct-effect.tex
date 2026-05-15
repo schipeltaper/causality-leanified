@@ -1,0 +1,401 @@
+\subsection{Mediation analysis}
+\totalscore{7}
+
+In mediation analysis, one is interested in decomposing a total causal effect into direct and indirect components. 
+%Pearl (2001) writes:
+%``A classical example of the ubiquity of direct effects (Hesslow 1976) tells the story of a birth-control pill that is suspect of producing thrombosis in women and, at the same time, has a negative indirect effect on thrombosis by reducing the rate of pregnancies (pregnancy is known to encourage thrombosis). In this example, interest is focused on the direct effect of the pill because it represents a stable biological relationship that, unlike the total effect, is invariant to marital status and other factors that may affect women's chances of getting pregnant or of sustaining pregnancy.  This invariance makes the direct effect transportable across cultural and sociological boundaries and, hence, a more useful quantity in scientific explanation and policy analysis.''
+For example, a birth-control pill might have thrombosis as a possible side effect, while it also reduces the risk of thrombosis by preventing pregnancies (pregnancy is known to increase the risk of thrombosis).
+Here the total effect of the birth-control pill on thrombosis is a combination of its direct effect, and its indirect effect mediated via pregnancies.
+
+A commonly used measure of the direct effect is called \emph{natural} or \emph{pure} direct effect.
+This quantity is usually defined in the literature in terms of potential outcomes. 
+%This raises the question what empirical content the notion of natural direct effect has.
+For example, Tchetgen Tchetgen \& Shpitser (2012) write:
+``The \emph{natural} (also known as \emph{pure}) direct effect captures the effect of the exposure when one 
+intervenes to set the mediator to the (random) level it would have been in the absence of exposure [Robins and Greenland (1992), Pearl (2001)]. 
+[...] To formally define natural direct and indirect effects first requires defining counterfactuals.''
+
+\begin{figure}[!h]\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (A) at (0,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (A) to (Y);
+    \draw[tuh] (A) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:mediation_analysis}Mediation analysis studies how the total effect
+  of treatment/exposure $A$ on outcome $Y$ can be decomposed into a direct effect and 
+  an indirect effect that is mediated via mediator $M$.}
+\end{figure}
+
+Suppose we have a causal model with exposure/treatment variable $A$, a mediator $M$, and an outcome variable $Y$
+and the causal graph is as in Figure~\ref{fig:mediation_analysis}.
+For example, $A$ could be `takes birth control pills', $M$ could be `pregnant', and $Y$ could be `thrombosis'.
+Then, the natural direct effect on $Y$ of changing $A$ from $a'$ to $a$ is defined as
+\begin{equation}\label{eq:nde_counterfactual}
+NDE(Y; a' \to a) := \Exp \lp Y^{\doit(A=a,M=M^{\doit(A=a')})} \rp - \Exp \lp Y^{\doit(A=a')} \rp.
+\end{equation}
+Here, $M^{\doit(A=a')}$ is the potential outcome of the mediator under the intervention that sets $A$ to $a'$ (the reference value),
+and $Y^{\doit(A=a,M=M^{\doit(A=a')})}$ is the potential outcome under the intervention that sets $A$ to $a$ and $M$ to the value it would have had if $A$ were set to $a'$,
+while $Y^{\doit(A=a')}$ is simply the potential outcome under the intervention that sets $A$ to $a'$.
+
+These kind of definitions make our heads spin. 
+Furthermore, because of the inherently counterfactual formulation, it is not clear what the empirical meaning of this quantity is.
+In this exercise, we will look at a specific example (the Berkeley admission data) and formulate the natural direct effect of sex on admission in a way that avoids counterfactuals.
+
+%While Pearl shows that for SCMs this quantity is identified, there also exist more general causal modeling frameworks in which this quantity is not identified from the observed data, given the assumed causal relations in Figure~\ref{fig:natural_direct_effect}(a). 
+%Some authors even claim that in order to formulate the natural 
+%direct effect, one requires counterfactuals 
+
+\begin{figure}[!h]\centering
+\begin{tikzpicture}
+  \begin{scope}[xshift=6cm]
+    \node (b) at (-1,0) {(a)};
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+  \begin{scope}[xshift=12cm]
+    \node (c) at (-1,0) {(b)};
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:natural_direct_effect_Berkeley}Hypothetical causal model for the Berkeley admission data
+  ($S$ = sex, $M$ = department choice, $Y$ = admission). (a) Observable graph; (b) Graph of SCM with
+  additional latent variable $A$ = perceived sex by admission committee.}
+\end{figure}
+
+We assume an SCM with variables $S,M,Y,A$ with graph depicted in Figure~\ref{fig:natural_direct_effect_Berkeley}(b).
+The sex of the student $S$ may cause their department choice $M$, while the perceived sex of the student $A$ and the chosen department may influence their admission $Y$. 
+The data set contains observations of $(s,m,y)$ tuples, but $A$ is latent.
+Normally, we would assume that the sex perceived by the admission committee ($A$) equals the student's true sex ($S$).
+In other words, we assume that the structural equation for $A$ is given by $A = S$.
+
+Suppose the admission committee gets accused of discriminating against sex.
+The question at stake is whether sex has a \emph{direct} effect on admission, besides the indirect effect mediated via department choice.
+To test empirically whether this is indeed the case, one could make use of an intervention that changes the perceived sex of a student.
+For example, we might try to fool the admission committee into believing that they are assessing
+applications of male students for what are in reality female students by changing sex as indicated in the application documents.
+
+In this setting, we can propose an alternative definition of the natural direct effect of sex on admission:
+\begin{equation}\label{eq:nde_interventional}
+ NDE(Y; a' \to a) := \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a').
+\end{equation}
+We consider this a more appropriate definition, as (i) it avoids counterfactuals, and
+(ii) it does not require to \emph{intervene} on sex (conditioning suffices).
+
+%Adapting a quote from Pearl (2001) to our setting:\footnote{In his paper, Pearl considers the effect of sex on hiring not mediated through qualifications.}
+%\emph{Applied to the sex discrimination example [...] this measures the expected change in male admission, if committee members were instructed to treat males' applications as though they were females'.}
+
+\begin{enumerate}[label=\alph*)]
+  \item 
+    Draw the graph of the SCM extended with intervention node $I_A$ for modeling hard interventions on $A$.
+    \score{1}
+    \answer{
+%      \centerline{\begin{tikzpicture}
+%        \node[ndout] (S) at (0,0) {$S$};
+%        \node[ndint] (A) at (1.5,0) {$A$};
+%        \node[ndout] (M) at (1.5,1) {$M$};
+%        \node[ndout] (Y) at (3,0) {$Y$};
+%        \draw[tuh] (A) to (Y);
+%        \draw[tuh] (S) to (M);
+%        \draw[tuh] (M) to (Y);
+%      \end{tikzpicture}}
+      \centerline{\begin{tikzpicture}
+        \node[ndout] (S) at (0,0) {$S$};
+        \node[ndlat] (A) at (1.5,0) {$A$};
+        \node[ndout] (M) at (1.5,1) {$M$};
+        \node[ndout] (Y) at (3,0) {$Y$};
+        \node[ndint] (IA) at (1.5,-1.5) {$I_A$};
+        \draw[tuh] (IA) to (A);
+        \draw[tuh] (S) to (A);
+        \draw[tuh] (A) to (Y);
+        \draw[tuh] (S) to (M);
+        \draw[tuh] (M) to (Y);
+      \end{tikzpicture}}
+    }
+%  \item Which conditional independences are implied by the Markov property from this graph?
+%    $$M \Indep I_A \given S$$
+%    $$Y \Indep I_A \given A, M, S$$
+%    $$Y \Indep S \given A, M$$
+  \item Prove the following \emph{mediation formula}:
+    \score{5}
+    \begin{equation*}\begin{split}
+%      &\Exp(Y \given S=s, \doit(A=a)) - \Exp(Y \given S=s) \\
+      NDE(Y; a' \to a)
+      &= \sum_m (\Exp(Y \given M=m, S=a) - \Exp(Y \given M=m, S=a')) P(M=m \given S=a') \text{ a.s.}
+    \end{split}\end{equation*}
+    Assume $M$ to be a discrete variable, and make use of definition \eref{eq:nde_interventional} of the natural direct effect.
+    \answer{
+      From the definition:
+      $$NDE(Y; a' \to a) = \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a').$$
+      The first term can be rewritten, using the do-calculus, as:
+      \begin{equation*}\begin{split}
+        &\Exp(Y \given S=a', \doit(A=a)) \\
+        \text{[chain rule]} & = \sum_m \Exp(Y \given M=m, S=a', \doit(A=a)) P(M=m \given S=a', \doit(A=a)) \\
+        \text{[$M \Indep I_A \given S$]} & = \sum_m \Exp(Y \given M=m, S=a', \doit(A=a)) P(M=m \given S=a') \\
+        \text{[$Y \Indep S \given M, A$ under $\doit(A)$]} &= \sum_m \Exp(Y \given M=m, \doit(A=a)) P(M=m \given S=a') \\
+        \text{[$Y \Indep I_A \given M, A$]} &= \sum_m \Exp(Y \given M=m, A=a) P(M=m \given S=a') \\
+        \text{[$A = S$ a.s.]} &= \sum_m \Exp(Y \given M=m, S=a) P(M=m \given S=a') \text{ a.s.}
+      \end{split}\end{equation*}
+
+      For the second term we just use the chain rule:
+      $$\Exp(Y \given S=a') = \sum_m \Exp(Y \given M=m, S=a') P(M=m \given S=a').$$
+
+      Together, this proves the formula.
+    }
+    \points{The following alternative derivation that may look correct at first sight fails on positivity assumptions:
+      \begin{equation*}\begin{split}
+        &\Exp(Y \given S=a', \doit(A=a)) \\
+        &= \sum_m \Exp(Y \given M=m, S=a', \doit(A=a)) P(M=m \given S=a', \doit(A=a)) \\
+        &= \sum_m \Exp(Y \given M=m, S=a', A=a) P(M=m \given S=a') \\
+        &= \sum_m \Exp(Y \given M=m, A=a) P(M=m \given S=a') \\
+        &= \sum_m \Exp(Y \given M=m, S=a) P(M=m \given S=a') \text{ a.s.}
+      \end{split}\end{equation*}
+      where we used the chain rule, $Y \Indep I_A \given A, M, S$ and $M \Indep I_A \given S$, 
+      $Y \Indep S \given A, M$ and that $A = S$ a.s.}
+    \item Prove that if the directed edge $A \to Y$ in Figure~\ref{fig:natural_direct_effect_Berkeley}(b) would be absent,
+      then $NDE(Y; a' \to a) = 0$ for all $a,a'$.
+      \score{1}
+%      Does the converse implication also hold?
+      \answer{If that edge is absent, then $Y \Indep S \given M$, and hence the two expectation values in the mediation formula cancel out.}
+%  \item Does this mediation formula still hold if $M$ and $Y$ are confounded?
+%    \score{1}
+%    \answer{No. In that case, the conditional independence $Y \Indep S \given M, A$ no longer holds under $\doit(A)$.}
+\end{enumerate}
+
+
+\begin{comment}
+
+Let's try this with a SWIG representation.
+\begin{tikzpicture}
+  \node[ndout] (S) at (0,0) {$A$};
+  \node[ndint] (A) at (1.5,0) {$a$};
+  \node[ndout] (M) at (1.5,1) {$M$};
+  \node[ndout] (Y) at (3,0) {$Y(a,M)$};
+%  \draw[tuh] (S) to (A);
+  \draw[tuh] (A) to (Y);
+  \draw[tuh] (S) to (M);
+  \draw[tuh] (M) to (Y);
+\end{tikzpicture}
+Aha, this SWIG may be invalid.
+
+\begin{figure}\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndint] (J1) at (0,0) {$J_2$};
+    \node[ndint] (J2) at (2,0) {$J_1$};
+    \node[ndout] (M) at (0,-2) {$M$};
+    \node[ndout] (Y) at (2,-2) {$Y$};
+    \draw[tuh] (J1) to (M);
+    \draw[tuh] (J2) to (Y);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:natural_direct_effect}CADMG for analyzing the mediation analysis.}
+\end{figure}
+
+Direct effect of sex on admission.
+Indirect effect of sex on admission through department choice.
+What is the response of admission if we change sex from male to female, if we keep the department choice at the value it would have got for a male?
+
+Let us derive Pearl's \emph{mediation formula} in our framework.
+It allows us to identify (under certain modeling assumptions) the ``natural'' or ``pure'' direct effect of
+an intervention, that is, the part that is not mediated through another effect variable. 
+
+The following quantity is central in such mediation analysis:
+$$\Exp(Y \given \doit(\tilde{x}_{j_1},x_{j_2})) - \Exp(Y \given \doit(x_{j_1},x_{j_2}))$$
+This is the causal effect of $X_{J_1}$ on $Y$ if we keep $X_{j_2}$ fixed at value $x_{j_2}$.
+
+This definition can sometimes also be applied in a setting that looks differently, namely
+where the joint intervention $\doit(X_{J_1},X_{J_2})$ can be interpreted as a single intervention
+on a target variable. 
+
+For example, making someone smoke (or abstain from smoking) can be considered to be a
+combination of two interventions: exposing someone to cigarette smoke, and exposing someone
+to nicotine. 
+
+``The natural (also known as pure) direct
+effect captures the effect of the exposure when one intervenes to set the mediator
+to the (random) level it would have been in the absence of exposure [Robins and
+Greenland (1992), Pearl (2001)]. As noted by Pearl (2001), controlled direct and
+indirect effects are particularly relevant for policy making, whereas natural direct
+and indirect effects are more useful for understanding the underlying mechanism
+by which the exposure operates.''
+
+``Mediation is encoded via a counterfactual contrast using
+a nested potential outcome of the form Y (a, M(a')), for
+a, a' in XA. Y (a, M (a')) reads as ``the outcome Y if A were
+set to a, while M were set to whatever value it would have
+attained had A been set to a'.'' An intuitive interpretation for
+this counterfactual occurs in cases where a treatment can be
+decomposed into two disjoint parts, one of which acts on Y
+but not M , and another acts on M but not Y . For instance,
+smoking can be decomposed into smoke and nicotine. Then
+if M is a mediator affected by smoke, but not nicotine (for
+instance lung cancer), and Y is a composite health outcome,
+then Y (a, M (a')) corresponds to the response of Y to an
+intervention that sets the nicotine exposure (the part of the
+treatment associated with Y ) to what it would be in smokers,
+and the smoke exposure (the part of the treatment associated
+with M ) to what it would be in non-smokers. An example of
+such an intervention would be a nicotine patch.
+[...] We define [...] the natural direct effect
+(NDE) as $E[Y (a, M (a'))] - E[Y (a')]$.''
+
+In the first term, $a$ corresponds with ``exposing to nicotine''
+and $M(a')$ corresponds with ``lung cancer after being not-exposed to smoke''.
+Perhaps we can clarify by having binary values, with $a=1$ and $a'=0$.
+Then $A = (N,S)$ where $A=0$ means smoker, $A=1$ means non-smoker,
+$N=1$ means nicotine, $N=0$ means no nicotine, $S=1$ means smoke exposure,
+$S=0$ means no smoke exposure.
+
+\begin{tabular}{l|lll}
+                 & $A$ (regime) & $N$ (nicotine exposure) & $S$ (smoke exposure) \\
+                 \hline
+  non-smoker     & 0            & 0                       & 0 \\
+  smoker         & 1            & 1                       & 1 \\
+  nicotine patch & 2            & 1                       & 0
+\end{tabular}
+
+Hence we compare the outcome under the nicotine-patch regime with that under the non-smoker regime
+to get the natural direct effect of the event smoking=1 on health outcome not mediated via lung cancer.
+In other words: the effect of nicotine exposure on health outcome.
+So there is nothing counterfactual left in this story: the natural direct effect 
+of smoking not mediated via lung cancer has been reduced to the total effect of nicotine exposure.
+
+Birth control pill.
+
+``A classical example of the ubiquity of direct effects
+(Hesslow 1976) tells the story of a birth-control pill
+that is suspect of producing thrombosis in women and,
+at the same time, has a negative indirect effect on
+thrombosis by reducing the rate of pregnancies (preg
+nancy is known to encourage thrombosis). In this ex
+ample, interest is focused on the direct effect of the
+pill because it represents a stable biological relation
+ship that, unlike the total effect, is invariant to mar
+ital status and other factors that may affect women's
+chances of getting pregnant or of sustaining pregnancy.
+This invariance makes the direct effect transportable
+across cultural and sociological boundaries and, hence,
+a more useful quantity in scientific explanation and
+policy analysis.''
+
+$A$ = birth-control pill
+$Y$ = thrombosis
+$M$ = number of pregnancies
+
+Birth-control pill may cause thrombosis.
+Birth-control pill reduces pregnancies.
+Pregnancies encourage thrombosis.
+
+We are led to compare the thrombosis outcome when
+given the pill but having the same number of pregnancies
+as without the pill with the thrombosis outcome when
+having no access to the pill.
+
+One could think of looking at the controlled direct
+effect, where we would set the number of pregnancies
+to zero by enforcing use of condoms to prevent pregnancies.
+Can we think of an intervention similar to that of a nicotine patch?
+
+\begin{tabular}{l|lll}
+                 & $A$ (regime) & $C$ (contraception) & $D$ (drug exposure) \\
+                 \hline
+  pill              & 1 & 1       & 1 \\
+  only condom       & 2 & 1       & 0 \\
+  no contraception  & 3 & 0       & 0 \\
+  no pill available & 4 & unintervened & 0 \\
+  hypothetical      & 5 & unintervened & 1 \\
+\end{tabular}
+
+So we compare $Y(a,M(a'))$ (thrombosis when forced to take the pill, while
+the number of pregnancies is intervened to be the same as when forced to
+not take the pill) vs. $Y(a')$ (thrombosis when forced not to take the pill).
+The latter corresponds with regime 4, the former with regime 5. Regime 4 is a mix of
+regimes 2 and 3, regime 5 appears hard to achieve in reality in a study
+(one would somehow have to keep the same chemical composition of the pill,
+while disabling its effect on the chance to get pregnant).
+
+I read somewhere on the internet that 'Synthetic estrogen and progestin (a form of progesterone) in the pills travel through the bloodstream to the hypothalamus and the pituitary gland. The estrogen suppresses production of FSH in the pituitary gland so follicle maturation doesn't occur.'
+If we could block the estrogen binding within the pituitary gland, perhaps we could realize this hypothetical regime.
+This may turn this counterfactual quantity into a normal single-world quantity.
+Is this why Pearl calls this 'imagining'? We imagine that we would have access to such an intervention, and predict what would be the expected value of thrombosis unter that intervention.
+
+It appears that this is then what we would like to predict when interested in the mentioned natural direct effect:
+comparing thrombosis in the pill+anti-contraception regime with no-pill-available.
+Hm, here $C$ (contraception) is an endogenous variable, not an exogenous input variable!
+This seems a bit different from the nicotine-patch situation. Let's draw the graph.
+
+D->M     pill affects pregnancies
+D->Y     pill affects thrombosis directly
+M->Y     pregnancy affects thrombosis
+C->M     contraception use affects pregnancies negatively
+H->M     hypothetical anti-contraception measure affects pregnancies positively
+
+   C->
+   H->
+D--->M->Y
+ ------>
+
+This is just confusing!
+
+Even worse seems to be that, since taking the pill completely prevents pregnancies,
+the mediation formula may not be valid because positivity is violated.
+So this seems a bad example.
+
+
+Third example: fairness.
+Now I think we should condition (not intervene) on sex.
+Or perhaps we should intervene on \emph{perceived} sex.
+$Y(a,M(a'))$ may correspond to admission when perceived sex is set to female (a),
+while department choice is the same as when perceived sex is set to male (a').
+We would argue that changing perceived sex does not cause department choice
+(although true sex might).
+
+
+This seems to work when we do a node-splitting intervention.
+We split sex into true-sex and perceived-sex. We then loose a counterfactual
+level: we can intervene on perceived-sex, while conditioning on true-sex.
+
+Denoting true-sex with $S$ and perceived-sex with $A$, department choice
+by $M$ and admission by $S$, we can define the NDE of perceived sex on 
+admission as
+$$\Exp(Y \given S=s, \doit(A=a)) - \Exp(Y \given S=s)$$
+This measures the natural direct effect of perceived sex=a on admission;
+funnily, perceived sex is \emph{not} mediated through department choice. 
+If we marginalize out $A$, and set perceived sex equal to true sex, then
+we can think of this as a mediation setting, where we intervene on sex.
+But one might counter that we don't really want to consider intervening on
+sex. So our analysis seems conceptually much more intuitive. In the end,
+though, mathematically it is the same as the one in terms of structural
+counterfactuals. It is also nice that we never have to consider interventions
+on sex.
+
+The mediation formula (in a model without confounding, where naturally $A=S$)
+then becomes
+
+$$\Exp(Y \given S=s, \doit(A=a)) - \Exp(Y \given S=s) = 
+\sum_m (\Exp(Y \given M=m, S=a) - \Exp(Y \given M=m, S=s)) P(M=m \given S=s)$$
+
+If $M$ and $Y$ get confounded, this expression is no longer valid.
+
+This formulation is analogous, but easier to interpret, than Pearl's one that
+is formulated in counterfactuals.
+
+
+\end{comment}

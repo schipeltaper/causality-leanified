@@ -1,0 +1,2111 @@
+\section{Reading PAGs}
+
+\JorisTODO{This subsection is work in progress! There may be dragons (and mistakes).}
+
+\subsubsection{Acyclic, with selection bias}
+
+We consider the setting with input nodes and selection bias but without cycles.
+Then, we can omit the qualifier ``$\sigma$-'' from the terms.
+\JorisTODO{But not the qualifier ``i''!}
+
+We first show that nodes in a MAG that have an incoming arrowhead must be non-ancestors of selection nodes,
+while nodes that are part of an undirected edge must be ancestors of selection nodes, and all other nodes
+may or may not be ancestor of a selection node.
+This characterization is complete (absent additional information that is not encoded in the MAG).
+\begin{Lem}\label{lem:representing_CADMG_of_MAG}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ the MAG that represents $G$ given $S$.
+  Define
+  $$Z^+ := \{ z \in V \cup J : \exists_{y \in V \cup J}: z \tut y \in H \}$$
+  and
+  $$Z^- := \{ z \in V \cup J : \exists_{x \in V \cup J}: z \hus x \in H \}.$$
+  Partition $V \cup J$ into subsets $A$ and $B$, such that $Z^+ \subseteq A$ and $Z^- \subseteq B$.
+  Then there exists a CADMG $\tilde{G}$ with input nodes $J$ and output nodes $\tilde{V}^+ = V \dcup \tilde{S}$ such that:
+  \begin{enumerate}
+    \item $\tilde{G}$ is represented by $H$ given $\tilde{S}$, and
+%    \item each edge $x \suh y$ for $x,y \in V\cup J$ is present in $H$ if and only if it is present in $\tilde{G}$, and
+    \item for each $z \in A$: $z \in \Anc_{\tilde{G}}(\tilde{S})$, and
+    \item for each $z \in B$: $z \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  We construct the CADMG $\tilde{G}$ as follows.
+  It has nodes input nodes $J$ and output nodes $\tilde{V}^+$ with $\tilde{V}^+ = V \cup \tilde{S}$, where $\tilde{S} := \{s_{\{x,y\}} : x \tut y \in H\} \cup \{s_z : z \in A \sm Z^+\}$.
+  We add all edges $x \suh y$ for $x,y \in V\cup J$ that are present in $H$ to $\tilde{G}$.
+  For the undirected edges $x \tut y$ in $H$, we add $x \tuh s_{\{x,y\}} \hut y$ to $\tilde{G}$.
+  Finally, for each $z \in A \sm Z^+$, we add the edge $z \tuh s_z$ to $\tilde{G}$.
+  Note that $\tilde{G}$ is acyclic by construction.
+
+  Since all directed edges in $H$ are also present in $\tilde{G}$, and no directed edge absent in $H$ is present in $\tilde{G}$, the ancestral relations between variables in $V \cup J$ are the same in $H$ as in $\tilde{G}$. 
+  That is, for $x,y \in V \cup J$, $x \in \Anc_H(y) \iff x \in \Anc_{\tilde{G}}(y)$.
+
+  %We now show that for $v \in Z^+ \cup B$: if $v \in \Anc_{\tilde{G}}(\tilde{S})$, then $v \in \Anc_G(S)$ (note: the converse does not hold).
+  %It suffices to show this for $v \in Z^-$.
+  %We now show that for $v \in Z^-$: if $v \in \Anc_{\tilde{G}}(\tilde{S})$, then $v \in \Anc_G(S)$ (note: the converse does not hold).
+  We now show: for $z \in Z^-$, $z \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  Let $z \in Z^-$.
+  Suppose $z \in \Anc_{\tilde{G}}(\tilde{S})$.
+  Then there must be a directed path $z \tuh \dots \tuh w \tuh s$ in $\tilde{G}$ such that $s \in \tilde{S}$, and all other nodes on the directed path are in $V \cup J$.
+  The directed path $z \tuh \dots \tuh w$ must also be present in $H$, and by construction of $\tilde{G}$, $w \in A$. 
+  Since $A \cap Z^- = \emptyset$, the path must be trivial. 
+  But then still $z = w \in A$, which contradicts $z \in Z^-$.
+  Hence, $z \notin \Anc_{\tilde{G}}(\tilde{S})$.
+
+  It remains to show that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+  For that we need to show:
+  \begin{enumerate}
+    \item For all $x \in V \cup J, y \in V$: $x \sus y$ is in $H$ if and only if there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$;
+    \item If $x \hus y$ in $H$ then $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+    \item If $x \tus y$ in $H$ then $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+  \end{enumerate}
+
+  First adjacency.
+  Let $x \in V \cup J$, $y \in V$.
+  Suppose $x$ and $y$ are not adjacent in $H$.
+  We must show that in $\tilde{G}$ there is no inducing path between $x$ and $y$ given $\tilde{S}$.
+  Suppose there is one.
+  Pick one of minimal length.
+  It must be a collider path in which every collider is in $\Anc_{\tilde{G}}(\{x,y\} \cup \tilde{S})$.
+
+  Suppose the path contains a node of $\tilde{S}$.
+  It cannot contain some $s_z$ for $z \in A \sm Z^+$, because then it had to be of the form $x \dots z \tuh s_z \hut z \dots y$ with $z$ occurring more than once.
+  Hence, the path has to be of the form $x \dots a \tuh s_{\{a,b\}} \hut b \dots y$ with $a \tut b$ in $H$.
+  Since only the endpoint nodes can be non-colliders, the path must be $x \tuh s_{\{x,y\}} \hut y$ with $x \tut y$ in $H$. 
+  Contradiction.
+  We conclude that the path can only contain nodes in $V \cup J$.
+
+  Note that each edge on the path must then be between a pair of nodes in $V \cup J$, and hence be present in $H$ as well.
+  Then each collider on the path is not in $\Anc_G(S)$, and is in $Z^-$.
+  Therefore, by the result above, each collider on the path is not in $\Anc_{\tilde{G}}(\tilde{S})$.
+  But this means that each collider on the path must be in $\Anc_{\tilde{G}}(\{x,y\})$, and hence in $\Anc_H(\{x,y\})$.
+  So then the path is also an inducing path between $x$ and $y$ in $H$, which contradicts the maximality of $H$.
+
+  Now suppose $x$ and $y$ are adjacent in $H$.
+  We distinguish four cases corresponding to the type of the edge between $x$ and $y$ in $H$. 
+  \begin{itemize}
+    \item $x \tuh y$: By construction $x \tuh y$ is in $\tilde{G}$.
+      Then $y \notin \Anc_G(S)$ and $y \in Z^-$, and therefore also $y \notin \Anc_{\tilde{G}}(\tilde{S})$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \hut y$: This case is similar.
+    \item $x \huh y$: By construction $x \huh y$ is in $\tilde{G}$.
+      Then both $x, y \notin \Anc_G(S)$ and both $x, y \in Z^-$, and therefore also $x,y \notin \Anc_{\tilde{G}}(\tilde{S})$. 
+      Therefore, $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \tut y$: Then $x \tuh s_{\{x,y\}} \hut y$ in $\tilde{G}$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+  \end{itemize}
+  In all cases, there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$.
+  We conclude that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+
+  By construction of $\tilde{G}$, it holds that for all $z \in A$, $z \in \Anc_{\tilde{G}}(\tilde{S})$.
+  Let $z \in B$. 
+  If $z \in Z^-$, then by the properties above, we already know that $z \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  So consider $z \in B \sm Z^-$. Then $z$ has no adjacent undirected edge in $H$, nor an adjacent edge $z \hus \dots$.
+  In other words, $z$ can only have outgoing directed edges: $z \sus \dots$ in $H$ implies $z \tuh \dots$ in $H$.
+  All children of $z$ in $H$ are in $Z^-$, and hence not in $\Anc_{\tilde{G}}(\tilde{S})$. 
+  The only remaining possibility for $z$ to be in $\Anc_{\tilde{G}}(\tilde{S})$ is for $z$ to be a parent of $\tilde{S}$ in $\tilde{G}$.
+  But that would imply $z \in A \sm Z^+$, a contradiction. Hence $z \notin \Anc_{\tilde{G}}(\tilde{S})$.
+\end{proof}
+The following notion was proposed originally by \cite{Zhang2008_JMLR}. 
+We extend it here to our setting which allows for selection bias and input nodes.
+\begin{Def}\label{def:mag_visible_edge}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$.
+
+  Let $a \in J \cup V$ and $b \in V$.
+  A directed edge $a \tuh b$ in $H$ is called \emph{visible} if $a \in J$, or if $a \in V$ and there is a node $z$ in $H$ that is not adjacent to $b$ such that:
+  \begin{itemize}
+    \item there is an edge $z \suh a$ in $H$, or 
+    \item there is a collider path $z \suh \dots \huh a$ in $H$ that is into $a$ and every node on the path (except $z$) is a parent of $b$ in $H$. 
+  \end{itemize}
+  Otherwise, $a \tuh b$ is called \emph{invisible}.
+\end{Def}
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=0cm]
+      \node[ndint] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \draw[tuh] (a) edge (b);
+    \end{scope}
+    \begin{scope}[xshift=4cm]
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \draw[suh] (z) edge (a);
+      \draw[tuh] (a) edge (b);
+      \draw[sus,red] (z) edge (b);
+    \end{scope}
+    \begin{scope}[xshift=12cm]
+      \node[ndout] (z) at (-6.0,0) {$z$};
+      \node[ndout] (c1) at (-4.5,0) {$c_1$};
+      \node (dots) at (-3.0,0) {$\cdots$};
+      \node[ndout] (ck) at (-1.5,0) {$c_k$};
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \draw[suh] (z) edge (c1);
+      \draw[huh] (c1) edge (dots);
+      \draw[huh] (dots) edge (ck);
+      \draw[huh] (ck) edge (a);
+      \draw[tuh] (a) edge (b);
+      \draw[sus,red,bend right] (z) edge (b);
+      \draw[tuh] (c1) edge (b);
+      \draw[tuh] (ck) edge (b);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Different patterns corresponding to a visible edge $a \tuh b$.
+  $z$ and $b$ must be non-adjacent (indicated in red a forbidden edge).
+  Note that $\lt b,a,c_k,\dots,c_1,z \rt$ is a discriminating path for $a$ between $b$ and $z$.
+  \label{fig:visible_edge}}
+\end{figure}
+
+The following lemma of \cite{Zhang2008_JMLR} stays valid in our more general setting.
+The proof closely follows the original proof.
+\begin{Lem}\label{lem:zhang2008_lemma_9_mag_extended}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a MAG that represents $G$ given $S$.
+  Let $a \in V \cup J$, $b \in V$ such that $a \tuh b$ is a directed edge in $H$. 
+  If $a \tuh b$ is visible, then there exists no inducing walk between $a$ and $b$ given $S$ in $G$ that is into $a$.
+  In particular, $a \huh b$ is not in $G$.
+\end{Lem}
+\begin{proof}
+  If $a \in J$, then there are no edges into $a$ in $G$ by definition, which proves the claim.
+  So assume $a \in V$. We proceed by contradiction. Assume that in $G$ there exists an inducing walk between $a$ and $b$ given $S$ that is into $a$.
+
+  Let $z$ be a node in $V \sm \{a,b\}$.
+  Consider two cases:
+  \begin{itemize}
+    \item
+      If $z \suh a$ is in $H$, then there is an inducing walk between $z$ and $a$ in $G$ given $S$ that is into $a$ (Lemma~\ref{lem:mixed_graph_represents_CDMG}).
+  Concatenating this with the inducing walk between $a$ and $b$ given $S$ that is into $a$ we obtain an inducing walk between $z$ and $b$ given $S$ (note that $a$ becomes a collider that is in $\Anc_G(\{b\} \cup S)$) in $G$. 
+\item
+  Suppose there is a definite collider path $\pi$ in $H$ from $z$ to $a$ that is into $a$ and such that every node on the path (except $z$) is parent of $b$ in $H$. 
+  For each pair of subsequent nodes $(v_i,v_{i+1})$ on $\pi$ there exists an inducing walk in $G$ between $v_i$ and $v_{i+1}$ given $S$ that is into $v_{i+1}$, and also into $v_i$ unless possibly $v_i = z$.
+  Because each node other than $z$ on $\pi$ is in $\Anc_G(\{b\} \cup S)$, all these inducing walks can be concatenated into one inducing walk in $G$ between $z$ and $b$ given $S$.
+  \end{itemize}
+
+  In both cases, $z$ and $b$ are adjacent in $H$.
+  Since this holds for all such $z$, the directed edge $a \to b$ in $H$ cannot be visible. 
+\end{proof}
+
+Also the next lemma of \cite{Zhang2008_JMLR} stays valid in our more general setting.
+The proof closely follows the original proof.
+We extend it to also cover undirected edges.
+\begin{Lem}\label{lem:zhang2008_lemma_10_mag_extended}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ the MAG that represents $G$ given $S$.
+  %Let $Z \subseteq V \cup J$ such that each of which has no incoming arrowhead in $H$ (one can always take $Z = \emptyset$).
+  %Let $i \tuh j$ be a directed edge in $H$.
+  If $i \tuh j$ is an invisible directed edge in $H$, or if $i \tut j$ is an undirected edge in $H$,
+  then there exists a CADMG $\tilde{G}$ with input nodes $J$ and output nodes $\tilde{V}^+ = V \dcup \tilde{S}$ such that:
+  \begin{enumerate}
+    \item $\tilde{G}$ is also represented by $H$ given $\tilde{S}$, and
+    \item $i \huh j$ is in $\tilde{G}$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  We construct CADMG $\tilde{G}$ as follows.
+  It has nodes $\tilde{V}^+ \cup J$ with $\tilde{V}^+ = V \cup \tilde{S}$, where $\tilde{S} := \{s_{\{x,y\}} : x \tut y \in H\}$.
+  We add all edges $x \suh y$ for $x,y \in V\cup J$ that are present in $H$ to $\tilde{G}$.
+  In addition, we add the bidirected edge $i \huh j$ to $\tilde{G}$.
+  For the undirected edges $x \tut y$ in $H$, we add $x \tuh s_{\{x,y\}} \hut y$ to $\tilde{G}$.
+  Note that $\tilde{G}$ is acyclic by construction.
+
+  Since all directed edges in $H$ are also present in $\tilde{G}$, and no directed edge absent in $H$ is present in $\tilde{G}$, the ancestral relations between variables in $V \cup J$ are the same in $H$ as in $\tilde{G}$. 
+  That is, for $x,y \in V \cup J$, $x \in \Anc_H(y) \iff x \in \Anc_{\tilde{G}}(y)$.
+  
+  We now show that for $v \in V \cup J$: if $v \in \Anc_{\tilde{G}}(\tilde{S})$, then $v \in \Anc_G(S)$ (note: the converse does not hold).
+  Indeed, if $v \in \Anc_{\tilde{G}}(\tilde{S})$ then there must be a directed path $v \tuh \dots \tuh w \tuh s$ in $\tilde{G}$ such that $s \in \tilde{S}$, and all other nodes on the directed path are in $V \cup J$.
+  The directed path $v \tuh \dots \tuh w$ must also be present in $H$. 
+  The node $s$ must be $s_{\{w,u\}}$ for some $u \in V \cup J$ with $w \tut u$ in $H$.
+  But since $\dots \suh w \tut u$ cannot occur in a MAG $H$ (because $G$ is acyclic), the directed path must be the trivial path $v = w$.
+  Hence $v \tut u$ in $H$, and therefore $v \in \Anc_G(S)$.
+  We also state the contra-positive for convenience: for $v \in V \cup J$: if $v \notin \Anc_G(S)$ then $v \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  Furthermore, observe that if $x \hus y$ in $H$, then $x \notin \Anc_H(y)$, and therefore $x \notin \Anc_{\tilde{G}}(y)$, and hence $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+
+  It remains to show that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+  For that we need to show:
+  \begin{enumerate}
+    \item For all $x \in V \cup J, y \in V$: $x \sus y$ is in $H$ if and only if there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$;
+    \item If $x \hus y$ in $H$ then $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+    \item If $x \tus y$ in $H$ then $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+  \end{enumerate}
+
+  First adjacency.
+  Let $x \in V \cup J$, $y \in V$.
+  Suppose $x$ and $y$ are not adjacent in $H$.
+  We must show that in $\tilde{G}$ there is no inducing path between $x$ and $y$ given $\tilde{S}$.
+  Suppose there is one.
+  Pick one of minimal length.
+  It must be a collider path in which every collider is in $\Anc_{\tilde{G}}(\{x,y\} \cup \tilde{S})$.
+
+  Suppose the path contains a node of $\tilde{S}$.
+  Then the path has to be of the form $x \dots a \tuh s_{\{a,b\}} \hut b \dots y$ with $a \tut b$ in $H$.
+  Since only the endpoint nodes can be non-colliders, the path must be $x \tuh s_{\{x,y\}} \hut y$ with $x \tut y$ in $H$. 
+  Contradiction.
+  We conclude that the path can only contain nodes in $V \cup J$.
+
+  Assume that each edge on the path is present in $H$ as well (in other words, $i \huh j$ is not on the path).
+  Then each collider on the path is not in $\Anc_G(S)$.
+  Therefore, by the result above, each collider on the path is not in $\Anc_{\tilde{G}}(\tilde{S})$.
+  But this means that each collider on the path must be in $\Anc_{\tilde{G}}(\{x,y\})$, and hence in $\Anc_H(\{x,y\})$.
+  So then the path is also an inducing path between $x$ and $y$ in $H$, which contradicts the maximality of $H$.
+
+  Now suppose $i \huh j$ is on the path. 
+  All other edges on the path must also be present in $H$.
+  The edge $i \huh j$ is not in $H$, but the edge $i \tuh j$ or $i \tut j$ is in $H$.
+  %This corresponds with the directed edge $i \tuh j$ in $H$.
+  In the latter case, there must be a path of the form $x \suh \dots \huh \dots \huh i \tut j \huh \dots \huh \dots \hus y$ in $H$.
+  But this can only happen for $x=i$ and $y=j$, that is, if the path consists of the single edge $i \tut j$.
+  But then $x$ would be adjacent to $y$ in $H$, a contradiction.
+
+  Hence the only possibility is that $i \tuh j$ in $H$.
+  Without loss of generality (by swapping $x,y$ if necessary), we can then assume the path to be of the form $x \dots i \huh j \dots y$.
+  If $x = i$ then we can use the same reasoning as before to show that the path $x = i \tuh j \dots y$ in $H$ must be inducing, contradicting the maximality of $H$.
+  If $x \ne i$, then the first part of the inducing path in $\tilde{G}$, say $z_0 \dots z_k$ (with $z_0 = x$ and $z_k = i$ and $k \ge 1$) is also a collider path into $i$ in $H$.
+  We will prove by induction that for $1 \le s \le k-1$, $z_s$ is a parent of $j$ in $H$.
+
+  Now suppose that for some $0 \le s \le k-1$, $z_t \tuh j$ is in $H$ for all $t = s+1, \dots, k$ (note this holds in particular for $s=k-1$). 
+  We will show that $z_s \tuh j$ is in $H$.
+  $z_s$ must be adjacent to $j$ in $H$, otherwise $i \tuh j$ would be visible in $H$.
+  The edge between $z_s$ and $j$ cannot be $z_s \hut j$, otherwise $j \tuh z_s \suh z_{s+1} \tuh j$ in $H$, and $H$ would be non-ancestral.  
+  It can also not be $z_s \huh j$, otherwise there would be an inducing path $x = z_0 \dots z_s \huh j \dots y$ in $\tilde{G}$ that contains fewer nodes, a contradiction.
+  It can also not be $z_s \tut j$, as that would give $i \tuh j \tut z_s$ in $H$ which is not possible.
+  Hence it has to be $z_s \tuh j$.
+
+  So by induction, for $1 \le s \le k-1$, $z_s$ is a parent of $j$ in $H$.
+  So this gives a collider path $x \suh z_1 \huh \dots \huh z_{k-1} \huh i$ in $H$ such that each $z_s$ is a parent of $j$ in $H$, and $i \tuh j$ in $H$.
+  Therefore, $x$ must be adjacent to $j$ in $H$, otherwise $i \tuh j$ would be visible.
+  If this edge were of the form $x \hut j$ then $H$ would not be ancestral (because $z_1 \tuh j \tuh x \suh z_1$ in $H$).
+  The edge cannot be of the form $x \tut j$ either because then $z_1 \tuh j \tut x$ would be in $H$.
+  Hence it must be of the form $x \suh j$.
+  But then this edge must also be present in $\tilde{G}$.
+  Then we have an inducing path $x \suh j \dots y$ in $\tilde{G}$ that is shorter than the one that was assumed to be of minimal length.
+  Contradiction.
+
+  We have shown that if $x$ and $y$ are not adjacent in $H$, there is no inducing path between $x$ and $y$ in $\tilde{G}$ given $\tilde{S}$.
+  Now suppose $x$ and $y$ are adjacent in $H$.
+  We distinguish four cases corresponding to the type of the edge between $x$ and $y$ in $H$. 
+  \begin{itemize}
+    \item $x \tuh y$: By construction $x \tuh y$ is in $\tilde{G}$. 
+      Then $y \notin \Anc_G(S)$, and therefore also $y \notin \Anc_{\tilde{G}}(\tilde{S})$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \hut y$: This case is similar (with the roles of $x,y$ swapped).
+    \item $x \huh y$: By construction $x \huh y$ is in $\tilde{G}$.
+      Then both $x, y \notin \Anc_G(S)$, and therefore also $x,y \notin \Anc_{\tilde{G}}(\tilde{S})$. 
+      Therefore, $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \tut y$: Then $x \tuh s_{\{x,y\}} \hut y$ in $\tilde{G}$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+  \end{itemize}
+  In all cases, there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$.
+  We conclude that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+\end{proof}
+\begin{Rem}
+  If in addition to the assumptions of Lemma~\ref{lem:zhang2008_lemma_10_mag_extended},
+  $H$ contains a directed path from $i$ to $j$ that avoids the edge $i \tuh j$, then there exists such $\tilde{G}$ with the additional property that $i \tuh j$ is not in $\tilde{G}$.
+  The proof is almost identical, except that:
+  \begin{enumerate}
+    \item the directed edge $i \tuh j$ is omitted from $\tilde{G}$;
+    \item although not every directed edge in $H$ is present in $\tilde{G}$, the ancestral relations between variables in $V \cup J$ are the same in $H$ as in $\tilde{G}$ by construction;
+    \item if $x \tuh y$ in $H$ then $x \tuh y$ is in $\tilde{G}$, except for $i \tuh j$ (for which $i \huh j$ is in $\tilde{G}$ instead).
+  \end{enumerate}
+\end{Rem}
+The results in this subsubsection mean that for directed edges in a MAG, ``invisible'' is synonym for ``possibly confounded'', and ``visible'' is synonym for ``unconfounded''.
+This shows that our extension Definition~\ref{def:mag_visible_edge} is appropriate in that it yields the desired properties.
+Furthermore, all undirected edges in a MAG are ``possibly confounded''.
+
+Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+Denote the MAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+We now add an intervention node $I_a$ to $G$, for $a \in V$.
+What can we say about the MAG $\MAG(G_{\doit(I_a)} \given S)$?
+
+\begin{Prp}\label{prp:camdg_do_I_mag}
+Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+Denote the MAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+For $A \subseteq V$, define $G^* := G_{\doit(I_A)}$ and $H^* := \MAG(G_{\doit(I_A)} \given S)$.
+Then:
+  \begin{enumerate}[label=\roman*)]
+    \item The subgraph $(H^*)_{V \cup J} = H$.
+    \item For all $a \in A$: The edge $I_a \tus a$ is in $H^*$ (note: the edge is of the form $I_a \tuh a$ if $a \notin \Anc_G(S)$, and of the form $I_a \tut a$ if $a \in \Anc_G(S)$).
+    \item For all $a \in A, b \in V \sm \{a\}$: if $I_a \sus b \in H^*$, then $I_a \tus b \in H^*$ and $a \tus b \in H$. This implies one of the following mutually exclusive cases:
+      \begin{itemize}
+        \item $a \tuh b$ is an invisible edge in $H$ and $I_a \tuh b \in H^*$, or
+        \item $a \tut b$ in $H$ and $I_a \tut b \in H^*$.
+      \end{itemize}
+    \item For all $a \in A, b \in V \sm \{a\}$ such that $a \tuh b$ is an invisible edge in $H$, or $a \tut b$ is in $H$: there exists CADMG $\tilde{G}$ with input nodes $J$ and output nodes $\tilde{V}^+ = V \dcup \tilde{S}$ that is represented by $H$ given $\tilde{S}$, and such that $I_a \tus b \in \MAG(\tilde{G}_{\doit(I_a)} \given \tilde{S})$
+      (note that $a \tuh b$ in $H$ gives $I_a \tuh b \in \MAG(\tilde{G}_{\doit(I_a)} \given \tilde{S})$, and $a \tut b$ in $H$ gives $I_a \tut b \in \MAG(\tilde{G}_{\doit(I_a)} \given \tilde{S})$).
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Note that for $i \in V \cup J \cup S, B \subseteq V \cup J \cup S$, $i \in \Anc_G(B) \iff i \in \Anc_{G*}(B)$.
+  \begin{enumerate}[label=\roman*)]
+    \item For $i,j \in V \cup J$, $i \in \Anc_G(\{j\} \cup S)$ if and only if $i \in \Anc_{G^*}(\{j\} \cup S)$.
+      Furthermore, all non-endpoint nodes on an inducing path must be output nodes.
+      Hence, for a pair of nodes in $V \cup J$, an inducing path given $S$ between these nodes in $G$ is an inducing path given $S$ between these nodes in $G^*$, and vice versa.
+
+    \item Let $a \in A$. Note that $I_a \tuh a$ in $G^*$. Hence $I_a \tus a$ in $H^*$. 
+      If $a \in \Anc_G(S)$, then $I_a \tut a$ in $H^*$, whereas if $a \notin \Anc_G(S)$, then $I_a \tuh a$ in $H^*$ because $a \notin \Anc_{G^*}(I_a)$. 
+
+    \item Let $a \in A$, $b \in V \sm \{a\}$. 
+      If $I_a \sus b \in H^*$ then there exists an inducing path $I_a \tuh a \huh z_1 \huh \dots \huh z_k \huh b$ given $S$ in $G^*$.
+      All colliders on this path are in $V \cap \Anc_{G^*}(\{b\} \cup S)$ (since $\Anc_{G^*}(I_a) = \{I_a\}$).
+      By omitting the edge $I_a \tuh a$ we obtain an inducing path $a \huh z_1 \huh z_k \huh b$ given $S$ in $G$ (where each collider is in $V \cap \Anc_{G}(\{b\} \cup S)$) that is into $a$.
+      Hence, $a$ and $b$ are adjacent in $H$.
+  
+      \begin{enumerate}
+        \item Suppose $a \notin \Anc_G(S)$.
+      First, $a \in \Anc_{G^*}(b)$ (because $a \notin \Anc_{G^*}(S)$ since $a \notin \Anc_G(S)$ by assumption), and consequently, $I_a \in \Anc_{G^*}(b)$.
+      This also implies $b \notin \Anc_{G^*}(S)$ (because otherwise $a \in \Anc_{G^*}(S)$).
+      Hence the edge between $I_a$ and $b$ in $H^*$ must be $I_a \tuh b$.
+      In $G$, this implies $a \in \Anc_G(b)$ and $b \notin \Anc_G(S)$.
+      Since $G^*$ is acyclic, $b \notin \Anc_{G^*}(a)$ and therefore also $b \notin \Anc_G(a)$.
+      Hence $a \tuh b$ in $H$.
+      
+        \item Suppose $a \in \Anc_G(S)$.
+          Then also $a \in \Anc_{G^*}(S)$, and $I_a \in \Anc_{G^*}(S)$.
+      Hence the edge between $I_a$ and $b$ in $H^*$ must be $I_a \tus b$.
+
+      Since $a \in \Anc_{G}(S)$, the edge between $a$ and $b$ in $H$ must be $a \tus b$.
+      If it is of the form $a \tuh b$, then $b \notin \Anc_{G}(S)$, hence $b \notin \Anc_{G^*}(\{I_a\} \cup S)$, and therefore $I_a \tuh b$ in $H^*$.
+      Otherwise (if it is of the form $a \tut b$), then $b \in \Anc_{G}(\{a\} \cup S)$, hence $b \in \Anc_{G^*}(\{a\} \cup S)$, and since $a \in \Anc_{G^*}(S)$, surely $b \in \Anc_{G^*}(S)$.
+      Hence, also $I_a \tut b$ in $H^*$.
+      \end{enumerate}
+      If $a \tuh b$ is in $H$, then it must be invisible, because the inducing path in $G$ given $S$ between $a$ and $b$ is into $a$ (Lemma~\ref{lem:zhang2008_lemma_9_mag_extended}).
+    \item Let $a \in A$, $b \in V \sm \{a\}$. 
+      Suppose that $a \tuh b$ is an invisible edge in $H$, or $a \tut b$ in $H$.
+      Then we can consider $\tilde{G}$ as constructed in the proof of Lemma~\ref{lem:zhang2008_lemma_10_mag_extended}.
+      This contains the bidirected edge $a \huh b$ and is represented by $H$.
+      The path $I_a \tuh a \huh b$ in $\tilde{G}^*$ is inducing given $\tilde{S}$.
+      If $a \tuh b$ is in $H$, then $I_a \tuh b$ must be in $\MAG(\tilde{G}_{\doit(I_a)}|\tilde{S})$,
+      whereas if $a \tut b$ is in $H$, then $I_a \tut b$ must be in $\MAG(\tilde{G}_{\doit(I_a)}|\tilde{S})$.
+  \end{enumerate}
+\end{proof}
+So we can define:
+\begin{Def}\label{def:mag_do_I}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $A \subseteq V$.
+  Define $H_{\doit(I_A)}$ as the PAG with input nodes $J \dcup \{I_a : a \in A\}$ and output nodes $V$, such that the subgraph $(H_{\doit(I_A)})_{V \cup J}$ equals $H_{V \cup J}$, and in addition has edges
+  \begin{itemize}
+%    \item $I_a \tuo a$ for all $a \in A$ 
+    \item $I_a \tuh a$ if $a$ has an adjacent arrowhead in $H$, $I_a \tut a$ if $a$ has an adjacent undirected edge in $H$, and $I_a \tuo a$ otherwise;
+    \item $I_a \tuh b$ for all $a \in A, b \in V \sm \{a\}$ such that $a \tuh b$ is an invisible edge in $H$;
+    \item $I_a \tut b$ for all $a \in A, b \in V \sm \{a\}$ such that $a \tut b$ is in $H$.
+  \end{itemize} 
+\end{Def}
+Note that we loose information about confounding by going to the MAG level: in general, $\MAG(G_{\doit(I_a)}|S) \ne \MAG(G|S)_{\doit(I_a)}$.
+But we do have that $\MAG(G_{\doit(I_a)}|S) \subseteq (\MAG(G|S))_{\doit(I_a)}$.
+This also means we may have lost conditional independence information.
+Still, the operation preserves as much conditional independence information as possible.
+We can use it to obtain a causal interpretation for MAGs (in the presence of selection bias), derive a do-calculus for MAGs, derive adjustment criteria, and an ID algorithm.
+\Joris{For example, would the natural definition of ``$a$ causes $b$ in the \emph{selected} population'' be: $b \nIndep I_a \given a$?}
+\Joris{A generalization to PAGs might work as follows.
+The first point can remain the same.
+The condition for the second point should probably be weakened to: if $a \tuh b$ is a possibly invisible edge in $H$ (that is, if there exists a MAG represented by the PAG in which $a \tuh b$ is an invisible edge).
+Hm, if $a \sus b$ in $H$, then it can be:
+$a \tut b$ (and then we add $I_a \tut b$), $a \tuh b$ (and then we add $I_a \tuh b$ if $a \tuh b$ is invisible), $a \hut b$ (then we don't add $I_a \sus b$), $a \huh b$ (then we don't add $I_a \sus b$).
+So for $a \ouo b$ in $H$ we could add $I_a \tuo b$,
+for $a \ouh b$ we add $I_a \tuh b$, 
+for $a \huo b$ we don't add an edge between $I_a$ and $b$,
+for $a \out b$ we add $I_a \tut b$ if $b$ has no adjacent arrowheads,
+for $a \tuo b$ we add $I_a \tuo b$.
+This may not yet be optimally informative, though (sound but not necessarily complete).
+The third point should probably be weakened to: if $a \tut b$ might be in $H$ (that is, if there exists a MAG represented by the PAG that contains $a \tut b$).
+It's not clear whether, if we start with a valid MAG, the operation of adding an intervention node commutes with itself (for disjoint targets).
+Note that ``definitely visible'' in a PAG is the same as ``visible'' in a PAG.
+``Possibly invisible'' means that there exists a MAG in which it is ``invisible'', that is in which it is not ``visible''.
+Is that equivalent to ``not definitely visible''?
+}
+One might hope that given a MAG $H$ that represents a CADMG $G$, the PAG $H_{\doit(I_A)}$ represents $G_{\doit(I_A)}$ given $S$.
+This does not hold in general, as the example in Figure~\ref{fig:mag_do_I} shows.
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (0.75,0.75) {$G^1$:};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node at (0,0.75) {$G^1_{\doit(I_a)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+      \node at (0,0.75) {$\MAG(G^1_{\doit(I_a)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm]
+      \node at (0.75,0.75) {$G^2$:};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-2cm]
+      \node at (0,0.75) {$G^2_{\doit(I_a)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-2cm]
+      \node at (0,0.75) {$\MAG(G^2_{\doit(I_a)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4.5cm]
+      \node at (0.75,0.75) {MAG $H$:};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-4.5cm]
+      \node at (0,0.75) {PAG $H_{\doit(I_a)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tuo] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-7cm]
+      \node at (0.75,0.75) {$G^3$:};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \node[ndout] (XS) at (0,-1) {$s$};
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh] (X2) edge (XS);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-7cm]
+      \node at (0,0.75) {$G^3_{\doit(I_a)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \node[ndout] (XS) at (0,-1) {$s$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh] (X2) edge (XS);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-7cm]
+      \node at (0,0.75) {$\MAG(G^3_{\doit(I_a)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tut] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-10cm]
+      \node at (0.75,0.75) {$G^4$:};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \node[ndout] (XS) at (0,-1) {$s$};
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+      \draw[tuh] (X2) edge (XS);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-10cm]
+      \node at (0,0.75) {$G^4_{\doit(I_a)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \node[ndout] (XS) at (0,-1) {$s$};
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh,bend left] (X2) edge (X3);
+      \draw[tuh] (X2) edge (XS);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-10cm]
+      \node at (0,0.75) {$\MAG(G^4_{\doit(I_a)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$I_a$};
+      \node[ndout] (X2) at (0,0) {$a$};
+      \node[ndout] (X3) at (1.5,0) {$b$};
+      \draw[tut] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh,bend right] (X1) edge (X3);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{MAG $H$ represents two different CADMGs $G^1, G^2$.
+    After adding an intervention node $I_a$ to the CADMGs, their representative MAGs no longer coincide.
+    PAG $H_{\doit(I_a)}$ represents $\MAG(G^2_{\doit(I_a)})$, but not $\MAG(G^1_{\doit(I_a)})$.
+    MAG $H$ also represents two different CADMGs $G^3, G^4$ given $\{s\}$.
+    After adding an intervention node $I_a$ to the CADMGs, their representative MAGs no longer coincide.
+    PAG $H_{\doit(I_a)}$ represents $\MAG(G^4_{\doit(I_a)})$, but not $\MAG(G^3_{\doit(I_a)})$.
+    \label{fig:mag_do_I}}
+\end{figure}
+Whereas $H_{\doit(I_A)}$ has too many edges in general to represent $G_{\doit(I_A)}$ (given $S$), it does still encode the ancestral relations and separations of $G_{\doit(I_A)}$ (given $S$).
+\Joris{We can formalize this type of representation as follows.
+\begin{Def}
+  Given a PAG-like graph $H$ (not necessarily valid), and a valid MAG $M$, we say that $H$ \emph{weakly represents a MAG $M$} if $H$ has the same nodes as $M$, the skeleton of $M$ is contained in the skeleton of $H$, and for every $i,j$ adjacent in $M$, each arrowhead/tail edge mark present on the edge $i \sus j$ in $H$ must also be present on the corresponding edge $i \sus j$ in $M$.
+  Given an ADMG $G$ and a subset $S$ of selection variables, we say that $H$ weakly represents $G$ given $S$ if $H$ weakly represents $MAG(G \given S)$.
+\end{Def}
+This should be equivalent to: there exists an orientation $K$ of $H$ (way of replacing each circle edge mark by an arrowhead or a tail) such that $M$ is a subgraph of $K$.
+I believe that we then can conclude that $H_{\doit(I_A)}$ weakly represents all $G_{\doit(I_A)}$ given $S$ ( for $G$ represented by $H$ given $S$), and $H_{\doit(D)}$ weakly represents all possible $G_{\doit(D)}$ given $S$ (for $G$ represented by $H$ given $S$).
+Alternatively: we could also refer to the ``PAG-like graph'' $H_{\doit(I_A)}$ as a ``SPAG'', a ``superPAG''!}
+
+Note that the PAG $H_{\doit(I_A)}$ is as informative about the result of $\doit(I_A)$ on CADMGs as it could be.
+\begin{Prp}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $A \subseteq V$.
+  Then for each possible orientation $H^*$ of $H_{\doit(I_A)}$ (obtained by orienting each circle in $H_{\doit(I_A)}$ into a tail or arrowhead), there exists a 
+  % PAG $H_{\doit(I_a)}$ represents $G_{\doit(I_a)}$ given $S$   THIS DOES NOT HOLD!
+  a CADMG $\tilde{G}$ with input $J$ and output nodes $V^+ = V \dcup \tilde{S}$ with $\MAG(\tilde{G} \given \tilde{S}) = H$ and  $\MAG(\tilde{G}_{\doit(I_A)} \given \tilde{S}) = H^*$.
+\end{Prp}
+\begin{proof}
+  The circles in $H_{\doit(I_A)}$ are on edges of the type $I_a \tuo a$ for nodes $a$ which have no adjacent arrowhead nor an adjacent undirected edge.
+  Let $H^*$ be a possible orientation $H^*$ of $H_{\doit(I_A)}$. 
+  This amounts to deciding for each $a \in A$ whether $a$ will become ancestor of a selection variable, or not.
+  We can then pick $\tilde{G}$ as constructed in Lemma~\ref{lem:representing_CADMG_of_MAG} and see that it does the job.
+\end{proof}
+
+In the following, write $I_D := \{I_d : d \in B\}$.
+\begin{Prp}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V$.
+  Let $A, B, C \subseteq V \cup J$.
+  Let $K$ be a MAG that is contained in $H_{\doit(I_D)}$.
+  Then there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$ if and only if there is a $m$-connecting path from $A$ to $B$ given $C$ in $K$.
+\end{Prp}
+\begin{proof}
+  Suppose there is a $m$-connecting path from $A$ to $B$ given $C$ in some MAG contained in $H_{\doit(I_D)}$.
+  The only possible edges on the path for which the corresponding edge in $H_{\doit(I_D)}$ contains a circle are the edges $I_d \tuh d$ with $d$ having no adjacent arrowhead in $H$; in that case, $d$ can only be a non-collider on the path.
+  On the corresponding path in $H_{\doit(I_D)}$ these nodes can only appear as definite non-colliders.
+  All other nodes on the corresponding path in $H_{\doit(I_D)}$ have no adjacent circle edge marks and hence they are a definite (non-)collider if and only if they are a (non-)collider in the MAG.
+  Hence the corresponding path in $H_{\doit(I_D)}$ must be definitely $m$-connecting from $A$ to $B$ given $C$.
+
+  Vice versa, suppose there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$.
+  Then in every MAG contained in $H_{\doit(I_D)}$ (and hence in $K$), the corresponding path is $m$-connecting from $A$ to $B$ given $C$.
+\end{proof}
+This implies:
+\begin{Cor}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V$.
+  Let $A, B, C \subseteq V \cup J$.
+  \begin{enumerate}[label=\alph*)]
+    \item If there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$, there exists a CADMG $\tilde{G}$ with input $J$ and output nodes $V^+ = V \dcup \tilde{S}$ such that $\tilde{G}$ is represented by $H$ given $\tilde{S}$, and in $\tilde{G}_{\doit(I_D)}$ there exists a $d$-open path from $A$ to $B$ given $C \cup \tilde{S}$.
+    \item If there is no definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$, then for all CADMGs $\tilde{G}$ with input $J$ and output nodes $V^+ = V \dcup \tilde{S}$ such that $\tilde{G}$ is represented by $H$ given $\tilde{S}$, there is no $d$-connecting path from $A$ to $B$ given $C \cup \tilde{S}$ in $\tilde{G}_{\doit(I_D)}$.
+  \end{enumerate}
+\end{Cor}
+\begin{proof}
+  \begin{enumerate}
+    \item Let $K$ be a MAG contained in $H_{\doit(I_D)}$ \Joris{Does it exist? Yes, any possible orientation gives a valid MAG (see earlier proposition)}. 
+      There exists a CADMG $\tilde{G}$ with input $J$ and output nodes $V^+ = V \dcup \tilde{S}$ with $\MAG(\tilde{G} \given \tilde{S}) = H$ and $\MAG(\tilde{G}_{\doit(I_A)} \given \tilde{S}) = K$.
+      If there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$, there is an $m$-connecting path from $A$ to $B$ given $C$ in $K$,
+      and hence there is a $d$-open path from $A$ to $B$ given $C \cup \tilde{S}$ in $\tilde{G}_{\doit(I_A)}$.
+\Joris{One could even show: If there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$, then for any MAG $K$ contained in $H_{\doit(I_D)}$, there exists
+  a CADMG $\tilde{G}$ and set $\tilde{S}$ such that $\tilde{G}$ is represented by $H$ given $\tilde{S}$, and $\tilde{G}_{\doit(I_D)}$ is represented by $K$ given $\tilde{S}$, and there exists a $d$-open path in $\tilde{G}_{\doit(I_D)}$ from $A$ to $B$ given $C$.}
+    \item We prove the converse.
+      Suppose there is a CADMG $\tilde{G}$ with input $J$ and output nodes $V^+ = V \dcup \tilde{S}$ such that $\tilde{G}$ is represented by $H$ given $\tilde{S}$, and with a $d$-connecting path from $A$ to $B$ given $C \cup \tilde{S}$ in $\tilde{G}_{\doit(I_D)}$.
+      Then $H^* := \MAG(\tilde{G}_{\doit(I_D)} \given \tilde{S})$ is a subgraph of an orientation $K$ of $H_{\doit(I_D)}$ \Joris{TODO???}.
+      Since there is a $d$-connecting path from $A$ to $B$ given $C \cup \tilde{S}$ in $\tilde{G}_{\doit(I_D)}$,
+      there is an $m$-connecting path from $A$ to $B$ given $C$ in $H^*$.
+      The same path must be present in $K$ and be $m$-connecting given $C$ in $K$ \Joris{TODO???}.
+      Hence, there is a definite $m$-connecting path from $A$ to $B$ given $C$ in $H_{\doit(I_D)}$.
+  \end{enumerate}
+\end{proof}
+
+\Joris{Leihao shows that the notion of (in)visible edge in $H$ is preserved in $H_{\doit(I_a)}$.
+Can we show this by using that it is synonym with ``possibly confounded'' in the represented CADMGs?}
+
+\subsubsection{Modeling hard interventions with MAGs}
+
+\Joris{This subsubsection is new and still completely speculative.}
+
+Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+Denote the MAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+We now perform hard interventions $\doit(D)$ on $G$, for intervention targets $D \subseteq V \cup J$.
+What can we infer about $\MAG(G_{\doit(D)} \given S)$ given only $H$?
+
+We define:
+\begin{Def}\label{def:do_mag}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V \cup J$.
+  Then $H_{\bar{D}}$ is the mixed graph with input nodes $J \cup D$, output nodes $V \sm D$ and as the edges in $H$ except those that are into $D$.
+\end{Def}
+\begin{Def}
+  For a mixed graph $H$, we denote by $\Un_H$ the set of vertices of $H$ with no adjacent arrowheads.
+\end{Def}
+We can show some elementary properties:
+\begin{Lem}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+  Denote the MAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+  Let $D \subseteq V \cup J$.
+  Define $G^* := G_{\doit(D)}$ and $H^* := \MAG(G^* \given S)$.
+  Then:
+  \begin{enumerate}
+    \item if vertices $i,j$ are adjacent in $H^*$ then they are adjacent in $H_{\bar D}$;
+    \item if $i \tus j$ in $H^*$ then $i \tus j$ in $H_{\bar D}$;
+  \end{enumerate}
+  \Joris{Additionally, Leihao shows that under the assumption that each $d \in D$ has an adjacent arrowhead in $H$:
+  if $i \suh j$ in $H^*$ then $i \tut j$ not in $H_{\bar D}$. 
+  This means that the differences between $H^*$ and $H_{\bar D}$ are that $H^*$ may have fewer edges than $H_{\bar D}$, and some bidirected edges in $H^*$ may be directed in $H_{\bar D}$.
+  
+  He further shows that: if $i \tuh j$ in $H_{\bar D}$ is visible (in $H_{\bar D}$) then $i \tuh j$ must be visible in $H$;
+  and hence (see old stuff below) $i \tuh j$ must be in $H^*$.
+
+  I note myself that the Lemma in footnote 22 can be applied to our setting (an invisible directed edge $a \tuh b$ in $H_{\bar D}$ that is bidirected in $H^*$) because:
+  \begin{itemize}
+    \item (speculative) if there is another directed path from $a$ to $b$ in $H_{\bar D}$ other than $a \tuh b$ then perhaps we can recurse?
+    \item this follows from the assumpion that $a \tuh b$ is invisible
+    \item this also follows from the assumption that $a \tuh b$ is invisible: such a discriminating path would either end as $q_n \hut a \tuh b$ with $q_n \tuh d$ (violating t1), or as $q_n \huh a \tuh b$ (violating the invisibility assumption)
+  \end{itemize}
+  Still we have to understand why making this change won't make another `ghost edge' visible!
+  }
+\end{Lem}
+\begin{proof}
+  Note that $x \in \Anc_{G_{\doit(D)}}(U)$ implies that $x \in \Anc_G(U)$, for all $x \in V^+ \cup J$ and $U \subseteq V^+ \cup J$.
+  \begin{enumerate}
+    \item
+      Let $i \sus j$ be an edge in $H^*$. 
+      Then there is an inducing path $\pi$ between $i$ and $j$ given $S$ in $G_{\doit(D)}$.
+      Every non-endpoint node on the path must be a collider in $\Anc_{G_{\doit(D)}}(\{i,j\} \cup S)$.
+      The same sequence of node indices defines a path in $G$ (with possibly different node types), where every non-endpoint node must be a collider in $\Anc_G(\{i,j\} \cup S)$.
+      Therefore, there is an inducing path between $i$ and $j$ given $S$ in $G$.
+      Hence, $i$ and $j$ are adjacent in $H$.
+      
+      If $H^*$ had an edge $i \suh d$ for $d \in D$ then in $G^*$ there must be an inducing path between $i$ and $d$ given $S$ that is \emph{into} $d$.
+      However, $G^*$ contains no edges into $d$.
+      Contradiction.
+      So $H^*$ has no edges into $D$.
+    \item
+      Suppose the edge $i \sus j$ in $H^*$ were out of $i$.
+      Then $i \in \Anc_{G_{\doit(D)}}(\{j\} \cup S)$, and hence $i \in \Anc_G(\{j\} \cup S)$.
+      Therefore, the edge $i \sus j$ in $H_{\bar d}$ must be out of $i$ as well.
+      Similarly, if the edge $i \sus j$ in $H^*$ were out of $j$, the edge $i \sus j$ in $H_{\bar D}$ must be out of $j$ as well.
+  \end{enumerate}
+\end{proof}
+We extend Lemma 12 of \cite{Zhang2008_AI} to input nodes and selection bias.
+\begin{Lem}\label{lem:zhang_2008_lemma_12}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V \cup J$.
+  Define $G^* := G_{\doit(D)}$ and $H^* := \MAG(G^* \given S)$.
+  For $a, b \in V \cup J$ and $C \subseteq V \cup J$:
+  If there is an $m$-connecting path between $a$ and $b$ given $C$ in $H^*$ then there is one in $H_{\bar{D}}$.
+\end{Lem}
+\begin{proof}
+  \cite{Zhang2008_AI} proves the special case $J = \emptyset$ and $S = \emptyset$.
+  The generalization to $J \ne \emptyset$ is trivial since the node type does not matter in the definition of $m$-connecting path.
+  Let $\pi$ be an $m$-connecting path between $a$ and $b$ given $C$ in $H^*$.
+  We can decompose it into segments consisting solely of undirected edges and segments containing no undirected edges.
+  The undirected edges on $\pi$ must also be present in $H_{\bar{D}}$ (see previous Lemma).
+  All vertices adjacent to an undirected edge on $\pi$ are non-colliders, and hence, cannot be in $C$.
+  So the undirected segments are also $m$-connecting paths in $H_{\bar{D}}$.
+
+  The subgraph $K$ of $H^*$ obtained by omitting the undirected edges is a DMAG.
+  Indeed, as a subgraph of MAG $H^*$ and without undirected edges we only have to show that it is maximal.
+  Suppose there is an inducing path between two nodes in $K$.
+  We have to show that the two nodes are adjacent.
+  The inducing path in $K$ must also exist in $H^*$.
+  Furthermore, it must also be inducing in $H^*$.
+  Because $H^*$ is maximal, the two nodes are adjacent in $H^*$.
+  We will show that the edge between them cannot be undirected, and must therefore be present in $K$ as well.
+  Indeed, if the inducing path in $K$ consists of a single edge, it cannot be undirected.
+  If it consists of multiple edges, then it contains a collider that is ancestor of one of the two nodes, and hence that node has an adjacent arrowhead in $K$ (and in $H^*$), which contradicts the possibility of an adjacent undirected edge in $H^*$.
+
+  Note that the same ancestral relations hold in $K$ as in $H^*$.
+  Therefore, every segment on $\pi$ that is contained in $K$ is $m$-connecting in $H^*$ and hence in $K$.
+  So we can find a corresponding $m$-connecting path between the endpoints of the segment in $H_{\bar{D}}$ according to \cite{Zhang2008_AI}'s Lemma 12.
+  \Joris{Really? We have to relate $K$ with some $K_{\bar{D}}$ and show that $K_{\bar{D}}$ is a subgraph of $H_{\bar{D}}$?
+  Lemma 12 would say: if there is an $m$-connecting path between $a$ and $b$ given $C$ in a DMAG $\MAG(G_{\doit(D)})$ then there is one in $\MAG(G)_{\doit(D)}$.
+  Perhaps we can show that $K$ is (up to node types) equal to $(H^*)_{\doit(D,\Un_{H^*})}$? Or to $\MAG(G_{\doit(D,\Un_{H^*})} \given S)$?
+  Wait, this is circular!
+  It would be really nice if we can show that $(H^*)_{\overline{\Un_{H^*}}} = \MAG(G_{\doit(D,\Un_{H^*})} \given S)$.
+
+  Perhaps we need to define $E := D \cup \Un_{H^*}$ and consider $G_{\doit(E)}$ and its $\MAG(G_{\doit(E)} \given S)$?
+  Can we show that its MAG equals $(H^*)_{\bar{\Un_{H^*}}}$?
+  First, can we show that $\Un_{H^*} = \Un_H$?
+  No, we can get new arrowheads in $H^*$!
+
+  Aha. Leihao didn't mean to apply Lemma 12, but only the Lemma in the footnote on page 22.
+  }
+  We can now paste all these segments together to an $m$-connecting path $\tilde{\pi}$ in $H_{\bar{D}}$.
+  Note that the nodes where we connect segments are non-colliders on $\pi$ and remain non-colliders on $\tilde{\pi}$, and hence do not block $\tilde{\pi}$.
+\end{proof}
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \node at (0,-2.5) {$G$ {\color{red}[$\C{G}$]}};
+    \end{scope}
+    \begin{scope}[xshift=0cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \draw[tuh,red] (d1) edge (b);
+      \node at (0,-2.5) {$H = \MAG(G)$ {\color{red}[$\C{M}$]}};
+    \end{scope}
+    \begin{scope}[xshift=4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \node at (0,-2.5) {$G_{\doit(X)}$ {\color{red}[$\C{G}_{\underline{Y}\overline{X}}$]}};
+    \end{scope}
+    \begin{scope}[xshift=8cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \node at (0,-2.5) {$H^* = \MAG(G_{\doit(X)})$ {\color{red}[$\C{M}_{\C{G}_{\underline{Y}\overline{X}}}$]}};
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \draw[tuh,red] (d1) edge (b);
+      \node at (0,-2.5) {$H_{\bar X}$ {\color{red}[$\C{M}_{\underline{Y}\overline{X}}$]}};
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=0cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \draw[tuh] (z) edge (b);
+      \draw[tuh,red] (d1) edge (b);
+      \node at (0,-2.5) {$(H_{\bar X})'$ {\color{red}[$\C{M}_{\underline{Y}\overline{X}}'$]}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Counterexample to Zhang's claim: ``Furthermore, making this change will not make any other such directed edge in $\C{M}_{\underline{Y}\overline{X}}$ [$H_{\bar X}$] visible.''
+  $X = \{d_1,d_2\}$. $a \tuh z$ and $a \tuh b$ in $H_{\bar X}$ are both invisible (and are $a \huh z$ and $a \huh b$ in $H^*$).
+  $(H_{\bar X})'$: Replacing $a \tuh z$ by $a \huh z$ in $H_{\bar X}$ makes $a \tuh b$ visible!
+  Also, after the replacement, $d_1 \tuh z \huh a \tuh b$ is a discriminating path for $a$.
+  Note that $H_{\bar X}$ and $H^*$ are not even Markov equivalent! ($d_1 \mPerp b \given a, z$ in $H_{\bar X}$, but $d_1 \nmPerp b \given a, z$ in $H^*$)
+  \Joris{Ah... Leihao found my mistake: I overlooked the inducing path $d_1 \tuh z \huh a \huh b$ in $G$, and hence the directed edge $d_1 \tuh b$ in $H$.}}
+\end{figure}
+Now the final step is to combine adding intervention nodes with performing hard interventions.
+\Joris{TODO. 
+This seems a bit problematic since we first would like to perform a hard intervention, and then add intervention nodes.
+But if we perform a hard intervention, we do not end up with a PAG that can be seen as a set of possible MAGs to which we can then add intervention nodes.
+So perhaps we want to turn around the ordering?
+We could, since on $G$ we perform $G_{\doit(D,I_A)}$ and the ordering is arbitrary since $D$ and $A$ are disjoint.
+If they are not disjoint, then first $\doit(d)$ and then $\doit(I_d)$ is equivalent to just $\doit(d)$;
+while first $\doit(I_d)$ and then $\doit(d)$ is equivalent to adding an isolated node $I_d$ combined with $\doit(d)$.
+On the MAG/PAG level, if we first $\doit(I_d)$ we may get additional edge $I_d \tuh b$ for example if $d \tuh b$
+is invisible; if we then $\doit(b)$ then this edge disappears again, which suggests the ordering doesn't matter.
+Suppose we first $\doit(I_d)$ and get $I_d \tut b$ if $d \tut b$ is present; if we then $\doit(b)$ the edges
+$d \tut b$ and $I_d \tut b$ stay. If we turn it around, it also works. So graphically, it seems the ordering 
+makes no difference. Interestingly, if we first $\doit(I_D)$ on a MAG $H$, we get a PAG that only has circles on
+some $I_d \tuh d$ edges. For each orientation of that PAG, we can $\doit(B)$ (with $B, D$ disjoint). Here the
+ordering doesn't matter, we get $H_{\doit(B),\bar{D}}$.}
+
+We want to show:
+\begin{Con}\label{lem:zhang_2008_lemma_12_alt}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $B, D \subseteq V$ be disjoint.
+  Define $G^* := G_{\doit(I_B,D)}$ and $H^* := \MAG(G^* \given S)$.
+  For $a, b \in V \cup J$ and $C \subseteq V \cup J$:
+  If there is an $m$-connecting path between $a$ and $b$ given $C$ in $H^*$ then there is one in $H_{\doit(I_D),\bar{D}}$.
+\end{Con}
+
+\subsubsection{Old stuff (should cleanup!)}
+
+Let's consider DMAGs for now.
+\cite{Borboudakis++2012} note that for DMAGs, each directed edge in a DMAG is either definitely direct (i.e., a directed edge must be present in each underlying ADMG) or possibly-indirect (i.e., there exists an underlying in ADMG in which the directed edge is absent), and give equivalent conditions for both cases.
+\begin{Prp}\label{prp:dmag_possibly-indirect}
+  Let $M$ be a DMAG and $i \tuh j$ a directed edge in $M$.
+  \begin{enumerate}
+    \item If $i \tuh j$ is invisible: it is possibly-indirect iff there exists a directed path from $i$ to $j$ in $M$ that avoids the edge $i \tuh j$.
+    \item If $i \tuh j$ is visible: it is possibly-indirect iff there exists $k$ in $M$ such that $i \tuh k \tuh j$ in $M$ with $i \tuh k$ visible and $k \tuh j$ invisible.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+    \item Suppose $i \tuh j$ in $M$ is invisible.
+
+      ``$\implies$'': If $i \tuh j$ is possibly-indirect, then $i \tuh j$ is absent in some $G$ represented by $H$. 
+      Yet, we need that $i \in \Anc_G(j)$.
+      Therefore there must be some directed path from $i$ to $j$ in $G$ that avoids the edge $i \tuh j$.
+      That same directed path must be present in $M$.
+
+      ``$\impliedby$'': Suppose there exists a directed path from $i$ to $j$ in $M$ that avoids the edge $i \tuh j$.
+      We can take $G'$ obtained from $M$ by removing $i \tuh j$ and adding $i \huh j$.
+      Then $i \in \Anc(j)$ in $G'$ and there is an inducing path between $i$ and $j$ in $G'$.
+      One can check that $G'$ is represented by $H$. \Joris{TODO: this needs work! It's an extension of Lemma~\ref{lem:zhang2008_lemma_10_mag_extended}.}
+      Since $G'$ doesn't contain $i \tuh j$, the edge $i \tuh j$ is possibly-indirect.
+
+  \item Suppose $i \tuh j$ in $M$ is visible.
+
+      ``$\implies$'': If $i \tuh j$ is possibly-indirect, then $i \tuh j$ is absent in some $G$ represented by $H$. 
+      There must be an inducing path between $i$ and $j$ in $G$ into $j$.
+      Because $i \tuh j$ is visible, no inducing path in $G$ between $i$ and $j$ can be into $i$.
+      Hence there is an inducing path in $M$ out of $i$ into $j$.
+      It must be an inducing path of the form $i \tuh k \huh \dots \huh j$, since $i \tuh j$ is not present in $G$.
+      Since $i \in \Anc_G(j)$, and $k \in \Anc_G(\{i,j\})$, $k \in \Anc_G(j)$. 
+      Therefore, the subpath $k \huh \dots \huh j$ must also be inducing, and $k \tuh j$ is present in $M$. 
+      Since the inducing path $k \huh \dots \huh j$ is into $k$, $k \tuh j$ must be invisible in $M$.
+      Furthermore $i \tuh k$ is present in $M$.
+      If it were invisible, we cannot rule out the existence of $i \huh k$ in $G$.
+      But that would give an inducing path $i \huh k \huh \dots \huh j$ into $i$, contradicting the visibility of $i \tuh j$.
+      Hence, $i \tuh k$ must be visible in $M$.
+
+      So: for visible $i \tuh j$ we have shown that if it is possibly-indirect, i.e., there exists $G$ represented by $H$ without $i \tuh j$, then there must exist $k$ in $M$ such that $i \tuh k \tuh j$ in $M$ and $k \tuh j$ is invisible and $i \tuh k$ is visible.
+
+      ``$\impliedby$'': Under the assumptions, there exists a $G$ represented by $H$ with $k \huh j$ present.
+      If we remove the edge $i \tuh j$ from $G$ (if present), then the resulting $G'$ still has an inducing path between $i$ and $j$, and still has $i \in \Anc(j)$, and therefore still gives $i \tuh j$ in its representative MAG.
+      Note that if we take $G'$ obtained from $H$ by removing $i \tuh j$ and adding $k \huh j$ it fulfills all requirements ($G'$ is represented by $H$, $G'$ does not contain $i \tuh j$).
+      Hence $i \tuh j$ is possibly-indirect.
+  \end{enumerate}
+\end{proof}
+See also Figure~\ref{fig:mag_do} and Figure~\ref{fig:mag_do2}.
+What holds for each $H^*$?
+\Joris{(Below, take $S = \emptyset$!)}
+\begin{Prp}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+  Denote the DMAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+  For $D \subseteq V$, define $G^* := G_{\doit(D)}$ and $H^* := \MAG(G_{\doit(D)} \given S)$.
+  Then:
+  \begin{enumerate}
+    \item the skeleton of $H^*$ is a subgraph of the skeleton of $H_{\bar D}$;
+      (hence $H^*$ has no edges into $D$);
+    \item for $i,j$ adjacent in $H^*$:
+      \begin{itemize}
+        \item if $i \suh j$ in $H$ then $i \suh j$ in $H^*$
+        \item if $i \huh j$ in $H$ then $i \huh j$ in $H^*$
+        \item if $i \tuh j$ in $H$ is definitely direct, then $i \tuh j$ in $H^*$
+        \item if $i \tuh j$ in $H$ is visible, then $i \tuh j$ in $H^*$
+      \end{itemize}
+    \item if $i \tus j$ in $H^*$ then $i \tus j$ in $H$;
+  \end{enumerate}
+%  Then: for $i,j \in V \cup J$: if $i,j$ are adjacent in $H^*$ then $i,j$ are adjacent in $H_{\bar D}$,
+%  and the edge in $H^*$ is into $i$ iff the edge in $H_{\bar D}$ is into $i$, 
+%  and the edge in $H^*$ is into $j$ iff the edge in $H_{\bar D}$ is into $j$. 
+\end{Prp}
+\begin{proof}
+  Note that $x \in \Anc_{G_{\doit(D)}}(U)$ implies that $x \in \Anc_G(U)$, for all $x \in V^+ \cup J$ and $U \subseteq V^+ \cup J$.
+
+  \begin{enumerate}
+    \item
+      Let $i \sus j$ be an edge in $H^*$. 
+      Then there is an inducing path $\pi$ between $i$ and $j$ given $S$ in $G_{\doit(D)}$.
+      Every non-endpoint node on the path must be a collider in $\Anc_{G_{\doit(D)}}(\{i,j\} \cup S)$.
+      The same sequence of node indices defines a path in $G$ (with possibly different node types and/or edges), where every non-endpoint node must be a collider in $\Anc_G(\{i,j\} \cup S)$.
+      Therefore, there is an inducing path between $i$ and $j$ given $S$ in $G$.
+      Hence, $i$ and $j$ are adjacent in $H$.
+
+      (If $H^*$ had an edge $i \suh d$ for $d \in D$ then in $G^*$ there must be an inducing path between $i$ and $d$ given $S$ that is \emph{into} $d$.
+      However, $G^*$ contains no edges into $d$.
+      Contradiction.
+      So $H^*$ has no edges into $D$.)
+    \item
+      \begin{itemize}
+        \item
+          Any arrowhead $i \suh j$ on an edge in $H$ (sic!) signifies that
+          $j \notin \Anc_G(\{i\} \cup S)$, hence $j \notin \Anc_{G_{\doit(D)}}(\{i\} \cup S)$, and hence $i \suh j$ in $H^*$ if $i,j$ are adjacent in $H^*$.
+        \item If $i \tuh j$ in $H$ is definitely direct, it must be present in all $G$ represented by $H$.
+          If additionally $j \notin D$, it must be present in all $G_{\doit(D)}$ where $G$ is represented by $H$.
+          Hence it must be present in all possible $H^*$, and therefore we can orient $i \tuh j$ in $H_{\doit(D)}$.
+        \item Suppose $i \tuh j$ in $H$. 
+          If it is visible, then $i \tuh j$ in $H^*$.
+          Proof by contradiction.
+          An edge $i \suh j$ must be in $H^*$.
+          Suppose it is $i \huh j$.
+          Then there is an inducing path in $G_{\doit(D)}$ between $i$ and $j$ given $S$ that is into $i$ and into $j$.
+          This implies that $i,j \notin D$ and moreover that there is an inducing path in $G$ between $i$ and $j$ given $S$ that is into $i$ and into $j$.
+          %The edge $i \sus j$ in $H$ is either $i \huh j$, or (by Lemma~\ref{lem:zhang2008_lemma_9_mag_extended}) an \emph{invisible} directed edge $i \tuh j$ or $i \hut j$.
+          This gives a contradiction with Lemma~\ref{lem:zhang2008_lemma_9_mag_extended}.
+          So the edge in $H^*$ must be $i \tuh j$.
+      \end{itemize}
+    \item
+      Suppose the edge $i \sus j$ in $H^*$ were out of $i$.
+      Then $i \in \Anc_{G_{\doit(D)}}(\{j\} \cup S)$, and hence $i \in \Anc_G(\{j\} \cup S)$.
+      Therefore, the edge $i \sus j$ in $H$ must be out of $i$ as well.
+      Similarly, if the edge $i \sus j$ in $H^*$ were out of $j$, the edge $i \sus j$ in $H$ must be out of $j$ as well.
+  \end{enumerate}
+\end{proof}
+\Joris{The remaining case:
+  Suppose $i \tuh j$ in $H$ is possibly-indirect and invisible, and there are directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$.
+  Consider all directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$.
+  If one of them is already oriented as a directed path in $H_{\doit(D)}$, then orient $i \tuh j$.
+  Otherwise, all of them contain at least one unoriented edge or one oriented-as-possibly-bidirected edge in $H_{\doit(D)}$.
+  If all of them contain one oriented-as-possibly-bidirected edge in $H_{\doit(D)}$ then OPTIMISTICALLY orient $i \ouh j$ as well.
+  The remaining case is that some of them contain an unoriented edge.
+  Pick one, say $a \tuh b$.
+  It must be possibly-indirect and invisible, and there are directed paths from $a$ to $b$ in $H_{\bar D}$ expect for $a \tuh b$.
+  We can now recurse into orienting that unoriented edge.
+  Then proceed to the next unoriented edge on the directed path, and recurse into orienting it, and repeat for all unoriented edges on the directed path.
+  Finally, all edges on the directed path that were unoriented, have been oriented.
+  Then proceed in a similar way with another partially-unoriented directed path, until they all have been oriented.
+  We can then orient the edge $i \tuh j$ accordingly.
+
+  Note that at some point deep in the recursion, we have run out of nodes to substitute an unoriented edge by a directed path in $H_{\bar D}$.
+  Indeed, because of the acyclicity of $H_{\bar{D}}$, the directed paths we substitute for an unoriented edge need to go via descendants of a, and ancestors of b; so these nodes cannot overlap with either ancestors of a or descendents of b.
+  Therefore, the ``walkaround'' path goes via nodes that were not already on the directed path.
+  At some point, we simply run out of available nodes.
+  That means that recursion stops there, and that unoriented edge will get oriented.
+
+  Now what we have to check is whether if we replace in the final $H_{\doit(D)}$ all possibly-bidirected edges by bidirected ones, that we can find a $G$ that represents it (itself?). 
+  Or much stronger even: for any subset of possibly-bidirected edges, there exists $G$ represented by $H$ such that the corresponding $H^*$ has bidirected edges precisely on this subset, and otherwise, directed edges.
+  In that case, we can consider $H_{\doit(D)}$ a superPAG.
+  The first property might even hold...!
+  For the innermost possibly-bidirected edges, we can use the following proposition.
+  This means that if we remove corresponding \emph{directed} edges (make them surely-indirect) then such a representative ADMG exists.
+  Tracing back in the recursion, we then oriented edges for which all ``walkaround'' paths contained at least one possibly-bidirected edge, so we know that none of them survives in $G_{\doit(D)}$ (by a similar argument as in the proposition below).
+  However, what we still have to show is that if we have two possibly-indirect edges, then there exists a common representative ADMG in which both are indeed indirect.
+  This seems to work, but I'm not really sure right now.
+  We could then selectively add direct $i \tuh j$ edges to change an $H^*$ into another $H^*$ by replacing one bidirected by one directed edge.
+  If we can do so, it suggests all orientations of $H_{\doit(D)}$ are actually valid MAGs.
+  If we can then show that they are Markov equivalent, we are done.
+
+  This looks good!
+  Note that we can also formulate the existence result without defining the recursive algorithm:
+  As long as there exists an unoriented $i \tuh j$ in $H$ which is possibly-indirect and invisible, and there are directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$,
+  then there exists such an unoriented $i \tuh j$ in $H$ which is possibly-indirect and invisible and for which either
+  (i) there exists a directed path from $i'$ to $j'$ in $H_{\bar D}$ except for $i \tuh j$ that is already oriented as directed path, or
+  (ii) all directed paths from $i'$ to $j'$ in $H_{\bar D}$ except for $i \tuh j$ contain at least one oriented-as-possibly-bidirected edge in $H_{\doit(D)}$.
+  In the former case, we can orient $i' \tuh j'$ in $H_{\doit(D)}$, in the latter case $i' \ouh j'$ in $H_{\doit(D)}$.
+  We now show the existence of such $i' \tuh j'$.
+  Write $i_1 := i$, $j_1 = j$.
+  If $i_1 \tuh j_1$ doesn't qualify, then there must be a directed path $\pi_1$ from $i_1 \tuh j_1$ (avoiding the edge $i_1 \tuh j_1$ and $D$) that has at least one unoriented edge $i_2 \tuh j_2$.
+  The non-endpoint nodes on that directed path cannot overlap with $\Anc_H(i_1) \cup \Desc_H(j_1)$ (otherwise $H$ would contain a cycle).
+  Hence the path avoids directed edges into $D \cup \Anc_H(i_1) \cup \Desc_H(j_1)$.
+  Note that the path $\pi_1$ consists at least of 3 nodes (including $i_1, j_1$).
+  Now consider the unoriented edge $i_2 \tuh j_2$.
+  Either it qualifies, or otherwise, there must be a directed path from $i_2 \tuh j_2$ (avoiding the edge $i_2 \tuh j_2$ and $D \cup \Anc_H(i_1) \cup \Desc_H(i_2)$) that has at least one unoriented edge $i_3 \tuh j_3$.
+  That path avoids directed edges into $D \cup \Anc_H(i_1) \cup \Desc_H(j_1) \cup \Anc_H(i_2) \cup \Desc_H(j_2)$, otherwise $H$ would contain a cycle.
+  Note that the path obtained from $\pi_1$ by substituting the edge $i_2 \tuh j_2$ by the path $\pi_2$ consists at least of 4 nodes.
+  We can repeat this procedure, until either we find a qualifying edge $i_n \tuh j_n$, or we run out of nodes.
+
+  Let us keep track of the order in which we orient possibly-indirect and invisible edges in $H$ for which there are directed paths from $i$ to $j$ in $H_{\bar D}$ that avoid $i \tuh j$ itself.
+  Every time we decide to orient such an edge as $i \ouh j$ in $H_{\doit(D)}$, there exists a walkaround path from $i$ to $j$, but none that is already oriented as a directed path in $H_{\doit(D)}$, and each such path contains another edge oriented already as $i' \ouh j'$ in $H_{\doit(D)}$.
+  We know that if we replace $i' \ouh j'$ by $i' \huh j'$ there is still a directed path from $i'$ to $j'$ in $H$ that avoids $i' \tuh j'$ (but not in $H_{\doit(D)}$).
+  For the first orientation as possibly-bidirected, we know that when replacing this edge in $H$ by a bidirected one, there is still a corresponding indirect directed path in $H$ left.
+  But what if one of the edges on that path later becomes oriented as possibly-bidirected?
+  So perhaps we should only do the orientation as possibly-bidirected if we can guarantee that there is still a corresponding indirect directed path in $H$ left that will never disappear by subsequent orientations?
+  In other words, only orient $i \tuh j$ as possibly-bidirected if there is an indirect directed path in $H$ for which each edge is either (i) into $D$, or (ii) already oriented as directed in $H_{\doit(D)}$.
+  Or, perhaps, we were too optimistic.
+  Perhaps one can show that by turning some of the innermost edges into bidirected, some later on need to be directed in order for there to remain a directed path.
+
+  Hm.
+  Perhaps the following orientation algorithm works itself inside-out in such a way that it works.
+  When the procedure $\mathtt{Orient}(i \tuh j)$ is called on a possibly-indirect invisible edge, then it will first invoke $\mathtt{Orient}(k \tuh l)$ for each yet unoriented edge on any indirect directed path from $i$ to $j$ in $H$.
+  The innermost orientation steps are to orient definitely-direct edges (as directed), and visible edges (as directed).
+  These do remain present in $G'$.
+  What remains to orient are the possibly-indirect invisible edges in $H$.
+  From those, we should first orient the ones as directed.
+  Aha, we could do that recursively as a first pass, and then we have obtained all directed edges in $H_{\doit(D)}$.
+  What remains must be the possibly-bidirected edges in $H_{\doit(D)}$.
+  Really???
+  Now we can also tackle them ``inside-out''.
+  So first consider the ones that don't have a walkaround path in $H$ that contains another possibly-bidirected edge.
+  These only have walkaround paths that consist of edges that are oriented as directed in $H_{\doit(D)}$ and therefore these paths are present in $G'$ (yes!).
+  Mark these possibly-bidirected edges as ``done''.
+  Then proceed with the remaining possibly-bidirected edges.
+  Some of them will have a walkaround path that consists only of certainly-directed edges and ``done'' possibly-bidirected edges.
+  Then we can mark these possibly-bidirected edges as ``done'' as well.
+  In this way we can proceed until all possibly-bidirected edges are marked as ``done''.
+  We have shown that if we replace each possibly-bidirected edge by a bidirected one, we still preserve all ancestral relations of $H$.
+  Idea: if we use this ordering to recursively orient edges, we squat two flies with a single hit.
+
+  Let's try to prove completeness of this definition of $H_{\doit(D)}$.
+
+  First we unveil some structure behind the ``invisible, possibly indirected'' directed edges in a MAG.
+  \begin{Def}
+    Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ the MAG that represents $G$ given $S$.
+    For now we assume $S = \emptyset$, so $H$ is a DMAG.
+    We define a directed graph $\C{K}(H)$ as follows:
+    \begin{itemize}
+      \item The nodes of $\C{K}$ are the invisible and possibly-indirect directed edges in $H$.
+      \item For any $i \tuh j$ in $\C{K}$: consider the set of all directed paths in $H$ from $i$ to $j$ that avoid $i \tuh j$, and then for each edge $k \tuh l$ on such a path that is in $\C{K}$, declare it to be a parent of $i \tuh j$.
+    \end{itemize}
+    This defines a DAG because if there were a cycle in this DAG, there would be a cycle in the MAG as well.
+  \end{Def}
+  By traversing the edges in $\C{I} \subseteq \C{K}$ according to that topological ordering, we can show that every time we replace an edge in $\C{I}$ with a bidirected one, the corresponding ancestral relation is still guaranteed to be preserved. 
+  So in this way we can show that \emph{any} subset of replacements $\C{I} \subseteq \C{K}$ (of a directed by a bidirected edge in $H$) preserves the ancestral relations of $H$. 
+  \begin{Prp}
+    Let $\C{I} \subseteq \C{K}$ be a subset of invisible and possibly-indirect directed edges in $H$.
+    Order $\C{I}$ according to a topological ordering of $\C{K}$: $i_1 \tuh j_1, i_2 \tuh j_2, \dots, i_n \tuh j_n$ (from root nodes to sink nodes in the DAG $\C{K}$).
+    Define a sequence of $n$ ADMGs:
+    $G_0 := H$, $G_t$ obtained from $G_{t-1}$ by replacing $i_t \tuh j_t$ by $i_t \huh j_t$.
+    Each ADMG in this sequence has exactly the same (non-)ancestral relations as $H$.
+  \end{Prp}
+  \begin{proof}
+    We will show that the ancestral relations of $G_t$ coincide with that of $G_{t-1}$ for $t=1,\dots,n$.
+
+    Let us start with $t=1$.
+    $G_1$ is obtained by replacing in $G_0$ $i_1 \tuh j_1$ by $i_1 \huh j_1$.
+    As there is a directed path from $i_1$ to $j_1$ in $G_0$ that avoids the edge $i_1 \tuh j_1$, the ancestral relations do not change by the replacement.
+    Note that this directed path will not be removed in a future replacement step (as it contains no edges in $\C{I}$), so this directed path will remain present in all $G_r$.
+
+    Now consider any $t > 1$.
+    We know that there is a directed path from $i_t$ to $j_t$ in $\C{K}$ that avoids $i_t \tuh j_t$.
+    It may contain directed edges that are in $\C{I}$.
+    These will have been replaced by bidirected edges in earlier stages.
+    We can replace those with permanent directed paths in $G_{t-1}$.
+    Consider an ancestor $k \tuh l$ of $i_t \tuh j_t$ in $\C{K}$.
+    Either it is not in $\C{I}$, and then the directed edge $k \tuh l$ is present in $G_{t-1}$, or it is in $\C{I}$, and then we can replace it by a permanent directed path.
+    This gives us a (permanent) directed path from $i_t$ to $j_t$ that will remain present in all $G_r$.
+    So we can safely replace $i_t \tuh j_t$ by $i_t \huh j_t$.
+  \end{proof}
+  For the specific $\C{I}$ we want to use (all $i \ouh j$ edges in $H_{\doit(D)}$) we can show in addition that their replacement leads to $i$ no longer being an ancestor of $j$ in $G_{\doit(D)}$. So we get a representative of a maximally-bidirected orientation of $H_{\doit(D)}$ and one of a maximally-directed orientation (just add back all directed edges that were replaced by bidirected edges).}
+
+\Joris{
+\begin{Lem}\label{lem:zhang2008_lemma_10_mag_extended_further}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ the MAG that represents $G$ given $S$.
+  %Let $Z \subseteq V \cup J$ such that each of which has no incoming arrowhead in $H$ (one can always take $Z = \emptyset$).
+  %Let $i \tuh j$ be a directed edge in $H$.
+  Let $\C{I} = \{i \tuh j\}$ be a set of invisible possibly-indirect directed edges in $H$.\footnote{I think we need to assume in addition that $\C{I}$ has the property that if we replace in $H$ all $i \tuh j$ in $\C{I}$ by $i \huh j$, all ancestral relations in $H$ are preserved. Ah, it seems I have just shown that this property holds automatically for any such subset $\C{I}$!}
+  That is, each $i \tuh j$ is in $H$, is invisible, and $H$ contains a directed path $\pi_{i \tuh j}$ from $i$ to $j$ that avoids the edge $i \tuh j$.
+  Then there exists a CADMG $\tilde{G}$ with input nodes $J$ and output nodes $\tilde{V}^+ = V \dcup \tilde{S}$ such that:
+  \begin{enumerate}
+    \item $\tilde{G}$ is also represented by $H$ given $\tilde{S}$, and
+    \item for each $i \tuh j \in \C{I}$, $i \huh j$ is in $\tilde{G}$ and $i \tuh j$ is not in $\tilde{G}$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  We construct CADMG $\tilde{G}$ as follows.
+  It has nodes $\tilde{V}^+ \cup J$ with $\tilde{V}^+ = V \cup \tilde{S}$, where $\tilde{S} := \{s_{\{x,y\}} : x \tut y \in H\}$.
+  We add all bidirected edges $x \huh y$ for $x,y \in V\cup J$ that are present in $H$ to $\tilde{G}$.
+  In addition, we add for each $i \tuh j \in \C{I}$ the bidirected edge $i \huh j$ to $\tilde{G}$.
+  We then add all directed edges $x \tuh y$ for $x,y \in V\cup J$ that are present in $H$, except for those in $\C{I}$, to $\tilde{G}$.
+  For the undirected edges $x \tut y$ in $H$, we add $x \tuh s_{\{x,y\}} \hut y$ to $\tilde{G}$.
+  Note that $\tilde{G}$ is acyclic by construction.
+
+  Since all directed edges in $H$ are also present in $\tilde{G}$, and no directed edge absent in $H$ is present in $\tilde{G}$, the ancestral relations between variables in $V \cup J$ are the same in $H$ as in $\tilde{G}$. 
+  \Joris{This is a bit more tricky now. We need to stick to an ordering for the edges in $\C{I}$.
+  Indeed, if we can arrange that $\C{I}$ is ordered such that $i \tuh j < k \tuh l$ iff $\pi_{i \tuh j}$ avoids $k \tuh l$ (???) we can show that ancestral relations are preserved in $\tilde{G}$.
+  It is trivial that each directed edge present in $\tilde{G}$ is present in $H$.}
+  That is, for $x,y \in V \cup J$, $x \in \Anc_H(y) \iff x \in \Anc_{\tilde{G}}(y)$.
+  
+  We now show that for $v \in V \cup J$: if $v \in \Anc_{\tilde{G}}(\tilde{S})$, then $v \in \Anc_G(S)$ (note: the converse does not hold).
+  Indeed, if $v \in \Anc_{\tilde{G}}(\tilde{S})$ then there must be a directed path $v \tuh \dots \tuh w \tuh s$ in $\tilde{G}$ such that $s \in \tilde{S}$, and all other nodes on the directed path are in $V \cup J$.
+  The directed path $v \tuh \dots \tuh w$ must also be present in $H$. 
+  The node $s$ must be $s_{\{w,u\}}$ for some $u \in V \cup J$ with $w \tut u$ in $H$.
+  But since $\dots \suh w \tut u$ cannot occur in a MAG $H$ (because $G$ is acyclic), the directed path must be the trivial path $v = w$.
+  Hence $v \tut u$ in $H$, and therefore $v \in \Anc_G(S)$.
+  We also state the contra-positive for convenience: for $v \in V \cup J$: if $v \notin \Anc_G(S)$ then $v \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  \Joris{Furthermore, observe that if $x \hus y$ in $H$ then $x \notin \Anc_G(\{y\} \cup S)$ and hence $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.}
+
+  It remains to show that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+  For that we need to show:
+  \begin{enumerate}
+    \item For all $x \in V \cup J, y \in V$: $x \sus y$ is in $H$ if and only if there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$;
+    \item If $x \hus y$ in $H$ then $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+    \item If $x \tus y$ in $H$ then $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$;
+  \end{enumerate}
+
+  First adjacency.
+  Let $x \in V \cup J$, $y \in V$.
+  Suppose $x$ and $y$ are not adjacent in $H$.
+  We must show that in $\tilde{G}$ there is no inducing path between $x$ and $y$ given $\tilde{S}$.
+  Suppose there is one.
+  Pick one of minimal length.
+  It must be a collider path in which every collider is in $\Anc_{\tilde{G}}(\{x,y\} \cup \tilde{S})$.
+
+  Suppose the path contains a node of $\tilde{S}$.
+  Then the path has to be of the form $x \dots a \tuh s_{\{a,b\}} \hut b \dots y$ with $a \tut b$ in $H$.
+  Since only the endpoint nodes can be non-colliders, the path must be $x \tuh s_{\{x,y\}} \hut y$ with $x \tut y$ in $H$. 
+  Contradiction.
+  We conclude that the path can only contain nodes in $V \cup J$.
+
+  Assume that each edge on the path is present in $H$ as well (in other words, no bidirected edge corresponding to an edge in $\C{I}$).
+  Then each collider on the path is not in $\Anc_G(S)$.
+  Therefore, by the result above, each collider on the path is not in $\Anc_{\tilde{G}}(\tilde{S})$.
+  But this means that each collider on the path must be in $\Anc_{\tilde{G}}(\{x,y\})$, and hence in $\Anc_H(\{x,y\})$.
+  So then the path is also an inducing path between $x$ and $y$ in $H$, which contradicts the maximality of $H$.
+
+  Now suppose some $i \huh j$ obtained by replacing an edge in $\C{I}$ is on the path. 
+  Pick the first such edge on the path encountered from $x$.
+  %All other edges on the path must also be present in $H$.
+  The edge $i \huh j$ is not in $H$, but the edge $i \tuh j$ or $i \hut j$ or $i \tut j$ is in $H$.
+  %This corresponds with the directed edge $i \tuh j$ in $H$.
+  In the latter case, there must be a path of the form $x \suh \dots \huh \dots \huh i \tut j \huh \dots \huh \dots \hus y$ in $H$. (This needs fixing!)
+  But this can only happen for $x=i$ and $y=j$, that is, if the path consists of the single edge $i \tut j$.
+  But then $x$ would be adjacent to $y$ in $H$, a contradiction.
+
+  Hence the only possibilities are that $i \tuh j$ in $H$ or $i \hut j$ in $H$.
+  Let us first consider the case that the inducing path is of the form $x \suh \dots \huh \dots \huh i \huh j \dots y$ with all edges between $x$ and $i$ present in $H$,
+  and that $i \tuh j$ is in $H$.
+  If $x = i$ then we can use the same reasoning as before to show that the path $x = i \tuh j \dots y$ in $H$ must be inducing, contradicting the maximality of $H$. UPDATE: THIS MAY FAIL NOW!
+  THE PROBLEM SEEMS TO BE THAT ALL THE BIDIRECTED EDGES INTRODUCED IN $\tilde{G}$ MAY LEAD TO ADDITIONAL INDUCING PATHS THAT ARE NOT IN $H$.
+  Well, the path $x = i \tuh j \dots y$ is still inducing, but it is not in $H$.
+  We could even try to show that each of these $G_i$'s is itself a MAG (representing itself).
+  If $x \ne i$, then the first part of the inducing path in $\tilde{G}$, say $z_0 \dots z_k$ (with $z_0 = x$ and $z_k = i$ and $k \ge 1$) is also a collider path into $i$ in $H$.
+  We will prove by induction that for $1 \le s \le k-1$, $z_s$ is a parent of $j$ in $H$.
+
+  AN IDEA TO MITIGATE THE PROBLEM: WE SHOW THAT THE SEQUENCE $G_0, \dots, G_n$ of ADMGs are represented by the same skeleton, by relating the existence of inducing paths between them.
+  A single replacement is OK: we can show that if $x$ and $y$ are not adjacent in $H = G_0$, then in $G_1$ there is no inducing path between $x$ and $y$ given $\tilde{S}$.
+  Note that $x$ and $y$ in $J \cup V$ are adjacent in $H$ if and only if they are adjacent in $G_r$ for any $r = 0, \dots, n$.
+  Can we show that if $x$ and $y$ are not adjacent in $G_1$, then in $G_2$ there is no inducing path between $x$ and $y$ given $\tilde{S}$?
+  If we can, we can probably show that if $x$ and $y$ are not adjacent in $G_r$, then in $G_{r+1}$ there is no inducing path between $x$ and $y$ given $\tilde{S}$.
+  \textbf{Generally: can we show that if there is no inducing path between $x$ and $y$ in $G_r$, then there is no inducing path between $x$ and $y$ in $G_{r+1}$?}
+  It would be convenient if the following properties are preserved in the sequence: the edges in $\C{I}$ are invisible in each $G_r$ (this is suggested by Zhang
+  in the proof of Lemma 12 in 2008), and each $G_r$ is ancestral.
+  So in $H$ we have: $i \tuh j$ is invisible, $a \tuh b$ is invisible, and now we change $i \tuh j$ into $i \huh j$, could that make $a \tuh b$ visible?
+
+  Now suppose that for some $0 \le s \le k-1$, $z_{s+1} \tuh j$ is in $H$ (note this holds in particular for $s=k-1$). \Joris{No, we need to assume $z_t \tuh j$ is in $H$ for all $t = s+1, \dots, k$ to get a valid induction.} 
+  We will show that $z_s \tuh j$ is in $H$.
+  $z_s$ must be adjacent to $j$ in $H$, otherwise $i \tuh j$ would be visible in $H$.
+  The edge between $z_s$ and $j$ cannot be $z_s \hut j$, otherwise $j \tuh z_s \suh z_{s+1} \tuh j$ in $H$, and $H$ would be non-ancestral.  
+  It can also not be $z_s \huh j$, otherwise there would be an inducing path $x = z_0 \dots z_s \huh j \dots y$ in $\tilde{G}$ that contains fewer nodes, a contradiction.
+  It can also not be $z_s \tut j$, as that would give $i \tuh j \tut z_s$ in $H$ which is not possible.
+  Hence it has to be $z_s \tuh j$.
+
+  So by induction, for $1 \le s \le k-1$, $z_s$ is a parent of $j$ in $H$.
+  So this gives a collider path $x \suh z_1 \huh \dots \huh z_{k-1} \huh i$ in $H$ such that each $z_s$ is a parent of $j$ in $H$, and $i \tuh j$ in $H$.
+  Therefore, $x$ must be adjacent to $j$ in $H$, otherwise $i \tuh j$ would be visible.
+  If this edge were of the form $x \hut j$ then $H$ would not be ancestral (because $z_1 \tuh j \tuh x \suh z_1$ in $H$).
+  The edge cannot be of the form $x \tut j$ either because then $z_1 \tuh j \tut x$ would be in $H$.
+  Hence it must be of the form $x \suh j$.
+  But then this edge must also be present in $\tilde{G}$.
+  Then we have an inducing path $x \suh j \dots y$ in $\tilde{G}$ that is shorter than the one that was assumed to be of minimal length.
+  Contradiction.
+
+  We have shown that if $x$ and $y$ are not adjacent in $H$, there is no inducing path between $x$ and $y$ in $\tilde{G}$ given $\tilde{S}$.
+  Now suppose $x$ and $y$ are adjacent in $H$.
+  We distinguish four cases corresponding to the type of the edge between $x$ and $y$ in $H$. 
+  \begin{itemize}
+    \item $x \tuh y$: By construction $x \tuh y$ is in $\tilde{G}$. \Joris{optionally: for $x \tuh y$ equals $i \tuh j$, we have $i \huh j$ in $\tilde{G}$ instead}
+      Then $y \notin \Anc_G(S)$, and therefore also $y \notin \Anc_{\tilde{G}}(\tilde{S})$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \hut y$: This case is similar (with the roles of $x,y$ swapped).
+    \item $x \huh y$: By construction $x \huh y$ is in $\tilde{G}$.
+      Then both $x, y \notin \Anc_G(S)$, and therefore also $x,y \notin \Anc_{\tilde{G}}(\tilde{S})$. 
+      Therefore, $x \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \notin \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+    \item $x \tut y$: Then $x \tuh s_{\{x,y\}} \hut y$ in $\tilde{G}$.
+      Therefore, $x \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$ and $y \in \Anc_{\tilde{G}}(\{y\} \cup \tilde{S})$.
+  \end{itemize}
+  In all cases, there is an inducing path between $x$ and $y$ given $\tilde{S}$ in $\tilde{G}$.
+  We conclude that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+\end{proof}
+}
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$H$};
+    \end{scope}
+    \begin{scope}
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G$};
+    \end{scope}
+    \begin{scope}[xshift=4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G_{\doit(X)}$};
+    \end{scope}
+    \begin{scope}[xshift=8cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$\MAG(G_{\doit(X)}) = H^*$};
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G$};
+    \end{scope}
+    \begin{scope}[xshift=4cm,yshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G_{\doit(X)}$};
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-4cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$\MAG(G_{\doit(X)}) = H^*$};
+    \end{scope}
+    \begin{scope}[yshift=-8cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G$};
+    \end{scope}
+    \begin{scope}[xshift=4cm,yshift=-8cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G_{\doit(X)}$};
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-8cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$\MAG(G_{\doit(X)}) = H^*$};
+    \end{scope}
+    \begin{scope}[xshift=-4cm,yshift=-12cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[tuh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[tuh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \draw[huh] (z) edge (b);
+      \node at (0,-2.5) {$H$};
+    \end{scope}
+    \begin{scope}[yshift=-12cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndout] (d1) at (-0.75,1) {$d_1$};
+      \node[ndout] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (a) edge (d1);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (a) edge (d2);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G$};
+    \end{scope}
+    \begin{scope}[xshift=4cm,yshift=-12cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$G_{\doit(X)}$};
+    \end{scope}
+    \begin{scope}[xshift=8cm,yshift=-12cm]
+      \node[ndout] (a) at (0,0) {$a$};
+      \node[ndout] (b) at (0,-1.5) {$b$};
+      \node[ndout] (z) at (-1.5,0) {$z$};
+      \node[ndint] (d1) at (-0.75,1) {$d_1$};
+      \node[ndint] (d2) at (1,-0.75) {$d_2$};
+      \draw[huh] (a) edge (z);
+      \draw[tuh] (d1) edge (z);
+      \draw[huh] (a) edge (b);
+      \draw[tuh] (d2) edge (b);
+      \node at (0,-2.5) {$\MAG(G_{\doit(X)}) = H^*$};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Counterexample to Zhang's claim: ``Furthermore, making this change will not make any other such directed edge in $\C{M}_{\underline{Y}\overline{X}}$ visible.''?
+  $X = \{d_1,d_2\}$. 
+  Well, it is not a counterexample to Zhang's claim, because his ``such directed edge'' is different (indeed, $G$-specific) from the way I interpreted it ($H$-specific).
+  But it nicely shows that even if we can replace a single indirect and possibly-indirect directed edge (either $a \tuh z$ or $a \tuh b$) and maintain the same MAG representation ($H$),
+  we cannot do the two replacements simultaneously, because that introduces additional induced paths / adjacencies.}
+\end{figure}
+
+What $H^*$ do exist?
+\begin{Prp}
+  Let $H$ be a DMAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V$.
+  Define 
+  $$\C{H}_{\doit(D)} := \{ \MAG(G_{\doit(D)} \given S) : \text{$G$ is a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ that is represented by $H$ given $S$} \}.$$
+  Then:
+  \begin{enumerate}
+    \item there exists $H^* \in \C{H}_{\doit(D)}$ with $\skel(H^*) = \skel(H_{\bar{D}})$
+    \item if $i \tuh j$ in $H$ is possibly-indirect, and there are no directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$, there exists $H^* \in \C{H}_{\doit(D)}$ with $i \huh j$ in $H^*$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+    \item If $H$ is a DMAG then $H$ is also a CADMG that is represented by $H$.
+    \item Note: any edge $i \tuh j$ in $H$ \emph{could} be present in $G$ in the sense that there exists a $G$ represented by $H$ in which it is present, in which case it will end up in $H^*$ if $j \notin D$.
+      If $i \tuh j$ in $H$, then note that if we take $G = H$ then we \emph{will} get $i \tuh j$ in $H^*$ if $j \notin D$.
+    \item
+      Indeed, if $i \tuh j$ it is possibly-indirect in $H$, there exists $G'$ represented by $H$ which doesn't contain $i \tuh j$.
+      If $i \in \Anc_{{G'}_{\doit(D)}}(j)$, then there is a directed path from $i$ to $j$ in ${G'}_{\doit(D)}$,
+      hence there is a directed path from $i$ to $j$ in $G'$ that avoids edges into $D$ (which is not $i \tuh j$),
+      hence apart from $i \tuh j$ there is a directed path from $i$ to $j$ in $H$ that avoids edges into $D$, 
+      hence apart from $i \tuh j$ there is a directed path from $i$ to $j$ in $H_{\bar D}$.
+      Therefore, if there are no such paths, then $i \notin \Anc_{{G'}_{\doit(D)}}(j)$, and the corresponding $H^*$ has $i \huh j$.
+%      Any directed path from $i$ to $j$ in $G'$ must also be present in $H$.
+%      Any directed path from $i$ to $j$ in $G'$ that avoids edges into $D$ must also be present in $H_{\bar D}$.
+%      So if there are no directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$, then no directed paths from $i$ to $j$ that avoid edges into $D$ can be present in $G'$.
+%      In that case, no directed paths from $i$ to $j$ can be present in ${G'}_{\doit(D)}$.
+%      Hence $i \notin \Anc_{{G'}_{\doit(D)}}(j)$.
+      \Joris{Note that if $i \tuh j$ is also invisible, as $G'$ we can take $H$ but with $i \tuh j$ replaced by $i \huh j$.
+      It is clear that this $G'$ has an indirect directed path from $i$ to $j$.}
+  \end{enumerate}
+\end{proof}
+We give the following tentative definition:
+\begin{Def}\label{def:mag_do}
+  Let $H$ be a MAG with input nodes $J$ and output nodes $V$, that represents some CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ given $S$.
+  Let $D \subseteq V$.
+  Define $H_{\doit(D)}$ as the ``PAG'' with input nodes $J$ and output nodes $V$, such that 
+  \begin{enumerate}
+    \item the skeleton of $H_{\doit(D)}$ is that of $H_{\bar D}$
+    \item every arrowhead in $H_{\bar D}$ is copied over to $H_{\doit(D)}$
+    \item every tail on a definitely direct edge $i \tuh j$ in $H_{\bar D}$ is copied over to $H_{\doit(D)}$ (if $j \notin D$)
+    \item for a possibly-indirect edge $i \tuh j$ in $H_{\bar D}$, if there are no directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$, we put $i \ouh j$ in $H_{\doit(D)}$
+    \item for a possibly-indirect edge $i \tuh j$ in $H_{\bar D}$, if there are directed paths from $i$ to $j$ in $H_{\bar D}$ except for $i \tuh j$, we put $i \tuh j$ in $H_{\doit(D)}$
+  \end{enumerate}
+\end{Def}
+\begin{Prp}\label{prp:camdg_do_mag}
+  Let $G$ be a CADMG with input nodes $J$ and output nodes $V^+ = V \dcup S$. 
+  Denote the MAG that represents $G$ given $S$ by $H := \MAG(G \given S)$.
+  For $D \subseteq V$, define $G^* := G_{\doit(D)}$ and $H^* := \MAG(G_{\doit(D)} \given S)$.
+  Then $H^*$ is weakly represented by $H_{\doit(D)}$.
+\end{Prp}
+\begin{proof}
+  Note that $x \in \Anc_{G_{\doit(D)}}(U)$ implies that $x \in \Anc_G(U)$, for all $x \in V^+ \cup J$ and $U \subseteq V^+ \cup J$.
+
+  NOTE: any directed edge (path) in $G$ ends up in $M$ as well.
+  So if in $M$ there is no directed path from $i$ to $j$ that avoids $D$ then in $G$ there is no such path either.
+  We then know that in all possible $G_{\doit(D)}$, $i$ is not ancestor of $j$, and hence $i \huh j$ in $H^*$ if the two are adjacent in $H^*$.
+  
+  If $i \tuh j$ in $H$ is possibly-indirect and visible, then...we can recurse.
+  Indeed, there must exist $k$ with $i \tuh k \tuh j$ in $M$ and $i \tuh k$ visible and $k \tuh j$ invisible in $M$.
+  (We can pick $k$ to be a child of $i$ in $G$; every directed path from $i$ to $j$ in $G$ must go via a child; all children of $i$ in $G$ end up as such in $H$; so every possible directed path from $i$ to $j$ in $G$ must go via a child of $i$ in $H$)
+  If both are definitely direct then they both end up in $H_{\doit(D)}$ and therefore also $i \tuh j$ must be in $H_{\doit(D)}$.
+  TODO: Finish this argument!
+  First note that every directed edge: if it is possibly-indirect we can replace it with a directed path, and otherwise it can be oriented as a directed edge in $H_{\doit(D)}$.
+  For any already oriented directed path we can use transitivity to orient the ``shortcuts''.
+
+  HM, the algorithm could become:
+  \begin{enumerate}
+    \item orient each definitely direct edge $i \tuh j$ (as $i \tuh j$);
+    \item take the transitive closure;
+  \end{enumerate}
+  Question: if we can get $i \huh j$ in $H^*$, does this imply additional orientations?
+  
+  The case that remains is:
+  if $i \tuh j$ in $H$ is possibly-indirect and visible, there must exist $k$ with $i \tuh k \tuh j$ in $H$ and $i \tuh k$ visible and $k \tuh j$ invisible in $H$.
+  Three cases: all such $k$ are in $D$, some such $k$ are in $D$ and others are not in $D$, all such $k$ are not in $D$.
+  We can further distinguish with respect to $i \tuh k$ definitely direct and $k \tuh j$ definitely direct.
+  Note that we already know how to orient all the $k \tuh j$.
+  If $i \tuh k$ is definitely direct we can also orient it.
+  This means we will have $i \tuh k \tuh j$ in $H_{\doit(D)}$ (which implies $i \tuh j$ in $H_{\doit(D)}$), or $i \tuh k \ouh j$ in $H_{\doit(D)}$.
+  Does the latter imply anything about the orientation of $i \suh j$ in $H_{\doit(D)}$?
+  We know that $k \tuh j$ is possibly-indirect and invisible, so we can take for $G'$ the ADMG $H$ minus $i \tuh j$ plus $i \huh j$;
+  could we have $i$ ancestor of $j$ in that $G'$? 
+  If so, there must be $i \tuh k \huh j$ and a directed path $i \tuh \dots \tuh j$.
+  This seems to suggest that there is also a $i \tuh k' \tuh j$ in $H$, with $k' \ne k$.
+  We can similarly orient this. 
+  Suppose we keep going, and end up with $k_1, \dots, k_n$ with for all $k_r$: $i \tuh k_r \tuh j$ in $H$ with $i \tuh k_r$ visible and $k_r \tuh j$ invisible,
+  and we have oriented $i \tuh k_r \ouh j$ in $H_{\doit(D)}$ for all $k_r$.
+
+  Then we have the final remaining interesting case.
+  Perhaps this is a contradiction?
+  Because shouldn't there at least remaing ONE ``non-spurious'' ancestral path?
+  Ah no, the point is that this might get blocked.
+  Perhaps we need to check now whether all $k_r$ are in $D$, or only some, or none.
+  If none are in $D$, then we know that in each $G$ at least one directed path from $i$ to $j$ exists that won't disappear by $\doit(D)$.
+  If all are in $D$, then I think we can conclude that after $\doit(D)$ $i$ is no longer ancestor of $j$.
+  Finally, if some of them are in $D$, then we don't know?
+  Wait, if there's at least one $k_r \in D$ then we can construct an ADMG in which the only directed path from $i$ to $j$ goes via $k_r$, which disappears under $\doit(D)$, and therefore we have to orient $i \ouh j$ in $H_{\doit(D)}$.
+
+  So it looks like we're done, if we can show some lemmata to hold
+  (that we can actually pick the ADMG in the last sentence of the previous paragraph, and that all directed paths from $i$ to $j$ have to go via one of the $k_r$).
+\end{proof}
+
+\Joris{
+The next thing is to show (e.g.\ via Zhang's approach) that the circles don't matter for the m-separations.
+Alternatively, we could just make use of the definite m-connections/separations.
+Zhang essentially shows that we can treat the circles as tails for the purposes of separations.
+
+Zhang (2008, Lemma 12) shows that (without selection bias) a directed edge in $H^*$ must be present in $H_{\bar D}$, but
+that a bidirected edge in $H^*$ is either a bidirected edge in $H_{\bar D}$ or an invisible directed edge in $H_{\bar D}$.
+Then he shows that $H_{\bar D}$ can be transformed into a supergraph of $H^*$ via a sequence of equivalence-preserving mark changes (Zhang and Spirtes 2005, Tian 2005).
+Apparently we need Lemma 1 in Zhang \& Spirtes (2005).
+This says:
+For a DMAG $M$ and directed edge $a \tuh b$ in $M$, let $M'$ be the graph obtained from $M$ by replacing $a \tuh b$ by $a \huh b$.
+Then $M'$ is a DMAG and Markov equivalent to $M$ if:
+\begin{enumerate}
+   \item there is no directed path in $G$ from $a$ to $b$ other than $a \tuh b$;
+   \item for any $c \tuh a$ in $M$, $c \tuh b$ is also in $M$;
+     for any $d \huh a$ in $M$, there is $d \suh b$ in $M$.
+   \item there is no discriminating path for $a$ on which $b$ is the endpoint adjacent to $a$ in $M$.
+\end{enumerate}
+The proof mostly establishes that $M'$ is a valid DMAG; once that has been shown, the characterisation for Markov equivalence of DMAGs can be used.}
+
+Is it true that any ancestral relation present in a MAG implies the ancestral relation is present in all CADMGs it represents?
+Not necessarily!
+What is true is that \emph{anterior} relations in a MAG correspond with ancestral relations in (all) CADMGs it represents.
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (0.0,0.75) {$G^1$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node at (0,0.75) {$G^1_{\doit(d)}$: \Joris{($G^*$)}};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm]
+      \node at (0,0.75) {$\MAG(G^1_{\doit(d)})$: \Joris{($H^*$)}};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm]
+      \node at (0.0,0.75) {$G^2$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-2cm]
+      \node at (0,0.75) {$G^2_{\doit(d)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm,yshift=-2cm]
+      \node at (0,0.75) {$\MAG(G^2_{\doit(d)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node at (0.0,0.75) {$G^3$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[huh, bend left] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-4cm]
+      \node at (0,0.75) {$G^3_{\doit(d)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[huh, bend left] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm,yshift=-4cm]
+      \node at (0,0.75) {$\MAG(G^3_{\doit(d)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm]
+      \node at (0,0.75) {MAG $H$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm,xshift=6cm]
+      \node at (0,0.75) {MAG $H_{\bar d}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm,xshift=12cm]
+      \node at (0,0.75) {``PAG $H_{\doit(d)}$'':};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+%      \node[ndout] (X4) at (-3,0) {$l$};
+%      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[ouh, bend right] (X1) edge (X3);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{MAG $H$ represents three different CADMGs $G^1, G^2, G^3$.
+    After a hard intervention $\doit(d)$, their representative MAGs no longer coincide.
+    MAG $H_{\bar d}$ represents $\MAG(G^2_{\doit(d)})$ but does not represent $\MAG(G^1_{\doit(d)})$.
+    Note: there is no definite $m$-connecting path between $l$ and $j$ in the ``PAG $H_{\doit(d)}$'' 
+    (which would lead us to the wrong conclusion that $l$ and $j$ are $id$-separated in each $G_{\doit(D)}$),
+    but there is a definite $m$-connecting path between $l$ and $j$ in the MAG $H_{\bar d}$.
+    \label{fig:mag_do}}
+\end{figure}
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node at (0.0,0.75) {$G^1$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node at (0,0.75) {$G^1_{\doit(d)}$: \Joris{($G^*$)}};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm]
+      \node at (0,0.75) {$\MAG(G^1_{\doit(d)})$: \Joris{($H^*$)}};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-2cm]
+      \node at (0.0,0.75) {$G^2$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-2cm]
+      \node at (0,0.75) {$G^2_{\doit(d)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm,yshift=-2cm]
+      \node at (0,0.75) {$\MAG(G^2_{\doit(d)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node at (0.0,0.75) {$G^3$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=6cm,yshift=-4cm]
+      \node at (0,0.75) {$G^3_{\doit(d)}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=12cm,yshift=-4cm]
+      \node at (0,0.75) {$\MAG(G^3_{\doit(d)})$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[huh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm]
+      \node at (0,0.75) {MAG $H$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndout] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X1) edge (X2);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm,xshift=6cm]
+      \node at (0,0.75) {MAG $H_{\bar d}$:};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[tuh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[yshift=-6.5cm,xshift=12cm]
+      \node at (0,0.75) {``PAG $H_{\doit(d)}$'':};
+      \node[ndout] (X1) at (-1.5,0) {$i$};
+      \node[ndint] (X2) at (0,0) {$d$};
+      \node[ndout] (X3) at (1.5,0) {$j$};
+      \node[ndout] (X4) at (-3,0) {$l$};
+      \draw[tuh] (X4) edge (X1);
+      \draw[tuh] (X2) edge (X3);
+      \draw[ouh, bend right] (X1) edge (X3);
+      \draw[tuh, bend left] (X4) edge (X3);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{MAG $H$ represents three different CADMGs $G^1, G^2, G^3$.
+    After a hard intervention $\doit(d)$, their representative MAGs no longer coincide.
+    \label{fig:mag_do2}}
+\end{figure}
+
+\subsubsection{First attempts at generalizing to (cyclic) $\sigma$-setting with selection bias}
+
+\Joris{
+Here is a list of open problems:
+\begin{enumerate}
+  \item A complete way to read off which nodes in a $\sigma$-MAG are non-ancestors of selection nodes.
+    (Conjecture: all nodes that have an adjacent arrowhead, or for which there is an undirected path to a node with an adjacent arrowhead.)
+  \item A complete way to read off which nodes in a $\sigma$-MAG are ancestors of selection nodes.
+    (Partial solution: some FCI rules allow us to identify this.)
+  \item With these building blocks, we may be able to extend the power of the intervention node formalism we now have for CDMGs to $\sigma$-MAGs.
+\end{enumerate}
+}
+
+\Joris{
+  \begin{Def}
+    Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+    Let $a,b \in V \cup J$. FOR NOW, ASSUME $J = \emptyset$.
+    An undirected edge $a \tut b$ in $H$ is called \emph{audible} if there exists a path $a \tut b \tut v_1 \dots \tut v_n \hus c$ in $H$ (with possibly $n = 0$).
+    Otherwise, $a \tut b$ is called \emph{inaudible}.
+    A node $a \in V \cup J$ is called \emph{audible} if it is part of an audible edge, and \emph{inaudible} otherwise.
+  \end{Def}
+  Note that we cannot have an inaudible undirected edge adjacent to an audible undirected edge.
+}
+
+\begin{Con}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-MAG that represents $G$ given $S$.
+  Let $a \in V \cup J$. \Joris{For now: assume $J = \emptyset$!}
+  There exists a path $a \tut \dots \tut b \hus c$ in $H$ (with possibly $a = b$) (Let us call this property ``$a$ is audible''!) implies $a \notin \Anc_G(S)$.
+  If there doesn't exist such a path, then $a$ is possibly in $\Anc_G(S)$, that is, there exist $(G_1,S_1)$ and $(G_2,S_2)$ that are both represented by $H$ but where $a \in \Anc_{G_1}(S_1)$ but $a \notin \Anc_{G_2}(S_2)$.
+\end{Con}
+\begin{proof}
+  $\implies$ is OK.
+
+  Take a single node $a$. There doesn't exist such a path, and indeed, either $a$ is ancestor of $S$ or not.
+  Can we find a CDMG that is represented by $H$ for which $a \notin \Anc(S)$?
+  That is precisely what we were trying to do below in Lemma 12.10.3!
+
+  If we manage to do so, then we can just add selection on $a$ to that CDMG to obtain one where $a \in \Anc(S)$.
+\end{proof}
+
+\Joris{
+  Wait. Is the notion of inducing path in a $\sigma$-MAG correct? 
+  In a $\sigma$-PAG it is OK (I believe), as there we can never conclude the presence of a cycle.
+  But in a $\sigma$-MAG we can consider audible nodes / edges.
+  A sequence of audible edges should also be considered inducing in a $\sigma$-MAG!
+  Well, perhaps not, since then there will also be an edge between the two nodes in the $\sigma$-MAG.
+
+  Also, we should be more liberal to colliders being ancestor of something: the directed path may also contain audible edges.
+
+  So we should consider more paths in a $\sigma$-MAG as inducing!
+  This doesn't seem to invalidate any of the earlier results, as the only thing we've used so far is that if there is a definitely inducing path in a $\sigma$-PAG between two nodes, they must be adjacent.
+  But we can apparently strengthen this result for $\sigma$-MAGs (at least).
+  It even appears that if we do so, we can show that we can find a ``canonical'' representative CDMG and set of selection nodes for a $\sigma$-MAG.
+  This then in turn may allow us to read off conditional independences from a $\sigma$-MAG.
+  (Assuming completeness of extended FCI, this should work, as all CDMGs represented by a $\sigma$-MAG should be Markov equivalent, as they are part of the FCI $\sigma$-PAG.)
+
+  So let's try to define this. 
+  Let $H$ be a $\sigma$-MAG that represents a CDMG $G$ given $S$.
+  Call $v$ an \emph{ancestor} of $w$ in $H$ ($v \in \Anc_H(w)$) if there exists a path of audible edges and directed edges pointing towards $w$.
+  Proposal: a walk between $v,w \in V \cup J$ (with $v \ne w$) in a $\sigma$-MAG $H$ (representing a CDMG $G$ given $S$) is called \emph{$\sigma$-inducing} if every non-endpoint node is a collider in $\Anc_H(\{v,w\})$.
+  Hm, not sure if that's correct. Consider this: $a \suh b \tut c$ (with $b \tut c$ audible) should be inducing.
+  Also $a \tut b \tut c$ (with both $a \tut b$, $b \tut c$ audible) should be inducing.
+  Also $a \hut b \tut c$ (with $b \tut c$ audible) should be inducing.
+  So basically every audible edge is inducing.
+  Well, sometimes we can also just look for another inducing path, which would exist in all these cases (a single edge)!
+  So it's not clear whether we need to adapt this definition.
+
+  I see two options to proceed:
+  \begin{itemize}
+    \item Use the notion of $s$-separation and turn the audible undirected edges into ``equality'' edges?
+    \item Keep using undirected edges for both selection bias and cycles, but adapt the notion of ``ancestor'' in a $\sigma$-MAG in such a way that ancestral relations are preserved;
+      if this is possible, think about how to define inducing paths such that they are basically unblockable walks that can be concatenated together.
+      Maximality should then come for free. The notion of ``inducing path'' in a $\sigma$-MAG may not be so important after all; what is more important is 
+  \end{itemize}
+}
+
+\Joris{Here are some key definitions from above, for reference:
+  A $\sigma$-PAG is defined by:
+  \begin{enumerate}
+    \item Between any two distinct nodes there is at most one edge, and there are no edges between a node and itself;
+    \item No input node is adjacent to any other input node;
+    \item The graph contains no directed cycles, no almost directed cycles, and no unshielded triple of the form $i \suh j \tut k$ (``$\sigma$-ancestral'');
+    \item There is no definitely inducing path between any two distinct non-adjacent nodes (``maximal'');
+%    \item If there is an edge $j \sus v$ with $j \in J, v \in V$ then it must be of the form $j \tus v$.
+  \end{enumerate}
+  $H$ represents $G$ given $S$ iff:
+  \begin{enumerate}
+    \item Between any two distinct nodes in $H$ there is at most one edge, and there are no edges between a node and itself;
+    \item Two distinct nodes $i,j \in V \cup J$ are adjacent in $H$ if and only if $\{i,j\} \not\subseteq J$ and there is a $\sigma$-inducing path between $i$ and $j$ given $S$ in $G$;
+    \item If $i \hus j$ in $H$ then $i \notin \Anc_{G}(\{j\} \cup S)$;
+    \item If $i \tus j$ in $H$ then $i \in \Anc_{G}(\{j\} \cup S)$;
+%    \item If $j \sus v$ in $H$ with $j \in J, v \in V$ then it must be of the form $j \tus v$.
+  \end{enumerate}
+  If $H$ represents $G$ given $S$, then $H$ is a $\sigma$-PAG.
+  If $H$ has no circles, it is a $\sigma$-MAG.
+}
+
+The following notion was proposed originally by \cite{Zhang2008_JMLR}. We generalize it here to our setting (which allows for selection bias, input nodes and cycles).
+\begin{Def}\label{def:mag_visible_edge_alt}
+  Let $H$ be a $\sigma$-PAG with input nodes $J$ and output nodes $V$.
+
+  Let $a \in J \cup V$ and $b \in V$.
+  A directed edge $a \tuh b$ in $H$ is called \emph{visible} if $a \in J$, or if $a \in V$ and there is a node $z$ in $H$ that is not adjacent to $b$ such that:
+  \begin{itemize}
+    \item there is an edge $z \suh a$ in $H$, or 
+    \item there is a definite collider path $z \suh \dots \huh a$ in $H$ that is into $a$ and every node on the path (except $z$) is a parent of $b$ in $H$. 
+  \end{itemize}
+  Otherwise, $a \tuh b$ is called \emph{invisible}.
+\end{Def}
+
+The following Lemma of \cite{Zhang2008_JMLR} stays valid in our more general setting.
+\begin{Lem}\label{lem:zhang2008_lemma_9}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ a $\sigma$-PAG that represents $G$ given $S$.
+  Let $a \in V \cup J$, $b \in V$ such that $a \tuh b$ is a directed edge in $H$. 
+  If $a \tuh b$ is visible, then there exists no $\sigma$-inducing walk between $a$ and $b$ given $S$ in $G$ that is into $a$.
+  In particular, $a \huh b$ is not in $G$.
+\end{Lem}
+\begin{proof}
+  If $a \in J$, then there are no edges into $a$ in $G$ by definition, which proves the claim.
+  So assume $a \in V$. We proceed by contradiction. Assume that in $G$ there exists an $\sigma$-inducing walk between $a$ and $b$ given $S$ that is into $a$.
+
+  Let $z$ be a node in $V \sm \{a,b\}$.
+  Consider two cases:
+  \begin{itemize}
+    \item
+      If $z \suh a$ is in $H$, then there is an $\sigma$-inducing walk between $z$ and $a$ in $G$ given $S$ that is into $a$ (Lemma~\ref{lem:mixed_graph_represents_CDMG}).
+  Concatenating this with the $\sigma$-inducing walk between $a$ and $b$ given $S$ that is into $a$ we obtain an $\sigma$-inducing walk between $z$ and $b$ given $S$ (note that $a$ becomes a collider that is in $\Anc_G(\{b\} \cup S)$) in $G$. 
+\item
+  Suppose there is a definite collider path $\pi$ in $H$ from $z$ to $a$ that is into $a$ and such that every node on the path (except $z$) is parent of $b$ in $H$. 
+  For each pair of subsequent nodes $(v_i,v_{i+1})$ on $\pi$ there exists an $\sigma$-inducing walk in $G$ between $v_i$ and $v_{i+1}$ given $S$ that is into $v_{i+1}$, and also into $v_i$ unless possibly $v_i = z$.
+  Because each node other than $z$ on $\pi$ is in $\Anc_G(\{b\} \cup S)$, all these $\sigma$-inducing walks can be concatenated into one $\sigma$-inducing walk in $G$ between $z$ and $b$ given $S$.
+  \end{itemize}
+  \Joris{Note that we might be able to weaken the part ``$v_i$ is parent of $b$'' to ``$v_i \tus b$''? It seems that this can still be excluded in the cyclic case: then there would be
+  an edge $z \suh v_1$ but no edge between $z$ and $b$ even though $z,b$ are in the same scc. So it seems parent is ok.}
+
+  In both cases, $z$ and $b$ are adjacent in $H$.
+  Since this holds for all such $z$, the directed edge $a \to b$ in $H$ cannot be visible. 
+\end{proof}
+
+%The following lemma shows that we can always interpret a $\sigma$-PAG as representing a CADMG given some latent selection nodes.
+%NO THAT IS NOT POSSIBLE.
+\Joris{The following works in the acyclic setting, but I haven't yet been able to prove this conjecture when allowing for cycles.
+In the setting considered by \cite{Zhang2008_JMLR} (no input nodes, no cycles, no selection bias), the following statement is
+trivial (I don't think Zhang bothered writing it down) because one can just take $\tilde{G} = H$.}
+\begin{Lem}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V^+ = V \dcup S$ and $H$ the $\sigma$-MAG that represents $G$ given $S$.
+  There exists a CDMG $\tilde{G}$ with input nodes $J$ and output nodes $V^+ = V \dcup \tilde{S}$ that is also represented by $H$ given $\tilde{S}$,
+  and such that for each edge $i \tuh j$ in $H$, the edge $i \huh j$ is not in $\tilde{G}$.
+  \Joris{Originally, I hoped that we can even take $\tilde{G}$ to be a CADMG, but that won't work: 
+  If $G$ consists of an scc and a parent of that scc, then its $\sigma$-MAG will contain shielded triples $\tuh \tut$, something that we will never get from an acyclic $\tilde{G}$.
+  It seems we first have to decide how we can identify/distinguish in a $\sigma$-MAG the ancestors of $S$, and the scc's.}
+\end{Lem}
+\begin{proof}
+  Replace all undirected edges $x \tut y$ in $H$ with $x \tuh s_{\{x,y\}} \hut y$.
+  Let $\tilde{S} := \{\{x,y\} : x \tut y \in H\}$.
+  The result will be $\tilde{G}$.
+  Note that $\tilde{G}$ is acyclic by construction.
+  \Joris{This doesn't work if we allow for cycles. 
+  Instead, try this: for undirected edges $a \tut b$ in $H$ which are part of a path $a \tut b \tut \dots \tut c \hus$, that is, a path of undirected edges with eventually an adjacent arrowhead, we know that all nodes on this path are non-ancestors of $S$ in $G$, and must be part of an scc (for which all its nodes are non-ancestors of $S$ in $G$).
+  The nodes in this scc of $G$ must from an undirected clique in $H$.
+  In $\tilde{G}$, we will turn this into a fully connected directed clique (with a directed edge between each ordered pair of nodes).
+  All remaining undirected edges all undirected edges $x \tut y$ in $H$ will be replaced by $x \tuh s_{\{x,y\}} \hut y$.}
+
+  Since all directed edges in $H$ are also present in $\tilde{G}$, and no directed edge absent in $H$ is present in $\tilde{G}$, the ancestral relations between variables in $V$ are the same in $H$ as in $\tilde{G}$. \Joris{This only holds in the acyclic setting; in the cyclic setting, $\tilde{G}$ contains all directed edges of $H$, and possibly more.}
+
+  We will show that $H$ represents $\tilde{G}$ given $\tilde{S}$.
+  For that we need to show:
+  \begin{enumerate}
+    \item For all $i \in V \cup J, j \in V$: $i \sus j$ is in $H$ if and only if there is a $\sigma$-inducing path between $i$ and $j$ given $\tilde{S}$ in $\tilde{G}$;
+    \item If $i \hus j$ in $H$ then $i \notin \Anc_{\tilde{G}}(\{j\} \cup \tilde{S})$;
+    \item If $i \tus j$ in $H$ then $i \in \Anc_{\tilde{G}}(\{j\} \cup \tilde{S})$;
+  \end{enumerate}
+
+  Note that for $v \in V$: if $v \notin \Anc_G(S)$ then $v \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  Or, equivalently: if $v \in \Anc_{\tilde{G}}(\tilde{S})$, then $v \in \Anc_G(S)$.
+  (Note: the converse does not hold).
+  Indeed, if $v \in \Anc_{\tilde{G}}(\tilde{S})$ then there must be a directed path $v \tuh \dots \tuh a \tuh s_{a,b}$ in $\tilde{G}$ such that all nodes except for $s_{a,b}$ are in $V$, and $s_{a,b} \in \tilde{S}$ for some edge $a \tut b \in H$.
+  The directed path $v \tuh \dots \tuh a$ must be in $H$. 
+  \Joris{But since $\suh a \tut b$ cannot occur in $H$ if $G$ is acyclic, the path must be the trivial path $v=a$.
+  Hence $v \tut b$ in $H$.}
+  %Hence $v \in \Anc_H(a)$, so $v \in \Anc_G(\{a\} \cup S)$.
+  %Since $a \in \Anc_G(S)$ \Joris{that only holds for acyclic $G$}, $v \in \Anc_G(S)$.
+  Hence $v \in \Anc_G(S)$ \Joris{holds only for acyclic $G$}.
+
+  First adjacency.
+  Let $x \in V \cup J$, $y \in V$.
+  Suppose $x$ and $y$ are not adjacent in $H$.
+  We must show that in $\tilde{G}$ there is no $\sigma$-inducing path between $x$ and $y$ given $\tilde{S}$.
+  Suppose there is one.
+  Pick one of minimal length.
+  It must be a collider path in which every collider is a $\tilde{G}$-ancestor of $\{x,y\} \cup \tilde{S}$.
+  \Joris{Cyclic: a path in which every collider is a $\tilde{G}$-ancestor of $\{x,y\} \cup \tilde{S}$ and every non-endpoint non-collider is unblockable in $\tilde{G}$.}
+
+  Suppose the path contains a node of $\tilde{S}$.
+  In that case, the path will look like $x \dots a \tuh s_{a,b} \hut b \dots y$ with $a \tut b$ in $H$.
+  But since all non-endpoint non-colliders must be unblockable (which neither $a$ nor $b$ is, as they both point to $s_{a,b}$ which is in a different scc in $\tilde{G}$), we conclude that $a = x$ and $b = y$.
+  Hence, the path is $x \tuh s_{x,y} \hut y$ with $x \tut y$ in $H$. Contradiction.
+  We conclude that the path can only contain nodes in $V$.
+
+  Suppose the path contains an audible edge, that is, an edge between two nodes $a,b$ such that $a \tut b \in H$ is audible. 
+  Then that edge is either $a \tuh b$ or $a \hut b$, and furthermore, $a,b \notin \Anc_G(S)$  and $a,b \notin \Anc_{\tilde{G}}(\tilde{S})$ (??).
+  \Joris{TODO!}
+
+  Suppose each of the edges on the path is present in $H$.
+  Then each collider $k$ on the path must be a non-ancestor of $S$ in $G$.
+  Each collider on the path is $\tilde{G}$-ancestor of $\{x,y\} \cup \tilde{S}$.
+  Hence there is a directed path from the collider $k$ to $x$ in $\tilde{G}$, or to $y$, or to $\tilde{S}$.
+  If there is a directed path from the collider $k$ to $x$ or $y$ in $\tilde{G}$, then $k \in \Anc_H(\{x,y\})$.
+  Otherwise, there is a directed path from the collider $k$ to $\tilde{S}$ in $\tilde{G}$.
+  It must be of the form $k \tuh \dots \tuh a \tuh s_{ab}$ for some $a \tut b \in H$, so with $a \in \Anc_G(S)$.
+  The directed path $k \tuh \dots \tuh a$ must also exist in $H$, and hence $k$ is a $G$-ancestor of $a$.
+  Hence $k$ is $G$-ancestor of $S$. Contradiction.
+  So then the path is also a definite inducing path between $x$ and $y$ in $H$, which contradicts the maximality of $H$.
+
+  Hence, $x$ and $y$ are not adjacent in $MAG(\tilde{G})$ if $x$ and $y$ are not adjacent in $H$.
+
+  Now suppose $x$ and $y$ are adjacent in $H$.
+
+  Suppose $x \tuh y$ is in $H$.
+  Then by construction $x \tuh y$ is in $\tilde{G}$.
+  Hence it is in $MAG(\tilde{G})$.
+  Then $y \notin \Anc_G(S)$, and therefore also $y \notin \Anc_{\tilde{G}}(\tilde{S})$.
+  Hence $x \tuh y$ is in $MAG(\tilde{G})$.
+  Similarly for the edge $x \hut y$ in $H$.
+
+  If $x \huh y$ in $H$ then $x \huh y$ in $\tilde{G}$.
+  Both $x, y \notin \Anc_G(S)$. 
+  Hence, $x,y \notin \Anc_{\tilde{G}}(\tilde{S})$, and hence there is an edge $x \huh y$ in $MAG(\tilde{G})$.
+
+  If $x \tut y$ in $H$ then $x \tuh s_{x,y} \hut y$ in $\tilde{G}$ and hence there is an edge $x \tut y$ in $MAG(\tilde{G})$.
+\end{proof}
+
+\begin{Con}
+All this means that ``invisible'' is synonym for ``possibly-confounded'', and ``visible'' is synonym for ``unconfounded''.
+This was known in the case: no cycles, no selection bias, no input nodes; we conjecture it remains true if we allow for cycles, selection bias and input nodes.
+\end{Con}
+
+
+\subsubsection{Other stuff}
+
+The causal interpretation of the $\sigma$-PAG output by FCI is subtle, and not quite as transparent as that of a DMG.
+When assuming no selection bias ($S = \emptyset$), the soundness of FCI allows us to directly read off some (non-)ancestral relations from the $\sigma$-PAG output by FCI. 
+However, this is not yet all causal information that is identifiable from the $\sigma$-Markov equivalence class. 
+With more effort, one can also read off additional (non-)ancestral relations, direct causal relations, the absence of confounding, and the absence of cycles. 
+
+If selection bias can be ruled out, we can read off from the estimated $\sigma$-PAG consistent estimates for:
+  \begin{enumerate}[label=(\roman*)]
+%  \item the absence of causal cycles according to $\C{M}$ (via Proposition~\ref{prop:noncycles});
+%  \item the absence/presence of (possibly indirect) causal relations according to $\C{M}$ (via Propositions~\ref{prop:cdpag_ancestors_cdmg} and \ref{prop:cdpag_nonancestors}); 
+%  \item the absence of confounders according to $\C{M}$ (via Proposition~\ref{prop:identify_nonconfounders});
+%  \item the absence/presence of direct causal relations according to $\C{M}$ (via Proposition~\ref{prop:identifiable_direct_causes}). 
+%  \end{compactenum}
+  \item the absence/presence of (possibly indirect) causal relations according to $M$; 
+  \item the absence of latent common causes according to $M$;
+  \item the absence/presence of direct causal relations according to $M$;
+  \item the absence of causal cycles according to $M$,
+  \end{enumerate}
+as explained in detail in \cite{MooijClaassen_UAI_20}.
+To the best of our knowledge, if selection bias is not ruled out, the causal interpretation of the $\sigma$-PAG output by FCI is not fully understood at present.
+%Note that this corollary also applies to L-CBNs, as these can be considered to be special cases of simple SCMs.
+
+Here we formulate some conjectures that have been proven under additional assumptions.
+
+"\cite{Zhang2006} conjectured soundness and completeness of a criterion to read off all invariant ancestral relations from a complete DPAG.
+Roumpelaki \emph{et al.} (2016) proved soundness of the criterion (and claim completeness, but their proof seems incomplete)."
+\begin{Prp}[Proposition 4 in \cite{MooijClaassen_UAI_20}]
+Let $G$ be a CDMG with input nodes $J$ and output nodes $V$, and $H$ be a $\sigma$-PAG that represents $G$.
+Assume that all unshielded triples in $H$ have been oriented according to FCI rule $\C{R}0$ (and the background knowledge?) using $\IM_\sigma(G)$.
+For two output nodes $i \ne j \in V$:
+  \begin{enumerate}
+    \item if there exists a directed path from $i$ to $j$ in $H$, or
+    \item if there exist uncovered possibly directed paths from $i$ to $j$ in $H$ of the form $i, u, \dots, j$ and $i, v, \dots, j$ such that $u$ and $v$ are distinct non-adjacent output nodes in $H$
+  \end{enumerate}
+then $i \in \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  Mooij \& Claassen extended this result to DMGs.
+  Still, no selection bias is assumed, and no input nodes either.
+\end{proof}
+
+\cite[p. 137]{Zhang2006} provides a sound and complete criterion to read off non-ancestors from a complete DPAG. 
+\begin{Prp}[Proposition 5 in \cite{MooijClaassen_UAI_20}]
+Let $G$ be a CDMG with input nodes $J$ and output nodes $V$, and $H$ be a $\sigma$-PAG that represents $G$.
+For two output nodes $i \ne j \in V$:
+if there is no possibly directed path from $i$ to $j$ in $H$, then $i \notin \Anc_G(j)$.
+\end{Prp}
+\begin{proof}
+  Zhang proves this for ADMGs, Mooij \& Claassen extend it to DMGs.
+  Two additional extensions are needed: selection bias, and input nodes.
+\end{proof}

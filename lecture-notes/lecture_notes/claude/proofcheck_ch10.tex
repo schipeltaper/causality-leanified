@@ -1,0 +1,230 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 10 --- Conditional Independence Testing\\
+(\texttt{ci\_testing.tex}, \texttt{ci\_testing2.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{ci\_testing.tex} (456 lines)
+and \texttt{ci\_testing2.tex} (841 lines).
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(\texttt{ci\_testing2.tex}: lines 1--79, 592--835).
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks.
+\verb|\Claude{...}| blocks are \textbf{included} (none found).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{ci\_testing.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+No comment blocks. 4 active proofs.
+
+\section{Proof 1: Prp.\ \texttt{prp:G\_test\_asymptotics\_H0} (lines 141--160)}
+
+\textbf{Statement.} Under $H_0:X\perp Y$ and positivity,
+$G_N\leadsto\chi^2_\nu$ with $\nu=(|\mathcal{X}|-1)(|\mathcal{Y}|-1)$.
+
+\textbf{Analysis.}
+Standard application of Wilks' theorem.  Degree-of-freedom computation:
+$\dim(\mathcal{X}_\Theta)-\dim(\mathcal{X}_\Theta^0)
+= (|\mathcal{X}||\mathcal{Y}|-1) - (|\mathcal{X}|-1) - (|\mathcal{Y}|-1)
+= (|\mathcal{X}|-1)(|\mathcal{Y}|-1)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 2: Cor.\ \texttt{cor:G\_test\_consistency} (lines 209--264)}
+
+\textbf{Statement.} The $G$-test with thresholds $\tau_N\to\infty$,
+$\tau_N/N\to 0$ is asymptotically consistent.
+
+\textbf{Analysis.}
+Type~II: SLLN $\Rightarrow$ $G_N/N\to 2I(\theta)>0$ a.s., while $\tau_N/N\to 0$.
+$\checkmark$
+
+Type~I: $G_N\leadsto\chi^2_\nu$ (Proof~1); Polya's theorem gives uniform
+convergence of CDFs; $\tau_N\to\infty$ gives $F_{G_N}(\tau_N)\to 1$,
+hence $P(G_N\ge\tau_N)\to 0$.  $\checkmark$
+
+\textbf{Minor:} Lines 219--220: index notation $\hat\theta_{+x}$,
+$\hat\theta_{y+}$ should be $\hat\theta_{x+}$, $\hat\theta_{+y}$
+(per convention at line~35).
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 3: Prp.\ \texttt{prp:cond\_G\_test\_asymptotics\_H0}
+(lines 389--395)}
+
+\textbf{Statement.} Under $H_0:X\perp Y\mid Z$ and positivity,
+$G_N\leadsto\chi^2_\nu$ with $\nu=|\mathcal{Z}|(|\mathcal{X}|-1)(|\mathcal{Y}|-1)$.
+
+\textbf{Analysis.}
+Analogous to Proof~1.  Dimension count verified:
+$|\mathcal{Z}|(|\mathcal{X}||\mathcal{Y}|-1-|\mathcal{X}|-|\mathcal{Y}|+2)
+= |\mathcal{Z}|(|\mathcal{X}|-1)(|\mathcal{Y}|-1)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 4: Cor.\ \texttt{cor:cond\_G\_test\_consistency}
+(lines 425--456)}
+
+\textbf{Statement.} The conditional $G$-test is asymptotically consistent.
+
+\textbf{Analysis.}
+Same structure as Proof~2, extended to conditional case.  $\checkmark$
+
+\textbf{Minor:} Lines 437--438: same index notation swap as Proof~2.
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{ci\_testing2.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 1--79 and 592--835 skipped.
+5 active proofs.
+
+\section{Proof 5: Lem.\ \texttt{lem:g\_derivatives\_H0} (lines 266--307)}
+
+\textbf{Statement.} Under $H_0$, the function $g(\theta,\gamma)$ has a
+second-order Taylor expansion with zero value, zero gradient, and explicit
+Hessian (Kronecker product form).
+
+\textbf{Analysis.}
+\begin{itemize}
+  \item Zero-order: $\mathrm{KL}(\theta_{X|\ast}\|\theta_{X|\ast})=0$.  $\checkmark$
+  \item Gradient: $\log(\theta_{x|c}/\sum_{c'}\gamma_{c'}\theta_{x|c'})=\log 1=0$
+    under $H_0$.  $\checkmark$
+  \item Hessian: Kronecker product structure verified by direct computation.
+    $\checkmark$
+  \item Remainder: third derivatives bounded uniformly in $\gamma$ using
+    positivity.  $\checkmark$
+\end{itemize}
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 6: Prp.\ \texttt{prp:ext\_G\_test\_asymptotics\_H0}
+(lines 317--403)}
+
+\textbf{Statement.} Under $H_0:X\perp C$ with positive $\theta$ and
+$N_{+|c}\to\infty$, the extended $G$-statistic satisfies
+$G_N\leadsto\chi^2_{(|\mathcal{X}|-1)(|\mathcal{C}|-1)}$.
+
+\textbf{Analysis.}
+The proof uses a Taylor expansion (Lem.~5), a CLT for $S_N$, and a rotational
+symmetry argument (Lem.~7) to reduce to a chi-squared limit.
+
+\textbf{GAP 1:} Lem.~7 requires full rotational symmetry of the limiting
+distribution, but the actual limit $\mathcal{N}(0,\tilde\Sigma)$ has only
+partial rotational symmetry (invariant under $I_\mathcal{X}\otimes U$,
+not all rotations).  The argument is fixable by generalizing the lemma,
+but as written there is a mismatch.
+
+\textbf{GAP 2:} The Slutsky step $N\cdot o_P(\|\hat\theta-\theta\|^2)\to 0$
+requires $N\|\hat\theta-\theta\|^2=O_P(1)$.  Under only $N_{+|c}\to\infty$
+(not $N_{+|c}/N\ge\epsilon$), this is not guaranteed.
+
+\textbf{Minor:} Line~336 parenthetical incorrectly describes the Kronecker
+vector as ``the all-ones vector $1_\mathcal{X}$''; the actual vector is
+$1/\sqrt{\theta_{X|\ast}}$.
+
+\textbf{Verdict: GAP.}
+
+\section{Proof 7: Lem.\ \texttt{lem:weak\_convergence\_to\_rotationally\_symmetric\ldots}
+(lines 417--433)}
+
+\textbf{Statement.} If $Q$ is rotationally symmetric on $\mathbb{R}^k$ and
+$P_n\leadsto Q$, then $P_n\circ U_n\leadsto Q$ for any rotations $U_n$.
+
+\textbf{Analysis.}
+Uses L\'evy--Prokhorov metric + rotation invariance of the metric
++ rotational symmetry of~$Q$.  $\checkmark$
+
+\textbf{Minor typo (line~425):} $SO(\mathbb{R}^n)$ should be $SO(\mathbb{R}^k)$.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 8: Cor.\ \texttt{cor:ext\_G\_test\_consistency}
+(lines 451--477)}
+
+\textbf{Statement.} Under positivity and $N_{+|c}/N\ge\epsilon>0$,
+the extended $G$-test with thresholds $\tau_N\to\infty$, $\tau_N/N\to 0$
+is asymptotically consistent.
+
+\textbf{Analysis.}
+Type~II: SLLN + continuity of $g$ on compact set + $\tau_N/N\to 0$.  $\checkmark$
+
+Type~I: The stronger assumption $N_{+|c}/N\ge\epsilon$ closes the Slutsky
+gap from Proof~6, making the chi-squared approximation valid.  $\checkmark$
+
+\textbf{Minor typo (line~447):} ``$N_{+|c}/N\to\infty$'' should not have
+``$\to\infty$''.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 9: Prp.\ \texttt{prp:general\_G\_test\_asymptotics\_H0}
+(lines 563--568)}
+
+\textbf{Statement.} The general conditional $G$-statistic converges to
+$\chi^2_{|\mathcal{Z}|(|\mathcal{X}|-1)(|\mathcal{Y}||\mathcal{C}|-1)}$
+under $H_0$.
+
+\textbf{Analysis.}
+The proof is a one-line sketch: decompose $G_N=\sum_z G_N^{(z)}$ and apply
+Prp.~6 per stratum.  Key steps not verified:
+\begin{itemize}
+  \item Per-stratum assumptions of Prp.~6 (positivity of all cell counts).
+  \item Asymptotic independence of per-stratum statistics.
+  \item Inherits the Slutsky remainder gap from Prp.~6.
+\end{itemize}
+
+\textbf{Verdict: GAP} (proof sketch with key steps omitted).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~10}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l|l}
+\textbf{\#} & \textbf{File} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & ci\_testing  & 141--160   & CORRECT \\
+2  & ci\_testing  & 209--264   & CORRECT \\
+3  & ci\_testing  & 389--395   & CORRECT \\
+4  & ci\_testing  & 425--456   & CORRECT \\
+5  & ci\_testing2 & 266--307   & CORRECT \\
+6  & ci\_testing2 & 317--403   & GAP \\
+7  & ci\_testing2 & 417--433   & CORRECT \\
+8  & ci\_testing2 & 451--477   & CORRECT \\
+9  & ci\_testing2 & 563--568   & GAP \\
+\end{tabular}
+\end{center}
+
+\textbf{9 proofs checked.  7 correct, 2 with gaps.}
+
+\bigskip\noindent
+\textbf{Issues found:}
+\begin{enumerate}
+  \item \textbf{Proofs~2,~4 (lines 219--220, 437--438):}
+    Index notation $\hat\theta_{+x}$, $\hat\theta_{y+}$ should be
+    $\hat\theta_{x+}$, $\hat\theta_{+y}$ (cosmetic).
+  \item \textbf{Proof~6 (Prp.\ \texttt{prp:ext\_G\_test\_asymptotics\_H0}):}
+    Two gaps: (a)~Lem.~7 applied to partially (not fully) rotationally
+    symmetric distribution; (b)~Slutsky step needs $N_{+|c}/N\ge\epsilon$,
+    not merely $N_{+|c}\to\infty$.
+    Line~336: wrong vector described in parenthetical.
+  \item \textbf{Proof~7, line~425:} $SO(\mathbb{R}^n)$ should be
+    $SO(\mathbb{R}^k)$.
+  \item \textbf{Proof~8, line~447:} ``$N_{+|c}/N\to\infty$'' should not
+    have ``$\to\infty$''.
+  \item \textbf{Proof~9 (Prp.\ \texttt{prp:general\_G\_test\_asymptotics\_H0}):}
+    One-line sketch omitting per-stratum verification, asymptotic independence,
+    and inheriting the Slutsky gap from Proof~6.
+\end{enumerate}
+
+\end{document}

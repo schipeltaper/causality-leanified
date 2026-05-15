@@ -1,0 +1,319 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 11 --- FCI Algorithm\\(\texttt{fci.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{fci.tex} (1796 lines).
+No \verb|\begin{comment}...\end{comment}| blocks.
+The proof at line~682 is commented out (\verb|%\begin{proof}|) and skipped.
+Proofs inside \verb|\Joris{...}| blocks are skipped (line~1752).
+\verb|\Claude{...}| blocks are \textbf{included} (none found).
+
+22 active proofs (23 minus the commented-out one at 682, minus one in a Joris block).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 1--400: $\sigma$-Inducing Paths}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 1: Selection reduction (lines 121--124)}
+\textbf{Statement.} General selection $X_S\in\xi_S$ reduces to binary selection.
+
+\textbf{Analysis.} Constructs SCM with indicator node $\tilde s=\mathbf{1}_{\xi_S}(X_S)$,
+then marginalizes~$S$.  $\checkmark$
+
+\textbf{Minor GAP:} Ancestor preservation and distributional equality after
+marginalization not fully justified.
+
+\textbf{Verdict: GAP (minor).}
+
+\section{Proof 2: Lem.\ \texttt{lem:sigma-inducing\_path\_in\_scc} (lines 142--143)}
+\textbf{Statement.} $i\in\mathrm{Sc}_G(j)\Rightarrow$ $\sigma$-inducing path exists.
+
+\textbf{Analysis.} Directed path within SCC; all non-endpoint non-colliders are
+unblockable (point to nodes in same SCC).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 3: Prp.\ \texttt{prp:sigma-inducing\_path\_properties} (lines 218--256)}
+\textbf{Statement.} Four equivalent characterizations of $\sigma$-inducing paths.
+
+\textbf{Analysis.} (i)$\Rightarrow$(ii): trivial. (ii)$\Rightarrow$(iii): minimal
+collider argument + path avoidance.  (iii)$\Rightarrow$(iv): specialization.
+(iv)$\Rightarrow$(i): $\sigma$-open path is $\sigma$-inducing.  $\checkmark$
+
+\textbf{Minor GAP:} In (ii)$\Rightarrow$(iii), the directed-path avoidance of
+$Z\cup S$ follows from $k\notin\mathrm{Anc}(Z\cup S)$ but is stated without proof.
+
+\textbf{Verdict: GAP (minor).}
+
+\section{Proof 4: Lem.\ \texttt{lem:sigma-inducing\_path\_out-of} (lines 275--291)}
+\textbf{Statement.} All $\sigma$-inducing paths out of $j\Rightarrow j\in\mathrm{Anc}(\{i\}\cup S)$.
+
+\textbf{Analysis.} Concatenation argument using directed paths within SCCs.
+$\checkmark$
+
+\textbf{Systematic minor GAP:} Walk-to-path transition with endpoint orientation
+preservation not formally justified (recurring in proofs 4--6).
+
+\textbf{Verdict: GAP (minor).}
+
+\section{Proof 5: Lem.\ \texttt{lem:sigma-inducing\_path\_into\_into} (lines 297--311)}
+\textbf{Statement.} If path into $j$ exists and $i\notin\mathrm{Anc}(\{j\}\cup S)$,
+then path into both $i$ and $j$ exists.
+
+\textbf{Analysis.} Uses $(k\in\mathrm{Desc}(i))\cap\mathrm{Anc}(\{i,j\}\cup S)
+\Rightarrow k\in\mathrm{Sc}(i)$ (since $k\notin\mathrm{Anc}(\{j\}\cup S)$).
+Concatenates reversed directed path with original subpath.  $\checkmark$
+
+\textbf{Verdict: GAP (minor --- same walk-to-path issue).}
+
+\section{Proof 6: Lem.\ \texttt{lem:inducing\_path\_into\_scc} (lines 317--319)}
+\textbf{Statement.} $\sigma$-inducing path into $j$ extends to path into $k\in\mathrm{Sc}(j)$.
+
+\textbf{Analysis.} One-line sketch: extend by directed path within SCC.
+$\checkmark$
+
+\textbf{Verdict: GAP (minor --- walk-to-path + ``into $k$'' preservation).}
+
+\section{Proof 7: Lem.\ \texttt{lem:inducing\_path\_out\_of\_input} (lines 325--330)}
+\textbf{Statement.} $\sigma$-inducing path between $j\in J$ and $v\in V\Rightarrow
+j\in\mathrm{Anc}(\{v\}\cup S)$.
+
+\textbf{Analysis.} Path must be out of $j$ (input nodes have no incoming edges).
+First collider $c$ on the path satisfies $c\in\mathrm{Anc}(\{v\}\cup S)$ (not in
+$\mathrm{Anc}(j)=\{j\}$), and $j\in\mathrm{Anc}(c)$ by the directed subpath.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 400--800: PAGs Represent CDMGs}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 8: Lem.\ \texttt{lem:mixed\_graph\_represents\_CDMG} (lines 603--615)}
+\textbf{Statement.} If $H$ represents $G$ given $S$: (i)~$H$-ancestry $\Rightarrow$
+$G$-ancestry of $\{j\}\cup S$; (ii)~arrowhead into $j$ implies inducing path into~$j$;
+(iii)~bidirected edge implies inducing path into both.
+
+\textbf{Analysis.} (i)~Induction on directed path using tail semantics.
+(ii)~Contrapositive of Lem.~4. (iii)~Combines (ii) with Lem.~5.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 9: Prp.\ \texttt{prp:sigmapag\_represents\_cdmg\_is\_valid}
+(lines 623--676)}
+\textbf{Statement.} Mixed graphs representing CDMGs are valid $\sigma$-PAGs.
+
+\textbf{Analysis.} $\sigma$-ancestrality: forbidden triples $i\to^*j\tut k$
+create SCC contradictions via Lem.~6.  Maximality: definitely inducing paths
+lift to $\sigma$-inducing walks in~$G$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 10: Prp.\ \texttt{prp:from\_cdmg\_to\_sigmapag} (lines 695--713)}
+\textbf{Statement.} Every CDMG has a $\sigma$-PAG representation.
+
+\textbf{Analysis.} Explicit construction: adjacency $\iff$ inducing path,
+edge marks from ancestry in~$G$.  Validity by Prp.~9.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 11: Prp.\ \texttt{prp:inducing\_edge\_into\_scc} (lines 729--744)}
+\textbf{Statement.} $i\to^*j$ with $j\in\mathrm{Sc}(k)\Rightarrow i$ and $k$ adjacent,
+$k\notin\mathrm{Anc}(\{i\}\cup S)$.
+
+\textbf{Analysis.} Lem.~8(ii) + Lem.~6 gives adjacency.  Ancestry contradiction
+via SCC transitivity.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 12: Prp.\ \texttt{prp:sigmapag\_open\_walk\_implies\_cdmg\_open\_walk}
+(lines 770--815)}
+\textbf{Statement.} Definitely $Z$-$m$-open path in PAG $\Rightarrow$
+$(Z\cup S)$-$\sigma$-open path in~$G$.
+
+\textbf{Analysis.} Phase~1: concatenate inducing paths for each PAG edge.
+Phase~2: minimize colliders.  Key step: colliders in $\mathrm{Anc}(Z\cup S)$;
+non-colliders unblockable or not in $Z\cup S$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 800--1400: Orientation Rules and FCI Skeleton}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 13: Prp.\ \texttt{prp:orienting\_unshielded\_triples}
+(lines 900--915)}
+\textbf{Statement.} Unshielded triples: $j$ is never/always in separating sets
+$\iff$ $j\notin/\in\mathrm{Anc}(\{i,k\}\cup S)$.
+
+\textbf{Analysis.} Case~(i): orient as collider; if $j\in Z$, the path is
+definitely open, contradiction.  Case~(ii): orient tails; use Prp.~11 to
+exclude bidirected orientations.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 14: Prp.\ \texttt{prp:orienting\_discriminating\_paths}
+(lines 985--1019)}
+\textbf{Statement.} Discriminating path orientation: $j$ never/always in
+separating sets.
+
+\textbf{Analysis.} Inductive argument showing $\{q_1,\ldots,q_n\}\subseteq Z$.
+$i\notin\mathrm{Anc}(\{j\}\cup S)$ from parent structure.
+Case analysis on $j$'s ancestry status.  $\checkmark$
+
+\textbf{Typo (line~993):} ``$\in$'' should be ``$\subseteq$''.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 15: Prp.\ \texttt{prp:SEP} (lines 1225--1248)}
+\textbf{Statement.} If no $\sigma$-inducing walk between $i,j$, then
+$\mathrm{SEP}_G(i,j)$ separates~$i$ from~$j$.
+
+\textbf{Analysis.} Inductive construction: every node on a $\sigma$-open path
+is in the ancestral set, hence in $\mathrm{SEP}$, yielding a contradiction.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 16: Lem.\ \texttt{lem:possep} (lines 1267--1287)}
+\textbf{Statement.} $\mathrm{SEP}_G(i,j)\subseteq\mathrm{PosSEP}_{H_0}(i,j)$.
+
+\textbf{Analysis.}
+The proof considers a collider $b$ on the witnessing walk and claims the
+corresponding unshielded triple in $H_0$ ``will have been oriented as a
+definite collider'' (line~1281).
+
+\textbf{GAP (significant):} By Prp.~13, if $b\in\mathrm{Anc}(\{a,c\}\cup S)$
+(Case~ii), then $b$ is in \emph{every} separating set and the triple is NOT
+oriented as a collider.  The proof does not rule out this case.  If it occurs
+and $a,c$ are non-adjacent, the $\mathrm{PosSEP}$ condition fails.
+
+\textbf{Verdict: GAP.}
+
+\section{Proof 17: Thm.\ \texttt{thm:fci\_skeleton\_sound} (lines 1356--1368)}
+\textbf{Statement.} FCI skeleton algorithm is sound.
+
+\textbf{Analysis.} Relies on Lem.~16 ($\mathrm{SEP}\subseteq\mathrm{PosSEP}$)
+and Prp.~15 ($\mathrm{SEP}$ separates).  Sound if Lem.~16 holds.
+
+\textbf{Verdict: GAP (inherits gap from Lem.~16).}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 1400--1796: FCI Soundness and Completeness}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 18: Thm.\ \texttt{thm:fci\_sound} (lines 1502--1619)}
+\textbf{Statement.} Extended FCI is sound.
+
+\textbf{Analysis.}
+Skeleton soundness by Thm.~17.  Each orientation rule (R0--R10) shown to
+preserve the representation property.
+\begin{itemize}
+  \item R0--R8: correct (uses Prps.~13--14, Lems.~8,~11, forbidden patterns).
+  \item R9, R10: apply Lem.\ \texttt{lem:upd\_path} without establishing the
+    required arrowhead-at-$v_1$ hypothesis.  Fixable via proof by contradiction.
+\end{itemize}
+
+\textbf{Verdict: GAP} (R9/R10 sub-proofs + inherited skeleton gap).
+
+\section{Proof 19: Lem.\ \texttt{lem:detecting\_selection\_bias}
+(lines 1629--1641)}
+\textbf{Statement.} Uncovered circle cycles $\Rightarrow$ all nodes in
+$\mathrm{Anc}(S)$.
+
+\textbf{Analysis.} Arrowhead orientation on any edge propagates via R1 around
+the cycle, creating a directed cycle (forbidden).  Hence all marks must be
+tails, forcing ancestry of~$S$.  SCC argument prevents three consecutive SCC
+nodes on the uncovered path.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 20: Lem.\ \texttt{lem:upd\_path} (lines 1649--1673)}
+\textbf{Statement.} Arrowhead at $v_1$ + $v_1\in\mathrm{Anc}(\{v_2\}\cup S)$
+on uncovered possibly directed path $\Rightarrow$ $v_1\in\mathrm{Anc}(v_n)$.
+
+\textbf{Analysis.} Non-SCC case: R1-like reasoning propagates along path;
+SCC case ruled out at each step by forbidden triple pattern.
+SCC case: extend adjacency via Lem.~6, reduce to non-SCC case.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 21: Cor.\ \texttt{cor:fci\_consistent} (lines 1687--1692)}
+\textbf{Statement.} FCI with consistent tests is asymptotically consistent.
+
+\textbf{Analysis.} Standard: soundness + faithfulness + test consistency.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 22: Thm.\ \texttt{thm:fci\_complete} (lines 1727--1731)}
+\textbf{Statement.} FCI completeness under acyclicity or no selection bias.
+
+\textbf{Analysis.} Citation proof: Zhang (2008), Mooij--Claassen (2020),
+Ali et al.\ (2005).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~11}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l}
+\textbf{\#} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & 121--124    & GAP (minor) \\
+2  & 142--143    & CORRECT \\
+3  & 218--256    & GAP (minor) \\
+4  & 275--291    & GAP (minor) \\
+5  & 297--311    & GAP (minor) \\
+6  & 317--319    & GAP (minor) \\
+7  & 325--330    & CORRECT \\
+8  & 603--615    & CORRECT \\
+9  & 623--676    & CORRECT \\
+10 & 695--713    & CORRECT \\
+11 & 729--744    & CORRECT \\
+12 & 770--815    & CORRECT \\
+13 & 900--915    & CORRECT \\
+14 & 985--1019   & CORRECT \\
+15 & 1225--1248  & CORRECT \\
+16 & 1267--1287  & \textbf{GAP} \\
+17 & 1356--1368  & GAP (inherited) \\
+18 & 1502--1619  & GAP \\
+19 & 1629--1641  & CORRECT \\
+20 & 1649--1673  & CORRECT \\
+21 & 1687--1692  & CORRECT \\
+22 & 1727--1731  & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{22 proofs checked.  13 correct, 9 with gaps (5 minor, 4 substantive).}
+
+\bigskip\noindent
+\textbf{Key issues:}
+\begin{enumerate}
+  \item \textbf{Proofs 3--6 (systematic minor gap):}
+    Walk-to-path transitions with endpoint orientation preservation are
+    asserted without formal justification.  The claims are all correct
+    but the step from ``$\sigma$-inducing walk into $j$'' to
+    ``$\sigma$-inducing \emph{path} into $j$'' needs an argument.
+  \item \textbf{Proof~16 (Lem.\ \texttt{lem:possep}), line~1281:}
+    The proof claims a collider triple is ``oriented as a definite collider''
+    but does not rule out Case~(ii) of Prp.~13, where the collider is in
+    $\mathrm{Anc}(\{a,c\}\cup S)$ and hence in every separating set (so NOT
+    oriented as a collider).  This propagates to Proofs~17--18.
+  \item \textbf{Proof~18 (Thm.\ \texttt{thm:fci\_sound}), R9/R10:}
+    Application of Lem.~20 (\texttt{lem:upd\_path}) lacks verification of the
+    arrowhead hypothesis at $v_1$.  Fixable via proof by contradiction.
+  \item \textbf{Proof~14, line~993:} ``$\in$'' should be ``$\subseteq$''.
+\end{enumerate}
+
+\end{document}

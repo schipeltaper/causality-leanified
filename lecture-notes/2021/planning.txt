@@ -1,0 +1,64 @@
+Lectures:
+
+1. Patrick does intro causality, Joris continues with bigger picture + logistics + more detailed course planning; after break, Patrick does measure theory recap/intro
+2. Patrick: Markov kernels + conditional distributions + conditional independence + separoid axioms + push-forward + changes-of-variables
+3. Joris [Pim]: SCM basics (motivation, simple examples, computer program interpretation, soft and hard interventions, intervention variables, formal definitions, solvability, potential outcomes, marginalizations?, counterfactuals)
+4. Patrick: graphs, DAGs, conditional DAGs, d-separation, separoid axioms, examples, ADMGs, latent projection
+5. Patrick: causal BN (with explicit latents and intervention nodes), prove global markov property, discuss interventions (in terms of intervention variables), marginalizations
+6. Patrick: causal calculus, identification of causal effects, back-door covariate adjustment
+7. Joris [Leon]: graphs of SCMs,
+   further operations on and properties of SCMs (submodels, compositions, marginalizations, twinning),
+   relation to causal BNs, equivalences between SCMs, counterfactuals via twinning,
+   Markov properties, causal terminology, reductions?
+8. Joris [Noud]: causal discovery: RCT, LCD, Y-structures
+9. Joris [Christina]: causal discovery: PC, FCI, JCI
+10. Joris [Christina]:  conditional independence testing
+11. buffer, or: extensions to cycles + selection bias
+12. buffer, or: counterfactuals
+
+Pim suggests to connect to: Bayesian causal inference, causality and DL as Schoelkopf does, papers by Bengio, connect with deep learning hype, causal representation learning, fairness
+
+Exercises:
+- We need both straightforward exercises to let the students practice the basic definitions,
+as well as more extensive / challening exercises to let them prepare for exam type questions.
+- In the second half of the course, also create some programming exercises, e.g.,
+i) generate random scm, simulate data, do causal discovery + predict results of interventions
+ii) run lcd on some real-world data
+
+The idea is that every week one of the TAs is responsible for preparing exercises + solutions
+for that week, in the following order (the numbers in square brackets indicate the graded homework questions):
+
+1. Pim [2, 3]
+2. Noud [1.3, 2, 3.1]
+3. Leon [2, 3]
+4. Christina [all]
+5. Pim [1, 2.2]
+6. Pim  [1, 3]
+7. Noud [1, 2, 3]
+8. Leon [2, 3]
+9. Leon [1, 3]
+10. Pim [1, 3]
+11. Noud [1, 2, 3]
+12. Pim, practical homework
+
+Additional responsibilities of Christina:
+- coach the TA team to ensure some consistency across TAs and to be in charge of logistic aspects
+- ensure some consistency and uniformity in the exercises, solutions and grading
+- monitor canvas discussion board (mostly important if it is heavily used)
+
+Books:
+The freely available books that can serve as some inspiration for the
+lecture notes and/or exercises and/or can be suggested as reading material for the students:
+
+https://cdn1.sph.harvard.edu/wp-content/uploads/sites/1268/2021/01/ciwhatif_hernanrobins_31dec20.pdf
+
+https://www.dropbox.com/s/gkmsow492w3oolt/11283.pdf?dl=1
+
+The first one starts from the potential outcome framework but also discusses the
+graphical causal model framework. The second one focusses mostly on structural
+causal models. (However, if used unwisely, these books could just cause confusion
+amongst students, because we take yet another starting point in our lecture notes;
+in the end things do come together, but the question is: where do you start?)
+
+Leon: +4915256152317
+Pim: 0621654293

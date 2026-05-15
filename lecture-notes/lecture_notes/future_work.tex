@@ -1,0 +1,703 @@
+\section{Future work}
+
+\subsection{Strengthening the Markov property for cyclic models}
+
+It seems that the augmented graph (CDG) of an SCM provides a stronger Markov property than its graph (CDMG), for various reasons.
+When changing the definition of acyclification by removing the bidirected edges within an scc, that is, dropping point \ref{def:acyclification_intra_scc} of Definition~\ref{def:cdg_acyclification}:
+\begin{Def}\label{def:cdg_sparse_acyclification}
+  Given a CDG $G = (J, V, E)$, we call a CADG $G' = (J', V', E')$ an \emph{acyclification of $G$} if
+  \begin{enumerate}[label=(\roman*)]
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes and output nodes as $G$, i.e.\ $J'=J$ and $V'=V$;
+    \item for every pair of nodes $(i,j)$ such that $i \not\in\Sc^G(j)$:
+      $i \tuh j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \tuh j' \in E$. \label{def:sparse_acyclification_inter_scc}
+  \end{enumerate}
+\end{Def}
+The notion of $i\sigma$-separation no longer works, but:
+\begin{itemize}
+  \item One can directly apply $id$-separation to the sparse acyclification.
+  \item One can exploit the deterministic relations by applying Geiger's D-separation to the sparse acyclification instead of $id$-separation.
+  \item One can strengthen it further by representing ``degenerate'' nodes (constants, a.s.\ constants) as dots instead of circles and ignoring these in the separation tests.
+\end{itemize}
+  
+Note that by starting from the bipartite graphical representation and then applying causal ordering, and then applying D-separation to the ordered (acyclified) graph after marginalizing out the factor nodes, we get an even stronger Markov property than can be obtained from SCMs.
+
+  \begin{Rem}
+  The proof of the Instrumental Inequality, Proposition~\ref{prp:instrumental_inequality}, shows that the global Markov property applied to $G(M)$ is not sufficiently complete for simple SCMs $M$.
+  The culprit seems to be that after conditioning on some parents of a cycle, some nodes in the cycle may be expressed as deterministic functions of some other nodes in the cycle and some of the conditioned parents.
+  This leads to additional independences that are not entailed by $i\sigma$-separation.
+  However, if every node in the cycle has its own latent independent source of noise, we don't get these additional independencies, as these noise sources act as latent confounders of the entire cycle.
+
+  In this case, we have different choices for an acyclification:
+  $$\begin{cases}
+    X_1 = f_1(X_2,X_3,X_a,X_b) \\
+    X_2 = f_2(X_1,X_b)
+  \end{cases} \iff
+  \begin{cases}
+    X_1 = g_1(X_3,X_a,X_b) \\
+    X_2 = f_2(X_1,X_b)
+  \end{cases} \iff
+  \begin{cases}
+    X_1 = g_1(X_3,X_a,X_b) \\
+    X_2 = g_2(X_3,X_a,X_b)
+  \end{cases}$$
+  Thus we get all independences implied by $i\sigma$-separation on \emph{any} of the following three graphs:
+  \begin{center}
+  \begin{tikzpicture}
+   \begin{scope}[xshift=0cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout,bend left] (X2) edge (X1);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[xshift=6cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[xshift=12cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout, bend right] (X3) edge (X2);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+   \end{scope}
+  \end{tikzpicture}\end{center}
+\end{Rem}
+
+\subsection{Conditioning, selection bias}
+Add a subsection to the 'Causal Relations' section about conditioning.
+Perhaps add one about selection bias as well.
+
+\subsection{On the interpretation of input nodes}
+
+If we have an SCM with input nodes $C_i$ and system nodes $X_j$ then how should we interpret the edges $C_i \tuh X_j$?
+There are multiple possible interpretations:
+\begin{itemize}
+  \item when ruling out latent confounders of context and system nodes, we may give them a purely causal interpretation (i.e., the model models $\Prb(X \given \doit(C))$; (most narrow interpretation)
+  \item Patrick today said he sees $[C] \tuh (X)$ as representing $(C) \substack{\tuh\\\huh} (X)$, which doesn't really make sense to me;
+  \item if we disallow interventions on $C$, we can have a broader interpretation where $[C] \tuh (X)$ may represent any of
+    $(C) \huh (X)$, $(C) \tuh (X)$ and $(C) \substack{\tuh\\\huh} (X)$ (broadest interpretation).
+\end{itemize}
+
+The nice aspect about the last interpretation is that we can use it for context variables like age, gender, race, variables for which we don't even know how to intervene on them in the first place.
+
+If one says colloquially that gender affects hair length, we do not need to invoke the ``strong'' interventionalist interpretation that if we change someone's gender, that person's hair length will change.
+Instead, we have in mind that gender and hair length are correlated, but certainly hair length does not cause gender.
+But we do not really feel the need to disentangle whether the correlation is due to a direct effect of gender on hair length (that one could measure in an RCT, for example), or some latent common cause of the two.
+
+When using input variables for context variables, there is no need (we don't even want) to specify their distribution.
+When using random variables for context variables, we can just fall back to standard notions of conditional independence.
+So in a way, there is no need to use the mathematical formalism of input variables, except for issues with positivity and null sets.
+
+So I would suggest to replace our notation $\Prb(X \given \doit(C))$ by $\Prb(X \mid C)$ for kernels appearing in Bayesian networks.
+
+
+\subsection{Representing a CDMG as a DMG}
+
+Perhaps add to Lemma~\ref{lem:isep_equiv_sep_restricted}: $j_1 \iPerp_G j_2 \given ...$ always holds, and therefore we want the $j$ nodes to be fully connected; we then get even more correspondence between the two separation notions. An idea could be to show the equivalence for all statements of the form $A \iPerp B \given C$ such that $J \subseteq A \cup B \cup C$. It appears to be a useful default to think of all input nodes as adjacent and dependent; this means there are no implied conditional independences; but we will weaken the faithfulness assumption so that any conditional independences are still allowed. This then becomes equivalent to making \emph{no} assumptions about the CI model of the input variables! So if we demand them to be fully connected, not only the \emph{conditional} CI model is mimicked, but the assumed graph is general enough to impose no restrictions on the \emph{joint} CI model. However: the price to pay would be that we no longer can rely on faithfulness in the strict sense. It is not clear which option is easier: to have a default graph on the input nodes but with weaker faithfulness, or to not assume anything about the graph on the input nodes and weaken faithfulness. The last option might be less misleading (given that we may be too used to the assumption of faithfulness to let it go).
+
+Vice versa to the situation in Lemma~\ref{lem:isep_equiv_sep_restricted}, we can mimic the (restricted) independence model of a DMG by that of a CDMG if we assume in addition that
+none of the input nodes has an output node as ancestor (that is, under JCI assumption 1).
+\begin{Prp}
+  Let $\bar{G}=(V \dcup J,\bar{E},\bar{L})$ be a DMG, and assume that $V \cap \Anc_{\bar{G}}(J) = \emptyset$.
+  Define 
+  $E^+ := \{j \tuh v : j \in J, v \in V, \exists \text{ walk } j \sus j_1 \sus \dots \sus j_n \tuh v \text{ in } \bar{G} \text{ with } j_1,\dots,j_n \in J \text{ and each } j_i \text{ a collider or an unblockable non-collider}\}$
+  ($n$ could be 0, i.e., $j \suh v$ also leads to an edge $j \tuh v$), and
+  $L^+ := \{v \huh w : v \ne w \in V, \exists \text{ walk } v \hus j_1 \sus \dots \sus j_n \suh w \text{ in } \bar{G} \text{ with } j_1,\dots,j_n \in J \text{ and each } j_i \text{ a collider or an unblockable non-collider}\}$ ($n$ could be 0, i.e., $j \suh v$ also leads to an edge $j \tuh v$).
+  Construct CDMG $G=(J,V,E,L)$ with 
+  $$E := \bar{E} \sm \{j \tuh j' : j, j' \in J\} \sm \{j \tuh v : j \in J, v \in V \} \cup E^+$$
+  and
+  $$L := \bar{L} \sm \{j \huh j' : j, j' \in J\} \sm \{j \huh v : j \in J, v \in V \} \cup L^+$$
+  Then, for $A, B, C \subseteq J \cup V$ with $A \cap J = \emptyset$, $J \subseteq B \cup C$:
+  $$A \isPerp_G B \given C \iff A \sPerp_{\bar{G}} B \given C$$
+  and
+  $$A \idPerp_G B \given C \iff A \dPerp_{\bar{G}} B \given C.$$
+\end{Prp}
+\begin{proof}
+  First note that $G$ and $\bar{G}$ have the same strongly connected components in $V$. \Joris{Formulate more precisely?}
+  Let $A, B, C \subseteq J \cup V$ with $A \cap J = \emptyset$, $J \subseteq B \cup C$.
+  
+  $\impliedby$: Suppose $\pi$ is a minimal $C$-$\sigma$-open walk in $G$ from $A$ to $B \cup J$ such that all colliders lie in $C$.
+  Then, both end nodes of $\pi$ are not in $C$, and any non-endpoint non-collider on $\pi$ is either unblockable or not in $C$.
+  $\pi$ must actually be a walk from $A$ to $B$:
+  if it would end in $J \sm B$, then one of its endpoints would be in $C$, a contradiction.
+  Hence, $\pi$ is a walk from $A$ to $B$ that does not contain any node in $J$ (otherwise that would contradict its minimality).
+  We construct a corresponding walk $\bar\pi$ in $\bar{G}$ by keeping all edges on $\pi$ that also exist in $\bar{G}$, and replacing the other (bidirected) edges by the corresponding collider paths in $\bar{G}$.
+  The nodes in $J$ on these collider paths are open if they lie in $C$; if they lie in $B$ instead, then we can stop the walk already at the first such node from $A$.
+  The other nodes on $\bar{\pi}$ have the same adjacent edge marks as on $\pi$ and hence $\bar{\pi}$
+  is $C$-$\sigma$-open in $\bar{G}$.
+  (In particular, if it contains a non-endpoint non-collider that is in $C$, then (as this is unblockable on $\pi$) its children on $\pi$ must be in the same strongly connected component according to $G$, and since all these nodes must be in $V$, they are also in the same strongly connected component according to $\bar{G}$.)
+
+  $\implies$: Now suppose $\bar{\pi}$ is a minimal $C$-$\sigma$-open walk in $\bar{G}$ from $A$ to $B$ such that all colliders lie in $C$.
+  Then, both end nodes of $\bar{\pi}$ are not in $C$, and any non-endpoint non-collider on $\bar{\pi}$ is either unblockable or not in $C$.
+  If $\bar{\pi}$ contained a node in $J$ as a non-endpoint node, we would get a contradiction.
+  Indeed, suppose $\bar{\pi}$ starts in $a \in A$.
+  Consider the subwalk of $\bar{\pi}$ starting in $a$ and ending in the first node in $J$ encountered along $\bar{\pi}$, say $j$,
+  i.e., $a \dots v \sus j$.
+  If $j$ were a non-collider, it must be unblockable, since if it were in $C$ the walk would be blocked and if it were in $B$ the path would not be minimal; then we must have $v \huh j$.
+  If $j$ were a collider, we must also have $v \huh j$.
+  For the subsequent nodes in $J$, it also holds that they are either unblockable non-colliders or colliders, or an endnode.
+  If the remaining walk is entirely in $J$, we can replace it with a directed edge $v \hut j$ with $j \in B$.
+  If at some point it returns to nodes in $V$, we can replace the consecutive subwalk in $J$ by a bidirected edge.
+  In this way we construct a corresponding walk $\pi$ in $G$.
+  This walk is $C$-$\sigma$-open in $G$.
+
+  The proof for $d$-separation proceeds similarly.
+\end{proof}
+\begin{Con}
+  If we can generalize this result to start with a CDMG rather than a DGM, then we also get a do-calculus.
+  Indeed: any separation in $G$ (perhaps we should write $\bar{G}$ as $G$ and $G$ as $G_{|J}$)
+  can be applied in $\bar{G}$. Oh, perhaps we even don't need to generalize the result! Any separation in $G$
+  translates to a separation in $\bar{G}$, for which we can use the do-calculus, which couples the separations
+  in $\bar{G}$ (equivalently, $G$) with the family of interventional distributions of the SCM with graph $\bar{G}$.
+\end{Con}  
+\begin{Con}
+  A question: what if we write the directed edges from input to output nodes as $j \ouh v$ instead of $j \tuh v$?
+  But don't connect all input nodes with bidirected edges? 
+  Do we then get a complete FCI-JCI1r? (the above already suggests soundness, if we can show soundness of FCI-JCI12r!)
+\end{Con}
+\begin{Con}
+  WAIT: `classical' MAGs are closed under conditioning and marginalization. They lost the direct-causal-effects
+  representation, but still represent indirect causal effects. Is the latter enough for the do-calculus? Ah, not
+  really, because the problem seems to be that we don't have enough information about perfect interventions. So 
+  we don't get the full do-calculus, only the ones that operate on the unintervened graph. Still, it is something,
+  and it also holds under selection bias.
+\end{Con}
+\Joris{Can we prove something stronger about SCMs rather than just the independence models? This means we have to
+condition on $\Prb(X_J)$. So the main question is whether we can decompose $\Prb(X_V|X_J)$ according to the
+suggested CDMG structure. (Note: marginalization in SCMs is straightforward because it is just substitution;
+but conditioning may be less trivial; note that here the bipartite graph representation might be more suitable
+as both operations become straightforward; the price is that we have to solve systems of equations all the time,
+but that was already the case if there were cycles}
+\Joris{UPDATE: in r348-warning.pdf, Pearl talks about M-bias. Some rather interesting claims are that (i) gender
+cannot cause M-bias, because gender is exogenous in most studies of interest and, hence, cannot be modeled as a collider;
+(ii) Rubin refers to a study in which one apparently adjusts for seat-belt usage when estimating the ATE of smoking on lung 
+cancer as it appears to be associated to both; this, according to Pearl, seems not sensible as by common knowledge, seat-belt usage doesn't cause smoking nor lung cancer; (iii) Pearl states that in this example, the CATE within each group (seat-belt
+users and non-users) is not identifiable, while the ATE is.}
+
+I believe it is about time to become very explicit about something: if we impose a distribution $\Prb(X_J)$ on the input nodes
+of an SCM, what can we say about the independence model of the induced joint distribution $\Prb(X_J,X_V)$? Let us consider the
+CI $A \Indep_{\Prb(X_J,X_V)} B \given C$ for $A,B,C \subseteq V\cup J$.
+\begin{itemize}
+  \item The restricted CIs of the form $A \cap J = \emptyset$, $J \subseteq B \cup C$ are given by $\Prb(X_V \Vert X_J)$,
+    but only if $\Prb(X_J)$ is positive (??). Indeed, imagine that the input is binary and switches between a dependence and
+    an independence of two output variables; if only one of the two inputs is observed then we may never see the dependence,
+    and then the joint distribution may ``overlook'' certain dependences. Does this mean that any DEPENDENCE in $\Prb(X_V,X_J)$ (of restricted form) must also be present in $\Prb(X_V \Vert X_J)$, but not vice versa?
+  \item We can symmetrize this.
+  \item If both $A$ and $B$ overlap with $J$, but all $J$ are present, then we can write\footnote{The semi-graphoid axioms imply that $X \Indep Y \given Z \land X \Indep W \given Z,Y \iff X \Indep Y,W \given Z$.}
+    \begin{equation*}\begin{split}
+      A \Indep_{\Prb(X_J,X_V)} B \given C 
+    & \iff A \Indep (B\sm J) \cup (B \cap J) \given C \\
+    & \iff A \Indep (B\sm J) \given C \quad\land\quad A \Indep (B \cap J) \given C,(B\sm J) \\
+      & \iff (A\sm J) \cup (A\cap J) \Indep (B\sm J) \given C \quad\land\quad (A\sm J) \cup (A\cap J) \Indep (B \cap J) \given C,(B\sm J) \\
+      & \iff (A\sm J) \Indep (B\sm J) \given C \\
+      & \qquad\land\quad (A\cap J) \Indep (B\sm J) \given C,(A\sm J) \\
+      & \qquad\land\quad (A\sm J) \Indep (B \cap J) \given C,(B\sm J) \\
+      & \qquad\land\quad (A\cap J) \Indep (B \cap J) \given C,(B\sm J),(A\sm J)
+    \end{split}\end{equation*}
+    The second and third CI are of restricted form; the first has too few $J$'s overall but none are in $A$ or $B$; the fourth has all $J$'s but they may still be in both $A$ and $B$.
+    We can think about the first term as being determined (by the Markov property) by the CDMG and $\Prb(X_{J\sm C}|X_{C\cap J})$;
+    indeed, the $\Prb(X_{J\sm C}|X_{C\cap J})$ becomes the surrogate exogenous distribution on $X_{J\sm C}$, the $X_{C\cap J}$ become `constants'. This means that for every conditioning set $C\cap J$ leads us to a different surrogate graphical representation of the exogenous distribution. This is what I had in mind a long time ago when I wanted to derive a `graphical' representation for an arbitrary CI model on the inputs and a CDMG CI model for the output given the input. 
+    The fourth term seems a bit tricky: conditioning on output colliders might lead to additional dependences between input nodes; but only ``might''. Hm, we get into the intricacies of JCI-3 like faithfulness assumptions.
+%    $$X \Indep Y, W \given Z \implies X \Indep W \given Z, Y$$
+%    $$X \Indep Y, W \given Z \implies X \Indep Y \given Z$$
+%    $$X \Indep Y \given Z \land X \Indep W \given Z,Y \implies X \Indep Y,W \given Z$$
+  \item The most general case: if not all $J$ are present. Even more intricate than the previous case.
+\end{itemize}
+But: if we restrict $|A|=|B|=1$ we might be able to do more. It appears that the idea of pooling contexts helps a lot, and we only remain with one possibly problematic case: $j_1 \Indep j_2 \given C$. Luckily enough, FCI-JCI12r doesn't even look at this.
+
+So, it appears simpler to do a direct proof of the soundness of FCI-JCI12r by extending all theory to allow for input nodes!
+
+
+\subsubsection{Conditional independence (testing)}
+
+Here is a trick to circumvent the notion of transition conditional independence, and reformulate what we need for causal
+discovery in terms of probabilistic independence.
+
+What we would need is a Markov property that shows:
+$$\exists Q : X \Indep^w Y,T_1 | Z,T_2 \impliedby X \iPerp Y,T_1 | Z,T_2$$
+The faithfulness assumptions we want to make is:
+$$\forall Q : X \Indep^w Y | Z,T \implies X \iPerp Y | Z,T$$
+(Wait, isn't that too weak??? Don't we want
+$$\forall Q : X \Indep^w Y,T_1 | Z,T_2 \implies X \iPerp Y,T_1 | Z,T_2$$
+instead?)
+If we can replace this by:
+$$\exists Q > 0 : X \Indep^w Y | Z,T \implies X \iPerp Y | Z,T$$
+then we can test everything with probabilistic CI tests!
+
+Here, btw, $\Indep^w$ is the ``weak'' notion that works in all measurable spaces defined in terms of the conditional expectation,
+but this is equivalent to our definition in standard measurable spaces, see commented out part of Theorem~\ref{thm-ci-equivalences}.
+So, replacing $\Indep^w$ by the notion as we have it defined here, we formulate this again:
+What we would need is a Markov property that shows:
+$$(\forall Q(T) : X \Indep_{K(W|T)\otimes Q(T)} Y,T_1 | Z,T_2) \impliedby X \iPerp Y,T_1 | Z,T_2,$$
+(the $\exists$ was not exactly what we need!). 
+Actually this already immediately follows from Theorem~\ref{thm-ci-equivalences} and the Markov property
+(or, we can just make use of the standard Markov property everyone knows!).
+We can then take the empirical $Q(T)$ and use a standard CI test.
+The faithfulness assumptions we want to make is:
+$$\forall Q(T) : X \Indep_{K(W|T)\otimes Q(T)} Y | Z,T \implies X \iPerp Y | Z,T$$
+If we can replace this by:
+$$\forall Q(T) > 0 : (X \Indep_{K(W|T)\otimes Q(T)} Y | Z,T \implies X \iPerp Y | Z,T)$$
+then we can test everything with probabilistic CI tests!
+This would follow from:
+$$(\exists Q(T) > 0 : X \Indep_{K(W|T)\otimes Q(T)} Y | Z,T) \implies X \Indep_{K(W|T)} Y | Z,T$$
+
+\subsubsection{Open research problems}
+
+\begin{enumerate}
+  \item Extend extracting-causal-features-from-PAG to allow for selection bias
+  \item Extend FCI to deal with multiple missingness indicators (dual to JCI-FCI, but now merging different conditional distributions)
+  \item General domain adaptation problems: given one or more Markov kernels (with possibly different marginalizations, interventions, and conditionings), can we identify another Markov kernel (with possibly different marginalizations, interventions, conditionings)
+\end{enumerate}
+
+
+\subsubsection{Connection with UAI paper notion of CI}
+
+Here is a precise connection:
+\Joris{\begin{Rem}
+  It follows that
+    $\displaystyle X \Indep_{K(W|T)} Y \given Z,$ %\label{thm-ci-equivalences:base}
+  is equivalent to
+  $\displaystyle  X \Indep_{K(W|T)} T \given Z$ and for every probability distribution $Q(T) \in \Pcal(\Tcal)$: \[ X \Indep_{K(W|T)\otimes Q(T) } Y \given Z.\]
+  Further, $\displaystyle  X \Indep_{K(W|T)} T \given Z$ is (by definition) equivalent to the existence of $Q$ s.t.\ $K(X,Z|T) = Q(X|Z)\otimes K(Z|T)$.
+  This allows to connect to the Definition C.1 in \cite{FM20}.
+\end{Rem}}
+
+I was hopeful at some point that this would allow us to simply extend existing probabilistic conditional independence tests for testing transitional conditional independence, but I no longer see how.
+
+\subsection{Yet another version of $\sigma$-blocking}
+
+\newcommand\otto{\mathrel{{\Relbar\mkern-9mu\Relbar}}}
+
+We consider yet another way to express the $\sigma$-separations in a DMG, using a partially oriented mixed graph.
+We can represent any DMG by a partially oriented mixed graph in the following way.
+\begin{Def}\label{def:partially_oriented_mixed_graph}
+  Let $G$ be a DMG. 
+  We define its \emph{partially oriented mixed graph (POMG)} $H(G)$ as the mixed graph with nodes $V$ and edges $E$ of the types $\{\tuh,\hut,\huh,\otto\}$ in the following way.
+  The bidirected edges in $H(G)$ are the same as those in $G$.
+  If there is a directed edge between $i,j \in V$ in $G$, then add the following edge between $i,j$ to $H(G)$:
+    $$\begin{cases}
+      \text{$i \otto j$} & \text{if $i \in \Anc_G(j)$ and $j \in \Anc_G(i)$}, \\
+      \text{$i \tuh  j$} & \text{if $i \in \Anc_G(j)$ and $j \notin \Anc_G(i)$}, \\
+      \text{$i \hut  j$} & \text{if $i \notin \Anc_G(j)$ and $j \in \Anc_G(i)$}.
+    \end{cases}$$
+\end{Def}
+We will extend the definition of directed path such that it may contain any number of $\otto$ edges, and update the definition of ancestors and descendants accordingly.
+We still define $\suh$ to represent any of $\tuh, \huh$ (but not $\otto$) and similarly,
+$\hus$ to represent any of $\hut, \huh$ (but not $\otto$).
+
+We can define the following separation notion that we can apply on DMGs, but also on partially oriented mixed graphs.
+Consider an equivalence relation $\sim$ on a graph $G$. 
+For example, for DMGs, we could take $v \sim w \iff v \in \Anc_G(w) \land w \in \Anc_G(v)$. 
+For partially oriented mixed graphs, we can take $v \sim w$ if there exists a walk $v_0 \otto v_1 \otto \dots \otto v_k$ in $G$ with $v_0 = v$ and $v_k = w$.
+Denote the equivalence class of a node $v$ with $[v]$.
+\begin{Def}[Segment version of $\sigma$-separation]
+  Consider a graph $G$ (for now, restrict to DMGs and partially oriented mixed graphs) with equivalence relation $\sim$ on its nodes.
+  Consider a walk on $G$. 
+  We can partition it into maximal segments $\sigma_1, \dots, \sigma_m$ such that each segment $\sigma_i$ is a subwalk $\sigma_{i,l} \dots \sigma_{i,r}$ of maximal length that is entirely contained within one equivalence class of $G$.
+  We will call $\sigma_1$ and $\sigma_m$ the end segments of the walk.
+  The walk will be called \emph{$Z$-$s$-blocked} or \emph{$s$-blocked by $Z$} if:
+  \begin{enumerate}
+    \item at least one of the end nodes $\sigma_{1,l}$ or $\sigma_{m,r}$ is in $Z$, or
+    \item there is a non-collider segment $\sigma_i$ with an outgoing directed edge (e.g., $\hut \sigma_i$ or $\sigma_i \tuh$) and its corresponding endnode (i.e., $\sigma_{i,l}$ or $\sigma_{i,r}$, respectively) is in $Z$, or
+    \item there is a collider segment $\suh \sigma_i \hus$ and $[\sigma_i] \cap Z = \emptyset$.\footnote{One could define $s'$-blockedness by using instead here the criterion $[\sigma_i] \cap \Anc_G(Z) = \emptyset$.}
+  \end{enumerate}
+  Otherwise, the walk is called \emph{$Z$-$s$-open} or \emph{$s$-open given $Z$}.
+\end{Def}
+We can now define \emph{$s$-separation} in the usual way.
+
+One can prove (Corollary 2.8.11 in \cite{FM17}) that $s$-separation is equivalent to $\sigma$-separation in DMGs when using the equivalence relation induced by the partition in strongly connected components.
+We then immediately get:
+\begin{Prp}\label{prp:sigma_sep_as_s_sep}
+  Let $G$ be a DMG and $H(G)$ its partially oriented mixed graph as defined in Definition~\ref{def:partially_oriented_mixed_graph}.
+  Then for $A, B, C \subseteq V$ (not necessarily disjoint) subsets of nodes,
+  $$A \sPerp_G B \given C \iff A \Perp^s_G B \given C \iff A \Perp^s_{H(G)} B \given C.$$
+\end{Prp}
+This also means that $s$-separation in $H(G)$ is equivalent to $\sigma$-separation in a graph constructed out of $H(G)$ that picks arbitrary orientations of $\otto$-edges, as long as it ensures that each node in an equivalence class becomes a descendant of each other node in the equivalence class. We can call such a DMG a \emph{cyclification of $H(G)$}.
+\begin{Rem}
+If one uses a POMG, then it seems problematic to define a node version of $\sigma$-separation that works.
+In particular, in the following, we need $i \Perp j$, $i \nPerp j \given v$ (and $i \nPerp j \given w$, $i \nPerp j \given v,w$):
+
+\centerline{\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (i) at (0,0) {$i$};
+    \node[ndout] (v) at (1.5,0) {$v$};
+    \node[ndout] (w) at (3,0) {$w$};
+    \node[ndout] (j) at (4.5,0) {$j$};
+    \draw[arout] (i) to (v);
+    \draw[arout,bend left] (v) edge (w);
+    \draw[arout,bend left] (w) edge (v);
+    \draw[arout] (j) to (w);
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[arout] (i) at (0,0) {$i$};
+    \node[arout] (v) at (1.5,0) {$v$};
+    \node[arout] (w) at (3,0) {$w$};
+    \node[arout] (j) at (4.5,0) {$j$};
+    \draw[arout] (i) to (v);
+    \draw[double] (v) to (w);
+    \draw[arout] (j) to (w);
+  \end{scope}
+\end{tikzpicture}}
+
+But in the following, we need $i \nPerp j$ and $i \nPerp j \given v$ (and $i \Perp j \given w$, $i \Perp j \given v,w$).
+
+\centerline{\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (i) at (0,0) {$i$};
+    \node[ndout] (v) at (1.5,0) {$v$};
+    \node[ndout] (w) at (3,0) {$w$};
+    \node[ndout] (j) at (4.5,0) {$j$};
+    \draw[arout] (i) to (v);
+    \draw[arout,bend left] (v) edge (w);
+    \draw[arout,bend left] (w) edge (v);
+    \draw[arout] (w) to (j);
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[ndout] (i) at (0,0) {$i$};
+    \node[ndout] (v) at (1.5,0) {$v$};
+    \node[ndout] (w) at (3,0) {$w$};
+    \node[ndout] (j) at (4.5,0) {$j$};
+    \draw[arout] (i) to (v);
+    \draw[double] (v) to (w);
+    \draw[arout] (w) to (j);
+  \end{scope}
+\end{tikzpicture}}
+
+Since by not conditioning on $w$, that node does not block the walk, it is up to $v$ to block it. 
+However, $v$ has to look beyond its neighbors on the walk in order to decide whether it should block the walk.
+The difference is that in the cyclic graph, the incoming edge on a segment has two options: there is a walk in which it acts as a collider, and one where it acts as a non-collider. 
+In the partially oriented mixed graph, we need to make one choice for all situations.
+\end{Rem}
+
+\subsubsection{Future work}
+
+Can we formulate a separation criterion directly in a bipartite graph?
+In such a way that it corresponds one-to-one to $i\sigma$-separation in a directed version of the bipartite graph according to a perfect matching? 
+We should find a way to reexpress the notion ``is in the same scc'' directly in terms of the bipartite graph. 
+Can we do that with the notion of ``alternating cycle'', perhaps? Mirthe's thesis contains a lot of results in this direction.
+Apparently, one can define equivalence classes in terms of the alternating cycles with respect to a perfect matching that turn
+out not to depend on the choice of the perfect matching. This begs the question if there is another way to define this equivalence
+relation. Independently of how one defines it, though, using this equivalence relation directly in formulating a separation 
+criterion on the bipartite graph may do the job.
+
+\begin{Def}
+  Let $B = \langle V, F, E \rangle$ be a self-contained bipartite graph.
+  Define $a \sim b$ if $a,b$ lie on an alternating cycle in $B$ for some perfect matching $M$ of $B$.
+  One can show that the choice of the perfect matching does not matter (see Prop 3.1.1, 3.1.8 in Mirthe's thesis) for this equivalence relation.
+  One can show that edges $v \relbar f$ with $f \not\sim v$ cannot be in any perfect matching $M$ of $B$ (see Thm 3.2.3 in Mirthe's thesis)???
+  One can construct a partially oriented bipartite graph, orienting edges $v \relbar f$ as:
+  $$\begin{cases}
+    v \tuh f & \text{if $v \not\sim f$ and $v,f$ cannot be matched} \\
+    v \hut f & \text{if $v \not\sim f$ and $v,f$ must be matched} \\
+    v \otto f & \text{if $v \sim f$ / $v,f$ are matched for some matchings, and not for others} 
+  \end{cases}$$
+  By construction, this object does not depend on any chosen perfect matching.
+  One can also show that this object can actually be constructed from a single perfect matching,
+  since the only parts that can differ across matchings are the orientations of alternating cycles.
+
+  I conjecture that $s$-separation (applied to variable nodes only), is equivalent 
+  to $\sigma$-separation on the fully oriented graph, marginalized over $F$, corresponding to
+  a chosen perfect matching (we don't need the bidirected edges here).
+
+  We could use a different edge type, perhaps $\leftrightarrows$ or $\huh$ or $\Leftrightarrow$.
+  For the DMAG analogon, a (double) undirected edge would make most sense, as
+  then we could interpret the arrowheads still as ``is-ancestor-of''.
+
+  Therefore, the whole procedure can be simplified. Start with an undirected bipartite
+  graph that includes all variable nodes, including those for exogenous variables that
+  appear in the equations. Start by orienting the edges adjacent to exogenous variables 
+  (away from them). Maximally orient the graph, using $\otto$ edges between equivalent nodes, 
+  considering only matchings that ignore exogenous variables. Then, we can directly read off
+  conditional independences from this partially oriented bipartite graph using $s$-separation,
+  assuming unique solvability w.r.t.\ each equivalence class. 
+  By using the notion of extended conditional independence, we also get for free how
+  causal relations relate to soft interventions acting on equations. For arbitrary 
+  perfect interventions, we can rerun the orientation procedure on the intervened undirected
+  bipartite graph. For perfect interventions targeting equivalence classes, a bit more work 
+  can be done to show that the compatibility of the orientations before and after the intervention.
+  To be done: fix the procedure to something sensible in the non-selfcontained case
+  (probably just marginalizing out the incomplete part).
+  This would be a very general Markov property, that implies the GDMP.
+  One should investigate how this definition turns out for non-self-contained bipartite graphs, using the decomposition of Pothen into the incomplete, overcomplete, and complete parts.
+  That decomposition does not depend on the chosen maximum matching, and the complete subgraph is self-contained, hence the equivalence relation restricted to the complete subgraph is well-defined and independent of the chosen maximum matching.
+\end{Def}
+
+\textbf{Update: perhaps it works even better if we coarsen the equivalence relation on the bipartite graph to make all matched pairs $(v,f)$ equivalent as well! We would then get an edge $v \otto f$ instead of $v \hut f$.}
+One can construct a partially oriented bipartite graph, orienting edges $v \relbar f$ as:
+$$\begin{cases}
+    v \tuh f & \text{if $v \not\sim f$ and $v,f$ cannot be matched by any perfect matching} \\
+    v \otto f & \text{if $v,f$ are matched for some perfect matching}
+\end{cases}$$
+Obviously, this object does not depend on any chosen perfect matching.
+
+We can also derive a do-calculus fairly straightforwardly.
+The first rule (inserting/removing observation) follows immediately from the Markov property.
+The second rule (exchanging observation for action) is trickiest. 
+For the bathtub, we can e.g.\ derive a rule of the form $P(v_O \given \doit(f_P,v_D), v_P) = P(v_O \given v_D, v_P)$.
+
+\textbf{Sketch of bipartite graphical causal models}
+
+Consider a set of variables indexed by $V$ and a set of equations indexed by $F$, and a bipartite graph $B$ with nodes $\langle V, F \rangle$ with edges $v \relbar f$ if variable $X_v$ appears in equation $E_f$.
+We distinguish three types of variables: exogenous input variables, exogenous random variables, and endogenous variables.
+Let the exogenous (input and random) variables be indexed by $W \subseteq V$.
+Choose a maximum matching $M$ of $B_{V \setminus W \cup F}$ and construct the Dulmage-Mendelsohn decomposition of $B_{V \setminus W \cup F}$ for $M$
+(which is independent of the chosen matching $M$).
+We introduce an equivalence relation on $V \cup F$.
+Each $w \in W$ is only equivalent to itself.
+All nodes in the overcomplete subgraph are equivalent to the nodes that lie in the same connected component of that subgraph.
+That is, the equivalence classes are formed by the nodes reachable by an alternating walk starting from an unmatched equation vertex.
+All nodes in the incomplete subgraph are equivalent to the nodes that lie in the same connected component of that subgraph.
+That is, the equivalence classes are formed by the nodes reachable by an alternating walk starting from an unmatched variable vertex.
+All nodes in the complete subgraph are equivalent to any node in that subgraph that lies on an alternating cycle involving the first node.
+Now we define a partially oriented bipartite graph $\vv{B}_{V \setminus W \cup F}$.
+For $v,f$ in the complete subgraph:
+  $$\begin{cases}
+    v \tuh f & \text{if $v \not\sim f$ and $v,f$ cannot be matched} \\
+    v \hut f & \text{if $v \not\sim f$ and $v,f$ must be matched} \\
+    v \otto f & \text{if $v \sim f$; equivalently: $v,f$ are matched for some matchings, but not for others} 
+  \end{cases}$$
+
+After graphs:
+\begin{itemize}
+  \item Examples: acyclic real-world SCM
+\end{itemize}
+
+Applications:
+\begin{itemize}
+  \item JCI?
+  \item (Counterfactual) fairness
+  \item Causal inference: observational studies, IV, regression discontinuity, reductions
+\end{itemize}
+
+NOTE: Influence diagrams with action nodes have the same semantics
+as CBNs without input nodes but where the action nodes have 
+unspecified Markov kernel.
+
+\textbf{Graphical language}
+
+Proposal: introduce a graphical language uniting those of CBNs and SCMs.
+\begin{itemize}
+  \item Use double-circles for functional (deterministic) relations
+  \item Use gray fill color for observed nodes
+  \item Use rectangles for input nodes
+  \item Use small filled rectangles for parameters (also input nodes, but don't copy)
+  \item Use plate notation
+  \item Use dashed lines to indicate non-causal nodes? (for which we don't support perfect interventions)
+\end{itemize}
+What may be confusing, and always needs explicit clarification, is to which extent
+a graph is meant to be causal. In the literature, one may encounter e.g.\ Bayesian
+networks that are stripped of their causal interpretation (i.e., they are not claimed
+to model in any way interventional distributions), and (fully) causal Bayesian networks,
+that are supposed to model correctly any hard intervention on observed nodes.
+\Joris{Here is another idea: one can also use double-circles without parents instead of rectangles!
+This means: these are non-random variables but they can have different values for different instances. Ah,
+but then it is not clear that we made JCI assumptions 1 and 2 for those...}
+
+\textbf{Product of Markov kernels notation}
+
+It would be nice if we are allowed to interchange the ordering of Markov kernels in a product, e.g.,
+$P(X) \otimes P(Y|X) = P(Y|X) \otimes P(X)$.
+One might run into a problem in case of cycles, e.g., what would be the meaning of $P(X|Y) \otimes P(Y|Z) \otimes P(Z|X)$?
+I guess one nice way to solve it is to define a product of the form
+$$Q(Z|Y,W,T) \otimes K(W,U|T,X) :\, \Ycal \times \Tcal \times \Xcal \dshto \Zcal \times \Wcal \times \Ucal$$
+and additionally one of the form
+$$K(W,U|T,X) \otimes Q(Z|Y,W,T) :\, \Ycal \times \Tcal \times \Xcal \dshto \Zcal \times \Wcal \times \Ucal$$
+Then we don't run into cycles. A problem is with the ordering, still.
+
+Patrick noted that with the current definition,
+$$K(W,U|X,T) \otimes Q(Z|T,Y,W): (\Xcal \times \Tcal \times \Ycal \times \Wcal) \to (\Wcal \times \Ucal \times \Zcal),$$
+%    ZZZ|Y,T            U|T,XXX :  \Xcal \times \Tcal \times \Ycal \times \Wcal  \to  \Wcal \times \Ucal \times \Zcal
+$W$ in domain and $W$ in codomain would here be different variables: $W_1$ and $W_2$.
+I wonder whether one ever uses this. 
+
+So I would prefer my ``commutative'' definition, which avoids cycles (at least if one explicitly forbids e.g.\ $\Zcal = \Xcal$, but that was already implicitly forbidden, I presume).
+Then one doesn't need to keep track of the ordering, and the DAG structure (plus Fubini) suffices to give the products of kernels in a BN a well-defined meaning.
+Furthermore, one more easily can interchange integration ordering in proofs. For example, for reductions (see resit exam exercise):
+\begin{align*}
+  P(Y \in dy, X \in dx) 
+  &= P(Y \in dy, X \in dx, \B{Z} \in \BC{Z}) \\
+  &= \Big(P_{Y\given X,\B{Z}} \otimes P_{X\given \B{Z}} \otimes P_{\B{Z}}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}) \\
+  &= \Big(P_{Y\given X,\B{Z}} \otimes (\delta_{X|W} \circ P_{W\given\B{Z}}) \otimes P_{\B{Z}}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}) \\
+  &= \Big(P_{Y\given X,\B{Z}} \otimes \delta_{X|W} \otimes P_{W\given\B{Z}} \otimes P_{\B{Z}}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}, W \in \C{W}) \\
+  &= \Big(P_{Y\given X,\B{Z}} \otimes \delta_{X|W} \otimes P_{\B{Z}\given W} \otimes P_{W}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}, W \in \C{W}) \\
+  &= \Big(P_{Y\given X,\B{Z}} \otimes P_{\B{Z}\given W} \otimes \delta_{X|W} \otimes P_{W}\Big)(Y \in dy, X \in dx, \B{Z} \in \BC{Z}, W \in \C{W}) \\
+  &= \Big((P_{Y\given X,\B{Z}} \circ P_{\B{Z}\given W}) \otimes \delta_{X|W} \otimes P_{W}\Big)(Y \in dy, X \in dx, W \in \C{W})
+\end{align*}
+We used here associativity and commutativity of the product, and allowed a change in integration order to ``commute'' the marginalization over $W$ and later over $\B{Z}$. Further, we used a suggestive notation of e.g.\ ``$dx$'' which indicates that this should be read as a measure in an integral. In other words, it should be read as
+\begin{equation*}\begin{split}
+  & \int_{\C{X}}\int_{\C{Y}} \I_{A \times B}(x,y) P(X \in dx, Y \in dy) \\ 
+  &\qquad = \dots \\
+  &\qquad = \int_{\C{X}}\int_{\C{Y}}\int_{\C{W}} \I_{A \times B \times \C{W}}(x,y,w) (P_{Y\given X,\B{Z}} \circ P_{\B{Z}\given W})(Y \in dy \given X=x, W=w) \\
+  &\qquad\qquad\qquad\qquad \delta(X \in dx\given W=w) P(W \in dw)
+\end{split}\end{equation*}
+for all measurable $A \subseteq \C{X}$, $B \subseteq \C{Y}$.
+We may also freely permute arguments (both before and after the $|$) as long as the variable names indicate their identity, i.e.,
+$P(Y \in dy, X \in dx) = P(X \in dx, Y \in dy)$, and more generally for a kernel $K(A,B \given C,D) = K(B,A \given D,C)$.
+
+The alternative with the current notation looks like:
+\begin{align*}
+  P(Y \in B, X \in A)
+  &= P(Y \in B, X \in A, \B{Z} \in \BC{Z}) \\
+  &= \Big(P_Y(Y \given \doit(X,\B{Z})) \otimes P_X(X \given \doit(\B{Z})) \otimes P_{\B{Z}}(\B{Z})\Big)(Y \in B, X \in A, \B{Z} \in \BC{Z}) \\
+  &= \int \I_{A\times B \times \BC{Z}}(x,y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) P_X(X \in dx \given \doit(\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{1.}{=} \int \I_{A\times B \times \BC{Z}}(x,y,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \\
+   & \qquad \left( \int_{\C{W}} \tilde{P}_X(X \in dx \given \doit(W=w)) P_W(W \in dw \given \doit(\B{Z}=\B{z})) \right) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &= \int \I_{A\times B \times \C{W} \times \BC{Z}}(x,y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \tilde{P}_X(X \in dx \given \doit(W=w)) \\
+   & \qquad P_W(W \in dw \given \doit(\B{Z}=\B{z})) P_{\B{Z}}(\B{Z} \in d\B{z}) \\
+  &\stackrel{2.}{=} \int \I_{A\times B \times \C{W} \times \BC{Z}}(x,y,w,\B{z}) P_Y(Y \in dy \given \doit(X=x,\B{Z}=\B{z})) \tilde{P}_X(X \in dx \given \doit(W=w)) \\
+   & \qquad \tilde{P}_{\B{Z}}(\B{Z} \in d\B{z} \given \doit(W=w)) \tilde{P}_W(W \in dw) \\
+  &\stackrel{3.}{=} \int \I_{A\times B \times \C{W}}(x,y,w) \tilde{P}_Y(Y \in dy \given \doit(X=x,W=w)) \tilde{P}_X(X \in dx \given \doit(W=w)) \tilde{P}_W(W \in dw) \\
+  &= \Big(\tilde{P}_Y \otimes \tilde{P}_X \otimes \tilde{P}_W\Big)(Y \in B, X \in A, W \in \C{X}).
+\end{align*}
+
+Patrick said that he doesn't look at the ordering of the spaces within a product space for the definition of Markov kernel product. So that means that there is more commutativity. 
+$Q(Z|Y,T) \otimes K(U|T,X) : Y \times T \times X \dshto Z \times \times U$
+$K(U|T,X) \otimes Q(Z|T,Y) : Y \times T \times X \dshto Z \times \times U$
+We need $W = \emptyset$. Then it commutes.
+This means that we can use the shorthand notation already.
+\textbf{TODO: check the whole lecture notes for cases where Patrick's convention that "Occurences of '$X=x$' on the right of a '$X \in dx$' are considered different variables."}
+
+Perhaps we could introduce also a notation $\mathbb{P}(X \Vert Y) := P(X \given \doit(Y))$ and $\mathbb{P}(X \mid Z \,\Vert\, Y) := P(X \given \doit(Y), Z)$.
+
+\textbf{Sampling assumptions}
+
+Here we get an interesting observation.
+If we would parameterize $P(X,Y)$, then in Bayesian statistics, one would assume that the
+samples are i.i.d.\ \emph{conditional on the parameters}. In frequentist statistics, one considers
+the parameters of the distribution as fixed (non-random). Still, conceptually the i.i.d.\ assumption
+means that observing the value of one data point does not convey any information about the value
+of another data point \emph{given the fixed distribution}. In the extended formalism, we could 
+consider the probability distribution $P(X,Y)$ to be a sufficient statistic for the data
+$(X_n,Y_n)_{n=1}^N$, and assume the different samples to be i.i.d.\ conditional on $P(X,Y)$.
+
+\begin{figure}\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndint] (theta) at (0,0) {$\theta$};
+    \node[ndout] (x1) at (-2,-2) {$x_1$};
+    \node[ndout] (x2) at (-1,-2) {$x_2$};
+    \node[ndout] (x3) at (0,-2) {$x_3$};
+    \node (dots) at (1,-2) {$\cdots$};
+    \node[ndout] (xn) at (2,-2) {$x_n$};
+    \draw[arout] (theta) edge (x1);
+    \draw[arout] (theta) edge (x2);
+    \draw[arout] (theta) edge (x3);
+    \draw[arout] (theta) edge (xn);
+  \end{scope}
+  \begin{scope}[xshift=7cm]
+    \node[ndout] (theta) at (0,0) {$\theta$};
+    \node[ndout] (x1) at (-2,-2) {$x_1$};
+    \node[ndout] (x2) at (-1,-2) {$x_2$};
+    \node[ndout] (x3) at (0,-2) {$x_3$};
+    \node (dots) at (1,-2) {$\cdots$};
+    \node[ndout] (xn) at (2,-2) {$x_n$};
+    \draw[arout] (theta) edge (x1);
+    \draw[arout] (theta) edge (x2);
+    \draw[arout] (theta) edge (x3);
+    \draw[arout] (theta) edge (xn);
+  \end{scope}
+\end{tikzpicture}
+\caption{Graphical illustration of the difference in assumptions in frequentist statistics (left) and Bayesian statistics (right).}
+\end{figure}
+
+\subsection{Causal reductions}
+
+\Joris{Does the following conjecture also hold?
+\begin{Thm}
+    \label{ccdf3}
+    Let $\Xcal:=\bar \R$, $\Ucal:=[0,1]$ and $\Zcal$ any measurable space.
+    Let $X$, $U$ and $Z$ be random variables taking values in $\Xcal$, $\Ucal$ and $\Zcal$, resp.,
+    such that:
+    \[ U \Indep_{K(U,X,Z)} X,Z,  \]
+    with $K(U|\cancel{X,Z})$ the uniform distribution on $[0,1]$.
+    Define the interpolated (conditional) cumulative distribution function and its corresponding quantile function via:
+\begin{align*}
+    F(x;u|z) &:= K(X<x|Z=z) + u \cdot K(X=x|Z=z),\\
+	R(e|z) &:= \inf \left\{ \tilde{x} \in \Xcal\,| F(\tilde{x};1|z) \ge e \right\},
+\end{align*}
+    and the conditional random variable $E := F(X;U|Z)$.
+    Then we have the (conditional) independence:
+    \[ E \Indep_{K(U,X,Z)} Z, \]
+    with $K(E|\cancel{Z})$ the uniform distribution on $[0,1]$, and:
+    \[ X = R(E|Z) \quad K(U,X,Z)\text{-a.s.}\]
+    \begin{proof}
+        After the (joint) measurabilities of $F$ and $R$ are checked the statement directly follows from 
+        Lemma \ref{unif-cdf} by applying it for every $z$ separately.
+    \end{proof}
+\end{Thm}
+We could apply this with $Z = f(X)$ to ``split'' $X$ into two orthogonal parts, $Z$ and $E$.
+Or we could apply this with $X = (X_1,X_2)$ (assuming $X_1 \Indep X_2$) and $Z = (X_1,f(X))$ to split $X$ into orthogonal parts $X_1$, $f(X)$ and $E$ such that $X$ is a function of $X_1$, $E$ and $Z$ a.s..
+}
+
+\begin{Def}
+  \Joris{TODO} Standard form of marginalized simple SCM. Let $M$ be a simple SCM and $O \subseteq V \cup W$ a subset.
+  We can define a canonical SCM with the same graph as $G^{O}$ that is interventionally equivalent w.r.t.\ $O$ while
+  using not more exogenous random space than necessary.
+  We want to define the reduced SCM and show that it is interventionally equivalent.
+\end{Def}
+\begin{proof}
+  Sketch. We will put an exogenous random variable on each maximal clique in the bidirected-edge-subgraph of $G^O$.
+  We now use the causal-reduction-with-context, but we still have to show that we can leave out some arrows from 
+  the model. We need to distinguish four types of "context", namely those variables that do not directly cause X
+  or Y, those that directly cause X but not Y, those that directly cause Y but not X, and those that cause both.
+  We already did the last case, but we should investigate whether the same construction applies for the other two cases.
+  This would allow us to deal with a single bidirected edge. By splitting Y into several Y's we can then take care of
+  larger maximal cliques.
+
+  Some more details for an \emph{acyclic} SCM. Assume that $O = V$ (if not, we can make endogenous copies of $O \cap W$ and then
+  marginalize out $W$ and $V \setminus O$). Assume also that $J = \emptyset$ (extensions to be considered later).
+  Choose a topological order $<$ of $V$.
+  We can now go through each endogenous variable, from the first to the last one along the ordering.
+  For each variable $v \in V$, we can consider $(\Pa^G(v) \cap W) \sm (\Pa^G(\Pred_<^G(v)) \cap W)$. 
+  We introduce a new exogenous random variable $W_v \in \CX_v$ that is a copy of $X_v$:
+  $$W_v := f_v(X_{\Pa^G(v) \cap V}, X_{\Pa^G(v) \cap W}, X_{\Pa^G(v) \cap J})$$
+  We can split $\Pa^G(v) \cap W = Z \dcup C$, 
+  with $Z := ((\Pa^G(v) \cap W) \sm (\Pa^G(\Pred_<^G(v)) \cap W))$ and $C := ((\Pa^G(v) \cap W) \cap (\Pa^G(\Pred_<^G(v)) \cap W))$,
+  that is, into the exogenous random variables we already dealt with $W_C$, and the ``new ones'' $W_Z$ that affect $X_v$.
+%  Write $W_Z := W_{((\Pa^G(v) \cap W) \sm (\Pa^G(\Pred_<^G(v)) \cap W))}$.
+  The next step is to factorize 
+  $$P(W_Z, W_v, W_C) = P(W_C) \otimes P(W_Z) \otimes P(W_v | W_C, W_Z) = P(W_C) \otimes P(W_v | W_C) \otimes P(W_Z | W_v,W_C)$$
+  Then, we can represent the conditional kernel as a deterministic kernel while adding another independent source of randomness:
+  \begin{equation*}
+    P(W_Z | W_v) = \delta(\dots|U,W_v) \circ P(U) 
+  \end{equation*}
+  Finally, we can absorb the delta function by the causal mechanisms of $\Ch^G(Z) \sm \{v\}$.
+
+  Perhaps, conceptually we should work like this. Suppose $W \Indep_{K(W|C)} C$. 
+  We can split $WC$ into $Z:=f(W,C)$ and
+  an ``orthogonal'' part $E:=g(Z,U,WC)=\tilde{g}(U,W,C)$ (where $U$ is an additional uniformly distributed independent source of randomness, i.e., $U \Indep_{K(U,W|C)} W,C$ and $U \sim U([0,1])$)
+  such that $E \Indep_{K(U,W|C)} Z$, and such that we can reobtain $W = R(E|Z) = h(Z(W,C),g(f(W,C),U,C))$
+  $K(U,W|Z)$-a.s.?
+
+  Given conditional random variables $W,Z$ and $U$, respectively, such that $U$ is uniformly distributed on $[0,1]$ and 
+\[ U \Indep_{K(U,W|Z)} W,Z \]
+Define the conditional random variable $E := F(W;U|Z)$. Then $E$ is uniformly distributed on $[0,1]$,
+\[ E \Indep_{K(U,W|Z)} Z \]
+and 
+\[ W = R(E|Z) \quad K(U,W|Z)\text{-a.s.}.\]
+\end{proof}

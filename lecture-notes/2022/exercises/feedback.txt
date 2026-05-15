@@ -1,0 +1,17 @@
+Feedback on exercises based on mistakes in the received homework:
+hw1 ex1: Explicitly ask to draw a graph, many only provided a story. Also ask for explanations of the variables that are used. Functional relations were not well understood.
+hw2 ex1: Provide an interpretation in words...
+hw2 ex2: Express the functions f_c, f_p, ...
+hw4 ex2a: I didn't consider e.g. B <-> D <-> A <-> E and E <-> A <-> D <-> B to be different paths (which they are according to the definition in the lecture notes), so the answer to i and ii can be the same, and so can the answer to iii and iv.
+hw5 2: Now, the answer D-> A->B->C with D input node is correct. Do we want this? If not, explicitly state that we don't want any other nodes besides A, B, C.
+hw7: (and perhaps in general): when asking questions which rely on d-separations (e.g. when applying do-calculus), state whether these d-separations have to be proven or not. Also, in general, when proving d-separations, be explicit on whether one should consider walks or paths.
+hw7 3b: could also be proven using conditional backdoor and third rule of do-calculus: P(Y|S, do(X)) = P(Y|S,W2, do(X)) \circ P(W2|S,do(X)) = P(Y|S,W2, do(X)) \circ P(W2|S)
+hw9: uniformly Bernoulli is apparently not clear, better write Bernoulli(1/2)
+hw11 1c: should be phrased differently; now people copy part of the proof of the related theorem from the lecture notes. On the other hand, it seems a bit pointless to require the students to write this down with the explicit functions.
+hw11 2c: next year, uncomment the hint that the determinant of a block-diagonal matrix equals the product of the determinants of its constituent matrices.
+hw12 1e: for one student it was unclear that the bound was to be calculated for either SCMs M or \tilde{M} as constructed in 1a.
+hw12 2a: Give the hint that exercise 1 of week 10 can be used.
+hw12 2: Explicitly mention that they cannot use proposition 6.6.7 (SCM equivalence implies interventional equivalence implies observational equivalence)
+hw15 1e: mention that *only* the info from the DPAG that FCI outputs can be used, and not information from the original DAG.
+
+programming assignment: some probabilities in the Asia network are very small. This might make it unsuitable for the g-test. Perhaps use a Bayesian test instead, or let the students tweak the probabilities to fix the near-faithfulness violations.

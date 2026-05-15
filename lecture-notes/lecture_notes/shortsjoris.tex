@@ -1,0 +1,107 @@
+\newcommand\RN{\R}
+\newcommand\B[1]{\bm{#1}}
+%\renewcommand\C[1]{\mathcal{#1}}     %PF: suddenly got many errors that \C was already defined ???
+%\newcommand\C[1]{\mathcal{#1}}     %PF: suddenly got many errors that \C was NOT defined ???
+% in some newer latex distributions, \C is already defined, in others, it is not...! we override it in case it is already defined
+\makeatletter
+\@ifundefined{C}
+{% \C not defined
+\newcommand\C[1]{\mathcal{#1}}     
+}
+{% \C defined
+\renewcommand\C[1]{\mathcal{#1}}
+}
+\makeatother
+
+\newcommand\BC[1]{\bm{\mathcal{#1}}}
+\renewcommand\S[1]{\mathscr{#1}}
+\newcommand\eref[1]{(\ref{#1})}
+\newcommand\Prb{\mathbb{P}}
+\newcommand\cond{\mid}
+\newcommand\compose{\mathrm{comp}}
+%\newcommand\Joris[1]{{\color{purple}JM: #1}}
+%\newcommand\JorisTODO[1]{{\color{red}JM TODO: #1}}
+\newcommand\JorisTODO[1]{}
+\newcommand\Joris[1]{}
+%\newcommand\JorisThoughts[1]{\color{orange}JM: #1}
+\newcommand\JorisThoughts[1]{}
+\newcommand\Claude[1]{{\color{blue}Claude: #1}}
+%\newcommand\Claude[1]{}
+\newenvironment{topalignedcolumn}[1]{\begin{minipage}[t]{#1}\vspace{0pt}\relax}{\end{minipage}}
+\newcommand\define[1]{\textbf{#1}}
+\newcommand\ind{\I}
+\newcommand\foralmostall{\hspace*{0.1em}{\scalebox{1}[1.156]{$\vee$}}\hspace*{-0.74em}\raisebox{0.5ex}{\scalebox{1}[0.8]{$\sim$}}}
+\newcommand\notimplies{\centernot\implies}
+\newcommand\as{\text{-a.s.}}
+\newcommand\mas{\text{-m.a.s.}}
+\newcommand\TODOmas{\Joris{Use m.a.s.? }}
+
+\newcommand\twin{\mathrm{twin}}
+\newcommand\skel{\mathrm{skel}}
+\newcommand{\ot}{\mathrel{\leftarrow}}
+%\newcommand{\oto}{\mathrel{\leftrightarrow}}
+%\newcommand{\ots}{\mathrel{{\leftarrow\mkern-11mu\ast}}}
+%\newcommand{\otc}{\mathrel{{\leftarrow\mkern-8mu\circ}}}
+%\newcommand{\sto}{\mathrel{{\ast\mkern-11mu\to}}}
+%\newcommand{\stt}{\mathrel{{\ast\mkern-11mu\relbar\mkern-9mu\relbar}}}
+%\newcommand{\tts}{\mathrel{{\relbar\mkern-11mu\relbar\mkern-11mu\ast}}}
+%\newcommand{\sts}{\mathrel{{\ast\mkern-11mu\relbar\mkern-9mu\relbar\mkern-11mu\ast}}}
+%\newcommand{\ctc}{\mathrel{{\circ\mkern-8mu\relbar\mkern-8mu\circ}}}
+%\newcommand{\cto}{\mathrel{{\circ\mkern-8mu\rightarrow}}}
+%\newcommand{\cts}{\mathrel{{\circ\mkern-8mu\relbar\mkern-9mu\relbar\mkern-11mu\ast}}}
+%\newcommand{\stc}{\mathrel{{\ast\mkern-10mu\relbar\mkern-9mu\relbar\mkern-8mu\circ}}}
+%\newcommand{\ctt}{\mathrel{{\circ\mkern-8mu\relbar\mkern-9mu\relbar}}}
+%\newcommand{\ttt}{\mathrel{{\relbar\mkern-9mu\relbar}}}
+%\newcommand{\ttc}{\mathrel{{\relbar\mkern-9mu\relbar\mkern-8mu\circ}}}
+%\newcommand\otto{\mathrel{{\Relbar\mkern-9mu\Relbar}}}
+
+\newcommand\Sin{J}
+\newcommand\Send{V}
+\newcommand\Srnd{W}
+\newcommand\ST{T}
+\newcommand\xJ{x_{\Sin}}
+\newcommand\xV{x_{\Send}}
+\newcommand\xW{x_{\Srnd}}
+\newcommand\xT{x_{\ST}}
+\newcommand\XJ{X_{\Sin}}
+\newcommand\XV{X_{\Send}}
+\newcommand\XW{X_{\Srnd}}
+\newcommand\XT{X_{\ST}}
+\newcommand\CX{\C{X}}
+\newcommand\CXJ{\CX_{\Sin}}
+\newcommand\CXV{\CX_{\Send}}
+\newcommand\CXW{\CX_{\Srnd}}
+\newcommand\CXT{\CX_{\ST}}
+
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Cov}{\mathbb{C}\mathrm{ov}}
+\newcommand{\Vaf}{\mathbb{V}\mathrm{ar}}
+\newcommand{\dbtilde}[1]{\accentset{\approx}{#1}}
+
+\newcommand\IM{\mathrm{IM}}
+\newcommand{\MAG}{\mathrm{MAG}}
+\newcommand{\PAG}{\mathrm{PAG}}
+\newcommand{\DMAG}{\mathrm{DMAG}}
+\newcommand{\DPAG}{\mathrm{DPAG}}
+\newcommand{\CDPAG}{\mathrm{CDPAG}}
+\newcommand{\sigmaPAG}{{\mathrm{PAG}^\sigma}}
+\newcommand{\sigmaMAG}{{\mathrm{MAG}^\sigma}}
+\newcommand{\sepset}{\mathtt{sepset}}
+\newcommand{\separable}{\mathtt{separable}}
+\newcommand{\FCI}{\mathtt{FCI}}
+\newcommand{\SEP}{\mathtt{SEP}}
+\newcommand{\PosSEP}{\mathtt{posSEP}}
+
+\newcommand{\repar}[2]{\mathrm{repar}({#1},{#2})}
+
+\newcommand{\lt}{\lp} % or: \langle
+\newcommand{\rt}{\rp} % or: \rangle
+\newcommand{\ltuple}{(}
+\newcommand{\rtuple}{)}
+
+\newcommand{\Break}{\State \textbf{break}}
+\newcommand{\Input}{\State \textbf{input }}
+\newcommand{\Output}{\State \textbf{output }}
+\newcommand{\Sample}{\State \textbf{sample }}
+
+\newcommand{\observational}{observable }

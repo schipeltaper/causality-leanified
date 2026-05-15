@@ -1,0 +1,87 @@
+\subsection{Structural Causal Models and Faithfulness}
+\totalscore{12}
+
+Consider the following structural equations:
+\begin{align*}
+  X_1 & = E_1 + X_3, \\
+  X_2 & = E_2 - X_1 + X_3 + X_4, \\ 
+  X_3 & = E_3,  \\
+  X_4 & = E_4 + X_1 - X_3. 
+\end{align*}
+Assume all variables to be real-valued.
+The $E_i$ are exogenous random variables, independent and standard univariate normal distributed, and the $X_i$ are endogenous variables.
+There are no exogenous input variables.
+\begin{enumerate}[label=\alph*)]
+%  \item  {\color{magenta}Formally model the structural equations with an SCM $\mathcal{M}$.
+%    To simplify the notation, use the same symbols for the labels of the variables as for the variables themselves.}
+%\textbf{Did we want to remove part 1? I'm not sure anymore.}
+  \item  Find a solution function $g$ for an SCM $\mathcal{M}$ representing these equations by finding an expression of the $X_i$ purely in terms of the $E_i$, such that the $X_i$ satisfy the structural equations; clearly indicate the domain, co-domain and the image of each element in the domain.
+    \score{2}
+    \answer{Solve the system of equations for $X$:
+      \begin{align*}
+        X_3 & = E_3,  \\
+        X_1 & = E_1 + E_3, \\
+        X_4 & = E_4 + E_1, \\ 
+        X_2 & = E_2 + E_4.
+      \end{align*}
+      Hence, the solution function is 
+      $$g : \RN^4 \to \RN^4 : (e_1,e_2,e_3,e_4) \mapsto (e_1 + e_3, e_2 + e_4, e_3, e_4 + e_1).$$}
+    \points{1 point for solving the structural equations correctly, 1 point for explicitly turning this into a solution function.}
+  \item Is the solution function unique? If so, why? If not, find a second solution function. 
+    \score{1}
+    \answer{%
+      It is obvious from solving the system of equations above that the solution function gives the unique solution of $X$ for a given $E$.
+      (Alternatively: It is easy to see that this SCM is acyclic, and hence the solution function must be unique.)
+    }
+    \points{1 point for a correct and complete answer.}
+  \item  Draw the observable causal graph $G(\mathcal{M})^{\{X_1, X_2, X_3, X_4\}}$.
+    \score{1}
+    \answer{\begin{center}\begin{tikzpicture}
+      \node[var] (X1) at (0,4) {$X_1$};
+      \node[var] (X2) at (0,2) {$X_2$};
+      \node[var] (X3) at (0,6) {$X_3$};
+      \node[var] (X4) at (1.5,4) {$X_4$};
+      \draw[arr] (X3) edge (X1);
+      \draw[arr,bend right] (X3) edge (X2);
+      \draw[arr] (X3) edge (X4);
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X1) edge (X4);
+      \draw[arr] (X4) edge (X2);
+    \end{tikzpicture}\end{center}}
+    \points{1 point for the right answer.}
+\item Find three different independencies $X_i \Indep_{P(X, E)} X_j$ with $X = (X_1, X_2, X_3, X_4)$, $E = (E_1, E_2, E_3, E_4)$ and $i < j$.
+  \score{1}
+  \answer{$$X_3 \Indep X_4, \quad X_3 \Indep X_2, \quad X_1 \Indep X_2$$}
+  \points{1 point for a correct answer.}
+\item Is there a $d$-separation of the form  $X_i \Perp^d_{G(\mathcal{M})} X_j$ with $i, j \in \{1, 2, 3, 4\}$?
+  If so, find it, if not, argue why not.
+  \score{2}
+  \answer{No, the graph is a fully connected DAG.}
+  \points{1 point for a correct answer, 1 point for a correct explanation.}
+\item Is $\mathcal{M}$ $d$-faithful? Explain.
+  \score{2}
+  \answer{No, its observational distribution contains independences that do not correspond with $d$-separations in its observable graph.}
+  \points{1 point for a correct answer, 1 point for a correct explanation}
+\item Look at all the coefficients in front of any of the $X_i$ in any of the structural equations (all are either $+1$ or $-1$).
+  Is it possible to change the sign of only a single coefficient to get a model such that all $X_i$ are \emph{dependent} on all $X_j$ for any $i, j \in \{1, 2, 3, 4\}$?
+    If so, make this change, and show that it does the job. 
+    If not, explain why this is not possible.
+  \score{3}
+  \answer{Yes, changing e.g.\ the coefficient of $X_1$ in the r.h.s.\ of the structural equation for $X_4$ does the job.
+    The modified system of (structural) equations
+      \begin{align*}
+        X_3 & = E_3,  \\
+        X_1 & = E_1 + X_3, \\
+        X_4 & = E_4 - X_1 - X_3, \\
+        X_2 & = E_2 - X_1 + X_3 + X_4
+      \end{align*}
+    is still uniquely solvable (since it is still acyclic):
+      \begin{align*}
+        X_3 & = E_3,  \\
+        X_1 & = E_1 + E_3, \\
+        X_4 & = E_4 - E_1 - 2E_3, \\
+        X_2 & = E_2 - 2E_1 + E_4 - 2E_3.
+      \end{align*}
+    One sees that all pairwise covariances are nonzero, and hence, we get all required marginal dependences.}
+  \points{1 point for the right change, 2 points for showing that it leads to all required marginal dependences (of which 1 point for deriving the solution function, 1 point for arguing why the solution shows the required marginal dependences).}
+\end{enumerate}

@@ -1,0 +1,1713 @@
+\section{Causal Relations and Confounding}
+
+In this chapter, we will formalize various elementary causal relations.
+Our treatment extends conventional notions as we explicitly allow for exogenous input nodes to represent hard interventions with unspecified intervention values.
+For each causal relation, we give a graphical and several iSCM versions of the notion, and show how these are related.
+Typically, the absence of a certain causal relation in the graph implies its absence in the iSCM, but not vice versa.
+We will also connect these versions to certain patterns in a set of observable and interventional Markov kernels, and to various formulations in terms of potential outcomes and counterfactuals.
+
+
+\subsection{Faithfulness}
+
+Before we start, we introduce a certain ``genericity'' notion called \emph{faithfulness}.
+It is the converse statement of the global Markov property: loosely speaking it says that
+every conditional independence in the Markov kernel of a causal model must correspond with
+a $id$-separation or $i\sigma$-separation in the causal graph corresponding to the model.
+Originally, this notion was only defined for the $d$-separation Markov property (applicable
+to acyclic models and certain subclasses of cyclic SCMs) and referred to as ``faithfulness''.
+To avoid confusion, we explicitly distinguish two versions: $i\sigma$-faithfulness for simple iSCMs 
+(corresponding to Corollary~\ref{cor:gmp_simple_scm}), and $id$-faithfulness for acyclic iSCMs and
+causal Bayesian networks (corresponding to Theorem~\ref{thm-gmp-mCBN}).
+\begin{Def}\label{def:faithfulness}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$
+  and Markov kernel $P_{M}(X_V \given \doit(X_J))$.
+  $M$ is called \emph{$i\sigma$-faithful} if 
+  for all $A, B, C \ins J \cup V$ (not necessarily disjoint):
+  \begin{equation}\label{eq:sigma_faithful}
+    A \isPerp_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C.
+  \end{equation}
+  $M$ is called \emph{$id$-faithful} if
+  for all $A, B, C \ins J \cup V$ (not necessarily disjoint):
+  \begin{equation}\label{eq:d_faithful}
+    A \idPerp_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C.
+  \end{equation}
+%  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+%  $$A \isPerp_{G(M)} J \cup B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+  For a subset $O \subseteq V$, we say that $M$ is \emph{$i\sigma$-faithful w.r.t.\ $O$} if
+  \eref{eq:sigma_faithful} holds for all (not necessarily disjoint) $A, B, C \ins J \cup O$, and we define
+  \emph{$id$-faithful w.r.t.\ $O$} analogously.
+  In case $J=\emptyset$, we also refer to both notions as $\sigma$-faithful and $d$-faithful, respectively.
+\end{Def}
+In words, a simple iSCM is called $i\sigma$-faithful ($id$-faithful) if each conditional independence in the induced Markov kernel is due to an $i\sigma$-separation ($id$-separation) in its causal graph.
+Note that $i\sigma$-faithfulness is a stronger assumption than $id$-faithfulness (as $i\sigma$-separation implies $id$-separation).
+\begin{Rem}
+These notions behave properly under marginalization: a simple iSCM $M$ is $i\sigma$/$id$-faithful w.r.t.\ $O \subseteq V$ if and only if
+its marginalizations $M_O$ are $i\sigma$/$id$-faithful.
+\end{Rem}
+
+Faithfulness may fail for various reasons:
+\begin{itemize}
+  \item Deterministic relationships may lead to additional conditional independences, but are not exploited by the Markov property;
+  \item Effects may cancel out;
+  \item If cycles are present, and (i) all variables are discrete, or (ii) interactions are linear, $i\sigma$-faithfulness may fail;
+  \item If cycles are present, and the system is ``perfectly adapting''.
+\end{itemize}
+
+An example of a deterministic relationship leading to a faithfulness violation is the following.
+\begin{Eg}
+  Take an SCM $M$ with three endogenous variables $X,Y,Z$ and two exogenous random variables $U,W$, with structural equations
+  $$X = 5, \qquad Y = X + U, \qquad Z = X + W.$$
+  Then $Y \nisPerp_{G(M)} Z$ and $Y \nidPerp_{G(M)} Z$, but $Y \Indep_{P_M} Z$.
+  This simple (even acyclic) SCM is neither $\sigma$-faithful nor $d$-faithful, due to $X$ being constant.
+\end{Eg}
+The next example illustrates how canceling effects may lead to a faithfulness violation.
+\begin{Eg}
+  Take an SCM $M$ with three endogenous variables $X,Y,Z$ and three exogenous random variables $W_X,W_Y,W_Z$, with structural equations
+  $$X = W_X, \qquad Y = X + W_Y, \qquad Z = Y - X + W_Z.$$
+  Then $X \nisPerp_{G(M)} Z$ and $X \nidPerp_{G(M)} Z$, but $X \Indep_{P_M} Z$.
+  This simple (even acyclic) SCM is neither $\sigma$-faithful nor $d$-faithful, due to cancellation of the direct causal influences of $X$ on $Z$ with the indirect causal influence of $X$ via $Y$ on $Z$.
+\end{Eg}
+One can show that in certain special cases, the global Markov property in terms of $id$-separation even holds for cyclic simple iSCMs.
+\begin{Prp}\label{prp:when_d-separation_holds}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$ and Markov kernel $P_{M}(X_V \given \doit(X_J))$.
+  If $J = \emptyset$ and one of the three conditions applies:
+  \begin{enumerate}
+    \item $M$ is acyclic, or
+    \item all spaces $\CX_v$ with $v \in V$ are discrete, or
+    \item %the causal mechanism $f$ is affine and the exogenous distribution has a density w.r.t.\ Lebesgue measure 
+      $M$ is essentially linear over the field $\RN$ of the following restricted form:
+      the endogenous spaces are $\CX_v = \mathbb{R}^{d_v}$ for $d_v \in \mathbb{N}$ for $v \in V$,
+      the causal mechanisms are of the form
+      %$$f(x_V,x_W) = B x_V + c(x_W) \qquad M\as$$
+      %where $B : \CX_V \to \CX_V$ is linear and $c : \CX_W \to \CX_V$ is measurable.
+      %Since $\CX_V = \bigoplus_{v \in V} \CX_v$, we can also write this as
+      $$
+        f_v(x_W,x_V) = \sum_{u\in V} B_{vu} x_u + c_v(x_W) \qquad M\as,
+      $$
+      %(that is, $B(x_W)$ is constant).
+      for $v \in V$, where $B_{vu} : \CX_u \to \CX_v$ is a linear mapping for $u,v \in V$ and $c_v : \CX_W \to \CX_v$ is a measurable function for $v \in V$
+      such that $c(x_W)$ has a density w.r.t.\ Lebesgue measure on $\mathbb{R}^d$ with $d = \sum_{v \in V} d_v$,
+  \end{enumerate} 
+  then for all $A, B, C \ins J \cup V$ (not necessarily disjoint):
+  $$A \idPerp_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C.$$
+\end{Prp}
+\begin{proof}
+The proofs are essentially given in \cite{FM17}.
+
+By Remark~\ref{rem:iscm_structurally_minimal}, we can assume without loss of generality that for each $v \in V$, $f_v$ is constant in $x_{(J \cup W \cup V) \sm \Pa^{G^+(M)}(v)}$.
+We give a sketch for each of the cases.
+  \begin{enumerate}
+    \item
+      If $M$ is acyclic, then $G^+(M)$ is acyclic.
+      The claim now follows from the global Markov property Theorem~\ref{thm-gmp-mCBN} for $M$ interpreted as a causal Bayesian network as in the proof of Proposition~\ref{prp:interventional_equivalence_cbn_scm} point \ref{prp:interventional_equivalence_cbn_scm:scm2cbn} (with deterministic Markov kernels for the endogenous variables, and purely probabilistic Markov kernels for the exogenous random variables).
+    \item If all spaces $\CX_v$ with $v \in V$ are discrete, then one can apply Theorem 3.8.12, Remark 3.7.2, Theorem 3.6.6 and Theorem 3.5.2 in \cite{FM17}. \Joris{Still todo: fill in the details; extend to $J \ne \emptyset$}
+    \item 
+      This is a small extension of \cite[Example 3.8.17]{FM17}, as the example assumes $d_v=1$ for all $v\in V$, but its proof immediately generalizes to arbitrary $(d_v)_{v\in V}$.
+
+\begin{comment}
+      %We should also restrict to $\CX_v$ being finite-dimensional normed vector spaces over $\mathbb{K}$ (in infinite dimensions we would take a separable Banach space, but that gives potential problems with the continuity of linear mappings and the existence of their inverse).
+      Second, that example assumes that $c(x_W)$ has a density w.r.t.\ Lebesgue measure on $\mathbb{R}^d$ with $d = \sum_{v \in V} d_v$.
+      %(the independence structure is $E_A \dPerp E_B$ implies $E_A \Indep E_B$ (automatic for us---it states that the $c_v(x_W)$-variables satisfy the $id$-separation Markov property w.r.t.\ $G(M)$).)
+      This extension proceeds in the following way.
+
+      For $\epsilon > 0$, construct a perturbed iSCM $M^{(\epsilon)}$ out of $M$ that has additional exogenous random variables $\tilde w_v$ for all $v \in V$, with corresponding spaces $\CX_{\tilde w_v} := \CX_v = \RN^{d_v}$ and (independent) exogenous distributions $X_{\tilde w_v} \sim \mathcal{N}(0,\epsilon^2 I_v)$ with $I_v$ the $d_v \times d_v$ identity matrix.
+%      The overall exogenous distribution then factorizes as:
+%      $$P(X_W,X_{\tilde W}) = \bigotimes_{w \in W} P(X_w) \otimes \bigotimes_{v\in V} P(\tilde w_v).$$
+      By \cite[Corollary 2.2]{BW16}, the distribution of $\tilde c(x_W,x_{\tilde{W}}) := c(X_W) + X_{\tilde W}$ has a density w.r.t.\ the Lebesgue measure on $\mathbb{R}^d$.
+      Hence, by (the extension of) \cite[Example 3.8.17]{FM17}, the $id$-separation Markov property holds in $M^{(\epsilon)}$.
+      In other words, for all $A, B, C \ins J \cup V$ (not necessarily disjoint):
+        $$A \idPerp_{G(M^{(\epsilon)})} B \given C \implies X_A \Indep_{P_{M^{(\epsilon)}}(X_V \given \doit(\XJ))} X_B \given X_C.$$
+      
+      As $\epsilon \to 0$, $P_{M^{(\epsilon)}}(\tilde c(X_W,X_{\tilde W})) \to P_M(c(X_W))$ in total variation distance.\footnote{The \emph{total variation distance} of the distributions of two random variables $X_1,X_2$ taking values in the same space $\Xcal$ is defined as $d_{TV}(P(X_1),P(X_2)) := \sup_{A \in \Bcal_{\Xcal}} |P(X_1 \in A) - P(X_2 \in A)|$.}
+      Since $M$ is simple, the matrix $(I-B)$ is invertible and hence
+      $$P_M(X_V) = ((I-B)^{-1})_* P_M(c(X_W))$$
+      and, consequently, also $M^{(\epsilon)}$ is simple and
+      $$P_{M^{(\epsilon)}}(X_V) = ((I-B)^{-1})_* P_{M^{(\epsilon)}}(\tilde c(X_W,X_{\tilde{W}})).$$
+      A measurable transformation can only decrease total variation distance.
+      Indeed, let $X_1,X_2$ be two random variables taking values in a measurable space $\Xcal$, with distributions $P(X_1)$, $P(X_2)$, respectively.
+      Define $Y_1 := f(X_1)$ and $Y_2 := f(X_2)$ for some $\Bcal_{\Xcal}$-$\Bcal_{\Ycal}$-measurable function $f : \CX \to \Ycal$.
+      Then 
+      \begin{equation*}\begin{split}
+        d_{TV}(P(Y_1),P(Y_2)) 
+        &= \sup_{B \in \Bcal_{\Ycal}} |P(Y_1 \in B) - P(Y_2 \in B)| \\
+        &= \sup_{B \in \Bcal_{\Ycal}} |P(X_1 \in f^{-1}(B)) - P(X_2 \in f^{-1}(B))| \\
+        &\le \sup_{A \in \Bcal_{\Xcal}} |P(X_1 \in A) - P(X_2 \in A)| \\
+        &= d_{TV}(P(X_1),P(X_2)).
+      \end{split}\end{equation*}
+
+      Hence, $P_{M^{(\epsilon)}}(X_V)$ converges to $P_M(X_V)$ in total variation distance as $\epsilon \to 0$.
+      Since conditional independences are preserved under convergence in total variation distance \cite[Theorem 1]{Lauritzen_2401.06177}\cite[Lemma A.1]{CheriditoEckstein_2303.14085v2}, and $G(M^{(\epsilon)}) = G(M)$, the claim follows.
+\end{comment}
+
+      \Joris{Perhaps directly invoke Theorem 3.8.15 in \cite{FM18}?
+      We need to check that $G^+(M)$ and $P_M(X_V)$ satisfy SEPwared (Definition 3.8.14).
+      For the probability space take $(\CX_W,\bigotimes_{w \in W} \Bcal_{\CX_w},P)$.
+      For the random variables $E_v$ take $c_v(X_W)$, for their spaces just $\CX_v$.
+      For the random variables $E_F$ take $X_w$ (with a one-to-one correspondence $F \leftrightarrow w$).
+      The $\pi_v$ are our $c_v$.
+      We need measures $\nu_v$ on $\CX_v$ for each $v \in V$ such that $c(X_W)$ has a density w.r.t.\ $\nu_V = \bigotimes_{v\in V} \nu_v$;
+      can we take the marginal distribution of $c_v(X_W)$ for $\nu_v$? No, not in general! But we can take Lebesgue measure on $\RN$.
+      We need measures $\mu_v$ on $\CX_v$ for each $v \in V$. For this we can also take Lebesgue measure on $\RN$.
+      The functions $f_v$ are the causal mechanisms of our (structurally minimal) $M$.
+      The random variables $(X_v)_{v \in V}$ are a solution of $M$.
+      For the measurable functions $h_v$ we can take 
+      $$h_v(x) = x_v - \sum_{u \in V} B_{v,u} x_{u}$$
+      They satisfy: (i) $h_v(X) = E_v\ P\as$; (ii) for all ancestral subsets $A \ins V$ (that is, with $\Anc^{G(M)}(A) \ins A$) the induced map $h_A$ with components $(h_v)_{v\in A}$ is a bijection with inverse function $g_A := h_A^{-1}$ (which is then measurable by Kechris 15.A), such that the image measure $\nu_A^{g_A} = (g_A)_* \nu_A$ has density $|h_A'| := \frac{d \nu^{g_A}_A}{d \mu_A}$ w.r.t.\ product measure $\mu_A$ and factorizes according to the complete subgraphs of $A^{\mathrm{mor}}$, that is, for $\mu_A$-almost all $x_A \in \CX_A$:
+      $$|h_A'|(x_A) = \prod_{C \in \Ccal_A} k_{A,C}(x_C)$$
+      for a finite set $\Ccal_A$ of complete subgraphs of $A^{\mathrm{mor}}$ and integrable functions $k_{A,C} : \CX_C \to \RN_{\ge 0}$.
+
+      This is all guaranteed (?) if the linear mapping $I_V - B$ is invertible. 
+      Indeed, that implies that for all ancestral subsets $A \ins V$, $I_A - B_{AA}$ is invertible as well (?).
+      And $h_A(x) = (I_A - B_{AA}) x_A$, and $g_A(e_A) := (I_A - B_{AA})^{-1} e_A$, which implies
+      $|h_A'|(x_A) = \frac{d\lambda_A^{g_A}}{d\lambda_A}(x_A) = |\frac{dh_A}{dx_A}| = |\det (I_A - B_{AA})| \ne 0$
+      by the standard transformation rule for the Lebesgue measure.
+      Then (3.8.15) SEPwared holds, and thus aFP, and thus dGMP.
+
+      Note that 3.8.15 essentially assumes that the structural equations are of the form
+      $X_v = f_v(X_{\Pa(v) \cap V},\pi_v(X_{\Pa(v) \cap W}))$ for functions $\pi_v : \CX_{\Pa(v) \cap W} \to \Ycal_v$
+      for standard Borel spaces $\Ycal_v$.
+      We need measurable functions $h_v : \CX_{D(v) \cup \Pa^G(D(v))} \to \Ycal_v$ where $D(v) := \Dist^{\Anc^G(v)}(v)$ is the district of $v$ in $\Anc^G(v)$ such that $h_v(g_{D(v) \cup \Pa^G(D(v))}(x_W)) = \pi_v(x_W)\ M\as$.
+      For every ancestral subset $A \ins V$ we want that $h_A$ is a bijection such that $(h_A^{-1})_* \nu_A$ has a density w.r.t.\ $\mu_A$ that factorizes according to the complete subgraphs of $A^{\moral}$.
+      }
+  \end{enumerate}
+\end{proof}
+
+\Joris{\begin{Eg}
+  \cite[Example 3.11]{Lau96}. Consider a normal distribution on three real-valued variables $X_1,X_2,X_3$ 
+  with mean zero, and (conditional) covariance matrices given by
+  $$\Sigma^{(n)} = \begin{pmatrix} 1 & \frac{1}{2} & \frac{1}{\sqrt{n}} \\ \frac{1}{2} & 1 & \frac{1}{\sqrt{n}} \\ \frac{1}{\sqrt{n}} & \frac{1}{\sqrt{n}} & \frac{2}{n} \end{pmatrix} \qquad
+    \Sigma_{12|3}^{(n)} = \begin{pmatrix} \frac{1}{2} & 0 \\ 0 & \frac{1}{2} \end{pmatrix}. $$
+  Then $X_1 \Indep_{P^{(n)}} X_2 \given X_3$. Since $P^{(n)}(X_1,X_2,X_3) \leadsto P(X_1,X_2,X_3)$ with $P(X_1,X_2,X_3)$ a degenerate normal distribution with mean zero and (conditional) covariance matrices
+  $$\Sigma = \begin{pmatrix} 1 & \frac{1}{2} & 0 \\ \frac{1}{2} & 1 & 0 \\ 0 & 0 & 0 \end{pmatrix} \qquad
+    \Sigma_{12|3} = \begin{pmatrix} 1 & \frac{1}{2} \\ \frac{1}{2} & 1 \end{pmatrix}. $$
+  Since $X_1 \nIndep_{P} X_2 \given X_3$, we see that conditional independence is not preserved under weak limits.
+
+  We can try to understand this geometrically.
+  The isosurfaces of the density of a 3-dimensional Gaussian with mean zero and covariance matrix $\Sigma$ are given by
+  $$x^T \Sigma^{-1} x = c$$
+  for $c \ge 0$.
+  The intersections of these isosurfaces with the plane $Z=z$ are given by the solutions of
+  $$(x y z)^T \Sigma^{-1} (x y z) = c$$
+  Note that
+  $$(\Sigma^{(n)})^{-1} = \begin{pmatrix} 2 & 0 & -\sqrt{n} \\ 0 & 2 & -\sqrt{n} \\ -\sqrt{n} & -\sqrt{n} & \frac{3}{2} n \end{pmatrix}$$
+  So we get
+  $$(x y z)^T (2x - \sqrt{n} z, 2y - \sqrt{n} z, -\sqrt{n} (x + y) - 3/2 n z) = c$$
+  $$x (x - \sqrt{n}/2 z) + y (y - \sqrt{n}/2 z) - \sqrt{n} (x + y) z / 2 = c$$
+  $$(x - \sqrt{n}/2 z)^2 + (y - \sqrt{n}/2 z)^2 = c$$
+  which are circles with centers on the diagonal $x=y$.
+  However, for the limit distribution, the contour lines (in the $Z=0$ plane) are given by
+  $$(x y)^T \begin{pmatrix} 4/3 & -2/3 \\ -2/3 & 4/3 \end{pmatrix} (x y)$$
+  which are ellipses.
+
+  Can we implement this as SCMs?
+  $X_3 \sim \C{N}(0,\frac{2}{n})$, $X_1 = \frac{1}{\sqrt{2}} X_3$, $X_2 = \frac{1}{\sqrt{2}} X_3$.
+  This doesn't work: the variance of $X_3$ is too small to explain the large covariance of $X_1$ and $X_2$.
+  So conditional independence based causal discovery with DAGs will fail.
+\end{Eg}}
+
+The following gives an example of a cyclic simple SCM that is $d$-faithful but not $\sigma$-faithful.
+  \begin{Eg}\label{eg:simple_scm_d_faithful_not_sigma_faithful}
+  \begin{figure}\centering
+  \begin{tikzpicture}
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (1.5,1.5) {$X_3$};
+      \node[ndout] (X4) at (0,1.5) {$X_4$};
+      \node[ndlat] (W1) at (-1,-1) {$W_1$};
+      \node[ndlat] (W2) at (2.5,-1) {$W_2$};
+      \node[ndlat] (W3) at (2.5,2.5) {$W_3$};
+      \node[ndlat] (W4) at (-1,2.5) {$W_4$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+      \draw[arout] (X4) edge (X1);
+      \draw[arout] (W1) edge (X1);
+      \draw[arout] (W2) edge (X2);
+      \draw[arout] (W3) edge (X3);
+      \draw[arout] (W4) edge (X4);
+  \end{tikzpicture}
+  \caption{Graph $G^+(M)$ of SCM $M$ of Example~\ref{eg:simple_scm_d_faithful_not_sigma_faithful}. 
+  $X_1 \idPerp_{G^+(M)} X_3 \given X_2, X_4$, but $X_1 \nisPerp_{G^+(M)} X_3 \given X_2, X_4$.
+  $M$ is $d$-faithful, but not $\sigma$-faithful.\label{fig:simple_scm_d_faithful_not_sigma_faithful}}
+  \end{figure}
+Consider an SCM $M$ with four endogenous variables $X_1,X_2,X_3,X_4$, four exogenous random variables $W_1,W_2,W_3,W_4$, with structural equations
+  \begin{align*}
+    X_1&=X_4 + W_1 \\
+    X_2&=X_1 + W_2 \\
+    X_3&=X_2 + W_3 \\
+    X_4&=\tfrac{1}{2} (X_3 + W_4).
+  \end{align*}
+We can solve for $X$ in terms of $W$:
+%  \begin{align*}
+%    X_1&=X_4 + W_1 \\
+%    X_2&=X_4 + W_1 + W_2 \\
+%    X_3&=X_4 + W_1 + W_2 + W_3 \\
+%    X_4&=\frac{1}{2}(X_4 + W_1 + W_2 + W_3 + W_4)
+%  \end{align*}
+%hence:
+  \begin{align*}
+    X_1&=2 W_1 + W_2 + W_3 + W_4 \\
+    X_2&=2 W_1 + 2 W_2 + W_3 + W_4 \\
+    X_3&=2 W_1 + 2 W_2 + 2 W_3 + W_4 \\
+    X_4&=W_1 + W_2 + W_3 + W_4
+  \end{align*}
+No matter what the distributions $P(W_i)$ are, we have $X_1 \Indep X_3 \given X_2,X_4$ because $1 \idPerp 3 \given 2,4$ in $G^+(M)$ (see Figure~\ref{fig:simple_scm_d_faithful_not_sigma_faithful}).
+However, $1 \nisPerp 3 \given 2,4$ in $G^+(M)$.
+Therefore, this SCM is not $\sigma$-faithful.
+One can check explicitly that it is $d$-faithful if each $P(W_i)$ is non-degenerate.
+\end{Eg}
+
+\Joris{The following example shows that linearity is not required, that is, 3.8.15 is much more general than only linear iSCMs. Pondering the proof of 3.8.15 and this example: perhaps a much more straightforward proof of 3.8.15 exists, making use of \emph{partial acyclifications} (e.g., only expressing $X_2$ and $X_4$ in terms of $W$) and perhaps exploiting different causal orderings (using the $h_v$ to express $W_v$ in terms of $X$) and perhaps deterministic relations as well.
+\begin{Eg}
+Consider an SCM $M$ with four endogenous variables $X_1,X_2,X_3,X_4$, four exogenous random variables $W_1,W_2,W_3,W_4$, with structural equations
+  \begin{align*}
+    X_1&=X_4 + W_1 \\
+    X_2&=X_1 + W_2 \\
+    X_3&=X_2 + W_3 \\
+    X_4&=X_3 W_4
+  \end{align*}
+gives partial solution
+  \begin{align*}
+    X_1&=X_4 + W_1 \\
+    X_2&=X_4 + W_1 + W_2 \\
+    X_3&=X_2 + W_3 \\
+    X_4&=\frac{W_1 + W_2 + W_3}{1 / W_4 - 1}
+  \end{align*}
+and hence complete solution
+  \begin{align*}
+    X_1&=\frac{W_1 + W_2 + W_3}{1 / W_4 - 1} + W_1 \\
+    X_2&=\frac{W_1 + W_2 + W_3}{1 / W_4 - 1} + W_1 + W_2 \\
+    X_3&=\frac{W_1 + W_2 + W_3}{1 / W_4 - 1} + W_1 + W_2 + W_3 \\
+    X_4&=\frac{W_1 + W_2 + W_3}{1 / W_4 - 1}
+  \end{align*}
+that we can invert into $h$:
+  \begin{align*}
+    X_1-X_4&=W_1 \\
+    X_2-X_1&=W_2 \\
+    X_3-X_2&=W_3 \\
+    X_4/X_3&=W_4
+  \end{align*}
+Note that $D(v) = \{v\}$ for all $v=1,\dots,4$. So $D(v) \cup \Pa(D(v)) = \{v\} \cup \Pa(v)$ for all $v \in V$.
+There is just one ancestral subset: $V$ itself.
+So we want that $h$ is a bijection (it is!) such that $(h_A^{-1})_* \nu_A$ has a density w.r.t.\ $\mu_A$ that factorizes according to the complete subgraphs of $A^{\moral}$.
+The Jacobian of $h$ is:
+$$\begin{pmatrix}
+  1  &  0 & 0 & -1 \\
+  -1 &  1 & 0 & 0  \\
+  0  & -1 & 1 & 0  \\
+  0  &  0 & - X_4 / X_3^2 & 1/X_3 
+\end{pmatrix}$$
+with determinant $1 (1 (1/X_3 + 1 X_4/X_3^2)) + 1 (-1 (1)) = 1/X_3 + X_4/X_3^2 - 1$ (DOUBLE-CHECK).
+Finally, what is $A^{\moral}$?
+For $v \in V$, make $\Dist(v) \cup \Pa(\Dist(v))$ into a complete undirected subgraph.
+That is, $A^{\moral}$ is an undirected four-cycle $1 \tut 2 \tut 3 \tut 4 \tut 1$.
+And actually, the determinant appears to factorize accordingly!
+UPDATE: I don't see anymore why it would factorize. This is not a product of terms but a sum of terms...?
+\end{Eg}}
+
+\begin{comment}
+\begin{Eg}
+Consider an SCM with structural equations
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= X_1 + X_4 + W_3 \\
+    X_4 &= X_2 + X_3 + W_4 
+  \end{align*}
+where the $X$'s are considered real-valued endogenous variables and the $W$'s exogenous variables with domains $(-1,1) \subset \RN$.
+We can solve the system of structural equations for $X$ in terms of $W$:
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 W_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 W_1}
+  \end{align*}
+\end{Eg}
+\end{comment}
+
+\begin{comment}
+The following:
+$$X_A \Indep_{P_{M}(V,W|J)} X_B \given X_C,$$
+implies that for every probability distribution $Q(J) \in \Pcal(\CXJ)$ we have the conditional independence:
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B,X_J \given X_C\]
+
+We can now make the following faithfulness assumption:
+assume that
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B, X_J \given X_C\]
+for all $Q(J) \in \Pcal(\CXJ)$ 
+implies
+\[ A \isPerp_{G(M)} B \given C\]
+By the Markov property, then, we conclude
+  $$X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C$$
+
+Thus under that faithfulness assumption, we have
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B,X_J \given X_C\]
+for all $Q(J) \in \Pcal(\CXJ)$ if and only if
+\[ A \isPerp_{G(M)} B \given C\]
+if and only if
+\[ A \isPerp_{\hat{G}(M)} B \cup J \given C\]
+where $\hat{G}(M)$ is like $G(M)$ but with bidirected edges between all input nodes,
+and then input nodes replaced by normal nodes. This means that we have reformulated 
+everything in terms of older concepts. However, to arrive at this conclusion, our long
+excursion was necessary. And under this particular faithfulness assumption, all statements
+in Theorem~\ref{thm-ci-equivalences} are equivalent, and also equivalent to the 
+corresponding $i\sigma$-separation.
+
+With the newer concepts, we can alternatively assume
+  $$X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C$$
+implies
+\[ A \isPerp_{G(M)} B \given C\]
+
+But I think we need something else. It would be nice if we could assume that if
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B, X_J \given X_C\]
+for \emph{some} $Q(J) \in \Pcal(\CXJ)$, then
+\[ A \isPerp_{G(M)} B \given C\]
+\end{comment}
+
+
+\Joris{
+  In the work of Carla Ferradini, Victor Gitton, and V. Vilasini \url{https://arxiv.org/pdf/2502.04171}, they define a separation property p-separation for DGs which appears to have the following features:
+  \begin{itemize}
+    \item for acyclic SCMs it reduces to d-separation
+    \item for cyclic SCMs with discrete endogenous variables it appears to give a Markov property that holds without any uniqueness constraints on the solutions of the SCM
+    \item the interesting conditional independences in the famous four-cycle appear to follow for all discrete models without any uniqueness constraints: even if there are multiple solutions, the conditioning appears to nail down a single one (doublecheck!)
+    \item the other model with four variables (two cycle with an exogenous parent for each node) gives a d-separation and sigma-separation for both nodes in the cycle, but no p-separation; this suggests that the d-separation and sigma-separation Markov property rely on the uniqueness assumption. In section 4.2 they give an explicit example of this phenomenon.
+  \end{itemize}
+  
+  Some questions:
+  \begin{itemize}
+    \item how did they prove completeness?
+    \item there may be a relation to variation independence: if we can prove the variation independence Markov property (for the set of all solutions) then it follows that probabilistic independence holds for ANY mixture of the distributions?
+      Ah no, this has more to do with DETERMINISTIC solutions! If we can derive that some variable becomes CONSTANT given some other variables, then surely it will be independent.
+      Ha, this suggests a way to construct the counterexample: we should take the model of section 4.2 but add more possibilities.
+  \end{itemize}
+}
+
+\subsection{Causal Relations}
+
+%\Joris{Note: we have changed Definition~\ref{def:cdmg_intervention_nodes}, Definition~\ref{def:scm_intervention_variables}, and Definition~\ref{CBN-soft-int} so that the intervention node $I_j$ is identified with $j$ for $j \in J$. We can do this without negative consequences because so far, we have only applied those definitions for subsets of $V$ rather than subsets of $V \cup J$.}
+
+We are now ready to formalize the notion of ``$a$ causes $b$'' (finally!) of Definition~\ref{def-causality-real}.
+We will formulate this notion at different levels of the causal hierarchy.
+At the highest level, we have the graphical notion.
+Then comes the counterfactual level (or potential outcome level), and finally the interventional level.\footnote{Some refer to the counterfactual notion of causation as ``individual'' or ``token'' causation, and to the interventional notion of causation as ``population'' or ``type'' causation.}
+
+\subsubsection{Causal relations (graphical notion)}
+
+We will start at the graphical level.
+We typically give the following causal interpretation to a CDMG.
+\begin{Def}\label{def:graph_cause_of}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $a \in J \cup V$ and $b \in V$.
+  If $a \notin \Anc^G(b)$ then we say that \emph{$a$ does not cause $b$ according to $G$}; otherwise, we say that \emph{$a$ causes $b$ according to $G$}.
+\end{Def}
+\begin{Rem}\label{rem:graph_cause_of}
+  Marginalization of a graph preserves its causal relations (see also Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}).
+  In addition, we have the equivalences:
+  \begin{center}
+    \begin{tabular}{ll}
+      & $a$ causes $b$ according to $G$ \\
+      $\iff$ & $a \tuh b$ is present in $G^{\sm(V\sm\{a,b\})}$ \\
+      $\iff$ & $a$ causes $b$ according to $G_{\doit(a)}$ \\
+      $\iff$ & $I_a$ causes $b$ according to $G_{\doit(I_a)}$.
+    \end{tabular}
+  \end{center}
+\end{Rem}
+There is one more useful equivalence, which expresses the graphical notion of causation in terms of a separation statement.
+\begin{Prp}\label{prp:graph_cause_of}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $b \in V$.
+  For $a \in J \cup V$:
+    \begin{equation}\label{eq:graph_cause_of}
+      a \not\in \Anc^G(b) \iff b \isPerp_{G_{\doit(I_a)}} I_a \mid J \sm \{I_a\}.
+    \end{equation}
+\end{Prp}
+\begin{proof}
+  Suppose that there exists a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$ that is $\sigma$-open given $J \setminus \{I_a\}$.
+  Then there exists such a walk without colliders (Proposition~\ref{prp:sigma_opens} and the observation that no node in $J$ can be a collider on a walk).
+  Such a walk cannot contain a node from $J \setminus \{I_a\}$, since that would either be an end node ($\sigma$-blocking the walk) or a non-collider node pointing only to nodes in another strongly connected component ($\sigma$-blocking the walk).
+  Therefore it must be of the form $I_a \tuh a \tuh \cdots b$.
+  Since it cannot contain a collider, it must be a directed walk, and hence $I_a \in \Anc^{G_{\doit(I_a)}}(b)$.
+  Vice versa, any directed walk from $I_a$ to $b$ in $G_{\doit(I_a)}$ is $\sigma$-open given $J \setminus \{I_a\}$, as it cannot contain a node in $J \sm \{I_a\}$.
+\end{proof}
+
+\begin{Rem}
+  We can rewrite the r.h.s.\ of \eref{eq:graph_cause_of}, distinguishing the cases $a \in J$ and $a \in V$, as follows:
+  $$b \isPerp_{G_{\doit(I_a)}} I_a \mid J \sm \{I_a\} \iff \begin{cases}
+    b \isPerp_{G} a \mid J \setminus \{a\} & a \in J \\
+    b \isPerp_{G_{\doit(I_a)}} I_a \mid J & a \in V.
+  \end{cases}$$
+\end{Rem}
+
+\subsubsection{Causal relations (interventional notion)}
+
+The most common notion of causation is the interventional one.
+\begin{Def}\label{def:scm_rung2_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$.
+  If
+    \begin{equation}\label{eq:scm_rung2_cause_of}
+      X_b \Indep_{P_{M_{\doit(I_a)}}} X_{I_a} \given X_{J \sm \{I_a\}},
+    \end{equation}
+  we say that \emph{$a$ is not a rung-2 cause of $b$ according to $M$}.
+  Otherwise, we say that \emph{$a$ is a rung-2 cause of $b$ according to $M$}.
+\end{Def}
+\begin{Rem}\label{rem:scm_rung2_cause_of}
+  We can rewrite \eref{eq:scm_rung2_cause_of}, distinguishing the cases $a \in J$ and $a \in V$, as follows:
+  $$X_b \Indep_{P_{M_{\doit(I_a)}}} X_{I_a} \given X_{J \sm \{I_a\}} \iff \begin{cases}
+    X_b \Indep_{P_{M}} X_a \given X_{J \sm \{a\}} & a \in J, \\
+    X_b \Indep_{P_{M_{\doit(I_a)}}} X_{I_a} \given X_J & a \in V.
+  \end{cases}$$
+
+  Alternatively, we can write \eref{eq:scm_rung2_cause_of} as:
+    $$P_{M}(X_b \given \doit(X_{J \cup \{a\}})) = P_{M}(X_b \given \doit(X_{J\sm\{a\}})),$$
+  or, distinguishing the two cases, as:
+    $$\begin{cases}
+      P_{M}(X_b \given \doit(X_J)) = P_{M}(X_b \given \doit(X_{J\setminus \{a\}}),\cancel{\doit(X_a)}) & a \in J, \\
+      P_{M}(X_b \given \doit(X_J), \doit(X_a)) = P_{M}(X_b \given \doit(X_J)) & a \in V.
+    \end{cases}$$
+\end{Rem}
+
+\begin{Rem}\label{rem:scm_rung2_cause_of_marginalization}
+  Marginalization of an iSCM preserves the rung-2 causal relations between the remaining variables.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung2_cause_of_interventional_equivalence}
+  Rung-2 causal relations are invariant under interventional equivalence of iSCMs.
+  More precisely: $a$ is a rung-2 cause of $b$ according to $M$ implies that $a$ is a rung-2 cause of $b$ according to $\tilde{M}$ if $M$ is interventionally equivalent to $\tilde{M}$ w.r.t.\ $\{a,b\} \cap V$
+  (remember that Proposition~\ref{prp:scm_interventions_preserve_interv_equiv} states that if $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $\{a,b\} \cap V \ins V \cap \tilde{V}$, then so are $M_{\doit(I_a)}$ and $\tilde{M}_{\doit(I_a)}$ if $a \in (V \cap \tilde{V}) \cup (J \cap \tilde{J})$).
+\end{Rem}
+
+Remark~\ref{rem:scm_rung2_cause_of} shows that the two cases $a \in V$ and $a \in J$ mean something subtly different, and one may wonder why we chose to work with $M_{\doit(I_a)}$ rather than $M_{\doit(a)}$ (which would treat the two cases in the same way). 
+The reason is that the observable Markov kernel may provide additional information beyond that provided by the interventional Markov kernels, as the following example shows.
+\begin{Eg}\label{eg:scm_cause_of_include_observational}
+  Consider the iSCM $M$ with endogenous variables $X_a, X_b \in \{-1,+1\}$, exogenous random variable $X_w \in \{-1,1\}$, and structural equations:
+  \begin{align*}
+    X_a &= X_w, \\
+    X_b &= X_a X_w,
+  \end{align*}
+  where $X_w \sim \C{U}(\{-1,1\})$.
+  Note that $P_M(X_b = 1 \given \doit(X_a = x_a)) = \tfrac{1}{2}$ for $x_a \in \{-1,1\}$.
+  However, $P_M(X_b = 1) = 1$.
+  Hence, $a$ is a rung-2 cause of $b$ according to $M$.
+  So we cannot detect that $a$ causes $b$ from the interventional Markov kernel $P_M(X_b \given \doit(X_a))$ only, but we can if we additionally compare with the observational distribution $P_M(X_b)$.
+
+  Consider now the iSCM $M_{\doit(a)}$, with endogenous variable $X_b \in \{-1,+1\}$, exogenous random variable $X_w \in \{-1,+1\}$, exogenous input variable $X_a \in \{-1,+1\}$, and structural equation:
+  $$X_b = X_a X_w.$$
+  According to $M_{\doit(a)}$, $a$ is not a rung-2 cause of $b$.
+
+  We conclude that $a$ can be a rung-2 cause of $b$ according to some iSCM $M$, while $a$ is not a rung-2 cause of $b$ according to $M_{\doit(a)}$ (which might be a little surprising at first sight).\footnote{This example also shows that the claim in \cite[Proposition 6.13]{PJS17} is incorrect.}
+\end{Eg}
+%\begin{Eg}\label{ex:scm_cause_subtlety}
+%  Consider the iSCM $M$ with endogenous variables $X_1,X_2,X_3 \in \{-1,+1\}$, exogenous random variable $E \in \{-1,1\}$, and structural equations:
+%  $$\begin{aligned}
+%      X_1 &= X_3 \\
+%      X_2 &= X_1 X_3 \\
+%      X_3 &= E
+%    \end{aligned}$$
+%  where $E \sim \C{U}(\{-1,1\})$.
+%  Its graph is shown in Figure~\ref{fig:scm_cause_subtlety}.
+%  Both interventional distributions $P_M(X_2\given\doit(X_1=-1)) = P_M(X_2\given\doit(X_1=1))$ coincide, but the marginal observational distribution $P_M(X_2)$ differs from both.\footnote{This example shows that the claim in \cite[Proposition 6.13]{PJS17} is incorrect.}
+%  \begin{figure}
+%  \begin{center}
+%    \begin{tikzpicture}
+%      \begin{scope}
+%        \node[ndout] (X1) at (0,0) {$X_1$};
+%        \node[ndout] (X2) at (2,0) {$X_2$};
+%        \node[ndout] (X3) at (1,1) {$X_3$};
+%        \node[ndlat] (E3) at (1,2.2) {$E$};
+%        \draw[arout] (X3) -- (X1);
+%        \draw[arout] (X1) -- (X2);
+%        \draw[arout] (X3) -- (X2);
+%        \draw[arout] (E3) -- (X3);
+%      \end{scope}
+%    \end{tikzpicture}
+%  \end{center}
+%  \caption{Graph $G^+(M)$ for the iSCM $M$ of Example~\ref{ex:scm_cause_subtlety}.\label{fig:scm_cause_subtlety}}
+%\end{figure}
+%\end{Eg}
+
+
+\subsubsection{Causal relations (counterfactual notion)}
+
+A more `refined' notion of causation (but also harder to detect in practice) can be obtained by considering counterfactuals.
+\begin{Def}\label{def:scm_rung3_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$.
+  We say that \emph{$a$ is not a rung-3 cause of $b$ according to $M$} if:
+    \begin{equation}\label{eq:scm_rung3_cause_of}\begin{split}
+      & \forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}, \forall x_{I_a},x_{I_{a'}} \in \CX_{I_a}: \\
+      & P_{(M_{\doit(X_{J\sm\{I_a\}}=x_{J\sm\{I_a\}}),\doit(I_a)})^\twin}(X_b = X_{b'} \given \doit(X_{I_a}=x_{I_a}),\doit(X_{I_{a'}}=x_{I_{a'}})) = 1.
+    \end{split}\end{equation}
+  Otherwise, we say that \emph{$a$ is a rung-3 cause of $b$ according to $M$}.
+\end{Def}
+\begin{Rem}\label{rem:scm_rung3_cause_of}
+  We can rewrite \eref{eq:scm_rung3_cause_of} for $a \in V$ as:
+%    $$P_{M}(X_b \given \doit(X_J), \doit(X_a)) \ne P_{M}(X_b \given \doit(X_J))$$
+    $$\forall x_J \in \CX_J, \forall x_a \in \CX_a: \quad P_{((M_{\doit(X_J=x_J)})^\twin)_{\doit(a)}}(X_b = X_{b'} \given \doit(X_a=x_a)) \ne 1;$$
+  and for $a \in J$ as:
+%    $$P_{M}(X_b \given \doit(X_J)) \ne P_{M}(X_b \given \doit(X_{J\setminus \{a\}}),\cancel{\doit(X_a)}).$$
+    $$\forall x_{J\sm\{a\}} \in \CX_{J\sm\{a\}}, \forall x_a,x_a' \in \CX_a: \quad P_{(M_{\doit(X_{J\sm\{a\}}=x_{J\sm\{a\}})})^\twin}(X_b = X_{b'} \given \doit(X_a=x_a),\doit(X_{a'}=x_a')) \ne 1.$$
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung3_cause_of_marginalization}
+  Marginalization of an iSCM preserves the rung-3 causal relations of the remaining variables.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung3_cause_of_counterfactual_equivalence}
+  Rung-3 causal relations are invariant under counterfactual equivalence of iSCMs.
+  More precisely: $a$ is a rung-3 cause of $b$ according to $M$ implies that $a$ is a rung-3 cause of $b$ according to $\tilde{M}$ if $M$ is counterfactually equivalent to $\tilde{M}$ w.r.t.\ $\{a,b\} \cap V$
+  (remember that Proposition~\ref{prp:scm_interventions_preserve_counterf_equiv} states that if $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $\{a,b\} \cap V \ins V \cap \tilde{V}$, then so are $M_{\doit(I_a)}$ and $\tilde{M}_{\doit(I_a)}$ if $a \in (V \cap \tilde{V}) \cup (J \cap \tilde{J})$).
+\end{Rem}
+
+The following example shows that the presence of a rung-3 causal relation does not necessarily imply the presence of a rung-2 causal relation.
+Intuitively, the causal effect can go unnoticed if it averages out.
+\begin{Eg}\label{eg:scm_cause_of_rung2_vs_rung3}
+  Consider the iSCM $M$ with exogenous input variable $X_a \in \{-1,+1\}$, endogenous variable $X_b \in \{-1,+1\}$, exogenous random variable $X_w \in \{-1,1\}$, and structural equation:
+  $$X_b = X_a X_w,$$
+  where $X_w \sim \C{U}(\{-1,1\})$.
+  Note that $a$ is a rung-3 cause of $b$ according to $M$, but $a$ is not a rung-2 cause of $b$ according to $M$.
+  Indeed, due to the uniform distribution of $X_w$ the dependence of $b$ on $a$ averages out.
+\end{Eg}
+So, for example, a drug can have a beneficial effect on all males and an adversary effect on all females, and still have \emph{no effect} on the entire population (if the positive effect exactly cancels out the negative effect on average).
+
+The next example shows that the presence of a causal relation according to the causal graph does not necessarily imply the presence of a rung-3 causal relation.
+Intuitively, different causal paths can cancel out.
+\begin{Eg}\label{eg:scm_cause_of_graphical_vs_rung3}
+  Consider the iSCM $M$ with exogenous input variable $X_a \in \RN$, endogenous variables $X_c, X_d, X_b \in \RN$, exogenous random variable $X_w \in \RN$, and structural equations
+  \begin{align*}
+    X_c &= X_a, \\
+    X_d &= -X_a \\
+    X_b &= X_c + X_d + X_w 
+  \end{align*}
+  with $X_w \sim \C{N}(0,1)$.
+  Then $a$ causes $b$ according to $G(M)$, but $a$ is not a rung-3 cause of $b$ according to $M$.
+\end{Eg}
+
+\subsubsection{Causal relations (potential outcome notion)}
+
+Yet another possible notion (at first sight) of causation can be given in terms of potential outcomes.
+\begin{Def}\label{def:scm_po_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$.
+  Let $g$ be a solution function of $M_{\doit(I_a)}$ and let $X_W \sim P(X_W)$ be a random variable.
+  We say that \emph{$a$ is not a potential-outcome cause of $b$ according to $M$} if:
+  $$\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}, \forall x_{I_a},x_{I_a}' \in \CX_{I_a}: \qquad g_b(x_{I_a},x_{J\sm\{I_a\}},X_W) = g_b(x_{I_a}',x_{J\sm\{I_a\}},X_W) \text{ a.s..}$$
+  Otherwise, we say that \emph{$a$ is a potential-outcome cause of $b$ according to $M$}.
+\end{Def}
+Using the notation of potential outcomes, we can also write:
+  $$\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}, \forall x_{I_a},x_{I_a}' \in \CX_{I_a}: \qquad X^{\doit(x_{I_a},x_{J\sm\{I_a\}})}_b = X^{\doit(x_{I_a}',x_{J\sm\{I_a\}})}_b \text{ a.s.}$$
+Here it is very important to keep in mind that we must use the same $X_W$ to induce $X^{\doit(x_{I_a},x_{J\sm\{I_a\}})}_b := g_b(x_{I_a},x_{J\sm\{I_a\}},X_W)$ and $X^{\doit(x_{I_a}',x_{J\sm\{I_a\}})}_b := g_b(x_{I_a}',x_{J\sm\{I_a\}},X_W)$.
+\begin{Rem}
+Note that the choice of $W$ does not matter for the definition; any random variable that is distributed according to the exogenous distribution of $M$ can be used.
+Furthermore, the choice of $g$ does not matter for the definition by Lemma~\ref{lem:M-as_to_rv-as}; any solution function of $M_{\doit(I_a)}$ can be used.
+\end{Rem}
+
+At second sight, it turns out that the potential-outcome notion and the counterfactual notion coincide.
+\begin{Prp}\label{prp:scm_cause_of_rung3_po}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$.
+  Then $a$ is a rung-3 cause of $b$ if and only if $a$ is a potential-outcome cause of $b$.
+\end{Prp}
+\begin{proof}
+  This is a matter of writing out the definitions.
+\end{proof}
+The potential-outcome notion has the advantage that it is considerably simpler to formulate: it leads to shorter expressions than the ones involving the twinning operation.
+
+\subsubsection{Hierarchy of causal relations}
+
+The following result shows the logical relations between various notions of causation.
+It is somewhat reminiscent of Pearl's causal hierarchy.
+
+\begin{Thm}\label{thm:scm_causes}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a \in V \cup J$ and $b \in V$.
+  Consider the following statements:
+  \begin{enumerate}
+    \item $a$ does not cause $b$ according to $G(M)$;
+    \item $a$ is not a rung-3 cause of $b$ according to $M$;
+%    \item $a$ is not a potential-outcome cause of $b$ according to $M$;
+    \item $a$ is not a rung-2 cause of $b$ according to $M$.
+  \end{enumerate}
+  Then (i) $\implies$ (ii) $\implies$ (iii). 
+  If $M_{\doit(I_a)}$ is $i\sigma$-faithful, also (iii) $\implies$ (i).
+\end{Thm}
+\begin{proof}
+  Pick an arbitrary $x_{I_a}^0 \in \CX_{I_a}$ (for example, $x_{I_a}^0 = \star$ for $a \in V$).
+  Write ``$\foralmostall x_w \in \CX_W$'' as a shorthand of ``for $P$-almost all $x_w \in \CX_W$''.
+  Consider the properties:\footnote{Note that the ordering of the quantifiers matters! In particular, $\foralmostall x_W \forall x_V \implies \forall x_V \foralmostall x_W$, whereas the converse doesn't hold in general (but does hold if $\CX_V$ is discrete).}
+  \begin{enumerate}[label=(\roman*)]
+    \item   $a \not\in \Anc^{G(M)}(b)$;
+%    \item[(b)]  $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\forall x_W \in \CX_W$, $\forall x_{I_a} \in \CX_{I_a}$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$;
+%    \item[(iii)] $\foralmostall x_W \in \CX_W$, $\forall x_{J\sm\{a\}} \in \CX_{J\sm\{a\}}$, $\forall x_a \in \CX_a$: $g_b(x_a,x_{J\sm\{a\}},x_W) = g_b(x_a^0,x_{J\sm\{a\}},x_W)$;
+    \item  there exists a solution function $g$ of $M_{\doit(I_a)}$ such that:\\
+      $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\foralmostall x_W \in \CX_W$, $\forall x_{I_a} \in \CX_{I_a}$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$;
+    \item  for all solution functions $g$ of $M_{\doit(I_a)}$:\\
+      $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\forall x_{I_a} \in \CX_{I_a}$, $\foralmostall x_W \in \CX_W$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$;
+    \item  for all solution functions $g$ of $M_{\doit(I_a)}$:\\
+      $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\forall x_{I_a} \in \CX_{I_a}$: $P_M(g_b(x_{I_a},x_{J\sm\{I_a\}},X_W)) = P_M(g_b(x_{I_a}^0,x_{J\sm\{I_a\}},X_W))$.
+  \end{enumerate}
+  We will show that (a) $\implies$ (b) $\implies$ (c) $\implies$ (d), and that (d) $\implies$ (a) if $M_{\doit(I_a)}$ is $i\sigma$-faithful.
+  The claim then follows by noting that (i) is equivalent to (a), (ii) to (c), and (iii) to (d).
+
+  We show:\\
+  (a) $\implies$ (b):
+  Noting that
+  $a \not\in \Anc^{G(M)}(b) \iff a \not\in \Anc^{G^+(M)}(b) \iff I_a \not\in \Anc^{G^+(M_{\doit(I_a)})}(b)$,
+  Lemma~\ref{lem:scm_structural_minimality_solution_function} applied to $M_{\doit(I_a)}$ provides us with a solution function $g$ of $M_{\doit(I_a)}$ for which $g_b$ is essentially constant in $x_{I_a}$.
+
+  (b) $\implies$ (c).
+  For the solution function $g$ that satisfies (b), it follows (by swapping quantifiers) that:
+  $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\forall x_{I_a} \in \CX_{I_a}$, $\foralmostall x_W \in \CX_W$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$.
+  In other words,
+  $$g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)\ M\as.$$
+  Because the solution function of $M$ is essentially unique, this property actually holds for any solution function of $M$.
+
+  (c) $\implies$ (d) is trivial: almost-sure equality implies equality in distribution.
+  
+  (d) $\implies$ (a) follows from the definition of $i\sigma$-faithfulness in combination with Proposition~\ref{prp:graph_cause_of}.
+  \Joris{Rewriting the statements using the range in the hope this will be useful one day:
+  \begin{enumerate}[label=(\roman*)]
+    \item[(a)]   $a \not\in \Anc^{G(M)}(b)$;
+%    \item[(ii)]  $\forall x_{J} \in \CX_{J}$, $\forall x_W \in \CX_W$: $R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W)) = R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W) \given X_{I_a}=x_{I_a}^0) \forall x_{I_a}^0 \in \CX_{I_a}$;
+%    \item[(iii)] $\foralmostall x_W \in \CX_W$, $\forall x_{J\sm\{a\}} \in \CX_{J\sm\{a\}}$, $\forall x_a \in \CX_a$: $g_b(x_a,x_{J\sm\{a\}},x_W) = g_b(x_a^0,x_{J\sm\{a\}},x_W)$;
+    \item[(b)]  $\forall x_{J} \in \CX_{J}$, $\foralmostall x_W \in \CX_W$: $R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W)) = R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W)\given X_{I_a}=x_{I_a}^0) \forall x_{I_a}^0 \in \CX_{I_a}$;
+    \item[(c)]   $\forall x_{J} \in \CX_{J}$, $\foralmostall x_W \in \CX_W$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W) \forall x_{I_a}^0 \in \CX_{I_a}$;
+    \item[(d)]  $\forall x_{J} \in \CX_{J}$: $P(g_b(x_{I_a},x_{J\sm\{I_a\}},X_W)) = P(g_b(x_{I_a}^0,x_{J\sm\{I_a\}},X_W))$.
+  \end{enumerate}}
+\end{proof}
+
+\begin{Lem}\label{lem:scm_structural_minimality_solution_function}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM.
+%  Let $B \subseteq V$.
+%  \Joris{OLD: THIS WAS ACTUALLY WRONG, IT SHOULD BE ANCESTORS, NOT PARENTS!
+%  Denote the (unique) solution function of $M$ by $g$. %, and the (unique) solution function of the submodel $M^{[B]}$ by $g^{[B]}$.
+%  Then $g_B : \CX_J \times \CX_W \to \CX_B$ is constant in $(J \cup W) \sm \Pa^{G^+}(B)$:\footnote{We slightly abuse notation by
+%  identifying two functions with different domains.}
+%    $$\forall x \in \CX: \qquad g_B(x_J,x_W) = g_B(x_{(J \cup W) \cap \Pa^{G^+}(B)}).$$
+%    }
+%  and $g^{[B]} : \CX_J \times \CX_W \times \CX_{V \sm B} \to \CX_B$ is constant in $(J \cup W \cup (V \sm B)) \sm \Pa^{G^+}(B)$:
+%    $$\forall x \in \CX: \qquad g^{[B]}(x_J,x_W,x_{V \sm B}) = g^{[B]}(x_{\Pa^{G^+}(B) \sm B}).$$
+%
+%  WRONG: Each solution function $g$ of $M$ has the property that for all $b \in V$, the component $g_b : \CX_J \times \CX_W \to \CX_b$ is essentially constant in $(J \cup W) \sm \Anc^{G^+(M)}(b)$:
+%    $$g_b(x_J,x_W) = g_b(x_{(J \cup W) \cap \Anc^{G^+(M)}(b)},\cancel{x_{\Anc^{G^+(M)}}(b)})\quad M\as.$$
+%
+  Then there exists a solution function $g$ of $M$ such that for all $b \in V$,
+  $g_b : \CX_J \times \CX_W \to \CX_b$ is constant in $(J \cup W) \sm \Anc^{G^+(M)}(b)$:
+    $$\forall x \in \CX: \qquad g_b(x_J,x_W) = g_b(x_{(J \cup W) \cap \Anc^{G^+(M)}(b)},\cancel{x_{\Anc^{G^+(M)}}(b)}).$$
+\end{Lem}
+\begin{proof}
+%  One conceptually elegant way to prove this would be to apply the variation independence version of the global Markov property.
+%  Since we have not formulated this here, we will give a direct proof.
+  Without loss of generality, we may assume that each causal mechanism $f_v$ only depends on its parents (see Remark~\ref{rem:iscm_structurally_minimal}), and thus consider $f_v : \CX \to \CX_v$ as a function $f_v : \CX_{\Pa^{G^+(M)}(v)} \to \CX_v$ instead, for all $v \in V$.
+
+  We construct $g$ as follows.
+  Let $C \ins V$ be a strongly connected component of $G(M)$.
+  We can pick a partial solution function $g^{[C]}$ of $M$ w.r.t.\ $C$ that only depends on $\Pa^{G^+(M)}(C) \sm C$.
+  Indeed, any variable that appears in a causal mechanism $f_c$ for $c \in C$ must be in $\Pa^{G^+(M)}(c)$, that is, $g^{[C]}$ solves the equations
+  $$x_C = f_C(x_{\Pa^{G^+(M)}(C)})$$
+  for $x_C$ in terms of $x_{\Pa^{G^+(M)}(C) \sm C}$.
+  Since the equations have a unique solution up to an $M$-null set, we can pick $g^{[C]} : \CX_{\Pa^{G^+(M)}(C) \sm C} \to \CX_C$ to be that unique solution.
+  This function is constant in $x_{J \cup W \sm (\Pa^{G^+(M)}(C) \sm C)}$ (up to an $M$-null set), and hence we can extend it to be constant in $x_{J \cup W \sm (\Pa^{G^+(M)}(C) \sm C)}$ everywhere.
+  Construct such $g^{[C]}$ for each strongly connected component $C \ins V$ of $G(M)$ and consider the corresponding acyclification $M^\acy$ (cf.\ Definition~\ref{def:scm_acyclification}); this can be considered a ``structurally minimal acyclification of $M$''.
+  We then obtain a global solution function $g$ of $M^\acy$ by recursive composition of the partial solution functions $g^{[C]}$ (cf.\ the proof of Proposition~\ref{prp:scm_acyclification_properties}).
+  It has the property that for all $v \in V$, $g_v$ is constant in the non-ancestors of $v$ according to $G^+(M^\acy)$.
+  But this $g$ is also a solution function of $M$.
+  It has the desired property, since $\Anc^{G^+(M^\acy)}(v) \ins \Anc^{G^+(M)}(v)$ for all $v \in V$.
+% ALSO THE FOLLOWING CONCLUSION TURNED OUT TO BE WRONG! (SEE EXAMPLE \ref{eg:scm_cause_of_c_notimplies_b} FOR A COUNTEREXAMPLE
+%  Since the solution function of $M$ is essentially unique, the constancy holds for any solution function of $M$ up to an $M$-null set. 
+%  This proves the claim.
+%
+%  Hence, for all $x \in \CX$,
+%  $$x_B = f_B(x) \iff x_B = f_B(x_{\Pa^{G^+}(B)}) = f_B(x_{\Pa^{G^+}(B) \sm B},x_{B \cap \Pa^{G^+}(B)}).$$
+%  Also, 
+%  $$x_B = f_B(x) \iff x_B = g^{[B]}(x_J,x_W,x_{V \sm B})\ M\as$$
+%  where $g^{[B]}$ is a partial solution function of $M$ w.r.t.\ $B$.
+%  Hence, $g^{[B]}(x_J,x_W,x_{V \sm B}) = f_B(x_{\Pa^{G^+}(B) \sm B},x_{B \cap \Pa^{G^+}(B)})\ M\as$.
+%
+%  By Proposition~\ref{prp:simple_scm_consistency}, 
+%  for $g : \CXJ \times \CXW \to \CXV$ a solution function of $M$, and 
+%  $g^{[B]} : \CX_A \times \CXJ \times \CXW \to \CX_B$ a partial solution function of $M$ w.r.t.\ $B$ (with $A := V \sm B$), 
+%  $$g_B(x_J,x_W) = g^{[B]}(g_A(x_J,x_W),x_J,x_W)\qquad M\as.$$
+%
+% HERE THE PROOF WENT WRONG:
+%  By the uniqueness of the solution function of $M^{[B]}$, then, the function $g^{[B]}$ must be constant in $x_k$ for $k \in (J \cup W \cup (V \sm B)) \sm (\Pa^{G^+}(B) \sm B)$.
+%  Furthermore, since for all $x \in \CX$, $x_B = g_B(x_J,x_W)$ implies $x_B = g^{[B]}(x_J,x_W,x_{V \sm B})$, also $g_B$ must be constant in $x_k$ for $k \in (J \cup W) \sm (\Pa^{G^+}(B) \sm B) = (J \cup W) \sm \Pa^{G^+}(B)$.
+% FROM THE CONSISTENCY EQUATION WE SEE THAT EVEN THOUGH g^{[B]} IS CONSTANT, g_A MAY NOT!
+\end{proof}
+
+We have already seen that the reverse implications in Theorem~\ref{thm:scm_causes} may not hold.
+Indeed, Example~\ref{eg:scm_cause_of_graphical_vs_rung3} exhibits a graphical causal relation that is not a rung-3 causal relation, and in Example~\ref{eg:scm_cause_of_rung2_vs_rung3} we saw a rung-3 causal relation that is not a rung-2 causal relation.
+
+\Joris{The following example points out that the essential constancy of $g$ in this Lemma does not hold for any solution function of $M$ (if $\CX_a$ is not discrete, at least).
+\begin{Eg}\label{eg:scm_cause_of_c_notimplies_b}
+  Consider the iSCM $M$ with exogenous input variable $X_a \in \RN$, endogenous variable $X_b \in \RN$, exogenous random variable $X_w \in \RN$, and structural equation
+  $$X_b = \ind_{X_a}(X_w)$$
+  and exogenous distribution $X_w \sim \C{N}(0,1)$.
+
+  We consider two solution functions of $M$.
+  The first is $g(x_a,x_w) = \ind_{x_a}(x_w)$.
+  The second is $\tilde g(x_a,x_w) = 0$.
+  The second is obviously constant in $x_a$ (even for all $x_w$).
+  The first however is clearly not essentially constant in $x_a$, since for NO $x_w$ is $\tilde g_b(x_a,x_w)$ constant in $x_a$.
+  Hence the property in (b) in the proof of Theorem~\ref{thm:scm_causes},\\
+    $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\foralmostall x_W \in \CX_W$, $\forall x_{I_a} \in \CX_{I_a}$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$,\\
+  holds for $g$ but not for $\tilde g$.
+
+  One can check that property (c) in the proof of Theorem~\ref{thm:scm_causes},
+    $\forall x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}$, $\forall x_{I_a} \in \CX_{I_a}$, $\foralmostall x_W \in \CX_W$: $g_b(x_{I_a},x_{J\sm\{I_a\}},x_W) = g_b(x_{I_a}^0,x_{J\sm\{I_a\}},x_W)$,\\
+ holds both for $g$ and $\tilde g$.
+  Indeed, for all $x_a \in \RN$, $g(x_a,x_W) = 0$ a.s.\ and $\tilde g(x_a,x_W) = 0$ a.s..
+\end{Eg}
+If $\CX_a$ is discrete, then the properties (b) and (c) are actually equivalent (?).
+}
+
+\Joris{The following appears obsolete:
+\begin{Eg}\label{eg:scm_cause_of_b_notimplies_sure-b}
+  Consider the iSCM $M$ with exogenous input variable $X_a \in \{0,1\}$, endogenous variable $X_b \in \{0,1\}$, exogenous random variable $X_w \in \{0,1\}$, and structural equations
+  $$X_b = X_a \wedge X_w$$
+  with $P(X_w=0) = 1$.
+  Then $X_b = 0$ with probability 1, hence property (b) in Theorem~\ref{thm:scm_causes} holds.
+  However, it is not the case that:\\
+    $\forall x_{J} \in \CX_{J}$, $\forall x_W \in \CX_W$: $R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W)) = R(g_b(X_{I_a},x_{J\sm\{I_a\}},x_W) \given X_{I_a}=x_{I_a}^0) \forall x_{I_a}^0 \in \CX_{I_a}$\\
+  (the `sure' version of (b), formerly known as property (ii)).
+\end{Eg}
+We formerly claimed that the `sure' version of (b) was equivalent with (b) if $\CX_W$ is discrete and the exogenous distribution is strictly positive.
+}
+
+\Joris{
+Here I write something about the application to the Berkeley setting (with $S$ split into $S$=sex at birth and $S$'=perceived sex by decision agent).
+Consider the iSCM $M$ with $J = \emptyset$, $V = \{S,S',D,A\}$ with structural equation $S'=S$ and with a possible edge $S' \tuh A$ but such that
+$G(M)_{\{S,D,A\}}$ is of IV-type.
+We can consider:
+\begin{enumerate}[label=(\roman*)]
+  \item $S'$ does not cause $A$ according to $G(M)_{\doit(D)}$ (equivalently: $G(M_{\doit(D)})$)
+  \item $S'$ is not a potential-outcome cause of $A$ according to $M_{\doit(D)}$
+  \item $S'$ is not a rung-2 cause of $A$ according to $M_{\doit(D)}$
+\end{enumerate}
+It follows from Theorem~\ref{thm:scm_causes} applied to $M_{\doit(D)}$ that (i) implies (ii), and (ii) implies (iii).
+To connect this with the formalism \emph{without} input nodes, we reformulate these as: for all $d \in \CX_D$,
+\begin{enumerate}[label=(\roman*)]
+  \item $S'$ does not cause $A$ according to $G(M)_{\bar{D}}$ (which is the graph obtained from $G(M)$ by removing all edges into $D$, but keeping $D$ an output node);
+  \item $S'$ is not a potential-outcome cause of $A$ according to $M_{\doit(D=d)}$
+  \item $S'$ is not a rung-2 cause of $A$ according to $M_{\doit(D=d)}$
+\end{enumerate}
+Spelling these properties out for the case at hand gives:
+\begin{enumerate}[label=(\roman*)]
+  \item there is no edge $S' \tuh A$ in $G(M)$;
+  \item $S'$ is not a potential-outcome cause of $A$ according to $M_{\doit(D=d)}$:
+    $$\forall d \in \CX_D, \forall s' \in \CX_{S}: \qquad g_A(d,s',X_W) = h_A(d,X_W) \text{ a.s.}$$
+  where $X_W \sim P(X_W)$, and $g_A(d,s',X_W)$ is the $A$-component of the solution function of $M_{\doit(D),\doit(S')}$ and $h_A(d,X_W)$ is the $A$-component of the solution function of $M_{\doit(D)}$.
+  Obviously, we can spell this out in even more detail in terms of the notation of the causal mechanisms in the AISTATS submission (we have to define the solution functions in terms of the structural mechanisms mentioned there).
+  \item $S'$ is not a rung-2 cause of $A$ according to $M_{\doit(D=d)}$:
+    $$\forall d \in \CX_D, \forall s' \in \CX_{S}: \qquad  P_{M}(A \given \doit(D=d), \doit(S'=s')) = P_{M}(A \given \doit(D=d)) $$
+\end{enumerate}
+Theorem~\ref{thm:scm_causes} suggests that also for these properties, (i) implies (ii) and (ii) implies (iii).
+The proof of Theorem~\ref{thm:scm_causes} may be adapted to obtain a direct proof of this:
+\begin{proof}
+  (Sketch)
+  Write ``$\foralmostall x_w \in \CX_W$'' as a shorthand of ``for $P$-almost all $x_w \in \CX_W$''.
+
+  (i) $\implies$ (ii): 
+  Sticking to the definition of ``parent'' in our AOS paper, the absence of the edge $S' \tuh A$ from $M_{\doit(D=d)}$ means that 
+  $$\forall d \in \CX_D \foralmostall x_w \in \CX_W \forall s' \in \CX_{S} : f_A(s',d,x_W) = f_A(d,x_W)$$
+  One can then explicitly construct the solution functions $g$ of $M_{\doit(D),\doit(S')}$ and $h$ of $M_{\doit(D)}$ in terms of the causal mechanism of $M$.
+  This should lead to the conclusion:
+    $$\forall d \in \CX_D, \foralmostall x_W \in \CX_W, \forall s' \in \CX_{S}: \qquad g_A(d,s',x_W) = h_A(d,x_W)$$
+  We can now change the ordering of the quantifiers:
+    $$\forall d \in \CX_D, \forall s' \in \CX_{S}, \foralmostall x_W \in \CX_W: \qquad g_A(d,s',x_W) = h_A(d,x_W)$$
+  which is equivalent to:
+    $$\forall d \in \CX_D, \forall s' \in \CX_{S}: \qquad g_A(d,s',X_W) = h_A(d,X_W) \text{ a.s.}$$
+  for any random variable $X_W$ distributed according to the exogenous distribution of $M$.
+  
+  (ii) $\implies$ (iii):
+  Almost-sure identity implies identity of distributions:
+    $$\forall d \in \CX_D, \forall s' \in \CX_{S}: \qquad P(g_A(s',d,X_W)) = P(h_A(d,X_W))$$
+  and this is equivalent to (iii).
+\end{proof}
+}
+
+\Joris{Some conjectures that I might prove some day:
+\begin{itemize}
+  \item If all observed variables are discrete, the ancestral relations in the graph are identifiable from the counterfactual equivalence class.
+  \item Under a discreteness assumption, the directed edges in the graph are identifiable from the counterfactual equivalence class.
+\end{itemize}
+For the second one, we attempt:
+\begin{proof}
+  There is a directed edge $a \tuh b$ in $G(M)$ iff $a$ is a parent of $b$.
+  That is, from Definition~\ref{def:scm_parent}:
+
+  iff there does not exist a measurable function 
+  $\tilde f_b : \CX_{(\Sin\cup\Send\cup\Srnd) \setminus \{a\}} \to \CX_b$
+  such that
+  $$x_b = f_b(x) \iff x_b = \tilde f_b(x_{\setminus a}) \qquad M\as,$$
+  where $x_{\setminus a}$ is shorthand for $x_{(\Sin\cup\Send\cup\Srnd)\setminus\{a\}}$.
+
+  $a$ being a rung-3 direct cause of $b$ is equivalent to:
+    \begin{equation*}\begin{split}
+      & \exists x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \exists x_{I_a},x_{I_{a}}' \in \CX_{I_a}: \\
+      & P_M\big(g_b(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W) = 
+                g_b(x_{I_a}',x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)\big) \ne 1.
+    \end{split}\end{equation*}
+  where $g$ is a solution function of $M^{[\{a,b\}\cap V]}_{\doit(I_a)}$.
+
+  For $a,b \in V$, $g$ being a solution function of $M^{[\{a,b\}\cap V]}_{\doit(I_a)}$ if it is a solution function of the structural equations
+    $$x_a = f_a(I_a,x), x_b = f_b(I_a,x)$$
+
+  We have already shown that if there is no edge $a \tuh b$ then $a$ is not a rung-3 direct cause of $b$.
+  The converse: if $a$ is not a rung-3 direct cause of $b$, then there is no edge $a \tuh b$.
+  So if 
+    \begin{equation*}\begin{split}
+      & \forall x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \forall x_{I_a},x_{I_{a}}' \in \CX_{I_a}: \\
+      & P_M\big(g_b(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W) = 
+                g_b(x_{I_a}',x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)\big) = 1,
+    \end{split}\end{equation*}
+  then
+    \begin{equation*}\begin{split}
+      & \forall x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \forall x_{I_a},x_{I_{a}}' \in \CX_a: \\
+      & P_M\big(g_b(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W) = 
+                g_b(x_{I_a}',x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)\big) = 1,
+    \end{split}\end{equation*}
+  hence
+    \begin{equation*}\begin{split}
+      & \forall x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \forall x_{I_a},x_{I_{a}}' \in \CX_a: \\
+      & g_b(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W) = g_b(x_{I_a}',x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)\quad M\as.
+    \end{split}\end{equation*}
+  For $x_{I_a} \in \CX_a$, then for $a,b \in V$ we have that $g$ is a solution function of the SEs 
+    $$x_a = x_{I_a}, x_b = f_b(x)$$
+  So $g_b$ is actually a partial solution function of $M$ w.r.t.\ $b$.
+  The same conclusion holds if $a \in J, b \in V$.
+  More precisely: if $g : \CX_{I_a} \times \CX_{(J \sm \{I_a\}) \cup (V\sm\{a,b\})} \times \CX_W \to \CX_{\{a,b\}\cap V}$ is a solution function of $M^{[\{a,b\}\cap V]}_{\doit(I_a)}$, then
+  $g_b : \CX_{a} \times \CX_{(J \sm \{I_a\}) \cup (V\sm\{a,b\})} \times \CX_W \to \CX_{\{a,b\}\cap V}$ (restricting the first input to values in $\CX_a$ instead of $\CX_{I_a}$)
+  is a partial solution function of $M$ w.r.t.\ $b$.
+  So...? CONTINUE HERE
+
+    $$g(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)$$
+  there is a measurable function $\tilde f_b : \CX_{(\Sin\cup\Send\cup\Srnd) \setminus \{a\}} \to \CX_b$ such that
+  $$x_b = f_b(x) \iff x_b = \tilde f_b(x_{\setminus a}) \qquad M\as,$$
+\end{proof}
+}
+
+%While we have given names to the notions (i), (iv) and (v), we consider notions (ii) and (iii) not as relevant (although they are useful as intermediate steps when deriving the logical relationships between the various notions).
+%Indeed, notion (ii) is too strong if we cannot intervene to set values of exogenous random variables, but are limited to drawing samples from $P(X_W)$.
+%\Joris{This observation also suggests to change the definition of edges in the graph of an iSCM, analogously to how this is defined in \cite{BFPM21}. This becomes even more obvious in the next section.}
+%Notion (iii) is less relevant because it does not have an interpretation in terms of the data generating processes that we are considering:
+%it corresponds with first drawing a value for $X_W$ from $P(X_W)$, and afterwards deciding on a value for $X_a$. 
+%In practice, this would require the agent or experimenter to have access to the realization of $X_W$ when deciding on the value of $X_a$.
+%However, that is inconsistent with the modeling assumption that $X_W$ is latent for the agent.\footnote{One could also consider a setting in
+%which some, but not all, information about the value $x_W$ is accessible to the experimenter. For example, some exogenous random variables
+%could be considered ``observable'' and others ``latent'', while they would all be considered ``non-intervenable''. We will not consider this as 
+%it would complicate matters further.}
+
+We have formalized the main principle of how we can learn about causal relations in the world: by actively changing some part of the world (choosing the intervention values independently) and observing the response of other parts of the world.
+The independence assumption is key to distinguish mere correlation from causation.\footnote{As a less mathematical and more philosophical footnote: it is interesting to speculate about how this relates to the notion of a free will. 
+If an agent is not convinced that it chose the intervention values independently of other past aspects of the world, it cannot validly perform this causal reasoning step. 
+An agent without a free will to choose these values could therefore never conclude that its actions have a causal effect on the world, as it could also just be a puppet steered by higher powers, and any dependence it observes between its actions and aspects of the world could also be ascribed to confounding. 
+So perhaps that is why evolution equipped us with the impression that we have a free will.}
+
+\subsection{Direct Causal Relations}
+
+Another important notion is that of direct causation. 
+Essentially, ``$a$ causes $b$ directly'' means that $a$ causes $b$ even when performing a hard intervention on all other endogenous variables.
+Since we distinguished different notions of ``$a$ causes $b$'', we also end up distinguishing analogous notions of ``$a$ causes $b$ directly''.
+
+One should keep in mind that the notion of direct causation is always relative to some set of variables.\footnote{This is implicitly communicated by the qualification ``according to $M$'' or ``according to $G(M)$'', but is easy to forget in practice when modeling some system causally, especially when one has not decided yet on the (complete) set of endogenous variables that need to be considered.}
+In particular, this property is not necessarily preserved under marginalization.
+
+We start again with the graphical notion. First, we need a graphical analogue of the notion of ``submodel''.
+\begin{Def}\label{def:graph_submodel}
+  Let $G = \lt J, V, E, L \rt$ be a CDMG with input nodes $J$ and output nodes $V$.
+  For $A \subseteq V$, we define the \emph{submodel} of $G$ on $A$ as $G^{[A]} := G^{\doit(V\sm A)} = \lt J \cup (V \sm A), A, \lC v \tuh a \in E \given v \in V, a \in A \rC, \lC a \huh a' \in L \given a,a' \in A \rC \rt$.
+\end{Def}
+We now define the graphical notion:
+\begin{Def}\label{def:graph_direct_cause_of}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $a \in J \cup V$ and $b \in V$.
+  We say that \emph{$a$ is a direct cause of $b$ (w.r.t.\ $V \cup J$) according to $G$} if $a$ causes $b$ according to $G^{[\{a,b\}\cap V]}$.
+\end{Def}
+\begin{Rem}
+  Note that this holds if and only if $a \in \Pa^{G}(b)$.
+  This provides the causal interpretation of directed edges in a causal graph.
+\end{Rem}
+%\begin{Def}\label{def:direct_cause_of}
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G = G(M)$.
+%  Let $a \in J \cup V$ and $b \in V$.
+%  We say that \emph{$a$ is a direct cause of $b$ (w.r.t.\ $V \cup J$) according to $M$} if $a \in \Pa^{G}(b) \sm \{b\}$.
+%\end{Def}
+%\begin{Prp}\label{prp:direct_cause_of}
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+%  For $a \in J \cup V$, $b \in V$, $a$ is a direct cause of $b$ w.r.t.\ $J \cup V$ according to $M$ if and only if $a$ causes $b$ according to $M^{[b]}$.
+%\end{Prp}
+Similarly, we define the rung-2 notion:
+\begin{Def}\label{def:scm_rung2_direct_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$. 
+  We say that \emph{$a$ is a rung-2 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $M$} if and only if $a$ is a rung-2 cause of $b$ according to $M^{[\{a,b\}\cap V]}$.
+  %  $= M_{\doit(V\sm \{a,b\})}$
+\end{Def}
+\begin{Rem}\label{rem:scm_rung2_direct_cause_of}
+  Remember that $a$ is a rung-2 cause of $b$ according to $M$ means: $$P_{M}(X_b \given \doit(X_{J \cup \{a\}})) \ne P_{M}(X_b \given \doit(X_{J\sm\{a\}})).$$
+  Spelling this out, $a$ being a rung-2 direct cause of $b$ according to $M$ means that:
+    $$P_{M}(X_b \given \doit(X_{(J \cup V) \sm \{a,b\}}), \doit(X_a)) \ne P_{M}(X_b \given \doit(X_{(J \cup V)\sm\{a,b\}})).$$
+  In words: changing $a$ influences the distribution of $b$ even when intervening to hold all other endogenous variables fixed.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung2_direct_cause_of_interventional_equivalence}
+  Rung-2 direct causal relations are invariant under interventional equivalence of iSCMs.
+  More precisely: $a$ is a rung-2 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $M$ implies that $a$ is a rung-2 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $\tilde{M}$ if $M$ is interventionally equivalent to $\tilde{M}$ (w.r.t.\ $V$).
+\end{Rem}
+Similarly, we define the rung-3 notion:
+\begin{Def}\label{def:scm_rung3_direct_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \in J \cup V$ and $b \in V$. 
+  We say that \emph{$a$ is a rung-3 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $M$} if and only if $a$ is a rung-3 cause of $b$ according to $M^{[\{a,b\}\cap V]}$.
+  %  $= M_{\doit(V\sm \{a,b\})}$
+\end{Def}
+\begin{Rem}\label{rem:scm_rung3_direct_cause_of}
+  Remember that $a$ is a rung-3 cause of $b$ according to $M$ means:
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}, \exists x_{I_a},x_{I_{a'}} \in \CX_{I_a}: \\
+      & P_{(M_{\doit(X_{J\sm\{I_a\}}=x_{J\sm\{I_a\}}),\doit(I_a)})^\twin}(X_b = X_{b'} \given \doit(X_{I_a}=x_{I_a}),\doit(X_{I_{a'}}=x_{I_{a'}})) \ne 1.
+    \end{split}\end{equation*}
+  Spelling this out, $a$ being a rung-3 direct cause of $b$ according to $M$ means that:
+    \begin{equation*}\begin{split}
+      & \exists x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \exists x_{I_a},x_{I_{a'}} \in \CX_{I_a}: \\
+      & P_{(M_{\doit(X_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}=x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}),\doit(I_a)})^\twin}(X_b = X_{b'} \given \doit(X_{I_a}=x_{I_a}),\doit(X_{I_{a'}}=x_{I_{a'}})) \ne 1.
+    \end{split}\end{equation*}
+  Alternatively, we can spell this out using potential outcomes:
+    \begin{equation*}\begin{split}
+      & \exists x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})} \in \CX_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})}, \exists x_{I_a},x_{I_{a}}' \in \CX_{I_a}: \\
+      & P_M\big(g_b(x_{I_a},x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W) = 
+                g_b(x_{I_a}',x_{(J\sm\{I_a\}) \cup (V\sm\{a,b\})},X_W)\big) \ne 1.
+    \end{split}\end{equation*}
+  where $g$ is a solution function of $M^{[\{a,b\}\cap V]}_{\doit(I_a)}$.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung3_direct_cause_of_counterfactual_equivalence}
+  Rung-3 direct causal relations are invariant under counterfactual equivalence of iSCMs.
+  More precisely: $a$ is a rung-3 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $M$ implies that $a$ is a rung-3 direct cause of $b$ (w.r.t.\ $J \cup V$) according to $\tilde{M}$ if $M$ is counterfactually equivalent to $\tilde{M}$ (w.r.t.\ $V$).
+\end{Rem}
+We get a similar hierarchy of these notions:
+\begin{Cor}\label{cor:scm_direct_cause_of}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a \in V \cup J$ and $b \in V$.
+  Consider the following statements:
+  \begin{enumerate}
+    \item[(i)] $a$ is not a direct cause of $b$ (w.r.t.\ $V \cup J$) according to $G(M)$;
+    \item[(ii)] $a$ is not a rung-3 direct cause of $b$ (w.r.t.\ $V \cup J$) according to $M$;
+    \item[(iii)] $a$ is not a rung-2 direct cause of $b$ (w.r.t.\ $V \cup J$) according to $M$.
+  \end{enumerate}
+  Then (i) $\implies$ (ii) $\implies$ (iii). 
+  If $M^{[\{a,b\}\cap V]}_{\doit(I_a)}$ is $i\sigma$-faithful, also (iii) $\implies$ (i).
+\end{Cor}
+\begin{proof}
+  Apply Theorem~\ref{thm:scm_causes} to $M^{[\{a,b\}\cap V]}$ and use that $G(M^{[\{a,b\}\cap V]}) = (G(M))^{[\{a,b\}\cap V]}$
+  (which follows from Proposition~\ref{prp:compatibility_graph}).
+\end{proof}
+\Joris{Example 0.3.8 in marginal\_scm\_causal\_inference.pdf shows that faithfulness of $M^{[\{a,b\}\cap V]}$, or even $M$, is not enough. 
+Example 0.3.9 shows that even for DAGs faithfulness of $M$ is not enough.}
+Identifying a direct causal relation may not be very practical, as it seems to require intervening on \emph{all} endogenous and exogenous input variables (except $b$) simultaneously.
+So, empirically, ``$a$ is a direct cause of $b$ w.r.t.\ $J \cup V$'' is a strong statement (the more variables are contained in $J \cup V$, the stronger it becomes).
+
+\subsection{Common Causes}
+
+Another important notion is that of ``having a common cause''. 
+Essentially, ``$c$ is a common cause of $a,b$'' means that $c$ causes $b$ even when performing a hard intervention on $a$, and $c$ causes $a$ even when performing a hard intervention on $b$.
+Equivalently, it means that $c$ is a direct cause of both $a$ and $b$ with respect to $\{a,b,c\}$.
+Since we distinguished different notions of ``$a$ causes $b$'', we also end up distinguishing analogous notions of ``$a$ and $b$ have common cause $c$''.
+
+We start again with the graphical notion.
+\begin{Def}\label{def:graph_common_cause_of}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $a, b \in V$ and $c \in V \cup J$ such that $a,b,c$ are distinct.
+  We say that \emph{$c$ is a common cause of $a$ and $b$ according to $G$} if $c$ causes $a$ according to $G_{\doit(b)}$ and $c$ causes $b$ according to $G_{\doit(a)}$.
+\end{Def}
+\begin{Rem}\label{rem:graph_common_cause_of}
+  Equivalent formulations are:
+  \begin{itemize}
+    \item if there exists a bifurcation with source $c$ in $G$ between $a$ and $b$ (use Proposition~\ref{prp:bifurcations_alternative}).
+    \item if $a \hut c$ and $c \tuh b$ are both present in $G^{\sm(V \sm \{a,b,c\})}$ (use Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}).
+  %if and only if $a \huh b$ or $a \hut c \tuh b$ with $c \in J$ is present in $G_{\{a,b\}|J}$. % = G^{\sm ((V \cup W) \sm \{a,b\})}$.
+  %In other words, this holds if and only if $c$ is a direct cause of both $a$ and $b$ w.r.t.\ $\{a,b,c\} \cup J$. \Joris{Sorry, that last statement is not defined}
+  \end{itemize}
+\end{Rem}
+
+Note that we do not consider exogenous random variables as candidate common causes.
+The reason is that we do not necessarily want to give these variables a causal interpretation (remember that we also did not formally define the effect of a hard intervention targeting such variables), in which case it would be misleading to refer to such a variable as a ``common cause''.
+
+Similarly, we define the rung-2 notion:
+\begin{Def}\label{def:scm_rung2_common_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a, b \in V$ and $c \in V \cup J$ such that $a,b,c$ are distinct.
+  We say that \emph{$c$ is a rung-2 common cause of $a,b$ according to $M$} if and only if $c$ is a rung-2 cause of $a$ according to $M_{\doit(b)}$ and $c$ is a rung-2 cause of $b$ according to $M_{\doit(a)}$.
+\end{Def}
+\begin{Rem}\label{rem:scm_rung2_common_cause_of}
+  Remember that $c$ is a rung-2 cause of $b$ according to $M$ means: $$P_{M}(X_b \given \doit(X_{J \cup \{c\}})) \ne P_{M}(X_b \given \doit(X_{J\sm\{c\}})).$$
+  Spelling this out, $c$ being a rung-2 common cause of $a,b$ according to $M$ means that:
+  \begin{equation*}\begin{split}
+    P_{M}(X_a \given \doit(X_{J \cup \{c\}}), \doit(X_b)) &\ne P_{M}(X_a \given \doit(X_{J\sm\{c\}}), \doit(X_b)) \text{ and} \\
+    P_{M}(X_b \given \doit(X_{J \cup \{c\}}), \doit(X_a)) &\ne P_{M}(X_b \given \doit(X_{J\sm\{c\}}), \doit(X_a)).
+  \end{split}\end{equation*}
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung2_common_cause_of_interventional_equivalence}
+  The rung-2 notion of having a common cause is invariant under interventional equivalence of iSCMs.
+  More precisely: $c$ is a rung-2 common cause of $a,b$ according to $M$ implies that $c$ is a rung-2 common cause of $a,b$ according to $\tilde{M}$ if $M$ is interventionally equivalent to $\tilde{M}$ w.r.t.\ $\{a,b,c\} \cap V$.
+\end{Rem}
+
+Similarly, we define the rung-3 notion:
+\begin{Def}\label{def:scm_rung3_common_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a, b \in V$ and $c \in V \cup J$ such that $a,b,c$ are distinct.
+  We say that \emph{$c$ is a rung-3 common cause of $a,b$ according to $M$} if and only if $c$ is a rung-3 cause of $a$ according to $M_{\doit(b)}$ and $c$ is a rung-3 cause of $b$ according to $M_{\doit(a)}$.
+\end{Def}
+\begin{Rem}\label{rem:scm_rung3_common_cause_of}
+  Remember that $a$ is a rung-3 cause of $b$ according to $M$ means:
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_a\}} \in \CX_{J\sm\{I_a\}}, \exists x_{I_a},x_{I_{a'}} \in \CX_a: \\
+      & P_{(M_{\doit(X_{J\sm\{I_a\}}=x_{J\sm\{I_a\}}),\doit(I_a)})^\twin}(X_b = X_{b'} \given \doit(X_{I_a}=x_{I_a}),\doit(X_{I_{a'}}=x_{I_{a'}})) \ne 1.
+    \end{split}\end{equation*}
+  Spelling this out, $c$ being a rung-3 common cause of $a,b$ according to $M$ means that:
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_c\}} \in \CX_{J\sm\{I_c\}}, \exists x_b \in \CX_b, \exists x_{I_c},x_{I_{c'}} \in \CX_c: \\
+      & P_{(M_{\doit(X_{J\sm\{I_c\}}=x_{J\sm\{I_c\}},X_b=x_b),\doit(I_c)})^\twin}(X_a = X_{a'} \given \doit(X_{I_c}=x_{I_c}),\doit(X_{I_{c'}}=x_{I_{c'}})) \ne 1.
+    \end{split}\end{equation*}
+  and
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_c\}} \in \CX_{J\sm\{I_c\}}, \exists x_a \in \CX_a, \exists x_{I_c},x_{I_{c'}} \in \CX_c: \\
+      & P_{(M_{\doit(X_{J\sm\{I_c\}}=x_{J\sm\{I_c\}},X_a=x_a),\doit(I_c)})^\twin}(X_b = X_{b'} \given \doit(X_{I_c}=x_{I_c}),\doit(X_{I_{c'}}=x_{I_{c'}})) \ne 1.
+    \end{split}\end{equation*}
+  Alternatively, with potential outcomes this means:
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_c\}} \in \CX_{J\sm\{I_c\}}, \exists x_b \in \CX_b, \exists x_{I_c},x_{I_{c}}' \in \CX_c: \\
+%      & P_{(M_{\doit(X_{J\sm\{I_c\}}=x_{J\sm\{I_c\}},X_b=x_b),\doit(I_c)})^\twin}(X_a = X_{a'} \given \doit(X_{I_c}=x_{I_c}),\doit(X_{I_{c'}}=x_{I_{c}}')) \ne 1.
+      & P_M(g_a(x_{I_c},x_{J\sm\{I_c\}},x_b,X_W) = g_a(x_{I_c}',x_{J\sm\{I_c\}},x_b,X_W)) \ne 1
+    \end{split}\end{equation*}
+  where $g$ is a solution function of $M_{\doit(b),\doit(I_c)}$, and
+    \begin{equation*}\begin{split}
+      & \exists x_{J\sm\{I_c\}} \in \CX_{J\sm\{I_c\}}, \exists x_a \in \CX_a, \exists x_{I_c},x_{I_{c}}' \in \CX_c: \\
+%      & P_{(M_{\doit(X_{J\sm\{I_c\}}=x_{J\sm\{I_c\}},X_a=x_a),\doit(I_c)})^\twin}(X_b = X_{b'} \given \doit(X_{I_c}=x_{I_c}),\doit(X_{I_{c'}}=x_{I_{c}}')) \ne 1.
+      & P_M(g_b(x_{I_c},x_{J\sm\{I_c\}},x_a,X_W) = g_b(x_{I_c}',x_{J\sm\{I_c\}},x_a,X_W)) \ne 1.
+    \end{split}\end{equation*}
+  where $g$ is a solution function of $M_{\doit(a),\doit(I_c)}$.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung3_common_cause_of_counterfactual_equivalence}
+  The rung-3 notion of having a common cause is invariant under counterfactual equivalence of iSCMs.
+  More precisely: $c$ is a rung-3 common cause of $a,b$ according to $M$ implies that $c$ is a rung-3 common cause of $a,b$ according to $\tilde{M}$ if $M$ is counterfactually equivalent to $\tilde{M}$ w.r.t.\ $\{a,b,c\} \cap V$.
+\end{Rem}
+We get a similar hierarchy of these notions:
+\begin{Cor}\label{cor:scm_common_cause_of}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a, b \in V$ and $c \in V \cup J$ such that $a,b,c$ are distinct.
+  Consider the following statements:
+  \begin{enumerate}
+    \item[(i)]   $c$ is not a common cause of $a,b$ according to $G(M)$;
+    \item[(ii)]  $c$ is not a rung-3 common cause of $a,b$ according to $M$;
+    \item[(iii)] $c$ is not a rung-2 common cause of $a,b$ according to $M$.
+  \end{enumerate}
+  Then (i) $\implies$ (ii) $\implies$ (iii). 
+  If $M_{\doit(b),\doit(I_c)}$ and $M_{\doit(a),\doit(I_c)}$ are both $i\sigma$-faithful, then (iii) $\implies$ (i).
+\end{Cor}
+\begin{proof}
+  Apply Theorem~\ref{thm:scm_causes} to $M_{\doit(a)}$ and $M_{\doit(b)}$, and use Proposition~\ref{prp:compatibility_graph}.
+\end{proof}
+
+%\Joris{Another convention could be: all output nodes without incoming edges are assumed to be exogenous random nodes.
+%One can assume this WLOG. It seems to make sense for a confounder. I.e., an endogenous variable without parents
+%should not be considered a confounder.}
+
+We could go on to define ``direct common causes'' (in analogy to how we defined ``direct causes'' in terms of ``causes'') but we will not do so here, as this concept does not seem to be of much importance.
+
+\subsection{Confounding}
+
+The important notion of ``confounding'' or ``spurious dependence'' is somewhat tricky to define, especially if we do not exclude the possibility of cycles.
+Roughly speaking, we say that two endogenous variables are confounded if their joint distribution is not entirely explained by their mutual causal effects.
+
+\subsubsection{Confounding (graphical notion)}
+
+\begin{Def}\label{def:graph_unconfounded}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $a,b \in V$ be distinct output nodes.
+  If there exists a bifurcation between $a$ and $b$ in $G$, either without source or with source $c \in V$, then we say that \emph{$a$ and $b$ are confounded according to $G$}.\footnote{The reason we exclude bifurcations with as source an exogenous input node is that these will not lead to ``spurious dependences'' in the ``strata'' of the Markov kernel.}
+  Otherwise, we say that \emph{$a$ and $b$ are unconfounded according to $G$}.
+\end{Def}
+\begin{Rem}\label{rem:graph_unconfounded}
+  Marginalization of a graph preserves confoundedness (see also Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}).
+  In particular, $a$ and $b$ are confounded according to $G$ if and only if $a \huh b$ %or $a \hut j \tuh b$ with $j \in J$ 
+  is present in $G^{\sm (V \sm \{a,b\})}$.
+%  Proposition~\ref{prp:bifurcations_alternative} gives yet another equivalent graphical formulation of this notion.
+\end{Rem}
+
+\begin{comment}
+\Joris{The following proposition may be redundant!}
+\begin{Prp}\label{prp:graph_unconfounded1}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  Let $a,b \in V$ be distinct output nodes.
+  If $b$ does not cause $a$ according to $G$, and $a$ and $b$ are unconfounded according to $G$, then
+  $$b \isPerp_{G_{\doit(I_a)}} I_a \given \{a\} \cup J.$$
+\end{Prp}
+\begin{proof}
+Assume that $b \notin \Anc^G(a)$ and every bifurcation in $G$ between $a$ and $b$ has a source in $J$.
+
+We proceed by contradiction.
+Suppose that there exists a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open and such that all colliders lie in $J \cup \{a\}$.
+It cannot contain nodes from $J$, as such a node would either be an end node of the walk ($\sigma$-blocking it)
+or a non-collider node pointing only to nodes in another strongly connected component of $G_{\doit(I_a)}$
+($\sigma$-blocking the walk).
+Hence it must be of the form $I_a \tuh a \cdots b$. 
+If it is not of the form $I_a \tuh a \hus \cdots b$ with only a single occurrence of $a$, we can modify it to turn it into this form, while keeping it $(J \cup \{a\})$-$\sigma$-open.
+Indeed, suppose it is of the form $I_a \tuh \cdots a \tuh c \cdots b$ (with $a$ the right-most $a$, that is, the occurrence of $a$ closest to the end point $b$, and possibly $c=b$) then $c$ must be in the same strongly connected component as $a$, and hence we can take $I_a \tuh a \hut \cdots \hut c \cdots b$ by replacing the subwalk between the left-most $a$ and $c$ by a directed path $a \hut \dots \hut c$ through nodes in the strongly connected component of $a$.
+If it is of the form $I_a \tuh \cdots a \hus c \cdots b$ (with $a$ the right-most $a$, and possibly $c=b$), we can take $I_a \tuh a \hus c \cdots b$ by skipping the subwalk between the left-most $a$ and the right-most $a$.
+If this path contains $b$ more than once, we can shorten it further so that it contains $b$ exactly once.
+
+So there exists a walk of the form $I_a \tuh a \hus \cdots b$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open, contains $a$ and $b$ only once, contains no other colliders than $a$, and the subwalk between $a$ and $b$ is not a directed walk from $b$ to $a$.
+Hence it must be of the form $I_a \tuh a \hut \cdots \hut c \tuh \cdots \tuh b$ (with $c \in V$) or
+$I_a \tuh a \huh c \tuh \cdots \tuh b$ or $I_a \tuh a \hut \dots \hut c_1 \huh c_2 \tuh \dots \tuh b$.
+As it contains $a$ and $b$ only once, we conclude the existence of a bifurcation in $G_{\doit(I_a)}$ between $a$ and $b$, either with source $c \in V$ or without source.
+%Therefore, we can replace the subpath between $a$ and the right-most collider $c$ on the path by a directed path from that collider $c$ to $a$. 
+%Note that this directed path cannot contain $b$, and cannot pass through any of the nodes in $\C{O}\setminus\{a,b\}$. 
+%We thereby obtain a $\sigma$-open walk of the form $I_a \to a \oto b$ or $I_a \to a \ot \cdots \ot c \ot \cdots b$ or $I_a \to a \ot \cdots \ot c \oto \cdots b$. 
+%We thereby obtain a $(J \cup \{a\})$-$\sigma$-open walk of the form $I_a \to a \oto \cdots b$ or $I_a \to a \ot \cdots b$, 
+%where the part between $a$ and $b$ contains no colliders and is not a directed walk from $b$ to $a$. Hence it must be a bifurcation.
+Contradiction.
+Hence $b \isPerp_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+
+\Joris{Alternative proof using graphical marginalization: consider $\tilde{G} := G^{\sm(V \sm \{a,b\})}$.
+Consider $\tilde{G}_{\doit(I_a)}$. Since $b \notin \Anc^G(a)$, also $b \notin \Anc^{\tilde{G}}(a)$.
+Because $a,b$ are the only output nodes in $\tilde{G}$, this means that $b \tuh a$ is not in $\tilde{G}$.
+As there exists no bifurcation between $a$ and $b$ in $G$, there exists no bifurcation bewteen $a$ and $b$ in $\tilde{G}$.
+Because $a,b$ are the only output nodes in $\tilde{G}$, this means that $b \huh a$ is not in $\tilde{G}$, and there is no $j \in J$ such that $b \hut j \tuh a$ in $\tilde{G}$.
+So the only possible edge between $a$ and $b$ in $\tilde{G}$ is $a \tuh b$. 
+%The only other possible edges in $\tilde{G}$ are of the form $j \tuh a$ and $j \tuh b$ for $j \in J$ (but not both $b \hut j \tuh a$).
+Consider a path between $b$ and $I_a \cup J$ in $\tilde{G}_{\doit(I_a)}$. 
+Suppose it is $\{a\} \cup J$-$\sigma$-open.
+It cannot contain a node in $J$.
+Hence it must be of the form $I_a \tuh a \sus b$.
+As the only edge between $a$ and $b$ is $a \tuh b$, it can only be the path $I_a \tuh a \tuh b$.
+But that is a contradiction, as that path is not $\{a\} \cup J$-$\sigma$-open.
+Hence $b \isPerp_{\tilde{G}_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+Because $\tilde{G}_{\doit(I_a)} = (G_{\doit(I_a)})^{\sm (V \sm \{a,b\})}$, also $b \isPerp_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+}
+\end{proof}
+\end{comment}
+
+\begin{comment}
+\begin{Prp}\label{prp:graph_unconfounded2}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a, b \in V$ with $a \ne b$.
+  If $a$ and $b$ are unconfounded according to $G(M)$ then 
+  $$a \isPerp_{G(M^\twin_{\doit(a',b)})} b' \given J, J', a', b.$$
+\end{Prp}
+\begin{proof}
+  Suppose there exists a $\sigma$-open walk in the graph $G(M^\twin_{\doit(a',b)})$ between $a$ and $b' \cup J \cup J' \cup \{a', b\}$. 
+  Then there exists a $\sigma$-open walk in the graph $G^+(M^\twin_{\doit(a',b)})$ between $a$ and $b' \cup J \cup J' \cup \{a', b\}$. 
+  There must be such a walk of minimal length.
+  In particular, it contains $a$ and $b'$ both at most once.
+  It cannot contain nodes from $J \cup J' \cup \{a', b\}$, as such a node would either be an end node of the walk ($\sigma$-blocking it) or a non-collider node pointing only to nodes in another strongly connected component ($\sigma$-blocking the walk).
+  Hence the walk must be between $a$ and $b'$.
+  It cannot contain any collider. 
+  It cannot be a directed walk because it has to pass through a node in $W$ corresponding to an exogenous random variable in $M$, but those nodes have no incoming edges. 
+  Therefore it must be a walk of the form $a \hut \cdots \hut w \tuh \cdots \tuh b'$ with $w \in W$, because only nodes in $W$ can be ancestors of endogenous nodes in different ``worlds''.
+  Note that the subwalk $a \hut \cdots \hut w$ must consist of nodes in $V \cup \{w\}$ and cannot contain $b$. 
+  Also, the subwalk $w \tuh \cdots \tuh b'$ must consist of nodes in $V' \cup \{w\}$ and cannot contain $a'$.
+  By ``removing the primes'' from the nodes in this subwalk, we obtain a walk of the form $a \hut \cdots \hut w \tuh \cdots \tuh b$ in $G^+(M)$, which is seen to be a bifurcation with source $w \in W$. 
+  But then there exists a bifurcation in $G(M)$ between $a$ and $b$ without source, contradicting the assumptions.
+\end{proof}
+\end{comment}
+
+We can find an (almost) equivalent formulation of unconfoundedness as a separation statement by using the twinning operation.\footnote{The only problem may arise is that $a$ and $b$ are confounded because of a common cause $c$ that has no exogenous random parents. Strictly speaking, we would not want to consider this as confounding (because if $c$ is deterministic, it will induce no spurious dependence). This is not captured adequately by our graphical criterion simply because the causal graph where the exogenous random variables have been marginalized out does not encode this piece of information.}
+\begin{Prp}\label{prp:graph_unconfounded2}
+  Let $G^+$ be a CDMG with input nodes $J$ and output nodes $V \cup W$ such that the nodes in $W$ have no parents in $G^+$.
+  Let $a,b \in V$ be distinct output nodes in $V$.
+  If $a$ and $b$ are unconfounded according to $G := (G^+)^{\sm W}$, then
+  $$a \isPerp_{(G^+)^{\twin(J \cup V)}_{\doit(a',b)}} b' \given J, J', a', b.$$
+  The converse holds if each node in $V$ has at least one parent in $W$ in $G^+$.
+\end{Prp}
+\begin{proof}
+  $\implies$:
+  Suppose there exists a $\sigma$-open walk in the graph $(G^+)^{\twin(J \cup V)}_{\doit(a',b)}$ between $a$ and $b' \cup J \cup J' \cup \{a', b\}$. 
+  Then there exists a $\sigma$-open walk in the graph $(G^+)^{\twin(J \cup V)}_{\doit(a',b)}$ between $a$ and $b' \cup J \cup J' \cup \{a', b\}$. 
+  There must be such a walk of minimal length.
+  In particular, it contains $a$ and $b'$ both at most once.
+  It cannot contain nodes from $J \cup J' \cup \{a', b\}$, as such a node would either be an end node of the walk ($\sigma$-blocking it) or a non-collider node pointing only to nodes in another strongly connected component ($\sigma$-blocking the walk).
+  Hence the walk must be between $a$ and $b'$.
+  It cannot contain any collider. 
+  It cannot be a directed walk because it has to pass through a node in $W$ corresponding to an exogenous random variable in $M$, but those nodes have no incoming edges. 
+  Therefore it must be a walk of the form $a \hut \cdots \hut w \tuh \cdots \tuh b'$ with $w \in W$, because only nodes in $W$ can be ancestors of endogenous nodes in different ``worlds''.
+  Note that the subwalk $a \hut \cdots \hut w$ must consist of nodes in $V \cup \{w\}$ and cannot contain $b$. 
+  Also, the subwalk $w \tuh \cdots \tuh b'$ must consist of nodes in $V' \cup \{w\}$ and cannot contain $a'$.
+  By ``removing the primes'' from the nodes in this subwalk, we obtain a walk of the form $a \hut \cdots \hut w \tuh \cdots \tuh b$ in $G^+$, which is seen to be a bifurcation with source $w \in W$ in $G^+$. 
+  But then there exists a bifurcation in $(G^+)^{\sm W}$ between $a$ and $b$ without source, contradicting the assumptions.
+
+  $\impliedby$: if $a$ and $b$ are confounded according to $G$ then there exists a bifurcation between $a$ and $b$ in $G$, either without source, or with source $c \in V$. 
+  In the former case, there exists a bifurcation between $a$ and $b$ in $G^+$ with source $w \in W$.
+  In the latter case, if each node in $V$ has at least one parent in $W$ in $G^+$, then there also exists a bifurcation between $a$ and $b$ in $G^+$ with source $w \in W$.
+  The bifurcation is of the form $a \hut \cdots \hut w \tuh \cdots \tuh b$.
+  It only consists of nodes in $V$, except for $w \in W$.
+  We can add primes to all nodes on the subwalk from $w$ to $b$ (except on $w$) to obtain a walk of the form $a \hut \cdots \hut w \tuh \cdots \tuh b'$.
+  Note that the subwalk $a \hut \cdots \hut w$ must consist of nodes in $V \cup \{w\}$ and cannot contain $b$. 
+  Also, the subwalk $w \tuh \cdots \tuh b'$ must consist of nodes in $V' \cup \{w\}$ and cannot contain $a'$.
+  This is a $\sigma$-open walk between $a$ and $b'$ given $J \cup J' \cup \{a',b\}$.
+\end{proof}
+
+  \begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=-5cm]
+      \node[ndout] (X) at (0,0) {$a$};
+      \node[ndout] (Y) at (0,-1.5) {$b$};
+      \draw[arout] (X) to (Y);
+      \draw[arout,bend left] (Y) to (X);
+      \draw[arlat,bend left] (X) to (Y);
+    \end{scope}
+    \begin{scope}
+      \node[ndout] (X) at (0,0) {$a$};
+      \node[ndout] (Y) at (0,-1.5) {$b$};
+      \node[ndlat] (W1) at (1,0.5) {$w_a$};
+      \node[ndlat] (W) at (1,-0.75) {$w$};
+      \node[ndlat] (W3) at (1,-2) {$w_b$};
+      \draw[arout] (X) to (Y);
+      \draw[arout,bend left] (Y) to (X);
+      \draw[arout] (W1) to (X);
+      \draw[arout] (W) to (X);
+      \draw[arout] (W) to (Y);
+      \draw[arout] (W3) to (Y);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[ndout] (X) at (0,0) {$a$};
+      \node[ndint] (Y) at (0,-1.5) {$b$};
+      \node[ndlat] (W1) at (1,0.5) {$w_a$};
+      \node[ndlat] (W) at (1,-0.75) {$w$};
+      \node[ndlat] (W3) at (1,-2) {$w_b$};
+%      \draw[arout] (X) to (Y);
+      \draw[arout,bend left] (Y) to (X);
+      \draw[arout] (W1) to (X);
+      \draw[arout] (W) to (X);
+%      \draw[arout] (W) to (Y);
+%      \draw[arout] (W3) to (Y);
+      \node[ndint] (X2) at (2,0) {$a'$};
+      \node[ndout] (Y2) at (2,-1.5) {$b'$};
+      \draw[arout] (X2) to (Y2);
+%      \draw[arout,bend right] (Y2) to (X2);
+%      \draw[arout] (W1) to (X2);
+%      \draw[arout] (W) to (X2);
+      \draw[arout] (W) to (Y2);
+      \draw[arout] (W3) to (Y2);
+      \draw[dotted] (-1,-2.5) rectangle (1,1.0);
+      \draw[dotted] (1,-2.5) rectangle (3,1.0);
+      \node at (0,1.3) {\tiny factual};
+      \node at (2,1.3) {\tiny counterfactual};
+    \end{scope}
+  \end{tikzpicture}
+    \caption{Left: Marginal graph $(G^+)^{\sm W}$. Center: Graph $G^+$. Right: Twinned intervened $(G^+)^{\twin(J \cup V)}_{\doit(a',b)}$. Proposition~\ref{prp:graph_unconfounded2} states that if $a$ and $b$ are unconfounded according to $(G^+)^{\sm W}$, then there will be no $\sigma$-open path between $a$ and $b'$ given $a',b$ in the twinned intervened graph.\label{fig:confoundedness_via_twinning}}
+\end{figure}
+
+\subsubsection{Confounding (counterfactual/potential outcome notion)}
+  
+\begin{Def}\label{def:scm_rung3_unconfounded}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a, b \in V$ with $a \ne b$.
+  Let $g^{\doit(a)}$ be a solution function of $M_{\doit(a)}$, and $g^{\doit(b)}$ a solution function of $M_{\doit(b)}$.
+  If for all values $x_J \in \CX_J, x_{J'} \in \CX_J$, $x_{a'} \in \CX_a$, $x_b \in \CX_b$: 
+  $$g^{\doit(b)}_a(x_b,x_J,X_W) \Indep g^{\doit(a)}_b(x_{a'},x_{J'},X_W)$$
+  with $X_W \sim P$, then we say that \emph{$a$ and $b$ are rung-3 unconfounded according to $M$}.
+  \Joris{Do we really want to allow for different $x_J, x_{J'}$ here?}
+  \Joris{Note: At some point I thought it may be a good idea to weaken the notion of counterfactual equivalence to only considering $x_J = x_J'$.
+    But I realized that even if we only consider $x_J = x_J'$, we still want interventional equivalence, in particular even under 
+    $\doit(x_J)$ and $\doit(x_{J'})$, which means we get back to the original notion which allows $x_J \ne x_{J'}$.
+  Nonetheless: it might perhaps suffice to take $x_J = x{J'}$ here in this definition?}
+\end{Def}
+\begin{Rem}\label{rem:scm_rung3_unconfounded}
+  This is equivalent to:
+  $$X_a \Indep_{P_{M^\twin_{\doit(a',b)}}} X_{b'} \given X_J, X_{J'}, X_{a'}, X_b.$$
+  Indeed, for all $x_J \in \CX_J, x_{J'} \in \CX_J$, $x_{a'} \in \CX_a$, $x_b \in \CX_b$:
+  \begin{equation*}\begin{split}
+    & \big(g^{\doit(b)}_a(x_b,x_J,X_W), g^{\doit(a)}_b(x_{a'},x_{J'},X_W)\big) \\
+    & \quad \sim P_{M^\twin_{\doit(a',b)}}(X_a,X_{b'} \given \doit(X_J=x_J,X_{J'}=x_{J'},X_{a'}=x_{a'},X_b=x_b)).
+  \end{split}\end{equation*}
+  Therefore, the choice of the solution functions and the random variable $X_W$ do not matter in Definition~\ref{def:scm_rung3_unconfounded}.
+\end{Rem}
+\begin{Rem}\label{rem:scm_rung3_unconfounded_counterfactual_equivalence}
+  Rung-3 unconfoundedness is invariant under counterfactual equivalence of iSCMs.
+  More precisely: $a$ and $b$ are rung-3 unconfounded according to $M$ implies that $a$ and $b$ are rung-3 unconfounded according to $\tilde{M}$ if $M$ is counterfactually equivalent to $\tilde{M}$ w.r.t.\ $\{a,b\}$.
+\end{Rem}
+However, the notion of rung-3 unconfoundedness is \emph{not} invariant under interventional equivalence.
+\begin{Eg}
+  Consider again the SCM $M$ in Example~\ref{eg:scm_cause_of_include_observational}.
+  It has endogenous variables $X_a, X_b \in \{-1,+1\}$, exogenous random variable $X_w \in \{-1,1\}$, and structural equations:
+  \begin{align*}
+    X_a &= X_w, \\
+    X_b &= X_a X_w,
+  \end{align*}
+  where $X_w \sim \C{U}(\{-1,1\})$.
+  
+  According to $M$, $a$ and $b$ are rung-3 confounded (indeed, the potential outcomes have perfect dependence).
+  $M$ is interventionally equivalent to SCM $\tilde{M}$ with endogenous variables $X_a, X_b \in \{-1,+1\}$, exogenous random variables $X_u,X_w \in \{-1,1\}$, and structural equations:
+  \begin{align*}
+    X_a &= X_u, \\
+    X_b &= X_a X_w
+  \end{align*}
+  where $X_u, X_w \sim \C{U}(\{-1,1\})$ are independent.
+  According to $\tilde{M}$, $a$ and $b$ are rung-3 unconfounded.
+%  However, $a$ and $b$ are rung-2 unconfounded according to $M$ (and also according to $\tilde{M}$).
+\end{Eg}
+ %   \item \Joris{If $c \in \Anc^{G_{\doit(b)}}(a)$ and $c \in \Anc^{G_{\doit(a)}}(b)$ for $a,b \in V$ and $c \in \Desc^{G}(W)$, then
+ %     we say that \emph{$c$ is a confounder of $a$ and $b$ according to $M$}, and that $a$ and $b$ are confounded according to $M$. This is sharper than the one below, but also gives the problem that our Markov property cannot deal with nodes that are known to be constant. We could extend the Markov property such that it automatically conditions on all endogenous nodes without parents. But do we really want to do so? The problem we encounter in this setup is that for the Markov property for CBNs it would be highly unnatural to attempt to extend it in this direction. This reveals that the Markov property for iSCMs really only makes use of the information in $G^{\setminus W}$, but could exploit more information that is only in $G$. This then couples back all the way to our original decision to not treat all exogenous random variables as latent.}
+\begin{Prp}\label{prp:graph_unconfounded_scm_rung3_unconfounded}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a, b \in V$ with $a \ne b$.
+  If $a$ and $b$ are unconfounded according to $G(M)$ then $a$ and $b$ are rung-3 unconfounded according to $M$.
+\end{Prp}
+\begin{proof}
+  If $a$ and $b$ are unconfounded according to $G(M)$, then 
+  $$a \isPerp_{(G^+(M))^{\twin(V,J)}_{\doit(a',b)}} b' \given J, J', a', b$$
+  by Proposition~\ref{prp:graph_unconfounded2}.
+  Since $(G^+(M))^{\twin(V,J)}_{\doit(a',b)} = G^+(M^\twin)_{\doit(a',b)} = G^+(M^\twin_{\doit(a',b)})$, we get
+  $$a \isPerp_{G(M^\twin_{\doit(a',b)})} b' \given J, J', a', b.$$
+  By the global Markov property applied to $M^\twin_{\doit(a',b)}$, we obtain that
+  $$X_a \Indep_{P_{M^\twin_{\doit(a',b)}}} X_{b'} \given X_J, X_{J'}, X_{a'}, X_b.$$
+  The claim follows from Remark~\ref{rem:scm_rung3_unconfounded}.
+\end{proof}
+
+\subsubsection{Confounding (acyclic potential outcome notion)}
+
+In the potential outcome literature, one also encounters other definitions of unconfoundedness that are formulated in terms of potential outcomes.
+These can only be applied if $a$ and $b$ are not part of a cycle, and hence this notion is less general than Definition~\ref{def:scm_rung3_unconfounded}.
+We will show how these notions can be seen as a special case of Definition~\ref{def:scm_rung3_unconfounded}, under the assumption that the potential outcomes are induced by a simple iSCM.
+\begin{Prp}\label{prp:scm_rung3_unconfounded_acyclic}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a, b \in V$ with $a \ne b$.
+  Suppose that $b$ is not a rung-3 cause of $a$ according to $M$.
+  Then $a$ and $b$ are rung-3 unconfounded according to $M$ if and only if
+%  for all values $x_J \in \CX_J, x_{J'} \in \CX_J$, $x_{a'} \in \CX_a$: 
+%  $$g_a(x_J,X_W) \Indep g^{\doit(a)}_b(x_{a'},x_{J'},X_W),$$
+  \begin{equation}\label{eq:scm_rung3_unconfounded_acyclic}
+    \forall x_J,x_{J}' \in \CX_J \ \forall x_{a}' \in \CX_a: g_a(x_J,X_W) \Indep g^{\doit(a)}_b(x_{a}',x_{J}',X_W)
+  \end{equation}
+  for $X_W \sim P(X_W)$ (where $g^{\doit(a)}$ denotes a solution function of $M_{\doit(a)}$, and $g$ a solution function of $M$).
+  \Joris{Do we really want to allow for different $x_J, x_{J}'$ here?}
+\end{Prp}
+\begin{proof}
+  Let $X_W \sim P(X_W)$.
+  If $b$ is not a rung-3 cause of $a$ according to $M$, then for all $x_J \in \CX_J$, for all $x_b \in \CX_b$, for $P(X_W)$-almost all $x_W \in \CX_W$: 
+  $$g^{\doit(b)}_a(x_b,x_J,x_W) = g_a(x_J,x_W).$$
+
+  Hence, 
+  $$\forall x_J,x_{J}' \in \CX_J \ \forall x_{a}' \in \CX_a: g_a(x_J,X_W) \Indep g^{\doit(a)}_b(x_{a}',x_{J}',X_W)$$
+  if and only if 
+  $$\forall x_J,x_{J}' \in \CX_J \ \forall x_{a}' \in \CX_a \ \forall x_b \in \CX_b: g^{\doit(b)}_a(x_b,x_J,X_W) \Indep g^{\doit(a)}_b(x_{a}',x_{J}',X_W).$$
+\end{proof}
+\begin{Rem}\label{rem:scm_rung3_unconfounded_acyclic}
+  \eref{eq:scm_rung3_unconfounded_acyclic} is equivalent to:
+  $$X_a \Indep_{P_{M^\twin_{\doit(a')}}} X_{b'} \given X_J, X_{J}', X_{a}'.$$
+  Indeed, for all $x_J \in \CX_J, x_{J}' \in \CX_J$, $x_{a}' \in \CX_a$:
+  \begin{equation*}\begin{split}
+    & \big(g_a(x_J,X_W), g^{\doit(a)}_b(x_{a}',x_{J}',X_W)\big) \\
+    & \quad \sim P_{M^\twin_{\doit(a')}}(X_a,X_{b'} \given \doit(X_J=x_J,X_{J'}=x_{J'},X_{a'}=x_{a}')).
+  \end{split}\end{equation*}
+\end{Rem}
+
+We now relate this to the assumptions regarding unconfoundedness that are usually made in the potential outcome literature.
+We consider the case $J = \emptyset$. Let $M$ be an SCM satisfying the assumptions of Proposition~\ref{prp:scm_rung3_unconfounded_acyclic}.
+Let $X_W$ be a random variable with distribution $X_W \sim P$. 
+Let $g^{\doit(a)}$ be the solution function of $M_{\doit(a)}$, and $g$ the solution function of $M$.
+We can then define potential outcomes $X_a$ for $M$ and $X_{b}^{\doit(x_{a})}$ for $M_{\doit(a)}$ (the latter with input $x_{a}$):
+\begin{align*}
+  X_a &:= g_a(X_W) \\
+  X_{b}^{\doit(x_a)} &:= g^{\doit(a)}_b(x_a,X_W)
+\end{align*}
+for all $x_a \in \CX_a$.\footnote{Note that we use the same exogenous random variable $X_W$ to ``couple'' these potential outcomes.}
+Equation \eref{eq:scm_rung3_unconfounded_acyclic} can then also be written in terms of these potential outcomes as
+  $$\forall x_a \in \CX_a : \qquad X_a \Indep X_b^{\doit(x_a)}.$$
+In the more common notation, for binary treatment $T := X_a \in \{0,1\}$ and corresponding potential outcomes $Y(t) := X_{b}^{\doit(x_a)}$ with $x_a=t$, this reads as:
+  $$\forall t \in \{0,1\} : \qquad T \Indep Y(t).$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+This property (of the treatment variable and the corresponding potential outcome variables) is referred to as ``exchangeability'' or ``ignorability'' in the potential outcome framework, 
+and expresses within that framework the assumption of ``no confounding'' when the task is to estimate the causal effect of $a$ on $b$.
+One should keep in mind the assumption that $b$ is not a rung-3 cause of $a$. 
+In this setting, this can be written as:
+$$\forall y \in \mathcal{Y}: \qquad T(y) = T\ \mathrm{a.s.},$$
+where we wrote $\mathcal{Y} := \CX_b$ for the possible values of the outcome, and denoted ``potential treatments'' $T(y) := X_a^{\doit(X_b=x_b)} := g^{\doit(b)}_a(x_b,X_W)$ with $x_b=y$.
+
+ 
+%\Joris{Another convention could be: all output nodes without incoming edges are assumed to be exogenous random nodes.
+%One can assume this WLOG. It seems to make sense for a confounder. I.e., an endogenous variable without parents
+%should not be considered a confounder.}
+
+%\Joris{We should perhaps define a canonical form of simple iSCMs. This form assumes:
+%\begin{enumerate}
+%  \item All factors in the exogenous random distribution are non-degenerate;
+%  \item All endogenous nodes without parents have been replaced by exogenous random nodes.
+%\end{enumerate}
+
+
+\subsubsection{Confounding (acyclic interventional notion)}
+
+Another notion of confounding is defined at the level of (interventional) distributions.
+If we have a ``treatment'' and an ``outcome variable'' (and assume that outcome does not cause treatment), then we consider them to have ``no confounding bias'' if the distribution of the outcome does not depend on whether we just observed the treatment, or if we intervened to impose the treatment.
+We provide here the definition only in case the treatment and outcome variable are not part of a causal cycle, leaving the question of how to properly define this notion in full generality for simple iSCMs as an open research question.
+\begin{Def}\label{def:no_confounding_bias}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a \ne b \in V$.
+%  We say that \emph{$a$ and $b$ have no confounding bias according to $M$} if:
+%  $b$ is not a rung-2 cause of $a$ according to $M$ implies
+%  \begin{equation}\label{eq:no_confounding_bias}
+%    P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad P_M(X_a \given \doit(X_J))\text{-a.s.}.
+%  \end{equation}
+  Assume $b$ is not a rung-2 cause of $a$ according to $M$.
+  Then we say that \emph{$a$ and $b$ have no confounding bias according to $M$} if:
+  \begin{equation}\label{eq:no_confounding_bias}
+    P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad P_M(X_a \given \doit(X_J))\text{-a.s.}.
+  \end{equation}
+\end{Def}
+Colloquially, confounding bias is also often referred to as ``spurious dependence''.
+Also, we could say that there is no confounding bias if and only if ``causation equals correlation''.
+If we train a prediction model that estimates $\Exp(X_b \given X_a)$, and we know that $X_b$ does not cause $X_a$ and $X_a$ and $X_b$ have no confounding bias, then we can use the model for making causal predictions, that is, for estimating $\Exp(X_b \given \doit(X_a))$.
+The assumption that two variables have no confounding bias is often (perhaps too often) made in practice.\footnote{If one doesn't rule out possible confounding bias, one can still obtain bounds on causal predictions, see Theorem~\ref{thm:natural_bounds}.}
+\begin{Rem}\label{rem:no_confounding_bias}
+  We can write \eref{eq:no_confounding_bias} equivalently as:
+  $$X_b \Indep_{P_{M_{\doit(I_a)}}} X_{I_a} \given X_{\{a\} \cup J}.$$
+  Indeed, this conditional independence means that there exists a Markov kernel
+  %$Q(X_b\given X_a, X_J)$
+  $\CX_a \times \CX_J \dshto \CX_b$
+  that is a version of $P_M(X_b\given X_a,\doit(X_J))$ and $P_M(X_b\given \doit(X_a),\doit(X_J))$ simultaneously
+  %(and, more elementary, a version of $P_{M_{\doit(I_a)}} (X_b \given X_a, \doit(X_{I_a}), \doit(X_J))$).
+  (see proof of Proposition~\ref{prp:do-calculus}).
+  This has to be $P_M(X_b \given \doit(X_a),\doit(X_J))$. 
+%  Indeed, it is unique up to a measurable $P_M(X_a\given \doit(X_{I_a},X_{J}))$-null set $N \subseteq \CX_a \times \CX_J$
+%  (equivalently: $N$ is a $P_M(X_a\given\doit(X_J))$ null set and a $P_M(X_{\star}\given\doit(X_a,X_J))$ null set).
+\end{Rem}
+\begin{Rem}\label{rem:scm_no_confounding_bias_interventional_equivalence}
+  ``Having no confounding bias'' is invariant under interventional equivalence of iSCMs.
+  More precisely: if $a$ and $b$ have no confounding bias according to $M$, then $a$ and $b$ have no confounding bias according to $\tilde{M}$ if $M$ is interventionally equivalent to $\tilde{M}$ w.r.t.\ $\{a,b\}$.
+\end{Rem}
+
+\begin{Prp}\label{prp:rung3_unconfounded_implies_no_confounding_bias}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $a,b \in V$ be distinct endogenous variables such that $b$ is not a rung-3 cause of $a$ according to $M$.
+  If $a$ and $b$ are rung-3 unconfounded according to $M$, then $a$ and $b$ have no confounding bias according to $M$.
+\end{Prp}
+\begin{proof}
+  Let $X_W \sim P(X_W)$.
+  Proposition~\ref{prp:scm_rung3_unconfounded_acyclic} states:
+  $$\forall x_J,x_{J}' \in \CX_J \forall x_a' \in \CX_a : \qquad g_a(x_J,X_W) \Indep g^{\doit(a)}_b(x_a',x_{J}',X_W).$$
+  Consistency (Proposition~\ref{prp:simple_scm_consistency}) of $M_{\{a,b\}}$ implies:
+  $$\forall x_J \in \CX_J \foralmostall x_W \in \CX_W: g_b^{\doit(a)}(g_a(x_J,x_W),x_J,x_W) = g_b(x_J,x_W).$$
+%  By definition:
+%  $$g^{\doit(I_a)}(x_{I_a},x_W) = (g_a^{\doit(I_a)}(x_{I_a},x_W), g_b^{\doit(I_a)}(x_{I_a},x_W)) = \begin{cases}
+%    (g_a(x_W), g_b(x_W)) & x_{I_a} = \star \\
+%    (g_a^{\doit(I_a)}(x_{I_a},x_W), g_b^{\doit(I_a)}(x_{I_a},x_W)) & x_{I_a} = x_a \in \CX_a
+%  \end{cases}$$
+  Hence, for all $x_J \in \CX_J$, for $P(g_a(x_J,X_W))$-almost every $x_a \in \CX_a$:
+  \begin{equation*}
+    \begin{split}
+      P(g_b(x_J,X_W) \given g_a(x_J,X_W)=x_a) 
+      &= P(g_b^{\doit(a)}(g_a(x_J,X_W),x_J,X_W) \given g_a(x_J,X_W)=x_a) \\
+      &= P(g_b^{\doit(a)}(x_a,x_J,X_W) \given g_a(x_J,X_W)=x_a) \\
+      &= P(g_b^{\doit(a)}(x_a,x_J,X_W)).
+    \end{split}
+  \end{equation*}
+  Hence, in the usual notation:
+  $$P_{M}(X_b \given \doit(X_J), \doit(X_a)) = P_{M}(X_b \given \doit(X_J), X_a) \qquad P_M(X_a \given \doit(X_J))\text{-a.s.}$$
+%  or, equivalently,
+%  $$X_b \Indep_{P_{M_{\doit(I_a)}}} X_{I_a} \given X_{a}$$
+%  i.e.
+%  $$P_M(X_b \given \doit(X_{I_a}), X_a) = P_M(X_b \given \doit(X_{I_a}=\star), X_a) = P_M(X_b \given X_a) \qquad P_M(X_a)\text{-a.s.}$$
+\end{proof}
+
+\begin{comment}
+\begin{Prp}\label{prp:graph_unconfounded_no_confounding_bias}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  Let $a \ne b \in V$.
+  Assume that $b$ does not cause $a$ according to $G(M)$.
+  If $a$ and $b$ are not confounded according to $G(M)$, then $a$ and $b$ have no confounding bias according to $M$.
+  \Joris{This also follows from Proposition~\ref{prp:rung3_unconfounded_implies_no_confounding_bias},
+  Theorem~\ref{thm:scm_causes} and Proposition~\ref{prp:graph_unconfounded_scm_rung3_unconfounded}, so this and Proposition~\ref{prp:graph_unconfounded1} may not be necessary.}
+\end{Prp}
+\begin{proof}
+Denote $G = G(M)$.
+Since $M$ is acyclic, either $b \notin \Anc^G(a)$ or $a \notin \Anc^G(b)$.
+Without loss of generality, assume the former.
+Proposition~\ref{prp:graph_unconfounded1} implies that $b \isPerp_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+The global Markov property (or rule 2 of the do-calculus, Proposition~\ref{prp:do-calculus}) then gives 
+  $$X_b \Indep_{P_{M_{\doit(I_a)}}} I_a \given \{a\} \cup J.$$
+Together with Remark~\ref{rem:no_confounding_bias} this proves the claim.
+%       \begin{align*} 
+%           b & \isPerp_{G_{\doit(I_a)}} I_a \given a \cup J, &          
+%                  \mu_a &\ll  P_M(X_a|\doit(X_{J})) \ll \mu_{a},
+%       \end{align*}
+%        then:
+%       \[ P_M(X_b|X_a,\doit(X_{J}))  = P_M(X_b|\doit(X_a),\doit(X_{J})) \qquad \mu_{a}\text{-a.s.}.\]
+% \Joris{With Theorem~\ref{thm:as-do-calculus-scms-simplified} we get the weaker statement that
+%  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}.$$
+%provided that $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+% }
+\end{proof}
+\end{comment}
+
+This yields the following criterion to detect the existence of certain bifurcations in $G(M)$:
+\begin{Cor}\label{cor:scm_identify_bifurcation}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+Let $a, b \in V$ with $a \ne b$.
+Assume that $b$ does not cause $a$ according to $G(M)$.
+If $a$ and $b$ have confounding bias according to $M$, then $a$ and $b$ must be confounded according to $G(M)$.
+%\footnote{The inequality of the two Markov kernels means that the one on the left is not a version of the one on the right.}
+%Equivalently, and more explicitly:
+%if for every version of the regular conditional distribution $P_{M}(X_b \given X_a, \doit(X_J=x_J))$
+%there exist values $x_a \in \CX_a, x_J \in \CX_J$ such that 
+%$$P_{M}(X_b \given \doit(X_a=x_a), \doit(X_J=x_J)) \ne P_{M}(X_b \given X_a=x_a, \doit(X_J=x_J)).$$
+%\Joris{Patrick says: better to interpret it as the lhs not being a version of the rhs (I believe that is equivalent to what I wrote now---the version in the AOS paper, where we first choose a $x_J$, seems a sufficient condition for this version).}
+\end{Cor}
+\begin{proof}
+  Combine Proposition~\ref{prp:rung3_unconfounded_implies_no_confounding_bias}, Theorem~\ref{thm:scm_causes} and Proposition~\ref{prp:graph_unconfounded_scm_rung3_unconfounded}.
+\end{proof}
+This condition for identifying confoundedness in a causal graph is sufficient, but not necessary, as the next example shows.
+\begin{Eg}\label{ex:confounding_bidirected_edges} % this is example 0.3.24 in ~/vcs/causalgraph/marginal_scm_causal_inference
+  Consider the (acyclic) SCM $M$ with binary endogenous variables $X_1$, $X_2$, $X_3 \in \{-1,1\}$ and a single exogenous random variable $E = (E_1,E_2,E_3) \in \{-1,1\}^3$, structural equations:
+  $$\begin{aligned}
+    X_1 &= E_1 \\
+    X_2 &= E_2 \\
+    X_3 &= E_3,
+  \end{aligned}$$
+  and exogenous distribution given by
+  $P(E=e)=\tfrac{1}{4} \delta_{e_3 = e_1 e_2}$.
+
+  Consider now the (acyclic) SCM $\tilde{M}$ with binary endogenous variables $X_1, X_2, X_3 \in \{-1,1\}$ and two exogenous random variables $E_1, E_2 \in \{-1,1\}$, and structural equations:
+  $$\begin{aligned} 
+      X_1 &= E_1 \\
+      X_2 &= E_2 \\
+      X_3 &= E_1 E_2,
+    \end{aligned}$$
+  where $E_1, E_2 \sim \C{U}(\{-1,1\})$ are independent.
+
+  The causal graphs of $M$ and $\tilde{M}$ are depicted in Figure~\ref{fig:confounding_bidirected_edges}.
+  $M$ and $\tilde{M}$ are interventionally equivalent. %That is obvious: one can check directly their observational equivalence. As interventions leave the marginal distribution on the unintervened nodes invariant, they must also be interventionally equivalent.
+  Indeed, they are even counterfactually equivalent; this follows since the change-of-variables $(E_1,E_2,E_3) \mapsto (\tilde{E}_1,\tilde{E}_2) := (E_1,E_2)$ is an exogenous push-forward (that does not depend on exogenous input variables).
+  The bidirected edge $X_1 \huh X_2$ in $G(M)$ is not present in $G(\tilde{M})$ (see Figure~\ref{fig:confounding_bidirected_edges}). 
+  Analogously to $\tilde{M}$, one can define counterfactually equivalent iSCMs that have another combination of two out of the three bidirected edges of $G(M)$.
+  Note that $X_1$ and $X_2$ have no confounding bias according to each of these iSCMs (as are $X_1$ and $X_3$, and $X_2$ and $X_3$).
+  Still, within the counterfactual equivalence class, these three iSCMs with two bidirected edges each have a minimal causal graph. 
+  In other words, there exists no counterfactually equivalent iSCM with less than two bidirected edges and without any directed edges in its causal graph. % Indeed, the observational distribution satisfies $X_i \Indep X_j$ for all $i\ne j$ but $X_i \nIndep X_{\sm i}$ for all $i$. If there are no directed edges and at most a single bidirected edge, there will be a disconnected node, and by the Markov property, that must be independent of the other two nodes.
+  \begin{figure}
+    \begin{center}
+      \begin{tikzpicture}
+        \begin{scope}[xshift=3cm]
+          \node[ndout] (X1) at (-1,0) {$X_1$};
+          \node[ndout] (X2) at (0,0) {$X_2$};
+          \node[ndout] (X3) at (1,0) {$X_3$};
+          \node[ndlat] (E) at (0,1.5) {$E$};
+          \draw[arout] (E) -- (X1);
+          \draw[arout] (E) -- (X2);
+          \draw[arout] (E) -- (X3);
+          \node (a) at (-2,1.5) {(a)};
+        \end{scope}
+        \begin{scope}[xshift=8cm]
+          \node[ndout] (X1) at (-1.5,0) {$X_1$};
+          \node[ndout] (X2) at (0,0) {$X_2$};
+          \node[ndout] (X3) at (1.5,0) {$X_3$};
+          \draw[arlat] (X1) edge (X2);
+          \draw[arlat] (X2) edge (X3);
+          \draw[arlat,bend left] (X1) edge (X3);
+          \node (a) at (-2,1.5) {(b)};
+        \end{scope}
+        \begin{scope}[xshift=0cm,yshift=-2.5cm]
+          \node[ndout] (X1) at (-1.5,0) {$X_1$};
+          \node[ndout] (X2) at (0,0) {$X_2$};
+          \node[ndout] (X3) at (1.5,0) {$X_3$};
+  %        \draw[arlat,bend left] (X1) edge (X2);
+          \draw[arlat] (X2) edge (X3);
+          \draw[arlat,bend left] (X1) edge (X3);
+          \node (a) at (-2,1) {(c)};
+        \end{scope}
+        \begin{scope}[xshift=5cm,yshift=-2.5cm]
+          \node[ndout] (X1) at (-1.5,0) {$X_1$};
+          \node[ndout] (X2) at (0,0) {$X_2$};
+          \node[ndout] (X3) at (1.5,0) {$X_3$};
+          \draw[arlat] (X1) edge (X2);
+  %        \draw[arlat,bend left] (X2) edge (X3);
+          \draw[arlat,bend left] (X1) edge (X3);
+          \node (a) at (-2,1) {(d)};
+        \end{scope}
+        \begin{scope}[xshift=10cm,yshift=-2.5cm]
+          \node[ndout] (X1) at (-1.5,0) {$X_1$};
+          \node[ndout] (X2) at (0,0) {$X_2$};
+          \node[ndout] (X3) at (1.5,0) {$X_3$};
+          \draw[arlat] (X1) edge (X2);
+          \draw[arlat] (X2) edge (X3);
+  %        \draw[biarr,bend left,in=135,out=45] (X1) edge (X3);
+          \node (a) at (-2,1) {(e)};
+        \end{scope}
+      \end{tikzpicture}
+    \end{center}
+    \caption{Example~\ref{ex:confounding_bidirected_edges}: (a) $G^+(M)$; (b): $G(M)$; (c): $G(\tilde{M})$; (d-e) causal graphs of two other iSCMs counterfactually equivalent to $M$.\label{fig:confounding_bidirected_edges}}
+  \end{figure}
+\end{Eg}
+This example shows that it is possible that no pair of endogenous variables has confounding bias, although bidirected edges are still necessary to represent exogenous dependences between endogenous variables.\footnote{This suggests to extend the definition of confounding bias to a group of variables rather than just a pair of variables, but we will not do so here.}
+
+\begin{Rem}\label{rem:cyclic_no_confounding_bias}
+How to define ``$a$ and $b$ have confounding bias'' if $a$ and $b$ are part of a causal cycle is at present an open research problem.
+\Joris{In the acyclic case, if $i$ and $j$ are not confounded, we have the identity
+      $$p(X_i,X_j \given \doit(X_{\C{O}\setminus\{i,j\}})) = 
+       p(X_i \given \doit(X_j),\doit(X_{\C{O}\setminus\{i,j\}})) 
+       p(X_j \given \doit(X_i),\doit(X_{\C{O}\setminus\{i,j\}}))$$
+
+      In the unconfounded real-valued cyclic case, I believe I derived the equality
+      $$\left(1 - \frac{\partial f_X}{\partial y}\frac{\partial f_Y}{\partial x}\right) p(X=x \given \doit(Y=y)) p(Y=y \given \doit(X=x)) = p(x,y)$$
+      with $f_X(y,e_X) = F^{-1}_{X \given \doit(Y=y)}$ and $f_Y(x,e_Y) = F^{-1}_{Y \given \doit(X=x)}$ the inverse cdf's
+      of the interventional distributions. In the acyclic case this gives the identity above.
+      Note that $p(Y = y \given \doit(X=x))$ completely fixes $f_Y$ in $Y = f_Y(X,E_Y)$ up to the marginal
+      distribution of $E_Y$ (which we can choose WLOG), $p(X = x \given \doit(Y=y))$ completely fixes $f_X$
+      in $X = f_X(Y,E_X)$ up to the marginal distribution of $E_X$. In the unconfounded case, this fixes the joint
+      distribution of $(E_X,E_Y)$ (by independence), and hence it fixes the joint density $p(X,Y)$. That is, even
+      in the unconfounded cyclic case, the two interventional distributions completely determine the joint density.
+      If there is confounding, this no longer holds (generically). This argument goes through for smooth enough 
+      densities and functions and real-valued variables.
+
+      From wikipedia (see also appendix on measure theory):
+      $$\int_\Omega h \circ g d\mu = \int_{g(\Omega)} h dg_* \mu$$
+      or, for $g : \Omega \to \RN^n$ a $C^1$ diffeomorphism with $\Omega \subseteq \RN^n$ an open subset:
+      $$\int_\Omega h d\mu = \int_{g(\Omega)} h \circ g^{-1} dg_* \mu = \int_{g(\Omega)} h \circ g^{-1} |\det D_x T^{-1}| \,dm(x)$$
+      with the Radon-Nikodym derivative w.r.t.\ Lebesgue measure given by:
+      $$\frac{dg_*\lambda}{d\lambda}(x) = |\det D_x T^{-1}|$$
+
+      Idea: if we represent $P(X \given \doit(Y))$ by a deterministic function, and also $P(Y \given \doit(X))$, then we can take these functions as the structural equations for an unconfounded iSCM, and read off the implied observational distribution via the push-forward of its solution function. The only question is: does the solution function exist, is it unique, and is it measurable?
+}
+\end{Rem}
+
+\Joris{
+\subsection{Potential outcome formulations}
+
+We briefly discuss the various notions in the potential outcome framework.
+Consider two endogenous variables $a,b$ with discrete state spaces $\CX_a, \CX_b$, respectively. 
+Assume the following random variables are defined (on the same probability space $(\Omega,\Sigma,\Prb)$).
+\begin{center}\begin{tabular}{ll}
+  $X_a$ & value of $a$ without hypothetical intervention \\
+  $X_b$ & value of $b$ without hypothetical intervention \\
+%  $X_a(x_a)$, $x_a \in \CX_a$ & value of $a$ under hypothetical intervention $\doit(X_a=x_a)$ \\
+  $X_b(x_a)$, $x_a \in \CX_a$ & value of $b$ under hypothetical intervention $\doit(X_a=x_a)$ \\
+  $X_a(x_b)$, $x_b \in \CX_b$ & value of $a$ under hypothetical intervention $\doit(X_b=x_b)$ \\
+%  $X_b(x_b)$, $x_b \in \CX_b$ & value of $b$ under hypothetical intervention $\doit(X_b=x_b)$ \\
+%  $X_a(x_a,x_b)$, $x_a \in \CX_a$, $x_b \in \CX_b$ & value of $a$ under hypothetical intervention $\doit(X_a=x_a,X_b=x_b)$ \\
+%  $X_b(x_a,x_b)$, $x_a \in \CX_a$, $x_b \in \CX_b$ & value of $b$ under hypothetical intervention $\doit(X_a=x_a,X_b=x_b)$ \\
+\end{tabular}\end{center}
+Note: we don't need to consider random variables $X_a(x_a)$, $X_b(x_b)$, $X_a(x_a,x_b)$, $X_b(x_a,x_b)$ because we assume
+that $P$-almost surely, $X_a(x_a) = x_a$, $X_b(x_b) = x_b$, $X_a(x_a,x_b) = x_a$, $X_b(x_a,x_b) = x_b$ for all $x_a \in \CX_a, x_b \in \CX_b$.
+These random variables have a joint distribution 
+%$$P(X_a,X_b,(X_a(x_a),X_b(x_a))_{x_a\in\CX_a},(X_a(x_b),X_b(x_b))_{x_b\in\CX_b},(X_a(x_a,x_b),X_b(x_a,x_b))_{x_a\in\CX_a,x_b\in\CX_b}).$$
+$$P(X_a,X_b,(X_b(x_a))_{x_a\in\CX_a},(X_a(x_b))_{x_b\in\CX_b}).$$
+One usually makes the following \emph{consistency} assumptions (for all $x_a \in \CX_a, x_b \in \CX_b$, $P$-almost surely):
+$$X_a = X_a(X_b)$$ % = X_a(X_a) = X_a(X_a,X_b)$$
+$$X_b = X_b(X_a)$$ % = X_b(X_b) = X_b(X_a,X_b)$$
+%$$X_a(x_b) = X_a(X_a,x_b)$$
+%$$X_b(x_a) = X_b(x_a,X_b)$$
+%$$X_a(x_a) = x_a$$
+%$$X_b(x_b) = x_b$$
+%$$X_a(x_a,x_b) = x_a$$
+%$$X_b(x_a,x_b) = x_b$$
+Often, one calls one variable the ``treatment'' variable and the other the ``outcome'' variable, and assumes that outcome does \emph{not} cause treatment.
+If we take $a$ in the role of the treatment, and $b$ the outcome, this is expressed mathematically as:
+$$\forall x_b \in \CX_b: \qquad X_a(x_b) = X_a$$
+%$$X_a(x_a,x_b) = X_a(x_a)$$
+Likewise, the assumption ``$a$ does not cause $b$'' would be expressed as
+$$\forall x_a \in \CX_a: \qquad X_b(x_a) = X_b.$$
+Finally, under the assumption that $b$ does not cause $a$, the statement ``$a$ and $b$ are unconfounded'' can be expressed as
+$$\forall x_a \in \CX_a: \qquad X_a \Indep X_b(x_a).$$
+
+We propose that the cyclic extension of this notion is:
+$$\forall x_a \in \CX_a, \forall x_b \in \CX_b: \qquad X_a(x_b) \Indep X_b(x_a)$$
+where we now no longer impose that $b$ does not cause $a$.
+}

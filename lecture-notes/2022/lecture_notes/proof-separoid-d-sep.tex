@@ -1,0 +1,222 @@
+\paragraph{Proofs - Separoid Axioms for \textsigma-/d-Separation}\hfill%
+
+In the following let $G=(J,V,E,L)$ be a CDMG and $A,B,C,D \ins J \cup V$
+(not necessarily disjoint) subsets of nodes.\\
+Since $\sigma$-separation can be expressed as d-separation in an acyclification $G'$
+of $G$ (see Definition~\ref{def:cdg_acyclification}) by Proposition~\ref{prp:sigma_sep_as_d_sep}
+%theorem \ref{thm-acy-sigma-sep}:
+\[ A \Perp^\sigma_G B \given C  \qquad\iff\qquad A \Perp^d_{G'} B \given C, \]
+we can w.l.o.g.\ in the proof assume that we only use d-separation.\\
+
+Recall that we say that \emph{$A$ is d-separated from $B$ given $C$} in $G$, in symbols:
+    \[ A \Perp^d_G B \given C, \]
+ if every walk from a node in $A$ to a node in $J \cup B$ (sic!) is d-blocked by $C$. \\
+ Again a walk $\pi$ is \emph{d-blocked by $C$} if it either contains a non-collider 
+ (i.e.\ either an end node, fork, left/right chain) in $C$ or a collider not in $C$.
+
+ We abbreviate the ternary relations in the following: $\displaystyle \Perp := \Perp_G^d$.
+
+
+\begin{Lem}[Extended Left Redundancy]
+    \[D \ins A \implies D \Perp  B \given A.\]
+\begin{proof}
+    If $\pi$ is a walk from a node $v$ in $D$ to a node $w$ in $J \cup B$ then its first end node is in $A$, so $\pi$ is d-blocked by $A$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[$J$-Restricted Right Redundancy]
+    \label{d-sep-restricted-right-redundancy}
+    \[A \Perp  \emptyset \given C \cup J \qquad \text{always holds.}\]
+\begin{proof}
+    If $\pi$ is a walk from a node $v$ in $A$ to a node $w$ in $J$ then its last end node is in $C \cup J$, so $\pi$ is d-blocked by $C \cup J$.
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}[$J$-Inverted Right Decomposition]
+    \[A \Perp  B \given C \implies A \Perp  J \cup B \given C.\]
+\begin{proof}
+ If $\pi$ is a walk from a node $v$ in $A$ to a node $w$ in $J \cup J \cup B$ then $w \in J \cup B$. %or $w \in C$.
+ If $w \in J \cup B$ then by assumption $\pi$ is d-blocked by $C$.
+ %If $w \in C$ then $w$ is an end node of $\pi$ that lies in $C$. So also in this case $\pi$ is d-blocked by $C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Decomposition]
+    \[ A \cup D \Perp  B \given C \implies D \Perp  B \given C.\]
+\begin{proof}
+If $\pi$ is a walk from a node $v$ in $D$ to a node $w$ in $J \cup B$, then 
+the walk $\pi$ is also a walk from $A \cup D$ to $J \cup B$, which by assumption is d-blocked by $C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Decomposition]
+    \[ A \Perp  B \cup D\given C  \implies A \Perp  D \given C.\]
+\begin{proof}
+If $\pi$ is a walk from a node $v$ in $A$ to a node $w$ in $J \cup D$, then %, because $J \cup D \ins J \cup B$, 
+the walk  $\pi$ is also a walk from $A$ to $J \cup B \cup D$, which by assumption is d-blocked by $C$. 
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Weak Union]
+    \label{d-sep-left-weak-union}
+    \[A \cup D \Perp  B  \given C \implies A \Perp  B \given D\cup C.\]
+\begin{proof}
+    Let us assume the contrary:  $A \nPerp  B \given D\cup C$. Then there exists a shortest $(D \cup C)$-d-open walk $\pi$ 
+    from a node $v$ in $A$ to a node $w$ in $J \cup B$ in $G$ such that every collider of $\pi$ is in $D \cup C$.
+    Then every non-collider of $\pi$ is not in $D \cup C$.\\
+    If now $\pi$ does not contain any node from $D \sm C$ then every collider of $\pi$ is in $C$. 
+    This implies that $\pi$ is $C$-d-open, 
+    which contradicts the assumption: $A \cup D \Perp  B  \given C$.\\
+    So we can assume now that $\pi$ contains a node in $D \sm C$. 
+    Then consider the shortest sub-walk $\tilde \pi$ in 
+    $\pi$ from $w \in J \cup B$ to a node $u \in D \sm C$. This means that $\tilde \pi$ does not contain any collider in $D\sm C$, 
+    so they are all in $C$. So $\tilde \pi$ is $C$-d-open walk from $A \cup D$ to $J \cup B$. 
+    This contradicts the assumption: $A \cup D \Perp  B  \given C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Weak Union] 
+    \[A \Perp  B \cup  D \given C \implies A \Perp  B \given D \cup  C.\]
+\begin{proof}
+    Follow the same steps as in Left Weak Union (Lemma~\ref{d-sep-left-weak-union}), 
+    but this time get a contradiction with:
+    $A \Perp  B \cup  D \given C$.
+   % Lets assume the contrary:  $A \nPerp  B \given D\cup C$. Then there exists a shortest $(D \cup C)$-d-open walk $\pi$ 
+   % from a node $v$ in $A$ to a node $w$ in $J \cup B$ in $G$.
+   % Then every collider of $\pi$ is in $D \cup C$ and every non-collider of $\pi$ is not in $D \cup C$.\\
+   % If now $\pi$ does not contain any node from $D \sm C$ then every collider of $\pi$ lies in $C$. 
+   % This implies that $\pi$ is $C$-d-open, 
+   % which contradicts the assumption: $A \Perp  B \cup D  \given C$.\\
+    Then again we can assume that $\pi$ contains a node in $D \sm C$. 
+    Then consider the shortest sub-walk $\tilde \pi$ in $\pi$ from $v \in A$ to a node $u \in D \sm C$.
+    This means that $\tilde \pi$ does not contain any collider in $D\sm C$, 
+    so they are all in $C$. So $\tilde \pi$ is $C$-d-open walk from $A$ to $J \cup B \cup D$. 
+    This contradicts the assumption: $A \Perp  B \cup D  \given C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Contraction] 
+        \label{d-sep-left-contraction}
+    \[ (A \Perp  B \given D \cup  C) \land (D \Perp  B \given C) \implies A \cup  D \Perp  B \given C.\]
+\begin{proof}
+    Let us assume the contrary:  $A \cup D \nPerp  B \given C$.
+    Then there exists a shortest $C$-d-open walk $\pi$ 
+    from a node $v$ in $A \cup D$ to a node $w$ in $J \cup B$ in $G$ such that every collider of $\pi$ is in $C$. 
+    So every non-collider is not in $C$ and $v$ is 
+    the only node of $\pi$ that is in $(A \cup D) \sm C$ (otherwise $\pi$ could be shortened). \\
+    Also $v$ cannot lie in $D\sm C$ as it would contradict the assumption: $D \Perp  B \given C$.
+    Thus $v \in A \sm C$ and $\pi$ is a walk from $A$ to $J \cup B$ whose colliders are in $C \ins D \cup C$ 
+    and all non-colliders are not in $D \cup C$.
+    %Furthermore, $\pi$ cannot have any non-colliders in $D$ as $\pi$ was assumed to be a shortest walk from $A \cup D$ 
+    %to $J \cup B$. So all non-colliders of $\pi$ are outside of $C \cup D$. So $\pi$ must be $(D \cup C)$-d-open, which 
+    But this contradicts the other assumption: $A \Perp  B \given D \cup  C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Contraction]
+  \label{d-sep-right-contraction}
+    \[ (A \Perp  B \given D \cup  C) \land (A \Perp  D \given C)  \implies A \Perp  B \cup  D \given C.\]
+\begin{proof}
+    Let us assume the contrary:  $A  \nPerp  B \cup D \given C$.
+    Then there exists a shortest $C$-d-open walk $\pi$ 
+    from a node $v$ in $A$ to a node $w$ in $J \cup B \cup D$ in $G$ such that  every collider of $\pi$ is in $C$.
+    So every non-collider is not in $C$ and $w$ is 
+    the only node of $\pi$ that is in $(J \cup B \cup D)\sm C$ (otherwise $\pi$ could be shortened). \\
+    Also $w$ cannot lie in $D\sm C$ as it would contradict the assumption: $A \Perp  D \given C$.
+    Thus $w \in (J \cup B) \sm C$ and $\pi$ is a walk from $A$ to $J \cup B$ whose colliders all are in $C \ins D \cup C$ 
+    and all non-colliders are not in $D \cup C$.
+    But this contradicts the other assumption: $A \Perp  B \given D \cup  C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Cross Contraction]
+    \[ (A \Perp  B \given D \cup  C) \land (D \Perp  A \given C) \implies A  \Perp  B \cup  D \given C.\]
+\begin{proof}
+    Verbatim the same as Right Contraction (Lemma~\ref{d-sep-right-contraction}), 
+    only the first contradiction is with: $D \Perp A \given C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Flipped Left Cross Contraction]
+    \label{d-sep-flc-contraction}
+    \[ (A \Perp  B \given D \cup  C) \land (B \Perp  D \given C) \implies B \Perp  A \cup  D \given C.\]
+\begin{proof}
+    Let us assume the contrary:  $B  \nPerp  A \cup D \given C$.
+    Then there exists a shortest $C$-d-open walk $\pi$ 
+    from a node $v$ in $B$ to a node $w$ in $J \cup A \cup D$ in $G$ such that every collider of $\pi$ is in $C$.
+    So every non-collider is not in $C$ and $w$ is 
+    the only node of $\pi$ that is in $(J \cup A \cup D)\sm C$ (otherwise $\pi$ could be shortened). \\
+    Also $w$ cannot lie in $(J \cup D) \sm C$ as it would contradict the assumption: $B \Perp  D \given C$.
+    Thus $w \in A \sm C$ and the walk $\pi$ (in reverse direction) is a walk from $A$ to $B$ whose colliders are all in 
+    $C \ins D \cup C$ 
+    and all non-colliders are not in $D \cup C$.
+    But this contradicts the other assumption: $A \Perp  B \given D \cup  C$.
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}[$J$-Restricted Symmetry]
+    %If $J=\emptyset$ then we have:
+    \[A \Perp  B \given C \cup J \implies B \Perp A \given C \cup J.\]
+\begin{proof}
+  This follows from Flipped Left Cross Contraction (Lemma~\ref{d-sep-flc-contraction}) with $D=\emptyset$ and $C \cup J$ in place of $C$ together with
+    $J$-Restricted Right Redundancy (Lemma~\ref{d-sep-restricted-right-redundancy}).
+%If $J = \emptyset$ then every walk from $B$ to $J \cup A =A$ gives a walk from $A$ to $B=J \cup B$ in reverse direction. 
+%Since being $d$-blocked by $C$ is not dependend on the direction of the walk the claim follows.
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}[Left Composition]
+    \[ (A \Perp  B \given  C) \land (D \Perp  B \given C) \implies A \cup D \Perp  B \given C.\]
+\begin{proof}
+    Let $\pi$ be a walk from a node $v$ in $A \cup D$ to a node $w$ in $J \cup B$.
+    If $v \in A$ then $\pi$ is d-blocked by $C$ by assumption: $A \Perp  B \given  C$.
+    If $v \in D$ then $\pi$ is d-blocked by $C$ by assumption: $D \Perp  B \given  C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Composition]
+    \[ (A \Perp  B \given  C) \land (A \Perp  D \given C) \implies A \Perp  B \cup  D \given C.\]
+\begin{proof}
+    Let $\pi$ be a walk from a node $v$ in $A$ to a node $w$ in  $J \cup B \cup D$.
+    If $w \in J \cup B$ then $\pi$ is d-blocked by $C$ by assumption: $A \Perp  B \given  C$.
+    If $w \in J \cup D$ then $\pi$ is d-blocked by $C$ by assumption: $A \Perp  D \given  C$.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Left Intersection] Assume that $A \cap D = \emptyset$, then:
+    \[ (A \Perp  B \given D \cup  C) \land (D \Perp  B \given A \cup C) \implies A \cup D \Perp  B \given   C.\]
+\begin{proof}
+    Let us assume the contrary:  $A \cup D \nPerp  B \given C$.
+    Then there exists a shortest $C$-d-open walk $\pi$ 
+    from a node $v$ in $A \cup D$ to a node $w$ in $J \cup B $ in $G$ such that every collider of $\pi$ is in $C$.
+    So every non-collider is not in $C$ and $v$ is 
+    the only node of $\pi$ that is in $(A \cup D)\sm C$ (otherwise $\pi$ could be shortened). \\
+    If $v \in A$ then by the disjointness of $A$ and $D$ we have that $v \notin D$. 
+    Then $\pi$ is a walk from $A$ to $J \cup B$ whose colliders are in $C \ins D \cup C$ 
+    and all non-colliders are not in $(D \sm C) \cup C =D \cup C$. This contradicts the assumption: $A \Perp  B \given D \cup  C$.\\
+    If $v \in D$ then similarly we get a contradiction: $D \Perp  B \given A \cup  C$
+\end{proof}
+\end{Lem}
+
+\begin{Lem}[Right Intersection] Assume that $B \cap D = \emptyset$, then:
+    \[ (A \Perp  B \given D \cup  C) \land (A \Perp  D \given B \cup C) \implies A  \Perp  B \cup D \given   C.\]
+\begin{proof}
+    Let us assume the contrary:  $A \nPerp  B \cup D \given C$.
+    Then there exists a shortest $C$-d-open walk $\pi$ 
+    from a node $v$ in $A$ to a node $w$ in $J \cup B \cup D $ in $G$ such that every collider of $\pi$ is in $C$.
+    So every non-collider is not in $C$ and $w$ is 
+    the only node of $\pi$ that is in $(J \cup B \cup D) \sm C$ (otherwise $\pi$ could be shortened). \\
+    If $w \notin B$ then $w \in J \cup D$. In this case $\pi$ is a walk from $A$ to $J \cup D$ where every collider is in
+    $C \ins B \cup C$ and all non-colliders are not in $(B\sm C) \cup C = B \cup C$. 
+    So $\pi$ is a $(B \cup C)$-d-open walk from $A$ to $J \cup D$.
+    This contradicts the assumption: $A \Perp  D \given B \cup C$.\\
+    If $w \notin D$ then $w \in J \cup B$. In this case $\pi$ is a walk from $A$ to $J \cup B$ where every collider is in
+    $C \ins D \cup C$ and all non-colliders are not in $D \cup C$. 
+    So $\pi$ is a $(D \cup C)$-d-open walk from $A$ to $J \cup B$.
+    This contradicts the assumption: $A \Perp  B \given D \cup  C$.\\
+    Since $B \cap D = \emptyset$ there are no other cases ($B^\cmpl \cup D^\cmpl = J \cup V$) and we are done.
+\end{proof}
+\end{Lem}

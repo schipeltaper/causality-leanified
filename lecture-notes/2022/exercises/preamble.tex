@@ -1,0 +1,164 @@
+\usepackage{fullpage}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumerate}
+\usepackage[svgnames]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xr}
+\externaldocument{../lecture_notes/main}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+%  total={170mm,257mm},
+ left=35mm,
+ right=28mm,
+ top=38mm,
+ }
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\tikzstyle{var}=[circle,draw,fill=white,thick,minimum size=20pt,inner sep=0pt]
+\tikzstyle{varh}=[circle,draw,fill=gray!10,thick,minimum size=20pt,inner sep=0pt,dotted]
+\tikzstyle{arr}=[->,>=stealth',draw,thick]
+%\tikzstyle{arr}=[->,>=stealth',draw=black,fill=black,line width=1pt]
+%\tikzstyle{arrh}=[->,>=stealth',draw=gray,thin]
+\tikzstyle{arrh}=[->,>=stealth',draw,fill=gray,thick,dotted]
+\tikzstyle{biarr}=[<->,>=stealth',draw,fill=black,thick]
+\tikzstyle{fac}=[rectangle,draw=black!50,fill=black!20,thick,minimum size=10pt] %or 15pt
+\tikzstyle{vari}=[circle,draw=white,fill=red,thick,minimum size=20pt,inner sep=0pt]
+
+\usepackage{bm}
+% \usepackage[document]{ragged2e}
+\usepackage{verbatim}
+\usepackage{fancyhdr}
+\usetikzlibrary{automata, positioning}
+\usepackage[explicit]{titlesec}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsopn}
+%\usepackage{stmaryrd}
+%\newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
+\usepackage{cite}		%nichtmit natmib zusammen
+\usepackage{enumerate}
+\usepackage{multirow}
+\usepackage{caption}
+
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+%\usepackage{latexsym,color,mathrsfs,nicefrac,stmaryrd} 
+%\usepackage[all]{xy}
+%\usepackage{mathabx}
+
+\usepackage{cancel}
+\usepackage{bbm}
+\usepackage{enumitem}
+%\usepackage{wasysym}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta, calc}
+\usetikzlibrary{shapes,positioning,decorations.markings}
+\usetikzlibrary{decorations.pathreplacing}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+%    citecolor=black,
+%    filecolor=black,
+    linkcolor=blue,
+%    urlcolor=black,
+    pdfpagemode=UseOutlines
+}
+
+ %-------------theorem envirionments --  abbreviations ------------------
+
+\input{../lecture_notes/thm}
+\input{../lecture_notes/shorts}
+\input{../lecture_notes/shortsjoris}
+
+%--------------Renumbering of sections, chapters, subsections----------------
+\usepackage{chngcntr}
+
+
+% \renewcommand{\thesa}{\arabic{subsection}.\arabic{sa}}
+%\renewcommand{\thechapter}{\arabic{chapter}}
+% \renewcommand{\thesection}{\arabic{section}}
+% \renewcommand{\thesubsection}{\arabic{subsection}}
+%\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+%\counterwithout{section}{chapter} %make sections independent of chapters
+% \counterwithout{subsection}{section} %make sections independent of chapters
+%\counterwithout{section}{subsection}
+% \renewcommand*{\theenumi}{\ifnum \value{section}=0 ABC \fi.\arabic{enumi}}
+% \renewcommand*{\theenumii}{\theenumi.\arabic{enumii}}
+
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\normalsize\bfseries}{\thesection.}{1em}{#1}
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries}{\thesubsection.}{1em}{#1}
+
+% Solutions to exercises (toggling)
+\definecolor{deepcarrotorange}{rgb}{0.91, 0.41, 0.17}
+\usepackage{environ}
+\newif\ifgradedsolutions
+\newif\ifungradedsolutions
+\NewEnviron{gradedsolution}{%
+  \ifgradedsolutions
+  \color{red}
+  \subsubsection*{Solution}
+  \expandafter\BODY \fi}
+\newcommand{\points}[1]{\textbf{(#1 points)}}
+
+\NewEnviron{ungradedsolution}{%
+  \ifungradedsolutions
+  \color{deepcarrotorange}
+  \subsubsection*{Solution}
+  \expandafter\BODY \fi}
+
+\newif\ifsolutions
+\NewEnviron{gradingremarks}{%
+  \ifgradedsolutions
+  \color{red}
+  \subsubsection*{Grading Remarks}
+  \expandafter\BODY \fi}
+
+\IfFileExists{showsolutions.tmpfile}{%
+\solutionstrue
+}{%
+\solutionsfalse
+} 
+
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{} 
+\renewcommand{\headrulewidth}{0mm} % remove line under header
+\setlength{\headheight}{14pt}
+\lhead{{Causality 5334CAUS6Y}}
+\rhead{Page \thepage \hspace{1pt} of \pageref*{LastPage}}
+\setlength{\headsep}{20pt}
+
+\usepackage{subcaption}
+
+\usepackage{listings}
+\lstset{language=R,
+        frame=tb,
+        basicstyle=\small\ttfamily,
+        aboveskip=3mm,
+        belowskip=3mm,
+        showstringspaces=false,
+        columns=flexible,
+        numbers=left, 
+        numbersep=5pt,    
+        numberstyle=\tiny\color{gray},
+        commentstyle=\color{DarkGreen},
+        stringstyle=\color{DarkGreen},
+        breaklines=true,
+        breakatwhitespace=true,
+        tabsize=2
+}

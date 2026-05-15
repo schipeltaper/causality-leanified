@@ -1,0 +1,234 @@
+\subsection{Leftovers}\label{sec:fci_leftovers}
+
+Here we state some results that we showed but ended up not needing.
+As they might be useful for extending the theory, we report them here.
+Warning: these results have not been checked carefully, there might be bugs.
+
+Lemma~\ref{lem:sigma-inducing_path_out-of} can be modified by replacing '$\sigma$-inducing path' by $\sigma$-inducing walk', simplifying the proof slightly.
+
+Under certain conditions, we can concatenate $\sigma$-inducing paths into a $\sigma$-inducing walk.
+\begin{Lem}\label{lem:concatenating_sigma-inducing_paths_into_sigma-inducing_walk}
+  Let $G$ be a DMG with vertex set $V$.
+  Suppose $q_0, q_1, \dots, q_n$ is a sequence of distinct vertices in $G$ such that each $q_i \in \Anc_G(\{q_0,q_n\})$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$, $\mu_i$ is a $\sigma$-inducing path in $G$ between $q_{i-1}$ and $q_i$ that is into $q_{i-1}$ if $i > 1$ and into $q_i$ if $i < n$.
+  \[\overunderbraces{&\br{2}{\mu_1}&&&&\br{2}{\mu_{n}}}{&q_0 \cdots \suh & q_1 & \hus \dots \suh q_2 & \hus \cdots \cdots \suh & q_{n-2} \hus \dots \suh & q_{n-1} & \hus \cdots q_n}{&&\br{2}{\mu_2}&&\br{2}{\mu_{n-1}}}\]
+  Then the concatenation of the paths $\mu = (\mu_1,\dots,\mu_n)$ is a $\sigma$-inducing walk between $q_0$ and $q_n$ in $G$.
+\end{Lem}
+\begin{proof}
+  A collider on $\mu$ is either a $q_i$, and hence in $\Anc_G(\{q_0,q_n\})$ by assumption,
+  or a collider on some $\mu_i$, and hence in $\Anc_G(\{q_{i-1},q_{i}\}) \subseteq \Anc_G(\{q_0,q_n\})$.
+  Any non-endpoint non-collider on $\mu$ must be a non-endpoint non-collider on some $\mu_i$, and hence unblockable on $\mu_i$, and hence unblockable on $\mu$.
+\end{proof}
+
+The existence of $\sigma$-inducing paths with certain properties implies the existence of $\sigma$-open paths with similar properties.
+\begin{Prp}\label{prp:sigma-inducing_path_orientations}
+  Let $G$ be a DMG with vertex set $V$ and $i,j \in V$ be distinct such that there exists a $\sigma$-inducing path in $G$ between $i$ and $j$.
+  Let $Z \subseteq V \setminus \{i,j\}$.
+  \begin{enumerate}[label=(\arabic*)]
+    \item If there exists a $\sigma$-inducing path in $G$ between $i$ and $j$ that is into $i$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is into $i$.
+    \item If there exists a $\sigma$-inducing path in $G$ between $i$ and $j$ that is into $i$ and into $j$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is into $i$ and into $j$.
+    \item If all $\sigma$-inducing paths in $G$ between $i$ and $j$ are out of $i$, then there exists a $Z$-$\sigma$-open path between $i$ and $j$ in $G$ that is out of $i$.
+%    \item If all $\sigma$-inducing paths in $G$ between $i$ and $j$ are out of $i$, then there exists a $Z$-$\sigma$-open path of the form $i \tuh k \cdots j$ (with possibly $k = j$) such that $k \notin \Sc_G(i)$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Define $\pi_1$ := 'is into $i$', $\pi_2$ := 'is into $i$ and into $j$', $\pi_3$ := 'is out of $i$'.
+
+  Suppose there exists a $\sigma$-inducing path between $i$ and $j$ in $G$ that satisfies $\pi_n$ for $n \in \{1,2,3\}$.
+  Let $Z \subseteq V\setminus\{i,j\}$. 
+  Consider all paths in $G$ between $i$ and $j$ with the property that it satisfies $\pi_n$, all colliders on it are in $\Anc_{G}({\{i,j\}) \cup Z}$, and each non-endpoint non-collider on it is not in $Z$ or is unblockable.
+  Such paths exist, since the $\sigma$-inducing path is one. 
+  Let $\mu$ be such a path with a minimal number of colliders.
+  We show that all colliders on $\mu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\mu$ that is not ancestor of $Z$. 
+  It is ancestor of $i$ or of $j$, by assumption.
+
+  \begin{itemize}
+    \item For $n\in \{1,2\}$:
+  Then there exists a directed path from $k$ to $i$ that does not pass through $j$, or there exists a directed path from $k$ to $j$ that does not pass through $i$.
+  Without loss of generality, assume the latter:
+  there is a (non-trivial) directed path $\pi$ from $k$ to $j$ in $G$ that does not pass through any node of $Z$, nor through $i$.
+  Let $l$ be the vertex closest to $i$ on $\mu$ that is also on $\pi$ (note: $l \ne i$).
+    \item For $n = 3$:
+  By Lemma~\ref{lem:sigma-inducing_path_out-of}, $i \in \Anc_G(j)$.
+  Hence, $k$ must be ancestor of $j$.
+  Therefore, there is a non-trivial directed path $\pi$ from $k$ to $j$ in $G$ that does not pass through any node of $Z$.
+  Let $l$ be the vertex closest to $i$ on $\mu$ that is also on $\pi$ (note: $l$ could be $i$).
+  \end{itemize}
+
+  The subpath of $\mu$ between $i$ and $l$ can be concatenated with the (non-trivial) subpath of $\pi$ between $l$ and $j$ into a path between $i$ and $j$.
+  This path has the property (in particular, $\pi_n$ still holds), but has fewer colliders than $\mu$: a contradiction.
+  Therefore, $\mu$ is $\sigma$-open given $Z$, and satisfies $\pi_n$.
+\end{proof}
+Also this lemma can be modified (and its proof slightly simplified) by replacing 'path' by 'walk'.
+
+We can do something similar with a sequence of $\sigma$-inducing paths.
+\begin{Lem}\label{lem:dpag_concatenating_sigma-inducing_paths_into_open_walk}
+  Let $G$ be a DMG with vertex set $V$. 
+  Suppose $q_0, q_1, \dots, q_n$ is a sequence of distinct vertices in $G$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$, $\mu_i$ is a $\sigma$-inducing path in $G$ between $q_{i-1}$ and $q_i$ that is into $q_{i-1}$ if $i > 1$ and into $q_i$ if $i < n$.
+  Let $Z \subseteq V \setminus \{q_0,q_n\}$.
+  Suppose that $q_i \in Z$ for $0 < i < n$.
+  Then there exists a $Z$-$\sigma$-open walk in $G$ between $q_0$ and $q_n$, such that all occurrences of $q_0$ or $q_n$ as non-endpoint non-collider are unblockable, and optionally:
+  \begin{itemize}
+    \item that is into $q_n$ if $\mu_n$ is into $q_n$, or
+    \item that is out of $q_n$ if $\mu_n$ is out of $q_n$ and $q_n \in \Anc_G(q_{n-1})$
+  \end{itemize}
+\end{Lem}
+\begin{proof}
+  Define $\pi_0$ := 'true', $\pi_1$ := 'is into $q_n$', $\pi_2$ := 'is into $q_0$ and into $q_n$', $\pi_3$ := 'is out of $q_n$'.
+  Suppose the concatenation of the $\sigma$-inducing paths $\mu = (\mu_1, \dots, \mu_n)$ satisfies $\pi_m$ for $m \in \{0,1,2,3\}$.
+
+  Consider all walks in $G$ between $q_0$ and $q_n$ with the property that 
+  \begin{enumerate}
+    \item all colliders on it are in $\Anc_{G}({\{q_0,q_n\} \cup Z})$, and 
+    \item each non-endpoint non-collider on it is not in $Z \cup \{q_0,q_n\}$ or is unblockable, and
+    \item it satisfies $\pi_m$.
+  \end{enumerate}
+  Such walks exist, since $\mu$ is one. 
+  Let $\nu$ be such a walk with a minimal number of colliders.
+  We show that all colliders on $\nu$ must be in $\Anc_{G}(Z)$. 
+  Suppose on the contrary the existence of a collider $k$ on $\nu$ that is not ancestor of $Z$. 
+  It is ancestor of $q_0$ or of $q_n$, by assumption.
+
+  \begin{itemize}
+    \item For $m\in \{0,1,2\}$:
+      Then there exists a directed path from $k$ to $q_0$ that does not pass through $q_n$, or there exists a directed path from $k$ to $q_n$ that does not pass through $q_0$.
+      Without loss of generality \Joris{really, the $\pi$ are not symmetric?}, assume the former:
+      there is a (possibly trivial) directed path $\pi$ from $k$ to $q_0$ in $G$ that does not pass through $Z \cup \{q_n\}$.
+    \item For $m = 3$:
+      By Lemma~\ref{lem:sigma-inducing_path_out-of}, $q_n \in \Anc_G(q_{n-1})$.
+      Since $q_{n-1} \in Z$, $q_n \in \Anc_G(Z)$. 
+      If $k \in \Anc_G(q_n)$, then we get a contradiction.
+      Hence, $k \in \Anc_G(q_0) \sm \Anc_G(q_n)$, and
+      there is a (possibly trivial) directed path $\pi$ from $k$ to $q_0$ in $G$ that does not pass through $Z \cup \{q_n\}$.
+  \end{itemize}
+  
+  The (possibly trivial) directed path $\pi$ from $k$ to $q_0$ can be concatenated with the subwalk of $\nu$ between $k$ and $q_n$ (which is into $k$) into a walk between $q_0$ and $q_n$.
+  If $\pi$ is non-trivial, this walk is into $q_0$; if $\pi$ is trivial (if $k = q_0$) it also is into $q_0$, and its right-most edge that ends at $q_n$ is still the same as in $\nu$.
+  This walk has the property (in particular, $\pi_m$ still holds), but has fewer colliders than $\nu$: a contradiction.
+  Therefore, $\nu$ is $\sigma$-open given $Z$, satisfies $\pi_m$, and such that all occurrences of $q_0$ or $q_n$ as non-endpoint non-collider are unblockable.
+\end{proof}
+
+Lemma~\ref{lem:sigma-inducing_path_into} can also be modified by replacing 'path' by 'walk'.
+
+\begin{Lem}[Lemma 1 in \cite{SMR1999}]\label{lem:dpag_concatenated_collider_walk}
+  Let $G$ be a DMG with vertex set $V$. 
+  Suppose $q_0, q_1, \dots, q_n$ is a sequence of distinct vertices in $G$.
+  Let $Z \subseteq V \setminus \{q_0,q_n\}$.
+  Let $\mu_1,\dots,\mu_n$ be a sequence of paths in $G$ such that for $i=1,\dots,n$,
+  $\mu_i$ is a $Z\sm\{q_{i-1},q_i\}$-$\sigma$-open path between $q_{i-1}$ and $q_i$.
+  Suppose that for each $i=1,\dots,n-1$, if $q_i \in Z$ then both $\mu_{i-1}$ and $\mu_i$ are into $q_i$.
+  Suppose further that for each $i=1,\dots,n-1$, if $\mu_{i-1}$ and $\mu_i$ are into $q_i$, then $q_i \in \Anc_G(Z)$.
+  Then the concatenation of the paths $\mu = (\mu_1,\dots,\mu_n)$ is a $Z$-$\sigma$-open walk between $q_0$ and $q_n$ in $G$.
+\end{Lem}
+\begin{proof}
+  First we show that each occurrence of a node $z \in Z$ on $\mu$ must be as a collider, or as an unblockable non-collider.
+  If $z$ occurs as an an endpoint $q_i$ of $\mu_{i-1}$ and $\mu_i$, then this occurrence of $z$ is a collider by assumption, as both $\mu_{i-1}$ and $\mu_i$ were assumed to be into $q_i \in Z$.
+  If $z$ occurs as a non-endpoint node of some $\mu_i$, then since $\mu_i$ is a $Z\sm\{q_{i-1},q_i\}$-$\sigma$-open path between $q_{i-1}$ and $q_i$, then this occurrence of $z$ (which is in this conditioning set) must be a collider on $\mu_i$ or it must be an unblockable non-collider on $\mu_i$.
+
+  Next we show that each collider $k$ on $\mu$ is in $\Anc_G(Z)$.
+  If $k$ is an endpoint $q_i$ of $\mu_{i-1}$ and $\mu_i$, then by assumption, $q_i \in \Anc_G(Z)$.
+  If $k$ is a non-endpoint node of some $\mu_i$, then since $\mu_i$ is a $Z\sm\{q_{i-1},q_i\}$-$\sigma$-open path between $q_{i-1}$ and $q_i$, then $k \in \Anc_G(Z\sm\{q_{i-1},q_{i}\}) \subseteq \Anc_G(Z)$.
+
+  Hence $\mu$ is a $Z$-$\sigma$-open walk between $q_0$ and $q_n$ in $G$.
+\end{proof}
+
+\subsubsection{DMAGs}
+
+DMAGs can be defined as follows \cite{Zhang2008_JMLR}:
+\begin{Def}\label{def:DMAG}
+  A directed mixed graph $G = \lt V, E, F \rt$ is called a \emph{directed maximal ancestral graph (DMAG)} if all of the following conditions hold: 
+  \begin{enumerate}
+    \item Between any two different nodes there is at most one edge, and there are no self-cycles;
+    \item The graph contains no directed or almost directed cycles (``ancestral'');
+    \item There is no $\sigma$-inducing path between any two non-adjacent nodes (``maximal'').
+  \end{enumerate}
+\end{Def}
+With the following procedure from \cite{RichardsonSpirtes02}, one can define the DMAG induced by an ADMG:
+\begin{Def}\label{def:DMAG_induced_by_ADMG}
+  Let $G = \lt V, E, F \rt$ be an ADMG. 
+  The \emph{directed maximal ancestral graph induced by $G$} is denoted $\DMAG(G)$ and is defined as
+  $\DMAG(G) = \lt \tilde{V}, \tilde{E}, \tilde{F} \rt$ such that $\tilde{V} = V$ and
+  for each pair $u,v \in V$ with $u \ne v$, there is an edge in $\DMAG(G)$ between $u$ and $v$ if and only if 
+  there is a $\sigma$-inducing path between $u$ and $v$ in $G$, and in that case the edge in $\DMAG(G)$ connecting $u$ and $v$ is:
+    $$\begin{cases}
+      \text{$u \tuh  v$} & \text{if $u \in \Anc_{G}(v)$}, \\
+      \text{$u \hut  v$} & \text{if $v \in \Anc_{G}(u)$}, \\
+      \text{$u \huh v$} & \text{if $u \not\in \Anc_{G}(v)$ and $v \not\in \Anc_{G}(u)$.}
+    \end{cases}$$
+\end{Def}
+This construction preserves the (non-)ancestral relations as well as the $d$-separations/connections.
+We sometimes identify a DMAG $\C{H}$ with the set of ADMGs $G$ that induce $\C{H}$, i.e., such that $\DMAG(G) = \C{H}$.
+
+For a DMAG $\C{H}$, we define its \emph{independence model} to be
+$$\IM(\C{H}) := \{ \lt A, B, C \rt : A, B, C \subseteq V, A \dPerp_{\C{H}} B \given C \},$$
+i.e., the set of all $d$-separations entailed by the DMAG. We call two DMAGs
+$\C{H}_1$ and $\C{H}_2$ \emph{Markov equivalent} if $\IM(\C{H}_1) = \IM(\C{H}_2)$. 
+
+One often identifies a DPAG with the set of all DMAGs that have the same skeleton as the DPAG, have an arrowhead (tail) on each edge mark for which the DPAG has an arrowhead (tail) at that corresponding edge mark, and for each circle in the DPAG, have either an arrowhead or a tail at the corresponding edge mark. 
+We then say that the DPAG \emph{represents} these DMAGs.
+The circles in a DPAG can thus be thought of as representing either an arrowhead or a tail.
+Since each ADMG induces a unique DMAG, we can say that a DPAG represents an ADMG if and only if it represents the DMAG induced by it.
+
+\subsubsection{FCI Skeleton phase}
+
+\begin{Def}
+  Let $H = \DMAG(G)$ be the DMAG induced by an ADMG $G$ with vertex set $V$.
+  For $i,j \in H$, define $\SEP_H(i,j)$ to be the set of nodes $v \in V$ such that
+  $v \ne i$ and there is a path $\pi$ in $H$ between $i$ and $v$ such that every node
+  on $\pi$ is in $\Anc_H(\{i,j\})$ and (except for the endpoints) is a collider on $\pi$.
+\end{Def}
+
+\begin{Prp}
+  Let $H = \DMAG(G)$ be the DMAG induced by a ADMG $G$ with vertex set $V$.
+  Let $i,j \in V$ be distinct.
+  If $i,j$ are not adjacent in $H$, then $i$ and $j$ are $d$-separated in $G$ given $\SEP_H(i,j)$.
+\end{Prp}
+\begin{proof}
+  By contradiction.
+  Suppose $i,j$ are not adjacent in $H$.
+  Then there is no $\sigma$-inducing walk between $i,j$ in $G$.
+  Suppose there exists a walk $\pi$ in $G$ between $i$ and $j$ that is $d$-open given $\SEP_H(i,j)$.
+  Nodes in $\SEP_H(i,j)$ are in $\Anc_H(\{i,j\})$ and hence in $\Anc_G(\{i,j\})$.
+  Any collider on $\pi$ must be in $\SEP_H(i,j) \subseteq \Anc_H(\{i,j\}) = \Anc_G(\{i,j\})$.
+  No non-collider on $\pi$ is in $\SEP_H(i,j)$.
+  Let $k$ be the first non-collider on $\pi$ after $i$.
+  Then $k \in \Anc_G(i)$ or $k \in \Anc_G(j)$ or $k \in \Anc_G(l)$ for some collider $l \in \SEP_H(i,j))$.
+  In each case, $k \in \Anc_H(\{i,j\})$.
+  Hence $k \in \SEP_H(i,j)$.
+  This is a contradiction.
+\end{proof}
+
+New attempt, now directly in terms of $G$ rather than $\DMAG(G)$.
+
+\begin{Def}
+  Let $G$ be an ADMG with vertex set $V$.
+  For $i,j \in G$, define $\SEP_G(i,j)$ to be the set of nodes $v \in V$ such that
+  $v \ne i$ and there is a walk $\pi$ in $G$ between $i$ and $v$ such that every node
+  on $\pi$ is in $\Anc_G(\{i,j\})$ and (except for the endpoints) is a collider on $\pi$.
+\end{Def}
+Note that if $j \in \SEP_G(i,j)$, there is a $\sigma$-inducing path in $G$ between $i,j$.
+
+\begin{Prp}
+  Let $G$ be an ADMG with vertex set $V$.
+  Let $i,j \in V$ be distinct.
+  If there is no $\sigma$-inducing path between $i,j$ in $G$, then $i$ and $j$ are $d$-separated in $G$ given $\SEP_G(i,j)$,
+  with $\SEP_G(i,j) \cap \{i,j\} = \emptyset$.
+\end{Prp}
+\begin{proof}
+  Suppose there is no $\sigma$-inducing path between $i,j$ in $G$.
+  Hence, $j \notin \SEP_G(i,j)$.
+  By definition, $i \notin \SEP_G(i,j)$.
+  We prove the $d$-separation by contradiction.
+  Suppose there exists a walk $\pi$ in $G$ between $i$ and $j$ that is $d$-open given $\SEP_G(i,j)$.
+%  Let $\pi$ be such a walk with the additional property that it has a minimal number of collider nodes between $i$ and the first non-collider on the path after $i$ (that could be $j$).
+  Nodes in $\SEP_G(i,j)$ are in $\Anc_G(\{i,j\})$.
+  Any collider on $\pi$ must be in $\SEP_G(i,j) \subseteq \Anc_G(\{i,j\})$.
+  No non-collider on $\pi$ is in $\SEP_G(i,j)$.
+  Let $k$ be the first non-collider on $\pi$ after $i$ (this could be $j$).
+  Then $k \in \Pa_G(i)$ or $k \in \Anc_G(j)$ or $k \in \Anc_G(l)$ for some collider $l \in \SEP_G(i,j)$ on $\pi$.
+  In each case, $k \in \Anc_G(\{i,j\})$.
+  Hence $k \in \SEP_G(i,j)$.
+  This is a contradiction.
+\end{proof}

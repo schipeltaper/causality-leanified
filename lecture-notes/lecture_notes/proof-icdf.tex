@@ -1,0 +1,429 @@
+\paragraph{Proofs - Deterministic Representation of Markov Kernels }
+
+In this section we generalize a few folklore results via now standard techniques that were introduced in \cite{Dar53,Cen82}.
+
+\begin{Lem}
+\label{cdf}
+Let $\bar\R := [-\infty,\infty]$ be endowed with the usual ordering and Borel $\sigma$-algebra.
+Let $P$ be a probability measure on $\bar\R$  and $F(x):=P([-\infty,x])$.
+Then $F: \bar\R \to [0,1]$ is non-decreasing, right-continuous with at most countably many discontinuities and $F(\infty)=1$.
+So $R(t):= \inf F^{-1}([t,1])$ is a well-defined map $R: [0,1] \to \bar \R$, non-decreasing, left-continuous  with at most countably many discontinuities and $R(0)=-\infty$.
+Furthermore, for $x \in \bar \R$ and $t \in [0,1]$ we have:
+\[ t \le F(x) \iff R(t) \le x.  \] 
+In particular, we have $F(R(t)) \ge t$, thus $R(t) \in F^{-1}([t,1])$ the minimal element. We also have $R(F(x)) \le x$,  with equality if and only if $x \in R([0,1])$.
+Furthermore, $F$ and $R$ are measurable and $R_*\lambda=P$. % and $F_*P = F_*R_*\lambda$. 
+We also have that $R$ is a reflexive generalized inverse of $F$, i.e.:
+\[ F \circ R \circ F = F, \qquad R \circ F \circ R = R.\] 
+%and $ R \circ F = \id_{\bar\R} $ $P$-a.s..
+\begin{proof}
+    From the properties of $P$ it is clear that $F$ is non-decreasing, right-continuous and $F(\infty)=1$. \\
+    Let $D_F \ins \bar\R$ be the set of discontinuities of $F$ and $x \in D_F$. Then there exists a $q(x) \in \Q$ such that $F_-(x)< q(x) < F_+(x)$. If now $x_1 < x_2$ are two such points we get:
+    $q(x_1) < F_+(x_1) \le F_-(x_2) < q(x_2)$. So the map $q: D_F \to \Q$ is injective. Thus $D_F$ is countable.\\
+    Next, we show that $R(t) \in F^{-1}([t,1])$, thus $R(t)= \min F^{-1}([t,1])$.
+    For this let $(x_n)_{n \in \N}\ins F^{-1}([t,1])$ be a non-increasing sequence converging to $R(t)$. 
+    Then by the right-continuity $F(x_n)$ converges to $F(R(t))$ from above. 
+    So we have: \[F(R(t)) = \inf_{n \in \N} F(x_n) \ge t.\] 
+    It follows that $F(R(t)) \ge t$ and thus $R(t) \in F^{-1}([t,1])$. This shows the claim.\\
+    $R$ is clearly non-decreasing, thus has only a countable set of discontinuities $D_R \ins [0,1]$ by the same arguments as before, and $R(0)=-\infty$. To see that $R(t)$ is left-continuous let $t \in [0,1]$ and $(t_n)_{n \in\N}$ a non-decreasing sequence converging to $t$ from below. Then by the monotonicity of $R$ we have
+    $\sup_{n\in\N}R(t_n) \le R(t)$. On the other hand we have:
+\[ t = \sup_{n \in\N} t_n \le \sup_{n\in\N} F(R(t_n)) \le F( \sup_{n\in\N} R(t_n)), \]
+implying: $\sup_{n\in\N}R(t_n) \in F^{-1}([t,1])$ and thus $\sup_{n\in\N}R(t_n)\ge R(t)$, leading to equality, which shows the claim.\\
+    For any  $x \in \bar\R$  we have the implication:
+    \[x \ge R(t) \;\implies\; F(x) \ge F(R(t)) \ge t.\]
+    For any $x \in \bar \R$ and any $t \in [0,1]$ we have the implications:
+\[ \begin{array}{llll}
+t \le F(x) &\iff& F(x) \in [t,1] \\
+ &\iff& x \in F^{-1}([t,1]) \\
+&\implies& x \ge \inf F^{-1}([t,1]) = R(t). % \\
+%x \ge R(t) &\implies& F(x) \ge F(\underbrace{R(t)}_{\in F^{-1}([t,1])}) \ge t.
+\end{array}\]
+Together this shows for any $x \in \bar \R$ and $t \in [0,1]$ the equivalence:
+\[ t \le F(x) \iff R(t) \le x.  \] 
+Since $F(x) \le F(x)$ we get $R(F(x)) \le x$ for all $x \in \bar\R$. %F(x;u) \le F(x;1)=F(x), so R(F(x;u)) \le x.
+If equality holds then $x \in R([0,1])$. And, if $x =R(t)$ for some $t \in [0,1]$ then we use the inequalities $x \ge R(F(x))$ and $F(R(t))\ge t$ to conclude:
+\[ x \ge R(F(x)) = R ( F(R(t))) \ge R(t)=x,\]
+showing equality, and that:
+\[ R \circ F \circ R = R.\]
+Similarly for $t=F(x)$ we get:
+\[ t \le F(R(t)) = F ( R(F(x))) \le F(x)=t,\]
+showing 
+\[ F \circ R \circ F = F.\]
+Now consider the uniform distribution $\lambda$ on $[0,1]$ and any $x \in \bar\R$.
+Then we have:
+\[ \begin{array}{llll}
+    (R_*\lambda)([-\infty,x]) &=& \lambda(R^{-1}([-\infty,x])) \\
+ &=&  \lambda(t \in [0,1] \,|\,  R(t) \le x) \\
+ &=&  \lambda(t \in [0,1]\, |\, t \le F(x)) \\
+&=&  \lambda([0, F(x)])\\
+ &=& F(x)\\
+&=& P([-\infty,x]).
+\end{array}\]
+It follows that: $R_*\lambda = P$.%\\
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}
+    \label{u-cdf}
+    Let the notation be like in lemma \ref{cdf}. For $u \in [0,1]$ and $x \in \bar\R$ define:
+    \begin{align*}
+        F_u(x) := E(x;u) &:= P([-\infty,x))+u \cdot P(\{x\}).
+    \end{align*}
+    Then $E: \bar \R \times [0,1] \to [0,1]$ is measurable, non-decreasing in both arguments with $F_0(-\infty)=0$, $F_1(\infty)=1$, $F_0$ is left-continuous and 
+    \[F_u(\tilde x) \le F_1(\tilde x) \le F_0(x) \le F_u(x)\]
+    for any $\tilde x < x$, $u \in [0,1]$. 
+    We further have for every $u \in (0,1]$:
+    \[ R \circ F_u \circ R = R,\]
+    and $R \circ F_u = \id_{\bar\R}$ $P$-almost-surely for any $u \in (0,1]$.
+\begin{proof}
+    Most of the properties are clear from its definition.
+    Let $\tilde x < x$ then $[-\infty,\tilde x] \ins [-\infty,x)$ and thus $F_1(\tilde x) \le F_0(x)$.\\ 
+    To show $R \circ F_u \circ R = R$ fix a $t \in [0,1]$, $u \in (0,1]$ and let $x:=R(t)$. If $F_1$ is continuous in $x$ then $F_u = F_1$ and the claim $R\circ F_1 \circ R=R$ was already shown using the inequalities:
+\[ x \ge R(F_1(x)) = R ( F_1(R(t))) \ge R(t)=x.\]
+    So let us assume that $F_1$ is discontinuous in $x=R(t)$.
+    Then $F_u(x) \in (F_0(x),F_1(x)]$. We have:
+    \[    R(F_u(x)) = \min \{ \tilde x \in \bar\R\,|\, F_1(\tilde x) \ge F_u(x)  \}. \]
+    If $F_1(\tilde x) \ge F_u(x) > F_0(x)$ then $\tilde x \ge x$, otherwise $\tilde x < x$ leads to the contradiction $F_1(\tilde x) \le F_0(x)$. Since clearly $F_1(x) \ge F_u(x)$ we must have:
+    \[ R(F_u(x)) = x,\]
+    with $x=R(t)$, which proves the claim: $R \circ F_u \circ R = R$ for $u \in (0,1]$.\\
+%    It follows that $R \circ F_u |_{R([0,1])} = \id_{R([0,1])}$ for $u \in (0,1]$. Since $P(\bar\R \sm R([0,1]))=0$ this further implies: 
+ We now want to show that $R \circ F_u = \id_{\bar\R}$ $P$-a.s. for $u \in (0,1]$.
+From $R \circ F_u \circ R =R$ we already see that $R \circ F_u|_{R([0,1])} = \id_{R([0,1])}$. 
+We will see below that $C:=\bar \R \sm R([0,1])$ is measurable and $P(C) =0$, which will prove the claim.\\
+In the following we will only need $F=F_1$.
+First, by lemma \ref{cdf} we know that for any $x \in\bar\R$ we have $R(F(x)) \le x$ with equality if and only if $x \in R([0,1])$. So this gives us the equivalence:
+\[ x \in C \; \iff\;x > R(F(x)).\]
+We now claim that $(R(F(x)),x] \ins C$ for every $x \in C$:
+Indeed, If $\tilde{x} \in (R(F(x)),x]$ then: 
+\[F(x)=F(R(F(x))) \le F(\tilde{x}) \le F(x)\]
+and thus $F(\tilde{x})=F(x)$, from which follows that $R(F(\tilde{x}))=R(F(x))<\tilde{x}$ and ergo $\tilde{x} \in C$.\\
+It follows that $C$ is the union of such intervals $(R(F(x)),x]$ with $x \in C$. Furthermore, $F(C)$ is contained in the set of discontinuities $D_R$ of $R$: otherwise there would be an $x \in C$ and a $t \ge F(x)$ such that $R(t) \in (R(F(x)),x] \ins C$, which is a contradiction.
+Since $D_R$ is countable it must follow that $F(C)$ and thus also $R(F(C))$ is at most countable. Write $R(F(C))=\{x_n\,|\,n \in\N\}$, which is the set of the possible left end-points of the above intervals. 
+For each fixed $n \in \N$ let 
+\[ C_n:= \{ x \in C\,|\, R(F(x)) = x_n\}, \]
+which is, as a union of intervals $(x_n,x]$, $x \in C_n$, either of the form $(x_n,\bar x_n]$ or $(x_n,\bar x_n)$ with $\bar x_n:= \sup C_n$. In both cases we can cover $C_n$ by 
+$C_{n,m}:=(x_n,x_{n,m}]$ with $x_{n,m}\in C_n$ either equal to $\bar x_n$ or converging to it from below for running $m$.
+So we can write $C$ as the countable union:
+\[ C = \bigcup_{n,m \in \N} C_{n,m}.\]
+We now have for each $x=x_{n,m}$:
+\[P(C_{n,m}) = P((x_n,x]) = P((R(F(x)),x])=F(x) - F(R(F(x)))  = F(x)-F(x)=0.\]
+This implies: 
+\[P(C) = P\left(\bigcup_{n,m \in \N} C_{n,m} \right) \le \sum_{n,m \in \N} P(C_{n,m})=0,\]
+showing that $P(C) =0$ and thus:
+ \[ R \circ F_u  = \id_{\bar\R}\qquad P\text{-a.s.} \]
+ for $u \in (0,1]$.
+\end{proof}
+\end{Lem}
+
+
+\begin{Lem}
+    \label{unif-cdf}
+Let the notations be like in lemma \ref{cdf} and lemma \ref{u-cdf}. 
+Let $\lambda$ be the uniform distribution on $[0,1]$ and 
+$\bar P := P \otimes \lambda$ the product distribution on $\bar\R \times [0,1]$.
+For every $e \in [0,1]$ define the event:
+\[ \{ E \le e\} := \{ (x,u) \in \bar\R \times [0,1] \;|\; E(x;u) \le e\}.  \]
+Then $\bar P(E \le e) = e$.
+In other words, the random variable: 
+\[ \begin{array}{ccccl} 
+ E &:& \bar\R\times[0,1] &\to& [0,1], \\
+   && (x,u) &\mapsto& P([-\infty,x))+ u \cdot P(\{x\}),
+\end{array}%
+ \]
+is uniformly distributed under $\bar P=P\otimes\lambda$.\\
+Furthermore, $R(E) = X$ $\bar P$-a.s., where $X: \bar\R \times [0,1] \to \bar\R$ is the canonical projection onto the first factor: $X(x,u):=x$, which has distribution $P$.
+\begin{proof}
+    First, since $\lambda(\{0\})=0$ we can w.l.o.g. exclude $u=0$ and restrict $\bar P$ to 
+    $\bar\R \times (0,1]$.
+    We have seen in lemma \ref{u-cdf} that $R \circ F_u \circ R =R$ for $u \in (0,1]$, 
+    which translates to:
+ \[ R \circ E |_{R([0,1]) \times (0,1]} = X|_{R([0,1]) \times (0,1]}. \]
+ Also with $C:=\bar\R \sm R([0,1])$ we get:
+ \[\bar P( C \times (0,1]) = P(C) \cdot \lambda((0,1]) = 0 \cdot 1 = 0.\]
+ So we get the second claim that:
+ \[R \circ E = X \qquad \bar P\text{-a.s.}\]%
+%
+ Now we turn to $\{E \le e\}$ for $e \in [0,1]$. We abbreviate  
+ $U: \bar\R \times [0,1] \to [0,1]$ to be the projection onto the
+second factor: $U(x,u):=u$, which is uniformly distributed under $\bar P$, 
+and also $p(x):=  P(\{x\}) = F_1(x)-F_0(x)$. With these notations: $E=F_0(X)+U \cdot p(X)$.\\
+%
+First, we  show that $\bar P(E=e)=0$ for all $e \in[0,1]$. For this let $x:=R(e)$. 
+ Then by the above ($R(E)=X$ $\bar P$-a.s.) we have:
+\[ \bar P(E=e) = \bar P(E=e,\, X=x).\]
+We have to distinguish between two cases: $p(x)=0$ and $p(x)>0$.\\
+ Case $p(x)=0$: We have:
+ \begin{align*}
+     \bar P(E=e) &= \bar P(E=e,X=x)\\
+                  &\le \bar P(X=x) \\
+                  & = p(x) \\
+                  & =0.
+ \end{align*}
+ Case $p(x) > 0$: We get:
+ \begin{align*}
+     \bar P(E=e) &= \bar P(E=e,X=x)\\
+                  &= \bar P( F_0(X) + U \cdot p(X) = e,\,   X=x) \\
+                  &= \bar P\left( U = \frac{e-F_0(x)}{p(x)},\, X=x \right)  \\
+                  &= \lambda\left(\left\{ \frac{e-F_0(x)}{p(x)}\right\}\right)\cdot p(x) \\
+                  &= 0.
+ \end{align*}
+%
+ To prove $\bar P(E \le e) =e$ for $e \in [0,1]$ we have several cases:\\
+%
+Case $e \in F_1(\bar\R)$: 
+ Let $\tilde x$ be any element in $\bar\R$ with $e=F_1(\tilde x)$ (e.g.\ $\tilde x= R(e)$). Then we get:
+\begin{align*}
+    \bar P(E \le e) &= \bar P( E \le F_1(\tilde x) ) \\
+                 &= \bar P(  R(E) \le \tilde x ) \\
+    &\stackrel{R \circ E = X}{=} \bar P( X \le \tilde x ) \\
+    &= P([-\infty,\tilde x]) \cdot \lambda((0,1]) \\
+    &= F_1(\tilde x) \cdot 1 \\
+    &= e.
+\end{align*}
+%
+For the cases $e \notin F_1(\bar\R)$ we put $x:=R(e)$ and $\tilde e:=F_0(x)$. \\
+ %%%general properties:
+    Then by definition, $x$ is minimal with $F_1(x) \ge e$. 
+ %   For every $\tilde x < x$ we then have that:
+ %   \begin{align*}
+ %       F_1(\tilde x) &< e, \\
+ %       F_1(\tilde x) &\le \tilde e=F_0(x)  \le e \le F_1(x).
+ %       %F_0(x) &\le e. 
+ %   \end{align*}
+    We also have $\tilde e = F_0(x) \le e$.
+    Otherwise: % (for $F_0(x) \le e$): 
+    $e < F_0(x) = \sup_{\tilde x < x} F_1(\tilde x)$ 
+    implied that there existed $\tilde x < x$  with $e<F_1(\tilde x) \le F_0(x)$, which is a contradiction to the minimality of $x=R(e)$. 
+   % So $e \in [F_0(x),F_1(x)]$. 
+   % From this it follows that there exists a unique $u \in [0,1)$ such that: 
+   % \[e = F_u(x).\]
+   % Note that $u=1$ was excluded since $e \notin F_1(\bar\R)$.\\
+%
+ Since $\tilde e \le e$ we can decompose:
+    \begin{align*}
+  \bar P(E \le e) &= \bar P(E < \tilde e) + \bar P(E=\tilde e) + \bar P(\tilde e< E \le e).
+    \end{align*}
+%
+We have already seen that the second term $\bar P(E=\tilde e) =0$ vanishes.\\
+For the first term we have:
+\begin{align*}
+ \bar P(E < \tilde e)
+    &= \bar P(E < F_0(x) ) \\
+    &=  \bar P( E < \sup_{\tilde{x} < x}F_1(\tilde{x}) ) \\
+    &= \sup_{\tilde{x} < x} \bar P( E \le F_1(\tilde{x}) ) \\
+    &\stackrel{(*)}{=} \sup_{\tilde{x} < x}  F_1(\tilde{x}) \\
+    &= F_0(x)\\
+    &= \tilde e.
+\end{align*}
+Equation (*) comes from the previous case for $F_1(\tilde x) \in F_1(\bar\R)$.\\
+For the third term $\bar P(\tilde e< E \le e)$ first note that $E \in (\tilde e,e]$ implies that $X=x$ $\bar P$-a.s. by applying $R$: Indeed, every element 
+$t \in (\tilde e,e] \ins (F_0(x),F_1(x)]$ can be written as $t=F_{\tilde u}(x)$ for an $\tilde u \in (0,1]$ and we can use:
+\[ R(t)=R(F_{\tilde u}(R(e))=R(e)=x.\]
+For $p(x)>0$ and the above we get:
+\begin{align*}
+   \bar P(\tilde e< E \le e) 
+ &= \bar P(\tilde e< E \le e,\, X=x)\\
+% &= \bar P( 0< E - F_0(x) \le e-\tilde e, X=x) \\
+  &= \bar P( 0< F_0(X)+U\cdot p(X) - F_0(x) \le e-\tilde e, X=x) \\
+ %&= \bar P( 0< U \cdot p(x) \le e-\tilde e, X=x) \\
+ &= \bar P( 0< U \le  \frac{e-\tilde e}{p(x)}, X=x) \\
+% &= \bar P( 0< U \le  \frac{e-F_0(x)}{p(x)}| X=x) \cdot p(x) \\
+ &= \lambda\left( \left(0,  \frac{e-\tilde e}{p(x)} \right]\right) \cdot P(\{x\}) \\
+ &= \frac{e-\tilde e}{p(x)} \cdot p(x) \\
+% &=  e - F_0(x)\\
+ &= e-\tilde e.
+\end{align*}
+For the case $p(x)=0$, $\bar P(\tilde e< E \le e,\, X=x)$ can be upper bounded by $\bar P(X=x)=p(x)=0$ as before, but we also have $\tilde e - e=0$ in this case, and the equality stays trivially true as well.\\
+%Note again that either $p(x)>0$
+Putting all together we get:
+    \begin{align*}
+ \bar P(E \le e) &= \bar P(E < \tilde e) + \bar P(E=\tilde e) + \bar P(\tilde e< E \le e) \\
+                         &= \tilde e + 0 + e - \tilde e\\
+                         &= e.
+    \end{align*}
+This shows the claim.
+\end{proof}
+\end{Lem}
+
+
+\begin{comment}
+\begin{Lem}
+\label{cdf}
+Let $P$ be a probability measure on $([0,1], \Bcal([0,1]))$ and $F(x):=P([0,x])$.
+Then $F: [0,1] \to [0,1]$ is non-decreasing, right-continuous and $F(1)=1$.
+So $R(t):= \min F^{-1}([t,1])$ is a well-defined map $R: [0,1] \to [0,1]$, non-decreasing, left-continuous with $R(0)=0$.
+Furthermore, for $t,x \in [0,1]$ we have:
+
+\[ t \le F(x) \iff R(t) \le x.  \] 
+In particular, $F$ and $R$ are measurable and $R_*\lambda=P$ and $F_*P = F_*R_*\lambda$. 
+Furthermore, we have:
+\[ F \circ R \circ F = F, \qquad R \circ F \circ R = R.\] 
+and $ R \circ F = \id_{[0,1]} $ $P$-a.s..
+We have $F(R(t)) \ge t$ and $R(F(x)) \le x$,  with equality if and only if $x \in R([0,1])$.
+\begin{proof}
+\[ \begin{array}{llll}
+t \le F(x) &\iff& F(x) \in [t,1] \\
+ &\iff& x \in F^{-1}([t,1]) \\
+&\implies& x \ge \min F^{-1}([t,1]) = R(t). \\
+x \ge R(t) &\implies& F(x) \ge F(\underbrace{R(t)}_{\in F^{-1}([t,1])}) \ge t.
+\end{array}\]
+Furthermore:
+\[ \begin{array}{llll}
+R_*\lambda([0,x]) &=& \lambda(R^{-1}([0,x])) \\
+ &=&  \lambda(t \in [0,1] |  R(t) \le x) \\
+ &=&  \lambda(t \in [0,1] | t \le F(x)) \\
+&=&  \lambda([0, F(x)])\\
+ &=& F(x)\\
+&=& P([0,x]).
+\end{array}\]
+\[ R(t) \ge (R \circ F)(R(t)) = R ( F \circ R(t)) \ge R(t).\]
+From the above we already see, that $R \circ F|_{R([0,1])} = \id_{R([0,1])}$. \\
+Let $x \in U:=[0,1] \sm R([0,1])$. 
+Then $x > R\circ F(x)$ and $(R(F(x)),x] \ins U$:
+If $\tilde{x} \in (R(F(x)),x]$ then $F(x)=F(R(F(x))) \le F(\tilde{x}) \le F(x)$ and thus $F(\tilde{x})=F(x)$ and $R(F(\tilde{x}))=R(F(x))<\tilde{x}$ and ergo $\tilde{x} \in U$.
+It must follow that $F(U)$ is at most countable and $U$ can be countably covered by intervals of the form $(R(F(x)),x]$.
+But we have $P((R(F(x)),x])=F(x) - F(R(F(x)))  = F(x)-F(x)=0$. Thus $P(U)=0$.
+It follows that $R \circ F = \id_{[0,1]}$ $P$-almost-surely.
+\end{proof}
+\end{Lem}
+
+\begin{Lem}
+Let $X$ and $Z$ be random variables with $X$ mapping to $[0,1]$.
+Furthermore, let $E$ be a uniform $U[0,1]$ distributed random variable independent of $X$ and $Z$.
+Also put:
+\begin{align*}
+	F(x|z) &:= P(X \le x|Z=z) \\
+	F_-(0|z) &:= 0 \\
+	F_-(x|z) &:= \sup_{\tilde{x} < x} F(\tilde{x}|z) \\
+	G(x|z,e) &:= F_-(x|z)+\left(F(x|z)-F_-(x|z)\right)\cdot e\\
+	R(u|z) &:= \min \left\{ \tilde{x} \in [0,1]\,| F(\tilde{x}|z) \ge u \right\}\\
+	U &:= G(X|Z,E).
+\end{align*}
+Then $U$ is uniform $U[0,1]$ distributed and independent of $Z$.
+For all $u \in [0,1]$ and $z \in \Zcal$ we have:
+\[ P(U \le u | Z=z ) = u \]
+and:
+\[ X = R(U|Z) \quad P\text{-a.s..}\]
+\begin{proof}
+	Fix $z \in \Zcal$. First note that with the same arguments as in lemma \ref{cdf} we get that $R(U|z)=X$ $P^{|Z=z}$-a.s..
+This already shows that $R(U|Z)=X$ $P$-a.s..\\
+We then consider  $u \in F([0,1]|z)$ and $x\in [0,1]$ with $u=F(x|z)$. Then we get:
+\begin{align*}
+	P(U \le u|Z=z) &= P(U \le F(x|z)|Z=z) \\
+			 &\stackrel{}{=} P(\,R(U|z) \le x\,|Z=z)\\
+			 &\stackrel{R(U|z)= X}{=} P(\,X \le x\,|Z=z)\\
+			 &= F(x|z) \\
+			 &= u.
+\end{align*}
+Now let $u \notin F([0,1]|z)$ and put $x:= R(u|z)$. Then
+	$F_-(x|z) \le u$ and we get:
+\begin{align*}
+	&\quad P(U \le u|Z=z)\\ 
+	&= P(\,U < F_-(x|z)\,|Z=z) 
+	+ P(\,F_-(x|z) \le U \le u\,|X=x,Z=z) \cdot P(X=x|Z=z)\\
+	&= \sup_{\tilde{x} < x} P(\,U \le F(\tilde{x}|z)\,|Z=z)\\
+	&\quad+ P(\,F_-(x|z) \le F_-(x|z)+(F(x|z)-F_-(x|z))\cdot E  \le u) \cdot (F(x|z)-F_-(x|z))\\
+	&= \sup_{\tilde{x} < x} F(\tilde{x}|z)
+	  + \frac{u - F_-(x|z)}{F(x|z)-F_-(x|z)} \cdot (F(x|z)-F_-(x|z))\\
+	&= F_-(x|z) + u - F_-(x|z)\\
+	&= u.
+\end{align*}
+Note that $F_-(x|z) \le U \le u$ implies that $X=x$ by applying $R(\_|Z=z)$ in the second equality.
+Together we get for all $u \in [0,1]$ and $z \in \Zcal$ that:
+\[ P(U \le u|Z=z) = u.\]
+This shows that $U$ is uniform distributed and independent of $Z$. 
+\end{proof}
+\end{Lem}
+
+
+\begin{Thm}
+    \label{ccdf2}
+    Let $\Zcal$ be any measurable space and $\Xcal$ be a standard measurable space with a fixed embedding $\iota: \Xcal \inj \bar\R=[-\infty,\infty]$ onto a Borel subset (which always exists, so w.l.o.g.\ $\Xcal = \bar\R$ endowed with the Borel $\sigma$-algebra).
+    Let $K(X|Z) : \Zcal \dasharrow \Xcal$ be a Markov kernel.
+    Furthermore, let $\Ucal:=[0,1]$ and $K(U)$ be the uniform distribution/Markov kernel on $\Ucal$. We write:
+    \[ K(U,X|Z) := K(U)\otimes K(X|Z).\]
+Also put:
+\begin{align*}
+    F(x;u|z) &:= K(X<x|Z=z) + u \cdot K(X=x|Z=z)\\
+	R(e|z) &:= \inf \left\{ \tilde{x} \in \Xcal\,| F(\tilde{x};1|z) \ge e \right\}.
+\end{align*}
+%For $z \in \Zcal$ and $(X,U)\sim K(X,U|Z=z)$ 
+Let $E:= F(X;U|Z)$. We consider $X,U,Z,E$  as the measurable maps:
+\[\begin{array}{cccl}
+    X: & \Xcal \times \Ucal \times \Zcal &\to& \Xcal,\\
+     & (x,u,z) &\mapsto& x,\\
+    U: & \Xcal \times \Ucal \times \Zcal &\to& \Ucal,\\
+     & (x,u,z) &\mapsto& u,\\
+    Z: & \Xcal \times \Ucal \times \Zcal &\to& \Zcal,\\
+     & (x,u,z) &\mapsto& z,\\
+    E: & \Xcal \times \Ucal \times \Zcal &\to& \Ecal:=[0,1],\\
+     & (x,u,z) &\mapsto& F(x;u|z).
+\end{array}\]%
+%
+Then for all $e \in \Ecal$ and $z \in \Zcal$ we have:
+\[ K( E \le e | Z=z ) = e. \]
+%meaning:
+%\[ K((U,X) \in \{(x,u)| F(x;u|z) \le e \}|Z=z) = e. \]
+%\[ K(\{(x,u)| F(x;u|z) \le e \}|Z=z) = e. \]
+%Also the set:
+%\[ N:=\{ (x,e,z) \in \Xcal \times \Ecal \times \Zcal\,|\, x\neq R(e|z) \} \]
+%is a measurable $K(X,E|Z)$-zero-set.
+%In particular, 
+Furthermore, we have:
+\[ X = R(E|Z) \quad K(U,X|Z)\text{-a.s.}.\]
+These two equations imply that for every distribution $P(Z)$, putting $P(U,X,Z):=K(U)\otimes K(X|Z)\otimes P(Z)$, we have:
+\[ X = R(E|Z) \quad P\text{-a.s.},\]
+and that $E$ is uniformly distributed on $\Ecal=[0,1]$ and $P$-independent of $Z$.
+\begin{proof}
+    After the measurabilities are checked the statement directly follows from lemma \ref{unif-cdf} by applying it for every $z$ separately.
+    
+
+    First note that with the same arguments as in lemma \ref{cdf} we get that $R(E|Z)=X$ $K(X,U|Z)$-a.s. as this holds for every fixed $z \in \Zcal$ separately.
+%This already shows that $R(E|Z)=X$ $P$-a.s..\\
+Fix $z \in \Zcal$. 
+Now consider $e \in \Ecal=[0,1]$. %and $x:= R(e|z)$. 
+We either have  $e \in F(\Xcal;1|z)$ or $e \notin F(\Xcal;1|z)$.\\
+First consider  $e \in F(\Xcal;1|z)$. Let $x$ be any element in $\Xcal$ with $e=F(x;1|z)$ (e.g.\ $x= R(e|z)$). Then we get:
+\begin{align*}
+	K(E\le e|Z=z) &= K(E \le F(x;1|z)|Z=z) \\
+			 &\stackrel{}{=} K(\,R(E|z) \le x\,|Z=z)\\
+			 &\stackrel{}{=} K(\,R(E|Z) \le x\,|Z=z)\\
+			 &\stackrel{R(E|Z)= X}{=} K(\,X \le x\,|Z=z)\\
+			 &= F(x;1|z) \\
+			 &= e.
+\end{align*}
+Now let $e \notin F(\Xcal;1|z)$ and $x:= R(e|z)$. Then
+	$F(x;0|z) \le e$ and we get:
+\begin{align*}
+	&\quad K(E \le e|Z=z)\\ 
+	&= K(E < F(x;0|z) |Z=z) + K(F(x;0|z) \le E \le e |Z=z)\\
+%	&= K(E < F(x;0|z) |Z=z) + K(F(x;0|z) \le E \le e, X=x |Z=z)\\
+    &= K(E < F(x;0|z) |Z=z) 
+	+ K(F(x;0|z) \le E \le e, \,X=x|Z=z)\\
+    &= \sup_{\tilde{x} < x} K( E \le F(\tilde{x};1|z)|Z=z)\\
+	&\quad+ K(\,F(x;0|z) \le F(x;0|z)+U\cdot (F(x;1|z)-F(x;0|z))  \le e, \,X=x|Z=z) \\
+   % &\quad \cdot (F(x;1|z)-F(x;0|z))\\
+    &= \sup_{\tilde{x} < x}  F(\tilde{x};1|z) + K\left( U \in \left[0,\frac{e - F(x;0|z)}{F(x;1|z)-F(x;0|z)}\right],\, X=x\,|\,Z=z\right)\\
+    &= F(x;0|z) + K\left( U \in \left[0,\frac{e - F(x;0|z)}{F(x;1|z)-F(x;0|z)}\right]\right)  \cdot K(X=x|Z=z)\\
+    &=  F(x;0|z)
+	  + \frac{e - F(x;0|z)}{F(x;1|z)-F(x;0|z)} \cdot (F(x;1|z)-F(x;0|z))\\
+%	&= F(x;0|z) + e - F(x;0|z)\\
+	&= e.
+\end{align*}
+Note in the second equality above that $F(x;0|z) \le E \le e$ implies that $X=x$ (under $K(X,U|Z=z)$) by applying $R(\_|z)$: 
+\[ x=R(F(x;0|z)|z) \le R(E|z) \le R(e|z)=x   \]
+and using $X=R(E|Z)$ $K(X,U|Z)$-a.s.
+We also used the factorization $K(X,U|Z)=K(U)\otimes K(X|Z)$ and that $K(U)$ was assumed to be the uniform distribution.
+Together we get for all $e \in [0,1]$ and $z \in \Zcal$ that:
+\[ K(E \le e|Z=z) = e.\]
+%This shows that $E$ is uniform distributed and independent of $Z$.
+This shows the claims.
+
+
+\end{proof}
+\end{Thm}
+
+\end{comment}
+
+
+

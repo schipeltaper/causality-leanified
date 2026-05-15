@@ -1,0 +1,325 @@
+\subsection*{Causal Bayesian Networks - Continued}
+\subsubsection{Do-Calculus}
+
+\begin{Rem}[Recap]
+    \label{rem-bcn-notation}
+    Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+        Then we get the joint  Markov kernel over all input, observed and unobserved output variables as follows:
+        \[ P\lp X_V,X_U,X_J|\doit(X_J) \rp := \bigotimes_{v \in U \cup V} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+        \bigotimes_{j \in J} \delta(X_j|X_j).\]
+    Further, for $D \ins J \cup V$ and $C \ins V \sm D$ we get the combined soft and hard interventions:
+    \[ P\lp X_{V \sm D},X_U,X_{J \cup D},X_{I_C}| \doit(X_{I_C},X_{J \cup D}) \rp :=\] 
+    \[    \bigotimes_{v \in V \sm (C \cup D)} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+    \bigotimes_{v \in C} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)},X_{I_v})\rp \otimes \]
+     \[   \bigotimes_{v \in U} P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp \otimes 
+     \bigotimes_{j \in J \cup D} \delta(X_j|X_j) \otimes\bigotimes_{v \in C} \delta(X_{I_v}|X_{I_v})  ,\]
+       where we need to reorder all the factors such that the product is in reverse order of a topological order and 
+       where we use the following Markov kernels to model hard interventions as  soft interventions, $v\in C$: 
+       \[ P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)},X_{I_v}=x_{I_v}\rp\rp := 
+         \left\{ \begin{array}{lll}
+                 P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)}\rp\rp, & \text{ if } & x_{I_v} = \star, \\
+    \delta(X_v|X_v =x_{I_v}),  & \text{ if } & x_{I_v} \neq \star. 
+                \end{array}\right.\]
+  Finally we can also marginalize (i.e.\ integrating out) and condition to get: 
+  \[ P\lp X_A|X_B, \doit(X_{J \cup D},X_{I_C}) \rp ,\]
+for any $A,B,C,D \ins J \cup V$.\\
+For more suggestive formulas later on we also freely permute the order of symbols behind the conditioning line, e.g.:
+\[ P\lp X_A|\doit(X_F),X_B, \doit(X_D) \rp := P\lp X_A|X_B, \doit(X_D,X_F) \rp.\]
+Please note that no matter in which order we write the $\doit$-part and conditioning part behind the conditioning line $|$, we always assume that we do the intervention ($\doit$) first and afterwards condition on the further variables.\\
+We will also make use of the following CADMG:
+\[ G_{\doit(I_C,D)} = (G^+_{\doit(I_C,D)})^{\sm U}.  \]
+ W.l.o.g.\ we can assume: $J \ins D$ and %. For $F \ins V$ with 
+$C \cap D = \emptyset$.
+\end{Rem}
+
+\begin{comment}
+\begin{Cor}[Global Markov property in terms of conditional interventional Markov kernels]
+    \label{thm-gmp-kernel}
+    Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+    Let $A,B,C,D,F \ins J \cup V$ with $J \ins D$ and $D \cap F = \emptyset$.\\
+    If we have:
+    \[ A \Perp^d_{G_{\doit(I_F,D)}} I_F,B \given C,   \]
+ then we get the equality of conditional interventional Markov kernels:
+ \[ P\lp X_A|X_B,X_C,\doit(X_{F'},X_D)\rp = P\lp X_A|X_{C\sm(F\cup D)},\doit(X_{C \cap(F \cup D)}),
+ \cancel{\doit(X_{F \cup D})} \rp,  \]
+ $P\lp X_B,X_C|\doit(X_{I_F},X_D)\rp$-a.s., to be read as that there exists a Markov kernel on the rhs 
+            that is a version of the lhs for every subset $F' \ins F$, simultaneously.
+\begin{proof}
+ The assumption:
+    \[ A \Perp^d_{G_{\doit(I_F,D)}} I_F,B \given C,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_F},X_D))} X_{I_F},X_B \given X_C.\]
+So we have the following factorization:
+\[ P\lp X_A,X_B,X_C|\doit(X_{I_F},X_D)\rp = Q(X_A|X_C) \otimes P\lp X_B,X_C|\doit(X_{I_F},X_D)\rp,\]
+for some Markov kernel $Q(X_A|X_C)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_B,X_C,\doit(X_{I_F},X_D)\rp,\]
+and which is independent of $X_{I_F}$.\\
+We can now look at the different input values for any decomposition: $F=F_1 \dcup F_2$.
+For this we put: $X_{I_{F_1}}= \star = (\star)_{v \in F_1}$ and  $ X_{I_{F_2}}=x_{F_2} \in \Xcal_{F_2}$.
+This implies:
+\begin{align*} 
+&= P\lp X_A,X_B,X_C|\doit(X_{{F_2}}=x_{F_2},X_D)\rp \\
+&= P\lp X_A,X_B,X_C|\doit(X_{I_{F_1}}=\star,X_{I_{F_2}}=x_{F_2},X_D)\rp \\
+&= Q(X_A|X_C) \otimes P\lp X_B,X_C|\doit(X_{I_{F_1}}=\star,X_{I_{F_2}}=x_{F_2},X_D)\rp,\\
+&= Q(X_A|X_C) \otimes P\lp X_B,X_C|\doit(X_{{F_2}}=x_{F_2},X_D)\rp.
+\end{align*}
+So we get:
+\[P\lp X_A,X_B,X_C|\doit(X_{F_2},X_D)\rp 
+= Q(X_A|X_C) \otimes P\lp X_B,X_C|\doit(X_{F_2},X_D)\rp,\]
+where we can marginalize out $X_B$ and the deterministic $X_{F_2}$, $X_D$ from $X_C$:
+\[P\lp X_A,X_{C \sm (F_2 \cup D)}|\doit(X_{F_2},X_D)\rp 
+= Q(X_A|X_C) \otimes P\lp X_{C \sm (F_2 \cup D)}|\doit(X_{F_2},X_D)\rp.\]
+This implies that $Q(X_A|X_C)$ is a version of the conditional Markov kernel:
+\[P\lp X_A|X_{C \sm (F_2 \cup D)},\doit(X_{F_2},X_D)\rp,\]
+which is only a function of $X_C$ in the $\doit$-part. 
+This holds for every decomposition: $F=F_1 \dcup F_2$, simultaneously, in particular for the corner case:
+$F_1=\emptyset$, $F_2=F$. \\% and $F_1 = F$, $F_2 = \emptyset$.\\
+So we can unambiguously write:
+\[P\lp X_A|X_{C \sm (F \cup D)},\doit(X_{C \cap (F \cup D)}),\cancel{\doit(X_{F \cup D})}\rp := Q(X_A|X_C).\]
+%%%% careful: the notation on the lhs is suggestive, but might depend on the graph and is not the same for other situation. 
+%%%% the variables it is independent from in certain graphs, does not show in the notation!!!!!!
+\end{proof}
+\end{Cor}
+\end{comment}
+
+\begin{comment}
+%%%% careful:   the rhs side depends on the graph!!!!! It is independent from input after!!!! intervention.
+\begin{Cor}[Do-calculus - Insertion/deletion of action/observation]
+        Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+    Let $A,B,C,D,F \ins J \cup V$ subsets.
+If we have:
+            \[ A \Perp^d_{G_{\doit(F \cup D)}} B \cup F \given C  \cup D,   \]
+            then we get the equality:
+            \[ P\lp X_A|X_B,X_C,\doit(X_{J \cup F \cup D})\rp = P\lp X_A|\cancel{X_B},X_C,\cancel{\doit(X_{J \cup F \cup D})},\doit(X_D)\rp,  \]
+            $P\lp X_B,X_C|\doit(X_{J \cup F \cup D})\rp$-a.s., to be read as that there exists a Markov kernel on the rhs
+            that is a version of the lhs.
+\end{Cor}
+%\end{comment}
+
+\begin{Cor}[Do-calculus]\label{cor:do-calculus}
+    Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be be such that $A,B,C,D$ are pairwise disjoint.\\
+    Then we have the following 3 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}: If we have:
+            \[ A \Perp^d_{G_{\doit(D)}} B \given C \cup D,   \]
+            then there exists a Markov kernel:
+            \[ P\lp X_A|\cancel{X_B},X_C,\doit(X_{D\cup \cancel{J}})\rp:\;  \Xcal_C \times \Xcal_{D} \dshto \Xcal_A \]
+            that is a version of:
+            \[P\lp X_A|X_{B_2},X_C,\doit(X_{D\cup J})\rp,\] 
+            for every subset $B_2 \ins B$ simultaneously.
+            In short we could write:
+            \[ P\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp = P\lp X_A|X_C,\doit(X_D)\rp.\]
+            %\[ P\lp X_A|X_B,X_C,\doit(X_D)\rp =P\lp X_A|X_{B_2},X_C,\doit(X_D)\rp = P\lp X_A|X_C,\doit(X_D)\rp.\]
+            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, but constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P\lp X_B,X_C|\doit(X_{D\cup J})\rp$-null set.
+            %then we get the equality:
+            %\[ P\lp X_A|X_B,X_C,\doit(X_D)\rp = P\lp X_A|X_C,\doit(X_D)\rp,  \]
+            %$P\lp X_B,X_C|\doit(X_D)\rp$-a.s., to be read as that there exists a version of the rhs 
+            %that is also a version of the lhs. 
+         \item \underline{Action/observation exchange}: If we have:
+            \[ A \Perp^d_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D,   \]
+            then there exists a Markov kernel:
+            \[P\lp X_A|\cancel{\doit}(X_B),X_C,\doit(X_{D\cup \cancel{J}})\rp: \;\Xcal_B \times \Xcal_C \times \Xcal_{D} \dshto \Xcal_A\]
+            that is a version of:            
+            \[ P\lp X_A|X_{B_1},\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp, \]
+            for every decomposition: $B=B_1\dcup B_2$, simultaneously. In short we could write:
+            \[ P\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp  =  P\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp,\]
+            or even
+            \[ P\lp X_A|\doit(X_B),X_C,\doit(X_D)\rp  =  P\lp X_A|X_B,X_C,\doit(X_D)\rp\]
+            since these Markov kernels are constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P\lp X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp$-null set.
+         \item \underline{Insertion/deletion of action}: If we have:
+            \[ A \Perp^d_{G_{\doit(I_B,D)}} I_B \given C  \cup D,   \]
+            then there exists a Markov kernel: 
+            \[P\lp X_A|\cancel{\doit(X_B)},X_C,\doit(X_{D\cup \cancel{J}})\rp:\; \Xcal_C \times \Xcal_{D} \dshto \Xcal_A\] 
+            that is a version of:  
+            \[ P\lp X_A|\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp\]
+            for every subset $B_2 \ins B$ simultaneously. In short we could write:
+            \[ P\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp =   P\lp X_A|X_C,\doit(X_{D})\rp.\]
+            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, but constant in $x_J$.
+            Such a Markov kernel is unique up to $P\lp X_C|\doit(X_{I_B},X_{D\cup J})\rp$-null set.
+        \begin{comment} %%% B and C swapped
+        \item \underline{Action/observation exchange}: If we have:
+            \[ A \Perp^d_{G_{\doit(I_C,D)}} I_C \given B \cup C \cup D,   \]
+            then there exists a Markov kernel:
+            \[P\lp X_A|X_B,\cancel{\doit}(X_C),\doit(X_D)\rp: \;\Xcal_B \times \Xcal_C \times \Xcal_D \dshto \Xcal_A\]
+            that is a version of:            
+            \[ P\lp X_A|X_B,X_{C_1},\doit(X_{C_2},X_D)\rp, \]
+            for every decomposition: $C=C_1\dcup C_2$, simultaneously. In short we could write:
+            \[ P\lp X_A|X_B,\doit(X_C,X_D)\rp  =  P\lp X_A|X_B,X_C,\doit(X_D)\rp.\]
+            %\[ P\lp X_A|X_B,\doit(X_C,X_D)\rp = P\lp X_A|X_B,X_{C_1},\doit(X_{C_2},X_D)\rp 
+            %=  P\lp X_A|X_B,X_C,\doit(X_D)\rp.\]
+            Such a Markov kernel is unique up to $P\lp X_B,X_C|\doit(X_{I_C},X_D)\rp$-null set.
+            %then we get the equality:
+            %\[ P\lp X_A|X_B,\doit(X_C,X_D)\rp = P\lp X_A|X_B,X_C,\doit(X_D)\rp,  \]
+            %$P\lp X_B,X_C|\doit(X_{I_C},X_D)\rp$-a.s., to be read as that there exists a version of the lhs that also serves 
+            %as a version of the rhs. Even stronger, there exists a version of the lhs that is also a version of:
+            %\[ P\lp X_A|X_B,X_{C_1},\doit(X_{C_2},X_D)\rp, \]
+            %for every decomposition: $C=C_1\dcup C_2$, simultaneously.
+        \end{comment}
+        \begin{comment} %%% B and C swapped
+        \item \underline{Insertion/deletion of action}: If we have:
+            \[ A \Perp^d_{G_{\doit(I_C,D)}} I_C \given B  \cup D,   \]
+            then there exists a Markov kernel 
+            $\Xcal_B \times \Xcal_D \dshto \Xcal_A$ 
+            that simultaneously is a version of:  
+            \[ P\lp X_A|X_B,\doit(X_{C_2},X_D)\rp\]
+            for every subset $C_2 \ins C$ simultaneously. In short we could write:
+            \[ P\lp X_A|X_B,\doit(X_C,X_D)\rp =   P\lp X_A|X_B,\doit(X_D)\rp.\]
+            %\[ P\lp X_A|X_B,\doit(X_C,X_D)\rp = P\lp X_A|X_B,\doit(X_{C_2},X_D)\rp =  P\lp X_A|X_B,\doit(X_D)\rp.\]
+            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, but constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P\lp X_B|\doit(X_{I_C},X_D)\rp$-null set.
+            %then we get the equality:
+            %\[ P\lp X_A|X_B,\doit(X_C,X_D)\rp = P\lp X_A|X_B,\doit(X_D)\rp,  \]
+            %$P\lp X_B|\doit(X_{I_C},X_D)\rp$-a.s., to be read as that there is a version of the rhs that
+            %is also a version of the lhs. 
+            %Even stronger, there exists a version of the rhs that is also a version for:
+            %\[ P\lp X_A|X_B,\doit(X_{C_2},X_D)\rp\]
+            %for every subset $C_2 \ins C$ simultaneously.
+         \end{comment}
+    \end{enumerate}
+%\begin{comment}
+\begin{proof}
+    We make use of the global Markov property (GMP), theorem \ref{thm-gmp-mI-CBN}.\\
+
+Point 1.) The assumption:
+            \[ A \Perp^d_{G_{\doit(D)}} B \given C \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+  \[ X_A \Indep_{P(X_V|\doit(X_{D\cup J}))} X_B \given X_C,X_D.\]
+So  we get the following factorization, where we can omit the deterministic variables from $X_D$ on the left of the conditioning lines:
+  \[ P\lp X_A,X_B,X_C|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{D\cup J})\rp,\]
+for some Markov kernel $Q(X_A|X_C,X_D)$. Here
+$Q(X_A|X_C,X_D)$ serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp.\]
+If we marginalize out $X_{B_1}$ for any decomposition $B=B_1 \dcup B_2$ 
+in the above factorization we also get:
+  \[ P\lp X_A,X_C,X_{B_2}|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_C,X_{B_2}|\doit(X_{D\cup J})\rp,\]
+showing that $Q(X_A|X_C,X_D)$ is also a version of:
+  \[P\lp X_A|X_{B_2},X_C,\doit(X_{D\cup J})\rp.\]
+In particular, this holds for $B_2 = \emptyset$.\\
+
+Point 2.) The assumption:
+            \[ A \Perp^d_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+  \[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{D\cup J}))} X_{I_B} \given X_B,X_C,X_D.\]
+So we have the following factorization:
+  \[ P\lp X_A,X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp = Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp,\]
+for some Markov kernel $Q(X_A|X_B,X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_B,X_C,\doit(X_{I_B},X_{D\cup J})\rp,\]
+and which is independent of $X_{I_B}$.\\
+We can now look at the different input values for any decomposition: $B=B_1 \dcup B_2$.
+For this we put: $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and  $ X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+This implies: 
+\begin{align*} 
+  & P\lp X_A,X_B,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= P\lp X_A,X_B,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp,\\
+  &= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp.
+\end{align*}
+So we get:
+  \[P\lp X_A,X_B,X_C|\doit(X_{B_2},X_{D\cup J})\rp 
+  = Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{B_2},X_{D\cup J})\rp,\]
+where we can marginalize out the deterministic $X_{B_2}$:
+  \[P\lp X_A,X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp 
+  = Q(X_A|X_B,X_C,X_D) \otimes P\lp X_{B_1},X_C|\doit(X_{B_2},X_{D\cup J})\rp.\]
+This implies that $Q(X_A|X_B,X_C,X_D)$ is a version of the conditional Markov kernel:
+  \[P\lp X_A|X_{B_1},X_C,\doit(X_{B_2},X_{D\cup J})\rp,\]
+for every decomposition: $B=B_1 \dcup B_2$, simultaneously, in particular for the two cases
+$B_2=\emptyset$ and $B_2 = C$.\\
+
+
+\begin{comment} %%% B and C swapped:
+Point 2.) The assumption:
+            \[ A \Perp^d_{G_{\doit(I_C,D)}} I_C \given B \cup C \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_C},X_D))} X_{I_C} \given X_B,X_C,X_D.\]
+So we have the following factorization:
+\[ P\lp X_A,X_B,X_C|\doit(X_{I_C},X_D)\rp = Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_C},X_D)\rp,\]
+for some Markov kernel $Q(X_A|X_B,X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_B,X_C,\doit(X_{I_C},X_D)\rp,\]
+and which is independent of $X_{I_C}$.\\
+We can now look at the different input values for any decomposition: $C=C_1 \dcup C_2$.
+For this we put: $X_{I_{C_1}}= \star = (\star)_{v \in C_1}$ and  $ X_{I_{C_2}}=x_{C_2} \in \Xcal_{C_2}$.
+This implies:
+\begin{align*} 
+&= P\lp X_A,X_B,X_C|\doit(X_{{C_2}}=x_{C_2},X_D)\rp \\
+&= P\lp X_A,X_B,X_C|\doit(X_{I_{C_1}}=\star,X_{I_{C_2}}=x_{C_2},X_D)\rp \\
+&= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{I_{C_1}}=\star,X_{I_{C_2}}=x_{C_2},X_D)\rp,\\
+&= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{{C_2}}=x_{C_2},X_D)\rp.
+\end{align*}
+So we get:
+\[P\lp X_A,X_B,X_C|\doit(X_{C_2},X_D)\rp 
+= Q(X_A|X_B,X_C,X_D) \otimes P\lp X_B,X_C|\doit(X_{C_2},X_D)\rp,\]
+where we can marginalize out the deterministic $X_{C_2}$:
+\[P\lp X_A,X_B,X_{C_1}|\doit(X_{C_2},X_D)\rp 
+= Q(X_A|X_B,X_{C},X_D) \otimes P\lp X_B,X_{C_1}|\doit(X_{C_2},X_D)\rp.\]
+This implies that $Q(X_A|X_B,X_{C},X_D)$ is a version of the conditional Markov kernel:
+\[P\lp X_A|X_B,X_{C_1},\doit(X_{C_2},X_D)\rp,\]
+for every decomposition: $C=C_1 \dcup C_2$, simultaneously, in particular for the two cases
+$C_1=\emptyset$, $C_2=C$ and $C_1 = C$, $C_2 = \emptyset$.\\
+\end{comment}
+
+Point 3.) The assumption:
+            \[ A \Perp^d_{G_{\doit(I_B,D)}} I_B \given C  \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{D\cup J}))} X_{I_B} \given X_C,X_D.\]
+So we have the following factorization:
+\[ P\lp X_A,X_C|\doit(X_{I_B},X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{I_B},X_{D\cup J})\rp,\]
+for some Markov kernel $Q(X_A|X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_C,\doit(X_{I_B},X_{D\cup J})\rp,\]
+and which is independent of $X_{I_B}$.\\ 
+We can now look at the different input values for any decomposition: $B=B_1 \dcup B_2$.
+For this we put: $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and  $ X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+This implies:
+\begin{align*} 
+  & P\lp X_A,X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= P\lp X_A,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{D\cup J})\rp,\\
+  &= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{{B_2}}=x_{B_2},X_{D\cup J})\rp.
+\end{align*}
+So we get:
+\[P\lp X_A,X_C|\doit(X_{B_2},X_{D\cup J})\rp 
+= Q(X_A|X_C,X_D) \otimes P\lp X_C|\doit(X_{B_2},X_{D\cup J})\rp,\]
+which shows that $Q(X_A|X_C,X_D)$ is a version of the conditional Markov kernel:
+\[P\lp X_A|X_C,\doit(X_{B_2},X_{D\cup J})\rp \]
+for every decomposition: $B = B_1 \dcup B_2$, simultaneously, in particular for the two corner cases:
+$B_2 = \emptyset$ and $B_2 = B$.
+
+
+\begin{comment} %%%% B and C swapped
+Point 3.) The assumption:
+            \[ A \Perp^d_{G_{\doit(I_C,D)}} I_C \given B  \cup D,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mI-CBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_C},X_D))} X_{I_C} \given X_B,X_D.\]
+So we have the following factorization:
+\[ P\lp X_A,X_B|\doit(X_{I_C},X_D)\rp = Q(X_A|X_B,X_D) \otimes P\lp X_B|\doit(X_{I_C},X_D)\rp,\]
+for some Markov kernel $Q(X_A|X_B,X_D)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_B,\doit(X_{I_C},X_D)\rp,\]
+and which is independent of $X_{I_C}$.\\ 
+We can now look at the different input values for any decomposition: $C=C_1 \dcup C_2$.
+For this we put: $X_{I_{C_1}}= \star = (\star)_{v \in C_1}$ and  $ X_{I_{C_2}}=x_{C_2} \in \Xcal_{C_2}$.
+This implies:
+\begin{align*} 
+&= P\lp X_A,X_B|\doit(X_{{C_2}}=x_{C_2},X_D)\rp \\
+&= P\lp X_A,X_B|\doit(X_{I_{C_1}}=\star,X_{I_{C_2}}=x_{C_2},X_D)\rp \\
+&= Q(X_A|X_B,X_D) \otimes P\lp X_B|\doit(X_{I_{C_1}}=\star,X_{I_{C_2}}=x_{C_2},X_D)\rp,\\
+&= Q(X_A|X_B,X_D) \otimes P\lp X_B|\doit(X_{{C_2}}=x_{C_2},X_D)\rp.
+\end{align*}
+So we get:
+\[P\lp X_A,X_B|\doit(X_{C_2},X_D)\rp 
+= Q(X_A|X_B,X_D) \otimes P\lp X_B|\doit(X_{C_2},X_D)\rp,\]
+which shows that $Q(X_A|X_B,X_D)$ is a version of the conditional Markov kernel:
+\[P\lp X_A|X_B,\doit(X_{C_2},X_D)\rp \]
+for every decomposition: $C = C_1 \dcup C_2$, simultaneously, in particular for the two corner cases:
+$C_2 = \emptyset$ and $C_2 = C$.
+\end{comment}
+\end{proof}
+%\end{comment}
+\end{Cor}
+
+%\Joris{Add remark about completeness: although the do-calculus has been shown to be complete for CBNs without input variables, it is not complete for simple SCMs with input variables.}

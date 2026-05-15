@@ -1,0 +1,154 @@
+\subsection{Do-Calculus}
+\totalscore{9}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (4,0) {$Y$};
+    \node[ndout] (Z) at (2,2) {$Z$};
+    \node[ndout] (W) at (-1,3) {$W$};
+    \node[ndout] (L) at (3,4) {$L$};
+    \node[ndout] (S) at (0,-2) {$S$};
+    \node[ndout] (R) at (4,-2) {$R$};
+    \draw[arout] (X) to (Y);
+    \draw[arout] (X) to (S);
+    \draw[arout] (Y) to (R);
+    \draw[arout] (Z) to (X);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (W) to (Z);
+    \draw[arout] (W) to (X);
+    \draw[arout] (L) to (W);
+    \draw[arlat, bend right] (W) to (S);
+    \draw[arlat, bend left] (L) to (Y);
+    \draw[arlat, bend left] (S) to (R);
+\end{tikzpicture}
+\caption{Acyclic Directed Mixed Graph (ADMG).}
+\label{fig:cadmg-1}
+\end{figure}
+
+\noindent Consider the observational graph of a causal Bayesian network with latent variables in Figure \ref{fig:cadmg-1}.
+%We assume that the variables $X,Y,Z,W,L,S,R$ are observable with probability distribution $P(X,Y,Z,W,L,S,R)$.
+To avoid measure-theoretic subtleties, we assume that all occuring Markov kernels are discrete and have strictly positive mass functions.
+
+In this exercise we are interested in estimating the causal effect of $X$ and $W$ on $Y$, that is, the interventional distribution $P(Y|\doit(X,W))$. However, we are only able to perform certain interventional experiments:
+\begin{enumerate}[label=(\arabic*)]
+    \item We can perform experiments where we intervene on $W$, but this comes, unfortunately, with certain selection bias, $S=s$. In other words, we are only able to produce samples from the conditional interventional distribution: $P(X,Y,Z,L,R|\doit(W),S=s)$ for a fixed value $s$.
+    \item We can perform additional unbiased experiments where we intervene on $W$, but there we can only measure the output of $Z$. This means that we can also produce samples from the (unbiased, unconditional)  interventional distribution $P(Z|\doit(W))$.
+\end{enumerate}
+
+Use the 3 rules of do-calculus together with the rules of probability (e.g.\ chain rule) to derive an expression for the Markov kernel $P(Y|\doit(X,W))$ in terms of $P(X,Y,Z,L,R|S=s,\doit(W))$ and $P(Z|\doit(W))$. This expression can contain combinations of marginals, conditionals, products and compositions of the latter two Markov kernels. 
+Provide all details of your arguments.
+When you use d-separation statements clearly indicate in which graph this should hold and draw the graph if it deviates from the one depicted in Figure \ref{fig:cadmg-1}.
+%The claimed d-separation statements itself need to be proven as well, by clearly indicating which paths need to be considered and why and where they are d-blocked.
+The claimed d-separation statements do not need to be proven (but should be correct, of course).
+
+
+\answer{%
+Since all occuring Markov kernels contain $\doit(W)$ we can restrict to the following CADMG:
+\points{1pt for drawing the correct interventional graph with intervention node in the following.}
+
+\centerline{\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IX) at (-2,1) {$I_X$};
+    \node[ndout] (Y) at (4,0) {$Y$};
+    \node[ndout] (Z) at (2,2) {$Z$};
+    \node[ndint] (W) at (-1,3) {$W$};
+    \node[ndout] (L) at (3,4) {$L$};
+    \node[ndout] (S) at (0,-2) {$S$};
+    \node[ndout] (R) at (4,-2) {$R$};
+    \draw[arout] (X) to (Y);
+    \draw[arout] (X) to (S);
+    \draw[arout] (Y) to (R);
+    \draw[arout] (Z) to (X);
+    \draw[arout] (Z) to (Y);
+    \draw[arint] (W) to (Z);
+    \draw[arint] (W) to (X);
+    \draw[arint] (IX) to (X);
+    \draw[arlat, bend left] (L) to (Y);
+    \draw[arlat, bend left] (S) to (R);
+\end{tikzpicture}
+}
+
+\begin{enumerate}
+    \item By the chain rule we get:
+        \begin{align*}
+            P(Y|\doit(X,W)) &= P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)).
+        \end{align*}
+        \points{1pt for the chain rule. TODO: perhaps this should be given as a hint!}
+          \item To apply the 3rd rule of do-calculus to $P(Z|\doit(X,W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$:
+         \begin{align*}
+             Z \Perp^d_{G_{\doit(I_X,W)}} I_X \given W.
+         \end{align*}
+         For this one needs to consider the following paths:
+         \begin{align*}
+             &Z \hut W          && \text{blocked at endpoint $W$,} \\
+             &Z \tuh X \hut W   && \text{blocked at endpoint $W$,} \\
+             &Z \hut W \tuh X \hut I_X   && \text{blocked at non-collider $W$,} \\
+             &Z \tuh X \hut I_X && \text{blocked at collider $X \notin \Anc(W)$,}\\
+             &Z \tuh Y \hut X \hut I_X && \text{blocked at collider $Y \notin \Anc(W)$,}\\
+             &Z \tuh Y \tuh R \huh S \hut X \hut I_X && \text{blocked at collider $R \notin \Anc(W)$,}
+         \end{align*}
+         The 3rd rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Z|\doit(X,W)) & = P(Z|\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement. 1pt for correct application of do-calculus rule.
+         %2pt for d-blocked paths (0.5pt for paths involving $W$ are blocked, 0.5pt for every other path (3x)).
+         }
+     \item To apply the 2nd rule of do-calculus to $P(Y|Z,\doit(X,W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$: 
+         \begin{align*}
+             Y \Perp^d_{G_{\doit(I_X,W)}} I_X \given Z,X,W.
+         \end{align*}
+         First, all paths from $Y$ to $W$ are blocked by $W$ at the endpoint $W$.
+         Furthermore, we need to consider the following paths:
+         \begin{align*}
+             &Y \hut Z \hut W \tuh X \hut I_X && \text{blocked at non-collider $W$,}\\
+             &Y \hut Z \tuh X \hut I_X && \text{blocked at non-collider $Z$,}\\
+             &Y \hut X \hut I_X && \text{blocked at non-collider $X$,}\\
+             &Y \tuh R \huh S \hut X \hut I_X && \text{blocked at non-collider $X$,}
+         \end{align*}
+         The 2nd rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Y|Z,\doit(X,W)) & = P(Y|Z,X,\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement.
+         1pt for correct application of do-calculus rule.
+         %2pt for d-blocked paths (0.5pt for paths involving $W$ are blocked, 0.5pt for every other path (3x)).
+         }
+     \item To apply the 1st rule of do-calculus to $P(Y|Z,X,\doit(W))$ we check the d-separation in the depicted graph $G_{\doit(I_X,W)}$ (or $G_{\doit(W)}$) : 
+         \begin{align*}
+             Y \Perp^d_{G_{\doit(I_X,W)}} S \given Z,X,W.
+         \end{align*}
+        First, all paths from $Y$ to $W$ are blocked by $W$ at the endpoint $W$.
+         Furthermore, we need to consider the following paths:
+         \begin{align*}
+             &Y \hut Z \hut W \tuh X \hut I_X && \text{blocked at non-collider $W$,}\\
+             &Y \hut Z \tuh X \hut I_X && \text{blocked at non-collider $Z$,}\\
+             &Y \hut X \hut I_X && \text{blocked at non-collider $X$,}\\
+             &Y \tuh R \huh S \hut X \hut I_X && \text{blocked at non-collider $X$,}\\
+             &Y \hut Z \hut W \tuh X \tuh S && \text{blocked at non-collider $W$,}\\
+             &Y \hut Z \tuh X \tuh S && \text{blocked at non-collider $Z$,}\\
+             &Y \hut X \tuh S && \text{blocked at non-collider $X$,}\\
+             &Y \tuh R \huh S && \text{blocked at collider $R \notin \Anc(Z,X,W)$,}
+         \end{align*}
+         The 1st rule of do-calculus then shows the equation:
+         \begin{align*}
+             P(Y|Z,X,\doit(W)) & = P(Y|Z,X,S,\doit(W)).
+         \end{align*}
+         Since the left hand side is not dependent on $S$ we can evaluate at $S=s$ and get:
+         \begin{align*}
+             P(Y|Z,X,\doit(W)) & = P(Y|Z,X,S=s,\doit(W)).
+         \end{align*}
+         \points{1pt for correct d-separation statement. 
+           1pt for correct application of do-calculus rule.  
+           %3pt for d-blocked paths (1pt for either pointing out paths involving $I_X$ are blocked as before or drawing new graph without $I_X$, 0.5pt for paths involving $W$ are blocked,  0.5pt for every other path (3x)).
+         }
+     \item Putting all points together we get:
+        \begin{align*}
+            P(Y|\doit(X,W)) &= P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)) \\
+                            &= P(Y|Z,X,S=s,\doit(W)) \circ P(Z|\doit(W)).
+        \end{align*}
+        \points{1pt for putting it all together.}
+\end{enumerate}
+}

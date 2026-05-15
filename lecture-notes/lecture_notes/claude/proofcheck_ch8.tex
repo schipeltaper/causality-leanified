@@ -1,0 +1,264 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 8 --- Causal Relations\\(\texttt{causal\_relations.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{causal\_relations.tex} (1713 lines).
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(lines 107--140, 308--326, 328--365, 1135--1186, 1188--1210, 1512--1540).
+Proofs inside \verb|\Joris{...}| blocks are also skipped (this affects
+proofs at lines 804 and 833).
+\verb|\Claude{...}| blocks are \textbf{included} (none found).
+
+Of the 17 proof blocks, 12 are active after excluding comment blocks (3)
+and \verb|\Joris| blocks (2).
+
+%% ========================================================================
+\section{Proof 1: Prp.\ \texttt{prp:when\_d-separation\_holds} (lines 94--173)}
+%% ========================================================================
+
+\textbf{Statement.} For simple iSCMs with $J=\emptyset$, under any of three
+conditions (acyclic; discrete; essentially linear), $id$-separation in $G(M)$
+implies CI in $P_M$.
+
+\textbf{Analysis.}
+Explicitly labeled a \emph{sketch}.
+\begin{itemize}
+  \item Case~1 (acyclic): reduces to GMP for CBNs.  $\checkmark$
+  \item Case~2 (discrete): references \cite{FM17} Thms.\ 3.8.12, 3.6.6, 3.5.2.
+    Has an explicit TODO: ``fill in the details; extend to $J\neq\emptyset$.''
+  \item Case~3 (essentially linear): claims a ``small extension'' of
+    \cite{FM17} Ex.\ 3.8.17 without details.
+\end{itemize}
+
+\textbf{Verdict: GAP} (proof sketch with explicit TODOs and unverified
+external generalizations).
+
+%% ========================================================================
+\section{Proof 2: Prp.\ \texttt{prp:graph\_cause\_of} (lines 425--432)}
+%% ========================================================================
+
+\textbf{Statement.}
+$a\notin\Anc^G(b) \;\iff\; b\perp^{i\sigma}_{G_{\doit(I_a)}} I_a\mid J\setminus\{I_a\}$.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: A $\sigma$-open walk from $b$ to $I_a$ has no colliders
+(input nodes can't be colliders), no internal $J$-nodes (would block), hence
+is a directed walk $I_a\to a\to\cdots\to b$, giving $a\in\Anc(b)$.
+$(\Leftarrow)$: A directed walk $I_a\to\cdots\to b$ has all internal
+non-colliders in $V$, hence is $\sigma$-open.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 3: Prp.\ \texttt{prp:scm\_cause\_of\_rung3\_po} (lines 609--611)}
+%% ========================================================================
+
+\textbf{Statement.} Rung-3 causation $\iff$ potential-outcome causation.
+
+\textbf{Analysis.} Definitional unfolding: the twin model pairs original and
+copy sharing $X_W$, so $X_b=X_{b'}$ a.s.\ under two interventions $\iff$
+the solution function gives the same output for both intervention values for
+the same $X_W$.  $\checkmark$
+
+\textbf{Verdict: CORRECT} (terse but sound).
+
+%% ========================================================================
+\section{Proof 4: Thm.\ \texttt{thm:scm\_causes} (lines 632--675)}
+%% ========================================================================
+
+\textbf{Statement.}
+(i)~graphical non-causation $\Rightarrow$ (ii)~no rung-3 cause $\Rightarrow$
+(iii)~no rung-2 cause.  Under $i\sigma$-faithfulness: (iii)$\Rightarrow$(i).
+
+\textbf{Analysis.}
+Introduces auxiliary properties (a)--(d) and shows:
+\begin{itemize}
+  \item (a)$\Rightarrow$(b): Lem.\ \texttt{lem:scm\_structural\_minimality\_solution\_function}
+    gives a solution function constant in non-ancestors.  $\checkmark$
+  \item (b)$\Rightarrow$(c): Quantifier swap (universal null set to
+    pointwise null sets) is valid.  $\checkmark$
+  \item (c)$\Rightarrow$(d): a.s.\ equality $\Rightarrow$ distributional
+    equality.  $\checkmark$
+  \item (d)$\Rightarrow$(a) under faithfulness: CI $\Rightarrow$
+    $i\sigma$-separation $\Rightarrow$ non-ancestor by Prp.~2.  $\checkmark$
+\end{itemize}
+
+\textbf{Typo (line~627):} Item~(iii) is mislabeled as~(ii).
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 5: Lem.\ \texttt{lem:scm\_structural\_minimality\_solution\_function}
+(lines 696--734)}
+%% ========================================================================
+
+\textbf{Statement.} There exists a solution function $g$ with $g_b$ constant in
+$(J\cup W)\setminus\Anc^{G^+(M)}(b)$.
+
+\textbf{Analysis.}
+Constructs $g$ via acyclification: WLOG $f_v$ depends only on $\Pa(v)$;
+for each SCC, the partial solution $g^{[C]}$ depends only on $\Pa(C)\setminus C$;
+compose in topological order.  $M^{\mathrm{acy}}\equiv M$ gives the result.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 6: Cor.\ \texttt{cor:scm\_direct\_cause\_of} (lines 998--1001)}
+%% ========================================================================
+
+\textbf{Statement.} Hierarchy of direct causal relations:
+graphical $\Rightarrow$ rung-3 $\Rightarrow$ rung-2, with reverse under
+faithfulness.
+
+\textbf{Analysis.}
+Apply Thm.~4 to the submodel $M^{[\{a,b\}\cap V]}$.
+$G(M^{[\{a,b\}\cap V]})=(G(M))^{[\{a,b\}\cap V]}$ by
+Prp.\ \texttt{prp:compatibility\_graph}.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 7: Cor.\ \texttt{cor:scm\_common\_cause\_of} (lines 1105--1107)}
+%% ========================================================================
+
+\textbf{Statement.} Hierarchy of common-cause notions.
+
+\textbf{Analysis.}
+Apply Thm.~4 to $M_{\doit(a)}$ and $M_{\doit(b)}$ separately.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 8: Prp.\ \texttt{prp:graph\_unconfounded2} (lines 1220--1245)}
+%% ========================================================================
+
+\textbf{Statement.}
+$a,b$ unconfounded in $G=(G^+)^{\setminus W}$ $\iff$
+$a\perp_{(G^+)^{\mathrm{twin}}_{\doit(a',b)}} b'\mid J,J',a',b$.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: A $\sigma$-open walk from $a$ to $b'$ must pass through $W$
+(only connection between worlds).  $W$ nodes have no parents, forcing a
+directed walk pattern that yields a bifurcation, contradicting unconfoundedness.
+$(\Leftarrow)$: A bifurcation in $G$ lifts to a $\sigma$-open walk in the
+twin graph.  $\checkmark$
+
+\textbf{Minor:} Line~1233 writes ``$G^+(M)$'' where ``$G^+$'' is intended.
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 9: Prp.\ \texttt{prp:graph\_unconfounded\_scm\_rung3\_unconfounded}
+(lines 1354--1363)}
+%% ========================================================================
+
+\textbf{Statement.} Graph unconfoundedness $\Rightarrow$ rung-3 unconfoundedness.
+
+\textbf{Analysis.}
+Chain: Prp.~8 gives $i\sigma$-separation in the twin graph $\Rightarrow$
+GMP gives CI $\Rightarrow$ rung-3 unconfoundedness by definition.
+Graph compatibility lemmas connect the twin of $M$ to the twinned graph.
+$\checkmark$
+
+\textbf{Typo (line~1356):} Mismatched parenthesis.
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 10: Prp.\ \texttt{prp:scm\_rung3\_unconfounded\_acyclic}
+(lines 1383--1392)}
+%% ========================================================================
+
+\textbf{Statement.} If $b$ is not a rung-3 cause of $a$: rung-3 unconfoundedness
+$\iff$ $g_a(x_J,X_W)\perp g^{\doit(a)}_b(x_{a'},x_{J'},X_W)$ for all inputs.
+
+\textbf{Analysis.}
+Since $b$ is not a rung-3 cause of $a$, $g^{\doit(b)}_a$ is essentially
+constant in $x_b$.  By consistency: $g^{\doit(b)}_a(x_b,x_J,x_W)=g_a(x_J,x_W)$.
+Substitute into the rung-3 unconfoundedness definition.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 11: Prp.\ \texttt{prp:rung3\_unconfounded\_implies\_no\_confounding\_bias}
+(lines 1484--1510)}
+%% ========================================================================
+
+\textbf{Statement.} Rung-3 unconfoundedness $+$ $b$ not rung-3 cause of $a$
+$\Rightarrow$ no confounding bias.
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item Prp.~10 gives independence $g_a(x_J,X_W)\perp g^{\doit(a)}_b(x_a,x_J,X_W)$.
+  \item Consistency: $g_b(x_J,x_W)=g^{\doit(a)}_b(g_a(x_J,x_W),x_J,x_W)$.
+  \item Conditioning on $g_a(x_J,X_W)=x_a$:
+    $P(g_b\mid g_a=x_a) = P(g^{\doit(a)}_b(x_a,x_J,X_W)\mid g_a=x_a)
+    = P(g^{\doit(a)}_b(x_a,x_J,X_W))$
+    (by independence).
+  \item This is exactly $P_M(X_b\mid\doit(X_J),X_a)=P_M(X_b\mid\doit(X_J),\doit(X_a))$.
+    $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 12: Cor.\ \texttt{cor:scm\_identify\_bifurcation}
+(lines 1555--1557)}
+%% ========================================================================
+
+\textbf{Statement.} If $b$ does not cause $a$ in $G(M)$ and $a,b$ have
+confounding bias, then $a,b$ are confounded in $G(M)$.
+
+\textbf{Analysis.}
+Contrapositive: non-causation $+$ unconfoundedness $\Rightarrow$
+rung-3 non-causation (Thm.~4) $+$ rung-3 unconfoundedness (Prp.~9)
+$\Rightarrow$ no confounding bias (Prp.~11).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~8}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l}
+\textbf{\#} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & 94--173    & GAP \\
+2  & 425--432   & CORRECT \\
+3  & 609--611   & CORRECT \\
+4  & 632--675   & CORRECT \\
+5  & 696--734   & CORRECT \\
+6  & 998--1001  & CORRECT \\
+7  & 1105--1107 & CORRECT \\
+8  & 1220--1245 & CORRECT \\
+9  & 1354--1363 & CORRECT \\
+10 & 1383--1392 & CORRECT \\
+11 & 1484--1510 & CORRECT \\
+12 & 1555--1557 & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{12 proofs checked.  11 correct, 1 with gap.}
+
+\bigskip\noindent
+\textbf{Issues found:}
+\begin{enumerate}
+  \item \textbf{Proof~1 (Prp.\ \texttt{prp:when\_d-separation\_holds}):}
+    Proof sketch with explicit TODOs (Case~2: ``fill in details; extend to
+    $J\neq\emptyset$'') and unverified external generalization (Case~3).
+  \item \textbf{Proof~4, line~627:} Item~(iii) mislabeled as~(ii).
+  \item \textbf{Proof~8, line~1233:} ``$G^+(M)$'' should be ``$G^+$''.
+  \item \textbf{Proof~9, line~1356:} Mismatched parenthesis.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,194 @@
+% !TEX root = hw5-answers.tex
+\chead{\textbf{Exercises week 5}}
+
+\begin{document}
+\flushleft\textbf{Topics: d-separation, $\sigma$-separation, acyclification}
+\begin{enumerate}
+
+\item (1 + 1 points)
+Consider the following CDMG $G$, where $A,H$ are input nodes:
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \node (E) at (8, 0) {$E$};
+      \node (F) at (10, 0) {$F$};
+      \tikzstyle{every node} = [draw,shape=rectangle, color=teal];
+      \node (A) at (0, 0) {$A$};
+      \node (H) at (8, -2) {$H$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (C) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (E) to (F);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=teal] (H) to (E);
+  \end{tikzpicture}
+\end{figure}
+\begin{enumerate}
+  \item Do the following $d$-separations hold on graph $G$? Give a brief explanation for each answer. 
+  
+  \emph{Note that we write $C \Perp^d E \mid D$ for $\{C\} \Perp^d \{E\} \mid \{D\}$.}
+  \begin{enumerate}
+    \item $\displaystyle  C \Perp^d E$
+    \item $\displaystyle C \Perp^d E \mid D$
+    \item $\displaystyle B \Perp^d D \mid \{A, H\}$
+    \item $\displaystyle B \Perp^d D \mid \{C, A, H\}$
+  \end{enumerate}
+  \item Does $d$-separation $\displaystyle B \Perp^d F \mid \{A, H\}$ hold in the graphs $G, G^{\setminus \{C,E\}},G^{\setminus \{C,E,D\}}$? Explain your answers without using Lemma \ref*{lem:stability_separation_marginalization}, and then check your answer with Lemma \ref*{lem:stability_separation_marginalization}.
+  
+  \emph{Hint: The graphs $G^{\setminus \{C,E\}}$ and $G^{\setminus \{C,E,D\}}$ are displayed in the answer sheet of the exercises of week 4.}
+\end{enumerate}
+
+\begin{gradedsolution}
+\begin{enumerate}
+  \item
+  \begin{enumerate}
+    \item Yes
+    \item No, the walk $C\rightarrow D \leftarrow E$ is active because the collider $D$ is in the conditioning set.
+    \item No, the walk $B\ot C \to D$ is active as the confounder $C$ is not in the conditioning set.
+    \item Yes, the confounder $C$ is in the conditioning set.
+  \end{enumerate}
+  \item Yes. In $G$, the walk $B\leftarrow C \rightarrow D\leftarrow E\rightarrow F$ is blocked by a collider $D$ which is not in the conditioning set. In $G^{\setminus \{C,E\}}$, the walks $B\leftrightarrow D\leftrightarrow F$ and $B\leftrightarrow D\leftarrow H \rightarrow F$ are blocked by collider $D$ as well, and in $G^{\setminus \{C,E,D\}}$ there are no walks between $B$ and $F$. So in all three graphs the $d$-separation holds, which is in accordance with Lemma \ref*{lem:stability_separation_marginalization}.
+\end{enumerate}
+\end{gradedsolution}
+
+\item (1 point) Construct an acyclic directed mixed graph with three (non-input) nodes $A,B,C$, such that no edge (neither directed nor bidirected) exists between $A$ and $C$ and we have:
+\[
+  A \nPerp^d C \quad\text{and}\quad A \nPerp^d C \mid B
+\]
+\begin{gradedsolution}
+For example:
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (A) at (0, 0) {$A$};
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+     \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+     \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}, bend left] (B) to (C);
+  \end{tikzpicture}
+\]
+\end{gradedsolution}
+
+\item (1 point) For graphs with input nodes, the symmetry axiom
+\[
+  A \Perp^d B \mid C \implies B \Perp^d A \mid C
+\]
+does not hold in general. Write down a graph for which this implication does not hold and explain why.
+
+\begin{gradedsolution}
+For example:
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (6, 0) {$D$};
+      \tikzstyle{every node} = [draw,shape=rectangle];
+      \node (A) at (0, 0) {$A$};
+     \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+     \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+     \draw[-{Latex[length=3mm, width=2mm]}] (C) to (D);
+  \end{tikzpicture}
+\]
+Here we have $\displaystyle D \Perp^d B \mid C$, but $\displaystyle B \nPerp^d D \mid C$.
+\end{gradedsolution}
+
+% \item (1 point) Commonly, $d$-separation is defined for paths as follows:\\
+% DEF $d$-SEP PATHS \\
+% Show that this definition implies Definition xxx.\\
+
+\item (1 point) Write down a graph for which the $\sigma$-separations and $d$-separations do not agree and explain why.
+\begin{gradedsolution}
+  For example:
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (A) at (0, 0) {$A$};
+      \node (B) at (2, 0) {$B$};
+      \node (C) at (4, 0) {$C$};
+      \node (D) at (3, -1) {$D$};
+      \tikzstyle{every node} = [draw,shape=rectangle];
+      \draw[-{Latex[length=3mm, width=2mm]}] (A) to (B);
+      \draw[-{Latex[length=3mm, width=2mm]}] (B) to (C);
+      \draw[-{Latex[length=3mm, width=2mm]}] (C) to (D);
+      \draw[-{Latex[length=3mm, width=2mm]}] (D) to (B);
+    \end{tikzpicture}
+\]
+  The walk $A\to B\to C$ is $d$-blocked by a non-collider $B$ which is in the conditioning set. All other walks from $A$ to $C$ are blocked as well, and so $\displaystyle A \Perp^d C \mid B$.
+  
+  On the other hand, the walk $A\rightarrow B\rightarrow C$ is $\sigma$-open, since the non-collider $B$ points to an element $C$ within its own strongly connected component $\Sc(B) = \{B, C, D\}$, and therefore $\displaystyle A \nPerp^\sigma C \mid B$ .
+\end{gradedsolution}
+
+\item (2 + 1 points) Study the Definition \ref*{def:cdg_acyclification} of the acyclification of a graph. Let the graph $G$ be given by
+\[
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle];
+      \node (X1) at (0, 0) {$X_1$};
+      \node (X2) at (2, 0) {$X_2$};
+      \node (X3) at (1, -1.5) {$X_3$};
+      \node (X4) at (3, -1.5) {$X_4$};
+      \node (X5) at (2, -3) {$X_5$};
+      \node (X6) at (4.7, -1.5) {$X_6$};
+      \tikzstyle{every node} = [draw,shape=rectangle];
+      \draw[-{Latex[length=3mm, width=2mm]}] (X1) to (X2);
+      \draw[-{Latex[length=3mm, width=2mm]}] (X2) to (X4);
+      \draw[-{Latex[length=3mm, width=2mm]}] (X4) to (X3);
+      \draw[-{Latex[length=3mm, width=2mm]}] (X3) to (X2);
+      \draw[-{Latex[length=3mm, width=2mm]}] (X4) to (X6);
+      \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}] (X3) to (X5);
+    \end{tikzpicture}
+\]
+\begin{enumerate}
+  \item Give an acyclification $G'$ of $G$.
+  \item Do the following $d/\sigma$-separations hold?
+  \begin{enumerate}
+    \item $\displaystyle X_1\Perp^\sigma_{G} X_6|X_2$
+    \item $\displaystyle X_1\Perp^\sigma_{G'} X_6|X_2$
+    \item $\displaystyle X_1\Perp^d_{G'} X_6|X_2$
+  \end{enumerate}
+  Whenever $X_1\nPerp X_6|X_2$, provide a $d/\sigma$-open walk. Finally, compare your answers with Proposition \ref*{prp:sigma_sep_as_d_sep}.
+\end{enumerate}
+
+\begin{gradedsolution}
+  \begin{enumerate}
+    \item 
+    \[
+      \begin{tikzpicture}[scale=1, transform shape]
+        \tikzstyle{every node} = [draw,shape=circle];
+        \node (X1) at (0, 0) {$X_1$};
+        \node (X2) at (2, 0) {$X_2$};
+        \node (X3) at (1, -1.5) {$X_3$};
+        \node (X4) at (3, -1.5) {$X_4$};
+        \node (X5) at (2, -3) {$X_5$};
+        \node (X6) at (4.7, -1.5) {$X_6$};
+        \tikzstyle{every node} = [draw,shape=rectangle];
+        \draw[-{Latex[length=3mm, width=2mm]}] (X1) to (X2);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X1) to (X3);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X1) to (X4);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X2) to (X4);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X4) to (X3);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X2) to (X3);
+        \draw[-{Latex[length=3mm, width=2mm]}] (X4) to (X6);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}] (X3) to (X5);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}] (X2) to (X5);
+        \draw[{Latex[length=3mm, width=2mm]}-{Latex[length=3mm, width=2mm]}] (X4) to (X5);
+      \end{tikzpicture}
+      \]
+    \item
+    \begin{enumerate}
+      \item No, the walk $X_1 \to X_2 \to X_4 \to X_6$ is open because neither end points are in the conditioning set, $X_2$ is in the conditioning set but points to an element within its own strongly connected component, and $X_4$ points to another strongly connected component is not in the conditioning set.
+      \item The walk $X_1\to X_4 \to X_6$ is open, so no.
+      \item The walk $X_1\to X_4 \to X_6$ is open, so no.
+    \end{enumerate}
+  \end{enumerate}
+\end{gradedsolution}
+
+\item (\textbf{BONUS}) Prove Lemma \ref*{lem:stability_separation_marginalization} for $d$-separation: show that $d$-separation holds in the marginalised graph if and only if it holds in the full graph.
+
+\end{enumerate}
+\end{document}

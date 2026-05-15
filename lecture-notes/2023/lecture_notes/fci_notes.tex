@@ -1,0 +1,196 @@
+\subsection{Notes to self}
+
+\Joris{
+\begin{enumerate}
+  \item Perhaps we can do all of this without exogenous input nodes by instead looking at $P_{M}(X_O \mid X_S \in \xi_S, X_J)$.
+Then we can treat the $J$ nodes as output variables, and still make use of qualitatively similar causal background knowledge
+on the relationship between $J$ nodes and the other nodes. For example, we might get undirected edges $j_1 \tut j_2$ in the PAG
+if $j_1$ and $j_2$ have a common descendant in $S$. We can still try to deduce whatever we can deduce from the conditional
+independence model. The difference between boxes and circles then just becomes the difference between $\forall x_J$ and 
+$P(X_J)$-a.s. Idea: study RCT in the presence of selection bias.
+
+\item An alternative setup could be to assume the existence of a simple SCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, and to
+assume that the exogenous input variables $J$ and a subset of endogenous and exogenous random variables $O \subseteq V \cup W$ are observed. 
+Note: for the observed exogenous random variables, we do have background knowledge, namely that they are independent and exogenous. 
+If we have that background knowledge, why don't we use it? 
+So it seems more sensible to assume that only a subset of the endogenous variables, and the exogonous input variables, are observed. 
+This suggests to take $V^+ = V \dcup S \dcup L$ where only the ones in $V$ are observed.
+
+ \item At some point I thought one would wish to demand that $i \notin J$ or $j \notin J$ for the existence of a $\sigma$-inducing path between $i$ and $j$ given $S$, but it actually appears more natural to have $\sigma$-inducing walks/paths between any pair of nodes in $J$.
+
+ \item In Proposition~\ref{prp:sigma-inducing_path_properties}, we could add a fifth equivalence:
+    $i \nPerp^\sigma_G j \given S \cup (J \sm \{j\}) \cup Z$ for all $Z \subseteq V \sm \{i,j\}$.
+   This might be true, but it seems we don't need it.
+
+  \item If we condition on a common child of two exogenous input nodes, the two input nodes may no longer be variationally independent. It seems we only need that assumption for a \emph{causal} interpretation of the input nodes (as `independent' causes). So if we allow for selection bias, then we already loose the ability to interpret an ancestral relation from input node to output nodes as causal. So I guess we should indeed be quite careful when combining selection bias and input nodes!!
+
+  \item It seems that a rather neat solution for the (non)causal interpretation (for both input nodes and output nodes) is obtained as follows.
+    We explicitly mark each nodes as `causal' / `not-necessarily-causal'. 
+    In the FCI PAG, each node that has an arrowhead is marked as `causal'.
+    All other nodes are marked as `not-necessarily-causal'.
+    This is complete in the sense that all nodes that are an identifiable non-ancestor of $S$ are then marked `causal', 
+    and all nodes that are not identifiable non-ancestors of $S$ are then marked `not-necessarily-causal'.
+    Input nodes will never get arrowheads, so for these we could make use of background knowledge to mark some of them as `causal' (by default they would all be `not-necessarily-causal').
+    (A hacky way to make FCI use this background knowledge would be to add a dummy node and edge $j \huo j'$ to an input node $j$).
+
+  \item We now dealt with interactions between selection bias and input nodes by reformulating several of the FCI rules to explicitly exclude certain cases.
+    Another option might be to just take all $J$ nodes to be adjacent. In both cases, we still need to investigate which rules may be added to get a more complete algorithm.
+    We consider several exceptional cases (see also Figure~\ref{fig:fci_input_nodes_exceptions}).
+    \begin{enumerate}
+      \item[$\C{R}0$] (``if $i \sus j \sus k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \suh j \hus k$ if $j \notin \sepset(\{i,k\})$'')
+        This rule is invalid for $i,k \in J$, see Figure~\ref{fig:fci_input_nodes_exceptions}(a). Additionally, the question is what $\sepset(\{i,k\})$ would be in that case. 
+      \item[$\C{R}1$] (``if $i \suo j \hus k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \hut j$'')
+        This rule is invalid for $i,k \in J$, see Figure~\ref{fig:fci_input_nodes_exceptions}(b).
+      \item[$\C{R}3$] (``if $i \suh j \hus k$ and $i \suo l \ous k$ and $l \suo j$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $l \suh j$'') This rule is invalid if $i,k \in J$, see Figure~\ref{fig:fci_input_nodes_exceptions}(c).
+      \item[$\C{R}7$] (``if $i \suo j \out k$ in $H$ with $i \notin J$, and $i$ and $k$ are not adjacent in $H$, then orient $i \sut j$'')
+        This rule is invalid for $i,k \in J$, see Figure~\ref{fig:fci_input_nodes_exceptions}(d).
+    \end{enumerate}
+    There are two ways to fix these rules: treating all $J$ nodes as adjacent, or (the current way) treat all $J$ nodes as non-adjacent but explicitly exclude the case $i \in J$.
+    \begin{figure}
+      \begin{tikzpicture}
+        \begin{scope}
+          \node at (0,1) {$\C{R}0$:};
+          \node[ndint] (J1) at (-1,0) {$i$};
+          \node[ndint] (J2) at (1,0) {$k$};
+          \node[ndout] (X) at (0,-1.5) {$j$};
+          \node[ndout] (S) at (0,-3) {$s$};
+          \draw[tuh] (J1) edge (X);
+          \draw[tuh] (J2) edge (X);
+          \draw[tuh] (X) edge (S);
+        \end{scope}
+        \begin{scope}[xshift=4cm]
+          \node at (0,1) {$\C{R}1$:};
+          \node[ndint] (I) at (-1,0) {$i$};
+          \node[ndint] (K) at (1,0) {$k$};
+          \node[ndout] (J) at (1,-1.5) {$j$};
+          \node[ndout] (L) at (-1,-1.5) {$l$};
+          \draw[tuh] (I) edge (J);
+          \draw[tuh] (K) edge (J);
+          \draw[tuh] (L) edge (J);
+          \draw[tuh] (I) edge (L);
+        \end{scope}
+        \begin{scope}[xshift=8cm]
+          \node at (0,1) {$\C{R}3$:};
+          \node[ndint] (I) at (-1,0) {$i$};
+          \node[ndint] (K) at (1,0) {$k$};
+          \node[ndout] (J) at (-1,-1.5) {$j$};
+          \node[ndout] (L) at (1,-1.5) {$l$};
+          \draw[tuh] (I) edge (J);
+          \draw[tuh] (K) edge (J);
+          \draw[tuh] (K) edge (L);
+          \draw[tuh] (I) edge (L);
+          \draw[tuh] (J) edge (L);
+        \end{scope}
+        \begin{scope}[xshift=12cm]
+          \node at (0,1) {$\C{R}7$:};
+          \node[ndint] (I) at (-1,0) {$i$};
+          \node[ndint] (K) at (1,0) {$k$};
+          \node[ndout] (J) at (-1,-1.5) {$j$};
+          \draw[tuh] (I) edge (J);
+          \draw[tuh] (K) edge (J);
+        \end{scope}
+      \end{tikzpicture}
+      \caption{Graphs $G$ as counterexamples to the vanilla FCI rules when treating input nodes as non-adjacent.\label{fig:fci_input_nodes_exceptions}}
+    \end{figure}
+
+  \item Some additional orientation rules to exploit the background knowledge:
+    \begin{itemize}
+      \item if $i \tus j \hus k$ in $H$ with $i \in J$, orient $i \tuh j$
+      \item if $i \tus j \ous k$ in $H$ with $i \in J$ and $i, k$ not adjacent (update: and $k \notin J$?!), orient $j \tus k$ (this one was suggested by Tom)
+          (If we additionally somehow know that $j \notin \Anc_G(S)$ then we could orient $i \tuh j \tuh k$; this looks like a combination of the previous item and R1).
+          (If instead we additionally somehow know that $j \in \Anc_G(S)$ then we could orient $i \tut j \tus k$. This looks like a possible extension of $\C{R}6$, but we should investigate all the possibilities of inferring $j \in \Anc_G(S)$. It seems that at the stage where $\C{R}6$ is executed, the only possible way to know that $j \in \Anc_G(S)$ is if it is introduced by $\C{R}5$, which requires the presence of an edge $l \tut j$. Another possibility would be additional background knowledge on $j$. FInally, if we were to add this rule as $\C{R}6b$, then also this one may have oriented an edge $i' \tut j$ for some $i' \in J$.)
+        \item Note that all this implies that if $j_1 \sus v \sus j_2$ with $j_1,j_2 \in J$ (and $v \in V$) then 
+          we can orient either $j_1 \tuh v \hut j_2$ or $j_1 \tut v \tut j_2$, but not in any other way.
+          In the latter case, $j_1,j_2,v$ are in $\Anc_G(S)$; in the former case, none of them is in $\Anc_G(S)$.
+    \end{itemize}
+    Would that be all? (It looks as if these rules might correspond to the ``missing'' cases of rules 0,1,3,7?!)
+
+    Tom suggested the following strategy:
+    \begin{itemize}
+      \item first run vanilla fci, using only restricted CI tests (i.e.\ the input nodes stay adjacent)
+      \item apply background knowledge (including making input nodes separated)
+      \item propagate background knowledge
+    \end{itemize}
+    For an oracle, it may be easier to get this one complete.
+    Note: rules 1-5 don't overwrite the background knowledge orientation ($j \tus v$ ($j\in J, v\in V$).
+    Also, rules 0 and 1 do not exploit the background knowledge orientation.
+    Rule 2 does seem to be able to exploit the background knowledge orientation in certain cases.
+    However, by adding the rule 
+      \begin{center}``if $j \sus i \hus k$ in $H$ with $j \in J$, orient $j \tuh i$''\end{center}
+    this case will also be caught (so this suggests to add this as $\C{R}2$b!).
+    Rules 3,4,5 don't need tails so also these commute with the background knowledge orientation.
+    Now rule 6 is interesting: it seems as if this can be used to incorporate the background knowledge orientation by adding dummy nodes
+    (indeed, for each $j \in J$ add a $j'$ and connect it as $j' \tut j$).
+    Rule 6 itself also commutes with the background knowledge orientation step.
+    Rule 7 also commutes with the background knowledge orientation step.
+    Also rule 8. Also rule 9. Also rule 10.
+    This is great news: it suggests that by adding this rule 2b, we can apply the background knowledge at any arbitrary point in the algorithm.
+    By introducing dummy variables as above, rule 6 already catches the background knowledge orientations, hence they become redundant.
+    So after adding rule 2b, the algorithm will give the same output if we either apply the background knowledge orientation 
+    explicitly without using dummy variables at any point, or if we don't but add dummy variables.
+    The simplest idea would be to have dummy variables as $j' \tut j'' \tut j''' \tut j \tut j'$ for each $j \in J$ (that is, a square with $j$ being one of the edges).
+    Left to check: the dummy variables shouldn't have any side effects downstream!
+    Hm, there is one concern: in this way, one could even conclude that $j$ is ancestor of $S$, which is not true.
+    Interesting, it feels as if we're getting closer to completeness!
+
+  \item Hold on: it appears as if the failure of R0 trickles down to several other rules.
+    When does R0 fail? In the example in Figure~\ref{fig:fci_input_nodes_exceptions}, also $i$ and $k$
+    are ancestor of $S$. Therefore, they should get merged! But then it is no longer a failure of R0!
+    It would also suffice if we mark them as non-causal. But in that case, we would also have to 
+    drop the assumption of variation independence of the input nodes.
+    This all seems to be an intricate interplay.
+    Note, though, that we only need to merge these input nodes if some of their joint states are
+    rejected by the selection mechanism. But in order to have consistent CI tests, we already have
+    to assume that each input state occurs in the data.
+    So I guess that both for proving consistency, and for obtaining a causal interpretation of the
+    input nodes, we have to assume variation independence of the input variables.
+    However: note that for a non-causal interpretation of the input nodes, we might weaken the
+    null hypothesis to consider only those values of the input variables that are realized in the data.
+    In other words, we would weaken the ``for all $x_J$'' quantifier to the ``for $\mu$-a.a.\ $x_J$''
+    quantifier for some measure $\mu$ (actually, we only need the null sets of the measure $\mu$).
+    This is in line with what we'd get if we would condition on $x_J$: a kernel defined up to null sets on $\CX_J$.
+    This weakens the requirements on the data to get consistency.
+    So, it seems we end up with two types of input nodes:
+    \begin{itemize}
+      \item causal input nodes (not dashed), which represent an intervention, and therefore we 
+        take all values in a Cartesian product
+      \item non-causal input nodes (dashed), which can represent conditioning, and may lead to
+        a kernel that is defined up to certain null sets
+    \end{itemize}
+    A simple workaround could be to \emph{assume} that the selection mechanism doesn't rule out
+    any joint value of the input nodes: then we might still have a causal interpretation for the
+    input nodes, and consistency of CI tests.
+
+  \item Another thought: the current choice of non-adjacent input nodes works well for representing
+    CI information, and part of the causal information. But it doesn't seem to be informative enough
+    to represent the causal information between the input nodes. This was obviously precisely what
+    we were aiming for: by conditioning on them, we would need to encode \emph{less} causal information.
+
+  \item We should double-check whether in the code we are correctly using the (a)symmetric sepset!
+
+  \item Also see file \texttt{old/fci-extensions.tex} in \texttt{jci-paper} repository.
+
+  \item Note that in FCI we model conditioning of the type $\given X_S = x_s$ while the conditioning SCM operation considers the type $\given X_S \in \xi_S$ for some measurable $\xi_S \subseteq \CX_S$! 
+    The difference is that for the former, non-collider nodes in $S$ are blocked, whereas for the latter, these are not blocked in general.
+    Consider CDMG $G$: $A \tuh S \tuh B$. If we condition on $\given X_S \in \xi_S \subseteq \CX_S$ then in general there will be a dependency between $A$ and $B$, and hence this should count as a $\sigma$-inducing path as well! However, if we condition on $\given X_S=x_s$, then it will be blocked, and hence not $\sigma$-inducing.
+    Would it be possible to derive an FCI version that allows conditioning on a set of values...?
+    Wait! We can always add endogenous variables $T_i$ with structural equations $T_i = \ind_{\xi_i}(S_i)$. 
+    Then we have that 
+      $$P_M(X_V \mid X_S \in \xi_S, \doit(X_J)) = P_M(X_V \mid X_S = 1, \doit(X_J))$$
+    where we marginalized out the nodes in $S$.
+    For all nodes in $v \in V$, we have $v \in \Anc(T) \iff v \in \Anc(S)$.
+    In this way, we reduce selection on $X_S \in \xi_S$ to selection on $X_T = 1$.
+
+  \item There seems to be a conflict in the definition of $\sigma$-inducing path. Note that even 
+    though there may or may not be a $\sigma$-inducing path between two input nodes, 
+    This is why Proposition~\ref{prp:sigma-inducing_path_properties} does not consider the case $i,j \in J$.
+    This mismatch can occur if input nodes are ancestors of selection variables (but perhaps also more generally? at least it requires $S \ne \emptyset$).
+    SO on the one hand, we insist on giving the inpude nodes a causal interpretation. 
+    However, in the presence of selection bias, we can (so far) only give the \emph{non-ancestors} of selection nodes a causal interpretation. 
+    Shouldn't we therefore assume the background knowledge that each input node is not ancestor of a selection variable? 
+    But, wouldn't that be a very modeling strong assumption that we would perhaps not like to make in practice?
+    So this setup seems to lead us automatically to ``non-causal'' input nodes! In other words:
+    even if we introduce input nodes only to represent interventions, after latent selection on a descendant the input node no longer (?) represents an intervention (!).
+    For the time being, a good workaround might be to note that an input node \emph{in a $\sigma$-PAG} not necessarily has a causal interpretation, even though it does in the CDMG!
+\end{enumerate}
+}

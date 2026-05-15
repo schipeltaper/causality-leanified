@@ -1,0 +1,25 @@
+\subsection{Ladder of Causation}
+\totalscore{6}
+
+\begin{enumerate}[label=\alph*)]
+  \item Give two SCMs or IL-CBNs of at most $3$ variables that are observationally equivalent but not interventionally equivalent, and demonstrate that this is the case.\score{3}
+    \answer{Many possible answers. 
+    As an example, start with any joint distribution $P(X,Y)$ on two discrete random variables $X,Y$.
+    We can factorize $P(X,Y) = P(Y \given X) \otimes P(X)$ leading to a CBN with graph $X \to Y$, 
+    or $P(Y,X) = P(X \given Y) \otimes P(Y)$ with graph $Y \to X$.
+    They are observationally equivalent by construction, but generically not interventionally equivalent,
+    since in the first model, $P(X \given \doit(Y)) = P(X)$ whereas for the second model, $P(X \given \doit(Y)) = P(X \given Y)$
+    and these are different kernels if $X$ and $Y$ are dependent.}
+    \points{1 point for giving two models satisfying the requirements, 1 point for correctly showing their observational equivalence, 1 point for correctly showing their interventional non-equivalence.}
+  \item Give two SCMs (containing latent exogenous random variables) that are interventionally equivalent but not counterfactually equivalent with respect to the observed variables, and demonstrate that this is the case.\score{3}
+    \answer{Many possible answers.
+    An example many students will probably give is the coin flip example from the homework exercise.
+    Let $X$ be a binary exogenous input variable, $U$ a binary latent exogenous random variable, and $Y$ a binary endogenous variable.
+    For SCM $\C{M}_1$, take as structural equation $Y = X \oplus U$ (i.e., a XOR) and $U$ a uniform distribution on $\{0,1\}$.
+    For SCM $\C{M}_2$, take as structural equation $Y = U$ and $U$ a uniform distribution on $\{0,1\}$.
+    Then $\C{M}_1$ and $\C{M}_2$ are interventionally equivalent ($P_{\C{M}_1}(Y \given \doit(X)) = P_{\C{M}_2}(Y \given \doit(X))$ and $P_{\C{M}_1}(\Asterisk \given \doit(X,Y)) = P_{\C{M}_2}(\Asterisk \given \doit(X,Y))$).
+    They are not counterfactually equivalent ($P_{\C{M}_1}(Y'=y' \given \doit(X=0,X'=1), Y=y) = \delta_{1-y}(y')$ while
+    $P_{\C{M}_2}(Y'=y' \given \doit(X=0,X'=1), Y=y) = \delta_y(y')$).
+    }
+    \points{1 point for giving two SCMs satisfying the requirements, 1 point for correctly showing their interventional equivalence, 1 point for correctly showing their counterfactual non-equivalence.}
+\end{enumerate}

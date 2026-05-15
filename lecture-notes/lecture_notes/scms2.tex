@@ -1,0 +1,940 @@
+\subsection{Essentially Unique Solvability and Simple iSCMs}
+
+Whereas the existence of solution functions is important, their uniqueness also plays a pivotal role in the theory of (cyclic) iSCMs.
+A technical subtlety is that like existence, we will only demand uniqueness up to certain null sets. 
+\begin{Def}\label{def:scm_unique_solvability}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We say that $M$ is \emph{essentially uniquely solvable} if there exists a measurable function $g : \CX_J \times \CX_W \to \CX_V$ that satisfies
+    $$x_V = f(x) \iff x_V = g(x_J,x_W)\quad M\as.$$
+  For a subset $L \ins V$, we say that $M$ is \emph{essentially uniquely solvable w.r.t.\ $L$} if there exists a measurable function $g^{[L]} : \CX_J \times \CX_{(V\sm L)} \times \CX_W \to \CX_L$ that satisfies
+    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+\end{Def}
+Note that such a function $g$ is a solution function of $M$, and $g^{[L]}$ is a partial solution function of $M$ w.r.t.\ $L$.
+Hence, if $M$ is essentially uniquely solvable (w.r.t.\ $L$), then $M$ is solvable (w.r.t.\ $L$).
+In addition to the existence of (partial) uniqueness functions, their uniqueness up to certain null sets follows.
+\begin{Def}\label{def:scm_essentially_unique_solution_function}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We say that its solution function is \emph{essentially unique} if $g = \tilde{g}\ M\as$ for any two solution functions $g,\tilde{g}$ of $M$.
+  We say that its partial solution function w.r.t.\ $L \ins V$ is \emph{essentially unique} if $g^{[L]} = \tilde{g}^{[L]}\ M\as$ for any two partial solution functions $g^{[L]}, \tilde{g}^{[L]}$ of $M$ w.r.t.\ $L$.
+\end{Def}
+The following observation is a simple consequence of the definitions that we will employ often.
+\begin{Prp}\label{prp:scm_essentially_unique_solution_functions}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Suppose that $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$.
+  Then for any (partial) solution function $\tilde{g}^{[L]}$ of $M$ w.r.t.\ $L$ we have:
+    $$x_L = f_L(x) \iff x_L = \tilde{g}^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+  Hence, the (partial) solution function of $M$ w.r.t.\ $L$ is essentially unique.
+\end{Prp}
+\begin{proof}
+  Since $M$ is essentially uniquely solvable w.r.t.\ $L$, there exists a measurable function $g^{[L]} : \CX_J \times \CX_{(V\sm L)} \times \CX_W \to \CX_L$ that satisfies
+    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+  Then
+    $$[\forall x_V \in \CX_V : (x_L = f_L(x_J,x_{(V\sm L)},x_W,x_L) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W))]\quad M\as.$$
+  Let $\tilde{g}^{[L]} : \CX_J \times \CX_{(V\sm L)} \times \CX_W \to \CX_L$ be a partial solution function of $M$ w.r.t.\ $L$.
+  Then:
+      $$\tilde{g}^{[L]}(x_J, x_{(V\sm L)}, x_W) = f_L(x_J, x_{(V\sm L)}, x_W, \tilde{g}^{[L]}(x_J, x_{(V\sm L)}, x_W)) \quad M\as.$$
+  Combining these we conclude that
+    $$g^{[L]}(x_J,x_{(V\sm L)},x_W) = \tilde{g}^{[L]}(x_J,x_{(V\sm L)},x_W) \quad M\as.$$
+  Together with the property of $g^{[L]}$, this also implies:
+    $$x_L = f_L(x) \iff x_L = \tilde{g}^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+\end{proof}
+Essentially uniquely solvable iSCMs not only have essentially unique solution functions, but also unique distributions of potential outcomes and unique Markov kernels of solutions.
+\begin{Thm}\label{thm:scm_essentially_unique_solvability_implies}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  If $M$ is essentially uniquely solvable, then:
+  \begin{enumerate}
+    \item Its solution function is essentially unique;
+    \item The distribution of a potential outcome $X^{\doit(\xJ)}_{V\cup W}$ for input $\xJ\in\XJ$ is unique and given by 
+      $$X_{V\cup W}^{\doit(\xJ)} \sim (g^{\doit(\xJ)},\id_{\CXW})_* P_M(X_W)$$
+      where $g^{\doit(\xJ)} : \CXW \to \CXV : \xW \mapsto g(x_J,\xW)$ with $g : \CXJ \times \CXW \to \CXV$ a solution function of $M$.
+    \item $M$ has a unique Markov kernel given by
+      $$P_{M}(\XV,\XW \mid\doit(\XJ)) = (g,\id_{\CXW})_* \lp \bigg( \bigotimes_{w\in W} P_w(X_w) \bigg) \otimes \delta(X_J|X_J) \rp$$
+      for $g : \CXJ \times \CXW \to \CXV$ a solution function of $M$.
+  \end{enumerate}
+\end{Thm}
+\begin{proof}
+  If $M$ is essentially uniquely solvable, it clearly has a solution function.
+  By Proposition~\ref{prp:using_solution_functions}, $M$ then also has potential outcomes and solutions.
+  We proceed to show their (essential) uniqueness.
+
+%  for all x: f(x) iff g(x)
+%  implies
+%  for all x: f(x) iff for all x: g(x)
+
+  \begin{enumerate}
+\begin{comment}
+  \item This is just the special case $L = V$ of Proposition~\ref{prp:scm_essentially_unique_solution_functions}.
+  \item Let $g$ be a measurable function that satisfies
+    $$x_V = f(x) \iff x_V = g(x_J,x_W)\quad M\as.$$
+    Then
+      $$[\forall x_V \in \CX_V : (x_V = f(x_J,x_W,x_V) \iff x_V = g(x_J,x_W))]\quad M\as.$$
+    Let $\tilde{g}$ be a solution function of $M$.
+    Then
+      $$\tilde{g}(x_J, x_W) = f(x_J, x_W, \tilde{g}(x_J, x_W)) \quad M\as.$$
+    Combining these we conclude that
+      $$g(x_J,x_W) = \tilde{g}(x_J,x_W) \quad M\as.$$
+    Together with the property of $g$, it implies:
+      $$x_V = f(x) \iff x_V = \tilde{g}(x_J,x_W)\quad M\as.$$
+      
+    \item
+%  Let $g, \tilde{g} : \CX_J \times \CX_W \to \CX_V$ be two solution functions of $M$.
+%  Let $N = \{(x_J,x_W) \in \CX_J \times \CX_W : g(x_J,x_W) \ne f(x_J,x_W,g(x_J,x_W))\}$ be the set of exogenous states for which $g$ fails to solve the structural equations.
+%  Let $\tilde N = \{(x_J,x_W) \in \CX_J \times \CX_W : \tilde g(x_J,x_W) \ne f(x_J,x_W,\tilde g(x_J,x_W))\}$ be the set of exogenous states for which $\tilde g$ fails to solve the structural equations.
+%  Then $N$, $\tilde N$ and $U^c$ are $M$-null sets.
+%  Hence $N \cup \tilde N \cup U^c$ is an $M$-null set.
+%  On its complement, $N^c \cap \tilde N^c \cap U$, we have $g = \tilde{g}$ because of the property of $U$.
+%  Hence $g = \tilde g\ M\as$.
+%  \Joris{Note that for this property, it suffices if $U^c$ is an $M$-null set, not necessarily contained in a measurable $M$-null set.}
+      This follows from 1.
+    Let $g, \tilde{g} : \CX_J \times \CX_W \to \CX_V$ be two solution functions of $M$.
+    Then
+      $$x_V = f(x) \iff x_V = g(x_J,x_W)\quad M\as.$$
+      $$x_V = f(x) \iff x_V = \tilde{g}(x_J,x_W)\quad M\as.$$
+    Hence
+      $$x_V = g(x_J,x_W) \iff x_V = \tilde{g}(x_J,x_W)\quad M\as.$$
+    Hence
+      $$g(x_J,x_W) = \tilde{g}(x_J,x_W) \quad M\as.$$
+\end{comment}
+
+    \item
+    Let $x_J \in \CX_J$ and $X^{\doit(x_J)}_{V,W}$ a potential outcome of $M$ with input $x_J$.
+    Let $g$ be a solution function of $M$.
+    Then:
+    $$[x_V = f(x_J,x_W,x_V) \iff x_V = g(x_J,x_W)] \quad M\as.$$
+    With Lemma~\ref{lem:M-as_to_rv-as} we conclude:
+    $$[X^{\doit(x_J)}_V = f(x_J,X^{\doit(x_J)}_W,X^{\doit(x_J)}_V) \iff X^{\doit(x_J)}_V = g(x_J,X^{\doit(x_J)}_W)] \quad \text{a.s.}$$
+    This implies:
+    $$[X^{\doit(x_J)}_V = f(x_J,X^{\doit(x_J)}_W,X^{\doit(x_J)}) \text{ a.s.}] \iff [X^{\doit(x_J)}_V = g(x_J,X^{\doit(x_J)}_W) \text{ a.s.}].$$
+    Since the l.h.s.\ holds by assumption, we conclude that
+    $$X_{V\cup W}^{\doit(x_J)} = (g(x_J,X^{\doit(x_J)}_W), X^{\doit(x_J)}_W)\ \text{a.s.},$$
+    which in turn implies 
+    $$X_{V\cup W}^{\doit(\xJ)} \sim (g^{\doit(\xJ)},\id_{\CXW})_* P(X^{\doit(x_J)}_W)$$
+    and therefore
+    $$X_{V\cup W}^{\doit(\xJ)} \sim (g^{\doit(\xJ)},\id_{\CXW})_* P_M(X_W).$$
+
+%  Let $\tilde g$ be a solution function of $M$ such that $\tilde g(x_J,x_W) = f(x_J,x_W,\tilde g(x_J,x_W))$ on $U$
+%  (its existence is shown in the proof of Proposition~\ref{thm:scm_solvability_sufficient_conditions}).
+%
+%  By assumption, $U_{x_J}^c = \{x_W \in \CX_W : (x_J,x_W) \not\in U\}$ is a $P(X_W)$-null set.
+%  That is, there exists a set $N \supseteq U_{x_J}^c$ with $P(X_W \in N) = 0$.
+%  Hence, $P(X_W^{\doit(x_J)} \in N) = 0$, that is, $X_W^{\doit(x_J)} \in U_{x_J}$ a.s..
+%  Furthermore, by assumption $(X_W^{\doit(x_J)},X_V^{\doit(x_J)}) \in S_{x_J}$ a.s.,
+%  where $S_{x_J} := \{x_{W\cup V} \in \CX_{W\cup V} : x_V = f(x_J,x_W,x_V)\}$.
+%  Combining these, we conclude $X_V^{\doit(x_J)} = \tilde g(x_J,X^{\doit(x_J)}_W)$ a.s..
+%  This obviously implies that $X_{V\cup W}^{\doit(x_J)} = (\tilde g(x_J,X^{\doit(x_J)}_W), X^{\doit(x_J)}_W)$ a.s.,
+%  which then implies $X_{V\cup W}^{\doit(\xJ)} \sim (\tilde g^{\doit(\xJ)},\id_{\CXW})_* P(X_W)$.
+%  Finally, note that since $g = \tilde g\ M\as$, for each $x_J \in \CX_J$: $\tilde g^{\doit(\xJ)} = g^{\doit(x_J)}\ P(X_W)\as$.
+%  Hence
+%    $$X_{V\cup W}^{\doit(\xJ)} \sim (g^{\doit(\xJ)},\id_{\CXW})_* P(X_W)$$
+
+  \item
+  Let $K(\XV,\XW \mid \XJ)$ denote the Markov kernel for $M$ corresponding to a solution $X : \C{U} \times \CXJ \to \CX$.
+  For any $x_J \in \CX_J$, the random variable $X^{\doit(x_J)} : \C{U} \to \CX : u \mapsto X(u,x_J)$ is a potential outcome of $M$.
+  Its distribution coincides with that of $K(\XV,\XW \mid \XJ=\xJ)$, by definition.
+  The claim now follows from 3.
+  \end{enumerate}
+\end{proof}
+For the special case of no exogenous input variables ($\Sin = \emptyset$), this means that essentially uniquely solvable SCMs induce a unique distribution.
+
+If an iSCM is essentially uniquely solvable, this does not necessarily mean that it is still essentially uniquely solvable after performing some intervention. 
+To avoid the complications introduced in case solutions are absent, or present but not unique, we will henceforth make strong assumptions regarding the existence and uniqueness of solutions. 
+We will (mostly) restrict our attention to a subclass of iSCMs that we refer to as \emph{simple iSCMs}, which are iSCMs that are essentially uniquely solvable and remain so after any hard intervention:
+\begin{Def}\label{def:simple_scm}
+  %An iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is called \emph{simple} if the intervened iSCM $M_{\doit(T)}$ is essentially uniquely solvable for all $T \subseteq \Send$. %\cup \Sin$. % \cup \Srnd$.
+  %\Joris{It seems that this leads to problems with marginalization!}
+  An iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is called \emph{simple} if for all $T \subseteq \Send$, $M$ is essentially uniquely solvable w.r.t.\ $T$.
+\end{Def}
+Note that this includes essentially unique solvability of $M$ itself for $T = \emptyset$.
+
+\begin{Rem}\label{rem:scm_simple_sufficient_condition}
+An equivalent condition for $M$ to be essentially uniquely solvable w.r.t.\ $L$ is provided by Proposition~\ref{prp:scm_partial_solvability}.
+Thereby, $M$ is a simple iSCM if and only if for each $L \ins V$ the following holds:
+$$[\exists! x_L \in \CX_L : x_L = f_L(x_J,x_{V\sm L},x_W,x_L)]$$
+up to a measurable $M$-null set \TODOmas.
+
+For $M$ an SCM without input nodes (that is, $J = \emptyset$), every $M$-null set is contained in a measurable $M$-null set.
+Hence, in that case Proposition~\ref{prp:scm_partial_solvability} implies that $M$ is essentially uniquely solvable if and only if
+$$\exists! x_V \in \CX_V : x_V = f(x_V,x_W)\quad P\as.$$
+\end{Rem}
+%\begin{proof}
+%  $\impliedby$: According to Proposition~\ref{prp:scm_partial_solvability}:
+%  If 
+%  $$\exists! x_V \in \CX_V : x_V = f(x_V,x_W)\quad P\as$$
+%  then there exists a measurable function $g: \CXW \to \CX_V$ such that
+%    $$x_V = f(x_V,x_W) \iff x_V = g(x_W)\quad P\as.$$
+%
+%  $\implies$: if there exists a measurable function $g : \CX_W \to \CX_V$ that satisfies
+%    $$x_V = f(x_V,x_W) \iff x_V = g(x_W)\quad P\as,$$
+%  then clearly
+%  $$\exists! x_V \in \CX_V : x_V = f(x_V,x_W)\quad P\as.$$
+%\end{proof}
+
+\begin{Eg}\label{eg:simple_scm}
+Consider an iSCM with structural equations
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= X_1 X_4 + W_3 \\
+    X_4 &= X_2 X_3 + W_4 
+  \end{align*}
+where the $X$'s are considered real-valued endogenous variables and the $W$'s exogenous variables with domains $(-1,1) \subset \RN$.
+We can solve the system of structural equations for $X$ in terms of $W$:
+  \begin{align*}
+    X_1 &= W_1 \\
+    X_2 &= W_2 \\
+    X_3 &= \frac{W_3 + W_1 W_4}{1 - W_1 W_2} \\
+    X_4 &= \frac{W_2 W_3 + W_4}{1 - W_2 W_1}
+  \end{align*}
+which gives a unique solution function.
+Similarly, we can take any subset of the structural equations and solve it for the variables appearing on the l.h.s.\ of the equations in the subset, and obtain a unique solution function. 
+For example, only solving the structural equations for $X_3$ and $X_4$, we obtain:
+  \begin{align*}
+    X_3 &= \frac{W_3 + X_1 W_4}{1 - X_1 X_2} \\
+    X_4 &= \frac{X_2 W_3 + W_4}{1 - X_2 X_1}
+  \end{align*}
+where the variables $X_1$ and $X_2$ are now considered as exogenous input variables (instead of endogenous variables).
+Hence, any subset of the structural equations has a unique solution for the variables appearing on the l.h.s.\ in terms of the remaining ones on the r.h.s., which means that this iSCM is simple.
+
+If we extend the range of possible values of the exogenous random variables to $\CX_W = \RN^2$, then we may still end up with essentially unique solution functions as long as $\{(w_1,w_2) \in \RN^2 : 1 = w_1 w_2\}$ is an $M$-null set (which depends on the distribution $P(X_W)$ we would pick).
+\end{Eg}
+
+One of the very convenient properties of simple iSCMs is that after any hard intervention, they still have a uniquely defined Markov kernel.
+Simplicity is preserved by hard interventions and by adding intervention variables.
+\begin{Prp}\label{prp:scm_simplicity_preserved_by_interventions}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM. Then:
+    \begin{enumerate}
+      \item $M_{\doit(T\dots)}$ is simple for $T \subseteq V \cup J$ (hard interventions of all three types);
+      \item $M_{\doit(I_B)}$ is simple for $B \subseteq V \cup J$ (adding intervention variables).
+    \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Because $M$ is simple, for all $T \ins V$ there exists a measurable function $g_{\doit(T)} : \CX_{J \cup T} \times \CX_W \to \CX_{V\sm T}$ such that:
+    $$x_{V\sm T} = f_{V\sm T}(x) \iff x_{V\sm T} = g_{\doit(T)}(x_J, x_T, x_W)\quad M\as.$$
+  Let $\tilde{M} = \langle \tilde{J}, \tilde{V}, \tilde{W}, \CX, \tilde{P}, \tilde{f}\rangle$ denote an intervened iSCM (we will consider special cases below).
+  To prove that $\tilde{M}$ is simple, it suffices to show that for all $\tilde{T} \ins \tilde{V}$ there exists a measurable function
+    $\tilde{g}_{\doit(\tilde{T})} : \CX_{\tilde{J} \cup \tilde{T}} \times \CX_{\tilde{W}} \to \CX_{\tilde{V}\sm \tilde{T}}$ such that:
+    $$x_{\tilde{V}\sm \tilde{T}} = \tilde{f}_{\tilde{V}\sm \tilde{T}}(x) \iff x_{\tilde{V}\sm \tilde{T}} = \tilde{g}_{\doit(\tilde{T})}(x_{\tilde{J}}, x_{\tilde{T}}, x_{\tilde{W}})\quad \tilde{M}\as,$$
+  as long as $M\as$ implies $\tilde{M}\as$.
+
+  \begin{enumerate}
+    \item 
+      \begin{enumerate}[label=(\roman*)]
+        \item
+      Let $T \ins J \cup V$. 
+      Consider $\tilde{M} = M_{\doit(T)}$, that is, $\tilde{J} = J \cup T$, $\tilde{V} = V \sm T$, $\tilde{W} = W$, $\tilde{P} = P$, $\tilde{f} = f_{\tilde{V}}$.
+      Since $\tilde{M}_{\doit(\tilde{T})} = M_{\doit(T \cup \tilde{T})}$ for $\tilde{T} \ins \tilde{V}$, we can just take $\tilde{g}_{\doit(\tilde{T})} = g_{\doit((T \sm J) \cup \tilde{T})}$.
+      Note that indeed $M\as$ implies $M_{\doit(T)}\as$.
+      Hence $M_{\doit(T)}$ is simple.
+    \item
+      Let $T \ins V \cup J$, and $\xi_T \in \CX_T$. 
+      Consider $\tilde{M} = M_{\doit(x_T=\xi_T)}$, that is, $\tilde{J} = J \sm T$, $\tilde{V} = V \cup T$, $\tilde{W} = W$, $\tilde{P} = P$, $\tilde{f} = (f_{V\sm T},\xi_T)$. 
+      Since for $\tilde{T} \ins \tilde{V}$:
+      $$\tilde{M}_{\doit(\tilde{T})} = (M_{\doit(x_{T\sm \tilde{T}}=\xi_{T\sm \tilde{T}})})_{\doit(\tilde{T})},$$
+      as solution function $\tilde{g}_{\doit(\tilde{T})}$ we can take the one for $M_{\doit(T \cup \tilde{T})}$, evaluated in $x_{T\sm \tilde{T}}=\xi_{T\sm \tilde{T}}$, and with additional output $T \sm \tilde{T}$ with value $\xi_{T\sm \tilde{T}}$:
+      $$\tilde{g}_{\doit(\tilde{T})}(x_{\tilde{J}}, x_{\tilde{T}}, x_W) = \big(g_{\doit((T\sm J) \cup \tilde{T})}(\xi_{T \sm \tilde{T}},x_{\tilde{T} \cup J},x_W),\xi_{T \sm \tilde{T}}\big).$$
+      Note that indeed $M\as$ implies $M_{\doit(x_T=\xi_T)}\as$.
+      Hence $M_{\doit(x_T=\xi_T)}$ is simple.
+    \item
+      Let $T \ins V \cup J$ and $Q_T \in \bigotimes_{t\in T} \C{P}(\C{X}_t)$. 
+      Consider $\tilde{M} = M_{\doit(\XT\sim Q_T)}$, that is, $\tilde{J} = J\sm T$, $\tilde{V} = V\sm T$, $\tilde{W} = W\cup T$, $\tilde{P}=P \otimes Q_T$, $\tilde{f}=f_{V\sm T}$.
+      Since for $\tilde{T} \ins \tilde{V}$:
+      $$\tilde{M}_{\doit(\tilde{T})} = (M_{\doit(T \cup \tilde{T})})_{\doit(\XT\sim Q_T)}$$
+      we can take
+      $\tilde{g}_{\doit(\tilde{T})} = g_{\doit((T \sm J) \cup \tilde{T})}$.
+      Note that indeed $M\as$ implies $M_{\doit(\XT\sim Q_T)}\as$.
+      Hence $M_{\doit(\XT\sim Q_T)}$ is simple.
+      \end{enumerate}
+    \item
+      For $B \ins J$, the operation of adding intervention variables $\doit(I_{B})$ only adds indices $I_j := j$ for $j \in B \cap J$.
+      Therefore, we can consider $B \subseteq V$ without loss of generality.
+      Furthermore, by using induction we only need to consider the case $B = \{b\} \ins V$ by means of Proposition~\ref{prp:adding_intervention_variables_one_by_one}.
+      Hence consider $\tilde{M} = M_{\doit(I_b)}$, that is, $\tilde J = J \cup \{I_b\}$, $\tilde V = V$, $\tilde W = W$, $\tilde \CX = \CX \times \CX_{I_b}$ with $\CX_{I_b} := \CX_b \,\dot\cup\, \{\star\}$, $\tilde P = P$, and $\tilde f$ given by
+  \begin{align*}
+    & \tilde{f}_b(x_{I_b},x_{V \cup J \cup W}) := \begin{cases}
+      f_b(x_{V \cup J \cup W}) & x_{I_b} = \star \\
+      x_{I_b} & x_{I_b} \in \CX_b
+    \end{cases}\\
+    v \in V \sm \{b\}: \qquad & \tilde{f}_v(x_{I_b},x_{V \cup J \cup W}) := f_v(x_{V \cup J \cup W})
+  \end{align*}
+     % For $b \in B$, $x_{I_b} = \star$ encodes that there is no intervention on $b$, while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+    Let $\tilde{T} \ins \tilde{V}$.
+    Consider first the case $b \notin \tilde{T}$. Then:
+      $$\tilde{M}_{\doit(\tilde{T})} = (M_{\doit(\tilde{T})})_{\doit(I_b)}.$$
+    We can take:
+      $$\tilde{g}_{\doit(\tilde{T})}(x_{I_b},x_J,x_{\tilde{T}},x_W) = \begin{cases}
+        g_{\doit(\tilde{T})}(x_J,x_{\tilde{T}},x_W) & x_{I_b} = \star \\
+        \big(g_{\doit(\tilde{T} \cup \{b\})}(x_J,x_{\tilde{T}},x_b=x_{I_b},x_W),x_{I_b}\big) & x_{I_b} \in \CX_b 
+      \end{cases}$$
+    as one can check that 
+      $$
+      \begin{cases}
+      x_{V\sm \tilde{T}} = f_{V\sm \tilde{T}}(x_{J \cup W \cup V}) \iff x_{V\sm \tilde{T}} = g_{\doit(\tilde{T})}(x_J, x_{\tilde{T}}, x_W)\quad M\as. \\
+      x_{V\sm (\tilde{T} \cup \{b\})} = f_{V\sm (\tilde{T}\cup\{b\})}(x_{J \cup W \cup V}) \iff x_{V\sm (\tilde{T}\cup\{b\})} = g_{\doit(\tilde{T}\cup\{b\})}(x_J, x_{\tilde{T}\cup\{b\}}, x_W)\quad M\as.
+      \end{cases}$$
+    implies that for each $x_{I_b} \in \CX_{I_b}$:
+      $$x_{V\sm \tilde{T}} = \tilde{f}_{V\sm \tilde{T}}(x_{I_b},x_{J\cup W\cup V}) \iff x_{V\sm \tilde{T}} = \tilde{g}_{\doit(\tilde{T})}(x_{I_b}, x_J, x_{\tilde{T}}, x_W)\quad M\as.$$
+
+    Now consider the case $b \in \tilde{T}$. Then:
+      $$\tilde{M}_{\doit(\tilde{T})} = ((M_{\doit(\tilde{T}\sm \{b\})})_{\doit(I_b)})_{\doit(b)}.$$
+    This is just $M_{\doit(\tilde{T})}$ with an additional `unused' exogenous input variable $I_b$.
+    We can therefore take:
+      $$\tilde{g}_{\doit(\tilde{T})}(x_{I_b},x_J,x_{\tilde{T}},x_W) = g_{\doit(\tilde{T})}(x_J,x_{\tilde{T}},x_W)$$
+    where one should notice that in this case the desired property holds $M_{\doit(I_b)}\as$, as it does not depend on $x_{I_b}$ and holds $M\as$.
+  \end{enumerate}
+  This completes the proof.
+\end{proof}
+Simplicity is in general not preserved by soft interventions.
+
+\begin{Cor}\label{cor:simple_scm}
+  If an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is simple, then its Markov kernel $P_{M}(X_V, X_W \mid \doit(X_J))$ and all intervened Markov kernels
+%  $$P_{M}(X_{(V \cup W) \setminus T} \mid \doit(X_J),\doit(X_T)) := P_{M_{\doit(T)}}(X_{(V \cup W)\setminus T} \mid \doit(X_{J \cup T}))$$
+  $$P_{M_{\doit(T)}}(X_{V \sm T},X_W \mid \doit(X_{J \cup T}))$$
+  for $T \subseteq V$ % \cup W$ 
+  exist and are unique.
+\end{Cor}
+\begin{proof}
+  If $M$ is simple, then for all $T \ins V$ also $M_{\doit(T)}$ is simple (by Proposition~\ref{prp:scm_simplicity_preserved_by_interventions}) and hence essentially uniquely solvable.
+  The claim now follows from Theorem~\ref{thm:scm_essentially_unique_solvability_implies}.
+\end{proof}
+We will make use of the following notation for intervened Markov kernels of simple iSCMs.
+\begin{Not}\label{not:scm_do_operator}
+  For a simple iSCM $M$, we write for $T \subseteq V$:
+  $$P_{M}(X_{V \sm T}, X_W \mid \doit(X_J),\doit(X_T)) := P_{M_{\doit(T)}}(X_{V \sm T},X_W \mid \doit(X_{J \cup T}))$$
+%  We will refer to $P_M(X_{V\sm T} \mid \doit(X_J),\doit(X_T))$ as the \emph{interventional Markov kernels} induced by the iSCM,
+%  and (for $T = \emptyset$) to $P_M(X_V \mid \doit(X_J))$ as the \emph{observable Markov kernels} induced by the iSCM. 
+%  For the special case $J = T = \emptyset$, we will refer to $P_M(X_V)$ as the \emph{observational Markov kernel} of the iSCM.
+  We establish the following terminology for these Markov kernels:
+
+  \medskip
+  \centerline{\begin{tabular}{lll}
+    special case        & Markov kernel & name \\
+    \hline
+                        & $P_M(X_{V\sm T} \mid \doit(X_J),\doit(X_T))$ & \emph{interventional Markov kernels of $M$} \\
+    $T = \emptyset$     & $P_M(X_V \mid \doit(X_J))$ & \emph{observable Markov kernel of $M$} \\
+    $J = T = \emptyset$ & $P_M(X_V)$ & \emph{observational Markov kernel of $M$}
+  \end{tabular}}
+\end{Not}
+
+The fact that these iSCMs are relatively simple to deal with (because we do not have to worry about non-existence or non-uniqueness of solutions) motivated their name.
+Even though simplicity is a strong assumption, the class of simple iSCMs is more expressive than the class of L-CBNs, since it allows to model causal cycles to some extent.
+In paricular, some of the examples at the beginning of this Chapter (in Section~\ref{sec:scms_motivation}) can be dealt with using the class of simple iSCMs.
+
+\begin{Exc}
+  Show that Example~\ref{eg:coarse_grained_cbn} provides no difficulties when modeling using simple iSCMs.
+  Is the class of iSCMs generally closed under merging variables?
+\end{Exc}
+
+\begin{Exc}
+  Show that the mixture model in Example~\ref{eg:ohms_law} can be modeled as a simple iSCM.
+  Is the class of iSCMs generally closed under taking mixtures of iSCMs?
+\end{Exc}
+
+\subsubsection{Linear iSCMs}
+
+For iSCMs whose causal mechanism is linear in terms of the endogenous variables (up to a certain null set), we can give a sufficient condition for essentially unique solvability, and explicitly write down the form of their solution function.
+\begin{Def}\label{def:linear_scms}
+Let $\mathbb{K}$ be a field (e.g., $\mathbb{K} = \RN$ or $\mathbb{K} = \mathbb{C}$).
+Let $M=\lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM, where each $\CX_v$ is a finite-dimensional Polish vector space over $\mathbb{K}$, and let $\CX_A = \bigoplus_{v \in A} \CX_a$ for $A \ins V$.
+Then $M$ is called \emph{essentially linear} if each component of the causal mechanism is (up to an $M$-null set) an affine combination of endogenous variables with coefficients that may be functions of the exogenous variables, i.e., of $f$ is of the form
+$$
+  f(x_J,x_W,x_V) = B(x_J,x_W) x_V + c(x_J,x_W) \qquad M\as,
+$$
+where for all $x_J \in \CX_J$ and all $x_W \in \CX_W$, $B(x_J,x_W) : \CX_V \to \CX_V$ is linear and $c(x_J,x_W) \in \CX_V$.
+Since $\CX_V = \bigoplus_{v \in V} \CX_v$, we can also write this as
+$$
+  f_v(x_J,x_W,x_V) = \sum_{u\in V} B_{vu}(x_J,x_W) x_u + c_v(x_J,x_W) \qquad M\as,
+$$
+where for all $x_J \in \CX_J$ and all $x_W \in \CX_W$, $B_{vu}(x_J,x_W) : \CX_u \to \CX_v$ is linear and $c_v(x_J,x_W) \in \CX_v$ for all $u,v \in V$.
+\end{Def}
+For $\mathbb{K} = \RN$ and $\CX_v = \RN$ for all $v\in V$, the mapping $B$ can be thought of as a matrix-valued measurable function $\CXJ\times\CXW \to \RN^{V\times V}$ and $c$ as a vector-valued function $\CXJ\times\CXW \to \RN^V$.
+
+For essentially linear iSCMs, essentially unique solvability is implied by the invertability of a certain matrix.
+\begin{Prp}\label{prp:linear_scms}
+Let $M$ be a essentially linear iSCM as in Definition~\ref{def:linear_scms}.
+%For any set $L \subseteq V$, denote by $I_L \in \RN^{L \times L}$ the identity matrix and $B_{LL}(x_J,x_W) \in \RN^{L \times L}$ the submatrix of $B(x_J,x_W)$.
+%Then, the submodel $M^{[L]}$ is essentially uniquely solvable if the matrices $I_{L}-B_{LL}(x_J,x_W)$ are invertible for all $x_J \in \CX_J, x_W \in \CX_W$ up to a measurable $M^{[L]}$-null set.
+%The corresponding essentially unique solution function is then:
+%  \begin{equation*}\begin{split}
+%    g^{[L]} &: \RN^{V\setminus L} \times \RN^{J\cup W} \to \RN^L \\
+%      &: (x_{V\setminus L},x_J,x_W) \mapsto (I_L - B_{LL}(x_J,x_W))^{-1} \big(B_{L,{V\setminus L}}(x_J,x_W) x_{V\setminus L} + c_{L}(x_J,x_W)\big).
+%  \end{split}\end{equation*}
+Denote by $I \in \mathbb{K}^{V \times V}$ the identity matrix.
+Then, $M$ is essentially uniquely solvable if the matrices $I-B(x_J,x_W)$ are invertible for all $x_J \in \CX_J, x_W \in \CX_W$ up to a measurable $M$-null set \TODOmas.
+The corresponding essentially unique solution function is:
+  $$g : \CX_J \times \CX_W \to \CX_V : (x_J,x_W) \mapsto (I - B(x_J,x_W))^{-1} c(x_J,x_W).$$
+
+More generally, let $L \ins V$.
+  Denote by $I_L \in \RN^{L \times L}$ the identity matrix and $B_{LL}(x_J,x_W) \in \mathbb{K}^{L \times L}$ the submatrix of $B(x_J,x_W)$.
+$M$ is essentially uniquely solvable w.r.t.\ $L$ if the matrices $I_{L}-B_{LL}(x_J,x_W)$ are invertible for all $x_J \in \CX_J, x_W \in \CX_W$ up to a measurable $M$-null set \TODOmas.
+The corresponding essentially unique partial solution function w.r.t.\ $L$ is:
+  \begin{equation*}\begin{split}
+    g^{[L]} &: \CX_J \times \CX_{V\setminus L} \times \CX_W \to \CX_L \\
+      &: (x_J,x_{V\setminus L},x_W) \mapsto (I_L - B_{LL}(x_J,x_W))^{-1} \big(B_{L,{V\setminus L}}(x_J,x_W) x_{V\setminus L} + c_{L}(x_J,x_W)\big).
+  \end{split}\end{equation*}
+\end{Prp}
+%A non-zero coefficient $B_{ij}$ for $i,j\in\C{I}$ such that $i\neq j$ corresponds with a directed edge $j\to i$ in the (augmented) graph, and a coefficient $B_{ii}=1$ for $i\in\C{I}$ corresponds with a self-cycle $i\to i$ in the (augmented) graph of the SCM. A non-zero coefficient $\Gamma_{ij}$ for $i\in\C{I}$, $j\in\C{J}$ with $\Prb_{\C{E}_j}$ a non-degenerate probability distribution over $\RN$ corresponds with a directed edge $j \to i$ in the augmented graph. A non-zero entry $(\Gamma \Gamma^T)_{ij}$ for $i,j\in\C{I}$ with $i\neq j$ such that there exists a $k\in\C{J}$ for which $\Gamma_{ik},\Gamma_{jk}\neq 0$ and $\Prb_{\C{E}_k}$ a non-degenerate probability distribution over $\RN$ corresponds with a bidirected edge $i \oto j$ in the graph of the SCM.
+
+\subsection{Equivalence Notions}
+
+\begin{comment}
+Equivalence relations are ubiquitous in mathematics. They capture the notion that mathematical objects can be ``equivalent'' from some point of view.
+\begin{Def}
+  Let $Z$ be a set and $R \subseteq Z^2$ be a relation on $Z$ (i.e., a subset of ordered pairs of $Z$). $R$ is called an \emph{equivalence relation} if 
+  \begin{enumerate}
+    \item $R$ is reflexive: $(a,a) \in R$ for all $a \in Z$;
+    \item $R$ is symmetric: $(a,b) \in R \iff (b,a) \in R$ for all $a,b \in Z$;
+    \item $R$ is transitive: if $(a,b) \in R$ and $(b,c) \in R$ then $(a,c) \in R$ for all $a,b,c\in Z$.
+  \end{enumerate}
+\end{Def}
+\end{comment}
+In this section, we will discuss several important equivalence relations between iSCMs.
+
+$M$ and $\tilde{M}$ are considered equivalent if they differ only in terms of their causal mechanisms, yet each of their structural equations has almost surely the same solutions.
+\begin{Def}\label{def:equivalent_scms}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \lt \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rt$ be two iSCMs that may differ only in terms of their causal mechanism. 
+  We say that $M$ is \emph{equivalent} to $\tilde{M}$ and write $M \equiv \tilde{M}$ if for each $v \in \Send$,
+  $$x_v = f_v(\xJ,\xV,\xW) \iff x_v = \tilde{f}_v(\xJ,\xV,\xW) \qquad M\as$$
+  (note that $M\as$ means the same as $\tilde{M}\as$).
+\end{Def}
+Equivalent iSCMs are indeed equivalent for many purposes, and it is compatible with all properties of and operations on iSCMS that we have defined thus far.
+%\begin{Lem}
+%  Let $M \equiv \tilde{M}$ be equivalent iSCMs.
+%  Define
+%   $$S : \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = f(x_J,x_W,x_V) \},$$
+%  and similarly 
+%   $$\tilde{S} : \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = \tilde{f}(x_J,x_W,x_V) \}.$$
+%  Then $S = \tilde{S}\ M\as$.
+%\end{Lem}
+%\begin{proof}
+%  We want to show that this is contained in a $P(X_W)$-null set in $\CX_{J \cup W}$.
+%  Since $M \equiv \tilde{M}$, $\forall x_V \in \CX_V: x_V \in S_{(x_J,x_W)} \iff x_V \in \tilde{S}_{(x_J,x_W)}$ holds $M\as$.
+%  Hence $S_{(x_J,x_W)} = \tilde{S}_{(x_J,x_W)}$ holds $M\as$.
+%  That means that 
+%  $$\{(x_J,x_W) \in \CX_J \times \CX_W \mid S_{(x_J,x_W)} \ne \tilde{S}_{(x_J,x_W)} \}$$
+%  is contained in a $M$-nullset, and hence in a $P(X_W)$-null set in $\CX_{J \cup W}$.
+%\end{proof}
+\begin{Prp}\label{prp:equivalent_scms}
+\begin{enumerate}
+  \item Equivalence is preserved by interventions:
+    if $M \equiv \tilde{M}$ then:
+    \begin{enumerate}
+      \item $M_{\doit(T\dots)} \equiv \tilde{M}_{\doit(T\dots)}$ for $T \subseteq V \cup J$ (hard interventions of all three types);
+      \item $M_{\doit(T\ot\hat{f}_T)} \equiv \tilde{M}_{\doit(T\ot\hat{f}_T)}$ for $T \subseteq V$ and $\hat f_T : \CX_J \times \CX_W \times \CX_V \to \CX_T$ a measurable function
+        (soft interventions);
+      \item $M_{\doit(I_B)} \equiv \tilde{M}_{\doit(I_B)}$ for $B \subseteq V \cup J$ (adding intervention variables);
+    \end{enumerate}
+  % \item Equivalence is preserved by twinning.
+  \item Equivalent iSCMs have equivalent submodels and composition preserves equivalence;
+  \item Equivalent iSCMs have the same null sets:
+    if $M \equiv \tilde{M}$ then $N$ is an $M$-null set if and only if it is an $\tilde{M}$-null set, and `$M\as$' means the same as `$\tilde{M}\as$';
+  \item Equivalent iSCMs have the same potential outcomes, solutions, Markov kernels, and (partial) solution functions;
+  \item (Partial) solvability, essentially unique (partial) solvability, essential uniqueness of (partial) solution functions and simplicity are invariants under equivalence:
+    if $M \equiv \tilde{M}$ then 
+    \begin{enumerate}
+      \item $M$ is solvable w.r.t.\ $L \ins V$ if and only if $\tilde{M}$ is solvable w.r.t.\ $L$,
+      \item $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$ if and only if it $\tilde{M}$ is essentially uniquely solvable w.r.t.\ $L$,
+      \item $g^{[L]}$ is an essentially unique solution function of $M$ w.r.t.\ $L \ins V$ if and only if it is an essentially unique solution function of $\tilde{M}$ w.r.t.\ $L$,
+      \item $M$ is simple if and only if $\tilde{M}$ is simple;
+    \end{enumerate}
+  \item Essential linearity is preserved.    
+\end{enumerate}
+\end{Prp}
+\begin{proof}
+  The first three claims follow directly from the definitions.
+  
+%  Let $M \equiv \tilde{M}$.
+%  The condition 
+%  $$\forall v \in V: x_v = f_v(\xJ,\xV,\xW) \iff x_v = \tilde{f}_v(\xJ,\xV,\xW) \qquad M\as$$
+%  implies $S = \tilde{S}\ M\as$, where
+%   $$S = \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = f(x_J,x_W,x_V) \},$$
+%   $$\tilde{S} = \{(x_J,x_W,x_V) \in \CX_{J\cup W\cup V} \mid x_V = \tilde{f}(x_J,x_W,x_V) \}.$$
+%  It even implies that $S \,\Delta\, \tilde{S}$ is measurable.
+%  Indeed, for all $v \in V$, define the sets $S_v := \{x \in \CX : x_v = f_v(x)\}$ and
+%  $\tilde{S}_v := \{x \in \CX : x_v = \tilde{f}_v(x)\}$, the functions
+%  $$h_v : \CXJ \times \CXW \times \CXV \to \CX_v \times \CX_v : (\xJ,\xW,\xV) \mapsto (x_v, f_v(\xV,\xJ,\xW))$$
+%  $$\tilde h_v : \CXJ \times \CXW \times \CXV \to \CX_v \times \CX_v : (\xJ,\xW,\xV) \mapsto (x_v, \tilde f_v(\xV,\xJ,\xW))$$
+%  and the diagonals $\Delta_v = \{(x_v,x_v) : x_v \in \CX_v\} \subseteq \CX_v^2$. 
+%  Since $h_v$ is measurable and $\Delta_v$ is a measurable set (because $\CX_v$ is Hausdorff), $S_v = h_v^{-1}(\Delta_v)$ is a measurable set.
+%  Similarly, $\tilde S_v = \tilde h_v^{-1}(\Delta_v)$ is a measurable set.
+%  Hence $S_v \,\Delta\, \tilde S_v$ is measurable.
+%  The assumption $M \equiv \tilde M$ then implies that $S_v \,\Delta\, \tilde S_v$ is contained in an $M$-null set of the form $N_v = \tilde{N}_v \times \CX_V$ with $\tilde{N}_v \ins \CX_J \times \CX_W$ a measurable $M$-null set.
+
+  We prove the fourth point.
+  $M \equiv \tilde{M}$ implies that 
+    \begin{equation}\label{eq:prp:equivalent_scms}
+      x_V = f(x) \iff x_V = \tilde{f}(x)\ M\as.
+    \end{equation}
+
+    \begin{itemize}
+      \item
+  Potential outcomes are invariant.
+          Let $x_J \in \CX_J$. 
+          We show that if a random variable $x^{\doit(x_J)}_{V,W}$ is a potential outcome of $M$, then it is a potential outcome of $\tilde{M}$.
+          Using Lemma~\ref{lem:M-as_to_rv-as}, \eref{eq:prp:equivalent_scms} implies:
+                  $$X_V^{\doit(\xJ)} = f(x_J,X_W^{\doit(\xJ)},X_V^{\doit(\xJ)}) \iff X_V^{\doit(\xJ)} = \tilde{f}(x_J,X_W^{\doit(\xJ)},X_V^{\doit(\xJ)}) \text{ a.s.}.$$
+          Since $X_W^{\doit(\xJ)} \sim P_M(X_W$), this proves the claim.
+
+        \item
+      Solutions are invariant.
+          Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable.
+          We show that if $X$ is a solution of $M$, then it is a solution of $\tilde{M}$.
+          Using Lemma~\ref{lem:M-as_to_crv-as}, \eref{eq:prp:equivalent_scms} implies:
+          $$X_V = f(X_J,X_W,X_V) \iff X_V = \tilde{f}(X_J,X_W,X_V) \text{ a.s.}.$$
+          Since $K(X_W|X_J) = P_M(X_W$), this proves the claim.
+
+        \item
+    Markov kernels are invariant: this follows from the invariance of solutions.
+
+  \item
+    Partial solution functions are invariant.
+      Let $L \ins V$.
+      We show that if $g^{[L]}$ is a partial solution function of $M$ w.r.t.\ $L$, then it is a partial solution function of $\tilde{M}$ w.r.t\ $L$.
+      By assumption, $g^{[L]} : \CXJ \times \CX_{V\sm L} \times \CXW \to \CX_L$ is a measurable function.
+      Because $M\as$ and $\tilde{M}\as$ mean the same, 
+        $$g^{[L]}(\xJ,x_{V\sm L},\xW) = f_L\big(\xJ, x_{V\sm L}, g^{[L]}(\xJ,x_{V\sm L},\xW), \xW\big) \quad M\as$$
+      together with \eref{eq:prp:equivalent_scms} implies:
+        $$g^{[L]}(\xJ,x_{V\sm L},\xW) = \tilde{f}_L\big(\xJ, x_{V\sm L}, g^{[L]}(\xJ,x_{V\sm L},\xW), \xW\big) \quad \tilde{M}\as,$$
+        which proves the claim.
+  \end{itemize}
+
+  The fifth point follows straightforwardly because $M$ and $\tilde{M}$ have the same partial solution functions if they are equivalent.
+
+  The preservation of essential linearity follows because the coefficients of an affine mapping are identified if the mapping is known up to an $M$-null set.
+\end{proof}
+
+\begin{Eg}\label{eg:equivalent_scm}
+  An iSCM with the single structural equation
+  $$X = -X^3 + X + W$$
+  where $X$ is endogenous, and $W$ is exogenous, is equivalent to the iSCM obtained by replacing the structural equation with
+  $$X = \sqrt[3]{W}.$$
+  Note that $X$ no longer appears on the r.h.s..
+\end{Eg}
+
+\begin{comment}
+  This notion of equivalence is rather strong. 
+\begin{Eg}\label{eg:self_cycle1}
+  The iSCM with endogenous variable $X \in \RN$ and exogenous random variable $W \in \RN$ and structural equation
+  $$X = W X + c$$
+  is not equivalent to the iSCM obtained by replacing the structural equation with
+  $$X = \begin{cases}
+          \xi & W = 1 \\
+          \frac{c}{1 - W} & W \ne 1
+        \end{cases}$$
+  no matter how we choose $\xi$, even when $P(W=1) = 0$. 
+  If one does not model interventions on exogenous random variables, weaker notions of equivalence 
+  can be used that replace the ``for all'' quantifier over values of exogenous random variables by the
+  ``for almost all'' quantifier (see \cite{BFPM21}).
+\end{Eg}
+\end{comment}
+
+We often make use of weaker notions of equivalence as well.
+For simplicity of exposition, we provide the definitions only for simple iSCMs 
+(the general definitions are provided in \cite{BFPM21} for SCMs).
+%\footnote{\cite{BFPM21} also define a stronger notion of equivalent iSCMs which is useful when weakening the ``for all'' quantifier over values of exogenous random variables by the ``for almost all'' quantifier. Since here we will only work with the ``for all'' quantifier, there is no need to discuss that equivalence relation here.}
+\begin{Def}\label{def:scm_obs_interv_equiv}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \ltuple \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be two simple iSCMs
+  and $O \subseteq \Send \cap \tilde{\Send}$ a subset.
+  We say that:
+  \begin{enumerate}
+    \item $M$ and $\tilde{M}$ are \emph{observably equivalent w.r.t.\ $O$} if $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$ and their marginal Markov kernels coincide: 
+      $$P_{M}(X_O \mid \doit(X_J)) = P_{\tilde{M}}(X_O \mid \doit(X_{\tilde J})).$$
+    This has to be interpreted as both Markov kernels being a version of a Markov kernel $\CX_{J \cap \tilde{J}} \dshto \CX_O$,
+    i.e., $P_{M}(X_O \mid \doit(X_J))$ must be constant in $x_{J \setminus \tilde{J}}$ and
+    $P_{\tilde{M}}(X_O \mid \doit(X_{\tilde{J}}))$ must be constant in $x_{\tilde{J} \setminus J}$.\footnote{In other words,
+      $$P_{M}(X_O \mid \doit(X_J)) = P_{M}(X_O \mid \doit(X_{J \cap \tilde{J}},\cancel{X_{J\sm \tilde{J}}})) =
+      P_{\tilde{M}}(X_O \mid \doit(X_{J \cap \tilde{J}},\cancel{X_{\tilde{J}\sm J}})) = P_{\tilde{M}}(X_O \mid \doit(X_{\tilde{J}})).$$}
+    \item $M$ and $\tilde{M}$ are \emph{interventionally equivalent w.r.t.\ $O$} if for every subset $T \subseteq O$ the intervened iSCMs $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are observably equivalent w.r.t.\ $O \setminus T$.
+  \end{enumerate}
+  If $O = \Send \cap \tilde{\Send}$, we may omit the qualitifier ``w.r.t.\ $O$''.
+  If $J = \tilde J =  \emptyset$, we also use the term \emph{observationally equivalent w.r.t.\ $O$} interchangebly with \emph{observably equivalent w.r.t.\ $O$}.
+%  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+%  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+%  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $M$ and $\tilde{M}$ observably equivalent, interventionally equivalent, respectively).
+\end{Def}
+\begin{Rem}\label{rem:scm_interv_equiv}
+  Note that $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O \ins (V \cap \tilde{V})$ if and only if
+  $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$
+  and for all $T \ins O$:
+    $$P_{M}(X_O \mid \doit(X_J,X_T)) = P_{\tilde{M}}(X_O \mid \doit(X_{\tilde J},X_T)).$$
+\end{Rem}
+More generally, one could define interventional equivalence not only with respect to an observed set of variables, but also with respect to a given set of interventions.
+
+Equivalence is stronger than interventional equivalence, which in turn is stronger than observable equivalence.
+\begin{Prp}\label{prp:pearls_ladder_levels_1_and_2}
+  For simple iSCMs $M, \tilde{M}$ and a subset $O \subseteq \Send \cap \tilde{\Send}$:
+  \begin{enumerate}
+    \item If $M \equiv \tilde{M}$ then $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+    \item Interventional equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$ implies observable equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+   \item
+   Suppose $M \equiv \tilde{M}$. 
+   Then for every $T \subseteq O$, $M_{\doit(T)} \equiv \tilde{M}_{\doit(T)}$.
+   Since equivalent simple iSCMs have the same Markov kernels, $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are observably equivalent w.r.t.\ $O \setminus T$ for every $T \subseteq O$.
+
+  \item This is trivial (consider the intervention targeting $T = \emptyset$).
+\end{enumerate}
+\end{proof}
+However, the reverse implication does not hold in general. This expresses that causal modeling is more refined than probabilistic modeling.
+\begin{Eg}[Observable equivalence does not imply interventional equivalence]
+Consider the SCM $M$ with
+  \begin{align*}
+    W &\sim \C{N}(\mu,\sigma^2), \\
+    N &= W, \\
+    C &= \alpha + \beta N,
+  \end{align*}
+and the SCM $\tilde{M}$ with
+  \begin{align*}
+    W &\sim \C{N}(\tilde{\mu},\tilde{\sigma}^2), \\
+    C &= W, \\
+    N &= \tilde{\alpha} + \tilde{\beta} C.
+  \end{align*}
+These SCMs are simple and their distributions are respectively 
+  $$P_M(N,C) = \C{N}\left(\begin{pmatrix} \mu \\ \alpha + \beta \mu \end{pmatrix}, \begin{pmatrix} \sigma^2 & \beta\sigma^2 \\ \beta\sigma^2 & \beta^2\sigma^2\end{pmatrix}\right)$$
+and
+  $$P_{\tilde{M}}(N,C) = \C{N}\left(\begin{pmatrix} \tilde{\alpha} + \tilde{\beta} \tilde{\mu} \\ \tilde{\mu} \end{pmatrix}, \begin{pmatrix} \tilde{\beta}^2\tilde{\sigma}^2 & \tilde{\beta}\tilde{\sigma}^2 \\ \tilde{\beta}\tilde{\sigma}^2 & \tilde{\sigma}^2\end{pmatrix}\right)$$
+  For certain parameter choices, they are observably equivalent (to be precise, they are observable equivalent iff 
+  $\mu = \tilde{\alpha} + \tilde{\beta}\tilde{\mu}$ and $\tilde{\mu} = \alpha + \beta\mu$ and $\sigma^2 = \tilde{\beta}^2\tilde{\sigma}^2$ and $\beta \sigma^2 = \tilde{\beta}\tilde{\sigma}^2$ and $\beta^2 \sigma^2 = \tilde{\sigma}^2$).
+  However, they are not interventionally equivalent except for very special parameter choices (to be precise, they are interventionally equivalent iff $\beta = \tilde{\beta} = 0$ and $\sigma^2=\tilde{\sigma}^2=0$ and $\mu = \tilde{\alpha}$ and $\tilde{\mu} = \alpha$).
+\end{Eg}
+
+We have seen that equivalence is preserved under various interventions. 
+This is also the case for interventional equivalence (although one has to be careful with respect to which subset).
+\begin{Prp}\label{prp:scm_interventions_preserve_interv_equiv}
+  Assume that $M$ and $\tilde{M}$ are interventionally equivalent iSCMs w.r.t.\ $O \ins (V \cap \tilde{V})$. 
+  Then, for $T \subseteq O \cup (J \cap \tilde{J})$:
+    \begin{enumerate}
+      \item $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are interventionally equivalent w.r.t.\ $O \sm T$ (hard interventions with unspecified target value);
+      \item $M_{\doit(X_T=\xi_T)}$ and $\tilde{M}_{\doit(X_T=\xi_T)}$ are interventionally equivalent w.r.t.\ $O \cup T$, for any $\xi_T \in \CX_T$ (hard intervention with specified target value);
+      \item $M_{\doit(X_T\sim Q_T)}$ and $\tilde{M}_{\doit(X_T\sim Q_T)}$ are interventionally equivalent w.r.t.\ $O \cup T$, for any $Q_T \in \Pcal(\CX_T)$ (hard intervention with stochastic target value);
+%      \item $M_{\doit(T\ot\hat{f}_T)} \equiv \tilde{M}_{\doit(T\ot\hat{f}_T)}$ for $T \subseteq V$ and $\hat f_T : \CX_J \times \CX_W \times \CX_V \to \CX_T$ a measurable function
+%        (soft interventions);
+      \item $M_{\doit(I_T)}$ and $\tilde{M}_{\doit(I_T)}$ are interventionally equivalent w.r.t.\ $O$ (adding intervention variables).
+    \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \Joris{TODO: cleanup and final check}
+  \begin{enumerate}
+    \item This follows from the commutativity of hard interventions (Proposition~\ref{prp:interventions_commute}), plus some bookkeeping, as we show now in detail.
+  Since $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$,
+  for all subsets $S \ins O$, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$ are observably equivalent w.r.t.\ $O \sm S$.
+  Let $T \subseteq O \cup (J \cap \tilde{J})$.
+  $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are interventionally equivalent w.r.t.\ $O\sm T$ if for all $\tilde{T} \ins O\sm T$,
+  $(M_{\doit(T)})_{\doit(\tilde{T})}$ and $(\tilde{M}_{\doit(T)})_{\doit(\tilde{T})}$ are observably equivalent w.r.t.\ $(O\sm T) \sm \tilde{T}$.
+  That is, if $M_{\doit(T \cup \tilde{T})}$ and $\tilde{M}_{\doit(T \cup \tilde{T})}$ are observably equivalent w.r.t.\ $O \sm (T \cup \tilde{T})$ for all $\tilde{T} \ins O\sm T$.
+  That is, if $M_{\doit((T \cup \tilde{T}) \sm (J \cap \tilde{J}))}$ and $\tilde{M}_{\doit((T \cup \tilde{T}) \sm (J \cap \tilde{J}))}$ are observably equivalent w.r.t.\ $O \sm ((T \cup \tilde{T}) \sm (J \cap \tilde{J}))$ for all $\tilde{T} \ins O\sm T$.
+  Note that for all $\tilde{T} \ins O\sm T$, $(T \cup \tilde{T}) \sm (J \cap \tilde{J}) \ins O$.
+  \Claude{Does not fully close the final deduction.}
+  \end{enumerate}
+
+  For the next two cases, $\CX_O = \tilde{\CX}_O$ and $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$ holds since
+  $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$. 
+  This same property needs to hold for the intervened iSCMs $M_{\doit(T\dots)}$ and $\tilde{M}_{\doit(T\dots)}$.
+
+\begin{enumerate}[resume*]
+\item
+  Let $T \subseteq O \cup (J \cap \tilde{J})$ and $\xi_T \in \CX_T$.
+  To show: $M_{\doit(X_T=\xi_T)}$ and $\tilde{M}_{\doit(X_T=\xi_T)}$ are interventionally equivalent w.r.t.\ $O \cup T$, that is
+  $\CX_O = \tilde{\CX}_O$, $\CX_{J \cap \tilde{J}} = \tilde{\CX}_{J \cap \tilde{J}}$, and for all $\tilde{T} \ins O \cup T$:
+  $$P_{M_{\doit(X_T=\xi_T)}}(X_{O \cup T} \mid \doit(X_{J\sm T},X_{\tilde{T}})) = P_{\tilde{M}_{\doit(X_T=\xi_T)}}(X_{O\cup T} \mid \doit(X_{\tilde J \sm T},X_{\tilde{T}})).$$
+
+  Note that $\doit(X_T=\xi_T)$ can be obtained by $\doit(T)$ followed by evaluating in $X_T=\xi_T$:
+      $$P_{M_{\doit(X_T=\xi_T)}}(X_{O \cup T} \mid \doit(X_{J\sm T \cup \tilde{T}})) = P_M(X_{O \cup T} \mid \doit(X_{J \sm T \cup \tilde{T}}),\doit(X_T=\xi_T))$$
+      $$P_{\tilde{M}_{\doit(X_T=\xi_T)}}(X_{O \cup T} \mid \doit(X_{\tilde{J}\sm T\cup \tilde{T}})) = P_{\tilde{M}}(X_{O \cup T} \mid \doit(X_{\tilde{J} \sm T \cup \tilde{T}}),\doit(X_T=\xi_T))$$
+  So we want that
+  $$P_M(X_{O} \mid \doit(X_{J \cup T \cup \tilde{T}})) = P_{\tilde{M}}(X_{O} \mid \doit(X_{\tilde{J} \cup T \cup \tilde{T}}))$$
+  which we know holds for all $T \cup \tilde{T} \ins O \cup (J \cap \tilde{J})$ by the interventional equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$.
+
+\item
+  Let $T \subseteq O \cup (J \cap \tilde{J})$ and $Q_T \in \Pcal(\CX_T)$.
+  We can use again that
+  $$P_M(X_{O} \mid \doit(X_{J \cup T \cup \tilde{T}})) = P_{\tilde{M}}(X_{O} \mid \doit(X_{\tilde{J} \cup T \cup \tilde{T}}))$$
+  for all $T \cup \tilde{T} \ins O \cup (J \cap \tilde{J})$ by the interventional equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$.
+  Note that $\doit(X_T\sim Q_T)$ can be obtained by $\doit(T)$ followed by putting distribution $Q_T$ on $X_T$:
+      $$P_{M_{\doit(X_T\sim Q_T)}}(X_{O \cup T} \mid \doit(X_{J\sm T \cup \tilde{T}})) = P_M(X_{O \cup T} \mid \doit(X_{J \sm T \cup \tilde{T}}),\doit(X_T)) \circ Q_T(X_T)$$
+      $$P_{\tilde{M}_{\doit(X_T\sim Q_T)}}(X_{O \cup T} \mid \doit(X_{\tilde{J}\sm T\cup \tilde{T}})) = P_{\tilde{M}}(X_{O \cup T} \mid \doit(X_{\tilde{J} \sm T \cup \tilde{T}}),\doit(X_T)) \circ Q_T(X_T)$$
+  Hence, for all $\tilde{T} \ins O \cup T$:
+      $$P_{M_{\doit(X_T\sim Q_T)}}(X_{O \cup T} \mid \doit(X_{J\sm T}),\doit(X_{\tilde{T}})) = P_{\tilde{M}_{\doit(X_T\sim Q_T)}}(X_{O \cup T} \mid \doit(X_{\tilde{J}\sm T}),\doit(X_{\tilde{T}}))$$
+  which implies that $M_{\doit(X_T\sim Q_T)}$ is interventionally equivalent to $\tilde{M}_{\doit(X_T\sim Q_T)}$ w.r.t.\ $O \cup T$.
+  \item For $T \ins (J \cap \tilde{J})$, the operation of adding intervention variables $\doit(I_{T})$ only adds indices $I_j := j$ for $j \in T \cap J$.
+    Therefore, we can consider $T \subseteq O$ without loss of generality, employing Proposition~\ref{prp:adding_intervention_variables_one_by_one}.
+
+%  \begin{align*}
+%    (M_{\doit(I_T)})_{\doit(\tilde{T})} 
+%    &= (M_{\doit(I_T)})_{\doit((\tilde{T}\sm T) \cup (\tilde{T} \cap T))} \\
+%    &= \big((M_{\doit(T)})_{\doit(\tilde{T}\sm T)}\big)_{\doit(\tilde{T} \cap T)} \\
+%    &= \big((M_{\doit(\tilde{T}\sm T)})_{\doit(I_T)}\big)_{\doit(\tilde{T} \cap T)}
+%  \end{align*}
+%  and similarly for $\tilde{M}$.
+  For $\tilde{T} \ins O$, we get:
+  \begin{align*}
+    & P_{(M_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_T}=x_{I_T})) \\
+    {} = {} & P_{\big((M_{\doit(\tilde{T}\sm T)})_{\doit(I_T)}\big)_{\doit(\tilde{T} \cap T)}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_T}=x_{I_T})) \\
+    {} = {} & P_{\big((M_{\doit(\tilde{T}\sm T)})_{\doit(I_{T\sm\tilde{T}})}\big)_{\doit(\tilde{T} \cap T)}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_{T\sm\tilde{T}}}=x_{I_{T\sm\tilde{T}}})) \\
+    {} = {} & P_{(M_{\doit(\tilde{T})})_{\doit(I_{T\sm\tilde{T}})}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_{T\sm\tilde{T}}}=x_{I_{T\sm\tilde{T}}})) \\
+%    {} = {} & P_{M_{\doit(\tilde{T})}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{T_2\sm\tilde{T}}=x_{I_{T_2\sm\tilde{T}}})) \\
+    {} = {} & P_M(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{T_2\sm\tilde{T}}=x_{I_{T_2\sm\tilde{T}}})) 
+  \end{align*}
+  \Claude{$T_2$ undefined (occurs multiple times here), should be $T$.}
+  Similar reasoning for $\tilde{M}$ gives:
+  \begin{align*}
+    & P_{(\tilde{M}_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{\tilde{V}\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{I_T}=x_{I_T})) \\
+    {} = {} & P_{\tilde{M}}(X_{\tilde{V}\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{T_2\sm\tilde{T}}=x_{I_{T_2\sm\tilde{T}}}))
+  \end{align*}
+  Since $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$, 
+  \begin{align*}
+    {}   {} & P_M(X_{O\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{T_2\sm\tilde{T}}=x_{I_{T_2\sm\tilde{T}}})) \\
+    {} = {} & P_{\tilde{M}}(X_{O\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{T_2\sm\tilde{T}}=x_{I_{T_2\sm\tilde{T}}}))
+  \end{align*}
+  Combining this gives:
+%  $$ P_{(M_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{O\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_T}=x_{I_T})) 
+%     = P_{(\tilde{M}_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{O\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{I_T}=x_{I_T})) $$
+%  To show:
+  $$
+   P_{(M_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{O\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_T})) 
+   = 
+   P_{(\tilde{M}_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{O\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{I_T})) $$
+   Hence, $M_{\doit(I_T)}$ and $\tilde{M}_{\doit(I_T)}$ are interventionally equivalent w.r.t.\ $O$.
+%  If $\tilde{T} \ins O \cup I_T$, note that
+%  $$(M_{\doit(I_T)})_{\doit(\tilde{T})} = (M_{\doit(I_T)})_{\doit(\tilde{T}\sm I_T)}$$
+%  and similarly for $\tilde{M}$. 
+%  Since $(M_{\doit(I_T)})_{\doit(\tilde{T}\sm I_T)}$ is observationally equivalent w.r.t.\ $O \sm T$, we conclude that
+%    $$P_{(M_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{V\sm\tilde{T}} \mid \doit(X_{J\cup\tilde{T}},X_{I_T})) \\
+%    = P_{(\tilde{M}_{\doit(I_T)})_{\doit(\tilde{T})}}(X_{\tilde{V}\sm\tilde{T}} \mid \doit(X_{\tilde{J}\cup\tilde{T}},X_{I_T}))$$
+%  even for all $\tilde{T} \ins O \cup I_T$.
+  \end{enumerate}
+\end{proof}
+
+\subsection{Marginalizations}
+
+When modeling a system, we sometimes want to ``hide'' details of a subsystem. 
+The following operation on iSCMs that we call ``marginalization'' is a causal analogue of the marginalization of probability distributions.
+The computer program analogy of the marginalization operation is to hide details within a subroutine.
+Intuitively, a marginalization of an iSCM over a subset of endogenous variables $L$ is obtained by first solving a subsystem (the structural equations corresponding to the endogenous variables in $L$) followed by substituting the solution function of the subsystem into the remaining structural equations (corresponding to the endogenous variables in $V\setminus L$).
+\begin{Def}\label{def:scm_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L \subseteq \Send$.
+  Suppose that $M$ is essentially uniquely solvable w.r.t.\ $L$ and let $g^{[L]} : \CX_J \times \CX_{(V\sm L)} \times \CX_W \to \CX_L$ be a corresponding partial solution function of $M$ w.r.t.\ $L$.
+%  that satisfies
+%    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+  Then we call $M_{\setminus L} = \ltuple \Sin, V \sm L, \Srnd, \CX_{\Sin} \times \CX_{V \sm L} \times \CX_{\Srnd}, P, f^{\sm L} \rtuple$ with
+  $$f^{\sm L}(\xJ,x_{V \sm L},\xW) := f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)$$
+  a \emph{marginalization of $M$ over $L$}.
+\end{Def}
+% \begin{Def}\label{def:scm_marginalization}
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L \subseteq \Send$ such that the submodel $M^{[L]}$ is essentially uniquely solvable.
+%  Let $g^{[L]} : \CX_{\Sin} \times \CX_{V \sm L} \times \CXW \to \CX_L$ be an (essentially unique) solution function for $M^{[L]}$.
+%  Then we call $M_{\setminus L} = \ltuple \Sin, V \sm L, \Srnd, \CX_{\Sin} \times \CX_{V \sm L} \times \CX_{\Srnd}, P, \tilde{f} \rtuple$ with
+%  $$\tilde{f}(\xJ,x_{V \sm L},\xW) = f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)$$
+%  a \emph{marginalization of $M$ over $L$}.
+%\end{Def}
+If $g^{[L]}$ and $\tilde g^{[L]}$ are two partial solution functions of $M$ w.r.t.\ $L$, then their corresponding marginalizations of $M$ may not be identical, but they are equivalent. Even more:
+\begin{Prp}\label{prp:scm_marginalization_equivalence}
+  If $M \equiv \tilde{M}$ are equivalent iSCMs, $g^{[L]}$ is a partial solution function of $M$ w.r.t.\ $L$, and $\tilde g^{[L]}$ is a partial solution function of $\tilde{M}$ w.r.t.\ $L$, then the marginalizations $M_{\sm L}$ (corresponding to $g^{[L}]$) and $\tilde{M}_{\sm L}$ (corresponding to $\tilde g^{[L]}$) are equivalent.
+\end{Prp}
+\begin{proof}
+  Since $\tilde{g}^{[L]}$ is a partial solution function of $\tilde{M}$ w.r.t.\ $L$, and $M \equiv \tilde{M}$, $\tilde{g}^{[L]}$ is also a partial solution function of $M$ w.r.t.\ $L$.
+  Since $M$ is essentially uniquely solvable w.r.t.\ $L$, $g^{[L]} = \tilde{g}^{[L]}\ M\as$.
+  Therefore, for $v \in V\sm L$:
+  $$[x_v = f_v(x_J,x_{V\sm L},g^{[L]}(x),x_W) \iff x_v = \tilde{f}_v(x_J,x_{V\sm L},\tilde{g}^{[L]}(x),x_W)] \qquad M\as$$
+  This implies, for $v \in V\sm L$:
+  $$[x_v = f^{\sm L}_v(x) \iff x_v = \tilde{f}^{\sm L}_v(x)] \qquad M_{\sm L}\as.$$
+  Indeed, if a property $\pi(x_J,x_W,x_{V\sm L})$ holds $M\as$, then it holds $M_{\sm L}\as$.
+  %Indeed, if something holds `for all $x_J$, for $P(X_W)$-almost all $x_W$, for all $x_V$', then it holds `for all $x_J$, for $P(X_W)$-almost all $x_W$, for all $x_{V\sm L}$'.
+\end{proof}
+This shows that even though marginalizations are not unique at the iSCM level, they are unique at the level of equivalence classes of iSCMs.
+
+For simple iSCMs, marginalizations are obviously defined over all subsets $L \subseteq \Send$.
+\begin{Not}\label{not:scm_marginalization}
+  We will also use the notation $M_O := M_{\sm (V \sm O)}$ for a subset $O \subseteq V$ of endogenous variables
+  when we want to emphasize which endogenous variables remain after marginalization.
+\end{Not}
+%Note that all marginalizations of $M$ are equivalent, i.e., the marginalized causal mechanism is essentially unique.
+
+Marginalization preserves (partial) essentially unique solvability.
+\begin{Lem}\label{lem:marginalization_preserves_unique_solvability}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L \subseteq \Send$ such that $M$ is essentially uniquely solvable w.r.t.\ $L$.
+  Suppose $M$ is also essentially uniquely solvable w.r.t.\ $O \ins V$ with $L \ins O$, and partial solution function $g^{[O]}$. 
+  Then its marginalization $\tilde M := M_{\setminus L}$ is essentially uniquely solvable w.r.t.\ $O \sm L$, with partial solution function $\tilde{g}^{[O\sm L]} = (g^{[O]})_{O\sm L}$.
+  % that is, the canonical projection onto $O \sm L$ of $g^{[O]}$.
+\end{Lem}
+\begin{proof}
+  Denote by $f^{\sm L}$ the causal mechanism of the marginalization $M_{\sm L}$ constructed from the partial solution function $g^{[L]} : \CX_{\Sin} \times \CX_{(V \sm L)} \times \CXW \to \CX_L$.
+  From the essentially unique solvability of $M$ w.r.t.\ $O$, and the essentially unique solvability of $M$ w.r.t.\ $L$, we derive that
+%  $M$ is uniquely solvable means there exists a measurable function $g : \CX_{J \cup W} \to \CX_V$ such  that
+%  for all $x \in \CX$,
+  $M\as$:
+  \begin{equation*}\begin{split}
+  & \begin{cases}
+    x_L = g^{[O]}_L(x_J,x_{V\sm O},x_W) \\
+    x_{O\sm L} = g^{[O]}_{O\sm L}(x_J,x_{V\sm O},x_W) 
+  \end{cases}
+  \iff x_O = g^{[O]}(x_J,x_{V\sm O},x_W) 
+  \iff x_O = f_O(x) \\
+  & \iff \begin{cases}
+    x_L = f_L(x) \\
+    x_{O \sm L} = f_{O \sm L}(x) 
+  \end{cases} 
+  \iff \begin{cases}
+    x_L = g^{[L]}(x_J,x_{V\sm L},x_W) \\
+    x_{O \sm L} = f_{O \sm L}(x_J,x_{V\sm L},x_L,x_W) 
+  \end{cases} \\
+  & \iff \begin{cases}
+    x_L = g^{[L]}(x_J,x_{V\sm L},x_W) \\
+    x_{O\sm L} = f_{O \sm L}(x_J,x_{V\sm L},g^{[L]}(x_J,x_{V\sm L},x_W),x_W) 
+  \end{cases} \\
+  & \iff \begin{cases}
+    x_L = g^{[L]}(x_J,x_{V\sm L},x_W) \\
+    x_{O \sm L} = f_{O \sm L}^{\sm L}(x_J,x_{V\sm L},x_W).
+  \end{cases}
+  \end{split}\end{equation*}
+Hence:
+  $$x_{O \sm L} = g^{[O]}_{O \sm L}(x_J,x_{V\sm O},x_W) \iff x_{O \sm L} = f_{O \sm L}^{\sm L}(x_J,x_{V\sm L},x_W)\quad M\as.$$
+  A property $\pi(x_J,x_W,x_{V\sm L})$ that holds $M\as$, also holds $M_{\sm L}\as$, hence:
+  $$x_{O \sm L} = g^{[O]}_{O \sm L}(x_J,x_{V\sm O},x_W) \iff x_{O \sm L} = f_{O \sm L}^{\sm L}(x_J,x_{V\sm L},x_W)\quad M^{\sm L}\as.$$
+  Therefore, the marginalized iSCM $M_{\setminus L}$ is essentially uniquely solvable w.r.t.\ $O\sm L$, with essentially unique partial solution function $g^{[O]}_{O \sm L} = \pr_{O\sm L} \circ g^{[O]}$,
+  where $\pr_{O\sm L} : \CXV \to \CX_{O\sm L} : x \mapsto x_{O\sm L}$ is the canonical projection on $O \sm L$.\footnote{The converse does not necessarily hold: even if the marginalized iSCM $M_{\sm L}$ is essentially uniquely solvable w.r.t.\ $O \sm L$, the iSCM $M$ may not be essentially uniquely solvable w.r.t.\ $O$: $M^{\sm L}\as$ does not imply $M\as$. \Joris{check!}}
+\end{proof}
+\begin{Rem}
+This also directly implies that if $M$ is essentially uniquely solvable and its marginalization $M_{\setminus L}$ over $L \subseteq V$ is defined, the Markov kernel of the marginalization is obtained by marginalizing the original Markov kernel:
+$$P_{M_{\setminus L}}(X_{V\setminus L} \mid \doit(X_J)) = P_{M}(X_{V\setminus L} \mid \doit(X_J)).$$
+This explains the name `marginalization'.
+\end{Rem}
+It is now easy to see that simplicity is preserved under marginalization.
+\begin{Prp}\label{prp:marginalization_preserves_simplicity}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM. 
+  For any $L \subseteq \Send$, its marginalization $M_{\setminus L}$ is also simple.
+\end{Prp}
+\begin{proof}
+  Let $\tilde T \ins V \sm L$.
+  From Lemma~\ref{lem:marginalization_preserves_unique_solvability} it follows that since $M$ is essentially uniquely solvable w.r.t.\ $\tilde{T} \cup L$, $M_{\sm L}$ is essentially uniquely solvable w.r.t.\ $\tilde{T}$.
+  Hence $M_{\sm L}$ is simple.
+\end{proof}
+
+Under certain conditions, interventions and marginalization commute (i.e., it does not matter in which order we apply them).
+\begin{Prp}\label{prp:interventions_marginalizations_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+    For $L \subseteq V$ such that $M$ is essentially uniquely solvable w.r.t.\ $L$, and an intervention target $T \ins V \cup J$ such that $L \cap T = \emptyset$, an intervention targeting $T$ (hard, soft, or adding intervention variables) commutes with marginalizing out $L$.
+%    $$(M_{\doit(T\dots)})_{\setminus L} \equiv (M_{\setminus L})_{\doit(T\dots)}.$$
+%    Explicitly:
+    \begin{enumerate}
+      \item $(M_{\doit(T\dots)})_{\sm L} \equiv (M_{\sm L})_{\doit(T\dots)}$ for $T \subseteq (V \sm L) \cup J$ (hard interventions of all three types);
+      \item $(M_{\doit(T\ot\hat{f}_T)})_{\sm L} \equiv (M_{\sm L})_{\doit(T\ot\hat{f}_T)}$ for $T \subseteq V \sm L$ and $\hat f_T : \CX_J \times \CX_W \times \CX_V \to \CX_T$ a measurable function
+        (soft interventions); \Joris{We could more generally also define soft interventions on input nodes!}
+      \item $(M_{\doit(I_T)})_{\sm L} \equiv (M_{\sm L})_{\doit(I_T)}$ for $T \subseteq (V \sm L) \cup J$ (adding intervention variables);
+    \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Note that each intervention preserves the causal mechanism components $f_{V\sm L}$ of the variables not targeted by the intervention. 
+  Hence, we may use the same partial solution function w.r.t.\ $L$ for both $M$ and $M_{\doit(\dots)}$ to construct their respective marginalizations.
+  This even gives identities.
+  If different partial solution functions are used in the construction of the marginalizations, then we still obtain equivalence.
+\end{proof}
+
+We will show that for simple iSCMs, the marginalization operation preserves the causal semantics on the remaining variables. 
+A key step is the following proposition, which gives conditions under which it does not matter whether we marginalize at once or in steps.
+\begin{Prp}\label{prp:marginalization_commutes}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L_1, L_2 \subseteq \Send$ such that $L_1 \cap L_2 = \emptyset$.
+  If $M$ is essentially uniquely solvable w.r.t.\ $L_1$, and $(M_{\setminus L_1})$ is essentially uniquely solvable w.r.t.\ $L_2$, then $M$ is essentially uniquely solvable w.r.t.\ $L_1 \cup L_2$, and in that case it does not matter if we first marginalize over $L_1$ and then $L_2$, or both at once, i.e:
+  $$(M_{\setminus L_1})_{\setminus L_2} \equiv M_{\setminus (L_1\cup L_2)}.$$
+\end{Prp}
+\begin{proof}
+  Write $K_1 = V \setminus L_1$.
+  Let $g^{[L_1]} : \CX_{J\cup K_1} \times \CXW \to \CX_{L_1}$ be the essentially unique solution function of $M$ w.r.t.\ $L_1$:
+  $$x_{L_1} = g^{[L_1]}(x_J,x_{K_1},x_W) \iff x_{L_1} = f_{L_1}(x) \quad M\as$$
+  Let $\tilde{f} : \CX_J \times \CX_{K_1} \times \CXW \to \CX_{K_1}$ with
+  $$\tilde{f}(x_J,x_{K_1},x_W) = f_{K_1}(x_J,x_{K_1},g^{[L_1]}(x_J,x_{K_1},x_W),x_W)$$
+  be the causal mechanism of the marginal iSCM $M_{\setminus L_1}$.
+
+  If $M_{\setminus L_1}$ is uniquely solvable w.r.t.\ $L_2$, it has an essentially unique solution function
+  $\tilde{g}^{[L_2]} : \CXJ \times \CX_{V\setminus (L_1\cup L_2)} \times \CXW \to \CX_{L_2}$:
+  $$x_{L_2} = \tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) \iff x_{L_2} = \tilde{f}_{L_2}(x_J,x_{L_2},x_{K_1\setminus L_2},x_W) \quad M_{\sm L_1}\as$$
+  For a property $\pi(x_J,x_{V\sm L_1},x_W)$: $\pi$ holds $M\as$ if and only if $\pi$ holds $M_{\sm L_1}\as$, hence
+  $$x_{L_2} = \tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) \iff x_{L_2} = f_{L_2}(x_J,x_{K_1},g^{[L_1]}(x_J,x_{K_1},x_W),x_W) \quad M\as$$
+  Define the function $h : \CXJ \times \CX_{V\setminus(L_1\cup L_2)} \times \CXW \to \CX_{L_1 \cup L_2}$ by
+  \begin{align*}
+    h_{L_1}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) &= g^{[L_1]}(x_J,x_{K_1\setminus L_2},\tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W),x_W) \\
+    h_{L_2}(x_J,x_{V\setminus(L_1\cup L_2)},x_W) &= \tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+  \end{align*}
+  Then, $M\as$:
+  \begin{equation*}\begin{split}
+%    & x_{L_1\cup L_2} = f_{L_1 \cup L_2}(x) \\
+%    \iff &
+    & \begin{cases}
+      x_{L_1} &= f_{L_1}(x) \\
+      x_{L_2} &= f_{L_2}(x) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= g^{[L_1]}(x_J,x_{K_1},x_W) \\
+      x_{L_2} &= f_{L_2}(x_J,x_{K_1},x_{L_1},x_W) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= g^{[L_1]}(x_J,x_{K_1},x_W) \\
+      x_{L_2} &= f_{L_2}(x_J,x_{K_1},g^{[L_1]}(x_J,x_{K_1},x_W),x_W) 
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= g^{[L_1]}(x_J,x_{K_1\setminus L_2},x_{L_2},x_W) \\
+      x_{L_2} &= \tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+    \end{cases} \\
+    \iff &
+    \begin{cases}
+      x_{L_1} &= g^{[L_1]}(x_J,x_{K_1\setminus L_2},\tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W),x_W) \\
+      x_{L_2} &= \tilde{g}^{[L_2]}(x_J,x_{V\setminus(L_1 \cup L_2)},x_W)
+    \end{cases} \\
+    \iff &
+      x_{L_1\cup L_2} = h(x_J,x_{V\setminus(L_1\cup L_2)},x_W) 
+  \end{split}\end{equation*}
+  where in the first equivalence we used the essentially unique solvability of $M$ w.r.t.\ $L_1$, 
+  in the second equivalence we used substitution, 
+  in the third equivalence we used the essentially unique solvability of $M_{\setminus L_1}$ w.r.t.\ $[L_2]$, 
+  in the fourth equivalence we used substitution again, 
+  and in the fifth equivalence we used the definition of $h$.
+  Hence,
+    $$x_{L_1 \cup L_2} = f_{L_1 \cup L_2}(x) \iff x_{L_1\cup L_2} = h(x_J,x_{V\setminus(L_1\cup L_2)},x_W) \qquad M\as$$
+  Therefore, $h$ is the essentially unique solution function for $M$ w.r.t.\ $L_1\cup L_2$, which must therefore be essentially uniquely solvable w.r.t.\ $L_1 \cup L_2$. 
+  By checking the definition, one sees that $(M_{\setminus L_1})_{\setminus L_2} = M_{\setminus(L_1 \cup L_2)}$.
+  Because of the ambiguity in the choice of the partial solution functions, we conclude $(M_{\setminus L_1})_{\setminus L_2} \equiv M_{\setminus(L_1 \cup L_2)}$.
+\end{proof}
+\begin{Cor}\label{cor:marginalization_commutes_simple_scm}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  For $L_1, L_2 \subseteq \Send$ with $L_1 \cap L_2 = \emptyset$,
+    $$(M_{\setminus L_1})_{\setminus L_2} \equiv (M_{\setminus L_2})_{\setminus L_1} \equiv M_{\setminus (L_1 \cup L_2)}.$$
+\end{Cor}
+
+These commutation relations and compatibilities now allow us to give a straightforward proof that
+the causal semantics are preserved under marginalization.
+While this holds generally for SCMs \cite{BFPM21}, we will here prove this for simple iSCMs.
+\begin{Thm}\label{thm:various_equiv_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM, $L \subseteq \Send$, and
+  $M_{\setminus L}$ its marginalization over $L$. Then $M$ and $M_{\setminus L}$ are observably
+  and interventionally equivalent w.r.t.\ $V \setminus L$.
+  % counterfactual equivalence moved to a corollary later on
+\end{Thm}
+\begin{proof}
+  %The statement that $M$ and $M_O$ are observably equivalent w.r.t.\ $O$ is Lemma~\ref{lem:obs_equiv_marginalization}.
+  Write $O = V \setminus L$.
+  We first show that the marginal Markov kernels $P_{M}(X_O \mid \doit(X_J))$ and $P_{M_{\setminus L}}(X_O \mid \doit(X_J))$ are the same.
+  The former is obtained as:
+  $$P_{M}(X_O \mid \doit(X_J)) = (\pr_{O} \circ g)_*(P) = (g_{O})_*(P),$$
+  where $g : \CXJ \times \CXW \to \CXV$ is the essentially unique solution function of $M$ and
+  $\pr_{O} : \CX_{V \cup W} \to \CX_{O}$ is the canonical projection on the $O$ components. 
+  The latter is obtained as:
+  $$P_{M_{\setminus L}}(X_O \mid \doit(X_J)) = (g_O)_*(P)$$
+  since by Lemma~\ref{lem:marginalization_preserves_unique_solvability}, $g_O$ is the (essentially unique) solution function of $M_{\setminus L}$.
+  This means that both push-forwards are identical.
+
+  Let $T \subseteq O$. Then $(M_{\setminus L})_{\doit(T)} \equiv (M_{\doit(T)})_{\setminus L}$ by
+  Proposition~\ref{prp:interventions_marginalizations_commute}. 
+  The observable equivalence of $M_{\doit(T)}$ and $(M_{\doit(T)})_{\setminus L}$ w.r.t.\ $O \setminus T$ hence implies the observable equivalence of $M_{\doit(T)}$ and $(M_{\setminus L})_{\doit(T)}$ w.r.t.\ $O \setminus T$ (using Proposition~\ref{prp:pearls_ladder_levels_1_and_2}).
+  Since this holds for all $T \subseteq O$, $M$ and $M_{\setminus L}$ are interventionally equivalent w.r.t.\ $O$.
+%  Finally, $(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L \cup L')}$ by Proposition~\ref{prp:twinning_marginalization_commute}. Since $M^\twin$ and its marginalization
+%  $(M^\twin)_{\setminus (L \cup L')}$ are interventionally equivalent w.r.t.\ $M \cup M' \cup W$, 
+%  $M$ and $M_{\setminus L}$ are counterfactually equivalent w.r.t.\ $M \cup W$.
+\end{proof}
+So the marginalization operation indeed effectively hides the details of a subsystem, while preserving the causal semantics on the remaining part.

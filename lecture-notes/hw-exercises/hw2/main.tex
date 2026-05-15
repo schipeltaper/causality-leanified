@@ -1,0 +1,104 @@
+% !TEX root = hw2.tex
+\chead{\textbf{Exercises week 2}}
+
+\externaldocument{../hw1/hw1}
+
+\begin{document}
+\section*{Topic: Markov kernels}
+
+\begin{enumerate}[label=2.\arabic*]
+    \item \label{generating-sets}
+    % \textbf{BONUS}
+    Let $f: \mathcal{X} \to \mathcal{Y}$ be any function and $\mathcal{B}_{\mathcal{X}}$ a $\sigma$-algebra on $\mathcal{X}$.
+    Additionally, let $\mathcal{B}$ be any set of subsets of $\mathcal{Y}$, not necessarily a $\sigma$-algebra.
+    Assume that $f$ is $\mathcal{B}_{\mathcal{X}}$-$\mathcal{B}$-measurable, with which we mean that for each $B \in \mathcal{B}$, we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$.
+    Show that $f$ is then already $\mathcal{B}_\mathcal{X}$-$\mathcal{B}_{\mathcal{Y}}$-measurable, where $\mathcal{B}_{\mathcal{Y}} := \sigma{(\mathcal{B})}$ is the smallest $\sigma$-algebra containing $\mathcal{B}$.
+
+    The bottom line, to be used in exercises \ref{ex:measurability} and \ref{ex:markov_kernel_is_bivariate_function}, is that measurability can be tested on sets which generate the $\sigma$-algebra of the codomain.
+
+    \emph{Hint: Show that $\mathcal{B} \subseteq f_*\mathcal{B}_{\mathcal{X}}$, where $f_*\mathcal{B}_{\mathcal{X}}$ is defined as in Definition/Lemma \ref*{sigma-algebra-map} in the appendix.
+    Deduce that $\mathcal{B}_{\mathcal{Y}} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+    Deduce from that, in turn, that $f$ is $\mathcal{B}_{\mathcal{X}}$-$\mathcal{B}_{\mathcal{Y}}$-measurable.}
+
+    \begin{ungradedsolution}
+        Recall that
+        \begin{equation*}
+            f_* \mathcal{B}_{\mathcal{X}} = \{A \subseteq \mathcal{Y} \mid f^{-1}(A) \in \mathcal{B}_{\mathcal{X}}\}.
+            \label{eq:recall_definition}
+        \end{equation*}
+        Since we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$ for all $B \in \mathcal{B}$ by assumption, we obtain $\mathcal{B} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+        Now, since $f_* \mathcal{B}_{\mathcal{X}}$ is a $\sigma$-algebra containing $\mathcal{B}$, and since $\mathcal{B}_{\mathcal{Y}}$ is by definition the smallest $\sigma$-algebra containing $\mathcal{B}$, we obtain $\mathcal{B}_{\mathcal{Y}} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+        By definition of $f_* \mathcal{B}_{\mathcal{X}}$, again, this means that for all $B \in \mathcal{B}_{\mathcal{Y}}$ we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$.
+        This, in turn, means that $f$ is $\mathcal{B}_{\mathcal{X}}$-$\mathcal{B}_{\mathcal{Y}}$-measurable, proving the claim.
+    \end{ungradedsolution}
+
+    \item\label{ex:measurability} Prove Remark \ref*{rem:prob-sigma-algebra}: for measurable spaces $(\Xcal,\Bcal_\Xcal)$, $(\Ycal,\Bcal_\Ycal)$, a map:
+    \[ K:\, \Xcal \to \Msf(\Ycal),\]
+    is $\Bcal_\Xcal$-$\Bcal_{\Msf(\Ycal)}$-measurable if and only if for all $B \in \Bcal_\Ycal$ the composition:
+    \[ \ev_B \circ K:\, \Xcal \to \Msf(\Ycal) \to \R_{\ge 0},   \]
+    is $\Bcal_\Xcal$-$\Bcal_{\R_{\ge 0}}$-measurable.
+    \begin{ungradedsolution}
+        For any $B\in\Bcal_{\Ycal}$, the map $\ev_B:\Mcal(\Ycal)\to \R_{\geq 0}$ is measurable by definition of $\Bcal_{\Mcal(\Ycal)}$.
+        If $K:\Xcal \to \Mcal(\Ycal)$ is measurable, then $\ev_B \circ K : \Xcal \to \R_{\geq 0}$ is $\Bcal_{\Xcal}$-$\Bcal_{\R_{\geq 0}}$ measurable by exercise \ref*{ex:mble_comp_is_mble} of Week 1. \\
+        On the other hand, for any $A$ in the generator of $\Bcal_{\Mcal(\Ycal)}$, there is some $r\in\R_{\geq 0}$ and $B\in \Bcal_{\Ycal}$ such that $A:= \ev_B^{-1}((r, \infty))$. Hence, we have that $K^{-1}(A) = K^{-1}(\ev_B^{-1}((r, \infty))) = (\ev_B \circ K)^{-1}((r, \infty))$. If $\ev_B \circ K$ is measurable this gives $K^{-1}(A)\in \Bcal_{\Xcal}$ by measurability of the set $(r, \infty)\in \Bcal_{\R_{\geq0}}$. Using exercise \ref{generating-sets}, we conclude that $K$ is measurable.
+    \end{ungradedsolution}
+
+    \item \label{ex:markov_kernel_is_bivariate_function} % \textbf{BONUS}
+    In this exercise we'll prove Lemma \ref*{transmeasure_is_twoargfunction}: show that a Markov kernel, i.e.\ a measurable map
+    \[ K(W|T): \mathcal{T}\rightarrow \mathcal{P}(\mathcal{W}), \quad t\mapsto (D\mapsto K(W\in D|T=t)) \]
+    induces a two-argument function
+    \[ \tilde K(W|T):\, \Bcal_\Wcal \times \Tcal \to [0,1], \qquad (D,t) \mapsto \tilde K(W \in D|T=t) \]
+    such that:
+    \begin{enumerate}[label=\roman*)]
+        \item for each $t \in \Tcal$ the map:
+        \[ \Bcal_\Wcal \to [0,1],\qquad D \mapsto \tilde K(W\in D|T=t)\]
+        is a probability measure, and
+        \item for each $D \in \Bcal_\Wcal$ the map:
+        \[ \tilde K(W \in D|T):\, \Tcal \to [0,1],\quad t \mapsto \tilde K(W \in D|T=t) \]
+        is $\Bcal_\Tcal$-$\Bcal_{[0,1]}$-measurable
+    \end{enumerate}
+    and vice versa.
+
+    \emph{Hint: For doing this exercise, recall Definition \ref*{spaces_of_finite_and_prob_measures} of the $\sigma$-algebra of $\Pcal(\Wcal)$ and use exercises \ref{generating-sets} and/or \ref{ex:measurability}.}
+    \begin{gradedsolution}
+        Using only exercise \ref{ex:measurability}:
+        \begin{enumerate}
+            \item \points{2} $(K\implies \tilde{K})$ Let Markov kernel $K: \Tcal \to \Pcal(\Wcal)$ be given. Define $\tilde{K}(D, t) := \ev_D \circ K(t) = K(t)(D)$, then $\tilde{K}(\cdot, t) = K(t)(\cdot) \in \Pcal(\Wcal)$, so $\tilde{K}$ satisfies property i). Also the map $K$ is measurable, so by exercise \ref{ex:measurability} we have that for any $D\in \Bcal_{\Wcal}$ the map $\tilde{K}(D, \cdot) = \ev_D\circ K$ is measurable, which proves property ii).
+            \item \points{2} $(\tilde{K}\implies K)$ Given the map $\tilde{K}$, define $K(t) := \tilde{K}(\cdot, t)$. Since for any $D\in \Bcal_{\Wcal}$ the map $\tilde{K}(D, \cdot)$ is measurable by assumption, and since $\tilde{K}(D, \cdot) = \ev_D \circ K$, we conclude from exercise \ref{ex:measurability} that $K:\Tcal \to \Pcal(\Wcal)$ is measurable as well, and hence a Markov kernel.
+        \end{enumerate}
+    \end{gradedsolution}
+    \begin{gradedsolution}
+        Alternative solution, using only exercise \ref{generating-sets}:
+        \begin{enumerate}
+            \item \points{2} ($K\implies \tilde{K}$) Note that for each $t\in\Tcal$ we have $\tilde{K}(W | T=t) := K(W|T)(t) \in \mathcal{P}(\mathcal{W})$, which proves property i).
+            Now, let $D \in \mathcal{B}_{\mathcal{W}}$ arbitrary and $t \in \mathcal{T}$.
+            We obtain
+            \begin{align*}
+                \tilde{K}(W\in D \mid T=t) & = K(W|T)(t)(D)              \\
+                                           & = \text{ev}_D(K(t))         \\
+                                           & = (\text{ev}_D \circ K)(t),
+            \end{align*}
+            which shows $\tilde{K}(W\in D \mid \bullet) = \text{ev}_D \circ K: \mathcal{T} \to [0,1]$.
+            Since $K$ is measurable by assumption and $\text{ev}_D$ is measurable by the definition of the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$ given in Definition \ref*{spaces_of_finite_and_prob_measures}, and since compositions of measurable functions are measurable, we obtain the measurability of $\tilde{K}(W\in D \mid \bullet)$, which proves property ii).
+
+            \item \points{2} ($\tilde{K}\implies K$) Assume that $\tilde{K}: \mathcal{B}_{\mathcal{W}} \times \mathcal{T} \to [0,1]$ satisfies conditions i) and ii).
+            Define $K:\Tcal \rightarrow \Pcal(\Wcal): t\mapsto \tilde{K}(W|T=t)$.
+            If $t \in \mathcal{T}$, then $K(t) \in \mathcal{P}(\mathcal{W})$ according to condition i), which shows well-definedness of the map $K: \mathcal{T} \to \mathcal{P}(\mathcal{W})$.
+            We need to show that it is also measurable, i.e.\ that preimages of measurable sets are measurable.
+            Note that according to Definition \ref*{spaces_of_finite_and_prob_measures} the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$ is generated by sets of the form $\text{ev}_D^{-1}(A)$, where $D \subseteq \mathcal{W}$ is measurable, $A \subseteq [0,1]$ is measurable, and $\text{ev}_D: \mathcal{P(\mathcal{W})} \to [0,1]$ is an evaluation map.
+            For these generating sets, we obtain
+            \begin{align*}
+                K^{-1}(\text{ev}_D^{-1}(A)) & = \{ t \in T \mid K(t) \in \text{ev}_D^{-1}(A)\}         \\
+                                            & = \{t \in T \mid \text{ev}_D(K(t)) \in A\}               \\
+                                            & = \{t \in T \mid K(t)(D) \in A\}                         \\
+                                            & = \{t \in T \mid \tilde K(W\in D \mid T=t) \in A\}       \\
+                                            & = \tilde{K}(W\in D \mid \bullet)^{-1}(A) \in \Bcal_\Tcal
+            \end{align*}
+            according to condition ii). Using exercise \ref{generating-sets} and that the sets $\text{ev}_D^{-1}(A)$ generate the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$, this proves the measurability of $K$.
+        \end{enumerate}
+    \end{gradedsolution}
+
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,152 @@
+\chead{\textbf{Exercises week 4}}
+
+\begin{document}
+\flushleft\textbf{Topic: Markov kernels}
+
+
+\section{Markov kernels}
+\begin{enumerate} 
+\item
+    Show that a Markov kernel $K$ uniquely induces a measurable mapping:
+    \[ \bar K:\, \Tcal \to \Pcal(\Wcal),\quad  \bar K(t)(A):=K(A|t),  \]% t \mapsto K(X|T=t) = \lp A \mapsto K(X \in A|T=t) \rp\]
+    and vice versa. 
+    Recall the definition  of 4.2.10 
+     the $\sigma$-algebra of  $\Pcal(\Wcal)$ (see lecture notes).
+\end{enumerate}
+
+\section{Composition of Markov Kernels}
+\begin{enumerate}
+\item $Z, T, W$ are assumed to be finite discrete spaces with Markov kernels:\\
+ 
+  \[Q(Z|W):\, \Wcal \dshto \Zcal,\quad (C,w) \mapsto Q(Z \in C|W=w),  \]
+  \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+
+and stochastic matrices
+
+\[\tilde Q = 
+\begin{bmatrix}
+0.1 & 0.7 & 0.2 \\
+0.3 & 0   & 0.4 \\
+0.6 & 0.3 & 0.4 \\
+\end{bmatrix} 
+\qquad
+\tilde K = 
+\begin{bmatrix}
+0.2 & 0.1 & 0.6 \\
+0.3 & 0.1 & 0 \\
+0.5 & 0.8 & 0.4 \\
+\end{bmatrix}\]
+
+    
+Compute the composition of Markov kernels $P(Z|T):=Q(Z|W) \circ K(W|T)$ i.e . compute the stochastic matrix $\tilde P$.
+
+\item Prove the formula for the conditional Gaussian distribution ... [TBD: provide formula for conditional Gaussian].
+%let the students prove the formula for the conditional Gaussians (by multiplying conditional with marginal and see that the joint comes out.
+
+\item Consider the measurable spaces $T,W$ and $Z$ and the two continuous Markov kernels 
+
+  \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in dw|T=t),  \]
+
+  \[Q(Z|W):\, \Wcal \dshto \Zcal,\quad (C,w) \mapsto Q(Z \in dz|W=w),  \]
+
+where $D \subseteq W$ and $C \subseteq Z$ are measurable subsets and $Q(Z|W)$ and $K(W|T)$ are Gaussian kernels. A Gaussian kernel is defined as:
+ \[ k_t(x,y)= \frac{1}{\sqrt{2\pi}t}\exp \left(-(y-x)^2/(2t^2)\right) \]
+
+
+Compute the composition $P(Z|T):=Q(Z|W) \circ K(W|T)$. Provide steps through your derivations.
+
+\end{enumerate}
+
+\begin{gradedsolution}
+\begin{enumerate}
+\item $\tilde P = \begin{bmatrix}
+0.33 & 0.24 & 0.14 \\
+0.26 & 0.35 & 0.34 \\
+0.41 & 0.41 & 0.52 \\
+\end{bmatrix}$.
+
+\item Multiply conditional Gaussian p(x|y) with marginal p(y) and show that joint p(x,y) Gaussian comes out.
+
+\item \begin{align*}
+P(Z|T) &= \int_C Q(z \in dz| W=w) K(W\in dw|T=t) \\
+ &= \int_C q(z|w)dz \; k(w|t)dw \\
+ &= \int_C \frac{1}{\sqrt{2\pi}\sigma_q}\exp \left(-(z-w)^2/(2\sigma_q^2)\right) \; \frac{1}{\sqrt{2\pi}\sigma_k}\exp \left(-(w-t)^2/(2\sigma_k^2)\right)dzdw\\
+ &=  \int_C \frac{1}{2\pi\sigma_q \sigma_k}\exp \left(-(z-w)^2/(2\sigma_q^2) - (w-t)^2/(2\sigma_k^2)\right)  dzdw\\
+\end{align*} 
+
+\end{enumerate}
+\end{gradedsolution}
+
+
+\section{Conditional Independence of Random Variables}
+\begin{enumerate}
+\item Consider the discrete random vector $(X, Y, Z)$ with joint PMF given by
+
+
+\begin{table}[htb!]
+\centering
+\begin{tabular}{llll}
+\cline{3-4}
+                                           & \multicolumn{1}{l|}{}    & \multicolumn{1}{l|}{y=10} & \multicolumn{1}{l|}{y=20} \\ \hline
+\multicolumn{1}{|c|}{\multirow{3}{*}{z=1}} & \multicolumn{1}{l|}{x=1} & \multicolumn{1}{l|}{0.2}  & \multicolumn{1}{l|}{0.1}  \\ \cline{2-4} 
+\multicolumn{1}{|c|}{}                     & \multicolumn{1}{l|}{x=2} & \multicolumn{1}{l|}{0.3}  & \multicolumn{1}{l|}{0.1}  \\ \cline{2-4} 
+\multicolumn{1}{|c|}{}                     & \multicolumn{1}{l|}{x=3} & \multicolumn{1}{l|}{0.1}  & \multicolumn{1}{l|}{0.2}  \\ \hline
+\multicolumn{1}{|l|}{\multirow{3}{*}{z=2}} & \multicolumn{1}{l|}{x=1} & \multicolumn{1}{l|}{0.2}  & \multicolumn{1}{l|}{0.5}  \\ \cline{2-4} 
+\multicolumn{1}{|l|}{}                     & \multicolumn{1}{l|}{x=2} & \multicolumn{1}{l|}{0.6}  & \multicolumn{1}{l|}{0}    \\ \cline{2-4} 
+\multicolumn{1}{|l|}{}                     & \multicolumn{1}{l|}{x=3} & \multicolumn{1}{l|}{0}    & \multicolumn{1}{l|}{0.7}  \\ \hline
+                                           &                          &                           &                           \\
+                                           &                          &                           &                          
+\end{tabular}
+\caption{Joint PMF of random vector (X, Y, Z).}
+\end{table}\label{discrete-ci}
+
+Check if $X$ is independent of $Y$ given $Z$. Provide the steps through your derivations.
+
+\item Consider the random variables $X,Y,Z$ which jointly follow a Gaussian distribution: \\
+
+$$\begin{bmatrix} X \\ Y \\ Z \end{bmatrix} \sim \mathcal{N}\left( \begin{bmatrix}
+\mu_x \\ \mu_y \\ \mu_z \\
+\end{bmatrix}, \begin{bmatrix}
+\Sigma_{xx} & 0 & 0\\
+0 & \Sigma_{yy} & 0\\
+0 & 0 & \Sigma_{zz}\\
+\end{bmatrix} \right)$$
+
+Check if $X$ is independent of $Y$ given $Z$ and provide the steps through your derivations.
+
+\item Let $X,Y,Z,U$ be random variables following PMFs $P_x, P_y, P_z, P_u$. Prove that the 5 separoid axioms for the random variables hold:
+
+\begin{enumerate}
+\item Redundancy X \indep Y 
+\item Symmetry
+\item (left) contraction
+\item (left) weak union
+\item (left) decomposition
+\end{enumerate}
+(5$\times$1 pts)
+\end{enumerate}
+
+\begin{gradedsolution}
+\begin{enumerate}
+\item 
+\item Answer: show that the conditional PDFs are the marginals regardless of the value of the conditioning variable.
+\item 
+
+\begin{enumerate}
+\item Redundancy: 
+\[ P_x(X,Y|X) = \frac{P(X,Y|X)}{P(X)} = \frac{P(Y|X)P(X)}{P(X)}]\]
+marginalize over X:
+
+\[ P_x(X,Y|X) = \sum_X P(Y|X)=P(Y)\]
+\item Symmetry: 
+\item (left) contraction
+\item (left) weak union
+\item (left) decomposition
+\end{enumerate}
+(5$\times$1 pts)
+\end{enumerate}
+
+\end{gradedsolution}
+
+
+\end{document}

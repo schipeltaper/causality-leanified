@@ -1,0 +1,95 @@
+% !TEX root = hw11-answers.tex
+\chead{\textbf{Exercises week 11}}
+\begin{document}
+\flushleft\textbf{Topic: Causal Discovery}
+
+\section{Reichenbach's Principle of Common Cause}
+Reichenbach's Principle of Common Cause states that if two events are dependent,
+then one must cause the other or the events are confounded (or any combination of these three possibilities).
+We can make this precise for simple SCMs in the following way. Assume that $\C{M}$
+is a simple SCM with two observed endogenous variables $X,Y$ (and possibly other
+latent variables as well, but no exogenous input nodes). Prove that 
+$X \not\Indep_{P_{\C{M}}} Y$
+implies that $X \to Y$,
+$X \ot Y$ or $X \oto Y$ in $G^{\{X,Y\}}(\C{M})$. (1 pt)
+
+\begin{gradedsolution}
+Assume that $X \to Y$, $X \ot Y$ and $X \oto Y$ \textbf{not} in $G^{\{X,Y\}}(\C{M})$. Then $X$ is d-separated from $Y$, and thus by Markov property $X \Indep_{P_{\C{M}}} Y$, which is a contradiction.
+\end{gradedsolution}
+
+\section{Randomized Controlled Trial assumptions}
+Two key assumptions of {Randomized Controlled Trials with treatment variable $C$ and  are:
+\begin{enumerate}
+	\item outcome $X$ does not cause treatment $C$; (1/2 pt)
+	\item outcome $X$ and treatment $C$ are not confounded, i.e., the values for
+	 the treatment variable are assigned independently of other (latent) factors that may influence
+	 the outcome. (1/2 pt)
+  \end{enumerate}
+
+Think like a conspiracy theorist and imagine situations in which the first assumption is not valid. Do the same for the second assumption.
+
+\begin{gradedsolution}
+	For example:
+	\begin{enumerate}
+		\item In a trial with a placebo, the doctor overseeing the coinflip might override the coinflip to assign patients to the non-placebo who are somehow more likely to benefit.
+		\item When choosing between treatment $A$ and $B$, doctors might prefer treatment $B$ on less severe cases (see Kidney stone example of Simpons Paradox). 
+	\end{enumerate}
+\end{gradedsolution}
+
+\section{Marginalization preserves separation}
+By marginalizing out all variables in $V \cup W$ except $a$ and $b$, give short proofs of:
+\begin{enumerate}
+	\item Proposition 9.1.2: Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be a simple SCM with graph $G = G(\C{M})$.
+	Let $a \in V \cup W \cup J$ and $b \in V$.
+	If $a \notin \Anc^G(b)$, then:
+	$$P_{\C{M}}(X_b \given \doit(X_{J\cup \{a\}})) = P_{\C{M}}(X_b \given \doit(X_{J\setminus \{a\}})).$$ (1 pt)
+	\item Proposition 9.3.3:  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be a simple SCM with graph $G = G(\C{M})$.
+	Let $a \ne b \in V$.
+	If $b \notin \Anc^G(a)$ and $a$ and $b$ are not confounded according to $\C{M}$, then
+	%$b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+	%Rule 2 of the do-calculus gives 
+	  $P_{\C{M}}(X_b \given \doit(X_a), \doit(X_J)) = P_{\C{M}}(X_b \given X_a, \doit(X_J))$. (1 pt)
+\end{enumerate}
+
+\begin{gradedsolution}
+\begin{enumerate}
+	\item After marginalization we only retain variables $a$ and $b$ and all variables in $J$. Let us first consider the case $a \in V \cup W$. We will show that 
+	$$b \Perp^\sigma_{G_{\doit(I_a)}} I_a \mid J \setminus \{a\}.$$
+	Since $a$ is not an ancestor of $b$ and all edges from $J$ are outgoing, $a$ can only have incoming edges. Consider a walk from $b$ to $I_a \cup J$. Any walk from $b$ to $J$ is $\sigma$-blocked since we condition on the end points. Any walk from $b$ to $I_a$ must go through $a$, which is a collider since it only has incoming edges and is not conditioned on. Therefore the separation holds.
+	Now consider the case $a \in J$. We will show that
+	$$b \Perp^\sigma_{G} a \mid J \setminus \{a\}.$$
+	Since $a \in J$, the only possible edge from $a$ is an edge to the only non-input variable $b$. But since $a \notin \Anc^G(b)$, $a$ has no edges. Consider a walk from $b$ to $J$. The node $a$ can not be an endpoint since it has no edges. On the other hand if the end point is in $J \setminus \{a\}$ it is $\sigma-$blocked by our conditioning. Thus the $\sigma$-separation holds.\\
+	In both cases, rule 3 of do-calculus yields the result.
+	\item After marginalization we only retain variables $a$ and $b$ and all variables in $J$. We will show that the assumptions imply $b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+	
+	Since $b \notin \Anc^G(a)$ and $a$ and $b$ are not confounded, the we have either $a \to b$ or no edge between $a$ and $b$. Consider a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$. It cannot contain nodes from $J$ as such a node would either be an end node of the walk ($\sigma$-blocking it) or a non-collider node pointing only to nodes in another strongly connected component of $G_{\doit(I_a)}$
+	($\sigma$-blocking the walk). Thus the only possible walk is $I_a \to a \to b$, which is $\sigma$-blocked by conditioning on $a$. Hence the $\sigma$-separation holds.
+
+	Invoking rule 2 of the do-calculus then yields the result.
+\end{enumerate}
+\end{gradedsolution}
+
+\section{Y-structures}
+Prove proposition 9.8.1 by using the global Markov property and the faithfulness assumption, and showing that the only (cyclic or acyclic) graphs that are compatible with the observed
+conditional independences are the ones in Figure 11, similarly as how is done in the proof of LCD (proposition  9.7.1). (1 pt)
+
+\begin{gradedsolution}
+	We have the conditional (in)dependencies:
+
+	$$\begin{array}{lll}
+		X_1 \not\Indep X_4,  & X_2 \not\Indep X_4, & X_1 \Indep X_2, \\
+		X_1 \Indep X_4 \given X_3, & X_2 \Indep X_4 \given X_3, & X_1 \not\Indep X_2 \given X_3,
+	  \end{array}$$
+	
+	By faithfulness assumption, from $X_1 \Indep X_2$, $X_1 \Indep X_4 \given X_3$ and $ X_2 \Indep X_4 \given X_3$ it respectively follows that there can be no direct edge between $X_1$ and $X_2$, between $X_1$ and $X_4$ and between $X_2$ and $X_4$, because otherwise the corresponding $\sigma$-separations do not hold. However, since $X_1 \not\Indep X_4$ and  $X_2 \not\Indep X_4$, there must exists a walk from $X_1$ to $X_4$ and a walk from $X_2$ to $X_4$, which by necessity must go through the only other node $X_3$. These facts together imply that there can only be edges between $X_3$ and the other nodes, and the graph is connected.
+
+	Since $X_1 \Indep X_2$ and $X_1 \not\Indep X_2 \given X_3$, it follows that $X_3$ is a collider on the walk from $X_1$ to $X_2$. Therefore, any edges between $X_1$ and $X_3$ and $X_2$ and $X_3$ must have an arrowhead pointing into $X_3$.
+
+	Finally, since $X_1 \not\Indep X_4$ and $X_1 \Indep X_4 \given X_3$, conditioning on $X_3$ must block the path from $X_1$ to $X_4$, therefore it cannot be a collider on this walk. As we have shown, edges between $X_1$ and $X_3$ must have an arrow pointing into $X_3$. Therefore, the edge between $X_4$ and $X_3$ cannot have an arrow pointing into $X_3$. It follows that $X_3 \to X_4$.
+	
+	With these facts taken together, it is easy to see that the only possible graphs are those drawn in figure 3.
+	
+
+\end{gradedsolution}
+
+\end{document}

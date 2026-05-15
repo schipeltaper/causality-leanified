@@ -1,0 +1,857 @@
+\section{Causal Discovery}
+
+\Joris{Change title to Causal Inference?}
+
+\subsection{Randomized Controlled Trials}
+
+The notion of randomized controlled trials (also known as A/B-testing in engineering), 
+is centuries old. It was already proposed by the Flemish physician Jan Baptista van
+Helmont \cite{vanHelmont1648} in 1648. As of today, it still provides the `gold standard'
+for discovering causal relations and for the estimation of causal effects.
+
+The experimental procedure is as follows.
+Consider two variables, ``treatment'' $C$ and ``outcome'' $X$. 
+In the simplest setting, one considers a 
+binary treatment variable, where $C=1$ corresponds to ``treat with drug'' and
+$C=0$ corresponds to ``treat with placebo'' in a medical setting, or with ``arm A''
+and ``arm B'' in an engineering setting. For example, the drug could be aspirin,
+and outcome could be the severity of headache perceived two
+hours later. Patients are split into two groups,
+the treatment and the control group, by means of a coin flip that assigns a value
+of $C$ to every patient.\footnote{Usually this is done in a double-blind way, so
+that neither the patient nor the doctor knows which group a patient has been assigned
+to.} Patients are treated depending on the assigned value of $C$, i.e., patients in the
+treatment group are treated with the drug and patients in the control group are treated
+with a placebo. Some time after treatment, the outcome $X$ is measured for each patient. 
+This yields a data set $(C_n,X_n)_{n=1}^N$
+with two measurements ($C_n$, $X_n$) for the $n^{\mathrm{th}}$ patient. 
+If the distribution of outcome $X$ significantly differs between the two groups,
+one concludes that treatment is a cause of outcome. 
+
+Let us formalize this in the causal modeling language of SCMs.
+%\footnote{From now on, we will mostly work with SCMs, although if feedback cycles can be ruled out a priori, one could also use L-CBNs instead.}
+Apart from that treatment may have a causal 
+effect on outcome, there are likely many other factors that influence outcome. Some
+have been measured, others not. For obvious practical reasons, we are not going 
+to explicitly model \emph{all} of them. Formally, we will assume that an accurate
+causal model of the situation is provided by some (unknown) simple SCM with observed
+variables $C$ and $X$, and possibly other latent variables.
+We will consider the outcome variable $X$ as endogenous. 
+But what type of variable should we consider
+the treatment variable $C$ to be (which is not necessarily binary)?
+We have three possibilities: exogenous input, exogenous random, and endogenous. We will
+discuss each of these three possibilities in sequence.
+
+Let us start by considering the treatment variable $C$ as an exogenous input variable. 
+We are interested in answering two questions. The first is
+``Does treatment cause outcome?'', where we interpret this question as that the 
+hypothetical causal relation should hold according to the underlying SCM $M$. 
+In terms of the observable graph $G_{X|C}(M)$,
+this is then equivalent to asking ``Is $C \tuh X$ in $G_{X|C}(M)$?''.
+The second question is ``What is the causal effect of treatment on outcome?''.
+We interpret this as asking for the Markov kernel $P_{M}(X \mid \doit(C))$.
+\begin{Prp}\label{prp:RCT1}
+Let $M$ be a simple SCM with a single exogenous input variable $C$ and an 
+endogenous variable $X$, both of which are observed (and possibly other latent variables as well).
+A dependence 
+  \begin{equation}\label{eq:RCT_CI_statement1}
+    X \nIndep_{P_{M}(X\mid\doit(C))} C 
+  \end{equation}
+implies that $C$ causes $X$ according to $M$. 
+\end{Prp}
+\begin{proof}
+This follows immediately from Proposition~\ref{prp:scm_causes_separation}.
+\end{proof}
+
+Alternatively, we can consider the treatment variable as an exogenous \emph{random} variable.
+\begin{Prp}\label{prp:RCT2}
+Let $\bar{M}$ be a simple SCM with an exogenous random variable $C$ and an endogenous 
+variable $X$, both of which are observed (and possibly other latent variables as well).
+A dependence 
+  \begin{equation}\label{eq:RCT_CI_statement2}
+    X \nIndep_{P_{\bar{M}}(X,C)} C 
+  \end{equation}
+implies that $C$ causes $X$ according to $\bar{M}$.
+The causal effect of $C$ on $X$ satisfies:
+  \begin{equation}\label{eq:RCT_causal_effect2}
+    P_{\bar{M}}\big(X \given \doit(C)\big) = P_{\bar{M}}(X \given C) \qquad P_{\bar{M}}(C)\text{-a.s.}.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+Denote the observable graph as $\bar{G} := G_{\{C,X\}}(\bar{M})$.
+It has two nodes, and it either has no edge at all, in which case $C$ does not cause $X$ according to
+$\bar{M}$, or it has a single edge $C \tuh X$, in which case $C$ causes $X$ according to $\bar{M}$.
+By the Markov property (Corollary~\ref{cor:gmp_simple_scm}), if the edge $C \tuh X$ were absent in $\bar{G}$, 
+then $X \Indep_{P_{\bar{M}}(X,C)} C$. 
+%Therefore, if $X \nIndep C$, the edge $C \to X$ must be in $\tilde{G}$. 
+In both cases, rule 2 of the causal do-calculus applied to $\bar{G}$ yields the identity \eref{eq:RCT_causal_effect2}. 
+\end{proof}
+
+A third option is to consider the treatment variable as \emph{endogenous}.
+One situation in which this makes sense is so-called ``imperfect compliance''.
+If trial subjects do not all comply with prescribed treatment, for whatever reasons, 
+then we can no longer identify the coin flip outcome with treatment,
+(even though coin flip outcome may still be an important cause of treatment). 
+In this modeling variant, we assume the existence of a simple SCM $M$
+with endogenous variables $C, X$, both of which are observed, and possibly other
+latent variables that provides an accurate model. $C$ here retains the meaning
+of treatment (but is no longer necessarily identifiable with the coin
+flip result).
+%Again, we can invoke
+%Corollary \ref{cor:scm_identify_causal_relation} to answer the question
+%``Does treatment cause outcome?''. 
+Under additional assumptions regarding the exogeneity of the treatment variable,
+we again obtain a similar statement as before.
+\begin{Prp}\label{prp:RCT3}
+Let $\tilde{M}$ be a simple SCM with two observed endogenous variables $C, X$
+(and possibly other latent variables as well).
+Under the following two assumptions:
+  \begin{enumerate}
+    \item $X$ does not cause $C$ according to $\tilde{M}$, and
+    \item $C$ and $X$ are unconfounded according to $\tilde{M}$,
+  \end{enumerate}
+a dependence 
+  \begin{equation}\label{eq:RCT_CI_statement3}
+    X \nIndep_{P_{\tilde{M}}(X,C)} C
+  \end{equation}
+  implies that $C$ causes $X$ according to $\tilde{M}$, and the causal effect of $C$ on $X$ satisfies:
+  \begin{equation}\label{eq:RCT_causal_effect3}
+    P_{\tilde{M}}\big(X \given \doit(C)\big) = P_{\tilde{M}}(X \given C) \qquad P_{\tilde{M}}(C)\text{-a.s.}.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+Denote the observable graph as $\tilde{G} := G_{\{C,X\}}(\tilde{M})$.
+The first assumption is equivalent to 
+$C \hut X \notin \tilde{G}$, and the second assumption is equivalent to
+$C \huh X \notin \tilde{G}$.
+Hence, out of the eight possible graphs $\tilde{G}$, only two satisfy the assumptions:\\
+  \begin{center}\scalebox{0.8}{\begin{tikzpicture}
+  \begin{scope}
+%    \node at (0,-0.8) {$X \Indep C$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+  \end{scope}
+  \begin{scope}[xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \end{tikzpicture}}\end{center}
+By the Markov property, if the edge $C \tuh X$ were absent in $\tilde{G}$, 
+then $X \Indep_{P_{\tilde{M}}(X,C)} C$. 
+In both cases, rule 2 of the causal do-calculus applied to $\tilde{G}$ yields the identity \eref{eq:RCT_causal_effect3}. 
+\end{proof}
+
+Equation \eref{eq:RCT_CI_statement1} is equivalent to the existence of values $c,c' \in \CX_C$ such that
+  $$P_{M}(X \given \doit(C=c)) \ne P_{M}(X \given \doit(C=c')).$$
+Equation \eref{eq:RCT_CI_statement2} is equivalent to the existence of values 
+  $$P_{\bar{M}}(X \given C=c) \ne P_{\bar{M}}(X \given C=c')$$
+  for every version of $P_{\bar{M}}(X \given C)$ (and something similar holds for equation \eref{eq:RCT_CI_statement3}).
+These two statements are subtly different. We will see in the next chapter, that as long
+as $C$ is discrete, they are actually not that different when testing these statements from 
+a finite sample. 
+
+Apart from assuming that there exists a simple SCM that provides an accurate model,
+in all three cases, we made the following (implicit or explicit) causal assumptions regarding 
+the treatment variable:
+\begin{enumerate}
+  \item outcome $X$ does not cause treatment $C$;
+  \item outcome $X$ and treatment $C$ are unconfounded.
+\end{enumerate}
+The first assumption is commonly deemed justified if the outcome is an event that occurs later in time than the treatment event.\footnote{The only exception seems to be certain scenarios involving time travel in science fiction novels/movies.}
+The second assumption is usually defended by appealing to randomization.
+Indeed, if treatment is decided solely by a coin flip, then it seems hard to imagine some factor that can influence the outcome of the coin flip and also influence the outcome $X$.\footnote{Perhaps an almighty God could be such a factor.}
+If in addition it is ensured that all subjects are included in the data set, to avoid introducing selection bias, then it is hard to conceive of any remaining source of confounding bias between outcome $X$ and treatment $C$.\footnote{An example in which selection bias would be present is if patients in the placebo group that become too ill drop out of the study (for example, for ethical reasons) and are not included in the data.}
+
+\begin{figure}\centering\begin{tikzpicture}
+    \node at (0,2.2) {(a) Two separate data sets:};
+    \node[anchor=east] at (-3.5,0) {\scalebox{0.8}{\small\begin{tabular}{c}
+      Placebo \\
+      ($C=0$): \\
+      \hline
+      $X$ \\
+      \hline
+      \color{blue!70}-0.2 \\
+      \color{blue!70} 0.6 \\
+      \color{blue!70}-1.7 \\
+      \color{blue!70}\dots \\
+      \hline
+    \end{tabular}}};
+    \node at (-2,0) {\includegraphics[width=3cm]{RCThistogram0.pdf}};
+
+    \node[anchor=east] at (1.5,0) {\scalebox{0.8}{\small\begin{tabular}{c}
+      Drug \\
+      ($C=1$): \\
+      \hline
+      $X$ \\
+      \hline
+      \color{red!70} -0.3 \\
+      \color{red!70} 1.8  \\ 
+      \color{red!70} -0.1 \\ 
+      \color{red!70} \dots  \\ 
+      \hline
+    \end{tabular}}};
+    \node at (3,0) {\includegraphics[width=3cm]{RCThistogram1.pdf}};
+
+    \begin{scope}[xshift=6.9cm]
+    \node at (0,2.2) {(b) Pooled data:};
+    \node[anchor=east] at (0,0) {\scalebox{0.8}{\small\begin{tabular}{cc}
+      $C$ & $X$ \\
+      \hline
+      0 & \color{blue!70}-0.2 \\
+      0 & \color{blue!70} 0.6 \\
+      0 & \color{blue!70}-1.7 \\
+      0 & \color{blue!70}\dots \\
+      1 & \color{red!70} -0.3 \\
+      1 & \color{red!70} 1.8  \\ 
+      1 & \color{red!70} -0.1  \\ 
+      1 & \color{red!70} \dots \\ 
+      \hline
+    \end{tabular}}};
+%    \node at (0,-5) {\includegraphics[width=3cm]{RCThistogram01.pdf}};
+      \node at (1.5,0) {\includegraphics[width=3cm,trim={0cm 3mm 0cm 0cm},clip]{RCThistogram01b.pdf}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Illustration of the data from an example randomized controlled trial. When treatment $C$ is
+  randomized, the data can either be interpreted
+  as (a) two separate data sets, one for the treatment and one for the control group, or (b) 
+  as a single data set including a context variable indicating treatment/control. Note that in this
+  particular example, $C$ is dependent on $X$ in the pooled data (or equivalently, the distribution of $X$
+  differs between contexts $C=0$ and $C=1$), which implies that $C$ is a cause of $X$.\label{fig:RCT_example}}
+\end{figure}
+
+We have shown (in three slightly different ways) that under these assumptions, 
+if the distribution of the outcome $X$ differs between the two groups of
+patients (``treatment group'' with $C=1$ vs.\ ``control group'' with $C=0$), 
+then treatment must be a cause of outcome, at least in this population of patients.
+Supposing that treatment is completely randomized,
+there are two conceptually different ways of testing this in the data, depending on whether
+we treat the data as a single pooled data set, or rather as two separate data sets (each one corresponding 
+to a particular patient group), see also Figure~\ref{fig:RCT_example}.
+To test whether $P(X \given \doit(C=0)) \ne P(X \given \doit(C=1))$,
+we can test whether the 
+distribution of $X$ is statistically different in the two groups. This can 
+be tested with a two-sample test, for example, a $t$-test or a Wilcoxon test. 
+The other alternative is to consider the data as a single \emph{pooled} data set. 
+The question then becomes whether the
+conditional distribution of $X$ given $C=0$ differs from the conditional distribution
+of $X$ given $C=1$, i.e., whether $P(X \given C=0) \ne P(X \given C=1)$. 
+This can be done with a conditional independence test, for example, Fisher's exact test,
+or a partial correlation test.
+In the next lecture, we will look in more detail at possible tests.
+
+In the end, the three ways of modeling the RCT are only slightly different. If one
+formally considers treatment as an exogenous input variable, but then also assumes
+that its values are randomly assigned, then the differences are purely cosmetical.
+However, there is one advantage that the exogenous input approach has over the other
+two: here we do not model \emph{at all} how the values of treatment are chosen
+(except for the exogeneity assumptions). This allows more freedom in the experimental
+design and sampling scheme design. For example, one can decide ahead of the RCT that 
+the sampling scheme should end up with an equal number of patients in both groups. 
+In case treatment is assigned by flipping a coin for each patient, it is rather unlikely
+that we end up with exactly the same number of patients in both groups. 
+
+A fourth way to formalize the randomized controlled setting is by using potential outcomes.
+For a binary treatment variable, we introduce two random variables per patient:
+$X^{\doit(c_n=1)}_n$ and $X^{\doit(c_n=0)}_n$, corresponding to the potential outcomes for
+the $n$'th patient if we treat the patient, or not, respectively. 
+Given the actual treatment $C_n$, we then define the actual outcome as 
+$X_n := X_n^{\doit(c_n=C_n)}$. In practice, we only observe the actual outcome, and the
+other potential outcome remains latent. 
+
+
+\subsection{Estimating average treatment effects}
+
+The task of estimating the causal effect of treatment on outcome is then often formulated as estimating the
+\emph{average treatment effect (ATE)}
+$$\tau := \Exp(X_n^{\doit(c_n=1)} - X_n^{\doit(c_n=0)}).$$
+To do so, one assumes that $C_n$ is randomized. This motivates the assumption
+that treatment and outcome are unconfounded, i.e., with Proposition~\ref{prp:potential_outcome_unconfoundedness}:
+%$$X_n = X_n^{\doit(C_n)}$$
+$$X_n^{\doit(c_n=0)} \Indep C_n, \qquad X_n^{\doit(c_n=1)} \Indep C_n.$$
+One can then show that the difference-in-means estimator 
+$$\hat{\tau} := \frac{1}{|n : C_n=1|} \sum_{n=1 \atop C_n=1}^N X_n - \frac{1}{|n : C_n=0|} \sum_{n=1 \atop C_n=0}^N X_n$$
+is an unbiased, consistent estimator of the ATE $\tau$.
+Curiously enough, while we can speak of the difference
+$X_n^{\doit(c_n=1)} - X_n^{\doit(c_n=0)}$ as the individual treatment effect,
+this is a fundamentally unobservable quantity; however, the average treatment effect can 
+be estimated from observed data. In the SCM setting, we can think of the potential
+outcomes as counterfactuals in a twin SCM. However, when assuming an underlying SCM,
+there is no need to go to the counterfactual level, as one can simply define the
+ATE as
+$$\tau := \Exp_{M}(X \given \doit(C=1)) - \Exp_{M}(X \given \doit(C=0)).$$
+In the presence of observed covariates $Z$, one often considers also the \emph{conditional
+average treatment effect (CATE)}, which we can define as
+$$\Exp_{M}(X \given \doit(C=1),Z) - \Exp_{M}(X \given \doit(C=0),Z).$$
+when assuming an underlying SCM. There is a large body of literature that considers the
+question of studying the (asymptotic) efficiency of estimators of the (conditional)
+average treatment effect. For a nice account of this surprisingly non-trivial inference problem, 
+see e.g.\ \cite{Wager2020}.
+
+
+\subsection{Faithfulness}
+
+The converse statement of the global Markov property for simple SCMs (Corollary~\ref{cor:gmp_simple_scm})
+and for causal Bayesian networks (Theorem~\ref{thm-gmp-mCBN}) is called ``faithfulness''.
+\begin{Def}\label{def:faithfulness}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  $M$ is called \emph{$\sigma$-faithful} if 
+  for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint):
+  \begin{equation}\label{eq:sigma_faithful}
+    A \Perp^\sigma_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C
+  \end{equation}
+  It is called \emph{$d$-faithful} if
+  for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint):
+  \begin{equation}\label{eq:d_faithful}
+    A \Perp^d_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C
+  \end{equation}
+%  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+%  $$A \Perp^\sigma_{G(M)} J \cup B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+  For a subset $O \subseteq V \cup W$, we say that $M$ is \emph{$\sigma$-faithful w.r.t.\ $O$} if
+  \eref{eq:sigma_faithful} holds for all (not necessarily disjoint) $A, B, C \ins J \cup O$, and we define
+  \emph{$d$-faithful w.r.t.\ $O$} analogously.
+\end{Def}
+In words, a simple SCM is called $\sigma$-faithful ($d$-faithful) if each conditional independence in the induced Markov kernel
+is due to a $\sigma$-separation ($d$-separation).
+\begin{Rem}
+These notions behave properly under marginalization: a simple SCM $M$ is $\sigma$/$d$-faithful w.r.t.\ $O$ if and only if
+its marginalization $M_O$ is $\sigma$/$d$-faithful.
+\end{Rem}
+
+Faithfulness may fail for various reasons:
+\begin{itemize}
+  \item Deterministic relationships may lead to additional conditional independences, but are not exploited by the Markov property;
+  \item Effects may cancel out;
+  \item If cycles are present, and (i) all variables are discrete, or (ii) interactions are linear;
+  \item If cycles are present, and the system is ``perfectly adapting''.
+\end{itemize}
+
+An example of a deterministic relationship leading to a faithfulness violation is the following.
+\begin{Eg}
+  Take an SCM with three endogenous variables $X,Y,Z$ and two exogenous random variables $U,W$, with structural equations
+  $$X = 5, \qquad Y = X + U, \qquad Z = X + W.$$
+  Then $Y \nPerp Z$ but $Y \Indep Z$.
+  This simple (even acyclic) SCM is not faithful due to $X$ being constant.
+\end{Eg}
+The next example illustrates how canceling effect may lead to a faithfulness violation.
+\begin{Eg}
+  Take an SCM with three endogenous variables $X,Y,Z$ and three exogenous random variables $W_X,W_Y,W_Z$, with structural equations
+  $$X = W_X, \qquad Y = X + W_Y, \qquad Z = Y - X + W_Z.$$
+  Then $X \nPerp Z$ but $X \Indep Z$.
+\end{Eg}
+One can show that in certain special cases, the global Markov property in terms of $d$-separation even holds for simple SCMs.
+\begin{Prp}\label{prp:when_d-separation_holds}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  If $J = \emptyset$ and one of the three conditions applies:
+  \begin{enumerate}
+    \item all spaces $\CX_v$ with $v \in V$ are discrete, or
+    \item the causal mechanism $f$ is affine and the exogenous distribution has a density w.r.t.\ Lebesgue measure, or
+    \item $M$ is acyclic,
+  \end{enumerate} 
+  then for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint):
+  $$A \Perp^d_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+\end{Prp}
+The proofs are given in \cite{FM17}.
+
+\begin{comment}
+The following:
+$$X_A \Indep_{P_{M}(V,W|J)} X_B \given X_C,$$
+implies that for every probability distribution $Q(J) \in \Pcal(\CXJ)$ we have the conditional independence:
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B,X_J \given X_C\]
+
+We can now make the following faithfulness assumption:
+assume that
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B, X_J \given X_C\]
+for all $Q(J) \in \Pcal(\CXJ)$ 
+implies
+\[ A \Perp^\sigma_{G(M)} B \given C\]
+By the Markov property, then, we conclude
+  $$X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C$$
+
+Thus under that faithfulness assumption, we have
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B,X_J \given X_C\]
+for all $Q(J) \in \Pcal(\CXJ)$ if and only if
+\[ A \Perp^\sigma_{G(M)} B \given C\]
+if and only if
+\[ A \Perp^\sigma_{\hat{G}(M)} B \cup J \given C\]
+where $\hat{G}(M)$ is like $G(M)$ but with bidirected edges between all input nodes,
+and then input nodes replaced by normal nodes. This means that we have reformulated 
+everything in terms of older concepts. However, to arrive at this conclusion, our long
+excursion was necessary. And under this particular faithfulness assumption, all statements
+in Theorem~\ref{thm-ci-equivalences} are equivalent, and also equivalent to the 
+corresponding $\sigma$-separation.
+
+With the newer concepts, we can alternatively assume
+  $$X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C$$
+implies
+\[ A \Perp^\sigma_{G(M)} B \given C\]
+
+But I think we need something else. It would be nice if we could assume that if
+\[ X_A \Indep_{P_{M}(V,W|J)\otimes Q(J)} X_B, X_J \given X_C\]
+for \emph{some} $Q(J) \in \Pcal(\CXJ)$, then
+\[ A \Perp^\sigma_{G(M)} B \given C\]
+\end{comment}
+
+\subsection{Local Causal Discovery}
+Although the most reliable way to discover causal relations and to estimate their effects
+is by means of a randomized controlled trial, it is not always possible or feasible to 
+perform such an experiment. One alternative is provided by the Local Causal Discovery
+(LCD) algorithm \cite{Cooper1997}.
+
+LCD is a \emph{constraint-based} causal discovery algorithm which means that it discovers
+causal relations by combining the results of conditional independence tests on data.
+It can be used for the purely observational causal discovery setting where certain background knowledge is available
+that is weaker than that for the randomized controlled trial. In particular, no randomization is necessary.
+
+The basic idea behind the LCD algorithm is the following result of \cite{Cooper1997}
+(originally formulated for L-CBNs, but easily generalized to simple SCMs):
+\begin{Prp}\label{prp:LCD}
+  Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3\} \subseteq V$ and no exogenous input variables ($J = \emptyset$).
+  Suppose that it is $\sigma$-faithful (w.r.t.\ $O$). 
+  If $X_2$ is not a cause of $X_1$ according to $M$,
+  the following conditional (in)dependencies\footnote{Henceforth, we will no longer always explicitly write
+  the Markov kernel as a subscript to the conditional independence symbol if it is clear
+  from the context which Markov kernel is meant.} in the observational distribution $P_{M}(X_1,X_2,X_3)$
+  $$X_1 \nIndep X_2, \quad X_2 \nIndep X_3, \quad X_1 \Indep X_3 \given X_2$$
+  imply that the observable graph $G_O(M)$ must be one of the three DMGs in Figure~\ref{fig:LCD}. 
+  Hence,
+  \begin{enumerate}
+%  \item $X_2$ is a cause of $X_3$;
+  \item $X_3$ is not a cause of $X_2$ according to $M$;
+  \item $X_2$ is a direct cause of $X_3$ w.r.t\ $\{1,2,3\}$ according to $M$;
+  \item $X_2$ and $X_3$ are unconfounded according to $M$;
+  \item the causal effect of $X_2$ on $X_3$ according to $M$ is given by:
+    \begin{equation}\label{eq:LCD}
+      P_{M}\big(X_3 \given \doit(X_2)\big) = P_{M}(X_3 \given X_2) \qquad P_M(X_2)\text{-a.s.}.
+    \end{equation}
+  \end{enumerate}
+\end{Prp}
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{All possible observable graphs detected by LCD.\label{fig:LCD}}
+\end{figure}
+\begin{proof}
+The proof proceeds by enumerating all (possibly cyclic) DMGs on three variables that the observable graph
+$G_O(M)$ could be, and ruling out the ones that do not satisfy the assumptions.
+The assumption that $X_2$ is not a cause of $X_1$ implies that there is no directed edge
+$X_2 \tuh X_1$ in the graph $G_O(M)$. If there were an edge between $X_1$ and $X_3$,
+$X_1 \Indep X_3 \given X_2$ would not hold (faithfulness). Also, since $X_1 \nIndep X_2$, $X_1$ and
+$X_2$ must be adjacent (Markov property). Similarly, $X_2$ and $X_3$ must be adjacent. $X_2$ cannot be
+a collider on any walk between $X_1$ and $X_3$ (faithfulness). Since the only possible edges between
+$X_1$ and $X_2$ are $X_1 \tuh X_2$ and $X_1 \huh X_2$ (both of which are into $X_2$), 
+this means that there must be a
+directed edge $X_2 \tuh X_3$, but there cannot be a  bidirected edge $X_2 \huh X_3$ or directed edge $X_2 \hut X_3$. 
+In other words, the only three possible graphs are the ones in Figure~\ref{fig:LCD}.
+The causal do-calculus applied to $G_O(M)$ yields \eref{eq:LCD}.
+\end{proof}
+
+In one of the first applications of LCD, it was discovered that nausea causes vomiting 
+\cite{SpirtesCooper_AISTATS_99}.
+The next example provides another successful application of LCD.
+\begin{Eg}\label{eg:lcd_sachs}
+  PIP2 and PIP3 are phospholipids that play an important role in human immune system cells.
+  Figure~\ref{fig:lcd_sachs} shows a scatter plot of PIP2 and PIP3 expression levels,
+  measured in individual human immune system cells, after activation of certain protein signaling cascades in these cells
+  \cite{SPP05}.
+  The measurements have been performed
+  under two different experimental conditions: observational ($C=0$, in blue), and after intervening by administering the chemical
+  compound Psitectorigenin to the cells before measuring the PIP2 and PIP3 levels ($C=1$, in red). The experimental protocol
+  justifies the assumption that neither PIP2 nor PIP3 expression levels can cause the experimental condition (because
+  these expression levels were measured after the experimental condition had been imposed on the cells). 
+  Also, assuming the cells to be properly randomized before split into the two groups (corresponding with the
+  two experimental conditions) we can conclude that the experimental condition $C$ and PIP2 are unconfounded, 
+  and similarly that $C$ and PIP3 are unconfounded. The scatter plot suggests the following conditional independence:
+  $$PIP3 \Indep_{P(PIP2,PIP3\given \doit(C))} C \given PIP2,$$
+  which can also be confirmed with statistical conditional independence tests. Therefore, we have an LCD pattern
+  with $X_1=C$, $X_2=PIP2$, $X_3=PIP3$, which allows us to infer that the PIP2 expression level causes the PIP3 expression level.
+  Under the randomization assumption, we can even infer that Psitectorigenin exposure is a cause of PIP2 expression levels.
+  This is in line with the Psitectorigenin being known as an inhibitor of PIP2, reducing the quantity of PIP2 in cells after exposure of the cells to this inhibitor.
+\begin{figure}\centering
+  \includegraphics[width=0.5\textwidth]{LCD_Psitectorigenin_PIP2_PIP3.pdf}
+  \caption{``Text-book'' example of an LCD pattern in flow cytometry data of \cite{SPP05}. See Example~\ref{eg:lcd_sachs} for details.\label{fig:lcd_sachs}}
+\end{figure}
+\end{Eg}
+A high-dimensional adaptation has also been shown to be successful in predicting the effects of gene knockout on gene
+expression levels from large-scale interventional yeast gene expression data \cite{VersteegMooij_BIBM_19}.
+
+In case more than three variables have been observed, one can run LCD on all triples of variables for which its assumptions apply.
+In that case, one should keep in mind that a direct edge in a marginalized graph does not imply the presence of the directed 
+edge in the original graph (only the presence of a directed path). In other words, with respect to a larger set of observed variables, 
+the causal relations found by LCD are not necessarily direct.
+
+In case of more than three observed variables, one can also replace the single variable $X_2$ in the LCD algorithm by a subset
+of variables, a so-called \emph{separating set}. This idea is exploited efficiently in case of many variables in the Invariant Causal Prediction algorithm \cite{ICP2016}.
+
+\begin{comment}
+Another possible extension is the following conditional version of LCD. \Joris{TODO}
+\begin{Prp}\label{prp:LCD_conditional}
+  Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3\} \dot\cup C \subseteq V$ and exogenous input variables $X_J$.
+  Suppose that it is $\sigma$-faithful (w.r.t.\ $O$). 
+  If $X_2$ is not a cause of $X_1$ according to $M$,
+  the following conditional (in)dependencies in the Markov kernel $P_{M}(X_O \given X_J)$
+  $$X_1 \nIndep X_2 \given X_J, X_C \quad \land \quad X_2 \nIndep X_3 \given X_J, X_C \quad \land \quad X_1 \Indep X_3 \given X_2,X_J,X_C$$
+  imply that 
+  \begin{enumerate}
+%  \item $X_2$ is a cause of $X_3$;
+  \item $X_3$ is not a cause of $X_2$ according to $M$;
+  \item $X_2$ is a direct cause of $X_3$ w.r.t\ $\{1,2,3\}$ according to $M$;
+  \item $X_2$ and $X_3$ are unconfounded according to $M$;
+  \item the causal effect of $X_2$ on $X_3$ according to $M$ is given by:
+    \begin{equation}\label{eq:LCD}
+      P_{M}\big(X_3 \given \doit(X_2)\big) = P_{M}(X_3 \given X_2) \qquad P_M(X_2)\text{-a.s.}.
+    \end{equation}
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+The proof proceeds by enumerating all (possibly cyclic) DMGs on three variables that the observable graph
+$G_{O|J}(M)$ could be, and ruling out the ones that do not satisfy the assumptions.
+The assumption that $X_2$ is not a cause of $X_1$ implies that there is no directed edge
+$X_2 \tuh X_1$ in the graph $G_{O|J}(M)$. If there were an edge between $X_1$ and $X_3$,
+$X_1 \Indep X_3 \given X_2$ would not hold (faithfulness). Also, since $X_1 \nIndep X_2$, $X_1$ and
+$X_2$ must be adjacent (Markov property). Similarly, $X_2$ and $X_3$ must be adjacent. $X_2$ cannot be
+a collider on any walk between $X_1$ and $X_3$ (faithfulness). Since the only possible edges between
+$X_1$ and $X_2$ are $X_1 \tuh X_2$ and $X_1 \huh X_2$ (both of which have an arrowhead at $X_2$), 
+this means that there must be a
+directed edge $X_2 \tuh X_3$, but there cannot be a  bidirected edge $X_2 \huh X_3$ or directed edge $X_2 \hut X_3$. 
+In other words, the only three possible graphs are the ones in Figure~\ref{fig:LCD}.
+The causal do-calculus applied to $G_{O|J}(M)$ yields \eref{eq:LCD}.
+\end{proof}
+\end{comment}
+
+\subsection{Y-structures}
+
+For both the randomized controlled trial and the LCD algorithm, we need prior knowledge: we need to know already that one of the variables is not a cause of another one. 
+It turns out that in the absence of any such causal background knowledge, we can sometimes still deduce causal relationships from observed conditional independences.
+The simplest such example is given by the ``Y-structure'' pattern \cite{ManiPhD2006}.
+We here also give the generalization of the Y-structure pattern to simple SCMs.
+\begin{Prp}\label{prp:y-structures}
+  Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3,4\} \subseteq V$ and no exogenous input variables ($J = \emptyset$).
+  Suppose that it is $\sigma$-faithful (w.r.t.\ $O$). 
+  The following conditional (in)dependencies in the observational distribution $P_{M}(X_1,X_2,X_3,X_4)$
+  $$\begin{array}{lll}
+    X_1 \nIndep X_4,  & X_2 \nIndep X_4, & X_1 \Indep X_2, \\
+    X_1 \Indep X_4 \given X_3, & X_2 \Indep X_4 \given X_3, & X_1 \nIndep X_2 \given X_3,
+  \end{array}$$
+  imply that the observable graph $G_O(M)$ must be one of the nine DMGs in Figure~\ref{fig:Ystruct}.
+  Hence,
+  \begin{enumerate}
+    \item $X_4$ is not a cause of $X_3$ according to $M$;
+    \item $X_3$ is a direct cause of $X_4$ w.r.t.\ $\{1,2,3,4\}$ according to $M$;
+    \item $X_3$ and $X_4$ are unconfounded according to $M$;
+    \item the causal effect of $X_3$ on $X_4$ satisfies:
+  \begin{equation}\label{eq:Y_causal_effect}
+    P_{M}\big(X_4 \given \doit(X_3)\big) = P_{M}(X_4 \given X_3) \qquad P_M(X_3)\text{-a.s.}.
+  \end{equation}
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+By using the global Markov property and the faithfulness assumption, one
+can check that the only (cyclic or acyclic) graphs that are compatible with the observed
+conditional independences are the ones in Figure~\ref{fig:Ystruct}.
+The statements now follow.
+\end{proof}
+This example illustrates how conditional independence patterns in the observational
+distribution allow one to infer certain features of the underlying causal model. This
+principle is exploited more generally by constraint-based methods, and implicitly,
+by score-based methods that optimize a penalized likelihood over (equivalence classes of) causal graphs.
+In Chapter~\ref{sec:fci} we will describe in detail one of the most sophisticated constraint-based
+causal discovery methods, Fast Causal Inference (FCI).
+
+Typically, the graph cannot be completely identified from purely observational data.
+For example, in the Y-structure case, the conditional independences in the observational data
+do not allow to conclude whether the dependence between $X_1$ and $X_3$ is explained by
+$X_1$ being a cause of $X_3$, or by $X_1$ and $X_3$ having a latent common cause,
+or because of some latent selection mechanism, or a combination of those.
+However, under an appropriate faithfulness assumption, one can deduce the Markov
+equivalence class of the graph from the conditional independences in the observational data, 
+i.e., the class of all CDMGs that induce the same separations.
+
+Another disadvantage of causal discovery methods from purely observational data is that
+they typically need \emph{very large} sample sizes and \emph{strong assumptions} in order to work reliably (even on simulations).
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+  %    \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+  %    \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+  %    \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+  %    \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+  %    \draw[arlat,bend right] (X1) edge (X3);
+  %    \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-4cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+  %    \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-4cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+  %    \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-8cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+  %    \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-8cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-8cm]
+      \node[ndout] (X1) at (-1,0) {$X_1$};
+      \node[ndout] (X2) at (1,0) {$X_2$};
+      \node[ndout] (X3) at (0,-1) {$X_3$};
+      \node[ndout] (X4) at (0,-2.5) {$X_4$};
+      \draw[arout] (X1) edge (X3);
+      \draw[arlat,bend right] (X1) edge (X3);
+      \draw[arout] (X2) edge (X3);
+      \draw[arlat,bend left] (X2) edge (X3);
+      \draw[arout] (X3) edge (X4);
+    \end{scope}
+  \end{tikzpicture}\hfill
+%  \includegraphics[width=0.26\textwidth]{Ystruct_12.pdf}
+%  \includegraphics[width=0.26\textwidth]{Ystruct_14.pdf}
+%  \includegraphics[width=0.26\textwidth]{Ystruct_24.pdf}
+  \caption{Observed causal graphs satisfying the ``Y-structure'' pattern on four variables.
+%Right: Scatter plots illustrating the Y-structure pattern in purely observational data, where $X_3$ is discrete-valued and its value is indicated by color (red/blue).
+  \label{fig:Ystruct}}
+\end{figure}
+
+\subsection{Minimal Separating Sets, Minimal Connecting Sets}
+
+Minimal separating sets and minimal connecting sets are useful in that they give a relationship between
+certain separation properties of the graph and ancestral relations in the graph \cite{SMR1999,ClaassenHeskes2011}.
+This can also be seen as a simple form of causal discovery.
+
+\begin{Def}\label{def:min_sep}
+Let $X,Y,Z,S$ be sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. 
+We say that the \emph{minimal $\sigma$-separation}
+  $$X \Perp_{G}^\sigma Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \Perp_{G}^\sigma Y \mid S \cup Z \quad\land\quad \forall Q \subsetneq Z: X \nPerp_G^\sigma Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $\sigma$-separate $X$ from $Y$.
+The \emph{minimal $d$-separation} $X \Perp_{G}^d Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+
+Minimal separating sets imply the presence of certain ancestral relations (this generalizes a result of \cite{SMR1999}).
+But first we prove a little lemma.
+\begin{Lem}\label{lem:ancestral_relations_open_path}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$. Let $i, j \in J \cup V$ and $Z \subseteq J \cup V$.
+  If $\pi$ is a $Z$-$\sigma$-open or $Z$-$d$-open walk between $i$ and $j$ in $G$, then every node on $\pi$ is in $\Anc_G((\{i,j\} \sm J) \cup Z)$.
+\end{Lem}
+\begin{proof}
+  Suppose $k$ is a node on $\pi$. 
+  Then either $k$ is a collider, or there is a directed subwalk from $k$ to a collider on $\pi$, or to an endnode of $\pi$ that is not in $J$. 
+  In all cases, $k \in \Anc_G((\{i,j\}\sm J)\cup Z)$.
+  This holds for both $d$-separation and $\sigma$-separation.
+\end{proof}
+\begin{Prp}\label{prp:min_sep}
+Let $\{x\},\{y\},S,Z$ be mutually disjoint sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$.
+Then:
+$$x \Perp^\sigma_G y \mid S \cup [Z] \implies Z \subseteq \Anc_{G}(\{x, y\} \cup S).$$
+A similar statement holds for $d$-separation.
+\end{Prp}
+\begin{proof}
+  Write $A := \Anc_G(\{x,y\} \cup S)$.
+  Let $z \in Z$. 
+  Suppose that $z \notin A$. 
+  Let $Q = A \cap Z$.
+  Then $z \notin Q$, and therefore $Q \subseteq Z \sm \{z\}$.
+  Then there is a $(Q \cup S)$-$\sigma$-open path $\pi$ between $x$ and $\{y\} \cup J$ in $G$.
+  Then every node on $\pi$ is in $\Anc_G((\{x,y\} \sm J) \cup Q \cup S)$ (Lemma~\ref{lem:ancestral_relations_open_path}).
+  Therefore, every node on $\pi$ is in $A$.
+  Hence no node in $Z \sm Q$ is on $\pi$.
+  Therefore, adding $(Z \sm Q)$ to $(Q \cup S)$ cannot $\sigma$-block $\pi$.
+  Hence $x \nPerp_G y \mid Z \cup S$. Contradiction.
+\end{proof}
+
+Similarly, we define minimal connections.
+\begin{Def}\label{def:min_con}
+Let $X,Y,Z,S$ be sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. 
+We say that the \emph{minimal $\sigma$-connection}
+  $$X \nPerp_G^\sigma Y \mid S \cup [Z]$$
+holds if and only if
+  $$X \nPerp_G^\sigma Y \mid S \cup Z\quad\land\quad \forall Q \subsetneq Z: X \Perp_G^\sigma Y \mid S \cup Q.$$
+In words: all nodes in $Z$ are required (in the context of the nodes in $S$) to $\sigma$-connect $X$ with $Y$.
+The \emph{minimal $d$-connection} $X \nPerp_G^d Y \mid S \cup [Z]$ is defined analogously.
+\end{Def}
+Note that despite the notation, a minimal connection is \emph{not} the logical negation of a minimal separation.
+
+Minimal connections imply the absence of certain ancestral relations:
+\begin{Prp}\label{prp:min_con}
+Let $\{x\},\{y\},S,\{z\}$ be mutually disjoint sets of nodes in a CDMG $G$ with input nodes $J$ and output nodes $V$. Then
+$$x \nPerp_G^\sigma y \mid S \cup [\{z\}] \implies z \notin \Anc_{G}(\{x, y\} \cup S)$$
+and a similar statement holds for $d$-separation.
+\end{Prp}
+\begin{proof}
+%The minimal connection means that all paths between $x$ and
+%$y$ are closed when conditioning on $S$ and there exists at least one
+%path between $x$ and $y$ that is open when conditioning on $S \cup \{z\}$.
+%For $d$-separation, this means that such a path (i) contains a collider not in $\Anc_{G}(S)$, 
+%  (ii) every collider is in $\Anc_{G}(S \cup \{z\})$,
+%(iii) every non-collider is not in $S \cup \{z\}$. 
+%For $\sigma$-separation, this means that such a path 
+%  (i) contains a collider not in $\Anc_{G}(S)$, (ii) every collider is in 
+%  $\Anc_{G}(S \cup \{z\})$,
+%(iii) every non-collider is either not in $S \cup \{z\}$, or if it is,
+%it points to neighboring nodes in the same strongly-connected component only.
+There exists a $S \cup \{z\}$-$\sigma$-open path between $x$ and $y \cup J$ in $G$ that contains a collider in $\Anc_{G}(\{z\})$ that is not in $\Anc_{G}(S)$. 
+If $z \in \Anc_{G}(S)$ this would be a contradiction.
+If $z \in \Anc_{G}(x)$, then we can consider the walk between $x$ and $y$ obtained from composing the subpath of the original path between $y$ and the first collider (starting from $y$) in $\Anc_{G}(\{z\}) \setminus \Anc_{G}(S)$ with a directed path to $z$ and then on to $x$, without passing through nodes in $S$.
+This walk between $x$ and $y$ must be $\sigma$-open given $S$, a contradiction.
+Similarly we obtain a contradiction if $z \in \Anc_{G}(y)$.
+
+The same proof works also for $d$-separation.
+%For d-separation: Hence every non-collider cannot 
+%be in $S \cup \{Z\}$. However, since $Z$ is a non-collider on this path
+%this gives a contradiction.
+%For $\sigma$-separation: Hence every non-collider is either not in $S \cup \{Z\}$,
+%or if it is, it points to neighboring nodes in the same strongly-connected
+%component only. Since $Z$ is a non-collider on this path that is in $S \cup \{Z\}$,
+%$Z$ must point to neighboring nodes in the same strongly-connected component
+%only. Hence $X \in \an{Z}$.
+\end{proof}

@@ -1,0 +1,315 @@
+\subsection{A $p$-separation Markov property}
+
+We will ignore nullset subtleties for now, and use the easy quantifiers (for all values of exogenous variables).
+We will also omit input nodes for now.
+
+We define a graphical operation that we call ``teleportation'':
+\begin{Def}\label{def:teleportation_graph}
+  Let $G$ be a DMG with nodes $V$.
+  Write $I(G) := \{ (i,j) \in V^2 : i \tuh j \in G, i \in \Sc_G(j) \}$ be the set of node pairs that lie within a non-trivial strongly connected component of $G$ and are connected by a directed edge.
+  We define the \emph{teleportation of $G$} as the DMG $G_{tp}$ with
+  \begin{itemize}
+    \item nodes $V \dcup \{s_{(i,j)} : (i,j) \in I(G)\}$;
+    \item directed edges 
+      $$\{ i \tuh j : i \tuh j \in G, i \notin \Sc_G(j) \} \cup \{ i \tuh s_{(i,j)} : (i,j) \in I(G) \}$$
+    \item bidirected edges
+      $$\{ i \huh j : i \huh j \in G \} \cup \{ s_{(i,j)} \huh j : (i,j) \in I(G) \}.$$
+  \end{itemize}
+\end{Def}
+\begin{Prp}
+  Let $G$ be a DMG with nodes $V$.
+  Then $G_{tp}$ is acyclic.
+\end{Prp}
+\begin{proof}
+  \Joris{TODO}
+\end{proof}
+We define an analogous operation for SCMs:
+\begin{Def}\label{def:teleportation_scm}
+  Let $M = \lt V,W,\CX,P,f \rt$ be an SCM.
+  We call an SCM $\tilde{M} = \lt \tilde{V},\tilde{W},\tilde{\CX},\tilde{P},\tilde{f} \rt$ a \emph{teleportation of $M$} if:
+  \begin{itemize}
+    \item $\tilde{V} := V \dcup S$, where $S$ is as in Definition~\ref{def:teleportation_graph} (applied to $G(M)$);
+    \item $\tilde{W} := W \dcup U$, where $U := \{u_{(i,j)} : (i,j) \in I(G)\}$;
+    \item $\CX := \CX \times \prod_{s \in S} \CX_s \times \prod_{u \in U} \CX_u$,
+      where $\CX_s := \{0,1\}$ for each $s \in S$, and $\CX_{u_{(i,j)}} := \CX_i$ for each $u_{(i,j)} \in U$;
+    \item $\tilde{P}(X_W) = P(X_W)$;
+    \item \Joris{getting the notation right is a little challenging, we should probably draw inspiration from the node-splitting operation}
+      The causal mechanism $\tilde{f}$ is obtained from the causal mechanism $f$ in the following way.
+      For the new endogenous variables $S$, we require:
+        $$\tilde f_{s_{(i,j)}}(x_V,x_S,x_W,x_U) = \ind[x_i = x_{u_{ij}}].$$
+        For the original endogenous variables in $V$, let $I_j := \{i : (i,j) \in I(G)\}$ (the former parents of $j$ in $\Sc_G(j)$), and $U_j := \{u_{(i,j)} \in I(G)\}$ (the associated newly introduced exogenous random variables).
+      Then we require:
+        $$\tilde f_j(x_V,x_S,x_W,x_U) = f_j((x_{V \sm I_j},x_{U_j}),x_W)$$
+  \end{itemize}
+  So, in words, we introduce a binary endogenous variable $s_{(i,j)}$ for each edge in $I(G)$, and an exogenous random variable $u_{(i,j)}$ which takes values in the same space as the endogenous variable $i$.
+  Also, we keep the causal mechanisms of $M$ but ``rewire'' them by replacing each parent $i$ of $j$ by the corresponding $u_{(i,j)}$.
+  We shall write $M_{tp}$ for an (arbitrary) teleportation of $M$.
+  Note that the conditional distribution $P_{M_{tp}}(X_U \given X_W)$ is not constrained in any way.
+\end{Def}
+The graphical and SCM teleportation operations are compatible.
+\begin{Prp}
+  For an SCM $M$ with graph $G(M)$, we have that
+  $$G(M_{tp}) = (G(M))_{tp}$$
+  for any teleportation $M_{tp}$ of $M$.
+  \Joris{Here a problem occurs: we should not weaken the quantifier for the dummy exogenous variables $U$ to ``for almost all''. 
+  Hence, measure theoretically it seems better to treat them like exogenous input variables. 
+  This also suggests that we don't need to put a distribution on those.
+  However, it then conflicts with the assumption that endogenous variables cannot cause exogenous input variables.
+  So the conclusion is that our current formal framework is simply not flexible/general enough to properly accommodate this object.
+  For now, we will pragmatically ignore this problem.}
+\end{Prp}
+We can now define the notion of $p$-separation with the help of the graphical teleportation.
+\begin{Def}\label{def:p-separation}
+  Let $G$ be a DMG with nodes $V$.
+  For $A,B,C \ins V$, we define that \emph{$A$ is $p$-separated from $B$ given $C$} as:
+  $$A \Perp_{G}^p B \given C := A \Perp_{G_{tp}}^d B \given C \dcup S$$
+  where $S$ are the selection nodes introduced in $G_{tp}$.
+\end{Def}
+\begin{Prp}
+  $p$-separation satisfies the separoid axioms (and the other usual axioms for $d$-separation).
+\end{Prp}
+\begin{proof}
+  Easy to see: $p$-separation only replaces $G$ with $G_{tp}$ and $C$ with $C \dcup S$, and in the axioms the conditioning set can only grow, but it never shrinks (and hence the conditioning set of the implied separation will still contain $S$).
+\end{proof}
+
+\begin{Rem}
+  A simple way to derive a $p$-separation Markov property in the special case when all variables are discrete is the following.
+  
+  For $A,B,C \ins V \cup W$,
+  $$A \Perp_{G^+(M)}^p B \given C \implies A \Perp_{(G^+(M))_{tp}}^d B \given C \dcup S \implies A \Perp_{G^+(M_{tp})}^d B \given C \dcup S.$$
+  We can apply the d-separation Markov property to $M_{tp}$ (because it is acyclic).
+  This states that for all subsets $A,B,C \ins \tilde{V} \cup \tilde{W} = V \cup S \cup W \cup U_{tp}$,
+  $$A \Perp_{G^+(M_{tp})}^d B \given C \implies X_A \Indep_{P_{M_{tp}}} X_B \given X_C.$$
+  Hence we conclude: for $A,B,C \ins V \cup W$,
+  $$A \Perp_{G^+(M)}^p B \given C \implies X_A \Indep_{P_{M_{tp}}} X_B \given X_C,X_S.$$
+
+  If $M$ is uniquely solvable, and if $P_{M_{tp}}(X_U)$ has full support, then $P_{M_{tp}}(X_S=1) > 0$
+  and $P_{M_{tp}}(X_V,X_W \given X_S=1) = P_M(X_V,X_W)$.
+  Hence, under those assumptions:
+  \begin{align*}
+    X_A \Indep_{P_{M_{tp}}(X_V,X_W,X_S)} X_B \given X_C,X_S 
+    & \implies X_A \Indep_{P_{M_{tp}}(X_V,X_W,X_S)} X_B \given X_C,X_S=1 \\
+    & \implies X_A \Indep_{P_{M_{tp}}(X_V,X_W|X_S=1)} X_B \given X_C \\
+    & \implies X_A \Indep_{P_M(X_V,X_W)} X_B \given X_C
+  \end{align*}
+\end{Rem}
+
+For continuous variables, however, this strategy runs into the problem that then $P_{M_{tp}}(X_S=1)$ may vanish, so we cannot condition on that event.
+The remainder sketches a way out.\footnote{After having worked this out, I noticed that for convenience I worked with mathematical structures that are
+very similar to SCMs, and the terminology I chose reflects this similarity. However, these structures come with a very non-standard causal interpretation,
+so in order to avoid confusion it might have been better to pick other names.}
+
+\begin{Def}\label{def:sscm}
+  Given a tuple $M = \lt V \dcup S,W \dcup U,\CX,P,\tilde f \rt$ that is ALMOST an SCM except that we only specify the marginal $P_M(X_W) = \bigotimes_{w \in W} P_M(X_w)$ instead of the joint $P_M(X_W,X_U)$,
+  and such that $\Ch^{G^+(M)}(S) = \emptyset$, and a value $s \in \CX_S$, we call the tuple $(M,s)$ an sSCM.
+
+  A distribution $\Prb(X_V,X_S,X_W,X_U)$ is called a \emph{solution of the sSCM $(M,s)$} if
+  \begin{enumerate}
+    \item $\Prb(X_S=s)=1$, and
+    \item $\Prb(X_{V \cup S} = \tilde f(X_V,X_S,X_W,X_U))=1$, and
+    \item $\Prb(X_W) = P_M(X_W)$.
+  \end{enumerate}
+
+  The \emph{graph} of sSCM $(M,s)$ is defined as the graph $G^+(M)$ of $M$ (after complementing with an arbitrary independent factorizing exogenous distribution on $\CX_U$).
+\end{Def}
+
+\begin{Prp}
+  If $M$ is uniquely solvable, then $(M_{tp},1)$ has a solution.
+\end{Prp}
+\begin{proof}
+  \Joris{TODO. Essentially, consider the (unique) solution function $g : \CX_W \to \CX_V$ of $M$.
+  We can use it to construct a ``solution function'' $\tilde{g} : \CX_W \to \CX_{V \cup S \cup U} : x_w \mapsto (g(x_W),1,(g_i(x_W) : (i,j) \in I(G)))$ for $(M_{tp},1)$.
+  Now take the push-forward $\tilde g_\star P(X_W)$.}
+\end{proof}
+
+\begin{Rem}
+  For a node $v \in V$ such that $\Ch^{G^+(M)}(v) = \emptyset$, we can marginalize out $v$ to obtain an sSCM
+  $$M_{\sm v} = \lt (V \sm \{v\}) \dcup S, W \dcup U, \CX_{(V \sm \{v\}) \dcup S \dcup W \dcup U}, P, \tilde f_{(V \sm \{v\}) \dcup S} \rt.$$
+  If $(M,s)$ has solution $\Prb$, then $(M_{\sm v},s)$ has solution $\Prb_v := \Prb(X_{V\sm v},X_S,X_W,X_U)$ (the marginal distribution of $\Prb$).
+  If $(M,s)$ has graph $G^+(M)$, then $(M_{\sm v},s)$ has graph $(G^+(M))^{\sm v}$ (the marginalized graph of $M$).
+\end{Rem}
+
+We use the separoid axioms, Theorem~\ref{thm:sym-sep-ax-cond-ind}.
+\begin{Thm}[Conditional Global Markov property for Acyclic sSCMs]\label{thm:gmp_acyclic_selection_scms}
+  Given an sSCM $(M,s)$ as in Definition~\ref{def:sscm}, that is acyclic with solution $P$ and graph $G = G^+(M)$.
+  Then for all subsets $A,B,C \ins V \cup W$,
+  $$A \Perp_G^d B \given C \dcup S \implies X_A \Indep_{P} X_B \given X_C.$$
+\end{Thm}
+\begin{proof}
+  Induction start: $V=\emptyset$, and $W,S,U$ arbitrary.
+  This means that $A,B,C \ins W$.
+  By Lemma~\ref{lem:d-separation-markov-property}(i), we have 
+    $$A \cap B \ins C \cup S.$$
+  Since $S \cap W = \emptyset$, we conclude that
+    $$A \cap B \ins C.$$
+  Because $P$ is a solution of sSCM $(M,s)$, $P(X_W) = \bigotimes_{w \in W} P(X_w)$ and hence
+    $$X_A \Indep_P X_B \given X_C.$$
+
+  We now assume that the claim holds for $\#V < n$ and arbitrary $W,S,U$.
+  We consider the case $\#V=n>0$.
+
+  By Lemma~\ref{lem:d-separation-markov-property}(ii), $A\sm (C \cup S)$, $B \sm (C \cup S)$ and $C \cup S$ are pairwise disjoint.
+  Because $S \cap W = \emptyset$, we conclude from this that
+    $$A' := A \sm (C \cup \{v\}), \quad B' := B \sm (C \cup \{v\}), \quad C' := C \sm \{v\}, \quad \{v\}, \quad S$$
+  are pairwise disjoint.
+
+  Let $v$ be a node in $V$ such that $\Ch^G(v) = \emptyset$, which exists because we assumed $M$ (and hence $G$) to be ayclic.
+  Write $D := \Pa^G(v)$.
+  Note that $D \ins V \cup W \cup U$, but $D \cap S = \emptyset$ because $\Ch^G(S) = \emptyset$ by assumption.
+  Since by assumption
+  $$P(X_v = f_v(X_V,X_S,X_W,X_U)) = 1,$$
+  we get the independence (local Markov property)
+  \begin{equation}\label{eqn:blu}
+    X_v \Indep_P X_{(V \sm \{v\}) \cup W} \given X_D.\tag{\#4}
+  \end{equation}
+
+  In the following we will distinguish between the 4 possible cases: 
+  $v \in A \sm C$, $v \in B \sm C$, $v \in C$, $v \in V \sm (A \cup B \cup C)$.
+
+  \begin{enumerate}[label=(\roman*)]
+    \item $v \in V \sm (A \cup B \cup C)$. The claim follows from the induction hypothesis applied to $(M_{\sm v},s)$:
+    \begin{align*}
+      A \Perp^d_G B \given C \dcup S
+      & \xRightarrow{\text{decomposition}}  & A' \Perp^d_G B' \given C \dcup S \\
+      & \xRightarrow{\text{marginalization}} &  A' \Perp^d_{G^{\sm v}}  B' \given C \dcup S\\
+      & \xRightarrow{\text{induction}} & X_{A'} \Indep_{P_{\sm v}} X_{B'} \given X_C\\
+      & \xRightarrow{\text{marginalization}} & X_{A'} \Indep_{P} X_{B'} \given X_C.
+    \end{align*}
+
+    \item $v \in A\sm C$.
+    We then have the implications:
+    \begin{align*}
+      A \Perp^d_G  B \given C \dcup S
+      & \xRightarrow{\text{decomposition}}  & A' \Perp^d_G B' \given C \dcup S \\
+      & \xRightarrow{\text{marginalization}} &  A' \Perp^d_{G^{\sm v}}  B' \given C \dcup S\\
+      & \xRightarrow{\text{induction}} & X_{A'} \Indep_{P_{\sm v}}  X_{B'} \given X_C \\
+      & \xRightarrow{\text{marginalization}} & X_{A'} \Indep_{P} X_{B'} \given X_C. \tag{\#1}
+    \end{align*}
+    On the other hand we have:
+    \begin{align*}
+      A \Perp^d_G  B \given C \dcup S 
+      & \xRightarrow{\text{decomposition}}  & A \Perp^d_G   B' \given C \dcup S   \\
+      & \xRightarrow{\text{weak union}}  & \{v\} \Perp^d_G  B' \given A' \dcup C \dcup S    \\
+      & \xRightarrow{\text{Lemma~\ref{lem:d-separation-markov-property}(iii)}}  & D  \Perp^d_G   B' \given A' \dcup C \dcup S \\ 
+      & \xRightarrow{\text{induction}}  &   X_D  \Indep_{P}  X_{B'} \given X_{A'},X_C \tag{\#2}
+    \end{align*}
+    \Joris{Oops: mistake. The induction step is invalid if $D \cap U \ne \emptyset$.}
+    The local Markov property \eqref{eqn:blu} for $v$ now implies:
+    \begin{align*}
+    &&X_v \Indep_{P}  X_{(V \cup W) \sm \{v\}} \given X_D\\ 
+    &\xRightarrow{\text{decomposition}} & 
+    X_v \Indep_{P}  X_{A'}, X_{B'}, X_C \given X_D \\
+    & \xRightarrow{\text{weak union}}  & 
+    X_v \Indep_{P} X_{B'} \given X_{A'}, X_C, X_D \\ 
+    & \xRightarrow{\text{contraction}\eqref{eqn:bla}}  & X_v, X_D  \Indep_{P}  X_{B'} \given X_{A'}, X_C \\
+    & \xRightarrow{\text{decomposition}}  & X_v \Indep_{P}  X_{B'} \given X_{A'}, X_C\\
+    & \xRightarrow{\text{contraction} \eqref{eqn:bli}}  &  X_{A'},X_v \Indep_{P}  X_{B'} \given X_C\\
+    & \xRightarrow{\text{redundancy}}  & X_{A'}, X_v \Indep_{P}  X_B \given X_C.
+     \tag{\#3}
+    \end{align*}
+    \Joris{The last step is not entirely clear. $B' = B \sm C$. So $B \ins B' \cup C$.
+    It appears that we need to combine redundancy and contraction, but then I am missing something which appears true but not part of the separoid axioms:
+      $$X \Indep Y \given C \implies X \Indep Y \given C,\varphi(C)$$
+            }
+    From redundancy we get the implications:
+    \begin{align*}
+      &&X_{A\sm C} \Indep_{P} X_B \given X_{A'},X_v,X_C\\
+    & \xRightarrow{\text{contraction} \eqref{eqn:bloop}}  &  
+      X_{A'},X_v,X_{A\sm C} \Indep_{P}  X_B \given X_C\\
+    & \xRightarrow{\text{decomposition}}  &    
+    X_A \Indep_{P}  X_B \given X_C. 
+    \end{align*}
+    This shows the claim in the first case.
+
+  \item $v \in B\sm C$. This follows analogously to the previous case (by exchanging the roles of $A$ and $B$).
+
+  \item $v \in C$.
+    We get the implications:
+    \begin{align*}
+    A  \Perp^d_G B \given C \dcup S
+      & \xRightarrow{\text{decomposition}}  & A' \Perp^d_G  B' \given C'\dcup\{v\} \dcup S \\
+      & \xRightarrow{\text{Lemma~\ref{lem:d-separation-markov-property}(iv)}} &  A' \dcup \{v\} \Perp^d_G  B' \given C' \dcup S \qquad \lor \qquad A' \Perp^d_G B' \dcup \{v\} \given C' \dcup S \\
+      & \xRightarrow{\text{cases (i),(ii)}} &  X_{A'},X_v \Indep_{P}  X_{B'} \given X_{C'} \quad \lor \quad X_{A'} \Indep_{P}  X_{B'},X_v \given X_{C'} \\
+      & \xRightarrow{\text{weak union}} &  X_{A'} \Indep_{P}  X_{B'} \given X_{C} \quad \lor \quad X_{A'} \Indep_{P}  X_{B'} \given X_{C} \\
+      & \xRightarrow{\text{redundancy}} &  X_A \Indep_{P}  X_B \given X_{C} \quad \lor \quad X_A \Indep_{P}  X_B \given X_{C}
+    \end{align*}
+    This shows the claim in case (iii).
+\end{enumerate}
+\end{proof}
+We made use of the following consequences of $d$-separation.
+\begin{Lem}\label{lem:d-separation-markov-property}
+  Let $G$ be a DMG with nodes $V$, and let $A,B,C \ins V$ such that $A \Perp_G^d B \given C$.
+  Then:
+    $$A \Perp_G^d B \given C$$
+  implies:
+  \begin{enumerate}[label=\roman*)]
+    \item $A \cap B \ins C$.
+    \item $A\sm C$, $B \sm C$ and $C$ are pairwise disjoint.
+    \item If $v \in A \sm C$ is such that $\Ch_G(v) = \emptyset$, then
+      $$\{v\} \Perp^d_G B' \given A' \dcup C \implies \Pa^G(v) \Perp^d_G B' \given A' \dcup C.$$
+    \item If $v \in C$ is such that $\Ch_G(v) = \emptyset$, one of the following statements holds:
+      \[  A' \dcup \{v\} \Perp^d_G  B' \given C' \qquad \lor \qquad A' \Perp^d_G B' \dcup \{v\} \given C'. \]
+      where writing $A' := A \sm C$, $B' := B \sm C$, $C' := C \sm \{v\}$. 
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  \begin{enumerate}[label=\roman*)]
+    \item 
+      Otherwise, a trivial path between $A$ and $B$ would be open.
+    \item 
+      This follows immediately from the first point.
+    \item
+      This holds since every $(A' \dcup C)$-open walk $ w \sus \cdots$ from a  $w \in \Pa^G(v)$ to $B'$ 
+      extends to an $(A' \dcup C)$-open walk from $v$ to $B'$ via  $v \hut w \sus \cdots$, as $w$ stays a 
+      non-collider in the extended walk (not in $A' \dcup C$) and $v \notin A' \dcup C$.
+    \item
+      By decomposition, and using the previous point,
+      $$A \Perp_G^d B \given C$$
+      implies
+      $$A' \Perp_G^d B' \given C' \dcup \{v\}.$$
+      Assume the contrary of the claim:
+      \[  A' \dcup \{v\} \nPerp^d_G  B' \given C' \qquad \land \qquad A' \nPerp^d_G B' \dcup \{v\} \given C'. \]
+      So there exist shortest $C'$-open walks $\pi_1$ and $\pi_2$ in $G$ such that all colliders are in $C'$:
+      \[ \pi_1:\quad  A' \cup \{v\}\ni u_0 \sus \cdots \sus u_k \in B',  \]
+      and:
+      \[ \pi_2:\quad  A' \ni w_0 \sus \cdots \sus w_m \in (B' \dcup \{v\}).  \]
+      So all non-colliders of $\pi_1$ and $\pi_2$ are outside of $C'$.
+      Since we consider shortest walks and $v \notin C'$ at most an end node of $\pi_1$ and $\pi_2$ could be equal to $v$.
+      Otherwise one could shorten the walk.
+      Then note that $v \notin A'$ and $v \notin B'$, thus: $u_k \neq v$ and $w_0 \neq v$.
+      If now $\pi_i$ does not contain $v$ as an (end) node, then $\pi_i$ would be $(C'\dcup \{v\})$-open,
+      which is a contradiction to the assumption:
+      \[A' \Perp^d_G  B' \given C'\dcup\{v\}.\]
+      So we can assume that the other end nodes equal $v$, i.e.: $u_0=v$ and $w_m =v$.
+      Furthermore, both $\pi_1$ and $\pi_2$ are non-trivial walks, since $u_0 \neq u_k$ and $w_0 \neq w_m$.
+      %Otherwise $v=u_k \in B'$ or $v=w_0 \in A'$, both of which are not true.
+      %So $k,m \ge 1$.\\
+      Since $v$ is childless and $k,m \ge 1$ we have that the $\pi_i$ are of the forms:
+      \[ \pi_1:\quad   v \hut u_1 \sus \cdots \sus u_k,  \]
+      and:
+      \[ \pi_2:\quad  w_0 \sus \cdots \sus w_{m-1} \tuh v,  \]
+      with $u_1, w_{m-1} \in D=\Pa^G(v)$. Then the following walk:
+      \[ A' \ni  w_0 \sus \cdots \sus w_{m-1} \tuh v \hut u_1 \sus \cdots \sus u_k \in B',  \]
+      is a $(C' \dcup \{v\})$-open walk from $A'$ to $B'$, in contradiction to:
+      \[A' \Perp^d_G B' \given C'\dcup\{v\}.\]
+\end{enumerate}
+\end{proof}
+
+Now we can prove a $p$-separation Markov property for uniquely solvable SCMs.
+\begin{Cor}
+  Let $M$ be a uniquely solvable SCM.
+  For $A,B,C \ins V \cup W$,
+  $$A \Perp_{G^+(M)}^p B \given C \implies X_A \Indep_{P_M(X_V,X_W)} X_B \given X_C.$$
+\end{Cor}
+\begin{proof}
+  Pick a teleportation $M_{tp}$.
+  The sSCM $(M_{tp},1)$ is acyclic.
+  Because $M$ is uniquely solvable, the sSCM $(M_{tp},1)$ has a solution $P_{M_{tp}}$.
+  For $A,B,C \ins V \cup W$,
+  $$A \Perp_{G^+(M)}^p B \given C \implies A \Perp_{(G^+(M))_{tp}}^d B \given C \dcup S \implies A \Perp_{G^+(M_{tp})}^d B \given C \dcup S.$$
+  We can now apply the conditional global Markov property Theorem~\ref{thm:gmp_acyclic_selection_scms} to the acyclic sSCM $(M_{tp},1)$ with solution $P_{M_{tp}}$, which gives the implication:
+  $$A \Perp_{G^+(M_{tp})}^d B \given C \dcup S \implies X_A \Indep_{P_{M_{tp}}} X_B \given X_C.$$
+  Because
+  $$P_{M_{tp}}(X_V,X_W) = P_M(X_V,X_W),$$
+  the claim follows.
+\end{proof}

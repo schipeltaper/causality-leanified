@@ -1,0 +1,1957 @@
+\section{Counterfactuals with iSCMs}\label{sec:counterfactuals}
+
+Counterfactuals are questions of the kind ``Fred obtained a cum laude for his PhD; would he have obtained the distinction also if he were female?''.
+Counterfactuals consider a hypothetical situation that is ``contrary to the fact'', that is, which differs from what was actually observed.
+%Some researchers propose to model counterfactuals using iSCMs, though this relies on making strong (often unverifiable), modeling assumptions.
+%A more conservative approach is taken by the approach of Single World Intervention Graphs, which requires less strong modeling assumptions \cite{RR13a,RR13b}. 
+One of the big practical obstacles of dealing with counterfactual probabilities is that they are typically not identifiable from experimental data, and at best only bounds on such quantities can be obtained.
+For systems with (almost) deterministic causal relations, these bounds may become quite informative, but tend to become more loose as the stochasticity in the system increases.
+While it would thus perhaps be easiest to avoid counterfactuals altogether, they do appear naturally in law and engineering.
+Humans also have a tendency to communicate using counterfactuals, and the grammar of many languages distinguishes 
+counterfactual statements. This might be an inductive bias towards dealing with (almost) deterministic systems.
+
+In this chapter, we will focus on counterfactuals that are hypothetical
+statements (or questions) regarding the effects of some action that is
+contrary-to-fact, closely following Pearl's approach to counterfactuals. 
+One can consider other types of counterfactuals as well, for example 
+``backtracking'' counterfactuals. Dealing with counterfactuals appears to
+be one of the least well-defined, but perhaps also most intriguing, aspects
+of causality.
+
+\Joris{
+\subsubsection{Splitting variables and strongly connected components}
+We have already introduced a graphical operation of \emph{node-splitting} in Section~\ref{sec:graphs:node_splitting}.
+Here we introduce an analogous operation on the iSCM level.
+In the presence of cycles, we will not split single nodes in a cycle, but we will `copy' the entire cycle.
+In the acyclic setting, we can use the node splitting operation to introduce an `earlier' and a `later' version of the same variable.
+
+In the presence of cycles, the `scc copying' operation can be used to introduce an `earlier' and a `later' version of the same strongly connected component; if the underlying system that we are modeling is a dynamical system, then this may correspond to waiting until the first copy of the scc has equilibrated, subsequently measuring the variables in the scc, followed by a possible intervention on one or more of the variables in the scc, waiting again until the second copy has equilibrated, and finally measuring the variables in the second copy of the scc.
+
+We will first consider splitting an exogenous random variable, which simply adds an endogenous copy of it.
+\begin{Def}[Endogenizing exogenous random variables]
+Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+We define the iSCM $M_{\spl(w)}$ for $w \in \Srnd$ as
+$M_{\spl(w)} := \lt \Sin \cup \{w'\}, \Send, \Srnd, \CX', P, f' \rt$
+where $\CX' := \CX \times \CX_{w'}$ with $\CX_{w'} := \CX_w$, 
+  $$f_v'(x_J,x_{W\sm w},x_V) := \begin{cases}
+    f_v(x_J,x_W,x_V) & v \in V \\
+    x_w & v = w'
+  \end{cases}
+  $$
+\end{Def}
+Since we consider exogenous random variables to be latent, we can use this operation to `endogenize' it so that it can be observed.
+
+More interesting is a node-splitting operation that corresponds to what we did in Definition~\ref{def:G_node-splitting}.
+\begin{Def}[Node-splitting]
+Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+We define the iSCM $M_{\spl(v)}$ for $v \in \Send$, where $v$ should not be part of a cycle in $G(M)$, as
+  $M_{\spl(v)} := \lt \Sin, \Send \sm \{v\} \dcup \{v^0,v^1\}, \Srnd, \tilde{\CX}, P, \tilde{f} \rt$
+where we removed $v$ and instead added an `earlier' version $v^0$ and a `later' version $v^1$.
+For the new state spaces we just take $\CX_{v^0} = \CX_{v^1} = \CX_v$, and the causal mechanism $\tilde{f}$ is defined by:
+  $$\tilde{f}_{v'}(x_J,x_W,x_{V\sm \{v\}},x_{v^0},x_{v^1}) = \begin{cases}
+    f_v(x_J,x_W,x_{V\sm \{v\}}) & v' = v^0 \\
+    x_{v^0} & v' = v^1 \\
+    f_v(x_J,x_W,x_{V\sm \{v\}},x_{v^1}) & v' \notin \{v^0,v^1\}
+  \end{cases}$$
+\end{Def}
+This is helpful whenever we want to distinguish between two versions of the same variable that share the same value (as long as the later version is not targeted by an intervention).
+This is useful to model a property that is constant over some time interval (in the absence of an intervention targeting that property).
+Conceptually, this comes in handy when we measure the value of a variable right before we intervene on it.
+The node-splitting operation can be used to represent ``single-world'' counterfactuals.
+%The graphs were plotted using the library tikz-for-swigs \cite{Ric18swigtex}.
+
+Now for an scc we can do the following:
+\begin{Def}[Scc-copying]
+Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+We define the iSCM $M_{\spl(C)}$ for $C = \Sc^G(v)$, as
+  $M_{\spl(C)} := \lt \Sin, \Send \sm C \dcup C^0 \dcup C^1, \Srnd, \tilde{\CX}, P, \tilde{f} \rt$
+where we removed $C$ and instead added an `earlier' version $C^0$ and a `later' version $C^1$.
+For the new state spaces we just take $\CX_{C^0} = \CX_{C^1} = \CX_C$, and the causal mechanism $\tilde{f}$ is defined by:
+%  $$\tilde{f}_{v}(x_J,x_W,x_{V\sm C},x_{C^0},x_{C^1}) = \begin{cases}
+%    f_v(x_J,x_W,x_{C^-},x_{C^\perp}) & v \in C^- \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^0},x_{C^\perp}) & v \in C^0 \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^1},x_{C^\perp}) & v \in C^1 \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^1},x_{C^+},x_{C^\perp}) & v \in C^+ \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^\perp}) & v \in C^\perp \\
+%  \end{cases}$$
+%\end{Def}
+%where we defined $C^- := \Anc^G(C) \sm C$, $C^+ := \Desc^G(C) \sm C$, $C^\perp := V \sm (C^- \cup C^+ \cup C)$.
+%Perhaps we should partition $V$ into $\Pred^G_{<}(C)$, for a topological ordering $<$ of the DAG of scc's of $G(M)$  refined
+%to a topological ordering $<$ of $G(M)$ by arbitrarily ordering nodes within each strongly connected component
+%(as in the proof of Proposition~\ref{prp:scm_acyclification_properties}). Then, we can define
+%$C^- := \Pred^G_{\le}(C) \sm C$, $C^+ := V \sm (C^- \cup C)$, and
+%  $$\tilde{f}_{v}(x_J,x_W,x_{V\sm C},x_{C^0},x_{C^1}) = \begin{cases}
+%    f_v(x_J,x_W,x_{C^-}) & v \in C^- \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^0}) & v \in C^0 \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^1}) & v \in C^1 \\
+%    f_v(x_J,x_W,x_{C^-},x_{C^1},x_{C^+}) & v \in C^+ 
+%  \end{cases}$$
+%Or perhaps we can make it easier and less ambiguous by partitioning $V$ into $C^+ := \Desc^G(C) \sm C$, $C^- := V \sm (C^+ \cup C)$, and defining
+  $$\tilde{f}_{v}(x_J,x_W,x_{V\sm C},x_{C^0},x_{C^1}) = \begin{cases}
+    f_v(x_J,x_W,x_{C^-}) & v \in C^- \\
+    f_v(x_J,x_W,x_{C^-},x_{C^0}) & v \in C^0 \\
+    f_v(x_J,x_W,x_{C^-},x_{C^1}) & v \in C^1 \\
+    f_v(x_J,x_W,x_{C^-},x_{C^1},x_{C^+}) & v \in C^+ 
+  \end{cases}$$
+where $C^+ := \Desc^G(C) \sm C$ and $C^- := V \sm (C^+ \cup C)$.
+\end{Def}
+Note that this reduces to the node-splitting operation in case $C = \{v\}$, except that now we copy the causal 
+mechanism rather than turning the causal mechanism into a copy operation.
+This is needed because if we intervene only on a subset of the nodes in $C^1$, the causal mechanisms of the other nodes in $C^1$ remain unchanged.
+}
+
+\Joris{IDEA: Add a notion of `single-world counterfactual equivalence' (in particular, this restricts to $x_J = x_J'$). This could be defined as interventional equivalence of scc-split iSCMs.}
+
+\subsection{Modeling counterfactuals via twinning}
+
+For example, suppose you are healthy but drank too much beer last night and now suffer from a hangover. 
+A counterfactual statement is then: ``If I had not drunk so much beer yesterday, I would feel much better now.''
+This statement invites one to imagine an alternative world in which everything is the same as in the actual world,
+with the sole difference that you did not drink beer last night. We can then use our causal model of the world to predict the
+consequences of this action (e.g., since you were in a healthy state and did not drink so much beer, you most likely will
+feel well in this alternative world).\footnote{The word ``counterfactual'' is also commonly used in the causal inference literature in a weaker sense, describing the potential outcome of a hypothetical situation that is not necessarily ``contrary to the fact''. For example, some would refer to ``If I drink too much beer tonight, I will have a hangover tomorrow'' as a counterfactual statement as well.
+It is important to be aware of this to avoid possible confusion. We will only use the word ``counterfactual'' in its strong (contrary-to-fact) sense.}
+This example already shows the ambiguity typically encountered in counterfactuals: if for you, not drinking beer means
+that you drink wine instead, then you may actually feel worse than if you had drunk beer.
+
+Indeed, the truth value of such statements is often hard to determine in case the ``world'' is partially latent or not
+fully understood. When debugging a computer program, one makes heavy use of counterfactuals: ``if I had put a minus sign
+there, then the output of my program would have been correct''. In case the full source code is available, it is in 
+principle straightforward to work out whether such a statement is correct or not, but it becomes more difficult if 
+the full source code is not available. It becomes even more challenging when the output of the computer program is
+stochastic or it is impossible to reproduce its complete input. 
+Generally, in situations where the full causal mechanism is unknown, or exogenous
+randomness is latent, counterfactuals may not be well-defined quantities. Nevertheless, counterfactual thinking is 
+very common in humans, and toddlers already bombard their parents with counterfactual questions, 
+presumably as a means for them to build internal causal models of the world.
+
+The mathematical formalization of counterfactuals proposed by Pearl provides some clarification, but it also points out their 
+inherent complexity and strong dependence on the chosen model.\footnote{Consider this a warning before attempting to 
+predict counterfactual statements in a data-driven way, for example, using a neural network.}
+It mimics the reasoning steps we mentally perform when thinking about counterfactuals by constructing a ``(f)actual''
+world and a parallel ``counterfactual'' world, which is minimally different in some aspect.
+The crucial (and often untestable) assumption is that the exogenous random variables have the same \emph{values} in both worlds.
+A good analogy here is that of two identical twins that share the same latent genetics. 
+Before we give the definition, we will introduce some bookkeeping notation.
+\begin{Not}
+  Given an index set $Z$ we define a primed copy $Z' := \{z' : z \in Z\}$, where each $z'$ is a ``primed'' copy of $z$ 
+  (distinguishable from $z$ itself because of the attached prime symbol). 
+  We will also write $(z')^\circ = z$ for $z \in Z$, where the superscript $\circ$ removes the prime, i.e., it
+  maps back to the original of the primed index.
+\end{Not}
+The following operation on iSCMs (also known as the ``twin-network approach'' of \cite{BalkePearl1994a}) provides one possible way of modeling counterfactuals.\footnote{The twinning operation can be applied to any iSCM, but not to any L-CBN, as L-CBNs typically do not explicitly model latent random variables. Only for the subclass of L-CBNs that are in iSCM form (see Definition~\ref{bcn-standard-form}), i.e., for which every node with at least one parent comes with a deterministic Markov kernel, could we define a twinning operation that is analogous to the one we define for iSCMs.}
+\begin{Def}\label{def:twin_scm}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM. We define the \emph{twinned iSCM of $M$} as
+  the iSCM $M^\twin = \lt \Sin^\twin = \Sin \dot\cup \Sin', \Send^\twin = \Send \dot\cup \Send', \Srnd, \CX^\twin, P, f^\twin \rt$
+  with $\Sin' = \{j' : j \in \Sin\}$ a copy of $\Sin$ and
+  $\Send' = \{v' : v \in \Send\}$ a copy of $\Send$, the twinned domain given by
+  $$\CX^\twin = \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$$
+  where $\CX_{j'} = \CX_j$ for all $j \in J$ and $\CX_{v'} = \CX_v$ for all $v \in V$,
+  and the twinned causal mechanism components given by
+  $$f^\twin_u\big((x_J,x_{J'}),(x_V,x_{V'}),\xW\big) = 
+  \begin{cases}
+    f_u(\xJ,\xV,\xW) & u \in \Send,  \\
+    f_{u^\circ}(x_{J'},x_{V'},\xW) & u \in \Send'.
+  \end{cases}$$
+\end{Def}
+The twinning operation preserves equivalence: $M \equiv \tilde{M} \implies M^\twin \equiv \tilde{M}^\twin$.
+
+The twinning operation is used to create copies of variables (so that in addition to the one in the factual world, 
+we have its copy in the counterfactual world) that can have different values to describe contrary-to-fact situations.
+A specific choice in modeling counterfactuals in this way is the assumption that \emph{all exogenous random variables}
+have the same value in the actual and in the counterfactual world. This is a very strong (and typically untestable)
+assumption.
+
+The English language has a special grammatical construct to express counterfactuals:
+``If I had studied better, I would have passed the exam,'' instead of ``If I study better, I will pass the exam.''
+For the first statement, we first twin the iSCM and then intervene on it, for the second, we just intervene on the iSCM and there is no need for twinning.\footnote{Note 
+that in general, when considering two potential outcomes $X^{\doit(x_J)},X^{\doit(x_J')}$ of iSCM $M$ for different inputs $\xJ, \xJ'$ one does \emph{not} necessarily assume that $\XW^{\doit(x_J)} = \XW^{\doit(x_J')}$ (although one does assume
+that they have the same distribution, that is, $\XW^{\doit(x_J)} \sim \XW^{\doit(x_J')}$). 
+It is more transparent to explicitly introduce such counterfactuals with the twinning construction, because this enforces one to think about which variables are shared across potential worlds and which get an (independently resampled, or reevaluated) copy, and avoids implicitly introducing ``cross-world'' assumptions, that is, assumptions on the joint distribution $P(X^{\doit(x_J)},X^{\doit(x_J')})$.}
+
+\begin{Lem}\label{lem:scm_twin_nullsets}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM, and $M^\twin$ its twin iSCM.
+  \begin{enumerate}
+    \item Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+      If $\pi(x_J,x_W)$ holds $M\as$, then $\pi(x_J,x_W)$ holds $M^\twin\as$ and $\pi(x_{J'},x_W)$ holds $M^\twin\as$.
+    \item Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+      If $\pi(x_J,x_W,x_V)$ holds $M\as$, then $\pi(x_J,x_W,x_V)$ holds $M^\twin\as$, and $\pi(x_{J'},x_W,x_{V'})$ holds $M^\twin\as$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  We show the second claim (the first then follows as a special case).
+
+  If $\pi$ holds $M\as$,
+  $$A := \{(x_J,x_W,x_V) \in \CX_J \times \CX_W \times \CX_V : \pi(x_J,x_W,x_V) = 0\}$$
+  is contained in a $M$-null set of the form $N := \tilde{N} \times \CX_V$ with $\tilde{N} \ins \CX_J \times \CX_W$ such that for each $x_J \in \CX_J$, the section $\tilde{N}_{x_J} = \{x_W \in \CX_W : (x_J,x_W) \in \tilde{N}\}$ is a $P_M(X_W)$-null set.
+
+  Note that
+  $$\{(x_J,x_{J'},x_W,x_V,x_{V'}) \in \CX_J \times \CX_{J'} \times \CX_W \times \CX_V \times \CX_{V'} : \pi(x_J,x_W,x_V) = 0\} = \CX_{J'} \times A \times \CX_{V'}.$$
+  For this to be a $M^\twin$-null set, it must be contained in a $M^\twin$-null set of the form $N^\twin := \tilde{N}^\twin \times \CX_{V} \times \CX_{V'}$ with $\tilde{N}^\twin \ins \CX_{J} \times \CX_{J'} \times \CX_W$ such that for each $x_J \in \CX_J, x_{J'} \in \CX_{J'}$, the section $(\tilde{N}^\twin)_{(x_J,x_{J'})} = \{x_W \in \CX_W : (x_J,x_{J'},x_W) \in \tilde{N}^\twin\}$ is a $P_M(X_W)$-null set.
+  Note that $\tilde{N}^\twin := \CX_{J'} \times \tilde{N}$ does the job, because $(\tilde{N}^\twin)_{(x_J,x_{J'})} = (\tilde{N})_{x_J}$.
+
+  Similarly, since also
+  $$\{(x_{J'},x_W,x_{V'}) \in \CX_{J'} \times \CX_W \times \CX_{V'} : \pi(x_{J'},x_W,x_{V'}) = 0\}$$
+  is contained in a $M$-null set,
+  $$\{(x_J,x_{J'},x_W,x_V,x_{V'}) \in \CX_J \times \CX_{J'} \times \CX_W \times \CX_V \times \CX_{V'} : \pi(x_{J'},x_W,x_{V'}) = 0\}$$
+  is contained in a $M^\twin$-null set.
+\end{proof}
+
+\begin{Lem}\label{lem:partial_sol_fns_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+Let $L_1 \subseteq V$ and $L_2 \subseteq V$. 
+Write $K_1 := V \sm L_1$ and $K_2 := V \sm L_2$.
+If $g^{[L_1]} : \CX_{J \cup K_1} \times \CX_W \to \CX_{L_1}$ is a solution function of $M$ w.r.t.\ $L_1$
+and $g^{[L_2]} : \CX_{J \cup K_2} \times \CX_W \to \CX_{L_2}$ is a solution function of $M$ w.r.t.\ $L_2$
+then
+  \begin{equation*}\begin{split}
+    g^\twin & : \CX_{(J \cup K_1) \cup (J' \cup K_2')} \times \CX_W \to \CX_{L_1} \times \CX_{L_2'} \\
+    & : (x_{(J \cup K_1) \cup (J' \cup K_2')}, x_W) \mapsto \big(g^{[L_1]}(x_{J \cup K_1},x_W),g^{[L_2]}(x_{J' \cup K_2'},x_W)\big) 
+  \end{split}\end{equation*}
+is a solution function of $M^\twin$ w.r.t.\ $L_1 \cup L_2'$.
+If $M$ is essentially uniquely solvable w.r.t.\ $L_1$ and also w.r.t.\ $L_2$, then $M^\twin$ is essentially uniquely solvable w.r.t.\ $L_1 \cup L_2'$.
+\end{Lem}
+\begin{proof}
+Let $f^\twin$ denote the causal mechanism of $M^\twin$.
+Then, using Lemma~\ref{lem:scm_twin_nullsets}, $M^\twin\as$:
+  \begin{equation*}\begin{split}
+    & x_{L_1 \cup L_2'} = f^\twin_{L_1 \cup L_2'}(x) \\
+    & \iff \begin{cases}
+      x_{L_1}  &= f_{L_1}(x_J,x_V,x_W) \\
+      x_{L_2'} &= f_{L_2}(x_{J'},x_{V'},x_W)
+    \end{cases} \\
+%    & \impliedby \begin{cases}
+%      x_{V\setminus K_1} &= g_{\doit(K_1)}(x_{J\cup K_1},x_W) \\
+%      x_{V'\setminus K_2} &= g_{\doit(K_2^\circ)}(x_{J'\cup K_2},x_W)
+%    \end{cases}\\
+    & \impliedby \begin{cases}
+      x_{L_1} &= g^{[L_1]}(x_{J\cup K_1},x_W) \\
+      x_{L_2'} &= g^{[L_2]}(x_{J'\cup K_2'},x_W)
+    \end{cases}\\
+    & \iff 
+    x_{L_1 \cup L_2'} = g^\twin(x_{J \cup K_1}, x_{J' \cup K_2'}, x_W)
+  \end{split}\end{equation*}
+For the claim regarding essentially unique solvability, the ``$\impliedby$'' becomes an ``$\iff$''.
+\end{proof}
+
+The twinning operation is compatible with marginalization.
+\begin{Prp}\label{prp:twinning_marginalization_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+For $L \subseteq V$ such that $M$ is essentially uniquely solvable w.r.t.\ $L$,
+$$(M_{\setminus L})^\twin \equiv (M^\twin)_{\setminus (L\cup L')}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions.
+  Lemma~\ref{lem:partial_sol_fns_twin_scm} with $L_1=L_2=L$ shows that if $M$ is essentially uniquely solvable w.r.t.\ $L$ with partial solution function $g^{[L]}$, then $M^\twin$ is essentially uniquely solvable w.r.t.\ $L \cup L'$ with partial solution function $g^{[L\cup L']} : \CX_J \times \CX_{J'} \times \CX_W \times \CX_{V \sm L} \times \CX_{V' \sm L'}$ defined by:
+    $$g^{[L\cup L']}(x_J,x_{J'},x_W,x_{V\sm L},x_{V'\sm L'}) = \big(g^{[L]}(x_J,x_W,x_{V\sm L}), g^{[L]}(x_{J'},x_W,x_{V'\sm L'})\big).$$
+\end{proof}
+Another important property of the twinning operation is that it preserves unique solvability and simplicity.
+\begin{Cor}\label{prp:twin_scm_simple}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+If $M$ is essentially uniquely solvable, then $M^\twin$ is essentially uniquely solvable.
+If $M$ is simple, then $M^\twin$ is simple.
+\end{Cor}
+\begin{comment}% the next appears redundant, if I don't need it within a week it can be deleted.
+\begin{Lem}\label{lem:sol_fns_intervened_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+Let $T_1 \subseteq J \cup V$ and $T_2 \subseteq J \cup V$. 
+If $g_{\doit(T_1)} : \CX_{J \cup T_1} \times \CX_W \to \CX_{V \setminus T_1}$ is a solution function of $M_{\doit(T_1)}$ 
+and $g_{\doit(T_2)} : \CX_{J \cup T_2} \times \CX_W \to \CX_{V \setminus T_2}$ is a solution function of $M_{\doit(T_2)}$ 
+then
+%$$(g_{\doit(T_1)},g_{\doit(T_2^\circ)}) : \CX_{J \cup J' \cup T_1 \cup T_2 \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2}$$
+  \begin{equation*}\begin{split}
+    g^\twin & : \CX_{(J \cup T_1) \cup (J' \cup T_2')} \times \CX_W \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2'} \\
+    & : (x_{(J \cup T_1) \cup (J' \cup T_2')}, x_W) \mapsto \big(g_{\doit(T_1)}(x_{J \cup T_1},x_W),g_{\doit(T_2)}(x_{J' \cup T_2'},x_W)\big) 
+  \end{split}\end{equation*}
+is a solution function of $(M^{\twin})_{\doit(T_1 \cup T_2')}$.
+  In case $g_{\doit(T_1)}$ and $g_{\doit(T_2)}$ are unique, $g^\twin$ is also the
+  unique solution function of $(M^{\twin})_{\doit(T_1 \cup T_2')}$.
+  \Joris{Add: if $M$ is essentially uniquely solvable w.r.t.\ ... then $M^{\twin}$ is essentially uniquely solvable w.r.t.\ ...}
+  \Joris{This seems to generalize Lemma~\ref{lem:scm_twin_nullsets}?}
+\end{Lem}
+\begin{proof}
+Let $f^\twin$ denote the causal mechanism of $M^\twin$.
+  \Joris{Check: does $M^\twin\as$ imply $M\as$? And vice versa?}
+For all $x \in \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$,
+  \begin{equation*}\begin{split}
+    & x_{(V \cup V') \setminus (T_1 \cup T_2')} = f^\twin_{(V \cup V') \setminus (T_1 \cup T_2')}(x) \\
+    & \iff \begin{cases}
+      x_{V\setminus T_1}  &= f_{V\setminus T_1}(x_J,x_V,x_W) \\
+      x_{V'\setminus T_2'} &= f_{V\setminus T_2}(x_{J'},x_{V'},x_W)
+    \end{cases} \\
+%    & \impliedby \begin{cases}
+%      x_{V\setminus T_1} &= g_{\doit(T_1)}(x_{J\cup T_1},x_W) \\
+%      x_{V'\setminus T_2} &= g_{\doit(T_2^\circ)}(x_{J'\cup T_2},x_W)
+%    \end{cases}\\
+    & \impliedby \begin{cases}
+      x_{V\setminus T_1} &= g_{\doit(T_1)}(x_{J\cup T_1},x_W) \\
+      x_{V'\setminus T_2'} &= g_{\doit(T_2)}(x_{J'\cup T_2'},x_W)
+    \end{cases}\\
+    & \iff 
+    x_{(V \cup V') \setminus (T_1 \cup T_2')} = g^\twin(x_{J \cup T_1}, x_{J' \cup T_2'}, x_W)
+  \end{split}\end{equation*}
+In case $g_{\doit(T_1)}$ and $g_{\doit(T_2)}$ are unique, the ``$\impliedby$'' becomes an ``$\iff$''.
+\end{proof}
+\begin{Prp}\label{prp:twin_scm_unique_solvability}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+If $M$ is essentially uniquely solvable, then $M^{\twin}$ is essentially uniquely solvable.
+Furthermore, if $M$ is simple, then $M^{\twin}$ is simple.
+\end{Prp}
+\begin{proof}
+  The first statement follows directly from Lemma~\ref{lem:sol_fns_intervened_twin_scm} by taking $T_1 = T_2 = \emptyset$.
+  The second statement follows from Lemma~\ref{lem:sol_fns_intervened_twin_scm} in combination with
+  Theorem~\ref{thm:scm_essentially_unique_solvability_implies} \Joris{really??}.
+\end{proof}
+\end{comment}
+Several types of hard interventions are compatible with the twinning operation, in the following sense:
+\begin{Prp}\label{prp:hard_interventions_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+\begin{itemize}
+  \item For $T \subseteq \Sin \cup \Send$, $\xi_T \in \CXT$:
+    $$(M^\twin)_{\doit(X_T=\xi_T,X_{T'}=\xi_T)} = (M_{\doit(\XT=\xi_T)})^\twin;$$
+%  \item For $T \subseteq \Srnd$, $Q_T \in \prod_{t\in T} \C{P}(\CX_t)$:
+%    $$(M^\twin)_{\doit(X_T\sim Q_T)} = (M_{\doit(\XT\sim Q_T)})^\twin.$$
+  \item For $T \subseteq \Sin \cup \Send$:
+    $$(M^\twin)_{\doit(T,T')} = (M_{\doit(T)})^\twin;$$
+%  \item If $M_{\doit(B)}$ is uniquely solvable for $B \subseteq \Send$, then
+%    $(M_B)^\twin \equiv (M^\twin)_{B\dot\cup B'}$.
+  \item For $T \ins J \cup V$:
+    $$(M^\twin)_{\doit(I_T,I_{T'})} = (M_{\doit(I_T)})^\twin$$
+    (where we identify $I_t'$ with $I_{t'}$ for all $t \in T$). 
+\end{itemize}
+\end{Prp}
+\begin{proof}
+  These properties follow by writing out the definitions.
+\end{proof}
+
+We can also define a twinning operation on graphs. We will only define this for graphs without bidirected edges
+(limiting this to a graphical version of the twinning that can be applied to the graph $G^+(M)$ of an iSCM $M$).
+\begin{Def}\label{def:G_twinning}
+  Let $G=\lt J,V \cup W,E\rt$ be a CDG such that $\Pa^G(W) = \emptyset$. Write $J' := \{j' : j \in J\}$
+  and $V' := \{v' : v \in V\}$ for copies of $J$ and $V$, respectively.
+  The \emph{twinned graph
+  $G^{\twin(J,V)}$} is defined as the CDG $\lt J \dot\cup J', V \dot\cup V' \cup W, E^\twin\rt$ with directed edges
+  $$E^\twin := E \cup \{w \tuh v' : w \in W, v \in V, w \tuh v \in E\} \cup \{i' \tuh v' : i \in J \cup V, v \in V, i \tuh v \in E\}.$$
+  In words, we copy the nodes $J \cup V$ (but not the nodes $W$) and copy the edges accordingly.
+\end{Def}
+The graphical and the iSCM twinning operations are compatible:
+\begin{Prp}\label{prp:compatibility_graph_twinning}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM. Then
+      $$(G^+(M))^{\twin(J\cup V)} = G^+(M^\twin).$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions.
+\end{proof}
+
+The simplest non-trivial example of a twin iSCM is the following.
+\begin{Eg}
+  Consider an iSCM with exogenous input variable $X$, endogenous variable $Y$, exogenous random variable $W$, and
+  structural equation:
+  $$Y^{\doit(x)} = f(x,W)$$
+  Its graph is depicted in Figure~\ref{fig:twin_iSCM}.
+  Twinning adds an exogenous input variable $X'$, an endogenous variable $Y'$, and structural equation
+  $$(Y')^{\doit(x')} = f(x',W)$$
+  but keeps the same endogenous random variable $W$.
+  The graph of the twinned iSCM is also shown in Figure~\ref{fig:twin_iSCM}.
+
+  For instance, $X$ could be the number of glasses of beer you consumed yesterday evening,
+  $Y$ the severity of a headache the next morning, and $W$ would represent all other possible
+  causes of a headache (e.g., COVID-19, a concussion obtained in a rugby game, the number of
+  glasses of wine you consumed yesterday evening, \dots). When stating 
+  ``If I had not drunk so much beer yesterday, I would feel much better now,''
+  we imagine a counterfactual world in which the value of $W$ is the same as in the
+  (f)actual world, but $X'$ (and therefore $Y'$) may have different values in the
+  counterfactual world than the corresponding values $X$ (and $Y$) in the factual world.
+  \begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndint] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (0,-1.5) {$Y$};
+      \node[ndlat] (W) at (1,-0.75) {$W$};
+      \draw[arint] (X) to (Y);
+      \draw[arout] (W) to (Y);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[ndint] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (0,-1.5) {$Y$};
+      \node[ndlat] (W) at (1,-0.75) {$W$};
+      \draw[arint] (X) to (Y);
+      \draw[arout] (W) to (Y);
+      \node[ndint] (X2) at (2,0) {$X'$};
+      \node[ndout] (Y2) at (2,-1.5) {$Y'$};
+      \draw[arint] (X2) to (Y2);
+      \draw[arout] (W) to (Y2);
+      \draw[dotted] (-1,-2) rectangle (1,0.5);
+      \draw[dotted] (1,-2) rectangle (3,0.5);
+      \node at (0,0.8) {\tiny factual};
+      \node at (2,0.8) {\tiny counterfactual};
+    \end{scope}
+  \end{tikzpicture}
+    \caption{Left: Graph $G^+(M)$ of iSCM $M$. Right: Graph $G^+(M^{\twin}) = (G^+(M))^{\twin(X,Y)}$ of the twinned iSCM $M^\twin$.
+    The exogenous random variable $W$ is shared between the factual and counterfactual ``world'', whereas the exogenous
+    input variable $X$ and the endogenous (output) variable $Y$ may differ between the two worlds (with $X'$ and $Y'$ denoting the corresponding variables in the counterfactual ``world'').\label{fig:twin_iSCM}}
+\end{figure}
+\end{Eg}
+
+We are not claiming that \emph{all} counterfactuals can be modeled naturally using a twinned iSCM.
+For example, the difference between the actual and the counterfactual world may not always be due to an intervention,
+that overrides certain causal mechanisms. Sometimes, the causal mechanisms in both worlds remain the same, but they
+differ with respect to certain initial conditions or background conditions.
+  \begin{Eg}
+    The counterfactual: ``Yesterday I met an old friend in the street that I hadn't seen in years. 
+    We decided to go have a beer in the pub, even though I had plans to study for my exam that night. 
+    If I had not bumped into my old friend, I would not have ended up in the pub yesterday evening.''
+    is an example of a \emph{backtracking} counterfactual.
+    The aspect that is different in the coutnerfactual world is that by chance, I met my old friend.
+    It seems unnatural to model this as an action.
+  \end{Eg}
+Backtracking counterfactuals are actively studied by philosophers and logicians. 
+We will not attempt to formalize them here.
+
+\Joris{
+\begin{Eg}
+The counterfactual: ``Yesterday I met an old friend in the street that I hadn't seen in years. We decided to go 
+have a beer in the pub, even though I had plans to study for my exam that night. If I had not bumped into my old 
+friend, I would not have ended up in the pub yesterday evening.''
+In this case, it appears most natural to model ``bumping into an old friend'' as an exogenous random variable,
+and it is precisely this exogenous random variable that is assumed to be different in the counterfactual world.
+
+NOTE: This is yet another occassion where non-intervenable yet observable variables would be useful.
+We don't want to associate an action with 'bumping into an old friend'. If it's exogenous random, it would
+be latent (?). Also, it might be caused by some other endogenous variables (e.g., going out) and therefore
+we may not want it to be exogenous random. Hm, now that I think about it: this remark may be redundant now
+that we use endogenous copies. So mathematically, this counterfactual \emph{can} be modeled with a twinned
+iSCM. The funny thing is that the do-operator is then interpreted as the result of a causal mechanism rather
+than an action: $\doit(B=0)$ means that we assume that the randomness had been different such that the outcome
+of the actions (e.g., going out) had been different. But wait... that doesn't make sense if the same 
+randomness enters a down-stream endogenous variable. So we really would like to NOT use the do-operator here.
+But what prevents us from just conditioning?
+  $P(pub'=1 \given bump'=0, bump=1, pub=1, studyintentions=1)$
+Looks pretty reasonable. 
+  
+%  bump = ..
+%  pub =(bump AND eps) OR (delta AND not studyintentions)
+%  bump' = ..
+%  pub'=(bump' AND eps) OR (delta AND not studyintentions)
+
+pub=1,bump=1,studyintentions=1 ==> eps=1
+so bump'=0 ==> pub'=0
+
+Also: if I had bumped into my friend but we had not decided to take a drink together, I'd not have ended up in the pub.
+  
+  $P(pub'=1 \given \doit(bump'=0), bump=1, pub=1, studyintentions=1)$
+
+\textbf{UPDATE: this is an example of a backtracking counterfactual.}
+The conditioning solution proposed above may not work. 
+For example, consider SCM $S=W_S, B=W_B$, $P = B \lor \lnot S$: the only way to not end up in the pub ($P=0$) is if you do have study intentions ($S=1$) and if you don't bump into your friend ($B=0$). 
+Then conditioning on $S=1,B=1,P=1$ gives posterior $W_B=1$ a.s.\ so $B'=1$ a.s.\ if we don't intervene.
+It could be argued that intervening is unnatural, rather we would like to reason from assuming that the past had been different.
+For that we need to `unshare' $\Anc^G(B) \cap W = \{W_B\}$. 
+In other words, the parallel worlds SCM becomes:
+$$S=W_S, B=W_B, P=B \lor \lnot S; S'=W_S, B'=W_{B'}, P'=B' \lor \lnot S'$$
+Now calculating 
+$$P(P'=1 | B'=0, B=1, P=1, S=1)$$
+works fine.
+
+The question is whether this approach would work in general?
+Suppose we add a mechanism: we replace $W_B$ by $B = F \land H$ which means that I bump into my friend iff my friend is on the street ($F=1$) and I feel healthy ($H=1$)---I only go out if I'm not ill.
+Now: $B=0$ implies that either $F=0$ or $H=0$, but we don't know which.
+So we just update $P(F,H|B=0)$.
+But so far it doesn't really change things.
+I think we need to come up with a story where things become ambiguous.
+
+We should read the `backtracking counterfactuals' paper before continuing in this direction.
+\end{Eg}
+Obviously, we could model this by an iSCM that has two copies of the exogenous random variable that represents ``bumping into an old friend''.
+
+Take home message: backtracking counterfactuals seem possible but it's not clear right now what a general definition would
+look like.
+}
+
+\subsection{Counterfactual Equivalence}
+
+\Joris{
+The following will simplify some things down the road.
+\begin{Def}\label{def:scm_potentialoutcome_equiv}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \lt \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ be two simple iSCMs
+  and $O \subseteq \Send \cap \tilde{\Send}$ a subset.
+  We say that $M$ and $\tilde{M}$ are \emph{potential-outcome equivalent w.r.t.\ $O$} if 
+  for all $n\in \N^*$, for all $i=1,\dots,n$, for all $T_i \ins O$, for all $x_{T_i} \ins \CX_{T_i}$:
+  $$P_M\big((X_O(x_{T_i}))_{i=1}^n\big) = P_{\tilde{M}}\big((X_O(x_{T_i}))_{i=1}^n\big).$$
+%  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+%  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+%  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $M$ and $\tilde{M}$ counterfactually equivalent).
+\end{Def}
+\begin{Prp}
+  Equivalence implies potential-outcome equivalence implies counterfactual equivalence.
+\end{Prp}
+\begin{proof}
+  For $T_1 \ins V$, $x_{T_1} \ins \CX_{T_1}$, $T_2 \ins V'$, $x_{T_2} \in \CX_{T_2}$:
+  $$P_{M^\twin}(X_{V\sm T_1},X_{V'\sm T_2} \given \doit(X_{T_1} = x_{T_1}), \doit(X_{T_2} = x_{T_2})) = P_M(X_{V\sm T_1}(x_{T_1}), X_{V\sm T_2}(x_{T_2})).$$
+\end{proof}
+}
+
+In Definition~\ref{def:scm_obs_interv_equiv}, we defined the notions of observable and interventional equivalence for simple iSCMs. 
+We can add a more fine-grained notion of equivalence by making use of the twinning operation, which we refer to as counterfactual equivalence.\footnote{The definition of counterfactual equivalence for (possibly non-simple) iSCMs is provided in \cite{BFPM21} for iSCMs without exogenous input variables.}
+\begin{Def}\label{def:scm_counterfactual_equiv}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \lt \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ be two simple iSCMs
+  and $O \subseteq \Send \cap \tilde{\Send}$ a subset.
+  We say that $M$ and $\tilde{M}$ are \emph{counterfactually equivalent w.r.t.\ $O$} if the twin iSCMs $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$, where
+    $O' \subseteq V' \cap \tilde{V}'$ is the copy of $O$.
+%  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+%  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+%  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $M$ and $\tilde{M}$ counterfactually equivalent).
+\end{Def}
+More generally, one could define counterfactual equivalence not only with respect to an observed set of variables, but also with respect to a given set of interventions.
+
+We get the following important corollary of Theorem~\ref{thm:various_equiv_marginalization}.
+\begin{Cor}\label{Cor:various_equiv_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM, $L \subseteq \Send$, and
+  $M_{\setminus L}$ its marginalization over $L$. Then $M$ and $M_{\setminus L}$ are observably,
+  interventionally and counterfactually equivalent w.r.t.\ $V \setminus L$.
+\end{Cor}
+\begin{proof}
+  The observable and interventional equivalence is the claim of Theorem~\ref{thm:various_equiv_marginalization}.
+  %The statement that $M$ and $M_O$ are observably equivalent w.r.t.\ $O$ is Lemma~\ref{lem:obs_equiv_marginalization}.
+  Write $K = V \setminus L$.
+  By Proposition~\ref{prp:twinning_marginalization_commute}, $(M_{\setminus L})^\twin \equiv (M^\twin)_{\setminus (L \cup L')}$, and hence the two are interventionally equivalent w.r.t.\ $K \cup K'$.
+  Since $M^\twin$ and its marginalization $(M^\twin)_{\setminus (L \cup L')}$ are interventionally equivalent w.r.t.\ $K \cup K'$ by Theorem~\ref{thm:various_equiv_marginalization}, $M$ and $M_{\setminus L}$ are counterfactually equivalent w.r.t.\ $K$.
+\end{proof}
+
+\begin{Lem}\label{lem:int_equiv_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM. 
+Then $M$ and $M^\twin$ are interventionally equivalent w.r.t.\ $V$.
+\end{Lem}
+\begin{proof}
+%  We have to show that for all $x_{J'} \in \CX_{J'}$,
+%  $$P_{M}(X_V,X_W \mid \doit(X_J)) = P_{M^\twin}(X_V,X_W \mid \doit(X_J),\doit(X_{J'}=x_{J'})).$$
+%  Let $g : \CXJ \times \CXW \to \CXV$ be the unique solution function of $M$.
+%  Then $P_{M}(X_V,X_W \mid \doit(X_J))$ is 
+%  the pushforward $(g,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $M$ (interpreted as a constant 
+%  Markov kernel $\CXJ \dshto \CXW$).
+%  Then $\tilde{g} : \CXJ \times \CX_{J'} \times \CXW \to \CXV \times \CX_{V'} : (x_J,x_{J'},x_W) \mapsto \big(g(x_J,x_W),g(x_{J'},x_W)\big)$ is the unique solution function of $M^\twin$ by Lemma~\ref{lem:sol_fns_intervened_twin_scm}.
+%  We obtain the marginal Markov kernel $P_{M^\twin}(X_V,X_W \mid \doit(X_{J\cup J'}))$ as the pushforward 
+%  $(\tilde{g}_V,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $M$, now interpreted as a constant
+%  Markov kernel $\CXJ \times \CX_{J'} \to \CXW$. Since $g \circ \pr_{\CX_J \times \CX_W} = \tilde{g}_V$, we obtain
+%  the desired conclusion.
+  We have to show that for any $T \subseteq V$, 
+  $M_{\doit(T)}$ and $(M^{\twin})_{\doit(T)}$ are observably equivalent w.r.t.\ $V \setminus T$.
+  Let $T \subseteq V$. 
+  Let $g_{\doit(T)} : \CX_{J \cup T} \times \CX_W \to \CX_{V \setminus T}$ be an (essentially unique) solution function of $M$ w.r.t.\ $V\sm T$ and $g : \CX_J \times \CX_W \to \CX_V$ the (essentially unique) solution function of $M$.
+
+  By Lemma~\ref{lem:partial_sol_fns_twin_scm} with $L_1 = V \sm T$, $L_2 = V$, 
+  \begin{equation*}\begin{split}
+    \tilde{g} & : \CX_{(J \cup T) \cup J'} \times \CX_W \to \CX_{V \setminus T} \times \CX_{V'} \\
+    & : (x_{(J \cup T) \cup J'}, x_W) \mapsto \big(g_{\doit(T)}(x_{J \cup T},x_W),g(x_{J'},x_W)\big) 
+  \end{split}\end{equation*}
+  is the (essentially) unique solution function of $(M^{\twin})$ w.r.t.\ $(V\sm T) \cup V'$.
+  Note that $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_W} = \tilde{g}_{V\setminus T}$.
+
+  Then $P_{M_{\doit(T)}}(X_{V\setminus T} \mid \doit(X_{J\cup T}))$ is 
+  the pushforward $(g_{\doit(T)})_*(P)$ of the exogenous distribution 
+  of $M_{\doit(T)}$ (interpreted as a constant Markov kernel $\CX_{J \cup T} \dshto \CX_W$).
+  We obtain the Markov kernel $P_{(M^\twin)_{\doit(T)}}(X_{V \setminus T} \mid \doit(X_{J\cup T\cup J'}))$ as the pushforward 
+  $(\tilde{g}_{V\setminus T})_*(P)$ of the exogenous distribution $P$ of $(M^\twin)_{\doit(T)}$, now interpreted as a constant
+  Markov kernel $\CX_{J\cup T} \times \CX_{J'} \to \CX_W$. 
+  Since $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_W} = \tilde{g}_{V\setminus T}$,
+  we obtain the desired conclusion.
+\end{proof}
+
+Equivalence is a stronger equivalence relation than counterfactual equivalence,
+and counterfactual equivalence is a stronger equivalence relation than interventional equivalence.
+\begin{Prp}\label{prp:pearls_ladder_levels_2_and_3}
+  For simple iSCMs $M, \tilde{M}$ and a subset $O \subseteq \Send \cap \tilde{\Send}$:
+  \begin{enumerate}
+    \item If $M \equiv \tilde{M}$ then $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$.
+    \item If $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$ then $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+%    Counterfactual equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$ implies interventional equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+    \item 
+     Suppose $M \equiv \tilde{M}$. 
+     Then $M^\twin \equiv \tilde{M}^\twin$, and the claim directly follows from Proposition~\ref{prp:pearls_ladder_levels_1_and_2}.
+
+  \item 
+  Let $O' \in V' \cap \tilde{V'}$ be the copy of $O$.
+    Suppose $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$. 
+    Then $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$. 
+  For every $T \subseteq O \cup O'$,
+  $(M^\twin)_{\doit(T)}$ and $(\tilde{M}^\twin)_{\doit(T)}$ are observably equivalent w.r.t. $(O \cup O') \setminus T$.
+
+  We have to show that $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+  That is, we have to show that for every $S \subseteq O$, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$
+  are observably equivalent w.r.t.\ $O \setminus S$.
+
+%  We first practice with a special case.
+%  Take $T_2 = T_1'$ with $T_1 \subseteq O \cap (V \cap \tilde{V})$ and $T_3 = \emptyset$; then
+%  $(M_{\doit(T_1)})^\twin = (M^\twin)_{\doit(T_1,T_1')}$ and $(\tilde{M}_{\doit(T_1)})^\twin = (\tilde{M}^\twin)_{\doit(T_1,T_1')}$ are observably equivalent w.r.t. 
+%  $$(O \cup O') \setminus (T_1 \cup T_2) = (O \cap (V \cap \tilde{V}) \cup O \cap (W \cap \tilde{W}) \cup (O \cap (V \cap \tilde{V}))') \setminus (T_1 \cup T_1')$$
+%  $$ = O \setminus T_1 \cup ((O \cap (V \cap \tilde{V})) \setminus T_1)'$$
+%  and hence w.r.t.
+%  $$O \setminus T_1.$$
+%  Now by Lemma~\ref{lem:obs_equiv_twin_scm}, $(M_{\doit(T_1)})^\twin$ and $M_{\doit(T_1)}$ are observably equivalent
+%  w.r.t.\ $V \setminus T_1 \cup W$ and hence w.r.t.\ $O \setminus T_1$.
+%  Similarly, $(\tilde{M}_{\doit(T_1)})^\twin$ and $\tilde{M}_{\doit(T_1)}$ are observably equivalent w.r.t\ $O \setminus T_1$.
+%  Hence, by transitivity, $M_{\doit(T_1)}$ and $\tilde{M}_{\doit(T_1)}$ are observably equivalent w.r.t\ $O \setminus T_1$.
+
+%  Let us now consider the general case.
+  Now take $S \subseteq O$. Then (using Proposition~\ref{prp:hard_interventions_twin_scm}),
+  $$(M_{\doit(S)})^\twin = (M^\twin)_{\doit(S,S')}$$
+  and 
+  $$(\tilde{M}_{\doit(S)})^\twin = (\tilde{M}^\twin)_{\doit(S,S')}$$
+  are observably equivalent w.r.t.\ $(O \cup O') \setminus (S \cup S') = (O \setminus S) \cup (O' \setminus S')$, and hence w.r.t.\ $O \setminus S$.
+  By Lemma~\ref{lem:int_equiv_twin_scm}, $(M_{\doit(S)})^\twin$ and $M_{\doit(S)}$ are interventionally equivalent w.r.t.\ $V \setminus S$. 
+  Hence $(M_{\doit(S)})^\twin$ and $M_{\doit(S)}$ are observably equivalent w.r.t.\ $O \setminus S$.
+  Similarly, $(\tilde{M}_{\doit(S)})^\twin$ and $\tilde{M}_{\doit(S)}$ are observably equivalent w.r.t\ $O \setminus S$.
+  Hence, by transitivity, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$ are observably equivalent w.r.t\ $O \setminus S$.
+  \end{enumerate}
+\end{proof}
+The reverse implications do not hold in general. 
+Together with Proposition~\ref{prp:pearls_ladder_levels_1_and_2}, Proposition~\ref{prp:pearls_ladder_levels_2_and_3} 
+expresses that causal modeling is more refined than 
+probabilistic modeling, and counterfactual modeling is more refined than interventional modeling.
+This formalizes what Pearl refers to as the ``causal hierarchy'' or ``ladder of causation''.
+
+In general, interventional equivalence does not imply counterfactual equivalence. Even interventionally equivalent iSCMs with the same causal mechanism (that differ only in terms of their exogenous distributions) may not be counterfactually equivalent. For example, the iSCMs $M^{\rho}$ and $M^{\rho'}$ with $\rho\neq\rho'$ in the following example are interventionally equivalent, but not counterfactually equivalent.
+\begin{Eg}[Interventional equivalence does not imply counterfactual equivalence \cite{Daw02}]\label{ex:Counterfactuals}
+  For parameter $\rho\in[-1,1]$, consider the iSCM $M^\rho$ with binary exogenous input variable $X \in \{0,1\}$, endogenous variable $Y \in \RN$, a single latent exogenous random variable $W = (W_1,W_2) \in \RN^2$ with
+exogenous distribution 
+  $$\begin{pmatrix} W_1 \\ W_2 \end{pmatrix}\sim\C{N}\left(\begin{pmatrix}0 \\ 0\end{pmatrix},\begin{pmatrix}1&\rho\\ \rho&1\end{pmatrix}\right)$$
+and structural equation
+  $$Y = W_1 (1 - X) + W_2 X.$$
+In a medical setting, this iSCM could be used to model whether a patient was treated or not ($x=1$ vs.\ $x=0$) and the corresponding potential outcome ($Y^{\doit(x=1)}$ vs.\ $Y^{\doit(x=0)}$).
+
+Suppose that in the actual world we did not assign treatment to a patient ($x=0$) and the outcome was $Y^{\doit(x=0)}=y \in\RN$.
+Consider the counterfactual query ``What would the outcome have been, had we assigned treatment to this patient?''. 
+We can answer this question by introducing a parallel counterfactual world in which the exogenous random variables for each
+patient have the same values as in the actual world, but treatment and outcome may differ. For this, consider the
+twin iSCM $(M^{\rho})^{\twin}$.
+The counterfactual query then asks for 
+  $$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}\mid Y^{\doit(x=0)}=y),$$
+where $Y^{\doit(x=0)}$ is the factual outcome, and $(Y')^{\doit(x'=1)}$ is the counterfactual outcome (which are both marginal potential outcomes of the twinned iSCM). One can calculate that
+$$
+  P_{(M^{\rho})^{\twin}}\big((Y')^{\doit(x'=1)},Y^{\doit(x=0)}\big) = \C{N}\left(\begin{pmatrix}0\\ 0\end{pmatrix}, \begin{pmatrix} 1 & \rho \\ \rho & 1 \end{pmatrix}\right)
+$$
+and hence $P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)} \mid Y^{\doit(x=0)}=y) = \C{N}(\rho y,1-\rho^2)$ (by the general formula for conditioning a multivariate Gaussian distribution). Note that the answer to the counterfactual query depends on a quantity $\rho$ that we cannot identify from the Markov kernel $P_{M^{\rho}}(Y\given \doit (X))$, as it is independent of $\rho$. Therefore, even unlimited data from a randomized controlled trial would not suffice to determine the value of this particular counterfactual query.
+Indeed, iSCMs $M^{\rho}$ and $M^{\rho'}$ with $\rho\neq\rho'$ are interventionally equivalent, but not counterfactually equivalent.
+%If we obtain the iSCM from a reduction, we find the one with $\rho = 1$.
+%\Joris{Question: can we identify $\rho$ if we have access to $P(X,Y^{\doit(0)})$ and $P(X,Y^{\doit(1)})$?
+%Ah, we have to replace $X$ with an endogenous variable first. In the AOS paper we just have an independent Bernoulli
+%exogenous variable that decides the value of $X$. So there is no confounding, by assumption.
+%Nonetheless, we cannot identify the counterfactual. In case there is no confounding, the SWIG will not 
+%give us more information than if we don't measure $X$. But if there is confounding, we might detect this
+%with the SWIG.
+%  $P_\rho(X,Y^{\doit(0)) = $
+%  $Y^{\doit(0)} = W_1$
+%  $Y^{\doit(1)} = W_2$
+%  $X = 
+%  }
+\end{Eg}
+The lesson of this example is that if one attempts to learn an iSCM from data (even from randomized controlled trials with arbitrarily large sample size) it can happen that one still cannot identify the values of some counterfactual probabilities. 
+In other words, data-driven estimation of counterfactual probabilities can be an ill-posed problem. 
+Nevertheless, counterfactual are central in court cases (e.g., to determine responsibility, ``the physician treated the patient with drug A and the patient died, would the patient still be alive if the physician had abstained from the treatment?''). 
+The above example shows that one can be on very slippery terrain when it comes to answering such questions. 
+
+We have seen that interventionally equivalent iSCMs do not need to have the same graphs.
+Even counterfactually equivalent iSCMs may have different graphs (see Example~\ref{ex:confounding_bidirected_edges}).
+
+We have seen that interventional equivalence is preserved under various interventions (Proposition~\ref{prp:scm_interventions_preserve_interv_equiv}).
+Analogous statements hold even for counterfactual equivalence.
+\begin{Prp}\label{prp:scm_interventions_preserve_counterf_equiv}
+  Assume that $M$ and $\tilde{M}$ are counterfactually equivalent iSCMs w.r.t.\ $O \ins (V \cap \tilde{V})$. 
+  Then, for $T \subseteq O \cup (J \cap \tilde{J})$:
+    \begin{enumerate}
+      \item $M_{\doit(T)}$ and $\tilde{M}_{\doit(T)}$ are counterfactually equivalent w.r.t.\ $O \sm T$ (hard interventions with unspecified target value);
+      \item $M_{\doit(X_T=\xi_T)}$ and $\tilde{M}_{\doit(X_T=\xi_T)}$ are counterfactually equivalent w.r.t.\ $O \cup T$, for any $\xi_T \in \CX_T$ (hard intervention with specified target value);
+%      \item $M_{\doit(X_T\sim Q_T)}$ and $\tilde{M}_{\doit(X_T\sim Q_T)}$ are counterfactually equivalent w.r.t.\ $O \cup T$, for any $Q_T \in \Pcal(\CX_T)$ (hard intervention with stochastic target value);
+%      \item $M_{\doit(T\ot\hat{f}_T)} \equiv \tilde{M}_{\doit(T\ot\hat{f}_T)}$ for $T \subseteq V$ and $\hat f_T : \CX_J \times \CX_W \times \CX_V \to \CX_T$ a measurable function
+%        (soft interventions);
+      \item $M_{\doit(I_T)}$ and $\tilde{M}_{\doit(I_T)}$ are counterfactually equivalent w.r.t.\ $O$ (adding intervention variables).
+    \end{enumerate}
+\end{Prp}
+\begin{proof}
+  Let $T \subseteq O \cup (J \cap \tilde{J})$.
+  The claims follow straightforwardly from Proposition~\ref{prp:hard_interventions_twin_scm} and Proposition~\ref{prp:scm_interventions_preserve_interv_equiv}.
+  \begin{enumerate}
+    \item 
+      To show: $(M_{\doit(T)})^\twin$ and $(\tilde{M}_{\doit(T)})^\twin$ are interventionally equivalent w.r.t.\ $(O \sm T) \cup (O \sm T)'$.
+      By Proposition~\ref{prp:hard_interventions_twin_scm}, $(M_{\doit(T)})^\twin = (M^\twin)_{\doit(T \cup T')}$ and $(\tilde{M}_{\doit(T)})^\twin = (\tilde{M}^\twin)_{\doit(T \cup T')}$.
+      Since $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent iSCMs w.r.t.\ $O \cup O'$ by assumption, by Proposition~\ref{prp:scm_interventions_preserve_interv_equiv}, 
+      $(M^\twin)_{\doit(T \cup T')}$ and $(\tilde{M}^\twin)_{\doit(T \cup T')}$ are interventionally equivalent w.r.t.\ $(O \cup O') \sm (T \cup T')$.
+
+  \item 
+    Let $\xi_T \in \CX_T$.
+    To show:
+      $(M_{\doit(X_T=\xi_T)})^\twin$ and $(\tilde{M}_{\doit(X_T=\xi_T)})^\twin$ are interventionally equivalent w.r.t.\ $(O \cup T) \cup (O \cup T)'$.
+    By Proposition~\ref{prp:hard_interventions_twin_scm},
+    $$(M^\twin)_{\doit(X_T=\xi_T,X_{T'}=\xi_T)} = (M_{\doit(\XT=\xi_T)})^\twin$$
+    and
+    $$(\tilde{M}^\twin)_{\doit(X_T=\xi_T,X_{T'}=\xi_T)} = (\tilde{M}_{\doit(\XT=\xi_T)})^\twin.$$
+    Since $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent iSCMs w.r.t.\ $O \cup O'$ by assumption, by Proposition~\ref{prp:scm_interventions_preserve_interv_equiv}, 
+      $(M^\twin)_{\doit(X_T=\xi_T,X_{T'}=\xi_T)}$ and $(\tilde{M}^\twin)_{\doit(X_T=\xi_T,X_{T'}=\xi_T)}$ are interventionally equivalent w.r.t.\ $(O \cup O') \cup (T \cup T')$.
+
+  \item 
+   To show: $(M_{\doit(I_T)})^\twin$ and $(\tilde{M}_{\doit(I_T)})^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$.
+   By Proposition~\ref{prp:hard_interventions_twin_scm},
+   $$(M^\twin)_{\doit(I_T,I_{T'})} = (M_{\doit(I_T)})^\twin$$
+   and
+   $$(\tilde{M}^\twin)_{\doit(I_T,I_{T'})} = (\tilde{M}_{\doit(I_T)})^\twin$$
+   (where we identify $I_t'$ with $I_{t'}$ for all $t \in T$). 
+   Since $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent iSCMs w.r.t.\ $O \cup O'$ by assumption, by Proposition~\ref{prp:scm_interventions_preserve_interv_equiv}, 
+   $(M^\twin)_{\doit(I_{T\cup T'})}$ and $(\tilde{M}^\twin)_{\doit(I_{T\cup T'})}$ are interventionally equivalent w.r.t.\ $O \cup O'$.
+  \end{enumerate}
+\end{proof}
+
+  \Joris{
+    One could hope that we can also say something about stochastic interventions.
+  For example: $M_{\doit(X_T\sim Q_T)}$ and $\tilde{M}_{\doit(X_T\sim Q_T)}$ are counterfactually equivalent w.r.t.\ $O \cup T$, for any $Q_T \in \Pcal(\CX_T)$ (hard intervention with stochastic target value).
+  Let's see if this works out.
+  Let $Q_T \in \Pcal(\CX_T)$.
+  To show:
+  $(M_{\doit(X_T\sim Q_T)})^\twin$ and $(\tilde{M}_{\doit(X_T\sim Q_T)})^\twin$ are interventionally equivalent w.r.t.\ $(O \cup T) \cup (O \cup T)'$.
+  Hm, perhaps we can introduce a `twin' distribution $Q_{T,T'}^\twin$ defined as the pushforward $Q_{T,T'}^\twin := (t)_* Q_T$ where $t : \CX_T \to \CX_T \times \CX_{T'} : t \mapsto (t,t)$? 
+  This might work, the only problem is that it does not factorize.
+  So it seems we can only add a similar statement regarding stochastic interventions (and the corresponding one in Proposition~\ref{prp:hard_interventions_twin_scm}) if we (i) extend our notion of stochastic interventions, or (ii) add a `merge' operation first.}
+
+\subsection{Exogenous reparameterizations}
+
+Since exogenous random variables are considered latent, certain reparameterizations of those may preserve part of the causal semantics of the observed variables.
+We will define two types of such exogenous reparameterizations.
+
+\subsubsection{Exogenous pushforwards}
+
+\begin{Def}\label{def:exogenous_pushforward}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM.
+  Let $\tilde{W}$ be a finite index set disjoint from $J \cup V \cup W$, and
+  $\CX_{\tilde{W}} = \prod_{\tilde{w}\in\tilde{W}} \CX_{\tilde{w}}$ the product of standard measurable spaces $\CX_{\tilde{w}}$. 
+  Let $\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ and $\tilde{\Phi} : \CX_J \times \CX_W \to \CX_{\tilde{W}}$ be measurable mappings such that:
+  \begin{enumerate}[label=\roman*)]
+    \item $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \quad M\as,$$
+    and
+    \item there exists a distribution $\tilde{P} = \bigotimes_{\tilde{w}\in\tilde{W}} \tilde{P}_{\tilde{w}}$ with $\tilde{P}_{\tilde{w}} \in \C{P}(\CX_{\tilde{w}})$ for $\tilde{w}\in\tilde{W}$ such that:
+%      $$(\id_{\CX_J}, \tilde{\Phi})_* \lp \delta(X_J|X_J) \otimes P \rp = \delta(X_J|X_J) \otimes \tilde{P},$$
+    $$\forall x_J \in \CX_J: \quad (\tilde{\Phi}(x_J,\cdot))_* P = \tilde{P}.$$
+    %where $P = \bigotimes_{w\in W}P_w$ with $P_w \in \C{P}(\CX_w)$ for all $w \in W$.
+  \end{enumerate}
+  Then we call the iSCM
+  $$M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rtuple$$
+  an \emph{exogenous pushforward} of $M$ along $\tilde{\Phi}$.
+\end{Def}
+Note that given $\tilde{\Phi}$, the distribution $\tilde{P}$ occurring in this definition is unique, but the function $\tilde f$ is not necessarily uniquely determined by the definition.
+Still, the exogenous pushforward $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is well-defined up to equivalence given both $\tilde{\Phi}$ and $\tilde{f}$.
+
+There is some nullset trickery that we need to take care of before we can show various nice properties of this operation on iSCMs.
+\begin{Lem}\label{lem:pushforward_as}
+  Let ${\tilde\phi} : \CX_W \to \CX_{\tilde W}$ be a measurable map between two standard measurable spaces. 
+  Let $P_{\CX_W}$ be a probability measure on $\CX_W$ and let $P_{\CX_{\tilde W}} = P_{\CX_W} \circ {\tilde\phi}^{-1}$ be its pushforward under ${\tilde\phi}$. 
+  Let $\tilde \pi:\CX_{\tilde W}\to\{0,1\}$ be a property, i.e., a (not necessarily measurable) boolean-valued function on $\CX_{\tilde W}$. 
+  Then the property $\pi = \tilde \pi\circ{\tilde\phi}$ on $\CX_W$ holds $P_{\CX_W}$-a.e.\ if and only if the property $\tilde \pi$ holds $P_{\CX_{\tilde W}}$-a.e..
+\end{Lem}
+\begin{proof}
+  Assume the property $\pi = \tilde \pi\circ{\tilde\phi}$ holds $P_{\CX_W}$-a.e., then $C=\{x_W\in\CX_W : \pi(x_W)=1\}$ contains a Borel set $C^*$ with $P_{\CX_W}$-measure 1, i.e., $C^* \subseteq C$ and $P_{\CX_W}(C^*) = 1$.
+  By \cite[Proposition~8.2.6]{Cohn2013}, ${\tilde\phi}(C^*)$ is analytic. 
+  By \cite[Theorem~8.4.1]{Cohn2013}, there exist Borel measurable sets $A, B$ such that $A \subseteq {\tilde\phi}(C^*) \subseteq B$ and $P_{\CX_{\tilde W}}(A) = P_{\CX_{\tilde W}}(B)$. 
+  Because ${\tilde\phi}$ is measurable, ${\tilde\phi}^{-1}(A)$ and ${\tilde\phi}^{-1}(B)$ are both measurable. 
+  Also, ${\tilde\phi}^{-1}(A) \subseteq {\tilde\phi}^{-1}({\tilde\phi}(C^*)) \subseteq {\tilde\phi}^{-1}(B)$. 
+  As $C^* \subseteq {\tilde\phi}^{-1}({\tilde\phi}(C^*))$, we must have that $P_{\CX_W}({\tilde\phi}^{-1}(B)) \ge P_{\CX_W}(C^*) = 1$. 
+  Hence $P_{\CX_{\tilde W}}(A) = P_{\CX_{\tilde W}}(B) = 1$. 
+  Note that as $C^* \subseteq C$, $A \subseteq {\tilde\phi}(C^*) \subseteq {\tilde\phi}(C)\subseteq\{x_{\tilde{W}}\in\CX_{\tilde W} : \tilde \pi(x_{\tilde{W}}) = 1\}$. 
+  Hence the set $\tilde{C} := \{x_{\tilde{W}}\in\CX_{\tilde W} : \tilde \pi(x_{\tilde{W}}) = 1\}$ contains a Borel set of $P_{\CX_{\tilde W}}$-measure 1, in other words, $\tilde \pi$ holds $P_{\CX_{\tilde W}}$-a.s..
+  \Joris{When trying to generalize to measurable null sets, perhaps we can use the Luzin separability principle: every two disjoint analytic sets are separated by a Borel set.}
+
+  The converse is easier to prove. 
+  Suppose $\tilde{C}=\{x_{\tilde{W}}\in\CX_{\tilde W} : \tilde \pi(x_{\tilde{W}})=1\}$ contains a Borel set $\tilde{C}^*$ with $P_{\CX_{\tilde W}}$-measure 1, i.e., $\tilde{C}^* \subseteq \tilde{C}$ and $P_{\CX_{\tilde W}}(\tilde{C}^*) = 1$. 
+  Because ${\tilde\phi}$ is measurable, the set ${\tilde\phi}^{-1}(\tilde{C}^*) \subseteq {\tilde\phi}^{-1}(\tilde{C})=C$ is measurable and $P_{\CX_W}({\tilde\phi}^{-1}(\tilde{C}^*)) = 1$. 
+  \Joris{NOTE: If $\phi$ is measurable, this is much easier.
+  By definition of the pushforward measure,
+  $P_{\CX_{\tilde W}}(\{\tilde\pi=0\})=P_{\CX_W}(\tilde\phi^{-1}\{\tilde\pi=0\})=P_{\CX_W}(\{\pi=0\})$.
+  This gives the desired result (even for general measurable spaces, no standardness required).)}
+\end{proof}
+\begin{Cor}\label{cor:exog_pushforward_as}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  Let $\tilde\pi : \CX_J \times \CX_{\tilde{W}} \to \{0,1\}$ be a binary property and define the property $\pi : \CX_J \times \CX_W \to \{0,1\}$ by $\pi(x_J,x_W) := \tilde\pi(x_J,\tilde\Phi(x_J,x_W))$.
+  Then:
+  $$\tilde\pi\ \tilde{M}\as \quad\iff\quad \pi\ M\as.$$
+
+  \Joris{We can strengthen this: since $(\id_{\CX_J},\tilde\Phi)$ is measurable, then if 
+  $\tilde\pi^{-1}(0) \ins \tilde{N}$ for a \emph{measurable} $\tilde{M}$-null set $\tilde{N}$, we have that
+  $\pi^{-1}(0) \ins (\id_{\CX_J},\tilde\Phi)^{-1}(\tilde{N})$, a \emph{measurable} $M$-null set.
+  Indeed, $\pi = \tilde\pi \circ (\id_{\CX_J},\tilde\Phi)$, so $\pi^{-1} = (\id_{\CX_J},\tilde\Phi)^{-1} \circ \tilde\pi^{-1}$.
+  So if $\tilde\pi$ holds up to a measurable $\tilde{M}$-null set, then $\pi$ holds up to a measurable $M$-null set.
+  Can we also extend the converse implication to conclude that $\pi$ holds up to a measurable $M$-null set iff $\tilde\pi$ holds up to a measurable $\tilde{M}$-null set?
+  Assume $\pi = \tilde\pi \circ \tilde\Phi$ holds up to a measurable $M$-null set $N$, that is, $\pi^{-1}(0) \ins N$.
+  Then ($C^*=N^c$). $\tilde\Phi(N^c)$ is analytic. Also $\tilde\Phi(N)$ is analytic. 
+  We want to show that $\tilde\Phi(N)$ is contained in a measurable $M^*$-null set.
+
+  Some suggestions by Claude Code:
+  it may fail in general, but might work under any of the following sufficient conditions:
+  \begin{itemize}
+    \item $\tilde\phi$ is injective (By the Lusin-Souslin theorem (Kechris 15.1), the injective Borel image of a Borel set in a standard Borel space is Borel.)
+    \item $\tilde\phi$ has countable fibers (By the Luzin-Novikov theorem (Kechris 18.10), the image of a Borel set under a countable-to-one Borel map between standard Borel spaces is Borel. The same conclusion follows. This strictly generalizes condition 1.)
+  \end{itemize}
+  }
+
+  \TODOmas
+\end{Cor}
+\begin{proof}
+  By assumption, for all $x_J \in \CX_J$, $(\tilde{\Phi}_{x_J})_* P = \tilde{P},$ where the section $\tilde{\Phi}_{x_J} : \CX_W \to \CX_{\tilde{W}} : x_W \mapsto \tilde\Phi(x_J,x_W)$ is measurable. 
+
+  We want to show that
+  $\tilde\pi(x_J,x_{\tilde{W}})$ holds $\tilde{M}\as$ if and only if $\tilde\pi(x_J,\tilde\Phi(x_J,x_W))$ holds $M\as$.
+%  This follows from pointwise (for each $x_J\in\CX_J$) application of the previous Lemma.
+  Let $x_J \in \CX_J$.
+  Then, the property $\tilde\pi_{x_J} := (x_{\tilde{W}} \mapsto \tilde\pi(x_J,x_{\tilde{W}}))$ holds $\tilde{P}(X_{\tilde{W}})\as$ if and only if $\pi_{x_J} := (x_W \mapsto \tilde\pi(x_J,\tilde\Phi(x_J,x_W)))$ holds $P(X_W)\as$ by Lemma~\ref{lem:pushforward_as}.
+  Since this holds for all $x_J \in \CX_J$, this proves the claim.
+\end{proof}
+
+Now we can prove our earlier claim that exogenous pushforwards are well-defined up to equivalence.
+\begin{Lem}\label{lem:exog_pushforward_equiv}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  Let $\hat{M}$ be an iSCM such that $M \equiv \hat{M}$, and let
+  $\hat{\tilde{f}} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ be a measurable mapping such that:
+    $$\hat{f}(x_J,x_V,x_W) = \tilde{\hat{f}}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \quad \hat{M}\as.$$
+  Then $M_{\repar{\tilde{f}}{\tilde{\Phi}}} \equiv \hat{M}_{\repar{\tilde{\hat{f}}}{\tilde{\Phi}}}$.
+\end{Lem}
+\begin{proof}
+  We have $\hat{M} = \lt J, V, W, \CX, P, \hat{f} \rt$ and $\hat{M}_{\repar{\tilde{\hat{f}}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{\hat{f}} \rtuple$.
+  By assumption, $x_v = f_v(x) \iff x_v = \hat{f}_v(x)\ M\as$ for all $v \in V$, 
+  and furthermore
+    $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \quad M\as$$
+  as well as
+    $$\hat{f}(x_J,x_V,x_W) = \tilde{\hat{f}}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \quad M\as,$$
+  noting that $M\as$ and $\hat{M}\as$ mean the same.
+  Hence for $v \in V$,
+  $$x_v = \tilde{f}_v(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \iff x_v = \tilde{\hat{f}}_v(x_J,x_V,\tilde{\Phi}(x_J,x_W))\ M\as.$$ 
+  By Corollary~\ref{cor:exog_pushforward_as}, this implies
+  $$x_v = \tilde{f}_v(x) \iff x_v = \tilde{\hat{f}}_v(x)\ M_{\repar{\tilde{f}}{\tilde{\Phi}}}\as.$$ 
+  \Joris{TODO: this is a little quick. One could write it out by defining a property $\tilde \pi(x_J,x_{\tilde{W}}) := \{x_V \in \CX_V : x_V = \tilde{f}_v(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \} = \{ x_v \in \CX_V : x_v = \tilde{\hat{f}}_v(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \}$.}
+\end{proof}
+
+Exogenous pushforwards are compatible with hard interventions.
+\begin{Lem}\label{lem:interventions_exogenous_pushforward_commute}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+For an intervention target $T \subseteq V \cup J$:
+  $$(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\tilde{\Phi}}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions.
+\end{proof}
+The twinning operation is only compatible with exogenous pushforwards under restrictive assumptions.
+\begin{Lem}\label{lem:twinning_exogenous_pushforward_commute}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  If $\tilde{\Phi}$ is constant in $X_J$, that is, $\tilde{\Phi}(x_J,x_W) = \tilde{\Phi}(\tilde{x}_J,x_W)$ for all $x_W \in \CX_W$ and all $x_J,\tilde{x}_J \in \CX_J$, then:
+  $$(M_{\repar{\tilde{f}}{\tilde{\Phi}}})^\twin = (M^\twin)_{\repar{\tilde{f}^\twin}{\tilde{\Phi}}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions. In particular, we check that
+  \begin{equation*}\begin{split}
+    f^\twin(x_J,x_{J'},x_V,x_{V'},x_W) 
+    & = (f(x_J,x_V,x_W),f(x_{J'},x_{V'},x_W)) \\
+    & = \big(\tilde{f}(x_J,x_V,\tilde{\Phi}(x_W)),\tilde{f}(x_{J'},x_{V'},\tilde{\Phi}(x_W))\big) \\
+    & = \tilde{f}^{\twin}(x_J,x_{J'},x_V,x_{V'},\tilde{\Phi}(x_W)).
+  \end{split}\end{equation*}
+  For the last equality to hold, it suffices that $\tilde{\Phi}$ does not depend on $X_J$.
+\end{proof}
+\Joris{We can prove that the exogenous pushforward commutes with the scc-splitting operation, even if the reparameterization function depends on the exogenous input. Also, if we first do scc-splitting, then an exogenous pushforward preserves interventional equivalence (even if the reparameterization function depends on the exogenous input).}
+
+We can pull back partial solution functions from exogenous pushforwards.
+\begin{Lem}\label{lem:exogenous_pushforward_pullback_partial_solution_functions}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  If $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ has partial solution function $\tilde{g}^{[L]} : \CX_J \times \CX_{V\sm L} \times \CX_{\tilde{W}} \to \CX_L$ w.r.t.\ $L \ins V$, then $M$ has partial solution function 
+  $$g^{[L]} : \CX_J \times \CX_{V\sm L} \times \CX_W \to \CX_L : (x_J,x_{V\sm L},x_W) \mapsto \tilde{g}^{[L]} (x_J,x_{V\sm L},\tilde{\Phi}(x_J,x_W))$$
+  w.r.t.\ $L$.
+  If $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is essentially uniquely solvable w.r.t.\ $L \ins V$, then so is $M$.
+\end{Lem}
+\begin{proof}
+  If $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ has partial solution function $\tilde{g}^{[L]}$ w.r.t.\ $L \ins V$, then
+  $$x_L = \tilde{f}_L(x_J,x_V,x_{\tilde{W}}) \impliedby x_L = \tilde{g}^{[L]}(x_J,x_{V\sm L},x_{\tilde{W}}) \quad \tilde{M}\as.$$
+  By Corollary~\ref{cor:exog_pushforward_as},
+  $$x_L = \tilde{f}_L(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \impliedby x_L = \tilde{g}^{[L]}(x_J,x_{V\sm L},\tilde{\Phi}(x_J,x_W)) \quad M\as.$$
+  By assumption,
+    $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \quad M\as.$$
+  Hence
+    $$x_L = f_L(x_J,x_V,x_W) \impliedby x_L = \tilde{g}^{[L]}(x_J,x_{V\sm L},\tilde{\Phi}(x_J,x_W)) \quad M\as.$$
+  Therefore, $M$ has partial solution function $g^{[L]}$ w.r.t.\ $L$.
+  If $\tilde{M}$ is essentially uniquely solvable w.r.t.\ $L$, then all logical implications above become logical equivalences, and hence $M$ is essentially uniquely solvable w.r.t.\ $L$ as well.
+\end{proof}
+
+\begin{Thm}\label{thm:various_equiv_exogenous_pushforward}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  If both $M$ and $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ are simple,
+  \Joris{I had a footnote: `This assumption is only needed because we avoided to define the equivalence relations for arbitrary iSCMs.' but I am not sure whether it still applies.}
+  then $M$ is observably and interventionally equivalent to $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ w.r.t.\ $V$.
+  If, furthermore, $\tilde{\Phi}$ does not depend on $X_J$, then $M$ is even counterfactually equivalent to $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ w.r.t.\ $V$.
+\end{Thm}
+\begin{proof}
+  Let $g : \CX_J \times \CX_W \to \CX_V$ be a (essentially unique) solution function of $M$, 
+  and $\tilde{g} : \CX_J \times \CX_{\tilde{W}} \to \CX_V$ a (essentially unique) solution function of $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+  By Lemma~\ref{lem:exogenous_pushforward_pullback_partial_solution_functions} and the essential uniqueness of the solution functions, we get
+%  $g$ satisfies
+%  $$x_V = f(x_J,x_V,x_W) \iff x_V = g(x_J,x_W) \quad M\as,$$
+%  while $\tilde{g}$ satisfies
+%  $$x_V = \tilde{f}(x_J,x_V,x_{\tilde{W}}) \iff x_V = \tilde{g}(x_J,x_{\tilde{W}}) \quad \tilde{M}\as.$$
+%  By Corollary~\ref{cor:exog_pushforward_as}, the latter implies that
+%  $$x_V = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,x_W)) \iff x_V = \tilde{g}(x_J,\tilde{\Phi}(x_J,x_W)) \quad M\as.$$
+%  By assumption, 
+%    $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,x_W))\quad M\as.$$
+%  Therefore, we conclude that
+%  $$g(x_J,x_W) = \tilde{g}(x_J,\tilde{\Phi}(x_J,x_W))\quad M\as.$$
+%  In other words,
+  $$g = \tilde g \circ (\id_{\CX_J},\tilde{\Phi}).$$
+
+  We now show that the marginal Markov kernels $P_{M}(X_V \mid \doit(X_J))$ and $P_{M_{\repar{\tilde{f}}{\tilde{\Phi}}}}(X_V \mid \doit(X_J))$ are the same.
+  By Theorem~\ref{thm:scm_essentially_unique_solvability_implies}, 
+  \begin{align*}
+    P_{M}(X_V \mid \doit(X_J)) 
+    & = (g)_* \lp \delta(X_J|X_J) \otimes P(X_W) \rp \\
+    & = (\tilde g \circ (\id_{\CX_J},\tilde{\Phi}))_* \lp \delta(X_J|X_J) \otimes P(X_W) \rp \\
+    %    & = (\tilde{g})_* \lp \delta(X_J|X_J) \otimes (\tilde{\Phi})_* P(X_W) \rp \\
+    & = (\tilde{g})_* \lp \delta(X_J|X_J) \otimes \tilde{P}(X_{\tilde{W}})  \rp \\
+    & = P_{M_{\repar{\tilde{f}}{\tilde{\Phi}}}}(X_V \mid \doit(X_J)).
+  \end{align*}
+  This shows the observable equivalence w.r.t.\ $V$.
+
+  Let $T \subseteq V$. 
+  Then $(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\tilde{\Phi}}}$ by Lemma~\ref{lem:interventions_exogenous_pushforward_commute}.
+  The observable equivalence of $M_{\doit(T)}$ and $(M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\tilde{\Phi}}}$ w.r.t.\ $V \setminus T$ hence implies the observable equivalence of $M_{\doit(T)}$ and $(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)}$ w.r.t.\ $V \setminus T$.
+  Since this holds for all $T \subseteq V$, $M$ and $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ are interventionally equivalent w.r.t.\ $V$.
+
+  Assume now that $\tilde{\Phi}$ does not depend on $X_J$. By Lemma~\ref{lem:twinning_exogenous_pushforward_commute}, $(M_{\repar{\tilde{f}}{\tilde{\Phi}}})^\twin = (M^\twin)_{\repar{\tilde{f}^\twin}{\tilde{\Phi}}}$.
+  Since $M^\twin$ and its exogenous pushforward $(M^\twin)_{\repar{\tilde{f}^\twin}{\tilde{\Phi}}}$ are interventionally equivalent w.r.t.\ $V \cup V'$, $M$ and $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ are counterfactually equivalent w.r.t.\ $V$.
+\end{proof}
+
+\Joris{I'm not sure if the following can be made to work!!! Check carefully!!!
+We can show that under measurability assumptions on $\tilde\Phi$, simplicity is preserved under exogenous pushforwards.
+\begin{Con}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$,
+  where $\tilde\Phi : \CX_J \times \CX_W \to \CX_{\tilde{W}}$ is a measurable function 
+  %that does not depend on $\CX_J$.
+  that preserves measurable sets: for all Borel measurable $A \ins \CX_J \times \CX_W$, $\tilde\Phi(A) \ins \CX_{\tilde{W}}$ is Borel measurable.
+  Then $M$ is simple if and only if $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is simple.
+\end{Con}
+\begin{proof}
+  Denote $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+  %If with $\tilde{P}>0$ the SE of $\tilde{M}$ have no unique solution, then with $P>0$ the SE of $M$ have no unique solution.
+  To show that $\tilde{M}$ is simple, by Remark~\ref{rem:scm_simple_sufficient_condition} it suffices to show that for each $L \ins V$
+  $$[\exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_{V\sm L},x_L,x_{\tilde W})]$$
+  up to a measurable $\tilde M$-null set.
+
+  Let $L \ins V$ and consider the property which expresses that the structural equations of $\tilde M^{[L]}$ have a unique solution:
+  $$\tilde\pi(x_J,x_{\tilde{W}}) := \big[\forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_{V\sm L},x_L,x_{\tilde{W}})\big].$$
+  Then the corresponding property for $M$ is:
+  $$\pi(x_J,x_W) = \big[\forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_{V\sm L},x_L,\tilde\Phi(x_J,x_W)) \big],$$
+  for which we have that $\tilde\pi\ \tilde{M}\as \iff \pi\ M\as$ by Corollary~\ref{cor:exog_pushforward_as}.
+  Since 
+  $$f(x_J,x_V,x_W) = \tilde f(x_J,x_V,\tilde\Phi(x_J,x_W))\quad M\as$$ 
+  by assumption, we conclude:
+  \begin{equation*}\begin{split}
+    & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_V,x_{\tilde{W}}) \quad \tilde{M}\as \\
+    \iff & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_V,\tilde\Phi(x_J,x_W)) \quad M\as \\
+    \iff & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = f_L(x_J,x_V,x_W) \quad M\as
+    \end{split}
+  \end{equation*}
+  Since $M$ is simple, it is essentially uniquely solvable w.r.t.\ $L$, and hence the last condition holds.
+  Therefore the first condition holds.
+  
+  We still have to show that that nullset is measurable\dots
+  And for that, the trivial extension of Corollary~\ref{cor:exog_pushforward_as} goes in the wrong direction (it states that if $\tilde \pi$ holds up to a measurable null set, then $\pi$ holds up to a measurable null set, but we need the other direction).
+  So we will first need to generalize Corollary~\ref{cor:exog_pushforward_as} in both directions w.r.t.\ measurability of the null set...
+\end{proof}
+}
+
+\begin{Prp}\label{prp:exogenous_pushforward_discrete}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$,
+  %where $\tilde\Phi : \CX_J \times \CX_W \to \CX_{\tilde{W}}$ is a measurable function 
+  %that does not depend on $\CX_J$.
+  %that preserves measurable sets: for all Borel measurable $A \ins \CX_J \times \CX_W$, $\tilde\Phi(A) \ins \CX_{\tilde{W}}$ is Borel measurable.
+  where $\CX_J$ and $\CX_{\tilde W}$ are discrete spaces.
+  Then $M$ is simple if and only if $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is simple.
+\end{Prp}
+\begin{proof}
+  Denote $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+  %If with $\tilde{P}>0$ the SE of $\tilde{M}$ have no unique solution, then with $P>0$ the SE of $M$ have no unique solution.
+  The implication that $M$ is simple if $\tilde{M}$ is simple follows from Lemma~\ref{lem:exogenous_pushforward_pullback_partial_solution_functions}, so we only have to prove the converse.
+  Assume that $M$ is simple.
+  To show that $\tilde{M}$ is simple, by Remark~\ref{rem:scm_simple_sufficient_condition} it suffices to show that for each $L \ins V$
+  $$\exists! x_L \in \CX_L : x_{L} = \tilde f_L(x_J,x_{V\sm L},x_L,x_{\tilde W})$$
+  up to a measurable $\tilde M$-null set.
+  Because any $\tilde M$-null set is measurable because of the discreteness of $\CX_J$ and $\CX_{\tilde W}$, it suffices if this holds up to a $\tilde M$-null set.
+
+  Let $L \ins V$ and consider the property which expresses that the structural equations of $\tilde M^{[L]}$ have a unique solution:
+  $$\tilde\pi(x_J,x_{\tilde{W}}) := \big[\forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_{V\sm L},x_L,x_{\tilde{W}})\big].$$
+  Then the corresponding property for $M$ is:
+  $$\pi(x_J,x_W) = \big[\forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_{V\sm L},x_L,\tilde\Phi(x_J,x_W)) \big],$$
+  for which we have that $\tilde\pi\ \tilde{M}\as \iff \pi\ M\as$ by Corollary~\ref{cor:exog_pushforward_as}.
+  Since 
+  $$f(x_J,x_V,x_W) = \tilde f(x_J,x_V,\tilde\Phi(x_J,x_W))\quad M\as$$ 
+  by assumption, we conclude:
+  \begin{equation*}\begin{split}
+    & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_V,x_{\tilde{W}}) \quad \tilde{M}\as \\
+    \iff & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = \tilde f_L(x_J,x_V,\tilde\Phi(x_J,x_W)) \quad M\as \\
+    \iff & \forall x_{V\sm L} \in \CX_{V \sm L} \exists! x_L \in \CX_L : x_L = f_L(x_J,x_V,x_W) \quad M\as.
+    \end{split}
+  \end{equation*}
+  Since $M$ is simple, it is essentially uniquely solvable w.r.t.\ $L$, and hence the last condition holds.
+  Therefore, also the first condition holds.
+  This proves the claim.
+\end{proof}
+
+An exogenous pushforward can be inverted if the reparameterization mapping $\tilde\Phi$ has an `essential left-inverse'.
+\begin{Lem}\label{lem:exogenous_pushforward_left-inverse}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  Suppose there exists an essential left-inverse of $\tilde\Phi$, that is, a measurable function $\Psi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ such that $\Psi(x_J,\tilde\Phi(x_J,x_W)) = x_W$ $M\as$.
+  Then $M \equiv \tilde{M}_{\repar{f}{\Psi}}$.
+\end{Lem}
+\begin{proof}
+  Since $\Psi$ is an essential left-inverse of $\tilde\Phi$,
+  $$(\id_{\CX_J},\Psi) \circ (\id_{\CX_J},\tilde\Phi) = (\id_{\CX_J},\id_{\CX_W})\ M\as.$$
+
+  By definition,
+  $${\tilde M}_{\repar{\hat f}{\Psi}} = \ltuple J, V, W, \CX_J \times \CX_V \times \CX_W, \hat{P}, \hat{f} \rtuple$$ 
+  with $\hat{f}$ such that
+  $$\tilde{f}(x_J,x_V,x_{\tilde{W}}) = \hat{f}(x_J,x_V,\Psi(x_J,x_{\tilde{W}})) \quad \tilde{M}\as$$
+  and for all $x_J \in \CX_J$, 
+    $$(\Psi(x_J,\cdot))_* \tilde{P} = \hat{P}$$
+
+  We show that picking $\hat f = f$ works, and that $\hat P = P$.
+
+  If $\hat f = f$, then
+  $$\tilde{f}(x_J,x_V,\tilde\Phi(x_J,x_W)) = \hat{f}(x_J,x_V,x_W) = \hat{f}(x_J,x_V,\Psi(x_J,\tilde\Phi(x_J,x_W))) \quad M\as$$
+  Hence, by Corollary~\ref{cor:exog_pushforward_as},
+  $$\tilde{f}(x_J,x_V,x_{\tilde{W}}) = \hat{f}(x_J,x_V,\Psi(x_J,x_{\tilde{W}})) \quad \tilde{M}\as$$
+  which is precisely what was required.
+
+  For all $x_J \in \CX_J$, 
+    \begin{equation*}\begin{split}
+      \hat P 
+      &= (\Psi(x_J,\cdot))_* \tilde{P} \\
+      &= (\Psi(x_J,\cdot))_* \big(\tilde{\Phi}(x_J,\cdot)_* P\big) \\
+      &= \big(P \circ \tilde{\Phi}(x_J,\cdot)^{-1}\big) \circ \Psi(x_J,\cdot)^{-1} \\
+      &= P \circ \big(\tilde{\Phi}(x_J,\cdot)^{-1} \circ \Psi(x_J,\cdot)^{-1}\big) \\
+      &= P \circ \big(\Psi(x_J,\cdot) \circ \tilde{\Phi}(x_J,\cdot)\big)^{-1} \\
+      &= P
+    \end{split}\end{equation*}
+  So that also works out.
+\end{proof}
+\Joris{We can use this to push forward partial solution functions to exogenous pushforwards (by pulling back through the left-inverse).
+\begin{Cor}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pushforward of $M$.
+  Suppose there exists an essential left-inverse $\Psi$ of $\tilde\Phi$.
+  If $M$ has partial solution function $g^{[L]} : \CX_J \times \CX_{V\sm J} \times \CX_W \to \CX_V$ w.r.t.\ $L \ins V$,
+  then $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ has partial solution function
+  $$\tilde{g}^{[L]} : \CX_J \times \CX_{V\sm L} \times \CX_{\tilde{W}} \to \CX_L : (x_J,x_{V\sm L},x_{\tilde{W}}) \mapsto g^{[L]}(x_J,x_{V\sm L},\Psi(x_J,x_{\tilde{W}}))$$ 
+  w.r.t.\ $L$.
+  If $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$, then so is $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+\end{Cor}
+\begin{proof}
+  Write $\tilde{M} := M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$.
+  We know from Lemma~\ref{lem:exogenous_pushforward_pullback_partial_solution_functions} that if $\tilde{M}_{\repar{f}{\Psi}}$ is essentially uniquely solvable w.r.t.\ $L \ins V$ with partial solution function $\hat g^{[L]}$, then $\tilde{M}$ is essentially uniquely solvable w.r.t.\ $L$ with partial solution function $\hat{g}^{[L]} \circ (\id_{\CX_J},\id_{\CX_{V\sm L}},\Psi)$.
+  By Lemma~\ref{lem:exogenous_pushforward_left-inverse}, $M \equiv \tilde{M}_{\repar{f}{\Psi}}$.
+  This shows the claim.
+\end{proof}
+}
+
+One example of an exogenous pushforward of this type that one encounters occassionally is the operation of merging exogenous random variables.
+\begin{Eg}[Merging exogenous random variables]\label{eg:merging_exogenous_random_variables_pushforward}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM.
+  Let $\tilde{W}$ be a partition of $W$.
+  Take for $\CX_{\tilde{W}} = \prod_{\tilde{w}\in\tilde{W}} \CX_{\tilde{w}}$ the product of standard measurable spaces $\CX_{\tilde{w}} = \prod_{w \in \tilde{w}} \CX_w$. 
+  Let $\tilde{\Phi} : \CX_W \to \CX_{\tilde{W}}$ be the natural identification that
+  maps $x_W = (x_w)_{w\in W} \in \CX_W$ with components $x_w \in \CX_w$ to $x_{\tilde{W}} = (x_{\tilde{w}})_{\tilde{w}\in\tilde{W}} \in \CX_{\tilde{W}}$ with components $x_{\tilde{w}} = (x_w)_{w \in \tilde{w}} \in \CX_{\tilde{w}}$.
+  Because $\tilde{W}$ is a partition of $W$, $\tilde{\Phi}$ is a bijection.
+  Take
+  $$\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV : (x_J,x_V,x_{\tilde{W}}) \mapsto f(x_J,x_V,\tilde{\Phi}^{-1}(x_{\tilde{W}})).$$
+  It is immediate from Definition~\ref{def:exogenous_pushforward} that 
+  $$M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rtuple$$
+  is an exogenous pushforward of $M$.
+  Because $\tilde{\Phi}$ is independent of $x_J$ and bijective, $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is observably, interventionally and counterfactually equivalent to $M$ w.r.t.\ $V$ in case $M$ is simple.
+\end{Eg}
+
+The following example shows that an exogenous pushforward need not be counterfactually equivalent w.r.t.\ $V$ if $\tilde{\Phi}$ depends on $X_J$.
+\begin{Eg}\label{eg:exogenous_pushforward_not_counterfactually_equivalent}
+Consider the acyclic iSCM $M$ with exogenous input variable $X_1$ with co-domain $\{-1,1\}$, endogenous variables $X_2,X_3$ with co-domains $\{-1,1\}$, $\{-2,0,2\}$, respectively, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+    X_3 &= f_3(X_2,X_B) = X_2 + X_B,
+  \end{aligned}$$
+with exogenous random variable $X_B \sim \mathrm{Uni}(\{-1,1\})$.
+  Consider the exogenous pushforward $\tilde{M}$ with exogenous random variable $X_{\tilde{B}}$ with co-domain $\{-1,1\}$, mapping $\tilde{\Phi} : \{-1,1\}^2 \to \{-1,1\} : (x_1,x_B) \mapsto x_1 x_B$, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}}.
+  \end{aligned}$$ 
+  Its exogenous distribution is $\tilde{\Phi}_*(\Prb(X_B)) = \mathrm{Uni}(\{-1,1\}) = \Prb(X_{\tilde{B}})$.
+It is indeed an exogenous pushforward:
+  $$\begin{aligned}
+    \tilde{f}(x_1,x_2,\tilde{\Phi}(x_1,x_B)) 
+    &= (\tilde{\Phi}(x_1,x_B), x_2 + x_1 \tilde{\Phi}(x_1,x_B)) \\
+    &= (x_1 x_B, x_2 + x_1 x_1 x_B) \\
+    &= (x_1 x_B, x_2 + x_B) \\
+    &= f(x_1,x_2,x_B).
+  \end{aligned}$$
+Both $M$ and $\tilde{M}$ are acyclic, hence simple.
+By Theorem~\ref{thm:various_equiv_exogenous_pushforward}, $\tilde{M}$ is observably and interventionally equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$.
+However, $\tilde{M}$ is not counterfactually equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$, as one can check explicitly.
+%The causal mechanism of $M^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+%    X_3 &= f_3(X_2,X_B) = X_2 + X_B \\
+%    X_{2'} &= f_2(X_{1'},X_B) = X_{1'} X_B \\
+%    X_{3'} &= f_3(X_{2'},X_B) = X_{2'} + X_B,
+%  \end{aligned}$$ 
+%while that of $\tilde{M}^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}} \\
+%    X_{2'} &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_{3'} &= \tilde{f}_3(X_{1'}, X_{2'}, X_{\tilde{B}}) = X_{2'} + X_{1'} X_{\tilde{B}},
+%  \end{aligned}$$ 
+%The observation $X_1 = 1$, $X_2 = 1$ implies $X_B = 1$ and $X_3 = 2$ in $M$, whereas it implies $X_{\tilde{B}} = 1$ and $X_3=2$ in $\tilde{M}$.
+%If we do $X_{1'} = -1$, this results in $X_{2'} = -1$, $X_{3'} = 0$ in $M$, and in $X_{2'} = 1$, $X_{3'} = 0$ in $\tilde{M}$.
+%$M$ and $\tilde{M}$ are clearly not counterfactually equivalent with respect to $\{2,3\}$ (even not with respect to $\{2\}$ only)!
+\end{Eg}
+
+\subsubsection{Exogenous pullback}
+
+Since exogenous random variables are considered latent, certain reparameterizations of those may preserve part of the causal semantics of the observed variables.
+\begin{Def}\label{def:exogenous_pullback}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM.
+  Let $\tilde{W}$ be a finite index set disjoint from $J \cup V \cup W$, and $\CX_{\tilde{W}} = \prod_{\tilde{w}\in\tilde{W}} \CX_{\tilde{w}}$ the product of standard measurable spaces $\CX_{\tilde{w}}$. 
+  Let $\Phi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ be a measurable mapping.
+  Let $\tilde{P} = \bigotimes_{\tilde{w}\in\tilde{W}} \tilde{P}_{\tilde{w}}$ with $\tilde{P}_{\tilde{w}} \in \C{P}(\CX_{\tilde{w}})$ for all $\tilde{w}\in\tilde{W}$.
+  Define the function $\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ by:
+    $$\tilde{f}(x_J,x_V,x_{\tilde{W}}) = f(x_J,x_V,\Phi(x_J,x_{\tilde{W}}))$$
+  for all $x_J \in \CX_J, x_V \in \CX_V, x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+  If 
+%    $$\delta(X_J|X_J) \otimes P = (\id_{\CX_J}, \Phi)_* \lp \delta(X_J|X_J) \otimes \tilde{P} \rp,$$
+    $$\forall x_J \in \CX_J: \quad (\Phi(x_J,\cdot))_* \tilde{P} = P,$$
+%  where $P = \bigotimes_{w\in W}P_w$ with $P_w \in \C{P}(\CX_w)$ for all $w \in W$, 
+  we call the iSCM
+    $$M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rtuple$$
+  an \emph{exogenous pullback} of $M$ along $\Phi$.
+\end{Def}
+Note that given $\Phi$, the function $\tilde{f}$ occurring in this definition is unique, but the distribution $\tilde f$ is not necessarily uniquely determined by the definition.
+Still, the exogenous pullback $M_{\repar{\Phi}{\tilde{P}}}$ is well-defined given both $\Phi$ and $\tilde{P}$.
+
+There is again some nullset trickery that we need to take care of before we can show various nice properties of this operation on iSCMs.
+\begin{Lem}\label{lem:pullback_as}
+  Let $\phi : \CX_{\tilde W} \to \CX_W$ be a measurable map between two standard measurable spaces. 
+  Let $P_{\CX_{\tilde{W}}}$ be a probability measure on $\CX_{\tilde{W}}$ and let $P_{\CX_W} = P_{\CX_{\tilde W}} \circ \phi^{-1}$ be its pushforward under $\phi$. 
+  Let $\pi:\CX_W\to\{0,1\}$ be a property, i.e., a (possibly non-measurable) boolean-valued function on $\CX_W$. 
+  Then the property $\tilde\pi = \pi\circ\phi$ on $\CX_{\tilde{W}}$ holds $P_{\CX_{\tilde{W}}}$-a.e.\ if and only if the property $\pi$ holds $P_{\CX_W}$-a.e..
+\end{Lem}
+\begin{proof}
+  This is just a reformulation of Lemma~\ref{lem:pushforward_as}.
+\end{proof}
+\begin{Cor}\label{cor:exog_pullback_as}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $\tilde{M} := M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+  Let $\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property and define the property $\tilde\pi : \CX_J \times \CX_{\tilde{W}} \to \{0,1\}$ by $\tilde\pi(x_J,x_{\tilde{W}}) := \pi(x_J,\Phi(x_J,x_{\tilde W}))$.
+  Then:
+  $$\pi\ M\as \quad\iff\quad \tilde\pi\ \tilde{M}\as.$$
+  \TODOmas
+\end{Cor}
+\begin{proof}
+  By assumption, for all $x_J \in \CX_J$, $(\Phi_{x_J})_* \tilde{P} = P,$ where the section $\Phi_{x_J} : \CX_{\tilde{W}} \to \CX_W : x_{\tilde W} \mapsto \Phi(x_J,x_{\tilde W})$ is measurable. 
+
+  We want to show that
+  $\pi(x_J,x_W)$ holds $M\as$ if and only if $\pi(x_J,\Phi(x_J,x_{\tilde W}))$ holds $\tilde{M}\as$.
+%  This follows from pointwise (for each $x_J\in\CX_J$) application of the previous Lemma.
+  Let $x_J \in \CX_J$.
+  Then, the property $\pi_{x_J} := (x_W \mapsto \pi(x_J,x_W))$ holds $P(X_W)\as$ if and only if $\tilde\pi_{x_J} := (x_{\tilde W} \mapsto \pi(x_J,\Phi_{x_J}(x_{\tilde W})))$ holds $P(X_{\tilde W})\as$ by Lemma~\ref{lem:pullback_as}.
+  Since this holds for all $x_J \in \CX_J$, this proves the claim.
+\end{proof}
+\Joris{Perhaps we can unify Corollaries~\ref{cor:exog_pushforward_as} and \ref{cor:exog_pullback_as}?}
+
+\begin{Lem}\label{lem:exog_pullback_equiv}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+  Let $\hat{M}$ be an iSCM such that $M \equiv \hat{M}$.
+  Then $M_{\repar{\Phi}{\tilde{P}}} \equiv \hat{M}_{\repar{\Phi}{\tilde{P}}}$.
+\end{Lem}
+\begin{proof}
+  We have $\hat{M} = \ltuple J, V, W, \CX, P, \hat{f} \rtuple$ and $\hat{M}_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{\hat{f}} \rtuple$.
+
+  By assumption, $x_v = f_v(x) \iff x_v = \hat{f}_v(x)\ M\as$ for all $v \in V$.
+  By Corollary~\ref{cor:exog_pullback_as}, this implies that for $v \in V$,
+  $$x_v = f_v(x_J,x_V,\Phi(x_J,x_{\tilde{W}})) \iff x_v = \hat{f}_v(x_J,x_V,\Phi(x_J,x_{\tilde{W}}))\ M_{\repar{\Phi}{\tilde{P}}}\as$$
+  By the definition of exogenous pullbacks, we can rewrite this as
+  \[x_v = \tilde f_v(x_J,x_V,x_{\tilde{W}}) \iff x_v = \tilde{\hat{f}}_v(x_J,x_V,x_{\tilde{W}})\ M_{\repar{\Phi}{\tilde{P}}}\as\qedhere\]
+\end{proof}
+
+Exogenous pullbacks are compatible with hard interventions.
+\begin{Lem}\label{lem:interventions_exogenous_pullback_commute}
+Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+For an intervention target $T \subseteq V \cup J$:
+  $$(M_{\repar{\Phi}{\tilde{P}}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\Phi}{\tilde{P}}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions.
+\end{proof}
+
+The twinning operation is only compatible with exogenous pullbacks under restrictive assumptions.
+\begin{Lem}\label{lem:twinning_exogenous_pullback_commute}
+Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+If $\Phi$ is constant in $X_J$, that is, $\Phi(x_J,x_{\tilde{W}}) = \Phi(\tilde{x}_J,x_{\tilde{W}}) =: \Phi(x_{\tilde{W}})$ for all $x_{\tilde{W}} \in \CX_{\tilde{W}}$ and all $x_J,\tilde{x}_J \in \CX_J$, then:
+  $$(M_{\repar{\Phi}{\tilde{P}}})^\twin = (M^\twin)_{\repar{\Phi}{\tilde{P}}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions. In particular, we check that
+  \begin{equation*}\begin{split}
+    \tilde{f}^\twin(x_J,x_{J'},x_V,x_{V'},x_{\tilde{W}}) 
+    & = (\tilde{f}(x_J,x_V,x_{\tilde{W}}),\tilde{f}(x_{J'},x_{V'},x_{\tilde{W}})) \\
+    & = (f(x_J,x_V,\Phi(x_J,x_{\tilde{W}})),f(x_{J'},x_{V'},\Phi(x_{J'},x_{\tilde{W}}))) \\
+    & = (f(x_J,x_V,\Phi(x_{\tilde{W}})),f(x_{J'},x_{V'},\Phi(x_{\tilde{W}}))) \\
+    & = f^{\twin}(x_J,x_{J'},x_V,x_{V'},\Phi(x_{\tilde{W}})).
+  \end{split}\end{equation*}
+  For the last equality to hold, it suffices that $\Phi$ does not depend on $X_J$.
+\end{proof}
+
+We can push forward partial solution functions to exogenous pullbacks.
+\begin{Lem}\label{lem:exogenous_pullback_partial_solution_functions}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+  If $M$ has partial solution function $g^{[L]} : \CX_J \times \CX_{V\sm L} \times \CX_{W} \to \CX_L$ w.r.t.\ $L \ins V$, then $M_{\repar{\Phi}{\tilde{P}}}$ has partial solution function
+  $$\tilde{g}^{[L]} : \CX_J \times \CX_{V\sm L} \times \CX_{\tilde W} \to \CX_L : (x_J,x_{V\sm L},x_{\tilde{W}}) \mapsto g^{[L]} (x_J,x_{V\sm L},\Phi(x_J,x_{\tilde{W}}))$$
+  w.r.t.\ $L$.
+  If $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$, then so is $M_{\repar{\Phi}{\tilde{P}}}$.
+\end{Lem}
+\begin{proof}
+  If $M$ has partial solution function $g^{[L]}$ w.r.t.\ $L \ins V$, then
+  $$x_L = f_L(x_J,x_V,x_W) \impliedby x_L = g^{[L]}(x_J,x_{V\sm L},x_W) \quad M\as.$$
+  By Corollary~\ref{cor:exog_pullback_as},
+  $$x_L = f_L(x_J,x_V,\Phi(x_J,x_{\tilde W})) \impliedby x_L = g^{[L]}(x_J,x_{V\sm L},\Phi(x_J,x_{\tilde W})) \quad M_{\repar{\Phi}{\tilde{P}}}\as.$$
+%  By assumption,
+%    $$\tilde f(x_J,x_V,x_{\tilde{W}}) = f(x_J,x_V,\Phi(x_J,x_{\tilde W})).$$
+%  Also, by definition,
+%    $$\tilde{g}^{[L]}(x_J,x_{V\sm L},x_{\tilde W}) = g^{[L]}(x_J,x_{V\sm L},\Phi(x_J,x_{\tilde W})).$$
+  Hence
+    $$x_L = \tilde f_L(x_J,x_V,x_{\tilde W}) \impliedby x_L = \tilde{g}^{[L]}(x_J,x_{V\sm L},x_{\tilde W}) \quad M_{\repar{\Phi}{\tilde{P}}}\as.$$
+  Therefore, $M_{\repar{\Phi}{\tilde{P}}}$ has partial solution function $\tilde{g}^{[L]}$ w.r.t.\ $L$.
+  If $M$ is essentially uniquely solvable w.r.t.\ $L$, then all logical implications above become logical equivalences,
+  and then $M_{\repar{\Phi}{\tilde{P}}}$ is essentially uniquely solvable w.r.t.\ $L$ as well.
+\end{proof}
+
+\begin{Thm}\label{thm:various_equiv_exogenous_pullback}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+  If $M$ is simple, then so is $M_{\repar{\Phi}{\tilde{P}}}$, and $M$ is observably and interventionally equivalent to $M_{\repar{\Phi}{\tilde{P}}}$ w.r.t.\ $V$.
+  If, furthermore, $\Phi$ does not depend on $X_J$, then $M$ is even counterfactually equivalent to $M_{\repar{\Phi}{\tilde{P}}}$ w.r.t.\ $V$.
+\end{Thm}
+\begin{proof}
+  If $M$ is simple, then it is essentially uniquely solvable w.r.t.\ $T$ for all $T \ins V$.
+  By Lemma~\ref{lem:exogenous_pullback_partial_solution_functions}, $M_{\repar{\Phi}{\tilde{P}}}$ is then essentially uniquely solvable w.r.t.\ $T$ for all $T \ins V$.
+  Hence $M_{\repar{\Phi}{\tilde{P}}}$ is simple.
+
+  Let $g : \CX_J \times \CX_W \to \CX_V$ be a solution function of $M$. 
+  Define the function $\tilde{g} : \C{X}_J \times \CX_{\tilde{W}} \to \CX_V$ by
+%  $$\tilde{g}(x_J,x_{\tilde{W}}) := g(x_J,\Phi(x_J,x_{\tilde{W}})).$$
+%  In other words,
+  $$\tilde g = g \circ (\id_{\CX_J},\Phi).$$
+  By Lemma~\ref{lem:exogenous_pullback_partial_solution_functions}, $\tilde{g}$ is a solution function of $M_{\repar{\Phi}{\tilde{P}}}$.
+
+  We now show that the marginal Markov kernels $P_{M}(X_V \mid \doit(X_J))$ and $P_{M_{\repar{\Phi}{\tilde{P}}}}(X_V \mid \doit(X_J))$ are the same.
+  By Theorem~\ref{thm:scm_essentially_unique_solvability_implies}, 
+  \begin{align*}
+    P_{M_{\repar{\Phi}{\tilde{P}}}}(X_V \mid \doit(X_J)) 
+    & = (\tilde g)_* \lp \delta(X_J|X_J) \otimes \tilde{P}(X_{\tilde{W}}) \rp \\
+    & = (g \circ (\id_{\CX_J},\Phi))_* \lp \delta(X_J|X_J) \otimes \tilde{P}(X_{\tilde{W}}) \rp \\
+%    & = (\tilde{g})_* \lp \delta(X_J|X_J) \o\Phi_* P(X_W) \rp \\
+    & = (g)_* \lp \delta(X_J|X_J) \otimes P(X_W)  \rp \\
+    & = P_M(X_V \mid \doit(X_J)).
+  \end{align*}
+  This shows the observable equivalence w.r.t.\ $V$.
+
+  Let $T \subseteq V$. 
+  Then $(M_{\repar{\Phi}{\tilde{P}}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\Phi}{\tilde{P}}}$ by Lemma~\ref{lem:interventions_exogenous_pullback_commute}.
+  The observable equivalence of $M_{\doit(T)}$ and $(M_{\doit(T)})_{\repar{\Phi}{\tilde{P}}}$ w.r.t.\ $V \setminus T$ hence implies the observable equivalence of $M_{\doit(T)}$ and $(M_{\repar{\Phi}{\tilde{P}}})_{\doit(T)}$ w.r.t.\ $V \setminus T$.
+  Since this holds for all $T \subseteq V$, $M$ and $M_{\repar{\Phi}{\tilde{P}}}$ are interventionally equivalent w.r.t.\ $V$.
+
+  Assume now that $\Phi$ does not depend on $X_J$. 
+  By Lemma~\ref{lem:twinning_exogenous_pullback_commute}, $(M_{\repar{\Phi}{\tilde{P}}})^\twin = (M^\twin)_{\repar{\Phi}{\tilde{P}}}$.
+  Since $M^\twin$ and its exogenous pullback $(M^\twin)_{\repar{\Phi}{\tilde{P}}}$ are interventionally equivalent w.r.t.\ $V \cup V'$, $M$ and $M_{\repar{\Phi}{\tilde{P}}}$ are counterfactually equivalent w.r.t.\ $V$.
+\end{proof}
+
+\Joris{Can we prove that the exogenous pullback preserves interventional equivalence of any node-split iSCM? (even if the reparameterization functions depend on the exogenous input?}
+
+\Joris{I thought the following might work, but it doesn't seem to fit... (?)
+An exogenous pullback can be inverted if the reparameterization mapping $\Phi$ has an `essential right-inverse'.
+\begin{Lem}\label{lem:exogenous_pullback_right-inverse}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $\tilde{M} := M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous pullback of $M$.
+  Suppose there exists an essential right-inverse of $\Phi$, that is, a measurable function $\tilde\Psi : \CX_J \times \CX_W \to \CX_{\tilde W}$ such that $\Phi(x_J,\tilde\Psi(x_J,x_W)) = x_W$ $M\as$.
+  Then $M \equiv \tilde{M}_{\repar{\tilde\Psi}{P}}$.
+\end{Lem}
+\begin{proof}
+  Since $\tilde\Psi$ is an essential right-inverse of $\Phi$,
+  $$(\id_{\CX_J},\Phi) \circ (\id_{\CX_J},\tilde\Psi) = (\id_{\CX_J},\id_{\CX_W})\ M\as.$$
+%  First:
+%  $$(\Phi(x_J,\cdot))_* \tilde{P} = P$$
+%  Second:
+%  $$(\tilde\Psi(x_J,\cdot))_* P = \tilde{P}$$
+%  Combined:
+%  $$(\Phi(x_J,\cdot))_* \big((\tilde\Psi(x_J,\cdot))_* P\big) = P$$
+  From the definitions of exogenous pullback, it follows that for all $x_J \in \CX_J$, 
+    \begin{equation*}\begin{split}
+      P 
+      &= (\Phi(x_J,\cdot))_* \tilde{P} \\
+      &= (\Phi(x_J,\cdot))_* \big((\tilde\Psi(x_J,\cdot))_* P\big) \\
+      &= (\Phi(x_J,\cdot) \circ \tilde\Psi(x_J,\cdot))_* P 
+    \end{split}\end{equation*}
+  By definition,
+  $${\tilde M}_{\repar{\tilde\Psi}{P}} = \ltuple J, V, W, \CX_J \times \CX_V \times \CX_W, P, \hat{f} \rtuple$$ 
+  with $\hat{f}$ such that
+  $$\hat{f}(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde\Psi(x_J,x_W)) = f(x_J,x_V,\Phi(x_J,\tilde\Psi(x_J,x_W))) = f(x_J,x_V,x_W)\ M\as$$
+
+  We still have to show that: for all $x_J \in \CX_J$, 
+    $$(\tilde\Psi(x_J,\cdot))_* P = \tilde{P}.$$
+  Somehow that doesn't work out...
+  (It would if $\tilde\Psi$ were an essential left-inverse of $\Phi$, but to get the causal mechanism right, it should be an essential right-inverse...?)
+\end{proof}
+}
+
+Example~\ref{eg:merging_exogenous_random_variables_pushforward} showed that merging exogenous random variables can be done via an exogenous pushforward.
+Since the reparameterization mapping between the exogenous random state spaces is invertible, this operation can also be seen as an exogenous pullback.
+\begin{Eg}[Merging exogenous random variables]\label{eg:merging_exogenous_random_variables_pullback}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM.
+  Let $\tilde{W}$ be a partition of $W$.
+  Let $\CX_{\tilde{w}} = \prod_{w \in \tilde{w}} \CX_w$ for each subset $\tilde{w} \in \tilde{W}$.
+  Let $\Phi: \CX_{\tilde{W}} \to \CX_W$ be the canonical projections.
+%  Because $\tilde{W}$ is a partition of $W$, $\Phi$ is a bijection.
+  Take
+  $\tilde{P} = \bigotimes_{\tilde{w}\in \tilde{W}}\tilde{P}_{\tilde{w}}$ with $\tilde{P}_{x_{\tilde{w}}}(X_{\tilde{w}}) = P(X_{\tilde{w}})$ for all $\tilde{w} \in \tilde{W}$, and
+  define $\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ by
+    $$\tilde{f}(x_J,x_V,x_{\tilde{W}}) = f(x_J,x_V,\Phi(x_{\tilde{W}})).$$
+  It is immediate from Definition~\ref{def:exogenous_pullback} that 
+  $$M_{\repar{\Phi}{\tilde{P}}} = \ltuple J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rtuple$$
+  Then $M_{\repar{\Phi}{\tilde{P}}}$ is observably, interventionally and counterfactually equivalent to $M$ w.r.t.\ $V$.
+\end{Eg}
+
+\Joris{The next Example should be modified.
+The following example shows that an exogenous pullback need not be counterfactually equivalent w.r.t.\ $V$ if $\Phi$ depends on $X_J$.
+\begin{Eg}\label{eg:exogenous_pullback_not_counterfactually_equivalent}
+Consider the acyclic iSCM $M$ with exogenous input variable $X_1$ with co-domain $\{-1,1\}$, endogenous variables $X_2,X_3$ with co-domains $\{-1,1\}$, $\{-2,0,2\}$, respectively, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+    X_3 &= f_3(X_2,X_B) = X_2 + X_B,
+  \end{aligned}$$
+with exogenous random variable $X_B \sim \mathrm{Uni}(\{-1,1\})$.
+Consider the exogenous pullback $\tilde{M}$ with exogenous random variable $X_{\tilde{B}}$ with co-domain $\{-1,1\}$, mapping $\Phi : \{-1,1\}^2 \to \{-1,1\} : (x_1,x_B) \mapsto x_1 x_B$, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}}.
+  \end{aligned}$$ 
+Its exogenous distribution is $\Phi_*(\Prb(X_B)) = \mathrm{Uni}(\{-1,1\}) = \Prb(X_{\tilde{B}})$.
+It is indeed an exogenous pullback:
+  $$\begin{aligned}
+    \tilde{f}(x_1,x_2,\Phi(x_1,x_B)) 
+    &= (\Phi(x_1,x_B), x_2 + x_1 \Phi(x_1,x_B)) \\
+    &= (x_1 x_B, x_2 + x_1 x_1 x_B) \\
+    &= (x_1 x_B, x_2 + x_B) \\
+    &= f(x_1,x_2,x_B).
+  \end{aligned}$$
+Both $M$ and $\tilde{M}$ are acyclic, hence simple.
+By Theorem~\ref{thm:various_equiv_exogenous_pullback}, $\tilde{M}$ is observably and interventionally equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$.
+However, $\tilde{M}$ is not counterfactually equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$, as one can check explicitly.
+%The causal mechanism of $M^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+%    X_3 &= f_3(X_2,X_B) = X_2 + X_B \\
+%    X_{2'} &= f_2(X_{1'},X_B) = X_{1'} X_B \\
+%    X_{3'} &= f_3(X_{2'},X_B) = X_{2'} + X_B,
+%  \end{aligned}$$ 
+%while that of $\tilde{M}^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}} \\
+%    X_{2'} &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_{3'} &= \tilde{f}_3(X_{1'}, X_{2'}, X_{\tilde{B}}) = X_{2'} + X_{1'} X_{\tilde{B}},
+%  \end{aligned}$$ 
+%The observation $X_1 = 1$, $X_2 = 1$ implies $X_B = 1$ and $X_3 = 2$ in $M$, whereas it implies $X_{\tilde{B}} = 1$ and $X_3=2$ in $\tilde{M}$.
+%If we do $X_{1'} = -1$, this results in $X_{2'} = -1$, $X_{3'} = 0$ in $M$, and in $X_{2'} = 1$, $X_{3'} = 0$ in $\tilde{M}$.
+%$M$ and $\tilde{M}$ are clearly not counterfactually equivalent with respect to $\{2,3\}$ (even not with respect to $\{2\}$ only)!
+\end{Eg}
+}
+
+\begin{Eg}[Reparameterization trick]\label{eg:reparameterization_trick}
+The reparameterization trick:
+suppose we have an iSCM $M$ with kernel $P(X_W \mid \doit(X_J))$ (where now we allow a dependence on $X_J$!) and a structural equation
+$$X_V = f(X_J,X_V,X_W).$$
+
+Let $\tilde{W} := \{\tilde{w}\}$ for some index $\tilde{w}$ not in $J \cup V \cup W$, $\CX_{\tilde{w}} := [0,1]$, $\tilde{P}(X_{\tilde{W}})$ the uniform distribution on $\CX_{\tilde{W}}$.
+Theorem~\ref{mk-uniform} with Remark~\ref{rem:R-to-std-ms} states that there exists a function $\tilde R : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ such that:
+  \[ P(X_W|\doit(X_J)) = \delta(\tilde R|X_{\tilde{W}},X_J) \circ \tilde{P}(X_{\tilde{W}}).\]
+Consider now $\tilde{M} := M_{\repar{\tilde{R}}{\tilde{P}}}$, the exogenous pullback of $M$ along $\tilde{R}$.
+It has causal mechanism $\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ defined by
+  $$\tilde{f}(x_J,x_V,x_{\tilde{W}}) = f(x_J,x_V,\tilde{R}(x_J,x_{\tilde{W}}))$$
+for all $x_J \in \CX_J, x_V \in \CX_V, x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+If $\tilde{R}$ depends on $X_J$, then $\tilde{M}$ may not be counterfactually equivalent to $M$ w.r.t.\ $V$.
+
+Note that we can also consider $M$ to be an exogenous pushforward of $\tilde{M}$: $M = \tilde{M}_{\repar{f}{\tilde{R}}}$.
+\Joris{Question: could we alternatively construct $\tilde{M}$ as an exogenous pushforward of $M$ along $F$, $\tilde{M} = M_{\repar{\tilde{f}}{F}}$, with $F(x_W,x_J)$ the conditional cdf of $P(X_W \mid \doit(X_J))$ in case $\C{X}_W = \RN$?}
+\end{Eg}
+
+\subsubsection{Pushforward or pullback?}
+
+We have defined two dual types of exogenous reparameterizations: exogenous pushforwards and exogenous pullbacks.
+The former specifies the target mechanism and forward reparameterization function, whereas the latter specifies the target distribution and the backward reparameterization function.
+Sometimes, an operation is most naturally specified as an exogenous pushforward (for example, the response variable reparameterization that we discuss in Section~\ref{sec:response_functions}).
+In other cases, an operation is most naturally specified as an exogenous pullback (for example, the reparameterization trick of Example~\ref{eg:reparameterization_trick}).
+
+We summarize both definitions:
+\begin{Def}
+  Let $M$ and $\tilde{M}$ be iSCMs.
+  Let $M = \lt J, V, W, \CX, P, f \rt$ and $\tilde{M} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be iSCMs.
+  We call $\tilde{M}$ an \emph{exogenous pushforward of $M$ through measurable function $\tilde{\Phi} : \C{X}_J \times \C{X}_W \to \CX_{\tilde{W}}$} if
+  \begin{enumerate}
+    \item $f = \tilde{f} \circ (\id_{\CX_J}, \id_{\CX_V}, \tilde{\Phi}) = (\id_{\CX_J}, \id_{\CX_V}, \tilde{\Phi})^* \tilde{f}$ (``pullback of $\tilde{f}$ by $(\id_{\CX_J},\id_{\CX_V},\tilde{\Phi})$'')
+    \item $\tilde P = (\id_{\CX_J},\tilde{\Phi})_* P$ (``pushforward of $P$ by $(\id_{\CX_J},\tilde{\Phi})$'')
+  \end{enumerate}
+  We call $\tilde{M}$ an \emph{exogenous pullback of $M$ through measurable function $\Phi : \C{X}_J \times \C{X}_{\tilde W} \to \CX_{W}$} if
+  \begin{enumerate}
+    \item $\tilde f = f \circ (\id_{\CX_J}, \id_{\CX_V}, \Phi) = (\id_{\CX_V}, \Phi)^* f$ (``pullback of $f$ by $(\id_{\CX_J},\id_{\CX_V},\Phi)$'')
+    \item $P = (\id_{\CX_J},\Phi)_* \tilde{P}$ (``pushforward of $\tilde{P}$ by $(\id_{\CX_J},\Phi)$'')
+  \end{enumerate}
+
+  \Joris{More generally:
+  Let $M = \lt J, V, W, \CX, P, f \rt$ and $\tilde{M} = \ltuple \tilde{J}, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be iSCMs.
+  Let $\Phi : \C{X}_{\tilde J} \times \C{X}_{\tilde W} \to \C{X}_{J} \times \CX_{W}$ and $\tilde{\Phi} : \C{X}_J \times \C{X}_W \to \C{X}_{\tilde{J}} \times \CX_{\tilde{W}}$ be measurable functions.
+  We call $\tilde{M}$ an \emph{exogenous pushforward of $M$ through $\tilde{\Phi}$} if
+  \begin{enumerate}
+    \item $f = \tilde{f} \circ (\id_{\CX_V}, \tilde{\Phi}) = (\id_{\CX_V}, \tilde{\Phi})^* \tilde{f}$ (``pullback of $\tilde{f}$ by $(\id_{\CX_V},\tilde{\Phi})$'')
+    \item $\tilde P = \tilde{\Phi}_* P$ (``pushforward of $P$ by $\tilde{\Phi}$'')
+  \end{enumerate}
+  where $P = P_M(X_W \mid \doit(X_J))$ and $\tilde{P} = P_{\tilde{M}}(X_{\tilde{W}} \mid \doit(X_{\tilde{J}}))$.
+  We call $\tilde{M}$ an \emph{exogenous pullback of $M$ through $\Phi$} if
+  \begin{enumerate}
+    \item $\tilde f = f \circ (\id_{\CX_V}, \Phi) = (\id_{\CX_V}, \Phi)^* f$ (``pullback of $f$ by $(\id_{\CX_V},\Phi)$'')
+    \item $P = \Phi_* \tilde{P}$ (``pushforward of $\tilde{P}$ by $\Phi$'')
+  \end{enumerate}}
+\end{Def}
+It follows immediately that
+\begin{Prp}
+Let $M = \lt J, V, W, \CX, P, f \rt$ and $\tilde{M} = \ltuple \tilde{J}, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be iSCMs.
+Let $\Phi : \C{X}_{\tilde J} \times \C{X}_{\tilde W} \to \C{X}_{J} \times \CX_{W}$ and $\tilde{\Phi} : \C{X}_J \times \C{X}_W \to \C{X}_{\tilde{J}} \times \CX_{\tilde{W}}$ be measurable functions.
+  \begin{enumerate}
+    \item $\tilde{M}$ is an exogenous pushforward of $M$ through $\tilde\Phi$ if and only if $M$ is an exogenous pullback of $\tilde{M}$ through $\tilde\Phi$.
+    \item $\tilde{M}$ is an exogenous pullback of $M$ through $\Phi$ if and only if $M$ is an exogenous pushforward of $M$ through $\Phi$.
+  \end{enumerate}
+\end{Prp}
+We can think of these two operations as \emph{dual} to each other.
+
+\subsection{Parameterizing iSCMs using response functions}\label{sec:response_functions}
+
+The following technique of ``response functions'' \cite{BalkePearl1994b} provides an example of an exogenous pushforward.
+It has been used---amongst others---to derive bounds on counterfactual probabilities and to obtain tests for valid instruments.
+
+\subsubsection{Example}
+
+First we will explain the idea using an example, postponing the general formal definition to Section~\ref{sec:response_functions_general_definition}.
+
+\begin{Def}\label{def:response_functions}
+  Let $M = \lt J, V=\{v\}, W, \CX_J \times \CX_V \times \CX_W, P, f \rt$ be a simple iSCM
+  with $\CX_J$ discrete, $\CX_v$ discrete, and $\CX_W$ an arbitrary standard measurable space.
+  
+  Let $\tilde{W} = \{\tilde{w}\}$ be a singleton and consider the space of (measurable) functions\footnote{\cite{BalkePearl1994b} call these functions ``response functions'', and a random variable taking values in $\CX_{\tilde{W}}$ a ``response-function variable''.}
+  $$\CX_{\tilde{W}} := (\CX_v)^{\CX_J} = \{\phi : \CX_J \to \CX_v\}.$$
+  The iSCM $M$ induces a function $\Phi : \CX_W \to \CX_{\tilde{W}}$ that assigns to each exogenous random value $x_W \in \CX_W$ the corresponding response function in $\CX_{\tilde{W}}$, that is, $\Phi(x_W)$ is the function $x_J \mapsto f_v(x_J, x_W)$.
+  The iSCM $M_{\repar{\tilde{f}}{\Phi}} = \lt J, V=\{v\}, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$
+  with as exogenous distribution the pushforward $\tilde{P} = (\Phi)_* (P)$ and
+  causal mechanism $\tilde{f}(x_J,x_{\tilde{W}}) = x_{\tilde{W}}(x_J)$ (which just evaluates the response function $x_{\tilde{W}}$ in the input $x_J$) is called a \emph{response variable parameterization} of $M$.
+\end{Def}
+We call it a parameterization because it preserves the important causal semantics:
+\begin{Prp}\label{prp:counterfactual_equivalence_response_functions}
+  The response variable parameterization of $M$ in Definition~\ref{def:response_functions} is an exogenous pushforward of $M$ and is
+  counterfactually equivalent to $M$ w.r.t.\ $V$.
+\end{Prp}
+\begin{proof}
+  Note that:
+    $$f(x_J,x_W) = \Phi(x_W)(x_J) = \tilde{f}(x_J,\Phi(x_W))$$
+  for all $x_J \in \CX_J, x_W \in \CX_W$.
+  Because $M$ and $\tilde{M}$ are both acyclic, they are both simple, and the claim now follows from Theorem~\ref{thm:various_equiv_exogenous_pushforward}, noting that $\Phi$ does not depend on $X_J$.
+\end{proof}
+
+\begin{Cor}\label{cor:counterfactual_equivalence_response_functions}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM with discrete exogenous input space $\CX_J$.
+  Let $v \in V$ be an endogenous variable in $M$ taking values in a discrete space $\CX_v$.
+  Then there exists an iSCM that is counterfactually equivalent to $M$ w.r.t.\ $\{v\}$ that has
+  just a single endogenous variable ($V=\{v\}$ with space $\CX_v$) and exogenous random space $(\CX_v)^{\CX_J}$.
+\end{Cor}
+\begin{proof}
+  First marginalize out all endogenous variables except $v$, and then take the response variable parameterization of this marginal iSCM.
+%  Marginalize out all endogenous variables except $v$:
+%  $$M_v := (M)_{\sm (V\sm v)} = \lt J, \{v\}, W, \CX_J \times \CX_v \times \CX_W, P, f_{\sm} \rt.$$
+%  Now use Definition~\ref{def:response_functions} to construct the response function parameterization
+%  $$\tilde{M} := (M_v)_{\repar{\widetilde{f_{\sm}}}{\Phi}}.$$
+  It has the desired exogenous random space, and note that both operations preserve counterfactual equivalence w.r.t.\ $\{v\}$.
+\end{proof}
+
+\subsubsection{General definition}\label{sec:response_functions_general_definition}
+
+The general definition of the response variable parameterization is more involved.
+Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple iSCM with discrete spaces $\CX_J$ and $\CX_V$ (but $\CX_W$ can be an arbitrary standard measurable space).
+
+First, let us consider the special case that $G(M)$ contains no bidirected edges.
+For each variable $v \in V$, consider $W_v := \Pa_{G^+(M)}(v) \cap W$, $V_v := \Pa_{G^+(M)}(v) \cap V$ and $J_v := \Pa_{G^+(M)}(v) \cap J$.
+Without loss of generality, we may assume that each causal mechanism $f_v$ only depends on its parents (see Remark~\ref{rem:iscm_structurally_minimal}), and therefore write the structural equations as:
+$$X_v = f_v(X_{J_v},X_{V_v},X_{W_v}).$$ 
+For $v \in V$, we define the function space
+$$\CX_{\tilde{W}_v} := \CX_v^{\CX_{J_v} \times \CX_{V_v}} = \{ \CX_{J_v} \times \CX_{V_v} \to \CX_v \}.$$
+\cite{BalkePearl1994b} call these functions ``response functions'', and a random variable $X_{\tilde{W}_v}$ taking values in $\CX_{\tilde{W}_v}$ a ``response-function variable''.
+We set $\tilde{W} := \{\tilde{W}_v : v \in V\}$ and $\CX_{\tilde{W}} := \prod_{v \in V} \CX_{\tilde{W}_v}$.
+
+For each variable $v \in V$, the iSCM $M$ induces a function $\tilde\Phi_v : \CX_{W_v} \to \CX_{\tilde{W}_v}$ that assigns to each exogenous state $x_{W_v}$ the corresponding response function in $\CX_{\tilde{W}_v}$, that is,
+$$\tilde\Phi_v(x_{W_v}) := (x_{J_v},x_{V_v}) \mapsto f_v(x_{J_v},x_{V_v},x_{W_v}).$$
+Together, the $\tilde\Phi_v$ can be considered components of a map $\tilde\Phi : \CX_W \to \CX_{\tilde{W}}$, where $\tilde\Phi_v$ only depends on $\CX_{W_v}$.
+We define the causal mechanism components (for $v \in V$)
+$$\tilde{f}_v(x_J,x_V,x_{\tilde{W}}) := x_{\tilde{W}_v}(x_{J_v},x_{V_v}),$$
+which just evaluates the response function $x_{\tilde{W}_v} \in \CX_{\tilde{W}_v}$ at $(x_J,x_V)$. 
+Note that by construction,
+  $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_W))$$
+for all $x \in \CX$.
+We also define the pushforward exogenous distribution $\tilde{P} := (\tilde\Phi)_* P$.
+\begin{Def}
+The iSCM $M_{\repar{\tilde{f}}{\tilde\Phi}} = \lt J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$
+constructed in this way is called the \emph{response variable parameterization} of iSCM $M = \lt J, V, W, \CX, P, f \rt$
+for an iSCM $M$ with discrete spaces $\CX_J$ and $\CX_V$, and no bidirected edges in $G(M)$.
+\end{Def}
+
+Now let us consider the general case. 
+We will again construct a response function for every endogenous variable $v \in V$, but which response function is selected depends on all the exogenous parents in the \emph{district} $\Dist^{G(M)}(v)$ of $v$.
+By effectively merging these exogenous parents we then end up with the required factorization of the reparameterized exogenous variables.
+
+Let $D$ be a partition of $V$ into districts, i.e., $D = \{ \Dist^{G(M)}(v) : v \in V\}$.
+We will denote by $d_v := \Dist^{G(M)}(v)$ the district of $v \in V$.
+For each variable $v \in V$, consider $W_v := \Pa_{G^+(M)}(v) \cap W$, $V_v := \Pa_{G^+(M)}(v) \cap V$ and $J_v := \Pa_{G^+(M)}(v) \cap J$.
+
+For every $v \in V$, for every $x_{W_{d_v}} \in \CX_{W_{d_v}}$ we define a ``response function'' $R_v(x_{W_{d_v}}) : \CX_{J_v,V_v} \to \CX_v$ that maps $(x_{J_v},x_{V_v}) \mapsto f_v(x_{J_v},x_{V_v},x_{W_v})$.
+In other words, $R_v(x_{W_{d_v}}) \in \CX_v^{\CX_{J_v,V_v}} =: \CX_{\tilde W_v}$.
+We define the spaces $\CX_{\tilde W_d} := \prod_{v \in d} \CX_{\tilde W_v}$, the Cartesian product of the response functions of the variables in district $d \in D$.
+We then define the mapping $\tilde\Phi : \CX_W \to \prod_{d \in D} \CX_{\tilde W_d}$ by
+$$\tilde\Phi(x_W) = \big((R_v(x_{W_{d_v}}))_{v \in d}\big)_{d \in D}.$$ 
+We define the causal mechanism components (for $v \in V$)
+$$\tilde{f}_v(x_J,x_V,x_{\tilde{W}}) := (x_{\tilde W_{d_v}})_{v}(x_{J_v},x_{V_v}),$$
+which just evaluates the response function for variable $v$ in district $d$ at $(x_J,x_V)$ (which by definition only depends on $x_{J_v}$ and $x_{V_v}$). 
+Note that by construction, for all $v \in V$,
+  $$f_v(x_J,x_V,x_W) = \tilde{f}_v(x_J,x_V,\tilde{\Phi}(x_W))$$
+for all $x \in \CX$.
+We define the pushforward exogenous distribution $\tilde{P} := (\tilde\Phi)_* P$.
+We then have the required independence of the $d$-components of $\tilde{P}$, since $\tilde\Phi_d(X_W)$ only depends on $X_{W_d}$, and the $X_{W_d} = (X_v)_{v\in d}$ are independent in $P$. 
+\begin{Def}
+The iSCM $M_{\repar{\tilde{f}}{\tilde\Phi}} = \lt J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$
+constructed in this way is called the \emph{response variable parameterization} of iSCM $M = \lt J, V, W, \CX, P, f \rt$
+for an iSCM $M$ with discrete spaces $\CX_J$ and $\CX_V$.
+\end{Def}
+
+\Joris{TODO: add a figure of the graphical consequences of the response variable parameterization.
+It seems that intuitively, we are adding a layer of latent nodes, each one between an endogenous variable and its exogenous random parents.}
+
+\Joris{Note: we might have lost CI information by the merging operation; a more conservative approach would be to keep both the old and the new exogenous variables in the augmented graph, and use D-separation to handle the deterministic relations.
+I haven't thought this out but it seems worthwhile to contemplate it one day.}
+
+\begin{Thm}\label{thm:response_variable_encoding}
+  Let $M_{\repar{\tilde{f}}{\tilde\Phi}}$ be the response variable parameterization of simple iSCM $M$ (which has discrete spaces $\CX_J$ and $\CX_V$).
+  Then $M_{\repar{\tilde{f}}{\tilde\Phi}}$ is simple and counterfactually equivalent to $M$ w.r.t.\ $V$.
+\end{Thm}
+\begin{proof}
+  By construction, $M_{\repar{\tilde{f}}{\tilde\Phi}}$ has discrete space $\CX_J$ and $\CX_{\tilde W}$.
+  Futhermore, $\tilde\Phi$ does not depend on $X_J$.
+  If $M$ is simple, then $M_{\repar{\tilde{f}}{\tilde\Phi}}$ is simple by Proposition~\ref{prp:exogenous_pushforward_discrete}.
+  Since both iSCMs are simple, $\tilde\Phi$ does not depend on $X_J$, the claim follows from Theorem~\ref{thm:various_equiv_exogenous_pushforward}.
+\end{proof}
+
+\Joris{OBSOLETE/WRONG ATTEMPT:
+Let $D$ be a partition of $V$ into districts, i.e., $D = \{ \Dist^{G(M)}(v) : v \in V\}$.
+For each district $d \in D$, consider $W_d := \Pa_{G^+(M)}(d) \cap W$, $V_d := \Pa_{G^+(M)}(d) \cap V$ and $J_d := \Pa_{G^+(M)}(d) \cap J$.
+We can then partition the structural equations as
+$$X_d = f_d(X_{J_d},X_{V_d},X_{W_d}).$$ 
+For $d \in D$, we define the function space
+$$\CX_{\tilde{W}_d} := \CX_d^{\CX_{J_d} \times \CX_{V_d}} = \{ \CX_{J_d} \times \CX_{V_d} \to \CX_d \}.$$
+We set $\tilde{W} := \{\tilde{W}_d : d \in D\}$ and $\CX_{\tilde{W}} := \prod_{d \in D} \CX_{\tilde{W}_d}$.
+For each district $d \in D$, the iSCM $M$ induces a function $\tilde\Phi_d : \CX_{W_d} \to \CX_{\tilde{W}_d}$ that assigns to each exogenous state $x_{W_d}$ the corresponding response function in $\CX_{\tilde{W}_d}$, that is,
+$$\tilde\Phi_d(x_{W_d}) := (x_{J_d},x_{V_d}) \mapsto f_d(x_{J_d},x_{V_d},x_{W_d}).$$
+Together, the $\tilde\Phi_d$ can be considered components of a map $\tilde\Phi : \CX_W \to \CX_{\tilde{W}}$, where $\tilde\Phi_d$ only depends on $\CX_{W_d}$.
+We define the causal mechanism components (for $d \in D$)
+$$\tilde{f}_d(x_J,x_V,x_{\tilde{W}}) := x_{\tilde W_d}(x_{J_d},x_{V_d}),$$
+which just evaluates the response function $x_{\tilde{W}_d}$ at $(x_J,x_V)$. 
+Note that by construction,
+  $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_W))$$
+for all $x \in \CX$.
+We also define the pushforward exogenous distribution $\tilde{P} := (\tilde\Phi)_* P$.
+\begin{Def}
+The iSCM $M_{\repar{\tilde{f}}{\tilde\Phi}} = \lt J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$
+constructed in this way is called the \emph{response variable parameterization} of iSCM $M = \lt J, V, W, \CX, P, f \rt$
+for $M$ an iSCM with discrete spaces $\CX_J$ and $\CX_V$.
+\end{Def}
+
+Oops, this might not be right.
+It is too coarse.
+
+Let's consider $X_1,X_2,X_3$ with latent confounding between $X_1,X_2$ and between $X_2,X_3$.
+The original functions are of the form:
+$X_1 = f_1(W_a), X_2 = f_2(X_1,W_a,W_b), X_3 = f_3(X_2,W_b)$.
+We can write this as
+$X_1 = R_1(W_a), X_2 = R_2(W_a,W_b)(X_1), X_3 = R_3(W_b)(X_2)$
+where we have response functions $R_1(W_a) \in \CX_1$,
+$R_2(W_a,W_b) : \CX_1 \to \CX_2$, $R_3(W_b) : \CX_2 \to \CX_3$.
+Here, $R_1(W_a)$ maps $\asterisk$ to $f_1(W_a)$, $R_2(W_a,W_b)$ maps $x_1$ to $f_2(x_1,W_a,W_b)$, $R_3(W_b)$ maps $x_2$ to $f_3(x_2,W_b)$.
+So $R_1(W_a) \in \CX_1^{\Asterisk} =: \CX_{\tilde W_1}$, $R_2(W_a,W_b) \in \CX_2^{\CX_1} =: \CX_{\tilde W_2}$, $R_3(W_b) \in \CX_3^{\CX_2} =: \CX_{\tilde W_3}$.
+We can define the mapping $\tilde\Phi : \CX_W \to \CX_{\tilde W_1} \times \CX_{\tilde W_2} \times \CX_{\tilde W_3}$ that maps
+$w \mapsto (R_1(w_a), R_2(w_a,w_b), R_3(w_b))$.
+
+So let's try something less coarse.
+
+For every $v \in V$, for every $x_{W_v} \in \CX_{W_v}$ there is a response function $R_v(x_{W_v}) : \CX_{J_v,V_v} \to \CX_v$ that maps $(x_{J_v},x_{V_v}) \mapsto f_v(x_{J_v},x_{V_v},x_{W_v})$.
+In other words, $R_v(x_{W_v}) \in \CX_v^{\CX_{J_v,V_v}} =: \CX_{\tilde W_v}$.
+We can define the mapping $\tilde\Phi : \CX_W \to \prod_{v \in V} \CX_{\tilde W_v}$ by
+$\tilde\Phi(x_W) = (R_v(x_{W_v}))_{v \in V}$. 
+We define the causal mechanism components (for $v \in V$)
+$$\tilde{f}_v(x_J,x_V,x_{\tilde{W}}) := x_{\tilde W_v}(x_{J_v},x_{V_v}),$$
+which just evaluates the response function $x_{\tilde{W}_v}$ at $(x_J,x_V)$. 
+Note that by construction,
+  $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_W))$$
+for all $x \in \CX$.
+
+This works, but may lead to dependencies between components $\tilde{\Phi}_v$ and $\tilde{\Phi}_{v'}$ in the pushforward $(\tilde\Phi)_* P$.
+This is why we need to merge the $W$'s (but not the $V$'s).
+More precisely: merge the $(W_v)_{v \in d}$ for $d \in D$.
+}
+
+\Joris{We now repeatedly encounter the situation that we would like to refactorize exogenous variables of an iSCM after doing some operation, to bring it back into canonical form. 
+It seems as if a general solution might be to broaden the framework of iSCMs such that the factorization structure of $\CX_J$ and of $(\CX_W,P(X_W))$ is expressed by a partition of $J$ and a partition of $W$.
+Then, we can even undo merging operations that stem from conditioning, to ensure that conditioning steps will commute (as they do probabilistically).
+
+This relates to the CausalOrdering way of modeling things. There, we may find that adding a constraint destroys a former Cartesian product structure and requires to reassemble variables into causally independent clusters.
+
+The partitioning can be indicated graphically by: grouping nodes (how to use this in a Markov property?), turning them into districts by connecting nodes in a group by bidirected edges, turning them into undirected components by connecting nodes in a group by undirected edges. Which one is most appropriate? Perhaps undirected edges for the $J$ and bidirected for the $W$? Aha: perhaps this just depends on our backgroundknowledge. If we assume that \emph{without the filtering}, the input nodes satisfy JCI assumptions 1,2, then \emph{with} the filtering the only choice is undirected (which indeed then implies that they are ancestors of selection variables). If \emph{without the filtering} we don't assume that input variables are unconfounded (and hence their range is not necessarily Cartesian product) then edges could be bidirected but also undirected; perhaps we have no means of distinguishing the two. We could even assume that input variables can cause each other which would make room for directed edges as well. So one sensible choice for FCI is to assume that before the filtering is performed, the inputs are considered as variation-independent, not causing each other, unconfounded, then \emph{after the filtering}, their mutual dependencies can only be explained by them being ancestor of $S$. And then it is conservative to connect all of them, and correct to use undirected edges. So one important lesson is that currently (when only considering $id$-separation and transitional CI) it does not matter what we assume for the causal relations between the input variables: it could be anything. So that is different from a very stringent interpretation where they are not allowed to have causal relations or spurious dependencies. Now for the iSCMs. Note that all causal interpretation of iSCMs with input variables demand a joint intervention on the input variables. So really the only thing that matters there is their joint range. So the only bit of information we may want to add to an iSCM is the joint range of the input variables. This makes it slightly more expressive (the alternative would be merging, at the expense of some CI). So how useful is this CI that we would add by not merging but connecting with edges??? We argued before that it is quite useful indeed. So it seems worthwhile to expand the definition of an iSCM by adding a partitioning of the exogenous input nodes that determines how their joint range factorizes, and the joint range (no longer needs to be a Cartesian product). And to derive an additional Markov property about the ranges of the variables. The trick is then that we try to encode in a single graph both pieces of information!}
+
+\subsection{Bounding counterfactual probabilities}
+
+We have seen that unless one is willing to make very strong modeling assumptions, obtaining counterfactual probabilities from data can be impossible.
+In certain cases, though, it is possible to derive \emph{bounds} on counterfactual probabilities from (intervened) Markov kernels \cite{BalkePearl1994b}.
+One way to derive such bounds on counterfactuals exploits the response function parameterization.
+
+As a motivation, consider a medical setting in which a patient may either be treated (or not) and a week later the patient is cured (or not).
+Suppose a patient participating in a randomized controlled trial was assigned to the control group and hence not treated ($\doit(x=0)$), and it turned out one week later that this patient was not cured ($Y^{\doit(x=0)}=0$).
+The patient now wonders ``would I have been cured, had I been assigned to the treatment group?''.
+%In a medical setting, this iSCM could be used to model whether a patient was treated or not ($x=1$ vs.\ $x=0$) and the corresponding binary outcome for that patient ($Y^{\doit(x=1)}$ vs.\ $Y^{\doit(x=0)}$).
+%Suppose that in the factual world we did not assign treatment to a patient ($x=0$) and the outcome was $Y^{\doit(x=0)}=0$. 
+%Consider the counterfactual query ``What would the outcome have been, had we assigned treatment to this patient?''. 
+By making use of the response-function parameterization, we can obtain a bound that does not depend on the specific parameters of the iSCM,
+yielding a ``worst-case'' lower bound and a ``best-case'' upper bound on the probability that the patient would then be cured.
+
+\begin{Prp}[Bounding counterfactual probabilities]\label{prp:Bounding_counterfactuals}
+  For a simple iSCM $M$ with a single binary exogenous input variable $X \in \{0,1\}$ and a binary endogenous variable $Y \in \{0,1\}$
+  (and perhaps additional endogenous variables, and with an arbitrary number of exogenous random variables taking values in arbitrary
+  standard measurable spaces), the counterfactual probability
+  $$P_{M^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y^{\doit(x=0)}=0)$$
+  (with $Y^{\doit(x=0)}$ the factual outcome, and $(Y')^{\doit(x'=1)}$ the counterfactual outcome)
+  is bounded by
+$$\frac{q_{0|0} - \min(q_{0|0},q_{0|1})}{q_{0|0}} \le P_{M^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \le \frac{\min(q_{0|0},q_{1|1})}{q_{0|0}},$$
+  where
+  $q_{y|x} := P_M(Y=y\given \doit(X=x))$.
+\end{Prp}
+\begin{proof}
+  Denote the $3$-dimensional probability simplex by $\Delta_3=\{r=(r_{00},r_{01},r_{10},r_{11}) \in [0,1]^4 : r_{00}+r_{01}+r_{10}+r_{11}= 1\}$.
+  We know from Corollary~\ref{cor:counterfactual_equivalence_response_functions} that without loss of generality, we may assume that the iSCM has only a single binary endogenous variable $Y$ and an exogenous random variable taking values in $\{0,1\}^{\{0,1\}}$.
+  That iSCM must then lie in the family $\{M^\rho : \rho \in \Delta_3\}$, where the iSCM $M^\rho$ with parameter $\rho$ has binary exogenous input variable $X$, binary endogenous variable $Y$, a single latent exogenous random variable $W \in \{f_{00},f_{01},f_{10},f_{11}\}$, exogenous distribution $P^\rho(W=f_w) = \rho_w$, and structural equation
+  $$Y^{\doit(x)} = W(x),$$
+where we defined response functions $f_{00},f_{01},f_{10},f_{11} : \{0,1\} \to \{0,1\}$ by:
+  \begin{align*}
+    f_{00} &: 0 \mapsto 0, 1 \mapsto 0;\\
+    f_{01} &: 0 \mapsto 0, 1 \mapsto 1;\\
+    f_{10} &: 0 \mapsto 1, 1 \mapsto 0;\\
+    f_{11} &: 0 \mapsto 1, 1 \mapsto 1.
+  \end{align*}
+We will derive a bound on the counterfactual probability
+  $$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y^{\doit(x=0)}=0).$$
+We first update the distribution of $W$ with the observed outcome:
+  $$P_{(M^{\rho})^{\twin}}(W=w | Y^{\doit(x=0)}=0) = 
+    \begin{cases}
+      \frac{\rho_{00}}{\rho_{00} + \rho_{01}} & w = f_{00}, \\
+      \frac{\rho_{01}}{\rho_{00} + \rho_{01}} & w = f_{01}, \\
+      0 & w = f_{10}, \\
+      0 & w = f_{11}.
+    \end{cases}$$
+%  $$P((Y')^{\doit(1)} = 1 | Y^{\doit(0)}=0) = \rho_{01} / (\rho_{00} + \rho_{01}).$$
+Because of the counterfactual equivalence of $M^\rho$ and $M$ w.r.t.\ $Y$, we have that
+  $q_{y|x} := P_M(Y=y\given \doit(X=x)) = P_{(M^{\rho})^\twin}(Y=y\given \doit(X=x))$.
+This Markov kernel is given explicitly by:
+  \begin{center}\begin{tabular}{ccl}
+    $x$ & $y$ & $q_{y|x}$ \\
+    \hline
+    0   & 0   & $\rho_{00} + \rho_{01}$ \\ % = 1-eps
+    0   & 1   & $\rho_{10} + \rho_{11}$ \\ %= eps
+    1   & 0   & $\rho_{00} + \rho_{10}$ \\ %= delta
+    1   & 1   & $\rho_{01} + \rho_{11}$ \\ %= 1-delta
+  \end{tabular}\end{center}
+For our particular counterfactual probability of interest, we have the equality
+  $$P_{(M^{\rho})^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) = \frac{\rho_{01}}{q_{0|0}}.$$
+From the non-negativity of the $\rho$'s and the table above, we can derive the bound
+$$q_{0|0} - \min(q_{0|0},q_{0|1}) \le \rho_{01} \le \min(q_{0|0},q_{1|1})$$
+and hence
+$$\frac{q_{0|0} - \min(q_{0|0},q_{0|1})}{q_{0|0}} \le P_{(M^{\rho})^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \le \frac{\min(q_{0|0},q_{1|1})}{q_{0|0}}.$$
+Since $M^\rho$ is counterfactually equivalent to the original iSCM $M$ w.r.t.\ $Y$, the same bound also holds for $M$ instead of $M^\rho$.
+%which implies
+%  rho_{10} \le \min(eps,delta), rho_{11} \le eps, rho_{00} \le delta 
+%  \rho_{01} \ge 1-eps-\delta
+%so 
+%\rho_{01} / (\rho_{00} + \rho_{01}) > (1-eps-delta) / (1-eps) \approx 1
+\end{proof}
+As an illustration, suppose that $q_{0|0} \approx 1$ and $q_{1|1} \approx 1$.
+%Then $\rho_{01} \approx 0$, while $\rho_{00} + \rho_{01} \approx 1$.
+Then the bound tells us that $P_{M^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \approx 1$ as well.
+Thus, for almost-deterministic relations, we can tightly bound this counterfactual probability.
+
+\begin{comment}
+This provides a possible explanation of why common sense reasoning allows us to arrive at the answer of counterfactual queries like
+``The grass is wet because it rained; if it had not rained, would the grass have been dry?''. 
+Assuming that there is no confounding, that making the grass wet does not cause rain to fall, and having observed a strong correlation between the two variables in the past, there is not much room for counterfactual variation of the wetness of the grass, and we can answer ``highly likely'' with confidence.
+
+\Joris{Bad example! As Pearl points out in his chapter 9, one needs to assume no confounding between cause and effect.
+It does help in cases like Dawid's example for discrete outcomes, though.
+Furthermore, `probability of necessity' as Pearl calls it, or `probability of causation' as Robins and Greenland (1989) call it,
+cannot be nontrivially bounded according to Pearl if we do not assume unconfoundedness. In other words, if we look at 
+$$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y=0,X=0)$$
+instead then it cannot be bounded! This is somewhat surprising. It suggests that for the rain example, the
+counterfactual ``It rains and the grass is wet; if it had not rained, the grass would have been dry'' is
+completely undetermined. Is that true? Perhaps we are implicitly using some monotonicity assumption.
+
+$$X=f(U); \qquad Y=g(X,U)$$
+
+  \begin{center}\begin{tabular}{ccll}
+    $x$ & $y$ & $p_{x,y}$ & $p_{y^{\doit(x)}}$ \\
+    \hline
+    0   & 0   & $\rho_{0,00} + \rho_{0,01}$ & $\rho_{0,00} + \rho_{1,00} + \rho_{0,01} + \rho_{1,01}$ \\
+    0   & 1   & $\rho_{0,10} + \rho_{0,11}$ & $\rho_{0,10} + \rho_{1,10} + \rho_{0,11} + \rho_{1,11}$ \\
+    1   & 0   & $\rho_{1,00} + \rho_{1,10}$ & $\rho_{0,00} + \rho_{1,00} + \rho_{0,10} + \rho_{1,10}$ \\
+    1   & 1   & $\rho_{1,01} + \rho_{1,11}$ & $\rho_{0,01} + \rho_{1,01} + \rho_{0,11} + \rho_{1,11}$
+  \end{tabular}\end{center}
+
+So
+$$P_{(M^{\rho})^{\twin}}(U \mid X=0,Y=0) = \frac{\rho_{0,00}}{\rho_{0,00} + \rho_{0,01}} \delta_{0,00} + \frac{\rho_{0,01}}{\rho_{0,00} + \rho_{0,01}} \delta_{0,01}$$
+and hence
+$$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y=0,X=0) = \frac{\rho_{0,01}}{\rho_{0,00} + \rho_{0,01}}$$
+It appears true that $P(X,Y)$ alone does not provide any information about this quantity.
+
+Note that we also rederived the natural bounds in this way:
+$$P(x,y) \le P(Y^{\doit(x)}=y) \le P(x,y) + (1 - P(x))$$
+(but I find the potential-outcome derivation the most intuitive).
+
+Perhaps we want to expand this discusion discussing also the monotonicity assumption, and how it allows us to identify PN?
+
+I believe I prefer ``probability of causation'' over ``probability of necessity'' / ``probability of sufficiency'' because it seems that PN and PS are equal to each other modulo negation of cause and effect.
+}
+
+%On the other hand, the more uncertainty we have about the outcome, the less information the Markov kernel $P(Y \given \doit(X))$ contains about the counterfactual, as there is a larger range of parameter values for $\rho$ that induce the same Markov kernel.
+
+%In this example, contrary to the previous one, the Markov kernel $P(Y \given \doit(X))$ (which can in principle be estimated by a randomized controlled trial) does provide partial information about the parameter $\rho$. Not enough to identify it, but sufficient to bound it.
+
+%Twinning preserves observable equivalence w.r.t.\ a subset. Example~\ref{ex:Counterfactuals} shows that twinning
+%does not preserve interventional equivalence w.r.t.\ a subset. 
+%Hard interventions do not preserve observable equivalence w.r.t.\ a subset, but they
+%do preserve interventional and counterfactual equivalence w.r.t.\ a subset.
+
+\begin{comment}
+\Joris{Conjecture: the bounds that one can obtain in this way do \emph{not} rely on the strong modeling assumption that
+interventions do not change the values of (latent) exogenous random variables. NB: we can safely assume the intervention
+not to change the values of latent exogenous random variables that are \emph{ancestors} of the intervened variable 
+(because we assume ancestor values are determined earlier in time, and there is no future-to-past causality). 
+If we allow for interventions to change the values (but not distributions) of descendants, or perhaps of \emph{all} 
+exogenous random variables in the model, and in doing so obtain the same bounds, we have a kind of robustness.
+Perhaps we should reformulate this: given a CBN, consider all iSCMs that are interventionally equivalent to it. Do the twin
+network approach on all these iSCMs to calculate a counterfactual probability. 
+
+I am not sure if this can be turned into a theorem. But suppose we have a temporal ordering of the variables in our
+model. Then it is natural to assume that there is no causation-back-in-time; not even ``in distribution'' but a.s..
+Let us look at two variables $X$ and $Y$ with time stamps $t_X$ and $t_Y$, respectively, and suppose we have 
+$P(Y|\doit(X))$ which does depend on $X$. Then we can represent this Markov kernel as a deterministic function via
+$Y \sim f(X,\epsilon)$ with $P(\epsilon|\doit(X))$ independent of $X$. Then if $\epsilon$ represents something 
+real (all other ``direct causes'' of $Y$ apart from $X$) its timestamp must be $t_\epsilon < t_Y$. 
+The part of $\epsilon$ that has timestamp $< t_X$ can be safely assumed to have a value that does not depend on the
+value of $x$ we choose for the intervention. The other part may (if $X$ and $Y$ are the only variables under
+consideration) depend on the value $x$. So, keeping $f$ fixed (the modularity assumption we are making for 
+interventions anyway) and the distribution of $\epsilon$ fixed (the assumption we are making anyway) the worst
+that could happen is that we chose the wrong representation in the class of gauge transformations of $(f,p(\epsilon))$:
+perhaps the true model (that is strongly invariant for twinning) is of the form $Y = \tilde{f}(X,g(X,\epsilon))$
+with $\tilde{f}(X,g(X,\epsilon)) = f(X,\epsilon)$. 
+(We can also represent it as $Y \sim \tilde{f}(X,g(X,\epsilon))$ with $P(g(X,\epsilon)|\doit(X))$ independent of $X$.)
+But that one is also in our class of possible iSCMs that induce the same intervened Markov kernel!
+}
+\end{comment}
+
+
+\begin{comment}
+\subsection{Potential-outcome formalism}
+
+A major problem with the twinning approach to counterfactuals is that it
+requires very strong modeling assumptions: that we have a fully specified
+deterministic model, we know in which spaces the latent variables live, and we
+know the distributions of the latent variables. As we have seen, sometimes one
+can obtain bounds when weakening some of these assumptions. Even in such cases,
+the crucial (and often untestable) assumption is still that the \emph{values}
+of the (often latent) exogenous random variables remain the same in the two
+worlds. This is a stronger assumption than that their distribution remains the
+same, which is all that is required to model the (intervened) 
+Markov kernels (when staying on levels 1 and 2 of the causal hierarchy).
+
+In the potential-outcome approach to causal modeling and inference, one takes
+the joint distribution over potential outcomes (also often referred to as
+counterfactuals, even if they are not necessarily contrary-the-fact) as the
+starting point. For example, if $X$ is a binary treatment variable and $Y$ an 
+outcome, then one would consider the joint distribution $P(X,Y,Y^{\doit(x=0)},Y^{\doit(x=1)})$,
+where $X$ is the ``natural'' value of treatment (without intervention), $Y$ is
+the corresponding outcome, $Y^{\doit(x=0)}$ is the potential outcome if the 
+patient is not treated, and $Y^{\doit(x=1)}$ is the potential outcome if the
+patient is treated.
+One assumption that is typically made is that of ``consistency'': if we intervene
+with the treatment that the patient would have had naturally, the outcome will be
+the same:
+$$Y = Y^{\doit(x=X)} \text{a.s.}$$
+The assumption of ``no confounding'' can then be expressed as
+$$X \Indep Y^{\doit(x=0)}, Y^{\doit(x=1)}$$
+an assumption known as ``full exchangeability''. 
+A weaker assumption, that suffices
+to identify the average treatment effect $\Exp(Y^{\doit(x=0)}) - \Exp(Y^{\doit(x=1)})$
+from the observable distribution $P(X,Y)$, is 
+$$\forall x \in \{0,1\}: \quad X \Indep Y^{\doit(x)}$$
+and is known as ``exchangeability''. 
+
+How can we translate these assumptions into the formalism of iSCMs? One
+possibility is to make use of the twin-network approach to define all the
+potential outcomes in terms of a hypothetical underlying iSCM and intervened
+versions of it. At first thought, one could for example assume that $(X,Y)$ is
+an outcome of a simple iSCM $M$, and $Y^{\doit(x=0)}$ and $Y^{\doit(x=1)}$ are
+two potential outcomes of the intervened iSCMs $M_{\doit(X=0)}$ and
+$M_{\doit(X=1)}$, respectively. Note, however, that this leaves the joint
+distribution $P(X,Y,Y^{\doit(x=0)},Y^{\doit(x=1)})$ undefined (only the marginals
+$P(X,Y)$, $P(Y^{\doit(x=0)})$ and $P(Y^{\doit(x=1)})$ are specified).
+
+Alternatively, one could define a triple-twin iSCM that connects three parallel worlds,
+similarly to how the twin network connects two parallel worlds.
+  $$X_a \Indep \{X_{b'}^{\doit(X_{a'}=0)}, X_{b''}^{\doit(X_{a''}=1)}\},$$
+\begin{Prp}\label{prp:potential_outcome_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+Let $a \ne b \in V$ and assume that $\CX_a = \{0,1\}$. Consider a ``triplet'' extension $M^3$
+that connects three parallel worlds, similarly to how the twin network $M^\twin$ connects two
+parallel worlds.
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ are not confounded according to $M$, then
+  \begin{equation}\label{eq:potential_outcome_unconfoundedness}
+    X_a \Indep_{P_{M^3_{\doit(X_{a'}=0,X_{a''}=1)}}} \{X_{b'}, X_{b''}\}.
+  \end{equation}
+\end{Prp}
+Equation \eref{eq:potential_outcome_unconfoundedness}, typically written in terms of potential outcomes as
+  $$X_a \Indep \{X_{b'}^{\doit(X_{a'}=0)}, X_{b''}^{\doit(X_{a''}=1)}\},$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+is sometimes taken as the definition of ``no confounding'' in the potential outcome framework when
+the task is to estimate the causal effect of $a$ on $b$. It is a weaker assumption
+since it only requires a joint distribution on the various potential outcomes to be defined, and does not
+presuppose the existence of an underlying iSCM that induces these distributions via the triple-twin operation.
+
+A more conservative approach is taken by FFRCISTG models (cite Robins) and Single-World Intervention Graphs (cite Robins \& Richardson). 
+The philosophy behind that approachis to try to make minimal modeling assumptions that are still strong enough to be able to formulate exchangeability. 
+It has been proposed in the context of L-CBNs, and it is not clear yet whether one can generalize it to simple iSCMs.\footnote{I believe the generalization is straightforward: one should introduce scc-splitting interventions. Intervening on a single variable in an scc is done as usual, but we add a copy of the entire scc to observe before the intervention. However, now it could be that certain latent variables influence both copies. Wait: could the SWIG idea also be used for a soft intervention? If yes, then there is no problem (also in a soft intervention, the same latents may influence the observed and the intervened copy). If no, then there is a problem, and we can only model hard interventions on the entire scc.}
+%One way out is to distinguish weak counterfactuals (or ``interventionals'', or ``single-world counterfactuals'') from strong counterfactuals (or ``cross-world counterfactuals''). 
+%The former only require a single copy of every variable, whereas the latter require multiple copies of at least one of the variables in the model.
+Supposing that we can measure the value of a variable $X$ \emph{right before} we intervene on it to set it to a value $x$. 
+Then we can consider these as two copies of the same variable, but measured at different points in time.
+We can model this by a node-splitting intervention in an L-CBN.
+%The underlying modeling assumption is that the intervention only changes the value of $X$, \emph{but does not change the values of any of the exogenous random variables in the model}.
+%This is a stronger assumption than assuming that the intervention only changes the value of $X$, \emph{but does not change the distribution of the exogenous random variables in the model (though perhaps they are resampled and end up having other values)}.
+For this example, we obtain the intervened L-CBN with variables $X^o$, $X^i$ and the potential outcome $Y^{\doit(X^i)}$, 
+which is very closely related to a SWIG. It provides us with the joint Markov kernel $P(X^o, Y^{\doit(X^i)} | \doit(X^i))$,
+which allows us to check exchangeability:
+$$X^o \Indep Y^{\doit(x)} \qquad \forall x$$
+or in Markov-kernel terminology
+$$X^o \Indep_{P(X^o,Y^{\doit(X^i)}|\doit(X^i)} Y^{\doit(X^i)}$$
+This enables one to get a joint distribution on certain (potential) outcomes without the need for twinning and its underlying strong assumptions.
+This approach seems best suited for L-CBNs with variables that have a well-defined temporal ordering.
+
+Under that assumption, a quantity like $P(Y^{\doit(x)} | X)$ is well-defined as a ``single-world counterfactual'': we do not need to make use of the twinning operation in order to be able to define it.
+On the other hand, a quantity like $P(Y^{\doit(x)} | Y)$ is not well-defined as a ``single-world counterfactual''.
+Similarly, a quantity like $P(Y^{\doit(x)} | Y^{\doit(x')})$ can only be interpreted as a ``cross-world counterfactual'', as we cannot set the same variable to two different values $x,x'$ in a single world.
+\end{comment}
+
+\begin{comment}
+One way out could be to interpret this as two consecutive interventions, but then it is still ambiguous whether we first intervene $\doit(x)$ and then $\doit(x')$, or first $\doit(x')$ and then $\doit(x)$.
+Still, wouldn't the same trick allow us to also define cross-world counterfactuals? 
+And wouldn't this still be a way to interpret the twinning operation in a single world?
+
+Here is an example that suggests that in many relevant cases, one cannot interpret $P(Y^{\doit(x')} | Y^{\doit(x)})$ as a single-world counterfactual by reinterpreting it as consecutive interventions, e.g., as $P((Y^{\doit(x)})^{\doit(x')} | Y^{\doit(x)})$. 
+Indeed, suppose we want to interpret $P(Y^{\doit(x')} | Y^{\doit(x)})$ as the probability that the patient would still be alive if we had done $x'$ (e.g., give him the blue pill), given that the patient died when we did $x$ (e.g., give him the red pill).
+Suppose we try to reinterpret this as $P((Y^{\doit(x)})^{\doit(x')} | Y^{\doit(x)})$, that is, we first do $x$ and measure $Y^{\doit(x)}$, after which we do $x'$ and measure $(Y^{\doit(x)})^{\doit(x')}$.
+If we observed that the patient died after we did $x$, can the patient come back to live again if we then do $x'$?
+A common assumption is to consider this to be impossible.
+But if we are going to assume that $Y(x)(x') = Y(x')$ and that $Y(x')$ is not `dead' a.s., we get a contradiction.
+So here we cannot assume that $Y(x)(x') = Y(x')$.
+
+So if we assume that we can first measure $X$ and then intervene on it without changing the latent variables, why couldn't we
+also assume that we can first measure $X$, then intervene $\doit(x)$ and then intervene $\doit(x')$ without changing the latent
+variables? Under that assumption, we have that $Y^{\doit(x),\doit(x')} = Y^{\doit(x')}$. We could even drop the assumption that
+we first measure $X$: we just first intervene $\doit(x)$ and then $\doit(x')$ without ?. We now ended up giving a single-world
+interpretation of the twinning operation. But we can see that it may not be appropriate.
+
+Ah, so maybe the crucial assumption here is that \emph{observing $X$ does not change $u$}; so we can just insert the observation
+of $X$ ``for free'' in the model where we intervene (a little later) $\doit(x)$. On the other hand, intervening $\doit(x)$ has
+a higher probability of changing $u$. But one important assumption of modeling $p(Y|\doit(x))$ is that the ``initial state''
+(described by $u$) should be the same no matter the value of $x$. So $p(Y|\doit(x))$ can still depend on the exogenous 
+distribution. Doing an intervention $\doit(x')$ first might change the distribution of $u$ (for example, if the patient 
+already died after $\doit(x')$ we are in a different situation than when we consider $\doit(x)$ where we only take living 
+patients). TODO: draw POMDP-like diagram to clarify this.
+
+So it seems that the SWIG idea is more reasonable than my extension of that idea that attempts to make sense of cross-world
+counterfactuals $p(Y^{\doit(x')}|Y^{\doit(x)})$ as a single-world quantity. Reason being that in the model $M_{\doit(x)}$ we
+can assume that we may add an observation of $X$ before the intervention without affecting the latent state, while if we add
+another intervention $\doit(x')$ it is quite likely that this will change the latent state. Indeed, we might be dealing with
+a system 'with memory' where the past interventions have an effect on the latent state, and thereby may change the distribution
+of the observed state, even if the observed state is determined uniquely by the latent state. As an example, the red pill might
+destroy the left kidney, and the blue pill the right kidney, and one needs at least one functioning kidney to survive. While
+most healthy patients entering an RCT would have two kidneys, the counterfactual cannot be interpreted as two consecutive
+treatments.
+
+%X,Y
+%doit(x):  X,Y; x,Y(x)
+%doit(x'): X,Y; x',Y(x')
+%doit(x); doit(x'): X,Y; x,Y(x); x',Y(x')
+%doit(x'); doit(x): X,Y; x',Y(x'); x,Y(x)
+%
+%Question: is Y(x)(x') = Y(x')?
+%Or should we just assume that Y(x)(x') \sim Y(x')?
+%
+%Aha, let's take a patient. Suppose we want to know whether the patient would still be alive if we do x, given that the patient died after we do x'?
+%Let us interpret this as two consecutive interventions. 
+%If we first do x and the patient dies, we can then do x'. Can the patient come back to live again? If we think the answer is no, we don't believe that Y(x)(x') = Y(x') as long as Y(x') is not a.s. 'dead'.
+%So we cannot meaningfully interpret that counterfactual as a single-world counterfactual.
+
+Interesting: consider Figure 25 in Richardson \& Robin's working paper on SWIGs from 2013. It made me question the following:
+if we may assume that we can observe $X$ right before we intervene $\doit(x)$, why couldn't we also observe $Y$ right before
+we intervene $\doit(x)$ (where $Y$ could be an effect of $X$)? If we assume that the iSCM models the equilibrium distribution
+of a steady SDCM where all randomness stems from the initial value at $t=0$, this seems sensible. But actually, wouldn't 
+that assumption salvage the twin-network approach as well? Ah, the value of $Y$ right before we intervene $\doit(x)$ might
+be different than the value of $Y$ at another time; in particular, there is no guarantee that the mechanism for $Y$ after
+intervening on $X$ is the same as before. Wait, isn't that what we normally assume? That an intervention on $X$ does not 
+change the mechanism for $Y$? So now we run into the problem whether we may assume that in the "observational regime" we
+measure the value of $Y$ at a different time than in the "interventional regime". Hm, I think it is still considerably safer
+that we can measure $X$ right before we $\doit(x)$ than that we measure a downstream $Y$ right before we $\doit(x)$, as 
+the latter would not be \emph{right before} but might lead us to redefine $Y$ to be measured at a different time in the
+observational regime than in the interventional regime, whereas for $X$ the time difference between the two can be made
+arbitrarily small, in principle. 
+
+Furthermore, any possible latent variable that influences both $X$ and $Y^{\doit(x)}$ must occur before $X$ and $Y$ in the
+topological ordering; hence, we can assume that the intervention $\doit(x)$ will not change the values of these latent
+variables! The crucial reason why a node-splitting intervention is OK is that the ``private noise'' entering $X$ (needed
+to sample from $p(X|pa(X))$ does \emph{not} enter $Y$, nor any other variable in the model, as the intervention on $X$
+changes the Markov kernel $p(X|pa(X))$ into a delta kernel. The fact that we cannot do this with both $Y^{\doit(0)}$ and
+$Y^{\doit(1)}$ is due to not being able to intervene \emph{at the same time} with two different values. And intervening
+in a certain ordering (for example, first $Y^{\doit(0)}$, immediately followed by $Y^{\doit(1)}$) will generally have a
+different result than in the opposite ordering, or than just doing one of the two interventions.
+
+INTERESTING OBSERVATION: we usually are fine with assuming that future interventions do not change the VALUES of past 
+variables.
+
+Another interesting observation: before thinking of how to extend the SWIG approach to simple iSCMs, perhaps first think
+about whether it makes sense to do a SWIG-like approach to soft interventions. It seems sensible to me (but I asked
+Thomas' opinion). That would mean we can just generalize the idea to scc-splitting interventions: an observational 
+version of the scc, and an interventional one.
+
+\end{comment}

@@ -1,0 +1,576 @@
+\newpage
+\section{Markov Property for iSCMs and its consequences}
+
+\subsection{Acyclifications}
+
+By making use of the `acyclification', we can extend the global Markov property for L-CBNs to a global Markov property for simple iSCMs.
+The difference is that the Markov property for iSCMs is formulated in terms of $i\sigma$-separation rather than $id$-separation.
+With the help of this Markov property, we can derive a theory for simple iSCMs that is very similar to that of L-CBNs, with a do-calculus and adjustment.
+In Section~\ref{sec:graph_acyclifications}, we defined acyclifications of a CDMG.
+We can also define an operation with the same name on iSCMs.
+\begin{Def}[Acyclification of iSCM]\label{def:scm_acyclification}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G(M)$.
+  For each strongly connected component $C \subseteq V$ of $G(M)$ (i.e., a set of the form
+  $\Sc^{G(M)}(v)$ for $v \in \Send$), let 
+  $g^{[C]} : \CX_{\Sin \cup (\Send \setminus C) \cup \Srnd} \to \CX_C$
+  be an (essentially unique) partial solution function of $M$ w.r.t.\ $C$.
+  Define $\tilde{f} : \CXJ \times \CXV \times \CXW \to \CXV$ by its components
+  $$\tilde{f}_v(\xJ,\xV,\xW) = g^{[\Sc^{G(M)}(v)]}_v(\xJ,x_{\Send\setminus C},\xW)$$
+  for $v \in V$.
+  $M^\acy = \ltuple \Sin, \Send, \Srnd, \CX, P, \tilde{f} \rtuple$ is called an
+  \emph{acyclification of $M$}.
+\end{Def}
+Note that an acyclification is unique up to iSCM equivalence.
+The crucial property of this definition is the following result, which also motivates its name.
+\begin{Prp}\label{prp:scm_acyclification_properties}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM. Its acyclifications $M^\acy$ are
+  acyclic and observably equivalent to $M$.
+\end{Prp}
+\begin{proof}
+  Without loss of generality, we may assume that each component $f_v$ only depends on the parents of $v$:
+  $$f_v(x) = f_v(x_{\Pa^{G^+(M)}(v)})$$
+  by means of Remark~\ref{rem:iscm_structurally_minimal}.
+
+  We construct a directed graph $S$ from $G := G(M)$ with its strongly connected components $\{\Sc^G(v) : v \in \Send \cup \Sin \cup \Srnd\}$
+  as nodes, and directed edges
+  $C \tuh D$ if there is a directed edge $c \tuh d$ in $G$ with $c \in C, d \in D$ and $C \ne D$.
+  The graph $S$ cannot contain a directed cycle, as that would imply the existence of a directed
+  cycle in $G$ that traverses more than one of its strongly connected components. Hence $S$ is a DAG.
+  
+  Choose a topological ordering $<$ of $S$.
+  Any node $C$ in $S$ can only have incoming directed edges
+  in $S$ from $\Pred^S_<(C)$. This implies that for $v \in V$, $C = \Sc^G(v)$ can only have incoming
+  edges in $G$ from $\bigcup \Pred^S_\le(C)$. That implies that the causal mechanism $f_C$
+  only depends on variables in $\bigcup \Pred^S_\le(C)$, and hence we can pick a version of 
+  the partial solution function $g_C$ which also depends only on variables in $\bigcup \Pred^S_<(C)$.
+  Then $\tilde{f}_C$ only depends on variables in $\bigcup \Pred^S_<(C)$ only.
+  Therefore, for $v,w \in V$, a directed edge $w \tuh v$ in $G(M^\acy)$ implies 
+  $w \in \bigcup \Pred^S_<(\Sc^G(v))$. We can therefore refine the topological ordering $<$ of $S$ 
+  to a topological ordering of $G(M^\acy)$, by arbitrarily ordering the nodes within each strongly connected component
+  of $G$. Hence $G(M^\acy)$ is acyclic.
+
+  $M$ and $M^\acy$ are observably equivalent by construction. This follows since the following equivalences hold $M\as$:
+  \begin{align*}
+  & x = \tilde{f}(x) \\
+  & \iff \forall C \in S, C \ins V: x_C = \tilde{f}_C(x) \\
+  & \iff \forall C \in S, C \ins V: x_C = g^{[C]}(x_J,x_{V\setminus C},x_W) \\
+  & \iff \forall C \in S, C \ins V: x_C = f_C(x) \\
+  & \iff x = f(x).
+  \end{align*}
+\end{proof}
+The iSCM notion of acyclification is compatible with the graphical notion of acyclification:
+\begin{Prp}\label{prp:acyclifications_compatible}
+  Let $M$ be a simple iSCM.
+  Then $G^+(M^\acy) \subseteq \tilde{G}^+$ for any graphical acyclification $\tilde{G}^+$ of $G^+(M)$, and
+  $G(M^\acy) \subseteq \tilde{G}$ for any graphical acyclification $\tilde{G}$ of $G(M)$.
+\end{Prp}
+\begin{proof}
+  Write $G := G(M)$.
+  Let $\tilde{G}^+$ be a graphical acyclification of $G^+(M)$.
+  By definition, $G^+(M^\acy)$ and $\tilde{G}^+$ have the same nodes (input nodes $J$ and output nodes
+  $V \cup W$). $G^+(M^\acy)$ has no bidirected edges, but $\tilde{G}^+$ might. If there is a 
+  directed edge $i \tuh j$ in $G^+(M^\acy)$ with $i \in J \cup V \cup W$ and $j \in V$, then
+  the solution function $g^{[\Sc^{G}(j)]}$ of $M^{[\Sc^{G}(j)]}$ essentially depends on $x_i$. 
+  This can only happen if
+  $i \notin \Sc^{G}(j)$ and $i$ is a parent of some $k$ according to $M$ with $k \in \Sc^{G}(j)$,
+  i.e., if $i \tuh k$ in $G$. In that case, $i \tuh j$ in $\tilde{G}^+$ by definition of
+  the graphical acyclification.
+
+  Let $\tilde{G}$ be a graphical acyclification of $G(M)$.
+  By definition, $G(M^\acy)$ and $\tilde{G}$ have the same nodes (input nodes $J$ and output nodes $V$).
+  If $G(M^\acy)$ has a bidirected edge $i \huh j$ (with $i,j \in V$) then there exists a $k \in W$ such that $i \hut k \tuh j$ in $G^+(M^\acy)$. 
+  Then the solution function $g^{[\Sc^{G}(i)]}$ of $M^{[\Sc^{G}(i)]}$ essentially depends on $x_k$, and the solution function $g^{[\Sc^{G}(j)]}$ of $M^{[\Sc^{G}(j)]}$ essentially depends on $x_k$.
+  This implies that there exist $i' \in \Sc^G(i)$ and $j' \in \Sc^G(j)$ such that $k$ is a parent of both $i'$ and $j'$ according to $M$, i.e., $i' \hut k \tuh j'$ in $G^+(M)$. 
+  Therefore, the bidirected edge $i' \huh j'$ is present in $G(M)$.
+  By definition, then, $i \huh j$ must be present in $\tilde{G}$.
+  If there is a directed edge $i \tuh j$ in $G(M^\acy)$ with $i \in J \cup V$ and $j \in V$, then the solution function $g^{[\Sc^{G}(j)]}$ of $M^{[\Sc^{G}(j)]}$ essentially depends on $x_i$. 
+  This can only happen if $i \notin \Sc^{G}(j)$ and $i$ is a parent of some $j'$ according to $M$ with $j' \in \Sc^{G}(j)$, i.e., if $i \tuh j'$ in $G(M)$. 
+  In that case, $i \tuh j$ in $\tilde{G}$ by definition of the graphical acyclification.
+\end{proof}
+Hence, two nodes in the same strongly connected component of $G^+(M)$ do not have any edge between them in $G^+(M^\acy)$, whereas they necessarily have a connecting edge in any acyclification $\tilde{G}^+$ of $G^+(M)$.
+For two nodes in different strongly connected components of $G^+(M)$, the edges in $G^+(M^\acy)$ are also present in $\tilde{G}^+$, but not necessarily vice versa, as some parent-relations may cancel out in the solution function.
+
+\subsection{Markov Properties}
+
+With the help of the acyclifications,
+we can easily derive a Markov property for simple iSCMs from the Markov property for CBNs by reducing
+the general cyclic case to an acyclic case.
+\begin{Cor}[Global Markov property for simple iSCMs]\label{cor:gmp_simple_scm}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with graph $G^+(M)$
+  and Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  Then for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint) we have the implication:
+  $$A \isPerp_{G^+(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+  $$A \isPerp_{G^+(M)} J \cup B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+
+  For the causal graph $G(M)$, we get similar statements:
+  for all $A, B, C \ins J \cup V$ (not necessarily disjoint),
+  $$A \isPerp_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C$$
+  or, equivalently,\footnote{Occassionally, we will use a shorthand notation, writing $\Indep_{P_{M}}$ instead of the longer $\Indep_{P_{M}(X_V \given \doit(X_J))}$.}
+  $$A \isPerp_{G(M)} J \cup B \given C \implies X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_J,X_B \given X_C.$$
+\end{Cor}
+\begin{proof}
+  Choose an acyclification $\tilde{G}^+$ of $G^+(M)$. Then:
+  \begin{equation*}\begin{split}
+    A \isPerp_{G^+(M)} B \given C 
+    & \iff A \idPerp_{\tilde{G}^+} B \given C \\
+    & \implies A \idPerp_{G^+(M^\acy)} B \given C \\
+    & \implies X_A \Indep_{P_{M^\acy}(X_V,X_W \given \doit(\XJ))} X_B \given X_C \\
+    & \iff X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{split}\end{equation*}
+  For the various implications / equivalences, we used:
+  \begin{enumerate}
+    \item $\tilde{G}^+$ is an acyclification of $G^+(M)$ together with Proposition~\ref{prp:sigma_sep_as_d_sep}; 
+    \item $G^+(M^\acy) \subseteq \tilde{G}^+$ from Proposition~\ref{prp:acyclifications_compatible}, and that removing edges cannot turn an $id$-separation into an $d$-connection; 
+    \item the global Markov property Theorem~\ref{thm-gmp-mCBN} for $M^\acy$ interpreted as a causal Bayesian network as in the proof of Proposition~\ref{prp:interventional_equivalence_cbn_scm} point \ref{prp:interventional_equivalence_cbn_scm:scm2cbn} (with deterministic Markov kernels for the endogenous variables, and purely probabilistic Markov kernels for the exogenous random variables), exploiting Proposition~\ref{prp:scm_acyclification_properties} that states that the acyclification $M^\acy$ is acyclic;
+    \item by Proposition~\ref{prp:scm_acyclification_properties}, the acyclification $M^\acy$ has the same Markov kernel as the original iSCM $M$.
+  \end{enumerate}
+  The Markov property for $G(M)$ follows as a special case by restricting $A,B,C \subseteq J \cup V$, and noting that
+  $$  A \isPerp_{G(M)} B \given C  \implies A \isPerp_{G^+(M)} B \given C$$
+  and that
+  $$X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C \implies X_A \Indep_{P_{M}(X_V \given \doit(\XJ))} X_B \given X_C.$$
+\end{proof}
+%This Markov property is not complete: it does not exploit all information in $G(M)$ that it possibly could to deduce 
+%conditional independences. For example, endogenous variables without parents (for which the corresponding outcomes must be
+%constant) could additionally be taken to block walks.
+%\Joris{Should we change the condition for a non-collider to block the path if it is a deterministic function of $C$? We could detect this graphically by distinguishing deterministic kernels from non-deterministic ones (e.g.\ by a double circle).}
+
+\subsection{Do-calculus for simple iSCMs}\label{sec:scms_do-calculus}
+
+%\Joris{Patrick also said that there are two subtleties one has to watch out for: (i) the `easy' condition to make
+%the null sets work is to assume that each intervened Markov kernel appearing has a strictly positive
+%density; (ii) the subtlety is that if one extends the output of the Markov kernel with a copy of (part of
+%its) input, this assumption is already violated, so one should be quite careful when doing that.}
+
+With the global Markov property for simple iSCMs, it becomes straightforward to derive the do-calculus for simple iSCMs.
+First we will introduce some notation. 
+The setting will be that a simple iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is given. 
+For $B \subseteq V$, we will introduce intervention variables $(I_b)_{b \in B}$ to jointly encode different intervened iSCMs $\{M_{\doit(X_C)} : C \subseteq B\}$ into a single iSCM $M_{\doit(I_B)}$ as in Definition~\ref{def:scm_intervention_variables}.
+%As an auxiliary way to model hard interventions $\doit(B)$ for $B \subseteq V$ 
+%that leads to easy rules in the do-calculus, we introduce additional intervention variables
+%$I_b$ for $b \in B$. We denote $I_B := (I_b)_{b \in B}$.
+%This gives an extended iSCM $\tilde{M} = \lt \Sin \cup I_B, \Send, \Srnd, \CX \times \prod_{b \in B} (\CX_b \dot\cup \{\star\}), P, \tilde{f} \rt$ with causal mechanism with components
+%$$\tilde{f}_b(x_{V \cup J \cup W},x_{I_B}) := \begin{cases}
+%  f_b(x_{V \cup J \cup W}) & x_{I_b} = \star \\
+%  x_{I_b} & x_{I_b} \in \CX_b
+%\end{cases}$$
+%for $b \in B$, and $\tilde{f}_v(x) := f_v(x_{V \cup J \cup W})$ for $v \in V \setminus B$.
+%Here, $x_{I_b} = \star$ encodes that there is no intervention on $b$, 
+%while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+We will denote the causal graph of $M$ by $G := G(M)$ and the causal graph of $M_{\doit(I_B)}$ by $G_{\doit(I_B)} = G(M_{\doit(I_B)})$.
+In the do-calculus, we make use of the extended graph $G_{\doit(I_B)}$ to test the separation statement, while the conclusion
+about the properties of certain Markov kernels concerns those of the original iSCM $M$.
+
+%Remember the notation of Markov kernels for simple iSCMs from Definition~\ref{def:simple_scm_Markov_kernels}.
+The Markov kernel of simple iSCM $M$ exists, is unique, and is denoted by $P_{M}(X_V \mid \doit(X_J))$.
+For a subset $T \subseteq V$, we write 
+$$P_{M}(X_{V\setminus T} \mid \doit(X_J,X_T)) := P_{M_{\doit(T)}}(X_{V\sm T} \mid \doit(X_J,X_T)).$$
+By conditioning on a subset $S \subseteq V \setminus T$, we obtain a conditional Markov kernel
+$$P_{M}(X_{V\setminus (T \cup S)} \mid X_S, \doit(X_J,X_T))$$
+which is unique up to a $P_M(X_S \mid \doit(X_J,X_T))$-null set.
+
+The only modification to the do-calculus for simple iSCMs as compared to that for causal Bayesian networks is that
+we have to replace all $id$-separations by $i\sigma$-separations.
+\begin{Thm}[Almost-sure do-calculus for simple iSCMs, simplified]\label{thm:as-do-calculus-scms-simplified}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G = G(M)$.
+  Assume that we have $\sigma$-finite reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$
+  and put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+  Let $A,B,C \ins V$ and $D \ins V \cup J$ be such that $A,B,C,D$ are pairwise disjoint.
+  Then we have the following 4 rules relating Markov kernels that can be generated from the iSCM:
+  \begin{enumerate}
+      \item \emph{Insertion/deletion of observation}, for $J \subseteq D$: if
+       \begin{align*} 
+           A &\isPerp_{G_{\doit(D)}} B \given C \cup D, &
+           \mu_{B \cup C} &\ll P_M(X_B,X_C|\doit(X_{D}))\ll \mu_{B \cup C},
+       \end{align*}
+        then:
+          \[ P_M(X_A|X_B,X_C,\doit(X_{D})) = P_M(X_A|X_C,\doit(X_{D})) \qquad \mu_{B \cup C}\text{-a.s.}.\]
+     \item \emph{Action/observation exchange}, for $J \subseteq D$: if
+       \begin{align*} 
+           A & \isPerp_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D, &          
+                  \mu_{B \cup C} &\ll  P_M(X_B,X_C|\doit(X_{D})) \ll \mu_{B \cup C},\\
+               &&   \mu_C &\ll  P_M(X_C|\doit(X_B,X_{D})) \ll \mu_C,
+       \end{align*}
+        then:
+       \[ P_M(X_A|X_B,X_C,\doit(X_{D}))  = P_M(X_A|\doit(X_B),X_C,\doit(X_{D})) \qquad \mu_{B \cup C}\text{-a.s.}.\]
+     \item \emph{Insertion/deletion of action}, for $J \subseteq D$: if
+       \begin{align*} 
+           A &\isPerp_{G_{\doit(I_B,D)}} I_B \given C  \cup D, &          
+           \mu_C &\ll P_M(X_C|\doit(X_B,X_{D})) \ll \mu_C, \\
+                 && \mu_C &\ll P_M(X_C|\doit(X_{D})) \ll \mu_C,
+       \end{align*}
+       then
+       \[ P_M(X_A|\doit(X_B),X_C,\doit(X_{D})) = P_M(X_A|X_C,\doit(X_{D})) \qquad \mu_C\text{-a.s.}.\]
+     \item \emph{Deletion of input}: 
+         If 
+         \begin{align*} 
+           A &\isPerp_{G_{\doit(D)}} J \given C \cup D, &
+             \mu_C &\ll P_M(X_C|\doit(X_{D\cup J})) \ll \mu_C,
+         \end{align*}
+         then there exists a Markov kernel $P_M(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$ such that:
+         \[ P_M(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) = P_M(X_A|X_C,\doit(X_{D \cup J})) \qquad \mu_C\text{-a.s.}. \]
+    \end{enumerate}
+\end{Thm}
+\begin{proof}
+  The proof is analogous to that of Corollary~\ref{cor:as-do-calculus-2}, except that it applies the global Markov property for simple iSCMs, Corollary~\ref{cor:gmp_simple_scm}, instead of the one for causal Bayesian networks, Theorem~\ref{thm-gmp-mCBN}.
+\end{proof}
+\begin{comment}% OLD VERSION
+\begin{Cor}[Do-calculus for simple iSCMs]\label{cor:scm_do_calculus}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G = G(M)$.
+  Let $A,B,C \ins V \cup W$ and $D \ins V \cup W \cup J$ be such that $A,B,C,D$ are pairwise disjoint.
+  \Joris{In rule 3, should we allow for $B \subseteq V \cup W \cup J$? Or: does rule 4 reduce to an existing rule now that we identify $I_j$ with $j$ for $j \in J$?}
+  Then we have the following 3 rules relating marginal conditional intervened Markov kernels of $M$:
+    \begin{enumerate}
+        \item \emph{Insertion/deletion of observation}: If we have:
+            \[ A \isPerp_{G_{\doit(D)}} B \given C \cup D,   \]
+            then there exists a Markov kernel:
+            \[ P\lp X_A|\cancel{X_B},X_C,\doit(X_{D\cup \cancel{J}})\rp:\;  \Xcal_C \times \Xcal_{D} \dshto \Xcal_A \]
+            that is a version of:
+            \[P_{M}\lp X_A|X_{B_2},X_C,\doit(X_{D\cup J})\rp,\] 
+            for every subset $B_2 \ins B$ simultaneously.
+            In short we could write:
+            \[ P_{M}\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_D)\rp.\]
+            %\[ P\lp X_A|X_B,X_C,\doit(X_D)\rp =P\lp X_A|X_{B_2},X_C,\doit(X_D)\rp = P\lp X_A|X_C,\doit(X_D)\rp.\]
+            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, and constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P_{M}\lp X_B,X_C|\doit(X_{D\cup J})\rp$-null sets.
+            %then we get the equality:
+            %\[ P\lp X_A|X_B,X_C,\doit(X_D)\rp = P\lp X_A|X_C,\doit(X_D)\rp,  \]
+            %$P\lp X_B,X_C|\doit(X_D)\rp$-a.s., to be read as that there exists a version of the rhs 
+            %that is also a version of the lhs. 
+         \item \emph{Action/observation exchange}: If we have:
+            \[ A \isPerp_{G_{\doit(I_B,D)}} I_B \given B \cup C \cup D,   \]
+            then there exists a Markov kernel:
+            \[P\lp X_A|\cancel{\doit}(X_B),X_C,\doit(X_{D\cup \cancel{J}})\rp: \;\Xcal_B \times \Xcal_C \times \Xcal_{D} \dshto \Xcal_A\]
+            that is a version of:            
+            \[ P_{M}\lp X_A|X_{B_1},\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp, \]
+            for every decomposition $B=B_1\dcup B_2$ simultaneously. In short we could write:
+%            \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp  =  P_{M}\lp X_A|X_B,X_C,\doit(X_{D\cup J})\rp.\]
+%            or even
+            \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_D)\rp  =  P_{M}\lp X_A|X_B,X_C,\doit(X_D)\rp.\]
+            since these Markov kernels are constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P_{M}\lp X_B,X_C|\doit(X_{I_B},X_{D\cup J})\rp$-null sets.
+         \item \emph{Insertion/deletion of action}: If we have:
+            \[ A \isPerp_{G_{\doit(I_B,D)}} I_B \given C  \cup D,   \]
+            then there exists a Markov kernel: 
+            \[P\lp X_A|\cancel{\doit(X_B)},X_C,\doit(X_{D\cup \cancel{J}})\rp:\; \Xcal_C \times \Xcal_{D} \dshto \Xcal_A\] 
+            that is a version of:  
+            \[ P_{M}\lp X_A|\doit(X_{B_2}),X_C,\doit(X_{D\cup J})\rp\]
+            for every subset $B_2 \ins B$ simultaneously. In short we could write:
+            \[ P_{M}\lp X_A|\doit(X_B),X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_{D})\rp.\]
+            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, and constant in $x_{J\setminus D}$.
+            Such a Markov kernel is unique up to $P_{M}\lp X_C|\doit(X_{I_B},X_{D\cup J})\rp$-null set.
+%          \item \Joris{\emph{Deletion of action II}: Here we take $B \subseteq J$ disjoint from $A,C,D$.
+%            If we have:
+%            \[ A \isPerp_{G_{\doit(D)}} \emptyset \given C \cup D, \]
+%            then there exists a Markov kernel: 
+%            \[P\lp X_A|X_C,\doit(X_{D\cup \cancel{J}})\rp:\; \Xcal_C \times \Xcal_{D} \dshto \Xcal_A\] 
+%            that is a version of:  
+%            \[ P_{M}\lp X_A|X_C,\doit(X_{D\cup J})\rp\]
+%            In short we could write:
+%            \[ P_{M}\lp X_A|X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_{D})\rp.\]
+%            Note that this Markov kernel is only dependent on $x_C$ and $x_{D}$, but constant in $x_{J\setminus D}$.
+%            Such a Markov kernel is unique up to $P_{M}\lp X_C|\doit(X_{D\cup J})\rp$-null set.}
+    \end{enumerate}
+\end{Cor}
+\begin{proof}
+  The proof is also analogous to that of Corollary~\ref{cor:do-calculus}, except that it applies the global
+  Markov property for simple iSCMs, Corollary~\ref{cor:gmp_simple_scm}, instead of the one for causal Bayesian networks,
+  Theorem~\ref{thm-gmp-mCBN}. 
+  %Furthermore, we do not assume that $J \subseteq D$, so therefore in each Markov kernel
+  %from the iSCM (but not the ones whose existence is part of the conditional independence statement) we replaced 
+  %$\doit(X_D)$ by $\doit(X_{D \cup J})$.
+
+%\Joris{Rule 4. The assumption:
+%            \[ A \isPerp_{G_{\doit(D)}} B \given C  \cup D,   \]
+%implies the conditional independence by GMP \ref{cor:gmp_simple_scm}:
+%  \[ X_A \Indep_{P_{M}(X_V,X_W|\doit(X_{D\cup J}))} X_B \given X_C,X_D.\]
+%So we have the following factorization:
+%  \[ P_{M}\lp X_A,X_C|\doit(X_{D\cup J})\rp = Q(X_A|X_C,X_D) \otimes P_{M}\lp X_C|\doit(X_{D\cup J})\rp,\]
+%for some Markov kernel $Q(X_A|X_C,X_D)$, which serves as a version of the conditional Markov kernel:
+%  \[P_{M}\lp X_A|X_C,\doit(X_{D\cup J})\rp,\]
+%and which is constant in $X_{B}$ and in $X_{J\setminus D}$.
+%So we could write
+%  \[P_{M}\lp X_A|X_C,\doit(X_{D\cup J})\rp = P_{M}\lp X_A|X_C,\doit(X_D)\rp\]
+%}
+\end{proof}
+\end{comment}
+
+%Thus, by making use of the do-calculus, 
+%we can in some cases derive the existence of Markov kernels $P_{M}(X_A \given \doit(X_B))$
+%where $J \not\subseteq B$;
+%these should be interpreted as Markov kernels $\CX_{J \cup B} \dshto \CX_{A}$ that are constant in 
+%$x_{J\setminus B}$. 
+%Essentially, the do-calculus follows immediately from application of the global Markov property. 
+While the derivation of the do-calculus relies essentially on the global Markov property, sometimes one
+can make use of the global Markov property and a more careful analysis of null sets to obtain stronger conclusions.
+In particular, Proposition~\ref{prp:do-calculus} and Theorem~\ref{thm:as-do-calculus-1} also hold for simple iSCMs
+if one replaces the $id$-separation statements by the analogous $i\sigma$-separation statements (but we will not bother to write out these statements in detail).
+
+%\begin{Rem}
+%  In case you are wondering how to use rule 3 to insert or delete an action for an exogenous input
+%  variable $j \in J$: this can be done via the special case $B = I_B = \emptyset$ and $D = J \setminus \{j\}$.
+%  \Joris{Not possible anymore. Workaround? Add rule 3b?}
+%\end{Rem}
+
+%\Joris{
+%\begin{Rem}
+%I conjecture, for $B \subseteq V \cup W \cup J$ disjoint from $A \cup C \cup D$:
+%\[ A \isPerp_{G_{\doit(I_{B\setminus J},D)}} J \given C \cup D \iff
+%\forall B_2 \subseteq B \setminus J: A \isPerp_{G_{\doit(B_2,D)}} B \given C \cup D, \]
+%\end{Rem}
+%}
+
+\subsection{Adjustment}\label{sec:scms_adjustment}
+
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+Let us assume $J \subseteq D$.
+We are interested in estimating the conditional causal effect:
+\[ P_{M}(X_A|X_C,\doit(X_B,X_D)), \]
+but we only have data from:
+\[ P_{M}(X_A,X_B,X_F|X_C,\doit(X_D)). \]
+This is an example of a \emph{causal domain adaptation problem}.
+The following (pairwise disjoint) index sets will have the following roles:
+\begin{description}
+  \item[$A \ins V$]: the outcome variables of interest.
+  \item[$B \ins V$]: the treatment or intervention variables.
+  \item[$C \ins V$]: general conditional (context) variables under which the data was collected.
+  \item[$J \ins D \ins V \cup J$]: general interventional (context) variables that were set by the experimenter.
+  \item[$F_0 \ins V$]: core adjustment variables, i.e.\ features that were measured.
+  \item[$F_1 \ins V$]: additional measured adjustment variables, with $F = F_0 \cup F_1$.
+%  \item[$H \ins V \cup W$]: additional unobserved variables.
+\end{description}
+Although we could assume additional unobserved variables $H \ins V \cup W$ like for Theorem~\ref{thm-gen-adjustment}, the (positivity and independence) assumptions regarding these latent variables are rather strong, so for simplicity and without loss of too much (practical) generality, we will here only consider the special case $H = \emptyset$.
+We will make use of the same extended iSCM $M_{\doit(I_B)}$ with intervention variables $I_b$ for $b \in B$ and graph $G_{\doit(I_B)}$ as for stating the do-calculus.
+
+\begin{comment}
+\begin{Ass}\label{ass:positivity}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Assume that:
+  \begin{enumerate}
+    \item Each measurable space $\Xcal_u$ for $u \in \Send \cup \Srnd$ comes equipped with a fixed measure $\mu_u$, and
+    \item For every subset $D \ins \Send$ the intervened Markov kernel $P_M(X_D \mid \doit(X_{J \cup V \cup W \sm D}))$ is
+      absolute continuous w.r.t.\ the product measure $\mu_D:=\bigotimes_{v \in D} \mu_v$ and vice versa:
+            \[ \mu_D \ll P_M(X_D \mid \doit(X_{J \cup V \cup W \sm D})) \ll \mu_D. \]
+  \end{enumerate}
+%  The second point is satisfied if each intervened Markov kernel $P_M(X_u \mid \doit(X_{J \cup V \sm \{u\}}))$ has a strictly positive Doob-Radon-Nikodym derivative/density w.r.t.\ the measure $\mu_u$ for all $u \in \Send \cup \Srnd$.
+%  \Joris{Is it? May not be due to cycles}
+\end{Ass}
+\end{comment}
+\begin{Thm}[General adjustment formula for simple iSCMs]\label{thm:gen-adjustment-scms}
+Given a simple iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ with causal graph $G = G(M)$. %that satisfies Assumption~\ref{ass:positivity},
+Assume that all the following $i\sigma$-separations hold in the graph $G_{\doit(I_B,D)}$:
+    \begin{align}
+        F_0 & \isPerp_{G_{\doit(I_B,D)}} I_B \given (C \cup D), \\
+        A & \isPerp_{G_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup C \cup D).
+%                      H &\isPerp_{G_{\doit(I_B,D)}} B \given (F \cup C \cup  I_B \cup D).
+    \end{align}
+Further assume that we have reference measures $\mu_v$ on $\Xcal_v$, $v \in V$, %\cup H$, 
+such that:
+  \begin{align*}
+%      \mu_{B \cup C \cup F \cup H} &\ll  P(X_B,X_C,X_F,X_H|\doit(X_D)) \ll \mu_{B \cup C \cup F \cup H},\\
+      \mu_{B \cup C \cup F} &\ll  P(X_B,X_C,X_F|\doit(X_D)) \ll \mu_{B \cup C \cup F},\\
+%      \mu_{C \cup F \cup H} &\ll  P(X_C,X_F,X_H|\doit(X_B,X_D)) \ll \mu_{C \cup F \cup H}.
+      \mu_{C \cup F} &\ll  P(X_C,X_F|\doit(X_B,X_D)) \ll \mu_{C \cup F}.
+  \end{align*}
+Then we have the adjustment formula:
+\[ P_{M}(X_A|X_C,\doit(X_B,X_D)) = P_{M}(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P_{M}(X_F|X_C,\doit(X_D)) \qquad \mu_{B \cup C}\text{-a.s.} \]
+\end{Thm}
+\begin{proof}
+  Analogous to that of Theorem~\ref{thm-gen-adjustment}, but now using
+  the global Markov property for simple iSCMs, Corollary~\ref{cor:gmp_simple_scm}, 
+  instead of the one for causal Bayesian networks, Theorem~\ref{thm-gmp-mCBN}. 
+\end{proof}
+%Note that the ``a.s.'' qualifier is imprecise, a more precise statement could be obtained by tracing the uniqueness of the various Markov kernels appearing in the proof.
+
+For the special case $F_1 = C = \emptyset$, by a direct more careful analysis we get a version with weaker positivity assumptions:
+\begin{Thm}[Interventional backdoor covariate adjustment formula]\label{thm:backdoor-int-scms}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM with causal graph $G = G(M)$. % that satisfies Assumption~\ref{ass:positivity}.
+  Assume that the \emph{interventional backdoor criterion} in the graph $G_{\doit(I_B,D)}$ holds:
+  \begin{enumerate}
+    \item $\displaystyle F \isPerp_{G_{\doit(I_B,D)}} I_B  \given D$, and:
+    \item $\displaystyle A \isPerp_{G_{\doit(I_B,D)}} I_B  \given (B \cup F \cup D)$.
+  \end{enumerate}
+  Further assume the following absolute continuity:
+  \begin{align*}
+      P_M(X_F|\doit(X_D)) \otimes P_M(X_B|\doit(X_D)) &\ll  P_M(X_F,X_B|\doit(X_D)).
+  \end{align*}
+  Then we have the adjustment formulas: 
+  \begin{align*}
+    P_M(X_A,X_F|\doit(X_B,X_D)) &= P_M(X_A|X_F,X_B,\doit(X_D)) \otimes P_M(X_F|\doit(X_D)) && P_M(X_B|\doit(X_D))\text{-a.s.}, \\
+    P_M(X_A|\doit(X_B,X_D)) &= P_M(X_A|X_F,X_B,\doit(X_D)) \circ P_M(X_F|\doit(X_D)) && P_M(X_B|\doit(X_D))\text{-a.s.}
+  \end{align*}
+\end{Thm}
+\begin{proof}
+  Analogous to that of Corollary~\ref{cor:backdoor-int}, but now using
+  the global Markov property for simple iSCMs, Corollary~\ref{cor:gmp_simple_scm}, 
+  instead of the one for causal Bayesian networks, Theorem~\ref{thm-gmp-mCBN}. 
+\end{proof}
+We can now further specialize to the case with $F_1=C=D=J= \emptyset$ and immediately get:
+\begin{Cor}[Backdoor covariate adjustment for simple iSCMs]\label{cor:backdoor-scms}
+  Given a simple iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ with causal graph $G = G(M)$. % that satisfies Assumption~\ref{ass:positivity},
+  Assume that the \emph{backdoor criterion} holds:
+  \begin{enumerate}
+    \item $\displaystyle F \isPerp_{G_{\doit(I_B)}} I_B$, and:
+    \item $\displaystyle A \isPerp_{G_{\doit(I_B)}} I_B  \given (B \cup F)$.
+  \end{enumerate}
+  Further assume the following absolute continuity:
+  \begin{align*}
+      P_M(X_F) \otimes P_M(X_B) &\ll  P_M(X_F,X_B).
+  \end{align*}
+%  Then we have the adjustment formula:
+%  \[ P_{M}(X_A|\doit(X_B)) = P_{M}(X_A|X_B,X_F) \circ P_{M}(X_F) \qquad \text{$\mu_{V\cup W}$-a.s.} \]
+  Then we have the adjustment formulae: 
+  \begin{align*} 
+    P_M(X_A,X_F|\doit(X_B)) &= P_M(X_A|X_F,X_B) \otimes P_M(X_F)  && P_M(X_B)\text{-a.s.}, \\
+    P_M(X_A|\doit(X_B)) &= P_M(X_A|X_F,X_B) \circ P_M(X_F)   && P_M(X_B)\text{-a.s.}
+  \end{align*}
+\end{Cor}
+%\Joris{The positivity conditions are pretty strong. Cannot we throw them overboard by 
+%showing that
+%\[ P_{M}(X_A|\doit(X_B)) = 
+%P_{M}(X_A|X_B,X_F) \circ P_{M}(X_F) \qquad \text{$P(X_F,X_B)$-a.s. ?}
+%\]
+%Patrick notes that the latter thing is not really formally defined for the Markov kernel on the l.h.s..
+%I countered that perhaps we should then define this notion, perhaps just by extending the one on the l.h.s.\
+%by making it constant in $X_F$, i.e., as $P_{M}(X_A|\doit(X_B,\cancel{X_F}))$.
+%At closer inspection, it seems that this is not such a good idea at all.
+%However, what we could do in practice (in the discrete case) is to propagate bounds for anything that cannot be estimated from the data.
+%}
+The literature often fails to mention the strict positivity assumptions, even though without sufficient positivity, the various backdoor criteria may not hold.
+A simple example of how the adjustment formula may fail if the strict positivity assumptions are not met is provided in Example~\ref{eg:counterexample_nonpositive_backdoor_adjustment}.
+
+
+\subsection{Bounds on causal effects}
+
+If causal effects cannot be identified from the observable distribution, we may still be able to derive informative bounds (see also Figure~\ref{fig:natural_bounds}).
+We first prove the \emph{consistency} property of solution functions of simple iSCMs.
+\begin{Prp}\label{prp:simple_scm_consistency}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple iSCM.
+  Let $g : \CXJ \times \CXW \to \CXV$ be a (essentially unique) solution function of $M$.
+  Let $V = A \dcup B$ be a partition of the endogenous variables of $M$,
+  and let $g^{[B]} : \CX_A \times \CXJ \times \CXW \to \CX_B$ be a (essentially unique) solution function of $M$ w.r.t.\ $B$. 
+  Then:
+  $$g_B(x_J,x_W) = g^{[B]}(g_A(x_J,x_W),x_J,x_W)\qquad M\as.$$
+\end{Prp}
+\begin{proof}
+  $M\as$:
+  $$\begin{cases}
+    x_A & = f_A(x), \\
+    x_B & = f_B(x)
+  \end{cases} \iff
+  \begin{cases}
+    x_A & = g_A(x_J,x_W), \\
+    x_B & = g_B(x_J,x_W).
+  \end{cases}$$
+  Also, $M\as$:
+  $$x_B = f_B(x)
+   \iff x_B = g^{[B]}(x_A,x_J,x_W).$$
+  Hence, $M\as$:
+  $$\begin{cases}
+    x_A & = f_A(x), \\
+    x_B & = f_B(x)
+  \end{cases} \implies
+  \begin{cases}
+    x_A & = g_A(x_J,x_W), \\
+    x_B & = g^{[B]}(x_A,x_J,x_W)
+  \end{cases}\implies
+  \begin{cases}
+    x_A & = g_A(x_J,x_W), \\
+    x_B & = g^{[B]}(g_A(x_J,x_W),x_J,x_W).
+  \end{cases}$$
+  The essential uniqueness of the solution function $g$ of $M$ now implies the consistency statement.
+\end{proof}
+This proposition shows that the ``consistency assumption'' commonly made in the potential outcomes framework holds true for potential outcomes induced by simple iSCMs.
+
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{scope}[xshift=0]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (3,0) {$X_2$};
+        \node[ndout] (X3) at (1.5,2.5) {$X_3$};
+%        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \draw[arout] (X1) -- (X2);
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X3) -- (X2);
+        \node at (-1,0) {(a)};
+      \end{scope}
+      \begin{scope}[xshift=6cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (3,0) {$X_2$};
+        \node[ndout] (X3) at (1.5,2.5) {$X_3$};
+%        \node[ndlat] (E1) at (0,1.5) {$X_A$};
+        \draw[arout] (X1) -- (X2);
+        \draw[arout, bend left] (X2) edge (X1);
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X3) -- (X2);
+        \draw[arout, bend left] (X1) edge (X3);
+        \draw[arout, bend right] (X2) edge (X3);
+        \draw[huh, bend right] (X2) edge (X1);
+        \draw[huh, bend left] (X3) edge (X1);
+        \draw[huh, bend left] (X2) edge (X3);
+        \node at (-1,0) {(b)};
+      \end{scope}
+    \end{tikzpicture}
+  \end{center}
+  \caption{Two causal graphs of simple iSCMs. In (a), the Markov kernel $P_M(X_2 \given \doit(X_1), X_3)$ is identifiable (under positivity assumptions) from $P_M(X_1,X_2,X_3)$. In (b), it is not identifiable, but we can still bound it using the natural bounds if both $X_1$ and $X_3$ are discrete.\label{fig:natural_bounds}}
+\end{figure}
+
+\cite{ManskiNagin1998} proved the following `natural' bounds. We point out here that they also hold for simple iSCMs.
+\begin{Thm}[Natural bounds on causal effect]\label{thm:natural_bounds}
+  Let $M$ be a simple iSCM with endogenous variables $V \supseteq \{1,2,3\}$ and no exogenous input variables.
+  Assume that $\CX_1$ is discrete.
+  Then
+  \begin{equation}\label{eq:natural_bounds}\begin{split}
+    P_M(X_1=a,X_2 \in B|X_3 \in C) &\le P_M(X_2\in B|X_3 \in C, \doit(X_1=a)) \\
+                   &\le P_M(X_1=a,X_2\in B|X_3 \in C) + P_M(X_1\ne a|X_3 \in C).
+  \end{split}\end{equation}
+  for any $a\in\C{X}_1$, measurable $B \subseteq \C{X}_2$, and measurable $C \ins \C{X}_3$ with $P_M(X_3 \in C) > 0$.
+\end{Thm}
+\begin{proof}
+  We use the consistency $X_2=X_2^{\doit(X_1=X_1)}$ and elementary probability theory:
+    \begin{align*}
+      P_M(X_1=a,X_2\in B|X_3 \in C) 
+      &= P_M(X_1=a,X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      &\le P_M(X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      &= P_M(X_1=a,X_2^{\doit(X_1=a)}\in B|X_3 \in C) \\
+      & \quad + P_M(X_1\ne a,X_2^{\doit(X_2=a)}\in B|X_3 \in C) \\
+      &\le P_M(X_1=a,X_2\in B|X_3 \in C) + P_M(X_1 \ne a|X_3 \in C)
+    \end{align*}
+  \Claude{Typo: $X_2^{\doit(X_2=a)}$ should be $X_2^{\doit(X_1=a)}$.}
+  The statement follows since
+	\Claude{Notational gap: The identification $P_M(X_2\in B|X_3\in C,\doit(X_1=a)) = P_M(X_2^{\doit(X_1=a)}\in B|X_3\in C)$ conflates post-intervention $X_3$ (standard do-calculus reading of the LHS) with observational $X_3$ (used in the RHS and throughout the proof). The proof is valid in the Manski framework (where $X_3$ is a pre-treatment covariate), but this convention needs clarification.}
+  $$ P_M(X_2\in B|X_3 \in C, \doit(X_1=a)) = P_M(X_2^{\doit(X_1=a)}\in B|X_3 \in C).$$
+\end{proof}
+This so-called ``natural'' bound can be shown to be tight. 
+Remarkably, we do not need to make any assumptions regarding the causal relations between the three endogenous variables.
+This allows us to bound the causal effect of $X_1$ on $X_2$ in the presence of confounding and cycles.
+Unfortunately, it can be shown that there exists no analogous bound in case $X_1$ is real-valued.
+
+If one has a priori knowledge about the range of $X_2$ (in case it is real-valued), one can also derive a bound on the expected result of an intervention \cite{ManskiPepper2013}.
+\begin{Cor}\label{cor:natural_bounds}
+  In the situation of Theorem~\ref{thm:natural_bounds}, suppose that $\CX_2 = [\alpha,\beta]$ and $0 < P_M(X_1=a|X_3\in C) < 1$. Then
+  \begin{equation}\label{eq:natural_bounds_CATE}\begin{split}
+    & P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C) + \alpha P_M(X_1\ne a|X_3\in C) \\
+    {}\le {}& \Exp_M(X_2|X_3\in C,\doit(X_1=a)) \\
+    {}\le {}& P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C) + \beta P_M(X_1\ne a|X_3\in C).
+  \end{split}\end{equation}
+	\Claude{Inherits notational convention issue from previous proof.}
+\end{Cor}
+\begin{proof}
+Using consistency, we get:
+\begin{equation*}\begin{split}
+  &P_M(X_2^{\doit(X_1=a)} \in B|X_3\in C) \\
+  &= P_M(X_1=a|X_3\in C)  P_M(X_2^{\doit(X_1=a)} \in B|X_1=a,X_3\in C)  \\
+  & + P_M(X_1 \ne a|X_3\in C) P_M(X_2^{\doit(X_1=a)} \in B|X_1\ne a,X_3\in C) \\
+  &= P_M(X_1=a|X_3\in C)  P_M(X_2 \in B|X_1=a,X_3\in C)  \\
+  & + P_M(X_1 \ne a|X_3\in C) P_M(X_2^{\doit(X_1=a)} \in B|X_1\ne a,X_3\in C).
+\end{split}\end{equation*}
+Integrating over $X_2$, the assumption $\CX_2 = [\alpha,\beta]$, interval arithmetic, and affinity of expected values, gives:
+\begin{equation*}\begin{split}
+  &\Exp_M(X_2^{\doit(X_1=a)}|X_3\in C) \\
+  &= P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C)  \\
+  &+ P_M(X_1 \ne a|X_3\in C) \Exp_M(X_2^{\doit(X_1=a)}|X_1\ne a,X_3\in C) \\
+  &\in P_M(X_1=a|X_3\in C) \Exp_M(X_2|X_1=a,X_3\in C) + P_M(X_1 \ne a|X_3\in C) [\alpha,\beta].
+\end{split}\end{equation*}
+\end{proof}

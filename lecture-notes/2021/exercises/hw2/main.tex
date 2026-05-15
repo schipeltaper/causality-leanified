@@ -1,0 +1,90 @@
+\begin{document}
+\flushleft\textbf{Topic: Introduction to Measure Theory}
+
+
+\section{Proving properties}
+ (1+2+1+1 points)
+
+\begin{enumerate}
+    \item Consider spaces $A$, $B$ and $C$ with respective sigma algebras $\mathcal{F}, \mathcal{G}$ and $\mathcal{H}$. Show that if the function $f: A \rightarrow B$ is $\mathcal{F} / \mathcal{G}$-measurable and the function $g: B \rightarrow C$ is $\mathcal{G} / \mathcal{H}$ measurable, then their composition $g \circ f$ is $\mathcal{F} / \mathcal{H}$-measurable.
+    \item Let $\mathcal{U}$ be an arbitrary set, $(\mathcal{V}, \Sigma)$ a measurable space, and $X: \mathcal{U} \rightarrow \mathcal{V}$ an arbitrary function. Show that $\Sigma_X = \{X^{-1}(A): A \in \Sigma\}$ is a $\sigma$-algebra over $\mathcal{U}$. Furthermore, show that $\Sigma_X$ is the $\emph{smallest}$ sigma algebra that makes the map measurable. More specifically, show that if $\mathcal{F}$ is a sigma algebra for $U$ such that $X$ is $\mathcal{F}/\Sigma$-measurable, then $\Sigma_X \subseteq \mathcal{F}$.
+    \item Show that the indicator function $\I_A: \Omega \rightarrow \{0,1\}$ is $\mathcal{B}_{\Omega} / 2^{\{0,1\}}$ measurable if $A \in \mathcal{B}_{\Omega}$.
+    \item Consider the Lebesgue measure $\lambda$ on $(\mathbb{R}, \mathcal{B}_{\mathbb{R}})$. Show that $\lambda(\{1, \frac{1}{2}, \frac{1}{3}, \dots\})=0$.
+\end{enumerate}
+\begin{gradedsolution}
+    \begin{enumerate}
+        \item Let $h = g \circ f$. Let $A \in \mathcal{H}$. Then our goal is to show that $h^{-1}(A) \in \mathcal{F}$. We do this in two steps:
+        \begin{itemize}
+            \item We first show that $h^{-1}(A) = f^{-1}(g^{-1}(A))$, by two-sided containment. To show $h^{-1}(A) \subseteq f^{-1}(g^{-1}(A))$, let $x \in h^{-1}(A)$. Thus $h(x) \in A$. By definition, $h(x) = g(f(x))$, and thus $f(x) \in g^{-1}(A)$ and thus $x \in f^{-1}(g^{-1}(A))$.\\
+            For the other direction, let $x \in f^{-1}(g^{-1}(A))$. This implies that $f(x) \in g^{-1}(A)$ which implies that $g(f(x)) \in A$ which equals $h(x)$. 
+            \item Then because $g$ is $\mathcal{G}/\mathcal{H}$ measurable, it holds that $g^{-1}(A) \in \mathcal{G}$ and then because $f$ is $\mathcal{F}/\mathcal{G}$ measurable it follows that $f^{-1}(g^{-1}(A)) = h^{-1}(A) \in \mathcal{F}$, completing the proof.
+        \end{itemize}
+        \item Since $X(u) \in \mathcal{V}$ for all $u \in \mathcal{U}$, we have $X^{-1}(\mathcal{V}) = \mathcal{U}$, and thus $\mathcal{U} \in \Sigma_X$. Suppose that $U \in \Sigma_X$, then by definition there exists a $V \in \Sigma$ such that $X^{-1}(V) = U$. But then because $\Sigma$ is a $\sigma$-algebra we have $V^c \in \Sigma$ and thus by definition of $\Sigma_X$ we have $U^c = X^{-1}(V^c) \in \Sigma_X$. Therefore, $\Sigma_X$ is closed under complements. Finally, let $(U_i)_i$ be a countable sequence with $U_i \in \Sigma_X$. Then for each of these there exists some $V_i \in \Sigma$ s.t. $X^{-1}(V_i) = U_i$. Then $\bigcup_i U_i = \bigcup_i X^{-1}(V_i) = X^{-1}(\bigcup_i V_i) \in \Sigma_X$, because $\bigcup_i V_i \in \Sigma$, and thus $\Sigma_X$ is closed under countable unions. And thus $\Sigma_X$ is indeed a sigma algebra.\\
+        For the second part, let $S \in \Sigma_X$. Then, by definition of $\Sigma_X$, it follows that there exists $A \in \Sigma$ such that $X^{-1}(A) = S$. But then since $X$ is $\mathcal{F}/\Sigma$-measurable, it follows that $S = X^{-1}(A) \in \mathcal{F}$, completing the proof.
+        \item We need to show that the preimage $\I_A^{-1}$ is in $\mathcal{B}_{\Omega}$ for all possible subsets of $\{0, 1\}$. There are four of these. Obviously $\I_A^{-1}(\{0,1\}) = \Omega \in \mathcal{B}_{\Omega}$ since $\mathcal{B}_{\Omega}$ is a $\sigma$-algebra. The pre-image of an empty set is empty, which is in $\mathcal{B}_{\Omega}$ since it is a $\sigma$-algebra. $\I_A^{-1}(\{1\}) = A$ is in $\mathcal{B}_{\Omega}$ by definition of the exercise. Finally, $\I_A^{-1}(\{0\}) = A^c$ is in $\mathcal{B}_{\Omega}$ since it is a sigma algebra. And thus the indicator function is $\mathcal{B}_{\Omega} / 2^{\{0,1\}}$-measurable.
+        \item We first show that a singleton has measure $0$. Note that for any $x \in \mathbb{R}$, $\{x\} \subset (x - 1/n, x+1/n)$ for all $n \in \mathbb{N}$, and hence $\lambda(\{x\}) \leq 2/n$ for all $n \in \mathbb{N}$. Since $n$ may be arbitrarily large, it follows that $\lambda(\{x\}) = 0$. Now, since the set in question is a countable union of singletons, by additivity of the measure we get that any countable union of singleton sets also has $0$ measure.
+    \end{enumerate}
+    Basic statements about pre-images for use with ex 1.2:
+    \begin{enumerate}
+        \item $f: X \to Y$, show for all $B \in 2^Y$, $f^{-1}(B^c)=f^{-1}(B)^c$. Let $x \in X$, then:
+        \[
+            x \in f^{-1}(B^c) \Leftrightarrow f(x) \in B^c \Leftrightarrow f(x) \not \in B \Leftrightarrow x \not \in f^{-1}(B) \Leftrightarrow x \in f^{-1}(B)^c
+        \]
+        \item $f: X \to Y$, $A,B \in 2^Y$
+        \begin{align*}
+            f^{-1}(A \cup B)
+            &= \{x \in X | f(x) \in A \cup B\}\\
+            &= \{x \in X | f(x) \in A \vee f(x) \in B\}\\
+            &= \{x \in X | f(x) \in A\} \cup \{x \in X | f(x) \in B\}\\
+            &= f^{-1}(A) \cup f^{-1}(B)
+        \end{align*}
+    \end{enumerate}
+\end{gradedsolution}
+
+\section{Expectation and integration}
+(1 point) Let $X: \Omega \rightarrow \mathbb{R}$ be a random variable. Show from first principles that for simple functions $\mathbb{E}[cX] = c\mathbb{E}[X]$ (i.e. you are \textbf{not} allowed to just apply the linearity of the integral, you must show this yourself).\\
+\emph{Bonus:} Generalize this statement to the general case.
+\begin{gradedsolution}
+    Suppose $X(\omega) = \sum_{n=1}^N a_n \I_{A_n}(\omega)$ is simple. Then $cX$ is also simple and
+    \[
+      \mathbb{E}[cX] = \int cX \,dP = \sum_{n=1}^N c a_n P(A_n) = c \sum_{n=1}^N a_n P(A_n) = c \mathbb{E}[X]
+    \]
+    This completes the non-bonus part. Now. Suppose $X$ is positive (but maybe not simple) and $c>0$. Then $cX$ is also positive, and:
+    \begin{align*}
+        \mathbb{E}[cX] = \int cX \,dP &= \sup \{ \int g dP \mid g \text{ is simple and } g \leq cX \} \\
+        &=  \sup \{ \int cg \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &=  \sup \{c \int g \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &= c \sup \{\int g \,dP \mid g \text{ is simple and } g \leq X \} \\
+        &= c \int X dP = c \mathbb{E}[X]
+    \end{align*}
+    Finally, for arbitrary random variables and $c>0$ we have:
+    \[
+      \mathbb{E}[cX] = \mathbb{E}[(cX)^+] - \mathbb{E}[(cX)^-] = c \mathbb{E}[(X)^+] - \mathbb{E}[(X)^-] = c \mathbb{E}[X]
+      \]
+    For negative $c$ simply note that $(cX)^+ = -c(X)^-$ and $(cX)^- = -c(X)^+$ and repeat the above argument.
+\end{gradedsolution}
+
+\section{Change of variables}
+($1+1$ points)
+\begin{enumerate}
+\item Let $X$ be distributed according to the discrete uniform distribution on $\{-M, -M+1, \dots, N-1, N\}$ where $M,N \in \mathbb{N}$ and $M>N$. Compute the probability mass function of the absolute value $Y=|X|$ w.r.t. counting measure.
+\item Let $X$ be distributed according to the standard normal distribution $\mathcal{N}(0,1)$. Furthermore, let $Y = \exp (X)$. Compute the density of $Y$ w.r.t. Lebesgue measure, where the codomain of $Y$ is $\mathbb{R}^+$.
+\end{enumerate}
+\begin{gradedsolution}
+    \begin{enumerate}
+        \item This is first and foremost a translation exercise, and so it is important to note here that the probability mass function w.r.t. counting measure is just the regular probability mass function. Since there are $M+N+1$ values for $X$, on the original domain each value has a probability mass $\frac{1}{M+N+1}$. Then for $Y$ we calculate the probability density $P[Y=y]$ by taking the push-forward measure of single elements: $P^Y(y) = P^X(Y^{-1}(y)) = \frac{|Y^{-1}(y)|}{M+N+1}$. That is, we calculate the pre-images of each element of $Y$, and calculate the probability of this set using the original law $P^X$. For $1, \dots, N$ two values map to these values. For $0$ and $N < Y \leq M$, only one value maps to these values, so:
+        \[
+            P[Y=y] = \begin{cases}
+            \frac{1}{M+N+1}, \text{ if } y = 0,\\
+            \frac{2}{M+N+1}, \text{ if } 0 < y \leq N,\\
+            \frac{1}{M+N+1}, \text{ if } N < y \leq M,\\
+            0, \text{ otherwise.}
+          \end{cases}
+        \]
+        \item Let $p_X(x)=\frac{1}{\sqrt{2\pi}} e^{-x^2/2}$ be the pdf of the standard normal function. We can directly apply 4.8.4 to obtain:
+        \[
+          p_Y(y) = p_X(\log y) (\exp(\log y))^{-1} = \frac{1}{y\sqrt{2\pi}} e^{-\log^2 y/2}
+        \]
+    \end{enumerate}
+\end{gradedsolution}
+\end{document}

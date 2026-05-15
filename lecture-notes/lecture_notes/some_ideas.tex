@@ -1,0 +1,2116 @@
+\section{Ideas and experimental stuff}
+
+\subsubsection{Individual vs. population}
+
+Work out in more detail the following:
+
+That is, the `template' parameterized iSCM $(M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^{\theta}, f^{\theta} \rt)_{\theta \in \CX_\Theta}$ induces an iSCM that models a population consisting of $N$ units:
+$$M^{\theta;N} := \lt \Sin^N, \Send^N, \Srnd^N, \CX^N, \bigotimes_{n=1}^N P^{\theta}, f^{\theta;N} \rt_{\theta \in \CX_\Theta}$$
+where the causal mechanisms of each unit is
+$$f^{\theta;N}_n : \CX^{(n)} \to \CX_{V}^{(n)} : x^{(n)} \mapsto f^{\theta}(x^{(n)}).$$
+
+and relate it to the SUTVA assumption.
+
+\subsubsection{Null sets (again)---Work in progress left out of the lecture notes for now}
+
+\Joris{We might simplify things conceptually a little by only defining null sets $\ins \CX_J \times \CX_W$, and explicitly writing the $\forall x_V \in \CX_V$ out every time.
+This makes everything more explicit but also reduces the parsimony of the notation.}
+
+We will frequently need to specify that certain properties or identities hold `almost surely' in a specific sense.
+This is an analogon to the notion of `almost surely' in probability theory, but because we are dealing with parameterized families of probability distributions, the notion becomes more complex.
+We will use it in the theory of iSCMs in the same way that the notion of $P(X_W|\doit(X_J))$-null sets are used in the theory of CBNs (see Definition~\ref{def:finite-transition-measure-nullsets}).
+
+%\begin{Def}[iSCM Null Sets]
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+%  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+%  We say that \emph{$\pi$ holds $M\as$} if\footnote{An important subtlety is that the ordering of the quantifiers matters. One first picks $x_J$, then dependent on that one can pick $x_W$, and finally one can pick $x_V$ dependent on $(x_J,x_W)$. Reordering the quantifiers changes the meaning of the statement. The ordering we chose corresponds with data generating processes that are modeled via a sampling process as described in Section~\ref{sec:scm_sampling}.}
+%  for all $x_J \in \CX_J$, for $P_M(X_W)$-almost all $x_W \in \CX_W$, for all $x_V \in \CX_V$, $\pi(x_J,x_W,x_V) = 1$.
+%  In other words, if there exists a subset $N \subseteq \CX_J \times \CX_W$ such that
+%  $$\pi^{-1}(0) \subseteq N \times \CX_V$$
+%  and $N_{x_J} = \{x_W \in \CX_W : (x_J,x_W) \in N\}$ is a $P(X_W)$-null set for each $x_J \in \CX_J$.
+%  We then call $N$ an $M$-null set.
+%\end{Def}
+\begin{comment}
+\Joris{An attempt with 2-null sets:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+      We say that \emph{$\tilde\pi$ holds $P_M\as$} if:
+      $$\text{for $P_M(X_W)$-almost all $x_W \in \CX_W$, for all $x_J \in \CX_J$}: \quad \tilde\pi(x_J,x_W) = 1.$$
+    \item Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+       We say that \emph{$\pi$ holds $P_M\as$} if:
+      $$\text{for $P_M(X_W)$-almost all $x_W \in \CX_W$, for all $x_J \in \CX_J$, for all $x_V \in \CX_V$}: \quad \pi(x_J,x_W,x_V) = 1.$$
+  \end{enumerate}
+\end{Def}
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item We call a set $\tilde{N} \ins \CX_J \times \CX_W$ a \emph{$P_M$-null set} if:\\
+      $\tilde{N} = \tilde{N}_W \times \CX_J$ with $\tilde{N}_W := \pr_{\CX_W}(\tilde{N})$ a $P(X_W)$-null set.
+    \item We call a set $N \ins \CX_J \times \CX_W \times \CX_V$ an \emph{$P_M$-null set} if:\\
+      $N = N_W \times \CX_J \times \CX_V$ with $N_W := \pr_{\CX_W}(N)$ a $P(X_W)$-null set.
+  \end{enumerate}
+  We speak of \emph{measurable} $P_M$-null sets if $\tilde{N}_W \in \Bcal_W$ or $N_W \in \Bcal_W$, respectively.
+\end{Def}
+Note that: a property holds $P_M\as$ implies that it holds $M\as$.
+Also, a $P_M$-null set is a $M$-null set.
+The other direction does NOT hold (easy counterexample: $\{x_J=x_W\}$ for $\CX_W=\CX_J$ could be an $M$-null set but not a $P_M$-null set).
+A $P_M$-null set is just an $M$-null set that does not depend on $x_J$.
+}
+\end{comment}
+
+In the following definitions, an important subtlety to be aware of is that the ordering of the quantifiers matters, and reordering the quantifiers changes the meaning of the statement. 
+The specific ordering was chosen to correspond with the data generating processes that are modeled via a sampling process as described in Section~\ref{sec:scm_sampling}.
+\begin{Def}[`Almost surely' according to an iSCM]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+      We say that \emph{$\tilde\pi$ holds $M\as$} if:
+      $$\text{for all $x_J \in \CX_J$, for $P_M(X_W)$-almost all $x_W \in \CX_W$}: \quad \tilde\pi(x_J,x_W) = 1.$$
+    \item Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+       We say that \emph{$\pi$ holds $M\as$} if:
+      $$\text{for all $x_J \in \CX_J$, for $P_M(X_W)$-almost all $x_W \in \CX_W$, for all $x_V \in \CX_V$}: \quad \pi(x_J,x_W,x_V) = 1.$$
+  \end{enumerate}
+\end{Def}
+The two notions are compatible in the following sense.
+\begin{Rem}
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Define $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ by
+   $$\tilde \pi(x_J,x_W) = \begin{cases}
+     1 & \forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1 \\
+     0 & \exists x_V \in \CX_V: \pi(x_J,x_W,x_V) = 0
+   \end{cases}$$
+  Then, $\pi$ holds $M\as$ if and only if $\tilde\pi$ holds $M\as$.
+\end{Rem}
+Another way to express `almost sure' is in terms of null sets.
+\begin{Def}[iSCM Null Sets]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item We call a set $\tilde{N} \ins \CX_J \times \CX_W$ an \emph{$M$-null set} if:\\
+      for each $x_J \in \CX_J$, $\tilde{N}_{x_J} = \{x_W \in \CX_W : (x_J,x_W) \in \tilde{N}\}$ is a $P(X_W)$-null set.
+    \item We call a set $N \ins \CX_J \times \CX_W \times \CX_V$ an \emph{$M$-null set} if:\\
+      for each $x_J \in \CX_J$, $\{x_W \in \CX_W \mid \exists x_V \in \CX_V : (x_J,x_W,x_V) \in N\}$ is a $P(X_W)$-null set.
+  \end{enumerate}
+  We speak of \emph{measurable} $M$-null sets if $\tilde{N} \in \Bcal_J \otimes \Bcal_W$ or $N \in \Bcal_J \otimes \Bcal_W \otimes \Bcal_V$, respectively.
+  \Joris{This is not so clear yet! It makes sense for the $\Bcal_J \otimes \Bcal_W$ case, but for the other we still have a choice as to whether $\pr_{J \cup W}(N)$ is measurable or $N$ itself. Ah, but it doesn't really matter: we can always saturate the null set by replacing $N$ by $\pr_{J \cup W}(N) \times \CX_V$. Ah, but that may make it non-measurable! Ah, but the projection is analytic and hence contained in a null set?}
+\end{Def}
+Some observations that come in handy occassionally:
+\begin{Rem}
+  \begin{enumerate}
+    \item A subset of an $M$-null set is also an $M$-null set.
+    \item A set $N \ins \CX_J \times \CX_W \times \CX_V$ is an $M$-null set if and only if $\pr_{J\cup W}(N) := \{(x_J,x_W) \in \CX_J \times \CX_W \mid \exists x_V \in \CX_V : (x_J,x_W,x_V) \in N\}$ is an $M$-null set, if and only if for each $x_J \in \CX_J$, $\pr_W(N_{x_J}) := \{x_W \in \CX_W \mid \exists x_V \in \CX_V : (x_J,x_W,x_V) \in N\}$ is a $P(X_W)$-null set.
+    \item There exists a $M$-null set $N \ins \CX_J \times \CX_W \times \CX_V$ if and only if there exists a $M$-null set of the form $N = \tilde{N} \times \CX_V$ with $\tilde{N}$ an $M$-null set in $\CX_J \times \CX_W$.
+    \item An $M$-null set in $\CX_J \times \CX_W$ can also be referred to as a $P(X_W)$-null set in $\CX_J \times \CX_W$ according to the terminology of Remark~\ref{rem:null-sets}.
+  \end{enumerate}
+\end{Rem}
+\begin{Lem}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+  Then the following are equivalent:
+  \begin{enumerate}
+    \item $\tilde\pi$ holds $M\as$;
+    \item $\tilde\pi$ holds up to an $M$-null set in $\CX_J \times \CX_W$.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  Let $\tilde N := \tilde\pi^{-1}(0) \ins \CX_J \times \CX_W$. Then:\\
+
+  \noindent\phantom{$\iff$} $\tilde\pi$ holds $M\as$ \\
+  $\iff$ $\forall x_J \in \CX_J$: for $P_M(X_W)$-almost all $x_W \in \CX_W$: \quad $\tilde\pi(x_J,x_W) = 1$\\
+  $\iff$ $\forall x_J \in \CX_J$: $\{x_W \in \CX_W | \tilde\pi(x_J,x_W) = 0\}$ is a $P_M(X_W)$-null set\\
+  $\iff$ $\forall x_J \in \CX_J$: ${\tilde N}_{x_J}$ is a $P_M(X_W)$-null set\\
+  $\iff$ ${\tilde N}_{x_J}$ is a $M$-null set.
+\end{proof}
+\begin{Lem}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Then the following are equivalent:
+  \begin{enumerate}
+    \item $\pi$ holds $M\as$;
+    \item $\pi$ holds up to an $M$-null set in $\CX_J \times \CX_W \times \CX_V$;
+    \item $\pi$ holds up to an $M$-null set in $\CX_J \times \CX_W \times \CX_V$ of the form $\tilde{N} \times \CX_V$ with $\tilde{N}$ a $M$-null set in $\CX_J \times \CX_W$;
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  Let $N := \pi^{-1}(0) \ins \CX_J \times \CX_W \times \CX_V$. Then:\\
+
+  \noindent\phantom{$\iff$} $\pi$ holds $M\as$ \\
+  $\iff$ $\forall x_J \in \CX_J$: for $P_M(X_W)$-almost all $x_W \in \CX_W$: $\forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1$\\
+  $\iff$ $\forall x_J \in \CX_J$: for $P_M(X_W)$-almost all $x_W \in \CX_W$: $\lnot \exists x_V \in \CX_V : \pi(x_J,x_W,x_V) = 0$\\
+  $\iff$ $\forall x_J \in \CX_J$: $\{x_W \in \CX_W | \exists x_V \in \CX_V : \pi(x_J,x_W,x_V) = 0\}$ is a $P_M(X_W)$-null set\\
+  $\iff$ $\forall x_J \in \CX_J$: $\pr_W(N_{x_J})$ is a $P_M(X_W)$-null set\\
+  $\iff$ $N$ is a $M$-null set\\
+  $\iff$ $\pr_{J\cup W}(N) \times \CX_V$ is a $M$-null set.
+\end{proof}
+
+\Joris{TODO: define when sets are equal $M\as$ (via the property $x \in A \iff x \in B$) and when functions are equal $M\as$ (via the property $f_1(x) = f_2(x)$).}
+
+\Joris{Some thoughts:
+\begin{Rem}
+  \item Perhaps: a more natural notion than $M$-null set would be: a set contained in a measurable $M$-null set.
+  Indeed, that also gives a possible extension of the notion of null set: for $J=\emptyset$, an $M$-nullset is just a $P$-nullset,
+  and there exists a $P$-nullset such that a property holds iff there exists a \emph{measurable} $P$-nullset such that a property holds.
+  So we could generalize the notion of `there exists a measurable $P$-nullset such that a property holds' to `there exists a measurable $M$-nullset such that a property holds.
+  \item Alternatively, we could opt for not requiring measurability with respect to $X_J$ and $X_W$ jointly, but only that $x_W \mapsto g(x_J,x_W)$ is measurable for each $x_J$. 
+  Mathematically this might give a self-consistent framework, but physically it looks as if it allows for too many pathological cases and we should demand more `structure' in the form of smoothness/continuity/measurability/Lipshitzness in terms of the exogenous input. 
+  Furthermore, it's not clear if we can still formulate the second rule of the do-calculus if we opt for this framework!
+  \item Perhaps in general we need to \emph{change} $f$ on an $M$-nullset before we can construct a solution function.
+  It could be that for the $U$ corresponding to $f$, there exists no measurable $M$-nullset up to which it is $\CX_{J\cup W}$, but that we can construct a measurable $\tilde{f}$ such that its corresponding $\tilde{U}$ does have a measurable $M$-nullset up to which it is $\CX_{J\cup W}$.
+\end{Rem}
+}
+
+The following lemma translates an $M\as$ property to an a.s.\ property of a random variable.
+\begin{Lem}\label{lem:M-as_to_rv-as}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Let $x_J \in \CX_J$. 
+  Let $X_{V \cup W}$ be a random variable with values in $\CX_V \times \CX_W$ and such that its $W$-marginal is distributed according to the exogenous distribution of $M$ (that is, $X_W \sim P_M$).
+  Then:
+  $$\pi(x_J,x_W,x_V) \quad M\as \qquad \implies \qquad \pi(x_J,X_W,X_V) \quad \text{a.s.}.$$
+\end{Lem}
+\begin{proof}
+  Since $\pi$ holds $M\as$, for the fixed $x_J \in \CX_J$ this means that for $P_M$-almost all $x_W$:
+    $$\forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1.$$
+  Since $X_W \sim P_M$, we get that:
+    $$[\forall x_V  \in \CX_V: \pi(x_J,X_W,x_V) = 1] \quad P(X_W)\as.$$
+  Hence:
+    $$[\forall x_V  \in \CX_V: \pi(x_J,X_W,x_V) = 1] \quad \text{a.s.},$$
+  which implies:
+    $$\pi(x_J,X_W,X_V) = 1 \quad \text{a.s.}$$
+\end{proof}
+We can do something analogous for a conditional random variable.
+\begin{Lem}\label{lem:M-as_to_crv-as}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable such that its marginal (push-forward) Markov kernel $K(X_W | \XJ)$ is constant and coincides with the exogenous distribution of $M$ (that is, $K(X_W | \XJ) = P_M$ \Joris{possible notation: $X_W|X_J \sim P_M$?}).
+  Then:
+  $$\pi(x_J,x_W,x_V) \quad M\as \qquad \implies \qquad \pi(X_J,X_W,X_V) \quad \text{a.s.}.$$
+\end{Lem}
+\begin{proof}
+  Since $\pi$ holds $M\as$, for all $x_J \in \CX_J$, for $P_M$-almost all $x_W$:
+    $$\forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1.$$
+  Since $K(X_W | \XJ) = P_M$, we get that:
+    $$[\forall x_V  \in \CX_V: \pi(X_J,X_W,x_V) = 1] \quad K(X_W|X_J)\as.$$
+  Hence:
+    $$[\forall x_V  \in \CX_V: \pi(X_J,X_W,x_V) = 1] \quad \text{a.s.},$$
+  which implies:
+    $$\pi(X_J,X_W,X_V) = 1 \quad \text{a.s.}.$$
+\end{proof}
+
+\Joris{Another useful property: ``$M\as$'' implies ``$M_{\doit(T)}\as$'' for $T \ins V$.}
+
+\subsubsection{Measurability, existence and uniqueness of solution functions}
+
+\Joris{This is a new section which hopefully provides the last puzzle piece to descend to the ``3-level'' everywhere.}
+\begin{Lem}
+Let $(X,\Sigma_X)$ and $(Y,\Sigma_Y)$ be measurable spaces and $\mu$ any measure on $Y$ and $S$ a measurable subset of $X \times Y$.
+Then the map: $j: X \to \RN : x \mapsto \mu(S_x)$ is measurable, where $S_x := \{ y \in Y : (x,y) \in S\}$.
+\end{Lem}
+\begin{proof}
+Let $\pi_{X|S} : S \mapsto Y$ be the canonical projection $X \times Y \to Y$ restricted to $S \subseteq X \times Y$.
+Then for $x \in X$, the set $S_x = \pi_{X|S}^{-1}(\{x\}) \subseteq Y$ is measurable.
+We can thus define the map $s : X \to \Sigma_Y : x \mapsto S_x$.
+Consider now $(\Sigma_Y,\sigma(\mu))$ as a measurable space with the sigma algebra generated by $\mu$ (that is, the smallest sigma algebra that makes $\mu : \Sigma_Y \to \RN$ measurable).
+Then an application of the Doob-Dynkin lemma gives that $j = \mu \circ s$ is $\sigma(s)$-$\Bcal$-measurable.
+Wait: for that we don't need that lemma, we only need that the composition of measurable mappings is measurable.
+
+That is, for a $\Bcal$-measurable set $A \subseteq \RN$, $j^{-1}(A) \subseteq X$ is $\sigma(s)$-measurable.
+In particular, $j^{-1}(\{1\})$ is $\sigma(s)$-measurable.
+Is it then in $\Sigma_X$?
+
+Patrick meant: proof via Dynkin system.
+What Dynkin system does he mean?
+We are looking for a set of subsets that satisfies some property.
+If this is closed under countable disjoint unions, complements, and contains the entire set, then it's a Dynkin system.
+If we have a subsystem of a Dynkin system that is also closed under finite intersections, then the sigma algebra generated by that subsystem is contained in the Dynkin system.
+
+We should show that $j^{-1}(A)$ is measurable for any measurable $A \subseteq \RN$.
+I.e., $s^{-1}(\mu^{-1}(A))$ is measurable for any measurable $A \subseteq \RN$.
+It suffices to show that $s^{-1}(\mu^{-1}(-\infty,a])$ is measurable for any $a \in \RN$.
+That is, that $s^{-1}(\{B \in \Sigma_Y : \mu(B) \le a\})$ is measurable for any $a \in \RN$.
+That is, the set $\{x \in X: \mu(S_x) \le a\}$ is measurable for any $a \in \RN$.
+I'm stuck again at this point. 
+Should ask Patrick what he has in mind.
+
+Perhaps we define $\C{D} := \{A \subseteq \bar\RN : j^{-1}(A) \text{ is measurable}\}$?
+Note that $\bar\RN \in \C{D}$.
+If $A \in \C{D}$ then $j^{-1}(\bar\RN \sm A) = X \sm j^{-1}(A)$ is measurable hence $\bar\RN \sm A \in \C{D}$.
+Suppose $A_1,A_2,\dots \in \C{D}$ be pairwise disjoint: $A_i \cap A_j = \emptyset$ for $i\ne j$;
+then $j^{-1}(A_i)$ is measurable, and hence $\bigcup_i j^{-1}(A_i) = j^{-1} (\bigcup_i A_i)$ is measurable,
+and hence $\bigcup_i A_i \in \C{D}$.
+So $\C{D}$ is a Dynkin system.
+Suppose $A_1,A_2,\dots,A_n \in \C{D}$, then $j^{-1}(\bigcap_{i=1}^n A_i) = \bigcap_{i=1}^n j^{-1}(A_i)$
+is measurable and therefore $\bigcap_{i=1}^n A_i \in \C{D}$.
+Therefore, $\C{D}$ is a Dynkin system closed under finite intersections.
+Well, $\C{D}$ is even closed under countable intersections for the same reason.
+So $\C{D}$ is a sigma algebra.
+
+What if we consider $(\Sigma_Y,\C{P}(\Sigma_Y))$ as a measurable space?
+Then $\mu : (\Sigma_Y,\C{P}(\Sigma_Y)) \to (\bar\RN,\Bcal)$ is (trivially) measurable.
+But $s : (X,\Sigma_X) \to (\Sigma_Y,\C{P}(\Sigma_Y))$ is not necessarily measurable: our sigma algebra on $\Sigma_Y$ is too big.
+\end{proof}
+
+\begin{Lem}
+Let $K: X \dshto Y$ be a Markov kernel and $S \ins X \times Y$ a measurable subset.
+Then the map:
+  $$j_S: X \to \overline{\RN} : x \mapsto K(S_x|x)$$
+with $S_x := \{y \in Y : (x,y) \in S\}$ is measurable.
+\end{Lem}
+\begin{proof}
+Let
+  $$L := \{ D \ins X \times Y \text{ measurable} | j_D \text{ is measurable} \}.$$
+
+Then $L$ is a Dynkin system:
+\begin{enumerate}
+  \item $X \times Y$ is in $L$, since $j_{X\times Y}(x) = 1$, which is measurable.
+  \item if $D$ in $L$ then also $D^c$ in $L$, since
+    $$j_{D^c}(x) = K((D^c)_x|x) = 1 - K(D_x|x) = 1 - j_D(x)$$
+    which is also measurable.
+  \item if $D_1,D_2,\dots$ in $L$ pairwise disjoint, then $D := \bigcup_n D_n$ is in $L$, since
+    $$j_D(x) = K(D_x|x) = K((\bigcup_n D_n)_x|x) = K(\bigcup_n (D_n)_x|x) = \sum_n K((D_n)_x|x) = \sum_n j_{D_n}(x)$$
+    which is also measurable (note that the $(D_n)_x$ are also pairwise disjoint).
+\end{enumerate}
+
+All cylinder sets $D = A \times B$ with $A,B$ measurable are in $L$, since
+  $$j_{A\times B}(x) = K(B|x) I_A(x),$$
+which is measurable by the Markov kernel assumption and that indicator 
+functions are measurable. \Joris{Taking for $K$ a measure $\mu$ we get $j_{A \times B}(x) = \mu(B) I_A(x)$.}
+
+Note that the set $E:= \{ A \times B | A, B \text{ measurable} \}$ is closed under intersection.
+
+By Sierpi\'nski-Dynkin's $\pi$-$\lambda$-theorem we now get the inclusion:
+$$\sigma(E) \ins L.$$
+Now $\sigma(E) = \Bcal_X \otimes \Bcal_Y$, the product $\sigma$-algebra.
+
+This means for every measurable subset $D$ in $X \times Y$, the map $j_D$ is measurable (in particular for $S$).
+\end{proof}
+
+\begin{Lem}
+Let $(\Xcal,\Bcal_{\Xcal})$ and $(\Ycal,\Bcal_{\Ycal})$ be measurable spaces and $\mu : \Bcal_{\Ycal} \to \overline{\RN}$ a $\sigma$-finite measure on $\Ycal$, and $S \ins \Xcal \times \Ycal$ a measurable subset.
+Then the map: 
+  $$m_S: \Xcal \to \overline{\RN} : x \mapsto \mu(S_x)$$
+is measurable, where $S_x := \{ y \in \Ycal : (x,y) \in S\}$.
+\end{Lem}
+\begin{proof}
+Let $D \ins \Xcal \times \Ycal$ be measurable.
+Let $\pi_{|D} : D \mapsto \Ycal$ be the canonical projection $\Xcal \times \Ycal \to \Ycal$ restricted to $D$.
+Then for $x \in \Xcal$, the set $D_x := \pi_{|D}^{-1}(\{x\}) \subseteq \Ycal$ is measurable.
+We can thus define the map 
+  $$j_D : \Xcal \to \overline\RN : x \mapsto \big(\mu(D_x)\big)$$
+for every measurable $D \ins \Xcal \times \Ycal$.
+
+We first assume 
+We can therefore define:
+  $$L := \{ D \ins \Xcal \times \Ycal \text{ measurable} \mid j_D \text{ is measurable} \}.$$
+Then $L$ is a Dynkin system:
+\begin{enumerate}
+  \item $\Xcal \times \Ycal$ is in $L$, since $j_{\Xcal\times \Ycal}(x) = \mu(\Ycal)$, which is constant and hence measurable.
+  \item If $D$ in $L$ then also $(\Xcal \times \Ycal) \sm D$ in $L$, since
+    \begin{equation*}\begin{split}
+      j_{(\Xcal \times \Ycal) \sm D}(x) 
+      &= \big(\mu(((\Xcal \times \Ycal) \sm D)_x),\mu(\Ycal \sm ((\Xcal \times \Ycal) \sm D)_x)\big) \\
+      &= \big(\mu(\Ycal \sm D_x),\mu(\Ycal \sm (\Ycal \sm D_x))\big) \\
+      &= \big(\mu(\Ycal \sm D_x),\mu(D_x)\big) \\
+      &= \tau(j_D(x)),
+    \end{split}\end{equation*}
+    with $\tau : \overline{\RN}^2 \to \overline{\RN}^2 : (a,b) \mapsto (b,a)$;
+    hence $j_{(\Xcal \times \Ycal) \sm D}$ is measurable.
+  \item If $D_1,D_2,\ldots$ in $L$ pairwise disjoint, then $D := \bigcup_n D_n$ is in $L$; since
+    first consider $D_{\overline{n}} := \bigcup_{m=1}^n D_n$. We have
+    \begin{equation*}\begin{split}
+      j_{D_{\overline{n}}}(x) 
+      &= \big(\mu(D_{\overline{x}}),\mu(\Ycal \sm D_{\overline{x}})\big) \\
+      &= \left(\mu\big(\bigcup_{m=1}^n (D_m)_x\big),\mu\big(\Ycal \sm \bigcup_{m=1}^n (D_m)_x\big)\right) \\
+      &= \left(\mu\big(\bigcup_{m=1}^n (D_m)_x\big),\mu\big(\bigcap_{m=1}^n (\Ycal \sm (D_m)_x)\big)\right) \\
+      &= \left(\sum_{m=1}^n \mu((D_m)_x), \mu\big(\Ycal \sm \bigcup_{m=1}^n (D_m)_x\big)\right) \\
+      &= (\sum_{m=1}^n j_{D_n,1}(x), \liminf_n j_{D_n,2}(x))
+    \end{split}\end{equation*}
+
+    \begin{equation*}\begin{split}
+    j_D(x) 
+      &= \big(\mu(D_x),\mu(\Ycal \sm D_x)\big) \\
+      &= \left(\mu\big(\bigcup_n (D_n)_x\big),\mu\big(\Ycal \sm \bigcup_n (D_n)_x\big)\right) \\
+      &= \left(\mu\big(\bigcup_n (D_n)_x\big),\mu\big(\bigcap_n (\Ycal \sm (D_n)_x)\big)\right) \\
+      &= \left(\lim_{n\to\infty} \sum_{m=1}^n \mu((D_m)_x),\lim_{n\to\infty} \mu\big(\Ycal \sm \bigcup_{m=1}^n (D_m)_x\big)\right) \\
+      &= \lim_{n\to\infty} \left(\sum_{m=1}^n \mu((D_m)_x), \mu\big(\Ycal \sm \bigcup_{m=1}^n (D_m)_x\big)\right) \\
+      &= \lim_{n\to\infty} \left(\sum_{m=1}^n \mu((D_m)_x), \mu\big(\Ycal \sm \bigcup_{m=1}^n (D_m)_x\big)\right) \\
+      &= (\sum_n j_{D_n,1}(x), \liminf_n j_{D_n,2}(x))
+    \end{split}\end{equation*}
+    where we used that $D_x = \bigcup_n (D_n)_x$ and that the $(D_n)_x$ are pairwise disjoint.
+    Hence $j_D$ is measurable.
+    Note that $\mu\big(\bigcap_n (\Ycal \sm (D_n)_x)\big) = \liminf_n \mu\big(\Ycal \sm \bigcup_{m=1}^n (D_n)_x\big)$ is measurable?
+\end{enumerate}
+
+All cylinder sets $D = A \times B$ with $A \ins \Xcal,B \ins \Ycal$ measurable are in $L$, since
+  $$j_{A\times B}(x) = \big(\mu(B) I_A(x),\mu(\Ycal \sm B) I_A(x)\big),$$
+which is measurable.
+
+Note that the set $E:= \{ A \times B | A, B \text{ measurable} \}$ is closed under intersection.
+
+By Sierpi\'nski-Dynkin's $\pi$-$\lambda$-theorem we now get the inclusion:
+$$\sigma(E) \ins L.$$
+Now $\sigma(E) = \Bcal_\Xcal \otimes \Bcal_\Ycal$, the product $\sigma$-algebra.
+
+This means for every measurable subset $D$ in $\Xcal \times \Ycal$, the map $j_D$ is measurable.
+And in particular for $S$, $(j_S)_1 = m_S$ is measurable.
+\end{proof}
+
+\Joris{
+  \begin{Lem}[Doob-Dynkin, wikipedia version]
+    Let $s : X \to Y$ be a function, $(Y,\Ycal)$ be a measurable space.
+    A function $f : X \to \RN$ is $\sigma(s)$-$\Bcal$-measurable function if and only if $f = g \circ s$ for some $\Ycal$-$\Bcal$-measurable function $g: Y \to \RN$.
+  \end{Lem}
+
+  Suppose that there is a measurable subset of $\CX_J \times \CX_W$ such that the structural equations
+  have a unique solution. Then the solution function restricted to that subset is measurable.
+  If that subset is a 3-null set then we can define a measurable 3-solution function on the entire
+  domain that is 3-unique.
+
+  Can we formulate 'have a unique solution' in terms of the complete original of some mapping?
+  $(x,y_1)$ is a solution iff $y_1=f(x,y_1)$. $(x,y_2)$ is a solution iff $y_2=f(x,y_2)$.
+  `There exists a solution for $x$' iff there is a $y_1$ with $y_1=f(x,y_1)$.
+  'There exists at most one solution for $x$' iff there exist no $y_1\ne y_2$ with $y_1=f(x,y_1)$ and $y_2=f(x,y_2)$.
+  Define the function $h : (x,y_1,y_2) \mapsto (y_1,y_2,f(x,y_1),f(x,y_2))$.
+
+  Let $S := \{y \in \Ycal^4 : y_1 = y_3 \land y_2 = y_4\}$.
+  This is a measurable subset of $\Ycal^4$ (because...).
+  Then $h^{-1}(S)$ is the set of $(x,y_1,y_2)$ such that $(x,y_1)$ is a solution and $(x,y_2)$ is a solution.
+  That is: there exists a solution for $x$ iff $[h^{-1}(S)]_x \ne \emptyset$.
+  Note that $h^{-1}(S)$ is measurable.
+
+  Define $D := \{y \in \Ycal^4 : y_1=y_2\}$.
+  This is a measurable subset of $\Ycal^4$ (because...).
+  Write $T := S \sm D$.
+  Then $h^{-1}(T)$ is the set of $(x,y_1,y_2)$ such that both $(x,y_1)$ and $(x,y_2)$ are different solutions for input $x$.
+  So: there exists a unique solution for $x$ iff $[h^{-1}(T)]_x = \emptyset$ and $[h^{-1}(S)]_x \ne \emptyset$.
+  In other words: there exists a unique solution for $x$ iff $[h^{-1}(S \sm D)]_x = \emptyset$ and $[h^{-1}(S)]_x \ne \emptyset$.
+  In other words: there exists a unique solution for $x$ iff $[h^{-1}(S)]_x \cap [h^{-1}(D)]_x \ne \emptyset$ but $([h^{-1}(S)]_x \sm [h^{-1}(D)]_x) = \emptyset$.
+  Alternatively: there exists a unique solution for $x$ iff \dots
+
+  That is: there exists at most one solution for $x$ iff $[h^{-1}(T)]_x = \emptyset$.
+  Note that $h^{-1}(T)$ is measurable.
+
+  Note that each of the $x$-sections $[h^{-1}(S)]_x$ and $[h^{-1}(T)]_x$ is measurable.
+  Also, $h^{-1}(S) \sm h^{-1}(T) = h^{-1}(S \sm T)$ is measurable.
+  Is $[h^{-1}(S)]_x \sm [h^{-1}(T)]_x = [h^{-1}(S \sm T)]_x$?
+  Well: 
+  \begin{equation*}\begin{split}
+    [h^{-1}(S)]_x \sm [h^{-1}(T)]_x 
+    &:= \{(y_1,y_2) : h(x,y_1,y_2) \in S\} \sm \{(y_1,y_2) : h(x,y_1,y_2) \in T\} \\
+    &= h_x^{-1}(S) \sm h_x^{-1}(T)  \\
+    &= h_x^{-1}(S \sm T) \\
+    &= [h^{-1}(S \sm T)]_x
+  \end{split}\end{equation*}
+  where $h_x : (y_1,y_2) \mapsto h(x,y_1,y_2)$.
+  So yes that holds.
+  
+  Aha: if we can conclude that the $x$ s.t.\ there exists a solution is measurable,
+  and the $x$ s.t.\ there exist two or more (different) solutions is measurable,
+  then the $x$ s.t.\ there exists a unique solution is measurable.
+
+  Note that $\pi_1[h^{-1}(S)]$ is the set of $x$ such that there exists a solution at $x$.
+  Note that $\pi_1[h^{-1}(T)]$ is the set of $x$ such that there exist two different solutions at $x$.
+  The projection of a measurable set is not necessarily measurable, but it is analytic.
+  Hence both sets are analytic.
+  The set of interest is now:
+  $\pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)]$,
+  which is the set of $x$ such that there exists a unique solution at $x$.
+  Is this also analytic?
+  Oh, complements of analytic sets need not be analytic (but analytic sets are closed under countable unions and intersections).
+  But analytic sets are up to a null set measurable.
+  Therefore $\pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)]$ is measurable up to a null set.
+  So we can define the solution function up to a $\CX_J \times \CX_W$-null set.
+
+  More precisely: $\pi_1[h^{-1}(S)]$ is analytic and $\pi_1[h^{-1}(T)]$ is analytic, both as subsets of $\CX = \CX_J \times \CX_W$.
+  Every analytic set in a standard measurable space is universally measurable.
+  Put a measure $\mu_J \otimes P(X_W)$ on $\CX$ with $\mu_J$ a $\sigma$-finite reference measure.
+  Then (Lemma F.6 in AOS) there exist measurable sets $S_0,S_1 \subseteq \CX$ s.t.\ $S_0 \subseteq \pi_1(h^{-1}(S)) \subseteq S_1$ and
+  $(\mu_J \otimes P(X_W))(S_0) = \overline{\mu_J \otimes P(X_W)}(\pi_1(h^{-1}(S))) = (\mu_J \otimes P(X_W))(S_1)$.
+  Similarly, there exist measurable sets $T_0,T_1 \subseteq \CX$ s.t.\ $T_0 \subseteq \pi_1(h^{-1}(T)) \subseteq T_1$ and
+  $(\mu_J \otimes P(X_W))(T_0) = \overline{\mu_J \otimes P(X_W)}(\pi_1(h^{-1}(T))) = (\mu_J \otimes P(X_W))(T_1)$.
+  Thus, 
+  $S_0 \sm T_1 \subseteq \pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)] \subseteq S_1 \sm T_0$
+  where $S_0 \sm T_1$ and $S_1 \sm T_0$ are measurable and 
+  $(\mu_J \otimes P(X_W))(S_0 \sm T_1) = (\mu_J \otimes P(X_W))(S_1 \sm T_0)$.
+  Hence, $\pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)] = S_0 \sm T_1 = S_1 \sm T_0$ up to $(\mu_J \otimes P(X_W))$-null sets.
+  ASSUMING THAT $\pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)] = \CX$ up to a $(\mu_J \otimes P(X_W))$-null set, we may conclude 
+  (by Kechris 14.12: graph is measurable iff function is measurable) that there exists a measurable solution
+  function on $S_0 \sm T_1$ which is up to a $(\mu_J \otimes P(X_W))$-null set the entire $\CX$.
+  We can then extend it to a global measurable function that provides a (unique) solution up to a $(\mu_J \otimes P(X_W))$-null set.
+  This is the analogon to what we did in the AOS paper.
+  And it weakens what we had before in the lecture notes: there we just assumed that $\pi_1[h^{-1}(S)] \sm \pi_1[h^{-1}(T)] = \CX$.
+
+  QUITE RELEVANT MAY BE Thm 18.11 in Kechris: if $X,Y$ standard Borel spaces and $R \ins X \times Y$ Borel, then $\{x \in X : \exists! y. (x,y)\in R\}$ is co-analytic (i.e., its complement is analytic).
+  If we take for $X$: $\CX_J \times \CX_W$ and for $Y$: $\CX_V$ and for $R := \{((x_J,x_W),x_V) : x_V = f((x_J,x_W),x_V)\}$ (which is Borel!) then we can show that the set of inputs for which there exists a unique solution to the SE is co-analytic.
+  Interestingly: the set of inputs for which there exists a solution to the SE is analytic (as it is just the projection of Borel set $R$).
+  If we do this for a fixed $x_J$, we get that the $x_W$ for which there is NO unique solution is analytic.
+  But we are going to assume that it is even a $P(X_W)$-null set, and hence certainly analytic.
+  So here our assumption is already stronger than the statement of 18.11!
+
+  Hm, if we have a function $\CX_J \times \CX_W \to \CX_V$ that is measurable, and we change it on a
+  3-nullset, can we make it non-measurable? For example, if we take an indicator function on a 3-nullset,
+  is that measurable? Or do we only need each $\CX_J$-section to be measurable? In the latter case,
+  we don't get a Markov kernel! But you might argue that we don't need a Markov kernel?
+  Even if it's not measurable in general, we may only look at 3-nullset changes of solution functions that 
+  preserve its measurability.
+  Aha, perhaps we don't need a Markov kernel: as long as we don't start composing Markov kernels but only
+  compose functions / SCMs we might be safe.
+  Then the reasoning above can be done for each $x_J \in \CX_J$: the solution function under $\doit(x_J)$
+  can be defined up to a $P$-nullset (which may be a totally different one for each $x_J$). Does this 
+  type of solution function suffice? Ah it does not suffice to make use of Patrick's notion of CI!
+
+  So one question is: if we have for each $x_J$ a solution function defined $P$-almost everywhere, 
+  does there exist a global measurable solution function that differs only up to a 3-null set?
+
+  I had a nice chat with Philip: we observed that we were both wondering why one would need 
+  measurability of a Markov kernel w.r.t.\ $X_J$ in the first place. If one is not doing CBNs
+  then we will not put distributions on input nodes, and if we do CBNs then we could also 
+  only assume measurability w.r.t.\ those parents that we actually use in compositions to get
+  the final distribution. So you could:
+  \begin{itemize}
+    \item work with a broader class of Markov kernels that does not require measurability w.r.t.\ the input
+    \item get an easier disintegration theorem (because we can just apply the Radon-Nikodym derivative pointwise for every input---as written down in a remark that Patrick put in the lecture notes to motivate all the work done to prove the existence of conditional Markov kernels)
+    \item check that the operations of Markov kernels are still well-defined, in particular, the product! Aha, here again the key is that we will never ``couple'' an input of one Markov kernel that is an exogenous input variable with an output of another Markov kernel, so we never have to integrate out that coupling
+    \item for the time being, use the same definition of transitional CI (the existence of a factor that gives the desired factorization) 
+    \item prove that the semi-graphoid axioms still hold in this broader class of Markov kernels
+  \end{itemize}
+  Once we have that, we can then use our result above that we can compose the inputwise solution functions (defined up to an inputwise nullset, that is, for all of them together, up to a 3-nullset),
+  that are measurable and defined up to a $P$-null set, into one global solution function which may not be measurable w.r.t.\ $x_J$ but apart from that has all the properties we require.
+  
+  Alternatively (less work, but less easy to verify in practice) we can just \emph{assume} the existence of a 
+  measurable function that gives 3-almost everywhere a unique solution.
+
+  Eni had a nice idea which is to prove the measurability of the solution function by approximating it
+  by simple (piecewise-constant) functions. That strategy might just work for the real-valued setting.
+  Perhaps we should try this first (so that we have at least one result).
+}
+
+Do measurable solution functions exist?
+Later on we will mostly work under stronger assumptions on $f$, namely that the 
+structural equations have `almost everywhere' a unique solution (for a certain 
+notion of `almost everywhere' to be discussed later).
+The following proposition says that restricted to the domain where the structural
+equations have a unique solution, the solution function is measurable.
+\begin{Prp}[Measurability of solution functions]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $U := \{ (x_J,x_W) \in \CX_J \times \CX_W : \exists ! x_V \in \CX_V : x_V = f(x_V,x_W,x_J) \}$
+  be the set of exogenous values for which there exists a unique solution to the structural equations.
+  Define a function $\tilde{g} : U \to \CX_V$ that assigns to $(x_J,x_W)$ the unique solution $x_V$ of the
+  equation
+  $$x_V = f(x_V,x_W,x_J).$$
+  Then $U \subseteq \CX_J \times \CX_W$ is a measurable set, and $\tilde{g}$ is a measurable function.
+\end{Prp}
+\begin{proof}
+Define
+  $$S := \{ (x_J,x_W,x_V) \in \CX_J \times \CX_W \times \CX_V : x_V = f(x_V,x_W,x_J) \}$$
+as the set of all states that satisfy the structural equations.
+Note that $S$ is measurable (since $\CX_V$ is countably separated). \Joris{TODO}
+By assumption $S$ should be non-empty (?).
+
+We can apply the Lemma with $X = \CX_J \times \CX_W$, $Y = \CX_V$, and $S = { (w,j,v) | f(w,j,v) = v }$ to the counting measure $\mu = \#$.
+This shows that the set:
+  $U = \{ (x_J,x_W) \in \CX_J \times \CX_W : \#(S_{(x_J,x_W)}) = 1 \} = j^{-1}(\{1\})$
+is measurable.
+
+Note that the graph of $\tilde{g}$ is
+  $$\mathrm{graph}(\tilde{g}) = \{(\xJ,\xW,\xV) \in \CXJ \times \CXW \times \CXV : \xV = \tilde{g}(\xJ,\xW)\} = (U \times \CX_V) \cap S$$
+which is measurable.
+By \cite[14.12]{Kec95}, because all spaces are (isomorphic to) Borel spaces, the fact that $\mathrm{graph}(\tilde{g})$ is a measurable set implies that $\tilde{g}$ is a measurable function. 
+Hence $\tilde{g}$ is measurable.
+
+We can now define
+  $$g : \CX_J \times \CX_W \to \CX_V : (x_J,x_W) \mapsto \begin{cases} \tilde{g}(x_J,x_W) & (x_J,x_W) \in U \\
+                                                                               x_V^0      & (x_J,x_W) \notin U
+  \end{cases}$$
+for an arbitrary $x_V^0 \in \CX_V$.
+It is now clear that $g$ is measurable (because $\tilde{g}$ is).
+%Let $g : \CX_J \times \CX_W \to \CX_V$ be any extension of $\tilde{g} : U \to \CX_V$ from $U$ to the whole $\CX_J \times \CX_W$.
+%We can then extend it to a measurable function $g$ on the entire domain $\CX_J \times \CX_V$ using a Corollary of Blackwell's Theorem
+%(with $X = S$, $Y = \CX_J \times \CX_V$, $Z = \CX_V$, $p = \pr_V : S \to \CX_V$, $q = \pr_{J \cup W} : S \to \CX_J \times \CX_W$).
+%For all $(x_J,x_W) \in U$ we have $(x_J,x_W,\tilde{g}(x_J,x_W)) \in S$.
+%
+%\begin{Thm}[Corollary of Blackwell's Theorem]
+%Let $X$, $Y$, $Z$ be standard measurable spaces and $p: X \to Z$ and $q: X \to Y$ measurable maps 
+%and $\tilde{g}: Y \to Z$ any (not necessarily measurable) map such that $p = \tilde{g} \circ q$. 
+%Then there exists a measurable map $g : Y \to Z$ such that $p = g \circ q$.
+%\end{Thm}
+%\begin{proof}
+%  Find citation.
+%\end{proof}
+\end{proof}
+\begin{Cor}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  If $M$ is 3-uniquely solvable (that is, for each $x_J in \CX_J$, $U_{x_J} = W \setminus N_{x_J}$ for some $P$-null set $N_{x_J}$) then there exists a (measurable) solution function $g$, which is unique up to a $M$-null set.
+  \Joris{Note: this Corollary holds at an arbitrary level $i$!}
+\end{Cor}
+
+
+\Joris{So the conclusion for now is: this is a non-trivial descriptive set theory problem, which probably requires a good understanding of the material in Kechris to solve.
+Let $U := \{(x_J,x_W) \in \CX_J\times\CX_W \mid \exists! x_V \in \CX_V : x_V = f(x_J,x_W,x_V)\}$.
+It could be that:
+\begin{itemize}
+  \item each $U_{x_J}$ being a $P(X_W)$-null set implies that $U$ is Borel measurable (because $f$ is)
+  \item each $U_{x_J}$ being a $P(X_W)$-null set does not imply that $U$ is Borel measurable (because $f$ is)
+  \item each $U_{x_J}$ being a $P(X_W)$-null set implies that we can change $f$ into $\tilde f$ such that for each $x_J \in \CX_J$, the set $\{x_W \in \CX_W \mid \exists x_V \in \CX_V : f(x_J,x_W,x_V) \ne \tilde f(x_J,x_W,x_V)\}$ is a $P(X_W)$-null set, and such that the $\tilde{U} := \{(x_J,x_W) \in \CX_J\times\CX_W \mid \exists! x_V \in \CX_V : x_V = \tilde f(x_J,x_W,x_V)\}$ is Borel measurable.
+\end{itemize}
+I don't know the answer!
+So far, I just workaround.
+}
+
+\subsection{Nullset calculus}
+
+
+\Joris{Suggestion: if we expect the students of being able to keep track of the null sets perhaps it is convenient
+for them if we explicitly state some little lemma's: that the chain rule is sure, and that composition drops the
+a.s.-ness of the part that is integrated out, etcetera.}
+\PF{That could be helpful. At this moment, I don't find the time to add this in this note. We could either leave it as is, comment the general version out and leave only the simpler criteria below in, or, if you like, add them by yourself.}
+
+\Joris{In this work-in-progress section I collect thoughts on nullsets.
+So some of this stuff might move to the lecture notes (other stuff is good for reference purposes but not necessarily for in the lecture notes).}
+
+Patrick noted:
+\begin{Rem}
+  For discrete variables, $P(A,B) \ll P(A) \otimes P(B)$. 
+\end{Rem}
+
+\subsubsection{Nullsets and Markov kernels}
+
+\begin{Lem}
+  Given Markov kernels:    
+  \[P(X|Y,Z),\,Q(X|Y,Z):\, \Ycal\times \Zcal \dshto \Xcal,\]
+  and 
+  \[K(Y|Z):\,\Zcal \dshto \Ycal\]
+  for measurable spaces $\Xcal$, $\Ycal$, $\Zcal$.
+ 
+  The following are equivalent:
+  \begin{enumerate}[label=\roman*)]
+    \item $P(X|Y,Z) = Q(X|Y,Z)\ K(Y|Z)\as$.     
+    \item $$ P(X|Y,Z) \otimes K(Y|Z) = Q(X|Y,Z) \otimes K(Y|Z); $$
+    \item for every $A \in \Bcal_\Xcal$ the set:
+    \[N_A := \lC (y,z) \in \Ycal \times \Zcal \,|\, P(X \in A|Y=y,Z=z) \neq Q(X \in A|Y=y,Z=z)\rC\]
+     is a measurable $K(Y|Z)$-null set;
+  \end{enumerate}
+  If $\Xcal$ is countably generated, then the following is also equivalent:
+  \begin{enumerate}[resume*]
+    \item $N := \bigcup_{A \in \Bcal_\Xcal} N_A$ is a measurable $K(Y|Z)$-null set.
+  \end{enumerate}
+\end{Lem}
+\begin{proof}
+  (i) `$\iff$' (ii) holds by definition.
+
+  `(ii) $\implies$ (iii)' is shown in the proof of Lemma~\ref{ess-unique}.
+  We prove `(iii) $\implies$ (ii)'.
+  To show that 
+    \[ P(X|Y,Z) \otimes K(Y|Z) = Q(X|Y,Z) \otimes K(Y|Z), \]
+  it suffices to show that for all measurable sets $E \ins \Xcal \times \Ycal$, all $z \in \Zcal$:
+  \begin{equation*}\begin{split}
+    & \int\int \I_E(x,y)\, P(X \in dx|Y=y,Z=z) \, K(Y \in dy|Z=z) \\
+    = & \int\int \I_E(x,y)\, Q(X \in dx|Y=y,Z=z) \, K(Y \in dy|Z=z).
+  \end{split}\end{equation*}
+  It suffices to show that for all measurable sets $A \times E_Y$ with $A \ins \Xcal$, $E_Y \ins \Ycal$, all $z \in \Zcal$:
+  \begin{equation*}\begin{split}
+    & \int\int \I_{E_X}(x) \I_{E_Y}(y)\, P(X \in dx|Y=y,Z=z) \, K(Y \in dy|Z=z) \\
+    = & \int\int \I_{E_X}(x) \I_{E_Y}(y)\, Q(X \in dx|Y=y,Z=z) \, K(Y \in dy|Z=z).
+  \end{split}\end{equation*}
+  It suffices to show that for all measurable sets $A \times E_Y$ with $A \ins \Xcal$, $E_Y \ins \Ycal$, all $z \in \Zcal$:
+  \begin{equation*}\begin{split}
+    & \int P(X \in A|Y=y,Z=z) \I_{E_Y}(y) K(Y \in dy|Z=z) \\
+    = & \int Q(X \in A|Y=y,Z=z) \I_{E_Y}(y) K(Y \in dy|Z=z)
+  \end{split}\end{equation*}
+  This follows from:
+  $$|P(X \in A|Y=y,Z=z) - Q(X \in A|Y=y,Z=z)| \I_{E_Y}(y) \le 2 1_{N_A}(y,z).$$
+  
+  `(iii) $\implies$ (iv)' is shown in the proof of Lemma~\ref{ess-unique}.
+  `(iv) $\implies$ (iii)' is obvious as any subset of a $K(Y|Z)$-null set is a $K(Y|Z)$-null set.
+\end{proof}
+
+\subsubsection{Ideas}
+
+
+Remember Definition~\ref{def:finite-transition-measure-nullsets}:
+\begin{Def}[Null sets]
+Let $K(W|T):\, \Tcal \to \Msf(\Wcal)$ be a finite transition measure.
+A subset $N \ins \Wcal \times \Tcal$ is called \emph{$K(W|T)$-null} if 
+$N_t:=\{ w \in \Wcal\,|\, (w,t) \in N \}$ is a $K(W|T=t)$-null set for every $t \in \Tcal$, i.e.\
+if for every $t \in \Tcal$ there exists a measurable set $M_t \in \Bcal_\Wcal$ such that $K(W \in M_t|T=t) =0$ 
+and $N_t \ins M_t$.
+\end{Def}
+Strictly speaking, we don't need:
+\begin{Rem}
+  Specializing to a kernel constant in $T$ gives:
+  Let $\mu_W \in \Msf(\Wcal)$ be a measure.
+  A subset $N \ins \Wcal$ is called \emph{$\mu_W$-null} if there exists a measurable set $M \in \Bcal_\Wcal$ such that $\mu_W(W \in M) = 0$ and $N \ins M$.
+\end{Rem}
+Remember Definition~\ref{def:absolute_continuity}:
+\begin{Def}[Absolute continuity]
+    Let $\Tcal$, $\Wcal$ be  measurable spaces and
+    \[ Q(W|T),\,K(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    two finite transition measures. 
+    We say that $Q(W|T)$ is \emph{absolute continuous w.r.t.} $K(W|T)$ if for all $t \in \Tcal$ and $D \in \Bcal_\Wcal$ 
+    we have the implication:
+    \[ K(W \in D|T=t) =0 \quad \implies \quad Q(W \in D|T=t) =0.  \]
+    In symbols we abbreviate this as:
+    \[  Q(W|T) \ll K(W|T).\]
+\end{Def}
+If we would drop ``finite'', it would be a pointwise extension of Definition~\ref{def:prb_absolute_continuity}:
+\begin{Def}[Absolute continuity]
+    Let $\mu$, $\nu$ be two measures on a measurable space $(\Xcal,\Bcal)$.
+    We say that $\nu$ is \emph{absolute continuous} w.r.t.\ $\mu$, in symbols:
+    \[ \nu \ll \mu,\]
+    if for every $A \in \Bcal$ with $\mu(A)=0$ also $\nu(A)=0$ holds, in short, if:
+    \[ \mu(A)=0 \quad \implies \quad \nu(A)=0.\]
+\end{Def}
+Since we also want to use the definition for non-finite measures (considered a constant transition measure) it seems better to drop the ``finite''.
+This also suggests an earlier footnote (saying we'll only use finite transition measures) needs to be reconsidered (perhaps only finite or constant?)!
+Or: should we replace Lebesgue measure as ``base measure'' by Lebesgue measure times some integrable positive density?
+
+Some basic properties:
+\begin{Lem}
+  If $Q(W|T):\, \Tcal \to \Msf(\Wcal)$ and $K(W|T):\, \Tcal \to \Msf(\Wcal)$ are finite transition measures with $Q(W|T) \ll K(W|T)$. 
+  Then:
+  \begin{enumerate}
+    \item $Q(B,C|T) \ll K(B,C|T)$ implies $Q(B|T) \ll K(B|T)$ (marginalization);\\
+      $\mu(B,C) \ll K(B,C|T)$ implies $\mu(B) \ll K(B|T)$ (marginalization);\\
+      $Q(B,C|T) \ll \mu(B,C)$ implies $Q(B|T) \ll \mu(B)$ (marginalization);\\
+      $\mu(B,C) \ll \nu(B,C)$ implies $\mu(B) \ll \nu(B)$ (marginalization);
+    \item A $K(W|T)$-null set is also a $Q(W|T)$-null set.
+    \item A countable union of $K(W|T)$-null sets is a $K(W|T)$-null set.
+    \item Any subset of a $K(W|T)$-null set is again a $K(W|T)$-null set.
+    \item if $N$ is a $K(W|T)$-null set, then $\C{Y} \times N$ is a $K(Y,W|T)$-null set if $K(W|T)$ is the marginal kernel of $K(Y,W|T)$ (unmarginalization).
+    \item Same: A $K(X|T)$-null set $N$ can be extended into a $K(X,Y|T)$-null set by $N \times \C{Y}$?
+  \end{enumerate}
+\end{Lem}
+Remember also Corollary~\ref{cor:abs-cont-str-pos-den}.
+And Lemma~\ref{lem:int-null-set}.
+And Remark~\ref{rem:null-sets} (simplified a bit):
+\begin{Rem}[Null sets---again]
+  In the following we will often make statements like:
+  ``The Markov kernel $K(X_A|X_B,X_D)$ is unique up to a measurable $K(X_B|X_D)$-null set in $\Xcal_B$'',  (rather than in $\Xcal_{B \cup D}$). 
+  This means that the corresponding null set $N$ can be considered constant in $X_{D \sm B}$, or, more precisely, 
+  that $N$ is of the form:
+  \[ N = M \times \Xcal_{D \sm B}  \ins \Xcal_{B \cup D},  \]
+  with $M \ins \Xcal_B$.
+\end{Rem}
+\Joris{Observation: ``do we always have statements of the form $K(A|B,C)$ is unique up to a (measurable) $K(B|C)$-null set'' that is, $A$ never appears in the nullset?}
+\begin{Con}
+  \Joris{TODO: the following are null set reasonings taken from the lecture notes that we should try to cover by the elementary properties.}
+ \begin{itemize}
+   \item If something holds $\mu_S$-a.s., does it then hold $\mu_{M,S}$-a.s.?
+   \item If for all $t \in \Tcal$, $A \in \Bcal_\Xcal$, $B \in \Bcal_\Ycal$, $C \in \Bcal_\Zcal$ we have:
+        \begin{align*} 
+          &  \int_C \int_B \int_A k(x,y,z|t) \, \mu_\Xcal(dx)\, \mu_\Ycal(dy)\, \mu_\Zcal(dz) \\
+          &= \int_C \int_B \int_A k(x|z,t_0) \cdot k(y,z|t) \,\mu_\Xcal(dx) \, \mu_\Ycal(dy)\, \mu_\Zcal(dz).
+        \end{align*}
+    then the corresponding Markov kernels on the lhs and rhs are the same.
+    This implies that the set:
+    \[ M:= \lC (x,y,z,t) \st k(x,y,z|t) \neq k(x|z,t_0) \cdot k(y,z|t) \rC \]
+    is a $\mu$-null set in $\Bcal_\Xcal\otimes\Bcal_\Ycal\otimes\Bcal_\Zcal\otimes\Bcal_\Tcal$.
+    So for all $t \in \Tcal$ and $\mu$-almost-all $x,y,z$ the following equation holds:
+    \[k(x,y,z|t) = k(x|z,t_0) \cdot k(y,z|t). \]
+  \item A $\delta(X|T)$ null set is $\emptyset$.
+  \item If the marginal Markov kernel $K(X_A|X_B,X_C,X_D)$ is unique up to a measurable $K(X_B|X_C,X_D)$-null set in $\Xcal_{B\cup C}$,
+  then automatically the Markov kernel $K(X_A,X_F|X_B,X_C,X_D)$ is unique up to a measurable $K(X_B|X_C,X_D)$-null set in $\Xcal_{B\cup C}$.
+  \item What is a measurable $P(X_B, X_C | \doit(X_{D\cup J}))$-null set $N \ins \CX_{B\cup C\cup D \cup J}$?
+  \item Note that if $\mu_{B \cup C} \ll P(X_B,X_C|\doit(X_{D\cup J}))$ then a $P(X_B,X_C|\doit(X_{D\cup J}))$-nullset is also a $\mu_{B \cup C}$-null set.
+  \item Do-calculus, footnote 20=26: ``Note that the absolute continuities: $\mu_{B \cup C}\ll P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C}$ hold if $P(X_B,X_C|\doit(X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_{B \cup C}$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_{B \cup C}$ by Corollary \ref{cor:abs-cont-str-pos-den}.''
+  \item Do-calculus, footnote 22=28: ``Note that the absolute continuities: $ \mu_{B \cup C} \ll P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \otimes \mu_{B_2^{(i)}} \ll \mu_{B \cup C} $ hold if the absolute continuities: $\mu_{B_1^{(i)} \cup C} \ll P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J})) \ll \mu_{B_1^{(i)} \cup C} $ hold, which hold if $P(X_{B_1^{(i)}},X_C|\doit(X_{B_2^{(i)}},X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_{B_1^{(i)} \cup C}$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_{B_1^{(i)} \cup C}$ by Corollary \ref{cor:abs-cont-str-pos-den}.''
+  \item Do-calculus, footnote 23=29: ``Note that absolute continuities: $\mu_C \ll P(X_C|\doit(X_{B^{(i)}},X_{D\cup J})) \ll \mu_C$ hold if $P(X_C|\doit(X_{B^{(i)}},X_{D\cup J}))$ has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ $\mu_C$. Furthermore, the converse is also true for $\sigma$-finite reference measures $\mu_C$ by Corollary \ref{cor:abs-cont-str-pos-den}.;;
+  \item Testcase: Proof of Theorem~\ref{thm-gen-adjustment}. And the rest of that section actually!
+    $$P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)) \circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D)) =$$
+    $$= P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D)) \mu_{B \cup C}\text{-a.s.}$$
+ follows from
+   $$P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D)) = P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)) \mu_{F_0 \cup H \cup C \cup B} \text{-a.s.,}?$$
+ \end{itemize}
+\end{Con}
+
+\begin{Con}[Products]\label{con:nullsets_product-markov-kernels}
+Consider two Markov kernels:
+\[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  
+K(W,U|T,X):\, \Tcal \times \Xcal \dshto \Wcal \times \Ucal. \]
+  Then we define the \emph{product Markov kernel}:
+  \[ Q(Z|Y,W,T) \otimes K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal \times \Wcal \times \Ucal, \]
+  using measurable sets $E \ins \Zcal \times \Wcal \times \Ucal$ via: $(E,(y,t,x)) \mapsto $
+  \[\int\int \I_E(z,w,u)\, Q(Z \in dz|Y=y,W=w,T=t) \, K((W,U) \in d(w,u)|T=t,X=x),\]
+  where the inner integration is over $z \in \Zcal$ and the outer integration over $(w,u) \in \Wcal\times \Ucal$.
+
+  What do we conjecture? If we also have two other kernels
+  \[ \tilde{Q}(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  
+  \tilde{K}(W,U|T,X):\, \Tcal \times \Xcal \dshto \Wcal \times \Ucal. \]
+  s.t.\ $Q = \tilde{Q} \quad P(..|..)\text{-a.s}$ and
+  s.t.\ $K = \tilde{K} \quad P(..|..)\text{-a.s}$, then
+  $Q \otimes K = \tilde{Q} \otimes \tilde{K} \quad P(..|..)\text{-a.s.}$?
+\end{Con}
+\begin{Con}[Marginals]\label{con:nullsets_marginal-markov-kernels}
+    Let 
+    \[K(X,Y|T):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    be a Markov kernel in two variables.
+    We can then define the \emph{marginal Markov kernels} as follows:
+    \[ K(X|T):\, \Tcal \dshto \Xcal,\quad (A,t) \mapsto K(X \in A, Y \in \Ycal|T=t),  \]
+    and:
+    \[ K(Y|T):\, \Tcal \dshto \Ycal,\quad (B,t) \mapsto K(X \in \Xcal, Y \in B|T=t).  \]
+
+    What do we conjecture?
+    If we also have a Markov kernel
+    \[\tilde{K}(X,Y|T,S):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    and $K(X,Y|T,S) = \tilde{K}(X,Y|T,S) \quad P(..|..)-\text{a.s.}$, then
+    $K(X|T,S) = \tilde{K}(X|T,S) \quad P(..|..)-\text{a.s.}$ and
+    $K(Y|T,S) = \tilde{K}(Y|T,S) \quad P(..|..)-\text{a.s.}$ and
+\end{Con}
+\begin{Con}[Composition]\label{con:nullsets_composition-markov-kernels}
+  Composition drops the a.s.-ness of the part that is integrated out.
+  (Integration does this in general)
+
+  Remember Definition~\ref{def-composition-markov-kernels}:
+\begin{Def}[Composition of Markov kernels]
+    Consider two Markov kernels:
+    \[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  K(W,U|T,X):\, 
+    \Tcal \times \Xcal \dshto \Wcal\times\Ucal. \]
+    Then we define their \emph{composition}:
+    \[ Q(Z|Y,W,T) \circ K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal, \]
+    using  measurable sets $C \ins \Zcal$ via:
+    \[\begin{array}{ccl}
+    (C,(y,t,x))    &\mapsto & \displaystyle \int Q(Z \in C|Y=y,W=w,T=t) \, K(W \in dw|T=t,X=x).
+    \end{array}\]
+    Note that we implicitly marginalized $U$ out, i.e.\ in the composition we integrate over all variables (here: $W$ and $U$) 
+    from the right hand Markov kernel.
+    As a notation we will also write:
+    \begin{align*} & \qquad Q(Z \in C|Y=y,W,T=t) \circ K(W,U|T=t,X=x) \\
+    &:= \lp Q(Z|Y,W,T) \circ K(W,U|T,X)\rp (C|(y,t,x)).  \end{align*}
+\end{Def}
+  Can perhaps be done by seeing this as a combination of marginalization and a product?
+\end{Con}
+\begin{Con}
+  Conditioning? Disintegration?
+  Remember Definition~{thm-regular-conditional-Markov-kernel}:
+\begin{DefThm}[Disintegration of Markov kernels]
+    Let $\Xcal$, $\Ycal$, $\Zcal$ be measurable spaces where $\Xcal$ and $\Ycal$ are standard measurable spaces.
+    Let 
+    \[ K(X,Y|Z):\, \Zcal \dshto \Xcal \times \Ycal\]
+    be a Markov kernel and $K(Y|Z)$ its marginal Markov kernel given by $K(Y\in B|Z) = K(X \in \Xcal, Y \in B|Z)$.
+    Then there exists a Markov kernel (called \emph{conditional Markov kernel}):
+    \[ K(X|Y,Z):\, \Ycal \times \Zcal \dshto \Xcal\]
+    such that:
+    \[   K(X,Y|Z) = K(X|Y,Z) \otimes K(Y|Z).\]
+    Furthermore, $K(X|Y,Z)$ is essentially unique in the following sense:
+    If $Q(X|Y,Z)$ is another Markov kernel 
+    then we have:
+    \[ K(X,Y|Z) = Q(X|Y,Z) \otimes K(Y|Z),\]
+    if and only if the measurable subset $N$ of $\Ycal \times \Zcal$ defined via:
+    \[ N:= \lC (y,z) \in \Ycal \times \Zcal \,|\, \exists A \in \Bcal_\Xcal:\, Q(X \in A|Y=y,Z=z) \neq K(X \in A|Y=y,Z=z)\rC  \]
+    is a $K(Y|Z)$-null set in $\Ycal \times \Zcal$.
+\end{DefThm}
+Remember Lemma~\ref{ess-unique}:
+\begin{Lem}[Essential uniqueness]
+    If we have Markov kernels:    
+    \[P(X|Y,Z),\,Q(X|Y,Z):\, \Ycal\times \Zcal \dshto \Xcal,\]
+    and 
+    \[K(Y|Z):\,\Zcal \dshto \Ycal\]
+    with any measurable spaces $\Xcal$, $\Ycal$, $\Zcal$ such that:
+    \[ P(X|Y,Z) \otimes K(Y|Z) = Q(X|Y,Z) \otimes K(Y|Z), \]
+    then for every $A \in \Bcal_\Xcal$ the set:
+    \[N_A := \lC (y,z) \in \Ycal \times \Zcal \,|\, P(X \in A|Y=y,Z=z) \neq Q(X \in A|Y=y,Z=z)\rC\]
+     is a measurable $K(Y|Z)$-null set. \\
+     If, furthermore, $\Xcal$ is countably generated, e.g.\ a standard measurable space,
+     then also $N := \bigcup_{A \in \Bcal_\Xcal} N_A$ is a measurable $K(Y|Z)$-null set.
+     \begin{proof}
+         For fixed $A \in \Bcal_\Xcal$ both $P(X \in A|Y,Z)$ and $Q(X \in A|Y,Z)$ can be considered
+         a Doob-Radon-Nikodym derivative of the same transition measure $M_A(Y|Z)$ given by:
+         \begin{align*} M_A(Y \in B|Z=z)&:= \int \I_B(y) \cdot P(X \in A|Y,Z)\, K(Y \in dy|Z=z) \\
+             & = \lp P(X \in A|Y,Z) \otimes K(Y|Z) \rp(B|z) \\
+             & = \lp Q(X \in A|Y,Z) \otimes K(Y|Z) \rp(B|z) \\
+             &\int \I_B(y) \cdot Q(X \in A|Y,Z)\, K(Y \in dy|Z=z).
+         \end{align*}
+         The uniqueness statement then follows from that of Doob-Radon-Nikodym derivatives, see Lemma \ref{lem:doob-radon-nikodym-unique}.
+         If now $\Bcal_\Xcal$ is countably generated then $\Bcal_\Xcal =\sigma\lp \Acal\rp$ 
+         with a countable set $\Acal$ that is closed under finite intersections, e.g.\ 
+         $\Bcal_{[0,1]}=\sigma\lp\lC[0,c]\,|\, c \in [0,1] \cap \Q\rC\rp$. 
+         One then puts $M:=\bigcup_{A \in \Acal} N_A$, which is, as countable union of $K(Y|Z)$-null sets, a $K(Y|Z)$-null set.
+         Then one can define:
+         \[ \Dcal := \{ A \in \Bcal_\Xcal \,|\, \forall (y,z) \in M^\cmpl:\, P(X \in A|Y=y,Z=z)=Q(X \in A|Y=y,Z=z) \}.\]
+         One easily sees that $\Dcal$ is closed under complements, countable disjoint unions and contains $\Xcal$.
+         This shows that $\Dcal$ is a Dynkin system (aka $\lambda$-system).
+         Furthermore, we have: $\Acal \ins \Dcal$ and that $\Acal$ is closed under finite intersections. 
+         By Dynkin's lemma we get that:
+         \[\Bcal_\Xcal = \sigma(\Acal) \ins \Dcal.\]
+         This shows that $N = \bigcup_{A \in \Bcal_\Xcal}N_A \ins M$, thus $N = M$ which is a measurable $K(Y|Z)$-null set.
+     \end{proof}
+ \end{Lem}
+\end{Con}
+\begin{Con}
+  Push-forward?
+\end{Con}
+\begin{Lem}[Chain rule for Markov kernels holds surely]
+Let $\mathcal{X},\mathcal{Y},\mathcal{W}$ be standard measurable spaces.
+Let $K: \mathcal{X} \dashrightarrow \mathcal{Y} \times \mathcal{W}$ be any Markov kernel.
+Then
+\begin{equation*}
+  K(Y | X) = K(Y | W, X) \circ K(W | X),
+\end{equation*}
+where $K(Y | X)$ and $K(W | X)$ are the marginal Markov kernels and $K(Y | W, X)$ the conditional Markov kernel.
+\Joris{Should we show that the chain rule holds in general for any version of the kernels involved?}
+\end{Lem}
+\begin{proof}
+For all measurable $D \subseteq \mathcal{Y}$ and $x \in X$ we have:
+\begin{align*}
+  \big[ K(Y | X) \big] (D | x) & \overset{3.}{=} \big[ K(Y, W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{4.}{=} \big[ K(Y | W, X) \otimes K(W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{2.}{=} \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \underbrace{\I_{D \times \mathcal{W}}(y, w)}_{= \I_D(y)} K(Y \in d y | W = w, X = x)\bigg] K(W \in d w | X = x) \\
+  & \overset{5.}{=} \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in d w | X = x) \\
+  & \overset{1.}{=} \big[  K(Y | W, X) \circ K(W | X)\big] (D | x).
+\end{align*}
+where we used:
+\begin{enumerate}
+  \item By definition, for all measurable $D \subseteq \mathcal{Y}$ and $x \in \mathcal{X}$: 
+    \begin{equation*}
+      \left[ K(Y | W, X) \circ K(W | X)\right](D | x) = \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in d w | X = x).
+    \end{equation*}
+  \item By definition, for all measurable $F \subseteq \mathcal{Y} \times \mathcal{W}$ and $x \in X$:
+    \begin{equation*}
+      \left[ K(Y | W, X) \otimes K(W | X)\right](F | x) = \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \I_{F}(y, w) K(Y \in d y | W = w, X = x) \bigg] K(W \in d w | X = x).
+  \end{equation*}
+\item  $K(Y \in D | X = x) := K(Y \in D, W \in \mathcal{W} | X = x)$, and similarly for $K(W \in E | X = x)$, for all measurable $D \subseteq \mathcal{Y}$ and $E \subseteq \mathcal{W}$ and all $x \in \mathcal{X}$.
+\item The definition of conditional Markov kernels.  
+\item A general property of integrating over a Markov kernel $K : \mathcal{X} \dshto \mathcal{Y}$:
+  $$K(Y \in D | X=x) = \int_{\mathcal{Y}} 1_D(y) K(Y \in dy|X=x)$$
+   for all measurable $D \subseteq \mathcal{Y}$ and all $x \in \mathcal{X}$.
+\end{enumerate} 
+\end{proof}
+Lemma~\ref{lem:cont-cond-unique} is also relevant.
+For the adjustment formula (for now, only special case):
+\begin{Con}
+  If $P(A|F,B) = Q(A|F,B)$ $\mu_{B\cup F}$-a.s., and $K(F|B) \ll \mu_F$, then $P(A|F,B) \circ K(F|B) = Q(A|F,B) \circ K(F|B)$ $\mu_B$-a.s.
+\end{Con}
+
+Here's an idea: could we show a general statement like:
+\begin{Con}
+  $$K(A||B) = Q(A||B) P(C||D)\as \iff K(A||B) \otimes P(C||D) = Q(A||B) \otimes P(C||D)$$
+\end{Con}
+\begin{proof}
+  For certain choices of $A,B,C,D$, we show this in the following Lemma.
+  (It's not clear whether we need it to be more general).
+\end{proof}
+
+\subsubsection{Nullsets in SCMs}
+
+\begin{Def}\label{def:M-as}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We say that a property $P(x)$ holds \emph{$M$-a.s.} if
+  $$\forall x_J \in \CX_J \foralmostall x_W \in \CX_W \forall X_V \in \CX_V : P(x)$$
+\end{Def}
+My idea is: if we write everywhere `$M$-a.s.' then the proofs even hold for different notions of `$M$-a.s.', like the ones below.
+
+\begin{Def}\label{def:M-nullset}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We call a subset $N \subseteq \CX_J \times \CX_W$ an \emph{$M$-nullset} if for each $x_J \in \CX_J$, $N_{x_J} := \{x_W \in \CX_W : (x_J,x_W) \in N\}$ is a $P$-nullset.
+  \Joris{Patrick asks: Hm, why not just call it a $P$-nullset?} \Joris{My reply: Because for a $P$-null set it's not clear what the orientation of the `for each $x_J$' and `for $P$-almost each $x_W$' quantifiers is.
+  In other words, a $P$-null set could also refer to the set $\CX_J \times \tilde{N}$ with $\tilde{N}$ is a $P$-null set, which is not what we want/need.}
+
+  \Joris{Perhaps what works even better: add the requirement that $N$ is $\Bcal_J \otimes \Bcal_W$-measurable.}
+\end{Def}
+Perhaps more generally:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We call a subset $N \subseteq \CX_J \times \CX_W$ a:
+  \begin{itemize}
+    \item $1$-$M$-nullset if $N = \emptyset$
+    \item $2$-$M$-nullset if $\pr_W(N) = \{x_W \in \CX_W: \exists x_J \in \CX_J : (x_J,x_W) \in N\}$ is a $P$-nullset
+    \item $3$-$M$-nullset if for each $x_J \in \CX_J$, $N_{x_J} := \{x_W \in \CX_W : (x_J,x_W) \in N\}$ is a $P$-nullset.
+    \item $4$-$M$-$P(X_J)$-nullset if for $P(X_J)$-almost all $x_J \in \CX_J$, $N_{x_J} := \{x_W \in \CX_W : (x_J,x_W) \in N\}$ is a $P$-nullset.
+    \item $5$-$M$-$P(X_J)$-nullset if $N$ is a $P(X_J)\otimes P(X_W)$-nullset.
+    \item \Joris{$6$-$M$-nullset if for all possible $P(X_J)$, $N$ is a $P(X_J)\otimes P(X_W)$-nullset.}
+    \item \Joris{FOR THE DSCM PAPER: $(\forall X_W), \forall X_J \in \sigma(X_W), \foralmostall x_W \sim X_W, [x_J = X_J(x_W)]$\\
+      or alternatively: $(\forall X_W), \forall X_J : \CX_W \to \CX_J, \foralmostall x_W, [x_J = X_J(x_W)]$\\
+      or in words: (for all distributions $P(X_W)$), for all measurable functions $X_J(X_W)$, for almost all $(x_W,x_J) \sim (\id,X_J)_* P(X_W))$
+      This appears to give us exogenous input variables that can depend functionally on the exogenous random variables.
+
+      For example, a 6-solution function would be a measurable fucntion $g$ such that:
+       $$ \forall X_J : \CX_W \to \CX_J, \foralmostall x_W \forall x_V: x_V=f(X_J(x_W),x_W,x_V) \impliedby x_V=g(X_J(x_W),x_W).$$
+      Does this imply:
+       $$ \foralmostall x_W \forall x_J \forall x_V: x_V=f(x_J,x_W,x_V) \impliedby x_V=g(x_J,x_W)?$$
+      For $J=\emptyset$, $M$ is essentially uniquely solvable w.r.t.\ $L$ means: there exists a \emph{measurable} function $g^{[L]}$ such that:
+      $$\foralmostall x_W \forall x_O \forall x_L: x_L=f_L(x_W,x_O,x_L) \impliedby x_L=g^{[L]}(x_W,x_O)$$
+      This is equivalent to: for all functions $\phi_O : \CX_W \to \CX_O$:
+      $$\foralmostall x_W \forall x_L: x_L=f_L(x_W,\phi_O(x_W),x_L) \impliedby x_L=g^{[L]}(x_W,\phi_O(x_W))$$}
+  \end{itemize}
+  Note that 1 implies 2 implies 3 implies 4 implies 5.
+\end{Def}
+The following notions seem sensible:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $g : X_J \times X_W \to X_V$.
+  We say that $g$ is a \emph{1-solution function} if $g$ is measurable and:
+   $$ \forall x_J \forall x_W \forall x_V: x_V=f(x) \impliedby x_V=g(x_J,x_W).$$
+  We say that $g$ is a \emph{2-solution function} if $g$ is measurable and:
+   $$ \foralmostall x_W \forall x_J \forall x_V: x_V=f(x) \impliedby x_V=g(x_J,x_W).$$
+  We say that $g$ is a \emph{3-solution function} if $g$ is measurable and:
+   $$ \forall x_J \foralmostall x_W \forall x_V: x_V=f(x) \impliedby x_V=g(x_J,x_W).$$
+  We say that $g$ is a \emph{4-solution function} if $g$ is measurable and:
+   $$ \foralmostall x_J \foralmostall x_W \forall x_V: x_V=f(x) \impliedby x_V=g(x_J,x_W).$$
+  We say that $g$ is a \emph{5-solution function} if $g$ is measurable and:
+   $$ \foralmostall (x_J,x_W) \forall x_V: x_V=f(x) \impliedby x_V=g(x_J,x_W).$$
+  Note that 1 implies 2 implies 3 implies 4 implies 5.
+\end{Def}
+We can combine these:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  We say that $M$  is \emph{1-uniquely solvable} if:
+   $$ \forall x_J \forall x_W \forall x_V: x_V=f(x) \iff x_V=g(x_J,x_W).$$
+  We say that $M$ is \emph{2-uniquely solvable} if:
+   $$ \foralmostall x_W \forall x_J \forall x_V: x_V=f(x) \iff x_V=g(x_J,x_W).$$
+  We say that $M$ is \emph{3-uniquely solvable} if:
+   $$ \forall x_J \foralmostall x_W \forall x_V: x_V=f(x) \iff x_V=g(x_J,x_W).$$
+  We say that $M$ is \emph{4-uniquely solvable} if:
+   $$ \foralmostall x_J \foralmostall x_W \forall x_V: x_V=f(x) \iff x_V=g(x_J,x_W).$$
+  We say that $M$ is \emph{4-uniquely solvable} if:
+   $$ \foralmostall (x_J,x_W) \forall x_V: x_V=f(x) \iff x_V=g(x_J,x_W).$$
+  Note that 1 implies 2 implies 3 implies 4 implies 5.
+\end{Def}
+This is trivial:
+\begin{Lem}
+  Note that $M$ is $i$-uniquely solvable iff there exists a $i$-solution function and $i$-solution functions are unique up to $i$-null sets.
+\end{Lem}
+Note the following result:
+\begin{Rem}
+  If we assume that $\foralmostall x_W \forall x_J$ there exists a unique solution of the SE, AOS Thm F.9 gives us the existence of a measurable 2-solution function, which is unique up to 2-$M$-nullsets.
+  (Even more generally, if $\foralmostall x_W \forall x_J$ the set of $x_V$ s.t.\ $(x_J,x_W,x_V)$ solves $f$ is nonempty and $\sigma$-compact, then there exists a measurable 2-solution function; however
+  it may not be unique).
+\end{Rem}
+A conjecture is:
+\begin{Con}
+  If we assume that $\forall x_J \foralmostall x_W$ there exists a unique solution of the SE, there exists a measurable 3-solution function.
+\end{Con}
+\begin{Eg}
+  An interesting example is $x_V = x_V (1 + x_J - x_W) - 1$.
+  If $x_J \ne x_W$ then $x_V (x_J - x_W) = 1$ i.e.\ $x_V = 1 / (x_J - x_W)$.
+  We can define 
+  $$g(x_J,x_W) \mapsto \begin{cases}
+    1/(x_J - x_W) & x_J \ne x_W \\
+    0             & \text{otherwise}
+  \end{cases}$$
+  Note that it is a measurable function.
+  $g$ is a 3-solution function. 
+  It is clear that there exists no 2-solution function or 1-solution function.
+  Hence the take-home message is: the notion of 2-solution function is very strong.
+\end{Eg}
+
+\subsubsection{Some complications}\label{sec:complications_with_nullsets}
+
+I encountered the following complications.
+\begin{Eg}\label{eg:scm_nullset_problems_marginalization_1}
+  Consider the iSCM $M$ with $J=\{j\},V=\{v\},W=\{w\},\CX_j=\CX_v=\CX_w=\RN,P=\Ncal(0,1)$ and structural equation
+  $$x_v = 1 / (x_j - x_w)$$
+  The function
+  $$g : (x_j,x_w) \mapsto \begin{cases}
+    1 / (x_j - x_w) & x_j \ne x_w \\
+    0 & x_j = x_w 
+    \end{cases}$$
+  solves the SE up to the set $N := \{(x_w,x_j) : x_w = x_j\}$.
+  Note the $N$ is NOT a 1-$M$-nullset, NOT a 2-$M$-nullset, yet it IS a 3-$M$-nullset.
+  This iSCM is therefore NOT 1-solvable, NOT 2-solvable, but it IS 3-solvable.
+\end{Eg}
+So if we want this iSCM to be `solvable' then it implies that we need the flexibility of at least 3-solution functions.
+\begin{Eg}\label{eg:scm_nullset_problems_marginalization_2}
+  Consider the iSCM $M$ with $J=\emptyset,V=\{v,l\},W=\{w\},\CX_v=\CX_l=\CX_w=\RN,P=\Ncal(0,1)$ and structural equations
+  \begin{align*}
+    x_l &= 1 / (x_v - x_w) \\
+    x_v &= \ind_{x_l=0}
+  \end{align*}
+  Its submodel $M^{[L]}$ has input $v$ and SE
+  $$x_l = 1 / (x_v - x_w)$$
+  It is isomorphic to the SCM of the previous example: it has no 2-solution function, but it does have a 3-solution function.
+\end{Eg}
+However, 3-solution functions are TOO flexible for marginalization purposes.
+\begin{Eg}\label{eg:scm_nullset_problems_marginalization_3}
+  Consider the iSCM $M$ with $J=\emptyset,V=\{v_1,v_2,l\},W=\{w\},\CX_{v_1}=\CX_{v_2}=\CX_l=\CX_w=\RN,P=\Ncal(0,1)$ and structural equations
+  \begin{align*}
+    x_{v_1} & = x_w \\
+    x_l & = \ind_{x_{v_1}}(x_w) \\
+    x_{v_2} & = x_l
+  \end{align*}
+  Note that $M$ is 1-solvable with unique 1-solution function $g : x_w \mapsto (x_{v_1},x_l,x_{v_2})=(x_w,1,1)$ and $U = \CX_W$.
+  $M^{[L]}$ has inputs $v_1,v_2$ and SE
+  $$x_l = \ind_{x_{v_1}}(x_w)$$
+  (This causal mechanism can be considered as `not robust' because it is `hypersensitive to $x_w$'; yet $U^{[L]} = \CX_{\{v_1,v_2\}} \times \CX_W$.)
+
+  Note that $M^{[L]}$ is 1-solvable with unique 1-solution function $g^{[L]} : (x_{v_1},x_{v_2},x_w) \mapsto x_l = \ind_{x_{v_1}}(x_w)$.
+  A corresponding marginalized SCM $M_{\sm L}$ would have SEs
+  \begin{align*}
+    x_{v_1} & = x_w \\
+    x_{v_2} & = \ind_{x_{v_1}}(x_w)
+  \end{align*}
+  which is 1-solvable with unique 1-solution function $g_{\sm L} : x_w \mapsto (x_{v_1},x_{v_2})=(x_w,1)$, and which is observationally equivalent to $M$.
+  Note that $g^{[L]}$ is also the unique 2-solution function of $M^{[L]}$.
+
+  However, it is not a unique 3-solution function of $M^{[L]}$. 
+  For example, we can take $\tilde g^{[L]} : (x_{v_1},x_{v_2},x_w) \mapsto x_l = 0$, which is a 3-solution function of $M^{[L]}$.
+  A corresponding marginalized SCM $\tilde{M}_{\sm L}$ would have SEs
+  \begin{align*}
+    x_{v_1} & = x_w \\
+    x_{v_2} & = 0
+  \end{align*}
+  This is 1-solvable with unique 1-solution function $\tilde{g}_{\sm L} : x_w \mapsto (x_{v_1},x_{v_2})=(x_w,0)$, which is not observationally equivalent to $M$!
+\end{Eg}
+So it is not a good idea to use 3-solution functions of a submodel to define a marginalization.
+Instead, using 2-solution functions appears to give better properties.
+But it is even more subtle: it might suffice to demand that the submodel $M^{[L]}$ has a $\forall x_J \foralmostall x_W \forall x_V$-solution function,
+and to use those to define the marginalization. 
+Note that in this way we are strengthening the assumptions on the SCM compared to what the plan was (for each submodel: $U^{[L]}$ is everything up to a measurable 3-$M^{[L]}$-null set).
+We might replace this with: for each $L \ins V$, we assume that $U^{[L]}$ is everything up to a measurable 3-$M$-null set.
+Then we would fix the problem in Example~\ref{eg:scm_nullset_problems_marginalization_3}, at the price of not considering the SCM in Example~\ref{eg:scm_nullset_problems_marginalization_2} to be simple,
+but the SCM in Example~\ref{eg:scm_nullset_problems_marginalization_1} would be considered simple.
+
+We also want simple SCMs to be intervenable, and after the intervention we would like a solution function of $M_{\doit(T)}$ to exist (and to be unique in some sense).
+But if $U^{[L]}$ is everything up to a measurable 3-$M$-null set, then $U^{[L]}$ is everything up to a measurable 3-$M^{[L]}$-null set, so that works out.
+
+However, we now run into issues with the equivalence notion.
+Or not? Note that in the equivalence notion we work with $M$-nullsets for submodels, rather than (what we could have done instead) $M^{[v]}$-nullsets for submodel $M^{[v]}$.
+So this might just work out in the way it should.
+
+Let's take a look how marginalization would work out in detail.
+
+\begin{Def}\label{def:scm_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L \subseteq \Send$.
+  Suppose that there exists a measurable $M$-null set $N$ such that $N^c \ins U^{[L]}$, where
+  $$U^{[L]} := \{(x_J,x_{V\sm L},x_W) \in \CX_J \times \CX_{V\sm L} \times \CX_W | \exists! x_L \in \CX_L : x_L = f_L(x_J,x_{V\sm L},g^{[L]}(x_J,x_{V\sm L},x_W),x_W)\}.$$
+  Pick a measurable function
+    $g^{[L]} : \CX_J \times \CX_{V \sm L} \times \CX_W \to \CX_L$ such that 
+  $$g^{[L]}(x_J,x_{V\sm L},x_W) = f_L(x_J,x_{V\sm L},g^{[L]}(x_J,x_{V\sm L},x_W),x_W)\quad M\as$$
+  (this exists!) 
+  Then we call $M_{\setminus L} = \ltuple \Sin, V \sm L, \Srnd, \CX_{\Sin} \times \CX_{V \sm L} \times \CX_{\Srnd}, P, f^{\sm L} \rtuple$ with
+  $$f^{\sm L}(\xJ,x_{V \sm L},\xW) := f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)$$
+  a \emph{marginalization of $M$ over $L$}.
+\end{Def}
+\begin{Rem}\label{rem:scm_marginalization}
+  If $g^{[L]}$ and $\tilde g^{[L]}$ are two candidate functions to define $M_{\sm L}$, their corresponding marginalizations of $M$ are equivalent.
+\end{Rem}
+\begin{proof}
+  We can show that necessarily, $g^{[L]} = \tilde{g}^{[L]}\ M\as$.
+  Hence, 
+  $$f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW) = f_{V \sm L}(\xJ,x_{V \sm L},\tilde g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)\ M\as$$
+  The claim follows, since if a property holds $M\as$, then it holds $M_{\sm L}\as$.
+  Indeed, if something holds `for all $x_J$, for $P(X_W)$-almost all $x_W$, for all $x_V$', then it holds `for all $x_J$, for $P(X_W)$-almost all $x_W$, for all $x_{V\sm L}$'.
+\end{proof}
+\begin{Rem}\label{rem:scm_marginalization2}
+  Let $M \equiv \tilde{M}$.
+  We will show that $M_{\sm L} \equiv \tilde{M}_{\sm L}$.
+
+  We have to show that $x_v = f^{\sm L}_v(x)$ iff $x_v = \tilde{f}^{\sm L}_v(x)$ $M_{\sm L}\as$.
+  In other words, that
+  $x_v = f_v(x_J,x_{V\sm L},g^{[L]}(x),x_W)$ iff $x_v = \tilde{f}_v(x_J,x_{V\sm L},\tilde{g}^{[L]}(x),x_W)$ $M\as$.
+  Here, $g^{[L]}$ is a function that solves $M^{[L]}$ $M\as$ (defined up to an $M$-null set) and $\tilde{g}^{[L]}$ is a function that solves $\tilde{M}^{[L]}$ (defined up to a $\tilde{M}$-null set).
+  TODO: show that $g^{[L]}$ and $\tilde{g}^{[L]}$ agree up to a $M$-null set.
+  This can probably be shown similar to how we did it for the full solution function of all $V$ structural equations (but now only for subset $L$ of those).
+  Since $M \equiv \tilde{M}$, we have for all $v \in V\sm L$:
+  $$x_v = f_v(x) \iff x_v = \tilde{f}_v(x)\ M\as$$
+  Since $g^{[L]}$ is defined up to $N$ and $\tilde{g}^{[L]}$ up to $\tilde{N}$, and they agree up to a measurable $M$-null set, we get that
+  $$x_v = f_v^{\sm L}(x) \iff x_v = \tilde{f}_v^{\sm L}(x)\ M\as$$
+  for all $v \in V\sm L$.
+  Since $x_L$ does not occur in the expression, this also holds $M_{V\sm L}\as$.
+
+  So this seems to work!
+\end{Rem}
+
+Aha, the following could be the next problem that we have to deal with!
+\begin{Prp}\label{prp:interventions_marginalizations_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+    For $L \subseteq V$ such that $M^{[L]}$ is uniquely solvable,
+    and a hard intervention $\doit(T\dots)$ with target $T \subseteq \Sin \cup \Send$ (of any of the three variants) such that $L \cap T = \emptyset$:
+    $$(M_{\doit(T\dots)})_{\setminus L} = (M_{\setminus L})_{\doit(T\dots)}.$$
+\end{Prp}
+Or perhaps we are rescued by instead showing that they are \emph{equivalent}, not identical?
+
+\subsubsection{Plan}
+A workaround to avoid having to prove the above conjecture would be to just call a function $g : \XJ \times \XW \to \XJ$ a \emph{solution function of $M$} if it is a 3-solution function, call $M$ \emph{solvable} if such a solution function exists, and call it \emph{(essentially) uniquely solvable} if solution functions are unique up to a 3-$M$-nullset.
+(the latter would follow already from assuming that the set of $(\XJ,\XW)$ pairs where $f$ has no or multiple solutions is a 3-$M$-nullset).
+
+Hm, it seems that this does not work so well.
+I then chose the following definition:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let 
+  $$U = \{x_{J \cup W} \in \CX_J \times \CX_W | \exists! x_V \in \CX_V : x_V = f(x_J,x_W,x_V)\}$$
+  be the set of exogenous states for which there exists a unique solution of the structural equations.
+  We say that $M$ is \emph{essentially uniquely solvable} if $(\CX_J \times \CX_W) \sm U$ is contained in a measurable $M$-null set.
+\end{Def}
+I then realized that this aslo does not work well for marginalization (the null sets for a submodel are too coarse, see Section~\ref{sec:complications_with_nullsets} for details).
+I finally went for the current definition in the lecture notes.
+
+\Joris{If $M$ is $M$-a.s.\ uniquely solvable, then it is essentially uniquely solvable.
+The converse may not hold, I'm afraid...
+Suppose a measurable function $g$ exists such that:
+$$x_V = f(x) \iff x_V = g(x_J,x_W)\quad M\as.$$
+Then there is a $M$-null set $N \ins \CX_J \times \CX_W$ such that for all $(x_J,x_W) \in N^c$:
+for all $x_V \in \CX_V$, $x_V = f(x) \implies x_V = g(x_J,x_W)$, and also $(x_V,g(x_J,x_W)) \in S$.
+In other words, for all $(x_J,x_W) \in N^c$, there exists a unique $x_V \in \CX_V$ with $(x_J,x_W,x_V) \in S$.
+Hence, $N^c \ins U$.
+Note that we have a mapping $\Scal : \CX_J \times \CX_W \to \Pcal(\CX_V) \times \CX_V : (x_J,x_W) \mapsto (S_{(x_J,x_W)},g(x_J,x_W))$.
+If this is measuable, then we are almost there: $\Scal^{-1}(\Delta)$ is the set of interest, and would be measurable,
+if $\Delta := \{(\{x_V\},x_V) : x_V \in \CX_V\}$ is measurable.
+Hm, I don't know if this will ever work.
+}
+
+We got similar problems with marginalization for the old definition:
+\begin{Def}
+  An iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ is called \emph{simple} if the intervened iSCM $M_{\doit(T)}$ is essentially uniquely solvable for all $T \subseteq \Send$. %\cup \Sin$. % \cup \Srnd$.
+\end{Def}
+I hope I found a workaround with the current definition in the lecture notes.
+\begin{Rem}
+  The condition in Definition~\ref{def:simple_scm} means:
+    there exists a measurable function $g_{\doit(T)} : \CX_{J \cup T} \times \CX_W \to \CX_{V\sm T}$ such that
+    $$x_{V\sm T} = f_{V\sm T}(x_J,x_W,x_{V\sm T},x_T) \iff x_{V\sm T} = g_{\doit(T)}(x_J, x_T, x_W)\quad M\as$$
+  (note that we have here $M\as$ instead of $M_{\doit(T)}\as$!)
+
+  This is subtly different from demanding that $M_{\doit(T)}$ is essentially uniquely solvable,
+  as the latter means the existence and uniqueness of a solution of $x_{V\sm T} = f_{V\sm T}$ up to a $\forall x_{J\cup T}\foralmostall x_W\forall x_{V\sm T}$-null set,
+  whereas the ``essentially uniquely solvable w.r.t.\ $T$'' means the existence and uniqueness of a solution of $x_{V\sm T} = f_{V\sm T}$ up to a $\forall x_J\foralmostall x_W\forall x_V$-null set.
+\end{Rem}
+Here is the problem with the old definition of marginalization:
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $L \subseteq \Send$ such that the submodel $M^{[L]}$ is essentially uniquely solvable.
+  Let $g^{[L]} : \CX_{\Sin} \times \CX_{V \sm L} \times \CXW \to \CX_L$ be an (essentially unique) solution function for $M^{[L]}$.
+  Then we call $M_{\setminus L} = \ltuple \Sin, V \sm L, \Srnd, \CX_{\Sin} \times \CX_{V \sm L} \times \CX_{\Srnd}, P, \tilde{f} \rtuple$ with
+  $$\tilde{f}(\xJ,x_{V \sm L},\xW) = f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)$$
+  a \emph{marginalization of $M$ over $L$}.
+\end{Def}
+\begin{proof}
+  Since the solution function of $M^{[L]}$ is essentially unique, $g^{[L]} = \tilde{g}^{[L]}\ M^{[L]}\as$.
+  Hence, 
+  $$f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW) = f_{V \sm L}(\xJ,x_{V \sm L},\tilde g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)\ M^{[L]}\as$$
+  The claim \textbf{does not} follow, since it is NOT the case that: if a property holds $M^{[L]}\as$, then it holds $M_{\sm L}\as$.
+  Indeed, it is NOT the case that: if something holds `for all $x_{J \cup (V\sm L)}$, for $P(X_W)$-almost all $x_W$, for all $x_L$', then it holds `for all $x_J$, for $P(X_W)$-almost all $x_W$, for all $x_V$'.
+  Indeed, it is NOT the case that: this follows since `for all $x_{(V\sm L)}$, for $P(X_W)$-almost all $x_W$' implies `for $P(X_W)$-almost all $x_W$, for all $x_{(V\sm L)}$'.
+  The problem is that the former null set may not be constant in $x_{(V\sm L)}$.
+  The assumption that $M^{[L]}$ is essentially uniquely solvable amounts to assuming that it is uniquely solvable up to a measurable $M^{[L]}$-null set in $\CX_{J \cup (V\sm L)} \times \CX_W$.
+  Aha, if we also assume that $M$ itself is essentially uniquely solvable, only then perhaps we can draw the conclusion that 
+  $$f_{V \sm L}(\xJ,x_{V \sm L},g^{[L]}(\xJ,x_{V \sm L},\xW),\xW) = f_{V \sm L}(\xJ,x_{V \sm L},\tilde g^{[L]}(\xJ,x_{V \sm L},\xW),\xW)\ M_{\sm L}\as?$$
+
+  \Joris{Some ramblings: In particular, the marginalization of $M$ corresponding to $g^{[L]}$ has SE
+  $$x_v = g^{[L]}(x_v,x_w) = \begin{cases}
+    1 / (x_v - x_w) & x_w \ne x_v \\
+    x_w & x_w = x_v
+  \end{cases}$$
+  while the one corresponding to $\tilde g^{[L]}$ has SE
+  $$x_v = \tilde g^{[L]}(x_v,x_w)$$
+  which agree on $\{(x_v,x_w) : x_v \ne x_w\}$ where $g^{[L]} = \tilde g^{[L]} = 1 / (x_v - x_w)$
+  but differ on $\{(x_v,x_w) : x_v \ne x_w\}$.
+
+  What if we start from a stronger assumption: that the submodel $M^{[L]}$ satisfies that it is solvable and
+  that $U^{[L]} := \{(x_{J \cup (V\sm L)},x_W) : \exists! x_L : x_L = f_L(x)\}$ is everything up to a null set
+  of the form $\tilde{N} \times \CX_{J \cup (V \sm L)}$ with $\tilde{N}$ a $P(X_W)$-null set.
+  Unfortunately, that would not help, because we can still pick $g^{[L]}$ and $\tilde{g}^{[L]}$ to differ on a $M^{[L]}$-null set!
+  Well, perhaps we should then define the marginalization by making use of a solution function that equals
+  the unique solution on the entire $U^{[L]}$ up to a 2-null set.}
+\end{proof}
+See Section~\ref{sec:complications_with_nullsets} for details.
+
+\begin{itemize}
+  \item Note that we have a bit more freedom with SCMs than with CBNs because we have some flexibility in constructing $g$ and hence the Markov kernels in terms of the given object $f$!
+  \item We even have a bit more flexibility: we can modify $f$ a little bit (on a 3-$M$-nullset) to make it easier to obtain a measurable solution function $g$.
+\end{itemize}
+
+\clearpage
+A nice piece of the puzzle would be:
+\begin{Con}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM, with input nodes $J$ and corresponding exogenous input variable $X_J$ taking values in $\CX_J$,
+  exogenous random variable $X_W$ taking values in $\CX_W$ with exogenous distribution $P(X_W) = \bigotimes_{w \in W} P(X_w)$,
+  and endogenous variables $X_V$ taking values in $\CX_V$ and (measurable!!) causal mechanism $f : \CX_J \times \CX_V \times \CX_W \to \CX_V$.
+
+  We call a function $g : \CX_J \times \CX_W \to \CX_V$ a ``3-solution function'' of $M$ if
+    $$ \forall x_J\in \CX_J \foralmostall x_W \in \CX_W \forall x_V \in \CX_V: x_V=g(x_J,x_W) \implies x_V=f(x_J,x_W,x_V).$$
+  Here, $\foralmostall x_W \in \CX_W$ means ``for $P$-almost all $x_W \in \CX_W$''.
+  In other words (bearing in mind the ordering of the quantifiers):
+  for each $x_J \in \CX_J$, the set $N_{x_J} := \{x_W \in \CX_W : g(x_J,x_W) \ne f(x_J,x_W,g(x_J,x_W))\}$ is a $P$-nullset.
+
+  What would be nice if one could show that the assumption 
+    $$ \forall x_J\in \CX_J \foralmostall x_W \in \CX_W : \exists! x_V \in \CX_V: x_V=f(x_J,x_W,x_V)$$
+  (where $\exists! x_V \in \CX_V$ is shorthand for ``there exists a unique $x_V \in \CX_V$ s.t.'')
+  implies that there exists a \emph{measurable} 3-solution function $g$.
+
+  In other words, the little choice left in $g$ can be exploited to construct a \emph{measurable} solution function
+  (where hopefully the measurability of the ``large'' part of $g$ that is already completely determined by the fixed point equation by assumption, would follow from the assumed measurability of $f$).
+\end{Con}
+
+\subsubsection{Stronger formulations of the do-calculus?}
+
+\Joris{I don't like the nullset tracing complexities. Cannot we get them out of the way once and for all?
+Perhaps we can come up with a 'constructive' GMP, which tells you not only the existence of a factorization
+but also how to construct the factor. E.g., it might tell you that you can construct the factor by first
+intervening (trivial), then constructing a version of the Markov kernel that does not depend on independent inputs
+(for the SCM the solution function will help us out), and finally conditioning. It is only in the last step 
+where one introduces null set ambiguity. Wouldn't it be nice if the do-calculus could be formulated as:
+any version of P(..) equals any version of P(..) up to some P(..)-null set? For that we would first 
+construct both Markov kernels without the conditioning, show their equality, and then condition.
+But that won't work: often they \emph{won't be equal} before the conditioning.
+For example, if $A \idPerp B | C$ then we want to conclude $P(A|B,C) = P(A|C)$. Patrick's do-calculus states
+that there exists a Markov kernel that is simultaneously a version of both. But it's clear how we can 
+construct it: take $P(A,C)$ and then form a conditional $P(A|C)$. I think I've always read it in that way!
+If $A \idPerp I_B | B,C$ then we want to conclude $P(A|B,C) = P(A|do(B),C)$. Patrick's do-calculus states
+that there exists a Markov kernel that is simultaneously a version of both. But cannot we just construct
+it by taking $P(A,C|do(B))$ and then form a conditional $P(A|do(B),C)$? Finally, if $A \idPerp I_B | C$
+then we want to conclude $P(A|do(B),C) = P(A|C)$. Cannot we just construct $P(A,C)$ and take a conditional
+$P(A|C)$ as the Markov kernel that is a version of both? The problem may well be that this formulation of
+the do-calculus would \emph{not} follow from the GMP, because the GMP is too weak to tell \emph{which}
+Markov kernel does the job. But perhaps we can prove it in a different way?
+In the following, we always pick $D = J$ (rules 1--3) or $D \ins J$ (rule 4), WLOG.
+\begin{enumerate}
+  \item Rule 1. First $J=\emptyset$. Assume $A \idPerp B | C$. Then we hope: defining $P(A|C)$ to be 
+    a version obtained by conditioning the Markov kernel $P_M(A,C)$, then $P(A|C)$ is also a version
+    of $P(A|B,C)$. Now more generally, assume $A \idPerp B | C, J$. Then we hope: defining $P(A|C,\doit(J))$
+    to be a version obtained by conditioning the Markov kernel $P_M(A,C|\doit(J))$, then $P(A|C,\doit(J))$
+    is also a version of $P(A|B,C,\doit(J))$. A constructive GMP might actually state this!
+    Ha, perhaps we can show that the existence of a factorizing $Q$ in the notion of transitional CI
+    implies that \emph{any} version of such $Q$ will also do the job? I think this might actually be the case!
+
+    Let $Q(A|C,\doit(J))$ be \emph{any} version of $P(A|C,\doit(J))$.
+    Can we then show that it is also a version of $P(A|B,C,\doit(J))$?
+    In other words, can we show:
+    $$P(A,B,C|\doit(J)) = P(A|B,C,\doit(J)) \otimes P(B,C|\doit(J)$$
+    In other words, can we conclude: any version of $P(A|C,\doit(J))$ is a version of $P(A|B,C,\doit(J))$?
+
+    Markov kernels that are simultaneously a version of both are unique up to some $P(C|\doit(J))$ nullset.
+    Or we can conclude that (no matter which versions one picks):
+    $$P(A|C,\doit(J)) \otimes P(C|\doit(J)) = P(A|B,C,\doit(J)) \otimes P(C|\doit(J)).$$
+    Inspection of the proof of Proposition~\ref{prp:do-calculus} suggests that indeed, we can adapt the
+    proof accordingly (even without needing a constructive GMP!) to arrive at these claims.
+
+    Let's copy a part of Patrick's proof and adapt it.
+    The assumption:
+                \[ A \idPerp_{G} B \given C \cup J,   \]
+    implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+      \[ X_A \Indep_{P(X_V|\doit(X_J))} X_B \given X_C,X_J.\]
+    So  we get the following factorization, where we can omit the deterministic variables from $X_J$ on the left of the conditioning lines:
+      \[ P\lp X_A,X_B,X_C|\doit(X_J)\rp = Q(X_A|X_C,X_J) \otimes P\lp X_B,X_C|\doit(X_{D})\rp,\]
+    for some Markov kernel $Q(X_A|X_C,X_J)$. Here
+    $Q(X_A|X_C,X_J)$ serves as a version of the conditional Markov kernel:
+      \[P\lp X_A|X_B,X_C,\doit(X_J)\rp.\]
+    If we marginalize out $X_B$ in the above factorization we also get:
+      \[ P\lp X_A,X_C|\doit(X_J)\rp = Q(X_A|X_C,X_J) \otimes P\lp X_C|\doit(X_J)\rp,\]
+    showing that $Q(X_A|X_C,X_J)$ is also a version of:
+      \[P\lp X_A|X_C,\doit(X_J)\rp.\]
+
+    We now want to show that if we change $Q(X_A|X_C,X_J)$ on an arbitrary $P(X_C|\doit(X_J))$ null set in $\CX_C \times \CX_J$ into $\tilde Q(X_A|X_C,X_J)$
+    then $\tilde Q(X_A|X_C,X_J)$ is \emph{also} simultaneously a version of 
+      \[P\lp X_A|X_C,\doit(X_J)\rp\]
+    and of
+      \[P\lp X_A|X_B,X_C,\doit(X_J)\rp.\]
+    The first is obvious. For the second, note that
+    $$Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_J)) = \tilde Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_J))$$
+    implies
+    $$Q(X_A|X_C,X_J) \otimes P(X_B,X_C|\doit(X_J)) = \tilde Q(X_A|X_C,X_J) \otimes P(X_B,X_C|\doit(X_J))$$
+    REALLY?
+    Put differently: is a $P(X_C|\doit(X_J))$ nullset in $\CX_C \times \CX_J$ also a $P(X_C,X_B|\doit(X_J))$ nullset in $\CX_C \times \CX_J$?
+    If we take the cartesian product with $\CX_B$ then we do get a $P(X_C,X_B|\doit(X_J))$ null set.
+    So if $Q(X_A|X_C,X_J) = \tilde Q (X_A|X_C,X_J)$ for all $x_C,x_J$ except for those in $N \subseteq \CX_C \times \CX_J$,
+    then $\int \I_N \otimes P(dX_{B\cup C}|\doit(X_J)) = 0$.
+
+    In other words: 
+    $$\sum_{x_C} q(x_A|x_C,x_J) p(x_C|\doit(x_J)) = \sum_{x_C} \tilde q(x_A|x_C,x_J) p(x_C|\doit(x_J))$$
+    implies
+    $$\sum_{x_C} q(x_A|x_C,x_J) p(x_B,x_C|\doit(x_J)) = \sum_{x_C} \tilde q(x_A|x_C,x_J) p(x_B,x_C|\doit(x_J))$$
+    REEALLY? Yes.
+  \item Rule 2.
+    The assumption:
+            \[ A \idPerp_{G_{\doit(I_B)}} I_B \given B \cup C \cup J,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+  \[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{J}))} X_{I_B} \given X_B,X_C,X_J.\]
+So we have the following factorization:
+\begin{align}
+    P\lp X_A,X_B,X_C|\doit(X_{I_B},X_{J})\rp &= Q(X_A|X_B,X_C,X_J) \otimes P\lp X_B,X_C|\doit(X_{I_B},X_{J})\rp,\label{eq:2nd-do-int-1}  
+\end{align}
+for some Markov kernel $Q(X_A|X_B,X_C,X_J)$, which serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_B,X_C,\doit(X_{I_B},X_{J})\rp,\]
+and which is independent of $X_{I_B}$.
+
+One can show that for a Markov kernel $Q(X_A|X_B,X_C,X_J)$ the equation \ref{eq:2nd-do-int-1} is equivalent to the system of equations \ref{eq:2nd-do-int-2} indexed by subsets $B_2 \ins B$ and with $B_1 := B \sm B_2$:
+\begin{align}
+    P\lp X_A,X_{B_1},X_C|\doit(X_{B_2},X_{J})\rp &= Q(X_A|X_B,X_C,X_J) \otimes P\lp X_{B_1},X_C|\doit(X_{B_2},X_{J})\rp. \label{eq:2nd-do-int-2} 
+\end{align}
+The equation \ref{eq:2nd-do-int-2} already implies that $Q(X_A|X_B,X_C,X_J)$ is a version of the conditional Markov kernel:
+\begin{align} P\lp X_A|X_{B_1},X_C,\doit(X_{B_2},X_{J})\rp, \label{eq:2nd-do-int-4} 
+\end{align}
+for every decomposition: $B=B_1 \dcup B_2$ simultaneously.
+In particular, it is a version of $ P\lp X_A|X_C,\doit(X_B,X_{J})\rp $.
+
+Our hope is that for $Q$ we can just take \emph{any} version of the conditional $P\lp X_A|X_C,\doit(X_B,X_{J})\rp$ obtained from $P \lp X_A,X_C|\doit(X_B,X_J)\rp$.
+
+    We now want to show that if we change $Q(X_A|X_B,X_C,X_J)$ on an arbitrary $P(X_C|\doit(X_B,X_J))$ null set in $\CX_C \times \CX_B \times \CX_J$ into $\tilde Q(X_A|X_B,X_C,X_J)$
+    then $\tilde Q(X_A|X_B,X_C,X_J)$ is \emph{also} simultaneously a version of 
+    \begin{align} P\lp X_A|X_{B_1},X_C,\doit(X_{B_2},X_{J})\rp, \label{eq:2nd-do-int-4} 
+    \end{align}
+    for every decomposition: $B=B_1 \dcup B_2$ simultaneously.
+
+    This might follow if:
+    $$ Q(X_A|X_B,X_C,X_J) \otimes P(X_C|\doit(X_B,X_J)) = \tilde Q(X_A|X_B,X_C,X_J) \otimes P(X_C|\doit(X_B,X_J))$$
+    implies
+    $$ Q(X_A|X_B,X_C,X_J) \otimes P(X_{B_1},X_C|\doit(X_{B_2},X_J)) = \tilde Q(X_A|X_B,X_C,X_J) \otimes P(X_{B_1},X_C|\doit(X_{B_2},X_J))$$
+    for every decomposition: $B=B_1 \dcup B_2$?
+
+    So, in other words, is a $P(X_C|\doit(X_B,X_J))$-null set in $\CX_C \times \CX_B \times \CX_J$ automatically a $P(X_{B_1},X_C|\doit(X_{B_2},X_J))$-null?
+    An easier special case:
+    If 
+    $$\forall x_J \forall x_B: P(X_C \in N_{x_B,x_J}|\doit(x_B,x_J)) = 0$$
+    is then also
+    $$\forall x_J \qquad: P((X_B,X_C) \in N_{x_J}|\doit(x_J)) = 0?$$
+    Even easier ($J=\emptyset$): If
+    $$\forall x_B: P((x_B,X_C) \in N|\doit(x_B)) = 0$$
+    (equivalently,
+    $$\forall x_B: P(X_C \in N_{x_B}|\doit(x_B)) = 0)$$
+    is then also
+    $$\qquad: P((X_B,X_C) \in N) = 0?$$
+%    Written differently, if
+%    $$\forall x_B: P((x_B,X_C(x_B)) \in N) = 0$$
+%    is then also
+%    $$\qquad: P((X_B,X_C) \in N) = 0?$$
+%   The answer seems to be 'yes'! 
+%   But this seems easier to prove with the solution function of an SCM than in a CBN (although...it shouldn't). 
+   Let's consider the Markov kernels $P(X_C|\doit(X_B))$ and $P(X_B)$ and their product $P(X_C|\doit(X_B)) \otimes P(X_B)$.
+   The product is the Markov kernel $\Asterisk \dshto \CX_B$ defined by
+
+   Consider two Markov kernels:
+   \[ P(C|\doit(B)):\, \Bcal \dshto \Ccal,\qquad  
+   P(B):\, \Asterisk \dshto \Bcal \]
+   Then we define the \emph{product Markov kernel}:
+   \[ P(C|\doit(B)) \otimes P(B) :\, \Asterisk \dshto \Ccal \times \Bcal, \]
+   using  measurable sets $E \ins \Ccal \times \Bcal$ via: $E \mapsto $
+   \[\int\int \I_E(x_C,x_B)\, P(X_C \in dx_C|\doit(X_B=x_B)) \, P(X_B \in dx_B),\]
+   \[=\int\int \I_{E_{x_B}}(x_C)\, P(X_C \in dx_C|\doit(X_B=x_B)) \, P(X_B \in dx_B),\]
+   \[=\int 0 \, P(X_B \in dx_B) = 0\]
+  where the inner integration is over $x_C \in \CX_C$ and the outer integration over $x_B \in \CX_B$.
+  
+  Hence, $N$ is also a $P(X_C|\doit(X_B)) \otimes P(X_B)$ nullset.
+  But, this might not be a $P(X_B,X_C)$-nullset?
+  Let's see if we can construct counterexamples.
+  If $B \tuh C$ then $P(X_C|X_B) \otimes P(X_B) = P(X_C|\doit(X_B)) \otimes P(X_B)$, and therefore
+  $P(X_B,X_C) \ll P(X_C|\doit(X_B)) \otimes P(X_B)$.
+  So let's instead assume $B \huh C$.
+  Then $P(X_C|\doit(X_B)) = P(X_C)$ (surely).
+  Hence $P(X_C|\doit(X_B)) \otimes P(X_B) = P(X_C) \otimes P(X_B)$ and therefore for discrete variables, $P(X_B,X_C) \ll P(X_C|\doit(X_B)) \otimes P(X_B)$.
+  Hence we can at best construct a counterexample in this situation with non-discrete variables.
+  I haven't thought long about it but I don't see right away how to do this (perhaps our counterexample which shows that the graph lives strictly higher than rung-3 in the hierarchy might work...?).
+  Talking about the hierarchy: perhaps there are different Markov properties that can be shown for SCMs; one higher up in the hierarchy might imply things further down in the hierarchy.
+  So perhaps we can make headway by focusing on Markov kernels that are push-forwards of solution functions of SCMs?
+  Suppose we have $B = g_B(W)$ and $C = g_C(W)$.
+  Is a $P(g_C(W)|\doit(X_B)) \otimes P(g_B(W))$ nullset automatically a $P(g_B(W),g_C(W))$ nullset?
+  Let's simplify: $W=(x,y) \in \RN^2$, $g_B(x,y)=x$, $g_C(x,y)=y)$.
+  Then, is a $P(Y) \otimes P(X)$ nullset automatically a $P(X,Y)$ nullset?
+  In other words: does
+  $$\int \int \I_N(x,y) P(dy) P(dx) = 0 \implies \int I_N(x,y) P(x,y) = 0$$
+  And the answer may trivially be `no': if $P(X,Y)$ is a uniform distribution on the diagonal $x=y$, then
+  that diagonal is a $P(dy) \otimes P(dx)$ nullset but it is not a $P(X,Y)$ nullset (it is even a $P(X,Y)$ one set!).
+  So here we have our counterexample.
+  Consider an SCM with $X_B = W$, $X_C = W$, $W \sim Uni(0,1)$
+  (so $X_B \sim Uni(0,1)$ and $X_C \sim Uni(0,1)$ and $P(X_C|\doit(X_B)) = P(X_C)$).
+  Then $X_B = X_C P\as$ and $N:=\{(b,c) \in (0,1)^2 : b=c\}$ is a $P(X_C|\doit(X_B)) \otimes P(X_B)$ nullset,
+  but it is not a $P(X_B,X_C)$ nullset.
+  So if we have a $Q(X_A|X_B,X_C)$ that works, then it's a version of $P(X_A|X_C,\doit(X_B))$.
+  We can change it into $\tilde Q(X_A|X_B,X_C)$ by changing it on nullset $N$. 
+  Then $\tilde Q(X_A|X_B,X_C)$ is still a version of $P(X_A|X_C,\doit(X_B))$ but it is not a version of $P(X_A|X_C,X_B)$!
+  This is slightly shocking: the way in which I have so far interpreted the do-calculus at best only works for discrete variables!
+
+  Our hope was that for $Q$ we can just take \emph{any} version of the conditional $P\lp X_A|X_C,\doit(X_B,X_{J})\rp$ obtained from $P \lp X_A,X_C|\doit(X_B,X_J)\rp$.
+  Perhaps instead we should hope that \emph{any} version of $P(X_A|X_B,X_C,\doit(X_{I_B},X_{J}))$ obtained by conditioning $P(X_A,X_B,X_C|\doit(X_{I_B},X_{J}))$ could serve as $Q(X_A|X_B,X_C,X_J)$?
+  Would that help somehow in tracing null sets?
+  At least it would allow us the do-calculus more constructively.
+  How would this work out in the counterexample?
+  Let's extend the graph to $B \huh C \tuh A$ and add e.g. the SE $X_A = X_C$.
+  Then $P(X_A,X_B,X_C|\doit(X_{I_B}=\ast))$ is the push-forward of a joint delta $x_A=x_B=x_C$ uniformly over $(0,1)$.
+  Further $P(X_A,X_B,X_C|\doit(X_{I_B}=x_B))$ is a delta on $x_B$ combined with a joint delta $x_A = x_C$ uniformly over $(0,1)$.
+  Furthermore, $P(X_B,X_C|\doit(X_{I_B}))$ maps $\ast$ to a joint delta $x_B=x_C$ uniformly weighted over $(0,1)$, and maps $x_B$ to a uniform distribution of $x_C$ on $(0,1)$.
+  What could we pick as $Q(X_A|X_B,X_C)$? 
+  It would map $x_B,x_C$ to $\delta(X_A|x_C)$ (but this follows from the $\doit(X_{I_B}=x_B)$ part and it seems to also work for the $\doit(X_{I_B}=\ast)$ part).
+  If we then defined a $\tilde Q(X_A|X_B,X_C)$ e.g.\ by mapping $(x_B=x_C)$ to $Uni(0,1)$ instead of $\delta(X_A|x_C)$, then $\tilde Q(X_A|X_B,X_C)$ would still be a version of $P(X_A|X_C\doit(X_B))$,
+  but not of $P(X_A|X_B,X_C)$! 
+  So the statement that such a $Q(X_A|X_B,X_C)$ exists is quite remarkable.
+  Somehow, the trick with the input variable $I_{X_B}$ helps to ensure that $Q$ is \emph{simultaneously} a version of various conditional Markov kernels.
+  There are therefore (at least) two ways to construct such $Q$:
+  \begin{enumerate}
+    \item construct it as a conditional of $P(X_A,X_B,X_C|\doit(X_{I_B}))$.
+      For CBNs that's precisely what we're doing now.
+      For SCMs one could see if there's an easier construction in terms of solution functions.
+      What is $\tilde g_{A,B,C}(x_{I_B},x_W)$?
+      What is $\tilde g_{A,B,C}(x_{I_B}=\ast,x_W)$ solves:
+      $$\tilde g_{A,B,C}(x_{I_B}=\ast,x_W) := \text{unique solution of } x_A = f_A(x_V,x_W), x_B = f_B(x_V,x_W), x_C = f_C(x_V,x_W)$$
+      $$\tilde g_{A,B,C}(x_{I_B}=\ast,x_W) = (x_W, x_W, x_W)$$
+      and
+      $$\tilde g_{A,B,C}(x_{I_B}=x_B,x_W) := \text{unique solution of } x_A = f_A(x_V,x_W), x_C = f_C(x_V,x_W)$$
+      $$\tilde g_{A,B,C}(x_{I_B}=x_B,x_W) = (x_W, x_B, x_W)$$
+      The solution function of $M$ is
+      $$g_{A,B,C}(x_W) := \text{unique solution of } x_A = f_A(x_V,x_W), x_B = f_B(x_V,x_W), x_C = f_C(x_V,x_W)$$
+      $$g_{A,B,C}(x_W) = (x_W,x_W,x_W)$$
+      and the solution function of $M_{\doit(x_B)}$ is
+      $$g^{[A,C]}_{A,C}(x_B,x_W) := \text{unique solution of } x_A = f_A(x_V,x_W), x_C = f_C(x_V,x_W)$$
+      $$g^{[A,C]}_{A,C}(x_B,x_W) = (x_W,x_W)$$
+      We know that consistency must hold, so
+      $$g_{A,C}(x_W) = g^{[A,C]}_{A,C}(g_B(x_W),x_W) \as$$
+      (I'm not entirely sure in which sense ``a.s.'')
+      So in general, we can write  
+      $$\tilde g_{A,B,C}(x_{I_B}=\ast,x_W) = g_{A,B,C}(x_W) = (g^{[A,C]}_A(g_B(x_W),x_W),g_B(x_W),g^{[A,C]}_C(g_B(x_W),x_W))$$
+      $$\tilde g_{A,B,C}(x_{I_B}=x_B,x_W) = (g^{[A,C]}_A(x_B,x_W),x_B,g^{[A,C]}_C(x_B,x_W))$$
+      Now the Markov kernel $P(X_A,X_B,X_C|\doit(X_{I_B}))$ can be written as:
+      $$P(X_A,X_B,X_C|\doit(X_{I_B})) = \begin{cases}
+        (g_{A,B,C})_* P(X_W) & x_{I_B} = \ast \\
+        (x_W \mapsto (g^{[A,C]}_A(x_B,x_W),x_B,g^{[A,C]}_C(x_B,x_W)))_* P(X_W) & x_{I_B} = x_B
+      \end{cases}$$
+      In this way we have expressed the desired Markov kernel directly in properties of the model $M$.
+      Now we can pick any conditional of \emph{this} Markov kernel.
+      The GMP then tells us that it will be simultaneously a version of $P_M(X_A|X_C,\doit(X_B))$ and of $P_M(X_A|X_C,X_B)$.
+      So here's one constructive statement of rule 2 for SCMs.
+      We can contemplate what a GMP would say at the level of the solution functions.
+      We could take our variational GMP to conclude something about the conditional range of the solution functions.
+
+    \item construct it by making an explicit construction for a general situation in which one tries to construct a single Markov kernel that's a version of several conditional Markov kernels \emph{simultaneously}. Or perhaps: take a version of $P(X_A|X_C,\doit(X_B))$ and tweak it on a $P(X_C|\doit(X_B))$-null set such that it also becomes a version of $P(X_A|X_C,X_B)$. The fact that this can be done is quite remarkable and follows from the GMP.
+  \end{enumerate}
+
+  \item Rule 3.\ TODO. There is still hope that our conjecture works generally for rule 3.
+    For $J=\emptyset$: if $A \idPerp I_B | C$ then we want to conclude $P(A|do(B),C) = P(A|C)$; 
+    cannot we just construct $P(A,C)$ and take a conditional $P(A|C)$ as the Markov kernel that is a version of both?
+
+    General case. The assumption:
+  \[ A \idPerp_{G_{\doit(I_B)}} I_B \given C  \cup J,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{J}))} X_{I_B} \given X_C,X_J.\]
+So we have the following factorization:
+\begin{align*} 
+    P\lp X_A,X_C|\doit(X_{I_B},X_{J})\rp &= Q(X_A|X_C,X_J) \otimes P\lp X_C|\doit(X_{I_B},X_{J})\rp,
+\end{align*}
+for some Markov kernel $Q(X_A|X_C,X_J)$, which serves as a version of the conditional Markov kernel:
+\[P\lp X_A|X_C,\doit(X_{I_B},X_{J})\rp,\]
+and which is independent of $X_{I_B}$.
+
+We can now look at the different input values for any decomposition: $B=B_1 \dcup B_2$.
+For this we put: $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and  $ X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+This implies:
+\begin{align*} 
+  & P\lp X_A,X_C|\doit(X_{{B_2}}=x_{B_2},X_{J})\rp \\
+  &= P\lp X_A,X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{J})\rp \\
+  &= Q(X_A|X_C,X_J) \otimes P\lp X_C|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{J})\rp,\\
+  &= Q(X_A|X_C,X_J) \otimes P\lp X_C|\doit(X_{{B_2}}=x_{B_2},X_{J})\rp.
+\end{align*}
+So we get for every subset $B_2 \ins B$:
+\begin{align*}
+    P\lp X_A,X_C|\doit(X_{B_2},X_{J})\rp &= Q(X_A|X_C,X_J) \otimes P\lp X_C|\doit(X_{B_2},X_{J})\rp,
+\end{align*}
+which shows that $Q(X_A|X_C,X_J)$ is a version of the conditional Markov kernel:
+\begin{align*} 
+P\lp X_A|X_C,\doit(X_{B_2},X_J)\rp,
+\end{align*}
+for every subset $B_2 \ins B$ simultaneously.
+
+Suppose we take $\tilde Q(X_A|X_C,X_J)$ that is any version of $P(X_A|X_C,\doit(X_J))$.
+Then 
+$$Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_J)) = \tilde Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_J))$$
+Does this imply that
+$$Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_B,X_J)) = \tilde Q(X_A|X_C,X_J) \otimes P(X_C|\doit(X_B,X_J))?$$
+It looks as if this may not be the case in general:
+$P(X_C|\doit(X_B,X_J))$ may be (for given $x_B$) be a very different kernel than $P(X_C|\doit(X_J))$
+and therefore have very different nullsets.
+\end{enumerate}
+So the above suggests that we can also state (for $D=J$, extreme decompositions) the do-calculus as:
+\begin{enumerate}
+  \item (No absolute continuity assumptions required) Any version of $P(X_A|X_C,\doit(X_J))$ is also a version of $P(X_A|X_B,X_C,\doit(X_J)))$.
+  \item If $P(X_B,X_C|\doit(X_J)) \ll P(X_C|\doit(X_B,X_J))$, any version of $P(X_A|X_C,\doit(X_B,X_J))$ is also a version of $P(X_A|X_C,X_B,\doit(X_J))$.
+        If $P(X_C|\doit(X_B,X_J)) \ll P(X_B,X_C|\doit(X_J))$, any version of $P(X_A|X_C,X_B,\doit(X_J))$ is also a version of $P(X_A|X_C,\doit(X_B,X_J))$.
+  \item If $P(X_C|\doit(X_B,X_J)) \ll P(X_C|\doit(X_J))$, any version of $P(X_A|X_C,\doit(X_J))$ is also a version of $P(X_A|X_C,\doit(X_B,X_J))$.
+    If $P(X_C|\doit(X_J)) \ll P(X_C|\doit(X_B,X_J))$, any version of $P(X_A|X_C,\doit(X_B,X_J))$ is also a version of $P(X_A|X_C,\doit(X_J))$.
+\end{enumerate}
+}
+
+\Joris{Some questions concerning the formulation of Corollary\ref{cor:as-do-calculus-2}.}
+
+\begin{Rem}
+We can combine rule 1 and rule 4 to prove a version of rule 1 that drops the assumption $J \subseteq D$ (and which assumes $\mu_{B \cup C} \ll P(X_B,X_C|\doit(X_{D\cup J}))\ll \mu_{B \cup C}$ instead).
+We can also do this for rule 2 (which assumes $\mu_{B \cup C} \ll  P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C}$ and $\mu_C \ll  P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C$ instead).
+We can also do this for rule 3 (which assumes $\mu_C \ll P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C$ and $\mu_C \ll P(X_C|\doit(X_{D \cup J})) \ll \mu_C$ instead).
+Hold on: I thought that this would extend this Corollary, but one should note that if some $id$-separation in rule 1--3 holds where $J \not\ins D$, then it will \textbf{also} hold after adding $J$ to $D$; so we don't actually need the additional ``generality''!
+\end{Rem}
+
+\Joris{ALTERNATIVE VERSION (SUGGESTED BY LEIHAO \& JORIS) where we dropped the additional assumptions $J \subseteq D$ in rules 1--3, and where Rule 4 (``deletion of input'') can be dropped as it becomes just a special case of rule 3 ($B=I_B=\emptyset$). Patrick notes: this is worse: it hides the existence claims in rules 1--3 of certain Markov kernels that \emph{are versions of} the original ones; and if you formulate it like this, you can even drop the positivity assumptions and you're back to the original version! Joris' afterthought: I'm not so sure if Patrick was right about this---he may have overlooked the details. The point is that the statement of Corollary~\ref{ref:as-do-calculus-3} is \emph{equivalent} to that of Corollary~\ref{ref:as-do-calculus-2}. So I'm still not sure what Patrick meant.}
+\begin{Cor}[Almost-sure do-calculus---simplified]
+    \label{cor:as-do-calculus-3}
+        Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Further assume that we have %$\sigma$-finite 
+    reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$.
+    We then put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D$ are pairwise disjoint.
+    Then we have the following 3 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}:
+          Assume that we want to establish 
+          that there exist Markov kernels $P(X_A|X_B,X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$, $P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$, 
+          such that the following $\mu_{B \cup C}$-a.s.-equalities hold:
+            \begin{equation*}\begin{split}
+                P(X_A|X_B,X_C,\doit(X_{D},X_{J\sm D})) & = P(X_A|X_C,\doit(X_{D},X_{J\sm D})) \\
+              = P(X_A|X_B,X_C,\doit(X_{D},\cancel{X_{J\sm D}})) & = P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})), 
+            \end{split}\end{equation*}
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(D)}} B \given C \cup D, &
+             \mu_{B \cup C} &\ll P(X_B,X_C|\doit(X_{D \cup J}))\ll \mu_{B \cup C}.
+         \end{align*}
+     \item \underline{Action/observation exchange}: 
+       Assume that we want to establish 
+       that there exist Markov kernels $P(X_A|X_B,X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$, $P(X_A|\doit(X_B),X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$,
+       such that the following $\mu_{B \cup C}$-a.s.-equalities hold:
+            \begin{equation*}\begin{split}
+            P(X_A|X_B,X_C,\doit(X_{D},X_{J\sm D})) &= P(X_A|\doit(X_B),X_C,\doit(X_{D},X_{J\sm D})) \\
+            P(X_A|X_B,X_C,\doit(X_{D},\cancel{X_{J\sm D}})) &= P(X_A|\doit(X_B),X_C,\doit(X_{D},\cancel{X_{J\sm D}})),
+            \end{split}\end{equation*}
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A & \idPerp_{G_{\doit(I_B\cup D)}} I_B \given B \cup C \cup D, &          
+                    \mu_{B \cup C} &\ll  P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C},\\
+                 &&   \mu_C &\ll  P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+     \item \underline{Insertion/deletion of action}: 
+        Assume that we want to establish
+        that there exist Markov kernels $P(X_A|\doit(X_B),X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$, $P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$,
+        such that the following $\mu_C$-a.s.-equalities hold:
+            \begin{equation*}\begin{split}
+              P(X_A|\doit(X_B),X_C,\doit(X_{D},X_{J\sm D})) &= P(X_A|X_C,\doit(X_{D},X_{J\sm D})) \\
+              P(X_A|\doit(X_B),X_C,\doit(X_{D},\cancel{X_{J\sm D}})) &= P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})),
+            \end{split}\end{equation*}
+          then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(I_B\cup D)}} I_B \given C  \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C, \\
+                   && \mu_C &\ll P(X_C|\doit(X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+%         That Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$.
+%         which actually means that it is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \times \Xcal_{J \sm D}$
+%         with $N \ins \Xcal_{C\cup D}$.
+%      \item \Joris{\underline{Action/observation exchange for input variable}
+%        We could also formulate a version of rule 2 that allows us to write
+%         \[ P(X_A|X_B,X_C,\doit(X_{D}))  = P(X_A|\doit(X_B),X_C,\doit(X_{D}))
+%         \qquad \mu_{C}\text{-a.s.}, \]
+%         for $B \subseteq J$.
+%        }
+    \end{enumerate}
+    Note that the two-sided absolute continuities hold for $\sigma$-finite reference measures iff the indicated Markov kernel has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ the corresponding reference product measure by Corollary \ref{cor:abs-cont-str-pos-den}.
+\end{Cor}
+\begin{proof}
+  This can be proven from Corollary~\ref{cor:as-do-calculus-2} by combining rule 4 (twice) with each of rule 1--3.
+  This is a bit of work.
+  A quicker way to see it is to prove it from the reformulation of Corollary~\ref{cor:as-do-calculus-2} where we dropped the assumptions $J \ins D$ in rule 1--3 and instead replace every occurrence of $D$ in the corresponding Markov kernels by $D \cup J$; then we just combine each of rules 1--3 with two applications of rule 4.
+  But perhaps it is even easier to prove it directly from \ref{thm:as-do-calculus-1}?
+\end{proof}
+\Joris{Yet another version keeps rule 4 and drops the canceled kernels in rules 1--3: Patrick notes: that is not good because only with the assumption $J \subseteq D$ can we afford to not talk about existence of certain Markov kernels in rules 1--3. Joris now notes: this may look more general than Corollary~\ref{cor:as-do-calculus-2}, but it is not. Indeed, suppose we know that $A \idPerp_{G_{\doit(D)}} B | C \cup D$ holds (not assuming $J \subseteq D$ (so we may believe we need Corollary~\ref{cor:as-do-calculus-4} rule 1), then also $A \idPerp_{G_{\doit(D\cup J)}} B | C \cup D \cup J$ holds and hence we can just apply Corollary~\ref{cor:as-do-calculus-2} rule 1 to arrive \emph{at exactly the same statement}! So this shows that $J \subseteq D$ can be assumed WLOG for rules 1--3 in Corollary~\ref{cor:as-do-calculus-2}, and there's no need to extend it by dropping these assumptions. I think Patrick may have overlooked that we actually replaced the various occurrences of $D$ by $D \cup J$ in the assumptions/statement. So Corollary~\ref{cor:as-do-calculus-4} and Corollary~\ref{cor:as-do-calculus-2} are just equally powerful and correct. However, if we would not replace $D$ by $D \cup J$ in the claim, then there would run into the problem that it's not clear what Markov kernels we're talking about, like Patrick said.}
+\begin{Cor}[Almost-sure do-calculus---simplified]
+    \label{cor:as-do-calculus-4}
+        Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Further assume that we have %$\sigma$-finite 
+    reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$.
+    We then put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+    Let $A,B,C \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D$ are pairwise disjoint.
+    Then we have the following 4 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}:
+          Assume that we want to establish the a.s.-equalities:
+          \[ P(X_A|X_B,X_C,\doit(X_{D\cup J})) = P(X_A|X_C,\doit(X_{D\cup J})) \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(D)}} B \given C \cup D, &
+             \mu_{B \cup C} &\ll P(X_B,X_C|\doit(X_{D \cup J}))\ll \mu_{B \cup C}.
+         \end{align*}
+     \item \underline{Action/observation exchange}: 
+       Assume that we want to establish the a.s.-equalities:
+        \[ P(X_A|X_B,X_C,\doit(X_{D\cup J})) = P(X_A|\doit(X_B),X_C,\doit(X_{D\cup J})) \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A & \idPerp_{G_{\doit(I_B\cup D)}} I_B \given B \cup C \cup D, &          
+                    \mu_{B \cup C} &\ll  P(X_B,X_C|\doit(X_{D\cup J})) \ll \mu_{B \cup C},\\
+                 &&   \mu_C &\ll  P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+     \item \underline{Insertion/deletion of action}: 
+         Assume that we want to establish the a.s.-equalities:
+         \[ P(X_A|\doit(X_B),X_C,\doit(X_{D\cup J})) = P(X_A|X_C,\doit(X_{D\cup J})) \qquad \mu_C\text{-a.s.}, \]
+          then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(I_B\cup D)}} I_B \given C  \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_B,X_{D\cup J})) \ll \mu_C, \\
+                   && \mu_C &\ll P(X_C|\doit(X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+       \item \underline{Deletion of input}:
+         If 
+         \begin{align*} 
+           A &\idPerp_{G_{\doit(D)}} J \given C \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_{D\cup J})) \ll \mu_C.
+         \end{align*}
+         then there exists a Markov kernel $P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$ such that:
+         \[ P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) = P(X_A|X_C,\doit(X_{D \cup J})) \qquad \mu_C\text{-a.s.}. \]
+%         That Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$.
+%         which actually means that it is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \times \Xcal_{J \sm D}$
+%         with $N \ins \Xcal_{C\cup D}$.
+%      \item \Joris{\underline{Action/observation exchange for input variable}
+%        We could also formulate a version of rule 2 that allows us to write
+%         \[ P(X_A|X_B,X_C,\doit(X_{D}))  = P(X_A|\doit(X_B),X_C,\doit(X_{D}))
+%         \qquad \mu_{C}\text{-a.s.}, \]
+%         for $B \subseteq J$.
+%        }
+    \end{enumerate}
+    Note that the two-sided absolute continuities hold for $\sigma$-finite reference measures iff the indicated Markov kernel has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ the corresponding reference product measure by Corollary \ref{cor:abs-cont-str-pos-den}.
+\end{Cor}
+\Joris{An even simpler version is obtained by assuming (without loss of generality) $D=J$ in rules 1--3 but $D \subseteq J$ in rule 4 (this looks like a loss of generality but if one applies this to the $L_CBN$ $M_{\doit(\tilde{D})}$ for $\tilde{D} = D \sm J$ then one gets the general case).:}
+\begin{Cor}[Almost-sure do-calculus---simplified more]
+    \label{cor:as-do-calculus-5}
+    Consider an L-CBN:
+    \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+    Further assume that we have %$\sigma$-finite 
+    reference measures $\mu_v$ on $\Xcal_v$ for every $v \in V$.
+    We then put $\mu_F := \bigotimes_{v \in F} \mu_v$ for $F \ins V$.
+    Let $A,B,C \ins V$ be such that $A,B,C$ are pairwise disjoint.
+    Then we have the following 4 rules relating marginal conditional to marginal interventional Markov kernels:
+    \begin{enumerate}
+        \item \underline{Insertion/deletion of observation}:
+          Assume that we want to establish the a.s.-equalities:
+          \[ P(X_A|X_B,X_C,\doit(X_J)) = P(X_A|X_C,\doit(X_J)) \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G} B \given C \cup J, &
+             \mu_{B \cup C} &\ll P(X_B,X_C|\doit(X_J))\ll \mu_{B \cup C}.
+         \end{align*}
+     \item \underline{Action/observation exchange}: 
+       Assume that we want to establish the a.s.-equalities:
+        \[ P(X_A|X_B,X_C,\doit(X_J)) = P(X_A|\doit(X_B),X_C,\doit(X_J)) \qquad \mu_{B \cup C}\text{-a.s.}, \]
+         then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A & \idPerp_{G_{\doit(I_B)}} I_B \given B \cup C \cup J, &          
+                    \mu_{B \cup C} &\ll  P(X_B,X_C|\doit(X_J)) \ll \mu_{B \cup C},\\
+                 &&   \mu_C &\ll  P(X_C|\doit(X_B,X_J)) \ll \mu_C.
+         \end{align*}
+     \item \underline{Insertion/deletion of action}: 
+         Assume that we want to establish the a.s.-equalities:
+         \[ P(X_A|\doit(X_B),X_C,\doit(X_J)) = P(X_A|X_C,\doit(X_J)) \qquad \mu_C\text{-a.s.}, \]
+          then it is sufficient to assume/check the following $id$-separation and absolute continuities:
+         \begin{align*} 
+             A &\idPerp_{G_{\doit(I_B)}} I_B \given C  \cup J, &          
+             \mu_C &\ll P(X_C|\doit(X_B,X_J)) \ll \mu_C, \\
+                   && \mu_C &\ll P(X_C|\doit(X_J)) \ll \mu_C.
+         \end{align*}
+       \item \underline{Deletion of input}:
+         If, for $D \subseteq J$: 
+         \begin{align*} 
+           A &\idPerp_G J \given C \cup D, &          
+             \mu_C &\ll P(X_C|\doit(X_J)) \ll \mu_C.
+         \end{align*}
+         then there exists a Markov kernel $P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}}))$ such that:
+         \[ P(X_A|X_C,\doit(X_{D},\cancel{X_{J\sm D}})) = P(X_A|X_C,\doit(X_{D \cup J})) \qquad \mu_C\text{-a.s.}. \]
+%         That Markov kernel is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D}$.
+%         which actually means that it is unique up to a measurable $P\lp X_C|\doit(X_{D\cup J})\rp$-null set $N \times \Xcal_{J \sm D}$
+%         with $N \ins \Xcal_{C\cup D}$.
+%      \item \Joris{\underline{Action/observation exchange for input variable}
+%        We could also formulate a version of rule 2 that allows us to write
+%         \[ P(X_A|X_B,X_C,\doit(X_{D}))  = P(X_A|\doit(X_B),X_C,\doit(X_{D}))
+%         \qquad \mu_{C}\text{-a.s.}, \]
+%         for $B \subseteq J$.
+%        }
+    \end{enumerate}
+    Note that the two-sided absolute continuities hold for $\sigma$-finite reference measures iff the indicated Markov kernel has a strictly positive Doob-Radon-Nikodym derivative w.r.t.\ the corresponding reference product measure by Corollary \ref{cor:abs-cont-str-pos-den}.
+\end{Cor}
+
+\clearpage
+
+\clearpage
+\subsection{Exogenous reparameterizations}
+
+\subsubsection{Leftovers}
+
+The following appears to be in need of fixing, and it's not clear for what it would be useful.
+
+A special case of interest is obtained for `pointwise' surjective mappings $\tilde{\Phi}$.
+\begin{Cor}
+  \Joris{Not sure if we need this...!}
+  If $x_W \mapsto \tilde{\Phi}(x_J,x_W)$ is surjective for all $x_J \in \CX_J$, then unique solvability of $M$ implies unique solvability of $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$,
+  %  and unique solvability of $M_{\doit(T)}$ implies unique solvability of $(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)}$ for any $T \subseteq V \cup J$.
+  and simplicity of $M$ implies simplicity of $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+\end{Cor}
+\begin{proof}
+  Let $g : \CX_J \times \CX_W \to \CX_V$ be the solution function of $M$. 
+  It satisfies
+  $$x_V = f(x_J,x_V,x_W) \iff x_V = g(x_J,x_W)$$
+  for all $x_J \in \CX_J, x_V \in \CX_V$ and $x_W \in \CX_W$.
+  Let $\Psi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ be an arbitrary \Joris{measurable!!! does that exist? use measurable selection thm?} right-inverse of $\tilde{\Phi}$ (i.e., 
+  %$\tilde{\Phi} \circ (\id_{\CX_J}, \Psi) = \id_{\CX_{\tilde{W}}}$
+  $\tilde{\Phi}(x_J,\Psi(x_J,x_{\tilde{W}})) = x_{\tilde{W}}$ for all $x_J \in \CX_J, x_{\tilde{W}} \in \CX_{\tilde{W}}$,
+  implying
+  $(\id_{\CX_J},\tilde{\Phi}) \circ (\id_{\CX_J},\Psi) = (\id_{\CX_J},\id_{\CX_{\tilde{W}}})$)
+  and define 
+  $$\tilde{g}(x_J,x_{\tilde{W}}) := g(x_J,\Psi(x_J,x_{\tilde{W}}))$$
+  for all $x_J \in \CX_J, x_{\tilde{W}} \in \CX_{\tilde{W}}$. 
+  Then
+  \begin{equation*}\begin{split}
+    x_V = \tilde{f}(x_J,x_V,x_{\tilde{W}}) 
+    &\iff x_V = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_J,\Psi(x_J,x_{\tilde{W}}))) \\
+    &\iff x_V = f(x_J,x_V,\Psi(x_J,x_{\tilde{W}})) \\
+    &\iff x_V = g(x_J,\Psi(x_J,x_{\tilde{W}})) \\
+    &\iff x_V = \tilde{g}(x_J,x_{\tilde{W}})
+  \end{split}\end{equation*}
+  for all $x_J \in \CX_J, x_V \in \CX_V, x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+  So $\tilde{g}$ is the unique solution function of $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$.
+  Hence, unique solvability of $M$ implies unique solvability of $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ by Theorem~\ref{thm:scm_essentially_unique_solvability_implies} \Joris{really??}.
+
+  Now suppose that $M$ is simple. Let $T \subseteq V$. By Lemma~\ref{lem:interventions_exogenous_pushforward_commute}, 
+  $$(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\tilde{\Phi}}}.$$
+  The unique solvability of $M_{\doit(T)}$ implies that of $(M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\tilde{\Phi}}}$,
+  and hence that of $(M_{\repar{\tilde{f}}{\tilde{\Phi}}})_{\doit(T)}$.
+  Therefore, $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is simple.
+\end{proof}
+
+\begin{Lem}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \lt J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ an exogenous push-forward of $M$, where $\tilde\Phi : \CX_W \to \CX_{\tilde{W}}$ is a measurable function that does not depend on $\CX_J$.
+  Then there exists a measurable essential right-inverse $\Psi : \CX_{\tilde{W}} \to \CX_W$ of $\tilde\Phi$, that is, such that
+  $$\tilde{\Phi} \circ \Psi = \id_{\CX_{\tilde{W}}}\ \tilde P(X_{\tilde{W}})\as.$$
+\end{Lem}
+\begin{proof}
+Since by assumption,
+  $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_W)) \quad M\as,$$
+we have that for all $x_J$, for $P \otimes P$-almost all $(x_{W},x_{W}') \in \CX_W^2$:
+  $$\tilde{\Phi}(x_W) = \tilde{\Phi}(x_W') \implies \forall x_V \in \CX_V: f(x_J,x_V,x_W) = f(x_J,x_V,x_W').$$
+
+Define the measurable mapping $\tau : \CX_{\tilde{W}} \times \CX_W \to \CX_{\tilde{W}}^2$ by
+  $$\tau(x_{\tilde{W}},x_W) = (x_{\tilde{W}},\tilde\Phi(x_W)).$$
+Note that $\Delta:=\{(x_{\tilde{W}},x_{\tilde{W}}) : x_{\tilde{W}} \in \CX_{\tilde{W}}\}$ is measurable (since it is closed and $\CX_{\tilde{W}}$ is Hausdorff).
+Hence
+  $$\tau^{-1}(\Delta) = \{ (x_{\tilde{W}},x_W) \in \CX_{\tilde{W}} \times \CX_W \mid x_{\tilde{W}} = \tilde\Phi(x_W) \}$$
+is Borel measurable.
+
+We show that for $\tilde{P}$-almost all $x_{\tilde{W}}$, there exists $x_W$ such that $\tilde\Phi(x_W) = x_{\tilde{W}}$.
+Consider the property $\tilde\pi(x_{\tilde W}) := \ind_{\tilde\Phi(\CX_W)}(x_{\tilde{W}})$.
+Then the property $\pi(x_W) = \ind_{\tilde\Phi(\CX_W)}(\tilde\Phi(x_W))$.
+The latter holds $P(X_W)\as$ (even `surely'), hence the former holds $\tilde{P}(X_{\tilde{W}})\as$ by Lemma~\ref{lem:pushforward_as}.
+
+By \cite[Theorem F.8]{BFPM21}, it follows that there exists a measurable mapping $\Psi : \CX_{\tilde{W}} \to \CX_W$ such that $(x_{\tilde{W}},\Psi(x_{\tilde{W}})) \in \tau^{-1}(\Delta)$ for $\tilde P(X_{\tilde{W}})$-almost every $x_{\tilde{W}}$.
+\end{proof}
+
+We believe, but are not sure, whether this result can be generalized to $X_J$-dependent exogenous push-forwards.
+\begin{Con}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \lt J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ an exogenous push-forward of $M$, where $\tilde\Phi : \CX_J \times \CX_W \to \CX_{\tilde{W}}$ is a measurable function.
+  Then there exists a measurable essential right-inverse $\Psi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ of $\tilde\Phi$, that is, such that for all $x_J \in \CX_J$,
+  $\tilde{\Phi}(x_J,\Psi(x_J,x_{\tilde{W}})) = x_{\tilde{W}}$ for $\tilde P(X_{\tilde{W}})$-almost all $x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+\end{Con}
+\begin{proof}
+We want to conclude the existence of a measurable mapping $\Psi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ such that for all $x_J$, for $\tilde P$-a.a.\ $x_{\tilde{W}}$, $(x_J,x_{\tilde{W}},\Psi(x_J,x_{\tilde{W}})) \in \tau^{-1}(\Delta)$.
+Perhaps we can directly apply the Jankov/von Neumann uniformization theorem \cite[Theorem 18.1]{Kec95}.
+It says: ``Let $X,Y$ be standard Borel spaces and let $S \ins X \times Y$ be analytic. Then $S$ has a uniformizing function that is $\sigma(\Sigma_1^1)$-measurable (with $\sigma(\Sigma_1^1)$ the sigma algebra generated by the analytic sets).''
+\cite[Theorem 29.9]{Kec95} adds: the uniformizing function is also universally measurable.
+We could try this approach: take $X = \CX_J \times \CX_{\tilde{W}}$, $Y = \CX_W$, $S = \tau^{-1}(\Delta)$.
+Then $S$ has a uniformizing function $\psi : \pr_X(S) \to Y$ that is universally measurable.
+Since $\pr_X(S)$ is analytic, we can sandwich it by $\underline{S} \ins \pr_X(S) \ins \overline{S}$.
+We should have applied 29.9 to $\underline{S} \times Y \cap S$ instead, to conclude the existence of a universally measurable uniformizing function $\psi : \underline{S} \to Y$.
+
+Perhaps we can use \cite[Theorem 35.46]{Kec95} (Arsenin-Kunugui)? This states that if
+  ``$X$ is a standard Borel space, $Y$ a Polish space, $S \ins X \times Y$ a Borel set all of whose sections $S_x$, for $x \in X$, are $\sigma$-compact, then $S$ has a Borel uniformization and so, in particular, $\pr_X(S)$ is Borel.''
+\end{proof}
+
+The proof of the following conjecture also hinges on some analytic set theoretical complications.
+\begin{Con}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an iSCM, and $M_{\repar{\tilde{f}}{\tilde{\Phi}}} = \ltuple J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ an exogenous push-forward of $M$, where $\tilde\Phi : \CX_W \to \CX_{\tilde{W}}$ is a measurable function that does not depend on $\CX_J$.
+  Then $M$ is simple if and only if $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is simple.
+\end{Con}
+\begin{proof}
+  By assumption,
+  $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\tilde{\Phi}(x_W)) \quad M\as.$$
+  If $M$ is essentially uniquely solvable, then there exists a measurable function $g : \CX_J \times \CX_W \to \CX_V$ that satisfies
+    $$x_V = f(x_J,x_V,x_W) \iff x_V = g(x_J,x_W)\quad M\as.$$
+
+  We might be able to show that in Corollary~\ref{cor:exog_pushforward_as} $\pi$ holds up to a measurable $M$-null set iff $\tilde\pi$ holds up to a measurable $\tilde{M}$-null set.
+  (It is easy to see that one direction works: if $N$ is measurable, then $(\id_{\CX_J},\tilde\Phi)^{-1}(N)$ is also measurable.)
+  Suppose we can indeed show that this holds.
+
+  Then we can use Corollary~\ref{cor:scm_partial_solvability_equivalent_formulations}. 
+  That states that $M$ is essentially uniquely solvable w.r.t.\ $L \ins V$ if and only if 
+  $U^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_W$ up to a measurable $M$-null set, with
+  $$U^{[L]} := \{x_{J \cup (V\sm L) \cup W} \in \CX_J \times \CX_{V\sm L} \times \CX_W \mid \exists! x_L \in \CX_L : x_L = f_L(x_J,x_{V\sm L},x_W,x_L)\}.$$
+  
+  We want to show that: $M$ is simple if and only if $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is simple.
+  For this we need to show that for all $L \ins V$,
+  $M$ is essentially uniquely solvable w.r.t.\ $L$ if and only if $M_{\repar{\tilde{f}}{\tilde{\Phi}}}$ is essentially uniquely solvable w.r.t.\ $L$.
+  With Corollary~\ref{cor:scm_partial_solvability_equivalent_formulations}, this would follow if
+  $U^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_W$ up to a measurable $M$-null set if and only if
+  $\tilde{U}^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_{\tilde{W}}$ up to a measurable $\tilde{M}$-null set,
+  with
+  $$U^{[L]} := \{x_{J \cup (V\sm L) \cup W} \in \CX_J \times \CX_{V\sm L} \times \CX_W \mid \exists! x_L \in \CX_L : x_L = f_L(x_J,x_{V\sm L},x_W,x_L)\}$$
+  and
+  $$\tilde{U}^{[L]} := \{x_{J \cup (V\sm L) \cup \tilde{W}} \in \CX_J \times \CX_{V\sm L} \times \CX_{\tilde{W}} \mid \exists! x_L \in \CX_L : x_L = \tilde{f}_L(x_J,x_{V\sm L},x_{\tilde{W}},x_L)\}.$$
+
+  So modulo the gap in the measurability of the null sets in Corollary~\ref{cor:exog_pushforward_as}, this seems to work.
+\end{proof}
+
+
+\subsection{Causal ordering}
+
+\label{sec:causal_ordering}
+
+An alternative, more general approach to causality is provided by employing Simon's causal ordering algorithm.
+Here we will write down some new results, showing how to derive a Markov property for a system of (differential) equations, which also provides the foundation for a causal semantics of (deterministic or stochastic) processes.
+
+\subsection{Variation independence}
+
+See Constantinou and Dawid. This is fairly straightforward, and forms a separoid.
+The same paper contains some inspiration for how to combine variation and stochastic indepdence.
+However, they introduce what they call a ``complementarity'' condition which requires essentially that all context variables occur in the CI statement. This introduces complications and asymmetries. Cannot we do without that assumption?
+Furthermore, they do propose a definition for CI statements that allow for random and input variables at arbitrary places.
+This might also work for us, perhaps. 
+Last but not least, perhaps their framework became so asymmetric because they try to keep a strict separation between pure stochastic and pure decision variables, but what we really need is a framework where we can just combine the two at will.
+
+Perhaps, if we have input variables $C$ and exogenous random variables $W$, use a Markov kernel $K(W|C)$. Then, perhaps use the chain rule.
+
+\subsection{Markov property}
+
+On \url{https://math.stackexchange.com/questions/1236413/globally-lipschitz-implies-solutions-exist-for-all-time/1236482\#1236482} is a very useful discussion of the Picard-Lindel\"of theorem. 
+
+\subsection{New notion of conditional independence}
+
+Perhaps I am too na\"ive, but what is wrong with the following very simple construct?
+
+Dawid (Some variations on variation independence.
+A. Philip Dawid Proceedings of the Eighth International Workshop on Artificial Intelligence and Statistics, PMLR R3:83-86, 2001.)
+defines variation independence in the following way.
+For an underlying outcome space $\Omega$ (just a set) and functions (``deterministic variables'') 
+$X : \Omega \to \C{X}$, $Y : \Omega \to \C{Y}$ and $Z : \Omega \to \C{Z}$ (with $\C{X},\C{Y},\C{Z}$ arbitrary spaces), define
+the range of $Y$ as $R(Y) := \{Y(\omega) : \omega \in \Omega\} \subseteq \C{Y}$ and the conditional range of $X$ given $Y=y \in R(Y)$ as
+$R(X|Y=y) := \{X(\omega) : \omega \in \Omega, Y(\omega) = y\}$. One can then define the notion of variation independence as follows:
+\begin{align*}
+  X \Indep^v_\Omega Y | Z 
+  &\iff \forall (y,z) \in R(Y,Z): R(X | y,z) = R(X|z) \\
+  &\iff \forall (y,z) \in R(Y,Z), (y',z) \in R(Y,Z): R(X|Y=y,Z=z) = R(X|Y=y',Z=z) \\
+  &\iff \forall z\in R(Z) : R(X,Y|z) = R(X|z) \times R(Y|z).
+\end{align*}
+This is easily shown to be a separoid (with ``being a function of'' as the ordering).
+This allows to catch the notion that a function does not depend on some input:
+If $X_i : \Omega \to \C{X}_i$ and $f(X_1,X_2,X_3,\dots,X_n)$ is a function then
+$f(X_1,\dots,X_n) \Indep^v_\Omega X_j \given X_1,\dots,X_{j-1},X_{j+1},X_n$ means
+that $f$ does not actually depend on $X_j$. Note that this is a conditional independence
+statement, a marginal independence statement is much weaker. 
+
+One question is whether the notion of variation independence gives rise to an orthogonal projection.
+In particular, given $X : \Omega \to \C{X}$, we would like to define $X^\perp : \Omega \to \C{Y}$ such 
+that 
+\begin{enumerate}
+  \item $(X,X^\perp)$ contains all information about $\Omega$, i.e., $\Omega$ can be written as a function of $(X,X^\perp)$;
+  \item $X^\perp \Indep^v_\Omega X$
+\end{enumerate}
+(The probabilistic version of this seems to be the causal reduction)
+If we would like to define what $X \Indep f(C)$ means (in a JCI setting/notation, e.g.) then it appears convenient to be able to write this as $\Prb(X | f^\perp(C), f(C)) = \Prb(X | f(C))$, i.e., the kernel on the l.h.s.\ essentially only depends on $f(C)$ and is invariant under changes of $f^\perp(C)$.
+
+Patrick had a nice idea: define conditional independence for transitional random variables $X,Y,Z$ only for those tuples of $X,Y,Z$ that contain all information about the input $T$, and by symmetrizing, i.e., there exist Markov kernels $Q(X|Z)$ and $Q(Y|Z)$ such that $P(X,Y,Z|T) = Q(X|Z) \otimes Q(Y|Z) \otimes P(Z|T)$. He thought that this would form a separoid (in particular, that the tuples $X,Y,Z$ form a lattice), but couldn't prove this in complete generality (but for discrete variables there were no problems).
+This would also be a nice ``symmetrization'' and would kind of force us to implement JCI-FCI12r (as a priori it is not clear whether a statement like $X \Indep T_1$ is meaningful, but we can assign meaning to $X \Indep T_1 \given T_2$ if $T = (T_1,T_2)$.
+Let $\C{F}$ be the set of tuples $(X,Y,Z)$ such that $X : \Omega \times \C{T} \to \C{X}$, $Y : \Omega \times \C{T} \to \C{Y}$, $Z : \Omega \times \C{T} \to \C{Z}$, and there exists a function $\tau : \C{X} \times \C{Y} \times \C{Z} \to \C{T}$ such that $\tau(X(\omega,t),Y(\omega,t),Z(\omega,t)) = t$ for all $\omega \in \Omega$, $t \in \C{T}$.
+With $\le$ denoting ``is-a-function-of'', this is a join semi-lattice, with join $X \wedge Y \equiv (X,Y)$.
+In particular, we always have that $T \le X \wedge Y \wedge Z$ if $X, Y, Z \in \C{F}$.
+If this a separoid, we have achieved an extension of Patrick's notion of independence that also comes with a Markov property.
+
+Now we try combine variation independence with probabilistic independence. We consider
+$\Omega = \Omega_J \times \Omega_X$ (with $\Omega_J \ne \emptyset$ and $\Omega_X \ne \emptyset$) and consider a family of probability measures
+$(\Prb( \cdot | \omega_J))_{\omega_J \in \Omega_J}$ (not necessarily measurably) parameterized by $\omega_J$.
+For ``variables'' 
+$X : \Omega \to \C{X}$, $Y : \Omega \to \C{Y}$ and $Z : \Omega \to \C{Z}$ (with $\C{X},\C{Y},\C{Z}$ arbitrary spaces), where
+we now assume that for each $\omega_J \in \Omega_J$, $X(\omega_J,\cdot)$, $Y(\omega_J,\cdot)$, and $Z(\omega_J,\cdot)$ are measurable, we define
+$X \Indep Y | Z$ if and only if
+\begin{enumerate}
+  \item $X \Indep^v_\Omega Y \given Z$, and
+  \item $\forall \omega_J \in \Omega_J: X(\omega_J,\cdot) \Indep_{\Prb(\cdot|\omega_J)} Y(\omega_J,\cdot) | Z(\omega_J,\cdot)$
+\end{enumerate}
+
+This is then trivially a separoid as well. For the canonical projections $\mathbb{J} : \Omega \to \Omega_J$ and $\mathbb{X} : \Omega \to \Omega_X$ we have $\mathbb{J} \Indep \mathbb{X}$.
+\emph{Wait, something is missing, I only want $\mathbb{J} \Indep \mathbb{X}$ if $\Prb(\cdot|\omega_J)$ does not depend on $\omega_J$! The problem seems to be that the second condition actually corresponds to $X \Indep Y | Z,\mathbb{J}$.
+Let's use densities. Probabilistic independence then means
+$$p(x|y,z) = p(x|z) \iff p(x,y|z) = p(x|z) p(y|z)$$
+Suppose we have $t=(t_1,t_2)$. What would it mean to say that $X \Indep t_1$? If $X$ does not depend on $\omega_X$ then it is just marginal variation independence. Perhaps we need to add 
+  $\forall \omega_X \in \Omega_X: X(\cdot,\omega_X) \Indep^v_{\Omega_J} Y(\cdot,\omega_X) | Z(\cdot,\omega_X)$
+Or perhaps we just need that $X \Indep t_1$ means that $\Prb(X | \omega_J) = \Prb(X | \omega_J')$ if $t_1(\omega_J) = t_1(\omega_J')$
+Hm, the problem might be that we need to define $\Prb(X | t_1)$.
+This might be easier to do if we assume that we have a $t$-independent distribution on $\Omega_X$ (which is not without much loss of generality since we can represent a Markov kernel by a deterministic function).
+I realize now that while this may provide a ``valid'' notion of CI, and as it implies variation independence might suffice to provide a causal interpretation for systems of equations, it is not ``strong'' or ``probabilistic'' enough to allow us to interpret statistical patterns in data as independences.
+}
+
+An idea proposed by Philip is to define $X \Indep T_1$ as $X \Indep T_1 \given T_2,T_3$ if $T = (T_1,T_2,T_3)$.
+This also boils down to conditioning when doing a test. By the way, we should check what test we propose in chapter 10: is it pooling over ``unobserved'' parts of $T$, or conditioning on those? I.e., are we actually testing for $X \Indep T_1$ by pooling over $T_2,T_3$ or are we actually testing for $X \Indep T_1 \given T_2,T_3$? If we have an orthogonal complement, we could try to generalize that definition: $X(W,T) \Indep Y(W,T) | Z(W,T) \iff X(W,T) \Indep Y(W,T) | Z(W,T), (Y(W,T),Z(W,T))^\perp$. Another idea that came up in the discussion with Philip is that perhaps we could \emph{define} the object $P(X\given T_1)$ as $\{P(X\given T_1,T_2) : t_2\}$, and make a statement about the set of those distributions. In particular, we could say that if the set only has a single element, that $X \Indep T_2$. Can we do that in general? This is still a bit messy! Patrick's solution is less general but seems easier, and might suffice.
+
+An idea that I had: if we have $T = (T_1,T_2)$ and $X=f(T_1)$ and marginalize out $T_1$, do we then get $X<-T_2$? That is, could it be that the incompatibility of JCI assumption 2 with marginalization (pointed out by Thijs) is that we incorrectly marginalize over input variables?
+
+There are two differences (simplifications) with Patrick's notion:
+\begin{enumerate}
+  \item the family of probability measures need not be measurably parameterized
+  \item the input variables are not confounded-by-default; rather, we can now express their (conditional) (in)dependence in the sense of variation independence
+\end{enumerate}
+
+The first simplifies some matters, but it might also be convenient to require measurability. This might be done by first defining a measurable ``version'' of variation independence, and then making use of Patrick's theory for Markov kernels. It is not clear to me whether there would be any advantage of doing that, though.
+
+One big advantage is that the notion is symmetric, so we don't need to cripple all the definitions (including $d$-separation) to make them asymmetric as well. Deriving a Markov property for an SCM seems straightforward.
+For Patrick's notion (temporarily indicated with $\Indep^P$), we have 
+$$X \Indep^P Y | Z \iff X \Indep^P Y,T | Z$$
+and
+$$X \Indep^P Y | Z \iff X \Indep^P T | Z \land \forall t \in \C{T} : X_t \Indep_{K(\cdot|t)} Y_t \given Z_t.$$
+Suppose we have $X(\omega_J,\omega_X) := f(\omega_J)$, while $Y(\omega_J,\omega_X) := \omega_X$.
+Then, for our notion, $X \Indep Y$ but $X \nIndep \mathbb{J}$. So, we do not necessarily have that $X \Indep Y | Z$ implies $X  \Indep T | Z$.
+This seems to make more sense to me than Patrick's notion (why would $X \Indep Y | Z$ necessarily imply $X \Indep T | Z$? that seems unnatural).
+
+Patrick stated (personal communication): this is a notion already proposed by Patrick in emails (e.g. to Phil Dawid, though I personally cannot find it in that particular thread) but not written down anywhere yet.
+
+For purely deterministic variables, the notion reduces to variation independence:
+if $X,Y,Z$ are constant in $\omega_X$, then
+$$X \Indep Y | Z \iff X \Indep^v_\Omega Y \given Z$$
+since the probabilistic part holds trivially (all random variables being ``constants'').
+
+For purely probabilistic variables, the notion reduces to probabilistic independence:
+if $X,Y,Z$ are constant in $\omega_J$, then
+$$X \Indep Y | Z \iff X(\omega_J,\cdot) \Indep_{\Prb(\cdot|\omega_J)} Y(\omega_J,\cdot) | Z(\omega_J,\cdot)$$
+for an arbitrary value of $\omega_J \in \Omega_J$.
+
+Does this notion also extend Patrick's notion?
+Our notion does not extend Patrick's notion, because in general $X \Indep^v \Omega_J | Z$ does not imply $X \Indep^P \Omega_J | Z$ since even if the conditional range of $X$ given $Z=z$ does not depend on $\omega_J$, the conditional distribution of $X$ given $Z=z$ might depend on $\omega_J$.
+(For strictly positive continuous densities, though, factorization of the joint density implies that factorization of its support)
+So, we do NOT in general have that
+$$X \Indep Y,\omega_J | Z \implies X \Indep^P Y | Z.$$
+Hold on! If we assume that 
+$\Prb( \cdot | \omega_J) = \Prb(\cdot | \omega_J')$ for all $\omega_J,\omega_J' \in \Omega_J$ then it might work!
+No, even then it seems that Patrick's notion is stronger.
+
+This analysis shows to important points:
+\begin{enumerate}
+  \item While for working with causal Bayesian networks, one requires Markov kernels to be measurable w.r.t.\ their input (otherwise one cannot compose them), it seems that exogenous inputs are never integrated over (except perhaps when composing models, i.e., endogenizing exogenous input nodes, something we rarely do, and if we do, we could just demand measurability).
+    However, if we would like to act conservatively, we can make these additional measurability assumptions.
+  \item Since our notion does not reduce to Patrick's notion, we might not recover all results. The question is whether we would actually loose something.
+\end{enumerate}
+
+It seems that much of the theory of SCMs could be reused with this new notion, except:
+\begin{enumerate}
+  \item we should introduce a graph $G^o(M)$ that does not distinguish between input nodes and variable nodes
+  \item we should formulate a Markov property for conditional random variables that solve a simple SCM; we should give a direct proof that relies on first proving the local Markov property
+  \item it gets really interesting when formulating the do-calculus, as the notion of independence means that the claims look the same at first sight but have a different meaning; also, Patrick has completely rewritten that part, so we should first understand the positivity subtleties. This is the most uncertain part.
+  \item it appears that for extending FCI to deal with input variables, we could make great use of this Markov property, and that it treats observed random exogenous variables and non-random exogenous inputs on equal footing. We just need to feed FCI with some more background knowledge.
+\end{enumerate}
+
+Hm, see \url{https://link.springer.com/content/pdf/10.1023/A:1014555822314.pdf} for attempts to define CI for credal sets.
+Cassio referred me to \url{https://reader.elsevier.com/reader/sd/pii/S0004370200000291?token=587459950F60ECCA75798D5FCEFC65B26C1074800FEF211CA5FDEE6CDBC9595A2A156CE3693546DADA9D6FDD56F10618&originRegion=eu-west-1&originCreation=20220907064546} which proved
+quite useful. It defines a \emph{credal set} as a convex closed set of probability measures (on a finite outcome space). 
+It defines an asymmetric notion of irrelevance ($Y$ is \emph{irrelevant} to $X$ given $Z$ if $K(X|Z=z) = K(X|Y=y,Z=z)$ for all possible values of $y$ and $z$, for two families of credal sets $K(X|Z=z)$ and $K(X|Y=y,Z=z)$) and a symmetric notion of independence ($Y$ is \emph{independent} of $X$ if $Y$ is irrelevant to $X$ given $Z$ and $X$ is irrelevant to $Y$ given $Z$).
+Unfortunately, irrelevance is asymmetric (but satisfies ``appropriate'' versions of the semi-graphoid axioms), and
+independence is symmetric but does not satisfy contraction.
+Now contraction is (besides weak union) what we need to prove the global Markov property.
+There is another caveat to this definition: it is assumed that every joint combination of values has positive lower probability.
+This ensures that all conditional credal sets are uniquely defined by the joint credal set, simply by applying probabilistic
+conditioning to each measure in the set. (Question: why not be conservative and let division by 0 result in the interval [0,1]?)
+Apparently, it ain't easy (and it seems they couldn't solve it fully satisfactorily).
+By the way, the theory of credal networks appears to be a more general setup than what we would need, so there is hope that our specific use case is covered somewhere somehow already (imprecise probabilities is a large umbrella term for many technically slightly different approaches---the main struggle appears to relate to positivity assumptions and notions of independence).
+Perhaps: suppose $T_1$ is observed and $T_2$ latent, and $T=(T_1,T_2)$. 
+Define the conditional range of Markov kernels $Q(X|Y=y)$ as $\{K(X|Y=y,T_2=t_2) : t_2 \in \C{T}_2\}$.
+Now define CI by: $X(\omega,t) \Indep Y(\omega,t) | Z(\omega,t)$ if and only if
+$$\forall (y,z): Q(X | y,z) = Q(X|z)$$
+Interestingly, that appears to be the irrelevance notion (assuming convexity and closedness)!
+Alternatively, we might define
+$$\forall z\in Q(Z) : Q(X,Y|z) = Q(X|z) \times Q(Y|z).$$
+Would this correspond with the notion of independence then?
+Special case: if $X,Y,Z$ only depend on $t$, then $Q(X|Y=y) = K(X(t)|Y(t)=y,T_2=t_2) : t_2 \in \C{T}_2\}$.
+So what will we find here?
+
+Three remarks made by Patrick:
+\begin{itemize}
+  \item rather than considering $\{K(X|Y=y,T_2=t_2) : t_2 \in \C{T}_2\}$ as a set we can consider
+$K(X,Y=y,T_2)$ as a kernel, i.e., a mapping from $t_2 \mapsto K(X|Y=y,T_2=t_2)$.
+This might deal with all measure-theoretic complications.
+\item We can go back to the UAI paper notion of CI: if for all joint distributions on $T$ we have
+  probabilistic independence, then we have CI.
+\item Patrick's way of defining the conditional kernel for inputs with probability 0 might be the trick to deal with problems with 0 sets.
+\end{itemize}
+\Joris{TODO: investigate what part of the lecture notes we loose if we switch to the UAI paper notion of CI.
+Patrick thought that we might loose some of the do-calculus cases I added later, but wasn't sure.}
+One question becomes: why does the notion of strong independence in credal set theory not satisfy contraction, while this proposed notion would?
+Do we reproduce everything we need?
+\begin{itemize}
+  \item no input variables: it is the probabilistic notion
+  \item one observed input variable: $X \Indep T$ iff there exists $K(X)$ such that for all $P(T)$, $K(X|T) \otimes P(T) = K(X) \otimes P(T)$, i.e., such that (take all delta's) $K(X|T) = K(X)$. So this works.
+  \item $T_1 \Indep T_2$: does not hold by definition
+  \item restricted form: $X \Indep T_1,Y \given T_2,Z$ with $T=(T_1,T_2)$: if for all $P(T_1,T_2)$: 
+    $P(X,T_1,Y|T_2,Z) = P(X|T_1,Y,T_2,Z) \otimes P(T_1,Y|T_2,Z) = P(X|T_2,Z) \otimes P(T_1,Y|T_2,Z)$
+
+    Perhaps the last identity is equivalent (by multiplying with $P(T_2,Z|T)$):
+    $P(X,T_1,Y,T_2,Z|T) = P(X|T_2,Z) \otimes P(T_1,Y,T_2,Z|T)$
+
+    In Patrick's notion, we have that
+    $X \Indep Y \given Z,T_2 \iff X \Indep Y,T \given Z,T_2 \iff X \Indep Y,T_1,T_2 | Z,T_2 \iff X \Indep Y,T_1 | Z,T_2$
+    iff there exists $Q(X|Z,T_2)$ s.t.\
+    \[ K(X,Y,Z,T_2|T) = Q(X|Z,T_2) \otimes K(Y,Z,T_2|T) \]
+
+    So at first glance, this might just work! However, see also the remark in the UAI paper. 
+    It is not clear that this notion implies the one in the lecture notes.
+  \item $T_1$ observed, $T_2$ latent: $X \Indep T_1$ implies that $X \Indep T_2$, and also $X \Indep T$.
+    So this is really the JCI-123 style notion of conditional independence.
+\end{itemize}
+
+\subsubsection{Solution?}
+
+Perhaps this is it? 
+Let $\C{T}$ be a non-random exogenous input and $\C{W}$ a random exogenous input.
+Let $X : \C{T} \times \C{W} \to \C{X}$ (and similarly, $Y,Z$) be conditional random variables.
+Given a kernel $K : \C{X} \times \C{T} \dshto \C{Y}$ we define $\bar{K} := \{ K(Y|X,t) : t \in \C{T} \}$.
+Then define $X \Indep Y \given Z$ iff for all $y \in \C{Y}, z \in \C{Z}$:
+$$\bar{K}(X | Y=y,Z=z) = \bar{K}(X | Z=z)$$
+i.e., iff
+$$\{K(X | Y=y,Z=z,T=t) : t \in \C{T}\} = \{K(X | Z=z, T=t)\}$$
+
+Then, it appears as if (CHECK!!!)
+\begin{itemize}
+  \item we reproduce variation independence for conditional random variables of $\C{T}$ only;
+  \item we reproduce kernel independence a la Patrick---for restricted CI statements;
+  \item we reproduce probabilistic independence for conditional random variables of $\C{W}$ only;
+  \item there is hope that the notion satisfies the semi-graphoid axioms.
+\end{itemize}
+Aha, it seems to fail on the contraction property. Ah, do we really need contraction to derive a Markov property?
+As long as we limit attention to statements of the form $a \Indep b \given C$ with $a,b$ single variables, perhaps there is no need for it.
+Contraction is only used in case we extend the DAG with a node $c \in C$, and if we have already shown that $a \Indep b \given C \sm \{c\}$.
+But if we succeed in reverting the ordering (first condition on the level of the bipartite graph, then use marginal independence) there is no need for that step in the proof. 
+It could be that there is a price to pay: for a better treatment of context-specific independences, deterministic relations and cycles, we loose the contraction property. 
+Note that apparently the credal network theory also derives a d-separation property without having contraction.  
+
+
+
+\newcommand\sign{\mathrm{sgn}}
+By the way: in the variation independence treatment of causal ordering, it could be that we locally have solutions, without uniqueness. Thus, for example, we have a constraint $Y = X^2$. We can orient $Y \tuh X$ by defining a set-valued function $y \mapsto \{\pm \sqrt{y}\}$. This is the possibilistic variant of Bayes. Let $Z$ be variation independent of $Y$. Is then $X$ variation independent of $Z$? We could take $\sign X = \sign Z$, then knowledge of $\sign Z$ limits the possible values of $X$. So also here, the lesson is that any local non-uniqueness is compatible with dependence with any other non-constant variable in the model.
+
+
+My conclusion for now is that the causal ordering approach is agnostic towards notions of independence. 
+The essential structure that causal ordering provides is that for all values of some exogenous variables, we get
+unique solutions of the endogenous variables via local propagation through functions.
+This can be used to derive Markov properties for different notions of independence (e.g., variation independence, probabilistic independence, or transitional independence).
+The nice thing about transitional independence is that it appears to be the strongest notion in that the corresponding Markov property also derives the existence of a kernel (for example, the kernel we need in the do-calculus), as it correctly deals with the ``for all $t$'' quantifier. Any attempt to reduce this notion to a probabilistic one (by putting distributions on $t$) risks replacing the ``for all $t$'' quantifier with an ``for almost all $t$'' quantifier; the only workaround might be to assume positivity. 
+So if one is going to assume a positive density on $t$, one would probably not need the notion of transitional independence, but could just put some distribution on $t$ and take the regular conditional distribution.
+One would then still need to show that the choice of the positive density on $t$ does not matter.
+So perhaps this would be a way out of the dilemma.
+It also appears to me that ``conditioning'' can be seen as adding equations, and then making use of the overcomplete Markov property.
+
+
+Some last insights:
+\begin{itemize}
+  \item Perhaps the following could be a nice framework: assume positive, continuous densities, and
+    \begin{itemize}
+      \item define CI as ``for all positive continuous densities on $T$'' (which becomes equivalent to ``for some positive continuous density on $T$'')
+      \item for CI testing: assume the same data generating mechanism, but note that we can always take the empirical distribution on $T$ plus the assumption that asymptotically the fraction of $T \in A$ stays positive for all $A$ with positive reference measure; show that this makes any consistent probabilistic test also a consistent test in the extended setting with exogenous inputs
+      \item hope that this makes ``for all $t \in T$'' equivalent to ``for almost all $t \in T$'' (whatever the distribution on $T$, as long as it has a positive continuous density)
+      \item simplify the 2nd rule of do-calculus, the backdoor adjustment, and the ID algorithm as the null sets hopefully became harmless
+      \item note that this is perhaps implicitly what many have already been doing (including Pearl and Richardson)
+      \item note that when you do statistics, you have to make some kind of smoothness assumptions on top of measurability assumptions anyway; so why postpone that to the end, if you can get a much simpler theory by starting from that vantage point?
+      \item unfortunately, we completely rule out deterministic relations in this way for CBNs and SCMs (but perhaps not for systems of equations)
+      \item perhaps: the notion of perfect intervention should be avoided, and instead we should consider only stochastic interventions $\doit(X \in [a,b] : p(x) > 0 $\text{on}$ (a,b))$. This might be one of the hidden costs of this framework (but conceptually it is not even too farfetched, as it enforces one to recognize that we cannot just extrapolate to intervals with probability 0!).
+    \end{itemize}
+  \item Another nice framework might be:
+    \begin{itemize}
+      \item The ``strong independence'' notion: define $X \Indep Y \given Z$ iff $$\bar{K}(X | Y=y,Z=z) = \bar{K}(X | Z=z)$$
+      \item It recovers most of what we need: variation independence for $T$ components, 
+        Patrick's strong notion of CI for all restricted CI statements,
+        therefore a connection with statistical CI testing for those statements,
+        and a (suitably restricted) do-calculus,
+        at the cost of not satisfying all graphoid axioms (contraction appears violated).
+      \item Nonetheless, a similar trick as in credal networks appears possible: since all endogenous variables can be expressed as deterministic functions of exogenous ones, we can derive a Markov property nonetheless, without having to make use of the contraction property for this notion of CI.
+      \item Alternatively, we might hope to proceed by turning around the ordering: if conditiong on $Z=z$, for all $z$, can be implemented as adding an equation and applying a marginal-independence type of Markov property, we might be able to show that (for restricted statements) this framework implies Patrick's notion of CI for systems of equations.
+        So: if something can be shown to hold for all $z$, surely it must hold for almost all $z$ (according to some $P(Z)$)?
+      \item At the same time, this might give a more powerful Markov property, because we can now exploit some other features of the equationsin case multiple causal orderings are possible (hopefully allowing us to deal nicely with deterministic relations, equilibration, context-specific independences in general, etc.). As long as we can derive more (suitable restricted) CIs from modeling assumptions, that will be a huge win (and we can ignore that we don't know how to test for arbitrarily formed CI statements, or that this notion doesn't satisfy contraction).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Update}
+
+Ah. I overlooked something.  See the comment at Theorem \ref{thm-ci-equivalences}.

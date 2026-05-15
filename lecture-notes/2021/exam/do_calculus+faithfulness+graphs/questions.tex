@@ -1,0 +1,210 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{import}
+\subimport{../}{preamble.tex} 
+\ungradedsolutionstrue
+\gradedsolutionstrue
+\chead{\textbf{Do-calculus and Faithfulness}}
+
+\begin{document}
+
+
+
+\section{Chain-Rule}
+
+In this exercise, you will prove a well-known chain-rule for the case of Markov kernels. 
+Let $K: \mathcal{X} \dashrightarrow \mathcal{Y} \times \mathcal{W}$ be any Markov kernel. 
+Prove that 
+\begin{equation*}
+  K(Y | X) = K(Y | W, X) \circ K(W | X),
+\end{equation*}
+where $K(Y | X)$ and $K(W | X)$ are the marginal Markov kernels and $K(Y | W, X)$ is the conditional Markov kernel.
+You should base your proof on the following definitions (and your general understanding), and make clear where you use which definition:
+\begin{enumerate}
+  \item By definition, for all measurable $D \subseteq \mathcal{Y}$ and $x \in \mathcal{X}$: 
+    \begin{equation*}
+      \left[ K(Y | W, X) \circ K(W | X)\right](D | x) = \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in \text{d} w | X = x).
+    \end{equation*}
+  \item By definition, for all measurable $F \subseteq \mathcal{Y} \times \mathcal{W}$ and $x \in X$:
+    \begin{equation*}
+      \left[ K(Y | W, X) \otimes K(W | X)\right](F | x) = \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \mathds{1}_{F}(y, w) K(Y \in \text{d} y | W = w, X = x) \bigg] K(W \in \text{d} w | X = x).
+  \end{equation*}
+\item  $K(Y \in D | X = x) \coloneq K(Y \in D, W \in \mathcal{W} | X = x)$, and similarly for $K(W \in E | X = x)$, for all measurable $D \subseteq \mathcal{Y}$ and $E \subseteq \mathcal{W}$ and all $x \in \mathcal{X}$.
+\item The definition of conditional Markov kernels.  
+  \end{enumerate} 
+
+  \begin{gradedsolution}
+    For all measurable $D \subseteq \mathcal{Y}$ and $x \in X$ we have:
+\begin{align*}
+  \big[ K(Y | X) \big] (D | x) & \overset{3.}{=} \big[ K(Y, W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{4.}{=} \big[ K(Y | W, X) \otimes K(W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{2.}{=} \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \underbrace{\mathds{1}_{D \times \mathcal{W}}(y, w)}_{= \mathds{1}_D(y)} K(Y \in \text{d} y | W = w, X = x)\bigg] K(W \in \text{d} w | X = x) \\
+  & = \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in \text{d} w | X = x) \\
+  & \overset{1.}{=} \big[  K(Y | W, X) \circ K(W | X)\big] (D | x).
+\end{align*}
+That proves the desired equality.
+  \end{gradedsolution}
+
+
+
+\section{Do-Calculus I}
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (X) at (2, 2) {$X$};
+      \node (R) at (4, 2) {$R$};
+      \node (Y) at (6, 2) {$Y$};
+      \node (S) at (8, 2) {$S$};
+      \node (Z) at (10, 2) {$Z$};
+      \node (U1) at (4, 4) {$U_1$};
+      \node (U2) at (8, 0) {$U_2$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X) to (R);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (R) to (Y);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (S) to (Y);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (Z) to (S);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U1) to (X);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U1) to (S);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U2) to (R);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U2) to (Z);
+  \end{tikzpicture}
+  \caption{The graph of an IL-CBN.}\label{fig:my_fig}
+  \end{figure}
+
+Look at the IL-CBN indicated by the graph in Figure \ref{fig:my_fig}.
+We assume that $X, R, Y, S$, and $Z$ are observed, whereas $U_1$ and $U_2$ are latent.
+Furthermore, we assume there are no input variables.
+Do the following exercises, by using the chain-rule from above, the do-calculus, and your general understanding:
+\begin{enumerate}
+  \item Show that $P(Y |  \doit(X), \doit(Z)) = P(Y | R, S, \doit(X), \doit(Z)) \circ P(R, S | \doit(X), \doit(Z))$. 
+  \item Show that $P(Y | R, S, \doit(X), \doit(Z)) = P(Y | R, S)$. 
+  \item Show that $P(R , S| \doit(X), \doit(Z)) = P(R | S, \doit(X), \doit(Z)) \otimes P(S | \doit(X), \doit(Z))$.
+  \item Show that $P(R | S, \doit(X), \doit(Z)) = P(R | X)$.
+  \item Show that $P(S | \doit(X), \doit(Z)) =  P(S | Z)$.
+  \item Argue that the causal effect $P(Y | \doit(X), \doit(Z))$ is identifiable by giving a formula in terms of observable probabilities.
+\end{enumerate}
+
+\section{Do-Calculus II}
+
+Look at the IL-CBN indicated by the graph in Figure \ref{fig:my_second_fig}.
+We assume that $X_1, X_2, X_3, X_4$, and $Y$ are observed, whereas $U_1$, $U_2$, and $U_3$ are latent.
+Furthermore, we assume there are no input variables.
+Do the following exercises, by using the chain-rule from above, the do-calculus, and your general understanding:
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (X1) at (2, 2) {$X_1$};
+      \node (X2) at (4, 2) {$X_2$};
+      \node (X3) at (6, 2) {$X_3$};
+      \node (X4) at (8, 2) {$X_4$};
+      \node (Y) at (10, 2) {$Y$};
+      \node (U1) at (4, 0) {$U_1$};
+      \node (U2) at (6, 4) {$U_2$};
+      \node (U3) at (8, 0) {$U_3$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X1) to (X2);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X2) to (X3);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X3) to (X4);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (X4) to (Y);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U1) to (X1);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U1) to (X3);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U2) to (X2);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U2) to (X4);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend left] (U3) to (X3);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue, dashed, bend right] (U3) to (Y);
+  \end{tikzpicture}
+  \caption{The graph of an IL-CBN}\label{fig:my_second_fig}
+  \end{figure}
+
+\begin{enumerate}
+  \item Show that $P(Y | \doit(X_1, X_2, X_3, X_4)) = P(Y | \doit(X_4))$. 
+  \item Show that $P(Y | \doit(X_4)) = P(Y | \doit(X_4), X_1, X_2, X_3) \circ P(X_1, X_2, X_3 | \doit(X_4))$.  
+  \item Show that $P(Y | \doit(X_4), X_1, X_2, X_3) = P(Y | X_4, X_1, X_2, X_3)$. 
+  \item Show that $P(X_1, X_2, X_3 | \doit(X_4)) = P(X_1, X_2, X_3)$.
+  \item Argue that the causal effect $P(Y | \doit(X_1, X_2, X_3, X_4))$ is identifiable by giving a formula in terms of observationsl probabilities
+  \end{enumerate}
+
+
+\section{Structural Causal Models and Faithfulness}
+
+Consider the following structural equations:
+\begin{align*}
+  X_1 & = E_1 + X_3, \\
+  X_2 & = E_2 - X_1 + X_3 + X_4, \\ 
+  X_3 & = E_3,  \\
+  X_4 & = E_4 + X_1 - X_3. 
+\end{align*}
+Thereby, all variables are real valued.
+The $E_i$ are exogenous random variables, i.i.d. standard univariate normal distributed, and the $X_i$ are endogenous variables.
+There are no exogenous input variables.
+Do the following:
+\begin{enumerate}
+  \item  {\color{magenta}Formally model the structural equations with an SCM $\mathcal{M}$.
+    To simplify the notation, use the same symbols for the labels of the variables as for the variables themselves.}
+\textbf{Did we want to remove part 1? I'm not sure anymore.}
+  \item  Find a solution function $g$ for an SCM $\mathcal{M}$ representing these equations by finding an expression of the $X_i$ purely in terms of the $E_i$, such that the $X_i$ satisfy the structural equations. 
+    Is it unique? If so, why? If not, find a second solution function. 
+  \item  Draw the observational causal graph $G(\mathcal{M})^{\{X_1, X_2, X_3, X_4\}}$.
+    {\color{magenta}
+  \item  List all conditional independencies 
+    \begin{equation*}
+      X_i \Indep_{P(\boldsymbol{X}, \boldsymbol{E})} X_j | X_k
+    \end{equation*} 
+    for pairwise different $i, j, k$, where $\boldsymbol{X} = (X_1, X_2, X_3, X_4)$ and $\boldsymbol{E} = (E_1, E_2, E_3, E_4)$. 
+    Argue that the conditional independencies which you find are all conditional independencies involving only single variables $X_i$.
+  \item  List all $d$-separations 
+    \begin{equation*}
+      X_i \Perp^d_{G(\mathcal{M})} X_j | X_k
+    \end{equation*}
+    for pairwise different $i, j, k$, and argue that these are all such $d$-separations.
+  \item  Argue that $\mathcal{M}$ is not faithful.
+  \item Look at all the coefficients in front of any of the $X_i$ in any of the structural equations (all are either $+1$ or $-1$).
+    Is it possible to change only one single coefficient to a different real number to get a faithful model? 
+    If so, make this change. 
+  If not, explain why this is not possible.} \textbf{Below: New version of 4, 5, 6, 7 which should be more solvable.}
+\item Find three different independencies $X_i \Indep_{P(\boldsymbol{X}, \boldsymbol{E})} X_j$ with $\boldsymbol{X} = (X_1, X_2, X_3, X_4)$, $\boldsymbol{E} = (E_1, E_2, E_3, E_4)$ and $i < j$.
+\item Is there a $d$-separation of the form  $X_i \Perp^d_{G(\mathcal{M})} X_j$ with $i, j \in \{1, 2, 3, 4\}$?
+  If so, find it, of not, argue why not.
+\item Is $\mathcal{M}$ faithful? Explain.
+\item Look at all the coefficients in front of any of the $X_i$ in any of the structural equations (all are either $+1$ or $-1$).
+  Is it possible to change only one single coefficient to a different real number to get a model such that all $X_i$ are \emph{dependent} on all $X_j$ for any $i, j \in \{1, 2, 3, 4\}$?
+    If so, make this change. 
+    If not, explain why this is not possible.
+\end{enumerate}
+
+\begin{gradedsolution}
+  Part 11: If I'm not mistaken, then changing the coefficient in front of $X_1$ in the equation of $X_4$ to any number $\alpha \neq 1$ leads to all dependencies being true:
+  \begin{equation*}
+         X_4 = E_4 + \alpha X_1 - X_3
+  \end{equation*}
+\end{gradedsolution}
+
+
+\section{$d$-separation cannot be formulated with paths instead of walks}
+
+Construct a DAG $\mathcal{G}$ with four nodes $V = \{A, B, C, D\}$ such that the following two properties hold:
+\begin{enumerate}
+  \item  $\{A\} \nPerp_G^d \{B\} | \{C\}$. 
+  \item  All \emph{paths}\footnote{Remember that, by definition, paths do not contain any node twice.} from $A$ to $B$ are $d$-blocked by $C$. 
+\end{enumerate}
+
+\begin{gradedsolution}
+
+ \begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1, transform shape]
+      \tikzstyle{every node} = [draw,shape=circle,color=blue];
+      \node (B) at (2, 2) {$B$};
+      \node (D) at (4, 2) {$D$};
+      \node (A) at (6, 2) {$A$};
+      \node (C) at (4, 0) {$C$};
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (B) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (A) to (D);
+     \draw[-{Latex[length=3mm, width=2mm]}, color=blue] (D) to (C);
+  \end{tikzpicture}
+  \caption{The caption of a possible solution}\label{fig:my_third_fig}
+  \end{figure}
+
+\end{gradedsolution}
+
+\end{document}

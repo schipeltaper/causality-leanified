@@ -1,0 +1,102 @@
+% !TEX root = hw14-answers-graded.tex
+\chead{\textbf{Exercises week 14}}
+\begin{document}
+\flushleft\textbf{Topic: Causal Relations}
+
+\begin{enumerate}[label=14.\arabic*]
+	\item Reichenbach's Principle of Common Cause states that if two events are dependent,
+	then one must cause the other or the events are confounded (or any combination of these three possibilities).
+	We can make this precise for simple SCMs in the following way. Assume that $M$
+	is a simple SCM with two observed endogenous variables $X,Y$ (and possibly other
+	latent variables as well, but no exogenous input nodes). Prove that
+	$X \nIndep_{P_{M}} Y$
+	implies that $X \to Y$,
+	$X \leftarrow Y$ or $X \leftrightarrow Y$ in $G(M_{\{X,Y\}})$.
+
+	\begin{ungradedsolution}
+		Assume that $X \to Y$, $X \leftarrow Y$ and $X \leftrightarrow Y$ \textbf{not} in $G(M_{\{X,Y\}})$. Then $X$ is $\sigma$-separated from $Y$, and thus by Markov property $X \Indep_{P_{M}} Y$, which is a contradiction.
+	\end{ungradedsolution}
+
+	% \item Show for binary variables $X, Y$, no simple SCM exists with the graph 
+
+
+	\item \emph{In the fall of 1973, the Graduate Division of the University of California, Berkeley, made admission decisions for 12763 applicants to its 101 departments. The admission rate for 8442 male applicants was approximately 44.2\% and for 4321 female applicants was approximately 34.6\%. This disparity prompted Bickel et al. (1975) to investigate whether the Graduate Admissions Office discriminated on the basis of sex. The authors found that despite there being a statistically significant disparity in the aggregate data, when each department was examined, the per-department admission rates did not differ significantly between the sexes, thus making this case an instance of Simpson's paradox. The resolution was that the ``proportion of women applicants tends to be high in departments that are hard to get into and low in those that are easy to get into''. The disparity was therefore attributed to societal biases and the authors concluded that there was ``no pattern of discrimination on the part of the admissions committee.''}
+
+	There is a growing literature on `fairness' in statistics and machine learning. The above paragraph is for example taken from \href{https://arxiv.org/pdf/2502.10161}{Bhadane et al. (2025), Revisiting the Berkeley Admissions data: Statistical Tests for Causal Hypotheses}. In this exercise we investigate various notions of fairness and how one can statistically test for them.
+
+	\begin{enumerate}
+		\item Give an SCM with endogenous variables $S$ (sex), $A$ (admission) and $D$ (department choice) which describes the setting of the Berkeley admission process, and draw it's corresponding causal graph.
+		\item The presence of which causal relation is deemed `unfair'? (Correspondingly, the absence of such a causal effect is deemed `fair'.)
+		\item If we want to perform a statistical test for fairness, we have to be specific about what fairness actually means. For example, we can define an SCM $M$ to be \emph{observationally fair} if $P_M(A \given S, D=d) = P_M(A\given D=d)$ for all $d$ -- that is, \emph{``when each department [is] examined, the per-department admission rates [do] not differ [...] between the sexes''}, which is the fairness notion considered by Bickel et al. In Chapter 9 we have seen various notions of causal relations. Using these different notions of causes, define \emph{interventional fairness}, \emph{counterfactual fairness} and \emph{graphical fairness}.
+		\item Which implications between interventional, counterfactual and graphical fairness can you deduce from Proposition \ref*{prp:scm_causes}? (Or its subsequent corollary.) How does this relate to observational fairness? And what are the relations between the various notions of unfairness?
+		\item\label{q:ci_test} Bhadane et al.\ show that if one assumes that $P_M(S,D) > 0$ and that there is no confounding between department choice and admission, then $M$ is observationally fair iff $M$ is interventionally fair iff $M$ is counterfactually fair iff $M$ is graphically fair (Lemma 12). Hence, the sets of possible observational distributions
+		\begin{align*}
+			 & \{P_M(S, D, A) : M \textrm{ is observationally fair}\}  \\
+			 & \{P_M(S, D, A) : M \textrm{ is interventionally fair}\} \\
+			 & \{P_M(S, D, A) : M \textrm{ is counterfactually fair}\} \\
+			 & \{P_M(S, D, A) : M \textrm{ is graphically fair}\}
+		\end{align*}
+		are the same for all notions of fairness -- see Theorem 13 in their paper. How can one statistically test for the various notions of fairness?\\
+		\emph{Hint: test for the observational fairness notion.}
+	\end{enumerate}
+	Hence, if there is no confounding, then in this particular setting testing for observational fairness is equivalent to testing for e.g.\ graphical fairness. If one allows for latent confounding between admission and department (e.g.\ mathematical skills) then this equivalence does not hold.
+	\begin{enumerate}[resume]
+		\item If there is no confounding between $A$ and $D$, rejection of the observational fairness test from question \ref{q:ci_test} implies graphical unfairness. (Why?) Why does this not hold if we allow for confounding between $A$ and $D$?
+		% \item Why would  is the proposed test from question \ref{q:ci_test} and the corresponding notion of observational not suitable for testing some form of observational fairness if we allow for confounding between $A$ and $D$?\\
+		% \emph{Hint: Consider a faithful model which has confounding between $A$ and $D$ and which is graphically fair.}
+		\item \label{q:nuance} \textbf{BONUS} Prove that with confounding between $A$ and $D$ the fairness notions are not equivalent: construct a model which is interventionally fair but not graphically fair.
+	\end{enumerate}
+	Despite the fairness notions not being equivalent, Bhadane et al.\ show that even if one allows for confounding between $A$ and $D$, we have that
+	\begin{align*}
+		% &\{P_M(S, D, A) : M \textrm{ is observationally fair}\}\\
+		 & \{P_M(S, D, A) : M \textrm{ is interventionally fair}\}   \\
+		 & =\{P_M(S, D, A) : M \textrm{ is counterfactually fair}\}  \\
+		 & =\{P_M(S, D, A) : M \textrm{ is interventionally fair}\},
+	\end{align*}
+	and they all correspond to the so called \emph{instrumental variable (IV) model}. By devising a test for the IV model they are able to test for the various fairness notions in the following way:
+	\begin{itemize}
+		\item `Accepting' the IV model means that the data is interventionally fair, but as seen in question (\ref{q:nuance}), this does not imply that the model is counterfactually fair (nor graphically fair), hence counterfactual and graphical fairness are undecidable (in this setting).
+		\item Rejecting the IV model means concluding interventional unfairness, and hence also counterfactual and graphical unfairness.
+	\end{itemize}
+
+	Bhadane et al.\ found for the Berkeley case strong evidence that the data satisfies the IV model, so in general. We refer the interested reader to the paper for more information.
+	\begin{ungradedsolution}
+		\begin{enumerate}
+			\item SCM $\Xcal_A = \{0,1\}, \Xcal_D = \{1, ..., 101\}, \Xcal_A = \{0,1\}$
+			\begin{align*}
+				S = f_S(U_S)\\
+				D = f_D(S, U_D, U_L)\\
+				A = f_A(S, D, U_A, U_L)
+			\end{align*}
+			with $P(U_S), P(U_D), P(U_A), P(U_L)$ given and arbitrary outcome spaces $\Xcal_{U_S}, \Xcal_{U_D}, \Xcal_{U_A}, \Xcal_{U_L}$.
+			\begin{figure}[ht]
+				\centering
+				\begin{tikzpicture}[scale=1, transform shape]
+					\node[ndout] (S) at (0, 0) {$S$};
+					\node[ndout] (A) at (2, 0) {$A$};
+					\node[ndlat] (D) at (1, 1) {$D$};
+					\draw[arout] (S) to (A);
+					\draw[arlout] (S) to (D);
+					\draw[arlout] (D) to (A);
+				\end{tikzpicture}
+				\caption{Causal graph $G^+$.}
+				\label{fig:one}
+			\end{figure}
+			\item $S$ on $A$.
+			\item \begin{itemize}
+				\item \emph{interventional fairness}: $S$ is not a rung-2 cause of $A$
+				\item \emph{counterfactual fairness}: $S$ is not a rung-3 cause of $A$
+				\item \emph{graphical fairness}: $S$ is not a cause of $A$ according to $M$.
+			\end{itemize}
+			\item Corollary \ref*{cor:scm_causes}:\\
+			Graphical fairness $\implies$ counterfactual fairness $\implies$ interventional fairness.\\
+			Since interventional fairness means $P(A\given \doit(S), D) = P(A\given D)$ and we have by rule 2 of the do-calculus that $P(A\given \doit(S), D) = P(A\given S, D)$, we have that interventional fairness implies observational fairness.\\
+			Similarly, observationally unfair $\implies$ interventionally unfair $\implies$ counterfactually unfair $\implies$ graphically unfair.
+			\item Observationally fair is $S\Indep A\given D$, so a conditional independence test.
+			\item If $M$ is graphically fair we have $S\nPerp A\given D$, so a faithful model would have $S\nIndep A\given D$, so observing $S\Indep A\given D$ does not imply graphical fairness.
+			\item BONUS
+		\end{enumerate}
+	\end{ungradedsolution}
+
+\end{enumerate}
+\end{document}

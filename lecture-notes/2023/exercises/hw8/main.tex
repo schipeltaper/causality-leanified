@@ -1,0 +1,330 @@
+% !TEX root = hw8-answers-graded.tex
+\chead{\textbf{Exercises week 8}}
+
+\begin{document}
+\flushleft\textbf{Topic: Do-calculus and the backdoor criterion}
+
+\begin{enumerate}
+  \item %($3 \times 1$ points)
+  In this exercise, we want to gain a more intuitive understanding of the backdoor criterion.
+  Let $G^{+} = (J, (V, U), E^{+})$ be a DAG with $J = \emptyset$, and let $A, B, C \subseteq V$ be pairwise disjoint subsets.
+  The backdoor criterion for identifying causal effects from $B$ to $A$ reads:
+  \begin{align*}
+    i  & )  \quad   C    \Perp^d_{G_{\doit(I_B)}} I_B                \\
+    ii & )  \quad    A    \Perp^d_{G_{\doit(I_B)}} I_B \mid B \cup C
+  \end{align*}
+  Now, we define a \emph{backdoor walk} from $A$ to $B$ to be any walk which starts in a node in $A$ and ends in a node in $B$ and whose last arrow is of the form $v \rightarrow b$ (instead of $v \leftarrow b$), i.e., it enters $B$ ``from the backdoor''.
+  Now consider the following two alternative conditions:
+  \begin{align*}
+    i'  & ) \quad   C \cap \text{Desc}^G(B) = \emptyset                           \\
+    ii' & ) \quad   \text{All backdoor walks from $A$ to $B$ are $d$--blocked by $C$}
+  \end{align*}
+  Do the following exercises:
+  \begin{enumerate}
+    \item Prove that i) is equivalent to i'), i.e.: i) implies i') and i') implies i).
+    \item Prove that ii') implies ii).
+    \item Show that ii) does not in general imply ii'), i.e.: construct an example of a DAG $G^+$ and disjoint $A, B, C \subseteq V$ such that ii) holds, but ii') does not.
+  \end{enumerate}
+  This exercise shows that in order to test if the backdoor rule is applicable, you can first see if the more intuitive conditions i') and ii') hold.
+  However, these conditions are only \emph{sufficient}, but not \emph{necessary} for the backdoor criterion to be applicable.
+  Thus, if i') holds, and ii') does not hold, you still have the chance that ii) holds and that adjustment is possible.
+
+
+  \begin{ungradedsolution}
+    We show all implications by contraposition.
+    \begin{enumerate}
+      \item We show both implications separately:
+      \begin{itemize}
+        \item $\neg i \Rightarrow \neg i':$ Assume $C \nPerp^d_{G_{\doit(I_B)}} I_B$.
+        This means that there is a walk $\pi$ from a node $I_b$ with $b \in B$ to a node $c \in C$ which is d-open by $\emptyset$.
+        Consequently, $\pi$ cannot contain any collider.
+        Note that $I_b$ has only one outgoing arrow to $b$ and no ingoing arrows, so the first edge in $\pi$ needs to be of the form $I_b \to b$.
+        Since there is no collider, by induction each arrow in $\pi$ is of the form $v_i \rightarrow v_{i+1}$.
+        Consequently, $\pi$ is directed.
+        Cutting off $I_b$, we obtain a directed walk from $b$ to $c$, proving $C \cap \text{Desc}^G(B) \neq \emptyset$.
+        \item $\neg i' \Rightarrow \neg i$: We basically do each step in reverse.
+        $C \cap \text{Desc}^G(B) \neq \emptyset$ gives a directed walk from some $b \in B$ to some $c \in C$.
+        Adding the edge $I_b \to b$ at the left, we obtain a non-blocked walk from $C$ to $I_B$, showing $C \nPerp^d_{G_{\doit(I_B)}} I_B$.
+      \end{itemize}
+      \item $\neg ii \Rightarrow \neg ii'$: Assume $A \nPerp^d_{G_{\doit(I_B)}} I_B | B \cup C$.
+      Thus, there is a walk $\pi$ from some $a \in A$ to $I_b$ for some $b \in B$ which is d-open by $B \cup C$.
+      The last edge of $\pi$ is of the form $b \leftarrow I_b$ by definition of $G_{\doit(I_B)}$.
+      The edge before that then must be of the form $v \rightarrow b$ (instead of $v \leftarrow b$), for some $v \in V \cup U$ since otherwise $\pi$ would be blocked by $b \in B \subseteq B \cup C$, a contradiction.
+      Now consider the walk $\pi'$ from $a$ to $b$ constructed from $\pi$ by just removing the last edge $b \leftarrow I_b$.
+      It is a backdoor-walk since it ends with $v \rightarrow b$.
+      Now, assume that $\pi$ was actually chosen to have the smallest length possible.
+      Then, none of the intermediate nodes can be in $B$, since otherwise by the openness that intermediate node would need to be a collider and we could construct a shorter walk to $I_B$.
+      Consequently, $\pi'$ is not only d-open by $C \cup B$, but even d-open by $C$ (reason: colliders must have their middle node in $C \cup B$, and since it cannot be in $B$, it must then be in $C$!).
+      Thus, there is a backdoor walk (namely $\pi'$) from $A$ to $B$ which is d-open by $C$, i.e. we proved $\neg ii'$.
+      \item A counterexample is given by the following graph, with $A = \{a\}$, $B = \{b_1, b_2\}$, and $C = \emptyset$:
+      \begin{figure}[ht]
+        \centering
+        \begin{tikzpicture}[scale=1, transform shape]
+          \node[ndout] (A) at (2, 0) {$a$};
+          \node[ndout] (B) at (4, 0) {$b_1$};
+          \node[ndout] (X) at (6, 0) {$b_2$};
+          \node[ndint] (I) at (4, -2) {$I_{b_2}$};
+          \node[ndint] (J) at (8, 0) {$I_{b_2}$};
+          \draw[arout] (B) to (A);
+          \draw[arout] (B) to (X);
+          \draw[arint] (J) to (X);
+          \draw[arint] (I) to (B);
+        \end{tikzpicture}
+        \label{fig:cadmg}
+      \end{figure}
+    \end{enumerate}
+  \end{ungradedsolution}
+
+  \item %($15 \times 1/5$ points)
+  You are investigating the effectiveness of a drug against a deadly disease.
+  You are given access to data collected by health insurance companies about
+  their customers. You divide the diseased customers into two groups: those
+  that took the drug, and those that didn't take the drug.
+  Some of the customers
+  recovered, others unfortunately didn't recover. The reasons why some patients
+  were treated and others were not, are unknown to you.
+  You find the following numbers:\\
+  \vspace{20pt}
+  \centerline{\begin{tabular}{l|cc|c|c}
+              & Recovery & No recovery & Total & Recovery rate \\
+      \hline
+      Drug    & 20       & 20          & 40    & \dots\%       \\
+      No drug & 16       & 24          & 40    & \dots\%       \\
+      \hline
+      Total   & 36       & 44          & 80    &               \\
+    \end{tabular}}
+
+  \begin{enumerate}
+    \item Calculate the recovery rates (in \%) for both groups (``drug'' and ``no drug'').
+    \item If you were diseased, would you take the drug, or not?
+  \end{enumerate}
+
+  Upon closer inspection of the data, you notice something peculiar when you group patients according to gender:\\
+
+  \vspace{20pt}
+  \centerline{\begin{tabular}{l|cc|c|c}
+      \textbf{Males} & Recovery & No recovery & Total & Recovery rate \\
+      \hline
+      Drug           & 18       & 12          & 30    & \dots\%       \\
+      No drug        & 7        & 3           & 10    & \dots\%       \\
+      \hline
+      Total          & 25       & 15          & 40    &               \\
+    \end{tabular}}
+  \medskip
+  \centerline{\begin{tabular}{l|cc|c|c}
+      \textbf{Females} & Recovery & No recovery & Total & Recovery rate \\
+      \hline
+      Drug             & 2        & 8           & 10    & \dots\%       \\
+      No drug          & 9        & 21          & 30    & \dots\%       \\
+      \hline
+      Total            & 11       & 29          & 40    &               \\
+    \end{tabular}}
+
+  \begin{enumerate}[resume*]
+    \item Calculate the recovery rates (in \%) for both groups (``drug'' and ``no drug''), for each subpopulation (males and females) separately.
+    \item In light of these numbers, would you take the drug if you were diseased, or not?
+    \item What would be your advice to a diseased patient with unknown gender?
+  \end{enumerate}
+
+  This phenomenon is known as ``Simpson's paradox''.
+  A lot has been written about this paradox, but it dissolves once you recognize that you should not make the mistake of interpreting correlations as causations, as we'll see in the next part of the exercise.
+
+  We will make use of causal reasoning with L-CBNs to resolve Simpson's paradox.
+  \begin{figure}[h]
+    \centerline{%
+      \begin{tikzpicture}
+        \begin{scope}
+          \node[ndout] (M) at (0,1) {$M$};
+          \node[ndout] (D) at (-1,0) {$D$};
+          \node[ndout] (R) at (1,0) {$R$};
+          \draw[arout] (M)--(D);
+          \draw[arout] (M)--(R);
+          \draw[arout] (D)--(R);
+          \node at (-2,1) {(i)};
+        \end{scope}
+        \begin{scope}[xshift=6cm]
+          \node[ndout] (M) at (0,1) {$M$};
+          \node[ndout] (D) at (-1,0) {$D$};
+          \node[ndout] (R) at (1,0) {$R$};
+          \draw[arout] (D)--(M);
+          \draw[arout] (M)--(R);
+          \draw[arout] (D)--(R);
+          \node at (-2,1) {(ii)};
+        \end{scope}
+        \begin{scope}[xshift=12cm]
+          \node[ndout] (M) at (0,1) {$M$};
+          \node[ndout] (D) at (-1,0) {$D$};
+          \node[ndout] (R) at (1,0) {$R$};
+          \node[ndlat] (L1) at (-1,2) {$L_1$};
+          \node[ndlat] (L2) at (1,2) {$L_2$};
+          \draw[arout] (D)--(R);
+          \draw[arout] (L1)--(M);
+          \draw[arout] (L2)--(R);
+          \draw[arout] (L1)--(D);
+          \draw[arout] (L2)--(M);
+          \node at (-2,1) {(iii)};
+        \end{scope}
+      \end{tikzpicture}
+    }
+    \caption{Different hypothetical causal graphs, where $R$ stands for \emph{Recovery}, $D$ for taking the \emph{Drug}, and $M$ has different interpretations in cases (i), (ii) and (iii).\label{fig:Simpson}}
+  \end{figure}
+
+  Suppose you believe that an L-CBN with causal graph as in Figure \ref{fig:Simpson}(i) applies, where $M$ denotes gender of the patient (male/female).
+
+  \begin{enumerate}[resume*]
+    \item \label{Simpson_1} Apply the back-door criterion to obtain a formula that expresses $P(R \given \doit(D))$ in terms of observable quantities (i.e., in terms of marginal or conditional distributions where the \emph{do}-operator does not appear).
+    \item Is $P(R \given \doit(D)) = P(R \given D)$ in this case?
+    \item What would be your advice for a patient with unknown gender?
+  \end{enumerate}
+
+  Now suppose that instead, you believe that an L-CBN with causal graph as in Figure \ref{fig:Simpson}(ii) applies. Intuitively, this would be quite unlikely, as we
+  know that most drugs don't change gender, but we could have used a slightly different story where the variable $M$ has a different interpretation
+  (for example, ``blood pressure''), and then this causal structure would also be a plausible one.
+
+  \begin{enumerate}[resume*]
+    \item Again, use the back-door criterion to express $P(R \given \doit(D))$ in terms of observable quantities.
+    \item Is $P(R \given \doit(D)) = P(R \given D)$ in this case?
+    \item \label{Simpson_2} What would be your advice for a patient with unknown $M$ (say, blood pressure) in this case?
+  \end{enumerate}
+
+  Finally, suppose that you believe that the L-CBN has the causal graph of Figure \ref{fig:Simpson}(iii), with two
+  latent variables $L_1,L_2$.
+
+  \begin{enumerate}[resume*]
+    \item Provide an interpretation of $M$ and the two latent variables $L_1,L_2$ that could match the causal model depicted in Figure \ref{fig:Simpson}(iii).
+    \item Express $P(R \given \doit(D))$ in terms of \emph{observable} quantities.
+    \item Is $P(R \given \doit(D)) = P(R \given D)$ in this case?
+    \item Again, what would be your advice for a patient with unknown $M$ in this case?
+  \end{enumerate}
+
+  Conclusion: whether or not you should prescribe the drug depends on which causal model you believe to apply to this situation.
+  The fact that different causal models will lead to different conclusions should not be paradoxical, it is another illustration that
+  ``correlation does not imply causation''.
+
+  \begin{ungradedsolution}
+    \begin{enumerate}
+      \item Drug: 50\%; No drug: 40\%.
+      \item The data provided does not contain enough information to decide rationally (at first sight, one might think that taking the drug is advantageous).
+      \item Males: Drug 60\%; No drug 70\%.\\
+      Females: Drug 20\%; No drug 30\%.
+      \item  The data provided does not contain enough information to decide rationally (at first sight, one might think that taking the drug is disadvantageous for both males and females).
+      \item The data provided does not contain enough information to decide rationally.
+      \item We are looking for a subset of covariates that satisfies the assumptions of the back-door criterion. There are only two possible
+      subsets of covariates in this simple case: $\emptyset$ and $\{M\}$. According to the back-door criterion, we can adjust for $\{M\}$:
+      $$p(R \given \doit(D)) = p(R \given D, M) \circ p(M).$$
+      \item No, for this causal model $p(R \given \doit(D)) \ne p(R \given D)$ (except possibly for specifically tuned parameters of the model). Indeed,
+      note that $p(R \given D) = p(R \given D, M) \circ p(M \given D)$, and for the model in Figure \ref{fig:Simpson}(i), in general $p(M) \ne p(M \given D)$ (because of Bayes' theorem).
+      \item First of all, one should realize that treating the patient is an \emph{intervention}: we are actively setting the random variable $D$ to some value.
+      Therefore, we are interested in the quantity $p(R \given \doit(D))$, and not in $p(R \given D)$ (which lead to the paradox). We can calculate
+      $p(R \given \doit(D))$ using the adjustment formula in \ref{Simpson_1}. As $p(R|D=1,M) < p(R|D=0,M)$ for both genders, the same will hold for a mixture:
+      $p(R \given \doit(D=1)) < p(R \given \doit(D=0))$. So assuming
+      the causal structure in Figure \ref{fig:Simpson}(i), the advice would be not to take the drug.
+      \item Now $M$ is a descendant of $D$, so we cannot use $\{M\}$ for adjustment. There are no back-door paths $D \leftarrow \dots \dots R$, so
+      $\emptyset$ is sufficient for adjustment:
+      $$p(R \given \doit(D)) = p(R \given D)$$
+      \item Yes.
+      \item As $p(R \given D=1) > p(R \given D=0)$, this means that now $p(R \given \doit(D=1)) > p(R \given \doit(D=0))$. So assuming the causal
+      structure is as in Figure \ref{fig:Simpson}(ii), the advice for (all) patients is to take the drug.
+      \item Left to the imagination of the reader.
+      \item $\emptyset$ is sufficient for adjustment according to the back-door criterion, so
+      $$p(R \given \doit(D)) = p(R \given D).$$
+      \item Yes.
+      \item Same as in \ref{Simpson_2}: all patients should take the drug.
+    \end{enumerate}
+  \end{ungradedsolution}
+
+  \item %($4\times 1$ points)
+  Selection bias is a problem in the inference of observational and causal relationships.
+  For example, imagine that you want to measure the effect of some societal intervention on household incomes.
+  It is known that people are more likely to report their income if it is higher, which can make it hard to estimate the effects of the intervention if people can self-select to report.
+
+  Nevertheless, sometimes one can estimate causal effects even in such self-selection scenarios, and in this exercise we go through such an example.\footnote{The example is taken from the paper ``Recovering from Selection Bias in Causal and Statistical Inference'' by Bareinboim et al.}
+  For this, look at Figure \ref{fig:selection_effect}.
+
+  \begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}
+      \node[ndout] (W1) at (0, 0) {$W_1$};
+      \node[ndout] (W2) at (1.5, -2) {$W_2$};
+      \node[ndlat] (U) at (3, 0) {$U$};
+      \node[ndout] (X) at (3, -2) {$X$};
+      \node[ndout] (Y) at (4.5, -2) {$Y$};
+      \node[ndout] (S) at (0, -3) {$S$};
+      \draw[arout] (W1) to (W2);
+      \draw[arout] (W2) to (X);
+      \draw[arout] (X) to (Y);
+      \draw[arlout] (U) to (W2);
+      \draw[arlout] (U) to (Y);
+      \draw[arout] (W1) to (S);
+    \end{tikzpicture}
+    \caption{In this causal graph, $U$ is a latent variable and $S$ a selection variable.
+      The goal is to determine the causal effect of $X$ on $Y$ purely from observational data conditioned on the selection $S = 1$.}
+    \label{fig:selection_effect}
+  \end{figure}
+
+  The variable $S$ can take two values, $S = 1$ (selected) and $S = 0$ (not selected).
+  For convenience, we thereby use the same symbols for the nodes in the causal graph and for the random variables appearing in the corresponding Markov kernels.
+  You want to determine the causal effect $P(Y | \doit(X))$, however, there are three caveats:
+  \begin{itemize}
+    \item You only have observational data and did not perform an intervention, and so you must express this without a do-operation.
+    \item $U$ is latent and not observed, and so it cannot appear in the final formula.
+    \item You only see data in cases where a selection happened ($S = 1$), and so you only have access to an estimation of the conditional probability $P(W_1, W_2, X, Y | S = 1)$
+  \end{itemize}
+
+  In the following exercises, you will use the do-calculus to show that this does not pose an actual problem:
+  % TODO 2023: assume positivity
+
+  \begin{enumerate}
+    \item Show that $P(Y | \doit(X)) = P(Y | S, \doit(X))$.
+    \item Show that $P(Y | S, \doit(X)) = P(Y | S, W_2, \doit(X)) \circ P(W_2 | S)$.
+    \item Show that  $P(Y | S, W_2, \doit(X)) = P(Y | S, W_2, X)$.
+    \item Argue that we have reached our goal.
+  \end{enumerate}
+
+  \begin{gradedsolution}
+    \begin{enumerate}
+      \item \points{1} For applying the do-calculus rule for ``insertion/deletion of observation'', we need to check the following separation:
+      \begin{equation*}
+        Y \Perp_{G_{\doit(X)}}^{d} S | X.
+      \end{equation*}
+      Paths from $Y$ to the input node $X$ are automatically blocked by $X$.
+      There are two paths from $Y$ to $S$, namely $Y \leftarrow X \leftarrow W_2 \leftarrow W_1 \rightarrow S$, which is invalid since we cut of the parents of $X$, and $Y \leftarrow U \rightarrow W_2 \leftarrow W_1 \rightarrow S$, which is blocked at $W_2$, since this is a collider unequal to $X$.
+      Overall, all paths from $Y$ to $\{X, S\}$ are $d$-blocked by $X$, proving the separation-statement, and subsequently the insertion of observation $P(Y | \doit(X)) = P(Y | S, \doit(X))$.
+      \item \points{2}
+      By the law of total probability we can write 
+      \begin{align*}
+        P(Y | S, \doit(X)) = P(Y | S, W_2, \doit(X)) \circ P(W_2 | S, \doit(X)).
+      \end{align*}
+      To show that the ``deletion of action'' $P(W_2 | S, \doit(X)) = P(W_2 | S)$ is valid, we need to prove the separation statement
+      \begin{equation*}
+        W_2 \Perp_{G_{\doit(I_X)}}^d I_X | S.
+      \end{equation*}
+      The two paths from $W_2$ to $I_X$ are $W_2 \rightarrow X \leftarrow I_X$, which is d-blocked by $S$ due to the collider at $X$, and $W_2 \leftarrow U \rightarrow Y \leftarrow X \leftarrow I_X$, which is now open at $X$, but d-blocked by $S$ at $Y$, since this is a collider.
+
+      % Alternatively, you can apply Theorem \ref*{thm-gen-adjustment} or Corollary \ref*{thm-backdoor-cond-int} to obtain
+      % \begin{align*}
+      %   P(Y | S, \doit(X)) = P(Y | S, W_2, X) \circ P(W_2 | S)
+      % \end{align*}
+      % at once (provided you prove the two required d-separations).
+      \item \points{1} For the ``action/observation exchange'' we need to show the following separation:
+      \begin{equation*}
+        Y \Perp_{G_{\doit(I_X)}}^d I_X | \{X, S, W_2\}
+      \end{equation*}
+      There are two paths from $Y$ to $I_X$, namely $Y \leftarrow X \leftarrow I_X$, which is blocked by X since this is a non-collider, and $Y \leftarrow U \rightarrow W_2 \rightarrow X \leftarrow I_X$.
+      This second path is open at $X$, since this is an opened collider. However, at $W_2$ we have a blocked non-collider, meaning that overall, this path is also blocked.
+      Overall, this shows the separation-statement, and subsequently we can replace the action by an observation: $P(Y | S, W_2, \doit(X)) = P(Y | S, W_2, X) $.
+      \item \points{1} Overall, we have proven the formula
+      \begin{equation*}
+        P(Y | \doit(X)) = P(Y | S, W_2, X) \circ P(W_2 | S).
+      \end{equation*}
+      This means that the right-hand-side does not depend on the selection-variable at all, and we can compute the effect of an intervention on $X$ on the distribution over $Y$ as:
+      \begin{equation*}
+        P(Y | \doit(X = x)) = P(Y | S = 1, W_2, X = x) \circ P(W_2 | S = 1).
+      \end{equation*}
+      The right-hand-side is conditioned on $S=1$, does not use a do-operation, and does not make use of the latent-variable $U$, and so we can compute it from the observational distribution $P(W_1, W_2, X, Y | S=1)$ and reached our goal.
+    \end{enumerate}
+  \end{gradedsolution}
+
+\end{enumerate}
+
+\end{document}

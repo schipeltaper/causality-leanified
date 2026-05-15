@@ -1,0 +1,975 @@
+\section{Counterfactuals}
+
+Counterfactuals are questions of the kind ``Fred obtained a cum laude for his PhD; would he have obtained it also if he were female?''.
+Counterfactuals consider a hypothetical situation that is ``contrary to the fact'', that is, which differs from what was actually observed.
+%Some researchers propose to model counterfactuals using SCMs, though this relies on making strong (often unverifiable), modeling assumptions.
+%A more conservative approach is taken by the approach of Single World Intervention Graphs, which requires less strong modeling assumptions \cite{RR13a,RR13b}. 
+One of the big practical obstacles of dealing with counterfactual probabilities is that they are typically not identifiable from experimental data, and at best only bounds on such quantities can be obtained.
+For systems with (almost) deterministic causal relations, these bounds may become quite informative, but tend to become more loose as the stochasticity in the system increases.
+While it would thus perhaps be easiest to avoid counterfactuals altogether, they do appear naturally in law and engineering.
+Humans also have a tendency to communicate using counterfactuals, and the grammar of many languages distinguishes 
+counterfactual statements. This might be an inductive bias towards dealing with (almost) deterministic systems.
+
+In this chapter, we will focus on counterfactuals that are hypothetical
+statements (or questions) regarding the effects of some action that is
+contrary-to-fact, closely following Pearl's approach to counterfactuals. 
+One can consider other types of counterfactuals as well, for example 
+``backtracking'' counterfactuals. Dealing with counterfactuals appears to
+be one of the least well-defined, but perhaps also most intriguing, aspects
+of causality.
+
+\subsection{Modeling counterfactuals via twinning}\label{sec:counterfactuals}
+
+For example, suppose you are healthy but drank too much beer last night and now suffer from a hangover. 
+A counterfactual statement is then: ``If I had not drunk so much beer yesterday, I would feel much better now.''
+This statement invites one to imagine an alternative world in which everything is the same as in the actual world,
+with the sole difference that you did not drink beer last night. We can then use our causal model of the world to predict the
+consequences of this action (e.g., since you were in a healthy state and did not drink so much beer, you most likely will
+feel well in this alternative world).\footnote{The word ``counterfactual'' is also commonly used in the causal inference literature in a weaker sense, describing the potential outcome of a hypothetical situation that is not necessarily ``contrary to the fact''. For example, some would refer to ``If I drink too much beer tonight, I will have a hangover tomorrow'' as a counterfactual statement as well.
+It is important to be aware of this to avoid possible confusion. We will only use the word ``counterfactual'' in its strong (contrary-to-fact) sense.}
+This example already shows the ambiguity typically encountered in counterfactuals: if for you, not drinking beer means
+that you drink wine instead, then you may actually feel worse than if you had drunk beer.
+
+Indeed, the truth value of such statements is often hard to determine in case the ``world'' is partially latent or not
+fully understood. When debugging a computer program, one makes heavy use of counterfactuals: ``if I had put a minus sign
+there, then the output of my program would have been correct''. In case the full source code is available, it is in 
+principle straightforward to work out whether such a statement is correct or not, but it becomes more difficult if 
+the full source code is not available. It becomes even more challenging when the output of the computer program is
+stochastic or it is impossible to reproduce its complete input. 
+Generally, in situations where the full causal mechanism is unknown, or exogenous
+randomness is latent, counterfactuals may not be well-defined quantities. Nevertheless, counterfactual thinking is 
+very common in humans, and toddlers already bombard their parents with counterfactual questions, 
+presumably as a means for them to build internal causal models of the world.
+
+The mathematical formalization of counterfactuals proposed by Pearl provides some clarification, but it also points out their 
+inherent complexity and strong dependence on the chosen model.\footnote{Consider this a warning before attempting to 
+predict counterfactual statements in a data-driven way, for example, using a neural network.}
+It mimics the reasoning steps we mentally perform when thinking about counterfactuals by constructing a ``(f)actual''
+world and a parallel ``counterfactual'' world, which is minimally different in some aspect.
+The crucial (and often untestable) assumption is that the exogenous random variables have the same \emph{values} in both worlds.
+A good analogy here is that of two identical twins that share the same latent genetics. 
+Before we give the definition, we will introduce some bookkeeping notation.
+\begin{Not}
+  Given an index set $Z$ we define a primed copy $Z' := \{z' : z \in Z\}$, where each $z'$ is a ``primed'' copy of $z$ 
+  (distinguishable from $z$ itself because of the attached prime symbol). 
+  We will also write $(z')^\circ = z$ for $z \in Z$, where the superscript $\circ$ removes the prime, i.e., it
+  maps back to the original of the primed index.
+\end{Not}
+The following operation on SCMs (also known as the ``twin-network approach'' of \cite{BalkePearl1994a}) provides one possible way of modeling counterfactuals.\footnote{The twinning operation can be applied to any SCM, but not to any L-CBN, as L-CBNs typically do not explicitly model latent random variables. Only for the subclass of L-CBNs that are in SCM form (see Definition~\ref{bcn-standard-form}), i.e., for which every node with at least one parent comes with a deterministic Markov kernel, could we define a twinning operation that is analogous to the one we define for SCMs.}
+\begin{Def}\label{def:twin_scm}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM. We define the \emph{twinned SCM of $M$} as
+  the SCM $M^\twin = \lt \Sin^\twin = \Sin \dot\cup \Sin', \Send^\twin = \Send \dot\cup \Send', \Srnd, \CX^\twin, P, f^\twin \rt$
+  with $\Sin' = \{j' : j \in \Sin\}$ a copy of $\Sin$ and
+  $\Send' = \{v' : v \in \Send\}$ a copy of $\Send$, the twinned domain given by
+  $$\CX^\twin = \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$$
+  where $\CX_{j'} = \CX_j$ for all $j \in J$ and $\CX_{v'} = \CX_v$ for all $v \in V$,
+  and the twinned causal mechanism components given by
+  $$f^\twin_u\big((x_J,x_{J'}),(x_V,x_{V'}),\xW\big) = 
+  \begin{cases}
+    f_u(\xJ,\xV,\xW) & u \in \Send,  \\
+    f_{u^\circ}(x_{J'},x_{V'},\xW) & u \in \Send'.
+  \end{cases}$$
+\end{Def}
+The twinning operation is used to create copies of variables (so that in addition to the one in the factual world, 
+we have its copy in the counterfactual world) that can have different values to describe contrary-to-fact situations.
+A specific choice in modeling counterfactuals in this way is the assumption that \emph{all exogenous random variables}
+have the same value in the actual and in the counterfactual world. This is a very strong (and typically untestable)
+assumption.
+
+The English language has a special grammatical construct to express counterfactuals:
+``If I had studied better, I would have passed the exam,'' instead of ``If I study better, I will pass the exam.''
+For the first statement, we first twin the SCM and then intervene on it, for the second, we just intervene on the SCM and there is no need for twinning.\footnote{Note 
+that when considering two potential outcomes $X^{\doit(x_J)},X^{\doit(x_J')}$ of SCM $M$ for different inputs $\xJ, \xJ'$ we do \emph{not} necessarily assume that $\XW^{\doit(x_J)} = \XW^{\doit(x_J')}$; 
+we only assume that they have the same distribution, that is, $\XW^{\doit(x_J)} \sim \XW^{\doit(x_J')}$. 
+This choice has been made to avoid introducing implicitly defined ``cross-world'' assumptions.
+In our opinion, it is better to explicitly introduce such counterfactuals with the twinning construction, because this enforces one to think about which variables are shared across potential worlds and which are copied (resampled or reevaluated).}
+
+%The twinning operation is well-defined in the following sense.
+%\begin{Prp}\label{prp:twinning_preserves_scm_equivalence}
+%  Twinning preserves equivalence: $M \equiv \tilde{M} \implies M^\twin \equiv \tilde{M}^\twin$.
+%\end{Prp}
+%Furthermore, 
+The twinning operation is compatible with marginalization.
+\begin{Prp}\label{prp:twinning_marginalization_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+For $L \subseteq V$ such that $M^{[L]}$ is uniquely solvable,
+$$(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L\cup L')}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of
+  the operations performed on the various components of the SCM tuple one-by-one.
+\end{proof}
+Hard interventions are compatible with the twinning operation, in the following sense:
+\begin{Prp}\label{prp:hard_interventions_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+\begin{itemize}
+  \item For $T \subseteq \Sin \cup \Send$, $\xT \in \CXT$:
+    $$(M^\twin)_{\doit(X_T=\xT,X_{T'}=\xT)} = (M_{\doit(\XT=\xT)})^\twin.$$
+  \item For $T \subseteq \Srnd$, $Q_T \in \prod_{t\in T} \C{P}(\CX_t)$:
+    $$(M^\twin)_{\doit(X_T\sim Q_T)} = (M_{\doit(\XT\sim Q_T)})^\twin.$$
+  \item For $T \subseteq \Sin \cup \Send$:
+    $$(M^\twin)_{\doit(T,T')} = (M_{\doit(T)})^\twin.$$
+%  \item If $M_{\doit(B)}$ is uniquely solvable for $B \subseteq \Send$, then
+%    $(M_B)^\twin \equiv (M^\twin)_{B\dot\cup B'}$.
+\end{itemize}
+\end{Prp}
+\begin{proof}
+  These properties all follow by writing out the definitions and checking commutativity of
+  the operations performed on the various components of the SCM tuple one-by-one.
+\end{proof}
+Another important property of the twinning operation is that it preserves unique solvability and simplicity.
+\begin{Lem}\label{lem:sol_fns_intervened_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+Let $T_1 \subseteq J \cup V$, $T_2 \subseteq J' \cup V'$ and $T_3 \subseteq W$. 
+If $g_{\doit(T_1\cup T_3)} : \CX_{J \cup T_1 \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1}$ is a solution function of $M_{\doit(T_1\cup T_3)}$ 
+and $g_{\doit(T_2^\circ\cup T_3)} : \CX_{J \cup T_2^\circ \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_2^\circ}$ is a solution function of $M_{\doit(T_2^\circ \cup T_3)}$ 
+then
+%$$(g_{\doit(T_1)},g_{\doit(T_2^\circ)}) : \CX_{J \cup J' \cup T_1 \cup T_2 \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2}$$
+  \begin{equation*}\begin{split}
+    g^\twin & : \CX_{(J \cup T_1 \cup T_3) \cup (J' \cup T_2)} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V' \setminus T_2} \\
+    & : (x_{(J \cup T_1 \cup T_3) \cup (J' \cup T_2)}, x_{W \setminus T_3}) \mapsto \big(g_{\doit(T_1\cup T_3)}(x_{J \cup T_1 \cup T_3},x_{W\setminus T_3}),g_{\doit(T_2^\circ\cup T_3)}(x_{J' \cup T_2 \cup T_3},x_{W \setminus T_3})\big) 
+  \end{split}\end{equation*}
+is a solution function of $(M^{\twin})_{\doit(T_1 \cup T_2 \cup T_3)}$.
+  In case $g_{\doit(T_1\cup T_3)}$ and $g_{\doit(T_2^\circ \cup T_3)}$ are unique, $g^\twin$ is also the
+  unique solution function of $(M^{\twin})_{\doit(T_1 \cup T_2 \cup T_3)}$.
+\end{Lem}
+\begin{proof}
+Let $f^\twin$ denote the causal mechanism of $M^\twin$.
+For all $x \in \CXJ \times \CX_{J'} \times \CXV \times \CX_{V'} \times \CXW$,
+  \begin{equation*}\begin{split}
+    & x_{(V \cup V') \setminus (T_1 \cup T_2)} = f^\twin_{(V \cup V') \setminus (T_1 \cup T_2)}(x) \\
+    & \iff \begin{cases}
+      x_{V\setminus T_1}  &= f_{V\setminus T_1}(x_J,x_V,x_W) \\
+      x_{V'\setminus T_2} &= f_{(V'\setminus T_2)^\circ}(x_{J'},x_{V'},x_W)
+    \end{cases} \\
+%    & \impliedby \begin{cases}
+%      x_{V\setminus T_1} &= g_{\doit(T_1)}(x_{J\cup T_1},x_W) \\
+%      x_{V'\setminus T_2} &= g_{\doit(T_2^\circ)}(x_{J'\cup T_2},x_W)
+%    \end{cases}\\
+    & \impliedby \begin{cases}
+      x_{V\setminus T_1} &= g_{\doit(T_1\cup T_3)}(x_{J\cup T_1\cup T_3},x_{W\setminus T_3}) \\
+      x_{V'\setminus T_2} &= g_{\doit(T_2^\circ \cup T_3)}(x_{J'\cup T_2 \cup T_3},x_{W\setminus T_3})
+    \end{cases}\\
+    & \iff 
+    x_{(V \cup V') \setminus (T_1 \cup T_2)} = g^\twin(x_{J \cup T_1 \cup T_3}, x_{J' \cup T_2}, x_{W \setminus T_3})
+  \end{split}\end{equation*}
+In case $g_{\doit(T_1 \cup T_3)}$ and $g_{\doit(T_2^\circ \cup T_3)}$ are unique, the ``$\impliedby$'' becomes an ``$\iff$''.
+\end{proof}
+\begin{Prp}\label{prp:twin_scm_unique_solvability}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM.
+If $M$ is uniquely solvable, then $M^{\twin}$ is uniquely solvable.
+Furthermore, if $M$ is simple, then $M^{\twin}$ is simple.
+\end{Prp}
+\begin{proof}
+  The first statement follows directly from Lemma~\ref{lem:sol_fns_intervened_twin_scm} by taking $T_1 = T_2 = \emptyset$.
+  The second statement follows from Lemma~\ref{lem:sol_fns_intervened_twin_scm} in combination with
+  Theorem~\ref{thm:scm_unique_solvability}.
+\end{proof}
+
+We can also define a twinning operation on graphs. We will only define this for graphs without bidirected edges.
+\begin{Def}\label{def:G_twinning}
+  Let $G=\lt J,V \cup W,E\rt$ be a CDG such that $\Pa^G(W) = \emptyset$. Write $J' := \{j' : j \in J\}$
+  and $V' := \{v' : v \in V\}$ for copies of $J$ and $V$, respectively.
+  The \emph{twinned graph
+  $G^{\twin(J,V)}$} is defined as the CDG $\lt J \dot\cup J', V \dot\cup V' \cup W, E^\twin\rt$ with directed edges
+  $$E^\twin := E \cup \{w \tuh v' : w \in W, v \in V, w \tuh v \in E\} \cup \{i' \tuh v' : i \in J \cup V, v \in V, i \tuh v \in E\}.$$
+  In words, we copy the nodes $J \cup V$ (but not the nodes $W$) and copy the edges accordingly.
+\end{Def}
+The graphical and the SCM twinning operations are compatible:
+\begin{Prp}\label{prp:compatibility_graph_twinning}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an SCM. Then
+      $$G(M)^{\twin(J\cup V)} = G(M^\twin).$$
+\end{Prp}
+\begin{proof}
+  Follows by writing out the definitions.
+\end{proof}
+
+The simplest non-trivial example of a twin SCM is the following.
+\begin{Eg}
+  Consider an SCM with exogenous input variable $X$, endogenous variable $Y$, exogenous random variable $W$, and
+  structural equation:
+  $$Y^{\doit(x)} = f(x,W)$$
+  Its graph is depicted in Figure~\ref{fig:twin_SCM}.
+  Twinning adds an exogenous input variable $X'$, an endogenous variable $Y'$, and structural equation
+  $$(Y')^{\doit(x')} = f(x',W)$$
+  but keeps the same endogenous random variable $W$.
+  The graph of the twinned SCM is also shown in Figure~\ref{fig:twin_SCM}.
+
+  For instance, $X$ could be the number of glasses of beer you consumed yesterday evening,
+  $Y$ the severity of a headache the next morning, and $W$ would represent all other possible
+  causes of a headache (e.g., COVID-19, a concussion obtained in a rugby game, the number of
+  glasses of wine you consumed yesterday evening, \dots). When stating 
+  ``If I had not drunk so much beer yesterday, I would feel much better now,''
+  we imagine a counterfactual world in which the value of $W$ is the same as in the
+  (f)actual world, but $X'$ (and therefore $Y'$) may have different values in the
+  counterfactual world than the corresponding values $X$ (and $Y$) in the factual world.
+  \begin{figure}\centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndint] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (0,-1.5) {$Y$};
+      \node[ndlat] (W) at (1,-0.75) {$W$};
+      \draw[arint] (X) to (Y);
+      \draw[arout] (W) to (Y);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[ndint] (X) at (0,0) {$X$};
+      \node[ndout] (Y) at (0,-1.5) {$Y$};
+      \node[ndlat] (W) at (1,-0.75) {$W$};
+      \draw[arint] (X) to (Y);
+      \draw[arout] (W) to (Y);
+      \node[ndint] (X2) at (2,0) {$X'$};
+      \node[ndout] (Y2) at (2,-1.5) {$Y'$};
+      \draw[arint] (X2) to (Y2);
+      \draw[arout] (W) to (Y2);
+      \draw[dotted] (-1,-2) rectangle (1,0.5);
+      \draw[dotted] (1,-2) rectangle (3,0.5);
+      \node at (0,0.8) {\tiny factual};
+      \node at (2,0.8) {\tiny counterfactual};
+    \end{scope}
+  \end{tikzpicture}
+    \caption{Left: Graph $G(M)$ of SCM $M$. Right: Graph $G(M^{\twin}) = G(M)^{\twin(X,Y)}$ of the twinned SCM $M^\twin$.
+    The exogenous random variable $W$ is shared between the factual and counterfactual ``world'', whereas the exogenous
+    input variable $X$ and the endogenous (output) variable $Y$ may differ between the two worlds (with $X'$ and $Y'$ denoting the corresponding variables in the counterfactual ``world'').\label{fig:twin_SCM}}
+\end{figure}
+\end{Eg}
+We are not claiming that \emph{all} counterfactuals can be modeled naturally using a twinned SCM.
+\begin{Eg}
+The counterfactual: ``If I had not bumped into my old friend, I would not have ended up in the pub yesterday evening.''
+In this case, it appears most natural to model ``bumping into an old friend'' as an exogenous random variable,
+and it is precisely this exogenous random variable that is assumed to be different in the counterfactual world.
+\end{Eg}
+Obviously, we could model this by an SCM that has two copies of the exogenous random variable that represents
+``bumping into an old friend''.
+
+\subsection{Counterfactual Equivalence}
+
+In Definition~\ref{def:scm_obs_interv_equiv}, we defined the notions of observable and interventional equivalence for simple SCMs. 
+We can add a more fine-grained notion of equivalence by making use of the twinning operation, which we refer to as counterfactual equivalence.\footnote{The definition of counterfactual equivalence for (possibly non-simple) SCMs is provided in \cite{BFPM21} for SCMs without exogenous input variables.}
+\begin{Def}\label{def:scm_counterfactual_equiv}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and
+  $\tilde{M} = \ltuple \tilde{\Sin}, \tilde{\Send}, \tilde{\Srnd}, \tilde{\CX}, \tilde{P}, \tilde{f} \rtuple$ be two simple SCMs
+  and $O \subseteq (\Send \cup \Srnd) \cap (\tilde{\Send} \cup \tilde{\Srnd})$ a subset.
+  We say that $M$ and $\tilde{M}$ are \emph{counterfactually equivalent w.r.t.\ $O$} if the twin SCMs $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$, where
+    $O'$ is the copy of $O \cap (V \cap \tilde{V})$ in $V' \cap \tilde{V}'$.
+%  In case the variables in $O$ (and $J \cup \tilde{J}$) are considered observed, whereas the variables in 
+%  $(V \cup W) \setminus O$ and $(\tilde{V} \cup \tilde{W}) \setminus O$ are considered latent, 
+%  we sometimes omit the ``w.r.t.\ $O$'' in this terminology (i.e., we call $M$ and $\tilde{M}$ counterfactually equivalent).
+\end{Def}
+More generally, one could define counterfactual equivalence not only with respect to an observed set of variables, but also with respect to a given set of interventions.
+
+We get the following important corollary of Theorem~\ref{thm:various_equiv_marginalization}.
+\begin{Cor}\label{Cor:various_equiv_marginalization}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM, $L \subseteq \Send$, and
+  $M_{\setminus L}$ its marginalization over $L$. Then $M$ and $M_{\setminus L}$ are observably,
+  interventionally and counterfactually equivalent w.r.t.\ $(V \cup W) \setminus L$.
+\end{Cor}
+\begin{proof}
+  The observable and interventional equivalence is the claim of Theorem~\ref{thm:various_equiv_marginalization}.
+  %The statement that $M$ and $M_O$ are observably equivalent w.r.t.\ $O$ is Lemma~\ref{lem:obs_equiv_marginalization}.
+  Write $K = V \setminus L$.
+  By Proposition~\ref{prp:twinning_marginalization_commute}, $(M_{\setminus L})^\twin = (M^\twin)_{\setminus (L \cup L')}$.
+  Since $M^\twin$ and its marginalization $(M^\twin)_{\setminus (L \cup L')}$ are interventionally equivalent w.r.t.\ $K \cup K' \cup W$, $M$ and $M_{\setminus L}$ are counterfactually equivalent w.r.t.\ $K \cup W$.
+\end{proof}
+
+\begin{Lem}\label{lem:int_equiv_twin_scm}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM. Then
+$M$ and $M^\twin$ are interventionally equivalent w.r.t.\ $V \cup W$.
+\end{Lem}
+\begin{proof}
+%  We have to show that for all $x_{J'} \in \CX_{J'}$,
+%  $$P_{M}(X_V,X_W \mid \doit(X_J)) = P_{M^\twin}(X_V,X_W \mid \doit(X_J),\doit(X_{J'}=x_{J'})).$$
+%  Let $g : \CXJ \times \CXW \to \CXV$ be the unique solution function of $M$.
+%  Then $P_{M}(X_V,X_W \mid \doit(X_J))$ is 
+%  the push-forward $(g,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $M$ (interpreted as a constant 
+%  Markov kernel $\CXJ \dshto \CXW$).
+%  Then $\tilde{g} : \CXJ \times \CX_{J'} \times \CXW \to \CXV \times \CX_{V'} : (x_J,x_{J'},x_W) \mapsto \big(g(x_J,x_W),g(x_{J'},x_W)\big)$ is the unique solution function of $M^\twin$ by Lemma~\ref{lem:sol_fns_intervened_twin_scm}.
+%  We obtain the marginal Markov kernel $P_{M^\twin}(X_V,X_W \mid \doit(X_{J\cup J'}))$ as the push-forward 
+%  $(\tilde{g}_V,\id_{\CXW})_*(P)$ of the exogenous distribution $P$ of $M$, now interpreted as a constant
+%  Markov kernel $\CXJ \times \CX_{J'} \to \CXW$. Since $g \circ \pr_{\CX_J \times \CX_W} = \tilde{g}_V$, we obtain
+%  the desired conclusion.
+  We have to show that for any $T \subseteq V \cup W$, 
+  $M_{\doit(T)}$ and $(M^{\twin})_{\doit(T)}$ are observably equivalent w.r.t.\ $(V \cup W) \setminus T$.
+  Let $T \subseteq V \cup W$, and write $T_1 = T \cap V$, $T_2 = \emptyset$, $T_3 = T \cap W$. Then $T = T_1 \cup T_3$.
+
+  By Lemma~\ref{lem:sol_fns_intervened_twin_scm},
+with $g_{\doit(T)} : \CX_{J \cup T} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1}$ the solution function of $M_{\doit(T)}$ 
+and $g_{\doit(T_3)} : \CX_{J \cup T_3} \times \CX_{W \setminus T_3} \to \CX_{V}$ the solution function of $M_{\doit(T_3)}$,
+  \begin{equation*}\begin{split}
+    \tilde{g} & : \CX_{(J \cup T) \cup J'} \times \CX_{W \setminus T_3} \to \CX_{V \setminus T_1} \times \CX_{V'} \\
+    & : (x_{(J \cup T) \cup J'}, x_{W \setminus T_3}) \mapsto \big(g_{\doit(T)}(x_{J \cup T},x_{W\setminus T_3}),g_{\doit(T_3)}(x_{J' \cup T_3},x_{W \setminus T_3})\big) 
+  \end{split}\end{equation*}
+  is the unique solution function of $(M^{\twin})_{\doit(T)}$. 
+  Note that $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_{W\setminus T_3}} = \tilde{g}_{V\setminus T}$.
+
+  Then $P_{M_{\doit(T)}}(X_{(V \cup W)\setminus T} \mid \doit(X_{J\cup T}))$ is 
+  the push-forward $(g_{\doit(T)},\id_{\CX_{W\setminus T}})_*(P_{W\setminus T})$ of the marginal exogenous distribution 
+  $P_{W\setminus T}$ of $M_{\doit(T)}$ (interpreted as a constant Markov kernel $\CX_{J \cup T} \dshto \CX_{W \setminus T}$).
+  We obtain the marginal Markov kernel $P_{(M^\twin)_{\doit(T)}}(X_{(V \cup W) \setminus T} \mid \doit(X_{J\cup T\cup J'}))$ as the push-forward 
+  $(\tilde{g}_{V\setminus T},\id_{\CX_{W\setminus T}})_*(P_{W\setminus T})$ of the marginal exogenous distribution $P_{W\setminus T}$ of $(M^\twin)_{\doit(T)}$, now interpreted as a constant
+  Markov kernel $\CX_{J\cup T} \times \CX_{J'} \to \CX_{W\setminus T}$. 
+  Since $g_{\doit(T)} \circ \pr_{\CX_{J\cup T} \times \CX_{W\setminus T_3}} = \tilde{g}_{V\setminus T}$,
+  we obtain the desired conclusion.
+\end{proof}
+
+Counterfactual equivalence is a stronger equivalence relation than interventional equivalence.
+\begin{Prp}\label{prp:pearls_ladder_levels_2_and_3}
+  For simple SCMs $M, \tilde{M}$ and a subset $O \subseteq (\Send \cap \tilde{\Send}) \cup (\Srnd \cap \tilde{\Srnd})$:
+%  \begin{enumerate}
+%    \item If $M \equiv \tilde{M}$ then $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$.
+%    \item If $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$ then $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+    Counterfactual equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$ implies interventional equivalence of $M$ and $\tilde{M}$ w.r.t.\ $O$.
+%  \end{enumerate}
+\end{Prp}
+\begin{proof}
+%  \begin{enumerate}
+%    \item 
+%     Suppose $M \equiv \tilde{M}$. Then $M^\twin \equiv \tilde{M}^\twin$, and the claim directly follows from
+%     Proposition~\ref{prp:pearls_ladder_levels_1_and_2}.
+%
+%  \item 
+  Let $O'$ be the copy of $O \cap (V \cap \tilde{V})$ in $V' \cap \tilde{V}'$.
+    Suppose $M$ and $\tilde{M}$ are counterfactually equivalent w.r.t.\ $O$. 
+    Then $M^\twin$ and $\tilde{M}^\twin$ are interventionally equivalent w.r.t.\ $O \cup O'$. 
+  For every $T \subseteq O \cup O'$,
+  $(M^\twin)_{\doit(T)}$ and $(\tilde{M}^\twin)_{\doit(T)}$ are observably equivalent w.r.t. $(O \cup O') \setminus T$.
+
+  We have to show that $M$ and $\tilde{M}$ are interventionally equivalent w.r.t.\ $O$.
+  That is, we have to show that for every $S \subseteq O$, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$
+  are observably equivalent w.r.t.\ $O \setminus S$.
+
+%  We first practice with a special case.
+%  Take $T_2 = T_1'$ with $T_1 \subseteq O \cap (V \cap \tilde{V})$ and $T_3 = \emptyset$; then
+%  $(M_{\doit(T_1)})^\twin = (M^\twin)_{\doit(T_1,T_1')}$ and $(\tilde{M}_{\doit(T_1)})^\twin = (\tilde{M}^\twin)_{\doit(T_1,T_1')}$ are observably equivalent w.r.t. 
+%  $$(O \cup O') \setminus (T_1 \cup T_2) = (O \cap (V \cap \tilde{V}) \cup O \cap (W \cap \tilde{W}) \cup (O \cap (V \cap \tilde{V}))') \setminus (T_1 \cup T_1')$$
+%  $$ = O \setminus T_1 \cup ((O \cap (V \cap \tilde{V})) \setminus T_1)'$$
+%  and hence w.r.t.
+%  $$O \setminus T_1.$$
+%  Now by Lemma~\ref{lem:obs_equiv_twin_scm}, $(M_{\doit(T_1)})^\twin$ and $M_{\doit(T_1)}$ are observably equivalent
+%  w.r.t.\ $V \setminus T_1 \cup W$ and hence w.r.t.\ $O \setminus T_1$.
+%  Similarly, $(\tilde{M}_{\doit(T_1)})^\twin$ and $\tilde{M}_{\doit(T_1)}$ are observably equivalent w.r.t\ $O \setminus T_1$.
+%  Hence, by transitivity, $M_{\doit(T_1)}$ and $\tilde{M}_{\doit(T_1)}$ are observably equivalent w.r.t\ $O \setminus T_1$.
+
+%  Let us now consider the general case.
+  Now take $S \subseteq O$ and then let $T_1 = S \cap V \cap \tilde{V}$, $T_2 = T_1'$ and $T_3 = S \cap W \cap \tilde{W}$; then $S = T_1 \cup T_3$.
+  Then by assumption,
+  $$((M_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((M^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (M^\twin)_{\doit(T_1,T_2,T_3)}$$
+  and 
+  $$((\tilde{M}_{\doit(T_1)})^\twin)_{\doit(T_3)} = ((\tilde{M}^\twin)_{\doit(T_1,T_1')})_{\doit(T_3)} = (\tilde{M}^\twin)_{\doit(T_1,T_2,T_3)}$$
+  are observably equivalent w.r.t.\ $(O \cup O') \setminus T = (O \setminus (T_1 \cup T_3)) \cup (O' \setminus T_2)$, and hence w.r.t.\ $O \setminus S = O \setminus (T_1 \cup T_3)$.
+  By Lemma~\ref{lem:int_equiv_twin_scm}, $(M_{\doit(T_1)})^\twin$ and $M_{\doit(T_1)}$ are interventionally equivalent
+  w.r.t.\ $V \setminus T_1 \cup W$. Hence
+  $((M_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(M_{\doit(T_1)})_{\doit(T_3)} = M_{\doit(S)}$ are observably equivalent 
+  w.r.t.\ $V \setminus T_1 \cup W \setminus T_3$, and hence also w.r.t.\ $O \setminus S$.
+  Similarly, $((\tilde{M}_{\doit(T_1)})^\twin)_{\doit(T_3)}$ and $(\tilde{M}_{\doit(T_1)})_{\doit(T_3)} = \tilde{M}_{\doit(S)}$ are observably equivalent w.r.t\ $O \setminus S$.
+  Hence, by transitivity, $M_{\doit(S)}$ and $\tilde{M}_{\doit(S)}$ are observably equivalent w.r.t\ $O \setminus S$.
+%  \end{enumerate}
+\end{proof}
+However, the reverse implication does not hold in general. 
+Together with Proposition~\ref{prp:pearls_ladder_levels_1_and_2}, Proposition~\ref{prp:pearls_ladder_levels_2_and_3} 
+expresses that causal modeling is more refined than 
+probabilistic modeling, and counterfactual modeling is more refined than interventional modeling.
+This formalizes what Pearl refers to as the ``causal hierarchy'' or ``ladder of causation''.
+
+In general, interventional equivalence does not imply counterfactual equivalence. Even interventionally equivalent SCMs with the same causal mechanism (that differ only in terms of their exogenous distributions) may not be counterfactually equivalent. For example, the SCMs $M^{\rho}$ and $M^{\rho'}$ with $\rho\neq\rho'$ in the following example are interventionally equivalent, but not counterfactually equivalent.
+\begin{Eg}[Interventional equivalence does not imply counterfactual equivalence \cite{Daw02}]\label{ex:Counterfactuals}
+  For parameter $\rho\in[0,1]$, consider the SCM $M^\rho$ with binary exogenous input variable $X \in \{0,1\}$, endogenous variable $Y \in \RN$, a single latent exogenous random variable $W = (W_1,W_2) \in \RN^2$ with
+exogenous distribution 
+  $$\begin{pmatrix} W_1 \\ W_2 \end{pmatrix}\sim\C{N}\left(\begin{pmatrix}0 \\ 0\end{pmatrix},\begin{pmatrix}1&\rho\\ \rho&1\end{pmatrix}\right)$$
+and structural equation
+  $$Y = W_1 (1 - X) + W_2 X.$$
+In a medical setting, this SCM could be used to model whether a patient was treated or not ($x=1$ vs.\ $x=0$) and the corresponding potential outcome ($Y^{\doit(x=1)}$ vs.\ $Y^{\doit(x=0)}$).
+
+Suppose that in the actual world we did not assign treatment to a patient ($x=0$) and the outcome was $Y^{\doit(x=0)}=y \in\RN$.
+Consider the counterfactual query ``What would the outcome have been, had we assigned treatment to this patient?''. 
+We can answer this question by introducing a parallel counterfactual world in which the exogenous random variables for each
+patient have the same values as in the actual world, but treatment and outcome may differ. For this, consider the
+twin SCM $(M^{\rho})^{\twin}$.
+The counterfactual query then asks for 
+  $$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}\mid Y^{\doit(x=0)}=y),$$
+where $Y^{\doit(x=0)}$ is the factual outcome, and $(Y')^{\doit(x'=1)}$ is the counterfactual outcome (which are both marginal potential outcomes of the twinned SCM). One can calculate that
+$$
+  P_{(M^{\rho})^{\twin}}\big((Y')^{\doit(x'=1)},Y^{\doit(x=0)}\big) = \C{N}\left(\begin{pmatrix}0\\ 0\end{pmatrix}, \begin{pmatrix} 1 & \rho \\ \rho & 1 \end{pmatrix}\right)
+$$
+and hence $P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)} \mid Y^{\doit(x=0)}=y) = \C{N}(\rho y,1-\rho^2)$ (by the general formula for conditioning a multivariate Gaussian distribution). Note that the answer to the counterfactual query depends on a quantity $\rho$ that we cannot identify from the Markov kernel $P_{M^{\rho}}(Y\given \doit (X))$, as it is independent of $\rho$. Therefore, even unlimited data from a randomized controlled trial would not suffice to determine the value of this particular counterfactual query.
+Indeed, SCMs $M^{\rho}$ and $M^{\rho'}$ with $\rho\neq\rho'$ are interventionally equivalent, but not counterfactually equivalent.
+%If we obtain the SCM from a reduction, we find the one with $\rho = 1$.
+%\Joris{Question: can we identify $\rho$ if we have access to $P(X,Y^{\doit(0)})$ and $P(X,Y^{\doit(1)})$?
+%Ah, we have to replace $X$ with an endogenous variable first. In the AOS paper we just have an independent Bernoulli
+%exogenous variable that decides the value of $X$. So there is no confounding, by assumption.
+%Nonetheless, we cannot identify the counterfactual. In case there is no confounding, the SWIG will not 
+%give us more information than if we don't measure $X$. But if there is confounding, we might detect this
+%with the SWIG.
+%  $P_\rho(X,Y^{\doit(0)) = $
+%  $Y^{\doit(0)} = W_1$
+%  $Y^{\doit(1)} = W_2$
+%  $X = 
+%  }
+\end{Eg}
+The lesson of this example is that if one attempts to learn an SCM from data (even from randomized controlled trials with arbitrarily large sample size) it can happen that one still cannot identify the values of some counterfactual probabilities. 
+In other words, data-driven estimation of counterfactual probabilities can be an ill-posed problem. 
+Nevertheless, counterfactual are central in court cases (e.g., to determine responsibility, ``the physician treated the patient with drug A and the patient died, would the patient still be alive if the physician had abstained from the treatment?''). 
+The above example shows that one can be on very slippery terrain when it comes to answering such questions. 
+
+\subsection{Exogenous reparameterizations}
+
+When exogenous random variables are latent, certain reparameterizations of those may preserve part of the causal semantics of the observed variables.
+\begin{Def}\label{def:exogenous_reparameterization}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an SCM.
+  Let $\tilde{W}$ be a finite index set disjoint from $J \cup V \cup W$, and
+  $\CX_{\tilde{W}} = \prod_{\tilde{w}\in\tilde{W}} \CX_{\tilde{w}}$ the product of standard measurable spaces $\CX_{\tilde{w}}$. 
+  Let $\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV$ and $\Phi : \CX_J \times \CX_W \to \CX_{\tilde{W}}$ be measurable mappings such that:
+  \begin{enumerate}[label=\roman*)]
+    \item for all $x_J \in \CX_J, x_V \in \CX_V, x_W \in \CX_W$,
+    $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\Phi(x_J,x_W)),$$
+    and
+    \item the push-forward 
+      %$\tilde{P} := (\Phi)_* P$ factorizes as a product $\tilde{P} = \bigotimes_{\tilde{w}\in\tilde{W}} \tilde{P}_{\tilde{w}}$ of probability distributions $\tilde{P}_{\tilde{w}} \in \C{P}(\CX_{\tilde{w}})$,
+      $$\tilde{P} := (\id_{\CX_J}, \Phi)_* \lp \delta(X_J|X_J) \otimes \bigotimes_{w\in W}P(X_w) \rp = \delta(X_J|X_J) \otimes \bigotimes_{\tilde{w}\in\tilde{W}} \tilde{P}_{\tilde{w}}$$
+    factorizes with $\tilde{P}_{\tilde{w}} \in \C{P}(\CX_{\tilde{w}})$ for $\tilde{w}\in\tilde{W}$.
+  \end{enumerate}
+  Then we call the SCM
+  $$M_{\repar{\tilde{f}}{\Phi}} = \lt J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$$
+  an \emph{exogenous reparameterization} of $M$.
+\end{Def}
+
+Exogenous reparameterizations are compatible with certain hard interventions that do \emph{not} target the exogenous random variables.
+\begin{Lem}\label{lem:interventions_exogenous_reparameterization_commute}
+Let $M = \lt J, V, W, \CX, P, f \rt$ be an SCM, and $M_{\repar{\tilde{f}}{\Phi}} = \lt J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ an exogenous reparameterization of $M$.
+For an intervention target $T \subseteq V \cup J$:
+$$(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\Phi}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions.
+\end{proof}
+The twinning operation is only compatible with exogenous reparameterizations under restrictive assumptions.
+\begin{Lem}\label{lem:twinning_exogenous_reparameterization_commute}
+Let $M = \lt J, V, W, \CX, P, f \rt$ be an SCM, and $M_{\repar{\tilde{f}}{\Phi}} = \lt J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ an exogenous reparameterization of $M$.
+If $\Phi$ is constant in $X_J$, that is, $\Phi(x_J,x_W) = \Phi(\tilde{x}_J,x_W)$ for all $x_W \in \CX_W$ and all $x_J,\tilde{x}_J \in \CX_J$, then:
+$$(M_{\repar{\tilde{f}}{\Phi}})^\twin = (M^\twin)_{\repar{\tilde{f}^\twin}{\Phi}}.$$
+\end{Lem}
+\begin{proof}
+  This follows by writing out the definitions. In particular, we check that
+  \begin{equation*}\begin{split}
+    f^\twin(x_J,x_{J'},x_V,x_{V'},x_W) 
+    & = (f(x_J,x_V,x_W),f(x_{J'},x_{V'},x_W)) \\
+    & = (\tilde{f}(x_J,x_V,\Phi(x_W)),\tilde{f}(x_{J'},x_{V'},\Phi(x_W)) \\
+    & = \tilde{f}^{\twin}(x_J,x_{J'},x_V,x_{V'},\Phi(x_W)).
+  \end{split}\end{equation*}
+  For the last equality, we need that $\Phi$ does not depend on $X_J$.
+\end{proof}
+\begin{Thm}\label{thm:various_equiv_exogenous_reparameterization}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an SCM, and $M_{\repar{\tilde{f}}{\Phi}} = \lt J, V, \tilde{W}, \tilde{\CX}, \tilde{P}, \tilde{f} \rt$ an exogenous reparameterization of $M$.
+  If both $M$ and $M_{\repar{\tilde{f}}{\Phi}}$ are simple,\footnote{This assumption is only needed because we avoided to define the equivalence relations for arbitrary SCMs.}
+  then $M$ is observably and interventionally equivalent to $M_{\repar{\tilde{f}}{\Phi}}$ w.r.t.\ $V$.
+  If, furthermore, $\Phi$ does not depend on $X_J$, then $M$ is even counterfactually equivalent to $M_{\repar{\tilde{f}}{\Phi}}$ w.r.t.\ $V$.
+\end{Thm}
+\begin{proof}
+  Let $g : \CX_J \times \CX_W \to \CX_V$ be the solution function of $M$, 
+  and $\tilde{g} : \CX_J \times \CX_{\tilde{W}} \to \CX_V$ the solution function of $\tilde{M} := M_{\repar{\tilde{f}}{\Phi}}$.
+  $g$ satisfies
+  $$x_V = f(x_J,x_V,x_W) \iff x_V = g(x_J,x_W)$$
+  for all $x_J \in \CX_J, x_V \in \CX_V$ and $x_W \in \CX_W$, while $\tilde{g}$ satisfies
+  $$x_V = \tilde{f}(x_J,x_V,x_{\tilde{W}}) \iff x_V = \tilde{g}(x_J,x_{\tilde{W}})$$
+  for all $x_J \in \CX_J, x_V \in \CX_V$ and $x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+  By assumption, for all $x_J \in \CX_J, x_V \in \CX_V, x_W \in \CX_W$,
+    $$f(x_J,x_V,x_W) = \tilde{f}(x_J,x_V,\Phi(x_J,x_W)).$$
+  Hence, the following equation holds for all $x_J \in \CX_J, x_W \in \CX_W$:
+  $$g(x_J,x_W) = \tilde{g}(x_J,\Phi(x_J,x_W)).$$
+  In other words,
+  $$g = \tilde g \circ (\id_{\CX_J},\Phi).$$
+
+  We now show that the marginal Markov kernels $P_{M}(X_V \mid \doit(X_J))$ and $P_{M_{\repar{\tilde{f}}{\Phi}}}(X_V \mid \doit(X_J))$ are the same.
+  By Theorem~\ref{thm:scm_unique_solvability}, 
+  \begin{align*}
+    P_{M}(X_V \mid \doit(X_J)) 
+    & = (g)_* \lp \delta(X_J|X_J) \otimes P(X_W) \rp \\
+    & = (\tilde g \circ (\id_{\CX_J},\Phi))_* \lp \delta(X_J|X_J) \otimes P(X_W) \rp \\
+%    & = (\tilde{g})_* \lp \delta(X_J|X_J) \otimes (\Phi)_* P(X_W) \rp \\
+    & = (\tilde{g})_* \lp \delta(X_J|X_J) \otimes \tilde{P}(X_{\tilde{W}})  \rp \\
+    & = P_{M_{\repar{\tilde{f}}{\Phi}}}(X_V \mid \doit(X_J)).
+  \end{align*}
+  This shows the observable equivalence w.r.t.\ $V$.
+
+  Let $T \subseteq V$. 
+  Then $(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\Phi}}$ by Lemma~\ref{lem:interventions_exogenous_reparameterization_commute}.
+  The observable equivalence of $M_{\doit(T)}$ and $(M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\Phi}}$ w.r.t.\ $V \setminus T$ hence implies the observable equivalence of $M_{\doit(T)}$ and $(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)}$ w.r.t.\ $V \setminus T$.
+  Since this holds for all $T \subseteq V$, $M$ and $M_{\repar{\tilde{f}}{\Phi}}$ are interventionally equivalent w.r.t.\ $V$.
+
+  Assume now that $\Phi$ does not depend on $X_J$. By Lemma~\ref{lem:twinning_exogenous_reparameterization_commute}, $(M_{\repar{\tilde{f}}{\Phi}})^\twin = (M^\twin)_{\repar{\tilde{f}^\twin}{\Phi}}$.
+  Since $M^\twin$ and its exogenous reparameterization $(M^\twin)_{\repar{\tilde{f}^\twin}{\Phi}}$ are interventionally equivalent w.r.t.\ $V \cup V'$, $M$ and $M_{\repar{\tilde{f}}{\Phi}}$ are counterfactually equivalent w.r.t.\ $V$.
+\end{proof}
+A special case of interest is obtained for `pointwise' surjective mappings $\Phi$.
+\begin{Cor}
+  If $x_W \mapsto \Phi(x_J,x_W)$ is surjective for all $x_J \in \CX_J$, then unique solvability of $M$ implies unique solvability of $M_{\repar{\tilde{f}}{\Phi}}$,
+%  and unique solvability of $M_{\doit(T)}$ implies unique solvability of $(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)}$ for any $T \subseteq V \cup J$.
+  and simplicity of $M$ implies simplicity of $M_{\repar{\tilde{f}}{\Phi}}$.
+\end{Cor}
+\begin{proof}
+  Let $g : \CX_J \times \CX_W \to \CX_V$ be the solution function of $M$. 
+  It satisfies
+  $$x_V = f(x_J,x_V,x_W) \iff x_V = g(x_J,x_W)$$
+  for all $x_J \in \CX_J, x_V \in \CX_V$ and $x_W \in \CX_W$.
+  Let $\Psi : \CX_J \times \CX_{\tilde{W}} \to \CX_W$ be an arbitrary left-inverse of $\Phi$ (i.e., 
+  %$\Phi \circ (\id_{\CX_J}, \Psi) = \id_{\CX_{\tilde{W}}}$
+  $\Phi(x_J,\Psi(x_J,x_{\tilde{W}})) = x_{\tilde{W}}$ for all $x_J \in \CX_J, x_{\tilde{W}} \in \CX_{\tilde{W}}$,
+  implying
+  $(\id_{\CX_J},\Phi) \circ (\id_{\CX_J},\Psi) = (\id_{\CX_J},\id_{\CX_{\tilde{W}}})$)
+  and define 
+  $$\tilde{g}(x_J,x_{\tilde{W}}) := g(x_J,\Psi(x_J,x_{\tilde{W}}))$$
+  for all $x_J \in \CX_J, x_{\tilde{W}} \in \CX_{\tilde{W}}$. 
+  Then
+  \begin{equation*}\begin{split}
+    x_V = \tilde{f}(x_J,x_V,x_{\tilde{W}}) 
+    &\iff x_V = \tilde{f}(x_J,x_V,\Phi(x_J,\Psi(x_J,x_{\tilde{W}}))) \\
+    &\iff x_V = f(x_J,x_V,\Psi(x_J,x_{\tilde{W}})) \\
+    &\iff x_V = g(x_J,\Psi(x_J,x_{\tilde{W}})) \\
+    &\iff x_V = \tilde{g}(x_J,x_{\tilde{W}})
+  \end{split}\end{equation*}
+  for all $x_J \in \CX_J, x_V \in \CX_V, x_{\tilde{W}} \in \CX_{\tilde{W}}$.
+  So $\tilde{g}$ is the unique solution function of $M_{\repar{\tilde{f}}{\Phi}}$.
+  Hence, unique solvability of $M$ implies unique solvability of $M_{\repar{\tilde{f}}{\Phi}}$ by Theorem~\ref{thm:scm_unique_solvability}.
+
+  Now suppose that $M$ is simple. Let $T \subseteq V$. By Lemma~\ref{lem:interventions_exogenous_reparameterization_commute}, 
+  $$(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)} = (M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\Phi}}.$$
+  The unique solvability of $M_{\doit(T)}$ implies that of $(M_{\doit(T)})_{\repar{\tilde{f}_{\sm T}}{\Phi}}$,
+  and hence that of $(M_{\repar{\tilde{f}}{\Phi}})_{\doit(T)}$.
+  Therefore (with Remark~\ref{rem:simple_scm}), $M_{\repar{\tilde{f}}{\Phi}}$ is simple.
+\end{proof}
+
+One example of an exogenous reparameterization of this type that one encounters occassionally is the operation of merging exogenous random variables.
+\begin{Eg}[Merging exogenous random variables]\label{eg:merging_exogenous_random_variables}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be an SCM.
+  Let $\tilde{W}$ be a partition of $W$.
+  Take for $\CX_{\tilde{W}} = \prod_{\tilde{w}\in\tilde{W}} \CX_{\tilde{w}}$ the product of standard measurable spaces $\CX_{\tilde{w}} = \prod_{w \in \tilde{w}} \CX_w$. 
+  Let $\Phi : \CX_W \to \CX_{\tilde{W}}$ be the natural identification that
+  maps $x_W = (x_w)_{w\in W} \in \CX_W$ with components $x_w \in \CX_w$ to $x_{\tilde{W}} = (x_{\tilde{w}})_{\tilde{w}\in\tilde{W}} \in \CX_{\tilde{W}}$ with components $x_{\tilde{w}} = (x_w)_{w \in \tilde{w}} \in \CX_{\tilde{w}}$.
+  Because $\tilde{W}$ is a partition of $W$, $\Phi$ is a bijection.
+  Take
+  $$\tilde{f} : \CXJ \times \CXV \times \CX_{\tilde{W}} \to \CXV : (x_J,x_V,x_{\tilde{W}}) \mapsto f(x_J,x_V,\Phi^{-1}(x_{\tilde{W}})).$$
+  It is immediate from Definition~\ref{def:exogenous_reparameterization} that 
+  $$M_{\repar{\tilde{f}}{\Phi}} = \lt J, V, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$$
+  is an exogenous reparameterization of $M$.
+  Because $\Phi$ is independent of $x_J$ and bijective, $M_{\repar{\tilde{f}}{\Phi}}$ is observably, interventionally and counterfactually equivalent to $M$ w.r.t.\ $V$ in case $M$ is simple.
+\end{Eg}
+
+The following example shows that an exogenous reparameterization need not be counterfactually equivalent w.r.t.\ $V$ if $\Phi$ depends on $X_J$.
+\begin{Eg}\label{eg:exogenous_reparameterization_not_counterfactually_equivalent}
+Consider the acyclic SCM $M$ with exogenous input variable $X_1$ with co-domain $\{-1,1\}$, endogenous variables $X_2,X_3$ with co-domains $\{-1,1\}$, $\{-2,0,2\}$, respectively, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+    X_3 &= f_3(X_2,X_B) = X_2 + X_B,
+  \end{aligned}$$
+with exogenous random variable $X_B \sim \mathrm{Uni}(\{-1,1\})$.
+Consider the exogenous reparameterization $\tilde{M}$ with exogenous random variable $X_{\tilde{B}}$ with co-domain $\{-1,1\}$, mapping $\Phi : \{-1,1\}^2 \to \{-1,1\} : (x_1,x_B) \mapsto x_1 x_B$, and causal mechanism
+  $$\begin{aligned} 
+    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}}.
+  \end{aligned}$$ 
+Its exogenous distribution is $\Phi_*(\Prb(X_B)) = \mathrm{Uni}(\{-1,1\}) = \Prb(X_{\tilde{B}})$.
+It is indeed an exogenous reparameterization:
+  $$\begin{aligned}
+    \tilde{f}(x_1,x_2,\Phi(x_1,x_B)) 
+    &= (\Phi(x_1,x_B), x_2 + x_1 \Phi(x_1,x_B)) \\
+    &= (x_1 x_B, x_2 + x_1 x_1 x_B) \\
+    &= (x_1 x_B, x_2 + x_B) \\
+    &= f(x_1,x_2,x_B).
+  \end{aligned}$$
+Both $M$ and $\tilde{M}$ are acyclic, hence simple.
+By Theorem~\ref{thm:various_equiv_exogenous_reparameterization}, $\tilde{M}$ is observably and interventionally equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$.
+However, $\tilde{M}$ is not counterfactually equivalent to $M$ w.r.t.\ $\{X_2,X_3\}$, as one can check explicitly.
+%The causal mechanism of $M^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= f_2(X_1,X_B) = X_1 X_B \\
+%    X_3 &= f_3(X_2,X_B) = X_2 + X_B \\
+%    X_{2'} &= f_2(X_{1'},X_B) = X_{1'} X_B \\
+%    X_{3'} &= f_3(X_{2'},X_B) = X_{2'} + X_B,
+%  \end{aligned}$$ 
+%while that of $\tilde{M}^\twin$ is:
+%  $$\begin{aligned} 
+%    X_2 &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_3 &= \tilde{f}_3(X_1, X_2, X_{\tilde{B}}) = X_2 + X_1 X_{\tilde{B}} \\
+%    X_{2'} &= \tilde{f}_2(X_{\tilde{B}}) = X_{\tilde{B}} \\
+%    X_{3'} &= \tilde{f}_3(X_{1'}, X_{2'}, X_{\tilde{B}}) = X_{2'} + X_{1'} X_{\tilde{B}},
+%  \end{aligned}$$ 
+%The observation $X_1 = 1$, $X_2 = 1$ implies $X_B = 1$ and $X_3 = 2$ in $M$, whereas it implies $X_{\tilde{B}} = 1$ and $X_3=2$ in $\tilde{M}$.
+%If we do $X_{1'} = -1$, this results in $X_{2'} = -1$, $X_{3'} = 0$ in $M$, and in $X_{2'} = 1$, $X_{3'} = 0$ in $\tilde{M}$.
+%$M$ and $\tilde{M}$ are clearly not counterfactually equivalent with respect to $\{2,3\}$ (even not with respect to $\{2\}$ only)!
+\end{Eg}
+
+
+\subsection{Parameterizing SCMs using response functions}
+
+The following technique of ``response functions'' \cite{BalkePearl1994b} provides an example of an exogenous reparameterization.
+It has been used---amongst others---to derive bounds on counterfactual probabilities and to obtain tests for valid instruments.
+Here we will explain the idea using an example rather than with a general formal treatment (in that way avoiding some heavy bookkeeping).
+
+\begin{Def}\label{def:response_functions}
+  Let $M = \lt J, V=\{v\}, W, \CX_J \times \CX_V \times \CX_W, P, f \rt$ be a simple SCM
+  with $\CX_J$ discrete, $\CX_v$ discrete, and $\CX_W$ an arbitrary standard measurable space.
+  
+  Let $\tilde{W} = \{\tilde{w}\}$ be a singleton and consider the space of (measurable) functions\footnote{\cite{BalkePearl1994b} call these functions ``response functions'', and a random variable taking values in $\CX_{\tilde{W}}$ a ``response-function variable''.}
+  $$\CX_{\tilde{W}} := (\CX_v)^{\CX_J} = \{\phi : \CX_J \to \CX_v\}.$$
+  The SCM $M$ induces a function $\Phi : \CX_W \to \CX_{\tilde{W}}$ that assigns to each exogenous random value $x_W \in \CX_W$ the corresponding response function in $\CX_{\tilde{W}}$, that is, $\Phi(x_W)$ is the function $x_J \mapsto f_v(x_J, x_W)$.
+  The SCM $M_{\repar{\tilde{f}}{\Phi}} = \lt J, V=\{v\}, \tilde{W}, \CX_J \times \CX_V \times \CX_{\tilde{W}}, \tilde{P}, \tilde{f} \rt$
+  with as exogenous distribution the push-forward $\tilde{P} = (\Phi)_* (P)$ and
+  causal mechanism $\tilde{f}(x_J,x_{\tilde{W}}) = x_{\tilde{W}}(x_J)$ (which just evaluates the response function $x_{\tilde{W}}$ in the input $x_J$) is called a \emph{response variable parameterization} of $M$.
+\end{Def}
+We call it a parameterization because it preserves the important causal semantics:
+\begin{Prp}\label{prp:counterfactual_equivalence_response_functions}
+  The response variable parameterization of $M$ in Definition~\ref{def:response_functions} is an exogenous reparameterization of $M$ and is
+  counterfactually equivalent to $M$ w.r.t.\ $V$.
+\end{Prp}
+\begin{proof}
+  Note that:
+    $$f(x_J,x_w) = \Phi(x_w)(x_J) = \tilde{f}(x_J,\Phi(x_w))$$
+  for all $x_J \in \CX_J, x_w \in \CX_w$.
+  Because $M$ and $\tilde{M}$ are both acyclic, they are both simple, and the claim now follows from Theorem~\ref{thm:various_equiv_exogenous_reparameterization}, noting that $\Phi$ does not depend on $X_J$.
+\end{proof}
+
+\begin{Cor}\label{cor:counterfactual_equivalence_response_functions}
+  Let $M = \lt J, V, W, \CX, P, f \rt$ be a simple SCM with discrete exogenous input space $\CX_J$.
+  Let $v \in V$ be an endogenous variable in $M$ taking values in a discrete space $\CX_v$.
+  Then there exists an SCM that is counterfactually equivalent to $M$ w.r.t.\ $\{v\}$ that has
+  just a single endogenous variable ($V=\{v\}$ with space $\CX_v$) and exogenous random space $(\CX_v)^{\CX_J}$.
+\end{Cor}
+\begin{proof}
+  First marginalize out all endogenous variables except $v$, and then take the response variable parameterization of this marginal SCM.
+%  Marginalize out all endogenous variables except $v$:
+%  $$M_v := (M)_{\sm (V\sm v)} = \lt J, \{v\}, W, \CX_J \times \CX_v \times \CX_W, P, f_{\sm} \rt.$$
+%  Now use Definition~\ref{def:response_functions} to construct the response function parameterization
+%  $$\tilde{M} := (M_v)_{\repar{\widetilde{f_{\sm}}}{\Phi}}.$$
+  It has the desired exogenous random space, and note that both operations preserve counterfactual equivalence w.r.t.\ $\{v\}$.
+\end{proof}
+
+\subsection{Bounding counterfactual probabilities}
+
+We have seen that unless one is willing to make very strong modeling assumptions, obtaining counterfactual probabilities from data can be impossible.
+In certain cases, though, it is possible to derive \emph{bounds} on counterfactual probabilities from (intervened) Markov kernels \cite{BalkePearl1994b}.
+One way to derive such bounds on counterfactuals exploits the response function parameterization.
+
+As a motivation, consider a medical setting in which a patient may either be treated (or not) and a week later the patient is cured (or not).
+Suppose a patient participating in a randomized controlled trial was assigned to the control group and hence not treated ($\doit(x=0)$), and it turned out one week later that this patient was not cured ($Y^{\doit(x=0)}=0$).
+The patient now wonders ``would I have been cured, had I been assigned to the treatment group?''.
+%In a medical setting, this SCM could be used to model whether a patient was treated or not ($x=1$ vs.\ $x=0$) and the corresponding binary outcome for that patient ($Y^{\doit(x=1)}$ vs.\ $Y^{\doit(x=0)}$).
+%Suppose that in the factual world we did not assign treatment to a patient ($x=0$) and the outcome was $Y^{\doit(x=0)}=0$. 
+%Consider the counterfactual query ``What would the outcome have been, had we assigned treatment to this patient?''. 
+By making use of the response-function parameterization, we can obtain a bound that does not depend on the specific parameters of the SCM,
+yielding a ``worst-case'' lower bound and a ``best-case'' upper bound on the probability that the patient would then be cured.
+
+\begin{Prp}[Bounding counterfactual probabilities]\label{prp:Bounding_counterfactuals}
+  For a simple SCM $M$ with a single binary exogenous input variable $X \in \{0,1\}$ and a binary endogenous variable $Y \in \{0,1\}$
+  (and perhaps additional endogenous variables, and with an arbitrary number of exogenous variables taking values in arbitrary
+  standard measurable spaces), the counterfactual probability
+  $$P_{M^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y^{\doit(x=0)}=0)$$
+  (with $Y^{\doit(x=0)}$ the factual outcome, and $(Y')^{\doit(x'=1)}$ the counterfactual outcome)
+  is bounded by
+$$\frac{q_{0|0} - \min(q_{0|0},q_{0|1})}{q_{0|0}} \le P_{M^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \le \frac{\min(q_{0|0},q_{1|1})}{q_{0|0}},$$
+  where
+  $q_{y|x} := P_M(Y=y\given \doit(X=x))$.
+\end{Prp}
+\begin{proof}
+  Denote the $3$-dimensional probability simplex by $\Delta_3=\{r=(r_{00},r_{01},r_{10},r_{11}) \in [0,1]^4 : r_{00}+r_{01}+r_{10}+r_{11}= 1\}$.
+  We know from Corollary~\ref{cor:counterfactual_equivalence_response_functions} that without loss of generality, we may assume that the SCM has only a single binary endogenous variable $Y$ and an exogenous random variable taking values in $\{0,1\}^{\{0,1\}}$.
+  That SCM must then lie in the family $\{M^\rho : \rho \in \Delta_3\}$, where the SCM $M^\rho$ with parameter $\rho$ has binary exogenous input variable $X$, binary endogenous variable $Y$, a single latent exogenous random variable $W \in \{f_{00},f_{01},f_{10},f_{11}\}$, exogenous distribution $P^\rho(W=f_w) = \rho_w$, and structural equation
+  $$Y^{\doit(x)} = W(x),$$
+where we defined response functions $f_{00},f_{01},f_{10},f_{11} : \{0,1\} \to \{0,1\}$ by:
+  \begin{align*}
+    f_{00} &: 0 \mapsto 0, 1 \mapsto 0;\\
+    f_{01} &: 0 \mapsto 0, 1 \mapsto 1;\\
+    f_{10} &: 0 \mapsto 1, 1 \mapsto 0;\\
+    f_{11} &: 0 \mapsto 1, 1 \mapsto 1.
+  \end{align*}
+We will derive a bound on the counterfactual probability
+  $$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y^{\doit(x=0)}=0).$$
+We first update the distribution of $W$ with the observed outcome:
+  $$P_{(M^{\rho})^{\twin}}(W=w | Y^{\doit(x=0)}=0) = 
+    \begin{cases}
+      \frac{\rho_{00}}{\rho_{00} + \rho_{01}} & w = f_{00}, \\
+      \frac{\rho_{01}}{\rho_{00} + \rho_{01}} & w = f_{01}, \\
+      0 & w = f_{10}, \\
+      0 & w = f_{11}.
+    \end{cases}$$
+%  $$P((Y')^{\doit(1)} = 1 | Y^{\doit(0)}=0) = \rho_{01} / (\rho_{00} + \rho_{01}).$$
+Because of the counterfactual equivalence of $M^\rho$ and $M$ w.r.t.\ $Y$, we have that
+  $q_{y|x} := P_M(Y=y\given \doit(X=x)) = P_{(M^{\rho})^\twin}(Y=y\given \doit(X=x))$.
+This Markov kernel is given explicitly by:
+  \begin{center}\begin{tabular}{ccl}
+    $x$ & $y$ & $q_{y|x}$ \\
+    \hline
+    0   & 0   & $\rho_{00} + \rho_{01}$ \\ % = 1-eps
+    0   & 1   & $\rho_{10} + \rho_{11}$ \\ %= eps
+    1   & 0   & $\rho_{00} + \rho_{10}$ \\ %= delta
+    1   & 1   & $\rho_{01} + \rho_{11}$ \\ %= 1-delta
+  \end{tabular}\end{center}
+For our particular counterfactual probability of interest, we have the equality
+  $$P_{(M^{\rho})^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) = \frac{\rho_{01}}{q_{0|0}}.$$
+From the non-negativity of the $\rho$'s and the table above, we can derive the bound
+$$q_{0|0} - \min(q_{0|0},q_{0|1}) \le \rho_{01} \le \min(q_{0|0},q_{1|1})$$
+and hence
+$$\frac{q_{0|0} - \min(q_{0|0},q_{0|1})}{q_{0|0}} \le P_{(M^{\rho})^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \le \frac{\min(q_{0|0},q_{1|1})}{q_{0|0}}.$$
+Since $M^\rho$ is counterfactually equivalent to the original SCM $M$ w.r.t.\ $Y$, the same bound also holds for $M$ instead of $M^\rho$.
+%which implies
+%  rho_{10} \le \min(eps,delta), rho_{11} \le eps, rho_{00} \le delta 
+%  \rho_{01} \ge 1-eps-\delta
+%so 
+%\rho_{01} / (\rho_{00} + \rho_{01}) > (1-eps-delta) / (1-eps) \approx 1
+\end{proof}
+As an illustration, suppose that $q_{0|0} \approx 1$ and $q_{1|1} \approx 1$.
+%Then $\rho_{01} \approx 0$, while $\rho_{00} + \rho_{01} \approx 1$.
+Then the bound tells us that $P_{M^\twin}((Y')^{\doit(x'=1)} = 1 | Y^{\doit(x=0)}=0) \approx 1$ as well.
+Thus, for almost-deterministic relations, we can tightly bound this counterfactual probability.
+
+\begin{comment}
+This provides a possible explanation of why common sense reasoning allows us to arrive at the answer of counterfactual queries like
+``The grass is wet because it rained; if it had not rained, would the grass have been dry?''. 
+Assuming that there is no confounding, that making the grass wet does not cause rain to fall, and having observed a strong correlation between the two variables in the past, there is not much room for counterfactual variation of the wetness of the grass, and we can answer ``highly likely'' with confidence.
+
+\Joris{Bad example! As Pearl points out in his chapter 9, one needs to assume no confounding between cause and effect.
+It does help in cases like Dawid's example for discrete outcomes, though.
+Furthermore, `probability of necessity' as Pearl calls it, or `probability of causation' as Robins and Greenland (1989) call it,
+cannot be nontrivially bounded according to Pearl if we do not assume unconfoundedness. In other words, if we look at 
+$$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y=0,X=0)$$
+instead then it cannot be bounded! This is somewhat surprising. It suggests that for the rain example, the
+counterfactual ``It rains and the grass is wet; if it had not rained, the grass would have been dry'' is
+completely undetermined. Is that true? Perhaps we are implicitly using some monotonicity assumption.
+
+$$X=f(U); \qquad Y=g(X,U)$$
+
+  \begin{center}\begin{tabular}{ccll}
+    $x$ & $y$ & $p_{x,y}$ & $p_{y^{\doit(x)}}$ \\
+    \hline
+    0   & 0   & $\rho_{0,00} + \rho_{0,01}$ & $\rho_{0,00} + \rho_{1,00} + \rho_{0,01} + \rho_{1,01}$ \\
+    0   & 1   & $\rho_{0,10} + \rho_{0,11}$ & $\rho_{0,10} + \rho_{1,10} + \rho_{0,11} + \rho_{1,11}$ \\
+    1   & 0   & $\rho_{1,00} + \rho_{1,10}$ & $\rho_{0,00} + \rho_{1,00} + \rho_{0,10} + \rho_{1,10}$ \\
+    1   & 1   & $\rho_{1,01} + \rho_{1,11}$ & $\rho_{0,01} + \rho_{1,01} + \rho_{0,11} + \rho_{1,11}$
+  \end{tabular}\end{center}
+
+So
+$$P_{(M^{\rho})^{\twin}}(U \mid X=0,Y=0) = \frac{\rho_{0,00}}{\rho_{0,00} + \rho_{0,01}} \delta_{0,00} + \frac{\rho_{0,01}}{\rho_{0,00} + \rho_{0,01}} \delta_{0,01}$$
+and hence
+$$P_{(M^{\rho})^{\twin}}((Y')^{\doit(x'=1)}=1\mid Y=0,X=0) = \frac{\rho_{0,01}}{\rho_{0,00} + \rho_{0,01}}$$
+It appears true that $P(X,Y)$ alone does not provide any information about this quantity.
+
+Note that we also rederived the natural bounds in this way:
+$$P(x,y) \le P(Y^{\doit(x)}=y) \le P(x,y) + (1 - P(x))$$
+(but I find the potential-outcome derivation the most intuitive).
+
+Perhaps we want to expand this discusion discussing also the monotonicity assumption, and how it allows us to identify PN?
+
+I believe I prefer ``probability of causation'' over ``probability of necessity'' / ``probability of sufficiency'' because it seems that PN and PS are equal to each other modulo negation of cause and effect.
+}
+
+%On the other hand, the more uncertainty we have about the outcome, the less information the Markov kernel $P(Y \given \doit(X))$ contains about the counterfactual, as there is a larger range of parameter values for $\rho$ that induce the same Markov kernel.
+
+%In this example, contrary to the previous one, the Markov kernel $P(Y \given \doit(X))$ (which can in principle be estimated by a randomized controlled trial) does provide partial information about the parameter $\rho$. Not enough to identify it, but sufficient to bound it.
+
+%Twinning preserves observable equivalence w.r.t.\ a subset. Example~\ref{ex:Counterfactuals} shows that twinning
+%does not preserve interventional equivalence w.r.t.\ a subset. 
+%Hard interventions do not preserve observable equivalence w.r.t.\ a subset, but they
+%do preserve interventional and counterfactual equivalence w.r.t.\ a subset.
+
+\begin{comment}
+\Joris{Conjecture: the bounds that one can obtain in this way do \emph{not} rely on the strong modeling assumption that
+interventions do not change the values of (latent) exogenous random variables. NB: we can safely assume the intervention
+not to change the values of latent exogenous random variables that are \emph{ancestors} of the intervened variable 
+(because we assume ancestor values are determined earlier in time, and there is no future-to-past causality). 
+If we allow for interventions to change the values (but not distributions) of descendants, or perhaps of \emph{all} 
+exogenous random variables in the model, and in doing so obtain the same bounds, we have a kind of robustness.
+Perhaps we should reformulate this: given a CBN, consider all SCMs that are interventionally equivalent to it. Do the twin
+network approach on all these SCMs to calculate a counterfactual probability. 
+
+I am not sure if this can be turned into a theorem. But suppose we have a temporal ordering of the variables in our
+model. Then it is natural to assume that there is no causation-back-in-time; not even ``in distribution'' but a.s..
+Let us look at two variables $X$ and $Y$ with time stamps $t_X$ and $t_Y$, respectively, and suppose we have 
+$P(Y|\doit(X))$ which does depend on $X$. Then we can represent this Markov kernel as a deterministic function via
+$Y \sim f(X,\epsilon)$ with $P(\epsilon|\doit(X))$ independent of $X$. Then if $\epsilon$ represents something 
+real (all other ``direct causes'' of $Y$ apart from $X$) its timestamp must be $t_\epsilon < t_Y$. 
+The part of $\epsilon$ that has timestamp $< t_X$ can be safely assumed to have a value that does not depend on the
+value of $x$ we choose for the intervention. The other part may (if $X$ and $Y$ are the only variables under
+consideration) depend on the value $x$. So, keeping $f$ fixed (the modularity assumption we are making for 
+interventions anyway) and the distribution of $\epsilon$ fixed (the assumption we are making anyway) the worst
+that could happen is that we chose the wrong representation in the class of gauge transformations of $(f,p(\epsilon))$:
+perhaps the true model (that is strongly invariant for twinning) is of the form $Y = \tilde{f}(X,g(X,\epsilon))$
+with $\tilde{f}(X,g(X,\epsilon)) = f(X,\epsilon)$. 
+(We can also represent it as $Y \sim \tilde{f}(X,g(X,\epsilon))$ with $P(g(X,\epsilon)|\doit(X))$ independent of $X$.)
+But that one is also in our class of possible SCMs that induce the same intervened Markov kernel!
+}
+\end{comment}
+
+
+\begin{comment}
+\subsection{Potential-outcome formalism}
+
+A major problem with the twinning approach to counterfactuals is that it
+requires very strong modeling assumptions: that we have a fully specified
+deterministic model, we know in which spaces the latent variables live, and we
+know the distributions of the latent variables. As we have seen, sometimes one
+can obtain bounds when weakening some of these assumptions. Even in such cases,
+the crucial (and often untestable) assumption is still that the \emph{values}
+of the (often latent) exogenous random variables remain the same in the two
+worlds. This is a stronger assumption than that their distribution remains the
+same, which is all that is required to model the (intervened) 
+Markov kernels (when staying on levels 1 and 2 of the causal hierarchy).
+
+In the potential-outcome approach to causal modeling and inference, one takes
+the joint distribution over potential outcomes (also often referred to as
+counterfactuals, even if they are not necessarily contrary-the-fact) as the
+starting point. For example, if $X$ is a binary treatment variable and $Y$ an 
+outcome, then one would consider the joint distribution $P(X,Y,Y^{\doit(x=0)},Y^{\doit(x=1)})$,
+where $X$ is the ``natural'' value of treatment (without intervention), $Y$ is
+the corresponding outcome, $Y^{\doit(x=0)}$ is the potential outcome if the 
+patient is not treated, and $Y^{\doit(x=1)}$ is the potential outcome if the
+patient is treated.
+One assumption that is typically made is that of ``consistency'': if we intervene
+with the treatment that the patient would have had naturally, the outcome will be
+the same:
+$$Y = Y^{\doit(x=X)} \text{a.s.}$$
+The assumption of ``no confounding'' can then be expressed as
+$$X \Indep Y^{\doit(x=0)}, Y^{\doit(x=1)}$$
+an assumption known as ``full exchangeability''. 
+A weaker assumption, that suffices
+to identify the average treatment effect $\Exp(Y^{\doit(x=0)}) - \Exp(Y^{\doit(x=1)})$
+from the observable distribution $P(X,Y)$, is 
+$$\forall x \in \{0,1\}: \quad X \Indep Y^{\doit(x)}$$
+and is known as ``exchangeability''. 
+
+How can we translate these assumptions into the formalism of SCMs? One
+possibility is to make use of the twin-network approach to define all the
+potential outcomes in terms of a hypothetical underlying SCM and intervened
+versions of it. At first thought, one could for example assume that $(X,Y)$ is
+an outcome of a simple SCM $M$, and $Y^{\doit(x=0)}$ and $Y^{\doit(x=1)}$ are
+two potential outcomes of the intervened SCMs $M_{\doit(X=0)}$ and
+$M_{\doit(X=1)}$, respectively. Note, however, that this leaves the joint
+distribution $P(X,Y,Y^{\doit(x=0)},Y^{\doit(x=1)})$ undefined (only the marginals
+$P(X,Y)$, $P(Y^{\doit(x=0)})$ and $P(Y^{\doit(x=1)})$ are specified).
+
+Alternatively, one could define a triple-twin SCM that connects three parallel worlds,
+similarly to how the twin network connects two parallel worlds.
+  $$X_a \Indep \{X_{b'}^{\doit(X_{a'}=0)}, X_{b''}^{\doit(X_{a''}=1)}\},$$
+\begin{Prp}\label{prp:potential_outcome_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$ and assume that $\CX_a = \{0,1\}$. Consider a ``triplet'' extension $M^3$
+that connects three parallel worlds, similarly to how the twin network $M^\twin$ connects two
+parallel worlds.
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ are not confounded according to $M$, then
+  \begin{equation}\label{eq:potential_outcome_unconfoundedness}
+    X_a \Indep_{P_{M^3_{\doit(X_{a'}=0,X_{a''}=1)}}} \{X_{b'}, X_{b''}\}.
+  \end{equation}
+\end{Prp}
+Equation \eref{eq:potential_outcome_unconfoundedness}, typically written in terms of potential outcomes as
+  $$X_a \Indep \{X_{b'}^{\doit(X_{a'}=0)}, X_{b''}^{\doit(X_{a''}=1)}\},$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+is sometimes taken as the definition of ``no confounding'' in the potential outcome framework when
+the task is to estimate the causal effect of $a$ on $b$. It is a weaker assumption
+since it only requires a joint distribution on the various potential outcomes to be defined, and does not
+presuppose the existence of an underlying SCM that induces these distributions via the triple-twin operation.
+
+A more conservative approach is taken by FFRCISTG models (cite Robins) and Single-World Intervention Graphs (cite Robins \& Richardson). 
+The philosophy behind that approachis to try to make minimal modeling assumptions that are still strong enough to be able to formulate exchangeability. 
+It has been proposed in the context of L-CBNs, and it is not clear yet whether one can generalize it to simple SCMs.\footnote{I believe the generalization is straightforward: one should introduce scc-splitting interventions. Intervening on a single variable in an scc is done as usual, but we add a copy of the entire scc to observe before the intervention. However, now it could be that certain latent variables influence both copies. Wait: could the SWIG idea also be used for a soft intervention? If yes, then there is no problem (also in a soft intervention, the same latents may influence the observed and the intervened copy). If no, then there is a problem, and we can only model hard interventions on the entire scc.}
+%One way out is to distinguish weak counterfactuals (or ``interventionals'', or ``single-world counterfactuals'') from strong counterfactuals (or ``cross-world counterfactuals''). 
+%The former only require a single copy of every variable, whereas the latter require multiple copies of at least one of the variables in the model.
+Supposing that we can measure the value of a variable $X$ \emph{right before} we intervene on it to set it to a value $x$. 
+Then we can consider these as two copies of the same variable, but measured at different points in time.
+We can model this by a node-splitting intervention in an L-CBN.
+%The underlying modeling assumption is that the intervention only changes the value of $X$, \emph{but does not change the values of any of the exogenous random variables in the model}.
+%This is a stronger assumption than assuming that the intervention only changes the value of $X$, \emph{but does not change the distribution of the exogenous random variables in the model (though perhaps they are resampled and end up having other values)}.
+For this example, we obtain the intervened L-CBN with variables $X^o$, $X^i$ and the potential outcome $Y^{\doit(X^i)}$, 
+which is very closely related to a SWIG. It provides us with the joint Markov kernel $P(X^o, Y^{\doit(X^i)} | \doit(X^i))$,
+which allows us to check exchangeability:
+$$X^o \Indep Y^{\doit(x)} \qquad \forall x$$
+or in Markov-kernel terminology
+$$X^o \Indep_{P(X^o,Y^{\doit(X^i)}|\doit(X^i)} Y^{\doit(X^i)}$$
+This enables one to get a joint distribution on certain (potential) outcomes without the need for twinning and its underlying strong assumptions.
+This approach seems best suited for L-CBNs with variables that have a well-defined temporal ordering.
+
+Under that assumption, a quantity like $P(Y^{\doit(x)} | X)$ is well-defined as a ``single-world counterfactual'': we do not need to make use of the twinning operation in order to be able to define it.
+On the other hand, a quantity like $P(Y^{\doit(x)} | Y)$ is not well-defined as a ``single-world counterfactual''.
+Similarly, a quantity like $P(Y^{\doit(x)} | Y^{\doit(x')})$ can only be interpreted as a ``cross-world counterfactual'', as we cannot set the same variable to two different values $x,x'$ in a single world.
+\end{comment}
+
+\begin{comment}
+One way out could be to interpret this as two consecutive interventions, but then it is still ambiguous whether we first intervene $\doit(x)$ and then $\doit(x')$, or first $\doit(x')$ and then $\doit(x)$.
+Still, wouldn't the same trick allow us to also define cross-world counterfactuals? 
+And wouldn't this still be a way to interpret the twinning operation in a single world?
+
+Here is an example that suggests that in many relevant cases, one cannot interpret $P(Y^{\doit(x')} | Y^{\doit(x)})$ as a single-world counterfactual by reinterpreting it as consecutive interventions, e.g., as $P((Y^{\doit(x)})^{\doit(x')} | Y^{\doit(x)})$. 
+Indeed, suppose we want to interpret $P(Y^{\doit(x')} | Y^{\doit(x)})$ as the probability that the patient would still be alive if we had done $x'$ (e.g., give him the blue pill), given that the patient died when we did $x$ (e.g., give him the red pill).
+Suppose we try to reinterpret this as $P((Y^{\doit(x)})^{\doit(x')} | Y^{\doit(x)})$, that is, we first do $x$ and measure $Y^{\doit(x)}$, after which we do $x'$ and measure $(Y^{\doit(x)})^{\doit(x')}$.
+If we observed that the patient died after we did $x$, can the patient come back to live again if we then do $x'$?
+A common assumption is to consider this to be impossible.
+But if we are going to assume that $Y(x)(x') = Y(x')$ and that $Y(x')$ is not `dead' a.s., we get a contradiction.
+So here we cannot assume that $Y(x)(x') = Y(x')$.
+
+So if we assume that we can first measure $X$ and then intervene on it without changing the latent variables, why couldn't we
+also assume that we can first measure $X$, then intervene $\doit(x)$ and then intervene $\doit(x')$ without changing the latent
+variables? Under that assumption, we have that $Y^{\doit(x),\doit(x')} = Y^{\doit(x')}$. We could even drop the assumption that
+we first measure $X$: we just first intervene $\doit(x)$ and then $\doit(x')$ without ?. We now ended up giving a single-world
+interpretation of the twinning operation. But we can see that it may not be appropriate.
+
+Ah, so maybe the crucial assumption here is that \emph{observing $X$ does not change $u$}; so we can just insert the observation
+of $X$ ``for free'' in the model where we intervene (a little later) $\doit(x)$. On the other hand, intervening $\doit(x)$ has
+a higher probability of changing $u$. But one important assumption of modeling $p(Y|\doit(x))$ is that the ``initial state''
+(described by $u$) should be the same no matter the value of $x$. So $p(Y|\doit(x))$ can still depend on the exogenous 
+distribution. Doing an intervention $\doit(x')$ first might change the distribution of $u$ (for example, if the patient 
+already died after $\doit(x')$ we are in a different situation than when we consider $\doit(x)$ where we only take living 
+patients). TODO: draw POMDP-like diagram to clarify this.
+
+So it seems that the SWIG idea is more reasonable than my extension of that idea that attempts to make sense of cross-world
+counterfactuals $p(Y^{\doit(x')}|Y^{\doit(x)})$ as a single-world quantity. Reason being that in the model $M_{\doit(x)}$ we
+can assume that we may add an observation of $X$ before the intervention without affecting the latent state, while if we add
+another intervention $\doit(x')$ it is quite likely that this will change the latent state. Indeed, we might be dealing with
+a system 'with memory' where the past interventions have an effect on the latent state, and thereby may change the distribution
+of the observed state, even if the observed state is determined uniquely by the latent state. As an example, the red pill might
+destroy the left kidney, and the blue pill the right kidney, and one needs at least one functioning kidney to survive. While
+most healthy patients entering an RCT would have two kidneys, the counterfactual cannot be interpreted as two consecutive
+treatments.
+
+%X,Y
+%doit(x):  X,Y; x,Y(x)
+%doit(x'): X,Y; x',Y(x')
+%doit(x); doit(x'): X,Y; x,Y(x); x',Y(x')
+%doit(x'); doit(x): X,Y; x',Y(x'); x,Y(x)
+%
+%Question: is Y(x)(x') = Y(x')?
+%Or should we just assume that Y(x)(x') \sim Y(x')?
+%
+%Aha, let's take a patient. Suppose we want to know whether the patient would still be alive if we do x, given that the patient died after we do x'?
+%Let us interpret this as two consecutive interventions. 
+%If we first do x and the patient dies, we can then do x'. Can the patient come back to live again? If we think the answer is no, we don't believe that Y(x)(x') = Y(x') as long as Y(x') is not a.s. 'dead'.
+%So we cannot meaningfully interpret that counterfactual as a single-world counterfactual.
+
+Interesting: consider Figure 25 in Richardson \& Robin's working paper on SWIGs from 2013. It made me question the following:
+if we may assume that we can observe $X$ right before we intervene $\doit(x)$, why couldn't we also observe $Y$ right before
+we intervene $\doit(x)$ (where $Y$ could be an effect of $X$)? If we assume that the SCM models the equilibrium distribution
+of a steady SDCM where all randomness stems from the initial value at $t=0$, this seems sensible. But actually, wouldn't 
+that assumption salvage the twin-network approach as well? Ah, the value of $Y$ right before we intervene $\doit(x)$ might
+be different than the value of $Y$ at another time; in particular, there is no guarantee that the mechanism for $Y$ after
+intervening on $X$ is the same as before. Wait, isn't that what we normally assume? That an intervention on $X$ does not 
+change the mechanism for $Y$? So now we run into the problem whether we may assume that in the "observational regime" we
+measure the value of $Y$ at a different time than in the "interventional regime". Hm, I think it is still considerably safer
+that we can measure $X$ right before we $\doit(x)$ than that we measure a downstream $Y$ right before we $\doit(x)$, as 
+the latter would not be \emph{right before} but might lead us to redefine $Y$ to be measured at a different time in the
+observational regime than in the interventional regime, whereas for $X$ the time difference between the two can be made
+arbitrarily small, in principle. 
+
+Furthermore, any possible latent variable that influences both $X$ and $Y^{\doit(x)}$ must occur before $X$ and $Y$ in the
+topological ordering; hence, we can assume that the intervention $\doit(x)$ will not change the values of these latent
+variables! The crucial reason why a node-splitting intervention is OK is that the ``private noise'' entering $X$ (needed
+to sample from $p(X|pa(X))$ does \emph{not} enter $Y$, nor any other variable in the model, as the intervention on $X$
+changes the Markov kernel $p(X|pa(X))$ into a delta kernel. The fact that we cannot do this with both $Y^{\doit(0)}$ and
+$Y^{\doit(1)}$ is due to not being able to intervene \emph{at the same time} with two different values. And intervening
+in a certain ordering (for example, first $Y^{\doit(0)}$, immediately followed by $Y^{\doit(1)}$) will generally have a
+different result than in the opposite ordering, or than just doing one of the two interventions.
+
+INTERESTING OBSERVATION: we usually are fine with assuming that future interventions do not change the VALUES of past 
+variables.
+
+Another interesting observation: before thinking of how to extend the SWIG approach to simple SCMs, perhaps first think
+about whether it makes sense to do a SWIG-like approach to soft interventions. It seems sensible to me (but I asked
+Thomas' opinion). That would mean we can just generalize the idea to scc-splitting interventions: an observational 
+version of the scc, and an interventional one.
+
+\end{comment}

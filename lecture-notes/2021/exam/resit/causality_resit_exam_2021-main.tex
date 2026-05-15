@@ -1,0 +1,107 @@
+% !TEX root = causality_final_exam_2021-answers.tex
+% LaTeX-template for FNWI exams (v2: January 2014),
+% made by Jolien Kerssens (jolien.kerssens@student.uva.nl
+%
+% package-options are "dutch" (standard is English) and "multipleChoice" (standard is open).
+%
+% Please do not change the document class or the margin sizes of the document.
+%
+
+\RequirePackage{kvoptions-patch}
+\documentclass[a4paper]{article}
+
+%%%%%%%%%%%%%%%  Packages  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}    % AMS math style
+\usepackage{amsfonts}   % Include AMS fonts
+\usepackage{amssymb}    % Include AMS symbols
+\usepackage{amsthm}     % For theorem-like environments
+\usepackage{mathrsfs}   % For rsfs math-script fonts
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{comment}
+\usepackage{numprint}
+\usepackage[compact,explicit]{titlesec}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes,arrows,fit}
+\usetikzlibrary{positioning, shapes.geometric}
+\usepackage[lmargin=1in,rmargin=1.5in]{geometry}
+%%%%%%%%%%%%%%%  Definitions  %%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{../../lecture_notes/shorts.tex}
+\input{../../lecture_notes/shortsjoris.tex}
+
+%\newcommand{\eref}[1]{(\ref{#1})}
+
+%\newcommand{\Prb}{\mathrm{P}}
+%\newcommand{\Exp}{\mathrm{E}}
+%\newcommand{\Var}{\mathrm{var}}
+
+%\newcommand{\RN}{\mathbb{R}}
+%\newcommand{\NN}{\mathbb{N}}
+
+\newcommand{\totalscore}[1]{\marginpar{\bf\large \hfill#1 pt.}}
+\newcommand{\score}[1]{\marginpar{\hfill#1\ pt.}}
+\newcommand{\xbox}{{\fbox{\phantom{X}}}}
+
+%%%%%%%%% Comment out to hide answers and comments
+%\newcommand{\xboxcheck}{\fbox{\color{blue}X}}
+%\newcommand{\answer}[1]{\hspace*{\fill}\\ {\color{blue}\sf#1}}
+%\newcommand{\points}[1]{\hspace*{\fill}\\ {\color{green}\sf#1}}
+%\newcommand{\Comment}[1]{{\color{orange}Comment: \sf#1}}
+
+%%%%%%%%%
+\newcommand{\boxitem}{\item[\xbox]}
+\newcommand{\boxitemcheck}{\item[\xboxcheck]}
+\providecommand{\xboxcheck}{{\fbox{\phantom{X}}}}
+\providecommand{\answer}[1]{}
+\providecommand{\points}[1]{}
+\providecommand{\Comment}[1]{}
+
+%%%%%%%%%%%%% FNWI frontpage
+\usepackage[%dutch,
+    courseTitle = Causality,
+    progTitle = Mathematics (MSc.\ year 1),
+    examType = Resit exam,
+    examDate = {June 22nd, 2021},
+    examTime = 18:00--21:00,
+    toolsAllowed = {1 handwritten doublesided A4-sized page peeking note, pen \& paper},
+    numPages = 6,
+    numQuestions = 5 + 1 bonus,
+    maxPoints = 30 + 3 bonus,
+    notLeaveBefore = 21:00,
+    emergencyPhone = 0647674858,
+    emergencyName = {Joris Mooij}
+]{FNWIexam}
+
+\renewcommand\thesubsection{Exercise \arabic{subsection}}
+
+\begin{document}
+\makeFirstPage
+
+\points{Mistakes stemming from an earlier subquestion are penalized only once.
+The grade is calculated as:
+$$\mathrm{grade} = 1 + 9 \frac{points}{totalPoints}.$$}
+
+\input{exercise-modeling}
+%\input{exercise-alt-y}
+%\input{exercise-markov-kernels}
+%\input{exercise-study}
+\input{exercise-chain-rule}\label{exc:chain_rule}
+%\input{exercise-do-calculus-1}
+\input{exercise-do-calculus-2}
+%\input{exercise-scms-faithfulness}
+%\input{exercise-selection-bias}
+\input{exercise-vaccine-study}
+\input{exercise-ladder}
+\input{exercise-reduction}
+
+\end{document}

@@ -1,0 +1,91 @@
+\subsection{Selection Bias}
+\totalscore{4}
+Suppose you are a teacher and want to investigate whether having a pass for the homework has a positive effect on passing the midterm. You take a survey amongst all students that showed up for the \emph{final} exam.
+However, only students that passed the homework or the midterm (or both) may take part in the final exam.
+All students that are allowed to participate in the final exam show up for the final exam and take the survey.
+
+In your course, all homework exercises are graded before the midterm exam takes place.
+In order to model this situation, define the three binary variables:
+\begin{itemize}
+  \item $X$: ``passed the homework''
+  \item $Y$: ``passed the midterm exam''
+  \item $Z$: ``take part in the final exam''
+\end{itemize}
+and consider the causal Bayesian network with graph:
+\[
+\begin{tikzpicture}[scale=1, transform shape]
+    \tikzstyle{every node} = [draw,shape=circle];
+    \node (X) at (0, 0) {$X$};
+    \node (Y) at (2, 0) {$Y$};
+    \node (Z) at (1, -1) {$Z$};
+   \draw[-{Latex[length=3mm, width=2mm]}] (X) to (Y);
+   \draw[-{Latex[length=3mm, width=2mm]}] (X) to (Z);
+   \draw[-{Latex[length=3mm, width=2mm]}] (Y) to (Z);
+\end{tikzpicture}
+\]
+and with Markov kernels specified by:
+\begin{align*}
+  P(X=1)&=p \\ P(Y=1 \mid \doit(X=0)) &= a \\
+  P(Y=1 \mid \doit(X=1)) &= b \\
+  P(Z=x \vee y \mid \doit(X=x), \doit(Y=y))&=1
+\end{align*}
+for parameters $0 < a, b < 1$ and $0 < p < 1$. Here, $x \vee y$ denots the logical OR of $x$ and $y$.
+Interestingly, you find that amongst the students that participated in the final exam, the percentage of students that passed the midterm given that they \emph{did not} pass the homework is \emph{higher} than the percentage of students that passed the midterm given that they passed the homework.
+
+\begin{enumerate}[label=\alph*)]
+  \item The causal effect of passing the homework on passing the midterm can be quantified as
+$P(Y=1 \mid \text{do}(X=1))-P(Y=1 \mid \text{do}(X=0))$.
+    For which parameter choices is the causal effect positive according to the model?
+    \score{1}
+    \answer{The causal effect of $X$ on $Y$ is $P(Y=1 \mid \doit(X=1))-P(Y=1 \mid \doit(X=0)) = b - a$
+    in terms of the model parameters. Hence, for $a < b$ it is positive.}
+    \points{1 point for the right answer.}
+%  \item  
+%    Explain why it makes sense to restrict the model parameters to $a < b$ (rather than $a \ge b$).
+%    \score{1}
+%    \answer{%    With the do-calculus, one gets that $P(Y \mid \doit(X)) = P(Y \mid X)$ and hence we find that
+%    Hence
+%    $$P(Y=1 \mid \doit(X=1))-P(Y=1 \mid \doit(X=0))
+%    = P(Y=1 \mid X=1)-P(Y=1 \mid X=0)
+%    = b - a > 0
+%    $$
+%    According to the model, passing the homework has a positive causal effect on the probability of passing the midterm, which is more sensible than if this causal effect were negative.
+%    }
+%    \points{1 point for the right interpretation.}
+  \item In your survey you measure $P(Y=1 \mid X=1, Z=1) - P(Y=1 \mid X=0, Z=1)$. Show that this quantity is negative according to the causal Bayesian network model.
+  \score{2}
+  \answer{
+    $$P(Y=1 \mid X=1, Z=1) = \frac{P(Y=1,Z=1 \mid \doit(X=1))}{P(Z=1 \mid \doit(X=1))} = \frac{b \cdot 1}{b \cdot 1 + (1-b) \cdot 1} = b$$
+    $$P(Y=1 \mid X=0, Z=1) = \frac{P(Y=1,Z=1 \mid \doit(X=0))}{P(Z=1 \mid \doit(X=0))} = \frac{a \cdot 1}{a \cdot 1 + (1-a) \cdot 0} = 1$$
+    Hence $P(Y=1 \mid X=1, Z=1) - P(Y=1 \mid X=0, Z=1) = b - 1 < 0$.}
+  \points{Not sure how to assign the points.}
+  \item What is the morale of this exercise?
+    \score{1}
+    \answer{In cases with (strong) selection bias, correlation is not necessarily the same as causation. The causal effect can even be opposite to the correlation.}
+    \points{1 point for a sensible answer.}
+\end{enumerate}
+
+% Suppose you are a teacher who wants to investigate whether learning for the midterm exam has a positive effect on the probability of passing the midterm. You take a survey amongst all students that showed up for the \emph{final} exam. Interestingly, you find that in this group of students, the percentage of students that passed the midterm \emph{without} learning is \emph{higher} than the percentage of students that passed the midterm and learnt for it. You are wondering whether this counterintuitive finding could be due to selection bias, and you decide to get more data. You take a survey by email amongst the other students in the course, i.e., the ones who did \emph{not} show up for the final exam. Surprisingly, you obtain a similar counterintuitive finding for the group of students that did not show up for the final exam: the conditional probability of passing is higher for those who didn't learn than for those who learnt.
+
+% In order to model this situation, define the three binary variables:
+% \begin{itemize}
+%   \item $X$: ``learnt for the midterm exam''
+%   \item $Y$: ``passed the midterm exam''
+%   \item $Z$: ``shows up for fnial exam''
+% \end{itemize}
+% and consider the following causal Bayesian network:
+% \[
+% \begin{tikzpicture}[scale=1, transform shape]
+%     \tikzstyle{every node} = [draw,shape=circle];
+%     \node (X) at (0, 0) {$X$};
+%     \node (Y) at (2, 0) {$Y$};
+%     \node (Z) at (1, -1) {$Z$};
+%    \draw[-{Latex[length=3mm, width=2mm]}] (X) to (Y);
+%    \draw[-{Latex[length=3mm, width=2mm]}] (X) to (Z);
+%    \draw[-{Latex[length=3mm, width=2mm]}] (Y) to (Z);
+% \end{tikzpicture}
+% \]
+
+% \begin{enumerate}[label=\alph*)]
+%   \item Write down how the joint distribution $p(X,Y,Z)$ factorizes according to this causal Bayesian network.
+% \end{enumerate}

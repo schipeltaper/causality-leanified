@@ -1,0 +1,392 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 7 --- Counterfactuals\\(\texttt{counterfactuals.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in \texttt{counterfactuals.tex} (2016 lines).
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(lines 254--305, 1764--1839, 1842--1932, 1934--2016).
+Proofs inside \verb|\Joris{...}| blocks are skipped
+(this affects proofs at lines 489, 996, 1110, 1343).
+\verb|\Claude{...}| blocks are \textbf{included} (none found).
+
+Of the 35 proof blocks in the file, 29 are active after excluding comment
+blocks (2 proofs) and \verb|\Joris| blocks (4 proofs).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 1--500: Twin SCMs}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 1: Lem.\ \texttt{lem:scm\_twin\_nullsets} (lines 181--198)}
+\textbf{Statement.} $M$-a.s.\ properties lift to $M^{\mathrm{twin}}$-a.s.\
+properties for both the original and primed copies.
+
+\textbf{Analysis.} Constructs explicit $M^{\mathrm{twin}}$-null sets from
+$M$-null sets using the product structure.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 2: Lem.\ \texttt{lem:partial\_sol\_fns\_twin\_scm} (lines 214--235)}
+\textbf{Statement.} Partial solution functions of $M$ combine into a partial
+solution function of $M^{\mathrm{twin}}$.
+
+\textbf{Analysis.} The twin fixed-point equation decomposes into two independent
+components (original and primed).  Each uses the respective solution function.
+Lemma~1 handles the a.s.\ qualification.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 3: Prp.\ \texttt{prp:twinning\_marginalization\_commute} (lines 243--247)}
+\textbf{Statement.} $(M_{\setminus L})^{\mathrm{twin}} \equiv
+(M^{\mathrm{twin}})_{\setminus(L\cup L')}$.
+
+\textbf{Analysis.} Applies Lemma~2 with $L_1=L_2=L$ to construct the partial
+solution function.  Structural verification left as ``writing out definitions.''
+$\checkmark$
+
+\textbf{Verdict: CORRECT} (terse but sound).
+
+\section{Proof 4: Prp.\ \texttt{prp:hard\_interventions\_twin\_scm} (lines 323--325)}
+\textbf{Statement.} Three compatibility properties between twinning and hard
+interventions.
+
+\textbf{Analysis.} ``Follow by writing out the definitions.''  Each item is a
+straightforward component-by-component check.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 5: Prp.\ \texttt{prp:compatibility\_graph\_twinning} (lines 342--344)}
+\textbf{Statement.} $(G^+(M))^{\mathrm{twin}} = G^+(M^{\mathrm{twin}})$.
+
+\textbf{Analysis.} Both sides produce the same node set and edge set by
+definition.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 500--950: Counterfactual Equivalence and Exogenous Pushforward}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 6: Cor.\ \texttt{Cor:various\_equiv\_marginalization} (lines 515--521)}
+\textbf{Statement.} Simple iSCMs and their marginalizations are counterfactually
+equivalent.
+
+\textbf{Analysis.} Combines Thm.\ \texttt{thm:various\_equiv\_marginalization}
+(obs./int.\ equivalence), Prp.~3 (twinning commutes with marginalization),
+and applies int.\ equivalence to the twin.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 7: Lem.\ \texttt{lem:int\_equiv\_twin\_scm} (lines 527--560)}
+\textbf{Statement.} Simple $M$ and $M^{\mathrm{twin}}$ are interventionally
+equivalent w.r.t.\ $V$.
+
+\textbf{Analysis.} Uses Lemma~2 to construct the twin solution function,
+then shows the pushforward marginalizes to the same kernel.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 8: Prp.\ \texttt{prp:pearls\_ladder\_levels\_2\_and\_3}
+(lines 572--612)}
+\textbf{Statement.} Equivalence $\Rightarrow$ counterfactual equivalence
+$\Rightarrow$ interventional equivalence.
+
+\textbf{Analysis.} Part~1: twin of equivalent iSCMs are equivalent; apply
+Prp.\ \texttt{prp:pearls\_ladder\_levels\_1\_and\_2}.
+Part~2: uses Prp.~4, counterfactual equivalence, and Lemma~7 (transitivity).
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 9: Prp.\ \texttt{prp:scm\_interventions\_preserve\_counterf\_equiv}
+(lines 676--707)}
+\textbf{Statement.} Counterfactual equivalence is preserved by hard interventions
+and adding intervention variables.
+
+\textbf{Analysis.} Each part commutes twinning with interventions (Prp.~4),
+then applies Prp.\ \texttt{prp:scm\_interventions\_preserve\_interv\_equiv}
+to the twins.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 10: Lem.\ \texttt{lem:pushforward\_as} (lines 827--842)}
+\textbf{Statement.} Pushforward preserves a.e.\ properties.
+
+\textbf{Analysis.} Forward: uses analytic-set machinery (Cohn~8.2.6, 8.4.1).
+Backward: direct via $\tilde\phi^{-1}$.  Both correct.
+
+\textbf{Note:} As the \verb|\Joris| comment observes, a two-line proof via the
+change-of-variables formula $P(C)=P(\tilde\phi^{-1}(\tilde C))=\tilde P(\tilde C)$
+suffices (since $C$ and $\tilde C$ are measurable).
+
+\textbf{Verdict: CORRECT} (unnecessarily elaborate).
+
+\section{Proof 11: Cor.\ \texttt{cor:exog\_pushforward\_as} (lines 860--869)}
+\textbf{Statement.} Exogenous pushforward preserves $M$-a.s.\ properties.
+
+\textbf{Analysis.} Pointwise application of Lemma~10 for each $x_J$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 12: Lem.\ \texttt{lem:exog\_pushforward\_equiv} (lines 879--892)}
+\textbf{Statement.} Equivalent iSCMs have equivalent exogenous pushforwards.
+
+\textbf{Analysis.} Combines $f=\hat f$ ($M$-a.s.) with the pushforward
+conditions, lifted via Cor.~11.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 13: Lem.\ \texttt{lem:interventions\_exogenous\_pushforward\_commute}
+(lines 900--902)}
+\textbf{Statement.} Interventions commute with exogenous pushforward.
+
+\textbf{Analysis.} Definitional check.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 14: Lem.\ \texttt{lem:twinning\_exogenous\_pushforward\_commute}
+(lines 909--918)}
+\textbf{Statement.} Twinning commutes with exogenous pushforward when
+$\tilde\Phi$ is constant in $X_J$.
+
+\textbf{Analysis.} Key: $\tilde\Phi(x_J,x_W)=\tilde\Phi(x_{J'},x_W)$
+allows the twin identity $f^{\mathrm{twin}}=\tilde f^{\mathrm{twin}}\circ
+(\mathrm{id},\tilde\Phi)$.  $\checkmark$
+
+\textbf{Typo (line~914):} Missing closing parenthesis.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 15: Lem.\ \texttt{lem:exogenous\_pushforward\_pullback\_partial\ldots}
+(lines 929--940)}
+\textbf{Statement.} Partial solution functions pull back through exogenous
+pushforward.
+
+\textbf{Analysis.} Three-step chain: start from $\tilde M$-a.s.\ condition,
+pull back via Cor.~11, substitute $f=\tilde f\circ(\mathrm{id},\tilde\Phi)$.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 16: Thm.\ \texttt{thm:various\_equiv\_exogenous\_pushforward}
+(lines 949--985)}
+\textbf{Statement.} If both $M$ and its exogenous pushforward are simple, they
+are obs./int.\ equivalent; if $\tilde\Phi$ is constant in $X_J$, also
+counterfactually equivalent.
+
+\textbf{Analysis.} Observable: $g=\tilde g\circ(\mathrm{id},\tilde\Phi)$
+gives $g_*(P)=\tilde g_*(\tilde P)$.
+Interventional: commute and iterate.
+Counterfactual: commute twinning, apply int.\ equivalence to twins.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 950--1400: Exogenous Pullback}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Proofs inside \verb|\Joris| blocks at lines 996, 1110, 1343 are skipped.
+
+\section{Proof 17: Prp.\ \texttt{prp:exogenous\_pushforward\_discrete}
+(lines 1034--1061)}
+\textbf{Statement.} For discrete $\Xcal_J,\Xcal_{\tilde W}$: $M$ simple iff
+pushforward simple.
+
+\textbf{Analysis.} Discreteness makes every null set measurable, bypassing
+the general-case obstruction.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 18: Lem.\ \texttt{lem:exogenous\_pushforward\_left-inverse}
+(lines 1069--1099)}
+\textbf{Statement.} If $\Psi$ is an essential left-inverse of $\tilde\Phi$,
+then $M\equiv\tilde M_{\mathrm{repar}(f,\Psi)}$.
+
+\textbf{Analysis.} Mechanism part: lift $M$-a.s.\ left-inverse equality via
+Cor.~11.  Distribution part: $\Psi_*\tilde\Phi_*P=(\Psi\circ\tilde\Phi)_*P=P$.
+$\checkmark$
+
+\textbf{Typo (line~1092):} Mismatched \verb|\big(|/\verb|\big)| delimiters.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 19: Lem.\ \texttt{lem:pullback\_as} (lines 1207--1209)}
+\textbf{Statement.} Pullback preserves a.e.\ properties.
+
+\textbf{Analysis.} Reformulation of Lem.~10 with reversed map direction.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 20: Cor.\ \texttt{cor:exog\_pullback\_as} (lines 1216--1225)}
+\textbf{Statement.} Exogenous pullback preserves $M$-a.s.\ properties.
+
+\textbf{Analysis.} Pointwise application of Lem.~19.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 21: Lem.\ \texttt{lem:exog\_pullback\_equiv} (lines 1233--1241)}
+\textbf{Statement.} Equivalent iSCMs have equivalent exogenous pullbacks.
+
+\textbf{Analysis.} Uses Cor.~20 to transfer $M$-a.s.\ equivalence.  $\checkmark$
+
+\textbf{Typo (line~1231):} $\hat\Phi$ in the statement should be $\Phi$.
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 22: Lem.\ \texttt{lem:interventions\_exogenous\_pullback\_commute}
+(lines 1249--1251)}
+\textbf{Statement.} Interventions commute with exogenous pullback.
+
+\textbf{Analysis.} Definitional check.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 23: Lem.\ \texttt{lem:twinning\_exogenous\_pullback\_commute}
+(lines 1259--1269)}
+\textbf{Statement.} Twinning commutes with exogenous pullback when $\Phi$
+is constant in $X_J$.
+
+\textbf{Analysis.} Mirrors Proof~14.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 24: Lem.\ \texttt{lem:exogenous\_pullback\_partial\_solution\ldots}
+(lines 1279--1293)}
+\textbf{Statement.} Partial solution functions compose through exogenous pullback.
+
+\textbf{Analysis.} Mirrors Proof~15.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 25: Thm.\ \texttt{thm:various\_equiv\_exogenous\_pullback}
+(lines 1300--1332)}
+\textbf{Statement.} Simple $M$ and its exogenous pullback are obs./int./counterfactually
+equivalent.
+
+\textbf{Analysis.} Mirrors Proof~16 using pullback lemmas.  Three parts:
+simplicity (via Lem.~24), observable equivalence (via solution-function
+pushforward), interventional/counterfactual (via commutativity lemmas).
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Lines 1400--1764: Response Variables and Bounding}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof 26: Prp.\ \texttt{prp:counterfactual\_equivalence\_response\_functions}
+(lines 1525--1530)}
+\textbf{Statement.} The response variable parameterization is counterfactually
+equivalent to~$M$.
+
+\textbf{Analysis.} Verifies the exogenous pushforward condition by unfolding
+definitions.  $\tilde\Phi$ does not depend on $X_J$.
+Thm.~16 yields counterfactual equivalence.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 27: Cor.\ \texttt{cor:counterfactual\_equivalence\_response\_functions}
+(lines 1538--1545)}
+\textbf{Statement.} For discrete $\Xcal_J,\Xcal_v$: exists counterfactually
+equivalent iSCM with single endogenous variable and exogenous space
+$(\Xcal_v)^{\Xcal_J}$.
+
+\textbf{Analysis.} Two-step: marginalize out $V\setminus\{v\}$ (Cor.~6),
+then take response variable parameterization (Prp.~26).  Both preserve
+counterfactual equivalence.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 28: Thm.\ \texttt{thm:response\_variable\_encoding}
+(lines 1614--1619)}
+\textbf{Statement.} The general response variable parameterization (with
+bidirected edges) is simple and counterfactually equivalent.
+
+\textbf{Analysis.} $\Xcal_{\tilde W}$ discrete (product of discrete function
+spaces); $\tilde\Phi$ independent of $X_J$; simplicity via
+Prp.~17.  Thm.~16 applies.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 29: Prp.\ \texttt{prp:Bounding\_counterfactuals}
+(lines 1712--1758)}
+\textbf{Statement.} Natural bounds on counterfactual probability
+$P_{M^{\mathrm{twin}}}((Y')^{\doit(x'=1)}{=}1\mid Y^{\doit(x=0)}{=}0)$
+for binary $X,Y$.
+
+\textbf{Analysis.} By Cor.~27, WLOG $W\in\{f_{00},f_{01},f_{10},f_{11}\}$
+parameterized by $\rho\in\Delta_3$.  The counterfactual probability equals
+$\rho_{01}/q_{0|0}$.  Upper bound: $\rho_{01}\le\min(q_{0|0},q_{1|1})$.
+Lower bound: $\rho_{01}\ge q_{0|0}-\min(q_{0|0},q_{0|1})$.  Both derived
+from non-negativity of the $\rho$'s.  $\checkmark$
+
+\textbf{Note:} The proof implicitly assumes $q_{0|0}>0$ (needed for conditioning).
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~7}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l}
+\textbf{\#} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & 181--198   & CORRECT \\
+2  & 214--235   & CORRECT \\
+3  & 243--247   & CORRECT \\
+4  & 323--325   & CORRECT \\
+5  & 342--344   & CORRECT \\
+6  & 515--521   & CORRECT \\
+7  & 527--560   & CORRECT \\
+8  & 572--612   & CORRECT \\
+9  & 676--707   & CORRECT \\
+10 & 827--842   & CORRECT \\
+11 & 860--869   & CORRECT \\
+12 & 879--892   & CORRECT \\
+13 & 900--902   & CORRECT \\
+14 & 909--918   & CORRECT \\
+15 & 929--940   & CORRECT \\
+16 & 949--985   & CORRECT \\
+17 & 1034--1061 & CORRECT \\
+18 & 1069--1099 & CORRECT \\
+19 & 1207--1209 & CORRECT \\
+20 & 1216--1225 & CORRECT \\
+21 & 1233--1241 & CORRECT \\
+22 & 1249--1251 & CORRECT \\
+23 & 1259--1269 & CORRECT \\
+24 & 1279--1293 & CORRECT \\
+25 & 1300--1332 & CORRECT \\
+26 & 1525--1530 & CORRECT \\
+27 & 1538--1545 & CORRECT \\
+28 & 1614--1619 & CORRECT \\
+29 & 1712--1758 & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{29 proofs checked.  All correct.  No mathematical errors found.}
+
+\bigskip\noindent
+\textbf{Minor issues found:}
+\begin{enumerate}
+  \item \textbf{Proof~10 (Lem.\ \texttt{lem:pushforward\_as}):}
+    Proof uses analytic-set machinery unnecessarily; a two-line
+    change-of-variables argument suffices.
+  \item \textbf{Proof~14, line~914:} Missing closing parenthesis.
+  \item \textbf{Proof~18, line~1092:} Mismatched \verb|\big(|/\verb|\big)|
+    delimiters.
+  \item \textbf{Proof~21, line~1231:} $\hat\Phi$ in the lemma statement should
+    be $\Phi$ (undefined symbol).
+  \item \textbf{Proof~29:} Implicitly assumes $q_{0|0}>0$ for conditioning.
+\end{enumerate}
+
+\end{document}

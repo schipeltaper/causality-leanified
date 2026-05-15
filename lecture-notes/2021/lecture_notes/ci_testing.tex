@@ -1,0 +1,454 @@
+\subsection{Independence Testing}
+
+In this lecture, we will consider the following questions. How can we test whether\dots
+\begin{itemize}
+  \item \dots two random variables are independent?
+  \item \dots two random variables are conditionally independent given a third?
+  \item \dots a random variable is independent of a non-random variable?
+  \item \dots a random variable is conditionally independent of a non-random variable, given another random variable and another non-random variable?
+\end{itemize}
+We will consider these questions only for the special case of discrete categorical variables, i.e., 
+variables that take values in finite spaces.  In particular, we will discuss a test known as the $G$ test.
+This has been defined in the literature for random variables, but we will extend it here to a general case
+involving random and non-random variables.
+We will state conditions under which the tests are asymptotically valid and consistent.
+%We will discuss frequentist tests, and if time allows, a Bayesian test as well.
+%We will briefly mention one other popular test, the partial correlation test.
+
+\subsubsection{Marginal Independence for Categorical Random Variables}
+
+Consider two categorical random variables $X,Y$ taking values in finite spaces $\C{X}$ and $\C{Y}$,
+respectively, with $2 \le |\C{X}| < \infty$ and $2 \le |\C{Y}| < \infty$, and joint distribution $P(X,Y)$.
+We can represent the density in a table (assuming $\C{X} = \{1,\dots,k\}$ and $\C{Y} = \{1,\dots,l\}$):
+\begin{center}\begin{tabular}{c|cccc|c}
+  & $Y=1$         & $Y=2$ & $\dots$ & $Y=l$ \\
+  \hline
+  $X=1$ & $\theta_{11}$      & $\theta_{12}$      & $\dots$ & $\theta_{1l}$ & $\theta_{1+}$\\
+  $X=2$ & $\theta_{21}$      & $\theta_{22}$      & $\dots$ & $\theta_{2l}$ & $\theta_{2+}$\\
+  $\vdots$ & $\vdots$     & $\vdots$       & $\ddots$ & $\vdots$  & $\vdots$ \\
+  $X=k$ & $\theta_{k1}$      & $\theta_{k2}$      & $\dots$ & $\theta_{kl}$ & $\theta_{k+}$ \\
+  \hline
+  & $\theta_{+ 1}$ & $\theta_{+ 2}$ & $\dots$ & $\theta_{+ l}$ & $\theta_{++}=1$\\
+\end{tabular}\end{center}
+where we introduced the parameter $\theta \in \Theta$ by setting $\theta_{xy} = P(X=x,Y=y)$ for
+$x \in \C{X}, y \in \C{Y}$.
+We introduce here the convention that a ``$+$'' index denotes summation over that index, i.e.,
+$$\theta_{+ y} := \sum_{x\in\C{X}} \theta_{xy}, \qquad \theta_{x+} := \sum_{y\in\C{Y}} \theta_{xy}, \qquad \theta_{++} := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy}.$$
+For the parameter space we take the $(|\C{X}||\C{Y}|-1)$-dimensional simplex:
+$$\Theta := \{ \theta \in \prod_{(x,y)\in\C{X}\times\C{Y}} [0,1] : \theta_{+ +} = 1 \}.$$
+With Remark~\ref{ci-random-variables}, we get:
+$$X \Indep_{P(X,Y)} Y \iff P(X,Y) = P(X) \otimes P(Y),$$
+where $P(X)$ and $P(Y)$ are the marginal distributions of $P(X,Y)$.
+In the discrete case we consider here, this holds if and only if
+$$\forall x \in \C{X}, y \in \C{Y}: \theta_{xy} = \theta_{x+} \theta_{+ y}.$$
+The parameters satisfying this constraint form the allowed parameters under the
+null hypothesis of independence $H_0 : X \Indep Y$.
+We introduce the corresponding restricted parameter space
+$$\Theta_0 := \{\theta \in \Theta : \theta_{xy} = \theta_{x+} \theta_{+ y} \ \forall x\in\C{X},y\in\C{Y} \} \subseteq \Theta.$$
+We can also write the null hypothesis as $H_0 : \theta \in \Theta_0$.
+As alternative hypothesis we take that of dependence, i.e., $H_1 : X \nIndep Y$, or equivalently,
+$H_1 : \theta \in \Theta_1$ with $\Theta_1 := \Theta \setminus \Theta_0$.
+
+Suppose now that we have independent and identically distributed data $(X_n,Y_n)_{n=1}^N$ with
+$(X_n,Y_n) \sim P(X,Y \mid \theta)$ for all $n=1,\dots,N$, with the ``true'' parameter $\theta$
+unknown.
+In other words, we assume for the joint distribution on the observed data
+$$P((X_n,Y_n)_{n=1}^N \mid \theta) = \bigotimes_{n=1}^N P(X=X_n,Y=Y_n \mid \theta).$$
+We define the \emph{counts} as the number of observations with a given value $(x,y)\in\C{X}\times\C{Y}$:
+$$N_{xy} := \sum_{n=1}^N \ind_{(x,y)}(X_n,Y_n).$$
+We can represent them in a contingency table:
+\begin{center}\begin{tabular}{c|cccc|c}
+  & $Y=1$         & $Y=2$ & $\dots$ & $Y=l$ \\
+  \hline
+  $X=1$ & $N_{11}$      & $N_{12}$      & $\dots$ & $N_{1l}$ & $N_{1+}$\\
+  $X=2$ & $N_{21}$      & $N_{22}$      & $\dots$ & $N_{2l}$ & $N_{2+}$\\
+  $\vdots$ & $\vdots$     & $\vdots$       & $\ddots$ & $\vdots$  & $\vdots$ \\
+  $X=k$ & $N_{k1}$      & $N_{k2}$      & $\dots$ & $N_{kl}$ & $N_{k+}$ \\
+  \hline
+  & $N_{+ 1}$ & $N_{+ 2}$ & $\dots$ & $N_{+ l}$ & $N_{++} = N$\\
+\end{tabular}\end{center}
+where we used a similar summation convention for the counts as for the parameters.
+
+The classical frequentist procedure for deciding between two hypotheses $H_0 : \theta \in \Theta_0$
+and $H_1 : \theta \in \Theta\setminus\Theta_0$ is as follows.
+One comes up with a \emph{test statistic} $T(D)$, which is a function of the data $D \sim P(D \mid \theta)$, 
+whose value should help us distinguish between the two hypotheses. Then one chooses
+a particular $p$-value threshold $\alpha \in (0,1)$. From
+the observed data $d$, one then calculates a corresponding $p$-value $p(d)$, which is the probability under 
+the null hypothesis that the test statistic has the observed or a more extreme value. For the
+one-sided tests we will consider here, the $p$-value can be defined as
+$$p(d) := \sup_{\theta\in\Theta_0} P(T(D) \ge T(d) \mid \theta).$$
+Then, a decision is taken: if $p(d) \le \alpha$, one considers this as sufficient evidence to reject $H_0$ 
+(and accept $H_1$), while if $p(d) > \alpha$, one does not reject $H_0$ as the evidence in the data 
+is considered insufficient to do so.
+Often, the main desideratum is to control the Type I error (i.e., the error of incorrectly
+rejecting the null hypothesis), which can be achieved by choosing $\alpha$ sufficiently small.
+For causal discovery, however, we need a more symmetric treatment of the two hypotheses, 
+as there we require both Type I error and Type II error (i.e., the error of incorrectly 
+rejecting the alternative hypothesis) to be small. Before we investigate this
+tradeoff, let us first propose a concrete test statistic for the case at hand and 
+obtain an approximate expression for the corresponding $p$-value.
+
+Here we will work out the details of the \emph{likelihood ratio test}, which for this particular case
+is also known as the \emph{$G$ test}. We start by writing down the likelihood of the data:
+$$P((X_n,Y_n)_{n=1}^N \mid \theta) = \prod_{n=1}^N \theta_{X_nY_n} = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{xy}^{N_{xy}}$$
+where we used the counts as a sufficient statistic of the data. 
+This is a multinomial distribution with parameters $(\theta_{xy})_{x\in\C{X},y\in\C{Y}}$ and $N$.
+Maximizing the likelihood with respect to the parameters $\theta \in \Theta$, we obtain the well-known maximum likelihood estimator
+$$\hat \theta_{xy} = \frac{N_{xy}}{N},$$
+i.e., the fractions of the different outcomes in the data.
+Under the null hypothesis $H_0$, $\theta_{xy} = \theta_{x+}\theta_{+ y}$, and the likelihood factorizes:
+\begin{equation*}\begin{split}
+  \theta \in \Theta_0 \implies P((X_n,Y_n)_{n=1}^N \mid \theta) 
+  &= \prod_{x\in\C{X}} \prod_{y\in\C{Y}} (\theta_{x+} \theta_{+ y})^{N_{xy}} \\
+  &= \left(\prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{x+}^{N_{xy}} \right) \left(\prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{+ y}^{N_{xy}}\right) \\
+  &= \left(\prod_{x\in\C{X}} \theta_{x+}^{N_{x+}} \right) \left(\prod_{y\in\C{Y}} \theta_{+ y}^{N_{+ y}}\right).
+%  &= P_0((X_n)_{n=1}^N \mid \theta_{0+},\theta_{1+}) P_0((Y_n)_{n=1}^N \mid \theta_{+ 0},\theta_{+ 1})
+\end{split}\end{equation*}
+This is just the product of two independent multinomial distributions with parameters
+$(\theta_{x+})_{x\in\C{X}}$ and $(\theta_{+ y})_{y\in\C{Y}}$ (and $N$), respectively.
+Hence, the restricted maximum likelihood estimator under $H_0$ is 
+$$\hat \theta^0_{xy} = \hat \theta^0_{x+} \hat \theta^0_{+ y} = \frac{N_{x+}}{N} \frac{N_{+ y}}{N}.$$
+The likelihood ratio is obtained by dividing the likelihood for $\hat \theta$ by the likelihood for $\hat \theta^0$:
+\begin{equation}\label{eq:indep_test_XY_likelihood_ratio}\begin{split}
+\frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n)_{n=1}^N \mid \theta)}
+  & = \frac{P((X_n,Y_n)_{n=1}^N \mid \hat\theta)}{P((X_n,Y_n)_{n=1}^N \mid \hat\theta^0)}
+    = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{\hat \theta_{xy}}{\hat \theta^0_{x+} \hat \theta^0_{+ y}}\right)^{N_{xy}} \\
+  & = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{N_{xy} N}{N_{x+} N_{+ y}}\right)^{N_{xy}}.
+\end{split}\end{equation}
+The likelihood ratio test statistic is defined as 2 times the natural logarithm of this ratio:
+\begin{equation}\label{eq:G_test_statistic}
+  G_N := 2 \log \frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n)_{n=1}^N \mid \theta)} = 2 \sum_{x\in\C{X}} \sum_{y\in\C{Y}} N_{xy} \log \frac{N_{xy} N}{N_{x+} N_{+ y}}.
+\end{equation}
+For finite data, counts can be zero. In this expression, one should interpret $0 \log \frac{0}{0}$ as $0$.
+
+We will now consider the asymptotic behavior of the test statistic under the null hypothesis.
+This will yield an approximation for the $p$-value that we can use also for finite samples.
+As a simplifying assumption, we will henceforth assume that all probabilities are positive,\footnote{The singularities for vanishing values of $\theta_{xy}$ can be dealt with, but require special attention. For simplicity we study only the regular case here.} i.e.,
+\begin{equation}\label{eq:G_test_regularity}
+  \theta_{xy} > 0 \qquad \forall x \in \C{X}, y\in \C{Y}.
+\end{equation}
+\begin{Prp}\label{prp:G_test_asymptotics_H0}
+Under $H_0 : X \Indep Y$, and with regularity assumption \eref{eq:G_test_regularity},
+$$G_N \leadsto \chi_\nu^2$$
+with $\nu = (|\C{X}| - 1)(|\C{Y}| - 1)$ as sample size $N \to \infty$.
+  In words, the test statistic $G_N$ converges in distribution\footnote{We say that a sequence of real-valued random variables $X_1,X_2,\dots$ \emph{converges in distribution} to $X_\infty$, and write $X_n \leadsto X_\infty$, if $P(X_n \le x) \to P(X_\infty \le x)$ for all $x \in \RN$ such that $\xi \mapsto P(X_\infty \le \xi)$ is continuous at $x$.} as $N \to \infty$ to a chi-squared distribution with $\nu$ degrees of freedom.\footnote{The chi-square distribution with $\nu$ degrees of freedom is defined as the distribution of a sum of squares of $\nu$ independent standard normal random variables, i.e, of $\sum_{i=1}^\nu Z_i^2$ where $Z_i \sim N(0,1)$ are i.i.d..}
+\end{Prp}
+\begin{proof}
+This is a direct application of Theorem 4.43 in \cite{Bijma++2017}, for which a proof is
+provided in Chapter 16 in \cite{Vandervaart1998}.
+One has to be careful here to use a different parameterization---in
+terms of (variationally) independent parameters---i.e.,
+such that the parameter space contains an open part of $\RN^{|\C{X}||\C{Y}|-1}$,
+when calculating the score function and the Fisher information matrix
+when checking the regularity conditions.
+For example, one can choose a pair $(k,l) \in \C{X} \times \C{Y}$ and take
+parameters $\theta_{x,y} = \vartheta_{x,y}$ for $x \ne k$ or $y \ne l$, and
+$\theta_{k,l} = 1 - \sum_{(x,y) \ne (k,l)} \vartheta_{x,y}$. 
+%Then we have an embedding $\RN^{kl-1} \ni \vartheta \mapsto \theta \in \RN^{kl}$.
+%Then $\vartheta \in \RN^{kl-1}$.
+The dimensionality of $\Theta$ is $|\C{X}||\C{Y}| - 1$, while
+that of $\Theta_0$ is $(|\C{X}|-1) + (|\C{Y}|-1)$. The degrees
+of freedom of the asymptotic chi-square distribution is the difference of the two, i.e.,
+$\nu = (|\C{X}||\C{Y}|-1)   -   ((|\C{X}|-1) + (|\C{Y}|-1)) = (|\C{X}| - 1)(|\C{Y}| - 1)$.
+
+An alternative proof will be provided later in a more general setting (Proposition~\ref{prp:ext_G_test_asymptotics_H0}).
+\end{proof}
+
+One therefore obtains an approximate level $\alpha$ test (i.e., a test with Type I error asymptotically upper bounded by $\alpha$) 
+by rejecting $H_0$ when $G_N \ge \chi_{\nu,1-\alpha}^2$. Here,
+$\chi^2_{\nu,1-\alpha} := F_{\chi^2_\nu}^{-1}(1-\alpha)$ is the upper $\alpha$ quantile of the $\chi^2$-distribution with $\nu$ degrees of freedom, with $F_{\chi^2_\nu}$ the corresponding distribution function (cumulative density function) and $F^{-1}_{\chi^2_\nu}$ its inverse (i.e., the quantile function).
+Indeed, if $\theta \in \Theta_0$, then $P(G_N \ge \chi_{\nu,1-\alpha}^2) \to \alpha$, for any $\alpha \in (0,1)$.
+Since 
+$$G_N \ge \chi_{\nu,1-\alpha}^2 \iff G_N \ge F_{\chi^2_\nu}^{-1}(1-\alpha) \iff F_{\chi^2_\nu}(G_N) \ge 1-\alpha \iff 1-F_{\chi^2_\nu}(G_N) \le \alpha,$$
+the corresponding approximate $p$-value is $1 - F_{\chi^2_\nu}(G_N)$; if this is smaller than or equal to the chosen threshold $\alpha$, 
+we reject $H_0$.
+This test is called the \emph{$G$-test}.
+
+But what about the Type II error? 
+If we let the sample size $N$ grow, we would hope that the probability of a wrong test result becomes arbitrarily small, and
+vanishes in the limit $N \to \infty$. 
+\begin{Def}
+A (conditional) independence test is called \emph{consistent} if the probabilities of both Type I and Type II errors converge to 0, no matter what the true parameter value is.
+\end{Def}
+To obtain consistency, it is not an option to just control Type I error at a fixed level $\alpha$; instead, one has to use a level $\alpha_N$
+that depends on the sample size $N$, and converges to 0 (implying that Type I error converges to 0). However, because of the
+tradeoff between Type I and Type II errors, the rate at which $\alpha_N$ converges to $0$ has to be chosen carefully in order to
+be able to guarantee that also Type II error vanishes asymptotically. As we shall see, the convergence rate of $\alpha_N$ should be chosen
+sufficiently slow.
+
+While it is often easier to calculate the Type I error than the Type II error of
+a test, in this case we can actually analyze the asymptotic behavior of the test statistic under the alternative hypothesis $H_1$.
+Define
+$$\hat I_N := \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \hat \theta_{xy} \log \frac{\hat \theta_{xy}}{\hat \theta_{x+} \hat \theta_{+ y}}
+%    = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \frac{N_{xy}}{N} \log \frac{N_{xy} N}{N_{x +} N_{+ y}}
+    = \frac{G_N}{2N}$$
+where we used that $\hat\theta^0_{x +} = \hat\theta_{x +}$ and $\hat\theta^0_{+ y} = \hat\theta_{+ y}$.
+This is an estimator (the so-called ``plug-in estimator'') of the mutual information $I(X;Y)$:
+\begin{equation*}\begin{split}
+  I(\theta) & := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} \\
+  & = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} P(X=x,Y=y) \log \frac{P(X=x,Y=y)}{P(X=x) P(Y=y)} =: I(X;Y).
+\end{split}\end{equation*}
+With Jensen's inequality, one can show that $I(X;Y) \ge 0$, and that $I(X;Y) = 0 \iff X \Indep Y$.
+Note further that the function $\Theta \to [0,\infty) : \theta \mapsto I(\theta)$ is continuous.
+
+With this observation, we can prove the asymptotic consistency of the $G$-test under assumptions on the critical values used
+for deciding between $H_0$ and $H_1$. 
+\begin{Cor}\label{cor:G_test_consistency}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,Y_n)_{n=1}^\infty$, where one rejects $H_0 : X \Indep Y$ if $G_N \ge \tau_N$ for some given
+sequence of thresholds $\tau_N$.
+Under the regularity assumption \eref{eq:G_test_regularity}, this sequence of tests is
+asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+\begin{proof}
+We start by a simple application of the strong law of large numbers.
+Let $\theta \in \Theta$. Since the $(X_n,Y_n)$ are assumed to be i.i.d., and 
+  $$\Exp \big(\I_{(x,y)}(X_n,Y_n)\big) = \theta_{xy}$$
+for all $x \in \C{X}, y \in \C{Y}$,
+we conclude that $N_{xy} / N \stackrel{a.s.}{\to} \theta_{xy}$ for all $x \in \C{X}, y \in \C{Y}$
+by the strong law of large numbers.\footnote{The convergence is ``almost surely'', 
+i.e., $N_{xy} / N \stackrel{a.s.}{\to} \theta_{xy}$ means that
+$P(N_{xy} / N \to \theta_{xy}) = 1$.}
+Hence $\hat\theta_{xy} \stackrel{a.s.}{\to} \theta_{xy}$. Hence, also
+$\hat\theta_{+ x} \stackrel{a.s.}{\to} \theta_{+ x}$ and
+$\hat\theta_{y +} \stackrel{a.s.}{\to} \theta_{y +}$.
+Furthermore, by continuity, $I(\hat\theta) \stackrel{a.s.}{\to} I(\theta)$.
+Hence, $G_N / N \stackrel{a.s.}{\to} 2I(\theta)$. 
+  
+Under $H_1$, we have $I(\theta) > 0$,
+and since by assumption $\tau_N / N \to 0$, 
+$\I_{G_N < \tau_N} \stackrel{a.s.}{\to} 0$. 
+Since a.s.\ convergence implies convergence in probability,
+  $$\theta \in \Theta_1 \implies P(G_N < \tau_N) \to 0.$$
+Thus, the probability of a Type II error vanishes asymptotically.
+
+This same approach doesn't work for the Type I error. The reason is that even though
+we assume $\tau_N \to \infty$, and we know that $G_N / N \stackrel{a.s.}{\to} 0$ 
+under $H_0$,
+this does not suffice to conclude anything about the probability of the event 
+$G_N \ge \tau_N$. But we can make use of Proposition~\ref{prp:G_test_asymptotics_H0},
+which states that $G_N \leadsto \chi_{\nu}^2$. 
+Since the distribution function of $\chi_{\nu}^2$ is continuous,
+this implies uniform convergence of the distribution functions:
+  $$\sup_{x \in \RN} |F_{G_N}(x) - F_{\chi_{\nu}^2}(x)| \to 0.$$
+Hence
+  $$|F_{G_N}(\tau_N) - F_{\chi_{\nu}^2}(\tau_N)| \le \sup_{x\in\RN} |F_{G_N}(x) - F_{\chi_{\nu}^2}(x)| \to 0.$$
+Since $\tau_N \to \infty$, $F_{\chi_{\nu}^2}(\tau_N) \to 1$.
+Hence, also $F_{G_N}(\tau_N) \to 1$.
+%Since $\tau_N \to F^{-1}_{\chi_{\nu}^2}(1-\alpha)$ and $F_{\chi_{\nu}^2}$ is continuous,
+%  $$F_{\chi_\nu^2}(\tau_N) \to F_{\chi_\nu^2}(F^{-1}_{\chi_\nu^2}(1-\alpha)) = 1-\alpha.$$
+%Combining these two, we conclude
+%  $$F_{G_N}(\tau_N) \to 1-\alpha$$
+%and hence the probability of a Type I error converges to $\alpha$,
+%  $$\Prb(G_N > \tau_N) \to \alpha.$$
+We conclude that 
+  $$\theta \in \Theta_0 \implies P(G_N \ge \tau_N) \to 0,$$
+i.e., the probability of a Type I error converges to 0.
+%Under $H_1$, Proposition~\ref{prp:G_test_asymptotics_H1} states that
+%  $$\sqrt{N}(\hat I_N - I) \leadsto N(0,\sigma^2).$$
+%Again, since the normal distribution is continuous, this implies uniform convergence
+%  $$\sup_{x\in\RN} |F_{\sqrt{N}(\hat I_N - I)} - F_{N(0,\sigma^2)}| \to 0.$$
+%Since $\hat I_N = \frac{G_N}{2N}$, this implies
+%  $$\sup_{x\in\RN} |F_{\hat G_N} - F_{N(2NI,4N\sigma^2)}| \to 0.$$
+%Hence,
+%  $$|F_{\hat G_N}(\tau_N) - F_{N(2NI,4N\sigma^2)}(\tau_N)| \to 0.$$
+%As we assumed that $\tau_N / N \to 0$, $F_{N(2NI,4N\sigma^2)}(\tau_N) \to 0$
+%and hence the asymptotic probability of a Type II error (incorrectly rejecting $H_1$) converges to 0,
+%  $$\Prb(\hat G_N \le \tau_N) \to 0.$$
+\end{proof}
+
+While one traditionally focuses mostly on Type I error control, in causal discovery we
+are more interested in having both small Type I and Type II error. In order to achieve this
+(at least asymptotically, i.e., for sufficiently large sample sizes), we can thus make use of a sequence of
+thresholds that satisfies the assumptions in the corollary. In terms of $p$-values, this means
+that to bound Type I error a fixed critical value $\alpha$ suffices, but for consistency we
+let $\alpha_N \to 0$ with a rate such that $\chi^2_{\nu,1-\alpha_N} / N \to 0$.
+
+While for a finite sample, we can give guarantees (at least approximately) on the Type I error, it will often be
+impossible to provide guarantees on the Type II error without making strong
+assumptions on the parameters. Indeed, since the mutual information $I(X;Y)$ (a measure of
+the dependence of $X$ and $Y$) can be arbitrarily close to zero for weakly dependent $X$ 
+and $Y$, one cannot know in advance how many samples will be needed to be able to distinguish
+it from an independence.\footnote{This is referred to as the lack of ``uniformly consistent''
+(conditional) independence tests.}
+
+\subsubsection{Conditional Independence for Categorial Random Variables}
+
+We now extend the $G$ test to a conditional independence test that we will refer to as the conditional $G$ test.
+
+Consider three categorical random variables $X,Y,Z$ taking values in spaces $\C{X}$, $\C{Y}$
+and $\C{Z}$, respectively (with $2 \le |\C{X}| < \infty$, $2 \le |\C{Y}| < \infty$ and $1 \le |\C{Z}| < \infty$) and joint distribution $P(X,Y,Z)$.
+With Remark~\ref{ci-random-variables}, we get (because finite spaces are standard):
+\begin{equation*}\begin{split}
+  X \Indep_{P(X,Y,Z)} Y \given Z 
+  & \iff P(X,Y,Z) = P(X | Z) \otimes P(Y,Z) \\
+  & \iff P(X,Y | Z) = P(X | Z) \otimes P(Y | Z) \quad \text{$P(Z)$-a.s.} \\
+  & \begin{split}
+    {} \iff \forall z \in \C{Z}: \big[ & P(Z=z) > 0 \implies \\
+    & P(X,Y \mid Z=z) = P(X \mid Z=z) P(Y \mid Z=z) \big]
+  \end{split} \\
+  & \iff \forall z \in \C{Z}: \big[P(Z=z) > 0 \implies X \Indep_{P(X,Y \mid Z=z)} Y \big].
+\end{split}\end{equation*}
+This suggests that we can make use of an independence test for two categorical variables
+on each  ``stratum'' corresponding to conditioning on a specific value $Z=z$ that has
+positive probability to occur.
+
+We parameterize the conditional kernel $P(X,Y | Z)$ in terms of parameters
+$(\theta_{xy|z})_{x\in\C{X},y\in\C{Y},z\in\C{Z}}$ which live in space
+$$\Theta_{XY|Z} := %\{ \theta \in \prod_{z\in\C{Z}} [0,1] : \sum_{z\in\C{Z}} \theta_z = 1\} \times
+\{ \theta \in \prod_{x\in\C{X},y\in\C{Y},z\in\C{Z}} [0,1] : \forall_{z\in\C{Z}} \sum_{x\in\C{X},y\in\C{Y}} \theta_{xy|z} = 1\}.$$
+With the summation convention, we can write the normalization condition as $\theta_{++|z} = 1$ for all $z \in \C{Z}$.
+For those $z\in\C{Z}$ with $P(Z = z) > 0$, we have 
+$$\frac{P(X = x, Y = y, Z = z)}{P(Z=z)} = P(X = x, Y = y \mid Z=z) = \theta_{xy|z}.$$
+We also parameterize the marginal distribution $P(Z)$ in terms of parameters
+$(\theta_z)_{z\in\C{Z}}$ which live in space
+$$\Theta_Z := \{ \theta \in \prod_{z\in\C{Z}} [0,1] : \sum_{z\in\C{Z}} \theta_z = 1\}.$$
+Any joint distribution of $X,Y$ and $Z$ can then be parameterized as
+$$P(X=x,Y=y,Z=z \mid \theta) = \theta_z \theta_{xy|z},$$
+with parameter space
+$$\Theta := \Theta_Z\times \Theta_{XY|Z}.$$
+
+We formulate the null hypothesis $H_0 : X \Indep Y \given Z$ of independence
+in terms of the parameters as
+$$\forall x \in \C{X}, y \in \C{Y}, \forall z \in \C{Z}: \quad \theta_{xy|z} = \theta_{x+|z} \theta_{+ y|z}$$
+(for convenience, we have strengthened it a bit; strictly speaking, we only need this relation to hold
+for all $z \in \C{Z}$ with $\theta_z > 0$; however, since the data will not convey any information on $\theta_{xy|z}$
+for such $z$, this does not matter).
+The corresponding restricted parameter space is
+$$\Theta_{XY|Z}^0 := \{\theta \in \Theta : \theta_{xy|z} = \theta_{x+|z} \theta_{+ y|z}\ \forall x \in \C{X}, y \in \C{Y}, z \in \C{Z}\}.$$
+We can then also write the null hypothesis as $H_0 : \theta \in \Theta_0$ with
+$\Theta_0 := \Theta_Z \times \Theta_{XY\given Z}^0$.
+As alternative hypothesis we take that of dependence, i.e., $H_1 : X \nIndep Y \given Z$, or equivalently,
+$H_1 : \theta \in \Theta_1$, where
+$\Theta_1 := \Theta_Z \times \Theta_{XY\given Z}^1$ 
+with $\Theta_{XY\given Z}^1 := \Theta_{XY\given Z} \setminus \Theta_{XY\given Z}^0$.
+
+Suppose now that we have independent and identically distributed data $(X_n,Y_n,Z_n)_{n=1}^N$ with
+$(X_n,Y_n,Z_n) \sim P(X,Y,Z \mid \theta)$ for all $n=1,\dots,N$, with the ``true'' parameter $\theta \in \Theta$
+unknown.
+In other words, we assume for the joint distribution on the observed data
+$$P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta) = \bigotimes_{n=1}^N P(X=X_n,Y=Y_n,Z=Z_n \mid \theta).$$
+We define the \emph{counts} as the number of observations with a given value $(x,y,z)\in\C{X}\times\C{Y}\times\C{Z}$:
+$$N_{xyz} := \sum_{n=1}^N \ind_{(x,y,z)}(X_n,Y_n,Z_n).$$
+
+We again work out the details of the likelihood ratio test, and 
+start by writing down the likelihood of the data:
+\begin{equation*}\begin{split}
+  P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta) 
+  &= \prod_{n=1}^N (\theta_{X_n,Y_n|Z_n} \theta_{Z_n}) 
+   = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \prod_{z\in\C{Z}} (\theta_{xy|z}^{N_{xyz}} \theta_z^{N_{xyz}}) \\
+  &= \left( \prod_{z \in \C{Z}} \theta_z^{N_{+ + z}} \right) \left(\prod_{z \in \C{Z}}\prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{xy|z}^{N_{xyz}}\right)
+\end{split}\end{equation*}
+where we used the counts as a sufficient statistic of the data. 
+We recognize the first factor as the likelihood of a multinomial
+distribution with parameters $(\theta_z)_{z\in\C{Z}}$ and $N$.
+The second factor is a product of the likelihoods
+of multinomial distributions with parameters $(\theta_{xy|z})_{x\in\C{X},y\in\C{Y}}$ and $N_{++ z}$,
+for each $z \in \C{Z}$.
+Maximizing the likelihood with respect to the parameters $\theta \in \Theta$, we obtain the maximum likelihood estimator
+$$\left(\hat \theta_{xy|z},\hat \theta_z\right) = \left(\frac{N_{xyz}}{N_{++ z}},\frac{N_{++ z}}{N}\right).$$
+Under the null hypothesis $H_0$, $\theta_{xy|z} = \theta_{x+|z}\theta_{+ y|z}$, and the likelihood factorizes over $X$
+and $Y$:
+\begin{equation*}\begin{split}
+  \theta \in \Theta_0 \implies P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta) 
+  &= \left( \prod_{z \in \C{Z}} \theta_z^{N_{+ + z}} \right) \prod_{z \in \C{Z}}\prod_{x\in\C{X}} \prod_{y\in\C{Y}} (\theta_{x+|z} \theta_{+ y|z})^{N_{xyz}} \\
+  &= \left( \prod_{z \in \C{Z}} \theta_z^{N_{+ + z}} \right) \prod_{z \in \C{Z}} \left(\prod_{x\in\C{X}} \theta_{x+|z}^{N_{x+ z}} \right) \left(\prod_{y\in\C{Y}} \theta_{+ y|z}^{N_{+ yz}} \right).
+\end{split}\end{equation*}
+The restricted maximum likelihood estimator under $H_0$ is 
+$$\left(\hat \theta^0_{xy|z},\hat \theta^0_z\right) = \left(\hat \theta^0_{x+|z} \hat \theta^0_{+ y|z},\hat \theta^0_z\right) = \left(\frac{N_{x+ z} N_{+ y z}}{N_{++ z}^2},\frac{N_{++ z}}{N}\right).$$
+The likelihood ratio is obtained by dividing the likelihood for $\hat \theta$ by the likelihood for $\hat \theta^0$:
+\begin{equation*}\begin{split}
+\frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)}
+  & = \frac{P((X_n,Y_n,Z_n)_{n=1}^N \mid \hat\theta)}{P((X_n,Y_n,Z_n)_{n=1}^N \mid \hat\theta^0)}
+    = \prod_{z\in\C{Z}} \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{\hat \theta_{xy|z}}{\hat \theta^0_{x+|z} \hat \theta^0_{+ y|z}}\right)^{N_{xyz}} \\
+  & = \prod_{z\in\C{Z}} \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{N_{xyz} N_{++ z}}{N_{x+ z} N_{+ y z}}\right)^{N_{xyz}},
+\end{split}\end{equation*}
+where the factors involving the marginal $P(Z)$ cancel out.
+The likelihood ratio test statistic is defined as 2 times the natural logarithm of this ratio:
+\begin{equation}\label{eq:cond_G_test_statistic}
+G_N := 2 \log \frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)} = 2 \sum_{z\in\C{Z}} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} N_{xyz} \log \frac{N_{xyz} N_{+ + z}}{N_{x+ z} N_{+ y z}}.
+\end{equation}
+
+We will now consider the asymptotic behavior of the test statistic under both hypotheses.
+As a simplifying assumption, we will henceforth assume that all probabilities are positive, i.e.,
+\begin{equation}\label{eq:cond_G_test_regularity}
+  \begin{cases}
+    \theta_z > 0 & \forall z \in \C{Z}, \text{ and}\\
+    \theta_{xy|z} > 0 & \forall x \in \C{X}, y\in \C{Y}, z\in \C{Z}.
+  \end{cases}
+\end{equation}
+\begin{Prp}\label{prp:cond_G_test_asymptotics_H0}
+Under $H_0 : X \Indep Y \given Z$, and with regularity assumption \eref{eq:cond_G_test_regularity}
+$$G_N \leadsto \chi_\nu^2$$
+with $\nu = |\C{Z}|(|\C{X}| - 1)(|\C{Y}| - 1)$ as sample size $N \to \infty$.
+In words, the test statistic $G_N$ converges in distribution as $N \to \infty$ to a chi-squared distribution with $\nu$ degrees of freedom.
+\end{Prp}
+\begin{proof}
+This is analogous to the proof of Proposition~\ref{prp:G_test_asymptotics_H0}.
+The dimensionality of $\Theta$ is $|\C{Z}|(|\C{X}||\C{Y}| - 1) + (|\C{Z}|-1)$, while
+that of $\Theta_0$ is $|\C{Z}|\big((|\C{X}|-1) + (|\C{Y}|-1)\big) + (|\C{Z}|-1)$. The degrees
+of freedom of the asymptotic chi-square distribution is the difference of the two, i.e.,
+$\nu = |\C{Z}|(|\C{X}| - 1)(|\C{Y}| - 1)$.
+\end{proof}
+
+One therefore obtains an approximate level $\alpha$ test (i.e., a test with Type I error asymptotically upper bounded by $\alpha$) 
+by rejecting $H_0$ when $G_N \ge \chi_{\nu,1-\alpha}^2$.
+
+Define
+$$\hat I_N := \sum_{z\in\C{Z}} \hat\theta_{z} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \hat \theta_{xy|z} \log \frac{\hat \theta_{xy|z}}{\hat \theta_{x+|z} \hat \theta_{+ y|z}}
+%    = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \frac{N_{xy}}{N} \log \frac{N_{xy} N}{N_{x +} N_{+ y}}
+    = \frac{G_N}{2N}$$
+where we used that $\hat\theta^0_{x +|z} = \hat\theta_{x +|z}$ and $\hat\theta^0_{+ y|z} = \hat\theta_{+ y|z}$.
+This is a plug-in estimator of the conditional mutual information $I(X;Y|Z)$:
+\begin{equation*}\begin{split}
+  I(\theta) 
+  & := \sum_{z\in\C{Z}} \theta_z \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy|z} \log \frac{\theta_{xy|z}}{\theta_{x +|z} \theta_{+ y|z}} \\
+  & = \sum_{z\in\C{Z}} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} P(X=x,Y=y,Z=z) \log \frac{P(X=x,Y=y|Z=z)}{P(X=x|Z=z) P(Y=y|Z=z)} \\
+  & =: I(X;Y|Z).
+\end{split}\end{equation*}
+With Jensen's inequality, one can show that $I(X;Y|Z) \ge 0$, and that $I(X;Y|Z) = 0 \iff X \Indep Y \given Z$.
+Note further that the function $\Theta \to [0,\infty) : \theta \mapsto I(\theta)$ is continuous.
+
+With this observation, we can prove the asymptotic consistency of the conditional $G$-test under assumptions on the critical values used
+for deciding between $H_0$ and $H_1$.
+\begin{Cor}\label{cor:cond_G_test_consistency}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,Y_n,Z_n)_{n=1}^\infty$,
+where one rejects $H_0 : X \Indep Y \given Z$ if $G_N \ge \tau_N$ for some given
+sequence of thresholds $\tau_N$.
+Under the regularity assumption \eref{eq:cond_G_test_regularity}, this sequence is
+asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+\begin{proof}
+This is very similar to the proof of Corollary~\ref{cor:G_test_consistency}.
+  
+We again apply the strong law of large numbers.
+Let $\theta \in \Theta$. Since $(X_n,Y_n,Z_n)$ are assumed to be i.i.d., and 
+  $$\Exp \big(\I_{(x,y,z)}(X_n,Y_n,Z_n)\big) = \theta_{xy|z}\theta_z$$
+for all $x \in \C{X}, y \in \C{Y}, z \in \C{Z}$,
+we conclude that $N_{xyz} / N \stackrel{a.s.}{\to} \theta_{xy|z} \theta_z$ for all $x \in \C{X}, y \in \C{Y}, z\in \C{Z}$
+by the strong law of large numbers. Hence, also $N_{+ + z} / N \stackrel{a.s.}{\to} \theta_z$ for all $z \in \C{Z}$.
+Hence, using \eref{eq:cond_G_test_regularity},
+$\hat\theta_z \stackrel{a.s.}{\to} \theta_z$,
+$\hat\theta_{xy|z} \stackrel{a.s.}{\to} \theta_{xy|z}$,
+$\hat\theta_{+ x|z} \stackrel{a.s.}{\to} \theta_{+ x|z}$, and
+$\hat\theta_{y +|z} \stackrel{a.s.}{\to} \theta_{y +|z}$.
+By continuity, $I(\hat\theta) \stackrel{a.s.}{\to} I(\theta)$.
+Hence, $G_N / N \stackrel{a.s.}{\to} 2I(\theta)$. 
+  
+We can now reason analogously as in the proof of 
+Corollary~\ref{cor:G_test_consistency} to conclude that
+%Under $H_1$, we have $I(\theta) > 0$,
+%and since by assumption $\tau_N / N \to 0$, 
+%$\I_{G_N \le \tau_N} \stackrel{a.s.}{\to} 0$. 
+%Since a.s.\ convergence implies convergence in probability,
+%  $$\Prb_{H_1}(G_N \le \tau_N) \to 0.$$
+%Thus, 
+the probability of a Type II error vanishes asymptotically.
+
+For an asymptotic estimate of the probability of a Type I error,
+we can make use of Proposition~\ref{prp:cond_G_test_asymptotics_H0},
+which states that $G_N \leadsto \chi_{\nu}^2$. 
+This part of the proof is identical to the corresponding part of the proof of Corollary~\ref{cor:G_test_consistency}.
+\end{proof}

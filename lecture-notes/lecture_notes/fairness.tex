@@ -1,0 +1,1059 @@
+\section{Causality and fairness: a case study}
+
+\JorisTODO{This subsection is work in progress! Ignore it for now.}
+
+In this subsection we will take a look at a famous data set, the Berkeley admission data \cite{BickelHammelOConnel1975}, 
+and show how we can use causal modeling for answering fairness questions.
+
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{scope}
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (-2,0) {$X_3$};
+%        \node[ndlat] (E) at (1,1.5) {$X_w$};
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X1) -- (X2);
+%        \draw[arout] (E) -- (X1);
+%        \draw[arout] (E) -- (X2);
+%        \draw[arlat,bend left] (X1) edge (X2);
+        \node at (-3,0) {(a)};
+      \end{scope}
+      \begin{scope}[yshift=-2cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (-2,0) {$X_3$};
+%        \node[ndlat] (E) at (1,1.5) {$X_w$};
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X1) -- (X2);
+        \draw[arout,red,bend right] (X3) edge (X2);
+%        \draw[arout] (E) -- (X1);
+%        \draw[arout] (E) -- (X2);
+%        \draw[arlat,bend left] (X1) edge (X2);
+        \node at (-3,0) {(b)};
+      \end{scope}
+      \begin{scope}[xshift=7cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (-2,0) {$X_3$};
+%        \node[ndlat] (E) at (1,1.5) {$X_w$};
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X1) -- (X2);
+%        \draw[arout] (E) -- (X1);
+%        \draw[arout] (E) -- (X2);
+        \draw[arlat,bend left] (X1) edge (X2);
+        \node at (-3,0) {(c)};
+      \end{scope}
+      \begin{scope}[xshift=7cm,yshift=-2cm]
+        \node[ndout] (X1) at (0,0) {$X_1$};
+        \node[ndout] (X2) at (2,0) {$X_2$};
+        \node[ndout] (X3) at (-2,0) {$X_3$};
+%        \node[ndlat] (E) at (1,1.5) {$X_w$};
+        \draw[arout] (X3) -- (X1);
+        \draw[arout] (X1) -- (X2);
+        \draw[arout,red,bend right] (X3) edge (X2);
+%        \draw[arout] (E) -- (X1);
+%        \draw[arout] (E) -- (X2);
+        \draw[arlat,bend left] (X1) edge (X2);
+        \node at (-3,0) {(d)};
+      \end{scope}
+    \end{tikzpicture}
+  \end{center}
+  \caption{(a) Observable graph of SCM without direct effect of $X_3$ on $X_2$; (b) Observable graph of SCM with additional direct effect of $X_3$ on $X_2$ w.r.t.\ $\{X_1,X_2,X_3\}$; (c) Observable graph of the instrumental-variable SCM; (d) Observable graph with additional direct effect of $X_3$ on $X_2$.\label{fig:UCB_graphs}}
+\end{figure}
+
+\begin{Eg}
+  For the Berkeley admission data \cite{BickelHammelOConnel1975}, we have:\footnote{We make use of the \texttt{R} dataset \texttt{UCBAdmissions}, which apparently contains the data for the six largest departments only, whereas \cite{BickelHammelOConnel1975} used data for 85 departments.}
+  \begin{center}\begin{tabular}{llll}
+    variable & interpretation    & states        & cardinality \\
+    \hline
+    $X_3$    & sex               & male / female & $n_3 = 2$   \\
+    $X_1$    & department choice & 0,1,2,3,4,5   & $n_1 = 6$   \\
+    $X_2$    & admission         & yes / no      & $n_2 = 2$
+  \end{tabular}\end{center}
+  Note that the `department choice' variable ($X_1$) is not binary, but can take on 6 different values.
+  The data concern the selection process for students to get admitted at Berkeley University College in YEAR.
+  University officials noticed in the data that the probability for a male student to get admitted was much larger than the probability for a female student to get admitted.
+  This raised the question whether female graduate students were discriminated against.
+  They asked some statisticians to analyze the data in order to answer this question.
+  
+  Here we will revisit the data and use the modern framework of SCMs to analyze it.
+  We will model the data generating process with a simple SCM.
+  Figure~\ref{fig:UCB_graphs} shows different possibilities for the graph of the SCM.
+  The simplest model, Figure~\ref{fig:UCB_graphs}(a), allows for `sex' to have a direct effect on `department choice' (with respect to the observed variables).
+  In addition, it allows for a direct effect of `department choice' on `admission'. 
+  This seems likely if different departments use different criteria for admission.
+  Even if all departments use the same criteria, the ratio of admission requests over places available may differ across departments, leading to non-uniform admission probabilities.
+  We consider this model as `fair', because the causal mechanism for `admission' does not take `sex' into account, but only `department choice'.
+
+  In Figure~\ref{fig:UCB_graphs}(b), on the contrary, there is an additional `unfair' edge corresponding to a direct effect of `sex' on `admission'.
+  This means that the causal mechanism for `admission' does take `sex' into account.
+  We consider this model as `unfair' as it favors one sex over the other.
+
+  But there might be many other factors that play a role in the admission decision that have not been registered in the data set.
+  For example, it appears likely that certain skills of a student play a role in their department choice and in the admission decision.
+  Being good at mathematics may be a reason for a student to choose a science department rather than a language department, for example,
+  while high scores on a mathematics test or exam may increase the likelihood that a student is admitted to such a department.
+  Here, math skills would act as a (latent) common cause of the two.
+  This suggests that the graphs in Figure~\ref{fig:UCB_graphs}(c-d) are more realistic to consider.\footnote{CHECK WHETHER ANYONE ELSE 
+  CONSIDERED SUCH LATENT CONFOUNDING. PERHAPS PEARL?}
+
+  Should we consider any other possible edges in the graph?
+  Since there is a clear temporal ordering (sex is determined at birth for most of the students, a department is chosen afterwards, and only after the department has been chosen, the admission is decided), we can exclude the directed edges $X_2 \tuh X_1$, $X_2 \tuh X_3$ and $X_1 \tuh X_3$.
+  What about the bidirected edges $X_3 \huh X_1$ and $X_3 \huh X_2$?
+  TODO
+
+  It seems reasonable to assume that the data generation process can be modeled as an SCM with graph as in Figure~\ref{fig:UCB_graphs}(c).
+  An extra edge $X_3 \tuh X_2$ (Figure~\ref{fig:UCB_graphs}(d)) allows for a direct effect of sex on admission that is not mediated via department choice.
+  If the extra edge is not needed, then there are constraints on the possible conditional distributions $P(X_1,X_2 \mid X_3)$.
+  The instrumental inequalities are then of the form
+  $$P(X_1=x_1,X_2=x_2 \mid X_3=0) + P(X_1=x_1,X_2=1-x_2 \mid X_3=1) \le 1$$
+  for $x_1 \in \{0,1,2,3,4,5\}$ and $x_2 \in \{0,1\}$.
+  With exactly the same proof technique as for Proposition~\ref{prp:instrumental_inequality_completeness} one can show that this set of
+  inequalities completely characterizes the set of possible conditional distributions $P(X_1,X_2 \mid X_3)$ that stem from an SCM with graph
+  as in Figure~\ref{fig:UCB_graphs}(c) and where $n_1 = 6, n_2 = 2, n_3 = 2$.
+
+  As it turns out, the empirical conditional distribution $\hat P(X_1,X_2 | X_3)$ satisfies these inequalities.
+  Therefore, if we do a statistical hypothesis test of the model in Figure~\ref{fig:UCB_graphs}(d) versus the saturated model (which subsumes the one in Figure~\ref{fig:UCB_graphs}(c)), there is not enough evidence to reject the model in Figure~\ref{fig:UCB_graphs}(c). 
+  In other words, the data do not contain evidence for discrimination based on sex.
+\end{Eg}
+
+\Joris{
+\begin{Prp}[Instrumental variable bounds]
+  \begin{align*}
+    & P(X_1=0,X_2=0 \mid X_3=0) + P(X_1=0,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=1,X_2=0 \mid X_3=0) + P(X_1=1,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=2,X_2=0 \mid X_3=0) + P(X_1=2,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=3,X_2=0 \mid X_3=0) + P(X_1=3,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=4,X_2=0 \mid X_3=0) + P(X_1=4,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=5,X_2=0 \mid X_3=0) + P(X_1=5,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=0,X_2=1 \mid X_3=0) + P(X_1=0,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=1,X_2=1 \mid X_3=0) + P(X_1=1,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=2,X_2=1 \mid X_3=0) + P(X_1=2,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=3,X_2=1 \mid X_3=0) + P(X_1=3,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=4,X_2=1 \mid X_3=0) + P(X_1=4,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=5,X_2=1 \mid X_3=0) + P(X_1=5,X_2=0 \mid X_3=1) \le 1 \\
+  \end{align*}
+  In words: for each department, the probability of getting admitted and choosing that department given male plus the probability of not getting admitted and choosing that department given female should not exceed 1.
+  The more departments, the looser this gets.
+  These inequalities do not seem to imply similar inequalities for a discretized model (e.g. by combining departments). What happens if we discretize a given SCM????? This can be thought of as splitting a node and marginalizing out a part of it. In this case, it would lead to a direct effect. Also, what if we just select data based on $X_1$? E.g., two out of six departments? Or a single department? If the inequalities remain valid, this makes them much stronger in a way!
+\end{Prp}
+
+\subsubsection{Counterfactual fairness}
+
+Definition 5 in Kusner et al.:
+\begin{Def}
+  Predictor $\hat Y$ is counterfactually fair if under all contexts $X=x, A=a$, 
+  $$P(\hat Y^{\doit(A=a)}(U) = y \given X=x, A=a) = P(\hat Y^{\doit(A=a')}(U) = y \given X=x, A=a)$$
+  for all $y$ and all $a'$.
+
+  In other words, if
+  $$P(\hat Y^{\doit(A=a)} \given X, A) = P(\hat Y^{\doit(A=a')} \given X, A)$$
+  i.e.\ (using consistency) if
+  $$P(\hat Y \given X, A) = P(\hat Y^{\doit(A=a')} \given X, A)$$
+
+  Here, $A$ are protected attributes, $X$ remaining attributes, $Y$ an outcome of interest, and $U$ latent exogenous random variables.
+\end{Def}
+
+If $P(X_1=x_1|X_3=x_3)>0$ for all $x_1,x_3$, then
+counterfactual fairness:
+$$P(X_2=x_2 |X_1=x_1, X_3=x_3)=P(X_2^{\doit(X_3'=x_3')}=x_2| X_1=x_1,X_3=x_3)$$
+holds if and only if
+$$P(X_2=x_2,X_1=x_1|X_3=x_3)=P(X_2^{\doit(X_3'=x_3')}=x_2,X_1=x_1|X_3=x_3)$$
+Hence
+$$P(X_2=x_2, X_1=x_1 | X_3=x_3) = \sum_{(\phi,\psi) \in \CX_{\tilde{W}}} p(\phi,\psi) \delta(x_1=\phi(x_3)) \delta(x_2=\psi(x_1,x_3))$$
+$$P(X_2^{\doit(X_3'=x_3')}=x_2, X_1=x_1|X_3=x_3) = \sum_{(\phi,\psi) \in \CX_{\tilde{W}}} p(\phi,\psi) \delta(x_1=\phi(x_3)) \delta(x_2=\psi(x_1,x_3'))$$
+Note that it also implies
+$$P(X_2=x_2|X_3=x_3)=P(X_2^{\doit(X_3'=x_3')}=x_2|X_3=x_3)$$
+This indeed implies that
+\begin{equation*}\begin{split}
+  P(X_2=x_2|X_3=x_3)
+  &=P(X_2=x_2|\doit(X_3=x_3)) \\
+  &=P(X_2'=x_2'|\doit(X_3'=x_3'),X_3=x_3) \\
+  &=P(X_2=x_2|\doit(X_3=x_3')) \\
+  &=P(X_2=x_2|X_3=x_3')
+\end{split}\end{equation*}
+This is just demographic parity.
+So counterfactual fairness in our IV-type Berkeley model implies demographic parity.
+\textbf{So it can hardly be an adequate notion of fairness: typical models without direct effect of $X_3$ on $X_2$ but with confounder between $X_1$ and $X_2$ would be considered unfair as soon as they don't satisfy demographic parity.}
+}
+
+The criterion basically boils down to demanding the total effect of $X_3$ on $X_2$ (when $X_3$ is considered exogenous), or the dependence between $X_3$ and $X_2$ (more generally), to be 0.
+Note that in the supplement they propose a path-dependent counterfactual fairness notion, which seems more applicable to the case at hand.
+
+There, $(A,X,Y) = (X_3,X_1,X_2), P_{G_A} = A->Y, X_{P_{G_A}^c} = X$.
+They define ``path-dependent counterfactual fairness'' as:
+\begin{Def}
+  Predictor $\hat Y$ is path-dependent counterfactually fair with respect to $P_{G_A}$ if
+  $$P(\hat Y^{\doit(A=a,X=x)} \given X=x,A=a) = P(\hat Y^{\doit(A=a',X=x)} \given X=x, A=a)$$
+\end{Def}
+Translated into our notation, this becomes:
+$$P(X_2=x_2 |X_1=x_1, X_3=x_3)=P(X_2^{\doit(X_3'=x_3',X_1=x_1)}=x_2| X_1=x_1,X_3=x_3)$$
+The second term looks like the term that appears in the natural direct effect: it sends
+$x_3'$ along the path $X_3 \tuh X_2$, while keeping $X_1$ at its value without this intervention.
+Path-specific counterfactual fairness holds if the intervention on $X_3'$ has no effect. 
+(Really? The conditioning on $X_1$ already changes the distribution...)
+We could also interpret this as:
+
+\begin{centering}\begin{tikzpicture}
+  \node[ndout] (S) at (0,0) {$X_3$};
+  \node[ndout] (A) at (1.5,0) {$X_3'$};
+  \node[ndout] (M) at (1.5,1) {$X_1$};
+  \node[ndout] (Y) at (3,0) {$X_2$};
+  \node[ndint] (IA) at (1.5,-1.5) {$I$};
+  \draw[tuh] (IA) to (A);
+  \draw[tuh] (S) to (A);
+  \draw[tuh] (A) to (Y);
+  \draw[tuh] (S) to (M);
+  \draw[tuh] (M) to (Y);
+  \draw[huh,bend left] (M) edge (Y);
+  \draw[huh,bend left] (S) edge (M);
+\end{tikzpicture}\end{centering}
+
+where $I=\emptyset$ results in $X_3' = X_3$, and $I=a'$ results in $X_3' = a'$.
+
+Clearly, if in the original model, the edge $X_3 \tuh X_2$ is absent, then we are path-specifically counterfactually fair.
+(Really? The conditioning on $X_1$ seems to already change the distribution of $X_2$, even without the presence of a direct effect $X_3 \tuh X_2$!
+Wait!!! Something funny is going on here. It seems indeed clear from this node-splitting analysis, but if you try to show the same using a twin
+network approach it doesn't seem to work out... is that a similar case as what motivated the SWIG framework in the first place?)
+
+Hence, if a test rejects the latter null hypothesis, it will also reject the former null hypothesis.
+Does equality
+$$P(X_2=x_2 |X_1=x_1, X_3=x_3)=P(X_2^{\doit(X_3'=x_3',X_1'=x_1)}=x_2| X_1=x_1,X_3=x_3)$$
+imply that the directed edge $X_3 \tuh X_2$ is absent?
+At first sight, the answer appears to be 'yes'. But remember that we may have 'spurious' directed edges!
+So the question is whether this equality allows us to identify the absence of the edge $X_3 \tuh X_2$.
+For $P(X_1=x_1,X_3=x_3) > 0$, we have that:
+\begin{equation*}\begin{split}
+  &P(X_2=x_2 |X_1=x_1, X_3=x_3)=P(X_2^{\doit(X_3'=x_3',X_1'=x_1)}=x_2| X_1=x_1,X_3=x_3) \iff \\
+  &P(X_2=x_2, X_1=x_1 \given X_3=x_3)=P(X_2^{\doit(X_3'=x_3',X_1'=x_1)}=x_2, X_1=x_1 \given X_3=x_3) 
+\end{split}\end{equation*}
+The latter is, in the reinterpreted model (where $X_3'$ is a later copy of $X_3$, along the way to $X_2$), equivalent to:
+  $$P(X_2=x_2, X_1=x_1 \given X_3=x_3)=P(X_2^{\doit(X_3'=x_3')}=x_2, X_1=x_1 \given X_3=x_3)$$
+
+Can we prove at least that equality implies that the model is observably equivalent to one without the edge?
+For that we could try two approaches: showing that it satisfies the instrumental inequality, or explicitly constructing
+an observably equivalent model from it that has no edge. The last construction might be not so difficult: we could
+``average out'' the influence of $X_3$ in $f_2$, by replacing the structural equation
+$$X_2 = f_2(X_3,X_1,X_W)$$
+by
+$$X_2 = \tilde{f}_2(X_1,X_W)$$
+with
+$$\tilde{f}_2(x_1,x_W) := \frac{1}{n_3} \sum_{x_3 \in \CX_3} f_2(x_3,x_1,x_W)$$
+We have to show that this preserves observational equivalence. Clearly, $P(X_3,X_1)$ is preserved.
+In the original model, $P(X_2^{\doit(X_3'=x_3',X_1'=x_1)} | X_1=x_1,X_3=x_3)$ is the push-forward
+of $f_2(x_3',X_1,X_3)$ through $P(X_W \given X_1=x_1,X_3=x_3)$.
+As each one gives $P(X_2|X_1=x_1,X_3=x_3)$, the mixture of them also equals $P(X_W \given X_1=x_1,X_3=x_3)$.
+But the mixture of these is precisely the push-forward of $\tilde{f}_2$ through $P(X_W \given X_1=x_1,X_3=x_3)$.
+I have been a bit sloppy in the above, but this proof sketch indeed shows that the model is going to be 
+observably equivalent to one without the directed edge.
+
+\subsubsection{Natural direct effects}
+
+Another popular fairness notion seems to be that of path-specific fairness.
+In the Berkeley setting, this boils down to assuming that the natural/pure direct effect of sex on admission vanishes.
+Assuming no confounding between department choice and admission, the NDE is identifiable, and is (by the mediation formula) a weighted average of the fairness averaged over departments. 
+
+In mediation analysis, one is interested in decomposing a total causal effect into direct and indirect components. 
+%Pearl (2001) writes:
+%``A classical example of the ubiquity of direct effects (Hesslow 1976) tells the story of a birth-control pill that is suspect of producing thrombosis in women and, at the same time, has a negative indirect effect on thrombosis by reducing the rate of pregnancies (pregnancy is known to encourage thrombosis). In this example, interest is focused on the direct effect of the pill because it represents a stable biological relationship that, unlike the total effect, is invariant to marital status and other factors that may affect women's chances of getting pregnant or of sustaining pregnancy.  This invariance makes the direct effect transportable across cultural and sociological boundaries and, hence, a more useful quantity in scientific explanation and policy analysis.''
+For example, a birth-control pill might have thrombosis as a possible side effect, while it also reduces the risk of thrombosis by preventing pregnancies (pregnancy is known to increase the risk of thrombosis).
+Here the total effect of the birth-control pill on thrombosis is a combination of its direct effect, and its indirect effect mediated via pregnancies.
+
+A commonly used measure of the direct effect is called \emph{natural} or \emph{pure} direct effect.
+This quantity is usually defined in the literature in terms of potential outcomes. 
+%This raises the question what empirical content the notion of natural direct effect has.
+For example, Tchetgen Tchetgen \& Shpitser (2012) write:
+``The \emph{natural} (also known as \emph{pure}) direct effect captures the effect of the exposure when one 
+intervenes to set the mediator to the (random) level it would have been in the absence of exposure [Robins and Greenland (1992), Pearl (2001)]. 
+[...] To formally define natural direct and indirect effects first requires defining counterfactuals.''
+
+\begin{figure}[!h]\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:mediation_analysis}Mediation analysis studies how the total effect
+  of treatment/exposure $S$ on outcome $Y$ can be decomposed into a direct effect and 
+  an indirect effect that is mediated via mediator $M$.}
+\end{figure}
+
+Suppose we have a causal model with exposure/treatment variable $S$, a mediator $M$, and an outcome variable $Y$ and the causal graph is as in Figure~\ref{fig:mediation_analysis}.
+For example, $S$ could be `takes birth control pills', $M$ could be `pregnant', and $Y$ could be `thrombosis'.
+Then, the natural direct effect on $Y$ of changing $S$ from $a'$ to $a$ is defined as
+\begin{equation}\label{eq:nde_counterfactual}
+NDE(Y; a' \to a) := \Exp \lp Y^{\doit(S=a,M=M^{\doit(S=a')})} \rp - \Exp \lp Y^{\doit(S=a')} \rp.
+\end{equation}
+Here, $M^{\doit(S=a')}$ is the potential outcome of the mediator under the intervention that sets $S$ to $a'$ (the reference value), and $Y^{\doit(S=a,M=M^{\doit(S=a')})}$ is the potential outcome under the intervention that sets $S$ to $a$ and $M$ to the value it would have had if $S$ were set to $a'$, while $Y^{\doit(S=a')}$ is simply the potential outcome under the intervention that sets $S$ to $a'$.
+
+These kind of definitions make our heads spin. 
+Furthermore, because of the inherently counterfactual formulation, it is not clear what the empirical meaning of this quantity is.
+In this exercise, we will look at a specific example (the Berkeley admission data) and formulate the natural direct effect of sex on admission in a way that avoids counterfactuals.
+
+\begin{figure}[!h]\centering
+\begin{tikzpicture}
+  \begin{scope}[xshift=6cm]
+    \node (b) at (-1,0) {(a)};
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+  \begin{scope}[xshift=12cm]
+    \node (c) at (-1,0) {(b)};
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:natural_direct_effect_Berkeley}Hypothetical causal model for the Berkeley admission data ($S$ = sex, $M$ = department choice, $Y$ = admission).
+  (a) Observable graph; (b) Graph of SCM with additional latent variable $A$ = perceived sex by admission committee.}
+\end{figure}
+
+We assume an SCM with variables $S,M,Y,A$ with graph depicted in Figure~\ref{fig:natural_direct_effect_Berkeley}(b).
+The sex of the student $S$ may cause their department choice $M$, while the perceived sex of the student $A$ and the chosen department may influence their admission $Y$. 
+The data set contains observations of $(s,m,y)$ tuples, but $A$ is latent.
+Normally, we would assume that the sex perceived by the admission committee ($A$) equals the student's true sex ($S$).
+In other words, we assume that the structural equation for $A$ is given by $A = S$.
+
+Suppose the admission committee gets accused of discriminating against sex.
+The question at stake is whether sex has a \emph{direct} effect on admission, besides the indirect effect mediated via department choice.
+To test empirically whether this is indeed the case, one could make use of an intervention that changes the perceived sex of a student.
+For example, we might try to fool the admission committee into believing that they are assessing applications of male students for what are in reality female students by changing sex as indicated in the application documents.
+
+In this setting, we can propose an alternative definition of the natural direct effect of sex on admission:
+\begin{equation}\label{eq:nde_interventional}
+ NDE(Y; a' \to a) := \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a').
+\end{equation}
+We consider this a more appropriate definition, as (i) it avoids counterfactuals, and (ii) it does not require to \emph{intervene} on sex (conditioning suffices).
+
+\begin{Prp}\label{prp:nde_mediation_formula}
+The following \emph{mediation formula} holds:
+  \begin{equation}\label{eq:nde_mediation_formula}\begin{split}
+%      &\Exp(Y \given S=s, \doit(A=a)) - \Exp(Y \given S=s) \\
+      NDE(Y; a' \to a)
+      &= \sum_m (\Exp(Y \given M=m, S=a) - \Exp(Y \given M=m, S=a')) P(M=m \given S=a') \text{ a.s.}
+    \end{split}\end{equation}
+  Assume $M$ to be a discrete variable, and make use of definition \eref{eq:nde_interventional} of the natural direct effect.
+  \Joris{To be more precise: I conjecture that if $\mu_{M,S} \ll P(M,S) \ll \mu_{M,S}$, then the mediation formula holds $\mu_{M,S}$-a.s..}
+\end{Prp}
+\begin{proof}
+Draw the graph of the SCM extended with intervention node $I_A$ for modeling hard interventions on $A$.
+  \centerline{\begin{tikzpicture}
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \node[ndint] (IA) at (1.5,-1.5) {$I_A$};
+    \draw[tuh] (IA) to (A);
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{tikzpicture}}
+From the definition:
+  $$NDE(Y; a' \to a) = \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a').$$
+The first term can be rewritten, using the do-calculus, as:
+\begin{equation*}\begin{split}
+  &\Exp(Y \given S=a', \doit(A=a)) \\
+  \text{[chain rule]} & = \sum_m \Exp(Y \given M=m, S=a', \doit(A=a)) P(M=m \given S=a', \doit(A=a)) \\
+  \text{[$M \Indep I_A \given S$]} & = \sum_m \Exp(Y \given M=m, S=a', \doit(A=a)) P(M=m \given S=a') \\
+  \text{[$Y \Indep S \given M, A$ under $\doit(A)$]} &= \sum_m \Exp(Y \given M=m, \doit(A=a)) P(M=m \given S=a') \\
+  \text{[$Y \Indep I_A \given M, A$]} &= \sum_m \Exp(Y \given M=m, A=a) P(M=m \given S=a') \\
+  \text{[$A = S$ a.s.]} &= \sum_m \Exp(Y \given M=m, S=a) P(M=m \given S=a') \text{ a.s.}
+\end{split}\end{equation*}
+\Joris{I should very carefully check and annotate the required positivity assumptions!
+For the Markov kernels, the derivation looks like:
+\begin{equation*}\begin{split}
+  &P(Y \given S=a', \doit(A=a)) \\
+  \text{[chain rule]} & = P(Y \given M, S=a', \doit(A=a)) \circ P(M \given S=a', \doit(A=a)) \\
+  \text{[$M \Indep I_A \given S$]} & = P(Y \given M=m, S=a', \doit(A=a)) \circ P(M=m \given S=a') \\
+  \text{[$Y \Indep S \given M, A$ under $\doit(A)$]} &= \sum_m P(Y \given M=m, \doit(A=a)) P(M=m \given S=a') \\
+  \text{[$Y \Indep I_A \given M, A$]} &= \sum_m P(Y \given M=m, A=a) P(M=m \given S=a') \\
+  \text{[$A = S$ a.s.]} &= \sum_m P(Y \given M=m, S=a) P(M=m \given S=a') \text{ a.s.}
+\end{split}\end{equation*}
+The chain rule holds surely.\\
+The application of do-calculus rule 3 ($M \Indep I_A \given S$) holds $\mu_S$-a.s.\ if $\mu_S \ll P(S | \doit(A)) \ll \mu_S$ and $\mu_S \ll P(S) \ll \mu_S$;
+note that $P(S \doit(A)) = P(S)$.\\
+The application of do-calculus rule 1 ($Y \Indep S \given M, A$ under $\doit(A)$) holds $\mu_{M,S}$-a.s.\ if $\mu_{M,S} \ll P(M,S | \doit(A)) \ll \mu_{M,S}$;
+note that $P(M,S | \doit(A)) = P(M,S)$.\\
+The application of do-calculus rule 2 ($Y \Indep I_A \given M, A$) holds $\mu_{M,A}$-a.s.\ if $\mu_{M,A} \ll P(M,A) \ll \mu_{M,A}$ and $\mu_{M} \ll P(M | \doit(A)) \ll \mu_M$;
+note that $P(M | \doit(A)) = P(M)$, and $P(M,A) = P(M,S)$; we choose $\mu_{M,A} = \mu_{M,S}$.\\
+The last identity holds a.s..
+So, overall, the conditions are $\mu_S \ll P(S) \ll \mu_S$, $\mu_{M,S} \ll P(M,S) \ll \mu_{M,S}$, $\mu_{M,S} \ll P(M,S) \ll \mu_{M,S}$. 
+Note that  $\mu_{M,S} \ll P(M,S) \ll \mu_{M,S}$ implies $\mu_S \ll P(S) \ll \mu_S$.
+Hence, a sufficient condition is $\mu_{M,S} \ll P(M,S) \ll \mu_{M,S}$.
+I conjecture that under that condition, the final identity at least holds $\mu_{M,S}$-a.s..
+Indeed, the expression itself looks problematic if $P(M=m,S=a')>0$ but $P(M=m,S=a)=0$.
+(Q: if something holds $\mu_S$-a.s., does it then hold $\mu_{M,S}$-a.s.?)
+}
+
+\subsubsection{Intermezzo---mediation formula null-set wrangling}
+Here's a beginning of an attempt to improve on this.
+First, note that $P(M,S|\doit(A)) = P(M,S)$.
+This implies $P(M|\doit(A),S) = P(M|S)\ P(S)\as$.
+This holds iff $P(M|\doit(A),S) \otimes P(S) = P(M|S) \otimes P(S)$.
+If we look at Corollary~\ref{cor:backdoor-int}, the idea might be to postpone marginalization out $M$ to the very end (in that way, we can work with a product factorization and exchange individual terms in the product, without us needing to use associativity of the product and distributivity w.r.t.\ the marginalization).
+So the idea is to start from:
+  \begin{equation*}\begin{split}
+    P(Y,M | \doit(A),S) \otimes P(S) 
+    &\overset{(i)}{=} P(Y,M | \doit(A),S) \otimes P(S|\doit(A)) \\
+    &\overset{(ii)}{=} P(Y,S,M | \doit(A)) \\
+    &\overset{(iii)}{=} P(Y | \doit(A),\doit(M)) \otimes P(M | \doit(S)) \otimes P(S) \\
+    &\overset{(iv)}{=} P(Y | \doit(A), M) \otimes P(M | S) \otimes P(S)
+  \end{split}\end{equation*}
+Where we used:
+\begin{enumerate}[label=(\roman*)]
+  \item $P(S) = P(S | \doit(A))$
+  \item disintegration
+  \item truncated factorization theorem
+  \item rule 2 in Proposition~\ref{prp:do-calculus}, twice
+\end{enumerate}
+Hence by the essential uniqueness of conditional Markov kernels,
+$$P(Y,M | \doit(A),S) = P(Y | \doit(A), M) \otimes P(M | S) \quad P(S)\as$$
+By marginalizing out $M$ we obtain (is the ordering OK? the identity only holds $P(S)\as$\dots that's another lemma we need to prove!)
+$$P(Y | \doit(A),S) = P(Y | \doit(A), M) \circ P(M | S) \quad P(S)\as$$
+But now, how do we go from $P(Y | \doit(A), M)$ to $P(Y | A, M)$ to $P(Y | S,M)$ (the last is by $S=Y$ a.s., which we could turn into a special `identity' rule and add it to the do-calculus, if we would like to).
+The first is slightly more challenging.
+Aha: this breaks down our notation, because in our notation the variable labels in a product of Markov kernels determine who is coupled to who.
+Here we don't want to couple the $S$ in $P(Y|M,S)$ to the $S$ in $P(M|S)$.
+So we cannot even write this out neatly using Markov kernel notation.
+Hm, it is even hard to write the positivity assumptions out.
+It seems to be sufficient that $\mu_S \ll P(S) \ll \mu_S$, but it's not entirely clear!
+
+Actually looking at the expression for the discrete variables, there may still be problems if e.g. $M=S$.
+I think that in the last step, marginalizing out $M$, we don't have the cancellation effect that we have in the chain rule, because the $A$ and $S$ variables are not coupled.
+Hence, my suspicion is still that a sufficient positivity assumption is $P(S,M) > 0$ in the discrete case, but $P(S) > 0$ is too weak even in the discrete case.
+
+Well, a closer look suggests that 
+\begin{equation*}\begin{split}
+  &P(Y \given S=s, \doit(A=a)) = \sum_m P(Y \given M=m, S=a) P(M=m \given S=s)
+\end{split}\end{equation*}
+may hold $P(A|S)\as$. Can we derive this (where it's easiest to just ignore that $A=S$)??
+Here's an attempt:
+  \begin{equation*}\begin{split}
+    P(Y,M,S | \doit(A))
+    &\overset{(i)}{=}  P(Y | \doit(A),M,S) \otimes P(M,S|\doit(A)) \\
+    &\overset{(ii)}{=} P(Y | \doit(A),M,S) \otimes P(M,S) \\
+    &\overset{(iii)}{=} P(Y | \doit(A),M) \otimes P(M,S) \\
+    &\overset{(iv)}{=} P(Y | A,M) \otimes P(M,S)
+  \end{split}\end{equation*}
+Where we used:
+\begin{enumerate}[label=(\roman*)]
+  \item chain rule
+  \item $P(M,S|\doit(A)) = P(M,S)$ follows (surely) from $M,S \idPerp_G I_A$
+  \item $Y \idPerp_{G_{\doit(A)}} S \given M, A$ hence there exists a Markov kernel
+    $Q(Y|\doit(A),M)$ that is simultaneously a version of $P(Y|\doit(A),M,S)$ and $P(Y|\doit(A),M)$ and is unique up to a $P(M|\doit(A))$-null set in $\CX_M \times \CX_A$;
+    that is, it is unique up to a $P(M)$-null set in $\CX_M$ (because $P(M|\doit(A)) = P(M)$ surely).
+    Hence it is unique up to a $P(M,S)$-null set in $\CX_M$.
+  \item $Y \idPerp_G I_A \given M, A$ hence there exists a Markov kernel
+    that is simultaneously a version of $P(Y|\doit(A),M)$ and $P(Y|A,M)$ and is unique up to a $P(M,A|\doit(I_A))$-null set $N \ins \CX_A \times \CX_M$
+    that is simultaneously a $P(M,A)$-null set and a $P(M|\doit(A))$-null set.
+\end{enumerate}
+??? can we show that $P(Y|\doit(A),S,M) = P(Y|M,A)\quad P(A|S)\as$???
+    The funny thing is that if we wouldn't care about null sets, we could use two do-calculus steps (first drop $S$, then change $\doit(A)$ into $A$).
+    But if we look at the null sets this seems problematic.
+    Perhaps we can directly use the GMP instead to do 2 steps at once?
+    Is $Y \idPerp_G S,I_A | A,M$? Yes!
+    This would imply
+    $$P(Y|S,\doit(A=a),M)=P(Y|A=a,M)$$
+    and with a careful null-set analysis as in the proof of Proposition~\ref{prp:do-calculus}
+    I would educated-guess that this holds $P(A|S)\as$\dots
+
+    From Proposition~\ref{prp:do-calculus-one} we conclude that 
+    \[ Y \idPerp_{G_{\doit(I_A)}} I_A,S \given M \cup A,   \]
+    implies the existence of a Markov kernel: 
+    \[P\lp Y|M,\cancel{\doit}(A),\cancel{S}\rp:\; \Xcal_M \times \Xcal_A \dshto \Xcal_Y,\] 
+    that is a version of:  
+    \[ P\lp Y|M,\doit(A)\rp, P\lp Y|M,\doit(A),S\rp, P\lp Y|M,A\rp, P\lp Y|M,A,S\rp\]
+    simultaneously. 
+    But the $id$-separation does not hold.
+    Or does it?
+
+    The conditional independence only holds for $I_{A} \in \C{X}_A$, but not for $I_A = \emptyset$.
+    So we need some kind of context-specific graph.
+    We could say: for input $I_A \ne \emptyset$, the edge $S \to A$ is absent, and then the above
+    identity holds. 
+    But it is not very interesting because then we loose the connection with the observational setting.
+
+    Such a Markov kernel is unique up to a measurable null set $N \ins \Xcal_{M \cup A}$ that is
+    simultaneously a $P(M|\doit(A))$-null set, $P(M,S|\doit(A))$-null set, $P(M,A)$-null set and $P(M,A,S)$-null set.
+    We now marginalize out $M$ (???):
+      \[ P(Y,S | \doit(A)) = P(Y|A,M) \circ P(M,S) \quad P(Y|A)\otimes P(S)\as\]
+    We finally condition on $S$ (???):
+      \[ P(Y | \doit(A),S) = P(Y|A,M) \circ P(M|S) \quad P(Y|A)\as \]
+
+GUESS: a group discussion with Patrick yielded the guess that
+ $$P(Y \given S, \doit(A)) = P(Y \given M, A) \circ P(M \given S)$$
+holds $P(A) \otimes P(S)\as$ (which is better than $P(A,S)\as$) under the additional assumption that $P(A) \otimes P(M) \ll P(A,M)$.
+If one assumes $A=S\ P\as$, $P(S) \gg \#$ (implying discreteness of $S$), then we obtain that the identity holds surely under the assumption $P(M) \ll P(M,S)$ (that is, if a certain
+combination of sex and department choice does not occur, then the entire department doesn't occur; in other words, in every department for which students register with positive
+probability, \emph{all} sexes register at that department with positive probability).
+In analogy with the backdoor adjustment.
+
+\begin{enumerate}
+    \item $\displaystyle M \idPerp_{G_{\doit(I_A)}} I_A$, and:
+    \item $\displaystyle Y \idPerp_{G_{\doit(I_A)}} I_A  \given (A \cup M)$.
+\end{enumerate}
+Further assume the following absolute continuity:
+  \begin{align*}
+      P(M) \otimes P(A) &\ll  P(M,A).
+  \end{align*}
+Then we have the adjustment formulas: 
+\begin{align*}
+    P(Y,M|\doit(A)) &= P(Y|M,A) \otimes P(M) && P(A)\text{-a.s.}, \\
+    P(Y|\doit(A,D)) &= P(Y|M,A) \circ P(M) && P(A)\text{-a.s.}
+\end{align*}
+By the first $id$-separation assumption we see by Proposition~\ref{prp:do-calculus} (rule 3) that we have the ``sure'' equality: $P(M|\doit(A)) = P(M)$.
+By the second $id$-separation assumption we see by Proposition~\ref{prp:do-calculus} (rule 2) that we have a Markov kernel $P(Y|M,\doit(A))$ that is also a version of $P(Y|M,A)$.
+So any version of $P(Y|M,A)$ can be changed on a $P(M,A)$-null set $N \ins \Xcal_A \times \Xcal_M$ to get $P(Y|M,\doit(A))$.
+The absolute continuity assumption implies that $N$ is also a $P(M) \otimes P(A)$-null set.
+This implies that we have the equations of Markov kernels:
+\begin{align*}
+  P(Y|M,A) \otimes P(M) \otimes P(A) 
+  &= P(Y|M,\doit(A)) \otimes P(M) \otimes P(A) \\
+  &= P(Y|M,\doit(A)) \otimes P(M|\doit(A)) \otimes P(A) \\
+  &= P(Y,M|\doit(A)) \otimes P(A).
+\end{align*}
+By the essential uniqueness of conditional Markov kernels we get that:
+\[ P(Y,M|\doit(A)) = P(Y|M,A) \otimes P(M)  \qquad P(A)\text{-a.s.} \]
+Marginalizing out $M$ on both sides gives us the remaining claim.
+
+We could do this derivation with $(M,S)$ instead of $M$, yielding:
+$$P(Y,M,S|\doit(A)) = P(Y|M,S,A) \otimes P(M,S) \quad P(A)\text{-a.s.}$$
+Now using that $P(Y|M,S,A) = P(Y|M,A)$ $P(M,A)$\text{-a.s.}
+$$P(Y,M,S|\doit(A)) = P(Y|S,A) \otimes P(M,S) \quad P(A,M)\text{-a.s.}$$
+Marginalizing out $M$:
+$$P(Y,S|\doit(A)) = P(Y|M,A) \circ P(M,S) \quad P(A)\text{-a.s.}$$
+
+This seems OK, and used the assumption $P(M,S) \otimes P(A) \ll P(M,S,A)$ (which doesn't hold?).
+
+\textbf{This one works:}
+Here's yet another attempt, now using $\doit(S)$. Assume that $P(M|\doit(S)) \otimes P(A) \ll P(A,M)$.
+Since $Y \idPerp_G I_S,I_A | A,M$ we get from Proposition~\ref{prp:do-calculus-one} that $P(Y|\doit(S),\doit(A),M) = P(Y|A,M)$ up to a measurable $P(A,M|\doit(I_A,I_S))$-null set.
+Hence up to a $P(A,M)$-null set. Hence up to a $P(M|\doit(S)) \otimes P(A)$-null set.
+Therefore:
+\begin{equation*}\begin{split}
+    P(Y,M|\doit(S),\doit(A)) \otimes P(A)
+ &= P(Y|\doit(S),\doit(A),M) \otimes P(M|\doit(S),\doit(A)) \otimes P(A) \\
+ &= P(Y|\doit(S),\doit(A),M) \otimes P(M|\doit(S)) \otimes P(A) \\
+ &= P(Y | M,A) \otimes P(M|\doit(S)) \otimes P(A)
+\end{split}\end{equation*}
+which implies that:
+\begin{equation*}
+  P(Y,M|\doit(S),\doit(A)) = P(Y | M,A) \otimes P(M|\doit(S)) \qquad P(A)\as,
+\end{equation*}
+and after marginalizing out $M$, we obtain:
+\begin{equation*}
+  P(Y|\doit(S),\doit(A)) = P(Y | M,A) \circ P(M|\doit(S)) \qquad P(A)\as.
+\end{equation*}
+
+\textbf{This one works also:}
+Here's yet another attempt, now conditioning on $S$.
+%We assume $\# \ll P(S)$, that is, $P(S)$ is positive.
+Also assume $P(A) \otimes P(M) \ll P(A,M)$.
+Since $P(M,S) \ll P(M)$ this implies $P(M,S) \otimes P(A) \ll P(A,M)$.
+Therefore $P(M|S) \otimes P(S) \otimes P(A) \ll P(A,M)$.
+(Double-check this; I believe we have to show that if $N \ins \CX_A \times \CX_M$ is a $P(A,M)$-null set, and we assume $P(M) \otimes P(A) \ll P(A,M)$, 
+then $\CX_S \times N$ is a $P(M|S) \otimes P(S) \otimes P(A)$-null set).
+Since $Y \idPerp_G S,I_A | A,M$ we get from Proposition~\ref{prp:do-calculus-one} that $P(Y|\doit(A),M,S) = P(Y|A,M)$ up to a measurable $P(A,M|\doit(I_A))$-null set in $\CX_A\times\CX_M$.
+Hence up to a measurable $P(A,M)$-null set or $P(M|\doit(A))$-null set or $P(A,M,S)$-null set or $P(M,S|\doit(A))$-null set. 
+Hence up to a $P(M|S) \otimes P(S) \otimes P(A)$-null set.
+Therefore:
+\begin{equation*}\begin{split}
+    P(Y,M|\doit(A),S) \otimes P(S) \otimes P(A)
+ &= P(Y|\doit(A),M,S) \otimes P(M|\doit(A),S) \otimes P(S) \otimes P(A) \\
+ &= P(Y|\doit(A),M,S) \otimes P(M|S) \otimes P(S) \otimes P(A) \\
+ &= P(Y|A,M) \otimes P(M|S) \otimes P(S) \otimes P(A)
+\end{split}\end{equation*}
+which implies that:
+\begin{equation*}
+  P(Y,M|\doit(A),S) = P(Y | M,A) \otimes P(M|S) \qquad P(S) \otimes P(A)\as,
+\end{equation*}
+and after marginalizing out $M$, we obtain:
+\begin{equation*}
+  P(Y|\doit(A),S) = P(Y | M,A) \circ P(M|S) \qquad P(S)\otimes P(A)\as.
+\end{equation*}
+Finally!
+So, if we assume $A,S$ discrete, $A=S P\as$, $\#(S) \ll P(S)$, and $P(M) \otimes \#(S) \ll P(M,S)$ then the identity
+\begin{equation*}
+  P(Y|\doit(A),S) = P(Y | M,A) \circ P(M|S)
+\end{equation*}
+holds (with $P(Y|M,A=a)=P(Y|M,S=s)$).
+So we have slightly weakened the requirements: instead of assuming $P(M,S) > 0$ we have that if $P(M=m,S=s) = 0$ then $P(M=m)=0$.
+So we can also write for discrete variables:
+\begin{equation*}
+  P(Y=y|\doit(A=a),S=s) = \sum_{m : P(m) > 0} P(Y=y | M=m,A=a) P(M=m|S=s)
+\end{equation*}
+Even this expression may be problematic if we have an entry $P(M=m,A=a)=0$ with $P(M=m,S=s)>0$ for some $s\ne a$.
+So this has become sharp.
+\textbf{Question: if we don't take 2 do-calculus steps at once, will we loose the sharpness?}
+
+\subsubsection{End of intermezzo---Continuation}
+
+\Joris{
+Q: does this derivation become much simpler when using potential outcomes? And does the end result become stronger?
+It needs to be shown that:
+$$ \Exp(Y^{\doit(A=a)} \given S=a') = \sum_m \Exp(Y \given M=m, S=a) P(M=m \given S=a')$$
+}
+For the second term we just use the chain rule:
+$$\Exp(Y \given S=a') = \sum_m \Exp(Y \given M=m, S=a') P(M=m \given S=a').$$
+
+Together, this proves the formula.
+\end{proof}
+
+\subsubsection{Intermezzo: a stronger do-calculus?}
+\begin{Prp}[Do-Calculus---One to rule them all]\label{prp:do-calculus-one}
+  Consider an L-CBN:
+  \[M= \lp G^+=\lp J,(V,U),E^+ \rp, \lp P_v ( X_v|\doit( X_{\Pa^{G^+}(v)})) \rp_{v \in V \cup U} \rp.\]
+  Let $A,B,C,E,F \ins V$ and $D \ins J \cup V$ be such that $A,B,C,D,E,F$ are pairwise disjoint.
+  If we have:
+    \[ A \idPerp_{G_{\doit(I_B \cup I_E \cup D)}} I_B,I_E,F \given C \cup D \cup E,   \]
+  then there exists a Markov kernel: 
+    \[P\lp X_A|\cancel{\doit(X_B)},X_C,\cancel{\doit}(X_E),\cancel{X_F},\doit(X_{D\cup \cancel{J}})\rp:\; \Xcal_C \times \Xcal_{D} \times \Xcal_E \dshto \Xcal_A,\] 
+  that is a version of:  
+    \[ P\lp X_A|\doit(X_{B_2}),X_C,X_{E_1},\doit(X_{E_2}),X_{F_2},\doit(X_{D\cup J})\rp\]
+  for all subsets $B_2 \ins B$, $F_2 \ins F$ and every decomposition: $E=E_1\dcup E_2$ simultaneously. 
+  %Note that this Markov kernel is only dependent on $x_C$ and $x_D$ and $X_E$, and constant in $x_{J \sm D}$ and $x_F$.
+
+  Such a Markov kernel is unique up to a measurable $P\lp X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J})\rp$-null set $N \ins \Xcal_{C\cup D\cup E}$.
+
+  Note that a measurable set $N \ins \Xcal_{C\cup D\cup E}$ is a $P\lp X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J})\rp$-null set if and only if for all subsets $B_2 \ins B, F_1 \ins F$ and every decomposition $E=E_1\dcup E_2$, $N$ is a $P(X_C,X_{E_1},X_{F_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set.
+\end{Prp}
+\begin{proof}
+The assumption:
+            \[ A \idPerp_{G_{\doit(I_B \cup I_E \cup D)}} I_B,I_E,F \given C \cup D \cup E,   \]
+implies the conditional independence by GMP \ref{thm-gmp-mCBN}:
+\[ X_A \Indep_{P(X_V|\doit(X_{I_B},X_{I_E},X_{D\cup J}))} X_{I_B\cup I_E \cup F} \given X_{C \cup D \cup E}.\]
+So we have the following factorization:
+\begin{equation}\begin{split}\label{eq:all-do-int-1} 
+  & P\lp X_A,X_C,X_E,X_F|\doit(X_{I_B},X_{I_E},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_E,X_F|\doit(X_{I_B},X_{I_E},X_{D\cup J})\rp,
+\end{split}\end{equation}
+for some Markov kernel $Q(X_A|X_C,X_D,X_E)$, which serves as a version of the conditional Markov kernel:
+  \[P\lp X_A|X_C,X_E,X_F,\doit(X_{I_B},X_{I_E},X_{D\cup J})\rp,\]
+and which is independent of $X_{I_B}$, $X_{I_E}$ and $X_F$.
+
+We now consider different input values for given decompositions $B=B_1 \dcup B_2$ and $E=E_1 \dcup E_2$.
+We put $X_{I_{B_1}}= \star = (\star)_{v \in B_1}$ and  $ X_{I_{B_2}}=x_{B_2} \in \Xcal_{B_2}$.
+We also put $X_{I_{E_1}}= \star = (\star)_{v \in E_1}$ and $X_{I_{E_2}}=x_{E_2} \in \Xcal_{E_2}$.
+The factorization \eref{eq:all-do-int-1} implies:
+\begin{align*} 
+  & P\lp X_A,X_C,X_E,X_F|\doit(X_{{B_2}}=x_{B_2},X_{E_2}=x_{E_2},X_{D\cup J})\rp \\
+  &= P\lp X_A,X_C,X_E,X_F|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{I_{E_1}}=\star,X_{I_{E_2}}=x_{E_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_E,X_F|\doit(X_{I_{B_1}}=\star,X_{I_{B_2}}=x_{B_2},X_{I_{E_1}}=\star,X_{I_{E_2}}=x_{E_2},X_{D\cup J})\rp,\\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_E,X_F|\doit(X_{{B_2}}=x_{B_2},X_{{E_2}}=x_{E_2},X_{D\cup J})\rp.
+\end{align*}
+So we get for any decompositions $B=B_1 \dcup B_2$ and $E=E_1 \dcup E_2$:
+\begin{equation}\begin{split}
+  & P\lp X_A,X_C,X_E,X_F|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_E,X_F|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp
+\end{split}\end{equation}
+where we can marginalize out the deterministic $E_2$:
+\begin{equation}\begin{split} \label{eq:all-do-int-2} 
+  & P\lp X_A,X_C,X_{E_1},X_F|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_{E_1},X_F|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp
+\end{split}\end{equation}
+Note that we can go back by multiplying with $\delta(X_{E_2}|X_{E_2})$.
+If we further marginalize out $X_{F_2}$ for a decomposition $F=F_1 \dcup F_2$ we get:
+\begin{equation}\begin{split} \label{eq:all-do-int-3} 
+  & P\lp X_A,X_C,X_{E_1},X_{F_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp \\
+  &= Q(X_A|X_C,X_D,X_E) \otimes P\lp X_C,X_{E_1},X_{F_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp,
+\end{split}\end{equation}
+which shows that $Q(X_A|X_C,X_D,X_E)$ is a version of the conditional Markov kernel:
+  \begin{align}  \label{eq:all-do-int-4} 
+    P\lp X_A|X_C,X_{E_1},X_{F_1},\doit(X_{B_2},X_{E_2},X_{D\cup J})\rp,
+  \end{align}
+for all subsets $B_2 \ins B$, $F_1 \ins F$ and every decomposition $E=E_1 \dcup E_2$ simultaneously.
+In particular, this holds for $F_1 = \emptyset$. This shows all the claimed properties for $Q(X_A|X_C,X_D,X_E)$.
+
+Now consider another Markov kernel $K(X_A|X_C,X_D,X_E)$ and the measurable set:
+\begin{align*}
+  N := \bigl\{ x_{C \cup D \cup E} \in \Xcal_{C \cup D \cup E} \,\big|\, & Q(X_A|X_C=x_C,X_D=x_D,X_E=x_E) \\ 
+                                                                    \neq & K(X_A|X_C=x_C,X_D=x_D,X_E=x_E)  \bigr\}.
+%    N_{B_2,F_1} &:= \Xcal_{B_2} \times \Xcal_{F_1} \times N \times \Xcal_{J \sm D}.
+\end{align*}
+Now assume that $K(X_A|X_C,X_D,X_E)$ is a version of the conditional Markov kernel in (\ref{eq:all-do-int-4}) for all subsets $B_2 \ins B$, $F_1 \ins F$ and every decomposition $E=E_1 \dcup E_2$ simultaneously. 
+Since conditional Markov kernels are essentially unique, by Theorem \ref{thm-regular-conditional-Markov-kernel}, we have that for all subsets $B_2 \ins B$, $F_1 \ins F$ and every decomposition $E=E_1 \dcup E_2$, the set $N_{B_2,F_1} := \Xcal_{B_2} \times \Xcal_{F_1} \times N \times \Xcal_{J \sm D}$ is a $P(X_C,X_{E_1},X_{F_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set. 
+In other words (with Remark~\ref{rem:null-sets}, and choosing $F_1 = \emptyset$), for all subsets $B_2 \ins B$ and every decomposition $E=E_1 \dcup E_2$, the set $N$ is a $P(X_C,X_{E_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set. 
+By Corollary~\ref{cor:int-null-set-combined}, this holds if and only if $N$ is a $P(X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set.
+Note that then automatically $N$ is a $P(X_C,X_E,X_{F_1}|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set for every $F_1 \ins F$. 
+%\begin{itemize}
+%  \item
+%    For the special case $B=\emptyset$ and $F_1=\emptyset$, we have that for every decomposition $E=E_1 \dcup E_2$, the set $N_{\emptyset,\emptyset}$ is a $P(X_C,X_{E_1}|\doit(X_{E_2},X_{D\cup J}))$-null set. 
+%    By Lemma \ref{lem:int-null-set} this statement is equivalent for $N_{\emptyset,\emptyset}$ to be a $P(X_E,X_C|\doit(X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{C \cup D \cup E \cup J}$.
+%    Hence $N$ is a $P(X_C,X_E|\doit(X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{C \cup D \cup E}$.
+%    Note that then automatically $N$ is a $P(X_C,X_E|\doit(X_{I_E},X_{D\cup J}))$-null set for every $F_1 \ins F$. 
+%  \item
+%    For the special case $E=\emptyset$ and $F_1=\emptyset$, we have that for all subsets $B_2 \ins B$ the set $N_{B_2}$ is a $P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set in $\Xcal_{B_2 \cup C \cup D \cup J}$. 
+%    (Note---not sure if it's relevant: That implies that for all subsets $B_2 \ins B$ the set $N = N_{B}$ is a $P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set in $\Xcal_{B \cup C \cup D \cup J}$.)
+%    By Lemma~\ref{lem:int-null-set-alt}, this implies that $N_{\emptyset,\emptyset}$ is a $P(X_C|\doit(X_{I_B},X_{D\cup J}))$-null set in $\Xcal_{C \cup D \cup J}$.
+%    Hence $N$ is a $P(X_C|\doit(X_{I_B},X_{D\cup J}))$-null set in $\Xcal_{C \cup D}$.
+%    Note that then automatically $N$ is a $P(X_C,X_{F_1}|\doit(X_{I_B},X_{D\cup J}))$-null set for every $F_1 \ins F$. 
+%\end{itemize}
+%Now let $B_2 \ins B$ and $F_1=\emptyset$.
+%We have that for every decomposition $E=E_1 \dcup E_2$, the set $N_{B_2,\emptyset}$ is a $P(X_C,X_{E_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set. 
+%By Lemma \ref{lem:int-null-set} (with $B \mapsto E$, $D \mapsto D \cup B_2$) this statement is equivalent for $N_{B_2,\emptyset}$ to be a $P(X_C,X_E|\doit(X_{B_2},X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{B_2 \cup C \cup D \cup E \cup J}$.
+%So for all subsets $B_2 \ins B$, $N_{B_2,\emptyset}$ is a $P(X_C,X_E|\doit(X_{B_2},X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{B_2 \cup C \cup D \cup E \cup J}$.
+%By Lemma~\ref{lem:int-null-set-alt} (with $C \mapsto C \cup E$), this implies that $N_{\emptyset,\emptyset}$ is a $P(X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{C \cup D \cup E \cup J}$.
+%Hence $N$ is a $P(X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set in $\Xcal_{C \cup D \cup E}$.
+\end{proof}
+\begin{Lem}\label{lem:int-null-set-alt}
+  For $B,C \ins V$ and $D \ins V \cup J$ with $B,C,D$ pairwise disjoint, and a measurable \Joris{?} subset $N \ins \Xcal_{C \cup D \cup J}$ the following statements are equivalent:
+    \begin{enumerate}
+        \item $N$ is a $P(X_C|\doit(X_{I_B},X_{D\cup J}))$-null set.
+        \item For all subsets $B_2 \ins B$, $N$ is a $P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set.
+    \end{enumerate}
+\end{Lem}
+\begin{proof}
+  Every value $x_{I_B}=(x_{I_v})_{v \in B} \in \Xcal_{I_B}$ defines a decomposition $B=B_1 \dcup B_2$ via:
+  \[ B_1 := \lC v \in B \st x_{I_v} = \star \rC, \qquad B_2 := \lC v \in B \st x_{I_v} \in \Xcal_v \rC.  \]
+  So running through all values $x_{I_B} \in \Xcal_{I_B}$ is the same as running through all subsets $B_2 \ins B$ and all values $x_{B_2} \in \Xcal_{B_2}$, while putting $x_{I_{B_1}}=\star$ for $B_1 = B \sm B_2$.
+
+  Furthermore, we have the following identities:
+  \begin{align*}
+      & P(X_C \in N_{(x_{D\cup J})} |\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D \cup J})) \\
+      ={}& P(X_C \in N_{(x_D \cup J)} |\doit(X_{B_2}=x_{B_2},X_{D\cup J}=x_{D \cup J}))\\
+      ={}& P(X_C \in N_{(x_D \cup J)} |\doit(X_{I_{B_1}}=\star, X_{I_{B_2}}=x_{B_2},X_{D\cup J}=x_{D \cup J}))\\
+      ={}& P(X_C \in N_{(x_D \cup J)} |\doit(X_{I_B}=(\star,x_{B_2}),X_{D\cup J}=x_{D \cup J}))\\
+      ={}& P(X_C \in N_{(x_D \cup J)} |\doit(X_{I_B}=x_{I_B},X_{D\cup J}=x_{D \cup J})).
+  \end{align*}
+  So the last line vanishes for all values $x_{I_B} \in \Xcal_{I_B}$ and $x_{D\cup J} \in \Xcal_{D\cup J}$ if and only if the first line vanishes for all subsets $B_2 \ins B$ and all values $x_{B_2} \in \Xcal_{B_2}$ and $x_{D\cup J} \in \Xcal_{D\cup J}$.
+  In other words, $N$ is a $P(X_C|\doit(X_{I_B},X_{D\cup J}))$-null set if and only if for all subsets $B_2 \ins B$, $N$ is a $P(X_C|\doit(X_{B_2},X_{D\cup J}))$-null set.
+\end{proof}
+\begin{Cor}[Lemma~\ref{lem:int-null-set-alt} and Lemma~\ref{lem:int-null-set} combined]\label{cor:int-null-set-combined}
+  For $B,C,E \ins V$ and $D \ins V \cup J$ with $B,C,D,E$ pairwise disjoint, and a measurable \Joris{?} subset $N \ins \Xcal_{C \cup D \cup E \cup J}$ the following statements are equivalent:
+    \begin{enumerate}
+      \item $N$ is a $P(X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set.
+      \item For all subsets $B_2 \ins B$ and every decomposition $E=E_1 \dcup E_2$,\\ $N$ is a $P(X_C,X_E|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set.
+      \item For all subsets $B_2 \ins B$ and every decomposition $E=E_1 \dcup E_2$,\\ $N$ is a $P(X_C,X_{E_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set.
+    \end{enumerate}
+\end{Cor}
+\begin{proof}
+  Sketch: we show (iii) implies (i).
+
+  Suppose that for all subsets $B_2 \ins B$ and every decomposition $E=E_1 \dcup E_2$, $N$ is a $P(X_C,X_{E_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set.
+  Let $B_2 \ins B$.
+  We have that for every decomposition $E=E_1 \dcup E_2$, $N$ is a $P(X_C,X_{E_1}|\doit(X_{B_2},X_{E_2},X_{D\cup J}))$-null set. 
+  By Lemma \ref{lem:int-null-set} (with $B \mapsto E$, $D \mapsto D \cup B_2$) this statement is equivalent for $N$ to be a $P(X_C,X_E|\doit(X_{B_2},X_{I_E},X_{D\cup J}))$-null set.
+  So for all subsets $B_2 \ins B$, $N$ is a $P(X_C,X_E|\doit(X_{B_2},X_{I_E},X_{D\cup J}))$-null set.
+  By Lemma~\ref{lem:int-null-set-alt} (with $C \mapsto C \cup E$), this implies that $N$ is a $P(X_C,X_E|\doit(X_{I_B},X_{I_E},X_{D\cup J}))$-null set.
+
+  \Joris{TODO: finish the other cases.
+  A direct proof replacing both Lemmata is an option to consider:
+  The direct part of \label{lem:int-null-set-alt} is trivial because the null set doesn't even depend on $x_B$ or on $x_{I_B}$.}
+\end{proof}
+
+\subsubsection{End of intermezzo---continuation}
+
+\begin{Rem}
+If the directed edge $A \to Y$ in Figure~\ref{fig:natural_direct_effect_Berkeley}(b) would be absent, then $NDE(Y; a' \to a) = 0$ for all $a,a'$.
+Indeed, if that edge is absent, then $Y \Indep S \given M$, and hence the two expectation values in the mediation formula cancel out.
+(Alternatively, using the definition: if that edge is absent, then $Y \Indep I_A \given S$, hence the two terms in \eref{eq:nde_interventional} cancel out.)
+\end{Rem}
+
+Hence, if unfairness in different departments averages out, it may look fair, even though I think people wouldn't call that fair.
+For example, if there are two departments, and one favors women, the other favors men, but the weighted average direct effect cancels out exactly,then this fairness notion seems not strong enough to capture this.
+Fixing this would mean replacing it by the statement that each department is fair, or more precisely, that demographic parity holds conditional on each department.
+But that is precisely what Bickel et al proposed to do in the 70's! 
+So, applied to this case, it seems a regression.
+
+The only question left unanswered so far is if we allow for confounding between department choice and admission, can we bound the NDE?
+The answer is yes: we have rederived the bounds of Kaufman et al. by use of PORTA.
+
+In the following, we have the notation:
+  
+\centerline{\begin{tikzpicture}
+    \node[ndout] (S) at (0,0) {$Z$};
+    \node[ndout] (M) at (1.5,1) {$X$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+    \draw[huh, bend left] (M) to (Y);
+  \end{tikzpicture}}
+
+{\tiny\begin{align*}
+  \max \left\{\begin{array}{l}
+  +p(Y=0|Z=0) -1 \\
+  +p(Y=0,X=0|Z=0) -p(Y=1,X=1|Z=0) +p(Y=1,X=0|Z=1) -1 \\
+  +p(Y=0,X=1|Z=0) -p(Y=1,X=0|Z=0) +p(Y=1,X=1|Z=1) -1
+  \end{array} \right\} \le NDE(Y;0 \to 1) \\
+  NDE(Y;0\to 1) \le \min \left\{\begin{array}{l}
+    1 -p(Y=1|Z=0) \\
+    1 +p(Y=0,X=1|Z=0) -p(Y=1,X=0|Z=0) -p(Y=0,X=0|Z=1) \\
+    1 +p(Y=0,X=0|Z=0) -p(Y=1,X=1|Z=0) -p(Y=0,X=1|Z=1) 
+  \end{array}\right\} \\
+  \max \left\{\begin{array}{l}
+  +p(Y=0|Z=1) -1 \\
+  +p(Y=1,X=0|Z=0) +p(Y=0,X=0|Z=1) -p(Y=1,X=1|Z=1) -1 \\
+  +p(Y=1,X=1|Z=0) +p(Y=0,X=1|Z=1) -p(Y=1,X=0|Z=1) -1 
+  \end{array}\right\} \le NDE(Y;1 \to 0) \\
+  NDE(Y;1 \to 0) \le \min \left\{\begin{array}{l}
+    1 -p(Y=0,X=1|Z=0) +p(Y=0,X=0|Z=1) -p(Y=1,X=1|Z=1) \\
+    1 -p(Y=0,X=0|Z=0) +p(Y=0,X=1|Z=1) -p(Y=1,X=0|Z=1) \\
+    1 -p(Y=1|Z=1)
+  \end{array}\right\}
+\end{align*}}
+
+And what does the bound tell us in this case? The null hypothesis would be larger, so it might be more difficult to reject.
+Taking these (tight) bounds on the NDE, and equating NDE to zero, gives inequalities that are weaker than the instrumental inequality.
+\Joris{Doing this below.
+
+Suppose we have two valid tests for hypotheses $H_0 : \theta \in \Theta_0$ and $\tilde{H}_0 : \theta \in \tilde{\Theta}_0$, respectively,
+where $H_0 \implies \tilde{H}_0$ (that is, $\Theta_0 \subseteq \tilde{\Theta}_0$).
+Then, if one has sufficient evidence to reject $\tilde{H}_0$, one has (more than) enough evidence to reject $H_0$.
+So the test for $\tilde{H}_0$ can be used as a test for $H_0$ (but it might have lower power).
+
+In our case here, the null hypothesis ``no edge $Z \tuh Y$'' implies the null hypothesis $NDE(Y;1 \to 0) = 0$,
+so a valid test for the latter gives a valid test for the former.
+As a test, we could define the critical region as the observations for which the ML estimator falls outside of the null hypothesis space ($\hat\theta \notin \tilde{\Theta}_0$).
+
+We should show that
+  \begin{align*}
+    & P(X_1=0,X_2=0 \mid X_3=0) + P(X_1=0,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=1,X_2=0 \mid X_3=0) + P(X_1=1,X_2=1 \mid X_3=1) \le 1 \\
+    & P(X_1=0,X_2=1 \mid X_3=0) + P(X_1=0,X_2=0 \mid X_3=1) \le 1 \\
+    & P(X_1=1,X_2=1 \mid X_3=0) + P(X_1=1,X_2=0 \mid X_3=1) \le 1 \\
+  \end{align*}
+and the standard inequalities imply:
+{\tiny\begin{align*}
+  p(X_2=0|X_3=0) & \le 1 \\
+  p(X_1=0,X_2=0|X_3=0) -p(X_1=1,X_2=1|X_3=0) +p(X_1=0,X_2=1|X_3=1) &\le 1 \\
+  p(X_1=1,X_2=0|X_3=0) -p(X_1=0,X_2=1|X_3=0) +p(X_1=1,X_2=1|X_3=1) &\le 1 \\
+  p(X_2=1|X_3=0) &\le 1 \\
+  -p(X_1=1,X_2=0|X_3=0) +p(X_1=0,X_2=1|X_3=0) +p(X_1=0,X_2=0|X_3=1) &\le 1 \\
+  -p(X_1=0,X_2=0|X_3=0) +p(X_1=1,X_2=1|X_3=0) +p(X_1=1,X_2=0|X_3=1) &\le 1\\
+  p(X_2=0|X_3=1) &\le 1 \\
+  p(X_1=0,X_2=1|X_3=0) +p(X_1=0,X_2=0|X_3=1) -p(X_1=1,X_2=1|X_3=1) &\le 1 \\
+  p(X_1=1,X_2=1|X_3=0) +p(X_1=1,X_2=0|X_3=1) -p(X_1=0,X_2=1|X_3=1) &\le 1 \\
+  p(X_1=1,X_2=0|X_3=0) -p(X_1=0,X_2=0|X_3=1) +p(X_1=1,X_2=1|X_3=1) &\le 1 \\
+  p(X_1=0,X_2=0|X_3=0) -p(X_1=1,X_2=0|X_3=1) +p(X_1=0,X_2=1|X_3=1) &\le 1 \\
+  p(X_2=1|X_3=1) &\le 1
+\end{align*}}
+But that is obvious!
+}
+
+\subsubsection{Statistical testing issues}
+
+An important source on this topic is the PhD thesis ``Causal Inference with Instruments and Other Supplementary Variables'' by Roland R.~Ramsahai.
+
+An easier approach than approximating asymptotic distributions of test statistics is Bayesian model selection.
+We can put a prior Markov kernel $\pi$ on $X_1,X_2 \mid X_3$.
+By sampling from this prior, and testing whether the ML-estimator of $P(X_1,X_2 \mid X_3)$ violates the IV inequalities, we can approximate the probability that $H_0$ ($\hat P(X_1,X_2 \mid X_3) \in \C{P}_{IV}$) holds under the prior.
+Then we can update the prior to the posterior $P(X_1,X_2 \mid X_3, \mathtt{data})$.
+Again, by sampling from the posterior, and testing whether the ML-estimator of $P(X_1,X_2 \mid X_3)$ violates the IV inequalities, we can approximate the probability that $H_0$ hold under the posterior.
+
+Wait, there's still something fishy here.
+
+Interesting: even on the UvA cum laude data, the IV inequalities are by far not violated.
+
+\subsubsection{Red car example}
+
+\Joris{I have to look into this in more detail, but the following occurred to me. Why would the red car example in the
+counterfactual fairness paper not be analogous to the Berkeley setting? Race causes car color, aggressive driving 
+confounds car color and accident rate, and the price would be fair if there is no \emph{direct} effect of race on
+price (but only indirectly through car color). Since car color is a matter of free choice of the individual (like
+department choice), we can condition on it when looking at the causal effect of race on price (sex on admission).}
+
+\subsubsection{All attributes are protected?}
+
+\Joris{In an interview in Volkskrant (about July 2nd, 2024) with the chairman of the Autoriteit Persoonsgegevens,
+Aleid Wolfsen (titled \emph{`Bij zo'n beetje elke tegel die we lichten, ontdekken we discriminerende algoritmen bij de overheid',
+zegt de Autoriteit Persoonsgegevens}), the chairman states that even discriminating on 'een aanhanger hebben' is 
+discrimination. Basically it sounds as if he is saying: all attributes are protected.
+
+From that perspective, fair ML is a solved problem: just take completely random decisions.}
+
+\subsection{More on (non-)mediation analysis: the COVID data}
+
+\begin{Rem}
+  Suppose we have three variables: country ($S$), age ($M$) and COVID-19 related death ($Y$).
+  We assume that the marginal SCM has graph
+
+  \centerline{\begin{tikzpicture}
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \node[ndint] (IA) at (1.5,-1.5) {$I_A$};
+    \draw[tuh] (IA) to (A);
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[huh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+  \end{tikzpicture}}
+
+  where we have added a copy $A$ of $S$ (country measured later in time) and an intervention variable $I_A$.
+
+  We can still define the ``NDE'' as in \eref{eq:nde_interventional}, and the ``mediation formula'' \eref{eq:nde_mediation_formula} still holds, as one can check.
+  This has a natural interpretation, even though $M$ is no longer a mediator.
+  The ``NDE'' is the expected change in the probability of dying from COVID-19 when someone randomly selected from country $a'$ is forced to move to country $a$.
+  While \eref{eq:nde_interventional} requires no change, the potential outcome definition of NDE \eref{eq:nde_counterfactual} needs to be changed to fit this setting, into:
+  \begin{equation}\label{eq:nde_counterfactual_conditional}
+  NDE(Y; a' \to a) := \Exp \lp Y^{\doit(A=a)} \given S=a' \rp - \Exp \lp Y \given S=a' \rp = \Exp \lp Y^{\doit(S=a)} \given S=a' \rp - \Exp \lp Y \given S=a' \rp.
+  \end{equation}
+  Their related question is: ``for the Chinese case demographic, would the Italian approach have been better?''
+  So, the mediation formula for NDE still answers this question, even with $S \huh M$ instead of $S \tuh M$!
+  However, the term 'NDE' is misplaced here.
+
+  We can also look at the \textbf{natural indirect effect}, which is defined as (according to the COVID paper authors):
+  \begin{equation}\label{eq:nie_counterfactual}
+  NIE(Y; a' \to a) := \Exp \lp Y^{\doit(S=a',M=M^{\doit(S=a)})} \rp - \Exp \lp Y^{\doit(S=a')} \rp.
+  \end{equation}
+  As interventional (and conditional) definition of NIE we propose:
+  \begin{equation}\label{eq:nie_interventional}
+    NIE(Y; a' \to a) := \Exp(Y \given S=a, \doit(A=a')) - \Exp(Y \given S=a').
+  \end{equation}
+  This indeed leads to the same mediation formula as Definition~\ref{eq:nie_counterfactual}:
+\begin{Prp}\label{prp:nie_mediation_formula}
+  The following \emph{mediation formula} holds:
+  \begin{equation}\label{eq:nie_mediation_formula}\begin{split}
+    NIE(Y; a' \to a)
+    &= \sum_m (P(M=m \given S=a) - P(M=m \given S=a')) \Exp(Y \given M=m,S=a') \text{ a.s.}
+  \end{split}\end{equation}
+  if $M$ is a discrete variable.
+\end{Prp}
+\begin{proof}
+  From the definition:
+    $$NIE(Y; a' \to a) := \Exp \lp Y^{\doit(S=a',M=M^{\doit(S=a)})} \rp - \Exp \lp Y^{\doit(S=a')} \rp.$$
+  The first term can be rewritten in the same way as in Proposition~\ref{prp:nde_mediation_formula} as:
+    \begin{equation*}
+      \Exp(Y \given S=a, \doit(A=a')) = \sum_m \Exp(Y \given M=m, S=a') P(M=m \given S=a) \text{ a.s.}
+    \end{equation*}
+  For the second term we just use the chain rule:
+    $$\Exp(Y \given S=a') = \sum_m \Exp(Y \given M=m, S=a') P(M=m \given S=a').$$
+  Together, this proves the formula.
+\end{proof}
+In the non-mediation setting with $S \huh M$ instead of $S \tuh M$, if we redefine the potential-outcome definition of NIE as:
+  \begin{equation}\label{eq:nie_counterfactual_conditional}
+    NIE(Y; a' \to a) := \Exp(Y^{\doit(A=a')} \given S=a) - \Exp(Y \given S=a')
+  \end{equation}
+then it will still satisfy the corresponding mediation formula.
+The interpretation is: the expected change in the probability of dying from COVID-19 when comparing someone randomly selected from country $a$, who is then forced to move to country $a'$, with someone randomly selected from country $a'$.
+Their related question is: ``how would the overall CFR in China change if the case demographic had instead been that from Italy, while keeping all else (i.e., CFR's of each age group) the same?''
+So, the mediation formula for NIE still seems to answer this question, even with $S \huh M$ instead of $S \tuh M$.
+However, the term 'NIE' is misplaced here.
+
+The difference between the NDE and the NIE is the TCE:
+  \begin{equation}\label{eq:nie_interventional+nde_interventional}\begin{split}
+    &-NDE(Y; a \to a') + NIE(Y; a' \to a) \\
+    & = -NIE(Y; a \to a') + NDE(Y; a' \to a) \\
+    & = -\Exp(Y \given S=a, \doit(A=a')) + \Exp(Y \given S=a) + \Exp(Y \given S=a, \doit(A=a')) - \Exp(Y \given S=a') \\
+    & =  \Exp(Y \given S=a) - \Exp(Y \given S=a') \\
+    & = TCE(Y; a' \to a)
+  \end{split}\end{equation}
+
+  For the \textbf{total causal effect} we have:
+  $$TCE(Y; a' \to a) := \Exp(Y \given \doit(S=a)) - \Exp(Y \given \doit(S=a'))$$
+  which is identified by
+  $$TCE(Y; a' \to a) = \Exp(Y \given S=a) - \Exp(Y \given S=a')$$
+  Their related question is: ``what would be the effect on fatality of changing country from China to Italy?''
+  To answer this question (where 'changing' is interpreted as 'force everyone to change country') in the setting with $S \huh M$ instead of $S \tuh M$, we can apply the backdoor criterion:
+  $$TCE(Y; a' \to a) := \sum_m (\Exp(Y \given M=m,S=a) - \Exp(Y \given M=m,S=a')) P(M=m) $$
+  What they ended up answering instead is the question: ``what is the difference in fatality rate between a randomly selected case from Italy and a randomly selected case from China?''
+  So if we think our model (with $S \huh M$ rather than $S \tuh M$) is more realistic than theirs, they have \emph{not} given a realistic answer to their question (but to another one instead).
+
+  Finally, the \textbf{controlled direct effect} is:
+  $$CDE(Y;a'\to a|m) = \Exp(Y \given \doit(S=a,M=m)) - \Exp(Y \given \doit(S=a',M=m))$$
+  which is identified by
+  $$CDE(Y;a'\to a|m) = \Exp(Y \given S=a,M=m) - \Exp(Y \given S=a',M=m)$$
+  Their related question is: ``For $m$-year-olds, is it safer to get the disease in China or in Italy?''
+  Here it is not so clear how to interpret this question. 
+  It suggests that a given person (of a certain age, but unspecified country of residence) can choose to move to one of the two countries and let himself be infected in that country.
+  The more general estimand to answer this question is the conditional average treatment effect:
+  $$CATE(Y;a'\to a|m) = \Exp(Y\given \doit(S=a),M=m) - \Exp(Y\given \doit(S=a'),M=m).$$
+  This is, in both cases ($S \tuh M$ and $S \huh M$) identified by:
+  $$CATE(Y;a'\to a|m) = \Exp(Y \given S=a,M=m) - \Exp(Y \given S=a',M=m).$$
+\end{Rem}
+
+\clearpage
+Summary:\\
+
+\scalebox{0.8}{\begin{tikzpicture}
+  \begin{scope}[xshift=0cm]
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[tuh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+    \node at (5.5,-1.5) {\tiny Expected change in probability of dying from COVID-19 for someone randomly selected from country $a'$ who is forced to move to country $a$:};
+    \node at (5.5,-2)   {\tiny (for the Chinese case demographic, would the Italian approach have been better?)};
+    \node[text width=9cm] at (1.5,-3) {\tiny $NDE(Y; a' \to a)$\\
+                                             $ = \Exp (Y^{\doit(S=a,M=M^{\doit(S=a')})}) - \Exp (Y^{\doit(S=a')})$\\
+                                             $ = \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a')$\\
+                                             $ = \sum_m (\Exp(Y \given M=m, S=a) - \Exp(Y \given M=m, S=a')) P(M=m \given S=a')$\\};
+
+    \node at (5.5,-4.5)   {\tiny Expected change in probability of dying from COVID-19 when comparing someone randomly selected from country $a$,};
+    \node at (5.5,-4.7) {\tiny who is then forced to move to country $a'$, with someone randomly selected from country $a'$:};
+    \node at (5.5,-5) {\tiny (how would the overall CFR in China change if the case demographic had instead been that from Italy, while keeping all else (i.e., CFR's of each age group) the same?)};
+    \node[text width=9cm] at (1.5,-6) {\tiny $NIE(Y; a' \to a)$\\
+                                             $=\Exp (Y^{\doit(S=a',M=M^{\doit(S=a)})}) - \Exp (Y^{\doit(S=a')})$\\
+                                             $= \Exp(Y \given S=a, \doit(A=a')) - \Exp(Y \given S=a')$\\
+                                             $= \sum_m (P(M=m \given S=a) - P(M=m \given S=a')) \Exp(Y \given M=m,S=a')$\\};
+
+    \node at (5.5,-7.5) {\tiny What would be the effect on fatality of changing country from China to Italy?};
+    \node[text width=9cm] at (1.5,-8.5) {\tiny $TCE(Y; a' \to a)$\\
+                                               $=\Exp(Y \given \doit(S=a)) - \Exp(Y \given \doit(S=a'))$\\
+                                               $= \Exp(Y \given S=a) - \Exp(Y \given S=a')$\\};
+    \node at (1.5,-9.2) {\tiny What is the difference in fatality rate between a randomly selected case};
+    \node at (1.5,-9.4) {\tiny from Italy and a randomly selected case from China?};
+
+    \node at (5.5,-10) {\tiny For $m$-year-olds, is it safer to get the disease in China or in Italy?};
+    \node[text width=9cm] at (1.5,-11) {\tiny $CDE(Y;a'\to a|m)$\\
+                                              $= \Exp(Y \given \doit(S=a,M=m)) - \Exp(Y \given \doit(S=a',M=m))$\\
+                                              $= \Exp(Y \given S=a,M=m) - \Exp(Y \given S=a',M=m)$\\};
+%
+%  Here it is not so clear how to interpret this question. 
+%  It suggests that a given person (of a certain age, but unspecified country of residence) can choose to move to one of the two countries and let himself be infected in that country.
+%  But then the answer seems unrelated to both $CDE(m)$ and to its identifying formula.
+%  If we interpret the question less causally, but as: 'what is the difference in fatality rate between a randomly selected $m$-year-old case from Italy and a randomly selected $m$-year-old case from China' then at least the identifying formula holds (independently of the precise modeling assumption).
+%  However, the term 'effect' is misplaced here.
+  \end{scope}
+  \begin{scope}[xshift=10cm]
+    \node[ndout] (S) at (0,0) {$S$};
+    \node[ndlat] (A) at (1.5,0) {$A$};
+    \node[ndout] (M) at (1.5,1) {$M$};
+    \node[ndout] (Y) at (3,0) {$Y$};
+%    \node[ndint] (IA) at (1.5,-1.5) {$I_A$};
+%    \draw[tuh] (IA) to (A);
+    \draw[tuh] (S) to (A);
+    \draw[tuh] (A) to (Y);
+    \draw[huh] (S) to (M);
+    \draw[tuh] (M) to (Y);
+    \node[text width=9cm] at (1.5,-3) {\tiny \\
+                                             $\Exp (Y^{\doit(S=a)} \given S=a') - \Exp (Y \given S=a')$ \\
+                                             $ = \Exp(Y \given S=a', \doit(A=a)) - \Exp(Y \given S=a')$ \\
+                                             $ = \sum_m (\Exp(Y \given M=m, S=a) - \Exp(Y \given M=m, S=a')) P(M=m \given S=a')$\\};
+    \node[text width=9cm] at (1.5,-6) {\tiny \\
+                                             $\Exp(Y^{\doit(A=a')} \given S=a) - \Exp(Y \given S=a')$\\
+                                             $= \Exp(Y \given S=a, \doit(A=a')) - \Exp(Y \given S=a')$\\
+                                             $= \sum_m (P(M=m \given S=a) - P(M=m \given S=a')) \Exp(Y \given M=m,S=a')$\\};
+
+    \node[text width=9cm] at (1.5,-8.5) {\tiny $TCE(Y; a' \to a)$\\
+                                               $= \Exp(Y \given \doit(S=a)) - \Exp(Y \given \doit(S=a'))$\\
+                                               $= \sum_m (\Exp(Y \given M=m,S=a) - \Exp(Y \given M=m,S=a')) P(M=m)$\\};
+    
+    \node[text width=9cm] at (1.5,-11) {\tiny $CATE(Y;a'\to a|m)$\\
+                                              $= \Exp(Y \given \doit(S=a), M=m) - \Exp(Y \given \doit(S=a'), M=m)$\\
+                                              $= \Exp(Y \given S=a,M=m) - \Exp(Y \given S=a',M=m)$\\};
+  \end{scope}
+  \end{tikzpicture}}
+\clearpage

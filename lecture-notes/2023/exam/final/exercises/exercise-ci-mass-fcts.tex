@@ -1,0 +1,91 @@
+\subsection{Conditional Independence}
+\totalscore{9}
+
+Let $\Xcal,\Ycal,\Zcal,\Tcal$ be standard measurable spaces.
+Consider three conditional random variables $X,Y,Z$ with codomains $\Xcal$, $\Ycal$, $\Zcal$, respectively.
+Their joint Markov kernel is denoted by $K(X,Y,Z|T)$.
+If you like, you can assume in this exercise that all spaces are countable discrete spaces and that all Markov kernels have mass functions
+(without loss of points). 
+%and the corresponding mass function by $k$, in arguments written as $k(x,y,z|t)$.
+
+Recall that $X$ is independent from $Y$ conditioned on $Z$ w.r.t.\ $K(X,Y,Z|T)$, in symbols:
+\begin{align}
+    X \Indep_{K(X,Y,Z|T)} Y \given Z,
+\end{align}
+iff there exists a Markov kernel $Q(X|Z) :\, \Zcal \dshto \Xcal$ such that:
+\begin{align}
+    K(X,Y,Z|T) &= Q(X|Z) \otimes K(Y,Z|T).
+\end{align}
+
+Now let $P(T)$ be any fixed probability distribution on $\Tcal$.
+We then abbreviate the joint probability distribution of $X,Y,Z$ and $T$ as follows:
+\begin{align}
+    P(X,Y,Z,T) &:= K(X,Y,Z|T) \otimes P(T).
+\end{align}
+
+
+\begin{enumerate}[label=\alph*)]
+    \item Show that we always have the implication: \score{3}
+      \begin{align}
+            X \Indep_{K(X,Y,Z|T)} Y \given Z \qquad \implies \qquad X \Indep_{P(X,Y,Z,T)} Y,T \given Z.
+      \end{align}
+  \item  Now assume that $\Tcal$ is a countable discrete space and that $P(T)$ has a strictly positive mass function $p$, i.e.\ for all $t \in \Tcal$ we have: \score{6}
+\begin{align}
+    p(t) & >0.
+\end{align}
+        Show that in this case we also have the reverse implication:
+      \begin{align}
+            X \Indep_{K(X,Y,Z|T)} Y \given Z \qquad \impliedby \qquad X \Indep_{P(X,Y,Z,T)} Y,T \given Z.
+      \end{align}
+\end{enumerate}   
+Clearly exhibit all arguments involved in your reasoning. 
+
+
+\answer{
+``$\implies$'': By definition of $X \Indep_{K(X,Y,Z|T)} Y \given Z$ we have a factorization:
+\begin{align}
+    K(X,Y,Z|T) &= Q(X|Z) \otimes K(Y,Z|T),
+\end{align}
+where $K(Y,Z|T)$ is the marginal of $K(X,Y,Z|T)$. Multiplyting each side with $P(T)$ gives us:
+\begin{align}
+    P(X,Y,Z,T) & = K(X,Y,Z|T) \otimes P(T) \\
+               &= Q(X|Z) \otimes K(Y,Z|T) \otimes P(T) \\
+               &= Q(X|Z) \otimes P(Y,Z,T).
+\end{align}
+This shows the defining property of $X \Indep_{P(X,Y,Z,T)} Y,T \given Z$, where $Q(X|Z)$ is the wanted Markov kernel.
+
+``$\impliedby$'': Assume $X \Indep_{P(X,Y,Z,T)} Y,T \given Z$. Then there exists a Markov kernel $Q(X|Z)$ such that:
+\begin{align}
+    P(X,Y,Z,T) &= Q(X|Z) \otimes P(Y,Z,T),
+\end{align}
+where $P(Y,Z,T)$ is the marginal of $P(X,Y,Z,T)$. 
+This shows:
+\begin{align}
+    K(X,Y,Z|T) \otimes P(T) 
+               & = P(X,Y,Z,T) \\
+               &= Q(X|Z) \otimes P(Y,Z,T) \\
+               &= Q(X|Z) \otimes K(Y,Z|T) \otimes P(T).
+\end{align}
+Again note that for the marginals we also have:
+\begin{align} 
+    P(Y,Z,T) = K(Y,Z|T) \otimes P(T).
+\end{align}
+By the essential uniqueness of conditional Markov kernels we get:
+\begin{align}
+    K(X,Y,Z|T) &= Q(X|Z) \otimes K(Y,Z|T)  \qquad P(T)\text{-almost-surely.}
+\end{align}
+More precisely, this means that the following measurable set:
+\begin{align}
+    N &:= \lC t \in \Tcal \st K(X,Y,Z|T=t) \neq Q(X|Z) \otimes K(Y,Z|T=t)   \rC
+\end{align}
+is a $P(T)$-null set. Since $P(T)$ is strictly positive the set $N$ must be empty.
+So for all $t \in \Tcal$ we have:
+\begin{align}
+    K(X,Y,Z|T=t) &= Q(X|Z) \otimes K(Y,Z|T=t),
+\end{align}
+which implies:
+\begin{align}
+    K(X,Y,Z|T) &= Q(X|Z) \otimes K(Y,Z|T),
+\end{align}
+and thus: $X \Indep_{K(X,Y,Z|T)} Y \given Z$.
+}

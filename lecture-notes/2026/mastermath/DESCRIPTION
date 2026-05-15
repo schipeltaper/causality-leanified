@@ -1,0 +1,36 @@
+MasterMath course Causality (Spring 2026)
+
+1) Prerequisites
+
+1. bachelor level probability theory
+  (e.g., at the level of G. Grimmett and D. Welsh, 'Probability - An introduction', 2nd edition)
+2. bachelor level measure theory
+  (e.g., at the level of R. Schilling, 'Measures, Integrals and Martingales' (2nd edition), Cambridge University Press, 2017)
+3. bachelor level statistics
+  (e.g., at the level of F. Bijma, M. Jonker, A. van der Vaart, 'An introduction to Mathematical Statistics', Amsterdam University Press, 2017)
+
+
+2) Aim of the course
+
+Many questions in science and society are of a causal nature. For example, does vaping cause lung cancer? How many deaths have been prevented by the first COVID-19 vaccination campaign in the Netherlands? The probability for female PhD students at Dutch universities to graduate with distinction is only about half as that for males: is this evidence for discrimination based on gender? For dealing with these and similar questions properly in a quantitative fashion, one needs to go beyond the classical techniques (like regression and classification) taught in elementary statistics and machine learning courses. 
+
+In this course, you will learn how to model causality mathematically, how to reason formally about cause, effect and counterfactuals, how to predict consequences of actions, and how to analyze data for answering questions of a causal nature. We will make use of two different probabilistic frameworks for modeling causality: causal Bayesian networks and structural causal models. Topics addressed will be causal modeling (definition of Markov kernels, conditional independences, causal Bayesian networks, structural causal models, marginalization, confounders, selection bias, feedback loops, causal graphs, interventions, Markov properties), causal reasoning and estimation (intervention variables, do-calculus, counterfactuals, covariate adjustment, back-door criterion, identifiability), and causal discovery and estimation (randomized controlled trials, instrumental variables, local causal discovery, Y-structures, the FCI algorithm). 
+
+3) Rules about Homework/Exam
+
+- Homework counts for 10% of the grade
+- A student should get at least a 5.0 on the final exam or retake
+- Final exam and retake will both be 3h written exam
+- The homework does not count as part of the grade after the retake
+
+4) Lecture notes
+
+- 'A Mathematical Introduction to Causality' by P. D. Forré and J. M. Mooij.
+An updated version of the lecture notes for 2026 will be provided during class. 
+The version of 2025 can be downloaded from
+https://staff.fnwi.uva.nl/j.m.mooij/articles/causality_lecture_notes_2025.pdf
+
+5) Lecturers
+
+- Joris Mooij, Korteweg-De Vries Institute for Mathematics, University of Amsterdam
+- Patrick Forré, Korteweg-De Vries Institute for Mathematics, University of Amsterdam

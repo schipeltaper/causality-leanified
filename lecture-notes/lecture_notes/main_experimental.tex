@@ -1,0 +1,251 @@
+%-------Dokumentklasse------------------
+
+\documentclass[12pt, a4paper]{scrartcl}
+
+\usepackage{xr}
+\externaldocument{main}
+
+%---------packages------------------------
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+%\usepackage{amsopn}
+\usepackage{stmaryrd}  % for \llbracket, \rrbracket
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}  % to avoid LaTeX Font Warning: Font shape `U/stmry/b/n' undefined (see https://tex.stackexchange.com/questions/106714/stmaryrd-and-boldsymbol-avoid-warnings)
+%\newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
+\usepackage{cite}		%nichtmit natmib zusammen
+\usepackage[euler]{textgreek}
+\usepackage{enumerate}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{thm-restate}
+\makeatletter % WORKAROUND FOR BUG WITH RECENT LATEX VERSIONS, SEE https://github.com/muzimuzhi/thmtools/issues/72
+\IfFormatAtLeastTF{2024-11-01}{
+  \renewcommand*\@addtoreset[2]{%
+    \bgroup
+      \edef\aliasctr@@truelist{\aliasctr@follow{#2}}%
+      \let\@elt\relax
+      \expandafter\@cons\aliasctr@@truelist{{#1}}%
+    \egroup
+    \expandafter\xdef\csname theH#1\endcsname{%
+      \expandafter\noexpand\csname theH#2\endcsname.%
+      \noexpand\the\noexpand\value{#1}}%
+  }
+}{}
+\makeatother
+\declaretheorem[name=Theorem,numberwithin=section]{thm}
+%\usepackage{latexsym,color,mathrsfs,nicefrac,stmaryrd} 
+%\usepackage[all]{xy}
+%\usepackage{mathabx}  % was used for \asterisk, \Asterisk, but makes too many incompatible changes to other macros, like \not
+%\usepackage{mathrsfs}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+\usepackage{oubraces}
+
+\usepackage{cancel}
+\usepackage{centernot}
+\usepackage{bbm}
+\usepackage{enumitem}
+%\usepackage{wasysym}
+\usepackage{tikz}
+\usetikzlibrary{arrows,arrows.meta,calc,fit}
+\usetikzlibrary{positioning,patterns,matrix}
+\usetikzlibrary{decorations.markings,decorations.pathreplacing,decorations.pathmorphing}
+\usetikzlibrary{shapes,shapes.arrows,shapes.geometric,shapes.multipart}%,shapes.swigs
+
+\usepackage{graphicx}
+\graphicspath{ {./graphics/} }
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatim}
+\usepackage{bm}
+%\usepackage{etoolbox}
+%\patchcmd{\figure}{\normalsize}{\normalsize\centering}{}{}
+\usepackage{calc}
+\usepackage{accents}
+\usepackage{esvect}
+
+\usepackage{listings}
+\lstset{language=R,basicstyle=\footnotesize\ttfamily\color{blue!60!red},commentstyle=\itshape,keywordstyle=\bfseries,showstringspaces=false}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+%    citecolor=black,
+%    filecolor=black,
+    linkcolor=blue,
+%    urlcolor=black,
+    pdfpagemode=UseOutlines,
+    pdfencoding=unicode         
+}
+
+%-------------theorem envirionments --  abbreviations ------------------
+
+\input{thm}
+\input{shorts}
+\input{shortsjoris}
+
+%--------------Renumbering of sections, chapters, subsections----------------
+%\usepackage{chngcntr}
+
+%\renewcommand{\thesa}{\arabic{section}.\arabic{subsection}.\arabic{sa}}
+%%\renewcommand{\thesa}{\arabic{subsection}.\arabic{subsubsection}.\arabic{sa}}
+%%\renewcommand{\thechapter}{\arabic{chapter}}
+%\renewcommand{\thesection}{\arabic{section}}
+%\renewcommand{\thesubsection}{\arabic{subsection}}
+%\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+%%\counterwithout{section}{chapter} %make sections independent of chapters
+%%\counterwithout{subsection}{section} %make sections independent of chapters
+%%\counterwithout{section}{subsection}
+
+% --------------------------------------------------
+% Throughout the text \subsection* is used which resets the \subsubsection counts.
+% The following fixes this issue:
+% --------------------------------------------------
+% \counterwithout{subsubsection}{subsection}
+% \newcounter{customsubsub}
+% \renewcommand{\thesa}{\arabic{subsection}.\arabic{customsubsub}.\arabic{sa}}
+% \renewcommand{\thesubsubsection}{\arabic{subsection}.\arabic{customsubsub}}
+% \let\origsubsection\subsection
+% \let\origsubsubsection\subsubsection
+% \makeatletter
+% \renewcommand{\subsection}{\@ifstar{\origsubsection*}{\setcounter{customsubsub}{0}\origsubsection}}
+% \renewcommand{\subsubsection}{\stepcounter{customsubsub}\origsubsubsection}
+% \makeatother
+
+
+%--------------------------------------------------
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{3}
+
+%-------------------
+\begin{document}
+
+
+%-----------title-page---------------------------------------------------------
+
+\begin{titlepage}
+\title{A Mathematical Introduction to Causality}
+\subtitle{Experimental Stuff}
+
+\author{Patrick~Forr\'e \& Joris M.~Mooij
+\date{\small \today}
+}
+
+ 
+\maketitle
+
+
+\thispagestyle{empty}
+\end{titlepage}
+
+
+%------------chapters-----------------------------------
+
+  
+\clearpage
+%\input{foreword}
+
+\clearpage
+\renewcommand{\contentsname}{Table of Contents}
+\tableofcontents
+\addcontentsline{toc}{section}{Contents}
+
+\begin{comment}
+%\setcounter{section}{-1}
+%\renewcommand{\thesection}{\Roman{section}}
+
+\clearpage
+\input{experimental_causality}
+
+
+\clearpage
+\input{markov_kernels}
+\input{proof-disintegration}
+\input{conditional_independence}
+\input{proof-separoid-ci}
+\input{icdf}
+\input{proof-icdf}
+
+\clearpage
+\input{graphs}
+%\input{proof-separoid-d-sep}   %proof: acylicifation + d-sep
+\input{proof-separoid-s-sep}    %proof: directly with sigma-sep
+%one of the above is redundant
+
+\clearpage
+\input{causal_bayesian_networks}
+
+\clearpage
+\input{do-calculus}
+\input{proof-do-calculus}
+\input{adjustment-criteria}
+\input{id-algorithm}
+
+\clearpage
+\input{scms}
+\input{scms2}
+\input{scms3}
+\input{scms4}
+
+\clearpage
+\input{counterfactuals}
+\end{comment}
+
+\clearpage
+\input{some_ideas}
+\clearpage
+\input{scms_conditioning}
+\clearpage
+\input{causal_relations_remaining_stuff}
+\clearpage
+\input{instrumental-variables}
+\clearpage
+\input{fairness}
+\clearpage
+\input{ci_testing-slrt}
+
+\clearpage
+\input{mags}
+\clearpage
+\input{fci_reading_pags}
+%\input{fci_noS}
+\clearpage
+\input{fci_notes}
+\clearpage
+\input{fci_leftovers}
+
+\clearpage
+\input{variation_independence}
+\input{teleportation}
+
+\clearpage
+\input{new_framework}
+
+\clearpage
+\input{future_work}
+
+%\newpage
+%\appendix
+%\section{Appendix}
+%\addcontentsline{toc}{section}{Appendix}
+%\renewcommand{\thesection}{\Alph{subsection}}
+%\renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+%\renewcommand{\thesubsubsection}{\Alph{section}.\arabic{subsection}.\arabic{subsubsection}}
+
+%\clearpage
+%\input{probability_theory}
+
+\clearpage
+%------------ BibTeX---========================----------
+\addcontentsline{toc}{section}{References}
+%\nocite{*}
+\bibliographystyle{alphaurl}
+\bibliography{references}
+
+\end{document}

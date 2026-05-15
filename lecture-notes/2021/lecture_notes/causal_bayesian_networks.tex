@@ -1,0 +1,418 @@
+\subsection{Causal Bayesian Networks}
+
+\subsubsection{Core Concepts}
+
+\begin{Def}[Causal Bayesian network with input variables]
+    \label{def-I-CBN}
+    A \emph{causal Bayesian network with input variables (I-CBN)} - by definition - consists of:
+    \begin{enumerate}[label=\alph*.)]
+        \item a contextual/conditional directed acyclic graph (CDAG): $G = (J,V,E)$ (with finite vertex sets),
+        \item a standard measurable space $\Xcal_v$ for every $v \in J \cup V$,
+        \item a Markov kernel: $\displaystyle  P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$:
+        \[\begin{array}{ccrcl}
+           & & \Xcal_{\Pa^G(v)} & \dshto & \Xcal_v, \\
+           && \qquad (A,x_{\Pa^G(v)}) & \mapsto &  P_v\lp X_v \in A|\doit\lp X_{\Pa^G(v)} = x_{\Pa^G(v)} \rp\rp,
+        \end{array}\]
+        for every $v \in V$, where we write for $D \ins J \cup V$:
+               \begin{align*} 
+                   \Xcal_D &:= \prod_{v \in D} \Xcal_v,&
+                   \Xcal_\emptyset &:= \Asterisk = \{\ast\},\\
+                   X_D &:= (X_v)_{v \in D},&
+                   X_\emptyset &:= \ast,\\
+                   x_D &:= (x_v)_{v \in D},&
+                   x_\emptyset &:= \ast.
+              \end{align*}
+    \end{enumerate}
+    %By abuse  of notation, we will abbreviate the tupel of Markov kernels as: 
+    %\[\Pr = \lp  P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp \rp_{v \in V}, \] 
+    %keep the spaces $\Xcal_v$ implicit and refer to the tupel $(G,\Pr)$ as the I-CBN.
+\end{Def}
+
+\begin{Def}[The joint Markov kernel of a causal Bayesian network with input variables]
+    Consider a causal Bayesian network with input variables with CDAG $G=(J,V,E)$ and Markov kernels
+    $P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$ for $v \in V$.
+    For a fixed topological ordering $<$ of $G$ 
+    we  then define the joint Markov kernel of the I-CBN:
+    \[ \Xcal_J \dshto \Xcal_V\]
+    as follows:
+    \[  P(X_V|\doit(X_J)) := \bigotimes_{v \in V, >} P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp,  \]
+    where the nodes $v$ run through $V$ in reverse ordering of $<$, i.e.\ 
+    all parents are on the right of all their children.
+\end{Def}
+
+\begin{Exc}
+    Show that the definition of the joint Markov kernel of an I-CBN is independent of the topological ordering.
+\end{Exc}
+
+\begin{Not}
+    By abuse of notation, we will refer to the tuple: 
+    \[\lp G, P\lp X_V|\doit(X_J)\rp\rp\] 
+    as the I-CBN, keeping the single Markov kernels $P_v$ and the spaces $\Xcal_v$ implicit.
+\end{Not}
+
+\begin{Rem}[Marginalization and conditioning]
+    Let $P(X_V|\doit(X_J))$ be the joint Markov kernel of a I-CBN.
+    We can extend it to a joint Markov kernel including $X_J$:
+    \[P(X_V,X_J|\doit(X_J)) = P(X_V|\doit(X_J)) \otimes \delta(X_J|X_J).  \]
+    For any $A, B \ins J \cup V$ we then also have the \emph{marginal conditional} Markov kernel:
+    \[P(X_A|X_B,\doit(X_J)),\]
+    which exists by theorem \ref{thm-regular-conditional-Markov-kernel} due to the use of standard measurable spaces
+    and is unique up to a $P(X_B|\doit(X_J))$-null set.\\
+    Furthermore, if $C \ins J$ and we have: 
+    \[X_A \Indep_{P(X_V|\doit(X_J))} X_J \given X_C,\]
+    then we also have a Markov kernel:
+    \[ P(X_A|\doit(X_C)) \]
+    that fits into the equation:
+    \[ P(X_A,X_C|\doit(X_J)) = P(X_A|\doit(X_C)) \otimes P(X_C|\doit(X_J)). \]
+    Note that this is unique up to a $P(X_C|\doit(X_J))$-null set and that $P(X_C|\doit(X_J)) = \delta(X_C|X_J)$, 
+    and thus $P(X_A|\doit(X_C))$ is unique (not just up to null sets).
+    In other words, $P(X_A|\doit(X_J))$ is only dependent on the arguments from $X_C$. 
+\end{Rem}
+
+\begin{Def}[Causal Bayesian network with input variables and latent variables]
+    A \emph{causal Bayesian network with input variables and latent variables} or
+    \emph{latent variable causal Bayesian network with input variables (IL-CBN)}
+    - per definition - consists of:
+    \begin{enumerate}[label=\alph*.)]
+            \item an I-CBN with:
+                \begin{enumerate}
+                    \item CDAG: $G^+=(J,V^+,E^+)$, and:
+                    \item Markov kernel: 
+                        \[ P\lp X_{V^+}| \doit\lp X_J \rp\rp 
+                        = \bigotimes_{v \in V^+} P_v\lp X_v|\doit\lp X_{\Pa^{G^+}(v)}\rp\rp,\]                      
+                \end{enumerate}
+                    and: 
+                \item a decomposition of the set of nodes $V^+$:
+                    \[ V^+ = V \dcup U, \]
+                     into disjoint sets of \emph{observed nodes} $V$ 
+                     and \emph{unobserved nodes} $U$.
+    \end{enumerate}
+    By abuse of notation, we refer to it as the tuple:
+    \[ M = \lp G^+=(J,V,U,E^+), \; P\lp X_V,X_U| \doit\lp X_J \rp\rp \rp.\]
+    We refer to the marginal:
+    \[  P\lp X_V| \doit\lp X_J \rp\rp  \]
+    as the \emph{observational Markov kernel}. 
+    %If $J \ins J^+$ and:
+    %\[ X_V \Indep_{ P(X_V|\doit(X_{J^+}))} X_{J^+} \given X_J,  \]
+    %we also write:
+    %\[     \[  P\lp X_V| \doit\lp X_J \rp\rp,  \]
+    %for the occuring Markov kernel in the conditional independence.
+    We call the marginalized CADMG:
+    \[ G := (J,V,E,L) := (G^+)^{\sm U}  \]
+    the (induced) \emph{observational CADMG}.
+\end{Def}
+
+\begin{Rem}[Causal Bayesian networks]
+    In the following if we say \emph{causal Bayesian network (CBN)} we will mean 
+    causal Bayesian network with input variables and with latent variables (IL-CBN).
+\end{Rem}
+
+\begin{comment}
+\begin{Def}[Marginal of a causal Bayesian network with input variables]
+    A \emph{marginal of a causal Bayesian network with input variables (MI-CBN)} - per definition - 
+    is the marginal of a causal Bayesian network with input variables and with latent variables:
+    \[ G^+=(J,V,U,E^+), \qquad P\lp X_V,X_U| \doit\lp X_J \rp\rp. \]
+    It comes with observational CADMG: 
+    \[G=(J,V,E,L) = (G^+)^{\sm U}\]
+    and observational Markov kernel:
+    \[  P\lp X_V| \doit\lp X_J \rp\rp.  \]
+\end{Def}
+
+\begin{Rem}[Marginal of a causal Bayesian network with input variables]
+    \begin{enumerate}
+        \item If we represent a marginal of a causal Bayesian network with input variables and with latent variables via 
+            its observational CADMG $G$
+            then we might loose information about how many latent variables we have, 
+            where they sit and how many variables they effect.
+            The use of bi-directed edges (over-)simplifies the latent structure. 
+            If the latent structure matters (e.g.\ for some applications) one better models 
+            the whole CDAG $G^+$ with observed and latent variables together instead of just using the observataional CADMG $G$.
+        \item The observational Markov kernel $P\lp X_V| \doit\lp X_J \rp\rp$ can, in general, not be represented as the 
+            product of the Markov kernels attached to the nodes $v \in V$. They now might ``clump'' together by integrating over the latent variables, e.g.:
+            \begin{align*} &P(X_1 \in A,X_2 \in B)\\ 
+            &= \int_{\Xcal_3} P_1(X_1 \in A|\doit(X_3=x_3)) \cdot P_2(X_2 \in B|\doit(X_3=x_3))\, P_3(X_3 \in dx_3)
+            \end{align*}
+    \end{enumerate}
+\end{Rem}
+\end{comment}
+
+\subsubsection{Global Markov Property}
+
+\begin{Thm}[Global Markov property for causal Bayesian networks]
+\label{thm-gmp-mI-CBN}
+Consider a causal Bayesian network (with input and latent variables) with observational CADMG $G=(J,V,E,L)$ 
+and observational Markov kernel $P(X_V|\doit(X_J))$.
+Then for all $A, B, C \ins J \cup V$ (not-necessarily disjoint) we have the implication:
+\[ A \Perp^d_G B \given C \qquad \implies \qquad X_A \Indep_{P(X_V|\doit(X_J))} X_B \given X_C.   \]
+If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+\[ A \Perp^d_G J \cup B \given C \qquad \implies \qquad X_A \Indep_{P(X_V|\doit(X_J))} X_J,X_{B} \given X_C.   \]
+\end{Thm}
+
+\begin{Not}
+    Let $A,B,C \ins J \cup V$ with $X_A \Indep_{P(X_V|\doit(X_J))} X_B \given X_C$, then we have a factorization:
+    \[ P(X_A,X_B,X_C|\doit(X_J)) = Q(X_A|X_C) \otimes P(X_B,X_C|\doit(X_J)),\]
+    for some Markov kernel: $Q(X_A|X_C)$. If we marginalize out $X_B$ and the deterministic $X_{C \cap J}$,
+    we get:
+    \[ P(X_A,X_{C\cap V}|\doit(X_J)) = Q(X_A|X_C) \otimes P(X_{C\cap V}|\doit(X_J)).\]
+    So we see that $Q(X_A|X_C)$ is a conditional Markov kernel:
+    \[P(X_A|X_{C\cap V},\doit(X_J)) \]
+    that does only depend on $X_{J \cap C}$ in the $\doit$-part.
+    So we will use the following notation for $Q(X_A|X_C)$ (or in any other order behind the conditioning line):
+    \[ P(X_A|X_{C \cap V},\doit(X_{C \cap J}),\cancel{\doit(X_J)}) := Q(X_A|X_C).  \]
+    Note that by \ref{thm-ci-equivalences} that we can, but do not need to explicitly mention $X_B$ as in:
+    \[ P(X_A|\cancel{X_B},X_{C \cap V},\doit(X_{C \cap J}),\cancel{\doit(X_J)})),  \]
+    because the Markov kernels are almost surely equal.\\
+    In these suggestive notations we can state the global Markov property \ref{thm-gmp-mI-CBN} as:
+    \begin{align*} 
+    &A \Perp^d_G B \given C \\
+    &\implies \; P(X_A|X_B,X_C,\doit(X_J)) &&= P(X_A|\cancel{X_B},X_{C \cap V},\doit(X_{C \cap J}),\cancel{\doit(X_J)})),\quad \text{a.s.} \\
+    & &&= P(X_A|X_{C \cap V},\doit(X_{C \cap J}),\cancel{\doit(X_J)}) \quad \text{a.s.}\\ 
+    & &&= P(X_A|\cancel{\doit(X_J)},X_{C \cap V},\doit(X_{C \cap J})) \quad \text{a.s.}
+    \end{align*}
+
+\end{Not}
+
+
+\input{proof-markov_property}
+
+\subsubsection{Operations on Causal Bayesian Networks}
+\paragraph{Hard Interventions on Causal Bayesian Networks}
+
+\begin{Def}[Hard intervention on causal Bayesian network with input variables]
+    Consider a causal Bayesian network with input variables (I-CBN) given by $\lp G, P\lp X_V|\doit(X_J)\rp\rp$ 
+    with CDAG: $G=(J,V,E)$ and Markov kernels: $P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$ for $v \in V$.
+    Now let  $ W \ins J \cup V$ any subset.
+    Then we define the \emph{intervened causal Bayesian network with input variables} w.r.t.\ $W$ via:
+    \begin{enumerate}
+        \item CDAG: $G_{\doit(W)} = (J \cup W, V \sm W, E_{\doit(W)}) $, and:
+        \item Markov kernels: $P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$ for $v \in V \sm W$.
+    \end{enumerate}
+    Its observational Markov kernel is then:
+    \[ P\lp X_{V \sm W}|\doit\lp X_{J \cup W}\rp\rp = \bigotimes_{v \in V\sm W} P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp.  \]
+    Note that if $ v\in V \sm W$ then $\Pa^G(v) = \Pa^{G_{\doit(W)}}(v)$.
+\end{Def}
+
+\begin{Rem}[Hard intervention on causal Bayesian network with input variables and with latent variables]
+We define the interventions on IL-CBN the same way as above, but we usually 
+only allow for interventions on sets $W \ins J \cup V$, i.e.\ with $W \cap U = \emptyset$, where $U$ is the set of latent variables.
+\end{Rem}
+
+\paragraph{Soft Interventions on Causal Bayesian Networks}
+
+\begin{Rem}[Modelling soft interventions on causal Bayesian network with input variables]
+    \label{I-CBN-soft-int}
+    Consider a  causal Bayesian network with input variables given by $\lp G, P\lp X_V|\doit(X_J)\rp\rp$ 
+    with CDAG: $G=(J,V,E)$ and Markov kernels: $P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$ for $v \in V$.\\
+    Let $W \ins J \cup V$.
+    If we want to model a soft intervention on variables $X_w$ for $w \in W\sm J$ then we would introduce 
+    soft intervention nodes $I_w \tuh w$ for $w \in W \sm J$, which come with new input variables $X_{I_w}$, 
+    and replace 
+    the Markov kernel: 
+    \[P_w\lp X_w|\doit\lp X_{\Pa^G(w)}\rp\rp\]
+    for $w \in W\sm J$ by one that models the dependence on the 
+    soft intervention variables properly:
+    \[  P_w\lp X_w|\doit\lp X_{\Pa^G(w)},X_{I_w}\rp\rp. \]
+    So the \emph{soft interventional causal Bayesian network with input variables} w.r.t.\ $W$ would then have: 
+        \begin{enumerate}
+            \item CDAG: $G_{\doit(I_W)} = (J \dcup \{I_w\,|w \in W\}, V, E \dcup \{I_w \tuh w\,|w \in W\sm J\}) $, and:
+        \item Markov kernels: 
+        \item[] $P_v\lp X_v|\doit\lp X_{\Pa^G(v)}\rp\rp$ for $v \in V \sm W$, and:
+        \item[] $P_w\lp X_w|\doit\lp X_{\Pa^G(w)}, X_{I_w}\rp\rp$ for $w \in W\sm J$.
+    \end{enumerate}
+    Note that $\Pa^{G_{\doit(I_W)}}(w)= \Pa^G(w) \dcup \{I_w\}$ for $w \in W\sm J$ and 
+    $\Pa^{G_{\doit(I_W)}}(v)= \Pa^G(v)$ for $v \in V \sm W$. 
+\end{Rem}
+
+\begin{Rem}[Modelling hard interventions as soft interventions]
+    It is sometimes beneficial to model hard interventions as soft interventions.
+    Let the setting be like in \ref{I-CBN-soft-int}.
+    When we model hard interventions as soft interventions we make the further more specific choices for $ w\in W \sm J$:
+    \begin{enumerate}
+        \item $\Xcal_{I_w} := \Xcal_w \dcup \{\star\}$,
+        \item $X_{I_w} := \pr_{\Xcal_{I_w}}$,
+        \item $ P_w\lp X_w \in A|\doit\lp X_{\Pa^G(w)}=x_{\Pa^G(w)} ,X_{I_w}=x_{I_w}\rp\rp : =$
+            \[ \left\{ \begin{array}{lll}
+                        P_w\lp X_w \in A|\doit\lp X_{\Pa^G(w)}=x_{\Pa^G(w)}\rp\rp, & \text{ if } & x_{I_w} = \star, \\
+                        \delta(X_w \in A|X_w =x_{I_w}) = \I_A(x_{I_w}),  & \text{ if } & x_{I_w} \neq \star. 
+                \end{array}\right.\]
+    \end{enumerate}
+    Note that the CDAG will then rather be: $G_{\doit(I_W)}$ in contrast to: $G_{\doit(W)}$. \\
+    The above choices reflect that if we put $X_{I_w} = \star$ then no intervention occurs and the value of $X_w$ is
+    (probabilistically) determined using the usual Markov kernel. 
+    But if we put 
+    $X_{I_w} = x_{I_w}  \neq\star$ then we change the value of $X_w$ to $x_{I_w}$ (with 100\% probability) 
+    independent of the values of its parents. 
+    This is then similar to the hard intervention: $\doit(X_w = x_{I_w})$.
+\end{Rem}
+
+\begin{Rem}
+    Again, we can do all the above also with causal Bayesian network with input variables and with latent variables, 
+    but allow only $W$ with $W \cap U = \emptyset$.
+\end{Rem}
+
+\paragraph{Marginalization of Causal Bayesian Networks}
+
+\begin{Def}[Marginalization of causal Bayesian network with input variables and with latent variables]
+    Consider a causal Bayesian network with input variables and with latent variables (IL-CBN): 
+    \[ \lp G^+=(J,V,U,E^+), \; P\lp X_{V \dcup U}| \doit\lp X_J \rp\rp \rp.\]
+    Let $W \ins V$ be a subset.
+    We then define the \emph{marginalized IL-CBN} by just replacing $V$ with $V \sm W$ and $U$ with $U \dcup W$. 
+    The Markov kernels $P_v$ for $v \in V \dcup U = (V \sm W) \dcup (U \dcup W)$ stay the same.\\
+    With this definition the observational Markov kernel marginalizes to:
+    \[ P\lp X_{V\sm W}|\doit\lp X_J\rp\rp,  \]
+    and the observational CADMG becomes:
+    \[ (G^+)^{\sm (U \dcup W)} = G^{\sm W},\]
+    i.e.\ the marginalized $G$ w.r.t.\ $W$.
+\end{Def}
+
+\subsubsection{Representations of Causal Bayesian Networks}
+\paragraph{Interventional Equivalence}
+
+\begin{Def}
+    Consider two  causal Bayesian network with input variables and with latent variables (IL-CBNs):
+    \[ M_1 = \lp G^+_1=(J_1,V_1,U_1,E^+_1), \; P_1\lp X_{V_1}, X_{U_1}| \doit\lp X_{J_1} \rp\rp \rp,\]
+    \[ M_2 = \lp G^+_2=(J_2,V_2,U_2,E^+_2), \; P_2\lp X_{V_2},X_{U_2}| \doit\lp X_{J_2} \rp\rp \rp.\]
+    We call them \emph{interventionally equivalent} if all of the following conditions hold:
+    \begin{enumerate}
+        \item $J_1 = J_2 =:J$,
+        \item $V_1 = V_2 =:V$,
+        \item $\Xcal_{1,v} = \Xcal_{2,v} =: \Xcal_v$ for all $v \in J \cup V$,
+        \item for all subsets $W \ins J \cup V$ we have the equality of the Markov kernels:
+            \[P_1\lp X_{V \sm W}| \doit\lp X_{J \cup W} \rp\rp  = P_2\lp X_{V\sm W}| \doit\lp X_{J \cup W} \rp\rp.\]
+    \end{enumerate}
+\end{Def}
+
+
+\paragraph{Structural Causal Model Representation}
+
+\begin{Thm}[Structural causal model representation of IL-CBNs]
+    \label{bcn-scm}
+Consider a causal Bayesian network with input variables and with latent variables (IL-CBN):
+     \[M= \lp G^+=(J,V,U,E^+), \; P\lp X_{V}, X_{U}| \doit\lp X_{J} \rp\rp \rp.\]
+Then there exists an interventionally equivalent IL-CBN:
+\[ \tilde M = \lp \tilde G^+=(J,V,\tilde U,\tilde E^+), \; \tilde P\lp X_{V}, X_{\tilde U}| \doit\lp X_{J} \rp\rp \rp,\]
+such that:
+\begin{enumerate}
+    \item $\Pa^{\tilde G^+}(\tilde U) = \emptyset$,
+    \item $\Ch^{\tilde G^+}(\tilde U) = V$,
+    \item $\Ch^{\tilde G^+}(u_1) \nsubseteq \Ch^{\tilde G^+}(u_2)$ for $u_1,u_2 \in \tilde U$ with $u_1\neq u_2$,
+    \item all Markov kernels $P_v$ for $v\in V$ are deterministic, i.e.\ of form $\delta(R_v|X_{\Pa^{\tilde G^+}(v)})$ 
+        for some deterministic function $R_v$, i.e.: $X_v = R_v(X_{\Pa^{\tilde G^+}(v)})$,
+    \item $G:=(G^+)^{\sm U} = (\tilde G^+)^{\sm \tilde U}$.
+\end{enumerate}
+Furthermore, if we are willing to use measurable embeddings/isomorphisms: $\Xcal_u \inj [0,1]$, then we 
+can further restrict for $u \in \tilde U$ to:
+\begin{enumerate}[resume]
+    \item $\Xcal_u \cong [0,1]$
+    \item $P_u(X_u)$ is the uniform distribution on $[0,1]$.
+\end{enumerate}
+\begin{proof}
+    Step 1. For every $v \in V \cup U$ we can write the Markov kernel $P_v$ as the composition of a deterministic one and 
+    a uniform distribution $P_{\bar v}(X_{\bar v})$ on $\Xcal_{\bar v}:=[0,1]$ by theorem \ref{ccdf3}:
+    \[ P_v(X_v|\doit(X_{\Pa^{G^+}(v)})) = \delta(R_v|X_{\bar v}, X_{\Pa^{G^+}(v)}) \circ \bar P_{\bar v}(X_{\bar v}). \]
+    We now put:
+    \[ \bar U := U \dcup \{ \bar v\,|\, v \in V \cup U\},\qquad \bar E^+ := E^+ \dcup \lC \bar v \tuh v\,|\, v \in V \cup U \rC, \]
+    and to get $\bar M$ we add the $\bar P_{\bar v}$ to $M$ and replace $P_v$ for $v \in V \cup U$ 
+    by the deterministic one given by:
+    \[ \bar P_v(X_v \in A|\doit(X_{\bar v},X_{\Pa^{G^+}(v)})) :=  \delta(R_v \in A|X_{\bar v}, X_{\Pa^{G^+}(v)}). \]
+    Then $\bar G^+$ clearly marginalizes to $G^+$ (when we marginalize out all the $\bar v$ again) and the marginal of:
+    \[   \bar P_v(X_v \in A|\doit(X_{\Pa^{G^+}(v)}), X_{\bar v})  \otimes \bar P_{\bar v}(X_{\bar v}),\]
+    in the defining product of the joint Markov kernel
+    is $P_v(X_v|\doit(X_{\Pa^{G^+}(v)}))$ for all $ v \in V \cup U$ by construction again.\\ 
+    Step 2. Marginalize out all $u \in U$.    
+    Let us first look at the Markov kernel side if we marginalize out $X_u$ 
+    in the defining product of the joint Markov kernel for $u \in U$:
+    \begin{align*}
+     &   \int_{\Xcal_u} \bigotimes_{v \in \Ch^{\bar G^+}(u)} \bar P_v(X_v|\doit(X_{\Pa^{\bar G^+}(v)\sm\{u\}},
+        X_u=x_u)) \, \delta(R_u \in dx_u|X_{\Pa^{\bar G^+}(u)}) \\
+   & = \bigotimes_{v \in \Ch^{\bar G^+}(u)} \bar P_v(X_v|\doit(X_{\Pa^{\bar G^+}(v)\sm\{u\}},
+   X_u=R_u(X_{\Pa^{\bar G^+}(u)}))), 
+    \end{align*}
+    which is again a product (only) because we marginalized a deterministic Markov kernel out.
+    So we define:
+    \[ \hat P_v(X_v|\doit(X_{\Pa^{\hat G^+}(v)})) := \bar P_v(X_v|\doit(X_{\Pa^{\bar G^+}(v)\sm\{u\}},
+   X_u=R_u(X_{\Pa^{\bar G^+}(u)}))), \]
+   which is as the composition of deterministic Markov kernels again a deterministic Markov kernel.
+    From this we also read off that we need to consider the graph $\hat G^+$ with:
+    \[ \Pa^{\hat G^+}(v) := {\Pa^{\bar G^+}(v)\sm\{u\}} \cup {\Pa^{\bar G^+}(u)},\]
+    i.e.\ the CDAG from $(\bar G^+)^{\sm U}$ 
+    where we removed all bi-directed edges, $\hat U = \bar U \sm U$.
+    Then note that for $u \in U$ we have:
+    \[\Ch^{\bar G^+}(u) = \Ch^{(\bar G^+)^{\sm U}}(\bar u).\]
+    This implies that we recover the removed bi-directed edges if we further marginalize out all the $\bar u$, i.e.:
+    \[(\hat G^+)^{\sm \hat U} = (\bar G^+)^{\sm \bar U} = (G^+)^{\sm U} = G. \]
+    With this we already achieved all points 1.-7. from the statement except point 3.\\
+    Step 3. First we can marginalize out all nodes $u \in \hat U$ with $\Ch^{\hat G^+}(u) = \emptyset$. For those $u$ we have:
+    \[\hat P(X_V,X_{\hat U}|\doit(X_J)) = \hat P_u( X_u|\doit(X_{\Pa^{\hat G^+}(u)}) ) \otimes 
+    \hat P(X_V,X_{\hat U\sm \{u\}}|\doit(X_J)).\]
+    So marginalizing out $X_u$ does not interfere with the rest of the Markov kernels.\\
+    Step 4. If then $\Ch^{\tilde G^+}(u_1) \ins \Ch^{\tilde G^+}(u_2)$ for some $u_1,u_2 \in \hat U$ then 
+    consider the space $\Xcal_{\tilde u_{1,2}} := \Xcal_{u_1} \times \Xcal_{u_2}$,  
+    the variable $X_{\tilde u_{1,2}} := (X_{u_1},X_{u_2})$. Then every Markov kernel dependent on $X_{u_1}$ or $X_{u_2}$ 
+    can be written as a Markov kernel dependent on $X_{\tilde u_{1,2}}$.
+    In the graph we replace both $u_1$ and $u_2$ by a single node $\tilde u_{1,2}$ with the same edges as $u_2$.
+    Repeating this procedure then gives the mutual non-inclusivity. It is clear that:
+    $(\tilde G^+)^{\sm \tilde U} = (\hat G^+)^{\sm \hat U}$ as we remove all elements from $\tilde U$, $\hat U$, resp., 
+    and introduce in both cases bi-directed edges between all children of $u_2$.\\
+    Step 5. We can use the same arguments as in step 1 and 2 to make 
+    $\Xcal_{\tilde u} \cong [0,1]$ and $P_{\tilde u}(X_{\tilde u})$ the uniform distribution 
+    (while just composing deterministic Markov kernels).\\
+    This shows all the claims. Finally one can convince oneself that at each step we get an interventionally equivalent 
+    IL-CBN to the step before. 
+    %This is mostly due to the fact that disjoint marginalization and interventions commute.
+\end{proof}
+\end{Thm}
+
+
+
+\paragraph{Standard Form of Causal Bayesian Networks}
+
+
+\begin{DefThm}[Standard forms of IL-CBNs]
+    \label{bcn-standard-form}
+Consider a causal Bayesian network with input variables and with latent variables (IL-CBN):
+     \[ M = \lp G^+=(J,V,U,E^+), \; P\lp X_{V}, X_{U}| \doit\lp X_{J} \rp\rp \rp.\]
+Then there exists an interventionally equivalent IL-CBN:
+\[ \tilde M = \lp \tilde G^+=(J,V,\tilde U,\tilde E^+), \; \tilde P\lp X_{V}, X_{\tilde U}| \doit\lp X_{J} \rp\rp \rp,\]
+such that for every $u, u_1, u_2 \in \tilde U$ with $u_1 \neq u_2$:
+\begin{enumerate}
+    \item $\Pa^{\tilde G^+}(u) = \emptyset$,
+    \item $\#\Ch^{\tilde G^+}(u) \ge 2$,
+    \item $\Ch^{\tilde G^+}(u_1) \nsubseteq \Ch^{\tilde G^+}(u_2)$,
+    \item $G:=(G^+)^{\sm U} = (\tilde G^+)^{\sm \tilde U}$.
+\end{enumerate}
+Furthermore, the CDAG $\tilde G^+$ is uniquely determined by $G^+$.
+%and $\tilde G^+$ and $G^+$ have the same observational CADMG $G$.
+We will call such a IL-CBN a \emph{standard form} of the original IL-CBN.\\
+%The other aspects like the Markov kernels dependent on the $X_U$ of the latent space might not be unique.\\
+Furthermore, if we are willing to use measurable embeddings/isomorphisms: $\Xcal_u \inj [0,1]$, then we 
+can further restrict for $u \in \tilde U$ to:
+\begin{enumerate}[resume]
+    \item $\Xcal_u \cong [0,1]$
+    \item $\tilde P_u(X_u)$ is the uniform distribution on $[0,1]$.
+\end{enumerate}
+Note that in any case the Markov kernels dependent on $X_U$ might not be unique as we can always transform $[0,1]$ to $[0,1]$ in strange ways.
+\begin{proof}
+    This follows from the SCM representation of LCCMNs, theorem \ref{bcn-scm}, 
+    by marginalizing over all $X_u$ with $\#\Ch^{\tilde G^+}(u) \le 1$, i.e.\ by replacing the left (deterministic) 
+    Markov kernel dependent on 
+    $X_u$ in the product:
+    \[P_v(X_v|\doit(X_{\Pa^{\tilde G^+}(v) \sm \{u\}}, X_u)) \otimes P_u(X_u),\]
+    by the composition:
+    \[P_v(X_v|\doit(X_{\Pa^{\tilde G^+}(v) \sm \{u\}}, X_u)) \circ P_u(X_u),\]
+    which might not be deterministic anymore.
+\end{proof}
+\end{DefThm}
+
+\begin{Rem}[Marginalizations and hard interventions on standard forms]
+    Let the following IL-CBN be in standard form:    
+    \[ \lp G^+=(J,V,U,E^+), \; P\lp X_{V \cup U}| \doit\lp X_{J} \rp\rp \rp.\]
+    Now let $W \ins V$ then we defined the marginalization w.r.t.\ $W$ by replacing $V$ with $V \sm W$ and $U$ with $U \cup W$.
+    We could re-define the marginalization as a standard form of that procedure.\\
+    Similarly we could post-process hard interventions with standardization steps.
+\end{Rem}
+
+
+%\input{proof-standard_form_bcn}
+
+

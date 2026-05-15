@@ -1,0 +1,386 @@
+\subsection{Markov Kernels}
+
+\subsubsection{Core Concepts}
+
+\begin{Motivation}
+ If we consider a deterministic measurable map $f: \Tcal \to \Wcal$ then $f$ assigns to each point $t \in \Tcal$ exactly one point $w=f(t) \in \Wcal$.
+ Sometimes we rather want to model a \emph{probabilistic map}, i.e.\ an assignment that can be random or comes with some uncertainties but still changes depending on the input $t$. 
+ The notion of \emph{Markov kernels} formalizes this. 
+A Markov kernel $K$ from $\Tcal$ to $\Wcal$
+can be considered  a measurable map from $\Tcal$ to the space of probability measures $\Pcal(\Wcal)$ of $\Wcal$:
+    \[ \Tcal \to \Pcal(\Wcal).\]
+ It assigns to each $t \in \Tcal$ a probability distribution over $\Wcal$, which then assigns to 
+    each measurable subsets $D \ins \Wcal$ a probability value in $[0,1]$.
+\end{Motivation}
+
+\begin{Eg}[Markov kernels]
+    \begin{enumerate}
+        \item any statistical model (i.e.\ family of model distributions) $\{p_\theta \,|\, \theta \in \Fcal\}$, can 
+            be considered a Markov kernel, which we write $P(X|\Theta)$.
+        \item any conditional distribution $P(Y|X)$ can be considered a Markov kernel.
+        \item a neural network with softmax output for classification with 
+            input $x \in \Xcal$, output $y \in \Ycal$ and weights $w \in \Wcal$ can be seen as a Markov kernel $P(Y|X,W)$.
+
+    \end{enumerate}
+\end{Eg}
+
+\begin{Def}[Markov kernel]
+    \label{def-markov-kernel}
+    Let $\Tcal$, $\Wcal$ be measurable spaces.
+    A \emph{Markov kernel} (aka probabilistic mapping or \emph{transition probability} or noisy channel, etc.) from $\Tcal$ to $\Wcal$
+    is - per definition - a mapping:
+    \[ K:\, \Bcal_\Wcal \times \Tcal \to [0,1],\quad (D,t) \mapsto K(D|t),\]
+    such that:
+    \begin{enumerate}[label=\roman*)]
+        \item For each $t \in \Tcal$ the mapping:
+            \[ \Bcal_\Wcal \to [0,1],\quad D \mapsto K(D|t)\]
+            is a probability measure (i.e.\ normalized and countably additive).
+        \item For each $D \in \Bcal_\Wcal$ the mapping:
+            \[ \Tcal \to [0,1],\quad t \mapsto K(D|t) \]
+            is measurable.
+    \end{enumerate}
+\end{Def}
+
+\begin{Exc} 
+    Show that a Markov kernel $K$ uniquely induces a measurable mapping:
+    \[ \bar K:\, \Tcal \to \Pcal(\Wcal),\quad  \bar K(t)(A):=K(A|t),  \]% t \mapsto K(X|T=t) = \lp A \mapsto K(X \in A|T=t) \rp\]
+    and vice versa. 
+    Recall the definition \ref{def-sigma-algebra-prob-space} of 
+     the $\sigma$-algebra of  $\Pcal(\Wcal)$.
+\end{Exc}
+
+\begin{Not}[Markov kernel]
+    We will most of the time use the dashed arrow to $\Wcal$ (instead of a usual arrow to $\Pcal(\Wcal)$) to indicate Markov kernels:
+    \[K:\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(D|t).  \]
+    Furthermore, we will often use suggestive notations as follows:
+    \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t):=K(D|t).  \]
+    We also use the notation:
+    \[ K(W \in D|T):\, \Tcal \to [0,1],\quad t \mapsto K(W \in D|T=t),  \]
+    and:
+    \[ K(W|T=t):\, \Bcal_\Wcal \to [0,1],\quad D \mapsto K(W \in D|T=t),  \]
+    and:
+    \[ K(W|T):\, \Tcal \to \Pcal(\Wcal),\quad t \mapsto K(W|T=t).\]
+    Here $W$ and $T$ are considered suggestive symbols only, but one could give $W$ the meaning to mean the (identity or) projection map 
+    $\pr_\Wcal$ onto $\Wcal$. 
+    From the point on we also have a map $T$ mapping to $\Tcal$ the notation becomes ambiguous: $K(W|T)$ could also mean $K(W|T)$ where we plugged in $T$ for $t$ in ``$T=t$'',
+     similar to conditional expectations $\E[W|T]$, but the meaning should become clear from the context.
+\end{Not}
+
+
+
+
+\begin{Eg}[Markov kernels on discrete spaces]
+    Consider a Markov kernel:
+    \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+    where both $\Wcal=\{w_1,\dots,w_M\}$ and $\Tcal=\{t_1,\dots,t_K\}$ are finite discrete spaces.
+    Then we can define the mass function $k$ via:
+    \[  k(w_i|t_j) := K(W \in \{w_i\}|T=t_j),  \]
+    and the matrix $\tilde K:=(k(w_i|t_j))_{i,j}$.
+    Then the matrix $\tilde K$ is a stochastic matrix, i.e.\ it has non-negative entries and each of its columns sums to $1$. 
+    $\tilde K$ then fully determines the Markov kernel $K$.
+    So in the (finite) discrete case a Markov kernel is basically nothing else than a stochastic matrix filled with the transition probabilities.
+\end{Eg}
+
+\begin{Rem}[Markov kernels generalize probability distributions] Let $\Wcal$ be a measurable space.
+    \begin{enumerate}
+        \item Every probability distribution $P \in \Pcal(\Wcal)$ can be considered as a \emph{constant Markov kernel} from $\Tcal$ to $\Wcal$ via:
+            \[  K:\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(D|t):=P(D).   \]
+        \item Every Markov kernel from the  one-point space: $\Tcal=\Asterisk:=\{\ast\}$ to $\Wcal$:
+            \[ K:\, \Asterisk \dshto \Wcal,\quad (D,\ast) \mapsto K(D|\ast),\]
+            defines a unique probability distribution $P \in \Pcal(\Wcal)$ given via:
+            \[ P(D):=K(D|\ast).\]
+            So we can identify probability distributions on $\Wcal$ with Markov kernels $\Asterisk \dshto \Wcal$.
+    \end{enumerate}
+\end{Rem}
+
+\begin{Rem}[Markov kernels generalize deterministic mappings]
+    Consider a measurable mapping $f: \Tcal \to \Wcal$. Then we can turn $f$ into a Markov kernel $\delta_f$ via:
+    \[  \delta_f:\, \Tcal \dshto \Wcal, \quad (D,t) \mapsto \delta_f(D|t):= \I_D(f(t)),\]
+    which puts 100\% probability mass onto the function value $f(t)$ for given $t \in \Tcal$.
+\end{Rem}
+
+\begin{Def}[Transition probability space]
+    Consider measurable spaces $\Tcal$ and $\Wcal$ and a Markov kernel:
+    \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t).  \]
+    Then we call the tuple 
+    $(\Wcal \times \Tcal, K(W|T))$ a \emph{transition (probability) space}.
+    It generalizes the notion of probability space, which can be recovered by taking $\Tcal=\Asterisk$.
+\end{Def}
+
+%\begin{Def}[Null sets]
+%Let $(\Wcal\times \Tcal, K(W|T))$ be a transition probability space.
+%A subset $M \ins \Wcal \times \Tcal$ is called \emph{$K(W|T)$-null} if there exists a measurable subset $N \ins \Wcal\times\Tcal$
+%with $M \ins N$ and $K(W \in N_t|T=t)=0$ for all $t \in \Tcal$,
+%where $N_t:=\{ w \in \Wcal\,|\, (w,t) \in N\}$ is the section of $N$ at $t$, which is a measurable subset of $\Wcal$.
+%\end{Def}
+
+\begin{Def}[Null sets]
+Let $(\Wcal\times \Tcal, K(W|T))$ be a transition probability space.
+A subset $N \ins \Wcal \times \Tcal$ is called \emph{$K(W|T)$-null} if 
+$N_t:=\{ w \in \Wcal\,|\, (w,t) \in N \}$ is a $K(W|T=t)$-null set for every $t \in \Tcal$.
+\end{Def}
+
+\begin{Def}[\trv{}s]
+    A measurable map:
+    \[ X:\, \Wcal \times \Tcal \to \Xcal  \]
+    starting from a transition probability space $(\Wcal\times \Tcal, K(W|T))$ is called
+    \emph{\trv{}} (aka random process or stochastic process).
+    It generalizes the notion of random variables and can be considered a family of random variables (measurably) parameterized by $t \in \Tcal$:\\
+    For $t \in \Tcal$ we also define the measurable mapping:
+    \[ X_t:\, \Wcal \to \Xcal,\quad w \mapsto X_t(w):= X(w,t),\]
+    which can be considered a random variable on the probability space $(\Wcal,K(W|T=t))$.
+    %We also define the \emph{special \trv{}}:
+\end{Def}
+
+
+\begin{Eg}[Special \trv{}s of importance]
+        Let $(\Wcal\times \Tcal, K(W|T))$ be a transition probability space.
+        Then we denote by:
+        \begin{enumerate}
+            \item $T$ the \emph{canonical projection} onto $\Tcal$:
+                \[T:= \pr_\Tcal:\,\Wcal \times \Tcal \to \Tcal,\quad (w,t) \mapsto T(w,t):= t.\]
+            \item $\ast$ the \emph{constant \trv{}}:
+                \[ \ast :\,\Wcal \times \Tcal \to \Asterisk,,\quad (w,t) \mapsto \ast,\]
+                where $\Asterisk:=\{\ast\}$ is the one-point space.
+        \end{enumerate}
+\end{Eg}
+
+
+\subsubsection{Constructing Markov Kernels from Others}
+
+
+\paragraph{Marginal Markov Kernels}
+
+\begin{Def}[Marginalizing Markov kernels]
+    \label{def-marginal-markov-kernels}
+    Let 
+    \[K(X,Y|T):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    be a Markov kernel in two variables.
+    We can then define the \emph{marginal Markov kernels} as follows:
+    \[ K(X|T):\, \Tcal \dshto \Xcal,\quad (A,t) \mapsto K(X \in A, Y \in \Ycal|T=t),  \]
+    and:
+    \[ K(Y|T):\, \Tcal \dshto \Ycal,\quad (B,t) \mapsto K(X \in \Xcal, Y \in B|T=t).  \]
+\end{Def}
+
+\begin{Eg}[Marginal Markov kernels of discrete Markov kernels]
+    Let 
+    \[K(X,Y|T):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    be a Markov kernel in two variables on discrete spaces and $k_{X,Y|T}$ its mass function.
+    We can then compute the marginal Markov kernels as follows:
+    \[  k_{X|T}(x|t) = \sum_{y \in \Ycal} k_{X,Y|T}(x,y|t), \]
+    and:
+    \[  k_{Y|T}(y|t) = \sum_{x \in \Xcal} k_{X,Y|T}(x,y|t). \]
+    Note, by abuse of notation, for simplicity, we often omit the indices and write $k(x|t)$ and $k(y|t)$ instead 
+    and distinguish these two functions just by the use of the argument symbols $x$ and $y$.
+\end{Eg}
+
+
+\paragraph{Product of Markov Kernels}
+
+\begin{Def}[Product of Markov kernels]
+    \label{def-product-markov-kernels}
+    Consider two Markov kernels:
+    \[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  
+    K(W,U|T,X):\, \Tcal \times \Xcal \dshto \Wcal \times \Ucal. \]
+    Then we define the \emph{product Markov kernel}:
+    \[ Q(Z|Y,W,T) \otimes K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal \times \Wcal \times \Ucal, \]
+    using  measurable sets $E \ins \Zcal \times \Wcal \times \Ucal$ via: $(E,(y,t,x)) \mapsto $
+    \[\int\int \I_E(z,w,u)\, Q(Z \in dz|Y=y,W=w,T=t) \, K((W,U) \in d(w,u)|T=t,X=x),\]
+where the inner integration is over $z \in \Zcal$ and the outer integration over $(w,u) \in \Wcal\times \Ucal$.
+%where for measurable $E \ins \Zcal \times \Wcal$ and $w \in \Wcal$ we put: 
+%   $E_w:=\{ z \in \Zcal\,|\, (z,w) \in E\}$.
+\end{Def}
+
+\begin{Eg}[Product of discrete Markov kernels]
+    Let $Q(Z|Y,W,T)$ and $K(W|T,X)$ be two Markov kernels on finite spaces.
+    Let $P(Z,W|Y,T,X) := Q(Z|Y,W,T) \otimes K(W|T,X)$ be the product of Markov kernels and $p$, $q$, $k$ the corresponding mass functions.
+    Then we have:
+    \[  p(z_i,w_k|y_s,x_l,t_j) = q(z_i|y_s,w_k,t_j) \cdot k(w_k|t_j,x_l),  \]
+    which is just the product of mass functions.
+    For the corresponding stochastic tensors $\tilde P$, $\tilde Q$, $\tilde K$ we get that:    
+    \[\tilde P = \tilde Q \odot_{W,T} \tilde K\]
+    is the entry-wise product/Hadamard product of tensors (reflecting the above formula, i.e.\ indices for $w_k$, $t_j$  are the same in $q$ and $k$).
+\end{Eg}
+
+\begin{Exc}
+    Show that the product of Markov kernels is associative. 
+    Under which conditions can we commute Markov kernels in products?
+\end{Exc}
+
+\paragraph{Composition of Markov Kernels}
+
+\begin{Def}[Composition of Markov kernels]
+        \label{def-composition-markov-kernels}
+    Consider two Markov kernels:
+    \[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  K(W,U|T,X):\, 
+    \Tcal \times \Xcal \dshto \Wcal\times\Ucal. \]
+    Then we define their \emph{composition}:
+    \[ Q(Z|Y,W,T) \circ K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal, \]
+    using  measurable sets $C \ins \Zcal$ via:
+    \[\begin{array}{ccl}
+    (C,(y,t,x))    &\mapsto & \displaystyle \int Q(Z \in C|Y=y,W=w,T=t) \, K(W \in dw|T=t,X=x).
+    \end{array}\]
+    Note that we implicitly marginalized $U$ out, i.e.\ in the composition we integrate over all variables (here: $W$ and $U$) 
+    from the right hand Markov kernel.
+    As a notation we will also write:
+    \begin{align*} & \qquad Q(Z \in C|Y=y,W,T=t) \circ K(W,U|T=t,X=x) \\
+    &:= \lp Q(Z|Y,W,T) \circ K(W,U|T,X)\rp (C,(y,t,x)).  \end{align*}
+\end{Def}
+
+\begin{Rem}
+It is clear from the definitions \ref{def-composition-markov-kernels}, \ref{def-product-markov-kernels} and \ref{def-marginal-markov-kernels} that the composition:
+    \[Q(Z|Y,W,T) \circ K(W,U|T,X)\]
+    is the $Z$-marginal of the product:
+    \[ Q(Z|Y,W,T) \otimes K(W,U|T,X).\]
+\end{Rem}
+
+
+\begin{comment}
+\begin{Def}[Composition of Markov kernels]
+    \label{def-composition-markov-kernels}
+    Consider two Markov kernels:
+    \[ K(W|T):\, \Tcal \dshto \Wcal,\qquad  Q(Z|W,T):\, \Wcal \times \Tcal \dshto \Zcal. \]
+    Then we can define their \emph{composition} via:
+    \[  Q(Z|W,T) \circ K(W|T):\, \Tcal \dshto \Zcal, \quad (C,t) \mapsto \int_\Wcal Q(Z \in C|W=w,T=t)\, K(W \in dw|T=t).  \]
+    Note that the rhs is a short notation for the integration w.r.t.\ the measure $\mu:=K(W|T=t)$ given by: $\mu(D)=K(W \in D|T=t)$.
+\end{Def}
+
+
+\begin{Rem}[Composition of deterministic Markov kernels]
+    Consider measurable mappings:
+    \[ h:\, \Tcal \to \Wcal,\qquad g:\, \Wcal \to \Zcal, \]
+    and their composition $g \circ h$. 
+    Then the composition of the corresponding Markov kernels satisfies:
+    \[  \delta_{g \circ h} = \delta_g \circ \delta_h. \]
+   % \[ \delta_{g \circ h}(Z|T) = \delta_g(Z|W) \circ \delta_h(W|T). \]
+    So the composition of Markov kernels extends the composition of functions.
+    \begin{proof}
+        \begin{align*}
+        \lp\delta_g \circ \delta_h \rp (C|t) & = \int \delta_g(C|w) \, \delta_h(dw|t)\\
+                                             & = \int \I_{g^{-1}(C)}(w)\, \delta_h(dw|t)\\
+                                             & = \delta_h(g^{-1}(C)|t)\\
+                                             & = \I_{h^{-1}\lp g^{-1}(C)\rp }(t)\\
+                                             & = \I_C(g(h(t)) \\
+                                             & = \delta_{g \circ h}(C|t).
+        \end{align*}
+    \end{proof}
+\end{Rem}
+    \end{comment}
+
+\begin{Rem}[Composition of deterministic Markov kernels]
+    Consider measurable mappings:
+    \[ X:\, \Tcal \to \Xcal,\qquad Z:\, \Xcal \to \Zcal, \]
+    and their composition $Z \circ X$. 
+    Then the composition of the corresponding Markov kernels satisfies:
+    \[  \delta(Z\circ X|T)  = \delta(Z|X) \circ \delta(X|T), \]
+    where $\delta(Z \in C|X=x) := \I_C(Z(x))$ and $\delta(X \in A|T=t) := \I_A(X(t))$.\\
+    So the composition of Markov kernels extends the composition of functions.
+    \begin{proof}
+        \begin{align*}
+            \delta(Z \in C|X) \circ \delta(X|T=t) 
+          & = \big(\delta(Z|X) \circ \delta(X|T)\big)(C|t) \\
+        & = \int \delta(Z \in C| X=x) \, \delta(X \in dx|T=t)\\
+                                             & = \int \I_{Z^{-1}(C)}(x)\, \delta(X \in dx|T=t)\\
+                                             & = \delta(X \in Z^{-1}(C)|T=t)\\
+                                             & = \I_{X^{-1}\lp Z^{-1}(C)\rp }(t)\\
+                                             & = \I_C(Z(X(t))) \\
+                                             & = \delta(Z(X) \in C|T=t)\\
+                                             & = \delta(Z \circ X \in C|T=t)\\
+                                             & = \delta(Z \circ X|T)(C|t).
+        \end{align*}
+    \end{proof}
+\end{Rem}
+
+\begin{Eg}[Composition of discrete Markov kernels]
+    Assume that all the spaces in definition \ref{def-composition-markov-kernels} are discrete/finite and let $P(Z|T):=Q(Z|W) \circ K(W|T)$ be the composition of Markov kernels.
+    Let $p$, $q$, $k$ denote the corresponding mass functions. Then we get:
+    \[ p(z_i|t_j) = \sum_k q(z_i|w_k) \cdot k(w_k|t_j).  \]
+    If $\tilde P$, $\tilde Q$, $\tilde K$ are the corresponding stochastic matrices then we have that:
+    \[  \tilde P = \tilde Q \, \tilde K,\]
+    is just the usual matrix product. So in this case the composition of Markov kernels corresponds to matrix multiplication.
+\end{Eg}
+
+\paragraph{Push-Forward of Markov Kernels}
+
+
+
+\begin{Def}[Push-forward Markov kernel]
+    Let $ (\Wcal \times \Tcal,K(W|T))$ be a transition probability space and:
+    %\[T:\, \Wcal \times \Tcal \to \Tcal,\qquad W:\,\Wcal \times \Tcal \to \Wcal,\]
+    %the canonical projections.
+    \[ X:\, \Wcal \times \Tcal \to \Xcal  \]
+    be a \trv{}.
+    Then we define the \emph{push-forward Markov kernel} $K(X|T)$ of $K(W|T)$ w.r.t.\ $X$ with symbols:
+    \[K(X|T) =: X_*K(W|T) =: K(X(W,T)|T),\]
+    via:
+    \[ K(X|T):\, \Tcal \dshto \Xcal,\quad (A,t) \mapsto K(X \in A|T=t) := K(W \in X^{-1}_t(A)|T=t), \]
+    where, again:
+    \[ X^{-1}_t(A) = X^{-1}(A)_t:= \{ w\in \Wcal\,|\,X(w,t) \in A \}.\]
+\end{Def}
+
+\begin{Rem}
+    We can also write push-forwards as compositions:
+    \[K(X|T) = \delta(X|W,T) \circ K(W|T),\]
+    where we define:
+    \[\delta(X \in A|W=w,T=t) := \I_A(X(w,t)) = \I_{X^{-1}(A)}(w,t).\]
+\end{Rem}
+
+\begin{Rem}\label{rem:extending_markov_kernel}
+    For any Markov kernel
+    \[ K(W|T):\, \Tcal \dshto \Wcal\]
+    one can always extend it to include $T=\pr_\Tcal$:
+    \[ K(W,T|T):\, \Tcal \dshto \Wcal \times \Tcal,\quad (E,t) \mapsto 
+    K( (W,T)  \in E| T=t) = K( W \in E_t|T=t), \]
+    where $E_t = \{ w \in \Wcal\,|\,(w,t) \in E\}$.
+    Using Definition~\ref{def-product-markov-kernels}, we can also write this as:
+    \[ K(W,T|T) = K(W|T) \otimes \delta(T|T),\]
+    where $\delta(T \in D|T=t) := \I_D(t)$ for measurable $D \ins \Tcal$ and $t \in \Tcal$.
+\end{Rem}
+
+
+%\subsubsection{Conditional Markov Kernels}
+\paragraph{Conditional Markov Kernels}
+
+\begin{DefThm}[Disintegration of Markov kernels]
+    \label{thm-regular-conditional-Markov-kernel}
+    Let $\Xcal$, $\Ycal$, $\Zcal$ be measurable spaces where $\Xcal$ and $\Ycal$ are standard measurable spaces.
+    Let 
+    \[ K(X,Y|Z):\, \Zcal \dshto \Xcal \times \Ycal\]
+    be a Markov kernel and $K(Y|Z)$ its marginal Markov kernel given by $K(Y\in B|Z) = K(X \in \Xcal, Y \in B|Z)$.
+    Then there exists a Markov kernel (called \emph{conditional Markov kernel}):
+    \[ K(X|Y,Z):\, \Ycal \times \Zcal \dshto \Xcal\]
+    such that:
+    \[   K(X,Y|Z) = K(X|Y,Z) \otimes K(Y|Z).\]
+    Furthermore, $K(X|Y,Z)$ is essentially unique, in the sense that
+    if $Q(X|Y,Z)$ is another such conditional Markov kernel
+    then the set:
+    \[ N:= \lC (y,z) \in \Ycal \times \Zcal \,|\, \exists A \in \Bcal_\Xcal:\, Q(X \in A|Y=y,Z=z) \neq K(X \in A|Y=y,Z=z)\rC  \]
+    is a measurable $K(Y|Z)$-null subset of $\Ycal \times \Zcal$.
+\end{DefThm}
+
+\begin{Eg}[Conditional Markov kernel for discrete Markov kernels]
+    Consider a Markov kernel $K(X,Y|Z)$ where all spaces are discrete and $k$ the corresponding mass function.
+    Then the marginal mass functions are given by:
+    \[ k(y|z) = \sum_{x \in \Xcal} k(x,y|z), \qquad k(x|z) = \sum_{y \in \Ycal} k(x,y|z). \]
+    A conditional Markov kernel conditioned on $Y$ can then be defined via the mass function:
+    \[
+        k(x|y,z) := \left\{
+            \begin{array}{cccc}
+                \frac{k(x,y|z)}{k(y|z)} & \text{ if } & k(y|z) >0,\\
+                k(x|z)& \text{ if } & k(y|z) = 0.\footnotemark
+                %0 \footnotemark& \text{ if } & k(y|z) = 0.
+            \end{array}\right.
+    \]
+    \footnotetext{Any value assignment for this spot is somewhat arbitrary as it almost surely does not occur. Typically this entry is defined to be $0$. This is convenient but also problematic, as this would not normalize when summing over $x \in \Xcal$. A proper alternative is to set it to be $k(x|z)$ in this case. }
+    With this setting we then have for all (!) values $x,y,z$:
+    \[ k(x,y|z) = k(x|y,z) \cdot k(y|z). \]
+\end{Eg}
+
+\begin{Cor}[Conditional probability distributions]
+    Let $X$ and $Y$ be random variables on domain $(\Wcal,P)$ with standard measurable spaces $\Xcal$, $\Ycal$, resp., as codomains.
+    Then there always exist \emph{conditional probability distributions} $P(X|Y)$ and $P(Y|X)$ that are Markov kernels satisfying:\footnote{In the literature a conditional probability distribution that is also a Markov kernel would be called a \emph{regular} version of conditional probability distribution. Since in this lecture we will not encounter other versions we will just call this version here \emph{conditional probability distribution}.}
+    \[ P(X,Y) = P(X|Y) \otimes P(Y),\qquad P(X,Y) = P(Y|X) \otimes P(X).  \]
+    Furthermore, these conditional probability distributions are essentially unique.
+\end{Cor}
+
+

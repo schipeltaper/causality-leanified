@@ -1,0 +1,451 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 6 --- Structural Causal Models\\
+(\texttt{scms.tex}, \texttt{scms2.tex}, \texttt{scms3.tex}, \texttt{scms4.tex})}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in the Chapter~6 source files.
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks and
+those with \verb|%\begin{proof}| (commented-out) are skipped.
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks.
+\verb|\Claude{...}| blocks are \textbf{included}.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{scms.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 724--759, 1604--1623, 1668--1688, 1721--1732 skipped.
+
+\section{Proof 1: Lem.\ \texttt{lem:M-as\_to\_rv-as} (lines 603--612)}
+\textbf{Statement.} $M$-a.s.\ properties lift to a.s.\ properties of random
+variables whose $W$-marginal is $P_M$.
+
+\textbf{Analysis.} Fixing $x_J$, the $M$-null set gives a $P_M$-null set in
+$\Xcal_W$.  Since $X_W\sim P_M$, the property holds a.s.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 2: Lem.\ \texttt{lem:M-as\_to\_crv-as} (lines 621--630)}
+\textbf{Statement.} Same as Proof~1 but for conditional random variables with
+constant $W$-marginal kernel $P_M$.
+
+\textbf{Analysis.} The kernel $K(X_W|X_J)=P_M$ assigns zero measure to the
+failure set for every $x_J$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 3: Prp.\ \texttt{prp:using\_solution\_functions} (lines 677--703)}
+\textbf{Statement.} Solution functions yield potential outcomes, solutions, and
+Markov kernels via push-forward.
+
+\textbf{Analysis.} Applies Lemmas 1--2 to lift $M$-a.s.\ structural equations
+to a.s.\ statements about $(g(x_J,X_W),X_W)$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 4: Prp.\ \texttt{prp:scm\_partial\_solvability} (lines 777--817)}
+\textbf{Statement.} Characterization of essential unique solvability w.r.t.\ $L$
+via measurable partial solution functions.
+
+\textbf{Analysis.}
+$(\Rightarrow)$: Constructs $g^{[L]}$ on $\tilde N^c$ using uniqueness of the
+fixed point, extends measurably via \cite{Kec95} 14.12.  $\checkmark$
+
+$(\Leftarrow)$: Claims the complement of $U^{[L]}$ is contained in a
+``measurable $M$-null set,'' but the definition of $M$-a.s.\ only guarantees
+an $M$-null set (not necessarily measurable).
+
+\textbf{Typo:} Line~798 has $x_V^0$ where $x_L^0$ is intended.
+
+\textbf{Verdict: GAP} (minor foundational subtlety in the backward direction;
+resolves if $M$-a.s.\ is defined via measurable null sets).
+
+\section{Proof 5: Prp.\ \texttt{prp:interventions\_commute} (lines 1579--1581)}
+\textbf{Statement.} Hard/soft interventions with disjoint targets commute.
+
+\textbf{Analysis.} Component-by-component check: index sets (set algebra),
+exogenous distribution (product commutativity), mechanisms (independent
+modifications on disjoint targets).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 6: Prp.\ \texttt{prp:adding\_intervention\_variables\_one\_by\_one}
+(lines 1655--1657)}
+\textbf{Statement.} Adding intervention variables for distinct elements commutes.
+
+\textbf{Analysis.} Independent case-splits on distinct mechanism components.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 7: Prp.\ \texttt{prp:adding\_intervention\_variables\_commutes}
+(lines 1663--1665)}
+\textbf{Statement.} Adding intervention variables commutes with disjoint
+hard/soft interventions.
+
+\textbf{Analysis.} Modifications act on different components of~$f$ when
+$T\cap B=\emptyset$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{scms2.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 65--97, 380--390, 515--530 skipped.
+Commented-out proofs at lines 160 and 410 skipped.
+
+\section{Proof 8: Prp.\ \texttt{prp:scm\_essentially\_unique\_solution\_functions}
+(lines 28--40)}
+\textbf{Statement.} Partial solution functions are essentially unique.
+
+\textbf{Analysis.} Plugs $\tilde g^{[L]}$ into the biconditional for
+$g^{[L]}$; the l.h.s.\ holds by the solution property, so
+$g^{[L]}=\tilde g^{[L]}$ $M$-a.s.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 9: Thm.\ \texttt{thm:scm\_essentially\_unique\_solvability\_implies}
+(lines 55--136)}
+\textbf{Statement.} Essential unique solvability implies: (1)~essentially unique
+solution function, (2)~unique potential outcome distribution, (3)~unique
+Markov kernel.
+
+\textbf{Analysis.} Item~2: lifts biconditional via Lem.\ \texttt{lem:M-as\_to\_rv-as}.
+Item~3: kernel at each $x_J$ is the potential outcome distribution from item~2.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 10: Prp.\ \texttt{prp:scm\_simplicity\_preserved\_by\_interventions}
+(lines 211--286)}
+\textbf{Statement.} Simplicity is preserved by hard interventions and by adding
+intervention variables.
+
+\textbf{Analysis.} Thorough case analysis: hard interventions (items 1.i--iii)
+and intervention variables (item~2, reduced to single $b$ via induction).
+All constructed partial solution functions satisfy the required biconditionals.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 11: Cor.\ \texttt{cor:simple\_scm} (lines 296--299)}
+\textbf{Statement.} Simple iSCMs have unique Markov kernels.
+
+\textbf{Analysis.} Direct two-line corollary from Proofs~9--10.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 12: Prp.\ \texttt{prp:equivalent\_scms} (lines 444--505)}
+\textbf{Statement.} Equivalent iSCMs have the same potential outcomes, solutions,
+Markov kernels, and partial solution functions.
+
+\textbf{Analysis.} Transfers $M$-a.s.\ biconditionals using equivalence.
+Claims 1--3 (from definitions) and 4--6 (potential outcomes, solutions, etc.)
+verified.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 13: Prp.\ \texttt{prp:pearls\_ladder\_levels\_1\_and\_2}
+(lines 573--582)}
+\textbf{Statement.} Equivalence $\Rightarrow$ interventional equivalence
+$\Rightarrow$ observable equivalence.
+
+\textbf{Analysis.} Uses Prp.~12 (equivalence preserved by interventions)
+and uniqueness of Markov kernels.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 14: Prp.\ \texttt{prp:scm\_interventions\_preserve\_interv\_equiv}
+(lines 620--709)}
+\textbf{Statement.} Interventional equivalence is preserved by hard, stochastic,
+and soft interventions and by adding intervention variables.
+
+\textbf{Analysis.} Items~1--3 unfold the definition and reduce to known
+interventional equivalence.  Item~4 has a detailed calculation.
+
+\textbf{GAP:} Undefined symbol $T_2$ at lines 680, 685, 689, 690 (should be~$T$).
+The proof is also marked \verb|\Joris{TODO: cleanup and final check}| at line~621.
+Item~1 does not fully close the final deduction.
+
+\textbf{Verdict: GAP} (notational error; author-marked TODO).
+
+\section{Proof 15: Prp.\ \texttt{prp:scm\_marginalization\_equivalence}
+(lines 737--746)}
+\textbf{Statement.} Equivalent iSCMs have equivalent marginalizations.
+
+\textbf{Analysis.} Uses Prp.~12 (shared partial solution functions) and
+Prp.~8 (essential uniqueness).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 16: Lem.\ \texttt{lem:marginalization\_preserves\_unique\_solvability}
+(lines 763--798)}
+\textbf{Statement.} Marginalization preserves essential unique solvability.
+
+\textbf{Analysis.} Chain of biconditionals carefully splitting $O$ into $L$ and
+$O\setminus L$ components, substituting partial solution functions.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 17: Prp.\ \texttt{prp:marginalization\_preserves\_simplicity}
+(lines 810--813)}
+\textbf{Statement.} Simplicity is preserved by marginalization.
+
+\textbf{Analysis.} Direct application of Lem.~16.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 18: Prp.\ \texttt{prp:interventions\_marginalizations\_commute}
+(lines 829--833)}
+\textbf{Statement.} Hard/soft interventions commute with marginalization.
+
+\textbf{Analysis.} Same partial solution function works for both orders when
+$T\cap L=\emptyset$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 19: Prp.\ \texttt{prp:marginalization\_commutes} (lines 843--901)}
+\textbf{Statement.} Sequential marginalizations commute:
+$(M_{\setminus L_1})_{\setminus L_2}\equiv M_{\setminus(L_1\cup L_2)}$.
+
+\textbf{Analysis.} Constructs composite partial solution function $h$ via a
+careful chain of six biconditionals.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 20: Thm.\ \texttt{thm:various\_equiv\_marginalization}
+(lines 918--938)}
+\textbf{Statement.} Simple iSCMs and their marginalizations are observably and
+interventionally equivalent.
+
+\textbf{Analysis.} Observable: solution functions project to marginal solution
+functions.  Interventional: uses commutativity of interventions and
+marginalizations.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{scms3.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 567--640, 664--676 skipped.
+
+\section{Proof 21: Prp.\ \texttt{prp:compatibility\_graph} (lines 162--183)}
+\textbf{Statement.} (i)~Hard interventions commute with the graph mapping.
+(ii)~For simple iSCMs, marginalization gives a subgraph.
+
+\textbf{Analysis.} (i)~Definitions match.  (ii)~Base case $L=\{\ell\}$:
+substituting $g^{[\ell]}$ into $f_j$ gives parents
+$\subseteq\Pa(j)\setminus\{\ell\}\cup\Pa(\ell)$, matching graphical
+marginalization.  Induction via commutativity.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 22: Prp.\ \texttt{prp:self-cycles} (lines 262--264)}
+\textbf{Statement.} Self-cycle at $j$ $\iff$ $M$ not essentially uniquely
+solvable w.r.t.\ $\{j\}$.
+
+\textbf{Analysis.} Direct equivalence from definitions of parent relation and
+essential unique solvability.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 23: Prp.\ \texttt{prp:acyclic\_scms\_are\_simple} (lines 294--314)}
+\textbf{Statement.} Every acyclic iSCM is simple.
+
+\textbf{Analysis.} Full solution function constructed by topological-order
+induction.  For partial solutions w.r.t.\ $T$: the intervened model
+$M_{\doit(T)}$ is also acyclic, hence solvable.
+
+\textbf{GAP (minor):} The proof that the solution of $M_{\doit(T)}$ also serves
+as a partial solution function of~$M$ w.r.t.~$T$ is stated but not fully
+detailed.  A \verb|\Joris{TODO}| at line~312 acknowledges this.
+
+\textbf{Verdict: GAP} (minor; acknowledged by author).
+
+\section{Proof 24: Prp.\ \texttt{prp:interventional\_equivalence\_cbn\_scm}
+(lines 345--378)}
+\textbf{Statement.} (i)~Acyclic iSCMs yield interventionally equivalent L-CBNs.
+(ii)~L-CBNs yield interventionally equivalent acyclic iSCMs.
+
+\textbf{Analysis.} (i)~Deterministic kernels from mechanisms.
+(ii)~ICDF construction (Rem.~\texttt{rem:R-to-std-ms}).
+Both verified.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 25: Prp.\ \texttt{prp:simple\_scm\_contraction} (lines 702--709)}
+\textbf{Statement.} Lipschitz constant $<1$ implies simplicity (Banach fixed
+point theorem).
+
+\textbf{Analysis.} Contraction on complete $\R^{|U|}$ gives unique fixed point.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 26: Neural network example (lines 731--741)}
+\textbf{Statement.} Conditions on weight matrices $\|A_{UU}\|<1/C$ for
+$|U|\ge 2$ imply simplicity.
+
+\textbf{Analysis.} Mean value theorem + submultiplicativity give Lipschitz
+constant $\le C\|A_{UU}\|<1$.
+
+\textbf{GAP:} The condition is stated for $|U|\ge 2$ only, but
+Prp.~\texttt{prp:simple\_scm\_contraction} requires $|U|\ge 1$.
+The singleton case $|U|=1$ requires $|A_{vv}|<1/C$ additionally.
+
+\textbf{Verdict: GAP} (missing singleton case $|U|=1$).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{scms4.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 217--296, 345--358 skipped.
+
+\section{Proof 27: Prp.\ \texttt{prp:scm\_acyclification\_properties}
+(lines 29--60)}
+\textbf{Statement.} The acyclification $M^{\mathrm{acy}}$ is acyclic and
+observably equivalent to~$M$.
+
+\textbf{Analysis.} Topological ordering of the SCC-DAG transfers to
+$G(M^{\mathrm{acy}})$.  Observable equivalence: $x=\tilde f(x)\iff x=f(x)$
+$M$-a.s.\ via partial solution functions.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 28: Prp.\ \texttt{prp:acyclifications\_compatible}
+(lines 67--89)}
+\textbf{Statement.} $G^+(M^{\mathrm{acy}})\subseteq\tilde G^+$ for any
+graphical acyclification $\tilde G^+$.
+
+\textbf{Analysis.} Directed/bidirected edges traced through SCCs.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 29: Cor.\ \texttt{cor:gmp\_simple\_scm} (lines 112--132)}
+\textbf{Statement.} Global Markov property for simple iSCMs via
+$i\sigma$-separation.
+
+\textbf{Analysis.} Chain: $i\sigma$-sep in $G^+(M)$ $\Rightarrow$ $id$-sep in
+acyclification $\Rightarrow$ CI via GMP for L-CBNs $\Rightarrow$ CI under
+$P_M$ by observable equivalence.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 30: Thm.\ \texttt{thm:as-do-calculus-scms-simplified}
+(lines 214--216)}
+\textbf{Statement.} Almost-sure do-calculus for simple iSCMs.
+
+\textbf{Analysis.} Analogous to L-CBN do-calculus, replacing $id$-separation
+by $i\sigma$-separation via Cor.~29.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 31: Thm.\ \texttt{thm:gen-adjustment-scms} (lines 378--382)}
+\textbf{Statement.} General adjustment formula for simple iSCMs.
+
+\textbf{Analysis.} Analogous to L-CBN version with $H=\emptyset$ and
+$i\sigma$-separation.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 32: Thm.\ \texttt{thm:backdoor-int-scms} (lines 403--407)}
+\textbf{Statement.} Interventional backdoor adjustment for simple iSCMs.
+
+\textbf{Analysis.} Same adaptation as Proof~31.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 33: Prp.\ \texttt{prp:simple\_scm\_consistency} (lines 455--482)}
+\textbf{Statement.} Consistency of solution functions:
+$g_B(x_J,x_W)=g^{[B]}(g_A(x_J,x_W),x_J,x_W)$ $M$-a.s.
+
+\textbf{Analysis.} Both expressions equal $x_B$ on the solution set; essential
+uniqueness forces agreement.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+\section{Proof 34: Thm.\ \texttt{thm:natural\_bounds} (lines 530--542)}
+\textbf{Statement.} Natural (Manski) bounds on causal effects.
+
+\textbf{Analysis.} Consistency property + law of total probability give the
+bounds.
+
+\textbf{Issues:}
+\begin{itemize}
+  \item \textbf{Typo (line~537):} $X_2^{\doit(X_2=a)}$ should be
+    $X_2^{\doit(X_1=a)}$.
+  \item \textbf{Notational gap (line~541):} The identification
+    $P_M(X_2\in B|X_3\in C,\doit(X_1=a)) = P_M(X_2^{\doit(X_1=a)}\in B|X_3\in C)$
+    conflates post-intervention $X_3$ (standard do-calculus reading of the LHS)
+    with observational $X_3$ (used in the RHS and throughout the proof).
+    The proof is valid in the Manski framework (where $X_3$ is a pre-treatment
+    covariate), but this convention needs clarification.
+\end{itemize}
+
+\textbf{Verdict: ERROR} (typo on line~537; notational gap on line~541).
+
+\section{Proof 35: Cor.\ \texttt{cor:natural\_bounds} (lines 557--573)}
+\textbf{Statement.} Bounds on expected interventional outcome.
+
+\textbf{Analysis.} Decomposes via law of total probability, applies
+consistency, and bounds the unknown term using $X_2\in[\alpha,\beta]$.
+$\checkmark$
+
+\textbf{Verdict: CORRECT} (inherits notational convention issue from Proof~34).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~6}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l|l}
+\textbf{\#} & \textbf{File} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1--3   & scms.tex  & 603--703    & CORRECT \\
+4      & scms.tex  & 777--817    & GAP \\
+5--7   & scms.tex  & 1579--1665  & CORRECT \\
+8--13  & scms2.tex & 28--582     & CORRECT \\
+14     & scms2.tex & 620--709    & GAP \\
+15--20 & scms2.tex & 737--938    & CORRECT \\
+21--22 & scms3.tex & 162--264    & CORRECT \\
+23     & scms3.tex & 294--314    & GAP \\
+24--25 & scms3.tex & 345--709    & CORRECT \\
+26     & scms3.tex & 731--741    & GAP \\
+27--33 & scms4.tex & 29--482     & CORRECT \\
+34     & scms4.tex & 530--542    & ERROR \\
+35     & scms4.tex & 557--573    & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{35 proofs checked.  29 correct, 5 with gaps, 1 with error.}
+
+\bigskip\noindent
+\textbf{Issues found:}
+\begin{enumerate}
+  \item \textbf{Proof~4 (Prp.\ \texttt{prp:scm\_partial\_solvability}):}
+    Backward direction assumes ``measurable $M$-null set'' but definition only
+    guarantees $M$-null set.  Typo $x_V^0\to x_L^0$ at line~798.
+  \item \textbf{Proof~14 (Prp.\ \texttt{prp:scm\_interventions\_preserve\_interv\_equiv}):}
+    Undefined symbol $T_2$ (should be~$T$) at lines 680, 685, 689, 690.
+    Author-marked \texttt{TODO} at line~621.
+  \item \textbf{Proof~23 (Prp.\ \texttt{prp:acyclic\_scms\_are\_simple}):}
+    Partial solution construction not fully detailed; author-marked \texttt{TODO}
+    at line~312.
+  \item \textbf{Proof~26 (Neural network example):}
+    Condition excludes singleton $|U|=1$; needs $|A_{vv}|<1/C$ additionally.
+  \item \textbf{Proof~34 (Thm.\ \texttt{thm:natural\_bounds}):}
+    Typo on line~537: $\doit(X_2=a)$ should be $\doit(X_1=a)$.
+    Notational gap on line~541: ambiguity between pre/post-intervention $X_3$.
+\end{enumerate}
+
+\end{document}

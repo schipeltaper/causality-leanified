@@ -1,0 +1,285 @@
+% !TEX root = hw3-answers-graded.tex
+\chead{\textbf{Exercises week 3}}
+
+\begin{document}
+\section*{Topic: Markov kernel operators}
+
+\begin{enumerate}
+  \item
+  % ($6 \times 1/3$ points)
+  Consider Player 1 and Player 2, playing multiple games of chess. Let $\Xcal = \Ycal = \Zcal = \{1,2\}$ and let $X, Y$ and $Z$ denote the winning player of the first, second and third game respectively. When a player wins a game, the other player gets to play first (white) in the following game, providing a significant advantage over the other player (black). A coin toss represented by $C \in \Ccal = \{1,2\}$, decides which player gets to play white in the first game.
+
+  Provide an interpretation of the following Markov kernels: % Add next year (2023): Provide, in words, an interpretation of ...
+  \begin{enumerate}
+    \item the Markov kernels $N(Z|Y), M(Y|X), Q(X|C)$ and $K(C|*)$
+    \item the composition $N(Z|Y) \circ \big(M(Y|X)\circ Q(X|C)\big)$
+    \item the product $P(Z, Y, X|C) := N(Z|Y) \otimes \big(M(Y|X)\otimes Q(X|C)\big)$
+    \item the marginal $P(Y|C)$; also express this as a composition of two Markov kernels
+    \item the conditional Markov kernel $P(Z,X|Y,C)$, and how does this relate to the product and marginal in (c) and (d)?
+  \end{enumerate}
+  What the player's don't know, is that after three games the player with the highest number of wins receives a prize. However, from the prize money a fine is subtracted when the winning player has won the coin flip and thus played white in the first game. Accordingly, let
+  $$f(z,y,x, c) = \begin{cases} 100 - 10*\mathbbm{1}_{\{1\}}(c) & \text{if $z+y+x \leq 4$} \\ 0 &\text{otherwise}\end{cases}$$
+  denote the money won by Player 1. Using this, also provide an interpretation of:
+  \begin{enumerate}
+    \item[(f)] the push-forward $f_*P(Z, Y, X|C)$
+  \end{enumerate}
+
+  \begin{ungradedsolution}
+    \begin{enumerate}
+      \item
+      \begin{enumerate}
+        \item $N(Z|Y)$: The distribution over who wins the third game, given the winner of the second game.
+        \item $M(Y|X)$: The distribution over who wins the second game, given the winner of the first game.
+        \item $Q(X|C)$: The distribution over who wins the first game, given who got to play first, as decided by the outcome of the coin flip.
+        \item $K(C|*)$: The distribution over the possible outcomes of the coin flip.
+      \end{enumerate}
+      \item The distribution over who wins the third game, given the outcome of the coin flip.
+      \item The joint distribution over the winners of the first, second and third game, given the outcome of the coin flip.
+      \item The distribution over who wins the second game given the outcome of the coin flip. It is equal to the composition $M(Y|X)\circ Q(X|C)$.
+      \item The joint distribution over wins the first and third game, given the outcome of the second game and the coin flip. It related to (c) and (d) via $P(Z, Y, X|C) = P(Z, X|Y, C) \otimes P(Y|C)$
+      \item The distribution over the prize money won by Player 1, given the outcome of the coin flip. Thus, when $C=1$, this is a distribution over $\{90,0\}$, and when $C=2$ this is a distribution over $\{100,0\}$.
+    \end{enumerate}
+  \end{ungradedsolution}
+
+  \item %($3 \times 1$ points)
+  \begin{enumerate}
+    \item
+    Consider the Markov kernels
+    \begin{align*}
+      K(W, U | T, X) & : \Tcal\times \Xcal \dshto \Wcal \times \Ucal  \\
+      Q(Z | Y, W, T) & : \Ycal \times \Wcal \times \Tcal \dshto \Zcal \\
+      P(H|Z, T)      & : \Zcal \times \Tcal \dshto \Hcal.
+    \end{align*}
+    Show that the product of Markov kernels is associative:
+    \begin{multline*}
+      P(H|Z, T) \otimes \left[ Q(Z | Y, W, T) \otimes K(W, U|T, X) \right]\\
+      = \left[P(H|Z, T) \otimes  Q(Z | Y, W, T) \right] \otimes K(W, U|T, X)
+    \end{multline*}
+    \item
+    Show why the product of Markov kernels $Q(Z | Y, W, T) \otimes K(W, U|T, X)$ does not commute, and state general conditions under which products of Markov kernels do commute.
+    \item Show under which conditions the composition of Markov kernels is commutative.
+  \end{enumerate}
+  \begin{ungradedsolution}
+    \begin{enumerate}
+      \item For sets $E\in\Bcal_{\Zcal\times\Wcal \times\Ucal}$, $F\in\Bcal_{\Hcal\times\Zcal\times \Wcal \times \Ucal}$ and $G\in\Bcal_{\Hcal\times\Zcal}$ we have
+      \begin{align*}
+         & P(H|Z, T) \otimes \left[ Q(Z | Y, W, T) \otimes K(W, U|T, X) \right]                                              \\
+         & = P(H|Z, T) \otimes \left[(E, y, t, x) \mapsto \int \mathbbm{1}_{E}(z, w, u)Q(dz | y,w, t)K(dw, du| t, x) \right] \\
+         & = (F, y, t, x) \mapsto \int \mathbbm{1}_{F}(h, z, w, u)P(dh|z, t)Q(dz | y,w, t)K(dw, du| t, x)                    \\
+         & = \left[(G, y, w, t) \mapsto \int \mathbbm{1}_{G}(h, z)P(dh|z, t)Q(dz | y,w, t) \right] \otimes K(W, U|T, X)      \\
+         & = \left[P(H|Z, T) \otimes Q(Z | Y, W, T) \right] \otimes K(W, U|T, X).
+      \end{align*}
+      \item Consider
+      \begin{align*}
+        Q(Z | & Y, W, T) \otimes K(W, U|T, X)                                                                                     \\
+              & = (E, y, t, x) \mapsto \int_{\Wcal\times \Ucal}\int_{\Zcal} \mathbbm{1}_{E}(z, w, u)Q(dz | y,w, t)K(dw, du| t, x)
+      \end{align*}
+      for $E \in \Bcal_{\Zcal\times\Wcal\times\Ucal}$. Now, if we were to swap the integration order, we'd end up with an ill-posed expression
+      \begin{align*}
+        (E, y, t, x) \mapsto \int_{\Zcal}\int_{\Wcal\times \Ucal} \mathbbm{1}_{E}(z, w, u)K(dw, du| t, x) Q(dz | y,w, t)
+      \end{align*}
+      as the variable $w$ is undefined. On the other hand, we have
+      \begin{align*}
+         & K(W, U|T, X) \otimes Q(Z | Y, \widetilde{W}, T) : \Tcal \times \Xcal \times \Ycal \times \Wcal \dshto \Wcal \times \Ucal \times \Zcal, \\
+         & (E, t, x, y, \tilde{w}) \mapsto \int_{\Zcal}\int_{\Wcal\times \Ucal} \mathbbm{1}_{E}(w, u, z)K(dw, du|t, x)Q(dz|y, \tilde{w}, t).
+      \end{align*}
+      From this we see that in general the product of Markov kernels commutes when no variable on the left hand side of the conditioning bar in one Markov kernel is also on the right hand side of the conditioning bar of the other Markov kernel.
+      \item We may write
+      $$Q(Z | Y, W, T) \circ K(W, U|T, X) = \int_\Ucal Q(Z | Y, W, T) \otimes K(W, du|T, X).$$ For $Q(Z | Y, W, T) \otimes K(W, du|T, X)$ the same reasoning holds as in the previous exercise, so we require the same conditions as for the commutativity of the product of Markov kernels. For two such Markov kernels $M(X, A| Y, C)$, $N(X, B| Y, D)$ we have
+      $$M(X, A| Y, C) \circ N(X, B| Y, D): \Ycal \times \Ccal \times \Dcal \dshto \Xcal \times \Acal$$
+      and
+      $$N(X, B| Y, D) \circ M(X, A| Y, C): \Ycal \times \Dcal \times \Ccal \dshto \Xcal \times \Bcal.$$
+      For these compositions to be equal, we see that we require the codomains of the two Markov kernels to be equal, i.e.\ $\Acal = \Bcal$. Additionally, we see that
+      \begin{align*}
+        M(X, A & | Y, C) \circ N(X, B| Y, D)                                                                                   \\
+               & = (F, (y,c,d)) \mapsto \int_{\Xcal\times \Acal}\mathbbm{1}_{F}(x,a)M(dx, da|y, c)N(X\in\Xcal, B\in\Bcal|y, d) \\
+               & = M(X, A|Y,C)
+      \end{align*}
+      where $F\in\Bcal_{\Xcal\times\Acal}$, and similarly
+      $$N(X, B| Y, D) \circ M(X, A| Y, C) = N(X, B| Y, D).$$
+      So we require that $M(X, A|Y, C=c) = N(X, B|Y, D=d)$ for all $c\in\Ccal$ and for all $d\in\Dcal$.
+    \end{enumerate}
+  \end{ungradedsolution}
+
+  \item
+  % ($4 \times 1$ points)
+  Let $\Tcal$ be a measurable space, let $\Xcal, \Ycal$ be standard measurable spaces, and consider the measurable functions
+  \begin{align*}
+    f_1 & : \Wcal \rightarrow \Tcal \\
+    f_2 & : \Tcal \rightarrow \Xcal \\
+    f_3 & : \Tcal \rightarrow \Ycal
+  \end{align*}
+  and their Markov kernel representations $\delta_{f_1}, \delta_{f_2}, \delta_{f_3}$. For each of the following deterministic Markov kernels, specify its domain and codomain, express the functions $f_c, f_p, f_m$ and $f_{cd}$ (as defined as follows) in terms of $f_1, f_2$ and $f_3$, and show why this is correct:
+
+  \begin{enumerate}
+    \item the composition $\delta_{f_c} := \delta_{f_2} \circ \delta_{f_1}$
+    \item the product $\delta_{f_p} := \delta_{f_2} \otimes \delta_{f_3}$
+    \item $\delta_{f_m}$ as the $X$-marginal of $\delta_{f_p}$
+    \item the conditional $\delta_{f_{cd}}$ such that $\delta_{f_p} = \delta_{f_{cd}} \otimes \delta_{f_m}$
+  \end{enumerate}
+
+  \begin{ungradedsolution}
+    \begin{enumerate}
+      \item From Remark \ref*{deterministic-mk-composition} it directly follows that $f_c = f_2 \circ f_3$. More specifically, we have
+      $$\delta_{f_2}(X|T)\circ \delta_{f_1}(T|W) : \Wcal \dshto \Xcal,$$ and for all $w\in \Wcal$ and $C\in \Bcal_{\Xcal}$ we have
+      \begin{align*}
+        [\delta_{f_2}(X|T)\circ \delta_{f_1}(T|W)](C, w)
+         & = \int_\Tcal\int_\Xcal \mathbbm{1}_C(x)\delta_{f_2}(dx|T=t)\delta_{f_1}(dt|W=w) \\
+         & = \int_\Tcal \delta_{f_2}(C|T=t)\delta_{f_1}(dt|W=w)                            \\
+         & = \int_\Tcal \mathbbm{1}_C(f_2(t))\delta_{f_1}(dt|W=w)                          \\
+         & = \int_\Tcal \mathbbm{1}_{f_2^{-1}(C)}(t)\delta_{f_1}(dt|W=w)                   \\
+         & = \delta_{f_1}(T\in f_2^{-1}(C)|W=w)                                            \\
+         & = \mathbbm{1}_{f_2^{-1}(C)}(f_1(w)))                                            \\
+         & = \mathbbm{1}_C(f_2(f_1(w)))                                                    \\
+         & = \delta_{f_2\circ f_1}(X\in C|W=w)                                             \\
+         & = \delta_{f_2\circ f_1}(X|W)(C, w),
+      \end{align*}
+      so $f_c = f_2\circ f_1$.
+      \item We use the following results:
+      \begin{enumerate}
+        \item
+        For standard Borel spaces $\Xcal$ and $\Ycal$ we have $\Bcal_{\Xcal\times \Ycal} = \Bcal_\Xcal \otimes \Bcal_\Ycal$.
+        \item In general, the product sigma algebra $\Bcal_\Xcal \otimes \Bcal_\Ycal$ is generated by $\{A\times B: A\in\Bcal_\Xcal , B\in \Bcal_\Ycal\}$.
+        \item If two measures $\mu_1, \mu_2$ agree on a $\pi$-system $\Ical$ (i.e.\ that $\mu_1(I) = \mu_2(I)$ for all $I\in\Ical$), then $\mu_1(B)=\mu_2(B)$ for all $B\in\sigma(\Ical)$.
+        \item $\{A\times B: A\in\Bcal_\Xcal , B\in \Bcal_\Ycal\}$ is a $\pi$-system.
+      \end{enumerate}
+      So, we have to test the provided equality only on sets $A\times B: A\in\Bcal_\Xcal, B\in\Bcal_\Ycal$. For all such $A$ and $B$ and $t\in\Tcal$ we have
+      \begin{align*}
+        [\delta_{f_2}(X|T)\otimes \delta_{f_3}(Y|T)](A\times B, t)
+         & = \int_\Xcal\int_\Ycal \mathbbm{1}_{A\times B}(x, y)\delta_{f_2}(dx|T=t)\delta_{f_3}(dx|T=t)        \\
+         & = \int_\Xcal\int_\Ycal \mathbbm{1}_{A}(x)\mathbbm{1}_{B}(y)\delta_{f_2}(dx|T=t)\delta_{f_3}(dx|T=t) \\
+         & = \int_\Xcal \mathbbm{1}_{A}(x)\delta_{f_2}(dx|T=t)\int_\Ycal\mathbbm{1}_{B}(y)\delta_{f_3}(dx|T=t) \\
+         & = \delta_{f_2}(A|T=t)\delta_{f_3}(B|T=t)                                                            \\
+         & = \mathbbm{1}_{A}(f_2(t))\mathbbm{1}_{B}(f_3(t))                                                    \\
+         & = \mathbbm{1}_{A\times B}(f_2(t), f_3(t))                                                           \\
+         & = \delta_{(f_2, f_3)}(A\times B|T=t)                                                                \\
+         & = [\delta_{(f_2, f_3)}(X, Y|T)](A\times B, t)                                                       \\
+         & =: [\delta_{f_p}(X, Y|T)](A\times B, t),
+      \end{align*}
+      so $f_p = (f_2, f_3)$.
+      \item For all $A\in \Bcal_\Xcal$ (and using an expression for $\delta_{f_p}$ from the previous exercise) we have
+      \begin{align*}
+        \delta_{f_m}(X|T)(A, t)
+         & = \delta_{f_p}(X\in A, Y\in\Ycal|T=t)                                                              \\
+         & = \int_\Xcal\mathbbm{1}_A(x)\delta_{f_2}(dx|T=t)\int_\Ycal\mathbbm{1}_\Ycal(y)\delta_{f_3}(dy|T=t) \\
+         & = \int_\Xcal\mathbbm{1}_A(x)\delta_{f_2}(dx|T=t)                                                   \\
+         & = \delta_{f_2}(A|T=t)                                                                              \\
+         & = \delta_{f_2}(X|T)(A, t),
+      \end{align*}
+      so $f_m = f_2$.
+      \item Let $\delta_{f_{cd}}(Y|X, T): \Xcal\times \Tcal \dshto \Ycal$ be the conditional Markov kernel such that
+      \begin{equation}\label{foo}
+        \delta_{f_p}(X, Y|T) = \delta_{f_{cd}}(Y|X, T) \otimes \delta_{f_m}(X|T).
+      \end{equation}
+      Then, for all $A\in \Bcal_\Xcal$, $B\in\Bcal_\Ycal$ and $t\in\Tcal$ we have
+      \begin{align*}
+        [\delta_{f_3}(Y|T)\otimes \delta_{f_2}(X|T)](B\times A, t)
+         & = [\delta_{f_2}(X|T)\otimes \delta_{f_3}(Y|T)](A\times B, t)        & \text{Fubini}             \\
+         & = \delta_{f_p}(X, Y|T)(A\times B, t)                                & \text{(b)}                \\
+         & = [\delta_{f_{cd}}(Y|X, T) \otimes \delta_{f_m}(X|T)](B\times A, t) & \text{eqn.\ (\ref*{foo})} \\
+         & = [\delta_{f_{cd}}(Y|X, T) \otimes \delta_{f_2}(X|T)](B\times A, t) & \text{(c)}
+      \end{align*}
+      and so for $f_{cd} = f_3$, by Lemma \ref*{ess-unique} we have that $\delta_{f_{cd}} = \delta_{f_3}$ up to $\delta_{f_m}(X|T)$-null sets.
+
+    \end{enumerate}
+  \end{ungradedsolution}
+
+  \item % (2 + 1 + 1 points)
+  Consider two Markov kernels:
+  \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+  \[Q(Z|W):\, \Wcal \dshto \Zcal,\quad (C,w) \mapsto Q(Z \in C|W=w),  \]
+  that have linear multivariate Gaussian densities (w.r.t.\ Lebesgue measure):
+  \begin{align*}
+    k(w|t) & = \Ncal(w|A \cdot t +b, \Sigma),   \\
+    q(z|w) & = \Ncal(z| C \cdot w + d, \Gamma).
+  \end{align*}
+
+  Compute the parameters of the following multivariate Gaussian Markov kernels:
+  \begin{enumerate}
+    \item the product $P(Z, W|T):=Q(Z|W) \otimes K(W|T)$
+    \item the composition $P(Z|T):=Q(Z|W) \circ K(W|T)$
+    \item the conditional $P(W|Z, T)$ of $P(Z, W|T)$
+  \end{enumerate}
+
+  Suggested steps:
+  \begin{enumerate}[label=\roman*)]
+    \item First, recall how the general formula for the density of a composition is computed.
+    \item Write the log joint density $\log p(z, w|t)$ as a quadratic polynomial in $\R^{\dim \Wcal + \dim \Zcal}$ using joint precision matrix $\Lambda$:
+    \[
+      -\frac{1}{2} \mat{z \\ w}^T  \mat{\Lambda_{zz} & \Lambda_{zw} \\ \Lambda_{zw}^T & \Lambda_{ww}}\mat{z \\ w} + \mat{b_1 \\ b_2}^T\mat{z \\ w} + \text{const}
+    \]
+    \item Invert to find the covariance matrices:
+    \[
+      -\frac{1}{2} \mat{z \\ w}^T  \mat{\Sigma_{zz} & \Sigma_{zw} \\ \Sigma_{zw}^T & \Sigma_{ww}}^{-1}\mat{z \\ w} + \mat{b_1 \\ b_2}^T\mat{z \\ w} + \text{const}
+    \]
+    \emph{Hint: You can use the following identity for symmetric matrices $M,N$ and matrix $T$ without proof:}
+    \begin{align*}
+      \mat{N & -NT \\ -T^TN  &M+T^TNT}^{-1} = \mat{N^{-1}+TM^{-1}T^T&  TM^{-1}  \\M^{-1}T^T & M^{-1} }
+    \end{align*}
+    \item Complete the square to obtain Gaussian form:
+    \[
+      \mat{z-\mu_z \\ w-\mu_w}^T \mat{\Sigma_{zz} & \Sigma_{zw} \\ \Sigma_{zw}^T & \Sigma_{ww}}^{-1}\mat{z-\mu_z \\ w-\mu_w} + \text{const}
+    \]
+
+    \item Read off the marginal $p(z|t)$.
+
+    \item Find from external sources a way to derive the mean and covariance matrix for the conditional $P(W|Z, T)$. Clearly state what information you use from which external source, and how this translates to our setting.
+  \end{enumerate}
+
+  \begin{gradedsolution}
+    \begin{enumerate}
+      \item \points{3} Define $\mu=At+b$, then the log joint density is:
+      \begin{align*}
+         &-2\log p(z, w|t) = (z-Cw-d)^T \Gamma^{-1}(z-Cw-d)+(w-\mu)^T\Sigma^{-1}(w-\mu)                                                                                                          \\
+         & = \begin{pmatrix} z \\ \end{pmatrix}^T \begin{pmatrix}\Gamma^{-1} & -\Gamma^{-1}C \\ -C^T \Gamma^{-1} & \Sigma^{-1} + C^T \Gamma^{-1}C\end{pmatrix}\mat{z           \\ w} -2\mat{z \\ w}^T\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d} + \text{const}  \\
+         & =\begin{pmatrix}z   \\w\end{pmatrix}^T \mat{\Gamma + C \Sigma C^T                                                                                         & C\Sigma \\ \Sigma C^T & \Sigma}^{-1}\mat{z \\ w} -2\mat{z \\ w}^T\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d} + \text{const}
+      \end{align*}
+      Completing the square is:
+      \[-\frac{1}{2} x\Sigma^{-1}x+b^Tx=-\frac{1}{2}(x-\Sigma b)^T\Sigma^{-1}(x-\Sigma b)+\text{const}
+      \]
+      So the mean of $P(Z, W|T)$ is:
+      \begin{align*}
+        \mat{\mu_z \\ \mu_w} =\mat{\Gamma + C \Sigma C^T & C\Sigma \\ \Sigma C^T & \Sigma}\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d} = \mat{C\mu+d \\ \mu} = \mat{C(At+b)+d \\ At+b}
+      \end{align*}
+      and the covariance matrix:
+      \begin{align*}
+        K := \mat{K_{zz} & K_{zw} \\ K_{wz} & K_{ww}} := \mat{\Gamma + C \Sigma C^T & C\Sigma \\ \Sigma C^T & \Sigma}.
+      \end{align*}
+      \item \points{1} From (a) we can read off that:
+      \[p(z|t) = \mathcal{N}(z|\mu_z, K_{zz}) = \mathcal{N}(z|C At + Cb + d, \Gamma + C \Sigma C^T)\]
+      \item \points{1} From (a) and e.g.\ \href{https://en.wikipedia.org/wiki/Multivariate_normal_distribution}{wikipedia} or Bishop - \emph{Pattern Recognition and Machine Learning}, Section 2.3.1, we deduce that
+      \begin{align*}
+        &p(w|z, t) = \Ncal(w|\mu_w + K_{wz}K_{zz}^{-1}(z - \mu_z), K_{ww} - K_{wz}K_{zz}^{-1}K_{zw})\\
+        &= \Ncal(w|At+b + \Sigma C^T(\Gamma + C\Sigma C^T)^{-1}(z-C(At+b) - d), \Sigma - \Sigma C^T(\Gamma + C\Sigma C^T)^{-1}C\Sigma).
+      \end{align*}
+    \end{enumerate}
+  \end{gradedsolution}
+
+  \item Consider two Markov kernels:
+  \begin{equation*}
+    Q(Z|W,T):\, \Wcal\times \Tcal \dshto \Zcal,\qquad
+    K(W|T):\, \Tcal \dshto \Wcal.
+  \end{equation*}
+  Show that the \emph{product Markov kernel}:
+  \begin{equation*}
+    Q(Z|W,T) \otimes K(W|T) :\, \Tcal \dshto \Zcal \times \Wcal,
+  \end{equation*}
+  is a Markov kernel, by showing that it induces a mapping
+  \begin{equation*}
+    M: \Bcal_{\Zcal \times \Wcal}\times \Tcal \to [0,1], \qquad (D, t) \mapsto M((Z, W)\in D|T=t)
+  \end{equation*}
+  such that:
+  \begin{enumerate}[label=\roman*)]
+      \item for each $t \in \Tcal$ the map:
+      \[ \Bcal_{\Zcal \times \Wcal} \to [0,1],\qquad D \mapsto M((Z,W)\in D|T=t)\]
+      is a probability measure, and
+      \item for each $D \in \Bcal_{\Zcal \times \Wcal}$ the map:
+      \[ M((Z,W) \in D|T):\, \Tcal \to [0,1],\quad t \mapsto M((Z, W) \in D|T=t) \]
+      is $\Bcal_\Tcal$-$\Bcal_{[0,1]}$-measurable.
+  \end{enumerate}
+
+
+
+\end{enumerate}
+
+\end{document}

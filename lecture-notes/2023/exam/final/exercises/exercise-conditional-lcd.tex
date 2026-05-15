@@ -1,0 +1,73 @@
+\subsection{Causal Discovery}
+\totalscore{7}
+
+Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3\} \subseteq V$ and (observed) exogenous input variables $J = \{4\}$, with observable graph $G^{O\cup J}(M)$.
+Suppose that $M$ is $\sigma$-faithful with respect to $O$.
+Assume further that $X_2$ is not a cause of $X_1$ according to $M$.
+
+You observe the following conditional (in)dependencies in data sampled from the Markov kernel $P_M(X_O \given \doit(X_4))$:
+  $$X_1 \nIndep X_2 \given X_4 \quad \land \quad X_2 \nIndep X_3 \given X_4 \quad \land \quad X_1 \Indep X_3 \given X_2,X_4$$
+
+\begin{enumerate}[label=\alph*)]
+  \item Draw all possible observational graphs $G^{O\cup J}(M)$ that are compatible with the assumptions and observations, 
+    and explain why no other graph is possible.
+    You may use dashed edges to indicate an edge that could be present or absent.\score{5}
+    \answer{Any edge between $X_4$ and another variable must be out of $X_4$. \point{(1 pt)}\\
+The assumption that $X_2$ is not a cause of $X_1$ implies that there is no directed edge $X_2 \tuh X_1$ in the graph. \point{(1 pt)} \\
+    If there were an edge between $X_1$ and $X_3$, $1 \nPerp 3 \given \{2, 4\}$ and hence, by faithfulness, $X_1 \nIndep X_3 \given X_2, X_4$ which contradicts the observed independence. \point{(1pt)}\\
+    Also, since $X_1 \nIndep X_2 \given X_4$, by the Markov property, $1 \nPerp 2 \given 4$ which implies that $X_1$ and $X_2$ must be adjacent. Similarly, $X_2$ and $X_3$ must be adjacent. \point{(1pt)}\\
+$X_2$ cannot be a collider on any walk between $X_1$ and $X_3$ (faithfulness).
+    Since the only possible edges between $X_1$ and $X_2$ are $X_1 \tuh X_2$ and $X_1 \huh X_2$ (both of which have an arrowhead at $X_2$), this means that there must be a directed edge $X_2 \tuh X_3$, but there cannot be a  bidirected edge $X_2 \huh X_3$ or directed edge $X_2 \hut X_3$. \point{(1pt)}\\
+    Thus, the only possible graphs are the following:\\[\baselineskip]
+\centerline{\begin{tikzpicture}
+    \begin{scope}
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \node[ndint] (X4) at (-1.5,1.5) {$X_4$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+      \draw[arint,dashed] (X4) edge (X1);
+      \draw[arint,dashed] (X4) edge (X2);
+      \draw[arint,dashed] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=4.5cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \node[ndint] (X4) at (-1.5,1.5) {$X_4$};
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+      \draw[arint,dashed] (X4) edge (X1);
+      \draw[arint,dashed] (X4) edge (X2);
+      \draw[arint,dashed] (X4) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=9cm]
+      \node[ndout] (X1) at (-3,0) {$X_1$};
+      \node[ndout] (X2) at (-1.5,0) {$X_2$};
+      \node[ndout] (X3) at (0,0) {$X_3$};
+      \node[ndint] (X4) at (-1.5,1.5) {$X_4$};
+      \draw[arout] (X1) edge (X2);
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arout] (X2) edge (X3);
+      \draw[arint,dashed] (X4) edge (X1);
+      \draw[arint,dashed] (X4) edge (X2);
+      \draw[arint,dashed] (X4) edge (X3);
+    \end{scope}
+    \end{tikzpicture}}
+    }
+%  \item Derive the most informative DPAG (i.e., with as few circles as possible) that represents all of the possible DMGs you found in a).
+  \item Can the causal effect of $X_2$ and $X_4$ on $X_3$, i.e., the quantity
+    $$P_M(X_3 \given \doit(X_4), \doit(X_2))$$
+    be identified from the Markov kernel $P_M(X_O \given \doit(X_4))$?
+    If not, explain why not. If yes, provide an expression for the causal effect in terms of the observed Markov kernel and give a corresponding derivation, explaining why your identity must hold.\score{2}
+  \answer{Yes, it can be identified. 
+    The second rule of the causal do-calculus applied to $G^{O\cup J}(M)$ yields:
+      \begin{equation*}
+        P_{M}\big(X_3 \given \doit(X_4), \doit(X_2)\big) \stackrel{a.s.}{=} P_{M}(X_3 \given \doit(X_4), X_2),
+      \end{equation*}
+      because
+      $$3 \Perp^\sigma_{(G^{O\cup J}(M))_{\doit(I_2)}} I_2 \given \{2, 4\}.$$
+  }
+  \points{1 point for the right identity, 1 point for the derivation.}
+\end{enumerate}

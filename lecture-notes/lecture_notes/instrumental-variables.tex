@@ -1,0 +1,772 @@
+\section{Instrumental variables}
+
+Instrumental variables can sometimes be used to estimate causal effects in the presence of confounding.
+Suppose one is interested in estimating the causal effect of one variable on another. If conducting a randomized
+controlled trial is not an option, but observational data is available, one can in some cases identify the 
+causal effect from the data using the techniques in Sections~\ref{sec:scms_do-calculus} and \ref{sec:scms_adjustment}.
+However, in case the two variables are confounded, the causal effect is not identifiable in general.
+In certain settings, one can make use of a so-called \emph{instrument}, a variable that affects treatment but does not
+directly affect outcome. Under additional modeling assumptions (e.g., linearity), the causal effect can become
+identifiable even in the presence of confounding.
+
+\begin{figure}\centering
+  \begin{tikzpicture}
+   \begin{scope}[xshift=0cm]
+      \node at (-3,1) {(a)};
+      \node at (0,1) {$G_a$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) -- (X2);
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arlat,bend left] (X3) edge (X1);
+   \end{scope}
+   \begin{scope}[xshift=8cm,yshift=0cm]
+      \node at (-3,1) {(b)};
+      \node at (0,1) {$G_b$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) -- (X2);
+      \draw[arlat,bend left] (X1) edge (X2);
+      \draw[arout,bend left] (X2) edge (X1);
+      \draw[arlat,bend left] (X3) edge (X1);
+   \end{scope}
+   \begin{scope}[xshift=0cm,yshift=-3.5cm]
+      \node at (-3,2) {(c)};
+      \node at (0,2) {$G_c$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[xshift=8cm,yshift=-3.5cm]
+      \node at (-3,2) {(d)};
+      \node at (0,2) {$G_d$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout,bend left] (X2) edge (X1);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[xshift=0cm,yshift=-7cm]
+      \node at (-3,2) {(e)};
+      \node at (0,2) {$G_e$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndint] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_c$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+   \end{scope}
+   \Joris{\begin{scope}[xshift=8cm,yshift=-7cm]
+      \node at (-3,2) {(f)};
+      \node at (0,2) {$G_f$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \node[ndlat] (T) at (-1,-1) {$T$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+%      \draw[arout,bend left] (X2) edge (X1);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+      \draw[arout] (X3) edge (T);
+      \draw[arout] (X1) edge (T);
+   \end{scope}}
+   \Joris{\begin{scope}[xshift=0cm,yshift=-10.5cm]
+      \node at (-3,2) {(g)};
+      \node at (0,2) {$G_g$:};
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \node[ndlat] (T) at (-1,-1) {$T$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+%      \draw[arout,bend left] (X2) edge (X1);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+      \draw[arout] (U13) edge (X1);
+      \draw[arout] (U13) edge (X3);
+      \draw[arout] (X3) edge (T);
+   \end{scope}}
+  \end{tikzpicture}
+  \caption{Graphs for the instrumental variable model. (a,c,e) acyclic; (b,d) cyclic. $G_c$ and $G_d$ are canonical representations with explicit latent exogenous random nodes of $G_a$ and $G_b$, respectively; $G_e$ models the instrument as an exogenous input variable. In all cases, $X_3$ is the instrument for estimating the causal effect of treatment $X_1$ on outcome $X_2$.\label{fig:IV_model}}
+\end{figure}
+
+We define the \emph{instrumental variable model} as the family of simple SCMs that (after marginalization) have a graph that is a subgraph of the one shown in Figure~\ref{fig:IV_model}(b).
+Here, $X_3$ is called the \emph{instrument} for estimating the causal effect of treatment $X_1$ on outcome $X_2$.
+Confounding between $X_1$ and $X_2$ is allowed, as well as between $X_3$ and $X_1$.
+However, a direct effect of $X_3$ on $X_2$ and confounding between $X_3$ and $X_2$ are ruled out (the directed edge $X_3 \tuh X_2$ and the bidirected edge $X_3 \huh X_2$ must both be absent).
+While we allow for a cycle between $X_1$ and $X_2$, this is usually excluded (which would correspond to the graph in Figure~\ref{fig:IV_model}(a) instead).
+
+Under additional assumptions (for example, linearity), the causal effect of $X_1$ on $X_2$ becomes identifiable from observable data $P(X_1,X_2,X_3)$ and consistent estimators for the causal effect $P(X_2 \mid \doit(X_1))$ of $X_1$ on $X_2$ can be derived. 
+\begin{Def}\label{def:linear_IV}
+Let $M$ be a simple SCM with graph depicted in Figure~\ref{fig:IV_model}(d), where we assume that $X_1$, $X_2$, $X_3$ are observed real-valued endogenous variables, and $X_a, X_b$ are latent exogenous random variables.
+Let the corresponding structural equations be of the form:
+\begin{align*}
+  X_1 &= f_1(X_2,X_3,X_a,X_b), \\
+  X_2 &= f_2(X_1,X_b) = \beta X_1 + h(X_b), \\
+  X_3 &= f_3(X_a), 
+\end{align*}
+where $f_1,f_2,f_3$ are measurable functions, with $f_1$ and $f_3$ arbitrary but $f_2$ of this specific form (linear in $X_1$ and additive in $h(X_b)$ for some measurable function $h$).
+We call $M$ a \emph{linear instrumental variable SCM}.\footnote{This can be considered abuse of terminology, as it is \emph{not} a linear SCM according to Definition~\ref{def:linear_scms}.}
+\end{Def}
+The coefficient $\beta$ measures by how many units $X_2$ would change if we changed $X_1$ by one unit via an intervention, and thus quantifies the causal effect $P(X_2|\doit(X_1))$ of $X_1$ on $X_2$.
+It can be estimated from observational data as long as the instrument is \emph{relevant} (correlated with the treatment variable).
+\begin{Prp}\label{prp:linear_IV_estimator}
+  Let $M$ be a linear instrumental variable SCM. 
+  If $\Cov(X_1,X_3) \neq 0$, then $\beta$ is identifiable from $P_M(X_1,X_2,X_3)$:
+    $$\beta = \frac{\Cov(X_2,X_3)}{\Cov(X_1,X_3)}.$$
+\end{Prp}
+\begin{proof}
+First note that $X_b \sPerp_{G(M)} X_3$, and hence $X_b \Indep_{P_M} X_3$.
+By the separoid axioms this implies: $h(X_b) \Indep_{P_M} X_3$, and hence $\Cov(h(X_b),X_3) = 0$.
+Therefore,
+$$ \Cov(X_2,X_3) = \Cov(\beta  X_1 + h(X_b),X_3) = \beta \,\Cov(X_1,X_3).$$
+\end{proof}
+\begin{Rem}
+In the derivation of Proposition~\ref{prp:linear_IV_estimator}, one can replace $X_3$ by $\phi(X_3)$ for an arbitrary function $\phi : \CX_3 \to \RN$, and obtain the result that
+if $\Cov(X_1,\phi(X_3)) \neq 0$, then $\beta$ is identifiable from $P_M(X_1,X_2,\phi(X_3))$:
+  $$\beta = \frac{\Cov(X_2,\phi(X_3))}{\Cov(X_1,\phi(X_3))}.$$
+More specifically, we could use a binary feature $\phi : \CX_3 \to \{0,1\}$ to obtain
+%  can use a threshold function $\phi(x_3) = \ind_{x_3 > \theta}$ to obtain
+  $$\beta = \frac{\Exp(X_2 \given \phi(X_3)=1) - \Exp(X_2 \given \phi(X_3)=0)}{\Exp(X_1 \given \phi(X_3)=1) - \Exp(X_1 \given \phi(X_3)=0)}.$$
+This is the classical IV estimator for binary instruments.
+\end{Rem}
+
+But how does one know in practice whether the SCM of the system under study is indeed as assumed in Definition~\ref{def:linear_IV}?
+More in particular, how does one know that the SCM (after marginalization) of the system under study has a graph that is indeed a subgraph of the one in Figure~\ref{fig:IV_model}(b)? 
+%But how does one know in practice whether the SCM of the system under study is indeed as assumed in Definition~\ref{def:linear_IV}?
+%For binary variables, one can derive a similar result, but only under additional assumptions (e.g., monotonicity).
+%See Imbens \& Angrist, Econometrica, vol. 62, no. 2, 1994, 467-475
+These are strong assumptions indeed.
+It turns out that one can sometimes recognize that these assumptions are incompatible with the data.
+\cite{Pearl1995} derived constraints that are imposed on the conditional distribution $P(X_1,X_2 \given X_3)$ by the causal structure of the acyclic IV model. 
+This \emph{instrumental inequality} can be used to derive statistical tests for the validity of an instrument (and therefore, the validity of the estimated causal effects).
+We here extend Pearl's original proof to allow for a cycle between $X_1$ and $X_2$.
+First, we show how to reduce the cyclic setting to the acyclic one.
+\begin{Lem}\label{lem:cyclic_IV_model}
+  Let $G_b, G_c$ be the graphs in Figure~\ref{fig:IV_model}(b) and \ref{fig:IV_model}(c), respectively.
+  Let $M$ be a simple SCM such that $G(M_{\{1,2,3\}}) \subseteq G_b$ (that is, its marginalization on $X_1, X_2, X_3$ has a graph that is a subgraph of $G_b$). 
+  Then there exists a simple SCM $\tilde{M}$ with $G(\tilde{M}) \subseteq G_c$ that is observably equivalent to $M$ w.r.t.\ $\{1,2,3\}$.
+\end{Lem}
+\begin{proof}
+  We construct $\tilde{M}$ from $M$ in three steps.
+  First, we marginalize out all endogenous variables of $M$, except for $\{1,2,3\}$: $M^{(1)} := M_{\{1,2,3\}}.$
+  By Theorem~\ref{thm:various_equiv_marginalization}, $M^{(1)}$ is observably equivalent to $M$ w.r.t.\ $\{1,2,3\}$.
+  Second, we merge the remaining exogenous random variables: the ancestors of $X_3$ are combined into $X_a$, and the remaining ones into $X_b$ (note that there are no exogenous random variables that are both ancestor of $X_3$ and $X_2$ by assumption).
+  By Example~\ref{eg:merging_exogenous_random_variables_pushforward} or Example~\ref{eg:merging_exogenous_random_variables_pullback} \Joris{(which one?)}, this yields an SCM $M^{(2)}$ that is observably equivalent to $M^{(1)}$ w.r.t.\ $\{1,2,3\}$.
+  The graph of $M^{(2)}$ can only be a subgraph of the one in Figure~\ref{fig:IV_model}(d).
+  Denote the causal mechanism of $M^{(2)}$ by $f$, and the unique solution function of $(M^{(2)})^{[\{1,2\}]}$ by $g^{[12]}$.
+  It is the unique function that satisfies:
+  \begin{equation*}
+    \begin{cases}
+      g^{[12]}_1(X_3,X_a,X_b) = f_1\big(g^{[12]}_2(X_3,X_a,X_b),X_3,X_a,X_b\big) \\
+      g^{[12]}_2(X_3,X_a,X_b) = f_2\big(g^{[12]}_1(X_3,X_a,X_b),X_b\big)
+    \end{cases}
+  \end{equation*}
+  for all $X_3 \in \CX_3,X_a \in \CX_a,X_b \in \CX_b$. This implies that:
+  \begin{equation*}
+  \begin{cases}
+    X_1 = f_1(X_2,X_3,X_a,X_b) \\
+    X_2 = f_2(X_1,X_b)
+  \end{cases} \iff
+  \begin{cases}
+    X_1 = g^{[12]}_1(X_3,X_a,X_b) \\
+    X_2 = f_2(X_1,X_b)
+  \end{cases} 
+  \end{equation*}
+  for all $X_3 \in \CX_3,X_a \in \CX_a,X_b \in \CX_b$.
+  Let $M^{(3)}$ be a copy of $M^{(2)}$, except that its causal mechanism is $\tilde{f}$, defined by
+  $$\tilde{f}(x) = \big(g^{[12]}_1(x), f_2(x), f_3(x)\big).$$
+  Then $M^{(3)}$ and $M^{(2)}$ are observably equivalent w.r.t.\ $\{1,2,3\}$, as they have the same solution function.
+  The graph of $M^{(3)}$ can only be a subgraph of the one in Figure~\ref{fig:IV_model}(c).
+\end{proof}
+With this, we can extend Pearl's original result to the cyclic case.
+\begin{Prp}[Instrumental inequality, \cite{Pearl1995}]\label{prp:instrumental_inequality}
+  Suppose that $\CX_1, \CX_2, \CX_3$ are discrete. 
+  Let $M$ be a simple SCM such that $M_{\{1,2,3\}}$ has a graph that is a subgraph of the one in Figure~\ref{fig:IV_model}(b). 
+  Then its conditional distribution $P_M(X_1,X_2 \given X_3)$ satisfies the following \emph{instrumental inequality}:
+  \begin{equation}\label{eq:instrumental_inequality}
+  \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P(X_1=x_1,X_2=x_2 \given X_3=x_3) \le 1.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+  By Lemma~\ref{lem:cyclic_IV_model}, we can assume without loss of generality that $M$ is a simple SCM with graph that is a subgraph of the one in Figure~\ref{fig:IV_model}(c).
+  The global Markov property applied to $M$ implies that $X_b \Indep_{P_M} X_3$.
+  It also implies that $X_2 \Indep_{P_M} X_3 \given X_1, X_b$.\footnote{Note that we could not have concluded this directly from the graph in Figure~\ref{fig:IV_model}(d) in the cyclic case, because that graph has $X_2 \nsPerp_{G(M)} X_3 \given X_1, X_b$. \Joris{This is somewhat surprising: could it be that $i\sigma$-separation is not complete? What seems to be special here is that there is one node in the cycle ($X_1$) that has as its parents all the inputs of the entire cycle. We might be able to exploit that more generally: by only rewriting the structural equation of that node by its partial solution function component, but keeping the structural equations of the other nodes in the cycle (a ``partial'' acyclification), we get a sparser graph structure than the full acyclification. Actually: if we extend $\sigma$-separation to $\Sigma$-separation analogously to how $D$-separation extends $d$-separation, this would follow!}}
+
+  Now, for any $x_1 \in \CX_1, x_2 \in \CX_2, x_3 \in \CX_3$ (using short-hand notation):
+  \begin{align*}
+    P_M(x_1,x_2 \given x_3) 
+    &= \int_{\CX_b} P_M(x_1,x_2 \given x_3,x_b) P_M(X_b \in dx_b \given x_3) \\
+    &= \int_{\CX_b} P_M(x_1|x_3,x_b) P_M(x_2|x_3,x_1,x_b) P_M(X_b \in dx_b \given x_3) \\
+    &= \int_{\CX_b} P_M(x_1|x_3,x_b) P_M(x_2|x_1,x_b) P_M(X_b \in dx_b) \\
+    &\le \int_{\CX_b} P_M(x_2|x_1,x_b) P_M(X_b \in dx_b),
+  \end{align*}
+  where we used the independences $X_b \Indep_{P_M} X_3$ and $X_2 \Indep_{P_M} X_3 \given X_1, X_b$ and the fact that conditional probabilities are $\le 1$.
+
+  Hence
+  \begin{equation*}\begin{split}
+    \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(x_1,x_2 \given x_3) 
+    & \le \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} \int_{\CX_b} P_M(x_2|x_1,x_b) P_M(X_b \in dx_b) \\
+    & \le \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \int_{\CX_b} P_M(x_2|x_1,x_b) P_M(X_b \in dx_b) \\
+    & \le \max_{x_1\in\CX_1} \int_{\CX_b} \sum_{x_2\in\CX_2} P_M(x_2|x_1,x_b) P_M(X_b \in dx_b) \\
+    & \le \max_{x_1\in\CX_1} \int_{\CX_b} P_M(X_b \in dx_b) \\
+    & \le \max_{x_1\in\CX_1} 1 \\
+    & = 1.
+  \end{split}\end{equation*}
+%  Now pick $x_1 \in \CX_1$.
+%  We have to show that
+%  $$\sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(X_1=x_1,X_2=x_2 \given X_3=x_3) \le 1.$$
+%  Pick $x_3^*(x_1,x_2)$ as to maximize $P_M(X_1=x_1,x_2=x_2 \given X_3=x_3)$ over $x_3\in\CX_3$ for given $x_1\in\CX_1,x_2\in\CX_2$.
+%  Then (using shorthand notation):
+%  \begin{align*}
+%    &\sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(x_1,x_2 \given x_3) 
+%    = \sum_{x_2\in\CX_2} P_M(x_1,x_2 \given x_3^*(x_1,x_2)) \\
+%    &\qquad = \sum_{x_2\in\CX_2} \int_{\CX_U} P_M(x_1|x_3^*(x_1,x_2),x_U) P_M(x_2|x_3^*(x_1,x_2),x_1,x_U) P_M(X_U \in dx_U \given x_3^*(x_1,x_2)) \\
+%    &\qquad = \sum_{x_2\in\CX_2} \int_{\CX_U} P_M(x_1|x_3^*(x_1,x_2),x_U) P_M(x_2|x_1,x_U) P_M(X_U \in dx_U) \\
+%    &\qquad \le \int_{\CX_U} \sum_{x_2\in\CX_2} P_M(x_2|x_1,x_U) P_M(X_U \in dx_U) \\
+%    &\qquad = \int_{\CX_U} P_M(X_U \in dx_U) \\
+%    &\qquad = 1.
+%  \end{align*}
+%  Here, we first used the definition of $x_3^*$, then the chain rule, then the conditional independences $X_2 \Indep_{P_M} X_3 \given X_1, X_U$ and $X_U \Indep_{P_M} X_3$,
+%  the fact that conditional probabilities are $\le 1$, and sum to 1.
+\end{proof}
+\Joris{Hm, shouldn't we reinterpret this as an inequality for $P_M(X_1=x_1,X_2=x_2 \given \doit(X_3=x_3))$ instead? What happens to the inequality if $P_M(X_3)$ is not positive?
+My guess was that we could just limit the $\max_{x_3}$ to only those values $x_3$ with $P_M(X_3=x_3) > 0$. Is that true?
+\begin{Prp}[Instrumental inequality, Markov kernel version]\label{prp:instrumental_inequality_Markovkernel}
+  Suppose that $\CX_1, \CX_2, \CX_3$ are discrete. 
+  Let $M$ be a simple SCM such that its graph is a subgraph of the one in Figure~\ref{fig:IV_model}(c).
+  Then its interventional Markov kernel $P_M(X_1,X_2 \given \doit(X_3))$ satisfies the following \emph{instrumental inequality}:
+  \begin{equation}\label{eq:instrumental_inequality_Markovkernel}
+    \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(X_1=x_1,X_2=x_2 \given \doit(X_3=x_3)) \le 1.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+  Now, for any $x_1 \in \CX_1, x_2 \in \CX_2, x_3 \in \CX_3$:
+  \begin{align*}
+    P_M(X_1=x_1,X_2=x_2 \given \doit(X_3=x_3)) 
+    &= \int_{\CX_c} \delta_{x_1=f_1(x_3,x_c)} \delta_{x_2=f_2(x_1,x_c)} P_M(X_c \in dx_c) \\
+    &\le \int_{\CX_c} \delta_{x_2=f_2(x_1,x_c)} P_M(X_c \in dx_c) \\
+    &= P_M(X_2=x_2 \given \doit(X_1=x_1)).
+  \end{align*}
+  Hence,
+  \begin{equation*}\begin{split}
+         & \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(X_1=x_1,X_2=x_2 \given \doit(X_3=x_3)) \\
+     {} \le {} & \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} \max_{x_3\in\CX_3} P_M(X_2=x_2 \given \doit(X_1=x_1)) \\
+     {} \le {} & \max_{x_1\in\CX_1} \sum_{x_2\in\CX_2} P_M(X_2=x_2 \given \doit(X_1=x_1)) \\
+     {} \le {} & \max_{x_1\in\CX_1} 1 \\
+     {} = {} & 1.
+  \end{split}\end{equation*}
+\end{proof}
+}
+
+\Joris{
+Can we also reduce the latent-selection-bias setting of Figure~\ref{fig:IV_model}(f) to the one in Figure~\ref{fig:IV_model}(c)?
+\begin{Lem}\label{lem:latent_selected_IV_model}
+  Let $G_f, G_c$ be the graphs in Figure~\ref{fig:IV_model}(f) and \ref{fig:IV_model}(c), respectively.
+  Let $M$ be a simple SCM with binary endogenous variable $T$ and graph $G^+(M) \subseteq G_f$. 
+  Then there exists a simple SCM $\tilde{M}$ with $G(\tilde{M}) \subseteq G_c$ such that
+  $P_M(X_1,X_2,X_3 \given T=1) = P_{\tilde{M}}(X_1,X_2,X_3)$.
+\end{Lem}
+\begin{proof}
+  For $\tilde{M}$ we can take $M$ but with updated exogenous distribution $P(X_a)$: we replace $P(X_a)$ by $P(X_a \given g_T(X_a,X_b)=1)$ where $g_T$ is the $T-component$ of the solution function $g$ of $M$.
+
+  AHA. This doesn't work: we need to merge $X_a,X_b$ and replace their joint distribution $P(X_a,X_b) = P(X_a) P(X_b)$ by $P(X_a,X_b \given g_T(X_a,X_b)=1)$.
+  However, if our goal would be that
+  $P_M(X_2 \given X_1,X_3,T=1) = P_{\tilde{M}}(X_2 \given X_1,X_3,T=1)$
+  then this strategy works, since $X_b \Indep_{P_M} T \given X_1,X_3$.
+  Actually, $P_M(X_2 \given X_1,X_3,T=1) = P_M(X_2 \given X_1,X_3)$.
+  Hence, if the IV inequality would be in terms of this conditional distribution (of $X_2$ given $X_1,X_3$) it would remain valid under this type of selection bias.
+  But since the IV inequality looks at $P(X_1,X_2 \given X_3)$, it no longer holds.
+  Of course, we can \emph{try} to derive a looser inequality that still holds under this type of selection bias, but the risk is that we the model is saturated, that is, there is no informative inequality.
+
+  The trick does seem to work if we assume $G^+(M) \subseteq G_g$ (so only selection bias on $X_3$).
+\end{proof}
+}
+
+\begin{Eg}\label{eg:instrumental_inequality_binary}
+  For example, in case $X_1,X_2,X_3$ are all binary, the non-trivial instrumental inequalities read:
+  \begin{align*}
+    %P(X_1=0,X_2=0 \mid X_3=0) + P(X_1=0,X_2=1 \mid X_3=0) &\le 1 \\
+    P(X_1=0,X_2=0 \mid X_3=0) + P(X_1=0,X_2=1 \mid X_3=1) &\le 1 \\
+    P(X_1=0,X_2=0 \mid X_3=1) + P(X_1=0,X_2=1 \mid X_3=0) &\le 1 \\
+    %P(X_1=0,X_2=0 \mid X_3=1) + P(X_1=0,X_2=1 \mid X_3=1) &\le 1 \\
+    %P(X_1=1,X_2=0 \mid X_3=0) + P(X_1=1,X_2=1 \mid X_3=0) &\le 1 \\
+    P(X_1=1,X_2=0 \mid X_3=0) + P(X_1=1,X_2=1 \mid X_3=1) &\le 1 \\
+    P(X_1=1,X_2=0 \mid X_3=1) + P(X_1=1,X_2=1 \mid X_3=0) &\le 1.
+    %P(X_1=1,X_2=0 \mid X_3=1) + P(X_1=1,X_2=1 \mid X_3=1) &\le 1.
+  \end{align*}
+\end{Eg}
+While these inequalities are necessary, they may not be sufficient. For the all-binary case, though, one can prove their sufficiency,
+for example by making use of the response function parameterization \cite{Bonet2001}.
+\begin{Not}
+  For measurable spaces $\Tcal, \Wcal$, denote by $\Pcal(\Tcal \dshto \Wcal)$ the set of all Markov kernels from $\Tcal$ to $\Wcal$.
+\end{Not}
+\Joris{Note that $G(M_O) \subseteq G(M)_O \subseteq G$.
+Hence the graphical modeling assumption $G(M)_O \subseteq G$ implies $G(M_O) \subseteq G$.
+The latter is an assumption that enables inference about $M_O$, which then allows us to draw conclusions about $M$.
+The abstraction power during modeling comes from the graphical marginalization, whereas for the inference the abstraction power stems from the SCM marginalization.
+}
+\begin{Prp}\label{prp:instrumental_inequality_completeness}
+  Suppose that $\#(\CX_2)=\#(\CX_3) = 2$ (binary instrument and outcome) and $\#(\CX_1)=n$ with $n \ge 2$.
+  Then the instrumental inequality \eref{eq:instrumental_inequality} is sharp (in the acyclic case, as well as in the more general cyclic case).
+  %The set of Markov kernels in $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$ that satisfies \eref{eq:instrumental_inequality} is precisely the set of conditional observable distributions $P_M(X_1,X_2 \mid X_3)$ of simple SCMs $M$ with graph of the form of Figure~\ref{fig:IV_model}(a) (alternatively, Figure~\ref{fig:IV_model}(b)) and with $X_1,X_2,X_3$ binary.
+\end{Prp}
+\begin{proof}
+  Let $\CX_1, \CX_2, \CX_3$ be finite standard measurable spaces, and let $n_i := \#(\CX_i) < \infty$ denote their cardinalities.
+  Define $\C{M}$ to be the set of all simple SCMs that have a variable with label $i$ and corresponding state space $\CX_i$, for $i=1,2,3$.
+  Define families of SCMs:
+  \begin{align*}
+    \C{M}_a &:= \{ M \in \C{M} : G(M_{\{1,2,3\}})^{\{1,2,3\}} \subseteq G_a, \forall x_3 \in \CX_3: 0 < P_M(X_3=x_3) \}, \\
+    \C{M}_b &:= \{ M \in \C{M} : G(M_{\{1,2,3\}})^{\{1,2,3\}} \subseteq G_b, \forall x_3 \in \CX_3: 0 < P_M(X_3=x_3) \}, \\
+    \C{M}_c &:= \{ M \in \C{M} : G(M_{\{1,2,3\}}) \subseteq G_c, \forall x_3 \in \CX_3: 0 < P_M(X_3=x_3) \}, \\
+    \C{M}_e &:= \{ M \in \C{M} : G(M_{\{1,2\}}) \subseteq G_e \},
+  \end{align*}
+  where the graphs $G_a,G_b,G_c,G_e$ are defined in Figure~\ref{fig:IV_model}, and we write $H \subseteq G$ if $H$ is a subgraph of $G$.
+  Define the families of corresponding (conditional) Markov kernels 
+  \begin{align*}
+    \C{P}_a &:= \{ P_M(X_1, X_2 \given X_3) : M \in \C{M}_a \}, \\
+    \C{P}_b &:= \{ P_M(X_1, X_2 \given X_3) : M \in \C{M}_b \}, \\
+    \C{P}_c &:= \{ P_M(X_1, X_2 \given X_3) : M \in \C{M}_c \}, \\
+    \C{P}_e &:= \{ P_M(X_1, X_2 \given \doit(X_3)) : M \in \C{M}_e \},
+  \end{align*}
+  which are subsets of $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$.
+  Finally, we define
+  \begin{equation}\label{eq:kernels_satisfying_IV}
+    \C{P}_{IV} := \{ P(X_1,X_2 \given X_3) \in \Pcal(\CX_3 \dshto \CX_1 \times \CX_2): \text{$P$ satisfies \eref{eq:instrumental_inequality}} \}.
+  \end{equation}
+  We will prove that $\C{P}_a = \C{P}_b = \C{P}_c = \C{P}_e = \C{P}_{IV}$.
+
+  First, we show that $\C{P}_a = \C{P}_b = \C{P}_c$.
+  Note that $\C{M}_b \supseteq \C{M}_a \supseteq \C{M}_c$, and therefore $\C{P}_b \supseteq \C{P}_a \supseteq \C{P}_c$.
+  For any $M \in \C{M}_b$, we can construct $\tilde{M} \in \C{M}_c$ with the help of Lemma~\ref{lem:cyclic_IV_model} that is observably equivalent to $M$ w.r.t.\ $X_1,X_2,X_3$.
+  Hence $\C{P}_b \subseteq \C{P}_c$.
+
+  Second, we show that $\C{P}_c = \C{P}_e$.
+  Let $M \in \C{M}_c$ and denote its causal mechanism by $f$.
+  With the help of Remark~\ref{rem:R-to-std-ms}, we may represent $P_M(X_a \given X_3)$ as a deterministic function $h$ of $X_3$ and an independent (uniformly distributed) random variable $X_u \sim \mathrm{Uni}(0,1)$:
+  $$P_M(X_a \given X_3) = \delta(h|X_3,X_u) \circ P(X_u).$$
+  This implies that setting $X_a := h(X_3,X_u)$ will reproduce $P_M(X_a \given X_3)$.
+  We now define an SCM
+  $$\tilde{M} := \lt J=\{3\}, V=\{1,2\}, W=\{c\}, \CX_1 \times \CX_2 \times \CX_3 \times \CX_{c}, \tilde{P}, \tilde{f} \rt$$
+  with $\C{X}_c := \C{X}_b \times \C{X}_u$ the space of the merged exogenous random variables $(X_b,X_u)$,
+  $\tilde{P}(X_c) = P_M(X_b) \otimes P(X_u)$ (under the natural identification $X_c = (X_b,X_u)$) and
+  $$\tilde{f}(x) = (f_1(x_3,h(x_3,x_u)),f_2(x_1,x_b)).$$
+  By construction \Joris{elaborate?}, $\tilde{M} \in \C{M}_e$ and $P_{\tilde{M}}(X_1,X_2 \mid \doit(X_3)) = P_M(X_1,X_2 \mid X_3)$.
+  Hence $\C{P}_c \subseteq \C{P}_e$.
+  Vice versa, let $M \in \C{M}_e$.
+  Then we can put the uniform distribution on $X_3$ to obtain an SCM $\tilde{M} := M_{\doit(X_3 \sim \mathrm{Uni}(\{0,1\}))}$ in $\C{M}_c$.
+  Then $P_M(X_1,X_2 \mid \doit(X_3)) = P_{\tilde{M}}(X_1,X_2 \mid \doit(X_3))$ and
+  by rule 2 of the do-calculus (Theorem~\ref{thm:as-do-calculus-scms-simplified}),
+  $P_{\tilde{M}}(X_1,X_2 \mid \doit(X_3)) = P_{\tilde{M}}(X_1,X_2 \mid X_3)$
+  \Joris{$\mu_3$-a.s. if $\mu_3 \ll P_{\tilde{M}}(X_3) \ll \mu_3$; here we can take for $\mu_3$ the uniform probability measure on $\CX_3$ and then `$\mu_3$-a.s.' becomes `surely'.}
+  Hence $\C{P}_e \subseteq \C{P}_c$.
+
+  Third, we show that we can without loss of generality assume a response function parameterization for $\C{M}_e$.
+  More precisely, we show that $\C{P}_e = \C{P}_e^*$, where
+  $$\C{P}_e^* := \{ P_M(X_1, X_2 \given \doit(X_3)) : M \in \C{M}_e^* \}$$
+  with
+  $$\C{M}_e^* := \{ M = \lt J=\{3\}, V=\{1,2\}, W=\{c\}, \CX_1 \times \CX_2 \times \CX_3 \times \CX_{c}^*, P, f^* \rt \in \C{M}_e \},$$
+  where the exogenous random state space is:
+  $$\CX_{c}^* := (\CX_1)^{\CX_3} \times (\CX_2)^{\CX_1} = \{\phi : \CX_3 \to \CX_1\} \times \{\psi : \CX_1 \to \CX_2\},$$
+  and the causal mechanism is:
+  $$\begin{cases}
+    f^*_1(x_3,x_c) &= (x_c)_1(x_3) \\
+    f^*_2(x_1,x_c) &= (x_c)_2(x_1),
+  \end{cases}$$
+  while the exogenous distribution $P \in \Pcal(\CX_{c}^*)$ is arbitrary.
+  
+  Because $\C{M}_e^* \subseteq \C{M}_e$, we obviously have that $\Pcal_e^* \subseteq \Pcal_e$. It remains to show that $\Pcal_e^* \supseteq \Pcal_e$.
+  Let $M = \lt J=\{3\}, V=\{1,2\}, W=\{c\}, \CX, P, f \rt \in \C{M}_e$.
+  It induces a function $\Phi_M : \CX_c \to \CX_c^*$ that assigns to each value $x_c \in \CX_c$ the corresponding response function pair in $\CX_c^*$:
+  $$\Phi_M(x_c) = (x_3 \mapsto f_1(x_3, x_c), x_1 \mapsto f_2(x_1, x_c)).$$
+  The exogenous push-forward
+  $$M_{\repar{f^*}{\Phi_M}} = \lt J=\{3\}, V=\{1,2\}, W=\{c\}, \CX_1 \times \CX_2 \times \CX_3 \times \CX_{c}^*, (\Phi_M)_*(P), f^* \rp$$
+  of $M$ is an element of $\C{M}_e^*$ and is observably equivalent to $M$ w.r.t.\ $V$ by Theorem~\ref{thm:various_equiv_exogenous_pushforward}.
+  Hence $\Pcal_e^* \supseteq \Pcal_e$.
+
+  Finally, we show that $\C{P}_e^* = \C{P}_{IV}$.
+  Consider $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$ as a subset of $\RN^{n_1 n_2 n_3}$, by identifying a certain Markov kernel $K \in \Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$ with the tuple $(K(x_1,x_2|x_3))_{(x_1,x_2,x_3) \in \CX_1 \times \CX_2 \times \CX_3}$.
+  This subset is a (convex) polyhedral set.
+  Consider the set of possible exogenous distributions $\C{P}(\CX_c^*)$ as a subset of $\RN^{n_1^{n_3} n_2^{n_1}}$
+  via identifying a certain distribution $Q \in \C{P}(\CX_c^*)$ with the tuple
+  $(Q(x_c))_{x_c \in \CX_c^*}$
+  (and note that $\#(\CX_c^*) = \#(\CX_1)^{\#(\CX_3)} \times \#(\CX_2)^{\#(\CX_1)} = n_1^{n_3} n_2^{n_1}$).
+  This subset is also a (convex) polyhedral set.
+
+  The solution function $g^* : \CX_3 \times \CX_c \to \CX_1 \times \CX_2 \times \CX_3$ corresponding to the response function causal mechanism $f^*$ is given by
+  $$g^*(x_3,x_c) = \big((x_c)_1(x_3),\ (x_c)_2((x_c)_1(x_3)),\ x_3\big).$$
+%  This induces a mapping $\CX_{\tilde{W}} \to (\CX_1 \times \CX_2)^{\CX_3}$.
+  This induces a linear mapping $G^* : \RN^{n_1^{n_3} n_2^{n_1}} \to \RN^{n_1 n_2 n_3}$ that maps the canonical basis vector $e_{x_c}$ to the vector
+  $$\sum_{x_3 \in \CX_3} e_{g^*(x_3,x_c)}.$$
+  The probability simplex in $\RN^{n_1^{n_3} n_2^{n_1}}$ (which corresponds with $\C{P}(\CX_c^*)$) is mapped by $G^*$ to a subset of $\RN^{n_1 n_2 n_3}$ (which corresponds with $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$).
+  This subset must be a (convex) polyhedral set, as it is the image under a linear mapping of a (convex) polyhedral set.
+  By Proposition~\ref{prp:instrumental_inequality}, it must be a subset of $\C{P}_{IV}$.
+
+  Conversely, we will show that each extreme point of $\C{P}_{IV}$ can be obtained in this way from a point of $\C{P}_e^*$.
+  Pick $x_1 \in \CX_1,x_2 \in \CX_2,x_1' \in \CX_1,x_2' \in \CX_2$ with $x_2'=x_2$ if $x_1'=x_1$.
+  Then any response function mechanism $f^*$ satisfying:
+  \begin{align*}
+    (x_c)_1(x_3) &= \begin{cases} x_1 & x_3=0 \\ x_1' & x_3=1 \end{cases} \\
+      (x_c)_2(\tilde{x}_1) &= \begin{cases} x_2 & \tilde{x}_1=x_1 \\ x_2' & \tilde{x}_1=x_1' \\ \text{arbitrary} & \text{otherwise} \end{cases}
+  \end{align*}
+  gives an extreme point of $\C{P}_{IV}$. Indeed, by Lemma~\ref{lem:extreme_points_IV_kernel}, the extreme points of $\C{P}_{IV}$ are:
+  \begin{equation*}\begin{split}
+    & \phantom{{} \cup {}}\{\delta_{x_1,x_2|0} + \delta_{x_1',x_2'|1} : x_1,x_1' \in \CX_1; x_2,x_2' \in \CX_2 : x_1' \ne x_1\} \\
+    & {} \cup \{\delta_{x_1,x_2|0} + \delta_{x_1,x_2|1} : x_1 \in \CX_1, x_2 \in \CX_2\}.
+  \end{split}\end{equation*}
+  Vice versa, for each extreme point of $\C{P}_{IV}$ the above response function mechanism $f^*$ realizes it.
+  % It can be characterized in terms of linear equalities and linear inequalities. 
+  %For example via linear programming, or by applying the Fourier-Motzkin elimination. 
+  %We did this by making use of the PORTA software for the all-binary case ($n_1=n_2=n_3=2$).\footnote{\url{https://porta.zib.de/}}
+  %This gives---besides the trivial (in)equalities that characterize $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$ as a subset of $\RN^{n_1 n_2 n_3}$---precisely the additional inequalities in \eref{eq:instrumental_inequality}.
+\end{proof}
+
+\begin{Lem}\label{lem:extreme_points_IV_kernel}
+  Consider a real $n_1 n_2 n_3$-dimensional vector space $\C{V}$ spanned by basis vectors 
+  $\{\delta_{x_1,x_2|x_3} : x_1 \in \CX_1, x_2 \in \CX_2, x_3 \in \CX_3\}$.
+  For $n_2 = n_3 = 2$ (binary instrument and outcome) and $n_1 \ge 2$ arbitrary, $\C{P}_{IV}$ as defined in \eref{eq:kernels_satisfying_IV}
+  and considered as a subset of $\C{V}$ (by identifying $P(X_1,X_2 \mid X_3)$ with $\sum_{x_1\in\CX_1}\sum_{x_2\in\CX_2}\sum_{x_3\in\CX_3} \delta_{x_1,x_2|x_3} P(X_1=x_1,X_2=x_2 \mid X_3=x_3)$)
+  is a polyhedral set with extreme points
+  \begin{equation*}\begin{split}
+    & \phantom{{} \cup {}}\{\delta_{x_1,x_2|0} + \delta_{x_1',x_2'|1} : x_1,x_1' \in \CX_1; x_2,x_2' \in \CX_2 : x_1' \ne x_1\} \\
+    & {} \cup \{\delta_{x_1,x_2|0} + \delta_{x_1,x_2|1} : x_1 \in \CX_1, x_2 \in \CX_2\}.
+  \end{split}\end{equation*}
+\end{Lem}
+\begin{proof}
+  $\C{P}_{IV}$ is a polyhedral set in $\C{V}$ defined by the linear (in)equalities
+  \begin{align*}
+    \forall x_1\in\CX_1: P(X_1=x_1,X_2=0 \given X_3=0) + P(X_1=x_1,X_2=1 \given X_3=1) &\le 1 \\
+    \forall x_1\in\CX_1: P(X_1=x_1,X_2=0 \given X_3=1) + P(X_1=x_1,X_2=1 \given X_3=0) &\le 1 \\
+    \forall x_1\in\CX_1,x_2\in\CX_2,x_3\in\CX_3: P(X_1=x_1,X_2=x_2 \given X_3=x_3) &\ge 0 \\
+    \forall x_3: \sum_{x_1,x_2} P(X_1=x_1,X_2=x_2 \given X_3=x_3) &= 1
+%    \forall x_3: \sum_{x_1,x_2} P(X_1=x_1,X_2=x_2 \given X_3=x_3) &\le 1 \\
+%    \forall x_3: \sum_{x_1,x_2} P(X_1=x_1,X_2=x_2 \given X_3=x_3) &\ge 1
+  \end{align*}
+%  We can write this in the form $y A \ge c$, with $y$ the vector with elements $P(X_1=x_1,X_2=x_2 \given X_3=x_3)$.
+%  Lemma 13 in (lecture notes \emph{Inleiding Besliskunde}, Potters, 1996) tells us that the point $y$ is an extreme
+%  point in this polyhedral set iff $y$ is in the polyhedral set and in addition $\{A e_j | y A e_j = c_j\}$ span 
+%  the entire vector space. This means that the set of coefficients of those inequalities that are saturated is of full (column?) rank.
+%  (By the way, this Lemma has an almost trivial proof.
+%  Alternatively (perhaps better as a reference):  
+%Thm (Rader p. 243 \emph{Deterministic Operations Research}): x is an extreme point of a polyhedron S iff x is a basic feasible solution (BFS) of S
+%(ie it is feasible and at least dim(x) constraints are active and are linearly independent, i.e., 
+%the corresponding coefficients have full row(?) rank).
+  An elementary result in convex geometry states that a vector $x$ is an extreme point of a polyhedral set $S$ (defined by a set of linear (in)equality constraints) if and only if $x$ is feasible (i.e., $x \in S$) and there exists a subset $A$ of 
+  %at least <--- I think we need exactly n constraints, if there would be more they couldn't be linearly independent!
+  $n$ constraints that are active at $x$ and linearly independent.\footnote{An (in)equality constraint $a^T x \le c$ or $a^T x \ge c$ or $a^T x = c$ is \emph{active at $x$} if $a^T x = c$. A set of constraints (each of the form $a_i^T x \le c_i$ or $a_i^T x \ge c_i$ or $a_i^T x = c_i$ for $a_i \in \C{V}$ and $c_i \in \C{V}$) is called linearly independent if the vectors $\{a_i\}_i$ are linearly independent.}
+
+  Since $n_2=n_3=2$, we have $2n_1$ IV constraints, $4n_1$ nonnegativity constraints, and $2$ normalization constraints.
+  The dimensionality of the vector space is $4n_1$, hence we need at least $4n_1$ constraints out of $6n_1 + 2$ to be active at an extreme point.
+  The two normalization constraints are equality constraints and hence must be active at an extreme point.
+  %Extreme points must be properly normalized, and hence both normalization constraints are active for extreme points.
+  %So the extreme points are those feasible points for which at least $4n_1 - 2$ of the $2n_1 + 4n_1$ inequality constraints are active.
+
+  First, pick $x_1,x_1' \in \CX_1$ with $x_1' \ne x_1$ and pick $x_2,x_2' \in \CX_2$.
+  One can check that the kernel $\delta_{x_1,x_2|0} + \delta_{x_1',x_2'|1}$ satisfies the IV inequalities, and that precisely 2 IV inequalities are active.
+  Also, $4n_1 - 2$ nonnegativity constraints are active.
+  Finally, both normalization constraints are active.
+  %One can check that the active constraints are linearly independent. \Joris{Huh? We have in total $4n_1 + 2$ active constraints, while the dimensionality of the vector space is $4n_1$, so how could this be? We \emph{can} however select a subset of constraints (e.g., both IV inequalities and the $4n_1 - 2$ active nonnegativity constraints, that are all active and linearly independent).}
+  For the subset $A$ of active constraints we can take e.g.\ both active IV inequalities together with the $4n_1 - 2$ active nonnegativity constraints; one can check that these are linearly independent.
+
+  Second, pick $x_1 \in \CX_1$ and $x_2 \in \CX_2$. One can check that the kernel $\delta_{x_1,x_2|0} + \delta_{x_1',x_2'|1}$ with $x_1'=x_1$ and $x_2'=x_2$ satisfies the IV inequalities, and that precisely 2 IV inequalities are active.
+  Also, $4n_1 - 2$ nonnegativity constraints are active.
+  Finally, both normalization constraints are active.
+  %One can check that the active constraints are linearly independent.  \Joris{Same issue here.}
+  For the subset $A$ of active constraints we can take e.g.\ both active IV inequalities together with the $4n_1 - 2$ active nonnegativity constraints; one can check that these are linearly independent.
+
+  Now we check whether these are all the extreme points.
+  Pick a feasible point $y \in \C{V}$.
+  We will refer to the indices $i$ with $y_i \ne 0$ ($y_i = 0$) as the ``non-zero (zero) entries of $y$'', and to the indices $j$ with $a_j \ne 0$ in an active constraint $a^T y = 1$ as the ``active entries of the constraint''. 
+  For a set of entries of $y$ and a set of active entries of one or more active constraints, we refer to their intersection as their ``overlap''.
+  We also call the $y_i$ corresponding to $P(X_1,X_2\given X_3=x_3)$ a ``stratum''.
+
+  Suppose $y$ is an extreme point.
+  Then at least $4n_1 - 2$ of the $2n_1 + 4n_1$ inequality constraints must be active (since both normalization constraints are active).
+  Hence if precisely $r$ IV inequalities are active at $y$, then we need at least $4n_1 - 2 - r$ active nonnegativity constraints at $y$, or in other words, $y$ must have at least $4n_1 - 2 - r$ zero entries.
+  Because both strata of $y$ need to be normalized, $y$ can have at most $4n_1 - 2$ zero entries.
+  The number of zero entries in $y$ that overlap with the active entries of the active IV inequalities is upper bounded by $r$; indeed, otherwise there would be an active IV inequality for which both its active entries are zero entries of $y$, contradicting that this IV inequality is active.
+
+  We will show that the only possibilities for $y$ are the extreme points that we already identified, proceeding case by case.
+  \begin{enumerate}
+    \item $r > 2$.
+      This yields a contradiction with the normalization constraints.
+      Indeed, each entry of $y$ appears in exactly one IV inequality, and each IV inequality contains exactly two active entries (one for each stratum).
+      Hence, the sum of those entries of $y$ that correspond with active entries of active IV constraints must be exactly $r$.
+      However, by the normalization constraints, the sum over \emph{all} entries of $y$ must be 2.
+      This implies that $r \le 2$.
+    \item $r = 2$.
+      Then $y$ must contain at least $4n_1-4$ zero entries, of which at most two can overlap with the active entries of the active IV inequalities.
+      \begin{enumerate}
+        \item If there are no such overlaps, then $y$ must be 0 in all other entries.
+          This means that we need the $4n_1-4$ nonnegativity constraints corresponding to those other entries in $A$, as well as the two normalization and inequality constraints; no other active constraints exist that could be added to $A$.
+          But then the constraints in $A$ would not be linearly independent.
+%          \Joris{Here we should elaborate: what linear dependence do we get?
+%          Two cases: either the two active IV inequalities are:
+%          \begin{align*}
+%            P(X_1=x_1,X_2=0 \given X_3=0) + P(X_1=x_1,X_2=1 \given X_3=1) &= 1 \\
+%            P(X_1=x_1,X_2=0 \given X_3=1) + P(X_1=x_1,X_2=1 \given X_3=0) &= 1
+%          \end{align*}
+%          for some $x_1$, or they are:
+%          \begin{align*}
+%            P(X_1=x_1,X_2=0 \given X_3=0) + P(X_1=x_1,X_2=1 \given X_3=1) &= 1 \\
+%            P(X_1=x_1',X_2=0 \given X_3=1) + P(X_1=x_1',X_2=1 \given X_3=0) &= 1
+%          \end{align*}
+%          for some $x_1 \ne x_1'$. 
+%          From the normalization constraints, in the first case we conclude
+%          \begin{align*}
+%            P(X_1=x_1,X_2=0 \given X_3=0) + P(X_1=x_1,X_2=1 \given X_3=0) &= 1 \\
+%            P(X_1=x_1,X_2=0 \given X_3=1) + P(X_1=x_1,X_2=1 \given X_3=1) &= 1
+%          \end{align*}
+%          There is now a linear dependence: adding the coefficients of the two active IV inequalities yields the same vector as adding the coefficients of the two normalization constraints (where we already subtracted the coefficients corresponding to all active non-negativity constraints).
+%          In the second case, we conclude from the normalization constraints:
+%          \begin{align*}
+%            P(X_1=x_1,X_2=0 \given X_3=0) + P(X_1=x_1',X_2=1 \given X_3=0) &= 1 \\
+%            P(X_1=x_1,X_2=0 \given X_3=1) + P(X_1=x_1',X_2=1 \given X_3=1) &= 1 \\
+%          \end{align*}
+%          There is again a linear dependence: adding the coefficients of the two active IV inequalities yields the same vector as adding the coefficients of the two normalization constraints (where we already subtracted the coefficients corresponding to all active non-negativity constraints).
+%          }
+          Indeed, the following linear dependence between the active constraints is obtained: adding the coefficient vectors of the two active IV inequalities and those of all active non-negativity constraints yields the same result as adding the coefficient vectors of the two normalization constraints.
+          So we arrive at a contradiction.
+        \item 
+          If there is at least one overlap, 
+    %      If exactly two of these overlap, we obtain the extreme points we already found.
+    %      If exactly one of these overlaps, 
+          then $y_j=1$ with $j$ the other active entry in the active IV inequality with the overlap.
+          This implies $2n_1-1$ zeroes in the stratum of $j$. % so in total we have identified $2n_1$ zeroes in $y$.
+          % We need $2n_1-4$ more active constraints. 
+          Consider now the other active IV inequality. 
+          Since $y_j=1$, the active entry corresponding to that stratum must be a zero entry of $y$. 
+          Hence, $y_k=1$ for $k$ the other active entry in this IV inequality.
+          This means that $y$ must be of the form $\delta_{x_1,x_2|0} + \delta_{x_1',x_2'|1}$, with the two non-zero entries corresponding to active entries of two different IV inequalities, and hence we recover the extreme points already identified.
+      \end{enumerate}
+    \item $r = 1$.
+    %  Then we need to pick $4n_1-3$ zero entries corresponding to active nonnegativity constraints. 
+      Then $y$ must contain at least $4n_1-3$ zero entries, of which at most one can overlap with  the active entries of active IV inequalities.
+
+      Because of the normalization constraints, we need at least one non-zero entry in both strata.
+      This means that there must be a stratum $x_3$ with exactly one non-zero entry, and then $y$ must be of the form
+      $y = \delta_{x_1,x_2|x_3} + \gamma \delta_{x_1',x_2'|x_3'} + (1-\gamma) \delta_{x_1'',x_2''|x_3'}$ with $\gamma \in (0,1]$ and $x_3' \ne x_3$.
+      This means that the active IV inequality must be the one that has active entry $(x_1,x_2|x_3)$.
+      Its other active entry is then $(x_1,1-x_2|x_3')$, and this must be an (even the) overlapping zero entry of $y$.
+
+      If $\gamma = 1$ then this would also activate the IV inequality that contains active entry $(x_1',x_2'|x_3')$.
+      Since the only active IV inequality must also contain active entry $(x_1,x_2|x_3)$, this gives a contradiction, as the two coefficients of $y$ at the active entries sum to 2 instead of 1.
+      Hence, $\gamma \in (0,1)$, and $y$ contains exactly $4n_1-3$ zero entries.
+
+      So the active constraints consist of 1 active IV inequality, 2 active normalization constraints and $4n_1-3$ active nonnegativity constraints.
+      However, these are not linearly independent.
+      Indeed: subtracting the coefficient vectors of the $2n_1-1$ nonnegativity constraints in stratum $x_3$ from the coefficient vector of the normalization constraint of that stratum, and adding the coefficient vector of the nonnegativity constraint corresponding to $(x_1,1-x_2|x_3')$ gives a vector that is identical to the coefficient vector of the active IV inequality.
+
+      So we have arrived at a contradiction.
+%      \begin{enumerate}
+%        \item Suppose none of these entries overlaps.
+%          Then we have $4n_1-2$ remaining locations for these zero entries. 
+%          We can pick one nonzero entry that is not an active IV inequality entry.
+%          The normalization constraint implies $y_j=1$ for one of the two active IV inequality entries, and hence $y_k=0$ for the other one. 
+%          Contradiction.
+%        \item Suppose exactly one of these entries overlaps.
+%          We need $2n_1-3$ more active constraints. 
+%          Only two possible non-zero entries for $y$ remain.
+%          In order for the active constraints to span the entire vector space, at least one of these should be a zero entry.
+%          But then $y_j=1$ for the other entry, which activates another IV inequality. 
+%          Contradiction.
+%    \end{enumerate}
+    \item $r = 0$.
+      Then $y$ must contain at least $4n_1-2$ zero entries.
+      Because of the normalization constraints, $y$ needs one non-zero entry in both strata, and its value must be 1.
+      This will activate at least one IV inequality. 
+      Contradiction.
+  \end{enumerate}
+\end{proof}
+
+\Joris{
+  Note: for $n_3=n_1=2$, $n_2=2,\dots,6$ we get 2 equations and $12,24,44,80,148$ inequalities.
+  For $n_3=n_2=2$ and $n_1=2\dots 6$ we get 2 equations and $12,18,24,30,36$ inequalities. 
+  Of the 12 there are 4 non-trivial ones, of the 36 there are 12 non-trivial ones. That is, $2n$ non-trivial inequalities.
+  For $n_1=n_2=2$, $n_3 = 2,\dots,6$ we get $n_3$ equations and $12,48,160,420,many$ inequalities.
+  So this surely starts to look a little intimidating.
+}
+
+\begin{comment}
+Perhaps the causal reduction is helpful here.
+Actually, the only reason that I used the response variable parameterization is because Bonet used it.
+Let's see what the causal reduction does.
+\centerline{\begin{tikzpicture}
+   \begin{scope}[xshift=0cm]
+      \node[ndout] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+%      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (U12) edge (X1);
+      \draw[arout] (U12) edge (X2);
+%      \draw[arout] (U13) edge (X1);
+%      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[yshift=-2cm]
+      \node[ndlat] (W) at (0,0) {$W$};
+      \node[ndout] (X1) at (1,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+%      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (W);
+      \draw[arout] (W) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (U12) edge (W);
+      \draw[arout] (U12) edge (X2);
+%      \draw[arout] (U13) edge (X1);
+%      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[yshift=-4cm]
+      \node[ndlat] (W) at (0,0) {$W$};
+      \node[ndout] (X1) at (1,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+      \node[ndlat] (U12) at (1,1) {$X_b$};
+%      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (W);
+      \draw[arout] (X3) -- (U12);
+      \draw[arout] (W) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (W) edge (U12);
+      \draw[arout] (U12) edge (X2);
+%      \draw[arout] (U13) edge (X1);
+%      \draw[arout] (U13) edge (X3);
+   \end{scope}
+   \begin{scope}[yshift=-6cm]
+      \node[ndlat] (W) at (0,1) {$W$};
+      \node[ndout] (X1) at (1,0) {$X_1$};
+      \node[ndout] (X2) at (2,0) {$X_2$};
+      \node[ndout] (X3) at (-2,0) {$X_3$};
+%      \node[ndlat] (U12) at (1,1) {$X_b$};
+%      \node[ndlat] (U13) at (-1,1) {$X_a$};
+      \draw[arout] (X3) -- (W);
+      \draw[arout,bend right] (X3) edge (X2);
+      \draw[arout] (W) -- (X1);
+      \draw[arout] (X1) edge (X2);
+      \draw[arout] (W) edge (X2);
+%      \draw[arout] (U13) edge (X1);
+%      \draw[arout] (U13) edge (X3);
+   \end{scope}
+\end{tikzpicture}}
+So this is not going to help us.
+\end{comment}
+
+\Joris{
+So that's the secret: if we want to realize $p(00|0) > 0$, we end up realizing either $p(00|1) + p(10|1) + p(11|1) >= p(00|0) > 0$.
+More generally, if we want to realize $p(x_1,x_2|x_3)$, we end up putting equal mass on $p(x_1,x_2|x_3') + \sum_{x_1'\ne x_1} (p(x_1',0|x_3') + p(x_1',1|x_3'))$.
+So the probability mass spent on $p(00|0)$ cannot be spent anymore on $p(01|1)$. That's precisely the first inequality!
+So in words: if it is very likely that males study maths and don't get admitted, then it must be very unlikely that females study maths and get admitted.
+Aha, so we are looking for a combination of one sex having a high probability of studying in a certain domain AND getting cum laude, and the other sex has a high probability of studying in the same domain AND not getting cum laude.
+This implies in particular that we need a domain that is, for both sexes, very likely to get chosen!
+(Interestingly, in the limit that the relative size of this domain goes to 1, this becomes demographic parity.
+So, in a way, the `other' domains add a bit of probabilistic slack aroudn the demographic parity condition:
+the difference in admission rates has to be larger than the probability to choose another domain.)
+}
+
+\Joris{We briefly address how one can use the IV inequalities to test for a direct causal effect of $X_3$ on $X_2$ w.r.t.\ $\{X_1,X_2,X_3\}$.
+Let us assume that the data is generated by a simple SCM $M$ such that $G := G(M) \subseteq G_a$ (or even without the bidirected edge $X_3 \huh X_1$).
+First of all, note that we can have different formulations for the null hypothesis for the absence of such direct causal effect:
+\begin{enumerate}
+  \item $H_0^\infty$ (graphical): $3 \not\in \Pa^G(2)$;
+  \item $H_0^3$ (rung-3 / potential outcome): $\exists x_1, \exists x_3, x_3': P_M(X_2=X_2' \given \doit(X_3=x_3), \doit(X_3'=x_3'), \doit(X_1=X_1'=x_1)) = 1$;
+  \item $H_0^2$ (rung-2): $P_M(X_2 \given \doit(X_1),\doit(X_3)) = P_M(X_2 \given \doit(X_1))$.
+\end{enumerate}
+Then $H_0^\infty \implies H_0^3 \implies H_0^2$, or interpreted as subsets of parameter space, $H_0^\infty \subseteq H_0^3 \subseteq H_0^2$.
+This means that a valid statistical test for $H_0^2$ will also be a valid statistical test for $H_0^3$. 
+Indeed, a critical region $K^2$ provides a valid statistical test for $H_0^2$ if we wrongly reject $H_0^2$ with probability $\le \alpha$ under $H_0^2$: for all $M \in H_0^2$, $P_M(X \in K^2) \le \alpha$.
+This implies that we wrongly reject $H_0^3$ with probability $\le \alpha$ under $H_0^3$: for all $M \in H_0^3$, $P_M(X \in K^2) \le \alpha$.
+
+\fbox{\parbox{0.8\textwidth}{Let $H_0^1 \subseteq H_0^2$. Then a valid statistical test for $H_0^2$ of level $\alpha$ is a valid statistical test for $H_0^1$ of level $\alpha$.}}
+
+Since the variables are discrete, can we show that $H_0^\infty = H_0^3$? 
+Well, since $\CX_3$ is discrete, we have equivalence between (b) and (a) in Theorem~\ref{thm:scm_causes} applied to $M^{[2,3]} = M_{\doit(1)}$.
+%Hence, if we define the graph as in the AOS paper, we also get equivalence between (i) and (ii) in Proposition~\ref{prp:scm_causes}.
+(So this provides us with the equivalence of the pathwise counterfactual fairness condition of Kushner \emph{et al.} and Pearl's in terms of the graph!
+No, wait, Kushner et al's criterion is slightly different than our counterfactual criterion).
+
+The only remaining question would then be what $H_0^2 \sm H_0^3$ is.
+Note that our IV test was a test for $H_0^\infty$ (and apparently coincides with a test for $H_0^3$).
+
+Philip came up with a nice reasoning. 
+Denote by $\C{P}^i := \{ P_M(X_1,X_2 \mid \doit(X_3)) : M \in H_0^i \}$ the spaces of interventional Markov kernels associated to the null hypotheses $H_0^i$.
+Suppose that $\C{P}^2 \sm \C{P}^3$ contains an open set.
+Then, by continuity of the mapping $M \mapsto P_M(X_1,X_2 \mid \doit(X_3))$, $H_0^3 \sm H_0^2$ contains an open set.
+But then $H^3_0 \sm H_0^2$ cannot be meagre, contradicting Philip's genericity result.
+We also worked out a possible measure-theoretic analogue reasoning.
+If the mapping $M \mapsto P_M(X_1,X_2 \mid \doit(X_3))$ has the Lucin N property (that is, it cannot map Lebesgue null sets to Lebesge non-null sets),
+then we have a contradiction with Meek's genericity result.
+Since differentiability implies the Lucin N property, we just have to check differentiability.
+(Ah, wait, the only thing missing is that Meek's result was formulated for CBNs, whereas we need it for SCMs.)
+
+So this looks very promising: we can predict that any set of linear equalaties that we can derive as tight bounds for $H_0^2$ will have to coincide with the IV inequalities.
+However, it also raises the question whether $\C{P}_3 = \C{P}_2$; if we can show this, it is immediately clear that a test is valid for $H_0^\infty$ iff it is valid for $H_0^3$ iff it is valid for $H_0^2$.
+This would be a different situation from the XOR-example, where $\C{P}_3 = \C{P}_2 \sm \{\mathrm{Ber}(1/2)\}$.
+
+I'm not sure if the following is still relevant:
+\begin{quote}
+  $$P : \Theta \to P(D,A||S)$$
+
+$S$ is not a direct rung-2 cause of $A$ (w.r.t. $\{D,A,S\}$) according to $M$ iff $S$ is not a rung-2 cause of $A$ according to $M_{\doit(D)}$.
+
+$$P_M(X_A | \doit(D),\doit(S)) = P_M(X_A | \doit(D),\doit(S=s))$$
+
+If $S \tuh A$ is absent from $G(M)$ then $S$ is not a direct rung-2 cause of $A$ according to $M$.
+If $M_{\doit(D,S)}$ is faithful the converse holds.
+
+  $$A \isPerp_{G_{\doit(D)}} S | D \impliedby X_a \Indep_{P(M_{\doit(D)})} X_S | X_D$$
+           
+so rule out distributions with $X_A$ dependent on $X_S$ given $X_D$ after intervening on $D$.
+Take response-variable encoding. The causal mechanisms encoded are pairs of deterministic
+  functions $\{\CX_{S} \to \CX_{D}\} \times \{\CX_{S,D} \to \CX_{A}\}$.
+
+For $M_{\doit(D,S)}$, we just get the second component of the pair.
+
+Can we relate the response variable encodings (the one without the edge $S \tuh A$ and the one with
+that edge) in an easy way? That is, does the constraint '$S$ is not a direct rung-2 cause of $A$'
+translate into something like 'the extended response variable encoding reduces to the original one'?
+
+  Let $G_e^+$ be the graph $G_e$ with an additional directed edge $3 \tuh 2$.
+    $$\C{M}_e^+ := \{ M \in \C{M} : G(M_{\{1,2\}}) \subseteq G_e^+ \}.$$
+  Let $M = \lt J=\{3\}, V=\{1,2\}, W=\{c\}, \CX, P, f \rt \in \C{M}_e^+$.
+  It induces a function $\Phi_M : \CX_c \to \CX_c^*$ that assigns to each value $x_c \in \CX_c$ the corresponding response function pair in $\CX_c^*$:
+  $$\Phi_M(x_c) = (x_3 \mapsto f_1(x_3, x_c), x_1 \mapsto f_2(x_3, x_1, x_c)).$$
+  The solution function $g^* : \CX_3 \times \CX_c \to \CX_1 \times \CX_2 \times \CX_3$ corresponding to the response function causal mechanism $f^*$ is given by
+  $$g^*(x_3,x_c) = \big((x_c)_1(x_3),\ (x_c)_2(x_3, (x_c)_1(x_3)),\ x_3\big).$$
+  This induces a linear mapping $G^* : \RN^{n_1^{n_3} n_2^{n_3 n_1}} \to \C{V}$ that maps the canonical basis vector $e_{x_c}$ to the vector
+  $$\sum_{x_3 \in \CX_3} e_{g^*(x_3,x_c)}.$$
+  The probability simplex in $\RN^{n_1^{n_3} n_2^{n_3 n_1}}$ (which corresponds with $\C{P}(\CX_c^*)$) is mapped by $G^*$ to a subset of $\C{V}$ (which corresponds with $\Pcal(\CX_3 \dshto \CX_1 \times \CX_2)$).
+  This subset must be a (convex) polyhedral set, as it is the image under a linear mapping of a (convex) polyhedral set.
+\end{quote}
+}

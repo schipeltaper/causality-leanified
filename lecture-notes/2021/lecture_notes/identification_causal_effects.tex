@@ -1,0 +1,164 @@
+\subsubsection{Identifying Causal Effects}
+
+
+\begin{Motivation}
+    Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+For simplicity assume that there are no input variables, i.e.\ $J=\emptyset$.
+Then the joint distribution is ``$\doit$-free'' and given as:
+\[P(X_V,X_U) = \prod_{v \in U\cup V}P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp,   \]
+with observational distribution as its marginal: $P(X_V)$.\\
+We also have all the interventional distributions for $W \ins V$:
+\[P(X_{V \sm W},X_U|\doit(X_W)) = \prod_{v \in U \cup V \sm W}P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})\rp,\]
+with marginals: $P(X_{V\sm W}|\doit(X_W))$.\\
+If we wanted to learn the distribution $P(X_V)$ we could do an observational study and apply the usual statistical or machine learning techniques.
+If, in contrast, we wanted to learn interventional distributions: $P(X_{V\sm W}|\doit(X_W))$ from data, e.g.\ 
+if vaccination makes people immune to a disease,
+we typically would need to perform an interventional study where we intervene on the variables $X_W$ on different values.
+This usually requires expensive, time-consuming randomized control trials with an own comparison group for each possible 
+values of $X_W$.\\
+If we assume that we know the causal graph $G^+$ or $G$ we could try to leverage the rules of do-calculus in a clever way and might be able to go from expressions involving $\doit(W)$ to expressions only involving $\doit(D)$ 
+for a (much) smaller subset $D \ins W$, ideally $D=\emptyset$.\\
+Practically this would mean that we would need a much smaller randomized control trial and save time and resources.\\
+For example, if we have the graph only involving the edge: $v_1 \tuh v_2$ we have that:
+\[ P(X_2|\doit(X_1)) =  P(X_2|X_1), \]
+which can be estimated using observational data only, e.g.\ via supervised learning.\\
+So the question is now: 
+Assuming that the causal graph is known, under which circumstances is a causal effect 
+$P(X_A|\doit(X_B))$ already determined by the observational distribution $P(X_V)$?
+When can causal effects be identified via distributions that have less interventions in them?
+\end{Motivation}
+
+\begin{Not}
+Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+We are interested in estimating the conditional causal effect:
+\[ P(X_A|X_C,\doit(X_B,X_D)), \]
+but we only have data from:
+\[ P(X_V|X_C,\doit(X_D)). \]
+The following index sets will have the following roles:
+\begin{enumerate}
+    \item $A$: the outcome variables of interest.
+    \item $B$: the treatment or intervention variables.
+    \item $C$: general conditional (context) variables under which the data was collected.
+    \item $D$: general interventional (context) variables that were set by the experimenter, $J \ins D$.
+    \item $F_0$: core adjustment variables, i.e.\ features that were measured.
+    \item $F_1$: additional measured adjustment variables.
+    \item $F = F_0 \cup F_1$.
+    \item $H$: additional unobserved variables.
+\end{enumerate}
+
+
+\end{Not}
+
+
+\begin{Thm}[General adjustment formula]
+    \label{thm-gen-adjustment}
+Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+    Assume that all the following conditions hold in the graphs $G^+_{\doit(I_B,D)}$: % $G^+_{\doit(D)}$:
+    \begin{align}
+        (F_0 \cup H) & \Perp^d_{G^+_{\doit(I_B,D)}} I_B \given (C \cup D), \label{eq:adj-1} \\
+%        H & \Perp^d_{G^+_{\doit(I_B,D)}} I_B \given (C \cup D), \label{eq:adj-2} \\
+        A & \Perp^d_{G^+_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup H \cup C \cup D),\label{eq:adj-3} \\
+%        A & \Perp^d_{G^+_{\doit(I_B,D)}} F_1 \given ( B \cup F_0 \cup H \cup C \cup D),\label{eq:adj-4} \\
+                      H &\Perp^d_{G^+_{\doit(I_B,D)}} B \given (F \cup C \cup  I_B \cup D). \label{eq:adj-5} 
+    \end{align}
+Then we have the adjustment formula:
+\[ P(X_A|X_C,\doit(X_B,X_D)) = 
+    P(X_A|X_B,X_C,X_F,\doit(X_D)) \circ P(X_F|X_C,\doit(X_D)) \qquad \text{a.s.}
+\]
+\begin{proof}
+%    By assumption \ref{eq:adj-3}:
+%    \[ A  \Perp^d_{G^+_{\doit(I_B,D)}} (F_1 \cup I_B) \given (B \cup F_0 \cup H \cup C \cup D),\]
+%there is a Markov kernel that simultaneously is a version of:
+%\[P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)),\qquad 
+%P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D)),\]
+%and:
+%\[P(X_A|X_{F_0},X_{F_1},X_H,X_C,X_B,\doit(X_D)).\]
+%We denote it with:
+%\[ P(X_A|X_{F_0},\cancel{X_{F_1}},X_H,X_C,\cancel{\doit}(X_B),\doit(X_D))\]
+    \begin{align}
+ & P(X_A|X_C,\doit(X_B,X_D)) \\
+ &= P(X_A|X_{F_0},X_H,X_C,\doit(X_B,X_D)) \circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D))\\
+ &\stackrel{\ref{eq:adj-3}}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_H|X_C,\doit(X_B,X_D)) \\
+ &\stackrel{\ref{eq:adj-1}}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_H|X_C,\doit(X_D)) \\
+ &\stackrel{}{=}
+ P(X_A|X_{F_0},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_{F_1},X_H|X_C,\doit(X_D)) \\
+ & \stackrel{\ref{eq:adj-3}}{=}
+ P(X_A|X_{F_0},X_{F_1},X_H,X_C,X_B,\doit(X_D))\circ P(X_{F_0},X_{F_1},X_H|X_C,\doit(X_D)) \\
+  & \stackrel{F=F_0\dcup F_1}{=}
+ P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ P(X_F,X_H|X_C,\doit(X_D)) \\
+ & \stackrel{}{=}
+ P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ \lp P(X_H|X_F,X_C,\doit(X_D)) \otimes P(X_F|X_C,\doit(X_D))  \rp \\
+  & \stackrel{\ref{eq:adj-5}}{=}
+ P(X_A|X_F,X_H,X_C,X_B,\doit(X_D))\circ \lp P(X_H|X_F,X_C,X_B,\doit(X_D)) \otimes P(X_F|X_C,\doit(X_D))  \rp \\
+   & \stackrel{}{=}
+ P(X_A|X_F,X_C,X_B,\doit(X_D))\circ  P(X_F|X_C,\doit(X_D)) \\
+    & \stackrel{}{=}
+ P(X_A|X_B,X_F,X_C,\doit(X_D))\circ  P(X_F|X_C,\doit(X_D)).
+    \end{align}
+\end{proof}
+\end{Thm}
+
+
+\begin{Cor}[Conditional backdoor covariate adjustment formula]
+    \label{thm-backdoor-cond-int}
+    Consider an IL-BCN:
+    \[ M = \lp G^+=(J,V,U,E^+),\quad \lp P_v\lp X_v|\doit(X_{\Pa^{G^+}(v)})   \rp\rp_{v\in V \cup U} \rp. \]
+  Assume that the \emph{conditional backdoor criterion} in the graphs $G^+_{\doit(I_B,D)}$ holds:
+\begin{enumerate}
+    \item $\displaystyle F \Perp^d_{G_{\doit(I_B,D)}} I_B  \given (C \cup D)$, and:
+    \item $\displaystyle A \Perp^d_{G_{\doit(I_B,D)}} I_B  \given (B \cup F \cup C \cup D)$.
+\end{enumerate}
+Then we have the adjustment formula:
+\[ P(X_A|X_C,\doit(X_B,X_D)) = 
+    P(X_A|X_B,X_F,X_C,\doit(X_D)) \circ P(X_F|X_C,\doit(X_D)) \qquad \text{a.s.}
+\]
+\begin{proof}
+    It follows directly from theorem \ref{thm-gen-adjustment} by using $F_1=H=\emptyset$.\\
+    We give another proof in more details here anyways.\\
+    By the assumption:
+ \[ A \Perp^d_{G_{\doit(I_B,D)}} I_B  \given (B \cup F \cup C \cup D),\]
+ there exists a Markov kernel that is simultaneously a version of:
+ \[ P(X_A|X_F,X_C, \doit(X_B,X_D)) \qquad\text{and}\qquad P(X_A|X_F,X_C, X_B,\doit(X_D)).\]
+ We denote it by:
+ \[ P(X_A|X_F,X_C, \cancel{\doit}(X_B),\doit(X_D)). \]
+ By assumption:
+ \[F \Perp^d_{G_{\doit(I_B,D)}} I_B  \given (C \cup D),\]
+ there exists a Markov kernel that is simultaneously a version of:
+ \[ P(X_F|X_C, \doit(X_B,X_D)) \qquad\text{and}\qquad P(X_F|X_C,\doit(X_D)).\]
+ We denote it by:
+ \[ P(X_F|X_C,\cancel{\doit(X_B)},\doit(X_D)). \]
+ Then:
+ \[P(X_A|X_F,X_C, \cancel{\doit}(X_B),\doit(X_D)) \circ P(X_F|X_C,\cancel{\doit(X_B)},\doit(X_D)) \]
+ is a version of:
+ \[ P(X_A|X_C,\doit(X_B,X_D)).\]
+\end{proof}
+\end{Cor}
+
+
+\begin{Cor}[Backdoor covariate adjustment]\label{cor:backdoor_adjustment}
+    Let the situation be like in theorem \ref{thm-backdoor-cond-int} with $C=D=J= \emptyset$.
+    Assume that the \emph{backdoor criterion} holds:
+\begin{enumerate}
+    \item $\displaystyle F \Perp^d_{G_{\doit(I_B)}} I_B$, and:
+    \item $\displaystyle A \Perp^d_{G_{\doit(I_B)}} I_B  \given (B \cup F)$.
+\end{enumerate}
+Then we have the adjustment formula:
+\[ P(X_A|\doit(X_B)) = 
+    P(X_A|X_B,X_F) \circ P(X_F) \qquad \text{a.s.}
+\]
+\end{Cor}
+
+\begin{Rem}[Tian's ID algorithm]
+    There exists an algorithm that takes as input the observational CADMG $G$ of an IL-CBN that have densities/mass functions,
+    and sets: $A,B,C \ins J \cup V$.
+    It outputs either an algebraic formula for $P(X_A|X_B,\doit(X_C))$ in terms of conditional marginals 
+    of the observational Markov kernel $P(X_V|\doit(X_J))$ if the above causal effect is identifiable, or: it outputs FAIL 
+    if the above causal effect is not identifiable.
+    The algorithm only uses the do-calculus rules.
+\end{Rem}
+\Joris{Patrick suggested that the scope of this claim may need to be restricted somehow.}

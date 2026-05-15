@@ -1,0 +1,1027 @@
+\title[Causality]{Causality: Lecture 14}
+\author[Joris Mooij]{\\[5mm]\large Joris Mooij \& Patrick Forr\'e\\
+\url{j.m.mooij@uva.nl}, \url{p.d.forre@uva.nl}}
+\institute[UvA]{University of Amsterdam}
+\date[2022-05-09]{\normalsize May 9th, 2022}
+\maketitle
+
+\part{Causal Discovery: Randomized Controlled Trials}
+\frame{\partpage}
+
+\begin{frame}{Randomized Controlled Trials / A-B Testing}
+  Gold standard for causal discovery:
+  \begin{block}{Randomized Controlled Trials}
+  Treatment variable $C$ (e.g.\ binary), outcome variable $X$.
+  Randomize treatment for each patient.
+  Measure data $(C_n,X_n)_{n=1}^N$.
+  If outcome depends significantly on treatment, conclude that treatment causes outcome.
+  \end{block}
+
+  Assumptions:
+  \begin{enumerate}
+    \item Outcome $X$ does not cause treatment $C$;
+    \item Outcome $X$ and treatment $C$ have no common cause.
+  \end{enumerate}
+
+  \bigskip
+  To model this with an SCM, we can model treatment $C$ as an:
+  \begin{enumerate}
+    \item exogenous input variable, or
+    \item exogenous random variable, or
+    \item endogenous variable (e.g., in case of ``imperfect compliance'').
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version I)}
+\begin{Prp}
+Let $M$ be a simple SCM with a single exogenous input variable $C$ and an 
+endogenous variable $X$, both of which are observed (and possibly other latent variables as well).
+%and denote its observed graph as $G := G^{\{C,X\}}(M)$.
+A dependence 
+  $$X \nIndep_{P_{M}(X\mid\doit(C))} C $$
+implies that $C$ causes $X$ according to $M$. 
+\end{Prp}
+\begin{proof}
+  Apply Proposition~\ref{ln-prp:scm_causes_separation}.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version II)}
+\begin{Prp}
+Let $M$ be a simple SCM with an exogenous random variable $C$ and an endogenous 
+variable $X$, both of which are observed (and possibly other latent variables as well).
+A dependence 
+  $X \nIndep_{P_{M}(X,C)} C $
+implies that $C$ causes $X$ according to $M$.
+
+The causal effect of $C$ on $X$ satisfies:
+  $$P_{M}\big(X \given \doit(C)\big) \stackrel{a.s.}{=} P_{M}(X \given C).$$
+\end{Prp}
+\begin{proof}
+Denote the observable graph as $G := G^{\{C,X\}}(M)$.
+It has two nodes, and it either has no edge at all, in which case $C$ does not cause $X$ according to
+$M$, or it has a single edge $C \tuh X$, in which case $C$ causes $X$ according to $M$.
+By the Markov property, if the edge $C \tuh X$ were absent in $G$, 
+then $X \Indep_{P_{M}(X,C)} C$. 
+%Therefore, if $X \nIndep C$, the edge $C \to X$ must be in $\tilde{G}$. 
+In both cases, the causal do-calculus applied to $G$ yields the identity of the two Markov kernels. 
+\end{proof}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version III)}
+\begin{Prp}
+Let $M$ be a simple SCM with two observed endogenous variables $C, X$
+(and possibly other latent variables as well). If:
+  \begin{enumerate}
+    \item $X$ does not cause $C$ according to $M$, and
+    \item $C$ and $X$ do not have a common cause according to $M$,
+  \end{enumerate}
+then a dependence 
+  $$X \nIndep_{P_{M}(X,C)} C$$
+  implies that $C$ causes $X$ according to $M$, and the causal effect of $C$ on $X$ satisfies:
+  $$P_{M}\big(X \given \doit(C)\big) \stackrel{a.s.}{=} P_{M}(X \given C).$$
+\end{Prp}
+\end{frame}
+
+\begin{frame}{Randomized Controlled Trials (version III)}
+\begin{proof}
+Denote the observable graph as $\tilde{G} := G^{\{C,X\}}(\tilde{M})$.
+The first assumption is equivalent to 
+$C \hut X \notin \tilde{G}$, and the second assumption is equivalent to
+$C \huh X \notin \tilde{G}$.
+Hence, out of the eight possible graphs $\tilde{G}$, only two satisfy the assumptions:\\
+  \begin{center}\scalebox{0.8}{\begin{tikzpicture}
+  \begin{scope}
+%    \node at (0,-0.8) {$X \Indep C$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+%    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+  \end{scope}
+  \begin{scope}[xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=4cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=8cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \begin{scope}[yshift=-2cm,xshift=12cm]
+%    \node at (0,-0.8) {$C \nIndep X$};
+    \node[ndout] (C1) at (-1,0) {$C$};
+    \node[ndout] (X1) at (1,0) {$X$};
+    \draw[arout] (C1) edge (X1);
+    \draw[arout,bend left] (X1) edge (C1);
+    \draw[arlat,bend left] (C1) edge (X1);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,-0.5) edge (1,0.5);
+    \draw[red, line width=2mm, fill opacity=.30, draw opacity=.30] (-1,0.5) edge (1,-0.5);
+  \end{scope}
+  \end{tikzpicture}}\end{center}
+By the Markov property, if the edge $C \tuh X$ were absent in $\tilde{G}$, 
+then $X \Indep_{P_{\tilde{M}}(X,C)} C$. 
+In both cases, the causal do-calculus applied to $\tilde{G}$ yields the identity  
+$P_{M}\big(X \given \doit(C)\big) \stackrel{a.s.}{=} P_{M}(X \given C)$.
+\end{proof}
+\end{frame}
+
+\part{Causal Discovery: Faithfulness}
+\frame{\partpage}
+
+\begin{frame}{Faithfulness}
+A simple SCM is called $\sigma$-faithful ($d$-faithful) if each conditional independence in its Markov kernel
+is due to a $\sigma$-separation ($d$-separation).
+\begin{Def}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and observational Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  $M$ is called \emph{$\sigma$-faithful} if 
+  for all $A, B, C \ins J \cup V \cup W$:
+  \begin{equation}\label{eq:sigma_faithful}
+    A \Perp^\sigma_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{equation}
+  It is called \emph{$d$-faithful} if
+  for all $A, B, C \ins J \cup V \cup W$:
+  \begin{equation*}
+    A \Perp^d_{G(M)} B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.
+  \end{equation*}
+%  If one wants to make the implicit dependence on $J$ more explicit one can equivalently also write:
+%  $$A \Perp^\sigma_{G(M)} J \cup B \given C \impliedby X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_J,X_B \given X_C.$$
+  For a subset $O \subseteq V \cup W$, we say that $M$ is \emph{$\sigma$-faithful w.r.t.\ $O$} if
+  \eref{eq:sigma_faithful} holds for all $A, B, C \ins J \cup O$, and define
+  \emph{$d$-faithful w.r.t.\ $O$} analogously.
+\end{Def}
+\end{frame}
+
+\begin{frame}{Faithfulness Violations}
+These definitions behave properly under marginalization:
+\begin{Rem}
+A simple SCM $M$ is $\sigma$/$d$-faithful w.r.t.\ $O$ if and only if
+its marginalization $M_O$ is $\sigma$/$d$-faithful.
+\end{Rem}
+
+\bigskip
+Faithfulness may fail for various reasons:
+\begin{itemize}
+  \item Deterministic relationships may lead to additional conditional independences, but are not exploited by the Markov property;
+  \item Effects may cancel out;
+  \item If cycles are present, and (i) all variables are discrete, or (ii) interactions are linear;
+  \item If cycles are present, and the system is ``perfectly adapting''.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Faithfulness Violation Examples}
+\begin{Eg}[Determinism]
+  Take an SCM with three endogenous variables $X,Y,Z$ and two exogenous random variables $U,W$, with structural equations
+  $$X = 5, \qquad Y = X + U, \qquad Z = X + W.$$
+  Then $Y \nPerp Z$ but $Y \Indep Z$.
+  This simple (even acyclic) SCM is not faithful due to $X$ being constant.
+\end{Eg}
+
+\begin{Eg}[Canceling Effects]
+  Take an SCM with three endogenous variables $X,Y,Z$ and three exogenous random variables $W_X,W_Y,W_Z$, with structural equations
+  $$X = W_X, \qquad Y = X + W_Y, \qquad Z = Y - X + W_Z.$$
+  Then $X \nPerp Z$ but $X \Indep Z$.
+\end{Eg}
+\end{frame}
+
+\begin{frame}{$\sigma$-Faithfulness Violation}
+One can show that in certain special cases, the global Markov property in terms of $d$-separation even holds for simple SCMs.
+\begin{Prp}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M)$
+  and observational Markov kernel $P_{M}(X_V,X_W \given \doit(X_J))$.
+  If $J = \emptyset$ and one of the three conditions applies:
+  \begin{enumerate}
+    \item all spaces $\CX_v$ with $v \in V$ are discrete, or
+    \item the causal mechanism $f$ is affine and the exogenous distribution has a density w.r.t.\ Lebesgue measure, or
+    \item $M$ is acyclic,
+  \end{enumerate} 
+  then for all $A, B, C \ins J \cup V \cup W$:
+  $$A \Perp^d_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+\end{Prp}
+\end{frame}
+
+\part{Causal Discovery: Local Causal Discovery}
+\frame{\partpage}
+
+\begin{frame}{Local Causal Discovery (Cooper, 1997)}
+\begin{Prp}
+  Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3\} \subseteq V$ and no exogenous input variables ($J=\emptyset$).
+  Suppose that it is $\sigma$-faithful (w.r.t.\ $O$). 
+  If $X_2$ is not a cause of $X_1$ according to $M$, 
+%  the following conditional (in)dependencies in the observational distribution $P_{M}(X_1,X_2,X_3)$
+  $$X_1 \nIndep_{P_M} X_2 \quad \land \quad X_2 \nIndep_{P_M} X_3 \quad \land \quad X_1 \Indep_{P_M} X_3 \given X_2$$
+  implies:
+  \begin{enumerate}
+%  \item $X_2$ is a cause of $X_3$;
+  \item $X_3$ is not a cause of $X_2$ according to $M$;
+  \item $X_2$ is a direct cause of $X_3$ w.r.t\ $\{1,2,3\}$ according to $M$;
+  \item $X_2$ and $X_3$ do not have a common cause according to $M$;
+  \item the causal effect of $X_2$ on $X_3$ is $P_{M}\big(X_3 \given \doit(X_2)\big) \stackrel{a.s.}{=} P_{M}(X_3 \given X_2)$;
+  \item the observable graph $G^O(M)$ is one of the following three DMGs:\\[0.5\baselineskip]
+  \scalebox{0.8}{\begin{tikzpicture}
+    \begin{scope}
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[arr] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[biarr,bend left] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+      \node[var] (X1) at (-3,0) {$X_1$};
+      \node[var] (X2) at (-1.5,0) {$X_2$};
+      \node[var] (X3) at (0,0) {$X_3$};
+      \draw[arr] (X1) edge (X2);
+      \draw[biarr,bend left] (X1) edge (X2);
+      \draw[arr] (X2) edge (X3);
+    \end{scope}
+  \end{tikzpicture}}
+  \end{enumerate}
+\end{Prp}
+\end{frame}
+
+\begin{frame}{LCD: Example (Flow Cytometry Data)}
+  \includegraphics[width=0.7\textwidth]{LCD_Psitectorigenin_PIP2_PIP3.pdf}
+\end{frame}
+
+\part{Causal Discovery: Y-Structures}
+\frame{\partpage}
+
+\begin{frame}{Y-structures (Mani, 2006)}
+\begin{Prp}
+  Let $M$ be a simple SCM with observed endogenous variables $O = \{1,2,3,4\} \subseteq V$.
+  Suppose that it is $\sigma$-faithful (w.r.t.\ $O$). 
+  The following conditional (in)dependencies in the observational distribution $P_{M}(X_1,X_2,X_3,X_4)$
+  $$\begin{array}{lll}
+    X_1 \nIndep X_4,  & X_2 \nIndep X_4, & X_1 \Indep X_2, \\
+    X_1 \Indep X_4 \given X_3, & X_2 \Indep X_4 \given X_3, & X_1 \nIndep X_2 \given X_3,
+  \end{array}$$
+  imply that the observable graph $G^O(M)$ must be one of the nine DMGs on the next slide.
+  Hence,
+  \begin{enumerate}
+    \item $X_3$ is a direct cause of $X_4$ w.r.t.\ $\{1,2,3,4\}$ according to $M$;
+    \item $X_3$ and $X_4$ do not have a common cause according to $M$;
+    \item the causal effect of $X_3$ on $X_4$ satisfies:
+    $$P_{M}\big(X_4 \given \doit(X_3)\big) \stackrel{a.s.}{=} P_{M}(X_4 \given X_3).$$
+  \end{enumerate}
+\end{Prp}
+\end{frame}
+
+\begin{frame}{All Possible Y-structures}\centering
+  \scalebox{0.7}{\begin{tikzpicture}
+    \begin{scope}
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+  %    \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-4cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+  %    \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+  %    \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=5cm,yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+  %    \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+    \begin{scope}[xshift=10cm,yshift=-8cm]
+      \node[var] (X1) at (-1,0) {$X_1$};
+      \node[var] (X2) at (1,0) {$X_2$};
+      \node[var] (X3) at (0,-1) {$X_3$};
+      \node[var] (X4) at (0,-2.5) {$X_4$};
+      \draw[arr] (X1) edge (X3);
+      \draw[biarr,bend right] (X1) edge (X3);
+      \draw[arr] (X2) edge (X3);
+      \draw[biarr,bend left] (X2) edge (X3);
+      \draw[arr] (X3) edge (X4);
+    \end{scope}
+\end{tikzpicture}}
+\end{frame}
+
+\begin{frame}{More Causal Discovery Methods}
+  \begin{itemize}
+    \item Typically (as we saw for LCD and Y-structures), the graph cannot be completely identified from purely observational data.
+    \item However, under an appropriate faithfulness assumption, one can deduce the \emph{Markov
+  equivalence class} of the graph from the conditional independences in the observational data, 
+  i.e., the class of all CDMGs that induce the same separations.
+    \item Later, we discuss Fast Causal Inference (FCI), a complete constraint-based causal discovery algorithm,
+      that does this.
+    \item An important disadvantage of causal discovery methods from purely observational data (compared to RCTs) is that
+  they typically need very large sample sizes and strong assumptions in order to work reliably.
+  \end{itemize}
+\end{frame}
+
+\part{Independence Testing}
+\frame{\partpage}
+
+\begin{frame}{Outline}
+How can we test whether\dots
+\begin{itemize}
+  \item \dots two random variables are independent?
+  \item \dots two random variables are conditionally independent given a third?
+  \item \dots a random variable is independent of a non-random variable?
+  \item \dots a random variable is conditionally independent of a non-random variable, given another random variable and another non-random variable?
+\end{itemize}
+
+\bigskip
+We will\dots
+  \begin{itemize}
+    \item \dots only consider the special case of finite categorical variables.
+    \item \dots extend the $G$ test (likelihood ratio test) to the different cases mentioned above.
+    \item \dots state conditions under which the tests are asymptotically valid and consistent.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Frequentist hypothesis testing}
+  We adopt the procedure for hypothesis testing from frequentist statistics:   
+  \begin{itemize}
+    \item Given: statistical model $P(D\given \theta)$ with parameter $\theta \in \Theta$;
+    \item Given: \emph{null hypothesis} $H_0 : \theta \in \Theta_0$
+      (e.g., independence $X \Indep Y$) and \emph{alternative hypothesis} $H_1 : \theta \in \Theta\setminus\Theta_0$ 
+      (e.g., dependence $X \nIndep Y$);
+    \item Propose: \emph{test statistic} $T(D)$, a function of the data $D \sim P(D \mid \theta)$
+      whose value should help to distinguish the two hypotheses (e.g., mutual information $I(X;Y)$ estimator);
+    \item Pick a $p$-value \emph{threshold} $\alpha \in (0,1)$;
+    \item Calculate the observed \emph{$p$-value} $p(d)$ from the observed data $d$
+$$p(d) := \sup_{\theta\in\Theta_0} P(T(D) \ge T(d) \mid \theta)$$
+      (the probability under the null hypothesis that the test statistic has the observed value $T(d)$ or a more extreme value);
+    \item Take a decision:
+      if $p(d) \le \alpha$, there is sufficient evidence to reject $H_0$ and accept $H_1$;
+      if $p(d) > \alpha$, there is insufficient evidence to reject $H_0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tradeoff between Type I and Type II Errors}
+  \begin{itemize}
+    \item The test can result in the following outcomes:
+  \begin{center}\begin{tabular}{l|ll}
+                      & $\theta \in \Theta_0$ & $\theta \in \Theta_1$ \\
+    \hline
+    $p(d) > \alpha$   & OK    & Type II Error \\
+    $p(d) \le \alpha$ & Type I Error & OK 
+  \end{tabular}\end{center}
+    \item A hypothesis test is called \emph{valid at level $\alpha$} if the probability of a Type I error is at most $\alpha$.
+    \item Tradeoff: the smaller $\alpha$, the less likely Type I errors, and the more likely Type II errors are.
+    \item For causal discovery, we typically need both errors to occur with low probability.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Consistency of tests}
+  \begin{Def}
+  A (conditional) independence test is called \emph{consistent} if the probabilities of both Type I and Type II errors converge to 0 as sample size $N \to \infty$, no matter what the true parameter value is.
+  \end{Def}
+
+  To obtain consistency, it is not an option to just control Type I error at a fixed level $\alpha$. 
+  Instead, one has to use a level $\alpha_N$ that depends on the sample size $N$, and 
+    \begin{itemize}
+      \item $\lim_{N\to\infty} \alpha_N = 0$ to guarantee that Type I errors become arbitrarily unlikely;
+      \item the convergence rate of $\alpha_N$ should be sufficiently slow to guarantee that
+        Type II errors also become arbitrarily unlikely.
+    \end{itemize}
+  Note that this approach does not give any finite-sample guarantees, just asymptotically as $N \to \infty$!
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Setup}
+  \begin{block}{Goal}
+    Test marginal independence $X \Indep_{P(X,Y)} Y$ for two categorical random variables $X,Y$.
+    We use the \emph{$G$ test}, a special case of a \emph{likelihood ratio test}.
+  \end{block}
+  \begin{itemize}
+    \item Categorical random variables $X,Y$ taking values in finite spaces $\C{X}$ and $\C{Y}$,
+respectively, with $2 \le |\C{X}| < \infty$ and $2 \le |\C{Y}| < \infty$.
+    \item We can represent the joint distribution $P(X,Y)$ by a table:
+\begin{center}\small\begin{tabular}{c|cccc|c}
+  & $Y=y_1$         & $Y=y_2$ & $\dots$ & $Y=y_l$ \\
+  \hline
+  $X=x_1$ & $\theta_{11}$      & $\theta_{12}$      & $\dots$ & $\theta_{1l}$ & $\theta_{1+}$\\
+  $X=x_2$ & $\theta_{21}$      & $\theta_{22}$      & $\dots$ & $\theta_{2l}$ & $\theta_{2+}$\\
+  $\vdots$ & $\vdots$     & $\vdots$       & $\ddots$ & $\vdots$  & $\vdots$ \\
+  $X=x_k$ & $\theta_{k1}$      & $\theta_{k2}$      & $\dots$ & $\theta_{kl}$ & $\theta_{k+}$ \\
+  \hline
+  & $\theta_{+ 1}$ & $\theta_{+ 2}$ & $\dots$ & $\theta_{+ l}$ & $\theta_{++}=1$\\
+\end{tabular}\end{center}
+where we introduced the parameter $\theta \in \Theta$ by setting $\theta_{xy} = P(X=x,Y=y)$ for
+$x \in \C{X}, y \in \C{Y}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Parameter space}
+  \begin{itemize}
+\item Convention: a ``$+$'' index denotes summation over that index, e.g.,
+$$\theta_{+ y} := \sum_{x\in\C{X}} \theta_{xy}, \qquad \theta_{x+} := \sum_{y\in\C{Y}} \theta_{xy}, \qquad \theta_{++} := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy}.$$
+\item For the parameter space we take the $(|\C{X}||\C{Y}|-1)$-dimensional simplex:
+$$\Theta := \{ \theta \in \prod_{(x,y)\in\C{X}\times\C{Y}} [0,1] : \theta_{+ +} = 1 \}.$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Hypotheses and Data}
+  \begin{itemize}
+    \item We have that:
+  \begin{equation*}\begin{split}
+    X \Indep_{P(X,Y)} Y & \iff P(X,Y) = P(X) \otimes P(Y) \\
+                        & \iff \forall x \in \C{X}, y \in \C{Y}: \theta_{xy} = \theta_{x+} \theta_{+ y}.
+  \end{split}\end{equation*}
+    \item We take as null hypothesis $H_0 : X \Indep Y$, or equivalently, $H_0 : \theta \in \Theta_0$
+      with 
+      $$\Theta_0 := \{\theta \in \Theta : \theta_{xy} = \theta_{x+} \theta_{+ y} \ \forall x\in\C{X},y\in\C{Y} \} \subseteq \Theta.$$
+    \item We take as alternative hypothesis $H_1 : X \nIndep Y$, or equivalently, $H_1 : \theta \in \Theta_1$ with $\Theta_1 := \Theta \setminus \Theta_0$.
+    \item Given independent and identically distributed data $(X_n,Y_n)_{n=1}^N$ with
+      $(X_n,Y_n) \sim P(X,Y \mid \theta)$ for all $n=1,\dots,N$, with the ``true'' parameter $\theta$ unknown,
+      with joint distribution
+      $$P((X_n,Y_n)_{n=1}^N \mid \theta) = \bigotimes_{n=1}^N P(X=X_n,Y=Y_n \mid \theta).$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Counts}
+  \begin{itemize}
+    \item We define the \emph{counts} as the number of observations with a given value $(x,y)\in\C{X}\times\C{Y}$:
+$$N_{xy} := \sum_{n=1}^N \ind_{(x,y)}(X_n,Y_n).$$
+      This is a \emph{sufficient statistic} of the data.
+\item We can represent the counts in a contingency table:
+\begin{center}\small\begin{tabular}{c|cccc|c}
+  & $Y=y_1$         & $Y=y_2$ & $\dots$ & $Y=y_l$ \\
+  \hline
+  $X=x_1$ & $N_{11}$      & $N_{12}$      & $\dots$ & $N_{1l}$ & $N_{1+}$\\
+  $X=x_2$ & $N_{21}$      & $N_{22}$      & $\dots$ & $N_{2l}$ & $N_{2+}$\\
+  $\vdots$ & $\vdots$     & $\vdots$       & $\ddots$ & $\vdots$  & $\vdots$ \\
+  $X=x_k$ & $N_{k1}$      & $N_{k2}$      & $\dots$ & $N_{kl}$ & $N_{k+}$ \\
+  \hline
+  & $N_{+ 1}$ & $N_{+ 2}$ & $\dots$ & $N_{+ l}$ & $N_{++} = N$\\
+\end{tabular}\end{center}
+with the same summation convention.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Maximum Likelihood Estimator}
+  \begin{itemize}
+    \item Likelihood of the data:
+$$P((X_n,Y_n)_{n=1}^N \mid \theta) = \prod_{n=1}^N \theta_{X_nY_n} = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{xy}^{N_{xy}}$$
+    \item This is a multinomial distribution with parameters $(\theta_{xy})_{x\in\C{X},y\in\C{Y}}$ and $N$.
+    \item Maximizing the likelihood with respect to the parameters $\theta \in \Theta$, we obtain the well-known \emph{maximum likelihood (ML) estimator}
+$$\hat \theta_{xy} = \frac{N_{xy}}{N},$$
+i.e., the fractions of the different outcomes in the data.
+  \end{itemize}
+\end{frame}
+ 
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: ML Estimator under $H_0$}
+  \begin{itemize}
+\item Under $H_0$, $\theta_{xy} = \theta_{x+}\theta_{+ y}$, so the likelihood factorizes:
+\begin{equation*}\begin{split}
+  \theta \in \Theta_0 \implies P((X_n,Y_n)_{n=1}^N \mid \theta) 
+  &= \prod_{x\in\C{X}} \prod_{y\in\C{Y}} (\theta_{x+} \theta_{+ y})^{N_{xy}} \\
+  %&= \left(\prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{x+}^{N_{xy}} \right) \left(\prod_{x\in\C{X}} \prod_{y\in\C{Y}} \theta_{+ y}^{N_{xy}}\right) 
+  &= \left(\prod_{x\in\C{X}} \theta_{x+}^{N_{x+}} \right) \left(\prod_{y\in\C{Y}} \theta_{+ y}^{N_{+ y}}\right).
+%  &= P_0((X_n)_{n=1}^N \mid \theta_{0+},\theta_{1+}) P_0((Y_n)_{n=1}^N \mid \theta_{+ 0},\theta_{+ 1})
+\end{split}\end{equation*}
+\item This is just the product of two independent multinomial distributions with (variationally independent) parameters
+$(\theta_{x+})_{x\in\C{X}}$ and $(\theta_{+ y})_{y\in\C{Y}}$ (and $N$), respectively.
+\item Hence, the restricted maximum likelihood estimator under $H_0$ is 
+$$\hat \theta^0_{xy} = \hat \theta^0_{x+} \hat \theta^0_{+ y} = \frac{N_{x+}}{N} \frac{N_{+ y}}{N}.$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Likelihood Ratio}
+  \begin{itemize}
+    \item The \emph{likelihood ratio} is obtained by dividing the likelihood for $\hat \theta$ by the likelihood for $\hat \theta^0$:
+  \begin{equation*}\begin{split}
+  & \frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n)_{n=1}^N \mid \theta)}
+    = \frac{P((X_n,Y_n)_{n=1}^N \mid \hat\theta)}{P((X_n,Y_n)_{n=1}^N \mid \hat\theta^0)} \\
+  & = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{\hat \theta_{xy}}{\hat \theta^0_{x+} \hat \theta^0_{+ y}}\right)^{N_{xy}} 
+    = \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{N_{xy} N}{N_{x+} N_{+ y}}\right)^{N_{xy}}.
+\end{split}\end{equation*}
+\item The likelihood ratio test statistic is defined as 2 times the natural logarithm of this ratio:
+\begin{equation*}
+  G_N %:= 2 \log \frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n)_{n=1}^N \mid \theta)} 
+  = 2 \sum_{x\in\C{X}} \sum_{y\in\C{Y}} N_{xy} \log \frac{N_{xy} N}{N_{x+} N_{+ y}}.
+\end{equation*}
+\item Since counts can be zero, one should interpret $0 \log \frac{0}{0}$ in this expression as $0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Asymptotics under $H_0$}
+The asymptotic behavior of the test statistic under the null hypothesis yields
+an approximation for the $p$-value that can also be used for (large) finite samples.
+%As a simplifying assumption, we will henceforth assume that all probabilities are positive, i.e.,
+%\begin{equation}\label{eq:G_test_regularity}
+%  \theta_{xy} > 0 \qquad \forall x \in \C{X}, y\in \C{Y}.
+%\end{equation}
+\begin{Prp}
+Under $H_0 : X \Indep Y$, and assuming positivity ($\forall x \in \C{X}, y\in \C{Y}: \theta_{xy} > 0$),
+the test statistic $G_N$ converges in distribution to a chi-squared distribution:
+$$G_N \leadsto \chi_\nu^2$$
+with $\nu = (|\C{X}| - 1)(|\C{Y}| - 1)$ degrees of freedom as sample size $N \to \infty$.
+\end{Prp}
+\begin{proof}
+  This is a direct application of the well-known theorem on the asymptotic distribution of the likelihood ratio under standard regularity conditions.
+%This is a direct application of Theorem 4.43 in \cite{Bijma++2017}, for which a proof is provided in Chapter 16 in \cite{Vandervaart1998}.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: $G$ test}
+  \begin{itemize}
+    \item We obtain an approximate level $\alpha$ test by rejecting $H_0$ if $G_N \ge \chi_{\nu,1-\alpha}^2$. 
+    \item Here, $\chi^2_{\nu,1-\alpha} := F_{\chi^2_\nu}^{-1}(1-\alpha)$ is the upper $\alpha$ quantile of the $\chi^2$-distribution with $\nu$ degrees of freedom, with $F_{\chi^2_\nu}$ the corresponding distribution function (cumulative density function) and $F^{-1}_{\chi^2_\nu}$ its inverse (quantile function).
+    \item Indeed, if $\theta \in \Theta_0$, then $P(G_N \ge \chi_{\nu,1-\alpha}^2) \to \alpha$, for any $\alpha \in (0,1)$.
+Since 
+$$G_N \ge \chi_{\nu,1-\alpha}^2 \iff G_N \ge F_{\chi^2_\nu}^{-1}(1-\alpha) \iff 1-F_{\chi^2_\nu}(G_N) \le \alpha,$$
+the corresponding approximate $p$-value is $1 - F_{\chi^2_\nu}(G_N)$; if this is smaller than or equal to the chosen threshold $\alpha$, we reject $H_0$.
+\item This test is called the \emph{$G$-test}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Asymptotics under $H_1$}
+  \begin{itemize}
+    \item Define
+$$\hat I_N := \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \hat \theta_{xy} \log \frac{\hat \theta_{xy}}{\hat \theta_{x+} \hat \theta_{+ y}}
+%    = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \frac{N_{xy}}{N} \log \frac{N_{xy} N}{N_{x +} N_{+ y}}
+    = \frac{G_N}{2N}$$
+where we used that $\hat\theta^0_{x +} = \hat\theta_{x +}$ and $\hat\theta^0_{+ y} = \hat\theta_{+ y}$.
+\item This is the so-called ``plug-in estimator'' $I(\hat\theta)$ of the mutual information $I(X;Y)$:
+\begin{equation*}\begin{split}
+  I(\theta) & := \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy} \log \frac{\theta_{xy}}{\theta_{x +} \theta_{+ y}} \\
+  & = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} P(X=x,Y=y) \log \frac{P(X=x,Y=y)}{P(X=x) P(Y=y)} =: I(X;Y).
+\end{split}\end{equation*}
+\item With Jensen's inequality, one can show that $I(X;Y) \ge 0$, and that $I(X;Y) = 0 \iff X \Indep Y$.
+\item Note that the function $\Theta \to [0,\infty) : \theta \mapsto I(\theta)$ is continuous.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Consistency}
+With this observation, we can prove the asymptotic consistency of the $G$-test under assumptions on the critical values used
+for deciding between $H_0$ and $H_1$. 
+\begin{Cor}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,Y_n)_{n=1}^\infty$ drawn i.i.d.\ from $P(X,Y \given \theta)$, 
+where one accepts $H_1 : X \nIndep Y$ if $G_N \ge \tau_N$, and otherwise accepts $H_0 : X \Indep Y$, 
+for some given sequence of thresholds $\tau_N$.
+Assuming positivity ($\forall x \in \C{X}, y\in \C{Y}: \theta_{xy} > 0$), 
+this sequence of tests is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+\begin{proof}
+See lecture notes (illustrative for maths students, optional for AI students).
+\end{proof}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y)} Y$: Consistency, but not Uniformly}
+  \begin{itemize}
+    \item To achieve asymptotically vanishing Type I and Type II error probabilities, we thus need 
+      to choose the critical values $\tau_N$ such that $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+    \item In terms of $p$-value thresholds $\alpha_N$, this means that for asymptotic consistency we have to let
+       but for consistency we have to let $\alpha_N \to 0$ with a rate such that $\chi^2_{\nu,1-\alpha_N} / N \to 0$.
+    \item While for a finite sample, we can give guarantees (at least approximately) on the Type I error, we cannot
+      provide guarantees on the Type II error without making strong assumptions on the parameters. 
+    \item Indeed, since the mutual information $I(X;Y)$ (a measure of
+the dependence of $X$ and $Y$) can be arbitrarily close to zero for weakly dependent $X$ 
+and $Y$, one cannot know in advance how many samples will be needed to be able to distinguish
+it from an independence.
+    \item This is referred to as the lack of ``uniformly consistent'' (conditional) independence tests.
+  \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Setup}
+  \begin{block}{Goal}
+    Test conditional independence $X \Indep_{P(X,Y,Z)} Y \given Z$ for three categorical random variables $X,Y,Z$.
+    We use the \emph{conditional $G$ test}, another special case of a \emph{likelihood ratio test}.
+  \end{block}
+  \begin{itemize}
+    \item Categorical random variables $X,Y,Z$ taking values in finite spaces $\C{X}$, $\C{Y}$
+and $\C{Z}$, respectively, with $2 \le |\C{X}| < \infty$, $2 \le |\C{Y}| < \infty$ and $1 \le |\C{Z}| < \infty$, and joint distribution $P(X,Y,Z)$.
+    \item We have:
+      \begin{equation*}\begin{split}
+        X \Indep_{P(X,Y,Z)} Y \given Z 
+%        & \iff P(X,Y,Z) = P(X | Z) \otimes P(Y,Z) \\
+        & \iff P(X,Y | Z) = P(X | Z) \otimes P(Y | Z) \quad \text{$P(Z)$-a.s.} \\
+%        & \begin{split}
+%          {} \iff \forall z \in \C{Z}: \big[ & P(Z=z) > 0 \implies \\
+%          & P(X,Y \mid Z=z) = P(X \mid Z=z) P(Y \mid Z=z) \big]
+%        \end{split} \\
+        & \iff \forall z \in \C{Z}: \big[P(Z=z) > 0 \implies X \Indep_{P(X,Y \mid Z=z)} Y \big].
+      \end{split}\end{equation*}
+    \item Reduces to marginal independence test on each ``stratum'' $Z=z$ with $P(Z=z) > 0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Parameterization}
+  \begin{itemize}
+    \item We parameterize the conditional kernel $P(X,Y | Z)$ in terms of parameters
+$(\theta_{xy|z})_{x\in\C{X},y\in\C{Y},z\in\C{Z}}$ which live in space
+$$\Theta_{XY|Z} := %\{ \theta \in \prod_{z\in\C{Z}} [0,1] : \sum_{z\in\C{Z}} \theta_z = 1\} \times
+\{ \theta \in \prod_{x\in\C{X},y\in\C{Y},z\in\C{Z}} [0,1] : \forall_{z\in\C{Z}} \sum_{x\in\C{X},y\in\C{Y}} \theta_{xy|z} = 1\}.$$
+%With the summation convention, we can write the normalization condition as $\theta_{++|z} = 1$ for all $z \in \C{Z}$.
+\item For those $z\in\C{Z}$ with $P(Z = z) > 0$, we have 
+$$\frac{P(X = x, Y = y, Z = z)}{P(Z=z)} = P(X = x, Y = y \mid Z=z) = \theta_{xy|z}.$$
+\item We also parameterize the marginal distribution $P(Z)$ in terms of parameters
+$(\theta_z)_{z\in\C{Z}}$ which live in space
+$$\Theta_Z := \{ \theta \in \prod_{z\in\C{Z}} [0,1] : \sum_{z\in\C{Z}} \theta_z = 1\}.$$
+\item The joint distribution of $X,Y$ and $Z$ can then be parameterized as
+$$P(X=x,Y=y,Z=z \mid \theta) = \theta_z \theta_{xy|z},$$
+with parameter space $\Theta := \Theta_Z\times \Theta_{XY|Z}.$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Hypotheses}
+  \begin{itemize}
+    \item We formulate the null hypothesis $H_0 : X \Indep Y \given Z$ as:
+$$\forall x \in \C{X}, y \in \C{Y}, z \in \C{Z}: \quad \theta_{xy|z} = \theta_{x+|z} \theta_{+ y|z}$$
+    \item Equivalently: $H_0 : \theta \in \Theta_0$ with $\Theta_0 := \Theta_Z \times \Theta_{XY\given Z}^0$ with
+      $$\Theta_{XY|Z}^0 := \{\theta \in \Theta : \theta_{xy|z} = \theta_{x+|z} \theta_{+ y|z}\ \forall x \in \C{X}, y \in \C{Y}, z \in \C{Z}\}.$$
+    \item We take as alternative hypothesis $H_1 : X \nIndep Y \given Z$.
+    \item Equivalently: $H_1 : \theta \in \Theta_1$, where
+$\Theta_1 := \Theta_Z \times \Theta_{XY\given Z}^1$ with $\Theta_{XY\given Z}^1 := \Theta_{XY\given Z} \setminus \Theta_{XY\given Z}^0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Data \& ML Estimators}
+  \begin{itemize}
+    \item Given: independent and identically distributed data $(X_n,Y_n,Z_n)_{n=1}^N$ with
+$(X_n,Y_n,Z_n) \sim P(X,Y,Z \mid \theta)$ for all $n=1,\dots,N$, with the ``true'' parameter $\theta \in \Theta$
+unknown.
+%    \item In other words, we assume for the joint distribution on the observed data
+%$$P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta) = \bigotimes_{n=1}^N P(X=X_n,Y=Y_n,Z=Z_n \mid \theta).$$
+\item We define the \emph{counts} as the number of observations with a given value $(x,y,z)\in\C{X}\times\C{Y}\times\C{Z}$:
+$$N_{xyz} := \sum_{n=1}^N \ind_{(x,y,z)}(X_n,Y_n,Z_n).$$
+
+    \item The ML estimator turns out to be:
+$$\left(\hat \theta_{xy|z},\hat \theta_z\right) = \left(\frac{N_{xyz}}{N_{++ z}},\frac{N_{++ z}}{N}\right).$$
+    \item The restricted maximum likelihood estimator under $H_0$ is:
+$$\left(\hat \theta^0_{xy|z},\hat \theta^0_z\right) = \left(\hat \theta^0_{x+|z} \hat \theta^0_{+ y|z},\hat \theta^0_z\right) = \left(\frac{N_{x+ z} N_{+ y z}}{N_{++ z}^2},\frac{N_{++ z}}{N}\right).$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Likelihood Ratio}
+  \begin{itemize}
+    \item Likelihood ratio (factors involving $P(Z)$ cancel out):
+      \begin{equation*}\begin{split}
+      \frac{\sup_{\theta\in\Theta_0\cup\Theta_1} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)}{\sup_{\theta\in\Theta_0} P((X_n,Y_n,Z_n)_{n=1}^N \mid \theta)}
+        & = \prod_{z\in\C{Z}} \prod_{x\in\C{X}} \prod_{y\in\C{Y}} \left(\frac{N_{xyz} N_{++ z}}{N_{x+ z} N_{+ y z}}\right)^{N_{xyz}}.
+      \end{split}\end{equation*}
+    \item Likelihood ratio test statistic is 2 times the logarithm of this ratio:
+      \begin{equation*}
+      G_N = 2 \sum_{z\in\C{Z}} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} N_{xyz} \log \frac{N_{xyz} N_{+ + z}}{N_{x+ z} N_{+ y z}}.
+      \end{equation*}
+    \item We reject $H_0$ if $G_N$ is sufficiently large.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Asymptotics under $H_0$}
+\begin{Prp}
+Under $H_0 : X \Indep Y \given Z$, and with regularity assumption 
+\begin{equation*}
+  \begin{cases}
+    \theta_z > 0 & \forall z \in \C{Z}, \text{ and}\\
+    \theta_{xy|z} > 0 & \forall x \in \C{X}, y\in \C{Y}, z\in \C{Z},
+  \end{cases}
+\end{equation*}
+the likelihood ratio test statistic $G_N \leadsto \chi_\nu^2$ 
+with $\nu = |\C{Z}|(|\C{X}| - 1)(|\C{Y}| - 1)$ d.o.f.\ as sample size $N \to \infty$.
+\end{Prp}
+\begin{Cor}[Conditional $G$-test]
+  Rejecting $H_0$ when $G_N \ge \chi_{\nu,1-\alpha}^2$ gives an approximate level $\alpha$ test.
+  The corresponding approximate $p$-value is $1-F_{\chi^2_\nu}(G_N)$.
+\end{Cor}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Test Statistic under $H_1$}
+  \begin{itemize}
+    \item Define
+$$\hat I_N := \sum_{z\in\C{Z}} \hat\theta_{z} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \hat \theta_{xy|z} \log \frac{\hat \theta_{xy|z}}{\hat \theta_{x+|z} \hat \theta_{+ y|z}}
+%    = \sum_{x\in\C{X}} \sum_{y\in\C{Y}} \frac{N_{xy}}{N} \log \frac{N_{xy} N}{N_{x +} N_{+ y}}
+    = \frac{G_N}{2N}$$
+where we used that $\hat\theta^0_{x +|z} = \hat\theta_{x +|z}$ and $\hat\theta^0_{+ y|z} = \hat\theta_{+ y|z}$.
+\item This is a plug-in estimator of the \emph{conditional mutual information} $I(X;Y|Z)$:
+\begin{equation*}\begin{split}
+  I(\theta) 
+  & := \sum_{z\in\C{Z}} \theta_z \sum_{x\in\C{X}}\sum_{y\in\C{Y}} \theta_{xy|z} \log \frac{\theta_{xy|z}}{\theta_{x +|z} \theta_{+ y|z}} 
+%  & = \sum_{z\in\C{Z}} \sum_{x\in\C{X}} \sum_{y\in\C{Y}} P(X=x,Y=y,Z=z) \log \frac{P(X=x,Y=y|Z=z)}{P(X=x|Z=z) P(Y=y|Z=z)} \\
+  =: I(X;Y|Z).
+\end{split}\end{equation*}
+\item With Jensen's inequality, one can show that $I(X;Y|Z) \ge 0$, and that $I(X;Y|Z) = 0 \iff X \Indep Y \given Z$.
+\item Note further that the function $\Theta \to [0,\infty) : \theta \mapsto I(\theta)$ is continuous.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{P(X,Y,Z)} Y \given Z$: Consistency}
+  The conditional $G$-test is consistent (under regularity assumptions) for suitable sequences of critical values.
+  \begin{Cor}
+  Consider an infinite sequence of conditional $G$ tests performed on the first $N$ samples of an infinitely large
+  data set $(X_n,Y_n,Z_n)_{n=1}^\infty$ drawn i.i.d.\ from $P(X,Y,Z \given \theta)$,
+  where one accepts $H_1 : X \nIndep Y \given Z$ if $G_N \ge \tau_N$, and otherwise accepts $H_0 : X \Indep Y \given Z$,
+  for some given sequence of thresholds $\tau_N$.
+  Under the regularity assumption 
+\begin{equation*}
+  \begin{cases}
+    \theta_z > 0 & \forall z \in \C{Z}, \text{ and}\\
+    \theta_{xy|z} > 0 & \forall x \in \C{X}, y\in \C{Y}, z\in \C{Z},
+  \end{cases}
+\end{equation*}
+  this sequence is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+  \end{Cor}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Setup}
+  \begin{block}{Goal}
+    Test marginal independence $X \Indep_{K(X|C)} C$ for random variable $X$ and non-random variable $C$.
+    It turns out we can make use of the same $G$!
+  \end{block}
+  \begin{itemize}
+    \item Categorical random variable $X$ and categorical non-random variable $C$ taking values in finite spaces $\C{X}$, $\C{C}$,
+respectively, with $2 \le |\C{X}| < \infty$, $2 \le |\C{C}| < \infty$, and joint kernel $P(X|C)$.
+    \item We have:
+      \begin{equation*}\begin{split}
+        X \Indep_{K(X|C)} C
+        & \iff \exists (Q : \Asterisk \dshto \C{X}) : K(X\mid C) = Q(X) \\
+        & \iff \forall c,c' \in \C{C}: K(X\mid C=c) = K(X\mid C=c') 
+      \end{split}\end{equation*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Parameterization \& Hypotheses}
+  \begin{itemize}
+    \item We parameterize the Markov kernel $K(X | C)$ in terms of parameters
+$(\theta_{x|c})_{x\in\C{X},c\in\C{C}} := K(X = x \mid C = c)$ in a space
+$$\Theta := \{ \theta \in \prod_{x\in\C{X},c\in\C{C}} [0,1] : \forall_{c\in\C{C}} \sum_{x\in\C{X}} \theta_{x|c} = 1\}.$$
+    \item We take as null hypothesis $H_0 : X \Indep C$.
+    \item Equivalently: $H_0 : \theta \in \Theta_0$ with 
+      $$\Theta_0 := \{ \theta \in \Theta : \forall_{x\in\C{X},c\in\C{C},c'\in\C{C}}: \theta_{x|c} = \theta_{x|c'} \}.$$
+    \item We take as alternative hypothesis $H_1 : X \nIndep C$.
+    \item Equivalently: $H_1 : \theta \in \Theta_1$, where 
+      $$\Theta_1 := \Theta \setminus \Theta_0.$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Data}
+  \begin{itemize}
+    \item Given: data $(X_n,c_n)_{n=1}^N$ such that the $X_n$ are conditionally independent and identically distributed given $c_n$ according to $K(X \mid C)$ for all $n=1,\dots,N$.
+    \item Ergo, we assume the data is sampled from the Markov kernel:
+      $$K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N) = \bigotimes_{n=1}^N K(X=x \mid C=c)|_{x=X_n,c=c_n},$$
+with the ``true'' kernel $K(X \mid C)$ unknown.
+    \item \textbf{Note we make no assumption at all how the values of the $c_n$ are chosen!}
+    This extends the possible experimental designs: e.g., randomization in an RCT is not necessarily i.i.d..
+    \item We define the \emph{counts} as the number of observations with a given value $(x,c)\in\C{X}\times\C{C}$:
+      $$N_{x|c} := \sum_{n=1}^N \ind_{(x,c)}(X_n,c_n).$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Maximum Likelihood Estimator}
+  \begin{itemize}
+    \item Conditional likelihood of the data:
+      $$K\big((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta\big)
+      = \prod_{n=1}^N \theta_{X_n|c_n} 
+      = \prod_{x\in\C{X}} \prod_{c\in\C{C}} \theta_{x|c}^{N_{x|c}}$$
+    \item Conditional maximum likelihood estimator:
+      $$\hat \theta_{x|c} = \frac{N_{x|c}}{N_{+|c}},$$
+      (fractions of different outcomes within each subgroup with $C = c$).
+    \item Under $H_0$, we can write $\theta_{x|c} = \theta_{x|\ast}$ for some $\theta_{x|\ast} \in \Theta_0$, 
+      and the likelihood simplifies:
+      $$\theta \in \Theta_0 \implies \prod_{x\in\C{X}} \prod_{c\in\C{C}} \theta_{x|\ast}^{N_{x|c}} = \prod_{x\in\C{X}} \theta_{x|\ast}^{N_{x|+}}.$$
+    \item The maximum likelihood estimator under $H_0$ is then
+$$\hat \theta^0_{x|c} = \frac{N_{x|+}}{N}.$$
+  \end{itemize}
+\end{frame}
+ 
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Likelihood Ratio}
+  \begin{itemize}
+    \item Likelihood ratio:
+\begin{equation*}
+  \frac{\sup_{\theta\in\Theta_0 \cup \Theta_1} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)}{\sup_{\theta\in\Theta_0} K((X_n)_{n=1}^N \mid (c_n)_{n=1}^N, \theta)}
+%= \prod_{x\in\C{X}} \prod_{c\in\C{C}} \left(\frac{\hat \theta_{x|c}}{\hat \theta^0_{x|c}}\right)^{N_{x|c}} 
+= \prod_{x\in\C{X}} \prod_{c\in\C{C}} \left(\frac{N_{x|c}}{N_{+|c}} \frac{N}{N_{x|+}}\right)^{N_{x|c}}.
+\end{equation*}
+    \item Likelihood ratio test statistic is 2 times the logarithm of this ratio:
+$$G_N = 2 \sum_{x\in\C{X}} \sum_{c\in\C{C}} N_{x|c} \log \frac{N_{x|c} N}{N_{x|+} N_{+|c}}.$$
+    \item This is of \emph{exactly} the same form as for testing $X \Indep_{P(X,Y)} Y$ with two random variables $X,Y$!
+    \item We reject $H_0$ if $G_N$ is sufficiently large.
+      Cannot use standard asymptotics for likelihood ratio tests (we have infinitely many ``nuisance parameters'' $c_1,c_2,\dots$).
+    \item In lecture notes, direct asymptotic analysis is provided (perhaps interesting for those interested in asymptotic statistics).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Asymptotics under $H_0$}
+\begin{Prp}
+Assume that $N_{+|c} \to \infty$ for all $c \in \C{C}$.
+Under $H_0 : X \Indep_{K(X \given C)} C$, and with regularity assumption
+$$\theta_{x|c} > 0 \quad\forall x \in \C{X}, c \in \C{C},$$
+the likelihood ratio test statistic $G_N \leadsto \chi_\nu^2$ 
+with $\nu = (|\C{X}| - 1)(|\C{C}| - 1)$ d.o.f.\ as sample size $N \to \infty$.
+\end{Prp}
+\begin{Cor}[Extended $G$-test]
+  Rejecting $H_0$ when $G_N \ge \chi_{\nu,1-\alpha}^2$ gives an approximate level $\alpha$ test.
+  The corresponding approximate $p$-value is $1-F_{\chi^2_\nu}(G_N)$.
+\end{Cor}
+Contains $G$-test asymptotics as special case. 
+
+\end{frame}
+
+\begin{frame}{Testing $X \Indep_{K(X|C)} C$: Consistency}
+  The extended $G$-test is consistent (under regularity assumptions) for suitable sequences of critical values.
+  \begin{Cor}
+  Consider an infinite sequence of extended $G$ tests performed on the first $N$ samples of an infinitely large
+  data set $(X_n,c_n)_{n=1}^\infty$, drawn conditionally i.i.d.\ from $K(X|C,\theta)$,
+  where one accepts $H_1 : X \nIndep C$ if $G_N \ge \tau_N$, and otherwise accepts $H_0 : X \Indep C$,
+  for some given sequence of thresholds $\tau_N$.
+  If:
+    \begin{itemize}
+      \item $\theta_{x|c} > 0$ for all $x \in \C{X}, c \in \C{C}$, and
+      \item there exists $\epsilon > 0$ such that for all $c \in \C{C}$, $N_{+|c} / N \ge \epsilon$ for large $N$,
+    \end{itemize}
+  then this sequence is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+  \end{Cor}
+\begin{block}{Conclusion}
+  Starting from a more general sampling scheme, not treating $C$ as random, we ended up with \emph{exactly the same likelihood ratio test} for testing $X \Indep_{K(X|C)} C$ as for testing $X \Indep_{P(X,Y)} Y$ with $X,Y$ both random. 
+  Consistency holds under reasonable assumptions on asymptotics of $N_{+|c}$.
+\end{block}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{General $G$ Test: Setup}
+  
+  \begin{block}{Goal}
+    Test marginal independence $X \Indep_{K(X,Y,Z,\dots|C)} Y, C \given Z$ for transitional random variables $X,Y,Z$ and input variable $C$.
+  \end{block}
+  \begin{itemize}
+    \item Categorical transitional random variables $X,Y,Z$ and categorical input variable $C$ taking values in finite spaces $\C{X}$, $\C{Y}$, $\C{Z}$, $\C{C}$, respectively, and Markov kernel $K(X,Y,Z|C)$.
+    \item We formulate a statistical test for testing the conditional independence
+      $$H_0 : X \Indep_{K(X,Y,Z,\dots|C)} Y, C \given Z$$
+      against the alternative
+      $$H_1 : X \nIndep_{K(X,Y,Z,\dots|C)} Y, C \given Z.$$
+    \item $H_0$ is equivalent to the existence of a kernel $K(X|Z)$ such that
+      $$K(X,Y,Z \mid C) = K(X \mid Z) \otimes K(Y,Z \mid C).$$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{General $G$ Test: Parameterization \& Test Statistic}
+  \begin{itemize}
+    \item
+Parameterize the kernel $K(X,Y,Z \mid C)$ as
+$$K(X=x,Y=y,Z=z \mid C=c) = \theta_{xyz|c}$$
+with $\theta$ in 
+$$\Theta = \{ \theta \in \prod_{(x,y,z,c) \in \C{X}\times\C{Y}\times\C{Z}\times\C{C}} : \theta_{+++|c} = 1 \ \forall c\in\C{C} \}.$$
+    \item The likelihood ratio test statistic is:
+\begin{equation*}
+  G_N = 2 \sum_{x\in\C{X}}\sum_{y\in\C{Y}}\sum_{z\in\C{Z}}\sum_{c\in\C{C}}
+  N_{xyzc} \log \frac{N_{xyzc} N_{++z+}}{N_{x+z+} N_{+yzc}}.
+\end{equation*}
+      (similar to the one for testing $X \Indep_{P(X,Y,Z)} Y \given Z$).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{General $G$ Test: Validity}
+\begin{Prp}
+  Assume that $N_{+++|c} \to \infty$ for all $c \in \C{C}$.
+  Under $H_0 : X \Indep_{K(X,Y,Z \given C)} Y,C \given Z$, and with regularity assumption
+  $$\theta_{xyz|c} > 0 \quad\forall x \in \C{X}, y \in \C{Y}, z \in \C{Z}, c \in \C{C},$$
+  the likelihood ratio test statistic $G_N \leadsto \chi^2_\nu$ 
+  with $\nu = |\C{Z}|\,(|\C{X}| - 1)(|\C{Y}||\C{C}| - 1)$ d.o.f.\ as sample size $N \to \infty$.
+\end{Prp}
+\begin{Cor}[General $G$-test]
+  Rejecting $H_0$ when $G_N \ge \chi_{\nu,1-\alpha}^2$ gives an approximate level $\alpha$ test.
+  The corresponding approximate $p$-value is $1-F_{\chi^2_\nu}(G_N)$.
+\end{Cor}
+Note: this test contains all earlier settings as special cases.
+\end{frame}
+
+\begin{frame}{General $G$ Test: Consistency}
+\begin{Cor}
+Consider an infinite sequence of $G$ tests performed on the first $N$ samples of an infinitely large
+data set $(X_n,Y_n,Z_n,c_n)_{n=1}^\infty$, sampled conditionally i.i.d.\ from $K(X,Y,Z \given C)$,
+where one decides
+  $$\begin{cases}
+    H_0 : X \Indep_{K(X,Y,Z \given C)} Y,C \given Z     & \text{if $G_N < \tau_N$},\\
+    H_1 : X \nIndep_{K(X,Y,Z \given C)} Y,C \given Z & \text{if $G_N \ge \tau_N$,}
+  \end{cases}$$
+for some given sequence of thresholds $\tau_N$.
+Assume that 
+  \begin{itemize}
+    \item $\forall x \in \C{X}, y \in \C{Y}, z \in \C{Z}, c \in \C{C} : \theta_{xyz|c} > 0$, and
+    \item $\exists \epsilon > 0 \forall c \in \C{C} : N_{+++|c}  > \epsilon N$ for large $N$.
+  \end{itemize}
+Then this sequence of tests is asymptotically consistent if $\tau_N \to \infty$ but $\tau_N / N \to 0$.
+\end{Cor}
+Note: this test contains all earlier settings as special cases.
+\end{frame}

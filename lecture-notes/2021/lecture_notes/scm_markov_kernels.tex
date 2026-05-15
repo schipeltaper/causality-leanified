@@ -1,0 +1,46 @@
+\subsubsection{Markov Kernels from Structural Causal Models}
+
+In this section we will see how Markov kernels appear naturally in the theory of SCMs.
+
+\begin{Def}\label{def:scm_kernels}
+  Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be an SCM with solution
+  $(X_{V\cup W}^{\doit(\xJ)})_{\xJ\in\CXJ}$ (see Definition~\ref{def:scm_solutions}). Then
+%  provides an \emph{observational Markov kernel of $\C{M}$} if the mapping
+  $$K : \Bcal_{\CXV \times \CXW} \times \CXJ \to [0,1], \quad (D,\xJ) \mapsto P((\XV^{\doit(\xJ)},\XW^{\doit(\xJ)})\in D)$$
+  is a Markov kernel $\CXJ \dshto \CXV \times \CXW$. We call it \emph{a Markov kernel of $\C{M}$}, and
+  also write it as $P(X_V,X_W \mid \doit(X_J))$. Note that it may not be unique.
+  %This is the case if for each $D \in \Bcal_{\CXV \times \CXW}$ the mapping:
+  %      \[ \CXJ \to [0,1],\quad \xJ \mapsto P(D|\xJ) \]
+  %is measurable. This is guaranteed to be the case if the random field $(\XV^{\xJ},\XW)_{\xJ\in\CXJ}$ is measurable.
+
+%  We will denote such an observational Markov kernel as
+%  $P(\XV^{\XJ},\XW \mid \XJ)$ or simply as $P(\XV,\XW \mid \XJ)$.
+  If only a subset $O \subseteq V \cup W$ is observed, we also call the marginal Markov kernel
+  $\CXJ \dshto \C{X}_O$, also written as $P_{\C{M}}(X_O \mid \doit(X_J))$, an \emph{(observed) Markov kernel of $\C{M}$}.
+%  When $\XW$ is latent, we will also call its marginal
+%  $P(\XV^{\XJ} \mid \XJ)$ an observational Markov kernel of $\C{M}$.
+%  For a hard intervention with target $T \subseteq \Sin \cup \Send \cup \Srnd$, we will call an
+%  observational Markov kernel of the intervened SCM (of one of the three forms
+%  $\C{M}_{\doit(T)}$ or $\C{M}_{\doit(\XT=\xT)}$ or $\C{M}_{\doit(\XT\sim Q_T)}$) 
+%  an \emph{interventional Markov kernel of $\C{M}$ for that intervention}.
+\end{Def}
+  Note that if an SCM has multiple solutions, it has multiple Markov kernels, and the notation
+  ``$P(X_V,X_W \mid \doit(X_J))$'' is ambiguous since it does not specify which solution the kernel comes
+  from. Later, we will mostly restrict attention to simple SCMs for which the Markov kernel turns out to be unique.
+  We can construct Markov kernels by pushing the exogenous distribution through a solution function.
+\begin{Rem}
+  Given an SCM $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$
+  and a solution function $g : \CXJ \times \CXW \to \CXV$, a Markov kernel of $\C{M}$ is obtained as
+  the push-forward
+  $$P(\XV,\XW \mid \doit(\XJ)) = (g,\id_{\CXW})_* P(\XW \mid \XJ)$$
+  of the Markov kernel
+  $$P(\XW \mid \doit(\XJ)) := \bigotimes_{w\in\Srnd} P(X_w),$$
+  where we interpret the exogenous distribution specified by $\C{M}$ as a constant Markov kernel $\CXJ \dshto \CXW$.
+%
+%  Similarly, interventional Markov kernels can be obtained by pushing forward the exogenous distribution through a solution function of the intervened SCM.
+\end{Rem}
+Again, not all Markov kernels of an SCM can be obtained in this way in case the SCM admits multiple solution functions (see also Example~\ref{eg:not_each_solution_from_push_forward}).
+
+\Joris{TODO: explain this in terms of a sampling algorithm.}
+
+By first intervening on the SCM, constructing a Markov kernel for the intervened SCM, and then conditioning and marginalizing it, the SCM leads to a rich family of Markov kernels that forms a nice playground for causal reasoning, inference, discovery and learning.

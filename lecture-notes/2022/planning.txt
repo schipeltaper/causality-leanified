@@ -1,0 +1,13 @@
+Patrick does first 7 lectures (Markov kernels, causal Bayes nets, Markov property, causal reasoning in Bayes nets)
+Joris does second 7 lectures (SCMs, CI testing, causal discovery)
+
+week 1:	course logistics, experimental causal discovery, recap of measure theoretic notations
+	(This fit into 1.5h lecture (plus a few minutes more).)
+week 2: transition measures, Markov kernels, with definitions, examples, special cases, 5 constructions of Markov kernels
+	(This fit into 1.5h (plus a few minutes more) without proof of existence of conditional Markov kernels, also the whole chapter about Doob-Radon-Nikodym derivatives was left out. The latter topics would require another half to full lecture to be treated properly.)
+week 3: conditional independence
+	(This fits into 1.5h lecture, but no proofs of separoid rules were shown and Reparameterizing Markov kernels was not treated due to time lack, might still fit into next lecture.)
+week 4: reparameterizing Markov kernels (without proof), graph theory (CDMGs, walks, family relationships, then 3 types of interventions, marginalization of CDMGs, all with examples, only some small proofs, fits into 1.5h. But no time for d-separation or sigma-separation yet, needs to be done next time).
+week 5: sigma-separation, d-separation, many examples, (did not properly introduce acylification or any proper proofs with walks/paths, etc), stated the separoid axioms for sigma/d-separation (without proper proofs), causal Bayesian networks, global Markov property (without proof), fits into 1.5h.
+week 6: global Markov property proof (took 50 min), operations on causal Bayesian networks, representation of causal Bayesian networks, (worked well, but proofs only shortly sketched), fits like this into 1.5h.
+week 7: do-calculus, back-door-adjustment, identification of causal effects, ID-algorithm (works in 1.5h)

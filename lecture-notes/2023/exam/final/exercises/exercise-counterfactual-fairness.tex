@@ -1,0 +1,553 @@
+\subsection{Counterfactual fairness}
+\totalscore{29}
+
+%renamed epsilon -> U/u
+%renamed eta -> W/w
+%renamed zeta -> Z/z
+%renamed q -> theta
+%renamed f -> phi
+%renamed g -> psi
+%renamed phi -> \lambda?
+
+In the 1970's, the associate dean of the graduate school of University of California, Berkeley, was afraid that they might get sued for gender discrimination over admission to graduate school.
+In this exercise we will take a look at the data to see how much evidence there is in favor of (or against) the hypothesis that UC Berkeley's admission policy was discriminating against gender.
+
+For simplicity, we consider a caricature of the real data, see Table~\ref{tab:Berkeley_admission_data}.\footnote{We took the data from \url{https://en.wikipedia.org/wiki/Simpson\%27s_paradox}, and chose a subset of two departments for simplicity.}
+Denote the gender of the applicant by $G$ and assume (also for simplicity) that it takes values in $\{f,m\}$.
+Denote the binary indicator of admission to graduate school by $Y$ (so $Y=0$ means not admitted, $Y=1$ means admitted).
+
+The reason that the dean was worried is because the data shows that the (empirical) probability of admission is much lower for female applicants than for male applicants:
+$$35\% \approx P(Y=1 \mid G=f) < P(Y=1 \mid G=m) \approx 53\%.$$
+%\emph{Demographic parity: $P(Y=1 \mid G=f) = P(Y = 1 \mid G=m)$.}
+However, we can also take into account the department $D$ at which the student applied. 
+For simplicity, we consider only two (out of 85) departments, assuming $D \in \{\alpha,\beta\}$ (where $\alpha$ is the literature department and $\beta$ the engineering department).
+When looking at the data for the two departments separately, the empirical admission rates for males and females are comparable and no longer seem to favor male applicants.
+The dean wonders what to make out of these numbers.
+
+%We took $g=0$ to mean female, and $D=0=\alpha$ to mean literature.
+
+\begin{table}[h!]\begin{tabular}{l|rr|rr|rr}
+             & \multicolumn{2}{c|}{Men} & \multicolumn{2}{c|}{Women} & \multicolumn{2}{c}{Total} \\
+  Department & Applicants & Admitted &	Applicants & Admitted & Applicants & Admitted \\
+  \hline
+  $\alpha$ & 325& 120 (37\%) & 593& 202 (34\%) & 918& 322 (35\%) \\ % dept c
+  $\beta$  & 560& 353 (63\%) &  25&  17 (68\%) & 585& 370 (63\%) \\ % dept B
+  \hline
+  Total    & 885& 473 (53\%) & 618& 219 (35\%) &1503& 692 (46\%)
+\end{tabular}
+\caption{UC Berkeley admission data (two out of 85 departments).\label{tab:Berkeley_admission_data}}
+\end{table}
+
+%if we take departments B and D we get Simpson's paradox...
+%it seems that the assumption 'Y indep G | D, D in {B,C}' is satisfied in the data
+
+The dean asks for your help in interpreting the data. You decide to model the situation causally.
+You assume an (acyclic) SCM with observable graph depicted in Figure~\ref{fig:causal_graph_Berkeley_admission_data}.
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+  \begin{scope}
+    \node[ndout] (G) at (0,0) {$G$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (D) at (1,1) {$D$};
+    \draw[arout] (G) to (Y);
+    \draw[arout] (G) to (D);
+    \draw[arout] (D) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{Your proposed observable graph of an SCM for modeling the Berkeley admission data.}
+\label{fig:causal_graph_Berkeley_admission_data}
+\end{figure}
+
+\begin{enumerate}[label=\alph*)]
+  \item Provide the causal interpretation of each edge in the graph in Figure~\ref{fig:causal_graph_Berkeley_admission_data}.
+    Mention at least 3 additional modeling assumptions that you make when assuming that this graph is appropriate to model the admission process.
+    \score{4}
+    \answer{Gender may cause department choice, and the chosen department may influence the probability of being admitted. The edge $G \tuh Y$ indicates that the admission decision can also directly depend on gender.
+    There are various other assumptions, many relating to absent edges, for example: 
+    \begin{itemize}
+      \item there are no latent common causes of any of the variables
+        (e.g., grades could play a role in the admission process, influencing both the department choice and the admission),
+        implying that no bidirected edges are needed;
+      \item gender is exogenous (ruling out $D \tuh G$ and $Y \tuh G$);
+      \item `department choice' is made before admission is decided (ruling out $Y \to D$);
+      \item the students are exchangeable (each student is sampled independenlty from the model).
+    \end{itemize}
+    }
+    \points{1 point for a good causal interpretation (each edge should be mentioned); 1 point for every additional assumption.}
+\end{enumerate}
+
+In the literature on fairness in machine learning, many different measures have been proposed in attempts to formalize our intuitive notions of whether a decision is fair or not.
+The motivation is typically to measure whether an algorithm is making fair decisions, but we can also apply such notions to decisions made by humans.
+%If it helps you, you could imagine that the UC Berkeley admission policy is carried out by an algorithm that gets certain inputs and can make use of a random number generator.
+\begin{enumerate}[resume*]
+  \item Propose a well-defined (mathematical) criterion that you could use to decide \emph{based on the data in Table~\ref{tab:Berkeley_admission_data}} (and modeling assumptions) whether the admission policy discriminates against gender, or not.
+    Motivate why you consider this an appropriate notion of fairness.
+    \score{2}
+    \answer{If the edge $G \to Y$ is absent, the admission process can be considered fair. In other words, if there is no direct causal influence of gender on the admission decision. Since each student can freely choose a department to apply for, the admission process at each department can be considered fair if male and female applicants are treated equally, that is, if the admission decision does not depend on the gender of the applicant. If every department treats applicants fairly, then their union (UC Berkeley) has a fair admission process.}
+    \points{Different answers are possible. 2 points are given for a sensible criterion and convincing motivation, only 1 point if the motivation is lacking, unconvincing or not clearly formulated.}
+\end{enumerate}
+
+A fairness notion that gained some traction in the literature is that of \emph{counterfactual fairness}.\footnote{Kusner, Loftus, Russell \& Silva: Counterfactual Fairness. NeuRIPS 2017}
+For the case at hand, it states that the admission policy is \emph{counterfactually fair} if
+$$P(Y' = 1 \mid \doit(G' = g), G = g, D=d) = P(Y' = 1 \mid \doit(G' = g'), G = g, D=d)$$
+for all values $g,g' \in \{f,m\}$ and $d\in\{\alpha,\beta\}$. 
+Here, the primed variables refer to a counterfactual world, and the unprimed variables refer to the factual world.
+
+In order to work with the counterfactuals, we need to choose a parameterization that is ``large enough'' to accommodate any latent state spaces, and any causal mechanisms, as long as the graph of the SCM is as specified.
+We will make a simplification (justified by the data) to keep the calculations doable: the edge $G \to Y$ is absent (see Figure~\ref{fig:causal_graph_Berkeley_admission_data_simplified}).
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+  \begin{scope}[xshift=5cm]
+    \node[ndout] (G) at (0,0) {$G$};
+    \node[ndout] (Y) at (2,0) {$Y$};
+    \node[ndout] (D) at (1,1) {$D$};
+    \draw[arout] (G) to (D);
+    \draw[arout] (D) to (Y);
+  \end{scope}
+\end{tikzpicture}
+\caption{Simplified observable graph that will be assumed in the rest of the exercise.}
+\label{fig:causal_graph_Berkeley_admission_data_simplified}
+\end{figure}
+\begin{enumerate}[resume*]
+  \item Describe a statistical procedure that allows one to check whether this hypothesis (that the edge $G \to Y$ is absent) is realistic, that is, is compatible with the data. Your description should be detailed enough that one of your peer students can carry out the test based on your description. \score{2}
+  \answer{A conditional independence test can be done to test whether $G \Indep Y \given D$, which is implied by the Markov property applied to the simplified graph in Figure~\ref{fig:causal_graph_Berkeley_admission_data_simplified}.
+  Different tests exist; one that would be appropriate is the $G$ gest for discrete random variables. 
+  The hypothesis would be rejected if the $p$-value is lower than some threshold (e.g.\ 0.05).}
+    \points{1 point for mentioning the right conditional independence, 1 point for describing in sufficient detail a corresponding statistical independence test.}
+\end{enumerate}
+
+We will make use of the following parameterization to obtain bounds for the counterfactual quantity of interest.
+Consider the SCM $M$ with observed endogenous variables $G, D, Y$ and (independent) latent exogenous random variables $Z \in \{f,m\}$, $U \in \{\alpha\alpha,\alpha\beta,\beta\alpha,\beta\beta\}$ and $W \in \{00,01,10,11\}$,
+with structural equations:
+\begin{align*}
+  G &= Z \\
+  D &= \phi_{U}(G) \\
+  Y &= \psi_{W}(D),
+\end{align*}
+where we defined functions $\phi_{\alpha\alpha},\phi_{\alpha\beta},\phi_{\beta\alpha},\phi_{\beta\beta} : \{f,m\} \to \{\alpha,\beta\}$ by:
+  \begin{align*}
+    \phi_{\alpha\alpha} &: f \mapsto \alpha, m \mapsto \alpha;\\
+    \phi_{\alpha\beta}  &: f \mapsto \alpha, m \mapsto \beta;\\
+    \phi_{\beta\alpha}  &: f \mapsto \beta, m \mapsto \alpha;\\
+    \phi_{\beta\beta}   &: f \mapsto \beta, m \mapsto \beta.
+  \end{align*}
+and functions $\psi_{00},\psi_{01},\psi_{10},\psi_{11} : \{\alpha,\beta\} \to \{0,1\}$ by:
+  \begin{align*}
+    \psi_{00} &: \alpha \mapsto 0, \beta \mapsto 0;\\
+    \psi_{01} &: \alpha \mapsto 0, \beta \mapsto 1;\\
+    \psi_{10} &: \alpha \mapsto 1, \beta \mapsto 0;\\
+    \psi_{11} &: \alpha \mapsto 1, \beta \mapsto 1.
+  \end{align*}
+The SCM has parameters $\theta \in [0,1]$ and $\rho, \tau \in\Delta_3$, where 
+$\Delta_3:=\{r=(r_0,r_1,r_2,r_3) \in [0,1]^4 : r_0+r_1+r_2+r_3= 1\}$ is the probability simplex.
+These parameters parameterize the exogenous distribution via the probablity mass function
+$$p(Z=z,U=u,W=w) = (\theta \delta_f(z) + (1-\theta) \delta_m(z)) \cdot \rho_u \cdot \tau_w$$
+(where for convenience we identified $\alpha\alpha \leftrightarrow 00 \leftrightarrow 0, \alpha\beta \leftrightarrow 01 \leftrightarrow 1, \beta\alpha \leftrightarrow 10 \leftrightarrow 2, \beta\beta \leftrightarrow 11 \leftrightarrow 3$).
+
+\begin{enumerate}[resume*]
+  \item Draw the twin graph $G(M^\twin)$ (including the latent variables).
+    \score{2}
+    \answer{
+      \begin{tikzpicture}[scale=1, transform shape]
+          \node[ndout] (G) at (0,0) {$G$};
+          \node[ndout] (Y) at (3,0) {$Y$};
+          \node[ndout] (D) at (1.5,0) {$D$};
+          \node[ndlat] (zeta) at (0,1.5) {$Z$};
+          \node[ndlat] (eps) at (1.5,1.5) {$U$};
+          \node[ndlat] (eta) at (3,1.5) {$W$};
+          \node[ndout] (G') at (0,3) {$G'$};
+          \node[ndout] (Y') at (3,3) {$Y'$};
+          \node[ndout] (D') at (1.5,3) {$D'$};
+          \draw[arout] (G) to (D);
+          \draw[arout] (D) to (Y);
+          \draw[arout] (G') to (D');
+          \draw[arout] (D') to (Y');
+          \draw[arout] (eps) to (D);
+          \draw[arout] (eps) to (D');
+          \draw[arout] (eta) to (Y);
+          \draw[arout] (eta) to (Y');
+          \draw[arout] (zeta) to (G);
+          \draw[arout] (zeta) to (G');
+      \end{tikzpicture}
+    }
+    \points{TODO}
+  \item Write down the structural equations of the twin model $M^\twin$.
+    \score{1}
+    \answer{
+      \begin{align*}
+        G &= Z && G' = Z \\
+        D &= \phi_{U}(G) && D' = \phi_{U}(G') \\
+        Y &= \psi_{W}(D) && Y' = \psi_{W}(D')
+      \end{align*}
+    }
+  \item Consider now the hard intervention $\doit(G'=g')$ that changes $M^\twin$ into $(M^\twin)_{\doit(G'=g')}$. 
+    How does it change the twin graph and the structural equations of the twin model?
+    \score{1}
+    \answer{
+      It removes the edge $Z \tuh G'$ and changes the structural equation for $G'$ into $G' = g'$.
+    }
+  \item Derive a (simplified) expression for $p_{M^\twin}(W=w \mid G=g, D=d)$ in terms of the model parameters.\\
+    \emph{Hint: you can make use of $d$-separation in the twin graph to simplify the calculation.}
+    \score{1}
+    \answer{
+      $$p_{M^\twin}(W=w \mid G=g, D=d) = p_M(W=w) = \tau_w$$
+      since clearly, $W \Perp_{G(M^\twin)} G,D$.
+    }
+  \item Derive that 
+    $$p_{M^\twin}(U=u \mid G=g, D=d) = 
+    \begin{cases}
+      \frac{\rho_{d\alpha}}{\rho_{d\alpha}+\rho_{d\beta}} \delta_{d\alpha}(u) + \frac{\rho_{d\beta}}{\rho_{d\alpha}+\rho_{d\beta}} \delta_{d\beta}(u) & g=f \\
+      \frac{\rho_{\alpha d}}{\rho_{\alpha d}+\rho_{\beta d}} \delta_{\alpha d}(u) + \frac{\rho_{\beta d}}{\rho_{\alpha d}+\rho_{\beta d}} \delta_{\beta d}(u) & g=m.
+    \end{cases}$$
+    \score{1}
+    \answer{
+      $$p_{M^\twin}(U \mid G=f, D=d) = p_M(U \mid U \in \{d\alpha,d\beta\}) = \frac{\rho_{d\alpha}}{\rho_{d\alpha}+\rho_{d\beta}} \delta_{d\alpha}(U) + \frac{\rho_{d\beta}}{\rho_{d\alpha}+\rho_{d\beta}} \delta_{d\beta}(U)$$
+      $$p_{M^\twin}(U \mid G=m, D=d) = p_M(U \mid U \in \{\alpha d,\beta d\}) = \frac{\rho_{\alpha d}}{\rho_{\alpha d}+\rho_{\beta d}} \delta_{\alpha d}(U) + \frac{\rho_{\beta d}}{\rho_{\alpha d}+\rho_{\beta d}} \delta_{\beta d}(U)$$
+    }
+  \item Why is $p_{M^\twin}(U,W \mid G=g, D=d) = p_{M}(U \mid G=g, D=d) p_{M}(W \mid G=g, D=d)$?
+    \score{1}
+    \answer{
+      Because $U \Perp_{G(M^\twin)} W \mid \{G,D\}$.
+    }
+  \item Derive that 
+    $$p_{M^\twin}(Y=1 \mid G=g,D=d) = \tau_{11} + \tau_{10} \delta_\alpha(d) + \tau_{01} \delta_\beta(d).$$
+    \score{1}
+    \answer{
+      First note that $Y \Perp_{G(M^\twin)} G \mid D$, so
+      \begin{equation*}\begin{split}
+        p_{M^\twin}(Y=1 \mid G=g,D=d) 
+        &= p_{M^\twin}(Y=1 \mid D=d) = p_M(Y=1 \mid D=d) \\
+        &= \tau_{11} + \tau_{10} \delta_\alpha(d) + \tau_{01} \delta_\beta(d) 
+        = \begin{cases}
+        \tau_{10} + \tau_{11} & d = \alpha \\
+        \tau_{01} + \tau_{11} & d = \beta
+      \end{cases}
+      \end{split}\end{equation*}
+    }
+%  \item Provide a (simplified) expression $p_{M^\twin}(Y'=1 \mid D'=d')$ in terms of the model parameters.
+%    \emph{Hint: Make use of your answer to the previous question.}
+%    \score{1}
+%    \answer{
+%      $$P_{M^\twin}(Y'=1 \mid D'=d') = P_M(Y=1 \mid D=d) = \begin{cases}
+%        \tau_{10} + \tau_{11} & d' = \alpha \\
+%        \tau_{01} + \tau_{11} & d' = \beta
+%      \end{cases}$$
+%    }
+  \item Show that 
+    $$P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) = P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,G'=f,D'=\alpha).$$
+    \score{1}
+    \answer{First use the second rule of the do-calculus to replace $\doit(G'=f)$ by $G'=f$:
+    $$P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) = P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,G'=f),$$
+    and then note that $G=f, D=\alpha, G'=f$ implies that $D'=\alpha$.}
+  \item Using the previous result, show that 
+    $$P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) = P_{M^\twin}(Y=1 \mid G=f,D=\alpha)$$ and express this in terms of model parameters (and simplify as far as possible).
+%    \emph{Hint: use the chain rule to explicate the latent variables $U, W$.\\
+%      Another hint: The expression can be written in the form $\tau_{10} + \tau_{11}$.}
+    \score{2}
+    \answer{
+      \begin{equation*}\begin{split}
+      P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) 
+        &= P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,G'=f,D'=\alpha)\\
+        &= P_{M^\twin}(Y'=1 \mid G'=f,D'=\alpha)\\
+        &= P_{M}(Y=1 \mid G=f,D=\alpha)\\
+        &= \tau_{10} + \tau_{11}
+      \end{split}\end{equation*}
+%      \begin{equation*}\begin{split}
+%        &P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) \\
+%        &= \sum_{U,W} P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f),U,W) P_{M^\twin}(U,W \mid G=f,D=\alpha,\doit(G'=f)) \\
+%        &= \sum_{U,W} P_{M^\twin}(Y'=1 \mid \doit(G'=f),U,W) P_{M^\twin}(U,W \mid G=f,D=\alpha) \\
+%        &= \sum_{U,W} P_{M^\twin}(\psi_{W}(\phi_{U}(0)) = 1 \mid U,W) P_M(U,W \mid G=f,D=\alpha) \\
+%        &= \sum_{U,W} P_M(Y=1 \mid \doit(G=f),U,W) P_{M}(U,W \mid G=f,D=\alpha) \\
+%        &= \sum_{U,W} P_{M^\twin}(Y=1 \mid G=f,D=\alpha,U,W) P_{M}(U, W \mid G=f,D=\alpha) \\
+%        &= P_{M^\twin}(Y = 1 \mid G=f, D=\alpha) \\
+%        &= \tau_{10} + \tau_{11}
+%      \end{split}\end{equation*}
+    }
+  \item Derive that 
+    $$P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) = \tau_{11} + \tau_{10} \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \tau_{01} \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}.$$
+    \emph{Hint: consider two cases, $D' = \alpha$ and $D' = \beta$, and make use of the chain rule.
+    Make use of results for earlier questions where you can.}
+    \score{3}
+    \answer{
+      \begin{equation*}\begin{split}
+        &P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) \\
+%        &= P_{M^\twin}(Y'=1,D'=\alpha \mid G=f,D=\alpha,\doit(G'=m)) 
+%         + P_{M^\twin}(Y'=1,D'=\beta \mid G=f,D=\alpha,\doit(G'=m)) \\
+        &= \sum_{d'} P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m),D'=d') P_{M^\twin}(D'=d' \mid G=f,D=\alpha,\doit(G'=m))
+      \end{split}\end{equation*}
+      For the first factor, we derive:
+      \begin{equation*}\begin{split}
+        P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m),D'=d')
+        &= P_{M^\twin}(Y'=1 \mid \doit(G'=m),D'=d') \\
+        &= P_{M^\twin}(Y'=1 \mid G'=m,D'=d') \\
+        &= P_{M}(Y=1 \mid D=d') \\
+        &= \tau_{11} + \tau_{10} \delta_\alpha(d') + \tau_{01} \delta_\beta(d').
+      \end{split}\end{equation*}
+      For the second factor, we derive:
+      \begin{equation*}\begin{split}
+        & P_{M^\twin}(D'=d' \mid G=f,D=\alpha,\doit(G'=m)) \\
+        & = P_{M^\twin}(D'=d', U=\alpha d' \mid G=f,D=\alpha,\doit(G'=m)) \\
+        & = P_{M^\twin}(D'=d' \mid G=f,D=\alpha,\doit(G'=m),U=\alpha d') P_{M^\twin}(U=\alpha d' \mid G=f,D=\alpha,\doit(G'=m)) \\
+        & = 1 \cdot P_{M^\twin}(U=\alpha d' \mid G=f,D=\alpha) \\
+        & = \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\alpha\alpha}(\alpha d') + \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\alpha\beta}(\alpha d') \\
+        & = \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\alpha}(d') + \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\beta}(d')
+      \end{split}\end{equation*}
+      Combining everything, we obtain:
+      \begin{equation*}\begin{split}
+        &P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) \\
+        &= \sum_{d'} 
+          \Big( \tau_{11} + \tau_{10} \delta_\alpha(d') + \tau_{01} \delta_\beta(d') \Big)
+          \Big( \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\alpha}(d') + \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha}+\rho_{\alpha\beta}} \delta_{\beta}(d') \Big) \\
+        &= \tau_{11} + \tau_{10} \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \tau_{01} \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}
+      \end{split}\end{equation*}
+%      \begin{equation*}\begin{split}
+%        &P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) \\
+%        &= \sum_{U,W} P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m),U,W) P_{M^\twin}(U,W \mid G=f,D=\alpha,\doit(G'=f)) \\
+%        &= \sum_{U,W} P_{M^\twin}(Y'=1 \mid \doit(G'=m),U,W) P_M(U \mid G=f,D=\alpha) P_M(W) \\
+%        &= \sum_{U,W} \sum_{d'} P_{M^\twin}(Y'=1 \mid \doit(G'=m),D'=d',U,W) P_{M^\twin}(D'=d' \mid \doit(G'=m),U,W) P_M(U \mid G=f,D=\alpha) P_M(W) \\
+%        &= \sum_{U,W} \sum_{d'} P_{M^\twin}(Y'=1 \mid D'=d',W) P_{M^\twin}(D'=d' \mid \doit(G'=m),U) P_M(U \mid G=f,D=\alpha) P_M(W) \\
+%        &= \sum_{d'} \sum_{W} P_{M^\twin}(Y'=1 \mid D'=d',W) P_M(W) \sum_{U} P_{M^\twin}(D'=d' \mid \doit(G'=m),U) P_M(U \mid G=f,D=\alpha) \\
+%        &= \sum_{d'} P_{M^\twin}(Y'=1 \mid D'=d') \sum_{U} P_{M^\twin}(D'=d' \mid \doit(G'=m),U) P_M(U \mid G=f,D=\alpha) \\
+%        &= \sum_{d'} P_M(Y=1 \mid D=d') \sum_{U \in \{\alpha\alpha,\alpha\beta\}} P_M(\phi_U(m)=d' \mid U) p_M(U \mid G=f,D=\alpha)  \\
+%        &= \sum_{d'} P_M(Y=1 \mid D=d') \left( \delta_\alpha(d') \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \delta_\beta(d') \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} \right)\\
+%        &= \sum_{d'} (\tau_{11} + \tau_{10} \delta_\alpha(d') + \tau_{01} \delta_\beta(d')) \left( \delta_\alpha(d') \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \delta_\beta(d') \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} \right)\\
+%        &= (\tau_{11} + \tau_{10}) \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + (\tau_{11} + \tau_{01}) \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}\\
+%        &= \tau_{11} + \tau_{10} \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \tau_{01} \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}\\
+%      \end{split}\end{equation*}
+    }
+\end{enumerate}
+
+The quantity 
+  $$ \lambda := P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) - P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)), $$
+is a measure of the counterfactual unfairness experienced by a female that applied to department $\alpha$. 
+We will derive a bound for $\lambda$.
+
+We make use of the shorthand notation $p_{d|g} := P_M(D=d \mid G=g)$.
+\begin{enumerate}[resume*]
+  \item 
+    Derive the following bound:
+    $$L \le \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} \le U$$
+    where
+    $$L := \frac{p_{\alpha|f} - \min(p_{\alpha|f},p_{\alpha|m})}{p_{\alpha|f}}$$
+    and
+    $$U := \frac{\min(p_{\alpha|f},p_{\beta|m})}{p_{\alpha|f}}.$$
+    \emph{Hint: first express the conditional distribution $P_M(D=d \mid G=g)$ in terms of the model parameters.}
+%$$\frac{p_{\alpha|f} - \min(p_{\alpha|f},p_{\alpha|m})}{p_{\alpha|f}} \le \frac{\rho_{\alpha\beta}}{p_{\alpha|f}} \le \frac{\min(p_{\alpha|f},p_{\beta|m})}{p_{\alpha|f}}$$
+    \score{3}
+    \answer{
+       We can bound the quantity
+       $$\frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}$$
+       by using that $P_M(D=d \mid G=g) = p_{d|g}$ is given by
+        \begin{center}\begin{tabular}{ccl}
+          $d$ & $g$ & $p_{d \mid g}$ \\
+          \hline
+          $\alpha$ & $f$ & $\rho_{\alpha\alpha} + \rho_{\alpha\beta}$ \\
+          $\beta$  & $f$ & $\rho_{\beta\alpha} + \rho_{\beta\beta}$ \\
+          $\alpha$ & $m$ & $\rho_{\alpha\alpha} + \rho_{\beta\alpha}$ \\
+          $\beta$  & $m$ & $\rho_{\alpha\beta} + \rho_{\beta\beta}$ \\
+        \end{tabular}\end{center}
+       By the non-negativity of the components of $\rho$, this implies:
+       $$\rho_{\alpha\beta} \le \min(p_{\alpha|f},p_{\beta|m})$$
+       We also find:
+       $$p_{\alpha|f} - \rho_{\alpha\beta} = \rho_{\alpha\alpha} \le \min (p_{\alpha|f},p_{\alpha|m})$$
+       and hence:
+       $$p_{\alpha|f} - \min(p_{\alpha|f},p_{\alpha|m}) \le \rho_{\alpha\beta} \le \min(p_{\alpha|f},p_{\beta|m})$$
+%       \emph{NOTE: another similar lower bound can also be derived:
+%       $$p_{\beta|m} - \min(p_{\beta|f},p_{\beta|m}) \le \rho_{\alpha\beta}$$
+%       or rewritten:
+%       $$-p_{\alpha|m} + \max(p_{\alpha|f},p_{\alpha|m}) \le \rho_{\alpha\beta}$$
+%       But this one is equivalent to the lower bound we already have.}
+       The desired bound now follows by dividing through $p_{\alpha|f}$.
+    }
+    \points{TODO}
+  \item Using this partial result, derive the following bound for $\lambda$:
+    $$\mu L \le \lambda \le \mu U$$
+    with
+    $$\mu := P_M(Y=1 \mid D=\beta) - P_M(Y=1 \mid D=\alpha).$$
+    \score{2}
+    \answer{
+      \begin{equation*}\begin{split}
+        & \lambda := P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=m)) - P_{M^\twin}(Y'=1 \mid G=f,D=\alpha,\doit(G'=f)) \\
+        & = \left( \tau_{11} + \tau_{10} \frac{\rho_{\alpha\alpha}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} + \tau_{01} \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}} \right) - (\tau_{10} + \tau_{11}) \\
+        & = (\tau_{01} - \tau_{10}) \frac{\rho_{\alpha\beta}}{\rho_{\alpha\alpha} + \rho_{\alpha\beta}}
+      \end{split}\end{equation*}
+      Now note that 
+       $$\tau_{01} - \tau_{10} = P_M(Y=1 \mid D=\beta) - P_M(Y=1 \mid D=\alpha)$$
+       Combining this with the bound in the previous question yields the desired bound for $\lambda$.
+       }
+       \points{TODO}
+\end{enumerate}
+Evaluating the bound with the actual data, we obtain $L \approx 0.62$, $U \approx 0.66$ and 
+$\mu \approx 63\% - 35\% = 28\%$, and therefore
+$$17\% < \lambda < 19\%,$$
+%(which is just a small margin around the demographic unparity $P(Y=1 \mid G=m) - P(Y=1\mid G=f) \approx 18\%$).
+\begin{enumerate}[resume*]
+  \item If you were the dean, what would be your conclusion in this case? Motivate it.
+    \score{2}
+    \answer{The dean concludes:
+    ``Apparently the admission process is counterfactually unfair.
+    But it is not clear to me why counterfactual fairness would be the appropriate notion here.
+    A more understandable and intuitive notion, in my opinion, is that of ``conditional demographic parity'', i.e.,
+    $$P(Y=1 \mid G=f,D=d) = P(Y=1 \mid G=m,D=d)$$
+    for all departments $d$. This can easily be tested in the data using a conditional independence test for $Y \Indep G \mid D$.
+    Running this test on the available data leads me to conclude that there is no statistically significant evidence that the admission process is discriminating against gender. Indeed, the data does not rule out that the admission decisions were made completely randomly, but with a success probability that depends only on the size of the department and the number of applicants for that department.''\\
+    (Other answers are also possible.)}
+    \points{1 point for a sensible conclusion, 1 point for a convincing motivation.}
+\end{enumerate}
+
+\answer{Bonus question: generalize the above to allow for multiple departments $D \in \C{D} = \{\alpha,\beta,\gamma,\cdots\}$.
+We then get $\C{U} = \C{D}^2$ and $\C{W} = \{0,1\}^\C{D}$.
+
+\centerline{\begin{tabular}{l|rr|rr|rr}
+  Department & \multicolumn{2}{c|}{All} & \multicolumn{2}{c|}{Men} & \multicolumn{2}{c}{Women} \\
+  & Applicants & Admitted &	Applicants & Admitted & Applicants & Admitted \\
+  \hline
+  A& 933& 601 (64\%) & 825& 512 (62\%) & 108&  89 (82\%) \\
+  B& 585& 370 (63\%) & 560& 353 (63\%) &  25&  17 (68\%) \\
+  C& 918& 322 (35\%) & 325& 120 (37\%) & 593& 202 (34\%) \\
+  D& 792& 269 (34\%) & 417& 138 (33\%) & 375& 131 (35\%) \\
+  E& 584& 147 (25\%) & 191&  53 (28\%) & 393&  94 (24\%) \\
+  F& 714&  46 (\phantom{0}6\%)  & 373&  22 (\phantom{0}6\%)  & 341&  24 (\phantom{0}7\%) \\
+  \hline
+  Total& 4526& 1755 (39\%)&   2691& 1198 (45\%) & 1835& 557 (30\%)
+\end{tabular}}
+
+Then still
+$$p_M(W=w \mid G=g, D=d) = p_M(W=w) = \tau_w.$$
+We get
+\begin{equation}\label{eq:CUF1}
+  p_M(U=u \mid G=g, D=d) = 
+    \begin{cases}
+      \sum_{d' \in \C{D}} \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} \delta_{d d'}(u) & g=f \\
+      \sum_{d' \in \C{D}} \frac{\rho_{d' d}}{\sum_{\bar{d} \in \C{D}} \rho_{\bar{d}d}} \delta_{d' d}(u) & g=m.
+    \end{cases}
+\end{equation}
+Another way to write this is:
+$$p_M(U=[g \mapsto d,g' \mapsto d'] \mid G=g, D=d) = 
+    \begin{cases}
+      \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} & g=f \\
+      \frac{\rho_{d' d}}{\sum_{\bar{d} \in \C{D}} \rho_{\bar{d}d}} & g=m.
+    \end{cases} \qquad (g' \ne g)$$
+We also get
+  \begin{equation}\label{eq:CUF2}
+    p_M(Y=1 \mid D=d) = \sum_{w\in \C{W}} w_d \tau_w.
+  \end{equation}
+We still get
+\begin{equation*}\begin{split}
+    P_{M^\twin}(Y'=1 \mid G=g,D=d,\doit(G'=g)) 
+      &= P_{M^\twin}(Y'=1 \mid G=g,D=d,G'=g,D'=d) \\
+      &= P_M(Y=1 \mid D=d).
+\end{split}\end{equation*}
+We still have:
+      \begin{equation*}\begin{split}
+        &P_{M^\twin}(Y'=1 \mid G=g,D=d,\doit(G'=g')) \\
+        &= \sum_{d'} P_{M^\twin}(Y'=1 \mid G=g,D=d,\doit(G'=g'),D'=d') P_{M^\twin}(D'=d' \mid G=g,D=d,\doit(G'=g'))
+      \end{split}\end{equation*}
+For the first factor, we derive:
+  \begin{equation*}\begin{split}
+    P_{M^\twin}(Y'=1 \mid G=g,D=d,\doit(G'=g'),D'=d')
+    &= P_{M^\twin}(Y'=1 \mid \doit(G'=g'),D'=d') \\
+    &= P_{M^\twin}(Y'=1 \mid G'=g',D'=d') \\
+    &= P_{M}(Y=1 \mid D=d')
+  \end{split}\end{equation*}
+For the second factor, we derive:
+  \begin{equation*}\begin{split}
+    & P_{M^\twin}(D'=d' \mid G=g,D=d,\doit(G'=g')) \\
+    & = P_{M^\twin}(D'=d', U=[g \mapsto d,g' \mapsto d'] \mid G=g,D=d,\doit(G'=g')) \\
+    & = P_{M^\twin}(D'=d' \mid G=g,D=d,\doit(G'=g'),U=[g \mapsto d,g' \mapsto d']) P_{M^\twin}(U=[g \mapsto d,g' \mapsto d'] \mid G=g,D=d,\doit(G'=g')) \\
+    & = 1 \cdot P_M(U=[g \mapsto d,g' \mapsto d'] \mid G=g,D=d) \\
+    & = P_M(U=[g \mapsto d,g' \mapsto d'] \mid G=g,D=d)
+  \end{split}\end{equation*}
+Combining everything for the case $g=f,g'=m$, substituting \eref{eq:CUF1} and \eref{eq:CUF2}, we obtain:
+      \begin{equation*}\begin{split}
+        &P_{M^\twin}(Y'=1 \mid G=g=f,D=d,\doit(G'=g'=m)) \\
+        &= \sum_{d'} p_M(Y=1 \mid D=d') P_M(U=[g \mapsto d,g' \mapsto d'] \mid G=g=f,D=d) \\
+        &= \sum_{d'} \left(\sum_{w\in \C{W}} w_{d'} \tau_w\right) \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}}
+      \end{split}\end{equation*}
+If we leave the first factor in the clearly identified form and bound $\rho_{d,d'}$, we get a very loose bound.
+The following works better:
+\begin{equation*}\begin{split}
+  \lambda &:= P_{M^\twin}(Y'=1 \mid G=g=f,D=d,\doit(G'=g'=m)) - 
+             P_{M^\twin}(Y'=1 \mid G=g=f,D=d,\doit(G'=g=f)) \\
+          & = \sum_{d'} \left(\sum_{w\in \C{W}} w_{d'} \tau_w\right) \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} - 
+            \sum_{w\in \C{W}} w_d \tau_w \\
+          & = \sum_{w\in \C{W}} \left( \sum_{d'} w_{d'} \tau_w \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} - w_d \tau_w \right) \\
+          & = \sum_{w\in \C{W}} \left( \sum_{d'} w_{d'} \tau_w \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} - \sum_{d'} w_d \tau_w \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} \right) \\
+          & = \sum_{w\in \C{W}} \sum_{d'} (w_{d'} - w_d) \tau_w \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}}  \\
+          & = \sum_{d'\ne d} \left(\sum_{w\in \C{W}} w_{d'} \tau_w - \sum_{w\in \C{W}} w_d \tau_w\right) \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} \\
+          & = \sum_{d'\ne d} \big(p_M(Y=1 \mid D=d') - p_M(Y=1 \mid D=d)\big) \frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}}  
+\end{split}\end{equation*}
+
+We again make use of the shorthand notation $p_{d|g} := P_M(D=d \mid G=g)$.
+We now bound
+$$\frac{\rho_{d d'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}}$$
+instead of the special case $d=\alpha,d'=\beta$.
+Note that 
+$$P_M(D=d \mid G=g) = p_{d|g} = \begin{cases}
+  \sum_{\bar{d} \in \C{D}} \rho_{d \bar{d}} & g=f \\
+  \sum_{\bar{d} \in \C{D}} \rho_{\bar{d} d} & g=m.
+\end{cases}$$
+As an example, consider:
+        \begin{center}\begin{tabular}{ccl}
+          $d$ & $g$ & $p_{d \mid g}$ \\
+          \hline
+          $\alpha$ & $f$ & $\rho_{\alpha\alpha} + \rho_{\alpha\beta} + \rho_{\alpha\gamma}$ \\
+          $\beta$  & $f$ & $\rho_{\beta\alpha} + \rho_{\beta\beta} + \rho_{\beta\gamma}$ \\
+          $\gamma$ & $f$ & $\rho_{\gamma\alpha} + \rho_{\gamma\beta} + \rho_{\gamma\gamma}$ \\
+          $\alpha$ & $m$ & $\rho_{\alpha\alpha} + \rho_{\beta\alpha} + \rho_{\gamma\alpha}$ \\
+          $\beta$  & $m$ & $\rho_{\alpha\beta} + \rho_{\beta\beta} + \rho_{\gamma\beta}$ \\
+          $\gamma$ & $m$ & $\rho_{\alpha\gamma} + \rho_{\beta\gamma} + \rho_{\gamma\gamma}$ 
+        \end{tabular}\end{center}
+By the non-negativity of the components of $\rho$, this implies:
+  $$\rho_{d d'} \le \min \{p_{d|f}, p_{d'|m}\}$$
+Hence
+  $$p_{d|f} - \rho_{d d'} = \sum_{\bar{d} \ne d'} \rho_{d\bar{d}} \le \sum_{\bar{d} \ne d'} \min (p_{d|f},p_{\bar{d}|m})$$
+and therefore:
+  $$p_{d|f} - \sum_{\bar{d} \ne d'} \min(p_{d|f},p_{\bar{d}|m}) \le \rho_{dd'} \le \min(p_{d|f},p_{d'|m})$$
+Dividing through $p_{d|f}$ gives:
+  $$\frac{p_{d|f} - \sum_{\bar{d} \ne d'} \min(p_{d|f},p_{\bar{d}|m})}{p_{d|f}} \le \frac{\rho_{dd'}}{\sum_{\bar{d} \in \C{D}} \rho_{d\bar{d}}} \le \frac{\min(p_{d|f},p_{d'|m})}{p_{d|f}}.$$
+Empirically, it appears that the upper bound is tight but the lower bound is very loose (a linear program yields a much tighter lower bound).
+
+The paper ``Counterfactual Fairness: Unidentification, Bound and Algorithm'' by
+Wu, Zhang and Wu also derives bounds. This is a dictionary for the notation:
+
+\centerline{\begin{tabular}{ll}
+  Bounds paper: & Our notation: \\
+  $S$           & $G$ \\
+  $Z$           & $\{D\}$ \\
+  $X$           & $\{D\}$ \\
+  $A$           & $\emptyset$ \\
+  $B$           & $\{D\}$ \\
+  $C$           & $\emptyset$ \\
+  $M$           & $\{D\}$ \\
+  $N$           & $\emptyset$
+\end{tabular}}
+
+Their bounds (4,5) translate into:
+$$P(Y' \mid g, d, \doit(g')) \le \frac{P(g,d) \max_{d'} P(Y' \mid g',d')}{P(g,d)} = \max_{d'} P(Y' \mid g',d')$$ 
+$$P(Y' \mid g, d, \doit(g')) \ge \frac{P(g,d) \min_{d'} P(Y' \mid g',d')}{P(g,d)} = \min_{d'} P(Y' \mid g',d')$$ 
+These are too loose to be of use in the case considered in this exam exercise.
+
+Some more discussion:
+\begin{itemize}
+  \item
+More generally, with such parameterization where $Y = \phi_U(X)$, we are interested in 
+$\{U : \phi_U(X) = Y\}$ which is the inverse image under $U \mapsto \phi_U(X)$ of $\{Y\}$ for fixed $X$.
+  \item
+If we extend the analysis to have $Y = \psi_W(D,G)$ then we get 16 possible $g$ functions to consider!
+\item
+The bound shows that if there is no edge $G \tuh Y$, then counterfactual fairness is guaranteed only (still to check whether bound is tight) if all departments have the same (overall) admission rate. This seems far too strong.
+\item If we applied counterfactual fairness without conditioning on $D$ then we would obtain the criterion that
+  $$P(Y'=1 \mid G'=m) = P(Y' = 1 \mid \doit(G' = 1), G=f) = P(Y = 1 \mid \doit(G'=f), G=f) = P(Y=1 \mid G=f)$$
+which just reduces to demographic parity $P(Y=1\mid G=m) = p(Y=1 \mid G=f)$.
+\item 
+I believe that a variant of counterfactual fairness that does capture the intuition is if we also control for $D' = D = d$,
+i.e., if changing the gender does not lead to a different department choice. But this may just boil down to (check!) the
+condition that there is no edge $G \tuh Y$.
+\item Another interesting simple case to check is the `red car' example in the counterfactual fairness paper. 
+  Instead of a directed edge $D \tuh Y$ it has a bidirected edge $D \huh Y$. It also seems less intuitively obvious what
+  an appropriate fairness measure is.
+\end{itemize}
+}

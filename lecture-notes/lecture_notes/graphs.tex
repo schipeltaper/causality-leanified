@@ -1,0 +1,2404 @@
+\section{Graph Theory}
+
+\subsection{Core Concepts}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (v1) at (5,5) {$v_1$};
+    \node[ndint] (v2) at (1,4) {$v_2$};
+    \node[ndint] (v3) at (11,5) {$v_3$};
+    \node[ndout] (v4) at (3,3) {$v_4$};
+    \node[ndout] (v5) at (7,3) {$v_5$};
+    \node[ndout] (v6) at (11,3) {$v_6$};
+    \node[ndout] (v7) at (5,1) {$v_7$};
+    \node[ndout] (v8) at (7,-1) {$v_8$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1) to (v4);
+    \draw[arout] (v1) to (v5);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arout] (v5) to (v7);
+    \draw[arout] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arlat, bend left] (v1) to (v6);
+\end{tikzpicture}
+\caption{Conditional Acyclic Directed Mixed Graph (CADMG).}
+\label{fig:cadmg}
+\end{figure}
+
+
+\begin{Def}[Conditional directed mixed graphs (CDMG)]
+    \label{def-cdmg}
+    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of
+    vertices (also called nodes):
+    \begin{enumerate}[label=\roman*.)]
+        \item $J$, whose elements are called input nodes,
+        \item $V$, whose elements are called output nodes,
+    \end{enumerate}
+%    such that $J \cup V \neq \emptyset$;
+    and two (disjoint) sets of edges:
+    \begin{enumerate}[resume,label=\roman*.)]
+        \item $E \ins (J \cup V) \times V$ the set of directed edges,
+        \item $L \ins V \times V/((v_1,v_2) \sim (v_2,v_1)) $, the set of bidirected edges, 
+        \item[]    with: $(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$.
+    \end{enumerate}
+\end{Def}
+
+\begin{Not}
+    \label{not-cdmg}
+    Let $G=(J,V,E,L)$ be a CDMG.
+    We will write:
+    \begin{enumerate}
+        %\item $G(V|\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.
+        \item $v \in G$ to mean $v \in J \cup V$,
+        \item $v_1 \tuh v_2 \in G$ to mean $(v_1,v_2) \in E$,
+        \item $v_1 \hut v_2 \in G$ to mean $(v_2,v_1) \in E$,
+        \item $v_1 \huh v_2 \in G$ to mean $(v_1,v_2) \in L$,
+        \item $v_1 \suh v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \huh v_2 \in G$,
+        \item $v_1 \hus v_2 \in G$ to mean that either $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$,
+        \item $v_1 \sus v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$.
+    \end{enumerate}
+    The star stands for a placeholder to mean: ``arrowhead or tail''.
+\end{Not}
+
+\begin{Def}
+  Let $G=(J,V,E,L)$ be a CDMG.
+  \begin{enumerate}
+    \item If $v_1 \sus v_2 \in G$ then we call $v_1$ and $v_2$ \emph{adjacent in $G$}.
+    \item Edges of the form $v_1 \hut v_2$ or $v_1 \huh v_2$ are called \emph{into $v_1$}.  \\
+          Edges of the form $v_1 \tuh v_2$ or $v_1 \huh v_2$ are called \emph{into $v_2$}. 
+    \item Edges of the form $v_1 \tuh v_2$ or $v_2 \hut v_1$ are called \emph{out of $v_1$}.
+  \end{enumerate}
+\end{Def}
+
+\begin{Rem}
+With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
+\end{Rem}
+
+\begin{Def}[Walks]\label{def:walks}
+     Let $G=(J,V,E,L)$ be a CDMG and $v,w \in G$.
+\begin{enumerate}
+    \item A \emph{walk} from $v$ to $w$ in $G$ is a finite alternating sequence of adjacent nodes and edges 
+      \[v=v_0, a_0,  v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+%      \[v=v_0 \sus v_1 \sus  \cdots \sus v_{n-1} \sus v_n=w\]
+        in $G$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+        we have that $a_k = (v_k, v_{k+1}) \in E \cup L$ or $a_k = (v_{k+1}, v_k) \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+        An example walk from $v_0$ to $v_3$ could look like:
+        \[v_0 \tuh v_1 \hut  v_2 \huh v_3, \qquad\text{ with } \qquad  v_0 \tuh v_1, v_2 \tuh v_1 \in E,\,v_2 \huh v_3 \in L. \]
+        The same node may appear multiple times in a walk.
+        Also the \emph{trivial walk} consisting of a single node $v_0 \in G$ is allowed (if $v=w$).
+        The walk is called \emph{into $v_0$} if $a_0 = v_0 \hus v_1$, and \emph{out of $v_0$} if $a_0 = v_0 \tuh v_1$.
+        Similarly, it is called \emph{into $v_n$} if $a_{n-1} = v_{n-1} \suh v_n$ and \emph{out of $v_n$} if $a_{n-1} = v_{n-1} \hut v_n$.
+    \item A \emph{directed walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        for some $n \ge 0$,
+        where all arrowheads point in the direction of $w$ and there are no arrowheads pointing back.
+   % \item[] Directed walks exclude the trivial walk per definition.
+    \item A \emph{bidirected walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \huh v_1 \huh  \cdots \huh v_{n-1} \huh v_n=w,\]
+        for some $n \ge 0$, where all edges are bidirected.
+    \item A \emph{collider walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \suh v_1 \huh  \cdots \huh v_{n-1} \hus v_n=w,\]
+        for some $n \ge 0$, where all nodes in between $v$ and $w$ have two arrowheads pointing towards them (a.k.a.\ collider).
+        Note that for $n=1$ this reads: $v\sus w \in G$.
+    \item A walk is called \emph{path} if no node occurs more than once.
+    \item A \emph{bifurcation} between $v$ and $w$ in $G$ is a walk of the form:
+        \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \hus v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+   %             \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \huh v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        such that $v \ne w$, the walk contains both endnodes exactly once, 
+	the subwalk $v_0 \hut \cdots v_{k-1}$ is a directed walk from $v_{k-1}$ to $v_0$,
+	and the subwalk $v_k \tuh \cdots v_n$ is a directed walk from $v_k$ to $v_n$.
+        %every node has at most one arrowhead pointing towards it, and 
+        %both endnodes have exactly one arrowhead pointing towards them. 
+        If the edge $v_{k-1} \hus v_k$ is directed ($v_{k-1} \hut v_k$) then we say that the bifurcation has \emph{source} $v_{k}$.
+  \end{enumerate}
+\end{Def}
+
+\begin{Def}[Family relationships]
+     Let $G=(J,V,E,L)$ be a CDMG, $v,w \in V$ and $A \ins J \cup V$ a subset of nodes.
+     We then define:
+     \begin{enumerate}
+         \item The set of \emph{parents} of $v$ in $G$: \[\Pa^G(v):=\lC w \in G\,|\, w \tuh v \in G \rC.\]
+         \item[] The set of \emph{parents} of $A$ in $G$: \[\Pa^G(A):= \bigcup_{v \in A} \Pa^G(v).\]
+         %\item[] \PF{maybe better for sets (???) :The set of \emph{parents} of $A$ in $G$: \[\Pa^G(A):= \lp \bigcup_{v \in A} \Pa^G(v)\rp \sm A.\]
+         %    but then  if $v \tuh v \in E$ then $v \notin \Pa^G(\lC v\rC ) \neq \Pa^G(v) \ni v$ ... }
+         \item The set of \emph{children} of $v$ in $G$: \[\Ch^G(v):=\lC w \in G\,|\, v \tuh w \in G \rC.\]
+         \item[] The set of \emph{children} of $A$ in $G$: \[\Ch^G(A):= \bigcup_{v \in A} \Ch^G(v).\]
+         \item The set of \emph{siblings} of $v$ in $G$: \[\Sib^G(v):=\lC w \in G\,|\, v \huh w \in G \rC.\]
+         %\item[] The set of \emph{children} of $A$ in $G$: \[\Ch^G(A):= \bigcup_{v \in A} \Ch^G(v).\]
+         \item The set of \emph{ancestors} of $v$ in $G$: 
+             \[\Anc^G(v):=\lC w \in G\,|\,\exists \text{ directed walk: } w \tuh \cdots \tuh v \in G \rC.\]
+             Note: $v \in \Anc^G(v)$.
+         \item[] The set of \emph{ancestors} of $A$ in $G$: \[\Anc^G(A):= \bigcup_{v \in A} \Anc^G(v).\]
+             Note: $A \ins \Anc^G(A)$.
+         \item The set of \emph{descendants} of $v$ in $G$: 
+             \[\Desc^G(v):=\lC w \in G\,|\,\exists \text{ directed walk: } v \tuh \cdots \tuh w \in G \rC.\]
+             Note: $v \in \Desc^G(v)$.
+         \item[] The set of \emph{descendants} of $A$ in $G$: \[\Desc^G(A):= \bigcup_{v \in A} \Desc^G(v).\]
+             Note: $A \ins \Desc^G(A)$.
+         \item The set of \emph{non-descendants} of $A$ in $G$:
+             \[ \NonDesc^G(A) := (J \cup V) \sm \Desc^G(A).\]
+         \item The \emph{strongly connected component} of $v$ in $G$:
+             \[ \Sc^G(v) := \Anc^G(v) \cap \Desc^G(v).\]
+             Note: $v \in \Sc^G(v)$.
+         \item[] The (union of) \emph{strongly connected components} of $A$ in $G$:
+             \[ \Sc^G(A) := \bigcup_{v \in A} \Sc^G(v).\]
+             Note: $A \ins \Sc^G(A)$.
+         \item The \emph{district} of $v$ in $G$:
+             \[\Dist^G(v) := \lC w \in G\,|\, \exists \text{ bidirected walk: } 
+             v \huh v_1 \huh \cdots \huh v_{n-1} \huh w \in G \rC.\]
+             Note: $v\in \Dist^G(v)$.
+         \item[] The \emph{district} of $A$ in $G$:
+             \[\Dist^G(A) := \bigcup_{v \in A} \Dist^G(v).\]
+             Note: $A \ins \Dist^G(A)$.
+         %\item The d-\emph{Markov blanket} of $v$ in $G$:
+         %    \[\MBl^G_d(v):=\lC w \in G\,|\,\exists \text{ collider walk: } 
+         %    v \suh v_1 \huh \cdots \huh v_{n-1} \hus w \in G \rC \sm \{v\}.\]
+         %    Note: $\lp\Pa^G(v) \cup \Ch^G(v) \cup \Pa^G(\Ch^G(v))\rp \sm \{v\} \ins \MBl^G_d(v)$.
+         %\item[] The d-\emph{Markov blanket} of $A$ in $G$:
+         %    \[\MBl^G_d(A) := \bigcup_{v \in A} \MBl^G_d(v) \sm A.\]
+         %\item The $\sigma$-\emph{Markov blanket} of $A$ in $G$:
+         %    \[\MBl^G_\sigma(A):= \MBl^{G^\acy}_d(A), \]
+         %    where $G^\acy$ is an acyclification of $G$, a notion defined below in Definition~\ref{def:cdg_acyclification}.
+     \end{enumerate}
+\end{Def}
+
+
+\begin{Def}[Acyclicity]
+    \label{def-acylic}
+    A  CDMG  $G=(J,V,E,L)$  is called \emph{acyclic} if there does not exist 
+    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \in G$.
+\end{Def}
+
+\begin{Def}
+    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:
+   \begin{enumerate}
+       \item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.
+       \item Directed Mixed Graph (DMG) if $J = \emptyset$.
+       \item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \emptyset$.
+       \item Conditional Directed Graph (CDG) if $L = \emptyset$.
+       \item Directed Graph (DG) if $J = \emptyset$ and $L = \emptyset$.
+       \item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \emptyset$.
+       \item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\emptyset$ and $L = \emptyset$.
+   \end{enumerate}
+\end{Def}
+
+\begin{Def}[Topological order]
+    Let $G=(J,V,E,L)$ be a CDMG.
+    A \emph{topological order} of $G$ is a total order $<$ of $J \cup V$ such that for all $v,w \in G$:
+    \[ v \in \Pa^G(w) \; \implies \; v < w.\]
+    Equivalently, it can be described as an indexing of the nodes $J \cup V = \{v_1,\dots,v_K\}$ where parents always precede their children.
+\end{Def}
+
+\begin{Lem}
+        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+\end{Lem}
+\Claude{%
+\begin{proof}
+($\Leftarrow$)
+Suppose $<$ is a topological order of $G$, i.e.\ $v \in \Pa^G(w) \implies v < w$.
+If there were a non-trivial directed walk $v = v_0 \tuh v_1 \tuh \cdots \tuh v_n = v$ ($n \ge 1$),
+then $v_0 < v_1 < \cdots < v_n = v_0$, a contradiction.
+
+\medskip\noindent($\Rightarrow$)
+Suppose $G$ is acyclic. We construct a topological order by repeatedly selecting a node with no parents in the remaining graph.
+Define a sequence $v_1, \dots, v_K$ ($K = |J \cup V|$) inductively: given $v_1,\dots,v_{i-1}$, let $R_i := (J \cup V) \sm \{v_1,\dots,v_{i-1}\}$
+and $G_i$ the subgraph of $G$ induced on $R_i$.
+Since $G_i$ is acyclic (as an induced subgraph of an acyclic graph) and finite, it has a node $v_i$ with $\Pa^{G_i}(v_i) = \emptyset$
+(otherwise, following parent edges would produce a directed cycle).
+Choose any such $v_i$.
+
+This gives a total order $v_1 < v_2 < \cdots < v_K$.
+If $v = v_j \in \Pa^G(w = v_i)$, then when $w$ was selected, $v$ was still in $R_i$, so $v$ would have been a parent of $w$ in $G_i$, contradicting $\Pa^{G_i}(v_i) = \emptyset$---unless $v$ was already selected, i.e.\ $j < i$. Hence $v < w$.
+\end{proof}
+}%end Claude
+
+\begin{Def}[Predecessors]
+   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \cup V$.
+   The set of \emph{predecessors} of $v$ in $G$ are:
+   \[\Pred^G_<(v) : = \lC w\in G\,|\, w < v \rC.\]
+   We also put:
+   \[\Pred^G_\le(v) : = \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
+\end{Def}
+
+
+\subsection{Operations on Graphs}
+
+%\subsection{Interventions on Graphs}
+\subsubsection{Hard Interventions on Graphs}
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (v1) at (5,5) {$v_1$};
+    \node[ndint] (v2) at (1,4) {$v_2$};
+    \node[ndint] (v3) at (11,5) {$v_3$};
+    \node[ndout] (v4) at (3,3) {$v_4$};
+    \node[ndout] (v5) at (7,3) {$v_5$};
+    \node[ndout] (v6) at (11,3) {$v_6$};
+    \node[ndint] (v7) at (5,1) {$v_7$};
+    %\node[ndout, below right=1.5cm and 1cm of v7] (v8) {$v_8$};
+    \node[ndout] (v8) at (7,-1) {$v_8$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1) to (v4);
+    \draw[arout] (v1) to (v5);
+    %\draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    %\draw[arout] (v5) to (v7);
+    \draw[arint] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arlat, bend left] (v1) to (v6);
+\end{tikzpicture}
+\caption{The CADMG from Figure \ref{fig:cadmg} after hard intervention on node $v_7$.}
+\end{figure}
+
+\begin{Def}[Hard intervention on CDMGs]\label{def:G_hard_intervention}
+    Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG: 
+  \[ G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  %\[G(V\sm W|\doit(W \cup J)):=G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\doit(W)}:= J \cup W$,
+      \item $V_{\doit(W)}:= V \sm W$,
+      \item $E_{\doit(W)}:= E \sm \lC v \tuh w \,|\, v \in G, w  \in W  \rC$,
+      \item $L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC$,
+  \end{enumerate}
+  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
+\end{Def}
+
+\begin{Rem}
+    If $G$ is acyclic then also $G_{\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\doit(W)}$.
+\end{Rem}
+
+\begin{Lem}[Hard interventions commute]\label{hard-interventions-commute}
+    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two  subsets of nodes from $G$. 
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)} =  G_{\doit(W_1 \cup W_2)}. \]
+      %This shows that our notion:
+      %\[ G(V \sm (W_1 \cup W_2) | \doit(W_1 \cup W_2 \cup J))   \]
+      %is unambiguous.
+\end{Lem}
+\Claude{%
+\begin{proof}
+We show $\lp G_{\doit(W_1)}\rp_{\doit(W_2)} = G_{\doit(W_1 \cup W_2)}$; the equality
+$\lp G_{\doit(W_2)}\rp_{\doit(W_1)} = G_{\doit(W_1 \cup W_2)}$ then follows by symmetry.
+We verify all four components.
+
+\medskip\noindent\emph{Input nodes.}
+$(J \cup W_1) \cup W_2 = J \cup (W_1 \cup W_2)$. \checkmark
+
+\medskip\noindent\emph{Output nodes.}
+$(V \sm W_1) \sm W_2 = V \sm (W_1 \cup W_2)$. \checkmark
+
+\medskip\noindent\emph{Directed edges.}
+\begin{align*}
+  E_{\lp G_{\doit(W_1)}\rp_{\doit(W_2)}}
+  &= \lp E \sm \lC v \tuh w \mid w \in W_1 \rC \rp
+     \sm \lC v \tuh w \mid w \in W_2 \rC \\
+  &= E \sm \lC v \tuh w \mid w \in W_1 \cup W_2 \rC
+  = E_{\doit(W_1 \cup W_2)}. \; \checkmark
+\end{align*}
+
+\medskip\noindent\emph{Bidirected edges.}
+\begin{align*}
+  L_{\lp G_{\doit(W_1)}\rp_{\doit(W_2)}}
+  &= \lp L \sm \lC v \huh w \mid w \in W_1 \rC \rp
+     \sm \lC v \huh w \mid w \in W_2 \rC \\
+  &= L \sm \lC v \huh w \mid w \in W_1 \cup W_2 \rC
+  = L_{\doit(W_1 \cup W_2)}. \; \checkmark
+\end{align*}
+\end{proof}
+}%end Claude
+
+The following proposition expresses the existence of a bifurcation with a source in terms of ancestral relations in intervened graphs.
+\begin{Prp}\label{prp:bifurcations_alternative}
+  Let $G = \lt J, V, E, L \rt$ be a CDMG. For $v, w, c \in V \cup J$:
+  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \ne w$ and $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$ and $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.
+\end{Prp}
+\begin{proof}
+  A bifurcation between $v$ and $w$ with source $c$ is a walk in $G$ of the form $v \hut \cdots \hut c \tuh \cdots \tuh w$, where both $v$ and $w$ appear exactly once on the walk.
+  This shows ``$\implies$''. For the other implication, note that $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$ implies that there is a non-trivial directed path from $c$ to $v$ that does not pass through $w$. 
+  Similarly, $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$ implies that there is a non-trivial directed path from $c$ to $w$ that does not pass through $v$. 
+  The concatenation of the two paths $v \hut \cdots \hut c \tuh \cdots \tuh w$ is then a bifurcation between $v$ and $w$ with source $c$.
+\end{proof}
+
+\subsubsection{Node Splitting on Graphs}\label{sec:graphs:node_splitting}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+\begin{scope}
+    \node[ndout] (v1o) at (5,5.75) {$v_1^0$};
+    \node[ndout] (v1i) at (5,4.25) {$v_1^1$};
+    \node[ndint] (v2) at (1,4) {$v_2$};
+    \node[ndint] (v3) at (11,5) {$v_3$};
+    \node[ndout] (v4) at (3,3) {$v_4$};
+%    \node[ndhst] (v5) at (7,3) {\nodepart{upper}{$v_5^o$} \nodepart{lower}{$v_5^i$}};
+    \node[ndout] (v5o) at (7,3.75) {$v_5^0$};
+    \node[ndout] (v5i) at (7,2.25) {$v_5^1$};
+    \node[ndout] (v6) at (11,3) {$v_6$};
+%    \node[ndhst] (v7) at (5,1) {\nodepart{upper}{$v_7^o$} \nodepart{lower}{$v_7^i$}};
+    \node[ndout] (v7) at (5,1) {$v_7$};
+%    \node[ndout] (v7o) at (5,1.75) {$v_7^0$};
+%    \node[ndout] (v7i) at (5,0.25) {$v_7^1$};
+    \node[ndout] (v8) at (7,-1) {$v_8$};
+    \draw[arout] (v1o) to (v1i);
+    \draw[arout] (v5o) to (v5i);
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1i) to (v4);
+    \draw[arout] (v1i) to (v5o);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arint] (v5i) to (v7);
+    \draw[arint] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arlat, bend left] (v1o) to (v6);
+\end{scope}
+\end{tikzpicture}
+\caption{The CADMG from Figure \ref{fig:cadmg} after node-splitting $v_1$ and $v_5$.}
+\end{figure}
+
+In this subsection we introduce the operation of \emph{node-splitting}. 
+This is helpful whenever we want to distinguish between two versions of the same variable that in the absence of an intervention share the same value.
+This is useful to model a property that is constant over some time interval (in the absence of an intervention targeting that property).
+Conceptually, this comes in handy when we measure the value of a variable right before we intervene on it.
+The node-splitting operation can be used to represent ``single-world'' counterfactuals.
+%The graphs were plotted using the library tikz-for-swigs \cite{Ric18swigtex}.
+
+\begin{Def}[Node-splitting on CDMGs]
+  \label{def:G_node-splitting}
+    Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of the output nodes.
+    The \emph{node-split graph} w.r.t.\ $W$ of $G$ is the CDMG: 
+    \[ G_{\spl(W)} :=\lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},L_{\spl(W)} \rp,\]
+    %\[ G_{\spl(W)} := G':=(J',V',E',L'),\]
+    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    constructed as follows.
+    We first make two disjont copies of the nodes in $W$:
+    \[ W^0:=\lC w^0\st w \in W \rC, \qquad W^1:=\lC w^1 \st w \in W \rC.  \]
+    Note that we consider $w^0 \neq w^1$ for $w \in W$.
+    Additionally (for convenience), for $v \in J \cup V \sm W$ we put:
+  \[ v^0:=v^1:=v.  \]
+  We then define:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\spl(W)} := J$,
+      \item $V_{\spl(W)} := (V \sm W) \dcup W^0 \dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.
+      \item $E_{\spl(W)} := \lC v^1_1 \tuh v_2^0 \st v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \st w \in W \rC$,
+      \item $L_{\spl(W)} :=\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC$.
+  \end{enumerate}
+  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,
+  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,
+  and edges $w^0 \tuh w^1$ are added for all nodes in $W$.
+\end{Def}
+
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\spl(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^0$ the index $j-\frac{1}{3}$
+    and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\end{Rem}
+
+\begin{Lem}[Two disjoint node-splittings commute]
+   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of the output nodes of $G$. 
+   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:
+   \[ \lp G_{\spl(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\spl(W_1)}  =  G_{\spl(W_1 \dcup W_2)}.   \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+We show $\lp G_{\spl(W_1)}\rp_{\spl(W_2)} = G_{\spl(W_1 \dcup W_2)}$; the other equality follows by symmetry.
+Since $W_1 \cap W_2 = \emptyset$, each $w \in W_2$ satisfies $w \in V \sm W_1 \ins V_{\spl(W_1)}$.
+For $w \in W_k$ we write $w^{0_k}, w^{1_k}$ for the copies produced by $\spl(W_k)$.
+
+\medskip\noindent\emph{Node sets.}
+Both have input nodes $J$ and output nodes $(V \sm W_1 \sm W_2) \dcup W_1^0 \dcup W_1^1 \dcup W_2^0 \dcup W_2^1$.
+
+\medskip\noindent\emph{Directed edges.}
+For $G_{\spl(W_1 \dcup W_2)}$:
+$E_{\spl(W_1 \dcup W_2)} = \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \mid w \in W_1 \dcup W_2 \rC$,
+where $v^0$ means $v^{0_1}$ if $v \in W_1$, $v^{0_2}$ if $v \in W_2$, else $v$; and similarly for $v^1$.
+
+For $\lp G_{\spl(W_1)} \rp_{\spl(W_2)}$:
+$E_{\spl(W_1)} = \lC v_1^{1_1} \tuh v_2^{0_1} \mid v_1 \tuh v_2 \in E \rC \cup \lC w^{0_1} \tuh w^{1_1} \mid w \in W_1 \rC$.
+Applying $\spl(W_2)$: for $v_1 \in W_1$, $v_1^{1_1} \notin W_2$, so $(v_1^{1_1})^{1_2} = v_1^{1_1}$;
+for $v_1 \in W_2$, $v_1^{1_1} = v_1$, so $(v_1)^{1_2} = v_1^{1_2}$;
+for $v_1 \notin W_1 \dcup W_2$, $(v_1)^{1_2} = v_1$.
+Similarly for $v_2^{0_1}$ with $0_2$. The split edges $w^{0_1} \tuh w^{1_1}$ for $w \in W_1$ are unaffected.
+The second splitting adds $\lC w^{0_2} \tuh w^{1_2} \mid w \in W_2 \rC$.
+This matches $E_{\spl(W_1 \dcup W_2)}$.
+
+\medskip\noindent\emph{Bidirected edges.}
+$L_{\spl(W)} = \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L \rC$ for any $W$.
+By the same case analysis as for directed edges (applied to the $0$-superscripts), both sides yield
+$\lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L \rC$ with the combined superscripts.
+\end{proof}
+}%end Claude
+
+
+\begin{Lem}[Disjoint hard interventions and node-splittings commute]
+   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes of $G$. 
+   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.
+      \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\doit(W_1)}.   \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are well-defined in either order.
+For $w \in W_2$ we write $w^0$ (incoming) and $w^1$ (outgoing) for the split copies; for $v \notin W_2$ we have $v^0 = v^1 = v$.
+
+\medskip\noindent\emph{Node sets.}
+Left: $G_{\doit(W_1)}$ has $J \cup W_1, V \sm W_1$; then $\spl(W_2)$ (with $W_2 \ins V \sm W_1$) gives
+$J \cup W_1$ and $(V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1$.
+
+Right: $G_{\spl(W_2)}$ has $J, (V \sm W_2) \dcup W_2^0 \dcup W_2^1$; then $\doit(W_1)$ (with $W_1 \cap W_2^0 = W_1 \cap W_2^1 = \emptyset$) gives
+$J \cup W_1$ and $(V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1$. These agree.
+
+\medskip\noindent\emph{Directed edges.}
+Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\spl(W_2)$ yields
+$\lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\, v_2 \notin W_1 \rC \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC$.
+
+Right: $E_{\spl(W_2)} = \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC$;
+then $\doit(W_1)$ removes edges with head in $W_1$.
+An edge $v_1^1 \tuh v_2^0$ has head $v_2^0 \in W_1$ iff $v_2 \in W_1$ (since $W_1 \cap W_2 = \emptyset$).
+Split edges $w^0 \tuh w^1$ have head $w^1 \notin W_1$.
+Result: $\lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\, v_2 \notin W_1 \rC \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC$. These agree.
+
+\medskip\noindent\emph{Bidirected edges.}
+Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\spl(W_2)$ yields
+$\lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\, v_1, v_2 \notin W_1 \rC$.
+
+Right: $L_{\spl(W_2)} = \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L \rC$;
+$\doit(W_1)$ removes edges touching $W_1$, using $v_k^0 \in W_1 \iff v_k \in W_1$:
+$\lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\, v_1, v_2 \notin W_1 \rC$. These agree.
+\end{proof}
+}%end Claude
+
+
+\subsubsection{Node Splitting Hard Interventions on Graphs}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+\begin{scope}
+    \node[ndout] (v1o) at (5,5.5) {$v_1^o$};
+    \node[ndint] (v1i) at (5,4.5) {$v_1^i$};
+    \node[ndint] (v2) at (1,4) {$v_2$};
+    \node[ndint] (v3) at (11,5) {$v_3$};
+    \node[ndout] (v4) at (3,3) {$v_4$};
+%    \node[ndhst] (v5) at (7,3) {\nodepart{upper}{$v_5^o$} \nodepart{lower}{$v_5^i$}};
+    \node[ndout] (v5o) at (7,3.5) {$v_5^o$};
+    \node[ndint] (v5i) at (7,2.5) {$v_5^i$};
+    \node[ndout] (v6) at (11,3) {$v_6$};
+%    \node[ndhst] (v7) at (5,1) {\nodepart{upper}{$v_7^o$} \nodepart{lower}{$v_7^i$}};
+%    \node[ndout] (v7o) at (5,1.5) {$v_7^o$};
+%    \node[ndint] (v7i) at (5,0.5) {$v_7^i$};
+    \node[ndint] (v7) at (5,1) {$v_7$};
+    \node[ndout] (v8) at (7,-1) {$v_8$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1i) to (v4);
+    \draw[arout] (v1i) to (v5o);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arint] (v5i) to (v7);
+    \draw[arint] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arlat, bend left] (v1o) to (v6);
+\end{scope}
+\end{tikzpicture}
+\caption{The CADMG from Figure \ref{fig:cadmg}  after a node-splitting hard intervention on $v_1$ and $v_5$.}
+%Despite their different representation, the blue half nodes (here: $v_5^o,v_7^o$) are treated just as output nodes, and the half teal colored half nodes (here: $v_5^i,v_7^i$) are treated just as input nodes.}
+\end{figure}
+
+In this subsection we introduce \emph{node-splitting hard interventions}. 
+They are simply a node-splitting operation (splitting each $w \in W$ into $w^0 \tuh w^1$) followed by a hard interventions on the ``later'' nodes $W^1$.
+They can represent \emph{single-world intervention graphs (SWIGs)},
+which model the same output variable both before and after a hard intervention, see \cite{RR13a, RR13b}.
+%The graphs were plotted using the library tikz-for-swigs \cite{Ric18swigtex}.
+
+%\Joris{Restricted the definition to CDAMGS. This is because if one would like to equip simple SCMs describing a system at equilibrium with a semantics like this, the definition would need to be different.  It would need to work on the entire scc(s) of the intervened variable(s).}
+\begin{Def}[Node-splitting hard intervention on CADMGs]
+  \label{def:G_node-splitting_intervention}
+    Let $G=(J,V,E,L)$ be a CADMG and $W \ins V$ a subset of the output nodes.
+    The \emph{single-world intervention graph (SWIG)} w.r.t.\ $W$ of $G$ is the CADMG: 
+    \[ G_{\swig(W)} :=\lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)},L_{\swig(W)} \rp,\]
+    %\[ G_{\swig(W)} := G':=(J',V',E',L'),\]
+    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    constructed as follows.
+    We first make two disjont copies of the nodes in $W$:
+    \[ W^o:=\lC w^o\st w \in W \rC, \qquad W^i:=\lC w^i \st w \in W \rC.  \]
+    Note that we consider $w^o \neq w^i$ for $w \in W$.
+  However, for brevity, for $v \in J \cup V \sm W$ we put:
+  \[ v^o:=v^i:=v.  \]
+  We then define:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\swig(W)} := J \dcup W^i$,
+      \item $V_{\swig(W)} := (V \sm W) \dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.
+      \item $E_{\swig(W)} := \lC v^i_1 \tuh v_2^o \st v_1 \tuh v_2 \in E  \rC$,
+      \item $L_{\swig(W)} :=\lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$.
+  \end{enumerate}
+  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,
+  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.
+\end{Def}
+
+%\begin{Rem}
+%    \Joris{Why would one even want to define this in the first place?}\PF{remove if irritating.}
+%    If we wanted to also define node splitting for input nodes $j \in J$, then the only consistent way to do this is to
+%replace $j$ by \emph{two input} nodes $j^o$ and $j^i$, where $j^i$ inherits all edges and $j^o$ has no edges.
+%\end{Rem}
+
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\swig(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\swig(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^o$ the index $j-\frac{1}{3}$
+    and $v_j^i$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\end{Rem}
+
+\begin{Lem}[Two disjoint node-splitting hard interventions commute]
+   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \ins V$ two disjoint subsets of the output nodes from $G$. 
+   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:
+   \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\swig(W_1)}  =  G_{\swig(W_1 \dcup W_2)}.   \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+We show $\lp G_{\swig(W_1)} \rp_{\swig(W_2)} = G_{\swig(W_1 \dcup W_2)}$; the other equality follows by symmetry.
+Since $W_1 \cap W_2 = \emptyset$, each $w \in W_2$ satisfies $w \in V \sm W_1 \ins V_{\swig(W_1)}$.
+We write $w^{o_k}, w^{i_k}$ for the copies produced by $\swig(W_k)$ ($k=1,2$).
+
+\medskip\noindent\emph{Node sets.}
+Both have input nodes $J \dcup W_1^i \dcup W_2^i$ and output nodes $(V \sm W_1 \sm W_2) \dcup W_1^o \dcup W_2^o$.
+
+\medskip\noindent\emph{Directed edges.}
+For $G_{\swig(W_1 \dcup W_2)}$:
+$E_{\swig(W_1 \dcup W_2)} = \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC$,
+where $v^i$ means $v^{i_1}$ if $v \in W_1$, $v^{i_2}$ if $v \in W_2$, else $v$; and similarly for $v^o$.
+
+For $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$:
+$E_{\swig(W_1)} = \lC v_1^{i_1} \tuh v_2^{o_1} \mid v_1 \tuh v_2 \in E \rC$.
+Applying $\swig(W_2)$ sends $v_1^{i_1}$ to $(v_1^{i_1})^{i_2}$ and $v_2^{o_1}$ to $(v_2^{o_1})^{o_2}$.
+For $v_1 \in W_1$: $v_1^{i_1} \in W_1^i \ins J_{\swig(W_1)}$, and $v_1^{i_1} \notin W_2$, so $(v_1^{i_1})^{i_2} = v_1^{i_1}$.
+For $v_1 \in W_2$: $v_1^{i_1} = v_1 \in W_2$, so $(v_1)^{i_2} = v_1^{i_2}$.
+For $v_1 \notin W_1 \dcup W_2$: $(v_1)^{i_2} = v_1$.
+Similarly for $v_2^{o_1}$ with $o_2$.
+This matches $E_{\swig(W_1 \dcup W_2)}$.
+
+\medskip\noindent\emph{Bidirected edges.}
+$L_{\swig(W)} = \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC$ for any $W$.
+By the same case analysis as for directed edges (applied to the $o$-superscripts only), both sides yield
+$\lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC$ with the combined superscripts.
+\end{proof}
+}%end Claude
+
+
+\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]
+   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$. 
+   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.
+      \[ \lp G_{\doit(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\doit(W_1)}.   \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are well-defined in either order.
+We write $w^o, w^i$ for the SWIG copies of $w \in W_2$; for $v \notin W_2$ we have $v^o = v^i = v$.
+
+\medskip\noindent\emph{Node sets.}
+Left: $G_{\doit(W_1)}$ has $J \cup W_1, V \sm W_1$; then $\swig(W_2)$ (with $W_2 \ins V \sm W_1$) gives
+$J \cup W_1 \dcup W_2^i$ and $(V \sm W_1 \sm W_2) \dcup W_2^o$.
+
+Right: $G_{\swig(W_2)}$ has $J \dcup W_2^i, (V \sm W_2) \dcup W_2^o$; then $\doit(W_1)$ (with $W_1 \ins J \cup (V \sm W_2)$, using $W_1 \cap W_2^o = \emptyset$) gives
+$(J \cup W_1) \dcup W_2^i$ and $(V \sm W_1 \sm W_2) \dcup W_2^o$. These agree.
+
+\medskip\noindent\emph{Directed edges.}
+Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\swig(W_2)$ yields
+$\lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\, v_2 \notin W_1 \rC$.
+
+Right: $E_{\swig(W_2)} = \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC$; then $\doit(W_1)$ removes edges with head in $W_1$.
+Since $v_2^o \in W_1 \iff v_2 \in W_1$ (as $W_1 \cap W_2 = \emptyset$):
+$\lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\, v_2 \notin W_1 \rC$. These agree.
+
+\medskip\noindent\emph{Bidirected edges.}
+Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\swig(W_2)$ yields
+$\lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\, v_1, v_2 \notin W_1 \rC$.
+
+Right: $L_{\swig(W_2)} = \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC$; then $\doit(W_1)$ removes edges touching $W_1$.
+Since $v_k^o \in W_1 \iff v_k \in W_1$:
+$\lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\, v_1, v_2 \notin W_1 \rC$. These agree.
+\end{proof}
+}%end Claude
+
+\begin{Rem}
+    Note that if $W_1$ and $W_2$ are not disjoint and $w \in W_1 \cap W_2 \ins V$ 
+    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.
+    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.
+\end{Rem}
+
+
+\begin{comment}
+\begin{figure}[ht]
+    \centering
+\begin{tikzpicture}[scale=1,transform shape]
+\begin{scope}
+    \node[ndout, xshift=0.0cm, yshift=0.0cm] (l) {$L$};
+    \node[ndvst, below right=1.5cm and 0.4cm of l] (a) {
+        					\nodepart{left}{$A$}
+        					\nodepart{right}{$XXX$}};
+    \node[ndout, right =1.5cm of a] (y) {$Y(a)$};
+    \draw[arout] (l) to (a.north west);
+    \draw[arout] (l) to (y);
+    \draw[arint] (a) to (y);
+\end{scope}
+\end{tikzpicture}
+    \caption{Conditional Acyclic Directed Mixed Graph (CADMG).}
+\end{figure}
+\end{comment}
+
+\subsubsection{Intervention Nodes}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (v1) at (5,5) {$v_1$};
+    \node[ndint] (v2) at (1,4) {$v_2$};
+    \node[ndint] (v3) at (11,5) {$v_3$};
+    \node[ndout] (v4) at (3,3) {$v_4$};
+    \node[ndout] (v5) at (7,3) {$v_5$};
+    \node[ndout] (v6) at (11,3) {$v_6$};
+    \node[ndout] (v7) at (5,1) {$v_7$};
+    \node[ndout] (v8) at (7,-1) {$v_8$};
+%    \node[ndint] (Iv2) at (-1,4) {$I_{v_2}$};
+    \node[ndint] (Iv7) at (3,1) {$I_{v_7}$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1) to (v4);
+    \draw[arout] (v1) to (v5);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arout] (v5) to (v7);
+    \draw[arout] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arint] (Iv7) to (v7);
+    \draw[arlat, bend left] (v1) to (v6);
+\end{tikzpicture}
+  \caption{The CADMG from Figure \ref{fig:cadmg} after adding intervention nodes $\{I_{v_2},I_{v_7}\}$ (where $I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node).}
+\end{figure}
+
+More generally, interventions (both hard and soft) can be modeled graphically via auxiliary intervention nodes.
+
+\begin{comment}
+\begin{Def}[Extending CDMGs with intervention nodes]\label{def:cdmg_intervention_nodes}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{extended CDMG} of $G$ w.r.t.\ nodes $W \ins J \cup V$  and corresponding \emph{intervention nodes} 
+  $I_W = \{I_w \,|\, w \in W\}$ %(with $I_j :=j$, for $j \in J$) 
+  is the CDMG: 
+  \[ G_{\doit(I_W)}:=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  \Joris{Suggest to change notation into $G_{\mathrm{int}(W)}$ instead.}
+  %\[G(V|\doit(J \dcup I_W)):=G_{\doit(I_W)}=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \rC$, %not W \sm J, makes weak and hard interventions commute
+      \item $V_{\doit(I_W)}:= V$,
+      \item $E_{\doit(I_W)}:= E\, \dot{\cup} \, \lC I_w \tuh w \,|\, w \in W\sm J \rC$,
+      \item $L_{\doit(I_W)}:= L$,
+  \end{enumerate}
+  where we just add edges $I_w \tuh w$ for $ w \in W \sm J$, where $I_w$ represent intervention nodes.
+  \Joris{Proposed alternative:
+  \begin{enumerate}[label=\roman*.)]
+    \item $J_{\doit(I_W)}:= (J \sm W)\, \dot{\cup} \, \lC I_w\,|\, w \in W \rC$, %not W \sm J, makes weak and hard interventions commute
+    \item $V_{\doit(I_W)}:= V \cup (J \cap W)$,
+      \item $E_{\doit(I_W)}:= E\, \dot{\cup} \, \lC I_w \tuh w \,|\, w \in W \rC$,
+      \item $L_{\doit(I_W)}:= L$,
+  \end{enumerate}
+  where the former input nodes in $J \cap W$ become output nodes, and we add edges $I_w \tuh w$ for $ w \in W$ from the intervention nodes to their target nodes.
+  }
+%    \Joris{Why would you want to model a soft intervention on a subset of $J$? I don't see the point. Suggest to restrict to $W \subseteq V$ only!}\PF{have to check if we use $I_j$ anywhere for $j \in J$. see some discussion below.\\}
+%  \PF{Alternative 0: We don't define $I_j$ for $j \in J$.\\}
+%  \PF{Alternative 1: For $j \in J$ define $I_j\neq j$, but add NO edge $I_j \tuh j$ to the graph. This makes soft and hard interventions onto the same nodes commute.  (current version).\\}
+%  \PF{Alternative 2: For $j \in J$ we make the identification $I_j:=j$. This is sometimes convenient for do-calculus rules.}
+%  \Joris{I didn't find any do-calculus rule / part of its proof that makes use of this.}\\
+%  \PF{Alternative 3: we could define $I_j$ for $j \in J$ with edge $I_j \tuh j$ and turn those $j$ into output nodes. This would give it some proper interpretataion as we would add a causal meachanism  for $j$ to the CBN.}
+%  \Joris{Nice analysis. Perhaps there is no clear winner. I am fine with leaving it as-is because I don't have a convincing argument against it (even though personally would have gone for Alternative 0). Let's move on.}
+%  \Joris{Update (2024): I have checked everything thoroughly: we only use $\doit(I_B)$ for $B \subseteq V$. Alternative 1 doesn't seem to offer any advantages over the others. Alternatives 2 and 3 do offer obvious advantages! Of the two, alternative 2 is easier notation-wise and less formal, but alternative 3 is more explicit.}
+\end{Def}
+\end{comment}
+\begin{Def}[Extending CDMGs with intervention nodes]\label{def:cdmg_intervention_nodes}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{extended CDMG} of $G$ w.r.t.\ nodes $W \ins J \cup V$  and corresponding \emph{intervention nodes} 
+%  $I_W = \{I_w \,|\, w \in W\}$ \Joris{with $I_j:=j$ for $j \in J$},
+  $I_W = \{I_w \,|\, w \in W\}$ with $I_j:=j$ for $j \in J \cap W$,
+  is the CDMG: 
+  \[ G_{\doit(I_W)}:=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  %\[G(V|\doit(J \dcup I_W)):=G_{\doit(I_W)}=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  where:
+  \begin{enumerate}[label=\roman*.)]
+%      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \Joris{\sm J} \rC$, %not W \sm J, makes weak and hard interventions commute
+      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \sm J \rC$, %not W \sm J, makes weak and hard interventions commute
+      \item $V_{\doit(I_W)}:= V$,
+      \item $E_{\doit(I_W)}:= E\, \dot{\cup} \, \lC I_w \tuh w \,|\, w \in W\sm J \rC$,
+      \item $L_{\doit(I_W)}:= L$,
+  \end{enumerate}
+%  where we just add \Joris{nodes $I_w$ for $w \in W \sm J$ and} edges $I_w \tuh w$ for $ w \in W \sm J$. 
+  where we just add nodes $I_w$ for $w \in W \sm J$ and edges $I_w \tuh w$ for $ w \in W \sm J$. 
+\end{Def}
+
+\begin{Rem}
+    If a CDMG $G=(J,V,E,L)$ is acyclic then also $G_{\doit(I_W)}$ is acyclic and a topological order for
+    $G_{\doit(I_W)}$ is also one for $G$.
+    Any topological order of $G$ can be extended to one for $G_{\doit(I_W)}$, e.g.\ 
+    by putting all the $I_w$ nodes first in the ordering.
+\end{Rem}
+
+\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]
+    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} 
+      =  G_{\doit(I_{W_1 \cup W_2})}. \]
+      We also have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})} =  G_{\doit(I_{W_1}, W_2)}. \]
+   % So there is not ambiguity in the following notations and identifications:
+   % \[ G(V|\doit(J\cup I_{W_1} \cup I_{W_2})) = G(V|\doit(J\cup I_{W_1 \cup W_2})), 
+   % \qquad G(V\sm W_2|\doit(W_2 \cup J\cup I_{W_1})).\]
+\end{Lem}
+\Claude{%
+\begin{proof}
+\emph{First equality: $\lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = G_{\doit(I_{W_1 \cup W_2})}$.}
+
+By Definition~\ref{def:cdmg_intervention_nodes},
+$G_{\doit(I_{W_1})} = (J_1,\, V,\, E_1,\, L)$
+with $J_1 := J \dcup \lC I_w \mid w \in W_1 \sm J \rC$ and $E_1 := E \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC$.
+Since $W_1 \cap W_2 = \emptyset$ and the freshly added $I_w$ do not belong to $W_2$, we have $W_2 \sm J_1 = W_2 \sm J$.  Hence:
+\begin{align*}
+  J_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+    &= J \dcup \lC I_w \mid w \in (W_1 \cup W_2) \sm J \rC
+     = J_{\doit(I_{W_1 \cup W_2})},\\
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+    &= E \dcup \lC I_w \tuh w \mid w \in (W_1 \cup W_2) \sm J \rC
+     = E_{\doit(I_{W_1 \cup W_2})}.
+\end{align*}
+Output nodes ($V$) and bidirected edges ($L$) are unchanged.
+By symmetry, $\lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} = G_{\doit(I_{W_1 \cup W_2})}$.
+
+\medskip\noindent\emph{Second equality: $\lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})}$.}
+
+Starting from $G_{\doit(I_{W_1})} = (J_1, V, E_1, L)$ and applying $\doit(W_2)$:
+since $W_1 \cap W_2 = \emptyset$, the edges $\lC I_w \tuh w \mid w \in W_1 \sm J \rC$ all point into $W_1$, not $W_2$, so they are unaffected.  Hence:
+\begin{align*}
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}}
+  &= \lp E \sm \lC v \tuh w \mid w \in W_2 \rC\rp \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC.
+\end{align*}
+For the other order: $G_{\doit(W_2)} = (J \cup W_2,\, V \sm W_2,\, E \sm \lC v \tuh w \mid w \in W_2\rC,\, L \sm \lC v\huh w \mid w \in W_2\rC)$.
+Since $W_1 \sm (J \cup W_2) = W_1 \sm J$, adding $I_{W_1}$ appends $\lC I_w \mid w \in W_1 \sm J\rC$ to the input nodes and $\lC I_w \tuh w \mid w \in W_1 \sm J\rC$ to the edge set, giving the same four components.
+\end{proof}
+}%end Claude
+
+\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]
+  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins V$ and $W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:
+    \[  \lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}. \]
+  %  So there is no ambiguity in the notation:
+  %  \[ G(V\sm W_1 \dcup W_1^o|\doit(W_1^i \dcup J \dcup I_{W_2})).  \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+For $w \in W_1$ we write $w^o, w^i$ for the SWIG copies; for $v \notin W_1$ we have $v^o = v^i = v$.
+Since $W_1 \cap W_2 = \emptyset$, every $w \in W_2$ satisfies $w \notin W_1$, so $w^o = w^i = w$.
+
+\medskip\noindent\emph{Computing $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$.}
+
+By Definition~\ref{def:cdmg_intervention_nodes},
+$G_{\doit(I_{W_2})} = (J',\, V,\, \widetilde{E},\, L)$
+with $J' := J \dcup \lC I_w \mid w \in W_2 \sm J \rC$ and $\widetilde{E} := E \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC$.
+Since $W_1 \ins V$ and $I_w \notin W_1$ for all $w \in W_2 \sm J$, we may apply $\swig(W_1)$:
+\begin{align*}
+  J_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= J \dcup \lC I_w \mid w \in W_2 \sm J \rC \dcup W_1^i,\\
+  V_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= (V \sm W_1) \dcup W_1^o,\\
+  E_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC
+       \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC,\\
+  L_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC,
+\end{align*}
+using $I_w^i = I_w$ and $w^o = w$ for $w \in W_2 \sm J$ (since $W_1 \cap W_2 = \emptyset$).
+
+\medskip\noindent\emph{Computing $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$.}
+
+$G_{\swig(W_1)} = (\hat{J},\, \hat{V},\, \hat{E},\, \hat{L})$
+with $\hat{J} = J \dcup W_1^i$, $\hat{V} = (V \sm W_1) \dcup W_1^o$.
+Since $W_2 \sm \hat{J} = W_2 \sm J$ (using $W_1 \cap W_2 = \emptyset$), applying $\doit(I_{W_2})$:
+\begin{align*}
+  J_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= J \dcup W_1^i \dcup \lC I_w \mid w \in W_2 \sm J \rC,\\
+  V_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= (V \sm W_1) \dcup W_1^o,\\
+  E_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC
+       \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC,\\
+  L_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC.
+\end{align*}
+
+All four components coincide, so the two CADMGs are equal.
+\end{proof}
+}%end Claude
+
+\subsubsection{Marginalization of Graphs}
+
+\begin{Def}[Marginalization a.k.a.\ latent projection on CDMGs]\label{def:G_marginalization}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of output nodes.
+  Then the \emph{marginalization of $G$ w.r.t.\ $W$} or the \emph{latent projection of $G$ onto $J\cup V \sm W$} is the CDMG:
+  \[  G^{V\sm W | J} := G^{\sm W} := (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  %\[ G(V \sm W | \doit(J)) := G^{\sm W} = (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J^{\sm W}:= J$,
+      \item $V^{\sm W}:= V \sm W$,
+      \item $E^{\sm W}$ consists of all directed edges $\ul{v} \tuh \ol{v}$ with $\ul{v},\ol{v} \in J \cup V \sm W$ 
+          for which there exists a directed walk in $G$:
+          \[\ul{v} \tuh w_1 \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).\footnote{Note that this may introduce self-cycles.}
+      \item $L^{\sm W}$ consists of all bidirected edges $\ul{v} \huh \ol{v}$ with 
+          $\ul{v},\ol{v} \in V \sm W$, $\ul{v} \neq \ol{v}$, 
+          for which there exists a bifurcation in $G$:
+          \[\ul{v} \hut w_1 \hut \cdots \hut w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).
+      %\item $L^{\sm W}:= \lC \ul{v} \huh \ol{v}\,|\, \ul{v},\ol{v} \in V \sm W: 
+      %    \exists \text{ bifurcation: } \ul{v} \hut w_1 \cdots w_{n-1} \tuh \ol{v} \in G 
+      %    \text{ with } w_1,\dots,w_{n-1} \in W \rC$,
+  \end{enumerate}
+\end{Def}
+
+
+\begin{Rem}\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}
+Marginalization preserves ancestral relations, bifurcations and acyclicity:
+    \begin{enumerate}
+        \item For $v_1,v_2 \in G$ with $v_1,v_2 \notin W$ we have the equivalence:
+            \[ v_1 \in \Anc^G(v_2)\quad \iff \quad v_1 \in \Anc^{G^{\sm W}}(v_2).   \]
+          \item\label{rem:marg_preserves_bifurcations} 
+            For $v_1,v_2 \in G \sm W$ (and, optionally, $v_3 \in G\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$.
+        \item If the CDMG $G$ is acyclic then so is $G^{\sm W}$ and a topological order of $G$ induces a 
+            topological order on $G^{\sm W}$ (by just ignoring the nodes from $W$).
+    \end{enumerate}
+\end{Rem}
+\begin{proof}
+  We prove \ref{rem:marg_preserves_bifurcations}.
+  Let \[v_1 \hut u_1 \hut  \cdots \hut u_{k-1} \hus          u_k  \tuh \cdots \tuh u_{n-1} \tuh u_n \tuh v_2\]
+  be a bifurcation between $v_1$ and $v_2$ in $G$, 
+  or  \[v_1 \hut u_1 \hut  \cdots \hut u_{k-1} \hut v_3 \tuh u_k  \tuh \cdots \tuh u_{n-1} \tuh u_n \tuh v_2\]
+  be a bifurcation with source $v_3$ between $v_1$ and $v_2$ in $G$. 
+  If one marginalizes out a single node $w \in W$ that is not on the bifurcation, then the same bifurcation exists in $G^{\setminus\{w\}}$. 
+  If one marginalizes out a single node $w \in W$ that appears on the bifurcation (as $u_i$) one obtains again a bifurcation in $G^{\setminus\{w\}}$ (with source $v_3$, if applicable). 
+  By induction and the help of Lemma~\ref{marginalizations-commute}, it follows that there is a bifurcation between $v_1$ and $v_2$ in $G^{\sm W}$ (with source $v_3$, if applicable).
+
+  For the converse, assume that there exists a bifurcation between $v_1$ and $v_2$ in $G^{\sm W}$ (with source $v_3$, if applicable).
+  If there is a bidirected edge $u_{k-1} \huh u_k$ on the bifurcation, then there exists a bifurcation in $G$ of the form
+    \[u_{k-1} \hut w_1 \hut \cdots \hut w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh u_k, \]
+  where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).
+  For each directed edge $u \tuh u'$ on the bifurcation in $G^{\sm W}$, there exists a directed path $u \tuh \dots \tuh u'$ in $G$ with all intermediate nodes in $W$.
+  Concatenating all these directed paths, and the bifurcation (if applicable), one obtains a bifurcation between $v_1$ and $v_2$ in $G$.
+  If the bifurcation in $G^{\sm W}$ had source $v_3$, then the bifurcation in $G$ constructed in this way will also have source $v_3$.
+\end{proof}
+
+\begin{Lem}[Marginalizations commute]\label{marginalizations-commute}
+      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of output nodes.
+      Then we have:
+      \[ \lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1} =  G^{\sm (W_1 \cup W_2)}. \]
+     % This shows that the notation:
+     % \[ G(V \sm (W_1 \cup W_2)|\doit(J))  \]
+     % is unambiguous.
+\end{Lem}
+\Claude{%
+\begin{proof}
+We show $\lp G^{\sm W_1}\rp^{\sm W_2} = G^{\sm(W_1 \cup W_2)}$; the other equality then follows by symmetry (swapping $W_1$ and $W_2$).
+
+Both graphs have input nodes $J$ and output nodes $V \sm (W_1 \cup W_2)$.
+It remains to show that the directed and bidirected edge sets coincide.
+
+\medskip\noindent\emph{Directed edges.}
+We show: for $\ul{v},\ol{v} \in J \cup V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$, there is a directed walk
+$\ul{v} = u_0 \tuh u_1 \tuh \cdots \tuh u_m = \ol{v}$
+in $G^{\sm W_1}$ with all intermediate nodes $u_1,\dots,u_{m-1} \in W_2$.
+Each edge $u_i \tuh u_{i+1} \in E^{\sm W_1}$ corresponds to a directed walk
+in $G$ from $u_i$ to $u_{i+1}$ with intermediate nodes in $W_1$.
+Concatenating all these walks yields a directed walk from $\ul{v}$ to $\ol{v}$
+in $G$ with all intermediate nodes in $W_1 \cup W_2$, so
+$\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$, there is a directed walk
+$\ul{v} = a_0 \tuh a_1 \tuh \cdots \tuh a_n = \ol{v}$
+in $G$ with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+Extract the subsequence of nodes not in $W_1$:
+$\ul{v}=b_0, b_1, \dots, b_r, b_{r+1}=\ol{v}$ with $b_1,\dots,b_r \in W_2$.
+Between consecutive nodes $b_j$ and $b_{j+1}$, all intermediate nodes of
+the original walk lie in $W_1$, so $b_j \tuh b_{j+1} \in E^{\sm W_1}$.
+This gives a directed walk from $\ul{v}$ to $\ol{v}$ in $G^{\sm W_1}$
+with intermediate nodes in $W_2$, hence
+$\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$.
+
+\medskip\noindent\emph{Bidirected edges.}
+We show: for distinct $\ul{v}, \ol{v} \in V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$, there exists a bifurcation
+in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_2$:
+\[
+  \ul{v} \hut u_1 \hut \cdots \hut u_{k-1} \hus u_k \tuh \cdots \tuh u_{m-1} \tuh \ol{v}
+\]
+with $u_1,\dots,u_{m-1} \in W_2$.
+Each directed edge on the bifurcation (in $E^{\sm W_1}$) expands to a directed walk
+in $G$ with intermediate nodes in $W_1$.
+If the hinge edge $u_{k-1} \hus u_k$ is directed ($u_{k-1} \hut u_k \in E^{\sm W_1}$),
+it likewise expands to a directed walk in $G$ through $W_1$.
+If the hinge edge is bidirected ($u_{k-1} \huh u_k \in L^{\sm W_1}$),
+it expands to a bifurcation in $G$ between $u_{k-1}$ and $u_k$ with intermediate nodes in $W_1$.
+Substituting all these expansions into the bifurcation yields a bifurcation in $G$
+between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_1 \cup W_2$,
+so $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$, there exists a bifurcation in $G$:
+\[
+  \ul{v} = a_0 \hut a_1 \hut \cdots \hut a_{k-1} \hus a_k \tuh \cdots \tuh a_{n-1} \tuh a_n = \ol{v}
+\]
+with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+We construct a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+
+\emph{Left arm.}
+Reading the left arm in forward direction gives a directed walk in $G$:
+$a_{k^*} \tuh \cdots \tuh a_1 \tuh \ul{v},$
+where $a_{k^*}$ equals $a_k$ if the hinge is directed ($a_{k-1} \hut a_k$) and
+$a_{k^*}$ equals $a_{k-1}$ if the hinge is bidirected ($a_{k-1} \huh a_k$).
+All intermediate nodes of this directed walk lie in $W_1 \cup W_2$.
+Extracting the subsequence of non-$W_1$ nodes and applying the same argument as
+for directed edges gives a directed walk from $a_{k^*}$ (or its
+first non-$W_1$ descendant on this arm) to $\ul{v}$ in $G^{\sm W_1}$ with
+intermediate nodes in $W_2$.
+
+\emph{Right arm.}
+Similarly, $a_k \tuh \cdots \tuh a_{n-1} \tuh \ol{v}$ is a directed walk in $G$
+with intermediate nodes in $W_1 \cup W_2$.
+The non-$W_1$ extraction gives a directed walk in $G^{\sm W_1}$ from
+$a_k$ (or its first non-$W_1$ descendant on this arm) to $\ol{v}$
+with intermediate nodes in $W_2$.
+
+\emph{Hinge.}
+Let $\beta$ be the first non-$W_1$ node reached from the hinge going along
+the left arm towards $\ul{v}$ (or $\ul{v}$ itself if all intermediate left-arm
+nodes lie in $W_1$).
+Let $\gamma$ be the first non-$W_1$ node reached from the hinge going along
+the right arm towards $\ol{v}$ (or $\ol{v}$ itself if all intermediate right-arm
+nodes lie in $W_1$).
+
+If $\beta \neq \gamma$: the subwalk from $\beta$ backwards along the left arm,
+through the hinge, and forward along the right arm to $\gamma$
+is a bifurcation in $G$ with all intermediate nodes in $W_1$, so
+$\beta \huh \gamma \in L^{\sm W_1}$.
+
+If $\beta = \gamma$: all nodes between $\beta$ and the hinge on both arms lie in $W_1$,
+so the node $\beta$ is the source of directed walks to both $\ul{v}$ and $\ol{v}$
+in $G^{\sm W_1}$ (with intermediate nodes in $W_2$).
+%\TODO{The previous version incorrectly claimed ``the case $\beta=\gamma$ with a bidirected hinge cannot occur'', but the at-most-one-arrowhead condition is per occurrence, not per node, so this case CAN occur. The conclusion is still correct: $\beta=\gamma$ is a source of directed walks to both endpoints regardless of hinge type.}
+
+In all cases, assembling the contracted left arm, the contracted hinge
+($\beta \huh \gamma$ or source~$\beta{=}\gamma$), and the contracted right arm yields
+a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate
+nodes in $W_2$.
+Hence $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$.
+\end{proof}
+}%end Claude
+
+\begin{Lem}[Marginalization and intervention commute]
+      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(W_1)}. \]
+     % This shows that the following notations are unambiguous:
+     % \[G(V\sm (W_1 \cup W_2)|\doit(W_1 \cup J))=G_{\doit(W_1)}^{\sm W_2}.\]
+      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.
+\end{Lem}
+\Claude{%
+\begin{proof}
+We verify that all four components of $\lp G_{\doit(W_1)} \rp^{\sm W_2}$ and $\lp G^{\sm W_2} \rp_{\doit(W_1)}$ agree.
+
+\medskip\noindent\emph{Input nodes.}
+Both sides have $J \cup W_1$: marginalization does not change input nodes, and hard intervention adds $W_1$ to them.
+
+\medskip\noindent\emph{Output nodes.}
+Left: $(V \sm W_1) \sm W_2 = V \sm (W_1 \cup W_2)$. Right: $(V \sm W_2) \sm W_1 = V \sm (W_1 \cup W_2)$.
+
+\medskip\noindent\emph{Directed edges.}
+Let $\ul{v}, \ol{v} \in (J \cup W_1) \cup (V \sm (W_1 \cup W_2))$.
+
+Left: $\ul{v} \tuh \ol{v} \in (E_{\doit(W_1)})^{\sm W_2}$ iff there is a directed walk
+$\ul{v} \tuh a_1 \tuh \cdots \tuh a_{n-1} \tuh \ol{v}$ in $G_{\doit(W_1)}$ with all $a_k \in W_2$.
+Since $E_{\doit(W_1)} = E \sm \{v \tuh w \mid w \in W_1\}$ and all $a_k \in W_2$ satisfy $a_k \notin W_1$ (as $W_1 \cap W_2 = \emptyset$), such a walk exists iff there is a directed walk in $G$ from $\ul{v}$ to $\ol{v}$ with intermediate nodes in $W_2$ and no edge pointing into $W_1$.
+
+Right: $\ul{v} \tuh \ol{v} \in (E^{\sm W_2})_{\doit(W_1)}$ iff $\ul{v} \tuh \ol{v} \in E^{\sm W_2}$ and $\ol{v} \notin W_1$.
+The latter holds since $\ol{v} \in V \sm (W_1 \cup W_2)$.
+And $\ul{v} \tuh \ol{v} \in E^{\sm W_2}$ iff there is a directed walk in $G$ from $\ul{v}$ to $\ol{v}$ with intermediate nodes in $W_2$.
+Since all $a_k \in W_2 \ins V \sm W_1$, no edge in such a walk points into $W_1$, and $\ol{v} \notin W_1$.
+Hence both conditions are equivalent.
+
+\medskip\noindent\emph{Bidirected edges.}
+Let $\ul{v}, \ol{v} \in V \sm (W_1 \cup W_2)$, $\ul{v} \neq \ol{v}$.
+
+Left: $\ul{v} \huh \ol{v} \in (L_{\doit(W_1)})^{\sm W_2}$ iff there is a bifurcation in $G_{\doit(W_1)}$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+Since $L_{\doit(W_1)} = L \sm \{v \huh w \mid w \in W_1\}$ and $W_2 \cap W_1 = \emptyset$, such a bifurcation uses only edges not touching $W_1$, so it is also a bifurcation in $G$ with intermediate nodes in $W_2$.
+
+Right: $\ul{v} \huh \ol{v} \in (L^{\sm W_2})_{\doit(W_1)}$ iff $\ul{v} \huh \ol{v} \in L^{\sm W_2}$ and $\ul{v}, \ol{v} \notin W_1$.
+The latter holds. And $\ul{v} \huh \ol{v} \in L^{\sm W_2}$ iff there is a bifurcation in $G$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+Since $W_2 \cap W_1 = \emptyset$, both sides reduce to: there exists a bifurcation in $G$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+\end{proof}
+}%end Claude
+
+\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]
+     Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ be a subset of output nodes from $G$.
+     Then the CDMG that arises by first splitting the nodes on $W$ 
+      and then marginalizing out the nodes from $W^o$ 
+     can be identified with the CDMG that arises by hard intervention on $W$:
+     \[ G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}, \qquad w \mapsto w^i. \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+We establish the isomorphism $G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}$ via the map $\phi$ that is the identity on $J \cup (V \sm W)$ and sends $w^i \mapsto w$ for each $w \in W$.
+
+Recall:
+\begin{itemize}
+    \item $G_{\doit(W)}$ has input nodes $J \cup W$, output nodes $V \sm W$, directed edges $E \sm \{v \tuh w \mid w \in W\}$, and bidirected edges $L \sm \{v \huh w \mid w \in W\}$.
+    \item $G_{\swig(W)}$ has input nodes $J \dcup W^i$, output nodes $(V \sm W) \dcup W^o$, directed edges $\{v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E\}$, and bidirected edges $\{v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L\}$ (where $v^i = v^o = v$ for $v \notin W$).
+\end{itemize}
+
+\medskip\noindent\emph{Node sets.}
+After marginalizing out $W^o$:
+input nodes $J \dcup W^i$ (unchanged) and output nodes $(V \sm W) \dcup W^o \sm W^o = V \sm W$.
+Under $\phi$ ($w^i \mapsto w$) this matches $G_{\doit(W)}$: input nodes $J \cup W$, output nodes $V \sm W$.
+
+\medskip\noindent\emph{Directed edges.}
+In $G_{\swig(W)}$, nodes $w^o \in W^o$ have no outgoing directed edges (all outgoing edges of $w$ go to $w^i$, not $w^o$).
+Therefore no directed walk can pass through a node in $W^o$ as an intermediate node.
+Hence the marginalization step does not create any new directed edges: $\ul{v} \tuh \ol{v} \in (E_{\swig(W)})^{\sm W^o}$ iff $\ul{v} \tuh \ol{v} \in E_{\swig(W)}$ with $\ul{v},\ol{v} \notin W^o$.
+
+Such an edge corresponds to some $v_1 \tuh v_2 \in E$ with $\ul{v} = v_1^i$ and $\ol{v} = v_2^o$.
+Since $\ol{v} \notin W^o$, we have $v_2 \notin W$, so $v_2^o = v_2$.
+Under $\phi$: $\phi(\ul{v}) \tuh \phi(\ol{v}) = v_1 \tuh v_2 \in E$ with $v_2 \notin W$,
+i.e.\ $v_1 \tuh v_2 \in E_{\doit(W)}$.
+Conversely, every edge in $E_{\doit(W)}$ lifts to an edge in $E_{\swig(W)}$ with both endpoints outside $W^o$.
+
+\medskip\noindent\emph{Bidirected edges.}
+Let $\ul{v}, \ol{v} \in V \sm W$, $\ul{v} \neq \ol{v}$.
+Since nodes in $W^o$ have no outgoing directed edges, the only bifurcations in $G_{\swig(W)}$ with intermediate nodes in $W^o$ reduce to a single bidirected edge (the directed arms of the bifurcation cannot extend through $W^o$).
+So $\ul{v} \huh \ol{v} \in (L_{\swig(W)})^{\sm W^o}$ iff $\ul{v} \huh \ol{v} \in L_{\swig(W)}$, i.e.\ iff $\ul{v} \huh \ol{v} \in L$ (since $\ul{v}^o = \ul{v}$ and $\ol{v}^o = \ol{v}$ for $\ul{v}, \ol{v} \notin W$).
+Under $\phi$ this matches $\ul{v} \huh \ol{v} \in L_{\doit(W)} = L \sm \{v \huh w \mid w \in W\}$, which equals $\ul{v} \huh \ol{v} \in L$ since $\ul{v}, \ol{v} \notin W$.
+
+\medskip
+Since $\phi$ provides a bijection on nodes that preserves input/output status and all edges, the two CDMGs are isomorphic.
+\end{proof}
+}%end Claude
+
+\subsection{$i\sigma$-Separation}
+
+\begin{Def}[Colliders and non-colliders]
+  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  A node $v_k$, or more precisely, the position $k \in \lC 0,\dots, n \rC$,
+  on the walk $\pi$ is called:
+     \begin{enumerate}
+     \item a \emph{non-collider} on $\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\ if it falls into one of the following cases:
+  \[\begin{array}{rccl}
+    \text{ end-node: } & k \in \lC 0,n \rC, \\
+    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1}, \\
+    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1},\\
+    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1};
+    \end{array}\]
+  \item a \emph{collider} on $\pi$, if it is of the form: 
+             \[v_{k-1} \suh v_k \hus v_{k+1},\] 
+             i.e.\ if there are two arrowheads pointing towards $v_k$ on the walk $\pi$.
+     \end{enumerate}
+\end{Def}
+
+
+\begin{Def}[Blockable and unblockable non-colliders]\label{def:unblockable_noncollider}
+  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We call a non-collider $v_k$ on $\pi$ an \emph{unblockable non-collider} on $\pi$ if it is not an end-node ($k \notin \{0,n\}$) and it only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$. That is,
+  it is one of the following patterns:
+  \[\begin{array}{rccl}
+    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_{k})\\
+    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_{k})\\
+    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)
+  \end{array}\]
+  Otherwise, $v_k$ is called a \emph{blockable non-collider} on $\pi$.
+  This means that $v_k$ is either an end-node ($k \in \lC 0,n\rC$) or it has at least one outgoing arrow 
+  $v_k \tuh v_{k\pm1}$ pointing to a node $v_{k\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\ $v_{k\pm1} \notin \Sc^G(v_k)$.
+\end{Def}
+  
+\begin{Rem}
+If $G$ is acyclic then all non-colliders are blockable.
+\end{Rem}
+
+\begin{comment}
+\begin{Def}[$\sigma$-blocked walks]\label{def:sigma_blocking}
+      Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+      \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+      \begin{enumerate}
+          \item
+      We say that the walk $\pi$ is \emph{$C$-$\sigma$-blocked} or \emph{$\sigma$-blocked by $C$} if:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}),\\
+  \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k+1}),\\
+  \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}) \cap \Sc^G(v_{k+1}),\\
+  \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+      \end{enumerate}
+  \item We say that the walk $\pi$ is \emph{$C$-$\sigma$-open} if it is not $C$-$\sigma$-blocked.
+  \end{enumerate}
+\end{Def}
+\end{comment}
+
+\begin{comment}
+      \Joris{Consider simplifying the above as:
+        \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$, or $v_n \in C$;
+          \item or it contains a collider that is not in $\Anc^G(C)$:
+              \[\begin{array}{rccl}
+                \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C);
+              \end{array}\]
+          \item or it contains a non-endpoint non-collider that is blockable and in $C$:
+              \[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}),\\
+  \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k+1}),\\
+  \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}) \cap \Sc^G(v_{k+1}).\\
+              \end{array}\]
+      \end{enumerate}
+          or even remove the equations altogether and express it in words (making use of the definitions of (blockable) (non)-collider), like we do in the remark below.
+          }
+  \PF{I don't see that this is simpler than the other versions we already have...}
+\end{comment}
+
+\begin{comment}
+\begin{Rem}
+    In words, the walk $\pi$ is:
+  \begin{enumerate}
+      \item   \emph{$C$-$\sigma$-open}  if and only if \emph{all}:
+  \begin{enumerate}[label=\roman*.)]
+      \item colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
+    \item blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+  \end{enumerate}
+      \item   \emph{$C$-$\sigma$-blocked} if and only if there \emph{exists}:
+  \begin{enumerate}[label=\roman*.)]
+    \item a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^G(C)$, \emph{or}:
+    \item a blockable non-collider $v_k$ on $\pi$ in $C$.
+  \end{enumerate}  \end{enumerate}
+  Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+  Also note that if $G$ is acyclic then all non-colliders are blockable.
+\end{Rem}
+\end{comment}
+
+\begin{Def}[$\sigma$-blocked walks]\label{def:sigma_blocking}
+  Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We say that the walk $\pi$ is:
+  \begin{enumerate}
+    \item   \emph{$C$-$\sigma$-open} (or \emph{$\sigma$-open given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+      \item all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
+    \item all blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+  \end{enumerate}
+      \item   \emph{$C$-$\sigma$-blocked}  (or \emph{$\sigma$-blocked given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+    \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^G(C)$, \emph{or}:
+    \item there exists a blockable non-collider $v_k$ on $\pi$ in $C$.
+  \end{enumerate}  \end{enumerate}
+  Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+\end{Def}
+
+
+\begin{Def}[$i\sigma$-separation]\label{def:sigma_separation}
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $i\sigma$-separated from $B$ given $C$ in $G$}, in symbols:
+    \[ A \isPerp_G B \given C, \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!)\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\label{fn:why-J}} is $\sigma$-blocked by $C$.
+        \item If that property does not hold we will write:
+            \[ A \nisPerp_G B \given C. \]
+        \item We also define the special case:
+                \[ A \isPerp_G B \qquad :\iff \qquad A \isPerp_G B \given \emptyset.\]
+        \item For the special case $J = \emptyset$---that is, if $G$ has no input nodes---$i\sigma$-separation is also called \emph{$\sigma$-separation}, and we write:
+          \[A \sPerp_G B \given C := A \isPerp_G B \given C, \qquad A \nsPerp_G B \given C := A \nisPerp_G B \given C.\]
+          Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, since when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\sigma$-blocking conditions are invariant under walk reversal.
+    \end{enumerate}
+\end{Def}
+
+%\begin{Rem}
+%  We chose an unconventional notation for separation (``$\iPerp$'') to emphasize its asymmetric nature due to how it handles input nodes.
+%  If no input nodes are present, we fall back on the notation for separation (``$\Perp$'') that is standard in the literature.
+%  Sometimes one needs to translate between the symmetric notion and the asymmetric one; this will be discussed in Section~\ref{sec:isep_vs_sep}.
+%\end{Rem}
+
+The following result is often helpful to simplify proofs and to make checking $i\sigma$-separation feasible in practice.
+
+\begin{restatable}{Prp}{restateprpsigmaopens}\label{prp:sigma_opens}
+  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+      \item there exists a $C$-$\sigma$-open \emph{path} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\Anc^G(C)$).
+  \end{enumerate}
+\end{restatable}
+
+\begin{Rem}
+    \begin{enumerate}
+        \item By Proposition \ref{prp:sigma_opens} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
+  \begin{enumerate}
+      \item every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
+      \item every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
+  \end{enumerate}
+    \item Proposition \ref{prp:sigma_opens} also shows that if $A \nisPerp_G B \given C$ holds then:
+  \begin{enumerate}
+      \item there exists a (shortest) $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
+      \item there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.
+  \end{enumerate}
+  \end{enumerate}
+  In practice we usually check if every path is $C$-$\sigma$-blocked or not. This is because there are, in contrast to walks, only a finite number of paths in a (finite) graph. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).
+\end{Rem}
+
+\begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
+        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
+        be subsets of nodes such that:
+        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
+        Then we have the equivalence:
+        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+\end{Lem}
+\Claude{%
+\begin{proof}
+By Lemma~\ref{marginalizations-commute} and induction on $\#D$, it suffices to prove the case $D=\{u\}$ for a single node $u \in V \sm (A \cup B \cup C)$.
+
+We use three preparatory facts.
+First, marginalization preserves ancestral relations
+(Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}):
+for $v_1,v_2 \in J \cup V \sm \{u\}$,
+\begin{equation}\label{eq:anc_preserved}
+  v_1 \in \Anc^G(v_2) \;\iff\; v_1 \in \Anc^{G^{\sm u}}(v_2).
+\end{equation}
+In particular, $\Anc^{G^{\sm u}}(C) = \Anc^G(C) \cap (J \cup V \sm \{u\})$,
+since $u \notin C$.
+Second, marginalization preserves strongly connected components:
+for $v \in V \sm \{u\}$,
+\begin{equation}\label{eq:sc_preserved}
+  \Sc^{G^{\sm u}}(v) = \Sc^G(v) \sm \{u\}.
+\end{equation}
+Indeed, $\Sc^G(v) = \Anc^G(v) \cap \Desc^G(v)$, and by \eqref{eq:anc_preserved}
+both $\Anc$ and $\Desc$ are preserved on $V \sm \{u\}$.
+Third, every edge in $G^{\sm u}$ lifts to a short walk through $u$ in $G$:
+\begin{itemize}
+  \item A directed edge $v \tuh w$ in $G^{\sm u}$ comes from
+    $v \tuh w$ or $v \tuh u \tuh w$ in $G$.
+  \item A bidirected edge $v \huh w$ in $G^{\sm u}$ comes from
+    a bifurcation through $u$ in $G$, i.e.:
+    $v \huh w$, or
+    $v \hut u \tuh w$ (fork), or
+    $v \huh u \tuh w$ (left hinge), or
+    $v \hut u \huh w$ (right hinge).\footnote{We exclude longer bifurcations through repeated self-loop traversals of $u$ for simplicity; they can be handled analogously.}
+\end{itemize}
+In all bifurcation cases, $u$ appears as a non-collider
+(at most one arrowhead towards $u$).
+
+\medskip\noindent$(\implies)$
+Suppose $A \nisPerp_{G^{\sm u}} B \given C$.
+Let $\pi' = (b_0 \sus \cdots \sus b_s)$ be a $C$-$\sigma$-open walk in $G^{\sm u}$
+from $b_0 \in A$ to $b_s \in J \cup B$.
+Lift each edge of $\pi'$ to a walk segment in $G$ as above, obtaining a walk $\pi$ in $G$ from $b_0$ to $b_s$.
+We verify that $\pi$ is $C$-$\sigma$-open.
+
+\emph{Arrowheads at non-$u$ nodes are preserved:}
+For each $b_j$ ($0 \le j \le s$), the arrowhead towards $b_j$ from each adjacent edge
+is the same in $\pi$ as in $\pi'$
+(for directed edges this is immediate;
+for bifurcation expansions, the arrowhead at $v$ from $v \hut u$ or $v \huh u$
+matches the arrowhead at $v$ from the original $v \huh w$).
+So collider/non-collider status at each $b_j$ is preserved.
+
+\emph{Colliders remain open:}
+A collider $b_j$ on $\pi$ satisfies
+$b_j \in \Anc^{G^{\sm u}}(C) \subseteq \Anc^G(C)$ by \eqref{eq:anc_preserved}. %, so it is $\sigma$-open in $G$.
+
+\emph{Blockable non-colliders remain open:}
+A blockable non-collider $b_j \notin C$ on $\pi'$ may become unblockable in $G$
+(since $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$), but in either case $b_j \notin C$ means it is $\sigma$-open.
+
+\emph{Unblockable non-colliders remain open:}
+An unblockable non-collider $b_j$ on $\pi'$ has its outgoing edge(s) going to nodes in $\Sc^{G^{\sm u}}(b_j)$.
+If $b_j$'s outgoing edge was not expanded through $u$, the same neighbor lies in $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$.
+If $b_j$'s outgoing edge in $\pi$ goes to $u$ (from expansion), then $b_j$ has a directed edge to $u$,
+and $u$ has a directed edge to some $b_{j\pm 1} \in \Sc^{G^{\sm u}}(b_j) \subseteq \Sc^G(b_j)$;
+since $b_{j\pm 1}$ can reach $b_j$ in $G$ (they share an SCC) and $b_j$ reaches $u$ directly,
+we get $u \in \Sc^G(b_j)$, so $b_j$ remains unblockable.
+
+\emph{Inserted $u$-nodes are $\sigma$-open:}
+Each inserted $u$ is a non-collider (at most one arrowhead towards $u$)
+with $u \notin C$, so it is $\sigma$-open regardless of whether it is blockable or unblockable.
+
+\medskip\noindent$(\impliedby)$
+Suppose $A \nisPerp_G B \given C$.
+By Proposition~\ref{prp:sigma_opens}(3),
+there exists a $C$-$\sigma$-open walk $\pi = (v_0 \sus \cdots \sus v_n)$
+in $G$ from $v_0 \in A$ to $v_n \in J \cup B$
+such that all colliders on $\pi$ lie in $C$.
+Since $u \notin C$, the node $u$ is a non-collider at every position where it appears on $\pi$.
+Since $u \notin A \cup B$ and $u \in V$ (so $u \notin J$),
+$u$ is not an endpoint of $\pi$.
+
+We construct a $C$-$\sigma$-open walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$
+by contracting each maximal run of $u$'s between consecutive non-$u$ nodes.
+Let $b_0 = v_0, b_1, \dots, b_r, b_{r+1} = v_n$ be the subsequence of
+non-$u$ nodes on $\pi$ (in order of appearance).
+
+\emph{Contraction of each $u$-segment:}
+For each consecutive pair $(b_j, b_{j+1})$, the subwalk of $\pi$ from $b_j$ to $b_{j+1}$
+has all intermediate nodes equal to $u$, where each $u$ is a non-collider.
+We claim this subwalk yields a single edge in $G^{\sm u}$,
+with the arrowhead types at $b_j$ and $b_{j+1}$ preserved.
+If there is no intermediate $u$, the edge $b_j \sus b_{j+1}$ in $G$
+is already present in $G^{\sm u}$ (with the same arrowheads).
+Otherwise, the possible local patterns (for a single intermediate $u$;
+longer runs through self-loops are handled analogously) are,
+up to left--right reflection:
+\[\begin{array}{rclcl}
+  b_j \tuh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \tuh b_{j+1} \in E^{\sm u}
+  & \quad & \text{(directed walk)}\\
+  b_j \hut u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
+  & \quad & \text{(fork bifurcation)}\\
+  b_j \huh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
+  & \quad & \text{(hinge bifurcation)}
+\end{array}\]
+In all cases the arrowhead towards $b_j$ (and $b_{j+1}$) from the
+contracted edge matches the arrowhead from the original edge adjacent to $b_j$ (resp.\ $b_{j+1}$).
+
+Assembling these edges yields a walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$.
+
+\emph{Collider/non-collider status is preserved:}
+Since arrowhead types at each $b_j$ are preserved on both sides,
+collider/non-collider status at $b_j$ in $\pi'$ is the same as in $\pi$.
+
+\emph{Colliders remain open:}
+Colliders on $\pi$ lie in $C \subseteq \Anc^G(C)$.
+By \eqref{eq:anc_preserved}, $C \subseteq \Anc^{G^{\sm u}}(C)$, so they are $\sigma$-open in $G^{\sm u}$.
+
+\emph{Non-colliders remain $\sigma$-open (with possible walk modification):}
+By \eqref{eq:sc_preserved}, $\Sc^{G^{\sm u}}(b_j) = \Sc^G(b_j) \sm \{u\}$.
+A blockable non-collider $b_j \notin C$ on $\pi$ stays $\notin C$, hence $\sigma$-open in $\pi'$,
+whether it stays blockable or becomes unblockable in $G^{\sm u}$.
+An unblockable non-collider $b_j$ on $\pi$ whose outgoing edges on $\pi'$ all go to
+$\Sc^{G^{\sm u}}(b_j)$ remains unblockable, hence $\sigma$-open.
+
+It remains to consider an unblockable non-collider $b_j$ on $\pi$
+with an outgoing edge on $\pi'$ to (w.l.o.g.)\ $b_{j+1} \notin \Sc^{G^{\sm u}}(b_j)$.
+On $\pi$, this outgoing edge went to $u \in \Sc^G(b_j)$ via $b_j \tuh u \in E$,
+which contracted to $b_j \tuh b_{j+1} \in E^{\sm u}$.
+If $b_j \notin C$, then $b_j$ is $\sigma$-open as a blockable non-collider.
+
+Suppose $b_j \in C$.
+Since $u \in \Sc^G(b_j)$, there is a directed path from $u$ to $b_j$ in $G$;
+let $w$ be the successor of $u$ on this path,
+so $u \tuh w \in E$ and $w \in \Sc^G(b_j) \sm \{u\} = \Sc^{G^{\sm u}}(b_j)$
+(note $w \ne b_{j+1}$ since $b_{j+1} \notin \Sc^G(b_j)$).
+Since $b_j \tuh u \tuh w$ is a directed walk through $u$ in $G$,
+we have $b_j \tuh w \in E^{\sm u}$ (trivially satisfied if $w = b_j$).
+The fork bifurcation $w \ot u \tuh b_{j+1}$ yields $w \huh b_{j+1} \in L^{\sm u}$.
+We replace the edge $b_j \tuh b_{j+1}$ in $\pi'$ by
+$b_j \tuh w \huh b_{j+1}$ (or just $b_j \huh b_{j+1}$ if $w = b_j$).
+The arrowhead at $b_{j+1}$ is preserved (arrowhead in both cases).
+The node $w$ is a collider; since $w \in \Sc^{G^{\sm u}}(b_j)$ and $b_j \in C$,
+we get $w \in \Anc^{G^{\sm u}}(C)$, so $w$ is $\sigma$-open.
+If $w \ne b_j$, then $b_j$'s outgoing edge toward $b_{j+1}$ now goes to
+$w \in \Sc^{G^{\sm u}}(b_j)$.
+If $w = b_j$, the directed edge $b_j \tuh b_{j+1}$ is replaced by the
+bidirected edge $b_j \huh b_{j+1}$,
+adding an arrowhead at $b_j$ on this side.
+Applying this construction to each problematic outgoing edge of $b_j$
+(symmetrically for $b_{j-1}$ if needed),
+after all modifications $b_j$ is either unblockable
+(all outgoing edges go to $\Sc^{G^{\sm u}}(b_j)$)
+or a collider in $C \subseteq \Anc^{G^{\sm u}}(C)$;
+in both cases $\sigma$-open.
+
+Applying all such modifications yields a $C$-$\sigma$-open walk in $G^{\sm u}$ from $v_0$ to $v_n$.
+\end{proof}
+}%end Claude
+
+\begin{Rem}
+    If a CDMG $G$ is acyclic then all non-colliders are blockable.
+    So, the partial condition for $i\sigma$-separation
+    ``a blockable non-collider in $C$''
+    can be simplified to ``(any) non-collider in $C$''.
+    
+    So in the acyclic case we can simplify the notion of $i\sigma$-separation, 
+    which we will refer to as \emph{$id$-separation}.
+    However, in the non-acyclic setting $id$-separation (``(any) non-collider in $C$'') and $i\sigma$-separation (``a blockable non-collider in $C$'') are clearly not equivalent.
+
+    It turned out that in the non-acyclic case $i\sigma$-separation is the more general concept (and as said above it also captures the acyclic case equivalently well), see \cite{FM17,FM18,FM20,BFPM21}.
+    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.
+    Later, we will pick up $i\sigma$-separation again when we deal with cycles.
+\end{Rem}
+
+\begin{comment}
+\begin{Rem}
+    If a CDMG $G$ is acyclic then all non-colliders are blockable,
+     $\Sc^G(v)=\{v\}$ for all $v \in G$, and the additional conditions in ``$\sigma$-blocked'' 
+    for the non-colliders are of the form $v_k \notin \Sc^G(v_{k\pm 1})=\{v_{k\pm1}\}$.
+    These are then automatically satisfied, because the node $v_k$ is a parent of 
+    the relevant other node $v_{k \pm1}$ and thus not equal to it.
+
+    So in the acyclic case we can simplify the notion of $i\sigma$-separation, which was then usually called \emph{d-separation} for the special case of no input nodes ($J=\emptyset$).
+    However, in the non-acyclic setting $id$-separation and $i\sigma$-separation are not equivalent anymore.
+    It turns out that in the non-acyclic case $i\sigma$-separation is the better concept (and as said above it also captures the acyclic case equivalently well), see \cite{FM17,FM18,FM20,BFPM21}.
+    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.
+    Later, we will pick up $i\sigma$-separation again when we deal with cycles.
+\end{Rem}
+\end{comment}
+
+\paragraph{Proofs - $i\sigma$-Open Walks and Paths}\hfill%
+
+The following lemma will be convenient to relate $\sigma$-open walks and paths in the notion of $i\sigma$-separation.
+
+
+\begin{Lem}\label{lem:replace_walk}
+Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma$-open walk in $G$. 
+  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
+If we then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
+    \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
+  \end{enumerate}
+  then this new subwalk is entirely within $\Sc^G(v_j)$ and the modified walk $\pi'$ is still $C$-$\sigma$-open.
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma$-blocked on $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$. It is also worth noting that $\pi'$ cannot become $C$-$\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\pi$. So in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$.
+
+Case (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma$-open on $\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$ (if $v_i$ is the left endnode or not). If $v_i \neq v_j$, then the new directed path $v_i \tuh \cdots \tuh v_j$ in $\pi'$ is $C$-$\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).
+
+ Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \hus v_{j+1}$ in $\pi$. 
+ If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). 
+ So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$. So $\pi$ looks as follows:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \sus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \tuh \cdots \tuh v_k \hus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ Since $\pi$ is $C$-$\sigma$-open we have $v_k \in \Anc^G(C)$. Since $v_i \in \Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \in \Anc^G(C)$.
+ So if we replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by the shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ we then get for $\pi'$ the following situation:
+ \[\pi':\qquad \cdots v_{i-1} \suh v_i \hut \cdots \hut  v_j \hus v_{j+1} \cdots, \]
+ which is then $C$-$\sigma$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i=v_j$.
+ If $v_i \neq v_j$ then $v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. 
+
+ So in all cases $\pi'$ stays $C$-$\sigma$-open.
+\end{proof}
+\end{Lem}
+
+
+\restateprpsigmaopens*
+\begin{proof}
+$3 \implies 2$ and $1 \implies 2$ are trivial. Note that paths are walks.
+
+$2 \implies 3$: Suppose there exists a $C$-$\sigma$-open walk $\pi$ from $w_1$ to $w_2$.
+Then consider a collider $v_{k-1} \suh v_k \hus v_{k+1}$ on $\pi$ with $v_k \in \Anc^G(C) \sm C$.
+So there exists a non-trivial directed path from $v_k$ to a node $c_k \in C$ with all other nodes not in $C$.
+If we then replace the collider at $v_k$ in $\pi$ by that path and its reverse we get:
+\[ \cdots \sus v_{k-1} \suh v_k \tuh \cdots \tuh c_k \hut \cdots \hut v_k \hus v_{k+1} \sus \cdots.  \]
+This walk is then $C$-$\sigma$-open at all places between $v_k$ on the left and $v_k$ on the right because they are non-colliders not in $C$. If we do this iteratively for all colliders not in $C$ we get the desired $C$-$\sigma$-open walk where all colliders lie in $C$.
+
+$2 \implies 1$:
+Let $\pi = (v_0 \sus \cdots \sus v_n)$ be a $C$-$\sigma$-open walk between nodes $v_0=w_1$ and $v_n=w_2$ in $G$. 
+If a node $w$ occurs more than once on $\pi$, let $v_i$ be the first node on $\pi$ and $v_j$ be the last node on $\pi$ that are in $\Sc^G(w)$.
+We now use Lemma~\ref{lem:replace_walk} to construct a new walk $\pi'$ from $\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\pi$ by a particular directed path in $\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\pi'$ is still $C$-$\sigma$-open.
+In $\pi'$, the number of nodes that occurs more than once is at least one less than in $\pi$, and all nodes within $\Sc^G(w)$ occur within a single segment.
+This replacement procedure can be repeated until no nodes occur more than once. We have then obtained a
+$C$-$\sigma$-open path between $w_1$ and $w_2$.
+\end{proof}
+
+
+
+
+\subsection{$id$-Separation}
+
+\begin{Def}[$d$-blocked walks]\label{def:d-blocking}
+      Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+      \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+      \begin{enumerate}
+          \item
+              We say that the walk $\pi$ is \emph{$C$-$d$-blocked} or \emph{$d$-blocked by $C$} to emphasize the use of the bidirected edges\footnote{The ``d'' here stands for ``directional''. d-separation was first only used for DAGs (without bidirected edges).  For ADMGs it was then called ``m-separation'' in \cite{Ric03}. But since the notion of m-separation is arguably the natural extension of d-separation and to avoid introducing more definitions, we will just call it d-separation as well, which will not create any ambiguity.} 
+              if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+           \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+      \end{enumerate}
+          \item We say that the walk $\pi$ is \emph{$C$-$d$-open} if it is not $C$-$d$-blocked.
+      \end{enumerate}
+\end{Def}
+
+\begin{Rem}
+          If we consider end-nodes, left chains, right chains and forks as \emph{non-colliders} then we can simply state:
+
+      $\pi$ is $d$-blocked by $C$ if and only if it either contains a non-collider in $C$ or a collider not in $\Anc^G(C)$.
+\end{Rem}
+
+\begin{Def}[$id$-separation]
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $id$-separated from $B$ given $C$ in $G$}, in symbols:
+    \[ A \idPerp_G B \given C,  \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!)\footref{fn:why-J} is $C$-$d$-blocked by $C$.
+        \item If that property does not hold we will write:
+            \[ A \nidPerp_G B \given C.\]
+        \item We also define the special case:
+                \[ A \idPerp_G B \qquad :\iff \qquad A \idPerp_G B \given \emptyset.\]
+        \item For the special case $J = \emptyset$---that is, if $G$ has no input nodes---$id$-separation is also called \emph{$d$-separation}, and we write:
+          \[A \dPerp_G B \given C := A \idPerp_G B \given C, \qquad A \ndPerp_G B \given C := A \nidPerp_G B \given C.\]
+          Note that $d$-separation is symmetric: $A \dPerp_G B \given C \iff B \dPerp_G A \given C$, by the same argument as for $\sigma$-separation.
+    \end{enumerate}
+\end{Def}
+
+%\begin{Rem}
+%  As for $i\sigma$-separation, we chose an unconventional symbol for $id$-separation (``$\iPerp$'') to emphasize its asymmetric nature due to how it handles input nodes.
+%  If no input nodes are present, we fall back on the notation for $d$-separation (``$\Perp$'') that is standard in the literature.
+%  Sometimes one needs to translate between the symmetric notion and the asymmetric one; this will be discussed in Section~\ref{sec:isep_vs_sep}.
+%\end{Rem}
+
+\begin{Rem}
+    \begin{enumerate}
+        \item A similar result from Proposition \ref{prp:sigma_opens} holds for $id$-separation as well.
+        \item $id$-separation is stable under marginalization, similar to Lemma \ref{lem:stability_separation_marginalization}.
+    \end{enumerate}
+\end{Rem}
+
+
+\begin{comment}
+\subsection{$i\sigma$-Separation and $id$-Separation}
+
+\PF{To get arround different notions of $i\sigma$-separation we could only focus on the current $i\sigma'$-separation version 
+    ($\Anc^G(C)$ colliders). The important Lemma relating paths to walks could then be re-stated as the equivalence between the existence of:
+\begin{enumerate}
+    \item $C$-$\sigma'$-open path,
+    \item $C$-$\sigma'$-open walk,
+    \item $C$-$\sigma'$-open walk where all colliders are in $C$,  (<- only here comes the $C$-version in!!!).
+\end{enumerate}
+In proofs where shortes $C$-$\sigma$-open walks are required one could by this Lemma ask for:
+``consider a shortest $C$-$\sigma'$-open walk where all colliders are in $C$.''\\
+I think this would circumvent all problems with these two notions and could re-baptize $i\sigma'$-separation as $i\sigma$-separation.
+}
+
+
+\begin{Def}[$\sigma$-blocked walks]\label{def:sigma_blocking}
+      Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+      \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+      \begin{enumerate}
+          \item
+      We say that the walk $\pi$ is \emph{$C$-$\sigma$-blocked} or \emph{$\sigma$-blocked by $C$} if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}),\\
+  \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k+1}),\\
+  \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}) \cap \Sc^G(v_{k+1}),\\
+  \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin C.
+              \end{array}\]
+      \end{enumerate}
+  \item  We say that the walk $\pi$ is \emph{$C$-$\sigma'$-blocked} or \emph{$\sigma'$-blocked by $C$} if the same rules as above hold, but where the collider case is replaced by:
+              \[\begin{array}{rccl}
+                  \text{ collider': } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+  \item We say that the walk $\pi$ is \emph{$C$-$\sigma$-open} (\emph{$C$-$\sigma'$-open}, resp.) if it is not
+      $C$-$\sigma$-blocked (not $C$-$\sigma'$-blocked, resp.).
+  \end{enumerate}
+\end{Def}
+
+\begin{Rem}
+    In words: the walk $\pi$ is \emph{$C$-$\sigma$-open} (\emph{$C$-$\sigma'$-open}, resp.)  if and only if:
+  \begin{enumerate}
+    \item both end-nodes of $\pi$ are not in $C$, and
+    \item all colliders on $\pi$ are in $C$ (in $\Anc^G(C)$, resp.) and
+    \item all (non-endpoint) non-colliders on $\pi$ are either not in $C$ or all of its neighboring children on $\pi$ lie in its strongly connected component. 
+  \end{enumerate}
+\end{Rem}
+
+
+With the help of this lemma, we can prove that notions of $i\sigma$-separation and $i\sigma'$-separation are equivalent:
+
+\begin{Prp}\label{prp:sigma_opens}
+  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $v_1, v_2 \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+    \item there exists a $C$-$\sigma$-open walk between $v_1$ and $v_2$ in $G$;
+    \item there exists a $C$-$\sigma'$-open walk between $v_1$ and $v_2$ in $G$;
+    \item there exists a $C$-$\sigma'$-open path between $v_1$ and $v_2$ in $G$.
+  \end{enumerate}
+\end{Prp}
+
+
+
+A simplified (and generally not eqivalent) version of the above is the following:
+
+\begin{Def}[$d$-blocked walks]\label{def:d-blocking}
+      Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+      \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+      \begin{enumerate}
+          \item
+              We say that the walk $\pi$ is \emph{$C$-$d$-blocked} or \emph{$d$-blocked by $C$}\footnote{The ``d'' here stands for ``directional''. d-separation was first only used for DAGs (without bidirected edges).  For ADMGs it was then called m-separation in \cite{Ric03} to emphasize the use of the bidirected edges. But since the notion of d-separation is the natural extension of d-separation, we will call it d-separation.} 
+              if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+           \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin C.
+              \end{array}\]
+      \end{enumerate}
+      If we consider end nodes, left/right chains and forks as \emph{non-colliders} then we can simply say:\\
+      $\pi$ is $d$-blocked by $C$ if it either contains a non-collider in $C$ or a collider not in $C$.
+        \item  We say that the walk $\pi$ is \emph{$C$-$d'$-blocked} or \emph{$d'$-blocked by $C$} if the same rules as above hold, but where the collider case is replaced by:
+              \[\begin{array}{rccl}
+                  \text{ collider': } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+          \item We say that the walk $\pi$ is \emph{$C$-$d$-open} (\emph{$C$-$d'$-open}, resp.) if it is not $C$-$d$-blocked (not $C$-$d'$-blocked, resp.), i.e.\ if all non-colliders are not in 
+              $C$  and all colliders are in $C$ (in $\Anc^G(C)$, resp.).
+      \end{enumerate}
+\end{Def}
+%\Joris{
+%The following important property connects the two notions.
+%\begin{Prp}
+%Let $G=(J,V,E,L)$ be a CDMG, $C \ins J \cup V$ and $i, j \in V\cup J$. Then the following statements are equivalent:
+%  \begin{enumerate}
+%    \item there exists a $C$-$d$-open walk between $i$ and $j$ in $G$;
+%    \item there exists a $C$-$d'$-open walk between $i$ and $j$ in $G$;
+%    \item there exists a $C$-$d'$-open path between $i$ and $j$ in $G$.
+%  \end{enumerate}
+%\end{Prp}
+%\begin{proof}
+%TODO
+%
+%Since $C \subseteq \Anc^G(C)$, a collider not in $\Anc^G(C)$ is also not in $C$.
+%Suppose there exists an $C$-$d$-open walk between $i$ and $j$.
+%Then all non-colliders are not in $C$ and all colliders are in $C$. Hence all colliders are in $\Anc^G(C)$. Vice versa,
+%suppose there exists an $C$-$d'$-open walk between $i$ and $j$. Then all non-colliders are not in $C$ and all
+%colliders are in $\Anc^G(C)$. If a collider is not in $C$, we can extend the walk by replacing this collider 
+%$\suh v \hus$ by the walk sequence
+%$\suh v \tuh \dots \tuh c \hut \dots \hut v \hus$ with a directed path starting from $v$ and ending in the first
+%node $c$ in $C$ it encounters, and from there tracing the same path backwards back to $v$. All nodes on this
+%walk except for $c$ ($v$ included) are non-colliders and are not in $C$. Hence this walk is $C$-$d$-open.
+%\end{proof}
+%}
+
+\begin{Def}[$id$-separation / $i\sigma$-separation]
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $i\sigma$-separated from $B$ given $C$ in $G$} (\emph{$id$-separated}, resp.), in symbols:
+    \[ A \isPerp_G B \given C, \qquad A \idPerp_G B \given C, \text{ resp.,}  \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!) is $C$-$\sigma$-blocked by $C$ ($C$-$d$-blocked, resp.).
+        \item \emph{$A$ is $i\sigma'$-separated from $B$ given $C$ in $G$} (\emph{$id'$-separated}, resp.), in symbols:
+            \[ A \iPerp^{\sigma'}_G B \given C, \qquad A \iPerp^{d'}_G B \given C, \text{ resp.,}  \]
+            if every \emph{path} (sic!) from a node in $A$ to a node in $J \cup B$ (sic!) is $C$-$\sigma'$-blocked by $C$ ($C$-$d'$-blocked, resp.).
+        \item If the corresponding property does not hold we will write:
+            \[ A \nisPerp_G B \given C, \qquad A \nidPerp_G B \given C, \qquad A \anPerp^{\sigma'}_G B \given C, \qquad A \anPerp^{d'}_G B \given C, \text{ resp.} \]
+        \item For $\iPerp=\isPerp_G$, $\idPerp_G$, $\iPerp^{\sigma'}_G$, $\iPerp^{d'}_G$, resp., we also define the special case:
+                \[ A \iPerp B \qquad :\iff \qquad A \iPerp B | \emptyset.\]
+    \end{enumerate}
+\end{Def}
+
+\begin{Rem}
+    If a CDMG $G$ is acyclic then $\Sc^G(v)=\{v\}$ for all $v \in G$ and the additional conditions in ``$\sigma$-blocked'' 
+    for the non-colliders are of the form $v_k \notin \Sc^G(v_{k\pm 1})=\{v_{k\pm1}\}$.
+    These are then automatically satisfied, because the node $v_k$ is a parent of 
+    the relevant other node $v_{k \pm1}$ and thus not equal to it. 
+    So in the acyclic case $id$-separation and $i\sigma$-separation are equivalent.
+    It turns out that in the non-acyclic case $i\sigma$-separation is the better concept (and as said above it also captures the acyclic case equivalently well), see \cite{FM17,FM18,FM20,BFPM21}.
+    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.
+    Later, we will pick up $i\sigma$-separation again when we deal with cycles.
+\end{Rem}
+
+\begin{Lem}[$id$-separation/$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
+        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
+        be subsets of nodes such that:
+        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
+        Then we have the equivalence:
+        \[ A \idPerp_G B \given C \qquad \iff \qquad  A \idPerp_{G^{\sm D} }B \given C. \]
+        We also have:
+        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+\end{Lem}
+
+%\begin{Def}[Acyclification of CDMGs]
+%    \label{def-acyclification}
+%Let $G=(J,V,E,L)$ be a CDMG.
+%We define the \emph{acyclification} $G^\acy = (J^\acy,V^\acy,E^\acy,L^\acy)$ of $G$ as follows:
+%\begin{enumerate}
+%    \item  $ J^\acy:=J$ and $V^\acy :=V$.
+%    \item  $v \tuh w \in E^\acy$ iff $v \notin \Sc^G(w)$ and there exists $\tilde w \in \Sc^G(w)$ such that $v \tuh \tilde w \in E$:
+%        \[ E^\acy:=\lC v \tuh w \,|\, v \notin \Sc^G(w) \, \land\, \exists \tilde w \in \Sc^G(w):\; v \tuh \tilde w \in E \rC.  \]
+%    \item  $v \huh w \in L^\acy$ iff $v \notin \Sc^G(w)$  and there 
+%        exists $\tilde v \in \Sc^G(v)$ and $\tilde w \in \Sc^G(w)$ 
+%        such that $\tilde v \huh \tilde w \in L$:
+%        \[ L^\acy:=\lC v \huh w \,|\,v \notin \Sc^G(w) \, \land\, \exists \tilde v \in \Sc^G(v) \,\land\, \exists \tilde w \in \Sc^G(w):\; \tilde v \huh \tilde w \in L \rC.  \]
+%\end{enumerate}
+%In other words, the acyclification draws edges $ v \tuh w \in \Sc^G(w)$ from outside a strongly connected component to every node
+%$\tilde w \in \Sc^G(w)$ of that strongly connected component, similarly for bidirected edges, 
+%and then removes all edges inside each strongly connected component of $G$. 
+%Since strongly connected components can themselves ordered in an acyclic fashion the resulting graph $G^\acy$ is acyclic, thus a CADMG.
+%\end{Def}
+%
+%\begin{Thm}
+%    \label{thm-acy-sigma-sep}
+%    Let $G=(J,V,E,L)$ be a CDMG and $G^\acy$ its acyclification.
+%    For $A,B,C \ins J \cup V$ we then have the equivalence:
+%    \[ A \isPerp_G B \given C  \qquad\iff\qquad A \isPerp_{G^\acy} B \given C \qquad\iff\qquad A \idPerp_{G^\acy} B \given C.  \]
+%\end{Thm}
+
+\subsubsection{Alternative definition of $\sigma$-blocking}
+
+Revisit Definition~\ref{def:sigma_blocking} of $\sigma$-blocking. In the literature, one also encounters
+a slightly different notion with the same name. In this optional section, we will clarify the relationship
+between the two. %For the rest of the course, we will keep using Definition~\ref{def:sigma_blocking}.
+\begin{Def}\label{def:sigma_blocking_2}
+  Let $G=\langle J,V,E,L \rangle$ be a CDMG, $C \ins J \cup V$ a subset of nodes and $\pi$ a walk (or path) in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+\begin{enumerate}
+  \item
+    We say that the walk (or path) $\pi$ is \emph{$C$-$\sigma'$-blocked} or \emph{$\sigma'$-blocked by $C$} if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}),\\
+  \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k+1}),\\
+  \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}) \cap \Sc^G(v_{k+1}),\\
+                \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+      \end{enumerate}
+  \item We say that the walk (or path) $\pi$ is \emph{$C$-$\sigma'$-open} if it is not $C$-$\sigma'$-blocked. 
+\end{enumerate}
+\end{Def}
+The only difference is in the condition for a collider node $v_k$: to $\sigma$-block
+a walk one needs $v_k \not\in C$, whereas to $\sigma'$-block a walk it suffices that $v_k \not\in \Anc^G(C)$.
+
+\end{comment}
+
+\begin{comment}
+\paragraph{Proofs - \textsigma-Open Walks and Paths}\hfill%
+
+The following lemma will be convenient to relate the different notions of $i\sigma$-separation.
+
+
+\begin{Lem}\label{lem:replace_walk}
+Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma'$-open walk in $G$. 
+  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
+We can then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
+          %\PF{"if $\tuh \underbrace{v_j \sus v_{j+1}}_{\text{on }\pi}$ would be $C$-$\sigma'$-open"}
+    \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
+  \end{enumerate}
+that is entirely within $\Sc^G(v_j)$ and such that the modified walk $\pi'$ is still $C$-$\sigma'$-open.
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma'$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma'$-blocked on $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma'$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$. It is also worth noting that $\pi'$ cannot become $C$-$\sigma'$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\pi$. So in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$.
+
+Case (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma'$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma'$-open on $\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\sigma'$-open on $\pi'$ (if $v_i$ is the left endnode or not). If $v_i \neq v_j$, then the new directed path $v_i \tuh \cdots \tuh v_j$ in $\pi'$ is $C$-$\sigma'$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).
+
+ Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \hus v_{j+1}$ in $\pi$. 
+ If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). 
+ So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$. So $\pi$ looks as follows:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \sus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \tuh \cdots \tuh v_k \hus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ Since $\pi$ is $C$-$\sigma'$-open we have $v_k \in \Anc^G(C)$. Since $v_i \in \Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \in \Anc^G(C)$.
+ So if we replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by the shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ we then get for $\pi'$ the following situation:
+ \[\pi':\qquad \cdots v_{i-1} \suh v_i \hut \cdots \hut  v_j \hus v_{j+1} \cdots, \]
+ which is then $C$-$\sigma'$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i=v_j$.
+ If $v_i \neq v_j$ then $v_j$ is also $C$-$\sigma'$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. 
+
+ So in all cases $\pi'$ stays $C$-$\sigma'$-open.
+\end{proof}
+\end{Lem}
+
+\end{comment}
+
+
+\begin{comment}
+\begin{Lem}\label{lem:replace_walk}
+Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma'$-open walk in $G$. 
+  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
+We can then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
+      \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
+  \end{enumerate}
+that is entirely within $\Sc^G(v_j)$ and such that the modified walk $\pi'$ is still $C$-$\sigma'$-open.
+\end{Lem}
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma'$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma'$-blocked on $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma'$-blocked through one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$.
+
+Because $\pi$ is $C$-$\sigma'$-open, $v_j \notin C$ if $j = n$ or if $v_j \tuh v_{j+1}$ \PF{If $v_{j+1} \in \Sc^G(v_j)$ then $v_{j+1} \in C$ not necessarily excluded !!!} on $\pi$. 
+This holds in particular in case (i). 
+Similarly, $v_i \notin C$ if $i = 0$ or $v_{i-1} \hut v_i$ \PF{same here} on $\pi$.
+
+In case (i), $\pi'$ is not $C$-$\sigma'$-blocked by $v_j$ because $v_j$ is a non-collider on $\pi'$ but $v_j \notin C$. 
+Also $v_i$ does not $C$-$\sigma'$-block $\pi'$. Indeed, assume $v_i \ne v_j$ (otherwise there is nothing to prove).
+If $i = 0$, or if $i > 0$ and $v_{i-1} \hut v_i$ on $\pi'$, then the same holds for $\pi$ and hence $v_i \notin C$; $v_i$ is then a non-collider on $\pi'$, but $v_i \notin C$. 
+If $i > 0$ and $v_{i-1} \suh v_i$ on $\pi'$ then $v_i$ is a non-endpoint non-collider on $\pi'$ that does not point to a node in another strongly connected component.
+
+Now consider case (ii). 
+If $i = 0$ or $v_{i-1} \hut v_i$ on $\pi'$ then this case is analogous to case (i). 
+So assume $i > 0$ and $v_{i-1} \suh v_i$ on $\pi'$. 
+%If $v_i$ is an endpoint of $\pi'$, then $v_i = v_j$ and $k = n$ and therefore $v_j \notin C$, and hence $v_i$ and $v_j$ do not $C$-$\sigma'$-block $\pi'$. 
+$v_i$ must be a collider on $\pi'$ (whether $v_i = v_j$ or not). 
+Then on the subwalk of $\pi$ between $v_i$ and $v_j$ there must be a directed walk from $v_i$ to a collider that is in $\Anc^G(C)$, which implies that $v_i \in \Anc^G(C)$. Hence, $v_i$ will not $C$-$\sigma'$-block $\pi'$. 
+Also $v_j$ cannot $C$-$\sigma'$-block $\pi'$.
+Indeed, assume $v_i \ne v_j$ (otherwise there is nothing to prove). 
+Since $v_j \hus v_{j+1}$ on $\pi'$, $v_j$ is a non-endpoint non-collider on $\pi'$ that does not point to a node in another strongly connected component.
+\end{proof}
+\end{comment}
+
+\begin{comment}
+\begin{Prp}\label{prp:sigma_opens-2}
+  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $i, j \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+    \item there exists a $C$-$\sigma$-open walk between $i$ and $j$ in $G$;
+    \item there exists a $C$-$\sigma'$-open walk between $i$ and $j$ in $G$;
+    \item there exists a $C$-$\sigma'$-open path between $i$ and $j$ in $G$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+$1 \implies 2$: Suppose there exists a $C$-$\sigma$-open walk between $i$ and $j$.
+%Then all non-colliders are either not in $C$, or only point towards nodes in the same strongly connected component;
+%all colliders are in $C$. 
+All colliders are in $C$, and hence in $\Anc^G(C)$. So this same walk is also $C$-$\sigma'$-open. 
+
+$2 \implies 1$: Suppose there exists a $C$-$\sigma'$-open walk between $i$ and $j$. 
+%Then all non-colliders are either not in $C$, or only point towards nodes in the same strongly connected component; 
+Then all colliders are in $\Anc^G(C)$. If a collider is not in $C$, we can extend the walk by replacing this collider 
+$\suh v \hus$ by the walk 
+$\suh v \tuh \dots \tuh c \hut \dots \hut v \hus$ consisting of a directed walk starting from $v$ towards the first
+node $c$ in $C$ it encounters, and from there tracing back the same walk in opposite direction to $v$. All nodes on this
+walk except for $c$ ($v$ included) are non-colliders not in $C$. Extending this walk in such a way for each
+collider not in $C$, we obtain an extended walk that is $C$-$\sigma$-open.
+
+$2 \implies 3$:
+%It suffices to show that if there exists a $C$-$\sigma$-open walk between $i$ and $j$ in $G$, there exists a $C$-$\sigma'$-open path between $i$ and $j$ in $G$. 
+Let $\pi = (v_0,\dots,v_n)$ be a $C$-$\sigma'$-open walk between nodes $v_0$ and $v_0$ in $G$. 
+If a node $w$ occurs more than once on $\pi$, let $v_i$ be the first node on $\pi$ and $v_j$ be the last node on $\pi$ that are in $\Sc^G(w)$.
+We now use Lemma~\ref{lem:replace_walk} to construct a new walk $\pi'$ from $\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\pi$ by a particular directed path in $\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\pi'$ is still $C$-$\sigma'$-open.
+In $\pi'$, the number of nodes that occurs more than once is at least one less than in $\pi$, and all nodes within $\Sc^G(w)$ occur within a single segment.
+This replacement procedure can be repeated until no nodes occur more than once. We have then obtained a
+$C$-$\sigma'$-open path between $v_0$ and $v_n$.
+
+$3 \implies 2$: trivial.
+\end{proof}
+Hence, it does not matter which of the three versions we use in the definition of $i\sigma$-separation.
+When checking $i\sigma$-separation in a graph ``by hand'', we usually use the third formulation, since there are only a finite
+number of paths to check. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks
+(while one cannot in general concatenate two paths and again obtain a path).
+
+\begin{Thm}
+Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ subsets of nodes.
+Then we have the equivalence:
+\[A \isPerp_G B \given C  \qquad\iff\qquad A \iPerp^{\sigma'}_G B \given C. \]
+Similarly, we have the equivalence:
+\[A \idPerp_G B \given C  \qquad\iff\qquad A \iPerp^{d'}_G B \given C. \]
+\begin{proof}
+    This follows from Proposition \ref{prp:sigma_opens} for $i\sigma$-separation and analogously for $id$-separation. Details are left as an excercise.
+\end{proof}
+\end{Thm}
+
+\end{comment}
+
+
+
+
+\subsection{Acyclifications}\label{sec:graph_acyclifications}
+
+It is possible to reformulate the notion of $i\sigma$-separation in terms of $id$-separation on a modified and acyclic graph
+by making use of the following construction, which will be the main tool to extend the acyclic theory to the cyclic one.
+The construction was first proposed in the context of CBNs by \cite{Spirtes94,Spirtes95}.
+\begin{Def}\label{def:cdg_acyclification}
+    Given a CDMG $G = ( J, V, E, L)$, we call a CADMG $G' = (J', V', E', L')$
+  an \emph{acyclification of $G$} if
+  \begin{enumerate}[label=(\roman*)]
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes and output nodes as $G$, i.e.\ $J'=J$ and $V'=V$;
+    \item for every pair of nodes $(i,j)$ such that $i \not\in\Sc^G(j)$:
+      \begin{enumerate}
+      \item $i \tuh j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \tuh j' \in E$;
+      \item $i \huh j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \huh j' \in L$;
+      \end{enumerate}\label{def:acyclification_inter_scc}
+  \item for every pair of distinct nodes $(i,j)$ such that $i \in\Sc^G(j)$: $i \tuh j \in E'$ or $i \hut j \in E'$ or $i \huh j \in L'$.\label{def:acyclification_intra_scc}
+  \end{enumerate}
+\end{Def}
+
+The important property of acyclifications is that they can be used to express $i\sigma$-separation in a (possibly cyclic) graph
+in terms of $id$-separation in an acyclification.
+
+\begin{Prp}\label{prp:sigma_sep_as_d_sep}
+  Let $G = ( J, V, E, L)$ be a CDMG and $G'$ an acyclification of $G$. 
+  Then for $A, B, C \subseteq V \cup J$ (not necessarily disjoint) subsets of nodes we have the equivalence:
+  \[A \isPerp_G B \given C \iff A \isPerp_{G'} B \given C \iff A \idPerp_{G'} B \given C.\]
+\end{Prp}
+
+\begin{proof}
+We will show that there is a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G$ if and only
+if there is a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G'$. Since $G'$ is acyclic, this
+is in turn equivalent to the existence of a $C$-$d$-open walk between $A$ and $B \cup J$ in $G'$.
+
+$\implies$: Suppose there is a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G$.
+By Proposition~\ref{prp:sigma_opens}(3), we can choose it such that all its colliders lie in $C$ (rather than just in $\Anc^G(C)$);
+let $\pi = (v_0, \dots, v_n)$ be such a walk.
+All its non-colliders are either not in $C$, or otherwise, point only to nodes in the same strongly connected component.
+Note that each edge between two nodes in different strongly connected components in $G$ is also present in $G'$.
+Edges between two nodes in the same strongly connected component, however, may not be present in $G'$.
+Therefore, we will replace these edges with walks in $G'$. 
+Consider a subwalk $(v_i,\dots,v_j)$ of maximum length that is entirely contained within a strongly connected component in $G$
+(with possibly $i=j$).
+We distinguish different cases and show for each case how this subwalk can be replaced by a subwalk in $G'$.
+\begin{enumerate}[label=(\roman*)]
+  \item 
+$\suh v_i \cdots v_j \hus$: the subwalk between $v_i$ and $v_j$ has to contain a collider, say $w$,
+which must be in $C$ since the walk between $v_i$ and $v_j$ is $C$-$\sigma$-open.
+We can replace this subwalk by $\suh w \hus$ in $G'$ such that $w$ becomes a collider in $C$.
+
+\item
+$(\hut) v_i \cdots v_j \hus$:\footnote{We put parentheses around the first directed edge to indicate that
+this case also applies if $v_i$ is an endnode, i.e., if $i = 0$.} 
+here $v_i$ is a non-collider pointing to another strongly connected component or $v_i$ is an endnode,
+and in both cases, $v_i \notin C$. Therefore, we can replace the subwalk by $(\hut) v_i \hus$ in $G'$,
+such that $v_i$ becomes a non-collider not in $C$.
+
+\item
+$\suh v_i \cdots v_j (\tuh)$: analogous to the previous case, we can replace it by $\suh v_j (\tuh)$ in $G'$,
+such that $v_j$ becomes a non-collider not in $C$.
+
+\item
+$(\hut) v_i \cdots v_j (\tuh)$: 
+$v_i,v_j$ are both not in $C$ by assumption. If $i = j$, we replace this subwalk by $(\hut) v_i (\tuh)$ 
+such that $v_i$ becomes a non-collider not in $C$. If $i < j$, we replace this subwalk by
+$(\hut) v_i \sus v_j (\tuh)$ with $v_i \sus v_j$ any edge connecting $v_i$ and $v_j$ in $G'$,
+such that both $v_i$ and $v_j$ become non-colliders not in $C$.
+\end{enumerate}
+By replacing all maximal subwalks of the original walk $\pi$ that are contained within a single strongly connected
+component of $G$ in this way, we obtain a walk in the acyclification $G'$ that is $C$-$\sigma$-open by construction.
+Note that the modified walk has the same endpoints ($v_0$ and $v_n$) as the original walk.
+
+$\impliedby$: Suppose there is a $C$-$\sigma$-open walk $\pi'$ between $A$ and $B \cup J$ in $G'$.
+By Proposition~\ref{prp:sigma_opens}(3), we can assume without loss of generality that all its colliders lie in $C$ (and all its non-colliders are not in $C$). 
+We will construct a walk $\pi$ in $G$ with the same endpoints as $\pi'$ that is $C$-$\sigma$-open.
+
+Consider a non-trivial subwalk $(v_i,\dots,v_j)$ on $\pi'$ of maximum length that is entirely contained within a strongly connected component of $G$. 
+This subwalk may not be present in $G'$.
+We distinguish different cases and show for each case how this subwalk can be replaced by a subwalk in $G$.
+\begin{enumerate}[label=(\roman*)]
+  \item 
+$\suh v_i \cdots v_j \hus$: the subwalk between $v_i$ and $v_j$ has to contain a collider, say $w$,
+which must be in $C$ since the walk between $v_i$ and $v_j$ is $C$-$\sigma$-open, and must be in
+$\Sc^G(v_i) = \Sc^G(v_j)$ by assumption. We can replace this subwalk by
+$\suh v_i \tuh \dots \tuh w \hut \dots \hut v_j \hus$ in $G$,
+with possibly $v_i = w$ and possibly $w = v_j$, 
+with all nodes in $\Sc^G(v_i)$. 
+Note that the modified walk remains $C$-$\sigma$-open.
+
+\item
+$(\hut) v_i \cdots v_j \hus$:
+here $v_i$ is a non-collider pointing to another strongly connected component or $v_i$ is an endnode,
+and in both cases, $v_i \notin C$. 
+We can replace this subwalk by a shortest directed walk
+$(\hut) v_i \hut \dots \hut v_j \hus$ in $G$ with all nodes in $\Sc^G(v_i)$.
+Note that the modified walk remains $C$-$\sigma$-open.
+
+\item
+$\suh v_i \cdots v_j (\tuh)$: analogous to the previous case, we can replace it by $\suh v_i \tuh \dots \tuh v_j (\tuh)$ in $G$.
+
+\item
+$(\hut) v_i \cdots v_j (\tuh)$: 
+$v_i,v_j$ are both not in $C$ by assumption. We can replace this subwalk by a shortest directed walk
+$(\hut) v_i \tuh \dots \tuh v_j (\tuh)$ in $G$ with all nodes in $\Sc^G(v_i)$.
+The modified walk remains $C$-$\sigma$-open.
+\end{enumerate}
+In each of the four cases, in the modified walk both $v_i$ and $v_j$ become
+either colliders in $C$, or non-colliders not in $C$, or non-colliders in $C$
+that only point to a node in the same strongly connected component of $G$.
+
+Now, we will replace edges on $\pi'$ between two strongly connected components that are not present in $G$.
+For any directed edge $i \tuh j$ on $\pi'$ with $j \notin \Sc^G(i)$, there
+must be a $j' \in \Sc^G(j)$ such that $i \tuh j'$ is present in $G$, and hence there must be a directed path
+$j' \tuh \dots \tuh j$ entirely in $\Sc^G(j)$ such that we can use
+$i \tuh j' \tuh \dots \tuh j$ as replacement in $G$ of the edge $i \tuh j$.
+Similarly, for any bidirected edge $i \huh j$ on $\pi'$ with $j \notin \Sc^G(i)$, there
+must be $i' \in \Sc^G(i)$ and $j' \in \Sc^G(j)$ such that $i' \huh j'$ is present in $G$, 
+and hence there must be a walk $i \hut \dots \hut i' \huh j' \tuh \dots \tuh j$ in $G$, where
+$i \hut \dots \hut i'$ is entirely in $\Sc^G(i)$ and $j' \tuh \dots \tuh j$ is entirely
+in $\Sc^G(j)$, that we can use as replacement in $G$ of the edge $i \huh j$.
+The new nodes introduced on $\pi$ in these replacements are non-colliders
+that only point to nodes in the same strongly connected component. 
+The endpoints of the replacement paths do not change their status:
+if they were colliders in $C$ on $\pi'$ they still are 
+on $\pi$, and if they were non-colliders not in $C$ on $\pi'$ they still are on $\pi$.
+
+Hence we have constructed a walk $\pi$ in $G$ with the same endpoints as $\pi'$ that is $C$-$\sigma$-open.
+\end{proof}
+
+The following construction shows that acyclifications exist (but it is just one out of many possible ways to construct acyclifications).
+
+\begin{Eg}[The standard acyclification]
+    Let $G=(J,V,E,L)$ be a CDMG. Then we define the \emph{standard acyclification} of $G$ as the CDMG
+    $ G'=(J,V,E',L')$ 
+    where:
+      \begin{align*} 
+          E' := & \lC v_1 \tuh v_2  \st v_1 \in J \cup V, v_2 \in V, v_2 \notin \Sc^G(v_1),\exists v_2' \in \Sc^G(v_2):\, 
+   v_1 \tuh v_2' \in E\rC,\\
+          L' := &\lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, \exists v_1' \in \Sc^G(v_1), v_2' \in \Sc^G(v_2):\, v_1 \huh v_2 \in L \rC \\ \cup &
+\lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, v_1 \in \Sc^G(v_2) \rC.
+\end{align*}
+The standard acyclification of a CDMG is acyclic, i.e.\ a CADMG.
+\begin{proof}
+    Assume that $G'$ is not acyclic. Then there exists a non-trivial cyclic directed walk in $G'$:
+    \[ v_1 \tuh v_2 \tuh \cdots \tuh v_k \tuh v_1, \]
+    for some $k \ge 1$. It is clear that $k \ge 2$ because clearly $v_1 \in \Sc^G(v_1)$, which rules out the existence of an edge $v_1 \tuh v_1 \in G'$. 
+    For simplicity we now identify $v_{k+1} := v_1$ in the following.
+    By construction of $G'$ for every $i=1,\dots,k$ there exists $v'_{i+1} \in \Sc^G(v_{i+1})$ 
+    such that the edge $v_i \tuh v_{i+1}'$ exists in $G$. Since $v'_{i+1} \in \Sc^G(v_{i+1})$ there also exists a directed walk in $G$: 
+     \[v'_{i+1} \tuh \cdots \tuh v_{i+1}.\]
+     Concatenating all directed walks we get the cyclic directed walk in $G$:
+    \[ v_1 \tuh v_2' \tuh \cdots \tuh v_2 \tuh v_3' \tuh \cdots \tuh v_k 
+    \tuh v_1' \tuh \cdots \tuh v_1. \]
+    This shows that $v_2 \in \Sc^G(v_1)$, which is a contradiction to the existence of the edge $v_1 \tuh v_2 \in G'$.
+    So a non-trivial cyclic directed walk in $G'$ cannot exist in the first place. So $G'$ must be acyclic.
+\end{proof}
+\end{Eg}
+
+\begin{figure}\label{fig:acyclifications}
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X6) -- (X4);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=-3.5cm]
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arout] (X4) -- (X5);
+      \draw[arout] (X5) -- (X6);
+      \draw[arout] (X4) -- (X6);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    \end{scope}
+    \begin{scope}[yshift=-5cm,xshift=3.5cm]
+      \node[ndint] (X1) at (0,0) {$X_1$};
+      \node[ndout] (X2) at (1.5,0) {$X_2$};
+      \node[ndout] (X3) at (3,0) {$X_3$};
+      \node[ndout] (X4) at (0,-1.5) {$X_4$};
+      \node[ndout] (X5) at (3,-1.5) {$X_5$};
+      \node[ndout] (X6) at (1.5,-2.5) {$X_6$};
+      \node[ndint] (X7) at (-1.5,-1.5) {$X_7$};
+      \node[ndout] (X8) at (0,-3) {$X_8$};
+      \draw[arint] (X1) -- (X4);
+      \draw[arout] (X2) -- (X4);
+      \draw[arout] (X2) -- (X3);
+      \draw[arout] (X3) -- (X5);
+      \draw[arlat] (X4) -- (X5);
+      \draw[arlat] (X5) -- (X6);
+      \draw[arlat] (X4) -- (X6);
+      \draw[arint] (X4) -- (X8);
+      \draw[arout] (X7) -- (X8);
+      \draw[arint] (X1) -- (X5);
+      \draw[arint] (X1) -- (X6);
+      \draw[arout] (X2) -- (X5);
+      \draw[arout] (X2) -- (X6);
+      \draw[arout] (X3) -- (X4);
+      \draw[arout] (X3) -- (X6);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Top: CDMG $G$. Bottom: two acyclifications of $G$.}
+\end{figure}
+
+
+\subsection{Separoid Axioms for $i\sigma$- and $id$-Separation}
+
+\begin{DefThm}[(Asymmetric) separoid axioms for $i\sigma$-separation/$id$-separation]
+    \label{d-sep-separoid-axioms}
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C,D \ins J \cup V$ subsets of nodes.
+Then the ternary relations $\iPerp = \idPerp_G$ and $\iPerp = \isPerp_G$ satisfy the following rules:
+\begin{enumerate}[label=\alph*)]
+    \item Extended Left Redundancy: 
+    \item[] $D \ins A \implies D \iPerp  B \given A$.
+    \item $J$-Restricted Right Redundancy: 
+    \item[] $A \iPerp  \emptyset \given C \cup J$ always holds.
+    \item $J$-Inverted Right Decomposition: 
+    \item[] $A \iPerp  B \given C \implies A \iPerp  J \cup B \given C$.
+	\item Left Decomposition:  
+	\item[]$A \cup D \iPerp  B \given C \implies D \iPerp  B \given C$.
+  \item Right Decomposition:  	
+    \item[] $A \iPerp  B \cup D\given C \implies A \iPerp  D \given C$.
+    \item Left Weak Union:
+    \item[] $A \cup D \iPerp  B  \given C \implies A \iPerp  B \given D \cup C$.
+  \item Right Weak Union:\item[] $A \iPerp  B \cup D \given C \implies A \iPerp  B \given D \cup C$.
+\item Left Contraction:\item[] 
+ $ (A \iPerp  B \given D \cup C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C$.
+\item Right Contraction:
+\item[] $ (A \iPerp  B \given D \cup C) \land (A \iPerp  D \given C)  \implies A \iPerp  B \cup D \given C$.
+\item Right Cross Contraction:
+\item[] $ (A \iPerp  B \given D \cup C) \land (D \iPerp  A \given C) \implies A  \iPerp  B \cup D \given C$.
+\item Flipped Left Cross Contraction: 
+\item[] $ (A \iPerp  B \given D \cup C) \land (B \iPerp  D \given C) \implies B \iPerp  A \cup D \given C$.
+\end{enumerate}
+In particular, we have the equivalences:
+$$ (A \iPerp  B \cup D \given C) \quad\iff\quad (A \iPerp  B \given D \cup C) \quad\land\quad (A \iPerp  D \given C)  ,$$
+%and:
+$$ (A \cup D \iPerp  B \given C) \quad\iff\quad (A \iPerp  B \given D \cup C) \quad\land\quad (D \iPerp  B \given C).$$
+%Finally, if $J = \emptyset$ then 
+We also get:
+\begin{enumerate}[resume,label=\alph*)]
+    \item $J$-Restricted Symmetry: 
+	\item[] $A \iPerp  B \given C \cup J \implies B \iPerp A \given C \cup J$. 
+\end{enumerate}
+For the special case of $J=\emptyset$ we have thus (unrestricted) Symmetry.
+\end{DefThm}
+
+
+\begin{Rem}
+Let the assumptions be like in Theorem \ref{d-sep-separoid-axioms}.
+    We also have the following rules: 
+    \begin{enumerate}[resume,label=\alph*)]
+        \setcounter{enumi}{12}
+        \item Left Composition:
+        \item[] $(A \iPerp  B \given  C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C.$
+        \item Right Composition:
+        \item[] $(A \iPerp  B \given  C) \land (A \iPerp  D \given C) \implies A \iPerp  B \cup  D \given C.$
+         \item Left Intersection: If $A \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (D \iPerp  B \given A \cup C) \implies A \cup D \iPerp  B \given C.$       
+        \item Right Intersection: If $B \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (A \iPerp  D \given B \cup C) \implies A \iPerp  B \cup D \given C.$
+    \end{enumerate}
+\end{Rem}
+
+
+%\input{proof-separoid-d-sep}   %proof: acylicifation + d-sep
+\input{proof-separoid-s-sep}    %proof: directly with sigma-sep
+%one of the above is redundant
+
+
+\subsection{Representing Separations in a CDMG by Separations in a DMG}\label{sec:isep_vs_sep}
+
+We formally distinguish input from output nodes, and hence work with asymmetric separation notions.
+Traditionally, in the literture it was common practice to make no formal distinction between input and output nodes, and work with symmetric separation notions.
+In this subsection, we show how these notions are related, by reducing asymmetric separation in a CDMG---with input nodes---to the standard, symmetric separation in a specific DMG.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (2,3) {$v_1$};
+    \node[ndint] (v2) at (1,5) {$v_2$};
+    \node[ndint] (v3) at (4,5) {$v_3$};
+    \node[ndout] (v4) at (1,2) {$v_4$};
+    \node[ndout] (v5) at (3,2) {$v_5$};
+    \node[ndout] (v6) at (4,3) {$v_6$};
+    \node[ndout] (v7) at (2,1) {$v_7$};
+    \node[ndout] (v8) at (3,0) {$v_8$};
+    \node[ndint] (v9) at (2.5,5) {$v_9$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1) to (v4);
+    \draw[arout] (v1) to (v5);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arout] (v5) to (v7);
+    \draw[arout] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arint] (v9) to (v1);
+    \draw[arlat, bend left] (v1) to (v6);
+    \node at (-1,5) {$G$:};
+  \end{scope}
+  \begin{scope}[xshift=8cm]
+    \node[ndout] (v1) at (2,3) {$v_1$};
+    \node[ndout] (v2) at (1,5) {$v_2$};
+    \node[ndout] (v3) at (4,5) {$v_3$};
+    \node[ndout] (v4) at (1,2) {$v_4$};
+    \node[ndout] (v5) at (3,2) {$v_5$};
+    \node[ndout] (v6) at (4,3) {$v_6$};
+    \node[ndout] (v7) at (2,1) {$v_7$};
+    \node[ndout] (v8) at (3,0) {$v_8$};
+    \node[ndout] (v9) at (2.5,5) {$v_9$};
+    \draw[arint] (v2) to (v4);
+    \draw[arout] (v1) to (v4);
+    \draw[arout] (v1) to (v5);
+    \draw[arout] (v4) to (v7);
+    \draw[arout] (v6) to (v8);
+    \draw[arout] (v5) to (v7);
+    \draw[arout] (v7) to (v8);
+    \draw[arint] (v3) to (v6);
+    \draw[arint] (v9) to (v1);
+    \draw[arlat, bend left] (v1) to (v6);
+    \draw[arlat, bend left] (v2) to (v3);
+    \draw[arlat] (v2) to (v9);
+    \draw[arlat] (v3) to (v9);
+    \node at (-1,5) {$\bar{G}$:};
+  \end{scope}
+\end{tikzpicture}
+\caption{CDMG $G$ and the corresponding DMG $\bar{G}$ for Lemma~\ref{lem:isep_equiv_sep} and Lemma~\ref{lem:symmetrized_isep_equiv_sep}.}
+\label{fig:cdmg_to_dmg}
+\end{figure}
+
+\begin{Lem}\label{lem:isep_equiv_sep}
+  Let $G=(J,V,E,L)$ be a CDMG. 
+  Define the DMG $\bar{G} := (\bar{V}, \bar{E}, \bar{L})$ with nodes $\bar{V} := V \dcup J$, directed edges $\bar{E} := E$ and bidirected edges $\bar{L} := L \cup \{j \huh j' : j, j' \in J, j \ne j'\}$.
+  Then, for $A, B, C \subseteq J \cup V$, the following are equivalent:
+%  \begin{enumerate}[label=(\roman*)]
+%    \item $\displaystyle A \isPerp_G B \given C,$
+%    \item $\displaystyle A \sPerp_{\bar{G}} B \cup J \given C,$
+%    \item $\displaystyle (A\sm J) \sPerp_{\bar{G}} B \cup (J \sm C) \given C \cup (J \sm B);$
+%  \end{enumerate}
+  $$A \isPerp_G B \given C \iff A \sPerp_{\bar{G}} B \cup J \given C,$$
+  and likewise
+  $$A \idPerp_G B \given C \iff A \dPerp_{\bar{G}} B \cup J \given C.$$
+\end{Lem}
+\begin{proof}
+  First note that $G$ and $\bar{G}$ have the same strongly connected components.
+
+  $A \nisPerp_G B \given C \implies A \nsPerp_{\bar{G}} B \cup J \given C$:
+  Suppose $\pi$ is a minimal $C$-$\sigma$-open path in $G$ from $A$ to $B \cup J$ such that all colliders lie in $C$.
+  Then, both end nodes of $\pi$ are not in $C$, and any non-endpoint non-collider on $\pi$ is either unblockable or not in $C$.
+  $\pi$ also exists in $\bar{G}$, and is $C$-$\sigma$-open in $\bar{G}$.
+
+  $A \nisPerp_G B \given C \impliedby A \nsPerp_{\bar{G}} B \cup J \given C$:
+  Suppose $\bar{\pi}$ is a minimal $C$-$\sigma$-open path in $\bar{G}$ from $A$ to $B \cup J$ such that all colliders lie in $C$.
+  Then, both end nodes of $\bar{\pi}$ are not in $C$, and any non-endpoint non-collider on $\bar{\pi}$ is either unblockable or not in $C$.
+  If $\bar{\pi}$ would contain a bidirected edge in $\bar{L} \sm L$, it would not be minimal.
+  Hence, $\bar{\pi}$ also exists in $G$, and is also $C$-$\sigma$-open in $G$.
+
+  The proof for $d$-separation proceeds similarly by treating all non-colliders as blockable.
+\end{proof}
+The DMG $\bar{G}$ is constructed from CDMG $G$ by adding bidirected edges between all input nodes and replacing all input nodes by output nodes.
+Separation in $\bar{G}$ is also equivalent to a symmetrized version of the asymmetric separation.
+\begin{Lem}\label{lem:symmetrized_isep_equiv_sep}
+  Let $G=(J,V,E,L)$ be a CDMG. 
+  Define the DMG $\bar{G} := (\bar{V}, \bar{E}, \bar{L})$ with nodes $\bar{V} := V \dcup J$, directed edges $\bar{E} := E$ and bidirected edges $\bar{L} := L \cup \{j \huh j' : j, j' \in J, j \ne j'\}$.
+  Then, for $A, B, C \subseteq J \cup V$, the following are equivalent:
+    $$A \isPerp_G B \given C \lor B \isPerp_G A | C \iff A \sPerp_{\bar{G}} B \given C.$$
+\end{Lem}
+\begin{proof}
+We show that
+  $$A \nisPerp_G B \given C \land B \nisPerp_G A | C \iff A \nsPerp_{\bar{G}} B \given C.$$
+$\impliedby$: With the help of Lemma~\ref{lem:isep_equiv_sep} we obtain:
+$$A \nsPerp_{\bar{G}} B \given C \implies A \nsPerp_{\bar{G}} B \cup J \given C \implies A \nisPerp_G B \given C,$$
+and:
+$$A \nsPerp_{\bar{G}} B \given C \implies B \nsPerp_{\bar{G}} A \given C \implies B \nsPerp_{\bar{G}} A \cup J \given C \implies B \nisPerp_G A \given C.$$
+Therefore, 
+$$A \nsPerp_{\bar{G}} B \given C \implies (A \nisPerp_G B \given C \land B \nisPerp_G A \given C).$$
+$\implies$: 
+With the help of Lemma~\ref{lem:isep_equiv_sep} we obtain:
+$$A \nisPerp_G B \given C \land B \nisPerp_G A | C \implies A \nsPerp_{\bar{G}} B \cup J \given C \land B \nsPerp_{\bar{G}} A \cup J \given C.$$
+We will show that the latter implies $A \nsPerp_{\bar{G}} B \given C$.
+Suppose there exists a $\sigma$-open path given $C$ between $A$ and $B \cup J$ in $\bar{G}$ and also a $\sigma$-open path given $C$ between $B$ and $A \cup J$ in $\bar{G}$.
+If the first one is between $A$ and $B$ we are done, and likewise if the second is between $B$ and $A$.
+If the first one is between $A$ and $J \sm B$, and the second is between $B$ and $J \sm A$, then we can without loss of generality assume that both contain exactly one node in $J$, say the first path ends in $j_1$ and the second path in $j_2$, with both $j_1, j_2 \notin C$.
+Then we can combine these two into a walk of the form $A \dots \hut j_1 \tuh \dots B$ if $j_1 = j_2$, or $A \dots \hut j_1 \huh j_2 \tuh \dots B$ if $j_1 \ne j_2$.
+Because $j_1$ (and, if applicable, $j_2$) is a non-collider not in $C$, the combined walk is $\sigma$-open given $C$.
+The corner cases where at least one of the paths consists of zero edges also easily follow.
+\end{proof}
+
+More generally, as long as one is interested only in a restricted set of separation statements, a CDMG can be replaced by a DMG with arbitrary edges between the `input' nodes.
+\begin{Lem}\label{lem:isep_equiv_sep_restricted}
+  Let $G=(J,V,E,L)$ be a CDMG. 
+  Let $\bar{G}=(\bar{V},\bar{E},\bar{L})$ be a DMG with nodes $\bar{V} := V \dcup J$, directed edges $E \subseteq \bar{E} \subseteq E \cup \{j \tuh j' : j, j' \in J, j \ne j'\}$ and bidirected edges $L \subseteq \bar{L} \subseteq L \cup \{j \huh j' : j, j' \in J, j \ne j'\}$.
+  Then, for $A, B, C \subseteq J \cup V$ with $A \cap J = \emptyset$, $J \subseteq B \cup C$:
+  $$A \isPerp_G B \given C \iff A \sPerp_{\bar{G}} B \given C$$
+  and
+  $$A \idPerp_G B \given C \iff A \dPerp_{\bar{G}} B \given C.$$
+\end{Lem}
+\begin{proof}
+  First note that $G$ and $\bar{G}$ have the same strongly connected components in $V$.
+  Let $A, B, C \subseteq J \cup V$ with $A \cap J = \emptyset$, $J \subseteq B \cup C$.
+  
+  $A \nisPerp_G B \given C \implies A \nsPerp_{\bar{G}} B \given C$:
+  Suppose $\pi$ is a minimal $C$-$\sigma$-open walk in $G$ from $A$ to $B \cup J$ such that all colliders lie in $C$.
+  Then, both end nodes of $\pi$ are not in $C$, and any non-endpoint non-collider on $\pi$ is either unblockable or not in $C$.
+  $\pi$ must actually be a walk from $A$ to $B$:
+  if it would end in $J \sm B$, then one of its endpoints would be in $C$, a contradiction.
+  Hence, $\pi$ is a walk from $A$ to $B$ that also exists in $\bar{G}$.
+  It is also $C$-$\sigma$-open in $\bar{G}$.
+  In particular, if it contains a non-endpoint non-collider that is in $C$, then (as this is unblockable on $\pi$) its children on $\pi$ must be in the same strongly connected component according to $G$, and since all these nodes must be in $V$, they are also in the same strongly connected component according to $\bar{G}$.
+
+  $A \nisPerp_G B \given C \impliedby A \nsPerp_{\bar{G}} B \given C$:
+  Suppose $\bar{\pi}$ is a minimal $C$-$\sigma$-open walk in $\bar{G}$ from $A$ to $B$ such that all colliders lie in $C$.
+  Then, both end nodes of $\bar{\pi}$ are not in $C$, and any non-endpoint non-collider on $\bar{\pi}$ is either unblockable or not in $C$.
+  If $\bar{\pi}$ contained a node in $J$ as a non-endpoint node, we would get a contradiction.
+  Indeed, suppose $\bar{\pi}$ starts in $a \in A$.
+  Consider the subwalk of $\bar{\pi}$ starting in $a$ and ending in the first node in $J$ encountered along $\bar{\pi}$, say $j$.
+  This must be a non-trivial subwalk out of $j$.
+  On $\bar{\pi}$, $j$ must be a non-endpoint non-collider that is not unblockable.
+  Hence it cannot be in $C$. 
+  But then it must be in $B$, contradicting the minimality of $\bar{\pi}$. 
+  Hence, $\bar{\pi}$ contains at most one node in $J$, so $\bar{\pi}$ also exists in $G$. 
+  It is also $C$-$\sigma$-open in $G$.
+
+  The proof for $id$-separation proceeds similarly (where unblockable non-colliders can be excluded).
+\end{proof}

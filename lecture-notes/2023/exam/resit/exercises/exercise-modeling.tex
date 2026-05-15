@@ -1,0 +1,76 @@
+\subsection{Causal Modeling}
+\totalscore{10}
+Consider the following (simplistic) scenario: a car can be old, or young. The engine of the car can work correctly or be broken. Also, the battery can be fully operational or empty. If the car is old, the probability of the engine working correctly is lower compared to a car that is young. Also, the probability of the battery working correctly is lower for an old car because its capacity diminishes over time. The car can start if and only if both the engine and the battery are working correctly. Assume that the engine status and the battery status are independent given the age of the car.
+\begin{enumerate}[label=\alph*)]
+  \item Model this scenario as a Structural Causal Model with at least the following observed variables:
+    $O$(ld), $B$(attery), $E$(ngine) and $S$(tarts).
+    Clearly specify for all the variables in the model: their type (endogenous / exogenous random / exogenous input), their value space, and whether they are observed or latent.
+    Clearly specify the causal mechanisms and exogenous distributions of your model.
+    What are your model's parameters? What are the constraints on their values?
+  % Include all information in the scenario and clearly state which parts of the SCM are not fully specified.
+%  There are five unknown real-valued parameters missing from the scenario to make the SCM fully specified. Clearly state these parameters and any known constraints on their values.
+    \answer{\begin{center}\begin{tabular}{llll}
+        variable & space & type & observed/latent \\
+        \hline
+        $O$ & binary (0=young, 1=old) & exogenous random & observed \\
+        $B$ & binary (0=battery fails, 1=battery operational) & endogenous & observed \\
+        $E$ & binary (0=engine fails, 1=engine operational) & endogenous & observed \\
+        $S$ & binary (0=does not start, 1=starts) & endogenous & observed \\
+        \hline
+        $\epsilon_B$ & $[0,1]$-valued & exogenous random & latent \\
+        $\epsilon_E$ & $[0,1]$-valued & exogenous random & latent
+      \end{tabular}\end{center}
+      \begin{align*}
+        O &\sim \mathrm{Ber}(p) \\
+        \epsilon_B &\sim \mathrm{Uni}([0,1]) \\
+        \epsilon_E &\sim \mathrm{Uni}([0,1]) \\
+        B &= \begin{cases}
+          \I_{[0,a]}(\epsilon_B) & O=1 \\
+          \I_{[0,b]}(\epsilon_B) & O=0 \\
+        \end{cases}\\
+        E &= \begin{cases}
+          \I_{[0,c]}(\epsilon_E) & O=1 \\
+          \I_{[0,d]}(\epsilon_E) & O=0 \\
+        \end{cases}\\
+        S &= B \wedge E
+      \end{align*}
+      Model parameters are $p, a, b, c, d \in [0, 1]$, and the scenario imposes that $a < b, c < d$.
+    }
+    \score{5}
+    \points{1 point if all variables are clearly and fully specified. 1 point for fully specified causal mechanisms.
+    1 point for fully specified distributions. 1 point for sensible parameters and constraints.
+    1 point if the model is compatible with the described scenario. 
+    }
+  \item Draw the graph of your SCM model (also include latent variables, if any).
+   Indicate visually whether variables are observed/latent.
+    \score{1}
+    \answer{\begin{center}\begin{tikzpicture}
+      \node[var] (O) at (0,3) {$O$};
+      \node[var] (B) at (-1,1.5) {$B$};
+      \node[var] (E) at (1,1.5) {$E$};
+      \node[varh] (eB) at (-2,2.5) {$\epsilon_B$};
+      \node[varh] (eE) at (2,2.5) {$\epsilon_E$};
+      \node[var] (S) at (0,0) {$S$};
+
+      \draw[arr] (O) -- (B);
+      \draw[arrh] (eB) -- (B);
+      \draw[arr] (O) -- (E);
+      \draw[arrh] (eE) -- (E);
+      \draw[arr] (B) -- (S);
+      \draw[arr] (E) -- (S);
+    \end{tikzpicture}\end{center}}
+    \points{}
+  \item Which (conditional) independences between the four variables $\{O,B,E,S\}$ do you expect to find in a large ``population'' (sample) of cars? Motivate your answer, and explain why you expect to find no more than those.
+    \score{2}
+    \answer{From the Markov property, and reading off the d-separations from the graph: $B \Indep E \given O$ and $O \Indep S \given B,E$. Conditioning on more or less nodes opens up a d-connection in both cases. The other node pairs are adjacent, so cannot be d-separated. Assuming faithfulness, then, these should be all conditional independences.}
+    \points{1 point for the correct conditional independences, 1 point for explaining why there are no more.}
+  \item One notices that cars with empty batteries also are more common to have broken engines. What is the causal terminology for such a correlation?
+    \answer{Confounding (by age).}
+    \score{1}
+  \item A car mechanic that only sees cars that do not start may notice that cars with working batteries are less likely to have working engines than cars with broken batteries. What is the causal terminology for this (negative) correlation?
+    \answer{Selection bias / explaining away.}
+    \score{1}
+%  \item To which extent can the graph of your SCM be (partially) identified from observational data? Motivate your answer in detail. \emph{Hint: first, argue which adjacencies between nodes can be identified; then, argue about the possible edge(s) between adjacent variables.}
+%    \score{3}
+%    \answer{Assuming faithfulness and acyclicity, we can use the one-to-one correspondence between d-separation in the graph and conditional independences in the observed distribution. This allows us to identify the four adjacencies, and the two non-adjacencies (from $B \Indep E \given O$ and $S \Indep O \given B, E$). The four adjacencies might correspond to inducing paths, so it is not clear }
+\end{enumerate}

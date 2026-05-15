@@ -1,0 +1,190 @@
+% !TEX root = hw4-answers.tex
+\chead{\textbf{Exercises week 4}}
+
+\begin{document}
+\flushleft\textbf{Topic: Markov kernels}
+
+\section{Composition of Markov Kernels}
+\begin{enumerate}
+\item $\Zcal, \Tcal, \Wcal$ are assumed to be finite discrete spaces with Markov kernels:\\
+ 
+  \[Q(Z|W):\, \Wcal \dshto \Zcal,\quad (C,w) \mapsto Q(Z \in C|W=w),  \]
+  \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+
+and corresponding stochastic matrices:
+
+\[\tilde Q = 
+\begin{bmatrix}
+0.1 & 0.7 & 0.2 \\
+0.3 & 0   & 0.4 \\
+0.6 & 0.3 & 0.4 \\
+\end{bmatrix} 
+\qquad
+\tilde K = 
+\begin{bmatrix}
+0.2 & 0.1 & 0.6 \\
+0.3 & 0.1 & 0 \\
+0.5 & 0.8 & 0.4 \\
+\end{bmatrix}\]
+
+    
+Compute the stochastic matrix $\tilde P$ for the composed  Markov kernel: $P(Z|T):=Q(Z|W) \circ K(W|T)$.
+(1pt)
+\begin{gradedsolution}
+$\tilde P = \begin{bmatrix}
+0.33 & 0.24 & 0.14 \\
+0.26 & 0.35 & 0.34 \\
+0.41 & 0.41 & 0.52 \\
+\end{bmatrix}$.
+\end{gradedsolution}
+
+\item Consider two Markov kernels:
+  \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+  \[Q(Z|W):\, \Wcal \dshto \Zcal,\quad (C,w) \mapsto Q(Z \in C|W=w),  \]
+  that have linear multivariate Gaussian densities (w.r.t.\ Lebesgue measure):
+\begin{align*} 
+k(w|t) &= \Ncal(w|A \cdot t +b, \Sigma),  \\
+q(z|w) & = \Ncal(z| C \cdot w + d, \Gamma).
+\end{align*}
+
+Compute the density of the composition: $P(Z|T):=Q(Z|W) \circ K(W|T)$. First, recall how the general formula for the density of a composition is computed.
+
+Suggested steps:
+\begin{enumerate}
+  \item Write the log joint density $\log p(z, w|t)$ as a quadratic polynomial in $\R^{\dim \Wcal + \dim \Zcal}$ using joint precision matrix $\Lambda$:
+  \[ 
+    -\frac{1}{2} \mat{z \\ w}^T  \mat{\Lambda_{zz} & \Lambda_{zw} \\ \Lambda_{zw}^T & \Lambda_{ww}}\mat{z \\ w} + \mat{b_1 \\ b_2}^T\mat{z \\ w} + \text{const}
+  \]
+  \item Invert to find the covariance matrices:
+  \[ 
+    -\frac{1}{2} \mat{z \\ w}^T  \mat{\Sigma_{zz} & \Sigma_{zw} \\ \Sigma_{zw}^T & \Sigma_{ww}}^{-1}\mat{z \\ w} + \mat{b_1 \\ b_2}^T\mat{z \\ w} + \text{const}
+  \]
+  % \item Invert to find the joint precision matrix $\Lambda$:
+  % \[ 
+  %   -\frac{1}{2} \mat{z \\ w}^T \Lambda \mat{z \\ w} + \mat{b_1 \\ b_2}^T\mat{z \\ w} + \text{const}
+  % \]
+  \item Complete the square to obtain Gaussian form:
+  \[ 
+    \mat{z-\mu_z \\ w-\mu_w}^T \mat{\Sigma_{zz} & \Sigma_{zw} \\ \Sigma_{zw}^T & \Sigma_{ww}}^{-1}\mat{z-\mu_z \\ w-\mu_w} + \text{const}
+  \]
+  % \item Invert to bring into Gaussian form:
+  % \[ 
+  %   % \mat{z-\mu_z \\ w-\mu_w}^T \mat{\Xi_{zz}^{-1} & \Xi_{zw}^{-1} \\ {\Xi_{zw}^{-1}}^T & \Xi_{ww}^{-1}}\mat{z-\mu_z \\ w-\mu_w} + \text{const}
+  %   \mat{z-\mu_z \\ w-\mu_w}^T \Xi^{-1}\mat{z-\mu_z \\ w-\mu_w} + \text{const}
+  % \]
+
+  \item Read off the marginal $p(z|t)$.
+\end{enumerate}
+You can use the following identity for symmetric matrices $M,N$ and matrix $T$ without proof:
+\begin{align*}
+\mat{N &-NT \\ -T^TN  &M+T^TNT}^{-1} = \mat{N^{-1}+TM^{-1}T^T&  TM^{-1}  \\M^{-1}T^T & M^{-1} }
+\end{align*}
+% You can use the following general identities without proof, for any matrices $A,B,C,D$:
+% \begin{enumerate}
+%   \item If $B$ symmetric:
+%   \[x^T B^{-1} x -2b^Tx = (x-Bb)^TB^{-1}(x-Bb) + \text{const in $x$}\]
+%   \item For a 2x2 block matrix, with $M=(A - BD^{-1}C)^{-1}$
+%   \[\mat{A & B \\ C & D}=\mat{M & -MBD^{-1} \\ -D^{-1}CM & D^{-1}+D^{-1}CMBD^{-1}}^{-1}\]
+%   \item \[(A+CBC^T)^{-1}=A^{-1}-A^{-1}C(B^{-1}+C^TA^{-1}C)^{-1}C^TA^{-1}\]
+% \end{enumerate}
+% $\textit{Hint: compute}$ $p(z|t) = \int_\Wcal q(z|w) \; k(w|t)dw $.
+(1pt)
+
+\end{enumerate}
+
+\begin{gradedsolution}
+  Define $\mu=At+b$.
+\begin{align*}
+&(z-Cw-d)^T \Gamma^{-1}(z-Cw-d)+(w-\mu)^T\Sigma^{-1}(w-\mu) \\
+  &=\mat{z \\w}^T \mat{\Gamma^{-1} & -\Gamma^{-1}C \\ -C^T \Gamma^{-1} & \Sigma^{-1} + C^T \Gamma^{-1}C}\mat{z \\ w} -2\mat{z \\ w}^T\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d} + \text{const}  \\
+  &=\mat{z \\w}^T \mat{\Gamma + C \Sigma C^T & C\Sigma \\ \Sigma C^T & \Sigma}^{-1}\mat{z \\ w} -2\mat{z \\ w}^T\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d} + \text{const}  \\
+  % &=\mat{z \\w}^T \mat{\Sigma_{zz} & \Sigma_{zw} \\ \Sigma_{zw}^T & \Sigma_{ww}}^{-1}\mat{z \\ w}^{-1} -2\mat{z \\ w}^T\mat{d \\ \Sigma^{-1}\mu} + \text{const}
+\end{align*}
+Completing the square is:
+\[-\frac{1}{2} x\Sigma^{-1}x+b^Tx=-\frac{1}{2}(x-\Sigma b)^T\Sigma^{-1}(x-\Sigma b)+\text{const}
+\]
+So the mean is:
+\begin{align*}
+\mat{\mu_z \\ \mu_w} =\mat{\Gamma + C \Sigma C^T & C\Sigma \\ \Sigma C^T & \Sigma}\mat{\Gamma^{-1}d \\ \Sigma^{-1}\mu - C^T\Gamma^{-1}d}=\mat{C\mu+d \\ \mu}
+\end{align*}
+and we can read off that:
+\[p(z) = \mathcal{N}(z|C \mu + d, \Gamma + A \Sigma A^T)= \mathcal{N}(z|C At + Cb + d, \Gamma + A \Sigma A^T)\]
+
+% \begin{align}
+% p(z|t) &= \int_\Wcal q(z|w) \; k(w|t)dw \\
+% &= \int_\mathcal{W} \frac{1}{\sqrt{2\pi}} \;  \exp\left(-\frac{1}{2} (w-(At+b))^T \Sigma^{-1}(w-(At+b))\right) \; \\ & \frac{1}{\sqrt{2\pi}}  \exp\left(-\frac{1}{2} (z-(Cw+d))^T \Gamma^{-1}(z-(Cw+d))\right) dw \\
+% \end{align} 
+\end{gradedsolution}
+\section{Markov kernels} %(Bonus Exercise -- you don't need to hand this in)}
+\begin{enumerate} 
+  \item (1 pt) 
+    Let $f: \mathcal{X} \to \mathcal{Y}$ be any function and $\mathcal{B}_{\mathcal{X}}$ a $\sigma$-algebra on $\mathcal{X}$.
+    Additionally, let $\mathcal{B}$ be any set of subsets of $\mathcal{Y}$, not necessarily a $\sigma$-algebra.
+    Assume that $f$ is $\mathcal{B}_{\mathcal{X}}-\mathcal{B}$--measurable, with which we mean that for each $B \in \mathcal{B}$, we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$.
+    Show that $f$ is then already $\mathcal{B}_\mathcal{X}-\mathcal{B}_{\mathcal{Y}}$--measurable, where $\mathcal{B}_{\mathcal{Y}} \coloneq \sigma{(\mathcal{B})}$ is the smallest $\sigma$-algebra containing $\mathcal{B}$.
+
+    The bottom line, to be used in the second part of the exercise, is the following: measurability can be tested on sets which generate the $\sigma$-algebra of the codomain.
+    
+    \emph{Hint: Proceed as follows: Show that $\mathcal{B} \subseteq f_*\mathcal{B}_{\mathcal{X}}$. 
+    Deduce that $\mathcal{B}_{\mathcal{Y}} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+  Deduce from that, in turn, that $f$ is $\mathcal{B}_{\mathcal{X}}-\mathcal{B}_{\mathcal{Y}}$-measurable.}
+\item (2 x 1 pt)
+    Show that a Markov kernel $K$ induces a measurable mapping:
+    \[ \bar K:\, \Tcal \to \Pcal(\Wcal),\quad  \bar K(t)(A)  \coloneq K(A|t).  \]% t \mapsto K(X|T=t) = \lp A \mapsto K(X \in A|T=t) \rp\]
+    Vice versa, show that any measurable mapping $\mathcal{K}: \mathcal{T} \to \mathcal{P}(\mathcal{W})$ induces a Markov kernel
+    \begin{equation}
+      \widetilde{\mathcal{K}}: \mathcal{B}_{\mathcal{W}} \times \mathcal{T} \to [0,1],\quad \widetilde{\mathcal{K}}(D \mid t) \coloneq \mathcal{K}(t)(D).
+      \label{eq:other_direction_def}
+    \end{equation}
+    For doing this exercise, recall Definition 4.2.10 
+     the $\sigma$-algebra of  $\Pcal(\Wcal)$ (see lecture notes).\\
+\end{enumerate}
+
+\begin{gradedsolution}
+  \begin{enumerate}
+    \item Recall that
+      \begin{equation}
+	f_* \mathcal{B}_{\mathcal{X}} = \{A \subseteq \mathcal{Y} \mid f^{-1}(A) \in \mathcal{B}_{\mathcal{X}}\}.
+	\label{eq:recall_definition}
+      \end{equation}
+      Since we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$ for all $B \in \mathcal{B}$ by assumption, we obtain $\mathcal{B} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+      Now, since $f_* \mathcal{B}_{\mathcal{X}}$ is a $\sigma$-algebra containing $\mathcal{B}$, and since $\mathcal{B}_{\mathcal{Y}}$ is by definition the smallest $\sigma$-algebra containing $\mathcal{B}$, we obtain $\mathcal{B}_{\mathcal{Y}} \subseteq f_* \mathcal{B}_{\mathcal{X}}$.
+      By definition of $f_* \mathcal{B}_{\mathcal{X}}$, again, this means that for all $B \in \mathcal{B}_{\mathcal{Y}}$ we have $f^{-1}(B) \in \mathcal{B}_{\mathcal{X}}$.
+      This, in turn, means that $f$ is $\mathcal{B}_{\mathcal{X}}-\mathcal{B}_{\mathcal{Y}}$-measurable, proving the claim.
+    \item 
+      \begin{enumerate}
+	\item Assume that $K: \mathcal{B}_{\mathcal{W}} \times \mathcal{T} \to [0,1]$ is a Markov kernel. 
+	  Define $\overline{K}$ as in the exercise. 
+	  If $t \in \mathcal{T}$, then $\overline{K}(t) \in \mathcal{P}(\mathcal{W})$ according to Definition 6.1.3 i), which shows well-definedness of the map $\overline{K}: \mathcal{T} \to \mathcal{P}_{\mathcal{W}}$.
+	  We need to show that it is also measurable, i.e. that preimages of measurable sets are measurable.
+	  Note that the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$ is generated by sets of the form $\text{ev}_D^{-1}(A)$, where $D \subseteq \mathcal{W}$ is measurable, $A \subseteq [0,1]$ is measurable, and $\text{ev}_D: \mathcal{P(\mathcal{W})} \to [0,1]$ is an evaluation map, according to Definition 4.2.10.
+	  For these generating sets, we obtain:
+	  \begin{align*}
+	    \overline{K}^{-1}(\text{ev}_D^{-1}(A)) & = \{ t \in T \mid \overline{K}(t) \in \text{ev}_D^{-1}(A)\} \\
+	    & = \{t \in T \mid \text{ev}_D(\overline{K}(t)) \in A\} \\
+	    & = \{t \in T \mid \overline{K}(t)(D) \in A\} \\
+	    & = \{t \in T \mid K(D \mid t) \in A\} \\
+	    & = K(D \mid \bullet)^{-1}(A).
+	    \label{eq:derivation_measurable}
+	  \end{align*}
+	Since according to Definition 6.1.3 ii) the map $K(D \mid \bullet): \mathcal{T} \to [0,1]$ is measurable, this shows the measurability of $\overline{K}^{-1}(\text{ev}_D^{-1}(A))$.
+	Using part 1 and that the sets $\text{ev}_D^{-1}(A)$ generate the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$ proves the measurability of $\overline{K}$.
+
+      \item Note that $\widetilde{\mathcal{K}}(\bullet \mid t) = \mathcal{K}(t) \in \mathcal{P}(\mathcal{W})$, which proves property i) of Definition 6.1.3.
+      Now, let $D \in \mathcal{B}_{\mathcal{W}}$ arbitrary and $t \in \mathcal{T}$.
+      We obtain
+      \begin{align*}
+	\widetilde{\mathcal{K}}(D \mid t) & = \mathcal{K}(t)(D) \\
+	& = \text{ev}_D(\mathcal{K}(t)) \\
+	& = (\text{ev}_D \circ \mathcal{K})(t),
+      \end{align*}
+      which shows $\widetilde{K}(D \mid \bullet) = \text{ev}_D \circ \mathcal{K}: \mathcal{T} \to [0,1]$.
+      Since $\mathcal{K}$ is measurable by assumption and $\text{ev}_D$ is measurable by the definition of the $\sigma$-algebra on $\mathcal{P}(\mathcal{W})$ given in Definition $4.2.10$, and since compositions of measurable functions are measurable, we obtain the measurability of $\widetilde{\mathcal{K}}(D \mid \bullet)$.
+      This shows that $\widetilde{\mathcal{K}}$ is a Markov kernel.
+	\end{enumerate}
+    \end{enumerate}
+\end{gradedsolution}
+
+
+
+\end{document}

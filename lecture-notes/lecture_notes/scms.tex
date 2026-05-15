@@ -1,0 +1,1654 @@
+\section{Structural Causal Models (with Inputs)}
+
+\Joris{Slightly improved notation for iSCMs:
+\begin{itemize}
+  \item $M^\theta$ : iSCM with parameter $\theta$, with exogenous distribution $P^\theta$, causal mechanism $f^\theta$, solution function $g^\theta$
+  \item $M_A$: marginalized iSCM $M_{\sm (V\sm A)}$
+  \item $M^{[A]}$: subiSCM $M$ on $A$
+  \item $M^\twin$: twinned iSCM
+  \item $g^{[A]}_B$: $X_B$ component of solution function of iSCM $M^{[A]}$ 
+  \item $M^{(1)}$, $M^{(2)}$, $M^{(3)}$, \dots, $M^{(a)}$: indexed iSCMs
+  \item $G^+(M)$ is the graph of iSCM $M$, $G(M)$ its causal graph where endogenous random nodes have been marginalized out
+\end{itemize}
+}
+
+Structural Causal Models (SCMs), also known as Non-Parametric Structural Equation Models (NP-SEMs), provide a class of causal models that can model causal cycles.
+SCMs trace back to the early work on path analysis by geneticist Sewall Wright \cite{Wri21}, 
+made their way to econometrics \cite{Wright1928,Haa43,StrotzWold1960} and the social sciences \cite{Bollen1989} under the name Structural Equation Models (SEMs), 
+and became popular in AI due to the work of Judea Pearl \cite{Pearl09} and many others.
+In these lecture notes, we give a modern treatment inspired by our own research on the matter \cite{BFPM21,FM20}.
+We introduce here a more general class of causal models, namely SCMs `with inputs' (briefly: `iSCMs').
+
+\subsection{Motivation}\label{sec:scms_motivation}
+
+While causal Bayesian networks (with input nodes and latent variables) provide an expressive causal modeling class, there is an important aspect of causality that cannot be modeled with causal Bayesian networks, namely causal \emph{cycles}.
+For example, increasing temperature at the poles may cause sea ice to melt, which leads to more absorption of sunlight because white ice is replaced by blue sea water, which in turn leads to further temperature increase (see also Figure~\ref{fig:dg}(a)).
+Because a causal Bayesian network is acyclic by definition, such a model can only be described by a causal Bayesian network by introducing multiple variables corresponding with measurements of the same quantities at different points in time (Figure~\ref{fig:dg}(b)).
+In contrast, an SCM can directly represent causal cycles and is often appropriate for modeling systems with fast feedback processes that are stable, i.e., where negative feedback dominates potential positive feedback. 
+An illustrative example is a system composed of different masses connected via springs in an environment with friction (see also Section~\ref{sec:scm_examples}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,2.8) {$v_1$};
+    \node[ndout] (v2) at (2,2.8) {$v_2$};
+    \node[ndout] (v3) at (1,1.2) {$v_3$};
+%    \draw[arout, out=30, in=150] (v1) to (v2);
+%    \draw[arout, out=-90, in=30] (v2) to (v3);
+%    \draw[arout, out=150, in=-90] (v3) to (v1);
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v2) to (v3);
+    \draw[arout] (v3) to (v1);
+    \node (a) at (-1,4) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[ndout] (v1a) at (0,4) {$v_{1;t_0}$};
+    \node[ndout] (v2a) at (0,2) {$v_{2;t_0}$};
+    \node[ndout] (v3a) at (0,0) {$v_{3;t_0}$};
+    \node[ndout] (v1b) at (2,4) {$v_{1;t_1}$};
+    \node[ndout] (v2b) at (2,2) {$v_{2;t_1}$};
+    \node[ndout] (v3b) at (2,0) {$v_{3;t_1}$};
+    \node[ndout] (v1c) at (4,4) {$v_{1;t_2}$};
+    \node[ndout] (v2c) at (4,2) {$v_{2;t_2}$};
+    \node[ndout] (v3c) at (4,0) {$v_{3;t_2}$};
+    \node[ndout] (v1d) at (6,4) {$v_{1;t_3}$};
+    \node[ndout] (v2d) at (6,2) {$v_{2;t_3}$};
+    \node[ndout] (v3d) at (6,0) {$v_{3;t_3}$};
+    \draw[arout] (v1a) to (v1b);
+    \draw[arout] (v1a) to (v2b);
+    \draw[arout] (v1a) to (v3b);
+    \draw[arout] (v2a) to (v1b);
+    \draw[arout] (v2a) to (v2b);
+    \draw[arout] (v2a) to (v3b);
+    \draw[arout] (v3a) to (v1b);
+    \draw[arout] (v3a) to (v2b);
+    \draw[arout] (v3a) to (v3b);
+    \draw[arout] (v1b) to (v1c);
+    \draw[arout] (v1b) to (v2c);
+    \draw[arout] (v1b) to (v3c);
+    \draw[arout] (v2b) to (v1c);
+    \draw[arout] (v2b) to (v2c);
+    \draw[arout] (v2b) to (v3c);
+    \draw[arout] (v3b) to (v1c);
+    \draw[arout] (v3b) to (v2c);
+    \draw[arout] (v3b) to (v3c);
+    \draw[arout] (v1c) to (v1d);
+    \draw[arout] (v1c) to (v2d);
+    \draw[arout] (v1c) to (v3d);
+    \draw[arout] (v2c) to (v1d);
+    \draw[arout] (v2c) to (v2d);
+    \draw[arout] (v2c) to (v3d);
+    \draw[arout] (v3c) to (v1d);
+    \draw[arout] (v3c) to (v2d);
+    \draw[arout] (v3c) to (v3d);
+    \node (b) at (-1.5,4) {(b)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{(a) Directed Graph (DG) representing a causal cycle. As an example, $v_1$ could be the average temperature in a certain area at the North pole, $v_2$ the amount of sea ice present in the area, and $v_3$ the amount of sunlight absorbed in the area. This gives an example of a positive (self-reinforcing) feedback loop. (b) Alternative Directed Acyclic Graph (DAG) where the variables correspond with the same quantities but measured at different time points $t_0<t_1<t_2<t_3$.}
+\label{fig:dg}
+\end{figure}
+
+Another example of the limitation of Causal Bayesian Networks is the following, which shows that even if a `fine-grained' causal model is acyclic, merging variables may introduce cycles at a more `coarse-grained' level of description.
+\begin{Eg}\label{eg:coarse_grained_cbn}
+Suppose that we have a CBN with the ADMG in Figure~\ref{fig:coarsening_variables_introduces_cycles}(a),
+representing four variables $X_1,X_2,X_3,X_4$. If we chose an alternative representation in terms of 
+pairs $X_{13}:=(X_1,X_3)$ and $X_{24}:=(X_2,X_4)$, then we would end up with a CBN with the DMG in Figure~\ref{fig:coarsening_variables_introduces_cycles}(b). However, that is a contradiction as the graph of a CBN is acyclic by definition.
+\end{Eg}
+This example shows that the class of CBNs is not closed under the operation of merging variables.
+The class of (simple) SCMs with inputs to be introduced later is actually closed under the operation of merging variables.
+
+\begin{figure}[tb]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}
+    \node[ndout] (v1) at (0,0) {$v_1$};
+    \node[ndout] (v2) at (0,-2) {$v_2$};
+    \node[ndout] (v3) at (1.5,0) {$v_3$};
+    \node[ndout] (v4) at (1.5,-2) {$v_4$};
+    \draw[arout] (v1) to (v2);
+    \draw[arout] (v4) to (v3);
+    \node (a) at (-1,0) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=6cm]
+    \node[ndout] (v13) at (0,0) {$v_{13}$};
+    \node[ndout] (v24) at (0,-2) {$v_{24}$};
+%    \node[ndout] (v3) at (1,0) {$v_3$};
+%    \node[ndout] (v4) at (1,-2) {$v_4$};
+    \draw[arout,bend left] (v13) to (v24);
+    \draw[arout,bend left] (v24) to (v13);
+    \node (b) at (-1,0) {(b)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{(a) ADMG with output nodes $v_1, v_2, v_3, v_4$ corresponding with endogenous variables $X_1, X_2, X_3, X_4$.
+  (b) DMG corresponding to a coarser representation obtained by merging variables into $X_{13} := (X_1,X_3)$ and $X_{24} := (X_2,X_4)$.
+  }
+\label{fig:coarsening_variables_introduces_cycles}
+\end{figure}
+
+Finally, there exist systems in which the directionality of causal relations is context-dependent.
+\begin{Eg}\label{eg:ohms_law}
+Consider Ohm's law $V = I R$ (voltage equals current times resistance) to model the voltage across and current through a resistance.
+If we connect the resistance to a voltage source, the voltage determines the current.
+If we connect the resistance to a current source, then it is the other way around: the current determines the voltage.
+Both cases separately can be modeled with a CBN (Figure~\ref{fig:context_specific_causality}(a--b), respectively).
+If we let a coin flip determine which of the two sources the resistance is connected to, we obtain a mixture which cannot be modeled as a single CBN (Figure~\ref{fig:context_specific_causality}(c)).
+\end{Eg}
+Similar behavior is often encountered in complex systems in biology, chemistry, engineering and economy.
+This is yet another motivation to extend the causal modeling framework to allow for cycles.
+
+In this chapter, we will introduce the class of SCMs with inputs, which generalize CBNs (with latent variables and input nodes) to allow for cycles, and allows us to deal elegantly with all motivating examples discussed here.
+In addition, SCMs (with inputs) support counterfactual reasoning, another capability that CBNs lack.
+
+\begin{figure}[tb]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+  \begin{scope}[xshift=0cm]
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (V) to (I);
+    \draw[arint] (R) to (I);
+    \node (a) at (-1,0) {(a)};
+  \end{scope}
+  \begin{scope}[xshift=5cm]
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (I) to (V);
+    \draw[arint] (R) to (V);
+    \node (b) at (-1,0) {(b)};
+  \end{scope}
+  \begin{scope}[xshift=10cm]
+    \node[ndout] (C) at (1,1.5) {$C$};
+    \node[ndout] (V) at (0,0) {$V$};
+    \node[ndout] (I) at (2,0) {$I$};
+    \node[ndint] (R) at (1,-1.5) {$R$};
+    \draw[arout] (C) to (V);
+    \draw[arout] (C) to (I);
+    \draw[arout,bend left] (I) to (V);
+    \draw[arout,bend left] (V) to (I);
+    \draw[arint] (R) to (I);
+    \draw[arint] (R) to (V);
+    \node (c) at (-1,0) {(c)};
+  \end{scope}
+\end{tikzpicture}
+  \caption{Different causal models corresponding to modeling the current through a resistance using Ohm's law. (a) Voltage causes current. (b) Current causes voltage. (c) Mixture model where the causal relationship between voltage and current depends on the result of a coin flip.}
+\label{fig:context_specific_causality}
+\end{figure}
+
+\subsection{Definition}
+
+An SCM is specified in terms of (deterministic) functions and distributions, rather than in terms of Markov kernels (`stochastic functions').
+Conceptually, in an SCM the focus lies on modeling the \emph{causal mechanisms} as deterministic functions at an abstract level.
+Such a function expresses the value of an effect variable in terms of its direct cause variables. 
+We assume that the joint value of the direct cause variables determines a unique value of the effect variable,
+so that the value of the effect is \emph{completely} explained by the values of its direct causes.
+To prevent an infinite regress (where the values of the cause variables must be explained by the values of their direct causes, and so on \emph{ad infinitum}), the model does not specify a causal mechanism for \emph{all} variables that occur in the model.
+This divides the variables into two types: the `endogenous' variables, each of which has an associated causal mechanism that expresses its value in terms of its direct causes, and the `exogenous' variables, for which no such causal mechanisms are specified.
+We can distinguish two types of exogenous variables:
+the `exogenous inputs', for which the model only describes the range of their possible joint values, and the `exogenous random' variables for which the model in addition describes their probability distribution.
+
+In contrast with many definitions encountered in the literature,\footnote{For example, \cite{Pearl09} only formally distinguishes exogenous latent random variables and endogenous variables.} we here explicitly distinguish three types of variables: endogenous variables, exogenous latent random variables and exogenous observed input variables.
+We will refer to those objects as `SCMs with inputs' (or `iSCMs').
+\begin{Def}[Structural Causal Model with Inputs]\label{def:iscm}
+  A \emph{Structural Causal Model with Inputs} (iSCM) is a tuple $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ such that
+  \begin{itemize}
+    \item $\Sin, \Send, \Srnd$ are disjoint finite sets of labels for the \emph{exogenous input variables}, the \emph{endogenous variables} and the \emph{exogenous random variables}, respectively;
+    \item the \emph{domain} $\CX = \prod_{i\in \Sin \dcup \Send \dcup \Srnd} \C{X}_i$ is a product of standard measurable spaces $\C{X}_i$;
+    \item the \emph{exogenous distribution} $P$ is a probability distribution on $\CXW$ that factorizes as a product $P = \bigotimes_{w\in\Srnd} P_w$ of probability distributions $P_w \in \C{P}(\C{X}_w)$;\footnote{Because of the heavy use of the symbol `$P$' we will often use the notation `$P_M$' to refer to the exogenous distribution of iSCM $M$.}
+    \item the \emph{causal mechanisms} are specified by the measurable function $f : \CX \to \CXV$.
+  \end{itemize}
+  For the special case $J=\emptyset$ (no exogenous inputs) we refer to the tuple $M = \lt \Send, \Srnd, \CX, P, f \rt$ as a \emph{Structural Causal Model (SCM)}.
+  \Joris{Possible slight modifications to better accommodate conditioning:
+    \begin{itemize}
+      \item assume $W$ to be a partition of $U$ and such that $\CX_w = \prod_{u \in w} \CX_u$ for each $w \in W$;
+      \item explicitly store which subset $I \ins V$ of endogenous nodes is considered intervenable (i.e., can occur as a target of a hard intervention).
+    \end{itemize}
+    The first point allows us to merge exogenous latent random variables simply by updating the partition, and also (crucially) to undo that merging operation by refining the partition back.
+    We would probably want to update the definition of iSCM equivalence to consider two iSCMs equivalent by allowing the $(\CX_u)_{u \in U}$ to differ.
+    The second point just limits the possible intervention targets and extends the class of iSCMs to become closed under conditioning (at the price of loosing causal information).
+
+    If we define the conditioning operation, and when defining s-SCMs, we should respect modularity.
+    In other words, we should define s-SCMs of the form $(M, \{S_i \in \mathcal{S}_i\}_{i=1}^n)$ for $n$ selection mechanisms $X_{S_i} \in \mathcal{S}_i$,
+    and we should define the refined graphical conditioning operation (which adds bidirected edges to each set $Sib_G(Anc_G(S_i)) \cup Anc_G(S_i)$ separately, i.e.\ one-by-one).
+    Hold on: that may be too refined!
+    There is another natural candidate: consider for each $i$ the binary partition of $W$: $\{\Anc_{G^+(M)}(S_i) \cap W, W \sm \Anc_{G^+(M)}(S_i)\}$.
+    Form the join $\bigvee_{i=1}^n$ of these $n$ partitions.
+    Add bidirected edges to each block in the join.
+    For the case where $n=2$, and the two partitions are $\{\{1,2\},\{3\}\}$ and $\{\{1\},\{2,3\}\}$ the two approaches differ in that the latter will also add a bidirected edge $1 \huh 3$ (the join would be $\{\{1,2,3\}\}$).
+    Then the `abe' operation commutes with itself and `abe'-ing iteratively equals `abe'-ing jointly.
+    But perhaps the former idea is the right one: it seems tempting to think about a factor graph factorization structure of $G^+(M)$,
+    where a selection mechanism $g_s(X_{\Anc_{G^+(M)}(S_i) \cap W}) \in \mathcal{S}_i)$ ``turned on its head'' becomes a factor on $\Anc_{G^+(M)}(S_i) \cap W$.
+    Adding all these factors, and combining them with the original factors on each $w \in W$, might give the factorization structure.
+    Ah, but we want a `flat' factorization structure into independent components.
+    So there is something funny: the refined graphical conditioning seems to capture more independence information, and suggests that some exogenous reparameterization would be possible in general to reflect the additional independence structure.
+  }
+\end{Def}
+The endogenous variables are the variables whose causal relations we wish to model, whereas the exogenous variables are required to model the remaining causes of the endogenous variables.
+\begin{Def}[Parameterized iSCM]\label{def:iscm_parameterized}
+Often, the causal mechanism $f$ and the exogenous distribution $P$ depend (measurably) on \emph{exogenous parameters} $\theta\in\CX_\Theta$, which we may make explicit by writing $f^{\theta}$ and $P^{\theta}$ instead, giving a parameterized iSCM $M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^{\theta}, f^{\theta} \rt$.
+The family $(M^{\theta})_{\theta \in \CX_\Theta}$ is then an iSCM family.\footnote{In line with the convention in machine learning, the word `model' refers to a iSCM with a fixed choice of the parameters, and `model family' to a family of models indexed measurably by parameters. This contrasts with the terminology in statistics, where a family of distributions indexed measurably by parameters is called a `statistical model'.} 
+\end{Def}
+%\begin{Def}[Structural Causal Model]\label{def:scm}
+%  A \emph{Structural Causal Model} (SCM) is a tuple $M = \lt \Send, \Srnd, \CX, P, f \rt$ such that
+%  \begin{itemize}
+%    \item $\Send, \Srnd$ are disjoint finite sets of labels for the \emph{endogenous variables} and the \emph{exogenous random variables}, respectively;
+%    \item the \emph{domain} $\CX = \prod_{i\in \Send \dcup \Srnd} \C{X}_i$ is a product of standard measurable spaces $\C{X}_i$;
+%    \item the \emph{exogenous distribution} $P$ is a probability distribution on $\CXW$ that factorizes as a product $P = \bigotimes_{w\in\Srnd} P_w$ of probability distributions $P_w \in \C{P}(\C{X}_w)$;
+%    \item the \emph{causal mechanism} is specified by the measurable function $f : \CX \to \CXV$.
+%  \end{itemize}
+One can also think about an iSCM as describing an input/output system, with free inputs
+$\Sin$, random inputs $\Srnd$ with distribution $P$, outputs $\Send$ and `modular' input/output mechanisms $f_v$ for $v \in V$.
+%Note that a statistical model can be seen as a special case of a SCM that only has exogenous random variables ($\Sin = \Send = \emptyset$).
+%A complementary subclass is formed by deterministic models without exogenous random variables ($\Srnd = \emptyset$). 
+Structural causal models can be regarded as a marriage of statistical models as traditionally used in statistics (a parameterized family of distributions) with deterministic causal models (deterministic input/output systems) that are used informally in disciplines like physics and engineering.
+
+\begin{Rem}
+There are four crucial assumptions embodied in the modeling approach using iSCMs:
+\begin{enumerate}
+  \item Exogenous variables (i.e., exogenous input variables, exogenous random variables, and exogenous parameters) are \emph{not caused} by endogenous variables.
+  \item Exogenous variables are \emph{variation independent}: their joint range is the Cartesian product of the range of each exogenous variable.
+  \item Exogenous random variables are \emph{probabilistically independent}, and their distribution is independent of the exogenous input variables (but may depend on exogenous parameters).
+  \item Exogenous parameters describe \emph{population} properties, while exogenous random and input variables describe \emph{individual} quantities.
+    This means that if we are modeling a population of $N$ `units' that are all subject to the same causal mechanism, we can make $N$ copies of the iSCM, one for each individual, where the copies share the same causal mechanism $f$ and the same exogenous distribution $P(X_W)$, and in the parametric case, the same parameter $\theta$.
+%    That is, the `template' parameterized iSCM $(M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^{\theta}, f^{\theta} \rt)_{\theta \in \CX_\Theta}$ induces an iSCM that models a population consisting of $N$ units:
+%    $$M^{\theta;N} := \lt \Sin^N, \Send^N, \Srnd^N, \CX^N, \bigotimes_{n=1}^N P^{\theta}, f^{\theta;N} \rt_{\theta \in \CX_\Theta}$$
+%    where the causal mechanisms of each unit is
+%    $$f^{\theta;N}_n : \CX^{(n)} \to \CX_{V}^{(n)} : x^{(n)} \mapsto f^{\theta}(x^{(n)}).$$
+    A frequentist statistician might treat exogenous parameters as `global' exogenous input variables, while a Bayesian statistician might treat exogenous parameters as `global' exogenous random variables by also specifying a prior $P(\theta) \in \Pcal(\CX_{\Theta})$.
+\end{enumerate}
+\end{Rem}
+
+\begin{Rem}
+  Not all types of variables need to be present. Rather than giving separate definitions for `degenerate' cases, we can stay in the formalism by defining what happens for empty label sets. For example, suppose the iSCM is deterministic, i.e., $\Srnd = \emptyset$. Then $\CXW$ is an empty product (i.e., a product over 0 spaces), and by definition becomes a space $\Asterisk = \{\asterisk\}$ with a single element $\asterisk$, with the trivial sigma algebra $\{\emptyset,\{\asterisk\}\}$. The only possible probability distribution on such a space is the trivial distribution, i.e., $P(\{\asterisk\}) = 1$. Similarly, SCMs (without inputs) can be treated as the special case where $\Sin=\emptyset$.
+\end{Rem}
+
+%\begin{Rem}
+%Often the exogenous random variables are considered latent and thought of as ``noise''.
+%However, since it may depend on the context whether a variable is observed or latent 
+%(e.g., in a training data set, the prediction target is typically observed, whereas
+%it is latent in a test data set), we will not formally incorporate into the model 
+%any assumptions regarding which variables are observed and which are latent. 
+%In this aspect, our exposition deviates from many accounts on SCMs in the literature.\footnote{For 
+%example, \cite{Pearl09} assumes all exogenous (random) variables to be latent, and
+%all endogenous variables to be observed.}
+%%In other words: they have a probabilistic interpretation, but not a causal one.
+%%Usually, the endogenous variables correspond with the variables in the system that we are
+%%modeling. The model remains silent about the environment of the system.
+%%The exogenous variables can be thought of as if they reside in the boundary between the
+%%system and its environment: we model how they directly affect the system variables, 
+%%and for exogenous random variables we model the distribution of their values,
+%%but we do not model what determines the values of the exogenous variables since that
+%is assumed to be completely outside of the system.
+%\end{Rem}
+
+\subsection{Solving the Structural Equations}
+
+\subsubsection{Structural Equations and Potential Outcomes}
+
+An iSCM defines \emph{structural equations}, which are used to define the \emph{potential outcomes} of the iSCM.
+\begin{Def}[Potential outcomes, structural equations]\label{def:scm_solutions_for_inputs}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM
+  and $\xJ \in \CXJ$ an input value.
+  A random variable $X_{V \cup W}^{\doit(\xJ)}$ with codomain $\CXV \times \CXW$ is called
+  a \emph{potential outcome of $M$ for input $\xJ$} 
+  if the following two conditions hold:\footnote{Another notation for potential outcomes, commonly encountered in the literature, is $X_{V\cup W}(\xJ)$.}
+    \begin{enumerate}
+      \item its $\Srnd$-component has the exogenous distribution specified by $M$: 
+        $$\XW^{\doit(\xJ)} \sim P,$$
+      \item it satisfies the \emph{structural equations entailed by $M$ for input $\xJ$}:
+        \begin{equation}\label{eq:cscm_structural_equations}
+          \XV^{\doit(\xJ)} = f\big(\xJ, \XV^{\doit(\xJ)}, \XW^{\doit(\xJ)}\big) \text{ a.s.}.
+        \end{equation}
+    \end{enumerate}
+%  \footnote{Note that when considering two
+%  potential outcomes $X^{\doit(x_J)},X^{\doit(x_J')}$ of $M$ for different inputs $\xJ, \xJ'$
+%  we do \emph{not} necessarily assume that the two random variables
+%  $\XW^{\doit(x_J)}$ and $\XW^{\doit(x_J')}$ are the same; we only assume that they have the
+%  same distribution. This choice has been made to avoid introducing implicitly defined ``cross-world'' counterfactuals.
+%  In our opinion, it is better to explicitly introduce such these with the twinning construction, as will be
+%  described in Section \ref{sec:counterfactuals}, because this enforces one to think about which 
+%  variables are shared across potential worlds and which are copied (resampled).}
+  In case $J = \emptyset$ we also write $X_{V \cup W} := X_{V \cup W}^{\doit(\asterisk)}$ and refer to it simply as an \emph{outcome of $M$}.
+\end{Def}
+
+The iSCM encodes the probability distributions of its (potential) outcomes.
+However, the structural equations \eref{eq:cscm_structural_equations} may have no solution or may have multiple different solutions.
+Therefore, even if a (potential) outcome exists (for a given input), it could be that its distribution is not uniquely determined by the iSCM.
+\begin{Eg}
+Consider an iSCM with parameters $\alpha,\beta \in \RN$, endogenous real-valued variables $X_1,X_2$, real-valued exogenous input $X_3$, and structural equations for input $x_3 \in \RN$ given by:
+$$\begin{cases}
+  X_1^{\doit(x_3)} = \alpha X_2^{\doit(x_3)} & \\
+  X_2^{\doit(x_3)} = \beta X_1^{\doit(x_3)} + x_3. &
+\end{cases}$$
+  If $\alpha \beta = 1$, then $(X_1^{\doit(x_3=0)},X_2^{\doit(x_3=0)}) = (\alpha x,x)$ is a potential outcome for input $x_3=0$ for any value of $x\in\RN$. Any mixture of these potential outcomes is also a potential outcome for input  $x_3=0$.
+  If $\alpha \beta = 1$, then for input $x_3 \ne 0$, the iSCM admits no potential outcomes.
+  If $\alpha \beta \ne 1$, then the potential outcomes are unique and given by
+  $(X_1^{\doit(x_3)},X_2^{\doit(x_3)}) = (\frac{\alpha x_3}{1 - \alpha\beta},\frac{x_3}{1 - \alpha\beta})$.
+\end{Eg}
+
+In practice, an iSCM is often specified more informally by writing down the corresponding structural
+equations and by giving the exogenous distribution of $\XW$. 
+Any variables appearing
+on the r.h.s.\ of some structural equation that do not correspond with a structural equation for which
+that variable appears on the l.h.s., nor have a specified distribution, are then implicitly taken as
+exogenous inputs (or parameters).
+\begin{Eg}[Linear regression model with fixed design for the effect in terms of its cause (population level)]\label{eg:iscm_linear_regression_fixed_design-population}
+  Assume that $Y = \alpha X + \beta + \epsilon$ with $Y \in \RN$ representing the effect, $X \in \RN$
+  the cause, $\epsilon \sim \C{N}(0,\sigma^2)$ independent normally distributed measurement noise, and
+  $\alpha,\beta \in \RN$, $\sigma^2 \in (0,\infty)$ parameters.
+
+  For a fixed parameter value, this can be understood as the specification of an iSCM
+  $M^{(\alpha,\beta,\sigma^2)} = \lt \Sin, \Send, \Srnd, \CX, P^{\sigma^2}, f^{\alpha,\beta} \rt$ 
+  with $\Sin = \{X\}$, $\Send = \{Y\}$, $\Srnd = \{\epsilon\}$, $\CX = \RN^3$, 
+  exogenous distribution $P^{\sigma^2} = \C{N}(0,\sigma^2)$
+  and causal mechanism $f^{\alpha,\beta} : \RN^3 \to \RN : (x,y,\epsilon) \mapsto \alpha x + \beta + \epsilon$.
+
+  If $\epsilon \sim \C{N}(0,\sigma^2)$ and $x \in \RN$, then $(Y^{\doit(x)},\epsilon^{\doit(x)}) := (\alpha x + \beta + \epsilon, \epsilon)$ is
+  a potential outcome of $M^{(\alpha,\beta,\sigma^2)}$ for input $x$. 
+  Often, one just refers to the component $Y^{\doit(x)}$ as the potential outcome.
+\end{Eg}
+One often is interested in modeling a `population' consisting of `individuals' (for example, all the patients in a medical trial).
+In that case, the iSCM is often considered a `template' where the full causal model on all individuals is obtained by
+making a copy of the template for each individual.
+\begin{Eg}[Linear regression model with fixed design for the effect in terms of its cause (individual level)]
+  The `individual-level' iSCM for a population consisting of $N$ individuals corresponding to the `population-level' iSCM of Example~\ref{eg:iscm_linear_regression_fixed_design-population} has:
+  \begin{itemize}
+    \item Exogenous input variable $J = \{X_1,\dots,X_N\}$;
+    \item Exogenous random variable indices $W = \{\epsilon_1,\dots,\epsilon_N\}$;
+    \item Endogenous variable indices $V = \{Y_1,\dots,Y_N\}$;
+    \item Joint state space $\CX = \prod_{i=1}^N \CX_i = \prod_{i=1}^N (\RN \times \RN \times \RN) = \RN^{3N}$;
+    \item Parameters $(\alpha,\beta,\sigma^2) \in \RN^2 \times (0,\infty)$;
+    \item Exogenous distribution $P^\sigma(X_W) = \bigotimes_{i=1}^N P^\sigma(X_{W_i})$ with $P^\sigma(X_{W_i}) \sim \C{N}(0,\sigma^2)$;
+    \item Causal mechanisms 
+      $$f^{\alpha,\beta}_{y_i} : (x_i,y_i,\epsilon_i) \mapsto \alpha x_i + \beta + \epsilon_i$$
+      for $i=1,\dots,N$.
+  \end{itemize}
+  Note how the parameters are `shared' across individuals, but the other variables are not.
+  We get potential outcomes with $Y$-component $Y^{\doit(x)} = (Y_1^{\doit(x_1,\dots,x_N)},\dots,Y_n^{\doit(x_1,\dots,x_N)})$.
+  This individual-level model assumes that all individuals are independent entities that do not interact.\footnote{Of course, that is not always a realistic assumption, for example when studying the efficacy of vaccines, vaccinating one individual could not only protect that particular individual from contracting a disease, but also other individuals in its vicinity.}
+\end{Eg}
+
+\subsubsection{Solutions}
+
+The language of conditional random variables allows us to give a neat definition of the \emph{solution} of an iSCM, which can also be thought of as a measurable family of (potential) outcomes with a shared underlying probability space.
+
+\begin{Def}[Solutions of an iSCM]\label{def:scm_solutions}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable.
+  If its marginal (push-forward) Markov kernel $K(X_W | \XJ)$ is constant in $\XJ$ and coincides with the exogenous distribution specified by $M$:
+  $$\forall x_J \in X_J: \qquad K(X_W | x_J) \sim P,$$
+%  $$K(X_J | \XJ) = \delta(\XJ|\XJ)$$
+  and $X$ satisfies the \emph{structural equations} entailed by $M$:
+    \begin{equation}\label{eq:scm_structural_equations}
+%      \XV = f(\XJ, \XV, \XW) \qquad \text{$K(X_V,X_W|\XJ)$-a.s.}
+      \XV = f(\XJ, \XV, \XW) \qquad \text{a.s.,}
+    \end{equation}
+  then $X$ is called a \emph{solution of $M$}.\footnote{We write `a.s.' as a shorthand for $K(U|X_J)\as$, extending the corresponding convention for random variables.}
+  Since the $X_J$ component is trivial, we also refer to the component 
+  $$X_{\Send\cup \Srnd} : \C{U} \times \CXJ \to \CX_{\Send \cup \Srnd}$$
+  as a solution of $M$.
+\end{Def}
+\begin{Rem}\label{def:scm_potential_outcome}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM and $X : \C{U} \times \CXJ \to \CX_{V\cup W}$ be a solution of $M$. 
+  Then for any $\xJ \in \CXJ$, 
+  $$X^{\doit(\xJ)}_{V\cup W} : \C{U} \to \CX_{V\cup W} : u \mapsto X(u,\xJ)$$ 
+  is a potential outcome of $M$ for input $\xJ$.
+  Its distribution coincides with $K(X_{V\cup W} | X_J=x_J)$.
+\end{Rem}
+The converse does not hold: specifying a complete family of (potential) outcomes $(X^{\doit(x_J)}_{V\cup W})_{x_J \in \CX_J}$ does not necessarily give a solution, as the family may not be measurable in $x_J$.
+
+Not every iSCM has solutions. 
+Also, if they exist, solutions are not necessarily unique, even if they have the same underlying transition probability space.
+\begin{Eg}\label{eg:not_every_scm_has_solutions}
+  Consider an SCM with parameters $\alpha,\beta,\mu \in \RN$, $\sigma^2 \in [0,\infty)$, endogenous real-valued variables $X_1,X_2$, exogenous random real-valued variable $W_1$ with exogenous distribution $\C{N}(\mu,\sigma^2)$,
+and structural equations
+$$\begin{cases}
+  X_1 = \alpha X_2 & \\
+  X_2 = \beta X_1 + W_1. &
+\end{cases}$$
+If $\alpha \beta = 1$, $\mu = 0$ and $\sigma^2=0$, then $(X_1,X_2,W_1) = (\alpha x,x,W_1)$ is a solution for any $x\in\RN$ and $W_1 \sim \C{N}(\mu,\sigma^2)$.
+Any mixture of those solutions is also a solution in that case.
+If $\alpha \beta = 1$ and $\mu \ne 0$ or $\sigma^2\ne 0$, then the SCM admits no solutions. 
+If $\alpha \beta \ne 1$, then all solutions $(X_1,X_2,W_1)$ satisfy $(X_1,X_2) = (\frac{\alpha W_1}{1 - \alpha\beta},\frac{W_1}{1 - \alpha\beta})$ a.s.\ and $W_1 \sim \C{N}(\mu,\sigma^2)$.
+\end{Eg}
+
+The following remark relates the terminology to the cases most often considered in the literature.
+\begin{Rem}\label{rem:scm_no_inputs_solutions}
+  If $\Sin = \emptyset$, a solution of an SCM can be identified with a random variable 
+  $X_{V \cup W}$ with codomain $\CXV \times \CXW$ such that $\XW \sim P$ and that
+  satisfies the structural equations:
+  \begin{equation}\label{eq:scm_structural_equations_componentwise}
+    X_v = f_v\big(\XV, \XW\big) \text{ a.s.}
+  \end{equation}
+  for each $v \in \Send$.
+\end{Rem}
+
+\subsubsection{Markov Kernels of Solutions}
+
+Each solution of an iSCM `has' a Markov kernel (similarly to how each random variable has a distribution).
+\begin{Not}\label{def:scm_kernels}
+  Let conditional random variable $X : \C{U} \times \CXJ \to \CX$ on transition probability space $(\C{U} \times \CXJ, K(U|\XJ))$ be a solution of an iSCM
+  $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$.
+  Its push-forward 
+  $$P(X \mid \doit(X_J)) := K(X|\XJ) = X_* K(U|X_J)$$
+  is a Markov kernel $\CXJ \dshto \CX$ that we refer to as \emph{the Markov kernel of $M$ corresponding to $X$}.
+  Since the $J$-component is trivial, we also refer to its marginal $P(X_{V\cup W}\mid \doit(\XJ))$ as such.
+%  Furthermore, if only a subset $O \subseteq V \cup W$ is observed, we also refer to its marginal $P(X_O \mid \doit(X_J))$ as a Markov kernel of $M$.
+\end{Not}
+
+Not all solutions of an iSCM may yield the same Markov kernel (see also Example~\ref{eg:not_every_scm_has_solutions}).
+Therefore, even if the iSCM $M$ is specified, the notation `$P(X \mid \doit(X_J))$' is ambiguous, since it does not specify which solution the Markov kernel comes from. 
+Because we will mostly restrict attention to so-called `simple' iSCMs for which the Markov kernel turns out to be unique, we will not worry about this.
+
+\begin{Rem}
+In case $J = \emptyset$ for an SCM $M$, the Markov kernel $P(X \mid \doit(X_J))$ corresponding to a solution $X$ can be identified with its distribution $P(X)$, and one often refers to it as the \emph{distribution of $M$ corresponding to $X$}.
+\end{Rem}
+
+\subsubsection{Null sets (again)}
+
+We will frequently need to specify that certain properties or identities hold `almost surely' in a specific sense.
+This is analogous to the notion of `almost surely' in probability theory, but because we are dealing with parameterized families of probability distributions, the notion becomes more intricate.
+We will use it in the theory of iSCMs in the same way that the notion of $P(X_W|\doit(X_J))$-null sets are used in the theory of CBNs (see Definition~\ref{def:finite-transition-measure-nullsets}).
+
+In the following definitions, an important subtlety to be aware of is that the ordering of the quantifiers matters, and reordering the quantifiers changes the meaning of the statement. 
+The specific ordering was chosen to correspond with the data generating processes that are modeled via a sampling process as described in Section~\ref{sec:scm_sampling}.
+
+\begin{Def}[iSCM Null Sets]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item We call a set $\tilde{N} \ins \CX_J \times \CX_W$ an \emph{$M$-null set} if for each $x_J \in \CX_J$, the section $\tilde{N}_{x_J} = \{x_W \in \CX_W : (x_J,x_W) \in \tilde{N}\}$ is a $P_M(X_W)$-null set.
+    \item We call a set $\tilde{N} \ins \CX_J \times \CX_W$ a \emph{measurable $M$-null set} if 
+      $\tilde{N} \in \Bcal_J \otimes \Bcal_W$ and $\tilde{N}$ is an $M$-null set.
+    \item We call a set $N \ins \CX_J \times \CX_W \times \CX_V$ a \emph{(measurable) $M$-null set} if
+      it is contained in some $\tilde{N} \times \CX_V$ with $\tilde{N}$ a (measurable) $M$-null set.
+      \Joris{$P$-null sets have the nice property that they are always contained in a measurable $P$-null set.
+      The analogous statement does not hold for $M$-null sets according to Claude (Opus 4.6): in ZFC, not every $M$-null set is contained in a measurable $M$-null set.
+      See claude\_M\_null\_not\_contained\_in\_measurable\_M\_null.tex for a counterexample.
+      This suggests that the more practically useful definition would be to always assume things hold up to a \emph{measurable} $M$-null set, rather than just an $M$-null set.
+      We will introduce the shortcut '$M\mas$' for this purpose.}
+    \item More generally, for $L \ins V$, we call a set $N \ins \CX_J \times \CX_W \times \CX_L$ a \emph{(measurable) $M$-null set} if
+      it is contained in some $\tilde{N} \times \CX_L$ with $\tilde{N}$ a (measurable) $M$-null set.
+  \end{enumerate}
+\end{Def}  
+Note that the first notion corresponds with that of a `$P_M(X_W | \doit(X_J))$-null set' (cf.\ Definition~\ref{def:finite-transition-measure-nullsets}).
+It also corresponds with that of a `$P_M(X_W)$-null set in $\CX_{J \cup W}$' (cf.\ Remark~\ref{rem:null-sets}).
+Note that subsets of $M$-null sets are also $M$-null sets, and countable unions of $M$-null sets are also $M$-null sets.
+
+\begin{Def}[`Almost surely' according to an iSCM]
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  \begin{enumerate}
+    \item Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+      We say that \emph{$\tilde\pi$ holds $M\as$} if
+      $$\{(x_J,x_W) \in \CX_J \times \CX_W : \tilde\pi(x_J,x_W) = 0\}$$
+      is contained in a $M$-null set.
+    \Joris{Shouldn't we just make our lifes easier by demanding instead ``in a measurable $M$-null set''?
+      \item Let $\tilde\pi : \CX_J \times \CX_W \to \{0,1\}$ be a binary property.
+        We say that \emph{$\tilde\pi$ holds $M\mas$} if
+        $$\{(x_J,x_W) \in \CX_J \times \CX_W : \tilde\pi(x_J,x_W) = 0\}$$
+        is contained in a measurable $M$-null set.
+      }
+%    \item Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+%      We say that \emph{$\pi$ holds $M\as$} if:
+%      $$\tilde{\pi}(x_J,x_W) := \ind_{[\forall_{x_V \in \CX_V} : \pi(x_J,x_W,x_V) = 1]}$$
+%      holds $M\as$.
+    \item Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+      We say that \emph{$\pi$ holds $M\as$} if:
+      $$\{(x_J,x_W,x_V) \in \CX_J \times \CX_W \times \CX_V : \pi(x_J,x_W,x_V) = 0\}$$
+      is contained in a $M$-null set.
+  \end{enumerate}
+  We can use this e.g.\ to define $M\as$ equality of sets / functions / Markov kernels.
+\end{Def}
+Note that both notions are compatible if we consider $\tilde{\pi}(x_J,x_W) := \forall x_V \in \CX_V: \pi(x_J,x_W,x_V)$.
+We can think about the statement `$\pi(x_J,x_W,x_V)$ holds $M\as$' as the claim that
+for all $x_J \in \CX_J$, for $P_M(X_W)$-almost all $x_W \in \CX_W$, for all $x_V \in \CX_V$, $\pi(x_J,x_W,x_V)$ holds. 
+The ordering of the quantifiers matters: the `for all $x_V$' is the innermost quantifier, and the `for all $x_J$' is the outermost quantifier.
+
+\Joris{Perhaps also define when sets are equal $M\as$ (via the property $x \in A \iff x \in B$) and when functions are equal $M\as$ (via the property $f_1(x) = f_2(x)$)?}
+
+The following lemma translates an $M\as$ property to an a.s.\ property of a random variable.
+\begin{Lem}\label{lem:M-as_to_rv-as}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Let $x_J \in \CX_J$. 
+  Let $X_{V \cup W}$ be a random variable with values in $\CX_V \times \CX_W$ and such that its $W$-marginal is distributed according to the exogenous distribution of $M$ (that is, $X_W \sim P_M$).
+  Then:
+  $$\pi(x_J,x_W,x_V) \quad M\as \qquad \implies \qquad \pi(x_J,X_W,X_V) \quad \text{a.s.}.$$
+\end{Lem}
+\begin{proof}
+  Since $\pi$ holds $M\as$, for the fixed $x_J \in \CX_J$ this means that for $P_M$-almost all $x_W$:
+    $$\forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1.$$
+  Since $X_W \sim P_M$, we get that:
+    $$[\forall x_V  \in \CX_V: \pi(x_J,X_W,x_V) = 1] \quad P(X_W)\as.$$
+  Hence:
+    $$[\forall x_V  \in \CX_V: \pi(x_J,X_W,x_V) = 1] \quad \text{a.s.},$$
+  which implies:
+    $$\pi(x_J,X_W,X_V) = 1 \quad \text{a.s.}$$
+\end{proof}
+We can do something analogous for a conditional random variable.
+\begin{Lem}\label{lem:M-as_to_crv-as}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $\pi : \CX_J \times \CX_W \times \CX_V \to \{0,1\}$ be a binary property.
+  Let $(\C{U} \times \CXJ, K(U|X_J))$ be a transition probability space and $X : \C{U} \times \CXJ \to \CX$ be a conditional random variable such that its marginal (push-forward) Markov kernel $K(X_W | \XJ)$ is constant and coincides with the exogenous distribution of $M$ (that is, $K(X_W | \XJ) = P_M$ \Joris{possible notation: $X_W|X_J \sim P_M$?}).
+  Then:
+  $$\pi(x_J,x_W,x_V) \quad M\as \qquad \implies \qquad \pi(X_J,X_W,X_V) \quad \text{a.s.}.$$
+\end{Lem}
+\begin{proof}
+  Since $\pi$ holds $M\as$, for all $x_J \in \CX_J$, for $P_M$-almost all $x_W$:
+    $$\forall x_V \in \CX_V: \pi(x_J,x_W,x_V) = 1.$$
+  Since $K(X_W | \XJ) = P_M$, we get that:
+    $$[\forall x_V  \in \CX_V: \pi(X_J,X_W,x_V) = 1] \quad K(X_W|X_J)\as.$$
+  Hence:
+    $$[\forall x_V  \in \CX_V: \pi(X_J,X_W,x_V) = 1] \quad \text{a.s.},$$
+  which implies:
+    $$\pi(X_J,X_W,X_V) = 1 \quad \text{a.s.}.$$
+\end{proof}
+
+\Joris{Another useful property: ``$M\as$'' implies ``$M_{\doit(T)}\as$'' for $T \ins V$.}
+
+\subsubsection{(Partial) Solution functions}
+
+A fundamental notion in the theory of (cyclic) iSCMs is that of its `solution functions'.
+A solution function is a function that maps an exogenous state to a corresponding solution of the structural equations, in a measurable way.
+A technical subtlety is that it suffices to specify solution functions up to a certain type of null set.
+\begin{Def}[Solution function of an iSCM]\label{def:scm_solution_functions}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, we call a function
+  $g : \CXJ \times \CXW \to \CXV$ a \emph{solution function of $M$} if it is measurable and
+  %for all $\xJ\in\CXJ$, for $P$-almost all $\xW\in\CXW$, $g(\xJ,\xW)$ satisfies the structural equations:
+  %\footnote{One can weaken this requirement by replacing the quantifiers by `for all $\xJ\in\CXJ$, for $P$-almost all $\xW\in\CXW$' but we will not do so here, as the additional generality of the resulting theory comes at the cost of more technicalities in most definitions and proofs. See also \cite{BFPM21}.}
+%  for $P$-almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$:\footnote{NB: The ordering of the quantifiers matters here, i.e., ``for almost all $\xW\in\CXW$, for all $\xJ\in\CXJ$'' is a stronger condition than ``for all $\xJ\in\CXJ$, for almost all $\xW\in\CXW$''. In any case, if a property holds for all $\xW\in\CXW$, then it also holds for $P$-almost all $\xW\in\CXW$ for any probability measure $P$ on $\CXW$.}
+%  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big).$$
+  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big) \quad M\as$$
+%  \Joris{OR: if 
+%  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big) \quad P_M\as$$
+%  Note that the latter implies the former!}
+  We call $M$ \emph{solvable} if it has a solution function.
+\end{Def}
+Later on we will need a more refined notion of solvability, which essentially amounts to solving a \emph{subset} of the structural equations.
+\begin{Def}[Partial solution function]\label{def:scm_partial_solution_functions}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and a nonempty subset $L \ins V$, we call a function
+  $g^{[L]} : \CXJ \times \CX_{V\sm L} \times \CXW \to \CX_L$ a \emph{(partial) solution function of $M$ w.r.t.\ $L$} if it is measurable and
+  $$g^{[L]}(\xJ,x_{V\sm L},\xW) = f_L\big(\xJ, x_{V\sm L}, g^{[L]}(\xJ,x_{V\sm L},\xW), \xW\big) \quad M\as$$
+  We call $M$ \emph{solvable w.r.t.\ $L$} if it has a partial solution function w.r.t.\ $L$.
+\end{Def}
+Note that `$M$ is solvable w.r.t.\ $V$' means the same as `$M$ is solvable'.
+
+We can use solution functions of an iSCM to construct (potential) outcomes, solutions and Markov kernels of the iSCM.
+\begin{Prp}\label{prp:using_solution_functions}
+  If $g$ is a solution function for iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, then for any random variable $\XW : \C{U} \to \CXW$ with distribution $P$:
+  \begin{enumerate}
+    \item
+      $X_{V,W}^{\doit(\xJ)} := (g(\xJ, \XW),\XW)$ is a potential outcome for $M$ for input $\xJ\in\CXJ$;
+    \item
+      $X_{V,W} := (g(\XJ, \XW),\XW)$ is a solution of $M$
+      with underlying transition probability space $(\C{U} \times \CXJ, P(U))$;
+    \item its corresponding Markov kernel is the push-forward
+      $$(g,\id_{\CXW})_* (P \otimes \delta(X_J|X_J)).$$
+%      where 
+%      $$P(\XW \mid \doit(\XJ)) := P = \bigotimes_{w\in\Srnd} P(X_w) $$
+%      is the exogenous distribution of $M$ interpreted as constant Markov kernel.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+  \begin{enumerate}
+    \item 
+      %Obviously, $X_W^{\doit(x_J)} \sim P_M(X_W)$.
+      %We know that 
+      %  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big) \quad M\as$$
+      %For fixed $x_J \in \CX_J$, that implies that $(g(\xJ,\xW),\xW) \in S_{x_J}$ up to a $P(X_W)$-null set. % and hence, a $P(X_W^{\doit(x_J)})$-null set.
+      %This implies that
+      %  $$(g(\xJ,\XW),\XW) \in S_{x_J} \quad \text{a.s.}$$
+      %which is what needed to be shown.
+      This follows immediately with the help of Lemma~\ref{lem:M-as_to_rv-as}.
+    \item 
+      %To show: $X_{V,W,J} := (g(\XJ, \XW),\XW,\XJ)$ is a solution of $M$ with underlying transition probability space $(\C{U} \times \CXJ, P(X_W))$.
+      Note first that $g$ is measurable, and hence $X_{V,W} := (g(\XJ, \XW),\XW)$ defines a conditional random variable with underlying transition probability space $(\C{U} \times \CXJ, P(U))$.
+      The claim now follows immediately with the help of Lemma~\ref{lem:M-as_to_crv-as}.
+%      We know that 
+%        $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big) \ M\as.$$
+%      Hence, $(g(\xJ,\xW),\xW) \in S_{x_J}$ up to a $M$-null set, which can be chosen to be of the form $\tilde{N} \times \CX_V$ with $\tilde{N} \ins \CX_J \times \CX_W$ an $M$-null set.
+%      This $\tilde{N}$ is a $K(X_W|X_J)$-null set, and hence $N$ is a $K(X_V,X_W|X_J)$-null set.
+%      Therefore,
+%        $$(g(X_J,X_W),X_W) \in S_{X_J}\quad K(X_V,X_W|X_J)\as.$$
+%      This implies that
+%        $$ \XV = f(\XJ, \XV, \XW) \quad K(X_V,X_W|\XJ)\as.$$
+%      since $X_V := g(X_J,X_W)$, and hence
+%        $$ \XV = f(\XJ, \XV, \XW) \quad \text{a.s.}.$$
+    \item By definition.
+  \end{enumerate}
+\end{proof}
+Not all (potential) outcomes, solutions and Markov kernels of an iSCM can be obtained in this way. 
+For example, mixtures of solutions are also solutions, but not all mixtures can be obtained as the push-forward through a solution function.
+\begin{Eg}\label{eg:not_each_solution_from_push_forward}
+For an iSCM with endogenous real variables $X_1,X_2$ and structural equations 
+$$\begin{cases}
+  X_1 &= X_2,\\
+  X_2 &= X_1^3,
+\end{cases}$$
+any real-valued random variable $Y$ for which $P(Y \in \{-1,0,1\}) = 1$
+provides a solution $(X_1,X_2) := (Y,Y)$. This includes all mixtures over the three
+possible states $(-1,-1)$, $(0,0)$, $(1,1)$, which form a two-dimensional convex
+space. However, it has only three solution functions (mapping $\asterisk$ to
+either $(-1,-1)$, $(0,0)$ or $(1,1)$).
+Therefore, only three solutions can be constructed from a solution function as in Proposition~\ref{prp:using_solution_functions} (namely the extreme points of the convex space).
+\end{Eg}
+
+How can we check in practice whether a given iSCM is (partially) solvable?
+The following result provides a condition that is relatively easy to check in practice.
+It shows that if the structural equations have (almost everywhere) unique solutions, then the measurability of the solution function follows from that of the causal mechanisms.
+\begin{comment}
+\begin{Prp}\label{prp:scm_solvability_sufficient_conditions}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let 
+  $$U = \{x_{J \cup W} \in \CX_J \times \CX_W \mid \exists! x_V \in \CX_V : x_V = f(x_J,x_W,x_V)\}.$$
+  be the set of exogenous states for which there exists a unique solution of the structural equations.
+  %If there exists a measurable subset $D \ins U$ such that $D = \CX_J \times \CX_W$ up to an $M$-null set, then $M$ is solvable.
+  If $U = \CX_J \times \CX_W$ up to a \emph{measurable} $M$-null set then $M$ is solvable.
+%  \Joris{This becomes instead: if $U = \CX_J \times \CX_W$ up to a \emph{measurable} $P_M$-null set then $M$ is solvable.}
+\end{Prp}
+\begin{proof}
+  Assume that $D \ins U$ where $D^c$ is a measurable $M$-null set.
+  We have to show that there exists a measurable function $g : \CXJ \times \CXW \to \CXV$ that satisfies the structural equations:
+  $$g(\xJ,\xW) = f\big(\xJ, g(\xJ,\xW), \xW\big)\qquad M\as.$$
+  
+  We exploit that we are dealing with standard measurable spaces.
+  Define the function 
+  $$h : \CXJ \times \CXW \times \CXV \to \CXV \times \CXV : (\xJ,\xW,\xV) \mapsto (\xV, f(\xV,\xJ,\xW))$$
+  and the diagonal $\Delta = \{(\xV,\xV) : \xV \in \CXV\} \subseteq \CXV^2$. 
+  Since $h$ is measurable and $\Delta$ is a measurable set (because $\CXV$ is Hausdorff), $h^{-1}(\Delta)$ is a measurable set.
+  Hence, $h^{-1}(\Delta) \cap (D \times \CXV)$ is a measurable subset.
+  We now define $g_0$ as the function $D \mapsto \CXV$ such that $\mathrm{graph}(g_0) = h^{-1}(\Delta) \cap D \times \CXV$.
+  In other words, $g_0$ maps $(x_J,x_W) \in D$ to the unique element $x_V \in \CX_V$ such that $x_V = f(x_J,x_W,x_V)$.
+  By \cite[14.12]{Kec95}, because all spaces are (isomorphic to) Borel spaces, the fact that $\mathrm{graph}(g_0)$ is a measurable set implies that $g_0$ is a measurable function. 
+% perhaps Fremlin 418R
+  We can now extend $g_0$ to a measurable function $g: \CXJ \times \CXW \to \CXV$.
+  For example, by picking an arbitrary $x_V^0 \in \CX_V$ and defining:
+  $$g(x_J,x_W) = \begin{cases}
+    g_0(x_J,x_W) & (x_J,x_W) \in D \\
+    x_V^0 & (x_J,x_W) \in \CX_J \times \CX_W \sm D 
+  \end{cases}$$
+  It is clear that $g$ constructed in this way is a solution function. 
+%  Note that $g = g_0 \ M\as$.
+\end{proof}
+It turns out that we need a stronger statement.
+\end{comment}
+\begin{Prp}\label{prp:scm_partial_solvability}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $L \ins V$.  
+  Let 
+  $$U^{[L]} = \{x_{J \cup (V\sm L) \cup W} \in \CX_J \times \CX_{V\sm L} \times \CX_W \mid \exists! x_L \in \CX_L : x_L = f_L(x_J,x_{V\sm L},x_W,x_L)\}$$
+  be the set of extended exogenous states for which there exists a unique partial solution of the structural equations for $L$.
+%  If $U^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_W$ up to a \emph{measurable} $M$-null set then 
+%%  This follows because then $U^{[L]} = \CX_J \times \CX_{(V\sm L}) \times \CX_W$ up to a measurable $M^{[L]}$-null set, and then we can apply this Proposition to conclude the existence of a measurable partial solution function (???).
+%%  Hm, it may not follow since we need $g^{[L]}$ to satisfy a stronger property.
+%  there exists a measurable function $g^{[L]}: \CXJ \times \CX_{(V\sm L)} \times \CXW \to \CX_L$ such that
+%    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+%%  In particular, $M$ is then partially solvable w.r.t.\ $L$.
+  Then $U^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_W$ up to a measurable $M$-null set \TODOmas if and only if
+  there exists a measurable function $g^{[L]}: \CXJ \times \CX_{(V\sm L)} \times \CXW \to \CX_L$ such that
+    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+%  (if and only if $M$ is essentially uniquely solvable w.r.t.\ $L$, by definition).
+\end{Prp}
+\begin{proof}
+  Assume that $N = \tilde{N} \times \CX_L$ is a measurable $M$-null set with $\tilde N^c \ins U^{[L]}$.
+%  This means that for each $x_J$, $\pr_W(N_{x_J})$ is a $P_M$-null set.
+  We will show that there exists a measurable function $g^{[L]} : \CXJ \times \CX_{V\sm L} \times \CXW \to \CX_L$ s.t.\
+  $$g^{[L]}(\xJ,x_{V\sm L},\xW) = f_L\big(\xJ, x_{V\sm L}, x_W, g^{[L]}(\xJ,x_{V\sm L},\xW) \big) \quad M\as$$
+  
+  We exploit that we are dealing with standard measurable spaces.
+  Define the function 
+  $$h^{[L]} : \CX_{J \cup W \cup V} \to \CX_L \times \CX_L : x \mapsto (x_L, f_L(x))$$
+  and the diagonal $\Delta^{[L]} = \{(x_L,x_L) : x_L \in \CX_L\} \subseteq \CX_L^2$. 
+  Since $h^{[L]}$ is measurable and $\Delta^{[L]}$ is a Borel measurable set (because $\CX_L$ is Hausdorff), $(h^{[L]})^{-1}(\Delta^{[L]})$ is a measurable set.
+  Hence, $(h^{[L]})^{-1}(\Delta^{[L]}) \cap (\tilde N^c \times \CX_L)$ is a measurable subset.
+
+  We now define $g^{[L]}_0$ as the function $\tilde N^c \mapsto \CX_L$ such that $\mathrm{graph}(g^{[L]}_0) = (h^{[L]})^{-1}(\Delta^{[L]}) \cap \tilde N^c \times \CX_L$.
+  In other words, $g^{[L]}_0$ maps $(x_J,x_{(V\sm L)},x_W) \in \tilde{N}^c$ to the unique element $x_L \in \CX_L$ such that $x_L = f_L(x_J,x_{V\sm L},x_W,x_L)$.
+  By \cite[14.12]{Kec95}, because all spaces are (isomorphic to) Borel spaces, the fact that $\mathrm{graph}(g^{[L]}_0)$ is a measurable set implies that $g^{[L]}_0$ is a measurable function. 
+% perhaps Fremlin 418R
+  We can extend $g_0^{[L]}$ to a measurable function $g^{[L]}: \CXJ \times \CX_{(V\sm L)} \times \CXW \to \CX_L$,
+  for example, by picking an arbitrary $x_L^0 \in \CX_L$ and defining:
+  $$g^{[L]}(x_J,x_{(V \sm L)},x_W) = \begin{cases}
+    g^{[L]}_0(x_J,x_{(V \sm L)},x_W) & (x_J,x_{(V \sm L)},x_W) \in \tilde{N}^c \\
+    x_V^0 & (x_J,x_{(V \sm L)},x_W) \in \tilde{N}. 
+  \end{cases}$$
+	\Claude{Typo: $x_V^0$ should be $x_L^0$.}
+  It is clear that $g^{[L]}$ constructed in this way is a partial solution function of $M$ w.r.t.\ $L$.
+  This means:
+    $$x_L = f_L(x) \impliedby x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+  Conversely, since $x_{J \cup (V\sm L) \cup W} \in U^{[L]}\quad M\as$,
+%    $$x_L = f_L(x) \implies x_L = g^{[L]}_0(x_J,x_{(V\sm L)},x_W)\quad M\as$$
+%  and hence
+    $$x_L = f_L(x) \implies x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+
+  Now assume that $g^{[L]}: \CXJ \times \CX_{(V\sm L)} \times \CXW \to \CX_L$ is a measurable function such that
+    $$x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\quad M\as.$$
+  Let $A := \{x \in \CX : x_L = f_L(x)\}$.
+  Let $B := \{x \in \CX : x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\}$.
+  We have already seen that $A = (h^{[L]})^{-1}(\Delta^{[L]})$ is a measurable set.
+  Via similar reasoning (and the fact that $g^{[L]}$ is a measurable function) we can show that $B$ is a measurable set. 
+  Hence $C := \{x \in \CX : x_L = f_L(x) \iff x_L = g^{[L]}(x_J,x_{(V\sm L)},x_W)\} = (A \cap B) \cup (A^c \cap B^c)$ is a measurable set.
+  Its complement is an $M$-null set by assumption.
+  Since $C \ins U^{[L]}$, it follows that $U^{[L]} = \CX_J \times \CX_{(V\sm L)} \times \CX_W$ up to a measurable $M$-null set.
+  \Claude{Claims the complement of $U^{[L]}$ is contained in a ``measurable $M$-null set,'' but the definition of $M$-a.s.\ only guarantees an $M$-null set (not necessarily measurable).}
+\end{proof}
+\begin{Rem}
+  Under the weaker assumption that $(U^{[L]})^c$ is an $M$-null set (not necessarily measurable), it is an open question whether $M$ is partially solvable w.r.t.\ $L$.
+  From \cite[Thm 18.11]{Kec95}, we obtain that $U^{[L]}$ is a co-analytic subset of $\CX_J \times \CX_{(V\sm L)} \times \CX_W$---that is, $(U^{[L]})^c$ is analytic---but it is not clear whether that guarantees the existence of a measurable partial solution function.
+  \Claude{By Exercise~18.13 of Kechris, this complexity is tight: every $\boldsymbol{\Pi}^1_1$ set arises as the set of unicity of some Borel set. 
+  This feels like it could be a genuine research question rather than an exercise.}
+% perhaps Fremlin 418R
+  \Joris{
+    I continued my chat with Gemini from above:
+    \begin{quote}
+      Let $f : J \times V \times W \to V$ and define $U = \{ (j,w) \in J \times W | \exists! v \in V : v = f(j,v,w) \}$. Suppose that $U^c = J \times W \setminus U$ is an M-null set. Is $U^c$ contained in a measurable M-null set?
+    \end{quote}
+    The answer:
+    \begin{quote}
+Assuming you meant to ask if the "bad" set $U^c$ (which is M-null) can be wrapped in a measurable (Borel) M-null set, the answer is Not necessarily.
+This is a subtle result from Descriptive Set Theory involving Analytic sets.
+
+Step A: The Complexity of $U$ and $U^c$
+
+The set $U$ is defined by the unique existence of a fixed point:
+
+$$U = \{ (j,w) \in J \times W \mid \exists! v \in V : v = f(j,v,w) \}$$
+The set of points in a product space where a section of a Borel set (in this case, the graph of $f$) has cardinality exactly 1 is known to be a Co-Analytic set (denoted $\Pi^1_1$). It is not necessarily Borel.
+Consequently, its complement $U^c$ is an Analytic set (denoted $\Sigma^1_1$).
+
+Step B: Analytic Sets and Measurable Hulls
+
+Analytic sets are "universally measurable" (measurable with respect to the completion of any measure), but they are not necessarily "Borel measurable" (measurable with respect to the product $\sigma$-algebra).
+To wrap $U^c$ in a measurable M-null set, we would need to find a Borel set $B$ such that:
+$U^c \subseteq B$
+For every $j \in J$, $P(B_j) = 0$.
+
+Step C: The Failure of the Hull
+
+While it is true that for a single measure, every Analytic set is contained in a Borel set of the same measure, this does not hold uniformly for all sections simultaneously.
+There exist Analytic sets $A \subseteq J \times W$ such that:
+Every vertical section $A_j$ is a $P$-null set (so $A$ is M-null).
+However, any Borel set $B$ containing $A$ must have at least one section $B_j$ with positive measure (or even full measure).
+Because $U^c$ can be any arbitrary Analytic set (depending on the choice of $f$), we cannot guarantee that it is contained in a measurable M-null set.
+
+Summary
+
+Is $U^c$ contained in a measurable M-null set? No (it is an Analytic set, and Analytic M-null sets do not always admit Borel M-null hulls).
+    \end{quote}
+    I then asked:
+    \begin{quote}
+      Could you elaborate on your claim that analytic M-null sets do not always admit Borel M-null hulls? Can you prove this?
+    \end{quote}
+    The answer was:
+    \begin{quote}
+This is an excellent follow-up. You are correct to press for the "why"---the failure of the Borel hull property for Analytic sets is one of the most fascinating and subtle results in Descriptive Set Theory.
+The short answer is: No, you cannot prove this, because it is false. While every Analytic ($\mathbf{\Sigma}^1_1$) set is "universally measurable" (it can be assigned a measure), it interacts with the family of sections in a way that Borel sets do not.
+Here is the elaboration and the proof logic.
+
+1. Reframing the Problem
+
+Let $N = U^c$.
+Because $U$ is defined by a unique existence condition on a Borel $f$, $U$ is a Co-Analytic ($\mathbf{\Pi}^1_1$) set.
+Therefore, its complement $N$ is an Analytic ($\mathbf{\Sigma}^1_1$) set.
+You are given that $P(N_j) = 0$ for all $j$ (it is an M-null set).
+You ask: Is there a Borel set $B \supseteq N$ such that $P(B_j) = 0$ for all $j$?
+By taking complements, this is logically equivalent to the Borel Basis Problem:
+Does every Co-Analytic set $U$ with full-measure sections ($P(U_j)=1$) contain a Borel set $K \subseteq U$ with full-measure sections?
+The answer is No. There exist "large" Co-Analytic sets that do not contain any "large" Borel subsets.
+
+2. The Proof (via Reduction to Non-Separable Sets)
+
+We can prove this by contradiction. We will show that if the property you hope for were true, we could solve a problem known to be unsolvable: separating disjoint Analytic sets with a Borel set.
+
+The Setup
+
+In Descriptive Set Theory, it is a fundamental theorem (Lusin/Novikov) that there exist two disjoint Analytic sets, $A_0$ and $A_1$, in a standard Borel space $J$, which cannot be separated by a Borel set. (i.e., there is no Borel set $S$ such that $A_0 \subseteq S$ and $S \cap A_1 = \emptyset$).
+
+The Construction
+
+Let $W = [0, 1]$ with Lebesgue measure $P$.
+We construct a specific Co-Analytic set $U \subseteq J \times W$ based on the "bad" sets $A_0$ and $A_1$.
+Define $U$ as follows:
+
+
+$$U = \{ (j, w) \in J \times W \mid (j \in A_0 \implies w \in [0, 1/2]) \text{ AND } (j \in A_1 \implies w \in [1/2, 1]) \}$$
+Let's analyze the sections $U_j$:
+If $j \in A_0$: The condition implies $w$ must be in $[0, 1/2]$. However, the second condition ($j \in A_1$) is vacuously true because $A_0$ and $A_1$ are disjoint.
+$U_j = [0, 1/2]$. (Measure = 0.5)
+Wait, this doesn't fit the "full measure" requirement yet. Let's adjust.
+Corrected Construction:
+We need the sections to have Measure 1, but force a contradiction in structure.
+Let's use Dense Sets.
+Let $D_0$ be a "fat" Borel set in $[0,1]$ (e.g., a union of open intervals) such that $P(D_0) = 1 - \epsilon$.
+Actually, let's use the Failure of Uniformization.
+A more robust proof relies on the Yankov-von Neumann Uniformization Theorem, which holds for $\mathbf{\Sigma}^1_1$ but fails for $\mathbf{\Pi}^1_1$.
+Theorem: There exists a Co-Analytic set $U \subseteq J \times W$ such that $P(U_j) > 0$ for all $j$, but $U$ contains no Borel set $K$ with $P(K_j) > 0$ for all $j$.
+If we accept this theorem (standard in Kechris, Classical Descriptive Set Theory, Section 35), we can modify it for measure 1.
+Step-by-Step Logic:
+Assume the statement is true: "Every Analytic M-null set is contained in a Borel M-null set."
+Taking complements: "Every Co-Analytic set with measure 1 sections contains a Borel set with measure 1 sections."
+Let $U$ be a "bad" Co-Analytic set where every section has positive measure, but no Borel subset does. (Such sets exist).
+We can "boost" the measure from positive to 1 by taking products or unions, preserving the Borel-free nature.
+Therefore, we find a set $U$ where $P(U_j) = 1$, but any Borel $K \subseteq U$ must have $P(K_j) < 1$ for some $j$ (or else $U$ would contain a 'large' Borel set, which we defined it not to).
+
+3. Intuition: Why does this happen?
+
+It helps to visualize the hierarchy of sets.
+
+Borel Sets: Constructed "from below" using countable unions and intersections. They are rigid.
+Analytic Sets ($\mathbf{\Sigma}^1_1$): Projections of Borel sets. They are "smooth" and have the Regularity Property (can be approximated by Borel sets from within).
+Co-Analytic Sets ($\mathbf{\Pi}^1_1$): Complements of Analytic sets. These are the "troublemakers" in this context.
+The Asymmetry:
+Analytic Sets can be approximated from the inside by Compact sets (Regularity).
+Co-Analytic Sets ($U$) are formed by intersecting many conditions. A Co-Analytic set can be "large" (measure 1) in every vertical slice without containing a "simple" (Borel) structure that is large. It is "diffuse" in a way that Borel sets cannot replicate.
+Because your set $N = U^c$ is Analytic, it behaves well individually (measurable), but its "nullness" is fragile. To wrap it in a Borel null set, you need a uniform bound. The "spikes" of the set $N$ can move around in $W$ as $j$ varies in such a complex way that any Borel set trying to cover $N$ is forced to cover "too much" of $W$, eventually acquiring positive measure.
+
+4. Summary Answer
+
+Claim: Analytic M-null sets do not always admit Borel M-null hulls.
+Reason: This is equivalent to the failure of "Borel uniformization" or "Borel basis" for Co-Analytic sets.
+Result: Your set $U^c$ is an M-null set, but there is no guarantee (and in worst-case scenarios, it is impossible) that it is contained in a measurable M-null set.
+Would you like me to detail the specific condition (like Large Cardinals or Projective Determinacy) that would force this property to be true for higher complexity classes?
+    \end{quote}
+    I then asked:
+    \begin{quote}
+      Can you provide a reference to a book or paper that discusses the Borel basis problem?
+    \end{quote}
+    with answer:
+    \begin{quote}
+      The definitive reference for this problem is:
+Alexander S. Kechris, Classical Descriptive Set Theory (Graduate Texts in Mathematics, Vol. 156, Springer, 1995).
+Specifically, you should look at Chapter VI (Coanalytic Sets), and most importantly Section 35: The Measure and Category of Sections.
+Here is why this is the exact reference you need:
+The Problem Formulation: In this section, Kechris discusses the "Basis Problem" for sections of large measure. He explicitly addresses whether a "large" (e.g., non-null or full measure) section of a Co-Analytic ($\mathbf{\Pi}^1_1$) set necessarily contains a "large" Borel subset.
+The Negative Result: The text provides the counter-examples showing that the "Borel Basis" property fails for $\mathbf{\Pi}^1_1$ sets. It proves that there exist co-analytic sets in the plane $J \times W$ which have full measure in every vertical section, yet contain no Borel subset with full measure sections.
+The Theoretical Context: It contrasts this with the Yankov-von Neumann Uniformization Theorem (discussed in Section 18), which guarantees that for Analytic ($\mathbf{\Sigma}^1_1$) sets, you can find well-behaved (measurable) sections. The failure of this property for $\mathbf{\Pi}^1_1$ is a central distinguishing feature between the two classes.
+
+Other Useful References
+
+If you want a slightly different perspective (often focusing more on the "effective" or logical side which explains why the Borel sets are missing), you can consult:
+Yiannis N. Moschovakis, Descriptive Set Theory (Mathematical Surveys and Monographs, AMS).
+Look for the sections on Uniformization and The Basis Theorems. Moschovakis often frames these problems in terms of "effectively Borel" (hyperarithmetic) sets, which provides the constructive counter-example logic.
+
+Summary of what to look for
+
+In Kechris's book, the specific logic follows this chain:
+Theorem 18.1 (Yankov-von Neumann): Every $\mathbf{\Sigma}^1_1$ set $A$ can be "uniformized" by a set that is measurable w.r.t the $\sigma$-algebra generated by $\mathbf{\Sigma}^1_1$.
+Section 35: This theorem cannot be improved to give a Borel uniformizing set for $\mathbf{\Pi}^1_1$ sets. There exists a $\mathbf{\Pi}^1_1$ set $U$ where every section $U_j$ is "large" (measure 1), but any Borel set $B \subseteq U$ must have "small" (measure 0) sections for significant parts of the space.
+    \end{quote}
+    Since it was getting confused along the way, I tried with a more concise prompt. I started a new conversation, asking:
+    \begin{quote}
+Assume that $J,V,W$ are standard Borel spaces and that $P$ is a probability measure on $W$. Call a subset $A \subseteq J \times W$ an M-null set if each section $A_j = \{ w \in W | (j,w) \in A\}$ is a $P$-null set, that is, if $P(A_j) = 0$ for all $j \in J$. Assume that $f : J \times V \times W \to V$ is a Borel measurable function. Consider the set $U := \{(j,w) \in J \times W | \exists ! v \in V : v = f(j,v,w) \}$. Is the following claim true: if the complement $U^c$ is an M-null set, then it is contained in a Borel-measurable M-null set, that is, there exists $N \subseteq J \times W$ with $U^c \subseteq N$ and $P(N_j)=0$ for each $j \in J$? If yes, please prove it, if no, please construct a counterexample.
+    \end{quote}
+    and now it made a similar claim but filled in many more details:
+    \begin{quote}
+      The claim is False.
+
+Summary of the Argument
+
+The set $U^c$ (the complement of the set of unique fixed points) is an Analytic set ($\mathbf{\Sigma}^1_1$) in the product space $J \times W$. While every analytic set is "universally measurable" (meaning it can be approximated by Borel sets almost everywhere with respect to any fixed probability measure), it generally does not admit a Borel envelope that approximates it everywhere (pointwise for all $j \in J$).
+Specifically, it is possible to construct an analytic set $A \subseteq J \times W$ such that every section $A_j$ has measure zero ($P(A_j) = 0$), but any Borel set $N$ containing $A$ has at least one section $N_j$ with positive measure ($P(N_j) > 0$).
+
+1. Logical Derivation
+
+Step 1: Characterizing the set $U$ and $U^c$
+Let the graph of the fixed points be $\Gamma = \{ (j, v, w) \in J \times V \times W \mid v = f(j, v, w) \}$. Since $f$ is Borel measurable and $V$ is standard Borel (assumed Hausdorff), $\Gamma$ is a Borel subset of $J \times V \times W$.
+The set $U$ is the projection of the "uniqueness" component of $\Gamma$. The complement $U^c$ consists of points $(j, w)$ where there are either zero fixed points or multiple fixed points.
+
+
+$$U^c = \{ (j, w) \mid \Gamma_{(j,w)} = \emptyset \} \cup \{ (j, w) \mid |\Gamma_{(j,w)}| \ge 2 \}$$
+
+Using the projection theorems of descriptive set theory:
+The set of "no solution" is the complement of an analytic set (Co-Analytic).
+The set of "multiple solutions" is the projection of a Borel set (Analytic).
+However, we can construct $f$ such that $U^c$ is exactly a specific Analytic set ($\mathbf{\Sigma}^1_1$). (For instance, by ensuring existence always holds, and non-uniqueness encodes the analytic structure).
+Step 2: The Properties of Analytic Sets
+A fundamental result in descriptive set theory states that while every analytic set $A$ is measurable with respect to the completion of any Borel measure, it is not necessarily Borel.
+We are looking for a Borel set $N \supseteq U^c$ such that $P(N_j) = 0$ for all $j \in J$.
+This requires a uniform Borel approximation. If such a Borel set $N$ existed for every M-null analytic set, it would imply a regularity property that analytic sets do not possess.
+
+2. Counterexample Construction
+
+We will construct a counterexample where $U^c$ is an analytic set with $P$-null sections that cannot be covered by a Borel set with $P$-null sections.
+Setup:
+Let $J = [0,1]$ and $W = [0,1]$.
+Let $V = \mathbb{R}$.
+Let $P$ be the Lebesgue measure on $W$.
+The Set $A$ ($U^c$):
+There exists an analytic set $A \subseteq J \times W$ such that:
+For every $j \in J$, the section $A_j = \{ w \in W \mid (j, w) \in A \}$ is a set of Lebesgue measure zero (e.g., a specific Cantor set).
+$A$ is not contained in any Borel set $B \subseteq J \times W$ satisfying $P(B_j) = 0$ for all $j \in J$.
+Note on Existence: Such sets can be derived from "Universal Analytic Sets." If every analytic set with null sections were contained in a Borel set with null sections, it would contradict known separability theorems (specifically, the failure of the First Separation Theorem to apply to the family of measures $\{\delta_j \times P\}_{j \in J}$ uniformly). Roughly speaking, the "badness" (non-Borel nature) of $A$ can be distributed across the fibers $j$ such that any Borel cover $N$ must essentially "fill up" at least one fiber to cover $A$, giving $P(N_j) > 0$.
+Defining the Function $f$:
+Since $A$ is analytic, it is the projection of a Borel set $B \subseteq J \times W \times V$.
+
+
+$$A = \{ (j, w) \mid \exists v \in V, (j, w, v) \in B \}$$
+
+We define $f: J \times V \times W \to V$ to manipulate the fixed points based on $B$:
+If $(j, w, v) \in B$, we set $f(j, v, w) = v$ (making $v$ a fixed point).
+If $(j, w) \notin \text{proj}_{J \times W}(B)$ (i.e., $(j, w) \notin A$), we set $f(j, v, w) = 0$ for all $v$.
+To ensure $U^c = A$, we need to refine this slightly so that points in $A$ have multiple fixed points (or none) and points outside $A$ have unique fixed points.
+For $(j, w) \notin A$: Set $f(j, v, w) \equiv 0$. The unique fixed point is $v=0$.
+For $(j, w) \in A$: Since $A$ is the projection of $B$, there exists at least one $v$ such that $(j, w, v) \in B$. We define $f$ such that for these $(j, w)$, there are multiple fixed points (e.g., $v=0$ and $v=1$). This can be done using a measurable selection or by simply setting $f(j,v,w) = v$ for all $v \in [0,1]$ whenever $(j,w) \in A$.
+Result:
+$U = A^c$ (Unique fixed point $0$).
+$U^c = A$ (Multiple fixed points).
+$U^c$ is M-null (by construction of $A$, $P(A_j)=0$ for all $j$).
+However, by the property of $A$, there is no Borel set $N$ such that $U^c \subseteq N$ and $P(N_j) = 0$ for all $j$.
+
+Conclusion
+
+No, the claim is not true. While $U^c$ is universally measurable (and thus contained in a Borel null set for any single product measure $\mu \times P$), it is not necessarily contained in a Borel set that is null section-wise everywhere.
+Next Step:
+Would you like me to explain how this result changes if we assume $f$ is continuous rather than just Borel measurable, or if we relax the condition to "almost all $j$"?
+    \end{quote}
+    I then became curious and asked:
+    \begin{quote}
+       Yes, what if we know that $f$ is continuous?
+    \end{quote}
+    I got a (somewhat surprising to me) answer:
+    \begin{quote}
+The claim remains False.
+Even if $f$ is continuous, the set $U^c$ (where uniqueness fails) is generally an Analytic set, not a Borel set. The logic from the previous answer holds because the operation of "projecting" the fixed points from $J \times W \times V$ down to $J \times W$ preserves the analytic structure, which is complex enough to evade Borel envelopes.
+
+1. The Intuition
+
+If $f$ is continuous, the graph of fixed points:
+
+
+$$\Gamma = \{ (j, v, w) \mid f(j, v, w) = v \}$$
+
+is a Closed Set in the product space $J \times V \times W$ (assuming compatible Polish topologies).
+However, we are interested in the set $U^c \subseteq J \times W$. This set is essentially the projection of $\Gamma$ onto the first two coordinates. A fundamental result in descriptive set theory is that the projection of a Closed set is Analytic ($\mathbf{\Sigma}^1_1$), but not necessarily Borel.
+Therefore, we can construct a continuous function whose "non-uniqueness set" $U^c$ is exactly the "bad" analytic set $A$ discussed in the previous answer.
+
+2. Construction of the Counterexample
+
+We assume $J, W$ are Polish spaces (e.g., $[0,1]$) and $V = \mathbb{R}$. We use the same "bad" analytic set $A$ from the previous proof: $A \subseteq J \times W$ is an M-null set that is not contained in any Borel M-null set.
+Step 1: Represent $A$ as a projection.
+Since $A$ is analytic, there exists a closed set $K \subseteq J \times W \times [1, 2]$ such that:
+
+
+$$A = \{ (j, w) \mid \exists v \in [1, 2] \text{ s.t. } (j, w, v) \in K \}$$
+
+(Note: We restrict $v$ to $[1,2]$ to keep it away from $0$.)
+Step 2: Define the Fixed Point Set $\Gamma$.
+We want to force the function to have a "trivial" unique solution everywhere, and "extra" solutions exactly when $(j, w) \in A$.
+Let the set of desired fixed points be:
+
+
+$$\Gamma = K \cup \left( J \times W \times \{0\} \right)$$
+
+This set is the union of two closed sets, so $\Gamma$ is Closed.
+Step 3: Define the Continuous Function $f$.
+Since $\Gamma$ is a closed subset of a metric space, we can define $f$ using the distance function $d(\cdot, \Gamma)$. Let:
+
+
+$$f(j, v, w) = v - d\big((j, v, w), \Gamma\big)$$
+If $(j, v, w) \in \Gamma$, then $d(\dots) = 0$, so $f(j, v, w) = v$ (Fixed point).
+If $(j, v, w) \notin \Gamma$, then $d(\dots) > 0$, so $f(j, v, w) \neq v$ (Not a fixed point).
+Step 4: Analyze the Uniqueness Set $U$.
+For any $(j, w) \in J \times W$, look at the cross-section of fixed points $\Gamma_{(j,w)}$:
+Case 1: $(j, w) \notin A$.
+Since $A$ is the projection of $K$, the section $K_{(j,w)}$ is empty. The only point in $\Gamma$ above $(j, w)$ is $v=0$.
+$\implies$ Unique fixed point. $(j, w) \in U$.
+Case 2: $(j, w) \in A$.
+Since $(j, w) \in A$, there exists some $v^* \in [1, 2]$ such that $(j, w, v^*) \in K$.
+Thus, both $0$ and $v^*$ are in $\Gamma_{(j,w)}$.
+$\implies$ Multiple fixed points. $(j, w) \in U^c$.
+Conclusion:
+$U^c = A$.
+Since $A$ was chosen to be an M-null set not contained in any Borel M-null set, the counterexample holds.
+
+3. When would the claim be True?
+
+The claim fails because the space $V$ (e.g., $\mathbb{R}$) allows the projection of a closed set to be non-Borel. The claim would become True if we impose compactness on $V$.
+Theorem: If $V$ is a Compact metric space and $f$ is continuous, then $U^c$ is a Borel set (specifically, a Closed set).
+Reasoning: The projection of a Closed set along a Compact fiber is Closed (and thus Borel). If $U^c$ is Borel, it acts as its own Borel cover ($N=U^c$), satisfying the condition immediately.
+Would you like me to prove the case where $V$ is compact, or explore what happens if $f$ is merely "continuous in $v$ but measurable in $j,w$"?
+    \end{quote}
+    \begin{quote}
+      What if $f$ is only Borel measurable (no continuity assumed), and $V$ is compact?
+    \end{quote}
+    \begin{quote}
+The claim remains False.
+Even if $V$ is a compact space (like $[0,1]$ or the Cantor set), the lack of continuity in $f$ means the set of fixed points is merely Borel, not necessarily closed. Consequently, the set $U^c$ (where unique fixed points fail) is an Analytic set that is generally not Borel.
+Compactness of $V$ only "improves" the projection of Closed sets (turning them into Closed sets). It does not improve the projection of Borel sets (which remain Analytic).
+
+1. Counterexample Construction
+
+We can construct a counterexample by engineering the function $f$ so that its "non-uniqueness" set is exactly a "bad" analytic set that cannot be covered by a Borel set of the required type.
+The "Bad" Analytic Set ($A$):
+There exists an analytic set $A \subseteq J \times W$ such that:
+For every $j \in J$, the section $A_j$ has measure zero ($P(A_j) = 0$).
+$A$ is not contained in any Borel set $N \subseteq J \times W$ with $P(N_j) = 0$ for all $j$.
+(Such sets exist in descriptive set theory; they are "thin" in every fiber but "complex" enough globally to evade Borel covering.)
+The Construction:
+Let $J = W = V = [0,1]$.
+Lift $A$ to higher dimensions: Since $A$ is analytic, it is the projection of a Borel set $B \subseteq J \times W \times V$. We can ensure (by shifting if necessary) that $0 \notin \text{proj}_V(B)$.
+Define the Fixed Point Set ($\Gamma$): We want the fixed points to be:
+The point $0$ everywhere (ensuring a solution always exists).
+Points in $B$ (creating "multiple solutions" exactly when $(j,w) \in A$).
+
+$$\Gamma = B \cup \left( J \times W \times \{0\} \right)$$
+
+Since $B$ is Borel, $\Gamma$ is a Borel subset of $J \times V \times W$.
+Define the Function $f$:
+We need a Borel measurable function $f: J \times V \times W \to V$ such that $f(j,v,w) = v$ if and only if $(j,v,w) \in \Gamma$.
+On $\Gamma$: Set $f(j,v,w) = v$.
+Outside $\Gamma$: We need to map $(j,v,w)$ to something other than $v$. Since $V = [0,1]$, we can define a Borel shift, for example:
+
+$$f(j,v,w) = \begin{cases} v & \text{if } (j,v,w) \in \Gamma \\ 1 & \text{if } (j,v,w) \notin \Gamma \text{ and } v < 1 \\ 0 & \text{if } (j,v,w) \notin \Gamma \text{ and } v = 1 \end{cases}$$
+
+This function is Borel measurable and its fixed point set is exactly $\Gamma$.
+The Result:
+For any $(j,w)$:
+If $(j,w) \notin A$: The section $\Gamma_{(j,w)}$ contains only $\{0\}$. (Unique solution).
+If $(j,w) \in A$: The section $\Gamma_{(j,w)}$ contains $\{0\}$ and at least one point from $B$. (Multiple solutions).
+Therefore, $U^c = A$.
+$A$ is an M-null set, but by definition, it is not contained in any Borel M-null set.
+
+2. Why Compactness Didn't Help
+
+The compactness of $V$ guarantees that the projection of a Closed set is Closed (and thus Borel). This is why the claim is true when $f$ is continuous (which makes $\Gamma$ closed).
+However, when $f$ is only Borel, $\Gamma$ is only a Borel set. The projection of a Borel set along a compact fiber is still just an Analytic set (Suslin set), which is not necessarily Borel.1
+
+Comparison Table
+
+\begin{tabular}{llll}
+Property of $f$ & Property of $V$ & Nature of $U^c$ & Is the Claim True? \\
+\hline
+Continuous & Compact & Closed (Borel) & Yes (Trivial, $N=U^c$) \\
+Continuous & Non-Compact & Analytic & No \\
+Borel & Compact & Analytic & No (Counterexample above) \\
+Borel & Non-Compact & Analytic & No \\
+\end{tabular}
+
+Next Step
+
+Would you like to explore the specific condition on the measure $P$ (e.g., if $P$ were a Dirac mass) that would make this claim true, or are you interested in the case where $f$ is a Carathéodory function (continuous in $v$, measurable in $j,w$)?
+
+    \end{quote}
+    \begin{quote}
+yes, what if $f$ is a Caratheodory function?
+    \end{quote}
+    \begin{quote}
+The answer depends entirely on the topology of the space $V$.
+If $V$ is a Locally Compact Polish space (e.g., $\mathbb{R}^n$, $[0,1]$, or a discrete set), the claim is True.
+If $V$ is not Locally Compact (e.g., an infinite-dimensional Hilbert space), the claim is False.
+Here is the detailed breakdown.
+
+Case 1: $V$ is Locally Compact (e.g., $\mathbb{R}^n$)
+
+The claim is True.
+When $f$ is a Carathéodory function (measurable in $j,w$ and continuous in $v$), the set $U^c$ becomes a Borel set. Since $U^c$ is Borel and is an M-null set (by assumption), we can simply choose $N = U^c$. This $N$ is Borel, covers $U^c$, and has null sections everywhere.
+The Proof:
+The Fixed Point Set is Borel:
+Define $\Gamma = \{ (j, v, w) \in J \times V \times W \mid f(j, v, w) = v \}$.
+Since $f$ is a Carathéodory function, it is jointly measurable. Thus, $\Gamma$ is a Borel set in the product space.
+The Sections are Closed:
+Because $f$ is continuous in $v$, for any fixed $(j, w)$, the section $\Gamma_{(j,w)}$ is a closed subset of $V$.
+The Sections are $\sigma$-compact:
+In a locally compact Polish space (like $\mathbb{R}^n$), every closed set is $\sigma$-compact (a countable union of compact sets). Therefore, every section $\Gamma_{(j,w)}$ is $\sigma$-compact.
+Applying the Arsenin-Kunugui Theorem:
+A fundamental result in descriptive set theory (specifically relating to Borel sets with $\sigma$-compact sections) states that if a Borel set $B \subseteq X \times Y$ has $\sigma$-compact sections, then:
+The projection $\text{proj}_X(B)$ is Borel.
+The set of indices where the section is not unique (cardinality $\ge 2$) is Borel.
+Therefore, $U^c$ (the set where fixed points either don't exist or are not unique) is a Borel set. Since it is Borel, it serves as its own Borel envelope ($N=U^c$), satisfying the claim.
+Case 2: $V$ is Not Locally Compact (e.g., Infinite-Dimensional Banach Space)
+
+The claim is False.
+In infinite-dimensional spaces, closed sets are not necessarily $\sigma$-compact. The theorem used above fails. It is possible to construct a Carathéodory function whose fixed points project to a non-Borel Analytic set.
+The Counterexample:
+Let $V$ be an infinite-dimensional separable Hilbert space (which is Polish but not locally compact).
+Select a "Bad" Analytic Set: Let $A \subseteq J \times W$ be an M-null analytic set that is not contained in any M-null Borel set (as established in previous answers).
+Represent $A$ via a Closed Set:
+Because $A$ is analytic and $V$ is infinite-dimensional (containing a copy of the Baire space), there exists a Closed set $C \subseteq J \times W \times V$ such that $A$ is the projection of $C$.
+Construct $f$:
+We define $f: J \times V \times W \to V$ such that the fixed point set $\Gamma$ is exactly $C$ (plus potentially a trivial solution to ensure existence, if desired).
+Since $C$ is a closed set, the function $v \mapsto \text{dist}(v, C_{(j,w)})$ is continuous. We can define a Carathéodory function $f$ using this distance such that $f(j,v,w)=v \iff (j,w,v) \in C$.
+Result:
+The set of non-unique solutions $U^c$ corresponds to the projection of $C$, which is $A$.
+Since $A$ is analytic but not Borel, and not contained in any Borel M-null set, the claim fails.
+
+Summary Table
+
+      \begin{tabular}{lllll}
+      Property of $f$ & Topology of $V$ & Nature of Sections of $\Gamma$ & Nature of $U^c$ & Claim Status \\
+        Carath\'eodory & Locally Compact ($\mathbb{R}^n, [0,1]$) & Closed $\implies$ $\sigma$-Compact & Borel & TRUE \\
+        Carath\'eodory & Not Locally Compact (Hilbert space) & Closed $\not\implies$ $\sigma$-Compact & Analytic & FALSE
+      \end{tabular}
+
+Next Step
+
+If your application involves finite-dimensional vector spaces (like economic models or control theory in $\mathbb{R}^n$), you can rely on the claim being True. Would you like the reference to the specific theorem (Arsenin-Kunugui) that guarantees the Borel measurability in the locally compact case?
+    \end{quote}
+    \begin{quote}
+      Yes, that would be helpful.
+    \end{quote}
+    \begin{quote}
+The Arsenin-Kunugui Theorem
+
+The specific result that guarantees the claim is True when $V$ is locally compact is the Arsenin-Kunugui Theorem (also frequently associated with the Lusin-Novikov family of Uniformization Theorems).
+Here is the formal breakdown of why this theorem applies to your problem.
+
+1. The Setup
+
+We have the set of fixed points (the graph) defined as:
+
+
+$$\Gamma = \{ (j, v, w) \in J \times V \times W \mid f(j, v, w) = v \}$$
+Since $f$ is a Carathéodory function (measurable in $(j,w)$ and continuous in $v$):
+$\Gamma$ is a Borel Set: The function $F(j,v,w) = d(f(j,v,w), v)$ is jointly measurable. $\Gamma$ is the inverse image of $\{0\}$, making it Borel in the product space.
+Sections are Closed: For any fixed $(j, w)$, the map $v \mapsto f(j, v, w)$ is continuous. The set of fixed points $\{ v \mid f(j,v,w)=v \}$ is the inverse image of a closed set, so it is Closed in $V$.
+
+2. The Critical Condition: Local Compactness
+
+This is where the topology of $V$ decides the outcome.
+Definition: A Polish space $V$ is locally compact if every point has a compact neighborhood (e.g., $\mathbb{R}^n$, discrete sets, or compact spaces).
+Implication: In a locally compact Polish space, every Closed set is $\sigma$-compact (i.e., it can be written as a countable union of compact sets).
+Thus, if $V$ is locally compact, every section $\Gamma_{(j,w)}$ is a $\sigma$-compact set.
+
+3. The Theorem Application
+
+Theorem (Arsenin-Kunugui)
+Let $X$ and $Y$ be standard Borel spaces. Let $B \subseteq X \times Y$ be a Borel set such that for every $x \in X$, the section $B_x = \{ y \in Y \mid (x, y) \in B \}$ is $\sigma$-compact.
+Then:
+The projection $\text{proj}_X(B)$ is a Borel set.
+The set of points where the section is not unique (e.g., $|B_x| \ge 2$) is a Borel set.
+Applying to your problem:
+Let $X = J \times W$ and $Y = V$.
+Let $B = \Gamma$.
+Since $V$ is locally compact, the closed sections $\Gamma_{(j,w)}$ are $\sigma$-compact.
+Therefore, the set $U^c$ (which consists of points where the section is empty or contains $\ge 2$ points) is a Borel set.
+
+4. Conclusion
+
+Since $U^c$ is a Borel set, and your hypothesis states that $U^c$ is an M-null set:
+
+
+$$\text{We can simply take } N = U^c$$
+
+Since $N$ is Borel and $P(N_j) = 0$ for all $j$ (by definition of M-null), the claim is True.
+
+Reference
+
+The standard reference for this material is:
+"Classical Descriptive Set Theory" by Alexander S. Kechris (Springer GTM 156)
+Relevant sections to look up:
+Theorem 18.18: A Borel set with $\sigma$-compact sections has a Borel projection.
+Theorem 35.46 (Arsenin-Kunugui): Provides stronger results regarding the Borel nature of sections and uniformization for sets with $\sigma$-compact sections.
+Section 28: Discusses Carathéodory functions and their graph properties.
+
+Next Step
+
+Would you like me to verify if this logic holds if $f$ depends on the history of the process (e.g., in a dynamic programming or stochastic control context where $f$ involves a transition kernel)?
+    \end{quote}
+  }
+\end{Rem}
+
+As a more extensive example, we now formalize the chocolate-Nobel prize example discussed in Section~\ref{sec:chocolote-Nobel-prize} as different iSCMs according to some of the causal hypotheses.
+\begin{Eg}\label{ex:scms_formal}
+  For a given country, consider two real-valued variables: annual chocolate consumption in kilograms per capita ($C$), and the number of Nobel prize winners per year per capita ($N$).
+  We can consider the following linear iSCM families $M^{\theta} = \lt \Sin, \Send, \Srnd, \CX, P^\theta, f^\theta \rt$. 
+  \begin{enumerate}
+    \item $N$ causes $C$: (`Nobel prizes are celebrated with massive chocolate feasts')\\
+      $\Sin = \{N\}$, $\Send = \{C\}$, $\Srnd = \emptyset$, $\theta = (\alpha,\beta) \in \CX_{\Theta} := \RN^2$, 
+      $\C{X}_N = \RN$, $\C{X}_C = \RN$, $f^{\alpha,\beta} : (x_N,x_C) \mapsto \alpha + \beta x_N$.
+      It has structural equations
+      $$X_C^{\doit(x_N)} = \alpha + \beta x_N.$$
+      For a given parameter $\theta$, the iSCM $M^{\theta}$ has 
+      a unique solution function, $g^{\alpha,\beta} : x_N \mapsto \alpha + \beta x_N$, and
+      unique potential outcomes of the form $X_C^{\doit(x_N)} = \alpha + \beta x_N$.
+    \item $C$ causes $N$: (`chocolate contains brain enhancing chemicals')\\
+      $\Sin = \{C\}$, $\Send = \{N\}$, $\Srnd = \emptyset$, $\theta = (\gamma,\delta) \in \CX_\Theta := \RN^2$, 
+      $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\gamma,\delta} : (x_C,x_N) \mapsto \gamma + \delta x_C$.
+      It has structural equations
+      $$X_N^{\doit(x_C)} = \gamma + \delta x_C.$$
+      For a given parameter $\theta$, the iSCM $M^{\theta}$ has 
+      a unique solution function, $g^{\gamma,\delta} : x_C \mapsto \gamma + \delta x_C$, and
+      unique potential outcomes of the form $X_N^{\doit(x_C)} = \gamma + \delta x_C$.
+    \item $W$ causes $C$ and $N$, version 1: (`inhabitants of wealthy countries eat more chocolate and conduct more scientific research')\\
+      $\Sin = \{W\}$, $\Send = \{C,N\}$, $\Srnd = \emptyset$, $\theta = (\alpha,\beta,\gamma,\delta) \in \CX_\Theta := \RN^4$, 
+      $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\theta} : (x_W,x_C,x_N) \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$.
+      It has structural equations
+      \begin{align*}
+        X_C^{\doit(x_W)} & = \alpha + \beta x_W, \\
+        X_N^{\doit(x_W)} & = \gamma + \delta x_W.
+      \end{align*}
+      For a given parameter $\theta$, the iSCM $M^{\theta}$ has 
+      unique solution function $g^\theta : x_W \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$
+      and it has unique potential outcomes of the form $X_{C,N}^{\doit(x_W)} = (\alpha + \beta x_W, \gamma + \delta x_W)$.
+    \item $W$ causes $C$ and $N$, version 2: (`similar to version 1, but now the probability distribution of wealth is modeled'):\\
+      $\Sin = \emptyset$, $\Send = \{C,N\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \CX_\Theta := \RN^4 \times [0,\infty)$, 
+      $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $f^{\theta} : (x_C,x_N,x_W) \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$, $P^{\theta} = \C{N}(0,\sigma^2)$.
+      It has structural  equations
+      \begin{align*}
+        X_C & = \alpha + \beta X_W, \\
+        X_N & = \gamma + \delta X_W.
+      \end{align*}
+      For a given parameter $\theta$, the iSCM $M^{\theta}$ has solution function $g^\theta : x_W \mapsto (\alpha + \beta x_W, \gamma + \delta x_W) \in \C{X}_C \times \C{X}_N$ and
+      it has outcomes of the form $X_{C,N} = (\alpha + \beta X_W, \gamma + \delta X_W)$ for some random variable $X_W \sim \C{N}(0,\sigma^2)$.
+      It has many solution functions; for example, also $g^\theta + \tilde{g} \I_N$ for some $P(X_W)$-nullset $N$ and arbitrary measurable function $\tilde{g} : \CX_W \to \RN^2$ is a solution function.
+  \end{enumerate}
+\end{Eg}
+
+\subsubsection{Sampling from an iSCM}\label{sec:scm_sampling}
+
+One can use the solution function to sample from the corresponding Markov kernel of an iSCM. 
+\begin{Rem}\label{rem:sampling_from_scm}
+  Given a solution function $g : \CXJ \times \CXW \to \CXV$ of an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$,
+  we can sample from its corresponding Markov kernel in the following way:
+\begin{algorithmic}[1]
+  \For{$i=1,\dots,n$}
+    \Input $x_J^{(i)}$
+    \ForEach{$w \in W$}
+      \Sample $X_w^{(i)} \sim P(X_w)$
+    \EndFor
+    \ForEach{$v \in V$}
+      \Sample $X_v^{(i)} \leftarrow g(x_J^{(i)},x_W^{(i)})$
+    \EndFor
+    \Output $(x_J^{(i)},X_W^{(i)},X_V^{(i)})$
+  \EndFor
+\end{algorithmic}
+\end{Rem}
+We can think of this as a model of the data-generating process that yields a sequence of samples
+$$\lt x_J^{(1)},X_W^{(1)},X_V^{(1)} \rt, \lt x_J^{(2)},X_W^{(2)},X_V^{(2)} \rt, \dots, \lt x_J^{(n)},X_W^{(n)},X_V^{(n)}\rt.$$
+While the $X_W^{(i)}$ are independent, we are not assuming anything about how the values $x_J^{(i)}$ are determined.
+More precisely, the above sampling process will lead to the following distribution for the exogenous random variables, given a certain input sequence $x_J^{(1)},\dots,x_J^{(n)}$:
+$$(X_W^{(1)},\dots,X_W^{(n)}) \mid x_J^{(1)}, \dots, x_J^{(n)} \sim P(X_W^{(1)}) \otimes \dots \otimes P(X_W^{(n)}).$$
+In words: the $X_W^{(n)}$ are independent and identically distributed according to $P$, given the entire sequence $x_J^{(1)},\dots,x_J^{(n)}$.
+Jointly, the data-generating process leads to the following distribution:
+$$(X_{V\cup W}^{(1)},\dots,X_{V\cup W}^{(n)}) \mid x_J^{(1)}, \dots, x_J^{(n)} \sim K(X_{V\cup W}^{(1)} \given x_J^{(1)}) \otimes \dots \otimes K(X_{V\cup W}^{(n)} \given x_J^{(n)}),$$
+with $K(X_{V\cup W} \given X_J)$ the Markov kernel obtained from the push-forward
+$$(g,\id_{\CXW})_* (P \otimes \delta(X_J|X_J)).$$
+Marginally on the endogenous variables, the above data-generating process will lead to the following distribution of the observed data, given a certain input sequence:
+$$(X_V^{(1)},\dots,X_V^{(n)}) \mid x_J^{(1)}, \dots, x_J^{(n)} \sim K(X_V^{(1)} \given x_J^{(1)}) \otimes \dots \otimes K(X_V^{(n)} \given x_J^{(n)}),$$
+with $K(X_V \given X_J)$ the Markov kernel obtained from the push-forward
+$$g_* (P \otimes \delta(X_J|X_J)).$$
+
+The ordering of the operations (input, sample, calculate, output) in this sampler matters.
+In particular, note that the values $x_J$ of the exogenous input variables are determined \emph{before} the exogenous random variables $X_W$ are sampled.
+Swapping this ordering may lead to dependence $X_W \nIndep X_J$ between the exogenous random and exogenous input variables (i.e., $P(X_W \given \doit(X_J)) \ne P(X_W)$).
+The ordering chosen here is compatible with the assumption that the exogenous random variables are latent.\footnote{One could also consider a setting in
+which some, but not all, information about the value $x_W$ is accessible to the experimenter. For example, some exogenous random variables
+could be considered ``observable'' and others ``latent'', while they would all be considered ``non-intervenable''. We will not consider this as 
+it would complicate matters further.}
+Indeed, suppose that some `agent' decides on the values of the exogenous inputs $x_J$.
+If this agent could observe $X_W$ before it decides on the values of the inputs, the agent could choose the values of $X_J$ dependent on the values of $X_W$.\footnote{If the iSCM is misspecified in the sense that `nature' choses the values of $X_W$ dependent on the values of $X_J$, then one can find another iSCM by reparameterizing $X_W$ to make it independent of $X_J$ again. Thus, the assumption that $X_W \sim P(X_W)$ rather than $X_W \sim K(X_W \given \doit(X_J))$ in Definition~\ref{def:iscm} can be made without loss of generality.}
+
+If the iSCM admits multiple solution functions, this sampler depends explicitly on the choice of the solution function.
+So one way to think about iSCMs that admit multiple solution functions is that they are \emph{incomplete} models of a data-generating process.
+
+\begin{Eg}[Continuing Example~\ref{ex:scms_formal}]\label{ex:scms_formal_sampling}
+  We can sample from the iSCMs in Example~\ref{ex:scms_formal} as follows:
+  \begin{enumerate}
+    \item $N$ causes $C$: (`Nobel prizes are celebrated with massive chocolate feasts')\\
+      \begin{algorithmic}[1]
+        \Input $\alpha,\beta,n$
+        \For{$i=1,\dots,n$}
+          \Input $x_N^{(i)}$;
+          \State $X_C^{(i)} \leftarrow \alpha + \beta x_N^{(i)}$;
+          \Output $(X_C^{(i)},x_N^{(i)})$
+        \EndFor
+      \end{algorithmic}
+    \item $C$ causes $N$: (`chocolate contains brain enhancing chemicals')\\
+      \begin{algorithmic}[1]
+        \Input $\gamma,\delta,n$
+        \For{$i=1,\dots,n$}
+          \Input $x_C^{(i)}$;
+          \State $X_N^{(i)} \leftarrow \gamma + \delta x_C^{(i)}$;
+          \Output $(x_C^{(i)},X_N^{(i)})$
+        \EndFor
+      \end{algorithmic}
+    \item $W$ causes $C$ and $N$, version 1: (`inhabitants of wealthy countries eat more chocolate and conduct more scientific research')\\
+      \begin{algorithmic}[1]
+        \Input $\alpha,\beta,\gamma,\delta,n$
+        \For{$i=1,\dots,n$}
+          \Input $x_W^{(i)}$;
+          \State $X_C^{(i)} \leftarrow \alpha + \beta x_W^{(i)}$;
+          \State $X_N^{(i)} \leftarrow \gamma + \delta x_W^{(i)}$.
+          \Output $(X_C^{(i)},X_N^{(i)},x_W^{(i)})$
+        \EndFor
+      \end{algorithmic}
+    \item $W$ causes $C$ and $N$, version 2: (`similar to version 1, but now the probability distribution of wealth is modeled'):\\
+      \begin{algorithmic}[1]
+        \Input $\alpha,\beta,\gamma,\delta,\sigma^2,n$
+        \For{$i=1,\dots,n$}
+          \Sample $X_W^{(i)} \sim \C{N}(0,\sigma^2)$;
+          \State $X_C^{(i)} \leftarrow \alpha + \beta x_W^{(i)}$;
+          \State $X_N^{(i)} \leftarrow \gamma + \delta x_W^{(i)}$.
+          \Output $(X_C^{(i)},X_N^{(i)},X_W^{(i)})$
+        \EndFor
+      \end{algorithmic}
+  \end{enumerate}
+\end{Eg}
+
+\subsection{Interventions}
+
+The reason that equations \eref{eq:cscm_structural_equations} are called \emph{structural} is that one cannot simply rewrite them in the way one is used to when solving a set of equations without changing the causal semantics of the model.
+This can be formalized by defining how interventions affect an iSCM.
+
+In this section we define interventions as \emph{operations} on iSCMs that map a given iSCM and an intervention target (and optionally, an intervention value or distribution) to an intervened iSCM. 
+The operation may change the types of the variables it is targeting.
+We will consider four intervention types: three variants of a hard intervention, and soft interventions. 
+The three hard intervention variants differ in what type of variables the intervened variables become: endogenous variables, exogenous random variables, or exogenous input variables.
+As there are many ways in the real world to intervene on (or `to perturb', or simply `to change') a given system, this is only the tip of an iceberg of how one could formalize such interventions.
+%\footnote{We do not introduce node-splitting interventions for iSCMs, as it is not entirely obvious to us how to do this in a sensible way; a possibility might be to generalize these to scc-splitting interventions. \Joris{Reconsider!}}
+
+\begin{Rem}
+We will \emph{not} consider interventions that target exogenous random variables.
+This allows the modeler to make less stringent assumptions when modeling a data-generating process with an iSCM.\footnote{If an intervention on an exogenous random variable in a model is really required, one can always make an endogenous copy of it, and then intervene on the endogenous copy.}
+\end{Rem}
+
+\subsubsection{Hard interventions}
+
+We start with hard interventions that turn all intervened variables into
+endogenous variables with specified values, overriding
+the default causal mechanisms that determined their values before the
+intervention was performed.
+\begin{Def}[Hard intervention with specified target values]\label{def:scm_hard_intervention}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, an intervention target $T \subseteq \Sin \cup \Send$ %\cup \Srnd
+  and an intervention value $\xi_T \in \CXT$, we define the \emph{intervened iSCM}
+  $$M_{\doit(\XT=\xi_T)} := \lt \Sin\setminus T,\Send \cup T,\Srnd,\CX,P,(f_{\Send\setminus T},\xi_T) \rt.$$
+  %$$M_{\doit(\XT=\xi_T)} := \lt \Sin\setminus T,\Send \cup T,\Srnd\setminus T,\CX,P_{W\setminus T},(f_{\Send\setminus T},\xi_T) \rt.$$
+  More explicitly, the components of the intervened causal mechanism $\tilde{f} : \CX \to \CX_{\Send \cup T}$ are
+  given by:
+    $$\tilde{f_j}(x) = \begin{cases}
+      \xi_j & j \in T \\
+        f_j(x) & j \in V \setminus T,
+    \end{cases}$$
+  for $j \in \Send \cup T$.
+  %, and the intervened exogenous distribution is obtained by marginalizing:
+  %$$P_{\Srnd\setminus T} = \bigotimes_{w\in\Srnd\setminus T} P_w.$$
+\end{Def}
+This replaces the targeted exogenous variables by endogenous variables and adds structural equations
+to set their values as specified, replaces the existing structural equations of the form
+$X_j^{\doit(\xJ)} = f_j(\xJ,\XV^{\doit(\xJ)},\XW^{\doit(\xJ)})$ for $j \in T \cap \Send$ to structural equations of the simple form 
+$X_j^{\doit(x_{\Sin\setminus T})} = \xi_j$, and leaves the other structural equations invariant.
+This operation `endogenizes' exogenous input variables, % and exogenous random variables,
+reflecting that the intervened model now specifies their values as prescribed by the hard intervention.
+The values of the other endogenous variables are still determined by their original causal mechanisms.
+
+\begin{Eg}
+  A hard intervention $\doit(X_N=\xi_N)$ changes the iSCM `$W$ causes $C$ and $N$, version 2' from Example~\ref{ex:scms_formal} into the iSCM with
+  $\Sin = \emptyset$, $\Send = \{C,N\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $\tilde{f}^\theta : (x_C, x_N, x_W) \mapsto (\alpha + \beta x_W, \xi_N) \in \C{X}_C \times \C{X}_N$, $P^\theta = \C{N}(0,\sigma^2)$.
+  It has structural equations
+      \begin{align*}
+        X_C & = \alpha + \beta X_W, \\
+        X_N & = \xi_N.
+      \end{align*}
+%  For a given parameter $\theta$, its solution function is unique and given by $\tilde{g}_\theta : x_W \mapsto (\alpha + \beta x_W, \xi_N)$.
+%  Treating $W$ as latent, its Markov kernel is $P(X_C,X_N | \doit(X_N=\xi_N)) = \C{N}(X_C | \alpha,\beta^2\sigma^2) \otimes \delta(X_N | \xi_N)$.
+%  The marginal distribution of $X_C$ is unaffected by the intervention, whereas the marginal distribution of $X_N$ ``collapses'' on the point $\xi_N$.
+\end{Eg}
+
+Another common variant of hard interventions are stochastic hard interventions, where the intervention
+values are drawn independently from a specified (independent) distribution.
+\begin{Def}[Stochastic hard intervention]\label{def:scm_hard_intervention_stochastic}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, an intervention target $T \subseteq \Sin \cup \Send$ % \cup \Srnd$ 
+  and an intervention target distribution $Q_T \in \bigotimes_{t\in T} \C{P}(\C{X}_t)$, we define the \emph{intervened iSCM}
+%  $$M_{\doit(\XT\sim Q_T)} := \lt \Sin\setminus T,\Send\setminus T,\Srnd \cup T,\CX,P_{\Srnd\setminus T} \otimes Q_T,f_{\Send\setminus T} \rt.$$
+  $$M_{\doit(\XT\sim Q_T)} := \lt \Sin\setminus T,\Send\setminus T,\Srnd \cup T,\CX,P \otimes Q_T,f_{\Send\setminus T} \rt.$$
+  More explicitly, the intervened exogenous distribution is given by
+%  $$P_{\Srnd\setminus T} \otimes Q_T = \left[\bigotimes_{w \in \Srnd\setminus T} P_w\right] \otimes \left[\bigotimes_{t \in T} Q_t\right].$$
+  $$P \otimes Q_T = \left[\bigotimes_{w \in \Srnd} P_w\right] \otimes \left[\bigotimes_{t \in T} Q_t\right].$$
+\end{Def}
+Intuitively, this assigns random values to the intervention target variables
+by sampling from independent intervention distributions $Q_t$ for $t \in T$, thereby
+turning the targeted variables into exogenous random variables.
+A hard intervention on an exogenous input variable turning it into an exogenous random variable
+can be interpreted as `imposing a distribution' on the exogenous input variable.
+For example, if treatment is considered an exogenous input variable (the model does not specify 
+how treatment is determined by the physician for each patient), and we then intervene to let 
+treatment be determined by a coin flip instead (when setting up an RCT),
+we are imposing a distribution on the treatment variable.
+\begin{Eg}
+  The iSCM `$W$ causes $C$ and $N$, version 2' from Example~\ref{ex:scms_formal} is obtained from 
+  a stochastic intervention on the iSCM `$W$ causes $C$ and $N$, version 1' from that example.
+\end{Eg}
+
+The third variant of hard interventions only specifies the intervention targets, but makes
+no assertions about the intervention values (not even their distribution).
+\begin{Def}[Hard intervention with unspecified value]\label{def:scm_hard_intervention_unspecified}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$
+  and an intervention target $T \subseteq \Sin \cup \Send$, % \cup \Srnd$, 
+  we define the \emph{intervened iSCM}
+  %$$M_{\doit(T)} := \lt \Sin \cup T,\Send \setminus T,\Srnd \setminus T,\CX,P_{\Srnd\setminus T},f_{\Send\setminus T} \rt.$$
+   $$M_{\doit(T)} := \lt \Sin \cup T,\Send \setminus T,\Srnd,\CX,P,f_{\Send\setminus T} \rt.$$
+\end{Def}
+Intuitively, this operation replaces endogenous variables and exogenous random variables with exogenous input variables.
+The intervened model no longer specifies the causal mechanisms that determine the values of these variables, 
+but instead treats them as exogenous inputs that are independent of the (remaining) exogenous random variables in the model. 
+This reflects that after this hard intervention, the values for
+these variables are no longer determined by the system, but are set externally (e.g., by the 
+experimenter performing the intervention) to values chosen independently of the values of the exogenous
+random variables, while the values of the other endogenous variables are still
+determined by their original causal mechanisms.
+\begin{Eg}
+  A hard intervention $\doit(N)$ changes the iSCM `$W$ causes $C$ and $N$, version 2' from Example~\ref{ex:scms_formal} 
+  into the intervened iSCM with:
+  $\Sin = \{N\}$, $\Send = \{C\}$, $\Srnd = \{W\}$, $\theta = (\alpha,\beta,\gamma,\delta,\sigma) \in \RN^4 \times [0,\infty)$, 
+  $\C{X}_W = \RN$, $\C{X}_C = \RN$, $\C{X}_N = \RN$, $\tilde{f}^\theta : (x_N, x_C, x_W) \mapsto \alpha + \beta x_W$, $P^\theta = \C{N}(0,\sigma^2)$.
+  It has structural equation
+  $$X_C^{\doit(x_N)} = \alpha + \beta X_W^{\doit(x_N)}.$$
+  For a given parameter $\theta$, it has a solution function $\tilde{g}^\theta : (x_N, x_W) \mapsto \alpha + \beta x_W$. 
+  It has potential outcomes of the form $X_C^{\doit(x_N)} = \alpha + \beta X^{\doit(x_N)}_W$ for some random variable $X_W^{\doit(x_N)} \sim \C{N}(0,\sigma^2)$. 
+\end{Eg}
+
+\begin{Rem}
+  We will interpret exogenous input variables in iSCMs always as if they represent a hard intervention with unspecified target values.
+  While the target \emph{values} are unspecified, this does imply certain assumptions regarding the data-generating \emph{process} (that is, as to \emph{how} the values can be chosen).
+  Indeed, the data-generating process described in Section~\ref{sec:scm_sampling} implies that
+    $$X_W^{(1)},\dots,X_W^{(n)} \Indep X_J^{(1)},\dots,X_J^{(n)}.$$
+  Here are two examples of settings in which this can be a realistic modeling assumption:
+  \begin{enumerate}
+    \item If $X_J$ is randomized (the agent that determines the value of $X_J^{(i)}$ just samples it from an independent source of randomness);
+    \item If the agent that determines the value of $X_J^{(i)}$ has no access to the values of $X_W^{(1)},\dots,X_W^{(n)}$ before or while deciding the value of $X_J^{(i)}$.
+  \end{enumerate}
+  In both cases, one needs to assume in addition that all generated samples end up in the data set (or weaker, that samples are observed `completely at random': whether or
+  not a sample is observed is a random variable that is independent of $X_J$ and $X_W$).
+\end{Rem}
+
+\begin{Exc}
+  Suppose you are interested in studying the relationship between age and body mass index.
+  Is it a good idea to represent age as an exogenous input variable in an iSCM?
+  Why, or why not?
+\end{Exc}
+
+Summarizing, we have now seen three different ways of representing hard interventions, which are all `hard' in the sense that they completely override the default causal mechanisms of their endogenous targets, so that their values are no longer determined by those of other endogenous variables. 
+The three variants differ in how we decide to model the intervened variables: as exogenous inputs, as exogenous random variables, or as endogenous variables with a constant value.\footnote{Since most accounts on iSCMs do not provide for the possibility of exogenous input variables, the two variants most often seen in the literature are the latter two.}
+
+%\subsubsection{Node-splitting interventions}
+
+%We make two copies of $T \subseteq V$, $T^o$ and $T^i$.
+%\begin{Def}[Node-splitting hard intervention]\label{def:scm_hard_intervention_splitting}
+%  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$
+%  and an intervention target $T \subseteq \Srnd$, we define the \emph{intervened iSCM}
+%  $$M_{\doit(T^{io})} := \lt \Sin \cup T^i,\Send \setminus T \cup T^o,\Srnd,\tilde{\CX},P,\tilde{f} \rt$$
+%  with
+%  $$\tilde{\CX} := $$
+%  $$\tilde{f} := $$
+%\end{Def}
+
+\subsubsection{Soft interventions (mechanism changes)}
+
+Soft interventions (also known as mechanism changes) replace the causal mechanism of an endogenous variable by another causal mechanism.
+%or the exogenous distribution of an exogenous random variable by another distribution.
+
+\begin{Def}[Soft intervention]\label{def:scm_soft_intervention}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$, an intervention target $T \subseteq \Send$, 
+  and measurable functions $\tilde{f}_v : \CX \to \CX_v$ for $v \in T$,
+  a \emph{soft intervention on $M$ replacing $f_T$ by $\tilde f_T$} yields an intervened iSCM of the form
+  %$$\tilde{M} := \lt \Sin,\Send,\Srnd,\CX,\tilde{P},\tilde{f} \rt$$
+  $$M_{\doit(T \ot \tilde{f}_T)} := \lt \Sin,\Send,\Srnd,\CX,P,(f_{V\sm T}, \tilde{f}_T) \rt.$$
+  %$$\tilde{P} = \lp\bigotimes_{w \in \Srnd \sm T} P_w \rp \otimes \lp \bigotimes_{w \in T \cap \Srnd} \tilde{P}_w \rp$$
+  %and
+  %for some distributions $\tilde{P}_w \in \C{P}(\CX_w)$ and measurable functions $\tilde{f}_v : \CX \to \CX_v$.
+\end{Def}
+
+\begin{Prp}\label{prp:interventions_commute}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+(Hard or soft) interventions $\doit(T_1\dots)$, $\doit(T_2\dots)$ with disjoint targets $T_1, T_2 \subseteq \Sin \cup \Send$ (of any of the four variants) commute:
+  $$(M_{\doit(T_1\dots)})_{\doit(T_2\dots)} = (M_{\doit(T_2\dots)})_{\doit(T_1\dots)} = M_{\doit((T_1 \cup T_2)\dots)}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of the operations performed on the various components of the iSCM tuple one-by-one.
+\end{proof}
+
+\subsubsection{Intervention variables}
+
+It is often convenient to combine an iSCM and one or more intervened versions of the iSCM together in a single iSCM.
+This can be done by introducing \emph{intervention variables} that indicate whether, and possibly encode how, an intervention is performed.
+
+\begin{Eg}
+  Consider an iSCM with endogenous variables $X_1,X_2$, exogenous random variables $W_1,W_2$ and structural equations:
+  $$X_1 = f_1(X_2,W_1), \qquad
+    X_2 = f_2(X_1,W_2).$$
+  After a hard intervention $\doit(X_2=x_2)$ the structural equations become:
+  $$X_1 = f_1(X_2,W_1), \qquad
+    X_2 = x_2.$$
+  We can combine both into a single iSCM by adding an intervention variable $I_2$ (an exogenous input variable) and change the structural equations into:
+  $$X_1 = f_1(X_2,W_1), \qquad
+    X_2 = \begin{cases}
+      f_2(X_1,W_2) & I_2 = 0 \\
+      x_2          & I_2 = 1.
+    \end{cases}$$
+\end{Eg}
+
+While there are many ways of intervening, and also many ways of encoding specific interventions, a special case that we will encounter frequently is the following way of using intervention variables to model hard interventions on subsets of $B$ for some subset $B \subseteq V$ of endogenous variables.
+\begin{comment}
+\begin{Def}\label{def:scm_intervention_variables}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  Let $B \subseteq V$.
+  We introduce additional `intervention variables' $I_b$ for $b \in B$ as exogenous input variables.
+  We denote $I_B := (I_b)_{b \in B}$.
+  We define an extended iSCM 
+  $$M_{\doit(I_B)} := \lt \Sin \cup I_B, \Send, \Srnd, \CX \times \prod_{b \in B} (\CX_b \dot\cup \{\star\}), P, \tilde{f} \rt$$
+  with causal mechanism $\tilde{f}$ with components
+  \begin{align*}
+    b \in B: \qquad &\tilde{f}_b(x_{V \cup J \cup W},x_{I_B}) := \begin{cases}
+      f_b(x_{V \cup J \cup W}) & x_{I_b} = \star \\
+      x_{I_b} & x_{I_b} \in \CX_b
+    \end{cases}\\
+    v \in V \sm B: \qquad & \tilde{f}_v(x_{V \cup J \cup W},x_{I_B}) := f_v(x_{V \cup J \cup W})
+  \end{align*}
+Here, $x_{I_b} = \star$ encodes that there is no intervention on $b$, 
+while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+\end{Def}
+\end{comment}
+\begin{Def}\label{def:scm_intervention_variables}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+  %Let $B \subseteq V \Joris{ \cup J}$.
+  %\Joris{For each $b \in B \cap V$, we introduce an additional ``intervention variable'' $I_b$, which will become an exogenous input variable; for $j \in B \cap J$, we just set $I_j := j$.}
+  Let $B \subseteq V \cup J$.
+  For each $b \in B \cap V$, we introduce an additional `intervention variable' $I_b$, which will become an exogenous input variable; for $j \in B \cap J$, we just set $I_j := j$.
+  We denote $I_B := (I_b)_{b \in B}$.
+  We define an extended iSCM 
+%  $$M_{\doit(I_B)} := \lt \Sin \cup I_B, \Send, \Srnd, \CX \times \prod_{b \in B \Joris{\cap V}} \CX_{I_b}, P, \tilde{f} \rt$$
+  $$M_{\doit(I_B)} := \lt \Sin \cup I_B, \Send, \Srnd, \CX \times \prod_{b \in B \cap V} \CX_{I_b}, P, \tilde{f} \rt$$
+  with $\CX_{I_b} := \CX_b \,\dot\cup\, \{\star\}$,
+  with causal mechanism $\tilde{f}$ with components
+  \begin{align*}
+%    v \in \Joris{V \cap B}: \qquad &\tilde{f}_v(x_{V \cup J \cup W \cup B}) := \begin{cases}
+    v \in V \cap B: \qquad &\tilde{f}_v(x_{V \cup J \cup W \cup I_B}) := \begin{cases}
+      f_v(x_{V \cup J \cup W}) & x_{I_v} = \star \\
+      x_{I_v} & x_{I_v} \in \CX_v
+    \end{cases}\\
+    v \in V \sm B: \qquad & \tilde{f}_v(x_{V \cup J \cup W \cup I_B}) := f_v(x_{V \cup J \cup W})
+  \end{align*}
+%\Joris{For $b \in B \cap V$}, $x_{I_b} = \star$ encodes that there is no intervention on $b$, while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+For $b \in B \cap V$, $x_{I_b} = \star$ encodes that there is no intervention on $b$, while $x_{I_b} \ne \star$ encodes that the hard intervention $\doit(X_b = x_{I_b})$ is performed.
+\end{Def}
+This provides a way to simultaneously encode $\{M_{\doit(X_C)} : C \subseteq B\}$ into a single iSCM $M_{\doit(I_B)}$ and we will make use of it to derive the do-calculus (see Section~\ref{sec:scms_do-calculus}).
+
+We have the following commutation relations.
+\begin{Prp}\label{prp:adding_intervention_variables_one_by_one}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+Adding intervention variables to $b_1 \ins V \cup J$ and to $b_2 \ins V \cup J$ (with $b_1 \ne b_2$) commutes:
+  $$(M_{\doit(I_{b_1})})_{\doit(I_{b_2})} = (M_{\doit(I_{b_2})})_{\doit(I_{b_1})} = M_{\doit(I_{\{b_1,b_2\}})}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of the operations performed on the various components of the iSCM tuple one-by-one.
+\end{proof}
+\begin{Prp}\label{prp:adding_intervention_variables_commutes}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be an iSCM.
+Adding intervention variables to $B \subseteq V \cup J$ commutes with (hard or soft) interventions $\doit(T\dots)$ with disjoint target $T \subseteq \Sin \cup \Send$ (of any of the four variants):
+  $$(M_{\doit(I_B)})_{\doit(T\dots)} = (M_{\doit(T\dots)})_{\doit(I_B)}.$$
+\end{Prp}
+\begin{proof}
+  This follows by writing out the definitions and checking commutativity of the operations performed on the various components of the iSCM tuple one-by-one.
+\end{proof}
+
+
+\begin{comment}
+% JORIS The following discussion could be given for all exogenous input variables
+Often, intervention variables can be considered as exogenous. 
+For instance, if their values (which intervention is performed, and how) are determined earlier in time than the values of all endogenous variables, then the endogenous variables cannot cause the intervention variables. 
+An example is a scientific experiment in which the experimenter prepares the system in some experimental condition before performing measurements. 
+This experimental condition then cannot be influenced by the measured state of the system.  
+A concrete instance of such an intervention variable is the coin flip that determines whether a subject enters the treatment or control group in a randomized controlled trial.  
+%However, if a doctor prescribes a certain treatment based on the state of the patient determined through a diagnosis, then the treatment variable is influenced by the patient's state and should therefore not be considered to be exogenous with respect to the patient's state that was measured before the treatment is prescribed.
+
+% JORIS The following discussion seems redundant
+There is no need for an intervention variable to be binary or discrete.
+An example of a continuous intervention variable is the dose of the drug used for treatment.
+The dose of a drug used for treatment often quantitatively affects the outcome. 
+% JORIS The following discussion could be given for all exogenous input variables
+However, if there is no explicit and careful randomization, one cannot always assume that there is no common cause of dose and response. 
+For example, if physicians decide to not treat patients with terminal cancer because of the strong side effects of the treatment, then the stage of the cancer is a common cause of dose and response.
+
+% JORIS This conclusion doesn't seem to add much
+Therefore, for intervention variables (like for any other variable that is modeled) one needs to take care to decide whether they
+are modeled as exogenous input variables, exogenous random variables, or endogenous variables.
+\end{comment}
+
+\subsection{Composition and decomposition}
+
+If we think about an iSCM as modeling a `system', then we also obtain a model for any `subsystem' in the following way.
+\begin{Def}[Taking a submodel of an iSCM]\label{def:sub_scm}
+  Given an iSCM $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and a subset $V' \subseteq V$ of its endogenous variables, we define its \emph{submodel on $V'$} as the iSCM
+  $$M^{[V']} := \lt \Sin \cup (V \sm V'), V', W,\CX,P,f_{V'} \rt.$$
+\end{Def}
+\begin{Rem}
+  Note that this is just the intervened iSCM $M_{\doit(V \sm V')}$.
+\end{Rem}
+
+Given two iSCMs, such that some of the variables of one iSCM can be used as (part of the) exogenous input of the other, and possibly vice versa, we can compose them into a single iSCM.\footnote{In practice, one may have to relabel the variables first before one can perform this composition operation, by changing the index sets of the iSCMs to ensure that the right variables become coupled.}
+\begin{Def}[Composing two iSCMs]\label{def:compose_scm}
+  Given two iSCMs $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ and $\tilde M = \lt \tilde \Sin, \tilde \Send, \tilde \Srnd, \tilde \CX, \tilde P, \tilde f \rt$ and two subsets $C \subseteq \Sin \cap (\tilde \Send \cup \tilde \Srnd)$ and $\tilde C \subseteq (\Send \cup \Srnd) \cap \tilde \Sin$ satisfying the following conditions:
+  \begin{enumerate}
+    \item for all $c \in C$, $(\CX)_c = (\tilde \CX)_c$,
+    \item for all $c \in \tilde C$, $(\CX)_c = (\tilde \CX)_c$,
+    \item $(\Sin \sm C) \cap (\tilde \Sin \sm \tilde C) = \emptyset$,
+    \item $\Send \cap \tilde \Send = \emptyset$,
+    \item $\Srnd \cap \tilde \Srnd = \emptyset$,
+  \end{enumerate}
+  we define the \emph{composed iSCM}
+  $$\compose(M,C,\tilde{M},\tilde{C}) := \lt (\Sin \sm C) \dcup (\tilde \Sin \sm \tilde C), \Send \dcup \tilde \Send, \Srnd \dcup \tilde \Srnd, \CX^\circ, P^\circ, f^\circ \rt,$$
+  where
+  \begin{align*}
+    \CX^\circ &:= \CX_{(\Sin \sm C) \dcup \Send \dcup \Srnd} \times (\tilde \CX)_{(\tilde \Sin \sm \tilde C) \dcup \tilde \Send \dcup \tilde \Srnd}, \\
+    P^\circ &:= P \otimes \tilde P, \\
+    f^\circ &:= (f, \tilde f).
+  \end{align*}
+  The special case $C = \emptyset$ will also be denoted as $\tilde M \circ M$, and likewise the special case $\tilde C = \emptyset$ will be denoted as $M \circ \tilde M$.
+\end{Def}
+\begin{comment}
+The composed iSCM can again be decomposed into its composite submodels.
+\begin{Prp}\label{prp:decomposing_composed_scms}
+  Let the setting be as in Definition~\ref{def:compose_scm}. Then $(\compose(M,C,\tilde{M},\tilde{C}))^{[V \dcup W]} = M$ and $(\compose(M,C,\tilde{M},\tilde{C}))^{[\tilde V \dcup \tilde W]} = \tilde M$.
+\end{Prp}
+\begin{proof}
+  It is not quite correct. Instead, additional isolated input nodes remain:
+%  $$M_{12} := \lt (\Sin_1 \sm C_1) \dcup (\Sin_2 \sm C_2), \Send_1 \dcup \Send_2, \Srnd_1 \dcup \Srnd_2, \CX_{12}, P_{12} \rt,$$
+  $$(\compose(M,C,\tilde{M},\tilde{C}))_{[V \dcup W]} := \lt \Sin \cup \tilde V \cup \tilde W, V, W,\CX,P,f \rt.$$
+  This means that composition followed by decomposition is interventionally equivalent to the original iSCM.
+\end{proof}
+\end{comment}
+One can consider the decomposition (taking submodels) as `dual to' the composition (combining submodels).
+These operations formalize the notion of \emph{modularity}, that is, an iSCM can be thought of modeling a system consisting of interacting components by modeling for each component separately how it interacts with the other components.
+The submodels on individual variables correspond with `atomic' subsystems that cannot be (or won't be) decomposed into smaller parts.

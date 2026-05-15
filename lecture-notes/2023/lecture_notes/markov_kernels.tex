@@ -1,0 +1,1050 @@
+\section{Transition Probability Theory}
+ 
+
+\subsection{Elementary Probability Theory}
+
+\begin{Eg}[Winning a pie with a biased die]%
+    \label{example-die}
+    You are allowed to roll a biased die with 6 sides. If you roll a $5$ or $6$ you win a \emph{car}, a $4$ 
+    gives you a \emph{mug} 
+    and $1,2,3$ wins you an apple \emph{pie}. 
+    In this case the sample space is $\Wcal :=\{1,2,3,4,5,6\}$ and the die introduces a probability distribution $P$ on $\Wcal$.
+    Since the die is biased, we have to specify 
+    %for the probability distribution $P$
+    each of the probability masses to throw those numbers separately: 
+    \begin{align*}
+        p(1) & = 0.5, &
+        p(2) & = p(3) = p(4) = 0.1, &
+        p(5) & = 0.15 , & 
+        p(6) & = 0.05.
+    \end{align*}
+    We are now interested in the probabilities of the events of winning those 3 different prices. 
+    For this we consider the 'prize' space: $\Zcal :=\{\mathrm{pie}, \mathrm{mug}, \mathrm{car}\}$. 
+    We can then formalize the outcome via the map $F$:
+    \[\begin{array}{cccc}
+        F: & \Wcal &\to& \Zcal,\\
+           &1,2,3 &\mapsto& \mathrm{pie},\\
+        & 4 & \mapsto& \mathrm{mug},\\
+        & 5,6 & \mapsto& \mathrm{car}.
+    \end{array}\]
+    To compute the probability of winning each of the prizes we need to 'push' the probability distribution $P$, which lives on the space $\Wcal$, to the space $\Zcal$. We can do this as follows:
+    \begin{align*}
+        P(F=\mathrm{pie}) &= P(F^{-1}(\{\mathrm{pie}\})) && = P(\{1,2,3\}) && = p(1)+p(2)+p(3) && = 0.7,\\
+            P(F=\mathrm{mug}) &= P(F^{-1}(\{\mathrm{mug}\})) && = P(\{4\}) && = p(4) && = 0.1,\\
+            P(F=\mathrm{car}) &= P(F^{-1}(\{\mathrm{car}\})) && = P(\{5,6\}) && = p(5)+p(6) && = 0.2,
+    \end{align*}
+    where $F^{-1}(C) := \{w \in \Wcal\,|\,F(w) \in C\}$ is the \emph{pre-image} of $C \ins \Zcal$.
+\end{Eg}
+
+\begin{Disc}%
+    The simple example \ref{example-die} already provides us with the main examples for the typical 
+    probability-theoretic terminology and important insights:
+    \begin{enumerate}
+        \item We call the tuple $(\Wcal,P)$ a \emph{probability space}. It is important to note that $P$ was defined on $\Wcal$, not $\Zcal$.
+        \item We call the map $F$ a \emph{random variable}, which is really nothing else than a map from a probability space to another space.
+        \item \emph{Events} are modelled by \emph{subsets} $B \ins \Wcal$, not just by single elements $w \in \Wcal$. For example consider the event that you don't win a car. This event can't be represented by a single element in $\Wcal$ or $\Zcal$.
+        \item In this example we can compute the probability of an event by \emph{additivity} of $P$ and the use of the probability mass function,
+            via $P(B) = \sum_{ w \in B} p(w)$.
+        \item The distribution of the prizes, i.e.\ the distribution of random variable $F$, assigns 
+               probabilities to events $C \ins \Zcal$ and can be computed using the \emph{pre-image} of $F$ 
+               via $P(F \in C) = P(F^{-1}(C))$, where the latter is now an event $F^{-1}(C) \ins \Wcal$, 
+               which we already know how to deal with. 
+           \item The distribution of $F$ on $\Zcal$ here is also called the \emph{push-forward} distribution or \emph{image} distribution 
+            of $P$ via $F$ or just the \emph{law} of $F$. It is often abbreviated as: $P_F$, $P^F$, $F_*P$ or $P(F)$. 
+            Again note: $P(F)(C) := P(F \in C)= P(F^{-1}(C))$.
+        \item So $(\Zcal,P(F))$ forms a probability space on its own and as soon as we know $P(F)$ we don't need any information about $(\Wcal,P)$ anymore if all we are interested in is the events in $\Zcal$ and the law of $F$. All randomness on $\Zcal$ is fully specified by $P(F)$.
+    \end{enumerate}
+\end{Disc}
+
+\begin{Eg}%
+    \label{example-normal}
+    Now consider the standard normal distribution $\Ncal(0,1)$ on $\R$, which is specified by the \emph{probability density} function:
+    \[ p(w) = \frac{1}{\sqrt{2 \pi}} \exp\lp - \frac{1}{2} \cdot w^2 \rp.   \]
+    The probability of an event $A \ins \R$ is then given by:
+    \[ P(A) = \int_A p(w) \, dw,\]
+    in case $A$ can be integrated over (i.e.\ if it is not a too pathological set).
+    For instance, if $A= [a,b] \cup [c,d]$ with $a \le b <c\le d$ we get:
+    \[P(A) = \int_a^b p(w)\,dw + \int_c^d p(w)\,dw.\]
+    Note that, even though $p(w) >0$ for every $w \in \R$, we have:
+\[  P(\{x\}) = 0 \qquad \text{for every} \qquad  x \in \R.\]
+Now consider the random variable $F: \R \to \R$ with $F(w)=\sin(w)$. 
+It is not immediately clear how to define the probability distribution of $F$ when only working with probability densities. It is even more difficult to derive the probability density for $F$ in this setting.
+\end{Eg}%
+
+\begin{Disc}%
+    \begin{enumerate}
+        \item The examples \ref{example-die} and \ref{example-normal} show that many probability distributions can be represented either by \emph{probability mass} functions (\emph{discrete} case), $w \mapsto p(w)$, or \emph{probability density} functions (\emph{absolute continuous} case), $w \mapsto p(w)$.
+        \item Both cases have in common that one only needs a function that takes elements $w \in \Wcal$ as arguments, in contrast to subsets $A \ins \Wcal$. This is usually the reason why only the discrete and absolute continuous cases are taught in elementary probability theory or machine learning classes.
+        \item Note that, in the discrete case with $K$ classes, one only needs to specify the $K$ values $p(1),\dots,p(K)$, in contrast to the $2^K$ values on subsets $P(A)$ for $A \in 2^\Wcal$ (the \emph{power set} of $\Wcal$ consisting of all subsets $A \ins \Wcal$), as the latter values can be derived from the former values using additivity.
+        \item We have problems defining probability distributions of random variables for absolute continuous distributions when we are only allowed to work with probability densities.
+        \item Measure theory is the framework that directly works with subsets $A \ins \Wcal$, in contrast to elements $w \in \Wcal$, and provides a unifying language that encompasses both special cases.
+    \end{enumerate}
+\end{Disc}%
+
+\subsection{Recap - Measure Theoretic Probability}
+
+Here we just remind the reader of our notations for the core concepts of measure theoretic probability. More can be found 
+in Appendix \ref{app:measure-theory}.
+
+\subsubsection{Measurable Spaces and Maps}
+
+\begin{Def}[$\sigma$-algebras]
+    \label{def:sigma-algebra}
+    Let $\Wcal$ be a set. A (non-empty) set $\Bcal \ins 2^\Wcal$ of subsets $A \ins \Wcal$ is called a 
+    \emph{$\sigma$-algebra} on $\Wcal$ if it satisfies the following rules:
+    \begin{enumerate}[label=\roman*)]
+        \item empty set: $\emptyset \in \Bcal$,
+        \item complement: If $A \in \Bcal$ then also: $A^\cmpl:= \Wcal\sm A \in \Bcal$,
+        \item countable union: If $A_n \in \Bcal$ for all $n \in \N$ then also: $\bigcup_{n \in \N} A_n \in \Bcal$.
+    \end{enumerate}
+\end{Def}
+
+\begin{Def}[Measurable spaces]
+    \label{def:measurable-space}
+    A tuple $(\Wcal,\Bcal)$ of a set $\Wcal$ and a $\sigma$-algebra $\Bcal$ on $\Wcal$ is called \emph{measurable space}.
+\end{Def}
+
+\begin{Rem}[Abuse of notation]
+ By abuse of notation we often just call $\Wcal$ a measurable space by implicitly assuming that it is endowed with a fixed $\sigma$-algebra, which we will indicate by $\Bcal_\Wcal$ or $\Bcal(\Wcal)$ if needed. We will also just call a subset $A \ins \Wcal$ \emph{measurable} when we actually mean that $A \in \Bcal_\Wcal$.
+\end{Rem}
+
+\begin{Def}[Measurable maps]
+    \label{def-measurable-map}
+    Let $(\Wcal,\Bcal_\Wcal)$ and $(\Zcal,\Bcal_\Zcal)$ be two measurable spaces and $f: \Wcal \to \Zcal$ be a map.
+    We call $f$ a \emph{$\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable map} (or just \emph{measurable} for short) if
+    for all $B \in \Bcal_\Zcal$ the pre-image $f^{-1}(B)$ is an element of $\Bcal_\Wcal$. In formulas:
+    \[\forall B \in \Bcal_\Zcal:\; f^{-1}(B) \in \Bcal_\Wcal.\]
+    Remember the definition of pre-image: $f^{-1}(B) := \{ w\in \Wcal\,|\, f(w) \in B \}$.
+\end{Def}
+
+For most of the lecture we will restrict to well-behaved measurable spaces, namely standard measurable spaces. 
+The key point is that they all behave like the space $[0,1]$, or $\R$, with its Borel-$\sigma$-algebra. So (almost) all results for $[0,1]$ immediately translate to standard measurable spaces. 
+
+\begin{Def}[Standard measurable space, see \cite{Fremlin} 424A-G]
+ A measurable space $(\Wcal,\Bcal_\Wcal)$ is called \emph{standard measurable space} (aka standard Borel space) if it is measurably isomorphic to either:
+    \begin{enumerate}
+        \item a finite measurable space $\{1,\dots,M\}$ for some $M \in \N$ endowed with the power set $\sigma$-algebra $2^{\{1,\dots,M\}}$, or:
+        \item the countably infinite space $\N$ endowed with the power set $\sigma$-algebra $2^\N$, or:
+        \item the unit interval $[0,1]$ endowed with its Borel $\sigma$-algebra\footnote{See Definition \ref{def-sigma-algebra-gen} for the $\sigma$-algebra generated by a set of subsets.}:
+           \[\Bcal_{[0,1]} =\sigma\lp\lC [a,b] \st a, b \in [0,1] \cap \Q, a \le b \rC \rp.\]
+    \end{enumerate}
+    ``Measurably isomorphic'' means that there is a measurable map from one space to the other that has a measurable inverse.
+\end{Def}
+
+The following theorem shows that (almost) all spaces we encounter in practice are actually standard measurable spaces, justifying our focus on standard measurable spaces for the most of this lecture.
+
+\begin{Thm}[Kuratowski et al., see \cite{Fremlin} 424A-G]
+        Every Borel subset of any complete metric space that has a countable dense subset is a standard measurable space in its Borel $\sigma$-algebra.
+\end{Thm}
+
+\begin{Eg}
+    $\R$, $\R^D$, $\Q$, $\Z$, $\N$, $\{1,\dots,M\}$,  $[0,1]$, topological manifolds, countable CW-complexes, etc., are all standard measurable spaces. 
+\end{Eg}
+
+
+\subsubsection{Finite and Probability Measures}
+
+\begin{Def}[Measures]
+    \label{def:measure}
+    Let $(\Wcal,\Bcal)$ be a measurable space.
+    A \emph{measure} $\mu$ on $(\Wcal,\Bcal)$---by definition---is a map:
+    \[\mu: \; \Bcal \to \R \cup \{\infty\},\quad D \mapsto \mu(D), \]
+    such that:
+    \begin{enumerate}[label=\roman*)]
+        \item non-negative: $\forall A \in \Bcal$: $\mu(A) \in [0,\infty]$,
+        \item empty set: $\mu(\emptyset) =0$,
+        \item countably additive (aka $\sigma$-additive): for all sequences $A_n \in \Bcal$, $n \in \N$, with $A_i \cap A_j = \emptyset$ for all $i \neq j$, we have:
+    \[\mu\lp\bigcup_{n \in \N} A_n\rp = \sum_{n \in \N} \mu(A_n).\]
+    \end{enumerate}
+\end{Def}
+
+\begin{Def}[Probability and finite measures]
+    A measure $\mu$ on $(\Wcal,\Bcal_\Wcal)$ is called:
+    \begin{enumerate}
+        \item \emph{probability measure} if $\mu(\Wcal)=1$.
+        \item \emph{finite measure} if $\mu(\Wcal) < \infty$.
+        \item \emph{$\sigma$-finite measure} if there are $D_n \in \Bcal$, $n \in \N$, with $\mu(D_n) < \infty$ and $\Wcal = \bigcup_{n \in \N} D_n$.
+    \end{enumerate}
+\end{Def}
+
+Clearly, every probability measure is finite, and, every finite measure is $\sigma$-finite.
+
+\begin{Def}[The spaces of finite and probability measures]\label{spaces_of_finite_and_prob_measures}
+   The set of all probability measures on $(\Wcal,\Bcal_\Wcal)$ is denoted by $\Prob(\Wcal,\Bcal_\Wcal)$,
+   and the set of all finite measures by $\Msf(\Wcal,\Bcal_\Wcal)$, or $\Prob(\Wcal)$ and $\Msf(\Wcal)$, resp., for short.
+    For $B \in \Bcal_\Wcal$ we consider 
+    the evaluation map:
+    \[ \ev_B:\, \Msf(\Wcal) \to \R_{\ge0},\qquad \mu \mapsto \ev_B(\mu):=\mu(B).
+    \]
+    We then endow $\Msf(\Wcal)$, and $\Prob(\Wcal)$, resp., with the smallest $\sigma$-algebra $\Bcal$
+    such that all evaluation maps $\ev_B$ are $\Bcal$-$\Bcal_{\R_{\ge0}}$-measurable, where $\Bcal_{\R_{\ge0}}$
+    is the Borel-$\sigma$-algebra of $\R_{\ge 0}$, i.e.:
+    \[ \Bcal_{\Msf(\Wcal)}:=\sigma\lp\lC \ev_B^{-1}((r,\infty)) \st B \in \Bcal, r \in \R_{\ge 0} \rC\rp.  \]
+\end{Def}
+
+\begin{Rem}
+    \label{rem:prob-sigma-algebra}
+    The above definition implies that for measurable spaces $(\Xcal,\Bcal_\Xcal)$, $(\Ycal,\Bcal_\Ycal)$, a map:
+    \[ K:\, \Xcal \to \Msf(\Ycal),\]
+    is $\Bcal_\Xcal$-$\Bcal_{\Msf(\Ycal)}$-measurable if and only if for all $B \in \Bcal_\Ycal$ the composition:
+    \[ \ev_B \circ K:\, \Xcal \to \Msf(\Ycal) \to \R_{\ge 0},   \]
+    is $\Bcal_\Xcal$-$\Bcal_{\R_{\ge 0}}$-measurable. Similarly, for $\Prob(\Ycal)$.
+\end{Rem}
+
+\begin{Thm}[See \cite{Par05} Thm.\ 6.2 + 6.5 or \cite{Fremlin} 437R]
+    If $(\Wcal,\Bcal_\Wcal)$ is a standard measurable space then also $\Prob(\Wcal)$ is a standard 
+    measurable space (in its usual $\sigma$-algebra).
+\end{Thm}
+
+
+
+\subsubsection{The Measure Integral}
+
+For a measure $\mu$ on a measurable space $(\Xcal,\Bcal_\Xcal)$ the measure integral of measurable functions 
+$f:\, \Xcal \to \R$ is treated in Appendix \ref{sec:measure-integral}.
+Here we just want to remind the reader of our several different notations, which we will use interchangably during the course:
+
+\begin{Not}[Measure integral]
+ We abbreviate the \emph{measure integral} of a measurable function $f:\, \Xcal \to \R$ 
+ w.r.t.\ measure $\mu$ on $(\Xcal,\Bcal_\Xcal)$ as:
+ \[ \int f \,d\mu = \int f(x)\,d\mu(x) = \int f(x)\,\mu(dx).\]
+ If $P$ is a probability measure on $\Xcal=\R^D$ that is either discrete or absolute continuous we have:
+ \[ \int f(x)\, P(dx) = \left\{
+         \begin{array}{lcl}
+             \displaystyle\sum_{ x \in \Xcal} f(x) \cdot p(x),& \text{ if }& P \text{ is discrete},\\
+             \displaystyle\int_\Xcal f(x) \cdot p(x) \, dx & \text{ if }& P \text{ is absolute continuous,}
+         \end{array}
+ \right. \]
+ where $p$ either denotes the probability mass function or the probability density, resp.
+\end{Not}
+
+\subsubsection{The Lebesgue Measure}
+
+By far the most important measure is the Lebesgue measure, which assigns the typical $D$-dimensional volume to cubes, i.e.\
+the product of their side lengths.
+
+\begin{Def}[The Lebesgue (outer) measure]
+    The \emph{Lebesgue (outer) measure} $\lambda^D$ on $\R^D$ is given for subsets $A \ins \R^D$ via:
+    \[ \lambda^D(A) := \inf\lC \sum_{n \in \N} \mathrm{vol}^D\lp [a^{(n)},b^{(n)}] \rp  \st  
+    A \ins \bigcup_{n \in \N} [a^{(n)},b^{(n)}]  \rC, \]
+    where the infimum is running over sequences of $D$-dimensional cubes:
+     \[ [a^{(n)},b^{(n)}] = [a_1^{(n)},b_1^{(n)}] \times \cdots \times [a_D^{(n)}, b_D^{(n)}],\]
+  with $a^{(n)}=(a_1^{(n)},\dots,a_D^{(n)})$, $b^{(n)}=(b_1^{(n)},\dots,b_D^{(n)}) \in \R^D$, $a_d^{(n)} \le b_d^{(n)}$ for $d=1,\dots,D$, $n \in \N$, that jointly cover $A$, where the $D$-dimensional volume is given by:
+  \[ \mathrm{vol}^D\lp [a^{(n)},b^{(n)}] \rp := (b_1^{(n)}-a_1^{(n)}) \cdots (b_D^{(n)}-a_D^{(n)}),\qquad \mathrm{vol}^D\lp \emptyset \rp :=0. \]
+\end{Def}
+
+\begin{Thm}[The Lebesgue measure]
+ The \emph{Lebesgue measure} $\lambda^D$, when restricted to the Borel-$\sigma$-algebra of $\R^D$,
+  is the unique measure on $\R^D$ that satisfies:
+    \[ \lambda^D\lp [a,b] \rp = \mathrm{vol}^D\lp [a,b] \rp,     \]
+    for all $D$-dimensional cubes $[a,b]$.
+    If the dimension is clear from the context we might just write $\lambda$ for $\lambda^D$.
+\end{Thm}
+
+
+\subsection{Transition Measures and Markov Kernels}
+
+\subsubsection{Core Definitions}
+
+\begin{Motivation}
+ If we consider a deterministic measurable map $f: \Tcal \to \Wcal$ then $f$ assigns to each point $t \in \Tcal$ exactly one point $w=f(t) \in \Wcal$.
+ Sometimes we rather want to model a \emph{probabilistic map}, i.e.\ an assignment that can be random or comes with some uncertainties but still changes depending on the input $t$. 
+ The notion of \emph{Markov kernels} formalizes this. 
+A Markov kernel $K$ from $\Tcal$ to $\Wcal$
+can be considered  a measurable map from $\Tcal$ to the space of probability measures $\Prob(\Wcal)$ of $\Wcal$:
+    \[ \Tcal \to \Prob(\Wcal).\]
+ It assigns to each $t \in \Tcal$ a probability distribution over $\Wcal$, which then assigns to 
+    each measurable subset $D \ins \Wcal$ a probability value in $[0,1]$.
+\end{Motivation}
+
+\begin{Eg}[Markov kernels]
+    \begin{enumerate}
+        \item any statistical model (i.e.\ family of model distributions) $\{p_\theta \,|\, \theta \in \Fcal\}$, can 
+            be considered a Markov kernel, which we write $P(X|\Theta)$.
+        \item any conditional distribution $P(Y|X)$ can be considered a Markov kernel.
+        \item a neural network with softmax output for classification with 
+            input $x \in \Xcal$, output $y \in \Ycal$ and weights $w \in \Wcal$ can be seen as a Markov kernel $P(Y|X,W)$.
+
+    \end{enumerate}
+\end{Eg}
+
+
+We first start slightly more generally by defining finite transition measures.
+
+\begin{Def}[Finite transition measures and Markov kernels]
+    \label{def-transition-measure}
+    Let $\Tcal$, $\Wcal$ be measurable spaces.
+    \begin{enumerate}
+        \item A \emph{(finite\footnote{In this course we will only discuss \emph{finite} transition measures and just drop the word ``finite'' for simplicity in the following.}) transition measure}  from $\Tcal$ to $\Wcal$
+    is---per definition---a measurable map:
+    \[ K:\, \Tcal \to \Msf(\Wcal), \]
+        from $\Tcal$ to the space of finite measures of $\Wcal$.
+    \item A \emph{transition probability} or \emph{Markov kernel} is---per definition---a measurable map:
+    \[ K:\, \Tcal \to \Prob(\Wcal), \]
+    from $\Tcal$ to the space of probability measures of $\Wcal$.
+    \end{enumerate}
+\end{Def}
+
+\begin{Not}[Transition measures and Markov kernels]
+    \begin{enumerate}
+        \item We often use suggestive notations as follows for finite transition measures and Markov kernels:
+            \[ K(W|T):\, \Tcal \to \Msf(\Wcal),\qquad t \mapsto K(W|T=t),  \]
+            where for every fixed $t \in \Tcal$ the following map: 
+            \[ K(W|T=t):\, \Bcal_\Wcal \to \R_{\ge0}, \qquad D \mapsto K(W \in D|T=t),\]
+            is a finite measure, or probability measure, respectively.
+        \item For fixed $D \in \Bcal_\Wcal$ we then use the following notation for the following measurable map:
+            \[ K(W \in D|T):\, \Tcal \to \R_{\ge0} ,\qquad t \mapsto K(W \in D|T=t).  \]
+        \item Since $K(W|T)$ takes the argument $t \in \Tcal$ first, but then also $D \in \Bcal_\Wcal$ as a second argument 
+            we can also indentify $K(W|T)$ with 
+            the following two-argument map, which we denote with the same symbols:
+            \[ K(W|T):\, \Bcal_\Wcal \times \Tcal \to \R_{\ge 0}, \qquad (D,t) \mapsto K(W \in D|T=t).  \]
+        \item For Markov kernels $K(W|T)$ we will most of the time use the dashed arrow to $\Wcal$ (instead of a usual arrow to $\Prob(\Wcal)$) to indicate the Markov kernel as follows:
+    \[ K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t).  \]
+\item Note that above $W$ and $T$ are considered suggestive symbols only, but one could give $W$ the meaning to mean the (identity or) projection map 
+    $\pr_\Wcal$ onto $\Wcal$. 
+    From the point on we also have a map $T$ mapping to $\Tcal$ the notation becomes ambiguous: $K(W|T)$ could also mean $K(W|T)$ where we plugged in $T$ for $t$ in ``$T=t$'',
+     similar to conditional expectations $\E[W|T]$, but the meaning should become clear from the context.
+     \end{enumerate}
+\end{Not}
+
+The implicit correspondence in the above discussion can more formally be summarized as:
+
+\begin{Lem}\label{transmeasure_is_twoargfunction}
+    There is a one-to-one correspondence between the following constructions:
+    \begin{enumerate}
+        \item a finite transition measure, i.e.\ a measurable map:
+            \[ K(W|T):\, \Tcal \to \Msf(\Wcal),\qquad t \mapsto K(W|T=t).  \]
+        \item a two-argument function:
+        \[ \tilde K(W|T):\, \Bcal_\Wcal \times \Tcal \to \R_{\ge 0}, \qquad (D,t) \mapsto \tilde K(W \in D|T=t),  \]
+         such that:
+    \begin{enumerate}[label=\roman*)]
+        \item For each $t \in \Tcal$ the map:
+            \[ \Bcal_\Wcal \to \R_{\ge 0},\qquad D \mapsto \tilde K(W\in D|T=t)\]
+            is a finite measure (i.e.\ countably additive with $\tilde K(W \in \Wcal|T=t) < \infty$ for all $t \in \Tcal$).\footnote{Note that for a finite transition measure the finite value $\tilde K(W \in \Wcal|T=t)$ can vary with $t \in \Tcal$. 
+            This is in contrast to Markov kernels where we always have $\tilde K(W \in \Wcal|T=t)=1$ for all $t \in \Tcal$.}
+        \item For each $D \in \Bcal_\Wcal$ the map:
+            \[ \Tcal \to \R_{\ge 0},\quad t \mapsto \tilde K(W \in D|T=t) \]
+            is $\Bcal_\Tcal$-$\Bcal_{\R_{\ge0}}$-measurable.
+    \end{enumerate}
+    \end{enumerate}
+    For Markov kernels the same statement holds after replacing $\Msf(\Wcal)$ with $\Prob(\Wcal)$ and ``finite measure'' with ``probability measure''.
+    \begin{proof}
+        The correspondence is via putting $K(W \in D|T=t)=\tilde K(W \in D|T=t)$ and vice versa. 
+        The corresponding properties hold by definition of the $\sigma$-algebra on $\Msf(\Wcal)$, 
+        also see Remark \ref{rem:prob-sigma-algebra}.
+        Working out the details is left as an exercise.
+    \end{proof}
+\end{Lem}
+
+
+
+\begin{comment}
+\begin{Def}[Markov kernel]
+    \label{def-markov-kernel}
+    Let $\Tcal$, $\Wcal$ be measurable spaces.
+    A \emph{Markov kernel} (aka probabilistic map or \emph{transition probability} or noisy channel, etc.) from $\Tcal$ to $\Wcal$
+    is---per definition---a map:
+    \[ K:\, \Bcal_\Wcal \times \Tcal \to [0,1],\quad (D,t) \mapsto K(D|t),\]
+    such that:
+    \begin{enumerate}[label=\roman*)]
+        \item For each $t \in \Tcal$ the map:
+            \[ \Bcal_\Wcal \to [0,1],\quad D \mapsto K(D|t)\]
+            is a probability measure (i.e.\ normalized and countably additive).
+        \item For each $D \in \Bcal_\Wcal$ the map:
+            \[ \Tcal \to [0,1],\quad t \mapsto K(D|t) \]
+            is measurable.
+    \end{enumerate}
+\end{Def}
+
+\begin{Exc} 
+    Show that a Markov kernel $K$ uniquely induces a measurable map:
+    \[ \bar K:\, \Tcal \to \Prob(\Wcal),\quad  \bar K(t)(A):=K(A|t),  \]% t \mapsto K(X|T=t) = \lp A \mapsto K(X \in A|T=t) \rp\]
+    and vice versa. 
+    Recall the definition \ref{def-sigma-algebra-prob-space} of 
+     the $\sigma$-algebra of  $\Prob(\Wcal)$.
+\end{Exc}
+\end{comment}
+
+
+
+\subsubsection{Special Cases of Markov Kernels}
+
+
+\begin{Eg}[Markov kernels on discrete spaces]
+    Consider a Markov kernel:
+    \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t),  \]
+    where both $\Wcal=\{w_1,\dots,w_M\}$ and $\Tcal=\{t_1,\dots,t_K\}$ are finite discrete spaces.
+    Then we can define the mass function $k$ via:
+    \[  k(w_i|t_j) := K(W \in \{w_i\}|T=t_j),  \]
+    and the matrix $\tilde K:=(k(w_i|t_j))_{i,j}$.
+    Then the matrix $\tilde K$ is a stochastic matrix, i.e.\ it has non-negative entries and each of its columns sums to $1$. 
+    $\tilde K$ then fully determines the Markov kernel $K$.
+    So in the (finite) discrete case a Markov kernel is basically nothing else than a stochastic matrix filled with the transition probabilities.
+\end{Eg}
+
+\begin{Eg}[Linear Gaussian Markov kernels]
+    Let $\Wcal = \R^M$, $\Tcal = \R^L$, $\gamma \in \R^M$, $\Gamma \in \R^{M \times L}$ and $\Sigma \in \R^{M \times M}$ a fixed symmetric, positive-definite covariance matrix. Then:
+    \[ K(W \in D|T=t) := \int_D \Ncal(w|\Gamma \cdot t + \gamma,\Sigma) \, dw,  \]
+    defines a Markov kernel from $\Tcal$ to $\Wcal$. Markov kernels of this form are called \emph{linear Gaussian Markov kernels}. If $\Sigma$ is only positive-semi-definite we call $K(W|T)$ a \emph{degenerate} or
+    \emph{generalized linear Gaussian Markov kernel}.
+\end{Eg}
+
+\begin{Eg}[Exponential families as finite transition measures]
+    Let $\Wcal$ be a measurable space and $\mu$ a (non-zero) measure on $\Wcal$ and $S:\,\Wcal \to \R^D$ a measurable map.
+    Define for $t \in \R^D$:
+    \[ Z(t) := \int_\Wcal \exp\lp t^\top S(w) \rp \mu(dw) \quad\in \quad (0,\infty].\]
+    We then put:
+    \[ \Tcal := \lC t\in \R^D \st Z(t) < \infty \rC.\]
+    We can then define the finite transition measure $K(W|T)$ from $\Tcal$ to $\Wcal$ 
+    for $D \in \Bcal_\Wcal$ and $t \in \Tcal$ via:
+    \[ K(W \in D|T=t) := \int_D \exp\lp t^\top S(w) \rp \mu(dw).  \]
+    From this we get the Markov kernel $Q(W|T):\, \Tcal \dshto \Wcal$ via normalization:
+    \[ Q(W \in D|T=t) := \int_D \exp\lp t^\top S(w) - L(t) \rp \mu(dw),  \]
+    with log-normalizer: $L(t):=\log Z(t) = \log K(W \in \Wcal|T=t)$.
+\end{Eg}
+
+\begin{Rem}[Markov kernels generalize probability distributions] Let $\Wcal$ be a measurable space.
+    \begin{enumerate}
+        \item Every probability distribution $P \in \Prob(\Wcal)$ can be considered as a \emph{constant Markov kernel} from $\Tcal$ to $\Wcal$ via:
+            \[  K:\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(D|t):=P(D).   \]
+        \item Every Markov kernel from the  one-point space: $\Tcal=\Asterisk:=\{\ast\}$ to $\Wcal$:
+            \[ K:\, \Asterisk \dshto \Wcal,\quad (D,\ast) \mapsto K(D|\ast),\]
+            defines a unique probability distribution $P \in \Prob(\Wcal)$ given via:
+            \[ P(D):=K(D|\ast).\]
+            So we can identify probability distributions on $\Wcal$ with Markov kernels $\Asterisk \dshto \Wcal$.
+    \end{enumerate}
+\end{Rem}
+
+\begin{Rem}[Markov kernels generalize deterministic maps]
+    Consider a measurable mapping $f: \Tcal \to \Wcal$. Then we can turn $f$ into a Markov kernel $\delta_f$ via:
+    \[  \delta_f:\, \Tcal \dshto \Wcal, \quad (D,t) \mapsto \delta_f(D|t):= \I_D(f(t)),\]
+    which puts 100\% probability mass onto the function value $f(t)$ for given $t \in \Tcal$.
+\end{Rem}
+
+
+\subsubsection{The Doob-Radon-Nikodym Derivative}
+
+
+\begin{Def}[Absolute continuity]
+    Let $\Tcal$, $\Wcal$ be  measurable spaces and
+    \[ Q(W|T),\,K(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    two finite transition measures. 
+    We say that $Q(W|T)$ is \emph{absolute continuous w.r.t.} $K(W|T)$ if for all $t \in \Tcal$ and $D \in \Bcal_\Wcal$ 
+    we have the implication:
+    \[ K(W \in D|T=t) =0 \quad \implies \quad Q(W \in D|T=t) =0.  \]
+    In symbols we abbreviate this as:
+    \[  Q(W|T) \ll K(W|T).\]
+\end{Def}
+
+\begin{Rem}
+    For absolute continuous finite transition measures $Q(W|T) \ll K(W|T)$ there exists by the Theorem of Radon-Nikodym, see Theorem \ref{thm:radon-nikodym} or \cite{Kle20} Cor.\ 7.34,
+    for each $t \in \Tcal$ separately a Radon-Nikodym derivative, i.e.\ a $\Bcal_\Wcal$-$\Bcal_{\R_{\ge0}}$-measurable map:
+    \[ g_t:\, \Wcal \to \R_{\ge 0},\]
+    such that for all $D \in \Bcal_\Wcal$:
+    \[ Q(W \in D|T=t) = \int \I_D(w) \cdot g_t(w) \, K(W \in dw|T=t). \]
+    Unfortunately, the map:
+    \[  g:\, \Wcal \times \Tcal \to \R_{\ge0},\qquad g(w|t):=g_t(w),\]
+    is not guaranteed to be jointly measurable, i.e.\ $(\Bcal_\Wcal\otimes\Bcal_\Tcal)$-$\Bcal_{\R_{\ge0}}$-measurable.
+    In case it was, we would call it a \emph{Doob-Radon-Nikodym derivative} of  $Q(W|T)$ w.r.t.\ $K(W|T)$.
+    Doob invented an alternative, but a bit more restrictive approach than the usual one
+    to construct Radon-Nikodym derivatives for measures based on martingales.
+    This approach will be seen to also work for the construction of Doob-Radon-Nikodym derivatives for finite transition measures.
+\end{Rem}
+
+
+\begin{Def}[Doob-Radon-Nikodym derivative]
+  Let $\Tcal$, $\Wcal$ be  measurable spaces and
+    \[ Q(W|T),\,K(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    two finite transition measures. 
+    A map
+    \[ g:\, \Wcal \times \Tcal \to \R_{\ge0}, \qquad (w,t) \mapsto g(w|t),  \]
+    is called \emph{Doob-Radon-Nikodym derivative} if $g$ is 
+    $(\Bcal_\Wcal \otimes \Bcal_\Tcal)$-$\Bcal_{\R_{\ge0}}$-measurable and
+    for all $t \in \Tcal$ and all $D \in \Bcal_\Wcal$ we have:
+    \[ Q(W \in D|T=t) = \int \I_D(w) \cdot g(w|t) \, K(W \in dw|T=t). \]
+    In other words, $g$ provides a Radon-Nikodym derivative simultaneously for all $t \in \Tcal$:
+    \[  g(w|t) = \frac{Q(W \in dw|T=t)}{K(W \in dw|T=t)}(w), \]
+    that is even jointly measurable in $(w,t)$.
+\end{Def}
+
+\begin{Lem}
+    \label{lem:density-abs-cont}
+    If $Q(W|T)$ has a Doob-Radon-Nikodym derivative w.r.t. $K(W|T)$ then $Q(W|T)$ is absolute continuous w.r.t. $K(W|T)$.
+    \begin{proof}
+        Should be clear, left as an exercise.
+    \end{proof}
+\end{Lem}
+
+To investigate the uniqueness of the Doob-Radon-Nikodym derivative we need the following notion of $K(W|T)$-null sets.
+
+\begin{Def}[Null sets]
+    Let $K(W|T):\, \Tcal \to \Msf(\Wcal)$ be a finite transition measure.
+A subset $N \ins \Wcal \times \Tcal$ is called \emph{$K(W|T)$-null} if 
+$N_t:=\{ w \in \Wcal\,|\, (w,t) \in N \}$ is a $K(W|T=t)$-null set for every $t \in \Tcal$, i.e.\
+if for every $t \in \Tcal$ there exists a measurable set $M_t \in \Bcal_\Wcal$ such that $K(W \in M_t|T=t) =0$ 
+and $N_t \ins M_t$.
+\end{Def}
+
+\begin{Lem}[Essential uniqueness of the Doob-Radon-Nikodym derivative]
+    \label{lem:ess-uniq-drnd}
+    Let $\Tcal$, $\Wcal$ be measurable spaces and:
+    \[ Q(W|T), K(W|T) :\, \Tcal \to \Msf(\Wcal), \]
+    be two finite transition measures with $Q(W|T) \ll K(W|T)$ and let $g_1,g_2$ be two Doob-Radon-Nikodym derivatives. 
+    %Assume that $\Wcal$ is a standard measurable space\footref{fn:count-generated}.
+    Then the set:
+    \[ N:=\lC (w,t) \in \Wcal \times \Tcal \st g_1(w|t) \neq g_2(w|t) \rC \]
+    is a $K(W|T)$-null set and an element of the product $\sigma$-algebra $\Bcal_\Wcal\otimes\Bcal_\Tcal$.
+    In this sense, the Doob-Radon-Nikodym derivative is essentially unique.
+\end{Lem}
+
+
+\begin{Thm}[Doob-Radon-Nikodym, see \cite{Del83} Thm.\ 58, \cite{Kle20} Ex.\ 11.17]
+    \label{thm:doob-radon-nikodym}
+    Let $\Tcal$, $\Wcal$ be measurable spaces and:
+    \[ K(W|T), \,Q(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    be two finite transition measures. Assume that $\Wcal$ is a standard measurable space.\footnote{The proof shows that we actually only require that $\Bcal_\Wcal$ is \emph{countably generated}. \label{fn:count-generated}} Then the following two statements are equivalent:
+    \begin{enumerate}
+        \item $Q(W|T)$ is absolute continuous w.r.t.\ $K(W|T)$.  
+        \item $Q(W|T)$ has a Doob-Radon-Nikodym derivative w.r.t.\ $K(W|T)$.
+    \end{enumerate}
+    In that case the Doob-Radon-Nikodym derivative is essentially unique.
+\end{Thm}
+
+\begin{Rem}
+    \begin{enumerate}
+        \item As mentioned in the footnote\footref{fn:count-generated} Theorem \ref{thm:doob-radon-nikodym} still holds if one only requires $\Bcal_\Wcal$ to be countably generated. Further extensions could be made to $\sigma$-algebras $\Bcal_\Wcal$ that are countably generated up to some form of null-sets.
+        \item With more technical conditions one could extend Theorem \ref{thm:doob-radon-nikodym} to work for $\sigma$-finite transition measures. A simple, but important, special case is treated in the following Corollary \ref{cor:doob-radon-nikodym}.
+    %    \item A special case of Theorem \ref{thm:doob-radon-nikodym} would be to consider a statistical model $P(X|\Theta)$ that is absolute continuous w.r.t.\ the Lebesgue measure $\lambda$, where $\Xcal=\R^D$.  Then one gets a density $p$ w.r.t.\ $\lambda$, usually denoted $p(x|\theta)$, that is jointly measurable in $(x,\theta)$.  Note that $\lambda$ is not finite, but it is equivalent, in terms of absolute continuity, to a probability measure, e.g.\ to any Gaussian probability distribution, to which Theorem \ref{thm:doob-radon-nikodym} then applies.
+    \end{enumerate}
+\end{Rem}
+
+\begin{Cor}[Doob-Radon-Nikodym derivatives w.r.t.\ $\sigma$-finite measures]
+    \label{cor:doob-radon-nikodym}
+    Let $\Tcal$, $\Wcal$ be measurable spaces, where $\Wcal$ is a standard\footref{fn:count-generated} measurable space, let
+    \[ P(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    be a finite transition measure and $\mu$ be a $\sigma$-finite measure on $\Wcal$.
+    Then the following two statements are equivalent:
+    \begin{enumerate}
+        \item $P(W|T)$ is absolute continuous w.r.t.\ $\mu$, i.e.\ for all $t \in \Tcal$ and $D \in \Bcal_\Wcal$:
+            \[ \mu(D) =0 \qquad \implies \qquad P(W \in D|T=t) = 0.  \]
+        \item $P(W|T)$ has a Doob-Radon-Nikodym derivative w.r.t.\ $\mu$, i.e.\ a jointly measurable map:
+                \[ p:\, \Wcal \times \Tcal \to \R_{\ge0}, \qquad (w,t) \mapsto p(w|t),  \]
+              such that for all $t \in \Tcal$ and $D \in \Bcal_\Wcal$:
+              \[ P(W \in D|T=t) = \int_D p(w|t) \, \mu(dw).  \]
+    \end{enumerate}
+    In that case the Doob-Radon-Nikodym derivative is essentially unique, i.e.\ for two such $p$, say $p_1$ and $p_2$,  the set:
+    \[ N := \lC (w,t) \in \Wcal \times \Tcal \st p_1(w|t) \neq p_2(w|t) \rC \in \Bcal_\Wcal\otimes\Bcal_\Tcal, \]
+    satisfies $\mu(N_t)=0$ for all $t \in \Tcal$.
+\begin{proof}
+    Let $P(W|T)$ be absolute continuous w.r.t.\ $\mu$.
+    Since $\mu$ is $\sigma$-finite there exists a probability measure $Q(W)$ with:
+    \[ Q(W) \ll \mu \ll Q(W). \]
+    Indeed, if $\mu$ is finite, we can just put $Q(W \in D) := \frac{\mu(D)}{\mu(\Wcal)}$. If $\mu$ is $\sigma$-finite, but not finite, then we have a decomposition $\Wcal = \bigdcup_{n \in \N} \Wcal_n$ with $0<\mu(\Wcal_n)<\infty$. We can then put:
+    \[
+        Q(W \in D) := \sum_{n \in \N} 2^{-n} \frac{\mu(D \cap \Wcal_n)}{\mu(\Wcal_n)}.
+    \]
+    By the standard Radon-Nikodym theorem there exists a Radon-Nikodym derivative $q$ of $Q(W)$ w.r.t.\ $\mu$. 
+    Note that $Q(W)$ defines the constant Markov kernel $Q(W|T)$ via $Q(W|T=t) := Q(W)$.
+    We thus have the absolute continuity:
+    \[ P(W|T) \ll \mu \ll Q(W|T). \]
+    By Theorem \ref{thm:doob-radon-nikodym} we thus get a Doob-Radon-Nikodym derivative $k$ of $P(W|T)$ w.r.t.\ $Q(W|T)$. Then $p$ given by:
+    \[ p(w|t) := k(w|t) \cdot q(w),\]
+    is a Doob-Radon-Nikodym derivative of $P(W|T)$ w.r.t.\ $\mu$. 
+    Indeed, we get for all $t \in \Tcal$ and $D \in \Bcal_\Wcal$:
+    \[ P(W \in D|T=t) = \int_D k(w|t) \, Q(W \in dw|T=t) = \int_D k(w|t) \cdot q(w) \, \mu(dw).  \]
+    This shows one direction.
+    
+    The essential uniqueness follows similar to Lemma \ref{lem:ess-uniq-drnd} and the other direction similar to Lemma \ref{lem:density-abs-cont}. 
+\end{proof}
+\end{Cor}
+
+
+\begin{Cor}[Absolute continuity and strictly positive densities]
+    \label{cor:abs-cont-str-pos-den}
+    Let $\Tcal$, $\Wcal$ be measurable spaces, where $\Wcal$ is a standard\footref{fn:count-generated}, and:
+    \[ P(W|T),\, K(W|T), \,Q(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    be finite transition measures and $\mu$ be a $\sigma$-finite measure on $\Wcal$. 
+    \begin{enumerate}
+        \item $Q(W|T)$ has a \emph{strictly positive} Doob-Radon-Nikodym derivative w.r.t.\ $K(W|T)$ if and only if:
+            \[ Q(W|T) \ll K(W|T) \ll Q(W|T).   \]
+        \item $P(W|T)$ has a \emph{strictly positive} Doob-Radon-Nikodym derivative w.r.t.\ $\mu$ if and only if:
+            \[ \mu \ll P(W|T) \ll \mu.   \]
+    \end{enumerate}
+\begin{proof}
+    The second case follows from the first using the arguments from Corollary \ref{cor:doob-radon-nikodym}. 
+    So, first assume that $Q(W|T)$ has a strictly positive density $q >0$ w.r.t.\ $K(W|T)$. Then by Lemma \ref{lem:density-abs-cont} we already have: 
+    $Q(W|T) \ll K(W|T)$. Since $q$ is strictly positive we can put for $w \in \Wcal$ and $t \in \Tcal$:
+    \[
+        k(w|t) := \frac{1}{q(w|t)} >0.
+    \]
+    Then $k$ is a (strictly positive) density of $K(W|T)$ w.r.t.\ $Q(W|T)$ and we again can use Lemma \ref{lem:density-abs-cont} to also get: $K(W|T) \ll Q(W|T)$.
+    This shows one direction.
+
+    Now assume that we have:
+    \[ Q(W|T) \ll K(W|T) \ll Q(W|T).   \]
+    Then by the Doob-Radon-Nikodym Theorem \ref{thm:doob-radon-nikodym} we have  Doob-Radon-Nikodym derivatives $q$ and $k$ of $Q(W|T)$ w.r.t.\ $K(W|T)$ and of
+    $K(W|T)$ w.r.t.\ $Q(W|T)$, resp. For all $D \in \Bcal_\Wcal$ and $t \in \Tcal$ we thus get:
+    \begin{align*}
+        \int_D 1 \, Q(W \in dw|T=t) &=  Q(W \in D|T=t) \\
+                                    &=  \int_D q(w|t) \, K(W \in dw|T=t) \\
+                                    &= \int_D q(w|t) \cdot k(w|t) \, Q(W \in dw|T=t).
+    \end{align*}
+    Since this holds for all $D \in \Bcal_\Wcal$ and $t \in \Tcal$ we get that the set:
+    \[ N:=\lC (w,t) \in \Wcal \times \Tcal \st 1 \neq q(w|t) \cdot k(w|t) \rC \in \Bcal_\Wcal \otimes \Bcal_\Tcal,  \]
+    is a $Q(W|T)$-null set, and because $K(W|T) \ll Q(W|T)$, also a $K(W|T)$-null set.
+    We then put:
+    \begin{align} 
+        \tilde q(w|t) &:= q(w|t) \cdot \I_{N^\cmpl}(w,t) + \I_N(w,t), \\
+        \tilde k(w|t) &:= k(w|t) \cdot \I_{N^\cmpl}(w,t) + \I_N(w,t).
+    \end{align}
+    These are then still corresponding Doob-Radon-Nikodym derivatives and satisfy for all $w \in \Wcal$ and $t \in \Tcal$:
+    \[ \tilde q(w|t) \cdot \tilde k(w|t) = 1,  \]
+    which directly implies: $\tilde q(w|t), \tilde k(w|t) > 0$ for all $w \in \Wcal$ and $t \in \Tcal$. This shows the claim.
+\end{proof}
+\end{Cor}
+
+\paragraph{Proofs - Theorem of Doob-Radon-Nikodym}
+
+\begin{Lem}[Essential uniqueness of the Doob-Radon-Nikodym derivative]
+    \label{lem:doob-radon-nikodym-unique}
+    Let $\Tcal$, $\Wcal$ be measurable spaces and:
+    \[ Q(W|T), K(W|T) :\, \Tcal \to \Msf(\Wcal), \]
+    be two finite transition measures with $Q(W|T) \ll K(W|T)$ and let $g_1,g_2$ be two Doob-Radon-Nikodym derivatives. 
+    %Assume that $\Wcal$ is a standard measurable space\footref{fn:count-generated}.
+    Then the set:
+    \[ N:=\lC (w,t) \in \Wcal \times \Tcal \st g_1(w|t) \neq g_2(w|t) \rC \]
+    is a $K(W|T)$-null set and an element of the product $\sigma$-algebra $\Bcal_\Wcal\otimes\Bcal_\Tcal$.
+    \begin{proof}
+        Consider the set:
+        \[ N^>:= \lC (w,t) \in \Wcal \times \Tcal \st g_1(w|t) > g_2(w|t) \rC = (g_1 \times g_2)^{-1}(\Delta^>),\]
+        where $\Delta^>$ is the measurable set:
+        \[ \Delta^>:=\lC (r_1,r_2) \in \R \times \R \st r_1 >r_2 \rC  \in \Bcal_{\R^2}.\]
+        Since both $g_1$ and $g_2$ are jointly measurable that shows that $N^> \in \Bcal_\Wcal\otimes\Bcal_\Tcal$.
+        It follows that $N^>_t \in \Bcal_\Wcal$.
+        Furthermore, we get:
+        \begin{align*}
+            0 &=   Q(W \in N^>_t|T=t) - Q(W \in N^>_t|T=t) \\
+              &= \int \I_{N^>_t}(w) \cdot g_1(w|t) \, K(W \in dw|T=t) - \int \I_{N^>_t}(w) \cdot g_2(w|t) \, K(W \in dw|T=t)\\
+              &= \int \underbrace{\I_{N^>_t}(w) \cdot (g_1(w|t) - g_2(w|t))}_{> 0 \text{ for }  w\in N^>_t} \, K(W \in dw|T=t).
+          \end{align*}
+          This shows that $K(W \in N^>_t|T=t) =0$. By flipping $g_1$ and $g_2$ we also get: $K(W \in N^<_t|T=t) =0$
+          and thus $K(W \in N_t|T=t) =0$, where we notice that $N = N^> \cup N^<$.
+          This shows the claim.
+    \end{proof}
+\end{Lem}
+
+
+
+\begin{Thm}[Existence of the Doob-Radon-Nikodym derivative, see \cite{Del83} Thm.\ 58, \cite{Kle20} Ex.\ 11.17]
+    Let $\Tcal$, $\Wcal$ be measurable spaces and:
+    \[ K(W|T), \,Q(W|T):\, \Tcal \to \Msf(\Wcal),  \]
+    be two finite transition measures. Assume that $\Wcal$ is a standard measurable space.\footref{fn:count-generated}
+    $Q(W|T) \ll K(W|T)$ implies that $Q(W|T)$ has a Doob-Radon-Nikodym derivative w.r.t.\ $K(W|T)$.
+ \begin{proof}[Proof sketch]
+    Since $\Wcal$ is a standard measurable space we have that $\Bcal_\Wcal$ is countably generated, i.e.\
+    $\Bcal_\Wcal=\sigma(\Scal)$ with a countable $\Scal=\lC  D_n \st n\in \N \rC \ins \Bcal_\Wcal$. 
+    If for example, $\Wcal=[0,1]$, which we can w.l.o.g.\ assume, 
+    then we could choose $\Scal =\lC [a,b] \st a \le b, a,b \in \Q \cap [0,1] \rC$. 
+    We now define the following sequence of finite measurable partitions of $\Wcal$ inductively via:
+     \[ \Ecal_0:=\{\Wcal\}, \qquad\quad \Ecal_{n+1}:= \left(\bigcup_{D\in\Ecal_{n}} \{ D \sm D_n, D \cap D_n \} \right) \sm \{\emptyset\}, \quad n \in \N. \]
+     We put $\Bcal_n:=\sigma(\Ecal_n)$.
+     Note that each $\Ecal_n$ is finite and for every $n \in \N$:
+     \[ \Wcal = \bigdcup_{D \in \Ecal_n} D, \qquad \Bcal_n \ins \Bcal_{n+1} \ins 
+     \Bcal_\Wcal = \sigma \lp \bigcup_{m \in \N} \Ecal_m\rp.\]
+     For $D \in \Bcal_\Wcal$ we can define the  map $q_D:\, \Tcal \to \R_{\ge 0}$ via:
+     \[ q_D(t):=  \frac{Q(W \in D|T=t)}{K(W \in D|T=t)}  \cdot 
+     \I_{K(W \in D|T=t)>0}  = \left\{ 
+    \begin{array}{lll}
+        \frac{Q(W \in D|T=t)}{K(W \in D|T=t)},& \text{ if }& K(W \in D|T=t) > 0,\\
+        0, & \text{ if }& K(W \in D|T=t) = 0.
+    \end{array}
+    \right. \]
+    Since $Q(W\in D|T=t)$ and $K(W \in D|T=t)$ are measurable in $t$ for each fixed $D$ we see that $q_D$ is
+    $\Bcal_\Tcal$-$\Bcal_{\R_{\ge0}}$-measurable.
+     For $n \in \N$ we now define:
+     \[ G_n(w,t) := \sum_{D \in \Ecal_n}  \I_D(w) \cdot q_D(t), \]
+     and:
+     \[ G(w,t) := \liminf_{n\in\N} G_n(w,t), \qquad g(w|t):= G(w,t) \cdot \I_{G(w,t) < \infty}.\]
+     We immediately see that every $G_n$ is a $(\Bcal_\Wcal\otimes\Bcal_\Tcal)$-$\Bcal_{\R_{\ge0}}$-measurable map. 
+     As a countable limit of measurable functions also $G$ and $g$
+     are $\Bcal_\Wcal\otimes\Bcal_\Tcal$-measurable. 
+     We claim that $g$ is a Doob-Radon-Nikodym derivative of $Q(W|T)$ w.r.t.\ $K(W|T)$. 
+     Since we already showed that $g$ is jointly measurable we are left to show that for every $t \in \Tcal$ and 
+     $D \in \Bcal_\Wcal$ we have:
+    \[ Q(W \in D|T=t) = \int \I_D(w) \cdot g(w|t) \, K(W \in dw|T=t). \]
+     So in the following we can fix $t \in \Tcal$ and only indicate the dependence on $t$ with an index:
+     \[  G_n^t(w):=G_n(w,t), \qquad G^t(w):=G(w,t).  \]
+     Notice that $G_n^t$ is $\Bcal_n$-measurable for $n \in \N$.
+     In the following we will use that by construction of the $\Ecal_n$ for $D \in \Ecal_n$ and $m \ge n$ we have the disjoint union decompositions:
+     \[D = \bigdcup_{\substack{A \in \Ecal_m\\ A \ins D}} A, \qquad \Wcal = \bigdcup_{D \in \Ecal_n} \lp \bigdcup_{\substack{A \in \Ecal_m\\ A \ins D}} A \rp.\]
+ Let $m \ge n$ then we get:
+     \begin{align*}
+        & G_n^t(w)\\ 
+         & = \sum_{D \in \Ecal_n}  \lB \frac{Q(W \in D|T=t)}{K(W \in D|T=t)}  \cdot 
+     \I_{K(W \in D|T=t)>0} \rB  \cdot \I_D(w)  \\
+             & = \sum_{D \in \Ecal_n}  \lB \sum_{\substack{A \in \Ecal_{m}\\ A \ins D}}\frac{Q(W \in A|T=t)}{K(W \in D|T=t)}  \cdot \I_{K(W \in D|T=t)>0} \rB  \cdot \I_D(w)  \\
+             & = \sum_{D \in \Ecal_n}  \lB \sum_{\substack{A \in \Ecal_{m}\\ A \ins D}}\frac{Q(W \in A|T=t)}{K(W \in D|T=t)}  \cdot \I_{Q(W \in A|T=t)>0} \cdot \I_{K(W \in D|T=t)>0}\rB  \cdot \I_D(w)  \\
+             & \stackrel{Q \ll K}{=} \sum_{D \in \Ecal_n}  \lB \sum_{\substack{A \in \Ecal_{m}\\ A \ins D}}\frac{Q(W \in A|T=t)}{K(W \in D|T=t)}  \cdot \I_{K(W \in A|T=t)>0} \cdot \I_{K(W \in D|T=t)>0}\rB  \cdot \I_D(w)  \\
+             &= \sum_{D \in \Ecal_n}  \lB \sum_{\substack{A \in \Ecal_{m}\\ A \ins D}}\frac{Q(W \in A|T=t)}{K(W \in A|T=t)}  \cdot\frac{K(W \in A|T=t)}{K(W \in D|T=t)}\cdot \I_{K(W \in A|T=t)>0}\cdot \I_{K(W \in D|T=t)>0} \rB  \cdot \I_D(w)  \\
+             &= \sum_{A \in \Ecal_m}   \sum_{\substack{D \in \Ecal_n\\ D \sni A}}\frac{Q(W \in A|T=t)}{K(W \in A|T=t)}  \cdot\frac{K(W \in A|T=t)}{K(W \in D|T=t)}\cdot \I_{K(W \in A|T=t)>0}\cdot \I_{K(W \in D|T=t)>0}   \cdot \I_D(w)  \\
+             &= \sum_{A \in \Ecal_m} \frac{Q(W \in A|T=t)}{K(W \in A|T=t)} \cdot  \I_{K(W \in A|T=t)>0}
+             \underbrace{ \lB \sum_{\substack{D \in \Ecal_n\\ D \sni A}}  \cdot\frac{K(W \in A|T=t)}{K(W \in D|T=t)}\cdot  \I_{K(W \in D|T=t)>0}   \cdot \I_D(w)\rB }_{=\E_t[\I_A|\Bcal_n](w)}  \\
+             &= \sum_{A \in \Ecal_m} \lB \frac{Q(W \in A|T=t)}{K(W \in A|T=t)}  \cdot  \I_{K(W \in A|T=t)>0} \rB \cdot \E_t[\I_A|\Bcal_n](w) \\ 
+             &= \E_t\lB \sum_{A \in \Ecal_m} \frac{Q(W \in A|T=t)}{K(W \in A|T=t)} \cdot  \I_{K(W \in A|T=t)>0} \cdot \I_A \st \Bcal_n\rB(w) \\ 
+             &= \E_t\lB G_m^t \st \Bcal_n\rB(w).
+    \end{align*}
+    Note that we use $\E_t[\_|\Bcal_n]$ to indicate conditional expectations w.r.t.\ $K(W|T=t)$ and $\Bcal_n$.
+    For the first conditional expectation see \cite{Kle20} Lem.\ 8.10. 
+    %Also note that the indicated quantities are really versions of conditional expectations and thus the equalities hold exactly (not just up to null-sets).
+    So we get that $G_n^t$ is a version of $\E_t\lB G_m^t \st \Bcal_n\rB$ for all $m \ge n$.
+    This shows that $(G_n^t)_{n \in \N}$ is a martingale attached to the filtration $(\Bcal_n)_{n \in \N}$ w.r.t.\ $K(W|T=t)$.
+    Furthermore, we can show that $(G_n^t)_{n \in \N}$ is uniformly integrable w.r.t.\ $K(W|T=t)$, see \cite{Kle20} Ex.\ 7.39.
+    By the convergence theorem for uniformly integrable martingales, see \cite{Kle20} Thm.\ 11.7, we get that
+    $G_n^t$ also converges in $L^1$ to $G^t$ w.r.t.\ $K(W|T=t)$ and that $G_n^t$ is a version of $\E_t[G^t|\Bcal_n]$ for all $n \in \N$. So for $D \in \Ecal_n$ the function $\I_D \cdot G_n^t$ is a version of $\E_t[\I_D \cdot G^t|\Bcal_n]$.
+    Taking expectation values shows:
+    \begin{align*}
+        \E_t\lB \I_D \cdot G^t  \rB & = \E_t\lB\E_t[ \I_D \cdot G^t|\Bcal_n] \rB  
+        = \E_t\lB \I_D \cdot G^t_n  \rB 
+        = Q(W \in D|T=t). 
+    \end{align*}
+    Since this holds for all $D \in \Ecal_n$ and all $n \in \N$ it also holds for all
+    $D \in \Bcal_\Wcal=\sigma\lp \bigcup_{n \in \N} \Ecal_n\rp$ and we get:
+    \begin{align*}
+        \int \I_D(w) \cdot G(w,t) \, K(W \in dw|T=t) &=
+        \E_t\lB \I_D \cdot G^t \rB    = Q(W \in D|T=t). 
+    \end{align*}
+    Since $Q(W|T=t)$ is a finite measure the set $\lC w \in \Wcal \st G(w,t) = \infty \rC$ is a $K(W|T=t)$-null set
+    and we can replace $G$ by $g$ under the integral.
+    This shows the claim.
+  \end{proof}
+\end{Thm}
+
+\subsubsection{Transition Probability Spaces}
+
+\begin{Def}[Transition probability space]
+    Consider measurable spaces $\Tcal$ and $\Wcal$ and a Markov kernel:
+    \[K(W|T):\, \Tcal \dshto \Wcal,\quad (D,t) \mapsto K(W \in D|T=t).  \]
+    Then we call the tuple 
+    $(\Wcal \times \Tcal, K(W|T))$ a \emph{transition probability space}.
+    It generalizes the notion of probability space, which can be recovered by taking $\Tcal=\Asterisk$.
+\end{Def}
+
+%\begin{Def}[Null sets]
+%Let $(\Wcal\times \Tcal, K(W|T))$ be a transition probability space.
+%A subset $M \ins \Wcal \times \Tcal$ is called \emph{$K(W|T)$-null} if there exists a measurable subset $N \ins \Wcal\times\Tcal$
+%with $M \ins N$ and $K(W \in N_t|T=t)=0$ for all $t \in \Tcal$,
+%where $N_t:=\{ w \in \Wcal\,|\, (w,t) \in N\}$ is the section of $N$ at $t$, which is a measurable subset of $\Wcal$.
+%\end{Def}
+
+
+
+\begin{Def}[Conditional random variables]
+    A measurable map:
+    \[ X:\, \Wcal \times \Tcal \to \Xcal  \]
+    starting from a transition probability space $(\Wcal\times \Tcal, K(W|T))$ is called
+    \emph{conditional random variable}.
+    It generalizes the notion of random variables and can be considered a family of random variables (measurably) parameterized by $t \in \Tcal$.
+    For $t \in \Tcal$ we also define the measurable map:
+    \[ X_t:\, \Wcal \to \Xcal,\quad w \mapsto X_t(w):= X(w,t),\]
+    which can be considered a random variable on the probability space $(\Wcal,K(W|T=t))$.
+    %We also define the \emph{special \trv{}}:
+\end{Def}
+
+
+\begin{Eg}[Special \trv{}s of importance]
+        Let $(\Wcal\times \Tcal, K(W|T))$ be a transition probability space.
+        Then we denote by:
+        \begin{enumerate}
+            \item $T$ the \emph{canonical projection} onto $\Tcal$:
+                \[T:= \pr_\Tcal:\,\Wcal \times \Tcal \to \Tcal,\quad (w,t) \mapsto T(w,t):= t.\]
+            \item $\ast$ the \emph{constant \trv{}}:
+                \[ \ast :\,\Wcal \times \Tcal \to \Asterisk,\quad (w,t) \mapsto \ast,\]
+                where $\Asterisk:=\{\ast\}$ is the one-point space.
+        \end{enumerate}
+\end{Eg}
+
+
+
+
+\subsection{Constructing Markov Kernels from Others}
+
+
+\subsubsection{Marginal Markov Kernels}
+
+\begin{Def}[Marginalizing Markov kernels]
+    \label{def-marginal-markov-kernels}
+    Let 
+    \[K(X,Y|T):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    be a Markov kernel in two variables.
+    We can then define the \emph{marginal Markov kernels} as follows:
+    \[ K(X|T):\, \Tcal \dshto \Xcal,\quad (A,t) \mapsto K(X \in A, Y \in \Ycal|T=t),  \]
+    and:
+    \[ K(Y|T):\, \Tcal \dshto \Ycal,\quad (B,t) \mapsto K(X \in \Xcal, Y \in B|T=t).  \]
+\end{Def}
+
+\begin{Eg}[Marginal Markov kernels of discrete Markov kernels]
+    Let 
+    \[K(X,Y|T):\,\Tcal \dshto  \Xcal \times \Ycal \]
+    be a Markov kernel in two variables on discrete spaces and $k_{X,Y|T}$ its mass function.
+    We can then compute the marginal Markov kernels as follows:
+    \[  k_{X|T}(x|t) = \sum_{y \in \Ycal} k_{X,Y|T}(x,y|t), \]
+    and:
+    \[  k_{Y|T}(y|t) = \sum_{x \in \Xcal} k_{X,Y|T}(x,y|t). \]
+    Note, by abuse of notation, for simplicity, we often omit the indices and write $k(x|t)$ and $k(y|t)$ instead 
+    and distinguish these two functions just by the use of the argument symbols $x$ and $y$.
+\end{Eg}
+
+
+\subsubsection{Product of Markov Kernels}
+
+\begin{Def}[Product of Markov kernels]
+    \label{def-product-markov-kernels}
+    Consider two Markov kernels:
+    \[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  
+    K(W,U|T,X):\, \Tcal \times \Xcal \dshto \Wcal \times \Ucal. \]
+    Then we define the \emph{product Markov kernel}:
+    \[ Q(Z|Y,W,T) \otimes K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal \times \Wcal \times \Ucal, \]
+    using  measurable sets $E \ins \Zcal \times \Wcal \times \Ucal$ via: $(E,(y,t,x)) \mapsto $
+    \[\int\int \I_E(z,w,u)\, Q(Z \in dz|Y=y,W=w,T=t) \, K((W,U) \in d(w,u)|T=t,X=x),\]
+  where the inner integration is over $z \in \Zcal$ and the outer integration over $(w,u) \in \Wcal\times \Ucal$.\footnote{The integration ordering actually does not matter, which follows from Fubini's theorem, Theorem~\ref{fubini}.}
+%where for measurable $E \ins \Zcal \times \Wcal$ and $w \in \Wcal$ we put: 
+%   $E_w:=\{ z \in \Zcal\,|\, (z,w) \in E\}$.
+\end{Def}
+
+\begin{Rem}
+    Note that in the notation of the product of Markov kernels we use the suggestive symbols, e.g.\ $W$ in $K(W,U|T,X)$ and $W$ in $Q(Z|Y,W,T)$ to indicate which variables will be ``coupled'' in the product.
+    A more precise notation could indicate this, e.g.\ by indices on the product symbol like $\otimes_{(W_1,W_2)}$ or similar. However, our shorthand notation should not lead to much ambiguity during this course.
+    The rule of thumb is that the output of a kernel at the r.h.s.\ of the product is coupled to a matching input of the kernel on the l.h.s.\ of the product.
+\end{Rem}
+
+\begin{Eg}[Product of discrete Markov kernels]
+    Let $Q(Z|Y,W,T)$ and $K(W|T,X)$ be two Markov kernels on finite spaces.
+    Let $P(Z,W|Y,T,X) := Q(Z|Y,W,T) \otimes K(W|T,X)$ be the product of Markov kernels and $p$, $q$, $k$ the corresponding mass functions.
+    Then we have:
+    \[  p(z_i,w_k|y_s,x_l,t_j) = q(z_i|y_s,w_k,t_j) \cdot k(w_k|t_j,x_l),  \]
+    which is just the product of mass functions.
+    For the corresponding stochastic tensors $\tilde P$, $\tilde Q$, $\tilde K$ we get that:    
+    \[\tilde P = \tilde Q \odot_{W,T} \tilde K\]
+    is the entry-wise product/Hadamard product of tensors (reflecting the above formula, i.e.\ indices for $w_k$, $t_j$  are the same in $q$ and $k$).
+\end{Eg}
+
+\begin{Exc}\label{mk-product-commutes}
+    Show that the product of Markov kernels is associative.
+    Under which conditions can we commute Markov kernels in products?
+    For this you can use Fubini's theorem. See also the comments below.
+\end{Exc}
+
+\begin{Thm}[Fubini's Theorem, \cite{Kle20} Thm.\ 14.19]\label{fubini}
+    Let $(\Xcal,\mu)$ and $(\Ycal,\nu)$ be two ($\sigma$-)finite measure spaces and $f:\,\Xcal \times \Ycal \to [0,\infty]$ a $(\Bcal_\Xcal\otimes\Bcal_\Ycal)$-$\Bcal_{[0,\infty]}$-measurable map.
+    Then we have the equalities:
+    \[ \int\lp\int f(x,y)\, \mu(dx)\rp\,\nu(dy) = \int\lp\int f(x,y)\, \nu(dy)\rp\,\mu(dx) = \int f(x,y) \, d(\mu\otimes\nu)(x,y). \]
+%    For $D \in \Bcal_\Xcal \otimes \Bcal_\Ycal$ we have:
+%    \[ (\mu \otimes \nu)(D) = (\nu \otimes \mu)(D^s), \]
+%    where $D^s:=\lC (y,x) \in \Ycal \times \Xcal \st (x,y) \in D \rC \in \Bcal_\Ycal \otimes \Bcal_\Xcal$.
+\end{Thm}
+
+\begin{Rem}[Conventions about integration order]\label{integration-order}
+    For $D \in \Bcal_\Xcal \otimes \Bcal_\Ycal$ Fubini's theorem says:
+    \[ \int\lp\int \I_D(x,y)\, \mu(dx)\rp\,\nu(dy) = \int\lp\int \I_D(x,y)\, \nu(dy)\rp\,\mu(dx) = \int \I_D(x,y) \, d(\mu\otimes\nu)(x,y). \]
+    The integral notation hides the fact that $\mu \otimes \nu$ and $\nu \otimes \mu$ can only be identified as measures if we also swap the order of the spaces $\Xcal$ and $\Ycal$. $\mu \otimes \nu$ lives on $\Xcal \times \Ycal$ and $\nu \otimes \mu$ lives on $\Ycal \times \Xcal$. In more precise terms, we would have:
+      \[ (\mu \otimes \nu)(D) = (\nu \otimes \mu)(D^s), \]
+    where $D^s:=\lC (y,x) \in \Ycal \times \Xcal \st (x,y) \in D \rC \in \Bcal_\Ycal \otimes \Bcal_\Xcal$.
+    That said, we will always make this swap implicitly, and just write:
+    \[ Q(Z|Y,T) \otimes K(U|T,X) = K(U|T,X) \otimes Q(Z|Y,T), \]
+    if there is no variable with the same symbol that occurs on the left of the conditioning bar in one Markov kernel and on the right of the conditioning bar in the other Markov kernel.
+    This is justified by Fubini's theorem and our implicit swap convention.
+    This will not lead to much ambiguity, when interpreted as measures under the integral, as one can match
+    the variables $Z$, $U$, etc., to their corresponding arguments $z$, $u$, etc., in our suggestive notations.
+    In a similar sense we also identify:
+    \begin{align*} K(W|T=t,X=x)&=K(W|X=x,T=t),\\ Q(X \in A,Y \in B|T) &= Q(Y \in B, X \in A|T). 
+    \end{align*}
+\end{Rem}
+
+\subsubsection{Composition of Markov Kernels}
+
+\begin{Def}[Composition of Markov kernels]
+        \label{def-composition-markov-kernels}
+    Consider two Markov kernels:
+    \[ Q(Z|Y,W,T):\, \Ycal \times \Wcal\times \Tcal \dshto \Zcal,\qquad  K(W,U|T,X):\, 
+    \Tcal \times \Xcal \dshto \Wcal\times\Ucal. \]
+    Then we define their \emph{composition}:
+    \[ Q(Z|Y,W,T) \circ K(W,U|T,X) :\, \Ycal \times  \Tcal \times \Xcal \dshto \Zcal, \]
+    using  measurable sets $C \ins \Zcal$ via:
+    \[\begin{array}{ccl}
+    (C,(y,t,x))    &\mapsto & \displaystyle \int Q(Z \in C|Y=y,W=w,T=t) \, K(W \in dw|T=t,X=x).
+    \end{array}\]
+    Note that we implicitly marginalized $U$ out, i.e.\ in the composition we integrate over all variables (here: $W$ and $U$) 
+    from the right hand Markov kernel.
+    As a notation we will also write:
+    \begin{align*} & \qquad Q(Z \in C|Y=y,W,T=t) \circ K(W,U|T=t,X=x) \\
+    &:= \lp Q(Z|Y,W,T) \circ K(W,U|T,X)\rp (C|(y,t,x)).  \end{align*}
+\end{Def}
+
+
+\begin{Rem}\label{rem:markov-kernel-product-and-composition}
+It is clear from the definitions \ref{def-composition-markov-kernels}, \ref{def-product-markov-kernels} and \ref{def-marginal-markov-kernels} that the composition:
+    \[Q(Z|Y,W,T) \circ K(W,U|T,X)\]
+    is the $Z$-marginal of the product:
+    \[ Q(Z|Y,W,T) \otimes K(W,U|T,X).\]
+Furthermore, while the operation $\otimes$ leaves all the variables of the second Markov kernel, here $W$ and $U$, ``intact'',
+the operation $\circ$ marginalizes them all out. One could also think of an intermediate operation that specifies which variables
+are marginalized out and which stays, e.g.\ using a symbol $\circ_{(W,W)}$ to inticate marginalization of input $W$ (of $Q(Z|Y,W,T)$) over output $W$ (from $K(W,U|T,X)$). We will not further investigate this and will only use $\otimes$ and $\circ$ as described.
+\end{Rem}
+
+
+\begin{comment}
+\begin{Def}[Composition of Markov kernels]
+    \label{def-composition-markov-kernels}
+    Consider two Markov kernels:
+    \[ K(W|T):\, \Tcal \dshto \Wcal,\qquad  Q(Z|W,T):\, \Wcal \times \Tcal \dshto \Zcal. \]
+    Then we can define their \emph{composition} via:
+    \[  Q(Z|W,T) \circ K(W|T):\, \Tcal \dshto \Zcal, \quad (C,t) \mapsto \int_\Wcal Q(Z \in C|W=w,T=t)\, K(W \in dw|T=t).  \]
+    Note that the rhs is a short notation for the integration w.r.t.\ the measure $\mu:=K(W|T=t)$ given by: $\mu(D)=K(W \in D|T=t)$.
+\end{Def}
+
+
+\begin{Rem}[Composition of deterministic Markov kernels]
+    Consider measurable maps:
+    \[ h:\, \Tcal \to \Wcal,\qquad g:\, \Wcal \to \Zcal, \]
+    and their composition $g \circ h$. 
+    Then the composition of the corresponding Markov kernels satisfies:
+    \[  \delta_{g \circ h} = \delta_g \circ \delta_h. \]
+   % \[ \delta_{g \circ h}(Z|T) = \delta_g(Z|W) \circ \delta_h(W|T). \]
+    So the composition of Markov kernels extends the composition of functions.
+    \begin{proof}
+        \begin{align*}
+        \lp\delta_g \circ \delta_h \rp (C|t) & = \int \delta_g(C|w) \, \delta_h(dw|t)\\
+                                             & = \int \I_{g^{-1}(C)}(w)\, \delta_h(dw|t)\\
+                                             & = \delta_h(g^{-1}(C)|t)\\
+                                             & = \I_{h^{-1}\lp g^{-1}(C)\rp }(t)\\
+                                             & = \I_C(g(h(t)) \\
+                                             & = \delta_{g \circ h}(C|t).
+        \end{align*}
+    \end{proof}
+\end{Rem}
+    \end{comment}
+
+\begin{Rem}[Composition of deterministic Markov kernels]\label{deterministic-mk-composition}
+    Consider measurable maps:
+    \[ X:\, \Tcal \to \Xcal,\qquad Z:\, \Xcal \to \Zcal, \]
+    and their composition $Z \circ X$. 
+    Then the composition of the corresponding Markov kernels satisfies:
+    \[  \delta(Z\circ X|T)  = \delta(Z|X) \circ \delta(X|T), \]
+    where $\delta(Z \in C|X=x) := \I_C(Z(x))$ and $\delta(X \in A|T=t) := \I_A(X(t))$.\\
+    So the composition of Markov kernels extends the composition of functions.
+    \begin{proof}
+        \begin{align*}
+            \delta(Z \in C|X) \circ \delta(X|T=t) 
+          & = \big(\delta(Z|X) \circ \delta(X|T)\big)(C|t) \\
+        & = \int \delta(Z \in C| X=x) \, \delta(X \in dx|T=t)\\
+                                             & = \int \I_{Z^{-1}(C)}(x)\, \delta(X \in dx|T=t)\\
+                                             & = \delta(X \in Z^{-1}(C)|T=t)\\
+                                             & = \I_{X^{-1}\lp Z^{-1}(C)\rp }(t)\\
+                                             & = \I_C(Z(X(t))) \\
+                                             & = \delta(Z(X) \in C|T=t)\\
+                                             & = \delta(Z \circ X \in C|T=t)\\
+                                             & = \delta(Z \circ X|T)(C|t).
+        \end{align*}
+    \end{proof}
+\end{Rem}
+
+\begin{Eg}[Composition of discrete Markov kernels]
+    Assume that all the spaces in definition \ref{def-composition-markov-kernels} are discrete/finite and let $P(Z|T):=Q(Z|W) \circ K(W|T)$ be the composition of Markov kernels.
+    Let $p$, $q$, $k$ denote the corresponding mass functions. Then we get:
+    \[ p(z_i|t_j) = \sum_k q(z_i|w_k) \cdot k(w_k|t_j).  \]
+    If $\tilde P$, $\tilde Q$, $\tilde K$ are the corresponding stochastic matrices then we have that:
+    \[  \tilde P = \tilde Q \, \tilde K,\]
+    is just the usual matrix product. So in this case the composition of Markov kernels corresponds to matrix multiplication.
+\end{Eg}
+
+\subsubsection{Push-Forward of Markov Kernels}
+
+
+
+\begin{Def}[Push-forward Markov kernel]
+    Let $ (\Wcal \times \Tcal,K(W|T))$ be a transition probability space and:
+    %\[T:\, \Wcal \times \Tcal \to \Tcal,\qquad W:\,\Wcal \times \Tcal \to \Wcal,\]
+    %the canonical projections.
+    \[ X:\, \Wcal \times \Tcal \to \Xcal  \]
+    be a \trv{}.
+    Then we define the \emph{push-forward Markov kernel} $K(X|T)$ of $K(W|T)$ w.r.t.\ $X$ with symbols:
+    \[K(X|T) =: X_*K(W|T) =: K(X(W,T)|T),\]
+    via:
+    \[ K(X|T):\, \Tcal \dshto \Xcal,\quad (A,t) \mapsto K(X \in A|T=t) := K(W \in X^{-1}_t(A)|T=t), \]
+    where, again:
+    \[ X^{-1}_t(A) = X^{-1}(A)_t:= \{ w\in \Wcal\,|\,X(w,t) \in A \}.\]
+\end{Def}
+
+\begin{Rem}
+    We can also write push-forwards as compositions:
+    \[K(X|T) = \delta(X|W,T) \circ K(W|T),\]
+    where we define:
+    \[\delta(X \in A|W=w,T=t) := \I_A(X(w,t)) = \I_{X^{-1}(A)}(w,t).\]
+\end{Rem}
+
+\begin{Rem}\label{rem:extending_markov_kernel}
+    For any Markov kernel
+    \[ K(W|T):\, \Tcal \dshto \Wcal\]
+    one can always extend it to include $T=\pr_\Tcal$:
+    \[ K(W,T|T):\, \Tcal \dshto \Wcal \times \Tcal,\quad (E,t) \mapsto 
+    K( (W,T)  \in E| T=t) = K( W \in E_t|T=t), \]
+    where $E_t = \{ w \in \Wcal\,|\,(w,t) \in E\}$.
+    Using Definition~\ref{def-product-markov-kernels}, we can also write this as:
+    \[ K(W,T|T) = K(W|T) \otimes \delta(T|T),\]
+    where $\delta(T \in D|T=t) := \I_D(t)$ for measurable $D \ins \Tcal$ and $t \in \Tcal$.
+\end{Rem}
+
+
+%\subsection{Conditional Markov Kernels}
+\subsubsection{Conditional Markov Kernels}
+
+\begin{DefThm}[Disintegration of Markov kernels]
+    \label{thm-regular-conditional-Markov-kernel}
+    Let $\Xcal$, $\Ycal$, $\Zcal$ be measurable spaces where $\Xcal$ and $\Ycal$ are standard measurable spaces.
+    Let 
+    \[ K(X,Y|Z):\, \Zcal \dshto \Xcal \times \Ycal\]
+    be a Markov kernel and $K(Y|Z)$ its marginal Markov kernel given by $K(Y\in B|Z) = K(X \in \Xcal, Y \in B|Z)$.
+    Then there exists a Markov kernel (called \emph{conditional Markov kernel}):
+    \[ K(X|Y,Z):\, \Ycal \times \Zcal \dshto \Xcal\]
+    such that:
+    \[   K(X,Y|Z) = K(X|Y,Z) \otimes K(Y|Z).\]
+    Furthermore, $K(X|Y,Z)$ is essentially unique in the following sense:
+    If $Q(X|Y,Z)$ is another Markov kernel 
+    then we have:
+    \[ K(X,Y|Z) = Q(X|Y,Z) \otimes K(Y|Z),\]
+    if and only if the measurable subset $N$ of $\Ycal \times \Zcal$ defined via:
+    \[ N:= \lC (y,z) \in \Ycal \times \Zcal \,|\, \exists A \in \Bcal_\Xcal:\, Q(X \in A|Y=y,Z=z) \neq K(X \in A|Y=y,Z=z)\rC  \]
+    is a $K(Y|Z)$-null set in $\Ycal \times \Zcal$.
+\end{DefThm}
+
+\begin{Rem}
+    If one further assumes certain continuity conditions for the conditional Markov kernel $K(X|Y,Z)$ and that the marginal $K(Y|Z)$ is strictly positive then the conditional Markov kernel can be fully identified, not just up to such  $K(Y|Z)$-null sets. This is formalized in Lemma \ref{lem:cont-cond-unique}.
+\end{Rem}
+
+\begin{Eg}[Conditional Markov kernel for discrete Markov kernels]
+    Consider a Markov kernel $K(X,Y|Z)$ where all spaces are discrete and let $k$ be the corresponding mass function.
+    Then the marginal mass functions are given by:
+    \[ k(y|z) = \sum_{x \in \Xcal} k(x,y|z), \qquad k(x|z) = \sum_{y \in \Ycal} k(x,y|z). \]
+    A conditional Markov kernel conditioned on $Y$ can then be defined via the mass function:
+    \[
+        k(x|y,z) := \left\{
+            \begin{array}{cccc}
+                \frac{k(x,y|z)}{k(y|z)} & \text{ if } & k(y|z) >0,\\
+                k(x|z)& \text{ if } & k(y|z) = 0.\footnotemark
+                %0 \footnotemark& \text{ if } & k(y|z) = 0.
+            \end{array}\right.
+    \]
+    \footnotetext{Any value assignment for this spot is somewhat arbitrary as it almost surely does not occur. Typically this entry is defined to be $0$. This is convenient but also problematic, as this would not normalize when summing over $x \in \Xcal$. A proper alternative is to set it to be $k(x|z)$ in this case. }
+    With this setting we then have for all (!) values $x,y,z$:
+    \[ k(x,y|z) = k(x|y,z) \cdot k(y|z). \]
+\end{Eg}
+
+\begin{Cor}[Conditional probability distributions]
+    \label{cor:reg-cond-prob-distr}
+    Let $X$ and $Y$ be random variables on domain $(\Wcal,P(W))$ with standard measurable spaces $\Xcal$, $\Ycal$, resp., as codomains.
+    Then there always exist \emph{conditional probability distributions} $P(X|Y)$ and $P(Y|X)$ that are Markov kernels satisfying:\footnote{In the literature a conditional probability distribution that is also a Markov kernel would be called a \emph{regular} version of a conditional probability distribution. Since in this lecture we will not encounter other versions we will just call this version here \emph{conditional probability distribution}.}
+    \[ P(X,Y) = P(X|Y) \otimes P(Y),\qquad P(X,Y) = P(Y|X) \otimes P(X).  \]
+    Furthermore, these conditional probability distributions are essentially unique.
+\end{Cor}
+
+

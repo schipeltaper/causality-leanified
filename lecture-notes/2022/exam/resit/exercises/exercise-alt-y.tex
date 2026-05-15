@@ -1,0 +1,189 @@
+\subsection{An alternative Y-structure}
+\totalscore{12}
+
+Consider a system of 4 observed endogenous variables $X_1,X_2,X_3,X_4$ modeled by some simple SCM $\C{M}$.
+The SCM might contain cycles and additional latent exogenous random variables, but does not contain exogenous input variables.
+Suppose that the following (in)dependences can be inferred from the observed distributions:
+$$\begin{array}{lll}
+    X_4 \nIndep X_1,  & X_2 \nIndep X_4, & X_2 \nIndep X_1, \\
+    X_4 \Indep X_1 \given X_3, & X_2 \Indep X_4 \given X_3, & X_2 \Indep X_1 \given X_3,
+    \end{array}$$
+
+\begin{enumerate}[label=\alph*)]
+  \item Provide (in precise words, at the least) the definition of the faithfulness assumption, and explain why it is useful in drawing conclusions about the observable graph $G(\C{M})^{\{X_1,X_2,X_3,X_4\}}$ of the underlying SCM from observed independences.
+      \score{2}
+      \answer{Sufficiently precise: ``A simple SCM is called $\sigma$-faithful ($d$-faithful) if each conditional independence in the induced Markov kernel is due to a $\sigma$-separation ($d$-separation).''
+      Maximum precision:
+  ``Let $\C{M} = \langle \Sin, \Send, \Srnd, \CX, P, f \rangle$ be a simple SCM with graph $G(\C{M})$
+  and observational Markov kernel $P_{\C{M}}(X_V,X_W \given \doit(X_J))$.
+  $\C{M}$ is called \emph{$\sigma$-faithful} if 
+  for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint):
+  \begin{equation}\label{eq:sigma_faithful}
+    A \Perp^\sigma_{G(\C{M})} B \given C \impliedby X_A \Indep_{P_{\C{M}}(X_V,X_W \given \doit(\XJ))} X_B \given X_C
+  \end{equation}
+  It is called \emph{$d$-faithful} if
+  for all $A, B, C \ins J \cup V \cup W$ (not necessarily disjoint):
+  \begin{equation}\label{eq:d_faithful}
+    A \Perp^d_{G(\C{M})} B \given C \impliedby X_A \Indep_{P_{\C{M}}(X_V,X_W \given \doit(\XJ))} X_B \given X_C
+  \end{equation}
+%  For a subset $O \subseteq V \cup W$, we say that $\C{M}$ is \emph{is $\sigma$-faithful w.r.t.\ $O$} if
+%  \eref{eq:sigma_faithful} holds for all (not necessarily disjoint) $A, B, C \ins J \cup O$, and we define
+%    \emph{$d$-faithful w.r.t.\ $O$} analogously.
+    ''
+    
+    It is important because it allows one to deduce the \emph{absence} of edges based on observed (conditional) independences; without the faithfulness assumption (or something analogous), one would not be able to rule out completely observed graphs.
+    }
+      \points{1 point for a sufficiently precise definition of faithfulness, 1 point for a sensible explanation of its importance for causal discovery from observational data.}
+\end{enumerate}
+We will assume that $\C{M}$ is $\sigma$-faithful.
+We are interested in which edges \emph{must} be present, which \emph{can not} be present, and which \emph{may} be present in the observable causal graph $G(\C{M})^{\{X_1,X_2,X_3,X_4\}}$ of the SCM $\C{M}$. 
+We draw a graph with a node corresponding to each observed variable, where between nodes $X_i$ and $X_j$ we draw a solid edge if it must be present, no edge if the edge can not be present, and a dashed edge if it may be present in $G(\C{M})^{\{X_1,X_2,X_3,X_4\}}$.
+It looks as follows:
+  \begin{center}\begin{tikzpicture}
+    \begin{scope}
+      \node[var] (X3) at (0,0) {$X_3$};
+      \node[var] (X1) at (-1,1) {$X_1$};
+      \node[var] (X2) at (1,1) {$X_2$};
+      \node[var] (X4) at (0,-1.5) {$X_4$};
+      \draw[biarr,dashed] (X3) edge (X1);
+      \draw[arr,dashed,bend left] (X3) edge (X1);
+      \draw[arr,dashed,bend left] (X1) edge (X3);
+      \draw[biarr,dashed] (X3) edge (X2);
+      \draw[arr,dashed,bend left] (X3) edge (X2);
+      \draw[arr,dashed,bend left] (X2) edge (X3);
+      \draw[biarr,dashed] (X3) edge (X4);
+      \draw[arr,dashed,bend left] (X3) edge (X4);
+      \draw[arr,dashed,bend left] (X4) edge (X3);
+    \end{scope}
+  \end{tikzpicture}\end{center}
+\begin{enumerate}[resume*]
+    \item Explain why the graph looks as given.
+      That is, for each edge (modulo symmetry) explain why it is absent, dashed, or solid.
+      \score{3}
+      \answer{
+          \begin{enumerate} 
+            \item The pairs $\{X_1,X_4\}$, $\{X_2,X_4\}$, $\{X_2,X_1\}$ cannot be adjacent by $\sigma$-faithfulness.
+            \item There must be paths between $X_1$ and $X_2$, between $X_2$ and $X_4$, and between $X_4$ and $X_1$, hence
+              there must be at least one edge between $X_3$ and $X_i$, for $i \in \{1,2,4\}$.
+            \item One can check that the following observable graphs satisfy the requirements:
+      \begin{center}\begin{tikzpicture}
+        \begin{scope}
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[var] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[arr] (X1) edge (X3);
+          \draw[arr] (X3) edge (X2);
+          \draw[arr] (X3) edge (X4);
+        \end{scope}
+        \begin{scope}[xshift=5cm]
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[var] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[biarr] (X3) edge (X1);
+          \draw[arr] (X3) edge (X2);
+          \draw[arr] (X3) edge (X4);
+        \end{scope}
+      \end{tikzpicture}\end{center}
+            \item The symmetry in the observations and assumptions implies that the graph must be symmetric; hence all three possible edges must be present between $X_3$ and each of the other nodes.
+          \end{enumerate}
+      }
+      \points{1 point for each reasoning step above (minus the symmetry argument, since it was not required in the question). In particular, explanations are required for the missing edges, the adjacencies, and the possible edges for an adjacency.}
+    \item How many arrowheads could there be at $X_3$ on edges adjacent to $X_3$ in $G(\C{M})^{\{X_1,X_2,X_3,X_4\}}$? Motivate your answer.
+      \score{1}
+      \answer{
+      $X_3$ cannot be a collider on any triple $\langle X_i,X_3,X_j \rangle$ with $3 \ne i \ne j \ne 3$,
+      so there can at most be one arrowhead at $X_3$.
+      }
+      \points{1 point for a correct and complete answer.}
+    \item Must the simple SCM be acyclic, or could it contain cycles? Motivate your answer.
+      \score{2}
+      \answer{It could contain cycles:
+      \begin{center}\begin{tikzpicture}
+%        \begin{scope}
+%          \node[var] (X3) at (0,0) {$X_3$};
+%          \node[var] (X1) at (-1,1) {$X_1$};
+%          \node[var] (X2) at (1,1) {$X_2$};
+%          \node[var] (X4) at (0,-1.5) {$X_4$};
+%          \draw[arr] (X3) edge (X1);
+%          \draw[arr] (X3) edge (X2);
+%          \draw[arr] (X3) edge (X4);
+%        \end{scope}
+        \begin{scope}[xshift=5cm]
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[var] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[arr] (X3) edge (X1);
+          \draw[arr] (X3) edge (X2);
+          \draw[arr,bend left] (X3) edge (X4);
+          \draw[arr,bend left] (X4) edge (X3);
+        \end{scope}
+      \end{tikzpicture}\end{center}
+      satisfies all requirements.
+      }
+      \points{1 point for the correct answer, 1 for a sensible motivation.
+      THE QUESTION IS NOT CLEAR: IT SHOULD ASK WHETHER $G(\C{M})^{\{X_1,X_2,X_3,X_4\}}$ is acyclic instead of $\C{M}$.}
+    \item Show that for $X_i$ and $X_j$ where $3 \ne i \ne j \ne 3$, $P(X_i \given X_3, \doit(X_j)) = P(X_i \given X_3)$.
+      \score{2}
+      \answer{By symmetry, it suffices to show this for $i=1, j=2$.
+      We augment the graph by an intervention node $I_{2}$ to model the hard intervention $\doit(X_2)$.
+      \begin{center}\begin{tikzpicture}
+        \begin{scope}
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[var] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[varc] (I2) at (2.5,1) {$I_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[arr] (I2) to (X2);
+          \draw[biarr,dashed] (X3) edge (X1);
+          \draw[arr,dashed,bend left] (X3) edge (X1);
+          \draw[arr,dashed,bend left] (X1) edge (X3);
+          \draw[biarr,dashed] (X3) edge (X2);
+          \draw[arr,dashed,bend left] (X3) edge (X2);
+          \draw[arr,dashed,bend left] (X2) edge (X3);
+          \draw[biarr,dashed] (X3) edge (X4);
+          \draw[arr,dashed,bend left] (X3) edge (X4);
+          \draw[arr,dashed,bend left] (X4) edge (X3);
+        \end{scope}
+      \end{tikzpicture}\end{center}
+      Keeping in mind that there is at most one arrowhead at $X_3$, we read off that (for any faithful DMG $G$ that is compatible with the observed (in)dependences)
+      $$X_1 \Perp_{G_{\doit(I_2)}} ^\sigma I_2 \given X_3$$
+      and hence, applying the third do-calculus rule,
+      $$P(X_1 \given X_3, \doit(X_2)) = P(X_1 \given X_3).$$
+      }
+      \points{2 points for a correct derivation.}
+    \item Suppose we perform a hard intervention on $X_1$ that turns it into an exogenous input variable, and under this intervention we observe the exact same (in)dependences between the variables. Given this additional information, draw a graph representing which edges must be present in the causal graph of the \emph{original SCM}, which can not be present, and which may or may not be present in the same way as before.\\
+      \emph{Hint: first, reason about the possible observable graphs of the intervened SCM, before translating that back to the possible observable graphs of the original SCM.}
+      \score{2}
+      \answer{
+        The intervened graph must look like:
+        \begin{center}\begin{tikzpicture}
+        \begin{scope}
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[varc] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[arr] (X1) edge (X3);
+          \draw[arr] (X3) edge (X2);
+          \draw[arr] (X3) edge (X4);
+        \end{scope}
+      \end{tikzpicture}\end{center}
+      This then implies that the causal graph of the original SCM must have been:
+        \begin{center}\begin{tikzpicture}
+        \begin{scope}
+          \node[var] (X3) at (0,0) {$X_3$};
+          \node[var] (X1) at (-1,1) {$X_1$};
+          \node[var] (X2) at (1,1) {$X_2$};
+          \node[var] (X4) at (0,-1.5) {$X_4$};
+          \draw[biarr,dashed] (X3) edge (X1);
+          \draw[arr,dashed,bend left] (X3) edge (X1);
+          \draw[arr,bend left] (X1) edge (X3);
+          \draw[arr] (X3) edge (X2);
+          \draw[arr] (X3) edge (X4);
+        \end{scope}
+      \end{tikzpicture}\end{center}
+      }
+      \points{It is hard to predict what mistakes the students come up with.}
+\end{enumerate}

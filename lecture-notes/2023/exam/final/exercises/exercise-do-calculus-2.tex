@@ -1,0 +1,72 @@
+\subsection{Do-Calculus}
+\totalscore{6}
+
+Look at the L-CBN indicated by the graph in Figure \ref{fig:my_second_fig}.
+We assume that $X_1, X_2, X_3, X_4$, and $Y$ are observed, whereas $U_1$, $U_2$, and $U_3$ are latent.
+Furthermore, we assume there are no input variables.
+Do the following exercises, by using the chain-rule from \ref{exc:chain_rule}, the do-calculus, and your general understanding:
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}
+    \node[var] (X1) at (2, 2) {$X_1$};
+     \node[var] (X2) at (4, 2) {$X_2$};
+     \node[var] (X3) at (6, 2) {$X_3$};
+     \node[var] (X4) at (8, 2) {$X_4$};
+     \node[var] (Y) at (10, 2) {$Y$};
+     \node[varh] (U1) at (4, 0) {$U_1$};
+     \node[varh] (U2) at (6, 4) {$U_2$};
+     \node[varh] (U3) at (8, 0) {$U_3$};
+     \draw[arr] (X1) to (X2);
+     \draw[arr] (X2) to (X3);
+     \draw[arr] (X3) to (X4);
+     \draw[arr] (X4) to (Y);
+     \draw[arrh, bend left] (U1) edge (X1);
+     \draw[arrh, bend right] (U1) edge (X3);
+     \draw[arrh, bend right] (U2) edge (X2);
+     \draw[arrh, bend left] (U2) edge (X4);
+     \draw[arrh, bend left] (U3) edge (X3);
+     \draw[arrh, bend right] (U3) edge (Y);
+  \end{tikzpicture}
+  \caption{The graph of an L-CBN}\label{fig:my_second_fig}
+  \end{figure}
+
+\begin{enumerate}[label=\alph*)]
+  \item Show that $P(Y \given \doit(X_1, X_2, X_3, X_4)) = P(Y \given \doit(X_4))$. 
+    \score{1}
+    \answer{Rule 3 of the do-calculus:
+       $$Y \Perp^d_{G_{\doit(I_{X_1},I_{X_2},I_{X_3},X_4)}} I_{X_1},I_{X_2},I_{X_3} \given X_4$$
+       implies
+       $$P(Y \given \doit(X_1, X_2, X_3, X_4)) = P(Y \given \doit(X_4)).$$
+    }
+  \item Show that $P(Y \given \doit(X_4)) = P(Y \given \doit(X_4), X_1, X_2, X_3) \circ P(X_1, X_2, X_3 \given \doit(X_4))$.  
+    \score{1}
+    \answer{Chain rule.}
+  \item Show that $P(Y \given \doit(X_4), X_1, X_2, X_3) = P(Y \given X_4, X_1, X_2, X_3)$. 
+    \score{1}
+    \answer{Rule 2 of the do-calculus:
+      $$Y \Perp^d_{G_{\doit(I_{X_4})}} I_{X_4} \given X_1,X_2,X_3,X_4$$
+      implies
+      $$P(Y \given \doit(X_4), X_1, X_2, X_3) = P(Y \given X_4, X_1, X_2, X_3).$$
+    }
+  \item Show that $P(X_1, X_2, X_3 \given \doit(X_4)) = P(X_1, X_2, X_3)$.
+    \score{1}
+    \answer{Rule 3 of the do-calculus:
+      $$X_1, X_2, X_3 \Perp^d_{G_{\doit(I_{X_4})}} I_{X_4}$$
+      implies
+      $$P(X_1, X_2, X_3 \given \doit(X_4)) = P(X_1, X_2, X_3).$$
+    }
+  \item Argue that the causal effect $P(Y \given \doit(X_1, X_2, X_3, X_4))$ is identifiable by giving a formula in terms of observational probabilities.
+    \score{1}
+    \answer{Combining everything:
+    \begin{align*}
+      P(Y \given \doit(X_1, X_2, X_3, X_4)) 
+      &= P(Y \given \doit(X_4), X_1, X_2, X_3) \circ P(X_1, X_2, X_3 \given \doit(X_4)) \\
+      &= P(Y \given X_4, X_1, X_2, X_3) \circ P(X_1, X_2, X_3)
+    \end{align*}
+    The two kernels on the r.h.s.\ are observational quantities.
+    }
+  \item Could the same conclusion have been reached by using the back-door criterion?
+    \score{1}
+    \answer{Yes, the adjustment set $\{X_1,X_2,X_3\}$ blocks all back-door paths.}
+  \end{enumerate}

@@ -1,0 +1,755 @@
+\subsection*{Crash Course: Measure Theoretic Probability - Continued}%
+
+\subsubsection{Core Concepts}
+
+\begin{Motivation}
+    As discussed before in remark \ref{rem-power-set}, we want to define probability measures $P$ on a space $\Wcal$. We want them to follow (at least) these rules:
+    \begin{enumerate}[label=\roman*)]
+        \item normalized: $P(\Wcal)=1$, $P(\emptyset)=0$.
+        \item complement: $P(A^\cmpl) = 1 - P(A)$ for $A \ins \Wcal$.
+        \item $\sigma$-additivity (aka countably additivity): For pairwise disjoint subsets $A_n \ins \Wcal$, $n \in \N$:
+    \[P\lp\bigcup_{n \in \N} A_n\rp = \sum_{n \in \N} P(A_n).\]
+    \end{enumerate}
+    Such rules implicitly assume that $P$ can measure the sets $\Wcal$ and $\emptyset$; 
+    and that $P$ can measure the complement $A^\cmpl$ if it can measure $A$; 
+    and that $P$ can measure the (disjoint) union $\bigcup_{n \in \N} A_n$ if it can measure each of the $A_n$.\\
+    As illustrated by the theorems \ref{thm-non-lebesgue} and \ref{thm-banach-tarski}, this is in general NOT possible to do for all subsets of $\Wcal$ (i.e.\ for all elements of the power set $2^\Wcal$).\\
+    This problem is solved and formalized by the notion of \emph{$\sigma$-algebras} of subsets of the space $\Wcal$.
+\end{Motivation}
+
+%\subsubsection{Short Overview}
+%- Def sigma algebras
+%- Def measurable spaces
+%- Def measurable maps
+%- Def measures
+
+
+
+\begin{Def}[$\sigma$-algebras]
+    \label{def-sigma-algebra}
+    Let $\Wcal$ be a set. A (non-empty) set $\Bcal \ins 2^\Wcal$ of subsets $A \ins \Wcal$ is called a 
+    \emph{$\sigma$-algebra} on $\Wcal$ if it satisfies the following rules:
+    \begin{enumerate}[label=\roman*)]
+        \item empty set: $\emptyset \in \Bcal$,
+        \item complement: If $A \in \Bcal$ then also: $A^\cmpl:= \Wcal\sm A \in \Bcal$,
+        \item countable union: If $A_n \in \Bcal$ for all $n \in \N$ then also: $\bigcup_{n \in \N} A_n \in \Bcal$.
+    \end{enumerate}
+\end{Def}
+
+\begin{Def}[Measurable spaces]
+    \label{def-measurable-space}
+    A tuple $(\Wcal,\Bcal)$ of a set $\Wcal$ and a $\sigma$-algebra $\Bcal$ on $\Wcal$ is called \emph{measurable space}.
+\end{Def}
+
+\begin{Rem}[Abuse of notation]
+ By abuse of notation we often just call $\Wcal$ a measurable space by implicitly assuming that it is endowed with a fixed $\sigma$-algebra, which we will indicate by $\Bcal_\Wcal$ or $\Bcal(\Wcal)$ if needed. We will also just call a subsets $A \ins \Wcal$ \emph{measurable} when we actually mean that $A \in \Bcal_\Wcal$.
+\end{Rem}
+
+\begin{Def}[Measures]
+    \label{def-measure}
+    Let $(\Wcal,\Bcal)$ be a measurable space.
+    A \emph{measure} $\mu$ on $(\Wcal,\Bcal)$ - by definition - is a mapping:
+    \[\mu: \; \Bcal \to \R \cup \{\infty\},\quad D \mapsto \mu(D), \]
+    such that:
+    \begin{enumerate}[label=\roman*)]
+        \item non-negative: $\forall A \in \Bcal$: $\mu(A) \in [0,\infty]$,
+        \item empty set: $\mu(\emptyset) =0$,
+        \item countably additive (aka $\sigma$-additive): for all sequences $A_n \in \Bcal$, $n \in \N$, with $A_i \cap A_j = \emptyset$ for all $i \neq j$, we have:
+    \[\mu\lp\bigcup_{n \in \N} A_n\rp = \sum_{n \in \N} \mu(A_n).\]
+    \end{enumerate}
+    \end{Def}
+
+\begin{Def}[Probability/finite/$\sigma$-finite measures]
+    A measure $\mu$ on $(\Wcal,\Bcal)$ is called:
+    \begin{enumerate}
+        \item \emph{probability measure} if $\mu(\Wcal)=1$.
+        \item \emph{finite measure} if $\mu(\Wcal) < \infty$.
+        \item \emph{$\sigma$-finite measure} if there are $D_n \in \Bcal$, $n \in \N$, with $\mu(D_n) < \infty$ and $\Wcal = \bigcup_{n \in \N} D_n$.
+    \end{enumerate}
+\end{Def}
+
+\begin{Def}[Measure spaces/probability spaces]
+    A triple $(\Wcal, \Bcal, \mu)$ consisting of a measurable space $(\Wcal,\Bcal)$ and a measure $\mu$ on $(\Wcal,\Bcal)$ is called \emph{measure space}
+    (and \emph{probability space} if $\mu$ is a probability measure).\\
+    Again, by abuse of notation, we often omit the $\sigma$-algebra in the notation and call $(\Wcal,\mu)$ a measure space, probability space, resp.
+\end{Def}
+
+\begin{Def}[Measurable mappings]
+    \label{def-measurable-map}
+    Let $(\Wcal,\Bcal_\Wcal)$ and $(\Zcal,\Bcal_\Zcal)$ be two measurable spaces and $f: \Wcal \to \Zcal$ be a mapping.
+    We call $f$ a \emph{$\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable mapping} (or just \emph{measurable} for short) if
+    for all $B \in \Bcal_\Zcal$ the pre-image $f^{-1}(B)$ is an element of $\Bcal_\Wcal$. In formulas:
+    \[\forall B \in \Bcal_\Zcal:\; f^{-1}(B) \in \Bcal_\Wcal.\]
+    Remember the definition of pre-image: $f^{-1}(B) := \{ w\in \Wcal\,|\, f(w) \in B \}$.
+\end{Def}
+
+
+
+\begin{Def}[Push-forward measure]
+    Let  $X:\; (\Wcal,\Bcal_\Wcal) \to (\Xcal,\Bcal_\Xcal)$ be measurable and $\mu$ a measure on $(\Wcal,\Bcal_\Wcal)$.
+    Then we define the \emph{push-forward measure} (aka \emph{image measure}) of $\mu$ via:
+    \[ (X_*\mu)(A):= \mu^X(A) := \mu_X(A) := \mu(X)(A):= \mu(X \in A):= \mu(X^{-1}(A))\]
+    for all $A \in \Bcal_\Xcal$.
+    If $\mu$ is a probability distribution then the push-forward measure $\mu(X)$ is also called the (distributional) \emph{law of $X$}.
+\end{Def}
+
+
+\begin{Def}[Random variables]
+    A measurable mapping: \[X:\; (\Wcal,\Bcal_\Wcal,P) \to (\Xcal,\Bcal_\Xcal)\] 
+    that starts from a probability space is also called \emph{random variable}.\\
+    The main point is that the map $X$ comes with its own distribution $P^X$.
+    We often just say: ``Let $X$ be a random variable with distribution $P^X = \cdots$'',
+    where $P^X$ is then specified, e.g.\ to be a Gaussian or a categorical distribution, etc.
+\end{Def}
+
+
+\begin{Def}[Null sets]
+    Let $(\Wcal,\Bcal,\mu)$ be a measure space.
+    A subset $M \ins \Wcal$ is called \emph{$\mu$-null} or \emph{$\mu$-zero set} if there exists a set $N \in \Bcal$ with $M \ins N$ and $\mu(N)=0$.
+\end{Def}
+
+\begin{Def}[Almost surely/almost all]
+    Let $(\Xcal,\Bcal,\mu)$ be a measure space and $f,g:\,\Xcal \to \Zcal$ a measurable map.
+    We write $f=_\mu g$ or say $f=g$ \emph{$\mu$-almost-surely} (a.s.) or $f(x)=g(x)$ for \emph{$\mu$-almost-all} $x \in \Xcal$ 
+    if:  
+    \[\{ x \in \Xcal\,|\,f(x)\neq g(x) \} \quad \text{ is a $\mu$-null set.} \]
+    Similarly, for $f\le_\mu g$, etc.. \\
+    More generally,  we say that a condition $C$ about points $x \in \Xcal$ holds \emph{$\mu$-almost-surely} or for \emph{$\mu$-almost-all} $x \in \Xcal$ if the set of points where the condition does not hold is $\mu$-null, i.e.:
+    \[\{ x \in \Xcal\,|\,\neg C(x) \} \quad \text{ is a $\mu$-null set}. \]
+\end{Def}
+
+\subsubsection{Default Choices for Sigma-Algebras}
+
+%\ref{exercise-sigma-algebra}
+
+In this subsection we want to highlight what kind of default $\sigma$-algebras we will assume 
+on different types of spaces and on spaces constructed from others.
+
+\begin{Rem}[Discrete spaces]
+    If $\Wcal$ is countable (i.e.\ either finite or countably infinite, e.g.\ like $\Z$, $\Q$ or  $\N$ or $\{1,\dots,N\}$) 
+    then we will always implicitly assume that $\Wcal$ is endowed with the power set $\sigma$-algebra: $\Bcal_\Wcal = 2^\Wcal$ (unless stated otherwise).
+\end{Rem}
+
+
+\begin{Def}[$\sigma$-algebra generated by a set of subsets]
+    \label{def-sigma-algebra-gen}
+    Let $\Wcal$ be a set and $\Acal \ins 2^\Wcal$ be any non-empty set of subsets of $\Wcal$.
+    Then we can define the \emph{$\sigma$-algebra generated by $\Acal$}:
+    \[ \sigma(\Acal) := \bigcap_{\substack{ \Acal \ins \Bcal \\\Bcal\; \sigma\text{-algebra on }\Wcal }} \Bcal, \]
+    as the intersection of all $\sigma$-algebras $\Bcal$ on $\Wcal$ that contain $\Acal$. 
+    Note that the set $\sigma(\Acal)$ really is a well-defined $\sigma$-algebra on $\Wcal$. % (see exercise \ref{exercise-sigma-algebra}).\\
+    $\sigma(\Acal)$ is thus - by definition - the smallest $\sigma$-algebra on $\Wcal$ that contains $\Acal$.
+\end{Def}
+
+
+\begin{Def}[Borel $\sigma$-algebra on topological spaces]
+    Let $(\Wcal,\Ocal)$ be a topological space with set of open subsets $\Ocal$ then the \emph{Borel $\sigma$-algebra} of $(\Wcal,\Ocal)$ is 
+    defined as the smallest $\sigma$-algebra that contains all open (and thus also all closed) subsets:
+    \[ \Bcal_{(\Wcal,\Ocal)} := \sigma(\Ocal).\]
+    We will always implicitly assume that every topological space is endowed with its Borel $\sigma$-algebra (unless stated otherwise).
+\end{Def}
+
+\begin{Rem}
+    Caution: Other choices of $\sigma$-algebras for topological spaces used in the literature are the Baire $\sigma$-algebra, which is generated by the zero sets of all continuous functions, or the $\sigma$-algebra generated only by its closed (countably) compact sets.
+\end{Rem}
+
+\begin{Lem}[Borel $\sigma$-algebra on $\R^D$]    
+  %  Consider the Euclidean space $\R^D$. Then we define the \emph{Borel $\sigma$-algebra} $\Bcal_{\R^D}$ 
+   % on $\R^D$ as the $\sigma$-algebra generated by all the closed compact cubes/intervals:
+    The Borel $\sigma$-algebra of $\R^D$ is generated by the cubes:
+\[ \Bcal_{\R^D} = \sigma\lp\lC [a_1,b_1] \times \cdots \times [a_D,b_D]\;|\; a_d, b_d \in \Q, a_d \le b_d, d=1,\dots,D    \rC\rp.  \]
+%We will always implicitly assume $\R^D$ to be endowed with this Borel $\sigma$-algebra $\Bcal_{\R^D}$ (unless stated otherwise).
+\end{Lem}
+
+\begin{DefLem}[$\sigma$-algebras induced by mappings]
+    \label{sigma-algebra-map}
+    Let $f: \Wcal \to \Zcal$ be any mapping.
+    \begin{enumerate}
+        \item Let $\Bcal_\Zcal$ be a $\sigma$-algebra on $\Zcal$. Then the \emph{pull-back $\sigma$-algebra} defined via:
+            \[ f^*\Bcal_\Zcal := \lC f^{-1}(C)\,|\, C \in \Bcal_\Zcal   \rC \]
+            is the smallest $\sigma$-algebra $\Bcal_\Wcal$ that makes $f$ $\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable.
+        \item Let $\Bcal_\Wcal$ be a $\sigma$-algebra on $\Wcal$. Then the \emph{push-forward $\sigma$-algebra} defined via:
+            \[ f_*\Bcal_\Wcal := \lC C \ins \Zcal\,|\, f^{-1}(C) \in \Bcal_\Wcal   \rC \]
+            is the biggest $\sigma$-algebra $\Bcal_\Zcal$ that makes $f$ $\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable.
+    \end{enumerate}
+\end{DefLem}
+
+
+\begin{Def}[Product $\sigma$-algebra]
+    Let $(\Xcal_i,\Bcal_i)$ be measurable spaces, $i \in I$.
+    Then the product space $\prod_{i \in I} \Xcal_i$ is endowed with the smallest $\sigma$-algebra
+    such that for every $j\in I$ the projection map:
+    \[ \pr_j: \prod_{i \in I} \Xcal_i \to \Xcal_j,\qquad (x_i)_{i \in I} \mapsto x_j, \]
+    is measurable. We use the symbols $\bigotimes_{i \in I} \Bcal_i$ for this product $\sigma$-algebra.
+    In symbols:
+    \[ \bigotimes_{i \in I} \Bcal_i := \sigma\lp \bigcup_{i \in I} \pr_i^*\Bcal_i\rp. \]
+  We will always implicitly assume that every product space is endowed with this product $\sigma$-algebra (unless stated otherwise).
+\end{Def}
+
+%\begin{Rem}
+%    \begin{enumerate}
+%        \item  Note that not every $C \in \Bcal_\Xcal \otimes \Bcal_\Ycal$ is of such product form $A \times B$.
+%        \item  It is possible to define the product $\sigma$-algebra: $\bigotimes_{i \in I}\Bcal_{\Xcal_i}$ on the product $\prod_{i \in I} \Xcal_i$ 
+%            of arbitrary measurable spaces $(\Xcal_i, \Bcal_{\Xcal_i})$, $i \in I$, similarly (with a bit of care for infinite index sets $I$).
+%    \end{enumerate}
+%\end{Rem}
+
+
+%\ref{exercise-Borel-sigma-algebra}
+
+
+\begin{Def}[Subspace $\sigma$-algebra]
+    Let $(\Wcal,\Bcal)$ be a measurable space and $\Zcal \ins \Wcal$ be a subset.
+    Then the \emph{subspace $\sigma$-algebra} $\Bcal_{|\Zcal}$ on $\Zcal$ is the smallest $\sigma$-algebra that makes the inclusion map $\Zcal \to \Wcal$ measurable. More concretely:
+    \[\Bcal_{|\Zcal} := \lC B \cap \Zcal \;|\; B \in \Bcal   \rC.\]
+    We will always assume that subsets are endowed with the subspace $\sigma$-algebra (unless it is ambiguous or stated otherwise).
+\end{Def}
+
+\begin{Def}[Disjoint union $\sigma$-algebra]
+ Let $(\Xcal_i,\Bcal_i)$ be measurable spaces, $i \in I$, considered to be pairwise disjoint.
+ Then the \emph{disjoint union $\sigma$-algebra} on the disjoint union 
+ $ \coprod_{ i \in I} \Xcal_i$ 
+ is the biggest $\sigma$-algebra $\Bcal_\sqcup $ such that all inclusion maps $\Xcal_i \to \coprod_{i \in I} \Xcal_i$ are measurable.
+ In symbols:
+ \[ \Bcal_\sqcup := \lC E \ins {\coprod_{ i \in I} \Xcal_i} \,\bigg|\,  \forall i \in I:\, E \cap \Xcal_i \in \Bcal_i\rC. \]
+\end{Def}
+
+\begin{Def}[$\sigma$-algebra on the space of all probability measures]
+    \label{def-sigma-algebra-prob-space}
+    Let $(\Wcal,\Bcal_\Wcal)$ be a measurable space. We denote the space of all probability measures on  $(\Wcal,\Bcal_\Wcal)$ by:
+    \[ \Pcal(\Wcal) := \lC P \;|\; P \text{ is probability measure on } (\Wcal,\Bcal_\Wcal) \rC.\]
+    We endow $\Pcal(\Wcal)$ with the smallest $\sigma$-algebra $\Bcal_{\Pcal(\Wcal)}$ such that all evaluation maps:
+    \[  \ev_D:\; \Pcal(\Wcal) \to [0,1],\qquad P \mapsto P(D)  \]
+    are measurable for $D \in \Bcal_\Wcal$.
+    In symbols:
+    \[ \Bcal_{\Pcal(\Wcal)} := \sigma\lp \bigcup_{D \in \Bcal_\Wcal} \ev_D^*\Bcal_{[0,1]} \rp.\]
+    We will always assume that the space of probability measures $\Pcal(\Wcal)$ is endowed with this $\sigma$-algebra (unless stated otherwise).
+\end{Def}
+
+
+\begin{comment}
+\begin{Def}[$\sigma$-algebra on the space of all measurable mappings]
+    Let $\Wcal$ and $\Xcal$ be two measurable spaces and:
+    \[ \Lcal(\Wcal,\Xcal) := \Lcal^0(\Wcal,\Xcal):=\lC f:\,\Wcal \to \Xcal \text{ measurable} \rC\]
+    the space of all measurable mappings from $\Wcal$ to $\Xcal$.
+    We will endow $\Lcal(\Wcal,\Xcal)$ with the smallest $\sigma$-algebra such that the evaluation maps:
+    \[ \ev_w:\, \Lcal(\Wcal,\Xcal),\quad f \mapsto f(w), \]
+    are measurable for all $w \in \Wcal$. In symbols:
+    \[  \Bcal_{\Lcal(\Wcal,\Xcal)}:=\sigma\lp \bigcup_{w \in \Wcal} \ev^*_w\Bcal_\Xcal\rp.  \]
+    Note that this $\sigma$-algebra does not use the $\sigma$-algebra $\Bcal_\Wcal$ of $\Wcal$ in its definition.
+    $\Bcal_\Wcal$ is only used in the definition of $\Lcal(\Wcal,\Xcal)$ itself.
+\end{Def}
+
+\begin{Rem}[$\sigma$-algebra on the space of all Markov kernels]
+    Let $\Wcal$ and $\Xcal$ be two measurable spaces and:
+    \[ \Kcal(\Wcal,\Xcal) := \lC K:\,\Wcal \dshto \Xcal \text{ Markov kernel} \rC = \Lcal(\Wcal,\Pcal(\Xcal)),\]
+    the space of all Markov kernels from $\Wcal$ to $\Xcal$, or equivalently, the space of all 
+    measurable maps from $\Wcal$ to $\Pcal(\Xcal)$.
+    From the two points above $\Kcal(\Wcal,\Xcal)$ is then endowed with the smallest $\sigma$-algebra such that all evaluation maps $\ev_w$
+    are measurable for $w \in \Wcal$. Since $\ev_w$ map to $\Pcal(\Xcal)$, by definition, these are measurable if and only if 
+    their composition $\ev_D \circ \ev_w$ with $\ev_D$ are measurable for all $D \in \Bcal_\Xcal$.
+    So we get:
+    \[ \Bcal_{\Kcal(\Wcal,\Xcal)} = \sigma\lp \bigcup_{\substack{D \in \Bcal_\Xcal\\w \in \Wcal}} 
+    (\ev_D \circ \ev_w)^*\Bcal_{[0,1]}   \rp   \]
+\end{Rem}
+
+\begin{Def}[$\sigma$-algebra on the $\sigma$-algebra]
+    Let $(\Xcal,\Bcal_\Xcal)$ be a measurable space.
+    Then $\Bcal_\Xcal$ can be made into a measurable space itself by defining the $\sigma$-algebra $\Bcal_{\Bcal_\Xcal}$ 
+    as the smallest $\sigma$-algebra such that the Dirac measures:
+    \[ \delta_x:\, \Bcal_\Xcal \to \{0,1\},\quad A \mapsto \delta_x(A) = \I_A(x),\]
+    are measurable. In symbols:
+    \[  \Bcal_{\Bcal_\Xcal}  := \sigma\lp \bigcup_{x\in \Xcal} \delta_x^{-1}(\{1\}) \rp.\]
+    This $\sigma$-algebra makes the following map measurable:
+    \[ \Bcal_\Xcal \to \Lcal(\Xcal,\R),\quad A \mapsto \I_A.\]
+\end{Def}
+\end{comment}
+
+\subsubsection{Standard Measurable Spaces}
+
+\begin{Def}[Standard measurable space]
+ A measurable space $(\Wcal,\Bcal)$ is called \emph{standard measurable space} (aka standard Borel space) if it is measurably isomorphic to either:
+    \begin{enumerate}
+        %\item a countable space $\Xcal$ endowed with the power set $\sigma$-algebra $2^\Xcal$ (e.g.\ $\Xcal=\{1,\dots,n\}$ or $\Xcal=\N$), or:
+        \item a finite measurable space $\{1,\dots,M\}$ for some $M \in \N$ endowed with the power set $\sigma$-algebra $2^{\{1,\dots,M\}}$, or:
+        \item the countably infinite space $\N$ endowed with the power set $\sigma$-algebra $2^\N$, or:
+        \item the unit interval $[0,1]$ endowed with its Borel $\sigma$-algebra:
+           \[\Bcal_{[0,1]} =\sigma\lp\lC [a,b]\,|\, a, b \in [0,1] \cap \Q, a \le b \rC \rp.\]
+        %\item an Euclidean space $\R^D$ endowed with its Borel $\sigma$-algebra: 
+        %    \[\Bcal_{\R^D} =\sigma\lp\lC [a_1,b_1]\times \cdots \times[a_D,b_D]\,|\, a_d, b_d \in \R, a_d \le b_d, d=1,\dots,D \rC\rp.\]
+    \end{enumerate}
+    'Measurably isomorphic' means that there is a measurable mapping that has a measurable inverse.
+\end{Def}
+
+\begin{Thm}[Kuratowski et al.]
+    \begin{enumerate}
+        \item Every Borel subset of any complete metric space that has a countable dense subset is a standard measurable space in its Borel $\sigma$-algebra 
+    (e.g.\ $\Q^D$ is countable and dense in $\R^D$).
+\item Two standard measurable spaces $\Xcal$ and $\Ycal$ are measurably isomorphic iff their cardinalities $|\Xcal|$, $|\Ycal|$ are equal 
+    (e.g.\ $\R^D \cong [0,1]$).
+\item Countable disjoint unions and countable direct products of standard measurable spaces are standard measurable spaces.
+\item If $\Wcal$ is standard measurable space then the space of its probablity measures $\Pcal(\Wcal)$ is also a standard measurable space.
+    \end{enumerate}
+\end{Thm}
+
+\begin{Eg}
+    Examples of standard measurable spaces are: $\R^D$, $\Q$, $\Z$, $\N$, $\{1,\dots,M\}$,  $[0,1]$, topological manifolds, countable CW-complexes, 
+    every Borel set of any separable complete metric space.
+\end{Eg}
+
+
+
+\subsubsection{Measure Integrals}
+
+The construction of the measure integral $\int f\,d\mu$ follows in several steps.
+
+\begin{Construction}[Measure integral]
+    Let $(\Xcal,\Bcal_\Xcal,\mu)$ be a measure space.
+    \begin{enumerate}
+        \item Indicator functions: For $A \in \Bcal_\Xcal$ put:
+            \[\int \I_A\,d\mu := \mu(A).\]
+        \item Simple functions: For a simple function $g:\; \Xcal \to \R$ given by: 
+            \[ g(x)= \sum_{n=1}^N a_n \cdot \I_{A_n}(x), \]
+            where  $A_n \in \Bcal_\Xcal$ %with $\mu(A_n) < \infty$ 
+            and $a_n \in \R$, $n=1,\dots,N$, we define: 
+            \[ \int g\,d\mu := \sum_{n=1}^N a_n \cdot \mu(A_n). \]
+        \item Non-negative measurable functions: Let $h:\, \Xcal \to [0,\infty]$ be a non-negative measurable function then we define:
+            \[ \int h\, d\mu := \sup_{0 \le g \le h} \int g \, d\mu \qquad \in [0,\infty], \]
+            where the supremum is running over all non-negative simple functions $g$ that are smaller or equal to $h$.
+            %are only bigger than $h$ on a $\mu$-null set.
+        \item Measurable functions with well-defined integral: Let $f:\, \Xcal \to \bar\R=\R \cup \{\pm \infty\}$ be a measurable function. 
+            We then can  write  $f=f_+-f_-$ with:
+            \[ f_+ := \max(f,0) \ge 0, \qquad f_-:= \max(-f,0) \ge 0.\]
+            If at least one of $\int f_+\,d\mu$,  $\int f_-\,d\mu$ is finite (i.e.\ $< \infty$)
+            we can then define:
+            \[ \int f\, d\mu := \int f_+\,d\mu - \int f_-\,d\mu \qquad \in [-\infty,\infty].\]
+        \end{enumerate}
+   The only case where we cannot properly define the integral is for measurable functions $f:\, \Xcal \to \bar \R$ where both integrals: 
+   $\int f_+ \,d\mu = \infty$ and $\int f_-\,d\mu = \infty$ are infinite, because of the ``$\infty - \infty = ?$'' problem.
+
+\end{Construction}
+
+\begin{Rem}[Riemann integral vs. measure integral]
+    The construction of the Riemann integral (RI) and the measure integral (MI) differ only in a few points:
+    \begin{enumerate}
+        \item RI uses (infinitesimal) interval length on x-axis, while MI uses the measure content
+            (which is also the interval length in case of the Lebesgue measure).
+        \item RI decomposes the x-axis, while MI decomposes the y-axis.
+        \item RI uses limits for the integration boundaries to integrate to infinity (if convergent), 
+                while MI takes difference of integrals (to infinity) of $f_+$ and $f_-$ (if difference well-defined).
+        \item RI integrates in direction $a$ to $b$, while MI integrates interval $[a,b]$ in an undirected fashion.
+        \item If a function is Riemann integrable (RI) (e.g. continuous) on interval $[a,b]$ 
+            then it is also Lebesgue integrable (MI) with the same integral value.
+    \end{enumerate}
+\end{Rem}
+
+\begin{Def}[Integrable functions]
+   Let $(\Xcal,\Bcal,\mu)$ be a measure space. A measurable function $f:\,\Xcal \to \R$ is called \emph{$\mu$-integrable} if:
+    \[  \int |f|\, d\mu < \infty.\]
+\end{Def}
+
+\begin{Thm}[Properties of the integral]
+       Let $(\Xcal,\Bcal,\mu)$ be a measure space and $f,g:\,\Xcal \to \R$ $\mu$-integrable measurable functions.
+       \begin{enumerate}
+           \item For $A \in \Bcal$ we have: $\int \I_A\,d\mu = \mu(A)$.
+           \item Linearity: %If $f$ and $g$ are $\mu$-integrable 
+               If $a,b \in \R$ then $a\cdot f+b\cdot g$ is also $\mu$-integrable and we have:
+               \[ \int (a\cdot f+b\cdot g)\,d\mu = a\cdot \int f\, d\mu + b \cdot \int g\,d\mu.\]
+           %\item If $f$ is $\mu$-integrable and $ c\in \R$ then $c\cdot f$ is also $\mu$-integrable and we have:
+            %   \[ \int (c\cdot f)\,d\mu = c\cdot \int f\, d\mu.\]
+           \item Triangle inequality: %If $f$ is $\mu$-integrable then: 
+               \[\left|\int f\,d\mu\right| \le \int |f|\,d\mu < \infty.\]
+           \item %If $f$ is $\mu$-integrable and 
+               If $f \ge_\mu 0$ then: $\int f\,d\mu \ge 0$, with equality iff $f =_\mu 0$.
+           \item Monotonicity:  %If $f$ and $g$ are $\mu$-integrable and 
+               If $f \ge_\mu g$ then: $\int f\,d\mu \ge \int g\,d\mu$, with equality iff $f=_\mu g$.
+           \item If $\int f\,d\mu <\infty$ then $f<_\mu \infty$.
+          % \item Monotone convergence: If $f_{n+1} \ge_\mu f_n \ge_\mu 0$ for all $n\in\N$ and $f := \limsup_{n\in\N} f_n$ then: 
+           %    \[ \int f_n\, d\mu \stackrel{ n \to \infty}{\longrightarrow} \int f\,d\mu. \]
+          % \item Dominated convergence: If $g$ is a non-negative $\mu$-integrable
+           \item The measure integral satisfies monotone convergence, dominated convergence, Fubini theorems, etc.  (see literature).
+       \end{enumerate}
+       Note, we use $=_\mu$ and $\ge_\mu$ to indicate that this property is (only) allowed to fail on a $\mu$-null set.
+\end{Thm}
+
+
+\begin{Def}[Expectation value]
+    Let $(\Wcal,\Bcal,P)$ be a probability space and $X:\, \Wcal \to \R$ be a measurable function with well-defined integral.
+    Then its \emph{expectation value} (w.r.t.\ $P$) is defined to be:
+    \[ \E[X]: = \int X\,dP. \]
+\end{Def}
+
+\begin{Eg} Let $\Xcal$ be a measurable space and $f:\,\Xcal \to \R$ a measurable function and $\Wcal \ins \Xcal$ a countable subset.
+    \begin{enumerate}
+      %  \item \emph{Counting measure}. The counting measure $\#_\Wcal$ w.r.t.\ $\Wcal$ is defined on measurable $A \ins \Xcal$:
+      %      \[  \#_\Wcal(A) := \sum_{w \in \Wcal} \delta_w(A) = \sum_{w \in \Wcal}\I_A(w).  \]
+        \item \emph{Dirac measure}. Let $w \in \Xcal$ be a point. We define the \emph{Dirac measure} $\delta_{w}$ centered at $w$ via:
+            \[ \delta_{w}(A) := \I_A(w),\]
+            for all measurable $A \ins \Xcal$. Furthermore, we have:
+            \[ \E[f] =  \int f(x)\,\delta_{w}(dx)   = f(w).\]
+            This holds because: $f(x) = f(w)$ for $\delta_{w}$-almost-all $x \in \Xcal$.
+            Let's prove the right equality more formally:
+            \begin{proof}
+            Consider:
+            \[B:= f^{-1}(f(w))=\{x \in \Xcal\,|\,f(x)=f(w) \} \ni w.\]
+            Since $f$ is measurable and $\{f(w)\} \in \Bcal_{\R}$ we also have $B \in \Bcal_\Xcal$.
+            We then have the decomposition:
+            \begin{align*}
+                f(x) &= f(x) \cdot \I_B(x) + f(x) \cdot \I_{B^\cmpl}(x) \\
+                &= f(w) \cdot \I_B(x) + f(x) \cdot \I_{B^\cmpl}(x).
+        \end{align*}
+        Since $w \notin B^\cmpl$ we get $\delta_{w}(B^\cmpl) =0$ and thus $\int f(x) \cdot \I_{B^\cmpl}(x)\, \delta_{w}(dx) = 0$.
+        Together we get:
+        \begin{align*}
+            \int f(x)\,\delta_{w}(dx) & =  \int \lp f(w) \cdot \I_B(x) + f(x) \cdot \I_{B^\cmpl}(x) \rp \, \delta_{w}(dx) \\
+            & =  f(w) \cdot \int  \I_B(x)\,\delta_{w}(dx) + \underbrace{\int  f(x) \cdot \I_{B^\cmpl}(x)  \, \delta_{w}(dx)}_{=0} \\
+            & = f(w) \cdot \delta_{w}(B) \\
+            & = f(w).
+        \end{align*}
+            \end{proof}
+        \item \emph{Discrete distributions}. Consider a discrete probability distribution $P$ supported on the countable subset $\Wcal \ins \Xcal$. 
+            Let $p$ be its mass function.
+            %Let $\#_\Wcal$ be the counting measure w.r.t.\ $\Wcal$.
+            %Then the mass function of $P$ is the density of $P$ w.r.t.\ $\#_\Wcal$:
+            %\[\]
+            %centered at the points $x_n \in \Xcal$, $n \in \N$, with corresponding probability masses $p(x_n)$.
+            We then can write the corresponding probability measure $P$ on $\Xcal$ as: % evaluated at measurable $A \ins \Xcal$ as:
+            \[  P = \sum_{w \in \Wcal} p(w) \cdot \delta_{w}.\]
+            For measurable $A \ins \Xcal$ we then have:
+             \[ P(A) = \sum_{w \in \Wcal} p(w) \cdot \delta_{w}(A) = \sum_{w \in \Wcal \cap A} p(w). \]
+            Furthermore, we get:
+            \[ \E[f] = \int f(x)\, P(dx) = \int f(x)\,\sum_{w \in \Wcal} p(w) \cdot \delta_{w}(dx) = \sum_{w \in \Wcal} f(w) \cdot p(w). \]
+    \end{enumerate}
+\end{Eg}
+
+
+
+
+
+
+\subsubsection{Densities/Derivatives}
+
+\begin{Def}
+    Let $(\Xcal,\Bcal)$ be a measure space and $\mu$, $\nu$ two measures on it.
+    We say that $\nu$ has a \emph{density} w.r.t.\ $\mu$ if there exists a non-negative measurable function $f: \Xcal \to [0,\infty]$ such that for all $A \in \Bcal$:
+    \[ \nu(A) = \int \I_A\cdot f \, d\mu =:\int_A f \, d\mu  .\]
+    Such a density does not always exist.
+    If a density exists then it is essentially unique, in the sense that two such densities would only differ on a $\mu$-null set.
+    We often use the notation: $f=\frac{d\nu}{d\mu}$ and call it `the' \emph{density} or \emph{(Radon-Nikod\'ym) derivative} of $\nu$ w.r.t.\ $\mu$.
+\end{Def}
+
+\begin{Prp}
+    Let $(\Xcal,\Bcal)$ be a measure space and $\mu$, $\nu$, $\kappa$ three measures on it and $g:\,\Xcal \to \bar\R$ is either  a $\nu$-integrable or non-negative measurable function. 
+    \begin{enumerate}
+        \item If $\nu$ has a density w.r.t.\ $\mu$ then we have:
+                \[ \int g \,d\nu = \int g \cdot \frac{d\nu}{d\mu}\,d\mu.   \]
+            \item (Conic) linearity: If $\kappa$ has a density w.r.t.\ $\mu$ and $\nu$ has a density w.r.t.\ $\mu$ and $a,b \ge0$ then $a \cdot \kappa+b \cdot \nu$ has a density w.r.t.\ $\mu$ and we have:
+            \[ \frac{d(a \cdot \kappa+b\cdot \nu)}{d\mu}(x) = a\cdot\frac{d\kappa}{d\mu}(x) + b\cdot\frac{d\nu}{d\mu}(x) \]
+             for $\mu$-almost-all $x \in \Xcal$.
+      \item Chain rule: 
+    If $\nu$ has a density w.r.t.\ $\mu$ and $\mu$ has a density w.r.t.\ $\kappa$ then also $\nu$ has a density w.r.t.\ $\kappa$ and we have:
+    \[ \frac{d\nu}{d\kappa}(x) = \frac{d\nu}{d\mu}(x) \cdot \frac{d\mu}{d\kappa}(x) \]
+    for $\kappa$-almost-all $x \in \Xcal$.
+        \item Inverse:    If $\nu$ has a density w.r.t.\ $\mu$ and $\mu$ has a density w.r.t.\ $\nu$ then we have:
+            \[ \frac{d\nu}{d\mu}(x) = \lp\frac{d\mu}{d\nu}(x) \rp^{-1}    \]
+            for $\mu$-almost-all $x \in \Xcal$. We can make in this context the (somewhat arbitrary) choice to put: $0^{-1}:=\infty$.
+    \end{enumerate}
+\end{Prp}
+
+\begin{Def}[Absolute continuity]
+    Let $\mu$, $\nu$ be two measures on a measurable space $(\Xcal,\Bcal)$.
+    We say that $\nu$ is \emph{absolute continuous} w.r.t.\ $\mu$, in symbols:
+    \[ \nu \ll \mu,\]
+    if for every $A \in \Bcal$ with $\mu(A)=0$ also $\nu(A)=0$ holds, in short, if:
+    \[ \mu(A)=0 \quad \implies \quad \nu(A)=0.\]
+\end{Def}
+
+\begin{Thm}[Radon-Nikod\'ym]
+    Let $(\Xcal,\Bcal, \mu)$ be a $\sigma$-finite measure space and $\nu$ another measure on $(\Xcal,\Bcal)$.
+    Then the following two statements are equivalent:
+    \begin{enumerate}
+        \item $\nu$ has a density w.r.t.\ $\mu$.
+        \item $\nu$ is absolute continuous w.r.t.\ $\mu$.
+    \end{enumerate}
+\end{Thm}
+
+
+
+
+\begin{Thm}[Besicovitch density theorem, \cite{Fremlin} 472D]
+    \label{besicovitch-density}
+Let $\mu$ be a Radon measure on $\R^D$ (e.g.\ any finite or probability measure or the Lebesgue measure, see \ref{thm-lebesgue-measure}) and $f:\,\R^D \to \bar\R$ be any (locally) $\mu$-integrable function.
+    Then we have for $\mu$-almost-all $x \in \R^D$:
+    \begin{enumerate}
+        \item $\displaystyle \lim_{\varepsilon \to 0} \frac{1}{\mu( B_\varepsilon(x))} \int_{B_\varepsilon(x)}f(z)\,\mu(dz) = f(x).$   
+        \item $\displaystyle \lim_{\varepsilon \to 0} \frac{1}{\mu( B_\varepsilon(x))} \int_{B_\varepsilon(x)}|f(z) - f(x)|\,\mu(dz) = 0$. 
+    \end{enumerate}
+    Here $B_\varepsilon(x)$ denote the closed balls of radius $\varepsilon>0$ centered at $x$ (in Euclidean norm).\\
+    The above, in particular, holds for the density $f=\frac{d\nu}{d\mu}$ of another measure $\nu$ w.r.t.\ $\mu$:
+    \[  \lim_{\varepsilon \to 0} \frac{\nu( B_\varepsilon(x))} {\mu( B_\varepsilon(x))}  = \frac{d\nu}{d\mu}(x), \]
+    for $\mu$-almost-all $x \in \R^D$.
+\end{Thm}
+
+\subsubsection{Conditional Expectation}
+
+You may be familiar with the conditional expectation for discrete random variables $X,Y$:
+\begin{align*} 
+    \E[X|Y=y] &= \sum_{x\in\Xcal} x\cdot P(X=x|Y=y) 
+&= \sum_{x \in \Xcal} x \cdot \frac{P(X=x,Y=y)}{P(Y=y)} \\&= \frac{\sum_{x \in \Xcal} x \cdot P(X=x,Y=y)}{P(Y=y)},
+\end{align*}
+and for real-valued random variables $X,Y$ with positive and continuous joint density $p(x,y)$: 
+\[\E[X| Y=y] = \int_\Xcal x \cdot p(x| Y=y) \,dx = \int_\Xcal x \cdot \frac{p(x,y)}{p(y)} \,dx = \frac{\int_\Xcal x \cdot p(x,y)\,dx}{p(y)}.\]
+The following construction generalizes this notion:
+\begin{Def}[Conditional expectation]
+    Let $(\Wcal,P)$ be a probability space
+    and $X:\, \Wcal \to \R$, $Y:\,\Wcal \to \Ycal$ be two random variables with 
+    either $\E[|X|]< \infty$ or $X \ge 0$ a.s.
+    %$\min_\pm \E[X_\pm] < \infty$.
+    %$\min \lp \E[X_+], \E[X_-]\rp<\infty$.
+\begin{enumerate}
+         \item     The \emph{conditional expectation}  of $X$ given $Y=y$ is defined via:
+     \[ \E[X|Y=y] := \E[X_+|Y=y] - \E[X_-|Y=y] \qquad \in \bar \R, \]
+    % (if not both terms are $\infty$),
+     where $X_\pm:=\max(\pm X,0) \ge 0$ and:
+     \[\E[X_\pm|Y=y] := \frac{dE_\pm}{dP^Y}(y),\]
+     is the Radon-Nikodym derivative/density w.r.t.\ $P^Y$ of the following measure on $\Ycal$: 
+     \[ E_\pm(B) := \E\lB X_\pm \cdot \I_B(Y) \rB = \int x \cdot \I_B(y) \, dP^{(X_\pm,Y)}(x,y).  \]
+     One can easily see that $E_\pm \ll P^Y$ and that the densities exist by the Radon-Nikodym theorem.
+% \item This defines a measurable map:
+ %    \[   \Ycal \to \bar\R,\quad y \mapsto \E[X|Y=y].\]
+     %This means that $y \mapsto \E[X|Y=y]$ is uniquely defined via:
+     %\[ \E\lB X \cdot \I_B(Y)\rB = \int_B \E[X|Y=y]\,P^Y(dy),   \]
+    %for all measurable $B \ins \Ycal$.
+ \item The \emph{conditional expectation}  of $X$ given $Y$ is then the measurable map defined via:
+     \[\E[X| Y] :\, \Wcal \to \bar\R,\quad w \mapsto \E[X|Y](w):=\E[X|Y=Y(w)]=\E[X|Y=y]|_{y=Y(w)},\]
+     i.e.\ the composition of $Y$ with the measurable map $y \mapsto\E[X|Y=y]$.
+     %\[ \E[X|\ul Y] = \E[X|Y] \circ Y.  \]
+\end{enumerate}    
+\end{Def}
+
+\begin{Rem}
+    The construction from above also works with a measure $\mu$ such that $\mu^Y$ is $\sigma$-finite (instead of $P$) since we only need to guarantee the existence of the Radon-Nikodym derivative.
+\end{Rem}
+
+\begin{Not}
+ Let $\Wcal$, $\Zcal$, $\Ycal$ be measurable spaces and $Z:\, \Wcal \to \Zcal$ and $Y:\,\Wcal \to \Ycal$ be measurable maps.
+ We write:
+ \[ Z \precsim Y  \]%\qquad \text{ or } \qquad Z \in \sigma(Y) \]% \qquad \text{ or } \qquad \sigma(Z) \ins \sigma(Y) \]
+ if there exists a measurable function $F: \Ycal \to \Zcal$ % 
+ %$F:Y(\Wcal) \to \Zcal$ 
+ such that $Z= F \circ Y $; in other words if $Z$ is a deterministic (measurable) function of $Y$, i.e.: $Z=F(Y)$.\\
+ If $\mu$ is a measure on $\Wcal$ we also write:
+ \[ Z \precsim_\mu Y\]
+ if there exists a measurable map $F$ such that $Z=F(Y)$ $\mu$-almost-surely.
+ %if there exists a measurable $\mu$-null set $N \ins \Wcal$ and a measurable map $F:Y(N^\cmpl) \to \Zcal$ such that for all $w \in N^\cmpl$ we have $Z(w)=F(Y(w))$.
+
+\end{Not}
+
+\begin{Thm}
+ Let $(\Wcal,P)$ be a probability space
+ and $X,T:\, \Wcal \to \R$, $Y:\,\Wcal \to \Ycal$, $Z:\, \Wcal \to \Zcal$ be random variables with $\E[|X|]< \infty$ (or as long as we do not run into the ``$\infty - \infty=?$'' problem).
+    Then we have the following properties:
+    \begin{enumerate}
+        \item $\E[X|Y]$ is the unique real valued random variable $Z$ (up to $P$-null set)  such that: 
+            \begin{enumerate}
+                \item $Z \precsim_P Y$ and:
+                \item 
+            for all measurable $B \ins \Ycal$:            
+            \[ \E\lB Z \cdot \I_B(Y) \rB = \E[ X \cdot \I_B(Y)].  \]
+            \end{enumerate}
+%        \item  For all  measurable  $g:\,\Ycal \to \R$ with $\E[|g(Y) \cdot X|]< \infty$ we have:
+%            \[ \E\lB g(Y) \cdot X|Y \rB = g(Y) \cdot \E[X|Y] \quad P\text{-a.s.}  \]
+        \item  For all real valued random variables $Z \precsim_P Y$  with $\E[|Z \cdot X|]< \infty$ we have:
+            \[ \E\lB Z \cdot X|Y \rB = Z \cdot \E[X|Y] \quad P\text{-a.s.}  \]
+        \item Linearity: For all $a,b \in \R$ we have:
+            \[ \E[ a \cdot X + b\cdot T|Y] = a \cdot \E[X|Y] + b\cdot\E[T|Y] \quad P\text{-a.s.}  \]
+        \item Constants: $\E[1|Y] = 1$ $P$-a.s.
+        \item Constant maps: If $Y$ is a constant map then: $\E[X|Y] = \E[X]$ $P$-a.s.
+        \item Independence (see \ref{ci-random-variables}): If $X \Indep Y$ then: $\E[X|Y] = \E[X]$ $P$-a.s.    
+        \item Deterministic dependence: If $X \precsim_P Y$ then: $\E[X|Y] = X$ $P$-a.s.   
+        \item Monotonicity: If $ X \ge T$ $P$-a.s. then we have:
+            \[ \E[X|Y] \ge  \E[T|Y] \quad P\text{-a.s.}    \]
+        \item Jensen inequality: Let $\varphi: \R \to \R$ be convex then we have:
+            \[ \varphi\lp \E[X|Y]\rp \le \E[ \varphi(X)|Y] \quad P\text{-a.s.}   \]
+        \item Triangle inequality: $|\E[X|Y]| \le \E[\,|X|\,|\, Y]$ $P$-a.s.
+%        \item Tower rule: For all measurable $g:\, \Ycal \to \Zcal$ we have:
+%            \[ \E\lB\E[X|Y]|g(Y)\rB = \E\lB\E[X|g(Y)]|Y\rB = \E[X|g(Y)]\quad P\text{-a.s.}    \]
+        \item Tower rule: If $Y \precsim Z$ then:
+            \[ \E\lB\E[X|Y]|Z\rB = \E\lB\E[X|Z]|Y\rB = \E[X|Y]\quad P\text{-a.s.}    \]
+        \item Tower rule, special case:
+            \[ \E\lB\E[X|Y]|Y,Z\rB = \E\lB\E[X|Y,Z]|Y\rB = \E[X|Y]\quad P\text{-a.s.}    \]
+        \item Monotone convergence, dominated convergence, etc. (see literature).
+    \end{enumerate}
+\end{Thm}
+
+
+\subsubsection{The Lebesgue Measure}
+
+%Remark: continous mappings are measurable wrt Borel sigma algebra
+% Existence of Lebegue measure and change of density formula
+
+\begin{Thm}[Lebesgue measure]
+    \label{thm-lebesgue-measure}
+    Consider $\R^D$ with its Borel $\sigma$-algebra $\Bcal_{\R^D}$.
+    Then there exists a unique measure $\lambda^D$ on $(\R^D,\Bcal_{\R^D})$ such that:
+    \[ \lambda^D\lp [a_1,b_1] \times \cdots \times [a_D, b_D]\rp = (b_1-a_1) \cdots (b_D-a_D)   \]
+    for all $a_d, b_d \in \R$, $a_d \le b_d$, $d=1,\dots,D$. 
+    It will be called the $D$-dimensional \emph{Lebesgue measure}.
+    If the dimension is clear from the context we might just write $\lambda$ for $\lambda^D$.
+\end{Thm}
+
+\begin{Thm} Let $\lambda$ be the Lebesgue measure on the interval $[a,b]$.  Let $f:\, [a,b] \to \R$ be a Riemann integrable function (e.g.\ a continuous function) then $f$ is also $\lambda$-integrable and we have:
+    \[ \int_a^b f(x)\,dx = \int_{[a,b]}  f(x)\, \lambda(dx). \]
+    %Roughly, this means that we can use all the rules we know about integration to compute Lebesgue integrals.
+\end{Thm}
+
+\begin{Thm}[Fundamental theorem of calculus]
+   % \begin{enumerate}
+    %    \item 
+    Let $f: \R \to \R$ be a measurable function such that $\int_{[a,b]}  |f| \,d\lambda < \infty$ for $a,b \in \R$. % all compact subsets $K \ins \R$.
+            For fixed $c \in \R$ define $F:\, [c,\infty) \to \R$ via:
+            \[ F(x) := \int_{(c,x]} f\,d\lambda.  \]
+            Then $F$ is differentiable in  $\lambda$-almost-all $x \in \R$ and for those points we have:
+            \[ F'(x) = f(x).\]
+    %    \item
+    %\end{enumerate}
+\end{Thm}
+
+\subsubsection{Transformation Rules}
+
+
+\begin{Thm}[General integral transformation]
+    Let $(\Wcal,\mu)$ be a measure space and $X :\,\Wcal \to \Xcal$ and $F:\, \Xcal \to \R$ be measurable.
+    Then we have:
+    \[ \int F(X)\,d\mu = \int F\, d(X_*\mu),  \]
+    if either side is well-defined.
+    Written in longer form this is:
+    \[ \int F(X(w))\,\mu(dw) = \int F(x)\, (X_*\mu)(dx).  \]
+\end{Thm}
+
+
+
+\begin{Thm}[Push-forward of densities]
+    Let $(\Wcal,\mu)$ be a  measure space and $\nu$ another measure on $\Wcal$. Let $\varphi:\,\Wcal \to \Ycal$ be a measurable mapping such that 
+    $\varphi_*\mu$ is $\sigma$-finite.
+    If $\nu$ has a density w.r.t.\ $\mu$ then the push-forward measure $\varphi_*\nu$ has a density w.r.t.\ $\varphi_*\mu$ given as follows:
+    %For this, note that $\varphi_*\nu$ can be written in terms of the density $\frac{d\nu}{d\mu}$ as follows:
+    %\[ (\varphi_*\nu) = \int \I_{\varphi^{-1}(B)}(w)\cdot \frac{d\nu}{d\mu}(w)\,d\mu(w). \]
+    \[ \frac{d(\varphi_*\nu)}{d(\varphi_*\mu)}(y) = \E_\mu\lB \frac{d\nu}{d\mu} \bigg| \varphi=y\rB  = "\int \frac{d\nu}{d\mu}(w) \, \mu(dw|\varphi=y)", \]
+    for $\varphi_*\mu$-almost-all $y \in \Ycal$,  where the conditional integral $\E_\mu$  is constructed 
+    the same way as the conditional expectation but using the $\sigma$-finite measure $\varphi_*\mu$.\\
+    %the conditional measure might not always exists, but the conditional integral as whole does!!!!
+    If, furthermore, $\varphi$ is a measurable isomorphism then we get: 
+    \[ \frac{d(\varphi_*\nu)}{d(\varphi_*\mu)}(y) = \frac{d\nu}{d\mu}(\varphi^{-1}(y)) \]
+     for $\varphi_*\mu$-almost-all $y \in \Ycal$.
+\end{Thm}
+
+\begin{Thm}[Transformation formula for the Lebesgues measure]
+    \label{transformation-formula}
+    Let $\varphi:\, \R^D \to \R^D$ be a continously differentiable bijection of $\R^D$ (or of open/closed subsets therein) with Jacobian $\varphi'(x)$ at point $x$. 
+    Let $\lambda$ be the Lebesgue measure on $\R^D$.
+    Then $\varphi_* \lambda$ is absolute continuous w.r.t.\ $\lambda$ with density given by:
+    \[ \frac{d (\varphi_*\lambda)}{d\lambda}(y) = | \det \varphi' (\varphi^{-1}(y))|^{-1}  \]
+    for all $y \in \R^D$ (or in that open/closed subset, and $=0$ outside).
+\end{Thm}
+
+
+\begin{Cor}[Transformation of (probability) densities w.r.t.\ the Lebesgue measure]
+    Let the setting be like in \ref{transformation-formula}.
+    Let $\nu$ be a (probability) measure on $\R^D$ with (probability) density $p$ w.r.t.\ $\lambda$.
+    Then $\varphi_*\nu$ also has a (probability) density w.r.t.\ $\lambda$, which is then given by:
+    \[ \frac{d(\varphi_*\nu)}{d\lambda}(y) = \frac{d(\varphi_*\nu)}{d(\varphi_*\lambda)}(y) \cdot \frac{d(\varphi_*\lambda)}{d\lambda}(y)  =  p(\varphi^{-1}(y)) \cdot |\det \varphi'(\varphi^{-1}(y)|^{-1}.   \]
+\end{Cor}
+
+
+\begin{Rem}[Transformation rule for discrete measures]
+    Let $\Xcal$ be a measurable space and $\mu$ be a discrete (probability) measure on $\Xcal$ supported on the countable discrete subset $\Wcal \ins \Xcal$ with mass function given by:
+    \[ m(x) = \frac{d\mu}{d\#_\Wcal}(x),\]
+    where $\#_\Wcal$ is the counting measure w.r.t.\ $\Wcal$ given by: $\#_\Wcal(A) := \#(\Wcal \cap A)$.
+    Let $\varphi:\,\Xcal \to \Ycal$ be a measurable map. Then $\varphi_*\mu$ is a discrete measure supported on $\varphi(\Wcal)$ 
+    with mass function/density:
+    \[ \frac{d\varphi_*\mu}{d\#_{\varphi(\Wcal)}}(y) = \sum_{ w \in \varphi^{-1}(y) \cap \Wcal } m(w).
+    \]
+\end{Rem}
+
+\begin{Eg}[Linear transformation of Gaussian distributions]
+\end{Eg}
+
+\begin{Eg}[Density of Chi-square distributions]
+\end{Eg}
+
+
+
+
+
+\begin{comment}
+\subsubsection{Exercises}
+
+
+\begin{Exc}[$\sigma$-algebra]
+    \label{exercise-sigma-algebra}
+    \begin{enumerate}
+        \item
+    Let $\Wcal$ be a set and $\Bcal$ a $\sigma$-algebra on $\Wcal$. Show the following:
+    \begin{enumerate}
+        \item If $A_1,A_2 \in \Bcal$ then also: $A_1 \cup A_2 \in \Bcal$.
+        \item If $A_n \in \Bcal$ for $n \in \N$ then also: $\bigcap_{n \in \N} A_n \in \Bcal$.
+        \item If $A_1,A_2 \in \Bcal$ then also: $A_1 \sm A_2 \in \Bcal$.
+    \end{enumerate}
+\item Let $\Wcal$ be a set. Show that $2^\Wcal$ is a $\sigma$-algebra on $\Wcal$.
+\item Let $\Wcal$ be a set and $(\Bcal_i)_{i \in I}$ be an arbitrary family of $\sigma$-algebras of $\Wcal$. Show that the intersection:
+    $  \bigcap_{i \in I} \Bcal_i $
+    is again a $\sigma$-algebra on $\Wcal$.
+    \end{enumerate}
+\end{Exc}
+
+
+\begin{Exc}[Borel $\sigma$-algebra]
+    \label{exercise-Borel-sigma-algebra}
+    \begin{enumerate}
+        \item 
+    Show that the Borel $\sigma$-algebra $\Bcal_\R$ on $\R$ can also be generated by the following sets of subsets of $\R$:
+    \begin{enumerate}
+        \item $\lC (-\infty,b]\;|\; b \in \Q   \rC$,
+       % \item  $\lC (a,b]\;|\; a,b \in \R, a\le b \rC$,
+        \item  $\lC (a,b)\;|\; a,b \in \R, a\le b \rC$,
+        \item  $\lC [a,b]\;|\; a,b \in \R, a\le b \rC$,
+        \item etc.
+    \end{enumerate}
+\item Show that the Borel $\sigma$-algebra $\Bcal_{\R^D}$ is also the product $\sigma$-algebra 
+    of the 1-dimensional Borel $\sigma$-algebras $\Bcal_\R$, i.e.\ show:
+    \[ \Bcal_{\R^D} = \Bcal_\R \otimes \cdots \otimes \Bcal_\R.\]
+%\[ \Bcal_{\R^D} = \sigma\lp\lC (-\infty,b_1] \times \cdots \times (-\infty,b_D]\;|\; b_1,\dots,b_D \in \R    \rC\rp.  \]
+    \end{enumerate}
+\end{Exc}
+
+
+\begin{Exc}[$\sigma$-algebras induced by mappings]
+    \begin{enumerate}
+        \item Show that the composition $g \circ f$ of two measurable mappings $f: \Wcal \to \Zcal$ and $g: \Zcal \to \Ycal$ is again measurable w.r.t.\ the corresponding $\sigma$-algebras.
+        \item Let $f: \Wcal \to \Zcal$ be any mapping and $\Bcal_\Zcal$ be a $\sigma$-algebra on $\Zcal$. Then show that:
+            \[ f^*\Bcal_\Zcal := \lC f^{-1}(C)\,|\, C \in \Bcal_\Zcal  \rC\]
+            is a $\sigma$-algebra on $\Wcal$. Furthermore, show that $f$ is $f^*\Bcal_\Zcal$-$\Bcal_\Zcal$-measurable.
+            Show that $f^*\Bcal_\Zcal$ is the smallest $\sigma$-algebra $\Bcal_\Wcal$ on $\Wcal$ that makes $f$ $\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable.
+        \item Let $f: \Wcal \to \Zcal$ be any mapping and $\Bcal_\Wcal$ be a $\sigma$-algebra on $\Wcal$. Then show that:
+            \[ f_*\Bcal_\Wcal := \{ C \ins \Zcal\,|\, f^{-1}(C) \in \Bcal_\Wcal  \}\]
+            is a $\sigma$-algebra on $\Zcal$. Furthermore, show that $f$ is $\Bcal_\Wcal$-$f_*\Bcal_\Wcal$-measurable.
+            Shwo that $f_*\Bcal_\Wcal$ is the biggest $\sigma$-algebra $\Bcal_\Zcal$ on $\Zcal$ that makes $f$ $\Bcal_\Wcal$-$\Bcal_\Zcal$-measurable.
+         \item Let $f: \Wcal \to \Zcal$ be any mapping and $\Bcal_\Wcal$ and $\Bcal_\Zcal$ be $\sigma$-algebras on $\Wcal$ and $\Zcal$, resp..
+             Show that $f$ is measurable iff $f^*\Bcal_\Zcal \ins \Bcal_\Wcal$ iff $\Bcal_\Zcal \ins f_*\Bcal_\Wcal$.
+    \end{enumerate}
+\end{Exc}
+
+\begin{Exc}
+    Show that the subspace $\sigma$-algebra $\Bcal_{|\Zcal}$ really is a $\sigma$-algebra on $\Zcal$.
+\end{Exc}
+
+\begin{Exc}
+    Show that the push-forward measure really is a measure.
+\end{Exc}
+
+
+\begin{Exc}
+    Give a more explicit description of the product $\sigma$-algebra in terms of product sets $A_1 \times \cdots \times A_N$.
+\end{Exc}
+\end{comment}

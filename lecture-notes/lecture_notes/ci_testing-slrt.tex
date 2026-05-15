@@ -1,0 +1,781 @@
+\section{The Split Likelihood Ratio Test and Conditional Independence Testing for Conditional Random Variables}
+
+
+\begin{comment}
+\subsubsection{The Split Likelihood Ratio Test}
+
+In the following we outline the general framework of the \emph{split likelihood ratio test} from \cite{WRB20}.
+
+\begin{Prn}[Split likelihood ratio test, see \cite{WRB20,SD22}]
+    Let $\Xbf=\lC x^{(1)},\dots,x^{(N)} \rC \ins \Xcal$ be i.i.d.\ data from a probability distribution $P \in \Pcal(\Xcal)$.
+ Let $\Hcal_0 = \lC P_\theta \st \theta \in \Theta_0 \rC $ and 
+ $\Hcal_1 = \lC P_\theta \st \theta \in \Theta_1 \rC \ins \Pcal(\Xcal)$ be two disjoint hypothesis classes given by
+ densities $x \mapsto p(x|\theta)$ w.r.t.\ a reference measure $\mu$ on $\Xcal$.
+ We want to test if $P \in \Hcal_0$ vs.\ $P \in \Hcal_1$.
+ \begin{enumerate}
+     \item Split the data roughly 1:1 into two disjoint sets: $\Xbf = \Xbf_0 \dcup \Xbf_1$ (split unevenly, e.g.\ 1:2, if $\dim \Theta_0 \ll \dim \Theta_1$).
+     \item Train a model $x \mapsto \hat p(x|\Xbf_1)$ using any method on $\Xbf_1$ and $\Hcal_1$, e.g.\ via maximum likelihood fitting: $\hat p(x|\Xbf_1) = p(x|\hat \theta_1(\Xbf_1))$:
+         \[ \hat \theta_1(\Xbf_1) := \argmax_{\theta \in \Theta_1}  p(\Xbf_1|\theta), \]
+         where we make the abbreviation:
+         \[ p(\Xbf_i|\theta) := \prod_{x \in \Xbf_i} p(x|\theta). \]
+     \item Train a model $x \mapsto p(x|\hat \theta_0(\Xbf_0))$ via maximum likelihood fitting on $\Xbf_0$ and $\Hcal_0$ :
+         \[ \hat \theta_0(\Xbf_0) := \argmax_{\theta \in \Theta_0}  p(\Xbf_0|\theta). \]
+         Note that we have: 
+         \[  p(\Xbf_0|\hat \theta_0(\Xbf_0)) = \sup_{\theta \in \Theta_0} p(\Xbf_0|\theta).   \]
+     \item Consider the test statistic:
+         \[ E := \frac{ \hat p(\Xbf_0|\Xbf_1)}{p(\Xbf_0|\hat \theta_0(\Xbf_0))} = \frac{ \hat p(\Xbf_0|\Xbf_1)}{\sup_{\theta \in \Theta_0} p(\Xbf_0|\theta)},  \]
+            where both densities are evaluated on $\Xbf_0$ by taking the product of the densities for each point.
+        \item      Further note that $E$ is an \emph{E-variable} for $\Hcal_0$, i.e.:
+     \begin{align*} \sup_{\theta \in \Theta_0} \E_\theta\lB E \rB  \le 1.
+     \end{align*}
+       Indeed, for every $\theta \in \Theta_0$, i.e.\ assuming $\Xbf \sim P_\theta \in \Hcal_0$ i.i.d., we have:
+         \begin{align*} \E_\theta\lB E \rB 
+         &= \int\int \frac{ \hat p(x_0|x_1)}{p(x_0|\hat \theta_0(x_0))} \, p(x_0,x_1|\theta) \, d\mu(x_0)\, d\mu(x_1) \\
+         &\stackrel{\hat \theta_0 \text{ MLE}}{\le} \int\int \frac{ \hat p(x_0|x_1)}{p(x_0|\theta)} \, p(x_0,x_1|\theta) \, d\mu(x_0)\, d\mu(x_1) \\ 
+         &\stackrel{\Xbf_0 \Indep \Xbf_1|\theta}{=} \int\int \frac{ \hat p(x_0|x_1)}{p(x_0|\theta)} \, p(x_0|\theta) \, p(x_1|\theta) \, d\mu(x_0)\, d\mu(x_1) \\
+         & = \int \lp \int \hat p(x_0|x_1) \, d\mu(x_0)  \rp \, p(x_1|\theta)  \, d\mu(x_1) \\
+         & = 1.
+     \end{align*}
+ \item Pick a significance level $\alpha \in [0,1]$\footnote{Historically: $\alpha=0.05$, 
+     in physics: $\alpha = \frac{1}{3488556}= 3 \cdot 10^{-7}$ (5$\sigma$-rule).} and reject $\Hcal_0$ in favor of $\Hcal_1$ if:
+         \[ \Lambda:=\log E \ge - \log \alpha. \]
+         We call $-\log_{2} \alpha$ the \emph{bits of safety} (against type-I-error) 
+         and $\Lambda/\log 2$ the \emph{evidential bits of safety} (for rejecting $\Hcal_0$ in favor of $\Hcal_1$).
+         If we use $\log_e$ we would say \emph{nats of safety}. For $\log_{10}$ it was proposed to use the term \emph{nines of safety}\footnote{
+         \texttt{https://terrytao.wordpress.com/2021/10/03/nines-of-safety-a-proposed-unit-of-measurement-of-risk}}.
+     \item The type-I-error is then bounded by $\alpha$. 
+     \item[]  Indeed, for every $\alpha \in [0,1]$ and $\theta \in \Theta_0$ we have with help of the Markov inequality:
+         \begin{align*} P_\theta\lp \Lambda \ge - \log \alpha  \rp &= P_\theta \lp E \ge \alpha^{-1} \rp 
+             \le \frac{\E_\theta\lB E \rB }{\alpha^{-1}} = \E_\theta\lB E \rB \cdot \alpha \stackrel{\E_\theta\lB E \rB  \le 1}{\le} \alpha.
+         \end{align*}
+ \end{enumerate}
+\end{Prn}
+
+\subsubsection{Conditional Independence Testing for Random Variables}
+
+Now again consider three categorical random variables $X,Y,Z$ taking values in spaces $\Xcal$, $\Ycal$
+and $\Zcal$, resp., with $2 \le K:= |\Xcal| < \infty$, $2 \le L:=|\Ycal| < \infty$ and $1 \le M:=|\Zcal| < \infty$, 
+and joint distribution $P(X,Y,Z)$.
+
+Let $\Dbf=\lC (x_n,y_n,z_n) \st n =1, \dots, N \rC$ be a data set of size $N$ drawn i.i.d.\ from $P(X,Y,Z)$.
+We want to test:
+\[ H_0:\, X \Indep_{P(X,Y,Z)} Y \given Z, \qquad \text{v.s.} \qquad H_1:\,X \nIndep_{P(X,Y,Z)} Y \given Z. \]
+We will parameterize the mass function of $P(X,Y,Z|\theta)$ as:
+\[ p(x,y,z|\theta) = \theta_{x,y,z}, \qquad \theta = \lp \theta_{x,y,z} \rp_{(x,y,z) \in \Xcal\times\Ycal\times\Zcal}, \]
+for $\theta \in \Theta^{(0)}$, $\theta \in \Theta^{(1)}$, resp.
+
+Split the data between 1:1 to 1:2: $\Dbf = \Dbf^{(0)} \dcup \Dbf^{(1)}$. 
+We then put, similar to before, $i=0,1$:
+\begin{align*}
+    N^{(i)} & := \# \Dbf^{(i)},\\
+    N^{(i)}_{x,y,z} &:=  \sum_{(x',y',z') \in \Dbf^{(i)}} \I_{(x,y,z)}(x',y',z'),\\
+    N^{(i)}_{x,+,z} &:=  \sum_{(x',y',z') \in \Dbf^{(i)}} \I_{(x,z)}(x',z') &&= \sum_{y \in \Ycal} N^{(i)}_{x,y,z} ,\\
+    N^{(i)}_{+,y,z} &:=  \sum_{(x',y',z') \in \Dbf^{(i)}} \I_{(y,z)}(y',z') &&= \sum_{x \in \Xcal} N^{(i)}_{x,y,z} ,\\
+    N^{(i)}_{+,+,z} &:=  \sum_{(x',y',z') \in \Dbf^{(i)}} \I_{z}(z') &&= \sum_{x \in \Xcal} N^{(i)}_{x,+,z} ,\\
+    N^{(i)}_{x,+,+} &:=  \sum_{(x',y',z') \in \Dbf^{(i)}} \I_{x}(x') &&= \sum_{z \in \Zcal} N^{(i)}_{x,+,z}.
+\end{align*}
+The maximum likelihood objective then leads to the following frequency estimators:
+\[ \hat \theta^{(1)}_{x,y,z} := \frac{N^{(1)}_{x,y,z}}{N^{(1)}}, \qquad \hat \theta^{(0)}_{x,y,z} := \hat \theta^{(0)}_{x|z} \cdot \hat \theta^{(0)}_{y,z}, \quad \text{ with: } \quad
+\hat \theta^{(0)}_{y,z} := \frac{N^{(0)}_{+,y,z}}{N^{(0)}}, \qquad \hat \theta^{(0)}_{x|z} := \frac{N^{(0)}_{x,+,z}}{N^{(0)}_{+,+,z}},  \]
+or, more precisely, to avoid division by zero:
+\[
+\hat \theta^{(0)}_{x|z} :=  \left\{ 
+    \begin{array}{lll}
+     \frac{N^{(0)}_{x,+,z}}{N^{(0)}_{+,+,z}}  & \text{ if } & N^{(0)}_{+,+,z} \neq 0,\\
+     \frac{N^{(0)}_{x,+,+}}{N^{(0)}} \cdot  & \text{ if } & N^{(0)}_{+,+,z} = 0.
+\end{array} \right.
+\]
+Note that in the split likelihood ratio test we have some freedom to fit $\hat \theta^{(1)}$. To avoid (or enforce) the vanishing of some
+$\hat \theta^{(1)}_{x,y,z}$, we could also use a regularized version by adding (or subtracting, resp.) small ``pseudo-counts'' $\epsilon \in \R$:
+\begin{align*}
+    N^{(1),\epsilon}_{x,y,z} := \max(0,N^{(1)}_{x,y,z} + \epsilon),\qquad N^{(1),\epsilon} := \sum_{(x,y,z)\in\Xcal\times\Ycal\times\Zcal}N^{(1),\epsilon}_{x,y,z},\qquad
+\hat \theta^{(1)}_{x,y,z} :=  \frac{N^{(1),\epsilon}_{x,y,z}}{N^{(1),\epsilon}}.
+\end{align*}
+We now put for $i=0,1$:
+\[ \hat \theta^{(i)} := \lp \hat \theta^{(i)}_{x,y,z} \rp_{(x,y,z)  \in \Xcal\times \Ycal\times \Zcal}.  \]
+We can then write the estimated mass functions as:
+\[ p(x,y,z|\hat \theta^{(i)}) = \prod_{(x',y',z')\in\Xcal\times\Ycal\times\Zcal} \lp\hat \theta^{(i)}_{x',y',z'}\rp^{\I_{(x',y',z')}(x,y,z)}.\]
+Plugging $\Dbf^{(j)}$ in we get:
+\begin{align*}
+    p(\Dbf^{(j)}|\hat \theta^{(i)}) 
+   & = \prod_{(x,y,z) \in \Dbf^{(j)}} \prod_{(x',y',z')\in\Xcal\times\Ycal\times\Zcal} \lp\hat \theta^{(i)}_{x',y',z'}\rp^{\I_{(x',y',z')}(x,y,z)}\\
+   & =  \prod_{(x',y',z')\in\Xcal\times\Ycal\times\Zcal} \lp\hat \theta^{(i)}_{x',y',z'}\rp^{N_{x',y',z'}^{(j)}}.
+\end{align*}
+So the test statistic for the split likelihood ratio test is:
+\begin{align*} 
+    E &= \prod_{(x,y,z)\in\Xcal\times\Ycal\times\Zcal} \lp  \frac{\hat \theta^{(1)}_{x,y,z}}{\hat \theta^{(0)}_{x,y,z}} \rp^{N_{x,y,z}^{(0)}}.
+\end{align*}
+and thus:
+\begin{align*} 
+    \Lambda = \log E &= \sum_{(x,y,z)\in\Xcal\times\Ycal\times\Zcal} N_{x,y,z}^{(0)} \cdot \log \frac{\hat \theta^{(1)}_{x,y,z}}{\hat \theta^{(0)}_{x,y,z}} \\
+    &=  \sum_{(x,y,z)\in\Xcal\times\Ycal\times\Zcal} N_{x,y,z}^{(0)} \cdot \log \frac{N^{(1),\epsilon}_{x,y,z} \cdot N^{(0)}_{+,+,z} \cdot N^{(0)}}
+    {N^{(1),\epsilon} \cdot N^{(0)}_{x,+,z} \cdot N^{(0)}_{+,y,z}}. 
+\end{align*}
+For a significance level $\alpha \in [0,1]$ we declare $X$ dependent on $Y$ conditioned on $Z$ if:
+\[ \Lambda \ge -\log \alpha. \]
+As stated before, the type-I-error will be bounded by $\alpha$.
+
+\begin{Rem}
+    On the one hand, the split likelihood ratio test is usually less powerful than the classical likelihood ratio test, due to two reasons:
+    \begin{enumerate}
+        \item If the split is given by the ratio $\rho := \frac{\#\Dbf_0}{\#\Dbf} < 1$ then:
+            \[ N_{x,y,z}^{(0)}  \approx \rho \cdot N_{x,y,z}.   \]
+            So $\Lambda$ is roughly by a factor of $\rho$ smaller
+            than $\frac{1}{2} \cdot G_N$ (note the correction for the conventional factor of $2$ inside $G_N$), 
+            where the latter is fitted on the whole dataset $\Dbf$.
+        \item The corresponding thresholds are typically related like:
+    \[ \frac{1}{2} \cdot \chi^2_{\nu,1-\alpha} < - \log \alpha. \]
+    \end{enumerate}
+    So if $H_1$ was true, then $\frac{1}{2} G_N$ would more quickly surpass the threshold of $\frac{1}{2} \cdot \chi^2_{\nu,1-\alpha}$ than $\Lambda$ would surpass $- \log \alpha$.
+
+    On the other hand, the advantage of the split likelihood ratio test is that the test statistic is based on an \emph{E-variable}.
+    It thus inherits all the perks from safe testing, see \cite{GHK20}, like optional stopping and optional continuation.    
+    Furthermore, the type-I-error control holds for all (finite) sample sizes and not just asymptotically.
+    \PF{maybe cite other papers}
+\end{Rem}
+
+\end{comment}
+
+
+\subsubsection{The Split Likelihood Ratio Test for Conditional Random Variables}
+
+In the following we generalize the general framework of the \emph{split likelihood ratio test} from \cite{WRB20} to Markov kernels and conditional random variables. For this we first need to generalize the notion of E-variable, see \cite{GHK20}, to this scenario as well.
+
+\begin{Def}[E-variable]
+    \label{def:e-variable}
+    Let $\Xcal$ and $\Tcal$ be two measurable spaces and $\Hcal_0=\lC P_\theta(X|T) \st \theta \in \Theta_0 \rC$
+    be a class of Markov kernels: $\Tcal \dshto \Xcal$.
+    A measurable map $E:\, \Xcal \times \Tcal \to \R$ is called \emph{E-variable for $\Hcal_0$} if $E \ge 0$ and 
+    for all $\theta \in \Theta_0$ and all $t \in \Tcal$ we have:
+    \[ \E_\theta[E|T=t] :=  \int E(x,t) \, P_\theta(X \in dx|T=t) \le 1.   \]
+    %\[  \sup_{\theta \in \Theta_0} \E_\theta[E|T] \le 1.     \]
+\end{Def}
+
+\begin{Rem}
+    Let $E$ be an E-variable for $\Hcal_0$. 
+    Then we have for every $\theta \in \Theta_0$ and every probability distribution $Q(T) \in \Prob(\Tcal)$:
+    \[ \E_{Q,\theta}[E] :=  \int E(x,t) \, P_\theta(X \in dx|T=t) \, Q(T \in dt) \le 1.   \]
+    In other words, $E$ is an E-variable for:
+    \[\tilde \Hcal_0 := \lC P_\theta(X|T)\otimes Q(T) \st \theta \in \Theta_0, Q(T) \in \Prob(\Tcal) \rC.\]
+\end{Rem}
+
+The main advantage of building test statistics on E-variables is that we have a non-asymptotic error-I-control:
+
+\begin{Lem}
+    \label{lem:e-variable-I-error}
+    Let  $E:\, \Xcal \times \Tcal \to \R_{\ge0}$ be an E-variable for $\Hcal_0=\lC P_\theta(X|T) \st \theta \in \Theta_0 \rC$.
+    Then for every $\theta \in \Theta_0$, $t \in \Tcal$ and $\alpha \in [0,1]$ we have:
+    \[  P_\theta(E \ge \alpha^{-1}|T=t) \le \alpha,   \]
+    where we put $0^{-1}:=\infty$.
+    \begin{proof}
+        This follows directly from the Markov inequality:
+        \begin{align*}
+            P_\theta(E \ge \alpha^{-1}|T=t) \le \frac{\E_\theta[E|T=t]}{\alpha^{-1}} = \alpha \cdot \E_\theta[E|T=t] 
+            \stackrel{\E_\theta[E|T=t] \le 1 }{\le} \alpha.
+        \end{align*}
+        This shows the claim.
+    \end{proof}
+\end{Lem}
+
+
+\begin{Prn}[Split likelihood ratio test for Markov kernels] $\,$
+    \begin{enumerate}
+\item Let $\Xcal$ and $\Tcal$ be two measurable spaces and $\Hcal_0=\lC P_\theta(X|T) \st \theta \in \Theta_0 \rC$
+     and $\Hcal_1=\lC P_\theta(X|T) \st \theta \in \Theta_1 \rC$ 
+    be two classes of Markov kernels: $\Tcal \dshto \Xcal$.
+\item We assume that every $P_\theta(X|T)$ has a density w.r.t.\ a reference measure $\mu$ on $\Xcal$. 
+      We denote the density in arguments as $p(x|t,\theta)$. % or $p_\theta(x|t)$.
+\item Let $\Dbf = \lC (X_1,T_1),\dots,(X_N,T_N) \rC$ be a data set of i.i.d.\ variables from a Markov kernel $P(X|T)$, i.e.\
+    we consider $\Xbf:=(X_1,\dots,X_N)$  to be sampled with input $\Tbf=(T_1,\dots,T_N)$ from the product Markov kernel:
+    \[ P^{\otimes N}(\Xbf|\Tbf) := \bigotimes_{n=1}^N P(X_n|T_n), \]
+    where each $P(X_n|T_n)$ is a copy of $P(X|T)$. 
+\item Based on $\Dbf$ we want to test:
+    \[ H_0:\; P(X|T) \in \Hcal_0 \qquad \text{ vs. } \qquad H_1:\; P(X|T) \in \Hcal_1. \]
+\item Split the data into two disjoint sets $\Dbf = \Dbf^{(0)} \dcup \Dbf^{(1)}$ with corresponding $\Xbf^{(0)}$, $\Xbf^{(1)}$ 
+    and $\Tbf^{(0)}$, $\Tbf^{(1)}$, resp. %Let $I_i:=\lC n \st (X_n,T_n) \in \Dbf^{(i)}  \rC$ the index set corresponding to $\Dbf^{(i)}$, $i=0,1$.
+\item Take the maximum likelihood estimators for $i=0,1$, each on their own data set $\Dbf^{(i)}$ and parameter space $\Theta_i$:
+    \[ \hat \theta^{(i)} := \hat \theta^{(i)}(\Dbf^{(i)}) := \argmax_{\theta \in \Theta_i}  p(\Xbf^{(i)}|\Tbf^{(i)},\theta) 
+    = \argmax_{\theta \in \Theta_i} \prod_{(X_n,T_n) \in \Dbf^{(i)}} p(X_n|T_n,\theta). \]
+\item Define the test statistic:
+    \[ E := E(\Dbf) := \frac{p(\Xbf^{(0)}|\Tbf^{(0)},\hat \theta^{(1)}(\Dbf^{(1)}))}{p(\Xbf^{(0)}|\Tbf^{(0)},\hat \theta^{(0)}(\Dbf^{(0)}))} 
+    = \prod_{(X_n,T_n) \in \Dbf^{(0)}} \frac{p(X_n|T_n,\hat\theta^{(1)})}{p(X_n|T_n,\hat\theta^{(0)})},  \]
+    where both densities are evaluated on $\Dbf^{(0)}$.
+\item Then $E$ is an E-variable for $\Hcal_0^{\otimes N} := \lC P_\theta^{\otimes N}(\Xbf|\Tbf) \st \theta \in \Theta_0 \rC$.
+\item[] Indeed, we have for every $\theta \in \Theta_0$ and $\tbf \in \Tcal^N$:
+    \end{enumerate}
+    \begin{align*}
+        &\quad \E_\theta^{\otimes N}[E|\Tbf=\tbf] \\ 
+        & = \int\int \frac{p(\xbf^{(0)}|\tbf^{(0)},\hat \theta^{(1)}(\xbf^{(1)},\tbf^{(1)}))}{p(\xbf^{(0)}|\tbf^{(0)},\hat \theta^{(0)}(\xbf^{(0)},\tbf^{(0)}))} \cdot p(\xbf^{(0)}|\tbf^{(0)},\theta)\cdot p(\xbf^{(1)}|\tbf^{(1)},\theta) \,\mu(d\xbf^{(0)})\,\mu(d\xbf^{(1)}) \\ 
+        & \stackrel{\hat \theta^{(0)} \text{ MLE}}{\le} \int\int \frac{p(\xbf^{(0)}|\tbf^{(0)},\hat \theta^{(1)}(\xbf^{(1)},\tbf^{(1)}))}{p(\xbf^{(0)}|\tbf^{(0)},\theta)} \cdot p(\xbf^{(0)}|\tbf^{(0)},\theta)\cdot p(\xbf^{(1)}|\tbf^{(1)},\theta) \,\mu(d\xbf^{(0)})\,\mu(d\xbf^{(1)}) \\ 
+        & =  \int \lp\int p(\xbf^{(0)}|\tbf^{(0)},\hat \theta^{(1)}(\xbf^{(1)},\tbf^{(1)})) \,\mu(d\xbf^{(0)}) \rp p(\xbf^{(1)}|\tbf^{(1)},\theta) \,\mu(d\xbf^{(1)}) \\
+        & =1.
+    \end{align*}
+    \begin{enumerate}[resume]
+\item Pick a significance level $\alpha \in [0,1]$ and reject $\Hcal_0$ in favor of $\Hcal_1$ if:
+         \[ \Lambda:=\log E \ge - \log \alpha. \] 
+ \item The type-I-error is then bounded by $\alpha$ via Lemma \ref{lem:e-variable-I-error} 
+\item[]  Indeed, for every $\alpha \in [0,1]$, $\theta \in \Theta_0$, $\tbf \in \Tcal^N$ we have: 
+        %with help of the Markov inequality:
+         \begin{align*} 
+             P_\theta^{\otimes N}\lp \Lambda \ge - \log \alpha |\Tbf=\tbf  \rp 
+             &= P_\theta^{\otimes N} \lp E \ge \alpha^{-1} |\Tbf=\tbf \rp \le \alpha. %\\ 
+             %&\le \frac{\E_\theta^{\otimes N} \lB E|\Tbf=\tbf \rB }{\alpha^{-1}} \\
+             %& \le \alpha.
+         \end{align*}
+\item[] Note that this implies that for every \emph{joint} distribution
+    $Q(\Tbf) \in \Prob(\Tcal^N)$ and $\theta \in \Theta_0$ we have the following type-I-error control:
+    \[ Q_\theta \lp \Lambda \ge - \log \alpha  \rp \le \alpha, \]
+    where:
+    \[ Q_\theta(\Xbf,\Tbf) := P_\theta^{\otimes N}(\Xbf|\Tbf) \otimes Q(\Tbf).\]
+    \end{enumerate}
+\end{Prn}
+
+\begin{Rem}[Power/type-II-error]
+    Note that while the maximum likelihood estimation as the fitting choice for $\hat \theta^{(0)}(\Dbf^{(0)})$
+    is somewhat necessary for the arguments about the type-I-error control to work,
+    we could use other fitting procedures for $\hat \theta^{(1)}(\Dbf^{(1)})$. 
+    While this would effect the power/type-II-error control of the test, 
+    the arguments above would still work to achieve the same type-I-error control.
+    To achieve a high power for the split likelihood ratio test the rule of thumb is that we require $p(X|T,\hat \theta^{(1)})$ 
+    to take on big values whenever $(X,T) \sim P_\theta(X|T) \in \Hcal_1$.
+    Since we only see data points from the ``true'' underlying Markov kernel $P(X|T)$ the maximum likelihood 
+    fit for $\hat \theta^{(1)}(\Dbf^{(1)})$ on $\Hcal_1$ and $\Dbf^{(1)} \sim P(X|T)$ generally is a reasonable choice.
+    Some regularization might be beneficial to make sure the fitted model $P_{\hat \theta^{(1)}}(X|T)$ generalizes well to 
+    the unseen data set $\Dbf^{(0)} \sim P(X|T)$.
+
+\begin{comment}
+    If we stick to the maximum likelihood estimators we can also define the variable:
+    \[ \Lambda_1 := \Lambda_1(\Dbf) := \log \frac{p(\Xbf^{(1)}|\Tbf^{(1)},\hat \theta^{(1)}(\Dbf^{(1)}))}{p(\Xbf^{(1)}|\Tbf^{(1)},\hat \theta^{(0)}(\Dbf^{(0)}))}. \]
+    By a symmetric argument to the above we get for every power level $\beta \in [0,1]$, $\tbf \in \Tcal^N$,
+    $\theta \in \Theta_1$ the following minimal power:
+    %\[ P_\theta^{\otimes N}\lp -\Lambda_1 \ge  -\log (1-\beta) |\Tbf=\tbf  \rp \le 1-\beta. \]
+    \[ P_\theta^{\otimes N}\lp \Lambda_1 >  \log (1-\beta) |\Tbf=\tbf  \rp \ge \beta.  \]
+ In other words, the type-II-error for the test 
+ ``reject $H_0$ in favor of $H_1$ if $\Lambda_1 > \log(1-\beta)$''
+ is bounded by $1-\beta$.
+ This means we could use a combination of $\Lambda_0:=\Lambda$ and $\Lambda_1$ as test statistic 
+ to trade off between type-I-error control and power/type-II-error control.
+\end{comment}
+\end{Rem}
+
+
+\subsubsection{Categorical Conditional Random Variables}
+
+We are now going to use the tools from the last subsection to build a split likelihood ratio test for conditional independence testing for finite discrete conditional random variables and Markov kernels.
+
+Now consider three categorical conditional random variables $X,Y,Z$ taking values in spaces $\Xcal$, $\Ycal$
+and $\Zcal$, resp., with $2 \le  |\Xcal| < \infty$, $2 \le |\Ycal| < \infty$ and $1 \le |\Zcal| < \infty$, 
+and input space $\Tcal$ with $1 \le |\Tcal| < \infty$, 
+and joint Markov kernel  $P(X,Y,Z|T)$.
+
+Let $\Dbf=\lC (X_n,Y_n,Z_n,T_n) \st n =1, \dots, N \rC$ be a data set of size $N$ drawn i.i.d.\ from $P(X,Y,Z|T)$.
+Note that for each data point $(X_n,Y_n,Z_n)$ we also recorded the input $T_n$ that generated that point.
+We want to test:
+\[ H_0:\, X \Indep_{P(X,Y,Z|T)} Y \given Z, \qquad \text{vs.} \qquad H_1:\,X \nIndep_{P(X,Y,Z|T)} Y \given Z. \]
+We will parameterize the mass function of $P_\theta(X,Y,Z|T)$ as:
+\[ p(x,y,z|t,\theta) = \theta_{x,y,z|t}, \qquad \theta = \lp \theta_{x,y,z|t} \rp_{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal}, \]
+for $\theta \in \Theta^{(0)}$ and $\theta \in \Theta^{(1)}$, resp., where additional normalization and factorization constraints are imposed. 
+More clearly, we use the following parameter spaces:
+\begin{align*}
+    \Theta^{(0)}_{X|Z} &:= \lC \theta_{X|Z} =\lp \theta_{x|z} \rp_{(x,z) \in \Xcal\times\Zcal}  \in \prod_{(x,z) \in \Xcal\times\Zcal} [0,1] \st \forall z \in \Zcal. \, \sum_{x \in \Xcal} \theta_{x|z} =1   \rC,\\
+    \Theta^{(0)}_{Y,Z|T} &:= \lC \theta_{Y,Z|T} =\lp \theta_{y,z|t} \rp_{(y,z,t) \in \Ycal\times\Zcal\times\Tcal}  \in \prod_{(y,z,t) \in \Ycal\times\Zcal\times\Tcal} [0,1] \st \forall t \in \Tcal. \, \sum_{(y,z) \in \Ycal\times\Zcal} \theta_{y,z|t} =1   \rC,\\
+   % \Theta^{(0)} &:= \Theta^{(0)}_{X|Z} \times \Theta^{(0)}_{Y,Z|T},\\
+   % \Theta^{(0)} &:= \lC \theta = \lp \theta_{x|z} \cdot \theta_{y,z|t} \rp_{(x,y,z,t) \in\Wcal} \st \theta_{X|Z} \in \Theta^{(0)}_{X|Z},\theta_{Y,Z|T} \in \Theta^{(0)}_{Y,Z|T}  \rC,\\
+    \Theta^{(0)} &:= \lC \theta = \lp \theta_{x|z} \cdot \theta_{y,z|t} \rp_{(x,y,z,t) \in\Wcal} \st \lp \theta_{x|z} \rp_{(x,z) \in \Xcal\times\Zcal}  \in \Theta^{(0)}_{X|Z},\lp \theta_{y,z|t} \rp_{(y,z,t) \in \Ycal\times\Zcal\times\Tcal} \in \Theta^{(0)}_{Y,Z|T}  \rC,\\
+    \Theta^{(1)} &:= \lC \theta = \lp \theta_{x,y,z|t} \rp_{(x,y,z,t) \in\Wcal} \in \prod_{(x,y,z,t) \in\Wcal}  [0,1]  \st 
+    \forall t \in \Tcal. \, \sum_{(x,y,z) \in\Xcal\times\Ycal\times\Zcal} \theta_{x,y,z|t} =1 \rC \sm \Theta^{(0)}.
+\end{align*}
+
+We now split the data into two disjoint sets: $\Dbf = \Dbf^{(0)} \dcup \Dbf^{(1)}$. 
+We use the notation $\Xbf^{(i)}$, $\Ybf^{(i)}$, $\Zbf^{(i)}$, $\Tbf^{(i)}$ for the corresponding components of $\Dbf^{(i)}$ for $i=0,1$.
+Also let $I_i:=\lC n \in \lC 1,\dots,N \rC \st W_n:= (X_n,Y_n,Z_n,T_n) \in \Dbf^{(i)} \rC$ be the index set of $\Dbf^{(i)}$.
+For brevity we put $\Wcal:=\Xcal\times\Ycal\times\Zcal\times\Tcal$.
+We further make the following abbreviations for $(x,y,z,t) \in \Wcal$:
+\begin{align*}
+    N^{(i)}_{x,y,z,t} &:=  \sum_{(X_n,Y_n,Z_n,T_n) \in \Dbf^{(i)}} \I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n) \\ 
+    &= \#\lC n \in I_i \st (X_n,Y_n,Z_n,T_n) = (x,y,z,t) \rC,
+\end{align*}
+and the following suggestive derived abbreviations:
+\begin{align*}
+    N^{(i)}_{x,y,z} &:=  \sum_{t \in \Tcal} N^{(i)}_{x,y,z,t}, &
+    N^{(i)}_{x,z} &:=  \sum_{(y,t) \in \Ycal\times\Tcal} N^{(i)}_{x,y,z,t},\\
+    N^{(i)}_{z} &:=  \sum_{(x,y,t) \in \Xcal\times\Ycal\times\Tcal} N^{(i)}_{x,y,z,t},&
+    N^{(i)}_{t} &:=  \sum_{(x,y,z) \in \Xcal\times\Ycal\times\Zcal} N^{(i)}_{x,y,z,t},
+\end{align*}
+and so forth. It is then $N^{(i)} = \#\Dbf^{(i)}$.
+
+We then write the mass functions as:
+\[ p(x,y,z|t,\theta) = \prod_{(x',y',z',t')\in \Wcal} \lp \theta_{x',y',z'|t'} \rp^{\I_{(x',y',z',t')}(x,y,z,t)}.\]
+The maximum likelihood objective for $H_1$ is then:
+\begin{align*} \hat \theta^{(1)} := \hat \theta^{(1)}(\Dbf^{(1)}) 
+&:= \argmax_{\theta \in\Theta^{(1)}} p(\Xbf^{(1)},\Ybf^{(1)},\Zbf^{(1)}|\Tbf^{(1)},\theta) \\
+&= \argmax_{\theta \in\Theta^{(1)}} \prod_{n \in I_1}  p(X_n,Y_n,Z_n|T_n,\theta) \\
+&= \argmax_{\theta \in\Theta^{(1)}} \prod_{n \in I_1} \prod_{(x,y,z,t)\in \Wcal} \lp \theta_{x,y,z|t} \rp^{\I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)} \\
+&= \argmax_{\theta \in\Theta^{(1)}} \prod_{(x,y,z,t)\in \Wcal} \prod_{n \in I_1} \lp \theta_{x,y,z|t} \rp^{\I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)} \\
+&= \argmax_{\theta \in\Theta^{(1)}} \prod_{(x,y,z,t)\in \Wcal} \lp \theta_{x,y,z|t} \rp^{\sum_{n \in I_1} \I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)} \\
+&= \argmax_{\theta \in\Theta^{(1)}} \prod_{(x,y,z,t)\in \Wcal} \lp \theta_{x,y,z|t} \rp^{ N_{x,y,z,t}^{(1)}}.% \\
+%&= \argmax_{\theta \in\Theta^{(1)}} \prod_{\substack{(x,y,z,t)\in \Wcal\\N_{x,y,z,t}^{(1)}\neq 0}} \lp \theta_{x,y,z|t} \rp^{ N_{x,y,z,t}^{(1)}}\\
+%&= \argmax_{\theta \in\Theta^{(1)}} \prod_{\substack{t \in \Tcal\\N_t^{(1)}\neq 0}} \prod_{\substack{(x,y,z,)\in \Xcal\times\Ycal\times\Zcal\\N_{x,y,z,t}^{(1)}\neq 0}} \lp \theta_{x,y,z|t} \rp^{ N_{x,y,z,t}^{(1)}}.
+\end{align*}
+This constrained optimization problem then leads to the following objective function with Lagrange multipliers $\lambda_t$, $t \in \Tcal$:
+\[ \Lcal_1(\theta) := \sum_{(x,y,z,t)\in \Wcal} N_{x,y,z,t}^{(1)} \cdot \log \theta_{x,y,z|t} + 
+\sum_{t \in \Tcal} \lambda_{t} \cdot \lp 1- \sum_{(x,y,z) \in\Xcal\times\Ycal\times\Zcal} \theta_{x,y,z|t}\rp.   \]
+The KKT-conditions then demand for all $(x,y,z,t) \in \Wcal$:
+\begin{align*}
+    0= \frac{\partial \Lcal_1}{\partial\theta_{x,y,z|t}} &= \frac{N_{x,y,z,t}^{(1)}}{\theta_{x,y,z|t}}  - \lambda_t.
+\end{align*}
+If we sum for fixed $t \in \Tcal$ over all $(x,y,z) \in \Xcal\times\Ycal\times\Zcal$ we get:
+\begin{align*}
+    N_{t}^{(1)} &:= \sum_{(x,y,z) \in \Xcal\times\Ycal\times\Zcal} N_{x,y,z,t}^{(1)} 
+        =  \lambda_t \cdot \sum_{(x,y,z) \in \Xcal\times\Ycal\times\Zcal} \theta_{x,y,z|t} 
+        = \lambda_t \cdot 1
+        =\lambda_t.
+\end{align*}
+Plugging $\lambda_t$ back into the equation above gives us the following frequency estimator for $\theta_{x,y,z|t}$ 
+for every $(x,y,z,t) \in \Wcal$ with $N_{t}^{(1)} \neq 0$:
+\[ \hat \theta_{x,y,z|t}^{(1)} = \frac{N_{x,y,z,t}^{(1)}}{N_{t}^{(1)}}.\]
+For $N_{t}^{(1)} = 0$ there are no restrictions imposed by the maximum likelihood objective for setting $\theta_{x,y,z|t}$ besides normalization. 
+E.g.\ we can use for the case $N_{t}^{(1)} = 0$:
+\[ \hat \theta_{x,y,z|t}^{(1)} := \frac{N_{x,y,z}^{(1)}}{N^{(1)}}.\]
+Note that these choices might effect the power of the split likelihood ratio estimator.
+
+The maximum likelihood objective for $H_0$ is:
+\begin{align*} \hat \theta^{(0)} &:= \hat \theta^{(0)}(\Dbf^{(0)}) \\
+&:= \argmax_{\theta \in\Theta^{(0)}} p(\Xbf^{(0)},\Ybf^{(0)},\Zbf^{(0)}|\Tbf^{(0)},\theta) \\
+&= \argmax_{\theta \in\Theta^{(0)}} \prod_{n \in I_0}  p(X_n,Y_n,Z_n|T_n,\theta) \\
+&= \argmax_{\theta \in\Theta^{(0)}}  \prod_{n \in I_0}\prod_{(x,y,z,t)\in \Wcal} \lp \theta_{x|z} \cdot \theta_{y,z|t} \rp^{\I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)} \\
+&= \argmax_{\theta \in\Theta^{(0)}} \prod_{(x,y,z,t)\in \Wcal}\prod_{n \in I_0} \lp \theta_{x|z}  \rp^{\I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)}\\ 
+& \qquad \qquad \cdot \prod_{(x,y,z,t)\in \Wcal}\prod_{n \in I_0} \lp \theta_{y,z|t} \rp^{\I_{(x,y,z,t)}(X_n,Y_n,Z_n,T_n)} \\
+&= \argmax_{\theta \in\Theta^{(0)}} \prod_{(x,y,z,t)\in \Wcal}\lp \theta_{x|z}  \rp^{N_{x,y,z,t}^{(0)}} \cdot \prod_{(x,y,z,t)\in \Wcal} \lp \theta_{y,z|t} \rp^{N_{x,y,z,t}^{(0)}} \\
+&= \argmax_{\theta \in\Theta^{(0)}} \prod_{(x,z)\in \Xcal\times\Zcal}\lp \theta_{x|z}  \rp^{N_{x,z}^{(0)}} \cdot \prod_{(y,z,t)\in \Ycal\times\Zcal\times\Tcal} \lp \theta_{y,z|t} \rp^{N_{y,z,t}^{(0)}}.
+\end{align*}
+This constrained optimization problem then leads to the following objective function with Lagrange multipliers
+$\lambda_z$ and $\lambda_t$ for $z \in \Zcal$ and $t \in \Tcal$, resp.:
+\begin{align*}
+    \Lcal_0(\theta) &:= \sum_{z\in \Zcal} \lB \sum_{x \in \Xcal}  N_{x,z}^{(0)} \cdot \log  \theta_{x|z}   
+    + \lambda_z \cdot \lp 1- \sum_{x \in \Xcal} \theta_{x|z} \rp\rB \\ 
+      &\quad   + \sum_{t\in \Tcal} \lB \sum_{(y,z)\in \Ycal\times\Zcal}   N_{y,z,t}^{(0)} \cdot \log \theta_{y,z|t} 
+      + \lambda_t \cdot \lp 1 - \sum_{(y,z) \in \Ycal\times\Zcal} \theta_{y,z|t}  \rp \rB.
+\end{align*}
+The KKT-conditions then demand for all $(x,y,z,t) \in \Wcal$:
+\begin{align*}
+    0= \frac{\partial \Lcal_0}{\partial\theta_{x|z}} &= \frac{N_{x,z}^{(0)}}{\theta_{x|z}}  - \lambda_z, &
+    0= \frac{\partial \Lcal_0}{\partial\theta_{y,z|t}} &= \frac{N_{y,z,t}^{(0)}}{\theta_{y,z|t}}  - \lambda_t.
+\end{align*}
+Again, summing up gives:
+\begin{align*}
+    N_z^{(0)} &= \sum_{x \in \Xcal} N_{x,z}^{(0)} = \lambda_z \cdot \sum_{x \in \Xcal} \theta_{x|z} = \lambda_z, &
+    N_t^{(0)} &= \sum_{(y,z) \in\Ycal\times\Zcal} N_{y,z,t}^{(0)} = \lambda_t \cdot \sum_{x \in \Xcal} \theta_{y,z|t} = \lambda_t.
+\end{align*}
+Plugging the Lagrange multipliers back into the former equations gives us the frequency estimators
+for $N_z^{(0)} \neq 0$ and $N_t^{(0)} \neq 0$, resp.:
+\begin{align*}
+    \hat \theta_{x|z}^{(0)} & = \frac{N_{x,z}^{(0)}}{N_z^{(0)}}, & \hat \theta_{y,z|t}^{(0)} & = \frac{N_{y,z,t}^{(0)}}{N_t^{(0)}}.
+\end{align*}
+If $N_z^{(0)} =0$ (if $N_t^{(0)} =0$, resp.), we can make the somewhat arbitrary choices:
+\begin{align*}
+    \hat \theta_{x|z}^{(0)} & := \frac{N_{x}^{(0)}}{N^{(0)}}, & \hat \theta_{y,z|t}^{(0)} & := \frac{N_{y,z}^{(0)}}{N^{(0)}}.
+\end{align*}
+With these derivations we can now come to our test statistic:
+\begin{align*}
+    E = E(\Dbf) 
+      &= \frac{ p(\Xbf^{(0)},\Ybf^{(0)},\Zbf^{(0)}|\Tbf^{(0)},\hat\theta^{(1)}(\Dbf^{(1)})) }{p(\Xbf^{(0)},\Ybf^{(0)},\Zbf^{(0)}|\Tbf^{(0)},\hat\theta^{(0)}(\Dbf^{(0)}))}\\
+   &= \prod_{(x,y,z,t) \in \Wcal} \lp  \frac{\hat\theta^{(1)}_{x,y,z,t} }{ \hat\theta^{(0)}_{x|z} \cdot \hat\theta^{(0)}_{y,z|t}} \rp^{N^{(0)}_{x,y,z,t}} \\
+   &= \prod_{(x,y,z,t) \in \Wcal} \lp \frac{N_{x,y,z,t}^{(1)} \cdot N_z^{(0)} \cdot N_t^{(0)}}{N_{t}^{(1)} \cdot N_{x,z}^{(0)} \cdot N_{y,z,t}^{(0)} } \rp^{N^{(0)}_{x,y,z,t}},
+\end{align*}
+where we for simplicity only wrote down the case for $N_{t}^{(1)} \neq 0$. Note that in this estimator we do not need to resolve the ambiguity 
+for the mentioned cases $N_z^{(0)} =0$ or $N_t^{(0)} =0$, as these do not occur in $E$, since then also $N^{(0)}_{x,y,z,t}=0$ and the corresponding term drops out.
+With this we then get:
+\begin{align*}
+    \Lambda = \log E = \sum_{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal}  N^{(0)}_{x,y,z,t} \cdot  \log \frac{N_{x,y,z,t}^{(1)} \cdot N_z^{(0)} \cdot N_t^{(0)}}{N_{t}^{(1)} \cdot N_{x,z}^{(0)} \cdot N_{y,z,t}^{(0)}}.
+\end{align*}
+\begin{comment}
+If we want to include the ambiguous cases we could, more precisely, write:
+\begin{align*}
+    \Lambda 
+    &= \sum_{\substack{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal\\N^{(0)}_{x,y,z,t} \neq 0 \\N_{t}^{(1)} \neq 0}}  N^{(0)}_{x,y,z,t} \cdot  \log \frac{N_{x,y,z,t}^{(1)} \cdot N_z^{(0)} \cdot N_t^{(0)}}{N_{t}^{(1)} \cdot N_{x,z}^{(0)} \cdot N_{y,z,t}^{(0)}} \\
+    & \qquad + \sum_{\substack{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal\\N^{(0)}_{x,y,z,t} \neq 0 \\N_{t}^{(1)} = 0}}  N^{(0)}_{x,y,z,t} \cdot  \log \frac{N_{x,y,z}^{(1)} \cdot N_z^{(0)} \cdot N_t^{(0)}}{N^{(1)} \cdot N_{x,z}^{(0)} \cdot N_{y,z,t}^{(0)}}.
+\end{align*}
+\end{comment}
+We then pick a significance level $\alpha \in [0,1]$ and declare $X$ dependent on $Y$ given $Z$ under $P(X,Y,Z|T)$ if:
+\[ \Lambda \ge - \log \alpha.  \]
+As discussed before, this rule leads to a \emph{non-asymptotic} type-I-error control of $\alpha$, 
+which even holds for every \emph{joint} probability distribution on the input space $\Tcal^N$ that would have lead to the inputs.
+
+\PF{
+
+We should maybe assume that the marginal $P(Y,Z|T)$ is given for both, $H_0$ and $H_1$. Then we get the simpler estimator maximum-likelihood estimator $E$-variable:
+\begin{align*}
+    \Lambda = \log E = \sum_{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal}  N^{(0)}_{x,y,z,t} \cdot  \log \frac{N_{x,y,z,t}^{(1)} \cdot N_z^{(0)}}{N_{y,z,t}^{(1)}\cdot N_{x,z}^{(0)}}.
+\end{align*}
+
+}
+
+For finite discrete spaces we want to test:
+\[ H_0:\, X \Indep_{P(X,Y,Z)} Y \given Z, \qquad \text{vs.} \qquad H_1:\,X \nIndep_{P(X,Y,Z)} Y \given Z. \]
+Assume that the data comes sequentially in $K$ batches.
+We apply the conditional independence test based on the $K$-split likelihood ratio test:
+For each $k=1,\dots,K$ we have the logarithm of an E-variable:
+\begin{align*}
+     \log E_k := \sum_{(x,y,z) \in \Xcal\times\Ycal\times\Zcal}  N^{(k)}_{x,y,z} \cdot  \log \frac{N_{x,y,z}^{(<k)} \cdot N_z^{(k)} \cdot N^{(k)}}{N^{(<k)} \cdot N_{x,z}^{(k)} \cdot N_{y,z}^{(k)}},
+\end{align*}
+where $N_{x,y,z}^{(<k)}$ is just the number of counts of occurences of the tuple $(x,y,z)$ in the batches of data before $k$, etc., and $N_{x,y,z}^{(k)}$ the corresponding quantity counted just inside the batch with number $k$.
+We can combine this into one logarithm of an E-variable:
+\begin{align*}
+    \Lambda := \log E :=  \sum_{k=1}^K \log E_k.
+\end{align*}
+For $\alpha \in [0,1]$ and declare $X$ dependent on $Y$ given $Z$ under $P(X,Y,Z)$ if:
+\[ \Lambda \ge - \log \alpha.  \]
+
+
+Conditional independence testing for finite discrete spaces using the $K$-split likelihood ratio test
+ leads to the following log of an E-variable:
+\begin{align*}
+    \Lambda = \log E = \sum_{k=1}^K \sum_{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal}  N^{(k)}_{x,y,z,t} \cdot  \log \frac{N_{x,y,z,t}^{(<k)} \cdot N_z^{(k)} \cdot N_t^{(k)}}{N_{t}^{(<k)} \cdot N_{x,z}^{(k)} \cdot N_{y,z,t}^{(k)}},
+\end{align*}
+
+
+\subsubsection{Linear Gaussian Conditional Random Variables}
+
+We can similarly apply the split likelihood ratio test for conditional independence testing 
+to linear Gaussian conditional random variables, 
+or other conditional random variables with tractable parametric Markov kernels.
+
+\begin{Lem}
+    \label{lem:mle-lin-gauss}
+    Consider a linear Gaussian Markov kernel $P(X|Z)$ with density:
+    \begin{align*}
+        p(x|z) &=\Ncal\lp x \st \Gamma \cdot z + \gamma, \Sigma \rp.
+    \end{align*}
+    Further assume that we have i.i.d.\ data 
+    $\Dbf=\lC (X_1,Z_1),\dots,(X_N,Z_N) \rC$ from: 
+    \[ P^{\otimes N}(\Xbf|\Zbf) := \bigotimes_{n=1}^N P(X_n|Z_n),  \]
+    where $P(X_n|Z_n)$ is a copy of $P(X|Z)$.
+    Then the maximum likelihood estimators for $\Gamma$, $\gamma$, $\Sigma$ are given by:
+    \begin{align*}
+        \hat \Gamma &:= \hat \Sigma_{X,Z} \hat \Sigma_{Z,Z}^{-1}, &
+        \hat \gamma &:= \hat \mu_X -  \hat \Sigma_{X,Z} \hat \Sigma_{Z,Z}^{-1}\, \hat \mu_Z, &
+        \hat \Sigma &:= \hat\Sigma_{X,X} -\hat\Sigma_{X,Z}\,\hat\Sigma_{Z,Z}^{-1}\,\hat\Sigma_{Z,X},
+    \end{align*}
+  where:
+      \begin{align*}
+       \hat \mu_X &:= \frac{1}{N} \sum_{n=1}^N X_n, &
+       \hat \mu_Z &:= \frac{1}{N} \sum_{n=1}^N Z_n, \\
+       \hat \Sigma_{X,X} &:= \lp \frac{1}{N} \sum_{n=1}^N X_n \cdot X_n^\top \rp - \hat \mu_X \cdot \hat \mu_X^\top, &
+        \hat \Sigma_{Z,Z} &:= \lp \frac{1}{N} \sum_{n=1}^N Z_n \cdot Z_n^\top \rp - \hat \mu_Z \cdot \hat \mu_Z^\top,\\
+        \hat \Sigma_{X,Z} &:= \lp \frac{1}{N} \sum_{n=1}^N X_n \cdot Z_n^\top \rp - \hat \mu_X \cdot \hat \mu_Z^\top, &
+        \hat \Sigma_{Z,X} &:= \hat \Sigma_{X,Z}^\top.
+    \end{align*}
+    In other words, this maximum likelihood estimator agrees with the one for a \emph{jointly} Gaussian distributed $(X,Z)$
+    and then using the conditioning formula for Gaussians conditioned on $Z$. %In particular, it implicitely treats $Z$ as a Gaussian distributed random variable.
+    \begin{proof}
+        Let $\theta=(\Gamma,\gamma,\Sigma)$. The maximum likelihood estimate for $\theta$ is then given by:
+    \begin{align*}
+        \hat \theta & =\argmax_{\theta} \prod_{n=1}^N \Ncal\lp X_n \st \Gamma \cdot Z_n + \gamma, \Sigma \rp \\
+        &= \argmin_{\theta} - 2 \log  \prod_{n=1}^N \Ncal\lp X_n \st \Gamma \cdot Z_n + \gamma, \Sigma \rp \\
+        &= \argmin_{\theta} \lB N \cdot \log |\det(2\pi\Sigma)| + \sum_{n=1}^N \Tr\lp \Sigma^{-1}(\Gamma \cdot Z_n + \gamma - X_n)(\Gamma \cdot Z_n + \gamma - X_n)^\top \rp \rB.
+    \end{align*}
+Let the latter expression be abbreviate with:
+\[\Lcal  :=N \cdot \log |\det(2\pi\Sigma)| + \sum_{n=1}^N \Tr\lp \Sigma^{-1}(\Gamma \cdot Z_n + \gamma - X_n)(\Gamma \cdot Z_n + \gamma - X_n)^\top \rp.\]
+    We will then take derivatives and equal them to zero to get the wanted expressions. 
+Note that we will use the following general matrix identities, see \cite{matrixcookbook}, with $\Dbf$ symmetric:
+\begin{align*}
+    %\frac{\partial \det(\Abf \Xbf \Bbf)}{\partial \Xbf} &= \det(\Abf \Xbf \Bbf) \cdot \Xbf^{-\top},\\
+    \frac{\partial \log | \det(\Xbf)|}{\partial \Xbf} &= \Xbf^{-\top},\\
+    \frac{\partial \Tr(\Abf \Xbf^{-1} \Bbf) }{ \partial \Xbf } &= - \lp \Xbf^{-1} \Bbf \Abf \Xbf^{-1} \rp^\top,\\
+    %\frac{\partial \Tr(\Bbf \Xbf \Xbf^\top) }{ \partial \Xbf } &= \Bbf\Xbf + \Bbf^\top \Xbf \\
+    %\frac{\partial}{\partial \Xbf} \Tr \lp  (\Abf\Xbf\Bbf+\Cbf)^\top \Dbf (\Abf\Xbf\Bbf+\Cbf)\rp 
+    \frac{\partial}{\partial \Xbf} \Tr \lp \Dbf (\Abf\Xbf\Bbf+\Cbf)(\Abf\Xbf\Bbf+\Cbf)^\top\rp 
+    &= 2 \Abf^\top \Dbf (\Abf \Xbf \Bbf + \Cbf) \Bbf^\top.
+\end{align*}
+We get for $\gamma$:
+\begin{align*}
+ 0 = \frac{\partial \Lcal}{\partial \gamma} & = \sum_{n=1}^N  2 \cdot \Sigma^{-1}\,(\Gamma \cdot Z_n + \gamma - X_n) \\
+ &= 2 \cdot N \cdot \Sigma^{-1} \, ( \Gamma\, \hat \mu_Z + \gamma - \hat \mu_X), 
+ \end{align*}
+ which implies:
+ \[ \Gamma\, \hat \mu_Z + \gamma - \hat \mu_X = 0.  \]
+We get for $\Gamma$:
+\begin{align*}
+ 0 = \frac{\partial \Lcal}{\partial \Gamma} & = \sum_{n=1}^N  2 \cdot \Sigma^{-1}\,(\Gamma \cdot Z_n + \gamma - X_n)\, Z_n^\top \\
+ &= 2 \cdot \Sigma^{-1} \lp \Gamma \sum_{n=1}^N Z_n Z_n^\top + \gamma \cdot \sum_{n=1}^N Z_n - \sum_{n=1}^N X_n Z_n^\top    \rp\\ 
+ &= 2 \cdot N \cdot \Sigma^{-1} \lp \Gamma\, \hat \Sigma_{Z,Z} + \Gamma \hat\mu_Z \hat \mu_Z^\top + \gamma \cdot \hat \mu_Z - 
+  \hat \Sigma_{X,Z} - \hat \mu_X \hat \mu_Z^\top \rp, 
+ \end{align*}
+ which implies:
+ \begin{align*}
+     0 &= \Gamma\, \hat \Sigma_{Z,Z} - \hat \Sigma_{X,Z} + \lp \Gamma \hat\mu_Z  + \gamma - \hat \mu_X \rp \hat \mu_Z^\top \\
+       &= \Gamma\, \hat \Sigma_{Z,Z} - \hat \Sigma_{X,Z}.
+ \end{align*}
+Solving for $\Gamma$ and then $\gamma$ gives the maximum likelihood estimators:
+\begin{align*}
+    \hat\Gamma & = \hat\Sigma_{X,Z} \,\hat\Sigma_{Z,Z}^{-1}, \\
+    \hat\gamma & = \hat \mu_X - \hat\Gamma\,\hat\mu_Z = \hat \mu_X - \hat\Sigma_{X,Z} \,\hat\Sigma_{Z,Z}^{-1}\,\hat\mu_Z.
+\end{align*}
+Now lets look at $\Sigma$:
+\begin{align*}
+    0 = \frac{\partial \Lcal}{\partial\Sigma} & = N \cdot \Sigma^{-1} - \sum_{n=1}^N  \Sigma^{-1} (\Gamma \cdot Z_n + \gamma - X_n)(\Gamma \cdot Z_n + \gamma - X_n)^\top \Sigma^{-1},
+ \end{align*}
+which leads to:
+\begin{align*}
+    \Sigma &= \frac{1}{N} \sum_{n=1}^N  (\Gamma \cdot Z_n + \gamma - X_n)(\Gamma \cdot Z_n + \gamma - X_n)^\top \\
+           &= \frac{1}{N} \sum_{n=1}^N  \Gamma \cdot Z_n \cdot Z_n^\top \cdot \Gamma^\top + \Gamma \cdot Z_n \cdot \gamma^\top - 
+           \Gamma \cdot Z_n \cdot X_n^\top \\ 
+          &\qquad + \gamma \cdot X_n^\top \cdot \Gamma^\top + \gamma \cdot \gamma^\top - \gamma \cdot X_n^\top   
+           - X_n \cdot Z_n^\top \cdot \Gamma^\top - X_n \cdot \gamma^\top + X_n \cdot X_n^\top  \\
+          &= \Gamma \cdot ( \hat\Sigma_{Z,Z} + \hat\mu_Z \hat\mu_Z^\top) \cdot \Gamma^\top + \Gamma \cdot \hat\mu_Z\cdot\gamma^\top
+          - \Gamma \cdot \hat\Sigma_{Z,X} - \Gamma \cdot \hat\mu_Z\hat\mu_X^\top \\
+          &\qquad + \gamma \cdot \hat\mu_X^\top \cdot \Gamma^\top + \gamma \gamma^\top - \gamma \cdot \hat\mu_X^\top
+          - \hat\Sigma_{X,Z} \cdot \Gamma^\top - \hat\mu_X\hat\mu_Z^\top \cdot \Gamma^\top 
+          - \hat\mu_X \cdot \gamma^\top + \hat\Sigma_{X,X} + \hat\mu_X\hat\mu_X^\top.
+ \end{align*}
+If we now plug in our estimators from before we get for the expressions:
+\begin{align*}
+ \hat\Gamma\cdot\hat\Sigma_{Z,Z}\cdot\hat\Gamma^\top = \hat\Sigma_{X,Z}\cdot\hat\Gamma^\top = \hat\Gamma\cdot\hat\Sigma_{Z,X}
+ = \hat\Sigma_{X,Z}\,\hat\Sigma_{Z,Z}^{-1}\,\hat\Sigma_{Z,X}. 
+\end{align*}
+We abbeviate in the following: $\hat \nu_X := \hat\Gamma\,\hat\mu_Z$. So $\hat \gamma = \hat\mu_X - \hat\nu_X$.
+With this we get:
+\begin{align*}
+    \hat \Sigma &= \lp \hat\Sigma_{X,X} -\hat\Sigma_{X,Z}\,\hat\Sigma_{Z,Z}^{-1}\,\hat\Sigma_{Z,X} \rp 
+     + \hat\nu_X\hat\nu_X^\top + \hat\nu_X (\hat\mu_X-\hat\nu_X) - \hat\nu_X\hat\mu_X^\top \\ 
+    &\qquad + (\hat\mu_X-\hat\nu_X) \hat\nu_X^\top + (\hat\mu_X-\hat\nu_X)(\hat\mu_X-\hat\nu_X)^\top - 
+    (\hat\mu_X-\hat\nu_X) \mu_X^\top  \\
+    &\qquad - \hat\mu_X \hat\nu_X^\top - \hat\mu_X (\hat\mu_X-\hat\nu_X)^\top  + \hat\mu_X\hat\mu_X^\top\\
+    & =\hat\Sigma_{X,X} -\hat\Sigma_{X,Z}\,\hat\Sigma_{Z,Z}^{-1}\,\hat\Sigma_{Z,X}.
+\end{align*}
+So our maximum likelihood estimators are given by:
+\begin{align*}
+    \hat\Gamma & = \hat\Sigma_{X,Z} \,\hat\Sigma_{Z,Z}^{-1}, \\
+    \hat\gamma & = \hat \mu_X - \hat\Sigma_{X,Z} \,\hat\Sigma_{Z,Z}^{-1}\,\hat\mu_Z, \\
+    \hat \Sigma &= \hat\Sigma_{X,X} -\hat\Sigma_{X,Z}\,\hat\Sigma_{Z,Z}^{-1}\,\hat\Sigma_{Z,X}.
+\end{align*}
+This shows the claim.
+    \end{proof}
+\end{Lem}
+
+
+\begin{Rem}[Split likelihood ratio test for conditional independence of linear Gaussian conditional random variables]
+  Consider three conditional random variables $X$, $Y$, $Z$ that come from an underlying linear Gaussian Markov kernel $P(X,Y,Z|T)$.
+  We want to test the following conditional independence:
+  \[H_0:\; X \Indep_{P(X,Y,Z|T)} Y \given Z, \qquad \text{vs.} \qquad H_1:\; X \nIndep_{P(X,Y,Z|T)} Y \given Z, \]
+  based on i.i.d.\ data $\Dbf = \lC (X_1,Y_1,Z_1,T_1),\dots,(X_N,Y_N,Z_N,T_N) \rC$ from $P(X,Y,Z|T)$.
+  We split the data set into two disjoint subsets $\Dbf = \Dbf^{(0)} \dcup \Dbf^{(1)}$.
+  We then consider the following test statistic, following the split likelihood ratio test:
+ % \[ \Lambda := \log \frac{\Ncal\lp\Xbf^{(0)},\Ybf^{(0)},\Zbf^{(0)}\st \hat\Gamma^{(1)}\cdot \Tbf^{(0)}+\hat\gamma^{(1)},\hat\Sigma^{(1)}\rp}{ \Ncal\lp\Xbf^{(0)}\st \hat\Gamma_{X|Z}^{(0)}\cdot \Zbf^{(0)}+\hat\gamma_{X|Z}^{(0)},\hat\Sigma_{X|Z}^{(0)}\rp \cdot \Ncal\lp\Ybf^{(0)},\Zbf^{(0)}\st \hat\Gamma^{(0)}\cdot \Tbf^{(0)}+\hat\gamma^{(0)},\hat\Sigma^{(0)}\rp },  \]
+  \[ \Lambda := \sum_{n \in I_0}  %\sum_{(X_n,Y_n,Z_n,T_n) \in \Dbf^{(0)}}
+  \log \frac{\Ncal\lp \matb{X_n&Y_n&Z_n}^\top\st \hat\Gamma^{(1)}\cdot T_n+\hat\gamma^{(1)},\hat\Sigma^{(1)}\rp}{ \Ncal\lp X_n\st \hat\Gamma_{X|Z}^{(0)}\cdot Z_n+\hat\gamma_{X|Z}^{(0)},\hat\Sigma_{X|Z}^{(0)}\rp \cdot \Ncal\lp \matb{Y_n&Z_n}^\top\st \hat\Gamma^{(0)}\cdot T_n+\hat\gamma^{(0)},\hat\Sigma^{(0)}\rp },  \]
+  with the corresponding maximum likelihood estimators based on the empirical means $\hat\mu^{(i)}$ and covariance matrices $\hat\Sigma^{(i)}$, see Lemma \ref{lem:mle-lin-gauss}:
+  \begin{align*}
+  \hat\Gamma_{X|Z}^{(0)} &:= \hat\Sigma_{X,Z}^{(0)} \,{\hat\Sigma_{Z,Z}^{(0),-1}},\\
+  \hat\gamma_{X|Z}^{(0)} &:= \hat\mu_X^{(0)} - \hat\Sigma_{X,Z}^{(0)} \,{\hat\Sigma_{Z,Z}^{(0),-1}}\,\hat\mu_Z^{(0)},\\
+  \hat\Sigma_{X|Z}^{(0)} &:= \hat\Sigma_{X,X}^{(0)} -\hat\Sigma_{X,Z}^{(0)}\,{\hat\Sigma_{Z,Z}^{(0),-1}}\,\hat\Sigma_{Z,X}^{(0)},\\
+      \hat\Gamma^{(0)} &:= \matb{\hat\Sigma_{Y,T}^{(0)}\\\hat\Sigma_{Z,T}^{(0)}} \,{\hat\Sigma_{T,T}^{(0),-1}},\\
+      \hat\gamma^{(0)} &:= \matb{\hat\mu_Y^{(0)}\\\hat\mu_Z^{(0)}} - \matb{\hat\Sigma_{Y,T}^{(0)}\\\hat\Sigma_{Z,T}^{(0)}} \,{\hat\Sigma_{T,T}^{(0),-1}}\,\hat\mu_T^{(0)}, \\
+     \hat\Sigma^{(0)} &:= \matb{\hat\Sigma_{Y,Y}^{(0)}&\hat\Sigma_{Y,Z}^{(0)}\\\hat\Sigma_{Z,Y}^{(0)}&\hat\Sigma_{Z,Z}^{(0)}} - \matb{\hat\Sigma_{Y,T}^{(0)}\\\hat\Sigma_{Z,T}^{(0)}}\,
+      {\hat\Sigma_{T,T}^{(0),-1}}\,\matb{\hat\Sigma_{T,Y}^{(0)}&\hat\Sigma_{T,Z}^{(0)}},\\
+      \hat\Gamma^{(1)} &:= \matb{\hat\Sigma_{X,T}^{(1)}\\\hat\Sigma_{Y,T}^{(1)}\\\hat\Sigma_{Z,T}^{(1)}} \,{\hat\Sigma_{T,T}^{(1),-1}},\\
+      \hat\gamma^{(1)} &:= \matb{\hat\mu_X^{(1)}\\\hat\mu_Y^{(1)}\\\hat\mu_Z^{(1)}} - \matb{\hat\Sigma_{X,T}^{(1)}\\\hat\Sigma_{Y,T}^{(1)}\\\hat\Sigma_{Z,T}^{(1)}} \,{\hat\Sigma_{T,T}^{(1),-1}}\,\hat\mu_T^{(1)}, \\
+     \hat\Sigma^{(1)} &:= \matb{\hat\Sigma_{X,X}^{(1)}&\hat\Sigma_{X,Y}^{(1)}&\hat\Sigma_{X,Z}^{(1)}\\\hat\Sigma_{Y,X}^{(1)}&\hat\Sigma_{Y,Y}^{(1)}&\hat\Sigma_{Y,Z}^{(1)}\\\hat\Sigma_{X,Z}^{(1)}&\hat\Sigma_{Z,Y}^{(1)}&\hat\Sigma_{Z,Z}^{(1)}} 
+     - \matb{\hat\Sigma_{X,T}^{(1)}\\\hat\Sigma_{Y,T}^{(1)}\\\hat\Sigma_{Z,T}^{(1)}} \,{\hat\Sigma_{T,T}^{(1),-1}}\,
+     \matb{\hat\Sigma_{T,X}^{(1)}&\hat\Sigma_{T,Y}^{(1)}&\hat\Sigma_{T,Z}^{(1)}}.
+  \end{align*}
+  We then declare $X$ dependent on $Y$ given $Z$ w.r.t.\ $P(X,Y,Z|T)$ if:
+  \[ \Lambda \ge -\log \alpha, \]
+  for some pre-specified significance level $\alpha \in [0,1]$, which bounds the type-I-error of this test.
+\end{Rem}
+
+
+\PF{
+\subsubsection{Some Thoughts}
+
+Why do we, in causal inference/graph learning test:
+  \[H_0:\; X \Indep_{P(X,Y,Z|T)} Y \given Z, \qquad \text{vs.} \qquad H_1:\; X \nIndep_{P(X,Y,Z|T)} Y \given Z, \]
+  instead of the reverse order:
+ \[H_0:\; X \nIndep_{P(X,Y,Z|T)} Y \given Z, \qquad \text{vs.} \qquad H_1:\; X \Indep_{P(X,Y,Z|T)} Y \given Z. \]
+???
+
+For sake of arguments let $Z=\ast$.
+
+I do understand that in statistics one can consider $P(X) \otimes P(Y)$ a high-entropy or noisy version of the joint $P(X,Y)$.
+So if one wants to find a signal in the data as a statistical relationship between $X$ and $Y$ then one would need to provide strong evidence that the signal is actually there, so testing:
+  \[H_0:\; X \Indep Y, \qquad \text{vs.} \qquad H_1:\; X \nIndep Y, \]
+makes sense to me in this context.
+
+However, when we want to learn a graph then by default I would assume that all variables are somehow related 
+and (conditional) independencies would remove edges. So in this context I would rather expect that one would need 
+to present strong evidence that one can safely remove edges, via (conditional) independence tests. So here I would rather by default
+test the reverse order:
+  \[H_0:\; X \nIndep Y, \qquad \text{vs.} \qquad H_1:\; X \Indep Y. \]
+Does this make sense to you?
+
+I do understand that getting the asymptotic thresholds right is easier under independence, i.e.\ if $H_0:\; X \Indep Y$, but I would think that this is not justification enough.
+
+The split likelihood ratio test at least does not require an asymptotic threshold and at least here one could just test the reverse:
+ \[H_0:\; X \nIndep_{P(X,Y,Z|T)} Y \given Z, \qquad \text{vs.} \qquad H_1:\; X \Indep_{P(X,Y,Z|T)} Y \given Z. \]
+In the categorical setting we would just use:
+\begin{align*}
+    \Lambda := \sum_{(x,y,z,t) \in \Xcal\times\Ycal\times\Zcal\times\Tcal}  N^{(0)}_{x,y,z,t} \cdot  \log \frac{N_{t}^{(0)} \cdot N_{x,z}^{(1)} \cdot N_{y,z,t}^{(1)}}{N_{x,y,z,t}^{(0)} \cdot N_z^{(1)} \cdot N_t^{(1)}},
+\end{align*}
+and declare $X$ independent from $Y$ given $Z$ w.r.t.\ $P(X,Y,Z|T)$ if:
+\[ \Lambda \ge - \log \alpha. \]
+With this test the error that we would confuse weak dependence with an independence is bounded by $\alpha$.
+
+Similarly, for linear Gaussians variable we could do the same by using:
+  \[ \Lambda := \sum_{n \in I_0}    \log \frac{ \Ncal\lp X_n\st \hat\Gamma_{X|Z}^{(1)}\cdot Z_n+\hat\gamma_{X|Z}^{(1)},\hat\Sigma_{X|Z}^{(1)}\rp \cdot \Ncal\lp \matb{Y_n&Z_n}^\top\st \hat\Gamma^{(1)}\cdot T_n+\hat\gamma^{(1)},\hat\Sigma^{(1)}\rp }{\Ncal\lp \matb{X_n&Y_n&Z_n}^\top\st \hat\Gamma^{(0)}\cdot T_n+\hat\gamma^{(0)},\hat\Sigma^{(0)}\rp}. \]
+
+Any thoughts??
+}
+
+\subsubsection{Type-I and Type-II Error for Testing based on E-Variables}
+
+
+\begin{Thm}[Sanov's Theorem, see \cite{Csi84,Bal2020}]
+    \label{sanov}
+    Let $(\Xcal,P)$ be a probability space,  $X_1,\dots,X_N \sim P$ i.i.d.\ random variables and $P_N:=\frac{1}{N} \sum_{n=1}^N \delta_{X_n}$ the empirical distribution. 
+    For any measurable set $\Acal \ins \Pcal(\Xcal)$ of probability measures on $\Xcal$ we denote by $\Acal^\cx=\{\E_{\mu \sim Q}[\mu]\,|\,Q \in \Pcal(\Acal) \}$ its complete convex hull.
+    Then we have the inequality:
+    \[ P\left( P_N \in \Acal \right) \le \exp\left( -N \cdot \inf_{Q \in \Acal^\cx} \KL(Q\|P) \right).   \]
+\end{Thm}
+
+
+\begin{Not}
+    Let $E:\, \Xcal \to \R_{\ge0}$ be a measurable map. We then put for $\gamma, \delta \in \R_{>0}$:
+    \begin{align*}
+        \Hcal_0^E & := \lC Q \in \Pcal(\Xcal) \st \E_Q[E] \le 1 \rC,\\
+        \Acal_0^E & := \lC Q \in \Pcal(\Xcal) \st \E_Q[\log E] \le 0 \rC,\\
+        \Acal_\gamma^E & := \lC Q \in \Pcal(\Xcal) \st \E_Q[\log E] \le \gamma \rC,\\
+        \Hcal_{1}^E(\gamma,\delta) & := \lC P \in \Pcal(\Xcal) \st \KL(\Acal_\gamma^E \|P) \ge \delta \rC,\\
+        \Hcal^E_1& := \bigcup_{\gamma,\delta >0} \Hcal_{1}^E(\gamma,\delta).
+    \end{align*}
+    Then we have:
+    \[  \Hcal_0^E \ins \Acal_0^E \ins \Acal_\gamma^E, \qquad \Hcal_{1}^E(\gamma,\delta) \ins \Hcal_1^E \ins \lp \Acal_0^E \rp^\cmpl.  \]
+    Also note that for $0<\gamma_2 \le \gamma_1$ and $0<\delta_2 \le \delta_1$ we have the inclusions:
+    \[ \Acal_{\gamma_2}^E  \ins \Acal_{\gamma_1}^E, \qquad \Hcal_{1}^E(\gamma_2,\delta_2)  \sni \Hcal_{1}^E(\gamma_1,\delta_1).   \]
+\end{Not}
+
+
+\begin{Thm}[Type-I and type-II error convergence]
+    \label{thm:e-variables-type-I-II-error}
+    %Let $\Hcal_0 \ins \Pcal(\Xcal)$ be a hypothesis class and $E$ an E-variable for $\Hcal_0$.
+    Let $E:\, \Xcal \to \R_{\ge0}$ be a measurable map and for $n, N \in \N$ let $X_n:\, \Xcal^N \to \Xcal$ be the canonical projection map onto the $n$-th factor.
+    % Let $(X_n)_{n \in \N} \sim P_*$ be an i.i.d.\ sequence of samples from an underlying true distribution $P_* \in \Pcal(\Xcal)$.
+     For $N \in \N$ we abbreviate: % the product of E-variables evaluated at $X_n$ for $n=1,\dots,N$ as:
+     \begin{align*} E_N:=E(X_{1:N}):=\prod_{n =1}^N E(X_n):\; \Xcal^N \to \R_{\ge 0}. \end{align*}
+ Let $(\alpha_n)_{n \in \N} \ins \R_{>0}$ be sequence of positive real numbers.
+ \begin{enumerate}
+     \item  If the sequence converges to zero:
+ \begin{align*} 
+     \alpha_N &\stackrel{N \to \infty}{\longrightarrow} 0,
+ \end{align*}
+then we have the following uniform \emph{type-I-error} control:
+ \begin{align*}
+     \sup_{P \in \Hcal_0^E}  P^{\otimes N}\lp\log E_N \ge -\log\alpha_N \rp & \le \alpha_N \stackrel{N \to \infty}{\longrightarrow} 0.
+ \end{align*}
+\item If, instead or in addition, the sequence satisfies the following convergence condition:
+ \begin{align*} 
+     \gamma_N:=-\frac{1}{N} \log \alpha_N &\stackrel{N \to \infty}{\longrightarrow} 0, 
+ \end{align*}
+then we get the following:
+\begin{enumerate}
+ \item For every $P \in \Hcal_1^E$, i.e.\ with $\delta_P:=\KL(\Acal_\gamma^E\|P) >0$ for some $\gamma >0$,
+ we have the following \emph{type-II-error} control:
+ \begin{align*}
+     P^{\otimes N}\lp \log E_N \le-\log\alpha_N \rp & \stackrel{N \ge N_\gamma}{\le} \exp\lp -N \cdot \delta_P \rp \stackrel{N \to \infty}{\longrightarrow} 0.
+ \end{align*}
+ \item If $\Hcal_1 \ins \Pcal(\Xcal)$ is an (alternative) hypothesis class inside $\Hcal_{1}^E(\gamma,\delta)$ for some $\gamma,\delta >0$, i.e.\ we have:
+    \begin{align*}
+         \inf_{P \in \Hcal_1} \inf_{Q \in \Acal_{\gamma}^E} \KL(Q \|P) \ge \delta > 0,
+    \end{align*}
+    then we have the following uniform \emph{type-II-error} control:
+ \begin{align*}
+     \sup_{P \in \Hcal_1}  P^{\otimes N}\lp \log E_N \le-\log\alpha_N \rp &   \stackrel{N \ge N_\gamma}{\le} \exp\lp -N \cdot \delta \rp \stackrel{N \to \infty}{\longrightarrow} 0.
+ \end{align*}
+\end{enumerate}
+  Note that the indicated inequalities only hold for $N$ above some threshold $N_\gamma$.
+  \begin{enumerate}[resume]
+      \item If we, furthermore, have a sequence $(\delta_n)_{n \in \N} \ins \R_{>0}$ such that:
+         \begin{align*} 
+                 \delta_N &\stackrel{N \to \infty}{\longrightarrow} 0, &N \cdot \delta_N &\stackrel{N \to \infty}{\longrightarrow} \infty, 
+         \end{align*}
+       then we have the following uniform \emph{type-II-error} control with increasing alternative hypothesis class:
+        \begin{align*}
+            \sup_{P \in \Hcal_{1}^E(\gamma_N,\delta_N)}  P^{\otimes N}\lp \log E_N \le-\log\alpha_N \rp & \le \exp\lp -N \cdot \delta_N \rp \stackrel{N \to \infty}{\longrightarrow} 0.
+        \end{align*}
+    Note that the inequality here holds for every $N \in \N$ and that, due to the convergence
+    $\gamma_N,\delta_N \stackrel{N \to \infty}{\longrightarrow} 0$, we have: 
+    \[ \Hcal^E_1 = \bigcup_{N \in \N} \Hcal_{1}^E(\gamma_N,\delta_N).\] 
+ \end{enumerate}
+\end{enumerate}
+\begin{proof}
+    1.) The product of independent E-variables is again an E-variable, indeed for $P \in \Hcal_0^E$:
+     \begin{align*}
+         \E_P\lB E_N \rB =  \E_P\lB \prod_{n=1}^N E(X_n) \rB \stackrel{\Indep}{=} \prod_{n=1}^N \E_P\lB E(X_n) \rB \le \prod_{n=1}^N 1 = 1. 
+    \end{align*}
+    So for every $\alpha \in [0,1]$ we get by the Markov inequality for $P \in \Hcal_0^E$:
+    \begin{align*}
+        P\lp\log E_N \ge -\log\alpha \rp & = P\lp  E_N \ge \alpha^{-1} \rp \le \frac{\E_P\lB E_N \rB}{\alpha^{-1}} \le \alpha.
+    \end{align*}
+    If we now choose $\alpha=\alpha_N$ and use our assumption $\alpha_N \to 0$ then the type-I-error convergence to $0$ is clear.
+
+    2.a) The case $P \in \Hcal_1^E$ follows from the next one with $\Hcal_1=\lC P \rC$.
+
+    2.b) So consider a hypothesis class $\Hcal_1 \ins \Pcal(\Xcal)$ such that:
+    \begin{align*}
+       \inf_{P \in \Hcal_1} \KL(\Acal_\gamma^E \|P) \ge \delta  > 0,
+    \end{align*}
+    for some  $\gamma,\delta > 0$.
+    Since by assumption $\gamma_N:=-\frac{1}{N} \log \alpha_N \to 0$ there exists an $N_\gamma \in \N$ such that for all $N \ge N_\gamma$ we have:
+    \begin{align*}
+      0 < \gamma_N <  \gamma.
+    \end{align*}
+    This shows that $\Acal_{\gamma_N} \ins \Acal_{\gamma}$  for all $N \ge N_\gamma$ and thus for all $P \in \Hcal_1$:
+    \begin{align*}
+        \KL(\Acal_{\gamma_N}^E \|P) \ge  \KL(\Acal_\gamma^E \|P) \ge \delta > 0.
+    \end{align*}
+    With this and Sanov's Theorem \ref{sanov}, see \cite{Csi84,Bal2020}, we get with $P_N := \frac{1}{N} \sum_{n=1}^N \delta_{X_n}$:
+    \begin{align*}
+        P\lp  \log E_N \le - \log(\alpha_N)  \rp 
+      &=  P\lp   \sum_{n=1}^N  \log E(X_n)  \le - \log(\alpha_N)  \rp  \\
+      &=  P\lp   \frac{1}{N}\sum_{n=1}^N  \log E(X_n)  \le - \frac{1}{N} \log(\alpha_N)  \rp  \\
+      &=  P\lp  \E_{P_N}\lB \log(E) \rB \le \gamma_N  \rp  \\
+      &=  P\lp P_N \in \Acal^E_{\gamma_N}\rp \\ 
+      &\le \exp\lp -N \cdot \KL(\Acal^E_{\gamma_N}\|P) \rp \\
+      &\stackrel{N\ge N_\gamma}{\le} \exp\lp -N \cdot \delta \rp\\
+      & \longrightarrow 0,
+    \end{align*}
+    where the last inequality holds for all $N \ge N_\gamma$.
+    Since the inequality holds for every $P \in \Hcal_1$ we get:
+    \begin{align*}
+        \sup_{P \in \Hcal_1}   P\lp  \log E_N \le - \log(\alpha_N)  \rp 
+      &\stackrel{N\ge N_\gamma}{\le} \exp\lp -N \cdot \delta \rp  \longrightarrow 0.
+    \end{align*}
+    This shows the claims.
+
+    2.c) The same arguments as above apply for $\delta=\delta_N$, $\gamma=\gamma_N$, $N=N_{\gamma_N}$. Note that we get the inequalities for every fixed $N$, not just in the limit.
+ \end{proof}
+\end{Thm}
+
+\begin{Rem}
+    The convergence property of the sequence $(\alpha_n)_{n \in \N} \ins \R_{>0}$ in Theorem \ref{thm:e-variables-type-I-II-error} trades off between
+    type-I and type-II error control. We have all three cases:
+    \begin{enumerate}
+        \item The sequence $\alpha_N:=\frac{\alpha}{N^r}$ for fixed $\alpha,r >0$ satifies both conditions:
+             \begin{align*} 
+                 \alpha_N &\stackrel{N \to \infty}{\longrightarrow} 0, &\gamma_N:=-\frac{1}{N} \log \alpha_N &\stackrel{N \to \infty}{\longrightarrow} 0. 
+         \end{align*}
+     \item The sequence $\alpha_N:=\frac{1}{2^N}$ satifies the first, but not the second condition.
+     \item The constant sequence $\alpha_N:=\alpha$ for fixed $\alpha > 0$ satisfies the second, but not the first condition.
+    \end{enumerate}
+%    For the sequence $(\delta_n)_{n \in \N} \ins \R_{>0}$ we can make the following choice:
+%    \[ \delta_N := \frac{1}{\sqrt{N}}.  \]
+\end{Rem}
+
+Based on the result of Theorem \ref{thm:e-variables-type-I-II-error} we make the following definition:
+
+\begin{Def}[Effective E-variable]
+ Let $\Hcal_0,\Hcal_1 \ins \Pcal(\Xcal)$ be two hypothesis classes and $E:\, \Xcal \to \R_{\ge0}$ be a measurable map.
+ We call $E$ an \emph{effective E-variable} for $(\Hcal_0,\Hcal_1)$ if:
+ \[ \Hcal_0 \ins \Hcal_0^E \qquad \text{ and } \qquad \Hcal_1 \ins \Hcal_1^E. \]
+\end{Def}
+

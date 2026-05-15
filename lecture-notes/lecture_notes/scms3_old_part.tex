@@ -1,0 +1,330 @@
+\subsection{(Alternative definition of $\sigma$-blocking)}
+
+Revisit Definition~\ref{def:sigma_blocking} of $\sigma$-blocking. In the literature, one also encounters
+a slightly different notion with the same name. In this optional section, we will clarify the relationship
+between the two. For the rest of the course, we will keep using Definition~\ref{def:sigma_blocking}.
+\begin{Def}\label{def:sigma_blocking_2}
+  Let $G=\langle J,V,E,L \rangle$ be a CDMG, $C \ins J \cup V$ a subset of nodes and $\pi$ a walk (or path) in $G$:
+  \[ \pi =\lp  v_0 \sts \cdots \sts v_n \rp.  \]
+\begin{enumerate}
+  \item
+    We say that the walk (or path) $\pi$ is \emph{$C$-$\sigma'$-blocked} or \emph{$\sigma'$-blocked by $C$} if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \ot v_k \ots v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}),\\
+  \text{ right chain: } & v_{k-1} \sto v_k \to v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k+1}),\\
+  \text{ fork: } & v_{k-1} \ot v_k \to v_{k+1} & \text{ with } & v_k \in C \land v_k \notin \Sc^G(v_{k-1}) \cap \Sc^G(v_{k+1}),\\
+                \text{ collider: } & v_{k-1} \sto v_k \ots v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+      \end{enumerate}
+  \item We say that the walk (or path) $\pi$ is \emph{$C$-$\sigma'$-open} if it is not $C$-$\sigma'$-blocked. 
+\end{enumerate}
+\end{Def}
+The only difference is in the condition for a collider node $v_k$: to $\sigma$-block
+a walk one needs $v_k \not\in C$, whereas to $\sigma'$-block a walk one needs $v_k \not\in \Anc^G(C)$.
+
+The following lemma will be convenient to relate the notions.
+\begin{Lem}\label{lem:replace_walk}
+Let $G = \langle V, J, E, L \rangle$ be a CDMG, $C \subseteq V \cup J$ and $\pi = (v_0,\dots,v_n)$ be a $C$-$\sigma'$-open walk in $G$. 
+Suppose $v_i \in \Sc^G(v_j)$ with $i < j$.
+We can then replace the subwalk $v_i, \dots, v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+    \item a shortest directed path $v_i \to \dots \to v_j$ in $G$ if $j = n$ or if $v_j \to v_{j+1}$ on $\pi$, or
+    \item a shortest directed path $v_i \ot \dots \ot v_j$ in $G$ otherwise,
+  \end{enumerate}
+that is entirely within $\Sc^G(v_i)$ and such that the modified walk $\pi'$ is still $C$-$\sigma'$-open.
+\end{Lem}
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma'$-blocked by one of the initial nodes $v_0 \dots v_{i-1}$ or one of the final nodes $v_{j+1} \dots v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and do not $C$-$\sigma'$-block $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma'$-blocked through one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endpoint non-colliders that only point to nodes in the same strongly connected component on $\pi'$.
+Because $\pi$ is $C$-$\sigma'$-open, $v_j \notin C$ if $j = n$ or if $v_j \to i_{j+1}$ on $\pi$. 
+This holds in particular in case (i). 
+Similarly, $v_i \notin C$ if $i = 0$ or $v_{i-1} \ot v_i$ on $\pi$.
+
+In case (i), $\pi'$ is not $C$-$\sigma'$-blocked by $v_j$ because $v_j$ is a non-collider on $\pi'$ but $v_j \notin C$. 
+Also $v_i$ does not $C$-$\sigma'$-block $\pi'$. Indeed, assume $v_i \ne v_j$ (otherwise there is nothing to prove).
+If $i = 0$, or if $i > 0$ and $v_{i-1} \ot v_i$ on $\pi'$, then the same holds for $\pi$ and hence $v_i \notin C$; $v_i$ is then a non-collider on $\pi'$, but $v_i \notin C$. 
+If $i > 0$ and $v_{i-1} \sto v_i$ on $\pi'$ then $v_i$ is a non-endpoint non-collider on $\pi'$ that does not point to a node in another strongly connected component.
+
+Now consider case (ii). 
+If $i = 0$ or $v_{i-1} \ot v_i$ on $\pi'$ then this case is analogous to case (i). 
+So assume $i > 0$ and $v_{i-1} \sto v_i$ on $\pi'$. 
+%If $v_i$ is an endpoint of $\pi'$, then $v_i = v_j$ and $k = n$ and therefore $v_j \notin C$, and hence $v_i$ and $v_j$ do not $C$-$\sigma'$-block $\pi'$. 
+$v_i$ must be a collider on $\pi'$ (whether $v_i = v_j$ or not). 
+Then on the subwalk of $\pi$ between $v_i$ and $v_j$ there must be a directed walk from $v_i$ to a collider that is in $\Anc^G(C)$, which implies that $v_i \in \Anc^G(C)$. Hence, $v_i$ will not $C$-$\sigma'$-block $\pi'$. 
+Also $v_j$ cannot $C$-$\sigma'$-block $\pi'$.
+Indeed, assume $v_i \ne v_j$ (otherwise there is nothing to prove). 
+Since $v_j \ots v_{j+1}$ on $\pi'$, $v_j$ is a non-endpoint non-collider on $\pi'$ that does not point to a node in another strongly connected component.
+\end{proof}
+With the help of this lemma, we can prove that Definition~\ref{def:sigma_blocking_2} indeed serves as an alternative to 
+Definition \ref{def:sigma_blocking}.
+\begin{Prp}\label{prp:sigma_opens}
+  Let $G = \langle J, V, E, L \rangle$ be a CDMG. For $C \subseteq J \cup V$, and $i, j \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+    \item there exists a $C$-$\sigma$-open walk between $i$ and $j$ in $G$;
+    \item there exists a $C$-$\sigma'$-open walk between $i$ and $j$ in $G$;
+    \item there exists a $C$-$\sigma'$-open path between $i$ and $j$ in $G$.
+  \end{enumerate}
+\end{Prp}
+\begin{proof}
+$1 \implies 2$: Suppose there exists a $C$-$\sigma$-open walk between $i$ and $j$.
+%Then all non-colliders are either not in $C$, or only point towards nodes in the same strongly connected component;
+%all colliders are in $C$. 
+All colliders are in $C$, and hence in $\Anc^G(C)$. So this same walk is also $C$-$\sigma'$-open. 
+
+$2 \implies 1$: Suppose there exists a $C$-$\sigma'$-open walk between $i$ and $j$. 
+%Then all non-colliders are either not in $C$, or only point towards nodes in the same strongly connected component; 
+Then all colliders are in $\Anc^G(C)$. If a collider is not in $C$, we can extend the walk by replacing this collider 
+$\sto v \ots$ by the walk 
+$\sto v \to \dots \to c \ot \dots \ot v \ots$ consisting of a directed walk starting from $v$ towards the first
+node $c$ in $C$ it encounters, and from there tracing back the same walk in opposite direction to $v$. All nodes on this
+walk except for $c$ ($v$ included) are non-colliders not in $C$. Extending this walk in such a way for each
+collider not in $C$, we obtain an extended walk that is $C$-$\sigma$-open.
+
+$2 \implies 3$:
+%It suffices to show that if there exists a $C$-$\sigma$-open walk between $i$ and $j$ in $G$, there exists a $C$-$\sigma'$-open path between $i$ and $j$ in $G$. 
+Let $\pi = (v_0,\dots,v_n)$ be a $C$-$\sigma'$-open walk between nodes $v_0$ and $v_0$ in $G$. 
+If a node $w$ occurs more than once on $\pi$, let $v_i$ be the first node on $\pi$ and $v_j$ be the last node on $\pi$ that are in $\Sc^G(w)$.
+We now use Lemma~\ref{lem:replace_walk} to construct a new walk $\pi'$ from $\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\pi$ by a particular directed path in $\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\pi'$ is still $C$-$\sigma'$-open.
+In $\pi'$, the number of nodes that occurs more than once is at least one less than in $\pi$, and all nodes within $\Sc^G(w)$ occur within a single segment.
+This replacement procedure can be repeated until no nodes occur more than once. We have then obtained a
+$C$-$\sigma'$-open path between $v_0$ and $v_n$.
+
+$3 \implies 2$: trivial.
+\end{proof}
+Hence, it does not matter which of the two notions we use in the definition of $\sigma$-separation.
+When checking $\sigma$-separation in a graph ``by hand'', we usually use the third formulation, since there are only a finite
+number of paths to check. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks
+(while one cannot in general concatenate two paths and again obtain a path).
+
+
+\subsection{Acyclifications}
+
+It is possible to reformulate the notion of $\sigma$-separation in terms of $d$-separation on a modified and acyclic graph
+by making use of the following construction, which will be the main tool to extend the acyclic theory for
+L-CBNs to cyclic SCMs. The construction was first proposed in the context of CBNs by \cite{Spirtes94,Spirtes95}.
+\begin{Def}\label{def:cdg_acyclification}
+  Given a CDMG $G = \langle J, V, E, L \rangle$, we call a CADMG $G' = \langle J, V, E', L' \rangle$
+  an \emph{acyclification of $G$} if
+  \begin{enumerate}[label=(\roman*)]
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes $J$ and output nodes $V$ as $G$;
+    \item for any pair of nodes $\{i,j\}$ such that $i \not\in\Sc^G(j)$:
+      \begin{enumerate}
+      \item $i \to j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \to j' \in E$;
+      \item $i \oto j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \oto j' \in L$;
+      \end{enumerate}\label{def:acyclification_inter_scc}
+    \item for any pair of distinct nodes $\{i,j\}$ such that $i \in\Sc^G(j)$: $i \to j \in \C{E}'$ or $i \ot j \in \C{E}'$ or $i \oto j \in \C{F}'$.\label{def:acyclification_intra_scc}
+  \end{enumerate}
+\end{Def}
+
+\begin{comment}
+Before we state and prove its main property, we start with a little lemma.
+\begin{Lem}\label{lem:acyclification_ancestors}
+Let $G$ be a CDMG and $G'$ an acyclification of $G$. 
+For any node $j \in J \cup V$: if $i \in \Anc^G(j)$ then there
+exists $i' \in \Sc^G(i)$ such that $i' \in \Anc^{G'}(j)$.
+Vice versa: if $i \in \Anc^{G'}(j)$ then $i \in \Anc^G(j)$.
+\end{Lem}
+\begin{proof}
+If there exists a directed walk from $i$ to $j$ in $G$,
+this walk can be partitioned into maximal segments that are contained within a single strongly connected component of $G$ each.
+By the definition of $G'$, there exists a directed walk in $G'$ that contains the right-most node only for each segment
+(keeping the same ordering of the segments). 
+Its end node will be $j$, but its start node may be a node $i' \in \Sc^G(i)$ that differs from $i$.
+
+If there exists a directed walk from $i$ to $j$ in $G'$,
+then we can replace each edge $u \to v$ on this walk (if it is not present in $G$) by a directed walk
+$u \to v' \to \dots \to v$ where $v' \to \dots \to v$ is entirely within $\Sc^G(v)$, by definition of $G'$. 
+In this way we obtain a directed walk in $G$ from $i$ to $j$.
+\end{proof}
+\end{comment}
+The important property of acyclifications is that they can be used to express $\sigma$-separation in a (possibly cyclic) graph
+in terms of $d$-separation in an acyclification.
+\begin{Prp}\label{prp:sigma_sep_as_d_sep}
+  Let $G = \langle J, V, E, L \rangle$ be a CDMG and $G' = \langle J, V, E', L' \rangle$ an acyclification of $G$. 
+  Then for $A, B, C \subseteq V \cup J$ (not necessarily disjoint) subsets of nodes,
+  $$A \Perp^\sigma_G B \given C \iff A \Perp^\sigma_{G'} B \given C \iff A \Perp^d_{G'} B \given C$$
+\end{Prp}
+\begin{comment}\begin{proof}
+We will show that there is a $C$-$\sigma'$-open walk between $A$ and $B \cup J$ in $G$ if and only
+if there is a $C$-$\sigma'$-open walk between $A$ and $B \cup J$ in $G'$. This is equivalent to the
+existence of a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G'$ by Proposition~\ref{prp:sigma_opens}. 
+Since $G'$ is acyclic, this
+is in turn equivalent to the existence of a $C$-$d$-open walk between $A$ and $B \cup J$ in $G'$.
+
+$\implies$: Suppose there is a $C$-$\sigma'$-open walk $\pi = (v_0, \dots, v_n)$ between $A$ and $B \cup J$ in $G$. 
+All its colliders are in $\Anc^G(C)$
+and all its non-colliders are either not in $C$, or otherwise, point only to nodes in the same strongly connected component.
+Note that each edge between two nodes in different strongly connected components in $G$ is also present in $G'$.
+Edges between two nodes in the same strongly connected component, however, may not be present in $G'$.
+Therefore, we will replace these edges with walks in $G'$. 
+We may also need to replace colliders in $\Anc^G(C)$ with colliders in $\Anc^{G'}(C)$.
+Consider a subwalk $(v_i,\dots,v_j)$ of maximum length that is entirely contained within a strongly connected component in $G$
+(with possibly $i=j$).
+We distinguish different cases and show for each case
+how this subwalk can be replaced by a subwalk in $G'$.
+\begin{enumerate}[label=(\roman*)]
+  \item 
+$\sto v_i \cdots v_j \ots$: the subwalk between $v_i$ and $v_j$ has to contain a collider, say $w$,
+which must be in $\Anc^G(C)$ since the walk between $i$ and $j$ is $C$-$\sigma'$-open.
+By Lemma~\ref{lem:acyclification_ancestors}, there must exist a node $w' \in \Sc^G(w)$
+that is in $\Anc^{G'}(C)$. Thus we can replace this subwalk by
+$\sto w' \ots$ in $G'$ such that $w'$ becomes a collider in $\Anc^{G'}(C)$.
+
+\item
+$(\ot) v_i \cdots v_j \ots$:\footnote{We put parentheses around the first directed edge to indicate that
+this case also applies if $v_i$ is an endnode, i.e., if $i = 0$.} 
+here $v_i$ is a non-collider pointing to another strongly-connected component or $v_i$ is an endnode,
+and in both cases, $v_i \notin C$. Therefore, we can replace the subwalk by $(\ot) v_i \ots$ in $G'$,
+such that $v_i$ becomes a non-collider not in $C$.
+
+\item
+$\sto v_i \cdots v_j (\to)$: analogous to the previous case, we can replace it by $\sto v_j (\to)$ in $G'$,
+such that $v_j$ becomes a non-collider not in $C$.
+
+\item
+$(\ot) v_i \cdots v_j (\to)$: 
+$v_i,v_j$ are both not in $C$ by assumption. If $i = j$, we replace this subwalk by $(\ot) v_i (\to)$ 
+such that $v_i$ becomes a non-collider not in $C$. If $i < j$, we replace this subwalk by
+$(\ot) v_i \sts v_j (\to)$ with $v_i \sts v_j$ any edge connecting $v_i$ and $v_j$ in $G'$,
+such that both $v_i$ and $v_j$ become non-colliders not in $C$.
+\end{enumerate}
+By replacing all maximal subwalks of the original walk $\pi$ that are contained within a single strongly connected
+component of $G$ in this way, we obtain a walk in the acyclification $G'$ that is $C$-$\sigma'$-open by construction.
+Note that the modified walk has the same endpoints ($v_0$ and $v_n$) as the original walk.
+
+$\impliedby$: Suppose there is a $C$-$\sigma'$-open walk $\pi$ between $A$ and $B \cup J$ in $G'$.
+All its colliders are in $\Anc^{G'}(C)$ (and hence in $\Anc^G(C)$ by Lemma~\ref{lem:acyclification_ancestors}), and
+all its non-colliders are not in $C$. 
+We will construct a walk $\pi'$ in $G$ with the same endpoints as $\pi$ that is $C$-$\sigma'$-open.
+
+First, we replace all non-trivial maximum subwalks $v_i \sts \dots \sts v_j$ on $\pi$ consisting entirely
+of edges between nodes in the same strongly connected component in $G$ by
+a directed path $v_i \to \dots \to v_j$ or $v_i \ot \dots \ot v_j$ 
+entirely in $\Sc^G(i)$ in the same way as in Lemma~\ref{lem:replace_walk}.
+By the same reasoning as in the proof of the lemma, both $v_i$ and $v_j$ will become
+either colliders in $\Anc^G(C)$, or non-colliders not in $C$, or non-colliders in $C$
+that only point to a node in the same strongly connected component of $G$.
+
+Next, for any directed edge $i \to j$ on $\pi$ with $j \notin \Sc^G(i)$, there
+must be a $j' \in \Sc^G(j)$ such that $i \to j'$ is present in $G$, and hence there must be a directed path
+$j' \to \dots \to j$ entirely in $\Sc^G(j)$ such that we can use
+$i \to j' \to \dots \to j$ as replacement in $G$ of the edge $i \to j$ on $\pi$.
+Similarly, for any bidirected edge $i \oto j$ on $\pi$ with $j \notin \Sc^G(i)$, there
+must be $i' \in \Sc^G(i)$ and $j' \in \Sc^G(j)$ such that $i' \oto j'$ is present in $G$, 
+and hence there must be a walk $i \ot \dots \ot i' \oto j' \to \dots \to j$ in $G$, where
+$i \ot \dots \ot i'$ is entirely in $\Sc^G(i)$ and $j' \to \dots \to j$ is entirely
+in $\Sc^G(j)$, that we can use as replacement in $G$ of the edge $i \oto j$ on $\pi$.
+The new nodes introduced on $\pi'$ in these replacements are non-colliders
+that only point to nodes in the same strongly connected component. 
+The endpoints of the replacement paths do not change their status:
+if they were colliders in $\Anc^{G'}(C) \subseteq \Anc^{G}(C)$ on $\pi$ they still are 
+on $\pi'$, and if they were non-colliders not in $C$ on $\pi$ they still are on $\pi'$.
+
+Hence we have constructed a walk $\pi'$ in $G$ with the same endpoints as $\pi$ that is $C$-$\sigma'$-open.
+\end{proof}\end{comment}
+\begin{proof}
+We will show that there is a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G$ if and only
+if there is a $C$-$\sigma$-open walk between $A$ and $B \cup J$ in $G'$. Since $G'$ is acyclic, this
+is in turn equivalent to the existence of a $C$-$d$-open walk between $A$ and $B \cup J$ in $G'$.
+
+$\implies$: Suppose there is a $C$-$\sigma$-open walk $\pi = (v_0, \dots, v_n)$ between $A$ and $B \cup J$ in $G$. 
+All its colliders are in $C$
+and all its non-colliders are either not in $C$, or otherwise, point only to nodes in the same strongly connected component.
+Note that each edge between two nodes in different strongly connected components in $G$ is also present in $G'$.
+Edges between two nodes in the same strongly connected component, however, may not be present in $G'$.
+Therefore, we will replace these edges with walks in $G'$. 
+Consider a subwalk $(v_i,\dots,v_j)$ of maximum length that is entirely contained within a strongly connected component in $G$
+(with possibly $i=j$).
+We distinguish different cases and show for each case how this subwalk can be replaced by a subwalk in $G'$.
+\begin{enumerate}[label=(\roman*)]
+  \item 
+$\sto v_i \cdots v_j \ots$: the subwalk between $v_i$ and $v_j$ has to contain a collider, say $w$,
+which must be in $C$ since the walk between $v_i$ and $v_j$ is $C$-$\sigma$-open.
+We can replace this subwalk by $\sto w \ots$ in $G'$ such that $w$ becomes a collider in $C$.
+
+\item
+$(\ot) v_i \cdots v_j \ots$:\footnote{We put parentheses around the first directed edge to indicate that
+this case also applies if $v_i$ is an endnode, i.e., if $i = 0$.} 
+here $v_i$ is a non-collider pointing to another strongly-connected component or $v_i$ is an endnode,
+and in both cases, $v_i \notin C$. Therefore, we can replace the subwalk by $(\ot) v_i \ots$ in $G'$,
+such that $v_i$ becomes a non-collider not in $C$.
+
+\item
+$\sto v_i \cdots v_j (\to)$: analogous to the previous case, we can replace it by $\sto v_j (\to)$ in $G'$,
+such that $v_j$ becomes a non-collider not in $C$.
+
+\item
+$(\ot) v_i \cdots v_j (\to)$: 
+$v_i,v_j$ are both not in $C$ by assumption. If $i = j$, we replace this subwalk by $(\ot) v_i (\to)$ 
+such that $v_i$ becomes a non-collider not in $C$. If $i < j$, we replace this subwalk by
+$(\ot) v_i \sts v_j (\to)$ with $v_i \sts v_j$ any edge connecting $v_i$ and $v_j$ in $G'$,
+such that both $v_i$ and $v_j$ become non-colliders not in $C$.
+\end{enumerate}
+By replacing all maximal subwalks of the original walk $\pi$ that are contained within a single strongly connected
+component of $G$ in this way, we obtain a walk in the acyclification $G'$ that is $C$-$\sigma$-open by construction.
+Note that the modified walk has the same endpoints ($v_0$ and $v_n$) as the original walk.
+
+$\impliedby$: Suppose there is a $C$-$\sigma$-open walk $\pi'$ between $A$ and $B \cup J$ in $G'$.
+All its colliders are in $C$, and all its non-colliders are not in $C$. 
+We will construct a walk $\pi$ in $G$ with the same endpoints as $\pi'$ that is $C$-$\sigma$-open.
+
+Consider a non-trivial subwalk $(v_i,\dots,v_j)$ on $\pi'$ of maximum length that is entirely contained within a strongly connected component of $G$. 
+This subwalk may not be present in $G'$.
+We distinguish different cases and show for each case how this subwalk can be replaced by a subwalk in $G$.
+\begin{enumerate}[label=(\roman*)]
+  \item 
+$\sto v_i \cdots v_j \ots$: the subwalk between $v_i$ and $v_j$ has to contain a collider, say $w$,
+which must be in $C$ since the walk between $v_i$ and $v_j$ is $C$-$\sigma$-open, and must be in
+$\Sc^G(v_i) = \Sc^G(v_j)$ by assumption. We can replace this subwalk by
+$\sto v_i \to \dots \to w \ot \dots \ot v_j \ots$ in $G$,
+with possibly $v_i = w$ and possibly $w = v_j$, 
+with all nodes in $\Sc^G(v_i)$. 
+Note that the modified walk remains $C$-$\sigma$-open.
+
+\item
+$(\ot) v_i \cdots v_j \ots$:
+here $v_i$ is a non-collider pointing to another strongly-connected component or $v_i$ is an endnode,
+and in both cases, $v_i \notin C$. 
+We can replace this subwalk by a shortest directed walk
+$(\ot) v_i \ot \dots \ot v_j \ots$ in $G$ with all nodes in $\Sc^G(v_i)$.
+Note that the modified walk remains $C$-$\sigma$-open.
+%The modified walk is not $C$-$\sigma$-blocked by $v_i$ because $v_i$ is a non-collider not in $C$.
+%Also $v_j$ does not $C$-$\sigma$-block the modified walk, because either
+%$v_i \ne v_j$ or otherwise $v_j$ is a non-collider pointing only to nodes in the same strongly connected component.
+
+\item
+$\sto v_i \cdots v_j (\to)$: analogous to the previous case, we can replace it by $\sto v_i \to \dots \to v_j (\to)$ in $G$.
+
+\item
+$(\ot) v_i \cdots v_j (\to)$: 
+$v_i,v_j$ are both not in $C$ by assumption. We can replace this subwalk by a shortest directed walk
+$(\ot) v_i \to \dots \to v_j (\to)$ in $G$ with all nodes in $\Sc^G(v_i)$.
+The modified walk remains $C$-$\sigma$-open.
+\end{enumerate}
+In each of the four cases, in the modified walk both $v_i$ and $v_j$ become
+either colliders in $C$, or non-colliders not in $C$, or non-colliders in $C$
+that only point to a node in the same strongly connected component of $G$.
+
+Now, we will replace edges on $\pi'$ between two strongly connected components that are not present in $G$.
+For any directed edge $i \to j$ on $\pi'$ with $j \notin \Sc^G(i)$, there
+must be a $j' \in \Sc^G(j)$ such that $i \to j'$ is present in $G$, and hence there must be a directed path
+$j' \to \dots \to j$ entirely in $\Sc^G(j)$ such that we can use
+$i \to j' \to \dots \to j$ as replacement in $G$ of the edge $i \to j$.
+Similarly, for any bidirected edge $i \oto j$ on $\pi'$ with $j \notin \Sc^G(i)$, there
+must be $i' \in \Sc^G(i)$ and $j' \in \Sc^G(j)$ such that $i' \oto j'$ is present in $G$, 
+and hence there must be a walk $i \ot \dots \ot i' \oto j' \to \dots \to j$ in $G$, where
+$i \ot \dots \ot i'$ is entirely in $\Sc^G(i)$ and $j' \to \dots \to j$ is entirely
+in $\Sc^G(j)$, that we can use as replacement in $G$ of the edge $i \oto j$.
+The new nodes introduced on $\pi$ in these replacements are non-colliders
+that only point to nodes in the same strongly connected component. 
+The endpoints of the replacement paths do not change their status:
+if they were colliders in $C$ on $\pi'$ they still are 
+on $\pi$, and if they were non-colliders not in $C$ on $\pi'$ they still are on $\pi$.
+
+Hence we have constructed a walk $\pi$ in $G$ with the same endpoints as $\pi'$ that is $C$-$\sigma$-open.
+\end{proof}

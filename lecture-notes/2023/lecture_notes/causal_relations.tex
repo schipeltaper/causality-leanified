@@ -1,0 +1,758 @@
+\section{Causal Relations}
+
+So far, we always assumed that an SCM was fully specified, and derived theory to 
+draw conclusions from the given SCM. For example, the do-calculus provides precise
+relationships between certain Markov kernels induced by the SCM,
+which enables us to perform \emph{causal reasoning}.
+
+However, we often do not have sufficient information regarding the system that
+we are modeling to completely specify an SCM. For example, we may only know what
+the observed variables are, but not what the graph of the SCM is, let alone know the
+latent spaces, exogenous distribution and exact causal mechanisms. Can we still
+perform causal reasoning with such incompletely specified models? The answer turns
+out to be affirmative, if one is willing to make certain assumptions (that---unfortunately, but perhaps unavoidably---are 
+typically untestable).
+
+In the rest of this chapter we will focus on the question of how to deduce partial knowledge about
+the graph from given Markov kernels. This is often called \emph{causal 
+discovery}. In the next chapter, we will go one step further, and replace the deduction
+of graphical properties from Markov kernels by the inference of graphical properties
+from data, i.e., we replace Markov kernels by finite samples. This will lead to 
+statistical considerations. For example, one might study the properties of 
+different estimators of causal effects. Estimating the causal effect of some variables
+on others is often called \emph{causal inference} (although ``inference'' is often
+interpreted much broader as drawing conclusions from data and prior beliefs).
+
+In this chapter, we will make use of the simple SCM formalism. 
+Similar (more restrictive) results can be obtained in the L-CBN formalism.
+
+\subsection{Causal Relations}
+
+\Joris{This and subsequent definitions interpret $W$ as intervenable/causal; 
+this should be changed! The full solution would involve a binary property for
+each variable (causal/non-causal i.e.\ intervenable vs.\ non-intervenable.
+That is too drastic for this year. A compromise solution would involve going
+back to the ``standard'' interpretation of SCMs, i.e., assume all the exogenous
+random variables to be non-intervenable and all endogenous and exogenous input
+variables to be intervenable.
+
+We will here extend the ``standard'' causal interpretation of SCMs, which considers 
+exogenous random variables not as conveying a \emph{causal} meaning, and avoids
+consideration of interventions on exogenous random variables. If one desires to
+discuss such interventions, then one first has to make an endogenous copy. This,
+however, involves making additional modeling assumptions, so should be done with care.
+Our extension to the standard causal interpretation of SCMs involves the
+exogenous input nodes (which are not formally present in most existing accounts of SCMs).
+We explicitly interpret the exogenous input nodes as representing hard interventions
+with unspecified intervention value.
+}
+
+In this chapter, we will frequently be making use of the following short-hand notation.
+\begin{Def}
+  Let $G$ be a CDMG with input nodes $J$ and output nodes $V$.
+  For $O \subseteq V$, we write $G_{O|J} := G^{\sm (V \sm O)}$ for the graph obtained by marginalizing all output nodes except for those in $O$.
+\end{Def}
+
+We start by formalizing Definition~\ref{def-causality-real} for simple SCMs.
+\begin{Def}\label{def:cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G = G(M)$.
+  If $a \in \Anc^G(b)\sm \{b\}$ for $a, b \in J \cup V \cup W$ we say that \emph{$a$ is a cause of $b$ according to $M$}.
+\end{Def}
+\begin{Rem}\label{rem:meaning_of_directed_edge}
+  With Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity} one sees that this holds if and only if
+  $a \tuh b$ is present in $(G_{\doit(a)})_{b|J}$.
+\end{Rem}
+
+With the help of the do-calculus, we can now tie this notion to practical procedures 
+to deduce the presence of causal relations from the (intervened) Markov kernels of the SCM.
+The following proposition expresses that only if $a$ causes $b$ according to $M$, a
+hard intervention on $a$ can change the distribution of $b$. 
+This formalizes our intuitive notion of what it means for a variable to cause another variable.
+\begin{Prp}\label{prp:scm_causes_separation}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  Let $a \in V \cup W \cup J$ and $b \in V$.
+  \begin{itemize}
+    \item For $a \in V \cup W$:
+      $$a \notin \Anc^{G(M)}(b) \implies P_{M}(X_b \given \doit(X_J), \doit(X_a)) = P_{M}(X_b \given \doit(X_J));$$
+    \item for $a \in J$:
+      $$a \notin \Anc^{G(M)}(b) \implies P_{M}(X_b \given \doit(X_J)) = P_{M}(X_b \given \doit(X_{J\setminus \{a\}}),\cancel{\doit(X_a)}).$$
+  \end{itemize}
+  Note: both cases can also be combined into a single statement:
+    $$a \notin \Anc^{G(M)}(b) \implies P_{M}(X_b \given \doit(X_{J \cup \{a\}}) = P_{M}(X_b \given \doit(X_{J\sm\{a\}})).$$
+\end{Prp}
+\begin{proof}
+  Denote $G = G(M)$. Assume that $a \notin \Anc^G(b)$. 
+  
+  Let us first consider the case $a \in V \cup W$. We will show that
+  $$b \Perp^\sigma_{G_{\doit(I_a)}} I_a \mid J \setminus \{a\},$$
+  where $I_a$ is an intervention node with target $a$ corresponding to an exogenous input variable modeling a hard intervention on $a$.
+  Assume on the contrary that there exists a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$ that is $\sigma$-open given $J \setminus \{a\}$, and for which all colliders lie in $J \setminus \{a\}$.
+  \JorisDoInput{After merging, we should write:
+  Assume on the contrary that there exists a shortest walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup (J \sm \{a\})$ that is $\sigma$-open given $J \setminus \{a\}$, and for which all colliders lie in $J \setminus \{a\}$.}
+  It cannot contain a node from $J \setminus \{a\}$, since that would either be an end node ($\sigma$-blocking the walk) or \JorisDoInput{next case doesn't occur for shortest walk} a non-collider node pointing only to nodes in another strongly connected component ($\sigma$-blocking the walk).
+  Therefore it must be of the form $I_a \tuh a \tuh \cdots b$.
+%  (where we set $I_a := a$ in case $a \in J$, and add a separate intervention node $I_a \to a$ in case $a \in V \cup W$).
+  If it were a directed walk from $I_a$ all the way to $b$, then we would get a contradiction with $a \notin \Anc^G(b)$.
+  Therefore, it must contain a collider.
+  This collider must be in $J \setminus \{a\}$, which is a contradiction (since no input node can be a collider on a walk). \JorisDoInput{or: because then the walk could be shortened}
+  We now apply rule 3 of the do-calculus (Theorem~\ref{thm:as-do-calculus-scms-simplified}) to obtain:
+    $$P_{M}(X_b \given \doit(X_J), \doit(X_a)) = P_{M}(X_b \given \doit(X_J)).$$
+
+  Now consider the case $a \in J$. In that case we do not add an intervention node. \JorisDoInput{if we would model an intervention on $a \in J$ by adding $I_a \to a$ and turning $a$ into an endogenous variable, this case would merge with the former} We will show that
+  $$b \Perp^\sigma_{G} a \mid J \setminus \{a\}.$$
+  Assume on the contrary that there exists a walk in $G$ between $b$ and $J$ that is $\sigma$-open given $J \setminus \{a\}$, and for which all colliders lie in $J \setminus \{a\}$. 
+  It cannot contain a node from $J \setminus \{a\}$, since that would either be an end node ($\sigma$-blocking the walk) or a non-collider node pointing only to nodes in another strongly connected component ($\sigma$-blocking the walk).
+  Therefore it must be of the form $a \tuh \cdots b$.
+%  (where we set $I_a := a$ in case $a \in J$, and add a separate intervention node $I_a \to a$ in case $a \in V \cup W$).
+  If it were a directed walk from $a$ all the way to $b$, then we would get a contradiction with $a \notin \Anc^G(b)$.
+  Therefore, it must contain a collider.
+  This collider must be in $J \setminus \{a\}$, which is a contradiction (since no input node can be a collider on a walk).
+  We now apply rule 4 of the do-calculus (Theorem~\ref{thm:as-do-calculus-scms-simplified}) to obtain:
+    $$P_{M}(X_b \given \doit(X_J)) = P_{M}(X_b \given \doit(X_{J\setminus \{a\}}),\cancel{\doit(X_a)}).$$
+
+%  \Joris{Patrick suggests to use the Markov property:
+%  $$A \Perp^\sigma_{G(M)} B \given C \implies X_A \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_B \given X_C.$$
+%  So in our case b)
+%  $$X_b \Indep_{P_{M}(X_V,X_W \given \doit(\XJ))} X_a \given X_{J\sm \{a\}}.$$
+%  Writing this out we get that there exists a Markov kernel $Q(X_b|X_{J\sm a})$ such that
+%  $P_M(X_b,X_J | \doit(\XJ)) = Q(X_b|X_{J\sm a}) \otimes P_M(X_J|\doit(\XJ))$.
+%  Hence
+%  $P_M(X_b | \doit(\XJ)) = Q(X_b|X_{J\sm a})$.
+
+%  \Joris{Idea: could we shorten the proof by looking at the marginalized graph instead?}
+\end{proof}
+This leads to a practical way of detecting the presence of a causal relation.
+%\begin{Cor}\label{cor:scm_identify_causal_relation}
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+%  Let $b \in V$.
+%
+%  \begin{itemize}
+%    \item For $a \in V \cup W$ with $a \ne b$, if:
+%  \begin{itemize}
+%    \item there exist values $x_J \in \CX_J$, $x_a,x_a' \in \CX_a$ such that
+%      $$P_{M}(X_b \given \doit(X_a=x_a),\doit(X_J=x_J)) \ne P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_J=x_J)),$$
+%    \item or there exist values $x_J \in \CX_J$, $x_a \in \CX_a$ such that
+%  $$P_{M}(X_b \given \doit(X_a=x_a),\doit(X_J=x_J)) \ne P_{M}(X_b \given \doit(X_J=x_J)),$$
+%  \end{itemize}
+%  then $a$ is a cause of $b$ according to $M$.  
+%    \item For $a \in J$, if there exist values $x_{J\setminus\{a\}} \in \CX_J$, $x_a,x_a' \in \CX_a$ 
+%  such that
+%      \begin{equation*}\begin{split}
+%        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+%        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+%      \end{split}\end{equation*}
+%  then $a$ is a cause of $b$ according to $M$.
+%  \end{itemize}
+%  Thus, in both cases, $a \in \Anc^{G(M)}(b)$.
+%\end{Cor}
+\begin{Cor}\label{cor:scm_identify_causal_relation}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  Let $b \in V$.
+
+  For $a \in V \cup W \cup J$ with $a \ne b$, if
+  there exist values $x_{J\sm\{a\}} \in \CX_{J\sm\{a\}}$, $x_a,x_a' \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+      \end{split}\end{equation*}
+  then $a$ is a cause of $b$ according to $M$, that is, $a \in \Anc^{G(M)}(b)$.
+
+  Also, for $a \in V \cup W$ with $a \ne b$, if
+  there exist values $x_J \in \CX_J$, $x_a \in \CX_a$ such that
+  $$P_{M}(X_b \given \doit(X_a=x_a),\doit(X_J=x_J)) \ne P_{M}(X_b \given \doit(X_J=x_J)),$$
+  then $a$ is a cause of $b$ according to $M$.  
+\end{Cor}
+This condition is sufficient, but not necessary.
+This formalizes the main principle of how we can learn about causal relations in
+the world: by actively changing some part of the world (choosing the intervention values independently) and observing
+the response of other parts of the world.
+The independence assumption is key to distinguish mere correlation from causation.\footnote{As a less mathematical
+and more philosophical footnote: it is interesting
+to speculate about how this relates to the notion of a free will. 
+If an agent is not convinced that it chose the intervention values independently of other past
+aspects of the world, it cannot validly perform this causal reasoning step. An agent without a free will
+to choose these values could therefore never conclude that its actions have a causal effect on the world,
+as it could also just be a puppet steered by higher powers, and any dependence it observes between its actions 
+and aspects of the world 
+could also be ascribed to confounding. So perhaps that is why evolution equipped us with the impression that we have a free will.}
+
+\subsection{Direct Causal Relations}
+
+Another popular notion is that of direct causation. One should keep in mind that this is always relative to some set of variables.
+In particular, this property is not necessarily preserved under marginalization.
+\begin{Def}\label{def:direct_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  If $a \in \Pa^{G(M)}(b)$ for $a, b \in J \cup V \cup W$ with $a\ne b$ we say that \emph{$a$ is a direct cause of $b$ w.r.t.\ $V \cup W \cup J$ according to $M$}.
+\end{Def}
+\begin{Prp}\label{prp:direct_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  For $a,b \in J \cup V \cup W$, $a$ is a direct cause of $b$ w.r.t.\ $J \cup V \cup W$ according to $M$ if and only if $a$ is a cause of $b$ according to $M^{[b]}$.
+\end{Prp}
+Applying Proposition~\ref{prp:scm_causes_separation} to the intervened SCM $M^{[b]}$
+gives similar conditions to identify the presence of direct causal relations.
+%\begin{Cor}\label{cor:scm_identify_direct_causal_relation}
+%  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+%  Let $b \in V$.
+%
+%  \begin{itemize}
+%    \item For $a \in V \cup W$ with $a \ne b$, if:
+%  \begin{itemize}
+%    \item there exist values $x_J \in \CX_J$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a,x_a' \in \CX_a$ such that
+%      \begin{equation*}\begin{split}
+%        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)) \\
+%        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)),
+%      \end{split}\end{equation*}
+%    \item or there exist values $x_J \in \CX_J$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a \in \CX_a$ such that
+%      \begin{equation*}\begin{split}
+%        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)) \\
+%        {} \ne {} & P_{M}(X_b \given \doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)),
+%      \end{split}\end{equation*}
+%  \end{itemize}
+%  then $a$ is a direct cause of $b$ w.r.t.\ $V \cup J \cup W$ according to $M$.
+%    \item For $a \in J$, if there exist values $x_{J\setminus\{a\}} \in \CX_J$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a,x_a' \in \CX_a$ 
+%  such that
+%      \begin{equation*}\begin{split}
+%        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+%        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+%      \end{split}\end{equation*}
+%  then $a$ is a direct cause of $b$ w.r.t\ $V \cup J \cup W$ according to $M$.
+%  \end{itemize}
+%  Thus, in both cases, $a \in \Pa^{G(M)}(b)$.
+%\end{Cor}
+\begin{Cor}\label{cor:scm_identify_direct_causal_relation}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+  Let $b \in V$.
+
+  For $a \in V \cup W \cup J$ with $a \ne b$, if there exist values $x_{J\setminus\{a\}} \in \CX_{J\sm\{a\}}$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a,x_a' \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus \{a\}}=x_{J\setminus \{a\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_a=x_a'),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_{J\setminus\{a\}}=x_{J\setminus\{a\}})),
+      \end{split}\end{equation*}
+  then $a$ is a direct cause of $b$ w.r.t.\ $V \cup J \cup W$ according to $M$.
+
+  Also, for $a \in V \cup W$ with $a \ne b$, if there exist values $x_J \in \CX_J$, $x_{V\setminus\{a,b\}} \in \CX_{V\setminus\{a,b\}}$, $x_a \in \CX_a$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_a=x_a),\doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_{V\setminus\{a,b\}}=x_{V\setminus\{a,b\}}),\doit(X_J=x_J)),
+      \end{split}\end{equation*}
+  then $a$ is a direct cause of $b$ w.r.t.\ $V \cup J \cup W$ according to $M$.
+  
+  Thus in both cases, $a \in \Pa^{G(M)}(b)$.
+\end{Cor}
+\begin{proof}
+  Apply Corollary~\ref{cor:scm_identify_causal_relation} to the intervened SCM 
+  $$M^{[b]} = \lt J \cup V \setminus \{b\}, \{b\}, \Srnd, \CX, P, f_{\{b\}} \rt,$$
+  and note that $a \in \Anc^{G(M^{[b]})}(b) \implies a \in \Pa^{G(M)}(b) \cup \{b\}$.
+\end{proof}
+Note further that this method to identify a direct causal effect may not be very practical,
+as it requires intervening on \emph{all} endogenous and exogenous input variables (except $b$) simultaneously.
+  
+\subsection{Common Causes}
+
+\Joris{This is no longer applicable in case of selection bias: the bidirected edge could also stem from some kind of latent selection bias. Perhaps here we now finally run into and can resolve the ``two conventions'' dilemma: in this document, we assume that exogenous random variables are subject to interventions, and then they can be interpreted as a common cause; when dashing them (as conditioning would do) they can no longer be interpreted causally, and indeed they can also represent dependencies stemming from conditioning in the past. So it appears as if we formally need to distinguish non-dashed (causal) from dashed (non-causal) exogenous random variables!!! Or: treat all exogenous random variables as non-causal (and create an endogenous copy if you'd like to intervene on it... which seems like a mathematical trick to make something that is inherently non-causal into something causal???). Also, whenever we do exogenous reparameterizations, we loose the causal semantics of the exogenous random variables.}
+
+%\Joris{We should perhaps define a canonical form of simple SCMs. This form assumes:
+%\begin{enumerate}
+%  \item All factors in the exogenous random distribution are non-degenerate;
+%  \item All endogenous nodes without parents have been replaced by exogenous random nodes.
+%\end{enumerate}
+The notion of having a common cause is formalized as follows.
+\begin{Def}\label{def:common_cause_of}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M) = \lt J, V \cup W, E \rt$.
+%  \begin{enumerate}
+%    \item If $a \in \Anc^G(b)$ for $a, b \in J \cup V \cup W$ with $a\ne b$ we say that \emph{$a$ is a cause of $b$ according to $M$}.
+%    \item If $a \in \Pa^G(b)$ for $a, b \in J \cup V \cup W$ with $a\ne b$ we say that \emph{$a$ is a direct cause of $b$ w.r.t.\ $V \cup W \cup J$ according to $M$}.
+ %   \item \Joris{If $c \in \Anc^{G_{\doit(b)}}(a)$ and $c \in \Anc^{G_{\doit(a)}}(b)$ for $a,b \in V$ and $c \in \Desc^{G}(W)$, then
+ %     we say that \emph{$c$ is a confounder of $a$ and $b$ according to $M$}, and that $a$ and $b$ are confounded according to $M$. This is sharper than the one below, but also gives the problem that our Markov property cannot deal with nodes that are known to be constant. We could extend the Markov property such that it automatically conditions on all endogenous nodes without parents. But do we really want to do so? The problem we encounter in this setup is that for the Markov property for CBNs it would be highly unnatural to attempt to extend it in this direction. This reveals that the Markov property for SCMs really only makes use of the information in $G^{\setminus W}$, but could exploit more information that is only in $G$. This then couples back all the way to our original decision to not treat all exogenous random variables as latent.}
+    If there exists a bifurcation with source $c \in V \cup W \cup J$ in $G(M)$ between $a,b \in V$, we say that \emph{$c$ is a common cause of $a$ and $b$ according to $M$}.
+%  If $c \in \Anc^{G_{\doit(b)}}(a)$ and $c \in \Anc^{G_{\doit(a)}}(b)$ for $a, b \in V$ with $a \ne b$ and $c \in V \cup W$, then we say that \emph{$c$ is a confounder of $a$ and $b$ according to $M$}, and that \emph{$a$ and $b$ are confounded according to $M$}.
+%  \end{enumerate}
+\end{Def}
+\begin{Rem}\label{rem:meaning_of_bidirected_edge}
+  With Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity} we get that this holds if and only if $a \huh b$ or $a \hut c \tuh b$ with $c \in J$ is present in $G_{\{a,b\}|J}$. % = G^{\sm ((V \cup W) \sm \{a,b\})}$.
+\end{Rem}
+%Note that exogenous input nodes in $J$ are never called confounders, by definition.\footnote{The reason is that they do not lead to ``spurious dependences'' as long as one does not mix distributions for different values of $X_J$. 
+%\Joris{How to deal with constant exogenous random nodes, or constant endogenous nodes without parents? We might want to not consider those as confounders. Also, the Markov property could be extended: by substituting the constant values in their children nodes (perhaps recursively) we can get rid of these nodes, apply the Markov property to the result, and we can freely add the removed nodes in any of the spots of any separation statement.}}
+% \item Neither are endogenous nodes in $V$ without ancestors in $W$.
+
+To test whether some variable is a common cause of two other variables, we can simply apply  
+Corollary~\ref{cor:scm_identify_causal_relation} for detecting causal relations (after appropriate interventions), 
+making use of Proposition~\ref{prp:bifurcations_alternative} to reexpress the existence of a bifurcation with source in terms of certain ancestral relations after performing certain interventions. We will not write this out in detail here. \Joris{Perhaps we should!}
+
+Importantly: without common causes (and without a reverse causal relation), there can be no bias due to confounding.\footnote{Another bias is still possible: selection bias. This may happen if a subset of the samples (statistical units, individuals, \dots) do not end up in the data set because of some filtering process. 
+In other words, even if
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+we need not have
+  $$P_{M}(X_b \given S \in \xi_S, \doit(X_a), \doit(X_J)) = P_{M}(X_b \given S \in \xi_S, X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+for some $S \subseteq V \cup W$ and measurable subset $\xi_S \subseteq \CX_S$.
+We plan to add more discussion on this to a future version of these lecture notes.}
+\begin{Prp}\label{prp:scm_confounded_separation}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$.
+If $b \notin \Anc^{G(M)}(a)$ and $a$ and $b$ do not have a common cause in $V \cup W$ according to $M$, then
+$a$ and $b$ do not have confounding bias. That is,
+%$b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+%Rule 2 of the do-calculus gives 
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+for any reference measure $\mu_a$ on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+\end{Prp}
+\begin{proof}
+Denote $G = G(M)$.
+We will show that the assumptions imply $b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+
+Suppose on the contrary that there exists a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$ in $G_{\doit(I_a)}$ that is 
+$(J \cup \{a\})$-$\sigma$-open. 
+It cannot contain nodes from $J$, as such a node would either be an end node of the walk ($\sigma$-blocking it)
+or a non-collider node pointing only to nodes in another strongly connected component of $G_{\doit(I_a)}$
+($\sigma$-blocking the walk).
+Hence it must be of the form $I_a \tuh a \cdots b$. 
+Then there exists a walk $I_a \tuh a \cdots b$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open and contains at least one collider. 
+Indeed, suppose we have such a walk without a collider. Then it must be a directed walk
+$I_a \tuh a \tuh \cdots \tuh d \tuh \cdots \tuh b$ where $a \tuh \cdots \tuh d$ is the longest subwalk that spans
+a single strongly connected component of $G_{\doit(I_a)}$ (equivalently: of $G$). 
+If $d = a$, the walk would not be $(J \cup \{a\})$-$\sigma$-open.
+If $d = b$, we would get a contradiction with the assumption $b \notin \Anc^G(a)$. 
+Therefore, $d$ must point to a node in another strongly connected component.
+We can now replace the subwalk $a \tuh \cdots \tuh d$ by
+a directed walk through the same strongly connected component in the other direction, $a \hut \cdots \hut d$.
+In this way we obtain the walk
+$I_a \tuh a \hut \cdots \hut d \tuh \cdots b$ which is also $(J \cup \{a\})$-$\sigma$-open, and contains $a$ as a collider.
+
+Therefore, there must exist a walk $I_a \tuh a \cdots b$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open and contains a collider. 
+Each collider on the walk must be $a$. 
+There must exist such a walk of minimal length, which can contain only a single collider.
+That walk must be of the form %$I_a \to a \oto \cdots b$ or 
+$I_a \tuh a \hut \cdots b$,
+where the part between $a$ and $b$ contains no colliders and is not a directed walk from $b$ to $a$. 
+Hence it must be of the form
+$I_a \tuh a \hut \cdots \hut c \tuh \cdots \tuh b$, with $c \notin J$, and where $b$ does not appear in the subwalk between
+$a$ and $c$, and $a$ does not appear in the subwalk between $c$ and $b$.
+%Therefore, we can replace the subpath between $a$ and the right-most collider $c$ on the path by a directed path from that collider $c$ to $a$. 
+%Note that this directed path cannot contain $b$, and cannot pass through any of the nodes in $\C{O}\setminus\{a,b\}$. 
+%We thereby obtain a $\sigma$-open walk of the form $I_a \to a \oto b$ or $I_a \to a \ot \cdots \ot c \ot \cdots b$ or $I_a \to a \ot \cdots \ot c \oto \cdots b$. 
+%We thereby obtain a $(J \cup \{a\})$-$\sigma$-open walk of the form $I_a \to a \oto \cdots b$ or $I_a \to a \ot \cdots b$, 
+%where the part between $a$ and $b$ contains no colliders and is not a directed walk from $b$ to $a$. Hence it must be a bifurcation.
+Contradiction.
+Hence $b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+
+Invoking rule 2 of the do-calculus (Theorem~\ref{thm:as-do-calculus-scms-simplified}) then gives 
+%       \begin{align*} 
+%           b & \Perp^\sigma_{G_{\doit(I_a)}} I_a \given a \cup J, &          
+%                  \mu_a &\ll  P_M(X_a|\doit(X_{J})) \ll \mu_{a},
+%       \end{align*}
+%        then:
+%       \[ P_M(X_b|X_a,\doit(X_{J}))  = P_M(X_b|\doit(X_a),\doit(X_{J})) \qquad \mu_{a}\text{-a.s.}.\]
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}.$$
+provided that $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+%  \Joris{Idea: could we shorten the proof by looking at the marginalized graph instead?}
+\end{proof}
+This leads to the following criterion to detect the presence of a common cause:
+\begin{Cor}\label{cor:scm_identify_confounder}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a, b \in V$ with $a \ne b$.
+Let $\mu_a$ be a reference measure on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+If $b$ is not a cause of $a$ according to $M$, and the following does \emph{not} hold:
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.},$$
+then $a$ and $b$ have a common cause in $V \cup W$ according to $M$.
+
+Furthermore, if for some $c \in J$, 
+there exist values $x_{J\sm\{c\}} \in \CX_{J\sm\{c\}}$, $x_c,x_c' \in \CX_c$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_a \given \doit(X_c=x_c),\doit(X_{J\setminus \{c\}}=x_{J\setminus \{c\}})) \\
+        {} \ne {} & P_{M}(X_a \given \doit(X_c=x_c'),\doit(X_{J\setminus\{c\}}=x_{J\setminus\{c\}})),
+      \end{split}\end{equation*}
+and there exist values $x_{J\sm\{c\}} \in \CX_{J\sm\{c\}}$, $x_c,x_c' \in \CX_c$ such that
+      \begin{equation*}\begin{split}
+        & P_{M}(X_b \given \doit(X_c=x_c),\doit(X_{J\setminus \{c\}}=x_{J\setminus \{c\}})) \\
+        {} \ne {} & P_{M}(X_b \given \doit(X_c=x_c'),\doit(X_{J\setminus\{c\}}=x_{J\setminus\{c\}})),
+      \end{split}\end{equation*}
+then $c$ is a common cause of $a$ and $b$ according to $M$.
+%\footnote{The inequality of the two Markov kernels means that the one on the left is not a version of the one on the right.}
+%Equivalently, and more explicitly:
+%if for every version of the regular conditional distribution $P_{M}(X_b \given X_a, \doit(X_J=x_J))$
+%there exist values $x_a \in \CX_a, x_J \in \CX_J$ such that 
+%$$P_{M}(X_b \given \doit(X_a=x_a), \doit(X_J=x_J)) \ne P_{M}(X_b \given X_a=x_a, \doit(X_J=x_J)).$$
+%\Joris{Patrick says: better to interpret it as the lhs not being a version of the rhs (I believe that is equivalent to what I wrote now---the version in the AOS paper, where we first choose a $x_J$, seems a sufficient condition for this version).}
+\end{Cor}
+\begin{proof}
+The first part is the contra-positive of Proposition~\ref{prp:scm_confounded_separation}.
+The second part applies Corollary~\ref{cor:scm_identify_causal_relation} to obtain sufficient conditions for the existence of $c \in J$ that causes both $a$ and $b$ according to $M$.
+\end{proof}  
+This condition is sufficient, but not necessary.
+To apply it, we need to know already that $b$ does not cause $a$ according to $M$. By
+swapping the roles of $a$ and $b$, we can also use this if we know that $a$ does not cause $b$.\footnote{How to detect common causes if $a$ and $b$ are part of a causal cycle is an open research problem.}
+Furthermore, note that we have implicitly assumed here the absence of selection bias.
+
+\begin{comment}
+Analogously to how we applied the result for detecting a causal relation to the intervened
+SCM $M^{[b]}$ in order to arrive at a criterion to detect a direct causal relation,
+we can apply Corollary~\ref{cor:scm_identify_confounder} to the intervened SCM $M^{[\{a,b\}]}$
+to arrive at a condition to identify the presence of a common direct cause.
+\Joris{Is this useful? Perhaps we should extend it to also be able to detect common direct causes in $J$!}
+\begin{Cor}\label{cor:scm_identify_latent_confounder}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$.
+  Let $\mu_a$ be a reference measure on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_{V\setminus\{a,b\}}),\doit(X_J)) \ll \mu_a$.
+If $b$ is not a direct cause of $a$ w.r.t\ $J \cup V \cup W$ according to $M$, and
+  the following does \emph{not} hold:
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_{V\setminus\{a,b\}}), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_{V\setminus\{a,b\}}), \doit(X_J)) \qquad \mu_a\text{-a.s.},$$
+then $a$ and $b$ have a common direct cause $c \in W$ w.r.t.\ $J \cup V \cup W$ according to $M$.
+\end{Cor}
+\begin{proof}
+If $b$ is not a direct cause of $a$ w.r.t.\ $J \cup V \cup W$ according to $M$, then $b$ is not cause of $a$ according to $M^{[\{a,b\}]}$.
+With the assumed inequality of the Markov kernels,
+Corollary~\ref{cor:scm_identify_confounder} implies that
+$a$ and $b$ have a common cause in $W$ according to $M^{[\{a,b\}]}$.
+Hence there is a bifurcation between $a$ and $b$ with source in $W$ in $G(M^{[\{a,b\}]})$,
+which means that there is a node $c \in W$ such that $a \hut c \tuh b \in G$.
+\end{proof}
+\end{comment}
+
+\begin{comment}
+In the potential outcome literature, one encounters other criteria for unconfoundedness that are formulated in terms 
+of counterfactuals.
+\begin{Prp}\label{prp:potential_outcome_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$ and assume that $\CX_a = \{0,1\}$. 
+Consider a ``triplet'' extension $M^3$
+that connects three parallel worlds, similarly to how the twin network $M^\twin$ connects two
+parallel worlds.
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ have no common cause according to $M$, then
+  \begin{equation}\label{eq:potential_outcome_unconfoundedness}
+    X_a \Indep_{P_{M^3_{\doit(X_{a'}=0,X_{a''}=1)}}} \{X_{b'}, X_{b''}\}.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+  \Joris{I believe there is something wrong here: shouldn't we condition on $X_J$?}
+  Suppose there exists a $\sigma$-open walk in $G(M^3_{\doit(X_{a'}=0,X_{a''}=1)}) = G(M^3)_{\doit(a',a'')}$
+  between $a$ and $b'$ or between $a$ and $b''$. Then there must be such a walk of minimal length.
+  It cannot contain any collider. It cannot be a directed walk
+  because then it would have to pass through an exogenous random node in $W$, and those nodes have no incoming edges. 
+  Therefore it must be a bifurcation of the form $a \hut \cdots \hut c \tuh \cdots \tuh b'$.
+  But then $c \in W$, because only nodes in $W$ can be ancestors of endogenous nodes in different ``worlds''.
+  This implies the existence of a similar bifurcation of the form $a \hut \cdots \hut c \tuh \cdots \tuh b$ in $G(M)$. 
+  But then $a$ and $b$ are confounded according to $M$, contradicting the assumptions.
+  Hence 
+  $$a \Perp_{G(M^3)_{\doit(a',a'')}} \{b',b''\}.$$
+  By the global Markov property we conclude that
+  $$X_a \Indep_{P_{M^3_{\doit(X_{a'}=0,X_{a''}=1)}}} \{X_{b'}, X_{b''}\}.$$
+\end{proof}
+Equation \eref{eq:potential_outcome_unconfoundedness}, typically written in terms of potential outcomes as
+  $$X_a \Indep \{X_{b'}^{\doit(X_{a'}=0)}, X_{b''}^{\doit(X_{a''}=1)}\},$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+is sometimes taken as the definition of ``no confounding'' in the potential outcome framework when
+the task is to estimate the causal effect of $a$ on $b$. It appears to be a weaker assumption
+since it only requires a joint distribution on the various potential outcomes to be defined, and does not
+presuppose the existence of an underlying SCM that induces these distributions via the triple-twin operation.
+\end{comment}
+
+In the potential outcome literature, one encounters other criteria for unconfoundedness that are formulated in terms 
+of counterfactuals.
+\begin{Prp}\label{prp:potential_outcome_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$. Consider the twin SCM $M^\twin$. 
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ have no common cause according to $M$, then
+  \begin{equation}\label{eq:potential_outcome_unconfoundedness}
+    \forall x_{a'} \in \CX_a: \qquad X_a \Indep_{P_{M^\twin_{\doit(X_{a'}=x_{a'})}}} X_{b'} \given X_J.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+  Let $x_{a'} \in \CX_a$.
+  Suppose there exists a $\sigma$-open walk in the graph $G(M^\twin_{\doit(X_{a'}=x_{a'})}) = G(M^\twin)_{\doit(a')}$
+  between $a$ and $b' \cup J$. Then there must be such a walk of minimal length.
+  It cannot contain nodes from $J$, as such a node would either be an end node of the walk ($\sigma$-blocking it)
+  or a non-collider node pointing only to nodes in another strongly connected component 
+  ($\sigma$-blocking the walk).
+  Hence it must be between $a$ and $b'$.
+  It cannot contain any collider. It cannot be a directed walk
+  because it has to pass through an exogenous random node in $W$, but those nodes have no incoming edges. 
+  Therefore it must be a walk of the form $a \hut \cdots \hut c \tuh \cdots \tuh b'$.
+  But then $c \in W$, because only nodes in $W$ can be ancestors of endogenous nodes in different ``worlds''.
+  Note that the subwalk $a \hut \cdots \hut c$ must consist of nodes in $V \cup \{c\}$ and cannot contain $b$, 
+  otherwise we have a contradiction with the assumption that $b$ does not cause $a$ according to $M$.
+  Also, the subwalk $c \tuh \cdots \tuh b'$ must consist of nodes in $V' \cup \{c\}$ and cannot contain $a'$,
+  as $a'$ has no incoming edges in $G(M^\twin)_{\doit(a')}$.
+  By ``removing the primes'' from this subwalk, we obtain
+  a walk of the form $a \hut \cdots \hut c \tuh \cdots \tuh b$ in $G(M)$, which is seen to be a bifurcation with source $c$. 
+  But then $a$ and $b$ would have a common cause according to $M$, contradicting the assumptions.
+  Hence 
+  $$a \Perp_{G(M^\twin)_{\doit(a')}} b' \given J.$$
+  By the global Markov property applied to $M^\twin_{\doit(X_{a'}=x_{a'})}$ we conclude that
+  $$X_a \Indep_{P_{M^\twin_{\doit(X_{a'}=x_{a'})}}} X_{b'} \given X_J.$$
+\end{proof}
+Equation \eref{eq:potential_outcome_unconfoundedness}, typically written in terms of potential outcomes as
+  $$\forall x_J = x_{J'} \in \CX_J, \forall x_{a'} \in \CX_a : \qquad X_a^{\doit(x_J)} \Indep X_{b'}^{\doit(x_{J'},x_{a'})},$$
+and commonly encountered for the special case $J = \emptyset$,
+  $$\forall x_{a'} \in \CX_a : \qquad X_a \Indep X_{b'}^{\doit(x_{a'})},$$
+usually written as\footnote{In the most common notation, for binary treatment $T := X_a \in \{0,1\}$ and corresponding potential outcome $Y(t) := X_{b'}^{\doit(X_a'=x_a')}$, this reads as:
+  $$\forall t \in \{0,1\} : \qquad T \Indep Y(t).$$}
+  $$\forall x_{a'} \in \CX_a : \qquad X_a \Indep X_{b}(x_{a'}),$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+is referred to as ``exchangeability'' in the potential outcome framework, and 
+expresses the assumption of ``no confounding'' when the task is to estimate the causal effect of $a$ on $b$.
+\Joris{Note that when allowing for selection bias, ``unconfoundedness'' should be interpreted as no latent common
+cause or no bias due to latent pre-interventional selection bias.}
+\JorisTODO{Exchangeability
+might appear at first sight to be a weaker assumption than $a,b$ having no common causes according to some simple SCM,
+since it only requires a joint distribution on the various potential outcomes to be defined, and does not
+presuppose the existence of an underlying SCM that induces these distributions via the twin operation. 
+However, perhaps the two notions can still be regarded as equivalent provided that $|\CX_a|$ is finite or countably infinite, 
+as one can just construct a corresponding simple SCM (with exogenous random variable $X_a$, one other independent exogenous
+random variable, and endogenous variable $X_b$ such that $P_M(X_b \given \doit(X_a=x_a)) \sim X_{b'}^{\doit(X_{a'}=x_a)}$.
+Here we need that $P(X_{b'}^{\doit(X_{a'}=x_a)})$ is a Markov kernel $\CX_a \dshto \CX_b$, in particular, that this is
+measurably indexed by $x_a$.
+Another option is to consider a simple SCM with exogenous random variable $X_a$, exogenous input variable $X_{a'}$, and
+endogenous variable $X_{b'}$.
+See also \cite{RobinsRichardson2010}.}
+  
+%\Joris{Another convention could be: all output nodes without incoming edges are assumed to be exogenous random nodes.
+%One can assume this WLOG. It seems to make sense for a confounder. I.e., an endogenous variable without parents
+%should not be considered a confounder.}
+
+\subsection{Confounding}
+
+\begin{Def}\label{def:confounded}
+  Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM with graph $G(M) = \lt J, V \cup W, E \rt$.
+  Let $a,b \in V$ be distinct endogenous variables.
+  If there exists a $w \in W$ such that $a \hut w \tuh b$ in $G(M)$ then we say that \emph{$a$ and $b$ are confounded according to $M$}.
+% Neither are endogenous nodes in $V$ without ancestors in $W$.
+\end{Def}
+\begin{Rem}\label{rem:meaning_of_bidirected_edge2}
+  This holds if and only if $a \huh b$ is present in $G^{\sm W}$. % = G^{\sm ((V \cup W) \sm \{a,b\})}$.
+\end{Rem}
+
+Confounding may stem from latent common causes, but also from latent selection.
+The latter means that only a specific subset of the samples (statistical units, individuals, \dots) end up in the data set because of some filtering process. 
+\Joris{TODO: give examples}
+
+For the simpler representation, we can intervene on all variables in $V\sm\{a,b\}$ and then only 
+a few possible edges remain: $a \tuh b$, $b \tuh a$, $a \huh b$. If $a \huh b$ isn't there, we
+get the separation assumption and can draw the conclusion of no ``direct'' confounding bias
+(if we intervene to fix all other variables).
+
+\begin{Prp}\label{prp:scm_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$.
+If $b \notin \Anc^{G(M)}(a)$ and $a$ and $b$ are not confounded according to $M$, then
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_{V\setminus\{a,b\}}), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_{V\setminus\{a,b\}}), \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+for any reference measure $\mu_a$ on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+\end{Prp}
+The contra-positive can be used as a sufficient condition for detecting that two nodes are confounded according to $M$.
+This condition is sufficient, but not necessary.
+To apply it, we need to know already that $b$ does not cause $a$ according to $M$. 
+By swapping the roles of $a$ and $b$, we can also use this if we know that $a$ does not cause $b$.\footnote{How to detect common causes if $a$ and $b$ are part of a causal cycle is an open research problem.}
+
+In the potential outcome literature, one encounters other criteria for unconfoundedness that are formulated in terms of counterfactuals.
+\begin{Prp}\label{prp:potential_outcome_unconfoundedness}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$. Consider the twin SCM $M^\twin$. 
+If $b$ does not cause $a$ according to $M$, and $a$ and $b$ are not confounded according to $M$, then
+  \begin{equation}\label{eq:potential_outcome_unconfoundedness}
+    \forall x_{a'} \in \CX_a: \qquad X_a \Indep_{P_{M^\twin_{\doit(X_{a'}=x_{a'})}}} X_{b'} \given X_J.
+  \end{equation}
+\end{Prp}
+\begin{proof}
+  Let $x_{a'} \in \CX_a$.
+  Suppose there exists a $\sigma$-open walk in the graph $G(M^\twin_{\doit(X_{a'}=x_{a'})}) = G(M^\twin)_{\doit(a')}$
+  between $a$ and $b' \cup J$. Then there must be such a walk of minimal length.
+  It cannot contain nodes from $J$, as such a node would either be an end node of the walk ($\sigma$-blocking it)
+  or a non-collider node pointing only to nodes in another strongly connected component 
+  ($\sigma$-blocking the walk).
+  Hence it must be between $a$ and $b'$.
+  It cannot contain any collider. It cannot be a directed walk
+  because it has to pass through an exogenous random node in $W$, but those nodes have no incoming edges. 
+  Therefore it must be a walk of the form $a \hut \cdots \hut c \tuh \cdots \tuh b'$.
+  But then $c \in W$, because only nodes in $W$ can be ancestors of endogenous nodes in different ``worlds''.
+  Note that the subwalk $a \hut \cdots \hut c$ must consist of nodes in $V \cup \{c\}$ and cannot contain $b$, 
+  otherwise we have a contradiction with the assumption that $b$ does not cause $a$ according to $M$.
+  Also, the subwalk $c \tuh \cdots \tuh b'$ must consist of nodes in $V' \cup \{c\}$ and cannot contain $a'$,
+  as $a'$ has no incoming edges in $G(M^\twin)_{\doit(a')}$.
+  By ``removing the primes'' from this subwalk, we obtain
+  a walk of the form $a \hut \cdots \hut c \tuh \cdots \tuh b$ in $G(M)$, which is seen to be a bifurcation with source $c$. 
+  But then $a$ and $b$ would have a common cause according to $M$, contradicting the assumptions.
+  Hence 
+  $$a \Perp_{G(M^\twin)_{\doit(a')}} b' \given J.$$
+  By the global Markov property applied to $M^\twin_{\doit(X_{a'}=x_{a'})}$ we conclude that
+  $$X_a \Indep_{P_{M^\twin_{\doit(X_{a'}=x_{a'})}}} X_{b'} \given X_J.$$
+\end{proof}
+Equation \eref{eq:potential_outcome_unconfoundedness}, typically written in terms of potential outcomes as
+  $$\forall x_J = x_{J'} \in \CX_J, \forall x_{a'} \in \CX_a : \qquad X_a^{\doit(x_J)} \Indep X_{b'}^{\doit(x_{J'},x_{a'})},$$
+and commonly encountered for the special case $J = \emptyset$,
+  $$\forall x_{a'} \in \CX_a : \qquad X_a \Indep X_{b'}^{\doit(x_{a'})},$$
+usually written as\footnote{In the most common notation, for binary treatment $T := X_a \in \{0,1\}$ and corresponding potential outcome $Y(t) := X_{b'}^{\doit(X_a'=x_a')}$, this reads as:
+  $$\forall t \in \{0,1\} : \qquad T \Indep Y(t).$$}
+  $$\forall x_{a'} \in \CX_a : \qquad X_a \Indep X_{b}(x_{a'}),$$
+%or even shorter as
+%  $$X_a \Indep X_b^{0}, X_b^{1}$$
+is referred to as ``exchangeability'' in the potential outcome framework, and 
+expresses the assumption of ``no confounding'' when the task is to estimate the causal effect of $a$ on $b$.
+\Joris{Note that when allowing for selection bias, ``unconfoundedness'' should be interpreted as no latent common
+cause or no bias due to latent pre-interventional selection bias.}
+\JorisTODO{Exchangeability
+might appear at first sight to be a weaker assumption than $a,b$ having no common causes according to some simple SCM,
+since it only requires a joint distribution on the various potential outcomes to be defined, and does not
+presuppose the existence of an underlying SCM that induces these distributions via the twin operation. 
+However, perhaps the two notions can still be regarded as equivalent provided that $|\CX_a|$ is finite or countably infinite, 
+as one can just construct a corresponding simple SCM (with exogenous random variable $X_a$, one other independent exogenous
+random variable, and endogenous variable $X_b$ such that $P_M(X_b \given \doit(X_a=x_a)) \sim X_{b'}^{\doit(X_{a'}=x_a)}$.
+Here we need that $P(X_{b'}^{\doit(X_{a'}=x_a)})$ is a Markov kernel $\CX_a \dshto \CX_b$, in particular, that this is
+measurably indexed by $x_a$.
+Another option is to consider a simple SCM with exogenous random variable $X_a$, exogenous input variable $X_{a'}$, and
+endogenous variable $X_{b'}$.
+See also \cite{RobinsRichardson2010}.}
+  
+%\Joris{Another convention could be: all output nodes without incoming edges are assumed to be exogenous random nodes.
+%One can assume this WLOG. It seems to make sense for a confounder. I.e., an endogenous variable without parents
+%should not be considered a confounder.}
+
+\subsection{Abstraction through Marginalization}
+
+\Joris{Note also that the following notation is almost never used in this section! It seems more in line with the SCM notation to write it as $G_O$ instead.
+However, it is used quite a bit in the FCI chapter, and there it appears useful to remind us of the presence of the input nodes.
+Note that the observable graph, currently written as $G_{O|J}$, \emph{also} marginalizes out nodes in $W$! This cannot be done in the SCM currently,
+so we could at best use $G(M_{O\cap V})^{\setminus (W\sm O)}$ instead. Note that $G(M_{O\cap V})^{\setminus (W\sm O)} \subseteq (G(M))^{\setminus((V \cup W) \setminus O)} =: G_{O|J}$.
+I should investigate whether we only need the notation for $O \subseteq V$ (that is, all $W$ are by default considered unobservable).
+By the way, a graph is not observable, so this is a bad name! Perhaps ``marginal graph'' instead?
+Suppose we also allow for conditioning. Then ``marginal graph'' is a bad name. We could call it the ``effective graph'' perhaps in that case?}
+
+We often deal with the situation that only part of the variables are observed or observable, and others are latent.
+\begin{Not}
+For a simple SCM $M$, let $O \subseteq V \cup W$ be the set of observable variables,
+where we will always assume $J$ to be observable as well.
+We refer to the marginalized graph
+$$G_{O|J}(M) := (G(M))^{\setminus((V \cup W) \setminus O)}$$
+as the \emph{observable} graph of $M$. It has input nodes $J$ and output nodes $O$.
+The corresponding observable Markov kernel is denoted 
+  $$P_{M}(X_O \mid \doit(X_J)),$$
+and the observable intervened Markov kernel resulting from a hard intervention targeting $T \subseteq O$ is 
+  $$P_{M}(X_{O\setminus T} \mid \doit(X_{J\cup T})) := P_{M_{\doit(T)}}(X_{O\sm T} \mid \doit(X_{J\cup T})).$$
+\end{Not}
+
+Remember that Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity} stated that graphical marginalization
+preserves ancestral relations and bifurcations, while 
+Lemma~\ref{lem:stability_separation_marginalization} stated that graphical marginalization preserves
+d-separation statements and $\sigma$-separation statements concerning observable variables.
+These properties have powerful consequences:
+\begin{Rem}
+For many causal reasoning purposes, it suffices to know the observable graph $G_{O|J}(M)$ rather than $G(M)$.
+In particular, the observable graph contains all information concerning:
+  \begin{enumerate}
+    \item which pairs of observable variables are causally related according to $M$ (c.f.\ Definition~\ref{def:cause_of});
+    \item which pairs of observable variables have a common cause according to $M$ (c.f.\ Definition~\ref{def:common_cause_of});
+    \item the d-separation and $\sigma$-separation statements between observable variables according to $M$ (c.f.\ Definition~\ref{def:sigma_separation}).
+  \end{enumerate}
+\end{Rem}
+In addition, the probabilistic marginalization preserves the notion of conditional independence. That is,
+for $A, B, C \subseteq J \cup O$, we have
+  $$X_A \Indep_{P_{M}(X_V,X_W \mid X_J)} X_B \mid X_C \iff X_A \Indep_{P_{M}(X_O \mid X_J)} X_B \mid X_C.$$
+This means that for applying the global Markov property on observable variables (and hence the do-calculus 
+and adjustment criteria), it suffices to know the observable graph $G_{O|J}(M)$ and the observable (intervened) 
+Markov kernels rather than the full graph $G(M)$ and the full Markov kernels associated to $M$.
+\textbf{In other words: these properties taken together are very powerful, as they allow us to abstract away irrelevant details when performing causal reasoning.}
+
+The following exercise illustrates this.
+\begin{Exc}
+  Reichenbach's \emph{Principle of Common Cause} states that if two events are dependent,
+  then one must cause the other or the events must have a common cause (or any combination of these three possibilities).
+
+  We can make this precise for simple SCMs in the following way. Assume that $M$
+  is a simple SCM with two observed endogenous variables $X,Y$ (and possibly other
+  latent variables as well, but no exogenous input nodes). Prove that 
+  $X \nIndep_{P_{M}(X,Y)} Y$
+  implies that $X \tuh Y$,
+  $X \hut Y$ or $X \huh Y$ in $G_{\{X,Y\}}(M)$.
+
+  Thus, either $X$ causes $Y$ according to $M$, 
+  or $Y$ causes $X$ according to $M$,
+  or $X$ and $Y$ have a common cause according to $M$.
+\end{Exc}
+
+\subsection{Abstraction through conditioning}
+
+\Joris{This is experimental still! One thing I run into now is that even though we can easily define the term ``confounded w.r.t.\ $V$'', it is not so easy as with the common cause to define ``confounded w.r.t.\ $O$'' for some observed subset $O \subseteq V$. The problem is that the SCM doesn't represent the filtering mechanisms. So we should say ``confounded w.r.t.\ $O$ according to $M$ and filters $\{S_i \in \xi_i\}$, with $S_i \in V$, $\xi_i \subseteq \CX_i$. Here we could even distinguish singleton $\xi_i$ from non-singleton $\xi_i$. This becomes a bit awkward.
+
+We could formally define a ``Selection SCM'' as 
+a tuple consisting of an SCM and a finite list of conditioning events of the form $f_s(X_V,X_W,X_J) = 1$ with $f_s$ a binary function. 
+One could think of introducing dummy endogenous variables with structural equations $S_s = f_s(X)$ but they are non-causal.
+
+The conjecture is that any selection SCM with latent non-causal exogenous random variables can be reduced to a non-selection SCM with latent non-causal exogenous random variables.
+This would explain that the class of SCMs with latent non-causal exogenous random variables is a convenient class to work with, as the assumed properties can be made WLOG
+(actually it increases the generality compared to the class of SCMs with causal exogenous random variables).
+}
+
+A common convention in the SCM literature is that exogenous random variables are ``non-causal'' in the sense that they are not allowed to be intervention targets.
+This formal restriction (interventions can only target endogenous variables) can be exploited in modeling situations by allowing the modeler to be less specific about certain modeling details.
+In other words: if one only cares about interventional equivalence w.r.t.\ the endogenous variables, there is still a lot of freedom in how one chooses the exogenous random variables and their distribution.
+This freedom is increased further if exogenous random variables are considered latent (another often used convention in the SCM literature).
+
+If we do not give a causal interpretation to the exogenous random variables, it turns out that in addition to accounting for ``bias'' or ``spurious dependence'' due to a latent common cause, they can account for ``selection bias'' due to a selection step or filtering mechanism in the past. We will flesh out this interpretation in this subsection.
+
+  \Joris{In the definition of confounding: How to deal with constant exogenous random nodes, or constant endogenous nodes without parents? We might want to not consider those as confounders. Also, the Markov property could be extended: by substituting the constant values in their children nodes (perhaps recursively) we can get rid of these nodes, apply the Markov property to the result, and we can freely add the removed nodes in any of the spots of any separation statement.
+  Aha! If we consider exogenous random variables as non-causal, we can change the definition of $G(M)$ slightly by demanding that the parent-relationship of $w$ for $a,b$ holds $\Prb(X_w)$-a.s., instead of surely. Then we automatically obtain that the edges $a \hut w \tuh b$ disappear from $G(M)$ if $W$ is degenerate, because that just means $\Prb(X_w)$-a.s.\ constant, and that means it won't be a parent. Aha, this also all suggests that for a consistent treatment, we will have to change all ``for all $x_W$'' quantifiers into ``for almost all $x_W$'' quantifiers. Dashing a node then implies switching from forall to for-almost-all.}
+
+\Joris{We could try showing that confounding may stem from any open path between $a$ and $b$ that's not a directed path? 
+This however sounds as if we need to discuss the explicit representation of filtering steps.
+Hm, it is in a way what the next proposition is showing, except that we need to add the explicit conditioning. 
+}
+\begin{Prp}\label{prp:scm_confounded_separation}
+Let $M = \lt \Sin, \Send, \Srnd, \CX, P, f \rt$ be a simple SCM.
+Let $a \ne b \in V$.
+If $b \notin \Anc^{G(M)}(a)$ and $a$ and $b$ are not confounded according to $M$, then
+%$a$ and $b$ do not have confounding bias. That is,
+%$b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+%Rule 2 of the do-calculus gives 
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}$$
+for any reference measure $\mu_a$ on $\CX_a$ with $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+\end{Prp}
+\begin{proof}
+Denote $G = G(M)$.
+We will show that the assumptions imply $b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+
+Suppose on the contrary that there exists a walk in $G_{\doit(I_a)}$ between $b$ and $I_a \cup J$ in $G_{\doit(I_a)}$ that is 
+$(J \cup \{a\})$-$\sigma$-open. 
+It cannot contain nodes from $J$, as such a node would either be an end node of the walk ($\sigma$-blocking it)
+or a non-collider node pointing only to nodes in another strongly connected component of $G_{\doit(I_a)}$
+($\sigma$-blocking the walk).
+Hence it must be of the form $I_a \tuh a \cdots b$. 
+Then there exists a walk $I_a \tuh a \cdots b$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open and contains at least one collider. 
+Indeed, suppose we have such a walk without a collider. Then it must be a directed walk
+$I_a \tuh a \tuh \cdots \tuh d \tuh \cdots \tuh b$ where $a \tuh \cdots \tuh d$ is the longest subwalk that spans
+a single strongly connected component of $G_{\doit(I_a)}$ (equivalently: of $G$). 
+If $d = a$, the walk would not be $(J \cup \{a\})$-$\sigma$-open.
+If $d = b$, we would get a contradiction with the assumption $b \notin \Anc^G(a)$. 
+Therefore, $d$ must point to a node in another strongly connected component.
+We can now replace the subwalk $a \tuh \cdots \tuh d$ by
+a directed walk through the same strongly connected component in the other direction, $a \hut \cdots \hut d$.
+In this way we obtain the walk
+$I_a \tuh a \hut \cdots \hut d \tuh \cdots b$ which is also $(J \cup \{a\})$-$\sigma$-open, and contains $a$ as a collider.
+
+Therefore, there must exist a walk $I_a \tuh a \cdots b$ in $G_{\doit(I_a)}$ that is $(J \cup \{a\})$-$\sigma$-open and contains a collider. 
+Each collider on the walk must be $a$. 
+There must exist such a walk of minimal length, which can contain only a single collider.
+That walk must be of the form %$I_a \to a \oto \cdots b$ or 
+$I_a \tuh a \hut \cdots b$,
+where the part between $a$ and $b$ contains no colliders and is not a directed walk from $b$ to $a$. 
+Hence it must be of the form
+$I_a \tuh a \hut \cdots \hut c \tuh \cdots \tuh b$, with $c \notin J$, and where $b$ does not appear in the subwalk between
+$a$ and $c$, and $a$ does not appear in the subwalk between $c$ and $b$.
+%Therefore, we can replace the subpath between $a$ and the right-most collider $c$ on the path by a directed path from that collider $c$ to $a$. 
+%Note that this directed path cannot contain $b$, and cannot pass through any of the nodes in $\C{O}\setminus\{a,b\}$. 
+%We thereby obtain a $\sigma$-open walk of the form $I_a \to a \oto b$ or $I_a \to a \ot \cdots \ot c \ot \cdots b$ or $I_a \to a \ot \cdots \ot c \oto \cdots b$. 
+%We thereby obtain a $(J \cup \{a\})$-$\sigma$-open walk of the form $I_a \to a \oto \cdots b$ or $I_a \to a \ot \cdots b$, 
+%where the part between $a$ and $b$ contains no colliders and is not a directed walk from $b$ to $a$. Hence it must be a bifurcation.
+Contradiction.
+Hence $b \Perp^\sigma_{G_{\doit(I_a)}} I_a \given \{a\} \cup J$.
+
+Invoking rule 2 of the do-calculus (Theorem~\ref{thm:as-do-calculus-scms-simplified}) then gives 
+%       \begin{align*} 
+%           b & \Perp^\sigma_{G_{\doit(I_a)}} I_a \given a \cup J, &          
+%                  \mu_a &\ll  P_M(X_a|\doit(X_{J})) \ll \mu_{a},
+%       \end{align*}
+%        then:
+%       \[ P_M(X_b|X_a,\doit(X_{J}))  = P_M(X_b|\doit(X_a),\doit(X_{J})) \qquad \mu_{a}\text{-a.s.}.\]
+  $$P_{M}(X_b \given \doit(X_a), \doit(X_J)) = P_{M}(X_b \given X_a, \doit(X_J)) \qquad \mu_a\text{-a.s.}.$$
+provided that $\mu_a \ll P_M(X_a \given \doit(X_J)) \ll \mu_a$.
+%  \Joris{Idea: could we shorten the proof by looking at the marginalized graph instead?}
+\end{proof}

@@ -1,0 +1,446 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{tikz}
+\usepackage{cancel}
+\input{shorts.tex}
+\input{shortsjoris.tex}
+
+\title{Proof Check: Chapter 5 --- Do-Calculus, Adjustment, and Identification}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document checks every proof in the Chapter~5 source files:
+\texttt{do-calculus.tex},
+\texttt{proof-do-calculus.tex},
+\texttt{adjustment-criteria.tex}, and
+\texttt{id-algorithm.tex}.
+
+Proofs inside \verb|\begin{comment}...\end{comment}| blocks are skipped
+(adjustment-criteria.tex 226--243; id-algorithm.tex 526--545, 648--687).
+Also skipped: \verb|\Joris{...}|, \verb|\JorisTODO{...}|,
+\verb|\JorisThoughts{...}| blocks.
+\verb|\Claude{...}| blocks are \textbf{included}.
+External references (\verb|\cite{...}|) are not downloaded;
+steps relying on them are marked \textbf{TODO}.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{do-calculus.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% ========================================================================
+\section{Proof 1: Cor.\ \texttt{cor:as-do-calculus-2} (lines 176--197)}
+%% ========================================================================
+
+\textbf{Statement.} Almost-sure do-calculus (simplified): four rules
+(insertion/deletion of observation, action/observation exchange,
+insertion/deletion of action, deletion of input).
+
+\textbf{Analysis.}
+Rules 1--3 follow directly from Thm.\ \texttt{thm:as-do-calculus-1}
+with the appropriate choices of intervention decompositions.  $\checkmark$
+
+Rule~4 (deletion of input): defines
+$P(X_A|X_C,\doit(X_D,\cancel{X_{J\setminus D}}))
+ := Q(X_A|X_C,X_D)$
+from Prp.\ \texttt{prp:do-calculus} point~3 with $B=\emptyset$.
+The graphical condition $A \perp_G J\mid C\cup D$ is used to ensure
+the kernel is independent of $X_{J\setminus D}$.
+The a.s.\ equality follows from essential uniqueness + absolute continuity.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{proof-do-calculus.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% ========================================================================
+\section{Proof 2: Lem.\ \texttt{lem:int-null-set} (lines 13--28)}
+%% ========================================================================
+
+\textbf{Statement.} Equivalence of three null-set conditions across different
+representations of intervention decompositions $B=B_1\sqcup B_2$.
+
+\textbf{Analysis.}
+The bijection between values $x_{I_B}\in\Xcal_{I_B}$ and pairs $(B_2,x_{B_2})$
+(via $I_v=\star$ meaning ``no intervention'') correctly decomposes the
+product space.  The chain of equalities evaluating measures on slices is correct,
+using the deterministic nature of $X_{B_2}$ under $\doit(X_{B_2})$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 3: Prp.\ \texttt{prp:do-calculus} (lines 79--217)}
+%% ========================================================================
+
+\textbf{Statement.} Do-calculus existence and uniqueness: under
+$i$-$d$-separation conditions, there exist ``canonical'' conditional Markov
+kernels $Q$ that are simultaneously versions of various conditional kernels
+across all intervention decompositions.  Three parts (rules 1--3).
+
+\textbf{Analysis.}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Part 1 (lines 82--109):} Applies GMP to $M_{\doit(D)}$,
+    obtains factorization, marginalizes over $X_{B_1}$ for each $B_2\subseteq B$.
+    Uniqueness via essential uniqueness of disintegration.  $\checkmark$
+  \item \textbf{Part 2 (lines 112--166):} GMP gives $X_A\perp X_{I_B}|X_B,X_C,X_D$.
+    Specializing $X_{I_{B_1}}=\star$, $X_{I_{B_2}}=x_{B_2}$ and marginalizing
+    the deterministic $X_{B_2}$ yields the factorization for each decomposition.
+    Uniqueness via Lem.\ \texttt{lem:int-null-set}.  $\checkmark$
+  \item \textbf{Part 3 (lines 169--217):} Similar to Part~2 but conditioning
+    on $C\cup D$ instead of $B\cup C\cup D$.  $Q$ depends on $(x_C,x_D)$
+    only.  Uniqueness argument traces through all $x_{I_B}$ values.  $\checkmark$
+\end{enumerate}
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 4: Thm.\ \texttt{thm:as-do-calculus-1} (lines 221--277)}
+%% ========================================================================
+
+\textbf{Statement.} Almost-sure do-calculus (detailed): for finitely many
+versions simultaneously, there exists a common null set $N$ outside which all
+agree with~$Q$ from Prp.\ \texttt{prp:do-calculus}.
+
+\textbf{Analysis.}
+For each rule, the proof takes the finite collection of versions, shows each
+deviates from~$Q$ on a null set (by essential uniqueness), lifts these to
+$P(X_B,X_C|\doit(\cdots))$-null sets (via cylinder/product structure), and
+converts to $\mu$-null sets via absolute continuity.
+The finite union is still null.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{adjustment-criteria.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% ========================================================================
+\section{Proof 5: Thm.\ \texttt{thm-gen-adjustment} (lines 70--141)}
+%% ========================================================================
+
+\textbf{Statement.} General adjustment formula: under three $i$-$d$-separation
+conditions and absolute continuity assumptions, the adjustment formula holds:
+$P(X_A|X_C,\doit(X_B,X_D)) = P(X_A|X_B,X_C,X_F,\doit(X_D))\circ P(X_F|X_C,\doit(X_D))$
+$\mu_{B\cup C}$-a.s.
+
+\textbf{Analysis.}
+The proof establishes four intermediate a.s.\ equalities (eqs.\ 6--9) using
+do-calculus rules~1--3, then chains them together via the law of total probability
+and disintegration.
+\begin{itemize}
+  \item Eq.\ (6): action/observation exchange (rule~2).  $\checkmark$
+  \item Eq.\ (7): insertion/deletion of action (rule~3).  $\checkmark$
+  \item Eq.\ (8): insertion/deletion of observation (rule~1).  $\checkmark$
+  \item Eq.\ (9): insertion/deletion of observation (rule~1).  $\checkmark$
+  \item Chain (lines 117--135): correctly propagates a.s.\ qualifications
+    through compositions using absolute continuity.  $\checkmark$
+\end{itemize}
+
+\textbf{Minor note:} The proof applies the do-calculus to the augmented CBN
+(with $V\cup U$ as visible variables, graph $G^+$) while citing
+Cor.\ \texttt{cor:as-do-calculus-2} which is stated for~$V$.  This is valid
+but the reinterpretation is implicit.
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 6: Cor.\ \texttt{cor:backdoor-cond-int} (lines 160--162)}
+%% ========================================================================
+
+\textbf{Statement.} Conditional interventional backdoor adjustment.
+
+\textbf{Analysis.}
+Direct specialization of Thm.\ \texttt{thm-gen-adjustment} with
+$F_1=H=\emptyset$.  All conditions reduce correctly.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 7: Cor.\ \texttt{cor:backdoor-int} (lines 185--202)}
+%% ========================================================================
+
+\textbf{Statement.} Interventional backdoor covariate adjustment formula.
+
+\textbf{Analysis.}
+Uses Prp.\ \texttt{prp:do-calculus} rules~2 and~3 to establish:
+$P(X_F|\doit(X_B))=P(X_F)$ (surely) and
+$P(X_A|X_F,\doit(X_B))$ is a version of $P(X_A|X_F,X_B)$.
+The chain of kernel equalities (lines 193--197) correctly uses these plus
+the one-sided absolute continuity $P(X_F)\otimes P(X_B)\ll P(X_F,X_B)$.
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{File: \texttt{id-algorithm.tex}}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Comment blocks at lines 526--545 and 648--687 are skipped.
+This leaves 12 active proofs.
+
+%% ========================================================================
+\section{Proof 8: Trackable implies identifiable (lines 79--84)}
+%% ========================================================================
+
+\textbf{Statement.} (1) Trackable $\Rightarrow$ identifiable.
+(2) Trackable up to oracle choices $\Rightarrow$ trackable for discrete
+strictly positive CBNs.
+
+\textbf{Analysis.}
+(1) Deterministic sequence of operations $\Rightarrow$ same output for any two
+CBNs with same observational kernel.  $\checkmark$
+
+(2) Strict positivity makes conditionals unique (no null-set ambiguity),
+forcing the oracle's choice.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 9: Lem.\ \texttt{lem:C-intPaC} (lines 193--216)}
+%% ========================================================================
+
+\textbf{Statement.} Non-parent interventions are irrelevant:
+$P(X_C|\doit(X_{J\cup V\setminus C})) = P(X_C|\doit(X_{\Pa^G(C)\setminus C}))$.
+
+\textbf{Analysis.}
+Reduces to an $i$-$d$-separation statement in $G'=G_{\doit(I_W,P)}$ where
+$P=\Pa^G(C)\setminus C$.  Any walk from $c\in C$ to a target node is shown
+to be blocked: either by hitting $P$ (non-collider in conditioning set),
+by having a collider not in $\Anc^{G'}(P)=P$ (since $P$ are input nodes with
+no ancestors).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 10: Prp.\ \texttt{prp:ioLMP} (lines 259--263)}
+%% ========================================================================
+
+\textbf{Statement.} Interventional ordered local Markov property:
+$\{v\}\perp X_{\mathrm{Pred}(v)} | X_{\MBl(v)}$.
+
+\textbf{Analysis.}
+Delegates to Thm.\ \texttt{thm-gmp-mCBN} via
+Lem.\ \texttt{lem:id-d-sep-3} and Lem.\ \texttt{lem:int-dist-per-node}.
+The hypotheses of the lemmas are verified.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 11: Lem.\ \texttt{lem:id-d-sep-3} (lines 290--337)}
+%% ========================================================================
+
+\textbf{Statement.} Graph-theoretic lemma for the interventional ordered local
+Markov property: $\{v\}\perp V_< | \Pa^G(D_\le)\cup D_<$ in
+$G_{\doit(I_{V\setminus D_\le})}$.
+
+\textbf{Analysis.}
+Proof by contradiction.  Case analysis on the first node $\tilde w$ outside
+$D_\le$ on a supposed unblocked walk:
+\begin{itemize}
+  \item $\tilde w\in\Pa^G(D_\le)\setminus D_\le$: non-collider in
+    conditioning set, blocked.  $\checkmark$
+  \item $\tilde w\in V_>$: no colliders in $V_>$ can be ancestors of $F$,
+    blocked.  $\checkmark$
+  \item $\tilde w\in V_<\setminus D_\le$ via directed edge $v_k\to\tilde w$:
+    contradicts topological order.  $\checkmark$
+  \item $\tilde w\in V_<\setminus D_\le$ via bidirected edge: contradicts
+    $\Dist^{G_\le}(D_\le)\subseteq D$.  $\checkmark$
+\end{itemize}
+
+\textbf{Minor issues:}
+Lines 293, 315: $I_{V\setminus D}$ should be $I_{V\setminus D_\le}$
+(notational discrepancy; proof logic covers all cases).
+Line 334: ``cannot neither'' $\to$ ``cannot.''
+
+\textbf{Verdict: CORRECT (minor notational issues).}
+
+%% ========================================================================
+\section{Proof 12: Lem.\ \texttt{lem:int-dist-per-node} (lines 371--398)}
+%% ========================================================================
+
+\textbf{Statement.} Distributional version of the interventional ordered local
+Markov property: existence of a common kernel $Q(X_v|X_F)$.
+
+\textbf{Analysis.}
+Applies Lem.\ \texttt{lem:id-d-sep-3}, obtains factorization via GMP,
+then specializes intervention values ($X_{I_w}=\star$ or $x_w$) and
+marginalizes to show $Q$ is simultaneously a version of five different
+conditionals.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 13: Lem.\ \texttt{lem:int-anc} (lines 410--424)}
+%% ========================================================================
+
+\textbf{Statement.} For ancestral $A=\Anc^{[V]}(A)$:
+$Q^{[A]} = P(X_A|\doit(X_{J\cup V\setminus A})) = P(X_A|\doit(X_J))$.
+
+\textbf{Analysis.}
+Shows $i$-$d$-separation $A\perp I_{V\setminus A}|J$ in
+$G_{\doit(I_{V\setminus A})}$.  Key: $\Anc^G(A)\setminus A\subseteq J$
+(by ancestrality), so any parent outside~$A$ is in~$J$ and blocks the walk.
+Colliders cannot be ancestors of~$J$ (input nodes have no ancestors).
+$\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 14: Cor.\ \texttt{cor:id-alg-sound-oracle} (lines 522--546)}
+%% ========================================================================
+
+\textbf{Statement.} The ID-algorithm is sound up to oracle choices.
+
+\textbf{Analysis.}
+Each step of the algorithm (marginalization, conditioning, multiplication)
+is individually trackable up to oracle choices.  The composition of such
+operations remains trackable.  Termination is ensured by the strictly
+decreasing size of the sets $A_{k,\ell}$.  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 15: Thm.\ \texttt{thm:ID-as-soundness} (lines 563--565)}
+%% ========================================================================
+
+\textbf{Statement.} If the ID-algorithm does not FAIL, the output equals
+$P(X_B|\doit(X_{J\cup C}))$ up to a $\mu$-null set.
+
+\textbf{Analysis.}
+Forward reference to Thm.\ \texttt{thm:ID-as-soundness-prf} (line 1016),
+which contains the full proof.  $\checkmark$
+
+\textbf{Verdict: CORRECT (via forward reference).}
+
+%% ========================================================================
+\section{Proof 16: Thm.\ \texttt{thm:ID-as-soundness-cont} (lines 599--604)}
+%% ========================================================================
+
+\textbf{Statement.} Under Polish spaces, strict positivity, and continuity:
+the ID output is identifiable and trackable up to continuous choices.
+
+\textbf{Analysis.}
+Existence of continuous modification: the ID output is $\mu$-a.s.\ equal to
+$P(X_B|\doit(X_{J\cup C}))$ (assumed continuous), providing the modification.
+Uniqueness: by Lem.\ \texttt{lem:cont-cond-unique} (strictly positive marginals
++ Hausdorff topology).  $\checkmark$
+
+\textbf{Verdict: CORRECT.}
+
+%% ========================================================================
+\section{Proof 17: Thm.\ \texttt{thm:ID-as-soundness-prf} (lines 1030--1211)}
+%% ========================================================================
+
+\textbf{Statement.} Full proof of soundness up to null sets.
+
+\textbf{Analysis.}
+Three parts corresponding to ID-algorithm operations:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Part~(a) (lines 1035--1115):} Given $K[A]=Q[A]$ $\mu$-a.s.,
+    compute $K[D]$ for districts.  Uses the interventional ordered local Markov
+    property and an absolute-continuity chain to show deviation sets are null.
+    $\checkmark$
+  \item \textbf{Part~(b) (lines 1117--1189):} Reconstruct $K[A]$ from district
+    kernels.  Same essential-uniqueness + absolute-continuity pattern.  $\checkmark$
+  \item \textbf{Part~(c) (lines 1191--1210):} Ancestral marginalization.
+    Marginalizing $K[D]\otimes\mu$ and tensoring with $\mu_{D\setminus A}$ gives
+    $K[A]=Q[A]$ $\mu$-a.s.  $\checkmark$
+\end{enumerate}
+
+\textbf{Typographical errors:}
+\begin{itemize}
+  \item Line 1161: $x_{\MBl^G_<(v)}$ should be $x_{\MBl^{G'}_<(v)}$ (missing prime).
+  \item Line 1181: $Q(X_{v_K}|\cdots)$ should be $K(X_{v_{K-1}}|\cdots)$
+    (wrong kernel name and wrong subscript in the induction step).
+\end{itemize}
+
+\textbf{Verdict: CORRECT (modulo two typographical errors).}
+
+%% ========================================================================
+\section{Proof 18: Thm.\ \texttt{thm:ID-soundness-cont} (lines 1231--1259)}
+%% ========================================================================
+
+\textbf{Statement.} Soundness up to continuous choices of conditionals.
+
+\textbf{Analysis.}
+Uses Lem.\ \texttt{lem:cont-cond-unique} + strict positivity to show that
+continuous versions of conditionals are forced to agree surely (not just a.s.).
+The recursive application to subgraphs is sketched rather than detailed,
+but the mechanism is sound.  $\checkmark$
+
+\textbf{Typo (line 1241):} Missing closing parenthesis in $\doit(X_J)$.
+
+\textbf{Verdict: CORRECT (minor typo + sketched recursion).}
+
+%% ========================================================================
+\section{Proof 19: Lem.\ \texttt{lem:cbn-str-pos-density} (lines 1282--1288)}
+%% ========================================================================
+
+\textbf{Statement.} Strictly positive local densities yield a strictly positive
+joint density; strict positivity is preserved under marginalization.
+
+\textbf{Analysis.}
+The product of strictly positive densities is strictly positive.
+Integration preserves strict positivity (since Markov kernels are probability
+measures, hence non-trivial).  Standard by Fubini.  $\checkmark$
+
+\textbf{Typo in statement (line 1275):} $\Pa^{G^+}(v)$ should be $\Pa^{G^+}(u)$.
+
+\textbf{Verdict: CORRECT.}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Overall Summary for Chapter~5}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\begin{tabular}{r|l|l|l}
+\textbf{\#} & \textbf{File} & \textbf{Lines} & \textbf{Verdict} \\ \hline
+1  & do-calculus.tex       & 176--197   & CORRECT \\
+2  & proof-do-calculus.tex & 13--28     & CORRECT \\
+3  & proof-do-calculus.tex & 79--217    & CORRECT \\
+4  & proof-do-calculus.tex & 221--277   & CORRECT \\
+5  & adjustment-criteria   & 70--141    & CORRECT \\
+6  & adjustment-criteria   & 160--162   & CORRECT \\
+7  & adjustment-criteria   & 185--202   & CORRECT \\
+8  & id-algorithm.tex      & 79--84     & CORRECT \\
+9  & id-algorithm.tex      & 193--216   & CORRECT \\
+10 & id-algorithm.tex      & 259--263   & CORRECT \\
+11 & id-algorithm.tex      & 290--337   & CORRECT \\
+12 & id-algorithm.tex      & 371--398   & CORRECT \\
+13 & id-algorithm.tex      & 410--424   & CORRECT \\
+14 & id-algorithm.tex      & 522--546   & CORRECT \\
+15 & id-algorithm.tex      & 563--565   & CORRECT \\
+16 & id-algorithm.tex      & 599--604   & CORRECT \\
+17 & id-algorithm.tex      & 1030--1211 & CORRECT \\
+18 & id-algorithm.tex      & 1231--1259 & CORRECT \\
+19 & id-algorithm.tex      & 1282--1288 & CORRECT \\
+\end{tabular}
+\end{center}
+
+\textbf{19 proofs checked.  All correct.  No mathematical errors found.}
+
+\bigskip\noindent
+\textbf{Issues found (all minor):}
+\begin{enumerate}
+  \item \textbf{Proof~5 (Thm.\ \texttt{thm-gen-adjustment}):}
+    Do-calculus is applied to the augmented CBN ($V\cup U$, graph $G^+$)
+    while citing Cor.\ \texttt{cor:as-do-calculus-2} stated for~$V$.
+    Valid but implicit.
+  \item \textbf{Proof~11 (Lem.\ \texttt{lem:id-d-sep-3}), lines 293, 315:}
+    $I_{V\setminus D}$ should be $I_{V\setminus D_\le}$ (notational;
+    proof logic covers all cases).  Line~334: ``cannot neither.''
+  \item \textbf{Proof~17 (Thm.\ \texttt{thm:ID-as-soundness-prf}):}
+    Line~1161: missing prime on~$G$.
+    Line~1181: wrong kernel name ($Q$ vs.\ $K$) and subscript ($v_K$ vs.\ $v_{K-1}$).
+  \item \textbf{Proof~18 (Thm.\ \texttt{thm:ID-soundness-cont}):}
+    Line~1241: missing closing parenthesis.
+    Recursive step sketched, not fully detailed.
+  \item \textbf{Proof~19 (Lem.\ \texttt{lem:cbn-str-pos-density}):}
+    Line~1275 in statement: $\Pa^{G^+}(v)$ should be $\Pa^{G^+}(u)$.
+\end{enumerate}
+
+\end{document}

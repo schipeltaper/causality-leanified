@@ -1,0 +1,121 @@
+\subsection{Reichenbach's Principle}
+\totalscore{4}
+
+Hans Reichenbach (1891--1953), a German physicist, philosopher and logician, introduced a principle named after him in his book \emph{The Direction of Time}.
+% The Common Cause Principle
+%The principle posits a connection between causal structure and probabilistic correlations between events.
+Reichenbach's \emph{Principle of Common Cause} states that if two events are dependent,
+then one must cause the other, or the events must have a common cause.
+
+One could criticize this principle by arguing that it is not exhaustive: one can think of other reasons for the observed dependence
+apart from the three mentioned in Reichenbach's principle.
+We will take a closer look at the situation using the framework of simple SCMs. 
+
+\begin{enumerate}[label=\alph*)]
+  \item 
+%Prove that $X \nIndep_{P_{M}} Y$ implies that $X \tuh Y$, $X \hut Y$ or $X \huh Y$ in $G(M)$.
+Let $M$ be a simple SCM with two endogenous variables $X,Y$, an arbitrary
+number and type of exogenous random variables, but no exogenous input variables.
+
+Prove that $X \nIndep_{P_M} Y$ implies that:
+    \begin{itemize}
+      \item $X$ causes $Y$ according to $G(M)$, or
+      \item $Y$ causes $X$ according to $G(M)$, or
+      \item $X$ and $Y$ are confounded according to $G(M)$.
+    \end{itemize}
+  \score{2}
+    \answer{The causal graph $G(M)$ could hypothetically be any of the following possible DMGs with two output nodes $X,Y$:
+    \begin{center}\scalebox{0.8}{\begin{tikzpicture}
+      \begin{scope}[xshift=0cm,yshift=0cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+%        \draw[tuh] (X) to (Y);
+%        \draw[tuh,bend left] (Y) to (X);
+%        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=4cm,yshift=0cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+        \draw[tuh] (X) to (Y);
+%        \draw[tuh,bend left] (Y) to (X);
+%        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=8cm,yshift=0cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+%        \draw[tuh] (X) to (Y);
+        \draw[tuh,bend left] (Y) to (X);
+%        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=12cm,yshift=0cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+        \draw[tuh] (X) to (Y);
+        \draw[tuh,bend left] (Y) to (X);
+%        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=0cm,yshift=-2cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+%        \draw[tuh] (X) to (Y);
+%        \draw[tuh,bend left] (Y) to (X);
+        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=4cm,yshift=-2cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+        \draw[tuh] (X) to (Y);
+%        \draw[tuh,bend left] (Y) to (X);
+        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=8cm,yshift=-2cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+%        \draw[tuh] (X) to (Y);
+        \draw[tuh,bend left] (Y) to (X);
+        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+      \begin{scope}[xshift=12cm,yshift=-2cm]
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+        \draw[tuh] (X) to (Y);
+        \draw[tuh,bend left] (Y) to (X);
+        \draw[huh,bend left] (X) edge (Y);
+      \end{scope}
+    \end{tikzpicture}}\end{center}
+    (Only) the one without any edge between $X$ and $Y$ has a $\sigma$-separation $X \Perp^\sigma Y$, and hence implies an independence $X \Indep_{P_M} Y$ by the Markov property.
+    Thus there must be at least one edge between $X$ and $Y$ if $X \nIndep_{P_M} Y$.
+    This can be $X \tuh Y$ ($X$ causes $Y$ according to $G(M)$), $Y \tuh X$ ($Y$ causes $X$ according to $G(M)$), or $X \huh Y$ ($X$ and $Y$ are confounded according to $G(M)$).
+    }
+    \points{Subtract 1 point if students disregard cycles as a possibility, or if they claim that there are only three possibilities for $G(M)$ namely $X \tuh Y$, $X \hut Y$ and $X \huh Y$.}
+  \item Use this result to prove that the same statement holds for simple SCMs with endogenous variables $V \supseteq \{X,Y\}$, no restrictions on the exogenous random variables, and without exogenous input variables. 
+  \score{1}
+  \answer{Let $\tilde{M}$ be such an SCM. We can consider $M := \tilde{M}_{\{X,Y\}}$, the marginalization of $\tilde{M}$ on $M$.
+  Note that $P_{\tilde{M}}(X,Y) = P_M(X,Y)$.
+  With the result of the previous item, we conclude that 
+  $X$ causes $Y$ according to $G(M)$, or
+  $Y$ causes $X$ according to $G(M)$, or
+  $X$ and $Y$ are confounded according to $G(M)$.
+  Because (graphical) causal relations and confounding relations are preserved by marginalization, this implies that:
+  \begin{itemize}
+    \item $X$ causes $Y$ according to $G(\tilde{M})$, or
+    \item $Y$ causes $X$ according to $G(\tilde{M})$, or
+    \item $X$ and $Y$ are confounded according to $G(\tilde{M})$.
+  \end{itemize}
+  }
+\item Give another possible explanation of an observed dependence between $X$ and $Y$, which is not mentioned in Reichenbach's principle.
+  \score{1}
+  \answer{Selection bias: if only samples are included in the data if some criterion is met which is
+    a common effect of $X$ and $Y$.
+    For example, in case of the causal graph:
+    \begin{center}\scalebox{0.8}{\begin{tikzpicture}
+        \node[ndout] (X) at (0,0) {$X$};
+        \node[ndout] (Y) at (2,0) {$Y$};
+        \node[ndout] (Z) at (1,-1) {$Z$};
+        \draw[tuh] (X) to (Z);
+        \draw[tuh] (Y) to (Z);
+    \end{tikzpicture}}\end{center}
+    and if the data is distributed as $P(X,Y \given Z=z)$ for some value $z$.
+    }
+    \points{Another answer considered correct is: 'type 1 error of statistical independence test for finite data'.}
+\end{enumerate}

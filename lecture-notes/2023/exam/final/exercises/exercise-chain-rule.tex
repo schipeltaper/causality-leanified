@@ -1,0 +1,41 @@
+\subsection{Chain Rule}
+\totalscore{3}
+
+In this exercise, you will prove a well-known chain rule for the case of Markov kernels. 
+Let $\mathcal{X},\mathcal{Y},\mathcal{W}$ be standard measurable spaces.
+Let $K: \mathcal{X} \dashrightarrow \mathcal{Y} \times \mathcal{W}$ be any Markov kernel.
+Prove that 
+\begin{equation*}
+  K(Y | X) = K(Y | W, X) \circ K(W | X),
+\end{equation*}
+where $K(Y | X)$ and $K(W | X)$ are the marginal Markov kernels and $K(Y | W, X)$ the conditional Markov kernel.
+\score{3}
+
+You should base your proof on the following definitions (and your general understanding), and make clear where you use which definition:
+\begin{enumerate}
+  \item By definition, for all measurable $D \subseteq \mathcal{Y}$ and $x \in \mathcal{X}$: 
+    \begin{equation*}
+      \left[ K(Y | W, X) \circ K(W | X)\right](D | x) = \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in d w | X = x).
+    \end{equation*}
+  \item By definition, for all measurable $F \subseteq \mathcal{Y} \times \mathcal{W}$ and $x \in X$:
+    \begin{equation*}
+      \left[ K(Y | W, X) \otimes K(W | X)\right](F | x) = \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \I_{F}(y, w) K(Y \in d y | W = w, X = x) \bigg] K(W \in d w | X = x).
+  \end{equation*}
+\item  $K(Y \in D | X = x) := K(Y \in D, W \in \mathcal{W} | X = x)$, and similarly for $K(W \in E | X = x)$, for all measurable $D \subseteq \mathcal{Y}$ and $E \subseteq \mathcal{W}$ and all $x \in \mathcal{X}$.
+\item The definition of conditional Markov kernels.  
+\item A general property of integrating over a Markov kernel $K : \mathcal{X} \dshto \mathcal{Y}$:
+  $$K(Y \in D | X=x) = \int_{\mathcal{Y}} 1_D(y) K(Y \in dy|X=x)$$
+   for all measurable $D \subseteq \mathcal{Y}$ and all $x \in \mathcal{X}$.
+\end{enumerate} 
+
+\answer{For all measurable $D \subseteq \mathcal{Y}$ and $x \in X$ we have:
+\begin{align*}
+  \big[ K(Y | X) \big] (D | x) & \overset{3.}{=} \big[ K(Y, W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{4.}{=} \big[ K(Y | W, X) \otimes K(W | X)\big] (D \times \mathcal{W} | x) \\
+  & \overset{2.}{=} \int_{\mathcal{W}} \bigg[ \int_{\mathcal{Y}} \underbrace{\I_{D \times \mathcal{W}}(y, w)}_{= \I_D(y)} K(Y \in d y | W = w, X = x)\bigg] K(W \in d w | X = x) \\
+  & \overset{5.}{=} \int_{\mathcal{W}} K(Y \in D | W = w, X = x) K(W \in d w | X = x) \\
+  & \overset{1.}{=} \big[  K(Y | W, X) \circ K(W | X)\big] (D | x).
+\end{align*}
+That proves the desired equality.
+}
+\points{1/2 point for the right approach, 1/2 point for each correct step.}

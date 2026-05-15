@@ -1,0 +1,259 @@
+% !TEX root = hw11-answers-graded.tex
+\chead{\textbf{Exercises week 11}}
+\begin{document}
+\flushleft\textbf{Topic: Acyclification of SCMs and examples of SCMs}
+
+\begin{enumerate}
+	\item %($5$ points) 
+	Given the following SCM:
+	$$M = \left\langle J=\emptyset, V=\{A, B, C, D, E, F\}, W=\{A', B', C', D', E', F'\}, \R^{12}, P, f \right\rangle,$$
+	where $P$ consists of the product of six independent normal distributions with means and standard deviations $\mu_A, \sigma_A, \mu_B, ..., \sigma_F$, and
+	\[
+		\begin{pmatrix}
+			f_A(x, \varepsilon) \\ f_B(x, \varepsilon) \\ f_C(x, \varepsilon) \\ f_D(x, \varepsilon) \\ f_E(x, \varepsilon) \\ f_F(x, \varepsilon)
+		\end{pmatrix}
+		=
+		\begin{pmatrix}
+			0           & 0           & \alpha_{ca} & \alpha_{da} & 0           & 0 \\
+			\alpha_{ab} & 0           & 0           & 0           & \alpha_{eb} & 0 \\
+			0           & \alpha_{bc} & 0           & 0           & 0           & 0 \\
+			0           & 0           & 0           & 0           & 0           & 0 \\
+			0           & 0           & 0           & 0           & 0           & 0 \\
+			0           & 0           & \alpha_{cf} & 0           & 0           & 0 \\
+		\end{pmatrix}
+		\begin{pmatrix}
+			x_A \\ x_B \\ x_C \\ x_D \\ x_E \\ x_F
+		\end{pmatrix}
+		+
+		\begin{pmatrix}
+			\varepsilon_A \\ \varepsilon_B \\ \varepsilon_C \\ \varepsilon_D \\ \varepsilon_E \\ \varepsilon_F
+		\end{pmatrix}
+	\]
+	for nonzero real numbers $\alpha_.$ such that $\alpha_{ab}\alpha_{bc}\alpha_{ca} \neq 1$. Note that we have a slightly different notation as in the lecture notes, as we refer to $x_V$ as $x$, and refer to $x_W$ as $\varepsilon$.
+	\begin{enumerate}
+		\item Construct the acyclification $M^{\text{acy}}$.\\
+		\emph{Hint: use Proposition \ref*{prp:linear_scms}.}
+		\item Give the graphs $G(M)$ and $G(M^{\text{acy}})$.
+		\item\label{ex:acy_obs} Show that $M^{\text{acy}}$ is observationally equivalent to $M$.
+		\item Show that $M^{\text{acy}}$ is not interventionally equivalent to $M$.
+		\item\label{ex:sep} Show the following:
+		\begin{enumerate}
+			\item $D \perp_{G(M)}^\sigma F \mid B \iff D \perp_{G(M^{\text{acy}})}^d F \mid B$
+			\item $D \perp_{G(M)}^\sigma E \mid A \iff D \perp_{G(M^{\text{acy}})}^d E \mid A$
+			\item $D \perp_{G(M)}^\sigma E \iff D \perp_{G(M^{\text{acy}})}^d E$
+		\end{enumerate}
+		% TODO 23/24: Note: $\iff$ here means that left and right hand side are either both true or both false, so show this for this particular example (give active paths or prove the sigma-separation)
+	\end{enumerate}
+	For \ref{ex:acy_obs} and \ref{ex:sep}, make the exercises without relying on results from the lecture notes that immediately prove te statement.
+
+	\begin{gradedsolution}
+		\begin{enumerate}
+			\item \points{3} We have strongly connected component $\{A, B, C\}$. Applying Proposition \ref*{prp:linear_scms} with $L = \{A, B, C\}$,
+			\begin{equation*}
+				B_{VV}(x_J, \varepsilon) = \begin{pmatrix}
+					0           & 0           & \alpha_{ca} & \alpha_{da} & 0           & 0 \\
+					\alpha_{ab} & 0           & 0           & 0           & \alpha_{eb} & 0 \\
+					0           & \alpha_{bc} & 0           & 0           & 0           & 0 \\
+					0           & 0           & 0           & 0           & 0           & 0 \\
+					0           & 0           & 0           & 0           & 0           & 0 \\
+					0           & 0           & \alpha_{cf} & 0           & 0           & 0 \\
+				\end{pmatrix}
+				\text{ and }
+				c_V(x_J, \varepsilon) = \begin{pmatrix}
+					\varepsilon_A \\ \varepsilon_B \\ \varepsilon_C \\ \varepsilon_D \\ \varepsilon_E \\ \varepsilon_F
+				\end{pmatrix},
+			\end{equation*}
+			the solution function $g_L$ is given by
+			\begin{align*}
+				g_L(x_{\{D, E, F\}}, \varepsilon) = \left(\mat{1 & 0           & 0              \\0&1&0\\0&0&1} - \mat{0 & 0 & \alpha_{ca}  \\
+				\alpha_{ab}                                      & 0           & 0              \\
+				0                                                & \alpha_{bc} & 0}\right)^{-1} \\
+				\cdot \left(\mat{\alpha_{da}                     & 0           & 0              \\0 & \alpha_{eb} & 0\\ 0 & 0 & 0}\mat{x_D\\ x_E\\ x_F} + \mat{\varepsilon_A\\\varepsilon_B\\\varepsilon_C}\right)
+			\end{align*}
+			Computing the inverse, we have
+			\begin{equation*}
+				\left(\mat{1 & 0           & 0              \\0&1&0\\0&0&1} - \mat{0 & 0 & \alpha_{ca}  \\
+					\alpha_{ab}                                      & 0           & 0              \\
+					0                                                & \alpha_{bc} & 0}\right)^{-1} = \frac{1}{1-\alpha_{ca}\alpha_{ab}\alpha_{bc}}\begin{pmatrix}
+					1                      & \alpha_{bc}\alpha_{ca} & \alpha_{ca}            \\
+					\alpha_{ab}            & 1                      & \alpha_{ab}\alpha_{ca} \\
+					\alpha_{ab}\alpha_{bc} & \alpha_{bc}            & 1
+				\end{pmatrix}
+			\end{equation*}
+			so
+			\begin{align*}
+				g_L(x_{\{D, E, F\}}, \varepsilon) = & \frac{1}{1-\alpha_{ca}\alpha_{ab}\alpha_{bc}}
+				\begin{pmatrix}
+					\alpha_{da}                       & \alpha_{bc}\alpha_{ca}\alpha_{eb} & 0 \\
+					\alpha_{ab}\alpha_{da}            & \alpha_{eb}                       & 0 \\
+					\alpha_{ab}\alpha_{bc}\alpha_{da} & \alpha_{bc}\alpha_{eb}            & 0
+				\end{pmatrix}
+				\begin{pmatrix}x_D \\ x_E\\ x_F \end{pmatrix}+                                      \\
+				                                    & \frac{1}{1-\alpha_{ca}\alpha_{ab}\alpha_{bc}}
+				\begin{pmatrix}
+					1                      & \alpha_{bc}\alpha_{ca} & \alpha_{ca}            \\
+					\alpha_{ab}            & 1                      & \alpha_{ab}\alpha_{ca} \\
+					\alpha_{ab}\alpha_{bc} & \alpha_{bc}            & 1
+				\end{pmatrix}
+				\begin{pmatrix}
+					\varepsilon_A \\
+					\varepsilon_B \\
+					\varepsilon_C
+				\end{pmatrix}.
+			\end{align*}
+			In the SCM, we replace the equations $f_{\{A,B,C\}}$ with this solution.
+			\item \points{2} $G(M)$:
+			\begin{center}
+				\begin{tikzpicture}[scale=1, transform shape]
+					\node[ndout] (A) at (0, 0) {$A$};
+					\node[ndout] (B) at (2, 0) {$B$};
+					\node[ndout] (C) at (4, 0) {$C$};
+					\node[ndout] (D) at (0, -2) {$D$};
+					\node[ndout] (E) at (2, -2) {$E$};
+					\node[ndout] (F) at (4, -2) {$F$};
+					\node[ndlat] (epsA) at (0, 2) {$A'$};
+					\node[ndlat] (epsB) at (2, 2) {$B'$};
+					\node[ndlat] (epsC) at (4, 2) {$C'$};
+					\node[ndlat] (epsD) at (0, -4) {$D'$};
+					\node[ndlat] (epsE) at (2, -4) {$E'$};
+					\node[ndlat] (epsF) at (4, -4) {$F'$};
+					\draw[arlout] (epsA) to (A);
+					\draw[arlout] (epsB) to (B);
+					\draw[arlout] (epsC) to (C);
+					\draw[arlout] (epsD) to (D);
+					\draw[arlout] (epsE) to (E);
+					\draw[arlout] (epsF) to (F);
+					\draw[arout] (D) to (A);
+					\draw[arout] (E) to (B);
+					\draw[arout] (A) to (B);
+					\draw[arout] (B) to (C);
+					\draw[arout, bend right] (C) to (A);
+					\draw[arout] (C) to (F);
+				\end{tikzpicture}
+			\end{center}
+			$G(M^{\text{acy}})$:
+			\begin{center}
+				\begin{tikzpicture}[scale=1, transform shape]
+					\node[ndout] (A) at (0, 0) {$A$};
+					\node[ndout] (B) at (2, 0) {$B$};
+					\node[ndout] (C) at (4, 0) {$C$};
+					\node[ndout] (D) at (0, -2) {$D$};
+					\node[ndout] (E) at (2, -2) {$E$};
+					\node[ndout] (F) at (4, -2) {$F$};
+					\node[ndlat] (epsA) at (0, 2) {$A'$};
+					\node[ndlat] (epsB) at (2, 2) {$B'$};
+					\node[ndlat] (epsC) at (4, 2) {$C'$};
+					\node[ndlat] (epsD) at (0, -4) {$D'$};
+					\node[ndlat] (epsE) at (2, -4) {$E'$};
+					\node[ndlat] (epsF) at (4, -4) {$F'$};
+					\draw[arlout] (epsA) to (A);
+					\draw[arlout] (epsA) to (B);
+					\draw[arlout] (epsA) to (C);
+					\draw[arlout] (epsB) to (A);
+					\draw[arlout] (epsB) to (B);
+					\draw[arlout] (epsB) to (C);
+					\draw[arlout] (epsC) to (A);
+					\draw[arlout] (epsC) to (B);
+					\draw[arlout] (epsC) to (C);
+					\draw[arlout] (epsD) to (D);
+					\draw[arlout] (epsE) to (E);
+					\draw[arlout] (epsF) to (F);
+					\draw[arout] (D) to (A);
+					\draw[arout] (D) to (B);
+					\draw[arout] (D) to (C);
+					\draw[arout] (E) to (B);
+					\draw[arout] (E) to (A);
+					\draw[arout] (E) to (C);
+					\draw[arout] (C) to (F);
+				\end{tikzpicture}
+			\end{center}
+			\item \points{1} This follows from the series of equivalences between $f$ and $\tilde{f}$ in the proof of Proposition \ref*{prp:scm_acyclification_properties}. Check this!
+			\item \points{1} E.g. intervene $X_A=x_a$. Then in $M$, $B$ is affected by $x_a$, but in $M^{\text{acy}}$, it is not. This should be proven formally.
+			\item \points{3} The first two are false, the third is true. Prove this!
+		\end{enumerate}
+	\end{gradedsolution}
+
+	\item %($3$ points)
+	We will prove that the SCM $M$ of the equilibrium behaviour of a damped coupled harmonic oscillator in Example \ref*{ex:HarmonicOscillator} is simple:
+
+	\begin{enumerate}
+		% \item Prove that for any\footnote{It's more straightforward to see this in the general case.} SCM satisfying the assumptions of Proposition \ref*{prp:linear_scms} that invertibility of $1_{V}-B_{VV}$ ensures that the SCM has a unique solution.
+		\item Show that $M$ satisfies the matrix form as in Proposition \ref*{prp:linear_scms}.
+		\item \label{eq:tridiag} Show that the determinant of the matrix $1_{V}-B_{VV}$ (where $1_V$ is the $|V|\times |V|$ identity matrix) is non-zero, and hence, that the matrix is invertible.
+
+		\emph{Hint: you can use that the determinant of a tridiagonal matrix of the following form is given by the expression on the r.h.s.
+		% \footnote{Bonus points for who comes up with an elegant proof of this identity that does not rely on solving the recurrence relationship for the determinant of tridiagonal matrices.}
+		:
+		$$\det \begin{pmatrix}
+				k_0+k_1 & -k_1      &           &          &               \\
+				-k_1    & k_1 + k_2 & -k_2      &          &               \\
+				        & -k_2      & k_2 + k_3 & \ddots   &               \\
+				        &           & \ddots    & \ddots   & -k_{d-1}      \\
+				        &           &           & -k_{d-1} & k_{d-1} + k_d \\
+			\end{pmatrix} = \sum_{i=0}^d \prod_{j=0 \atop j\ne i}^d k_j
+		$$
+		In order to obtain the above form, factorize the matrix $1_{V}-B_{VV}=DT$, where $T$ is of the above form and $D$ is diagonal. Use $\det DT=\det D \det T$.}
+		\item Show that for for any $T \subseteq V$, the matrix $1_{V \setminus T}-B_{(V \setminus T)(V \setminus T)}$ is invertible, and conclude that the SCM $M$ is simple.\\
+		\emph{Hint: You can use the fact that the determinant of a block-diagonal matrix is the product of the determinant of the constituent matrices.}
+	\end{enumerate}
+	\begin{ungradedsolution}
+		\begin{enumerate}
+			\item We have
+			$$f(q, k, \ell) = B_{VV} \cdot q + c_V$$
+			where
+			$$B_{VV} := \mat{0 & \tfrac{k_1}{k_0+k_1}& 0 & 0 & \hdots & 0 \\ \tfrac{k_1}{k_1+k_2} & 0 & \tfrac{k_2}{k_1+k_2} & 0 & &\vdots \\ 0 & \tfrac{k_2}{k_2+k_3} & 0 &  \tfrac{k_3}{k_2+k_3} & \ddots & \vdots\\ \vdots& & & & & \vdots \\ \vdots& & & \ddots & 0 &  \tfrac{k_{d-1}}{k_{d-2}+k_{d-1}} \\ 0 & \hdots &\hdots & \hdots & \tfrac{k_{d-1}}{k_{d-1}+k_d} & 0 \\}$$
+			and
+			$$c_V := \mat{\tfrac{k_0q_0+k_0\ell_0-k_1\ell_1}{k_0+k_1} \\ \tfrac{k_1\ell_1-k_2\ell_2}{k_1+k_2} \\ \vdots \\ \tfrac{k_dq_{d+1}+k_{d-1}\ell_{d-1}-k_d\ell_d}{k_{d-1}+k_d}}.$$
+			\item
+			\begin{align*}
+				 & 1_V-B_{VV}                                                                       \\
+				 & =\begin{pmatrix}
+					    1                & -k_1/(k_1+k_0)   & 0                & 0                & ... \\
+					    -k_1 / (k_2+k_1) & 1                & -k_2 / (k_2+k_1) & 0                & ... \\
+					    0                & -k_2 / (k_3+k_2) & 1                & -k_3 / (k_3+k_2) & ... \\
+					    ...              & ...              & ...              & ...              & ...
+				    \end{pmatrix} \\
+				 & =\begin{pmatrix}
+					    1/(k_1+k_0) & 0            & 0             & 0   & ... \\
+					    0           & 1/ (k_2+k_1) &               & 0   & ... \\
+					    0           & 0            & 1 / (k_3+k_2) & 0   & ... \\
+					    ...         & ...          & ...           & ... & ...
+				    \end{pmatrix}
+				\begin{pmatrix}
+					k_0+k_1 & -k_1      & 0         & \dots \\
+					-k_1    & k_1 + k_2 & -k_2      & \dots \\
+					0       & -k_2      & k_2 + k_3 & \dots \\
+					\dots   & \dots     & \dots     & \dots
+				\end{pmatrix}
+			\end{align*}
+			The determinant of the first matrix is the product of the diagonals, the second is the given by the hint, so
+			\begin{align*}
+				\det (1_V - B_{VV}) = \left(\prod_{i=1}^d \frac{1}{k_{i-1}+k_i}\right)\left(\sum_{i=0}\prod_{\substack{j = 0 \\j\neq i}}^d k_j\right)
+			\end{align*}
+			which is clearly positive for positive $k_i$.
+
+			\item For any $T \subseteq V$, the matrix $(1_{V}-B_{VV})_{(V \setminus T)(V \setminus T)} = 1_{V \setminus T}-B_{(V \setminus T)(V \setminus T)}$ is a block-diaginal matrix, where each block is either a diagonal or a tridiagonal matrix. (Check this!) The determinant of a block-diagonal matrix equals the product of the determinants of the constituent blocks. Using the same analysis as in the previous exercise, it follows that $\det(1_{V \setminus T}-B_{(V \setminus T)(V \setminus T)}) > 0$, hence $1_{V \setminus T}-B_{(V \setminus T)(V \setminus T)}$ is invertible. From Proposition \ref*{prp:linear_scms} we know that for every $T\subseteq V$ the SCM $M_{\doit (T)}$ is uniquely solvable, and from the definition of simple SCMs (Definition \ref*{def:simple_scm}) we conclude that $M$ is simple.
+		\end{enumerate}
+	\end{ungradedsolution}
+
+	\item %(1 point) 
+	Consider the dynamical system and the SCM given in Example \ref*{ex:PriceSupplyDemandDynamical} (Price, supply and demand) of the lecture notes.
+
+	Show for which of the 8 subsets $T \subseteq \{D, S, R\}$, the intervened SCM $M_{\text{do}(T)}$ is uniquely solvable. You can use the condition for unique solvability of linear SCMs from Proposition \ref*{prp:linear_scms} of the lecture notes.
+	% \item For all possible interventions $T \subseteq \{D, S, R\}$, show whether the dynamical system has an equilibrium and, if it exists, compute this equilibrium.
+	% We see that when the intervened SCM is uniquely solvable, its solution indeed equals the equilibrium of the intervened dynamical system.
+	\begin{ungradedsolution}
+		We have a linear system:
+		\begin{align*}
+			\mat{f_D \\f_S\\f_R} = \mat{0 & 0 & \beta_D \\ 0 & 0 & \beta_S \\ 1 & -1 & 1}\cdot \mat{d\\s\\r}+\mat{e_D\\e_S\\0}
+		\end{align*}
+		so by Proposition \ref*{prp:linear_scms} there exists a unique solution function for $M_{\doit(T)}$ iff
+		\begin{multline*}
+			\det\left(\left(\mat{1&0&0\\0&1&0\\0&0&1} - \mat{0 & 0 & \beta_D \\ 0 & 0 & \beta_S \\ 1 & -1 & 1}\right)_{(V\setminus T)(V\setminus T)}\right) \\
+			= \det\left(\mat{1 & 0 & -\beta_D \\ 0 & 1 & -\beta_S \\ -1 & 1 & 0}_{(V\setminus T)(V\setminus T)}\right)
+		\end{multline*}
+		is positive. For the following $T$ we have the determinant: $\{D\}: \beta_S$, $\{S\}:-\beta_D$, $\{R\}: 1$, $\{D, S\}: 0$, $\{D, R\}: 1$, $\{S, R\}: 1$, $\emptyset: \beta_s-\beta_D$. By assumption, $\beta_D < 0$ and $\beta_S> 0$, so $\beta_S-\beta_D > 0$. Note that for $T=\{D, S, R\}$ the structural equations are already a (unique) solution function, as they don't depend on $(d, s, r)$. Hence, for all subsets $T\subseteq\{D, S, R\}$ except for $\{D, S\}$, the SCM $M_{\doit(T)}$ is uniquely solvable.
+	\end{ungradedsolution}
+
+\end{enumerate}
+\end{document}

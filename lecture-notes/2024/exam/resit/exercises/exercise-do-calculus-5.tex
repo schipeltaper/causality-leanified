@@ -1,0 +1,222 @@
+\subsection{Do-Calculus}
+\totalscore{11}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndlat] (R) at (3,2) {$R$};
+    \node[ndlat] (L) at (-1.5,2) {$L$};
+    \node[ndlat] (S) at (-3,0) {$S$};
+    \node[ndout] (W) at (6,2) {$W$};
+    \draw[arout] (L) to (S);
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (R) to (Y);
+    \draw[arout] (R) to (X);
+    \draw[arout] (L) to (X);
+    \draw[arlat, bend left] (L) to (R);
+    \draw[arlat, bend left] (R) to (W);
+\end{tikzpicture}
+\caption{Acyclic Directed Mixed Graph (ADMG).}
+\label{fig:cadmg-X}
+\end{figure}
+
+\noindent Consider the observational graph of a causal Bayesian network with latent variables in Figure \ref{fig:cadmg-X}.
+%We assume that the variables $X,Y,Z,W,L,S,R$ are observable with probability distribution $P(X,Y,Z,W,L,S,R)$.
+
+In this exercise we are interested in estimating the causal effect of $X$ and $W$ on $Y$, that is, the interventional distribution $P(Y|\doit(X,W))$. However, we are only able to perform  interventional experiments where we intervene on $W$. In other words, we are only able to produce samples from the interventional distribution: $P(X,Y,Z|\doit(W))$.
+
+As a first step, use the do-calculus to prove the following (almost sure) equalities:
+\begin{enumerate}[label=\alph*)]
+    \item $P(Z|\doit(X,W)) = P(Z|X,\doit(W))$. 
+      \score{2}
+    %\item $P(Z|X,\doit(W)) = P(Z|X)$. 
+    \item $P(Y|Z,\doit(X,W)) = P(Y|\doit(X,Z,W))$.
+      \score{2}
+    \item $P(Y|\doit(X,Z,W)) = P(Y|\doit(Z,W))$.
+      \score{2}
+    \item $P(X|\doit(Z,W)) = P(X|\doit(W))$.
+      \score{2}
+    %\item $P(X|\doit(Z,W)) = P(X)$.
+    \item $P(Y|X,\doit(Z,W)) = P(Y|X,Z,\doit(W))$.
+      \score{2}
+\end{enumerate}
+To avoid measure-theoretic subtleties, you are allowed to assume (without further justification) that \emph{all occurring Markov kernels are discrete and have strictly positive mass functions}.
+For each point, provide all details of your arguments.
+When you use d-separation statements clearly indicate in which graph this should hold and draw the graph. Also argue why the claimed d-separation statements hold by listing all relevant paths that need checking and indicate why they are d-blocked.
+
+Now we want to use (some/all) of the above found relations to solve the initial problem.
+\begin{enumerate}[resume*]
+  \item Derive an expression for the Markov kernel $P(Y|\doit(X,W))$ in terms of (products and compositions of
+    marginals and conditionals of) $P(X,Y,Z|\doit(W))$.
+      \score{1}
+
+\emph{Hint: Make use of the chain rule as follows: 
+\begin{align}
+    P(Y|\doit(X,W)) &= P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)), \\
+    P(Y|\doit(Z,W)) &= P(Y|X,\doit(Z,W)) \circ P(X|\doit(Z,W)).
+\end{align}
+}
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%
+\answer{%
+    \points{2pt for each of the 5 subquestions, 1pt for gathering all together in the final question (using the chain rule).
+    For each of the 5 subquestions we could assign 0.5pt for the correct do-calculus rule, 0.5pt for the correct d-separation statement, 0.5pt for drawing the correct interventional graph with intervention node, 0.5pt for checking all relevant paths.}
+
+Since all occurring Markov kernels contain $\doit(W)$ and $L,R,S$ do not appear we can intervene on $W$ and marginalize out $L,R,S$ and get the following CADMG 
+$\tilde G = G_{\doit(W)}^{\sm (L,R,S)}$:
+
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+
+1.) For $P(Z|\doit(X,W)) = P(Z|X,\doit(W))$ we apply the 2nd rule of do-calculus with the requirement:
+\[ Z \Perp^d_{G_{\doit(I_X,W)}^{\sm(L,R,S)}} I_X \given X,W,\]
+in the CADMG:
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IX) at (0,2) {$I_X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (IX) to (X);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+We need to check the following paths:
+\begin{align}
+    Z &\hut X \hut I_X          &&(\text{blocked by non-collider } X),\\
+    Z &\tuh Y \huh X \hut I_X,  &&(\text{blocked by collider } Y),\\
+    Z &\tuh Y \hut W            &&(\text{blocked by collider } Y).
+\end{align}
+
+2.) For $P(Y|Z,\doit(X,W)) = P(Y|\doit(X,Z,W))$ we apply the 2nd rule of do-calculus with the requirement:
+\[ Y \Perp^d_{G_{\doit(I_Z,X,W)}^{\sm(L,R,S)}} I_Z \given X,Z,W,\]
+in the CADMG:
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndint] (X) at (0,0) {$X$};
+    \node[ndint] (IZ) at (3,-2) {$I_Z$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (IZ) to (Z);
+    %\draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+We need to check the following paths:
+\begin{align}
+    Y &\hut W          &&(\text{blocked by end node } W),\\
+    Y &\hut Z \hut X          &&(\text{blocked by end node } X \text{ (or also by non-collider }Z)),\\
+    Y &\hut Z \hut I_Z          &&(\text{blocked by non-collider } Z).
+\end{align}
+
+3.)  For $P(Y|\doit(X,Z,W)) = P(Y|\doit(Z,W))$ we apply the 3nd rule of do-calculus with the requirement:
+\[ Y \Perp^d_{G_{\doit(I_X,Z,W)}^{\sm(L,R,S)}} I_X \given Z,W,\]
+in the CADMG:
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IX) at (0,2) {$I_X$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndint] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (IX) to (X);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+We need to check the following paths:
+\begin{align}
+    Y &\hut W          &&(\text{blocked by end node } W),\\
+    Y &\hut Z          &&(\text{blocked by end node } Z),\\
+    Y &\huh X \hut I_X          &&(\text{blocked by collider } X).
+\end{align}
+
+
+4.) For $P(X|\doit(Z,W)) = P(X|\doit(W))$ we apply the 3nd rule of do-calculus with the requirement:
+\[ X \Perp^d_{G_{\doit(I_Z,W)}^{\sm(L,R,S)}} I_Z \given W,\]
+in the CADMG:
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IZ) at (3,-2) {$I_Z$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (IZ) to (Z);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+We need to check the following paths:
+\begin{align}
+    X &\huh Y \hut W          &&(\text{blocked by end node } W),\\
+    X &\tuh Z \hut I_Z        &&(\text{blocked by collider } Z), \\
+    X &\huh Y \hut Z \hut I_Z        &&(\text{blocked by collider } Y).
+\end{align}
+
+5.) For $P(Y|X,\doit(Z,W)) = P(Y|X,Z,\doit(W))$ we apply the 2nd rule of do-calculus with the requirement:
+\[ Y \Perp^d_{G_{\doit(I_Z,W)}^{\sm(L,R,S)}} I_Z \given X,Z,W,\]
+in the CADMG:
+\centerline{
+\begin{tikzpicture}[scale=1, transform shape]
+    \node[ndout] (X) at (0,0) {$X$};
+    \node[ndint] (IZ) at (3,-2) {$I_Z$};
+    \node[ndout] (Y) at (6,0) {$Y$};
+    \node[ndout] (Z) at (3,0) {$Z$};
+    \node[ndint] (W) at (6,2) {$W$};
+    \draw[arout] (W) to (Y);
+    \draw[arout] (X) to (Z);
+    \draw[arout] (Z) to (Y);
+    \draw[arout] (IZ) to (Z);
+    \draw[arlat, bend left] (X) to (Y);
+\end{tikzpicture}
+}
+We need to check the following paths:
+\begin{align}
+    Y &\hut W                  &&(\text{blocked by end node } W),\\
+    Y &\huh X \tuh Z \hut I_Z  &&(\text{blocked by non-collider } X), \\
+    Y &\hut Z \hut I_Z        &&(\text{blocked by non-collider } Z).
+\end{align}
+
+Finally, to put all together, we get the sequence of equations:
+\begin{align}
+    P(Y|\doit(X,W)) 
+&\stackrel{\text{chain rule}}{=} P(Y|Z,\doit(X,W)) \circ P(Z|\doit(X,W)) \\
+&\stackrel{(1)}{=} P(Y|Z,\doit(X,W)) \circ P(Z|X,\doit(W)) \\
+&\stackrel{(2)}{=} P(Y|\doit(X,Z,W)) \circ P(Z|X,\doit(W)) \\
+&\stackrel{(3)}{=} P(Y|\doit(Z,W)) \circ P(Z|X,\doit(W)) \\
+&\stackrel{\text{chain rule}}{=} \lp P(Y|\tilde X, \doit(Z,W)) \circ P(\tilde X|\doit(Z,W)) \rp \circ P(Z|X,\doit(W)) \\
+&\stackrel{(4)}{=} \lp P(Y|\tilde X, \doit(Z,W)) \circ P(\tilde X|\doit(W)) \rp \circ P(Z|X,\doit(W)) \\
+&\stackrel{(5)}{=} \lp P(Y|\tilde X,Z,\doit(W)) \circ P(\tilde X|\doit(W)) \rp \circ P(Z|X,\doit(W)).
+\end{align}
+The last expression is a combination of compositions, marginals and conditionals of the Markov kernel $P(X,Y,Z|\doit(W))$ only and thus satisfies the requirement of the question.
+
+
+}
