@@ -1,6 +1,8 @@
 
-def nightly_loop():
-    # Take first subsection x_y, list all those defs and claims.
+def solve_chapter():
+    # Take first row that is not yet solved from data
+
+    
     
     # Start: read all, make plan, maybe re-order
 

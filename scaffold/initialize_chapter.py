@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+from create_data import fill_data
+
 # Load global variables from the JSON data file.
 GLOBAL_VARS_PATH = Path(__file__).parent / "global_vars.json"
 with open(GLOBAL_VARS_PATH) as f:
@@ -25,7 +27,7 @@ def initialize():
     create_folder(current_chapter, title_chapter)
 
     # Create empty data file in {current_chapter}_{title_chapter} folder
-    create_data(current_chapter, title_chapter)
+    data_path = create_data(current_chapter, title_chapter)
 
     # Find all defs and claims in current_chapter
     # TODO make Python script that calls Claude to do this
@@ -33,6 +35,7 @@ def initialize():
     # Wait for human confirmation
 
     # run create data script
+    fill_data(current_chapter, tex_file_chapter, data_path)
 
     return tex_file_chapter
 
