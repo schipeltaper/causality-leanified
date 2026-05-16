@@ -175,7 +175,7 @@ What is wrong with our analysis?
     \[ \exists x \in \Xcal:\qquad P(Y|\doit(X=x)) \neq P(Y). \]
 %    }
 \end{Def}
-
+\begin{defmark}
 \begin{Rem}
     \begin{enumerate}
         \item 
@@ -188,11 +188,11 @@ What is wrong with our analysis?
         \item One may think of the observational distribution as a special case of an interventional distribution (where we intervene by doing nothing).
     \end{enumerate}
 \end{Rem}
-
+\end{defmark}
 
 \subsection{Randomized Controlled Trials (RCT)} % - The gold standard for experimental causal discovery }
 
-
+\begin{claimmark}
 \begin{Prn}[Randomized Controlled Trial (RCT)]\label{prn:rct}
  Assume we want to know if `treatment' variable $X$ has a causal effect on `outcome' variable $Y$, i.e.\ we want to estimate the deviation between:
 $ P(Y|\doit(X=x_0))$ and  $P(Y|\doit(X=x_1))$. For this we have test subjects $w_1,\dots,w_N$.
@@ -205,6 +205,7 @@ A \emph{Randomized Controlled Trial} then follows the following steps:
     \item If it is significantly different from 0 we can conclude a \emph{causal effect} of $X$ on $Y$, otherwise not.
 \end{enumerate}
 \end{Prn}
+\end{claimmark}
 
 \begin{Rem}
   The notion of a randomized controlled trial goes back several centuries. It was already described in 1648 by Flemish physician Jan Baptista van Helmont \cite{vanHelmont1648}:

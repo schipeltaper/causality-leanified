@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python -c \"import sys; sys.path.insert\\(0,'scaffold'\\); import initialize_chapter as m; [print\\(i, '->', m.get_title_chapter\\(i\\)\\) for i in range\\(1,9\\)]\")",
+      "PowerShell(python -c \"import sys; sys.path.insert\\(0,'scaffold'\\); import initialize_chapter as m; m.initialize\\(\\); print\\('OK: initialize\\(\\) ran without error'\\)\")",
+      "PowerShell(\"--- leanification/ tree ---\")"
+    ]
+  }
+}

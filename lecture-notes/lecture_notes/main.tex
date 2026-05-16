@@ -81,6 +81,24 @@
     pdfencoding=unicode         
 }
 
+%-------------conditional annotation marks (Leanify project)------------
+\usepackage{etoolbox}
+\usepackage{xcolor}
+\usepackage{environ}
+
+\newtoggle{showmarks}
+\toggletrue{showmarks}
+% \togglefalse{showmarks}
+
+
+\NewEnviron{defmark}{%
+  \iftoggle{showmarks}{\textcolor{blue}{Def-start} \BODY\ \textcolor{blue}{Def-end}}{\BODY}%
+}
+
+\NewEnviron{claimmark}{%
+  \iftoggle{showmarks}{\textcolor{green!50!black}{Claim-start} \BODY\ \textcolor{green!50!black}{Claim-end}}{\BODY}%
+}
+
 %-------------theorem envirionments --  abbreviations ------------------
 
 \input{thm}

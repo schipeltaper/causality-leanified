@@ -1,0 +1,16 @@
+{
+  "chapter": 1,
+  "title": "Experimental Causal Discovery",
+  "columns": [
+    "def_or_claim",
+    "solved",
+    "ref",
+    "type",
+    "date_solved",
+    "tips",
+    "tex_file",
+    "lean_file",
+    "actions_tracking"
+  ],
+  "rows": []
+}
