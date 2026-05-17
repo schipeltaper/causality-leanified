@@ -19,11 +19,11 @@ Take the zoomed out context of the lecture notes into consideration when designi
 main theorems, etc and purpose
 
 ## Modifications Lecture Notes
-You are never aloud to modify the actual lecture notes. You can however add the following types of comments:
+You are only aloud to modify the lecture notes within certain types. You can add the following types of comments:
 - Def + ref
 - Claim + ref
 - Small_mistake
-- Fill fap proof
+- Fill gap proof
 - Big mistake
 
 ## Lecture notes

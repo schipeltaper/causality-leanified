@@ -46,6 +46,25 @@ ENV_TYPES = {
     "Ass": "assumption",
 }
 
+# Action types an agent can take while solving a row -- see process_output in
+# solving_current_chapter.py. A row's actions_tracking counts how often each
+# of these was used; keep this list in sync with process_output's branches.
+ACTIONS = [
+    "Write proof",
+    "Write proof in more detail",
+    "solved",
+    "add or delete rows",
+    "refactor",
+    "make plan",
+    "decompose",
+    "spawn_agent_sub_task",
+    "reaching context limit",
+    "re-order",
+    "help",
+    "mistake",
+    "no_action",
+]
+
 # The marker environments and the kind of entry each one denotes.
 _MARK_KINDS = {"defmark": "def", "claimmark": "claim"}
 
@@ -176,7 +195,7 @@ def fill_data(chapter, tex_file, data_path):
             "tips": "",
             "tex_file": mark["tex_file"],
             "lean_file": "",
-            "actions_tracking": "",
+            "actions_tracking": {action: 0 for action in ACTIONS},
         })
 
     _insert_ref_markers(marks)
