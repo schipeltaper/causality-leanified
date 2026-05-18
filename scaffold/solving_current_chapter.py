@@ -25,8 +25,13 @@ def solve_row(current_task_data):
     while True:
         output = prompt_agent(prompt, context)
         prompt = process_output(output, claim_or_def, current_task_data)
-        if not prompt:
+        if not prompt: # If we are done?
             break
+
+    # Verify
+    # Clean up
+    # Design choice
+    # Build
 
 def process_output(output, claim_or_def, current_task_data):
     # Count whichever action was taken in this row's actions_tracking table.
