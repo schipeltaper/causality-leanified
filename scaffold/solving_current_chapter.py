@@ -69,6 +69,9 @@ def process_output(output, claim_or_def, current_task_data):
     if action == "re-order":
         # Re-order data
         actions_tracking["re-order"] += 1
+    if action == "reset":
+        # When we want a fresh start
+        actions_tracking["reset"] += 1
     if action == "help":
         # Human needs to intervene
         actions_tracking["help"] += 1

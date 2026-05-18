@@ -60,6 +60,7 @@ ACTIONS = [
     "spawn_agent_sub_task",
     "reaching context limit",
     "re-order",
+    "reset",  # When we want a fresh start
     "help",
     "mistake",
     "no_action",
