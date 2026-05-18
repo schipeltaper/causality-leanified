@@ -2,12 +2,16 @@
 # build_and_commit.sh
 #
 # The only sanctioned way to commit + push in this repo.
-# Runs `lake build` from the Lean project root; only if the build is clean
-# does it commit whatever is currently staged and push the current branch.
+# Stages every modified/new file in the working tree (git add -A), then
+# runs `lake build` from the Lean project root; only if the build is
+# clean does it commit and push the current branch.
 #
 # Usage:
-#   git add <files>                       # stage your changes first
-#   scaffold/build_and_commit.sh "msg"    # build, commit, push
+#   scaffold/build_and_commit.sh "<commit message>"
+#
+# Before running, eyeball `git status` and make sure nothing unwanted
+# (build artifacts, scratch files) is sitting in the working tree --
+# auto-stage will sweep it in. Use `.gitignore` for anything persistent.
 
 set -euo pipefail
 
@@ -23,10 +27,14 @@ COMMIT_MSG="$1"
 cd "$REPO_DIR"
 
 echo ">>> Branch: $(git rev-parse --abbrev-ref HEAD)"
+
+echo ">>> Auto-staging all changes in the working tree ..."
+git add -A
+
 echo ">>> Staged changes:"
 git diff --cached --stat
 if git diff --cached --quiet; then
-  echo "Nothing is staged. Run 'git add <files>' first, then re-run." >&2
+  echo "Nothing to commit." >&2
   exit 3
 fi
 

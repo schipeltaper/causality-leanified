@@ -105,11 +105,15 @@ def _detect_type(lines, start, mark_env):
     return "note"
 
 
-def _scan(tex_file, marks, seen):
+def _scan(tex_file, marks, seen, state, chapter):
     """Collect def/claim marks from `tex_file` (recursively), in render order.
 
-    Appends a dict {kind, type, tex_file, line} per mark to `marks`, and
-    descends into \\input'd files where they are included.
+    Appends a dict {kind, type, tex_file, line, section} per mark to `marks`,
+    and descends into \\input'd files where they are included. `state` is a
+    mutable dict carrying the running ``\\subsection`` count so the section
+    numbering continues across recursive \\input calls. `section` is
+    formatted as ``"{chapter}.{idx}"``; marks that appear before the first
+    ``\\subsection`` get ``""``.
     """
     if tex_file in seen:
         return
@@ -121,20 +125,25 @@ def _scan(tex_file, marks, seen):
     lines = _read_raw(path).splitlines()
     for i, line in enumerate(lines):
         code = _code(line)
+        # \subsection{...} bumps the section counter; \subsection*{...} doesn't.
+        if re.search(r"\\subsection\{", code):
+            state["section_idx"] += 1
         for env, kind in _MARK_KINDS.items():
             if rf"\begin{{{env}}}" in code:
+                idx = state["section_idx"]
                 marks.append({
                     "kind": kind,
                     "type": _detect_type(lines, i, env),
                     "tex_file": tex_file,
                     "line": i,
+                    "section": f"{chapter}.{idx}" if idx else "",
                 })
         inp = re.search(r"\\input\{([^}]+)\}", code)
         if inp:
             name = inp.group(1)
             if not name.endswith(".tex"):
                 name += ".tex"
-            _scan(name, marks, seen)
+            _scan(name, marks, seen, state, chapter)
 
 
 def _insert_ref_markers(marks):
@@ -179,7 +188,7 @@ def fill_data(chapter, tex_file, data_path):
         return data_path  # already populated
 
     marks = []
-    _scan(tex_file, marks, set())
+    _scan(tex_file, marks, set(), {"section_idx": 0}, chapter)
 
     # Number the refs per chapter and per kind, in render order.
     counts = {"def": 0, "claim": 0}
@@ -187,11 +196,19 @@ def fill_data(chapter, tex_file, data_path):
     for mark in marks:
         counts[mark["kind"]] += 1
         mark["ref"] = f"{mark['kind']}_{chapter}_{counts[mark['kind']]}"
+        is_claim = mark["kind"] == "claim"
         rows.append({
             "def_or_claim": mark["kind"],
-            "solved": "no",
             "ref": mark["ref"],
+            "section": mark["section"],
             "type": mark["type"],
+            # Solve-state is split in two so we can track progress separately.
+            # `solved` is the overall checkmark: a def is solved when
+            # formalized; a claim is solved when formalized AND proven is
+            # either "proven" or "disproven" (a counter-example also counts).
+            "formalized": "no",                              # "no" | "yes"
+            "proven": "not proven" if is_claim else "n/a",   # claims: "not proven"|"proven"|"disproven"; defs: "n/a"
+            "solved": "no",                                  # "no" | "yes"
             "date_solved": "",
             "tips": "",
             "tex_file": mark["tex_file"],

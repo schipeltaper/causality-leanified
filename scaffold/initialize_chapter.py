@@ -1,5 +1,6 @@
 import json
 import re
+import subprocess
 from pathlib import Path
 
 from create_data import fill_data
@@ -29,8 +30,11 @@ def initialize():
     # Create empty data file in {current_chapter}_{title_chapter} folder
     data_path = create_data(current_chapter, title_chapter)
 
-    # Find all defs and claims in current_chapter
-    # TODO make Python script that calls Claude to do this
+    # Find all defs and claims in current_chapter -- spawn a Claude Code
+    # agent following claude_prompts/find_def_claim.md to wrap every def
+    # and claim in the chapter's .tex file with the defmark/claimmark
+    # blocks fill_data() then scans for.
+    mark_defs_and_claims(current_chapter, tex_file_chapter)
 
     # Wait for human confirmation
 
@@ -38,6 +42,41 @@ def initialize():
     fill_data(current_chapter, tex_file_chapter, data_path)
 
     return tex_file_chapter
+
+
+def mark_defs_and_claims(chapter, tex_file):
+    """Spawn a Claude Code agent to mark every def and claim in the chapter's
+    .tex file, in place, with ``\\begin{defmark}...\\end{defmark}`` or
+    ``\\begin{claimmark}...\\end{claimmark}``.
+
+    The agent follows the rules in ``claude_prompts/find_def_claim.md`` and
+    inherits the parent shell's Claude auth. Raises ``RuntimeError`` if the
+    agent exits non-zero.
+    """
+    prompt_template = (
+        SCAFFOLD_DIR / "claude_prompts" / "find_def_claim.md"
+    ).read_text(encoding="utf-8")
+    tex_path = LECTURE_NOTES_DIR / tex_file
+
+    context = (
+        "You are an agent in the causality-leanification swarm. Your one job is\n"
+        f"to mark up chapter {chapter} of the lecture notes.\n\n"
+        f"Edit ONLY this file, in place:\n  {tex_path}\n\n"
+        "Be exhaustive -- find every definition and claim, however small.\n"
+        "Do not modify any other file. When done, briefly summarise how many\n"
+        "defs and claims you marked.\n\n"
+        "---\n\n"
+    )
+    full_prompt = context + prompt_template
+
+    result = subprocess.run(
+        ["claude", "-p", full_prompt, "--dangerously-skip-permissions"],
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"find_def_claim agent exited with code {result.returncode}"
+        )
 
 # Create empty data file in {current_chapter}_{title_chapter} within leanification folder
 # It will represent a large table. Each row will be a claim or def from the lecture notes.
@@ -69,9 +108,12 @@ def create_data(current_chapter, title_chapter):
         "title": title_chapter,
         "columns": [
             "def_or_claim",
-            "solved",
             "ref",
+            "section",
             "type",
+            "formalized",
+            "proven",
+            "solved",
             "date_solved",
             "tips",
             "tex_file",
@@ -181,4 +223,4 @@ def _section_titles(tex):
 
 
 if __name__ == "__main__":
-    initialize(current_chapter)
+    initialize()

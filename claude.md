@@ -82,11 +82,12 @@ You are only aloud to modify the lecture notes within certain types. You can add
 ## Rules repo
 - All Lean 4 source files live inside the `leanification/` folder.
 - Prefer short, focused commits over large ones.
+- Don't modify the claude.md file too quickly. Make sure the human user verifies they desire this modification. 
 
 ### Committing and pushing — agent responsibility
-When you have finished a unit of work and want to commit, **you (the agent)** do all of it. The user does not stage files and does not write commit messages.
+If you are a manager agent and a task is complete, you can commit.**You (the agent)** do all of it. The user does not stage files and does not write commit messages.
 
-1. **Decide what to stage.** Run `git status` to see what changed, then `git add <files>` for the files *you* modified inside your assigned scope (rule 4 above). Do **not** stage unrelated dirty files left over from other agents or sessions — if you see any, leave them alone and mention them in your reply to the user.
+1. **Decide what to stage.** Run `git status` to see what changed, then `git add <files>` for the files *you* or *your agent team* modified inside your assigned scope (rule 4 above).
 2. **Write the commit message yourself.** Descriptive, short, focused on *why*. Do not ask the user what message to use.
 3. **Run the script** from the repo root:
    ```bash
@@ -110,6 +111,9 @@ When you have finished a unit of work and want to commit, **you (the agent)** do
 - TODO Refactor
 - TODO Past attempts
 - TODO Various tries for a proof
+
+## Agents
+After each piece of work (even if its completing a small step in your plan) please `lake build` to ensure everything works before moving on to the next step.
 
 ## Explain scaffold
 

@@ -3,9 +3,12 @@
   "title": "Experimental Causal Discovery",
   "columns": [
     "def_or_claim",
-    "solved",
     "ref",
+    "section",
     "type",
+    "formalized",
+    "proven",
+    "solved",
     "date_solved",
     "tips",
     "tex_file",
