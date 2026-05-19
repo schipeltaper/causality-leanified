@@ -1,0 +1,25 @@
+% Claim statement file for row claim_3_9 -- "SwigAcyclicTopologicalOrder".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_9 (statement)
+% title: SwigAcyclicTopologicalOrder
+
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\swig(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\swig(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^o$ the index $j-\frac{1}{3}$
+    and $v_j^i$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\end{Rem}
+
+\end{document}

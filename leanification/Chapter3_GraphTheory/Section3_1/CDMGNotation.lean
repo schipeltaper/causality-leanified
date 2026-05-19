@@ -1,185 +1,206 @@
 import Chapter3_GraphTheory.Section3_1.CDMG
 
--- The verbatim TeX source of the LN notation block is reproduced below; some
--- of its lines exceed 100 characters. Disable the style linter for this file
--- so the TeX is kept byte-for-byte identical to `Section3_1/main.tex`.
-set_option linter.style.longLine false
-
 /-!
-# def_3_2 — Notation for CDMGs
+# Notation for Conditional Directed Mixed Graphs
 
-The lecture notes introduce seven shorthand notations for talking about a CDMG
-`G = (J, V, E, L)` (see `def_3_1` / `Section3_1/CDMG.lean`):
+This file equips the `CDMG` structure introduced in `Section3_1.CDMG`
+(def 3.1 of the lecture notes) with the seven notations of the LN's
+`\begin{Not}` block (def 3.2):
 
-1. `v ∈ G`     — node membership;
-2. `v₁ ⟶ v₂` (`tuh`)  — directed edge in `E`;
-3. `v₁ ⟵ v₂` (`hut`)  — reversed directed edge in `E`;
-4. `v₁ ↔ v₂` (`huh`)  — bidirected edge in `L`;
-5. `v₁ \suh v₂` — `tuh` or `huh`;
-6. `v₁ \hus v₂` — `hut` or `huh`;
-7. `v₁ \sus v₂` — `tuh` or `hut` or `huh`.
+  * vertex membership `v ∈ G`,
+  * directed edge `v₁ ⟶[G] v₂`,
+  * reverse directed edge `v₁ ⟵[G] v₂`,
+  * bidirected edge `v₁ ⟷[G] v₂`,
+  * "arrowhead at `v₂`" (LN's `\suh`) `v₁ ⇸[G] v₂`,
+  * "arrowhead at `v₁`" (LN's `\hus`) `v₁ ⇷[G] v₂`,
+  * "any edge between" (LN's `\sus`) `v₁ ↮[G] v₂`.
 
-The star in `\suh`, `\hus`, `\sus` stands for "arrowhead or tail".
-
-This file is `def_3_2` of the data file (part 2/2 of `Section3_1` so far).
+The notations are `scoped` under `Causality.CDMG`; users bring them in
+with `open scoped Causality.CDMG`.
 -/
 
 namespace Causality
-namespace Chapter3
 
-variable {J V : Type*}
+variable {α : Type*}
 
+-- def_3_2 (item 1)
+-- title: CDMGNotation -- vertex membership
+--
+-- `v ∈ G` means `v ∈ G.J ∪ G.V`, i.e. `v` is either an input node or
+-- an output node of the CDMG `G`. We register this as a `Membership`
+-- instance so the literal Lean syntax `v ∈ G` typechecks and unfolds
+-- to set-union membership.
 /-
-Source (verbatim from `Section3_1/main.tex`, under `% def_3_2`):
+Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,
+item 1, in `\begin{Not}\label{not-cdmg}`):
 
-\begin{defmark}
-\begin{Not}
-    \label{not-cdmg}
-    Let $G=(J,V,E,L)$ be a CDMG.
-    We will write:
-    \begin{enumerate}
-        %\item $G(V|\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.
-        \item $v \in G$ to mean $v \in J \cup V$,
-        \item $v_1 \tuh v_2 \in G$ to mean $(v_1,v_2) \in E$,
-        \item $v_1 \hut v_2 \in G$ to mean $(v_2,v_1) \in E$,
-        \item $v_1 \huh v_2 \in G$ to mean $(v_1,v_2) \in L$,
-        \item $v_1 \suh v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \huh v_2 \in G$,
-        \item $v_1 \hus v_2 \in G$ to mean that either $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$,
-        \item $v_1 \sus v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$.
-    \end{enumerate}
-    The star stands for a placeholder to mean: ``arrowhead or tail''.
-\end{Not}
-\end{defmark}
+  $v \in G$ to mean $v \in J \cup V$,
+-/
+instance : Membership α (CDMG α) where
+  mem G v := v ∈ G.J ∪ G.V
+
+/-- The membership `v ∈ G` defining equation: `v` belongs to the CDMG
+`G` iff it is either an input or an output node. By definition. -/
+@[simp] theorem CDMG.mem_iff {G : CDMG α} {v : α} :
+    v ∈ G ↔ v ∈ G.J ∪ G.V := Iff.rfl
+
+namespace CDMG
+
+-- def_3_2 (items 2-4) -- the three primitive edge relations
+-- title: CDMGNotation -- directed, reverse-directed, bidirected edges
+--
+-- `tuh` / `hut` / `huh` mirror the LN macros `\tuh` / `\hut` / `\huh`.
+-- They are `Prop`-valued one-line aliases for membership in `G.E`
+-- (directed) or `G.L` (bidirected). The names are deliberately kept
+-- close to the LN macros so a reader bouncing between the notes and
+-- the Lean source can recognise them.
+/-
+Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,
+items 2-4):
+
+  $v_1 \tuh v_2 \in G$ to mean $(v_1,v_2) \in E$,
+  $v_1 \hut v_2 \in G$ to mean $(v_2,v_1) \in E$,
+  $v_1 \huh v_2 \in G$ to mean $(v_1,v_2) \in L$,
 -/
 
-/-!
-## Design choice — typing of the composite arrows `suh`, `hus`, `sus`
+/-- LN's `\tuh`: there is a *directed* edge `v₁ → v₂` in `G`, i.e.
+`(v₁, v₂) ∈ G.E`. -/
+def tuh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.E
 
-`tuh` and `hut` allow one endpoint in `J ∪ V` (because `E ⊆ (J ∪ V) × V`), but
-`huh` requires both endpoints in `V` (because `L ⊆ V × V`). The composites of
-the LN take "either of those" as their meaning, so we have to pick a uniform
-Lean type for each composite.
+/-- LN's `\hut`: there is a *directed* edge `v₁ ← v₂` in `G`, i.e.
+`(v₂, v₁) ∈ G.E` (the same `G.E` membership, with arguments swapped). -/
+def hut (G : CDMG α) (v₁ v₂ : α) : Prop := (v₂, v₁) ∈ G.E
 
-We give all three composites the type `(J ⊕ V) → (J ⊕ V) → Prop`, i.e. uniform
-endpoints in `J ⊕ V` (Lean's encoding of `J ∪ V`, per `def_3_1`). For each
-composite, the `huh` disjunct fires only when both endpoints happen to be in
-`V` (`Sum.inr`), and the `tuh` / `hut` disjuncts fire only when the appropriate
-endpoint is in `V` (since `E` has codomain in `V`). We encode that with
-`Sum.inr` existentials; LN-illegal arrows (e.g. `j ↔ v` with `j ∈ J`) end up
-identically `False`, which is exactly the property `claim_3_1` will use.
+/-- LN's `\huh`: there is a *bidirected* edge `v₁ ↔ v₂` in `G`, i.e.
+`(v₁, v₂) ∈ G.L`. Because `G.L` is required to be symmetric (see
+`CDMG.L_symm` in `def_3_1`), `huh G v₁ v₂` and `huh G v₂ v₁` are
+propositionally equivalent. -/
+def huh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.L
 
-Why uniform `J ⊕ V` and not uniform `V`:
+-- def_3_2 (items 5-7) -- the three "star" relations
+-- title: CDMGNotation -- arrowhead-at-target / -source / any edge
+--
+-- The "star" in the LN means "arrowhead or tail"; these three
+-- relations are exactly the disjunctions of the primitive edges.
+/-
+Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,
+items 5-7):
 
-* `claim_3_1` writes `j \hus v ∉ G` with `j ∈ J` — so the *type* of `\hus`
-  must accept a `J`-endpoint, otherwise the LN statement does not even type-
-  check in Lean.
-* `def_3_3` calls two nodes `v₁`, `v₂` of `G` *adjacent in `G`* iff
-  `v₁ \sus v₂`; nodes of `G` live in `J ⊕ V`, so adjacency must accept any
-  pair in `J ⊕ V`.
-* `def_3_4` defines walks whose vertices live in `J ⊕ V`, with `\sus`-style
-  adjacency between consecutive nodes — a uniform `J ⊕ V` composite is exactly
-  the per-step predicate we need.
+  $v_1 \suh v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$
+                                       or $v_1 \huh v_2 \in G$,
+  $v_1 \hus v_2 \in G$ to mean that either $v_1 \hut v_2 \in G$
+                                       or $v_1 \huh v_2 \in G$,
+  $v_1 \sus v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$
+                                       or $v_1 \hut v_2 \in G$
+                                       or $v_1 \huh v_2 \in G$.
 
-We keep `tuh`, `hut`, `huh` with their *strict* types (the codomain of `E`
-and `L` constrains the second / first / both endpoints to `V`). This way each
-of the three "primitive" arrows is a direct membership test in the underlying
-set, which is the lightest weight for proofs; the composites do the lifting to
-`J ⊕ V` once and for all.
-
-We do **not** introduce Lean `notation` for the arrows: the unicode arrows
-`→`, `↔`, `←` would clash with core / mathlib symbols, and bracketed forms
-like `v₁ ⟶[G] v₂` add parser surface without buying much over plain function
-calls `G.tuh v₁ v₂`. Downstream code can still read close to the LN.
+The star stands for a placeholder to mean: "arrowhead or tail".
 -/
 
--- def_3_2 (part 1/7) — `v ∈ G` for `v : J ⊕ V`.
---
--- LN item: "`v ∈ G` to mean `v ∈ J ∪ V`".
---
--- Since `def_3_1` encodes `J ∪ V` as `J ⊕ V` *at the type level*, every term
--- of type `J ⊕ V` is "in `G`" by construction — there is no propositional
--- content. We register a `Membership` instance whose body is `True` so that
--- `v ∈ G` parses and the downstream LN statements (`def_3_3` adjacency,
--- `def_3_4` walks, …) can be written as in the lecture notes.
---
--- Design choice: returning `True` here is *not* a placeholder. The honest
--- alternative — refusing to introduce a `Membership` instance and forcing
--- every LN occurrence of `v ∈ G` to be rephrased — would make the Lean text
--- drift away from the lecture notes without adding any information.
-instance : Membership (J ⊕ V) (CDMG J V) where
-  mem _ _ := True
+/-- LN's `\suh`: there is an edge with an arrowhead at `v₂` in `G`,
+i.e. either `tuh G v₁ v₂` (`→`) or `huh G v₁ v₂` (`↔`). -/
+def suh (G : CDMG α) (v₁ v₂ : α) : Prop := tuh G v₁ v₂ ∨ huh G v₁ v₂
 
--- def_3_2 (part 2/7) — directed edge `v₁ ⟶ v₂` ("tail-to-head", `\tuh`).
---
--- LN item: "`v₁ \tuh v₂ ∈ G` to mean `(v₁, v₂) ∈ E`".
---
--- Source `v₁` is in `J ⊕ V`, target `v₂` is in `V` — exactly the domain of
--- `G.E`, so this is definitionally an `E`-membership.
-def CDMG.tuh (G : CDMG J V) (v₁ : J ⊕ V) (v₂ : V) : Prop :=
-  (v₁, v₂) ∈ G.E
+/-- LN's `\hus`: there is an edge with an arrowhead at `v₁` in `G`,
+i.e. either `hut G v₁ v₂` (`←`) or `huh G v₁ v₂` (`↔`). -/
+def hus (G : CDMG α) (v₁ v₂ : α) : Prop := hut G v₁ v₂ ∨ huh G v₁ v₂
 
--- def_3_2 (part 3/7) — reversed directed edge `v₁ ⟵ v₂` ("head-to-tail",
--- `\hut`).
---
--- LN item: "`v₁ \hut v₂ ∈ G` to mean `(v₂, v₁) ∈ E`".
---
--- Same underlying data as `tuh`; the LN convention is that arrowheads in the
--- macro name sit on `v₁`. So here `v₂` is the source (in `J ⊕ V`) and `v₁`
--- is the target (in `V`).
-def CDMG.hut (G : CDMG J V) (v₁ : V) (v₂ : J ⊕ V) : Prop :=
-  (v₂, v₁) ∈ G.E
+/-- LN's `\sus`: there is *some* edge between `v₁` and `v₂` in `G`,
+i.e. any of `tuh G v₁ v₂`, `hut G v₁ v₂`, or `huh G v₁ v₂`. This is
+the "adjacency" relation used in def 3.3. -/
+def sus (G : CDMG α) (v₁ v₂ : α) : Prop :=
+  tuh G v₁ v₂ ∨ hut G v₁ v₂ ∨ huh G v₁ v₂
 
--- def_3_2 (part 4/7) — bidirected edge `v₁ ↔ v₂` ("head-to-head", `\huh`).
---
--- LN item: "`v₁ \huh v₂ ∈ G` to mean `(v₁, v₂) ∈ L`".
---
--- Both endpoints lie in `V`, matching `G.L : Set (V × V)`. Symmetry of the
--- relation is *not* baked into the definition (we mirror the LN's chosen
--- ordered-pair representative); it is delivered separately by `G.L_symm`
--- of `def_3_1`.
-def CDMG.huh (G : CDMG J V) (v₁ v₂ : V) : Prop :=
-  (v₁, v₂) ∈ G.L
+/-- LN `v₁ ⟶[G] v₂`: directed edge `v₁ → v₂` in the CDMG `G`. Matches
+LN macro `\tuh`. Unicode arrow is `⟶` (`\longrightarrow`, U+27F6),
+chosen distinct from the function arrow `→` to avoid any clash with
+Lean's built-in syntax. -/
+scoped notation:50 v₁ " ⟶[" G "] " v₂ => Causality.CDMG.tuh G v₁ v₂
 
--- def_3_2 (part 5/7) — composite arrow `\suh` ("tuh or huh", arrowhead on
--- `v₂`).
---
--- LN item: "`v₁ \suh v₂ ∈ G` to mean that either `v₁ \tuh v₂ ∈ G` or
--- `v₁ \huh v₂ ∈ G`".
---
--- Typing: `(J ⊕ V) → (J ⊕ V) → Prop` (see the design-choice block above).
--- The `tuh` disjunct fires only when `v₂` is in `V`; the `huh` disjunct fires
--- only when both are in `V`. Both restrictions are enforced via `Sum.inr`
--- existentials.
-def CDMG.suh (G : CDMG J V) (v₁ v₂ : J ⊕ V) : Prop :=
-  (∃ w₂ : V, v₂ = Sum.inr w₂ ∧ G.tuh v₁ w₂) ∨
-  (∃ w₁ w₂ : V, v₁ = Sum.inr w₁ ∧ v₂ = Sum.inr w₂ ∧ G.huh w₁ w₂)
+/-- LN `v₁ ⟵[G] v₂`: directed edge `v₁ ← v₂` in `G`. Matches LN macro
+`\hut`. Equivalent to `v₂ ⟶[G] v₁` by definition. -/
+scoped notation:50 v₁ " ⟵[" G "] " v₂ => Causality.CDMG.hut G v₁ v₂
 
--- def_3_2 (part 6/7) — composite arrow `\hus` ("hut or huh", arrowhead on
--- `v₁`).
---
--- LN item: "`v₁ \hus v₂ ∈ G` to mean that either `v₁ \hut v₂ ∈ G` or
--- `v₁ \huh v₂ ∈ G`".
---
--- Symmetric to `suh` (arrowhead-on-`v₁` instead of arrowhead-on-`v₂`).
--- This is the predicate that `claim_3_1` will show is `False` whenever
--- `v₁ ∈ J` (no arrowheads can point into a `J`-node).
-def CDMG.hus (G : CDMG J V) (v₁ v₂ : J ⊕ V) : Prop :=
-  (∃ w₁ : V, v₁ = Sum.inr w₁ ∧ G.hut w₁ v₂) ∨
-  (∃ w₁ w₂ : V, v₁ = Sum.inr w₁ ∧ v₂ = Sum.inr w₂ ∧ G.huh w₁ w₂)
+/-- LN `v₁ ⟷[G] v₂`: bidirected edge `v₁ ↔ v₂` in `G`. Matches LN
+macro `\huh`. Symmetric in `v₁`/`v₂` thanks to `CDMG.L_symm`. -/
+scoped notation:50 v₁ " ⟷[" G "] " v₂ => Causality.CDMG.huh G v₁ v₂
 
--- def_3_2 (part 7/7) — composite arrow `\sus` ("tuh or hut or huh",
--- arrowheads on *either* side).
---
--- LN item: "`v₁ \sus v₂ ∈ G` to mean that either `v₁ \tuh v₂ ∈ G` or
--- `v₁ \hut v₂ ∈ G` or `v₁ \huh v₂ ∈ G`".
---
--- This is the adjacency predicate `def_3_3` will name. Per the design-choice
--- block, downstream definitions (`def_3_3` adjacency, `def_3_4` walks)
--- consume `sus` on `J ⊕ V` directly.
-def CDMG.sus (G : CDMG J V) (v₁ v₂ : J ⊕ V) : Prop :=
-  (∃ w₂ : V, v₂ = Sum.inr w₂ ∧ G.tuh v₁ w₂) ∨
-  (∃ w₁ : V, v₁ = Sum.inr w₁ ∧ G.hut w₁ v₂) ∨
-  (∃ w₁ w₂ : V, v₁ = Sum.inr w₁ ∧ v₂ = Sum.inr w₂ ∧ G.huh w₁ w₂)
+/-- LN `v₁ ⇸[G] v₂`: there is an arrowhead at `v₂` (`→` or `↔`).
+Matches LN macro `\suh`. Unicode is `⇸` (U+21F8, RIGHTWARDS ARROW
+WITH VERTICAL STROKE) -- the vertical stroke evokes the LN's star
+placeholder at the left endpoint. -/
+scoped notation:50 v₁ " ⇸[" G "] " v₂ => Causality.CDMG.suh G v₁ v₂
 
-end Chapter3
+/-- LN `v₁ ⇷[G] v₂`: there is an arrowhead at `v₁` (`←` or `↔`).
+Matches LN macro `\hus`. Unicode is `⇷` (U+21F7, LEFTWARDS ARROW
+WITH VERTICAL STROKE). -/
+scoped notation:50 v₁ " ⇷[" G "] " v₂ => Causality.CDMG.hus G v₁ v₂
+
+/-- LN `v₁ ↮[G] v₂`: any edge of any orientation between `v₁` and
+`v₂` ("adjacency"). Matches LN macro `\sus`. Unicode is `↮` (U+21AE,
+LEFT RIGHT ARROW WITH STROKE) -- the doubled stroke evokes a
+placeholder at both endpoints. -/
+scoped notation:50 v₁ " ↮[" G "] " v₂ => Causality.CDMG.sus G v₁ v₂
+
+end CDMG
+
 end Causality
+
+-- ## Design choice
+--
+-- * **`Membership` instance vs. a separate predicate `CDMG.mem`.**
+--   The LN consistently writes `v ∈ G`, which strongly suggests using
+--   Lean's built-in `∈` so callers can write the literal phrase. A
+--   bespoke predicate `CDMG.mem` would force `CDMG.mem G v` (or, with
+--   dot notation, `G.mem v`) at every use site and would not interact
+--   with Mathlib's `mem_*` library lemmas at all. The `Membership`
+--   instance gives us the LN syntax for free and lets `v ∈ G` rewrite
+--   to `v ∈ G.J ∪ G.V` via the `simp` lemma `CDMG.mem_iff`, after
+--   which the full power of `Set.mem_union`, `Set.mem_insert_iff`,
+--   etc. is available.
+--
+-- * **Six separate `def`s vs. one inductive `EdgeKind` enum.**
+--   An alternative was a single `inductive EdgeKind | dir | revDir |
+--   bidir` plus one predicate `hasEdge : EdgeKind → CDMG α → α → α →
+--   Prop`. We rejected this for two reasons:
+--   1. The LN treats `v₁ \tuh v₂ ∈ G`, `v₁ \huh v₂ ∈ G`, etc. as
+--      *atoms* in proofs -- e.g. claim 3.1 reads "no `j ∈ J` has
+--      `j \hus v ∈ G`", and def 3.5 defines parents as
+--      `{w | w \tuh v \in G}`. Atoms compose better with `simp`,
+--      `rw`, and pattern matching than wrapped predicates.
+--   2. The three "star" relations (`suh`, `hus`, `sus`) are *not*
+--      single edge types -- they are disjunctions. An enum would not
+--      naturally represent them; either we'd need a second sum-of-
+--      enums layer or we'd revert to disjunctions anyway. Spelling
+--      out the disjunctions directly is the LN's own approach.
+--
+-- * **Notation characters.**
+--   We pick Unicode arrows that visually echo the LN macros without
+--   clashing with mathlib's existing notation:
+--     - `⟶` / `⟵` / `⟷` (U+27F6/F5/F7, long arrows) for `\tuh` /
+--       `\hut` / `\huh`. We deliberately avoid the short `→`/`←`/`↔`
+--       because those are heavily overloaded (function arrows, `Iff`,
+--       rewrite-direction in `rw`, etc.).
+--     - `⇸` / `⇷` (U+21F8 / U+21F7, arrows with vertical stroke) for
+--       `\suh` / `\hus`. The stroke evokes the LN's "star =
+--       arrowhead-or-tail" placeholder.
+--     - `↮` (U+21AE, left-right arrow with stroke) for `\sus`.
+--   The `[G]` suffix (rather than `\in G` postfix) makes the graph
+--   argument explicit at the notation level and avoids the ambiguity
+--   of trying to overload Lean's `∈`.
+--
+-- * **`Prop`-valued, not `Bool`.**
+--   `Prop` matches the LN, lets us write `(v₁, v₂) ∈ G.E` directly
+--   (which is `Prop`-valued because `G.E : Set (α × α)`), and avoids
+--   imposing `DecidableEq α` everywhere -- the lecture notes treat
+--   the vertex type as arbitrary, sometimes uncountable (chapters 4
+--   and beyond use real-valued nodes), so we cannot assume
+--   decidability at this layer. Where decidability matters later
+--   (e.g. constructive algorithms over finite graphs) it will be
+--   introduced as a separate hypothesis.
+--
+-- * **Scoped vs. global notation.**
+--   `scoped` keeps the arrow notations under `Causality.CDMG`, so a
+--   file that doesn't open the namespace isn't paying for our
+--   Unicode tokens. Downstream rows (def_3_3 onwards) will
+--   `open scoped Causality.CDMG` near the top.

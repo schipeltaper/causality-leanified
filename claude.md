@@ -12,14 +12,11 @@ The goal of this project is to create the scaffold that can automatically formal
 We are working chapter after chapter in chronological order. The current chapter we are working on can be found in \scaffold\global_vars.json. The current sub-goal is complete once:
 - Every definition and claim of the the current chapter is formalized in Lean and all the claims are proven in Lean.
 - The formalization of the current chapter in Lean stays very close to the logic and paradigm of the lecture notes (see the main.tex of the lecture notes in lecture-notes/lecture_notes/main.tex). This means every definition and claim in the lecture notes is (almost) equivalently formalized in Lean
-- TODO If certain claims in the lecture notes do not hold, we should document them and provide a proof (like a counter-example) of its incorrectness. There does exist at least one claim in the lecture notes that is false, so don't disregard this possibility entirely.
-- TODO We have all our formalizations neatly organized, and every definition and claim from the lecture notes has a reference in the Lean file. And we have a README in our subsection folder explaining the folder and where we can find everything
+- If certain claims in the lecture notes do not hold, we prove the negation of the claim. This could for example be a counter-example. There does exist at least one claim in the lecture notes that is false, so don't disregard this possibility entirely.
+- We have all our formalizations neatly organized, and every definition and claim from the lecture notes has a reference in the Lean file.
 - The project builds cleanly with `lake build`
 
-#### Current sub-sub goal
-To complete the subgoal of Leanifying this chapter, we go subsection by subsection. So currently we are probably working on a subsection within the current chapter. To complete this subsection, we need to solve _all_ its claims and definitions in the lecture notes in our data file.
-
-##### Current task - How we solve one claim or definition in our data file
+#### Current task - How we solve one claim or definition in our data file
 In both cases of it being a claim or a definition, we want to properly formalize the statement in Lean. The formalization should be (almost) equivalent to the lecture notes statement. Follow the structure of the lecture notes precisely. If part of a claim statement is trivial or already proven elsewhere, still include it to the statement. We want the statements to be equivalent. If for your definition or claim statement, you need to introduce a structure or something else, then you ought to do that. Don't leave a formalization for later. If the task is given to you now, the point is that you do it now.
 
 In the comments above our formalization we will include
@@ -33,6 +30,8 @@ The row (claim or def) of our data file (aka our current job) is properly solved
 Once we are done with either our definition or claim, we add to the commenting:
 - An explanation and justification of our design choices
 
+When the next row we solve is a new subsection, we clean up this subsection. We present it. (TODO functions for this don't yet exist, but are soon to come!)
+
 ### Tip
 The lecture notes build a paradigm of Causality. All claims are introduced for a reason. So when proving something, use what you have already formalized and proven, and use the Causality paradigm. The lecture notes are somewhat self-contained, so you can use this paradigm to create proof-strategies.
 
@@ -40,9 +39,6 @@ The lecture notes build a paradigm of Causality. All claims are introduced for a
 The system of referencing. In the leanification folder, we (will) have a folder per chapter. Within each of those folders exist a data.json file. Each row in this data.json represents either a claim or a definition from the lecture notes. In here, one of the columns is 'ref'. In the 'ref' column we have a unique identifyer that references to the exact def or claim. The structure is, the third claim in chapter 6 will have reference identifyer: 'claim_6_3'  and the 5th definition of chapter 2: 'def_2_5' so the pattern is [claim or def]\_[chapter number]\_[n where this is the nth claim or def in this chapter]
 
 ## TODO Repo structure
-- Lean files + Lean version
-- Explain each folder
-- All Lean files in leanification folder within the current chapter folder!
 
 
 ## Context Causality
@@ -72,32 +68,24 @@ The lecture notes are **"A Mathematical Introduction to Causality"** by Patrick 
 - The text uses inputs/outputs everywhere. Be wary of accidentally formalising a less general "no-input" version that would have to be re-done later.
 - See `lecture-notes/lecture_notes/main.tex` for the full chapter order; **every manager agent reads the whole notes before formalising** (see `scaffold/claude_prompts/manager.md`).
 
-## Modifications Lecture Notes
-You are only aloud to modify the lecture notes within certain types. You can add the following types of comments:
-- Def + ref
-- Claim + ref
-- Small_mistake
-- Fill gap proof
-- Big mistake
-
 ## Lecture notes
 - Skip the comments! only what is rendered
 - Stay very close to the lecture notes! Formalize the definitions and statements that is in line with how they are formalized in the lecture notes. And when proving statements try using the paradgim of the lecture notes. 
 - The lecture notes are not perfect. I know of at least one big mistake making the original statement incorrect
 
 ## Key rules for formalization
-1. **Stay close to the lecture notes.** Use the same definitions, the same notation, the same proof structure. Don't invent alternative definitions unless the lecture notes' version is impossible to formalize directly. If the lecture notes prove by induction on |V|, your Lean proof should too, etc.
+1. **Stay close to the lecture notes.** Use the same definitions, the same notation, the same proof structure. Don't invent alternative definitions, only to support creating the formalization equivalent to the lecture notes' version. If the lecture notes prove by induction on |V|, your Lean proof should too, etc.
 
-2. The preference is always to explain too much rather than too little; to add too much comment than to add too little.
+2. The preference is always to explain too much rather than too little; to add too much comments than to add too little.
 
 3. Design choice:
-  - The priority is always to choose the design (of say your definitions) in such a way that best supports us to build up the theory. So take into account what is natural for how Lean is built. Especially with foundational definitions we should take into account what is efficient too.
-  - Where a structure or proof already exists exactly how we want it on MathLib, then we should build further on the Mathlib. Don't force this though! We are working in a different paradigm, and so often it will be more useful to build our own structures. (Document these trade-offs and decisions in the design choice part of the comments)
+  - The priority is always to choose the design (of say your definitions) in such a way that best supports us to build up the theory. So take into account what is natural for how Lean is built. Especially with foundational definitions we should take into account what is efficient and natural (/easy to work with) in Lean too.
+  - Where a structure or proof already exists exactly how we want it on MathLib, then we should build further on the Mathlib. Don't force this though! We are working in a different paradigm, and so often it might be more useful to build our own structures. (Document these trade-offs and decisions in the design choice part of the comments)
   - We want the logic and structure and proof-strategies to be able to stay very close to what is used in the lecture notes
   - We do also care about readability
-  - Where possible, make your proofs such that they don't require unnecesary amount of computation.
+  - Where possible, make your proofs such that they don't require unnecesary amount of computation or complexity. This should never impede accuracy! But that speaks for itself
 
-4. Do not modify files outside of your assigned scope! If you are working on one row of the dataset, only modify files in your subsections folder within your chapters folder within the leanification folder.
+4. Do not modify files outside of your assigned scope! If you want to modify Lean files in other subsections, discuss this with your manager agent. And if you are the manager agent, make sure not to ruin any other claims/definitions. If you are working on one row of the dataset, usually you should only modify files in your subsections folder within your chapters folder within the leanification folder.
 
 5. If Lean files become very long (above ~ 700 lines), if that is easy to do: split the file into multiple Lean files. Look for natural split points. Don't force this! If a file is long due to a long monolithic proof, you cannot and should not try to split this.
 
@@ -127,7 +115,6 @@ If you are a manager agent and a task is complete (even if it is just creating a
 - **Git push**: use `git config pack.packSizeLimit 50m` before pushing to avoid SIGBUS errors on the UvA server.
 - **The server runs inside an Apptainer container.** Bash spawning may be restricted. If `bash -c "..."` fails, it's a container issue, not a code issue.
 - **`lake build` must be run from the repo root (`/home/11716061/repo_scaffold2/`)**, not from inside `leanification/`. The lakefile, lean-toolchain, `.lake/` cache, and lake-manifest all live at the repo root now.
-
 
 ## Documentation
 - TODO Refactor
@@ -214,14 +201,9 @@ Read the task, read the chapter. Read the context causality file. Then decide wh
 - Document mistake! This cannot be proven
 
 
-# TODO
-- Delete unnesesary tex files. It is only confusing
 
 # Open questions
 - How to structure Lean files?
-
-# Someday / maybe
-- Fill in the gaps of the proofs in LN
 
 
 

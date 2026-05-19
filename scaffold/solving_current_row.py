@@ -425,19 +425,22 @@ def read_tex_block(tex_file: str, ref: str) -> str:
 # ---------------------------------------------------------------------------
 
 def run_claude(prompt: str, label: str,
-               *, resume_session: str | None = None) -> tuple[str, str | None]:
+               *, resume_session: str | None = None,
+               retries: int = 1) -> tuple[str, str | None]:
     """Run ``claude -p`` non-interactively and return ``(text, session_id)``.
 
     - The model is locked to Opus 4.7 with effort=max.
     - ``--output-format json`` is used so we can capture the conversation's
       session id; the manager can then resume any past agent via the
-      ``continue_agent`` action (see :func:`run_claude_resumed`).
+      ``continue_agent`` action.
     - ``--dangerously-skip-permissions`` is on so workers can edit files.
     - If ``resume_session`` is given, we pass ``-r <id>`` so claude continues
-      that previous conversation instead of starting a new one. The prompt
-      is then the follow-up message.
+      that previous conversation instead of starting a new one.
+    - ``retries`` controls how many times we re-issue the call on a non-zero
+      exit. The Claude CLI very occasionally exits 1 with empty stderr --
+      usually a transient API hiccup. We swallow the first one or two.
 
-    Raises ``RuntimeError`` on non-zero exit or timeout.
+    Raises ``RuntimeError`` only after all retries fail (or on timeout).
     """
     cmd = ["claude", "-p", prompt, "--dangerously-skip-permissions",
            "--model", CLAUDE_MODEL,
@@ -445,19 +448,31 @@ def run_claude(prompt: str, label: str,
            "--output-format", "json"]
     if resume_session:
         cmd += ["-r", resume_session]
-    try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True,
-            timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
-        )
-    except subprocess.TimeoutExpired as e:
-        raise RuntimeError(f"claude call '{label}' timed out") from e
 
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"claude call '{label}' exited {result.returncode}: "
-            f"{(result.stderr or '')[:500]}"
-        )
+    attempt = 0
+    last_error = ""
+    while True:
+        attempt += 1
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True,
+                timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
+            )
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError(
+                f"claude call '{label}' timed out (attempt {attempt})"
+            ) from e
+
+        if result.returncode == 0:
+            break
+        last_error = (result.stderr or "")[:500]
+        if attempt > retries:
+            raise RuntimeError(
+                f"claude call '{label}' exited {result.returncode} after "
+                f"{attempt} attempt(s): {last_error}"
+            )
+        print(f"[run_claude] '{label}' exited {result.returncode} on attempt "
+              f"{attempt}; retrying...", flush=True)
 
     # Parse the JSON envelope. Fields we care about:
     #   result  -> the assistant's text reply
@@ -467,7 +482,7 @@ def run_claude(prompt: str, label: str,
         text = envelope.get("result") or envelope.get("response") or ""
         session_id = envelope.get("session_id")
     except json.JSONDecodeError:
-        # Older versions / unexpected output: degrade gracefully
+        # Older versions / unexpected output: degrade gracefully.
         text = result.stdout
         session_id = None
     return text, session_id

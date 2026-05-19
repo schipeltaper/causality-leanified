@@ -1,123 +1,28 @@
+% Claim proof file for row claim_3_2 -- "AcyclicIffTopologicalOrder".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
 \documentclass[main]{subfiles}
 
 \begin{document}
 % ref: claim_3_2 (proof)
-% title: Untitled
-% migrated from Section3_1/tex_proofs/claim_3_2_AcyclicIffTopologicalOrder.tex
-
-% claim_3_2 — standalone TeX proof.
-% source: lecture-notes/lecture_notes/graphs.tex, lines 221-245
-% (the LN provides a \begin{proof} immediately after the claim).
+% title: AcyclicIffTopologicalOrder
 %
-% This file lifts that proof essentially verbatim, with two light edits for
-% self-containment:
-%   (a) explicit citations of `def_3_6` (acyclic), `def_3_8` (topological
-%       order), `def_3_5` (parents), `def_3_4` (directed walk);
-%   (b) the LN's parenthetical "otherwise, following parent edges would
-%       produce a directed cycle" is expanded into an explicit pigeonhole
-%       argument, since the downstream Lean worker needs every step.
-
-\begin{claimmark}
-\begin{Lem}
-        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
-\end{Lem}
-\end{claimmark}
-
-\noindent\textbf{Strategy.} Two directions: ($\Leftarrow$) a directed cycle
-would yield a strictly decreasing chain in the linear order, which is
-impossible; ($\Rightarrow$) construct the order by repeatedly extracting a
-parent-less node from the not-yet-selected vertices, using acyclicity (via
-pigeonhole on the finite vertex set) to guarantee such a node always exists.
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
 
 \begin{proof}
-Throughout, "acyclic'' means in the sense of `def_3_6': every directed walk
-$p$ from a vertex $v$ to itself is the trivial (length-$0$) walk at $v$.
-A \emph{topological order} of $G$, by `def_3_8', is a total order $<$ on
-$J \cup V$ such that for all $v, w \in J \cup V$,
-\[
-  v \in \Pa^G(w) \;\Longrightarrow\; v < w,
-\]
-where $\Pa^G(w)$ denotes the set of parents of $w$ in $G$ (`def_3_5'), i.e.\
-those $v$ with $v \tuh w \in G$ (a directed edge from $v$ to $w$).
-
-\medskip
-\noindent\textbf{($\Leftarrow$) Topological order $\Rightarrow$ acyclic.}
-Suppose $<$ is a topological order of $G$, i.e.\
-$v \in \Pa^G(w) \Rightarrow v < w$.
-
-We must show every directed walk from a vertex $v$ to itself is trivial.
-Suppose for contradiction that there is a non-trivial directed walk
-(a directed walk in the sense of `def_3_4', i.e.\ traversing only directed
-edges $\tuh$)
-\[
-  v = v_0 \tuh v_1 \tuh v_2 \tuh \cdots \tuh v_n = v
-\]
-with $n \ge 1$. Each step $v_{i-1} \tuh v_i$ means $v_{i-1} \in \Pa^G(v_i)$
-(by `def_3_5'), so by the topological-order property
-\[
-  v_0 < v_1 < v_2 < \cdots < v_n.
-\]
-But $v_n = v_0$, so $v_0 < v_0$, contradicting irreflexivity of the strict
-order $<$. Hence no such non-trivial walk exists, and $G$ is acyclic.
-
-\medskip
-\noindent\textbf{($\Rightarrow$) Acyclic $\Rightarrow$ topological order.}
-Suppose $G$ is acyclic. We construct a topological order by repeatedly
-selecting a node with no parents in the not-yet-selected subset.
-
-Set $N := J \cup V$ and $K := |N|$ (finite since both $J$ and $V$ are finite
-by `def_3_1'). We define a sequence $v_1, v_2, \dots, v_K$ inductively.
-Given $v_1, \dots, v_{i-1}$, let
-\[
-  R_i \;:=\; N \setminus \{v_1, \dots, v_{i-1}\}
-\]
-be the set of remaining (not-yet-selected) nodes; note $R_1 = N$. For a
-node $w \in R_i$, write
-\[
-  \Pa^{R_i}(w) \;:=\; \Pa^G(w) \cap R_i
-\]
-for the parents of $w$ that still lie in $R_i$.
-
-\medskip\noindent\emph{Claim.} For every $i$ with $R_i \neq \emptyset$, there
-exists $v \in R_i$ with $\Pa^{R_i}(v) = \emptyset$.
-
-\smallskip\noindent\emph{Proof of claim.} Suppose for contradiction that every
-$v \in R_i$ has a parent in $R_i$. Pick any $w_0 \in R_i$ and inductively
-pick $w_{k+1} \in \Pa^{R_i}(w_k)$ for $k = 0, 1, 2, \dots$ (always possible
-by assumption). This produces an infinite sequence $w_0, w_1, w_2, \dots$
-of elements of $R_i$ with $w_{k+1} \tuh w_k \in G$ for every $k$.
-
-Since $R_i \subseteq N$ is finite, by the pigeonhole principle there exist
-indices $0 \le k < \ell$ with $w_k = w_\ell$. Then the edges
-\[
-  w_\ell \tuh w_{\ell-1} \tuh w_{\ell-2} \tuh \cdots \tuh w_{k+1} \tuh w_k
-\]
-form a directed walk from $w_\ell$ to $w_k = w_\ell$ of length $\ell - k \ge 1$,
-hence non-trivial. This contradicts acyclicity of $G$ (`def_3_6'), proving the
-claim. \hfill$\diamond$
-
-\medskip
-By the claim, at each step $i = 1, 2, \dots, K$ we may pick some
-$v_i \in R_i$ with $\Pa^{R_i}(v_i) = \emptyset$. After $K$ steps every node
-of $N$ has been chosen exactly once, so $v_1, v_2, \dots, v_K$ is an
-enumeration of $J \cup V$.
-
-Define the total order $<$ on $N$ by $v_j < v_i$ iff $j < i$
-(i.e.\ the order in which nodes were extracted). This is a strict total order
-because the $v_i$ are pairwise distinct.
-
-It remains to verify the topological-order property: if $v, w \in N$ and
-$v \in \Pa^G(w)$, then $v < w$. Write $w = v_i$ and $v = v_j$. Since $v$ is
-a parent of $w$, in particular $v \in \Pa^G(v_i)$.
-
-Consider the step at which $v_i$ was selected: at that moment $v_i \in R_i$
-and $\Pa^{R_i}(v_i) = \emptyset$, meaning $\Pa^G(v_i) \cap R_i = \emptyset$.
-Hence $v \notin R_i$, i.e.\ $v$ had already been selected, i.e.\ $v = v_j$ with
-$j < i$. By definition of $<$, this means $v < w$, as required.
-
-Thus $<$ is a topological order of $G$, and the $\Rightarrow$ direction is
-proven.
-\qed
+% TODO: write the proof body.
 \end{proof}
 
 \end{document}

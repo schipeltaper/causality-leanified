@@ -1,31 +1,49 @@
-import Mathlib.Data.Set.Basic
-
--- The verbatim TeX source of the LN definition is reproduced inside a
--- comment below; one of its lines exceeds 100 characters. Disable the
--- style linter for this file so the TeX is kept byte-for-byte identical
--- to `lecture-notes/lecture_notes/graphs.tex`.
-set_option linter.style.longLine false
+import Mathlib.Data.Set.Prod
+import Mathlib.Order.Disjoint
 
 /-!
-# def_3_1 — Conditional Directed Mixed Graphs (CDMG)
+# Conditional Directed Mixed Graphs (CDMGs)
 
-The cornerstone definition for chapter 3. A CDMG packages together two
-disjoint vertex sets (input nodes `J` and output nodes `V`), a set of
-directed edges `E ⊆ (J ∪ V) × V`, and a set of bidirected edges `L` on `V`
-which is required to be symmetric and irreflexive.
+This file introduces the foundational geometric object of the Causality
+lecture notes (Forré & Mooij, chapter 3): the *Conditional Directed Mixed
+Graph* (CDMG). Subsequent chapters define CBNs (ch. 4), do-calculus
+(ch. 5), iSCMs (ch. 8-10), and the causal-discovery algorithms
+(ch. 11-16) on top of this single structure, so its shape needs to scale
+without renegotiation.
 -/
 
 namespace Causality
-namespace Chapter3
 
+-- def_3_1
+-- title: CDMG
+--
+-- A *conditional directed mixed graph* over an ambient vertex type `α`
+-- is a quadruple `(J, V, E, L)` where:
+--
+--   * `J ⊆ α` is the set of *input* nodes (the LN also calls these
+--     *context* vertices) -- interventions and exogenous parameters
+--     live here.
+--   * `V ⊆ α` is the set of *output* nodes -- the endogenous vertices
+--     the model talks about.
+--   * `E ⊆ (J ∪ V) × V` is the set of *directed* edges. A directed edge
+--     `j → v` may originate at an input, but no input may ever be a
+--     target (no arrowheads point at `J`); the inclusion encodes this
+--     in a single line.
+--   * `L ⊆ V × V` is the set of *bidirected* edges, representing latent
+--     confounding between two output nodes. We require `L` to be
+--     symmetric and irreflexive on `V`, which is the unfolded version
+--     of the LN's phrasing "`L` is a subset of `V × V` quotiented by
+--     `(v₁,v₂) ∼ (v₂,v₁)`".
+--   * `J` and `V` are disjoint, and so are `E` and `L`.
+--
 /-
-Source (from the lecture notes, `lecture-notes/lecture_notes/graphs.tex`,
-also mirrored in `Section3_1/main.tex`):
+Verbatim from `lecture-notes/lecture_notes/graphs.tex`:
 
+\begin{defmark}
 \begin{Def}[Conditional directed mixed graphs (CDMG)]
     \label{def-cdmg}
-    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of
-    vertices (also called nodes):
+    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists
+    of two (disjoint) sets of vertices (also called nodes):
     \begin{enumerate}[label=\roman*.)]
         \item $J$, whose elements are called input nodes,
         \item $V$, whose elements are called output nodes,
@@ -38,62 +56,88 @@ also mirrored in `Section3_1/main.tex`):
         \item[]    with: $(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$.
     \end{enumerate}
 \end{Def}
+\end{defmark}
+
+The commented-out clause `J \cup V \neq \emptyset` in the LN source is
+intentionally *not* part of the definition -- empty CDMGs are allowed.
 -/
+--
+-- ## Design choice
+--
+-- * **Polymorphic vertex type `α : Type*`.** The LN does not commit to
+--   finiteness or even countability of the vertex sets at this layer;
+--   such assumptions come in later (e.g. some CBN factorisation
+--   arguments need finite `V`). Keeping `α` fully polymorphic lets every
+--   later chapter pick its ambient vertex type without forcing us back
+--   here.
+--
+-- * **`Set α` for `J` and `V`, not `Finset α` or a separate `Fintype`.**
+--   The LN literally says "two (disjoint) *sets* of vertices", and every
+--   downstream definition reads `j ∈ J` / `v ∈ V` rather than indexing
+--   into a list. `Set` is therefore both the most faithful and the
+--   least restrictive shape.
+--
+-- * **Bidirected edges as a symmetric irreflexive subset of `V × V`,
+--   not the literal quotient `V × V / ∼`.** The LN's quotient form is
+--   propositionally equivalent to "symmetric subset of ordered pairs",
+--   but a `Quotient` carrier forces explicit `Quotient.mk` /
+--   `Quotient.lift` plumbing at every use site and obscures the
+--   `(v₁, v₂) ∈ L` membership idiom that the rest of the notes rely on
+--   (see e.g. def 3.2 `v₁ ↔ v₂ ∈ G` meaning `(v₁, v₂) ∈ L`). Encoding
+--   the symmetry and irreflexivity as fields of the structure is much
+--   cleaner and exactly equivalent.
+--
+-- * **`structure`, not `class` and not `abbrev`.** A specific CDMG over
+--   `α` is *data*, not a canonical instance attached to `α`, so `class`
+--   would be wrong: there is no globally unique CDMG to typeclass-
+--   resolve into. `abbrev` would flatten the bundled fields and force
+--   every downstream user to re-state the four constraints in every
+--   signature. A `structure` gives us projection notation -- `G.J`,
+--   `G.V`, `G.E`, `G.L` -- which lines up exactly with the LN's
+--   recurring "Let `G = (J, V, E, L)` be a CDMG" prose pattern used in
+--   def 3.3, def 3.4, def 3.5, def 3.6, def 3.7, def 3.8, def 3.9, the
+--   subsequent intervention chapters, and beyond.
+--
+-- * **`Disjoint E L` is included as a field** because the LN explicitly
+--   says "two (disjoint) sets of edges". With `E, L : Set (α × α)`
+--   sharing the same ambient pair type, this is meaningful: it forbids
+--   a pair `(v₁, v₂)` from being simultaneously a directed and a
+--   bidirected edge between the same two nodes.
+--
+-- * **No `SimpleGraph` base.** `SimpleGraph` is single-sorted,
+--   symmetric, and irreflexive on a single vertex type. It has neither
+--   the input/output bipartition `(J, V)` nor the asymmetric directed
+--   edges of a CDMG. Layering the directed/bidirected distinction on
+--   top of `SimpleGraph` would cost more than it saves and obscure the
+--   correspondence with the LN.
 
-/-- A **Conditional Directed Mixed Graph (CDMG)** on input-node type `J` and
-output-node type `V`.
+/-- A *Conditional Directed Mixed Graph (CDMG)* over the ambient vertex
+type `α`, consisting of disjoint input/output node sets `J`, `V` and
+edge sets `E` (directed) and `L` (bidirected, irreflexive and symmetric
+on `V`). See `lecture-notes/lecture_notes/graphs.tex` definition
+`def-cdmg` (def 3.1 of the LN). -/
+structure CDMG (α : Type*) where
+  /-- The set of *input* nodes. -/
+  J : Set α
+  /-- The set of *output* nodes. -/
+  V : Set α
+  /-- Inputs and outputs are disjoint sets of vertices. -/
+  disjoint_JV : Disjoint J V
+  /-- The set of *directed* edges. -/
+  E : Set (α × α)
+  /-- Directed edges originate at any node and terminate at an output. -/
+  E_subset : E ⊆ (J ∪ V) ×ˢ V
+  /-- The set of *bidirected* edges, encoded as a subset of `V × V`
+  required to be symmetric and irreflexive -- equivalent to the LN's
+  "subset of `V × V / ∼`" quotient form. -/
+  L : Set (α × α)
+  /-- Bidirected edges live between output nodes. -/
+  L_subset : L ⊆ V ×ˢ V
+  /-- Bidirected edges have no self-loops. -/
+  L_irrefl : ∀ ⦃v₁ v₂ : α⦄, (v₁, v₂) ∈ L → v₁ ≠ v₂
+  /-- Bidirected edges are unordered: `(v₁, v₂) ∈ L → (v₂, v₁) ∈ L`. -/
+  L_symm : ∀ ⦃v₁ v₂ : α⦄, (v₁, v₂) ∈ L → (v₂, v₁) ∈ L
+  /-- Directed and bidirected edges are disjoint as subsets of `α × α`. -/
+  disjoint_EL : Disjoint E L
 
-The lecture notes tuple `G = (J, V, E, L)` is realised in Lean as:
-
-* the two vertex sets `J` and `V` — the **type parameters** of `CDMG`;
-* `E : Set ((J ⊕ V) × V)` — the directed edges, with sources in `J ∪ V`
-  (encoded as `J ⊕ V`) and targets in `V`;
-* `L : Set (V × V)` — the bidirected edges, together with two laws
-  (`L_symm`, `L_irrefl`) that bake in the LN's `(v₁,v₂) ∼ (v₂,v₁)`
-  quotient together with the requirement `v₁ ≠ v₂`.
-
-Design choice (matters for every later row in this chapter):
-
-* **Two type parameters `J V` instead of two subsets of one ambient type.**
-  Modelling the disjoint vertex sets as separate Lean types makes the LN's
-  "(disjoint) sets of vertices" hold *by construction*: there is nothing
-  to prove, and `J ∪ V` is then exactly `J ⊕ V` (Lean's `Sum`). The
-  alternative — one ambient type `W` with `J V : Set W` and a disjointness
-  hypothesis — would force every downstream statement to carry that
-  hypothesis around and would turn membership tests (`v ∈ J ∪ V`,
-  `v ∈ V`) into propositional side-conditions. Since downstream notation
-  (`v ∈ G`, parents, walks, …) is heavily indexed by which "side" a node
-  lives on, the `Sum` encoding is by far the lighter weight.
-
-* **`L` as a `Set (V × V)` with `L_symm` and `L_irrefl` laws, instead of a
-  literal quotient.** The LN writes `L ⊆ V × V / ((v₁,v₂) ∼ (v₂,v₁))` and
-  then immediately constrains the representatives. A set on the symmetric
-  quotient with no fixed points is mathematically the same data as a
-  symmetric, irreflexive subset of `V × V`, and the latter is far easier
-  to use in proofs (no `Quot.lift` boilerplate, ordered pairs let us pattern
-  match on `(v₁, v₂)` directly). Whenever we need to think of `L` as a set
-  of unordered pairs, we recover that view by symmetry.
-
-* **The commented-out `J ∪ V ≠ ∅` in the source is intentionally omitted.**
-  It is `%`-commented in `graphs.tex`, so it is not part of the rendered
-  definition; `CDMG` therefore allows both vertex types to be empty. The
-  empty CDMG is a legitimate edge case.
--/
-structure CDMG (J V : Type*) where
-  /-- Directed edges of the CDMG, `E ⊆ (J ∪ V) × V` in the lecture notes. -/
-  E : Set ((J ⊕ V) × V)
-  /-- Bidirected edges of the CDMG, `L ⊆ V × V` quotiented by the swap
-  identification in the lecture notes. We store representatives in `V × V`
-  and enforce the quotient + irreflexivity laws via `L_symm` and
-  `L_irrefl`. -/
-  L : Set (V × V)
-  /-- `L` is symmetric: this is the `(v₁,v₂) ∼ (v₂,v₁)` identification of
-  the lecture notes, internalised as a law on the ordered-pair
-  representation. -/
-  L_symm : ∀ {v₁ v₂ : V}, (v₁, v₂) ∈ L → (v₂, v₁) ∈ L
-  /-- `L` is irreflexive: the LN's explicit constraint
-  `(v₁,v₂) ∈ L ⟹ v₁ ≠ v₂`. -/
-  L_irrefl : ∀ {v₁ v₂ : V}, (v₁, v₂) ∈ L → v₁ ≠ v₂
-
-end Chapter3
 end Causality
