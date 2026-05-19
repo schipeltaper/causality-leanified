@@ -1,0 +1,34 @@
+% Definition file for row def_3_15 -- "CollidersAndNon".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_15
+% title: CollidersAndNon
+
+\begin{Def}[Colliders and non-colliders]
+  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  A node $v_k$, or more precisely, the position $k \in \lC 0,\dots, n \rC$,
+  on the walk $\pi$ is called:
+     \begin{enumerate}
+     \item a \emph{non-collider} on $\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\ if it falls into one of the following cases:
+  \[\begin{array}{rccl}
+    \text{ end-node: } & k \in \lC 0,n \rC, \\
+    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1}, \\
+    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1},\\
+    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1};
+    \end{array}\]
+  \item a \emph{collider} on $\pi$, if it is of the form: 
+             \[v_{k-1} \suh v_k \hus v_{k+1},\] 
+             i.e.\ if there are two arrowheads pointing towards $v_k$ on the walk $\pi$.
+     \end{enumerate}
+\end{Def}
+
+\end{document}

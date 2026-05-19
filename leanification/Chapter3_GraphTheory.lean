@@ -1,0 +1,15 @@
+-- Aggregator for chapter folder `Chapter3_GraphTheory`.
+-- Auto-managed by scaffold/solving_current_row.py; do not edit by hand.
+
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.EdgeRelations
+import Chapter3_GraphTheory.Section3_1.CDMGJNodeProperties
+import Chapter3_GraphTheory.Section3_1.Walks
+import Chapter3_GraphTheory.Section3_1.FamilyRelationships
+import Chapter3_GraphTheory.Section3_1.Acyclicity
+import Chapter3_GraphTheory.Section3_1.GraphTypes
+import Chapter3_GraphTheory.Section3_1.TopologicalOrder
+import Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder
+import Chapter3_GraphTheory.Section3_1.Predecessors
+import Chapter3_GraphTheory.Section3_2.HardIntervention

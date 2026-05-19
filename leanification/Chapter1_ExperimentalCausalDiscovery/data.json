@@ -5,6 +5,7 @@
     "def_or_claim",
     "ref",
     "section",
+    "title",
     "type",
     "formalized",
     "proven",
@@ -12,8 +13,11 @@
     "date_solved",
     "tips",
     "tex_file",
-    "lean_file",
-    "actions_tracking"
+    "main_lean_file",
+    "lean_files",
+    "actions_tracking",
+    "tex_block",
+    "agent_registry"
   ],
   "rows": []
 }

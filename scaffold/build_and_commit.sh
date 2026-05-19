@@ -16,7 +16,7 @@
 set -euo pipefail
 
 REPO_DIR="/home/11716061/repo_scaffold2"
-LEAN_PROJECT_DIR="/home/11716061"
+LEAN_PROJECT_DIR="/home/11716061/repo_scaffold2"   # lake build now runs from the repo root
 
 if [[ $# -ne 1 || -z "${1// }" ]]; then
   echo "Usage: $0 \"<commit message>\"" >&2

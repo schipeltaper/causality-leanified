@@ -1,0 +1,30 @@
+% Definition file for row def_3_10 -- "HardInterventionOn".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_10
+% title: HardInterventionOn
+
+\begin{Def}[Hard intervention on CDMGs]\label{def:G_hard_intervention}
+    Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG: 
+  \[ G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  %\[G(V\sm W|\doit(W \cup J)):=G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\doit(W)}:= J \cup W$,
+      \item $V_{\doit(W)}:= V \sm W$,
+      \item $E_{\doit(W)}:= E \sm \lC v \tuh w \,|\, v \in G, w  \in W  \rC$,
+      \item $L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC$,
+  \end{enumerate}
+  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
+\end{Def}
+
+\end{document}

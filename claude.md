@@ -46,9 +46,31 @@ The system of referencing. In the leanification folder, we (will) have a folder 
 
 
 ## Context Causality
-main theorems, etc and purpose
 
-Take the zoomed out context of the lecture notes into consideration when designing  your definitions. (you might want to consider what the application will be when designing something fundamental right now)
+The lecture notes are **"A Mathematical Introduction to Causality"** by Patrick Forré and Joris M. Mooij. Purpose: give a measure-theoretically rigorous, self-contained foundation for modern causal inference -- the kind that underpins do-calculus, identification, counterfactuals, and causal discovery in statistics, econometrics, epidemiology, and machine learning. It is "modern" in the sense that it bakes in *inputs / interventions* from the start (i.e. conditional directed mixed graphs, iSCMs) rather than treating interventions as an afterthought on top of joint distributions.
+
+**The main objects** the notes build up:
+
+- **Conditional directed mixed graphs (CDMGs)** -- graphs with input and output nodes, directed and bidirected edges; the geometric scaffolding for everything else.
+- **Transition probability kernels (Markov kernels)** -- the measure-theoretic substrate; how randomness propagates along edges.
+- **Causal Bayesian Networks (CBNs)** -- joint distributions factorising along a DAG, equipped with intervention semantics.
+- **Structural Causal Models with inputs (SCMs / iSCMs)** -- functional / mechanistic formulations of causation, with explicit input variables for interventions.
+- **Conditional independence (CI) and graphical separation** -- $\sigma$-separation, $d$-separation, $\sigma$-AMP / id-separation, Markov properties.
+
+**The main results** the notes prove:
+
+- Equivalence of various separation criteria with conditional independence under appropriate Markov assumptions.
+- The do-calculus rules and their soundness for CBNs.
+- Identification of causal effects (the ID algorithm; adjustment criteria including the backdoor / front-door / general adjustment).
+- The Markov property for iSCMs and its consequences, including counterfactual identification.
+- Causal discovery: the FCI algorithm and ICDF, plus the necessary independence testing infrastructure.
+
+**Implications for design choices in this formalization:**
+
+- Definitions get *re-used many chapters later*. A CDMG defined in chapter 3 underpins CBNs (4), do-calculus (5), iSCMs (8-10), and the discovery algorithms (11-16). Choose Lean shapes that compose: if the next ten chapters will pattern-match on the `J` / `V` partition, don't bury it in a generic graph type.
+- Many results are *equivalences* between graph-theoretic and probabilistic statements. Plan for two-way translation lemmas, not one-shot definitions.
+- The text uses inputs/outputs everywhere. Be wary of accidentally formalising a less general "no-input" version that would have to be re-done later.
+- See `lecture-notes/lecture_notes/main.tex` for the full chapter order; **every manager agent reads the whole notes before formalising** (see `scaffold/claude_prompts/manager.md`).
 
 ## Modifications Lecture Notes
 You are only aloud to modify the lecture notes within certain types. You can add the following types of comments:
@@ -85,7 +107,7 @@ You are only aloud to modify the lecture notes within certain types. You can add
 - Don't modify the claude.md file too quickly. Make sure the human user verifies they desire this modification. 
 
 ### Committing and pushing — agent responsibility
-If you are a manager agent and a task is complete, you can commit.**You (the agent)** do all of it. The user does not stage files and does not write commit messages.
+If you are a manager agent and a task is complete (even if it is just creating a plan to solve the problem, or if it is one step in your step by step plan), you can commit.**You (the agent)** do all of it. The user does not stage files and does not write commit messages.
 
 1. **Decide what to stage.** Run `git status` to see what changed, then `git add <files>` for the files *you* or *your agent team* modified inside your assigned scope (rule 4 above).
 2. **Write the commit message yourself.** Descriptive, short, focused on *why*. Do not ask the user what message to use.
@@ -93,7 +115,7 @@ If you are a manager agent and a task is complete, you can commit.**You (the age
    ```bash
    scaffold/build_and_commit.sh "<your descriptive commit message>"
    ```
-   It runs `lake build` from `/home/11716061/` and only commits + pushes if the build is clean.
+   It runs `lake build` from the repo root (`/home/11716061/repo_scaffold2/`) and only commits + pushes if the build is clean.
 
 ### Hard rules — no exceptions
 - **Never** invoke `git commit` or `git push` directly — always go through `scaffold/build_and_commit.sh`.
@@ -104,7 +126,7 @@ If you are a manager agent and a task is complete, you can commit.**You (the age
 ## Rules server
 - **Git push**: use `git config pack.packSizeLimit 50m` before pushing to avoid SIGBUS errors on the UvA server.
 - **The server runs inside an Apptainer container.** Bash spawning may be restricted. If `bash -c "..."` fails, it's a container issue, not a code issue.
-- **`lake build` must be run from `/home/11716061/`**, not from inside `leanification/`.
+- **`lake build` must be run from the repo root (`/home/11716061/repo_scaffold2/`)**, not from inside `leanification/`. The lakefile, lean-toolchain, `.lake/` cache, and lake-manifest all live at the repo root now.
 
 
 ## Documentation

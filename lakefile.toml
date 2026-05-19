@@ -1,0 +1,41 @@
+name = "scaffold2"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["Causality"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.29.1"
+
+# Every Lean file in this project lives under `leanification/`. The
+# directory layout is:
+#
+#   leanification/
+#   ├── Causality.lean                        <- root, imports chapter aggregators
+#   ├── Chapter<N>_<PascalCaseTitle>.lean     <- chapter aggregator, auto-managed
+#   └── Chapter<N>_<PascalCaseTitle>/
+#       ├── data.json                         <- agent bookkeeping
+#       └── Section<N>_<M>/                   <- one folder per subsection
+#           └── <file>.lean
+#
+# So a file at .../Chapter3_GraphTheory/Section3_1/CDMG.lean has module
+# name `Chapter3_GraphTheory.Section3_1.CDMG`.
+[[lean_lib]]
+name = "Causality"
+srcDir = "leanification"
+# `Causality` is the lib root (Causality.lean). Each chapter is registered
+# via its own `Chapter<N>_<Title>.+` glob -- super-greedy so the aggregator
+# file and every subsection sub-module are picked up. Add a new line below
+# whenever a new chapter is initialised.
+globs = [
+  "Causality",
+  "Chapter3_GraphTheory",
+  "Chapter3_GraphTheory.+",
+]

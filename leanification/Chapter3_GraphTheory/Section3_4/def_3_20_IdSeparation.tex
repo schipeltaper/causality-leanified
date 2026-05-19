@@ -1,0 +1,35 @@
+% Definition file for row def_3_20 -- "IdSeparation".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_20
+% title: IdSeparation
+
+\begin{Def}[$id$-separation]
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $id$-separated from $B$ given $C$ in $G$}, in symbols:
+    \[ A \idPerp_G B \given C,  \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!)\footref{fn:why-J} is $C$-$d$-blocked by $C$.
+        \item If that property does not hold we will write:
+            \[ A \nidPerp_G B \given C.\]
+        \item We also define the special case:
+                \[ A \idPerp_G B \qquad :\iff \qquad A \idPerp_G B \given \emptyset.\]
+        \item For the special case $J = \emptyset$---that is, if $G$ has no input nodes---$id$-separation is also called \emph{$d$-separation}, and we write:
+          \[A \dPerp_G B \given C := A \idPerp_G B \given C, \qquad A \ndPerp_G B \given C := A \nidPerp_G B \given C.\]
+          % claim_3_29
+          \begin{claimmark}
+          Note that $d$-separation is symmetric: $A \dPerp_G B \given C \iff B \dPerp_G A \given C$, by the same argument as for $\sigma$-separation.
+          \end{claimmark}
+    \end{enumerate}
+\end{Def}
+
+\end{document}

@@ -1,0 +1,39 @@
+% Definition file for row def_3_12 -- "NodeSplittingHard".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_12
+% title: NodeSplittingHard
+
+\begin{Def}[Node-splitting hard intervention on CADMGs]
+  \label{def:G_node-splitting_intervention}
+    Let $G=(J,V,E,L)$ be a CADMG and $W \ins V$ a subset of the output nodes.
+    The \emph{single-world intervention graph (SWIG)} w.r.t.\ $W$ of $G$ is the CADMG: 
+    \[ G_{\swig(W)} :=\lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)},L_{\swig(W)} \rp,\]
+    %\[ G_{\swig(W)} := G':=(J',V',E',L'),\]
+    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    constructed as follows.
+    We first make two disjont copies of the nodes in $W$:
+    \[ W^o:=\lC w^o\st w \in W \rC, \qquad W^i:=\lC w^i \st w \in W \rC.  \]
+    Note that we consider $w^o \neq w^i$ for $w \in W$.
+  However, for brevity, for $v \in J \cup V \sm W$ we put:
+  \[ v^o:=v^i:=v.  \]
+  We then define:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\swig(W)} := J \dcup W^i$,
+      \item $V_{\swig(W)} := (V \sm W) \dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.
+      \item $E_{\swig(W)} := \lC v^i_1 \tuh v_2^o \st v_1 \tuh v_2 \in E  \rC$,
+      \item $L_{\swig(W)} :=\lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$.
+  \end{enumerate}
+  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,
+  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.
+\end{Def}
+
+\end{document}

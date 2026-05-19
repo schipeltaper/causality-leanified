@@ -1,0 +1,32 @@
+% Definition file for row def_3_1 -- "CDMG".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_1
+% title: CDMG
+
+\begin{Def}[Conditional directed mixed graphs (CDMG)]
+    \label{def-cdmg}
+    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of
+    vertices (also called nodes):
+    \begin{enumerate}[label=\roman*.)]
+        \item $J$, whose elements are called input nodes,
+        \item $V$, whose elements are called output nodes,
+    \end{enumerate}
+%    such that $J \cup V \neq \emptyset$;
+    and two (disjoint) sets of edges:
+    \begin{enumerate}[resume,label=\roman*.)]
+        \item $E \ins (J \cup V) \times V$ the set of directed edges,
+        \item $L \ins V \times V/((v_1,v_2) \sim (v_2,v_1)) $, the set of bidirected edges, 
+        \item[]    with: $(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$.
+    \end{enumerate}
+\end{Def}
+
+\end{document}
