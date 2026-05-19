@@ -102,27 +102,31 @@ The canonical list of valid action names is in `scaffold/create_data.py` `ACTION
 4. `solved` → orchestrator dispatches `verify_row_solved` for the final-gate check
 5. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
 
-### Claim row (`def_or_claim == "claim"`) — two phases
+### Claim row (`def_or_claim == "claim"`) — two managers, three handed-off phases
 
-**Phase 1: statement + tex proof.**
+A claim row passes through **exactly two manager agents**: one for the **statement**, one for the **whole proof**. The proof manager handles both the TeX proof and the Lean proof — there is no second handoff between them.
+
+**Manager A — statement only.**
 
 1. (optional) `make_plan` if the claim is non-trivial.
-2. `spawn_agent_sub_task` → `formalize_claim_in_lean.md` (writes the Lean statement(s) with `sorry`)
-3. `review_design` — full-LN-context check (statement-level only; the proof doesn't exist yet)
-   - On FAIL: re-dispatch the formalizer.
+2. `spawn_agent_sub_task` → `formalize_claim_in_lean.md` (writes the Lean statement(s) with `sorry`).
+3. `review_design` — full-LN-context check of the Lean shape (statement-level).
+   - On FAIL: re-dispatch the formalizer with the verifier's tagged feedback.
 4. `verify_equivalence` — focused statement-vs-LN check.
    - On FAIL: re-dispatch the formalizer.
-5. `spawn_agent_sub_task` → `write_tex_proof.md`. **The worker's first step is to search the LN itself for an existing `\begin{proof}` block following the claim — copy/paste if present, else construct.**
-6. `verify_tex_proof` — independent check of the tex proof.
-   - On FAIL: `expand_proof` on the flagged step, or re-dispatch the proof writer.
-7. **`new_manager`** — natural phase boundary. Hand off to a fresh manager whose body is the dossier: row ref, file paths, summary of the proof strategy, verifiers passed.
+5. **`new_manager`** — handoff. Body is the dossier: row ref, the Lean file/statement, the LN block, what verifiers passed, where the empty `<ref>_proof_<title>.tex` stub lives.
 
-**Phase 2: leanify the proof** (fresh manager picks up).
+**Manager B — the proof (TeX + Lean, in one manager).**
 
-8. `spawn_agent_sub_task` → `prove_claim_in_lean.md` (translates the verified tex proof to Lean tactics).
-   - If the prover hits a step that doesn't translate: usually `expand_proof` (TeX-sketchy step). If it reveals a *real* mistake in the tex proof: `correct_tex_proof`, then re-verify.
-9. `simplify_proof` — full-LN-context check that the closed proof isn't over-complex.
-   - On FAIL with an alternative: dispatch the prover again with the simpler proof; possibly also `correct_tex_proof` so the TeX mirrors.
+6. `spawn_agent_sub_task` → `write_tex_proof.md`. **The worker's first step is to search the LN itself for an existing `\begin{proof}` block following the claim — copy/paste if present, else construct from scratch in the LN paradigm.**
+7. `verify_tex_proof` — independent check.
+   - On FAIL: `expand_proof` on the flagged step, or re-dispatch the proof writer with the verifier's feedback.
+8. `spawn_agent_sub_task` → `prove_claim_in_lean.md` (translates the verified TeX proof to Lean tactics).
+   - If the prover hits a sketchy step in the TeX: `expand_proof`.
+   - If the prover finds a *real* mistake in the TeX proof: `correct_tex_proof`, then `verify_tex_proof` again, then re-prove. (You can also `continue_agent` to send the leanifier's feedback to the original tex writer's session.)
+9. `simplify_proof` — full-LN-context check.
+   - **On PASS**: the proof is already as simple as it reasonably gets — keep the existing proof and move on to step 10.
+   - **On FAIL**: a concrete simpler alternative was proposed in the verifier's tagged feedback; dispatch the prover with that simpler version (with `correct_tex_proof` first if the TeX needs to mirror).
 10. `solved` → `verify_row_solved` final-gate check.
 11. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
 

@@ -40,7 +40,9 @@ End your message with **exactly one** of:
 ```
 VERDICT: PASS
 ```
-(the existing proof is as simple as it reasonably gets), or:
+The semantics of `PASS` here is "**I could not find a simpler proof**" — i.e. the existing Lean proof is therefore confirmed acceptable as it stands; the manager keeps the existing proof and proceeds to `solved`. **Default to PASS** when you've honestly tried and the existing proof is already concise / faithful to the LN — do not invent a "simpler" alternative just to have something to say.
+
+Or:
 
 ```
 VERDICT: FAIL

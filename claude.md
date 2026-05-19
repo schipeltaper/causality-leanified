@@ -91,11 +91,11 @@ You are only aloud to modify the lecture notes within certain types. You can add
 2. The preference is always to explain too much rather than too little; to add too much comment than to add too little.
 
 3. Design choice:
-  - The priority is always to choose the design (of say your definitions) in such a way that best supports us to build up the theory
+  - The priority is always to choose the design (of say your definitions) in such a way that best supports us to build up the theory. So take into account what is natural for how Lean is built. Especially with foundational definitions we should take into account what is efficient too.
   - Where a structure or proof already exists exactly how we want it on MathLib, then we should build further on the Mathlib. Don't force this though! We are working in a different paradigm, and so often it will be more useful to build our own structures. (Document these trade-offs and decisions in the design choice part of the comments)
   - We want the logic and structure and proof-strategies to be able to stay very close to what is used in the lecture notes
-  - We do also care about readability, but this is less important than the previous two points
-  - Very low on the priority list: efficiency. Where possible, make your proofs such that they don't require unnecesary amount of computation.
+  - We do also care about readability
+  - Where possible, make your proofs such that they don't require unnecesary amount of computation.
 
 4. Do not modify files outside of your assigned scope! If you are working on one row of the dataset, only modify files in your subsections folder within your chapters folder within the leanification folder.
 

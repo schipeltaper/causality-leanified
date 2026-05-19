@@ -208,7 +208,7 @@ Three dispatch tables in the orchestrator:
 | `review_design` | `row_workers/review_design.md` | reads the **whole lecture notes**, judges whether the Lean *shape* (def, structure, class, …) is natural and composes well with downstream chapters |
 | `verify_equivalence` | `row_workers/verify_equivalence.md` | focused check: every LN hypothesis present in Lean, every LN conclusion matched, no quiet drops |
 | `verify_tex_proof` | `row_workers/verify_tex_proof.md` | independent check that a standalone tex proof is complete: file exists, ref prefix, no `sorry`/"omitted", citations valid, LN paradigm |
-| `simplify_proof` | `row_workers/simplify_proof.md` | reads the **whole lecture notes**, asks "is this Lean proof unnecessarily complex?" Returns PASS or a concrete simpler alternative |
+| `simplify_proof` | `row_workers/simplify_proof.md` | reads the **whole lecture notes**, asks "is this Lean proof unnecessarily complex?" Semantics: **PASS = couldn't find a simpler proof, keep the existing one**; FAIL = a concrete simpler alternative was proposed |
 
 All four: their reply contains `VERDICT: PASS` or `VERDICT: FAIL`. On FAIL the verifier wraps its actionable feedback in `BEGIN[feedback]…END[feedback]`; the orchestrator extracts and feeds it to the manager.
 
@@ -272,32 +272,35 @@ manager turn 4 → solved → orchestrator dispatches verify_row_solved
    ↳ FAIL → feedback to manager; loop continues until budget runs out
 ```
 
-### 7.2 A claim row — two managers
+### 7.2 A claim row — two managers (statement, then the whole proof)
 
-**Phase 1 — statement + tex proof** (manager A):
+A claim row passes through **exactly two manager agents**: one handles the statement, then a single fresh manager handles the *whole* proof (TeX + Lean) — there is no third manager.
+
+**Manager A — statement only:**
 
 ```
 manager A → spawn_agent_sub_task → formalize_claim_in_lean.md
 manager A → review_design       (statement-level, full LN context)
 manager A → verify_equivalence
-manager A → spawn_agent_sub_task → write_tex_proof.md
-   ↳ worker first searches the LN for an existing \begin{proof}; copies if found
-manager A → verify_tex_proof
-   ↳ FAIL feedback (tagged) → manager → expand_proof on flagged step → verify_tex_proof
 manager A → new_manager
-   ↳ body is the handoff dossier (ref, files, proof strategy, verifiers passed)
+   ↳ body is the handoff dossier (ref, statement, file paths, verifiers passed)
    ↳ history clears; manager B picks up
 ```
 
-**Phase 2 — leanification** (manager B):
+**Manager B — the proof, both TeX and Lean:**
 
 ```
+manager B → spawn_agent_sub_task → write_tex_proof.md
+   ↳ worker first searches the LN for an existing \begin{proof}; copies if found
+manager B → verify_tex_proof
+   ↳ FAIL feedback (tagged) → expand_proof on flagged step → verify_tex_proof again
 manager B → spawn_agent_sub_task → prove_claim_in_lean.md
    ↳ if leanifier finds a *real* mistake in the tex proof:
         manager B → correct_tex_proof → verify_tex_proof → re-dispatch prover
         OR: manager B → continue_agent (AGENT_ID: original-tex-writer's-id)
                         to give that exact agent the leanifier's report
-manager B → simplify_proof  (full LN context)
+manager B → simplify_proof   (full LN context)
+   ↳ PASS = "couldn't find a simpler proof" → keep the existing proof and go on
    ↳ FAIL with alternative (tagged) → re-dispatch prover with simpler proof
 manager B → solved → verify_row_solved (final gate)
    ↳ PASS → mark_solved writes formalized="yes", proven="proven", solved="yes",
@@ -477,7 +480,7 @@ And in `scaffold/global_vars.json`:
 ## 14. What is *not* yet automated
 
 - After `find_def_claim` runs, there is no human-confirmation step on whether the marks are placed correctly. The `# Wait for human confirmation` comment in `initialize_chapter.py:initialize` is a TODO.
-- Some peripheral TeX packages required by the bundled preamble (`bbm`, `esvect`, `oubraces`) are not installed in the default TeX Live on the UvA server. Standalone-rendering of subfiles can fail with a missing-package error. This does not affect the workflow — agents read tex as text and `lake build` is the hard correctness gate.
+- The bundled preamble now compiles on the server: missing packages (`bbm`, `esvect`, `oubraces`) are commented out with `\mathbbm`/`\vv` fallbacks, and macro duplicates are deduped via `\providecommand`. Individual subfiles render cleanly to PDF (`pdflatex def_3_1_CDMG.tex` succeeds). Aggregate `main.tex` can still fail to compile end-to-end if an *agent* introduced bad TeX into a subfile body (e.g. backticks in math mode); that is a content-quality concern, not a server-config one, and does not affect `lake build`.
 - The `simplify_proof` failure path triggers a re-prove; coordinating the matching `correct_tex_proof` rewrite to keep the tex sketch in sync is the manager's responsibility (not auto-applied).
 
 ---
