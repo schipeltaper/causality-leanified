@@ -1020,28 +1020,30 @@
       "section": "3.1",
       "title": "AcyclicIffTopologicalOrder",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-19",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 1,
         "verify_equivalence": 1,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 1,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 5,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1091,6 +1093,132 @@
           "session_id": "5c285337-f19a-4dbe-8c46-2c5575a1deb9",
           "first_seen": "2026-05-19T19:25:34+00:00",
           "last_used": "2026-05-19T19:25:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "64174f4e-14b5-4805-94ab-898585646e3a",
+          "first_seen": "2026-05-19T19:27:32+00:00",
+          "last_used": "2026-05-19T19:27:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bae2398a-c572-4ca5-92b5-46a6107b299e",
+          "first_seen": "2026-05-19T19:28:23+00:00",
+          "last_used": "2026-05-19T19:28:23+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9ba7d27e-3465-4c49-aa0d-e2cc7d20586c",
+          "first_seen": "2026-05-19T19:29:54+00:00",
+          "last_used": "2026-05-19T19:29:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fc4752f3-5382-47e0-b5eb-b7433da28d2e",
+          "first_seen": "2026-05-19T19:30:59+00:00",
+          "last_used": "2026-05-19T19:30:59+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "2e32f17d-cf83-4b73-bea5-299acd07fa68",
+          "first_seen": "2026-05-19T19:33:25+00:00",
+          "last_used": "2026-05-19T19:33:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "84465d49-c93e-4753-9300-842e56fc289b",
+          "first_seen": "2026-05-19T19:34:59+00:00",
+          "last_used": "2026-05-19T19:34:59+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "42dfd029-9b83-4a7c-a616-90a11f955a03",
+          "first_seen": "2026-05-19T19:58:16+00:00",
+          "last_used": "2026-05-19T19:58:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "659c16c3-5658-49fb-a9eb-15aae9bddc80",
+          "first_seen": "2026-05-19T19:59:40+00:00",
+          "last_used": "2026-05-19T19:59:40+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "d4f13b83-3ac9-4633-b493-a9f01300573c",
+          "first_seen": "2026-05-19T20:09:29+00:00",
+          "last_used": "2026-05-19T20:12:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "243b6a8b-238c-42a8-93d5-0bfc77a5956d",
+          "first_seen": "2026-05-19T20:10:06+00:00",
+          "last_used": "2026-05-19T20:10:06+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "0f51b698-2d33-41c0-83cb-bcdbffc2fad3",
+          "first_seen": "2026-05-19T20:11:06+00:00",
+          "last_used": "2026-05-19T20:11:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3f8c4fcb-c1f9-4332-a36d-0c9883737426",
+          "first_seen": "2026-05-19T20:12:05+00:00",
+          "last_used": "2026-05-19T20:12:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "086750d8-31d6-48f2-b384-960787d4ff31",
+          "first_seen": "2026-05-19T20:13:27+00:00",
+          "last_used": "2026-05-19T20:13:27+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "de0272c5-9153-448d-b86f-347ef465ba25",
+          "first_seen": "2026-05-19T20:17:04+00:00",
+          "last_used": "2026-05-19T20:17:04+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ad1e5a45-f6d8-4b4f-b147-5010c733a396",
+          "first_seen": "2026-05-19T20:17:40+00:00",
+          "last_used": "2026-05-19T20:17:40+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "2556a509-f472-4928-b2d0-184bfc0e0c1c",
+          "first_seen": "2026-05-19T20:20:22+00:00",
+          "last_used": "2026-05-19T20:20:22+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "841872b7-0b99-4837-ba17-349868e5d3df",
+          "first_seen": "2026-05-19T20:21:12+00:00",
+          "last_used": "2026-05-19T20:21:12+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d02afedd-3093-4a38-88a9-ddb40764055b",
+          "first_seen": "2026-05-19T20:23:31+00:00",
+          "last_used": "2026-05-19T20:23:31+00:00"
         }
       ]
     },
@@ -1100,26 +1228,28 @@
       "section": "3.1",
       "title": "Predecessors",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-05-19",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1129,7 +1259,64 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Predecessors]\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\cup V$.\n   The set of \\emph{predecessors} of $v$ in $G$ are:\n   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]\n   We also put:\n   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": []
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0423249a-582f-42be-a138-6e5160ca1f01",
+          "first_seen": "2026-05-19T20:26:07+00:00",
+          "last_used": "2026-05-19T20:26:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "758302f3-4168-4c41-8fa2-ed8958a7def7",
+          "first_seen": "2026-05-19T20:30:37+00:00",
+          "last_used": "2026-05-19T20:30:37+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d0126199-902a-4c80-9319-70b3cc547c73",
+          "first_seen": "2026-05-19T20:31:47+00:00",
+          "last_used": "2026-05-19T20:31:47+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "69ce1db5-3967-4122-9087-25c52ee64331",
+          "first_seen": "2026-05-19T20:35:41+00:00",
+          "last_used": "2026-05-19T20:35:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9274dc09-27ae-401c-a5d0-1e29fc2b5e8a",
+          "first_seen": "2026-05-19T20:36:12+00:00",
+          "last_used": "2026-05-19T20:36:12+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "8286295c-3207-4b3f-a1ac-4176b7ca4555",
+          "first_seen": "2026-05-19T20:37:14+00:00",
+          "last_used": "2026-05-19T20:37:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7cad59d2-1710-402b-ba0d-ba867d2a10a7",
+          "first_seen": "2026-05-19T20:37:36+00:00",
+          "last_used": "2026-05-19T20:37:36+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "edc1f86a-6a51-4e2a-a728-467f88874807",
+          "first_seen": "2026-05-19T20:39:33+00:00",
+          "last_used": "2026-05-19T20:39:33+00:00"
+        }
+      ]
     },
     {
       "def_or_claim": "def",
@@ -1137,26 +1324,28 @@
       "section": "3.2",
       "title": "HardInterventionOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-05-19",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1166,7 +1355,64 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Hard intervention on CDMGs]\\label{def:G_hard_intervention}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{intervened CDMG} w.r.t.\\ $W$ of $G$ is the CDMG: \n  \\[ G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  %\\[G(V\\sm W|\\doit(W \\cup J)):=G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\doit(W)}:= J \\cup W$,\n      \\item $V_{\\doit(W)}:= V \\sm W$,\n      \\item $E_{\\doit(W)}:= E \\sm \\lC v \\tuh w \\,|\\, v \\in G, w  \\in W  \\rC$,\n      \\item $L_{\\doit(W)}:= L \\sm \\lC v \\huh w\\,|\\, v \\in G, w \\in W \\rC$,\n  \\end{enumerate}\n  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": []
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "48a0b660-003a-493e-91e2-24c5c68de158",
+          "first_seen": "2026-05-19T20:43:04+00:00",
+          "last_used": "2026-05-19T20:43:04+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c84bc9f9-ceb2-40a5-86d9-c47630df8461",
+          "first_seen": "2026-05-19T20:53:37+00:00",
+          "last_used": "2026-05-19T20:53:37+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ce6ce810-c4b2-485e-baa1-415511813c74",
+          "first_seen": "2026-05-19T20:54:42+00:00",
+          "last_used": "2026-05-19T20:54:42+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "7b650572-b56e-4b4b-a898-71373f2dcca0",
+          "first_seen": "2026-05-19T20:58:49+00:00",
+          "last_used": "2026-05-19T20:58:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d27168f0-1e90-4311-a5f7-b77f81be2880",
+          "first_seen": "2026-05-19T20:59:40+00:00",
+          "last_used": "2026-05-19T20:59:40+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "72b13423-b5a8-4216-b398-f0b02c4a036b",
+          "first_seen": "2026-05-19T21:01:55+00:00",
+          "last_used": "2026-05-19T21:01:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "38f8d433-8ae0-4b40-ba07-44ddf404f52e",
+          "first_seen": "2026-05-19T21:02:11+00:00",
+          "last_used": "2026-05-19T21:02:11+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "46254761-732e-4e59-9544-3a7ca7b1f366",
+          "first_seen": "2026-05-19T21:03:10+00:00",
+          "last_used": "2026-05-19T21:03:10+00:00"
+        }
+      ]
     },
     {
       "def_or_claim": "claim",

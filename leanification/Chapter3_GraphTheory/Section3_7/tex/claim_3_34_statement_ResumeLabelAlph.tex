@@ -1,0 +1,31 @@
+% Claim statement file for row claim_3_34 -- "ResumeLabelAlph".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[../main]{subfiles}
+
+\begin{document}
+% ref: claim_3_34 (statement)
+% title: ResumeLabelAlph
+
+\begin{Rem}
+Let the assumptions be like in Theorem \ref{d-sep-separoid-axioms}.
+    We also have the following rules: 
+    \begin{enumerate}[resume,label=\alph*)]
+        \setcounter{enumi}{12}
+        \item Left Composition:
+        \item[] $(A \iPerp  B \given  C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C.$
+        \item Right Composition:
+        \item[] $(A \iPerp  B \given  C) \land (A \iPerp  D \given C) \implies A \iPerp  B \cup  D \given C.$
+         \item Left Intersection: If $A \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (D \iPerp  B \given A \cup C) \implies A \cup D \iPerp  B \given C.$       
+        \item Right Intersection: If $B \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (A \iPerp  D \given B \cup C) \implies A \iPerp  B \cup D \given C.$
+    \end{enumerate}
+\end{Rem}
+
+\end{document}

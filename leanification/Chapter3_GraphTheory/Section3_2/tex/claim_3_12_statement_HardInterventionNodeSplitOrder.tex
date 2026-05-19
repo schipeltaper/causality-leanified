@@ -1,0 +1,21 @@
+% Claim statement file for row claim_3_12 -- "HardInterventionNodeSplitOrder".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[../main]{subfiles}
+
+\begin{document}
+% ref: claim_3_12 (statement)
+% title: HardInterventionNodeSplitOrder
+
+\begin{Rem}
+    Note that if $W_1$ and $W_2$ are not disjoint and $w \in W_1 \cap W_2 \ins V$
+    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.
+    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.
+\end{Rem}
+
+\end{document}

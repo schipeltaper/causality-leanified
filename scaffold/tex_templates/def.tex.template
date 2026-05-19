@@ -1,12 +1,13 @@
 % Definition file for row __REF__ -- "__TITLE__".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file lives at `<subsection>/tex/`; the parent `main.tex` sits one
+% directory up. The `subfiles` package lets it compile both standalone (the
+% master path below) and as part of `main.tex` via `\subfile{tex/...}`.
 
-\documentclass[main]{subfiles}
+\documentclass[../main]{subfiles}
 
 \begin{document}
 % ref: __REF__

@@ -57,6 +57,7 @@ ACTIONS = [
     # --- formalization review chain (statement-level) ---------------------
     "review_design",         # full-LN-context review of whether the Lean shape is natural
     "verify_equivalence",    # focused check that the Lean statement matches the LN
+    "add_design_choice_comments",  # after equivalence PASS: enrich the Lean comments with WHY
     # --- proof review (after Lean proof closes) ---------------------------
     "simplify_proof",        # check if the Lean proof is over-complex; propose simpler if any
     # --- terminal / dispatch / control flow -------------------------------

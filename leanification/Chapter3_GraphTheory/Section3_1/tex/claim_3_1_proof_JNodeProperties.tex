@@ -1,0 +1,86 @@
+% Claim proof file for row claim_3_1 -- "JNodeProperties".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[../main]{subfiles}
+
+\begin{document}
+% ref: claim_3_1 (proof)
+% title: JNodeProperties
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% The LN states this as a remark immediately after \ref{not-cdmg}
+% (graphs.tex line 84-89) and provides no proof block; the statement is
+% the unfolding-only consequence of the structural fields of
+% \ref{def-cdmg}. The proof below is constructed from scratch in the
+% LN paradigm: every step is one notation-unfolding of \ref{not-cdmg}
+% followed by one of the inclusions $E \ins (J \cup V) \x V$,
+% $L \ins V \x V$, or the disjointness $J \cap V = \emptyset$ from
+% \ref{def-cdmg}.
+
+\begin{proof}
+Let $G = (J, V, E, L)$ be a CDMG as in \ref{def-cdmg}. We verify the
+three assertions in turn.
+
+\medskip
+\noindent\emph{(1) No arrowhead points at any $j \in J$:
+$j \hus v \notin G$ for all $v \in G$.}
+Suppose for contradiction that $j \in J$ and $j \hus v \in G$ for some
+$v$. By \ref{not-cdmg}, $j \hus v \in G$ means that either
+$j \hut v \in G$ or $j \huh v \in G$.
+\begin{itemize}
+  \item If $j \hut v \in G$, then by \ref{not-cdmg} $(v, j) \in E$.
+        By \ref{def-cdmg} we have $E \ins (J \cup V) \times V$,
+        so the second coordinate of any pair in $E$ lies in $V$; hence
+        $j \in V$.
+  \item If $j \huh v \in G$, then by \ref{not-cdmg} $(j, v) \in L$.
+        By \ref{def-cdmg} we have $L \ins V \times V$, so both
+        coordinates of any pair in $L$ lie in $V$; hence $j \in V$.
+\end{itemize}
+Either way $j \in J \cap V$, contradicting the disjointness of $J$ and
+$V$ stipulated in \ref{def-cdmg}.
+
+\medskip
+\noindent\emph{(2) Directed edges out of an input node target $V$:
+if $j \in J$ and $j \tuh w \in G$, then $w \in V$.}
+By \ref{not-cdmg}, $j \tuh w \in G$ means $(j, w) \in E$. Since
+$E \ins (J \cup V) \times V$ by \ref{def-cdmg}, the second coordinate
+$w$ lies in $V$.
+
+\medskip
+\noindent\emph{(3) No two input nodes are adjacent: for all
+$j_1, j_2 \in J$, $j_1 \sus j_2 \notin G$.}
+Suppose for contradiction that $j_1, j_2 \in J$ and
+$j_1 \sus j_2 \in G$. By \ref{not-cdmg}, $j_1 \sus j_2 \in G$ means
+one of the three sub-cases $j_1 \tuh j_2 \in G$,
+$j_1 \hut j_2 \in G$, or $j_1 \huh j_2 \in G$.
+\begin{itemize}
+  \item If $j_1 \tuh j_2 \in G$, then $(j_1, j_2) \in E$, which by
+        \ref{not-cdmg} is exactly $j_2 \hut j_1 \in G$. In particular
+        $j_2 \hus j_1 \in G$, contradicting part (1) applied to
+        $j_2 \in J$.
+  \item If $j_1 \hut j_2 \in G$, then $j_1 \hus j_2 \in G$ directly
+        by the definition of $\hus$ in \ref{not-cdmg}, contradicting
+        part (1) applied to $j_1 \in J$.
+  \item If $j_1 \huh j_2 \in G$, then $j_1 \hus j_2 \in G$ (again
+        directly from \ref{not-cdmg}), contradicting part (1)
+        applied to $j_1 \in J$.
+\end{itemize}
+In each case we reach a contradiction, so $j_1 \sus j_2 \notin G$; by
+the adjacency definition immediately following \ref{not-cdmg}, this
+is precisely the statement that no two nodes in $J$ are adjacent.
+\end{proof}
+
+\end{document}

@@ -1,0 +1,31 @@
+% Claim statement file for row claim_3_24 -- "SigmaSeparationEquivalences".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[../main]{subfiles}
+
+\begin{document}
+% ref: claim_3_24 (statement)
+% title: SigmaSeparationEquivalences
+
+\begin{Rem}
+    \begin{enumerate}
+        \item By Proposition \ref{prp:sigma_opens} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
+  \begin{enumerate}
+      \item every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
+      \item every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
+  \end{enumerate}
+    \item Proposition \ref{prp:sigma_opens} also shows that if $A \nisPerp_G B \given C$ holds then:
+  \begin{enumerate}
+      \item there exists a (shortest) $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
+      \item there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.
+  \end{enumerate}
+  \end{enumerate}
+  In practice we usually check if every path is $C$-$\sigma$-blocked or not. This is because there are, in contrast to walks, only a finite number of paths in a (finite) graph. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).
+\end{Rem}
+
+\end{document}

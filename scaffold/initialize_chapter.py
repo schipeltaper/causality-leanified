@@ -1,10 +1,9 @@
 import json
 import re
-import subprocess
 from pathlib import Path
 
 from create_data import fill_data
-from solving_current_row import (
+from solve_chapter import (
     regenerate_subsection_main_tex,
     ensure_request_from_human_file,
     pick_title_for_row,
@@ -28,6 +27,11 @@ LAKEFILE_PATH = SCAFFOLD_DIR.parent / "lakefile.toml"
 CAUSALITY_LEAN_PATH = LEANIFICATION_DIR / "Causality.lean"
 
 # Initialize current chapter
+#
+# NOTE: this assumes `scaffold/prep_chapter.py` has already been run for this
+# chapter -- the lecture-notes `.tex` file must already contain the
+# `\begin{defmark}`/`\begin{claimmark}` markers. If you skip that step, the
+# fill_data call below will return 0 rows.
 def initialize():
     # Get title_chapter and tex_file_chapter
     (title_chapter, tex_file_chapter) = get_title_and_tex_file_chapter(current_chapter)
@@ -46,15 +50,7 @@ def initialize():
     ensure_lakefile_globs_for_chapter(chapter_module)
     ensure_causality_imports_chapter(chapter_module)
 
-    # Find all defs and claims in current_chapter -- spawn a Claude Code
-    # agent following the prompt in claude_prompts/chapter_setup/ to wrap
-    # every def and claim in the chapter's .tex file with the
-    # defmark/claimmark blocks fill_data() then scans for.
-    mark_defs_and_claims(current_chapter, tex_file_chapter)
-
-    # Wait for human confirmation
-
-    # run create data script
+    # run create data script (parses the marks left by `prep_chapter.py`).
     fill_data(current_chapter, tex_file_chapter, data_path)
 
     # Walk every row whose title wasn't auto-extractable from the LN's
@@ -90,7 +86,7 @@ def initialize():
 
 def ensure_chapter_aggregator_stub(chapter_module: str) -> Path:
     """Create ``leanification/<ChapterModule>.lean`` with an empty aggregator
-    body, if it doesn't already exist. ``solving_current_row.py`` rewrites
+    body, if it doesn't already exist. ``solve_chapter.py`` rewrites
     this file every time a row in the chapter is marked solved.
     """
     path = LEANIFICATION_DIR / f"{chapter_module}.lean"
@@ -98,7 +94,7 @@ def ensure_chapter_aggregator_stub(chapter_module: str) -> Path:
         return path
     path.write_text(
         f"-- Aggregator for chapter folder `{chapter_module}`.\n"
-        f"-- Auto-managed by scaffold/solving_current_row.py; do not edit by hand.\n",
+        f"-- Auto-managed by scaffold/solve_chapter.py; do not edit by hand.\n",
         encoding="utf-8",
     )
     return path
@@ -149,44 +145,6 @@ def ensure_causality_imports_chapter(chapter_module: str) -> None:
         text += "\n"
     CAUSALITY_LEAN_PATH.write_text(text + line + "\n", encoding="utf-8")
 
-
-def mark_defs_and_claims(chapter, tex_file):
-    """Spawn a Claude Code agent to mark every def and claim in the chapter's
-    .tex file, in place, with ``\\begin{defmark}...\\end{defmark}`` or
-    ``\\begin{claimmark}...\\end{claimmark}``.
-
-    The agent follows the rules in
-    ``claude_prompts/chapter_setup/mark_definitions_and_claims_in_tex.md``
-    and inherits the parent shell's Claude auth. Raises ``RuntimeError`` if
-    the agent exits non-zero.
-    """
-    prompt_template = (
-        SCAFFOLD_DIR
-        / "claude_prompts"
-        / "chapter_setup"
-        / "mark_definitions_and_claims_in_tex.md"
-    ).read_text(encoding="utf-8")
-    tex_path = LECTURE_NOTES_DIR / tex_file
-
-    context = (
-        "You are an agent in the causality-leanification swarm. Your one job is\n"
-        f"to mark up chapter {chapter} of the lecture notes.\n\n"
-        f"Edit ONLY this file, in place:\n  {tex_path}\n\n"
-        "Be exhaustive -- find every definition and claim, however small.\n"
-        "Do not modify any other file. When done, briefly summarise how many\n"
-        "defs and claims you marked.\n\n"
-        "---\n\n"
-    )
-    full_prompt = context + prompt_template
-
-    result = subprocess.run(
-        ["claude", "-p", full_prompt, "--dangerously-skip-permissions"],
-        check=False,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"find_def_claim agent exited with code {result.returncode}"
-        )
 
 # Create empty data file in {current_chapter}_{title_chapter} within leanification folder
 # It will represent a large table. Each row will be a claim or def from the lecture notes.

@@ -68,12 +68,13 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `verify_tex_proof` | you believe a tex proof is complete and want an independent check | brief for `verify_tex_proof.md` (path to the proof file + the claim) |
 | `review_design` | a def/claim statement is freshly formalized; check it's a *natural* design | brief for `review_design.md` (the Lean declaration + LN block) |
 | `verify_equivalence` | check the Lean statement is *exactly equivalent* to the LN block | brief for `verify_equivalence.md` |
+| `add_design_choice_comments` | after equivalence PASS: enrich the comment block above each Lean declaration with the *why* (this is mandatory before proceeding) | brief for `add_design_choice_comments.md` (which Lean file(s), which declaration(s), what review_design surfaced) |
 | `simplify_proof` | a Lean proof closes — check it isn't unnecessarily complex | brief for `simplify_proof.md` (proof file path + Lean file path) |
 | `solved` | every prerequisite verifier has PASSed; you want the final-gate check | short summary of what was done; orchestrator dispatches `verify_row_solved` |
 | `make_plan` | the job is chunky and needs ordered subtasks | brief for `plan_subtasks.md` (the worker writes the plan into your `workspace_<ref>.md`) |
 | `decompose` | synonym for `make_plan` | brief for `plan_subtasks.md` |
 | `refactor` | existing Lean code in the subsection needs structural cleanup | brief for `refactor_lean_code.md` (goal, scope) |
-| `mistake` | a claim appears genuinely false | brief for `document_counterexample.md` |
+| `mistake` | a claim is genuinely false — *signal* (no worker dispatched); from this turn on, every proof step targets NOT-claim instead of claim; `mark_solved` will write `proven="disproven"` at the end | one-paragraph rationale for why you've concluded the claim is false (used for the audit trail) |
 | `new_manager` | a natural phase boundary (e.g. tex proof done → leanify) or your context is large | handoff dossier: where we are, what's done (verifiers passed), what's next, file paths the next manager needs |
 | `reorder` | a prerequisite needs solving first | `PRECEDES: <ref>, <ref>, ...` on one line + rationale. An independent verifier judges the reorder; on PASS, the named refs are moved ahead of this row, this row's Lean state is cleared with a note in `tips`, and the run exits |
 | `reset` | throw away current state and start fresh | brief explanation |
@@ -99,8 +100,9 @@ The canonical list of valid action names is in `scaffold/create_data.py` `ACTION
    - On FAIL: re-dispatch the formalizer with the design feedback
 3. `verify_equivalence` — focused check that the Lean statement matches the LN block
    - On FAIL: re-dispatch the formalizer
-4. `solved` → orchestrator dispatches `verify_row_solved` for the final-gate check
-5. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
+4. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the row can be solved.
+5. `solved` → orchestrator dispatches `verify_row_solved` for the final-gate check
+6. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
 
 ### Claim row (`def_or_claim == "claim"`) — two managers, three handed-off phases
 
@@ -114,7 +116,8 @@ A claim row passes through **exactly two manager agents**: one for the **stateme
    - On FAIL: re-dispatch the formalizer with the verifier's tagged feedback.
 4. `verify_equivalence` — focused statement-vs-LN check.
    - On FAIL: re-dispatch the formalizer.
-5. **`new_manager`** — handoff. Body is the dossier: row ref, the Lean file/statement, the LN block, what verifiers passed, where the empty `<ref>_proof_<title>.tex` stub lives.
+5. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the proof phase begins.
+6. **`new_manager`** — handoff. Body is the dossier: row ref, the Lean file/statement, the LN block, what verifiers passed, where the empty `<ref>_proof_<title>.tex` stub lives (it already includes the statement at the top).
 
 **Manager B — the proof (TeX + Lean, in one manager).**
 
@@ -130,11 +133,18 @@ A claim row passes through **exactly two manager agents**: one for the **stateme
 10. `solved` → `verify_row_solved` final-gate check.
 11. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
 
-### Claim that's actually false
+### Claim that's actually false — **same workflow as proving, on the negation**
 
-1. `mistake` → `document_counterexample.md` worker.
-2. `solved` → verifier.
-3. Row marked `formalized="yes"`, `proven="disproven"`, `solved="yes"`.
+Disproving uses the identical pipeline as proving: first a TeX proof of the negation, verified by an independent agent, *then* the Lean proof.
+
+1. `mistake` — signal that this row is being disproven. **No worker is spawned**; this just flips the verdict the orchestrator will write at the end and tells you to switch into negation mode. After emitting `mistake`, your remaining work uses the standard tex-proof + leanify pipeline, but every proof artefact targets `NOT-claim`:
+2. `spawn_agent_sub_task` → `write_tex_proof.md` — tell the worker the proof must establish `NOT-claim`, with a concrete counter-example as evidence.
+3. `verify_tex_proof` — same as for proving.
+4. `spawn_agent_sub_task` → `prove_claim_in_lean.md` — leanify the negation. The Lean target is typically `theorem not_<original> : ¬ <claim> := …` (or an existential witness like `∃ <setup>, hypotheses ∧ ¬ conclusion`).
+5. `simplify_proof` — same.
+6. `solved` → `verify_row_solved`. The orchestrator sees `mistake` in your history and writes `proven="disproven"` (not `"proven"`).
+
+(Optionally, the `document_counterexample.md` prompt is still in the row_workers folder for reference, but it is **not the path you take here** — use the standard pipeline above.)
 
 After each Lean change, ensure `lake build` from `/home/11716061/repo_scaffold2/` is clean (the workers do this themselves; you don't run it). Never declare `solved` if a verifier in the chain hasn't PASSed.
 

@@ -14,3 +14,6 @@ import Chapter3_GraphTheory.Section3_1.FamilyDistrict
 import Chapter3_GraphTheory.Section3_1.Acyclicity
 import Chapter3_GraphTheory.Section3_1.GraphTypes
 import Chapter3_GraphTheory.Section3_1.TopologicalOrder
+import Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder
+import Chapter3_GraphTheory.Section3_1.Predecessors
+import Chapter3_GraphTheory.Section3_2.HardInterventionOn
