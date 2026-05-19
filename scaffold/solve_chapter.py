@@ -86,14 +86,16 @@ ACTION_TO_WORKER: dict[str, str | None] = {
     "expand_proof":              "expand_tex_proof.md",
     "correct_tex_proof":         "correct_tex_proof.md",
     "add_design_choice_comments": "add_design_choice_comments.md",
-    "refactor":                  "refactor_lean_code.md",
     "make_plan":                 "plan_subtasks.md",
     "decompose":                 "plan_subtasks.md",
     "spawn_agent_sub_task":      None,   # body is the prompt
-    # `mistake` is intentionally NOT here -- it is a state signal, not a
-    # worker dispatch. The inline handler records it (so mark_solved later
-    # sets `proven="disproven"`) and tells the manager to proceed with the
-    # standard write_tex_proof -> verify -> leanify flow on the NEGATION.
+    # `mistake` and `refactor` are intentionally NOT here -- both are
+    # inline-handled. `mistake` is a state signal that flips the eventual
+    # verdict to disproven; `refactor` dispatches the heavy redesign-planner
+    # worker and then exits the row run so the next iteration picks up
+    # the now-earlier first-unsolved row. (The lighter code-level refactor
+    # worker `refactor_lean_code.md` is still available to the manager via
+    # `spawn_agent_sub_task` for non-design-change cleanups.)
 }
 
 # Verifier-style actions: spawn a worker, parse `VERDICT: PASS/FAIL`, feed
@@ -367,16 +369,110 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
 
 
 def cleanup_row_artefacts(row: dict, subsection_folder: Path) -> None:
-    """Remove transient working files for a row once it's marked solved.
+    """Remove transient artefacts once a row is marked solved.
 
-    Currently: the per-row markdown scratchpad ``workspace_<ref>.md``. Tex
-    stubs and Lean files stay -- they are the formal record. Anything from
-    the workspace that is worth keeping should be inlined into Lean comments
-    by the workers before they declare done.
+    Anything that was only useful for *getting to* solved gets dropped:
+
+    - ``workspace_<ref>.md`` -- the manager's scratchpad. Anything worth
+      keeping should have been moved into Lean comments by the workers.
+    - ``agent_registry`` -- the list of past Claude session ids the manager
+      used during the active solving phase. With the row done, those
+      sessions are no longer something anyone needs to resume.
+
+    Tex stubs, Lean files, ``actions_tracking`` (kept as project-level
+    analytics) and the formal status fields (``formalized``/``proven``/
+    ``solved``/``lean_files``/``date_solved``) all stay.
+
+    The caller must ``save_data()`` after this to persist the cleared
+    ``agent_registry``.
     """
     wp = workspace_path_for_row(row, subsection_folder)
     if wp.exists():
         wp.unlink()
+    row["agent_registry"] = []
+
+
+def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> None:
+    """Append a structured run-summary section to ``workspace_<ref>.md``
+    so the *next* manager that picks this row up can see what was tried.
+
+    Called from every exit path where the row was NOT marked solved (budget
+    exhausted, MAX_TURNS hit, action-parse failure exhausted, request_from_human
+    threshold). The summary records the action sequence, the row's current
+    state, and which past agent sessions are resumable (from the registry).
+    """
+    section = state.row.get("section", "")
+    if not section:
+        return
+    subsection_folder = ensure_subsection_folder(state.data_path.parent, section)
+    wp = workspace_path_for_row(state.row, subsection_folder)
+
+    stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    elapsed_min = state.elapsed_seconds / 60
+
+    # Compact action sequence -- one line per turn.
+    if state.history:
+        action_seq = "\n".join(
+            f"  {t.turn_index:3d}. {t.action:24s}  "
+            f"{summarise(t.worker_summary, 200) or '(no worker summary)'}"
+            for t in state.history
+        )
+    else:
+        action_seq = "  (no turns recorded -- exited before the first manager turn?)"
+
+    # Latest verifier verdicts pulled from action history.
+    verdicts = []
+    for t in reversed(state.history):
+        if t.action in VERIFIER_ACTIONS or t.action == "solved":
+            v = re.search(r"VERDICT:\s*(PASS|FAIL)\b", t.worker_summary or "",
+                          re.IGNORECASE)
+            if v:
+                verdicts.append(f"  {t.action} -> {v.group(1).upper()} (turn {t.turn_index})")
+            if len(verdicts) >= 5:
+                break
+    verdicts_block = "\n".join(reversed(verdicts)) if verdicts else "  (none captured)"
+
+    # The agent registry (caps to last 10 entries for readability).
+    registry = state.row.get("agent_registry", []) or []
+    if registry:
+        reg_lines = "\n".join(
+            f"  - {e['kind']:24s}  id={e['session_id']}  last={e.get('last_used','?')}"
+            for e in registry[-10:]
+        )
+    else:
+        reg_lines = "  (empty)"
+
+    block = (
+        f"\n---\n"
+        f"## Run summary -- {stamp}\n"
+        f"**Reason for stop:** {reason}\n"
+        f"**Turns this run:** {len(state.history)}\n"
+        f"**Elapsed:** {elapsed_min:.1f} min\n"
+        f"**Row state at exit:** formalized={state.row.get('formalized')} "
+        f"proven={state.row.get('proven')} solved={state.row.get('solved')}\n"
+        f"\n### Action sequence\n{action_seq}\n"
+        f"\n### Latest verifier verdicts\n{verdicts_block}\n"
+        f"\n### Resumable past agents (most recent 10)\n{reg_lines}\n"
+        f"\n### What the next manager should NOT repeat\n"
+        f"_(Auto-recorded section. The next manager may overwrite this with a\n"
+        f"sharper diagnosis once it has read above. The bullets below are a\n"
+        f"heuristic from the action sequence -- treat them as hypotheses, not facts.)_\n"
+        f"- Actions emitted this run, in order, are listed above. Re-running the\n"
+        f"  same sequence is unlikely to help -- pick a different angle.\n"
+        f"- If a verifier last reported FAIL, the feedback was inside its\n"
+        f"  `BEGIN[feedback]…END[feedback]` block; read your history before\n"
+        f"  dispatching the same verifier again.\n"
+        f"- If you want to talk to a specific past agent, use `continue_agent`\n"
+        f"  with one of the session ids above instead of spawning fresh.\n"
+    )
+
+    # Create the workspace file if it doesn't exist (defensive); then append.
+    if not wp.exists():
+        ensure_row_workspace(state.row, subsection_folder)
+    wp.write_text(wp.read_text(encoding="utf-8") + block, encoding="utf-8")
+    print(f"[orchestrator] run summary appended to "
+          f"{wp.relative_to(state.data_path.parent.parent.parent)}",
+          flush=True)
 
 
 def regenerate_subsection_main_tex(data_path: Path, data: dict,
@@ -1098,6 +1194,10 @@ def solve_current_row() -> None:
         if state.elapsed_seconds > MAX_RUNTIME_SECONDS:
             print(f"[orchestrator] 8-hour budget exhausted after {turn-1} "
                   f"turns; stopping.", flush=True)
+            append_unsolved_run_summary(
+                state,
+                reason=f"8-hour budget exhausted after {turn-1} turns",
+            )
             return
 
         # --- Manager turn --------------------------------------------------
@@ -1178,13 +1278,12 @@ def solve_current_row() -> None:
                 ) else "proven"
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
-                save_data(state.data_path, data)
                 regenerate_chapter_aggregator(state.data_path, data)
                 regenerate_subsection_main_tex(
                     state.data_path, data, state.row.get("section", ""))
-                # Drop the per-row markdown scratchpad now that the row is
-                # done; anything worth keeping should already be in the
-                # Lean comments.
+                # Drop the per-row scratchpad + clear the now-stale
+                # agent_registry; anything worth keeping should already
+                # be in the Lean comments.
                 section = state.row.get("section", "")
                 if section:
                     cleanup_row_artefacts(
@@ -1192,6 +1291,8 @@ def solve_current_row() -> None:
                         ensure_subsection_folder(
                             state.data_path.parent, section),
                     )
+                # Save AFTER cleanup so the cleared agent_registry is persisted.
+                save_data(state.data_path, data)
                 print(f"[orchestrator] {state.ref} marked solved "
                       f"({proven}); lean_files={lean_files or '(unreported)'}",
                       flush=True)
@@ -1221,6 +1322,42 @@ def solve_current_row() -> None:
                 "You emitted `no_action`. Please pick one of the concrete "
                 "actions from the table in manager.md."
             )
+
+        elif action == "refactor":
+            # Heavy redesign: dispatch the refactor-planner worker to
+            # identify every affected ref across all chapter data.json files,
+            # mark them unsolved with a refactor tip, delete their Lean
+            # files, and write the plan to
+            # `leanification/refactors/refactor_<title>.json`.
+            #
+            # After the worker returns we end this run -- the next
+            # solve_chapter iteration will pick up the new first-unsolved
+            # (typically the redesign target, which is earlier than this row).
+            worker_prompt = (
+                read_worker_prompt("plan_refactor.md")
+                + "\n\n"
+                + render_row_context(state)
+                + f"## Manager's refactor request\n{body}\n"
+            )
+            reply, sess = run_claude(
+                worker_prompt, label=f"t{turn:03d}_refactor_planner"
+            )
+            _register_agent(state.row, kind="refactor", session_id=sess)
+            state.history.append(TurnRecord(
+                turn, action, body,
+                summarise(reply, n=1200),
+            ))
+            save_data(state.data_path, data)
+            print(f"[orchestrator] refactor planner ran; ending row run so "
+                  f"the next iteration picks up the new first-unsolved.",
+                  flush=True)
+            append_unsolved_run_summary(
+                state,
+                reason="refactor dispatched -- this row may have been "
+                "marked unsolved by the planner; re-running solve_chapter "
+                "will pick up the (possibly earlier) first-unsolved row.",
+            )
+            return
 
         elif action == "mistake":
             # `mistake` is a state signal: the manager has concluded the
@@ -1342,6 +1479,10 @@ def solve_current_row() -> None:
                                             outcome["summary"]))
             save_data(state.data_path, data)
             if outcome["should_stop"]:
+                append_unsolved_run_summary(
+                    state, reason="request_from_human threshold reached -- "
+                    "request written to chapter file, awaiting human reply",
+                )
                 return
             extra_note = outcome["feedback_for_manager"]
 
@@ -1367,6 +1508,9 @@ def solve_current_row() -> None:
         save_data(state.data_path, data)
 
     print(f"[orchestrator] hit MAX_TURNS={MAX_TURNS}; stopping.", flush=True)
+    append_unsolved_run_summary(
+        state, reason=f"MAX_TURNS={MAX_TURNS} reached without solving",
+    )
 
 
 def solve_chapter() -> None:

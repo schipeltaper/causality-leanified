@@ -18,7 +18,9 @@ Every agent you spawn (and you yourself) runs on **Opus 4.7 with the 1M-context 
 ## Your workspace
 
 The orchestrator gives you a markdown scratchpad at
-`leanification/<Chapter>/<Section>/workspace_<ref>.md` (path is in your row context). Use it. Write down your plan when `make_plan` returns one. Keep a running list of what you've tried and why it didn't work. If you `new_manager`-handoff or the run ends and a future invocation picks this row back up, the workspace is what carries context forward. The successor manager will read it.
+`leanification/<Chapter>/<Section>/workspace_<ref>.md` (path is in your row context). Use it. Write down your plan when `make_plan` returns one. Keep a running list of what you've tried and why it didn't work. If you `new_manager`-handoff or the run ends and a future invocation picks this row back up, the workspace is what carries context forward.
+
+**If a previous run on this row stopped without solving** (budget exhausted, MAX_TURNS, or the human-request threshold was hit), the orchestrator will have appended one or more `## Run summary -- <timestamp>` sections to the bottom of this workspace file. **Read them before you start.** They list the action sequence the previous run tried, the latest verifier verdicts, and the still-resumable session ids in the agent registry. Do *not* mechanically repeat the same action sequence — pick a different angle, or `continue_agent` one of the listed sessions to ask "what blocked you?".
 
 ## Resuming past agents
 
@@ -73,7 +75,7 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `solved` | every prerequisite verifier has PASSed; you want the final-gate check | short summary of what was done; orchestrator dispatches `verify_row_solved` |
 | `make_plan` | the job is chunky and needs ordered subtasks | brief for `plan_subtasks.md` (the worker writes the plan into your `workspace_<ref>.md`) |
 | `decompose` | synonym for `make_plan` | brief for `plan_subtasks.md` |
-| `refactor` | existing Lean code in the subsection needs structural cleanup | brief for `refactor_lean_code.md` (goal, scope) |
+| `refactor` | **heavy** — a foundational Lean shape was a mistake and everything that built on it needs to be re-done. The orchestrator dispatches `plan_refactor.md` (full-LN-context planner) which writes `leanification/refactors/refactor_<title>.json`, resets every affected `data.json` row to unsolved (clears `lean_files`, `formalized`, `solved`, `agent_registry`; appends a refactor tip), deletes the affected Lean files, and ends this row's run. The next `solve_chapter` iteration picks up the new first-unsolved row (typically an earlier ref — the redesign target). **Avoid this by doing things correctly the first time.** For lighter code-level cleanups (renames, file splits — no design change), use `spawn_agent_sub_task` + `refactor_lean_code.md` instead. | one or two paragraphs: what concept is wrong, why, the proposed new shape, and any pre-spotted downstream consumers |
 | `mistake` | a claim is genuinely false — *signal* (no worker dispatched); from this turn on, every proof step targets NOT-claim instead of claim; `mark_solved` will write `proven="disproven"` at the end | one-paragraph rationale for why you've concluded the claim is false (used for the audit trail) |
 | `new_manager` | a natural phase boundary (e.g. tex proof done → leanify) or your context is large | handoff dossier: where we are, what's done (verifiers passed), what's next, file paths the next manager needs |
 | `reorder` | a prerequisite needs solving first | `PRECEDES: <ref>, <ref>, ...` on one line + rationale. An independent verifier judges the reorder; on PASS, the named refs are moved ahead of this row, this row's Lean state is cleared with a note in `tips`, and the run exits |
