@@ -1,0 +1,52 @@
+name: Deploy site
+
+# Build and deploy the static site under `building_website/website/` to
+# GitHub Pages. Triggered on push to `main` and manually via the Actions
+# tab. The manifest is regenerated on each run so `data/manifest.json`
+# stays in sync with whatever `data/<ref>.json` files are committed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; queued runs replace any in-progress
+# build of an earlier commit but don't cancel a deploy that's mid-flight.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Regenerate manifest
+        run: python3 building_website/scripts/build_manifest.py
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./building_website/website
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
