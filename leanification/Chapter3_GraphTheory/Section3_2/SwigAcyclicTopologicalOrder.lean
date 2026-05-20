@@ -223,7 +223,26 @@ theorem isTopologicalOrder_nodeSplittingHardInterventionOn
     {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
     {r : α → α → Prop} (hr : G.IsTopologicalOrder r) :
     (G.nodeSplittingHardInterventionOn W hW).IsTopologicalOrder
-      (splitOrder W r) := sorry
+      (splitOrder W r) := by
+  -- Mirrors `tex/claim_3_9_proof_SwigAcyclicTopologicalOrder.tex`
+  -- Part A. The SWIG is by definition `(G.nodeSplittingOn W hW
+  -- ).hardInterventionOn (Set.range Sum.inr)`; chain claim_3_6
+  -- part A (`isTopologicalOrder_nodeSplittingOn`, producing
+  -- `splitOrder W r` on the split graph) with claim_3_3 part B
+  -- (`isTopologicalOrder_hardInterventionOn`, transporting any
+  -- topological order through HI provided the intervention target
+  -- lies in the ambient `J ∪ V`). The HI precondition reads
+  -- `Set.range Sum.inr ⊆ (G.nodeSplittingOn W hW).J ∪
+  -- (G.nodeSplittingOn W hW).V`, which holds because the fresh
+  -- `Sum.inr` copies sit in the split graph's *output* set by
+  -- `nodeSplittingOn_V`.
+  change ((G.nodeSplittingOn W hW).hardInterventionOn
+      (Set.range Sum.inr)).IsTopologicalOrder (splitOrder W r)
+  refine isTopologicalOrder_hardInterventionOn ?_
+    (isTopologicalOrder_nodeSplittingOn hW hr)
+  rintro x ⟨w, rfl⟩
+  rw [nodeSplittingOn_J, nodeSplittingOn_V]
+  exact Or.inr (Or.inr ⟨w, rfl⟩)
 
 -- claim_3_9 (part B)
 -- title: SwigAcyclicTopologicalOrder -- acyclicity preserved
@@ -324,7 +343,16 @@ walk-lifting on the SWIG). -/
 theorem isAcyclic_nodeSplittingHardInterventionOn
     {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
     (h : G.IsAcyclic) :
-    (G.nodeSplittingHardInterventionOn W hW).IsAcyclic := sorry
+    (G.nodeSplittingHardInterventionOn W hW).IsAcyclic := by
+  -- Mirrors `tex/claim_3_9_proof_SwigAcyclicTopologicalOrder.tex`
+  -- Part B. The SWIG is by definition `(G.nodeSplittingOn W hW
+  -- ).hardInterventionOn (Set.range Sum.inr)`; chain claim_3_6
+  -- part B (`isAcyclic_nodeSplittingOn`, NS preserves acyclicity)
+  -- with claim_3_3 part A (`isAcyclic_hardInterventionOn`, HI
+  -- preserves acyclicity, no precondition).
+  change ((G.nodeSplittingOn W hW).hardInterventionOn
+      (Set.range Sum.inr)).IsAcyclic
+  exact isAcyclic_hardInterventionOn _ (isAcyclic_nodeSplittingOn hW h)
 
 end CDMG
 

@@ -37,7 +37,46 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+The whole argument rests on the observation, already spelt out in the closing paragraph of \refrow{def_3_12} (\emph{``we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$''}), that the SWIG is a node-splitting followed by a hard intervention on the resulting inner copies. Concretely, identifying the SWIG superscripts with the node-splitting superscripts via $v^o = v^0$ and $v^i = v^1$ (both \refrow{def_3_11} and \refrow{def_3_12} construct $W^0, W^1$ resp.\ $W^o, W^i$ as ``two disjoint copies of $W$'', and both use the convention $v^o = v^i = v$ resp.\ $v^0 = v^1 = v$ for $v \in J \cup V \sm W$), we have
+\[
+  G_{\swig(W)} \;=\; \lp G_{\spl(W)} \rp_{\doit(W^i)}.
+\]
+Write $G' := G_{\spl(W)}$. We verify the four bullets of \refrow{def_3_12} by composing \refrow{def_3_11} with \refrow{def_3_10}.
+
+\medskip\noindent\emph{Input nodes.} By \refrow{def_3_11}.i, $J' = J$. By \refrow{def_3_10}.i, $J'_{\doit(W^i)} = J' \cup W^i = J \cup W^i = J \dcup W^i = J_{\swig(W)}$ (the last two equalities use the disjointness of the fresh copy $W^i$ from $J$ asserted in \refrow{def_3_12}, and item i. of \refrow{def_3_12}).
+
+\medskip\noindent\emph{Output nodes.} By \refrow{def_3_11}.ii, $V' = (V \sm W) \dcup W^o \dcup W^i$. By \refrow{def_3_10}.ii, $V'_{\doit(W^i)} = V' \sm W^i = (V \sm W) \dcup W^o = V_{\swig(W)}$ (item ii. of \refrow{def_3_12}).
+
+\medskip\noindent\emph{Directed edges.} By \refrow{def_3_11}.iii,
+\[
+  E' \;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\cup\; \lC w^o \tuh w^i \st w \in W \rC.
+\]
+By \refrow{def_3_10}.iii, $E'_{\doit(W^i)}$ removes every edge whose head lies in $W^i$. For an edge $v_1^i \tuh v_2^o$ the head $v_2^o$ lies in $W^o \dcup (V \sm W)$, never in $W^i$; for an edge $w^o \tuh w^i$ the head $w^i$ lies in $W^i$ and the edge is removed. The surviving edges are
+\[
+  E'_{\doit(W^i)} \;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;=\; E_{\swig(W)}
+\]
+(item iii. of \refrow{def_3_12}).
+
+\medskip\noindent\emph{Bidirected edges.} By \refrow{def_3_11}.iv, $L' = \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$. By \refrow{def_3_10}.iv, $L'_{\doit(W^i)}$ removes every bidirected edge with an endpoint in $W^i$. Since $v_1^o, v_2^o \in W^o \dcup (V \sm W)$, neither endpoint lies in $W^i$ and nothing is removed: $L'_{\doit(W^i)} = L' = L_{\swig(W)}$ (item iv. of \refrow{def_3_12}).
+
+\medskip
+The four bullets agree, so $G_{\swig(W)} = \lp G_{\spl(W)} \rp_{\doit(W^i)}$. The two halves of the claim are now corollaries of \refrow{claim_3_6} (the node-splitting analogue) and \refrow{claim_3_3} (the hard-intervention analogue).
+
+\medskip\noindent\emph{Part A (topological order).}
+Let $<$ be a topological order of $G$ (\refrow{def_3_8}) enumerating $J \cup V$ as $v_1 < v_2 < \cdots < v_n$. By \refrow{claim_3_6} (Part A: node-splitting preserves the topological order via the $\pm 1/3$ interleave), the relation $<_\spl$ obtained by assigning, for each $v_j \in W$ with index $j$, the indices
+\[
+  v_j^0 \mapsto j - \tfrac{1}{3}, \qquad v_j^1 \mapsto j + \tfrac{1}{3},
+\]
+keeping the index $j$ for every $v_j \in (J \cup V) \sm W$, and ordering nodes by index value, is a topological order of $G_{\spl(W)}$. Under the identification $v^o = v^0$, $v^i = v^1$ (established at the start of the proof), this is precisely the $\pm 1/3$ recipe stated in the claim: $v_j^o$ at index $j - \tfrac{1}{3}$ and $v_j^i$ at index $j + \tfrac{1}{3}$.
+
+We now lift $<_\spl$ from $G_{\spl(W)}$ to $G_{\swig(W)} = \lp G_{\spl(W)} \rp_{\doit(W^i)}$ using \refrow{claim_3_3} (Part B: a hard intervention preserves a topological order, under the precondition that the intervention target lies in the ambient input--output node set). Here the precondition reads $W^i \ins J_{\spl(W)} \cup V_{\spl(W)}$, which is met: by \refrow{def_3_11}.ii,
+\[
+  W^i \;\ins\; (V \sm W) \dcup W^o \dcup W^i \;=\; V_{\spl(W)} \;\ins\; J_{\spl(W)} \cup V_{\spl(W)}.
+\]
+Applying \refrow{claim_3_3} (Part B) to $G_{\spl(W)}$ with intervention target $W^i$ yields that $<_\spl$ is also a topological order of $\lp G_{\spl(W)} \rp_{\doit(W^i)} = G_{\swig(W)}$. This is the topological order described by the claim.
+
+\medskip\noindent\emph{Part B (acyclicity).}
+Assume $G$ is acyclic (\refrow{def_3_6}). By \refrow{claim_3_6} (Part B: node-splitting preserves acyclicity), $G_{\spl(W)}$ is acyclic. By \refrow{claim_3_3} (Part A: hard intervention preserves acyclicity --- no precondition required), $\lp G_{\spl(W)} \rp_{\doit(W^i)}$ is acyclic. By the composite identity $G_{\swig(W)} = \lp G_{\spl(W)} \rp_{\doit(W^i)}$ established above, $G_{\swig(W)}$ is acyclic.
 \end{proof}
 
 \end{document}
