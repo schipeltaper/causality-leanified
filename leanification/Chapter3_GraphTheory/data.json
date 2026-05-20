@@ -739,33 +739,36 @@
       "section": "3.2",
       "title": "DisjointHardInterventions",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-20",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplittingCommute.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplittingCommute.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 4,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes of $G$.\n   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": []
@@ -776,33 +779,36 @@
       "section": "3.2",
       "title": "NodeSplittingHard",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-05-20",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting hard intervention on CADMGs]\n  \\label{def:G_node-splitting_intervention}\n    Let $G=(J,V,E,L)$ be a CADMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{single-world intervention graph (SWIG)} w.r.t.\\ $W$ of $G$ is the CADMG: \n    \\[ G_{\\swig(W)} :=\\lp J_{\\swig(W)}, V_{\\swig(W)}, E_{\\swig(W)},L_{\\swig(W)} \\rp,\\]\n    %\\[ G_{\\swig(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^o:=\\lC w^o\\st w \\in W \\rC, \\qquad W^i:=\\lC w^i \\st w \\in W \\rC.  \\]\n    Note that we consider $w^o \\neq w^i$ for $w \\in W$.\n  However, for brevity, for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^o:=v^i:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\swig(W)} := J \\dcup W^i$,\n      \\item $V_{\\swig(W)} := (V \\sm W) \\dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.\n      \\item $E_{\\swig(W)} := \\lC v^i_1 \\tuh v_2^o \\st v_1 \\tuh v_2 \\in E  \\rC$,\n      \\item $L_{\\swig(W)} :=\\lC v_1^o \\huh v_2^o \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,\n  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.\n\\end{Def}\n\\end{defmark}",
       "agent_registry": []
@@ -825,24 +831,82 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
         "solved": 0,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\swig(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\swig(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^o$ the index $j-\\frac{1}{3}$\n    and $v_j^i$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": []
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1f0d8c99-766d-44dd-bff3-0b1aef2dd713",
+          "first_seen": "2026-05-20T16:18:09+00:00",
+          "last_used": "2026-05-20T16:18:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8cff3786-9267-4199-a3d0-95d118292e48",
+          "first_seen": "2026-05-20T16:21:05+00:00",
+          "last_used": "2026-05-20T16:21:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "eafc09be-c5f5-4a94-ba96-932046eb34b6",
+          "first_seen": "2026-05-20T16:21:53+00:00",
+          "last_used": "2026-05-20T16:21:53+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "79b9d7b2-5fd7-496c-b265-1b5d8d4da439",
+          "first_seen": "2026-05-20T16:25:49+00:00",
+          "last_used": "2026-05-20T16:25:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9626a421-9396-4eee-8da7-2af8b795ac85",
+          "first_seen": "2026-05-20T16:26:46+00:00",
+          "last_used": "2026-05-20T16:26:46+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "51ee76af-bb95-4bc9-96e5-7a9044f06c67",
+          "first_seen": "2026-05-20T16:29:30+00:00",
+          "last_used": "2026-05-20T16:29:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4c7b4203-3cd2-4406-b53a-c24638734bd5",
+          "first_seen": "2026-05-20T16:30:11+00:00",
+          "last_used": "2026-05-20T16:30:11+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "74bf721d-c9b1-4fb6-9093-59558c346375",
+          "first_seen": "2026-05-20T16:34:41+00:00",
+          "last_used": "2026-05-20T16:34:41+00:00"
+        }
+      ]
     },
     {
       "def_or_claim": "claim",

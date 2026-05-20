@@ -24,3 +24,5 @@ import Chapter3_GraphTheory.Section3_2.AcyclicUnderIntervention
 import Chapter3_GraphTheory.Section3_2.NodeSplittingOn
 import Chapter3_GraphTheory.Section3_2.SplitTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.TwoDisjointNodeSplittingsCommute
+import Chapter3_GraphTheory.Section3_2.HardInterventionNodeSplittingCommute
+import Chapter3_GraphTheory.Section3_2.NodeSplittingHard
