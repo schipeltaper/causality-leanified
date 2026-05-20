@@ -498,33 +498,36 @@
       "section": "3.2",
       "title": "AcyclicUnderIntervention",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-20",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicUnderIntervention.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AcyclicUnderIntervention.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If $G$ is acyclic then also $G_{\\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\\doit(W)}$.\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": []
@@ -535,33 +538,36 @@
       "section": "3.2",
       "title": "HardInterventionsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-20",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionsCommute.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionsCommute.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 2,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Hard interventions commute]\\label{hard-interventions-commute}\n    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two  subsets of nodes from $G$. \n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(W_1)} =  G_{\\doit(W_1 \\cup W_2)}. \\]\n      %This shows that our notion:\n      %\\[ G(V \\sm (W_1 \\cup W_2) | \\doit(W_1 \\cup W_2 \\cup J))   \\]\n      %is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": []
@@ -584,24 +590,103 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
         "solved": 0,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 1,
+        "continue_agent": 1,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Prp}\\label{prp:bifurcations_alternative}\n  Let $G = \\lt J, V, E, L \\rt$ be a CDMG. For $v, w, c \\in V \\cup J$:\n  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \\ne w$ and $c \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$ and $c \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$.\n\\end{Prp}\n\\end{claimmark}",
-      "agent_registry": []
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "16718b3c-5b3c-4e29-beb3-0068ba7d3574",
+          "first_seen": "2026-05-20T01:33:46+00:00",
+          "last_used": "2026-05-20T01:33:46+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "300f49d4-6500-4de0-9f81-af60b9481793",
+          "first_seen": "2026-05-20T01:52:08+00:00",
+          "last_used": "2026-05-20T01:52:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1d4683d8-6131-47a2-9ac9-7be4d3f95b7e",
+          "first_seen": "2026-05-20T02:00:11+00:00",
+          "last_used": "2026-05-20T02:00:11+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "51960748-54a8-4da8-900f-2019f892aed6",
+          "first_seen": "2026-05-20T02:06:00+00:00",
+          "last_used": "2026-05-20T02:06:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "68b7bc24-8289-4e61-a205-7da875d6987c",
+          "first_seen": "2026-05-20T02:06:56+00:00",
+          "last_used": "2026-05-20T02:06:56+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "89b79d50-f6a1-4f15-b107-aebd2379499a",
+          "first_seen": "2026-05-20T02:11:52+00:00",
+          "last_used": "2026-05-20T02:11:52+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "25c077cf-646f-4a61-8ea1-7f4562f408d3",
+          "first_seen": "2026-05-20T02:12:45+00:00",
+          "last_used": "2026-05-20T02:12:45+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "181feb15-67cb-4462-8a75-acc2aed92fb0",
+          "first_seen": "2026-05-20T02:15:27+00:00",
+          "last_used": "2026-05-20T02:16:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "41acbfb8-b5b5-45ae-af89-cea09884dd38",
+          "first_seen": "2026-05-20T02:15:54+00:00",
+          "last_used": "2026-05-20T02:15:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "588b566e-ae0e-44f0-8a80-2dc1ec5fa0ce",
+          "first_seen": "2026-05-20T02:16:59+00:00",
+          "last_used": "2026-05-20T02:16:59+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "3cd63736-cea4-4f62-8764-02bf6116bde2",
+          "first_seen": "2026-05-20T02:23:18+00:00",
+          "last_used": "2026-05-20T02:23:18+00:00"
+        }
+      ]
     },
     {
       "def_or_claim": "def",
