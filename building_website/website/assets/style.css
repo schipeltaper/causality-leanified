@@ -230,11 +230,10 @@ html, body {
 /* Roman-numeral parenthesised list — matches \begin{enumerate}[label=\roman*.)] */
 ol.roman-paren {
   list-style: none;
-  counter-reset: roman-counter var(--start, 0);
+  counter-reset: roman-counter;
   padding-left: 0;
   margin: 0.6rem 0;
 }
-ol.roman-paren[start="3"] { counter-reset: roman-counter 2; }
 ol.roman-paren > li {
   counter-increment: roman-counter;
   position: relative;
@@ -340,6 +339,89 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 .entry.placeholder .entry-title { font-weight: 400; }
 
 .muted { color: var(--fg-muted); font-style: italic; }
+
+/* ---- proof panes (claims) ---- */
+
+.tex-proof-pane,
+.lean-proof-pane {
+  border-top: 1px solid var(--border);
+}
+.tex-proof-pane  { background: var(--bg-tex);  }
+.lean-proof-pane { background: var(--bg-lean); }
+.tex-proof-pane .pane-body  { padding: 1.1rem 1.4rem; font-family: var(--font-text); font-size: 1.02rem; }
+.lean-proof-pane .pane-body { padding: 0; }
+.lean-proof-pane pre {
+  margin: 0;
+  padding: 1.1rem 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.lean-part-label {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 0.6rem 1.4rem 0.2rem;
+}
+.tex-proof .proof-label {
+  font-weight: 600;
+  margin-right: 0.4em;
+  font-variant-caps: small-caps;
+}
+
+/* ---- design notes pre ---- */
+
+.design-notes-body pre {
+  background: var(--bg-lean);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+/* ---- sidebar: unavailable rows ---- */
+
+.sidebar ul li a.unavailable {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.sidebar ul li a.unavailable:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--fg-muted);
+}
+
+/* ---- loading / missing ---- */
+
+.loading {
+  padding: 3rem;
+  color: var(--fg-muted);
+  text-align: center;
+  font-family: var(--font-ui);
+}
+.missing {
+  padding: 1rem 1.4rem;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.missing-body {
+  padding: 1rem 1.4rem 1.4rem;
+  font-family: var(--font-ui);
+}
+.missing-body pre {
+  background: var(--bg-lean);
+  padding: 0.7rem 1rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
 
 /* ---- responsive: collapse split on small screens ---- */
 
