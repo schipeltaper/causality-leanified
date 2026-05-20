@@ -17,72 +17,75 @@
 \begin{document}
 % ref: claim_3_1 (proof, with statement restated for readability)
 % title: JNodeProperties
+\def\rowref{claim\_3\_1}
+\def\rowtitle{JNodeProperties}
+\phantomsection\label{claim_3_1}
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}
-With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
+With the notations \refrow{def_3_2} the restrictions in definition \refrow{def_3_1} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
 \end{Rem}
 
 % --- proof ------------------------------------------------------------------
-% The LN states this as a remark immediately after \ref{not-cdmg}
+% The LN states this as a remark immediately after \refrow{def_3_2}
 % (graphs.tex line 84-89) and provides no proof block; the statement is
 % the unfolding-only consequence of the structural fields of
-% \ref{def-cdmg}. The proof below is constructed from scratch in the
-% LN paradigm: every step is one notation-unfolding of \ref{not-cdmg}
+% \refrow{def_3_1}. The proof below is constructed from scratch in the
+% LN paradigm: every step is one notation-unfolding of \refrow{def_3_2}
 % followed by one of the inclusions $E \ins (J \cup V) \x V$,
 % $L \ins V \x V$, or the disjointness $J \cap V = \emptyset$ from
-% \ref{def-cdmg}.
+% \refrow{def_3_1}.
 
 \begin{proof}
-Let $G = (J, V, E, L)$ be a CDMG as in \ref{def-cdmg}. We verify the
+Let $G = (J, V, E, L)$ be a CDMG as in \refrow{def_3_1}. We verify the
 three assertions in turn.
 
 \medskip
 \noindent\emph{(1) No arrowhead points at any $j \in J$:
 $j \hus v \notin G$ for all $v \in G$.}
 Suppose for contradiction that $j \in J$ and $j \hus v \in G$ for some
-$v$. By \ref{not-cdmg}, $j \hus v \in G$ means that either
+$v$. By \refrow{def_3_2}, $j \hus v \in G$ means that either
 $j \hut v \in G$ or $j \huh v \in G$.
 \begin{itemize}
-  \item If $j \hut v \in G$, then by \ref{not-cdmg} $(v, j) \in E$.
-        By \ref{def-cdmg} we have $E \ins (J \cup V) \times V$,
+  \item If $j \hut v \in G$, then by \refrow{def_3_2} $(v, j) \in E$.
+        By \refrow{def_3_1} we have $E \ins (J \cup V) \times V$,
         so the second coordinate of any pair in $E$ lies in $V$; hence
         $j \in V$.
-  \item If $j \huh v \in G$, then by \ref{not-cdmg} $(j, v) \in L$.
-        By \ref{def-cdmg} we have $L \ins V \times V$, so both
+  \item If $j \huh v \in G$, then by \refrow{def_3_2} $(j, v) \in L$.
+        By \refrow{def_3_1} we have $L \ins V \times V$, so both
         coordinates of any pair in $L$ lie in $V$; hence $j \in V$.
 \end{itemize}
 Either way $j \in J \cap V$, contradicting the disjointness of $J$ and
-$V$ stipulated in \ref{def-cdmg}.
+$V$ stipulated in \refrow{def_3_1}.
 
 \medskip
 \noindent\emph{(2) Directed edges out of an input node target $V$:
 if $j \in J$ and $j \tuh w \in G$, then $w \in V$.}
-By \ref{not-cdmg}, $j \tuh w \in G$ means $(j, w) \in E$. Since
-$E \ins (J \cup V) \times V$ by \ref{def-cdmg}, the second coordinate
+By \refrow{def_3_2}, $j \tuh w \in G$ means $(j, w) \in E$. Since
+$E \ins (J \cup V) \times V$ by \refrow{def_3_1}, the second coordinate
 $w$ lies in $V$.
 
 \medskip
 \noindent\emph{(3) No two input nodes are adjacent: for all
 $j_1, j_2 \in J$, $j_1 \sus j_2 \notin G$.}
 Suppose for contradiction that $j_1, j_2 \in J$ and
-$j_1 \sus j_2 \in G$. By \ref{not-cdmg}, $j_1 \sus j_2 \in G$ means
+$j_1 \sus j_2 \in G$. By \refrow{def_3_2}, $j_1 \sus j_2 \in G$ means
 one of the three sub-cases $j_1 \tuh j_2 \in G$,
 $j_1 \hut j_2 \in G$, or $j_1 \huh j_2 \in G$.
 \begin{itemize}
   \item If $j_1 \tuh j_2 \in G$, then $(j_1, j_2) \in E$, which by
-        \ref{not-cdmg} is exactly $j_2 \hut j_1 \in G$. In particular
+        \refrow{def_3_2} is exactly $j_2 \hut j_1 \in G$. In particular
         $j_2 \hus j_1 \in G$, contradicting part (1) applied to
         $j_2 \in J$.
   \item If $j_1 \hut j_2 \in G$, then $j_1 \hus j_2 \in G$ directly
-        by the definition of $\hus$ in \ref{not-cdmg}, contradicting
+        by the definition of $\hus$ in \refrow{def_3_2}, contradicting
         part (1) applied to $j_1 \in J$.
   \item If $j_1 \huh j_2 \in G$, then $j_1 \hus j_2 \in G$ (again
-        directly from \ref{not-cdmg}), contradicting part (1)
+        directly from \refrow{def_3_2}), contradicting part (1)
         applied to $j_1 \in J$.
 \end{itemize}
 In each case we reach a contradiction, so $j_1 \sus j_2 \notin G$; by
-the adjacency definition immediately following \ref{not-cdmg}, this
+the adjacency definition immediately following \refrow{def_3_2}, this
 is precisely the statement that no two nodes in $J$ are adjacent.
 \end{proof}
 

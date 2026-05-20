@@ -17,6 +17,9 @@
 \begin{document}
 % ref: claim_3_24 (proof, with statement restated for readability)
 % title: SigmaSeparationEquivalences
+\def\rowref{claim\_3\_24}
+\def\rowtitle{SigmaSeparationEquivalences}
+\phantomsection\label{claim_3_24}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
@@ -24,12 +27,12 @@
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}
     \begin{enumerate}
-        \item By Proposition \ref{prp:sigma_opens} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
+        \item By Proposition \refrow{claim_3_23} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
   \begin{enumerate}
       \item every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
       \item every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
   \end{enumerate}
-    \item Proposition \ref{prp:sigma_opens} also shows that if $A \nisPerp_G B \given C$ holds then:
+    \item Proposition \refrow{claim_3_23} also shows that if $A \nisPerp_G B \given C$ holds then:
   \begin{enumerate}
       \item there exists a (shortest) $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
       \item there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.

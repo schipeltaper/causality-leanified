@@ -17,6 +17,9 @@
 \begin{document}
 % ref: claim_3_3 (proof, with statement restated for readability)
 % title: AcyclicUnderIntervention
+\def\rowref{claim\_3\_3}
+\def\rowtitle{AcyclicUnderIntervention}
+\phantomsection\label{claim_3_3}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
@@ -28,17 +31,17 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-The whole argument rests on a single observation: hard intervention can only \emph{shrink} the edge set. Indeed, by def\_3\_10,
+The whole argument rests on a single observation: hard intervention can only \emph{shrink} the edge set. Indeed, by \refrow{def_3_10},
 \[
   E_{\doit(W)}
   \;=\;
   E \sm \lC v' \tuh w' \,\middle|\, v' \in G,\; w' \in W \rC
   \;\ins\; E.
 \]
-(The clause $v' \in G$ on the removed set is automatic given the def\_3\_1 invariant $E \ins (J \cup V) \times V$, so it does not affect the inclusion above.)
+(The clause $v' \in G$ on the removed set is automatic given the \refrow{def_3_1} invariant $E \ins (J \cup V) \times V$, so it does not affect the inclusion above.)
 
 \medskip\noindent\emph{Part A (acyclicity).}
-Suppose, for contradiction, that $G_{\doit(W)}$ is not acyclic. By def\_3\_6 there is a node $v$ of $G_{\doit(W)}$ admitting a non-trivial directed walk to itself:
+Suppose, for contradiction, that $G_{\doit(W)}$ is not acyclic. By \refrow{def_3_6} there is a node $v$ of $G_{\doit(W)}$ admitting a non-trivial directed walk to itself:
 \[
   v = v_0 \tuh v_1 \tuh \cdots \tuh v_n = v
   \qquad \text{in } G_{\doit(W)}, \quad n \ge 1,
@@ -48,12 +51,12 @@ i.e.\ $(v_k, v_{k+1}) \in E_{\doit(W)}$ for every $k = 0, \dots, n-1$. The edge 
   v = v_0 \tuh v_1 \tuh \cdots \tuh v_n = v
   \qquad \text{in } G
 \]
-is a non-trivial directed walk in $G$ (def\_3\_4). From its first step $(v, v_1) \in E$ together with the def\_3\_1 invariant $E \ins (J \cup V) \times V$ we read off $v \in J \cup V$, i.e.\ $v \in G$ (def\_3\_2). Thus $v$ is a node of $G$ admitting a non-trivial directed walk to itself, contradicting acyclicity of $G$ (def\_3\_6).
+is a non-trivial directed walk in $G$ (\refrow{def_3_4}). From its first step $(v, v_1) \in E$ together with the \refrow{def_3_1} invariant $E \ins (J \cup V) \times V$ we read off $v \in J \cup V$, i.e.\ $v \in G$ (\refrow{def_3_2}). Thus $v$ is a node of $G$ admitting a non-trivial directed walk to itself, contradicting acyclicity of $G$ (\refrow{def_3_6}).
 
 \medskip\noindent\emph{Part B (topological order).}
-Assume in addition $W \ins J \cup V$ and that $<$ is a topological order of $G$ (def\_3\_8). We verify, in turn, that $<$ is a total order on $J_{\doit(W)} \cup V_{\doit(W)}$ and that it respects the parents-precede-children condition for $G_{\doit(W)}$.
+Assume in addition $W \ins J \cup V$ and that $<$ is a topological order of $G$ (\refrow{def_3_8}). We verify, in turn, that $<$ is a total order on $J_{\doit(W)} \cup V_{\doit(W)}$ and that it respects the parents-precede-children condition for $G_{\doit(W)}$.
 
-\medskip\noindent\emph{Step 1: the node sets agree.} By def\_3\_10:
+\medskip\noindent\emph{Step 1: the node sets agree.} By \refrow{def_3_10}:
 \begin{align*}
   J_{\doit(W)} \cup V_{\doit(W)}
     &= (J \cup W) \cup (V \sm W) \\
@@ -64,11 +67,11 @@ Assume in addition $W \ins J \cup V$ and that $<$ is a topological order of $G$ 
 \end{align*}
 where the second equality is associativity of $\cup$, the third uses $W \cup (V \sm W) = W \cup V$, the fourth is commutativity and associativity, and the last uses the precondition $W \ins J \cup V$.
 
-\medskip\noindent\emph{Step 2: $<$ is a total order on the new node set.} Irreflexivity, transitivity, and trichotomy of $<$ on $J \cup V$ are part of $<$'s being a topological order of $G$ (def\_3\_8). By Step 1 the set $J_{\doit(W)} \cup V_{\doit(W)}$ equals $J \cup V$, so the same three properties hold on it without further work.
+\medskip\noindent\emph{Step 2: $<$ is a total order on the new node set.} Irreflexivity, transitivity, and trichotomy of $<$ on $J \cup V$ are part of $<$'s being a topological order of $G$ (\refrow{def_3_8}). By Step 1 the set $J_{\doit(W)} \cup V_{\doit(W)}$ equals $J \cup V$, so the same three properties hold on it without further work.
 
-\medskip\noindent\emph{Step 3: parents precede children in $G_{\doit(W)}$.} Let $v, w \in G_{\doit(W)}$ and suppose $v \in \Pa^{G_{\doit(W)}}(w)$. By def\_3\_5 this means $v \in G_{\doit(W)}$ together with $v \tuh w \in G_{\doit(W)}$, i.e.\ $(v, w) \in E_{\doit(W)}$. The edge inclusion $E_{\doit(W)} \ins E$ noted at the top of the proof then gives $(v, w) \in E$, i.e.\ $v \tuh w \in G$. The def\_3\_1 invariant $E \ins (J \cup V) \times V$ also forces $v \in J \cup V$, i.e.\ $v \in G$ (def\_3\_2). Combining $v \in G$ with $v \tuh w \in G$, def\_3\_5 yields $v \in \Pa^G(w)$. Since $<$ is a topological order of $G$, def\_3\_8 then gives $v < w$. Hence $<$ also satisfies the parents-precede-children condition for $G_{\doit(W)}$.
+\medskip\noindent\emph{Step 3: parents precede children in $G_{\doit(W)}$.} Let $v, w \in G_{\doit(W)}$ and suppose $v \in \Pa^{G_{\doit(W)}}(w)$. By \refrow{def_3_5} this means $v \in G_{\doit(W)}$ together with $v \tuh w \in G_{\doit(W)}$, i.e.\ $(v, w) \in E_{\doit(W)}$. The edge inclusion $E_{\doit(W)} \ins E$ noted at the top of the proof then gives $(v, w) \in E$, i.e.\ $v \tuh w \in G$. The \refrow{def_3_1} invariant $E \ins (J \cup V) \times V$ also forces $v \in J \cup V$, i.e.\ $v \in G$ (\refrow{def_3_2}). Combining $v \in G$ with $v \tuh w \in G$, \refrow{def_3_5} yields $v \in \Pa^G(w)$. Since $<$ is a topological order of $G$, \refrow{def_3_8} then gives $v < w$. Hence $<$ also satisfies the parents-precede-children condition for $G_{\doit(W)}$.
 
-Combining Steps 1--3, $<$ is a topological order of $G_{\doit(W)}$ in the sense of def\_3\_8.
+Combining Steps 1--3, $<$ is a topological order of $G_{\doit(W)}$ in the sense of \refrow{def_3_8}.
 \end{proof}
 
 \end{document}

@@ -14,7 +14,8 @@
 2. **Expand exactly that step.** Add inline detail, intermediate equalities, named sub-claims. Other steps stay as they are — do not rewrite the proof.
 3. **Name new pivotal sub-claims.** If you introduce a non-trivial helper, state it crisply (hypotheses + conclusion). The manager may decide to lift it into its own row.
 4. **Mark LN gaps.** If the LN actually skips this step rather than the prover having missed it, add a `% LN-gap:` comment explaining what the LN assumes.
-5. **Do not touch any Lean file** and do not touch any proof file of a different `ref`. Also leave the **restated statement** block (above `\begin{proof}`) untouched -- it's there so the file renders self-contained.
+5. **Do not touch any Lean file** and do not touch any proof file of a different `ref`. Also leave the **restated statement** block (above `\begin{proof}`) untouched -- it's there so the file renders self-contained. Likewise leave the `\def\rowref{...}\def\rowtitle{...}\phantomsection\label{...}` block right after `\begin{document}` alone -- it powers theorem-header rendering and cross-subfile links.
+6. **Cite other rows via `\refrow{<ref>}`** (e.g. `by \refrow{claim_3_4}`). Do not use the LN-style `\ref{label}`; those refs are broken under our star-numbered envs.
 6. **Report back** to the manager: a one-paragraph summary of what was clarified, any new helper lemmas worth formalizing, and whether the gap was an LN omission or a worker oversight.
 
 ## Rules

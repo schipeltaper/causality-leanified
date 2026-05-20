@@ -111,13 +111,50 @@
 
 % \theoremheaderfont{\sf\bfseries}
 
-\theoremstyle{plain}
+% --------------- leanification ref-anchor system --------------------------
+% Every per-row subfile begins with three lines (injected by the Python
+% stub generator -- see scaffold/solve_chapter.py::ensure_row_subfiles):
+%
+%     \def\rowref{<row-ref>}        % e.g. def_3_1, claim_3_5
+%     \def\rowtitle{<title>}        % e.g. CDMG, BifurcationAlternative
+%     \phantomsection\label{<row-ref>}
+%
+% These two macros are then woven into the theorem-style header by the
+% `refprefix` style below, producing headers like
+%     "def_3_1 Definition CDMG."
+% and "claim_3_5 Lemma BifurcationAlternative."  The \label allows other
+% subfiles (proofs, in particular) to cross-reference this row via the
+% \refrow{<row-ref>} macro defined below.
+%
+% Defaults so any of these envs degrade gracefully outside a row context.
+\providecommand{\rowref}{}
+\providecommand{\rowtitle}{}
+
+% Clickable cross-reference to another row by its ref. The text body uses
+% \detokenize so the unescaped underscores in the ref (e.g. "def_3_10")
+% render literally instead of triggering "Missing $ inserted" / "Double
+% subscript" errors. In main.pdf the link resolves to the \label{<ref>}
+% at the top of the target subfile; in standalone subfile mode the link
+% target does not exist (one-file compile), but the text still prints.
+\newcommand{\refrow}[1]{\hyperref[#1]{\detokenize{#1}}}
+
+% Custom theoremstyle: prefix header with \rowref, suffix with \rowtitle,
+% and append the env's optional [arg] after a dash when present.
+% Layout: <ref> <ThmName> <title>[-- <LN descriptive note>].
+\newtheoremstyle{refprefix}
+  {}{}{}{}{\bfseries}{.}{.5em}%
+  {\ifdefempty{\rowref}{}{\rowref\ }\thmname{#1}%
+   \ifdefempty{\rowtitle}{}{\ \rowtitle}%
+   \thmnote{ -- #3}}
+
+\theoremstyle{refprefix}
 
 % Leanification renders each tex file as a self-contained subfile -- there is
 % no chapter/section/subsection counter context in which "Definition 1.2.3"
 % would mean anything. So all theorem-like environments are declared with the
 % starred form to suppress numbering. Each subfile is identified by its
-% `ref` (def_3_1, claim_3_4, ...) and filename instead.
+% `ref` (def_3_1, claim_3_4, ...) which is woven into the header by the
+% `refprefix` style above.
 \newtheorem*{sa}{Theorem}
 \newtheorem*{Thm}{Theorem}
 \newtheorem*{DefThm}{Definition/Theorem}
@@ -137,6 +174,7 @@
 \newtheorem*{Not}{Notation}
 
 \newtheorem*{Rem}{Remark}
+\newtheorem*{Note}{Note}
 \newtheorem*{Cau}{Caution}
 \newtheorem*{Eg}{Example}
 \newtheorem*{Tho}{Thoughts}

@@ -41,12 +41,20 @@ Do **not** rename the file or move it. The orchestrator created it from the temp
 
 The file already has:
 - `\documentclass[main]{subfiles}` + `\begin{document}` ... `\end{document}` framing,
+- a `\def\rowref{...}\def\rowtitle{...}\phantomsection\label{<ref>}` block
+  injected just after `\begin{document}` -- this drives the theorem-header
+  rendering ("<ref> <Type> <title>.") and anchors `\refrow{<ref>}` links
+  from other subfiles. **Leave this block alone.**
 - a **statement (restated)** section above the proof, containing the claim's
   `\begin{Thm}/\begin{Def}/\begin{Lem}/...` block (pre-filled at stub creation
   from the row's `tex_block`),
 - a `\begin{proof}` ... `\end{proof}` block with a `% TODO` placeholder.
 
 **Replace ONLY the `% TODO` placeholder inside `\begin{proof}...\end{proof}`** with your proof body. Leave the restated statement above it untouched -- it's there so the proof file renders self-contained when read alone. If the pre-filled statement is wrong or out of date, fix it in the sibling `claim_<ref>_statement_<title>.tex` and copy the corrected block back over the restated statement; do not improvise.
+
+## Cross-referencing other rows
+
+When the proof cites another def/claim, use the `\refrow{<ref>}` macro, e.g. `by \refrow{def_3_10}`. This produces a clickable hyperlink in the subsection's `main.pdf` (and renders as the bare text `def_3_10` in standalone subfile mode). **Do not use** the LN-style `\ref{some-label}` -- those labels lose their counter under our star-numbered envs and render as "??".
 
 ## Rules
 

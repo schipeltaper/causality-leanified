@@ -2,7 +2,7 @@
 %
 % Proof lifted from lecture-notes/lecture_notes/graphs.tex:326--356 (the
 % \Claude{...} block immediately following the claim). Only light edits:
-% an explicit reference to def\_3\_10 the first time the CDMG 4-tuple is
+% an explicit reference to \refrow{def_3_10} the first time the CDMG 4-tuple is
 % unpacked, and a closing sentence reiterating the symmetry argument.
 %
 % Compiles standalone via the `subfiles` package.
@@ -12,6 +12,9 @@
 \begin{document}
 % ref: claim_3_4 (proof, with statement restated for readability)
 % title: HardInterventionsCommute
+\def\rowref{claim\_3\_4}
+\def\rowtitle{HardInterventionsCommute}
+\phantomsection\label{claim_3_4}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
@@ -31,7 +34,7 @@
 We verify the chained equality componentwise. It suffices to show
 $\lp G_{\doit(W_1)} \rp_{\doit(W_2)} = G_{\doit(W_1 \cup W_2)}$; the second equality
 $\lp G_{\doit(W_2)} \rp_{\doit(W_1)} = G_{\doit(W_1 \cup W_2)}$ then follows by the
-same argument with $W_1, W_2$ swapped. By def\_3\_10 each side of the targeted
+same argument with $W_1, W_2$ swapped. By \refrow{def_3_10} each side of the targeted
 equality is a CDMG, presented as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$;
 we check the four components in turn.
 

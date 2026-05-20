@@ -267,6 +267,67 @@ def _strip_mark_wrapper(tex_block: str) -> str:
     return m.group(2) if m else tex_block
 
 
+# Map data.json ``type`` column to the amsthm env declared in the preamble.
+# This is used both when generating fresh stubs (so the env name matches the
+# row's type) and when backfilling existing files (so the env name agrees
+# with what the `refprefix` theoremstyle will render as the header).
+TYPE_TO_ENV: dict[str, str] = {
+    "definition":         "Def",
+    "definition/theorem": "DefThm",
+    "definition/lemma":   "DefLem",
+    "notation/lemma":     "NotLem",
+    "theorem":            "Thm",
+    "lemma":              "Lem",
+    "proposition":        "Prp",
+    "corollary":          "Cor",
+    "remark":             "Rem",
+    "note":               "Note",
+    "notation":           "Not",
+    "example":            "Eg",
+    "construction":       "Construction",
+    "algorithm":          "Alg",
+    "exercise":           "Exc",
+    "thoughts":           "Tho",
+    "conjecture":         "Con",
+    "facts":              "Fct",
+    "principle":          "Prn",
+    "assumption":         "Ass",
+    "axiom":              "Axm",
+    "question":           "Ques",
+    "explanation":        "Expl",
+    "discussion":         "Disc",
+    "conclusion":         "Conclusion",
+    "motivation":         "Motivation",
+    "caution":            "Cau",
+    "step":               "Step",
+}
+
+
+def _env_for_type(t: str) -> str:
+    """Return the amsthm env name for a row's ``type``. Falls back to ``Rem``
+    so an unfamiliar type still produces a valid (if generic) header rather
+    than an unknown-env build error.
+    """
+    return TYPE_TO_ENV.get((t or "").strip().lower(), "Rem")
+
+
+def _rewrite_env_to_type(body: str, row_type: str) -> str:
+    """If ``body`` starts with a single ``\\begin{X}...\\end{X}`` block, rename
+    the env to whatever the row's ``type`` dictates. Bodies that do not start
+    with a theorem env (free-flowing text, multiple envs, etc.) are returned
+    unchanged; the backfill / worker is responsible for those.
+    """
+    target = _env_for_type(row_type)
+    m = re.match(
+        r"\A\s*\\begin\{([A-Za-z*]+)\}(.*)\\end\{\1\}\s*\Z",
+        body, flags=re.DOTALL,
+    )
+    if not m or m.group(1) == target:
+        return body
+    inner = m.group(2)
+    return f"\\begin{{{target}}}{inner}\\end{{{target}}}"
+
+
 def _render_template(name: str, **values: str) -> str:
     """Substitute ``__KEY__`` placeholders in
     ``scaffold/tex_templates/<name>.tex.template``. Missing keys are left
@@ -339,27 +400,41 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
     if paths:
         paths[0].parent.mkdir(parents=True, exist_ok=True)
     body_from_block = _strip_mark_wrapper(row.get("tex_block", "")).strip()
+    # Align the theorem env in the LN tex_block with the row's `type`
+    # column (e.g. a "lemma" row goes into a \begin{Lem} regardless of what
+    # the LN happened to use). The refprefix theoremstyle in the preamble
+    # then renders the header as "<ref> <ThmName> <title>".
+    body_from_block = _rewrite_env_to_type(body_from_block, row.get("type", ""))
+    # `REF` (catcode-8 underscores) is fine inside \label / \refrow because
+    # hyperref stores labels as opaque strings; but \rowref expands in text
+    # mode, so its `_` chars must be escaped. `REF_TEXT` is the
+    # display-friendly variant for \def\rowref{...}.
+    ref = row["ref"]
+    ref_text = ref.replace("_", r"\_")
     for p in paths:
         if p.exists():
             continue
         if row["def_or_claim"] == "def":
             content = _render_template(
                 "def",
-                REF=row["ref"],
+                REF=ref,
+                REF_TEXT=ref_text,
                 TITLE=row.get("title", ""),
                 BODY=body_from_block,
             )
         elif "_statement_" in p.name:
             content = _render_template(
                 "claim_statement",
-                REF=row["ref"],
+                REF=ref,
+                REF_TEXT=ref_text,
                 TITLE=row.get("title", ""),
                 BODY=body_from_block,
             )
         else:
             content = _render_template(
                 "claim_proof",
-                REF=row["ref"],
+                REF=ref,
+                REF_TEXT=ref_text,
                 TITLE=row.get("title", ""),
                 STATEMENT_BODY=body_from_block,
                 BODY="% TODO: write the proof body.",

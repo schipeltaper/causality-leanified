@@ -11,6 +11,9 @@
 \begin{document}
 % ref: def_3_17
 % title: SigmaBlockedWalks
+\def\rowref{def\_3\_17}
+\def\rowtitle{SigmaBlockedWalks}
+\phantomsection\label{def_3_17}
 
 \begin{Def}[$\sigma$-blocked walks]\label{def:sigma_blocking}
   Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
@@ -21,7 +24,7 @@
   \begin{enumerate}[label=\roman*.)]
       \item all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
     \item all blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
-      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\refrow{def_3_16}); we might move that definition to here for convenience.}
   \end{enumerate}
       \item   \emph{$C$-$\sigma$-blocked}  (or \emph{$\sigma$-blocked given $C$}) if and only if:
   \begin{enumerate}[label=\roman*.)]
