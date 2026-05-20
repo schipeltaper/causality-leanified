@@ -79,12 +79,12 @@ Top-level layout:
 │       ├── data.json                          per-chapter state -- one row per def/claim
 │       ├── request_from_human.tex             swarm-↔-human escalation channel (gated `request_from_human` action)
 │       └── Section3_1/                        per-subsection folder
-│           ├── main.tex                       subsection aggregator; \subfile-includes every row's tex (auto-managed)
 │           ├── CDMG.lean, ...                 Lean files (one or more per row)
-│           └── tex/                           every per-row TeX file lives here
-│               ├── def_3_1_CDMG.tex                          def row (statement)
-│               ├── claim_3_1_statement_<Title>.tex            claim row (statement)
-│               └── claim_3_1_proof_<Title>.tex                claim row (proof, statement restated on top)
+│           └── tex/                           ALL TeX lives here (renders into tex/ too)
+│               ├── main.tex                                   subsection aggregator; \subfile-includes def + claim-proof files (auto-managed)
+│               ├── def_3_1_CDMG.tex                           def row (statement)
+│               ├── claim_3_1_statement_<Title>.tex            claim row (statement; NOT in main.tex -- proof file restates it)
+│               └── claim_3_1_proof_<Title>.tex                claim row (proof, with statement restated on top; this is what main.tex includes for claims)
 │
 └── scaffold/                                  the Python orchestrator + prompts + templates
     ├── global_vars.json                       which chapter we are working on (current_chapter)

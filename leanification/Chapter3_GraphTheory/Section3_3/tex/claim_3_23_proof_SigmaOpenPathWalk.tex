@@ -12,15 +12,27 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_23 (proof)
+% ref: claim_3_23 (proof, with statement restated for readability)
 % title: SigmaOpenPathWalk
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{restatable}{Prp}{restateprpsigmaopens}\label{prp:sigma_opens}
+  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+      \item there exists a $C$-$\sigma$-open \emph{path} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\Anc^G(C)$).
+  \end{enumerate}
+\end{restatable}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

@@ -477,8 +477,21 @@ def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> Non
 
 def regenerate_subsection_main_tex(data_path: Path, data: dict,
                                    section: str) -> None:
-    """Rewrite ``<chapter_folder>/<Section>/main.tex`` from the template,
+    """Rewrite ``<chapter_folder>/<Section>/tex/main.tex`` from the template,
     listing every row's subfile(s) in lecture-notes order via ``\\subfile``.
+
+    All tex files (the aggregator main.tex AND every per-row subfile) live
+    side-by-side in the ``tex/`` subfolder. That keeps the section root
+    tidy (just Lean files + tex/) and makes both compile modes (the
+    aggregate main.tex AND a standalone subfile) share the same
+    pdflatex working directory, so relative-path includes (``\\input``)
+    resolve consistently.
+
+    For claim rows: only the ``_proof_`` subfile is included in main.tex --
+    the ``_statement_`` subfile is excluded because the proof file already
+    restates the statement at the top, and including both would duplicate.
+    The standalone statement file remains on disk for grep / standalone
+    rendering.
 
     Per-row subfile stubs are created on the fly if they don't yet exist.
     Rows whose ``title`` is empty are skipped here -- the orchestrator
@@ -488,14 +501,21 @@ def regenerate_subsection_main_tex(data_path: Path, data: dict,
         return
     ensure_preamble_at_leanification()
     subsection_folder = ensure_subsection_folder(data_path.parent, section)
+    tex_dir = subsection_folder / "tex"
+    tex_dir.mkdir(parents=True, exist_ok=True)
     includes: list[str] = []
     for row in data["rows"]:
         if row.get("section") != section or not row.get("title"):
             continue
         for p in ensure_row_subfiles(row, subsection_folder):
-            # Subfiles live in `tex/`; emit a path-prefixed include.
-            rel = p.relative_to(subsection_folder).with_suffix("")  # tex/<stem>
-            includes.append(f"\\subfile{{{rel.as_posix()}}}")
+            # Skip claim _statement_ files: the corresponding _proof_ file
+            # restates the statement above the proof, so including both
+            # would duplicate inside main.pdf.
+            if "_statement_" in p.name:
+                continue
+            # main.tex now lives inside tex/, so subfiles are siblings --
+            # the \subfile path is just the bare stem.
+            includes.append(f"\\subfile{{{p.stem}}}")
     chapter_title = data.get("title", "")
     main_tex = _render_template(
         "main",
@@ -503,7 +523,90 @@ def regenerate_subsection_main_tex(data_path: Path, data: dict,
         SECTION_TITLE=chapter_title,
         SUBFILE_INCLUDES="\n".join(includes) + ("\n" if includes else ""),
     )
-    (subsection_folder / "main.tex").write_text(main_tex, encoding="utf-8")
+    (tex_dir / "main.tex").write_text(main_tex, encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# pdflatex builds (post-solve sanity checks)
+# ---------------------------------------------------------------------------
+
+# Timeout for a single latexmk invocation. TeX can hang on a pathological
+# input; we cap it so a bad subfile cannot wedge the orchestrator.
+LATEXMK_TIMEOUT_SECONDS = 120
+
+
+def _latexmk_build(tex_file: Path) -> tuple[bool, str]:
+    """Run ``latexmk -pdf`` on ``tex_file`` (cwd = its parent so relative
+    ``\\input`` paths resolve). Returns ``(success, tail)``: ``success`` is
+    True iff latexmk exited 0 AND a sibling ``<stem>.pdf`` exists, and
+    ``tail`` is the last few lines of the build log (handy for diagnostics).
+    Never raises -- a build is a best-effort cleanup-phase artefact.
+    """
+    try:
+        result = subprocess.run(
+            ["latexmk", "-pdf", "-interaction=nonstopmode",
+             "-halt-on-error", tex_file.name],
+            cwd=tex_file.parent,
+            capture_output=True, text=True,
+            timeout=LATEXMK_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"latexmk timed out after {LATEXMK_TIMEOUT_SECONDS}s"
+    except FileNotFoundError:
+        return False, "latexmk not found on PATH"
+    pdf_path = tex_file.with_suffix(".pdf")
+    ok = (result.returncode == 0) and pdf_path.exists()
+    log_tail = "\n".join(
+        (result.stdout + result.stderr).splitlines()[-12:]
+    ) or "(empty latexmk output)"
+    return ok, log_tail
+
+
+def build_row_tex(row: dict, subsection_folder: Path) -> None:
+    """Compile every per-row tex file (def: 1, claim: statement + proof) so
+    that the row's PDFs are up-to-date as soon as the row is marked solved.
+    Best-effort: a failing build is logged but does NOT block the orchestrator.
+    """
+    paths = _row_subfile_paths(row, subsection_folder)
+    for p in paths:
+        if not p.exists():
+            print(f"[orchestrator] skip latexmk on missing {p.name}", flush=True)
+            continue
+        ok, tail = _latexmk_build(p)
+        status = "ok" if ok else "FAILED"
+        print(f"[orchestrator] latexmk {status}: {p.name}", flush=True)
+        if not ok:
+            print(f"    log tail:\n{tail}", flush=True)
+
+
+def subsection_is_complete(data: dict, section: str) -> bool:
+    """True iff at least one row in ``data`` belongs to ``section`` AND every
+    such row has ``solved == "yes"``. Used to decide whether the subsection's
+    aggregate ``main.tex`` should be rebuilt as a "you just finished a
+    subsection" milestone.
+    """
+    if not section:
+        return False
+    rows = [r for r in data["rows"] if r.get("section") == section]
+    return bool(rows) and all(r.get("solved") == "yes" for r in rows)
+
+
+def build_subsection_main_tex(subsection_folder: Path) -> None:
+    """Compile ``<subsection_folder>/tex/main.tex`` (the aggregator). Called
+    when the last row of a subsection just got solved -- useful to confirm
+    that all subfiles compose into a single document end-to-end. Best-effort.
+    """
+    main_tex = subsection_folder / "tex" / "main.tex"
+    if not main_tex.exists():
+        print(f"[orchestrator] no main.tex at {main_tex}, skipping subsection "
+              f"build", flush=True)
+        return
+    ok, tail = _latexmk_build(main_tex)
+    status = "ok" if ok else "FAILED"
+    print(f"[orchestrator] subsection latexmk {status}: "
+          f"{main_tex.parent.parent.name}/tex/main.tex", flush=True)
+    if not ok:
+        print(f"    log tail:\n{tail}", flush=True)
 
 
 def pick_title_for_row(row: dict) -> str:
@@ -1283,14 +1386,20 @@ def solve_current_row() -> None:
                     state.data_path, data, state.row.get("section", ""))
                 # Drop the per-row scratchpad + clear the now-stale
                 # agent_registry; anything worth keeping should already
-                # be in the Lean comments.
+                # be in the Lean comments. Then compile the row's tex
+                # files (and, if this was the final row of the subsection,
+                # the aggregate main.tex) as a sanity check.
                 section = state.row.get("section", "")
                 if section:
-                    cleanup_row_artefacts(
-                        state.row,
-                        ensure_subsection_folder(
-                            state.data_path.parent, section),
-                    )
+                    subsection_folder = ensure_subsection_folder(
+                        state.data_path.parent, section)
+                    cleanup_row_artefacts(state.row, subsection_folder)
+                    build_row_tex(state.row, subsection_folder)
+                    if subsection_is_complete(data, section):
+                        print(f"[orchestrator] section {section} now fully "
+                              f"solved -- building aggregate main.tex",
+                              flush=True)
+                        build_subsection_main_tex(subsection_folder)
                 # Save AFTER cleanup so the cleared agent_registry is persisted.
                 save_data(state.data_path, data)
                 print(f"[orchestrator] {state.ref} marked solved "

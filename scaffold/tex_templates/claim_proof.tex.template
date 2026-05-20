@@ -2,9 +2,9 @@
 % Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
 % agent dedicated to writing the TeX proof fills in the proof body below.
 %
-% This file lives at `<subsection>/tex/`; the parent `main.tex` is one
-% directory up. The `subfiles` package lets it render both standalone and
-% as part of `main.tex` via `\subfile{tex/...}`.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
 %
 % The statement is restated above the proof so the file is self-contained
 % when rendered on its own. The proof must:
@@ -16,7 +16,7 @@
 %     re-reading the LN.
 %   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
 % ref: __REF__ (proof, with statement restated for readability)

@@ -12,15 +12,57 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_33 (proof)
+% ref: claim_3_33 (proof, with statement restated for readability)
 % title: AsymmetricSeparoidAxioms
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{DefThm}[(Asymmetric) separoid axioms for $i\sigma$-separation/$id$-separation]
+    \label{d-sep-separoid-axioms}
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C,D \ins J \cup V$ subsets of nodes.
+Then the ternary relations $\iPerp = \idPerp_G$ and $\iPerp = \isPerp_G$ satisfy the following rules:
+\begin{enumerate}[label=\alph*)]
+    \item Extended Left Redundancy: 
+    \item[] $D \ins A \implies D \iPerp  B \given A$.
+    \item $J$-Restricted Right Redundancy: 
+    \item[] $A \iPerp  \emptyset \given C \cup J$ always holds.
+    \item $J$-Inverted Right Decomposition: 
+    \item[] $A \iPerp  B \given C \implies A \iPerp  J \cup B \given C$.
+	\item Left Decomposition:  
+	\item[]$A \cup D \iPerp  B \given C \implies D \iPerp  B \given C$.
+  \item Right Decomposition:  	
+    \item[] $A \iPerp  B \cup D\given C \implies A \iPerp  D \given C$.
+    \item Left Weak Union:
+    \item[] $A \cup D \iPerp  B  \given C \implies A \iPerp  B \given D \cup C$.
+  \item Right Weak Union:\item[] $A \iPerp  B \cup D \given C \implies A \iPerp  B \given D \cup C$.
+\item Left Contraction:\item[] 
+ $ (A \iPerp  B \given D \cup C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C$.
+\item Right Contraction:
+\item[] $ (A \iPerp  B \given D \cup C) \land (A \iPerp  D \given C)  \implies A \iPerp  B \cup D \given C$.
+\item Right Cross Contraction:
+\item[] $ (A \iPerp  B \given D \cup C) \land (D \iPerp  A \given C) \implies A  \iPerp  B \cup D \given C$.
+\item Flipped Left Cross Contraction: 
+\item[] $ (A \iPerp  B \given D \cup C) \land (B \iPerp  D \given C) \implies B \iPerp  A \cup D \given C$.
+\end{enumerate}
+In particular, we have the equivalences:
+$$ (A \iPerp  B \cup D \given C) \quad\iff\quad (A \iPerp  B \given D \cup C) \quad\land\quad (A \iPerp  D \given C)  ,$$
+%and:
+$$ (A \cup D \iPerp  B \given C) \quad\iff\quad (A \iPerp  B \given D \cup C) \quad\land\quad (D \iPerp  B \given C).$$
+%Finally, if $J = \emptyset$ then 
+We also get:
+\begin{enumerate}[resume,label=\alph*)]
+    \item $J$-Restricted Symmetry: 
+	\item[] $A \iPerp  B \given C \cup J \implies B \iPerp A \given C \cup J$. 
+\end{enumerate}
+For the special case of $J=\emptyset$ we have thus (unrestricted) Symmetry.
+\end{DefThm}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

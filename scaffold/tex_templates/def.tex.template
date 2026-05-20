@@ -3,11 +3,11 @@
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% This file lives at `<subsection>/tex/`; the parent `main.tex` sits one
-% directory up. The `subfiles` package lets it compile both standalone (the
-% master path below) and as part of `main.tex` via `\subfile{tex/...}`.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
 % ref: __REF__

@@ -12,15 +12,26 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_18 (proof)
+% ref: claim_3_18 (proof, with statement restated for readability)
 % title: MarginalizationAndIntervention
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Marginalization and intervention commute]
+      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(W_1)}. \]
+     % This shows that the following notations are unambiguous:
+     % \[G(V\sm (W_1 \cup W_2)|\doit(W_1 \cup J))=G_{\doit(W_1)}^{\sm W_2}.\]
+      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

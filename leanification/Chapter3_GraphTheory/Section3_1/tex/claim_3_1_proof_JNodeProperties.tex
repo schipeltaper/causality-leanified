@@ -12,15 +12,18 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_1 (proof)
+% ref: claim_3_1 (proof, with statement restated for readability)
 % title: JNodeProperties
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
 % The LN states this as a remark immediately after \ref{not-cdmg}
 % (graphs.tex line 84-89) and provides no proof block; the statement is
 % the unfolding-only consequence of the structural fields of

@@ -15,7 +15,7 @@ This is different from `expand_proof`: that worker adds detail to a step that's 
 
 1. **Read everything in scope.** The current TeX proof, the LN block for the claim, and the LN's own proof (if any). Look at the surrounding chapter — sometimes a "missing step" is one the LN handles a few pages later.
 2. **Identify the minimal change.** Often only one paragraph or one case needs rewriting; do not throw away the rest of the proof.
-3. **Apply the fix in place.** Edit only `tex_proofs/<ref>_proof_<title>.tex`. Preserve the surrounding text and the file's overall structure.
+3. **Apply the fix in place.** Edit only the row's `claim_<ref>_proof_<title>.tex` in the subsection `tex/` folder. Preserve the surrounding text and the file's overall structure. In particular, the **restated statement** block above `\begin{proof}` must stay -- it makes the file render self-contained. If the restated statement is itself wrong, copy the corrected block from the sibling `claim_<ref>_statement_<title>.tex` over it; do not improvise.
 4. **Justify the fix.** Add a `% correction (<date>):` comment near the rewritten section explaining what was wrong and why this fix is correct. Future readers (and the next leanifier) will be able to see *why* the proof differs from the LN's version, if it now does.
 5. **Surface any new helper lemma** the corrected proof now requires — if it's non-trivial, the manager may want to lift it into its own row before re-leanifying.
 6. **No `sorry`, no "omitted", no "obvious".** The corrected steps must be fully justified inline or by citing prior refs.

@@ -12,15 +12,23 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_12 (proof)
+% ref: claim_3_12 (proof, with statement restated for readability)
 % title: HardInterventionNodeSplitOrder
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+    Note that if $W_1$ and $W_2$ are not disjoint and $w \in W_1 \cap W_2 \ins V$
+    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.
+    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

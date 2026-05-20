@@ -7,15 +7,26 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_4 (proof)
+% ref: claim_3_4 (proof, with statement restated for readability)
 % title: HardInterventionsCommute
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Hard interventions commute]\label{hard-interventions-commute}
+    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two  subsets of nodes from $G$. 
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)} =  G_{\doit(W_1 \cup W_2)}. \]
+      %This shows that our notion:
+      %\[ G(V \sm (W_1 \cup W_2) | \doit(W_1 \cup W_2 \cup J))   \]
+      %is unambiguous.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 We verify the chained equality componentwise. It suffices to show
 $\lp G_{\doit(W_1)} \rp_{\doit(W_2)} = G_{\doit(W_1 \cup W_2)}$; the second equality

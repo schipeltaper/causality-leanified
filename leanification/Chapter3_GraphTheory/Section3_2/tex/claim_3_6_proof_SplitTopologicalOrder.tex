@@ -12,15 +12,27 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_6 (proof)
+% ref: claim_3_6 (proof, with statement restated for readability)
 % title: SplitTopologicalOrder
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\spl(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^0$ the index $j-\frac{1}{3}$
+    and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

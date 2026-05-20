@@ -12,15 +12,25 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_19 (proof)
+% ref: claim_3_19 (proof, with statement restated for readability)
 % title: MarginalizingOutThe
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]
+     Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ be a subset of output nodes from $G$.
+     Then the CDMG that arises by first splitting the nodes on $W$
+      and then marginalizing out the nodes from $W^o$
+     can be identified with the CDMG that arises by hard intervention on $W$:
+     \[ G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}, \qquad w \mapsto w^i. \]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

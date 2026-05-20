@@ -12,15 +12,29 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_14 (proof)
+% ref: claim_3_14 (proof, with statement restated for readability)
 % title: AddingInterventionNodes
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]
+    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} 
+      =  G_{\doit(I_{W_1 \cup W_2})}. \]
+      We also have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})} =  G_{\doit(I_{W_1}, W_2)}. \]
+   % So there is not ambiguity in the following notations and identifications:
+   % \[ G(V|\doit(J\cup I_{W_1} \cup I_{W_2})) = G(V|\doit(J\cup I_{W_1 \cup W_2})),
+   % \qquad G(V\sm W_2|\doit(W_2 \cup J\cup I_{W_1})).\]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

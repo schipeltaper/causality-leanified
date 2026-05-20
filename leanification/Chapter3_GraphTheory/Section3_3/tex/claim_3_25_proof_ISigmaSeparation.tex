@@ -12,15 +12,25 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_25 (proof)
+% ref: claim_3_25 (proof, with statement restated for readability)
 % title: ISigmaSeparation
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
+        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
+        be subsets of nodes such that:
+        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
+        Then we have the equivalence:
+        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

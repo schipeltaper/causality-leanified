@@ -12,15 +12,18 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_2 (proof)
+% ref: claim_3_2 (proof, with statement restated for readability)
 % title: AcyclicIffTopologicalOrder
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}
+        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
 % Proof lifted verbatim from lecture-notes/lecture_notes/graphs.tex, lines 228-244
 % (the \Claude{...} block immediately following the Lem); the outer \Claude{%
 % ... }%end Claude wrapper is stripped.

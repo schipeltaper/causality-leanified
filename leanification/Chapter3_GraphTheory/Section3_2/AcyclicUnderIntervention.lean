@@ -89,7 +89,7 @@ the strictly larger base edge / latent set, so the lift is just a
 re-typing -- the `(G.hardInterventionOn W).E ⊆ G.E` /
 `(G.hardInterventionOn W).L ⊆ G.L` inclusions are *definitional* set
 differences, so `.1` extracts the `G.E` / `G.L` membership directly. -/
-private def stepLiftHardInterventionOn {G : CDMG α} {W : Set α} {v w : α} :
+def stepLiftHardInterventionOn {G : CDMG α} {W : Set α} {v w : α} :
     WalkStep (G.hardInterventionOn W) v w → WalkStep G v w
   | .forward h => .forward h.1
   | .backward h => .backward h.1
@@ -99,20 +99,20 @@ private def stepLiftHardInterventionOn {G : CDMG α} {W : Set α} {v w : α} :
 in `G` of the same length, by applying `stepLiftHardInterventionOn`
 to each step. The vertex sequence (and hence the trivial-walk
 recogniser) is preserved exactly. -/
-private def walkLiftHardInterventionOn {G : CDMG α} {W : Set α} :
+def walkLiftHardInterventionOn {G : CDMG α} {W : Set α} :
     {v w : α} → Walk (G.hardInterventionOn W) v w → Walk G v w
   | _, _, .nil v => .nil v
   | _, _, .cons s p =>
       .cons (stepLiftHardInterventionOn s) (walkLiftHardInterventionOn p)
 
-private lemma walkLiftHardInterventionOn_length {G : CDMG α} {W : Set α}
+lemma walkLiftHardInterventionOn_length {G : CDMG α} {W : Set α}
     {v w : α} (π : Walk (G.hardInterventionOn W) v w) :
     (walkLiftHardInterventionOn π).length = π.length := by
   induction π with
   | nil _ => rfl
   | cons _ _ ih => simp [walkLiftHardInterventionOn, ih]
 
-private lemma walkLiftHardInterventionOn_isDirected {G : CDMG α} {W : Set α}
+lemma walkLiftHardInterventionOn_isDirected {G : CDMG α} {W : Set α}
     {v w : α} (π : Walk (G.hardInterventionOn W) v w) (h : π.IsDirected) :
     (walkLiftHardInterventionOn π).IsDirected := by
   induction π with
@@ -125,6 +125,15 @@ private lemma walkLiftHardInterventionOn_isDirected {G : CDMG α} {W : Set α}
       exact ih h
     | backward _ => simp at h
     | bidir _ => simp at h
+
+/-- The walk-lift preserves the support exactly: the vertex sequence
+visited by the lifted walk equals the vertex sequence of the original. -/
+lemma walkLiftHardInterventionOn_support {G : CDMG α} {W : Set α}
+    {v w : α} (π : Walk (G.hardInterventionOn W) v w) :
+    (walkLiftHardInterventionOn π).support = π.support := by
+  induction π with
+  | nil _ => rfl
+  | cons _ _ ih => simp [walkLiftHardInterventionOn, Walk.support_cons, ih]
 
 -- claim_3_3 (part A)
 -- title: AcyclicUnderIntervention -- acyclicity preserved

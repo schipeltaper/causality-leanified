@@ -12,15 +12,21 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_3 (proof)
+% ref: claim_3_3 (proof, with statement restated for readability)
 % title: AcyclicUnderIntervention
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+    If $G$ is acyclic then also $G_{\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\doit(W)}$.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 The whole argument rests on a single observation: hard intervention can only \emph{shrink} the edge set. Indeed, by def\_3\_10,
 \[

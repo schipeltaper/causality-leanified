@@ -35,7 +35,7 @@
 %  }
 %}{}
 %\makeatother
-\declaretheorem[name=Theorem,numberwithin=section]{thm}
+\declaretheorem[name=Theorem,numbered=no]{thm}
 %\usepackage{latexsym,color,mathrsfs,nicefrac,stmaryrd} 
 %\usepackage[all]{xy}
 %\usepackage{mathabx}  % was used for \asterisk, \Asterisk, but makes too many incompatible changes to other macros, like \not
@@ -113,46 +113,42 @@
 
 \theoremstyle{plain}
 
-%\newtheorem*{Satz}{Theorem}
-% \newtheorem{sa}{Theorem}[subsubsection]
-\newtheorem{sa}{Theorem}[subsection]
-%\counterwithin*{sa}{subsection} 
-\newtheorem{Thm}[sa]{Theorem}
-\newtheorem{DefThm}[sa]{Definition/Theorem}
-\newtheorem{Lem}[sa]{Lemma}
-\newtheorem{Prp}[sa]{Proposition}
-\newtheorem{Cor}[sa]{Corollary}
-\newtheorem{Con}[sa]{Conjecture}
-\newtheorem{Fct}[sa]{Facts}
-\newtheorem{Prn}[sa]{Principle}
-\newtheorem{Construction}[sa]{Construction}
-\newtheorem{Alg}[sa]{Algorithm}
+% Leanification renders each tex file as a self-contained subfile -- there is
+% no chapter/section/subsection counter context in which "Definition 1.2.3"
+% would mean anything. So all theorem-like environments are declared with the
+% starred form to suppress numbering. Each subfile is identified by its
+% `ref` (def_3_1, claim_3_4, ...) and filename instead.
+\newtheorem*{sa}{Theorem}
+\newtheorem*{Thm}{Theorem}
+\newtheorem*{DefThm}{Definition/Theorem}
+\newtheorem*{Lem}{Lemma}
+\newtheorem*{Prp}{Proposition}
+\newtheorem*{Cor}{Corollary}
+\newtheorem*{Con}{Conjecture}
+\newtheorem*{Fct}{Facts}
+\newtheorem*{Prn}{Principle}
+\newtheorem*{Construction}{Construction}
+\newtheorem*{Alg}{Algorithm}
 
-%\theoremstyle{definition}
+\newtheorem*{Def}{Definition}
+\newtheorem*{DefLem}{Definition/Lemma}
+\newtheorem*{NotLem}{Notation/Lemma}
+\newtheorem*{Axm}{Axiom}
+\newtheorem*{Not}{Notation}
 
-\newtheorem{Def}[sa]{Definition}
-\newtheorem{DefLem}[sa]{Definition/Lemma}
-\newtheorem{NotLem}[sa]{Notation/Lemma}
-\newtheorem{Axm}[sa]{Axiom}
-\newtheorem{Not}[sa]{Notation}
-
-%\theoremstyle{remark}
-
-\newtheorem{Rem}[sa]{Remark}
-\newtheorem{Cau}[sa]{Caution}
-\newtheorem{Eg}[sa]{Example}
-\newtheorem{Tho}[sa]{Thoughts}
-\newtheorem{Exc}[sa]{Exercise}
-%\newtheorem{Lit}[sa]{Literature}
-\newtheorem{Ques}[sa]{Question}
-\newtheorem{Expl}[sa]{Explanation}
-\newtheorem{Disc}[sa]{Discussion}
-%\newtheorem{Summary}[sa]{Summary}
-\newtheorem{Conclusion}[sa]{Conclusion}
-\newtheorem{Motivation}[sa]{Motivation}
+\newtheorem*{Rem}{Remark}
+\newtheorem*{Cau}{Caution}
+\newtheorem*{Eg}{Example}
+\newtheorem*{Tho}{Thoughts}
+\newtheorem*{Exc}{Exercise}
+\newtheorem*{Ques}{Question}
+\newtheorem*{Expl}{Explanation}
+\newtheorem*{Disc}{Discussion}
+\newtheorem*{Conclusion}{Conclusion}
+\newtheorem*{Motivation}{Motivation}
 \newtheorem*{Step*}{Step}
-\newtheorem{Step}{Step}
-\newtheorem{Ass}[sa]{Assumption}
+\newtheorem*{Step}{Step}
+\newtheorem*{Ass}{Assumption}
 
 
 

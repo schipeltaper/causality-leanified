@@ -39,7 +39,14 @@ leanification/<chapter_folder>/<subsection_folder>/claim_<N>_<M>_proof_<title>.t
 
 Do **not** rename the file or move it. The orchestrator created it from the template with the right name; the manager has its path.
 
-The file already has the `\documentclass[main]{subfiles}` and `\begin{document}` ... `\end{document}` framing, and contains a `\begin{proof}` ... `\end{proof}` block with a `% TODO` placeholder. Replace the placeholder with your proof.
+The file already has:
+- `\documentclass[main]{subfiles}` + `\begin{document}` ... `\end{document}` framing,
+- a **statement (restated)** section above the proof, containing the claim's
+  `\begin{Thm}/\begin{Def}/\begin{Lem}/...` block (pre-filled at stub creation
+  from the row's `tex_block`),
+- a `\begin{proof}` ... `\end{proof}` block with a `% TODO` placeholder.
+
+**Replace ONLY the `% TODO` placeholder inside `\begin{proof}...\end{proof}`** with your proof body. Leave the restated statement above it untouched -- it's there so the proof file renders self-contained when read alone. If the pre-filled statement is wrong or out of date, fix it in the sibling `claim_<ref>_statement_<title>.tex` and copy the corrected block back over the restated statement; do not improvise.
 
 ## Rules
 

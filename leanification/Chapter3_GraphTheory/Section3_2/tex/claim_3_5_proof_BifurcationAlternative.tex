@@ -12,15 +12,22 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_5 (proof)
+% ref: claim_3_5 (proof, with statement restated for readability)
 % title: BifurcationAlternative
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Prp}\label{prp:bifurcations_alternative}
+  Let $G = \lt J, V, E, L \rt$ be a CDMG. For $v, w, c \in V \cup J$:
+  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \ne w$ and $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$ and $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.
+\end{Prp}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

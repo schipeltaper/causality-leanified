@@ -12,15 +12,33 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_34 (proof)
+% ref: claim_3_34 (proof, with statement restated for readability)
 % title: ResumeLabelAlph
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+Let the assumptions be like in Theorem \ref{d-sep-separoid-axioms}.
+    We also have the following rules: 
+    \begin{enumerate}[resume,label=\alph*)]
+        \setcounter{enumi}{12}
+        \item Left Composition:
+        \item[] $(A \iPerp  B \given  C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C.$
+        \item Right Composition:
+        \item[] $(A \iPerp  B \given  C) \land (A \iPerp  D \given C) \implies A \iPerp  B \cup  D \given C.$
+         \item Left Intersection: If $A \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (D \iPerp  B \given A \cup C) \implies A \cup D \iPerp  B \given C.$       
+        \item Right Intersection: If $B \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (A \iPerp  D \given B \cup C) \implies A \iPerp  B \cup D \given C.$
+    \end{enumerate}
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}

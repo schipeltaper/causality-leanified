@@ -12,15 +12,19 @@
 %
 % Compiles standalone via the `subfiles` package.
 
-\documentclass[../main]{subfiles}
+\documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_22 (proof)
+% ref: claim_3_22 (proof, with statement restated for readability)
 % title: SigmaSeparationSymmetric
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
 % for the corresponding statement.
 
+% --- statement (restated) ---------------------------------------------------
+Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, since when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\sigma$-blocking conditions are invariant under walk reversal.
+
+% --- proof ------------------------------------------------------------------
 \begin{proof}
 % TODO: write the proof body.
 \end{proof}
