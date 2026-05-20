@@ -1,0 +1,48 @@
+% Definition file for row def_3_22 -- "TheStandardAcyclification".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_22
+% title: TheStandardAcyclification
+\def\rowref{def\_3\_22}
+\def\rowtitle{TheStandardAcyclification}
+\phantomsection\label{def_3_22}
+
+\begin{Eg}[The standard acyclification]
+    Let $G=(J,V,E,L)$ be a CDMG. Then we define the \emph{standard acyclification} of $G$ as the CDMG
+    $ G'=(J,V,E',L')$
+    where:
+      \begin{align*} 
+          E' := & \lC v_1 \tuh v_2  \st v_1 \in J \cup V, v_2 \in V, v_2 \notin \Sc^G(v_1),\exists v_2' \in \Sc^G(v_2):\, 
+   v_1 \tuh v_2' \in E\rC,\\
+          L' := &\lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, \exists v_1' \in \Sc^G(v_1), v_2' \in \Sc^G(v_2):\, v_1 \huh v_2 \in L \rC \\ \cup &
+\lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, v_1 \in \Sc^G(v_2) \rC.
+\end{align*}
+% claim_3_32
+\begin{claimmark}
+The standard acyclification of a CDMG is acyclic, i.e.\ a CADMG.
+\end{claimmark}
+\begin{proof}
+    Assume that $G'$ is not acyclic. Then there exists a non-trivial cyclic directed walk in $G'$:
+    \[ v_1 \tuh v_2 \tuh \cdots \tuh v_k \tuh v_1, \]
+    for some $k \ge 1$. It is clear that $k \ge 2$ because clearly $v_1 \in \Sc^G(v_1)$, which rules out the existence of an edge $v_1 \tuh v_1 \in G'$. 
+    For simplicity we now identify $v_{k+1} := v_1$ in the following.
+    By construction of $G'$ for every $i=1,\dots,k$ there exists $v'_{i+1} \in \Sc^G(v_{i+1})$ 
+    such that the edge $v_i \tuh v_{i+1}'$ exists in $G$. Since $v'_{i+1} \in \Sc^G(v_{i+1})$ there also exists a directed walk in $G$: 
+     \[v'_{i+1} \tuh \cdots \tuh v_{i+1}.\]
+     Concatenating all directed walks we get the cyclic directed walk in $G$:
+    \[ v_1 \tuh v_2' \tuh \cdots \tuh v_2 \tuh v_3' \tuh \cdots \tuh v_k 
+    \tuh v_1' \tuh \cdots \tuh v_1. \]
+    This shows that $v_2 \in \Sc^G(v_1)$, which is a contradiction to the existence of the edge $v_1 \tuh v_2 \in G'$.
+    So a non-trivial cyclic directed walk in $G'$ cannot exist in the first place. So $G'$ must be acyclic.
+\end{proof}
+\end{Eg}
+
+\end{document}

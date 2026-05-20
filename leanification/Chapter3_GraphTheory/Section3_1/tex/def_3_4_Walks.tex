@@ -1,0 +1,57 @@
+% Definition file for row def_3_4 -- "Walks".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_4
+% title: Walks
+\def\rowref{def\_3\_4}
+\def\rowtitle{Walks}
+\phantomsection\label{def_3_4}
+
+\begin{Def}[Walks]\label{def:walks}
+     Let $G=(J,V,E,L)$ be a CDMG and $v,w \in G$.
+\begin{enumerate}
+    \item A \emph{walk} from $v$ to $w$ in $G$ is a finite alternating sequence of adjacent nodes and edges 
+      \[v=v_0, a_0,  v_1, \dots v_{n-1}, a_{n-1}, v_n=w\] 
+%      \[v=v_0 \sus v_1 \sus  \cdots \sus v_{n-1} \sus v_n=w\]
+        in $G$ for some $n \ge 0$, i.e.\ such that for every $k=0,\dots,n-1$ 
+        we have that $a_k = (v_k, v_{k+1}) \in E \cup L$ or $a_k = (v_{k+1}, v_k) \in E$, and with end nodes $v_0=v$ and $v_n=w$.
+        An example walk from $v_0$ to $v_3$ could look like:
+        \[v_0 \tuh v_1 \hut  v_2 \huh v_3, \qquad\text{ with } \qquad  v_0 \tuh v_1, v_2 \tuh v_1 \in E,\,v_2 \huh v_3 \in L. \]
+        The same node may appear multiple times in a walk.
+        Also the \emph{trivial walk} consisting of a single node $v_0 \in G$ is allowed (if $v=w$).
+        The walk is called \emph{into $v_0$} if $a_0 = v_0 \hus v_1$, and \emph{out of $v_0$} if $a_0 = v_0 \tuh v_1$.
+        Similarly, it is called \emph{into $v_n$} if $a_{n-1} = v_{n-1} \suh v_n$ and \emph{out of $v_n$} if $a_{n-1} = v_{n-1} \hut v_n$.
+    \item A \emph{directed walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \tuh v_1 \tuh  \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        for some $n \ge 0$,
+        where all arrowheads point in the direction of $w$ and there are no arrowheads pointing back.
+   % \item[] Directed walks exclude the trivial walk per definition.
+    \item A \emph{bidirected walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \huh v_1 \huh  \cdots \huh v_{n-1} \huh v_n=w,\]
+        for some $n \ge 0$, where all edges are bidirected.
+    \item A \emph{collider walk} from $v$ to $w$ in $G$ is of the form:
+        \[v=v_0 \suh v_1 \huh  \cdots \huh v_{n-1} \hus v_n=w,\]
+        for some $n \ge 0$, where all nodes in between $v$ and $w$ have two arrowheads pointing towards them (a.k.a.\ collider).
+        Note that for $n=1$ this reads: $v\sus w \in G$.
+    \item A walk is called \emph{path} if no node occurs more than once.
+    \item A \emph{bifurcation} between $v$ and $w$ in $G$ is a walk of the form:
+        \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \hus v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+   %             \[v=v_0 \hut v_1 \hut  \cdots \hut v_{k-1} \huh v_k  \tuh \cdots \tuh v_{n-1} \tuh v_n=w,\]
+        such that $v \ne w$, the walk contains both endnodes exactly once, 
+	the subwalk $v_0 \hut \cdots v_{k-1}$ is a directed walk from $v_{k-1}$ to $v_0$,
+	and the subwalk $v_k \tuh \cdots v_n$ is a directed walk from $v_k$ to $v_n$.
+        %every node has at most one arrowhead pointing towards it, and 
+        %both endnodes have exactly one arrowhead pointing towards them. 
+        If the edge $v_{k-1} \hus v_k$ is directed ($v_{k-1} \hut v_k$) then we say that the bifurcation has \emph{source} $v_{k}$.
+  \end{enumerate}
+\end{Def}
+
+\end{document}

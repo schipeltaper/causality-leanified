@@ -1,0 +1,26 @@
+-- Aggregator for chapter folder `Chapter3_GraphTheory`.
+-- Auto-managed by scaffold/solve_chapter.py; do not edit by hand.
+
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.EdgeRelations
+import Chapter3_GraphTheory.Section3_1.JNodeProperties
+import Chapter3_GraphTheory.Section3_1.Walks
+import Chapter3_GraphTheory.Section3_1.WalkPredicates
+import Chapter3_GraphTheory.Section3_1.Bifurcation
+import Chapter3_GraphTheory.Section3_1.FamilyDirect
+import Chapter3_GraphTheory.Section3_1.FamilyReachability
+import Chapter3_GraphTheory.Section3_1.FamilyDistrict
+import Chapter3_GraphTheory.Section3_1.Acyclicity
+import Chapter3_GraphTheory.Section3_1.GraphTypes
+import Chapter3_GraphTheory.Section3_1.TopologicalOrder
+import Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder
+import Chapter3_GraphTheory.Section3_1.Predecessors
+import Chapter3_GraphTheory.Section3_2.HardInterventionOn
+import Chapter3_GraphTheory.Section3_2.AcyclicUnderIntervention
+import Chapter3_GraphTheory.Section3_2.HardInterventionsCommute
+import Chapter3_GraphTheory.Section3_2.BifurcationAlternative
+import Chapter3_GraphTheory.Section3_2.AcyclicUnderIntervention
+import Chapter3_GraphTheory.Section3_2.NodeSplittingOn
+import Chapter3_GraphTheory.Section3_2.SplitTopologicalOrder
+import Chapter3_GraphTheory.Section3_2.TwoDisjointNodeSplittingsCommute

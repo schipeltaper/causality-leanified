@@ -50,17 +50,27 @@ ENV_TYPES = {
 # solving_current_chapter.py. A row's actions_tracking counts how often each
 # of these was used; keep this list in sync with process_output's branches.
 ACTIONS = [
-    "Write proof",
-    "Write proof in more detail",
-    "solved",
-    "add or delete rows",
+    # --- tex proof manipulation -------------------------------------------
+    "expand_proof",          # add detail to an existing tex proof's specific step
+    "correct_tex_proof",     # rewrite a tex proof after leanification revealed a mistake
+    "verify_tex_proof",      # independent check that a tex proof is complete and correct
+    # --- formalization review chain (statement-level) ---------------------
+    "review_design",         # full-LN-context review of whether the Lean shape is natural
+    "verify_equivalence",    # focused check that the Lean statement matches the LN
+    "add_design_choice_comments",  # after equivalence PASS: enrich the Lean comments with WHY
+    # --- proof review (after Lean proof closes) ---------------------------
+    "simplify_proof",        # check if the Lean proof is over-complex; propose simpler if any
+    # --- terminal / dispatch / control flow -------------------------------
+    "solved",                # signal that the whole row is done (triggers row verifier)
     "refactor",
-    "make plan",
+    "make_plan",
     "decompose",
     "spawn_agent_sub_task",
-    "reaching context limit",
-    "re-order",
-    "help",
+    "continue_agent",        # resume an earlier-spawned agent by session id (registry)
+    "new_manager",           # hand off to a fresh manager to keep context small
+    "reorder",               # propose `<refs> should be solved before this row` (auto-applies on verify)
+    "reset",
+    "request_from_human",    # rare last resort -- gated by repeat-attempt threshold
     "mistake",
     "no_action",
 ]
@@ -70,6 +80,27 @@ _MARK_KINDS = {"defmark": "def", "claimmark": "claim"}
 
 # A ref comment already inserted by this script (used to stay idempotent).
 _REF_COMMENT = re.compile(r"^\s*%\s*(?:def|claim)_\d+_\d+\s*$")
+
+
+def _extract_title(tex_block):
+    """Short PascalCase title for filenames, lifted from a defmark/claimmark.
+
+    Looks at the optional `\\begin{Env}[...]` argument of the first theorem
+    environment inside the block. Preference order:
+      1. A trailing parenthesized acronym -- ``[A long name (CDMG)]`` -> ``CDMG``
+      2. The first 1-3 alphanumeric words, PascalCased
+    Returns ``""`` if no bracketed title is found; the orchestrator can ask
+    an agent to fill one in at row start.
+    """
+    m = re.search(r"\\begin\{\w+\}\[([^\]]+)\]", tex_block, flags=re.DOTALL)
+    if not m:
+        return ""
+    raw = m.group(1).strip()
+    acro = re.search(r"\(([A-Z][A-Za-z0-9]{1,15})\)\s*$", raw)
+    if acro:
+        return acro.group(1)
+    words = re.findall(r"[A-Za-z0-9]+", raw)[:3]
+    return "".join(w[0].upper() + w[1:] for w in words)
 
 
 def _read_raw(path):
@@ -104,11 +135,28 @@ def _detect_type(lines, start, mark_env):
     return "note"
 
 
-def _scan(tex_file, marks, seen):
+def _extract_block(lines, start, mark_env):
+    """Verbatim text from ``\\begin{mark_env}`` (on line ``start``) through
+    its matching ``\\end{mark_env}``, joined with ``"\\n"``. Includes both
+    delimiter lines. If the closing tag is missing we return the rest of the
+    file so the row still gets some content rather than crashing.
+    """
+    closing = rf"\end{{{mark_env}}}"
+    for j in range(start, len(lines)):
+        if closing in lines[j]:
+            return "\n".join(lines[start:j + 1])
+    return "\n".join(lines[start:])
+
+
+def _scan(tex_file, marks, seen, state, chapter):
     """Collect def/claim marks from `tex_file` (recursively), in render order.
 
-    Appends a dict {kind, type, tex_file, line} per mark to `marks`, and
-    descends into \\input'd files where they are included.
+    Appends a dict {kind, type, tex_file, line, section} per mark to `marks`,
+    and descends into \\input'd files where they are included. `state` is a
+    mutable dict carrying the running ``\\subsection`` count so the section
+    numbering continues across recursive \\input calls. `section` is
+    formatted as ``"{chapter}.{idx}"``; marks that appear before the first
+    ``\\subsection`` get ``""``.
     """
     if tex_file in seen:
         return
@@ -120,20 +168,26 @@ def _scan(tex_file, marks, seen):
     lines = _read_raw(path).splitlines()
     for i, line in enumerate(lines):
         code = _code(line)
+        # \subsection{...} bumps the section counter; \subsection*{...} doesn't.
+        if re.search(r"\\subsection\{", code):
+            state["section_idx"] += 1
         for env, kind in _MARK_KINDS.items():
             if rf"\begin{{{env}}}" in code:
+                idx = state["section_idx"]
                 marks.append({
                     "kind": kind,
                     "type": _detect_type(lines, i, env),
                     "tex_file": tex_file,
                     "line": i,
+                    "section": f"{chapter}.{idx}" if idx else "",
+                    "tex_block": _extract_block(lines, i, env),
                 })
         inp = re.search(r"\\input\{([^}]+)\}", code)
         if inp:
             name = inp.group(1)
             if not name.endswith(".tex"):
                 name += ".tex"
-            _scan(name, marks, seen)
+            _scan(name, marks, seen, state, chapter)
 
 
 def _insert_ref_markers(marks):
@@ -178,7 +232,7 @@ def fill_data(chapter, tex_file, data_path):
         return data_path  # already populated
 
     marks = []
-    _scan(tex_file, marks, set())
+    _scan(tex_file, marks, set(), {"section_idx": 0}, chapter)
 
     # Number the refs per chapter and per kind, in render order.
     counts = {"def": 0, "claim": 0}
@@ -186,16 +240,42 @@ def fill_data(chapter, tex_file, data_path):
     for mark in marks:
         counts[mark["kind"]] += 1
         mark["ref"] = f"{mark['kind']}_{chapter}_{counts[mark['kind']]}"
+        is_claim = mark["kind"] == "claim"
         rows.append({
             "def_or_claim": mark["kind"],
-            "solved": "no",
             "ref": mark["ref"],
+            "section": mark["section"],
+            # Short PascalCase title used in filenames (def_<ref>_<title>.tex
+            # etc.). Auto-extracted from `\begin{Env}[...]` in the tex_block
+            # where possible; an empty value triggers the orchestrator to
+            # pick one at row start.
+            "title": _extract_title(mark["tex_block"]),
             "type": mark["type"],
+            # Solve-state is split in two so we can track progress separately.
+            # `solved` is the overall checkmark: a def is solved when
+            # formalized; a claim is solved when formalized AND proven is
+            # either "proven" or "disproven" (a counter-example also counts).
+            "formalized": "no",                              # "no" | "yes"
+            "proven": "not proven" if is_claim else "n/a",   # claims: "not proven"|"proven"|"disproven"; defs: "n/a"
+            "solved": "no",                                  # "no" | "yes"
             "date_solved": "",
             "tips": "",
             "tex_file": mark["tex_file"],
-            "lean_file": "",
+            # The canonical Lean file for the row's main statement
+            # (verifier reports it as MAIN_LEAN_FILE on PASS).
+            "main_lean_file": "",
+            # A row may produce multiple Lean files (e.g. a "definition"
+            # row that is actually a notation list with several entries).
+            # The verifier reports them all and mark_solved writes the list.
+            "lean_files": [],
             "actions_tracking": {action: 0 for action in ACTIONS},
+            # Verbatim contents of the defmark/claimmark block, so agents
+            # have the canonical source without re-reading the .tex file.
+            "tex_block": mark["tex_block"],
+            # Session IDs (and metadata) of every Claude agent spawned for
+            # this row -- the manager can ask the orchestrator to resume
+            # any of them via the `continue_agent` action.
+            "agent_registry": [],
         })
 
     _insert_ref_markers(marks)

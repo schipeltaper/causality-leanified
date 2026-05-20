@@ -1,0 +1,48 @@
+% Claim proof file for row claim_3_26 -- "AcyclicNonCollidersBlockable".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_26 (proof, with statement restated for readability)
+% title: AcyclicNonCollidersBlockable
+\def\rowref{claim\_3\_26}
+\def\rowtitle{AcyclicNonCollidersBlockable}
+\phantomsection\label{claim_3_26}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+    If a CDMG $G$ is acyclic then all non-colliders are blockable.
+    So, the partial condition for $i\sigma$-separation
+    ``a blockable non-collider in $C$''
+    can be simplified to ``(any) non-collider in $C$''.
+    
+    So in the acyclic case we can simplify the notion of $i\sigma$-separation, 
+    which we will refer to as \emph{$id$-separation}.
+    However, in the non-acyclic setting $id$-separation (``(any) non-collider in $C$'') and $i\sigma$-separation (``a blockable non-collider in $C$'') are clearly not equivalent.
+
+    It turned out that in the non-acyclic case $i\sigma$-separation is the more general concept (and as said above it also captures the acyclic case equivalently well), see \cite{FM17,FM18,FM20,BFPM21}.
+    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.
+    Later, we will pick up $i\sigma$-separation again when we deal with cycles.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

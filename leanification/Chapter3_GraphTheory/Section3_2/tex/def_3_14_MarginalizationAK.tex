@@ -1,0 +1,42 @@
+% Definition file for row def_3_14 -- "MarginalizationAK".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_14
+% title: MarginalizationAK
+\def\rowref{def\_3\_14}
+\def\rowtitle{MarginalizationAK}
+\phantomsection\label{def_3_14}
+
+\begin{Def}[Marginalization a.k.a.\ latent projection on CDMGs]\label{def:G_marginalization}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of output nodes.
+  Then the \emph{marginalization of $G$ w.r.t.\ $W$} or the \emph{latent projection of $G$ onto $J\cup V \sm W$} is the CDMG:
+  \[  G^{V\sm W | J} := G^{\sm W} := (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  %\[ G(V \sm W | \doit(J)) := G^{\sm W} = (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J^{\sm W}:= J$,
+      \item $V^{\sm W}:= V \sm W$,
+      \item $E^{\sm W}$ consists of all directed edges $\ul{v} \tuh \ol{v}$ with $\ul{v},\ol{v} \in J \cup V \sm W$ 
+          for which there exists a directed walk in $G$:
+          \[\ul{v} \tuh w_1 \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).\footnote{Note that this may introduce self-cycles.}
+      \item $L^{\sm W}$ consists of all bidirected edges $\ul{v} \huh \ol{v}$ with 
+          $\ul{v},\ol{v} \in V \sm W$, $\ul{v} \neq \ol{v}$, 
+          for which there exists a bifurcation in $G$:
+          \[\ul{v} \hut w_1 \hut \cdots \hut w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).
+      %\item $L^{\sm W}:= \lC \ul{v} \huh \ol{v}\,|\, \ul{v},\ol{v} \in V \sm W: 
+      %    \exists \text{ bifurcation: } \ul{v} \hut w_1 \cdots w_{n-1} \tuh \ol{v} \in G 
+      %    \text{ with } w_1,\dots,w_{n-1} \in W \rC$,
+  \end{enumerate}
+\end{Def}
+
+\end{document}

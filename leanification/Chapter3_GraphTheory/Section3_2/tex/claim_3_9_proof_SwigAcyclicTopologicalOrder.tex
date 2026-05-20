@@ -1,0 +1,43 @@
+% Claim proof file for row claim_3_9 -- "SwigAcyclicTopologicalOrder".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_9 (proof, with statement restated for readability)
+% title: SwigAcyclicTopologicalOrder
+\def\rowref{claim\_3\_9}
+\def\rowtitle{SwigAcyclicTopologicalOrder}
+\phantomsection\label{claim_3_9}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\swig(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\swig(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^o$ the index $j-\frac{1}{3}$
+    and $v_j^i$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

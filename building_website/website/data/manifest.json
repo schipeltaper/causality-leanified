@@ -1,0 +1,92 @@
+{
+  "chapters": [
+    {
+      "chapter": 3,
+      "title": "Graph Theory",
+      "sections": [
+        {
+          "section": "3.1",
+          "rows": [
+            {
+              "ref": "def_3_1",
+              "kind": "def",
+              "label": "def 3.1 — CDMG",
+              "title": "CDMG",
+              "available": true
+            },
+            {
+              "ref": "def_3_2",
+              "kind": "def",
+              "label": "def 3.2 — CDMGNotation",
+              "title": "CDMGNotation",
+              "available": false
+            },
+            {
+              "ref": "def_3_3",
+              "kind": "def",
+              "label": "def 3.3 — EdgeRelations",
+              "title": "EdgeRelations",
+              "available": false
+            },
+            {
+              "ref": "claim_3_1",
+              "kind": "claim",
+              "label": "claim 3.1 — JNodeProperties",
+              "title": "JNodeProperties",
+              "available": false
+            },
+            {
+              "ref": "def_3_4",
+              "kind": "def",
+              "label": "def 3.4 — Walks",
+              "title": "Walks",
+              "available": false
+            },
+            {
+              "ref": "def_3_5",
+              "kind": "def",
+              "label": "def 3.5 — FamilyRelationships",
+              "title": "FamilyRelationships",
+              "available": false
+            },
+            {
+              "ref": "def_3_6",
+              "kind": "def",
+              "label": "def 3.6 — Acyclicity",
+              "title": "Acyclicity",
+              "available": false
+            },
+            {
+              "ref": "def_3_7",
+              "kind": "def",
+              "label": "def 3.7 — GraphTypes",
+              "title": "GraphTypes",
+              "available": false
+            },
+            {
+              "ref": "def_3_8",
+              "kind": "def",
+              "label": "def 3.8 — TopologicalOrder",
+              "title": "TopologicalOrder",
+              "available": false
+            },
+            {
+              "ref": "claim_3_2",
+              "kind": "claim",
+              "label": "claim 3.2 — AcyclicIffTopologicalOrder",
+              "title": "AcyclicIffTopologicalOrder",
+              "available": false
+            },
+            {
+              "ref": "def_3_9",
+              "kind": "def",
+              "label": "def 3.9 — Predecessors",
+              "title": "Predecessors",
+              "available": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

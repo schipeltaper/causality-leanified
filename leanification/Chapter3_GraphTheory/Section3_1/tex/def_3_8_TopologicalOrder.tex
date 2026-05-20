@@ -1,0 +1,25 @@
+% Definition file for row def_3_8 -- "TopologicalOrder".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_8
+% title: TopologicalOrder
+\def\rowref{def\_3\_8}
+\def\rowtitle{TopologicalOrder}
+\phantomsection\label{def_3_8}
+
+\begin{Def}[Topological order]
+    Let $G=(J,V,E,L)$ be a CDMG.
+    A \emph{topological order} of $G$ is a total order $<$ of $J \cup V$ such that for all $v,w \in G$:
+    \[ v \in \Pa^G(w) \; \implies \; v < w.\]
+    Equivalently, it can be described as an indexing of the nodes $J \cup V = \{v_1,\dots,v_K\}$ where parents always precede their children.
+\end{Def}
+
+\end{document}
