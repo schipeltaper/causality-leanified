@@ -111,6 +111,123 @@ function renderMath(root) {
   });
 }
 
+/* ----------------------------------------------------------------------
+   Lean-pane carousel: when a row's `lean` array carries blocks for
+   multiple LN items (e.g. def_3_4 spans items 1-6, claim_3_1 has parts
+   1/3..3/3), we group blocks by item and show one slide at a time with
+   prev/next buttons rather than stacking all 21 blocks vertically.
+   ---------------------------------------------------------------------- */
+
+/* Extract a stable "item key" from a marker's part text — used both for
+   grouping and as a slide identifier. */
+function itemKey(part) {
+  if (!part) return "_none";
+  let m = part.match(/^items?\s+(\d+(?:[\s\-–]+\d+)?)/i);
+  if (m) return m[1].replace(/\s+/g, "");
+  m = part.match(/^part\s+(\d+\/\d+)/i);
+  if (m) return m[1];
+  return part;
+}
+
+/* Strip the "item N" / "items N-M" / "part N/M" prefix from a block's
+   part text, leaving only the sub-description so it can sit under the
+   slide's own header. Returns "" when the part is just the item id with
+   no description, in which case no sub-label is rendered. */
+function blockSubLabel(part) {
+  if (!part) return "";
+  let s = part.replace(/^items?\s+\d+(?:[\s\-–]+\d+)?\s*[,:]?\s*/i, "");
+  s = s.replace(/^part\s+\d+\/\d+\s*[,:]?\s*/i, "");
+  return s.trim();
+}
+
+/* Slide title for the carousel header. "item 6, witness structure" →
+   "Item 6". "items 2-4" → "Items 2-4". "part 1/3" → "Part 1/3". */
+function slideTitle(blocks) {
+  const part = blocks[0].part || "";
+  const base = part.split(",")[0].trim();
+  return base ? base.charAt(0).toUpperCase() + base.slice(1) : "";
+}
+
+function groupSlides(blocks) {
+  const slides = [];
+  let cur = null;
+  for (const b of blocks) {
+    const key = itemKey(b.part);
+    if (!cur || cur.key !== key) {
+      cur = { key, blocks: [b] };
+      slides.push(cur);
+    } else {
+      cur.blocks.push(b);
+    }
+  }
+  return slides;
+}
+
+/* Append the contents of one slide (one or more Lean blocks) into a
+   parent node. Each sub-block gets its own `-- subLabel` header when
+   the description is non-empty. */
+function renderSlideInto(parent, slide) {
+  for (const b of slide.blocks) {
+    const sub = blockSubLabel(b.part);
+    if (sub) parent.append(el("div", { class: "lean-part-label" }, sub));
+    parent.append(
+      el("pre", {}, el("code", { class: "language-lean" }, b.statement)),
+    );
+  }
+}
+
+function renderCarousel(slides) {
+  let current = 0;
+  const slideBox  = el("div", { class: "lean-slide" });
+  const titleEl   = el("span", { class: "lean-carousel-title" });
+  const counter   = el("span", { class: "lean-carousel-counter" });
+
+  const prev = el("button", {
+    class: "lean-carousel-btn",
+    type: "button",
+    "aria-label": "Previous item",
+  }, "‹");
+  const next = el("button", {
+    class: "lean-carousel-btn",
+    type: "button",
+    "aria-label": "Next item",
+  }, "›");
+
+  function paint() {
+    slideBox.innerHTML = "";
+    renderSlideInto(slideBox, slides[current]);
+    titleEl.textContent = slideTitle(slides[current]);
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    prev.disabled = current === 0;
+    next.disabled = current === slides.length - 1;
+    if (typeof hljs !== "undefined") {
+      registerLeanGrammar();
+      slideBox.querySelectorAll("pre code.language-lean").forEach((b) => {
+        if (b.dataset.highlighted !== "yes") hljs.highlightElement(b);
+      });
+    }
+  }
+  prev.addEventListener("click", () => { if (current > 0) { current--; paint(); } });
+  next.addEventListener("click", () => { if (current < slides.length - 1) { current++; paint(); } });
+  // Keyboard arrows when the Lean pane has focus.
+  slideBox.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft")  { e.preventDefault(); prev.click(); }
+    if (e.key === "ArrowRight") { e.preventDefault(); next.click(); }
+  });
+  slideBox.setAttribute("tabindex", "0");
+
+  const carousel = el("div", { class: "lean-carousel" },
+    el("div", { class: "lean-carousel-controls" },
+      prev,
+      el("div", { class: "lean-carousel-label" }, titleEl, counter),
+      next,
+    ),
+    slideBox,
+  );
+  paint();
+  return carousel;
+}
+
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
    `lean4` language; overrides the built-in `lean.js` (Lean 3-flavoured)
    that would otherwise be shipped from cdnjs. Aims for atom-one-light:
@@ -288,17 +405,16 @@ function renderEntry(data) {
   if (data.lean.length === 0) {
     leanBody.append(el("div", { class: "missing" }, "(no Lean blocks found)"));
   } else {
-    for (const b of data.lean) {
-      if (data.lean.length > 1 && b.part) {
-        // Drop the "part" prefix — the marker text usually already says
-        // "item N" or "part N/M" so prefixing "part" makes it read
-        // "part item 6, …" which is awkward. The label is styled as a
-        // `--`-prefixed Lean-style comment header so it blends with the
-        // code block underneath.
-        leanBody.append(el("div", { class: "lean-part-label" }, b.part));
-      }
-      const pre = el("pre", {}, el("code", { class: "language-lean" }, b.statement));
-      leanBody.append(pre);
+    // Group blocks into slides by their item key — all sub-blocks of
+    // "item 6" go in one slide, all of "item 1" in another, etc.
+    const slides = groupSlides(data.lean);
+    if (slides.length <= 1) {
+      // Single-item row (def_3_1, single-part claim, etc.): no carousel,
+      // just render the blocks directly.
+      renderSlideInto(leanBody, slides[0] || { blocks: data.lean });
+    } else {
+      // Multi-item row: render a prev/next carousel.
+      leanBody.append(renderCarousel(slides));
     }
   }
 
