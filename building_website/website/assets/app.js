@@ -13,13 +13,60 @@ const DEFAULT_REF = "def_3_1";
 const REPO_URL    = "https://github.com/schipeltaper/causality-leanified";
 const REPO_BRANCH = "main";  // the file viewers link to this branch
 
-/* KaTeX macros for project-specific math commands. Extend as new ones appear.
-   See `leanification/preamble.tex` for the originals. */
+/* KaTeX macros for project-specific math commands, mirroring
+   `leanification/preamble.tex`. The TIKZ edge arrows (`\tuh`, `\hut`,
+   `\huh`) are macros with an optional `[opts]` argument in the LaTeX
+   preamble that draws a real arrow; KaTeX has no TIKZ, so we
+   approximate with stock arrow tokens — the optional opts argument is
+   harmless because in math expressions in this project these macros are
+   only ever used as bare operator-style tokens (`v_1 \tuh v_2`).
+   Extend this dict as new macros surface in later sections.            */
 const KATEX_MACROS = {
-  "\\ins": "\\subseteq",
-  "\\x":   "\\times",
-  "\\id":  "\\mathrm{id}",
+  /* set operations */
+  "\\ins":  "\\subseteq",
+  "\\x":    "\\times",
+  "\\sm":   "\\setminus",
+  "\\id":   "\\mathrm{id}",
+
+  /* number sets */
+  "\\N":    "\\mathbb{N}",
+  "\\Z":    "\\mathbb{Z}",
+  "\\R":    "\\mathbb{R}",
+  "\\Q":    "\\mathbb{Q}",
+
+  /* large brace delimiter pair  ( \lC … \rC )  */
+  "\\lC":   "\\left\\{",
+  "\\rC":   "\\right\\}",
+
+  /* graph-theoretic roman operators */
+  "\\Pa":    "\\mathrm{Pa}",
+  "\\Ch":    "\\mathrm{Ch}",
+  "\\Anc":   "\\mathrm{Anc}",
+  "\\Desc":  "\\mathrm{Desc}",
+  "\\Dist":  "\\mathrm{Dist}",
+  "\\Sc":    "\\mathrm{Sc}",
+  "\\MBl":   "\\mathrm{Mb}",
+
+  /* CDMG edge relations — TIKZ arrows in the LN; approximated here.
+     `t`/`h`/`s` = tail / arrowhead / star (i.e. "either"). The first
+     letter is the endpoint at the LEFT argument, the second at the
+     RIGHT argument. So `\tuh` = tail-…-head (right arrow), etc.       */
+  "\\tuh":   "\\mathrel{\\rightarrow}",
+  "\\hut":   "\\mathrel{\\leftarrow}",
+  "\\huh":   "\\mathrel{\\leftrightarrow}",
+  "\\hus":   "\\mathrel{\\leftarrow\\!{*}}",
+  "\\suh":   "\\mathrel{{*}\\!\\rightarrow}",
+  "\\sus":   "\\mathrel{{*}\\!\\leftrightarrow\\!{*}}",
 };
+
+/* `\Acal` … `\Zcal`  →  `\mathcal{A}` … `\mathcal{Z}`, plus the `\Abf`
+   / `\Zbf` series. The LN defines all 52 via `\providecommand`; we
+   register them up-front so any future row that uses one renders. */
+for (let i = 0; i < 26; i++) {
+  const c = String.fromCharCode(65 + i);
+  KATEX_MACROS[`\\${c}cal`] = `\\mathcal{${c}}`;
+  KATEX_MACROS[`\\${c}bf`]  = `\\mathbf{${c}}`;
+}
 
 /* ------------------------------------------------------------------ utils */
 
@@ -64,9 +111,100 @@ function renderMath(root) {
   });
 }
 
+/* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
+   `lean4` language; overrides the built-in `lean.js` (Lean 3-flavoured)
+   that would otherwise be shipped from cdnjs. Aims for atom-one-light:
+   keywords (purple), built-ins / types (red), tactics (blue), operators
+   and arrows (azure), comments (grey-green), doc-comments (italic green). */
+function registerLeanGrammar() {
+  if (typeof hljs === "undefined" || hljs.getLanguage("lean4-custom")) return;
+  hljs.registerLanguage("lean", function (hljs) {
+    return {
+      name: "Lean 4",
+      aliases: ["lean", "lean4"],
+      case_insensitive: false,
+      keywords: {
+        keyword: [
+          // declaration introducers
+          "abbrev","axiom","class","def","deriving","example","extends","instance",
+          "inductive","mutual","namespace","noncomputable","prelude","private",
+          "protected","section","structure","theorem","lemma","unsafe","universe",
+          "variable","where","with",
+          // imports / open
+          "import","open","export","attribute",
+          // term / type level
+          "fun","λ","let","if","then","else","match","have","show","suffices",
+          "use","from","return","do",
+          // control words inside `by` blocks that read like keywords
+          "by","at","in",
+        ],
+        literal: ["true","false","rfl","sorry","trivial","this","_"],
+        built_in: [
+          // core
+          "Prop","Type","Sort","Nat","Int","Real","Rat","Bool","String","Char",
+          "List","Array","Vector","Option","Sum","Prod","Unit","Empty","PUnit",
+          "Decidable","Subtype","Function","Subsingleton","Inhabited",
+          // mathlib & project
+          "Set","Finset","Multiset","Quotient","Setoid","Equiv","Disjoint",
+          "SimpleGraph","Preorder","PartialOrder","LinearOrder","Lattice",
+          "CDMG","Adjacent","Walk",
+        ],
+        title: [
+          // tactic-style tokens we want coloured distinctly
+          "intro","apply","exact","refine","simp","ring","linarith","omega",
+          "push_neg","rcases","cases","obtain","constructor","rwa","rw",
+          "have","show","suffices","unfold","convert","trans","contradiction",
+          "by_contra","decide","assumption","fin_cases","induction",
+          "calc","change","clear","rename_i","specialize","split","exists",
+        ],
+      },
+      contains: [
+        // /-- doc-comments -/
+        {
+          className: "doctag",
+          begin: /\/--/, end: /-\//,
+          relevance: 5,
+        },
+        // /- block comments -/  (note: nestable in Lean, but highlight.js
+        // can't truly nest these — close on first -/)
+        hljs.COMMENT(/\/-/, /-\//),
+        // -- line comments
+        hljs.COMMENT(/--/, /$/),
+        // strings
+        hljs.QUOTE_STRING_MODE,
+        // numbers
+        { className: "number", begin: /\b\d+(\.\d+)?/, relevance: 0 },
+        // operators, arrows, set-membership glyphs
+        {
+          className: "operator",
+          begin: /:=|=>|→|↦|↔|⊆|⊂|⊃|∈|∉|∀|∃|×ˢ|⦃|⦄|≠|≤|≥|∪|∩|⟨|⟩|·|≃|≡/,
+        },
+        // implicit args  {x : α}  ⦃x : α⦄
+        {
+          className: "params",
+          begin: /[⦃{]/, end: /[⦄}]/,
+          relevance: 0,
+          contains: [
+            {
+              className: "operator",
+              begin: /:|,|→/,
+              relevance: 0,
+            },
+          ],
+        },
+      ],
+    };
+  });
+}
+
 function highlightCode(root) {
   if (typeof hljs === "undefined") return;
-  root.querySelectorAll("pre code.language-lean").forEach((b) => hljs.highlightElement(b));
+  registerLeanGrammar();
+  root.querySelectorAll("pre code.language-lean").forEach((b) => {
+    // hljs adds .hljs and the data-highlighted="yes" attr; skip if already done.
+    if (b.dataset.highlighted === "yes") return;
+    hljs.highlightElement(b);
+  });
 }
 
 /* --------------------------------------------------------------- sidebar */
@@ -108,7 +246,19 @@ function renderSidebar(manifest, activeRef) {
 
 function renderEntry(data) {
   const human = data.ref.replace(/_/g, " ").replace(/(\w+) (\d+) (\d+)/, "$1 $2.$3");
-  const kindWord = data.kind === "def" ? "Definition" : "Claim";
+  // Prefer the row's `type` (definition / notation / remark / lemma) over
+  // the coarser `kind` (def / claim) so the header reads "Notation 3.2"
+  // for an actual \begin{Not} entry rather than "Definition 3.2".
+  const TYPE_LABELS = {
+    definition: "Definition",
+    notation:   "Notation",
+    remark:     "Remark",
+    lemma:      "Lemma",
+    theorem:    "Theorem",
+    corollary:  "Corollary",
+    proposition: "Proposition",
+  };
+  const kindWord = TYPE_LABELS[data.type] || (data.kind === "def" ? "Definition" : "Claim");
   const sectionNum = data.section;
   const nIn = data.ref.split("_").pop();
 

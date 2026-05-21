@@ -291,6 +291,18 @@ ol.roman-paren > li.no-marker::before { content: ""; }
   padding: 0 !important;
 }
 
+/* atom-one-light only covers the canonical token classes well; reinforce
+   the ones the custom Lean grammar emits so every kind of token has a
+   readable colour rather than falling back to default text. */
+.hljs-doctag   { color: #50a14f; font-style: italic; }   /* /-- … -/ */
+.hljs-operator { color: #4078f2; }                       /* → ⊆ ∈ := */
+.hljs-symbol   { color: #4078f2; }                       /* arrows + brackets */
+.hljs-keyword  { color: #a626a4; font-weight: 600; }      /* def, theorem, where */
+.hljs-built_in { color: #c18401; }                       /* types: Set, Disjoint, … */
+.hljs-title    { color: #4078f2; }                       /* tactic names */
+.hljs-literal  { color: #0184bc; }                       /* rfl, sorry, true, false */
+.hljs-comment  { color: #a0a1a7; font-style: italic; }
+
 /* ---- action row ---- */
 
 .entry-actions {
