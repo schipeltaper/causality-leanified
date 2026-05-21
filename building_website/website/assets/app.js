@@ -196,7 +196,7 @@ function renderCarousel(slides) {
   function paint() {
     slideBox.innerHTML = "";
     renderSlideInto(slideBox, slides[current]);
-    titleEl.textContent = slideTitle(slides[current]);
+    titleEl.textContent = slideTitle(slides[current].blocks);
     counter.textContent = `${current + 1} / ${slides.length}`;
     prev.disabled = current === 0;
     next.disabled = current === slides.length - 1;
