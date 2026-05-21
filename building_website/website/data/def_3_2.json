@@ -20,15 +20,17 @@
   "lean": [
     {
       "part": "item 1",
+      "tag": null,
       "title": "CDMGNotation -- vertex membership",
       "comments": "--\n-- `v ∈ G` means `v ∈ G.J ∪ G.V`, i.e. `v` is either an input node or\n-- an output node of the CDMG `G`. We register this as a `Membership`\n-- instance so the literal Lean syntax `v ∈ G` typechecks and unfolds\n-- to set-union membership.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitem 1, in `\\begin{Not}\\label{not-cdmg}`):\n\n  $v \\in G$ to mean $v \\in J \\cup V$,\n-/",
-      "statement": "instance : Membership α (CDMG α) where\n  mem G v := v ∈ G.J ∪ G.V\n@[simp] theorem CDMG.mem_iff {G : CDMG α} {v : α} :\n    v ∈ G ↔ v ∈ G.J ∪ G.V := Iff.rfl\nnamespace CDMG",
+      "statement": "instance : Membership α (CDMG α) where\n  mem G v := v ∈ G.J ∪ G.V\n@[simp] theorem CDMG.mem_iff {G : CDMG α} {v : α} :\n    v ∈ G ↔ v ∈ G.J ∪ G.V := Iff.rfl",
       "proof": null,
       "source_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
       "source_line": 26
     },
     {
       "part": "items 2-4",
+      "tag": null,
       "title": "CDMGNotation -- directed, reverse-directed, bidirected edges",
       "comments": "--\n-- `tuh` / `hut` / `huh` mirror the LN macros `\\tuh` / `\\hut` / `\\huh`.\n-- They are `Prop`-valued one-line aliases for membership in `G.E`\n-- (directed) or `G.L` (bidirected). The names are deliberately kept\n-- close to the LN macros so a reader bouncing between the notes and\n-- the Lean source can recognise them.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitems 2-4):\n\n  $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n  $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n  $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n-/\n\n/-- LN's `\\tuh`: there is a *directed* edge `v₁ → v₂` in `G`, i.e.\n`(v₁, v₂) ∈ G.E`. -/",
       "statement": "def tuh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.E\ndef hut (G : CDMG α) (v₁ v₂ : α) : Prop := (v₂, v₁) ∈ G.E\ndef huh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.L",
@@ -38,6 +40,7 @@
     },
     {
       "part": "items 5-7",
+      "tag": null,
       "title": "CDMGNotation -- arrowhead-at-target / -source / any edge",
       "comments": "--\n-- The \"star\" in the LN means \"arrowhead or tail\"; these three\n-- relations are exactly the disjunctions of the primitive edges.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitems 5-7):\n\n  $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$,\n  $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$,\n  $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$\n                                       or $v_1 \\hut v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$.\n\nThe star stands for a placeholder to mean: \"arrowhead or tail\".\n-/\n\n/-- LN's `\\suh`: there is an edge with an arrowhead at `v₂` in `G`,\ni.e. either `tuh G v₁ v₂` (`→`) or `huh G v₁ v₂` (`↔`). -/",
       "statement": "def suh (G : CDMG α) (v₁ v₂ : α) : Prop := tuh G v₁ v₂ ∨ huh G v₁ v₂\ndef hus (G : CDMG α) (v₁ v₂ : α) : Prop := hut G v₁ v₂ ∨ huh G v₁ v₂\ndef sus (G : CDMG α) (v₁ v₂ : α) : Prop :=\n  tuh G v₁ v₂ ∨ hut G v₁ v₂ ∨ huh G v₁ v₂\nscoped notation:50 v₁ \" ⟶[\" G \"] \" v₂ => Causality.CDMG.tuh G v₁ v₂\nscoped notation:50 v₁ \" ⟵[\" G \"] \" v₂ => Causality.CDMG.hut G v₁ v₂\nscoped notation:50 v₁ \" ⟷[\" G \"] \" v₂ => Causality.CDMG.huh G v₁ v₂\nscoped notation:50 v₁ \" ⇸[\" G \"] \" v₂ => Causality.CDMG.suh G v₁ v₂\nscoped notation:50 v₁ \" ⇷[\" G \"] \" v₂ => Causality.CDMG.hus G v₁ v₂\nscoped notation:50 v₁ \" ↮[\" G \"] \" v₂ => Causality.CDMG.sus G v₁ v₂\nend CDMG\nend Causality",
