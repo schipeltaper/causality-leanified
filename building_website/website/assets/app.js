@@ -444,30 +444,125 @@ function renderMissing(ref) {
   );
 }
 
+/* The home page. Lives at URL hash `#home` (and `#`/empty hash also
+   routes here). Self-contained — no row data fetched. */
+function renderHome(manifest) {
+  let covered = 0, total = 0;
+  for (const ch of manifest.chapters) {
+    for (const sec of ch.sections) {
+      total += sec.rows.length;
+      covered += sec.rows.filter((r) => r.available).length;
+    }
+  }
+
+  return el("article", { class: "entry home" },
+    el("header", { class: "entry-header home-header" },
+      el("div", { class: "entry-kind" }, "An MSc thesis experiment"),
+      el("h1", { class: "entry-title home-title" }, "Causality, Leanified"),
+      el("p", { class: "home-tagline" },
+        "A Lean 4 formalisation of the Forré–Mooij ",
+        el("em", {}, "Causality"),
+        " lecture notes, scaffolded with Claude Code.",
+      ),
+    ),
+
+    el("section", { class: "home-section" },
+      el("h2", {}, "What you're looking at"),
+      el("p", {},
+        "Each definition and claim from the lecture notes appears side-by-side: ",
+        "the LaTeX statement on the left, its Lean 4 formalisation on the right. ",
+        "For claims, ", el("strong", {}, "View TeX proof"),
+        " opens the rendered lecture-notes proof. ",
+        el("strong", {}, "Lean explanation"), " and ",
+        el("strong", {}, "Design choices"),
+        " surface notes on the formalisation. Pick any row from the sidebar to start.",
+      ),
+      el("p", { class: "home-coverage" },
+        `Coverage right now: ${covered} / ${total} rows from section 3.1 of chapter 3 (Graph Theory). Later sections are queued.`,
+      ),
+    ),
+
+    el("section", { class: "home-section" },
+      el("h2", {}, "The project"),
+      el("p", {},
+        "This site is the visible output of an experiment by ",
+        el("a", { href: "https://samritchie.dev", target: "_blank", rel: "noopener" }, "Sam Ritchie"),
+        " (MSc thesis): can a ",
+        el("a", { href: "https://claude.com/claude-code", target: "_blank", rel: "noopener" }, "Claude Code"),
+        "-driven scaffold automate the formalisation of an entire graduate-level mathematics text? ",
+        "Worker agents formalise the lecture notes row-by-row, ",
+        el("code", {}, "lake build"),
+        " verifies each result, and this site renders the side-by-side review. The scaffold and the full Lean development live in the ",
+        el("a", { href: "https://github.com/schipeltaper/causality-leanified", target: "_blank", rel: "noopener" }, "GitHub repository"),
+        ".",
+      ),
+    ),
+
+    el("section", { class: "home-section home-resources" },
+      el("h2", {}, "Resources"),
+      el("ul", {},
+        el("li", {},
+          el("a", {
+            href: "https://staff.fnwi.uva.nl/j.m.mooij/articles/causality_lecture_notes_2025.pdf",
+            target: "_blank", rel: "noopener",
+          }, "Original lecture notes — Forré & Mooij, 2025 (PDF)"),
+        ),
+        el("li", {},
+          el("a", {
+            href: "https://github.com/schipeltaper/causality-leanified",
+            target: "_blank", rel: "noopener",
+          }, "Repository on GitHub"),
+        ),
+        el("li", {},
+          el("a", { href: "https://lean-lang.org/", target: "_blank", rel: "noopener" },
+            "Lean 4 — the proof assistant"),
+        ),
+        el("li", {},
+          el("a", { href: "https://claude.com/claude-code", target: "_blank", rel: "noopener" },
+            "Claude Code — the agent framework"),
+        ),
+      ),
+    ),
+
+    el("section", { class: "home-section home-cta" },
+      el("a", { href: "#def_3_1", class: "btn btn-cta" },
+        "Start with def 3.1 — CDMG  →",
+      ),
+    ),
+  );
+}
+
 /* ----------------------------------------------------------------- main */
 
 async function loadRoute(route, manifest) {
   const content = $("#content");
   content.innerHTML = "";
-  try {
-    const data = await fetchJSON(`data/${route.ref}.json`);
-    if (route.mode === "proof") {
-      content.append(renderProofPage(data));
-    } else {
-      content.append(renderEntry(data));
+  if (route.mode === "home") {
+    content.append(renderHome(manifest));
+    renderSidebar(manifest, null);
+  } else {
+    try {
+      const data = await fetchJSON(`data/${route.ref}.json`);
+      if (route.mode === "proof") {
+        content.append(renderProofPage(data));
+      } else {
+        content.append(renderEntry(data));
+      }
+    } catch (e) {
+      content.append(renderMissing(route.ref));
     }
-  } catch (e) {
-    content.append(renderMissing(route.ref));
+    renderSidebar(manifest, route.ref);
   }
-  renderSidebar(manifest, route.ref);
   renderMath(content);
   highlightCode(content);
-  // Update active link in sidebar — proof-page route still highlights
-  // the row in the sidebar so the user keeps their bearings.
+  // Update active link in sidebar.
+  const activeHash = route.mode === "home" ? null
+                   : route.mode === "proof" ? `#${route.ref}`
+                   : `#${route.ref}`;
   $("#sidebar-tree").querySelectorAll("a").forEach((a) => {
-    a.classList.toggle("active", a.getAttribute("href") === `#${route.ref}`);
+    a.classList.toggle("active", a.getAttribute("href") === activeHash);
   });
-  // Scroll to top whenever the route changes (the sidebar stays fixed).
+  // Scroll to top whenever the route changes.
   $("#content").scrollTop = 0;
   window.scrollTo({ top: 0 });
 }
@@ -475,6 +570,9 @@ async function loadRoute(route, manifest) {
 function routeFromHash() {
   const h = location.hash.replace(/^#/, "").trim();
   const REF_RE = /^(def|claim)_\d+_\d+$/;
+  if (h === "" || h === "home") {
+    return { mode: "home" };
+  }
   if (h.startsWith("proof/")) {
     const ref = h.slice("proof/".length);
     return { mode: "proof", ref: REF_RE.test(ref) ? ref : DEFAULT_REF };
