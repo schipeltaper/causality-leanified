@@ -466,6 +466,62 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 
 .muted { color: var(--fg-muted); font-style: italic; }
 
+/* ---- Lean-pane carousel (multi-item rows: def_3_4, multi-part claims) ---- */
+
+.lean-carousel {
+  display: flex;
+  flex-direction: column;
+}
+.lean-carousel-controls {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.02);
+  font-family: var(--font-ui);
+}
+.lean-carousel-btn {
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.25rem 0.7rem;
+  background: var(--bg-pane);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.lean-carousel-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+.lean-carousel-btn:disabled {
+  color: var(--fg-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.lean-carousel-label {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.lean-carousel-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.lean-carousel-counter {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+}
+.lean-slide:focus { outline: none; }
+
 /* ---- Lean part labels (multi-block defs / multi-part claims) ---- */
 
 /* Styled as a Lean `--` comment header so it visually belongs to the

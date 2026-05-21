@@ -126,6 +126,31 @@ def tex_proof_path(data_path: Path, row: dict) -> Path | None:
 #  Lean extraction                                                            #
 # --------------------------------------------------------------------------- #
 
+def _item_sort_key(part: str | None) -> tuple:
+    """Numeric sort key extracted from the marker's part text.
+
+    Examples of `part` we encounter:
+
+      "item 1"                          → (1, 0)
+      "items 2-4"                       → (2, 0)
+      "item 6, witness structure"       → (6, 0)
+      "part 1/3"                        → (1, 0)
+      "part 2/3"                        → (2, 0)
+      None / unrecognised               → (inf, 0)   (sorts last)
+
+    Ties on the primary key are broken later by source_path + line, so
+    sub-blocks of "item 6" stay in file order."""
+    if not part:
+        return (float("inf"),)
+    m = re.match(r"items?\s+(\d+)", part, re.IGNORECASE)
+    if m:
+        return (int(m.group(1)),)
+    m = re.match(r"part\s+(\d+)\s*/\s*\d+", part, re.IGNORECASE)
+    if m:
+        return (int(m.group(1)),)
+    return (float("inf"),)
+
+
 # Ref-marker comments at column 0. Examples:
 #   "-- def_3_1"
 #   "-- claim_3_1 (part 2/3)"
@@ -331,7 +356,14 @@ def extract_lean(lean_paths: list[Path], ref: str) -> list[dict]:
                 }
             )
     # Stable order: by source_path then by source_line.
-    out.sort(key=lambda b: (b["source_path"], b["source_line"]))
+    # Primary sort: by parsed item number from the marker (so multi-item
+    # defs / multi-part claims are presented in the LN's natural order
+    # even when their Lean blocks span several files in arbitrary
+    # alphabetical order — e.g. def_3_4 has item 6 in Bifurcation.lean
+    # but items 1-5 in Walks.lean).
+    # Tiebreak by source_path + source_line so sub-blocks of the same
+    # item keep file order.
+    out.sort(key=lambda b: (_item_sort_key(b["part"]), b["source_path"], b["source_line"]))
     return out
 
 
