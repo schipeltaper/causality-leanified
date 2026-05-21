@@ -1,0 +1,22 @@
+{
+  "_about": "Per-row override controlling which Lean blocks the website displays. When a ref appears here with a non-empty `primary` list, only those blocks are shown (matched exactly by their `part` text), in the order given. Blocks not listed are treated as helpers and hidden from the right pane — they still live in the .lean source file and are reachable via 'View Lean source'.",
+
+  "_convention_note": "If you'd rather tag visibility in the Lean files themselves, add a `[primary]` / `[helper]` tag to the marker (e.g. `-- def_3_4 (item 1, length) [helper]`). fetch_row.py honours those tags first; this JSON is the bridge while we're still adding tags.",
+
+  "def_3_4": {
+    "primary": [
+      "item 1, walks themselves",
+      "item 1 prose: \"into / out of $v_0$\"",
+      "item 1 prose: \"out of $v_0$\"",
+      "item 1 prose: \"into $v_n$\"",
+      "item 1 prose: \"out of $v_n$\"",
+      "item 2",
+      "item 3",
+      "item 4",
+      "item 5",
+      "item 6, witness structure",
+      "item 6, predicate",
+      "item 6, source extractor"
+    ]
+  }
+}

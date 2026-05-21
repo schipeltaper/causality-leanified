@@ -156,11 +156,15 @@ def _item_sort_key(part: str | None) -> tuple:
 #   "-- claim_3_1 (part 2/3)"
 #   "-- def_3_2 (item 1)"
 #   "-- def_3_2 (items 2-4) -- the three primitive edge relations"
-# Anything in parens after the ref is captured as `part`; a trailing
-# `-- …` annotation on the marker line is tolerated and discarded.
+#   "-- def_3_4 (item 1, length) [helper]"     ← optional visibility tag
+# Anything in parens after the ref is captured as `part`; an optional
+# `[primary]` / `[helper]` tag right before the end of line controls
+# visibility; a trailing `-- …` annotation on the marker line is
+# tolerated and discarded.
 LEAN_MARKER_RE = re.compile(
     r"^--\s+(?P<ref>(def|claim)_\d+_\d+)"
     r"(?:\s+\((?P<part>[^)]*)\))?"
+    r"(?:\s+\[(?P<tag>primary|helper)\])?"
     r"(?:\s+--.*)?"
     r"\s*$"
 )
@@ -326,7 +330,9 @@ def _split_block(block_lines: list[str]) -> dict:
     }
 
 
-def extract_lean(lean_paths: list[Path], ref: str) -> list[dict]:
+def extract_lean(
+    lean_paths: list[Path], ref: str, file_order: list[str] | None = None,
+) -> list[dict]:
     """Walk every lean file, collect every block tagged with `ref`."""
     out: list[dict] = []
     seen: set[tuple[str, int]] = set()
@@ -341,12 +347,13 @@ def extract_lean(lean_paths: list[Path], ref: str) -> list[dict]:
                 continue
             seen.add(key)
             split = _split_block(block)
-            # Extract `(part N/M)` from the marker line for ordering.
             m = LEAN_MARKER_RE.match(block[0])
             part = m.group("part") if m else None
+            tag  = m.group("tag")  if m else None  # "primary" | "helper" | None
             out.append(
                 {
                     "part": part,
+                    "tag":  tag,
                     "title": split["title"],
                     "comments": split["comments"],
                     "statement": split["statement"],
@@ -355,16 +362,77 @@ def extract_lean(lean_paths: list[Path], ref: str) -> list[dict]:
                     "source_line": start_idx + 1,
                 }
             )
-    # Stable order: by source_path then by source_line.
-    # Primary sort: by parsed item number from the marker (so multi-item
-    # defs / multi-part claims are presented in the LN's natural order
-    # even when their Lean blocks span several files in arbitrary
-    # alphabetical order — e.g. def_3_4 has item 6 in Bifurcation.lean
-    # but items 1-5 in Walks.lean).
-    # Tiebreak by source_path + source_line so sub-blocks of the same
-    # item keep file order.
-    out.sort(key=lambda b: (_item_sort_key(b["part"]), b["source_path"], b["source_line"]))
+
+    # Primary sort: parsed item number from the marker (so def_3_4's
+    # item 6 in Bifurcation.lean doesn't outrank items 1-5 in Walks.lean
+    # just because of alphabetical filename order).
+    # Secondary: position in `lean_files` from data.json, which is the
+    # author's dependency order (defining file before users of the def).
+    # Tertiary: source_line within a file.
+    file_index = {p: i for i, p in enumerate(file_order or [])} if file_order else {}
+    out.sort(key=lambda b: (
+        _item_sort_key(b["part"]),
+        file_index.get(b["source_path"], len(file_index)),
+        b["source_line"],
+    ))
     return out
+
+
+# --------------------------------------------------------------------------- #
+#  Curation — per-row visibility override                                     #
+# --------------------------------------------------------------------------- #
+
+CURATION_PATH = Path(__file__).resolve().parent / "curation.json"
+
+
+def _curation() -> dict:
+    """Read `scripts/curation.json`; per-row override controlling which Lean
+    blocks the website shows."""
+    if not CURATION_PATH.exists():
+        return {}
+    try:
+        return json.loads(CURATION_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def _curate_blocks(ref: str, blocks: list[dict]) -> list[dict]:
+    """Apply the visibility convention to a row's Lean blocks.
+
+    Resolution order:
+      1. A marker tag of `[helper]` always hides a block; `[primary]`
+         always keeps it. These travel with the source file so they're
+         the canonical way to flag visibility.
+      2. For refs listed in `curation.json` with a `primary` list, only
+         blocks whose `part` matches an entry survive (in the list's
+         order). This is the bridge while we add in-file `[…]` tags.
+      3. With no marker tags and no curation entry, every block is kept
+         — current behaviour, backward compatible for the rows that
+         don't need filtering.
+    """
+    # 1) Always hide blocks tagged `[helper]`.
+    blocks = [b for b in blocks if b.get("tag") != "helper"]
+
+    primary = _curation().get(ref, {}).get("primary")
+    if not primary:
+        return blocks
+
+    # 2) Take only blocks whose `part` appears in the curated list,
+    #    in that order. Blocks tagged `[primary]` in the source are
+    #    appended even if they're not in the list (one-off override).
+    by_part: dict[str, dict] = {b.get("part") or "": b for b in blocks}
+    ordered: list[dict] = []
+    seen_ids: set[int] = set()
+    for p in primary:
+        b = by_part.get(p)
+        if b is not None and id(b) not in seen_ids:
+            ordered.append(b)
+            seen_ids.add(id(b))
+    for b in blocks:
+        if b.get("tag") == "primary" and id(b) not in seen_ids:
+            ordered.append(b)
+            seen_ids.add(id(b))
+    return ordered
 
 
 # --------------------------------------------------------------------------- #
@@ -423,9 +491,10 @@ def fetch_row(ref: str) -> dict:
         }
 
     # --- Lean ---
-    lean_rel = [row["main_lean_file"], *row.get("lean_files", [])]
-    lean_abs = [REPO_ROOT / p for p in dict.fromkeys(lean_rel)]  # dedup, preserve order
-    lean_blocks = extract_lean(lean_abs, ref)
+    lean_rel = list(dict.fromkeys([row["main_lean_file"], *row.get("lean_files", [])]))
+    lean_abs = [REPO_ROOT / p for p in lean_rel]
+    lean_blocks = extract_lean(lean_abs, ref, file_order=lean_rel)
+    lean_blocks = _curate_blocks(ref, lean_blocks)
 
     # Preserve any prior LLM-generated prose so re-running fetch_row.py
     # doesn't wipe the panels — process_lean_comments.py owns these
