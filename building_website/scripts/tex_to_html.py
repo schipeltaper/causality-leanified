@@ -33,7 +33,18 @@ import re
 from dataclasses import dataclass
 
 
-THEOREM_ENVS = ["Def", "Lem", "Rem", "Note", "Cor", "Prop", "Thm"]
+# Every theorem-like env declared in `leanification/preamble.tex` via
+# `\newtheorem*{Name}{...}`. The body of a row's TeX file lives inside
+# exactly one of these (sometimes nested inside a `defmark`/`claimmark`
+# wrapper which we strip first). The order matters only for `match`
+# fall-through — alternative envs are tried longest-name-first below.
+THEOREM_ENVS = [
+    "DefThm", "DefLem", "NotLem",
+    "Construction", "Conclusion", "Motivation",
+    "Def", "Lem", "Prp", "Cor", "Thm", "Con", "Fct", "Prn",
+    "Not", "Rem", "Note", "Cau", "Eg", "Tho", "Exc", "Ques",
+    "Expl", "Disc", "Axm", "Alg", "sa",
+]
 WRAPPER_ENVS = ["defmark", "claimmark"]
 
 
@@ -146,6 +157,11 @@ def inline_convert(tex: str) -> str:
         ref = m.group(1).replace("\\_", "_")
         return f'<a href="#{ref}" class="refrow"><code>{ref}</code></a>'
     protected = re.sub(r"\\refrow\{([^{}]*)\}", _refrow_sub, protected)
+    # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
+    # Only the doubled forms are converted unambiguously; the single
+    # backtick / quote forms get used too often inside identifiers
+    # (e.g. `J`, `V`) to safely convert globally.
+    protected = protected.replace("``", "“").replace("''", "”")
     protected = protected.replace("---", "—")
     protected = protected.replace("--", "–")
     protected = protected.replace("~", "&nbsp;")
