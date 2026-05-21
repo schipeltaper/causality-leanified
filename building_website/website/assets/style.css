@@ -377,36 +377,67 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 
 .muted { color: var(--fg-muted); font-style: italic; }
 
-/* ---- proof panes (claims) ---- */
+/* ---- proof page (#proof/<ref>) ---- */
 
-.tex-proof-pane,
-.lean-proof-pane {
-  border-top: 1px solid var(--border);
+.proof-page {
+  background: var(--bg-pane);
 }
-.tex-proof-pane  { background: var(--bg-tex);  }
-.lean-proof-pane { background: var(--bg-lean); }
-.tex-proof-pane .pane-body  { padding: 1.1rem 1.4rem; font-family: var(--font-text); font-size: 1.02rem; }
-.lean-proof-pane .pane-body { padding: 0; }
-.lean-proof-pane pre {
-  margin: 0;
-  padding: 1.1rem 1.4rem;
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-  line-height: 1.5;
-  overflow-x: auto;
-}
-.lean-part-label {
+.proof-page .entry-header .back-link {
   font-family: var(--font-ui);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
   color: var(--fg-muted);
-  padding: 0.6rem 1.4rem 0.2rem;
+  text-decoration: none;
+  margin-bottom: 0.4rem;
+  display: inline-block;
+}
+.proof-page .entry-header .back-link:hover { color: var(--accent); }
+
+.proof-page-body {
+  padding: 0;
+}
+.proof-page-body .pane-body {
+  padding: 1.5rem 2rem 0.5rem;
+  font-family: var(--font-text);
+  font-size: 1.04rem;
+  line-height: 1.65;
+}
+
+/* Theorem-like blocks embedded inside proof rendering (the restated
+   statement env). Styled distinctly from the proof body itself. */
+.theorem-block {
+  background: var(--bg-tex);
+  border-left: 3px solid var(--accent-soft);
+  padding: 0.7rem 1rem;
+  margin: 1rem 0;
+  border-radius: 2px;
+}
+.theorem-label {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.theorem-label .theorem-title {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--fg);
+  font-weight: 500;
+}
+.theorem-block > p:last-child { margin-bottom: 0; }
+.theorem-block > p:first-of-type { margin-top: 0; }
+
+/* The \begin{proof}…\end{proof} body — italic "Proof." prefix, then
+   the prose. */
+.tex-proof {
+  margin: 1.2rem 0;
 }
 .tex-proof .proof-label {
   font-weight: 600;
-  margin-right: 0.4em;
-  font-variant-caps: small-caps;
+  margin-right: 0.5em;
+  font-style: italic;
 }
 
 /* ---- explanation panels (Lean explanation / Design choices) ---- */

@@ -231,10 +231,51 @@ def _paragraphs(html: str) -> str:
     return "\n".join(out)
 
 
+ENV_LABELS = {
+    "Def": "Definition", "DefThm": "Definition / Theorem",
+    "DefLem": "Definition / Lemma", "NotLem": "Notation / Lemma",
+    "Lem": "Lemma", "Prp": "Proposition", "Cor": "Corollary",
+    "Thm": "Theorem", "Con": "Conjecture", "Fct": "Fact",
+    "Prn": "Principle", "Not": "Notation", "Rem": "Remark",
+    "Note": "Note", "Cau": "Caution", "Eg": "Example",
+    "Tho": "Thoughts", "Exc": "Exercise", "Ques": "Question",
+    "Expl": "Explanation", "Disc": "Discussion", "Axm": "Axiom",
+    "Alg": "Algorithm", "Construction": "Construction",
+    "Conclusion": "Conclusion", "Motivation": "Motivation",
+    "sa": "Theorem",
+}
+
+
+def _convert_theorem_envs(tex: str) -> str:
+    """Convert any intermediate `\\begin{Def|Lem|Rem|…}[Title]…\\end{…}` env
+    in the body into a styled `<div class="theorem-block">` block. Unlike
+    `unwrap_outer_env`, this keeps the env framing (with a labelled
+    header) so multiple envs on one page (e.g., a proof file that
+    restates the statement before `\\begin{proof}`) render correctly."""
+    pattern = re.compile(
+        rf"\\begin\{{({'|'.join(THEOREM_ENVS)})\}}(?:\[(.*?)\])?\s*(.*?)\s*\\end\{{\1\}}",
+        re.DOTALL,
+    )
+    def repl(m: re.Match) -> str:
+        env = m.group(1)
+        title = (m.group(2) or "").strip()
+        body = m.group(3)
+        body_html = tex_body_to_html(body)
+        label = ENV_LABELS.get(env, env)
+        title_html = f" — <span class=\"theorem-title\">{title}</span>" if title else ""
+        return (
+            f'\n\n<div class="theorem-block">'
+            f'<div class="theorem-label">{label}{title_html}</div>'
+            f'{body_html}</div>\n\n'
+        )
+    return pattern.sub(repl, tex)
+
+
 def tex_body_to_html(tex_body: str) -> str:
     """Public: convert a TeX body (no subfiles/wrapper) to HTML prose with math
     delimiters intact for KaTeX."""
-    s = _convert_block_envs(tex_body)
+    s = _convert_theorem_envs(tex_body)
+    s = _convert_block_envs(s)
     s = inline_convert(s)
     s = _paragraphs(s)
     return s

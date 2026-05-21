@@ -43,15 +43,20 @@ PROMPT = """\
 You are processing the comments that surround a Lean 4 declaration in a
 formalisation of the Forré–Mooij Causality lecture notes.
 
-## The declaration (Lean code)
+## The lecture-notes statement (LaTeX, for your context only — DO NOT restate)
+
+```latex
+{tex_statement}
+```
+
+## The Lean code (declaration, comments stripped)
 
 ```lean
 {statement}
 ```
 
-## The surrounding comments (verbatim — includes `--` lines, `/- … -/`
-## blocks, and `/-- … -/` docstrings; may also contain a verbatim LaTeX
-## excerpt of the lecture-notes statement)
+## The Lean comments that surround the declaration (verbatim — `--` /
+## `/- … -/` / `/-- … -/`; may include a verbatim LaTeX excerpt)
 
 ```
 {comments}
@@ -59,43 +64,63 @@ formalisation of the Forré–Mooij Causality lecture notes.
 
 ## Your task
 
-Produce TWO concise markdown texts:
+Produce TWO concise markdown texts. Audience: a reader who already
+understands the basics of Lean 4.
 
-1. **`lean_explanation`** — explain WHAT the Lean code does and HOW.
-   Highlight any Mathlib constructs that the reader benefits from
-   knowing (e.g. `Disjoint`, `Set.subset_def`, `×ˢ`, `Quotient`,
-   `Finset`), and any non-obvious Lean idioms (e.g. instance-implicit
-   args `⦃⦄`, `Type*` universe polymorphism, `where`-syntax for
-   structure fields). If there's nothing notable, write a brief 1–2
-   sentence summary of what the declaration represents in plain English.
+### 1. `lean_explanation`
 
-2. **`design_choices`** — explain WHY the formalisation is structured
-   this way. Surface the trade-offs the comments discuss (often phrased
-   as "we use X instead of Y because Z"). If the comments don't discuss
-   any design decisions, write exactly: `_No notable design choices._`
+A focused explanation of THIS specific Lean code, covering only the
+three things below. Skip a bullet if it isn't relevant. Be concise —
+this is not a tutorial.
+
+- **Complex Mathlib things used.** Any non-obvious Mathlib type,
+  lemma, or notation in this declaration (e.g. `Disjoint`, `×ˢ`,
+  `IsPartialOrder`, `Set.disjoint_left`, `Quotient`, instance-implicit
+  args `⦃⦄`, universe-polymorphic `Type*`). One sentence each.
+
+- **Structural divergence from the LaTeX.** If the Lean does NOT
+  directly mirror the LaTeX (different decomposition, alternative
+  representation, helper lemmas pulled out, multi-part claim split,
+  …), say so and explain briefly. If it mirrors the LaTeX faithfully,
+  skip this.
+
+- **Naming.** Why specific identifiers were chosen — what does
+  `disjoint_JV` stand for? Why `E_subset`? What does `hus` /
+  `Adjacent` / `isAcyclic_iff_hasTopologicalOrder` mean? Just the
+  non-obvious ones.
+
+### 2. `design_choices`
+
+ONLY the design justifications that are explicitly in the Lean
+comments (typically phrased "we use X instead of Y because Z" or "we
+encode … as … rather than …"). Do not invent extra justifications.
+If the comments don't discuss any design decisions, output exactly:
+`_No notable design choices._`
 
 ## Constraints
 
-- DO NOT restate the lecture-notes definition/claim in LaTeX — the
-  reader sees it rendered next to your output.
+- DO NOT restate the LaTeX statement — the reader sees it rendered
+  next to your output.
 - DO NOT include raw Lean comment syntax (`--`, `/-`, `-/`, `/--`).
 - Use clean prose paragraphs. Inline code references with `` `backticks` ``.
 - Math expressions use `$…$` delimiters (KaTeX renders them).
-- Each section is 50–300 words. Be concise — the reader is technical.
+- Target 80–250 words per section. Be concise.
 - Output STRICTLY a JSON object on one line, no other text:
 
 {{"lean_explanation": "…", "design_choices": "…"}}
 """
 
 
-def call_claude(statement: str, comments: str) -> dict[str, str]:
+def call_claude(tex_statement: str, statement: str, comments: str) -> dict[str, str]:
     """Send one row's material to Claude and parse the JSON response."""
     try:
         import anthropic  # type: ignore
     except ImportError:
         sys.exit("error: pip install anthropic")
     client = anthropic.Anthropic()
-    prompt = PROMPT.format(statement=statement, comments=comments)
+    prompt = PROMPT.format(
+        tex_statement=tex_statement, statement=statement, comments=comments,
+    )
     msg = client.messages.create(
         model=MODEL,
         max_tokens=MAX_TOKENS,
@@ -124,15 +149,16 @@ def process_one(ref: str, force: bool) -> bool:
     if data.get("lean_explanation") and data.get("design_choices") and not force:
         print(f"[{ref}] already processed, skipping (use --force to overwrite)")
         return True
-    statement = "\n\n".join(b["statement"] for b in data.get("lean", []) if b.get("statement"))
-    comments  = "\n\n---\n\n".join(b["comments"] for b in data.get("lean", []) if b.get("comments"))
+    statement     = "\n\n".join(b["statement"] for b in data.get("lean", []) if b.get("statement"))
+    comments      = "\n\n---\n\n".join(b["comments"] for b in data.get("lean", []) if b.get("comments"))
+    tex_statement = (data.get("tex_statement") or {}).get("raw") or ""
     if not comments.strip():
         print(f"[{ref}] no comments to process")
         data["lean_explanation"] = "_No comments accompany this declaration._"
         data["design_choices"]   = "_No notable design choices._"
     else:
         print(f"[{ref}] calling {MODEL}…")
-        obj = call_claude(statement, comments)
+        obj = call_claude(tex_statement, statement, comments)
         data["lean_explanation"] = obj["lean_explanation"]
         data["design_choices"]   = obj["design_choices"]
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
