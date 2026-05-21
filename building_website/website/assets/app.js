@@ -189,6 +189,27 @@ function renderEntry(data) {
                        "View TeX proof"));
   }
 
+  // Explanation toggles — sit in the same action row, but open a panel
+  // below the entry rather than navigating away. Disabled (greyed) when
+  // the LLM step hasn't produced prose yet.
+  function explanationButton(label, panelId, content) {
+    if (!content || !content.trim()) {
+      return el("button", { class: "btn btn-disabled", "aria-disabled": "true", disabled: "" }, label);
+    }
+    return el("button", {
+      class: "btn btn-toggle",
+      "data-target": panelId,
+      onclick: (e) => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        const showing = panel.classList.toggle("open");
+        e.currentTarget.classList.toggle("active", showing);
+      },
+    }, label);
+  }
+  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
+  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
+
   // ---- TeX proof body (if claim) ----
   const proofBlock = data.tex_proof && data.tex_proof.html
     ? el("section", { class: "tex-proof-pane" },
@@ -213,19 +234,19 @@ function renderEntry(data) {
       )
     : null;
 
-  // ---- Lean comments / design notes (collapsible) ----
-  const allComments = data.lean
-    .filter((b) => b.comments && b.comments.trim())
-    .map((b) => b.comments)
-    .join("\n\n---\n\n");
-  const commentsBlock = allComments
-    ? el("details", { class: "design-notes" },
-        el("summary", {}, "Lean comments & design notes"),
-        el("div", { class: "design-notes-body" },
-          el("pre", {}, el("code", { class: "language-lean" }, allComments)),
-        ),
-      )
-    : null;
+  // ---- Explanation panels (initially hidden, toggled by the action buttons) ----
+  function explanationPanel(panelId, title, markdown) {
+    if (!markdown || !markdown.trim()) return null;
+    const rendered = typeof marked !== "undefined"
+      ? marked.parse(markdown, { gfm: true, breaks: false })
+      : `<pre>${markdown}</pre>`;
+    return el("section", { id: panelId, class: "explanation-pane" },
+      el("div", { class: "pane-label" }, title),
+      el("div", { class: "pane-body markdown-body", html: rendered }),
+    );
+  }
+  const leanExplPanel    = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`,  "Design choices",   data.design_choices);
 
   // ---- assemble ----
   const article = el("article", { class: "entry", id: data.ref },
@@ -234,7 +255,8 @@ function renderEntry(data) {
     proofBlock,
     leanProofBlock,
     actions,
-    commentsBlock,
+    leanExplPanel,
+    designChoicesPanel,
   );
   return article;
 }

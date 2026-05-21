@@ -1,0 +1,51 @@
+{
+  "ref": "def_3_2",
+  "kind": "def",
+  "section": "3.1",
+  "title": "CDMGNotation",
+  "type": "notation",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_2 -- \"CDMGNotation\".\n% Auto-generated stub by scaffold/solving_current_row.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% Compiles standalone via the `subfiles` package -- the parent main.tex in\n% this folder provides the preamble.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_2\n% title: CDMGNotation\n\\def\\rowref{def\\_3\\_2}\n\\def\\rowtitle{CDMGNotation}\n\\phantomsection\\label{def_3_2}\n\n\\begin{Not}\n    \\label{not-cdmg}\n    Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:\n    \\begin{enumerate}\n        %\\item $G(V|\\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.\n        \\item $v \\in G$ to mean $v \\in J \\cup V$,\n        \\item $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n        \\item $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n        \\item $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n        \\item $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.\n    \\end{enumerate}\n    The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}\n\n\\end{document}\n",
+    "html": "<p>\\begin{Not}</p>\n<p>Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:</p>\n<ol class=\"enum\"><li>$v \\in G$ to mean $v \\in J \\cup V$,</li><li>$v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,</li><li>$v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,</li><li>$v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,</li><li>$v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,</li><li>$v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,</li><li>$v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.</li></ol>\n<p>The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}</p>",
+    "env": null,
+    "env_title": null,
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_2_CDMGNotation.tex"
+  },
+  "tex_proof": null,
+  "lean": [
+    {
+      "part": "item 1",
+      "title": "CDMGNotation -- vertex membership",
+      "comments": "--\n-- `v ∈ G` means `v ∈ G.J ∪ G.V`, i.e. `v` is either an input node or\n-- an output node of the CDMG `G`. We register this as a `Membership`\n-- instance so the literal Lean syntax `v ∈ G` typechecks and unfolds\n-- to set-union membership.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitem 1, in `\\begin{Not}\\label{not-cdmg}`):\n\n  $v \\in G$ to mean $v \\in J \\cup V$,\n-/",
+      "statement": "instance : Membership α (CDMG α) where\n  mem G v := v ∈ G.J ∪ G.V\n@[simp] theorem CDMG.mem_iff {G : CDMG α} {v : α} :\n    v ∈ G ↔ v ∈ G.J ∪ G.V := Iff.rfl\nnamespace CDMG",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "source_line": 26
+    },
+    {
+      "part": "items 2-4",
+      "title": "CDMGNotation -- directed, reverse-directed, bidirected edges",
+      "comments": "--\n-- `tuh` / `hut` / `huh` mirror the LN macros `\\tuh` / `\\hut` / `\\huh`.\n-- They are `Prop`-valued one-line aliases for membership in `G.E`\n-- (directed) or `G.L` (bidirected). The names are deliberately kept\n-- close to the LN macros so a reader bouncing between the notes and\n-- the Lean source can recognise them.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitems 2-4):\n\n  $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n  $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n  $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n-/\n\n/-- LN's `\\tuh`: there is a *directed* edge `v₁ → v₂` in `G`, i.e.\n`(v₁, v₂) ∈ G.E`. -/",
+      "statement": "def tuh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.E\ndef hut (G : CDMG α) (v₁ v₂ : α) : Prop := (v₂, v₁) ∈ G.E\ndef huh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.L",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "source_line": 49
+    },
+    {
+      "part": "items 5-7",
+      "title": "CDMGNotation -- arrowhead-at-target / -source / any edge",
+      "comments": "--\n-- The \"star\" in the LN means \"arrowhead or tail\"; these three\n-- relations are exactly the disjunctions of the primitive edges.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.2,\nitems 5-7):\n\n  $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$,\n  $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$,\n  $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$\n                                       or $v_1 \\hut v_2 \\in G$\n                                       or $v_1 \\huh v_2 \\in G$.\n\nThe star stands for a placeholder to mean: \"arrowhead or tail\".\n-/\n\n/-- LN's `\\suh`: there is an edge with an arrowhead at `v₂` in `G`,\ni.e. either `tuh G v₁ v₂` (`→`) or `huh G v₁ v₂` (`↔`). -/",
+      "statement": "def suh (G : CDMG α) (v₁ v₂ : α) : Prop := tuh G v₁ v₂ ∨ huh G v₁ v₂\ndef hus (G : CDMG α) (v₁ v₂ : α) : Prop := hut G v₁ v₂ ∨ huh G v₁ v₂\ndef sus (G : CDMG α) (v₁ v₂ : α) : Prop :=\n  tuh G v₁ v₂ ∨ hut G v₁ v₂ ∨ huh G v₁ v₂\nscoped notation:50 v₁ \" ⟶[\" G \"] \" v₂ => Causality.CDMG.tuh G v₁ v₂\nscoped notation:50 v₁ \" ⟵[\" G \"] \" v₂ => Causality.CDMG.hut G v₁ v₂\nscoped notation:50 v₁ \" ⟷[\" G \"] \" v₂ => Causality.CDMG.huh G v₁ v₂\nscoped notation:50 v₁ \" ⇸[\" G \"] \" v₂ => Causality.CDMG.suh G v₁ v₂\nscoped notation:50 v₁ \" ⇷[\" G \"] \" v₂ => Causality.CDMG.hus G v₁ v₂\nscoped notation:50 v₁ \" ↮[\" G \"] \" v₂ => Causality.CDMG.sus G v₁ v₂\nend CDMG\nend Causality",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "source_line": 80
+    }
+  ],
+  "lean_explanation": "This file equips the `CDMG` structure (from def 3.1) with the seven notations from the lecture notes' `\\begin{Not}` block.\n\nVertex membership is registered as a `Membership` instance, so the literal Lean syntax `v ∈ G` typechecks and unfolds to `v ∈ G.J ∪ G.V`. A `@[simp]` lemma `CDMG.mem_iff` exposes this defining equation, after which Mathlib's `Set.mem_union`, `Set.mem_insert_iff`, etc. all become available automatically.\n\nThe three primitive edge relations `tuh`, `hut`, `huh` are `Prop`-valued one-line aliases for membership in `G.E` (directed) or `G.L` (bidirected). Their names deliberately mirror the LaTeX macros `\\tuh`, `\\hut`, `\\huh` so readers can move between notes and Lean source easily. The three \"star\" relations `suh`, `hus`, `sus` are defined as disjunctions of the primitives, exactly matching the lecture notes' phrasing.\n\nEach relation is paired with a `scoped notation` declaration under `Causality.CDMG`. The chosen Unicode arrows (`⟶[G]`, `⟵[G]`, `⟷[G]`, `⇸[G]`, `⇷[G]`, `↮[G]`) echo the LaTeX macros while staying clear of Lean's built-in `→`/`←`/`↔`. The `[G]` suffix carries the graph argument explicitly at the notation level. Users opt in with `open scoped Causality.CDMG`.\n\nKey Mathlib idioms on display: the `Membership` typeclass pattern (so `∈` interacts cleanly with `simp`), `scoped notation` to keep Unicode tokens namespace-local, and `Prop`-valued set membership via `G.E : Set (α × α)`.",
+  "design_choices": "Several deliberate trade-offs are documented:\n\n**`Membership` instance vs. a bespoke `CDMG.mem` predicate.** The notes write `v ∈ G`, so a `Membership` instance gives us the lecture-notes syntax verbatim and lets `v ∈ G` rewrite via `CDMG.mem_iff` into Mathlib's full `Set` API. A separate predicate would force `CDMG.mem G v` everywhere and would not interact with `mem_*` lemmas.\n\n**Six separate `def`s vs. one inductive `EdgeKind` enum.** A `EdgeKind`-tagged `hasEdge` predicate was rejected because (1) the notes treat each relation as an *atom* in proofs (claim 3.1, def 3.5 parents-set, etc.), and atoms compose better with `simp`, `rw`, and pattern matching; and (2) the three star relations are genuine disjunctions, not single edge types, so an enum would not naturally represent them.\n\n**Unicode arrows with `[G]` suffix.** Long arrows `⟶`/`⟵`/`⟷` are used instead of the heavily overloaded `→`/`←`/`↔`. The stroked arrows `⇸`/`⇷`/`↮` visually evoke the lecture-notes \"star = arrowhead-or-tail\" placeholder. The `[G]` suffix avoids overloading Lean's `∈` while keeping the graph argument explicit.\n\n**`Prop`-valued, not `Bool`.** This matches the notes and avoids forcing `DecidableEq α` -- later chapters use uncountable (e.g. real-valued) vertex types, so decidability cannot be assumed at this layer.\n\n**`scoped` notation.** Keeping the arrows under `Causality.CDMG` means files that don't `open scoped Causality.CDMG` are not burdened with the Unicode tokens."
+}

@@ -282,6 +282,15 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 }
 .pane-lean code { font-family: inherit; background: transparent; }
 
+/* Override highlight.js's theme background — we want the pane's bg to show
+   through, with only the per-token colors applied. */
+.pane-lean .hljs,
+.lean-proof-pane .hljs,
+.markdown-body pre .hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
 /* ---- action row ---- */
 
 .entry-actions {
@@ -388,20 +397,60 @@ ol.roman-paren > li.no-marker::before { content: ""; }
   font-variant-caps: small-caps;
 }
 
-/* ---- design notes pre ---- */
+/* ---- explanation panels (Lean explanation / Design choices) ---- */
 
-.design-notes-body pre {
+.explanation-pane {
+  border-top: 1px solid var(--border);
+  background: #fbf9f4;
+  display: none;  /* opened via the .open class set by the toggle button */
+}
+.explanation-pane.open { display: block; }
+
+.explanation-pane .pane-body {
+  padding: 1.1rem 1.4rem 1.3rem;
+  font-family: var(--font-text);
+  font-size: 1.0rem;
+  line-height: 1.6;
+}
+
+.markdown-body p { margin: 0.6rem 0; }
+.markdown-body p:first-child { margin-top: 0; }
+.markdown-body p:last-child  { margin-bottom: 0; }
+.markdown-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.markdown-body pre {
   background: var(--bg-lean);
-  border: 1px solid var(--border);
-  border-radius: 4px;
   padding: 0.9rem 1.1rem;
-  margin: 0;
+  border-radius: 4px;
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   line-height: 1.5;
-  white-space: pre;
 }
+.markdown-body pre code { background: transparent; padding: 0; color: inherit; }
+.markdown-body ul, .markdown-body ol { padding-left: 1.6rem; }
+.markdown-body li { margin: 0.25rem 0; }
+.markdown-body em { font-style: italic; }
+.markdown-body strong { font-weight: 600; }
+.markdown-body a { color: var(--accent); }
+
+/* Toggle button (Lean explanation / Design choices) — looks like the other
+   .btn instances, but with an "active" state when the panel is open. */
+.btn-toggle {
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+.btn-toggle.active {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-toggle.active::after { content: " ▾"; }
 
 /* ---- sidebar: unavailable rows ---- */
 

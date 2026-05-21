@@ -1,0 +1,51 @@
+{
+  "ref": "def_3_3",
+  "kind": "def",
+  "section": "3.1",
+  "title": "EdgeRelations",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_3 -- \"EdgeRelations\".\n% Auto-generated stub by scaffold/solving_current_row.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% Compiles standalone via the `subfiles` package -- the parent main.tex in\n% this folder provides the preamble.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_3\n% title: EdgeRelations\n\\def\\rowref{def\\_3\\_3}\n\\def\\rowtitle{EdgeRelations}\n\\phantomsection\\label{def_3_3}\n\n\\begin{Def}\n  Let $G=(J,V,E,L)$ be a CDMG.\n  \\begin{enumerate}\n    \\item If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent in $G$}.\n    \\item Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_1$}.  \\\\\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_2$}. \n    \\item Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called \\emph{out of $v_1$}.\n  \\end{enumerate}\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G=(J,V,E,L)$ be a CDMG.</p>\n<ol class=\"enum\"><li>If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ <em>adjacent in $G$</em>.</li><li>Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called <em>into $v_1$</em>.  <br>\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called <em>into $v_2$</em>.</li><li>Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called <em>out of $v_1$</em>.</li></ol>",
+    "env": "Def",
+    "env_title": null,
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_3_EdgeRelations.tex"
+  },
+  "tex_proof": null,
+  "lean": [
+    {
+      "part": "item 1",
+      "title": "EdgeRelations -- adjacency",
+      "comments": "--\n-- `Adjacent G v₁ v₂` means there is *some* edge of any kind between\n-- `v₁` and `v₂` in the CDMG `G`. This is the LN's \"$v_1$ and $v_2$\n-- are adjacent in $G$\" phrasing -- a prose-level name for the `sus`\n-- relation of def_3_2.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.3,\nitem 1):\n\n  If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent\n  in $G$}.\n-/\n--\n-- ## Design choice\n--\n-- * **`def`, not `abbrev` or `notation`.** A `def` gives us a proper\n--   identifier we can mention by name in claim statements (claim 3.1\n--   reads \"no two nodes in $J$ are adjacent\") and that appears in\n--   goals and error messages. `abbrev` would dissolve into `sus`\n--   immediately, losing the readable name. `notation` would\n--   introduce a new arrow token, which we don't need -- def_3_2\n--   already provides `v₁ ↮[G] v₂` for the formal reading, and\n--   `Adjacent G v₁ v₂` is what we want for the prose.\n--\n-- * **No new arrow notation.** The LN reserves arrow notation for\n--   the six primitives of def_3_2; def_3_3 introduces *English*\n--   names for compositions of those primitives. Mirroring that\n--   editorial choice, we keep the def_3_2 arrows as the formal-\n--   syntax layer and these new identifiers as the prose-syntax\n--   layer.\n/-- `v₁` and `v₂` are *adjacent in `G`*: there is some edge of any\norientation between them. Definitionally `sus G v₁ v₂` from\ndef_3_2; the readable name exists so downstream prose statements\nsuch as claim 3.1's \"no two nodes in $J$ are adjacent\" can be cited\nwithout unfolding to `sus`. -/",
+      "statement": "def Adjacent (G : CDMG α) (v₁ v₂ : α) : Prop := sus G v₁ v₂\n@[simp] theorem adjacent_iff {G : CDMG α} {v₁ v₂ : α} :\n    Adjacent G v₁ v₂ ↔ sus G v₁ v₂ := Iff.rfl",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "source_line": 35
+    },
+    {
+      "part": "item 2",
+      "title": "EdgeRelations -- edge into v₁",
+      "comments": "--\n-- `EdgeInto G v₁ v₂` means the edge between `v₁` and `v₂` has an\n-- arrowhead at `v₁`. The two LN spellings of this -- `v₁ \\hut v₂`\n-- and `v₁ \\huh v₂` -- are exactly the disjuncts of `hus` from\n-- def_3_2. Item-2's second sentence (\"edges of the form\n-- $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called into $v_2$\") uses the\n-- same predicate with the arguments swapped: \"edge into $v_2$\" is\n-- `EdgeInto G v₂ v₁`. No second predicate is introduced.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.3,\nitem 2):\n\n  Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called\n  \\emph{into $v_1$}.  \\\\\n        Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called\n  \\emph{into $v_2$}.\n-/\n--\n-- ## Design choice\n--\n-- * **Convention: arrowhead at the *first* argument.** The LN uses\n--   \"into $v_1$\" with $v_1$ as the first vertex listed, and `hus`\n--   (the def_3_2 underlying form) also picks out the $v_1$\n--   endpoint as the arrowhead site. By matching that convention,\n--   `EdgeInto G v₁ v₂` reads as \"an edge into $v_1$, between $v_1$\n--   and $v_2$\". The LN's \"into $v_2$\" sentence is the same\n--   predicate with arguments swapped: `EdgeInto G v₂ v₁`.\n--\n-- * **`def`, not `abbrev` or new notation.** Same reasoning as for\n--   `Adjacent`: this is prose terminology, and def_3_2's\n--   `v₁ ⇷[G] v₂` already covers the formal phrasing.\n/-- `EdgeInto G v₁ v₂` -- the edge between `v₁` and `v₂` is *into\n`v₁`*, i.e. has an arrowhead at `v₁` (either a directed edge\n`v₁ ⟵[G] v₂` or a bidirected edge `v₁ ⟷[G] v₂`). Definitionally\n`hus G v₁ v₂` from def_3_2. -/",
+      "statement": "def EdgeInto (G : CDMG α) (v₁ v₂ : α) : Prop := hus G v₁ v₂\n@[simp] theorem edgeInto_iff {G : CDMG α} {v₁ v₂ : α} :\n    EdgeInto G v₁ v₂ ↔ hus G v₁ v₂ := Iff.rfl",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "source_line": 80
+    },
+    {
+      "part": "item 3",
+      "title": "EdgeRelations -- edge out of v₁",
+      "comments": "--\n-- `EdgeOutOf G v₁ v₂` means there is a *directed* edge with `v₁`\n-- as the tail, i.e. `(v₁, v₂) ∈ G.E`, equivalently `tuh G v₁ v₂`\n-- from def_3_2. The LN gives two equivalent spellings of this same\n-- condition: `v₁ \\tuh v₂` and `v₂ \\hut v₁` -- both unfold to the\n-- same `G.E` membership. `edgeOutOf_iff_hut` below makes that\n-- equivalence explicit.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.3,\nitem 3):\n\n  Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called\n  \\emph{out of $v_1$}.\n-/\n--\n-- ## Design choice\n--\n-- * **Bidirected edges are deliberately excluded.** A bidirected\n--   edge $v_1 \\huh v_2$ has arrowheads at *both* endpoints, so it\n--   is \"into\" both vertices but \"out of\" neither. The LN encodes\n--   that asymmetry between items 2 and 3 by listing `\\huh` only on\n--   the \"into\" side, never on the \"out of\" side. This is load-\n--   bearing downstream: directed walks (def_3_4) and the\n--   parents/ancestors relations (def_3_5) all condition on directed\n--   (`\\tuh`) edges only, never bidirected ones.\n--\n-- * **The LN's two spellings collapse to one.** $v_1 \\tuh v_2$ and\n--   $v_2 \\hut v_1$ are *equal* propositions (both unfold to\n--   $(v_1, v_2) \\in G.E$); the LN gives both spellings to tell the\n--   reader they may pick whichever orientation reads better in a\n--   given context. We pick `tuh G v₁ v₂` as the canonical form and\n--   record the alternative spelling as `edgeOutOf_iff_hut` below.\n--\n-- * **`def`, not `abbrev` or new notation.** Same reasoning as the\n--   two previous items.\n/-- `EdgeOutOf G v₁ v₂` -- the edge between `v₁` and `v₂` is *out\nof `v₁`*: a directed edge `v₁ ⟶[G] v₂`. Definitionally\n`tuh G v₁ v₂` from def_3_2. Note the deliberate asymmetry with\n`EdgeInto`: bidirected edges are excluded here, because a\nbidirected edge has arrowheads at both endpoints and so is \"into\"\nboth vertices but \"out of\" neither. -/",
+      "statement": "def EdgeOutOf (G : CDMG α) (v₁ v₂ : α) : Prop := tuh G v₁ v₂\n@[simp] theorem edgeOutOf_iff {G : CDMG α} {v₁ v₂ : α} :\n    EdgeOutOf G v₁ v₂ ↔ tuh G v₁ v₂ := Iff.rfl\ntheorem edgeOutOf_iff_hut (G : CDMG α) (v₁ v₂ : α) :\n    EdgeOutOf G v₁ v₂ ↔ hut G v₂ v₁ := Iff.rfl\ntheorem Adjacent.symm {G : CDMG α} {v₁ v₂ : α}\n    (h : Adjacent G v₁ v₂) : Adjacent G v₂ v₁ := by\n  rcases h with htuh | hhut | hhuh\n  · exact Or.inr (Or.inl htuh)\n  · exact Or.inl hhut\n  · exact Or.inr (Or.inr (G.L_symm hhuh))",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "source_line": 124
+    }
+  ],
+  "lean_explanation": "No Lean formalisation is attached to this row yet (`lean` is empty), so there is no code to dissect. The intended content is a bundle of edge-relation predicates on a CDMG `G = (J, V, E, L)`: adjacency (the existence of any edge between two vertices), edges that are \"into\" a given endpoint (arrowhead at that end), and edges \"out of\" a vertex (tail at that end). In a Mathlib-flavoured Lean 4 development these would typically appear as `def` predicates of type `V → V → Prop`, or as members of a `structure` of edge marks, defined by pattern-matching or case analysis on the edge constructor (tail-tail, tail-head, head-head). The expected Mathlib touchpoints are `SimpleGraph`-style adjacency (likely shadowed here by a custom CDMG graph type), decidability instances for the resulting predicates, and `Prop`-valued classifiers that downstream lemmas can rewrite with. Once supplied, the file would expose three named predicates (adjacent, into, outOf) parametrised by `G` and the two vertices, mirroring the three enumerated clauses of the definition.",
+  "design_choices": "_No notable design choices._"
+}
