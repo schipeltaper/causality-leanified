@@ -238,10 +238,30 @@ html, body {
   color: var(--accent);
 }
 
-.pane-body { padding: 1.1rem 1.4rem 1.3rem 1.4rem; flex: 1; }
-.pane-tex .pane-body  { font-family: var(--font-text); font-size: 1.02rem; }
+.pane-body { padding: 1.1rem 1.4rem 1.3rem 1.4rem; flex: 1; min-width: 0; }
+.pane-tex .pane-body  {
+  font-family: var(--font-text);
+  font-size: 1.02rem;
+  /* Wide content (long inline math, long display math, wide tables)
+     gets a horizontal scrollbar instead of bleeding into the next
+     column. The grid column's `min-width: 0` on `.pane` makes this
+     work — without it, content would expand the column. */
+  overflow-x: auto;
+}
 .pane-tex p:first-child { margin-top: 0; }
 .pane-tex em            { font-style: italic; }
+
+/* KaTeX display-math blocks (`$$…$$` / `\[…\]`) scroll horizontally
+   when they don't fit, rather than overflowing the column visually.
+   Padding-bottom leaves room for the scrollbar without overlapping
+   the math. */
+.pane-tex .katex-display,
+.markdown-body .katex-display,
+.proof-page-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.4rem;
+}
 
 /* Roman-numeral parenthesised list — matches \begin{enumerate}[label=\roman*.)] */
 ol.roman-paren {
@@ -376,6 +396,30 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 .entry.placeholder .entry-title { font-weight: 400; }
 
 .muted { color: var(--fg-muted); font-style: italic; }
+
+/* ---- Lean part labels (multi-block defs / multi-part claims) ---- */
+
+/* Styled as a Lean `--` comment header so it visually belongs to the
+   code block underneath rather than looking like stray UI chrome. */
+.lean-part-label {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  padding: 0.95rem 1.4rem 0.3rem;
+  border-top: 1px solid var(--border);
+  white-space: pre;
+  overflow-x: auto;
+}
+.lean-part-label::before {
+  content: "-- ";
+  opacity: 0.7;
+}
+/* The first label sits directly under the pane header — the divider
+   above it would double up with the pane-label's bottom border. */
+.pane-lean .pane-body > .lean-part-label:first-child {
+  border-top: none;
+  padding-top: 1.1rem;
+}
 
 /* ---- proof page (#proof/<ref>) ---- */
 
