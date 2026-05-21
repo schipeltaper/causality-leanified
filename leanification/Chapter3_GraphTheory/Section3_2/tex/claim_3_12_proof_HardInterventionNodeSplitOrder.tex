@@ -33,7 +33,202 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+\medskip\noindent\emph{Preamble.}
+The Remark walks through what happens when the disjointness premise of
+\refrow{claim_3_11} fails -- that is, when there is some
+$w \in W_1 \cap W_2 \ins V$ shared between the hard-intervention target
+$W_1$ and the SWIG target $W_2$. We unpack its content as three operational
+scenarios plus a punchline corollary, mirroring the LN's three-clause
+narrative: \emph{(A)} ``HI first, then SWIG'' fails to define a CDMG at
+all; \emph{(B1)} ``SWIG first, then HI on the input copy $w^i$'' is a
+no-op; \emph{(B2)} ``SWIG first, then HI on the output copy $w^o$''
+genuinely shrinks the output set; and the \emph{punchline} that, in the
+singleton case $W_1 \cap W_2 = \lC w \rC$, branches (B1) and (B2) deliver
+non-equal CDMGs. Throughout we let $G = (J, V, E, L)$ be a CDMG and follow
+the SWIG conventions of \refrow{def_3_12}: for the SWIG argument $W \ins V$,
+each $w \in W$ has a fresh output copy $w^o$ and a fresh input copy $w^i$
+with $w^o \neq w^i$, while for $v \in (J \cup V) \sm W$ we use the
+identification $v^o = v^i = v$. As in the proof of \refrow{claim_3_11}
+each CDMG is presented as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$.
+
+\medskip\noindent\emph{Scenario A: ``HI first, then SWIG'' is ill-typed.}
+Fix $w \in W_1 \cap W_2$ with $w \in V$. Consider the left-hand side of
+\refrow{claim_3_11}'s commute identity,
+$\lp G_{\doit(W_1)} \rp_{\swig(W_2)}$. By \refrow{def_3_12}, the SWIG
+operator $\swig(W_2)$ is defined on a host CDMG only when its target $W_2$
+is a subset of the host's output set, so this composite requires
+$W_2 \ins V_{\doit(W_1)}$. But \refrow{def_3_10}.ii gives
+$V_{\doit(W_1)} = V \sm W_1$, and the assumption $w \in W_1 \cap W_2$
+yields $w \in W_2$ together with $w \in W_1$, so $w \notin V \sm W_1$.
+Therefore $W_2 \not\ins V \sm W_1 = V_{\doit(W_1)}$ and the SWIG
+precondition fails: $\lp G_{\doit(W_1)} \rp_{\swig(W_2)}$ cannot be formed
+as a CDMG in this framework.
+
+This matches the LN's prose verbatim: ``first hard intervening on $w$ turns
+$w$ into an input node, for now indicated as $w^i$'' is the unfolding
+$J_{\doit(W_1)} = J \cup W_1 \ni w$, $V_{\doit(W_1)} = V \sm W_1 \not\ni w$
+from \refrow{def_3_10}.i--ii; after this promotion $w$ is no longer
+available as an output to feed into $\swig(W_2)$. The LN's parenthetical
+``a node-splitting hard intervention (if we would define it for input
+nodes) would not change $w^i$'' is an aside acknowledging that $\swig$ in
+the LN has the same domain restriction $W \ins V$ that ours does, so even
+a hypothetical extension to input nodes would only redundantly preserve
+$w^i$. The formal content of Scenario A is therefore precisely the
+typing obstruction recorded above. \checkmark
+
+\medskip\noindent\emph{Scenario B1: SWIG first, then HI on input copies is a no-op.}
+Take any $W \ins V$ and any subset $W' \ins W$, and let
+$(W')^i := \lC w^i \st w \in W' \rC \ins W^i$ denote the corresponding set
+of input copies inside the SWIG $G_{\swig(W)}$. We claim
+\[
+  \lp G_{\swig(W)} \rp_{\doit((W')^i)} \;=\; G_{\swig(W)}.
+\]
+Write $G' := G_{\swig(W)}$ for brevity, and recall from
+\refrow{def_3_12} that
+\[
+  J' = J \dcup W^i, \qquad V' = (V \sm W) \dcup W^o,
+\]
+with $W^i \cap V' = \emptyset$ by the fresh-copies clause of
+\refrow{def_3_12} (the LN's ``we consider $w^o \neq w^i$ for $w \in W$''
+combined with $V \sm W$ being disjoint from the fresh $W^i$). Note also
+that every directed edge of $G'$ has the form $v_1^i \tuh v_2^o$ for some
+$v_1 \tuh v_2 \in E$ (so its \emph{head} $v_2^o$ lies in $V'$, since
+$v_2 \in V$ implies $v_2^o \in W^o$ if $v_2 \in W$ and $v_2^o = v_2 \in V \sm W$
+otherwise), and every bidirected edge of $G'$ has the form
+$v_1^o \huh v_2^o$ for some $v_1 \huh v_2 \in L$ (so both endpoints lie in
+$V'$ by the same case analysis applied to $v_1, v_2 \in V$ -- using
+\refrow{def_3_1}'s constraint $L \ins V \times V$). We verify the four
+data fields of $\lp G' \rp_{\doit((W')^i)}$ against those of $G'$ in turn.
+
+\emph{Input set.} By \refrow{def_3_10}.i,
+$J_{(G')_{\doit((W')^i)}} = J' \cup (W')^i$. Since
+$(W')^i \ins W^i \ins J'$, the union is absorbed: $J' \cup (W')^i = J'$.
+\checkmark
+
+\emph{Output set.} By \refrow{def_3_10}.ii,
+$V_{(G')_{\doit((W')^i)}} = V' \sm (W')^i$. We have
+$(W')^i \ins W^i$ and $V' \cap W^i = \emptyset$ (recorded above), so
+$V' \cap (W')^i = \emptyset$ and $V' \sm (W')^i = V'$. \checkmark
+
+\emph{Directed edges.} By \refrow{def_3_10}.iii,
+$E_{(G')_{\doit((W')^i)}} = E' \sm \lC v \tuh u \st u \in (W')^i \rC$.
+Every directed edge of $G'$ has head $v_2^o \in V'$, and
+$V' \cap (W')^i = \emptyset$, so no head ever lies in $(W')^i$ and the
+removed set is empty. \checkmark
+
+\emph{Bidirected edges.} By \refrow{def_3_10}.iv,
+$L_{(G')_{\doit((W')^i)}} = L' \sm \lC v \huh u \st u \in (W')^i \rC$.
+Every bidirected edge of $G'$ has both endpoints in $V'$, so neither
+endpoint lies in $(W')^i \ins W^i$ (disjoint from $V'$). Again the
+removed set is empty. \checkmark
+
+All four components of $\lp G' \rp_{\doit((W')^i)}$ coincide with those
+of $G' = G_{\swig(W)}$, so the two CDMGs are equal. This is the formal
+content of the LN's ``A hard intervention on $w^i$ would not do
+anything'': inside the SWIG, every input copy in $W^i$ is already an
+input vertex (in $J'$, not in $V'$) and is not incident to any edge,
+because directed edges target $V'$ and bidirected edges have both
+endpoints in $V'$. Promoting elements of $W^i$ ``from input to input''
+via $\doit$ therefore makes no change at all. In particular, taking
+$W' = \lC w \rC$ specialises this to the singleton scenario of the
+Remark.
+
+\medskip\noindent\emph{Scenario B2: SWIG first, then HI on output copies shrinks $V$.}
+Take any $W \ins V$ and any subset $S \ins W$, and let
+$S^o := \lC s^o \st s \in S \rC \ins W^o$. We compute the output set
+of $\lp G_{\swig(W)} \rp_{\doit(S^o)}$ and find that it strictly
+shrinks (relative to $V_{\swig(W)}$) by exactly $S^o$.
+
+By \refrow{def_3_10}.ii,
+$V_{\lp G_{\swig(W)} \rp_{\doit(S^o)}} = V_{\swig(W)} \sm S^o$. Substituting
+$V_{\swig(W)} = (V \sm W) \dcup W^o$ from \refrow{def_3_12}.ii, and noting
+that $S^o \ins W^o$ is disjoint from $V \sm W$ (since $W^o$ consists of
+fresh copies not equal to any $v \in V \sm W$), the difference splits as
+\[
+  V_{\swig(W)} \sm S^o
+  \;=\; (V \sm W) \,\dcup\, \lp W^o \sm S^o \rp
+  \;=\; (V \sm W) \,\dcup\, (W \sm S)^o,
+\]
+where the last equality uses injectivity of the map $w \mapsto w^o$ on
+$W$ (the fresh-copies clause of \refrow{def_3_12}: distinct $w$ give
+distinct $w^o$). Equivalently, identifying $v^o = v$ for $v \in V \sm W$
+(so that $V \sm W = (V \sm W)^o$), this rewrites as
+\[
+  V_{\lp G_{\swig(W)} \rp_{\doit(S^o)}}
+  \;=\; (V \sm S)^o,
+\]
+where the right-hand side denotes $\lC v^o \st v \in V \sm S \rC$. The
+output set has therefore shrunk by exactly the fresh-output-copy block
+$S^o$, which is non-trivial whenever $S \neq \emptyset$. \checkmark
+
+This is the formal content of the LN's ``hard intervening on $w^o$
+would turn $w^o$ into an additional input node, for now indicated as
+$(w^o)^i$'': by \refrow{def_3_10}.i--ii applied to the SWIG, each $s^o$
+($s \in S$) is removed from $V_{\swig(W)}$ and added to the input set --
+the LN's $(s^o)^i$ -- and the directed/bidirected edges incident to
+$s^o$ are deleted (by \refrow{def_3_10}.iii--iv). For the punchline we
+only need the change in $V$, which is the cleanest witness; the rest of
+the four-component update is not used below.
+
+\medskip\noindent\emph{Punchline: in the singleton scenario, (B1) and (B2) yield different CDMGs.}
+Fix $w \in V$ and set $W := \lC w \rC$, so that $W \ins V$ and the SWIG
+$G_{\swig(\lC w \rC)}$ is well-defined. The LN's punchline contrasts two
+natural ``post-SWIG hard interventions on $w$'': one targets the input
+copy $\lC w^i \rC \ins W^i$, the other targets the output copy
+$\lC w^o \rC \ins W^o$. We claim
+\[
+  \lp G_{\swig(\lC w \rC)} \rp_{\doit(\lC w^o \rC)}
+  \;\neq\;
+  \lp G_{\swig(\lC w \rC)} \rp_{\doit(\lC w^i \rC)}
+\]
+by exhibiting a vertex that lies in the output set of one side but not
+the other.
+
+Applying Scenario~B1 with $W' = \lC w \rC$ (so $(W')^i = \lC w^i \rC$)
+gives
+\[
+  \lp G_{\swig(\lC w \rC)} \rp_{\doit(\lC w^i \rC)} \;=\; G_{\swig(\lC w \rC)},
+\]
+whose output set is
+\[
+  V_{\swig(\lC w \rC)} \;=\; (V \sm \lC w \rC) \,\dcup\, \lC w^o \rC
+\]
+by \refrow{def_3_12}.ii. In particular this set \emph{contains} $w^o$.
+
+Applying Scenario~B2 with $S = \lC w \rC$ (so $S^o = \lC w^o \rC$) gives
+\[
+  V_{\lp G_{\swig(\lC w \rC)} \rp_{\doit(\lC w^o \rC)}}
+  \;=\; (V \sm \lC w \rC)^o
+  \;=\; V \sm \lC w \rC,
+\]
+where the second equality uses the identification $v^o = v$ for
+$v \notin W = \lC w \rC$. This set does \emph{not} contain $w^o$: the
+fresh output copy $w^o$ is distinct from every $v \in V \sm \lC w \rC$
+(since for such $v$ we have $v^o = v \neq w^o$, the latter being a fresh
+copy of $w$ that is not equal to any non-$W$ vertex).
+
+The two output sets therefore disagree on the single vertex $w^o$,
+which suffices for the two CDMGs to disagree as 4-tuples. This is the
+Remark's punchline: in branch (B2) the resulting graph carries two input
+copies of $w$ -- the LN's ``$(w^o)^i$, which does not have any edges''
+(because $w^o$ inherited the incident edges of $w$ in $G$, all of which
+$\doit(\lC w^o \rC)$ deletes by \refrow{def_3_10}.iii--iv) together with
+the original SWIG input ``$w^i$, which might have outgoing edges''
+(since edges $v_1^i \tuh v_2^o$ of the SWIG with $v_1 = w$ survive into
+$\lp G_{\swig(\lC w \rC)} \rp_{\doit(\lC w^o \rC)}$ unchanged) -- while
+branch (B1) leaves only the original $w^i$ and keeps $w^o$ in the
+output set. The disagreement on $V$ is the formal record of this
+asymmetry. \checkmark
+
+\medskip
+Combined, Scenarios~A, B1, B2 and the punchline show that when
+$W_1 \cap W_2 \ins V$ is non-empty no order/choice of operations can
+recover the commute identity of \refrow{claim_3_11}: the ``HI first''
+order is ill-typed, and the ``SWIG first'' order yields genuinely
+distinct CDMGs depending on whether the subsequent hard intervention
+targets the input copy $w^i$ or the output copy $w^o$ of the shared
+vertex $w$. The disjointness premise of \refrow{claim_3_11} is therefore
+essential, not a convenience.
 \end{proof}
 
 \end{document}

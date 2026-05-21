@@ -1,14 +1,17 @@
 % Claim proof file for row claim_3_14 -- "AddingInterventionNodes".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Proof lifted from lecture-notes/lecture_notes/graphs.tex:845--875 (the
+% \Claude{...} block immediately following the claim). Light edits:
+% \refrow{def_3_10} / \refrow{def_3_13} cross-links on first use,
+% \medskip\noindent\emph{...} per-component headers mirroring the sibling
+% claim_3_11_proof_DisjointHardInterventions.tex, a \checkmark at the end
+% of each component-agree paragraph, the LN's terse "Output nodes ($V$)
+% and bidirected edges ($L$) are unchanged" telescoped phrase split into
+% its own $V$-paragraph and $L$-paragraph in chain 1, an explicit
+% constructor-disjointness argument behind the LN's load-bearing
+% sub-identities $W_2 \sm J_1 = W_2 \sm J$ (chain 1) and
+% $W_1 \sm (J \cup W_2) = W_1 \sm J$ (chain 2), and a closing one-liner.
+% The \Claude{...} wrapper from the LN source is dropped.
 %
 % Compiles standalone via the `subfiles` package.
 
@@ -39,7 +42,216 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+\medskip\noindent\emph{Preamble.}
+Let $G = (J, V, E, L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two disjoint
+subsets of nodes of $G$. The lemma bundles two chained equalities, one for
+the iterated extension by intervention nodes \refrow{def_3_13} (first chain)
+and one for the mixed extend / hard-intervene composite~\refrow{def_3_10}
+(second chain). In each case we present every CDMG as a 4-tuple
+$(J_\ast, V_\ast, E_\ast, L_\ast)$ and verify that the two iterates agree
+componentwise, in turn matching the LN's third term where one is named.
+
+The load-bearing observation, used in both chains, is that the fresh
+intervention nodes minted by~\refrow{def_3_13} are \emph{constructor-disjoint}
+from the original node universe $J \cup V$: for every $w \in W \sm J$ the
+new input vertex $I_w$ is, by construction, a fresh symbol that equals
+neither any $v \in J \cup V$ nor any $I_{w'}$ with $w \neq w'$. Two
+immediate consequences will be used repeatedly:
+\begin{itemize}
+  \item \emph{(no collision with fresh intervention nodes, chain 1).}
+        Writing $J_1 := J \dcup \lC I_w \mid w \in W_1 \sm J \rC$ for the
+        input set of $G_{\doit(I_{W_1})}$, we have
+        $W_2 \sm J_1 = W_2 \sm J$. Indeed any $w \in W_2 \ins J \cup V$ is
+        original (so $w \neq I_{w'}$ for every $w'$), and $w \notin W_1$ by
+        $W_1 \cap W_2 = \emptyset$, hence $w \notin W_1 \sm J$, hence
+        $w \notin J_1$ iff $w \notin J$.
+  \item \emph{(no fresh edges into $W_2$, chain 2).} Since each fresh edge
+        $I_w \tuh w$ minted by~\refrow{def_3_13} has head $w \in W_1$ (the
+        target of the extension), and $W_1 \cap W_2 = \emptyset$, no fresh
+        edge has its head in $W_2$. Equivalently, $W_1 \sm (J \cup W_2) =
+        W_1 \sm J$: a $w \in W_1$ is automatically outside $W_2$ by
+        disjointness, so the extra $\notin W_2$ cut on $W_1$ is vacuous.
+\end{itemize}
+
+\medskip\noindent\emph{First chain:
+$\lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})}
+   = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})}
+   = G_{\doit(I_{W_1 \cup W_2})}$.}
+
+We first prove $\lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})}
+= G_{\doit(I_{W_1 \cup W_2})}$ by checking the four components $(J, V, E, L)$.
+
+\medskip\noindent\emph{(a) Input nodes ($J$).}
+By~\refrow{def_3_13}, the inner extension gives
+\[
+  J_{G_{\doit(I_{W_1})}}
+  \;=\; J \dcup \lC I_w \mid w \in W_1 \sm J \rC
+  \;=:\; J_1.
+\]
+Applying~\refrow{def_3_13} again to extend by $W_2$ on top of $G_{\doit(I_{W_1})}$,
+\[
+  J_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; J_1 \dcup \lC I_w \mid w \in W_2 \sm J_1 \rC.
+\]
+By the preamble's no-collision identity, $W_2 \sm J_1 = W_2 \sm J$, so
+\[
+  J_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; J \dcup \lC I_w \mid w \in W_1 \sm J \rC \dcup \lC I_w \mid w \in W_2 \sm J \rC
+  \;=\; J \dcup \lC I_w \mid w \in (W_1 \cup W_2) \sm J \rC,
+\]
+where the last equality unions the two indexing sets (the disjointness
+$(W_1 \sm J) \cap (W_2 \sm J) = \emptyset$ follows from $W_1 \cap W_2
+= \emptyset$). This is exactly $J_{G_{\doit(I_{W_1 \cup W_2})}}$ produced
+by a single application of~\refrow{def_3_13} on $W_1 \cup W_2$. \checkmark
+
+\medskip\noindent\emph{(b) Output nodes ($V$).}
+By~\refrow{def_3_13}, every application of $\doit(I_\cdot)$ preserves the
+output set verbatim. Iterating twice on the left and once on the right,
+\[
+  V_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; V_{G_{\doit(I_{W_1})}}
+  \;=\; V
+  \;=\; V_{G_{\doit(I_{W_1 \cup W_2})}}. \quad\checkmark
+\]
+
+\medskip\noindent\emph{(c) Directed edges ($E$).}
+By~\refrow{def_3_13},
+\[
+  E_{G_{\doit(I_{W_1})}}
+  \;=\; E \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC
+  \;=:\; E_1,
+\]
+and a second application on $W_2$ gives
+\[
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; E_1 \dcup \lC I_w \tuh w \mid w \in W_2 \sm J_1 \rC.
+\]
+Using $W_2 \sm J_1 = W_2 \sm J$ from the preamble and unioning the indexing
+sets (disjoint by $W_1 \cap W_2 = \emptyset$),
+\[
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; E \dcup \lC I_w \tuh w \mid w \in (W_1 \cup W_2) \sm J \rC
+  \;=\; E_{G_{\doit(I_{W_1 \cup W_2})}}. \quad\checkmark
+\]
+
+\medskip\noindent\emph{(d) Bidirected edges ($L$).}
+By~\refrow{def_3_13}, every application of $\doit(I_\cdot)$ preserves the
+bidirected-edge set verbatim. Iterating twice on the left and once on the right,
+\[
+  L_{\lp G_{\doit(I_{W_1})}\rp_{\doit(I_{W_2})}}
+  \;=\; L_{G_{\doit(I_{W_1})}}
+  \;=\; L
+  \;=\; L_{G_{\doit(I_{W_1 \cup W_2})}}. \quad\checkmark
+\]
+
+All four components of $\lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})}$ agree
+with those of $G_{\doit(I_{W_1 \cup W_2})}$, so the two CDMGs are equal.
+
+\medskip\noindent\emph{By symmetry, $\lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})}
+= G_{\doit(I_{W_1 \cup W_2})}$.}
+The argument in (a)--(d) is symmetric in $W_1$ and $W_2$: the hypothesis
+$W_1 \cap W_2 = \emptyset$ is preserved under swapping (it equals
+$W_2 \cap W_1 = \emptyset$), the no-collision identity becomes
+$W_1 \sm J_2 = W_1 \sm J$ where $J_2 := J \dcup \lC I_w \mid w \in W_2 \sm J \rC$
+(same proof, with $1$ and $2$ exchanged), and the unioned indexing set
+$W_2 \cup W_1$ in (a) and (c) equals $W_1 \cup W_2$ by commutativity of
+$\cup$. Components (b) and (d) hold verbatim. Hence the two iterates of
+chain 1 are both equal to $G_{\doit(I_{W_1 \cup W_2})}$, and the three-term
+chain closes.
+
+\medskip\noindent\emph{Second chain:
+$\lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)}
+   = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})}
+   = G_{\doit(I_{W_1}, W_2)}$.}
+
+A remark on the third term: as the LN's commented-out lines
+(\texttt{graphs.tex}~840--842) make explicit, $G_{\doit(I_{W_1}, W_2)}$
+is \emph{notation for the unambiguous value of either iterate}, not a
+separate construction. The content of the chain is therefore the single
+equation between the two iterates; verifying it componentwise establishes
+the entire three-term chain at once.
+
+Write $J_1 := J \dcup \lC I_w \mid w \in W_1 \sm J \rC$ and
+$E_1 := E \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC$ for the input
+set and edge set of $G_{\doit(I_{W_1})}$ (so that $G_{\doit(I_{W_1})} =
+(J_1, V, E_1, L)$ by~\refrow{def_3_13}).
+
+\medskip\noindent\emph{(a) Input nodes ($J$).}
+Starting from $G_{\doit(I_{W_1})}$ and applying $\doit(W_2)$
+via~\refrow{def_3_10}, the hard intervention sends the input set to
+$J_1 \cup W_2$:
+\[
+  J_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}}
+  \;=\; J_1 \cup W_2
+  \;=\; \lp J \dcup \lC I_w \mid w \in W_1 \sm J \rC \rp \cup W_2.
+\]
+For the other order, by~\refrow{def_3_10} the inner hard intervention gives
+$J_{G_{\doit(W_2)}} = J \cup W_2$, and~\refrow{def_3_13} applied on top with
+$W_1$ extends by $\lC I_w \mid w \in W_1 \sm (J \cup W_2) \rC$:
+\[
+  J_{\lp G_{\doit(W_2)}\rp_{\doit(I_{W_1})}}
+  \;=\; (J \cup W_2) \dcup \lC I_w \mid w \in W_1 \sm (J \cup W_2) \rC.
+\]
+The preamble's no-fresh-edge-into-$W_2$ identity rewrites the indexing
+set: $W_1 \sm (J \cup W_2) = W_1 \sm J$, since every $w \in W_1$ is
+already outside $W_2$ by $W_1 \cap W_2 = \emptyset$. So
+\[
+  J_{\lp G_{\doit(W_2)}\rp_{\doit(I_{W_1})}}
+  \;=\; (J \cup W_2) \dcup \lC I_w \mid w \in W_1 \sm J \rC,
+\]
+which agrees with $J_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}}$ above up
+to commutativity of $\cup$ on the original-input piece $J \cup W_2$. \checkmark
+
+\medskip\noindent\emph{(b) Output nodes ($V$).}
+Left: by~\refrow{def_3_13} the inner $\doit(I_{W_1})$ preserves $V$, and
+by~\refrow{def_3_10} the outer $\doit(W_2)$ deletes $W_2$ from the output
+set, giving $V_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}} = V \sm W_2$.
+Right: by~\refrow{def_3_10} the inner $\doit(W_2)$ deletes $W_2$ from
+the output set, $V_{G_{\doit(W_2)}} = V \sm W_2$; and by~\refrow{def_3_13}
+the outer $\doit(I_{W_1})$ preserves the output set, giving
+$V_{\lp G_{\doit(W_2)}\rp_{\doit(I_{W_1})}} = V \sm W_2$. \checkmark
+
+\medskip\noindent\emph{(c) Directed edges ($E$).}
+This is the load-bearing case (LN: \texttt{graphs.tex}~866--871). Left:
+starting from $E_{G_{\doit(I_{W_1})}} = E_1$ and applying $\doit(W_2)$
+via~\refrow{def_3_10}.iii, the hard intervention deletes every edge with
+head in $W_2$:
+\[
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}}
+  \;=\; E_1 \sm \lC v \tuh w \mid w \in W_2 \rC.
+\]
+Of the edges in $E_1 = E \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC$,
+the fresh edges $\lC I_w \tuh w \mid w \in W_1 \sm J \rC$ all have head
+in $W_1$, which is disjoint from $W_2$ by hypothesis, hence none of them
+is deleted; only original $E$-edges with head in $W_2$ are removed. So
+\[
+  E_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}}
+  \;=\; \lp E \sm \lC v \tuh w \mid w \in W_2 \rC \rp \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC.
+\]
+Right: by~\refrow{def_3_10}.iii, $E_{G_{\doit(W_2)}} = E \sm \lC v \tuh w
+\mid w \in W_2 \rC$. Applying~\refrow{def_3_13} to extend by $W_1$ then
+appends the fresh edges with indexing set $W_1 \sm (J \cup W_2) = W_1 \sm J$
+(from the preamble):
+\[
+  E_{\lp G_{\doit(W_2)}\rp_{\doit(I_{W_1})}}
+  \;=\; \lp E \sm \lC v \tuh w \mid w \in W_2 \rC \rp \dcup \lC I_w \tuh w \mid w \in W_1 \sm J \rC.
+\]
+Same expression as the left. \checkmark
+
+\medskip\noindent\emph{(d) Bidirected edges ($L$).}
+Left: by~\refrow{def_3_13} the inner $\doit(I_{W_1})$ preserves the
+bidirected-edge set, giving $L_{G_{\doit(I_{W_1})}} = L$; and
+by~\refrow{def_3_10}.iv the outer $\doit(W_2)$ removes every bidirected
+edge incident to $W_2$, giving
+$L_{\lp G_{\doit(I_{W_1})}\rp_{\doit(W_2)}} = L \sm \lC v \huh w \mid w \in W_2 \rC$.
+Right: by~\refrow{def_3_10}.iv, $L_{G_{\doit(W_2)}} = L \sm \lC v \huh w
+\mid w \in W_2 \rC$, and the outer $\doit(I_{W_1})$ preserves the
+bidirected-edge set by~\refrow{def_3_13}, giving
+$L_{\lp G_{\doit(W_2)}\rp_{\doit(I_{W_1})}} = L \sm \lC v \huh w \mid w \in W_2 \rC$.
+\checkmark
+
+All four components agree, completing the second chain. Both chains have
+been verified componentwise; this completes the proof.
 \end{proof}
 
 \end{document}

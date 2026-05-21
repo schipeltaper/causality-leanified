@@ -214,7 +214,169 @@ noncomputable def swig_swig_equiv
     CDMGEquiv
       ((G.swig W₁ hW₁).swig (Sum.inl '' W₂)
           (subset_swig_V_of_subset_V hW₂ hW₁))
-      (G.swig (W₁ ∪ W₂) (Set.union_subset hW₁ hW₂)) := sorry
+      (G.swig (W₁ ∪ W₂) (Set.union_subset hW₁ hW₂)) := by
+  letI : DecidablePred (· ∈ W₁) := Classical.decPred _
+  -- `fusionEquiv` (forward direction) on each constructor case.
+  have apply_inl : ∀ (a : α),
+      fusionEquiv W₁ W₂ hdisj (Sum.inl a) = Sum.inl (Sum.inl a) := fun a => by
+    simp [fusionEquiv]
+  have apply_inr_left : ∀ (w : α) (hw₁ : w ∈ W₁) (hw : w ∈ W₁ ∪ W₂),
+      fusionEquiv W₁ W₂ hdisj (Sum.inr ⟨w, hw⟩) =
+        Sum.inl (Sum.inr ⟨w, hw₁⟩) := by
+    intros w hw₁ hw
+    have h_union : (Equiv.Set.union hdisj) ⟨w, hw⟩ = Sum.inl ⟨w, hw₁⟩ :=
+      Equiv.Set.union_apply_left (a := ⟨w, hw⟩) hdisj hw₁
+    simp [fusionEquiv, h_union]
+  have apply_inr_right : ∀ (w : α) (hw₂ : w ∈ W₂) (hw : w ∈ W₁ ∪ W₂),
+      fusionEquiv W₁ W₂ hdisj (Sum.inr ⟨w, hw⟩) =
+        Sum.inr ⟨Sum.inl w, ⟨w, hw₂, rfl⟩⟩ := by
+    intros w hw₂ hw
+    have h_union : (Equiv.Set.union hdisj) ⟨w, hw⟩ = Sum.inr ⟨w, hw₂⟩ :=
+      Equiv.Set.union_apply_right (a := ⟨w, hw⟩) hdisj hw₂
+    simp [fusionEquiv, h_union]
+  -- Derive the symm-direction by `e.symm (e x) = x`.
+  have symm_inl_inl : ∀ (a : α),
+      (fusionEquiv W₁ W₂ hdisj).symm (Sum.inl (Sum.inl a)) = Sum.inl a := fun a => by
+    rw [← apply_inl a]; exact Equiv.symm_apply_apply _ _
+  have symm_inl_inr : ∀ (w : α) (hw₁ : w ∈ W₁) (hw : w ∈ W₁ ∪ W₂),
+      (fusionEquiv W₁ W₂ hdisj).symm (Sum.inl (Sum.inr ⟨w, hw₁⟩)) =
+        Sum.inr ⟨w, hw⟩ := fun w hw₁ hw => by
+    rw [← apply_inr_left w hw₁ hw]; exact Equiv.symm_apply_apply _ _
+  have symm_inr : ∀ (w : α) (hw₂ : w ∈ W₂) (hw : w ∈ W₁ ∪ W₂),
+      (fusionEquiv W₁ W₂ hdisj).symm (Sum.inr ⟨Sum.inl w, ⟨w, hw₂, rfl⟩⟩) =
+        Sum.inr ⟨w, hw⟩ := fun w hw₂ hw => by
+    rw [← apply_inr_right w hw₂ hw]; exact Equiv.symm_apply_apply _ _
+  -- Key lemma for the E-field: `fusionEquiv` transports the source-side
+  -- relabel of the merged SWIG to the iterated source-side relabel.
+  -- Same statement as the `\spl` sibling: the SWIG carrier shape is
+  -- inherited from `nodeSplittingOn`, so `split1` behaves identically.
+  have key_e_source : ∀ (v : α),
+      fusionEquiv W₁ W₂ hdisj (split1 (W₁ ∪ W₂) v) =
+        split1 (Sum.inl '' W₂) (split1 W₁ v) := by
+    intro v
+    by_cases hv₁ : v ∈ W₁
+    · -- v ∈ W₁: both sides land at `Sum.inl (Sum.inr ⟨v, hv₁⟩)`.
+      have hv : v ∈ W₁ ∪ W₂ := Or.inl hv₁
+      have hv_notin : (Sum.inr ⟨v, hv₁⟩ : α ⊕ ↑W₁) ∉ (Sum.inl '' W₂ : Set _) := by
+        rintro ⟨_, _, h⟩; exact nomatch h
+      rw [split1_of_mem hv, split1_of_mem hv₁, split1_of_not_mem hv_notin]
+      exact apply_inr_left v hv₁ hv
+    · by_cases hv₂ : v ∈ W₂
+      · -- v ∈ W₂ (and v ∉ W₁): both sides land at `Sum.inr ⟨Sum.inl v, _⟩`.
+        have hv : v ∈ W₁ ∪ W₂ := Or.inr hv₂
+        have hv_mem : (Sum.inl v : α ⊕ ↑W₁) ∈ Sum.inl '' W₂ := ⟨v, hv₂, rfl⟩
+        rw [split1_of_mem hv, split1_of_not_mem hv₁, split1_of_mem hv_mem]
+        exact apply_inr_right v hv₂ hv
+      · -- v ∉ W₁ ∪ W₂: both sides land at `Sum.inl (Sum.inl v)`.
+        have hv : v ∉ W₁ ∪ W₂ := fun h => h.elim hv₁ hv₂
+        have hv_notin : (Sum.inl v : α ⊕ ↑W₁) ∉ Sum.inl '' W₂ := by
+          rintro ⟨w, hw, h⟩; exact hv₂ (Sum.inl_injective h ▸ hw)
+        rw [split1_of_not_mem hv, split1_of_not_mem hv₁, split1_of_not_mem hv_notin]
+        exact apply_inl v
+  refine
+    { toEquiv := (fusionEquiv W₁ W₂ hdisj).symm
+      J_eq := ?_
+      V_eq := ?_
+      E_eq := ?_
+      L_eq := ?_ }
+  -- J_eq: SWIG.J has the `Sum.inl '' · ∪ Set.range Sum.inr` shape, so the
+  -- proof mirrors the `\spl` sibling's V_eq (case-split on the two pieces).
+  · simp only [nodeSplittingHardInterventionOn_J]
+    ext y
+    simp only [Set.mem_image, Set.mem_union, Set.mem_range]
+    constructor
+    · rintro (⟨j, hj, rfl⟩ | ⟨⟨w, hw⟩, rfl⟩)
+      · -- y = Sum.inl j, j ∈ G.J: lifted via double-Sum.inl in the iterated SWIG.
+        refine ⟨Sum.inl (Sum.inl j),
+          Or.inl ⟨Sum.inl j, Or.inl ⟨j, hj, rfl⟩, rfl⟩, ?_⟩
+        exact symm_inl_inl j
+      · rcases hw with hw₁ | hw₂
+        · -- w ∈ W₁: lift via the outer Sum.inl of the iterated SWIG.
+          refine ⟨Sum.inl (Sum.inr ⟨w, hw₁⟩),
+            Or.inl ⟨Sum.inr ⟨w, hw₁⟩, Or.inr ⟨⟨w, hw₁⟩, rfl⟩, rfl⟩, ?_⟩
+          exact symm_inl_inr w hw₁ (Or.inl hw₁)
+        · -- w ∈ W₂: in the outer SWIG's range piece.
+          refine ⟨Sum.inr ⟨Sum.inl w, ⟨w, hw₂, rfl⟩⟩,
+            Or.inr ⟨⟨Sum.inl w, ⟨w, hw₂, rfl⟩⟩, rfl⟩, ?_⟩
+          exact symm_inr w hw₂ (Or.inr hw₂)
+    · rintro ⟨x, hx, rfl⟩
+      rcases hx with (⟨z, hz, rfl⟩ | ⟨⟨w_val, hw_val⟩, rfl⟩)
+      · rcases hz with (⟨j, hj, rfl⟩ | ⟨⟨w₁, hw₁⟩, rfl⟩)
+        · -- x = Sum.inl (Sum.inl j) for j ∈ G.J
+          refine Or.inl ⟨j, hj, ?_⟩
+          exact (symm_inl_inl j).symm
+        · -- x = Sum.inl (Sum.inr ⟨w₁, hw₁⟩) for hw₁ : w₁ ∈ W₁
+          refine Or.inr ⟨⟨w₁, Or.inl hw₁⟩, ?_⟩
+          exact (symm_inl_inr w₁ hw₁ (Or.inl hw₁)).symm
+      · -- x = Sum.inr ⟨w_val, hw_val⟩ for hw_val : w_val ∈ Sum.inl '' W₂
+        obtain ⟨w', hw'₂, rfl⟩ := hw_val
+        refine Or.inr ⟨⟨w', Or.inr hw'₂⟩, ?_⟩
+        exact (symm_inr w' hw'₂ (Or.inr hw'₂)).symm
+  -- V_eq: SWIG.V is just `Sum.inl '' G.V` (HI deletes the `range Sum.inr`
+  -- piece), so this is the simpler "double-inl" case mirroring `\spl`.J_eq.
+  · simp only [nodeSplittingHardInterventionOn_V, Set.image_image]
+    refine Set.image_congr (fun v _ => ?_)
+    exact (symm_inl_inl v).symm
+  -- E_eq: SWIG.E has only the LN's "v_1^i → v_2^o" piece (the inner
+  -- split edges of the `\spl` sibling are killed by the HI layer). So the
+  -- proof has only the "original-edge double-relabeled" branch.
+  · ext y
+    rw [Set.mem_image, mem_nodeSplittingHardInterventionOn_E]
+    constructor
+    · rintro ⟨v₁, v₂, hE, rfl⟩
+      refine ⟨(split1 (Sum.inl '' W₂) (split1 W₁ v₁), Sum.inl (Sum.inl v₂)), ?_, ?_⟩
+      · rw [mem_nodeSplittingHardInterventionOn_E]
+        refine ⟨split1 W₁ v₁, Sum.inl v₂, ?_, rfl⟩
+        rw [mem_nodeSplittingHardInterventionOn_E]
+        exact ⟨v₁, v₂, hE, rfl⟩
+      · refine Prod.ext ?_ ?_
+        · change (fusionEquiv W₁ W₂ hdisj).symm
+              (split1 (Sum.inl '' W₂) (split1 W₁ v₁))
+            = split1 (W₁ ∪ W₂) v₁
+          rw [← key_e_source]
+          exact Equiv.symm_apply_apply _ _
+        · exact symm_inl_inl v₂
+    · rintro ⟨p, hp, rfl⟩
+      rw [mem_nodeSplittingHardInterventionOn_E] at hp
+      rcases hp with ⟨a₁, a₂, ha, rfl⟩
+      rw [mem_nodeSplittingHardInterventionOn_E] at ha
+      rcases ha with ⟨v₁, v₂, hE, h_eq⟩
+      injection h_eq with h_eq1 h_eq2
+      subst h_eq1; subst h_eq2
+      refine ⟨v₁, v₂, hE, ?_⟩
+      refine Prod.ext ?_ ?_
+      · change (fusionEquiv W₁ W₂ hdisj).symm
+            (split1 (Sum.inl '' W₂) (split1 W₁ v₁))
+          = split1 (W₁ ∪ W₂) v₁
+        rw [← key_e_source]
+        exact Equiv.symm_apply_apply _ _
+      · exact symm_inl_inl v₂
+  -- L_eq: bidirected edges of any SWIG are the double-Sum.inl image of G.L
+  -- (HI is a no-op on L because every L-endpoint is on the Sum.inl side).
+  -- So both sides reduce to a double-`Sum.inl` image -- identical to `\spl`.
+  · ext y
+    rw [Set.mem_image, mem_nodeSplittingHardInterventionOn_L]
+    constructor
+    · rintro ⟨v₁, v₂, hL, rfl⟩
+      refine ⟨(Sum.inl (Sum.inl v₁), Sum.inl (Sum.inl v₂)), ?_, ?_⟩
+      · rw [mem_nodeSplittingHardInterventionOn_L]
+        refine ⟨Sum.inl v₁, Sum.inl v₂, ?_, rfl⟩
+        rw [mem_nodeSplittingHardInterventionOn_L]
+        exact ⟨v₁, v₂, hL, rfl⟩
+      · refine Prod.ext ?_ ?_
+        · exact symm_inl_inl v₁
+        · exact symm_inl_inl v₂
+    · rintro ⟨p, hp, rfl⟩
+      rw [mem_nodeSplittingHardInterventionOn_L] at hp
+      obtain ⟨a, b, hab, rfl⟩ := hp
+      rw [mem_nodeSplittingHardInterventionOn_L] at hab
+      obtain ⟨v₁, v₂, hL, h_eq⟩ := hab
+      injection h_eq with h_eq1 h_eq2
+      subst h_eq1; subst h_eq2
+      refine ⟨v₁, v₂, hL, ?_⟩
+      refine Prod.ext ?_ ?_
+      · exact symm_inl_inl v₁
+      · exact symm_inl_inl v₂
 
 -- claim_3_10 (part 2/2)
 -- title: TwoDisjointNode -- SWIG commute corollary
@@ -327,7 +489,97 @@ noncomputable def swig_comm_equiv
       ((G.swig W₁ hW₁).swig (Sum.inl '' W₂)
           (subset_swig_V_of_subset_V hW₂ hW₁))
       ((G.swig W₂ hW₂).swig (Sum.inl '' W₁)
-          (subset_swig_V_of_subset_V hW₁ hW₂)) := sorry
+          (subset_swig_V_of_subset_V hW₁ hW₂)) := by
+  -- Build the small bridge CDMGEquiv between the two merged SWIGs
+  -- (over `W₁ ∪ W₂` and over `W₂ ∪ W₁` respectively). The two SWIGs are
+  -- equal as Set α-valued data, but their carrier types differ since
+  -- `↑(W₁ ∪ W₂) ≠ ↑(W₂ ∪ W₁)` def-equally. The bridge absorbs the
+  -- `Set.union_comm` discrepancy via the subtype-relabel Equiv
+  -- `Equiv.subtypeEquivRight (fun _ => Or.comm)`. Mirrors the `\spl`
+  -- sibling's bridge construction exactly.
+  let σ : ↑(W₁ ∪ W₂) ≃ ↑(W₂ ∪ W₁) := Equiv.subtypeEquivRight (fun _ => Or.comm)
+  let toEq : (α ⊕ ↑(W₁ ∪ W₂)) ≃ (α ⊕ ↑(W₂ ∪ W₁)) :=
+    Equiv.sumCongr (Equiv.refl α) σ
+  have toEq_inl : ∀ (a : α),
+      toEq (Sum.inl a) = Sum.inl a := fun a => rfl
+  have toEq_inr : ∀ (a : α) (h : a ∈ W₁ ∪ W₂) (h' : a ∈ W₂ ∪ W₁),
+      toEq (Sum.inr ⟨a, h⟩) = Sum.inr ⟨a, h'⟩ := fun _ _ _ => rfl
+  have toEq_split1 : ∀ (v : α),
+      toEq (split1 (W₁ ∪ W₂) v) = split1 (W₂ ∪ W₁) v := by
+    intro v
+    by_cases hv : v ∈ W₁ ∪ W₂
+    · have hv' : v ∈ W₂ ∪ W₁ := hv.symm
+      rw [split1_of_mem hv, split1_of_mem hv']
+      exact toEq_inr v hv hv'
+    · have hv' : v ∉ W₂ ∪ W₁ := fun h => hv h.symm
+      rw [split1_of_not_mem hv, split1_of_not_mem hv']
+      exact toEq_inl v
+  let bridge : CDMGEquiv
+      (G.swig (W₁ ∪ W₂) (Set.union_subset hW₁ hW₂))
+      (G.swig (W₂ ∪ W₁) (Set.union_subset hW₂ hW₁)) :=
+  { toEquiv := toEq
+    J_eq := by
+      -- SWIG.J has the `Sum.inl '' G.J ∪ Set.range Sum.inr` shape, so this
+      -- mirrors the `\spl` bridge's V_eq (the union piece).
+      simp only [nodeSplittingHardInterventionOn_J, Set.image_union]
+      congr 1
+      · rw [Set.image_image]
+        refine Set.image_congr (fun j _ => ?_)
+        exact (toEq_inl j).symm
+      · ext y
+        simp only [Set.mem_image, Set.mem_range]
+        constructor
+        · rintro ⟨w', rfl⟩
+          refine ⟨Sum.inr (σ.symm w'), ⟨σ.symm w', rfl⟩, ?_⟩
+          show toEq (Sum.inr (σ.symm w')) = Sum.inr w'
+          simp [toEq, Equiv.sumCongr_apply, Equiv.apply_symm_apply]
+        · rintro ⟨_, ⟨w, rfl⟩, rfl⟩
+          exact ⟨σ w, rfl⟩
+    V_eq := by
+      -- SWIG.V is just `Sum.inl '' G.V` (no range piece), so this is the
+      -- simpler "double-inl" image case.
+      simp only [nodeSplittingHardInterventionOn_V, Set.image_image]
+      refine Set.image_congr (fun v _ => ?_)
+      exact (toEq_inl v).symm
+    E_eq := by
+      ext y
+      rw [Set.mem_image, mem_nodeSplittingHardInterventionOn_E]
+      constructor
+      · rintro ⟨v₁, v₂, hE, rfl⟩
+        refine ⟨(split1 (W₁ ∪ W₂) v₁, Sum.inl v₂), ?_, ?_⟩
+        · rw [mem_nodeSplittingHardInterventionOn_E]
+          exact ⟨v₁, v₂, hE, rfl⟩
+        · refine Prod.ext ?_ ?_
+          · exact toEq_split1 v₁
+          · exact toEq_inl v₂
+      · rintro ⟨p, hp, rfl⟩
+        rw [mem_nodeSplittingHardInterventionOn_E] at hp
+        rcases hp with ⟨v₁, v₂, hE, h_eq⟩
+        subst h_eq
+        refine ⟨v₁, v₂, hE, ?_⟩
+        refine Prod.ext ?_ ?_
+        · exact toEq_split1 v₁
+        · exact toEq_inl v₂
+    L_eq := by
+      ext y
+      rw [Set.mem_image, mem_nodeSplittingHardInterventionOn_L]
+      constructor
+      · rintro ⟨v₁, v₂, hL, rfl⟩
+        refine ⟨(Sum.inl v₁, Sum.inl v₂), ?_, ?_⟩
+        · rw [mem_nodeSplittingHardInterventionOn_L]; exact ⟨v₁, v₂, hL, rfl⟩
+        · refine Prod.ext ?_ ?_
+          · exact toEq_inl v₁
+          · exact toEq_inl v₂
+      · rintro ⟨p, hp, rfl⟩
+        rw [mem_nodeSplittingHardInterventionOn_L] at hp
+        obtain ⟨v₁, v₂, hL, h_eq⟩ := hp
+        subst h_eq
+        refine ⟨v₁, v₂, hL, ?_⟩
+        refine Prod.ext ?_ ?_
+        · exact toEq_inl v₁
+        · exact toEq_inl v₂ }
+  exact (swig_swig_equiv hW₁ hW₂ hdisj).trans
+    (bridge.trans (swig_swig_equiv hW₂ hW₁ hdisj.symm).symm)
 
 end CDMG
 
