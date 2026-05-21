@@ -211,14 +211,37 @@ def _slice_blocks(lines: list[str], target_ref: str) -> list[tuple[int, list[str
 
 def _split_block(block_lines: list[str]) -> dict:
     """Given a Lean block starting at a marker, split it into the four
-    pieces the website renders: title, comments, statement, proof."""
+    pieces the website renders: title, comments, statement, proof.
+
+    We have to track whether we're inside a `/- … -/` block comment so a
+    `def 3.8, …` line in a verbatim-LaTeX comment block isn't mistaken
+    for a `def` declaration."""
     title = None
-    # Drill until we find the declaration line.
     comment_lines: list[str] = []
     decl_start: int | None = None
+    in_block = False  # inside /- … -/ (Lean 4 block comments don't nest in practice for our scaffold)
     for i, line in enumerate(block_lines):
         if i == 0 and LEAN_MARKER_RE.match(line):
-            continue  # skip the marker line itself
+            continue
+
+        # Maintain `in_block` state. Done character-wise so multiple
+        # opens/closes on the same line collapse correctly.
+        if in_block:
+            comment_lines.append(line)
+            if "-/" in line:
+                in_block = False
+            continue
+        # We're outside a block comment at the start of this line.
+        # An opening `/-` (incl. `/--`) without a matching `-/` on the
+        # same line puts us inside one.
+        open_idx = line.find("/-")
+        if open_idx != -1:
+            close_idx = line.find("-/", open_idx + 2)
+            comment_lines.append(line)
+            if close_idx == -1:
+                in_block = True
+            continue
+
         t = LEAN_TITLE_RE.match(line)
         if t:
             title = t.group("title")
@@ -342,18 +365,21 @@ def fetch_row(ref: str) -> dict:
         }
 
     # --- TeX proof (claims only) ---
+    #
+    # The proof page rendered on the site is the WHOLE proof file (a
+    # restated `\begin{Lem|Rem|…}` block followed by a `\begin{proof}`
+    # block), so we don't extract just the proof body — we hand the
+    # full stripped TeX to `tex_body_to_html`, which knows how to render
+    # both theorem-like envs and the proof env.
     tex_proof = None
     proof_path = tex_proof_path(data_path, row)
     if proof_path is not None and proof_path.exists():
         raw = proof_path.read_text(encoding="utf-8")
-        # Strip the outer wrappers and extract just the \begin{proof}…\end{proof}.
-        from tex_to_html import strip_subfiles_wrapper  # local import to keep header clean
+        from tex_to_html import strip_subfiles_wrapper  # local import
         stripped = strip_subfiles_wrapper(raw)
-        m = re.search(r"\\begin\{proof\}(.*?)\\end\{proof\}", stripped, re.DOTALL)
-        proof_body = m.group(1) if m else stripped
         tex_proof = {
             "raw": raw,
-            "html": tex_body_to_html(proof_body),
+            "html": tex_body_to_html(stripped),
             "source_path": str(proof_path.relative_to(REPO_ROOT)),
         }
     elif proof_path is not None:

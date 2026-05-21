@@ -311,16 +311,26 @@ function renderEntry(data) {
   const split = el("div", { class: "split" }, texPane, leanPane);
 
   // ---- actions ----
+  //
+  // Four buttons (in this order):
+  //   1. View TeX proof   — claims only; navigates to the proof page
+  //   2. View Lean source — always; opens the .lean file on GitHub
+  //   3. Lean explanation — toggles the panel below; disabled until LLM-populated
+  //   4. Design choices   — toggles the panel below; disabled until LLM-populated
   const actions = el("footer", { class: "entry-actions" });
 
-  const texSource = data.tex_statement.source_path;
-  if (texSource) {
+  if (data.kind === "claim" && data.tex_proof && data.tex_proof.html) {
     actions.append(el("a", {
       class: "btn",
-      href: `${REPO_URL}/blob/${REPO_BRANCH}/${texSource}`,
-      target: "_blank", rel: "noopener",
-    }, "View TeX source"));
+      href: `#proof/${data.ref}`,
+    }, "View TeX proof"));
+  } else {
+    actions.append(el("button", {
+      class: "btn btn-disabled", "aria-disabled": "true", disabled: "",
+      title: "Definitions have no proof",
+    }, "View TeX proof"));
   }
+
   if (leanMainPath) {
     actions.append(el("a", {
       class: "btn",
@@ -328,20 +338,7 @@ function renderEntry(data) {
       target: "_blank", rel: "noopener",
     }, "View Lean source"));
   }
-  if (data.tex_proof && data.tex_proof.source_path) {
-    actions.append(el("a", {
-      class: "btn",
-      href: `${REPO_URL}/blob/${REPO_BRANCH}/${data.tex_proof.source_path}`,
-      target: "_blank", rel: "noopener",
-    }, "View TeX proof"));
-  } else if (data.kind === "def") {
-    actions.append(el("a", { class: "btn btn-disabled", "aria-disabled": "true" },
-                       "View TeX proof"));
-  }
 
-  // Explanation toggles — sit in the same action row, but open a panel
-  // below the entry rather than navigating away. Disabled (greyed) when
-  // the LLM step hasn't produced prose yet.
   function explanationButton(label, panelId, content) {
     if (!content || !content.trim()) {
       return el("button", { class: "btn btn-disabled", "aria-disabled": "true", disabled: "" }, label);
@@ -360,31 +357,7 @@ function renderEntry(data) {
   actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
   actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
 
-  // ---- TeX proof body (if claim) ----
-  const proofBlock = data.tex_proof && data.tex_proof.html
-    ? el("section", { class: "tex-proof-pane" },
-        el("div", { class: "pane-label" }, "Proof (lecture notes)"),
-        el("div", { class: "pane-body", html: data.tex_proof.html }),
-      )
-    : null;
-
-  // ---- Lean proof body (if claim) ----
-  const leanProofs = data.lean.filter((b) => b.proof);
-  const leanProofBlock = leanProofs.length
-    ? el("section", { class: "lean-proof-pane" },
-        el("div", { class: "pane-label" }, "Lean proof"),
-        el("div", { class: "pane-body" },
-          ...leanProofs.flatMap((b) => [
-            data.lean.length > 1 && b.part
-              ? el("div", { class: "lean-part-label" }, `part ${b.part}`)
-              : null,
-            el("pre", {}, el("code", { class: "language-lean" }, b.proof)),
-          ]).filter(Boolean)
-        ),
-      )
-    : null;
-
-  // ---- Explanation panels (initially hidden, toggled by the action buttons) ----
+  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -395,20 +368,62 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const leanExplPanel    = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`,  "Design choices",   data.design_choices);
+  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
 
-  // ---- assemble ----
+  // ---- assemble (no inline TeX/Lean proof panes; those live on the
+  //                 dedicated proof page) ----
   const article = el("article", { class: "entry", id: data.ref },
     header,
     split,
-    proofBlock,
-    leanProofBlock,
     actions,
     leanExplPanel,
     designChoicesPanel,
   );
   return article;
+}
+
+/* The dedicated proof page (URL hash: `#proof/<ref>`). Renders the full
+   contents of the per-row proof .tex file — the restated statement env
+   followed by the \begin{proof}…\end{proof} body — both already turned
+   into HTML by `fetch_row.py`. A single action button links out to the
+   raw .tex file on GitHub. */
+function renderProofPage(data) {
+  const nIn = data.ref.split("_").pop();
+  const sectionNum = data.section;
+
+  const header = el("header", { class: "entry-header" },
+    el("a", { class: "back-link", href: `#${data.ref}` }, "← Back to claim"),
+    el("div", { class: "entry-kind" }, `Proof of Claim ${sectionNum.split(".")[0]}.${nIn}`),
+    el("h1", { class: "entry-title" }, data.tex_statement.env_title || data.title),
+  );
+
+  if (!data.tex_proof || !data.tex_proof.html) {
+    return el("article", { class: "entry placeholder" },
+      header,
+      el("div", { class: "missing-body" },
+        el("p", {}, "No proof TeX file recorded for this row."),
+      ),
+    );
+  }
+
+  const body = el("section", { class: "proof-page-body" },
+    el("div", { class: "pane-body", html: data.tex_proof.html }),
+  );
+
+  const actions = el("footer", { class: "entry-actions" },
+    el("a", {
+      class: "btn",
+      href: `${REPO_URL}/blob/${REPO_BRANCH}/${data.tex_proof.source_path}`,
+      target: "_blank", rel: "noopener",
+    }, "View TeX source"),
+  );
+
+  return el("article", { class: "entry proof-page", id: `proof--${data.ref}` },
+    header,
+    body,
+    actions,
+  );
 }
 
 function renderMissing(ref) {
@@ -427,27 +442,40 @@ function renderMissing(ref) {
 
 /* ----------------------------------------------------------------- main */
 
-async function loadRef(ref, manifest) {
+async function loadRoute(route, manifest) {
   const content = $("#content");
   content.innerHTML = "";
   try {
-    const data = await fetchJSON(`data/${ref}.json`);
-    content.append(renderEntry(data));
+    const data = await fetchJSON(`data/${route.ref}.json`);
+    if (route.mode === "proof") {
+      content.append(renderProofPage(data));
+    } else {
+      content.append(renderEntry(data));
+    }
   } catch (e) {
-    content.append(renderMissing(ref));
+    content.append(renderMissing(route.ref));
   }
-  renderSidebar(manifest, ref);
+  renderSidebar(manifest, route.ref);
   renderMath(content);
   highlightCode(content);
-  // Update active link in sidebar
+  // Update active link in sidebar — proof-page route still highlights
+  // the row in the sidebar so the user keeps their bearings.
   $("#sidebar-tree").querySelectorAll("a").forEach((a) => {
-    a.classList.toggle("active", a.getAttribute("href") === `#${ref}`);
+    a.classList.toggle("active", a.getAttribute("href") === `#${route.ref}`);
   });
+  // Scroll to top whenever the route changes (the sidebar stays fixed).
+  $("#content").scrollTop = 0;
+  window.scrollTo({ top: 0 });
 }
 
-function refFromHash() {
+function routeFromHash() {
   const h = location.hash.replace(/^#/, "").trim();
-  return /^(def|claim)_\d+_\d+$/.test(h) ? h : DEFAULT_REF;
+  const REF_RE = /^(def|claim)_\d+_\d+$/;
+  if (h.startsWith("proof/")) {
+    const ref = h.slice("proof/".length);
+    return { mode: "proof", ref: REF_RE.test(ref) ? ref : DEFAULT_REF };
+  }
+  return { mode: "entry", ref: REF_RE.test(h) ? h : DEFAULT_REF };
 }
 
 async function main() {
@@ -461,8 +489,8 @@ async function main() {
       + "in the <code>website/</code> directory.)</p>";
     return;
   }
-  await loadRef(refFromHash(), manifest);
-  window.addEventListener("hashchange", () => loadRef(refFromHash(), manifest));
+  await loadRoute(routeFromHash(), manifest);
+  window.addEventListener("hashchange", () => loadRoute(routeFromHash(), manifest));
 }
 
 document.addEventListener("DOMContentLoaded", main);
