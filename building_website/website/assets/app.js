@@ -290,7 +290,12 @@ function renderEntry(data) {
   } else {
     for (const b of data.lean) {
       if (data.lean.length > 1 && b.part) {
-        leanBody.append(el("div", { class: "lean-part-label" }, `part ${b.part}`));
+        // Drop the "part" prefix — the marker text usually already says
+        // "item N" or "part N/M" so prefixing "part" makes it read
+        // "part item 6, …" which is awkward. The label is styled as a
+        // `--`-prefixed Lean-style comment header so it blends with the
+        // code block underneath.
+        leanBody.append(el("div", { class: "lean-part-label" }, b.part));
       }
       const pre = el("pre", {}, el("code", { class: "language-lean" }, b.statement));
       leanBody.append(pre);
@@ -393,7 +398,6 @@ function renderProofPage(data) {
   const sectionNum = data.section;
 
   const header = el("header", { class: "entry-header" },
-    el("a", { class: "back-link", href: `#${data.ref}` }, "← Back to claim"),
     el("div", { class: "entry-kind" }, `Proof of Claim ${sectionNum.split(".")[0]}.${nIn}`),
     el("h1", { class: "entry-title" }, data.tex_statement.env_title || data.title),
   );
