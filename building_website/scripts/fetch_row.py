@@ -129,8 +129,15 @@ def tex_proof_path(data_path: Path, row: dict) -> Path | None:
 # Ref-marker comments at column 0. Examples:
 #   "-- def_3_1"
 #   "-- claim_3_1 (part 2/3)"
+#   "-- def_3_2 (item 1)"
+#   "-- def_3_2 (items 2-4) -- the three primitive edge relations"
+# Anything in parens after the ref is captured as `part`; a trailing
+# `-- …` annotation on the marker line is tolerated and discarded.
 LEAN_MARKER_RE = re.compile(
-    r"^--\s+(?P<ref>(def|claim)_\d+_\d+)(?:\s+\(part\s+(?P<part>\d+/\d+)\))?\s*$"
+    r"^--\s+(?P<ref>(def|claim)_\d+_\d+)"
+    r"(?:\s+\((?P<part>[^)]*)\))?"
+    r"(?:\s+--.*)?"
+    r"\s*$"
 )
 LEAN_TITLE_RE = re.compile(r"^--\s+title:\s*(?P<title>.+?)\s*$")
 LEAN_DECL_RE = re.compile(
@@ -138,6 +145,27 @@ LEAN_DECL_RE = re.compile(
     r"(?:noncomputable\s+|protected\s+|private\s+)?"
     r"(structure|def|abbrev|class|instance|inductive|theorem|lemma|example)\b"
 )
+
+
+def strip_lean_comments(code: str) -> str:
+    """Remove every Lean comment from a code block.
+
+    Strips `/- … -/` block comments (including doc-comment form `/-- … -/`)
+    and trailing `--` line comments, then drops every now-blank line so
+    structure bodies don't end up with a blank line between every two
+    fields where the doc-comments used to be.
+
+    This is for *display*; the source file is unchanged. Doc-comments
+    attached to fields/decls are visually noise next to the rendered
+    LaTeX statement, so they go to the website's `comments` channel and
+    the LLM-generated explanation panels instead."""
+    code = re.sub(r"/-.*?-/", "", code, flags=re.DOTALL)
+    code = re.sub(r"(?m)--.*$", "", code)
+    # Drop pure-whitespace lines. We lose any intentional blank-line
+    # paragraphing inside proofs, but the dense form is fine for display
+    # and the lossy bit is bounded to display only.
+    return "\n".join(line for line in code.split("\n") if line.strip())
+
 
 
 def _slice_blocks(lines: list[str], target_ref: str) -> list[tuple[int, list[str]]]:
@@ -237,11 +265,16 @@ def _split_block(block_lines: list[str]) -> dict:
         statement_text = "\n".join(body).rstrip()
         proof = None
 
+    # Strip Lean comments from what we display — they're surfaced via the
+    # generated `lean_explanation` / `design_choices` panels instead.
+    statement_clean = strip_lean_comments(statement_text)
+    proof_clean = strip_lean_comments(proof) if proof else None
+
     return {
         "title": title,
         "comments": "\n".join(comment_lines).rstrip(),
-        "statement": statement_text,
-        "proof": proof,
+        "statement": statement_clean,
+        "proof": proof_clean,
     }
 
 
@@ -336,6 +369,20 @@ def fetch_row(ref: str) -> dict:
     lean_abs = [REPO_ROOT / p for p in dict.fromkeys(lean_rel)]  # dedup, preserve order
     lean_blocks = extract_lean(lean_abs, ref)
 
+    # Preserve any prior LLM-generated prose so re-running fetch_row.py
+    # doesn't wipe the panels — process_lean_comments.py owns these
+    # fields. The fields stay null until the LLM step has populated them.
+    out_path = WEBSITE_DATA / f"{ref}.json"
+    prior_lean_expl: str | None = None
+    prior_design: str | None = None
+    if out_path.exists():
+        try:
+            prior = json.loads(out_path.read_text(encoding="utf-8"))
+            prior_lean_expl = prior.get("lean_explanation")
+            prior_design = prior.get("design_choices")
+        except json.JSONDecodeError:
+            pass
+
     return {
         "ref": ref,
         "kind": row["def_or_claim"],
@@ -347,9 +394,11 @@ def fetch_row(ref: str) -> dict:
             "proven":     row.get("proven"),
             "solved":     row.get("solved"),
         },
-        "tex_statement": tex_statement,
-        "tex_proof":     tex_proof,
-        "lean":          lean_blocks,
+        "tex_statement":    tex_statement,
+        "tex_proof":        tex_proof,
+        "lean":             lean_blocks,
+        "lean_explanation": prior_lean_expl,
+        "design_choices":   prior_design,
     }
 
 

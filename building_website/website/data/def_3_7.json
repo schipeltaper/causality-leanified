@@ -1,0 +1,96 @@
+{
+  "ref": "def_3_7",
+  "kind": "def",
+  "section": "3.1",
+  "title": "GraphTypes",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_7 -- \"GraphTypes\".\n% Auto-generated stub by scaffold/solving_current_row.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% Compiles standalone via the `subfiles` package -- the parent main.tex in\n% this folder provides the preamble.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_7\n% title: GraphTypes\n\\def\\rowref{def\\_3\\_7}\n\\def\\rowtitle{GraphTypes}\n\\phantomsection\\label{def_3_7}\n\n\\begin{Def}\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:</p>\n<ol class=\"enum\"><li>Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.</li><li>Directed Mixed Graph (DMG) if $J = \\emptyset$.</li><li>Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.</li><li>Conditional Directed Graph (CDG) if $L = \\emptyset$.</li><li>Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.</li><li>Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.</li><li>Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.</li></ol>",
+    "env": "Def",
+    "env_title": null,
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_7_GraphTypes.tex"
+  },
+  "tex_proof": null,
+  "lean": [
+    {
+      "part": "shared design block for items 1 -- 7",
+      "title": null,
+      "comments": "--\n-- ## Design choice\n--\n-- The seven items below share enough structure that a single design\n-- block covers them all -- they are not independent choices, they are\n-- one choice applied seven times.\n--\n-- * **`Prop`-valued predicates, not subtypes or new structures.**\n--   Throughout chapters 4 -- 16 the LN takes an arbitrary CDMG `G`\n--   and adds side conditions like \"$G$ is acyclic\" or \"$J = \\emptyset$\"\n--   as *hypotheses* on theorems, not as part of the ambient graph\n--   type. A subtype `{G : CDMG α // G.IsAcyclic}` (or a parallel\n--   `structure CADMG` with the acyclicity field bundled in) would\n--   force every later signature through a coercion `↑G : CDMG α`,\n--   break compatibility with the existing `G.IsAcyclic` predicate\n--   from def_3_6, and not match the LN's own framing -- the LN\n--   treats \"CADMG\", \"DAG\", etc. as *names attached to a CDMG that\n--   happens to satisfy certain conditions*, not as separate\n--   mathematical objects. `Prop` predicates are the lightest possible\n--   encoding that supports the LN's \"if $G$ is acyclic, then ...\"\n--   prose verbatim.\n--\n-- * **In the `Causality.CDMG` namespace, used via dot-projection.**\n--   Every later occurrence in the LN reads as \"$G$ is a CADMG\", \"$G$\n--   is a DAG\", etc. Placing the predicates inside the `CDMG`\n--   namespace turns each name into a dot-projection: `G.IsCADMG`,\n--   `G.IsDAG`, ..., matching the LN's \"$G$ is ...\" prose word for\n--   word. This is the same convention already used by\n--   `G.IsAcyclic` (def_3_6), `G.tuh` / `G.hut` / `G.huh`\n--   (`CDMGNotation.lean`, def_3_2), `G.Adjacent`, `G.EdgeInto`,\n--   `G.EdgeOutOf` (`EdgeRelations.lean`, def_3_3), and the entire\n--   `Family*.lean` operator family (def_3_5).\n--\n-- * **`Is`-prefixed names mirroring the LN acronyms.** The LN\n--   introduces each name as a capitalised acronym (CADMG, DMG, ADMG,\n--   CDG, DG, CDAG, DAG); we preserve them verbatim and prepend `Is`\n--   to follow both the existing `IsAcyclic` precedent in this folder\n--   and Mathlib's pervasive `Is...` predicate convention\n--   (`Mathlib.Order.Defs` `IsAntisymm`, `IsTrans`, ...;\n--   `Mathlib.Combinatorics.SimpleGraph.Acyclic` `IsAcyclic`;\n--   ...). Reading `G.IsDAG` aloud as \"G is DAG\" is awkward, but the\n--   benefit -- a uniform prefix that flags \"this is a property of `G`,\n--   not a constructor or a field\" -- pays off at every use site\n--   downstream.\n--\n-- * **Inline conjunctions, *not* nested aliases.** Each predicate\n--   inlines its full content (e.g. `IsDAG := IsAcyclic ∧ J = ∅\n--   ∧ L = ∅`) rather than building on smaller pieces (e.g.\n--   `IsDAG := IsADMG ∧ L = ∅`). Two reasons:\n--     1. **Unfolding hygiene.** A nested alias would force callers\n--        proving `G.IsDAG` from its three atomic ingredients to\n--        unfold two layers (`IsDAG → IsADMG ∧ L = ∅ → (IsAcyclic ∧\n--        J = ∅) ∧ L = ∅`) and re-associate the conjunctions every\n--        time. The inline version reads the same on the page and\n--        composes directly with `And.intro` / `obtain ⟨_, _, _⟩`.\n--     2. **Readability.** With seven names and three atomic\n--        ingredients there is no single \"best\" nesting -- e.g. is a\n--        DAG an ADMG without bidirected edges, or a CDAG without\n--        inputs, or both? The LN sidesteps the question by\n--        listing each name's full content; we do the same.\n--\n-- * **All seven are kept, even though some logically imply others.**\n--   `IsDAG → IsADMG → IsDMG` and `IsDAG → IsCDAG → IsCDG`, so a\n--   minimal axiomatisation would only need the three atomic\n--   ingredients plus an `And`. We keep all seven because *every one\n--   of them* is the name a downstream chapter uses for its\n--   preconditions (see the module-level \"Where this gets used\n--   downstream\" list above); collapsing them into atomics would\n--   force every later theorem statement to spell out the three\n--   conjuncts instead of using the LN's name.\n--\n-- * **`def`, not `abbrev`.** An `abbrev` would unfold to\n--   `G.IsAcyclic ∧ ...` automatically at every use site, which\n--   sounds convenient but actually hurts: downstream callers would\n--   see goals like `G.IsAcyclic ∧ G.J = ∅` instead of `G.IsADMG`,\n--   losing the readable name. The `def` keeps the name on the page\n--   in goals; callers who do need the underlying conjunction reach\n--   for `unfold CDMG.IsADMG` (one-liner) or destructure the\n--   hypothesis directly via `obtain ⟨_, _⟩ := hG`.",
+      "statement": "",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 110
+    },
+    {
+      "part": "item 1",
+      "title": "GraphTypes -- CADMG",
+      "comments": "--\n-- A CDMG is a *Conditional Acyclic Directed Mixed Graph* (CADMG)\n-- iff it is acyclic. Inputs `J` and bidirected edges `L` are\n-- unrestricted: a CADMG may still have both. Used pervasively in\n-- chapters 4 -- 6 as the canonical underlying graph for L-CBNs after\n-- marginalising out latents and for the do-calculus / id-algorithm.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 1):\n\n    \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n-/\n/-- The CDMG `G` is a *Conditional Acyclic Directed Mixed Graph\n(CADMG)*: it is acyclic. No restriction on inputs `J` or bidirected\nedges `L`. -/",
+      "statement": "def IsCADMG (G : CDMG α) : Prop := G.IsAcyclic",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 191
+    },
+    {
+      "part": "item 2",
+      "title": "GraphTypes -- DMG",
+      "comments": "--\n-- A CDMG is a *Directed Mixed Graph* (DMG) iff it has no input\n-- nodes (`J = ∅`). Acyclicity is *not* required, and bidirected\n-- edges `L` are allowed. DMGs are the latent-variable graphs of the\n-- LN's pre-causal-discovery chapters (chapters 11 -- 16 condition on\n-- the no-inputs case).\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 2):\n\n    \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n-/\n/-- The CDMG `G` is a *Directed Mixed Graph* (DMG): it has no input\nnodes. Acyclicity is not assumed; bidirected edges `L` are\nallowed. -/",
+      "statement": "def IsDMG (G : CDMG α) : Prop := G.J = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 209
+    },
+    {
+      "part": "item 3",
+      "title": "GraphTypes -- ADMG",
+      "comments": "--\n-- A CDMG is an *Acyclic Directed Mixed Graph* (ADMG) iff it is\n-- acyclic and has no input nodes. Bidirected edges `L` are still\n-- allowed. ADMGs are the canonical ground-truth graph type in the\n-- causal-discovery chapters (FCI in chapter 16); a Partial Ancestral\n-- Graph (PAG) is an equivalence class of ADMGs.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 3):\n\n    \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n-/\n/-- The CDMG `G` is an *Acyclic Directed Mixed Graph* (ADMG): it is\nacyclic and has no input nodes. Bidirected edges `L` are\nallowed. -/",
+      "statement": "def IsADMG (G : CDMG α) : Prop := G.IsAcyclic ∧ G.J = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 227
+    },
+    {
+      "part": "item 4",
+      "title": "GraphTypes -- CDG",
+      "comments": "--\n-- A CDMG is a *Conditional Directed Graph* (CDG) iff it has no\n-- bidirected edges (`L = ∅`). Inputs `J` are still allowed, and\n-- acyclicity is *not* required. CDGs are the natural \"no latent\n-- confounding, but interventions allowed\" intermediary.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 4):\n\n    \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n-/\n/-- The CDMG `G` is a *Conditional Directed Graph* (CDG): it has no\nbidirected edges. Inputs `J` are allowed; acyclicity is not\nassumed. -/",
+      "statement": "def IsCDG (G : CDMG α) : Prop := G.L = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 245
+    },
+    {
+      "part": "item 5",
+      "title": "GraphTypes -- DG",
+      "comments": "--\n-- A CDMG is a *Directed Graph* (DG) iff it has neither input nodes\n-- nor bidirected edges (`J = ∅` and `L = ∅`). Acyclicity is *not*\n-- required, so a DG may contain directed cycles. This is the\n-- classical \"directed graph\" of graph theory, embedded in our\n-- CDMG framework.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 5):\n\n    \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n-/\n/-- The CDMG `G` is a *Directed Graph* (DG): no input nodes and no\nbidirected edges. Acyclicity is not assumed; directed cycles are\nallowed. -/",
+      "statement": "def IsDG (G : CDMG α) : Prop := G.J = ∅ ∧ G.L = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 262
+    },
+    {
+      "part": "item 6",
+      "title": "GraphTypes -- CDAG",
+      "comments": "--\n-- A CDMG is a *Conditional Directed Acyclic Graph* (CDAG) iff it\n-- is acyclic and has no bidirected edges. Inputs `J` are still\n-- allowed. The CDAG is the underlying graph of an L-CBN with input\n-- variables in chapter 4 before any latent marginalisation; the LN\n-- frequently writes \"CDAG $G = (J, V, E)$\" with no `L` component.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 6):\n\n    \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n-/\n/-- The CDMG `G` is a *Conditional Directed Acyclic Graph* (CDAG):\nit is acyclic and has no bidirected edges. Inputs `J` are\nallowed. -/",
+      "statement": "def IsCDAG (G : CDMG α) : Prop := G.IsAcyclic ∧ G.L = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 280
+    },
+    {
+      "part": "item 7",
+      "title": "GraphTypes -- DAG",
+      "comments": "--\n-- A CDMG is a *Directed Acyclic Graph* (DAG) iff it is acyclic and\n-- has neither input nodes nor bidirected edges. This is the\n-- classical DAG of probability theory and graphical models, and the\n-- ground-truth graph type for plain (input-free, latent-free) Causal\n-- Bayesian Networks in chapter 4.\n/-\nVerbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.7, item 7):\n\n    \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n-/\n/-- The CDMG `G` is a *Directed Acyclic Graph* (DAG): it is acyclic,\nhas no input nodes and no bidirected edges. -/",
+      "statement": "def IsDAG (G : CDMG α) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
+      "proof": null,
+      "source_path": "leanification/Chapter3_GraphTheory/Section3_1/GraphTypes.lean",
+      "source_line": 298
+    }
+  ],
+  "lean_explanation": "The file introduces seven `Prop`-valued predicates on a `CDMG α` value, each capturing one of the named graph subclasses (CADMG, DMG, ADMG, CDG, DG, CDAG, DAG). Every predicate is a plain `def` returning `Prop`, defined inside the `Causality.CDMG` namespace so it can be used through dot-projection: writing `G.IsDAG` mirrors the prose \"$G$ is a DAG\" exactly.\n\nThe atomic ingredients reused throughout are `G.IsAcyclic` (from def_3_6) and the field equalities `G.J = ∅` and `G.L = ∅`. The predicates combine these directly with `∧`. For example, `IsCADMG` is just `G.IsAcyclic`; `IsDMG` is `G.J = ∅`; `IsCDG` is `G.L = ∅`; `IsADMG`, `IsDG`, and `IsCDAG` are two-clause conjunctions; and `IsDAG` is the full three-clause `G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅`. No nesting through intermediate aliases is used.\n\nThere are no notable Mathlib-specific gadgets here beyond the `Is`-prefix predicate convention familiar from `Mathlib.Order.Defs` (`IsAntisymm`, `IsTrans`) and `Mathlib.Combinatorics.SimpleGraph.Acyclic` (`IsAcyclic`). The idiom worth flagging is the deliberate avoidance of either a subtype `{G : CDMG α // ...}` or a parallel `structure`: the conditions live entirely at the `Prop` level so downstream theorems can take a `CDMG α` and add a hypothesis `hG : G.IsDAG`, rather than working with coerced bundled records.",
+  "design_choices": "The shared design block explains the rationale at length. First, the predicates are `Prop`-valued rather than encoded as subtypes or new `structure`s. Downstream chapters add conditions like acyclicity as hypotheses on theorems; a subtype would require coercions back to `CDMG α` everywhere and would not match the lecture notes' framing of CADMG/DAG as \"names attached to a CDMG satisfying conditions\" rather than separate objects.\n\nSecond, the predicates live in the `Causality.CDMG` namespace specifically to enable dot-notation (`G.IsCADMG`, `G.IsDAG`), aligning with the existing `G.IsAcyclic`, `G.Adjacent`, and `G.tuh`/`G.hut`/`G.huh` conventions across the chapter.\n\nThird, names are `Is`-prefixed to follow both the local `IsAcyclic` precedent and Mathlib's pervasive `Is...` style, signalling \"property of `G`, not constructor\".\n\nFourth, each predicate inlines its full conjunction instead of layering through smaller aliases (e.g. `IsDAG` is not `IsADMG ∧ L = ∅`). This keeps unfolding shallow, avoids re-associating nested `∧`, and sidesteps an arbitrary choice of nesting hierarchy.\n\nFifth, all seven names are retained even though `IsDAG → IsADMG → IsDMG` and `IsDAG → IsCDAG → IsCDG`. Each name is used verbatim as a hypothesis somewhere downstream, so collapsing to atomics would force every later signature to respell the conjuncts.\n\nFinally, `def` is preferred over `abbrev`: `abbrev` would auto-unfold, exposing `G.IsAcyclic ∧ G.J = ∅` in goals and erasing the readable name. With `def`, callers explicitly `unfold` or destructure when they need the underlying pieces."
+}
