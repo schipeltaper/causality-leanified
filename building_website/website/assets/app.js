@@ -46,6 +46,7 @@ const KATEX_MACROS = {
   "\\Dist":  "\\mathrm{Dist}",
   "\\Sc":    "\\mathrm{Sc}",
   "\\MBl":   "\\mathrm{Mb}",
+  "\\Pred":  "\\mathrm{Pred}",
 
   /* CDMG edge relations — TIKZ arrows in the LN; approximated here.
      `t`/`h`/`s` = tail / arrowhead / star (i.e. "either"). The first
@@ -576,9 +577,7 @@ function renderHome(manifest) {
       el("div", { class: "entry-kind" }, "An MSc thesis experiment"),
       el("h1", { class: "entry-title home-title" }, "Causality, Leanified"),
       el("p", { class: "home-tagline" },
-        "A Lean 4 formalisation of the Forré–Mooij ",
-        el("em", {}, "Causality"),
-        " lecture notes, scaffolded with Claude Code.",
+        "A Lean 4 formalisation of the Causality lecture notes, automatically generated with Claude Code integrated into a scaffold built by Sam Ritchie",
       ),
     ),
 
@@ -591,11 +590,11 @@ function renderHome(manifest) {
         " opens the rendered lecture-notes proof. ",
         el("strong", {}, "Lean explanation"), " and ",
         el("strong", {}, "Design choices"),
-        " surface notes on the formalisation. Pick any row from the sidebar to start.",
+        " surface notes on the formalisation.",
       ),
-      el("p", { class: "home-coverage" },
-        `Coverage right now: ${covered} / ${total} rows from section 3.1 of chapter 3 (Graph Theory). Later sections are queued.`,
-      ),
+      // el("p", { class: "home-coverage" },
+      //   `Coverage right now: ${covered} / ${total} rows from section 3.1 of chapter 3 (Graph Theory). Later sections are queued.`,
+      // ),
     ),
 
     el("section", { class: "home-section" },
@@ -606,7 +605,7 @@ function renderHome(manifest) {
         " (MSc thesis): can a ",
         el("a", { href: "https://claude.com/claude-code", target: "_blank", rel: "noopener" }, "Claude Code"),
         "-driven scaffold automate the formalisation of an entire graduate-level mathematics text? ",
-        "Worker agents formalise the lecture notes row-by-row, ",
+        "Worker agents formalise the lecture notes step-by-step, ",
         el("code", {}, "lake build"),
         " verifies each result, and this site renders the side-by-side review. The scaffold and the full Lean development live in the ",
         el("a", { href: "https://github.com/schipeltaper/causality-leanified", target: "_blank", rel: "noopener" }, "GitHub repository"),
