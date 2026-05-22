@@ -14,7 +14,7 @@ leanification/Chapter<N>_<Title>/Section<N>_<M>/tex/<ref>_for_website.json
 
 This file is produced *by a Claude worker* (see `scaffold/claude_prompts/row_workers/produce_for_website.md`) right after the row is verified solved and right before the per-row commit. So it lands in the same commit as the row's Lean + tex artefacts. A mechanical Python fallback runs if the worker times out or produces invalid JSON.
 
-The orchestrator does NOT update existing solved rows automatically — only newly-solved rows get the worker-produced JSON. Currently-solved rows have a mechanically-extracted version written via the fallback path (good enough for testing but lower prose quality).
+**Status as of today:** every solved row in chapter 3 (33 rows — all of sections 3.1 and 3.2) has a worker-polished JSON. They were regenerated in one batch via `extras/run_for_website_batch.py` after the schema landed, so prose quality is uniform across the chapter. Newly-solved rows from this point on get the worker-produced JSON automatically as part of the orchestrator's cleanup-on-solve flow.
 
 ## JSON schema
 
@@ -65,15 +65,15 @@ Polished Markdown prose explaining the non-obvious encoding decisions. Each deci
 
 ## What the website builder needs to do
 
-Two changes:
+Three changes:
 
 1. **Read `<ref>_for_website.json` directly** instead of regenerating `lean_explanation` / `design_choices` from raw Lean comments. The fields are already in the form the website should display.
 
-2. **Keep using the existing extractors** for the other fields:
-   - The tex statement and tex proof are still at the same paths under `tex/` and should be processed through `tex_to_html.py` as before. The new JSON does **not** include the rendered tex HTML.
-   - The Lean file's raw comments / per-part split / source-line numbers (used for the `lean[]` array of "blocks") can still be extracted from the Lean file directly — `lean_statement` in the new JSON is a *single*, *curated* string for the display panel, not a structured part-by-part decomposition. If you want both, keep your existing structured extractor for the per-part view and use the JSON's `lean_statement` for a "canonical statement" panel.
+2. **Use `lean_statement` (the list) as the per-part decomposition.** This replaces the old workflow of walking the Lean file, finding ref-marker comments, slicing block-by-block, and producing a `lean[]` array of `{comments, statement, proof, source_path, source_line}`. The new JSON's `lean_statement` is already the curated, source-ordered list of `{name, kind, code}` per LN-level sub-statement, with helpers filtered out and `/-- ... -/` doc comments preserved. If you still need `source_path` for "view in repo" links, take it from the top-level `lean_file_path` field; per-line source numbers are not exposed in the JSON and would need to be looked up in the Lean file if essential.
 
-In short: the new JSON gives you (a) the publication-ready prose for the explanation and design-choice panels, and (b) a pre-curated `lean_statement` string. Everything else stays.
+3. **Keep using the existing tex extractor.** The tex statement and tex proof are still at the same paths under `tex/` and should be processed through `tex_to_html.py` as before. The new JSON does **not** include the rendered tex HTML.
+
+In short: the new JSON gives you (a) publication-ready prose for the explanation and design-choice panels, and (b) the structured per-part list of Lean declarations to render. The tex side is unchanged.
 
 ## Pipeline interactions
 
@@ -83,7 +83,12 @@ In short: the new JSON gives you (a) the publication-ready prose for the explana
 
 ## Locating the helper
 
-If you want to spot-check the worker output yourself, the worker prompt is at `scaffold/claude_prompts/row_workers/produce_for_website.md`. The orchestrator runs it via `run_for_website_worker` in `scaffold/solve_chapter.py`. The fallback mechanical extractor (used only if the worker fails) is `generate_for_website` in the same file.
+- **Worker prompt**: `scaffold/claude_prompts/row_workers/produce_for_website.md` — single-shot instructions for the LLM that writes the JSON.
+- **Orchestrator runner**: `run_for_website_worker(row, subsection_folder)` in `scaffold/solve_chapter.py` — called from the `solved` branch of `solve_current_row`, before the per-row commit.
+- **Fallback mechanical extractor**: `generate_for_website` in the same file — fires only when the worker times out, fails to launch, or writes invalid JSON. Produces the same schema (list-shaped `lean_statement`, all the bookkeeping fields), with the prose fields drawn from raw Lean comments rather than polished.
+- **Standalone test / batch helpers** under `extras/`:
+  - `test_for_website_generation.py <chapter> <row_index>` — drive the worker on a single row without involving the orchestrator. Pretty-prints the resulting JSON's structure.
+  - `run_for_website_batch.py <chapter> <start_row> <end_row>` — loop the worker over a contiguous row range (used to regenerate all of section 3.1+3.2 in one go).
 
 ## When this doc can go
 
