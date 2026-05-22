@@ -1,0 +1,11 @@
+{
+  "ref": "def_3_2",
+  "title": "CDMGNotation",
+  "type": "notation",
+  "def_or_claim": "def",
+  "section": "3.1",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+  "lean_statement": "",
+  "lean_explanation": "",
+  "design_choices": ""
+}

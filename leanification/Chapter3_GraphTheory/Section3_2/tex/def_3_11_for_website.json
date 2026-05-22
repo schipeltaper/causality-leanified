@@ -1,0 +1,11 @@
+{
+  "ref": "def_3_11",
+  "title": "NodeSplittingOn",
+  "type": "definition",
+  "def_or_claim": "def",
+  "section": "3.2",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean",
+  "lean_statement": "",
+  "lean_explanation": "",
+  "design_choices": ""
+}

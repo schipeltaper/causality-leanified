@@ -1,0 +1,11 @@
+{
+  "ref": "claim_3_17",
+  "title": "MarginalizationsCommute",
+  "type": "lemma",
+  "def_or_claim": "claim",
+  "section": "3.2",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+  "lean_statement": "",
+  "lean_explanation": "",
+  "design_choices": ""
+}

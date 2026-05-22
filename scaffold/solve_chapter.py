@@ -713,6 +713,192 @@ def build_subsection_main_tex(subsection_folder: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# per-row JSON for the website builder
+# ---------------------------------------------------------------------------
+
+# Lean declaration openers we care about when slicing the statement out
+# of a ref-marker block.
+_DECL_OPENER_RE = re.compile(
+    r"^(theorem|lemma|example|def|abbrev|structure|class|instance|inductive)\b"
+)
+# `:= by` opener for theorem/lemma proofs. We trim the proof body at the
+# first occurrence so the JSON's lean_statement is signature-only.
+_PROOF_OPENER_RE = re.compile(r":=\s*by(\s|$)")
+# Markdown-ish section header we use inside Lean docstrings to split the
+# explanation from the design-choice rationale. Case-insensitive.
+_DESIGN_HEADER_RE = re.compile(r"^\s*--+\s*##+\s*Design choice", re.IGNORECASE)
+
+
+def _ref_marker_re(ref: str) -> re.Pattern[str]:
+    """Compile a regex matching `-- <ref>` or `-- <ref> (part X/Y)`."""
+    return re.compile(
+        r"^--\s+" + re.escape(ref) + r"(\s+\(part\s+\d+/\d+\))?\s*$"
+    )
+
+
+def _strip_lean_comment_markers(text: str) -> str:
+    """Reduce a chunk of Lean source comments to plain prose.
+
+    - drops `-- ` / `--` line prefixes,
+    - removes `/-` and `-/` block markers (keeps the content between),
+    - collapses runs of blank lines to a single blank line,
+    - trims trailing whitespace.
+
+    Lean code inside the chunk (rare in pre-declaration comments) is
+    left as-is since stripping it would corrupt examples.
+    """
+    out: list[str] = []
+    for ln in text.splitlines():
+        s = ln
+        s = re.sub(r"^/-+\s?", "", s)
+        s = re.sub(r"\s?-/$", "", s)
+        if s.startswith("--"):
+            s = s[2:]
+            if s.startswith(" "):
+                s = s[1:]
+        out.append(s.rstrip())
+    # Collapse triple+ blank runs.
+    collapsed: list[str] = []
+    prev_blank = False
+    for ln in out:
+        is_blank = not ln.strip()
+        if is_blank and prev_blank:
+            continue
+        collapsed.append(ln)
+        prev_blank = is_blank
+    return "\n".join(collapsed).strip()
+
+
+def _extract_ref_block(text: str, ref: str
+                       ) -> tuple[list[str], int, int] | None:
+    """Return (lines, marker_idx, decl_idx) for the *first* `-- <ref>`
+    marker block in ``text``. The block runs from the marker line up
+    through the line that opens the declaration (theorem / structure /
+    ...). Returns ``None`` if no marker is found.
+    """
+    lines = text.splitlines()
+    marker = _ref_marker_re(ref)
+    marker_idx = next((i for i, ln in enumerate(lines) if marker.match(ln)),
+                      None)
+    if marker_idx is None:
+        return None
+    decl_idx = None
+    for j in range(marker_idx + 1, len(lines)):
+        if _DECL_OPENER_RE.match(lines[j]):
+            decl_idx = j
+            break
+    if decl_idx is None:
+        return None
+    return lines, marker_idx, decl_idx
+
+
+def _split_explanation_design(comment_lines: list[str]
+                              ) -> tuple[str, str]:
+    """Split the pre-declaration comment block at the `## Design choice`
+    header. Lines before the header become the explanation; lines after
+    become the design-choices section. Either may be empty.
+    """
+    split_at = next(
+        (i for i, ln in enumerate(comment_lines) if _DESIGN_HEADER_RE.search(ln)),
+        None,
+    )
+    if split_at is None:
+        return _strip_lean_comment_markers("\n".join(comment_lines)), ""
+    explanation = _strip_lean_comment_markers(
+        "\n".join(comment_lines[:split_at]))
+    design = _strip_lean_comment_markers(
+        "\n".join(comment_lines[split_at + 1 :]))
+    return explanation, design
+
+
+def _extract_statement_body(lines: list[str], decl_idx: int,
+                            next_marker_re: re.Pattern[str]) -> str:
+    """Slice the Lean declaration starting at ``decl_idx`` and keep the
+    signature only (drop the proof body for theorem/lemma/example).
+
+    Stops at the first of: a line ending in ``:= by``, the next
+    ref-marker, the next top-level declaration, or end-of-file.
+    """
+    head = _DECL_OPENER_RE.match(lines[decl_idx])
+    kind = head.group(1) if head else ""
+    is_thm = kind in {"theorem", "lemma", "example"}
+    out: list[str] = []
+    for j in range(decl_idx, len(lines)):
+        ln = lines[j]
+        if j > decl_idx and (next_marker_re.match(ln)
+                             or _DECL_OPENER_RE.match(ln)):
+            break
+        out.append(ln)
+        if is_thm and _PROOF_OPENER_RE.search(ln):
+            break
+    return "\n".join(out).rstrip()
+
+
+def generate_for_website(row: dict, subsection_folder: Path) -> None:
+    """Post-solve helper: write
+    ``<subsection_folder>/tex/<ref>_for_website.json`` with the per-row
+    info the website builder consumes (the four fields beyond the
+    existing tex statement/proof):
+
+      - ``lean_file_path``: repo-relative path of the canonical Lean file.
+      - ``lean_statement``: the *signature only* (theorem/lemma trimmed at
+        ``:= by``; structure/def kept whole). Comments stripped.
+      - ``lean_explanation``: pre-declaration comments preceding any
+        ``## Design choice`` marker, ``--``-stripped.
+      - ``design_choices``: post-``## Design choice`` comments, same
+        cleanup.
+
+    Best-effort: a missing main_lean_file, a missing ref-marker, or an
+    un-trimmable declaration just yields a file with empty fields rather
+    than aborting the orchestrator.
+    """
+    main_lean = row.get("main_lean_file") or ""
+    ref = row["ref"]
+    tex_dir = subsection_folder / "tex"
+    out_path = tex_dir / f"{ref}_for_website.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload: dict = {
+        "ref":            ref,
+        "title":          row.get("title", ""),
+        "type":           row.get("type", ""),
+        "def_or_claim":   row.get("def_or_claim", ""),
+        "section":        row.get("section", ""),
+        "lean_file_path": main_lean,
+        "lean_statement": "",
+        "lean_explanation": "",
+        "design_choices": "",
+    }
+
+    if main_lean:
+        lean_abs = REPO_ROOT / main_lean
+        if lean_abs.exists():
+            text = lean_abs.read_text(encoding="utf-8")
+            block = _extract_ref_block(text, ref)
+            if block is not None:
+                lines, marker_idx, decl_idx = block
+                # Pre-declaration comments: from one line after the marker
+                # (title comment line) through the line before the decl.
+                comments = lines[marker_idx + 1 : decl_idx]
+                # Drop the "title:" comment from the explanation -- it's
+                # a bookkeeping line, not user-facing prose.
+                if comments and re.match(r"^--\s*title:", comments[0]):
+                    comments = comments[1:]
+                explanation, design = _split_explanation_design(comments)
+                payload["lean_explanation"] = explanation
+                payload["design_choices"] = design
+                payload["lean_statement"] = _extract_statement_body(
+                    lines, decl_idx, _ref_marker_re(ref))
+
+    out_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"[orchestrator] wrote for-website JSON: {out_path.name}",
+          flush=True)
+
+
+# ---------------------------------------------------------------------------
 # per-row commit on solve
 # ---------------------------------------------------------------------------
 
@@ -1704,6 +1890,7 @@ def solve_current_row() -> None:
                         state.data_path.parent, section)
                     cleanup_row_artefacts(state.row, subsection_folder)
                     build_row_tex(state.row, subsection_folder)
+                    generate_for_website(state.row, subsection_folder)
                     if subsection_is_complete(data, section):
                         print(f"[orchestrator] section {section} now fully "
                               f"solved -- building aggregate main.tex",
