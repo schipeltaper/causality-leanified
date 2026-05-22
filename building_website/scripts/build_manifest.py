@@ -18,13 +18,36 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
 REPO_ROOT     = Path(__file__).resolve().parents[2]
-WEBSITE_DATA  = REPO_ROOT / "building_website" / "website" / "data"
+WEBSITE       = REPO_ROOT / "building_website" / "website"
+WEBSITE_DATA  = WEBSITE / "data"
 MANIFEST_PATH = WEBSITE_DATA / "manifest.json"
+
+
+def stamp_assets() -> None:
+    """Cache-bust `app.js` / `style.css` in index.html.
+
+    GitHub Pages serves assets with a 10-minute cache; a browser holding
+    a stale `app.js` against freshly-deployed `data/*.json` renders blank
+    panes. Appending a content-hash `?v=` query string forces a refetch
+    whenever either asset actually changes. Runs in CI on every deploy,
+    so the stamp always matches the deployed bytes."""
+    index = WEBSITE / "index.html"
+    h = hashlib.sha256()
+    for name in ("assets/app.js", "assets/style.css"):
+        h.update((WEBSITE / name).read_bytes())
+    ver = h.hexdigest()[:10]
+    html = index.read_text(encoding="utf-8")
+    html = re.sub(r"assets/app\.js(\?v=[0-9a-f]+)?",   f"assets/app.js?v={ver}",   html)
+    html = re.sub(r"assets/style\.css(\?v=[0-9a-f]+)?", f"assets/style.css?v={ver}", html)
+    index.write_text(html, encoding="utf-8")
+    print(f"stamped index.html assets with ?v={ver}", file=sys.stderr)
 
 # Edit this to expand coverage. Keys are chapter numbers; values list the
 # sections to include (None = all sections in that chapter).
@@ -89,6 +112,7 @@ def main() -> None:
         encoding="utf-8",
     )
     print(f"wrote {MANIFEST_PATH.relative_to(REPO_ROOT)}", file=sys.stderr)
+    stamp_assets()
 
 
 if __name__ == "__main__":

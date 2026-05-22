@@ -652,6 +652,12 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 .markdown-body strong { font-weight: 600; }
 .markdown-body a { color: var(--accent); }
 
+/* `\Claude{…}` annotation macro, used in some proof .tex files. */
+.claude-note {
+  color: #4078f2;
+  font-style: italic;
+}
+
 /* Toggle button (Lean explanation / Design choices) — looks like the other
    .btn instances, but with an "active" state when the panel is open. */
 .btn-toggle {

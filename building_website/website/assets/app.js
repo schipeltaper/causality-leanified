@@ -22,42 +22,72 @@ const REPO_BRANCH = "main";  // the file viewers link to this branch
    only ever used as bare operator-style tokens (`v_1 \tuh v_2`).
    Extend this dict as new macros surface in later sections.            */
 const KATEX_MACROS = {
+  /* delimiter pairs ( \lp…\rp, \lB…\rB, \lI…\rI, \lC…\rC ) */
+  "\\lp": "\\left(",  "\\rp": "\\right)",
+  "\\lt": "\\left(",  "\\rt": "\\right)",
+  "\\lB": "\\left[",  "\\rB": "\\right]",
+  "\\lI": "\\left|",  "\\rI": "\\right|",
+  "\\lC": "\\left\\{","\\rC": "\\right\\}",
+
   /* set operations */
-  "\\ins":  "\\subseteq",
-  "\\x":    "\\times",
-  "\\sm":   "\\setminus",
-  "\\id":   "\\mathrm{id}",
+  "\\ins": "\\subseteq",  "\\sni": "\\supseteq",
+  "\\sm":  "\\setminus",  "\\x":   "\\times",
+  "\\dcup": "\\mathbin{\\dot{\\cup}}",
+  "\\bigdcup": "\\bigsqcup",
+  "\\cmpl": "\\mathsf{c}",
 
-  /* number sets */
-  "\\N":    "\\mathbb{N}",
-  "\\Z":    "\\mathbb{Z}",
-  "\\R":    "\\mathbb{R}",
-  "\\Q":    "\\mathbb{Q}",
+  /* "such that" / conditioning bars */
+  "\\st":     "\\mid",
+  "\\given":  "\\mid",
+  "\\kgiven": "\\,\\|\\,",
 
-  /* large brace delimiter pair  ( \lC … \rC )  */
-  "\\lC":   "\\left\\{",
-  "\\rC":   "\\right\\}",
+  /* number sets / blackboard */
+  "\\N": "\\mathbb{N}", "\\Z": "\\mathbb{Z}",
+  "\\R": "\\mathbb{R}", "\\Q": "\\mathbb{Q}",
+  "\\E": "\\mathbb{E}", "\\Exp": "\\mathbb{E}",
+  "\\I": "\\mathbf{1}",
+
+  /* decorations */
+  "\\id": "\\mathrm{id}",
+  "\\ol": "\\overline",  "\\ul": "\\underline",
 
   /* graph-theoretic roman operators */
-  "\\Pa":    "\\mathrm{Pa}",
-  "\\Ch":    "\\mathrm{Ch}",
-  "\\Anc":   "\\mathrm{Anc}",
-  "\\Desc":  "\\mathrm{Desc}",
-  "\\Dist":  "\\mathrm{Dist}",
-  "\\Sc":    "\\mathrm{Sc}",
-  "\\MBl":   "\\mathrm{Mb}",
-  "\\Pred":  "\\mathrm{Pred}",
+  "\\Pa": "\\mathrm{Pa}",   "\\pa": "\\mathrm{pa}",
+  "\\Ch": "\\mathrm{Ch}",   "\\Anc": "\\mathrm{Anc}",
+  "\\Desc": "\\mathrm{Desc}", "\\NonDesc": "\\mathrm{NonDesc}",
+  "\\Dist": "\\mathrm{Dist}", "\\Sc": "\\mathrm{Sc}",
+  "\\MBl": "\\mathrm{Mb}",  "\\Pred": "\\mathrm{Pred}",
+  "\\Adj": "\\mathrm{Adj}", "\\AnCl": "\\mathrm{AnCl}",
+  "\\Ant": "\\mathrm{Ant}", "\\Fa": "\\mathrm{Fa}",
+  "\\Nb": "\\mathrm{Nb}",   "\\Sib": "\\mathrm{Sib}",
+  "\\Di": "\\mathrm{Di}",
 
-  /* CDMG edge relations — TIKZ arrows in the LN; approximated here.
-     `t`/`h`/`s` = tail / arrowhead / star (i.e. "either"). The first
-     letter is the endpoint at the LEFT argument, the second at the
-     RIGHT argument. So `\tuh` = tail-…-head (right arrow), etc.       */
-  "\\tuh":   "\\mathrel{\\rightarrow}",
-  "\\hut":   "\\mathrel{\\leftarrow}",
-  "\\huh":   "\\mathrel{\\leftrightarrow}",
-  "\\hus":   "\\mathrel{\\leftarrow\\!{*}}",
-  "\\suh":   "\\mathrel{{*}\\!\\rightarrow}",
-  "\\sus":   "\\mathrel{{*}\\!\\leftrightarrow\\!{*}}",
+  /* construction / do-calculus operators */
+  "\\doit": "\\operatorname{do}",
+  "\\swig": "\\mathrm{swig}",
+  "\\spl":  "\\mathrm{split}",
+  "\\marg": "\\mathrm{mar}",  "\\moral": "\\mathrm{mor}",
+  "\\ske":  "\\mathrm{ske}",  "\\can":  "\\mathrm{can}",
+  "\\aug":  "\\mathrm{aug}",  "\\acy":  "\\mathrm{acy}",
+
+  /* (conditional) independence */
+  "\\Indep":  "\\mathrel{\\perp\\!\\!\\!\\perp}",
+  "\\nIndep": "\\mathrel{\\not\\mkern-2mu\\perp\\!\\!\\!\\perp}",
+  "\\Perp":   "\\perp",
+
+  /* CDMG / PAG edge relations — TIKZ arrows in the LN; approximated
+     here. `t`/`h`/`s`/`o` = tail / arrowhead / star ("either") /
+     circle. The first letter is the endpoint at the LEFT argument,
+     the second at the RIGHT. So `\tuh` = tail-…-head (right arrow). */
+  "\\tuh": "\\mathrel{\\rightarrow}",
+  "\\hut": "\\mathrel{\\leftarrow}",
+  "\\huh": "\\mathrel{\\leftrightarrow}",
+  "\\hus": "\\mathrel{\\leftarrow\\!{*}}",
+  "\\suh": "\\mathrel{{*}\\!\\rightarrow}",
+  "\\sus": "\\mathrel{{*}\\!\\leftrightarrow\\!{*}}",
+  "\\ot":  "\\mathrel{\\leftarrow}",
+  "\\oto": "\\mathrel{\\leftrightarrow}",
+  "\\tut": "\\mathrel{-}",
 };
 
 /* `\Acal` … `\Zcal`  →  `\mathcal{A}` … `\mathcal{Z}`, plus the `\Abf`
