@@ -191,6 +191,11 @@ def create_data(current_chapter, title_chapter):
             "actions_tracking",
             "tex_block",
             "agent_registry",   # session ids of agents the manager can resume
+            "time_needed_to_solve",   # cumulative seconds the orchestrator
+                                      # has spent on this row across runs;
+                                      # only ticks while solve_chapter is
+                                      # actively working on it (sleeping
+                                      # during usage-limit pauses counts).
         ],
         "rows": [],
     }

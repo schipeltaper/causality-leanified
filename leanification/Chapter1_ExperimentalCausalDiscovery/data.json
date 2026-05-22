@@ -17,7 +17,8 @@
     "lean_files",
     "actions_tracking",
     "tex_block",
-    "agent_registry"
+    "agent_registry",
+    "time_needed_to_solve"
   ],
   "rows": []
 }

@@ -13,7 +13,6 @@
 % ref: __REF__
 % title: __TITLE__
 \def\rowref{__REF_TEXT__}
-\def\rowtitle{__TITLE__}
 \phantomsection\label{__REF__}
 
 __BODY__

@@ -1,14 +1,10 @@
 % Claim proof file for row claim_3_19 -- "MarginalizingOutThe".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Proof lifted verbatim from lecture-notes/lecture_notes/graphs.tex lines
+% 1177--1210 (the LN's `\Claude{...}` wrapper stripped). The LN proof
+% already follows the three-section Node-sets / Directed-edges /
+% Bidirected-edges skeleton called for in the worker prompt; no
+% adaptation was needed.
 %
 % Compiles standalone via the `subfiles` package.
 
@@ -18,7 +14,6 @@
 % ref: claim_3_19 (proof, with statement restated for readability)
 % title: MarginalizingOutThe
 \def\rowref{claim\_3\_19}
-\def\rowtitle{MarginalizingOutThe}
 \phantomsection\label{claim_3_19}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
@@ -35,7 +30,38 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+We establish the isomorphism $G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}$ via the map $\phi$ that is the identity on $J \cup (V \sm W)$ and sends $w^i \mapsto w$ for each $w \in W$.
+
+Recall:
+\begin{itemize}
+    \item $G_{\doit(W)}$ has input nodes $J \cup W$, output nodes $V \sm W$, directed edges $E \sm \{v \tuh w \mid w \in W\}$, and bidirected edges $L \sm \{v \huh w \mid w \in W\}$.
+    \item $G_{\swig(W)}$ has input nodes $J \dcup W^i$, output nodes $(V \sm W) \dcup W^o$, directed edges $\{v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E\}$, and bidirected edges $\{v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L\}$ (where $v^i = v^o = v$ for $v \notin W$).
+\end{itemize}
+
+\medskip\noindent\emph{Node sets.}
+After marginalizing out $W^o$:
+input nodes $J \dcup W^i$ (unchanged) and output nodes $(V \sm W) \dcup W^o \sm W^o = V \sm W$.
+Under $\phi$ ($w^i \mapsto w$) this matches $G_{\doit(W)}$: input nodes $J \cup W$, output nodes $V \sm W$.
+
+\medskip\noindent\emph{Directed edges.}
+In $G_{\swig(W)}$, nodes $w^o \in W^o$ have no outgoing directed edges (all outgoing edges of $w$ go to $w^i$, not $w^o$).
+Therefore no directed walk can pass through a node in $W^o$ as an intermediate node.
+Hence the marginalization step does not create any new directed edges: $\ul{v} \tuh \ol{v} \in (E_{\swig(W)})^{\sm W^o}$ iff $\ul{v} \tuh \ol{v} \in E_{\swig(W)}$ with $\ul{v},\ol{v} \notin W^o$.
+
+Such an edge corresponds to some $v_1 \tuh v_2 \in E$ with $\ul{v} = v_1^i$ and $\ol{v} = v_2^o$.
+Since $\ol{v} \notin W^o$, we have $v_2 \notin W$, so $v_2^o = v_2$.
+Under $\phi$: $\phi(\ul{v}) \tuh \phi(\ol{v}) = v_1 \tuh v_2 \in E$ with $v_2 \notin W$,
+i.e.\ $v_1 \tuh v_2 \in E_{\doit(W)}$.
+Conversely, every edge in $E_{\doit(W)}$ lifts to an edge in $E_{\swig(W)}$ with both endpoints outside $W^o$.
+
+\medskip\noindent\emph{Bidirected edges.}
+Let $\ul{v}, \ol{v} \in V \sm W$, $\ul{v} \neq \ol{v}$.
+Since nodes in $W^o$ have no outgoing directed edges, the only bifurcations in $G_{\swig(W)}$ with intermediate nodes in $W^o$ reduce to a single bidirected edge (the directed arms of the bifurcation cannot extend through $W^o$).
+So $\ul{v} \huh \ol{v} \in (L_{\swig(W)})^{\sm W^o}$ iff $\ul{v} \huh \ol{v} \in L_{\swig(W)}$, i.e.\ iff $\ul{v} \huh \ol{v} \in L$ (since $\ul{v}^o = \ul{v}$ and $\ol{v}^o = \ol{v}$ for $\ul{v}, \ol{v} \notin W$).
+Under $\phi$ this matches $\ul{v} \huh \ol{v} \in L_{\doit(W)} = L \sm \{v \huh w \mid w \in W\}$, which equals $\ul{v} \huh \ol{v} \in L$ since $\ul{v}, \ol{v} \notin W$.
+
+\medskip
+Since $\phi$ provides a bijection on nodes that preserves input/output status and all edges, the two CDMGs are isomorphic.
 \end{proof}
 
 \end{document}

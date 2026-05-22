@@ -1,14 +1,11 @@
 % Claim proof file for row claim_3_17 -- "MarginalizationsCommute".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Proof lifted from lecture-notes/lecture_notes/graphs.tex:1007--1117 (the
+% \Claude{...} block immediately following the claim). Light edits only:
+% an explicit \refrow{def_3_14} cross-link the first time the marginalization
+% 4-tuple is unpacked, and the LN's outer \Claude{...} wrapper stripped.
+% The %\TODO{...} comment-note at LN line 1110 is preserved verbatim (as a
+% TeX `%` comment) for audit-trail purposes; it does not affect compilation.
 %
 % Compiles standalone via the `subfiles` package.
 
@@ -18,7 +15,6 @@
 % ref: claim_3_17 (proof, with statement restated for readability)
 % title: MarginalizationsCommute
 \def\rowref{claim\_3\_17}
-\def\rowtitle{MarginalizationsCommute}
 \phantomsection\label{claim_3_17}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
@@ -36,7 +32,115 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+We show $\lp G^{\sm W_1}\rp^{\sm W_2} = G^{\sm(W_1 \cup W_2)}$; the other equality then follows by symmetry (swapping $W_1$ and $W_2$).
+By \refrow{def_3_14} each side is a CDMG presented as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$.
+Both graphs have input nodes $J$ and output nodes $V \sm (W_1 \cup W_2)$.
+It remains to show that the directed and bidirected edge sets coincide.
+
+\medskip\noindent\emph{Directed edges.}
+We show: for $\ul{v},\ol{v} \in J \cup V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$, there is a directed walk
+$\ul{v} = u_0 \tuh u_1 \tuh \cdots \tuh u_m = \ol{v}$
+in $G^{\sm W_1}$ with all intermediate nodes $u_1,\dots,u_{m-1} \in W_2$.
+Each edge $u_i \tuh u_{i+1} \in E^{\sm W_1}$ corresponds to a directed walk
+in $G$ from $u_i$ to $u_{i+1}$ with intermediate nodes in $W_1$.
+Concatenating all these walks yields a directed walk from $\ul{v}$ to $\ol{v}$
+in $G$ with all intermediate nodes in $W_1 \cup W_2$, so
+$\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$, there is a directed walk
+$\ul{v} = a_0 \tuh a_1 \tuh \cdots \tuh a_n = \ol{v}$
+in $G$ with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+Extract the subsequence of nodes not in $W_1$:
+$\ul{v}=b_0, b_1, \dots, b_r, b_{r+1}=\ol{v}$ with $b_1,\dots,b_r \in W_2$.
+Between consecutive nodes $b_j$ and $b_{j+1}$, all intermediate nodes of
+the original walk lie in $W_1$, so $b_j \tuh b_{j+1} \in E^{\sm W_1}$.
+This gives a directed walk from $\ul{v}$ to $\ol{v}$ in $G^{\sm W_1}$
+with intermediate nodes in $W_2$, hence
+$\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$.
+
+\medskip\noindent\emph{Bidirected edges.}
+We show: for distinct $\ul{v}, \ol{v} \in V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$, there exists a bifurcation
+in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_2$:
+\[
+  \ul{v} \hut u_1 \hut \cdots \hut u_{k-1} \hus u_k \tuh \cdots \tuh u_{m-1} \tuh \ol{v}
+\]
+with $u_1,\dots,u_{m-1} \in W_2$.
+Each directed edge on the bifurcation (in $E^{\sm W_1}$) expands to a directed walk
+in $G$ with intermediate nodes in $W_1$.
+If the hinge edge $u_{k-1} \hus u_k$ is directed ($u_{k-1} \hut u_k \in E^{\sm W_1}$),
+it likewise expands to a directed walk in $G$ through $W_1$.
+If the hinge edge is bidirected ($u_{k-1} \huh u_k \in L^{\sm W_1}$),
+it expands to a bifurcation in $G$ between $u_{k-1}$ and $u_k$ with intermediate nodes in $W_1$.
+Substituting all these expansions into the bifurcation yields a bifurcation in $G$
+between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_1 \cup W_2$,
+so $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$, there exists a bifurcation in $G$:
+\[
+  \ul{v} = a_0 \hut a_1 \hut \cdots \hut a_{k-1} \hus a_k \tuh \cdots \tuh a_{n-1} \tuh a_n = \ol{v}
+\]
+with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+We construct a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+
+\emph{Left arm.}
+Reading the left arm in forward direction gives a directed walk in $G$:
+$a_{k^*} \tuh \cdots \tuh a_1 \tuh \ul{v},$
+where $a_{k^*}$ equals $a_k$ if the hinge is directed ($a_{k-1} \hut a_k$) and
+$a_{k^*}$ equals $a_{k-1}$ if the hinge is bidirected ($a_{k-1} \huh a_k$).
+All intermediate nodes of this directed walk lie in $W_1 \cup W_2$.
+Extracting the subsequence of non-$W_1$ nodes and applying the same argument as
+for directed edges gives a directed walk from $a_{k^*}$ (or its
+first non-$W_1$ descendant on this arm) to $\ul{v}$ in $G^{\sm W_1}$ with
+intermediate nodes in $W_2$.
+
+\emph{Right arm.}
+Similarly, $a_k \tuh \cdots \tuh a_{n-1} \tuh \ol{v}$ is a directed walk in $G$
+with intermediate nodes in $W_1 \cup W_2$.
+The non-$W_1$ extraction gives a directed walk in $G^{\sm W_1}$ from
+$a_k$ (or its first non-$W_1$ descendant on this arm) to $\ol{v}$
+with intermediate nodes in $W_2$.
+
+\emph{Hinge.}
+Let $\beta$ be the first non-$W_1$ node reached from the hinge going along
+the left arm towards $\ul{v}$ (or $\ul{v}$ itself if all intermediate left-arm
+nodes lie in $W_1$).
+Let $\gamma$ be the first non-$W_1$ node reached from the hinge going along
+the right arm towards $\ol{v}$ (or $\ol{v}$ itself if all intermediate right-arm
+nodes lie in $W_1$).
+
+If $\beta \neq \gamma$: the subwalk from $\beta$ backwards along the left arm,
+through the hinge, and forward along the right arm to $\gamma$
+is a bifurcation in $G$ with all intermediate nodes in $W_1$, so
+$\beta \huh \gamma \in L^{\sm W_1}$.
+
+If $\beta = \gamma$: all nodes between $\beta$ and the hinge on both arms lie in $W_1$,
+so the node $\beta$ is the source of directed walks to both $\ul{v}$ and $\ol{v}$
+in $G^{\sm W_1}$ (with intermediate nodes in $W_2$).
+%\TODO{The previous version incorrectly claimed ``the case $\beta=\gamma$ with a bidirected hinge cannot occur'', but the at-most-one-arrowhead condition is per occurrence, not per node, so this case CAN occur. The conclusion is still correct: $\beta=\gamma$ is a source of directed walks to both endpoints regardless of hinge type.}
+
+In all cases, assembling the contracted left arm, the contracted hinge
+($\beta \huh \gamma$ or source~$\beta{=}\gamma$), and the contracted right arm yields
+a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate
+nodes in $W_2$.
+Hence $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$.
 \end{proof}
 
 \end{document}

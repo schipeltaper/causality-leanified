@@ -328,6 +328,30 @@ def _rewrite_env_to_type(body: str, row_type: str) -> str:
     return f"\\begin{{{target}}}{inner}\\end{{{target}}}"
 
 
+# Envs whose header should display a title via the refprefix theoremstyle.
+# Used when injecting the row's data.json title into a bare \begin{Env}.
+_TITLED_ENVS = set(TYPE_TO_ENV.values()) | {"Rem", "Note"}
+
+_BARE_ENV_OPENER_RE = re.compile(
+    r"\\begin\{(?P<name>[A-Za-z*]+)\}(?!\s*\[)"
+)
+
+
+def _inject_title_into_bare_env(body: str, title: str) -> str:
+    """Inject ``[<title>]`` into the first bare ``\\begin{X}`` whose env is
+    in ``_TITLED_ENVS`` (theorem-like envs declared in the preamble).
+    Non-theorem envs (``document``, ``itemize``, ``proof``, ...) are
+    skipped so we don't pollute generic block openers.
+    """
+    if not title:
+        return body
+    for m in _BARE_ENV_OPENER_RE.finditer(body):
+        if m.group("name") in _TITLED_ENVS:
+            i = m.end()
+            return body[:i] + f"[{title}]" + body[i:]
+    return body
+
+
 def _render_template(name: str, **values: str) -> str:
     """Substitute ``__KEY__`` placeholders in
     ``scaffold/tex_templates/<name>.tex.template``. Missing keys are left
@@ -403,8 +427,12 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
     # Align the theorem env in the LN tex_block with the row's `type`
     # column (e.g. a "lemma" row goes into a \begin{Lem} regardless of what
     # the LN happened to use). The refprefix theoremstyle in the preamble
-    # then renders the header as "<ref> <ThmName> <title>".
+    # then renders the header as "<ref> <ThmName> -- <title>".
     body_from_block = _rewrite_env_to_type(body_from_block, row.get("type", ""))
+    # If the env opener has no [<arg>] optional argument, inject the row's
+    # data.json title there so every rendered header has a name.
+    body_from_block = _inject_title_into_bare_env(
+        body_from_block, row.get("title", ""))
     # `REF` (catcode-8 underscores) is fine inside \label / \refrow because
     # hyperref stores labels as opaque strings; but \rowref expands in text
     # mode, so its `_` chars must be escaped. `REF_TEXT` is the
@@ -766,9 +794,29 @@ def _parse_usage_limit_wait(stderr: str, stdout: str) -> int | None:
     return secs if secs > 0 else 3600
 
 
+class WorkerTimeoutError(RuntimeError):
+    """Raised by run_claude when the per-call wallclock cap fires before the
+    `claude -p` subprocess returns.
+
+    Distinct from generic ``RuntimeError`` (which run_claude raises on
+    exhausted retries) so callers can decide whether a timeout is fatal
+    (manager turn) or recoverable by telling the manager (worker turn).
+    """
+
+
+# Module-level hook so run_claude can notify the active row time-tracker
+# (set by solve_current_row) when a usage-limit sleep is about to start /
+# has just ended. The tracker uses these to *exclude* the sleep duration
+# from time_needed_to_solve. ``None`` means no active tracker (e.g. when
+# pick_title_for_row runs before the tracker is installed).
+_ACTIVE_TRACKER_SLEEP_CB: "callable | None" = None
+
+
 def run_claude(prompt: str, label: str,
                *, resume_session: str | None = None,
-               retries: int = 1) -> tuple[str, str | None]:
+               retries: int = 1,
+               on_usage_limit_sleep: "callable | None" = None,
+               ) -> tuple[str, str | None]:
     """Run ``claude -p`` non-interactively and return ``(text, session_id)``.
 
     - The model is locked to Opus 4.7 with effort=max.
@@ -785,9 +833,15 @@ def run_claude(prompt: str, label: str,
       indefinitely. The total wall clock spent on the row is still capped by
       ``MAX_RUNTIME_SECONDS`` -- the row's elapsed clock advances during
       the sleep, so a long limit pause can still trigger a clean exit.
+    - ``on_usage_limit_sleep`` is an optional callable ``(phase, seconds)``
+      invoked as ``("pause", wait)`` immediately before each usage-limit
+      sleep and ``("resume", wait)`` immediately after. Used by the row
+      time-tracker to *exclude* the sleep duration from
+      ``time_needed_to_solve`` (otherwise a multi-hour quota wait would
+      inflate the row's "active" time).
 
-    Raises ``RuntimeError`` only when generic retries are exhausted, or on
-    a per-call timeout.
+    Raises ``WorkerTimeoutError`` if the per-call timeout fires, or
+    ``RuntimeError`` when generic retries are exhausted.
     """
     cmd = ["claude", "-p", prompt, "--dangerously-skip-permissions",
            "--model", CLAUDE_MODEL,
@@ -806,8 +860,9 @@ def run_claude(prompt: str, label: str,
                 timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
             )
         except subprocess.TimeoutExpired as e:
-            raise RuntimeError(
-                f"claude call '{label}' timed out (attempt {attempt})"
+            raise WorkerTimeoutError(
+                f"claude call '{label}' timed out after "
+                f"{PER_CALL_TIMEOUT_SECONDS//60} min (attempt {attempt})"
             ) from e
 
         if result.returncode == 0:
@@ -818,7 +873,12 @@ def run_claude(prompt: str, label: str,
         if wait is not None:
             print(f"[run_claude] '{label}' hit a usage limit; sleeping "
                   f"{wait}s before retrying...", flush=True)
+            cb = on_usage_limit_sleep or _ACTIVE_TRACKER_SLEEP_CB
+            if cb is not None:
+                cb("pause", wait)
             time.sleep(wait)
+            if cb is not None:
+                cb("resume", wait)
             attempt -= 1   # this attempt is "free"
             continue
 
@@ -1326,6 +1386,13 @@ def solve_current_row() -> None:
     Stops on any of: row reaches a terminal state, 8-hour budget exhausted,
     or MAX_TURNS reached. The data.json is saved after every meaningful state
     change so an interrupted run leaves a recoverable trail.
+
+    Per-row wall-clock is accumulated in ``row["time_needed_to_solve"]``
+    (seconds). The counter only advances while *this* function is on the
+    stack -- across-session waits don't count, but in-session sleeps
+    (usage-limit pauses, subprocess work) do. A ``try / finally`` around
+    the loop guarantees that every exit path persists the partial time so
+    the next invocation resumes from the right baseline.
     """
     chapter = read_current_chapter()
     data_path = find_chapter_data_path(chapter)
@@ -1337,9 +1404,37 @@ def solve_current_row() -> None:
         row_index=row_index,
         row=data["rows"][row_index],
     )
+    # Ensure the time counter exists (older rows may not have it).
+    state.row.setdefault("time_needed_to_solve", 0)
+    prior_seconds = int(state.row["time_needed_to_solve"])
+
+    # Resume-from-previous-session signals: a non-empty workspace, a
+    # populated agent_registry, or a non-zero accumulated time all mean
+    # the row was already being worked on. Surface this loud + clear.
+    section_at_start = state.row.get("section", "")
+    workspace_exists = False
+    if section_at_start:
+        ss = ensure_subsection_folder(state.data_path.parent, section_at_start)
+        workspace_exists = workspace_path_for_row(state.row, ss).exists()
+    n_registry = len(state.row.get("agent_registry", []) or [])
+    resume_signals = []
+    if prior_seconds:
+        resume_signals.append(
+            f"{prior_seconds//60}m{prior_seconds%60:02d}s already spent")
+    if workspace_exists:
+        resume_signals.append("workspace markdown present")
+    if n_registry:
+        resume_signals.append(f"{n_registry} resumable agent session(s)")
+
     print(f"[orchestrator] solving {state.ref} "
           f"({state.row['def_or_claim']}, section {state.row.get('section')}) "
           f"from {data_path.name}", flush=True)
+    if resume_signals:
+        print(f"[orchestrator] RESUMING from prior session(s): "
+              f"{'; '.join(resume_signals)}", flush=True)
+    else:
+        print(f"[orchestrator] fresh start (no prior session artefacts).",
+              flush=True)
 
     # Pre-flight setup before the manager loop starts:
     #   1. If the row's title is empty, run a quick claude -p call to pick a
@@ -1365,9 +1460,44 @@ def solve_current_row() -> None:
     # manager can be told (and the human can pre-seed answers to old requests).
     ensure_request_from_human_file(state.data_path.parent)
 
+    # Per-turn wall-clock accumulator. `time_mark` is updated each time we
+    # persist; `persist_time` flushes the delta into `time_needed_to_solve`
+    # and re-saves data.json so the value survives interruption.
+    time_mark = time.monotonic()
+
+    def persist_time() -> None:
+        nonlocal time_mark
+        now = time.monotonic()
+        delta = now - time_mark
+        if delta <= 0:
+            return
+        state.row["time_needed_to_solve"] = round(
+            state.row.get("time_needed_to_solve", 0) + delta
+        )
+        save_data(state.data_path, data)
+        time_mark = now
+
+    def on_usage_limit_sleep(phase: str, _seconds: int) -> None:
+        """Pause/resume the time tracker around usage-limit sleeps so the
+        sleep duration doesn't inflate the row's ``time_needed_to_solve``.
+        ``pause`` flushes the pre-sleep delta; ``resume`` resets the
+        baseline to "now" so the sleep itself is never counted.
+        """
+        nonlocal time_mark
+        if phase == "pause":
+            persist_time()
+        elif phase == "resume":
+            time_mark = time.monotonic()
+
+    # Install the module-level hook so run_claude (and helpers that call it)
+    # find our pause/resume callback without needing it as an explicit kwarg.
+    global _ACTIVE_TRACKER_SLEEP_CB
+    _ACTIVE_TRACKER_SLEEP_CB = on_usage_limit_sleep
+
     extra_note: str | None = None
 
-    for turn in range(1, MAX_TURNS + 1):
+    try:
+      for turn in range(1, MAX_TURNS + 1):
         # --- Budget check --------------------------------------------------
         if state.elapsed_seconds > MAX_RUNTIME_SECONDS:
             print(f"[orchestrator] 8-hour budget exhausted after {turn-1} "
@@ -1383,8 +1513,24 @@ def solve_current_row() -> None:
               f"(elapsed {state.elapsed_seconds/60:.1f} min)", flush=True)
         manager_prompt = build_manager_prompt(state, extra_note=extra_note)
         extra_note = None
-        manager_reply, manager_session = run_claude(
-            manager_prompt, label=f"t{turn:03d}_manager")
+        # Manager-call timeout: retry a few times before giving up. A
+        # repeated hang here means the LLM service or auth is broken and
+        # the orchestrator can't make progress; we exit cleanly so a
+        # future invocation picks up where we left off.
+        for mgr_attempt in range(1, 4):
+            try:
+                manager_reply, manager_session = run_claude(
+                    manager_prompt, label=f"t{turn:03d}_manager")
+                break
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] manager call timed out "
+                      f"(attempt {mgr_attempt}/3): {e}", flush=True)
+                if mgr_attempt == 3:
+                    append_unsolved_run_summary(
+                        state,
+                        reason=f"manager timed out 3x at turn {turn}",
+                    )
+                    return
         _register_agent(state.row, kind="manager",
                         session_id=manager_session)
         try:
@@ -1413,10 +1559,26 @@ def solve_current_row() -> None:
 
         if action == "solved":
             # Independent verifier checks the row before we flip the flag.
-            verifier_reply, sess = run_claude(
-                build_verifier_prompt(state, body),
-                label=f"t{turn:03d}_verifier",
-            )
+            try:
+                verifier_reply, sess = run_claude(
+                    build_verifier_prompt(state, body),
+                    label=f"t{turn:03d}_verifier",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] solved-verifier timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The `verify_row_solved` worker hit the per-call "
+                    f"timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) and was "
+                    f"killed. Files may be in an inconsistent state. "
+                    f"Decide the next action -- you can retry `solved`, "
+                    f"hand off to a fresh manager, or dispatch a cleanup."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind="verify_row_solved", session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1584,10 +1746,24 @@ def solve_current_row() -> None:
             # No direct row-state changes here -- the manager decides what
             # to do based on the verdict.
             _, label_suffix = VERIFIER_ACTIONS[action]
-            verifier_reply, sess = run_claude(
-                build_verifier_action_prompt(action, state, body),
-                label=f"t{turn:03d}_{label_suffix}",
-            )
+            try:
+                verifier_reply, sess = run_claude(
+                    build_verifier_action_prompt(action, state, body),
+                    label=f"t{turn:03d}_{label_suffix}",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] {action} verifier timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The `{action}` verifier hit the per-call timeout "
+                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
+                    f"Pick a different action or retry `{action}`."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1649,7 +1825,22 @@ def solve_current_row() -> None:
             # Body format:
             #   AGENT_ID: <session_id>
             #   <message to send to the resumed agent>
-            outcome = _continue_agent_from_body(state, body, turn)
+            try:
+                outcome = _continue_agent_from_body(state, body, turn)
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] continue_agent timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The resumed agent hit the per-call timeout "
+                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
+                    f"Try a fresh spawn (`spawn_agent_sub_task`) instead, "
+                    f"or hand off via `new_manager`."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             state.history.append(TurnRecord(turn, action, body,
                                             outcome["summary"]))
             extra_note = outcome["feedback_for_manager"]
@@ -1673,10 +1864,29 @@ def solve_current_row() -> None:
         elif action in ACTION_TO_WORKER:
             # Standard worker dispatch.
             worker_prompt = build_worker_prompt(action, body, state)
-            worker_reply, sess = run_claude(
-                worker_prompt,
-                label=f"t{turn:03d}_worker_{action}",
-            )
+            try:
+                worker_reply, sess = run_claude(
+                    worker_prompt,
+                    label=f"t{turn:03d}_worker_{action}",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] worker `{action}` timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The dispatched worker for action `{action}` hit the "
+                    f"per-call timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) "
+                    f"and was killed. Files this worker was editing may be "
+                    f"left in a partial / inconsistent state. Decide how to "
+                    f"proceed: re-dispatch `{action}` (same input), pick a "
+                    f"different action, hand off to a fresh manager via "
+                    f"`new_manager`, or dispatch a cleanup worker to "
+                    f"inspect and revert the partial files."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(worker_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1690,11 +1900,19 @@ def solve_current_row() -> None:
             )
 
         save_data(state.data_path, data)
+        persist_time()
 
-    print(f"[orchestrator] hit MAX_TURNS={MAX_TURNS}; stopping.", flush=True)
-    append_unsolved_run_summary(
-        state, reason=f"MAX_TURNS={MAX_TURNS} reached without solving",
-    )
+      print(f"[orchestrator] hit MAX_TURNS={MAX_TURNS}; stopping.", flush=True)
+      append_unsolved_run_summary(
+          state, reason=f"MAX_TURNS={MAX_TURNS} reached without solving",
+      )
+    finally:
+        # Persist any unflushed wall-clock so an interrupted run resumes
+        # from the right baseline next time. Also uninstall the module
+        # hook so a future caller doesn't accidentally trip our stale
+        # tracker on its own usage-limit sleeps.
+        persist_time()
+        _ACTIVE_TRACKER_SLEEP_CB = None
 
 
 def solve_chapter() -> None:
