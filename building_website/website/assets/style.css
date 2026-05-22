@@ -1,0 +1,713 @@
+/* =========================================================================
+   Causality, Leanified — pilot stylesheet
+   Two-column statement layout with hierarchical left navigation.
+   ========================================================================= */
+
+:root {
+  --bg:           #fdfdfb;
+  --bg-pane:     #ffffff;
+  --bg-tex:      #fbf9f4;   /* warm parchment for the math */
+  --bg-lean:    #f6f8fa;   /* cool grey for the code */
+  --bg-sidebar: #f3f1ec;
+  --fg:         #1c1c1c;
+  --fg-muted:   #7a7a7a;
+  --accent:     #7a1f23;   /* deep crimson */
+  --accent-soft:#c2a6a8;
+  --border:     #e3e0d8;
+  --ok:         #2e7d4f;
+  --warn:       #b58105;
+  --note:       #5b6770;
+  --font-text:  "Source Serif Pro", "Georgia", "Cambria", serif;
+  --font-ui:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:  "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* ----------------------------------------------------------------- header */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-pane);
+  font-family: var(--font-ui);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+a.site-title { text-decoration: none; color: inherit; display: inline-flex; align-items: baseline; }
+a.site-title:hover strong { color: #5a1418; }
+.site-title strong  { font-size: 1.05rem; color: var(--accent); letter-spacing: 0.01em; }
+.site-title .subtitle { color: var(--fg-muted); margin-left: 0.5rem; font-size: 0.9rem; }
+.site-meta { display: flex; gap: 1rem; }
+.site-meta a { color: var(--fg-muted); text-decoration: none; font-size: 0.9rem; }
+.site-meta a:hover { color: var(--accent); }
+
+/* --------------------------------------------------------------- home page */
+
+.entry.home { padding-bottom: 0; }
+.home-header {
+  text-align: center;
+  padding: 2.5rem 2rem 1.8rem;
+  border-bottom: 1px solid var(--border);
+}
+.home-header .entry-kind { justify-self: center; }
+.home-title {
+  font-size: 2.3rem;
+  margin: 0.2rem 0;
+  color: var(--accent);
+  letter-spacing: -0.005em;
+}
+.home-tagline {
+  font-size: 1.05rem;
+  color: var(--fg);
+  margin: 0.6rem auto 0;
+  max-width: 52ch;
+  font-family: var(--font-text);
+  line-height: 1.55;
+}
+.home-tagline em { font-style: italic; color: var(--accent); }
+
+.home-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-text);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+.home-section:last-child { border-bottom: none; }
+.home-section h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.home-section p { margin: 0 0 0.8rem; max-width: 72ch; }
+.home-section p:last-child { margin-bottom: 0; }
+.home-section a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-soft);
+}
+.home-section a:hover { border-bottom-color: var(--accent); }
+.home-section code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.home-coverage { color: var(--fg-muted); font-style: italic; font-size: 0.95rem; }
+
+.home-resources ul { list-style: none; padding: 0; margin: 0; }
+.home-resources li { margin: 0.45rem 0; }
+.home-resources a { display: inline-block; padding: 0.1rem 0; }
+
+.home-cta { text-align: center; background: var(--bg-tex); }
+.btn-cta {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 1.0rem;
+  padding: 0.7rem 1.4rem;
+  background: var(--accent);
+  color: #fff !important;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+.btn-cta:hover {
+  background: #5a1418;
+  border-bottom: none !important;
+}
+
+/* ----------------------------------------------------------------- layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: calc(100vh - 56px);
+}
+
+/* ----------------------------------------------------------- left sidebar */
+
+.sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 1rem 0.75rem 2rem 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 56px);
+  position: sticky;
+  top: 56px;
+}
+
+.sidebar-search {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-pane);
+  color: var(--fg-muted);
+  margin-bottom: 0.85rem;
+}
+
+.sidebar details { margin: 0.1rem 0; }
+.sidebar summary {
+  cursor: pointer;
+  padding: 0.3rem 0.2rem;
+  border-radius: 4px;
+  list-style: none;
+  font-weight: 500;
+  user-select: none;
+}
+.sidebar summary::-webkit-details-marker { display: none; }
+.sidebar summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--fg-muted);
+  transition: transform 0.12s;
+}
+.sidebar details[open] > summary::before { transform: rotate(90deg); }
+.sidebar summary:hover { background: rgba(0,0,0,0.04); }
+
+.sidebar .ch > summary    { color: var(--accent); font-weight: 600; margin-top: 0.5rem; }
+.sidebar .sec > summary   { color: var(--fg); padding-left: 0.7rem; }
+.sidebar ul {
+  list-style: none;
+  margin: 0.2rem 0 0.4rem 1.7rem;
+  padding: 0;
+  border-left: 1px dotted var(--border);
+}
+.sidebar ul li { padding: 0.15rem 0 0.15rem 0.55rem; }
+.sidebar ul li a {
+  text-decoration: none;
+  color: var(--fg);
+  display: block;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.88rem;
+}
+.sidebar ul li a:hover  { background: rgba(122,31,35,0.07); color: var(--accent); }
+.sidebar ul li a.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+.sidebar .muted { color: var(--fg-muted); font-style: italic; font-size: 0.85rem; padding-left: 0.55rem; }
+
+/* ---------------------------------------------------------------- content */
+
+.content {
+  padding: 2rem 2.5rem 4rem 2.5rem;
+  max-width: 1400px;
+}
+
+/* ---- one entry (def / claim) ---- */
+
+.entry {
+  background: var(--bg-pane);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.entry-header {
+  padding: 1.1rem 1.4rem 0.8rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.entry-kind {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+.entry-title {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.entry-status { margin-top: 0.4rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+}
+.badge-ok   { color: var(--ok); }
+.badge-warn { color: var(--warn); }
+.badge-note { color: var(--note); }
+
+/* ---- the split ---- */
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.pane { display: flex; flex-direction: column; min-width: 0; }
+.pane-tex  { background: var(--bg-tex);  border-right: 1px solid var(--border); }
+.pane-lean { background: var(--bg-lean); }
+
+.pane-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  padding: 0.55rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.pane-label-aux {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+}
+.pane-label-aux code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.pane-body { padding: 1.1rem 1.4rem 1.3rem 1.4rem; flex: 1; min-width: 0; }
+.pane-tex .pane-body  {
+  font-family: var(--font-text);
+  font-size: 1.02rem;
+  /* Wide content (long inline math, long display math, wide tables)
+     gets a horizontal scrollbar instead of bleeding into the next
+     column. The grid column's `min-width: 0` on `.pane` makes this
+     work — without it, content would expand the column. */
+  overflow-x: auto;
+}
+.pane-tex p:first-child { margin-top: 0; }
+.pane-tex em            { font-style: italic; }
+
+/* KaTeX display-math blocks (`$$…$$` / `\[…\]`) scroll horizontally
+   when they don't fit, rather than overflowing the column visually.
+   Padding-bottom leaves room for the scrollbar without overlapping
+   the math. */
+.pane-tex .katex-display,
+.markdown-body .katex-display,
+.proof-page-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.4rem;
+}
+
+/* Roman-numeral parenthesised list — matches \begin{enumerate}[label=\roman*.)] */
+ol.roman-paren {
+  list-style: none;
+  counter-reset: roman-counter;
+  padding-left: 0;
+  margin: 0.6rem 0;
+}
+ol.roman-paren > li {
+  counter-increment: roman-counter;
+  position: relative;
+  padding-left: 2.4rem;
+  margin: 0.2rem 0;
+}
+ol.roman-paren > li::before {
+  content: counter(roman-counter, lower-roman) ".)";
+  position: absolute;
+  left: 0.4rem;
+  width: 1.6rem;
+  text-align: right;
+  color: var(--fg-muted);
+}
+ol.roman-paren > li.no-marker {
+  padding-left: 2.4rem;
+}
+ol.roman-paren > li.no-marker::before { content: ""; }
+
+/* Lean code block */
+.pane-lean .pane-body { padding: 0; }
+.pane-lean pre {
+  margin: 0;
+  padding: 1.1rem 1.4rem;
+  background: var(--bg-lean);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.pane-lean code { font-family: inherit; background: transparent; }
+
+/* Override highlight.js's theme background — we want the pane's bg to show
+   through, with only the per-token colors applied. */
+.pane-lean .hljs,
+.lean-proof-pane .hljs,
+.markdown-body pre .hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* atom-one-light only covers the canonical token classes well; reinforce
+   the ones the custom Lean grammar emits so every kind of token has a
+   readable colour rather than falling back to default text. */
+.hljs-doctag   { color: #50a14f; font-style: italic; }   /* /-- … -/ */
+.hljs-operator { color: #4078f2; }                       /* → ⊆ ∈ := */
+.hljs-symbol   { color: #4078f2; }                       /* arrows + brackets */
+.hljs-keyword  { color: #a626a4; font-weight: 600; }      /* def, theorem, where */
+.hljs-built_in { color: #c18401; }                       /* types: Set, Disjoint, … */
+.hljs-title    { color: #4078f2; }                       /* tactic names */
+.hljs-literal  { color: #0184bc; }                       /* rfl, sorry, true, false */
+.hljs-comment  { color: #a0a1a7; font-style: italic; }
+
+/* ---- action row ---- */
+
+.entry-actions {
+  padding: 0.9rem 1.4rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: var(--bg-pane);
+}
+.btn {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-disabled {
+  border-color: var(--border);
+  color: var(--fg-muted);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ---- design notes (collapsible) ---- */
+
+.design-notes {
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.015);
+}
+.design-notes summary {
+  cursor: pointer;
+  padding: 0.7rem 1.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--accent);
+  list-style: none;
+}
+.design-notes summary::before {
+  content: "▸ ";
+  color: var(--fg-muted);
+}
+.design-notes[open] summary::before { content: "▾ "; }
+.design-notes-body {
+  padding: 0.4rem 1.4rem 1.2rem 1.4rem;
+  font-size: 0.92rem;
+}
+.design-notes-body ul { padding-left: 1.2rem; }
+.design-notes-body li { margin: 0.4rem 0; }
+.design-notes-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: rgba(0,0,0,0.05);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+}
+
+/* ---- placeholder ---- */
+
+.entry.placeholder { opacity: 0.45; }
+.entry.placeholder .entry-title { font-weight: 400; }
+
+.muted { color: var(--fg-muted); font-style: italic; }
+
+/* ---- Lean-pane carousel (multi-item rows: def_3_4, multi-part claims) ---- */
+
+.lean-carousel {
+  display: flex;
+  flex-direction: column;
+}
+.lean-carousel-controls {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.02);
+  font-family: var(--font-ui);
+}
+.lean-carousel-btn {
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.25rem 0.7rem;
+  background: var(--bg-pane);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.lean-carousel-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+.lean-carousel-btn:disabled {
+  color: var(--fg-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.lean-carousel-label {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.lean-carousel-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.lean-carousel-counter {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.04em;
+}
+.lean-slide:focus { outline: none; }
+
+/* ---- Lean part labels (multi-block defs / multi-part claims) ---- */
+
+/* Styled as a Lean `--` comment header so it visually belongs to the
+   code block underneath rather than looking like stray UI chrome. */
+.lean-part-label {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  padding: 0.95rem 1.4rem 0.3rem;
+  border-top: 1px solid var(--border);
+  white-space: pre;
+  overflow-x: auto;
+}
+.lean-part-label::before {
+  content: "-- ";
+  opacity: 0.7;
+}
+/* The first label sits directly under the pane header — the divider
+   above it would double up with the pane-label's bottom border. */
+.pane-lean .pane-body > .lean-part-label:first-child {
+  border-top: none;
+  padding-top: 1.1rem;
+}
+
+/* ---- proof page (#proof/<ref>) ---- */
+
+.proof-page {
+  background: var(--bg-pane);
+}
+.proof-page .entry-header .back-link {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  margin-bottom: 0.4rem;
+  display: inline-block;
+}
+.proof-page .entry-header .back-link:hover { color: var(--accent); }
+
+.proof-page-body {
+  padding: 0;
+}
+.proof-page-body .pane-body {
+  padding: 1.5rem 2rem 0.5rem;
+  font-family: var(--font-text);
+  font-size: 1.04rem;
+  line-height: 1.65;
+}
+
+/* Theorem-like blocks embedded inside proof rendering (the restated
+   statement env). Styled distinctly from the proof body itself. */
+.theorem-block {
+  background: var(--bg-tex);
+  border-left: 3px solid var(--accent-soft);
+  padding: 0.7rem 1rem;
+  margin: 1rem 0;
+  border-radius: 2px;
+}
+.theorem-label {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.theorem-label .theorem-title {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--fg);
+  font-weight: 500;
+}
+.theorem-block > p:last-child { margin-bottom: 0; }
+.theorem-block > p:first-of-type { margin-top: 0; }
+
+/* The \begin{proof}…\end{proof} body — italic "Proof." prefix, then
+   the prose. */
+.tex-proof {
+  margin: 1.2rem 0;
+}
+.tex-proof .proof-label {
+  font-weight: 600;
+  margin-right: 0.5em;
+  font-style: italic;
+}
+
+/* ---- explanation panels (Lean explanation / Design choices) ---- */
+
+.explanation-pane {
+  border-top: 1px solid var(--border);
+  background: #fbf9f4;
+  display: none;  /* opened via the .open class set by the toggle button */
+}
+.explanation-pane.open { display: block; }
+
+.explanation-pane .pane-body {
+  padding: 1.1rem 1.4rem 1.3rem;
+  font-family: var(--font-text);
+  font-size: 1.0rem;
+  line-height: 1.6;
+}
+
+.markdown-body p { margin: 0.6rem 0; }
+.markdown-body p:first-child { margin-top: 0; }
+.markdown-body p:last-child  { margin-bottom: 0; }
+.markdown-body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.markdown-body pre {
+  background: var(--bg-lean);
+  padding: 0.9rem 1.1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.markdown-body pre code { background: transparent; padding: 0; color: inherit; }
+.markdown-body ul, .markdown-body ol { padding-left: 1.6rem; }
+.markdown-body li { margin: 0.25rem 0; }
+.markdown-body em { font-style: italic; }
+.markdown-body strong { font-weight: 600; }
+.markdown-body a { color: var(--accent); }
+
+/* Toggle button (Lean explanation / Design choices) — looks like the other
+   .btn instances, but with an "active" state when the panel is open. */
+.btn-toggle {
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+.btn-toggle.active {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-toggle.active::after { content: " ▾"; }
+
+/* ---- sidebar: unavailable rows ---- */
+
+.sidebar ul li a.unavailable {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.sidebar ul li a.unavailable:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--fg-muted);
+}
+
+/* ---- loading / missing ---- */
+
+.loading {
+  padding: 3rem;
+  color: var(--fg-muted);
+  text-align: center;
+  font-family: var(--font-ui);
+}
+.missing {
+  padding: 1rem 1.4rem;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.missing-body {
+  padding: 1rem 1.4rem 1.4rem;
+  font-family: var(--font-ui);
+}
+.missing-body pre {
+  background: var(--bg-lean);
+  padding: 0.7rem 1rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* ---- responsive: collapse split on small screens ---- */
+
+@media (max-width: 1100px) {
+  .split { grid-template-columns: 1fr; }
+  .pane-tex { border-right: none; border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; }
+  .content { padding: 1rem; }
+}
