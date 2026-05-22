@@ -29,7 +29,7 @@ MANIFEST_PATH = WEBSITE_DATA / "manifest.json"
 # Edit this to expand coverage. Keys are chapter numbers; values list the
 # sections to include (None = all sections in that chapter).
 SCOPE: dict[int, list[str] | None] = {
-    3: ["3.1"],
+    3: ["3.1", "3.2"],
 }
 
 
