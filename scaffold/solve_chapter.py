@@ -834,8 +834,92 @@ def _extract_statement_body(lines: list[str], decl_idx: int,
     return "\n".join(out).rstrip()
 
 
+def build_for_website_prompt(state: "OrchestrationState",
+                             subsection_folder: Path) -> str:
+    """Compose the one-shot prompt that asks a fresh worker to write
+    ``<subsection_folder>/tex/<ref>_for_website.json``. The prompt
+    includes the row context + explicit file paths + the output path."""
+    row = state.row
+    ref = row["ref"]
+    tex_dir = subsection_folder / "tex"
+    out_path = tex_dir / f"{ref}_for_website.json"
+    tex_stmt_path = (tex_dir
+                     / (f"{ref}_{row.get('title', 'Untitled')}.tex"
+                        if row["def_or_claim"] == "def"
+                        else f"{ref}_statement_"
+                             f"{row.get('title', 'Untitled')}.tex"))
+    tex_proof_path = (
+        tex_dir / f"{ref}_proof_{row.get('title', 'Untitled')}.tex"
+        if row["def_or_claim"] == "claim" else None
+    )
+    context = (
+        f"# Row context (orchestrator-supplied)\n"
+        f"- ref:              {ref}\n"
+        f"- title:            {row.get('title')}\n"
+        f"- type:             {row.get('type')}\n"
+        f"- def_or_claim:     {row.get('def_or_claim')}\n"
+        f"- section:          {row.get('section')}\n"
+        f"- main_lean_file:   {row.get('main_lean_file')}\n"
+        f"- lean_files:       {row.get('lean_files')}\n"
+        f"- tex statement:    {tex_stmt_path}\n"
+        f"- tex proof:        {tex_proof_path or '(n/a)'}\n"
+        f"- output path:      {out_path}\n"
+    )
+    return (
+        f"{read_worker_prompt('produce_for_website.md')}\n\n"
+        f"{context}\n"
+    )
+
+
+def run_for_website_worker(state: "OrchestrationState",
+                           subsection_folder: Path) -> None:
+    """Spawn the one-shot ``produce_for_website`` worker and confirm the
+    JSON file landed. Falls back to the mechanical ``generate_for_website``
+    if the worker times out, fails to launch, or doesn't produce the file.
+    Best-effort: never raises out into the solved branch.
+    """
+    ref = state.row["ref"]
+    out_path = subsection_folder / "tex" / f"{ref}_for_website.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    label = f"for_website_{ref}"
+    try:
+        reply, sess = run_claude(
+            build_for_website_prompt(state, subsection_folder),
+            label=label,
+        )
+    except WorkerTimeoutError as e:
+        print(f"[orchestrator] for_website worker timed out: {e}; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(state.row, subsection_folder)
+        return
+    except Exception as e:                # noqa: BLE001 -- best effort
+        print(f"[orchestrator] for_website worker failed to launch: {e}; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(state.row, subsection_folder)
+        return
+    _register_agent(state.row, kind="for_website", session_id=sess)
+    if not out_path.exists():
+        print(f"[orchestrator] for_website worker finished but didn't "
+              f"write {out_path.name}; falling back to mechanical "
+              f"extractor.", flush=True)
+        generate_for_website(state.row, subsection_folder)
+        return
+    # Sanity-validate the JSON. If broken, fall back; the mechanical
+    # extractor at least emits a well-formed file.
+    try:
+        with open(out_path, encoding="utf-8") as fh:
+            json.load(fh)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[orchestrator] for_website JSON invalid ({e}); falling "
+              f"back to mechanical extractor.", flush=True)
+        generate_for_website(state.row, subsection_folder)
+        return
+    print(f"[orchestrator] for_website JSON written by worker: "
+          f"{out_path.name}", flush=True)
+
+
 def generate_for_website(row: dict, subsection_folder: Path) -> None:
-    """Post-solve helper: write
+    """**Fallback** post-solve helper: write
     ``<subsection_folder>/tex/<ref>_for_website.json`` with the per-row
     info the website builder consumes (the four fields beyond the
     existing tex statement/proof):
@@ -1890,7 +1974,12 @@ def solve_current_row() -> None:
                         state.data_path.parent, section)
                     cleanup_row_artefacts(state.row, subsection_folder)
                     build_row_tex(state.row, subsection_folder)
-                    generate_for_website(state.row, subsection_folder)
+                    # Dispatch a one-shot worker to produce the for-website
+                    # JSON (Lean statement + polished explanation + design
+                    # choices). Falls back to a mechanical extractor on
+                    # worker failure. Done BEFORE commit so the JSON lands
+                    # in the same commit as the rest of the row.
+                    run_for_website_worker(state, subsection_folder)
                     if subsection_is_complete(data, section):
                         print(f"[orchestrator] section {section} now fully "
                               f"solved -- building aggregate main.tex",
