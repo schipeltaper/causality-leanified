@@ -296,9 +296,17 @@ def _split_block(block_lines: list[str]) -> dict:
     kind = kind_match.group(1) if kind_match else ""
     body = block_lines[decl_start:]
 
-    # Drop trailing `end <ns>` lines and blank lines — they belong to the file
-    # epilogue, not to this declaration.
-    while body and re.match(r"^\s*(end\b|$)", body[-1]):
+    # Drop trailing bookkeeping lines that belong to the file or to the
+    # NEXT declaration, not to this one — blanks, `end <ns>`, `namespace
+    # <ns>`, `variable …`, `open …`, `section …`. Without this trim the
+    # `namespace WalkStep` + `variable {G : CDMG α}` lines sitting
+    # between the `inductive Walk` (item 1 of def_3_4) and the next
+    # marker were getting attributed to `Walk` and showing up in the
+    # right pane.
+    _BOOKKEEPING_RE = re.compile(
+        r"^\s*(end\b|namespace\b|variable\b|open\b|section\b|$)"
+    )
+    while body and _BOOKKEEPING_RE.match(body[-1]):
         body.pop()
 
     if kind in {"theorem", "lemma", "example"}:

@@ -46,6 +46,7 @@ const KATEX_MACROS = {
   "\\Dist":  "\\mathrm{Dist}",
   "\\Sc":    "\\mathrm{Sc}",
   "\\MBl":   "\\mathrm{Mb}",
+  "\\Pred":  "\\mathrm{Pred}",
 
   /* CDMG edge relations — TIKZ arrows in the LN; approximated here.
      `t`/`h`/`s` = tail / arrowhead / star (i.e. "either"). The first
