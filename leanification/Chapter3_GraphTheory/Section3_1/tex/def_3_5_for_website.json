@@ -1,0 +1,122 @@
+{
+  "ref": "def_3_5",
+  "title": "FamilyRelationships",
+  "type": "definition",
+  "def_or_claim": "def",
+  "section": "3.1",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/FamilyDirect.lean",
+  "lean_statement": [
+    {
+      "name": "Pa",
+      "kind": "def",
+      "code": "/-- `Pa G v` -- the set of *parents* of the vertex `v` in `G`:\nthose `w ∈ G` with a directed edge `w ⟶[G] v`. Matches the LN's\n`\\Pa^G(v)` (`lecture-notes/lecture_notes/graphs.tex`, def 3.5\nitem 1). Parents can lie in either `G.J` or `G.V`. -/\ndef Pa (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ w ⟶[G] v}"
+    },
+    {
+      "name": "PaSet",
+      "kind": "def",
+      "code": "/-- `PaSet G A` -- the set of *parents* of the set of vertices\n`A` in `G`: the union of the parent sets of each `v ∈ A`.\nMatches the LN's set-input `\\Pa^G(A)`. -/\ndef PaSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Pa G v"
+    },
+    {
+      "name": "Ch",
+      "kind": "def",
+      "code": "/-- `Ch G v` -- the set of *children* of the vertex `v` in `G`:\nthose `w ∈ G` with a directed edge `v ⟶[G] w`. Matches the LN's\n`\\Ch^G(v)`. Children are always output nodes (`w ∈ G.V` follows\nfrom `G.E_subset`); inputs cannot be children. -/\ndef Ch (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ v ⟶[G] w}"
+    },
+    {
+      "name": "ChSet",
+      "kind": "def",
+      "code": "/-- `ChSet G A` -- the set of *children* of the set of vertices\n`A` in `G`. Matches the LN's set-input `\\Ch^G(A)`. -/\ndef ChSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Ch G v"
+    },
+    {
+      "name": "Sib",
+      "kind": "def",
+      "code": "/-- `Sib G v` -- the set of *siblings* of the vertex `v` in `G`:\nthose `w ∈ G` with a bidirected edge `v ⟷[G] w`. Matches the LN's\n`\\Sib^G(v)`. The LN intentionally provides no set-input\ncounterpart, and neither do we. -/\ndef Sib (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ v ⟷[G] w}"
+    },
+    {
+      "name": "Anc",
+      "kind": "def",
+      "code": "/-- `Anc G v` -- the set of *ancestors* of the vertex `v` in `G`:\nthose `w ∈ G` for which there exists a *directed walk* (in the\ndef_3_4 sense, i.e. `Walk G w v` plus `Walk.IsDirected`) from\n`w` to `v`. Matches the LN's `\\Anc^G(v)`. -/\ndef Anc (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ ∃ π : Walk G w v, π.IsDirected}"
+    },
+    {
+      "name": "self_mem_Anc",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `v ∈ Anc^G(v)`\" (def 3.5, item 4). The witness is\nthe trivial walk `Walk.nil v`. The `v ∈ G` hypothesis is the\nLN's implicit precondition (its preamble fixes `v ∈ V ⊆ G`). -/\ntheorem self_mem_Anc {G : CDMG α} {v : α} (hv : v ∈ G) :\n    v ∈ Anc G v :="
+    },
+    {
+      "name": "AncSet",
+      "kind": "def",
+      "code": "/-- `AncSet G A` -- the set of *ancestors* of the set `A` in `G`.\nMatches the LN's set-input `\\Anc^G(A)`. -/\ndef AncSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Anc G v"
+    },
+    {
+      "name": "subset_Anc_set",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `A ⊆ Anc^G(A)`\" (def 3.5, item 4). Each\n`v ∈ A ⊆ G.J ∪ G.V` is its own ancestor via the trivial walk. -/\ntheorem subset_Anc_set {G : CDMG α} {A : Set α}\n    (hA : A ⊆ G.J ∪ G.V) : A ⊆ AncSet G A := by"
+    },
+    {
+      "name": "Desc",
+      "kind": "def",
+      "code": "/-- `Desc G v` -- the set of *descendants* of the vertex `v` in\n`G`: those `w ∈ G` for which there exists a directed walk from\n`v` to `w`. Matches the LN's `\\Desc^G(v)`. -/\ndef Desc (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ ∃ π : Walk G v w, π.IsDirected}"
+    },
+    {
+      "name": "self_mem_Desc",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `v ∈ Desc^G(v)`\" (def 3.5, item 5). Witness:\ntrivial walk. -/\ntheorem self_mem_Desc {G : CDMG α} {v : α} (hv : v ∈ G) :\n    v ∈ Desc G v :="
+    },
+    {
+      "name": "DescSet",
+      "kind": "def",
+      "code": "/-- `DescSet G A` -- the set of *descendants* of the set `A` in\n`G`. Matches the LN's set-input `\\Desc^G(A)`. -/\ndef DescSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Desc G v"
+    },
+    {
+      "name": "subset_Desc_set",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `A ⊆ Desc^G(A)`\" (def 3.5, item 5). -/\ntheorem subset_Desc_set {G : CDMG α} {A : Set α}\n    (hA : A ⊆ G.J ∪ G.V) : A ⊆ DescSet G A := by"
+    },
+    {
+      "name": "NonDesc",
+      "kind": "def",
+      "code": "/-- `NonDesc G A` -- the set of *non-descendants* of the set `A`\nin `G`: vertices of `G` (i.e. members of `G.J ∪ G.V`) that are\nnot descendants of any vertex in `A`. Matches the LN's\n`\\NonDesc^G(A)`. The LN provides no vertex-input variant. -/\ndef NonDesc (G : CDMG α) (A : Set α) : Set α :=\n  (G.J ∪ G.V) \\ DescSet G A"
+    },
+    {
+      "name": "Sc",
+      "kind": "def",
+      "code": "/-- `Sc G v` -- the *strongly connected component* of `v` in `G`:\nthe intersection of the ancestor and descendant sets of `v`.\nMatches the LN's `\\Sc^G(v)`. Equivalently, the set of `w ∈ G`\nthat lie on a directed walk to `v` and on a directed walk from\n`v`. -/\ndef Sc (G : CDMG α) (v : α) : Set α :=\n  Anc G v ∩ Desc G v"
+    },
+    {
+      "name": "self_mem_Sc",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `v ∈ Sc^G(v)`\" (def 3.5, item 7). Composes\n`self_mem_Anc` and `self_mem_Desc`. -/\ntheorem self_mem_Sc {G : CDMG α} {v : α} (hv : v ∈ G) :\n    v ∈ Sc G v :="
+    },
+    {
+      "name": "ScSet",
+      "kind": "def",
+      "code": "/-- `ScSet G A` -- the union of *strongly connected components*\nof vertices in `A`. Matches the LN's set-input `\\Sc^G(A)`. -/\ndef ScSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Sc G v"
+    },
+    {
+      "name": "subset_Sc_set",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `A ⊆ Sc^G(A)`\" (def 3.5, item 7). -/\ntheorem subset_Sc_set {G : CDMG α} {A : Set α}\n    (hA : A ⊆ G.J ∪ G.V) : A ⊆ ScSet G A := by"
+    },
+    {
+      "name": "Dist",
+      "kind": "def",
+      "code": "/-- `Dist G v` -- the *district* of `v` in `G`: those `w ∈ G` for\nwhich there exists a *bidirected walk* (every step is `bidir`)\nfrom `v` to `w`. Matches the LN's `\\Dist^G(v)`. -/\ndef Dist (G : CDMG α) (v : α) : Set α :=\n  {w | w ∈ G ∧ ∃ π : Walk G v w, π.IsBidirected}"
+    },
+    {
+      "name": "self_mem_Dist",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `v ∈ Dist^G(v)`\" (def 3.5, item 8). Witness:\ntrivial walk, which is vacuously `IsBidirected`. -/\ntheorem self_mem_Dist {G : CDMG α} {v : α} (hv : v ∈ G) :\n    v ∈ Dist G v :="
+    },
+    {
+      "name": "DistSet",
+      "kind": "def",
+      "code": "/-- `DistSet G A` -- the *district* of the set `A` in `G`.\nMatches the LN's set-input `\\Dist^G(A)`. -/\ndef DistSet (G : CDMG α) (A : Set α) : Set α :=\n  ⋃ v ∈ A, Dist G v"
+    },
+    {
+      "name": "subset_Dist_set",
+      "kind": "theorem",
+      "code": "/-- LN \"Note: `A ⊆ Dist^G(A)`\" (def 3.5, item 8). -/\ntheorem subset_Dist_set {G : CDMG α} {A : Set α}\n    (hA : A ⊆ G.J ∪ G.V) : A ⊆ DistSet G A := by"
+    }
+  ],
+  "lean_explanation": "All eight family operators in this row live under a fixed ambient context: `α : Type*` is the vertex type and `G : CDMG α` is the CDMG under discussion, matching the LN's preamble \"let $G = (J, V, E, L)$ be a CDMG\". Vertex-input variants take `v : α` and produce `Set α`; set-input variants take `A : Set α` and also produce `Set α`. The LN's set-builder \"$\\{w \\in G \\mid \\ldots\\}$\" maps to `{w | w ∈ G ∧ …}`, where the membership predicate `w ∈ G` is shorthand for `w ∈ G.J ∪ G.V` (unfolded by the `CDMG.mem_iff` simp lemma).\n\nThree Mathlib idioms appear repeatedly. First, `⋃ v ∈ A, f G v` (Mathlib's `Set.iUnion₂` shape) is the canonical way to write \"big union indexed over a set\"; every set-input variant is literally `⋃ v ∈ A, <vertex variant> G v`, mirroring the LN's $\\bigcup_{v \\in A}$. Second, the `\\` operator on `Set α` is set-theoretic difference (Mathlib `Set.diff`), used in `NonDesc G A := (G.J ∪ G.V) \\ DescSet G A` to encode the LN's $(J \\cup V) \\setminus \\Desc^G(A)$. Third, `∩` is set intersection, used in `Sc G v := Anc G v ∩ Desc G v` for the LN's $\\Anc^G(v) \\cap \\Desc^G(v)$.\n\nThe three direct-edge operators `Pa`, `Ch`, `Sib` (items 1-3) each encode a single-edge condition: `w ⟶[G] v` for parents, `v ⟶[G] w` for children, `v ⟷[G] w` for siblings (the def_3_2 arrows for LN's $\\tuh$ and $\\huh$ respectively). The four directed-reachability operators `Anc`, `Desc`, `Sc`, plus the bidirected-reachability `Dist` (items 4-5, 7-8) bundle the `w ∈ G` guard with an existential `∃ π : Walk G w v, π.IsDirected` (or `IsBidirected` for `Dist`), reusing the def_3_4 `Walk` data type and the def_3_4 `WalkPredicates` predicates. `NonDesc` (item 6) is the LN's set complement, with the ambient set being the graph's `G.J ∪ G.V` (not `Set.univ`).\n\nEach LN \"Note: $v \\in \\Anc^G(v)$\" / \"$A \\ins \\Anc^G(A)$\" reflexivity line becomes a small theorem (`self_mem_Anc`, `subset_Anc_set`, and analogues for `Desc`, `Sc`, `Dist`). The vertex-reflexivity theorems take `hv : v ∈ G` as an explicit hypothesis -- the LN's silent preamble $v \\in V$ -- and discharge via the trivial walk `Walk.nil v`, which is vacuously both `IsDirected` and `IsBidirected`. The set-reflexivity theorems take `hA : A ⊆ G.J ∪ G.V` and point each `v ∈ A` at itself inside the bigunion.",
+  "design_choices": "**The `w ∈ G` membership guard is baked into every set-builder, even where redundant.** The LN literally writes \"$\\{w \\in G \\mid \\ldots\\}$\", and for the direct-edge operators (parents, children, siblings) the guard is propositionally redundant: a directed edge $w \\tuh v$ already forces $w \\in G$ via the structural constraint `E ⊆ (J ∪ V) × V`. We keep the guard anyway, because for the walk-based operators (ancestors, descendants, districts) the guard is genuinely load-bearing -- the trivial walk `Walk.nil w` exists for every `w : α`, so without the guard every vertex of the ambient type, including ones outside the graph, would land in `Anc G w`. Uniform shape across all eight operators is worth more than minimal-redundancy phrasing here, especially since downstream callers pattern-match against the same `w ∈ G ∧ _` shape regardless of which operator they invoke.\n\n**Two `def`s per operator -- one vertex-input, one set-input -- except where the LN omits one.** The LN overloads $\\Pa^G(\\cdot)$ for both a vertex and a set argument; Lean cannot overload by argument shape, so we use the `Set` suffix to disambiguate (`Pa` versus `PaSet`). The LN provides no set-input variant of $\\Sib^G$ and no vertex-input variant of $\\NonDesc^G$ -- those slots are conspicuously absent. We mirror those omissions strictly: no `SibSet`, no vertex-input `NonDesc G v`. Inventing them would diverge from the LN and introduce decisions the LN never made (e.g. should $\\NonDesc^G(v)$ exclude $v$ itself?). Downstream rows that genuinely need such variants can introduce them locally.\n\n**Parents are allowed to lie in `G.J`; children are not.** A directed edge $w \\tuh v$ satisfies $w \\in J \\cup V$ but constrains the *target* $v \\in V$ -- so the parent set of an output node can contain input nodes, but the child set is always a subset of `G.V`. We do not restrict the parent set to `G.V`; this asymmetry is load-bearing for chapter 4 (CBN factorisation $P(V \\mid J) = \\prod_v P(v \\mid \\Pa^G(v))$, where the input nodes enter the factorisation precisely as parents of output nodes) and chapter 5 (do-calculus surgery on edges incident to $\\Pa^G(\\cdot)$).\n\n**Bidirected edges are deliberately excluded from parents and children.** A bidirected edge $v \\huh w$ makes $v$ a *sibling* of $w$, never a parent or child. The LN encodes this by writing $\\tuh$ (directed-only) on the parent/child sides and $\\huh$ on the sibling side; we match exactly, with `Pa` and `Ch` using `⟶[G]` (LN's $\\tuh$, the directed-edge atom) and `Sib` using `⟷[G]` (LN's $\\huh$, the bidirected atom). This also lines up cleanly with def_3_3's \"into/out of\" vocabulary: parents are read off \"out of\" edges from the parent's perspective, children off \"out of\" edges from the child's perspective, and siblings off edges with arrowheads at both endpoints.\n\n**Ancestors and descendants are existentially quantified over the def_3_4 `Walk` data type, not a separate inductive reachability relation.** Composing on top of `Walk` immediately reuses every walk operation we already have -- length, support, append, reverse -- and matches the LN's prose phrasing \"$\\exists$ directed walk from $w$ to $v$\". The walk's direction matches the LN: `Anc G v` is the existential over `Walk G w v` (walk starts at the candidate ancestor, ends at $v$); `Desc G v` flips it to `Walk G v w`. We do not define `Desc G v := Anc (reverse G) v` via a graph-reversal trick because the LN does not introduce graph reversal at this stage, and the direct two-`def` encoding is more readable.\n\n**The LN's \"Note:\" reflexivity lines are encoded as proper theorems, not folded into the definition.** Each \"Note: $v \\in \\Anc^G(v)$\" / \"$v \\in \\Sc^G(v)$\" / \"$v \\in \\Dist^G(v)$\" line becomes a `self_mem_*` theorem; each \"Note: $A \\subseteq \\cdot$\" line becomes a `subset_*_set` theorem. The trivial witness is `Walk.nil v` (vacuously both `IsDirected` and `IsBidirected`). Each carries the LN's implicit preamble precondition (`v ∈ G` or `A ⊆ G.J ∪ G.V`) as an explicit hypothesis -- chapter 3's later rows then cite these by name rather than re-deriving the trivial-walk witness each time.\n\n**`NonDesc G A := (G.J ∪ G.V) \\ DescSet G A`, with the graph's vertex set as the ambient, not `Set.univ`.** The LN writes the complement against $(J \\cup V)$, not against the ambient type $\\alpha$. A vertex outside `G.J ∪ G.V` is not a non-descendant -- it simply isn't a vertex of $G$ at all. The set-input-only signature also mirrors the LN exactly: downstream do-calculus and ID-algorithm rows always reason about \"non-descendants of some set\", never of a single vertex, so a hypothetical `NonDesc G v` would be unused weight.\n\n**`Sc G v := Anc G v ∩ Desc G v`, not a fresh walk-based primitive.** The LN literally writes the intersection. The strongly-connected-component reflexivity `v ∈ Sc^G(v)` then composes from `self_mem_Anc` and `self_mem_Desc`. The set-input variant is `ScSet G A := ⋃ v ∈ A, Sc G v`; the LN's parenthetical \"(union of) strongly connected components\" makes the bigunion semantics explicit -- $\\Sc^G(A)$ is the union of each $v \\in A$'s component, not the smallest single component containing $A$.\n\n**Districts use `Walk.IsBidirected`, not a fresh bidirected-only walk type.** A district is the existential over walks all of whose edges are `bidir`, reusing the def_3_4 walk type with the def_3_4 `IsBidirected` predicate. Bidirected edges are symmetric (`G.L_symm`), so the walk-direction choice `Walk G v w` versus `Walk G w v` is propositionally indifferent, but we match the LN's literal phrasing $v \\huh v_1 \\huh \\cdots \\huh w$, starting at $v$. Districts deserve their own file (separate from `Anc`/`Desc`/`Sc`) because later chapters' graphical-separation criteria -- the ID algorithm in chapter 8, FCI completeness in chapter 16 -- treat districts as a primitive equivalence class on `V`, and the directed-reachability file should not pull in district lemmas as a transitive dependency for callers that only need ancestors."
+}

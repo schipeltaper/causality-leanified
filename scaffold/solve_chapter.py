@@ -328,6 +328,30 @@ def _rewrite_env_to_type(body: str, row_type: str) -> str:
     return f"\\begin{{{target}}}{inner}\\end{{{target}}}"
 
 
+# Envs whose header should display a title via the refprefix theoremstyle.
+# Used when injecting the row's data.json title into a bare \begin{Env}.
+_TITLED_ENVS = set(TYPE_TO_ENV.values()) | {"Rem", "Note"}
+
+_BARE_ENV_OPENER_RE = re.compile(
+    r"\\begin\{(?P<name>[A-Za-z*]+)\}(?!\s*\[)"
+)
+
+
+def _inject_title_into_bare_env(body: str, title: str) -> str:
+    """Inject ``[<title>]`` into the first bare ``\\begin{X}`` whose env is
+    in ``_TITLED_ENVS`` (theorem-like envs declared in the preamble).
+    Non-theorem envs (``document``, ``itemize``, ``proof``, ...) are
+    skipped so we don't pollute generic block openers.
+    """
+    if not title:
+        return body
+    for m in _BARE_ENV_OPENER_RE.finditer(body):
+        if m.group("name") in _TITLED_ENVS:
+            i = m.end()
+            return body[:i] + f"[{title}]" + body[i:]
+    return body
+
+
 def _render_template(name: str, **values: str) -> str:
     """Substitute ``__KEY__`` placeholders in
     ``scaffold/tex_templates/<name>.tex.template``. Missing keys are left
@@ -403,8 +427,12 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
     # Align the theorem env in the LN tex_block with the row's `type`
     # column (e.g. a "lemma" row goes into a \begin{Lem} regardless of what
     # the LN happened to use). The refprefix theoremstyle in the preamble
-    # then renders the header as "<ref> <ThmName> <title>".
+    # then renders the header as "<ref> <ThmName> -- <title>".
     body_from_block = _rewrite_env_to_type(body_from_block, row.get("type", ""))
+    # If the env opener has no [<arg>] optional argument, inject the row's
+    # data.json title there so every rendered header has a name.
+    body_from_block = _inject_title_into_bare_env(
+        body_from_block, row.get("title", ""))
     # `REF` (catcode-8 underscores) is fine inside \label / \refrow because
     # hyperref stores labels as opaque strings; but \rowref expands in text
     # mode, so its `_` chars must be escaped. `REF_TEXT` is the
@@ -684,6 +712,439 @@ def build_subsection_main_tex(subsection_folder: Path) -> None:
         print(f"    log tail:\n{tail}", flush=True)
 
 
+# ---------------------------------------------------------------------------
+# per-row JSON for the website builder
+# ---------------------------------------------------------------------------
+
+# Lean declaration openers we care about when slicing the statement out
+# of a ref-marker block.
+_DECL_OPENER_RE = re.compile(
+    r"^(theorem|lemma|example|def|abbrev|structure|class|instance|inductive)\b"
+)
+# `:= by` opener for theorem/lemma proofs. We trim the proof body at the
+# first occurrence so the JSON's lean_statement is signature-only.
+_PROOF_OPENER_RE = re.compile(r":=\s*by(\s|$)")
+# Markdown-ish section header we use inside Lean docstrings to split the
+# explanation from the design-choice rationale. Case-insensitive.
+_DESIGN_HEADER_RE = re.compile(r"^\s*--+\s*##+\s*Design choice", re.IGNORECASE)
+
+
+def _ref_marker_re(ref: str) -> re.Pattern[str]:
+    """Compile a regex matching `-- <ref>`, `-- <ref> (part X/Y)`, or
+    `-- <ref> (item N, ...)` -- all three patterns are emitted by the
+    Lean-side workers when a row contributes more than one declaration.
+    """
+    return re.compile(
+        r"^--\s+" + re.escape(ref) +
+        r"(\s+\((part\s+\d+/\d+|item\s+\d+[^)]*)\))?\s*$"
+    )
+
+
+# Strict pattern matching the *next* ref marker for ANY ref (used to
+# bound a slice when we don't know what ref comes next).
+_ANY_REF_MARKER_RE = re.compile(
+    r"^--\s+(def|claim)_\d+_\d+(\s+\([^)]+\))?\s*$"
+)
+
+
+# Declaration-head pattern that pulls the name out, e.g.
+# `theorem foo` / `structure CDMG (α : Type*) where` / `def length`.
+_DECL_HEAD_NAME_RE = re.compile(
+    r"^(?P<kind>theorem|lemma|example|def|abbrev|structure|class|instance|inductive)"
+    r"\s+(?P<name>[\w\u00A0-\uFFFF.]+)"
+)
+
+
+def _strip_lean_comment_markers(text: str) -> str:
+    """Reduce a chunk of Lean source comments to plain prose.
+
+    - drops `-- ` / `--` line prefixes,
+    - removes `/-` and `-/` block markers (keeps the content between),
+    - collapses runs of blank lines to a single blank line,
+    - trims trailing whitespace.
+
+    Lean code inside the chunk (rare in pre-declaration comments) is
+    left as-is since stripping it would corrupt examples.
+    """
+    out: list[str] = []
+    for ln in text.splitlines():
+        s = ln
+        s = re.sub(r"^/-+\s?", "", s)
+        s = re.sub(r"\s?-/$", "", s)
+        if s.startswith("--"):
+            s = s[2:]
+            if s.startswith(" "):
+                s = s[1:]
+        out.append(s.rstrip())
+    # Collapse triple+ blank runs.
+    collapsed: list[str] = []
+    prev_blank = False
+    for ln in out:
+        is_blank = not ln.strip()
+        if is_blank and prev_blank:
+            continue
+        collapsed.append(ln)
+        prev_blank = is_blank
+    return "\n".join(collapsed).strip()
+
+
+def _split_explanation_design(comment_lines: list[str]
+                              ) -> tuple[str, str]:
+    """Split the pre-declaration comment block at the `## Design choice`
+    header. Lines before the header become the explanation; lines after
+    become the design-choices section. Either may be empty.
+    """
+    split_at = next(
+        (i for i, ln in enumerate(comment_lines) if _DESIGN_HEADER_RE.search(ln)),
+        None,
+    )
+    if split_at is None:
+        return _strip_lean_comment_markers("\n".join(comment_lines)), ""
+    explanation = _strip_lean_comment_markers(
+        "\n".join(comment_lines[:split_at]))
+    design = _strip_lean_comment_markers(
+        "\n".join(comment_lines[split_at + 1 :]))
+    return explanation, design
+
+
+def build_for_website_prompt(row: dict, subsection_folder: Path) -> str:
+    """Compose the one-shot prompt that asks a fresh worker to write
+    ``<subsection_folder>/tex/<ref>_for_website.json``. Takes a bare row
+    dict (not the full ``OrchestrationState``) so test scripts can drive
+    the worker without a live orchestration session."""
+    ref = row["ref"]
+    tex_dir = subsection_folder / "tex"
+    out_path = tex_dir / f"{ref}_for_website.json"
+    title = row.get("title") or "Untitled"
+    tex_stmt_path = (tex_dir
+                     / (f"{ref}_{title}.tex"
+                        if row["def_or_claim"] == "def"
+                        else f"{ref}_statement_{title}.tex"))
+    tex_proof_path = (
+        tex_dir / f"{ref}_proof_{title}.tex"
+        if row["def_or_claim"] == "claim" else None
+    )
+    context = (
+        f"# Row context (orchestrator-supplied)\n"
+        f"- ref:              {ref}\n"
+        f"- title:            {row.get('title')}\n"
+        f"- type:             {row.get('type')}\n"
+        f"- def_or_claim:     {row.get('def_or_claim')}\n"
+        f"- section:          {row.get('section')}\n"
+        f"- main_lean_file:   {row.get('main_lean_file')}\n"
+        f"- lean_files:       {row.get('lean_files')}\n"
+        f"- tex statement:    {tex_stmt_path}\n"
+        f"- tex proof:        {tex_proof_path or '(n/a)'}\n"
+        f"- output path:      {out_path}\n"
+    )
+    return (
+        f"{read_worker_prompt('produce_for_website.md')}\n\n"
+        f"{context}\n"
+    )
+
+
+def run_for_website_worker(row: dict, subsection_folder: Path,
+                           *, register_on_row: bool = True) -> None:
+    """Spawn the one-shot ``produce_for_website`` worker and confirm the
+    JSON file landed. Falls back to the mechanical ``generate_for_website``
+    if the worker times out, fails to launch, or doesn't produce the file.
+
+    Best-effort: never raises. ``register_on_row=False`` skips appending
+    to ``row['agent_registry']`` -- useful for ad-hoc test runs that
+    shouldn't pollute the row's session history.
+    """
+    ref = row["ref"]
+    out_path = subsection_folder / "tex" / f"{ref}_for_website.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    label = f"for_website_{ref}"
+    try:
+        _, sess = run_claude(
+            build_for_website_prompt(row, subsection_folder),
+            label=label,
+        )
+    except WorkerTimeoutError as e:
+        print(f"[orchestrator] for_website worker timed out: {e}; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+    except Exception as e:                # noqa: BLE001 -- best effort
+        print(f"[orchestrator] for_website worker failed to launch: {e}; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+    if register_on_row:
+        _register_agent(row, kind="for_website", session_id=sess)
+    if not out_path.exists():
+        print(f"[orchestrator] for_website worker finished but didn't "
+              f"write {out_path.name}; falling back to mechanical "
+              f"extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+    # Sanity-validate the JSON. If broken, fall back; the mechanical
+    # extractor at least emits a well-formed file.
+    try:
+        with open(out_path, encoding="utf-8") as fh:
+            json.load(fh)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[orchestrator] for_website JSON invalid ({e}); falling "
+              f"back to mechanical extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+    print(f"[orchestrator] for_website JSON written by worker: "
+          f"{out_path.name}", flush=True)
+
+
+def _code_lines_mask(text: str) -> list[bool]:
+    """Parallel mask of ``text.splitlines()``: ``True`` iff the line
+    *starts* outside any ``/- ... -/`` block comment. Lines whose only
+    content is a ``--`` line-comment are still ``True`` because they're
+    at depth zero -- ref-marker comments are flagged ``True`` and the
+    declaration-head regex naturally won't match them.
+    """
+    lines = text.splitlines()
+    mask: list[bool] = []
+    depth = 0
+    for ln in lines:
+        mask.append(depth == 0)
+        i = 0
+        n = len(ln)
+        while i < n:
+            if ln.startswith("/-", i):
+                depth += 1
+                i += 2
+            elif ln.startswith("-/", i) and depth > 0:
+                depth -= 1
+                i += 2
+            elif depth == 0 and ln.startswith("--", i):
+                break          # rest of line is a line comment
+            else:
+                i += 1
+    return mask
+
+
+def _find_all_marker_blocks(text: str, ref: str
+                            ) -> list[tuple[int, int, int]]:
+    """Return ``[(marker_idx, decl_idx, end_idx), ...]`` for every
+    ``-- <ref>`` marker (any sub-form: bare, `(part X/Y)`, `(item N, ...)`)
+    in ``text``. ``end_idx`` is the line where the slice should stop
+    (the next marker for any ref, or end of file).
+
+    Declaration heads inside ``/- ... -/`` block comments are ignored,
+    so prose like ``def 3.4 item 1:`` embedded in a docstring doesn't
+    masquerade as a Lean declaration.
+    """
+    lines = text.splitlines()
+    code = _code_lines_mask(text)
+    marker = _ref_marker_re(ref)
+    blocks: list[tuple[int, int, int]] = []
+    marker_idxs = [i for i, ln in enumerate(lines) if marker.match(ln)]
+    for m_idx in marker_idxs:
+        decl_idx = None
+        for j in range(m_idx + 1, len(lines)):
+            if code[j] and _DECL_OPENER_RE.match(lines[j]):
+                decl_idx = j
+                break
+            if _ANY_REF_MARKER_RE.match(lines[j]) and j != m_idx:
+                break
+        if decl_idx is None:
+            continue
+        end_idx = len(lines)
+        for j in range(decl_idx + 1, len(lines)):
+            if _ANY_REF_MARKER_RE.match(lines[j]):
+                end_idx = j
+                break
+        blocks.append((m_idx, decl_idx, end_idx))
+    return blocks
+
+
+def _trim_statement(lines: list[str], decl_idx: int, end_idx: int) -> str:
+    """Take the declaration starting at ``decl_idx`` and trim:
+    - theorem / lemma / example: stop at the line containing ``:= by``
+      (kept), drop the tactic block;
+    - structure / def / abbrev / class / instance / inductive: keep
+      everything up to ``end_idx``.
+    """
+    head = _DECL_OPENER_RE.match(lines[decl_idx])
+    kind = head.group(1) if head else ""
+    is_thm = kind in {"theorem", "lemma", "example"}
+    out: list[str] = []
+    for j in range(decl_idx, end_idx):
+        out.append(lines[j])
+        if is_thm and _PROOF_OPENER_RE.search(lines[j]):
+            break
+    return "\n".join(out).rstrip()
+
+
+def _parse_decl_head(line: str) -> tuple[str, str]:
+    """Extract ``(kind, name)`` from a declaration head line. Returns
+    ``("", "")`` if the line isn't a recognised declaration."""
+    m = _DECL_HEAD_NAME_RE.match(line)
+    return (m.group("kind"), m.group("name")) if m else ("", "")
+
+
+def generate_for_website(row: dict, subsection_folder: Path) -> None:
+    """**Fallback** post-solve helper: write
+    ``<subsection_folder>/tex/<ref>_for_website.json`` with the per-row
+    info the website builder consumes.
+
+    The ``lean_statement`` field is a **list of objects**; each object
+    is ``{"name": <decl name>, "kind": <theorem|structure|def|...>,
+    "code": <signature only>}``. The list has one element per ref-marker
+    in the canonical Lean file -- for multi-part claims and multi-item
+    defs, that yields several elements; for single-declaration rows it
+    is a list of one.
+
+    Comments preceding each declaration are aggregated. The first
+    ``## Design choice`` marker in the *aggregate* comment block splits
+    explanation from design choices.
+
+    Best-effort: a missing main_lean_file, a missing ref-marker, or an
+    un-trimmable declaration just yields a file with empty fields rather
+    than aborting the orchestrator.
+    """
+    main_lean = row.get("main_lean_file") or ""
+    ref = row["ref"]
+    tex_dir = subsection_folder / "tex"
+    out_path = tex_dir / f"{ref}_for_website.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload: dict = {
+        "ref":             ref,
+        "title":           row.get("title", ""),
+        "type":            row.get("type", ""),
+        "def_or_claim":    row.get("def_or_claim", ""),
+        "section":         row.get("section", ""),
+        "lean_file_path":  main_lean,
+        "lean_statement":  [],
+        "lean_explanation": "",
+        "design_choices":  "",
+    }
+
+    if not main_lean:
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    lean_abs = REPO_ROOT / main_lean
+    if not lean_abs.exists():
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    text = lean_abs.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    blocks = _find_all_marker_blocks(text, ref)
+    if not blocks:
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    # Build the list of statement objects + aggregated comment lines.
+    statements: list[dict] = []
+    all_comments: list[str] = []
+    for marker_idx, decl_idx, end_idx in blocks:
+        # Comments between marker (excl. its own line) and declaration.
+        comments = lines[marker_idx + 1 : decl_idx]
+        if comments and re.match(r"^--\s*title:", comments[0]):
+            comments = comments[1:]
+        all_comments.extend(comments)
+        all_comments.append("")            # blank-line separator
+        kind, name = _parse_decl_head(lines[decl_idx])
+        code = _trim_statement(lines, decl_idx, end_idx)
+        statements.append({
+            "name": name,
+            "kind": kind,
+            "code": code,
+        })
+
+    explanation, design = _split_explanation_design(all_comments)
+    payload["lean_statement"]  = statements
+    payload["lean_explanation"] = explanation
+    payload["design_choices"]   = design
+
+    out_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"[orchestrator] wrote for-website JSON (fallback): "
+          f"{out_path.name} ({len(statements)} stmt)", flush=True)
+
+
+# ---------------------------------------------------------------------------
+# per-row commit on solve
+# ---------------------------------------------------------------------------
+
+# Generous cap for `scaffold/build_and_commit.sh` -- it runs `lake build`
+# from the repo root before committing, which on a cold Mathlib cache or
+# after a Mathlib bump can take several minutes. Anything over this cap
+# is almost certainly stuck; we abandon the commit (the row stays
+# uncommitted) and continue to the next row rather than crash.
+COMMIT_SCRIPT_TIMEOUT_SECONDS = 15 * 60
+
+
+def commit_solved_row(state: "OrchestrationState") -> None:
+    """Invoke ``scaffold/build_and_commit.sh`` with a per-row message so
+    each solve becomes its own commit on the working branch.
+
+    Non-fatal: if `lake build` fails, the script exits non-zero and we
+    log + continue. The row's `solved=yes` flag is already persisted in
+    `data.json` (which we just saved); the next row's eventual commit
+    will sweep the uncommitted changes in via `git add -A`.
+
+    Time spent here counts toward ``time_needed_to_solve`` only by way
+    of the closure's persist on the next loop iteration / finally --
+    i.e. usually a minute or two of commit time becomes part of the
+    row's recorded total. That's small enough to ignore vs the hours a
+    proof takes.
+    """
+    row = state.row
+    verdict = row.get("proven", "n/a")
+    if verdict == "n/a":
+        verdict = "formalized"          # def rows
+    time_s = int(row.get("time_needed_to_solve") or 0)
+    minutes = max(1, round(time_s / 60))
+    n_turns = len(state.history)
+    title = row.get("title", "") or "Untitled"
+    msg = (f"{row['ref']}: {title} ({verdict}, {minutes}min, "
+           f"turns={n_turns})")
+
+    script = SCAFFOLD_DIR / "build_and_commit.sh"
+    if not script.exists():
+        print(f"[orchestrator] {script} missing; skipping auto-commit.",
+              flush=True)
+        return
+    print(f"[orchestrator] committing: {msg}", flush=True)
+    try:
+        result = subprocess.run(
+            ["bash", str(script), msg],
+            cwd=str(REPO_ROOT),
+            capture_output=True, text=True,
+            timeout=COMMIT_SCRIPT_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"[orchestrator] commit script timed out after "
+              f"{COMMIT_SCRIPT_TIMEOUT_SECONDS//60} min; row stays "
+              f"uncommitted, continuing.", flush=True)
+        return
+    except Exception as e:                 # noqa: BLE001 - best effort
+        print(f"[orchestrator] commit script failed to launch: {e}; "
+              f"row stays uncommitted, continuing.", flush=True)
+        return
+
+    if result.returncode != 0:
+        tail = "\n".join(
+            (result.stdout + result.stderr).splitlines()[-15:]
+        ) or "(empty)"
+        print(f"[orchestrator] commit script exit {result.returncode}; "
+              f"row stays uncommitted, continuing.\n"
+              f"    log tail:\n{tail}", flush=True)
+        return
+    print(f"[orchestrator] commit + push OK.", flush=True)
+
+
 def pick_title_for_row(row: dict) -> str:
     """Spawn a one-shot claude -p call to pick a short PascalCase title for
     a row whose ``title`` is empty. The response is sanitised to alphanumerics
@@ -766,9 +1227,29 @@ def _parse_usage_limit_wait(stderr: str, stdout: str) -> int | None:
     return secs if secs > 0 else 3600
 
 
+class WorkerTimeoutError(RuntimeError):
+    """Raised by run_claude when the per-call wallclock cap fires before the
+    `claude -p` subprocess returns.
+
+    Distinct from generic ``RuntimeError`` (which run_claude raises on
+    exhausted retries) so callers can decide whether a timeout is fatal
+    (manager turn) or recoverable by telling the manager (worker turn).
+    """
+
+
+# Module-level hook so run_claude can notify the active row time-tracker
+# (set by solve_current_row) when a usage-limit sleep is about to start /
+# has just ended. The tracker uses these to *exclude* the sleep duration
+# from time_needed_to_solve. ``None`` means no active tracker (e.g. when
+# pick_title_for_row runs before the tracker is installed).
+_ACTIVE_TRACKER_SLEEP_CB: "callable | None" = None
+
+
 def run_claude(prompt: str, label: str,
                *, resume_session: str | None = None,
-               retries: int = 1) -> tuple[str, str | None]:
+               retries: int = 1,
+               on_usage_limit_sleep: "callable | None" = None,
+               ) -> tuple[str, str | None]:
     """Run ``claude -p`` non-interactively and return ``(text, session_id)``.
 
     - The model is locked to Opus 4.7 with effort=max.
@@ -785,9 +1266,15 @@ def run_claude(prompt: str, label: str,
       indefinitely. The total wall clock spent on the row is still capped by
       ``MAX_RUNTIME_SECONDS`` -- the row's elapsed clock advances during
       the sleep, so a long limit pause can still trigger a clean exit.
+    - ``on_usage_limit_sleep`` is an optional callable ``(phase, seconds)``
+      invoked as ``("pause", wait)`` immediately before each usage-limit
+      sleep and ``("resume", wait)`` immediately after. Used by the row
+      time-tracker to *exclude* the sleep duration from
+      ``time_needed_to_solve`` (otherwise a multi-hour quota wait would
+      inflate the row's "active" time).
 
-    Raises ``RuntimeError`` only when generic retries are exhausted, or on
-    a per-call timeout.
+    Raises ``WorkerTimeoutError`` if the per-call timeout fires, or
+    ``RuntimeError`` when generic retries are exhausted.
     """
     cmd = ["claude", "-p", prompt, "--dangerously-skip-permissions",
            "--model", CLAUDE_MODEL,
@@ -806,8 +1293,9 @@ def run_claude(prompt: str, label: str,
                 timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
             )
         except subprocess.TimeoutExpired as e:
-            raise RuntimeError(
-                f"claude call '{label}' timed out (attempt {attempt})"
+            raise WorkerTimeoutError(
+                f"claude call '{label}' timed out after "
+                f"{PER_CALL_TIMEOUT_SECONDS//60} min (attempt {attempt})"
             ) from e
 
         if result.returncode == 0:
@@ -818,7 +1306,12 @@ def run_claude(prompt: str, label: str,
         if wait is not None:
             print(f"[run_claude] '{label}' hit a usage limit; sleeping "
                   f"{wait}s before retrying...", flush=True)
+            cb = on_usage_limit_sleep or _ACTIVE_TRACKER_SLEEP_CB
+            if cb is not None:
+                cb("pause", wait)
             time.sleep(wait)
+            if cb is not None:
+                cb("resume", wait)
             attempt -= 1   # this attempt is "free"
             continue
 
@@ -1326,6 +1819,13 @@ def solve_current_row() -> None:
     Stops on any of: row reaches a terminal state, 8-hour budget exhausted,
     or MAX_TURNS reached. The data.json is saved after every meaningful state
     change so an interrupted run leaves a recoverable trail.
+
+    Per-row wall-clock is accumulated in ``row["time_needed_to_solve"]``
+    (seconds). The counter only advances while *this* function is on the
+    stack -- across-session waits don't count, but in-session sleeps
+    (usage-limit pauses, subprocess work) do. A ``try / finally`` around
+    the loop guarantees that every exit path persists the partial time so
+    the next invocation resumes from the right baseline.
     """
     chapter = read_current_chapter()
     data_path = find_chapter_data_path(chapter)
@@ -1337,9 +1837,37 @@ def solve_current_row() -> None:
         row_index=row_index,
         row=data["rows"][row_index],
     )
+    # Ensure the time counter exists (older rows may not have it).
+    state.row.setdefault("time_needed_to_solve", 0)
+    prior_seconds = int(state.row["time_needed_to_solve"])
+
+    # Resume-from-previous-session signals: a non-empty workspace, a
+    # populated agent_registry, or a non-zero accumulated time all mean
+    # the row was already being worked on. Surface this loud + clear.
+    section_at_start = state.row.get("section", "")
+    workspace_exists = False
+    if section_at_start:
+        ss = ensure_subsection_folder(state.data_path.parent, section_at_start)
+        workspace_exists = workspace_path_for_row(state.row, ss).exists()
+    n_registry = len(state.row.get("agent_registry", []) or [])
+    resume_signals = []
+    if prior_seconds:
+        resume_signals.append(
+            f"{prior_seconds//60}m{prior_seconds%60:02d}s already spent")
+    if workspace_exists:
+        resume_signals.append("workspace markdown present")
+    if n_registry:
+        resume_signals.append(f"{n_registry} resumable agent session(s)")
+
     print(f"[orchestrator] solving {state.ref} "
           f"({state.row['def_or_claim']}, section {state.row.get('section')}) "
           f"from {data_path.name}", flush=True)
+    if resume_signals:
+        print(f"[orchestrator] RESUMING from prior session(s): "
+              f"{'; '.join(resume_signals)}", flush=True)
+    else:
+        print(f"[orchestrator] fresh start (no prior session artefacts).",
+              flush=True)
 
     # Pre-flight setup before the manager loop starts:
     #   1. If the row's title is empty, run a quick claude -p call to pick a
@@ -1365,9 +1893,44 @@ def solve_current_row() -> None:
     # manager can be told (and the human can pre-seed answers to old requests).
     ensure_request_from_human_file(state.data_path.parent)
 
+    # Per-turn wall-clock accumulator. `time_mark` is updated each time we
+    # persist; `persist_time` flushes the delta into `time_needed_to_solve`
+    # and re-saves data.json so the value survives interruption.
+    time_mark = time.monotonic()
+
+    def persist_time() -> None:
+        nonlocal time_mark
+        now = time.monotonic()
+        delta = now - time_mark
+        if delta <= 0:
+            return
+        state.row["time_needed_to_solve"] = round(
+            state.row.get("time_needed_to_solve", 0) + delta
+        )
+        save_data(state.data_path, data)
+        time_mark = now
+
+    def on_usage_limit_sleep(phase: str, _seconds: int) -> None:
+        """Pause/resume the time tracker around usage-limit sleeps so the
+        sleep duration doesn't inflate the row's ``time_needed_to_solve``.
+        ``pause`` flushes the pre-sleep delta; ``resume`` resets the
+        baseline to "now" so the sleep itself is never counted.
+        """
+        nonlocal time_mark
+        if phase == "pause":
+            persist_time()
+        elif phase == "resume":
+            time_mark = time.monotonic()
+
+    # Install the module-level hook so run_claude (and helpers that call it)
+    # find our pause/resume callback without needing it as an explicit kwarg.
+    global _ACTIVE_TRACKER_SLEEP_CB
+    _ACTIVE_TRACKER_SLEEP_CB = on_usage_limit_sleep
+
     extra_note: str | None = None
 
-    for turn in range(1, MAX_TURNS + 1):
+    try:
+      for turn in range(1, MAX_TURNS + 1):
         # --- Budget check --------------------------------------------------
         if state.elapsed_seconds > MAX_RUNTIME_SECONDS:
             print(f"[orchestrator] 8-hour budget exhausted after {turn-1} "
@@ -1383,8 +1946,24 @@ def solve_current_row() -> None:
               f"(elapsed {state.elapsed_seconds/60:.1f} min)", flush=True)
         manager_prompt = build_manager_prompt(state, extra_note=extra_note)
         extra_note = None
-        manager_reply, manager_session = run_claude(
-            manager_prompt, label=f"t{turn:03d}_manager")
+        # Manager-call timeout: retry a few times before giving up. A
+        # repeated hang here means the LLM service or auth is broken and
+        # the orchestrator can't make progress; we exit cleanly so a
+        # future invocation picks up where we left off.
+        for mgr_attempt in range(1, 4):
+            try:
+                manager_reply, manager_session = run_claude(
+                    manager_prompt, label=f"t{turn:03d}_manager")
+                break
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] manager call timed out "
+                      f"(attempt {mgr_attempt}/3): {e}", flush=True)
+                if mgr_attempt == 3:
+                    append_unsolved_run_summary(
+                        state,
+                        reason=f"manager timed out 3x at turn {turn}",
+                    )
+                    return
         _register_agent(state.row, kind="manager",
                         session_id=manager_session)
         try:
@@ -1413,10 +1992,26 @@ def solve_current_row() -> None:
 
         if action == "solved":
             # Independent verifier checks the row before we flip the flag.
-            verifier_reply, sess = run_claude(
-                build_verifier_prompt(state, body),
-                label=f"t{turn:03d}_verifier",
-            )
+            try:
+                verifier_reply, sess = run_claude(
+                    build_verifier_prompt(state, body),
+                    label=f"t{turn:03d}_verifier",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] solved-verifier timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The `verify_row_solved` worker hit the per-call "
+                    f"timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) and was "
+                    f"killed. Files may be in an inconsistent state. "
+                    f"Decide the next action -- you can retry `solved`, "
+                    f"hand off to a fresh manager, or dispatch a cleanup."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind="verify_row_solved", session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1470,6 +2065,12 @@ def solve_current_row() -> None:
                         state.data_path.parent, section)
                     cleanup_row_artefacts(state.row, subsection_folder)
                     build_row_tex(state.row, subsection_folder)
+                    # Dispatch a one-shot worker to produce the for-website
+                    # JSON (Lean statement + polished explanation + design
+                    # choices). Falls back to a mechanical extractor on
+                    # worker failure. Done BEFORE commit so the JSON lands
+                    # in the same commit as the rest of the row.
+                    run_for_website_worker(state.row, subsection_folder)
                     if subsection_is_complete(data, section):
                         print(f"[orchestrator] section {section} now fully "
                               f"solved -- building aggregate main.tex",
@@ -1477,9 +2078,15 @@ def solve_current_row() -> None:
                         build_subsection_main_tex(subsection_folder)
                 # Save AFTER cleanup so the cleared agent_registry is persisted.
                 save_data(state.data_path, data)
+                # Flush the row time BEFORE the commit so the recorded
+                # time_needed_to_solve reflects solving, not commit overhead.
+                persist_time()
                 print(f"[orchestrator] {state.ref} marked solved "
                       f"({proven}); lean_files={lean_files or '(unreported)'}",
                       flush=True)
+                # Per-row commit via the sanctioned script (runs lake build
+                # then `git commit && git push`). Non-fatal on failure.
+                commit_solved_row(state)
                 return
 
             # Verifier said FAIL (or no verdict). Surface the verifier's
@@ -1584,10 +2191,24 @@ def solve_current_row() -> None:
             # No direct row-state changes here -- the manager decides what
             # to do based on the verdict.
             _, label_suffix = VERIFIER_ACTIONS[action]
-            verifier_reply, sess = run_claude(
-                build_verifier_action_prompt(action, state, body),
-                label=f"t{turn:03d}_{label_suffix}",
-            )
+            try:
+                verifier_reply, sess = run_claude(
+                    build_verifier_action_prompt(action, state, body),
+                    label=f"t{turn:03d}_{label_suffix}",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] {action} verifier timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The `{action}` verifier hit the per-call timeout "
+                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
+                    f"Pick a different action or retry `{action}`."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1649,7 +2270,22 @@ def solve_current_row() -> None:
             # Body format:
             #   AGENT_ID: <session_id>
             #   <message to send to the resumed agent>
-            outcome = _continue_agent_from_body(state, body, turn)
+            try:
+                outcome = _continue_agent_from_body(state, body, turn)
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] continue_agent timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The resumed agent hit the per-call timeout "
+                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
+                    f"Try a fresh spawn (`spawn_agent_sub_task`) instead, "
+                    f"or hand off via `new_manager`."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             state.history.append(TurnRecord(turn, action, body,
                                             outcome["summary"]))
             extra_note = outcome["feedback_for_manager"]
@@ -1673,10 +2309,29 @@ def solve_current_row() -> None:
         elif action in ACTION_TO_WORKER:
             # Standard worker dispatch.
             worker_prompt = build_worker_prompt(action, body, state)
-            worker_reply, sess = run_claude(
-                worker_prompt,
-                label=f"t{turn:03d}_worker_{action}",
-            )
+            try:
+                worker_reply, sess = run_claude(
+                    worker_prompt,
+                    label=f"t{turn:03d}_worker_{action}",
+                )
+            except WorkerTimeoutError as e:
+                print(f"[orchestrator] worker `{action}` timed out: {e}",
+                      flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                extra_note = (
+                    f"The dispatched worker for action `{action}` hit the "
+                    f"per-call timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) "
+                    f"and was killed. Files this worker was editing may be "
+                    f"left in a partial / inconsistent state. Decide how to "
+                    f"proceed: re-dispatch `{action}` (same input), pick a "
+                    f"different action, hand off to a fresh manager via "
+                    f"`new_manager`, or dispatch a cleanup worker to "
+                    f"inspect and revert the partial files."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(worker_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
@@ -1690,11 +2345,19 @@ def solve_current_row() -> None:
             )
 
         save_data(state.data_path, data)
+        persist_time()
 
-    print(f"[orchestrator] hit MAX_TURNS={MAX_TURNS}; stopping.", flush=True)
-    append_unsolved_run_summary(
-        state, reason=f"MAX_TURNS={MAX_TURNS} reached without solving",
-    )
+      print(f"[orchestrator] hit MAX_TURNS={MAX_TURNS}; stopping.", flush=True)
+      append_unsolved_run_summary(
+          state, reason=f"MAX_TURNS={MAX_TURNS} reached without solving",
+      )
+    finally:
+        # Persist any unflushed wall-clock so an interrupted run resumes
+        # from the right baseline next time. Also uninstall the module
+        # hook so a future caller doesn't accidentally trip our stale
+        # tracker on its own usage-limit sleeps.
+        persist_time()
+        _ACTIVE_TRACKER_SLEEP_CB = None
 
 
 def solve_chapter() -> None:

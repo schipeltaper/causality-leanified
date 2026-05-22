@@ -112,23 +112,23 @@
 % \theoremheaderfont{\sf\bfseries}
 
 % --------------- leanification ref-anchor system --------------------------
-% Every per-row subfile begins with three lines (injected by the Python
+% Every per-row subfile begins with two lines (injected by the Python
 % stub generator -- see scaffold/solve_chapter.py::ensure_row_subfiles):
 %
 %     \def\rowref{<row-ref>}        % e.g. def_3_1, claim_3_5
-%     \def\rowtitle{<title>}        % e.g. CDMG, BifurcationAlternative
 %     \phantomsection\label{<row-ref>}
 %
-% These two macros are then woven into the theorem-style header by the
+% The \rowref macro is woven into the theorem-style header by the
 % `refprefix` style below, producing headers like
-%     "def_3_1 Definition CDMG."
-% and "claim_3_5 Lemma BifurcationAlternative."  The \label allows other
-% subfiles (proofs, in particular) to cross-reference this row via the
-% \refrow{<row-ref>} macro defined below.
+%     "def_3_1 Definition."
+% and "claim_3_5 Lemma."  The title (data.json column) is intentionally
+% NOT rendered in the header -- the LN descriptive name is in the body
+% text already, and the filename carries the title for grep purposes.
+% The \label allows other subfiles (proofs, in particular) to
+% cross-reference this row via the \refrow{<row-ref>} macro defined below.
 %
-% Defaults so any of these envs degrade gracefully outside a row context.
+% Default so the envs degrade gracefully outside a row context.
 \providecommand{\rowref}{}
-\providecommand{\rowtitle}{}
 
 % Clickable cross-reference to another row by its ref. The text body uses
 % \detokenize so the unescaped underscores in the ref (e.g. "def_3_10")
@@ -138,14 +138,14 @@
 % target does not exist (one-file compile), but the text still prints.
 \newcommand{\refrow}[1]{\hyperref[#1]{\detokenize{#1}}}
 
-% Custom theoremstyle: prefix header with \rowref, suffix with \rowtitle,
-% and append the env's optional [arg] after a dash when present.
-% Layout: <ref> <ThmName> <title>[-- <LN descriptive note>].
+% Custom theoremstyle: prefix header with \rowref, append the env's
+% optional [arg] (the LN descriptive name) as the title via amsthm's
+% standard \thmnote machinery. Layout: <ref> <ThmName> -- <title>.
+% When an env lacks an optional arg, the Python stub generator injects
+% the row's data.json title in its place, so every header has a name.
 \newtheoremstyle{refprefix}
   {}{}{}{}{\bfseries}{.}{.5em}%
-  {\ifdefempty{\rowref}{}{\rowref\ }\thmname{#1}%
-   \ifdefempty{\rowtitle}{}{\ \rowtitle}%
-   \thmnote{ -- #3}}
+  {\ifdefempty{\rowref}{}{\rowref\ }\thmname{#1}\thmnote{ -- #3}}
 
 \theoremstyle{refprefix}
 

@@ -1,14 +1,12 @@
 % Claim proof file for row claim_3_8 -- "DisjointHardInterventions".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Proof lifted from lecture-notes/lecture_notes/graphs.tex:505--533 (the
+% \Claude{...} block immediately following the claim). Only light edits:
+% explicit \refrow{def_3_10} and \refrow{def_3_11} cross-links the first
+% time \doit and \spl appear in the body, \medskip\noindent\emph{...}
+% section headers mirroring claim_3_4_proof_HardInterventionsCommute.tex,
+% a \checkmark at the end of each component-agree paragraph, and a closing
+% one-liner. The \Claude{...} wrapper from the LN source is dropped.
 %
 % Compiles standalone via the `subfiles` package.
 
@@ -18,7 +16,6 @@
 % ref: claim_3_8 (proof, with statement restated for readability)
 % title: DisjointHardInterventions
 \def\rowref{claim\_3\_8}
-\def\rowtitle{DisjointHardInterventions}
 \phantomsection\label{claim_3_8}
 %
 % Cross-references: see claim_<ref>_statement_<title>.tex in this folder
@@ -33,7 +30,74 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+\medskip\noindent\emph{Preamble.}
+Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are
+well-defined in either order: on the left, $\spl(W_2)$ acts on $G_{\doit(W_1)}$
+whose output set $V \sm W_1$ still contains $W_2$ (using $W_1 \cap W_2 = \emptyset$);
+on the right, $\doit(W_1)$ acts on $G_{\spl(W_2)}$, whose input/output universe
+contains every vertex of $W_1 \ins J \cup V$ untouched by the split (again using
+$W_1 \cap W_2 = \emptyset$). For $w \in W_2$ we write $w^0$ (incoming copy) and
+$w^1$ (outgoing copy) for the two split copies of $w$; for $v \notin W_2$ we
+identify $v^0 = v^1 = v$. Each side of the displayed equation is a CDMG presented
+as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$, and we verify the four components
+in turn.
+
+\medskip\noindent\emph{Node sets.}
+Left: by \refrow{def_3_10}, $G_{\doit(W_1)}$ has input set $J \cup W_1$ and
+output set $V \sm W_1$; then $\spl(W_2)$~\refrow{def_3_11} (with
+$W_2 \ins V \sm W_1$, by $W_1 \cap W_2 = \emptyset$) gives
+\[
+  J \cup W_1
+  \qquad\text{and}\qquad
+  (V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1.
+\]
+Right: $G_{\spl(W_2)}$ has input set $J$ and output set $(V \sm W_2) \dcup W_2^0 \dcup W_2^1$;
+then $\doit(W_1)$ (with $W_1 \cap W_2^0 = W_1 \cap W_2^1 = \emptyset$, since
+$W_2^0, W_2^1$ are fresh split copies of vertices in $W_2$ and $W_1 \cap W_2 = \emptyset$)
+gives
+\[
+  J \cup W_1
+  \qquad\text{and}\qquad
+  (V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1.
+\]
+These agree. \checkmark
+
+\medskip\noindent\emph{Directed edges.}
+Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\spl(W_2)$
+yields
+\[
+  \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC
+  \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC.
+\]
+Right: $E_{\spl(W_2)} = \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC$;
+then $\doit(W_1)$ removes the edges with head in $W_1$. An edge $v_1^1 \tuh v_2^0$
+has head $v_2^0 \in W_1$ iff $v_2 \in W_1$ (using $W_1 \cap W_2 = \emptyset$: if
+$v_2 \in W_2$ then $v_2^0$ is a fresh split copy not in $W_1$, and if $v_2 \notin W_2$
+then $v_2^0 = v_2$). The split edges $w^0 \tuh w^1$ have head $w^1 \notin W_1$,
+since $w \in W_2$ and $W_1, W_2$ are disjoint. After removal we obtain
+\[
+  \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC
+  \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC,
+\]
+which agrees with the left-hand side. \checkmark
+
+\medskip\noindent\emph{Bidirected edges.}
+Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\spl(W_2)$
+yields
+\[
+  \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC.
+\]
+Right: $L_{\spl(W_2)} = \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L \rC$;
+then $\doit(W_1)$ removes the bidirected edges touching $W_1$. Using
+$v_k^0 \in W_1 \iff v_k \in W_1$ for $k = 1, 2$ (same fresh-copy / identity case
+analysis as for the directed edges, again using $W_1 \cap W_2 = \emptyset$), the
+result is
+\[
+  \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC,
+\]
+which agrees with the left-hand side. \checkmark
+
+All four components agree, completing the proof.
 \end{proof}
 
 \end{document}

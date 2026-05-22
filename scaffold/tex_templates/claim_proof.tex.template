@@ -22,7 +22,6 @@
 % ref: __REF__ (proof, with statement restated for readability)
 % title: __TITLE__
 \def\rowref{__REF_TEXT__}
-\def\rowtitle{__TITLE__}
 \phantomsection\label{__REF__}
 
 % --- statement (restated) ---------------------------------------------------

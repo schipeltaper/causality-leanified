@@ -276,6 +276,12 @@ def fill_data(chapter, tex_file, data_path):
             # this row -- the manager can ask the orchestrator to resume
             # any of them via the `continue_agent` action.
             "agent_registry": [],
+            # Cumulative seconds the orchestrator has spent on this row
+            # across all sessions. Only advances while solve_chapter is
+            # actively working on it (sleeping during usage-limit pauses
+            # counts as "active"). Persisted by solve_chapter every turn
+            # so an interrupted run resumes from the right baseline.
+            "time_needed_to_solve": 0,
         })
 
     _insert_ref_markers(marks)
