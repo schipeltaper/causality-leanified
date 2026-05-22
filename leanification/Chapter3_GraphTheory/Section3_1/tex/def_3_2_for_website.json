@@ -5,7 +5,43 @@
   "def_or_claim": "def",
   "section": "3.1",
   "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
-  "lean_statement": "",
-  "lean_explanation": "",
-  "design_choices": ""
+  "lean_statement": [
+    {
+      "name": "Membership α (CDMG α)",
+      "kind": "instance",
+      "code": "instance : Membership α (CDMG α) where\n  mem G v := v ∈ G.J ∪ G.V"
+    },
+    {
+      "name": "tuh",
+      "kind": "def",
+      "code": "/-- LN's `\\tuh`: there is a *directed* edge `v₁ → v₂` in `G`, i.e.\n`(v₁, v₂) ∈ G.E`. -/\ndef tuh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.E\n\n/-- LN `v₁ ⟶[G] v₂`: directed edge `v₁ → v₂` in the CDMG `G`. Matches\nLN macro `\\tuh`. Unicode arrow is `⟶` (`\\longrightarrow`, U+27F6),\nchosen distinct from the function arrow `→` to avoid any clash with\nLean's built-in syntax. -/\nscoped notation:50 v₁ \" ⟶[\" G \"] \" v₂ => Causality.CDMG.tuh G v₁ v₂"
+    },
+    {
+      "name": "hut",
+      "kind": "def",
+      "code": "/-- LN's `\\hut`: there is a *directed* edge `v₁ ← v₂` in `G`, i.e.\n`(v₂, v₁) ∈ G.E` (the same `G.E` membership, with arguments swapped). -/\ndef hut (G : CDMG α) (v₁ v₂ : α) : Prop := (v₂, v₁) ∈ G.E\n\n/-- LN `v₁ ⟵[G] v₂`: directed edge `v₁ ← v₂` in `G`. Matches LN macro\n`\\hut`. Equivalent to `v₂ ⟶[G] v₁` by definition. -/\nscoped notation:50 v₁ \" ⟵[\" G \"] \" v₂ => Causality.CDMG.hut G v₁ v₂"
+    },
+    {
+      "name": "huh",
+      "kind": "def",
+      "code": "/-- LN's `\\huh`: there is a *bidirected* edge `v₁ ↔ v₂` in `G`, i.e.\n`(v₁, v₂) ∈ G.L`. Because `G.L` is required to be symmetric (see\n`CDMG.L_symm` in `def_3_1`), `huh G v₁ v₂` and `huh G v₂ v₁` are\npropositionally equivalent. -/\ndef huh (G : CDMG α) (v₁ v₂ : α) : Prop := (v₁, v₂) ∈ G.L\n\n/-- LN `v₁ ⟷[G] v₂`: bidirected edge `v₁ ↔ v₂` in `G`. Matches LN\nmacro `\\huh`. Symmetric in `v₁`/`v₂` thanks to `CDMG.L_symm`. -/\nscoped notation:50 v₁ \" ⟷[\" G \"] \" v₂ => Causality.CDMG.huh G v₁ v₂"
+    },
+    {
+      "name": "suh",
+      "kind": "def",
+      "code": "/-- LN's `\\suh`: there is an edge with an arrowhead at `v₂` in `G`,\ni.e. either `tuh G v₁ v₂` (`→`) or `huh G v₁ v₂` (`↔`). -/\ndef suh (G : CDMG α) (v₁ v₂ : α) : Prop := tuh G v₁ v₂ ∨ huh G v₁ v₂\n\n/-- LN `v₁ ⇸[G] v₂`: there is an arrowhead at `v₂` (`→` or `↔`).\nMatches LN macro `\\suh`. Unicode is `⇸` (U+21F8, RIGHTWARDS ARROW\nWITH VERTICAL STROKE) -- the vertical stroke evokes the LN's star\nplaceholder at the left endpoint. -/\nscoped notation:50 v₁ \" ⇸[\" G \"] \" v₂ => Causality.CDMG.suh G v₁ v₂"
+    },
+    {
+      "name": "hus",
+      "kind": "def",
+      "code": "/-- LN's `\\hus`: there is an edge with an arrowhead at `v₁` in `G`,\ni.e. either `hut G v₁ v₂` (`←`) or `huh G v₁ v₂` (`↔`). -/\ndef hus (G : CDMG α) (v₁ v₂ : α) : Prop := hut G v₁ v₂ ∨ huh G v₁ v₂\n\n/-- LN `v₁ ⇷[G] v₂`: there is an arrowhead at `v₁` (`←` or `↔`).\nMatches LN macro `\\hus`. Unicode is `⇷` (U+21F7, LEFTWARDS ARROW\nWITH VERTICAL STROKE). -/\nscoped notation:50 v₁ \" ⇷[\" G \"] \" v₂ => Causality.CDMG.hus G v₁ v₂"
+    },
+    {
+      "name": "sus",
+      "kind": "def",
+      "code": "/-- LN's `\\sus`: there is *some* edge between `v₁` and `v₂` in `G`,\ni.e. any of `tuh G v₁ v₂`, `hut G v₁ v₂`, or `huh G v₁ v₂`. This is\nthe \"adjacency\" relation used in def 3.3. -/\ndef sus (G : CDMG α) (v₁ v₂ : α) : Prop :=\n  tuh G v₁ v₂ ∨ hut G v₁ v₂ ∨ huh G v₁ v₂\n\n/-- LN `v₁ ↮[G] v₂`: any edge of any orientation between `v₁` and\n`v₂` (\"adjacency\"). Matches LN macro `\\sus`. Unicode is `↮` (U+21AE,\nLEFT RIGHT ARROW WITH STROKE) -- the doubled stroke evokes a\nplaceholder at both endpoints. -/\nscoped notation:50 v₁ \" ↮[\" G \"] \" v₂ => Causality.CDMG.sus G v₁ v₂"
+    }
+  ],
+  "lean_explanation": "The notation block is structured around the `Membership` typeclass and six small `Prop`-valued definitions, all taking the ambient `G : CDMG α` as their first explicit argument. The type variable `α : Type*` is the polymorphic vertex type carried over from def 3.1, mirroring the LN's silent assumption that all vertices live in some fixed carrier; `v`, `v₁`, `v₂ : α` are individual vertices, matching the LN's $v$, $v_1$, $v_2$.\n\nFor item 1 ($v \\in G$), Lean's built-in membership `∈` is supplied by registering a `Membership α (CDMG α)` instance whose `mem` field unfolds to `v ∈ G.J ∪ G.V`. With the instance in place, the literal syntax `v ∈ G` typechecks, and the `@[simp]` lemma `CDMG.mem_iff` rewrites it to set-union membership — after which Mathlib's `Set.mem_union`, `Set.mem_insert_iff`, etc. apply.\n\nFor items 2–4, the three primitive edge relations are `Prop`-valued aliases for set membership: `tuh` (LN's `\\tuh`) unfolds to `(v₁, v₂) ∈ G.E`, `hut` (LN's `\\hut`) to `(v₂, v₁) ∈ G.E` — the same set, with arguments swapped — and `huh` (LN's `\\huh`) to `(v₁, v₂) ∈ G.L`. Items 5–7 are exactly the disjunctions of these primitives: `suh` (LN's `\\suh`, \"arrowhead at $v_2$\") is `tuh ∨ huh`, `hus` (LN's `\\hus`, \"arrowhead at $v_1$\") is `hut ∨ huh`, and `sus` (LN's `\\sus`, \"any edge between\") is `tuh ∨ hut ∨ huh`.\n\nEach `def` is paired with a `scoped notation` mirroring the LN macros: `v₁ ⟶[G] v₂` for `\\tuh`, `v₁ ⟵[G] v₂` for `\\hut`, `v₁ ⟷[G] v₂` for `\\huh`, `v₁ ⇸[G] v₂` for `\\suh`, `v₁ ⇷[G] v₂` for `\\hus`, and `v₁ ↮[G] v₂` for `\\sus`. The `scoped` keyword keeps these symbols dormant until a downstream file writes `open scoped Causality.CDMG`. The `[G]` infix carries the graph argument explicitly at the notation level, sidestepping any need to overload Lean's `∈`.",
+  "design_choices": "**`Membership` instance, not a separate `CDMG.mem` predicate.** The LN consistently writes $v \\in G$, which strongly suggests using Lean's built-in `∈` so call sites can read the literal phrase. A bespoke predicate `CDMG.mem G v` (or dot-notation `G.mem v`) would clutter every use site and would not interact with Mathlib's `mem_*` library lemmas at all. The `Membership` instance gives us the LN syntax for free and lets `v ∈ G` rewrite to `v ∈ G.J ∪ G.V` via the `@[simp]` lemma `CDMG.mem_iff`, after which the full power of `Set.mem_union`, `Set.mem_insert_iff`, etc. is available.\n\n**Six separate `def`s, not a single `EdgeKind` enum.** An alternative was a single inductive `EdgeKind | dir | revDir | bidir` plus one predicate `hasEdge : EdgeKind → CDMG α → α → α → Prop`. We rejected this for two reasons. First, the LN treats $v_1 \\tuh v_2 \\in G$, $v_1 \\huh v_2 \\in G$, etc. as *atoms* in proofs — e.g. claim 3.1 reads \"no $j \\in J$ has $j \\hus v \\in G$\", and def 3.5 defines parents as $\\{w \\mid w \\tuh v \\in G\\}$. Atoms compose better with `simp`, `rw`, and pattern matching than wrapped predicates. Second, the three \"star\" relations (`suh`, `hus`, `sus`) are not single edge types — they are disjunctions, and an enum would either require a sum-of-enums layer or would revert to disjunctions anyway. Spelling the disjunctions out directly is the LN's own approach.\n\n**`Prop`-valued, not `Bool`.** `Prop` matches the LN, lets the right-hand sides read `(v₁, v₂) ∈ G.E` directly (which is `Prop`-valued because `G.E : Set (α × α)`), and avoids imposing `DecidableEq α` everywhere. The LN treats the vertex type as arbitrary, sometimes uncountable (later chapters use real-valued nodes), so decidability cannot be assumed at this layer; where it matters downstream (e.g. constructive algorithms over finite graphs) it will be added as a separate hypothesis.\n\n**Custom Unicode arrows, not the short `→`/`←`/`↔`.** The short arrows are heavily overloaded in Lean (function arrows, `Iff`, rewrite direction in `rw`, etc.), so we instead use the long-arrow siblings `⟶`, `⟵`, `⟷` (U+27F6/F5/F7) for the three primitive edges, and the arrows-with-stroke `⇸`, `⇷`, `↮` (U+21F8, U+21F7, U+21AE) for the disjunctive \"star\" relations — the strokes echo the LN's \"$\\star$ = arrowhead-or-tail\" placeholder at one or both endpoints. The `[G]` suffix (rather than postfix `\\in G`) makes the graph argument explicit at the notation level and avoids the ambiguity of trying to overload Lean's `∈`.\n\n**Notations are `scoped`, not global.** Marking the six notations `scoped` under `Causality.CDMG` keeps them out of any file that doesn't explicitly opt in. Downstream rows (def 3.3 onwards) write `open scoped Causality.CDMG` near the top; files that never touch CDMGs don't pay for the Unicode tokens."
 }

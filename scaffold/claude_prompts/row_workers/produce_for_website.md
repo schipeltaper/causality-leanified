@@ -24,28 +24,47 @@ A single JSON file at the `output path` with **exactly** these fields:
   "def_or_claim":    "def" | "claim",
   "section":         "<section>",
   "lean_file_path":  "<repo-relative path of main_lean_file>",
-  "lean_statement":  "<see below>",
+  "lean_statement":  [ {"name": "...", "kind": "...", "code": "..."}, ... ],
   "lean_explanation": "<see below>",
   "design_choices":  "<see below>"
 }
 ```
 
-The five bookkeeping fields (`ref`/`title`/`type`/`def_or_claim`/`section`/`lean_file_path`) you copy verbatim from the row context.
+The six bookkeeping fields (`ref`/`title`/`type`/`def_or_claim`/`section`/`lean_file_path`) you copy verbatim from the row context.
 
-### `lean_statement`
+### `lean_statement`  ← **LIST**, not a string
 
-The Lean code that *defines the statement* of this row — and nothing else.
+`lean_statement` is a **JSON list of objects**, one element per *distinct sub-statement* in the LN block.
 
-- For a **definition row** (`def_or_claim = "def"`): the `structure`/`def`/`abbrev`/`class`/`inductive` declaration, *with its field documentation strings* if any. **No** trailing helper lemmas, no `@[simp]` membership lemmas, no auxiliary `instance` or `def` that isn't part of the core definition the LN block introduces.
-- For a **claim row** (`def_or_claim = "claim"`): the `theorem`/`lemma`/`example` head — name, binders, conclusion — trimmed at `:= by` (keep the `:= by` token so the reader sees the proof boundary). **No proof tactics.** For a multi-part claim, include every part's head, separated by a single blank line, in source order.
+Why a list: the LN often packs several pieces into a single Def/Lem block. `def 3.4 "Walks"` defines a walk-step type, the walks themselves, walk reversal, length, support, append, etc. — half a dozen LN-level concepts in one `\begin{Def}`. Each of these should be its own list element with its own Lean code, so the website can show them side-by-side with the LN.
 
-Strip:
+For multi-part claims (`-- <ref> (part 1/3)` / `-- <ref> (part 2/3)` / ...) and multi-item defs (`-- <ref> (item N, ...)`), the orchestrator's ref-marker comments in the Lean file already segment the row — use those as your guide, but **scan the LN tex statement first** to make sure each LN-level concept ends up in its own element, even if multiple Lean declarations back it.
 
-- the `-- <ref>` / `-- title: ...` ref-marker comments (they're bookkeeping for the orchestrator),
+Each element has exactly these keys:
+
+```json
+{
+  "name": "<the Lean identifier of the declaration>",   // e.g. "WalkStep", "Walk", "no_arrowhead_into_input"
+  "kind": "<theorem|lemma|example|def|abbrev|structure|class|instance|inductive>",
+  "code": "<the Lean code: signature only for theorems, full body for structures/defs>"
+}
+```
+
+`code` content rules per element:
+
+- **structure / inductive / class**: the full declaration, including all field doc comments (`/-- ... -/` lines). Plus any leading `/-- ... -/` Lean-doc comment immediately preceding it.
+- **def / abbrev**: the declaration head + body if short (one-liner); for longer defs that recursively pattern-match (e.g. `Walks.reverse`), include the full body — it's part of the definition. Plus any leading `/-- ... -/` Lean-doc.
+- **theorem / lemma / example**: the *signature only*, trimmed at `:= by` (keep the `:= by` token so the reader sees where the proof begins). **No proof tactics.** Plus any leading `/-- ... -/` Lean-doc.
+
+Strip from every element:
+
+- the `-- <ref>` / `-- title: ...` ref-marker comments (orchestrator bookkeeping),
 - any `-- ...` / `/- ... -/` design / explanation comments above the declaration (those go into `lean_explanation` / `design_choices` instead),
-- but **keep** Lean-doc comments `/-- ... -/` immediately preceding the declaration — those are part of the public-facing definition.
+- **but keep** the `/-- ... -/` Lean-doc immediately preceding the declaration — that's part of the public-facing definition.
 
-If a helper lemma or `private` definition is *strictly required* to even state the row (rare — e.g. a custom notation introduced in the same file), include it; in that case add a one-line `--` comment above it noting "helper required to state the row". Default: omit helpers.
+**Exclude helpers**: `@[simp]` membership lemmas, auxiliary `instance` declarations, helper `def`s that don't correspond to an LN-level concept. Include only what the LN block introduces (or what is *strictly* required to state it — rare; in that case add a one-line `--` comment above it noting "helper required to state the row").
+
+**List order**: source order in the Lean file (i.e. the order in which the ref-markers appear). For rows with a single declaration, the list has length 1.
 
 ### `lean_explanation`
 

@@ -18,7 +18,7 @@ The orchestrator does NOT update existing solved rows automatically — only new
 
 ## JSON schema
 
-Exactly nine fields, all top-level:
+Exactly nine fields, all top-level. `lean_statement` is a **list** (see below); the other prose fields are strings.
 
 ```json
 {
@@ -28,7 +28,13 @@ Exactly nine fields, all top-level:
   "def_or_claim":     "def",                                                        // "def" | "claim"
   "section":          "3.1",
   "lean_file_path":   "leanification/Chapter3_GraphTheory/Section3_1/CDMG.lean",    // repo-relative; the canonical Lean file (= row.main_lean_file)
-  "lean_statement":   "structure CDMG (α : Type*) where ...",                       // signature only -- no proofs, no helpers, no -- comments above
+  "lean_statement":   [                                                             // LIST -- one element per distinct sub-statement
+    {
+      "name":  "CDMG",                                                              // the Lean identifier
+      "kind":  "structure",                                                         // theorem|lemma|example|def|abbrev|structure|class|instance|inductive
+      "code":  "/-- A *Conditional Directed Mixed Graph* ... -/\nstructure CDMG (α : Type*) where\n  J : Set α\n  ..."
+    }
+  ],
   "lean_explanation": "A *conditional directed mixed graph* over an ambient ...",   // polished Markdown prose for a public reader
   "design_choices":   "**Polymorphic `α : Type*`.** The LN does not commit ..."     // polished Markdown prose explaining encoding trade-offs
 }
@@ -36,9 +42,12 @@ Exactly nine fields, all top-level:
 
 ### `lean_statement` content rules
 
-- **Definitions** (`def_or_claim = "def"`): the `structure` / `def` / `abbrev` / `class` / `inductive` block, with any leading `/-- ... -/` doc comment, but **without** trailing helper lemmas, `@[simp]` membership lemmas, instance declarations, etc. Just the LN-corresponding construct.
-- **Claims** (`def_or_claim = "claim"`): the `theorem` / `lemma` / `example` *signature only*, terminated at `:= by` (the proof body is dropped). Multi-part claims include every part's signature, separated by a blank line, in source order.
-- Leading `--` ref-marker comments (`-- def_3_1` / `-- title: ...`) are stripped; design and explanation comments above the declaration are also stripped (they go into the prose fields).
+A LIST of objects, one per LN-level sub-statement.
+
+- A single LN concept maps to a **one-element list** (most rows).
+- A multi-part LN block (`def 3.4 Walks` defines walk-step + walks + length + support + ...) yields **multiple elements**, in source order. Likewise multi-part claims (`-- claim_3_1 (part 1/3)` etc.) yield one element per part.
+- Each element has exactly `name` (Lean identifier), `kind` (`theorem`|`lemma`|`example`|`def`|`abbrev`|`structure`|`class`|`instance`|`inductive`), and `code` (the Lean source for the declaration with any leading `/-- ... -/` doc comment; theorem/lemma proofs are trimmed at `:= by` and kept).
+- Helper lemmas, `@[simp]` membership lemmas, auxiliary instances, etc. are **excluded** — only the declarations that correspond to LN-level content.
 
 ### `lean_explanation` content rules
 

@@ -730,10 +730,29 @@ _DESIGN_HEADER_RE = re.compile(r"^\s*--+\s*##+\s*Design choice", re.IGNORECASE)
 
 
 def _ref_marker_re(ref: str) -> re.Pattern[str]:
-    """Compile a regex matching `-- <ref>` or `-- <ref> (part X/Y)`."""
+    """Compile a regex matching `-- <ref>`, `-- <ref> (part X/Y)`, or
+    `-- <ref> (item N, ...)` -- all three patterns are emitted by the
+    Lean-side workers when a row contributes more than one declaration.
+    """
     return re.compile(
-        r"^--\s+" + re.escape(ref) + r"(\s+\(part\s+\d+/\d+\))?\s*$"
+        r"^--\s+" + re.escape(ref) +
+        r"(\s+\((part\s+\d+/\d+|item\s+\d+[^)]*)\))?\s*$"
     )
+
+
+# Strict pattern matching the *next* ref marker for ANY ref (used to
+# bound a slice when we don't know what ref comes next).
+_ANY_REF_MARKER_RE = re.compile(
+    r"^--\s+(def|claim)_\d+_\d+(\s+\([^)]+\))?\s*$"
+)
+
+
+# Declaration-head pattern that pulls the name out, e.g.
+# `theorem foo` / `structure CDMG (α : Type*) where` / `def length`.
+_DECL_HEAD_NAME_RE = re.compile(
+    r"^(?P<kind>theorem|lemma|example|def|abbrev|structure|class|instance|inductive)"
+    r"\s+(?P<name>[\w\u00A0-\uFFFF.]+)"
+)
 
 
 def _strip_lean_comment_markers(text: str) -> str:
@@ -769,29 +788,6 @@ def _strip_lean_comment_markers(text: str) -> str:
     return "\n".join(collapsed).strip()
 
 
-def _extract_ref_block(text: str, ref: str
-                       ) -> tuple[list[str], int, int] | None:
-    """Return (lines, marker_idx, decl_idx) for the *first* `-- <ref>`
-    marker block in ``text``. The block runs from the marker line up
-    through the line that opens the declaration (theorem / structure /
-    ...). Returns ``None`` if no marker is found.
-    """
-    lines = text.splitlines()
-    marker = _ref_marker_re(ref)
-    marker_idx = next((i for i, ln in enumerate(lines) if marker.match(ln)),
-                      None)
-    if marker_idx is None:
-        return None
-    decl_idx = None
-    for j in range(marker_idx + 1, len(lines)):
-        if _DECL_OPENER_RE.match(lines[j]):
-            decl_idx = j
-            break
-    if decl_idx is None:
-        return None
-    return lines, marker_idx, decl_idx
-
-
 def _split_explanation_design(comment_lines: list[str]
                               ) -> tuple[str, str]:
     """Split the pre-declaration comment block at the `## Design choice`
@@ -811,45 +807,21 @@ def _split_explanation_design(comment_lines: list[str]
     return explanation, design
 
 
-def _extract_statement_body(lines: list[str], decl_idx: int,
-                            next_marker_re: re.Pattern[str]) -> str:
-    """Slice the Lean declaration starting at ``decl_idx`` and keep the
-    signature only (drop the proof body for theorem/lemma/example).
-
-    Stops at the first of: a line ending in ``:= by``, the next
-    ref-marker, the next top-level declaration, or end-of-file.
-    """
-    head = _DECL_OPENER_RE.match(lines[decl_idx])
-    kind = head.group(1) if head else ""
-    is_thm = kind in {"theorem", "lemma", "example"}
-    out: list[str] = []
-    for j in range(decl_idx, len(lines)):
-        ln = lines[j]
-        if j > decl_idx and (next_marker_re.match(ln)
-                             or _DECL_OPENER_RE.match(ln)):
-            break
-        out.append(ln)
-        if is_thm and _PROOF_OPENER_RE.search(ln):
-            break
-    return "\n".join(out).rstrip()
-
-
-def build_for_website_prompt(state: "OrchestrationState",
-                             subsection_folder: Path) -> str:
+def build_for_website_prompt(row: dict, subsection_folder: Path) -> str:
     """Compose the one-shot prompt that asks a fresh worker to write
-    ``<subsection_folder>/tex/<ref>_for_website.json``. The prompt
-    includes the row context + explicit file paths + the output path."""
-    row = state.row
+    ``<subsection_folder>/tex/<ref>_for_website.json``. Takes a bare row
+    dict (not the full ``OrchestrationState``) so test scripts can drive
+    the worker without a live orchestration session."""
     ref = row["ref"]
     tex_dir = subsection_folder / "tex"
     out_path = tex_dir / f"{ref}_for_website.json"
+    title = row.get("title") or "Untitled"
     tex_stmt_path = (tex_dir
-                     / (f"{ref}_{row.get('title', 'Untitled')}.tex"
+                     / (f"{ref}_{title}.tex"
                         if row["def_or_claim"] == "def"
-                        else f"{ref}_statement_"
-                             f"{row.get('title', 'Untitled')}.tex"))
+                        else f"{ref}_statement_{title}.tex"))
     tex_proof_path = (
-        tex_dir / f"{ref}_proof_{row.get('title', 'Untitled')}.tex"
+        tex_dir / f"{ref}_proof_{title}.tex"
         if row["def_or_claim"] == "claim" else None
     )
     context = (
@@ -871,38 +843,42 @@ def build_for_website_prompt(state: "OrchestrationState",
     )
 
 
-def run_for_website_worker(state: "OrchestrationState",
-                           subsection_folder: Path) -> None:
+def run_for_website_worker(row: dict, subsection_folder: Path,
+                           *, register_on_row: bool = True) -> None:
     """Spawn the one-shot ``produce_for_website`` worker and confirm the
     JSON file landed. Falls back to the mechanical ``generate_for_website``
     if the worker times out, fails to launch, or doesn't produce the file.
-    Best-effort: never raises out into the solved branch.
+
+    Best-effort: never raises. ``register_on_row=False`` skips appending
+    to ``row['agent_registry']`` -- useful for ad-hoc test runs that
+    shouldn't pollute the row's session history.
     """
-    ref = state.row["ref"]
+    ref = row["ref"]
     out_path = subsection_folder / "tex" / f"{ref}_for_website.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     label = f"for_website_{ref}"
     try:
-        reply, sess = run_claude(
-            build_for_website_prompt(state, subsection_folder),
+        _, sess = run_claude(
+            build_for_website_prompt(row, subsection_folder),
             label=label,
         )
     except WorkerTimeoutError as e:
         print(f"[orchestrator] for_website worker timed out: {e}; "
               f"falling back to mechanical extractor.", flush=True)
-        generate_for_website(state.row, subsection_folder)
+        generate_for_website(row, subsection_folder)
         return
     except Exception as e:                # noqa: BLE001 -- best effort
         print(f"[orchestrator] for_website worker failed to launch: {e}; "
               f"falling back to mechanical extractor.", flush=True)
-        generate_for_website(state.row, subsection_folder)
+        generate_for_website(row, subsection_folder)
         return
-    _register_agent(state.row, kind="for_website", session_id=sess)
+    if register_on_row:
+        _register_agent(row, kind="for_website", session_id=sess)
     if not out_path.exists():
         print(f"[orchestrator] for_website worker finished but didn't "
               f"write {out_path.name}; falling back to mechanical "
               f"extractor.", flush=True)
-        generate_for_website(state.row, subsection_folder)
+        generate_for_website(row, subsection_folder)
         return
     # Sanity-validate the JSON. If broken, fall back; the mechanical
     # extractor at least emits a well-formed file.
@@ -912,25 +888,115 @@ def run_for_website_worker(state: "OrchestrationState",
     except (json.JSONDecodeError, OSError) as e:
         print(f"[orchestrator] for_website JSON invalid ({e}); falling "
               f"back to mechanical extractor.", flush=True)
-        generate_for_website(state.row, subsection_folder)
+        generate_for_website(row, subsection_folder)
         return
     print(f"[orchestrator] for_website JSON written by worker: "
           f"{out_path.name}", flush=True)
 
 
+def _code_lines_mask(text: str) -> list[bool]:
+    """Parallel mask of ``text.splitlines()``: ``True`` iff the line
+    *starts* outside any ``/- ... -/`` block comment. Lines whose only
+    content is a ``--`` line-comment are still ``True`` because they're
+    at depth zero -- ref-marker comments are flagged ``True`` and the
+    declaration-head regex naturally won't match them.
+    """
+    lines = text.splitlines()
+    mask: list[bool] = []
+    depth = 0
+    for ln in lines:
+        mask.append(depth == 0)
+        i = 0
+        n = len(ln)
+        while i < n:
+            if ln.startswith("/-", i):
+                depth += 1
+                i += 2
+            elif ln.startswith("-/", i) and depth > 0:
+                depth -= 1
+                i += 2
+            elif depth == 0 and ln.startswith("--", i):
+                break          # rest of line is a line comment
+            else:
+                i += 1
+    return mask
+
+
+def _find_all_marker_blocks(text: str, ref: str
+                            ) -> list[tuple[int, int, int]]:
+    """Return ``[(marker_idx, decl_idx, end_idx), ...]`` for every
+    ``-- <ref>`` marker (any sub-form: bare, `(part X/Y)`, `(item N, ...)`)
+    in ``text``. ``end_idx`` is the line where the slice should stop
+    (the next marker for any ref, or end of file).
+
+    Declaration heads inside ``/- ... -/`` block comments are ignored,
+    so prose like ``def 3.4 item 1:`` embedded in a docstring doesn't
+    masquerade as a Lean declaration.
+    """
+    lines = text.splitlines()
+    code = _code_lines_mask(text)
+    marker = _ref_marker_re(ref)
+    blocks: list[tuple[int, int, int]] = []
+    marker_idxs = [i for i, ln in enumerate(lines) if marker.match(ln)]
+    for m_idx in marker_idxs:
+        decl_idx = None
+        for j in range(m_idx + 1, len(lines)):
+            if code[j] and _DECL_OPENER_RE.match(lines[j]):
+                decl_idx = j
+                break
+            if _ANY_REF_MARKER_RE.match(lines[j]) and j != m_idx:
+                break
+        if decl_idx is None:
+            continue
+        end_idx = len(lines)
+        for j in range(decl_idx + 1, len(lines)):
+            if _ANY_REF_MARKER_RE.match(lines[j]):
+                end_idx = j
+                break
+        blocks.append((m_idx, decl_idx, end_idx))
+    return blocks
+
+
+def _trim_statement(lines: list[str], decl_idx: int, end_idx: int) -> str:
+    """Take the declaration starting at ``decl_idx`` and trim:
+    - theorem / lemma / example: stop at the line containing ``:= by``
+      (kept), drop the tactic block;
+    - structure / def / abbrev / class / instance / inductive: keep
+      everything up to ``end_idx``.
+    """
+    head = _DECL_OPENER_RE.match(lines[decl_idx])
+    kind = head.group(1) if head else ""
+    is_thm = kind in {"theorem", "lemma", "example"}
+    out: list[str] = []
+    for j in range(decl_idx, end_idx):
+        out.append(lines[j])
+        if is_thm and _PROOF_OPENER_RE.search(lines[j]):
+            break
+    return "\n".join(out).rstrip()
+
+
+def _parse_decl_head(line: str) -> tuple[str, str]:
+    """Extract ``(kind, name)`` from a declaration head line. Returns
+    ``("", "")`` if the line isn't a recognised declaration."""
+    m = _DECL_HEAD_NAME_RE.match(line)
+    return (m.group("kind"), m.group("name")) if m else ("", "")
+
+
 def generate_for_website(row: dict, subsection_folder: Path) -> None:
     """**Fallback** post-solve helper: write
     ``<subsection_folder>/tex/<ref>_for_website.json`` with the per-row
-    info the website builder consumes (the four fields beyond the
-    existing tex statement/proof):
+    info the website builder consumes.
 
-      - ``lean_file_path``: repo-relative path of the canonical Lean file.
-      - ``lean_statement``: the *signature only* (theorem/lemma trimmed at
-        ``:= by``; structure/def kept whole). Comments stripped.
-      - ``lean_explanation``: pre-declaration comments preceding any
-        ``## Design choice`` marker, ``--``-stripped.
-      - ``design_choices``: post-``## Design choice`` comments, same
-        cleanup.
+    The ``lean_statement`` field is a **list of objects**; each object
+    is ``{"name": <decl name>, "kind": <theorem|structure|def|...>,
+    "code": <signature only>}``. The list has one element per ref-marker
+    in the canonical Lean file -- for multi-part claims and multi-item
+    defs, that yields several elements; for single-declaration rows it
+    is a list of one.
+
+    Comments preceding each declaration are aggregated. The first
+    ``## Design choice`` marker in the *aggregate* comment block splits
+    explanation from design choices.
 
     Best-effort: a missing main_lean_file, a missing ref-marker, or an
     un-trimmable declaration just yields a file with empty fields rather
@@ -943,43 +1009,68 @@ def generate_for_website(row: dict, subsection_folder: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     payload: dict = {
-        "ref":            ref,
-        "title":          row.get("title", ""),
-        "type":           row.get("type", ""),
-        "def_or_claim":   row.get("def_or_claim", ""),
-        "section":        row.get("section", ""),
-        "lean_file_path": main_lean,
-        "lean_statement": "",
+        "ref":             ref,
+        "title":           row.get("title", ""),
+        "type":            row.get("type", ""),
+        "def_or_claim":    row.get("def_or_claim", ""),
+        "section":         row.get("section", ""),
+        "lean_file_path":  main_lean,
+        "lean_statement":  [],
         "lean_explanation": "",
-        "design_choices": "",
+        "design_choices":  "",
     }
 
-    if main_lean:
-        lean_abs = REPO_ROOT / main_lean
-        if lean_abs.exists():
-            text = lean_abs.read_text(encoding="utf-8")
-            block = _extract_ref_block(text, ref)
-            if block is not None:
-                lines, marker_idx, decl_idx = block
-                # Pre-declaration comments: from one line after the marker
-                # (title comment line) through the line before the decl.
-                comments = lines[marker_idx + 1 : decl_idx]
-                # Drop the "title:" comment from the explanation -- it's
-                # a bookkeeping line, not user-facing prose.
-                if comments and re.match(r"^--\s*title:", comments[0]):
-                    comments = comments[1:]
-                explanation, design = _split_explanation_design(comments)
-                payload["lean_explanation"] = explanation
-                payload["design_choices"] = design
-                payload["lean_statement"] = _extract_statement_body(
-                    lines, decl_idx, _ref_marker_re(ref))
+    if not main_lean:
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    lean_abs = REPO_ROOT / main_lean
+    if not lean_abs.exists():
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    text = lean_abs.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    blocks = _find_all_marker_blocks(text, ref)
+    if not blocks:
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        return
+
+    # Build the list of statement objects + aggregated comment lines.
+    statements: list[dict] = []
+    all_comments: list[str] = []
+    for marker_idx, decl_idx, end_idx in blocks:
+        # Comments between marker (excl. its own line) and declaration.
+        comments = lines[marker_idx + 1 : decl_idx]
+        if comments and re.match(r"^--\s*title:", comments[0]):
+            comments = comments[1:]
+        all_comments.extend(comments)
+        all_comments.append("")            # blank-line separator
+        kind, name = _parse_decl_head(lines[decl_idx])
+        code = _trim_statement(lines, decl_idx, end_idx)
+        statements.append({
+            "name": name,
+            "kind": kind,
+            "code": code,
+        })
+
+    explanation, design = _split_explanation_design(all_comments)
+    payload["lean_statement"]  = statements
+    payload["lean_explanation"] = explanation
+    payload["design_choices"]   = design
 
     out_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    print(f"[orchestrator] wrote for-website JSON: {out_path.name}",
-          flush=True)
+    print(f"[orchestrator] wrote for-website JSON (fallback): "
+          f"{out_path.name} ({len(statements)} stmt)", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1979,7 +2070,7 @@ def solve_current_row() -> None:
                     # choices). Falls back to a mechanical extractor on
                     # worker failure. Done BEFORE commit so the JSON lands
                     # in the same commit as the rest of the row.
-                    run_for_website_worker(state, subsection_folder)
+                    run_for_website_worker(state.row, subsection_folder)
                     if subsection_is_complete(data, section):
                         print(f"[orchestrator] section {section} now fully "
                               f"solved -- building aggregate main.tex",
