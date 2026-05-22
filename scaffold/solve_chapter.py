@@ -712,6 +712,78 @@ def build_subsection_main_tex(subsection_folder: Path) -> None:
         print(f"    log tail:\n{tail}", flush=True)
 
 
+# ---------------------------------------------------------------------------
+# per-row commit on solve
+# ---------------------------------------------------------------------------
+
+# Generous cap for `scaffold/build_and_commit.sh` -- it runs `lake build`
+# from the repo root before committing, which on a cold Mathlib cache or
+# after a Mathlib bump can take several minutes. Anything over this cap
+# is almost certainly stuck; we abandon the commit (the row stays
+# uncommitted) and continue to the next row rather than crash.
+COMMIT_SCRIPT_TIMEOUT_SECONDS = 15 * 60
+
+
+def commit_solved_row(state: "OrchestrationState") -> None:
+    """Invoke ``scaffold/build_and_commit.sh`` with a per-row message so
+    each solve becomes its own commit on the working branch.
+
+    Non-fatal: if `lake build` fails, the script exits non-zero and we
+    log + continue. The row's `solved=yes` flag is already persisted in
+    `data.json` (which we just saved); the next row's eventual commit
+    will sweep the uncommitted changes in via `git add -A`.
+
+    Time spent here counts toward ``time_needed_to_solve`` only by way
+    of the closure's persist on the next loop iteration / finally --
+    i.e. usually a minute or two of commit time becomes part of the
+    row's recorded total. That's small enough to ignore vs the hours a
+    proof takes.
+    """
+    row = state.row
+    verdict = row.get("proven", "n/a")
+    if verdict == "n/a":
+        verdict = "formalized"          # def rows
+    time_s = int(row.get("time_needed_to_solve") or 0)
+    minutes = max(1, round(time_s / 60))
+    n_turns = len(state.history)
+    title = row.get("title", "") or "Untitled"
+    msg = (f"{row['ref']}: {title} ({verdict}, {minutes}min, "
+           f"turns={n_turns})")
+
+    script = SCAFFOLD_DIR / "build_and_commit.sh"
+    if not script.exists():
+        print(f"[orchestrator] {script} missing; skipping auto-commit.",
+              flush=True)
+        return
+    print(f"[orchestrator] committing: {msg}", flush=True)
+    try:
+        result = subprocess.run(
+            ["bash", str(script), msg],
+            cwd=str(REPO_ROOT),
+            capture_output=True, text=True,
+            timeout=COMMIT_SCRIPT_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"[orchestrator] commit script timed out after "
+              f"{COMMIT_SCRIPT_TIMEOUT_SECONDS//60} min; row stays "
+              f"uncommitted, continuing.", flush=True)
+        return
+    except Exception as e:                 # noqa: BLE001 - best effort
+        print(f"[orchestrator] commit script failed to launch: {e}; "
+              f"row stays uncommitted, continuing.", flush=True)
+        return
+
+    if result.returncode != 0:
+        tail = "\n".join(
+            (result.stdout + result.stderr).splitlines()[-15:]
+        ) or "(empty)"
+        print(f"[orchestrator] commit script exit {result.returncode}; "
+              f"row stays uncommitted, continuing.\n"
+              f"    log tail:\n{tail}", flush=True)
+        return
+    print(f"[orchestrator] commit + push OK.", flush=True)
+
+
 def pick_title_for_row(row: dict) -> str:
     """Spawn a one-shot claude -p call to pick a short PascalCase title for
     a row whose ``title`` is empty. The response is sanitised to alphanumerics
@@ -1639,9 +1711,15 @@ def solve_current_row() -> None:
                         build_subsection_main_tex(subsection_folder)
                 # Save AFTER cleanup so the cleared agent_registry is persisted.
                 save_data(state.data_path, data)
+                # Flush the row time BEFORE the commit so the recorded
+                # time_needed_to_solve reflects solving, not commit overhead.
+                persist_time()
                 print(f"[orchestrator] {state.ref} marked solved "
                       f"({proven}); lean_files={lean_files or '(unreported)'}",
                       flush=True)
+                # Per-row commit via the sanctioned script (runs lake build
+                # then `git commit && git push`). Non-fatal on failure.
+                commit_solved_row(state)
                 return
 
             # Verifier said FAIL (or no verdict). Surface the verifier's
