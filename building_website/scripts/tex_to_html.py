@@ -153,10 +153,23 @@ def inline_convert(tex: str) -> str:
     protected = re.sub(r"\\emph\{([^{}]*)\}",   r"<em>\1</em>", protected)
     protected = re.sub(r"\\textit\{([^{}]*)\}", r"<em>\1</em>", protected)
     protected = re.sub(r"\\textbf\{([^{}]*)\}", r"<strong>\1</strong>", protected)
+    # `\Claude{…}` — blue annotation macro from the LN preamble, used in
+    # some proof files. Render as a styled inline note.
+    protected = re.sub(
+        r"\\Claude\{([^{}]*)\}",
+        r'<span class="claude-note">Claude: \1</span>',
+        protected,
+    )
     def _refrow_sub(m: re.Match) -> str:
         ref = m.group(1).replace("\\_", "_")
         return f'<a href="#{ref}" class="refrow"><code>{ref}</code></a>'
     protected = re.sub(r"\\refrow\{([^{}]*)\}", _refrow_sub, protected)
+    # Prose-level spacing / layout commands carry no meaning on the web —
+    # drop them so they don't render as literal backslash text.
+    protected = re.sub(
+        r"\\(noindent|medskip|smallskip|bigskip|par|newpage|clearpage)\b",
+        "", protected,
+    )
     # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
     # Only the doubled forms are converted unambiguously; the single
     # backtick / quote forms get used too often inside identifiers
