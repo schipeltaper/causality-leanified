@@ -1,95 +1,105 @@
 # Temp doc — wiring the website builder to `<ref>_for_website.json`
 
-**Audience:** the agent that will update `building_website/` to consume the new per-row JSON the orchestrator produces. This doc explains what changed in the leanification side, what the new JSON contains, and what the website builder should do with it. The doc is temporary; delete it once the website builder is migrated.
+**Audience:** the agent that will update `building_website/` to consume the per-row JSON the orchestrator produces. This doc explains what's in the JSON and what the website builder should do with it. The doc is temporary; delete it once the website builder is migrated.
 
 ---
 
-## What changed in the orchestrator
+## What the orchestrator writes
 
-After a row in `leanification/Chapter*/data.json` is marked `solved`, the orchestrator now writes one extra file alongside the existing tex statement / tex proof:
+After a row in `leanification/Chapter*/data.json` is marked `solved`, the orchestrator writes one extra file alongside the existing tex statement / tex proof:
 
 ```
 leanification/Chapter<N>_<Title>/Section<N>_<M>/tex/<ref>_for_website.json
 ```
 
-This file is produced *by a Claude worker* (see `scaffold/claude_prompts/row_workers/produce_for_website.md`) right after the row is verified solved and right before the per-row commit. So it lands in the same commit as the row's Lean + tex artefacts. A mechanical Python fallback runs if the worker times out or produces invalid JSON.
-
-**Status as of today:** every solved row in chapter 3 (33 rows — all of sections 3.1 and 3.2) has a worker-polished JSON. They were regenerated in one batch via `extras/run_for_website_batch.py` after the schema landed, so prose quality is uniform across the chapter. Newly-solved rows from this point on get the worker-produced JSON automatically as part of the orchestrator's cleanup-on-solve flow.
+The file is produced by a Claude worker (`scaffold/claude_prompts/row_workers/produce_for_website.md`) right after the row is verified solved and right before the per-row commit, so it lands in the same commit. A mechanical Python fallback (`generate_for_website` in `scaffold/solve_chapter.py`) takes over if the worker times out, fails to launch, writes invalid JSON, or omits required fields — in that case the prose fields are populated from raw Lean comments rather than polished prose.
 
 ## JSON schema
 
-Exactly nine fields, all top-level. `lean_statement` is a **list** (see below); the other prose fields are strings.
+Eleven top-level fields. `lean_source_urls` is an ordered list of `{title, url}` pairs; everything else is a string or an enum-like field copied from the row context.
 
-```json
+```jsonc
 {
-  "ref":              "def_3_1",                                                    // primary key
-  "title":            "CDMG",                                                       // PascalCase short name (matches filenames)
-  "type":             "definition",                                                 // data.json "type" column: definition/lemma/remark/note/proposition/...
-  "def_or_claim":     "def",                                                        // "def" | "claim"
+  "ref":              "def_3_4",                                                    // primary key
+  "title":            "Walks",                                                       // PascalCase short name (matches filenames)
+  "type":             "definition",                                                  // data.json "type" column
+  "def_or_claim":     "def",                                                         // "def" | "claim"
   "section":          "3.1",
-  "lean_file_path":   "leanification/Chapter3_GraphTheory/Section3_1/CDMG.lean",    // repo-relative; the canonical Lean file (= row.main_lean_file)
-  "lean_statement":   [                                                             // LIST -- one element per distinct sub-statement
-    {
-      "name":  "CDMG",                                                              // the Lean identifier
-      "kind":  "structure",                                                         // theorem|lemma|example|def|abbrev|structure|class|instance|inductive
-      "code":  "/-- A *Conditional Directed Mixed Graph* ... -/\nstructure CDMG (α : Type*) where\n  J : Set α\n  ..."
-    }
-  ],
-  "lean_explanation": "A *conditional directed mixed graph* over an ambient ...",   // polished Markdown prose for a public reader
-  "design_choices":   "**Polymorphic `α : Type*`.** The LN does not commit ..."     // polished Markdown prose explaining encoding trade-offs
+  "lean_file_path":   "leanification/.../Walks.lean",                                // repo-relative; the canonical Lean file (= row.main_lean_file)
+
+  // The "with-comments" Lean code panel: a verbatim slice of the Lean
+  // file at the anchors chosen by the worker (or by the fallback
+  // scanner), concatenated in source order. Internal -- / /- -/ /-- -/
+  // comments survive; outer design/explanation blocks are excluded by
+  // anchor choice.
+  "lean_code_with_comments":    "/-- A single edge in a walk ... -/\ninductive WalkStep ... where\n  ...\n\ninductive Walk ... where\n  | nil ...\n",
+
+  // The "without-comments" variant: same string with all -- / /- -/
+  // /-- -/ comments stripped by a deterministic state machine.
+  // The website toggles between this and lean_code_with_comments.
+  "lean_code_without_comments": "inductive WalkStep ... where\n  ...\n\ninductive Walk ... where\n  | nil ...\n",
+
+  // ~150-500 word polished article, plain Markdown paragraphs (no
+  // headings), inline backticks for Lean identifiers and $...$ for LN
+  // math. Maps Lean names to LN symbols, names non-trivial Mathlib
+  // idioms used, sketches the encoding shape.
+  "lean_explanation": "The walks definition introduces ...",
+
+  // ~150-500 word polished article. Each non-obvious encoding decision
+  // is one paragraph leading with a bolded one-line summary, followed
+  // by the rejected alternatives. Rewrites the in-file `## Design choice`
+  // block for a public reader.
+  "design_choices":   "The most subtle choice is ...",
+
+  // One entry per unique Lean file the row's formalization lives in.
+  // Title is the file basename. URL covers [min line_start, max line_end]
+  // across all anchors in that file. Branch-pinned (so URLs track the
+  // current state of the branch; line numbers may drift on file edits
+  // and re-pin the next time the row is re-solved).
+  "lean_source_urls": [
+    { "title": "Walks.lean",
+      "url":   "https://github.com/schipeltaper/causality-leanified/blob/server_setting_up_scaffold/leanification/.../Walks.lean#L127-L533" }
+  ]
 }
 ```
 
-### `lean_statement` content rules
+### Notes on each field
 
-A LIST of objects, one per LN-level sub-statement.
-
-- A single LN concept maps to a **one-element list** (most rows).
-- A multi-part LN block (`def 3.4 Walks` defines walk-step + walks + length + support + ...) yields **multiple elements**, in source order. Likewise multi-part claims (`-- claim_3_1 (part 1/3)` etc.) yield one element per part.
-- Each element has exactly `name` (Lean identifier), `kind` (`theorem`|`lemma`|`example`|`def`|`abbrev`|`structure`|`class`|`instance`|`inductive`), and `code` (the Lean source for the declaration with any leading `/-- ... -/` doc comment; theorem/lemma proofs are trimmed at `:= by` and kept).
-- Helper lemmas, `@[simp]` membership lemmas, auxiliary instances, etc. are **excluded** — only the declarations that correspond to LN-level content.
-
-### `lean_explanation` content rules
-
-Polished Markdown prose (~100–400 words, flowing paragraphs, no headings) describing:
-
-1. What each Lean variable / binder corresponds to in the LN's notation.
-2. Any non-trivial Mathlib idiom used (`Disjoint`, `×ˢ`, `⦃⦄` strict-implicit binders, `Set.prod`, `Quotient`, etc.) — one short sentence each.
-3. A short paragraph on the shape of the encoding (e.g. "the definition bundles N data fields and M constraint fields", or "the theorem takes hypotheses X, Y and concludes Z").
-
-Inline backticks for Lean identifiers; inline `$…$` for LN symbols where useful. No proof strategy here.
-
-### `design_choices` content rules
-
-Polished Markdown prose explaining the non-obvious encoding decisions. Each decision is its own paragraph, leading with a bolded one-line summary, then explaining the alternative(s) considered and why they were rejected. The orchestrator's worker rewrites the Lean file's `## Design choice` block for a public reader (dropping in-jokes, scaffold-isms, and references to other refs that wouldn't be familiar).
+- **`lean_code_with_comments` / `lean_code_without_comments`** — both strings are derived mechanically from the worker's `source_anchors` (the worker chooses line ranges; Python slices verbatim and strips). The website toggles between the two; they share the same structural shape (same declarations, same order), just with or without inline Lean comments.
+- **`lean_source_urls`** — a list (not a dict). Order is the order in which the worker's anchors first reference each file. For a row whose formalization fits in one file (the typical case), this is a list of one entry. For multi-file rows it has one entry per file. Title is the file basename so the user sees "Walks.lean" / "WalkExtensions.lean" / etc. URL ranges span the union of anchor ranges in each file.
+- **`lean_explanation` / `design_choices`** — both can be empty strings if the fallback path fired and the source file had no comment content to draw on. Treat empty fields gracefully (don't crash; render a "no explanation written yet" placeholder).
 
 ## What the website builder needs to do
 
 Three changes:
 
-1. **Read `<ref>_for_website.json` directly** instead of regenerating `lean_explanation` / `design_choices` from raw Lean comments. The fields are already in the form the website should display.
+1. **Read `<ref>_for_website.json` directly** instead of regenerating `lean_explanation` / `design_choices` from raw Lean comments. The fields are already in publication-ready form.
 
-2. **Use `lean_statement` (the list) as the per-part decomposition.** This replaces the old workflow of walking the Lean file, finding ref-marker comments, slicing block-by-block, and producing a `lean[]` array of `{comments, statement, proof, source_path, source_line}`. The new JSON's `lean_statement` is already the curated, source-ordered list of `{name, kind, code}` per LN-level sub-statement, with helpers filtered out and `/-- ... -/` doc comments preserved. If you still need `source_path` for "view in repo" links, take it from the top-level `lean_file_path` field; per-line source numbers are not exposed in the JSON and would need to be looked up in the Lean file if essential.
+2. **Replace the per-part Lean-block extractor** with the JSON's two code-panel strings + the comments toggle. `lean_code_with_comments` is the displayed code; `lean_code_without_comments` is the alternate view when the toggle is off. There's no per-part decomposition any more — one code panel per row.
 
-3. **Keep using the existing tex extractor.** The tex statement and tex proof are still at the same paths under `tex/` and should be processed through `tex_to_html.py` as before. The new JSON does **not** include the rendered tex HTML.
+3. **Use `lean_source_urls` directly** for "view source on GitHub" buttons. One button per entry (typically just one). Title goes on the button label; URL is the click target.
 
-In short: the new JSON gives you (a) publication-ready prose for the explanation and design-choice panels, and (b) the structured per-part list of Lean declarations to render. The tex side is unchanged.
+The existing **tex statement / tex proof extractors stay** — those files are still at the same paths under `tex/` and should be processed through `tex_to_html.py` as before. The for-website JSON does not include the rendered tex HTML.
 
 ## Pipeline interactions
 
-- The orchestrator's worker writes the file at solve-time, so by the time the website builder runs against the repo, the JSON is already in `tex/`.
-- A row that's not yet solved has no `_for_website.json`. The website builder should treat the file's absence as "row not ready for publication" and skip those rows from the manifest (current behavior already filters by `solved == "yes"`, so this should be automatic).
-- The website builder should **not** mutate `_for_website.json`. If a field needs polishing or correction, the right fix is to update the Lean file's design-choice block + re-run the orchestrator's worker (or open a PR against the JSON directly — but the worker is the source of truth going forward).
+- The orchestrator writes the JSON at solve-time, so it's on disk by the time the website builder runs against the repo.
+- A row that's not yet solved has no `_for_website.json`. The website builder should treat the file's absence as "row not ready for publication" and skip it (the current filter `solved == "yes"` should already cover this).
+- The website builder should **not** mutate `_for_website.json`. Corrections go via updating the Lean file's `## Design choice` block + re-running the orchestrator's worker (or opening a PR against the JSON directly, but the worker is the source of truth).
 
-## Locating the helper
+## Status as of today (chapter 3)
 
-- **Worker prompt**: `scaffold/claude_prompts/row_workers/produce_for_website.md` — single-shot instructions for the LLM that writes the JSON.
+Every solved row in chapter 3 (all of sections 3.1 + 3.2 plus def_3_15 in 3.3, ~34 rows) has a worker-polished JSON in the v3 schema. Newly-solved rows pick up the worker path automatically as part of the orchestrator's cleanup-on-solve.
+
+## Locating the helpers
+
+- **Worker prompt**: `scaffold/claude_prompts/row_workers/produce_for_website.md` — instructs the worker to emit `{lean_explanation, design_choices, source_anchors}` only. The orchestrator post-processes the draft into the final JSON.
 - **Orchestrator runner**: `run_for_website_worker(row, subsection_folder)` in `scaffold/solve_chapter.py` — called from the `solved` branch of `solve_current_row`, before the per-row commit.
-- **Fallback mechanical extractor**: `generate_for_website` in the same file — fires only when the worker times out, fails to launch, or writes invalid JSON. Produces the same schema (list-shaped `lean_statement`, all the bookkeeping fields), with the prose fields drawn from raw Lean comments rather than polished.
-- **Standalone test / batch helpers** under `extras/`:
-  - `test_for_website_generation.py <chapter> <row_index>` — drive the worker on a single row without involving the orchestrator. Pretty-prints the resulting JSON's structure.
-  - `run_for_website_batch.py <chapter> <start_row> <end_row>` — loop the worker over a contiguous row range (used to regenerate all of section 3.1+3.2 in one go).
+- **Mechanical fallback**: `generate_for_website` in the same file — fires only when the worker fails. Produces the v3 schema with raw-comment-derived prose.
+- **Standalone helpers** under `extras/`:
+  - `test_for_website_generation.py <chapter> <row_index>` — drive the worker on one row, pretty-print the resulting JSON's structure.
+  - `run_for_website_batch.py <chapter> <start_row> <end_row>` — loop the worker over a contiguous range (used for chapter-wide backfills).
 
 ## When this doc can go
 
-Once the website builder no longer regenerates `lean_explanation` / `design_choices` from raw Lean comments — i.e., once its `process_lean_comments.py` either uses the JSON or is gone — `extras/temp_for_website_builder.md` can be deleted.
+Once the website builder no longer regenerates `lean_explanation` / `design_choices` from raw Lean comments — i.e. once its `process_lean_comments.py` either uses the JSON or is gone — `extras/temp_for_website_builder.md` can be deleted.
