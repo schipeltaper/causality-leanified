@@ -143,11 +143,13 @@ function renderMath(root) {
 }
 
 /* ----------------------------------------------------------------------
-   Lean-pane carousel. A row's `lean` array is the curated list of
-   sub-statements from `<ref>_for_website.json`: one `{name, kind, code}`
-   per LN-level declaration, in source order. When there's more than
-   one, we page through them one at a time with prev/next buttons rather
-   than stacking every declaration vertically.
+   Lean pane.
+
+   Schema (v3): the row's JSON carries a single `lean_code_with_comments`
+   string + a parallel `lean_code_without_comments` string. The website
+   shows one code panel; a small toggle above the code switches between
+   the two. No per-part / multi-slide carousel — the orchestrator
+   produces one curated code blob per row.
    ---------------------------------------------------------------------- */
 
 /* Highlight every Lean code block inside `root` (idempotent). */
@@ -155,58 +157,46 @@ function highlightLeanIn(root) {
   if (typeof hljs === "undefined") return;
   registerLeanGrammar();
   root.querySelectorAll("pre code.language-lean").forEach((b) => {
-    if (b.dataset.highlighted !== "yes") hljs.highlightElement(b);
+    if (b.dataset.highlighted === "yes") return;
+    hljs.highlightElement(b);
   });
 }
 
-/* One Lean sub-statement → a <pre><code> block. */
-function leanCodeBlock(item) {
-  return el("pre", {}, el("code", { class: "language-lean" }, item.code));
-}
+/* Build the Lean pane body — a single <pre><code> plus, when the
+   row carries a comments-off variant, a toggle that swaps between
+   them in place. Returns {body, toggle} so the caller can hoist the
+   toggle into the pane-label row. */
+function buildLeanPane(data) {
+  const withC    = data.lean_code_with_comments    || "";
+  const withoutC = data.lean_code_without_comments || "";
+  const codeNode = el("code", { class: "language-lean" }, withC);
+  const pre      = el("pre", {}, codeNode);
+  const body     = el("div", { class: "pane-body lean-pane-body" }, pre);
 
-function renderCarousel(items) {
-  let current = 0;
-  const slideBox = el("div", { class: "lean-slide" });
-  const titleEl  = el("span", { class: "lean-carousel-title" });
-  const counter  = el("span", { class: "lean-carousel-counter" });
-
-  const prev = el("button", {
-    class: "lean-carousel-btn", type: "button", "aria-label": "Previous statement",
-  }, "‹");
-  const next = el("button", {
-    class: "lean-carousel-btn", type: "button", "aria-label": "Next statement",
-  }, "›");
-
-  function paint() {
-    const it = items[current];
-    slideBox.innerHTML = "";
-    slideBox.append(leanCodeBlock(it));
-    // Header: e.g. "structure CDMG", "theorem isAcyclic_iff_…".
-    titleEl.textContent = `${it.kind} ${it.name}`;
-    counter.textContent = `${current + 1} / ${items.length}`;
-    prev.disabled = current === 0;
-    next.disabled = current === items.length - 1;
-    highlightLeanIn(slideBox);
+  if (!withoutC || withoutC === withC) {
+    return { body, toggle: null };
   }
-  prev.addEventListener("click", () => { if (current > 0) { current--; paint(); } });
-  next.addEventListener("click", () => { if (current < items.length - 1) { current++; paint(); } });
-  // Keyboard arrows when the Lean pane has focus.
-  slideBox.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft")  { e.preventDefault(); prev.click(); }
-    if (e.key === "ArrowRight") { e.preventDefault(); next.click(); }
-  });
-  slideBox.setAttribute("tabindex", "0");
 
-  const carousel = el("div", { class: "lean-carousel" },
-    el("div", { class: "lean-carousel-controls" },
-      prev,
-      el("div", { class: "lean-carousel-label" }, titleEl, counter),
-      next,
-    ),
-    slideBox,
-  );
-  paint();
-  return carousel;
+  let showingComments = true;
+  const toggle = el("button", {
+    class: "lean-comments-toggle on",
+    type: "button",
+    "aria-label": "Toggle Lean comments",
+    title: "Show or hide the comments embedded in the Lean code",
+  }, "Comments: on");
+  toggle.addEventListener("click", () => {
+    showingComments = !showingComments;
+    const next = showingComments ? withC : withoutC;
+    pre.innerHTML = "";
+    const nc = el("code", { class: "language-lean" }, next);
+    pre.append(nc);
+    highlightLeanIn(pre);
+    toggle.textContent = `Comments: ${showingComments ? "on" : "off"}`;
+    toggle.classList.toggle("on",  showingComments);
+    toggle.classList.toggle("off", !showingComments);
+  });
+
+  return { body, toggle };
 }
 
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
@@ -382,25 +372,12 @@ function renderEntry(data) {
     el("div", { class: "pane-body", html: data.tex_statement.html || "<em>(missing)</em>" }),
   );
 
-  const leanBody = el("div", { class: "pane-body" });
-  const leanItems = data.lean || [];
-  if (leanItems.length === 0) {
-    leanBody.append(el("div", { class: "missing" }, "(no Lean statements)"));
-  } else if (leanItems.length === 1) {
-    // Single declaration: just the code block, no carousel chrome.
-    leanBody.append(leanCodeBlock(leanItems[0]));
-  } else {
-    // Multiple declarations: page through them one at a time.
-    leanBody.append(renderCarousel(leanItems));
-  }
-
-  const leanMainPath = data.lean_file_path;
+  // One code block, with a comments-on/off toggle hoisted into the pane label.
+  const { body: leanBody, toggle: leanToggle } = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
     el("div", { class: "pane-label" },
-      "Formalisation",
-      leanMainPath
-        ? el("span", { class: "pane-label-aux" }, leanMainPath.split("/").pop())
-        : null,
+      el("span", {}, "Formalisation"),
+      leanToggle,
     ),
     leanBody,
   );
@@ -428,12 +405,18 @@ function renderEntry(data) {
     }, "View TeX proof"));
   }
 
-  if (leanMainPath) {
+  // One "View Lean source" button per Lean file the row touches —
+  // typically one entry, sometimes 2-3 for rows formalised across
+  // several files (e.g. def_3_4 spans Walks.lean / WalkPredicates.lean
+  // / Bifurcation.lean). URLs come pre-built with #L<start>-L<end>
+  // anchors from the orchestrator.
+  for (const src of data.lean_source_urls || []) {
     actions.append(el("a", {
       class: "btn",
-      href: `${REPO_URL}/blob/${REPO_BRANCH}/${leanMainPath}`,
+      href: src.url,
       target: "_blank", rel: "noopener",
-    }, "View Lean source"));
+      title: src.url,
+    }, `View ${src.title}`));
   }
 
   function explanationButton(label, panelId, content) {

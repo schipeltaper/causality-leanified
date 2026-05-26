@@ -845,18 +845,30 @@ def build_for_website_prompt(row: dict, subsection_folder: Path) -> str:
 
 def run_for_website_worker(row: dict, subsection_folder: Path,
                            *, register_on_row: bool = True) -> None:
-    """Spawn the one-shot ``produce_for_website`` worker and confirm the
-    JSON file landed. Falls back to the mechanical ``generate_for_website``
-    if the worker times out, fails to launch, or doesn't produce the file.
+    """Two-stage post-solve dispatcher:
 
-    Best-effort: never raises. ``register_on_row=False`` skips appending
-    to ``row['agent_registry']`` -- useful for ad-hoc test runs that
-    shouldn't pollute the row's session history.
+    1. **Stage B**: spawn the ``produce_for_website`` worker. The worker
+       writes a *draft* JSON at the output path containing only
+       ``{lean_explanation, design_choices, source_anchors}``.
+    2. **Stage C**: read the draft, slice each anchor's Lean lines,
+       concatenate into ``lean_code_with_comments``, strip comments to
+       produce ``lean_code_without_comments``, bucket anchors by file
+       to build ``lean_source_urls``, and overwrite the file with the
+       full v3 JSON.
+
+    Falls back to ``generate_for_website`` (mechanical) if the worker
+    times out, fails to launch, doesn't write a parseable draft, or
+    omits any of the three required draft fields.
+
+    ``register_on_row=False`` skips appending to ``row['agent_registry']``
+    -- useful for one-off test runs.
     """
     ref = row["ref"]
     out_path = subsection_folder / "tex" / f"{ref}_for_website.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     label = f"for_website_{ref}"
+
+    # --- Stage B: spawn the worker ----------------------------------------
     try:
         _, sess = run_claude(
             build_for_website_prompt(row, subsection_folder),
@@ -874,24 +886,45 @@ def run_for_website_worker(row: dict, subsection_folder: Path,
         return
     if register_on_row:
         _register_agent(row, kind="for_website", session_id=sess)
+
     if not out_path.exists():
-        print(f"[orchestrator] for_website worker finished but didn't "
-              f"write {out_path.name}; falling back to mechanical "
-              f"extractor.", flush=True)
+        print(f"[orchestrator] worker didn't write {out_path.name}; "
+              f"falling back to mechanical extractor.", flush=True)
         generate_for_website(row, subsection_folder)
         return
-    # Sanity-validate the JSON. If broken, fall back; the mechanical
-    # extractor at least emits a well-formed file.
+
+    # --- Stage C: post-process the draft ---------------------------------
     try:
         with open(out_path, encoding="utf-8") as fh:
-            json.load(fh)
+            draft = json.load(fh)
     except (json.JSONDecodeError, OSError) as e:
-        print(f"[orchestrator] for_website JSON invalid ({e}); falling "
-              f"back to mechanical extractor.", flush=True)
+        print(f"[orchestrator] worker draft JSON invalid ({e}); "
+              f"falling back to mechanical extractor.", flush=True)
         generate_for_website(row, subsection_folder)
         return
+
+    anchors = draft.get("source_anchors")
+    explanation = draft.get("lean_explanation", "")
+    design = draft.get("design_choices", "")
+    if not isinstance(anchors, list) or not anchors:
+        print(f"[orchestrator] worker draft missing source_anchors; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+    if not isinstance(explanation, str) or not isinstance(design, str):
+        print(f"[orchestrator] worker draft missing prose strings; "
+              f"falling back to mechanical extractor.", flush=True)
+        generate_for_website(row, subsection_folder)
+        return
+
+    payload = _v3_assemble(row, anchors, explanation, design)
+    out_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
     print(f"[orchestrator] for_website JSON written by worker: "
-          f"{out_path.name}", flush=True)
+          f"{out_path.name} ({len(anchors)} anchors, "
+          f"{len(payload['lean_source_urls'])} url(s))", flush=True)
 
 
 def _code_lines_mask(text: str) -> list[bool]:
@@ -982,25 +1015,249 @@ def _parse_decl_head(line: str) -> tuple[str, str]:
     return (m.group("kind"), m.group("name")) if m else ("", "")
 
 
+# ---------------------------------------------------------------------------
+# Stage A / D helpers for the v3 for-website pipeline
+# ---------------------------------------------------------------------------
+
+def strip_lean_comments(text: str) -> str:
+    """Stage D: drop every Lean comment from ``text``.
+
+    Handles:
+    - ``--`` line comments (outside any block; rest of line dropped).
+    - ``/- ... -/`` block comments (Lean 4 allows nesting; depth counted).
+    - ``/-- ... -/`` doc comments (treated identically to ``/- -/`` --
+      they're still comments, just with a different opener).
+
+    After the pass, collapses runs of 3+ blank lines into one blank
+    line and trims trailing whitespace per line.
+    """
+    out_chars: list[str] = []
+    depth = 0
+    i, n = 0, len(text)
+    while i < n:
+        # Block-comment openers (/- and /-- both add depth 1).
+        if text.startswith("/-", i):
+            depth += 1
+            i += 2
+            continue
+        if depth > 0 and text.startswith("-/", i):
+            depth -= 1
+            i += 2
+            continue
+        if depth > 0:
+            i += 1
+            continue
+        # Line-comment outside any block.
+        if text.startswith("--", i):
+            nl = text.find("\n", i)
+            i = nl if nl != -1 else n
+            continue
+        out_chars.append(text[i])
+        i += 1
+    stripped = "".join(out_chars)
+    # Collapse blank-line runs and trim trailing whitespace per line.
+    lines = [ln.rstrip() for ln in stripped.splitlines()]
+    cleaned: list[str] = []
+    blank_run = 0
+    for ln in lines:
+        if ln == "":
+            blank_run += 1
+            if blank_run > 1:
+                continue
+        else:
+            blank_run = 0
+        cleaned.append(ln)
+    # Trim leading/trailing blank lines.
+    while cleaned and cleaned[0] == "":
+        cleaned.pop(0)
+    while cleaned and cleaned[-1] == "":
+        cleaned.pop()
+    return "\n".join(cleaned)
+
+
+_GITHUB_URL_TEMPLATE_CACHE: str | None = None
+
+
+def github_url_template() -> str:
+    """Stage A: build (and cache) the GitHub blob-URL template for the
+    current repo + branch. Returns a string with ``{path}``, ``{start}``,
+    ``{end}`` placeholders ready for ``.format(...)``.
+
+    Output shape::
+
+        https://github.com/<slug>/blob/<branch>/{path}#L{start}-L{end}
+
+    Falls back to a no-op template if git isn't reachable -- callers
+    write the JSON anyway with file-relative paths that are still useful.
+    """
+    global _GITHUB_URL_TEMPLATE_CACHE
+    if _GITHUB_URL_TEMPLATE_CACHE is not None:
+        return _GITHUB_URL_TEMPLATE_CACHE
+    try:
+        remote = subprocess.check_output(
+            ["git", "remote", "get-url", "origin"],
+            cwd=str(REPO_ROOT), text=True,
+        ).strip()
+        m = (re.match(r"git@github\.com:(.+?)(?:\.git)?$", remote)
+             or re.match(r"https://github\.com/(.+?)(?:\.git)?$", remote))
+        slug = m.group(1) if m else "unknown/unknown"
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(REPO_ROOT), text=True,
+        ).strip() or "main"
+    except Exception:                            # noqa: BLE001
+        slug, branch = "unknown/unknown", "main"
+    _GITHUB_URL_TEMPLATE_CACHE = (
+        f"https://github.com/{slug}/blob/{branch}/{{path}}#L{{start}}-L{{end}}"
+    )
+    return _GITHUB_URL_TEMPLATE_CACHE
+
+
+def _doc_comment_start(lines: list[str], decl_idx: int) -> int:
+    """If a ``/-- ... -/`` doc comment immediately precedes the line at
+    ``decl_idx`` (no intervening blank lines), return the index of its
+    opening ``/--`` line. Otherwise return ``decl_idx`` unchanged.
+
+    The doc comment may span one line (``/-- foo -/``) or several
+    (``/-- foo\\n bar -/``). We walk backwards looking for the line that
+    opens it.
+    """
+    j = decl_idx - 1
+    if j < 0 or not lines[j].rstrip():
+        return decl_idx
+    # The line immediately above must end the doc comment.
+    if "-/" not in lines[j]:
+        return decl_idx
+    # Walk up until we find the opener.
+    while j >= 0:
+        if "/--" in lines[j]:
+            return j
+        if "/-" in lines[j] and "/--" not in lines[j]:
+            # It's a regular block comment, not a doc comment -- skip.
+            return decl_idx
+        j -= 1
+    return decl_idx
+
+
+def _anchor_end_line(lines: list[str], decl_idx: int, end_idx: int) -> int:
+    """Compute a tight 1-indexed end-line for the declaration at
+    ``decl_idx``, bounded by ``end_idx`` (the line where the next
+    ref-marker begins).
+
+    Trims trailing blank lines from the slice -- they're not part of
+    the declaration body.
+    """
+    last = end_idx - 1
+    while last > decl_idx and not lines[last].strip():
+        last -= 1
+    return last + 1                              # 1-indexed inclusive
+
+
+def _anchors_from_marker_blocks(text: str, main_lean_file: str, ref: str
+                                ) -> list[dict]:
+    """Mechanical fallback for ``source_anchors``: scan ``text`` for
+    ``-- <ref>`` markers (any sub-form), turn each into a v3 anchor with
+    a doc-comment-extended ``line_start`` and a tight ``line_end``.
+    """
+    lines = text.splitlines()
+    out: list[dict] = []
+    for _marker_idx, decl_idx, end_idx in _find_all_marker_blocks(text, ref):
+        start_idx = _doc_comment_start(lines, decl_idx)
+        kind, name = _parse_decl_head(lines[decl_idx])
+        title = name or kind or "(decl)"
+        out.append({
+            "title":          title,
+            "lean_file_path": main_lean_file,
+            "line_start":     start_idx + 1,     # 1-indexed
+            "line_end":       _anchor_end_line(lines, decl_idx, end_idx),
+        })
+    return out
+
+
+def _v3_assemble(row: dict, anchors: list[dict],
+                 lean_explanation: str, design_choices: str,
+                 ) -> dict:
+    """Stage C: assemble the final for-website JSON from the LLM's
+    (or mechanical fallback's) outputs.
+
+    - ``lean_code_with_comments`` = each anchor's slice, joined by ``\\n\\n``.
+    - ``lean_code_without_comments`` = the above through ``strip_lean_comments``.
+    - ``lean_source_urls`` = list of ``{title, url}``, one per unique
+      ``lean_file_path``, with title = file basename and URL covering
+      ``[min line_start, max line_end]`` across anchors in that file.
+    """
+    tmpl = github_url_template()
+
+    # 1) Slice + concat. Anchors that point outside the file are clamped.
+    code_chunks: list[str] = []
+    by_file: dict[str, list[dict]] = {}
+    for a in anchors:
+        path = a.get("lean_file_path") or ""
+        abs_path = REPO_ROOT / path
+        if not abs_path.exists():
+            print(f"[for_website] anchor file missing: {path}; skipping "
+                  f"this anchor.", flush=True)
+            continue
+        flines = abs_path.read_text(encoding="utf-8").splitlines()
+        s = max(1, int(a.get("line_start") or 1))
+        e = min(len(flines), int(a.get("line_end") or len(flines)))
+        if e < s:
+            print(f"[for_website] anchor {a.get('title')!r} has bad range "
+                  f"{s}..{e}; skipping.", flush=True)
+            continue
+        code_chunks.append("\n".join(flines[s - 1 : e]))
+        # Normalize the anchor's stored range for URL bucketing below.
+        a["_resolved_path"]  = path
+        a["_resolved_start"] = s
+        a["_resolved_end"]   = e
+        by_file.setdefault(path, []).append(a)
+
+    lean_code_with_comments = "\n\n".join(code_chunks)
+    lean_code_without_comments = strip_lean_comments(lean_code_with_comments)
+
+    # 2) Build the URL list -- one entry per unique file, in first-
+    # appearance order, title = basename, range = union of anchors.
+    url_list: list[dict] = []
+    for path, group in by_file.items():
+        start = min(a["_resolved_start"] for a in group)
+        end   = max(a["_resolved_end"]   for a in group)
+        url_list.append({
+            "title": Path(path).name,
+            "url":   tmpl.format(path=path, start=start, end=end),
+        })
+
+    return {
+        "ref":              row["ref"],
+        "title":            row.get("title", ""),
+        "type":             row.get("type", ""),
+        "def_or_claim":     row.get("def_or_claim", ""),
+        "section":          row.get("section", ""),
+        "lean_file_path":   row.get("main_lean_file", ""),
+        "lean_code_with_comments":    lean_code_with_comments,
+        "lean_code_without_comments": lean_code_without_comments,
+        "lean_explanation": lean_explanation,
+        "design_choices":   design_choices,
+        "lean_source_urls": url_list,
+    }
+
+
 def generate_for_website(row: dict, subsection_folder: Path) -> None:
     """**Fallback** post-solve helper: write
-    ``<subsection_folder>/tex/<ref>_for_website.json`` with the per-row
-    info the website builder consumes.
+    ``<subsection_folder>/tex/<ref>_for_website.json`` using mechanical
+    extraction only -- no LLM. Used when the worker times out, fails to
+    launch, or emits invalid JSON.
 
-    The ``lean_statement`` field is a **list of objects**; each object
-    is ``{"name": <decl name>, "kind": <theorem|structure|def|...>,
-    "code": <signature only>}``. The list has one element per ref-marker
-    in the canonical Lean file -- for multi-part claims and multi-item
-    defs, that yields several elements; for single-declaration rows it
-    is a list of one.
+    Anchors are derived from the in-file ``-- <ref>`` markers in
+    ``main_lean_file``. Each anchor's ``line_start`` extends back over
+    any ``/-- ... -/`` doc comment immediately above the declaration;
+    its ``line_end`` is the last non-blank line before the next
+    ref-marker.
 
-    Comments preceding each declaration are aggregated. The first
-    ``## Design choice`` marker in the *aggregate* comment block splits
-    explanation from design choices.
-
-    Best-effort: a missing main_lean_file, a missing ref-marker, or an
-    un-trimmable declaration just yields a file with empty fields rather
-    than aborting the orchestrator.
+    Prose fields (``lean_explanation`` and ``design_choices``) are
+    populated from the raw pre-declaration comment text -- the
+    ``## Design choice`` block splits explanation from design choices.
+    Prose is therefore *raw* rather than polished; the user can
+    regenerate the row via the worker later to upgrade prose quality.
     """
     main_lean = row.get("main_lean_file") or ""
     ref = row["ref"]
@@ -1008,69 +1265,34 @@ def generate_for_website(row: dict, subsection_folder: Path) -> None:
     out_path = tex_dir / f"{ref}_for_website.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    payload: dict = {
-        "ref":             ref,
-        "title":           row.get("title", ""),
-        "type":            row.get("type", ""),
-        "def_or_claim":    row.get("def_or_claim", ""),
-        "section":         row.get("section", ""),
-        "lean_file_path":  main_lean,
-        "lean_statement":  [],
-        "lean_explanation": "",
-        "design_choices":  "",
-    }
+    anchors: list[dict] = []
+    explanation = design = ""
 
-    if not main_lean:
-        out_path.write_text(
-            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8")
-        return
+    if main_lean:
+        lean_abs = REPO_ROOT / main_lean
+        if lean_abs.exists():
+            text = lean_abs.read_text(encoding="utf-8")
+            anchors = _anchors_from_marker_blocks(text, main_lean, ref)
+            # Aggregate comment text between markers and declarations
+            # for raw prose. Splits at the `## Design choice` header.
+            lines = text.splitlines()
+            all_comments: list[str] = []
+            for marker_idx, decl_idx, _end_idx in (
+                    _find_all_marker_blocks(text, ref)):
+                comments = lines[marker_idx + 1 : decl_idx]
+                if comments and re.match(r"^--\s*title:", comments[0]):
+                    comments = comments[1:]
+                all_comments.extend(comments)
+                all_comments.append("")
+            explanation, design = _split_explanation_design(all_comments)
 
-    lean_abs = REPO_ROOT / main_lean
-    if not lean_abs.exists():
-        out_path.write_text(
-            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8")
-        return
-
-    text = lean_abs.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    blocks = _find_all_marker_blocks(text, ref)
-    if not blocks:
-        out_path.write_text(
-            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8")
-        return
-
-    # Build the list of statement objects + aggregated comment lines.
-    statements: list[dict] = []
-    all_comments: list[str] = []
-    for marker_idx, decl_idx, end_idx in blocks:
-        # Comments between marker (excl. its own line) and declaration.
-        comments = lines[marker_idx + 1 : decl_idx]
-        if comments and re.match(r"^--\s*title:", comments[0]):
-            comments = comments[1:]
-        all_comments.extend(comments)
-        all_comments.append("")            # blank-line separator
-        kind, name = _parse_decl_head(lines[decl_idx])
-        code = _trim_statement(lines, decl_idx, end_idx)
-        statements.append({
-            "name": name,
-            "kind": kind,
-            "code": code,
-        })
-
-    explanation, design = _split_explanation_design(all_comments)
-    payload["lean_statement"]  = statements
-    payload["lean_explanation"] = explanation
-    payload["design_choices"]   = design
-
+    payload = _v3_assemble(row, anchors, explanation, design)
     out_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     print(f"[orchestrator] wrote for-website JSON (fallback): "
-          f"{out_path.name} ({len(statements)} stmt)", flush=True)
+          f"{out_path.name} ({len(anchors)} anchors)", flush=True)
 
 
 # ---------------------------------------------------------------------------

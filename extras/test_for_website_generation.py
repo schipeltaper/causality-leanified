@@ -48,28 +48,28 @@ def _pretty_print(out_path: Path) -> None:
     for k in ("ref", "title", "type", "def_or_claim", "section",
               "lean_file_path"):
         print(f"  {k}: {d.get(k)!r}")
-    stmts = d.get("lean_statement")
-    if isinstance(stmts, list):
-        print(f"  lean_statement: list with {len(stmts)} element(s)")
-        for i, s in enumerate(stmts):
-            if isinstance(s, dict):
-                kind = s.get("kind", "?")
-                name = s.get("name", "?")
-                code = s.get("code", "")
-                first_line = code.splitlines()[0] if code else "(empty)"
-                print(f"    [{i}] {kind:<11} {name}")
-                print(f"         {first_line[:90]}")
-                if len(code.splitlines()) > 1:
-                    print(f"         ... ({len(code)} chars total, "
-                          f"{len(code.splitlines())} lines)")
-            else:
-                print(f"    [{i}] (not an object) {str(s)[:80]}")
-    else:
-        print(f"  lean_statement: NOT A LIST -- got {type(stmts).__name__}")
+    # Code panels
+    for k in ("lean_code_with_comments", "lean_code_without_comments"):
+        v = d.get(k, "") or ""
+        n_lines = len(v.splitlines())
+        print(f"  {k}: {len(v)} chars, {n_lines} lines; first 200:")
+        print("    " + (v[:200].replace("\n", "\n    ") or "(empty)"))
+    # Prose
     for k in ("lean_explanation", "design_choices"):
         v = d.get(k, "") or ""
         print(f"  {k}: {len(v)} chars; first 200:")
         print("    " + (v[:200].replace("\n", "\n    ") or "(empty)"))
+    # URL list
+    urls = d.get("lean_source_urls")
+    if isinstance(urls, list):
+        print(f"  lean_source_urls: list with {len(urls)} entry/-ies")
+        for i, u in enumerate(urls):
+            if isinstance(u, dict):
+                print(f"    [{i}] {u.get('title')!r} -> {u.get('url')}")
+            else:
+                print(f"    [{i}] (malformed) {u!r}")
+    else:
+        print(f"  lean_source_urls: NOT A LIST -- got {type(urls).__name__}")
 
 
 def main(argv: list[str]) -> int:
