@@ -1552,7 +1552,7 @@
           "last_used": "2026-05-26T18:10:12+00:00"
         }
       ],
-      "time_needed_to_solve": 1648
+      "time_needed_to_solve": 1653
     },
     {
       "def_or_claim": "claim",
@@ -1560,37 +1560,48 @@
       "section": "3.3",
       "title": "UnblockableNonCollidersOpen",
       "type": "note",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-26",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/UnblockableNonCollidersOpen.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/UnblockableNonCollidersOpen.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "  \\begin{claimmark}\n  Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n  \\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "7b489ef6-b8ee-4c4b-a90e-9175665674cd",
+          "first_seen": "2026-05-26T18:53:46+00:00",
+          "last_used": "2026-05-26T18:53:46+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2607
     },
     {
       "def_or_claim": "def",
