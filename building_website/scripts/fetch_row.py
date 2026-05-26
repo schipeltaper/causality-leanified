@@ -1,28 +1,30 @@
 #!/usr/bin/env python3
 """Fetch rendering inputs for one row from its `<ref>_for_website.json`.
 
-Since the website-builder migration (see
-`extras/temp_for_website_builder.md`), the orchestrator writes a
-per-row JSON at solve-time:
+The orchestrator's worker writes a per-row JSON at solve-time (see
+`temp_website_builder_handoff.md` at repo root). The v3 schema this
+script consumes:
 
-    leanification/Chapter*/Section*/tex/<ref>_for_website.json
+  ref, title, type, def_or_claim, section,
+  lean_file_path,
+  lean_code_with_comments,      ← Lean code (comments preserved)
+  lean_code_without_comments,   ← same code, comments stripped (toggle)
+  lean_explanation,             ← polished Markdown article
+  design_choices,               ← polished Markdown article
+  lean_source_urls              ← [{"title": "X.lean", "url": "github…#Lxxx-Lyyy"}]
 
-carrying the curated Lean statement list and publication-ready prose
-(`lean_explanation`, `design_choices`). This script reads that file,
-renders the per-row TeX statement/proof through `tex_to_html`, and
-emits `building_website/website/data/<ref>.json` for the website.
+This script:
+  1. reads `<ref>_for_website.json`,
+  2. renders the sibling per-row `.tex` files through `tex_to_html.py`,
+  3. derives status (the JSON only exists for solved rows),
+  4. writes `building_website/website/data/<ref>.json`.
 
-The Lean side no longer needs walking/marker-parsing/LLM-processing —
-`lean_statement` is already the curated, source-ordered list of
-`{name, kind, code}`. The TeX side is unchanged: the per-row `.tex`
-files under `tex/` are still rendered with `tex_to_html.py`.
+A row whose JSON is still on an older schema (no
+`lean_code_with_comments` field) is reported and skipped.
 
 Usage:
     python3 building_website/scripts/fetch_row.py def_3_1
     python3 building_website/scripts/fetch_row.py claim_3_4 --stdout
-    python3 building_website/scripts/fetch_row.py def_3_1 --out tmp.json
-
-Default output path: building_website/website/data/<ref>.json
 """
 
 from __future__ import annotations
@@ -54,13 +56,10 @@ def find_for_website(ref: str) -> Path | None:
 
 
 def _render_tex(path: Path, *, whole_file: bool):
-    """Read a per-row .tex file and render it to HTML.
+    """Render a per-row .tex file to HTML.
 
-    `whole_file=False`  → statement file: peel the outer theorem env,
-                          return the labelled body (the website renders
-                          its own header from `env`/`env_title`).
-    `whole_file=True`   → proof file: render the entire stripped body
-                          (restated statement env + \\begin{proof}…)."""
+    `whole_file=False`  → statement file: peel the outer theorem env.
+    `whole_file=True`   → proof file: render the whole stripped body."""
     if not path.exists():
         return {
             "raw": None, "html": None, "env": None, "env_title": None,
@@ -91,15 +90,21 @@ def fetch_row(ref: str) -> dict:
     if fw_path is None:
         sys.exit(
             f"error: no <ref>_for_website.json found for {ref!r}\n"
-            f"  (the orchestrator writes it at solve-time; the row may not be\n"
-            f"   solved yet, or chapter 3 needs re-running through the worker)"
+            f"  (row not solved yet, or hasn't been processed by the v3 worker)"
         )
     fw = json.loads(fw_path.read_text(encoding="utf-8"))
-    tex_dir = fw_path.parent          # the section's tex/ folder
-    title   = fw["title"]
-    kind    = fw["def_or_claim"]      # "def" | "claim"
 
-    # --- TeX statement (rendered via tex_to_html, unchanged pipeline) ---
+    if "lean_code_with_comments" not in fw:
+        sys.exit(
+            f"error: {ref}'s for_website JSON is on an older schema "
+            f"(no `lean_code_with_comments` field); re-run the v3 worker first"
+        )
+
+    tex_dir = fw_path.parent
+    title   = fw["title"]
+    kind    = fw["def_or_claim"]
+
+    # --- TeX statement / proof (unchanged pipeline) ---
     if kind == "def":
         tex_statement = _render_tex(tex_dir / f"{ref}_{title}.tex", whole_file=False)
     else:
@@ -107,16 +112,12 @@ def fetch_row(ref: str) -> dict:
             tex_dir / f"{ref}_statement_{title}.tex", whole_file=False
         )
 
-    # --- TeX proof (claims only) — the whole proof file is rendered ---
     tex_proof = None
     if kind == "claim":
         tex_proof = _render_tex(
             tex_dir / f"{ref}_proof_{title}.tex", whole_file=True
         )
 
-    # --- Status. `<ref>_for_website.json` only exists for SOLVED rows, so
-    #     a definition is "formalised, no proof" and a claim is
-    #     "formalised, proven". No data.json lookup needed. ---
     status = {
         "formalized": "yes",
         "proven":     "yes" if kind == "claim" else "n/a",
@@ -124,21 +125,19 @@ def fetch_row(ref: str) -> dict:
     }
 
     return {
-        "ref":              fw["ref"],
-        "kind":             kind,
-        "section":          fw["section"],
-        "title":            title,
-        "type":             fw["type"],
-        "status":           status,
-        "tex_statement":    tex_statement,
-        "tex_proof":        tex_proof,
-        # `lean` is the curated per-part list straight from the
-        # orchestrator: one {name, kind, code} object per LN-level
-        # sub-statement, in source order, helpers already filtered.
-        "lean":             fw["lean_statement"],
-        "lean_file_path":   fw["lean_file_path"],
-        "lean_explanation": fw["lean_explanation"],
-        "design_choices":   fw["design_choices"],
+        "ref":                        fw["ref"],
+        "kind":                       kind,
+        "section":                    fw["section"],
+        "title":                      title,
+        "type":                       fw["type"],
+        "status":                     status,
+        "tex_statement":              tex_statement,
+        "tex_proof":                  tex_proof,
+        "lean_code_with_comments":    fw["lean_code_with_comments"],
+        "lean_code_without_comments": fw["lean_code_without_comments"],
+        "lean_source_urls":           fw["lean_source_urls"],
+        "lean_explanation":           fw["lean_explanation"],
+        "design_choices":             fw["design_choices"],
     }
 
 
