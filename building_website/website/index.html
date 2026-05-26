@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Encourage browsers to revalidate index.html on every visit so the
+       content-hash cache-bust on app.js / style.css always reflects the
+       latest deploy. The hashed asset URLs themselves stay cacheable. -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
   <title>Causality, Leanified - Sam Ritchie</title>
 
   <link rel="stylesheet"
