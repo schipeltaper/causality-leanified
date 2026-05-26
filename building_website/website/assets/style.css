@@ -371,6 +371,28 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 }
 .pane-lean code { font-family: inherit; background: transparent; }
 
+/* Comments-on / -off toggle pinned to the Lean pane label. */
+.lean-comments-toggle {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  padding: 0.18rem 0.55rem;
+  background: var(--bg-pane);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  text-transform: none;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.lean-comments-toggle:hover { color: var(--accent); border-color: var(--accent-soft); }
+.lean-comments-toggle.on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.lean-comments-toggle.on:hover { color: #fff; }
+
 /* Override highlight.js's theme background — we want the pane's bg to show
    through, with only the per-token colors applied. */
 .pane-lean .hljs,
