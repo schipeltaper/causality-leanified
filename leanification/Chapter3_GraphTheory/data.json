@@ -1414,37 +1414,48 @@
       "section": "3.3",
       "title": "BlockableAndUnblockable",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-05-26",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Blockable and unblockable non-colliders]\\label{def:unblockable_noncollider}\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We call a non-collider $v_k$ on $\\pi$ an \\emph{unblockable non-collider} on $\\pi$ if it is not an end-node ($k \\notin \\{0,n\\}$) and it only has outgoing edges on $\\pi$ to nodes in the same strongly connected component of $G$. That is,\n  it is one of the following patterns:\n  \\[\\begin{array}{rccl}\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1} & \\text{ with } & v_{k+1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_k) \\land v_{k+1} \\in \\Sc^G(v_k)\n  \\end{array}\\]\n  Otherwise, $v_k$ is called a \\emph{blockable non-collider} on $\\pi$.\n  This means that $v_k$ is either an end-node ($k \\in \\lC 0,n\\rC$) or it has at least one outgoing arrow \n  $v_k \\tuh v_{k\\pm1}$ pointing to a node $v_{k\\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\\ $v_{k\\pm1} \\notin \\Sc^G(v_k)$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "9ae39647-33e7-4c81-9b2c-010ed6977b8e",
+          "first_seen": "2026-05-26T16:31:27+00:00",
+          "last_used": "2026-05-26T16:31:27+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2132
     },
     {
       "def_or_claim": "claim",
