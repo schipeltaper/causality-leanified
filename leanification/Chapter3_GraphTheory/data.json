@@ -1751,7 +1751,7 @@
           "last_used": "2026-05-27T18:14:04+00:00"
         }
       ],
-      "time_needed_to_solve": 26966
+      "time_needed_to_solve": 26985
     },
     {
       "def_or_claim": "claim",
@@ -1759,27 +1759,29 @@
       "section": "3.3",
       "title": "SigmaOpenPathWalk",
       "type": "note",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-27",
       "tips": "reorder applied @ 2026-05-27: deferred behind claim_3_27. Manager's rationale:\nPRECEDES: claim_3_27\n\n# Reorder request — claim_3_27 (`LabelRoman` / `lem:replace_walk`) must precede claim_3_23\n\n## What's blocking\n\nThe LN's proof of `prp:sigma_opens` (= claim_3_23, this row) sits at `lecture-notes/lecture_notes/graphs.tex` lines 1655–1673. It is structured as:\n\n- `3 → 2`, `1 → 2`: trivial (\"paths are walks\").\n- `2 → 3`: collider-replacement using `AncSet`-witness directed paths. Uses walk-splicing primitives — **does not** use `lem:replace_walk`.\n- `2 → 1`: **explicitly invokes `Lemma~\\ref{lem:replace_walk}`** at LN line 1669: *\"We now use Lemma~\\ref{lem:replace_walk} to construct a new walk $\\pi'$ from $\\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\\pi$ by a particular directed path in $\\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\\pi'$ is still $C$-$\\sigma$-open.\"*\n\n`lem:replace_walk` is **claim_3_27** in our `data.json` (`title: LabelRoman`, currently `formalized=no`, `proven=not proven`, `solved=no`). Without it formalized, the `2 → 1` arrow of `sigmaOpens_TFAE` cannot be discharged in Lean — it is a single-line citation of a major lemma, not a self-contained tactic.\n\n## Why this is a reorder, not a \"push forward\" / `sorry`\n\nThree options were considered:\n\n1. **Push forward (discharge only the trivial halves, leave `2 → 1` as `sorry`).** Rejected: the row's `solved=yes` terminal state forbids `sorry`. Marking solved with an unsoundness gap is not an option here.\n2. **Write the tex proof transcribing the LN, verify it (the tex proo",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
-        "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "correct_tex_proof": 2,
+        "verify_tex_proof": 3,
         "review_design": 1,
         "verify_equivalence": 1,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 1,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 1,
         "new_manager": 1,
         "reorder": 1,
         "reset": 0,
@@ -1789,8 +1791,16 @@
         "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{restatable}{Prp}{restateprpsigmaopens}\\label{prp:sigma_opens}\n  Let $G=(J,V,E,L)$ be a CDMG. For $C \\subseteq J \\cup V$, and $w_1, w_2 \\in J \\cup V$, the following are\n  equivalent:\n  \\begin{enumerate}\n      \\item there exists a $C$-$\\sigma$-open \\emph{path} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\\Anc^G(C)$).\n  \\end{enumerate}\n\\end{restatable}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 2000
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "ab0172b8-8f96-4dda-9d43-e88826314242",
+          "first_seen": "2026-05-27T20:29:58+00:00",
+          "last_used": "2026-05-27T20:29:58+00:00"
+        }
+      ],
+      "time_needed_to_solve": 10137
     },
     {
       "def_or_claim": "claim",

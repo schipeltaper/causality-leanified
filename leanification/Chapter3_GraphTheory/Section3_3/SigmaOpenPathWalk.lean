@@ -1,6 +1,11 @@
 import Mathlib.Data.List.TFAE
+import Mathlib.Tactic.TFAE
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Finset.Range
+import Mathlib.Data.Finset.Filter
 import Chapter3_GraphTheory.Section3_1.WalkPredicates
 import Chapter3_GraphTheory.Section3_3.SigmaBlockedWalks
+import Chapter3_GraphTheory.Section3_3.LabelRoman
 
 -- TeX statement: claim_3_23_statement_SigmaOpenPathWalk.tex
 -- TeX proof:     claim_3_23_proof_SigmaOpenPathWalk.tex
@@ -255,6 +260,747 @@ open scoped Causality.CDMG
 variable {α : Type*}
 
 namespace CDMG
+
+/-- Private helper used by `2 ⟹ 3` in `sigmaOpens_TFAE`: if
+`v ∈ AncSet^G(C)` but `v ∉ C`, there is a *directed* walk `σ` from
+`v` to some `c ∈ C` of positive length whose interior avoids `C`.
+The witness is obtained by truncating any directed walk from `v`
+to some `c₀ ∈ C` at the first interior position landing in `C`
+(well-founded recursion on the walk length). -/
+private theorem exists_directed_to_C_no_inner
+    (G : CDMG α) (C : Set α) {v : α}
+    (h_v_anc : v ∈ G.AncSet C) (h_v_not : v ∉ C) :
+    ∃ (c : α) (σ : Walk G v c), c ∈ C ∧ σ.IsDirected ∧ 0 < σ.length ∧
+      ∀ ℓ, 0 < ℓ → ℓ < σ.length → σ.nodeAt ℓ ∉ C := by
+  classical
+  rw [CDMG.mem_AncSet] at h_v_anc
+  obtain ⟨c₀, h_c₀_in_C, h_v_in_Anc_c₀⟩ := h_v_anc
+  obtain ⟨_, σ₀, h_σ₀_dir⟩ := h_v_in_Anc_c₀
+  -- Strong induction on walk length; package as a universal statement.
+  suffices h : ∀ n, ∀ (c : α) (σ : Walk G v c), σ.IsDirected → c ∈ C →
+      σ.length ≤ n →
+      ∃ (c' : α) (σ' : Walk G v c'), c' ∈ C ∧ σ'.IsDirected ∧ 0 < σ'.length ∧
+        ∀ ℓ, 0 < ℓ → ℓ < σ'.length → σ'.nodeAt ℓ ∉ C from
+    h σ₀.length c₀ σ₀ h_σ₀_dir h_c₀_in_C le_rfl
+  intro n
+  induction n with
+  | zero =>
+    intro c σ _h_dir h_c h_len
+    -- Length-0 directed walk forces `v = c`, contradicting `v ∉ C ∧ c ∈ C`.
+    exfalso
+    have h_eq : σ.length = 0 := Nat.le_zero.mp h_len
+    have h_v_eq_c : v = c := by
+      have h0 : σ.nodeAt 0 = v := σ.nodeAt_zero
+      have h1 : σ.nodeAt σ.length = c := σ.nodeAt_length
+      rw [h_eq] at h1
+      exact h0.symm.trans h1
+    exact h_v_not (h_v_eq_c ▸ h_c)
+  | succ n ih =>
+    intro c σ h_dir h_c h_len
+    by_cases h_inner : ∃ ℓ, 0 < ℓ ∧ ℓ < σ.length ∧ σ.nodeAt ℓ ∈ C
+    · -- Some interior position is in `C`: recurse on the (shorter) prefix.
+      obtain ⟨ℓ, h_ℓ_pos, h_ℓ_lt, h_ℓ_in_C⟩ := h_inner
+      have h_ℓ_le : ℓ ≤ σ.length := le_of_lt h_ℓ_lt
+      have h_pre_dir : (σ.prefix ℓ).IsDirected :=
+        Walk.isDirected_prefix σ ℓ h_dir
+      have h_pre_len : (σ.prefix ℓ).length = ℓ := Walk.length_prefix σ h_ℓ_le
+      have h_pre_le_n : (σ.prefix ℓ).length ≤ n := by rw [h_pre_len]; omega
+      -- σ.prefix ℓ : Walk G v (σ.nodeAt ℓ); ends in C via h_ℓ_in_C.
+      exact ih (σ.nodeAt ℓ) (σ.prefix ℓ) h_pre_dir h_ℓ_in_C h_pre_le_n
+    · -- No interior is in `C`; σ itself witnesses the claim.
+      have h_σ_pos : 0 < σ.length := by
+        rcases Nat.eq_zero_or_pos σ.length with h0 | h0
+        · exfalso
+          have h_v_eq_c : v = c := by
+            have h_nz : σ.nodeAt 0 = v := σ.nodeAt_zero
+            have h_nl : σ.nodeAt σ.length = c := σ.nodeAt_length
+            rw [h0] at h_nl
+            exact h_nz.symm.trans h_nl
+          exact h_v_not (h_v_eq_c ▸ h_c)
+        · exact h0
+      refine ⟨c, σ, h_c, h_dir, h_σ_pos, ?_⟩
+      intro ℓ h_ℓ_pos h_ℓ_lt h_ℓ_in_C
+      exact h_inner ⟨ℓ, h_ℓ_pos, h_ℓ_lt, h_ℓ_in_C⟩
+
+/-- The `2 ⟹ 3` arrow of `sigmaOpens_TFAE`, factored out as a private
+lemma: from a `C`-σ-open walk `π : Walk G w₁ w₂`, construct a
+`C`-σ-open walk whose every collider's vertex lies in `C`. The proof
+follows the LN's collider-replacement argument: at every bad collider
+`v_k` (vertex in `Anc^G(C) \ C`), splice a detour `σ ⧺ σ.reverse`
+between positions `k` and `k`, where `σ` is a directed walk from
+`v_k` to some `c ∈ C` with no interior in `C` (provided by
+`exists_directed_to_C_no_inner`). The detour preserves σ-openness
+(joints become non-colliders, interior of σ are right- or left-chain
+non-colliders not in `C`, the turn-around vertex `c` is a new
+collider but lies in `C`) and strictly decreases the bad-collider
+count. -/
+private theorem reduce_to_all_colliders_in_C
+    (G : CDMG α) (C : Set α) (w₁ w₂ : α) (π₀ : Walk G w₁ w₂)
+    (h_open₀ : π₀.IsSigmaOpen C) :
+    ∃ π' : Walk G w₁ w₂, π'.IsSigmaOpen C ∧
+      ∀ k, π'.IsColliderAt k → π'.nodeAt k ∈ C := by
+  classical
+  -- The bad-collider count: how many positions `k ∈ {0,…,π.length}` are
+  -- colliders on `π` whose vertex is *not* in `C`.
+  let badN : ∀ {a b : α}, Walk G a b → ℕ := fun π =>
+    ((Finset.range (π.length + 1)).filter
+      (fun k => π.IsColliderAt k ∧ π.nodeAt k ∉ C)).card
+  -- Helper: if `π.IsColliderAt k`, then `k ≤ π.length` (a collider needs the
+  -- joint of two consecutive steps; out-of-range positions return False).
+  have isColliderAt_le_length :
+      ∀ {a b : α} (π : Walk G a b) (k : ℕ), π.IsColliderAt k → k ≤ π.length := by
+    intro a b π
+    induction π with
+    | nil _ => intro k h; simp at h
+    | cons s p ih =>
+      intro k h_coll
+      cases p with
+      | nil _ => simp at h_coll
+      | cons s' p' =>
+        cases k with
+        | zero => simp [Walk.length_cons]
+        | succ k =>
+          cases k with
+          | zero => simp [Walk.length_cons]
+          | succ k =>
+            rw [Walk.isColliderAt_cons_cons_succ_succ] at h_coll
+            have := ih (k + 1) h_coll
+            simp only [Walk.length_cons] at this ⊢
+            omega
+  -- Strong induction on `n` with `badN π ≤ n`.
+  suffices forall_n : ∀ (n : ℕ), ∀ (π : Walk G w₁ w₂), π.IsSigmaOpen C →
+      badN π ≤ n →
+      ∃ π' : Walk G w₁ w₂, π'.IsSigmaOpen C ∧
+        ∀ k, π'.IsColliderAt k → π'.nodeAt k ∈ C from
+    forall_n (badN π₀) π₀ h_open₀ le_rfl
+  intro n
+  induction n with
+  | zero =>
+    intro π h_open h_card
+    -- badN π = 0 ⇒ filter is empty ⇒ every collider's node is in `C`.
+    have h_card_zero : badN π = 0 := Nat.le_zero.mp h_card
+    have h_filter_empty :
+        (Finset.range (π.length + 1)).filter
+            (fun k => π.IsColliderAt k ∧ π.nodeAt k ∉ C) = ∅ :=
+      Finset.card_eq_zero.mp h_card_zero
+    refine ⟨π, h_open, ?_⟩
+    intro k h_coll
+    by_contra h_not_in_C
+    have hk_le : k ≤ π.length := isColliderAt_le_length π k h_coll
+    have h_mem : k ∈ (Finset.range (π.length + 1)).filter
+        (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C) := by
+      rw [Finset.mem_filter]
+      exact ⟨Finset.mem_range.mpr (by omega), h_coll, h_not_in_C⟩
+    rw [h_filter_empty] at h_mem
+    exact Finset.notMem_empty _ h_mem
+  | succ n ih =>
+    intro π h_open h_card
+    by_cases h_zero : badN π = 0
+    · -- Same as the base case.
+      have h_filter_empty :
+          (Finset.range (π.length + 1)).filter
+              (fun k => π.IsColliderAt k ∧ π.nodeAt k ∉ C) = ∅ :=
+        Finset.card_eq_zero.mp h_zero
+      refine ⟨π, h_open, ?_⟩
+      intro k h_coll
+      by_contra h_not_in_C
+      have hk_le : k ≤ π.length := isColliderAt_le_length π k h_coll
+      have h_mem : k ∈ (Finset.range (π.length + 1)).filter
+          (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C) := by
+        rw [Finset.mem_filter]
+        exact ⟨Finset.mem_range.mpr (by omega), h_coll, h_not_in_C⟩
+      rw [h_filter_empty] at h_mem
+      exact Finset.notMem_empty _ h_mem
+    · -- badN π ≥ 1: pick a bad collider, splice in a detour `σ ⧺ σ.reverse`.
+      -- 1. Extract a bad collider position k.
+      have h_nonempty :
+          ((Finset.range (π.length + 1)).filter
+              (fun k => π.IsColliderAt k ∧ π.nodeAt k ∉ C)).Nonempty :=
+        Finset.card_pos.mp (Nat.pos_of_ne_zero h_zero)
+      obtain ⟨k, hk_mem⟩ := h_nonempty
+      rw [Finset.mem_filter] at hk_mem
+      obtain ⟨hk_range, h_coll_k, h_not_in_C_k⟩ := hk_mem
+      have hk_le : k ≤ π.length := by
+        have := Finset.mem_range.mp hk_range; omega
+      have hk_lt : k < π.length :=
+        Walk.isColliderAt_lt_length π h_coll_k
+      have hk_pos : 0 < k := by
+        rcases Nat.eq_zero_or_pos k with h0 | h_pos
+        · exfalso; rw [h0] at h_coll_k
+          exact (Walk.isNonColliderAt_zero π).2 h_coll_k
+        · exact h_pos
+      -- 2. Extract σ : v_k → c.
+      have h_node_anc : π.nodeAt k ∈ G.AncSet C := h_open.1 k h_coll_k
+      obtain ⟨c, σ, h_c_in_C, h_σ_dir, h_σ_pos, h_no_inner_C⟩ :=
+        exists_directed_to_C_no_inner G C h_node_anc h_not_in_C_k
+      -- 3. Construct σ_full and W.
+      set σ_full : Walk G (π.nodeAt k) (π.nodeAt k) := σ.append σ.reverse
+        with hσ_full_def
+      set W : Walk G w₁ w₂ :=
+        (π.prefix k).append (σ_full.append (π.suffix k)) with hW_def
+      have h_σ_full_len : σ_full.length = σ.length + σ.length := by
+        rw [hσ_full_def, Walk.length_append, Walk.length_reverse]
+      have h_σ_full_pos : 0 < σ_full.length := by rw [h_σ_full_len]; omega
+      have h_c_mem_G : c ∈ G := (Walk.endpoints_mem_G_of_pos σ h_σ_pos).2
+      have h_c_in_AncSet : c ∈ G.AncSet C := by
+        rw [CDMG.mem_AncSet]
+        exact ⟨c, h_c_in_C, CDMG.self_mem_Anc h_c_mem_G⟩
+      have h_pre_len : (π.prefix k).length = k := Walk.length_prefix π hk_le
+      have h_suf_len : (π.suffix k).length = π.length - k := Walk.length_suffix π hk_le
+      have h_W_len : W.length = k + σ_full.length + (π.length - k) := by
+        rw [hW_def, Walk.length_append, Walk.length_append,
+            h_pre_len, h_suf_len]
+        omega
+      -- 4. Decompose σ for joint analysis.
+      obtain ⟨w_σ_first, s_σ_first, rest_σ_first, h_σ_eq⟩ :=
+        Walk.walk_pos_eq_cons σ h_σ_pos
+      have h_s_σ_first_fwd : s_σ_first.IsForward := by
+        have h_dir' := h_σ_dir
+        rw [h_σ_eq] at h_dir'
+        cases s_σ_first with
+        | forward _ => simp
+        | backward _ => simp at h_dir'
+        | bidir _ => simp at h_dir'
+      -- σ_full's first step is s_σ_first.
+      have h_σ_full_first :
+          σ_full = Walk.cons s_σ_first (rest_σ_first.append σ.reverse) := by
+        rw [hσ_full_def, h_σ_eq, Walk.cons_append]
+      -- σ_full's last step is s_σ_first.reverse via the decomposition:
+      --   σ_full = (cons s_σ_first (rest_σ_first ⧺ rest_σ_first.reverse))
+      --              ⧺ (cons s_σ_first.reverse (nil _))
+      have h_σ_full_last :
+          σ_full = (Walk.cons s_σ_first
+              (rest_σ_first.append rest_σ_first.reverse)).append
+                (Walk.cons s_σ_first.reverse (Walk.nil (π.nodeAt k))) := by
+        rw [hσ_full_def, h_σ_eq, Walk.reverse_cons]
+        rw [Walk.cons_append, Walk.cons_append, Walk.append_assoc]
+      -- Length of the prefix in the right-end decomposition above.
+      have h_σ_full_pre_len :
+          (Walk.cons s_σ_first
+              (rest_σ_first.append rest_σ_first.reverse)).length =
+            σ_full.length - 1 := by
+        rw [Walk.length_cons, Walk.length_append, Walk.length_reverse]
+        rw [h_σ_full_len]
+        have h_rest_len : rest_σ_first.length = σ.length - 1 := by
+          have h1 : σ.length = rest_σ_first.length + 1 := by
+            rw [h_σ_eq, Walk.length_cons]
+          omega
+        omega
+      -- s_σ_first.reverse is backward.
+      have h_s_σ_first_rev_back : s_σ_first.reverse.IsBackward := by
+        cases s_σ_first with
+        | forward _ => simp
+        | backward _ => simp at h_s_σ_first_fwd
+        | bidir _ => simp at h_s_σ_first_fwd
+      -- =========================================================
+      -- Prove W.IsSigmaOpen C: per-position case analysis.
+      -- =========================================================
+      have hW_open : W.IsSigmaOpen C := by
+        refine ⟨?_, ?_⟩
+        · -- Clause 1: collider on W ⇒ node ∈ AncSet C.
+          intro p h_coll_W
+          have h_p_lt_W : p < W.length := Walk.isColliderAt_lt_length W h_coll_W
+          rcases lt_or_ge p k with hp_lt_k | hp_ge_k
+          · -- p < k: prefix region.
+            rw [hW_def] at h_coll_W
+            have h_π_coll :=
+              (Walk.isColliderAt_splice_pre π σ_full hk_le hp_lt_k).mp h_coll_W
+            rw [hW_def, Walk.nodeAt_splice_pre π σ_full hk_le (le_of_lt hp_lt_k)]
+            exact h_open.1 p h_π_coll
+          · rcases lt_or_ge p (k + σ_full.length) with hp_lt_mid | hp_ge_mid
+            · -- k ≤ p < k + σ_full.length: middle/joints.
+              rcases Nat.eq_or_lt_of_le hp_ge_k with hp_eq_k | hp_gt_k
+              · -- p = k: left joint. NOT a collider, contradiction.
+                exfalso
+                subst hp_eq_k
+                -- Decompose π.prefix k.
+                have h_pre_pos : 1 ≤ (π.prefix k).length := by
+                  rw [h_pre_len]; omega
+                obtain ⟨w_pre, p_pre, s_left, h_pre_eq⟩ :=
+                  Walk.walk_pos_eq_append_last (π.prefix k) h_pre_pos
+                have h_p_pre_len : p_pre.length = k - 1 := by
+                  have h1 : (π.prefix k).length = p_pre.length +
+                      (Walk.cons s_left (Walk.nil (π.nodeAt k))).length := by
+                    rw [h_pre_eq, Walk.length_append]
+                  rw [h_pre_len] at h1
+                  simp [Walk.length_cons, Walk.length_nil] at h1; omega
+                -- Reassemble W to expose joint at k.
+                set big_rest := (rest_σ_first.append σ.reverse).append (π.suffix k)
+                  with hbig_def
+                have hW_form :
+                    W = p_pre.append
+                      (Walk.cons s_left (Walk.cons s_σ_first big_rest)) := by
+                  show (π.prefix k).append (σ_full.append (π.suffix k)) =
+                    p_pre.append (Walk.cons s_left
+                      (Walk.cons s_σ_first big_rest))
+                  rw [h_pre_eq, h_σ_full_first]
+                  rw [Walk.append_assoc, Walk.cons_append, Walk.nil_append,
+                      Walk.cons_append]
+                have h_at_k :
+                    (p_pre.append (Walk.cons s_left
+                      (Walk.cons s_σ_first big_rest))).IsColliderAt
+                        (p_pre.length + 1) := by
+                  rw [show p_pre.length + 1 = k from by omega, ← hW_form]
+                  exact h_coll_W
+                rw [Walk.isColliderAt_append_cons_cons_one] at h_at_k
+                obtain ⟨_, h_src⟩ := h_at_k
+                cases s_σ_first with
+                | forward _ => simp at h_src
+                | backward _ => simp at h_s_σ_first_fwd
+                | bidir _ => simp at h_s_σ_first_fwd
+              · -- k < p < k + σ_full.length: interior of σ_full.
+                set p' := p - k with hp'_def
+                have hp'_pos : 0 < p' := by omega
+                have hp'_lt : p' < σ_full.length := by omega
+                have hp_eq : k + p' = p := by omega
+                have h_σ_full_coll : σ_full.IsColliderAt p' := by
+                  rw [← hp_eq, hW_def] at h_coll_W
+                  exact (Walk.isColliderAt_splice_mid π σ_full hk_le
+                    hp'_pos hp'_lt).mp h_coll_W
+                rcases lt_or_ge p' σ.length with hp'_lt_σ | hp'_ge_σ
+                · -- p' < σ.length: σ.IsColliderAt p', contradicts σ.IsDirected.
+                  exfalso
+                  rw [hσ_full_def] at h_σ_full_coll
+                  rw [Walk.isColliderAt_append_lt_length _ _ hp'_lt_σ]
+                    at h_σ_full_coll
+                  exact Walk.not_isColliderAt_of_isDirected σ p' h_σ_dir
+                    h_σ_full_coll
+                · rcases Nat.eq_or_lt_of_le hp'_ge_σ with hp'_eq_σ | hp'_gt_σ
+                  · -- p' = σ.length: turn-around. Node = c ∈ AncSet C.
+                    have h_σ_le_full : σ.length ≤ σ_full.length := by
+                      rw [h_σ_full_len]; omega
+                    rw [hW_def, ← hp_eq, ← hp'_eq_σ]
+                    rw [Walk.nodeAt_splice_mid π σ_full hk_le h_σ_le_full]
+                    rw [hσ_full_def, Walk.nodeAt_append_le σ σ.reverse le_rfl]
+                    rw [Walk.nodeAt_length]
+                    exact h_c_in_AncSet
+                  · -- σ.length < p' < σ_full.length: interior of σ.reverse.
+                    exfalso
+                    have h_shift_pos : 0 < p' - σ.length := by omega
+                    have h_p'_rw : p' = σ.length + (p' - σ.length) := by omega
+                    rw [hσ_full_def, h_p'_rw,
+                        Walk.isColliderAt_append_shift_pos σ σ.reverse
+                          (p' - σ.length) h_shift_pos] at h_σ_full_coll
+                    rw [Walk.isColliderAt_reverse_iff] at h_σ_full_coll
+                    exact Walk.not_isColliderAt_of_isDirected σ _ h_σ_dir
+                      h_σ_full_coll
+            · rcases Nat.eq_or_lt_of_le hp_ge_mid with hp_eq_mid | hp_gt_mid
+              · -- p = k + σ_full.length: right joint. NOT a collider.
+                exfalso
+                subst hp_eq_mid
+                -- Decompose π.suffix k.
+                have h_suf_pos : 1 ≤ (π.suffix k).length := by
+                  rw [h_suf_len]; omega
+                obtain ⟨w_suf, s_suf, rest_suf, h_suf_eq⟩ :=
+                  Walk.walk_pos_eq_cons (π.suffix k) h_suf_pos
+                -- W's structure exposing the right joint:
+                -- W = ((π.prefix k).append (cons s_σ_first
+                --       (rest_σ_first.append rest_σ_first.reverse))).append
+                --     (cons s_σ_first.reverse (cons s_suf rest_suf))
+                have hW_form :
+                    W = ((π.prefix k).append (Walk.cons s_σ_first
+                      (rest_σ_first.append rest_σ_first.reverse))).append
+                      (Walk.cons s_σ_first.reverse
+                        (Walk.cons s_suf rest_suf)) := by
+                  show (π.prefix k).append (σ_full.append (π.suffix k)) = _
+                  rw [h_σ_full_last, h_suf_eq, Walk.append_assoc,
+                      ← Walk.append_assoc, Walk.cons_append, Walk.nil_append]
+                -- Length of the left half.
+                have h_left_len :
+                    ((π.prefix k).append (Walk.cons s_σ_first
+                      (rest_σ_first.append rest_σ_first.reverse))).length =
+                      k + σ_full.length - 1 := by
+                  rw [Walk.length_append, h_pre_len, h_σ_full_pre_len]
+                  omega
+                -- Apply the joint-collider lemma.
+                rw [hW_form] at h_coll_W
+                rw [show (k + σ_full.length : ℕ) =
+                  ((π.prefix k).append (Walk.cons s_σ_first
+                    (rest_σ_first.append rest_σ_first.reverse))).length + 1
+                  from by rw [h_left_len]; omega] at h_coll_W
+                rw [Walk.isColliderAt_append_cons_cons_one] at h_coll_W
+                obtain ⟨h_target, _⟩ := h_coll_W
+                cases s_σ_first with
+                | forward _ => simp at h_target
+                | backward _ => simp at h_s_σ_first_fwd
+                | bidir _ => simp at h_s_σ_first_fwd
+              · -- p > k + σ_full.length: suffix region.
+                set p' := p - k - σ_full.length with hp'_def
+                have hp'_pos : 0 < p' := by omega
+                have hp_eq : k + σ_full.length + p' = p := by omega
+                have h_π_coll : π.IsColliderAt (k + p') := by
+                  rw [← hp_eq, hW_def] at h_coll_W
+                  exact (Walk.isColliderAt_splice_suf π σ_full hk_le
+                    hp'_pos).mp h_coll_W
+                have h_bound : p' ≤ π.length - k := by
+                  rw [h_W_len] at h_p_lt_W; omega
+                rw [hW_def, ← hp_eq]
+                rw [Walk.nodeAt_splice_suf π σ_full hk_le hk_le h_bound]
+                exact h_open.1 (k + p') h_π_coll
+        · -- Clause 2: blockable non-collider on W ⇒ node ∉ C.
+          intro p h_block_W
+          have h_noncoll_W : W.IsNonColliderAt p := h_block_W.1
+          have h_p_le_W : p ≤ W.length := h_noncoll_W.1
+          rcases lt_or_ge p k with hp_lt_k | hp_ge_k
+          · -- p < k: transports from h_open.2.
+            rw [hW_def, Walk.nodeAt_splice_pre π σ_full hk_le (le_of_lt hp_lt_k)]
+            have h_π_block : π.IsBlockableNonColliderAt p := by
+              refine ⟨⟨by omega, ?_⟩, ?_⟩
+              · intro h_π_coll
+                have : W.IsColliderAt p := by
+                  rw [hW_def]
+                  exact (Walk.isColliderAt_splice_pre π σ_full
+                    hk_le hp_lt_k).mpr h_π_coll
+                exact h_noncoll_W.2 this
+              · intro h_π_unblock
+                have : W.IsUnblockableNonColliderAt p := by
+                  rw [hW_def]
+                  exact (Walk.isUnblockableNonColliderAt_splice_pre π σ_full
+                    hk_le hp_lt_k).mpr h_π_unblock
+                exact h_block_W.2 this
+            exact h_open.2 p h_π_block
+          · rcases lt_or_ge p (k + σ_full.length) with hp_lt_mid | hp_ge_mid
+            · rcases Nat.eq_or_lt_of_le hp_ge_k with hp_eq_k | hp_gt_k
+              · -- p = k: node = v_k ∉ C.
+                subst hp_eq_k
+                rw [hW_def, Walk.nodeAt_splice_pre π σ_full hk_le (le_refl k)]
+                exact h_not_in_C_k
+              · -- k < p < k + σ_full.length: middle interior.
+                set p' := p - k with hp'_def
+                have hp'_pos : 0 < p' := by omega
+                have hp'_lt : p' < σ_full.length := by omega
+                have hp_eq : k + p' = p := by omega
+                rw [hW_def, ← hp_eq]
+                rw [Walk.nodeAt_splice_mid π σ_full hk_le (le_of_lt hp'_lt)]
+                rcases lt_or_ge p' σ.length with hp'_lt_σ | hp'_ge_σ
+                · -- p' < σ.length: σ_full.nodeAt p' = σ.nodeAt p' ∉ C.
+                  rw [hσ_full_def, Walk.nodeAt_append_le σ σ.reverse
+                    (le_of_lt hp'_lt_σ)]
+                  exact h_no_inner_C p' hp'_pos hp'_lt_σ
+                · rcases Nat.eq_or_lt_of_le hp'_ge_σ with hp'_eq_σ | hp'_gt_σ
+                  · -- p' = σ.length: this position is a collider, contradiction.
+                    exfalso
+                    -- σ_full.IsColliderAt σ.length via the joint at the turn-around.
+                    have h_σ_full_coll_at_σ : σ_full.IsColliderAt σ.length := by
+                      -- Decompose σ = σ_pre_last.append (cons s_σ_last (nil c))
+                      obtain ⟨w_σ_last, σ_pre_last, s_σ_last, h_σ_last_eq⟩ :=
+                        Walk.walk_pos_eq_append_last σ h_σ_pos
+                      have h_σ_pre_last_len : σ_pre_last.length = σ.length - 1 := by
+                        have h1 : σ.length = σ_pre_last.length +
+                            (Walk.cons s_σ_last (Walk.nil c)).length := by
+                          rw [h_σ_last_eq, Walk.length_append]
+                        simp [Walk.length_cons, Walk.length_nil] at h1; omega
+                      -- s_σ_last is forward.
+                      have h_s_σ_last_fwd : s_σ_last.IsForward := by
+                        have h_dir' := h_σ_dir
+                        rw [h_σ_last_eq] at h_dir'
+                        have ⟨_, h_dir_tail⟩ := Walk.isDirected_split_append
+                          σ_pre_last (Walk.cons s_σ_last (Walk.nil c)) h_dir'
+                        cases s_σ_last with
+                        | forward _ => simp
+                        | backward _ => simp at h_dir_tail
+                        | bidir _ => simp at h_dir_tail
+                      -- σ.reverse = cons s_σ_last.reverse σ_pre_last.reverse.
+                      have h_σ_rev_eq : σ.reverse =
+                          Walk.cons s_σ_last.reverse σ_pre_last.reverse := by
+                        rw [h_σ_last_eq, Walk.reverse_append, Walk.reverse_cons,
+                            Walk.reverse_nil, Walk.nil_append, Walk.cons_append,
+                            Walk.nil_append]
+                      -- σ_full decomposition exposing the turn-around joint.
+                      have h_σ_full_eq :
+                          σ_full = σ_pre_last.append
+                            (Walk.cons s_σ_last
+                              (Walk.cons s_σ_last.reverse σ_pre_last.reverse)) := by
+                        rw [hσ_full_def, h_σ_rev_eq, h_σ_last_eq,
+                            Walk.append_assoc]
+                        rfl
+                      rw [h_σ_full_eq]
+                      rw [show σ.length = σ_pre_last.length + 1 from by omega]
+                      rw [Walk.isColliderAt_append_cons_cons_one]
+                      refine ⟨?_, ?_⟩
+                      · cases s_σ_last with
+                        | forward _ => simp
+                        | backward _ => simp at h_s_σ_last_fwd
+                        | bidir _ => simp at h_s_σ_last_fwd
+                      · cases s_σ_last with
+                        | forward _ => simp [WalkStep.reverse]
+                        | backward _ => simp at h_s_σ_last_fwd
+                        | bidir _ => simp at h_s_σ_last_fwd
+                    have h_p_eq : p = k + σ.length := by omega
+                    have h_W_coll : W.IsColliderAt p := by
+                      rw [h_p_eq, hW_def]
+                      exact (Walk.isColliderAt_splice_mid π σ_full hk_le h_σ_pos
+                        (by rw [h_σ_full_len]; omega)).mpr h_σ_full_coll_at_σ
+                    exact h_noncoll_W.2 h_W_coll
+                  · -- σ.length < p' < σ_full.length: σ_full.nodeAt p' on return leg.
+                    rw [hσ_full_def]
+                    have h_p'_rw : p' = σ.length + (p' - σ.length) := by omega
+                    rw [h_p'_rw, Walk.nodeAt_append_add_left σ σ.reverse
+                      (p' - σ.length)]
+                    -- σ.reverse.nodeAt (p' - σ.length) = σ.nodeAt (σ.length - (p' - σ.length))
+                    rw [Walk.nodeAt_reverse σ
+                      (by omega : p' - σ.length ≤ σ.length)]
+                    apply h_no_inner_C
+                    · omega
+                    · omega
+            · rcases Nat.eq_or_lt_of_le hp_ge_mid with hp_eq_mid | hp_gt_mid
+              · -- p = k + σ_full.length: node = v_k ∉ C.
+                subst hp_eq_mid
+                rw [hW_def, Walk.nodeAt_splice_mid π σ_full hk_le
+                  (le_refl σ_full.length), Walk.nodeAt_length]
+                exact h_not_in_C_k
+              · -- p > k + σ_full.length: suffix region.
+                set p' := p - k - σ_full.length with hp'_def
+                have hp'_pos : 0 < p' := by omega
+                have hp_eq : k + σ_full.length + p' = p := by omega
+                have h_bound : p' ≤ π.length - k := by
+                  rw [h_W_len] at h_p_le_W; omega
+                rw [hW_def, ← hp_eq]
+                rw [Walk.nodeAt_splice_suf π σ_full hk_le hk_le h_bound]
+                have h_π_block : π.IsBlockableNonColliderAt (k + p') := by
+                  refine ⟨⟨by omega, ?_⟩, ?_⟩
+                  · intro h_π_coll
+                    have h_W_coll : W.IsColliderAt p := by
+                      rw [hW_def, ← hp_eq]
+                      exact (Walk.isColliderAt_splice_suf π σ_full hk_le
+                        hp'_pos).mpr h_π_coll
+                    exact h_noncoll_W.2 h_W_coll
+                  · intro h_π_unblock
+                    have h_W_unblock : W.IsUnblockableNonColliderAt p := by
+                      rw [hW_def, ← hp_eq]
+                      exact (Walk.isUnblockableNonColliderAt_splice_suf π σ_full
+                        hk_le hp'_pos).mpr h_π_unblock
+                    exact h_block_W.2 h_W_unblock
+                exact h_open.2 (k + p') h_π_block
+      -- =========================================================
+      -- Prove badN W ≤ n via strict-decrease counting.
+      -- =========================================================
+      have h_badN_lt : badN W ≤ n := by
+        -- k is a bad collider position of π.
+        have h_k_in_bad_π :
+            k ∈ (Finset.range (π.length + 1)).filter
+              (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C) := by
+          rw [Finset.mem_filter]
+          exact ⟨Finset.mem_range.mpr (by omega), h_coll_k, h_not_in_C_k⟩
+        -- Key helper: no bad collider on W in the middle region [k, k+σ_full.length].
+        have h_no_bad_middle :
+            ∀ p, k ≤ p → p ≤ k + σ_full.length →
+              ¬ (W.IsColliderAt p ∧ W.nodeAt p ∉ C) := by
+          intro p hp_ge hp_le ⟨h_coll, h_not_in⟩
+          rcases Nat.eq_or_lt_of_le hp_ge with hp_eq_k | hp_gt_k
+          · -- p = k: left joint, W not collider.
+            subst hp_eq_k
+            have h_pre_pos : 1 ≤ (π.prefix k).length := by
+              rw [h_pre_len]; omega
+            obtain ⟨w_pre, p_pre, s_left, h_pre_eq⟩ :=
+              Walk.walk_pos_eq_append_last (π.prefix k) h_pre_pos
+            have h_p_pre_len : p_pre.length = k - 1 := by
+              have h1 : (π.prefix k).length = p_pre.length +
+                  (Walk.cons s_left (Walk.nil (π.nodeAt k))).length := by
+                rw [h_pre_eq, Walk.length_append]
+              rw [h_pre_len] at h1
+              simp [Walk.length_cons, Walk.length_nil] at h1; omega
+            set big_rest := (rest_σ_first.append σ.reverse).append (π.suffix k)
+            have hW_form :
+                W = p_pre.append
+                  (Walk.cons s_left (Walk.cons s_σ_first big_rest)) := by
+              show (π.prefix k).append (σ_full.append (π.suffix k)) =
+                p_pre.append (Walk.cons s_left
+                  (Walk.cons s_σ_first big_rest))
+              rw [h_pre_eq, h_σ_full_first]
+              rw [Walk.append_assoc, Walk.cons_append, Walk.nil_append,
+                  Walk.cons_append]
+            have h_at_p :
+                (p_pre.append (Walk.cons s_left
+                  (Walk.cons s_σ_first big_rest))).IsColliderAt
+                    (p_pre.length + 1) := by
+              rw [show p_pre.length + 1 = k from by omega, ← hW_form]
+              exact h_coll
+            rw [Walk.isColliderAt_append_cons_cons_one] at h_at_p
+            obtain ⟨_, h_src⟩ := h_at_p
+            cases s_σ_first with
+            | forward _ => simp at h_src
+            | backward _ => simp at h_s_σ_first_fwd
+            | bidir _ => simp at h_s_σ_first_fwd
+          · -- k < p ≤ k + σ_full.length.
+            set p' := p - k with hp'_def
+            have hp'_pos : 0 < p' := by omega
+            have hp_eq : k + p' = p := by omega
+            rcases Nat.eq_or_lt_of_le hp_le with hp_eq_mid | hp_lt_mid
+            · -- p = k + σ_full.length: right joint, W not collider.
+              subst hp_eq_mid
+              have h_suf_pos : 1 ≤ (π.suffix k).length := by
+                rw [h_suf_len]; omega
+              obtain ⟨w_suf, s_suf, rest_suf, h_suf_eq⟩ :=
+                Walk.walk_pos_eq_cons (π.suffix k) h_suf_pos
+              have hW_form :
+                  W = ((π.prefix k).append (Walk.cons s_σ_first
+                    (rest_σ_first.append rest_σ_first.reverse))).append
+                    (Walk.cons s_σ_first.reverse
+                      (Walk.cons s_suf rest_suf)) := by
+                show (π.prefix k).append (σ_full.append (π.suffix k)) = _
+                rw [h_σ_full_last, h_suf_eq, Walk.append_assoc,
+                    ← Walk.append_assoc, Walk.cons_append, Walk.nil_append]
+              have h_left_len :
+                  ((π.prefix k).append (Walk.cons s_σ_first
+                    (rest_σ_first.append rest_σ_first.reverse))).length =
+                    k + σ_full.length - 1 := by
+                rw [Walk.length_append, h_pre_len, h_σ_full_pre_len]
+                omega
+              rw [hW_form] at h_coll
+              rw [show (k + σ_full.length : ℕ) =
+                ((π.prefix k).append (Walk.cons s_σ_first
+                  (rest_σ_first.append rest_σ_first.reverse))).length + 1
+                from by rw [h_left_len]; omega] at h_coll
+              rw [Walk.isColliderAt_append_cons_cons_one] at h_coll
+              obtain ⟨h_target, _⟩ := h_coll
+              cases s_σ_first with
+              | forward _ => simp at h_target
+              | backward _ => simp at h_s_σ_first_fwd
+              | bidir _ => simp at h_s_σ_first_fwd
+            · -- k < p < k + σ_full.length: middle interior.
+              have hp'_lt : p' < σ_full.length := by omega
+              rw [← hp_eq, hW_def] at h_coll
+              have h_σ_full_coll :=
+                (Walk.isColliderAt_splice_mid π σ_full hk_le hp'_pos
+                  hp'_lt).mp h_coll
+              rcases lt_or_ge p' σ.length with hp'_lt_σ | hp'_ge_σ
+              · -- p' < σ.length: σ.IsColliderAt p', contradicts σ.IsDirected.
+                rw [hσ_full_def] at h_σ_full_coll
+                rw [Walk.isColliderAt_append_lt_length _ _ hp'_lt_σ]
+                  at h_σ_full_coll
+                exact Walk.not_isColliderAt_of_isDirected σ p' h_σ_dir
+                  h_σ_full_coll
+              · rcases Nat.eq_or_lt_of_le hp'_ge_σ with hp'_eq_σ | hp'_gt_σ
+                · -- p' = σ.length: turn-around, node = c ∈ C contradicts ∉ C.
+                  have h_node_eq : W.nodeAt p = c := by
+                    rw [hW_def, ← hp_eq, ← hp'_eq_σ]
+                    rw [Walk.nodeAt_splice_mid π σ_full hk_le
+                      (by rw [h_σ_full_len]; omega : σ.length ≤ σ_full.length)]
+                    rw [hσ_full_def, Walk.nodeAt_append_le σ σ.reverse le_rfl]
+                    exact Walk.nodeAt_length σ
+                  rw [h_node_eq] at h_not_in
+                  exact h_not_in h_c_in_C
+                · -- σ.length < p' < σ_full.length: σ.reverse interior.
+                  have h_shift_pos : 0 < p' - σ.length := by omega
+                  have h_p'_rw : p' = σ.length + (p' - σ.length) := by omega
+                  rw [hσ_full_def, h_p'_rw,
+                      Walk.isColliderAt_append_shift_pos σ σ.reverse
+                        (p' - σ.length) h_shift_pos] at h_σ_full_coll
+                  rw [Walk.isColliderAt_reverse_iff] at h_σ_full_coll
+                  exact Walk.not_isColliderAt_of_isDirected σ _ h_σ_dir
+                    h_σ_full_coll
+        -- Define the injection from bad_W to bad_π.erase k.
+        let f : ℕ → ℕ := fun p => if p < k then p else p - σ_full.length
+        -- f maps bad_W into bad_π.erase k.
+        have h_image_in :
+            ∀ p ∈ ((Finset.range (W.length + 1)).filter
+                (fun p' => W.IsColliderAt p' ∧ W.nodeAt p' ∉ C)),
+              f p ∈ ((Finset.range (π.length + 1)).filter
+                  (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C)).erase k := by
+          intro p hp_mem
+          rw [Finset.mem_filter] at hp_mem
+          obtain ⟨hp_range, hp_coll, hp_not_in⟩ := hp_mem
+          have hp_le_W : p ≤ W.length := by
+            have := Finset.mem_range.mp hp_range; omega
+          rcases lt_or_ge p k with hp_lt_k | hp_ge_k
+          · -- p < k.
+            simp only [f, if_pos hp_lt_k]
+            rw [Finset.mem_erase, Finset.mem_filter]
+            refine ⟨by omega, Finset.mem_range.mpr (by omega), ?_, ?_⟩
+            · rw [hW_def] at hp_coll
+              exact (Walk.isColliderAt_splice_pre π σ_full hk_le hp_lt_k).mp
+                hp_coll
+            · rw [hW_def, Walk.nodeAt_splice_pre π σ_full hk_le
+                (le_of_lt hp_lt_k)] at hp_not_in
+              exact hp_not_in
+          · -- p ≥ k. Use h_no_bad_middle to derive p > k + σ_full.length.
+            have hp_gt_mid : p > k + σ_full.length := by
+              by_contra hp_not_gt
+              push_neg at hp_not_gt
+              exact h_no_bad_middle p hp_ge_k hp_not_gt ⟨hp_coll, hp_not_in⟩
+            have hp_not_lt : ¬ p < k := by omega
+            simp only [f, if_neg hp_not_lt]
+            rw [Finset.mem_erase, Finset.mem_filter]
+            set p' := p - k - σ_full.length with hp'_def
+            have hp'_pos : 0 < p' := by omega
+            have hp_eq : k + σ_full.length + p' = p := by omega
+            have h_bound : p' ≤ π.length - k := by
+              rw [h_W_len] at hp_le_W; omega
+            have h_shift_eq : p - σ_full.length = k + p' := by omega
+            rw [h_shift_eq]
+            refine ⟨by omega, Finset.mem_range.mpr (by omega), ?_, ?_⟩
+            · rw [← hp_eq, hW_def] at hp_coll
+              exact (Walk.isColliderAt_splice_suf π σ_full hk_le hp'_pos).mp
+                hp_coll
+            · rw [← hp_eq, hW_def] at hp_not_in
+              rw [Walk.nodeAt_splice_suf π σ_full hk_le hk_le h_bound] at hp_not_in
+              exact hp_not_in
+        -- f is injective on bad_W.
+        have h_inj :
+            Set.InjOn f ↑((Finset.range (W.length + 1)).filter
+                (fun p' => W.IsColliderAt p' ∧ W.nodeAt p' ∉ C)) := by
+          intro p₁ hp₁ p₂ hp₂ h_feq
+          simp only [Finset.coe_filter, Finset.mem_coe, Finset.mem_range,
+            Set.mem_setOf_eq] at hp₁ hp₂
+          obtain ⟨hp₁_range, hp₁_coll, hp₁_not_in⟩ := hp₁
+          obtain ⟨hp₂_range, hp₂_coll, hp₂_not_in⟩ := hp₂
+          rcases lt_or_ge p₁ k with hp₁_lt | hp₁_ge
+          · rcases lt_or_ge p₂ k with hp₂_lt | hp₂_ge
+            · -- both < k.
+              simp only [f, if_pos hp₁_lt, if_pos hp₂_lt] at h_feq
+              exact h_feq
+            · -- p₁ < k, p₂ ≥ k.
+              exfalso
+              have hp₂_gt_mid : p₂ > k + σ_full.length := by
+                by_contra hp₂_not_gt
+                push_neg at hp₂_not_gt
+                exact h_no_bad_middle p₂ hp₂_ge hp₂_not_gt ⟨hp₂_coll, hp₂_not_in⟩
+              have hp₂_not_lt : ¬ p₂ < k := by omega
+              simp only [f, if_pos hp₁_lt, if_neg hp₂_not_lt] at h_feq
+              omega
+          · rcases lt_or_ge p₂ k with hp₂_lt | hp₂_ge
+            · -- p₁ ≥ k, p₂ < k: symmetric.
+              exfalso
+              have hp₁_gt_mid : p₁ > k + σ_full.length := by
+                by_contra hp₁_not_gt
+                push_neg at hp₁_not_gt
+                exact h_no_bad_middle p₁ hp₁_ge hp₁_not_gt ⟨hp₁_coll, hp₁_not_in⟩
+              have hp₁_not_lt : ¬ p₁ < k := by omega
+              simp only [f, if_neg hp₁_not_lt, if_pos hp₂_lt] at h_feq
+              omega
+            · -- both ≥ k.
+              have hp₁_gt_mid : p₁ > k + σ_full.length := by
+                by_contra hp₁_not_gt
+                push_neg at hp₁_not_gt
+                exact h_no_bad_middle p₁ hp₁_ge hp₁_not_gt ⟨hp₁_coll, hp₁_not_in⟩
+              have hp₂_gt_mid : p₂ > k + σ_full.length := by
+                by_contra hp₂_not_gt
+                push_neg at hp₂_not_gt
+                exact h_no_bad_middle p₂ hp₂_ge hp₂_not_gt ⟨hp₂_coll, hp₂_not_in⟩
+              have hp₁_not_lt : ¬ p₁ < k := by omega
+              have hp₂_not_lt : ¬ p₂ < k := by omega
+              simp only [f, if_neg hp₁_not_lt, if_neg hp₂_not_lt] at h_feq
+              omega
+        -- Apply cardinality lemmas.
+        have h_card_le :
+            ((Finset.range (W.length + 1)).filter
+                (fun p' => W.IsColliderAt p' ∧ W.nodeAt p' ∉ C)).card ≤
+            (((Finset.range (π.length + 1)).filter
+                (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C)).erase k).card :=
+          Finset.card_le_card_of_injOn f h_image_in h_inj
+        have h_erase_card :
+            (((Finset.range (π.length + 1)).filter
+                (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C)).erase k).card =
+              ((Finset.range (π.length + 1)).filter
+                (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C)).card - 1 :=
+          Finset.card_erase_of_mem h_k_in_bad_π
+        have h_badN_W_def : badN W = ((Finset.range (W.length + 1)).filter
+            (fun p' => W.IsColliderAt p' ∧ W.nodeAt p' ∉ C)).card := rfl
+        have h_badN_π_def : badN π = ((Finset.range (π.length + 1)).filter
+            (fun k' => π.IsColliderAt k' ∧ π.nodeAt k' ∉ C)).card := rfl
+        omega
+      exact ih W hW_open h_badN_lt
 
 -- claim_3_23
 -- title: SigmaOpenPathWalk -- three-way TFAE between
@@ -710,7 +1456,99 @@ theorem sigmaOpens_TFAE (G : CDMG α) (C : Set α) (w₁ w₂ : α) :
         (∃ π : Walk G w₁ w₂, π.IsSigmaOpen C),
         (∃ π : Walk G w₁ w₂, π.IsSigmaOpen C ∧
           ∀ k, π.IsColliderAt k → π.nodeAt k ∈ C) ] := by
-  sorry
+  classical
+  -- 3 → 2 and 1 → 2: trivial (drop a conjunct from the clause-3 / clause-1 witness).
+  tfae_have h₃₂ : 3 → 2 := fun ⟨π, hOpen, _⟩ => ⟨π, hOpen⟩
+  tfae_have h₁₂ : 1 → 2 := fun ⟨π, _, hOpen⟩ => ⟨π, hOpen⟩
+  -- 2 → 1: induction on `π.length`. When `π` is not a path, find a duplicated
+  -- position `p < q ≤ π.length` (so `π.nodeAt p = π.nodeAt q`); apply
+  -- `replace_walk` to get `σ : Walk G (π.nodeAt p) (π.nodeAt q)`. Since `σ` is
+  -- a *path* with equal endpoints, it must be `Walk.nil _` (length 0), so the
+  -- spliced walk is strictly shorter.
+  tfae_have h₂₁ : 2 → 1 := by
+    rintro ⟨π₀, h_open₀⟩
+    -- Strong induction package on `π.length`.
+    suffices h : ∀ n, ∀ (π : Walk G w₁ w₂), π.IsSigmaOpen C →
+        π.length ≤ n →
+        ∃ π' : Walk G w₁ w₂, π'.IsPath ∧ π'.IsSigmaOpen C from
+      h π₀.length π₀ h_open₀ le_rfl
+    intro n
+    induction n with
+    | zero =>
+      intro π h_open h_len
+      have h_len_eq : π.length = 0 := Nat.le_zero.mp h_len
+      cases π with
+      | nil _ =>
+        refine ⟨Walk.nil _, ?_, h_open⟩
+        simp [Walk.IsPath]
+      | cons _ _ =>
+        simp [Walk.length_cons] at h_len_eq
+    | succ n ih =>
+      intro π h_open h_len
+      by_cases h_path : π.IsPath
+      · exact ⟨π, h_path, h_open⟩
+      · -- Non-path: extract a duplicate position pair.
+        obtain ⟨p, q, hpq, hq, heq⟩ :=
+          Walk.exists_dup_positions_of_not_isPath π h_path
+        have hp_le : p ≤ π.length := le_trans (le_of_lt hpq) hq
+        -- Both `π.nodeAt p` and `π.nodeAt q` lie in `G`: π is non-trivial since
+        -- `0 ≤ p < q ≤ π.length` forces `π.length ≥ 1`.
+        have h_π_pos : 0 < π.length := by omega
+        have h_node_q_mem : π.nodeAt q ∈ G := by
+          rcases lt_or_eq_of_le hq with hlt | heq2
+          · exact Walk.nodeAt_mem_G_of_lt_length π hlt
+          · -- q = π.length: node at length is the destination, in `G` via endpoints.
+            rw [heq2, Walk.nodeAt_length]
+            exact (Walk.endpoints_mem_G_of_pos π h_π_pos).2
+        -- v_p = v_q ∈ G, hence v_p ∈ Sc^G(v_q) by self-reflexivity.
+        have h_sc : π.nodeAt p ∈ G.Sc (π.nodeAt q) := by
+          rw [heq]; exact CDMG.self_mem_Sc h_node_q_mem
+        -- Apply `replace_walk`.
+        obtain ⟨σ, h_splice_open, _h_dir_or_rev, _h_inSc, h_σ_path⟩ :=
+          Walk.replace_walk π C h_open hpq hq h_sc
+        -- σ : Walk G (π.nodeAt p) (π.nodeAt q). Since `π.nodeAt p = π.nodeAt q`
+        -- (by `heq`) and `σ.IsPath`, σ must have length 0.
+        have h_σ_len_zero : σ.length = 0 := by
+          by_contra h_ne
+          have h_σ_pos : 1 ≤ σ.length := Nat.one_le_iff_ne_zero.mpr h_ne
+          have h_supp_len : σ.support.length = σ.length + 1 := Walk.support_length σ
+          have h_idx_zero : (0 : ℕ) < σ.support.length := by rw [h_supp_len]; omega
+          have h_idx_last : σ.length < σ.support.length := by rw [h_supp_len]; omega
+          have h_first : σ.support[0]'h_idx_zero = π.nodeAt p := by
+            rw [Walk.support_getElem_eq_nodeAt σ h_idx_zero, Walk.nodeAt_zero]
+          have h_last : σ.support[σ.length]'h_idx_last = π.nodeAt q := by
+            rw [Walk.support_getElem_eq_nodeAt σ h_idx_last, Walk.nodeAt_length]
+          have h_eq_supp :
+              σ.support[0]'h_idx_zero = σ.support[σ.length]'h_idx_last := by
+            rw [h_first, h_last, heq]
+          have h_nodup : σ.support.Nodup := h_σ_path
+          have : (0 : ℕ) = σ.length :=
+            (List.Nodup.getElem_inj_iff h_nodup).mp h_eq_supp
+          omega
+        -- The spliced walk has length `p + 0 + (π.length - q) < π.length`.
+        set π' : Walk G w₁ w₂ :=
+          (π.prefix p).append (σ.append (π.suffix q)) with hπ'_def
+        have h_π'_len : π'.length < π.length := by
+          have h_pre_len : (π.prefix p).length = p := Walk.length_prefix π hp_le
+          have h_suf_len : (π.suffix q).length = π.length - q := Walk.length_suffix π hq
+          have h_app_len :
+              (σ.append (π.suffix q)).length = σ.length + (π.length - q) := by
+            rw [Walk.length_append, h_suf_len]
+          have : π'.length = p + (σ.length + (π.length - q)) := by
+            rw [hπ'_def, Walk.length_append, h_pre_len, h_app_len]
+          rw [this, h_σ_len_zero]
+          omega
+        have h_π'_le_n : π'.length ≤ n := by omega
+        exact ih π' h_splice_open h_π'_le_n
+  -- 2 → 3: induction on the number of "bad" collider positions (positions
+  -- with `IsColliderAt` whose node is *not* in `C`). At each step, pick a
+  -- bad collider `v_k`, find a directed walk `σ : v_k → c ∈ C` with no
+  -- interior in `C`, and splice in `σ ⧺ σ.reverse` between positions `k`
+  -- and `k`. The new walk has strictly fewer bad colliders.
+  tfae_have h₂₃ : 2 → 3 := by
+    rintro ⟨π₀, h_open₀⟩
+    exact reduce_to_all_colliders_in_C G C w₁ w₂ π₀ h_open₀
+  tfae_finish
 
 end CDMG
 
