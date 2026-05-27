@@ -1,4 +1,5 @@
 import Chapter3_GraphTheory.Section3_3.ISigmaSeparation
+import Chapter3_GraphTheory.Section3_3.SigmaBlockedReversal
 
 -- TeX statement: claim_3_22_statement_SigmaSeparationSymmetric.tex
 -- TeX proof:     claim_3_22_proof_SigmaSeparationSymmetric.tex
@@ -387,7 +388,25 @@ and is not stated separately. -/
 theorem isSigmaSeparated_symm (G : CDMG α) (hJ : G.J = ∅)
     (A B C : Set α) :
     G.IsSigmaSeparated A B C ↔ G.IsSigmaSeparated B A C := by
-  sorry
+  -- Step 1 (unfold $\sPerp_G$): IsSigmaSeparated is `abbrev`-equal to
+  -- IsISigmaSeparated, so the abbrev reduction exposes the
+  -- three-nested-universal shape.
+  change G.IsISigmaSeparated A B C ↔ G.IsISigmaSeparated B A C
+  unfold IsISigmaSeparated
+  -- Step 2 (discharge $J$): use `hJ` to collapse `G.J ∪ B = B` and
+  -- `G.J ∪ A = A` on both sides of the `Iff`.
+  simp only [hJ, Set.empty_union]
+  -- Step 3 (close the iff via walk reversal): map each walk
+  -- π : Walk G v w to π.reverse : Walk G w v; the per-walk
+  -- σ-blocking predicate is invariant under reversal (claim_3_22's
+  -- sub-lemma, formalised as `Walk.isSigmaBlocked_reverse_iff`).
+  refine ⟨?_, ?_⟩
+  · intro h v w hv hw π
+    rw [← Walk.isSigmaBlocked_reverse_iff]
+    exact h hw hv π.reverse
+  · intro h v w hv hw π
+    rw [← Walk.isSigmaBlocked_reverse_iff]
+    exact h hw hv π.reverse
 
 end CDMG
 

@@ -1658,26 +1658,29 @@
       "section": "3.3",
       "title": "SigmaSeparationSymmetric",
       "type": "note",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-27",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedReversal.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 1,
+        "verify_tex_proof": 2,
         "review_design": 1,
         "verify_equivalence": 1,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 3,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
         "new_manager": 1,
         "reorder": 0,
@@ -1690,105 +1693,14 @@
       "tex_block": "          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}",
       "agent_registry": [
         {
-          "kind": "manager",
+          "kind": "for_website",
           "spawned_by": "manager",
-          "session_id": "b2046b51-c750-4f11-8890-88234e2ab735",
-          "first_seen": "2026-05-26T19:29:15+00:00",
-          "last_used": "2026-05-26T19:29:15+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "0d708742-c4c4-4e3b-9439-8bc71cde9d9d",
-          "first_seen": "2026-05-26T19:32:50+00:00",
-          "last_used": "2026-05-26T19:32:50+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "032bc82d-46f2-4a1a-a3c0-4dd95033eda1",
-          "first_seen": "2026-05-26T19:33:43+00:00",
-          "last_used": "2026-05-26T19:33:43+00:00"
-        },
-        {
-          "kind": "review_design",
-          "spawned_by": "manager",
-          "session_id": "1e54ba83-2ce7-415b-bc01-c76311d5576d",
-          "first_seen": "2026-05-26T19:37:21+00:00",
-          "last_used": "2026-05-26T19:37:21+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "21329f0c-87cc-45b1-8a26-09b90f29a65f",
-          "first_seen": "2026-05-26T19:38:11+00:00",
-          "last_used": "2026-05-26T19:38:11+00:00"
-        },
-        {
-          "kind": "verify_equivalence",
-          "spawned_by": "manager",
-          "session_id": "633e9763-b4fe-4aea-b0af-5376cb95e7ca",
-          "first_seen": "2026-05-26T19:38:44+00:00",
-          "last_used": "2026-05-26T19:38:44+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "f586968e-91bb-4ea0-8d7a-148a78a8103a",
-          "first_seen": "2026-05-26T19:39:28+00:00",
-          "last_used": "2026-05-26T19:39:28+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "560a7f61-afec-4415-93eb-beaf8de6dfb1",
-          "first_seen": "2026-05-26T19:44:37+00:00",
-          "last_used": "2026-05-26T19:44:37+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "643983e4-9009-47dd-ba04-690aa113f306",
-          "first_seen": "2026-05-26T19:46:28+00:00",
-          "last_used": "2026-05-26T19:46:28+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "4fb7ee4f-a88a-41e8-b8a3-df1def1e659c",
-          "first_seen": "2026-05-26T19:48:21+00:00",
-          "last_used": "2026-05-26T19:48:21+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "41ad90b8-615a-4676-8cae-3a7b4ac85754",
-          "first_seen": "2026-05-26T19:56:41+00:00",
-          "last_used": "2026-05-26T19:56:41+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "9eb6caa5-adec-44cc-a7e1-708431c84017",
-          "first_seen": "2026-05-26T19:57:35+00:00",
-          "last_used": "2026-05-26T19:57:35+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "cce848b7-449c-44b2-841f-7bc54f672475",
-          "first_seen": "2026-05-26T20:01:15+00:00",
-          "last_used": "2026-05-26T20:01:15+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6fa7d274-ea14-43e8-92e3-e4a66419ce44",
-          "first_seen": "2026-05-26T20:02:44+00:00",
-          "last_used": "2026-05-26T20:02:44+00:00"
+          "session_id": "a1fa3725-e6f4-4b60-83e5-6b46f9f4e90f",
+          "first_seen": "2026-05-27T09:48:41+00:00",
+          "last_used": "2026-05-27T09:48:41+00:00"
         }
       ],
-      "time_needed_to_solve": 2875
+      "time_needed_to_solve": 7294
     },
     {
       "def_or_claim": "claim",
