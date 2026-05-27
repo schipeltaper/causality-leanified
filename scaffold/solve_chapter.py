@@ -1469,7 +1469,7 @@ _ACTIVE_TRACKER_SLEEP_CB: "callable | None" = None
 
 def run_claude(prompt: str, label: str,
                *, resume_session: str | None = None,
-               retries: int = 1,
+               retries: int = 2,
                on_usage_limit_sleep: "callable | None" = None,
                ) -> tuple[str, str | None]:
     """Run ``claude -p`` non-interactively and return ``(text, session_id)``.
@@ -1543,8 +1543,13 @@ def run_claude(prompt: str, label: str,
                 f"claude call '{label}' exited {result.returncode} after "
                 f"{attempt} attempt(s): {last_error}"
             )
+        # Short backoff so a transient CLI / API hiccup has a chance to
+        # clear before we hammer the next attempt. Capped to avoid
+        # stealing too much wall clock from the row's budget.
+        backoff = min(60, 15 * attempt)
         print(f"[run_claude] '{label}' exited {result.returncode} on attempt "
-              f"{attempt}; retrying...", flush=True)
+              f"{attempt}; sleeping {backoff}s before retry...", flush=True)
+        time.sleep(backoff)
 
     # Parse the JSON envelope. Fields we care about:
     #   result  -> the assistant's text reply
@@ -2186,6 +2191,17 @@ def solve_current_row() -> None:
                         reason=f"manager timed out 3x at turn {turn}",
                     )
                     return
+            except RuntimeError as e:
+                # Generic non-zero exit from the CLI -- often a transient
+                # API hiccup. Backoff + retry same as the timeout path.
+                print(f"[orchestrator] manager call errored "
+                      f"(attempt {mgr_attempt}/3): {e}", flush=True)
+                if mgr_attempt == 3:
+                    append_unsolved_run_summary(
+                        state,
+                        reason=f"manager errored 3x at turn {turn}",
+                    )
+                    return
         _register_agent(state.row, kind="manager",
                         session_id=manager_session)
         try:
@@ -2219,17 +2235,20 @@ def solve_current_row() -> None:
                     build_verifier_prompt(state, body),
                     label=f"t{turn:03d}_verifier",
                 )
-            except WorkerTimeoutError as e:
-                print(f"[orchestrator] solved-verifier timed out: {e}",
+            except (WorkerTimeoutError, RuntimeError) as e:
+                kind = ("timed out"
+                        if isinstance(e, WorkerTimeoutError) else "errored")
+                print(f"[orchestrator] solved-verifier {kind}: {e}",
                       flush=True)
                 state.history.append(TurnRecord(
-                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                    turn, action, body, f"WORKER {kind.upper()}: {e}"))
                 extra_note = (
-                    f"The `verify_row_solved` worker hit the per-call "
-                    f"timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) and was "
-                    f"killed. Files may be in an inconsistent state. "
-                    f"Decide the next action -- you can retry `solved`, "
-                    f"hand off to a fresh manager, or dispatch a cleanup."
+                    f"The `verify_row_solved` worker {kind} on subprocess "
+                    f"call (after the orchestrator's built-in retries). "
+                    f"Files should still be in the state your previous "
+                    f"workers left them. Decide the next action -- you can "
+                    f"retry `solved`, hand off to a fresh manager, or "
+                    f"dispatch a cleanup."
                 )
                 save_data(state.data_path, data)
                 persist_time()
@@ -2418,15 +2437,17 @@ def solve_current_row() -> None:
                     build_verifier_action_prompt(action, state, body),
                     label=f"t{turn:03d}_{label_suffix}",
                 )
-            except WorkerTimeoutError as e:
-                print(f"[orchestrator] {action} verifier timed out: {e}",
+            except (WorkerTimeoutError, RuntimeError) as e:
+                kind = ("timed out"
+                        if isinstance(e, WorkerTimeoutError) else "errored")
+                print(f"[orchestrator] {action} verifier {kind}: {e}",
                       flush=True)
                 state.history.append(TurnRecord(
-                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                    turn, action, body, f"WORKER {kind.upper()}: {e}"))
                 extra_note = (
-                    f"The `{action}` verifier hit the per-call timeout "
-                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
-                    f"Pick a different action or retry `{action}`."
+                    f"The `{action}` verifier {kind} on subprocess call "
+                    f"(after the orchestrator's built-in retries). Pick a "
+                    f"different action or retry `{action}`."
                 )
                 save_data(state.data_path, data)
                 persist_time()
@@ -2494,16 +2515,18 @@ def solve_current_row() -> None:
             #   <message to send to the resumed agent>
             try:
                 outcome = _continue_agent_from_body(state, body, turn)
-            except WorkerTimeoutError as e:
-                print(f"[orchestrator] continue_agent timed out: {e}",
+            except (WorkerTimeoutError, RuntimeError) as e:
+                kind = ("timed out"
+                        if isinstance(e, WorkerTimeoutError) else "errored")
+                print(f"[orchestrator] continue_agent {kind}: {e}",
                       flush=True)
                 state.history.append(TurnRecord(
-                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                    turn, action, body, f"WORKER {kind.upper()}: {e}"))
                 extra_note = (
-                    f"The resumed agent hit the per-call timeout "
-                    f"({PER_CALL_TIMEOUT_SECONDS//60} min) and was killed. "
-                    f"Try a fresh spawn (`spawn_agent_sub_task`) instead, "
-                    f"or hand off via `new_manager`."
+                    f"The resumed agent {kind} on subprocess call (after "
+                    f"the orchestrator's built-in retries). Try a fresh "
+                    f"spawn (`spawn_agent_sub_task`) instead, or hand off "
+                    f"via `new_manager`."
                 )
                 save_data(state.data_path, data)
                 persist_time()
@@ -2536,16 +2559,18 @@ def solve_current_row() -> None:
                     worker_prompt,
                     label=f"t{turn:03d}_worker_{action}",
                 )
-            except WorkerTimeoutError as e:
-                print(f"[orchestrator] worker `{action}` timed out: {e}",
+            except (WorkerTimeoutError, RuntimeError) as e:
+                kind = ("timed out"
+                        if isinstance(e, WorkerTimeoutError) else "errored")
+                print(f"[orchestrator] worker `{action}` {kind}: {e}",
                       flush=True)
                 state.history.append(TurnRecord(
-                    turn, action, body, f"WORKER TIMED OUT: {e}"))
+                    turn, action, body, f"WORKER {kind.upper()}: {e}"))
                 extra_note = (
-                    f"The dispatched worker for action `{action}` hit the "
-                    f"per-call timeout ({PER_CALL_TIMEOUT_SECONDS//60} min) "
-                    f"and was killed. Files this worker was editing may be "
-                    f"left in a partial / inconsistent state. Decide how to "
+                    f"The dispatched worker for action `{action}` {kind} "
+                    f"on subprocess call (after the orchestrator's built-in "
+                    f"retries). Files this worker was editing may be left "
+                    f"in a partial / inconsistent state. Decide how to "
                     f"proceed: re-dispatch `{action}` (same input), pick a "
                     f"different action, hand off to a fresh manager via "
                     f"`new_manager`, or dispatch a cleanup worker to "
