@@ -1899,7 +1899,7 @@
           "last_used": "2026-05-28T10:11:10+00:00"
         }
       ],
-      "time_needed_to_solve": 35915
+      "time_needed_to_solve": 35936
     },
     {
       "def_or_claim": "claim",
@@ -1907,37 +1907,48 @@
       "section": "3.3",
       "title": "AcyclicNonCollidersBlockable",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-28",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicISigmaSeparationSimplification.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/AcyclicISigmaSeparationSimplification.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If a CDMG $G$ is acyclic then all non-colliders are blockable.\n    So, the partial condition for $i\\sigma$-separation\n    ``a blockable non-collider in $C$''\n    can be simplified to ``(any) non-collider in $C$''.\n    \n    So in the acyclic case we can simplify the notion of $i\\sigma$-separation, \n    which we will refer to as \\emph{$id$-separation}.\n    However, in the non-acyclic setting $id$-separation (``(any) non-collider in $C$'') and $i\\sigma$-separation (``a blockable non-collider in $C$'') are clearly not equivalent.\n\n    It turned out that in the non-acyclic case $i\\sigma$-separation is the more general concept (and as said above it also captures the acyclic case equivalently well), see \\cite{FM17,FM18,FM20,BFPM21}.\n    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.\n    Later, we will pick up $i\\sigma$-separation again when we deal with cycles.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "3cf1518d-90f2-4394-acfd-c803b8dbf4eb",
+          "first_seen": "2026-05-28T11:07:13+00:00",
+          "last_used": "2026-05-28T11:07:13+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3345
     },
     {
       "def_or_claim": "def",

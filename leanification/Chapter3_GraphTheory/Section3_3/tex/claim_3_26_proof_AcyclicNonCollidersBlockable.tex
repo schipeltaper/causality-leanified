@@ -41,7 +41,45 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+The LN block contains two mathematical assertions plus a discussion paragraph: the first sentence is \refrow{claim_3_20}, already proven; the genuinely novel content is the second sentence, the simplification of the ``blockable non-collider in $C$'' clause to ``(any) non-collider in $C$''. We prove this simplification layered through the three definitions involved -- the walk-position predicate \refrow{def_3_16}, the per-walk $\sigma$-blocking predicate \refrow{def_3_17}, and $i\sigma$-separation \refrow{def_3_18} -- and close with an acknowledgment of the LN's discussion paragraph.
+
+\smallskip
+\noindent\textit{Step 0: the two predicates agree at every walk-position.}\;
+By \refrow{def_3_16}, ``$v_k$ is a blockable non-collider on $\pi$'' is defined as ``$v_k$ is a non-collider on $\pi$ \emph{and} $v_k$ is not an unblockable non-collider on $\pi$''. In particular, ``blockable non-collider'' implies ``non-collider'' by taking the first conjunct, and this direction holds in every CDMG with no acyclicity hypothesis. Conversely, by \refrow{claim_3_20}, if $G$ is acyclic then for every walk $\pi$ in $G$ and every position $v_k$ on $\pi$, ``$v_k$ is a non-collider on $\pi$'' implies ``$v_k$ is a blockable non-collider on $\pi$''. Combining the two directions, on an acyclic CDMG the predicates ``$v_k$ is a blockable non-collider on $\pi$'' and ``$v_k$ is a non-collider on $\pi$'' are extensionally equivalent at every walk-position.
+
+\smallskip
+\noindent\textit{Step 1: walk-level simplification.}\;
+Fix a walk $\pi$ in the acyclic CDMG $G$ and a set $C \ins J \cup V$. Conjoining the per-position equivalence of step~0 with the position-only predicate ``$v_k \in C$'' (which is independent of the blockable/non-blockable refinement) and then existentially quantifying over the position index $k$ yields
+\[
+  \big( \exists k,\ v_k \text{ is a blockable non-collider on } \pi \text{ and } v_k \in C \big)
+  \;\iff\;
+  \big( \exists k,\ v_k \text{ is a non-collider on } \pi \text{ and } v_k \in C \big).
+\]
+This is the LN's simplification at the walk-existential level.
+
+\smallskip
+\noindent\textit{Step 2: $\sigma$-blocked-level simplification.}\;
+By \refrow{def_3_17} (clause~(2)), $\pi$ is $C$-$\sigma$-blocked iff
+\[
+  \big( \exists k,\ v_k \text{ is a collider on } \pi \text{ and } v_k \notin \Anc^G(C) \big)
+  \quad\text{or}\quad
+  \big( \exists k,\ v_k \text{ is a blockable non-collider on } \pi \text{ and } v_k \in C \big).
+\]
+The collider disjunct is unaffected by the simplification; substituting the walk-level equivalence of step~1 into the second (non-collider) disjunct gives the LN's \emph{simplified} form of $\sigma$-blocking,
+\[
+  \big( \exists k,\ v_k \text{ is a collider on } \pi \text{ and } v_k \notin \Anc^G(C) \big)
+  \quad\text{or}\quad
+  \big( \exists k,\ v_k \text{ is a non-collider on } \pi \text{ and } v_k \in C \big),
+\]
+i.e.\ the LN's second sentence read at the per-walk predicate level.
+
+\smallskip
+\noindent\textit{Step 3: $i\sigma$-separation lift.}\;
+By \refrow{def_3_18} (clause~(1)), $A \isPerp_G B \given C$ unfolds to ``for every $v \in A$, every $w \in J \cup B$, and every walk $\pi$ from $v$ to $w$ in $G$, $\pi$ is $C$-$\sigma$-blocked''. Applying step~2 pointwise inside this universal -- replacing the body ``$\pi$ is $C$-$\sigma$-blocked'' with its simplified disjunction on each walk $\pi$ separately -- yields the equivalent simplified surface: $A \isPerp_G B \given C$ iff every walk from a node in $A$ to a node in $J \cup B$ contains either a collider outside $\Anc^G(C)$ or a (any) non-collider in $C$. This is the LN's promised simplification of $i\sigma$-separation in the acyclic case.
+
+\smallskip
+\noindent\textit{Discussion paragraph (informal acknowledgment).}\;
+The LN's continuation names the simplified surface obtained in step~3 \emph{$id$-separation}; this naming is formalised separately as a definition in subsection~3.4, with the simplified blocking condition baked directly into the definition rather than gated by an acyclicity hypothesis. The LN's accompanying observations -- that $id$- and $i\sigma$-separation diverge in the non-acyclic setting, that $i\sigma$-separation is the more general concept, and the references listed in the remark above -- motivate that subsection's framing but do not require a separate formal claim in the present row, whose content stops at the acyclic-case simplification just proved.
 \end{proof}
 
 \end{document}
