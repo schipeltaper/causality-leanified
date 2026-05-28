@@ -71,7 +71,8 @@ ACTIONS = [
     "reorder",               # propose `<refs> should be solved before this row` (auto-applies on verify)
     "reset",
     "request_from_human",    # rare last resort -- gated by repeat-attempt threshold
-    "mistake",
+    "mistake",       # switch from prove-the-claim to disprove-the-claim mode
+    "unmistake",     # flip back: reconsider, the claim might be provable after all
     "no_action",
 ]
 

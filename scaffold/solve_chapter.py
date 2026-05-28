@@ -366,24 +366,43 @@ def _render_template(name: str, **values: str) -> str:
 def _file_basename(row: dict, kind_suffix: str | None = None) -> str:
     """Build the subfile filename for a row.
 
-    - For a def row: ``<ref>_<title>.tex``                  (kind_suffix=None)
-    - For a claim row: ``<ref>_<statement|proof>_<title>.tex``
+    - For a def row:    ``<ref>_<title>.tex``                  (kind_suffix=None)
+    - For a claim row, ``kind_suffix`` is one of:
+        - ``"statement"`` : ``<ref>_statement_<title>.tex``
+        - ``"proof"``     : ``<ref>_proof_<title>.tex`` (prove the claim)
+        - ``"disproof"``  : ``<ref>_disproof_<title>.tex`` (prove the negation;
+          only created/used when the manager switches to disprove mode via
+          the `mistake` action)
     """
     ref = row["ref"]
     title = row.get("title") or "Untitled"
     if row["def_or_claim"] == "def":
         return f"{ref}_{title}.tex"
-    assert kind_suffix in ("statement", "proof"), \
-        "claim rows need kind_suffix 'statement' or 'proof'"
+    assert kind_suffix in ("statement", "proof", "disproof"), \
+        "claim rows need kind_suffix 'statement' / 'proof' / 'disproof'"
     return f"{ref}_{kind_suffix}_{title}.tex"
 
 
+def disprove_lean_filename(row: dict) -> str:
+    """Conventional Lean filename for a claim row's disprove-direction
+    work: ``<Title>Disproof.lean`` -- a sibling of the prove file
+    (``<Title>.lean``) inside the subsection folder. The two coexist on
+    disk so the manager can toggle between `mistake` and `unmistake`
+    without overwriting either side's progress.
+    """
+    title = row.get("title") or "Untitled"
+    return f"{title}Disproof.lean"
+
+
 def _row_subfile_paths(row: dict, subsection_folder: Path) -> list[Path]:
-    """Every subfile path a row contributes to (1 for a def, 2 for a claim).
+    """Every subfile path a row contributes to (1 for a def, 2 for a
+    claim). The disprove-side tex (`_disproof_`) is intentionally *not*
+    included here -- it's created lazily on the first `mistake` action,
+    not at row stub creation, because most rows never enter disprove
+    mode.
 
     All per-row tex files live under ``<subsection_folder>/tex/`` so the
-    subsection folder itself stays tidy (only ``main.tex`` + Lean files +
-    workspace markdown end up there).
+    subsection folder itself stays tidy.
     """
     tex_dir = subsection_folder / "tex"
     if row["def_or_claim"] == "def":
@@ -471,28 +490,136 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
     return paths
 
 
+def ensure_disprove_stubs(row: dict, subsection_folder: Path) -> None:
+    """Create the disprove-side tex stub for a claim row, lazily on the
+    first ``mistake`` action. Mirrors ``ensure_row_subfiles`` but only
+    creates ``tex/<ref>_disproof_<title>.tex`` (uses the same
+    ``claim_proof.tex.template``; the body slot starts as a
+    ``% TODO: write a proof of NOT-<claim>`` placeholder, with the
+    NEGATED statement restated above the proof env).
+
+    Idempotent: if the disprove tex already exists, nothing happens.
+    The disprove-side Lean file (``<Title>Disproof.lean``) is *not*
+    created here -- the leanification worker writes it on first need,
+    keeping the orchestrator out of the business of fabricating empty
+    Lean stubs.
+    """
+    if row.get("def_or_claim") != "claim":
+        return
+    tex_dir = subsection_folder / "tex"
+    tex_dir.mkdir(parents=True, exist_ok=True)
+    out = tex_dir / _file_basename(row, "disproof")
+    if out.exists():
+        return
+    # Restate the (positive) claim above the disprove proof so the file
+    # renders self-contained; the proof body is left as a TODO that the
+    # disprove-side worker fills in with a proof of NOT-claim.
+    body_from_block = _strip_mark_wrapper(row.get("tex_block", "")).strip()
+    body_from_block = _rewrite_env_to_type(body_from_block, row.get("type", ""))
+    body_from_block = _inject_title_into_bare_env(
+        body_from_block, row.get("title", ""))
+    ref = row["ref"]
+    ref_text = ref.replace("_", r"\_")
+    content = _render_template(
+        "claim_proof",
+        REF=ref,
+        REF_TEXT=ref_text,
+        TITLE=row.get("title", ""),
+        STATEMENT_BODY=body_from_block,
+        BODY=("% TODO: write a proof of the NEGATION of the above "
+              "statement.\n% Disprove-mode: the manager judged the claim "
+              "false and is constructing a counter-example or proof of "
+              "\\lnot<claim>."),
+    )
+    out.write_text(content, encoding="utf-8")
+    print(f"[orchestrator] created disprove-side tex stub: {out.name}",
+          flush=True)
+
+
 def cleanup_row_artefacts(row: dict, subsection_folder: Path) -> None:
     """Remove transient artefacts once a row is marked solved.
 
-    Anything that was only useful for *getting to* solved gets dropped:
-
+    Always:
     - ``workspace_<ref>.md`` -- the manager's scratchpad. Anything worth
       keeping should have been moved into Lean comments by the workers.
-    - ``agent_registry`` -- the list of past Claude session ids the manager
-      used during the active solving phase. With the row done, those
-      sessions are no longer something anyone needs to resume.
+    - ``agent_registry`` -- cleared; past sessions are no longer needed.
 
-    Tex stubs, Lean files, ``actions_tracking`` (kept as project-level
-    analytics) and the formal status fields (``formalized``/``proven``/
-    ``solved``/``lean_files``/``date_solved``) all stay.
+    Claim-specific cleanup (only when both prove- and disprove-side
+    files might exist):
+    - ``proven=proven``: delete the disprove-side tex
+      (``<ref>_disproof_<title>.tex``) and the disprove-side Lean
+      (``<Title>Disproof.lean``) if present. Remove the disprove Lean
+      file from ``row['lean_files']``.
+    - ``proven=disproven``: delete the prove-side tex
+      (``<ref>_proof_<title>.tex``) and the prove-side Lean (the
+      original ``<Title>.lean``). Rewrite ``row['main_lean_file']`` to
+      the disprove Lean if applicable, and drop the prove Lean from
+      ``row['lean_files']``. The statement tex (``_statement_``) stays
+      either way -- it represents the LN-side statement of the row and
+      is mode-agnostic.
 
     The caller must ``save_data()`` after this to persist the cleared
-    ``agent_registry``.
+    ``agent_registry`` and the (possibly rewritten) Lean file pointers.
     """
     wp = workspace_path_for_row(row, subsection_folder)
     if wp.exists():
         wp.unlink()
     row["agent_registry"] = []
+
+    if row.get("def_or_claim") != "claim":
+        return
+    verdict = row.get("proven")
+    if verdict not in ("proven", "disproven"):
+        return
+
+    tex_dir = subsection_folder / "tex"
+    prove_tex   = tex_dir / _file_basename(row, "proof")
+    disprove_tex = tex_dir / _file_basename(row, "disproof")
+    title = row.get("title") or "Untitled"
+    disprove_lean_path = subsection_folder / disprove_lean_filename(row)
+    prove_lean_path = subsection_folder / f"{title}.lean"
+
+    # Repo-relative form used by data.json's lean_files list.
+    def _rel(p: Path) -> str:
+        try:
+            return str(p.relative_to(REPO_ROOT))
+        except ValueError:
+            return str(p)
+
+    def _drop_path(paths: list, dead: str) -> list:
+        return [p for p in paths if p != dead]
+
+    if verdict == "proven":
+        for p in (disprove_tex, disprove_lean_path):
+            if p.exists():
+                p.unlink()
+                print(f"[orchestrator] cleanup: deleted {p.name} "
+                      f"(verdict=proven; disprove side irrelevant)",
+                      flush=True)
+        dead = _rel(disprove_lean_path)
+        if row.get("lean_files"):
+            row["lean_files"] = _drop_path(row["lean_files"], dead)
+        if row.get("main_lean_file") == dead:
+            # Defensive: main_lean_file should never be the disprove
+            # file when verdict=proven, but if some worker mis-pointed
+            # it, repoint to whatever survives in lean_files.
+            row["main_lean_file"] = (row.get("lean_files") or [""])[0]
+
+    elif verdict == "disproven":
+        for p in (prove_tex, prove_lean_path):
+            if p.exists():
+                p.unlink()
+                print(f"[orchestrator] cleanup: deleted {p.name} "
+                      f"(verdict=disproven; prove side irrelevant)",
+                      flush=True)
+        dead = _rel(prove_lean_path)
+        if row.get("lean_files"):
+            row["lean_files"] = _drop_path(row["lean_files"], dead)
+        # Point main_lean_file at the surviving disprove Lean if it was
+        # the prove file (the verifier reports whichever it confirmed;
+        # repoint defensively in case it didn't).
+        if row.get("main_lean_file") == dead:
+            row["main_lean_file"] = _rel(disprove_lean_path)
 
 
 def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> None:
@@ -2287,9 +2414,17 @@ def solve_current_row() -> None:
                 main_lean_file = main_match.group(1).strip() if main_match else None
 
                 kind = state.row["def_or_claim"]
-                proven = "disproven" if any(
-                    h.action == "mistake" for h in state.history
-                ) else "proven"
+                # Scan history backward: the LAST mistake/unmistake action
+                # determines the verdict. Lets the manager freely toggle
+                # between prove and disprove modes during the row run.
+                proven = "proven"
+                for h in reversed(state.history):
+                    if h.action == "mistake":
+                        proven = "disproven"
+                        break
+                    if h.action == "unmistake":
+                        proven = "proven"
+                        break
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
                 regenerate_chapter_aggregator(state.data_path, data)
@@ -2392,23 +2527,56 @@ def solve_current_row() -> None:
             return
 
         elif action == "mistake":
-            # `mistake` is a state signal: the manager has concluded the
-            # claim is genuinely false and is switching to the disprove
-            # flow. No worker dispatch; the signal lives in state.history
-            # so that `mark_solved` later sees it and writes
-            # proven="disproven". The manager now proceeds with the SAME
-            # workflow as proving, just on the negation.
+            # State signal: the manager has concluded the claim is
+            # genuinely false and is switching to the disprove flow. No
+            # worker dispatch; the signal lives in state.history so that
+            # `mark_solved` later sees it (via current_verdict_mode) and
+            # writes proven="disproven".
+            #
+            # Disprove-mode work goes to *parallel* files so toggling
+            # back via `unmistake` doesn't lose prove-direction progress:
+            #   - tex:  tex/claim_<ref>_disproof_<title>.tex
+            #   - lean: Section<N>_<M>/<Title>Disproof.lean
+            # Stubs are created lazily on first switch.
+            ensure_disprove_stubs(state.row, ensure_subsection_folder(
+                state.data_path.parent, state.row.get("section", "")))
             state.history.append(TurnRecord(turn, action, body,
                                             "(disprove flow engaged)"))
+            disprove_tex = _file_basename(state.row, "disproof")
+            disprove_lean = f"{state.row.get('title') or 'Untitled'}Disproof.lean"
             extra_note = (
-                "`mistake` recorded -- you're now in disprove mode. "
-                "Proceed with the EXACT SAME workflow as proving a claim, "
-                "but on the NEGATION: spawn `write_tex_proof.md` to write a "
-                "tex proof of NOT-claim, run `verify_tex_proof`, then "
-                "spawn `prove_claim_in_lean.md` to leanify the negation, "
-                "then `simplify_proof`, then `solved`. The orchestrator "
-                "will set `proven=\"disproven\"` automatically when the "
-                "row is marked solved."
+                f"`mistake` recorded -- you're now in DISPROVE mode. "
+                f"Proceed with the EXACT SAME workflow as proving, but on "
+                f"the NEGATION. Workers should target the *disprove-side* "
+                f"files (created for you):\n"
+                f"  - tex: tex/{disprove_tex}\n"
+                f"  - lean: {disprove_lean}\n"
+                f"Prove-direction files are preserved and you can return to "
+                f"them later via the `unmistake` action without losing work. "
+                f"On `solved`, the row's verdict will be set to \"disproven\"."
+            )
+
+        elif action == "unmistake":
+            # State signal: the manager has reconsidered -- the claim may
+            # be provable after all. Flip back to prove mode. The
+            # disprove-side files (tex + Lean) stay on disk so a future
+            # `mistake` can pick them back up. Prove-direction files are
+            # also intact (workers never touched them while in disprove
+            # mode). `mark_solved` will read the LAST mistake/unmistake
+            # in history -- this `unmistake` -- and write proven="proven".
+            state.history.append(TurnRecord(turn, action, body,
+                                            "(prove flow re-engaged)"))
+            prove_tex = _file_basename(state.row, "proof")
+            main_lean = state.row.get("main_lean_file") or "(see lean_files)"
+            extra_note = (
+                f"`unmistake` recorded -- you're back in PROVE mode. The "
+                f"prove-direction files are exactly where the previous "
+                f"prove-direction work left them:\n"
+                f"  - tex: tex/{prove_tex}\n"
+                f"  - lean: {main_lean}\n"
+                f"The disprove-side files remain on disk too -- you can "
+                f"flip back via `mistake` without losing that work either. "
+                f"On `solved`, the row's verdict will be set to \"proven\"."
             )
 
         elif action == "reset":
