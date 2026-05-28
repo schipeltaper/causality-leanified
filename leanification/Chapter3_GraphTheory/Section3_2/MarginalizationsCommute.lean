@@ -68,15 +68,39 @@ namespace CDMG
 
 variable {α : Type*}
 
-/-! ## Private helpers for `marginalize_marginalize`
+/-! ## Helpers for `marginalize_marginalize` (mixed private / public)
 
 These helpers package the recurring component-wise pattern of the proof
 (`mk_eq_of_data` for CDMG-extensionality) and the interior-tracking
 walk-translation idiom (bifurcation arms expand / contract through
 `W₁` using the directed translators of `MarginalizationPreserves`).
-All are `private`; they exist only to break the main proof into
-readable chunks. The `marg_*` and walk translator helpers in
-`MarginalizationPreserves.lean` are reused directly. -/
+The `marg_*` and walk translator helpers in
+`MarginalizationPreserves.lean` are reused directly.
+
+**Visibility split.** The CDMG-extensionality / list-massaging glue
+(`mk_eq_of_data`, `list_tail_dropLast`, `start_in_support_dropLast`,
+`support_append_dropLast`, `support_tail_in_V_of_isDirected`) stays
+`private` -- those are one-shot tools for this file's main proof.
+The seven *interior-tracking walk translators*
+(`lift_directed_walk`, `shrink_directed_walk`,
+`directed_walk_iff`, `directed_walk_iff_no_length`,
+`lift_bifurcation_walk`, `shrink_bifurcation_walk`,
+`bifurcation_walk_iff_no_length`) are **public**: they form the
+walk-translation API between `G` and `G.marginalize W` that
+`Section3_3/SigmaOpenWalkMarginalization.lean` (the per-vertex
+lift / contract layer used by claim_3_25) needs. The seven were
+originally `private` -- they existed only to support the
+`marginalize_marginalize` proof below -- but the
+σ-open walk preservation argument needed in
+`lem:stability_separation_marginalization` (claim_3_25) requires
+exactly this `(G, G.marginalize W)` interior-tracking layer, with no
+clean route through any other existing public API. Manager sign-off
+for the cross-subsection promotion is recorded in
+`Section3_3/workspace_claim_3_25.md` Manager B turn 4 (and §D.2 of
+the leanification diagnostic). Public exposure is API-only: nothing
+about the proofs changes, signatures stay identical, and no
+downstream caller in `Section3_2/` depends on the visibility (the
+sole consumer here is `marginalize_marginalize`, in the same file). -/
 
 /-- CDMG-extensionality helper: two CDMGs are equal as soon as their
 four data fields `J / V / E / L` agree. The six prop fields close by
@@ -118,7 +142,7 @@ same length. Each step of the input expands (via `mem_marginalize_E`)
 to a length-≥-1 directed walk in `G` whose interior lies in `W₁`;
 the meeting vertices between consecutive expansions are interior
 vertices of the input, hence lie in `W₂`. -/
-private lemma lift_directed_walk (G : CDMG α) (W₁ W₂ : Set α) :
+lemma lift_directed_walk (G : CDMG α) (W₁ W₂ : Set α) :
     ∀ {a b : α} (π : Walk (G.marginalize W₁) a b),
       π.IsDirected → π.InteriorIn W₂ →
       ∃ ρ : Walk G a b, ρ.IsDirected ∧ ρ.InteriorIn (W₁ ∪ W₂) ∧
@@ -275,7 +299,7 @@ and `π.length ≤ σ.length`, which together with the length-pos
 preservation are needed by claim_3_17's E-component proof to derive
 `π.InteriorIn W₂` from `σ.InteriorIn (W₁ ∪ W₂)` and to obtain
 `1 ≤ π.length`. -/
-private lemma shrink_directed_walk (G : CDMG α) (W₁ : Set α) :
+lemma shrink_directed_walk (G : CDMG α) (W₁ : Set α) :
     ∀ (n : ℕ) {a b : α} (σ : Walk G a b), σ.length ≤ n →
       σ.IsDirected →
       a ∈ G.J ∪ (G.V \ W₁) → b ∉ W₁ →
@@ -476,7 +500,7 @@ walk in `G` with interior in `W₁ ∪ W₂`. Both directions go through
 the lift / shrink helpers above; the `InteriorIn W₂` extraction in
 the shrink direction combines the strict-interior tracking with the
 fact that vertices in `(G.marginalize W₁)` walks avoid `W₁`. -/
-private lemma directed_walk_iff (G : CDMG α) (W₁ W₂ : Set α)
+lemma directed_walk_iff (G : CDMG α) (W₁ W₂ : Set α)
     {a b : α} (ha : a ∈ G.J ∪ (G.V \ (W₁ ∪ W₂)))
     (hb : b ∈ G.V \ (W₁ ∪ W₂)) :
     (∃ π : Walk (G.marginalize W₁) a b,
@@ -516,7 +540,7 @@ private lemma directed_walk_iff (G : CDMG α) (W₁ W₂ : Set α)
 (no length constraint). Given distinct endpoints, the trivial walk
 is unavailable, so any witness has length ≥ 1; this reduces to
 `directed_walk_iff` modulo the `(... ∧ 1 ≤ length) ↔ (...)` reshuffle. -/
-private lemma directed_walk_iff_no_length (G : CDMG α) (W₁ W₂ : Set α)
+lemma directed_walk_iff_no_length (G : CDMG α) (W₁ W₂ : Set α)
     {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂))
     (hb : b ∈ G.V \ (W₁ ∪ W₂)) (hab : a ≠ b) :
     (∃ π : Walk (G.marginalize W₁) a b, π.IsDirected ∧ π.InteriorIn W₂)
@@ -583,7 +607,7 @@ are in `σ.support` but distinct from the endpoints `a, b` (by
 support tracking, `x ∈ π.support ∨ x ∈ W₁`. If `x ∈ W₁`, done. If
 `x ∈ π.support` and `x ≠ a, b`, then `x` is in `π`'s interior, hence
 in `W₂` (by `hint_π`). Either way `x ∈ W₁ ∪ W₂`. -/
-private lemma lift_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
+lemma lift_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
     (_hd : Disjoint W₁ W₂)
     {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
     (π : Walk (G.marginalize W₁) a b)
@@ -683,7 +707,7 @@ W-avoidance); derive `π.InteriorIn W₂` via: for any interior vertex
 (support tracking) → `x ∈ σ.support.tail.dropLast` (set-wise
 position analysis) → `x ∈ W₁ ∪ W₂` (by `hint_σ`); combined with
 `x ∉ W₁` (W-avoidance tracking) gives `x ∈ W₂`. -/
-private lemma shrink_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
+lemma shrink_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
     (_hd : Disjoint W₁ W₂)
     {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
     (σ : Walk G a b)
@@ -781,7 +805,7 @@ and disjointness of `W₁, W₂`, the existence of a bifurcation in
 `G.marginalize W₁` with interior in `W₂` (in either walk direction)
 is equivalent to the existence of a bifurcation in `G` with interior
 in `W₁ ∪ W₂` (in either walk direction). -/
-private lemma bifurcation_walk_iff_no_length (G : CDMG α)
+lemma bifurcation_walk_iff_no_length (G : CDMG α)
     (W₁ W₂ : Set α) (hd : Disjoint W₁ W₂) {a b : α}
     (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
     (hab : a ≠ b) :

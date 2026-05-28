@@ -25,7 +25,7 @@ High-level flow
    - ``reset``: discard all history and start a fresh manager from scratch.
    - ``help`` / ``no_action``: stop and let the human take over.
 
-5. Loop until the row is solved, the human is needed, or the 8-hour budget is
+5. Loop until the row is solved, the human is needed, or the 20-hour budget is
    used up.
 
 The manager itself does no file I/O -- it is a pure reasoner. Workers do the
@@ -70,7 +70,7 @@ CLAUDE_EFFORT = "max"
 HUMAN_REQUEST_THRESHOLD = 3
 
 # Total wall-clock budget. The loop stops once this is exhausted.
-MAX_RUNTIME_SECONDS = 8 * 60 * 60          # 8 hours
+MAX_RUNTIME_SECONDS = 20 * 60 * 60         # 20 hours
 
 # Per-subprocess timeout. A single agent should not run longer than this.
 PER_CALL_TIMEOUT_SECONDS = 2 * 60 * 60         # 2 hours
@@ -2043,7 +2043,7 @@ def summarise(text: str, n: int = 800) -> str:
 def solve_current_row() -> None:
     """Drive the first unsolved row of the current chapter to ``solved``.
 
-    Stops on any of: row reaches a terminal state, 8-hour budget exhausted,
+    Stops on any of: row reaches a terminal state, 20-hour budget exhausted,
     or MAX_TURNS reached. The data.json is saved after every meaningful state
     change so an interrupted run leaves a recoverable trail.
 
@@ -2160,11 +2160,11 @@ def solve_current_row() -> None:
       for turn in range(1, MAX_TURNS + 1):
         # --- Budget check --------------------------------------------------
         if state.elapsed_seconds > MAX_RUNTIME_SECONDS:
-            print(f"[orchestrator] 8-hour budget exhausted after {turn-1} "
+            print(f"[orchestrator] 20-hour budget exhausted after {turn-1} "
                   f"turns; stopping.", flush=True)
             append_unsolved_run_summary(
                 state,
-                reason=f"8-hour budget exhausted after {turn-1} turns",
+                reason=f"20-hour budget exhausted after {turn-1} turns",
             )
             return
 

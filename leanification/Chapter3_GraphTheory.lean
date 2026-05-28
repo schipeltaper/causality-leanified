@@ -53,3 +53,4 @@ import Chapter3_GraphTheory.Section3_3.LabelRomanHelpers
 import Chapter3_GraphTheory.Section3_3.WalkPrefixSuffix
 import Chapter3_GraphTheory.Section3_3.SigmaOpenPathWalk
 import Chapter3_GraphTheory.Section3_3.SigmaSeparationEquivalences
+import Chapter3_GraphTheory.Section3_3.ISigmaSeparationMarginalization
