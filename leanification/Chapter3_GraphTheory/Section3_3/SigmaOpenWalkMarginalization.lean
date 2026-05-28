@@ -14,26 +14,29 @@ import Chapter3_GraphTheory.Section3_3.LabelRomanHelpers
 /-!
 # σ-open-walk marginalization layer for claim_3_25
 
-This file is the **σ-open-walk marginalization layer** sitting
-between `Section3_3/SigmaSeparationEquivalences.lean` and
-`Section3_3/ISigmaSeparationMarginalization.lean` (the row-level
-file for claim_3_25). It exposes the single-vertex (`D = {u}`)
-walk-translation primitives that the row-level
-`isISigmaSeparated_marginalize_iff` proof will compose:
+This file exposes the single-vertex (`D = {u}`) walk-translation
+primitive that is the **true** direction of the LN's lemma
+`lem:stability_separation_marginalization`:
 
-1. **`lift_sigmaOpen_walk_through_single_vertex`** -- the (⇒)
-   direction. Every $C$-σ-open walk in `G.marginalize {u}` whose
-   colliders all lie in `C` lifts to a $C$-σ-open walk in `G`
-   with colliders still in `C`. Mirrors the LN's proof.tex
-   lines 41 -- 105.
+**`lift_sigmaOpen_walk_through_single_vertex`** — the (⇒)
+direction. Every $C$-σ-open walk in `G.marginalize {u}` whose
+colliders all lie in `C` lifts to a $C$-σ-open walk in `G`
+with colliders still in `C`. Mirrors the LN's proof.tex
+lines 41 -- 105.
 
-2. **`contract_sigmaOpen_walk_at_single_vertex`** -- the (⇐)
-   direction (stubbed, see Sub-task 3). Every $C$-σ-open walk
-   in `G` contracts to a $C$-σ-open walk in `G.marginalize {u}`.
-
-3. **`isISigmaSeparated_marginalize_singleton_iff`** -- the
-   single-vertex iff (stubbed, see Sub-task 4). Wraps the two
-   directions into a predicate-level equivalence.
+The (⇐) **contract** direction is **false** under the Lean
+encoding of `CDMG.marginalize` (see
+`ISigmaSeparationMarginalization.lean`'s
+`isISigmaSeparated_marginalize_iff_disproved`); the counter-example
+exhibits a $C$-σ-open walk in `G` that does not contract to a
+$C$-σ-open walk in `G.marginalize {u}` because the LN's
+rerouting through a fork bifurcation is unavailable when the
+`disjoint_EL` constraint forces the fork's pair out of
+`L^{∖u}`. Accordingly, the previously-scaffolded
+`contract_sigmaOpen_walk_at_single_vertex` and
+`isISigmaSeparated_marginalize_singleton_iff` (the singleton iff
+that would compose both directions) have been removed from this
+file.
 
 ## Provenance and dependencies
 
@@ -44,9 +47,7 @@ in $G$", with four enumerated lift patterns for bifurcation
 edges and the directed-walk-with-interior-in-$\{u\}$ pattern
 for directed edges.
 
-Sub-task 1 (the leanification diagnostic at
-`Section3_3/workspace_claim_3_25.md` §D.1 -- D.2) already
-completed the upstream API additions and visibility promotions:
+The upstream API additions and visibility promotions used here:
 
 * `MarginalizationsCommute.lean` -- public access to
   `lift_directed_walk` (line 145), `shrink_directed_walk`
@@ -54,7 +55,7 @@ completed the upstream API additions and visibility promotions:
   `directed_walk_iff_no_length` (543), `lift_bifurcation_walk`
   (610), `shrink_bifurcation_walk` (710),
   `bifurcation_walk_iff_no_length` (808).
-* `MarginalizationPreserves.lean` -- new set-level helpers
+* `MarginalizationPreserves.lean` -- set-level helpers
   `marginalize_desc_iff` (3986), `marginalize_Sc_iff` (4040),
   `marginalize_AncSet_subset` (4093),
   `marginalize_AncSet_eq_on_complement` (4142).
@@ -94,25 +95,6 @@ Mirrors `Section3_3/SigmaBlockedWalks.lean`:
   case-splitting on the head step's constructor (forward /
   backward / bidir) and unfolding `mem_marginalize_E` /
   `mem_marginalize_L` to extract the lift segment.
-
-## Sub-task ownership
-
-* **Sub-task 2 (this file)**: owns the **lift direction only**.
-  The lift theorem is fully proven; the two follow-up
-  declarations carry `by sorry` bodies with explicit
-  `TODO(Sub-task N): ...` decorations citing the row-level
-  workspace at `Section3_3/workspace_claim_3_25.md`.
-* **Sub-task 3**: owns the contract direction. The LN's
-  "longer runs through self-loops are handled analogously"
-  hand-wave (proof.tex lines 129 -- 130, Blocker B in the
-  diagnostic §B.2) is expected to bite there; the worker
-  should escalate via `expand_proof` on the LN's
-  `\Claude{...}` if it does.
-* **Sub-task 4**: owns the singleton iff. The proof should
-  be ~2 -- 5 lines, combining the two directions above with
-  `isISigmaSeparated_TFAE` / `isNotISigmaSeparated_TFAE` to
-  bridge between "no σ-open walk" and the `IsISigmaSeparated`
-  predicate.
 -/
 
 namespace Causality
@@ -2160,9 +2142,7 @@ private lemma lift_aux {G : CDMG α} {u : α} (huV : u ∈ G.V)
 --   `D = {u}`, restricted to the `C`-conjunct). The `huA` /
 --   `huB` halves are not needed for the lift: the lift
 --   constructs walks between arbitrary endpoints `v, w`, not
---   between `A` and `B`-endpoints; the `A` / `B`-side enters
---   only at the wrapper level (sub-task 4's
---   `isISigmaSeparated_marginalize_singleton_iff`).
+--   between `A` and `B`-endpoints.
 --
 -- * **`huV : u ∈ G.V` precondition.** Mirrors the LN's "$u \in
 --   V$" (where the lemma takes "$u \in V \sm (A \cup B \cup C)$").
@@ -2181,9 +2161,7 @@ private lemma lift_aux {G : CDMG α} {u : α} (huV : u ∈ G.V)
 --   specific witness from each `mem_marginalize_E` /
 --   `mem_marginalize_L` existential, and the additional
 --   noncomputability would clutter downstream consumers (who
---   only need the existence). The single-vertex iff
---   (sub-task 4) likewise consumes the existential, not a
---   specific function.
+--   only need the existence).
 --
 -- * **Conclusion's "colliders in `C`" conjunct.** The LN's
 --   stronger property "all colliders in `C`" (not just "in
@@ -2191,11 +2169,10 @@ private lemma lift_aux {G : CDMG α} {u : α} (huV : u ∈ G.V)
 --   argument as the σ-open clause 1: a collider in `ρ` was a
 --   collider in `π'` (step 2), and `π'`'s `hCol'` puts it in
 --   `C`. We carry the conjunct through the conclusion so that
---   the single-vertex iff (sub-task 4) and the row-level
---   wrapper can both consume it via
---   `((G.sigmaOpens_TFAE C v w).out 0 2).mpr` to bridge
---   between the "walk with colliders in `C`" surface and the
---   "σ-open path" surface of `isNotISigmaSeparated_TFAE`.
+--   downstream callers can consume it via
+--   `((G.sigmaOpens_TFAE C v w).out 0 2).mpr` to bridge between
+--   the "walk with colliders in `C`" surface and the "σ-open
+--   path" surface of `isNotISigmaSeparated_TFAE`.
 
 /-- LN proof.tex:41 -- 105 (the (⇒) lift direction, single-vertex
 case): every $C$-σ-open walk in `G.marginalize {u}` whose colliders
@@ -2204,10 +2181,9 @@ directed-edge lift table, to a $C$-σ-open walk in `G` with
 colliders still in `C`.
 
 This is the **single-vertex specialization** of the (⇒) direction
-of `isISigmaSeparated_marginalize_iff`'s contrapositive. Composing
-with the (⇐) direction (`contract_sigmaOpen_walk_at_single_vertex`,
-sub-task 3) and using `isISigmaSeparated_TFAE` /
-`isNotISigmaSeparated_TFAE` bridges to the row-level wrapper. -/
+of the LN's lemma; the (⇐) direction is **false** under the Lean
+encoding (see `ISigmaSeparationMarginalization.lean`'s
+`isISigmaSeparated_marginalize_iff_disproved`). -/
 theorem lift_sigmaOpen_walk_through_single_vertex
     (G : CDMG α) {u : α} (huV : u ∈ G.V) (C : Set α) (huC : u ∉ C)
     {v w : α} (hvu : v ≠ u) (hwu : w ≠ u)
@@ -2252,190 +2228,18 @@ theorem lift_sigmaOpen_walk_through_single_vertex
 -- (`workspace_claim_3_25.md`, Manager B turn 8 + earlier diagnostic
 -- entries) for future reference.
 
-/-! ### Private helpers for the (⇐) contract direction (Sub-task 3) -/
+/-! ### The (⇐) contract direction and full iff: DELETED (false)
 
--- claim_3_25 helper (Sub-task 3)
--- title: split walk into "u-run prefix" + "non-u suffix"
---
--- Given a walk `p : Walk G u b` with `b ≠ u`, extract the maximal prefix
--- of `p` that goes through `u`-only vertices (its `support.dropLast` lies
--- in `{u}`) and ends at the first non-`u` vertex `m` encountered. The
--- length of the prefix is ≥ 1.
---
--- ## Design choice
---
--- * Structural recursion on `p`. At each step, case on the target `w` of
---   the head: if `w = u`, recurse on the tail (extending the buffer); if
---   `w ≠ u`, the first non-`u` vertex is `w` and the prefix is the head
---   step alone.
-private lemma split_until_next_non_u {G : CDMG α} {u : α} :
-    ∀ (n : ℕ), ∀ {b : α} (p : Walk G u b), p.length ≤ n → b ≠ u →
-      ∃ (m : α) (τ : Walk G u m) (ρ : Walk G m b),
-        m ≠ u ∧ p = τ.append ρ ∧ 1 ≤ τ.length ∧
-        (∀ x ∈ τ.support.dropLast, x = u) := by
-  intro n
-  induction n with
-  | zero =>
-    intro b p hlen hb
-    cases p with
-    | nil _ => exact absurd rfl hb
-    | @cons _ _ _ _ _ => rw [Walk.length_cons] at hlen; omega
-  | succ k ih =>
-    intro b p hlen hb
-    cases p with
-    | nil _ => exact absurd rfl hb
-    | @cons _ w _ step p' =>
-      have hp'_len : p'.length ≤ k := by rw [Walk.length_cons] at hlen; omega
-      by_cases hw : w = u
-      · subst hw
-        obtain ⟨m, τ', ρ, hm_ne, hp'_eq, hτ'_pos, hτ'_supp⟩ := ih p' hp'_len hb
-        refine ⟨m, Walk.cons step τ', ρ, hm_ne, ?_, ?_, ?_⟩
-        · rw [Walk.cons_append, hp'_eq]
-        · simp [Walk.length_cons]
-        · intro x hx
-          rw [Walk.support_cons, List.dropLast_cons_of_ne_nil τ'.marg_support_ne_nil] at hx
-          rcases List.mem_cons.mp hx with rfl | hxr
-          · rfl
-          · exact hτ'_supp x hxr
-      · refine ⟨w, Walk.cons step (Walk.nil w), p', hw, ?_, ?_, ?_⟩
-        · rw [Walk.cons_append, Walk.nil_append]
-        · simp [Walk.length_cons]
-        · intro x hx
-          rw [Walk.support_cons, Walk.support_nil] at hx
-          simp at hx
-          exact hx
+The LN's `lem:stability_separation_marginalization` is **false**
+under the Lean encoding of `CDMG.marginalize`. See
+`ISigmaSeparationMarginalization.lean` for the disproof
+(`isISigmaSeparated_marginalize_iff_disproved`).
 
--- claim_3_25 helper (Sub-task 3)
--- title: single-edge step in G between non-u vertices lifts to a marg step
---
--- Given a single edge `(v, m) ∈ G.E` with `v, m ≠ u`, the directed
--- walk `cons (forward h) nil` has empty interior ⊆ {u}, so
--- `(v, m) ∈ (G.marginalize {u}).E` via `mem_marginalize_E`.
-private lemma single_forward_to_marg_E {G : CDMG α} {u v m : α}
-    (h : v ⟶[G] m) (hvu : v ≠ u) (hmu : m ≠ u) :
-    (v, m) ∈ (G.marginalize {u}).E := by
-  rw [CDMG.mem_marginalize_E]
-  have hm_V : m ∈ G.V := (Set.mem_prod.mp (G.E_subset h)).2
-  have hv_in_JV : v ∈ G.J ∪ G.V := (Set.mem_prod.mp (G.E_subset h)).1
-  refine ⟨?_, ⟨hm_V, ?_⟩, Walk.cons (WalkStep.forward h) (Walk.nil m), ?_, ?_, ?_⟩
-  · rcases hv_in_JV with hJ | hV
-    · exact Or.inl hJ
-    · refine Or.inr ⟨hV, ?_⟩
-      intro h_eq
-      exact hvu (Set.mem_singleton_iff.mp h_eq)
-  · intro h_eq
-    exact hmu (Set.mem_singleton_iff.mp h_eq)
-  · simp
-  · intro x hx
-    rw [Walk.support_cons, Walk.support_nil] at hx
-    simp at hx
-  · simp [Walk.length_cons]
-
-/-! ### The (⇐) direction: σ-open walks contract at a single vertex (stub) -/
-
--- claim_3_25 (Sub-task 3 deliverable, stubbed here)
--- title: SigmaOpenWalkMarginalization -- single-vertex contract of σ-open walks
---
--- This is the (⇐) direction of `isISigmaSeparated_marginalize_iff`
--- specialized to `D = {u}`: a σ-open walk in `G` whose endpoints
--- are not `u` contracts, by collapsing each maximal run of `u`'s
--- into a single edge in `G.marginalize {u}`, to a σ-open walk in
--- the marginalized graph. The proof body is left as a `sorry`
--- because this is the LN's harder direction and is the explicit
--- scope of sub-task 3, not sub-task 2. The LN's "longer runs
--- through self-loop traversals of `u` are handled analogously"
--- hand-wave (proof.tex lines 129 -- 130, Blocker B in the
--- diagnostic §B.2) is expected to bite during the contract
--- proof; the sub-task 3 worker should escalate via `expand_proof`
--- on the LN's `\Claude{...}` if necessary.
-
-/-- LN proof.tex:106 -- 190 (the (⇐) contract direction, single-vertex
-case). Every $C$-σ-open walk in `G` whose colliders all lie in `C`
-contracts, by collapsing each maximal run of `u`'s into a single
-edge, to a $C$-σ-open walk in `G.marginalize {u}` with colliders
-still in `C`. The preconditions `u ∉ A`, `u ∉ B`, `u ∉ C` mirror
-the LN's `D ∩ (A ∪ B ∪ C) = ∅` clause specialized to `D = {u}`.
-
-TODO(Sub-task 3): discharge `sorry`. The proof is the LN's
-contraction case-table (proof.tex lines 131 -- 138) plus the
-unblockable-non-collider rerouting through a fresh hinge vertex
-(proof.tex lines 159 -- 189). Blocker B
-(`workspace_claim_3_25.md` §B.2 -- the self-loop hand-wave at
-proof.tex lines 129 -- 130) is expected to bite; escalate via
-`expand_proof` on the LN's `\Claude{...}` if it does. The
-infrastructure of `shrink_directed_walk` (`MarginalizationsCommute.lean`
-line 302), `shrink_bifurcation_walk` (line 710), and the
-σ-open / collider preservation lemmas in
-`Section3_3/SigmaBlockedReversal.lean` cover the structural
-case-analysis; the σ-openness verification at boundary positions
-mirrors the lift theorem above but in the dual direction.
-
-The `A`, `B` parameters are carried in the signature (rather than
-collapsed into the single `C`-conjunct that the lift theorem
-uses) because the sub-task-3 / sub-task-4 wrapper level wants to
-state the precondition exactly as the LN does
-(`D ∩ (A ∪ B ∪ C) = ∅`, with `D = {u}`). The body will likely
-only consume `huC : u ∉ C` and `hvu : v ≠ u` /
-`hwu : w ≠ u`; the sub-task 3 worker may simplify the binder
-shape if `huA` / `huB` turn out to be unused. -/
-theorem contract_sigmaOpen_walk_at_single_vertex
-    (G : CDMG α) {u : α} (huV : u ∈ G.V) (A B C : Set α)
-    (huA : u ∉ A) (huB : u ∉ B) (huC : u ∉ C)
-    {v w : α} (hvu : v ≠ u) (hwu : w ≠ u)
-    (π : Walk G v w)
-    (hOpen : π.IsSigmaOpen C)
-    (hCol : ∀ k, π.IsColliderAt k → π.nodeAt k ∈ C) :
-    ∃ π' : Walk (G.marginalize {u}) v w, π'.IsSigmaOpen C ∧
-      (∀ k, π'.IsColliderAt k → π'.nodeAt k ∈ C) := by
-  -- TODO(Sub-task 3): see the docstring above. The contract
-  -- direction is the explicit scope of sub-task 3, not sub-task 2.
-  sorry
-
-/-! ### Combined single-vertex iff (stub) -/
-
--- claim_3_25 (Sub-task 4 deliverable, stubbed here)
--- title: SigmaOpenWalkMarginalization -- single-vertex iff
---
--- The `D = {u}` specialization of `isISigmaSeparated_marginalize_iff`:
--- `G.IsISigmaSeparated A B C ↔ (G.marginalize {u}).IsISigmaSeparated A B C`
--- whenever `u ∈ G.V` and `u ∉ A ∪ B ∪ C`. The proof body is left as
--- a `sorry` because it depends on both lift and contract directions
--- being proven (sub-task 2 + sub-task 3); sub-task 4 will combine
--- them via `isISigmaSeparated_TFAE` / `isNotISigmaSeparated_TFAE`.
-
-/-- LN proof.tex:34 -- 40 (the single-vertex iff): the `D = {u}`
-specialization of `isISigmaSeparated_marginalize_iff`. Together
-with the LN's `marginalize_marginalize`-driven induction on
-`#D` (proof.tex line 38 -- 39), this discharges the outer
-reduction in the row-level wrapper.
-
-TODO(Sub-task 4): discharge `sorry`. Should be a ~2 -- 5 line
-proof:
-```
-constructor
-· -- (⇒) direction: contrapose, use `isNotISigmaSeparated_TFAE`
-  -- to extract a $C$-σ-open walk-with-colliders-in-`C` from
-  -- `¬ G.IsISigmaSeparated A B C`, then apply
-  -- `contract_sigmaOpen_walk_at_single_vertex`.
-· -- (⇐) direction: contrapose, extract a witness from
-  -- `¬ (G.marginalize {u}).IsISigmaSeparated A B C` via the same
-  -- TFAE, then apply `lift_sigmaOpen_walk_through_single_vertex`.
-```
-The endpoints `v ∈ A`, `w ∈ G.J ∪ B` of the extracted walk satisfy
-`v ≠ u` (since `u ∉ A`) and `w ≠ u` (since `u ∉ B` and
-`u ∉ G.J` -- the latter follows from `u ∈ G.V` and
-`G.disjoint_JV`), discharging the `hvu` / `hwu` preconditions of
-the two single-vertex helpers. -/
-theorem isISigmaSeparated_marginalize_singleton_iff
-    (G : CDMG α) {u : α} (huV : u ∈ G.V) (A B C : Set α)
-    (huA : u ∉ A) (huB : u ∉ B) (huC : u ∉ C) :
-    G.IsISigmaSeparated A B C ↔
-      (G.marginalize {u}).IsISigmaSeparated A B C := by
-  -- TODO(Sub-task 4): see the docstring above. Should be a short
-  -- proof combining `lift_sigmaOpen_walk_through_single_vertex`,
-  -- `contract_sigmaOpen_walk_at_single_vertex`, and
-  -- `isNotISigmaSeparated_TFAE`.
-  sorry
+This file previously contained two stubs for the contract
+direction and the singleton-`D` iff. Both are inhabitants of the
+false direction and have been removed. The `lift_*` theorem above
+remains, since it is the **true** direction of the equivalence
+(σ-open walks in `marg` lift to σ-open walks in `G`). -/
 
 end CDMG
 
