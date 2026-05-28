@@ -1956,26 +1956,28 @@
       "section": "3.4",
       "title": "DBlockedWalks",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-05-28",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_4/DBlockedWalks.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_4/DBlockedWalks.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1985,8 +1987,16 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$d$-blocked walks]\\label{def:d-blocking}\n      Let $G=(J,V,E,L)$ be a CDMG and $C \\ins J \\cup V$ a subset of nodes and $\\pi$ a walk in $G$:\n      \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n      \\begin{enumerate}\n          \\item\n              We say that the walk $\\pi$ is \\emph{$C$-$d$-blocked} or \\emph{$d$-blocked by $C$} to emphasize the use of the bidirected edges\\footnote{The ``d'' here stands for ``directional''. d-separation was first only used for DAGs (without bidirected edges).  For ADMGs it was then called ``m-separation'' in \\cite{Ric03}. But since the notion of m-separation is arguably the natural extension of d-separation and to avoid introducing more definitions, we will just call it d-separation as well, which will not create any ambiguity.}\n              if either:\n      \\begin{enumerate}[label=\\roman*.)]\n          \\item $v_0 \\in C$ or $v_n \\in C$ or:\n          \\item there are two adjacent edges in $\\pi$ of one of the following forms:\n              \\[\\begin{array}{rccl}\n           \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1} & \\text{ with } & v_k \\in C,\\\\\n           \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1} & \\text{ with } & v_k \\in C,\\\\\n           \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1} & \\text{ with } & v_k \\in C,\\\\\n           \\text{ collider: } & v_{k-1} \\suh v_k \\hus v_{k+1} & \\text{ with } & v_k \\notin \\Anc^G(C).\n              \\end{array}\\]\n      \\end{enumerate}\n          \\item We say that the walk $\\pi$ is \\emph{$C$-$d$-open} if it is not $C$-$d$-blocked.\n      \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "62aa17cd-ec9b-473c-9892-fbbabac211d8",
+          "first_seen": "2026-05-28T13:45:04+00:00",
+          "last_used": "2026-05-28T13:45:04+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2481
     },
     {
       "def_or_claim": "claim",

@@ -56,3 +56,4 @@ import Chapter3_GraphTheory.Section3_3.SigmaSeparationEquivalences
 import Chapter3_GraphTheory.Section3_3.ISigmaSeparationMarginalization
 import Chapter3_GraphTheory.Section3_3.SigmaOpenWalkMarginalization
 import Chapter3_GraphTheory.Section3_3.AcyclicISigmaSeparationSimplification
+import Chapter3_GraphTheory.Section3_4.DBlockedWalks
