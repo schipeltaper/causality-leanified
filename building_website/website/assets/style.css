@@ -680,6 +680,49 @@ ol.roman-paren > li.no-marker::before { content: ""; }
   font-style: italic;
 }
 
+/* LaTeX `\paragraph` / `\subparagraph` rendered as inline lead-in
+   strong text on a new line. */
+.tex-paragraph,
+.tex-subparagraph {
+  font-weight: 700;
+  color: var(--accent);
+}
+.tex-subparagraph { color: var(--fg); font-weight: 600; }
+
+/* `\begin{quote}` */
+.proof-page-body blockquote,
+.pane-body blockquote,
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent-soft);
+  margin: 1rem 0;
+  padding: 0.3rem 1rem;
+  color: var(--fg);
+  font-style: italic;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* `\begin{description}` */
+.proof-page-body dl,
+.pane-body dl,
+.markdown-body dl { margin: 0.6rem 0; }
+.proof-page-body dt,
+.pane-body dt,
+.markdown-body dt { font-weight: 600; margin-top: 0.5rem; }
+.proof-page-body dd,
+.pane-body dd,
+.markdown-body dd { margin: 0 0 0.4rem 1.5rem; }
+
+/* `\begin{verbatim}` */
+pre.verbatim {
+  background: var(--bg-lean);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  overflow-x: auto;
+}
+
 /* Toggle button (Lean explanation / Design choices) — looks like the other
    .btn instances, but with an "active" state when the panel is open. */
 .btn-toggle {
