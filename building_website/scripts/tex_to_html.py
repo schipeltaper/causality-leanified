@@ -223,6 +223,29 @@ def inline_convert(tex: str) -> str:
     protected = re.sub(r"\\emph\{([^{}]*)\}",   r"<em>\1</em>", protected)
     protected = re.sub(r"\\textit\{([^{}]*)\}", r"<em>\1</em>", protected)
     protected = re.sub(r"\\textbf\{([^{}]*)\}", r"<strong>\1</strong>", protected)
+    # `\texttt{X}` → inline <code>; the inner text often has escaped
+    # underscores `\_` which read better as literal `_` in monospace.
+    protected = re.sub(
+        r"\\texttt\{([^{}]*)\}",
+        lambda m: f"<code>{m.group(1).replace(chr(92)+'_', '_')}</code>",
+        protected,
+    )
+    # `\paragraph{X}` / `\subparagraph{X}` are LaTeX's inline-heading
+    # commands (rendered bold-lead-in-on-its-own-line). Render as a
+    # bold run on a new line.
+    protected = re.sub(
+        r"\\paragraph\{([^{}]*)\}",
+        r'<br><strong class="tex-paragraph">\1</strong> ',
+        protected,
+    )
+    protected = re.sub(
+        r"\\subparagraph\{([^{}]*)\}",
+        r'<br><strong class="tex-subparagraph">\1</strong> ',
+        protected,
+    )
+    # `\footnote{X}` — drop. Footnotes work poorly on the web layout
+    # and the proof body is the primary content.
+    protected = re.sub(r"\\footnote\{[^{}]*\}", "", protected)
     # `\Claude{…}` — blue annotation macro from the LN preamble, used in
     # some proof files. Render as a styled inline note.
     protected = re.sub(
@@ -237,7 +260,7 @@ def inline_convert(tex: str) -> str:
     # Prose-level spacing / layout commands carry no meaning on the web —
     # drop them so they don't render as literal backslash text.
     protected = re.sub(
-        r"\\(noindent|medskip|smallskip|bigskip|par|newpage|clearpage)\b",
+        r"\\(noindent|medskip|smallskip|bigskip|par|newpage|clearpage|centering|raggedright|raggedleft|null)\b",
         "", protected,
     )
     # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
@@ -256,6 +279,43 @@ def inline_convert(tex: str) -> str:
     return re.sub(r"\x00MATH(\d+)\x00", restore, protected)
 
 
+def _convert_math_envs(tex: str) -> str:
+    """Convert LaTeX math environments to a KaTeX-compatible form by
+    wrapping them in `\\[ … \\]` display-math delimiters. The body env
+    is rewritten to KaTeX's `aligned` / `gathered` variants where
+    needed (`align*` / `equation*` etc. are TeX-only)."""
+    def repl(m: re.Match) -> str:
+        env = m.group(1)
+        body = m.group(2)
+        if env in ("align", "align*"):
+            return f"\\[\\begin{{aligned}}{body}\\end{{aligned}}\\]"
+        if env in ("gather", "gather*", "eqnarray", "eqnarray*"):
+            return f"\\[\\begin{{gathered}}{body}\\end{{gathered}}\\]"
+        # equation / equation*  → plain display math
+        return f"\\[{body}\\]"
+    return re.sub(
+        r"\\begin\{(align\*?|equation\*?|eqnarray\*?|gather\*?)\}(.*?)\\end\{\1\}",
+        repl, tex, flags=re.DOTALL,
+    )
+
+
+def _convert_description(body: str) -> str:
+    """`\\begin{description}\\item[term] body \\item[term] body\\end{description}`
+    → an HTML <dl> list."""
+    parts = re.split(r"(?=\\item\b)", body)
+    parts = [p for p in parts if p.strip()]
+    out: list[str] = []
+    for p in parts:
+        m = re.match(r"\\item\s*\[(.*?)\]\s*(.*)", p, re.DOTALL)
+        if not m:
+            continue
+        out.append(
+            f"<dt>{inline_convert(m.group(1))}</dt>"
+            f"<dd>{inline_convert(m.group(2).strip())}</dd>"
+        )
+    return f"<dl>{''.join(out)}</dl>"
+
+
 def _convert_block_envs(tex: str) -> str:
     """Convert enumerate/itemize/proof environments to HTML, with proper
     depth-aware matching so nested `\\begin{enumerate}…\\end{enumerate}`
@@ -268,7 +328,7 @@ def _convert_block_envs(tex: str) -> str:
     pos = 0
     resume_count = 0
 
-    begin_re = re.compile(r"\\begin\{(enumerate|itemize|proof)\}(\[[^\]]*\])?")
+    begin_re = re.compile(r"\\begin\{(enumerate|itemize|proof|quote|description|verbatim)\}(\[[^\]]*\])?")
     while True:
         m = begin_re.search(tex, pos)
         if not m:
@@ -302,6 +362,19 @@ def _convert_block_envs(tex: str) -> str:
             out.append(
                 f'\n\n<div class="tex-proof"><span class="proof-label">Proof.</span>{inner}</div>\n\n'
             )
+            resume_count = 0
+        elif env == "quote":
+            inner = tex_body_to_html(body)
+            out.append(f"\n\n<blockquote>{inner}</blockquote>\n\n")
+            resume_count = 0
+        elif env == "description":
+            out.append(f"\n\n{_convert_description(body)}\n\n")
+            resume_count = 0
+        elif env == "verbatim":
+            # Verbatim content is shown as-is in a <pre>; the body might
+            # contain `<` or `&` that must be escaped first.
+            esc = body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            out.append(f"\n\n<pre class=\"verbatim\">{esc}</pre>\n\n")
             resume_count = 0
         pos = end[1]
     return "".join(out)
@@ -369,7 +442,11 @@ def _convert_theorem_envs(tex: str) -> str:
 def tex_body_to_html(tex_body: str) -> str:
     """Public: convert a TeX body (no subfiles/wrapper) to HTML prose with math
     delimiters intact for KaTeX."""
-    s = _convert_theorem_envs(tex_body)
+    # Wrap math envs (`align*`/`equation*`/…) in `\[ … \]` first so the
+    # rest of the pipeline treats them like any other display math
+    # rather than as prose text containing literal `\begin{align*}`.
+    s = _convert_math_envs(tex_body)
+    s = _convert_theorem_envs(s)
     s = _convert_block_envs(s)
     s = inline_convert(s)
     s = _paragraphs(s)
