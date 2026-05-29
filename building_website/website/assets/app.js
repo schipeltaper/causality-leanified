@@ -70,10 +70,25 @@ const KATEX_MACROS = {
   "\\ske":  "\\mathrm{ske}",  "\\can":  "\\mathrm{can}",
   "\\aug":  "\\mathrm{aug}",  "\\acy":  "\\mathrm{acy}",
 
-  /* (conditional) independence */
-  "\\Indep":  "\\mathrel{\\perp\\!\\!\\!\\perp}",
-  "\\nIndep": "\\mathrel{\\not\\mkern-2mu\\perp\\!\\!\\!\\perp}",
-  "\\Perp":   "\\perp",
+  /* (conditional) independence — the full Perp / iPerp family */
+  "\\Indep":   "\\mathrel{\\perp\\!\\!\\!\\perp}",
+  "\\nIndep":  "\\mathrel{\\not\\mkern-2mu\\perp\\!\\!\\!\\perp}",
+  "\\Perp":    "\\perp",
+  "\\nPerp":   "\\not\\perp",
+  "\\dPerp":   "\\perp^{d}",
+  "\\iPerp":   "\\perp^{i}",
+  "\\mPerp":   "\\perp^{m}",
+  "\\sPerp":   "\\perp^{\\sigma}",
+  "\\isPerp":  "\\perp^{i\\sigma}",
+  "\\imPerp":  "\\perp^{im}",
+  "\\idPerp":  "\\perp^{id}",
+  "\\ndPerp":  "\\not\\perp^{d}",
+  "\\niPerp":  "\\not\\perp^{i}",
+  "\\nmPerp":  "\\not\\perp^{m}",
+  "\\nsPerp":  "\\not\\perp^{\\sigma}",
+  "\\nisPerp": "\\not\\perp^{i\\sigma}",
+  "\\nimPerp": "\\not\\perp^{im}",
+  "\\nidPerp": "\\not\\perp^{id}",
 
   /* CDMG / PAG edge relations — TIKZ arrows in the LN; approximated
      here. `t`/`h`/`s`/`o` = tail / arrowhead / star ("either") /
