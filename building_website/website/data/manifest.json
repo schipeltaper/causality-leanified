@@ -253,7 +253,7 @@
               "kind": "def",
               "label": "def 3.15 — CollidersAndNon",
               "title": "CollidersAndNon",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_16",
