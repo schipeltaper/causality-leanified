@@ -32,7 +32,40 @@ Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+We expand the LN's two-clause sketch into a proof in three steps: (i)~unfold $\sPerp_G$ via \refrow{def_3_18}~clause~(4); (ii)~discharge the $J$-summand on the target side using $J = \emptyset$; (iii)~close the resulting equivalence using walk reversal, with the per-walk reversal-invariance of $\sigma$-blocking isolated as a sub-lemma.
+
+\smallskip
+\noindent\emph{Step 1 (unfold $\sPerp_G$).}
+By \refrow{def_3_18}~clause~(4), $\sPerp_G$ is the LN's rename of $\isPerp_G$ for the case $J = \emptyset$: $A \sPerp_G B \given C \iff A \isPerp_G B \given C$ and $B \sPerp_G A \given C \iff B \isPerp_G A \given C$. It therefore suffices to prove $A \isPerp_G B \given C \iff B \isPerp_G A \given C$ under the hypothesis $J = \emptyset$.
+
+\smallskip
+\noindent\emph{Step 2 (discharge $J$).}
+Unfolding $\isPerp_G$ via \refrow{def_3_18}~clause~(1) and using $J = \emptyset$, so $J \cup B = B$ and $J \cup A = A$, the two sides become:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item $A \isPerp_G B \given C$ says \emph{every walk $\pi$ from a node in $A$ to a node in $B$ is $C$-$\sigma$-blocked};
+  \item $B \isPerp_G A \given C$ says \emph{every walk $\pi$ from a node in $B$ to a node in $A$ is $C$-$\sigma$-blocked}.
+\end{itemize}
+Every walk $\pi = \lp v_0 \sus \cdots \sus v_n \rp$ in $G$ has a \emph{reverse} $\pi^{-1} := \lp v_n \sus \cdots \sus v_0 \rp$ (the same vertices in reverse order, each incident edge of $G$ traversed in the opposite direction); the map $\pi \mapsto \pi^{-1}$ is an involution, and restricts to a bijection between walks $A \to B$ and walks $B \to A$. The two universals therefore coincide once we know $C$-$\sigma$-blocking is preserved under this involution, which is the content of the following sub-lemma.
+
+\smallskip
+\noindent\textbf{Lemma (\textit{$\sigma$-blocking is walk-reversal-invariant}).}\;
+\textit{Let $G$ be a CDMG, $C \ins J \cup V$, and $\pi$ a walk in $G$. Then $\pi$ is $C$-$\sigma$-blocked iff $\pi^{-1}$ is $C$-$\sigma$-blocked.}
+
+\smallskip
+\noindent\textit{Proof of the lemma.}
+Write $\pi = \lp v_0 \sus \cdots \sus v_n \rp$ and $\pi^{-1} = \lp v_n \sus \cdots \sus v_0 \rp$. Position $k$ on $\pi$ and position $n-k$ on $\pi^{-1}$ refer to the same underlying vertex $v_k$, and the involution $k \leftrightarrow n-k$ is a bijection between positions on $\pi$ and positions on $\pi^{-1}$. We show that all three position-level predicates of \refrow{def_3_15} and \refrow{def_3_16} -- ``\emph{collider}'', ``\emph{blockable non-collider}'', ``\emph{unblockable non-collider}'' -- transport along this involution. Since $\Anc^G(C)$ depends only on $G$ and $C$ (not on any walk), the two existential clauses of \refrow{def_3_17}~clause~(2) -- ``\emph{exists a collider $v_k$ on $\pi$ with $v_k \notin \Anc^G(C)$}'' or ``\emph{exists a blockable non-collider $v_k$ on $\pi$ with $v_k \in C$}'' -- are then transported point-wise via $k \leftrightarrow n-k$, and their disjunction (which by \refrow{def_3_17}~clause~(2) is the definition of $C$-$\sigma$-blocked) is preserved.
+
+The two edges of $G$ incident to $v_k$ on the walk are physically the \emph{same edges} on $\pi$ and on $\pi^{-1}$; reversal only swaps which is called the ``left'' edge (between $v_{k-1}$ and $v_k$) and which the ``right'' edge (between $v_k$ and $v_{k+1}$) of position $k$, so that the left edge at $k$ on $\pi$ becomes the right edge at $n-k$ on $\pi^{-1}$, and vice versa. The status of each endpoint of each such edge -- \emph{arrowhead}, \emph{tail}, or \emph{bidirected tip} -- is a property of the edge in $G$ (recorded by the directed-edge set $E$ or the bidirected-edge set $L$), independent of the walk's direction of traversal. The local triple $(v_{k-1}, v_k, v_{k+1})$ on $\pi$ therefore becomes $(v_{k+1}, v_k, v_{k-1})$ at position $n-k$ on $\pi^{-1}$: the neighbours swap, but $v_k$ and the two incident edges' endpoint statuses are preserved. Consequently:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item the collider pattern $v_{k-1} \suh v_k \hus v_{k+1}$ (\refrow{def_3_15}~clause~(2): two arrowheads at $v_k$) becomes $v_{k+1} \suh v_k \hus v_{k-1}$ at position $n-k$ on $\pi^{-1}$, which is still the collider pattern; so ``collider at $k$ on $\pi$'' $\iff$ ``collider at $n-k$ on $\pi^{-1}$'';
+  \item the three interior non-collider sub-patterns of \refrow{def_3_15}~clause~(1) are exchanged under reversal as left chain $v_{k-1} \hut v_k \hus v_{k+1}$ $\leftrightarrow$ right chain $v_{k+1} \suh v_k \tuh v_{k-1}$ (each becomes the other with the two neighbours' roles swapped), and fork $v_{k-1} \hut v_k \tuh v_{k+1}$ $\leftrightarrow$ fork $v_{k+1} \hut v_k \tuh v_{k-1}$; the end-node sub-pattern $k \in \lC 0,n\rC$ on $\pi$ corresponds to $n-k \in \lC 0,n\rC$ on $\pi^{-1}$ (via $0 \leftrightarrow n$); so ``non-collider at $k$ on $\pi$'' $\iff$ ``non-collider at $n-k$ on $\pi^{-1}$'';
+  \item the unblockability condition of \refrow{def_3_16} -- $k \notin \lC 0,n\rC$ \emph{and} every outgoing arrow $v_k \tuh v_{k\pm1}$ on the walk lands in $\Sc^G(v_k)$ -- is preserved: the endpoint condition transports as in the previous bullet, the set of outgoing arrows from $v_k$ on the walk is intrinsic to the two incident edges (the ``tail at $v_k$'' status of each endpoint is a property of the edge in $G$, not of the walk's direction), and $\Sc^G(v_k)$ depends on $G$ and $v_k$ alone. So ``unblockable non-collider at $k$ on $\pi$'' $\iff$ ``unblockable non-collider at $n-k$ on $\pi^{-1}$'', with the three sub-pattern sides exchanged exactly as in the non-collider bullet.
+\end{itemize}
+By the ``otherwise'' clause of \refrow{def_3_16}, ``blockable non-collider on $\pi$ at $k$'' is ``non-collider on $\pi$ at $k$ and not unblockable non-collider on $\pi$ at $k$''; combining the second and third bullets, this predicate too transports under $k \leftrightarrow n-k$. This establishes the three position-level invariances, and the lemma follows.\hfill$\square$
+
+\smallskip
+\noindent\emph{Step 3 (close the iff).}
+Suppose $A \isPerp_G B \given C$, and let $\pi$ be any walk from a node $b \in B$ to a node $a \in A$. Then $\pi^{-1}$ is a walk from $a \in A$ to $b \in B$, hence $C$-$\sigma$-blocked by hypothesis, hence (by the lemma applied to $\pi^{-1}$, noting $(\pi^{-1})^{-1} = \pi$) $\pi$ is itself $C$-$\sigma$-blocked. This gives $B \isPerp_G A \given C$. The converse implication is identical with the roles of $A$ and $B$ exchanged. Combining with Step~1, $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, as claimed.
 \end{proof}
 
 \end{document}

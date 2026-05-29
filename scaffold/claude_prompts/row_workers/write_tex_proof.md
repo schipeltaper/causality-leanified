@@ -1,6 +1,13 @@
 # Worker — write a TeX proof in the row's stub file
 
-**When to use:** the manager has a claim whose Lean statement is already formalized (a `theorem` exists, body is `sorry`) and an empty proof-template subfile already exists at the row's `claim_<N>_<M>_proof_<title>.tex` path. Your job is to fill that file with a self-contained TeX proof.
+**When to use:** the manager has a claim whose Lean statement is already formalized (a `theorem` exists, body is `sorry`) and an empty proof-template subfile already exists. Your job is to fill that file with a self-contained TeX proof.
+
+**Which file**: the manager will tell you the target path. There are two cases:
+
+- **Prove mode** (default): target is `tex/claim_<N>_<M>_proof_<title>.tex`. The proof must establish the claim as stated.
+- **Disprove mode** (the manager has emitted `mistake` for this row): target is `tex/claim_<N>_<M>_disproof_<title>.tex`. The proof must establish the **NEGATION** of the claim — typically via a concrete counter-example.
+
+In both cases the target file already has the framing (`\documentclass[main]{subfiles}`, the rowref block, the statement restated, a `\begin{proof}...\end{proof}` shell). You only fill the proof body.
 
 A separate worker (`verify_tex_proof`) checks completeness; only then does a different manager translate the proof into Lean tactics. **Do not write any Lean.**
 

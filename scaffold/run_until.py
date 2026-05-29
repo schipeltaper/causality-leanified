@@ -79,13 +79,18 @@ def main(argv: list[str]) -> int:
             print(f"[run_until] solve_current_row raised: {e}", flush=True)
             return 1
 
-        # No-progress safety: if the row we just tried to solve is still
-        # unsolved, stop -- the next invocation can retry, and we don't
-        # want to busy-loop on a stuck row.
+        # No-progress safety: stop if the *same* row is still the chapter's
+        # first unsolved. Comparing by `ref` so a `reorder` action that
+        # bumps this row to a later position still counts as progress.
         data_after = load_data(data_path)
-        if data_after["rows"][idx].get("solved") != "yes":
-            print(f"[run_until] no progress on {first_unsolved['ref']}; "
-                  f"stopping cleanly so a future invocation can pick it up.",
+        try:
+            idx_after = first_unsolved_row_index(data_after)
+        except RuntimeError:
+            continue
+        new_first_ref = data_after["rows"][idx_after].get("ref")
+        if new_first_ref == first_unsolved.get("ref"):
+            print(f"[run_until] no progress on {first_unsolved['ref']} "
+                  f"(still first unsolved); stopping cleanly.",
                   flush=True)
             return 0
 

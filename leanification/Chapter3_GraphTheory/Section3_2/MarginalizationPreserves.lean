@@ -3942,6 +3942,226 @@ theorem marginalize_isTopologicalOrder (G : CDMG α) (W : Set α)
     obtain ⟨_, _, π, hπ_dir, _, hπ_pos⟩ := h_E
     exact Walk.marg_walk_lt_of_isTopologicalOrder hr π hπ_dir hπ_pos
 
+/-! ## Downstream support layer (claim_3_25 helpers)
+
+The four theorems below are *not* part of claim_3_16. They are
+mechanical set-level / dual wrappers built on top of
+`marginalize_anc_iff` (claim_3_16 part 1) and needed by claim_3_25
+(`Section3_3/ISigmaSeparationMarginalization.lean`, the
+`iσ`-separation under marginalization lemma). They live here because
+their natural home is the preservation file and they share the same
+shape and underlying machinery as claim_3_16; downstream consumers
+quote them alongside the four claim_3_16 parts above.
+
+Cross-subsection scope: this batch of helpers is added under manager
+sign-off (see `Section3_3/workspace_claim_3_25.md` Manager B turn 4
+and §D.1 of the leanification diagnostic). -/
+
+-- helper for claim_3_25 (Desc-dual of `marginalize_anc_iff`)
+-- title: MarginalizationPreserves -- descendants
+--
+-- The descendant analog of `marginalize_anc_iff`. The proof is a
+-- direct copy of the ancestor proof modulo swapping the walk
+-- direction (`Walk G v₂ v₁` instead of `Walk G v₁ v₂`) and the
+-- corresponding swap in the `exists_marg_directed_of_directed`
+-- argument order.
+--
+-- ## Design choice
+--
+-- * **Same precondition shape as `marginalize_anc_iff`** (`v_i ∉ W`,
+--   no `v_i ∈ G`): the LN does not state this theorem separately
+--   from `marginalize_anc_iff`'s item 1, but claim_3_25's
+--   contract direction needs `Desc` symmetry for the SCC equality
+--   `Sc = Anc ∩ Desc`. We match `marginalize_anc_iff`'s
+--   precondition shape exactly so the two lemmas can be paired in
+--   downstream code without bookkeeping differences.
+-- * **Naming `marginalize_desc_iff`**: parallels `marginalize_anc_iff`.
+
+/-- Marginalization preserves descendant relations on vertices outside
+`W`. For `v₁, v₂ ∉ W`, `v₁ ∈ Desc^G(v₂)` iff `v₁ ∈ Desc^{G^{\sm W}}(v₂)`.
+The `Desc` dual of `marginalize_anc_iff` (claim_3_16 part 1). Needed
+by claim_3_25's lift / contract proof to verify σ-open status at
+walks' interior vertices through the SCC characterization
+`Sc = Anc ∩ Desc`. -/
+theorem marginalize_desc_iff (G : CDMG α) (W : Set α) {v₁ v₂ : α}
+    (h₁ : v₁ ∉ W) (h₂ : v₂ ∉ W) :
+    v₁ ∈ G.Desc v₂ ↔ v₁ ∈ (G.marginalize W).Desc v₂ := by
+  rw [CDMG.mem_Desc, CDMG.mem_Desc]
+  have h_mem_iff : v₁ ∈ G ↔ v₁ ∈ G.marginalize W := by
+    rw [CDMG.mem_iff, CDMG.mem_iff, CDMG.marginalize_J, CDMG.marginalize_V]
+    constructor
+    · rintro (hJ | hV)
+      · exact Or.inl hJ
+      · exact Or.inr ⟨hV, h₁⟩
+    · rintro (hJ | ⟨hV, _⟩)
+      · exact Or.inl hJ
+      · exact Or.inr hV
+  refine ⟨fun ⟨h_in_G, π, hπ_dir⟩ => ⟨h_mem_iff.mp h_in_G, ?_⟩,
+          fun ⟨h_in_marg, π', hπ'_dir⟩ => ⟨h_mem_iff.mpr h_in_marg, ?_⟩⟩
+  · -- (→) direction: shrink Walk G v₂ v₁ to Walk (G.marginalize W) v₂ v₁.
+    obtain ⟨π', hπ'_dir, _, _, _⟩ :=
+      Walk.exists_marg_directed_of_directed W π hπ_dir h₂ h₁
+    exact ⟨π', hπ'_dir⟩
+  · -- (←) direction: expand the marginalize walk to a walk in G.
+    obtain ⟨ρ, hρ_dir, _, _, _, _⟩ :=
+      Walk.exists_directed_of_marg_directed W π' hπ'_dir
+    exact ⟨ρ, hρ_dir⟩
+
+-- helper for claim_3_25 (LN's `eq:sc_preserved`, set form)
+-- title: MarginalizationPreserves -- strongly connected components
+--
+-- `Sc G v = Anc G v ∩ Desc G v` (`Section3_1/FamilyReachability.lean`
+-- line 372). Combining `marginalize_anc_iff` and `marginalize_desc_iff`
+-- with the standard `∩`-distribution gives the set identity. The
+-- `\ W` on the RHS captures the LN's `Sc^{G^{\sm u}}(v) = Sc^G(v) \ {u}`
+-- (`claim_3_25_proof_ISigmaSeparation.tex` line 52 -- 54).
+--
+-- ## Design choice
+--
+-- * **Minimal precondition `v ∉ W`** (no `v ∈ G`): the proof never
+--   needs `v ∈ G`. When `v ∉ G` both sides are empty (`Sc v` is empty
+--   off `G`); when `v ∈ G ∧ v ∉ W` the equality follows from
+--   `marginalize_anc_iff` + `marginalize_desc_iff`. Matching
+--   `marginalize_anc_iff`'s shape (only `_ ∉ W`).
+-- * **`= G.Sc v \ W`** (not `= G.Sc v ∩ (G.J ∪ G.V \ W)`): a vertex
+--   `w` in `(G.marginalize W).Sc v` has a directed walk *into* `w`
+--   ending at `w` (the `Desc v` conjunct), so the last step of that
+--   walk forces `w ∈ G.V \ W` (or `w = v` and `v ∉ W` for the
+--   trivial walk). Either way `w ∉ W`, matching the LN's `\ W` form.
+
+/-- Marginalization preserves strongly connected components on
+vertices outside `W`. For `v ∉ W`, `Sc^{G^{\sm W}}(v) = Sc^G(v) \ W`.
+Direct consequence of `marginalize_anc_iff` + `marginalize_desc_iff`
+(plus the `Sc = Anc ∩ Desc` definitional unfolding). Needed by
+claim_3_25's contract-side σ-open verification: the LN's
+`Sc^{G^{\sm u}}(b_j) = Sc^G(b_j) \ {u}` (`eq:sc_preserved`,
+`claim_3_25_proof_ISigmaSeparation.tex` line 52) is exactly this
+lemma at the singleton level. -/
+theorem marginalize_Sc_iff (G : CDMG α) (W : Set α) {v : α}
+    (hvW : v ∉ W) :
+    (G.marginalize W).Sc v = G.Sc v \ W := by
+  ext w
+  simp only [CDMG.mem_Sc, Set.mem_diff]
+  constructor
+  · rintro ⟨hwAnc, hwDesc⟩
+    -- Extract w ∉ W from hwDesc's underlying walk.
+    have hwW : w ∉ W := by
+      rw [CDMG.mem_Desc] at hwDesc
+      obtain ⟨_, π, hπ_dir⟩ := hwDesc
+      by_cases h_pos : 1 ≤ π.length
+      · have hw_V := Walk.marg_end_in_V_of_isDirected_pos π hπ_dir h_pos
+        rw [CDMG.marginalize_V] at hw_V
+        exact hw_V.2
+      · -- π.length = 0, so π is nil and w = v.
+        push_neg at h_pos
+        cases π with
+        | nil _ => exact hvW
+        | cons _ _ =>
+          rw [Walk.length_cons] at h_pos
+          omega
+    refine ⟨⟨(marginalize_anc_iff G W hwW hvW).mpr hwAnc,
+             (marginalize_desc_iff G W hwW hvW).mpr hwDesc⟩, hwW⟩
+  · rintro ⟨⟨hwAnc, hwDesc⟩, hwW⟩
+    exact ⟨(marginalize_anc_iff G W hwW hvW).mp hwAnc,
+           (marginalize_desc_iff G W hwW hvW).mp hwDesc⟩
+
+-- helper for claim_3_25 (unconditional set-level subset for AncSet)
+-- title: MarginalizationPreserves -- AncSet subset
+--
+-- The unconditional subset half of the set-level `marginalize_anc_iff`:
+-- every ancestor in the marginalization is an ancestor in `G`. The
+-- walk-by-walk argument lifts a directed walk in `G.marginalize W` to
+-- a directed walk in `G` via `Walk.exists_directed_of_marg_directed`
+-- (no preconditions on the walk's endpoints or on `W`); the
+-- `w ∈ G.marginalize W ⇒ w ∈ G` clause uses `Walk.marg_mem_of_marg`.
+--
+-- ## Design choice
+--
+-- * **No preconditions.** This direction is "free": every
+--   `G.marginalize W` walk lifts to a `G` walk for any `W` and any
+--   `C`. The reverse inclusion needs more
+--   (see `marginalize_AncSet_eq_on_complement`).
+
+/-- The marginalized `AncSet` is always a subset of the original:
+`AncSet^{G^{\sm W}}(C) ⊆ AncSet^G(C)`. Every directed walk in
+`G.marginalize W` lifts to a directed walk in `G` (via
+`Walk.exists_directed_of_marg_directed`), and
+`w ∈ G.marginalize W ⇒ w ∈ G` (via `Walk.marg_mem_of_marg`). No
+hypotheses on `W` or `C`. Used in the collider-σ-open verification of
+claim_3_25 (`claim_3_25_proof_ISigmaSeparation.tex` line 88:
+"$b_j \in \Anc^{G^{\sm u}}(C) \subseteq \Anc^G(C)$"). -/
+theorem marginalize_AncSet_subset (G : CDMG α) (W : Set α) (C : Set α) :
+    (G.marginalize W).AncSet C ⊆ G.AncSet C := by
+  intro w hw
+  rw [CDMG.mem_AncSet] at hw ⊢
+  obtain ⟨v, hvC, hwAnc⟩ := hw
+  rw [CDMG.mem_Anc] at hwAnc
+  obtain ⟨hw_in_marg, π', hπ'_dir⟩ := hwAnc
+  obtain ⟨ρ, hρ_dir, _, _, _, _⟩ :=
+    Walk.exists_directed_of_marg_directed W π' hπ'_dir
+  refine ⟨v, hvC, ?_⟩
+  rw [CDMG.mem_Anc]
+  exact ⟨Walk.marg_mem_of_marg hw_in_marg, ρ, hρ_dir⟩
+
+-- helper for claim_3_25 (LN's `eq:anc_preserved`, set form)
+-- title: MarginalizationPreserves -- AncSet identity off W
+--
+-- The set-level identity `AncSet^{G^{\sm W}}(C) = AncSet^G(C) \ W`,
+-- under the LN's `D ⊆ V` and `D ∩ C = ∅` preconditions (encoded as
+-- `W ⊆ G.V` and `Disjoint C W`). Combines `marginalize_anc_iff`
+-- pointwise with the unconditional subset above.
+--
+-- ## Design choice
+--
+-- * **`W ⊆ G.V` precondition (additional to the diagnostic's
+--   signature).** Reconstructed from the LN: the source LN block of
+--   claim_3_25 (`graphs.tex` line 1414,
+--   `lem:stability_separation_marginalization`) carries `D ⊆ V`
+--   explicitly, and the LN's set-level rewrite at line 48 of the
+--   proof.tex,
+--     `\Anc^{G^{\sm u}}(C) = \Anc^G(C) \cap (J \cup V \sm \{u\})`,
+--   uses this precondition implicitly (the `{u} ⊆ V`-ness of the
+--   marginalization domain). Without it the equality fails — an
+--   `a ∈ G.J ∩ W` witnesses LHS-but-not-RHS (`a` can be a
+--   `G.marginalize W` ancestor of some `v ∈ C` via an edge whose
+--   underlying walk's interior lies in `W`, but `a ∈ W` excludes
+--   it from `\Anc^G(C) \setminus W`).
+-- * **`Disjoint C W`** matches the LN's `D ∩ (A ∪ B ∪ C) = ∅`
+--   half of the `lem:stability_separation_marginalization` preamble
+--   (relaxed here to just `Disjoint C W`, since `A, B` don't enter).
+
+/-- Set-level analog of `marginalize_anc_iff`: under `W ⊆ G.V` and
+`Disjoint C W`, `AncSet^{G^{\sm W}}(C) = AncSet^G(C) \ W`. The LN's
+`eq:anc_preserved` set form
+(`claim_3_25_proof_ISigmaSeparation.tex` line 48: "$\Anc^{G^{\sm u}}(C)
+= \Anc^G(C) \cap (J \cup V \sm \{u\})$"; combined with
+`Anc^G(C) ⊆ G = J ∪ V`, this is `Anc^G(C) \setminus W` when `W ⊆ V`).
+The two preconditions track the LN's `D ⊆ V` and
+`D ∩ (A ∪ B ∪ C) = ∅` preamble of
+`lem:stability_separation_marginalization` (with `D = W`). -/
+theorem marginalize_AncSet_eq_on_complement (G : CDMG α) (W : Set α) (C : Set α)
+    (hW : W ⊆ G.V) (hCW : Disjoint C W) :
+    (G.marginalize W).AncSet C = G.AncSet C \ W := by
+  ext w
+  rw [CDMG.mem_AncSet, Set.mem_diff, CDMG.mem_AncSet]
+  constructor
+  · rintro ⟨v, hvC, hwAnc⟩
+    -- hwAnc : w ∈ (G.marginalize W).Anc v.
+    have hw_in_marg : w ∈ G.marginalize W := (CDMG.mem_Anc.mp hwAnc).1
+    have hwW : w ∉ W := by
+      rw [CDMG.mem_iff, CDMG.marginalize_J, CDMG.marginalize_V] at hw_in_marg
+      rcases hw_in_marg with hJ | hVnotW
+      · -- w ∈ G.J. W ⊆ G.V, so w ∈ W ⇒ w ∈ G.V. But G.J ∩ G.V = ∅.
+        intro hwW
+        have hwV : w ∈ G.V := hW hwW
+        exact (Set.disjoint_left.mp G.disjoint_JV) hJ hwV
+      · exact hVnotW.2
+    have hvW : v ∉ W := Set.disjoint_left.mp hCW hvC
+    exact ⟨⟨v, hvC, (marginalize_anc_iff G W hwW hvW).mpr hwAnc⟩, hwW⟩
+  · rintro ⟨⟨v, hvC, hwAnc⟩, hwW⟩
+    have hvW : v ∉ W := Set.disjoint_left.mp hCW hvC
+    exact ⟨v, hvC, (marginalize_anc_iff G W hwW hvW).mp hwAnc⟩
+
 end CDMG
 
 end Causality

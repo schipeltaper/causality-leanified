@@ -57,7 +57,150 @@ Case (i). By assumption $v_j$ is either a fork or a right chain (or the right en
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+The conclusion bundles four properties of $\sigma$: the spliced walk $\pi' := (\pi.\text{prefix}\,i).\text{append}(\sigma.\text{append}(\pi.\text{suffix}\,j))$ is $C$-$\sigma$-open; $\sigma$ is directed or its reverse is directed; every position on $\sigma$ lies in $\Sc^G(v_j)$; and $\sigma$ is a path. We construct $\sigma$, dispatch the three structural properties up front, then turn to the $\sigma$-openness of $\pi'$, which is the main work and mirrors the LN's case split.
+
+\paragraph{Construction of $\sigma$.}
+We branch on the local configuration of $\pi$ at position $j$, distinguishing the LN's two replacement directions:
+\begin{description}\setlength{\itemsep}{2pt}
+  \item[Case (i):] either $j = n$ \emph{or} the right edge of $v_j$ on $\pi$ (the edge between $v_j$ and $v_{j+1}$) is $v_j \tuh v_{j+1}$, i.e.\ strict-forward. The hypothesis $v_i \in \Sc^G(v_j) = \Anc^G(v_j) \cap \Desc^G(v_j)$ supplies, via its $\Anc$-half $v_i \in \Anc^G(v_j)$, some directed forward walk $\sigma_0 : v_i \tuh \cdots \tuh v_j$ in $G$. We take $\sigma$ to be the result of \emph{loop-erasing} $\sigma_0$: while a repeated vertex remains on the walk (at positions $p < q$ with the same vertex), excise the closed sub-walk between $p$ and $q$. Each excision strictly decreases the walk's length and preserves directed-forwardness (every retained step was a strict-forward step of $\sigma_0$); the process therefore terminates at a directed forward walk $\sigma : v_i \tuh \cdots \tuh v_j$ in $G$ with no repeated vertices.
+  \item[Case (ii):] $j < n$ \emph{and} the right edge of $v_j$ on $\pi$ is $v_j \hus v_{j+1}$, i.e.\ strict-backward or bidirected. The hypothesis $v_i \in \Sc^G(v_j)$ supplies, via its $\Desc$-half $v_i \in \Desc^G(v_j)$, some directed forward walk $\sigma_0' : v_j \tuh \cdots \tuh v_i$ in $G$. Loop-erasing $\sigma_0'$ as in case (i) yields a directed forward path $\widetilde\sigma_0 : v_j \tuh \cdots \tuh v_i$ with no repeated vertices. We take $\sigma := \widetilde\sigma_0.\text{reverse}$, so that $\sigma$ traces $v_i \hut \cdots \hut v_j$ with each step strict-backward, $\sigma.\text{reverse}$ is directed forward, and $\sigma$ inherits the no-repeats property from $\widetilde\sigma_0$ (reversal preserves the vertex multiset).
+\end{description}
+In either case $\sigma$ is a walk from $v_i$ to $v_j$.
+
+\paragraph{Disjunct (2): $\sigma$ is directed in one of the two orientations.}
+By construction, $\sigma$ is directed (case (i)) or $\sigma.\text{reverse}$ is directed (case (ii)).
+
+\paragraph{Disjunct (4): $\sigma$ is a path.}
+By the construction above, $\sigma$ is either the result of loop-erasing a directed walk (case (i)) or the reverse of such a loop-erased directed walk (case (ii)). Loop-erasure terminates at a walk with no repeated vertices, and reversal preserves the absence of repeats (it permutes the vertex multiset of the walk, but does not introduce or remove repeats). Hence $\sigma$ has no repeated vertices, i.e.\ $\sigma.\text{IsPath}$.
+
+\paragraph{Disjunct (3): every position on $\sigma$ lies in $\Sc^G(v_j)$.}
+Both endpoints are in $\Sc^G(v_j)$: $\sigma.\text{nodeAt}\,0 = v_i \in \Sc^G(v_j)$ by the hypothesis $h_{\text{sc}}$, and $\sigma.\text{nodeAt}\,\sigma.\text{length} = v_j \in \Sc^G(v_j)$ since every vertex lies in its own strongly connected component. For an interior position $0 < k < \sigma.\text{length}$, write $w := \sigma.\text{nodeAt}\,k$.
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Case (i): the prefix $v_i \tuh \cdots \tuh w$ of $\sigma$ is a directed forward walk in $G$, witnessing $v_i \in \Anc^G(w)$, equivalently $w \in \Desc^G(v_i)$; the suffix $w \tuh \cdots \tuh v_j$ witnesses $w \in \Anc^G(v_j)$. From $h_{\text{sc}}$ we also have $v_i \in \Desc^G(v_j)$ (the $\Desc$-half of $v_i \in \Sc^G(v_j)$), supplying a directed forward walk $v_j \tuh \cdots \tuh v_i$ in $G$; concatenating it with the prefix $v_i \tuh \cdots \tuh w$ yields a directed forward walk $v_j \tuh \cdots \tuh v_i \tuh \cdots \tuh w$, witnessing $w \in \Desc^G(v_j)$. Combined with $w \in \Anc^G(v_j)$, we obtain $w \in \Anc^G(v_j) \cap \Desc^G(v_j) = \Sc^G(v_j)$.
+  \item Case (ii): $\sigma.\text{reverse}$ is a directed forward walk $v_j \tuh \cdots \tuh v_i$ in $G$. Its prefix $v_j \tuh \cdots \tuh w$ witnesses $w \in \Desc^G(v_j)$; its suffix $w \tuh \cdots \tuh v_i$ witnesses $w \in \Anc^G(v_i)$. The $\Anc$-half of $h_{\text{sc}}$ gives a directed forward walk $v_i \tuh \cdots \tuh v_j$ in $G$; concatenating with $w \tuh \cdots \tuh v_i$ yields $w \tuh \cdots \tuh v_i \tuh \cdots \tuh v_j$, witnessing $w \in \Anc^G(v_j)$. Combined with $w \in \Desc^G(v_j)$, $w \in \Sc^G(v_j)$.
+\end{itemize}
+
+\paragraph{Disjunct (1): $\pi'$ is $C$-$\sigma$-open.}
+We argue position-by-position on $\pi'$. The $C$-$\sigma$-openness predicate demands that every collider position of $\pi'$ lies in $\Anc^G(C)$ and that no blockable non-collider position of $\pi'$ lies in $C$. We split into: positions strictly before the splice; positions strictly after the splice; the two endpoints of $\pi'$; the interior of the new middle $\sigma$; and the two joints, at positions $i$ and $j$ in $\pi'$. The joint analyses are further split along the LN's cases (i) and (ii), and at position $i$ in case (ii) into sub-cases (ii.a) and (ii.b).
+
+\smallskip
+\noindent\emph{Positions strictly before the splice.}
+For each position $\ell \in \{0, \dots, i-1\}$, the two adjacent edges of $\pi'$ at position $\ell$ (the edge between $v_{\ell-1}$ and $v_\ell$, present when $\ell > 0$, and the edge between $v_\ell$ and $v_{\ell+1}$) are inherited from $\pi.\text{prefix}\,i$, which itself coincides with $\pi$ at positions $\leq i$. So the local configuration at position $\ell$ on $\pi'$ equals that of $\pi$ at position $\ell$. The IsColliderAt, IsBlockableNonColliderAt, and IsUnblockableNonColliderAt classifications transport. The targets of the strict-outgoing arrows are unchanged, and the $\Sc^G(\cdot)$ memberships of those targets depend only on $G$, not on the walk. Hence the $C$-$\sigma$-openness check at position $\ell$ on $\pi'$ reduces to the same check on $\pi$, which holds by assumption.
+
+\smallskip
+\noindent\emph{Positions strictly after the splice.}
+For each $\ell \in \{j+1, \dots, n\}$, the corresponding position on $\pi'$ is $\ell' := i + \sigma.\text{length} + (\ell - j)$, and the two adjacent edges of $\pi'$ at $\ell'$ are those of $\pi$ at $\ell$ (inherited from $\pi.\text{suffix}\,j$, which agrees with $\pi$ on positions $\geq j$). The same transport argument applies.
+
+\smallskip
+\noindent\emph{Endpoints.}
+The start vertex of $\pi'$ is $\pi'.\text{nodeAt}\,0$, which equals $v_0$ in both boundary regimes: when $i > 0$, the start of $\pi'$ comes from $\pi.\text{prefix}\,i$, which begins at $\pi.\text{nodeAt}\,0 = v_0$; when $i = 0$, the prefix is the trivial walk $\text{nil}\,v_0$ and the spliced walk begins at $\sigma.\text{nodeAt}\,0 = v_i = v_0$ (using $v_i := \pi.\text{nodeAt}\,i = \pi.\text{nodeAt}\,0 = v_0$). Symmetrically, the end vertex of $\pi'$ equals $v_n$. Endpoints are not colliders (a collider requires two adjacent edges, only one of which is present at an endpoint), so the collider clause of $C$-$\sigma$-openness is vacuous at endpoints. By the LN convention codified for the chapter (an end-node fails unblockability vacuously, since unblockability requires an interior position, so an end-node is unconditionally classified as a \emph{blockable} non-collider), the blockable-non-collider clause does fire at the endpoints of $\pi'$, demanding $\pi'.\text{nodeAt}\,0 \notin C$ and $\pi'.\text{nodeAt}\,\pi'.\text{length} \notin C$. The endpoints of $\pi$ carry the same blockable-non-collider classification, so the $C$-$\sigma$-openness of $\pi$ at its own endpoints supplies $v_0, v_n \notin C$. Since the endpoints of $\pi'$ equal $v_0, v_n$, the same memberships hold for $\pi'$, and $C$-$\sigma$-openness at the endpoints of $\pi'$ holds.
+
+\smallskip
+\noindent\emph{WLOG reduction for the joint analyses: $v_i, v_j$ non-endnodes.}
+If $i = 0$, the joint at position $i$ of $\pi'$ coincides with the left endnode of $\pi'$, already handled by the endpoint argument above (with $v_i = v_0 \notin C$). If $j = n$, case (ii) is excluded (case (ii) requires $j < n$), and in case (i) the joint at position $j$ coincides with the right endnode of $\pi'$, again handled by the endpoint argument. So in the remaining joint analyses we assume $0 < i$ and $j < n$, making $v_i, v_j$ non-endnodes of both $\pi$ and $\pi'$.
+
+\smallskip
+\noindent\emph{Interior of $\sigma$ on $\pi'$.}
+Consider a position $p$ with $0 < p < \sigma.\text{length}$ (this requires $\sigma.\text{length} \geq 2$; if $\sigma.\text{length} \leq 1$ there are no interior positions of $\sigma$ to check). The corresponding position on $\pi'$ is $i + p$, with adjacent edges $\sigma$'s step at positions $p - 1$ and $p$. Write $u := \sigma.\text{nodeAt}\,(p-1)$, $w := \sigma.\text{nodeAt}\,p$, $x := \sigma.\text{nodeAt}\,(p+1)$.
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Case (i): each step of $\sigma$ is strict-forward. The left edge $u \tuh w$ has tail at $u$ and arrowhead at $w$ (so arrowhead at $w$ from the left, and the edge does not contribute a strict-outgoing arrow at $w$ since its tail is at $u$). The right edge $w \tuh x$ has tail at $w$ and arrowhead at $x$ (so no arrowhead at $w$ from the right, and the edge contributes a strict-outgoing arrow at $w$ to $x$). Local configuration: right chain. Non-collider. Sole strict-outgoing arrow at $w$ on $\pi'$ goes to $x$.
+  \item Case (ii): each step of $\sigma$ is strict-backward. The left edge of $\sigma$ at position $p-1$ is $u \hut w$ in walk notation; this corresponds in $G$ to the arrow $w \to u$, with tail at $w$ and arrowhead at $u$. At position $w$ on $\sigma$, this edge contributes a strict-outgoing arrow at $w$ to $u$, and no arrowhead at $w$ from the left (the edge's tail, not arrowhead, sits at $w$). The right edge $w \hut x$ corresponds in $G$ to the arrow $x \to w$, with tail at $x$ and arrowhead at $w$; so arrowhead at $w$ from the right, and no contribution to strict-outgoing arrows at $w$. Local configuration: left chain. Non-collider. Sole strict-outgoing arrow at $w$ on $\pi'$ goes to $u$.
+\end{itemize}
+In both cases, $w$ on $\pi'$ is a non-collider with a unique strict-outgoing arrow whose target is the neighbouring vertex on $\sigma$. By disjunct (3), $w$ and its $\sigma$-neighbour both lie in $\Sc^G(v_j)$. Since $w \in \Sc^G(v_j)$ and $\Sc^G$ is an equivalence relation on the vertex set of $G$, $\Sc^G(w) = \Sc^G(v_j)$; the target of the strict-outgoing arrow therefore lies in $\Sc^G(w)$. Hence $w$ is an unblockable non-collider on $\pi'$, and the $C$-$\sigma$-openness check at this position is vacuous (the blockable-non-collider clause does not fire).
+
+\smallskip
+\noindent\emph{Position $j$ on $\pi'$, case (i).}
+The left edge of position $j$ on $\pi'$ is the last step of $\sigma$ (at position $\sigma.\text{length} - 1$), which is strict-forward $\sigma.\text{nodeAt}\,(\sigma.\text{length} - 1) \tuh v_j$, contributing arrowhead at $v_j$ from the left and no strict-outgoing arrow at $v_j$ from this edge (its tail is at the predecessor). The right edge is $\pi$'s edge between $v_j$ and $v_{j+1}$, which by case (i) (with $j < n$ by WLOG) is $v_j \tuh v_{j+1}$ strict-forward, contributing no arrowhead at $v_j$ from the right and a strict-outgoing arrow at $v_j$ to $v_{j+1}$. So $v_j$ on $\pi'$ is a non-collider (right chain), with unique strict-outgoing arrow to $v_{j+1}$.
+
+On $\pi$, $v_j$'s right edge is the same $v_j \tuh v_{j+1}$, hence $v_j$ on $\pi$ also has a strict-outgoing arrow to $v_{j+1}$. (Its left edge on $\pi$ is unrelated and may contribute an additional strict-outgoing arrow if it is strict-backward.) Two sub-cases:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item[($v_{j+1} \in \Sc^G(v_j)$):] $v_j$ on $\pi'$ has its sole strict-outgoing arrow inside $\Sc^G(v_j)$; unblockable; $\sigma$-openness vacuous.
+  \item[($v_{j+1} \notin \Sc^G(v_j)$):] On $\pi$, $v_j$'s strict-outgoing arrow to $v_{j+1}$ already lay outside $\Sc^G(v_j)$. $v_j$ on $\pi$ is non-endnode (WLOG) and a non-collider (right edge has tail at $v_j$), hence its non-collider classification rules out being unblockable: $v_j$ on $\pi$ is a blockable non-collider. By $C$-$\sigma$-openness of $\pi$ at position $j$, $v_j \notin C$. So even if $v_j$ on $\pi'$ is blockable (which it is, since its single strict-outgoing arrow's target is outside $\Sc^G(v_j)$), the $\sigma$-openness clause $v_j \notin C$ holds.
+\end{itemize}
+
+\smallskip
+\noindent\emph{Position $i$ on $\pi'$, case (i), $v_i \neq v_j$.}
+Since $v_i \neq v_j$ and $i < j$, $\sigma.\text{length} \geq 1$, so $\sigma$ has at least one step. The left edge of position $i$ on $\pi'$ is $\pi$'s edge between $v_{i-1}$ and $v_i$ (unchanged from $\pi$), and the right edge is the first step of $\sigma$, which is strict-forward $v_i \tuh \sigma.\text{nodeAt}\,1$, contributing no arrowhead at $v_i$ from the right and a strict-outgoing arrow at $v_i$ to $\sigma.\text{nodeAt}\,1$. So $v_i$ on $\pi'$ is a non-collider (the right edge's tail at $v_i$ rules out collider).
+
+Strict-outgoing arrows at $v_i$ on $\pi'$: a right one, to $\sigma.\text{nodeAt}\,1$ (always present, from $\sigma$'s first step $v_i \tuh \sigma.\text{nodeAt}\,1$, whose tail sits at $v_i$); and a left one, to $v_{i-1}$, present iff $\pi$'s edge between $v_{i-1}$ and $v_i$ is the strict-backward $v_{i-1} \hut v_i$ (whose right side, $v_i$, then carries the tail). The right arrow's target $\sigma.\text{nodeAt}\,1$ lies in $\Sc^G(v_j) = \Sc^G(v_i)$ by disjunct (3) and the equivalence-relation property $\Sc^G(v_i) = \Sc^G(v_j)$ (from $v_i \in \Sc^G(v_j)$).
+
+If the left arrow is absent: $v_i$ on $\pi'$ has its sole strict-outgoing arrow inside $\Sc^G(v_i)$; unblockable; vacuous. If the left arrow is present, its target $v_{i-1}$ may or may not lie in $\Sc^G(v_i)$:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item[($v_{i-1} \in \Sc^G(v_i)$):] both strict-outgoing arrows at $v_i$ on $\pi'$ lie in $\Sc^G(v_i)$; unblockable; vacuous.
+  \item[($v_{i-1} \notin \Sc^G(v_i)$):] On $\pi$, position $i$ has the same left edge $v_{i-1} \hut v_i$ contributing a strict-outgoing arrow at $v_i$ to $v_{i-1}$. $v_i$ on $\pi$ is non-endnode (WLOG) and a non-collider (the left edge has tail at $v_i$), and its strict-outgoing arrow to $v_{i-1}$ lies outside $\Sc^G(v_i)$; hence $v_i$ on $\pi$ is a blockable non-collider. By $C$-$\sigma$-openness of $\pi$ at position $i$, $v_i \notin C$. So $\sigma$-openness on $\pi'$ holds.
+\end{itemize}
+
+\smallskip
+\noindent\emph{Position $i = j$ (as vertex) on $\pi'$, case (i), $v_i = v_j$.}
+If $v_i = v_j$ as vertices (with $i < j$ as positions), the loop-erasure construction collapses any directed walk from $v_i$ to $v_j = v_i$ in $G$ down to the trivial walk (every closed directed walk has a repeat at its endpoints, so loop-erasure excises it entirely). So $\sigma$ has length $0$ and positions $i$ and $j$ on $\pi'$ collapse into a single joint. The joint's left edge is $\pi$'s edge between $v_{i-1}$ and $v_i$ (from $\pi.\text{prefix}\,i$'s last step) and the joint's right edge is $\pi$'s edge between $v_j$ and $v_{j+1}$ (from $\pi.\text{suffix}\,j$'s first step). By case (i), the right edge is $v_j \tuh v_{j+1} = v_i \tuh v_{j+1}$ (strict-forward, tail at $v_i$, arrowhead at $v_{j+1}$), with no arrowhead at $v_i$ from the right. Non-collider.
+
+Strict-outgoing arrows at $v_i$ on $\pi'$: a right one, to $v_{j+1}$ (from the right edge $v_i \tuh v_{j+1}$, whose tail sits at $v_i$); and a left one, to $v_{i-1}$, present iff $\pi$'s edge between $v_{i-1}$ and $v_i$ is the strict-backward $v_{i-1} \hut v_i$ (right side of the step carries the tail at $v_i$). We argue $\sigma$-openness for the merged joint by reducing to the per-position $\sigma$-openness of $v_i$ on $\pi$ (at position $i$) and of $v_j$ on $\pi$ (at position $j$):
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item If both strict-outgoing arrow targets ($v_{j+1}$ on the right, and $v_{i-1}$ on the left if applicable) lie in $\Sc^G(v_i)$, the joint is unblockable; vacuous.
+  \item If $v_{j+1} \notin \Sc^G(v_i) = \Sc^G(v_j)$, then on $\pi$, $v_j$'s strict-outgoing arrow to $v_{j+1}$ from the right already lay outside $\Sc^G(v_j)$. $v_j$ on $\pi$ is non-endnode (WLOG) and a non-collider (right edge has tail), hence a blockable non-collider; $\pi$-openness gives $v_j \notin C$; since $v_j = v_i$, $v_i \notin C$.
+  \item If the left arrow is present and $v_{i-1} \notin \Sc^G(v_i)$, the same argument applied at position $i$ on $\pi$ (instead of $j$) shows $v_i$ on $\pi$ is a blockable non-collider, hence $v_i \notin C$.
+\end{itemize}
+In each case where the joint is blockable on $\pi'$, $v_i \notin C$ holds; $\sigma$-openness follows.
+
+\smallskip
+\noindent\emph{Reduction for case (ii).}
+In case (ii), $j < n$ and $\pi$'s edge between $v_j$ and $v_{j+1}$ is $v_j \hus v_{j+1}$ (strict-backward or bidirected), contributing arrowhead at $v_j$ from the right. Each step of $\sigma$ is strict-backward; the first step $v_i \hut \sigma.\text{nodeAt}\,1$ corresponds in $G$ to the arrow $\sigma.\text{nodeAt}\,1 \to v_i$, so the right edge of position $i$ on $\pi'$ contributes arrowhead at $v_i$ from the right (and no strict-outgoing arrow at $v_i$ from this edge, since its tail is at $\sigma.\text{nodeAt}\,1$). The left edge of position $i$ on $\pi'$ is $\pi$'s edge between $v_{i-1}$ and $v_i$, which we now case-split on:
+\begin{description}\setlength{\itemsep}{2pt}
+  \item[Sub-case (ii.a):] this edge is $v_{i-1} \hut v_i$ (strict-backward), contributing tail at $v_i$ from the left and a strict-outgoing arrow at $v_i$ to $v_{i-1}$, with no arrowhead at $v_i$ from the left.
+  \item[Sub-case (ii.b):] this edge is $v_{i-1} \suh v_i$, i.e.\ strict-forward $v_{i-1} \tuh v_i$ (arrowhead at $v_i$, the target) or bidirected $v_{i-1} \huh v_i$ (arrowhead at both endpoints), contributing arrowhead at $v_i$ from the left and no strict-outgoing arrow at $v_i$ from this edge (the edge's tail is at $v_{i-1}$ for the strict-forward variant, and bidirected edges have no tails).
+\end{description}
+These two sub-cases are exhaustive: $\pi$'s edge between $v_{i-1}$ and $v_i$ is either strict-forward, strict-backward, or bidirected, and the strict-forward and bidirected variants both satisfy ``arrowhead at $v_i$ from the left,'' which is the (ii.b) hypothesis; strict-backward is the (ii.a) hypothesis.
+
+\smallskip
+\noindent\emph{Position $i$ on $\pi'$, sub-case (ii.a).}
+Tail at $v_i$ from the left, arrowhead at $v_i$ from the right: left-chain non-collider. Sole strict-outgoing arrow at $v_i$ on $\pi'$ goes to $v_{i-1}$. The same edge $v_{i-1} \hut v_i$ on $\pi$ already contributed a strict-outgoing arrow at $v_i$ to $v_{i-1}$ on $\pi$; $v_i$ on $\pi$ is non-endnode (WLOG) and a non-collider (the left edge has tail at $v_i$).
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item If $v_{i-1} \in \Sc^G(v_i)$: $v_i$ on $\pi'$ has its sole strict-outgoing arrow inside $\Sc^G(v_i)$; unblockable; vacuous.
+  \item If $v_{i-1} \notin \Sc^G(v_i)$: $v_i$ on $\pi$ already had this strict-outgoing arrow outside $\Sc^G(v_i)$, so $v_i$ on $\pi$ was a blockable non-collider; $\pi$-openness gives $v_i \notin C$; so $\sigma$-openness on $\pi'$ holds.
+\end{itemize}
+This argument is unchanged when $v_i = v_j$ as vertices (the right edge of the joint is then $\pi$'s edge between $v_j$ and $v_{j+1}$, namely $v_j \hus v_{j+1} = v_i \hus v_{j+1}$, which still contributes arrowhead at $v_i$ from the right and no strict-outgoing arrow at $v_i$ from the right; the sole strict-outgoing arrow at $v_i$ on $\pi'$ remains the left one, to $v_{i-1}$, contributed by $\pi$'s edge $v_{i-1} \hut v_i$; and the analysis above proceeds verbatim).
+
+\smallskip
+\noindent\emph{Position $i$ on $\pi'$, sub-case (ii.b).}
+Arrowhead at $v_i$ from the left and arrowhead at $v_i$ from the right: \emph{$v_i$ is a collider on $\pi'$}. The $\sigma$-openness condition for a collider position is membership in $\Anc^G(C)$. We establish $v_i \in \Anc^G(C)$ by extracting a directed sub-walk of $\pi$ from position $i$ to a collider position $v_k$ of $\pi$ that lies in $\Anc^G(C)$, with all intermediate positions on $\pi$ also forming a directed forward sub-walk.
+
+The picture on $\pi$ in this sub-case is
+\[\pi:\qquad \cdots\, v_{i-1} \suh v_i \sus v_{i+1} \sus \cdots \sus v_j \hus v_{j+1} \cdots,\]
+with the left edge of $v_i$ on $\pi$ contributing arrowhead at $v_i$ from the left (by the (ii.b) hypothesis), and the right edge of $v_j$ on $\pi$ contributing arrowhead at $v_j$ from the right (by case (ii)).
+
+\textbf{Existence of a collider position in $\{i, \dots, j\}$ of $\pi$.}
+Suppose, for contradiction, no position in $\{i, \dots, j\}$ is a collider on $\pi$. We prove by induction on $\ell$ that for every $\ell \in \{i, \dots, j\}$, $\pi$'s position $\ell$ has arrowhead at $v_\ell$ from the left:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Base ($\ell = i$): given by the (ii.b) hypothesis $v_{i-1} \suh v_i$.
+  \item Step: assume position $\ell$ on $\pi$ has arrowhead at $v_\ell$ from the left. Since position $\ell$ is not a collider on $\pi$, position $\ell$ does not have arrowhead at $v_\ell$ from the right; equivalently, $\pi$'s edge between $v_\ell$ and $v_{\ell+1}$ does not contribute arrowhead at $v_\ell$. The three possibilities for the edge are: strict-forward $v_\ell \tuh v_{\ell+1}$ (no arrowhead at $v_\ell$, arrowhead at $v_{\ell+1}$), strict-backward $v_\ell \hut v_{\ell+1}$ (arrowhead at $v_\ell$, ruled out by no-collider), and bidirected $v_\ell \huh v_{\ell+1}$ (arrowhead at $v_\ell$, ruled out). Hence the edge is strict-forward, and position $\ell + 1$ inherits arrowhead at $v_{\ell+1}$ from the left.
+\end{itemize}
+By induction, position $j$ has arrowhead at $v_j$ from the left. Combined with arrowhead at $v_j$ from the right (case (ii)), $v_j$ is a collider on $\pi$, contradicting the supposition. Hence at least one position in $\{i, \dots, j\}$ is a collider on $\pi$.
+
+Let $k$ be the smallest such position. By the same inductive argument restricted to $\{i, \dots, k - 1\}$ (positions strictly before $k$ are non-colliders by the smallest-such-$k$ property, and each carries arrowhead at $v_\ell$ from the left, starting from the (ii.b) base), every edge of $\pi$ between consecutive positions in $\{i, \dots, k\}$ is strict-forward. The sub-walk $v_i \tuh v_{i+1} \tuh \cdots \tuh v_k$ of $\pi$ is therefore a directed forward walk in $G$, witnessing $v_i \in \Anc^G(v_k)$ (the case $k = i$ trivially gives $v_i = v_k \in \Anc^G(v_i)$, since every vertex is an ancestor of itself via the nil walk).
+
+\textbf{From $v_k$ to $C$.}
+$v_k$ is a collider on $\pi$; by $C$-$\sigma$-openness of $\pi$ at position $k$, $v_k \in \Anc^G(C)$, i.e.\ there exist $c \in C$ and a directed forward walk $v_k \tuh \cdots \tuh c$ in $G$. Concatenating the directed forward walk $v_i \tuh \cdots \tuh v_k$ (extracted above) with $v_k \tuh \cdots \tuh c$ yields a directed forward walk $v_i \tuh \cdots \tuh v_k \tuh \cdots \tuh c$ in $G$ from $v_i$ to $c$. Hence $v_i \in \Anc^G(c) \subseteq \Anc^G(C)$. (When $v_i = v_k$, the concatenation degenerates to the witness $v_k \tuh \cdots \tuh c$ for $v_k \in \Anc^G(C)$, which still establishes $v_i \in \Anc^G(C)$.)
+
+So $v_i \in \Anc^G(C)$, and $\pi'$ is $\sigma$-open at the collider position $v_i$. This argument is unchanged when $v_i = v_j$ as vertices (the existence-of-$k$ and directed-prefix arguments use only positions $\ell \in \{i, \dots, j\}$ of $\pi$, not the distinctness of $v_i$ and $v_j$).
+
+\smallskip
+\noindent\emph{Position $j$ on $\pi'$, case (ii), $v_i \neq v_j$.}
+Since $v_i \neq v_j$, $\sigma.\text{length} \geq 1$, so $\sigma$ has a last step. The left edge of position $j$ on $\pi'$ is that last step, in walk notation $\sigma.\text{nodeAt}\,(\sigma.\text{length} - 1) \hut v_j$ (each step of $\sigma$ is strict-backward in case (ii)). Reading $\hut$ as ``arrowhead at the left endpoint of the step, tail at the right endpoint,'' this edge corresponds in $G$ to the arrow $v_j \to \sigma.\text{nodeAt}\,(\sigma.\text{length} - 1)$, with tail at $v_j$ (the right side of the step) and arrowhead at $\sigma.\text{nodeAt}\,(\sigma.\text{length} - 1)$ (the left side). So the left edge of position $j$ on $\pi'$ contributes tail at $v_j$ (no arrowhead at $v_j$ from the left) and a strict-outgoing arrow at $v_j$, going to $\sigma.\text{nodeAt}\,(\sigma.\text{length} - 1)$.
+
+The right edge of position $j$ on $\pi'$ is $\pi$'s edge between $v_j$ and $v_{j+1}$, namely $v_j \hus v_{j+1}$ (case (ii)). Both variants of $\hus$ contribute arrowhead at $v_j$ from the right and \emph{no} strict-outgoing arrow at $v_j$:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item strict-backward $v_j \hut v_{j+1}$ has arrowhead at the left endpoint ($v_j$) and tail at the right endpoint ($v_{j+1}$); the tail is at $v_{j+1}$, not at $v_j$, so this edge contributes no strict-outgoing arrow at $v_j$;
+  \item bidirected $v_j \huh v_{j+1}$ has arrowheads at both endpoints and no tails; in particular no tail at $v_j$ and no strict-outgoing arrow at $v_j$ from this edge.
+\end{itemize}
+
+Combining the two adjacent edges: at $v_j$ on $\pi'$, tail from the left and arrowhead from the right; $v_j$ on $\pi'$ is a non-collider (specifically a left chain). The unique strict-outgoing arrow at $v_j$ on $\pi'$ is the left one, with target $\sigma.\text{nodeAt}\,(\sigma.\text{length} - 1)$, which lies in $\Sc^G(v_j)$ by disjunct (3). Hence $v_j$ on $\pi'$ is an unblockable non-collider, and the blockable-non-collider clause of $C$-$\sigma$-openness does not fire at this position.
+
+\smallskip
+\noindent\emph{Position $j$ on $\pi'$, case (ii), $v_i = v_j$.}
+If $v_i = v_j$ as vertices, $\sigma$ has length $0$: loop-erasure of any directed walk from $v_j$ to $v_i = v_j$ in $G$ collapses the walk to the trivial one (every closed directed walk has its endpoints as a repeat, so loop-erasure excises everything), and the reverse of the trivial walk is itself. Positions $i$ and $j$ on $\pi'$ collapse into a single joint. The local configuration at this joint is $\pi$'s edge between $v_{i-1}$ and $v_i$ on the left and $\pi$'s edge between $v_j$ and $v_{j+1}$ on the right, identical to the joint considered under sub-case (ii.a) or (ii.b) above. The arguments for (ii.a) and (ii.b) at the merged joint were noted to be unchanged when $v_i = v_j$; the merged joint is therefore $\sigma$-open on $\pi'$. No separate position-$j$ analysis is required: position $j$ has collapsed into position $i$, and the right-joint unblockable-non-collider argument shown above for $v_i \neq v_j$ becomes moot once the joint is merged.
+
+\paragraph{Conclusion.}
+We have verified $C$-$\sigma$-openness at every position of $\pi'$: positions strictly outside $[i, j]$ (transport from $\pi$, via local-configuration coincidence), the two endpoints of $\pi'$ (blockable-non-collider clause discharged by transport from $\pi$'s own endpoint $\sigma$-openness, giving $v_0, v_n \notin C$), the interior of $\sigma$ (unblockable non-colliders, by disjunct (3)), the right joint at $v_j$ (case (i): right-chain non-collider transported from $\pi$; case (ii) with $v_i \neq v_j$: unconditionally unblockable left-chain non-collider), and the left joint at $v_i$ (case (i): $v_i \neq v_j$ and $v_i = v_j$ sub-analyses; case (ii): sub-cases (ii.a) non-collider and (ii.b) collider). The $v_i = v_j$ degeneracy of position $j$ is folded into the left-joint analysis. Together with disjuncts (2), (3), (4) established earlier, $\sigma$ witnesses the existential conclusion of the lemma.
 \end{proof}
 
 \end{document}

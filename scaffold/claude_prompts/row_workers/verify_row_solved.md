@@ -8,7 +8,8 @@ You are an *independent* set of eyes: did everything actually land? Are all the 
 
 - `ref` (e.g. `def_3_5` or `claim_3_12`)
 - The list of Lean file(s) the row produced — note a single row may map to **multiple** Lean files (a multi-item definition row, or a "claim" that is several theorems stacked) and **multiple** declarations per file
-- For claim rows: the path to the proof file `<ref>_proof_<title>.tex` in the subsection folder
+- For claim rows: the path to the proof file (either `<ref>_proof_<title>.tex` for prove mode or `<ref>_disproof_<title>.tex` for disprove mode) in the subsection folder
+- **Which mode the row is in**: the manager indicates whether the row is being PROVED (default) or DISPROVED (manager emitted `mistake` and didn't `unmistake` it since). You verify the matching side: in prove mode you verify `<ref>_proof_<title>.tex` + `<Title>.lean` proves the claim; in disprove mode you verify `<ref>_disproof_<title>.tex` + `<Title>Disproof.lean` proves the negation. **Both sides' files may exist on disk** — that's normal; just verify the active side.
 - Confirmation that `review_design`, `verify_equivalence`, (`simplify_proof` for claims) all returned PASS
 
 ## Checklist
