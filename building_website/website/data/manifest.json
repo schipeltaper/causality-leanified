@@ -244,6 +244,135 @@
               "available": true
             }
           ]
+        },
+        {
+          "section": "3.3",
+          "rows": [
+            {
+              "ref": "def_3_15",
+              "kind": "def",
+              "label": "def 3.15 — CollidersAndNon",
+              "title": "CollidersAndNon",
+              "available": false
+            },
+            {
+              "ref": "def_3_16",
+              "kind": "def",
+              "label": "def 3.16 — BlockableAndUnblockable",
+              "title": "BlockableAndUnblockable",
+              "available": true
+            },
+            {
+              "ref": "claim_3_20",
+              "kind": "claim",
+              "label": "claim 3.20 — AcyclicNonCollidersBlockable",
+              "title": "AcyclicNonCollidersBlockable",
+              "available": true
+            },
+            {
+              "ref": "def_3_17",
+              "kind": "def",
+              "label": "def 3.17 — SigmaBlockedWalks",
+              "title": "SigmaBlockedWalks",
+              "available": true
+            },
+            {
+              "ref": "claim_3_21",
+              "kind": "claim",
+              "label": "claim 3.21 — UnblockableNonCollidersOpen",
+              "title": "UnblockableNonCollidersOpen",
+              "available": true
+            },
+            {
+              "ref": "def_3_18",
+              "kind": "def",
+              "label": "def 3.18 — ISigmaSeparation",
+              "title": "ISigmaSeparation",
+              "available": true
+            },
+            {
+              "ref": "claim_3_22",
+              "kind": "claim",
+              "label": "claim 3.22 — SigmaSeparationSymmetric",
+              "title": "SigmaSeparationSymmetric",
+              "available": true
+            },
+            {
+              "ref": "claim_3_27",
+              "kind": "claim",
+              "label": "claim 3.27 — LabelRoman",
+              "title": "LabelRoman",
+              "available": true
+            },
+            {
+              "ref": "claim_3_23",
+              "kind": "claim",
+              "label": "claim 3.23 — SigmaOpenPathWalk",
+              "title": "SigmaOpenPathWalk",
+              "available": true
+            },
+            {
+              "ref": "claim_3_24",
+              "kind": "claim",
+              "label": "claim 3.24 — SigmaSeparationEquivalences",
+              "title": "SigmaSeparationEquivalences",
+              "available": true
+            },
+            {
+              "ref": "claim_3_25",
+              "kind": "claim",
+              "label": "claim 3.25 — ISigmaSeparation",
+              "title": "ISigmaSeparation",
+              "available": true
+            },
+            {
+              "ref": "claim_3_26",
+              "kind": "claim",
+              "label": "claim 3.26 — AcyclicNonCollidersBlockable",
+              "title": "AcyclicNonCollidersBlockable",
+              "available": true
+            }
+          ]
+        },
+        {
+          "section": "3.4",
+          "rows": [
+            {
+              "ref": "def_3_19",
+              "kind": "def",
+              "label": "def 3.19 — DBlockedWalks",
+              "title": "DBlockedWalks",
+              "available": true
+            },
+            {
+              "ref": "claim_3_28",
+              "kind": "claim",
+              "label": "claim 3.28 — NonColliderCharacterization",
+              "title": "NonColliderCharacterization",
+              "available": false
+            },
+            {
+              "ref": "def_3_20",
+              "kind": "def",
+              "label": "def 3.20 — IdSeparation",
+              "title": "IdSeparation",
+              "available": false
+            },
+            {
+              "ref": "claim_3_29",
+              "kind": "claim",
+              "label": "claim 3.29 — DSeparationSymmetric",
+              "title": "DSeparationSymmetric",
+              "available": false
+            },
+            {
+              "ref": "claim_3_30",
+              "kind": "claim",
+              "label": "claim 3.30 — IdSeparationProperties",
+              "title": "IdSeparationProperties",
+              "available": false
+            }
+          ]
         }
       ]
     }
