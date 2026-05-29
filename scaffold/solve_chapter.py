@@ -1423,6 +1423,141 @@ def generate_for_website(row: dict, subsection_folder: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Hard sorry-check before mark_solved
+# ---------------------------------------------------------------------------
+
+# Generous cap for the lake-build invocation inside check_no_sorry --
+# Mathlib + the whole leanification together can take several minutes
+# on a cold cache. If it exceeds this, we skip the build-side check
+# (a fast file-grep still ran first) and let the orchestrator continue
+# rather than wedge.
+SORRY_CHECK_BUILD_TIMEOUT_SECONDS = 15 * 60
+
+# Source positions that look like *real* sorry usage (not comment text
+# documenting historical sorry presence). A line-anchored regex with a
+# `\bsorry\b` boundary and excluding lines that are entirely a comment.
+# Matches: `:= sorry`, `by sorry`, `· sorry`, bare `sorry` on its own
+# line, `sorry` followed by `;` or whitespace, etc. Does NOT match: any
+# occurrence inside a `--` line comment or a `/- … -/` block comment
+# (we use Stage D's depth-aware stripper to elide comments first).
+_SORRY_TOKEN_RE = re.compile(r"\bsorry\b")
+
+
+def _file_has_sorry(lean_path: Path) -> bool:
+    """Return True iff the Lean file at ``lean_path`` contains a
+    ``sorry`` token OUTSIDE any comment. Uses ``strip_lean_comments``
+    (the Stage D state-machine that respects nested ``/- -/``, ``/-- -/``,
+    and line ``--`` comments) to elide comment text before searching,
+    so design-block prose like ``-- Body = sorry`` does not trip it.
+    """
+    try:
+        text = lean_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False                  # can't read = can't be sure; defer to build
+    code_only = strip_lean_comments(text)
+    return bool(_SORRY_TOKEN_RE.search(code_only))
+
+
+def check_no_sorry(lean_files: list[str]) -> str | None:
+    """Hard pre-`mark_solved` gate: confirm none of the row's Lean
+    files admits via sorry. Two-stage check:
+
+    1. **Fast file-grep**: read each Lean file, strip comments, search
+       for a `sorry` token. Catches the common case (worker accidentally
+       leaves a `sorry` in the body) without needing to invoke `lake`.
+    2. **`lake build` warning scan**: run `lake build` from the repo
+       root, parse the output for `declaration uses 'sorry'` warnings
+       attributed to any of the row's Lean files. Catches the harder
+       case where a theorem transitively depends on a sorry that isn't
+       in its own body (a `def` returning sorry that the theorem then
+       uses, etc.).
+
+    Returns ``None`` on clean (proceed with mark_solved); otherwise a
+    short multi-line string describing what was found, suitable for the
+    manager's ``extra_note``.
+
+    Deliberately *narrow*: only checks the one thing that is absolutely
+    forbidden (sorry / admit). Does not warn about style, deprecations,
+    user-introduced axioms, etc. -- those are for the manager / verifier
+    to judge, not the orchestrator to block on.
+    """
+    # --- Stage 1: file-grep -------------------------------------------
+    grep_hits: list[str] = []
+    for lf in lean_files:
+        p = REPO_ROOT / lf
+        if not p.exists():
+            continue
+        if _file_has_sorry(p):
+            grep_hits.append(lf)
+    if grep_hits:
+        return (
+            "Hard sorry-check FAILED: the verifier said PASS but "
+            "Python grep'd a `sorry` token (outside any comment) in:\n"
+            + "\n".join(f"  - {h}" for h in grep_hits)
+            + "\nA solved row must have NO `sorry` in any proof body. "
+            "Discharge it (or `mistake`/`unmistake` to switch direction) "
+            "before re-emitting `solved`."
+        )
+
+    # --- Stage 2: lake build warning scan -----------------------------
+    try:
+        result = subprocess.run(
+            ["lake", "build"],
+            cwd=str(REPO_ROOT),
+            capture_output=True, text=True,
+            timeout=SORRY_CHECK_BUILD_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        # Build is slow but file-grep already passed; let it through with
+        # a log note rather than block the solve indefinitely.
+        print(f"[orchestrator] sorry-check `lake build` timed out after "
+              f"{SORRY_CHECK_BUILD_TIMEOUT_SECONDS}s; relying on file-grep "
+              f"clean.", flush=True)
+        return None
+    except FileNotFoundError:
+        print("[orchestrator] sorry-check: `lake` not on PATH; relying on "
+              "file-grep clean.", flush=True)
+        return None
+
+    blob = (result.stdout or "") + (result.stderr or "")
+    if result.returncode != 0:
+        # Build broke entirely. The verifier should never have PASSed.
+        # Surface the tail to the manager.
+        tail = "\n".join(blob.splitlines()[-15:]) or "(empty)"
+        return (
+            f"Hard sorry-check FAILED: `lake build` exited "
+            f"{result.returncode} -- the verifier said PASS but the "
+            f"repo doesn't compile. Tail:\n{tail}"
+        )
+
+    # Find every "declaration uses 'sorry'" warning + the file it refers
+    # to. Lake's format: `warning: ./path/to/File.lean:LINE:COL: ...`.
+    sorry_warning_re = re.compile(
+        r"(?:warning|error):\s+\.?/?(\S+\.lean):\d+:\d+:.*sorry",
+        re.IGNORECASE,
+    )
+    row_files = {lf.lstrip("./") for lf in lean_files}
+    bad: list[str] = []
+    for line in blob.splitlines():
+        m = sorry_warning_re.search(line)
+        if not m:
+            continue
+        hit_path = m.group(1).lstrip("./")
+        if any(hit_path.endswith(rf) or hit_path == rf for rf in row_files):
+            bad.append(line.strip())
+    if bad:
+        return (
+            "Hard sorry-check FAILED: `lake build` succeeded but emitted "
+            "`uses 'sorry'` warnings on this row's files:\n"
+            + "\n".join(f"  - {b}" for b in bad[:10])
+            + ("\n  ... (truncated)" if len(bad) > 10 else "")
+            + "\nDischarge the sorry (or `mistake`/`unmistake` to switch "
+            "direction) before re-emitting `solved`."
+        )
+    return None
+
+
+# ---------------------------------------------------------------------------
 # per-row commit on solve
 # ---------------------------------------------------------------------------
 
@@ -2425,6 +2560,28 @@ def solve_current_row() -> None:
                     if h.action == "unmistake":
                         proven = "proven"
                         break
+
+                # Hard sorry-check: independent of the verifier LLM, run
+                # a deterministic grep + lake-build scan to confirm none
+                # of the row's Lean files admits via `sorry`. If the
+                # check fails, we DO NOT mark the row solved -- we feed
+                # the finding back to the manager and continue the loop.
+                # This is the only programmatic backstop against a
+                # verifier hallucinating PASS over a real sorry.
+                sorry_complaint = check_no_sorry(lean_files)
+                if sorry_complaint is not None:
+                    print(f"[orchestrator] sorry-check tripped for "
+                          f"{state.ref}; bouncing back to manager.\n"
+                          f"    {sorry_complaint.splitlines()[0]}",
+                          flush=True)
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"SORRY-CHECK FAILED: {sorry_complaint[:300]}"))
+                    extra_note = sorry_complaint
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
                 regenerate_chapter_aggregator(state.data_path, data)
