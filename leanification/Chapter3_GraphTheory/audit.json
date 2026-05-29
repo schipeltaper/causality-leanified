@@ -1,0 +1,20 @@
+[
+  {
+    "ref": "def_3_15",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": " with a head-of-tail index shift (k+2 in the cons-cons walk recurses to k+1 in the cons-tail walk). Hand-reasoning supports PASS — the position-1 case matches LN's `v_{k-1} \\suh v_k \\hus v_{k+1}` exactly, the recursion's index shift correctly tracks interior positions, the endpoint `False` cases of `IsColliderAt` plus the `k ≤ length` guard in `IsNonColliderAt` correctly classify endpoints as non-colliders, and the four LN non-collider sub-patterns (end-node / left chain / right chain / fork) are exhaustive of \"not 2 arrowheads at v_k\" over the 4 orientation combinations at an interior joint. But the recursion's index shift and the asymmetric endpoint-guard treatment are exactly the kind of arithmetic-on-positions plumbing where small computed instances are the cheapest insurance against an off-by-one. Suggested example walks: (a) length-2 walk `v_0 -> v_1 <- v_2` (collider at position 1), (b) length-2 walk `v_0 -> v_1 -> v_2` (non-collider at position 1; right chain), (c) length-3 walk `v_0 -> v_1 -> v_2 <- v_3` (non-collider at positions 0,1,3; collider at position 2 — tests the k+2 -> k+1 recursion shift), (d) any walk at out-of-range k (both predicates should return False).\n```"
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 9,
+      "feedback": "",
+      "raw_tail": "0 → 1): no interior; both ends are non-colliders, no colliders.\n- **Length-2 collider** (0 → 1 ← 2): position 1 IS a collider; ends are non-colliders.\n- **Length-2 right chain** (0 → 1 → 2): position 1 is non-collider.\n- **Length-3** (0 → 1 → 2 ← 3): stress-tests the `k+2 ↦ k+1` recursion shift; position 2 (not 1) is the collider.\n- **Bidirected joint** (0 ↔ 1 ↔ 2): canonical strict-collider on bidir; position 1 IS a collider.\n- **Fork** (0 ← 1 → 2): position 1 has no arrowheads, non-collider.\n- **Out-of-range** (position 10 on length-3 walk): both `IsColliderAt` and `IsNonColliderAt` are False (vacuous + guard).\n- **Length-2 left chain** (0 ← 1 ← 2): position 1 is non-collider.\n\nEvery LN-side hand-computed answer matched Lean's verdict (all `example`s closed by `simp` against the `@[simp]`-tagged characterisation lemmas, plus the `k ≤ length` guard for `IsNonColliderAt`). No disagreement found; no usability gap (all instances were concretely decidable).\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 9\nSUMMARY: all 9 instances (trivial, single-step, collider 0→1←2, right chain, length-3 recursion-shift, bidir joint, fork, out-of-range, left chain) agreed on LN-side and Lean-side answers\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:12:01+00:00",
+    "elapsed_sec": 447.2
+  }
+]

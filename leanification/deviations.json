@@ -1,0 +1,16 @@
+[
+  {
+    "id": "def_3_14_marginalize_L_excludes_E",
+    "introduced_by_ref": "def_3_14",
+    "breaks": "literal L^{sm W} membership for pairs (u,v) such that a directed walk u->v through W exists in G",
+    "preserves": "bifurcation existence under the symmetric reading",
+    "at_risk_pattern": "proofs that construct a bidirected edge in L^{sm W} and use it for rerouting in sigma-blocking analysis",
+    "tags": [
+      "marginalization",
+      "membership",
+      "disjoint_EL"
+    ],
+    "notes": "Discovered while disproving claim_3_25. Forced by disjoint_EL field on def_3_1.CDMG.",
+    "introduced_at": "2026-05-29"
+  }
+]
