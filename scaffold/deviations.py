@@ -45,9 +45,16 @@ _REQUIRED_FIELDS = (
 )
 
 
-def load_register() -> list[dict]:
-    """Return every deviation entry, in insertion order. Missing file
-    or empty file is treated as an empty register."""
+def load_register(include_resolved: bool = False) -> list[dict]:
+    """Return deviation entries in insertion order. Missing file or
+    empty file is treated as an empty register.
+
+    By default, entries tagged with a ``resolved_at`` field (added by
+    :func:`mark_resolved` after a refactor superseded the deviation)
+    are filtered out -- consumers like :func:`find_at_risk_for_claim`
+    should not surface stale warnings. Pass ``include_resolved=True``
+    to get the raw list, e.g., for audit/reporting tools.
+    """
     if not DEVIATIONS_PATH.exists():
         return []
     try:
@@ -56,7 +63,9 @@ def load_register() -> list[dict]:
         return []
     if not isinstance(data, list):
         return []
-    return data
+    if include_resolved:
+        return data
+    return [e for e in data if not e.get("resolved_at")]
 
 
 def save_register(entries: list[dict]) -> None:
@@ -91,7 +100,9 @@ def register_deviation(entry: dict) -> dict:
         raise ValueError(
             f"deviation entry missing required field(s): {missing}; got "
             f"{sorted(entry.keys())}")
-    existing = load_register()
+    # Collision check looks at the FULL register (including resolved
+    # entries) -- a previously-resolved deviation's id is still taken.
+    existing = load_register(include_resolved=True)
     if any(e.get("id") == entry["id"] for e in existing):
         raise ValueError(
             f"deviation id {entry['id']!r} already in the register; "
@@ -101,9 +112,40 @@ def register_deviation(entry: dict) -> dict:
     return entry
 
 
+def mark_resolved(entry_id: str, resolved_by_refactor: str,
+                  resolved_at: str | None = None) -> dict:
+    """Tag the entry whose ``id`` matches ``entry_id`` as resolved by a
+    completed refactor. The entry stays in the register (history is
+    preserved) but :func:`load_register` filters it from the default
+    list. Adds two fields:
+
+    - ``resolved_at`` -- ISO date (defaults to today's UTC date).
+    - ``resolved_by_refactor`` -- the refactor name (free-form label
+      identifying which refactor superseded the deviation).
+
+    Idempotent: re-resolving an already-resolved entry overwrites
+    these two fields (useful if a later refactor re-resolves something
+    a previous one only partly addressed).
+
+    Raises ``KeyError`` if no entry has the given id.
+    """
+    entries = load_register(include_resolved=True)
+    for e in entries:
+        if e.get("id") == entry_id:
+            e["resolved_at"] = (resolved_at
+                                or datetime.now(timezone.utc).date().isoformat())
+            e["resolved_by_refactor"] = resolved_by_refactor
+            save_register(entries)
+            return e
+    raise KeyError(
+        f"no deviation entry with id {entry_id!r} in the register"
+    )
+
+
 def find_relevant(ref: str | None = None,
                   tags: list[str] | None = None,
                   introduced_by_ref: str | None = None,
+                  include_resolved: bool = False,
                   ) -> list[dict]:
     """Filter the register by any combination of:
 
@@ -113,8 +155,13 @@ def find_relevant(ref: str | None = None,
       OR whose ``id`` mentions ``ref`` (a coarse string match).
 
     Filters compose with AND. Empty / ``None`` filters are skipped.
+
+    ``include_resolved`` (default ``False``) controls whether entries
+    tagged via :func:`mark_resolved` are considered. The
+    default-skip is intentional: a resolved deviation no longer
+    applies to downstream consumers.
     """
-    entries = load_register()
+    entries = load_register(include_resolved=include_resolved)
     out: list[dict] = []
     for e in entries:
         if introduced_by_ref and e.get("introduced_by_ref") != introduced_by_ref:

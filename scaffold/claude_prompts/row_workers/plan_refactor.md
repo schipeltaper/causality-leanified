@@ -1,14 +1,10 @@
-# Worker — plan and apply a refactor (heavy redesign with trickle-down)
+# Worker — plan a refactor (advisory only)
 
-**When to use:** the manager has decided that a Lean object — typically a foundational definition, but sometimes a notation or a structural choice — has the wrong shape, and that getting it right requires not just changing the object itself but **re-doing every row that built on it**.
+**When to use:** the manager has decided that a Lean object — typically a foundational definition, but sometimes a notation or a structural choice — has the wrong shape, and that getting it right requires not just changing the object itself but **producing a replacement and re-validating every consumer that uses it**.
 
-This is the heaviest operation in the project. The goal is "do it correctly the first time around" so we rarely need this. When we do need it, your job is to:
+This is the heaviest operation in the project. The goal is "do it correctly the first time around" so we rarely need this. When we do need it, your job is **plan, don't apply**: write a markdown plan that the human will read before launching the actual refactor pipeline.
 
-1. **Plan** the refactor (the foundational change + every downstream consequence).
-2. **Persist** the plan to `leanification/refactors/refactor_<title>.json`.
-3. **Apply** the plan by resetting every affected row across **all** chapter `data.json` files back to `not solved`, deleting the Lean files those rows produced, and seeding `tips` on each affected row so the next manager who picks it up knows why.
-
-After you return, the orchestrator ends the current row's run; the next `solve_chapter` iteration will start with the redesigned foundation (the first-unsolved row will be the earliest affected `ref`).
+**You do not touch any `data.json`. You do not delete or modify any Lean / tex files. You do not reset any rows.** The new (non-destructive) refactor pipeline does all of that via `extras/do_refactor.py`, which builds a separate `Refactor_<name>/refactor_data.json` table on a dedicated `refactor_<name>` git branch, lets the manager solve each refactor row using the same-file marker convention (Lean) and tex twin convention (`tex/refactor_<ref>_proof_<title>.tex`), and only at the very end runs `apply_refactor_cleanup.py` to swap originals for replacements. **The original code stays untouched on the server branch until the refactor is fully validated and merged back.**
 
 ## Inputs you should receive from the manager
 
@@ -18,95 +14,89 @@ After you return, the orchestrator ends the current row's run; the next `solve_c
 
 ## Step 1: Read enough to plan honestly
 
-Before touching anything:
+Before writing the plan:
 
 - Re-read `claude.md` and skim the LN's `main.tex` so you know the chapter order.
 - Read the **entire lecture notes** — start at `lecture-notes/lecture_notes/main.tex` and follow its `\input` chain. A refactor that looks safe in one chapter often hits four other chapters; this is the moment to find that out.
-- For each chapter folder under `leanification/`, open its `data.json` and skim every solved row's `tex_block` to find references to the concept you're refactoring (use `grep`-style file reads liberally — there is no token shortage for this worker).
-- Open every Lean file touched by those rows; trace the usage graph. The transitive closure is what gets unsolved.
+- For each chapter folder under `leanification/`, open its `data.json` and look at rows whose `tex_block` or proof tex references the concept you're refactoring (`grep`-style file reads are fine — you have the token budget).
+- Open every Lean file touched by those rows; trace the usage graph. The transitive closure is what gets put through the refactor pipeline.
 
-## Step 2: Pick a title and decide the plan
+You can also recommend the human run `extras/find_dependents.py --chapter N --ref REF` for the bullet-proof transitive closure (it renames the target declaration to `<name>_REFACTOR_DISABLED`, runs `lake build`, scrapes every error site, then restores). Mention it in the plan if you want the human to validate your hand-traced list.
 
-- Title: short PascalCase, suitable for a filename (e.g. `CDMGWithExplicitInputs`, `WalksAsCoinductive`).
-- Plan rows. The **first row** is always the foundational redesign itself. Subsequent rows are downstream consumers in dependency order (so the foundation can be redone before the consumers). Each row has:
-  - `ref` — the row's ref in some chapter's `data.json` (e.g. `def_3_5`).
-  - `chapter` — the chapter folder containing that ref (e.g. `Chapter3_GraphTheory`).
-  - `kind_of_change` — `"redesign"` (the foundational change) or `"update"` (consumer needs to be re-done because of the foundation change).
-  - `rationale` — one sentence explaining what about this row will change, written so the *next* manager working on this row can immediately understand the new shape.
-  - `status` — `"pending"` for everything you create now. The orchestrator (or a future you-helper) flips this to `"done"` when the corresponding `data.json` row gets re-solved.
+## Step 2: Pick a refactor name
 
-## Step 3: Write the plan file
+A short snake_case or PascalCase name suitable for both a git branch name and a folder name. Examples: `CDMG_NoDisjointEL`, `WalksAsCoinductive`, `Marginalize`. The git branch will be `refactor_<name>`; the data folder will be `leanification/Chapter{N}_*/Refactor_<name>/`.
+
+## Step 3: Write the plan markdown
 
 Create the directory if it doesn't exist:
 
 ```
-leanification/refactors/refactor_<title>.json
+leanification/refactors/refactor_<name>.md
 ```
 
-Schema:
+(Plain markdown, not JSON — this is human-facing.) Structure:
 
-```json
-{
-  "title": "<PascalCaseTitle>",
-  "rationale": "<two-or-three-sentence why; this is what a future reader will read first>",
-  "proposed_new_shape": "<paragraph describing the target Lean shape>",
-  "date_started": "<UTC ISO date>",
-  "date_completed": "",
-  "columns": ["ref", "chapter", "kind_of_change", "rationale", "status"],
-  "rows": [
-    {"ref": "def_3_5", "chapter": "Chapter3_GraphTheory", "kind_of_change": "redesign", "rationale": "...", "status": "pending"},
-    {"ref": "claim_3_2", "chapter": "Chapter3_GraphTheory", "kind_of_change": "update", "rationale": "uses def_3_5 in its proof's induction step; needs to be re-proven with the new shape", "status": "pending"},
-    ...
-  ]
-}
-```
+```markdown
+# Refactor plan: <name>
 
-Pretty-print the JSON (`indent=2`, `ensure_ascii=False`).
+**Status:** proposed (not yet executed)
+**Date:** <UTC ISO date>
+**Root ref:** <e.g. def_3_14>
+**Root chapter:** <e.g. 3>
+**Source branch:** server_setting_up_scaffold
+**Proposed refactor branch:** refactor_<name>
 
-## Step 4: Apply the plan to every affected `data.json` row
+## Why this refactor is needed
+<two-or-three paragraphs explaining the design pain — what claims are getting blocked by the current shape, which deviations are accumulating in the register, etc. Be specific: which proof, which step, which encoding constraint.>
 
-For each row in `rows` above (including the foundational `redesign` row):
+## Proposed new shape
+<paragraph describing the target Lean shape — fields, type signature, the LN property it newly preserves. No Lean code yet (the refactor row's manager will work that out).>
 
-1. Open the corresponding chapter's `data.json`. Find the row with the matching `ref`.
-2. Reset the row's solve-state fields **exactly** as follows:
-    - `formalized` → `"no"`
-    - `proven` → `"not proven"` if `def_or_claim == "claim"`, else `"n/a"`
-    - `solved` → `"no"`
-    - `date_solved` → `""`
-    - `lean_files` → `[]`
-    - `main_lean_file` → `""`
-    - `agent_registry` → `[]`
-3. **Append** to the row's `tips` field (don't overwrite anything that was there):
+## Affected rows (consumers)
+Transitive consumers identified by hand-tracing (validate with `extras/find_dependents.py`):
 
-   ```
-   <existing tips, if any, with a blank line separator>
-   refactor_<title> (<UTC ISO date>): being redone because of the foundational redesign of <foundational ref>. <one-or-two-sentence note from this row's `rationale` field, lightly rewritten so it makes sense to a manager that hasn't read the refactor plan>.
-   ```
-4. Save the data.json.
-5. **Delete every Lean file** that was listed in the row's old `lean_files` (do this AFTER updating the data, so the row's record of which files to delete is captured first). Also remove any `workspace_<ref>.md` file in the subsection folder.
-6. Regenerate the corresponding subsection's `main.tex` so it no longer references deleted files. (The tex stubs under `<subsection>/tex/` you can leave — they have the LN block content and will be re-used when the row is re-solved. They'll get fresh proof bodies, etc.)
-7. Regenerate the chapter's `<Chapter>.lean` aggregator so it no longer imports the deleted modules.
+| Ref | Chapter | What changes for this row |
+|-----|---------|---------------------------|
+| def_3_14 | 3 | the foundational redesign itself |
+| claim_3_25 | 3 | proof needs to rebuild without the disjoint_EL exclusion |
+| ... | ... | ... |
 
-(You can `\input` `scaffold/solve_chapter.py` helpers if Python is reachable from inside your worker context; otherwise emulate them — the regeneration logic is in `regenerate_chapter_aggregator` and `regenerate_subsection_main_tex`.)
+## Risks I see
+<bullet list of unexpected downstream consequences you discovered — e.g. "touching def_3_14 also forces re-doing claim_5_7 because of the inductive argument it uses", "the proposed new shape can't express the joint distribution that def_4_3 implicitly assumes; possible mitigation: keep an explicit reduction map">.
 
-## Step 5: Verify your own work and report back
-
-Run `lake build` from `/home/11716061/repo_scaffold2/`. Build is **expected to fail** mid-refactor (modules that used the deleted ones are referenced and missing — that's *correct*; the orchestrator will re-do them). What you're checking is: there are no syntax errors in the JSON, no orphan `import` lines pointing at files you didn't actually delete, no stray references.
-
-Report back to the manager in this exact form:
+## Recommended invocation
+After review, the human executes:
 
 ```
-REFACTOR_TITLE: <title>
-REFACTOR_FILE: leanification/refactors/refactor_<title>.json
-AFFECTED_REFS: <ref1>, <ref2>, ..., <refN>
-FIRST_UNSOLVED_AFTER: <the earliest ref (in data.json render order) that is now unsolved -- this is what the next manager will pick up>
+git checkout server_setting_up_scaffold        # must be on this branch
+python extras/do_refactor.py init \
+    --chapter <root_chapter> \
+    --root-ref <root_ref> \
+    --name <name>
 ```
 
-Then add a short paragraph summarising the new shape and any *unexpected* downstream consequences you discovered (e.g. "Touching `def_3_5` also forces us to re-do `claim_5_7` because of the inductive argument it uses; this wasn't in the manager's original request.").
+`do_refactor.py init` will: create the `refactor_<name>` branch, run `find_dependents.py` (bullet-proof transitive scan), run `initialize_refactor.py` (build the refactor_data.json table from the dependents list), commit, and push the new branch. Then the human drives the table with `python scaffold/solve_chapter.py --data-path <refactor_data.json>`, and finalizes with `do_refactor.py finalize` + `do_refactor.py merge` once every refactor row is solved.
+```
+
+## Step 4: Report back
+
+End your message with this exact block (the orchestrator parses it):
+
+```
+REFACTOR_PLAN_FILE: leanification/refactors/refactor_<name>.md
+ROOT_REF: <ref>
+ROOT_CHAPTER: <N>
+NAME: <name>
+RECOMMENDED_INVOCATION: python extras/do_refactor.py init --chapter <N> --root-ref <ref> --name <name>
+```
+
+Then a one-paragraph summary in prose: the rationale, the affected refs, and any *unexpected* downstream consequences you found.
 
 ## Rules
 
-- This action **rewrites cross-chapter project state**. Be conservative — touch the minimum set of rows that actually need updating.
-- If you discover the refactor would touch a row in a chapter that has not yet been initialised, note it in the report but don't try to reach into a non-existent file.
-- Never silently widen the change beyond the manager's request without flagging it. Surface every additional row you're proposing to mark unsolved, with a one-line reason each, in the report.
-- If you decide on closer inspection that the refactor is **not** justified (the design pain has a lighter fix), STOP and report back to the manager with that finding — do not write the refactor file or reset any rows.
+- **Read-only.** You do not modify any `data.json`, Lean file, or tex file. Your only write is the plan markdown under `leanification/refactors/`.
+- Touch the minimum set of rows that actually need updating. If a row is only indirectly affected (e.g. its proof uses a lemma that uses the refactored def, but the lemma is wrapped via a stable interface), it may not need to be in the refactor table — note this in the plan's "Affected rows" rationale.
+- Never silently widen the change beyond the manager's request without flagging it in the "Risks" section.
+- If on closer inspection the refactor is **not** justified (the design pain has a lighter fix — e.g., a local proof rewrite, or `accept_deviation` is the right move), STOP and report that finding to the manager. Do not write the plan file.
+- The orchestrator ends the current row's run after you return, regardless. The manager's row remains exactly as it was (solved or unsolved) on the server branch; the human decides whether to launch the refactor pipeline based on your plan.
