@@ -39,8 +39,85 @@
 
 
 % --- proof ------------------------------------------------------------------
+% Lifted (with light expansions to the two non-trivial arrows) from the LN's
+% proof of prp:sigma_opens at lecture-notes/lecture_notes/graphs.tex lines
+% 1655--1673.
 \begin{proof}
-% TODO: write the proof body.
+We establish the three-way equivalence by proving four implications, organised as the two bidirectional pairs $1 \iff 2$ and $2 \iff 3$ (which together close the TFAE):
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item $3 \implies 2$ and $1 \implies 2$: trivial (a path is a walk; a walk-with-all-colliders-in-$C$ is a walk).
+  \item $2 \implies 3$: collider-replacement at every collider in $\Anc^G(C) \sm C$, using $\Anc^G(C)$-witness directed paths.
+  \item $2 \implies 1$: iterated walk-replacement at repeated vertices, via \refrow{claim_3_27} (the LN's $\mathtt{lem\!:\!replace\_walk}$).
+\end{itemize}
+
+\smallskip
+\noindent\emph{$3 \implies 2$ and $1 \implies 2$.}
+A $C$-$\sigma$-open walk-with-all-colliders-in-$C$ between $w_1$ and $w_2$ is, in particular, a $C$-$\sigma$-open walk between $w_1$ and $w_2$ (clause~3 strengthens clause~2 by an extra conjunct on colliders, which is dropped on weakening). A $C$-$\sigma$-open path between $w_1$ and $w_2$ is a $C$-$\sigma$-open walk between $w_1$ and $w_2$ whose support is duplicate-free (clause~1 strengthens clause~2 by the conjunct ``$\pi$ is a path'', again dropped on weakening). In both cases the witness for clause~2 is the same underlying walk.
+
+\smallskip
+\noindent\emph{$2 \implies 3$.}
+Let $\pi$ be a $C$-$\sigma$-open walk between $w_1$ and $w_2$ in $G$. We iteratively eliminate every collider position whose vertex lies in $\Anc^G(C) \sm C$ from $\pi$, preserving $C$-$\sigma$-openness at every step. The iteration is well-founded because each step strictly decreases the (non-negative integer) count
+\[ N(\pi) \;:=\; \big|\{ k : v_k \text{ is a collider on } \pi \text{ and } v_k \in \Anc^G(C) \sm C \}\big|. \]
+
+Fix any collider position $k$ on $\pi$ with $v_k \in \Anc^G(C) \sm C$, so locally on $\pi$:
+\[ \cdots \sus v_{k-1} \suh v_k \hus v_{k+1} \sus \cdots. \]
+Since $v_k \in \Anc^G(C)$, there exists a directed forward walk in $G$ from $v_k$ to some node of $C$. Pick a \emph{shortest} such walk and write it as
+\[ \sigma_k \;:\; v_k \tuh u_1 \tuh \cdots \tuh u_{m-1} \tuh c_k, \qquad m \geq 1,\; c_k \in C. \]
+By shortness of $\sigma_k$, no intermediate vertex $u_\ell$ ($1 \leq \ell \leq m-1$) lies in $C$: if some $u_\ell \in C$, the prefix $v_k \tuh u_1 \tuh \cdots \tuh u_\ell$ would be a strictly shorter directed walk from $v_k$ to a vertex of $C$, contradicting shortness. (Shortness also rules out $v_k \in C$, which is anyway excluded by hypothesis $v_k \notin C$.)
+
+Form $\pi'$ by replacing the collider position $k$ of $\pi$ with $\sigma_k$ followed by its reverse $\sigma_k^{-1}$, so that locally on $\pi'$ we have
+\[ \cdots \sus v_{k-1} \suh v_k \tuh u_1 \tuh \cdots \tuh u_{m-1} \tuh c_k \hut u_{m-1} \hut \cdots \hut u_1 \hut v_k \hus v_{k+1} \sus \cdots. \]
+$\pi'$ is a walk between $w_1$ and $w_2$ in $G$ because the inserted segment $\sigma_k \cdot \sigma_k^{-1}$ has the same start and end vertex $v_k$, leaving the global endpoints unchanged. We now check $C$-$\sigma$-openness position-by-position on $\pi'$ and verify the strict decrease of $N$.
+
+\smallskip
+\noindent\textbf{Positions outside the splice.} Every position of $\pi'$ outside the inserted segment has the same local two-edge configuration as the corresponding position of $\pi$. The collider, blockable-non-collider, and unblockable-non-collider classifications (\refrow{def_3_15}, \refrow{def_3_16}) and the strict-outgoing-arrow targets at these positions are therefore identical, and $\Anc^G(C)$ and $\Sc^G(\cdot)$ memberships depend only on $G$ (not on the walk). The $C$-$\sigma$-openness of $\pi$ at these positions transports verbatim to $\pi'$.
+
+\smallskip
+\noindent\textbf{The two occurrences of $v_k$ on $\pi'$.} At the \emph{first} occurrence (left joint), the left edge is $\pi$'s unchanged $v_{k-1} \suh v_k$ (arrowhead at $v_k$ from the left), and the right edge is the first step $v_k \tuh u_1$ of $\sigma_k$ (tail at $v_k$, arrowhead at $u_1$). Reading off the local pattern at $v_k$ on $\pi'$: arrowhead from the left and tail from the right; right-chain non-collider. Symmetrically, at the \emph{second} occurrence (right joint), the left edge is the last step $u_1 \hut v_k$ of $\sigma_k^{-1}$ (arrowhead at $u_1$, tail at $v_k$) and the right edge is $\pi$'s unchanged $v_k \hus v_{k+1}$ (arrowhead at $v_k$ from the right); tail from the left and arrowhead from the right at $v_k$ on $\pi'$; left-chain non-collider. In either case the non-collider clause demands $v_k \notin C$ when blockable, which is guaranteed by our hypothesis $v_k \in \Anc^G(C) \sm C$. (Whether the non-collider is blockable or unblockable on $\pi'$ depends on whether the strict-outgoing-arrow target lies in $\Sc^G(v_k)$; either way, $v_k \notin C$ suffices for the blockable case.)
+
+\smallskip
+\noindent\textbf{The intermediate $u_\ell$'s.} At each outgoing-leg intermediate $u_\ell$ ($1 \leq \ell \leq m-1$), the local pattern on $\pi'$ is $u_{\ell-1} \tuh u_\ell \tuh u_{\ell+1}$ (with $u_0 := v_k$ and $u_m := c_k$): arrowhead at $u_\ell$ from the left edge ($u_{\ell-1} \tuh u_\ell$ has arrowhead at the right node), tail at $u_\ell$ from the right edge ($u_\ell \tuh u_{\ell+1}$ has tail at the left node); right-chain non-collider. The sole strict-outgoing arrow at $u_\ell$ on $\pi'$ goes to $u_{\ell+1}$, which need not lie in $\Sc^G(u_\ell)$; the non-collider may therefore be blockable, and the blockable clause demands $u_\ell \notin C$, which is exactly what the shortness of $\sigma_k$ provides. Symmetrically, at each return-leg intermediate (the second occurrence of $u_\ell$ on $\pi'$), the local pattern is $u_{\ell+1} \hut u_\ell \hut u_{\ell-1}$: arrowhead at $u_\ell$ from the right edge ($u_\ell \hut u_{\ell-1}$ has arrowhead at the left node), tail at $u_\ell$ from the left edge ($u_{\ell+1} \hut u_\ell$ has tail at the right node); left-chain non-collider; sole strict-outgoing arrow at $u_\ell$ on $\pi'$ targets $u_{\ell+1}$ via the same edge of $G$ as on the outgoing leg ($u_\ell \to u_{\ell+1}$). Again the non-collider may be blockable, and $u_\ell \notin C$ suffices.
+
+\smallskip
+\noindent\textbf{The turn-around vertex $c_k$.} The local pattern on $\pi'$ at $c_k$ is $u_{m-1} \tuh c_k \hut u_{m-1}$: arrowhead at $c_k$ from the left edge (right node of $\tuh$) \emph{and} arrowhead at $c_k$ from the right edge (left node of $\hut$, which carries the arrowhead). $c_k$ is therefore a \emph{new collider} on $\pi'$. The collider clause demands $c_k \in \Anc^G(C)$, which holds trivially since $c_k \in C \subseteq \Anc^G(C)$ (every vertex is its own ancestor via the nil walk).
+
+\smallskip
+\noindent\textbf{$N$ strictly decreases.} Comparing the collider positions of $\pi'$ with those of $\pi$: position $k$ itself is no longer a collider on $\pi'$ (it has split into two non-collider positions, the left and right joints at $v_k$, by the analysis above). At most one new collider position is created on $\pi'$, namely the turn-around at $c_k$, whose vertex is in $C$ -- the new collider therefore does \emph{not} contribute to $N(\pi')$ (the contributing set is $\Anc^G(C) \sm C$). Every other collider position of $\pi'$ corresponds to a collider position of $\pi$ outside the splice (with unchanged vertex). Hence the multiset of vertices of $\Anc^G(C) \sm C$-colliders on $\pi'$ is the multiset for $\pi$ with the entry at position $k$ removed, giving $N(\pi') = N(\pi) - 1$.
+
+Repeating this replacement until $N$ reaches $0$ -- which it must, since $N \in \mathbb{Z}_{\geq 0}$ strictly decreases at each step -- yields a $C$-$\sigma$-open walk between $w_1$ and $w_2$ with no collider position whose vertex lies in $\Anc^G(C) \sm C$. Equivalently, every collider position of the terminal walk has vertex in $C$, which is the witness for clause~3.
+
+\smallskip
+\noindent\emph{$2 \implies 1$.}
+Let $\pi = (v_0 \sus \cdots \sus v_n)$ be a $C$-$\sigma$-open walk between $v_0 = w_1$ and $v_n = w_2$ in $G$. We iteratively reduce the count of vertices that appear more than once on $\pi$, preserving the endpoints and $C$-$\sigma$-openness, until no repeats remain. The driving quantity is
+\[ D(\pi) \;:=\; \big|\{ w \in J \cup V : w \text{ appears at more than one position of } \pi \}\big|, \]
+a non-negative integer bounded above by the (finite) support size of $\pi$. By definition, $D(\pi) = 0$ iff every vertex of $\pi$ has multiplicity at most $1$ on $\pi$, iff $\pi$ is a path. We show that whenever $D(\pi) > 0$ there is a $C$-$\sigma$-open walk $\pi'$ between $w_1$ and $w_2$ with $D(\pi') \leq D(\pi) - 1$; iteration then terminates after at most $D(\pi)$ steps at a $C$-$\sigma$-open path between $w_1$ and $w_2$.
+
+Suppose $D(\pi) > 0$ and pick any vertex $w \in J \cup V$ that occurs at more than one position of $\pi$. Let $i$ be the smallest and $j$ the largest position of $\pi$ with $v_i, v_j \in \Sc^G(w)$. Both exist (the positions at which $w$ itself occurs already witness this, since $w \in \Sc^G(w)$), and $i < j$, because $w$ occurs at $\geq 2$ positions and every such position has its vertex in $\Sc^G(w)$. Since $\Sc^G$ is the equivalence relation ``mutually reachable by directed walks in $G$'', the memberships $v_i \in \Sc^G(w)$ and $v_j \in \Sc^G(w)$ imply $\Sc^G(v_i) = \Sc^G(w) = \Sc^G(v_j)$, and in particular $v_i \in \Sc^G(v_j)$.
+
+We may now apply \refrow{claim_3_27} (the LN's $\mathtt{lem\!:\!replace\_walk}$) with these $i, j$. The lemma produces a walk $\pi'$ obtained from $\pi$ by replacing the subwalk between positions $i$ and $j$ of $\pi$ with a directed path in $\Sc^G(v_j) = \Sc^G(w)$ between $v_i$ and $v_j$, with $\pi'$ still $C$-$\sigma$-open and with the new subwalk entirely contained within $\Sc^G(w)$ (and the new subwalk itself is a path, i.e.\ has no repeated vertices -- this is part of the conclusion of \refrow{claim_3_27}). The endpoints of $\pi'$ are still $w_1$ and $w_2$, since the replacement is internal (positions $0, \dots, i-1$ and $j+1, \dots, n$ of $\pi$ are preserved on $\pi'$ with the same vertices).
+
+It remains to verify $D(\pi') \leq D(\pi) - 1$. The position range of $\pi'$ splits into three parts: the prefix (positions $0, \dots, i-1$, inherited from $\pi$ with unchanged vertices); the new directed-path segment between the analogues of positions $i$ and $j$ (vertices entirely in $\Sc^G(w)$, no repeats); the suffix (positions following the new segment, inherited from $\pi$ at positions $j, \dots, n$ with unchanged vertices). By the minimality of $i$ and the maximality of $j$ on $\pi$, none of the positions $0, \dots, i-1$ or $j+1, \dots, n$ of $\pi$ has its vertex in $\Sc^G(w)$. Consequently, on $\pi'$:
+% correction (2026-05-27): bullet 2 previously claimed equality of multiplicities
+% for vertices outside $\Sc^G(w)$; this is false in general. The spliced-out range
+% (positions $i+1, \dots, j-1$ of $\pi$) can carry $u \notin \Sc^G(w)$ whose
+% occurrences are removed when $\pi$ becomes $\pi'$. Concrete counter-example:
+% $\pi = w \hut a \tuh w$ with $a \notin \Sc^G(w) \cup C$ gives $i = 0$, $j = 2$;
+% claim_3_27 then forces $\sigma$ to be the trivial length-$0$ walk at $w$, so
+% $\pi' = (w)$ and $\text{mult}_{\pi'}(a) = 0 < 1 = \text{mult}_\pi(a)$. The correct
+% relation is the one-sided inequality $\text{mult}_{\pi'}(u) \leq \text{mult}_\pi(u)$,
+% which is exactly what the downstream containment
+% $\{u : \text{mult}_{\pi'}(u) \geq 2\} \subseteq \{u : \text{mult}_\pi(u) \geq 2\} \sm \{w\}$
+% needs. The conclusion's parenthetical has been rewritten to derive the
+% containment from the corrected bullet 2 (combined with bullet 1, which excludes
+% $\Sc^G(w)$-vertices from the $\pi'$-side of the multiplicity-$\geq 2$ set).
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item Every vertex of $\Sc^G(w)$ occurs exclusively within the new directed-path segment, and that segment is itself duplicate-free; hence every vertex of $\Sc^G(w)$ has multiplicity $\leq 1$ on $\pi'$. In particular $w$ has multiplicity $\leq 1$ on $\pi'$ (it had multiplicity $\geq 2$ on $\pi$ by choice of $w$).
+  \item $\text{mult}_{\pi'}(u) \leq \text{mult}_{\pi}(u)$ for every $u \notin \Sc^G(w)$. Indeed, such a $u$ cannot occur in the new segment $\sigma$, since $\sigma$'s vertices all lie in $\Sc^G(w)$; so every occurrence of $u$ on $\pi'$ lies in the regions of $\pi'$ outside the new segment. Those regions correspond vertex-by-vertex to the index sets $\{0, \dots, i-1\}$ and $\{j+1, \dots, n\}$ of $\pi$ -- a subset of $\pi$'s positions, not all of them (the positions $i, \dots, j$ of $\pi$ -- including the boundary positions $i$ and $j$ -- are replaced by the new segment on $\pi'$; positions $i$ and $j$ themselves carry $v_i, v_j \in \Sc^G(w)$, so they would not contribute to the count for $u \notin \Sc^G(w)$ anyway). Hence each occurrence of $u$ on $\pi'$ corresponds to a unique occurrence of $u$ on $\pi$ at some position in $\{0, \dots, i-1\} \cup \{j+1, \dots, n\}$; conversely, $\pi$ may carry additional $u$-occurrences in the spliced-out range $\{i+1, \dots, j-1\}$, which are dropped when forming $\pi'$. This yields $\text{mult}_{\pi'}(u) \leq \text{mult}_\pi(u)$, with strict inequality possible whenever the spliced-out range carries a $u$-occurrence.
+\end{itemize}
+So the set $\{ u : u \text{ has multiplicity} \geq 2 \text{ on } \pi' \}$ is contained in $\{ u : u \text{ has multiplicity} \geq 2 \text{ on } \pi \} \sm \{w\}$. To see the containment, take any $u$ with $\text{mult}_{\pi'}(u) \geq 2$. By the first bullet, every vertex of $\Sc^G(w)$ has multiplicity $\leq 1$ on $\pi'$, so $u \notin \Sc^G(w)$. The second bullet then applies and gives $\text{mult}_\pi(u) \geq \text{mult}_{\pi'}(u) \geq 2$, placing $u$ in the multiplicity-$\geq 2$ set for $\pi$. Moreover $u \neq w$, since $w \in \Sc^G(w)$ but $u \notin \Sc^G(w)$ -- this justifies the removal of $w$ on the right-hand side. (Equivalently: $w$ itself had $\text{mult}_\pi(w) \geq 2$ by choice, but the first bullet applied to $w \in \Sc^G(w)$ on the $\pi'$-side gives $\text{mult}_{\pi'}(w) \leq 1$, so $w$ has been removed from the multiplicity-$\geq 2$ set in passing from $\pi$ to $\pi'$.) Hence
+\[ D(\pi') \;\leq\; D(\pi) - 1. \]
+
+Iterating the procedure, $D$ decreases strictly at each step and is bounded below by $0$. After at most $D(\pi)$ replacements we obtain a $C$-$\sigma$-open walk between $w_1$ and $w_2$ with $D = 0$, i.e.\ a $C$-$\sigma$-open path between $w_1$ and $w_2$. This is the witness for clause~1.
 \end{proof}
 
 \end{document}
