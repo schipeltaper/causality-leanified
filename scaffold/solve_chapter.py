@@ -34,6 +34,7 @@ labour (editing Lean files, building, etc.). Python keeps the state.
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
@@ -184,6 +185,51 @@ def find_chapter_data_path(chapter: int) -> Path:
     raise FileNotFoundError(
         f"No leanification folder found for chapter {chapter}."
     )
+
+
+# Match the chapter folder prefix anywhere in a data.json path. Used to
+# infer the chapter number when the orchestrator is invoked with an
+# explicit ``--data-path`` (e.g., for refactor-table runs whose data.json
+# lives under ``leanification/Chapter3_GraphTheory/Refactor_X/...``).
+_CHAPTER_FOLDER_RE = re.compile(r"^Chapter(\d+)_")
+
+
+def _infer_chapter_from_path(data_path: Path) -> int:
+    """Walk the path's parts looking for a ``ChapterN_*`` folder; return
+    ``N``. Returns ``0`` if no such part is found -- callers can decide
+    whether to error or carry on with a "no chapter" sentinel.
+
+    Used so that ``state.chapter`` (a display field rendered in row
+    context) stays meaningful even when the orchestrator was invoked
+    with ``--data-path`` instead of a chapter number.
+    """
+    for part in data_path.parts:
+        m = _CHAPTER_FOLDER_RE.match(part)
+        if m:
+            return int(m.group(1))
+    return 0
+
+
+def _chapter_folder_for(data_path: Path) -> Path:
+    """Walk up from ``data_path`` until we hit a ``ChapterN_*`` directory;
+    return that directory. Falls back to ``data_path.parent`` if no such
+    ancestor exists.
+
+    Why this matters: a normal chapter's data.json lives directly inside
+    the chapter folder, so ``data_path.parent`` IS the chapter folder.
+    But a refactor table's data.json lives one level deeper (under
+    ``leanification/Chapter3_GraphTheory/Refactor_<name>/refactor_data.json``).
+    For path math that should target the chapter -- in particular, the
+    section subfolders like ``Section3_1/`` where the Lean files live --
+    we want the chapter folder, not the refactor folder.
+    """
+    p = data_path.parent.resolve()
+    while p != p.parent:
+        if _CHAPTER_FOLDER_RE.match(p.name):
+            return p
+        p = p.parent
+    # Fallback: behave exactly as the old code did.
+    return data_path.parent
 
 
 def load_data(data_path: Path) -> dict:
@@ -2647,7 +2693,13 @@ def render_row_context(state: OrchestrationState) -> str:
     """Compact briefing about which row the manager is solving."""
     row = state.row
     tex_block = read_tex_block(row["tex_file"], row["ref"])
-    target_dir = ensure_subsection_folder(state.data_path.parent,
+    # For refactor rows the data.json lives in a sibling Refactor_<name>/
+    # folder, but the Lean / tex subfiles live in the chapter's normal
+    # section folders (the refactor edits the existing files in-place
+    # via marker blocks). Always derive target_dir from the chapter
+    # folder, which is data_path.parent for normal data.json and the
+    # parent-of-refactor-folder for refactor tables.
+    target_dir = ensure_subsection_folder(_chapter_folder_for(state.data_path),
                                           row.get("section", ""))
     workspace = workspace_path_for_row(row, target_dir)
     registry = row.get("agent_registry", [])
@@ -2665,6 +2717,7 @@ def render_row_context(state: OrchestrationState) -> str:
         registry_block = ""
     tips = row.get("tips", "")
     tips_block = f"\n## Carried-over tips for this row\n{tips}\n" if tips else ""
+    refactor_block = _render_refactor_block(row) if row.get("refactor") else ""
     return (
         f"## Row context\n"
         f"- chapter: {state.chapter}\n"
@@ -2674,6 +2727,7 @@ def render_row_context(state: OrchestrationState) -> str:
         f"- section: {row.get('section', '')}\n"
         f"- type: {row.get('type', '')}\n"
         f"- tex_file: {row['tex_file']}\n"
+        f"- refactor: {bool(row.get('refactor'))}\n"
         f"- chapter folder (data.json + request_from_human.tex live here): "
         f"{state.data_path.parent}\n"
         f"- target subsection folder (put Lean files + tex files here): "
@@ -2683,7 +2737,66 @@ def render_row_context(state: OrchestrationState) -> str:
         f"proven={row['proven']} solved={row['solved']}\n"
         f"\n## Source block from the lecture notes\n"
         f"```latex\n{tex_block}\n```\n"
-        f"{tips_block}{registry_block}"
+        f"{tips_block}{refactor_block}{registry_block}"
+    )
+
+
+def _render_refactor_block(row: dict) -> str:
+    """Render the manager-facing "this is a refactor row" briefing.
+
+    Refactor rows live in a separate ``refactor_data.json`` (one per
+    refactor target + its transitive consumers). They edit the *same*
+    Lean files as the originals, using marker comments to delineate the
+    original block (to be deleted at cleanup) from the replacement block
+    (whose declaration name `refactor_X` will be renamed to `X` at
+    cleanup). Same-file dual-track keeps the build green while the
+    refactor is in progress; the cleanup script (Phase 7) does the
+    atomic swap.
+    """
+    main_lean = row.get("main_lean_file") or "(see `lean_files` in your row data)"
+    original_decl_name = row.get("title") or "<Title>"
+    refactor_decl_name = f"refactor_{original_decl_name}"
+    return (
+        "\n## Refactor-row briefing -- READ FIRST\n"
+        "**This row is part of a refactor.** Your goal is to produce a\n"
+        "*replacement* version of the original def/claim, alongside the\n"
+        "original (which stays untouched until Phase 7 cleanup).\n"
+        "\n"
+        "**Where the original lives:** the original declaration and its\n"
+        "tex block are in the same files your `main_lean_file` /\n"
+        f"`tex_file` already point at (`{main_lean}` / `{row.get('tex_file', '?')}`).\n"
+        "Read the original first -- sometimes the refactor is a small\n"
+        "tweak to one field, sometimes it needs a drastically different\n"
+        "shape. Use the original as inspiration, not as scripture.\n"
+        "\n"
+        "**Same-file marker convention.** Wrap the original block and\n"
+        "the replacement block with the exact marker pairs below (the\n"
+        f"final declaration name -- `{original_decl_name}` here -- goes\n"
+        "after the colon):\n"
+        "```lean\n"
+        f"-- REFACTOR-BLOCK-ORIGINAL-BEGIN: {original_decl_name}\n"
+        f"def {original_decl_name} := … -- (the existing definition; unchanged)\n"
+        f"-- REFACTOR-BLOCK-ORIGINAL-END: {original_decl_name}\n"
+        "\n"
+        f"-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: {original_decl_name} (was: {refactor_decl_name})\n"
+        f"def {refactor_decl_name} := … -- (your new version)\n"
+        f"-- REFACTOR-BLOCK-REPLACEMENT-END: {original_decl_name}\n"
+        "```\n"
+        "Phase 7's cleanup script greps for these markers, deletes the\n"
+        "ORIGINAL block, and renames every occurrence of\n"
+        f"`{refactor_decl_name}` -> `{original_decl_name}` across the\n"
+        "affected files. **Use the exact marker format above** -- a typo\n"
+        "in a marker means the cleanup misses your block.\n"
+        "\n"
+        "**Don't delete the original yourself.** Don't rename anything\n"
+        "yourself. The build stays green because consumers keep seeing\n"
+        f"the old `{original_decl_name}`; your `{refactor_decl_name}` is\n"
+        "an additional declaration the strict-equivalence solved-gate\n"
+        "validates against the LN.\n"
+        "\n"
+        "**The `refactor` action is BLOCKED inside refactor rows.** If\n"
+        "you discover a nested refactor need, abort and surface it via\n"
+        "`request_from_human` -- the orchestrator will halt cleanly.\n"
     )
 
 
@@ -2843,8 +2956,13 @@ def summarise(text: str, n: int = 800) -> str:
 # Main loop
 # ---------------------------------------------------------------------------
 
-def solve_current_row() -> None:
-    """Drive the first unsolved row of the current chapter to ``solved``.
+def solve_current_row(data_path: Path | None = None) -> None:
+    """Drive the first unsolved row of the current data.json to ``solved``.
+
+    By default uses the current chapter (as recorded in ``global_vars.json``);
+    pass an explicit ``data_path`` to operate on a different data.json --
+    e.g. a refactor table at
+    ``leanification/Chapter3_GraphTheory/Refactor_X/refactor_data.json``.
 
     Stops on any of: row reaches a terminal state, 20-hour budget exhausted,
     or MAX_TURNS reached. The data.json is saved after every meaningful state
@@ -2857,8 +2975,11 @@ def solve_current_row() -> None:
     the loop guarantees that every exit path persists the partial time so
     the next invocation resumes from the right baseline.
     """
-    chapter = read_current_chapter()
-    data_path = find_chapter_data_path(chapter)
+    if data_path is None:
+        chapter = read_current_chapter()
+        data_path = find_chapter_data_path(chapter)
+    else:
+        chapter = _infer_chapter_from_path(data_path)
     data = load_data(data_path)
     row_index = first_unsolved_row_index(data)
     state = OrchestrationState(
@@ -3191,31 +3312,44 @@ def solve_current_row() -> None:
 
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
-                regenerate_chapter_aggregator(state.data_path, data)
-                regenerate_subsection_main_tex(
-                    state.data_path, data, state.row.get("section", ""))
-                # Drop the per-row scratchpad + clear the now-stale
-                # agent_registry; anything worth keeping should already
-                # be in the Lean comments. Then compile the row's tex
-                # files (and, if this was the final row of the subsection,
-                # the aggregate main.tex) as a sanity check.
-                section = state.row.get("section", "")
-                if section:
-                    subsection_folder = ensure_subsection_folder(
-                        state.data_path.parent, section)
-                    cleanup_row_artefacts(state.row, subsection_folder)
-                    build_row_tex(state.row, subsection_folder)
-                    # Dispatch a one-shot worker to produce the for-website
-                    # JSON (Lean statement + polished explanation + design
-                    # choices). Falls back to a mechanical extractor on
-                    # worker failure. Done BEFORE commit so the JSON lands
-                    # in the same commit as the rest of the row.
-                    run_for_website_worker(state.row, subsection_folder)
-                    if subsection_is_complete(data, section):
-                        print(f"[orchestrator] section {section} now fully "
-                              f"solved -- building aggregate main.tex",
-                              flush=True)
-                        build_subsection_main_tex(subsection_folder)
+                # Refactor rows edit the existing Lean files in-place via
+                # marker blocks; they don't add new subfiles or change the
+                # aggregator structure. Skip the aggregator regenerators,
+                # the for-website worker, and the disprove-side cleanup
+                # for refactor rows. Phase 7's cleanup script does the
+                # final swap-and-rename pass at the end of the whole
+                # refactor table.
+                if state.row.get("refactor"):
+                    print(f"[orchestrator] refactor row {state.ref} "
+                          f"marked solved; skipping aggregator + "
+                          f"for-website regeneration (handled at Phase "
+                          f"7 cleanup).", flush=True)
+                else:
+                    regenerate_chapter_aggregator(state.data_path, data)
+                    regenerate_subsection_main_tex(
+                        state.data_path, data, state.row.get("section", ""))
+                    # Drop the per-row scratchpad + clear the now-stale
+                    # agent_registry; anything worth keeping should already
+                    # be in the Lean comments. Then compile the row's tex
+                    # files (and, if this was the final row of the subsection,
+                    # the aggregate main.tex) as a sanity check.
+                    section = state.row.get("section", "")
+                    if section:
+                        subsection_folder = ensure_subsection_folder(
+                            state.data_path.parent, section)
+                        cleanup_row_artefacts(state.row, subsection_folder)
+                        build_row_tex(state.row, subsection_folder)
+                        # Dispatch a one-shot worker to produce the for-website
+                        # JSON (Lean statement + polished explanation + design
+                        # choices). Falls back to a mechanical extractor on
+                        # worker failure. Done BEFORE commit so the JSON lands
+                        # in the same commit as the rest of the row.
+                        run_for_website_worker(state.row, subsection_folder)
+                        if subsection_is_complete(data, section):
+                            print(f"[orchestrator] section {section} now fully "
+                                  f"solved -- building aggregate main.tex",
+                                  flush=True)
+                            build_subsection_main_tex(subsection_folder)
                 # Save AFTER cleanup so the cleared agent_registry is persisted.
                 save_data(state.data_path, data)
                 # Flush the row time BEFORE the commit so the recorded
@@ -3255,6 +3389,33 @@ def solve_current_row() -> None:
             )
 
         elif action == "refactor":
+            # Guard: nested refactor is not supported. If the manager of
+            # a refactor row asks for another refactor, halt cleanly so a
+            # human can review. (The simplest design: don't auto-anything
+            # recursive; the human decides whether to extend the current
+            # refactor's problem list, spin a new refactor branch, or
+            # abandon.)
+            if state.row.get("refactor"):
+                print(f"[orchestrator] nested refactor requested for "
+                      f"{state.ref} (inside a refactor row); aborting "
+                      f"run for human review.", flush=True)
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    "(rejected: nested refactor; aborting for human review)"))
+                save_data(state.data_path, data)
+                append_unsolved_run_summary(
+                    state,
+                    reason=(
+                        "NESTED REFACTOR REQUESTED -- the manager of "
+                        "this refactor row asked for a refactor. "
+                        "Orchestrator halted for human review. The "
+                        "manager's rationale is the action body in the "
+                        "last history entry; decide whether to extend "
+                        "the current refactor's problem list, spin a "
+                        "new refactor branch, or abandon this row."
+                    ),
+                )
+                return
             # Heavy redesign: dispatch the refactor-planner worker to
             # identify every affected ref across all chapter data.json files,
             # mark them unsolved with a refactor tip, delete their Lean
@@ -3836,13 +3997,17 @@ def solve_current_row() -> None:
         _ACTIVE_TRACKER_SLEEP_CB = None
 
 
-def solve_chapter() -> None:
-    """Iterate :func:`solve_current_row` over the current chapter until all
+def solve_chapter(data_path: Path | None = None) -> None:
+    """Iterate :func:`solve_current_row` over the given data.json until all
     rows are solved, or this run can't make progress.
+
+    By default operates on the current chapter (as recorded in
+    ``global_vars.json``); pass ``data_path`` to operate on a refactor
+    table or any other data.json file in the same row-table format.
 
     Each iteration resolves at most one row (the first unsolved). The loop
     stops if:
-      * the chapter has no unsolved rows left,
+      * the table has no unsolved rows left,
       * a single iteration solves nothing new (e.g. ``request_from_human``
         wrote a request and exited, or the row hit its turn cap / budget --
         in which case the next invocation will resume from where we left off),
@@ -3853,22 +4018,23 @@ def solve_chapter() -> None:
     stop just continues where the previous invocation left off -- no special
     resumption logic is needed.
     """
-    chapter = read_current_chapter()
-    data_path = find_chapter_data_path(chapter)
+    if data_path is None:
+        chapter = read_current_chapter()
+        data_path = find_chapter_data_path(chapter)
     iteration = 0
     while True:
         iteration += 1
         data = load_data(data_path)
         solved_before = sum(1 for r in data["rows"] if r.get("solved") == "yes")
         unsolved = [r for r in data["rows"] if r.get("solved") != "yes"]
-        print(f"[solve_chapter] iteration {iteration}: "
-              f"{solved_before}/{len(data['rows'])} solved, "
+        print(f"[solve_chapter] iteration {iteration} "
+              f"({data_path}): {solved_before}/{len(data['rows'])} solved, "
               f"{len(unsolved)} remaining", flush=True)
         if not unsolved:
-            print("[solve_chapter] chapter complete.", flush=True)
+            print(f"[solve_chapter] table complete: {data_path}", flush=True)
             return
         try:
-            solve_current_row()
+            solve_current_row(data_path)
         except Exception as e:               # noqa: BLE001 - top-level guard
             print(f"[solve_chapter] solve_current_row raised: {e}",
                   flush=True)
@@ -3888,9 +4054,47 @@ def solve_chapter() -> None:
 
 # ---------------------------------------------------------------------------
 
+def _parse_cli_args(argv: list[str]) -> argparse.Namespace:
+    """Parse CLI args for the solve_chapter entrypoint.
+
+    Three mutually-exclusive invocation modes:
+
+    - ``solve_chapter.py`` (no args)            -- use current chapter from
+                                                   ``global_vars.json``
+                                                   (existing behavior).
+    - ``solve_chapter.py --chapter N``          -- explicit chapter number;
+                                                   does NOT touch
+                                                   ``global_vars.json``.
+    - ``solve_chapter.py --data-path PATH``     -- arbitrary data.json
+                                                   (refactor table, etc.).
+    """
+    parser = argparse.ArgumentParser(
+        description="Drive a row table (chapter data.json or refactor "
+                    "table) to fully-solved via the manager/worker loop."
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--chapter", type=int, default=None,
+        help="explicit chapter number (defaults to current_chapter from "
+             "global_vars.json)",
+    )
+    group.add_argument(
+        "--data-path", type=Path, default=None,
+        help="path to a data.json file (e.g., a refactor table); "
+             "alternative to --chapter for non-default tables",
+    )
+    return parser.parse_args(argv)
+
+
 if __name__ == "__main__":
     try:
-        solve_chapter()
+        args = _parse_cli_args(sys.argv[1:])
+        if args.data_path is not None:
+            solve_chapter(args.data_path)
+        elif args.chapter is not None:
+            solve_chapter(find_chapter_data_path(args.chapter))
+        else:
+            solve_chapter()      # default: current chapter from global_vars
     except Exception as e:                 # noqa: BLE001 - top-level safety net
         print(f"[orchestrator] fatal: {e}", file=sys.stderr, flush=True)
         sys.exit(1)
