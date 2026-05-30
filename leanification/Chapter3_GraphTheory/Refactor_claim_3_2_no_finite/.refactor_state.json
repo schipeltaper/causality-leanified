@@ -1,0 +1,8 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_claim_3_2_no_finite",
+  "root_ref": "claim_3_2",
+  "name": "claim_3_2_no_finite",
+  "chapter": 3,
+  "init_date": "2026-05-30T17:49:34+00:00"
+}
