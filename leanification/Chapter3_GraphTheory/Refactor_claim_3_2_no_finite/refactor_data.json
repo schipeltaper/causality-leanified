@@ -453,7 +453,7 @@
           "last_used": "2026-05-30T20:47:01+00:00"
         }
       ],
-      "time_needed_to_solve": 3806,
+      "time_needed_to_solve": 3812,
       "refactor": true
     },
     {
@@ -462,10 +462,10 @@
       "section": "3.2",
       "title": "MarginalizationPreserves",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationPreserves.lean",
@@ -476,25 +476,132 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 3,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "accept_deviation": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1869dbed-98b3-41f1-8e63-4cf0bc84ac0e",
+          "first_seen": "2026-05-30T20:56:23+00:00",
+          "last_used": "2026-05-30T20:56:23+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "68dbccaa-592a-480c-83d4-b103175c7975",
+          "first_seen": "2026-05-30T21:00:33+00:00",
+          "last_used": "2026-05-30T21:00:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ee7309cb-62c8-415f-90bb-f9e7eb8f6281",
+          "first_seen": "2026-05-30T21:01:02+00:00",
+          "last_used": "2026-05-30T21:01:02+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "8061f428-b460-4985-b8ee-30c98259dbfe",
+          "first_seen": "2026-05-30T21:03:06+00:00",
+          "last_used": "2026-05-30T21:03:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "51b5a732-fb77-4e0c-9569-4366ca816dd6",
+          "first_seen": "2026-05-30T21:03:40+00:00",
+          "last_used": "2026-05-30T21:03:40+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "48bb0a66-5387-41e3-a1a4-6c2bda1f000d",
+          "first_seen": "2026-05-30T21:05:36+00:00",
+          "last_used": "2026-05-30T21:05:36+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ffdc2511-4de0-4066-af7c-fbe5a6664c17",
+          "first_seen": "2026-05-30T21:06:51+00:00",
+          "last_used": "2026-05-30T21:06:51+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "4c7e8fdf-de37-4b8b-99ab-3105cfc4b185",
+          "first_seen": "2026-05-30T21:10:54+00:00",
+          "last_used": "2026-05-30T21:10:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "857c01ba-6fb3-4629-befd-ac5e5d78fccf",
+          "first_seen": "2026-05-30T21:11:28+00:00",
+          "last_used": "2026-05-30T21:11:28+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5a967aa4-c8d7-4420-9db2-f6fe5da60ecd",
+          "first_seen": "2026-05-30T21:13:51+00:00",
+          "last_used": "2026-05-30T21:13:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5ac92b49-29f9-473a-9acd-6697289881d5",
+          "first_seen": "2026-05-30T21:24:13+00:00",
+          "last_used": "2026-05-30T21:24:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8e491439-bec5-4744-86ca-d6c635465e21",
+          "first_seen": "2026-05-30T22:12:43+00:00",
+          "last_used": "2026-05-30T22:12:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0dc9cba9-31bb-49f7-8bda-85aace4bc6a0",
+          "first_seen": "2026-05-30T22:15:32+00:00",
+          "last_used": "2026-05-30T22:15:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e6bd0ab0-23f4-4403-bb80-390cffc535f9",
+          "first_seen": "2026-05-30T22:15:51+00:00",
+          "last_used": "2026-05-30T22:15:51+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "cc89ef2e-9de8-4a97-94e2-a84cc60651a7",
+          "first_seen": "2026-05-30T22:19:28+00:00",
+          "last_used": "2026-05-30T22:19:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5174,
       "refactor": true
     },
     {
