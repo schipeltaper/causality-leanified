@@ -454,6 +454,22 @@ def disprove_lean_filename(row: dict) -> str:
     return f"{title}Disproof.lean"
 
 
+def _refactor_proof_basename(row: dict) -> str | None:
+    """Conventional filename for the *refactor twin* of a claim row's
+    proof subfile: ``refactor_<ref>_proof_<title>.tex``. Returns ``None``
+    for non-claim rows (def refactors don't need a tex twin -- the def's
+    LN block doesn't change in a refactor; only the Lean encoding does).
+
+    The twin lives alongside the original ``<ref>_proof_<title>.tex`` in
+    the same section's ``tex/`` folder. The refactor's manager writes
+    the new proof into the twin; the original stays untouched until
+    Phase 7 cleanup, which renames the twin over the original.
+    """
+    if row.get("def_or_claim") != "claim":
+        return None
+    return "refactor_" + _file_basename(row, "proof")
+
+
 def _row_subfile_paths(row: dict, subsection_folder: Path) -> list[Path]:
     """Every subfile path a row contributes to (1 for a def, 2 for a
     claim). The disprove-side tex (`_disproof_`) is intentionally *not*
@@ -2745,22 +2761,53 @@ def _render_refactor_block(row: dict) -> str:
     """Render the manager-facing "this is a refactor row" briefing.
 
     Refactor rows live in a separate ``refactor_data.json`` (one per
-    refactor target + its transitive consumers). They edit the *same*
-    Lean files as the originals, using marker comments to delineate the
-    original block (to be deleted at cleanup) from the replacement block
-    (whose declaration name `refactor_X` will be renamed to `X` at
-    cleanup). Same-file dual-track keeps the build green while the
-    refactor is in progress; the cleanup script (Phase 7) does the
-    atomic swap.
+    refactor target + its transitive consumers). The refactor produces
+    *replacement* artefacts that live ALONGSIDE the originals until
+    Phase 7 cleanup; nothing is deleted before then. Two parallel
+    conventions:
+
+    - **Lean: same-file marker blocks.** The replacement declaration
+      ``refactor_<Name>`` lives in the same file as the original
+      ``<Name>``, delimited by marker comments the cleanup script
+      greps for.
+    - **Tex (claim rows only, proof subfiles): prefix-named twin
+      file.** The replacement proof is written to
+      ``tex/refactor_<ref>_proof_<title>.tex``; the original
+      ``tex/<ref>_proof_<title>.tex`` is left untouched.
+
+    The cleanup script (``extras/apply_refactor_cleanup.py``) does the
+    atomic swap of both: deletes Lean ORIGINAL blocks + renames
+    ``refactor_X`` -> ``X``, AND renames each ``refactor_<ref>_proof_*``
+    over the original.
     """
     main_lean = row.get("main_lean_file") or "(see `lean_files` in your row data)"
     original_decl_name = row.get("title") or "<Title>"
     refactor_decl_name = f"refactor_{original_decl_name}"
+    is_claim = row.get("def_or_claim") == "claim"
+    proof_twin = _refactor_proof_basename(row) if is_claim else None
+    proof_orig = _file_basename(row, "proof") if is_claim else None
+
+    tex_section = ""
+    if is_claim:
+        tex_section = (
+            "\n"
+            "**Tex proof twin (claim rows only).** Don't edit the original\n"
+            f"proof tex subfile `tex/{proof_orig}` -- it stays untouched\n"
+            "until cleanup. Instead, write the new proof into the *twin*\n"
+            f"file `tex/{proof_twin}`. Create it (or have the\n"
+            "tex-writer worker create it) and target every subsequent\n"
+            "`write_tex_proof` / `expand_proof` / `verify_tex_proof`\n"
+            "worker at the twin. The cleanup script will rename the twin\n"
+            "over the original at Phase 7. (No tex twin for def rows --\n"
+            "definitions' LN block doesn't change in a refactor; only\n"
+            "the Lean encoding does.)\n"
+        )
+
     return (
         "\n## Refactor-row briefing -- READ FIRST\n"
-        "**This row is part of a refactor.** Your goal is to produce a\n"
-        "*replacement* version of the original def/claim, alongside the\n"
-        "original (which stays untouched until Phase 7 cleanup).\n"
+        "**This row is part of a refactor.** Your goal is to produce\n"
+        "*replacement* artefacts that live alongside the originals --\n"
+        "nothing is deleted before Phase 7 cleanup.\n"
         "\n"
         "**Where the original lives:** the original declaration and its\n"
         "tex block are in the same files your `main_lean_file` /\n"
@@ -2769,10 +2816,10 @@ def _render_refactor_block(row: dict) -> str:
         "tweak to one field, sometimes it needs a drastically different\n"
         "shape. Use the original as inspiration, not as scripture.\n"
         "\n"
-        "**Same-file marker convention.** Wrap the original block and\n"
-        "the replacement block with the exact marker pairs below (the\n"
-        f"final declaration name -- `{original_decl_name}` here -- goes\n"
-        "after the colon):\n"
+        "**Lean: same-file marker convention.** Wrap the original block\n"
+        "and the replacement block with the exact marker pairs below\n"
+        f"(the final declaration name -- `{original_decl_name}` here --\n"
+        "goes after the colon):\n"
         "```lean\n"
         f"-- REFACTOR-BLOCK-ORIGINAL-BEGIN: {original_decl_name}\n"
         f"def {original_decl_name} := … -- (the existing definition; unchanged)\n"
@@ -2784,9 +2831,10 @@ def _render_refactor_block(row: dict) -> str:
         "```\n"
         "Phase 7's cleanup script greps for these markers, deletes the\n"
         "ORIGINAL block, and renames every occurrence of\n"
-        f"`{refactor_decl_name}` -> `{original_decl_name}` across the\n"
+        f"`{refactor_decl_name}` -> `{original_decl_name}` across all\n"
         "affected files. **Use the exact marker format above** -- a typo\n"
         "in a marker means the cleanup misses your block.\n"
+        f"{tex_section}"
         "\n"
         "**Don't delete the original yourself.** Don't rename anything\n"
         "yourself. The build stays green because consumers keep seeing\n"
