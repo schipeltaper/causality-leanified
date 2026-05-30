@@ -142,6 +142,12 @@ class OrchestrationState:
     row: dict
     history: list[TurnRecord] = field(default_factory=list)
     started_at: float = field(default_factory=time.monotonic)
+    # Two-stage `mistake` sweep gate. Set to True after each stage has
+    # been completed (run AND any findings presented to the manager).
+    # Both must be True for a `mistake` action to be honored. Resets
+    # per row run (fresh OrchestrationState).
+    mistake_stage1_done: bool = False
+    mistake_stage2_done: bool = False
 
     @property
     def elapsed_seconds(self) -> float:
@@ -1558,6 +1564,269 @@ def check_no_sorry(lean_files: list[str]) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Mistake sweep: two-stage gate before honoring a `mistake` action
+# ---------------------------------------------------------------------------
+#
+# The lesson from claim_3_25: a manager that emits `mistake` is more
+# often pointing at an encoding deviation than at a genuinely false
+# LN claim. Before the orchestrator commits the row to disprove mode
+# (which is sticky and expensive to undo), it walks the manager through
+# two checks:
+#
+#   Stage 1 (deterministic, free): scan the deviation register for any
+#     entry whose `introduced_by_ref` is a def the claim cites, or
+#     whose `at_risk_pattern` keywords syntactically match the claim's
+#     tex body. If matches: surface to manager; do NOT honor.
+#
+#   Stage 2 (LLM worker, slower): dispatch the
+#     `verify_no_undocumented_deviation` worker against the claim and
+#     its cited defs. If it reports an undocumented CONTENT deviation
+#     in any cited def: surface to manager; do NOT honor.
+#
+# After each surfaced finding the manager's next turn decides what to
+# do; if they re-emit `mistake`, the orchestrator moves to the next
+# stage (or honors the mistake if both stages have already been done).
+# The manager is NEVER permanently blocked -- both stages are one-shot
+# per row run.
+
+# Refs cited in a claim's tex are written either as `\refrow{def_X_Y}`
+# (modern style) or `\refrow{claim_X_Y}`, or just mentioned as bare
+# `def_X_Y` / `claim_X_Y` strings in escaped-underscore form. Match all
+# of those so Stage 1's heuristic doesn't miss citations.
+_CITED_REF_RE = re.compile(
+    r"\\refrow\{((?:def|claim)_\d+_\d+)\}"
+    r"|(?<![A-Za-z0-9_\\])"
+    r"((?:def|claim)\\?_\d+\\?_\d+)"
+    r"(?![A-Za-z0-9_])"
+)
+
+
+def _extract_cited_refs(text: str) -> list[str]:
+    """Return the de-duplicated list of refs (`def_X_Y` / `claim_X_Y`)
+    mentioned in ``text``. Handles both ``\\refrow{ref}`` and bare
+    `def_3_10` / `claim\\_3\\_4` mentions."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for m in _CITED_REF_RE.finditer(text or ""):
+        raw = m.group(1) or m.group(2) or ""
+        ref = raw.replace("\\_", "_")
+        if ref and ref not in seen:
+            seen.add(ref)
+            out.append(ref)
+    return out
+
+
+def _gather_claim_body_text(row: dict, subsection_folder: Path) -> str:
+    """Concatenate the row's `tex_block` (statement) and the row's
+    current tex proof / disproof file contents. Stage 1 scans this
+    combined text for citations and deviation-register keyword hits."""
+    parts: list[str] = [row.get("tex_block") or ""]
+    if row.get("def_or_claim") == "claim":
+        title = row.get("title") or "Untitled"
+        for suffix in ("proof", "disproof"):
+            p = subsection_folder / "tex" / f"{row['ref']}_{suffix}_{title}.tex"
+            if p.exists():
+                try:
+                    parts.append(p.read_text(encoding="utf-8"))
+                except (OSError, UnicodeDecodeError):
+                    pass
+    return "\n".join(parts)
+
+
+def mistake_stage1_register_scan(row: dict, subsection_folder: Path
+                                 ) -> list[dict]:
+    """Stage 1: scan the deviation register for entries relevant to
+    this row's claim. Returns the matching register entries (possibly
+    empty). Deterministic, no LLM call.
+
+    Relevance is computed by two heuristics:
+
+    - **Citation match**: any entry whose ``introduced_by_ref`` is a def
+      ref the claim's tex cites (via `\\refrow{def_X_Y}` or a bare
+      mention).
+    - **Pattern keyword match**: any entry whose ``at_risk_pattern``
+      contains keywords (length >= 5) that appear in the claim's tex
+      body. Coarse but conservative -- prefers false positives over
+      false negatives.
+    """
+    # Local import to avoid bootstrap cycle (deviations.py imports nothing
+    # from solve_chapter, but importing solve_chapter from elsewhere
+    # shouldn't drag deviations in unless this function is called).
+    from deviations import find_at_risk_for_claim
+    body = _gather_claim_body_text(row, subsection_folder)
+    cited = _extract_cited_refs(body)
+    return find_at_risk_for_claim(body, defs_cited=cited)
+
+
+def _format_stage1_findings(findings: list[dict]) -> str:
+    """Render Stage 1's register matches into a human-readable extra_note
+    block for the manager. Doesn't tell the manager what to decide --
+    just surfaces the evidence."""
+    lines = [
+        "**Stage 1 (register scan) of the mistake-sweep surfaced these "
+        "recorded upstream deviations as potentially explaining why your "
+        "proof attempt failed.** Before the orchestrator commits this "
+        "row to disprove mode, take a moment to consider whether the "
+        "*encoding* is the culprit rather than the LN claim:",
+        "",
+    ]
+    for e in findings:
+        lines.append(
+            f"- **{e.get('id')}** (introduced by `{e.get('introduced_by_ref')}`):\n"
+            f"  - **breaks**: {e.get('breaks')}\n"
+            f"  - **preserves**: {e.get('preserves')}\n"
+            f"  - **at-risk pattern**: {e.get('at_risk_pattern')}\n"
+        )
+    lines += [
+        "",
+        "**Your options on the next turn**:",
+        "- If one of these deviations really does explain the apparent falsity, "
+        "the right action is `refactor <ref>` on the offending upstream def "
+        "(not `mistake` on this claim).",
+        "- If you've reviewed the deviations and you're confident they don't "
+        "apply to this proof, re-emit `mistake` with a one-paragraph rationale "
+        "explaining why. The orchestrator will then proceed to Stage 2 "
+        "(an LLM sweep for undocumented deviations). After Stage 2 the "
+        "mistake will be honored unless Stage 2 itself surfaces new "
+        "findings -- in which case you'll be asked again. **Re-emitting "
+        "`mistake` is the explicitly correct way to push through this gate.**",
+    ]
+    return "\n".join(lines)
+
+
+def mistake_stage2_sweep(state: "OrchestrationState",
+                         data: dict,
+                         subsection_folder: Path,
+                         mistake_body: str) -> dict:
+    """Stage 2: dispatch the ``verify_no_undocumented_deviation`` worker
+    to look for CONTENT deviations in cited defs that the register
+    hasn't captured yet. Returns a dict::
+
+        {verdict: CLEAN | DEVIATION_FOUND | ERROR | MISSING,
+         suspect_defs: [...],
+         feedback: "...",
+         raw_tail: "..."}
+    """
+    from deviations import load_register
+    body = _gather_claim_body_text(state.row, subsection_folder)
+    cited = _extract_cited_refs(body)
+    cited_def_rows = [
+        r for r in data["rows"]
+        if r.get("ref") in cited and r.get("def_or_claim") == "def"
+    ]
+
+    # Build the worker prompt. Inline the claim's row, the cited defs'
+    # tex_blocks + Lean files, the current register, and the manager's
+    # mistake rationale.
+    parts = [read_worker_prompt("verify_no_undocumented_deviation.md"), ""]
+    parts.append("# Claim under disprove consideration\n")
+    parts.append(f"- ref:        {state.row['ref']}")
+    parts.append(f"- title:      {state.row.get('title')}")
+    parts.append(f"- type:       {state.row.get('type')}")
+    parts.append(f"- section:    {state.row.get('section')}")
+    parts.append(f"- main_lean:  {state.row.get('main_lean_file')}")
+    parts.append("\n## LN tex block of the claim (verbatim)\n"
+                 f"```latex\n{state.row.get('tex_block') or ''}\n```")
+    if state.row.get("main_lean_file"):
+        try:
+            t = (REPO_ROOT / state.row["main_lean_file"]).read_text(
+                encoding="utf-8")
+            # Truncate to fit argv budget (same approach as audit_helpers).
+            if len(t) > 55_000:
+                t = t[:40_000] + "\n-- ...[truncated]...\n" + t[-15_000:]
+            parts.append(f"\n## Lean file for the claim\n```lean\n{t}\n```")
+        except (OSError, UnicodeDecodeError):
+            pass
+    parts.append(f"\n## Manager's mistake rationale (body of the "
+                 f"`mistake` action)\n```\n{mistake_body}\n```")
+    parts.append("\n# Cited defs (upstream of the claim)\n")
+    if not cited_def_rows:
+        parts.append("(none found via citation scan; sweep cited def list "
+                     "is empty)\n")
+    for dr in cited_def_rows:
+        parts.append(f"\n## {dr['ref']} -- {dr.get('title')}\n")
+        parts.append(f"### LN tex_block\n```latex\n{dr.get('tex_block') or ''}\n```")
+        if dr.get("main_lean_file"):
+            try:
+                t = (REPO_ROOT / dr["main_lean_file"]).read_text(encoding="utf-8")
+                if len(t) > 40_000:
+                    t = t[:30_000] + "\n-- ...[truncated]...\n" + t[-10_000:]
+                parts.append(f"### Lean file: {dr['main_lean_file']}\n"
+                             f"```lean\n{t}\n```")
+            except (OSError, UnicodeDecodeError):
+                pass
+    # Inline the register so the worker can de-dupe.
+    reg = load_register()
+    parts.append("\n# Deviation register (already-known deviations -- do NOT re-flag)\n")
+    if not reg:
+        parts.append("(empty)")
+    for e in reg:
+        parts.append(
+            f"- **{e.get('id')}** (introduced by `{e.get('introduced_by_ref')}`):\n"
+            f"  - breaks: {e.get('breaks')}\n"
+            f"  - preserves: {e.get('preserves')}\n"
+            f"  - at_risk_pattern: {e.get('at_risk_pattern')}\n"
+        )
+
+    prompt = "\n".join(parts)
+    label = f"mistake_stage2_{state.ref}"
+    try:
+        reply, _sess = run_claude(prompt, label=label)
+    except WorkerTimeoutError as e:
+        return {"verdict": "ERROR", "suspect_defs": [],
+                "feedback": f"worker timed out: {e}", "raw_tail": ""}
+    except Exception as e:                              # noqa: BLE001
+        return {"verdict": "ERROR", "suspect_defs": [],
+                "feedback": f"worker errored: {e}", "raw_tail": ""}
+
+    m_v = re.search(r"^VERDICT:\s*(CLEAN|DEVIATION_FOUND)\s*$",
+                    reply, re.MULTILINE)
+    m_s = re.search(r"^SUSPECT_DEFS:\s*(.+?)\s*$", reply, re.MULTILINE)
+    m_f = re.search(r"BEGIN\[feedback\]\s*\n(.*?)\n\s*END\[feedback\]",
+                    reply, re.DOTALL)
+    suspects: list[str] = []
+    if m_s:
+        suspects = [s.strip() for s in m_s.group(1).split(",") if s.strip()]
+    return {
+        "verdict":      m_v.group(1) if m_v else "MISSING",
+        "suspect_defs": suspects,
+        "feedback":     m_f.group(1).strip() if m_f else "",
+        "raw_tail":     reply[-1200:],
+    }
+
+
+def _format_stage2_findings(stage2: dict) -> str:
+    """Render Stage 2's worker findings into an extra_note block."""
+    lines = [
+        "**Stage 2 (LLM equivalence sweep of cited defs) found at least "
+        "one undocumented deviation that could plausibly explain why "
+        "your proof attempt failed.**",
+        "",
+    ]
+    if stage2.get("suspect_defs"):
+        lines.append("**Suspect defs**: " + ", ".join(
+            f"`{r}`" for r in stage2["suspect_defs"]))
+        lines.append("")
+    lines.append("**Worker's findings:**")
+    lines.append(stage2.get("feedback") or "(no feedback body)")
+    lines += [
+        "",
+        "**Your options on the next turn**:",
+        "- If a suspect def is genuinely at fault, `refactor <suspect_def_ref>` "
+        "is likely the right action -- the LN claim may well be true under a "
+        "corrected encoding.",
+        "- If you've reviewed the worker's findings and you're confident "
+        "they don't apply to *this* claim, re-emit `mistake` with a one-line "
+        "acknowledgement. The orchestrator will then honor the disprove flow.",
+        "",
+        "(Stage 1's register-scan already ran for this row; you've now also "
+        "been shown Stage 2's findings. Re-emitting `mistake` proceeds "
+        "directly to disprove mode.)",
+    ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # per-row commit on solve
 # ---------------------------------------------------------------------------
 
@@ -2684,28 +2953,103 @@ def solve_current_row() -> None:
             return
 
         elif action == "mistake":
+            # Two-stage gate before honoring the mistake (= switching to
+            # disprove mode). The premise: by the time a manager calls
+            # `mistake`, the claim has resisted multiple proof attempts.
+            # Before we commit the verdict flip, we want one more pass to
+            # check whether the *encoding* (not the LN claim) is the
+            # culprit -- a "false LN claim" verdict is expensive to
+            # later unwind.
+            #
+            # Stage 1 (deterministic, fast): scan the deviation register
+            # for known upstream issues that touch this claim's cited
+            # defs. If hits, surface them and ask the manager to
+            # reconsider. Re-emitting `mistake` proceeds to Stage 2.
+            #
+            # Stage 2 (LLM worker, slower): dispatch
+            # `verify_no_undocumented_deviation` to look adversarially
+            # for CONTENT deviations in cited defs that the register has
+            # not yet captured. If hits, surface and ask the manager to
+            # reconsider. Re-emitting `mistake` proceeds to the honor.
+            #
+            # Both stages are one-shot per row run (tracked via
+            # `state.mistake_stage{1,2}_done`). The manager is NEVER
+            # permanently blocked -- after both stages have surfaced
+            # their evidence, the next `mistake` is honored.
+            subsection_folder = ensure_subsection_folder(
+                state.data_path.parent, state.row.get("section", ""))
+
+            # ----- Stage 1: deterministic register scan ----------------
+            if not state.mistake_stage1_done:
+                findings = mistake_stage1_register_scan(
+                    state.row, subsection_folder)
+                state.mistake_stage1_done = True
+                if findings:
+                    msg = (f"(mistake-sweep Stage 1 surfaced "
+                           f"{len(findings)} register match(es); "
+                           f"see extra_note)")
+                    state.history.append(TurnRecord(turn, action, body, msg))
+                    print(f"[orchestrator] mistake-sweep Stage 1 surfaced "
+                          f"{len(findings)} register match(es) for "
+                          f"{state.ref}; bouncing to manager.", flush=True)
+                    extra_note = _format_stage1_findings(findings)
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+                print(f"[orchestrator] mistake-sweep Stage 1 clean for "
+                      f"{state.ref}; proceeding to Stage 2.", flush=True)
+
+            # ----- Stage 2: LLM equivalence sweep ----------------------
+            if not state.mistake_stage2_done:
+                print(f"[orchestrator] mistake-sweep Stage 2: dispatching "
+                      f"verify_no_undocumented_deviation worker for "
+                      f"{state.ref}.", flush=True)
+                stage2 = mistake_stage2_sweep(
+                    state, data, subsection_folder, body)
+                state.mistake_stage2_done = True
+                verdict2 = stage2.get("verdict")
+                print(f"[orchestrator] mistake-sweep Stage 2 verdict: "
+                      f"{verdict2}", flush=True)
+                if verdict2 == "DEVIATION_FOUND":
+                    msg = (f"(mistake-sweep Stage 2: DEVIATION_FOUND; "
+                           f"suspects={stage2.get('suspect_defs')})")
+                    state.history.append(TurnRecord(turn, action, body, msg))
+                    extra_note = _format_stage2_findings(stage2)
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+                # CLEAN / ERROR / MISSING: fall through and honor the
+                # mistake. ERROR/MISSING is logged but does NOT block --
+                # we don't want a flaky worker to permanently freeze the
+                # manager out of disprove mode.
+                if verdict2 != "CLEAN":
+                    print(f"[orchestrator] mistake-sweep Stage 2 returned "
+                          f"{verdict2}; honoring `mistake` anyway "
+                          f"(default-permissive on worker failure).",
+                          flush=True)
+
+            # ----- Both stages done: honor the mistake -----------------
             # State signal: the manager has concluded the claim is
             # genuinely false and is switching to the disprove flow. No
-            # worker dispatch; the signal lives in state.history so that
-            # `mark_solved` later sees it (via current_verdict_mode) and
-            # writes proven="disproven".
+            # worker dispatch beyond the sweep; the signal lives in
+            # state.history so that `mark_solved` later sees it (via
+            # current_verdict_mode) and writes proven="disproven".
             #
             # Disprove-mode work goes to *parallel* files so toggling
             # back via `unmistake` doesn't lose prove-direction progress:
             #   - tex:  tex/claim_<ref>_disproof_<title>.tex
             #   - lean: Section<N>_<M>/<Title>Disproof.lean
             # Stubs are created lazily on first switch.
-            ensure_disprove_stubs(state.row, ensure_subsection_folder(
-                state.data_path.parent, state.row.get("section", "")))
+            ensure_disprove_stubs(state.row, subsection_folder)
             state.history.append(TurnRecord(turn, action, body,
                                             "(disprove flow engaged)"))
             disprove_tex = _file_basename(state.row, "disproof")
             disprove_lean = f"{state.row.get('title') or 'Untitled'}Disproof.lean"
             extra_note = (
-                f"`mistake` recorded -- you're now in DISPROVE mode. "
-                f"Proceed with the EXACT SAME workflow as proving, but on "
-                f"the NEGATION. Workers should target the *disprove-side* "
-                f"files (created for you):\n"
+                f"`mistake` recorded (mistake-sweep cleared) -- you're now "
+                f"in DISPROVE mode. Proceed with the EXACT SAME workflow as "
+                f"proving, but on the NEGATION. Workers should target the "
+                f"*disprove-side* files (created for you):\n"
                 f"  - tex: tex/{disprove_tex}\n"
                 f"  - lean: {disprove_lean}\n"
                 f"Prove-direction files are preserved and you can return to "
