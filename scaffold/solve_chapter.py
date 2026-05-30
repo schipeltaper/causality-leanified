@@ -58,6 +58,12 @@ TEX_TEMPLATES_DIR = SCAFFOLD_DIR / "tex_templates"
 
 GLOBAL_VARS_PATH = SCAFFOLD_DIR / "global_vars.json"
 
+# Hardcoded git branch where normal row-solving happens. Kept in sync
+# with the same constant in ``extras/do_refactor.py`` -- the manager's
+# ``refactor`` action prints a "switch to this branch then run
+# do_refactor.py init" message and we want both to agree on the name.
+SERVER_BRANCH = "server_setting_up_scaffold"
+
 # Every Claude subprocess uses the strongest model available -- Opus 4.7 (1M
 # context) with the maximum effort level. Cost is justified: each turn does
 # serious mathematical work.
@@ -3464,15 +3470,19 @@ def solve_current_row(data_path: Path | None = None) -> None:
                     ),
                 )
                 return
-            # Heavy redesign: dispatch the refactor-planner worker to
-            # identify every affected ref across all chapter data.json files,
-            # mark them unsolved with a refactor tip, delete their Lean
-            # files, and write the plan to
-            # `leanification/refactors/refactor_<title>.json`.
-            #
-            # After the worker returns we end this run -- the next
-            # solve_chapter iteration will pick up the new first-unsolved
-            # (typically the redesign target, which is earlier than this row).
+            # Advisory refactor: the (rewritten) `plan_refactor.md`
+            # worker is NON-DESTRUCTIVE -- it just writes a markdown
+            # plan to `leanification/refactors/refactor_<name>.md` and
+            # emits a RECOMMENDED_INVOCATION line. No rows are reset,
+            # no Lean files deleted; the original chapter's data.json
+            # is untouched. The human reviews the plan and launches
+            # the actual refactor pipeline via
+            # `extras/do_refactor.py init` (which creates the
+            # refactor_<name> git branch off server_setting_up_scaffold,
+            # runs find_dependents.py + initialize_refactor.py, and
+            # commits/pushes the refactor table). See the
+            # 'Refactor rows' section of manager.md for the full
+            # lifecycle (init -> solve -> finalize -> merge).
             worker_prompt = (
                 read_worker_prompt("plan_refactor.md")
                 + "\n\n"
@@ -3487,15 +3497,52 @@ def solve_current_row(data_path: Path | None = None) -> None:
                 turn, action, body,
                 summarise(reply, n=1200),
             ))
+            # Try to extract the planner's structured tail so we can
+            # surface the exact `do_refactor.py init` command.
+            m_invoke = re.search(
+                r"^RECOMMENDED_INVOCATION:\s*(.+?)\s*$",
+                reply, re.MULTILINE)
+            m_plan = re.search(
+                r"^REFACTOR_PLAN_FILE:\s*(\S+)\s*$",
+                reply, re.MULTILINE)
+            invocation_line = (m_invoke.group(1)
+                               if m_invoke
+                               else "python extras/do_refactor.py init "
+                                    "--chapter <N> --root-ref <ref> "
+                                    "--name <name>   (planner did not "
+                                    "emit a RECOMMENDED_INVOCATION; "
+                                    "fill in by hand from the plan)")
+            plan_line = (f"  plan markdown: {m_plan.group(1)}\n"
+                         if m_plan else "")
             save_data(state.data_path, data)
-            print(f"[orchestrator] refactor planner ran; ending row run so "
-                  f"the next iteration picks up the new first-unsolved.",
-                  flush=True)
+            print(f"[orchestrator] refactor planner ran; halting row "
+                  f"run for human review.", flush=True)
+            print(f"[orchestrator]   next step (human):")
+            print(f"[orchestrator]     1. git checkout {SERVER_BRANCH}")
+            print(f"[orchestrator]     2. {invocation_line}", flush=True)
             append_unsolved_run_summary(
                 state,
-                reason="refactor dispatched -- this row may have been "
-                "marked unsolved by the planner; re-running solve_chapter "
-                "will pick up the (possibly earlier) first-unsolved row.",
+                reason=(
+                    "REFACTOR REQUESTED -- the manager called the\n"
+                    "(advisory) refactor planner. No rows were reset; "
+                    "no Lean files deleted; the original chapter's\n"
+                    "data.json is unchanged. To execute the refactor:\n"
+                    f"{plan_line}"
+                    f"  1. switch to the server branch:\n"
+                    f"       git checkout {SERVER_BRANCH}\n"
+                    f"  2. launch the refactor pipeline:\n"
+                    f"       {invocation_line}\n"
+                    "  3. drive the refactor table:\n"
+                    "       python scaffold/solve_chapter.py --data-path "
+                    "<refactor_data.json>\n"
+                    "  4. once every refactor row is solved=yes, finalize:\n"
+                    "       python extras/do_refactor.py finalize "
+                    "--refactor-data <path>\n"
+                    "  5. merge back into the server branch:\n"
+                    "       python extras/do_refactor.py merge "
+                    "--refactor-data <archived path> --push "
+                    "--delete-remote-branch\n"
+                ),
             )
             return
 
