@@ -1,10 +1,16 @@
-"""Standalone dispatchers for the strict equivalence checker and the
-property-based example verifier.
+"""Dispatchers for the strict equivalence checker and the property-based
+example verifier.
 
-These are *not* wired into ``solve_chapter.py`` yet. They are the
-building blocks for ``extras/audit_chapter.py``, which sweeps over
-already-solved rows non-destructively. Integration into the main
-orchestrator loop is a separate, later step.
+Used in two places:
+
+- ``extras/audit_chapter.py`` -- offline, non-destructive sweep over
+  already-solved rows.
+- ``solve_chapter.py`` -- the strict-equivalence solved-gate (auto-runs
+  on every `solved` attempt, between the hard sorry-check and
+  `mark_solved`). On the gate's EXAMPLE_GENERATION verdict the example
+  verifier is auto-chained. See ``_run_solved_gate_strict_check`` in
+  solve_chapter.py and the "Strict-equivalence solved-gate" section in
+  ``claude_prompts/manager.md``.
 
 Each dispatcher:
 - builds the prompt for its worker (row context + the prompt markdown);
@@ -13,8 +19,9 @@ Each dispatcher:
 - returns a structured ``dict`` with the verdict + any feedback.
 
 Failures (timeout, exec error, malformed verdict) are returned as a
-verdict of ``"ERROR"`` in the dict so the audit script can log them
-without crashing.
+verdict of ``"ERROR"`` in the dict so callers can log them without
+crashing. The solve-time gate defaults to letting `mark_solved` proceed
+on ERROR / MISSING so a flaky worker can't permanently freeze a row.
 """
 
 from __future__ import annotations

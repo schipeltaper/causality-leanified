@@ -102,10 +102,12 @@ ACTION_TO_WORKER: dict[str, str | None] = {
 # back to the manager. They never mutate row state directly.
 VERIFIER_ACTIONS: dict[str, tuple[str, str]] = {
     # action_name -> (worker_prompt_filename, label_suffix)
-    "verify_tex_proof":    ("verify_tex_proof.md",    "tex_proof_verifier"),
-    "review_design":       ("review_design.md",       "design_reviewer"),
-    "verify_equivalence":  ("verify_equivalence.md",  "equivalence_verifier"),
-    "simplify_proof":      ("simplify_proof.md",      "simplifier"),
+    "verify_tex_proof":          ("verify_tex_proof.md",          "tex_proof_verifier"),
+    "review_design":             ("review_design.md",             "design_reviewer"),
+    "verify_equivalence":        ("verify_equivalence.md",        "equivalence_verifier"),
+    "verify_equivalence_strict": ("verify_equivalence_strict.md", "strict_eq_verifier"),
+    "verify_with_examples":      ("verify_with_examples.md",      "examples_verifier"),
+    "simplify_proof":            ("simplify_proof.md",            "simplifier"),
 }
 
 # Regex that pulls the (action_name, body) out of a manager message. The
@@ -148,6 +150,12 @@ class OrchestrationState:
     # per row run (fresh OrchestrationState).
     mistake_stage1_done: bool = False
     mistake_stage2_done: bool = False
+    # Strict-equivalence solved-gate bypass. Flipped True when the
+    # manager emits `accept_deviation` -- the next `solved` attempt's
+    # strict-equivalence check is then skipped (the manager has
+    # explicitly accepted the deviation and recorded it in the register).
+    # Resets per row run.
+    deviation_accepted: bool = False
 
     @property
     def elapsed_seconds(self) -> float:
@@ -1564,6 +1572,210 @@ def check_no_sorry(lean_files: list[str]) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Strict-equivalence solved-gate
+# ---------------------------------------------------------------------------
+#
+# After the friendly `verify_row_solved` worker PASSes and the hard
+# sorry-check is clean, we run the adversarial, default-strict
+# equivalence checker against the row's main Lean file vs the LN
+# tex_block. This is the production-loop counterpart to
+# `extras/audit_chapter.py`'s offline sweep -- it catches the
+# disjoint_EL -> marginalize -> claim_3_25 style CONTENT deviation that
+# the friendly checker missed on the way in.
+#
+# On EXAMPLE_GENERATION verdict, the property-based example verifier is
+# auto-chained (the strict checker explicitly defers to instances for
+# new operators / structures). The combined verdict gates `mark_solved`.
+#
+# Bypassed when the manager has just emitted `accept_deviation`
+# (manager has explicitly registered the deviation and acknowledged the
+# tradeoff). Worker errors propagate as "let through with a log line" --
+# a flaky worker should not permanently freeze a row's solve.
+
+def _run_solved_gate_strict_check(state: "OrchestrationState",
+                                  row_for_check: dict) -> str | None:
+    """Return an ``extra_note`` string for the manager if the strict
+    check (and, if applicable, the chained example verifier) flagged a
+    CONTENT deviation that should block `mark_solved`. Return ``None``
+    when the gate is clear (PASS / PRESENTATION / EXAMPLE_GENERATION+PASS,
+    or worker ERROR/MISSING which we let through).
+
+    ``row_for_check`` is a copy of ``state.row`` with `lean_files` and
+    `main_lean_file` synced to what the verifier just reported (the
+    persisted row hasn't been updated by `mark_solved` yet).
+    """
+    # Local imports: keep audit_helpers off the cold-import path for the
+    # rest of solve_chapter (this code only runs on `solved` attempts).
+    from audit_helpers import (                              # type: ignore
+        run_strict_equivalence_checker, run_example_verifier,
+    )
+
+    ref = row_for_check.get("ref")
+    print(f"[orchestrator] strict-equivalence gate: running on {ref} ...",
+          flush=True)
+    strict = run_strict_equivalence_checker(row_for_check)
+    v = strict.get("verdict")
+    dc = strict.get("deviation_class")
+    print(f"[orchestrator] strict-equivalence verdict: {v} "
+          f"(deviation_class={dc})", flush=True)
+
+    if v == "PASS":
+        # Includes both DEVIATION_CLASS=NONE and =PRESENTATION. The
+        # strict checker has already judged the deviation harmless.
+        return None
+    if v in ("MISSING", "ERROR"):
+        print(f"[orchestrator] strict-equivalence worker returned {v}; "
+              f"letting the solve through (default-permissive on worker "
+              f"failure).", flush=True)
+        return None
+    if v == "EXAMPLE_GENERATION":
+        print(f"[orchestrator] strict-equivalence requested examples; "
+              f"dispatching verify_with_examples worker.", flush=True)
+        examples = run_example_verifier(
+            row_for_check, strict_reason=strict.get("feedback") or "")
+        ev = examples.get("verdict")
+        print(f"[orchestrator] example-verifier verdict: {ev} "
+              f"(instances_checked={examples.get('instances_checked')})",
+              flush=True)
+        if ev == "PASS":
+            return None
+        if ev in ("MISSING", "ERROR"):
+            print(f"[orchestrator] example-verifier returned {ev}; "
+                  f"letting the solve through (default-permissive on "
+                  f"worker failure).", flush=True)
+            return None
+        # ev == "FAIL"
+        return _format_strict_gate_failure(strict, examples)
+
+    # v == "FAIL"
+    return _format_strict_gate_failure(strict, None)
+
+
+def _format_strict_gate_failure(strict: dict, examples: dict | None
+                                ) -> str:
+    """Render the strict-checker (and optional example-verifier)
+    findings into an extra_note block telling the manager what was
+    detected and what to do about it."""
+    lines = [
+        "**Strict-equivalence solved-gate FAILED.**",
+        "",
+        "After `verify_row_solved` PASSed and the sorry-check was clean, "
+        "the orchestrator ran the *adversarial, default-strict* "
+        "equivalence checker on this row's Lean encoding vs the LN "
+        "`tex_block`. It found a CONTENT deviation -- the Lean encoding "
+        "states different mathematics than the LN does (not just a "
+        "different syntactic packaging).",
+        "",
+        f"**Strict checker verdict**: {strict.get('verdict')} "
+        f"(deviation_class={strict.get('deviation_class')}"
+        + (f", root_cause={strict.get('root_cause')}"
+           if strict.get('root_cause') else "")
+        + ")",
+        "",
+        "**Strict checker feedback:**",
+        strict.get("feedback") or "(no feedback body)",
+    ]
+    if examples is not None:
+        lines += [
+            "",
+            f"**Example verifier was auto-chained and verdict was**: "
+            f"{examples.get('verdict')} "
+            f"(instances_checked={examples.get('instances_checked')})",
+            "",
+            "**Example verifier feedback:**",
+            examples.get("feedback") or "(no feedback body)",
+        ]
+    lines += [
+        "",
+        "**Your options on the next turn:**",
+        "",
+        "- **Fix the encoding** (preferred). Re-dispatch the formalizer / "
+        "leanifier with the strict-checker's feedback so the Lean shape "
+        "matches the LN's. After fix, re-emit `solved` -- the strict gate "
+        "will re-run.",
+        "- **Accept the deviation** (only if you're sure the deviation "
+        "is intentional and the LN's literal form is impractical / "
+        "unnatural in Lean). Use the new `accept_deviation` action; the "
+        "body should describe the deviation in register-entry form "
+        "(see manager.md). The orchestrator will write it to "
+        "`leanification/deviations.json` and bypass the strict gate on "
+        "your *next* `solved` attempt. **Do not** abuse this -- "
+        "registered deviations propagate to every consumer.",
+        "- If the root_cause is `upstream:<ref>` the right move is "
+        "almost certainly `refactor <upstream_ref>` rather than accepting "
+        "the deviation here. (A registered deviation in an upstream type "
+        "leaks into every downstream consumer; refactoring the upstream "
+        "is what closes the leak.)",
+    ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# accept_deviation body parser
+# ---------------------------------------------------------------------------
+
+# Keys recognised in an `accept_deviation` action body. Matched
+# case-insensitively, one per line. `notes` is special: everything from
+# the `notes:` line to end-of-body is captured (so multi-line notes
+# work without escaping).
+_ACCEPT_DEVIATION_KEYS = (
+    "id", "introduced_by_ref", "breaks", "preserves",
+    "at_risk_pattern", "tags",
+)
+
+
+def _parse_accept_deviation_body(body: str, default_ref: str) -> dict:
+    """Parse the manager's `accept_deviation` body into a register entry
+    dict. Required keys: ``id``, ``breaks``, ``preserves``,
+    ``at_risk_pattern``. Optional: ``introduced_by_ref`` (defaults to
+    ``default_ref``), ``tags`` (comma-separated -> list), ``notes`` (last
+    block, runs to end of body).
+
+    Raises ``ValueError`` if any required key is missing or empty.
+    """
+    if not body or not body.strip():
+        raise ValueError("body is empty")
+    lines = body.splitlines()
+    entry: dict = {}
+    notes_start: int | None = None
+    # First pass: per-line key/value scrape; spot the start of the
+    # `notes` block.
+    for i, raw in enumerate(lines):
+        line = raw.rstrip()
+        m = re.match(r"^\s*([A-Za-z_][A-Za-z_0-9]*)\s*:\s*(.*)$", line)
+        if not m:
+            continue
+        key = m.group(1).lower()
+        val = m.group(2).strip()
+        if key == "notes":
+            notes_start = i
+            break  # everything after this is the notes blob
+        if key in _ACCEPT_DEVIATION_KEYS:
+            entry[key] = val
+    # Notes blob: everything after the `notes:` line, joined verbatim.
+    if notes_start is not None:
+        first_line = lines[notes_start].split(":", 1)[1].lstrip()
+        rest = "\n".join(lines[notes_start + 1:]).rstrip()
+        entry["notes"] = (first_line + ("\n" + rest if rest else "")).strip()
+    # Backfills + type coercions.
+    entry.setdefault("introduced_by_ref", default_ref)
+    tags_raw = entry.get("tags", "")
+    if isinstance(tags_raw, str):
+        entry["tags"] = [t.strip() for t in tags_raw.split(",") if t.strip()]
+    # Always add the source tag so the human can grep for manager-
+    # accepted entries later.
+    entry["tags"] = list(entry.get("tags") or []) + ["manager-accepted"]
+    # Validate required fields.
+    required = ("id", "breaks", "preserves", "at_risk_pattern")
+    missing = [k for k in required if not entry.get(k)]
+    if missing:
+        raise ValueError(
+            f"body missing required key(s): {missing}; got "
+            f"{sorted(entry.keys())}")
+    return entry
+
+
+# ---------------------------------------------------------------------------
 # Mistake sweep: two-stage gate before honoring a `mistake` action
 # ---------------------------------------------------------------------------
 #
@@ -2851,6 +3063,62 @@ def solve_current_row() -> None:
                     persist_time()
                     continue
 
+                # Strict-equivalence solved-gate. Cheap insurance against
+                # the friendly `verify_equivalence` letting through a
+                # CONTENT deviation (as it did with the disjoint_EL ->
+                # marginalize cascade). The strict checker compares the
+                # Lean encoding to the LN tex_block under set-theoretic
+                # default-strict rules; on EXAMPLE_GENERATION verdict we
+                # auto-chain the property-based example verifier.
+                #
+                # Bypassed when the manager has just emitted
+                # `accept_deviation` (the manager has explicitly
+                # acknowledged the deviation and added it to the
+                # register). Worker errors (timeout, parse failure)
+                # don't block -- we don't want a flaky worker to freeze
+                # the manager out of solving.
+                #
+                # The row needs at least a main_lean_file (or one entry
+                # in lean_files) for the check to make sense. Rows
+                # without any Lean files (very rare; shouldn't reach
+                # `solved` anyway) skip the gate.
+                if state.deviation_accepted:
+                    print(f"[orchestrator] strict-equivalence gate "
+                          f"skipped for {state.ref} (manager emitted "
+                          f"`accept_deviation`).", flush=True)
+                elif not lean_files and not main_lean_file:
+                    print(f"[orchestrator] strict-equivalence gate "
+                          f"skipped for {state.ref} (no Lean files "
+                          f"reported by verifier).", flush=True)
+                else:
+                    # Build a temporary row-shaped dict with the
+                    # just-reported lean_files (the row's persisted
+                    # lean_files may be stale or empty at this point --
+                    # they're written by mark_solved below).
+                    row_for_check = dict(state.row)
+                    row_for_check["lean_files"] = lean_files
+                    row_for_check["main_lean_file"] = (
+                        main_lean_file or (lean_files[0] if lean_files else None))
+                    # For claims, mirror the live verdict (last
+                    # mistake/unmistake) so the strict checker compares
+                    # against the negation in disprove mode.
+                    if state.row.get("def_or_claim") == "claim":
+                        row_for_check["proven"] = proven
+                    bounce_note = _run_solved_gate_strict_check(
+                        state, row_for_check)
+                    if bounce_note is not None:
+                        print(f"[orchestrator] strict-equivalence gate "
+                              f"tripped for {state.ref}; bouncing back "
+                              f"to manager.", flush=True)
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            "STRICT-EQUIVALENCE GATE FAILED "
+                            "(see extra_note for details)"))
+                        extra_note = bounce_note
+                        save_data(state.data_path, data)
+                        persist_time()
+                        continue
+
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
                 regenerate_chapter_aggregator(state.data_path, data)
@@ -3079,6 +3347,70 @@ def solve_current_row() -> None:
                 f"flip back via `mistake` without losing that work either. "
                 f"On `solved`, the row's verdict will be set to \"proven\"."
             )
+
+        elif action == "accept_deviation":
+            # Manager-driven write to the deviation register, paired
+            # with a per-row bypass flag so the next `solved` attempt's
+            # strict-equivalence gate is skipped. The manager uses this
+            # when the strict-gate FAILed, the deviation is genuinely
+            # intentional (LN form impractical / unnatural in Lean), and
+            # the right move is to record + proceed rather than fix.
+            #
+            # Body format: lightly structured key/value lines. Required
+            # keys (case-insensitive): `id`, `breaks`, `preserves`,
+            # `at_risk_pattern`. Optional: `introduced_by_ref` (defaults
+            # to the row's own ref), `tags` (comma-separated), `notes`
+            # (free-form; everything after the last recognised key).
+            #
+            # On parse failure we don't write to the register -- we
+            # bounce back to the manager with the parse error so they
+            # can re-emit. On register collision (id already exists) we
+            # surface that too. Successful register write flips
+            # `state.deviation_accepted`, so the next `solved` skips the
+            # strict gate.
+            try:
+                from deviations import register_deviation              # type: ignore
+                entry = _parse_accept_deviation_body(body, default_ref=state.ref)
+                register_deviation(entry)
+            except (ValueError, KeyError) as e:
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    f"accept_deviation parse/write failed: {e}"))
+                extra_note = (
+                    f"`accept_deviation` could not be honored: {e}\n\n"
+                    "The body must include these key/value lines "
+                    "(case-insensitive, one per line):\n"
+                    "  - id: <unique-snake-case-id>\n"
+                    "  - breaks: <one-line property the LN says holds, ours doesn't>\n"
+                    "  - preserves: <one-line property that still holds>\n"
+                    "  - at_risk_pattern: <pattern downstream proofs grep against>\n"
+                    "Optional:\n"
+                    "  - introduced_by_ref: <ref>  (defaults to this row's ref)\n"
+                    "  - tags: tag1, tag2\n"
+                    "  - notes: free-form context (last; runs to end of body)\n"
+                    "Re-emit `accept_deviation` with the body fixed."
+                )
+            else:
+                state.deviation_accepted = True
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    f"(deviation {entry['id']!r} accepted + registered; "
+                    f"strict gate will be bypassed on next `solved`)"))
+                print(f"[orchestrator] accept_deviation: registered "
+                      f"{entry['id']}; strict-equivalence gate will be "
+                      f"bypassed on the next `solved` attempt for "
+                      f"{state.ref}.", flush=True)
+                extra_note = (
+                    f"`accept_deviation` recorded: register entry "
+                    f"`{entry['id']}` written to "
+                    f"`leanification/deviations.json`. The strict-"
+                    f"equivalence solved-gate will be BYPASSED on your "
+                    f"next `solved` attempt for this row. Proceed to "
+                    f"`solved` when ready. (Note: this flag is per-row-"
+                    f"run; if the row is paused and resumed, you'll need "
+                    f"to re-accept -- but the register entry itself "
+                    f"persists.)"
+                )
 
         elif action == "reset":
             # Drop the history and start the manager over from scratch.

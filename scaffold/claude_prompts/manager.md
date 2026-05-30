@@ -69,7 +69,9 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `correct_tex_proof` | leanification revealed a *mistake* in the tex proof | brief for `correct_tex_proof.md` (cite the leanifier's report; describe the flaw) |
 | `verify_tex_proof` | you believe a tex proof is complete and want an independent check | brief for `verify_tex_proof.md` (path to the proof file + the claim) |
 | `review_design` | a def/claim statement is freshly formalized; check it's a *natural* design | brief for `review_design.md` (the Lean declaration + LN block) |
-| `verify_equivalence` | check the Lean statement is *exactly equivalent* to the LN block | brief for `verify_equivalence.md` |
+| `verify_equivalence` | check the Lean statement is *exactly equivalent* to the LN block (friendly, fast) | brief for `verify_equivalence.md` |
+| `verify_equivalence_strict` | adversarial, default-strict equivalence check. Classifies any difference as CONTENT (changes the math) or PRESENTATION (same math, different packaging). May return `EXAMPLE_GENERATION` asking for the property-based check. Also auto-runs as a gate inside `solved` (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — but you can also invoke it voluntarily, e.g. right after `verify_equivalence` PASSes, to catch deviations the friendly checker missed. | brief for `verify_equivalence_strict.md` (path to the Lean file(s), the LN tex_block) |
+| `verify_with_examples` | property-based equivalence check via concrete Lean instances (uses `lean_run_code` to actually compute both sides). Reach for it when `verify_equivalence_strict` returns `EXAMPLE_GENERATION`, or whenever a def introduces a new operator/predicate/structure (`marginalize`, `nodeSplittingOn`, walk constructors, …). | brief for `verify_with_examples.md` (Lean file(s), LN tex_block, what to instantiate) |
 | `add_design_choice_comments` | after equivalence PASS: enrich the comment block above each Lean declaration with the *why* (this is mandatory before proceeding) | brief for `add_design_choice_comments.md` (which Lean file(s), which declaration(s), what review_design surfaced) |
 | `simplify_proof` | a Lean proof closes — check it isn't unnecessarily complex | brief for `simplify_proof.md` (proof file path + Lean file path) |
 | `solved` | every prerequisite verifier has PASSed; you want the final-gate check | short summary of what was done; orchestrator dispatches `verify_row_solved` |
@@ -78,6 +80,7 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `refactor` | **heavy** — a foundational Lean shape was a mistake and everything that built on it needs to be re-done. The orchestrator dispatches `plan_refactor.md` (full-LN-context planner) which writes `leanification/refactors/refactor_<title>.json`, resets every affected `data.json` row to unsolved (clears `lean_files`, `formalized`, `solved`, `agent_registry`; appends a refactor tip), deletes the affected Lean files, and ends this row's run. The next `solve_chapter` iteration picks up the new first-unsolved row (typically an earlier ref — the redesign target). **Avoid this by doing things correctly the first time.** For lighter code-level cleanups (renames, file splits — no design change), use `spawn_agent_sub_task` + `refactor_lean_code.md` instead. | one or two paragraphs: what concept is wrong, why, the proposed new shape, and any pre-spotted downstream consumers |
 | `mistake` | a claim is genuinely false — *signal*. The orchestrator runs a **two-stage mistake-sweep** before honoring (see [The mistake-sweep gate](#the-mistake-sweep-gate) below). Stage 1 (deterministic, fast) scans the deviation register; Stage 2 (LLM worker) sweeps cited defs adversarially for undocumented deviations. If either stage surfaces findings, you'll get them in your next `extra_note` — review them, decide whether the encoding (rather than the LN claim) is the real culprit, and either (a) `refactor` the offending upstream def, or (b) **re-emit `mistake`** to push through to the next stage. After both stages run, the next `mistake` is honored: the orchestrator records the disprove flow, lazily creates the disprove-side tex stub at `tex/claim_<ref>_disproof_<title>.tex`, and tells you to target the disprove-side files: that tex + a new `<Title>Disproof.lean` next to the existing `<Title>.lean`. **The prove-direction files (existing tex + Lean) are untouched** so you can return to them later. From this turn on, every proof step targets NOT-claim. `mark_solved` will write `proven="disproven"` at the end — unless you flip back via `unmistake`. | one-paragraph rationale for why you've concluded the claim is false |
 | `unmistake` | you previously emitted `mistake` and are now reconsidering — maybe the counter-example doesn't work and the claim *is* provable after all. *Signal* (no worker dispatched). Flips you back to prove mode. The prove-direction files are exactly where the prior prove work left them; the disprove-side files also remain on disk so you can flip again via `mistake`. The verdict is determined by your **most recent** `mistake` / `unmistake` action when `solved` PASSes (default proven if neither ever fired). | one-paragraph rationale for why the counter-example failed / why you're back to prove mode |
+| `accept_deviation` | the strict-equivalence solved-gate FAILed but you've decided the deviation is intentional (LN form impractical / unnatural in Lean) — record it in the global deviation register and bypass the strict gate on the **next** `solved`. See [Strict-equivalence solved-gate](#strict-equivalence-solved-gate). **Use sparingly**: registered deviations leak into every downstream consumer; the right move when the strict gate fails is almost always to *fix* the encoding, not accept. | structured key/value lines — required: `id:`, `breaks:`, `preserves:`, `at_risk_pattern:`. Optional: `introduced_by_ref:` (defaults to this row's ref), `tags:` (comma-separated), `notes:` (free-form; everything from this line to end-of-body) |
 | `new_manager` | a natural phase boundary (e.g. tex proof done → leanify) or your context is large | handoff dossier: where we are, what's done (verifiers passed), what's next, file paths the next manager needs |
 | `reorder` | a prerequisite needs solving first | `PRECEDES: <ref>, <ref>, ...` on one line + rationale. An independent verifier judges the reorder; on PASS, the named refs are moved ahead of this row, this row's Lean state is cleared with a note in `tips`, and the run exits |
 | `reset` | throw away current state and start fresh | brief explanation |
@@ -101,11 +104,12 @@ The canonical list of valid action names is in `scaffold/create_data.py` `ACTION
 1. `spawn_agent_sub_task` → `formalize_definition_in_lean.md` (writes one or more Lean items; the def subfile is already pre-populated with the LN block by the orchestrator)
 2. `review_design` — full-LN-context check that the Lean shape is natural
    - On FAIL: re-dispatch the formalizer with the design feedback
-3. `verify_equivalence` — focused check that the Lean statement matches the LN block
+3. `verify_equivalence` — focused (friendly) check that the Lean statement matches the LN block
    - On FAIL: re-dispatch the formalizer
-4. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the row can be solved.
-5. `solved` → orchestrator dispatches `verify_row_solved` for the final-gate check
-6. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
+4. *(recommended for defs that introduce a new operator / predicate / structure — `marginalize`, `nodeSplittingOn`, walk constructors, etc.)*: `verify_equivalence_strict` (and `verify_with_examples` if it returns `EXAMPLE_GENERATION`). The strict checker runs automatically in the `solved` gate too, but catching a CONTENT deviation here saves a round-trip.
+5. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the row can be solved.
+6. `solved` → orchestrator dispatches `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
+7. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
 
 ### Claim row (`def_or_claim == "claim"`) — two managers, three handed-off phases
 
@@ -133,7 +137,7 @@ A claim row passes through **exactly two manager agents**: one for the **stateme
 9. `simplify_proof` — full-LN-context check.
    - **On PASS**: the proof is already as simple as it reasonably gets — keep the existing proof and move on to step 10.
    - **On FAIL**: a concrete simpler alternative was proposed in the verifier's tagged feedback; dispatch the prover with that simpler version (with `correct_tex_proof` first if the TeX needs to mirror).
-10. `solved` → `verify_row_solved` final-gate check.
+10. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
 11. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
 
 ### Claim that's actually false — **same workflow as proving, on the negation**
@@ -145,7 +149,7 @@ Disproving uses the identical pipeline as proving: first a TeX proof of the nega
 3. `verify_tex_proof` — same; the verifier verifies the disprove tex.
 4. `spawn_agent_sub_task` → `prove_claim_in_lean.md` — leanify the negation into the **new file** `<Title>Disproof.lean` (sibling of `<Title>.lean`). The Lean target is typically `theorem not_<original> : ¬ <claim> := …` (or an existential witness like `∃ <setup>, hypotheses ∧ ¬ conclusion`). **Do not edit `<Title>.lean`** — that file holds the prove-direction work and stays untouched in case you flip back.
 5. `simplify_proof` — same; targets the disprove Lean file.
-6. `solved` → `verify_row_solved`. The verifier verifies whichever side the manager's most recent `mistake`/`unmistake` indicates. The orchestrator writes `proven="disproven"` based on that last toggle, then `cleanup_row_artefacts` *deletes* the prove-side tex + `<Title>.lean` (irrelevant now) and re-points `main_lean_file` to the disprove Lean. (If you'd emitted `unmistake` before `solved` PASSed, the reverse happens — the disprove side is the one deleted.)
+6. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (now run on the disprove Lean; the strict checker is disprove-mode-aware via the row's `proven` field, so it compares to the *negation* of the LN claim). The verifier verifies whichever side the manager's most recent `mistake`/`unmistake` indicates. The orchestrator writes `proven="disproven"` based on that last toggle, then `cleanup_row_artefacts` *deletes* the prove-side tex + `<Title>.lean` (irrelevant now) and re-points `main_lean_file` to the disprove Lean. (If you'd emitted `unmistake` before `solved` PASSed, the reverse happens — the disprove side is the one deleted.)
 
 **Flipping back via `unmistake`**: if the counter-example doesn't pan out, emit `unmistake`. The orchestrator tells you in its `extra_note` that the prove-direction files are intact and exactly where prior prove-work left them. Resume the standard prove pipeline from there. You can flip again via `mistake` later; both sides' files persist across toggles.
 
@@ -175,6 +179,48 @@ When you emit `mistake`, the orchestrator does **not** immediately drop you into
 - **You always have other options at any stage.** If the surfaced deviation really does explain the failure, `refactor <upstream_def_ref>` is usually the right move (correct the encoding; the LN claim then becomes provable). If you have new evidence from continuing to think about the proof, `spawn_agent_sub_task` for another proof attempt. Re-emitting `mistake` should reflect a deliberate decision after weighing the evidence — not a reflexive "the previous mistake didn't go through, let me retry."
 
 **The gate is per-row-run.** If the row is paused and resumed later (new manager, new orchestrator invocation), both stages reset to `not done` and the sweep runs fresh on the next `mistake`. This is intentional: a fresh manager hasn't seen the previous sweep's findings and deserves to see them.
+
+### Strict-equivalence solved-gate
+
+When you emit `solved`, the orchestrator now runs **three** automatic checks in sequence before flipping `solved=yes`:
+
+1. **`verify_row_solved` worker** (LLM, existing) — confirms the whole row is in a coherent solved state.
+2. **Hard sorry-check** (deterministic, existing) — file-grep + `lake build` warning scan to confirm no `sorry` slipped through.
+3. **Strict-equivalence gate** (LLM, new) — dispatches `verify_equivalence_strict` on the row's main Lean file vs the LN `tex_block`. If the strict checker returns `EXAMPLE_GENERATION`, the orchestrator auto-chains `verify_with_examples` and uses that verdict.
+
+Steps 1 and 2 are unchanged from before. Step 3 is the new piece: it's the production-loop counterpart to the offline `extras/audit_chapter.py` sweep, designed to catch the kind of CONTENT deviation that the friendly `verify_equivalence` let through in chapter 3 (the `disjoint_EL` → `marginalize` → `claim_3_25` cascade documented in `Documenting Progression/01_disjoint_EL_cascade.tex`).
+
+**Possible outcomes of step 3:**
+
+- **PASS** (deviation_class `NONE` or `PRESENTATION`) → mark_solved proceeds.
+- **EXAMPLE_GENERATION** → orchestrator dispatches `verify_with_examples`. If that PASSes → mark_solved proceeds.
+- **FAIL** (deviation_class `CONTENT`) → you get bounced back with the strict checker's feedback + a `ROOT_CAUSE` hint (`local` or `upstream:<ref>`). The row is *not* marked solved.
+- **Worker ERROR / MISSING verdict** → logged as a warning, but mark_solved proceeds (we don't want a flaky worker to permanently block solves).
+
+**What to do when the strict gate FAILs:**
+
+- **Default move: fix the encoding.** Re-dispatch the formalizer / leanifier with the strict checker's feedback. Re-emit `solved`; the gate re-runs on the new Lean.
+- **If `ROOT_CAUSE: upstream:<ref>`**: usually the right move is `refactor <upstream_ref>` — a deviation in an upstream type leaks into every downstream consumer, and refactoring upstream closes the leak everywhere.
+- **Only as a last resort, `accept_deviation`**: writes a structured entry to `leanification/deviations.json` and bypasses the strict gate on your *next* `solved` attempt. Use this only when (a) you've genuinely concluded the LN's literal form is impractical / unnatural in Lean, AND (b) the deviation is small enough that recording it in the register adequately warns future downstream consumers. Don't reach for `accept_deviation` as a way to silence the checker — every accepted deviation makes the codebase harder to trust.
+
+**`accept_deviation` body format** (one key per line, case-insensitive):
+
+```
+id: <unique-snake-case-id>
+introduced_by_ref: <ref>            # optional; defaults to this row's ref
+breaks: <one-line LN property our encoding violates>
+preserves: <one-line LN property that still holds>
+at_risk_pattern: <pattern downstream proofs should grep against>
+tags: marginalization, disjoint_EL  # optional, comma-separated
+notes: free-form context, may span
+       multiple lines (last block)
+```
+
+The orchestrator auto-tags every entry with `manager-accepted` so the human can grep for entries that came via this path (vs auditor drafts).
+
+**The bypass is per-row-run.** If the row is paused and resumed later (new orchestrator invocation), `state.deviation_accepted` resets to `False` and the strict gate runs fresh on the next `solved`. The *register entry* persists, of course; you just need to re-emit `accept_deviation` to flip the bypass flag again (or actually fix the encoding by then).
+
+**You can also call `verify_equivalence_strict` and `verify_with_examples` voluntarily** during a row's normal workflow — they're in the actions table above. Useful if you want to know early whether your formalization will pass the gate, rather than learning at `solved`-time. (The friendly `verify_equivalence` is still there; the strict checker is additional, not a replacement.)
 
 After each Lean change, ensure `lake build` from `/home/11716061/repo_scaffold2/` is clean (the workers do this themselves; you don't run it). Never declare `solved` if a verifier in the chain hasn't PASSed.
 
