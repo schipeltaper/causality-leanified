@@ -185,7 +185,7 @@
           "last_used": "2026-05-30T19:02:17+00:00"
         }
       ],
-      "time_needed_to_solve": 2627,
+      "time_needed_to_solve": 2633,
       "refactor": true
     },
     {
@@ -194,10 +194,10 @@
       "section": "3.2",
       "title": "SplitTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean",
@@ -207,15 +207,15 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -226,8 +226,79 @@
         "add_design_choice_comments": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\spl(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\spl(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^0$ the index $j-\\frac{1}{3}$\n    and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "68b8827c-5de5-4861-92ba-5eaa1e9e3892",
+          "first_seen": "2026-05-30T19:07:44+00:00",
+          "last_used": "2026-05-30T19:07:44+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "efd33fb0-4753-4445-b25c-fb26c6d4d41b",
+          "first_seen": "2026-05-30T19:19:04+00:00",
+          "last_used": "2026-05-30T19:19:04+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e80f317f-a4d5-465c-a6c1-8607aabd418c",
+          "first_seen": "2026-05-30T19:19:53+00:00",
+          "last_used": "2026-05-30T19:19:53+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "19898319-6319-4db1-9f2a-21adeee94067",
+          "first_seen": "2026-05-30T19:25:10+00:00",
+          "last_used": "2026-05-30T19:25:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "960dc9b7-c47d-45bb-99f2-2fb35b4802be",
+          "first_seen": "2026-05-30T19:26:07+00:00",
+          "last_used": "2026-05-30T19:26:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8594792f-793a-4859-b020-5c0780d1b63c",
+          "first_seen": "2026-05-30T19:31:07+00:00",
+          "last_used": "2026-05-30T19:31:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bcce1692-48e5-444e-a6a8-51e006763f7b",
+          "first_seen": "2026-05-30T19:32:02+00:00",
+          "last_used": "2026-05-30T19:32:02+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "d355a701-71e6-41b1-9471-dce6666f0a0c",
+          "first_seen": "2026-05-30T19:33:16+00:00",
+          "last_used": "2026-05-30T19:33:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dd7c8a60-a6d8-4bce-9a3a-fbadde61f39d",
+          "first_seen": "2026-05-30T19:33:35+00:00",
+          "last_used": "2026-05-30T19:33:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "2db7c6e1-3366-4211-85d4-922137968ab0",
+          "first_seen": "2026-05-30T19:35:22+00:00",
+          "last_used": "2026-05-30T19:35:22+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2770,
       "refactor": true
     },
     {

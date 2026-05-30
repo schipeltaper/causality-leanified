@@ -1,8 +1,10 @@
 import Chapter3_GraphTheory.Section3_1.Acyclicity
 import Chapter3_GraphTheory.Section3_1.TopologicalOrder
+import Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.NodeSplittingOn
 
 -- TeX proof: tex/claim_3_6_proof_SplitTopologicalOrder.tex
+-- Refactor (claim_3_2_no_finite): tex/refactor_claim_3_6_proof_SplitTopologicalOrder.tex
 
 /-!
 # Acyclicity and topological orders survive node-splitting (claim_3_6)
@@ -486,6 +488,7 @@ theorem isTopologicalOrder_nodeSplittingOn
       subst hw_eq
       exact Or.inr rfl
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: isAcyclic_nodeSplittingOn
 -- claim_3_6 (part B)
 -- title: SplitTopologicalOrder -- acyclicity preserved
 --
@@ -674,6 +677,96 @@ theorem isAcyclic_nodeSplittingOn
       exact Or.inr (hW hwW)
   -- Derive contradiction with `G.IsAcyclic`.
   exact h _ hv_proj ⟨ρ, h_ρ_dir, h_proj_pos⟩
+-- REFACTOR-BLOCK-ORIGINAL-END: isAcyclic_nodeSplittingOn
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: isAcyclic_nodeSplittingOn (was: refactor_isAcyclic_nodeSplittingOn)
+-- claim_3_6 (part B, refactored: rides claim_3_2_no_finite)
+-- title: SplitTopologicalOrder -- acyclicity preserved
+--
+-- The acyclicity half of the LN remark. With the
+-- `claim_3_2_no_finite` refactor delivering a finiteness-free
+-- `isAcyclic_iff_hasTopologicalOrder` (claim_3_2), this becomes the
+-- three-step citation that the LN's own one-line "also `G_{spl(W)}`
+-- is acyclic" prose offers:
+--   1. `(refactor_isAcyclic_iff_hasTopologicalOrder G).mp h` pulls a
+--      topological order `r` of `G` from `G.IsAcyclic`. Pre-refactor,
+--      this step would have required `[Finite α]` (LN line 238 of
+--      `graphs.tex` invokes "since `G_i` is acyclic and finite, it
+--      has a parent-free node"); the Szpilrajn-route proof of the
+--      refactored claim_3_2 lifts that restriction.
+--   2. `isTopologicalOrder_nodeSplittingOn hW hr` lifts `r` through
+--      Part A to a topological order `splitOrder W r` of
+--      `G.nodeSplittingOn W hW`. Part A is itself finiteness-free, so
+--      no extra hypothesis is introduced here.
+--   3. `(refactor_isAcyclic_iff_hasTopologicalOrder _).mpr ⟨_, _⟩`
+--      concludes acyclicity. The `⇐` direction of claim_3_2 has
+--      always been finiteness-free (irreflexivity + transitivity of
+--      the topological order suffices), so no surprise.
+/-
+Verbatim from `lecture-notes/lecture_notes/graphs.tex` (Rem 444 -- 455; same block as Part A):
+
+\begin{claimmark}
+\begin{Rem}
+    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
+    ...
+\end{Rem}
+\end{claimmark}
+-/
+--
+-- ## Design choice (refactor)
+--
+-- * **No `[Finite α]` hypothesis** (same as the original). The
+--   refactor only changes the proof; the statement signature is
+--   identical to the walk-lifting version above.
+-- * **Why the three-step citation route now wins.** Pre-refactor, the
+--   walk-lifting route (route (ii) in the original's design block)
+--   was preferred precisely because route (i) needed `[Finite α]` via
+--   the `⇒` direction of claim_3_2. With the `claim_3_2_no_finite`
+--   refactor lifting that restriction, route (i) is both shorter and
+--   matches the LN's own one-liner "also `G_{spl(W)}` is acyclic".
+--   The walk-lifting proof remains preserved verbatim in the
+--   `REFACTOR-BLOCK-ORIGINAL` block above (which Phase 7 cleanup
+--   will strip), so the alternative reasoning is documented even
+--   though it is no longer the load-bearing proof.
+-- * **Calls `refactor_isAcyclic_iff_hasTopologicalOrder` (not the
+--   original `isAcyclic_iff_hasTopologicalOrder`).** During the
+--   refactor window, both versions of claim_3_2 coexist. Phase 7's
+--   global whole-word rename `refactor_<Name>` -> `<Name>` will turn
+--   this call into the canonical `isAcyclic_iff_hasTopologicalOrder`
+--   at cleanup time.
+-- * **Naming `refactor_isAcyclic_nodeSplittingOn`.** Phase 7 cleanup
+--   strips the `refactor_` prefix to produce the final
+--   `isAcyclic_nodeSplittingOn`.
+
+/-- claim_3_6 part B (refactored, rides `claim_3_2_no_finite`): if
+`W ⊆ G.V` and `G` is acyclic, then `G.nodeSplittingOn W hW` is
+acyclic. Mirrors the acyclicity half of the `\Rem` immediately after
+def_3_11 in `lecture-notes/lecture_notes/graphs.tex` (lines 444 --
+455); see the refactor twin proof at
+`tex/refactor_claim_3_6_proof_SplitTopologicalOrder.tex` for the
+verified mathematical roadmap. The proof is the three-step citation
+of the refactored finiteness-free `claim_3_2`
+(`refactor_isAcyclic_iff_hasTopologicalOrder`) composed with Part A
+(`isTopologicalOrder_nodeSplittingOn`), matching the LN's own
+one-line statement of the result. -/
+theorem refactor_isAcyclic_nodeSplittingOn
+    {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
+    (h : G.IsAcyclic) :
+    (G.nodeSplittingOn W hW).IsAcyclic := by
+  -- Mirrors `tex/refactor_claim_3_6_proof_SplitTopologicalOrder.tex`
+  -- Part (B): three citations of the refactored claim_3_2.
+  -- Step 1 (TeX Part B step 1): G acyclic ⇒ G has a topological order
+  -- via the `⇒` direction of refactored claim_3_2.
+  obtain ⟨r, hr⟩ := (refactor_isAcyclic_iff_hasTopologicalOrder G).mp h
+  -- Step 2 (TeX Part B step 2): lift `r` to a topological order on
+  -- `G.nodeSplittingOn W hW` via Part A.
+  have h_split : (G.nodeSplittingOn W hW).HasTopologicalOrder :=
+    ⟨splitOrder W r, isTopologicalOrder_nodeSplittingOn hW hr⟩
+  -- Step 3 (TeX Part B step 3): the `⇐` direction of refactored
+  -- claim_3_2 concludes acyclicity.
+  exact (refactor_isAcyclic_iff_hasTopologicalOrder
+    (G.nodeSplittingOn W hW)).mpr h_split
+-- REFACTOR-BLOCK-REPLACEMENT-END: isAcyclic_nodeSplittingOn
 
 end CDMG
 
