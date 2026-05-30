@@ -404,49 +404,6 @@
       "agent_registry": [],
       "time_needed_to_solve": 0,
       "refactor": true
-    },
-    {
-      "def_or_claim": "claim",
-      "ref": "claim_3_25",
-      "section": "3.3",
-      "title": "ISigmaSeparation",
-      "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
-      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
-      "tex_file": "graphs.tex",
-      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparationMarginalization.lean",
-      "lean_files": [
-        "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparationMarginalization.lean",
-        "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenWalkMarginalization.lean"
-      ],
-      "actions_tracking": {
-        "expand_proof": 0,
-        "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
-        "refactor": 0,
-        "make_plan": 0,
-        "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
-        "reorder": 0,
-        "reset": 0,
-        "request_from_human": 0,
-        "mistake": 0,
-        "no_action": 0,
-        "add_design_choice_comments": 0
-      },
-      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[$i\\sigma$-separation under marginalization]\\label{lem:stability_separation_marginalization}\n        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \\ins J \\cup V$ and $D \\ins V$ \n        be subsets of nodes such that:\n        \\[ D \\cap \\lp A \\cup B \\cup C\\rp = \\emptyset.\\]\n        Then we have the equivalence:\n        \\[ A \\isPerp_G B \\given C \\qquad \\iff \\qquad  A \\isPerp_{G^{\\sm D} }B \\given C. \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "refactor": true
     }
   ]
 }
