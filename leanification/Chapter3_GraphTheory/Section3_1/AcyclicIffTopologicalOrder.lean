@@ -165,6 +165,7 @@ private lemma topo_lt_of_directed_walk_pos
     | backward _ => simp at h_dir
     | bidir _ => simp at h_dir
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: isAcyclic_iff_hasTopologicalOrder
 -- claim_3_2
 -- title: AcyclicIffTopologicalOrder
 --
@@ -398,6 +399,203 @@ theorem isAcyclic_iff_hasTopologicalOrder
     obtain ⟨_, _, h_rvv⟩ :=
       topo_lt_of_directed_walk_pos hr π h_dir h_pos
     exact hr.irrefl v hv h_rvv
+-- REFACTOR-BLOCK-ORIGINAL-END: isAcyclic_iff_hasTopologicalOrder
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: isAcyclic_iff_hasTopologicalOrder (was: refactor_isAcyclic_iff_hasTopologicalOrder)
+-- claim_3_2 (refactored: no-finiteness variant)
+-- title: AcyclicIffTopologicalOrder
+--
+-- A CDMG `G = (J, V, E, L)` is *acyclic* iff it *has* a topological
+-- order. The LN states this without any finiteness hypothesis on the
+-- vertex set, and (as our proof witnesses) the equivalence holds for
+-- arbitrary `α` --- no `[Finite α]` instance is required. See the
+-- design block below for the discussion of why the LN's prose
+-- mentions finiteness only inside its *proof* (its iterative parent-
+-- free-node construction needs it) but the statement itself is
+-- finiteness-free, and how the Lean proof discharges the (⇒)
+-- direction via Mathlib's `extend_partialOrder` (Szpilrajn) on the
+-- "reachable by a directed walk" preorder rather than the LN's
+-- iterative construction.
+/-
+Verbatim from `lecture-notes/lecture_notes/graphs.tex` (Lem after
+def 3.8, lines 222 -- 226):
+
+\begin{claimmark}
+\begin{Lem}
+        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+\end{Lem}
+\end{claimmark}
+-/
+--
+-- ## Design choice
+--
+-- * **No `[Finite α]` hypothesis.** The LN states the lemma without
+--   any finiteness assumption on the vertex set, and our Lean proof
+--   honours that --- the equivalence holds for arbitrary `α` via the
+--   Szpilrajn route discussed below (which does not enumerate
+--   vertices). Removing `[Finite α]` makes the lemma applicable
+--   downstream to iSCMs (chapters 8 -- 10) and other settings where
+--   the vertex type is not assumed finite at the statement level.
+--   Concrete beneficiaries already foreshadowed in the codebase:
+--   `claim_3_6` part B (`isAcyclic_nodeSplittingOn` in
+--   `Section3_2/SplitTopologicalOrder.lean`) explicitly kept its own
+--   `[Finite α]` off and noted that route (i) of its proof would have
+--   needed it via this very iff --- once this refactor lands, that
+--   route becomes finiteness-free too. Similar wins propagate
+--   through claim_3_12 / _16 / _17 / _18 / _19 / _23 / _27, all
+--   listed as dependents in the refactor table.
+--
+-- * **Existential right-hand side `G.HasTopologicalOrder`, not the
+--   relation-level `IsTopologicalOrder G r`.** The LN's Lem reads
+--   "G ... has a topological order" --- the order is existentially
+--   quantified. `HasTopologicalOrder` (def in
+--   `TopologicalOrder.lean`) is exactly the unwrap
+--   `∃ r, IsTopologicalOrder G r`, so it lines up verbatim with the
+--   LN's "has". An alternative iff `G.IsAcyclic ↔ ∀ r,
+--   IsTopologicalOrder G r` would be false (the trivial relation is
+--   never a topological order of a non-empty graph), and
+--   `G.IsAcyclic ↔ IsTopologicalOrder G r` for a *fixed* `r` would
+--   be a strictly stronger statement that the LN does not make.
+--   Both `Acyclicity.lean` (its `Where this gets used downstream`
+--   block) and `TopologicalOrder.lean` (its `HasTopologicalOrder`
+--   docstring) already commit the project to this exact shape, so
+--   choosing the existential reading also keeps cross-file
+--   references consistent.
+--
+-- * **Why Szpilrajn rather than the LN's iterative parent-free-node
+--   construction (in the (⇒) direction).** The LN's construction
+--   needs `|J ∪ V|` to be finite to terminate --- `graphs.tex` line
+--   238 explicitly invokes "since `G_i` is acyclic ... and finite,
+--   it has a node `v_i` with `\Pa^{G_i}(v_i) = ∅`" --- and would
+--   force a `[Finite α]` hypothesis back onto the statement. The
+--   Szpilrajn route (`extend_partialOrder` applied to the "reachable
+--   by a directed walk" preorder `r₀`) is *strictly more general*: it
+--   does not enumerate vertices, so it works for arbitrary `α` while
+--   establishing the same equivalence the LN claims. Antisymmetry of
+--   `r₀` under acyclicity is the load-bearing observation --- a
+--   two-way directed walk between distinct nodes appends into a
+--   non-trivial directed cycle, which `IsAcyclic` forbids.
+--
+--   The walk-based preorder `r₀` is chosen over the semantically
+--   equivalent "ancestor of" relation because walk concatenation
+--   discharges transitivity and antisymmetry directly: the appended
+--   walk *is* the cycle witness under acyclicity, and the `Walk`
+--   inductive already carries the structural recursion needed for
+--   the `directedWalk_append` helper above. An ancestor-defined
+--   preorder would have to first reify the reflexive-transitive
+--   closure of `Pa^G`, then re-derive the same chaining.
+--
+--   The LN's iterative construction itself stays preserved verbatim
+--   in the *original* proof tex
+--   `tex/claim_3_2_proof_AcyclicIffTopologicalOrder.tex` (which
+--   stays on disk untouched until Phase 7 cleanup), so the finite-
+--   context reasoning is not lost. The refactor twin
+--   `tex/refactor_claim_3_2_proof_AcyclicIffTopologicalOrder.tex`
+--   will carry the Szpilrajn route that this Lean theorem follows
+--   and is what the cleanup script promotes over the original at
+--   Phase 7.
+--
+-- * **Namespacing
+--   `Causality.CDMG.isAcyclic_iff_hasTopologicalOrder`,
+--   dot-projection intended.** Downstream callers write
+--   `G.isAcyclic_iff_hasTopologicalOrder.mp ha` (acyclic ⇒ has topo
+--   order) and similarly `.mpr` for the reverse direction. The name
+--   reads as the LN's prose "G is acyclic iff G has a topological
+--   order" and parallels every other claim-of-`CDMG` theorem in this
+--   section (`no_arrowhead_into_input`, `input_edge_target_mem_V`,
+--   `input_nodes_not_adjacent` in `JNodeProperties.lean`). Splitting
+--   into two separate lemmas (`isAcyclic_of_hasTopologicalOrder` and
+--   `hasTopologicalOrder_of_isAcyclic`) was considered, but the LN
+--   states the equivalence as a single Lem; bundling them as one iff
+--   matches that prose and lets `simp` / `rw` rewrite freely between
+--   the two predicates.
+--
+-- * **`α` implicit, `G` explicit.** Standard for "fix a graph, then
+--   state a property of it" theorems; matches every other theorem in
+--   the section (`Acyclicity`, `TopologicalOrder`,
+--   `JNodeProperties`, the `Family*` files).
+/-- claim_3_2 (`AcyclicIffTopologicalOrder`, refactored: no
+finiteness): a CDMG `G` is acyclic iff it has a topological order.
+Mirrors `lecture-notes/lecture_notes/graphs.tex` Lem at line 224
+verbatim, using `CDMG.IsAcyclic` (def_3_6) on the left and the
+existential `CDMG.HasTopologicalOrder` (def_3_8) on the right. **No
+`[Finite α]` hypothesis** --- the LN states the lemma without
+finiteness, and the Lean proof uses `extend_partialOrder`
+(Szpilrajn) on the "reachable by a directed walk" preorder for the
+(⇒) direction, which does not require finiteness. See the design
+block above for the trade-off vs. the LN's iterative construction
+and the list of downstream rows whose `[Finite α]` baggage this
+refactor lifts. -/
+theorem refactor_isAcyclic_iff_hasTopologicalOrder
+    (G : CDMG α) :
+    G.IsAcyclic ↔ G.HasTopologicalOrder := by
+  refine ⟨?_, ?_⟩
+  · -- (⇒) acyclic ⇒ has topological order, via Szpilrajn on the
+    -- "reachable by a directed walk" preorder. No finiteness needed.
+    intro hac
+    -- The "reachable by a directed walk" preorder.
+    let r₀ : α → α → Prop := fun v w => ∃ π : Walk G v w, π.IsDirected
+    -- Refl: take the trivial walk.
+    have hr₀_refl : ∀ v, r₀ v v := fun v => ⟨Walk.nil v, by simp⟩
+    -- Trans: concat directed walks.
+    have hr₀_trans : ∀ x y z, r₀ x y → r₀ y z → r₀ x z := by
+      rintro x y z ⟨π₁, h₁⟩ ⟨π₂, h₂⟩
+      exact ⟨π₁.append π₂, directedWalk_append π₁ π₂ h₁ h₂⟩
+    -- Antisymm: under acyclicity, any two-way directed walk closes
+    -- into a cycle through `x`.
+    have hr₀_antisymm : ∀ x y, r₀ x y → r₀ y x → x = y := by
+      rintro x y ⟨π₁, h₁⟩ ⟨π₂, h₂⟩
+      by_contra h_neq
+      cases π₁ with
+      | nil _ => exact h_neq rfl
+      | cons s p =>
+        cases s with
+        | forward h_e =>
+          have hx : x ∈ G :=
+            CDMG.mem_iff.mpr (Set.mem_prod.mp (G.E_subset h_e)).1
+          have h_cycle_dir : ((Walk.cons (.forward h_e) p).append π₂).IsDirected :=
+            directedWalk_append _ _ h₁ h₂
+          have h_cycle_pos :
+              1 ≤ ((Walk.cons (.forward h_e) p).append π₂).length := by
+            rw [Walk.length_append, Walk.length_cons]; omega
+          exact hac x hx ⟨_, h_cycle_dir, h_cycle_pos⟩
+        | backward _ => simp at h₁
+        | bidir _ => simp at h₁
+    -- Register `r₀` as a partial order; apply Mathlib's Szpilrajn.
+    haveI : IsPartialOrder α r₀ :=
+      { refl := hr₀_refl, trans := hr₀_trans, antisymm := hr₀_antisymm }
+    obtain ⟨s, hs_lin, hrs⟩ := extend_partialOrder r₀
+    haveI : IsLinearOrder α s := hs_lin
+    -- The strict part of `s` is the topological order.
+    refine ⟨fun v w => s v w ∧ v ≠ w, ?_, ?_, ?_, ?_⟩
+    · intro v _ ⟨_, hne⟩; exact hne rfl
+    · intro v _ w hw u _ ⟨hsvw, hne_vw⟩ ⟨hswu, _⟩
+      refine ⟨_root_.trans hsvw hswu, ?_⟩
+      intro h_eq
+      subst h_eq
+      exact hne_vw (_root_.antisymm hsvw hswu)
+    · intro v _ w _
+      rcases eq_or_ne v w with rfl | hne
+      · exact Or.inr (Or.inl rfl)
+      · rcases total_of s v w with h | h
+        · exact Or.inl ⟨h, hne⟩
+        · exact Or.inr (Or.inr ⟨h, hne.symm⟩)
+    · intro v w h_pa
+      obtain ⟨hv, h_edge⟩ := h_pa
+      have hr0 : r₀ v w :=
+        ⟨Walk.cons (.forward h_edge) (Walk.nil w), by simp⟩
+      have hsvw : s v w := hrs v w hr0
+      have hne : v ≠ w := by
+        intro h_eq; subst h_eq
+        exact hac v hv
+          ⟨Walk.cons (.forward h_edge) (Walk.nil v), by simp, by simp⟩
+      exact ⟨hsvw, hne⟩
+  · -- (⇐) has topological order ⇒ acyclic. No finiteness used.
+    rintro ⟨r, hr⟩ v hv ⟨π, h_dir, h_pos⟩
+    obtain ⟨_, _, h_rvv⟩ :=
+      topo_lt_of_directed_walk_pos hr π h_dir h_pos
+    exact hr.irrefl v hv h_rvv
+-- REFACTOR-BLOCK-REPLACEMENT-END: isAcyclic_iff_hasTopologicalOrder
 
 end CDMG
 

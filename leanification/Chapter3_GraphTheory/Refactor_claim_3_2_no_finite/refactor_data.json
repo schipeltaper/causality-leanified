@@ -32,10 +32,10 @@
       "section": "3.1",
       "title": "AcyclicIffTopologicalOrder",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
@@ -45,26 +45,147 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
-        "no_action": 0
+        "no_action": 0,
+        "add_design_choice_comments": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ccf57719-f9ef-4892-9bb2-29947f511599",
+          "first_seen": "2026-05-30T18:25:54+00:00",
+          "last_used": "2026-05-30T18:25:54+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c9cc4e44-c1f9-436b-9595-750e0dc0f9dd",
+          "first_seen": "2026-05-30T18:30:02+00:00",
+          "last_used": "2026-05-30T18:30:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "42f5a3f4-b378-4e7e-aaeb-fa5054234294",
+          "first_seen": "2026-05-30T18:32:40+00:00",
+          "last_used": "2026-05-30T18:32:40+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "9dc0f9ae-ebcd-4b3f-8387-6bfaa18ac595",
+          "first_seen": "2026-05-30T18:34:56+00:00",
+          "last_used": "2026-05-30T18:34:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "af031be4-d877-45d7-95dc-4bd251c1722c",
+          "first_seen": "2026-05-30T18:36:01+00:00",
+          "last_used": "2026-05-30T18:36:01+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "ac03e0da-cb45-404f-a82d-ca30b5156482",
+          "first_seen": "2026-05-30T18:37:42+00:00",
+          "last_used": "2026-05-30T18:37:42+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "50d1307a-2dc7-42c3-a6fe-d5272287d9b9",
+          "first_seen": "2026-05-30T18:39:03+00:00",
+          "last_used": "2026-05-30T18:39:03+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "d1d98308-234a-40f1-9ea6-97d25d0154c7",
+          "first_seen": "2026-05-30T18:44:33+00:00",
+          "last_used": "2026-05-30T18:44:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aa045f2f-fe66-4ddc-a552-b82b92a3dbe4",
+          "first_seen": "2026-05-30T18:47:05+00:00",
+          "last_used": "2026-05-30T18:47:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "05f10e10-3273-4a54-97dc-1245d77190e5",
+          "first_seen": "2026-05-30T18:48:28+00:00",
+          "last_used": "2026-05-30T18:48:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "809569b3-7cc4-46b5-9390-a9c1d27abcb0",
+          "first_seen": "2026-05-30T18:52:40+00:00",
+          "last_used": "2026-05-30T18:52:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a7152ff3-cfe4-4b01-9d90-bc1b92c9bf4a",
+          "first_seen": "2026-05-30T18:53:40+00:00",
+          "last_used": "2026-05-30T18:53:40+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "889b3af7-b3e3-4c8b-b000-5d654a83ce46",
+          "first_seen": "2026-05-30T18:55:34+00:00",
+          "last_used": "2026-05-30T18:55:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5e7d6028-ae6e-40ab-a3d2-637f458816e1",
+          "first_seen": "2026-05-30T18:56:37+00:00",
+          "last_used": "2026-05-30T18:56:37+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "d26ccfdf-7a11-4ac2-9ce8-6218477d9ae7",
+          "first_seen": "2026-05-30T18:58:30+00:00",
+          "last_used": "2026-05-30T18:58:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "25fd916d-1481-4e22-9636-8cb12b866c61",
+          "first_seen": "2026-05-30T18:59:24+00:00",
+          "last_used": "2026-05-30T18:59:24+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "0ec21e7c-36b8-47fd-ae6a-d936acac0195",
+          "first_seen": "2026-05-30T19:02:17+00:00",
+          "last_used": "2026-05-30T19:02:17+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2627,
       "refactor": true
     },
     {
