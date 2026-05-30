@@ -9,7 +9,21 @@ You are NOT the friendly first-pass `verify_equivalence` worker. Your default di
 - `ref` of the row being checked.
 - The LN-side source: the row's `tex_block` (verbatim from the lecture notes' `\begin{defmark}` / `\begin{claimmark}` block), and the path to the LN tex file for surrounding context.
 - The Lean file(s) the row produced (the `main_lean_file` and any auxiliary `lean_files` in the row's data).
+- **The row's verdict mode** (claim rows only): `proven` mode means the Lean theorem should state and prove the LN's *literal* claim; `disproven` mode means the Lean theorem should state and prove the **negation** of the LN's claim (a counter-example). The mode is set by the row's `proven` field (or, at solve-time, by the manager's most recent `mistake` / `unmistake` action). Definitions and `proven=proven` rows compare to the literal LN form; `proven=disproven` rows compare to `¬ (LN claim)`.
 - (Optionally) the existing **deviation register** (`leanification/deviations.json`) -- so you can recognise known deviations the encoding may inherit through its dependencies.
+
+## Disprove-mode equivalence target
+
+If the row context's `verdict mode` is **`disproven`**, the Lean theorem you are checking is supposed to be a proof of `¬ (LN claim)` (or an existential counter-example to it). For disprove-mode equivalence:
+
+- The LN's *literal* claim is the **starting point**; you mentally negate it; that negation is what the Lean theorem must equivalently state.
+- A `proven=disproven` row whose Lean theorem states the *positive* LN claim is a CONTENT mismatch (the theorem proves the wrong thing).
+- A `proven=disproven` row whose Lean theorem states `¬ (LN claim)` literally is PRESENTATION-equivalent; same mathematics encoded in negated form.
+- An existential counter-example like `∃ (G : CDMG α) (A B C : Set α), ¬ (P G A B C)` is also PRESENTATION-equivalent to `¬ ∀ G A B C, P G A B C` when `P` is the LN's positive claim quantified the same way -- both prove the LN's claim is *false*.
+
+If the row context's `verdict mode` is **`proven`** (or this is a `def` row), the Lean theorem should state the LN's literal claim and the standard PRESENTATION/CONTENT analysis applies.
+
+If the row context says `verdict mode: unknown` or does not include the field, default to `proven` mode and note this in your report.
 
 ## The single binary classification
 
@@ -46,6 +60,7 @@ DEVIATION_CLASS: PRESENTATION | NONE
 ```
 VERDICT: FAIL
 DEVIATION_CLASS: CONTENT
+ROOT_CAUSE: local | upstream:<ref>
 BEGIN[feedback]
 <concrete description of the CONTENT deviation, which LN property it
 violates, and what the manager should do about it. If you believe the
@@ -54,6 +69,25 @@ believe the upstream encoding (e.g. the structure the def builds on)
 forces this deviation, name the upstream culprit.>
 END[feedback]
 ```
+
+**`ROOT_CAUSE` is mandatory on FAIL** and takes one of two forms:
+
+- `ROOT_CAUSE: local` -- the deviation is entirely within *this* row's
+  own Lean code. A re-spawn of the leanifier with corrective feedback
+  can plausibly fix it without changing anything upstream. Examples:
+  an extra hypothesis the LN doesn't require; a quantifier accidentally
+  restricted; an `=` written where the LN says `≤`.
+
+- `ROOT_CAUSE: upstream:<ref>` -- the deviation is *forced by an
+  upstream definition or structure* (a field constraint, a type
+  collapse, a missing instance). No local edit to this row can fix it;
+  the upstream `<ref>` would need refactoring. **Be quite sure before
+  claiming this.** The bar: you can name the specific upstream field /
+  constraint and articulate why no local re-encoding could satisfy
+  both that constraint and LN-faithfulness simultaneously. If in
+  doubt, label `local` -- a wrongly-labelled `local` only costs the
+  manager a few extra retries; a wrongly-labelled `upstream` would
+  trigger a refactor cascade that may be wholly unnecessary.
 
 ```
 VERDICT: EXAMPLE_GENERATION

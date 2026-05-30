@@ -16,5 +16,640 @@
     "overall_verdict": "PASS",
     "audited_at": "2026-05-29T14:12:01+00:00",
     "elapsed_sec": 447.2
+  },
+  {
+    "ref": "def_3_1",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "s in `V × V`. The LN's \"(v₁,v₂) ∈ L ⟹ (v₂,v₁) ∈ L\" makes this explicit. (PRESENTATION.)\n- `disjoint_EL` ↔ \"two (disjoint) sets of edges\" — both E and L live in `α × α`, and since L is symmetric, `Disjoint E L` forbids any directed pair from coinciding (in either orientation) with a bidirected pair, which is the natural reading of LN disjointness (PRESENTATION).\n\n**Deviation register check:** The `def_3_14_marginalize_L_excludes_E` entry concerns how marginalization preserves `disjoint_EL`, not def_3_1 itself. The at-risk pattern doesn't apply here — def_3_1 introduces no operator that could be deviating; it merely asserts disjointness, which is what the LN literally says.\n\n**No new operator/predicate** — this is a foundational structure that bundles existing notions (Set, Disjoint, subset, symmetric, irreflexive). Per the guidance, this qualifies for direct PASS without example generation.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Bidirected-edge quotient `V × V / ∼` encoded as a symmetric+irreflexive subset of `V × V` (via `L_subset`, `L_irrefl`, `L_symm`), with the LN's structural disjointness clauses surfaced as named fields `disjoint_JV` and `disjoint_EL`."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:13:30+00:00",
+    "elapsed_sec": 58.7
+  },
+  {
+    "ref": "def_3_2",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "NONE",
+      "feedback": "",
+      "raw_tail": " ≡ `(v₂,v₁) ∈ E` | `hut G v₁ v₂ := (v₂, v₁) ∈ G.E` | ✓ identical |\n| 4 | `v₁ \\huh v₂ ∈ G` ≡ `(v₁,v₂) ∈ L` | `huh G v₁ v₂ := (v₁, v₂) ∈ G.L` | ✓ identical |\n| 5 | `\\suh` ≡ `\\tuh ∨ \\huh` | `suh := tuh ∨ huh` | ✓ identical |\n| 6 | `\\hus` ≡ `\\hut ∨ \\huh` | `hus := hut ∨ huh` | ✓ identical |\n| 7 | `\\sus` ≡ `\\tuh ∨ \\hut ∨ \\huh` | `sus := tuh ∨ hut ∨ huh` | ✓ identical |\n\nThe CDMG fields `J, V : Set α` and `E, L : Set (α × α)` are present in `def_3_1`, so each alias resolves to the exact membership the LN names.\n\n**Deviation register:** the `def_3_14_marginalize_L_excludes_E` entry is unrelated — this row introduces no new operator and does no marginalization; it just aliases existing `G.E`/`G.L` membership.\n\n**No new operator/predicate/structure introduced.** Every Lean `def` is a one-line `=`-by-definition rename of an existing membership relation in `G.E`, `G.L`, or `G.J ∪ G.V`, and the three \"star\" relations are literal disjunctions matching the LN word-for-word. This is the textbook PASS-immediate case (\"pure renaming, notation, or alias … just bundles existing ones\"). The Unicode arrow choices and `[G]` vs `∈ G` placement are syntactic packaging.\n\nVERDICT: PASS\nDEVIATION_CLASS: NONE"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:14:13+00:00",
+    "elapsed_sec": 43.0
+  },
+  {
+    "ref": "def_3_3",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": " the LN's via `L_symm`. Match (one predicate covers both \"into\" sentences via argument shuffle).\n\n**Item 3**: LN \"out of $v_1$\" = \"$v_1 \\tuh v_2 \\lor v_2 \\hut v_1$\" → `EdgeOutOf G v₁ v₂ := tuh G v₁ v₂`. Both LN disjuncts unfold to \"$(v_1,v_2) \\in G.E$\", so the disjunction collapses to a single condition; the Lean canonical form is exact. `edgeOutOf_iff_hut` records the alternative spelling. Bidirected edges are correctly excluded — the asymmetry between items 2 and 3 (no `\\huh` on \"out of\" side) is preserved.\n\nDeviation register: only entry is `def_3_14_marginalize_L_excludes_E`, irrelevant here. No upstream contamination.\n\nThese are pure aliases of already-encoded def_3_2 disjunctions — no new operator/predicate, just prose-readable names bundling existing primitives. PASS-without-examples criteria met.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Items 2 and 3 are packaged via a single predicate each (`EdgeInto`, `EdgeOutOf`); LN's \"into v₂\" is recovered as `EdgeInto G v₂ v₁` (argument shuffle), and LN's two equivalent spellings of \"out of v₁\" ($v_1 \\tuh v_2$ / $v_2 \\hut v_1$) collapse to the canonical `tuh G v₁ v₂` (both unfold to $(v_1,v_2) \\in G.E$).\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:15:44+00:00",
+    "elapsed_sec": 90.7
+  },
+  {
+    "ref": "claim_3_1",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "oint_JV`); `huh G j j` is ruled out by `L_irrefl`. So the strengthening is provable, hence equivalent. ✓\n\n**Underlying notations** (`hus`, `tuh`, `Adjacent`) defined in CDMGNotation/EdgeRelations match LN macros faithfully (verified in CDMGNotation.lean L66–106 and EdgeRelations.lean L72).\n\n**Deviation register**: only entry is `def_3_14_marginalize_L_excludes_E` — unrelated to claim_3_1 (no marginalization, no `L^{∖W}` usage).\n\n**No new operators/predicates introduced** — claim_3_1 just states three consequences of `def_3_1`'s structural invariants using existing notations. Qualifies for direct PASS per the \"bundles existing ones\" exemption.\n\n**Packaging difference**: LN bundles three sub-claims in one prose Remark connected by \"Furthermore\"; Lean splits into three separately-citable theorems.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN bundles three independent sub-claims in one prose Remark; Lean splits them into three separately-citable theorems (`no_arrowhead_into_input`, `input_edge_target_mem_V`, `input_nodes_not_adjacent`), and strengthens \"no two J-nodes adjacent\" to allow $j_1=j_2$ (provably equivalent under `disjoint_JV` + `L_irrefl` + `E_subset`)."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:17:26+00:00",
+    "elapsed_sec": 101.6
+  },
+  {
+    "ref": "def_3_4",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "Walk`, `BifurcationWitness`) and ten new predicates (`IsDirected`, `IsBidirected`, `IsCollider`/`IsColliderInner`, `IsPath`, `IsAllBackward`, `IntoStart`, `OutOfStart`, `IntoEnd`, `OutOfEnd`) plus `bifurcationSource`. Hand-reasoning leans PASS, but per worker guidance walk constructors warrant example-based verification. Specific points to verify with small CDMG instances: (1) `IsCollider` at length 1 — author adopted the strict reading of LN's general formula (only single-bidir edges count) over LN's parenthetical \"for n=1 this reads: v\\sus w ∈ G\" (any edge); confirm this matches the LN's general-formula shape on instances of length 0, 1, 2, 3 with mixed edge types; (2) `BifurcationWitness`'s `IsAllBackward` left-arm reading vs the LN's \"the subwalk is a directed walk from v_{k-1} to v_0\" (claimed equivalent via reversal, not proven); (3) the bifurcation's \"endnodes exactly once\" via `v ∉ support.tail ∧ w ∉ support.dropLast` on borderline walks (length 1, length 2 where v_1 = v or v_1 = w); (4) the False convention for `Into*`/`OutOf*` on the trivial walk; (5) `bifurcationSource` on a walk with a single bidirected hinge (expect `none`) vs a single `\\hut` hinge (expect `some v_k`)."
+    },
+    "examples": {
+      "verdict": "FAIL",
+      "instances_checked": 5,
+      "feedback": "The encoding of `Walk.IsCollider` deviates from the LN's literal text\nat n=1, and the deviation is unregistered in\n`leanification/deviations.json`.\n\nConcrete breaking instance:\n  G_test : CDMG (Fin 4) with\n    E = {(0,1), (1,2), (1,0)}, L = {(0,3), (3,0)}, V = {0,1,2,3}.\n  walk = Walk.cons (.forward (h : 0 ⟶[G_test] 1)) (.nil 1)\n       : Walk G_test 0 1     -- a single forward step from 0 to 1.\n\nLN-side expected answer (def 3.4 item 4, second sentence):\n  \"Note that for n=1 this reads: v \\sus w \\in G.\"\n  Since (0,1) ∈ E we have 0 \\sus 1 in G, so this walk IS a collider\n  walk per the LN's literal note. Expected: IsCollider = TRUE.\n\nLean-side actual answer:\n  `Walk.IsCollider` on `cons s (nil _)` reduces (via the @[simp]\n  lemma `isCollider_cons_nil`) to `s.IsBidir`. For\n  `s = .forward h`, `IsBidir = False`. Verified by typechecking\n  `example : ¬ walk_fwd_01.IsCollider := by ...` under `lake env\n  lean`.\n\nWhy they differ:\n  Walks.lean → WalkPredicates.lean's design block for `IsCollider`\n  picks the *strict* reading of the LN general formula at n=1\n  (\"simultaneously \\suh and \\hus\" ⇒ only bidirected single-step\n  walks qualify) and explicitly rejects the *loose* reading from\n  the LN's \"Note that for n=1 this reads: v \\sus w\" sentence.\n  The block calls the loose reading \"slightly looser\" and argues\n  downstream uses only need the strict version. That is a\n  *content* choice, not a notation choice -- it changes which\n  walks count as collider walks.\n\nCulprit clause:\n  `WalkPredicates.lean`, the `IsCollider` definition, second\n  pattern case:\n      | _, _, .cons s (.nil _)    => s.IsBidir\n  Under the LN's literal n=1 note this should be\n  `s.HasArrowheadAtTarget ∨ s.HasArrowheadAtSource` (i.e.\n  any of forward / backward / bidir), or equivalently `True`\n  given that `WalkStep`'s very existence already certifies\n  adjacency. The strict `s.IsBidir` excludes forward and backward\n  single-step walks that the LN admits.\n\nRecommended action:\n  Either (a) register this as a deviation in\n  `leanification/deviations.json` with notes mirroring the\n  Walks.lean design block (LN ambiguous at n=1; strict reading\n  chosen for downstream compositionality; at-risk pattern =\n  any future row that constructs a single-step collider walk\n  from a non-bidirected edge), so downstream auditors know to\n  stress-test the strict reading; or (b) loosen the n=1 case\n  to match the LN note. The design block prefers (a) for\n  downstream-proof reasons; in that case the deviation register\n  needs the entry.\n\nThe other four instances (trivial walk, single bidir step,\n2-step bifurcation, support/length sanity) all agreed\nLN-side and Lean-side and the structural API (Walk inductive,\nlength, support, append, reverse, IsDirected, IsBidirected,\nIsPath, BifurcationWitness, IsBifurcation, bifurcationSource)\notherwise matches the LN's def 3.4 items 1, 2, 3, 5, 6.",
+      "raw_tail": " s.HasArrowheadAtSource` (i.e.\n  any of forward / backward / bidir), or equivalently `True`\n  given that `WalkStep`'s very existence already certifies\n  adjacency. The strict `s.IsBidir` excludes forward and backward\n  single-step walks that the LN admits.\n\nRecommended action:\n  Either (a) register this as a deviation in\n  `leanification/deviations.json` with notes mirroring the\n  Walks.lean design block (LN ambiguous at n=1; strict reading\n  chosen for downstream compositionality; at-risk pattern =\n  any future row that constructs a single-step collider walk\n  from a non-bidirected edge), so downstream auditors know to\n  stress-test the strict reading; or (b) loosen the n=1 case\n  to match the LN note. The design block prefers (a) for\n  downstream-proof reasons; in that case the deviation register\n  needs the entry.\n\nThe other four instances (trivial walk, single bidir step,\n2-step bifurcation, support/length sanity) all agreed\nLN-side and Lean-side and the structural API (Walk inductive,\nlength, support, append, reverse, IsDirected, IsBidirected,\nIsPath, BifurcationWitness, IsBifurcation, bifurcationSource)\notherwise matches the LN's def 3.4 items 1, 2, 3, 5, 6.\nEND[feedback]\n```"
+    },
+    "overall_verdict": "FAIL",
+    "audited_at": "2026-05-29T14:27:12+00:00",
+    "elapsed_sec": 586.1
+  },
+  {
+    "ref": "def_3_5",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ants), five of which (Anc/Desc/Sc/NonDesc/Dist) lift def_3_4's Walk + IsDirected/IsBidirected predicates into existential set-builders. Hand-reasoning strongly leans PASS — every observable deviation (carrier `Set α`, `w ∈ G` guard, `Set` suffix on set-input variants, explicit reflexivity preconditions, no SibSet, no NonDesc-vertex) is PRESENTATION; the LN's commented-out `Pa \\ A` alternative is correctly NOT taken; walk directions (Anc uses `Walk G w v`, Desc/Dist use `Walk G v w`) match the LN's `w → ... → v` / `v → ... → w` literally; the NonDesc ambient set is `G.J ∪ G.V` (LN-literal), not `Set.univ`; deviation register shows no inherited CONTENT issue (def_3_4's IsCollider deviation is unused here, and IsDirected/IsBidirected were positively verified in the def_3_4 example check). But the existential-over-walks pattern is new and parameter-rich, and the walk-direction asymmetry plus the `w ∈ G`/trivial-walk interaction plus the Pa-with-self-loop edge case are exactly the kind of subtleties cheap example checks catch — per protocol, EXAMPLE_GENERATION is the right call when a def introduces a new operator that takes non-trivial inputs, even with PASS-leaning hand-reasoning.\n```"
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": "→2) | Sc(0)⊇{0,1}, 2∉Sc(0), NonDesc({0})=∅ | ✓ |\n| 5 | Input nodes (J={0}, E={(0,1)}) | 0∈Pa(1) (J→V), 0∈Anc(1), NonDesc({0})={2} | ✓ |\n\nStress test 5 specifically exercised the `Parents can lie in G.J` design block — the input node 0 was correctly recognized as a parent of output 1 and as an ancestor of 1, while *not* being a child of any node (encoding the LN's asymmetric \"interventions point at outputs\" invariant).\n\nThe `w ∈ G` membership guard is load-bearing for Anc/Desc/Dist trivial-walk reflexivity (witnessed by `Walk.nil v` being vacuously `IsDirected`/`IsBidirected`) and was confirmed via `self_mem_Anc/Desc/Sc/Dist`. The set-input `⋃ v ∈ A, _` bigunion idiom matches the LN's literal `\\bigcup_{v \\in A}` exactly. NonDesc's `(J ∪ V) \\ DescSet A` ambient set matches the LN's `(J \\cup V) \\setminus \\Desc^G(A)` literally (not `Set.univ \\ DescSet A`).\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: all 5 instances (trivial graph, directed chain, bidirected chain, 2-cycle with tail, and J-node stress) agreed on LN-side and Lean-side answers across Pa, Ch, Sib, Anc, Desc, Sc, Dist, NonDesc; encoding correctly handles the J/V asymmetry, the w ∈ G guard, and bigunion set variants\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:39:40+00:00",
+    "elapsed_sec": 748.4
+  },
+  {
+    "ref": "def_3_6",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "NONE",
+      "feedback": "",
+      "raw_tail": "e `1 ≤ π.length` conjunct strips the trivial walk out of the existential.\n- `Walk.length` (Walks.lean:299-302): number of `WalkStep`s, i.e. the LN's `n`. So `1 ≤ π.length` is exactly \"non-trivial.\"\n- `v ∈ G` (CDMGNotation.lean:39-45): `Iff.rfl`-definable as `v ∈ G.J ∪ G.V`, which is precisely how def 3.2 defines \"$v \\in G$\" in the LN.\n\nThe encoding maps one-to-one onto the LN sentence:\n- \"there does not exist any non-trivial directed walk from $v$ to itself in $G$\" ↦ `¬ ∃ π : Walk G v v, π.IsDirected ∧ 1 ≤ π.length`\n- \"for any node $v \\in G$\" ↦ `∀ v ∈ G, ...`\n\nThe `∀ v ∈ G, ¬ ∃ ...` vs `¬ ∃ v ∈ G, ∃ ...` shape is a vacuous De Morgan rewriting, not a deviation.\n\nThe registered deviation `def_3_4_the_encoding_of_walk` targets `Walk.IsCollider`, which `IsAcyclic` does not transitively depend on — only `Walk.IsDirected` and `Walk.length` are touched. So the upstream deviation does not propagate.\n\n`IsAcyclic` introduces no new operator on non-trivial inputs: it is a pure Prop-level bundling of two existing predicates from def_3_4 over the existing walk type. The \"bundles existing ones\" PASS criterion applies, so `EXAMPLE_GENERATION` is not warranted.\n\nVERDICT: PASS\nDEVIATION_CLASS: NONE"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:41:02+00:00",
+    "elapsed_sec": 81.6
+  },
+  {
+    "ref": "def_3_7",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "NONE",
+      "feedback": "",
+      "raw_tail": "--- |\n| CADMG | $G$ acyclic | `IsAcyclic` |\n| DMG | $J = \\emptyset$ | `J = ∅` |\n| ADMG | $G$ acyclic ∧ $J = \\emptyset$ | `IsAcyclic ∧ J = ∅` |\n| CDG | $L = \\emptyset$ | `L = ∅` |\n| DG | $J = \\emptyset$ ∧ $L = \\emptyset$ | `J = ∅ ∧ L = ∅` |\n| CDAG | $G$ acyclic ∧ $L = \\emptyset$ | `IsAcyclic ∧ L = ∅` |\n| DAG | $G$ acyclic ∧ $J = \\emptyset$ ∧ $L = \\emptyset$ | `IsAcyclic ∧ J = ∅ ∧ L = ∅` |\n\nAll seven definitions are literal conjunctions of the three atomic side conditions exactly as the LN lists them. No quantifier strengthening, no exclusion clause, no relation substitution.\n\n**Deviation register check:**\n- `def_3_14_marginalize_L_excludes_E` — concerns marginalization, not relevant to the glossary.\n- `def_3_4_the_encoding_of_walk` — concerns `Walk.IsCollider`; `IsAcyclic` uses `IsDirected`, not `IsCollider`, so no inheritance.\n\nThe encoding introduces no new operator/predicate/structure — it is a pure aliasing of conjunctions of already-audited predicates (`IsAcyclic` from def_3_6, set-emptiness on the existing `CDMG` fields). The rubric's PASS-immediately conditions apply: \"pure renaming, notation, or alias\" and \"bundles existing ones.\"\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: NONE\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:42:09+00:00",
+    "elapsed_sec": 67.3
+  },
+  {
+    "ref": "def_3_8",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "equivalently, an indexing $v_1,\\dots,v_K$\" is the finite-case restatement. The Lean encoding doesn't formalise the indexing form to avoid baking in `Fintype`; downstream rows that need an indexing can derive it locally via `Fintype.equivFin`. Omission of a redundant equivalent restatement — does not change what mathematics is captured. PRESENTATION.\n\n**No CONTENT deviations.** No new operator/structure is introduced — `IsTopologicalOrder` just conjoins standard strict-total-order axioms with the parent-precedes-child quantifier. No example generation needed: the verification is purely logical, and every clause unfolds to existing well-understood pieces. Registered deviations (`def_3_14`, `def_3_4`) do not propagate into this row — it doesn't use marginalize or walks.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Order carried as `r : α → α → Prop` with strict-total-order axioms restricted to G's nodes (matching LN's \"order on J ∪ V\"); packaged as a `structure ... : Prop` with named fields; `parent_lt` drops the explicit `v ∈ G ∧ w ∈ G` hypotheses (automatic from `v ∈ Pa G w` via `Pa` def and `CDMG.E_subset`); finite-indexing form not formalised separately.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:44:38+00:00",
+    "elapsed_sec": 149.3
+  },
+  {
+    "ref": "claim_3_2",
+    "strict": {
+      "verdict": "FAIL",
+      "deviation_class": "CONTENT",
+      "feedback": "The Lean statement adds `[Finite α]` to the universal quantifier; the LN's Lem (graphs.tex:222--226) has no finiteness hypothesis, and the LN's def_3_1 of CDMG is polymorphic with no built-in finiteness. The chapter has no global finiteness convention either — finiteness is only invoked locally in specific proofs (line 238 of the proof of this very Lem). The Lean encoding therefore narrows the scope of the LN's claim: an infinite acyclic CDMG admits a topological order per the LN's literal Lem (and indeed this is provable via Szpilrajn), but the Lean theorem cannot be applied because `[Finite α]` fails.\n\nThree aggravating factors making this worse than a \"just register the deviation\" case:\n\n1. **The Lean proof does not use `[Finite α]`.** The design block (lines 226--228) admits this explicitly: the Szpilrajn-based proof goes through with no use of finiteness. The hypothesis is purely declarative — it restricts the theorem's scope without enabling the proof. Removing it costs nothing.\n\n2. **`[Finite α]` is strictly stronger than the LN proof's literal use of finiteness.** The LN proof uses `|J ∪ V| = K` (finiteness of the node *set*); `[Finite α]` forces finiteness of the whole ambient *type*. The design block itself acknowledges (lines 257--262) that this excludes settings like \"ℝ-valued nodes in chapter 4 CBNs\" where the chosen CDMG happens to have a finite node set.\n\n3. **The justification given (\"for compatibility with the LN's stated form\") is incorrect.** The LN's stated form does not contain a finiteness hypothesis; the author appears to have conflated the LN's *proof* (which uses finiteness) with the LN's *Lem statement* (which does not).\n\n**Recommended fix:** Remove `[Finite α]` from the iff statement entirely. The Szpilrajn-based proof already works without it; per the author's own admission, the hypothesis is unused. The resulting theorem then matches the LN's literal universal claim verbatim.\n\n**Alternative fix (if the manager prefers a finite-only encoding):** Replace `[Finite α]` with `(G.J ∪ G.V).Finite` (a `Set.Finite` hypothesis on the node set), which (a) matches the LN proof's literal use of finiteness, (b) does not exclude infinite ambient types with finite node sets, and (c) should still be registered in `deviations.json` as a CONTENT deviation since the LN Lem statement itself has no such hypothesis.\n\nThe upstream defs (`IsAcyclic`, `IsTopologicalOrder`, `HasTopologicalOrder = ∃ r, IsTopologicalOrder G r`) all match the LN verbatim — the deviation is localised entirely to the iff theorem's signature.",
+      "raw_tail": " node set.\n\n3. **The justification given (\"for compatibility with the LN's stated form\") is incorrect.** The LN's stated form does not contain a finiteness hypothesis; the author appears to have conflated the LN's *proof* (which uses finiteness) with the LN's *Lem statement* (which does not).\n\n**Recommended fix:** Remove `[Finite α]` from the iff statement entirely. The Szpilrajn-based proof already works without it; per the author's own admission, the hypothesis is unused. The resulting theorem then matches the LN's literal universal claim verbatim.\n\n**Alternative fix (if the manager prefers a finite-only encoding):** Replace `[Finite α]` with `(G.J ∪ G.V).Finite` (a `Set.Finite` hypothesis on the node set), which (a) matches the LN proof's literal use of finiteness, (b) does not exclude infinite ambient types with finite node sets, and (c) should still be registered in `deviations.json` as a CONTENT deviation since the LN Lem statement itself has no such hypothesis.\n\nThe upstream defs (`IsAcyclic`, `IsTopologicalOrder`, `HasTopologicalOrder = ∃ r, IsTopologicalOrder G r`) all match the LN verbatim — the deviation is localised entirely to the iff theorem's signature.\nEND[feedback]"
+    },
+    "examples": null,
+    "overall_verdict": "FAIL",
+    "audited_at": "2026-05-29T14:49:47+00:00",
+    "elapsed_sec": 308.3
+  },
+  {
+    "ref": "def_3_9",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "s). → **PRESENTATION**.\n\n4. **`∪ {v}` unconditional.** Critically, `predLe` adds `{v}` *without* gating on `v ∈ G`, matching the LN's `\\cup \\{v\\}` literally (not `\\cup (\\{v\\} \\cap G)`). The design block explicitly defends this against the would-be `r w v ∨ w = v` form, which would silently drop `v` when `v ∉ G`. → **No deviation**; LN-literal.\n\n5. **Naming `predLt`/`predLe`.** Pure naming. → **PRESENTATION**.\n\n**Deviation register inheritance:** none of the three registered deviations (marginalize, Walk encoding, claim_3_2 finite hypothesis) touch `CDMG`, `Membership`, or set-builder; this row doesn't inherit any.\n\n**Why no `EXAMPLE_GENERATION`:** The def introduces no new operator/predicate with non-trivial computation — `predLt` is a set-builder wrapping `Membership ∧ r`, with `mem_predLt` discharged by `Iff.rfl`. This matches the rubric's exemption \"pure renaming, notation, or alias … bundles existing ones.\"\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Predecessor relation kept as a bare `α → α → Prop` rather than baking in a total-order / `IsTopologicalOrder` hypothesis; the order condition is the consumer's responsibility, not part of the definition.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:51:15+00:00",
+    "elapsed_sec": 88.2
+  },
+  {
+    "ref": "def_3_10",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "agrees with LN component-by-component. For W with spurious vertices, those land in `G.J ∪ W` but contribute no edges (since `E_subset`/`L_subset` exclude them from E, L). This is a totality convention. **PRESENTATION**.\n\n**Decision on verdict:** The rubric explicitly names `hardInterventionOn` as a case to dispatch `EXAMPLE_GENERATION`, even when hand-reasoning leans PASS. The encoding introduces a new operator on CDMGs with three non-trivial design choices — exactly the \"easy to argue away on paper\" case the rubric warns about. Cheap insurance to verify with concrete instances.\n\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: `hardInterventionOn` introduces a new CDMG-valued operator with three encoding choices (drop `v ∈ G` in E, both-endpoints exclusion in L for symmetry preservation, dropped `W ⊆ G.J ∪ G.V` precondition). Hand-reasoning all three classify as PRESENTATION via `E_subset` / `L_subset` / `L_symm`, but the rubric explicitly flags `hardInterventionOn` for example-generation insurance, and small concrete CDMGs would directly confirm that for `W ⊆ G.J ∪ G.V` each of `J/V/E/L` matches the LN component-by-component (and that the structural fields hold)."
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": " (0,1) removed from E, (1,2) preserved. ✓\n- **Instance 3 (stress test on L symmetry):** L={(0,1),(1,0)}, W={1} → both (0,1) and (1,0) removed (L_do = ∅), confirming the Lean's both-endpoints exclusion correctly matches the LN's unordered ↔ reading. ✓\n- **Instance 4:** L with two disjoint symmetric pairs, only one incident to W → exactly the non-incident pair survives. ✓\n- **Instance 5:** composite W = {1, 2}, mixed E and L → all expected removals/preservations match. ✓\n\nThe two textual simplifications in the Lean encoding (dropping `v ∈ G` from the E removal set; widening L removal to both endpoints) are provably equivalent to the LN's intended semantics on every instance tested. The latter is necessary to preserve `L_symm` under the LN's symmetric encoding of bidirected edges.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: all 5 instances (1 trivial + 4 non-trivial, including a critical L_symm stress test and a composite-W test) agree on LN-side and Lean-side answers; the encoding's two simplifications relative to the LN's literal text (drop `v ∈ G` from E removal; widen L removal to both endpoints) are equivalent to the LN's intended unordered ↔ semantics on every instance.\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T14:59:47+00:00",
+    "elapsed_sec": 512.2
+  },
+  {
+    "ref": "claim_3_3",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "aging (PRESENTATION).\n- **Part A** drops the precondition (strengthening): for any `W`, `G_{do(W)}` is acyclic. The LN's intended (W ⊆ J ∪ V) claim follows by specialization. Mathematically a strengthening, not a content change.\n- **Part B** retains `W ⊆ G.J ∪ G.V` because `IsTopologicalOrder` quantifies over `G.J ∪ G.V`-nodes, and without the precondition the node set of `G_{do(W)}` strictly contains that of `G` (extra nodes `W \\ (J ∪ V)`), making the LN's claim literally false for those extras under this predicate encoding. So Part B is the LN's intended statement with the implicit precondition made explicit.\n- No new operator/predicate is introduced in the theorem statements (`walkLiftHardInterventionOn` is a private proof helper, not part of the statements).\n\nThe conjunction of Part A and Part B (instantiated to `W ⊆ J ∪ V`) is the LN claim.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's single `\\Rem` bundling two conclusions is split into two theorems; Part A (acyclicity) drops the LN's implicit `W ⊆ G.J ∪ G.V` precondition as a strengthening, Part B (topological order) makes it explicit because `IsTopologicalOrder` is encoded only over `G.J ∪ G.V`-nodes."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:01:56+00:00",
+    "elapsed_sec": 129.4
+  },
+  {
+    "ref": "claim_3_4",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "nt is exactly the LN statement. The component-wise identities used (`Set.union_assoc`, `Set.diff_diff`, set-membership tautologies on E and L) hold unconditionally. The LN's precondition is the informal \"do(W) is meaningful on G's nodes\" scaffolding, not a load-bearing hypothesis on the equation. Presentation (strengthening).\n\n**No new operator/predicate introduced** — this lemma states an equality about the already-encoded `hardInterventionOn` (whose equivalence would have been checked at def_3_3). The register lists no inherited CONTENT deviation that applies (marginalize/Walk.IsCollider/finiteness in claim_3_2 are unrelated). Per the worker guidance, a claim with no new operator can PASS without EXAMPLE_GENERATION.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's chained equality (G_{do(W₁)})_{do(W₂)} = (G_{do(W₂)})_{do(W₁)} = G_{do(W₁ ∪ W₂)} split into a fusion lemma (hardInterventionOn_hardInterventionOn) plus a commute corollary (hardInterventionOn_comm), whose conjunction recovers the LN's chain; LN's W₁, W₂ ⊆ J ∪ V precondition dropped (Lean proves the unconditional strengthening over Set α; the LN claim is the restriction to W₁, W₂ ⊆ G.J ∪ G.V).\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:03:17+00:00",
+    "elapsed_sec": 80.9
+  },
+  {
+    "ref": "claim_3_5",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "at claim_3_2's deviation.\n\n## Deviation register interaction\n\n`def_3_4_the_encoding_of_walk` is about `Walk.IsCollider` (not `bifurcationSource` directly), and is \"auditor-draft\" so not fully specified. The `bifurcationSource` looseness the author identifies is essentially a *separate* (un-registered) looseness in def_3_4's machinery. The `c ≠ w` patch is an explicit *workaround*, not inheritance.\n\n## Verdict\n\nThe LHS patch is a syntactic restriction that aligns the Lean existential with the LN's implicit \"non-trivial right arm\" requirement; given the endpoint-only constraint in `IsBifurcation`, `c ≠ w` is equivalent to the LN's non-triviality clause. The patched statement and the LN's statement have the same truth value across all (G, v, w, c). The deviation is packaging — making the LN-implicit explicit on the Lean side because the underlying extractor is loose.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LHS pairs `bifurcationSource hb = some c` with an explicit `c ≠ w` conjunct to encode the LN's implicit \"non-trivial right arm\" requirement; compensates for `bifurcationSource`'s broader extraction on trivial-right-arm witnesses in all-backward walks.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:09:21+00:00",
+    "elapsed_sec": 363.4
+  },
+  {
+    "ref": "def_3_11",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "should be checked via examples even when hand-reasoning passes. The carrier-type change (`α → α ⊕ ↑W`) plus the asymmetric `split1` dispatch on the source of `E` is exactly the kind of non-trivial encoding where small instances catch issues that paper-reasoning waves away.\n\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: `nodeSplittingOn` introduces a new operator with a non-trivial encoding choice (carrier-type change to `α ⊕ ↑W` with the `Sum.inl = 0-copy` identification, plus the asymmetric `split1`-dispatch on edge sources). Hand-reasoning lines up with all four LN clauses, but per policy, new structure-constructing operators on this scale warrant example-level verification: instantiate `G` on a tiny `α` (3 vertices, mixed `J`/`V`, one `W ⊆ V` non-trivially intersecting both endpoints of an `E`-edge and an `L`-edge), compute `J_{spl(W)}, V_{spl(W)}, E_{spl(W)}, L_{spl(W)}` directly from the LN's set-builders, then compute the same via the Lean projection lemmas (`nodeSplittingOn_J/V`, `mem_nodeSplittingOn_E/L`) and check they coincide pair-for-pair, including the `v_1 ∈ W` vs `v_1 ∉ W` branches of piece 1 of `E_split` and the canonical-`inl` form of `L_split`."
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 4,
+      "feedback": "",
+      "raw_tail": "nce 2 (V={0,1,2}, E={(0,1)}, W={1}): edge into W → (0, 1^0) present, (0, 1^1) absent.\n- Instance 3 (E={(1,2)}, W={1}, **stress: outgoing from W**): (1^1, 2) present, (1^0, 2) absent — LN's source-rewriting on W honored.\n- Instance 4 (L={(0,1),(1,0)}, W={1}, **stress: bidirected**): L_split lands on inl × inl only; (inl 0, inr ⟨1,_⟩) ∉ L — LN's choice that L never targets W^1 is faithful.\n- Instance 5 (E={(0,1),(1,2)}, W={0,1}, **stress: multi-W edge with both endpoints in W**): (0^1, 1^0) = (inr⟨0,_⟩, inl 1), (1^1, 2), both split edges all present; (inl 0, inl 1) absent — confirms source-side `split1` dispatches on W.\n\nThe identification `inl = 0-copy` (W = W^0) is a benign reorganization explicitly hinted in the LN itself (\"we want to make the identification W = W^0\"); under it, every membership question agrees.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 4\nSUMMARY: 16 specific edge/L membership claims across 4 instances (singleton-W into-W, singleton-W out-of-W, bidirected on W, multi-W with both endpoints in W) all agree between LN-side hand computation and Lean-side `mem_nodeSplittingOn_E` / `mem_nodeSplittingOn_L` rewrites; the identification W = W^0 is LN-sanctioned and benign.\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:18:40+00:00",
+    "elapsed_sec": 559.6
+  },
+  {
+    "ref": "claim_3_6",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "urance — the disjoint_EL/marginalize precedent shows index-abstracting arguments are easy to talk oneself into.\n\n```\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: splitOrder W r is a new four-case predicate that abstracts the LN's real-valued index recipe (\"assign j ± 1/3 to W-copies, sort by index\") into a relational pattern match on α ⊕ ↑W. Hand-reasoning maps each of the four (Sum.inl/inr × Sum.inl/inr) cases to the LN's integer-index-plus-1/3-shift comparison and shows the asymmetric `r v w ∨ v = w` disjunct on (inl, inr) is exactly the LN's split-edge `w^0 → w^1` (and its absence on (inr, inl) excludes the non-edge `w^1 → w^0`). But the integer-arithmetic argument about when `±1/3` shifts can vs. cannot reorder pairs is exactly the kind of step that examples catch most cleanly. A small instance — e.g. G with three nodes {a, b, c}, W = {b}, r = lexicographic — would let the example worker enumerate the 16 carrier pairs (4² with b lifted to both copies), assign indices {a:1, b^0:1.67, b^1:2.33, c:3}, and confirm splitOrder agrees with the index-value ordering on each pair (including the split-edge pair (inl b, inr b) and the non-edge pair (inr b, inl b)).\n```"
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": ": `inl 0 < inl 1`, the split edge `inl 1 < inr ⟨1,_⟩` (via the `v = w` disjunct), `inr 1 < inl 2`, plus the asymmetry stress `inr 1 ≮ inl 1` (which is the test that the `(inr, inl)` case correctly lacks a `v = w` disjunct).\n\n**Instance 3** (W = {1, 2} ⊂ Fin 4, two consecutive split vertices): 8 pairs including both split edges (`inl 1 < inr 1`, `inl 2 < inr 2`), the cross-step `inr 1 < inl 2` (verifying integer-gap is wider than `2/3`), and `inl 2 ≮ inr 1` (the critical \"v ∉ W ∧ v ≠ w\" disjunct-vacuity check).\n\n**Instance 4** (W = {1}, with bidirected edge in G): consistent with instance 2.\n\n**Instance 5** (W = {2}, split vertex at the *top* of the order): 5 pairs, including `inl 1 < inr 2` (cross-W spanning) and `inr 2 ≮ inl 2` (correctly rejected via irreflexivity, no spurious `v = w` disjunct).\n\nAll `example` blocks compiled (exit code 0). The encoding is faithful to the `±1/3` interleave.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: 5 instances (W = ∅, {1}, {1,2}, {1}+L, {2}) with ~30 pair-wise checks; every Lean splitOrder evaluation agreed with the LN's ±1/3-index ordering, including the asymmetric split-edge disjunct (inl w < inr w via v=w; inr w ≮ inl w via irrefl).\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:27:35+00:00",
+    "elapsed_sec": 534.9
+  },
+  {
+    "ref": "claim_3_7",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "iation register check:** No registered entries apply — `def_3_14_marginalize` is about marginalization (not splitting), `def_3_4_walk` is about walks, `claim_3_2_finite` is about a `[Finite α]` hypothesis (not present here — the claim is polymorphic with no finiteness instance).\n\n**No new operator introduced:** The claim only composes existing operators (`nodeSplittingOn`, `Sum.inl`, `Set.image`, `Set.union`, `Disjoint`). `CDMGEquiv` is a record-bundle of existing equalities, not a new computational predicate. `fusionEquiv` is a composition of canonical Mathlib bijections. PASS criterion (\"bundles existing ones\") applies.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: The LN's three-way `=` between CDMGs over different carrier types is encoded as two `CDMGEquiv`-valued declarations (`nodeSplittingOn_nodeSplittingOn_equiv` for fusion, `nodeSplittingOn_comm_equiv` for commute) composed via `CDMGEquiv.refl`/`.symm`/`.trans`; `CDMGEquiv G H` bundles a carrier bijection `α ≃ β` plus four `image`-equalities on the data fields `J/V/E/L`, with `fusionEquiv` (composition of `Equiv.Set.union`, `Equiv.sumAssoc⁻¹`, `Equiv.Set.image`) supplying the canonical relabeling witness."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:32:43+00:00",
+    "elapsed_sec": 308.1
+  },
+  {
+    "ref": "claim_3_8",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "V \\ W₂))`, and `Sum.inl '' W₁` selects exactly those. Canonical bijection preserves the LN's mathematics. **PRESENTATION.**\n\n## Other checks\n- Both sides have the same carrier `α ⊕ ↑W₂` (HI is carrier-preserving). Literal `Eq` is the right framing.\n- `Disjoint W₁ W₂` is load-bearing on both sides as designed.\n- No registered upstream deviations apply (the register's entries for `def_3_14`, `def_3_4`, `claim_3_2` are unrelated to `hardInterventionOn`/`nodeSplittingOn`).\n- This row qualifies as \"bundles existing operators\" with no new operator/predicate introduced — `EXAMPLE_GENERATION` is reserved for operator-introducing defs (the disjoint_EL/marginalize precedent was a def, not a claim), and the claim's encoding choices reduce to two well-understood PRESENTATION lifts whose homomorphism is canonical.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's `W₁ ⊆ J ∪ V` precondition dropped (out-of-`J ∪ V` vertices are inert under `hardInterventionOn` per its no-precondition design); RHS HI target spelled `Sum.inl '' W₁` to inhabit the post-split carrier `α ⊕ ↑W₂`, matching the LN's implicit canonical observation-copy identification `α ≅ inl '' α` from def_3_11.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:36:37+00:00",
+    "elapsed_sec": 233.7
+  },
+  {
+    "ref": "def_3_12",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ation register inheritance:** None of the three registered deviations (marginalize-L, walk-collider encoding, claim_3_2 Finite hypothesis) syntactically apply to this row's body. The carrier-packaging deviation from `nodeSplittingOn` is inherited but is PRESENTATION (the sum-type carrier exhibits a canonical bijection to LN's quadruple).\n\n**Classification:** This def introduces no new operator/predicate — it bundles `nodeSplittingOn` and `hardInterventionOn` via composition with a specific intervention target (`Set.range Sum.inr` = the post-NS image of W^i). The four characterization simp lemmas are mechanically derived from the upstream simp lemmas. This fits PASS criterion: \"the def has no new operator/predicate — it just bundles existing ones\" and \"mechanically derived from another already-passed def\".\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Encoded as `(G.nodeSplittingOn W hW).hardInterventionOn (Set.range Sum.inr)` on the inherited sum carrier `α ⊕ ↑W` with `w^o = Sum.inl w` and `w^i = Sum.inr ⟨w, _⟩`; LN items i.)–iv.) are recovered via four `@[simp]` characterization lemmas (J, V, mem_E, mem_L) that mechanically compose the upstream NS/HI simp lemmas."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:40:36+00:00",
+    "elapsed_sec": 239.1
+  },
+  {
+    "ref": "claim_3_9",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "cate/structure is introduced; this is purely a corollary chain.\n- No [Finite α] sneaks in (good — avoids the upstream claim_3_2 deviation).\n\n**Deviation register check:** No registered CONTENT deviation flows into this row's body. The packaging differences (single \\Rem → two theorems; \"CADMG\" → CDMG + `G.IsAcyclic` hypothesis) are PRESENTATION and follow the established precedent in claim_3_3 and claim_3_6.\n\nSince this is a mechanical composite of two already-passed claims and introduces no new operator, PASS without EXAMPLE_GENERATION is appropriate.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: The LN's single \\Rem bundling SWIG acyclicity and the ±1/3 topological-order construction is split into two theorems (`isTopologicalOrder_nodeSplittingHardInterventionOn` for the named-construction half and `isAcyclic_nodeSplittingHardInterventionOn` for the side-condition half), and the LN's \"CADMG\" is decomposed into a CDMG plus an explicit `G.IsAcyclic` hypothesis; both halves are literal one-line composites of claim_3_3 + claim_3_6 via def_3_12 = NS ∘ HI, with `splitOrder W r` reused by name from claim_3_6 under the `^o = ^0 = Sum.inl`, `^i = ^1 = Sum.inr` convention."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:43:37+00:00",
+    "elapsed_sec": 180.8
+  },
+  {
+    "ref": "claim_3_10",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "marginalize_L_excludes_E`, `def_3_4_the_encoding_of_walk`, `claim_3_2_…Finite…`) syntactically apply — this claim does not use `marginalize`, does not state walk-collider predicates, and does not import Finite typeclasses.\n\n## Conclusion\n\nThis row introduces no new operator/predicate — it states an equality between iterated applications of `swig` (already audited at its own row) and bundles existing constructs (`CDMGEquiv`, `fusionEquiv` reused verbatim from claim_3_7). All observable differences are forced by Lean's dependent-typing and resolve to canonical, bijection-preserved relabels. Falls into the \"no new operator/predicate — just bundles existing ones\" pass-immediately bucket.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's `=` encoded as `CDMGEquiv` (4-tuple isomorphism via carrier Equiv) because iterated `(α⊕↑W₁)⊕↑(Sum.inl ''W₂)` and merged `α⊕↑(W₁∪W₂)` carriers differ but are canonically isomorphic; `\\dcup` as `W₁∪W₂` + explicit `Disjoint W₁ W₂`; inner W₂ lifted to `Sum.inl ''W₂` via `subset_swig_V_of_subset_V`; LN's three-way chain split into fusion (`swig_swig_equiv`) + commute (`swig_comm_equiv`) lemmas composable through `CDMGEquiv` groupoid laws."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:46:12+00:00",
+    "elapsed_sec": 155.3
+  },
+  {
+    "ref": "claim_3_11",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "rev` alias for `nodeSplittingHardInterventionOn`; the simp lemmas fire by reducibility. **PRESENTATION.**\n\nNo upstream CONTENT deviation in the register applies to this row (marginalize-L exclusion, walk encoding, and finiteness all concern other definitions).\n\nThis is a claim that asserts an equation between compositions of *already-audited* operators (def_3_11 = `hardInterventionOn`, def_3_12 = `swig`); it introduces no new operator/predicate. It is the structural SWIG-mirror of claim_3_8 (PASS) — same hypothesis shape, same dropped/added pieces, same justification. Per the PASS-without-EXAMPLE_GENERATION criteria (\"no new operator/predicate -- it just bundles existing ones\"), an example check would add no information beyond what the def_3_11 / def_3_12 audits already established.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's W₁ ⊆ J ∪ V dropped (Lean is total in W₁; inert outside-vertices ride along on both sides); RHS lifts W₁ to Sum.inl '' W₁ to match the post-SWIG carrier α ⊕ ↑W₂ under the canonical-observation-copy identification α ≅ Sum.inl '' α; literal Eq used (carriers definitionally equal). Mirrors claim_3_8's PRESENTATION profile verbatim.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:48:48+00:00",
+    "elapsed_sec": 155.7
+  },
+  {
+    "ref": "claim_3_12",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "tches the LN's \"ambiguity on which of those two\" point one-to-one.\n\nThe deviation register's three entries (def_3_14 marginalize, def_3_4, claim_3_2) do not propagate to claim_3_12: the relevant upstream operators (HI projections lines 269-300, SWIG projections lines 237-258) are clean.\n\nNo new operators/predicates are introduced — this row just composes existing HI and SWIG. The four-theorem decomposition is a faithful packaging of an informal Rem, with each theorem either equivalent to or sufficient-for the corresponding LN clause. The Scenario A substitution and B2 V-only encoding are packaging choices forced by the formal framework and by the punchline's actual needs — they do not change what mathematics gets stated.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Narrative LN Rem rendered as four formal theorems; Scenario A encodes LN's hypothetical \"extended NSH-on-input-nodes is no-op\" as the formal SWIG-precondition-failure observation (the closest available counterpart in the Lean framework, where NSH on input nodes is not defined), and B2 records only the V-component (sufficient for the punchline) rather than the full J/edge transformation the LN narrates."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T15:52:14+00:00",
+    "elapsed_sec": 206.0
+  },
+  {
+    "ref": "def_3_13",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ster check.** No upstream deviation applies: marginalize (def_3_14) is downstream; walk encoding (def_3_4) and finiteness (claim_3_2) are unrelated. CDMG structure (def_3_1) — no flagged issues.\n\n## Verdict\n\nThis def introduces a new operator on CDMGs with non-trivial set-builder logic over an extended carrier. Per the rules, EXAMPLE_GENERATION is the appropriate verdict even when hand-reasoning leans PASS — cheap insurance against subtle membership/disjointness errors of exactly the kind that hit `disjoint_EL`/`marginalize`.\n\n```\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: The def introduces a new operator (`extendingCDMGWithInterventionNodes`) building a new CDMG from a CDMG + subset W, with non-trivial set-builder logic in each of J/E and a subtyped sum carrier `α ⊕ ↑(W \\ G.J)` encoding the LN's `I_j := j` convention at the type level. Hand-reasoning leans toward PASS (each component matches the LN modulo the canonical Sum.inl embedding), but small instances are the most direct way to confirm membership/non-membership facts hold both ways for the fresh-node bag (especially around the W ∩ J / W \\ J split and the source vs. target sides of the new edges).\n```"
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": "ing 0 ∉ W \\ J), so `I_j := j` is enforced at the type level. PASS.\n- **Instance 4** (W = J, so W \\ J = ∅): no fresh nodes, J_ext = {Sum.inl 0}, V_ext = {Sum.inl 1}, E_ext = L_ext = ∅. PASS.\n- **Instance 5** (full non-trivial, W mixes J and V, L symmetric): all original directed/bidirected edges survive under Sum.inl×Sum.inl; both fresh edges (Sum.inr ⟨1, _⟩ → Sum.inl 1) and (Sum.inr ⟨3, _⟩ → Sum.inl 3) appear in E_ext; (Sum.inl 2, Sum.inl 3) and (Sum.inl 3, Sum.inl 2) both appear in L_ext; a negative test confirmed that (Sum.inr ⟨1, _⟩, Sum.inl 2) — a \"wrong target\" fresh edge — is not in E_ext. PASS.\n\nThe \"I_j := j\" carrier-level encoding (Instance 3) was the highest-priority stress test, since the LN's convention could plausibly be mishandled, and it survived cleanly. The negative test in Instance 5 confirmed no spurious fresh edges.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: all 5 instances (trivial, W=∅, W∩J non-empty stress test for I_j:=j, W=J degenerate, full non-trivial with L_symm and a negative test) agree between hand-computed LN-side answers and Lean-side membership checks; the carrier-level encoding ↑(W \\ G.J) faithfully realizes the LN's I_j := j convention.\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:03:14+00:00",
+    "elapsed_sec": 659.7
+  },
+  {
+    "ref": "claim_3_13",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "deviations in such constructors are easy to argue away on paper.\n\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: claim_3_13 introduces a new named relation constructor `extensionOrder {S : Set α} (r : α → α → Prop) : (α ⊕ ↑S) → (α ⊕ ↑S) → Prop` as a 4-case pattern match encoding the LN's \"put all I_w first\" recipe. Three of the four cases (`(inl,inl)↦r`, `(inr,inl)↦True`, `(inl,inr)↦False`) are forced by the LN; the fourth `(inr ⟨w₁,_⟩, inr ⟨w₂,_⟩) ↦ r w₁ w₂` is a Lean-side design choice within the freedom the LN's \"e.g. by putting all the I_w nodes first\" leaves underdetermined. Small-instance computation should verify: (a) `extensionOrder r` restricted along `Sum.inl` recovers `r` exactly (the \"extension\" property); (b) every `Sum.inr` fresh node strictly precedes every `Sum.inl` original (the \"I_w first\" property); (c) on a concrete G with a fixed TO and a chosen W ⊆ G.J ∪ G.V, the four `IsTopologicalOrder` fields hold; (d) the restriction theorem's `fun v w => r (Sum.inl v) (Sum.inl w)` is a TO of G whenever `r` is a TO of the extended graph. Brief explicitly recommends EXAMPLE_GENERATION for new constructors of this shape even when hand-reasoning leans PASS."
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": "pty G over `Fin 1`, W=∅): all three theorems apply.\n- **Instance 2** (2-node empty-E G, W={0,1} with 2 fresh nodes): all theorems + 4 specific ordering checks: `I_0 < 0` (cross True), `1 ≮ I_0` (cross False), `0 < 1` (inherited), `1 ≮ 0` (inherited).\n- **Instance 3** (J={2}, V={0,1}, W={0,2}, stress-tests J ∩ W ≠ ∅): I_0 must precede the original node 2 ∈ G.J — verified via `extensionOrder ... (Sum.inr ⟨0,_⟩) (Sum.inl 2) := by trivial`. LN convention `I_j := j` confirmed by W \\ G.J = {0}, so no fresh I_2 is minted at the type level.\n- **Instance 4** (W = G.J, degenerate carrier): verified `↑(W \\ G.J)` is uninhabited.\n- **Instance 5** (G with bidirected L = {(0,1),(1,0)}): acyclicity preserved.\n\n**Shape check** confirmed all four `extensionOrder` cases agree with the LN: `(Sum.inr, Sum.inl) = True`, `(Sum.inl, Sum.inr) = False`, same-side pairs inherit `r`. Neither register entry flags an upstream deviation affecting claim_3_13.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: Five CDMG instances (empty, 2-node DAG-shape, J∩W≠∅ stress, W=G.J degenerate, G with bidirected L) plus four extensionOrder pairwise-ordering assertions; LN-side and Lean-side answers agreed in every case.\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:20:38+00:00",
+    "elapsed_sec": 1044.4
+  },
+  {
+    "ref": "claim_3_14",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "`extHardCarrierEquiv` built from canonical Mathlib combinators (`Equiv.Set.union`, `Equiv.sumAssoc`, `Equiv.Set.image`, `Equiv.subtypeEquivRight`) — no hand-rolled `dite` logic. Bijections preserve underlying values on the original-α layer (identity on `Sum.inl`).\n\n**Bodies:** All three statements have full proofs in the file; the \"sorry\" mentions in doc comments are stale header text.\n\n**Deviation register applicability:** `def_3_14_marginalize_L_excludes_E` belongs to `def_3_14` (marginalization), not `claim_3_14`; no upstream CONTENT deviation reaches this claim.\n\nThis is a *claim* (bundles existing operators, no new operator/predicate), so per rules: PASS without EXAMPLE_GENERATION is appropriate.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's two chained `=` ship as three `CDMGEquiv` lemmas (chain-1 fusion + chain-1 commute + chain-2 commute), with `Sum.inl '' W` lifts on outer-extension targets; literal `Eq` is impossible because iterated/merged sides live over def-distinct subtype carriers, and chain-2's joint third term is the LN's unambiguous-composite notation (not materialized) while chain-1's joint third term is materialized as `G.ext (W₁ ∪ W₂) _`."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:23:42+00:00",
+    "elapsed_sec": 184.4
+  },
+  {
+    "ref": "claim_3_15",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ion that recovers the canonical form, proven via constructor-disjointness `Sum.inl ≠ Sum.inr`.\n\n**Deviation register check**: \n- `def_3_14_marginalize_L_excludes_E` — about `marginalize`; not used here.\n- `def_3_4_the_encoding_of_walk` — about walks; not used here.\n- `claim_3_2` finiteness — local to claim_3_2.\n\nNone inherited.\n\n**Why PASS without EXAMPLE_GENERATION**: this row doesn't introduce a new operator/predicate/structure — it bundles two already-audited operators (`swig` def_3_12, `extendingCDMGWithInterventionNodes` def_3_13) and the already-audited `CDMGEquiv` (from claim_3_7) in a commute identity. The PASS-immediately criterion \"no new operator/predicate — just bundles existing ones\" applies.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's `=` between iterates over different carriers is rendered as `CDMGEquiv` (canonical-bijection equality with toEquiv + J/V/E/L field equalities); outer operators' \"same W₁/W₂\" inputs are lifted via `Sum.inl '' ·` into the post-inner-operator carrier (the convention `Sum.inl = original-α-side`); LHS outer subtype `(Sum.inl '' W₂) \\ (G.swig W₁ hW₁).J` is the carrier-direct form of the LN's `W₂ \\ Ĵ = W₂ \\ J` identity."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:26:39+00:00",
+    "elapsed_sec": 176.8
+  },
+  {
+    "ref": "def_3_14",
+    "strict": {
+      "verdict": "FAIL",
+      "deviation_class": "CONTENT",
+      "feedback": "`L^{∖W}` membership in `Marginalization.lean` is strictly tighter than the LN's literal definition. The two `¬ ∃ π : Walk G _ _, π.IsDirected ∧ π.InteriorIn W` clauses remove from `L^{∖W}` every pair `(u, v)` for which a directed walk through `W` exists in either direction in `G`. The LN's `L^{∖W}` (def_3_14 item iv) imposes no such exclusion — it consists of *all* bidirected edges `{u, v}` (distinct, both in `V ∖ W`) for which *some* bifurcation through `W` exists in `G`, and the LN's bifurcation formula in def_3_4 item 6 with `k = n` + hinge = `\\hut` lets the reversal of any LN directed walk through `W` count as such a bifurcation. So `L^{∖W}_LN` is genuinely larger than `L^{∖W}_Lean`, and a concrete pair `(u, v)` with `V = {u, v, w₁, w₂}`, `W = {w₁, w₂}`, `G.E = {(u, w₁), (w₁, v), (w₂, v)}`, `G.L = {(u, w₂), (w₂, u)}` is in `L^{∖W}_LN` (via the bifurcation `u ⟷ w₂ → v`) but not in `L^{∖W}_Lean`. The author's \"bifurcation existence is preserved under the symmetric reading\" argument relabels the invariant — it does not repair the L-membership equivalence — and the deviation register entry `def_3_14_marginalize_L_excludes_E` already documents this break.\n\nForcing culprit: `def_3_1.CDMG.disjoint_EL` at `Chapter3_GraphTheory/Section3_1/CDMG.lean:141`. With E and L stored as `Set (α × α)` and required to be literally disjoint, there is no way to encode the LN's overlapping E/L on a single pair. The LN treats E and L as separate ambient types (formula-level `E ⊆ (J ∪ V) × V`, `L ⊆ V × V` modulo symmetry), so the question of overlap never arises there. The first row to actually exercise LN-style overlap is this one (marginalize manufactures it from the bifurcation-via-reversal reading), so the previously-latent `disjoint_EL` design choice surfaces here as a forced content-level compromise.\n\nSuggested actions for the manager: (a) accept the deviation and add a helper lemma in this file or its successor that exposes the equivalence `(p ∈ L^{∖W}_Lean) ∨ (p ∈ E^{∖W}_Lean) ∨ (p.swap ∈ E^{∖W}_Lean) ↔ ∃ bifurcation between p.1, p.2 through W` so every downstream proof of an LN claim about `L^{∖W}` membership can route through it without rebuilding the reversal argument each time; or (b) refactor `def_3_1.CDMG` to stratify E and L into separate types (heavy, ripples into `def_3_10` `hardInterventionOn` and every other CDMG constructor in the project). The downstream rows already named in the file's own header (`claim_3_16` -- `claim_3_19`, `lem:stability_separation_marginalization` Section 3.3) all reason about bifurcations or `i\\sigma`-separation under marginalization, which is exactly the at-risk pattern recorded in the deviation register.",
+      "raw_tail": " × V`, `L ⊆ V × V` modulo symmetry), so the question of overlap never arises there. The first row to actually exercise LN-style overlap is this one (marginalize manufactures it from the bifurcation-via-reversal reading), so the previously-latent `disjoint_EL` design choice surfaces here as a forced content-level compromise.\n\nSuggested actions for the manager: (a) accept the deviation and add a helper lemma in this file or its successor that exposes the equivalence `(p ∈ L^{∖W}_Lean) ∨ (p ∈ E^{∖W}_Lean) ∨ (p.swap ∈ E^{∖W}_Lean) ↔ ∃ bifurcation between p.1, p.2 through W` so every downstream proof of an LN claim about `L^{∖W}` membership can route through it without rebuilding the reversal argument each time; or (b) refactor `def_3_1.CDMG` to stratify E and L into separate types (heavy, ripples into `def_3_10` `hardInterventionOn` and every other CDMG constructor in the project). The downstream rows already named in the file's own header (`claim_3_16` -- `claim_3_19`, `lem:stability_separation_marginalization` Section 3.3) all reason about bifurcations or `i\\sigma`-separation under marginalization, which is exactly the at-risk pattern recorded in the deviation register.\nEND[feedback]"
+    },
+    "examples": null,
+    "overall_verdict": "FAIL",
+    "audited_at": "2026-05-29T16:33:53+00:00",
+    "elapsed_sec": 433.8
+  },
+  {
+    "ref": "claim_3_16",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ncoding inherits the L^∖W exclusion and explicitly uses the symmetric-∨ reading to absorb it cleanly for the no-source bifurcation iff. The with-source case is deferred *because* of this interaction (as documented). → handled correctly for what IS encoded.\n- `claim_3_2_..._Finite`: `marginalize_isTopologicalOrder` does NOT add `[Finite α]` and does NOT go via claim_3_2 — explicitly noted in design block. → not inherited.\n- `def_3_4_the_encoding_of_walk` and `def_3_14_l_w_membership_...`: auditor-drafts; not affecting statement-level shape here.\n\nNo CONTENT deviation in any of the four theorem statements. The with-source bifurcation slice is a *scope omission* (acknowledged, documented, deferred) — not a deviation in encoded mathematics.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN remark split into four theorems carrying same-`r` for item 3b; item 1 drops redundant `v_i ∈ G` (embedded in `Anc`); item 2 encodes LN's symmetric \"between v_1, v_2\" as `(∃ Walk v_1 v_2, IsBifurcation) ∨ (∃ Walk v_2 v_1, IsBifurcation)` on both sides (absorbing the L^∖W exclusion's bidir→backward flip); item 2's \"(with source v_3)\" half is explicitly deferred to a follow-up dispatch."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:47:51+00:00",
+    "elapsed_sec": 724.4
+  },
+  {
+    "ref": "claim_3_17",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "eserved verbatim (using mathlib's `Disjoint`). PRESENTATION (idiom).\n\n## Inherited upstream deviations\n\nThe registered `def_3_14_marginalize_L_excludes_E` tightening of `L^{∖W}` is inherited mechanically — both sides of each Lean equality use the same tightened `marginalize`. The proof's `directed_walk_iff_no_length` shows the tightening commutes with iteration, so claim_3_17 does not *amplify* the upstream deviation; it propagates uniformly. No fresh CONTENT introduced.\n\n## Verdict\n\nThis is a claim about an existing operator (no new operator introduced) where iteration of marginalize is the central content. The statement-level mismatches are pure packaging (split + dropped sanity precondition). Hand-reasoning suffices; example generation isn't needed because no new operator is being defined here.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's triple equality split into two named lemmas (fusion `marginalize_marginalize` + commute `marginalize_comm`); `W₁, W₂ ⊆ G.V` precondition dropped as a faithful strengthening (vertices outside `G.J ∪ G.V` don't appear on walks, so marginalize is insensitive to `W \\ (G.J ∪ G.V)`; mirrors HardInterventionsCommute precedent)."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:50:55+00:00",
+    "elapsed_sec": 183.9
+  },
+  {
+    "ref": "claim_3_18",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "W₁` exists in `G^{do(W₁)}` iff it exists in `G` (because intermediate vertices lie in `W₂ ⊆ ∁W₁`, so the deleted \"edges into `W₁`\" don't sit on the walk). The exclusion clause on LHS therefore exactly matches the exclusion clause on RHS, and the claim is *not* a place where the def_3_14 deviation amplifies into a new content change. The Lean theorem captures the same commutation meta-fact as the LN claim, modulo the already-registered def_3_14 L deviation — this is consistent inheritance, not new content drift.\n\n**4. Trailing LN prose (\"similar statement holds for ... adding intervention nodes, ... node-splitting interventions\") not formalized.** The design block correctly identifies this as a forward-pointer to separate downstream rows, not part of claim_3_18's mathematical content.\n\n### Verdict\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's `W₁ ⊆ J ∪ V` and `W₂ ⊆ V` preconditions are dropped; both `hardInterventionOn` and `marginalize` are total on `Set α` by design (out-of-G elements are inert on `E`, `L`, and the walk-existential conditions), so the LN equation extends vacuously to arbitrary disjoint `W₁, W₂` — a faithful strengthening of the LN statement."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T16:57:07+00:00",
+    "elapsed_sec": 372.1
+  },
+  {
+    "ref": "claim_3_19",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "/`nodeSplittingOn`, `hardInterventionOn`) plus a new local `CDMGNodeIso` structure — exactly the pattern the audit instructions flag for example verification, citing \"the disjoint_EL/marginalize case showed are easy to argue away on paper\". The walk-existential reductions are subtle enough that small-instance verification is worthwhile insurance.\n\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: The statement composes `marginalize`, `swig`, and `hardInterventionOn` — operators with non-trivial walk-existential semantics and a registered upstream content-adjacent deviation (`def_3_14_marginalize_L_excludes_E`) — and introduces a new local `CDMGNodeIso` structure to package the cross-carrier `\\cong`. Hand-reasoning supports PASS (CDMGNodeIso faithfully captures the LN's graph iso; the marginalize.L strictness is neutralized for this iff by `disjoint_EL` + `L_symm` + the `no_swig_edge_source_in_inlW` helper). But concrete computation of both sides on a small CDMG (e.g. `α = Fin 3`, `J = {0}`, `V = {1,2}`, one E-edge `0→1`, one L-edge `1↔2`, `W = {1}`) would verify the iff on each of J/V/E/L independently and confirm the marginalize.L deviation truly fails to manifest."
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 4,
+      "feedback": "",
+      "raw_tail": " Fin 3`, `E = {(0,1),(1,2)}` (directed walk through W), `L = {(0,2),(2,0)}`, `W = {1}`. LN says `G_{do}.L = {(0,2),(2,0)}`. Naively the deviation would exclude `(inl 0, inl 2)` from `marg.L` because of the original walk `0→1→2`, but SWIG re-routes the source of `(1,2)` to `inr ⟨1,_⟩`, *disconnecting* the walk in the SWIG. So no SWIG walk `inl 0 → inl 2` with interior in `{inl 1}` exists, the exclusion is vacuous, and `(inl 0, inl 2) ∈ marg.L`. **Verified directly via `iso3.L_eq` round-trip** (`(0,2) ∈ G_{do}.L → (inl 0, inl 2) ∈ image → (inl 0, inl 2) ∈ marg.L`); also verified `(inl 0, inl 1) ∉ marg.E` (target excluded from `marg.V`). ✓\n4. **W swallows both endpoints of L**: `α = Fin 4`, `L = {(0,1),(1,0),(2,3),(3,2)}`, `W = {1,2}`. LHS `G_{do}.L = ∅`; RHS `marg.L = ∅` (no bifurcation walk connects `inl 0` and `inl 3` through `{inl 1, inl 2}`). ✓\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 4\nSUMMARY: All 4 instances agreed on LN-side and Lean-side; the upstream marginalize.L exclusion deviation (def_3_14_marginalize_L_excludes_E) does not compromise claim_3_19's L_eq because the SWIG's source-relabeling via split1 W disconnects every G-walk that would otherwise trigger the exclusion.\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:14:51+00:00",
+    "elapsed_sec": 1063.7
+  },
+  {
+    "ref": "def_3_16",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "kableJoint, IsUnblockableNonColliderAt, IsBlockableNonColliderAt) whose LN-equivalence hinges on a five-way case analysis of non-collider (s, s') step combinations plus the strict-outgoing-arrow reading (bidir steps NOT counted as outgoing, encoded via IsForward/IsBackward instead of HasArrowheadAt*). Hand-reasoning confirms each of the LN's three sub-patterns (left chain, right chain, fork) maps cleanly onto clauses (2)-(3) of IsUnblockableJoint, with the four collider combinations rejected by clause (1) and the end-node/interior gating falling out of structural recursion. Per policy, even when hand-reasoning leans PASS, a new predicate with this many constructor-level branch points warrants concrete example checks. Suggested instances: (i) a length-3 walk v0 \\hut v1 \\tuh v2 \\hut v3 in a graph where v0,v2 ∈ Sc(v1) (fork unblockable); (ii) the same shape but v0 ∉ Sc(v1) (blockable); (iii) v0 \\hut v1 \\huh v2 with v0 ∈ Sc(v1) (left chain unblockable -- exercises the bidir-not-outgoing reading); (iv) v0 \\huh v1 \\huh v2 (collider, not non-collider, neither blockable nor unblockable -- exercises clause (1)); (v) end-node positions 0 and length (must be blockable, never unblockable).\n```"
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 9,
+      "feedback": "",
+      "raw_tail": "overage notes:\n- 5 distinct non-collider configs all witnessed (fwd-fwd, bwd-fwd, bwd-bwd, bidir-fwd; bwd-bidir omitted but symmetric to bidir-fwd and shares clause-3-vacuous structure with bwd-bwd)\n- 2 distinct collider configs (fwd-bwd, bidir-bidir)\n- Recursion exercised at k=2 (Instance 6)\n- Strict-outgoing-arrow encoding stress-tested (Instance 7): bidir step has arrowhead at the joint but the encoding correctly does NOT demand SCC membership for the bidir endpoint, matching the LN's `\\tuh`-only outgoing reading\n- All `simp` normalizations reduce `IsUnblockableNonColliderAt` to exactly the SCC conjunction the LN spells out for each pattern, confirming term-level equivalence beyond mere boolean agreement\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 9\nSUMMARY: all 9 instances (nil, length-1, fwd-fwd, fwd-bwd collider, bwd-fwd fork, k=2 recursion, bidir-fwd strict-outgoing stress, bwd-bwd left chain, bidir-bidir collider) agreed; Lean's IsUnblockableJoint reduces under simp to exactly the LN's SCC conjunctions for each pattern, and the strict-outgoing-arrow reading (IsForward/IsBackward, not HasArrowheadAt*) correctly handles bidirected steps without imposing spurious SCC constraints\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:30:56+00:00",
+    "elapsed_sec": 965.0
+  },
+  {
+    "ref": "claim_3_20",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "NONE",
+      "feedback": "",
+      "raw_tail": " (def_3_16). The author resisted the temptation to swap to `¬ IsUnblockableNonColliderAt`, preserving LN-lexical fidelity with \"blockable.\"\n\n4. **Hypotheses.** Only `G.IsAcyclic` — no smuggled `[Finite α]` (verified: `variable {α : Type*}`) or other tacit hypotheses. Acyclicity is the LN's sole precondition.\n\n5. **No new operator introduced.** This claim is a pure implication between three already-existing predicates (`IsAcyclic`, `IsNonColliderAt`, `IsBlockableNonColliderAt`). It does not introduce a new structure or predicate of its own, so it falls into the \"no new operator — just bundles existing ones\" PASS-without-examples category.\n\n6. **Deviation-register sweep.** None of the four registered deviations apply to this row's *statement*: marginalization deviations (def_3_14) are unrelated to acyclic-non-collider machinery; the `[Finite α]` deviation pattern (claim_3_2) does not appear here; the auditor-draft `def_3_4` Walk.IsCollider entry has no specified at-risk pattern but the statement here uses `IsNonColliderAt`/`IsBlockableNonColliderAt` opaquely (any underlying collider-encoding question is a separate row's concern, not this claim's).\n\nVERDICT: PASS\nDEVIATION_CLASS: NONE"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:32:02+00:00",
+    "elapsed_sec": 66.3
+  },
+  {
+    "ref": "def_3_17",
+    "strict": {
+      "verdict": "EXAMPLE_GENERATION",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "gmaOpen`, `IsSigmaBlocked`) whose correctness depends on a subtle interaction between `nodeAt`'s junk return and the upstream gating predicates' out-of-range behavior. Per the worker instructions, new operators warrant `EXAMPLE_GENERATION` as cheap insurance.\n\nVERDICT: EXAMPLE_GENERATION\nDEVIATION_CLASS: PRESENTATION\nREASON: def_3_17 introduces a new helper `nodeAt : Walk G v w → ℕ → α` whose junk-on-out-of-range value (returns endpoint `w` for `k > π.length`) is claimed to be unobservable through the gating predicates `IsColliderAt` and `IsBlockableNonColliderAt`. Hand-checking the upstream files confirms both gates return `False` outside `{1, …, π.length-1}` (colliders) and `{0, …, π.length}` (blockable non-colliders). But this is exactly the marginalize/disjoint_EL class of case — a new α-valued lookup composed with new ∀/∃ predicates over recursive walk types — where computing both sides on a small CDMG instance (e.g. a length-3 walk through a known collider plus a blockable non-collider, with a few choices of `C`) gives concrete evidence that `IsSigmaOpen` and `IsSigmaBlocked` agree with the LN's verbal classification, independent of the gating-predicate / junk-value argument."
+    },
+    "examples": {
+      "verdict": "PASS",
+      "instances_checked": 5,
+      "feedback": "",
+      "raw_tail": " 2 ← 3`, `C = {2}`): LN says σ-OPEN — collider is at *position 2* (not 1), `nodeAt 2 = 2 ∈ Anc({2})`. This exercises both `nodeAt`'s index recursion and `IsColliderAt`'s `k+2 ↦ k+1` shift. Lean closed `IsSigmaOpen`.\n5. **Unblockable non-collider stress test** (`G5` on `Fin 3`, `π5 = 0 → 1 → 2` with `(2,1) ∈ E` so `{1,2}` is an SCC, `C = {1}`): LN says σ-OPEN because position 1 is *unblockable* (hence not blockable) — so the \"blockable non-collider ∉ C\" universal vacuously skips it, even though `v_1 = 1 ∈ C`. This is precisely the case the file's LN-faithfulness note flags: under an `IsNonColliderAt`-encoding (instead of `IsBlockableNonColliderAt`), this instance would yield σ-NOT-open and the `example` would fail. Lean closed `IsSigmaOpen` after constructing the directed walks witnessing `2 ∈ Sc(1)`.\n\n```\nVERDICT: PASS\nINSTANCES_CHECKED: 5\nSUMMARY: all 5 instances (trivial nil; single bidir; length-2 collider with C=∅; length-3 recursion-shift with collider at position 2 and C={2}; unblockable-non-collider stress test with v_1 ∈ C) agreed on LN-side and Lean-side answers, including the IsBlockableNonColliderAt-vs-IsNonColliderAt distinction the file's LN-faithfulness note flags\n```"
+    },
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:49:13+00:00",
+    "elapsed_sec": 1030.8
+  },
+  {
+    "ref": "claim_3_21",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "gth ∧ ¬IsColliderAt k`, so `.2` is `¬IsColliderAt k` ✓\n- `fun hb => hb.2 h`: `IsBlockableNonColliderAt k = IsNonColliderAt k ∧ ¬IsUnblockableNonColliderAt k`, so `hb.2 h : False` from `h : IsUnblockableNonColliderAt k` ✓\n\n**Deviation register check:** None of the four registered deviations apply — this row doesn't touch marginalization, finiteness, or `IsCollider`'s encoding controversy.\n\n**Classification:** This is a PRESENTATION choice: positive \"σ-open\" language (LN) vs. C-free negation of gating predicates (Lean). The two are equivalent under def_3_17's encoding. The claim introduces no new operator — it bundles existing predicates (`IsUnblockableNonColliderAt`, `IsColliderAt`, `IsBlockableNonColliderAt`) in a per-position conjunction. Per the rubric, no EXAMPLE_GENERATION needed.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN states the per-position σ-open property positively (\"unblockable non-colliders are always C-σ-open, regardless of C ⊆ V∪J\"); Lean states the equivalent C-free per-position primitive (¬IsColliderAt k ∧ ¬IsBlockableNonColliderAt k), which is exactly the condition making both def_3_17 IsSigmaOpen universals vacuous at k for any C.\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:51:52+00:00",
+    "elapsed_sec": 159.6
+  },
+  {
+    "ref": "def_3_18",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "J \\to V$ via $L$), so universals are vacuous on those — caller side-condition is mathematically equivalent.\n\n**Deviation register check.** No upstream entry forces a CONTENT inheritance: `def_3_14_marginalize_L_excludes_E` is about marginalisation (not used here); `def_3_4_the_encoding_of_walk` is about `Walk.IsCollider`, which this def reaches only transitively through `IsSigmaBlocked` (def_3_17) — that surface is the audit scope of def_3_17, not introduced or worsened by def_3_18.\n\n**No new operator/structure.** The def doesn't construct new graphs/walks/objects; it's a universal quantification of an existing per-walk predicate. Falls under PASS criterion \"no new operator/predicate — just bundles existing ones.\" `EXAMPLE_GENERATION` not warranted.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: Clauses 1–3 are `def`s, clause 4 are `abbrev`s, mirroring the LN's textual \"define\"/\"write\" split; side-conditions ($A,B,C \\subseteq J \\cup V$ everywhere, $J = \\emptyset$ for clause 4) are caller-supplied hypotheses rather than type-level guards; the LN's \"every walk from $A$ to $J \\cup B$\" unfolds to three nested universals over endpoint vertices and the walk between them."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:54:12+00:00",
+    "elapsed_sec": 139.7
+  },
+  {
+    "ref": "claim_3_22",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "ce (hypothesis-threaded vs. notation-baked); a canonical bijection between LN instances and Lean instances exists (set $G.J = \\emptyset$, supply the proof, recover the LN's $\\sPerp_G$ relation).\n\n**No new operator introduced** — the claim is symmetry of an existing predicate, not the definition of a new one. The supporting infrastructure (`isSigmaBlocked_reverse_iff` etc.) lives in the proof, not the statement; their correctness is the prover's responsibility, not the statement-equivalence verifier's.\n\n**Deviation register check.** None of the four registered deviations apply: marginalization (irrelevant), `Walk.IsCollider` encoding (would affect both sides of the iff symmetrically and is upstream of the statement), `[Finite α]` on claim_3_2 (not present here), `L^{∖W}` membership (irrelevant). No inherited CONTENT deviation.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: The $J = \\emptyset$ side-condition that the LN bakes into the $\\sPerp_G$ symbol (def_3_18 clause 4) is threaded as an explicit `hJ : G.J = ∅` hypothesis on the symmetry theorem, since `IsSigmaSeparated` is an `abbrev` for `IsISigmaSeparated` that does not enforce $J = \\emptyset$ at the type level."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:55:53+00:00",
+    "elapsed_sec": 101.5
+  },
+  {
+    "ref": "claim_3_27",
+    "strict": {
+      "verdict": "ERROR",
+      "deviation_class": null,
+      "feedback": "worker errored: [Errno 7] Argument list too long: 'claude'",
+      "raw_tail": ""
+    },
+    "examples": null,
+    "overall_verdict": "ERROR",
+    "audited_at": "2026-05-29T17:55:53+00:00",
+    "elapsed_sec": 0.0
+  },
+  {
+    "ref": "claim_3_23",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "; pairwise extractions via `.out i j` are bijective with the LN's clause-pair biconditionals.\n\n**Deviation register cross-check:**\n- def_3_14 marginalization entries — unrelated (no `Marginalization` here).\n- claim_3_2 `[Finite α]` — Lean here uses bare `variable {α : Type*}` with no `Finite` instance; not inherited.\n- def_3_4 Walk.IsCollider draft entry — `IsColliderAt` is used identically across clauses 2 (via `IsSigmaOpen`) and 3, so any shared encoding choice affects both clauses symmetrically and preserves the equivalence.\n\n**No new operator/predicate:** the statement only bundles three existentials built from primitives audited elsewhere — per the auditor instructions (\"no new operator/predicate — it just bundles existing ones\"), this is the immediate-PASS path; no example check needed.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's preamble side-conditions `C ⊆ J ∪ V` and `w₁, w₂ ∈ J ∪ V` are dropped; the Lean TFAE holds vacuously in the off-graph cases (no inhabitants of `Walk G w₁ w₂`, or only `Walk.nil` which satisfies all three clauses trivially), and \"the following are equivalent\" is rendered as `List.TFAE` with pairwise extractions via `.out i j`."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T17:58:05+00:00",
+    "elapsed_sec": 131.3
+  },
+  {
+    "ref": "claim_3_24",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": "se.\n3. *Each LN item packaged as a 3-clause `List.TFAE` with predicate name at position 0.* Position 0 ↔ position 1 in item 1 is `Iff.rfl`; the LN's \"is equivalent to either of the following\" maps 1:1 to TFAE entries. Pure packaging.\n4. *Strict-implicit `⦃v w⦄`, `G.J ∪ B` union-order, named-structure surfaces* — all mathlib idioms, no mathematical change.\n5. Deviation register entries: the marginalization (def_3_14) and `claim_3_2` Finite-α entries don't apply; the auditor-draft `def_3_4_the_encoding_of_walk` entry is incomplete and an upstream inheritance concern that this row does not introduce.\n\nThe def introduces no new operator/predicate/structure — it is pure TFAE packaging of existing predicates and an existing claim_3_23 TFAE, so `EXAMPLE_GENERATION` is not warranted.\n\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: LN's two Remark items packaged as two `List.TFAE`s each headed by the named predicate (item 1's positions 0↔1 collapse by `Iff.rfl`); LN's \"(shortest)\" parenthetical dropped from item 2's existentials (equivalent via `Nat`-well-foundedness on `Walk.length`); item 2's LN implication packaged as a TFAE biconditional with its trivially-true converse."
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T18:00:41+00:00",
+    "elapsed_sec": 156.0
+  },
+  {
+    "ref": "claim_3_25",
+    "strict": {
+      "verdict": "FAIL",
+      "deviation_class": "CONTENT",
+      "feedback": "The Lean file does not formalise the LN's claim. The LN asserts the universal iff $\\forall G,A,B,C,D, \\dots, A \\isPerp_G B \\given C \\iff A \\isPerp_{G^{\\sm D}} B \\given C$; the Lean file's sole `theorem` proves the **logical negation** — an existential counter-example refuting the LN's iff under the encoding. These two statements are contradictories, not LN-equivalent packagings.\n\n**Upstream culprit:** the `disjoint_EL`-forced exclusion clauses in `Section3_2/Marginalization.lean`'s `marginalize_L` (registered as `def_3_14_marginalize_L_excludes_E` / `def_3_14_l_w_membership_in_marginalization` in `leanification/deviations.json`). The author's own DISPROVE-MODE docstring identifies the exact failure: the LN's `(\\Longleftarrow)` proof at `graphs.tex:1559` reroutes a fork bifurcation `w ←-- u --→ b_{j+1}` in $G$ to a bidirected edge $(w, b_{j+1}) \\in L^{\\sm u}$, but the Lean encoding of `marginalize_L` kicks $(w, b_{j+1})$ out of $L^{\\sm u}$ via its directed-walk exclusion clause (because $w → u → b_{j+1}$ is a directed walk with interior in $\\{u\\}$). The \"at_risk_pattern\" of the registered upstream deviation is verbatim *\"proofs that construct a bidirected edge in $L^{\\sm W}$ and use it for rerouting in sigma-blocking analysis\"* — i.e. the LN's proof of this very row. The upstream CONTENT deviation has propagated.\n\n**Manager actions:**\n1. *Do not* mark this row solved as-is — the file formalises a refutation, not the claim. Downstream consumers (do-calculus Rule 1, ID algorithm, adjustment criteria, FCI projection arguments — listed in this file's `Downstream usage` block) cannot consume a disproof in place of the LN's iff; they will become unprovable.\n2. The only LN-faithful repair is at `def_3_14`: relax `marginalize_L`'s two directed-walk exclusion clauses so that the LN's fork-rerouting populates $L^{\\sm u}$ as the LN intends, then re-derive a `marginalize` whose `disjoint_EL` is satisfied (perhaps by quotienting / prioritising one of the two predicates, or by carrying the LN's literal definition with a `disjoint_EL` that's only proved up to the relevant equivalence). This is a chapter-3-foundations rework, not a row-3.25 edit.\n3. If the upstream rework is out of scope, the row's `audit.json` should record this CONTENT deviation explicitly (status: cannot be LN-faithfully formalised under the current `marginalize` encoding), and the manager should propagate the consequence to the deviation register entries for downstream rows that consume claim_3_25.\n4. The (⇒) lift direction in `SigmaOpenWalkMarginalization.lean` (`lift_sigmaOpen_walk_through_single_vertex`) is the *true* half of the equivalence under the Lean encoding; that file's own documentation already notes the (⇐) direction is false. The infrastructure is salvageable as a one-directional lift lemma for downstream consumers that only need the forward direction, but it must not be packaged or advertised as claim_3_25.",
+      "raw_tail": "lize_L`'s two directed-walk exclusion clauses so that the LN's fork-rerouting populates $L^{\\sm u}$ as the LN intends, then re-derive a `marginalize` whose `disjoint_EL` is satisfied (perhaps by quotienting / prioritising one of the two predicates, or by carrying the LN's literal definition with a `disjoint_EL` that's only proved up to the relevant equivalence). This is a chapter-3-foundations rework, not a row-3.25 edit.\n3. If the upstream rework is out of scope, the row's `audit.json` should record this CONTENT deviation explicitly (status: cannot be LN-faithfully formalised under the current `marginalize` encoding), and the manager should propagate the consequence to the deviation register entries for downstream rows that consume claim_3_25.\n4. The (⇒) lift direction in `SigmaOpenWalkMarginalization.lean` (`lift_sigmaOpen_walk_through_single_vertex`) is the *true* half of the equivalence under the Lean encoding; that file's own documentation already notes the (⇐) direction is false. The infrastructure is salvageable as a one-directional lift lemma for downstream consumers that only need the forward direction, but it must not be packaged or advertised as claim_3_25.\nEND[feedback]"
+    },
+    "examples": null,
+    "overall_verdict": "FAIL",
+    "audited_at": "2026-05-29T18:01:50+00:00",
+    "elapsed_sec": 69.4
+  },
+  {
+    "ref": "claim_3_26",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "NONE",
+      "feedback": "",
+      "raw_tail": "rites the non-collider disjunct; the collider disjunct passes through unchanged regardless of what counts as a collider.\n- `claim_3_2_*` (`[Finite α]` injection): this row's three theorems are polymorphic — no finiteness hypothesis added.\n- `claim_3_25_*`: claim_3_25 is downstream of marginalization, not upstream of claim_3_26.\n\nNo upstream CONTENT deviation propagates.\n\n**Packaging consideration:** the split into three theorems is a proof-ergonomic choice exposing the same simplification at three abstraction levels (witness/σ-blocked/iσ-separated). All three are inter-derivable straight-line; no extra mathematical content; LN sentence 2 is the underlying fact each layer reformulates. Pure packaging, not a deviation.\n\n**No new operator/predicate/structure is introduced** — the file only relates existing predicates (`IsBlockableNonColliderAt`, `IsNonColliderAt`, `IsSigmaBlocked`, `IsISigmaSeparated`) via an iff under an existing hypothesis (`IsAcyclic`). Falls under the \"no new operator/predicate -- it just bundles existing ones\" PASS criterion; `EXAMPLE_GENERATION` would test nothing this hand-check hasn't already settled at the unfolding level.\n\nVERDICT: PASS\nDEVIATION_CLASS: NONE"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T18:04:22+00:00",
+    "elapsed_sec": 152.3
+  },
+  {
+    "ref": "def_3_19",
+    "strict": {
+      "verdict": "PASS",
+      "deviation_class": "PRESENTATION",
+      "feedback": "",
+      "raw_tail": " `AncSet` already silently ignores out-of-graph members. This is pure packaging.\n\n**Deviation register pass-through check:** none of the registered entries (def_3_4 IsCollider-walks, def_3_14 marginalization, claim_3_2 Finite hypothesis, claim_3_25 negation) affect this row. def_3_19 builds on `IsColliderAt`/`IsNonColliderAt` (def_3_15), not `Walk.IsCollider` (def_3_4 item 4).\n\nThe encoding is a clean four-disjunct bundle of existing predicates (`IsColliderAt`, `IsNonColliderAt`, `AncSet`, `nodeAt`) — falls into the \"bundles existing ones\" PASS-immediate criterion. The bundling is mechanical and the equivalence is fully verifiable by configuration enumeration above.\n\n```\nVERDICT: PASS\nDEVIATION_CLASS: PRESENTATION\nDEVIATION_SUMMARY: The LN's three non-collider sub-patterns of clause (ii) (left chain, right chain, fork) are collapsed into a single `∃ k, 0 < k < length ∧ IsNonColliderAt k ∧ v_k ∈ C` disjunct via def_3_15's \"non-collider = at most one arrowhead\" equivalence; LN's clause (i) `v_0 ∈ C ∨ v_n ∈ C` is split into two separate top-level disjuncts; the LN's preamble `C ⊆ J ∪ V` side-condition is left off the predicate signature (consumers add it as a separate hypothesis).\n```"
+    },
+    "examples": null,
+    "overall_verdict": "PASS",
+    "audited_at": "2026-05-29T18:10:05+00:00",
+    "elapsed_sec": 342.2
   }
 ]

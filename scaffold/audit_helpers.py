@@ -48,15 +48,73 @@ def _read_or_empty(p: Path) -> str:
         return ""
 
 
+# Per-Lean-file size cap when building audit prompts. Linux's ARG_MAX is
+# typically ~128 KB for argv; the full prompt also includes the worker
+# markdown, the tex_block, the deviation register, etc. Keeping each
+# Lean file under this cap leaves ample headroom for the rest of the
+# prompt even for rows whose lean_files list multiple large files.
+_PROMPT_LEAN_FILE_HEAD_CHARS = 40_000
+_PROMPT_LEAN_FILE_TAIL_CHARS = 15_000
+_PROMPT_LEAN_FILE_TOTAL_BUDGET = (
+    _PROMPT_LEAN_FILE_HEAD_CHARS + _PROMPT_LEAN_FILE_TAIL_CHARS
+)
+
+
+def _truncate_lean_for_prompt(content: str, path_label: str) -> str:
+    """If a Lean file is too large to pass on the command line, keep its
+    head + tail (which cover imports / docstring / declaration heads at
+    the top and final theorems at the bottom) and insert an elision
+    marker in the middle. Returns the original content if it's already
+    within the budget.
+    """
+    if len(content) <= _PROMPT_LEAN_FILE_TOTAL_BUDGET:
+        return content
+    head_chars = _PROMPT_LEAN_FILE_HEAD_CHARS
+    tail_chars = _PROMPT_LEAN_FILE_TAIL_CHARS
+    head = content[:head_chars]
+    tail = content[-tail_chars:]
+    omitted = len(content) - head_chars - tail_chars
+    return (
+        f"{head}\n\n"
+        f"-- ... [auditor truncated {omitted} chars from {path_label} for\n"
+        f"--     prompt-size; the head + tail above bracket what fits.] ...\n\n"
+        f"{tail}"
+    )
+
+
+def _verdict_mode_for_row(row: dict) -> str:
+    """Determine the row's verdict mode (proven vs disproven) for the
+    strict-equivalence checker.
+
+    - Claim row with ``proven=="disproven"`` -> ``"disproven"`` (the
+      Lean theorem should match the *negation* of the LN claim).
+    - Claim row with ``proven=="proven"`` (or "not proven", "n/a", etc.)
+      -> ``"proven"`` (the standard literal-LN equivalence target).
+    - Def rows always -> ``"proven"`` (no notion of disprove for defs).
+
+    At solve-time, the orchestrator could override this from the live
+    ``state.history`` (last mistake / unmistake action), but for the
+    audit (which operates on already-solved rows) the row's persisted
+    ``proven`` field is the source of truth.
+    """
+    if row.get("def_or_claim") == "def":
+        return "proven"
+    return "disproven" if row.get("proven") == "disproven" else "proven"
+
+
 def _row_context_block(row: dict, include_lean: bool = True,
                        include_tex_block: bool = True) -> str:
     """Render a multi-line context block describing the row, suitable
-    for pasting at the bottom of either worker's prompt."""
+    for pasting at the bottom of either worker's prompt. Large Lean
+    files are head+tail-truncated to stay under the OS argv limit."""
     parts: list[str] = ["# Row context (auditor-supplied)"]
     for k in ("ref", "title", "type", "def_or_claim", "section"):
         parts.append(f"- {k}: {row.get(k)}")
     parts.append(f"- main_lean_file: {row.get('main_lean_file')}")
     parts.append(f"- lean_files: {row.get('lean_files')}")
+    # Surface the verdict mode so the strict checker knows whether to
+    # compare against the literal LN claim or its negation.
+    parts.append(f"- verdict mode: {_verdict_mode_for_row(row)}")
     if include_tex_block:
         tex_block = row.get("tex_block") or ""
         parts.append(f"\n## LN tex block (verbatim, from data.json)\n"
@@ -66,9 +124,11 @@ def _row_context_block(row: dict, include_lean: bool = True,
             if not lf:
                 continue
             content = _read_or_empty(REPO_ROOT / lf)
-            if content:
-                parts.append(f"\n## Lean file: {lf}\n"
-                             f"```lean\n{content}\n```\n")
+            if not content:
+                continue
+            content = _truncate_lean_for_prompt(content, lf)
+            parts.append(f"\n## Lean file: {lf}\n"
+                         f"```lean\n{content}\n```\n")
     return "\n".join(parts)
 
 
@@ -104,6 +164,12 @@ _DEVIATION_CLASS_RE = re.compile(
     r"^DEVIATION_CLASS:\s*(CONTENT|PRESENTATION|NONE|UNCERTAIN)\s*$",
     re.MULTILINE,
 )
+# `ROOT_CAUSE: local` or `ROOT_CAUSE: upstream:<ref>` -- only present
+# on FAIL verdicts. Captures the bucket and (for upstream) the named ref.
+_ROOT_CAUSE_RE = re.compile(
+    r"^ROOT_CAUSE:\s*(local|upstream:[A-Za-z_][\w]*)\s*$",
+    re.MULTILINE,
+)
 _FEEDBACK_RE = re.compile(
     r"BEGIN\[feedback\]\s*\n(.*?)\n\s*END\[feedback\]",
     re.DOTALL,
@@ -121,12 +187,19 @@ _INSTANCES_RE = re.compile(
 def _parse_strict_reply(reply: str) -> dict:
     m_v = _STRICT_VERDICT_RE.search(reply)
     m_c = _DEVIATION_CLASS_RE.search(reply)
+    m_r = _ROOT_CAUSE_RE.search(reply)
     m_f = _FEEDBACK_RE.search(reply)
+    root = m_r.group(1) if m_r else None
+    root_upstream_ref = None
+    if root and root.startswith("upstream:"):
+        root_upstream_ref = root.split(":", 1)[1].strip() or None
     return {
-        "verdict":        m_v.group(1) if m_v else "MISSING",
-        "deviation_class": m_c.group(1) if m_c else None,
-        "feedback":       m_f.group(1).strip() if m_f else "",
-        "raw_tail":       reply[-1200:],
+        "verdict":           m_v.group(1) if m_v else "MISSING",
+        "deviation_class":   m_c.group(1) if m_c else None,
+        "root_cause":        root,                # "local" | "upstream:<ref>" | None
+        "root_upstream_ref": root_upstream_ref,   # the bare <ref> if upstream
+        "feedback":          m_f.group(1).strip() if m_f else "",
+        "raw_tail":          reply[-1200:],
     }
 
 
