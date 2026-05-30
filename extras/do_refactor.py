@@ -208,6 +208,11 @@ def cmd_init(args: argparse.Namespace) -> int:
     ]
     if args.no_build:
         fd_cmd.append("--no-build")
+    if args.decl_name:
+        # Override the row's `title` when the Lean declaration name
+        # differs (e.g. row title `AcyclicIffTopologicalOrder` but
+        # Lean theorem `isAcyclic_iff_hasTopologicalOrder`).
+        fd_cmd.extend(["--decl-name", args.decl_name])
     _run(fd_cmd)
 
     # Read deps + initialize the refactor table
@@ -453,6 +458,14 @@ def main(argv: list[str]) -> int:
                         help="refactor name (becomes the "
                              "refactor_<name> branch + Refactor_<name>/ "
                              "folder)")
+    p_init.add_argument("--decl-name", type=str, default=None,
+                        help="Lean declaration name to rename in the "
+                             "find_dependents scan (default: row's "
+                             "`title`). Override when the row title "
+                             "doesn't match the actual top-level "
+                             "declaration -- e.g. row title is "
+                             "`AcyclicIffTopologicalOrder` but the Lean "
+                             "theorem is `isAcyclic_iff_hasTopologicalOrder`.")
     p_init.add_argument("--no-build", action="store_true",
                         help="pass to find_dependents (skip lake build, "
                              "do only git grep -- much faster but misses "

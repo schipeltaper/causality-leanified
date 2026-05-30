@@ -2787,6 +2787,13 @@ def _render_refactor_block(row: dict) -> str:
     over the original.
     """
     main_lean = row.get("main_lean_file") or "(see `lean_files` in your row data)"
+    # The row's `title` is the PascalCase label used for file names
+    # and is OFTEN but not always the actual Lean declaration name
+    # (e.g., a row titled `AcyclicIffTopologicalOrder` may have its
+    # Lean theorem named `isAcyclic_iff_hasTopologicalOrder`). The
+    # manager must use the ACTUAL declaration name in the marker
+    # blocks. We surface the row's title as a STARTING guess and
+    # warn the manager to verify by opening the file.
     original_decl_name = row.get("title") or "<Title>"
     refactor_decl_name = f"refactor_{original_decl_name}"
     is_claim = row.get("def_or_claim") == "claim"
@@ -2823,9 +2830,16 @@ def _render_refactor_block(row: dict) -> str:
         "shape. Use the original as inspiration, not as scripture.\n"
         "\n"
         "**Lean: same-file marker convention.** Wrap the original block\n"
-        "and the replacement block with the exact marker pairs below\n"
-        f"(the final declaration name -- `{original_decl_name}` here --\n"
-        "goes after the colon):\n"
+        "and the replacement block with the exact marker pairs below.\n"
+        "**IMPORTANT**: the name after the colon must be the *actual*\n"
+        "Lean declaration name (the identifier on the `def` / `theorem`\n"
+        "/ `lemma` line of the original), NOT necessarily this row's\n"
+        f"`title` (the title `{original_decl_name}` shown below is a\n"
+        "STARTING GUESS; open the original Lean file and verify the\n"
+        "real declaration name -- e.g. a row titled\n"
+        "`AcyclicIffTopologicalOrder` may have its theorem named\n"
+        "`isAcyclic_iff_hasTopologicalOrder`). If they differ, use the\n"
+        "Lean name in the marker and as the `refactor_<name>` prefix:\n"
         "```lean\n"
         f"-- REFACTOR-BLOCK-ORIGINAL-BEGIN: {original_decl_name}\n"
         f"def {original_decl_name} := … -- (the existing definition; unchanged)\n"
@@ -2837,9 +2851,12 @@ def _render_refactor_block(row: dict) -> str:
         "```\n"
         "Phase 7's cleanup script greps for these markers, deletes the\n"
         "ORIGINAL block, and renames every occurrence of\n"
-        f"`{refactor_decl_name}` -> `{original_decl_name}` across all\n"
-        "affected files. **Use the exact marker format above** -- a typo\n"
-        "in a marker means the cleanup misses your block.\n"
+        f"`refactor_<FinalName>` -> `<FinalName>` across all affected\n"
+        "files. **Use the exact marker format above** -- a typo in a\n"
+        "marker means the cleanup misses your block. **And use the\n"
+        "actual Lean declaration name** -- the rename is whole-word, so\n"
+        "if your marker says `Foo` but the declaration is `fooBar`, the\n"
+        "cleanup won't find anything to rename.\n"
         f"{tex_section}"
         "\n"
         "**Don't delete the original yourself.** Don't rename anything\n"
