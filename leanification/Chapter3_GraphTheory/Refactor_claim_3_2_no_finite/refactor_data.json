@@ -841,7 +841,7 @@
           "last_used": "2026-05-30T23:10:11+00:00"
         }
       ],
-      "time_needed_to_solve": 2019,
+      "time_needed_to_solve": 2025,
       "refactor": true
     },
     {
@@ -850,10 +850,10 @@
       "section": "3.2",
       "title": "MarginalizingOutThe",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutSplitOutput.lean",
@@ -867,7 +867,7 @@
         "review_design": 0,
         "verify_equivalence": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -882,8 +882,23 @@
         "add_design_choice_comments": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dfa5d73b-889c-401e-880d-e4cf4caf86a8",
+          "first_seen": "2026-05-30T23:23:25+00:00",
+          "last_used": "2026-05-30T23:23:25+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "b9cff946-7ec1-4742-b2d5-c0f6d54cf2e3",
+          "first_seen": "2026-05-30T23:26:35+00:00",
+          "last_used": "2026-05-30T23:26:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1855,
       "refactor": true
     },
     {
