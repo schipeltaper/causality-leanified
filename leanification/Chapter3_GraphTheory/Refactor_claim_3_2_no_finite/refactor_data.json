@@ -601,7 +601,7 @@
           "last_used": "2026-05-30T22:19:28+00:00"
         }
       ],
-      "time_needed_to_solve": 5174,
+      "time_needed_to_solve": 5178,
       "refactor": true
     },
     {
@@ -610,25 +610,24 @@
       "section": "3.2",
       "title": "MarginalizationsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
       "lean_files": [
-        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
-        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationPreserves.lean"
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean"
       ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 3,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -643,8 +642,93 @@
         "add_design_choice_comments": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aa2daf5d-483f-462d-ac1a-fcf1cbd4ecae",
+          "first_seen": "2026-05-30T22:22:16+00:00",
+          "last_used": "2026-05-30T22:22:16+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5650c70a-f408-45ba-b2a5-dd9df0fddb5d",
+          "first_seen": "2026-05-30T22:24:48+00:00",
+          "last_used": "2026-05-30T22:24:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e52eec23-051e-47a3-8c84-a146c9a18994",
+          "first_seen": "2026-05-30T22:25:20+00:00",
+          "last_used": "2026-05-30T22:25:20+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "b3d0314b-bec0-4a67-bd73-1807395f4916",
+          "first_seen": "2026-05-30T22:28:35+00:00",
+          "last_used": "2026-05-30T22:28:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9ae0118c-8be9-46b8-8976-c089bd317cb8",
+          "first_seen": "2026-05-30T22:29:18+00:00",
+          "last_used": "2026-05-30T22:29:18+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "ebd42e94-a63f-4519-a116-d07e49d1c466",
+          "first_seen": "2026-05-30T22:30:41+00:00",
+          "last_used": "2026-05-30T22:30:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0240c2e0-fbbf-42c3-9697-b8305b1a73a3",
+          "first_seen": "2026-05-30T22:32:56+00:00",
+          "last_used": "2026-05-30T22:32:56+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "66e63dc7-5adc-4f49-aa5b-87c0f9df9656",
+          "first_seen": "2026-05-30T22:36:55+00:00",
+          "last_used": "2026-05-30T22:36:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4620d998-55de-4560-860c-951294a2660e",
+          "first_seen": "2026-05-30T22:37:20+00:00",
+          "last_used": "2026-05-30T22:37:20+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "3082ac84-8a07-487d-acb8-989aaf22a32f",
+          "first_seen": "2026-05-30T22:39:18+00:00",
+          "last_used": "2026-05-30T22:39:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "22aaae45-de8d-407a-a349-1a54b8d4ad82",
+          "first_seen": "2026-05-30T22:39:45+00:00",
+          "last_used": "2026-05-30T22:39:45+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "c7d62cbb-ae5d-4557-a584-014cba0813b6",
+          "first_seen": "2026-05-30T22:42:27+00:00",
+          "last_used": "2026-05-30T22:42:27+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1552,
       "refactor": true
     },
     {
