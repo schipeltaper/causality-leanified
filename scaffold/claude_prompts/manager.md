@@ -218,7 +218,7 @@ notes: free-form context, may span
 
 The orchestrator auto-tags every entry with `manager-accepted` so the human can grep for entries that came via this path (vs auditor drafts).
 
-**The bypass is per-row-run.** If the row is paused and resumed later (new orchestrator invocation), `state.deviation_accepted` resets to `False` and the strict gate runs fresh on the next `solved`. The *register entry* persists, of course; you just need to re-emit `accept_deviation` to flip the bypass flag again (or actually fix the encoding by then).
+**The bypass is per-attempt** (single-shot consumption). Once a `solved` attempt reaches the strict gate and the bypass is applied, the flag clears. If that same `solved` attempt then bounces on something downstream (e.g., the for-website worker errors), or if you re-emit `solved` later in the run, the strict gate runs fresh again. Re-emit `accept_deviation` to bypass again — **using the same `id` is fine** (the orchestrator recognises the existing register entry and just flips the bypass flag without writing a duplicate). This also means: if the auditor pre-drafted the deviation you're about to accept, you can use the auditor's `id` verbatim. Same applies after a paused-and-resumed row (the per-orchestration flag resets, but the register entry persists).
 
 **You can also call `verify_equivalence_strict` and `verify_with_examples` voluntarily** during a row's normal workflow — they're in the actions table above. Useful if you want to know early whether your formalization will pass the gate, rather than learning at `solved`-time. (The friendly `verify_equivalence` is still there; the strict checker is additional, not a replacement.)
 

@@ -3146,6 +3146,16 @@ def solve_current_row() -> None:
                     print(f"[orchestrator] strict-equivalence gate "
                           f"skipped for {state.ref} (manager emitted "
                           f"`accept_deviation`).", flush=True)
+                    # One-shot consumption: clear the flag now that the
+                    # bypass has been applied. If this `solved` attempt
+                    # bounces on something downstream (e.g., the
+                    # for-website worker errors) and the manager re-
+                    # emits `solved`, the strict gate runs again -- the
+                    # bypass is per-attempt, not per-row-run. The
+                    # manager must re-emit `accept_deviation` to bypass
+                    # again. (Idempotent: a second `accept_deviation`
+                    # with the same id is treated as acknowledgement.)
+                    state.deviation_accepted = False
                 elif not lean_files and not main_lean_file:
                     print(f"[orchestrator] strict-equivalence gate "
                           f"skipped for {state.ref} (no Lean files "
@@ -3446,20 +3456,25 @@ def solve_current_row() -> None:
             # to the row's own ref), `tags` (comma-separated), `notes`
             # (free-form; everything after the last recognised key).
             #
-            # On parse failure we don't write to the register -- we
-            # bounce back to the manager with the parse error so they
-            # can re-emit. On register collision (id already exists) we
-            # surface that too. Successful register write flips
-            # `state.deviation_accepted`, so the next `solved` skips the
-            # strict gate.
+            # On body-parse failure (missing required fields, stray
+            # key after notes:, etc.) we bounce back to the manager
+            # with the parse error so they can re-emit. On register
+            # *collision* (id already in deviations.json -- common when
+            # the auditor pre-drafted that entry, or when the manager
+            # re-accepts after a non-strict-gate `solved` bounce) we
+            # treat it as acknowledgement: no new write, flag still
+            # flips, manager can proceed. Successful register write
+            # also flips `state.deviation_accepted`, so the next
+            # `solved` skips the strict gate.
             try:
-                from deviations import register_deviation              # type: ignore
+                from deviations import (                              # type: ignore
+                    register_deviation, load_register,
+                )
                 entry = _parse_accept_deviation_body(body, default_ref=state.ref)
-                register_deviation(entry)
             except (ValueError, KeyError) as e:
                 state.history.append(TurnRecord(
                     turn, action, body,
-                    f"accept_deviation parse/write failed: {e}"))
+                    f"accept_deviation body parse failed: {e}"))
                 extra_note = (
                     f"`accept_deviation` could not be honored: {e}\n\n"
                     "The body must include these key/value lines "
@@ -3475,26 +3490,72 @@ def solve_current_row() -> None:
                     "Re-emit `accept_deviation` with the body fixed."
                 )
             else:
-                state.deviation_accepted = True
-                state.history.append(TurnRecord(
-                    turn, action, body,
-                    f"(deviation {entry['id']!r} accepted + registered; "
-                    f"strict gate will be bypassed on next `solved`)"))
-                print(f"[orchestrator] accept_deviation: registered "
-                      f"{entry['id']}; strict-equivalence gate will be "
-                      f"bypassed on the next `solved` attempt for "
-                      f"{state.ref}.", flush=True)
-                extra_note = (
-                    f"`accept_deviation` recorded: register entry "
-                    f"`{entry['id']}` written to "
-                    f"`leanification/deviations.json`. The strict-"
-                    f"equivalence solved-gate will be BYPASSED on your "
-                    f"next `solved` attempt for this row. Proceed to "
-                    f"`solved` when ready. (Note: this flag is per-row-"
-                    f"run; if the row is paused and resumed, you'll need "
-                    f"to re-accept -- but the register entry itself "
-                    f"persists.)"
-                )
+                existing_ids = {e.get("id") for e in load_register()}
+                already_in_register = entry["id"] in existing_ids
+                if already_in_register:
+                    print(f"[orchestrator] accept_deviation: "
+                          f"{entry['id']!r} already in register "
+                          f"(acknowledging without duplicate write); "
+                          f"strict-equivalence gate will be bypassed "
+                          f"on the next `solved` attempt for "
+                          f"{state.ref}.", flush=True)
+                    state.deviation_accepted = True
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"(deviation {entry['id']!r} acknowledged -- "
+                        f"already in register; strict gate will be "
+                        f"bypassed on next `solved`)"))
+                    extra_note = (
+                        f"`accept_deviation` acknowledged: register "
+                        f"entry `{entry['id']}` was already in "
+                        f"`leanification/deviations.json` (likely "
+                        f"drafted by the auditor or by a prior "
+                        f"`accept_deviation`). No duplicate written. "
+                        f"The strict-equivalence solved-gate will be "
+                        f"BYPASSED on your next `solved` attempt for "
+                        f"this row. Proceed to `solved` when ready."
+                    )
+                else:
+                    try:
+                        register_deviation(entry)
+                    except (ValueError, KeyError) as e:
+                        # Should not normally happen -- we just checked
+                        # for collision and the body parsed. But guard
+                        # in case `register_deviation` adds new
+                        # validation in the future.
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"accept_deviation register write failed: {e}"))
+                        extra_note = (
+                            f"`accept_deviation` could not be honored: "
+                            f"register write failed with {e}. Re-emit "
+                            f"`accept_deviation` after fixing the body."
+                        )
+                    else:
+                        state.deviation_accepted = True
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"(deviation {entry['id']!r} accepted + "
+                            f"registered; strict gate will be bypassed "
+                            f"on next `solved`)"))
+                        print(f"[orchestrator] accept_deviation: "
+                              f"registered {entry['id']}; strict-"
+                              f"equivalence gate will be bypassed on "
+                              f"the next `solved` attempt for "
+                              f"{state.ref}.", flush=True)
+                        extra_note = (
+                            f"`accept_deviation` recorded: register "
+                            f"entry `{entry['id']}` written to "
+                            f"`leanification/deviations.json`. The "
+                            f"strict-equivalence solved-gate will be "
+                            f"BYPASSED on your next `solved` attempt "
+                            f"for this row. Proceed to `solved` when "
+                            f"ready. (Note: bypass is per-attempt; if "
+                            f"this `solved` bounces on something other "
+                            f"than the strict gate, you'll need to re-"
+                            f"emit `accept_deviation` -- the same id "
+                            f"works, since it's now in the register.)"
+                        )
 
         elif action == "reset":
             # Drop the history and start the manager over from scratch.
@@ -3571,6 +3632,12 @@ def solve_current_row() -> None:
                 print(f"[orchestrator] {action} returned "
                       f"EXAMPLE_GENERATION; auto-chaining "
                       f"verify_with_examples.", flush=True)
+                # Count the auto-chained action toward the row's
+                # actions_tracking so the run summary accurately
+                # reflects what was dispatched (the chain happens
+                # without an explicit manager `verify_with_examples`
+                # action, so the top-of-turn counter would miss it).
+                increment_action_count(state.row, "verify_with_examples")
                 try:
                     ex_reply, ex_sess = run_claude(
                         build_verifier_action_prompt(
@@ -3617,6 +3684,13 @@ def solve_current_row() -> None:
                             if isinstance(e, WorkerTimeoutError) else "errored")
                     print(f"[orchestrator] auto-chained "
                           f"verify_with_examples {kind}: {e}", flush=True)
+                    # Record the failed chain attempt in history so the
+                    # next manager turn sees what was tried (and the
+                    # run-summary post-mortem doesn't lose the trace).
+                    state.history.append(TurnRecord(
+                        turn, "verify_with_examples",
+                        "(auto-chained from verify_equivalence_strict)",
+                        f"WORKER {kind.upper()}: {e}"))
                     extra_note = (
                         f"`verify_equivalence_strict` returned "
                         f"EXAMPLE_GENERATION. The orchestrator tried to "
