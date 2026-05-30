@@ -298,7 +298,7 @@
           "last_used": "2026-05-30T19:35:22+00:00"
         }
       ],
-      "time_needed_to_solve": 2770,
+      "time_needed_to_solve": 2776,
       "refactor": true
     },
     {
@@ -307,10 +307,10 @@
       "section": "3.2",
       "title": "HardInterventionNodeSplitOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplitOrder.lean",
@@ -321,14 +321,14 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 4,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -339,8 +339,121 @@
         "add_design_choice_comments": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a77c5f4d-28fb-4765-b2e9-70cf9bb63a75",
+          "first_seen": "2026-05-30T19:54:37+00:00",
+          "last_used": "2026-05-30T19:54:37+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "db6add68-c167-48df-82c6-e577aff936d9",
+          "first_seen": "2026-05-30T19:57:30+00:00",
+          "last_used": "2026-05-30T19:57:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6dd04ba3-4d2e-4c18-977b-54511907214f",
+          "first_seen": "2026-05-30T19:58:08+00:00",
+          "last_used": "2026-05-30T19:58:08+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "0c8422d5-95c0-449f-8c5d-7ffa6c43044f",
+          "first_seen": "2026-05-30T20:01:11+00:00",
+          "last_used": "2026-05-30T20:01:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "58a19580-34b4-44cb-bb6f-306a1508d39f",
+          "first_seen": "2026-05-30T20:03:00+00:00",
+          "last_used": "2026-05-30T20:03:00+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "463a3061-e0b4-4efd-9f5c-da7d626b049d",
+          "first_seen": "2026-05-30T20:05:31+00:00",
+          "last_used": "2026-05-30T20:05:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9de5906d-82e1-42d9-a296-9468c6e12d08",
+          "first_seen": "2026-05-30T20:07:58+00:00",
+          "last_used": "2026-05-30T20:07:58+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d9c04da4-5361-4702-b5fc-e226fa9c6980",
+          "first_seen": "2026-05-30T20:12:27+00:00",
+          "last_used": "2026-05-30T20:12:27+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9e312064-e96b-4392-98d0-07353bc9a51b",
+          "first_seen": "2026-05-30T20:13:01+00:00",
+          "last_used": "2026-05-30T20:13:01+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "4db4fa51-3e2c-4273-8853-2cf519ad60c6",
+          "first_seen": "2026-05-30T20:16:26+00:00",
+          "last_used": "2026-05-30T20:16:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1801e71d-fee4-431f-b750-c91b7c400d5f",
+          "first_seen": "2026-05-30T20:16:53+00:00",
+          "last_used": "2026-05-30T20:16:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d8faf718-0680-4669-9f6c-05378fb0a622",
+          "first_seen": "2026-05-30T20:18:29+00:00",
+          "last_used": "2026-05-30T20:18:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2688af47-5630-49a2-967b-b16d1dfe3dc0",
+          "first_seen": "2026-05-30T20:29:14+00:00",
+          "last_used": "2026-05-30T20:29:14+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "fceb0c8f-3414-4ca0-94cd-f88ff61107af",
+          "first_seen": "2026-05-30T20:39:46+00:00",
+          "last_used": "2026-05-30T20:39:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "35b2a45a-ec90-4cc0-953e-3b8b2396880a",
+          "first_seen": "2026-05-30T20:40:31+00:00",
+          "last_used": "2026-05-30T20:40:31+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "894d19a6-193d-4813-9177-2a0d430e0642",
+          "first_seen": "2026-05-30T20:47:01+00:00",
+          "last_used": "2026-05-30T20:47:01+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3806,
       "refactor": true
     },
     {

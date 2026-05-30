@@ -115,6 +115,7 @@ private theorem mk_eq_of_data {G H : CDMG α}
 
 /-! ## Scenario A: HI on `W₁` removes `w` from `V`, breaking the SWIG precondition -/
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_precondition_fails_on_intersection
 -- claim_3_12 (Scenario A)
 -- title: HardInterventionNodeSplitOrder
 --
@@ -261,6 +262,59 @@ theorem swig_precondition_fails_on_intersection
   have hwHI : w ∈ (G.hardInterventionOn W₁).V := hsub hw.2
   rw [hardInterventionOn_V] at hwHI
   exact hwHI.2 hw.1
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_precondition_fails_on_intersection
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_precondition_fails_on_intersection (was: refactor_swig_hardInterventionOn_inputs_J)
+/-- claim_3_12 (Scenario A, LN-faithful replacement): when
+`w ∈ W₁ ∩ W₂` (and the LN states this happens in `G.V`), the first
+hard intervention `G.hardInterventionOn W₁` *promotes `w` into the
+input set* -- i.e. `w ∈ (G.hardInterventionOn W₁).J`. Formalises the
+LN's literal "first hard intervening on `w` turns `w` into an input
+node, for now indicated as `w^i`" (`graphs.tex` line 706) as a
+positive J-membership claim.
+
+## What changed from the original
+
+The original `swig_precondition_fails_on_intersection` stated only the
+*consequence* `¬ (W₂ ⊆ (G.hardInterventionOn W₁).V)` -- a
+typing/precondition-failure observation downstream of the LN's primary
+content but not the same statement. The strict-equivalence gate flagged
+that as a CONTENT deviation: the LN's primary content is the positive
+J-membership of `w`, not the consequent SWIG-precondition failure.
+This replacement records the LN-faithful J-membership directly; the
+original's consequence still follows because `hardInterventionOn_V`
+reduces `(G.hardInterventionOn W₁).V` to `G.V \ W₁`, which `w` cannot
+inhabit since `w ∈ W₁` -- so a downstream caller who needs the
+typing-obstruction form can still derive it in one line.
+
+## Design choice
+
+* **Positive J-membership, not a downstream consequence.** The LN
+  literally writes "turns `w` into an input node `w^i`" -- i.e. `w`
+  is now in `J`. The positive form is the LN-faithful translation.
+  Stating only the precondition failure (the original's `¬ ⊆`) was
+  the strict-gate's CONTENT-level complaint.
+* **Same `{G, w, W₁, W₂}` implicit and `hw, hwV` explicit signature
+  as the original**, so any future caller adapting between the two
+  only has to swap the name. `hwV` remains documented (in the
+  original's block above) as LN-faithful but not strictly load-bearing
+  -- it is still not consumed in the proof.
+* **Naming `swig_hardInterventionOn_inputs_J`.** Parallels Scenario
+  B2's T3 replacement `swig_hardInterventionOn_outputs_J`: both are
+  J-membership statements about HI of the Scenario-A input candidates
+  (T1) or the Scenario-B2 output candidates (T3). The `swig_` prefix
+  marks the file/scenario context even though the SWIG does not
+  actually appear in T1's statement -- Scenario A is "HI without the
+  later SWIG step", since the SWIG precondition fails. -/
+theorem refactor_swig_hardInterventionOn_inputs_J
+    {G : CDMG α} {w : α} {W₁ W₂ : Set α}
+    (hw : w ∈ W₁ ∩ W₂) (hwV : w ∈ G.V) :
+    w ∈ (G.hardInterventionOn W₁).J := by
+  -- `hardInterventionOn_J` unfolds the LHS to `G.J ∪ W₁`; `hw.1` gives
+  -- `w ∈ W₁`. `hwV` is documented as LN-faithful but not consumed.
+  rw [hardInterventionOn_J]
+  exact Or.inr hw.1
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_precondition_fails_on_intersection
 
 /-! ## Scenario B1: HI on input copies (`Sum.inr` half) is a no-op on the SWIG -/
 
@@ -459,6 +513,7 @@ theorem swig_hardInterventionOn_inputs_eq_self
 
 /-! ## Scenario B2: HI on output copies (`Sum.inl` half) shrinks `V` -/
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_hardInterventionOn_outputs_V
 -- claim_3_12 (Scenario B2)
 --
 -- After `G.swig W hW`, the `Sum.inl` half of the carrier
@@ -592,9 +647,65 @@ theorem swig_hardInterventionOn_outputs_V
   -- `S : Set α`).
   rw [hardInterventionOn_V, nodeSplittingHardInterventionOn_V]
   exact (Set.image_diff Sum.inl_injective G.V S).symm
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_hardInterventionOn_outputs_V
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_hardInterventionOn_outputs_V (was: refactor_swig_hardInterventionOn_outputs_J)
+/-- claim_3_12 (Scenario B2, LN-faithful replacement): hard-intervening
+on `Sum.inl '' S` (the output copies of `S ⊆ W`) *promotes those output
+copies into the SWIG's input set* --
+`Sum.inl '' S ⊆ ((G.swig W hW).hardInterventionOn (Sum.inl '' S)).J`.
+Formalises the LN's literal "hard intervening on `w^o` would turn `w^o`
+into an additional input node" (`graphs.tex` line 707) as a positive
+J-subset claim about the output copies.
+
+## What changed from the original
+
+The original `swig_hardInterventionOn_outputs_V` stated only the
+*V-shrinkage*
+`((G.swig W hW).hardInterventionOn (Sum.inl '' S)).V = Sum.inl '' (G.V \ S)`
+-- a consequence of the LN's clause, but not its primary content. The
+strict-equivalence gate flagged that as a CONTENT deviation: the LN's
+primary content is the *positive* J-membership ("turns `w^o` into an
+*input* node"), not the V-shrinkage. This replacement states the
+J-subset directly; the V-shrinkage still follows from the original's
+two-step rewrite `hardInterventionOn_V` then
+`nodeSplittingHardInterventionOn_V` plus `Set.image_diff`, but is now
+demoted to a downstream consequence rather than the headline.
+
+## Design choice
+
+* **Positive J-subset, not V-shrinkage.** The LN literally writes
+  "turn `w^o` into an additional *input* node" -- a J-membership claim
+  about the output copies. V-shrinkage is the downstream consequence
+  (an output-promoted-to-input is no longer an output). The J-subset
+  form is the LN-faithful translation; the original's V-equality was
+  the strict-gate's CONTENT-level complaint.
+* **`Sum.inl '' S ⊆ ... .J` rather than equality.** The HI's full
+  J-promotion result is `(G.swig W hW).J ∪ Sum.inl '' S` (by
+  `hardInterventionOn_J`); the LN-faithful statement is that
+  `Sum.inl '' S` lands *inside* the post-HI J, which is the cleaner
+  subset form. (The full equality would itself be a near-triviality
+  given the `@[simp]` projection, and would not be the LN's content.)
+* **Same `(hW, S, hS)` explicit signature as the original**, keeping
+  caller compatibility. `hS : S ⊆ W` remains LN-faithful but
+  mathematically optional -- the conclusion holds for any `S : Set α`,
+  and the proof never consumes `hS`.
+* **Naming `swig_hardInterventionOn_outputs_J`.** Parallels Scenario
+  A's T1 replacement (`swig_hardInterventionOn_inputs_J`) and matches
+  the pattern "J-membership lemma about the post-SWIG HI target". -/
+theorem refactor_swig_hardInterventionOn_outputs_J
+    {G : CDMG α} {W : Set α} (hW : W ⊆ G.V) (S : Set α) (hS : S ⊆ W) :
+    Sum.inl '' S ⊆ ((G.swig W hW).hardInterventionOn (Sum.inl '' S)).J := by
+  -- `hardInterventionOn_J` unfolds the RHS to `(G.swig W hW).J ∪ Sum.inl '' S`;
+  -- `Set.subset_union_right` then identifies the LHS as the second summand.
+  -- `hS` is documented as LN-faithful but unused.
+  rw [hardInterventionOn_J]
+  exact Set.subset_union_right
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_hardInterventionOn_outputs_V
 
 /-! ## Punchline corollary: B1 ≠ B2, so the SWIG order is ambiguous -/
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_then_hardInterventionOn_depends_on_copy_choice
 -- claim_3_12 (Punchline)
 --
 -- Combining B1 and B2 for the LN's specific scenario
@@ -755,6 +866,92 @@ theorem swig_then_hardInterventionOn_depends_on_copy_choice
   have hvw : v = w := Sum.inl_injective hveq
   subst hvw
   exact hvNe rfl
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_then_hardInterventionOn_depends_on_copy_choice
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_then_hardInterventionOn_depends_on_copy_choice (was: refactor_swig_then_hardInterventionOn_two_input_nodes)
+/-- claim_3_12 (Punchline, LN-faithful replacement): for `w ∈ G.V`,
+after first SWIG-ing on `{w}` and then hard-intervening on the output
+copy `{Sum.inl w}` (i.e. `w^o`), the resulting CDMG has **two input
+nodes**: the freshly promoted `Sum.inl w` (the LN's `(w^o)^i`) **and**
+the original split-input copy `Sum.inr ⟨w, rfl⟩` (the LN's `w^i`).
+Both lie in `J` of the post-HI graph. Formalises the LN punchline
+literally: "we are left with two input node `(w^o)^i`, which does not
+have any edges, and `w^i`, which might have outgoing edges"
+(`graphs.tex` line 708) -- the existence of both inputs in `J` is the
+LN's primary content.
+
+## What changed from the original
+
+The original `swig_then_hardInterventionOn_depends_on_copy_choice`
+stated a *non-equality* of the two candidate "SWIG-then-HI on a copy
+of `w`" CDMGs -- a consequence of B1+B2 that captured the LN's
+"ambiguity on which copy to apply" framing but *not* the LN's literal
+punchline. The strict-equivalence gate flagged that as a CONTENT
+deviation: the LN's punchline is the *positive* statement "two input
+nodes", not the abstract non-equality of two candidate CDMGs. This
+replacement states the LN-faithful "two input nodes" claim as a
+conjunction of two J-memberships; the original's non-equality remains
+a downstream consequence (the two candidate CDMGs disagree precisely
+because their J-sets disagree at `Sum.inl w` -- the B1 branch lacks
+it, the B2 branch contains it).
+
+## Design choice
+
+* **Positive joint J-membership, not non-equality.** The LN literally
+  enumerates the two input nodes after the "HI on `w^o`" branch -- a
+  positive statement about the post-HI J-set. Stating non-equality of
+  the two candidate CDMGs (the original) is one possible *consequence*
+  of the LN punchline, but obscures the LN's actual content. The
+  joint J-membership form is the strict-gate-aligned LN-faithful
+  translation.
+* **Conjunction `∧`, not two separate lemmas.** The LN itself
+  enumerates the two input nodes in one breath ("two input node
+  `(w^o)^i` ... and `w^i`"); the conjunction matches the LN's
+  syntactic shape one-to-one. Splitting into two lemmas would invent
+  an artificial decomposition the LN does not make.
+* **`Sum.inl w` and `Sum.inr ⟨w, rfl⟩` as the two witnesses.** Under
+  the `NodeSplittingHard.lean` convention `Sum.inl = w^o`,
+  `Sum.inr = w^i`, the LN's `(w^o)^i` is the freshly HI-promoted
+  output copy `Sum.inl w` (in `J` thanks to the HI's J-extension via
+  `hardInterventionOn_J`), and the LN's `w^i` is the original
+  split-input `Sum.inr ⟨w, rfl⟩` (in `J` thanks to
+  `nodeSplittingHardInterventionOn_J` placing every `Sum.inr` in the
+  SWIG's `J` via `Set.range Sum.inr`). The HI does not remove
+  anything from `J`, so the SWIG's pre-existing
+  `Sum.inr ⟨w, rfl⟩ ∈ J` survives.
+* **Singleton `{w}` SWIG, mirroring the original.** Same LN-faithful
+  scope as the original (and same `Set.singleton_subset_iff.mpr hwV`
+  SWIG-precondition discharge). The Punchline is narrated for a
+  single shared `w ∈ W₁ ∩ W₂`; the singleton form is the most
+  LN-faithful.
+* **Naming `swig_then_hardInterventionOn_two_input_nodes`.** Mirrors
+  the LN's prose "two input nodes" directly. The original's
+  `_depends_on_copy_choice` framing was a derived interpretation, not
+  the LN's literal punchline. -/
+theorem refactor_swig_then_hardInterventionOn_two_input_nodes
+    {G : CDMG α} {w : α} (hwV : w ∈ G.V) :
+    Sum.inl w ∈ ((G.swig ({w} : Set α)
+        (Set.singleton_subset_iff.mpr hwV)).hardInterventionOn
+        ({Sum.inl w} : Set (α ⊕ ↑({w} : Set α)))).J ∧
+    Sum.inr (⟨w, rfl⟩ : ↑({w} : Set α)) ∈
+      ((G.swig ({w} : Set α)
+        (Set.singleton_subset_iff.mpr hwV)).hardInterventionOn
+        ({Sum.inl w} : Set (α ⊕ ↑({w} : Set α)))).J := by
+  -- `hardInterventionOn_J` unfolds `(... HI {Sum.inl w}).J` to
+  -- `(G.swig {w} _).J ∪ {Sum.inl w}`; `nodeSplittingHardInterventionOn_J`
+  -- unfolds the SWIG's J to `Sum.inl '' G.J ∪ Set.range Sum.inr`. The
+  -- LN's `(w^o)^i = Sum.inl w` is the right summand; the LN's
+  -- `w^i = Sum.inr ⟨w, rfl⟩` sits in `Set.range Sum.inr` of the SWIG.
+  rw [hardInterventionOn_J, nodeSplittingHardInterventionOn_J]
+  refine ⟨?_, ?_⟩
+  · -- `Sum.inl w ∈ (Sum.inl '' G.J ∪ Set.range Sum.inr) ∪ {Sum.inl w}`:
+    -- the right summand by singleton-membership.
+    exact Or.inr rfl
+  · -- `Sum.inr ⟨w, rfl⟩ ∈ (Sum.inl '' G.J ∪ Set.range Sum.inr) ∪ {Sum.inl w}`:
+    -- left summand, then right summand (`Set.range Sum.inr`), with
+    -- witness `⟨w, rfl⟩`.
+    exact Or.inl (Or.inr ⟨⟨w, rfl⟩, rfl⟩)
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_then_hardInterventionOn_depends_on_copy_choice
 
 end CDMG
 
