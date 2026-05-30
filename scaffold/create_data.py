@@ -56,7 +56,9 @@ ACTIONS = [
     "verify_tex_proof",      # independent check that a tex proof is complete and correct
     # --- formalization review chain (statement-level) ---------------------
     "review_design",         # full-LN-context review of whether the Lean shape is natural
-    "verify_equivalence",    # focused check that the Lean statement matches the LN
+    "verify_equivalence",    # focused (friendly) check that the Lean statement matches the LN
+    "verify_equivalence_strict",  # adversarial, default-strict equivalence (CONTENT vs PRESENTATION)
+    "verify_with_examples",  # property-based equivalence check via concrete Lean instances
     "add_design_choice_comments",  # after equivalence PASS: enrich the Lean comments with WHY
     # --- proof review (after Lean proof closes) ---------------------------
     "simplify_proof",        # check if the Lean proof is over-complex; propose simpler if any
@@ -73,6 +75,7 @@ ACTIONS = [
     "request_from_human",    # rare last resort -- gated by repeat-attempt threshold
     "mistake",       # switch from prove-the-claim to disprove-the-claim mode
     "unmistake",     # flip back: reconsider, the claim might be provable after all
+    "accept_deviation",  # record a CONTENT deviation in the register + bypass the next strict-equivalence solved-gate
     "no_action",
 ]
 

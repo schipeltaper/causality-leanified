@@ -102,10 +102,12 @@ ACTION_TO_WORKER: dict[str, str | None] = {
 # back to the manager. They never mutate row state directly.
 VERIFIER_ACTIONS: dict[str, tuple[str, str]] = {
     # action_name -> (worker_prompt_filename, label_suffix)
-    "verify_tex_proof":    ("verify_tex_proof.md",    "tex_proof_verifier"),
-    "review_design":       ("review_design.md",       "design_reviewer"),
-    "verify_equivalence":  ("verify_equivalence.md",  "equivalence_verifier"),
-    "simplify_proof":      ("simplify_proof.md",      "simplifier"),
+    "verify_tex_proof":          ("verify_tex_proof.md",          "tex_proof_verifier"),
+    "review_design":             ("review_design.md",             "design_reviewer"),
+    "verify_equivalence":        ("verify_equivalence.md",        "equivalence_verifier"),
+    "verify_equivalence_strict": ("verify_equivalence_strict.md", "strict_eq_verifier"),
+    "verify_with_examples":      ("verify_with_examples.md",      "examples_verifier"),
+    "simplify_proof":            ("simplify_proof.md",            "simplifier"),
 }
 
 # Regex that pulls the (action_name, body) out of a manager message. The
@@ -142,6 +144,18 @@ class OrchestrationState:
     row: dict
     history: list[TurnRecord] = field(default_factory=list)
     started_at: float = field(default_factory=time.monotonic)
+    # Two-stage `mistake` sweep gate. Set to True after each stage has
+    # been completed (run AND any findings presented to the manager).
+    # Both must be True for a `mistake` action to be honored. Resets
+    # per row run (fresh OrchestrationState).
+    mistake_stage1_done: bool = False
+    mistake_stage2_done: bool = False
+    # Strict-equivalence solved-gate bypass. Flipped True when the
+    # manager emits `accept_deviation` -- the next `solved` attempt's
+    # strict-equivalence check is then skipped (the manager has
+    # explicitly accepted the deviation and recorded it in the register).
+    # Resets per row run.
+    deviation_accepted: bool = False
 
     @property
     def elapsed_seconds(self) -> float:
@@ -1423,6 +1437,646 @@ def generate_for_website(row: dict, subsection_folder: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Hard sorry-check before mark_solved
+# ---------------------------------------------------------------------------
+
+# Generous cap for the lake-build invocation inside check_no_sorry --
+# Mathlib + the whole leanification together can take several minutes
+# on a cold cache. If it exceeds this, we skip the build-side check
+# (a fast file-grep still ran first) and let the orchestrator continue
+# rather than wedge.
+SORRY_CHECK_BUILD_TIMEOUT_SECONDS = 15 * 60
+
+# Source positions that look like *real* sorry usage (not comment text
+# documenting historical sorry presence). A line-anchored regex with a
+# `\bsorry\b` boundary and excluding lines that are entirely a comment.
+# Matches: `:= sorry`, `by sorry`, `· sorry`, bare `sorry` on its own
+# line, `sorry` followed by `;` or whitespace, etc. Does NOT match: any
+# occurrence inside a `--` line comment or a `/- … -/` block comment
+# (we use Stage D's depth-aware stripper to elide comments first).
+_SORRY_TOKEN_RE = re.compile(r"\bsorry\b")
+
+
+def _file_has_sorry(lean_path: Path) -> bool:
+    """Return True iff the Lean file at ``lean_path`` contains a
+    ``sorry`` token OUTSIDE any comment. Uses ``strip_lean_comments``
+    (the Stage D state-machine that respects nested ``/- -/``, ``/-- -/``,
+    and line ``--`` comments) to elide comment text before searching,
+    so design-block prose like ``-- Body = sorry`` does not trip it.
+    """
+    try:
+        text = lean_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False                  # can't read = can't be sure; defer to build
+    code_only = strip_lean_comments(text)
+    return bool(_SORRY_TOKEN_RE.search(code_only))
+
+
+def check_no_sorry(lean_files: list[str]) -> str | None:
+    """Hard pre-`mark_solved` gate: confirm none of the row's Lean
+    files admits via sorry. Two-stage check:
+
+    1. **Fast file-grep**: read each Lean file, strip comments, search
+       for a `sorry` token. Catches the common case (worker accidentally
+       leaves a `sorry` in the body) without needing to invoke `lake`.
+    2. **`lake build` warning scan**: run `lake build` from the repo
+       root, parse the output for `declaration uses 'sorry'` warnings
+       attributed to any of the row's Lean files. Catches the harder
+       case where a theorem transitively depends on a sorry that isn't
+       in its own body (a `def` returning sorry that the theorem then
+       uses, etc.).
+
+    Returns ``None`` on clean (proceed with mark_solved); otherwise a
+    short multi-line string describing what was found, suitable for the
+    manager's ``extra_note``.
+
+    Deliberately *narrow*: only checks the one thing that is absolutely
+    forbidden (sorry / admit). Does not warn about style, deprecations,
+    user-introduced axioms, etc. -- those are for the manager / verifier
+    to judge, not the orchestrator to block on.
+    """
+    # --- Stage 1: file-grep -------------------------------------------
+    grep_hits: list[str] = []
+    for lf in lean_files:
+        p = REPO_ROOT / lf
+        if not p.exists():
+            continue
+        if _file_has_sorry(p):
+            grep_hits.append(lf)
+    if grep_hits:
+        return (
+            "Hard sorry-check FAILED: the verifier said PASS but "
+            "Python grep'd a `sorry` token (outside any comment) in:\n"
+            + "\n".join(f"  - {h}" for h in grep_hits)
+            + "\nA solved row must have NO `sorry` in any proof body. "
+            "Discharge it (or `mistake`/`unmistake` to switch direction) "
+            "before re-emitting `solved`."
+        )
+
+    # --- Stage 2: lake build warning scan -----------------------------
+    try:
+        result = subprocess.run(
+            ["lake", "build"],
+            cwd=str(REPO_ROOT),
+            capture_output=True, text=True,
+            timeout=SORRY_CHECK_BUILD_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        # Build is slow but file-grep already passed; let it through with
+        # a log note rather than block the solve indefinitely.
+        print(f"[orchestrator] sorry-check `lake build` timed out after "
+              f"{SORRY_CHECK_BUILD_TIMEOUT_SECONDS}s; relying on file-grep "
+              f"clean.", flush=True)
+        return None
+    except FileNotFoundError:
+        print("[orchestrator] sorry-check: `lake` not on PATH; relying on "
+              "file-grep clean.", flush=True)
+        return None
+
+    blob = (result.stdout or "") + (result.stderr or "")
+    if result.returncode != 0:
+        # Build broke entirely. The verifier should never have PASSed.
+        # Surface the tail to the manager.
+        tail = "\n".join(blob.splitlines()[-15:]) or "(empty)"
+        return (
+            f"Hard sorry-check FAILED: `lake build` exited "
+            f"{result.returncode} -- the verifier said PASS but the "
+            f"repo doesn't compile. Tail:\n{tail}"
+        )
+
+    # Find every "declaration uses 'sorry'" warning + the file it refers
+    # to. Lake's format: `warning: ./path/to/File.lean:LINE:COL: ...`.
+    sorry_warning_re = re.compile(
+        r"(?:warning|error):\s+\.?/?(\S+\.lean):\d+:\d+:.*sorry",
+        re.IGNORECASE,
+    )
+    row_files = {lf.lstrip("./") for lf in lean_files}
+    bad: list[str] = []
+    for line in blob.splitlines():
+        m = sorry_warning_re.search(line)
+        if not m:
+            continue
+        hit_path = m.group(1).lstrip("./")
+        if any(hit_path.endswith(rf) or hit_path == rf for rf in row_files):
+            bad.append(line.strip())
+    if bad:
+        return (
+            "Hard sorry-check FAILED: `lake build` succeeded but emitted "
+            "`uses 'sorry'` warnings on this row's files:\n"
+            + "\n".join(f"  - {b}" for b in bad[:10])
+            + ("\n  ... (truncated)" if len(bad) > 10 else "")
+            + "\nDischarge the sorry (or `mistake`/`unmistake` to switch "
+            "direction) before re-emitting `solved`."
+        )
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Strict-equivalence solved-gate
+# ---------------------------------------------------------------------------
+#
+# After the friendly `verify_row_solved` worker PASSes and the hard
+# sorry-check is clean, we run the adversarial, default-strict
+# equivalence checker against the row's main Lean file vs the LN
+# tex_block. This is the production-loop counterpart to
+# `extras/audit_chapter.py`'s offline sweep -- it catches the
+# disjoint_EL -> marginalize -> claim_3_25 style CONTENT deviation that
+# the friendly checker missed on the way in.
+#
+# On EXAMPLE_GENERATION verdict, the property-based example verifier is
+# auto-chained (the strict checker explicitly defers to instances for
+# new operators / structures). The combined verdict gates `mark_solved`.
+#
+# Bypassed when the manager has just emitted `accept_deviation`
+# (manager has explicitly registered the deviation and acknowledged the
+# tradeoff). Worker errors propagate as "let through with a log line" --
+# a flaky worker should not permanently freeze a row's solve.
+
+def _run_solved_gate_strict_check(state: "OrchestrationState",
+                                  row_for_check: dict) -> str | None:
+    """Return an ``extra_note`` string for the manager if the strict
+    check (and, if applicable, the chained example verifier) flagged a
+    CONTENT deviation that should block `mark_solved`. Return ``None``
+    when the gate is clear (PASS / PRESENTATION / EXAMPLE_GENERATION+PASS,
+    or worker ERROR/MISSING which we let through).
+
+    ``row_for_check`` is a copy of ``state.row`` with `lean_files` and
+    `main_lean_file` synced to what the verifier just reported (the
+    persisted row hasn't been updated by `mark_solved` yet).
+    """
+    # Local imports: keep audit_helpers off the cold-import path for the
+    # rest of solve_chapter (this code only runs on `solved` attempts).
+    from audit_helpers import (                              # type: ignore
+        run_strict_equivalence_checker, run_example_verifier,
+    )
+
+    ref = row_for_check.get("ref")
+    print(f"[orchestrator] strict-equivalence gate: running on {ref} ...",
+          flush=True)
+    # Retry-once on ERROR/MISSING: a single transient subprocess
+    # hiccup or a verdict-format wobble shouldn't decide whether a
+    # CONTENT deviation slips through. After two attempts we still
+    # fall through (default-permissive) -- a persistently broken
+    # worker is logged so the audit script can flag the row offline.
+    strict = run_strict_equivalence_checker(row_for_check)
+    v = strict.get("verdict")
+    if v in ("MISSING", "ERROR"):
+        print(f"[orchestrator] strict-equivalence verdict={v} on first "
+              f"try; retrying once.", flush=True)
+        strict = run_strict_equivalence_checker(row_for_check)
+        v = strict.get("verdict")
+    dc = strict.get("deviation_class")
+    print(f"[orchestrator] strict-equivalence verdict: {v} "
+          f"(deviation_class={dc})", flush=True)
+
+    if v == "PASS":
+        # Includes both DEVIATION_CLASS=NONE and =PRESENTATION. The
+        # strict checker has already judged the deviation harmless.
+        return None
+    if v in ("MISSING", "ERROR"):
+        print(f"[orchestrator] strict-equivalence worker returned {v} "
+              f"after retry; letting the solve through (default-"
+              f"permissive on worker failure -- the audit script will "
+              f"re-run this row offline).", flush=True)
+        return None
+    if v == "EXAMPLE_GENERATION":
+        print(f"[orchestrator] strict-equivalence requested examples; "
+              f"dispatching verify_with_examples worker.", flush=True)
+        examples = run_example_verifier(
+            row_for_check, strict_reason=strict.get("feedback") or "")
+        ev = examples.get("verdict")
+        if ev in ("MISSING", "ERROR"):
+            print(f"[orchestrator] example-verifier verdict={ev} on first "
+                  f"try; retrying once.", flush=True)
+            examples = run_example_verifier(
+                row_for_check, strict_reason=strict.get("feedback") or "")
+            ev = examples.get("verdict")
+        print(f"[orchestrator] example-verifier verdict: {ev} "
+              f"(instances_checked={examples.get('instances_checked')})",
+              flush=True)
+        if ev == "PASS":
+            return None
+        if ev in ("MISSING", "ERROR"):
+            print(f"[orchestrator] example-verifier returned {ev} after "
+                  f"retry; letting the solve through (default-permissive "
+                  f"on worker failure).", flush=True)
+            return None
+        # ev == "FAIL"
+        return _format_strict_gate_failure(strict, examples)
+
+    # v == "FAIL"
+    return _format_strict_gate_failure(strict, None)
+
+
+def _format_strict_gate_failure(strict: dict, examples: dict | None
+                                ) -> str:
+    """Render the strict-checker (and optional example-verifier)
+    findings into an extra_note block telling the manager what was
+    detected and what to do about it."""
+    lines = [
+        "**Strict-equivalence solved-gate FAILED.**",
+        "",
+        "After `verify_row_solved` PASSed and the sorry-check was clean, "
+        "the orchestrator ran the *adversarial, default-strict* "
+        "equivalence checker on this row's Lean encoding vs the LN "
+        "`tex_block`. It found a CONTENT deviation -- the Lean encoding "
+        "states different mathematics than the LN does (not just a "
+        "different syntactic packaging).",
+        "",
+        f"**Strict checker verdict**: {strict.get('verdict')} "
+        f"(deviation_class={strict.get('deviation_class')}"
+        + (f", root_cause={strict.get('root_cause')}"
+           if strict.get('root_cause') else "")
+        + ")",
+        "",
+        "**Strict checker feedback:**",
+        strict.get("feedback") or "(no feedback body)",
+    ]
+    if examples is not None:
+        lines += [
+            "",
+            f"**Example verifier was auto-chained and verdict was**: "
+            f"{examples.get('verdict')} "
+            f"(instances_checked={examples.get('instances_checked')})",
+            "",
+            "**Example verifier feedback:**",
+            examples.get("feedback") or "(no feedback body)",
+        ]
+    lines += [
+        "",
+        "**Your options on the next turn:**",
+        "",
+        "- **Fix the encoding** (preferred). Re-dispatch the formalizer / "
+        "leanifier with the strict-checker's feedback so the Lean shape "
+        "matches the LN's. After fix, re-emit `solved` -- the strict gate "
+        "will re-run.",
+        "- **Accept the deviation** (only if you're sure the deviation "
+        "is intentional and the LN's literal form is impractical / "
+        "unnatural in Lean). Use the new `accept_deviation` action; the "
+        "body should describe the deviation in register-entry form "
+        "(see manager.md). The orchestrator will write it to "
+        "`leanification/deviations.json` and bypass the strict gate on "
+        "your *next* `solved` attempt. **Do not** abuse this -- "
+        "registered deviations propagate to every consumer.",
+        "- If the root_cause is `upstream:<ref>` the right move is "
+        "almost certainly `refactor <upstream_ref>` rather than accepting "
+        "the deviation here. (A registered deviation in an upstream type "
+        "leaks into every downstream consumer; refactoring the upstream "
+        "is what closes the leak.)",
+    ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# accept_deviation body parser
+# ---------------------------------------------------------------------------
+
+# Keys recognised in an `accept_deviation` action body. Matched
+# case-insensitively, one per line. `notes` is special: everything from
+# the `notes:` line to end-of-body is captured (so multi-line notes
+# work without escaping).
+_ACCEPT_DEVIATION_KEYS = (
+    "id", "introduced_by_ref", "breaks", "preserves",
+    "at_risk_pattern", "tags",
+)
+
+
+def _parse_accept_deviation_body(body: str, default_ref: str) -> dict:
+    """Parse the manager's `accept_deviation` body into a register entry
+    dict. Required keys: ``id``, ``breaks``, ``preserves``,
+    ``at_risk_pattern``. Optional: ``introduced_by_ref`` (defaults to
+    ``default_ref``), ``tags`` (comma-separated -> list), ``notes`` (last
+    block, runs to end of body).
+
+    Raises ``ValueError`` if any required key is missing or empty.
+    """
+    if not body or not body.strip():
+        raise ValueError("body is empty")
+    lines = body.splitlines()
+    entry: dict = {}
+    notes_start: int | None = None
+    # First pass: per-line key/value scrape; spot the start of the
+    # `notes` block.
+    for i, raw in enumerate(lines):
+        line = raw.rstrip()
+        m = re.match(r"^\s*([A-Za-z_][A-Za-z_0-9]*)\s*:\s*(.*)$", line)
+        if not m:
+            continue
+        key = m.group(1).lower()
+        val = m.group(2).strip()
+        if key == "notes":
+            notes_start = i
+            break  # everything after this is the notes blob
+        if key in _ACCEPT_DEVIATION_KEYS:
+            entry[key] = val
+    # Notes blob: everything after the `notes:` line, joined verbatim.
+    if notes_start is not None:
+        first_line = lines[notes_start].split(":", 1)[1].lstrip()
+        rest_lines = lines[notes_start + 1:]
+        # Footgun guard: if any of the other recognised keys appears as
+        # a "key:" line INSIDE the notes blob, it would be silently
+        # consumed and never parsed -- so the manager would think they
+        # set `tags:` but the entry would have none. Refuse and tell
+        # them to put `notes:` last.
+        stray_re = re.compile(
+            r"^\s*("
+            + "|".join(k for k in _ACCEPT_DEVIATION_KEYS if k != "notes")
+            + r")\s*:",
+            re.IGNORECASE,
+        )
+        for j, l in enumerate(rest_lines, start=notes_start + 2):
+            if stray_re.match(l):
+                raise ValueError(
+                    f"line {j} of the body contains a recognised key "
+                    f"({stray_re.match(l).group(1)!r}) inside the `notes` "
+                    f"blob -- `notes:` must be the LAST recognised key, "
+                    f"because everything after it is captured verbatim. "
+                    f"Move the stray key above the `notes:` line."
+                )
+        rest = "\n".join(rest_lines).rstrip()
+        entry["notes"] = (first_line + ("\n" + rest if rest else "")).strip()
+    # Backfills + type coercions.
+    entry.setdefault("introduced_by_ref", default_ref)
+    tags_raw = entry.get("tags", "")
+    if isinstance(tags_raw, str):
+        entry["tags"] = [t.strip() for t in tags_raw.split(",") if t.strip()]
+    # Always add the source tag so the human can grep for manager-
+    # accepted entries later.
+    entry["tags"] = list(entry.get("tags") or []) + ["manager-accepted"]
+    # Validate required fields.
+    required = ("id", "breaks", "preserves", "at_risk_pattern")
+    missing = [k for k in required if not entry.get(k)]
+    if missing:
+        raise ValueError(
+            f"body missing required key(s): {missing}; got "
+            f"{sorted(entry.keys())}")
+    return entry
+
+
+# ---------------------------------------------------------------------------
+# Mistake sweep: two-stage gate before honoring a `mistake` action
+# ---------------------------------------------------------------------------
+#
+# The lesson from claim_3_25: a manager that emits `mistake` is more
+# often pointing at an encoding deviation than at a genuinely false
+# LN claim. Before the orchestrator commits the row to disprove mode
+# (which is sticky and expensive to undo), it walks the manager through
+# two checks:
+#
+#   Stage 1 (deterministic, free): scan the deviation register for any
+#     entry whose `introduced_by_ref` is a def the claim cites, or
+#     whose `at_risk_pattern` keywords syntactically match the claim's
+#     tex body. If matches: surface to manager; do NOT honor.
+#
+#   Stage 2 (LLM worker, slower): dispatch the
+#     `verify_no_undocumented_deviation` worker against the claim and
+#     its cited defs. If it reports an undocumented CONTENT deviation
+#     in any cited def: surface to manager; do NOT honor.
+#
+# After each surfaced finding the manager's next turn decides what to
+# do; if they re-emit `mistake`, the orchestrator moves to the next
+# stage (or honors the mistake if both stages have already been done).
+# The manager is NEVER permanently blocked -- both stages are one-shot
+# per row run.
+
+# Refs cited in a claim's tex are written either as `\refrow{def_X_Y}`
+# (modern style) or `\refrow{claim_X_Y}`, or just mentioned as bare
+# `def_X_Y` / `claim_X_Y` strings in escaped-underscore form. Match all
+# of those so Stage 1's heuristic doesn't miss citations.
+_CITED_REF_RE = re.compile(
+    r"\\refrow\{((?:def|claim)_\d+_\d+)\}"
+    r"|(?<![A-Za-z0-9_\\])"
+    r"((?:def|claim)\\?_\d+\\?_\d+)"
+    r"(?![A-Za-z0-9_])"
+)
+
+
+def _extract_cited_refs(text: str) -> list[str]:
+    """Return the de-duplicated list of refs (`def_X_Y` / `claim_X_Y`)
+    mentioned in ``text``. Handles both ``\\refrow{ref}`` and bare
+    `def_3_10` / `claim\\_3\\_4` mentions."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for m in _CITED_REF_RE.finditer(text or ""):
+        raw = m.group(1) or m.group(2) or ""
+        ref = raw.replace("\\_", "_")
+        if ref and ref not in seen:
+            seen.add(ref)
+            out.append(ref)
+    return out
+
+
+def _gather_claim_body_text(row: dict, subsection_folder: Path) -> str:
+    """Concatenate the row's `tex_block` (statement) and the row's
+    current tex proof / disproof file contents. Stage 1 scans this
+    combined text for citations and deviation-register keyword hits."""
+    parts: list[str] = [row.get("tex_block") or ""]
+    if row.get("def_or_claim") == "claim":
+        title = row.get("title") or "Untitled"
+        for suffix in ("proof", "disproof"):
+            p = subsection_folder / "tex" / f"{row['ref']}_{suffix}_{title}.tex"
+            if p.exists():
+                try:
+                    parts.append(p.read_text(encoding="utf-8"))
+                except (OSError, UnicodeDecodeError):
+                    pass
+    return "\n".join(parts)
+
+
+def mistake_stage1_register_scan(row: dict, subsection_folder: Path
+                                 ) -> list[dict]:
+    """Stage 1: scan the deviation register for entries relevant to
+    this row's claim. Returns the matching register entries (possibly
+    empty). Deterministic, no LLM call.
+
+    Relevance is computed by two heuristics:
+
+    - **Citation match**: any entry whose ``introduced_by_ref`` is a def
+      ref the claim's tex cites (via `\\refrow{def_X_Y}` or a bare
+      mention).
+    - **Pattern keyword match**: any entry whose ``at_risk_pattern``
+      contains keywords (length >= 5) that appear in the claim's tex
+      body. Coarse but conservative -- prefers false positives over
+      false negatives.
+    """
+    # Local import to avoid bootstrap cycle (deviations.py imports nothing
+    # from solve_chapter, but importing solve_chapter from elsewhere
+    # shouldn't drag deviations in unless this function is called).
+    from deviations import find_at_risk_for_claim
+    body = _gather_claim_body_text(row, subsection_folder)
+    cited = _extract_cited_refs(body)
+    return find_at_risk_for_claim(body, defs_cited=cited)
+
+
+def _format_stage1_findings(findings: list[dict]) -> str:
+    """Render Stage 1's register matches into a human-readable extra_note
+    block for the manager. Doesn't tell the manager what to decide --
+    just surfaces the evidence."""
+    lines = [
+        "**Stage 1 (register scan) of the mistake-sweep surfaced these "
+        "recorded upstream deviations as potentially explaining why your "
+        "proof attempt failed.** Before the orchestrator commits this "
+        "row to disprove mode, take a moment to consider whether the "
+        "*encoding* is the culprit rather than the LN claim:",
+        "",
+    ]
+    for e in findings:
+        lines.append(
+            f"- **{e.get('id')}** (introduced by `{e.get('introduced_by_ref')}`):\n"
+            f"  - **breaks**: {e.get('breaks')}\n"
+            f"  - **preserves**: {e.get('preserves')}\n"
+            f"  - **at-risk pattern**: {e.get('at_risk_pattern')}\n"
+        )
+    lines += [
+        "",
+        "**Your options on the next turn**:",
+        "- If one of these deviations really does explain the apparent falsity, "
+        "the right action is `refactor <ref>` on the offending upstream def "
+        "(not `mistake` on this claim).",
+        "- If you've reviewed the deviations and you're confident they don't "
+        "apply to this proof, re-emit `mistake` with a one-paragraph rationale "
+        "explaining why. The orchestrator will then proceed to Stage 2 "
+        "(an LLM sweep for undocumented deviations). After Stage 2 the "
+        "mistake will be honored unless Stage 2 itself surfaces new "
+        "findings -- in which case you'll be asked again. **Re-emitting "
+        "`mistake` is the explicitly correct way to push through this gate.**",
+    ]
+    return "\n".join(lines)
+
+
+def mistake_stage2_sweep(state: "OrchestrationState",
+                         data: dict,
+                         subsection_folder: Path,
+                         mistake_body: str) -> dict:
+    """Stage 2: dispatch the ``verify_no_undocumented_deviation`` worker
+    to look for CONTENT deviations in cited defs that the register
+    hasn't captured yet. Returns a dict::
+
+        {verdict: CLEAN | DEVIATION_FOUND | ERROR | MISSING,
+         suspect_defs: [...],
+         feedback: "...",
+         raw_tail: "..."}
+    """
+    from deviations import load_register
+    body = _gather_claim_body_text(state.row, subsection_folder)
+    cited = _extract_cited_refs(body)
+    cited_def_rows = [
+        r for r in data["rows"]
+        if r.get("ref") in cited and r.get("def_or_claim") == "def"
+    ]
+
+    # Build the worker prompt. Inline the claim's row, the cited defs'
+    # tex_blocks + Lean files, the current register, and the manager's
+    # mistake rationale.
+    parts = [read_worker_prompt("verify_no_undocumented_deviation.md"), ""]
+    parts.append("# Claim under disprove consideration\n")
+    parts.append(f"- ref:        {state.row['ref']}")
+    parts.append(f"- title:      {state.row.get('title')}")
+    parts.append(f"- type:       {state.row.get('type')}")
+    parts.append(f"- section:    {state.row.get('section')}")
+    parts.append(f"- main_lean:  {state.row.get('main_lean_file')}")
+    parts.append("\n## LN tex block of the claim (verbatim)\n"
+                 f"```latex\n{state.row.get('tex_block') or ''}\n```")
+    if state.row.get("main_lean_file"):
+        try:
+            t = (REPO_ROOT / state.row["main_lean_file"]).read_text(
+                encoding="utf-8")
+            # Truncate to fit argv budget (same approach as audit_helpers).
+            if len(t) > 55_000:
+                t = t[:40_000] + "\n-- ...[truncated]...\n" + t[-15_000:]
+            parts.append(f"\n## Lean file for the claim\n```lean\n{t}\n```")
+        except (OSError, UnicodeDecodeError):
+            pass
+    parts.append(f"\n## Manager's mistake rationale (body of the "
+                 f"`mistake` action)\n```\n{mistake_body}\n```")
+    parts.append("\n# Cited defs (upstream of the claim)\n")
+    if not cited_def_rows:
+        parts.append("(none found via citation scan; sweep cited def list "
+                     "is empty)\n")
+    for dr in cited_def_rows:
+        parts.append(f"\n## {dr['ref']} -- {dr.get('title')}\n")
+        parts.append(f"### LN tex_block\n```latex\n{dr.get('tex_block') or ''}\n```")
+        if dr.get("main_lean_file"):
+            try:
+                t = (REPO_ROOT / dr["main_lean_file"]).read_text(encoding="utf-8")
+                if len(t) > 40_000:
+                    t = t[:30_000] + "\n-- ...[truncated]...\n" + t[-10_000:]
+                parts.append(f"### Lean file: {dr['main_lean_file']}\n"
+                             f"```lean\n{t}\n```")
+            except (OSError, UnicodeDecodeError):
+                pass
+    # Inline the register so the worker can de-dupe.
+    reg = load_register()
+    parts.append("\n# Deviation register (already-known deviations -- do NOT re-flag)\n")
+    if not reg:
+        parts.append("(empty)")
+    for e in reg:
+        parts.append(
+            f"- **{e.get('id')}** (introduced by `{e.get('introduced_by_ref')}`):\n"
+            f"  - breaks: {e.get('breaks')}\n"
+            f"  - preserves: {e.get('preserves')}\n"
+            f"  - at_risk_pattern: {e.get('at_risk_pattern')}\n"
+        )
+
+    prompt = "\n".join(parts)
+    label = f"mistake_stage2_{state.ref}"
+    try:
+        reply, _sess = run_claude(prompt, label=label)
+    except WorkerTimeoutError as e:
+        return {"verdict": "ERROR", "suspect_defs": [],
+                "feedback": f"worker timed out: {e}", "raw_tail": ""}
+    except Exception as e:                              # noqa: BLE001
+        return {"verdict": "ERROR", "suspect_defs": [],
+                "feedback": f"worker errored: {e}", "raw_tail": ""}
+
+    m_v = re.search(r"^VERDICT:\s*(CLEAN|DEVIATION_FOUND)\s*$",
+                    reply, re.MULTILINE)
+    m_s = re.search(r"^SUSPECT_DEFS:\s*(.+?)\s*$", reply, re.MULTILINE)
+    m_f = re.search(r"BEGIN\[feedback\]\s*\n(.*?)\n\s*END\[feedback\]",
+                    reply, re.DOTALL)
+    suspects: list[str] = []
+    if m_s:
+        suspects = [s.strip() for s in m_s.group(1).split(",") if s.strip()]
+    return {
+        "verdict":      m_v.group(1) if m_v else "MISSING",
+        "suspect_defs": suspects,
+        "feedback":     m_f.group(1).strip() if m_f else "",
+        "raw_tail":     reply[-1200:],
+    }
+
+
+def _format_stage2_findings(stage2: dict) -> str:
+    """Render Stage 2's worker findings into an extra_note block."""
+    lines = [
+        "**Stage 2 (LLM equivalence sweep of cited defs) found at least "
+        "one undocumented deviation that could plausibly explain why "
+        "your proof attempt failed.**",
+        "",
+    ]
+    if stage2.get("suspect_defs"):
+        lines.append("**Suspect defs**: " + ", ".join(
+            f"`{r}`" for r in stage2["suspect_defs"]))
+        lines.append("")
+    lines.append("**Worker's findings:**")
+    lines.append(stage2.get("feedback") or "(no feedback body)")
+    lines += [
+        "",
+        "**Your options on the next turn**:",
+        "- If a suspect def is genuinely at fault, `refactor <suspect_def_ref>` "
+        "is likely the right action -- the LN claim may well be true under a "
+        "corrected encoding.",
+        "- If you've reviewed the worker's findings and you're confident "
+        "they don't apply to *this* claim, re-emit `mistake` with a one-line "
+        "acknowledgement. The orchestrator will then honor the disprove flow.",
+        "",
+        "(Stage 1's register-scan already ran for this row; you've now also "
+        "been shown Stage 2's findings. Re-emitting `mistake` proceeds "
+        "directly to disprove mode.)",
+    ]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # per-row commit on solve
 # ---------------------------------------------------------------------------
 
@@ -2096,13 +2750,35 @@ def build_verifier_prompt(state: OrchestrationState, body: str) -> str:
 def build_verifier_action_prompt(action: str, state: OrchestrationState,
                                  body: str) -> str:
     """Compose the prompt for one of the ``VERIFIER_ACTIONS`` -- the
-    matching worker prompt + the row context + the manager's claim."""
+    matching worker prompt + the row context + the manager's claim.
+
+    For the strict equivalence checker and the example verifier, the
+    worker prompt explicitly requires the actual Lean source (not just
+    paths) and the current deviation register. ``render_row_context``
+    inlines `tex_block` but only lists Lean file *paths*; the audit-
+    helper context block inlines the file *contents* (head+tail-
+    truncated for argv-budget). We splice that block in for those two
+    actions so manager-invoked use matches the solved-gate's quality of
+    input. (For the other verifiers, the path list is enough.)
+    """
     worker_file, _ = VERIFIER_ACTIONS[action]
-    return (
-        f"{read_worker_prompt(worker_file)}\n\n"
-        f"{render_row_context(state)}\n"
-        f"## Manager's claim\n{body}\n"
-    )
+    parts = [
+        f"{read_worker_prompt(worker_file)}\n",
+        f"{render_row_context(state)}\n",
+    ]
+    if action in ("verify_equivalence_strict", "verify_with_examples"):
+        # Local import to keep audit_helpers off the hot import path.
+        from audit_helpers import (                          # type: ignore
+            _row_context_block, _deviation_register_block,
+        )
+        parts.append(
+            "\n## Lean source + deviation register "
+            "(auto-inlined for strict verifiers)\n"
+            f"{_row_context_block(state.row, include_lean=True, include_tex_block=False)}\n"
+            f"{_deviation_register_block()}\n"
+        )
+    parts.append(f"\n## Manager's claim\n{body}\n")
+    return "".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -2425,6 +3101,94 @@ def solve_current_row() -> None:
                     if h.action == "unmistake":
                         proven = "proven"
                         break
+
+                # Hard sorry-check: independent of the verifier LLM, run
+                # a deterministic grep + lake-build scan to confirm none
+                # of the row's Lean files admits via `sorry`. If the
+                # check fails, we DO NOT mark the row solved -- we feed
+                # the finding back to the manager and continue the loop.
+                # This is the only programmatic backstop against a
+                # verifier hallucinating PASS over a real sorry.
+                sorry_complaint = check_no_sorry(lean_files)
+                if sorry_complaint is not None:
+                    print(f"[orchestrator] sorry-check tripped for "
+                          f"{state.ref}; bouncing back to manager.\n"
+                          f"    {sorry_complaint.splitlines()[0]}",
+                          flush=True)
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"SORRY-CHECK FAILED: {sorry_complaint[:300]}"))
+                    extra_note = sorry_complaint
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+
+                # Strict-equivalence solved-gate. Cheap insurance against
+                # the friendly `verify_equivalence` letting through a
+                # CONTENT deviation (as it did with the disjoint_EL ->
+                # marginalize cascade). The strict checker compares the
+                # Lean encoding to the LN tex_block under set-theoretic
+                # default-strict rules; on EXAMPLE_GENERATION verdict we
+                # auto-chain the property-based example verifier.
+                #
+                # Bypassed when the manager has just emitted
+                # `accept_deviation` (the manager has explicitly
+                # acknowledged the deviation and added it to the
+                # register). Worker errors (timeout, parse failure)
+                # don't block -- we don't want a flaky worker to freeze
+                # the manager out of solving.
+                #
+                # The row needs at least a main_lean_file (or one entry
+                # in lean_files) for the check to make sense. Rows
+                # without any Lean files (very rare; shouldn't reach
+                # `solved` anyway) skip the gate.
+                if state.deviation_accepted:
+                    print(f"[orchestrator] strict-equivalence gate "
+                          f"skipped for {state.ref} (manager emitted "
+                          f"`accept_deviation`).", flush=True)
+                    # One-shot consumption: clear the flag now that the
+                    # bypass has been applied. If this `solved` attempt
+                    # bounces on something downstream (e.g., the
+                    # for-website worker errors) and the manager re-
+                    # emits `solved`, the strict gate runs again -- the
+                    # bypass is per-attempt, not per-row-run. The
+                    # manager must re-emit `accept_deviation` to bypass
+                    # again. (Idempotent: a second `accept_deviation`
+                    # with the same id is treated as acknowledgement.)
+                    state.deviation_accepted = False
+                elif not lean_files and not main_lean_file:
+                    print(f"[orchestrator] strict-equivalence gate "
+                          f"skipped for {state.ref} (no Lean files "
+                          f"reported by verifier).", flush=True)
+                else:
+                    # Build a temporary row-shaped dict with the
+                    # just-reported lean_files (the row's persisted
+                    # lean_files may be stale or empty at this point --
+                    # they're written by mark_solved below).
+                    row_for_check = dict(state.row)
+                    row_for_check["lean_files"] = lean_files
+                    row_for_check["main_lean_file"] = (
+                        main_lean_file or (lean_files[0] if lean_files else None))
+                    # For claims, mirror the live verdict (last
+                    # mistake/unmistake) so the strict checker compares
+                    # against the negation in disprove mode.
+                    if state.row.get("def_or_claim") == "claim":
+                        row_for_check["proven"] = proven
+                    bounce_note = _run_solved_gate_strict_check(
+                        state, row_for_check)
+                    if bounce_note is not None:
+                        print(f"[orchestrator] strict-equivalence gate "
+                              f"tripped for {state.ref}; bouncing back "
+                              f"to manager.", flush=True)
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            "STRICT-EQUIVALENCE GATE FAILED "
+                            "(see extra_note for details)"))
+                        extra_note = bounce_note
+                        save_data(state.data_path, data)
+                        persist_time()
+                        continue
+
                 mark_solved(state.row, kind, lean_files=lean_files,
                             main_lean_file=main_lean_file, verdict=proven)
                 regenerate_chapter_aggregator(state.data_path, data)
@@ -2527,28 +3291,127 @@ def solve_current_row() -> None:
             return
 
         elif action == "mistake":
+            # Guard: `mistake` is a claim-only concept. A definition is
+            # *formalised*, not *proven/disproven* -- there is no
+            # "negation" to switch to. Refuse with a clear note and let
+            # the manager pick a different action.
+            if state.row.get("def_or_claim") != "claim":
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    "(rejected: `mistake` is only valid on claim rows)"))
+                print(f"[orchestrator] `mistake` rejected for "
+                      f"{state.ref}: def_or_claim="
+                      f"{state.row.get('def_or_claim')!r}", flush=True)
+                extra_note = (
+                    "`mistake` is not valid here -- this row is a "
+                    "definition, not a claim. Definitions cannot be "
+                    "'disproven'; they are formalised, not proven or "
+                    "disproven. If the definition's Lean encoding is "
+                    "wrong, dispatch a formalizer fix or `refactor`; "
+                    "if you don't want to formalize this def at all, "
+                    "that's a chapter-level decision outside this row "
+                    "(use `request_from_human` if you're stuck)."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
+            # Two-stage gate before honoring the mistake (= switching to
+            # disprove mode). The premise: by the time a manager calls
+            # `mistake`, the claim has resisted multiple proof attempts.
+            # Before we commit the verdict flip, we want one more pass to
+            # check whether the *encoding* (not the LN claim) is the
+            # culprit -- a "false LN claim" verdict is expensive to
+            # later unwind.
+            #
+            # Stage 1 (deterministic, fast): scan the deviation register
+            # for known upstream issues that touch this claim's cited
+            # defs. If hits, surface them and ask the manager to
+            # reconsider. Re-emitting `mistake` proceeds to Stage 2.
+            #
+            # Stage 2 (LLM worker, slower): dispatch
+            # `verify_no_undocumented_deviation` to look adversarially
+            # for CONTENT deviations in cited defs that the register has
+            # not yet captured. If hits, surface and ask the manager to
+            # reconsider. Re-emitting `mistake` proceeds to the honor.
+            #
+            # Both stages are one-shot per row run (tracked via
+            # `state.mistake_stage{1,2}_done`). The manager is NEVER
+            # permanently blocked -- after both stages have surfaced
+            # their evidence, the next `mistake` is honored.
+            subsection_folder = ensure_subsection_folder(
+                state.data_path.parent, state.row.get("section", ""))
+
+            # ----- Stage 1: deterministic register scan ----------------
+            if not state.mistake_stage1_done:
+                findings = mistake_stage1_register_scan(
+                    state.row, subsection_folder)
+                state.mistake_stage1_done = True
+                if findings:
+                    msg = (f"(mistake-sweep Stage 1 surfaced "
+                           f"{len(findings)} register match(es); "
+                           f"see extra_note)")
+                    state.history.append(TurnRecord(turn, action, body, msg))
+                    print(f"[orchestrator] mistake-sweep Stage 1 surfaced "
+                          f"{len(findings)} register match(es) for "
+                          f"{state.ref}; bouncing to manager.", flush=True)
+                    extra_note = _format_stage1_findings(findings)
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+                print(f"[orchestrator] mistake-sweep Stage 1 clean for "
+                      f"{state.ref}; proceeding to Stage 2.", flush=True)
+
+            # ----- Stage 2: LLM equivalence sweep ----------------------
+            if not state.mistake_stage2_done:
+                print(f"[orchestrator] mistake-sweep Stage 2: dispatching "
+                      f"verify_no_undocumented_deviation worker for "
+                      f"{state.ref}.", flush=True)
+                stage2 = mistake_stage2_sweep(
+                    state, data, subsection_folder, body)
+                state.mistake_stage2_done = True
+                verdict2 = stage2.get("verdict")
+                print(f"[orchestrator] mistake-sweep Stage 2 verdict: "
+                      f"{verdict2}", flush=True)
+                if verdict2 == "DEVIATION_FOUND":
+                    msg = (f"(mistake-sweep Stage 2: DEVIATION_FOUND; "
+                           f"suspects={stage2.get('suspect_defs')})")
+                    state.history.append(TurnRecord(turn, action, body, msg))
+                    extra_note = _format_stage2_findings(stage2)
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+                # CLEAN / ERROR / MISSING: fall through and honor the
+                # mistake. ERROR/MISSING is logged but does NOT block --
+                # we don't want a flaky worker to permanently freeze the
+                # manager out of disprove mode.
+                if verdict2 != "CLEAN":
+                    print(f"[orchestrator] mistake-sweep Stage 2 returned "
+                          f"{verdict2}; honoring `mistake` anyway "
+                          f"(default-permissive on worker failure).",
+                          flush=True)
+
+            # ----- Both stages done: honor the mistake -----------------
             # State signal: the manager has concluded the claim is
             # genuinely false and is switching to the disprove flow. No
-            # worker dispatch; the signal lives in state.history so that
-            # `mark_solved` later sees it (via current_verdict_mode) and
-            # writes proven="disproven".
+            # worker dispatch beyond the sweep; the signal lives in
+            # state.history so that `mark_solved` later sees it (via
+            # current_verdict_mode) and writes proven="disproven".
             #
             # Disprove-mode work goes to *parallel* files so toggling
             # back via `unmistake` doesn't lose prove-direction progress:
             #   - tex:  tex/claim_<ref>_disproof_<title>.tex
             #   - lean: Section<N>_<M>/<Title>Disproof.lean
             # Stubs are created lazily on first switch.
-            ensure_disprove_stubs(state.row, ensure_subsection_folder(
-                state.data_path.parent, state.row.get("section", "")))
+            ensure_disprove_stubs(state.row, subsection_folder)
             state.history.append(TurnRecord(turn, action, body,
                                             "(disprove flow engaged)"))
             disprove_tex = _file_basename(state.row, "disproof")
             disprove_lean = f"{state.row.get('title') or 'Untitled'}Disproof.lean"
             extra_note = (
-                f"`mistake` recorded -- you're now in DISPROVE mode. "
-                f"Proceed with the EXACT SAME workflow as proving, but on "
-                f"the NEGATION. Workers should target the *disprove-side* "
-                f"files (created for you):\n"
+                f"`mistake` recorded (mistake-sweep cleared) -- you're now "
+                f"in DISPROVE mode. Proceed with the EXACT SAME workflow as "
+                f"proving, but on the NEGATION. Workers should target the "
+                f"*disprove-side* files (created for you):\n"
                 f"  - tex: tex/{disprove_tex}\n"
                 f"  - lean: {disprove_lean}\n"
                 f"Prove-direction files are preserved and you can return to "
@@ -2578,6 +3441,121 @@ def solve_current_row() -> None:
                 f"flip back via `mistake` without losing that work either. "
                 f"On `solved`, the row's verdict will be set to \"proven\"."
             )
+
+        elif action == "accept_deviation":
+            # Manager-driven write to the deviation register, paired
+            # with a per-row bypass flag so the next `solved` attempt's
+            # strict-equivalence gate is skipped. The manager uses this
+            # when the strict-gate FAILed, the deviation is genuinely
+            # intentional (LN form impractical / unnatural in Lean), and
+            # the right move is to record + proceed rather than fix.
+            #
+            # Body format: lightly structured key/value lines. Required
+            # keys (case-insensitive): `id`, `breaks`, `preserves`,
+            # `at_risk_pattern`. Optional: `introduced_by_ref` (defaults
+            # to the row's own ref), `tags` (comma-separated), `notes`
+            # (free-form; everything after the last recognised key).
+            #
+            # On body-parse failure (missing required fields, stray
+            # key after notes:, etc.) we bounce back to the manager
+            # with the parse error so they can re-emit. On register
+            # *collision* (id already in deviations.json -- common when
+            # the auditor pre-drafted that entry, or when the manager
+            # re-accepts after a non-strict-gate `solved` bounce) we
+            # treat it as acknowledgement: no new write, flag still
+            # flips, manager can proceed. Successful register write
+            # also flips `state.deviation_accepted`, so the next
+            # `solved` skips the strict gate.
+            try:
+                from deviations import (                              # type: ignore
+                    register_deviation, load_register,
+                )
+                entry = _parse_accept_deviation_body(body, default_ref=state.ref)
+            except (ValueError, KeyError) as e:
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    f"accept_deviation body parse failed: {e}"))
+                extra_note = (
+                    f"`accept_deviation` could not be honored: {e}\n\n"
+                    "The body must include these key/value lines "
+                    "(case-insensitive, one per line):\n"
+                    "  - id: <unique-snake-case-id>\n"
+                    "  - breaks: <one-line property the LN says holds, ours doesn't>\n"
+                    "  - preserves: <one-line property that still holds>\n"
+                    "  - at_risk_pattern: <pattern downstream proofs grep against>\n"
+                    "Optional:\n"
+                    "  - introduced_by_ref: <ref>  (defaults to this row's ref)\n"
+                    "  - tags: tag1, tag2\n"
+                    "  - notes: free-form context (last; runs to end of body)\n"
+                    "Re-emit `accept_deviation` with the body fixed."
+                )
+            else:
+                existing_ids = {e.get("id") for e in load_register()}
+                already_in_register = entry["id"] in existing_ids
+                if already_in_register:
+                    print(f"[orchestrator] accept_deviation: "
+                          f"{entry['id']!r} already in register "
+                          f"(acknowledging without duplicate write); "
+                          f"strict-equivalence gate will be bypassed "
+                          f"on the next `solved` attempt for "
+                          f"{state.ref}.", flush=True)
+                    state.deviation_accepted = True
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"(deviation {entry['id']!r} acknowledged -- "
+                        f"already in register; strict gate will be "
+                        f"bypassed on next `solved`)"))
+                    extra_note = (
+                        f"`accept_deviation` acknowledged: register "
+                        f"entry `{entry['id']}` was already in "
+                        f"`leanification/deviations.json` (likely "
+                        f"drafted by the auditor or by a prior "
+                        f"`accept_deviation`). No duplicate written. "
+                        f"The strict-equivalence solved-gate will be "
+                        f"BYPASSED on your next `solved` attempt for "
+                        f"this row. Proceed to `solved` when ready."
+                    )
+                else:
+                    try:
+                        register_deviation(entry)
+                    except (ValueError, KeyError) as e:
+                        # Should not normally happen -- we just checked
+                        # for collision and the body parsed. But guard
+                        # in case `register_deviation` adds new
+                        # validation in the future.
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"accept_deviation register write failed: {e}"))
+                        extra_note = (
+                            f"`accept_deviation` could not be honored: "
+                            f"register write failed with {e}. Re-emit "
+                            f"`accept_deviation` after fixing the body."
+                        )
+                    else:
+                        state.deviation_accepted = True
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"(deviation {entry['id']!r} accepted + "
+                            f"registered; strict gate will be bypassed "
+                            f"on next `solved`)"))
+                        print(f"[orchestrator] accept_deviation: "
+                              f"registered {entry['id']}; strict-"
+                              f"equivalence gate will be bypassed on "
+                              f"the next `solved` attempt for "
+                              f"{state.ref}.", flush=True)
+                        extra_note = (
+                            f"`accept_deviation` recorded: register "
+                            f"entry `{entry['id']}` written to "
+                            f"`leanification/deviations.json`. The "
+                            f"strict-equivalence solved-gate will be "
+                            f"BYPASSED on your next `solved` attempt "
+                            f"for this row. Proceed to `solved` when "
+                            f"ready. (Note: bypass is per-attempt; if "
+                            f"this `solved` bounces on something other "
+                            f"than the strict gate, you'll need to re-"
+                            f"emit `accept_deviation` -- the same id "
+                            f"works, since it's now in the register.)"
+                        )
 
         elif action == "reset":
             # Drop the history and start the manager over from scratch.
@@ -2623,9 +3601,14 @@ def solve_current_row() -> None:
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
-            v_match = re.search(r"^VERDICT:\s*(PASS|FAIL)\b",
-                                verifier_reply,
-                                re.MULTILINE | re.IGNORECASE)
+            # `verify_equivalence_strict` may legitimately return
+            # EXAMPLE_GENERATION instead of PASS/FAIL -- the regex must
+            # accept all three for that verdict to round-trip cleanly.
+            v_match = re.search(
+                r"^VERDICT:\s*(PASS|FAIL|EXAMPLE_GENERATION)\b",
+                verifier_reply,
+                re.MULTILINE | re.IGNORECASE,
+            )
             verdict = v_match.group(1).upper() if v_match else "MISSING"
             print(f"[orchestrator] {action} verdict: {verdict}", flush=True)
             # If FAIL, the verifier prompt is asked to wrap its actionable
@@ -2638,10 +3621,88 @@ def solve_current_row() -> None:
                 f"\nVerifier feedback:\n{fb.group(1).strip()}\n"
                 if fb else ""
             )
+            # Auto-chain: a manager-invoked `verify_equivalence_strict`
+            # returning EXAMPLE_GENERATION means the strict checker
+            # explicitly deferred to property-based instances. Mirror
+            # the solved-gate's behavior by dispatching
+            # `verify_with_examples` immediately and combining results,
+            # so the manager doesn't have to do the bookkeeping.
+            if (action == "verify_equivalence_strict"
+                    and verdict == "EXAMPLE_GENERATION"):
+                print(f"[orchestrator] {action} returned "
+                      f"EXAMPLE_GENERATION; auto-chaining "
+                      f"verify_with_examples.", flush=True)
+                # Count the auto-chained action toward the row's
+                # actions_tracking so the run summary accurately
+                # reflects what was dispatched (the chain happens
+                # without an explicit manager `verify_with_examples`
+                # action, so the top-of-turn counter would miss it).
+                increment_action_count(state.row, "verify_with_examples")
+                try:
+                    ex_reply, ex_sess = run_claude(
+                        build_verifier_action_prompt(
+                            "verify_with_examples", state,
+                            f"(auto-chained from verify_equivalence_strict's "
+                            f"EXAMPLE_GENERATION verdict)\n\n"
+                            f"Strict checker's reason:\n{feedback or '(none)'}"
+                        ),
+                        label=f"t{turn:03d}_examples_verifier_chain",
+                    )
+                    _register_agent(state.row, kind="verify_with_examples",
+                                    session_id=ex_sess)
+                    state.history.append(TurnRecord(
+                        turn, "verify_with_examples",
+                        "(auto-chained from verify_equivalence_strict)",
+                        summarise(ex_reply)))
+                    ex_v_match = re.search(
+                        r"^VERDICT:\s*(PASS|FAIL)\b",
+                        ex_reply, re.MULTILINE | re.IGNORECASE)
+                    ex_verdict = (ex_v_match.group(1).upper()
+                                  if ex_v_match else "MISSING")
+                    ex_fb = re.search(
+                        r"BEGIN\[feedback\]\s*\n(.*?)\n\s*END\[feedback\]",
+                        ex_reply, re.DOTALL,
+                    )
+                    ex_feedback = (
+                        f"\nExample-verifier feedback:\n"
+                        f"{ex_fb.group(1).strip()}\n" if ex_fb else "")
+                    print(f"[orchestrator] auto-chained "
+                          f"verify_with_examples verdict: {ex_verdict}",
+                          flush=True)
+                    extra_note = (
+                        f"`verify_equivalence_strict` returned "
+                        f"EXAMPLE_GENERATION (the strict checker wanted "
+                        f"property-based instances). Orchestrator auto-"
+                        f"chained `verify_with_examples`, which returned "
+                        f"`{ex_verdict}`.\n"
+                        f"{feedback}{ex_feedback}"
+                        "Decide the next action based on the chained "
+                        "example-verifier result."
+                    )
+                except (WorkerTimeoutError, RuntimeError) as e:
+                    kind = ("timed out"
+                            if isinstance(e, WorkerTimeoutError) else "errored")
+                    print(f"[orchestrator] auto-chained "
+                          f"verify_with_examples {kind}: {e}", flush=True)
+                    # Record the failed chain attempt in history so the
+                    # next manager turn sees what was tried (and the
+                    # run-summary post-mortem doesn't lose the trace).
+                    state.history.append(TurnRecord(
+                        turn, "verify_with_examples",
+                        "(auto-chained from verify_equivalence_strict)",
+                        f"WORKER {kind.upper()}: {e}"))
+                    extra_note = (
+                        f"`verify_equivalence_strict` returned "
+                        f"EXAMPLE_GENERATION. The orchestrator tried to "
+                        f"auto-chain `verify_with_examples` but it "
+                        f"{kind}: {e}.{feedback}"
+                        "Dispatch `verify_with_examples` yourself, or "
+                        "pick another action."
+                    )
             # `simplify_proof` has inverted semantics worth spelling out:
             # PASS = couldn't find a simpler proof, the existing one is fine;
             # FAIL = a concrete simpler alternative was proposed.
-            if action == "simplify_proof":
+            elif action == "simplify_proof":
                 if verdict == "PASS":
                     extra_note = (
                         "`simplify_proof` returned PASS: the verifier could "
