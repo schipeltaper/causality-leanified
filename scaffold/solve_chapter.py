@@ -1613,8 +1613,18 @@ def _run_solved_gate_strict_check(state: "OrchestrationState",
     ref = row_for_check.get("ref")
     print(f"[orchestrator] strict-equivalence gate: running on {ref} ...",
           flush=True)
+    # Retry-once on ERROR/MISSING: a single transient subprocess
+    # hiccup or a verdict-format wobble shouldn't decide whether a
+    # CONTENT deviation slips through. After two attempts we still
+    # fall through (default-permissive) -- a persistently broken
+    # worker is logged so the audit script can flag the row offline.
     strict = run_strict_equivalence_checker(row_for_check)
     v = strict.get("verdict")
+    if v in ("MISSING", "ERROR"):
+        print(f"[orchestrator] strict-equivalence verdict={v} on first "
+              f"try; retrying once.", flush=True)
+        strict = run_strict_equivalence_checker(row_for_check)
+        v = strict.get("verdict")
     dc = strict.get("deviation_class")
     print(f"[orchestrator] strict-equivalence verdict: {v} "
           f"(deviation_class={dc})", flush=True)
@@ -1624,9 +1634,10 @@ def _run_solved_gate_strict_check(state: "OrchestrationState",
         # strict checker has already judged the deviation harmless.
         return None
     if v in ("MISSING", "ERROR"):
-        print(f"[orchestrator] strict-equivalence worker returned {v}; "
-              f"letting the solve through (default-permissive on worker "
-              f"failure).", flush=True)
+        print(f"[orchestrator] strict-equivalence worker returned {v} "
+              f"after retry; letting the solve through (default-"
+              f"permissive on worker failure -- the audit script will "
+              f"re-run this row offline).", flush=True)
         return None
     if v == "EXAMPLE_GENERATION":
         print(f"[orchestrator] strict-equivalence requested examples; "
@@ -1634,15 +1645,21 @@ def _run_solved_gate_strict_check(state: "OrchestrationState",
         examples = run_example_verifier(
             row_for_check, strict_reason=strict.get("feedback") or "")
         ev = examples.get("verdict")
+        if ev in ("MISSING", "ERROR"):
+            print(f"[orchestrator] example-verifier verdict={ev} on first "
+                  f"try; retrying once.", flush=True)
+            examples = run_example_verifier(
+                row_for_check, strict_reason=strict.get("feedback") or "")
+            ev = examples.get("verdict")
         print(f"[orchestrator] example-verifier verdict: {ev} "
               f"(instances_checked={examples.get('instances_checked')})",
               flush=True)
         if ev == "PASS":
             return None
         if ev in ("MISSING", "ERROR"):
-            print(f"[orchestrator] example-verifier returned {ev}; "
-                  f"letting the solve through (default-permissive on "
-                  f"worker failure).", flush=True)
+            print(f"[orchestrator] example-verifier returned {ev} after "
+                  f"retry; letting the solve through (default-permissive "
+                  f"on worker failure).", flush=True)
             return None
         # ev == "FAIL"
         return _format_strict_gate_failure(strict, examples)
@@ -1755,7 +1772,28 @@ def _parse_accept_deviation_body(body: str, default_ref: str) -> dict:
     # Notes blob: everything after the `notes:` line, joined verbatim.
     if notes_start is not None:
         first_line = lines[notes_start].split(":", 1)[1].lstrip()
-        rest = "\n".join(lines[notes_start + 1:]).rstrip()
+        rest_lines = lines[notes_start + 1:]
+        # Footgun guard: if any of the other recognised keys appears as
+        # a "key:" line INSIDE the notes blob, it would be silently
+        # consumed and never parsed -- so the manager would think they
+        # set `tags:` but the entry would have none. Refuse and tell
+        # them to put `notes:` last.
+        stray_re = re.compile(
+            r"^\s*("
+            + "|".join(k for k in _ACCEPT_DEVIATION_KEYS if k != "notes")
+            + r")\s*:",
+            re.IGNORECASE,
+        )
+        for j, l in enumerate(rest_lines, start=notes_start + 2):
+            if stray_re.match(l):
+                raise ValueError(
+                    f"line {j} of the body contains a recognised key "
+                    f"({stray_re.match(l).group(1)!r}) inside the `notes` "
+                    f"blob -- `notes:` must be the LAST recognised key, "
+                    f"because everything after it is captured verbatim. "
+                    f"Move the stray key above the `notes:` line."
+                )
+        rest = "\n".join(rest_lines).rstrip()
         entry["notes"] = (first_line + ("\n" + rest if rest else "")).strip()
     # Backfills + type coercions.
     entry.setdefault("introduced_by_ref", default_ref)
@@ -2712,13 +2750,35 @@ def build_verifier_prompt(state: OrchestrationState, body: str) -> str:
 def build_verifier_action_prompt(action: str, state: OrchestrationState,
                                  body: str) -> str:
     """Compose the prompt for one of the ``VERIFIER_ACTIONS`` -- the
-    matching worker prompt + the row context + the manager's claim."""
+    matching worker prompt + the row context + the manager's claim.
+
+    For the strict equivalence checker and the example verifier, the
+    worker prompt explicitly requires the actual Lean source (not just
+    paths) and the current deviation register. ``render_row_context``
+    inlines `tex_block` but only lists Lean file *paths*; the audit-
+    helper context block inlines the file *contents* (head+tail-
+    truncated for argv-budget). We splice that block in for those two
+    actions so manager-invoked use matches the solved-gate's quality of
+    input. (For the other verifiers, the path list is enough.)
+    """
     worker_file, _ = VERIFIER_ACTIONS[action]
-    return (
-        f"{read_worker_prompt(worker_file)}\n\n"
-        f"{render_row_context(state)}\n"
-        f"## Manager's claim\n{body}\n"
-    )
+    parts = [
+        f"{read_worker_prompt(worker_file)}\n",
+        f"{render_row_context(state)}\n",
+    ]
+    if action in ("verify_equivalence_strict", "verify_with_examples"):
+        # Local import to keep audit_helpers off the hot import path.
+        from audit_helpers import (                          # type: ignore
+            _row_context_block, _deviation_register_block,
+        )
+        parts.append(
+            "\n## Lean source + deviation register "
+            "(auto-inlined for strict verifiers)\n"
+            f"{_row_context_block(state.row, include_lean=True, include_tex_block=False)}\n"
+            f"{_deviation_register_block()}\n"
+        )
+    parts.append(f"\n## Manager's claim\n{body}\n")
+    return "".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -3221,6 +3281,30 @@ def solve_current_row() -> None:
             return
 
         elif action == "mistake":
+            # Guard: `mistake` is a claim-only concept. A definition is
+            # *formalised*, not *proven/disproven* -- there is no
+            # "negation" to switch to. Refuse with a clear note and let
+            # the manager pick a different action.
+            if state.row.get("def_or_claim") != "claim":
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    "(rejected: `mistake` is only valid on claim rows)"))
+                print(f"[orchestrator] `mistake` rejected for "
+                      f"{state.ref}: def_or_claim="
+                      f"{state.row.get('def_or_claim')!r}", flush=True)
+                extra_note = (
+                    "`mistake` is not valid here -- this row is a "
+                    "definition, not a claim. Definitions cannot be "
+                    "'disproven'; they are formalised, not proven or "
+                    "disproven. If the definition's Lean encoding is "
+                    "wrong, dispatch a formalizer fix or `refactor`; "
+                    "if you don't want to formalize this def at all, "
+                    "that's a chapter-level decision outside this row "
+                    "(use `request_from_human` if you're stuck)."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
             # Two-stage gate before honoring the mistake (= switching to
             # disprove mode). The premise: by the time a manager calls
             # `mistake`, the claim has resisted multiple proof attempts.
@@ -3456,9 +3540,14 @@ def solve_current_row() -> None:
             _register_agent(state.row, kind=action, session_id=sess)
             worker_summary = summarise(verifier_reply)
             state.history.append(TurnRecord(turn, action, body, worker_summary))
-            v_match = re.search(r"^VERDICT:\s*(PASS|FAIL)\b",
-                                verifier_reply,
-                                re.MULTILINE | re.IGNORECASE)
+            # `verify_equivalence_strict` may legitimately return
+            # EXAMPLE_GENERATION instead of PASS/FAIL -- the regex must
+            # accept all three for that verdict to round-trip cleanly.
+            v_match = re.search(
+                r"^VERDICT:\s*(PASS|FAIL|EXAMPLE_GENERATION)\b",
+                verifier_reply,
+                re.MULTILINE | re.IGNORECASE,
+            )
             verdict = v_match.group(1).upper() if v_match else "MISSING"
             print(f"[orchestrator] {action} verdict: {verdict}", flush=True)
             # If FAIL, the verifier prompt is asked to wrap its actionable
@@ -3471,10 +3560,75 @@ def solve_current_row() -> None:
                 f"\nVerifier feedback:\n{fb.group(1).strip()}\n"
                 if fb else ""
             )
+            # Auto-chain: a manager-invoked `verify_equivalence_strict`
+            # returning EXAMPLE_GENERATION means the strict checker
+            # explicitly deferred to property-based instances. Mirror
+            # the solved-gate's behavior by dispatching
+            # `verify_with_examples` immediately and combining results,
+            # so the manager doesn't have to do the bookkeeping.
+            if (action == "verify_equivalence_strict"
+                    and verdict == "EXAMPLE_GENERATION"):
+                print(f"[orchestrator] {action} returned "
+                      f"EXAMPLE_GENERATION; auto-chaining "
+                      f"verify_with_examples.", flush=True)
+                try:
+                    ex_reply, ex_sess = run_claude(
+                        build_verifier_action_prompt(
+                            "verify_with_examples", state,
+                            f"(auto-chained from verify_equivalence_strict's "
+                            f"EXAMPLE_GENERATION verdict)\n\n"
+                            f"Strict checker's reason:\n{feedback or '(none)'}"
+                        ),
+                        label=f"t{turn:03d}_examples_verifier_chain",
+                    )
+                    _register_agent(state.row, kind="verify_with_examples",
+                                    session_id=ex_sess)
+                    state.history.append(TurnRecord(
+                        turn, "verify_with_examples",
+                        "(auto-chained from verify_equivalence_strict)",
+                        summarise(ex_reply)))
+                    ex_v_match = re.search(
+                        r"^VERDICT:\s*(PASS|FAIL)\b",
+                        ex_reply, re.MULTILINE | re.IGNORECASE)
+                    ex_verdict = (ex_v_match.group(1).upper()
+                                  if ex_v_match else "MISSING")
+                    ex_fb = re.search(
+                        r"BEGIN\[feedback\]\s*\n(.*?)\n\s*END\[feedback\]",
+                        ex_reply, re.DOTALL,
+                    )
+                    ex_feedback = (
+                        f"\nExample-verifier feedback:\n"
+                        f"{ex_fb.group(1).strip()}\n" if ex_fb else "")
+                    print(f"[orchestrator] auto-chained "
+                          f"verify_with_examples verdict: {ex_verdict}",
+                          flush=True)
+                    extra_note = (
+                        f"`verify_equivalence_strict` returned "
+                        f"EXAMPLE_GENERATION (the strict checker wanted "
+                        f"property-based instances). Orchestrator auto-"
+                        f"chained `verify_with_examples`, which returned "
+                        f"`{ex_verdict}`.\n"
+                        f"{feedback}{ex_feedback}"
+                        "Decide the next action based on the chained "
+                        "example-verifier result."
+                    )
+                except (WorkerTimeoutError, RuntimeError) as e:
+                    kind = ("timed out"
+                            if isinstance(e, WorkerTimeoutError) else "errored")
+                    print(f"[orchestrator] auto-chained "
+                          f"verify_with_examples {kind}: {e}", flush=True)
+                    extra_note = (
+                        f"`verify_equivalence_strict` returned "
+                        f"EXAMPLE_GENERATION. The orchestrator tried to "
+                        f"auto-chain `verify_with_examples` but it "
+                        f"{kind}: {e}.{feedback}"
+                        "Dispatch `verify_with_examples` yourself, or "
+                        "pick another action."
+                    )
             # `simplify_proof` has inverted semantics worth spelling out:
             # PASS = couldn't find a simpler proof, the existing one is fine;
             # FAIL = a concrete simpler alternative was proposed.
-            if action == "simplify_proof":
+            elif action == "simplify_proof":
                 if verdict == "PASS":
                     extra_note = (
                         "`simplify_proof` returned PASS: the verifier could "
