@@ -157,7 +157,7 @@ typing-obstruction form can still derive it in one line.
   marks the file/scenario context even though the SWIG does not
   actually appear in T1's statement -- Scenario A is "HI without the
   later SWIG step", since the SWIG precondition fails. -/
-theorem refactor_swig_hardInterventionOn_inputs_J
+theorem swig_hardInterventionOn_inputs_J
     {G : CDMG α} {w : α} {W₁ W₂ : Set α}
     (hw : w ∈ W₁ ∩ W₂) (hwV : w ∈ G.V) :
     w ∈ (G.hardInterventionOn W₁).J := by
@@ -407,7 +407,7 @@ demoted to a downstream consequence rather than the headline.
 * **Naming `swig_hardInterventionOn_outputs_J`.** Parallels Scenario
   A's T1 replacement (`swig_hardInterventionOn_inputs_J`) and matches
   the pattern "J-membership lemma about the post-SWIG HI target". -/
-theorem refactor_swig_hardInterventionOn_outputs_J
+theorem swig_hardInterventionOn_outputs_J
     {G : CDMG α} {W : Set α} (hW : W ⊆ G.V) (S : Set α) (hS : S ⊆ W) :
     Sum.inl '' S ⊆ ((G.swig W hW).hardInterventionOn (Sum.inl '' S)).J := by
   -- `hardInterventionOn_J` unfolds the RHS to `(G.swig W hW).J ∪ Sum.inl '' S`;
@@ -478,7 +478,7 @@ it, the B2 branch contains it).
   the LN's prose "two input nodes" directly. The original's
   `_depends_on_copy_choice` framing was a derived interpretation, not
   the LN's literal punchline. -/
-theorem refactor_swig_then_hardInterventionOn_two_input_nodes
+theorem swig_then_hardInterventionOn_two_input_nodes
     {G : CDMG α} {w : α} (hwV : w ∈ G.V) :
     Sum.inl w ∈ ((G.swig ({w} : Set α)
         (Set.singleton_subset_iff.mpr hwV)).hardInterventionOn
