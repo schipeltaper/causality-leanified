@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -265,8 +266,13 @@ def _chapter_folder_for(data_path: Path) -> Path:
         if _CHAPTER_FOLDER_RE.match(p.name):
             return p
         p = p.parent
-    # Fallback: behave exactly as the old code did.
-    return data_path.parent
+    # No ChapterN_* ancestor found. Callers expect the chapter folder
+    # to exist; silently falling back to data_path.parent (which is the
+    # very thing this helper exists to avoid in refactor mode) would
+    # let files get created in the wrong place. Fail loudly instead.
+    raise FileNotFoundError(
+        f"No ChapterN_* ancestor of {data_path}; "
+        f"_chapter_folder_for cannot resolve the chapter folder.")
 
 
 def load_data(data_path: Path) -> dict:
@@ -275,11 +281,15 @@ def load_data(data_path: Path) -> dict:
 
 def save_data(data_path: Path, data: dict) -> None:
     """Write the data back to disk pretty-printed and UTF-8 -- the format the
-    rest of the scaffold expects."""
-    data_path.write_text(
-        json.dumps(data, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    rest of the scaffold expects.
+
+    Atomic via write-temp-and-rename so SIGKILL/OOM/power-loss mid-write
+    cannot leave a partial-JSON file that breaks the next invocation.
+    """
+    payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    tmp_path = data_path.with_suffix(data_path.suffix + ".tmp")
+    tmp_path.write_text(payload, encoding="utf-8")
+    os.replace(tmp_path, data_path)
 
 
 def first_unsolved_row_index(data: dict) -> int:
@@ -1369,7 +1379,9 @@ def github_url_template() -> str:
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=str(REPO_ROOT), text=True,
         ).strip() or "main"
-    except Exception:                            # noqa: BLE001
+    except Exception as e:                       # noqa: BLE001
+        print(f"[_github_url_template] git probe failed ({type(e).__name__}: "
+              f"{e}); falling back to unknown/main", file=sys.stderr)
         slug, branch = "unknown/unknown", "main"
     _GITHUB_URL_TEMPLATE_CACHE = (
         f"https://github.com/{slug}/blob/{branch}/{{path}}#L{{start}}-L{{end}}"
@@ -1933,6 +1945,15 @@ def _parse_accept_deviation_body(body: str, default_ref: str) -> dict:
         raise ValueError(
             f"body missing required key(s): {missing}; got "
             f"{sorted(entry.keys())}")
+    # Snake-case id enforcement: typos / case variants (`Foo_Bar` vs
+    # `foo_bar`) would register as fresh entries, miss the refactor
+    # target guard, and confuse downstream cleanup. Only [a-z0-9_]
+    # allowed, must start with a letter, max 80 chars.
+    if not re.fullmatch(r"[a-z][a-z0-9_]{0,79}", entry["id"]):
+        raise ValueError(
+            f"id must be snake_case ([a-z][a-z0-9_]{{0,79}}); got "
+            f"{entry['id']!r}. Use only lowercase letters, digits, and "
+            f"underscores; start with a letter.")
     return entry
 
 
@@ -2629,7 +2650,7 @@ def _handle_request_from_human(state: "OrchestrationState", body: str,
     # further automated work makes sense; in a refactor, every
     # downstream row depends on the current one, so silently moving
     # on would corrupt the whole table.
-    chapter_folder = state.data_path.parent
+    chapter_folder = _chapter_folder_for(state.data_path)
     req_path = ensure_request_from_human_file(chapter_folder)
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     block = (
@@ -2777,18 +2798,37 @@ def _apply_reorder_if_verified(state: "OrchestrationState", data: dict,
         f"deferred behind {', '.join(moved)}. Manager's rationale:\n"
         f"{body.strip()[:1500]}"
     )
+    if state.row.get("refactor"):
+        tip += (
+            "\n\nNOTE (refactor row): the prior attempt's Lean files were "
+            "NOT deleted -- they may contain stale REFACTOR-BLOCK-REPLACEMENT "
+            "marker blocks for this row's declaration. When picking this row "
+            "up again, locate any existing REPLACEMENT block for this row "
+            "(grep for the row's title or the `refactor_<Title>` form) and "
+            "either update it in place or remove it before writing fresh "
+            "code. Do NOT leave two REPLACEMENT blocks for the same name."
+        )
     state.row["tips"] = (
         (state.row.get("tips", "") + "\n\n" if state.row.get("tips") else "")
         + tip
     )
     # Clear any partial Lean work and the row's agent registry: the row
     # should be approached with a clean slate when it comes up again.
-    for lf in state.row.get("lean_files", []):
-        p = REPO_ROOT / lf
-        if p.exists():
-            p.unlink()
-    state.row["lean_files"] = []
-    state.row["main_lean_file"] = ""
+    #
+    # Refactor mode: the row's REPLACEMENT block lives in a SHARED
+    # pre-existing file alongside (a) its own ORIGINAL block, (b) other
+    # refactor rows' marker pairs, and (c) every unrelated declaration
+    # in that file. Unlinking would obliterate all of it. Leave the
+    # files on disk; preserve `lean_files` / `main_lean_file` so the
+    # next attempt knows where to look. The tip below alerts the next
+    # manager to any stale REPLACEMENT markers it might find.
+    if not state.row.get("refactor"):
+        for lf in state.row.get("lean_files", []):
+            p = REPO_ROOT / lf
+            if p.exists():
+                p.unlink()
+        state.row["lean_files"] = []
+        state.row["main_lean_file"] = ""
     state.row["formalized"] = "no"
     if state.row["def_or_claim"] == "claim":
         state.row["proven"] = "not proven"
@@ -2920,11 +2960,33 @@ def _render_refactor_block(row: dict) -> str:
             "the Lean encoding does.)\n"
         )
 
+    role = row.get("refactor_role") or "root"
+    caused_by = row.get("caused_by_roots") or []
+    if role == "root":
+        role_line = (
+            f"**Role:** ROOT. This row is one of the refactor's "
+            f"root declarations; the manager who chose to start the "
+            f"refactor decided this declaration needs to change shape.\n"
+        )
+    else:
+        cause_str = (", ".join(f"`{r}`" for r in caused_by)
+                     if caused_by else "(unknown -- see refactor_data.json)")
+        role_line = (
+            f"**Role:** DEPENDENT. This row was pulled into the refactor "
+            f"because root(s) {cause_str} changed underneath it. Read "
+            f"the marker-block REPLACEMENTs the manager(s) of those root "
+            f"rows wrote, understand the new shape, and update this "
+            f"row's proof/declaration to fit. If multiple roots changed, "
+            f"the briefing for each lives in its own row; you can grep "
+            f"the refactor folder for `caused_by_roots`.\n"
+        )
     return (
         "\n## Refactor-row briefing -- READ FIRST\n"
         "**This row is part of a refactor.** Your goal is to produce\n"
         "*replacement* artefacts that live alongside the originals --\n"
         "nothing is deleted before Phase 7 cleanup.\n"
+        "\n"
+        + role_line +
         "\n"
         "**Where the original lives:** the original declaration and its\n"
         "tex block are in the same files your `main_lean_file` /\n"
@@ -3255,7 +3317,7 @@ def solve_current_row(data_path: Path | None = None) -> None:
         )
     # The chapter-level "request from human" file is created here too so the
     # manager can be told (and the human can pre-seed answers to old requests).
-    ensure_request_from_human_file(state.data_path.parent)
+    ensure_request_from_human_file(_chapter_folder_for(state.data_path))
 
     # Per-turn wall-clock accumulator. `time_mark` is updated each time we
     # persist; `persist_time` flushes the delta into `time_needed_to_solve`
@@ -3911,6 +3973,13 @@ def solve_current_row(data_path: Path | None = None) -> None:
                     "  - notes: free-form context (last; runs to end of body)\n"
                     "Re-emit `accept_deviation` with the body fixed."
                 )
+            # Re-read the snapshot from .refactor_state.json so that
+            # hand-edits made while the orchestrator was paused (e.g.
+            # the operator added a target id after spotting another
+            # deviation during a long verifier call) take effect on the
+            # next accept_deviation, not only on the next run.
+            state.refactor_target_deviation_ids = _load_refactor_target_devs(
+                state.data_path)
             if entry is not None and entry["id"] in state.refactor_target_deviation_ids:
                 # Refuse: this id is one the refactor is meant to
                 # RESOLVE (its introduced_by_ref is in the refactor

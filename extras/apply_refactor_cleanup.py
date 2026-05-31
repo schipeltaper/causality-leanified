@@ -443,6 +443,8 @@ def main(argv: list[str]) -> int:
               f"table (missing top-level `refactor: true`)", file=sys.stderr)
         return 1
     refactor_name = rd.get("refactor_name") or args.refactor_data.parent.name
+    refactor_roots = (rd.get("refactor_roots")
+                      or ([rd["refactor_root"]] if rd.get("refactor_root") else []))
     rows = rd.get("rows", [])
     refactor_refs = [r["ref"] for r in rows if r.get("ref")]
     unsolved = [r["ref"] for r in rows if r.get("solved") != "yes"]
@@ -453,8 +455,10 @@ def main(argv: list[str]) -> int:
         return 1
     today = datetime.now(timezone.utc).date().isoformat()
     mode_label = "DRY-RUN" if args.dry_run else "WRITE"
-    print(f"[apply_refactor_cleanup] refactor={refactor_name!r}, "
-          f"{len(refactor_refs)} row(s), mode={mode_label}",
+    roots_summary = (f", root{'s' if len(refactor_roots) > 1 else ''}="
+                     f"{refactor_roots}" if refactor_roots else "")
+    print(f"[apply_refactor_cleanup] refactor={refactor_name!r}"
+          f"{roots_summary}, {len(refactor_refs)} row(s), mode={mode_label}",
           file=sys.stderr, flush=True)
 
     # =================================================================
@@ -635,6 +639,13 @@ def main(argv: list[str]) -> int:
     # =================================================================
     # Phase 7b: Lake build verification
     # =================================================================
+    # `build_failed` flag: on lake build failure or timeout we continue
+    # through the remaining phases (7c-7g operate on metadata, not Lean
+    # code, so they succeed) and let phase 7h archive the folder under a
+    # `_BUILDFAIL_<today>` suffix so the operator can grep for it. The
+    # final returncode is still 2 so `do_refactor.py finalize` halts and
+    # the operator notices.
+    build_failed = False
     if args.skip_build or args.dry_run:
         if args.dry_run:
             print(f"\n[apply_refactor_cleanup] === Phase 7b: SKIPPED (dry-run) ===",
@@ -653,15 +664,19 @@ def main(argv: list[str]) -> int:
             )
         except subprocess.TimeoutExpired:
             print(f"  ERROR: lake build timed out; swap on disk but "
-                  f"unverified. Re-run with --skip-build after manual "
-                  f"verification.", file=sys.stderr)
-            return 2
-        print(f"  returncode={r.returncode}", file=sys.stderr)
-        if r.returncode != 0:
-            tail = "\n".join((r.stdout + r.stderr).splitlines()[-25:])
-            print(f"  ERROR: lake build failed; later phases ABORTED. "
-                  f"Tail:\n{tail}", file=sys.stderr)
-            return 2
+                  f"unverified. Continuing to later phases anyway so the "
+                  f"folder gets archived under _BUILDFAIL_; fix the Lean "
+                  f"error and re-run with --skip-build.", file=sys.stderr)
+            build_failed = True
+        else:
+            print(f"  returncode={r.returncode}", file=sys.stderr)
+            if r.returncode != 0:
+                tail = "\n".join((r.stdout + r.stderr).splitlines()[-25:])
+                print(f"  ERROR: lake build failed. Continuing to later "
+                      f"phases so the folder gets archived under "
+                      f"_BUILDFAIL_; fix the Lean error and re-run with "
+                      f"--skip-build.\n  Tail:\n{tail}", file=sys.stderr)
+                build_failed = True
 
     # =================================================================
     # Phase 7c: tex proof twin swap
@@ -868,24 +883,38 @@ def main(argv: list[str]) -> int:
         print(f"\n[apply_refactor_cleanup] === Phase 7h: archive "
               f"refactor folder ===", file=sys.stderr, flush=True)
         cur_folder = args.refactor_data.parent
-        archive_name = f"{cur_folder.name}_DONE_{today}"
+        marker = "BUILDFAIL" if build_failed else "DONE"
+        archive_name = f"{cur_folder.name}_{marker}_{today}"
         archive_path = cur_folder.parent / archive_name
+        # Same-day collision: append _v2, _v3, … so a re-run never
+        # silently skips the archive (and downstream
+        # `_find_archived_refactor_folder` always finds the most recent
+        # one for `today`).
         if archive_path.exists():
-            print(f"  WARNING: {archive_path.relative_to(REPO_ROOT)} "
-                  f"already exists; skipping rename (re-run cleanup?)",
-                  file=sys.stderr)
-        else:
-            print(f"  - rename {cur_folder.relative_to(REPO_ROOT)} -> "
-                  f"{archive_path.relative_to(REPO_ROOT)}", file=sys.stderr)
-            if not args.dry_run:
-                shutil.move(str(cur_folder), str(archive_path))
+            n = 2
+            while (cur_folder.parent /
+                   f"{archive_name}_v{n}").exists():
+                n += 1
+            archive_path = cur_folder.parent / f"{archive_name}_v{n}"
+            print(f"  NOTE: {archive_name} already exists; using "
+                  f"{archive_path.name} instead", file=sys.stderr)
+        print(f"  - rename {cur_folder.relative_to(REPO_ROOT)} -> "
+              f"{archive_path.relative_to(REPO_ROOT)}", file=sys.stderr)
+        if not args.dry_run:
+            shutil.move(str(cur_folder), str(archive_path))
 
     # ----- Done ------------------------------------------------------
     print(f"\n[apply_refactor_cleanup] DONE "
-          f"({'dry-run' if args.dry_run else 'applied'}).",
+          f"({'dry-run' if args.dry_run else 'applied'}"
+          f"{'; BUILD FAILED' if build_failed else ''}).",
           file=sys.stderr, flush=True)
     if args.dry_run:
         print(f"  Re-run without --dry-run to apply.", file=sys.stderr)
+    if build_failed:
+        print(f"  Lake build FAILED in phase 7b. Folder archived under "
+              f"_BUILDFAIL_; the merged branch will not compile until "
+              f"the Lean error is fixed.", file=sys.stderr)
+        return 2
     return 0
 
 

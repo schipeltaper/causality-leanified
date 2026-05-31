@@ -157,6 +157,55 @@ def _read_state(refactor_data: Path) -> dict:
 # init
 # ---------------------------------------------------------------------------
 
+def _resolve_init_roots(args: argparse.Namespace) -> list[str]:
+    """Resolve the --root-refs / --root-ref CLI into a deduped list."""
+    raw: list[str] = []
+    if args.root_refs:
+        raw.extend(r.strip() for r in args.root_refs.split(",")
+                   if r.strip())
+    if args.root_ref:
+        print("[do_refactor] WARNING: --root-ref is deprecated; use "
+              "--root-refs (comma-separated) instead. Accepted as a "
+              "single-element list for back-compat.", file=sys.stderr)
+        raw.append(args.root_ref.strip())
+    seen: set[str] = set()
+    out: list[str] = []
+    for r in raw:
+        if r and r not in seen:
+            seen.add(r)
+            out.append(r)
+    return out
+
+
+def _resolve_init_decl_names(args: argparse.Namespace,
+                             roots: list[str]) -> dict[str, str]:
+    """Resolve --decl-names / --decl-name into ``{root: lean_decl_name}``.
+    Roots not in the map fall back to the row's ``title``."""
+    out: dict[str, str] = {}
+    if args.decl_name:
+        # Legacy single-root form.
+        if len(roots) != 1:
+            sys.exit("ERROR: --decl-name (singular) only works with one "
+                     "root; use --decl-names root1=Name1,root2=Name2 "
+                     "for multi-root.")
+        out[roots[0]] = args.decl_name
+    if args.decl_names:
+        for pair in args.decl_names.split(","):
+            pair = pair.strip()
+            if not pair:
+                continue
+            if "=" not in pair:
+                sys.exit(f"ERROR: --decl-names entry {pair!r} must be "
+                         f"of the form root=DeclName")
+            k, v = pair.split("=", 1)
+            k, v = k.strip(), v.strip()
+            if k not in roots:
+                sys.exit(f"ERROR: --decl-names key {k!r} is not in "
+                         f"--root-refs {roots}")
+            out[k] = v
+    return out
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     # Branch guards
     cur = _current_branch()
@@ -172,6 +221,11 @@ def cmd_init(args: argparse.Namespace) -> int:
         )
     if not _working_tree_clean():
         sys.exit("ERROR: working tree not clean. Commit or stash first.")
+
+    roots = _resolve_init_roots(args)
+    if not roots:
+        sys.exit("ERROR: no roots supplied (use --root-refs)")
+    decl_overrides = _resolve_init_decl_names(args, roots)
 
     refactor_branch = f"{REFACTOR_BRANCH_PREFIX}{args.name}"
     if _branch_exists(refactor_branch):
@@ -189,41 +243,67 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     # Create the refactor branch
     print(f"\n[do_refactor] === Creating branch `{refactor_branch}` "
-          f"off `{SERVER_BRANCH}` ===", flush=True)
+          f"off `{SERVER_BRANCH}` ({len(roots)} root(s): {roots}) ===",
+          flush=True)
     _git(["checkout", "-b", refactor_branch, SERVER_BRANCH])
 
-    # Run find_dependents (rename + lake build + grep). Output to a
-    # temp path under the refactor folder (so it gets committed for
-    # auditability). Folder doesn't exist yet; create it first.
+    # Folder doesn't exist yet; create it before any tool writes there.
     refactor_folder.mkdir(parents=True, exist_ok=True)
-    deps_json = refactor_folder / "dependents_scan.json"
-    print(f"\n[do_refactor] === Running find_dependents.py "
-          f"(this runs `lake build`; can take a few minutes) ===",
-          flush=True)
-    fd_cmd = [
-        "python3", str(EXTRAS / "find_dependents.py"),
-        "--chapter", str(args.chapter),
-        "--ref", args.root_ref,
-        "--out", str(deps_json),
-    ]
-    if args.no_build:
-        fd_cmd.append("--no-build")
-    if args.decl_name:
-        # Override the row's `title` when the Lean declaration name
-        # differs (e.g. row title `AcyclicIffTopologicalOrder` but
-        # Lean theorem `isAcyclic_iff_hasTopologicalOrder`).
-        fd_cmd.extend(["--decl-name", args.decl_name])
-    _run(fd_cmd)
 
-    # Read deps + initialize the refactor table
+    # Run find_dependents.py once per root. Each invocation does its
+    # own rename + lake build + restore (try/finally inside
+    # find_dependents), so scans are baseline-pristine and independent.
+    # Per-root scan JSONs are kept for audit; we also assemble a
+    # combined "per_root" JSON to hand to initialize_refactor.
+    per_root_scans: dict[str, dict] = {}
+    for root in roots:
+        scan_path = refactor_folder / f"dependents_scan_{root}.json"
+        print(f"\n[do_refactor] === find_dependents.py (root: {root}) ===",
+              flush=True)
+        fd_cmd = [
+            "python3", str(EXTRAS / "find_dependents.py"),
+            "--chapter", str(args.chapter),
+            "--ref", root,
+            "--out", str(scan_path),
+        ]
+        if args.no_build:
+            fd_cmd.append("--no-build")
+        if root in decl_overrides:
+            fd_cmd.extend(["--decl-name", decl_overrides[root]])
+        _run(fd_cmd)
+        if not scan_path.exists():
+            sys.exit(f"ERROR: find_dependents.py did not produce "
+                     f"{scan_path}")
+        per_root_scans[root] = json.loads(
+            scan_path.read_text(encoding="utf-8"))
+
+    # Combined dependents JSON (handed to initialize_refactor.py). The
+    # `per_root` shape preserves provenance so initialize_refactor can
+    # attach `caused_by_roots` to every dependent row.
+    combined_path = refactor_folder / "dependents_scan.json"
+    combined_path.write_text(
+        json.dumps({
+            "roots": roots,
+            "per_root": {
+                root: {"consumer_refs":
+                       per_root_scans[root].get("consumer_refs", [])}
+                for root in roots
+            },
+        }, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(f"\n[do_refactor] === Combined dependents -> "
+          f"{combined_path.relative_to(REPO_ROOT)} ===", flush=True)
+
+    # Initialize the refactor table.
     print(f"\n[do_refactor] === Running initialize_refactor.py ===",
           flush=True)
     ir_cmd = [
         "python3", str(EXTRAS / "initialize_refactor.py"),
         "--root-chapter", str(args.chapter),
-        "--root-ref", args.root_ref,
+        "--root-refs", ",".join(roots),
         "--name", args.name,
-        "--dependents-json", str(deps_json),
+        "--dependents-json", str(combined_path),
     ]
     if args.extra_refs:
         ir_cmd.extend(["--extra-refs", args.extra_refs])
@@ -249,7 +329,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     refactor_refs = {r["ref"] for r in
                      json.loads(refactor_data.read_text())["rows"]}
     deviations_to_resolve = sorted(
-        e["id"] for e in load_register(include_resolved=True)
+        e["id"] for e in load_register(include_resolved=False)
         if e.get("introduced_by_ref") in refactor_refs
     )
     print(f"\n[do_refactor] === Snapshotting deviations_to_resolve "
@@ -261,7 +341,8 @@ def cmd_init(args: argparse.Namespace) -> int:
     _write_state(refactor_folder, {
         "source_branch":          SERVER_BRANCH,
         "refactor_branch":        refactor_branch,
-        "root_ref":               args.root_ref,
+        "roots":                  roots,
+        "root_ref":               roots[0],     # legacy alias
         "name":                   args.name,
         "chapter":                args.chapter,
         "init_date":              datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -272,7 +353,8 @@ def cmd_init(args: argparse.Namespace) -> int:
     print(f"\n[do_refactor] === Committing + pushing refactor branch ===",
           flush=True)
     _git(["add", str(refactor_folder.relative_to(REPO_ROOT))])
-    msg = (f"refactor:init: {args.name} (root: {args.root_ref}); "
+    msg = (f"refactor:init: {args.name} "
+           f"(roots: {', '.join(roots)}); "
            f"{len(json.loads(refactor_data.read_text())['rows'])} row(s)")
     _git(["commit", "-m", msg])
     if not args.no_push:
@@ -284,6 +366,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     print(f"\n[do_refactor] === DONE: refactor `{args.name}` initialized ===")
     print(f"  source branch:   {SERVER_BRANCH}")
     print(f"  refactor branch: {refactor_branch} (currently checked out)")
+    print(f"  roots:           {', '.join(roots)}")
     print(f"  refactor table:  {rel} ({n_rows} rows)")
     print(f"\nNext step -- drive the refactor table to completion "
           f"(may take many sessions):")
@@ -338,7 +421,10 @@ def cmd_finalize(args: argparse.Namespace) -> int:
 
     print(f"\n[do_refactor] === Committing + pushing via "
           f"build_and_commit.sh ===", flush=True)
-    msg = (f"refactor:finalize: {state['name']} (root: {state['root_ref']}, "
+    roots = state.get("roots") or [state["root_ref"]]
+    roots_str = ", ".join(roots)
+    msg = (f"refactor:finalize: {state['name']} "
+           f"(root{'s' if len(roots) > 1 else ''}: {roots_str}, "
            f"cleanup applied; archived at "
            f"{archived_folder.relative_to(REPO_ROOT)})")
     bcs = SCAFFOLD / "build_and_commit.sh"
@@ -356,18 +442,25 @@ def cmd_finalize(args: argparse.Namespace) -> int:
 
 
 def _find_archived_refactor_folder(state: dict, today: str) -> Path:
-    """The cleanup script renamed Refactor_<name>/ -> Refactor_<name>_DONE_<YYYY-MM-DD>/.
-    Find it. Tries today's date first; falls back to globbing if needed."""
+    """The cleanup script renamed Refactor_<name>/ -> Refactor_<name>_<marker>_<YYYY-MM-DD>[_vN]/
+    where ``<marker>`` is ``DONE`` on a clean run and ``BUILDFAIL`` if
+    phase 7b's lake build failed. Find the most recent archive."""
     chapter_folder = _find_chapter_folder(state["chapter"])
     name = state["name"]
-    candidates = sorted(chapter_folder.glob(f"Refactor_{name}_DONE_*"))
+    candidates = sorted(
+        list(chapter_folder.glob(f"Refactor_{name}_DONE_*"))
+        + list(chapter_folder.glob(f"Refactor_{name}_BUILDFAIL_*"))
+    )
     if not candidates:
         sys.exit(f"ERROR: cannot find archived refactor folder under "
-                 f"{chapter_folder} -- expected `Refactor_{name}_DONE_*`; "
+                 f"{chapter_folder} -- expected "
+                 f"`Refactor_{name}_(DONE|BUILDFAIL)_*`; "
                  f"did the cleanup's archive phase run?")
-    # Prefer one matching today's date, else the most recent.
+    # Prefer one matching today's date, else the most recent. The same-day
+    # collision suffix (`_vN`) is included so the most recent v-suffixed
+    # archive wins.
     for c in reversed(candidates):
-        if c.name.endswith(today):
+        if today in c.name:
             return c
     return candidates[-1]
 
@@ -408,8 +501,10 @@ def cmd_merge(args: argparse.Namespace) -> int:
     # Merge
     print(f"\n[do_refactor] === Merging --no-ff {refactor_branch} ===",
           flush=True)
-    merge_msg = (f"refactor: merge `{state['name']}` (root: "
-                 f"{state['root_ref']}) from {refactor_branch}")
+    roots = state.get("roots") or [state["root_ref"]]
+    merge_msg = (f"refactor: merge `{state['name']}` "
+                 f"(root{'s' if len(roots) > 1 else ''}: "
+                 f"{', '.join(roots)}) from {refactor_branch}")
     _git(["merge", "--no-ff", refactor_branch, "-m", merge_msg])
 
     # Optional push of the merged source branch
@@ -472,21 +567,32 @@ def main(argv: list[str]) -> int:
         help="Create refactor branch + run dependency scan + build "
              "refactor table + commit + push.")
     p_init.add_argument("--chapter", type=int, required=True,
-                        help="chapter of the root ref")
-    p_init.add_argument("--root-ref", type=str, required=True,
-                        help="root row being refactored (e.g. def_3_14)")
+                        help="chapter under which to place the "
+                             "Refactor_<name>/ folder")
+    p_init.add_argument("--root-refs", type=str, default="",
+                        help="comma-separated root refs being refactored "
+                             "(e.g. `def_3_1,def_3_4`). Multi-root "
+                             "refactors run all roots' dependency scans "
+                             "and union the results into one table.")
+    p_init.add_argument("--root-ref", type=str, default="",
+                        help="[DEPRECATED] single root ref; use "
+                             "--root-refs instead. Kept as a single-"
+                             "element alias for back-compat.")
     p_init.add_argument("--name", type=str, required=True,
                         help="refactor name (becomes the "
                              "refactor_<name> branch + Refactor_<name>/ "
-                             "folder)")
+                             "folder); make it semantically describe "
+                             "the bundle, e.g. "
+                             "ch3_disjoint_EL_and_collider_loose.")
     p_init.add_argument("--decl-name", type=str, default=None,
-                        help="Lean declaration name to rename in the "
-                             "find_dependents scan (default: row's "
-                             "`title`). Override when the row title "
-                             "doesn't match the actual top-level "
-                             "declaration -- e.g. row title is "
-                             "`AcyclicIffTopologicalOrder` but the Lean "
-                             "theorem is `isAcyclic_iff_hasTopologicalOrder`.")
+                        help="[single-root only] Lean declaration name "
+                             "to rename in the find_dependents scan "
+                             "(default: row's `title`). For multi-root, "
+                             "use --decl-names.")
+    p_init.add_argument("--decl-names", type=str, default="",
+                        help="per-root decl-name overrides as "
+                             "`root1=Name1,root2=Name2`; roots not "
+                             "listed fall back to their row `title`.")
     p_init.add_argument("--no-build", action="store_true",
                         help="pass to find_dependents (skip lake build, "
                              "do only git grep -- much faster but misses "
