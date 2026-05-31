@@ -603,8 +603,21 @@ def main(argv: list[str]) -> int:
             else:
                 from deviations import mark_resolved as _mr      # type: ignore
                 if mark_arg.lower() == "auto":
-                    to_mark = [e["id"] for e in affected_devs
-                               if not e.get("resolved_at") and e.get("id")]
+                    # `auto` resolves entries that PRE-DATE this refactor
+                    # (auditor drafts, hand-seeded). Skip entries tagged
+                    # `manager-accepted`: those were created by the
+                    # refactor's own accept_deviation calls -- they're
+                    # NEW deviations in the post-refactor state, not
+                    # resolved ones. Resolving them would be wrong.
+                    # Use --mark-deviations-resolved=id1,id2 to override
+                    # case-by-case if you really do want to mark a
+                    # manager-accepted entry resolved.
+                    to_mark = [
+                        e["id"] for e in affected_devs
+                        if (not e.get("resolved_at")
+                            and e.get("id")
+                            and "manager-accepted" not in (e.get("tags") or []))
+                    ]
                 else:
                     explicit = {s.strip() for s in mark_arg.split(",")
                                 if s.strip()}
