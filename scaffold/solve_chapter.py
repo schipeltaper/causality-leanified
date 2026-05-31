@@ -716,7 +716,12 @@ def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> Non
     section = state.row.get("section", "")
     if not section:
         return
-    subsection_folder = ensure_subsection_folder(state.data_path.parent, section)
+    # For refactor rows the data.json lives in a sibling Refactor_<name>/
+    # folder; the actual workspace must land in the chapter's section
+    # folder (next to the Lean files the row touches), not in a
+    # parallel refactor-scoped subsection.
+    subsection_folder = ensure_subsection_folder(
+        _chapter_folder_for(state.data_path), section)
     wp = workspace_path_for_row(state.row, subsection_folder)
 
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -3097,7 +3102,10 @@ def solve_current_row(data_path: Path | None = None) -> None:
     section_at_start = state.row.get("section", "")
     workspace_exists = False
     if section_at_start:
-        ss = ensure_subsection_folder(state.data_path.parent, section_at_start)
+        # See append_unsolved_run_summary: workspace lives in the
+        # chapter's section folder, not in any refactor-scoped subdir.
+        ss = ensure_subsection_folder(
+            _chapter_folder_for(state.data_path), section_at_start)
         workspace_exists = workspace_path_for_row(state.row, ss).exists()
     n_registry = len(state.row.get("agent_registry", []) or [])
     resume_signals = []
@@ -3134,10 +3142,21 @@ def solve_current_row(data_path: Path | None = None) -> None:
         print(f"[orchestrator] picked title: {picked}", flush=True)
     section = state.row.get("section", "")
     if section:
-        regenerate_subsection_main_tex(state.data_path, data, section)
+        # For non-refactor rows: rewrite the section's main.tex
+        # aggregator + create per-row subfile stubs under
+        # <chapter>/<section>/tex/. For refactor rows: skip both --
+        # the refactor edits the existing chapter section's files
+        # in-place (via marker convention for Lean and twin convention
+        # for tex), so neither the aggregator nor new tex stubs should
+        # change. (Calling regenerate_subsection_main_tex with the
+        # refactor_data.json would also write to the WRONG folder and
+        # with the WRONG row list -- the refactor table is a subset.)
+        if not state.row.get("refactor"):
+            regenerate_subsection_main_tex(state.data_path, data, section)
         ensure_row_workspace(
             state.row,
-            ensure_subsection_folder(state.data_path.parent, section),
+            ensure_subsection_folder(
+                _chapter_folder_for(state.data_path), section),
         )
     # The chapter-level "request from human" file is created here too so the
     # manager can be told (and the human can pre-seed answers to old requests).
@@ -3639,8 +3658,14 @@ def solve_current_row(data_path: Path | None = None) -> None:
             # `state.mistake_stage{1,2}_done`). The manager is NEVER
             # permanently blocked -- after both stages have surfaced
             # their evidence, the next `mistake` is honored.
+            # Always derive subsection from the chapter folder, not
+            # data_path.parent. For normal rows these are the same; for
+            # refactor rows (whose data.json sits one level deeper in a
+            # Refactor_<name>/ subdir) it matters -- the workspace +
+            # marker work happen in the chapter's section folder.
             subsection_folder = ensure_subsection_folder(
-                state.data_path.parent, state.row.get("section", ""))
+                _chapter_folder_for(state.data_path),
+                state.row.get("section", ""))
 
             # ----- Stage 1: deterministic register scan ----------------
             if not state.mistake_stage1_done:

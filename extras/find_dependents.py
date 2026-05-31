@@ -149,6 +149,21 @@ def _parse_lake_errors(blob: str) -> list[dict]:
     return hits
 
 
+def _hit_key(h: dict) -> tuple:
+    """Stable key for an error/warning entry. Includes file + line +
+    level + first 80 chars of the snippet. snippet-prefix matters
+    because a single line can host multiple distinct warnings (we
+    want to detect "new" warnings even at the same line)."""
+    return (h.get("file"), h.get("line"), h.get("level"),
+            (h.get("snippet") or "")[:80])
+
+
+def _hash_lake_hits(hits: list[dict]) -> set[tuple]:
+    """Project a list of lake error/warning entries into a set of
+    stable keys, for set-diff against another build."""
+    return {_hit_key(h) for h in hits}
+
+
 def _git_grep(name: str) -> list[dict]:
     """``git grep -nw <name>`` under leanification/Chapter*/. Returns
     one entry per match. Note: a hit in the target row's own file is
@@ -293,7 +308,29 @@ def main(argv: list[str]) -> int:
     print(f"[find_dependents]   -> {len(result['grep_hits'])} grep hit(s)",
           file=sys.stderr, flush=True)
 
-    # ----- Pass 2: rename + lake build -------------------------------
+    # ----- Pass 2: baseline + rename + lake build, then diff ---------
+    # Why the diff: lake emits pre-existing LINTER WARNINGS on every
+    # file it walks (unused vars, deprecated tactics, line-length
+    # nits) -- those have nothing to do with the rename but, if we
+    # scrape them as "errors", they wrongly flag every file with
+    # any pre-existing noise as a "consumer". Caught when
+    # def_3_14_no_L_exclusion's initial scan reported claim_3_12,
+    # claim_3_23, claim_3_27 as consumers (3 false positives out of
+    # 9 "consumers" reported) because their files happened to have
+    # pre-existing linter warnings.
+    #
+    # Fix: run lake build BEFORE the rename to capture every
+    # baseline error+warning site as a set of (file, line, level,
+    # msg_prefix) tuples. Then after the rename, scrape again, and
+    # subtract: only entries that newly appear post-rename are real
+    # signals of the rename's breakage.
+    #
+    # The diff also won't catch transitive cascades that lake
+    # short-circuits (when the rename's home file fails, dependent
+    # files are never attempted by lake -- so they never produce
+    # post-rename errors either). For those we rely on the git grep
+    # pass (which catches every direct text-reference to the symbol)
+    # and on _build_file_to_refs_index mapping greps to refs.
     if not args.no_build:
         decls = _find_declarations(target_path.read_text(encoding="utf-8"),
                                    decl_name)
@@ -307,24 +344,55 @@ def main(argv: list[str]) -> int:
               f"{', '.join(str(ln) for ln, _ in decls)}",
               file=sys.stderr, flush=True)
 
+        # --- Baseline build (pre-rename) ---
+        print(f"[find_dependents] capturing baseline (pre-rename lake "
+              f"build, expected clean)...", file=sys.stderr, flush=True)
+        try:
+            base_rc, base_blob = _run_lake_build(args.build_timeout)
+        except subprocess.TimeoutExpired:
+            print(f"[find_dependents] BASELINE lake build timed out; "
+                  f"falling back to no-baseline mode (post-rename "
+                  f"errors will include pre-existing warnings).",
+                  file=sys.stderr, flush=True)
+            base_blob = ""
+            base_rc = -1
+        print(f"[find_dependents]   baseline returncode={base_rc}",
+              file=sys.stderr, flush=True)
+        baseline_set = _hash_lake_hits(_parse_lake_errors(base_blob))
+        print(f"[find_dependents]   baseline has "
+              f"{len(baseline_set)} unique error/warning site(s)",
+              file=sys.stderr, flush=True)
+
+        # --- Rename + post-rename build ---
         new_name = f"{decl_name}_REFACTOR_DISABLED"
         original = None
         try:
             original = _rename_declaration(target_path, decl_name, new_name)
             print(f"[find_dependents] renamed `{decl_name}` -> `{new_name}`; "
-                  f"running `lake build` (timeout {args.build_timeout}s) ...",
+                  f"running post-rename `lake build` (timeout "
+                  f"{args.build_timeout}s) ...",
                   file=sys.stderr, flush=True)
             try:
                 rc, blob = _run_lake_build(args.build_timeout)
-                print(f"[find_dependents] lake build returncode={rc}",
+                print(f"[find_dependents] post-rename returncode={rc}",
                       file=sys.stderr, flush=True)
-                result["lake_errors"] = _parse_lake_errors(blob)
-                print(f"[find_dependents]   -> {len(result['lake_errors'])} "
-                      f"lake error/warning site(s)",
-                      file=sys.stderr, flush=True)
+                post_hits = _parse_lake_errors(blob)
+                # Diff: keep only hits whose (file, line, level, prefix)
+                # tuple wasn't in baseline AND whose level is 'error'.
+                # Pure warnings still get filtered (they're noise even
+                # when "new" -- e.g., a one-line shift caused by some
+                # other concurrent edit could shift a warning's line).
+                new_hits = [h for h in post_hits
+                            if _hit_key(h) not in baseline_set
+                            and h.get("level") == "error"]
+                result["lake_errors"] = new_hits
+                print(f"[find_dependents]   raw post-rename hits: "
+                      f"{len(post_hits)}; new ERRORS after diff: "
+                      f"{len(new_hits)}", file=sys.stderr, flush=True)
             except subprocess.TimeoutExpired:
-                print(f"[find_dependents] lake build timed out after "
-                      f"{args.build_timeout}s", file=sys.stderr, flush=True)
+                print(f"[find_dependents] post-rename lake build timed "
+                      f"out after {args.build_timeout}s",
+                      file=sys.stderr, flush=True)
                 result["error"] = (
                     f"lake build timed out after {args.build_timeout}s; "
                     "use --build-timeout to extend or --no-build to skip"

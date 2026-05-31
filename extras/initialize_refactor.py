@@ -198,8 +198,19 @@ def main(argv: list[str]) -> int:
         print("ERROR: no refs to include in the refactor table", file=sys.stderr)
         return 1
 
-    # ----- Sort: (chapter, original row index) -----------------------
-    items.sort(key=lambda x: (x["chapter"], x["row_index"]))
+    # ----- Sort: root FIRST, then others by (chapter, row_index) -----
+    # The root must be solved first so consumers can validate their
+    # refactored proofs against the new shape. Without this guarantee,
+    # a consumer whose data.json row_index < the root's would otherwise
+    # be solved first (its proof would have to use the OLD root, then
+    # at cleanup the rename would silently swap to the NEW root --
+    # discovered the hard way on def_3_14_no_L_exclusion where
+    # claim_3_12 at index 23 preceded def_3_14 at index 28).
+    items.sort(key=lambda x: (
+        0 if x["row"]["ref"] == args.root_ref else 1,
+        x["chapter"],
+        x["row_index"],
+    ))
 
     # ----- Build refactor rows ---------------------------------------
     refactor_rows = [
