@@ -993,7 +993,7 @@
           "last_used": "2026-05-31T00:22:01+00:00"
         }
       ],
-      "time_needed_to_solve": 2253,
+      "time_needed_to_solve": 2259,
       "refactor": true
     },
     {
@@ -1002,10 +1002,10 @@
       "section": "3.3",
       "title": "SigmaOpenPathWalk",
       "type": "note",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-31",
       "tips": "reorder applied @ 2026-05-27: deferred behind claim_3_27. Manager's rationale:\nPRECEDES: claim_3_27\n\n# Reorder request — claim_3_27 (`LabelRoman` / `lem:replace_walk`) must precede claim_3_23\n\n## What's blocking\n\nThe LN's proof of `prp:sigma_opens` (= claim_3_23, this row) sits at `lecture-notes/lecture_notes/graphs.tex` lines 1655–1673. It is structured as:\n\n- `3 → 2`, `1 → 2`: trivial (\"paths are walks\").\n- `2 → 3`: collider-replacement using `AncSet`-witness directed paths. Uses walk-splicing primitives — **does not** use `lem:replace_walk`.\n- `2 → 1`: **explicitly invokes `Lemma~\\ref{lem:replace_walk}`** at LN line 1669: *\"We now use Lemma~\\ref{lem:replace_walk} to construct a new walk $\\pi'$ from $\\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\\pi$ by a particular directed path in $\\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\\pi'$ is still $C$-$\\sigma$-open.\"*\n\n`lem:replace_walk` is **claim_3_27** in our `data.json` (`title: LabelRoman`, currently `formalized=no`, `proven=not proven`, `solved=no`). Without it formalized, the `2 → 1` arrow of `sigmaOpens_TFAE` cannot be discharged in Lean — it is a single-line citation of a major lemma, not a self-contained tactic.\n\n## Why this is a reorder, not a \"push forward\" / `sorry`\n\nThree options were considered:\n\n1. **Push forward (discharge only the trivial halves, leave `2 → 1` as `sorry`).** Rejected: the row's `solved=yes` terminal state forbids `sorry`. Marking solved with an unsoundness gap is not an option here.\n2. **Write the tex proof transcribing the LN, verify it (the tex proo\n\nREFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean",
@@ -1019,7 +1019,7 @@
         "review_design": 0,
         "verify_equivalence": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -1034,8 +1034,23 @@
         "add_design_choice_comments": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{restatable}{Prp}{restateprpsigmaopens}\\label{prp:sigma_opens}\n  Let $G=(J,V,E,L)$ be a CDMG. For $C \\subseteq J \\cup V$, and $w_1, w_2 \\in J \\cup V$, the following are\n  equivalent:\n  \\begin{enumerate}\n      \\item there exists a $C$-$\\sigma$-open \\emph{path} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\\Anc^G(C)$).\n  \\end{enumerate}\n\\end{restatable}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7fa9cd8d-ace1-47f5-b69f-c6a64117295c",
+          "first_seen": "2026-05-31T00:38:23+00:00",
+          "last_used": "2026-05-31T00:38:23+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "72d1e971-3861-4d1b-9e0c-7d596f1d3cee",
+          "first_seen": "2026-05-31T00:43:53+00:00",
+          "last_used": "2026-05-31T00:43:53+00:00"
+        }
+      ],
+      "time_needed_to_solve": 911,
       "refactor": true
     }
   ]
