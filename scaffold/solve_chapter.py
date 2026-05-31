@@ -2573,30 +2573,50 @@ def ensure_request_from_human_file(chapter_folder: Path) -> Path:
 def _handle_request_from_human(state: "OrchestrationState", body: str,
                                data: dict) -> dict:
     """The `request_from_human` action is gated. The first
-    ``HUMAN_REQUEST_THRESHOLD - 1`` consecutive attempts get a nudge back;
-    only the threshold-th call writes the request to disk and stops the run.
-    """
-    history = state.history
-    consecutive = 0
-    for h in reversed(history):
-        if h.action == "request_from_human":
-            consecutive += 1
-        else:
-            break
-    consecutive += 1                # include this attempt
+    ``HUMAN_REQUEST_THRESHOLD - 1`` attempts (TOTAL on this row, not
+    consecutive) get a nudge back; only the threshold-th call writes
+    the request to disk and stops the run.
 
-    if consecutive < HUMAN_REQUEST_THRESHOLD:
+    Counting source: ``state.row["actions_tracking"]["request_from_human"]``
+    -- this is incremented at the TOP of the dispatch loop on every
+    request_from_human attempt, so by the time we reach this handler
+    the counter already includes the current attempt. It survives
+    ``new_manager`` (which only resets ``state.history``, not the row's
+    persisted ``actions_tracking``) and it survives ANY intervening
+    action (which the old consecutive-counting variant did NOT --
+    each non-r_f_h action reset the counter, so a manager could
+    interleave make_plan / new_manager / continue_agent between
+    request_from_human calls and never trigger escalation. Caught in
+    the first run of the def_3_14 no-L-exclusion refactor: 3 calls,
+    all nudged, no escalation; manager spent 53 min stuck without
+    making progress.).
+    """
+    attempts = state.row.get("actions_tracking", {}).get(
+        "request_from_human", 0)
+    # `increment_action_count` fires at the top of the dispatch loop
+    # BEFORE this handler runs, so `attempts` already includes the
+    # current call. Guard for the unusual case where it didn't.
+    if attempts < 1:
+        attempts = 1
+
+    if attempts < HUMAN_REQUEST_THRESHOLD:
         encouragement = (
-            f"You've called `request_from_human` {consecutive} time(s) in a "
-            "row. Are you SURE you've tried everything? You have a swarm of "
-            "agents at your disposal — try `decompose`/`make_plan` to break "
-            "the problem down further, or `new_manager` for a fresh "
-            "perspective, or revisit the LN for a related lemma you might "
-            "have missed. Only after several genuine attempts does the human "
-            "want to be pulled in. Try again with a different action."
+            f"You've called `request_from_human` {attempts} time(s) on "
+            "this row (total across all managers on this row, including "
+            "ones that handed off via `new_manager`). Are you SURE you've "
+            "tried everything? You have a swarm of agents at your "
+            "disposal -- try `decompose`/`make_plan` to break the "
+            "problem down further, or `new_manager` for a fresh "
+            "perspective, or revisit the LN for a related lemma you "
+            "might have missed. Only after several genuine attempts "
+            f"does the human want to be pulled in. After "
+            f"{HUMAN_REQUEST_THRESHOLD - attempts} more attempt(s) the "
+            "orchestrator escalates: writes your request to "
+            "request_from_human.tex and HARD-EXITS the run (no further "
+            "rows attempted). Try again with a different action."
         )
         return {
-            "summary": (f"Request-from-human attempt {consecutive}/"
+            "summary": (f"Request-from-human attempt {attempts}/"
                         f"{HUMAN_REQUEST_THRESHOLD}; nudged back."),
             "should_stop": False,
             "feedback_for_manager": encouragement,
@@ -2636,8 +2656,8 @@ def _handle_request_from_human(state: "OrchestrationState", body: str,
     append_unsolved_run_summary(
         state,
         reason=(
-            f"request_from_human escalated after {consecutive} "
-            f"consecutive call(s); request written to {rel}. The "
+            f"request_from_human escalated after {attempts} total "
+            f"call(s) on this row; request written to {rel}. The "
             f"orchestrator exited immediately; do NOT re-run "
             f"solve_chapter until you have answered the request "
             f"(write into the Answers section of {req_path.name}) and "
@@ -4220,9 +4240,11 @@ def solve_current_row(data_path: Path | None = None) -> None:
 
         elif action == "request_from_human":
             # Gated: first few attempts get encouragement; only after
-            # HUMAN_REQUEST_THRESHOLD consecutive calls do we actually
-            # write the request to disk and HARD EXIT (the handler
-            # raises RequestFromHumanEscalated, which escapes
+            # HUMAN_REQUEST_THRESHOLD TOTAL calls on the row (counted
+            # via actions_tracking, which survives new_manager handoffs
+            # and any intervening action) do we actually write the
+            # request to disk and HARD EXIT (the handler raises
+            # RequestFromHumanEscalated, which escapes
             # solve_current_row and bubbles up to solve_chapter --
             # which catches it and exits without starting any further
             # iteration; never proceeds to a next row).
