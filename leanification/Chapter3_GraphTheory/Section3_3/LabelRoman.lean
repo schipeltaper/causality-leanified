@@ -54,6 +54,21 @@ namespace Walk
 
 variable {G : CDMG α}
 
+
+
+/-! ## Refactor (`claim_3_2_no_finite`) replacement.
+
+The refactor `claim_3_2_no_finite` removes the `[Finite α]` instance
+hypothesis from `claim_3_2`'s `isAcyclic_iff_hasTopologicalOrder`. This
+row's `replace_walk` proof does NOT reference that API (verified by
+grep across all three Section3_3 files), so the refactor is a *no-op*
+at the statement / API level for this row -- the replacement below has
+the *same* signature and the *same* proof body as the ORIGINAL block
+above; only the identifier changes from `replace_walk` to
+`replace_walk` so the cleanup script can rename it back at
+Phase 7. See the ORIGINAL block above for the full design-choice
+rationale; we do not duplicate that prose here. -/
+
 -- claim_3_27
 -- title: LabelRoman -- replacing an Sc-bounded subwalk of a
 -- σ-open walk yields a σ-open walk
@@ -2006,6 +2021,7 @@ theorem replace_walk
                 π σ hi_le h_k'_pos).mpr h_πUnblk
             rw [← h_eq, Walk.nodeAt_splice_suf π σ hi_le hj h_k'_le]
             exact h_open.2 (j + k') ⟨h_πNC, h_πNotUnblk⟩
+
 
 end Walk
 

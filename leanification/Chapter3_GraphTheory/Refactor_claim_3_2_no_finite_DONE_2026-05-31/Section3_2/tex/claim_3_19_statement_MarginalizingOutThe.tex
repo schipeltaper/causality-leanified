@@ -1,0 +1,30 @@
+% Claim statement file for row claim_3_19 -- "MarginalizingOutThe".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_19_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_19 (statement)
+% title: MarginalizingOutThe
+\def\rowref{claim\_3\_19}
+\phantomsection\label{claim_3_19}
+
+\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]
+     Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ be a subset of output nodes from $G$.
+     Then the CDMG that arises by first splitting the nodes on $W$
+      and then marginalizing out the nodes from $W^o$
+     can be identified with the CDMG that arises by hard intervention on $W$:
+     \[ G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}, \qquad w \mapsto w^i. \]
+\end{Lem}
+
+\end{document}

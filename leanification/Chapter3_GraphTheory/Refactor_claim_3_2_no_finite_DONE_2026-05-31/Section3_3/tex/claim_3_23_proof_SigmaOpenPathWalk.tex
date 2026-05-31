@@ -1,0 +1,43 @@
+% Claim proof file for row claim_3_23 -- "SigmaOpenPathWalk".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_23 (proof, with statement restated for readability)
+% title: SigmaOpenPathWalk
+\def\rowref{claim\_3\_23}
+\phantomsection\label{claim_3_23}
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Note}[SigmaOpenPathWalk]{Prp}{restateprpsigmaopens}\label{prp:sigma_opens}
+  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$, the following are
+  equivalent:
+  \begin{enumerate}
+      \item there exists a $C$-$\sigma$-open \emph{path} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$;
+      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\Anc^G(C)$).
+  \end{enumerate}
+\end{Note}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

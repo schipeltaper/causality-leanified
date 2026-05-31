@@ -1,42 +1,239 @@
-% Claim proof file for row claim_3_6 -- "SplitTopologicalOrder".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+% Refactor twin claim proof file for row claim_3_6 -- "SplitTopologicalOrder".
+% Created by the write_tex_proof worker for the claim_3_2_no_finite refactor.
+%
+% This twin will replace the original tex proof at Phase 7 cleanup. The LN's
+% Remark bundles two formal claims (an explicit topological order on
+% G_{spl(W)} via the +/- 1/3 interleave; plus acyclicity of G_{spl(W)});
+% we prove them in two halves matching the two-theorem split in
+% Section3_2/SplitTopologicalOrder.lean. Part (B) is now a three-step
+% citation of the refactored \refrow{claim_3_2} (whose finiteness
+% hypothesis was lifted in the same refactor); pre-refactor it required a
+% direct walk-lifting argument.
 %
 % Compiles standalone via the `subfiles` package.
 
 \documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_6 (proof, with statement restated for readability)
-% title: SplitTopologicalOrder
+% ref: claim_3_6 (proof twin, with statement restated for readability)
+% title: SplitTopologicalOrder (refactor: rides claim_3_2_no_finite)
 \def\rowref{claim\_3\_6}
 \phantomsection\label{claim_3_6}
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}[SplitTopologicalOrder]
     For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
     If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
     \[ v_1 < v_2 < \cdots < v_n,\]
-    then, for instance, 
-    a topological order for $G_{\spl(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    then, for instance,
+    a topological order for $G_{\spl(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node
     $v_j^0$ the index $j-\frac{1}{3}$
     and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
 \end{Rem}
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+This is the \emph{refactor twin}. The Remark bundles two distinct formal
+claims:
+\begin{itemize}
+\item[(A)] the LN's $\pm\tfrac{1}{3}$ interleave is a topological order
+of $G_{\spl(W)}$, and
+\item[(B)] $G_{\spl(W)}$ is acyclic.
+\end{itemize}
+We prove them in this order.
+
+The expository point of the refactor lives in part~(B). Before the
+\texttt{claim\_3\_2\_no\_finite} refactor, \refrow{claim_3_2}
+($G$ acyclic $\iff$ $G$ has a topological order) carried a finiteness
+hypothesis on $J \cup V$, so the natural ``go to a topological order of
+$G$ and back'' route for acyclicity of $G_{\spl(W)}$ was not finiteness-
+free; a direct walk-lifting argument was used instead. With the
+refactor's Szpilrajn-route proof of \refrow{claim_3_2} now
+finiteness-free, part~(B) reduces to a three-step citation: extract a
+topological order via the $(\Rightarrow)$ direction of
+\refrow{claim_3_2}, push it through part~(A) to get a topological order
+on $G_{\spl(W)}$, conclude acyclicity via the $(\Leftarrow)$ direction
+of \refrow{claim_3_2}. This matches the LN's own one-line ``also
+$G_{\spl(W)}$ is acyclic'' verbatim.
+
+\medskip
+\noindent\textbf{(A) The $\pm\tfrac{1}{3}$ interleave is a topological order of $G_{\spl(W)}$.}
+
+Let $<$ be a topological order of $G$ (\refrow{def_3_8}). The LN
+presents $<$ as an enumeration $v_1 < v_2 < \cdots < v_n$ for
+visualization, but neither the construction below nor its verification
+uses any such enumeration -- the argument works without any finiteness
+hypothesis on $J \cup V$.
+
+Recall from \refrow{def_3_11} that
+\[
+  J_{\spl(W)} \cup V_{\spl(W)} \;=\; J \,\dcup\, (V \sm W) \,\dcup\, W^0 \,\dcup\, W^1,
+\]
+with the LN's identification $v^0 = v^1 = v$ for $v \in (J \cup V) \sm W$.
+Equivalently, every node $u$ of $G_{\spl(W)}$ has one of two shapes:
+\begin{itemize}
+\item a \emph{$0$-copy}: $u = v^0$ for a unique $v \in J \cup V$
+(here $v^0 = v$ if $v \notin W$, and $v^0 \in W^0$ is the fresh $0$-copy
+of $v$ if $v \in W$); or
+\item a \emph{$1$-copy}: $u = w^1$ for a unique $w \in W$ (an element of
+$W^1$).
+\end{itemize}
+These two shape-classes partition $J_{\spl(W)} \cup V_{\spl(W)}$: the
+$0$-copies form $J \cup (V \sm W) \cup W^0$ and the $1$-copies form
+$W^1$.
+
+The LN's rational-index recipe assigns to $u$ the value
+\[
+  \mathrm{idx}'(u) \;:=\; \mathrm{idx}(v) + \tfrac{1}{3} \sigma(u),
+\]
+where $v \in J \cup V$ is the underlying node of $u$ (so $v$ is the
+$v$ in ``$u = v^0$'' or the $w$ in ``$u = w^1$''), $\mathrm{idx}(\cdot)$
+is the position under $<$ (just an alias: ``$\mathrm{idx}(v) <
+\mathrm{idx}(v')$'' means ``$v < v'$''), and the shift $\sigma(u)$ is
+$-1$ if $u \in W^0$, $+1$ if $u \in W^1$, and $0$ otherwise. The
+resulting strict relation $\prec$ on $J_{\spl(W)} \cup V_{\spl(W)}$,
+$u \prec u' \iff \mathrm{idx}'(u) < \mathrm{idx}'(u')$, reads case-by-case
+on the shape-pair $(\sigma(u), \sigma(u'))$ as follows (where the
+underlying nodes of $u, u'$ are written $v_1, v_2$):
+\begin{itemize}
+\item both $0$-copies: $u \prec u' \iff v_1 < v_2$;
+\item both $1$-copies: $u \prec u' \iff v_1 < v_2$;
+\item $u$ a $0$-copy and $u'$ a $1$-copy: $u \prec u' \iff v_1 < v_2 \text{ or } v_1 = v_2$;
+\item $u$ a $1$-copy and $u'$ a $0$-copy: $u \prec u' \iff v_1 < v_2$.
+\end{itemize}
+The \emph{``or $v_1 = v_2$''} disjunct in the third line is the LN's
+$\pm\tfrac{1}{3}$ shift doing its job: when $v_1 = v_2 = w \in W$, the
+indices $\mathrm{idx}(w) - \tfrac{1}{3}$ and $\mathrm{idx}(w) +
+\tfrac{1}{3}$ satisfy $\mathrm{idx}(w) - \tfrac{1}{3} < \mathrm{idx}(w) +
+\tfrac{1}{3}$, so the LN's strict-index comparison orders $w^0 \prec
+w^1$. The fourth line has no symmetric disjunct because $\mathrm{idx}(w)
++ \tfrac{1}{3} > \mathrm{idx}(w) - \tfrac{1}{3}$ rejects $w^1 \prec w^0$
+even when their underlying nodes coincide. Encoding the ``$=$'' option
+relationally (rather than appealing to the integer spacing of
+$\mathrm{idx}$) is what lets the verification below run without any
+finiteness hypothesis on $J \cup V$.
+
+We now verify the four clauses of \refrow{def_3_8} for $\prec$.
+
+\emph{Irreflexivity.} For any $u$, the comparison $u \prec u$ falls in
+either the first or the second line above (both endpoints share
+shape-class), reducing to $v < v$ for $v$ the underlying node of $u$.
+By irreflexivity of $<$ on $G$ (\refrow{def_3_8}), $v \not< v$, so
+$u \not\prec u$. \checkmark
+
+\emph{Transitivity.} Take $u_1 \prec u_2$ and $u_2 \prec u_3$, and case
+on the shape-classes of $u_1, u_2, u_3$ ($2^3 = 8$ sub-shapes). In each
+sub-shape the two comparisons reduce to ``$v(u_1) < v(u_2)$ or
+$v(u_1) = v(u_2)$'' chained with ``$v(u_2) < v(u_3)$ or $v(u_2) =
+v(u_3)$'', where $v(u)$ denotes the underlying node of $u$ and the
+``$=$'' option is present only when the relevant shape-pair is
+$(0\text{-copy}, 1\text{-copy})$. Transitivity of $<$ on $G$
+(\refrow{def_3_8}) plus substitution along the ``$=$'' steps collapses
+the chain to $v(u_1) < v(u_3)$. The target $u_1 \prec u_3$ then holds
+in every sub-shape: in the seven sub-shapes whose comparison line does
+not have the ``$=$'' option the strict inequality $v(u_1) < v(u_3)$
+suffices, and in the one sub-shape where $u_1$ is a $0$-copy and $u_3$
+is a $1$-copy the comparison line offers the strict disjunct (which we
+have) as an option. \checkmark
+
+\emph{Trichotomy.} Given distinct $u, u' \in J_{\spl(W)} \cup
+V_{\spl(W)}$, case on whether $u, u'$ share shape-class.
+
+\textbullet\ \emph{Same shape-class.} The comparison line reduces to
+the comparison of the underlying nodes $v_1, v_2 \in J \cup V$. By
+trichotomy of $<$ on $G$ (\refrow{def_3_8}), exactly one of $v_1 < v_2$,
+$v_1 = v_2$, or $v_2 < v_1$ holds. The middle case $v_1 = v_2$ would
+force $u = u'$: within the $0$-copy class, $v_1 = v_2 =: v$ identifies
+the two endpoints as $v^0$ and $v^0$, equal whether $v \notin W$
+(then $v^0 = v$) or $v \in W$ (then $v^0$ is the unique $0$-copy of
+$v$ in $W^0$); within the $1$-copy class, $v_1 = v_2 =: w \in W$ and
+again the two endpoints share the unique $1$-copy of $w$. This
+contradicts $u \neq u'$, so we are in the strict cases: $u \prec u'$
+or $u' \prec u$.
+
+\textbullet\ \emph{Different shape-class.} Say $u$ is a $0$-copy with
+underlying node $v_1$ and $u'$ is a $1$-copy with underlying node $v_2$
+(the symmetric case is analogous). By trichotomy of $<$ on $G$, exactly
+one of $v_1 < v_2$, $v_1 = v_2$, or $v_2 < v_1$ holds. The first two
+give $u \prec u'$ by the third line above (its strict disjunct in
+case~1, its ``$=$'' disjunct in case~2); the third gives $u' \prec u$
+by the fourth line.
+
+In all sub-cases either $u \prec u'$ or $u' \prec u$. \checkmark
+
+\emph{Parent-lt.} Let $(u, u') \in E_{\spl(W)}$. By
+\refrow{def_3_11}.iii, $E_{\spl(W)}$ splits into two pieces; we case on
+which piece supplies the edge.
+
+\textbullet\ \emph{Piece (i): a relabeled original edge.} There exist
+$v_1, v_2 \in J \cup V$ with $v_1 \tuh v_2 \in E$ and $(u, u') = (v_1^1,
+v_2^0)$. By parent-lt of $<$ on $G$ (\refrow{def_3_8}), $v_1 < v_2$.
+The target $u' = v_2^0$ is always a $0$-copy with underlying $v_2$
+(whether $v_2 \in W$ or not). Case on the shape of the source
+$u = v_1^1$:
+\begin{itemize}
+\item If $v_1 \notin W$, then $v_1^1 = v_1$ is a $0$-copy with
+underlying $v_1$. Both $u, u'$ are $0$-copies; the comparison falls in
+the first line above and the strict inequality $v_1 < v_2$ gives
+$u \prec u'$.
+\item If $v_1 \in W$, then $v_1^1 \in W^1$ is a $1$-copy with
+underlying $v_1$. Here $u$ is a $1$-copy and $u'$ a $0$-copy; the
+comparison falls in the fourth line above and again $v_1 < v_2$ gives
+$u \prec u'$.
+\end{itemize}
+
+\textbullet\ \emph{Piece (ii): a fresh split edge.} There exists $w \in
+W$ with $(u, u') = (w^0, w^1)$. So $u \in W^0$ is a $0$-copy with
+underlying $w$, and $u' \in W^1$ is a $1$-copy with underlying $w$.
+The comparison falls in the third line above: ``$w < w$ or $w = w$'',
+the second disjunct holding by reflexivity of equality. Hence
+$u \prec u'$. This is the ``split edges go in the right direction''
+payoff of the $\pm\tfrac{1}{3}$ shift: the LN's strict-index
+comparison $\mathrm{idx}(w) - \tfrac{1}{3} < \mathrm{idx}(w) +
+\tfrac{1}{3}$ is what the ``$=$'' disjunct of the third line absorbs
+relationally.
+
+In both pieces $u \prec u'$, so parent-lt of $\prec$ on $G_{\spl(W)}$
+holds. \checkmark
+
+All four clauses of \refrow{def_3_8} are satisfied, so $\prec$ is a
+topological order of $G_{\spl(W)}$.
+
+\medskip
+\noindent\textbf{(B) $G_{\spl(W)}$ is acyclic.}
+
+Suppose $G = (J, V, E, L)$ is a CADMG, so $G$ is acyclic
+(\refrow{def_3_6}). We argue in three steps, each citing the
+\emph{finiteness-free} version of \refrow{claim_3_2} delivered by the
+\texttt{claim\_3\_2\_no\_finite} refactor:
+
+\begin{enumerate}
+\item By the $(\Rightarrow)$ direction of \refrow{claim_3_2}, since
+$G$ is acyclic, $G$ \emph{has} a topological order: some $<$ on
+$J \cup V$ satisfying the four clauses of \refrow{def_3_8}. This is
+the step that, before the refactor, would have invoked the LN's
+iterative parent-free-node construction and so demanded
+$|J \cup V| < \infty$; the Szpilrajn-route proof of the refactored
+\refrow{claim_3_2} lifts that restriction.
+
+\item By part~(A) above, applied to this $<$, the $\pm\tfrac{1}{3}$
+interleave $\prec$ is a topological order of $G_{\spl(W)}$. In
+particular, $G_{\spl(W)}$ has a topological order.
+
+\item By the $(\Leftarrow)$ direction of \refrow{claim_3_2} (which has
+always been finiteness-free: any non-trivial directed cycle
+$u_0 \tuh u_1 \tuh \cdots \tuh u_n = u_0$ in $G_{\spl(W)}$ would chain
+parent-lt of $\prec$ along its forward edges to give
+$u_0 \prec u_1 \prec \cdots \prec u_n = u_0$, contradicting
+irreflexivity of $\prec$), having a topological order implies
+acyclicity. Therefore $G_{\spl(W)}$ is acyclic. \checkmark
+\end{enumerate}
+
+\medskip
+Combining (A) and (B): the LN's $\pm\tfrac{1}{3}$ interleave is a
+topological order of $G_{\spl(W)}$, and $G_{\spl(W)}$ is acyclic. The
+route through (A) and the refactored \refrow{claim_3_2} is what makes
+part~(B) the one-line citation that the LN's own prose offers.
 \end{proof}
 
 \end{document}

@@ -2347,7 +2347,15 @@ def run_claude(prompt: str, label: str,
     Raises ``WorkerTimeoutError`` if the per-call timeout fires, or
     ``RuntimeError`` when generic retries are exhausted.
     """
-    cmd = ["claude", "-p", prompt, "--dangerously-skip-permissions",
+    # Pass the prompt via STDIN, not as a `-p PROMPT` argv element.
+    # The Linux argv limit is ~128 KB; refactor-row prompts that inline
+    # multiple large Lean files + the deviation register routinely
+    # cross that threshold (caught on claim_3_27 during the
+    # claim_3_2_no_finite refactor: OSError "Argument list too long").
+    # `claude -p --output-format json` reads its prompt from stdin
+    # when no positional argument is supplied -- no other behavior
+    # change versus the prior argv-based call.
+    cmd = ["claude", "-p", "--dangerously-skip-permissions",
            "--model", CLAUDE_MODEL,
            "--effort", CLAUDE_EFFORT,
            "--output-format", "json"]
@@ -2360,7 +2368,8 @@ def run_claude(prompt: str, label: str,
         attempt += 1
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True,
+                cmd, input=prompt,
+                capture_output=True, text=True,
                 timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
             )
         except subprocess.TimeoutExpired as e:
