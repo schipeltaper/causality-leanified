@@ -296,21 +296,32 @@ def main(argv: list[str]) -> int:
         # A root is never its own consumer.
         per_root_consumers[root].discard(root)
 
-    # ----- Config-error: is any root a dependent of another root? ----
+    # ----- Cross-root dependencies (warn, don't error) ---------------
+    # A root B that appears in root A's dependents list is informative,
+    # not a config error: B may have its own design change to make
+    # (justifying its root status) AND need re-proving against A's new
+    # shape (justifying the dependent relationship). We surface the
+    # cross-edges to the operator and record them in `caused_by_roots`
+    # so the row's manager knows about both pressures.
     roots_set = set(roots)
+    cross_edges: list[tuple[str, str]] = []  # (parent_root, child_root)
     for root in roots:
-        cross = per_root_consumers[root] & roots_set
-        if cross:
-            offenders = sorted(cross)
-            print(f"ERROR: root {root!r} has root(s) {offenders} in its "
-                  f"dependents list -- one of these is the parent of "
-                  f"another. Multi-root refactors require independent "
-                  f"roots; drop the dependent root from --root-refs and "
-                  f"it will be picked up as a regular dependent.",
-                  file=sys.stderr)
-            return 1
+        for ref in sorted(per_root_consumers[root] & roots_set):
+            cross_edges.append((root, ref))
+    if cross_edges:
+        print(f"[initialize_refactor] NOTE: cross-root dependencies "
+              f"detected (each <parent> -> <child> means child is "
+              f"both a root in its own right AND a dependent of "
+              f"parent; both pressures will be recorded on the row):",
+              file=sys.stderr)
+        for parent, child in cross_edges:
+            print(f"    - {parent} -> {child}", file=sys.stderr)
 
     # ----- Invert: ref -> set of roots that pulled it in -------------
+    # Every root is its own cause. Additionally, every consumer of a
+    # root gets that root added as a cause -- including consumers that
+    # are themselves roots (so a downstream root carries both its self
+    # and its parent root(s) in caused_by_roots).
     caused_by: dict[str, set[str]] = {r: {r} for r in roots}
     for root, consumers in per_root_consumers.items():
         for ref in consumers:
