@@ -289,6 +289,34 @@ def main(argv: list[str]) -> int:
               file=sys.stderr)
         return 1
 
+    # If the decl_name isn't a top-level declaration of main_lean_file,
+    # fall back to scanning the row's `lean_files` siblings. Use case:
+    # def_3_4 (title `Walks`, main `Walks.lean`) is the row whose
+    # IsCollider definition lives in WalkPredicates.lean (a sibling in
+    # the same row's lean_files). Without this fallback the caller
+    # would have to add a --target-file CLI override.
+    if not _find_declarations(target_path.read_text(encoding="utf-8"),
+                              decl_name):
+        matches: list[str] = []
+        for lf in row.get("lean_files") or []:
+            p = REPO_ROOT / lf
+            if p == target_path or not p.exists():
+                continue
+            if _find_declarations(p.read_text(encoding="utf-8"), decl_name):
+                matches.append(lf)
+        if len(matches) == 1:
+            print(f"[find_dependents] `{decl_name}` not in "
+                  f"{target_file}; found in sibling `{matches[0]}` -- "
+                  f"using that as target.", file=sys.stderr)
+            target_file = matches[0]
+            target_path = REPO_ROOT / target_file
+        elif len(matches) > 1:
+            print(f"ERROR: `{decl_name}` found in multiple sibling "
+                  f"lean_files: {matches}. Disambiguate by passing "
+                  f"--decl-name to a unique declaration.", file=sys.stderr)
+            return 1
+        # zero matches -> let the existing error path at line ~337 fire
+
     result: dict = {
         "target_ref":   args.ref,
         "target_title": decl_name,
