@@ -107,6 +107,49 @@ _BLOCK_RE = re.compile(
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
 )
 
+# Top-level Lean declarations beginning with ``refactor_``. The keyword
+# set matches Phase 7a's rename rule (only top-level declarations get
+# the refactor_ prefix); inner / let-bound / local names are ignored.
+# Allows optional modifiers like ``noncomputable`` / ``private`` /
+# ``protected`` before the keyword.
+_STRAY_REFACTOR_DECL_RE = re.compile(
+    r"^(?P<prefix>(?:[\w]+\s+)?"
+    r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)\s+)"
+    r"refactor_(?P<rest>[A-Za-z_][\w]*)",
+    re.MULTILINE,
+)
+
+
+def _find_stray_refactor_decls(content: str, marker_names: set[str]
+                               ) -> list[tuple[int, str, str]]:
+    """Find every top-level ``refactor_<X>`` declaration in ``content``
+    whose ``<X>`` is NOT in ``marker_names``. These would silently
+    survive Phase 7a's rename (which only renames names collected from
+    REPLACEMENT markers) and pollute the post-cleanup naming.
+
+    Returns ``[(line_number, match_text, stripped_name), ...]``.
+    Line numbers are 1-based."""
+    hits: list[tuple[int, str, str]] = []
+    for m in _STRAY_REFACTOR_DECL_RE.finditer(content):
+        rest = m.group("rest")
+        if rest in marker_names:
+            continue                      # already covered by a marker
+        line_no = content[: m.start()].count("\n") + 1
+        hits.append((line_no, m.group(0).strip(), rest))
+    return hits
+
+
+# Same shape as _STRAY_REFACTOR_DECL_RE but for the unprefixed form,
+# used for collision detection on `--auto-rename-strays`.
+def _has_top_level_decl(content: str, name: str) -> bool:
+    pat = re.compile(
+        r"^(?:[\w]+\s+)?"
+        r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)\s+"
+        + re.escape(name) + r"\b",
+        re.MULTILINE,
+    )
+    return pat.search(content) is not None
+
 
 def _parse_marker_blocks(content: str) -> list[dict]:
     """Return every marker block in source order."""
@@ -370,6 +413,23 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--skip-archive", action="store_true",
                         help="skip phase 7h (rename Refactor_X/ -> "
                              "Refactor_X_DONE_<date>/)")
+    # Stray refactor_* decl handling (Phase 7a Pass 1.5). Default:
+    # refuse if any are found. Mutually exclusive overrides:
+    g_stray = parser.add_mutually_exclusive_group()
+    g_stray.add_argument("--auto-rename-strays", action="store_true",
+                         help="if Phase 7a finds top-level `refactor_*` "
+                              "declarations OUTSIDE any REPLACEMENT marker, "
+                              "add their stripped names to the rename "
+                              "set (collision-checked first). The "
+                              "default behavior is to refuse and ask "
+                              "the user to either fix the source or "
+                              "explicitly pass this flag.")
+    g_stray.add_argument("--allow-strays", action="store_true",
+                         help="proceed past Phase 7a's stray-refactor_* "
+                              "check WITHOUT renaming the strays "
+                              "(leaves the `refactor_` prefix in the "
+                              "final code; last-resort, you'll need to "
+                              "clean up naming by hand).")
     args = parser.parse_args(argv)
 
     # ----- Load and sanity-check refactor table ----------------------
@@ -437,6 +497,106 @@ def main(argv: list[str]) -> int:
         return 1
     print(f"  union of replacement names across all files: "
           f"{sorted(all_final_names)}", file=sys.stderr)
+
+    # ---- Pass 1.5: stray `refactor_*` declaration check -----------------
+    # Phase 7a's rename pass only knows about names collected from
+    # REPLACEMENT markers. A top-level `def refactor_X` *without* an
+    # enclosing marker (i.e., the manager wrote a net-new helper with
+    # the `refactor_` prefix but forgot the marker block) would
+    # silently survive cleanup with the prefix intact, polluting the
+    # post-refactor naming. Caught in the claim_3_2_no_finite refactor:
+    # 3 stray `refactor_swig_*` helpers in HardInterventionNodeSplitOrder.lean
+    # made it through cleanup; they were the actual content of the
+    # claim's Remark proof but had wrong names.
+    #
+    # Default: REFUSE and tell the user. Two override flags:
+    #   --auto-rename-strays  add their stripped names to the rename
+    #                         set (refactor_X -> X), checking for
+    #                         collisions first.
+    #   --allow-strays        proceed without renaming (last resort).
+    stray_findings: dict[Path, list[tuple[int, str, str]]] = {}
+    for p, content in file_blobs.items():
+        strays = _find_stray_refactor_decls(content, all_final_names)
+        if strays:
+            stray_findings[p] = strays
+
+    if stray_findings:
+        print(f"\n  Found stray `refactor_*` top-level declaration(s) "
+              f"NOT covered by any REPLACEMENT marker:", file=sys.stderr)
+        for p, hits in stray_findings.items():
+            for ln, match_text, rest in hits:
+                print(f"    - {p.relative_to(REPO_ROOT)}:{ln}: "
+                      f"`{match_text}`  (-> would rename to `{rest}` "
+                      f"if marker-wrapped)", file=sys.stderr)
+        n_strays = sum(len(v) for v in stray_findings.values())
+        if args.auto_rename_strays:
+            added: set[str] = set()
+            for hits in stray_findings.values():
+                for _, _, rest in hits:
+                    added.add(rest)
+            # Collision check: would `<rest>` collide with an existing
+            # top-level `<rest>` declaration (one that's NOT inside an
+            # ORIGINAL marker block, since those are about to be
+            # deleted)?
+            collisions: list[str] = []
+            for rest in sorted(added):
+                for content in file_blobs.values():
+                    if _has_top_level_decl(content, rest):
+                        # Check if this existing decl is inside an
+                        # ORIGINAL marker block (will be deleted).
+                        # Build a quick "deleted ranges" map per file.
+                        blocks = _parse_marker_blocks(content)
+                        deleted_ranges = [
+                            (b["start"], b["end"]) for b in blocks
+                            if b["kind"] == "original"
+                        ]
+                        # If every match of `rest` falls inside a
+                        # deleted range, no collision.
+                        pat = re.compile(
+                            r"^(?:[\w]+\s+)?"
+                            r"(?:def|theorem|lemma|structure|class"
+                            r"|abbrev|instance|inductive|opaque)\s+"
+                            + re.escape(rest) + r"\b",
+                            re.MULTILINE,
+                        )
+                        for m in pat.finditer(content):
+                            in_deleted = any(s <= m.start() < e
+                                             for s, e in deleted_ranges)
+                            if not in_deleted:
+                                collisions.append(rest)
+                                break
+                        if rest in collisions:
+                            break
+            if collisions:
+                print(f"\n  ERROR: --auto-rename-strays would collide "
+                      f"with existing declaration(s): "
+                      f"{sorted(set(collisions))}. Refusing -- the "
+                      f"rename would produce duplicate declarations "
+                      f"that lake build will reject. Fix the source "
+                      f"by renaming the strays by hand and re-run.",
+                      file=sys.stderr)
+                return 1
+            all_final_names |= added
+            print(f"\n  --auto-rename-strays: adding {sorted(added)} "
+                  f"to the rename set. `refactor_<X>` -> `<X>` will "
+                  f"fire on these too.", file=sys.stderr)
+        elif args.allow_strays:
+            print(f"\n  --allow-strays: leaving {n_strays} stray "
+                  f"`refactor_*` declaration(s) prefixed; manager "
+                  f"wrote them, manager owns the naming.",
+                  file=sys.stderr)
+        else:
+            print(f"\n  REFUSING to proceed ({n_strays} stray "
+                  f"declaration(s)). Either:\n"
+                  f"    --auto-rename-strays   drop the `refactor_` "
+                  f"prefix on each (collision-checked first)\n"
+                  f"    --allow-strays         proceed without "
+                  f"renaming (last resort; cleanup leaves them "
+                  f"prefixed)\n"
+                  f"  Or fix the source: wrap each stray in a "
+                  f"REPLACEMENT marker block and re-run finalize.",
+                  file=sys.stderr)
+            return 1
 
     # Pass 2: apply transforms using the global name set
     transformed_writes: list[tuple[Path, str]] = []
