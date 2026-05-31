@@ -157,8 +157,7 @@ typing-obstruction form can still derive it in one line.
   marks the file/scenario context even though the SWIG does not
   actually appear in T1's statement -- Scenario A is "HI without the
   later SWIG step", since the SWIG precondition fails. -/
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_hardInterventionOn_inputs_J (was: refactor_swig_hardInterventionOn_inputs_J)
-theorem refactor_swig_hardInterventionOn_inputs_J
+theorem swig_hardInterventionOn_inputs_J
     {G : CDMG α} {w : α} {W₁ W₂ : Set α}
     (hw : w ∈ W₁ ∩ W₂) (hwV : w ∈ G.V) :
     w ∈ (G.hardInterventionOn W₁).J := by
@@ -166,7 +165,6 @@ theorem refactor_swig_hardInterventionOn_inputs_J
   -- `w ∈ W₁`. `hwV` is documented as LN-faithful but not consumed.
   rw [hardInterventionOn_J]
   exact Or.inr hw.1
--- REFACTOR-BLOCK-REPLACEMENT-END: swig_hardInterventionOn_inputs_J
 
 /-! ## Scenario B1: HI on input copies (`Sum.inr` half) is a no-op on the SWIG -/
 
@@ -409,8 +407,7 @@ demoted to a downstream consequence rather than the headline.
 * **Naming `swig_hardInterventionOn_outputs_J`.** Parallels Scenario
   A's T1 replacement (`swig_hardInterventionOn_inputs_J`) and matches
   the pattern "J-membership lemma about the post-SWIG HI target". -/
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_hardInterventionOn_outputs_J (was: refactor_swig_hardInterventionOn_outputs_J)
-theorem refactor_swig_hardInterventionOn_outputs_J
+theorem swig_hardInterventionOn_outputs_J
     {G : CDMG α} {W : Set α} (hW : W ⊆ G.V) (S : Set α) (hS : S ⊆ W) :
     Sum.inl '' S ⊆ ((G.swig W hW).hardInterventionOn (Sum.inl '' S)).J := by
   -- `hardInterventionOn_J` unfolds the RHS to `(G.swig W hW).J ∪ Sum.inl '' S`;
@@ -418,7 +415,6 @@ theorem refactor_swig_hardInterventionOn_outputs_J
   -- `hS` is documented as LN-faithful but unused.
   rw [hardInterventionOn_J]
   exact Set.subset_union_right
--- REFACTOR-BLOCK-REPLACEMENT-END: swig_hardInterventionOn_outputs_J
 
 /-! ## Punchline corollary: B1 ≠ B2, so the SWIG order is ambiguous -/
 
@@ -482,8 +478,7 @@ it, the B2 branch contains it).
   the LN's prose "two input nodes" directly. The original's
   `_depends_on_copy_choice` framing was a derived interpretation, not
   the LN's literal punchline. -/
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_then_hardInterventionOn_two_input_nodes (was: refactor_swig_then_hardInterventionOn_two_input_nodes)
-theorem refactor_swig_then_hardInterventionOn_two_input_nodes
+theorem swig_then_hardInterventionOn_two_input_nodes
     {G : CDMG α} {w : α} (hwV : w ∈ G.V) :
     Sum.inl w ∈ ((G.swig ({w} : Set α)
         (Set.singleton_subset_iff.mpr hwV)).hardInterventionOn
@@ -506,7 +501,6 @@ theorem refactor_swig_then_hardInterventionOn_two_input_nodes
     -- left summand, then right summand (`Set.range Sum.inr`), with
     -- witness `⟨w, rfl⟩`.
     exact Or.inl (Or.inr ⟨⟨w, rfl⟩, rfl⟩)
--- REFACTOR-BLOCK-REPLACEMENT-END: swig_then_hardInterventionOn_two_input_nodes
 
 end CDMG
 
