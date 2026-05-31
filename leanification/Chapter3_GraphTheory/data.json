@@ -395,7 +395,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-19",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
       "lean_files": [
@@ -423,7 +423,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 0
+      "time_needed_to_solve": 0,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "def",
@@ -680,7 +681,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-20",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean",
       "lean_files": [
@@ -709,7 +710,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\spl(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\spl(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^0$ the index $j-\\frac{1}{3}$\n    and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 0
+      "time_needed_to_solve": 0,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",
@@ -967,7 +969,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-20",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplitOrder.lean",
       "lean_files": [
@@ -996,7 +998,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 0
+      "time_needed_to_solve": 0,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "def",
@@ -1213,7 +1216,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-21",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationPreserves.lean",
       "lean_files": [
@@ -1241,7 +1244,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 10123
+      "time_needed_to_solve": 10123,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",
@@ -1253,7 +1257,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-21",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
       "lean_files": [
@@ -1283,7 +1287,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 12047
+      "time_needed_to_solve": 12047,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",
@@ -1295,7 +1300,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-21",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
       "lean_files": [
@@ -1324,7 +1329,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 7749
+      "time_needed_to_solve": 7749,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",
@@ -1336,7 +1342,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-21",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutSplitOutput.lean",
       "lean_files": [
@@ -1365,7 +1371,8 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 6511
+      "time_needed_to_solve": 6511,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "def",
@@ -1712,7 +1719,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-27",
-      "tips": "",
+      "tips": "Refactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean",
       "lean_files": [
@@ -1751,7 +1758,8 @@
           "last_used": "2026-05-27T18:14:04+00:00"
         }
       ],
-      "time_needed_to_solve": 26985
+      "time_needed_to_solve": 26985,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",
@@ -1763,7 +1771,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-05-27",
-      "tips": "reorder applied @ 2026-05-27: deferred behind claim_3_27. Manager's rationale:\nPRECEDES: claim_3_27\n\n# Reorder request — claim_3_27 (`LabelRoman` / `lem:replace_walk`) must precede claim_3_23\n\n## What's blocking\n\nThe LN's proof of `prp:sigma_opens` (= claim_3_23, this row) sits at `lecture-notes/lecture_notes/graphs.tex` lines 1655–1673. It is structured as:\n\n- `3 → 2`, `1 → 2`: trivial (\"paths are walks\").\n- `2 → 3`: collider-replacement using `AncSet`-witness directed paths. Uses walk-splicing primitives — **does not** use `lem:replace_walk`.\n- `2 → 1`: **explicitly invokes `Lemma~\\ref{lem:replace_walk}`** at LN line 1669: *\"We now use Lemma~\\ref{lem:replace_walk} to construct a new walk $\\pi'$ from $\\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\\pi$ by a particular directed path in $\\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\\pi'$ is still $C$-$\\sigma$-open.\"*\n\n`lem:replace_walk` is **claim_3_27** in our `data.json` (`title: LabelRoman`, currently `formalized=no`, `proven=not proven`, `solved=no`). Without it formalized, the `2 → 1` arrow of `sigmaOpens_TFAE` cannot be discharged in Lean — it is a single-line citation of a major lemma, not a self-contained tactic.\n\n## Why this is a reorder, not a \"push forward\" / `sorry`\n\nThree options were considered:\n\n1. **Push forward (discharge only the trivial halves, leave `2 → 1` as `sorry`).** Rejected: the row's `solved=yes` terminal state forbids `sorry`. Marking solved with an unsoundness gap is not an option here.\n2. **Write the tex proof transcribing the LN, verify it (the tex proo",
+      "tips": "reorder applied @ 2026-05-27: deferred behind claim_3_27. Manager's rationale:\nPRECEDES: claim_3_27\n\n# Reorder request — claim_3_27 (`LabelRoman` / `lem:replace_walk`) must precede claim_3_23\n\n## What's blocking\n\nThe LN's proof of `prp:sigma_opens` (= claim_3_23, this row) sits at `lecture-notes/lecture_notes/graphs.tex` lines 1655–1673. It is structured as:\n\n- `3 → 2`, `1 → 2`: trivial (\"paths are walks\").\n- `2 → 3`: collider-replacement using `AncSet`-witness directed paths. Uses walk-splicing primitives — **does not** use `lem:replace_walk`.\n- `2 → 1`: **explicitly invokes `Lemma~\\ref{lem:replace_walk}`** at LN line 1669: *\"We now use Lemma~\\ref{lem:replace_walk} to construct a new walk $\\pi'$ from $\\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\\pi$ by a particular directed path in $\\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\\pi'$ is still $C$-$\\sigma$-open.\"*\n\n`lem:replace_walk` is **claim_3_27** in our `data.json` (`title: LabelRoman`, currently `formalized=no`, `proven=not proven`, `solved=no`). Without it formalized, the `2 → 1` arrow of `sigmaOpens_TFAE` cannot be discharged in Lean — it is a single-line citation of a major lemma, not a self-contained tactic.\n\n## Why this is a reorder, not a \"push forward\" / `sorry`\n\nThree options were considered:\n\n1. **Push forward (discharge only the trivial halves, leave `2 → 1` as `sorry`).** Rejected: the row's `solved=yes` terminal state forbids `sorry`. Marking solved with an unsoundness gap is not an option here.\n2. **Write the tex proof transcribing the LN, verify it (the tex proo\n\nRefactored on 2026-05-31 via `claim_3_2_no_finite` (see leanification/Chapter*/Refactor_claim_3_2_no_finite_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean",
       "lean_files": [
@@ -1800,7 +1808,8 @@
           "last_used": "2026-05-27T20:29:58+00:00"
         }
       ],
-      "time_needed_to_solve": 10156
+      "time_needed_to_solve": 10156,
+      "last_refactored_at": "2026-05-31"
     },
     {
       "def_or_claim": "claim",

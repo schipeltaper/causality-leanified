@@ -488,198 +488,7 @@ theorem isTopologicalOrder_nodeSplittingOn
       subst hw_eq
       exact Or.inr rfl
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: isAcyclic_nodeSplittingOn
--- claim_3_6 (part B)
--- title: SplitTopologicalOrder -- acyclicity preserved
---
--- The acyclicity half of the LN remark: if `G` is acyclic and
--- `W ⊆ G.V`, then `G.nodeSplittingOn W hW` is acyclic. Two viable
--- proof routes are available (the prover chooses):
---
---   (i) Via Part A + claim_3_2: from `G.IsAcyclic` pull a
---       topological order via the `→` direction of
---       `isAcyclic_iff_hasTopologicalOrder` (needs `[Finite α]`),
---       apply Part A to lift it to `(G.nodeSplittingOn W
---       hW).IsTopologicalOrder (splitOrder W r)`, then use the `←`
---       direction of claim_3_2 to conclude
---       `(G.nodeSplittingOn W hW).IsAcyclic`. Cleanest, but pulls
---       in `[Finite α]` (which the LN's `\Rem` does not state).
---   (ii) Direct walk-lifting analogous to claim_3_3 part A:
---        project a hypothetical cycle in `G.nodeSplittingOn W hW`
---        down to a cycle in `G` via `Sum.inl v ↦ v, Sum.inr ⟨w,_⟩
---        ↦ w` and compression of the trivial `Sum.inl w → Sum.inr
---        ⟨w, hw⟩` split edges (which project to self-loops, hence
---        not real edges in `G`; they shrink the projected walk).
---        More work but no finiteness needed.
---
--- Statement-phase keeps both routes open by *not* adding
--- `[Finite α]`. If the prover finds route (ii) infeasible they
--- can request a `correct_tex_proof` to add `[Finite α]`; the
--- statement is then trivially compatible with route (i).
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex`
-(Rem 444 -- 455; same block as part A):
 
-\begin{claimmark}
-\begin{Rem}
-    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
-    ...
-\end{Rem}
-\end{claimmark}
--/
---
--- ## Design choice
---
--- * **No `[Finite α]` instance hypothesis at statement phase.**
---   Discussed in the comment block immediately above. The
---   statement signature is intentionally *minimal* -- the prover
---   can add `[Finite α]` if route (i) wins out, but the manager
---   should not pre-commit at the statement phase.
--- * **`{G}, {W}, hW, h` binder choice.** Same rationale as Part A
---   -- `G` and `W` recovered from the conclusion / `hW`; `hW`
---   explicit because `nodeSplittingOn` demands it. `h :
---   G.IsAcyclic` is explicit because it is the hypothesis we are
---   transporting; no opportunity for Lean to unify it from
---   elsewhere.
--- * **Naming `isAcyclic_nodeSplittingOn`.** Mirrors `claim_3_3`
---   part A `isAcyclic_hardInterventionOn` (this section's
---   precedent) and follows Mathlib's
---   `<conclusion>_<construction>` convention. The
---   `IsAcyclic` part comes first because it is the result; the
---   `nodeSplittingOn` part second because it is the construction
---   we are showing preserves acyclicity.
-
-/-- claim_3_6 part B: if `W ⊆ G.V` and `G` is acyclic, then
-`G.nodeSplittingOn W hW` is acyclic. Mirrors the acyclicity half
-of the `\Rem` immediately after def_3_11 in
-`lecture-notes/lecture_notes/graphs.tex` (lines 444 -- 455); see
-`isTopologicalOrder_nodeSplittingOn` above for the constructive
-half and the file-level docstring for the rationale behind
-splitting the LN's single `\Rem` into two theorems.
-
-The `W ⊆ G.V` precondition is structurally required by
-`nodeSplittingOn` itself (def_3_11), not by acyclicity per se;
-see `isTopologicalOrder_nodeSplittingOn`. No `[Finite α]`
-hypothesis is added at the statement phase to keep both proof
-routes open (claim_3_2-based vs. direct walk-lifting); see the
-per-theorem design block above for the discussion. -/
-theorem isAcyclic_nodeSplittingOn
-    {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
-    (h : G.IsAcyclic) :
-    (G.nodeSplittingOn W hW).IsAcyclic := by
-  -- Route (ii) of the per-theorem design block: direct walk-lifting,
-  -- finiteness-free. The projection `α ⊕ ↑W → α` sends
-  -- `Sum.inl v ↦ v` and `Sum.inr ⟨w, _⟩ ↦ w`. Under this
-  -- projection, every "piece-1" edge of `(G.nodeSplittingOn W hW).E`
-  -- (a relabeled `G.E`-edge) projects to a real `G.E`-edge, and every
-  -- "piece-2" edge (a fresh split edge `Sum.inl w → Sum.inr ⟨w, _⟩`)
-  -- projects to a self-loop `(w, w)` which compresses out.
-  --
-  -- The key existence lemma `proj_exists`: any directed walk in the
-  -- split graph projects to a directed walk in `G`. The auxiliary
-  -- "positive-length" clause: for cycles `v → ⋯ → v` (where either
-  -- `v` is `Sum.inl _` or `Sum.inr _`), the projection has positive
-  -- length, because at least one step is a piece-1 relabeled edge
-  -- (the last step is piece-1 if the cycle endpoint is `Sum.inl _`;
-  -- the first step is piece-1 if it is `Sum.inr _`).
-  rintro v hv ⟨π, h_dir, h_pos⟩
-  let proj : α ⊕ ↑W → α := Sum.elim id Subtype.val
-  -- General projection lemma.
-  have proj_exists : ∀ {a b : α ⊕ ↑W} (π : Walk (G.nodeSplittingOn W hW) a b),
-      π.IsDirected →
-      ∃ ρ : Walk G (proj a) (proj b),
-        ρ.IsDirected ∧
-        (1 ≤ π.length →
-          (∃ v₀, b = Sum.inl v₀) ∨ (∃ w', a = Sum.inr w') →
-          1 ≤ ρ.length) := by
-    intro a b π
-    induction π with
-    | nil _ =>
-      intro _
-      refine ⟨Walk.nil _, by simp, ?_⟩
-      intro h_pos _
-      simp at h_pos
-    | @cons _ y b' s p ih =>
-      intro h_dir
-      cases s with
-      | forward h =>
-        have h_p : p.IsDirected := h_dir
-        obtain ⟨ρ_p, h_ρ_p_dir, h_ρ_p_len⟩ := ih h_p
-        -- Dispatch on the edge form via `mem_nodeSplittingOn_E`.
-        change (_, _) ∈ (G.nodeSplittingOn W hW).E at h
-        rw [mem_nodeSplittingOn_E] at h
-        rcases h with ⟨v₁, v₂, hE, h_eq⟩ | ⟨w', h_eq⟩
-        · -- Piece 1 (relabeled edge): a = split1 W v₁, y = Sum.inl v₂.
-          rw [Prod.mk.injEq] at h_eq
-          obtain ⟨ha_eq, hy_eq⟩ := h_eq
-          subst hy_eq
-          -- Dispatch on `v₁ ∈ W` to make `split1 W v₁` concrete in
-          -- `ha_eq`, then `subst` to replace `a` throughout.
-          by_cases hv₁ : v₁ ∈ W
-          · rw [split1_of_mem hv₁] at ha_eq
-            subst ha_eq
-            -- `proj (Sum.inr ⟨v₁, hv₁⟩)` reduces to `v₁` by `Sum.elim` def.
-            refine ⟨Walk.cons (.forward hE) ρ_p, ?_, ?_⟩
-            · simp only [Walk.isDirected_cons_forward]; exact h_ρ_p_dir
-            · intro _ _; simp
-          · rw [split1_of_not_mem hv₁] at ha_eq
-            subst ha_eq
-            refine ⟨Walk.cons (.forward hE) ρ_p, ?_, ?_⟩
-            · simp only [Walk.isDirected_cons_forward]; exact h_ρ_p_dir
-            · intro _ _; simp
-        · -- Piece 2 (split edge): a = Sum.inl w'.val, y = Sum.inr w'.
-          rw [Prod.mk.injEq] at h_eq
-          obtain ⟨ha_eq, hy_eq⟩ := h_eq
-          subst ha_eq
-          subst hy_eq
-          -- proj (Sum.inl w'.val) = w'.val = proj (Sum.inr w'), so
-          -- `ρ_p : Walk G w'.val (proj b')` already has the goal type.
-          refine ⟨ρ_p, h_ρ_p_dir, ?_⟩
-          intro _ h_endpts
-          -- "source is Sum.inr" disjunct of `h_endpts` is false; hence
-          -- "target is Sum.inl" disjunct holds.
-          have hb_inl : ∃ v₀, b' = Sum.inl v₀ := by
-            rcases h_endpts with hb | ⟨w'', hw''⟩
-            · exact hb
-            · cases hw''
-          -- If `p.length = 0` then `p = .nil _` so `b' = Sum.inr w'`,
-          -- contradicting `hb_inl`.
-          have hp_pos : 1 ≤ p.length := by
-            cases p with
-            | nil _ =>
-              exfalso
-              obtain ⟨v₀, hv⟩ := hb_inl
-              cases hv
-            | cons _ _ => simp
-          exact h_ρ_p_len hp_pos (Or.inr ⟨w', rfl⟩)
-      | backward _ => exact absurd h_dir (by simp)
-      | bidir _ => exact absurd h_dir (by simp)
-  -- Apply the lemma to `π`.
-  obtain ⟨ρ, h_ρ_dir, h_ρ_len⟩ := proj_exists π h_dir
-  -- For the cycle (source = target = v), one of the endpoint
-  -- conditions of `proj_exists` holds.
-  have h_endpts : (∃ v₀, v = Sum.inl v₀) ∨ (∃ w', v = Sum.inr w') := by
-    rcases v with v₀ | w'
-    · exact Or.inl ⟨v₀, rfl⟩
-    · exact Or.inr ⟨w', rfl⟩
-  have h_proj_pos : 1 ≤ ρ.length := h_ρ_len h_pos h_endpts
-  -- `proj v ∈ G`.
-  have hv_proj : proj v ∈ G := by
-    simp only [CDMG.mem_iff, nodeSplittingOn_J, nodeSplittingOn_V,
-      Set.mem_union, Set.mem_image, Set.mem_range] at hv
-    rcases v with v₀ | ⟨w, hwW⟩
-    · change v₀ ∈ G
-      rcases hv with ⟨j, hj, hjv⟩ | ⟨v', hv', hvv'⟩ | ⟨w, hw⟩
-      · cases Sum.inl_injective hjv; exact Or.inl hj
-      · cases Sum.inl_injective hvv'; exact Or.inr hv'
-      · exact nomatch hw
-    · change w ∈ G
-      exact Or.inr (hW hwW)
-  -- Derive contradiction with `G.IsAcyclic`.
-  exact h _ hv_proj ⟨ρ, h_ρ_dir, h_proj_pos⟩
--- REFACTOR-BLOCK-ORIGINAL-END: isAcyclic_nodeSplittingOn
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: isAcyclic_nodeSplittingOn (was: refactor_isAcyclic_nodeSplittingOn)
 -- claim_3_6 (part B, refactored: rides claim_3_2_no_finite)
 -- title: SplitTopologicalOrder -- acyclicity preserved
 --
@@ -688,7 +497,7 @@ theorem isAcyclic_nodeSplittingOn
 -- `isAcyclic_iff_hasTopologicalOrder` (claim_3_2), this becomes the
 -- three-step citation that the LN's own one-line "also `G_{spl(W)}`
 -- is acyclic" prose offers:
---   1. `(refactor_isAcyclic_iff_hasTopologicalOrder G).mp h` pulls a
+--   1. `(isAcyclic_iff_hasTopologicalOrder G).mp h` pulls a
 --      topological order `r` of `G` from `G.IsAcyclic`. Pre-refactor,
 --      this step would have required `[Finite α]` (LN line 238 of
 --      `graphs.tex` invokes "since `G_i` is acyclic and finite, it
@@ -698,7 +507,7 @@ theorem isAcyclic_nodeSplittingOn
 --      Part A to a topological order `splitOrder W r` of
 --      `G.nodeSplittingOn W hW`. Part A is itself finiteness-free, so
 --      no extra hypothesis is introduced here.
---   3. `(refactor_isAcyclic_iff_hasTopologicalOrder _).mpr ⟨_, _⟩`
+--   3. `(isAcyclic_iff_hasTopologicalOrder _).mpr ⟨_, _⟩`
 --      concludes acyclicity. The `⇐` direction of claim_3_2 has
 --      always been finiteness-free (irreflexivity + transitivity of
 --      the topological order suffices), so no surprise.
@@ -728,13 +537,13 @@ Verbatim from `lecture-notes/lecture_notes/graphs.tex` (Rem 444 -- 455; same blo
 --   `REFACTOR-BLOCK-ORIGINAL` block above (which Phase 7 cleanup
 --   will strip), so the alternative reasoning is documented even
 --   though it is no longer the load-bearing proof.
--- * **Calls `refactor_isAcyclic_iff_hasTopologicalOrder` (not the
+-- * **Calls `isAcyclic_iff_hasTopologicalOrder` (not the
 --   original `isAcyclic_iff_hasTopologicalOrder`).** During the
 --   refactor window, both versions of claim_3_2 coexist. Phase 7's
 --   global whole-word rename `refactor_<Name>` -> `<Name>` will turn
 --   this call into the canonical `isAcyclic_iff_hasTopologicalOrder`
 --   at cleanup time.
--- * **Naming `refactor_isAcyclic_nodeSplittingOn`.** Phase 7 cleanup
+-- * **Naming `isAcyclic_nodeSplittingOn`.** Phase 7 cleanup
 --   strips the `refactor_` prefix to produce the final
 --   `isAcyclic_nodeSplittingOn`.
 
@@ -746,10 +555,10 @@ def_3_11 in `lecture-notes/lecture_notes/graphs.tex` (lines 444 --
 `tex/refactor_claim_3_6_proof_SplitTopologicalOrder.tex` for the
 verified mathematical roadmap. The proof is the three-step citation
 of the refactored finiteness-free `claim_3_2`
-(`refactor_isAcyclic_iff_hasTopologicalOrder`) composed with Part A
+(`isAcyclic_iff_hasTopologicalOrder`) composed with Part A
 (`isTopologicalOrder_nodeSplittingOn`), matching the LN's own
 one-line statement of the result. -/
-theorem refactor_isAcyclic_nodeSplittingOn
+theorem isAcyclic_nodeSplittingOn
     {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
     (h : G.IsAcyclic) :
     (G.nodeSplittingOn W hW).IsAcyclic := by
@@ -757,16 +566,15 @@ theorem refactor_isAcyclic_nodeSplittingOn
   -- Part (B): three citations of the refactored claim_3_2.
   -- Step 1 (TeX Part B step 1): G acyclic ⇒ G has a topological order
   -- via the `⇒` direction of refactored claim_3_2.
-  obtain ⟨r, hr⟩ := (refactor_isAcyclic_iff_hasTopologicalOrder G).mp h
+  obtain ⟨r, hr⟩ := (isAcyclic_iff_hasTopologicalOrder G).mp h
   -- Step 2 (TeX Part B step 2): lift `r` to a topological order on
   -- `G.nodeSplittingOn W hW` via Part A.
   have h_split : (G.nodeSplittingOn W hW).HasTopologicalOrder :=
     ⟨splitOrder W r, isTopologicalOrder_nodeSplittingOn hW hr⟩
   -- Step 3 (TeX Part B step 3): the `⇐` direction of refactored
   -- claim_3_2 concludes acyclicity.
-  exact (refactor_isAcyclic_iff_hasTopologicalOrder
+  exact (isAcyclic_iff_hasTopologicalOrder
     (G.nodeSplittingOn W hW)).mpr h_split
--- REFACTOR-BLOCK-REPLACEMENT-END: isAcyclic_nodeSplittingOn
 
 end CDMG
 
