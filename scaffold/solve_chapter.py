@@ -163,6 +163,14 @@ class OrchestrationState:
     # explicitly accepted the deviation and recorded it in the register).
     # Resets per row run.
     deviation_accepted: bool = False
+    # Ids of deviation-register entries this refactor is meant to
+    # resolve (populated from ``.refactor_state.json`` at row start
+    # for refactor rows; empty for normal rows). The
+    # ``accept_deviation`` handler REFUSES to acknowledge any id in
+    # this list -- so the manager cannot rubber-stamp the very
+    # deviation the refactor was created to fix; the strict-
+    # equivalence gate must pass cleanly (or the row stays unsolved).
+    refactor_target_deviation_ids: list[str] = field(default_factory=list)
 
     @property
     def elapsed_seconds(self) -> float:
@@ -214,6 +222,29 @@ def _infer_chapter_from_path(data_path: Path) -> int:
         if m:
             return int(m.group(1))
     return 0
+
+
+def _load_refactor_target_devs(data_path: Path) -> list[str]:
+    """Return the list of deviation ids the current refactor is meant
+    to resolve, by reading ``.refactor_state.json`` next to the
+    ``refactor_data.json`` (written by ``do_refactor.py init``). For
+    non-refactor invocations (data_path is a chapter-level data.json
+    with no state file) returns ``[]``. Also returns ``[]`` when the
+    state file exists but predates this field (back-compat).
+
+    Callers use this list to block ``accept_deviation`` on any id the
+    refactor is supposed to resolve -- preventing the manager from
+    rubber-stamping the very deviation the refactor was created to fix.
+    """
+    state_file = data_path.parent / ".refactor_state.json"
+    if not state_file.exists():
+        return []
+    try:
+        st = json.loads(state_file.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    out = st.get("deviations_to_resolve") or []
+    return list(out) if isinstance(out, list) else []
 
 
 def _chapter_folder_for(data_path: Path) -> Path:
@@ -790,6 +821,25 @@ def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> Non
     print(f"[orchestrator] run summary appended to "
           f"{wp.relative_to(state.data_path.parent.parent.parent)}",
           flush=True)
+
+
+class RequestFromHumanEscalated(Exception):
+    """Raised when the `request_from_human` action passes the threshold
+    and writes a request to the chapter file. Caught by
+    :func:`solve_chapter` which then exits cleanly -- WITHOUT starting
+    a fresh iteration on any row (the user must respond to the request
+    before any further automated work makes sense; this is doubly
+    important in a refactor, where every row's correctness depends on
+    the previous one). Carries the path of the request file for the
+    log message.
+    """
+    def __init__(self, request_path: Path, ref: str):
+        super().__init__(
+            f"request_from_human escalated by row `{ref}`; "
+            f"see {request_path}"
+        )
+        self.request_path = request_path
+        self.ref = ref
 
 
 def regenerate_subsection_main_tex(data_path: Path, data: dict,
@@ -2552,7 +2602,13 @@ def _handle_request_from_human(state: "OrchestrationState", body: str,
             "feedback_for_manager": encouragement,
         }
 
-    # Threshold reached: write the request to the chapter file and stop.
+    # Threshold reached: write the request to the chapter file, then
+    # RAISE a RequestFromHumanEscalated exception so solve_chapter
+    # exits IMMEDIATELY -- no fresh iteration, no proceeding to a
+    # next row. The human must respond to the request before any
+    # further automated work makes sense; in a refactor, every
+    # downstream row depends on the current one, so silently moving
+    # on would corrupt the whole table.
     chapter_folder = state.data_path.parent
     req_path = ensure_request_from_human_file(chapter_folder)
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -2568,14 +2624,28 @@ def _handle_request_from_human(state: "OrchestrationState", body: str,
     else:
         text += block
     req_path.write_text(text, encoding="utf-8")
-    print(f"[orchestrator] request_from_human appended to "
-          f"{req_path.relative_to(state.data_path.parent.parent.parent)}",
+    rel = req_path.relative_to(state.data_path.parent.parent.parent)
+    print(f"[orchestrator] request_from_human appended to {rel}",
           flush=True)
-    return {
-        "summary": f"Request written to {req_path.name}; stopping run.",
-        "should_stop": True,
-        "feedback_for_manager": "",
-    }
+    # Persist + record the action before raising, so the workspace
+    # captures the manager's request body.
+    state.history.append(TurnRecord(
+        -1, "request_from_human", body,
+        f"escalated; written to {rel}"))
+    save_data(state.data_path, data)
+    append_unsolved_run_summary(
+        state,
+        reason=(
+            f"request_from_human escalated after {consecutive} "
+            f"consecutive call(s); request written to {rel}. The "
+            f"orchestrator exited immediately; do NOT re-run "
+            f"solve_chapter until you have answered the request "
+            f"(write into the Answers section of {req_path.name}) and "
+            f"reviewed whether this row should be re-attempted, "
+            f"abandoned, or refactored."
+        ),
+    )
+    raise RequestFromHumanEscalated(req_path, state.ref)
 
 
 def _continue_agent_from_body(state: "OrchestrationState", body: str,
@@ -3092,6 +3162,11 @@ def solve_current_row(data_path: Path | None = None) -> None:
         row_index=row_index,
         row=data["rows"][row_index],
     )
+    # For refactor rows, load the deviation-ids this refactor is meant
+    # to resolve (written by `do_refactor.py init` into
+    # `.refactor_state.json`). Empty list for non-refactor rows or
+    # if the state file is missing / lacks the field (back-compat).
+    state.refactor_target_deviation_ids = _load_refactor_target_devs(data_path)
     # Ensure the time counter exists (older rows may not have it).
     state.row.setdefault("time_needed_to_solve", 0)
     prior_seconds = int(state.row["time_needed_to_solve"])
@@ -3792,6 +3867,7 @@ def solve_current_row(data_path: Path | None = None) -> None:
             # flips, manager can proceed. Successful register write
             # also flips `state.deviation_accepted`, so the next
             # `solved` skips the strict gate.
+            entry = None
             try:
                 from deviations import (                              # type: ignore
                     register_deviation, load_register,
@@ -3815,7 +3891,59 @@ def solve_current_row(data_path: Path | None = None) -> None:
                     "  - notes: free-form context (last; runs to end of body)\n"
                     "Re-emit `accept_deviation` with the body fixed."
                 )
-            else:
+            if entry is not None and entry["id"] in state.refactor_target_deviation_ids:
+                # Refuse: this id is one the refactor is meant to
+                # RESOLVE (its introduced_by_ref is in the refactor
+                # table's row set, snapshotted into
+                # .refactor_state.json at init). Accepting it would
+                # rubber-stamp the very deviation the refactor was
+                # created to fix and skip the strict gate's signal.
+                # The manager must actually FIX the encoding so the
+                # strict-equivalence gate passes cleanly. (Different
+                # deviations -- newly arising during the refactor --
+                # remain acceptable.)
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    f"(refused: id {entry['id']!r} is in "
+                    f"deviations_to_resolve -- the refactor must "
+                    f"actually FIX this, not accept it)"))
+                print(f"[orchestrator] accept_deviation REFUSED for "
+                      f"{state.ref}: id {entry['id']!r} is in this "
+                      f"refactor's deviations_to_resolve list.",
+                      flush=True)
+                extra_note = (
+                    f"`accept_deviation` REFUSED. The id "
+                    f"`{entry['id']}` is one of the deviation entries "
+                    f"this refactor was created to RESOLVE (snapshotted "
+                    f"at init from `deviations.json` -- any entry whose "
+                    f"`introduced_by_ref` is in the refactor table's "
+                    f"row set is in this list). Accepting it would "
+                    f"rubber-stamp the very deviation the refactor was "
+                    f"meant to fix.\n\n"
+                    f"What to do instead:\n"
+                    f"- Actually fix the encoding so the strict-"
+                    f"equivalence gate passes cleanly on this row. The "
+                    f"strict gate is your signal of whether the "
+                    f"replacement encoding is LN-faithful.\n"
+                    f"- If you've decided the fix isn't feasible in "
+                    f"this refactor, call `request_from_human` (the "
+                    f"orchestrator nudges you back twice; on the third "
+                    f"call it writes your message to the chapter's "
+                    f"request_from_human.tex and hard-halts the run "
+                    f"for human review).\n"
+                    f"- A DIFFERENT deviation (with an id NOT in the "
+                    f"target list) can still be accepted normally -- "
+                    f"the block is per-id, not blanket."
+                )
+                if state.refactor_target_deviation_ids:
+                    extra_note += (
+                        f"\n\nFor reference, this refactor's full "
+                        f"target list ({len(state.refactor_target_deviation_ids)} "
+                        f"id(s)):\n"
+                        + "\n".join(f"  - {d}" for d in
+                                    state.refactor_target_deviation_ids)
+                    )
+            elif entry is not None:
                 existing_ids = {e.get("id") for e in load_register()}
                 already_in_register = entry["id"] in existing_ids
                 if already_in_register:
@@ -4092,18 +4220,17 @@ def solve_current_row(data_path: Path | None = None) -> None:
 
         elif action == "request_from_human":
             # Gated: first few attempts get encouragement; only after
-            # HUMAN_REQUEST_THRESHOLD consecutive calls do we actually write
-            # the request to disk and stop.
+            # HUMAN_REQUEST_THRESHOLD consecutive calls do we actually
+            # write the request to disk and HARD EXIT (the handler
+            # raises RequestFromHumanEscalated, which escapes
+            # solve_current_row and bubbles up to solve_chapter --
+            # which catches it and exits without starting any further
+            # iteration; never proceeds to a next row).
             outcome = _handle_request_from_human(state, body, data)
+            # Only reached when the call was NUDGED back (not escalated):
             state.history.append(TurnRecord(turn, action, body,
                                             outcome["summary"]))
             save_data(state.data_path, data)
-            if outcome["should_stop"]:
-                append_unsolved_run_summary(
-                    state, reason="request_from_human threshold reached -- "
-                    "request written to chapter file, awaiting human reply",
-                )
-                return
             extra_note = outcome["feedback_for_manager"]
 
         elif action in ACTION_TO_WORKER:
@@ -4200,6 +4327,20 @@ def solve_chapter(data_path: Path | None = None) -> None:
             return
         try:
             solve_current_row(data_path)
+        except RequestFromHumanEscalated as e:
+            # Hard halt: the manager has escalated to the human after
+            # exhausting the nudge-back budget. We do NOT iterate to
+            # a next row -- in any mode, especially in a refactor,
+            # downstream rows depend on the current one being properly
+            # finished. The human must answer the request before the
+            # orchestrator runs again.
+            print(f"[solve_chapter] HALT: row `{e.ref}` escalated to "
+                  f"the human. Request file: {e.request_path}",
+                  flush=True)
+            print(f"[solve_chapter] No further rows will be attempted. "
+                  f"Answer the request, then re-run solve_chapter.",
+                  flush=True)
+            return
         except Exception as e:               # noqa: BLE001 - top-level guard
             print(f"[solve_chapter] solve_current_row raised: {e}",
                   flush=True)

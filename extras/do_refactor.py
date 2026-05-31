@@ -238,13 +238,34 @@ def cmd_init(args: argparse.Namespace) -> int:
 
     # Write state file
     print(f"\n[do_refactor] === Writing state file ===", flush=True)
+    # Snapshot which deviation entries this refactor is meant to
+    # resolve: any entry in the register whose `introduced_by_ref`
+    # is in the refactor table's row set. These ids are then blocked
+    # at solve-time -- accept_deviation refuses to acknowledge them,
+    # forcing the refactor to actually FIX the issue (so the strict
+    # gate passes cleanly) rather than rubber-stamp it.
+    sys.path.insert(0, str(SCAFFOLD))
+    from deviations import load_register                              # type: ignore
+    refactor_refs = {r["ref"] for r in
+                     json.loads(refactor_data.read_text())["rows"]}
+    deviations_to_resolve = sorted(
+        e["id"] for e in load_register(include_resolved=True)
+        if e.get("introduced_by_ref") in refactor_refs
+    )
+    print(f"\n[do_refactor] === Snapshotting deviations_to_resolve "
+          f"({len(deviations_to_resolve)} entry(s)) ===",
+          file=sys.stderr, flush=True)
+    for did in deviations_to_resolve:
+        print(f"  - {did}", file=sys.stderr)
+
     _write_state(refactor_folder, {
-        "source_branch":   SERVER_BRANCH,
-        "refactor_branch": refactor_branch,
-        "root_ref":        args.root_ref,
-        "name":            args.name,
-        "chapter":         args.chapter,
-        "init_date":       datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source_branch":          SERVER_BRANCH,
+        "refactor_branch":        refactor_branch,
+        "root_ref":               args.root_ref,
+        "name":                   args.name,
+        "chapter":                args.chapter,
+        "init_date":              datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "deviations_to_resolve":  deviations_to_resolve,
     })
 
     # Commit + push
