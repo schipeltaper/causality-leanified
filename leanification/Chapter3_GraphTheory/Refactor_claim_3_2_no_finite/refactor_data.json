@@ -898,7 +898,7 @@
           "last_used": "2026-05-30T23:26:35+00:00"
         }
       ],
-      "time_needed_to_solve": 1855,
+      "time_needed_to_solve": 1861,
       "refactor": true
     },
     {
@@ -907,10 +907,10 @@
       "section": "3.3",
       "title": "LabelRoman",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-31",
       "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean",
@@ -923,10 +923,10 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -938,11 +938,62 @@
         "request_from_human": 0,
         "mistake": 0,
         "no_action": 0,
-        "add_design_choice_comments": 0
+        "add_design_choice_comments": 0,
+        "verify_equivalence_strict": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\\label{lem:replace_walk}\nLet $G=(J,V,E,L)$ be a CDMG, $C \\subseteq V \\cup J$ and $\\pi = \\lp  v_0 \\sus \\cdots \\sus v_n \\rp$ be a $C$-$\\sigma$-open walk in $G$.\n  Suppose $v_i \\in \\Sc^G(v_j)$ for some $i,j \\in \\{0,\\dots,n\\}$ with $i < j$.\nIf we then replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by \n  \\begin{enumerate}[label=(\\roman*)]\n      \\item a shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$ if $j = n$ or if $v_j \\tuh v_{j+1}$ on $\\pi$, or \n    \\item a shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ otherwise,\n  \\end{enumerate}\n  then this new subwalk is entirely within $\\Sc^G(v_j)$ and the modified walk $\\pi'$ is still $C$-$\\sigma$-open.\n\\begin{proof}\n$\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the initial nodes $v_0, \\dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \\dots, v_n$ on $\\pi'$, since these nodes occur in the same local configuration on $\\pi$ and are not $C$-$\\sigma$-blocked on $\\pi$ by assumption.\nFurthermore, $\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\\Sc^G(v_j)$. It is also worth noting that $\\pi'$ cannot become $C$-$\\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\\pi$. So in the following we can w.l.o.g.\\ assume that both $v_i$ and $v_j$ are non-endnodes of $\\pi$ and thus $\\pi'$.\n\nCase (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\\pi$ that is $C$-$\\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\\pi'$ it remains $C$-$\\sigma$-open on $\\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$ (if $v_i$ is the left endnode or not). If $v_i \\neq v_j$, then the new directed path $v_i \\tuh \\cdots \\tuh v_j$ in $\\pi'$ is $C$-$\\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).\n\n Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \\hus v_{j+1}$ in $\\pi$. \n If $v_{i-1} \\hut v_i$ on $\\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). \n So we can also assume that we have $i > 0$ and $v_{i-1} \\suh v_i$ on $\\pi$. So $\\pi$ looks as follows:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\sus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n So there must be a smallest number $k \\in \\lC i,\\dots,j\\rC$ such that a collider appears at $v_k$ on $\\pi$:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\tuh \\cdots \\tuh v_k \\hus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n Since $\\pi$ is $C$-$\\sigma$-open we have $v_k \\in \\Anc^G(C)$. Since $v_i \\in \\Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \\in \\Anc^G(C)$.\n So if we replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by the shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ we then get for $\\pi'$ the following situation:\n \\[\\pi':\\qquad \\cdots v_{i-1} \\suh v_i \\hut \\cdots \\hut  v_j \\hus v_{j+1} \\cdots, \\]\n which is then $C$-$\\sigma$-open at $v_i$ as $v_i \\in \\Anc^G(C)$. Note that this holds also when $v_i=v_j$.\n If $v_i \\neq v_j$ then $v_j$ is also $C$-$\\sigma$-open on $\\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. \n\n So in all cases $\\pi'$ stays $C$-$\\sigma$-open.\n\\end{proof}\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "895d8931-6051-4ebf-976f-ddd9c5be2dd7",
+          "first_seen": "2026-05-31T00:03:35+00:00",
+          "last_used": "2026-05-31T00:03:35+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "4b067591-c15c-472d-af5c-e7066771fc08",
+          "first_seen": "2026-05-31T00:05:58+00:00",
+          "last_used": "2026-05-31T00:05:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9a8e103d-5850-4aa9-9a19-33a76b344638",
+          "first_seen": "2026-05-31T00:06:30+00:00",
+          "last_used": "2026-05-31T00:06:30+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "d37cc50c-c42c-4519-b349-eb61eae37306",
+          "first_seen": "2026-05-31T00:08:21+00:00",
+          "last_used": "2026-05-31T00:08:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e96d154e-957c-4302-bc9b-d7cd052fab76",
+          "first_seen": "2026-05-31T00:10:21+00:00",
+          "last_used": "2026-05-31T00:10:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bb2aa651-b3c1-411b-bacd-65bfed651119",
+          "first_seen": "2026-05-31T00:16:53+00:00",
+          "last_used": "2026-05-31T00:16:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "36e7f84b-6fde-45dd-8158-b75303b1bbd0",
+          "first_seen": "2026-05-31T00:22:01+00:00",
+          "last_used": "2026-05-31T00:22:01+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2253,
       "refactor": true
     },
     {
