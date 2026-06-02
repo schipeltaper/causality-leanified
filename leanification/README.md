@@ -2,31 +2,59 @@
 
 This is the Lean-formalization workspace. The folder is currently **empty** (clean slate; the prior content is in `archive/2026-06-02-pre-clean-slate/leanification/`).
 
-The project moves a chapter from "LN tex" to "fully formalized Lean" through several phases. **Initialization** runs once per chapter, top-to-bottom; **row-solving** runs many times, one row at a time, until every row is `solved=yes`.
+Each chapter moves from "LN tex" to "fully formalized Lean" through **four phases**. The first three are workflows in this repo; the fourth happens outside the workflow.
 
-Below is the canonical phase order. Operator-driven steps are marked **[human]**; orchestrator-driven steps are marked **[agent]**.
+Below, **[human]** = operator step; **[agent]** = orchestrator-driven step.
 
 ---
 
-## Phase 0 — LN authoring (outside this folder)
+## Phase 1 — Pre-initialization (mark defs / claims in the LN, human-check)
 
-**[human]** Author / edit `lecture-notes/lecture_notes/*.tex`. Wrap every definition in `\begin{defmark}...\end{defmark}` and every claim in `\begin{claimmark}...\end{claimmark}`. The orchestrator detects these marks to build the chapter's row list.
+**Goal:** Every definition and every claim (theorem, lemma, remark, paragraph-embedded note, …) in the chapter's LN tex file is wrapped with `\begin{defmark}...\end{defmark}` or `\begin{claimmark}...\end{claimmark}`. **End state:** the LN tex file is ready for Phase 2's row extraction.
 
-**[human]** Read your own LN once with fresh eyes. Convince yourself that what's written matches what you mean — at least at the level of "the wording you read this morning is the wording you'd write today". Subtle drift (`%commented-out` constraints, ambiguous quantifiers, "if any" parentheticals) is what later phases catch, but obvious drift you should catch now.
+### How
 
-## Phase 1 — Chapter initialization
+**[agent]** Spawn the marking agent:
 
-**[human / agent]** Run
+```bash
+python scaffold/prep_chapter.py
+```
+
+This reads `current_chapter` from `scaffold/global_vars.json`, locates the chapter's tex file (via `lecture-notes/lecture_notes/main.tex` includes), and runs a Claude Code subprocess against the prompt at:
+
+- `scaffold/claude_prompts/chapter_setup/mark_definitions_and_claims_in_tex.md`
+
+The prompt instructs the agent to be exhaustive — every theorem, lemma, corollary, remark, plus any claim "hidden in a paragraph" or "inside a definition" gets a `\begin{claimmark}` wrapper. Defs likewise. The agent edits the tex file in place.
+
+**[human]** Read the marked tex file. Verify:
+
+- No def / claim was missed (especially small in-paragraph notes).
+- No `defmark` / `claimmark` wraps something it shouldn't.
+- Nested marks are correct (a claim inside a def is fine; the parser handles it).
+- The LN as written matches what you actually mean. Subtle drift (commented-out constraints, ambiguous quantifiers, "if any" parentheticals) gets caught in Phase 2 too, but obvious drift you should fix now.
+
+---
+
+## Phase 2 — Initialization (build data.json + resolve subtleties)
+
+**Goal:** A chapter `data.json` that has, for every row (def or claim), all the spec the row-solver needs: LN tex block, target lean / tex file paths, and `addition_to_the_LN` — a human-authored strengthening / disambiguation derived from the LN-wording check. **End state:** `data.json` ready to be solved.
+
+### Step 2a — Build the row table
+
+**[agent]** Run
 
 ```bash
 python scaffold/initialize_chapter.py
 ```
 
-This reads the LN, populates `leanification/Chapter<N>_<Title>/data.json` (one row per defmark / claimmark), creates the section folders, inserts `% <ref>` comments in the LN tex source (so an agent can locate each block later), and registers the chapter's globs in `lakefile.toml`.
+This:
+- Resolves the chapter folder name (`Chapter<N>_<PascalCaseTitle>/`).
+- Walks the marked tex file (and any `\input`'d sub-files), extracts every `defmark` / `claimmark` block in source order, and assigns refs (`def_<N>_<i>`, `claim_<N>_<j>`).
+- Writes `leanification/Chapter<N>_<Title>/data.json` with one row per ref. Schema in `scaffold/initialize_chapter.py` (search `"columns"`); `addition_to_the_LN` starts empty.
+- Creates section subfolders and inserts `% <ref>` comments in the LN tex so future agents can locate each block.
+- Registers the chapter's globs in `lakefile.toml` and imports the chapter aggregator from `Causality.lean`.
 
-Each `data.json` row has the columns listed in `scaffold/initialize_chapter.py` (search for `"columns"`). Most are filled at init; `addition_to_the_LN` (see Phase 3) is filled later.
-
-## Phase 2 — Initial subtlety check
+### Step 2b — Initial subtlety check
 
 **[agent]** Run
 
@@ -34,13 +62,13 @@ Each `data.json` row has the columns listed in `scaffold/initialize_chapter.py` 
 python scaffold/initial_subtlety_checker.py --chapter <N>
 ```
 
-For every row in this chapter's `data.json`, the orchestrator spawns the `check_ln_wording` worker on the row's LN tex block. The worker is told to look for *wording-internal* issues — ambiguity, unintended-looking corner cases admitted by the literal reading, internal inconsistencies, arbitrary or unclear phrases. It is **not** doing Lean-vs-LN equivalence; only LN-itself sanity.
+For every row, spawns the `check_ln_wording` worker on the row's LN tex block. The worker looks for **LN-internal** issues — ambiguity, unintended-looking corner cases admitted by the literal reading, internal inconsistencies, arbitrary or unclear phrasing. It is **not** doing any Lean-vs-LN comparison; only LN-itself sanity.
 
-Every subtlety it finds is appended to `leanification/initial_subtlety_register.json` with `id`, `explanation`, and `observed_by_ref` (the row that surfaced it).
+Findings are appended to `leanification/initial_subtlety_register.json` with `id`, `explanation`, `observed_by_ref`.
 
-Idempotent: re-running skips rows whose subtleties are already on file. Pass `--force` to re-check every row.
+Idempotent: re-running skips rows whose subtleties are already on file. `--force` re-checks every row.
 
-## Phase 3 — Human decides on each subtlety
+### Step 2c — Generate the decision table
 
 **[agent]** Run
 
@@ -48,14 +76,16 @@ Idempotent: re-running skips rows whose subtleties are already on file. Pass `--
 python scaffold/generate_initialization_table.py --chapter <N>
 ```
 
-This writes `leanification/Chapter<N>_<Title>/initialization_table.md` — a markdown document with one section per entry in the initial register. Each section shows the subtlety's `id`, the observing row, the worker's `explanation`, and a `Decision` code-block initialised to `TODO`.
+Writes `leanification/Chapter<N>_<Title>/initialization_table.md` — one section per registered subtlety, each with a `Decision` block initialised to `TODO`. The file ends with an **"Additional notes (global)"** section for project-wide LN additions that aren't tied to a specific subtlety.
 
-**[human]** Open the file. For each subtlety, replace `TODO` with **one** of:
+### Step 2d — Human fills in the table
 
-- `NONE` — no addition to the LN needed; the formalizer should treat the literal LN reading as authoritative on this point.
-- A free-form clarifying clause — written as if it were an extra sentence appended to the LN. It will be conjoined with the literal LN when an equivalence-checker worker runs.
+**[human]** Open the table. For each subtlety, replace `TODO` with one of:
 
-Examples of useful additions:
+- `NONE` — no addition needed; literal LN is authoritative on this point.
+- A free-form clarifying clause — written as if it were an extra sentence appended to the LN. It is **conjoined** with the literal LN when equivalence-checker workers run.
+
+Examples:
 
 > "Only bidirected hinges count; backward-E edges as n=1 bifurcations are excluded."
 >
@@ -63,11 +93,9 @@ Examples of useful additions:
 >
 > "L is treated as a symmetric subset of `V × V` with the irreflexivity constraint, not as a quotient set."
 
-At the bottom of the file is an **"Additional notes (global)"** section. Anything written under `### Notes` here is treated as a global addition merged into **every** row's `addition_to_the_LN` (prefixed with `[global]`). Use this for project-wide assumptions like "every CDMG is assumed to have a finite vertex set".
+Under `### Notes`, write project-wide assumptions like "every CDMG is assumed to have a finite vertex set" — these merge into every row's addition with a `[global]` prefix.
 
-When you're done, save the file.
-
-## Phase 4 — Process the table
+### Step 2e — Process the table into data.json
 
 **[agent]** Run
 
@@ -75,11 +103,17 @@ When you're done, save the file.
 python scaffold/process_initialization_table.py --chapter <N>
 ```
 
-This reads `initialization_table.md`, extracts each decision plus the global notes, and writes them to the corresponding rows' `addition_to_the_LN` field in `data.json` (one paragraph per decision, prefixed with the subtlety id; global notes appended with a `[global]` prefix).
+Reads the filled-in table, folds each decision into the observing row's `addition_to_the_LN` field, and prefixes global notes onto every row.
 
-After this, **initialization is complete**. `data.json` is the authoritative spec — its LN block (`tex_block`) plus `addition_to_the_LN` define what every formalization must satisfy.
+**End of Phase 2.** `data.json`'s `tex_block + addition_to_the_LN` columns together form the authoritative spec for Phase 3.
 
-## Phase 5 — Row solving
+---
+
+## Phase 3 — Solving the table (formalize every row)
+
+**Goal:** Every row in the chapter's `data.json` has `solved=yes`. Lean files are written, tex proof subfiles are written, design choices are commented, equivalence checkers pass. **End state:** chapter fully formalized.
+
+### How
 
 **[agent]** Run
 
@@ -87,19 +121,51 @@ After this, **initialization is complete**. `data.json` is the authoritative spe
 python scaffold/solve_chapter.py
 ```
 
-The orchestrator picks the first unsolved row, spawns a manager, the manager spawns workers, the manager iterates until `solved=yes`. Repeat for every row. The full workflow is documented in `scaffold/claude_prompts/manager.md`.
+The orchestrator picks the first unsolved row, spawns a manager (Opus 4.7 1M-context), the manager spawns workers (formalize, verify_equivalence, verify_tex_proof, simplify_proof, …), the manager iterates until the row passes the three-stage solved-gate (sorry-check, friendly equivalence, strict equivalence). The full row-solving workflow lives in `scaffold/claude_prompts/manager.md`.
 
-Two register files are written during this phase:
+The equivalence checkers (`verify_equivalence`, `verify_equivalence_strict`, `verify_with_examples`) treat **`tex_block + addition_to_the_LN`** as the authoritative spec — the formalization must satisfy the literal LN **AND** every clause in the addition.
 
-- **`leanification/deviations.json`** — recorded when a manager calls `accept_deviation` (a Lean encoding doesn't literally match the LN's wording but the manager has decided the gap is tolerable). Bypasses the strict-equivalence gate.
+### Two informational registers fill up during this phase
 
-- **`leanification/working_subtlety_register.json`** — recorded when a manager calls `register_ln_subtlety` (a wording issue spotted *during* row-solving that wasn't surfaced at initialization). **Informational only — never halts, never bypasses, never gates.** Paper trail for future debuggers.
+- **`leanification/deviations.json`** — written when a manager emits `accept_deviation` (a Lean encoding diverges from the LN's literal wording but the manager has decided the gap is acceptable; bypasses the next strict-equivalence gate). The deviation register IS load-bearing: `accept_deviation` is refused for any id the active refactor is meant to resolve.
+- **`leanification/working_subtlety_register.json`** — written when a manager emits `register_ln_subtlety` (a wording oddity spotted during row-solving that wasn't surfaced by Phase 2). Informational only — never gates anything.
 
-The equivalence-checker workers (`verify_equivalence`, `verify_equivalence_strict`, `verify_with_examples`) treat `tex_block + addition_to_the_LN` as the authoritative spec. The literal LN and the human-authored addition are conjoined; the Lean encoding must satisfy both.
+### Refactor happens inside Phase 3
 
-## Phase 6 — Refactor (when needed)
+If a row reveals that an upstream def's *shape* needs to change (not just the proof), the manager emits `refactor` (with rationale + the new root ref) and the operator runs:
 
-If something is wrong at the encoding level (a definition's shape needs to change), use the refactor workflow. Documented in `scaffold/claude_prompts/manager.md` under "Refactor rows" and driven by `extras/do_refactor.py init / finalize / merge`. Refactors run on dedicated branches (`refactor_<name>`) off `server_setting_up_scaffold`.
+```bash
+python extras/do_refactor.py init --chapter <N> --root-refs <ref>[,<ref>...] --name <name>
+```
+
+This spawns a fresh `refactor_<name>` branch off `server_setting_up_scaffold`, runs `find_dependents.py` per root, builds a `Refactor_<name>/refactor_data.json` (the table of root + every transitive consumer), and the operator drives that table to completion via `solve_chapter.py --data-path <refactor table>`. When all refactor rows are `solved=yes`:
+
+```bash
+python extras/do_refactor.py finalize --refactor-data <refactor table>
+python extras/do_refactor.py merge --refactor-data <archived table> --push --delete-remote-branch
+```
+
+Finalize swaps every `REFACTOR-BLOCK-REPLACEMENT` block over its `REFACTOR-BLOCK-ORIGINAL` counterpart, runs the post-rename `lake build`, syncs `data.json`, and archives the refactor folder. Merge brings the refactored state back into the source branch. The full refactor lifecycle is in `scaffold/claude_prompts/manager.md` under "Refactor rows".
+
+**Inside a refactor row**, the `refactor` action *restarts the entire refactor* with an expanded root set (current roots + new ref). The current refactor branch is discarded; a fresh branch is spawned off the source branch. The rationale lives at `Refactor_<new_name>/extension_rationale.md` on the new branch.
+
+---
+
+## Phase 4 — Verifying results (outside this workflow)
+
+**Goal:** A human reads every solved row and confirms that the Lean statement / proof matches the LN's intent. **End state:** the human signs off; the chapter is considered fully formalized for downstream use.
+
+This is **not** an orchestrator-driven phase — it's manual sanity-checking by you (or another mathematician). The orchestrator's strict-equivalence gate caught what it could; this phase catches what only a human reader can.
+
+### Suggested checks per row
+
+- **Statement equivalence.** Read the Lean declaration (`def` / `theorem` / `lemma`) and compare to the LN block. Same hypotheses? Same conclusion? Same quantifier order? Any silently-dropped sub-clause?
+- **Addition consistency.** If `addition_to_the_LN` is non-empty, does the Lean encoding actually reflect it? (The strict-equivalence worker is supposed to enforce this, but verify.)
+- **Proof shape.** For claims: does the Lean proof structurally mirror the LN proof, or does it take a shortcut that loses the LN's intuition? (Shortcuts are fine if mathematically correct, but worth knowing.)
+- **Deviations register.** Read `deviations.json`. Each entry documents a gap the system accepted; confirm each is genuinely acceptable.
+- **Working subtleties register.** Read `working_subtlety_register.json`. Each entry is a wording oddity flagged during solving; decide whether any deserves a follow-up refactor.
+
+Output of this phase is **not** a file in this repo — it's your signature on the chapter being ready. If you find issues, the right response is usually to file a refactor (Phase 3's refactor sub-workflow).
 
 ---
 
@@ -112,22 +178,23 @@ leanification/
 ├── Chapter<N>_<Title>.lean              <- chapter aggregator (auto-managed)
 ├── preamble.tex                         <- shared tex preamble
 ├── Chapter<N>_<Title>/
-│   ├── data.json                        <- per-chapter row table (the spec)
-│   ├── initialization_table.md          <- human decision table (Phase 3)
+│   ├── data.json                        <- the spec (Phase 2 builds this)
+│   ├── initialization_table.md          <- human decision table (Phase 2c, filled in Phase 2d)
 │   ├── request_from_human.tex           <- agent → human escalation channel
 │   └── Section<N>_<M>/                  <- one folder per LN subsection
 │       ├── main.tex                     <- auto-managed aggregator
 │       ├── tex/                         <- per-row tex subfiles
 │       ├── workspace_<ref>.md           <- per-row manager scratchpad
 │       └── <Title>.lean                 <- the formalization
-├── deviations.json                      <- Lean-vs-LN deviations (Phase 5)
-├── initial_subtlety_register.json       <- LN-wording subtleties from Phase 2
-└── working_subtlety_register.json       <- LN-wording subtleties from Phase 5
+├── deviations.json                      <- Lean-vs-LN deviations (Phase 3)
+├── initial_subtlety_register.json       <- LN-wording subtleties (Phase 2b)
+└── working_subtlety_register.json       <- LN-wording subtleties (Phase 3)
 ```
 
-The two subtlety registers are **distinct** by design:
+### The three registers, distinguished
 
-- `initial_subtlety_register.json` is populated en bloc at chapter init and **resolved** into `addition_to_the_LN` columns by Phase 4. Once Phase 4 runs, these entries are historical record only.
-- `working_subtlety_register.json` is populated incrementally during row-solving when a manager spots something the initial check missed. Entries here are never resolved automatically — they sit as a paper trail for later humans / managers to consult.
-
-Both are informational. `deviations.json` is the only register whose entries have semantic effect on the orchestrator (bypassing the strict-equivalence gate when `accept_deviation` fires).
+| Register | Phase | Effect |
+|---|---|---|
+| `deviations.json` | Phase 3 (`accept_deviation`) | **Load-bearing.** Bypasses the strict-equivalence solved-gate on the next attempt; `accept_deviation` is refused for any id the active refactor is meant to resolve. |
+| `initial_subtlety_register.json` | Phase 2b | **Transient.** Entries are resolved into `addition_to_the_LN` columns by Phase 2e. After Phase 2, the register is historical record. |
+| `working_subtlety_register.json` | Phase 3 (`register_ln_subtlety`) | **Informational.** Never gates anything. Paper trail for future debuggers — grep here when an unexplained tension surfaces in a later row. |
