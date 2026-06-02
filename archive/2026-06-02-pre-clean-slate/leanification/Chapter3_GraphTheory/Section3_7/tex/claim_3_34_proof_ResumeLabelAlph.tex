@@ -1,0 +1,48 @@
+% Claim proof file for row claim_3_34 -- "ResumeLabelAlph".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_34 (proof, with statement restated for readability)
+% title: ResumeLabelAlph
+\def\rowref{claim\_3\_34}
+\phantomsection\label{claim_3_34}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}[ResumeLabelAlph]
+Let the assumptions be like in Theorem \refrow{def_3_23}.
+    We also have the following rules: 
+    \begin{enumerate}[resume,label=\alph*)]
+        \setcounter{enumi}{12}
+        \item Left Composition:
+        \item[] $(A \iPerp  B \given  C) \land (D \iPerp  B \given C) \implies A \cup D \iPerp  B \given C.$
+        \item Right Composition:
+        \item[] $(A \iPerp  B \given  C) \land (A \iPerp  D \given C) \implies A \iPerp  B \cup  D \given C.$
+         \item Left Intersection: If $A \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (D \iPerp  B \given A \cup C) \implies A \cup D \iPerp  B \given C.$       
+        \item Right Intersection: If $B \cap D = \emptyset$ then:
+        \item[] $(A \iPerp  B \given D \cup  C) \land (A \iPerp  D \given B \cup C) \implies A \iPerp  B \cup D \given C.$
+    \end{enumerate}
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

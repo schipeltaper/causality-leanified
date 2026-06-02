@@ -29,9 +29,10 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scaffold"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scaffold" / "scripts"))
+import _path_setup                                       # noqa: F401, E402
 
-from solve_chapter import (                             # type: ignore
+from solve_chapter import (                             # type: ignore  # noqa: E402
     find_chapter_data_path,
     load_data,
     ensure_subsection_folder,

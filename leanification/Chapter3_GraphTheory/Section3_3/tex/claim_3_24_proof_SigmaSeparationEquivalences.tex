@@ -1,7 +1,13 @@
 % Claim proof file for row claim_3_24 -- "SigmaSeparationEquivalences".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
 %   - Stay close to the lecture notes' proof if one exists (always search
 %     the LN first for a `\begin{proof}` block immediately following the
 %     claim; copy / lightly edit when present).
@@ -9,8 +15,6 @@
 %   - Be self-contained enough that a mathematician can follow it without
 %     re-reading the LN.
 %   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
-%
-% Compiles standalone via the `subfiles` package.
 
 \documentclass[main]{subfiles}
 
@@ -19,19 +23,16 @@
 % title: SigmaSeparationEquivalences
 \def\rowref{claim\_3\_24}
 \phantomsection\label{claim_3_24}
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}[SigmaSeparationEquivalences]
     \begin{enumerate}
-        \item By Proposition \refrow{claim_3_23} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
+        \item By Proposition \ref{prp:sigma_opens} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
   \begin{enumerate}
       \item every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
       \item every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
   \end{enumerate}
-    \item Proposition \refrow{claim_3_23} also shows that if $A \nisPerp_G B \given C$ holds then:
+    \item Proposition \ref{prp:sigma_opens} also shows that if $A \nisPerp_G B \given C$ holds then:
   \begin{enumerate}
       \item there exists a (shortest) $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
       \item there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.
@@ -42,75 +43,7 @@
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-Both items are direct corollaries of Proposition \refrow{claim_3_23} (the LN's $\mathtt{prp\!:\!sigma\_opens}$, recalling the three-way equivalence: for $C \subseteq J \cup V$ and $w_1, w_2 \in J \cup V$, the existence of a $C$-$\sigma$-open path between $w_1$ and $w_2$, the existence of a $C$-$\sigma$-open walk between $w_1$ and $w_2$, and the existence of a $C$-$\sigma$-open walk between $w_1$ and $w_2$ all of whose colliders lie in $C$ are mutually equivalent). We treat the two items in turn.
-
-\smallskip
-\noindent\textit{A remark on ``(shortest)''.}\;
-The LN's parenthetical ``(shortest)'' in clauses 2(a) and 2(b) is a strengthening of plain existence that is not part of the substantive content of the present equivalences. Given any $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$ (resp.\ any $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ with all colliders in $C$), the set
-\[ \big\{ \ell \in \mathbb{N} : \text{there is such a witness of length } \ell \big\} \]
-is a non-empty subset of $\mathbb{N}$ and therefore (by the well-ordering of $\mathbb{N}$, equivalently $\mathtt{Nat.find}$ on the length-of-witness predicate) admits a least element. The corresponding witness is a shortest one. We therefore prove plain existence below; the strengthening to ``shortest'' follows by this one-line well-foundedness argument and is deferred to downstream consumers that actually need length-minimality.
-
-\medskip
-\noindent\textbf{Item 1.}\;
-We prove that the following three statements are mutually equivalent:
-\begin{enumerate}\setlength{\itemsep}{2pt}
-  \item[(0)] $A \isPerp_G B \given C$;
-  \item[(1)] every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
-  \item[(2)] every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
-\end{enumerate}
-It suffices to establish $(0) \iff (1)$ and $(1) \iff (2)$; transitivity of $\iff$ then closes all three pairs.
-
-\smallskip
-\noindent\emph{$(0) \iff (1)$.}\;
-This is the defining clause of $A \isPerp_G B \given C$ (see \refrow{def_3_18}, clause~(1)): by definition, $A \isPerp_G B \given C$ \emph{means} ``every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$''. The biconditional is therefore an unfolding of the defining equation, not a content-bearing step; we record it as a separate sub-equivalence only because the LN's clause 1(a) names this universal explicitly alongside the predicate.
-
-\smallskip
-\noindent\emph{$(1) \implies (2)$.}\;
-A path is in particular a walk, so the universal over walks restricts to the universal over paths. Concretely, suppose $(1)$ holds and let $\pi$ be any path from a node $v \in A$ to a node $w \in J \cup B$. Then $\pi$ is in particular a walk from $v \in A$ to $w \in J \cup B$, hence by $(1)$ it is $C$-$\sigma$-blocked by $C$. Since the path $\pi$ was arbitrary, $(2)$ holds.
-
-\smallskip
-\noindent\emph{$(2) \implies (1)$.}\;
-By contrapositive. Suppose $(1)$ fails, i.e.\ there exist $v \in A$, $w \in J \cup B$, and a walk $\pi$ from $v$ to $w$ that is \emph{not} $C$-$\sigma$-blocked by $C$ -- equivalently, $\pi$ is $C$-$\sigma$-open. Apply \refrow{claim_3_23} (the implication from clause~(2) to clause~(1) of $\mathtt{prp\!:\!sigma\_opens}$, instantiated at $w_1 := v$ and $w_2 := w$, noting $v \in A \subseteq J \cup V$ and $w \in J \cup B \subseteq J \cup V$): from the existence of a $C$-$\sigma$-open walk between $v$ and $w$ we obtain the existence of a $C$-$\sigma$-open \emph{path} between $v$ and $w$. Pick such a path $\pi'$; then $\pi'$ is a path from $v \in A$ to $w \in J \cup B$ that is not $C$-$\sigma$-blocked by $C$, contradicting $(2)$. Hence $(2) \implies (1)$, and this is the only step of item 1 that uses \refrow{claim_3_23}.
-
-This closes item 1.
-
-\medskip
-\noindent\textbf{Item 2.}\;
-We prove that the following three statements are mutually equivalent:
-\begin{enumerate}\setlength{\itemsep}{2pt}
-  \item[(0)] $A \nisPerp_G B \given C$;
-  \item[(1)] there exists a $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
-  \item[(2)] there exists a $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.
-\end{enumerate}
-Note the deliberate asymmetry between $(1)$ and $(2)$: clause $(1)$ asks only for a $C$-$\sigma$-open path (no collider-control conjunct), while clause $(2)$ adds the conjunct ``all colliders of the witness walk lie in $C$''. This mirrors clauses~(1) and~(3) of $\mathtt{prp\!:\!sigma\_opens}$ exactly and is what \refrow{claim_3_23} delivers between them; we preserve it. Again it suffices to establish $(0) \iff (1)$ and $(1) \iff (2)$.
-
-\smallskip
-\noindent\emph{$(0) \implies (1)$.}\;
-By \refrow{def_3_18}, clause~(2), $A \nisPerp_G B \given C$ is the LN's shorthand for the negation $\neg \lp A \isPerp_G B \given C \rp$. Unfolding $\isPerp_G$ via clause~(1) of the same definition, this negation reads: \emph{not} every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked. Pushing the negation classically through the three universal quantifiers (one each for $v$, $w$, and the walk $\pi$), there exist $v \in A$, $w \in J \cup B$, and a walk $\pi$ from $v$ to $w$ such that $\pi$ is \emph{not} $C$-$\sigma$-blocked by $C$ -- equivalently, $\pi$ is $C$-$\sigma$-open. Now apply \refrow{claim_3_23} (the implication from clause~(2) to clause~(1) of $\mathtt{prp\!:\!sigma\_opens}$, with $w_1 := v$ and $w_2 := w$): from the $C$-$\sigma$-open walk $\pi$ between $v$ and $w$ we obtain a $C$-$\sigma$-open \emph{path} $\pi'$ between $v$ and $w$. The triple $(v, w, \pi')$ witnesses $(1)$: $v \in A$, $w \in J \cup B$, and $\pi'$ is a $C$-$\sigma$-open path from $v$ to $w$.
-
-\smallskip
-\noindent\emph{$(1) \implies (0)$.}\;
-Suppose $(1)$: pick $v \in A$, $w \in J \cup B$, and a $C$-$\sigma$-open path $\pi$ from $v$ to $w$. A path is in particular a walk, so $\pi$ is a $C$-$\sigma$-open walk from $v \in A$ to $w \in J \cup B$. The triple $(v, w, \pi)$ thereby witnesses the failure of the universal ``every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked'' -- there is a walk between such nodes that is not $C$-$\sigma$-blocked. Hence $A \isPerp_G B \given C$ fails, i.e.\ $A \nisPerp_G B \given C$ holds (\refrow{def_3_18}, clause~(2)), which is $(0)$. This direction does not require \refrow{claim_3_23}; it is the trivial path-to-walk weakening composed with the definition of $\nisPerp_G$.
-
-\smallskip
-\noindent\emph{$(1) \iff (2)$.}\;
-This is a direct application of \refrow{claim_3_23}, packaged inside the surrounding existentials $\exists v \in A, \exists w \in J \cup B$.
-
-Concretely, fix any $v \in A \subseteq J \cup V$ and $w \in J \cup B \subseteq J \cup V$. By \refrow{claim_3_23} (the equivalence between clauses~(1) and~(3) of $\mathtt{prp\!:\!sigma\_opens}$, instantiated at $w_1 := v$ and $w_2 := w$),
-\[
-  \big( \exists \text{ $C$-$\sigma$-open path between $v$ and $w$ in $G$} \big)
-  \;\iff\;
-  \big( \exists \text{ $C$-$\sigma$-open walk between $v$ and $w$ in $G$ with all colliders in $C$} \big).
-\]
-This is a pointwise (in $v$ and $w$) equivalence. Quantifying both sides existentially over $v \in A$ and $w \in J \cup B$, the existential quantifiers distribute through the equivalence:
-\[
-  \big( \exists v \in A,\, \exists w \in J \cup B,\, \exists \text{ $C$-$\sigma$-open path from $v$ to $w$} \big)
-  \iff
-  \big( \exists v \in A,\, \exists w \in J \cup B,\, \exists \text{ $C$-$\sigma$-open walk from $v$ to $w$ with colliders in $C$} \big).
-\]
-The left-hand side is $(1)$ and the right-hand side is $(2)$. (The asymmetry flagged above is intact: the path side of $\mathtt{prp\!:\!sigma\_opens}$ carries no collider-control conjunct -- clause~(1) -- and the walk side carries the full collider-control conjunct -- clause~(3) -- and we transport both unchanged.)
-
-This closes item 2, and the proof is complete.
+% TODO: write the proof body.
 \end{proof}
 
 \end{document}

@@ -1,0 +1,42 @@
+% Definition file for row def_3_11 -- "NodeSplittingOn".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% Compiles standalone via the `subfiles` package -- the parent main.tex in
+% this folder provides the preamble.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_11
+% title: NodeSplittingOn
+\def\rowref{def\_3\_11}
+\phantomsection\label{def_3_11}
+
+\begin{Def}[Node-splitting on CDMGs]
+  \label{def:G_node-splitting}
+    Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of the output nodes.
+    The \emph{node-split graph} w.r.t.\ $W$ of $G$ is the CDMG: 
+    \[ G_{\spl(W)} :=\lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},L_{\spl(W)} \rp,\]
+    %\[ G_{\spl(W)} := G':=(J',V',E',L'),\]
+    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    constructed as follows.
+    We first make two disjont copies of the nodes in $W$:
+    \[ W^0:=\lC w^0\st w \in W \rC, \qquad W^1:=\lC w^1 \st w \in W \rC.  \]
+    Note that we consider $w^0 \neq w^1$ for $w \in W$.
+    Additionally (for convenience), for $v \in J \cup V \sm W$ we put:
+  \[ v^0:=v^1:=v.  \]
+  We then define:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\spl(W)} := J$,
+      \item $V_{\spl(W)} := (V \sm W) \dcup W^0 \dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.
+      \item $E_{\spl(W)} := \lC v^1_1 \tuh v_2^0 \st v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \st w \in W \rC$,
+      \item $L_{\spl(W)} :=\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC$.
+  \end{enumerate}
+  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,
+  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,
+  and edges $w^0 \tuh w^1$ are added for all nodes in $W$.
+\end{Def}
+
+\end{document}

@@ -1,0 +1,105 @@
+% Claim proof file for row claim_3_11 -- "DisjointHardInterventions".
+%
+% Proof lifted from lecture-notes/lecture_notes/graphs.tex:673--699 (the
+% \Claude{...} block immediately following the claim). Only light edits:
+% explicit \refrow{def_3_10} and \refrow{def_3_12} cross-links the first
+% time \doit and \swig appear in the body, \medskip\noindent\emph{...}
+% section headers mirroring the bare-NS sibling
+% claim_3_8_proof_DisjointHardInterventions.tex, a \checkmark at the end
+% of each component-agree paragraph, expansion of the disjoint-copy case
+% analysis to match the sibling's level of detail, a one-phrase inline
+% note recording the SWIG-vs-NS edge-set difference (the SWIG's inner
+% hard intervention erases the bare-split edges), and a closing
+% one-liner. The \Claude{...} wrapper from the LN source is dropped.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_11 (proof, with statement restated for readability)
+% title: DisjointHardInterventions
+\def\rowref{claim\_3\_11}
+\phantomsection\label{claim_3_11}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]
+   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
+   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.
+      \[ \lp G_{\doit(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\doit(W_1)}.   \]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+\medskip\noindent\emph{Preamble.}
+Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are
+well-defined in either order: on the left, $\swig(W_2)$ acts on $G_{\doit(W_1)}$
+whose output set $V \sm W_1$ still contains $W_2$ (using $W_1 \cap W_2 = \emptyset$);
+on the right, $\doit(W_1)$ acts on $G_{\swig(W_2)}$, whose input/output universe
+contains every vertex of $W_1 \ins J \cup V$ untouched by the split (again using
+$W_1 \cap W_2 = \emptyset$, so $W_1 \ins J \cup (V \sm W_2)$). For $w \in W_2$ we
+write $w^o$ (output copy) and $w^i$ (input copy) for the two SWIG copies of $w$;
+for $v \notin W_2$ we identify $v^o = v^i = v$. Each side of the displayed equation
+is a CADMG presented as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$, and we verify
+the four components in turn.
+
+\medskip\noindent\emph{Node sets.}
+Left: by \refrow{def_3_10}, $G_{\doit(W_1)}$ has input set $J \cup W_1$ and output
+set $V \sm W_1$; then $\swig(W_2)$~\refrow{def_3_12} (with $W_2 \ins V \sm W_1$,
+by $W_1 \cap W_2 = \emptyset$) gives
+\[
+  (J \cup W_1) \dcup W_2^i
+  \qquad\text{and}\qquad
+  (V \sm W_1 \sm W_2) \dcup W_2^o.
+\]
+Right: $G_{\swig(W_2)}$ has input set $J \dcup W_2^i$ and output set
+$(V \sm W_2) \dcup W_2^o$; then $\doit(W_1)$ (with $W_1 \cap W_2^o = \emptyset$,
+since $W_2^o$ consists of fresh output copies of vertices in $W_2$ and
+$W_1 \cap W_2 = \emptyset$, so $W_1 \ins J \cup (V \sm W_2)$) gives
+\[
+  (J \cup W_1) \dcup W_2^i
+  \qquad\text{and}\qquad
+  (V \sm W_1 \sm W_2) \dcup W_2^o.
+\]
+These agree. \checkmark
+
+\medskip\noindent\emph{Directed edges.}
+Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\swig(W_2)$
+(whose inner hard intervention erases the bare-split edges $w^i \tuh w^o$ that
+node-splitting alone would produce) yields
+\[
+  \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC.
+\]
+Right: $E_{\swig(W_2)} = \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC$;
+then $\doit(W_1)$ removes the edges with head in $W_1$. An edge $v_1^i \tuh v_2^o$
+has head $v_2^o \in W_1$ iff $v_2 \in W_1$ (using $W_1 \cap W_2 = \emptyset$: if
+$v_2 \in W_2$ then $v_2^o$ is a fresh output copy not in $W_1$, and if $v_2 \notin W_2$
+then $v_2^o = v_2$). After removal we obtain
+\[
+  \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC,
+\]
+which agrees with the left-hand side. \checkmark
+
+\medskip\noindent\emph{Bidirected edges.}
+Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\swig(W_2)$
+yields
+\[
+  \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC.
+\]
+Right: $L_{\swig(W_2)} = \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC$;
+then $\doit(W_1)$ removes the bidirected edges touching $W_1$. Using
+$v_k^o \in W_1 \iff v_k \in W_1$ for $k = 1, 2$ (same fresh-copy / identity case
+analysis as for the directed edges, again using $W_1 \cap W_2 = \emptyset$), the
+result is
+\[
+  \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC,
+\]
+which agrees with the left-hand side. \checkmark
+
+All four components agree, completing the proof.
+\end{proof}
+
+\end{document}

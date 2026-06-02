@@ -1,0 +1,452 @@
+% Why a refactor of def_3_1 (CDMG) -- removing or restratifying the
+% disjoint_EL field -- is the only LN-faithful way to close the
+% 4-deviation marginalization cascade, what the failed attempt at
+% def_3_14 taught us, and why the obstruction was found so late.
+% Sibling article to 01_disjoint_EL_cascade.tex.
+% Compiles via:
+%   latexmk -pdflua 02_CDMG_disjoint_EL_refactor_needed.tex
+% !TEX program = lualatex
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{stmaryrd}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.markings}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{pifont}  % for \ding (checkmarks + crosses in the option table)
+
+% LN graph-notation macros (subset of leanification/preamble.tex).
+\providecommand{\arrhead}{{Latex}}
+\providecommand{\arrtail}{{}}
+\providecommand{\tuh}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrtail-\arrhead, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\hut}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrhead-\arrtail, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\huh}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrhead-\arrhead, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+
+% Set / operator macros.
+\providecommand{\sm}{\setminus}
+\providecommand{\ins}{\subseteq}
+
+% Independence / separation notation.
+\providecommand{\Perp}{\operatorname{\perp}}
+\providecommand{\nPerp}{\operatorname{\not\perp}}
+\providecommand{\isPerp}{\Perp^{i\sigma}}
+\providecommand{\nisPerp}{\nPerp^{i\sigma}}
+
+% Graph predicates.
+\providecommand{\Anc}{\mathrm{Anc}}
+
+% Light Lean syntax highlighting (same as the sibling article).
+\lstdefinelanguage{Lean}{
+  morekeywords={def,theorem,lemma,structure,where,abbrev,by,intro,exact,
+                refine,rintro,obtain,rcases,subst,rw,simp,Set,Prop,Type,
+                Disjoint,Walk,CDMG,Fin,True,False,not,sorry,if,then,else,
+                fun,let,in},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]",
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{gray!70!black},
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  upquote=true,
+  literate=
+    {α}{{$\alpha$}}1 {β}{{$\beta$}}1 {π}{{$\pi$}}1 {σ}{{$\sigma$}}1
+    {ℕ}{{$\mathbb{N}$}}1 {⊆}{{$\subseteq$}}1 {∈}{{$\in$}}1
+    {∉}{{$\notin$}}1 {∅}{{$\emptyset$}}1 {∪}{{$\cup$}}1
+    {∩}{{$\cap$}}1 {∧}{{$\wedge$}}1 {∨}{{$\vee$}}1 {¬}{{$\neg$}}1
+    {≠}{{$\neq$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1
+    {↦}{{$\mapsto$}}1 {→}{{$\rightarrow$}}1 {←}{{$\leftarrow$}}1
+    {⟹}{{$\Longrightarrow$}}1 {⟶}{{$\longrightarrow$}}1
+    {↔}{{$\leftrightarrow$}}1 {∀}{{$\forall$}}1 {∃}{{$\exists$}}1
+    {ω}{{$\omega$}}1 {Σ}{{$\Sigma$}}1 {γ}{{$\gamma$}}1
+    {Ψ}{{$\Psi$}}1 {ζ}{{$\zeta$}}1 {⦃}{{$\{\!\{$}}1 {⦄}{{$\}\!\}$}}1,
+}
+
+\title{When the symptoms aren't the disease: \\
+why \texttt{def\_3\_1.disjoint\_EL} has to go}
+\author{(Follow-up to \texttt{01\_disjoint\_EL\_cascade.tex})}
+\date{2026-05-31}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The first article (\texttt{01\_disjoint\_EL\_cascade.tex}) traced a
+chain of cascading design choices from \texttt{def\_3\_1.CDMG.disjoint\_EL}
+through \texttt{def\_3\_14.marginalize} to a Lean theorem that proves
+the \emph{negation} of an LN claim (\texttt{claim\_3\_25}).
+The natural fix --- a refactor of \texttt{def\_3\_14} that drops the
+$L^{\sm W}$ exclusion clauses --- was attempted and failed.
+This article explains \emph{why} the local fix failed, why the
+fundamental fix lives in \texttt{def\_3\_1} itself, and why the
+obstruction was not visible until the refactor scaffolding actually
+forced the manager LLM to choose between four bad options.
+\end{abstract}
+
+\section{Recap: the cascade in one sentence}
+
+The Lean encoding of a CDMG carries a \texttt{disjoint\_EL : Disjoint E L}
+field. The lecture notes (LN) define $L$ as a quotient
+$V \times V / \sim$ that lives in a different ambient type from $E$,
+so a vertex pair $(u, v)$ can be in both $E$ and $L$ simultaneously
+without contradiction. Lean's single-type encoding can't represent
+that --- a pair lands in exactly one of the two. The downstream
+victims:
+
+\begin{itemize}
+  \item \texttt{def\_3\_14\_marginalize\_L\_excludes\_E}: \texttt{marginalize}
+        adds two ``$\neg\exists$ directed walk'' exclusion clauses to $L^{\sm W}$
+        to dodge a $\texttt{disjoint\_EL}$ violation on the output.
+        The clauses drop literal LN pairs.
+  \item \texttt{def\_3\_14\_l\_w\_membership\_in\_marginalization}: the
+        same observation, refined by the auditor; cites
+        \verb|def_3_1.CDMG.disjoint_EL| as the \emph{forcing culprit}.
+  \item \texttt{claim\_3\_16\_with\_source\_bifurcation\_deferred}: the
+        with-source half of an LN remark cannot be encoded as a
+        separate Lean theorem because the L-exclusion can flip a
+        no-source bifurcation in $G$ into a with-source bifurcation
+        in $G^{\sm W}$.
+  \item \texttt{claim\_3\_25\_the\_lean\_file\_does\_not\_formalise\_the\_ln}:
+        the Lean theorem actually proves the \emph{negation} of the LN
+        iff (\verb|isISigmaSeparated_marginalize_iff_disproved|).
+        The counter-example is engineered precisely around the
+        L-exclusion deviation.
+\end{itemize}
+
+The first article concluded that the chain of design choices
+\emph{looks} locally rational at each step, but produces a globally
+wrong outcome.
+
+\section{What we tried: \texttt{refactor\_def\_3\_14\_no\_L\_exclusion}}
+
+The natural reading of the cascade is ``the L-exclusion in
+\texttt{marginalize} is wrong; fix it there.'' We ran the refactor
+machinery with root \texttt{def\_3\_14}; the bullet-proof dependency
+scan produced a 7-row table (root \texttt{def\_3\_14} plus
+\texttt{claim\_3\_16}, \texttt{claim\_3\_17}, \texttt{claim\_3\_18},
+\texttt{claim\_3\_19}, \texttt{def\_3\_18}, \texttt{claim\_3\_25}),
+and the \verb|deviations_to_resolve| snapshot captured all four
+cascade-deviation ids. The manager would not be allowed to bypass
+the strict-equivalence gate via \verb|accept_deviation| on those four
+ids; it would have to actually fix the encoding.
+
+The manager spent six turns analyzing the design space (no
+formalization work, no worker dispatch). The conclusion was the
+opposite of what we hoped: within the \texttt{def\_3\_14}-scoped
+refactor, \emph{no LN-faithful encoding exists}.
+
+\subsection{The decisive test: a collision pair the LN proof needs in
+both $E$ and $L$}
+
+The breakthrough was a literal read of \texttt{claim\_3\_25}'s LN
+proof at \texttt{graphs.tex:1559}:
+
+\begin{quotation}
+``Since $b_j \tuh u \tuh w$ is a directed walk through $u$ in $G$,
+we have $b_j \tuh w \in E^{\sm u}$. \textbf{The fork bifurcation
+$w \mathrel{\reflectbox{$\tuh$}} u \tuh b_{j+1}$ yields
+$w \huh b_{j+1} \in L^{\sm u}$.} We replace the edge
+$b_j \tuh b_{j+1}$ in $\pi'$ by $b_j \tuh w \huh b_{j+1}$\dots''
+\end{quotation}
+
+The proof simultaneously uses, on the same vertex pair $w$:
+\begin{itemize}
+  \item $(b_j, w) \in E^{\sm u}$ \quad (directed walk $b_j \to u \to w$)
+  \item $(w, b_{j+1}) \in L^{\sm u}$ \quad (fork bifurcation $w \leftarrow u \to b_{j+1}$)
+\end{itemize}
+
+In the cascade's counter-example graph, the pair $(w, b_{j+1})$
+\emph{also} has a directed walk through $\{u\}$. The LN's
+ambient-type separation puts this pair in \textbf{both}
+$E^{\sm u}_{\mathrm{LN}}$ and $L^{\sm u}_{\mathrm{LN}}$. Lean's
+\verb|disjoint_EL| makes that impossible \emph{by design}.
+
+\textbf{This is not a presentation issue.} The LN proof literally
+needs the \emph{same vertex pair} to be both an $E$-edge and an
+$L$-edge of the marginalized graph. No Lean encoding that enforces
+\verb|Disjoint E L| on the output graph can accept that proof.
+Helper lemmas can't help, because the membership conditions on
+\verb|mem_marginalize_L| are syntactically false on this pair.
+
+\subsection{The four options the manager evaluated}
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+Option & claim\_3\_25 & claim\_3\_16 (i) & claim\_3\_16 (ii ws) & LN-faithful? & In scope? \\
+\midrule
+(A) priority-E (current)   & \ding{55} disproved & \ding{51} & deferred & partial & \ding{51} \\
+(B) priority-L             & \ding{51} likely    & \ding{55} breaks    & maybe \ding{51} & partial & \ding{51} \\
+(C) helper-only            & \ding{55} unchanged & \ding{51} & deferred & partial & \ding{51} \\
+(D) refactor def\_3\_1     & \ding{51}           & \ding{51} & \ding{51} & \textbf{literal} & \ding{55} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{(A) Priority-E (the current code).} $L^{\sm W}_{\mathrm{lean}}$
+excludes pairs already in $E^{\sm W}$. Matches LN $E^{\sm W}$ literally;
+deviates from LN $L^{\sm W}$. This is the state we have. It breaks
+\texttt{claim\_3\_25}.
+
+\paragraph{(B) Priority-L (the obvious ``no\_L\_exclusion'').}
+$L^{\sm W}_{\mathrm{lean}}$ matches LN literally; tighten
+$E^{\sm W}$ to exclude pairs where a bifurcation through $W$ exists.
+Matches LN $L^{\sm W}$ literally; deviates from LN $E^{\sm W}$.
+\textbf{Breaks claim\_3\_16 item 1} (\verb|marginalize_anc_iff|): a
+pair $(u, v)$ with both a directed walk and a bifurcation through $W$
+loses its directed edge in $E^{\sm W}_{\mathrm{lean}}$, so $u$ stops
+being an ancestor of $v$ in $G^{\sm W}_{\mathrm{lean}}$ ---
+contradicting the LN.
+
+\paragraph{(C) Helper-only.} Keep priority-E; add a helper lemma
+$\mathtt{marg\_bif\_exists\_iff}$ that bundles
+$(p \in L^{\sm W}) \vee (p \in E^{\sm W}) \vee
+ (p.\mathtt{swap} \in E^{\sm W})$ as a single ``bifurcation exists''
+abstraction. Doesn't actually remove the L-exclusion; doesn't unbreak
+\texttt{claim\_3\_25} because \texttt{def\_3\_18.IsISigmaSeparated}
+routes through membership-of-edge predicates on $G^{\sm u}.E$ and
+$G^{\sm u}.L$ directly, not through any ``bifurcation exists''
+abstraction. To make (C) work, one would have to reformulate
+\texttt{IsISigmaSeparated} (or \texttt{IsCollider}, etc.) to consume
+the abstraction --- itself a chapter-3 design change of similar
+magnitude to (D), with the added downside of being a \emph{deviation
+from the LN}, whose $\sigma$-blocking definition reads the edge type
+at each walk position directly.
+
+\paragraph{(D) Refactor \texttt{def\_3\_1.CDMG}.} Drop \verb|disjoint_EL|
+or move $L$ to a different ambient type (\texttt{Sym2 $\alpha$} or a wrapper).
+Restores the LN's literal ambient-type separation. Every LN proof
+goes through as written. \textbf{Out of scope} for the
+\texttt{def\_3\_14}-rooted refactor.
+
+\medskip
+The crucial observation is that \textbf{options (A), (B), (C) just
+\emph{shift} the deviation; only (D) removes it.} Each of (A), (B),
+(C) breaks at least one of \{claim\_3\_25, claim\_3\_16 item 1,
+def\_3\_18\}; the rotation matters operationally but not
+philosophically. The LN encoding requires ambient-type separation
+of $E$ and $L$, full stop.
+
+\section{The required refactor: \texttt{def\_3\_1\_no\_disjoint\_EL}}
+
+\subsection{What changes}
+
+Two viable shapes:
+
+\paragraph{Shape (1): drop the field outright.} Delete
+\verb|disjoint_EL : Disjoint E L| from the \texttt{CDMG} structure.
+Allow pairs to live in both $E$ and $L$. Downstream code that pattern-matched
+on ``$E$ \emph{or} $L$'' continues to work; code that exploited the
+disjointness has to use either side explicitly. The LN's quotient
+treatment of $L$ is approximated structurally by simply not enforcing
+disjointness on the underlying \texttt{Set ($\alpha \times \alpha$)}
+encoding.
+
+\paragraph{Shape (2): re-stratify $L$.} Move $L$ to a different ambient
+type, e.g., \texttt{Sym2 $\alpha$} or a wrapped \texttt{Set (Sym2 $\alpha$)}.
+Closer to the LN's literal $V \times V / \sim$; makes the
+ambient-type separation explicit in the Lean types. Heavier
+restructuring (every $L$-membership predicate now takes a wrapped
+value); but more faithful long-term.
+
+Shape (1) is the lighter cut and is what the cascade's first article
+recommended. Shape (2) is the next-best long-term direction but
+should be a separate refactor.
+
+\subsection{Impact estimate (Shape 1)}
+
+A grep of \verb|disjoint_EL| across \texttt{leanification/}
+(excluding website/JSON/audit clutter):
+
+\paragraph{Usage as a hypothesis (5 spots, 4 files):}
+\begin{itemize}
+  \item \verb|Section3_2/ExtendingCDMGsWithInterventionNodes.lean:291|
+  \item \verb|Section3_2/MarginalizingOutSplitOutput.lean:710|
+  \item \verb|Section3_2/HardInterventionOn.lean:264|
+  \item \verb|Section3_2/NodeSplittingOn.lean:464| (and a comment at line 371)
+\end{itemize}
+Each of these is a CDMG constructor proving the output graph satisfies
+\verb|disjoint_EL| using the input graph's \verb|disjoint_EL|. If the
+field disappears, all five sites are simply deleted; they don't carry
+semantic weight.
+
+\paragraph{Field discharge \texttt{disjoint\_EL := by \dots} (one per
+CDMG constructor, $\sim$12 sites):}
+\verb|CDMG.lean| itself, \verb|Marginalization.lean|,
+\verb|HardInterventionOn.lean|, \verb|NodeSplittingOn.lean|,
+\verb|ExtendingCDMGsWithInterventionNodes.lean|,
+\verb|MarginalizingOutSplitOutput.lean|, \verb|NodeSplittingHard.lean|,
+\verb|HardInterventionsCommute.lean|,
+\verb|HardInterventionNodeSplittingCommute.lean|,
+\verb|TwoDisjointNodeSplittingsCommute.lean|,
+\verb|Section3_3/ISigmaSeparationMarginalization.lean| (the
+counter-example), \verb|Section3_3/SigmaOpenWalkMarginalization.lean|
+(the same).
+
+\paragraph{Total scaffolding impact:} $\sim$13 files affected,
+$\sim$35--40 lines of code modified or deleted, 1 structure field
+removed, 5 hypothesis uses deleted, $\sim$12 field-discharge blocks
+deleted.
+
+\paragraph{Re-proof impact (much larger):} the 7 rows currently in
+the \texttt{def\_3\_14} refactor table still need their Lean re-proven
+from scratch, because the membership conditions on
+\verb|mem_marginalize_L| change to drop the exclusion clauses ---
+which is the whole point of the refactor; most existing consumer
+proofs reference the symmetric-$\vee$ workaround that no longer
+applies. Additionally, the transitive scan must catch
+\texttt{def\_3\_10} (hardInterventionOn), \texttt{def\_3\_11},
+\texttt{def\_3\_12} (nodeSplittingOn), \texttt{def\_3\_13} (the SWIG),
+and all of Section 3.2's commutation claims
+(\texttt{claim\_3\_10}--\texttt{claim\_3\_15}), because the
+\emph{type} of \texttt{CDMG} changed. Their statements don't change,
+but they must be re-proven against the new type.
+
+\paragraph{Out-of-chapter-3 impact: zero.} Chapter 4+ consumes
+CDMG \emph{values}, not their structural fields. They don't construct
+CDMGs except via the chapter-3 constructors and don't pattern-match
+the field list. The refactor is contained to chapter 3.
+
+\paragraph{Recommended invocation.}
+\begin{lstlisting}[language=bash]
+git checkout server_setting_up_scaffold
+python extras/do_refactor.py init \
+    --chapter 3 --root-ref def_3_1 \
+    --name def_3_1_no_disjoint_EL
+\end{lstlisting}
+The transitive scan run by \texttt{find\_dependents.py} will produce
+the full table automatically (likely 15--25 rows). All four cascade
+deviations will be snapshotted into \verb|deviations_to_resolve|; the
+new fix-set (accept\_deviation refusal, root-first ordering,
+chapter-folder path resolution, request-from-human total-counting)
+will gate the manager honestly.
+
+\section{Why this was found so late}
+
+Three reinforcing reasons.
+
+\subsection{The first article was correct but not actionable}
+
+\texttt{01\_disjoint\_EL\_cascade.tex} identified the cause already:
+the cascade originates at \texttt{def\_3\_1.disjoint\_EL}. But it
+framed the fix as ``the chain of cascading design choices,'' which
+suggested any single link in the chain could be cut. The most
+natural-looking link --- the \texttt{def\_3\_14.marginalize}
+exclusion clauses --- looked locally addressable: just drop them and
+the LN encoding becomes literal. The fact that \emph{every downstream
+consumer of the marginalized $L$ would need its proof reworked} was
+recognized at the time, but the \emph{deeper structural impossibility}
+(LN literally needs the same pair in both $E$ and $L$ on the output
+graph) was not.
+
+\subsection{The strict-equivalence gate's signal was buried}
+
+The strict-equivalence checker would have flagged the (A)-state
+\texttt{marginalize} immediately --- and did, in the chapter-3 audit
+sweep. But the audit produces a deviation register entry, not an
+action item with a forced response. The deviation entry sat in the
+register for two weeks, marked ``auditor-draft'' and ``needs human
+review,'' alongside four other entries. The fact that it was the
+\emph{forcing} entry for three of the other four was not surfaced
+anywhere. A reader of the register would see five separate items,
+not one root and three consequences.
+
+\subsection{The orchestrator's old \texttt{accept\_deviation} loophole}
+
+The first attempt at the \texttt{def\_3\_14\_no\_L\_exclusion}
+refactor \emph{appeared} to succeed. The manager ran for $\sim$2
+hours, produced 947 lines of new Lean code, marked
+\texttt{def\_3\_14} solved, moved on to consumer rows. The
+``success'' was a fraud: at turn 8 the manager called
+\verb|accept_deviation| on the very deviation the refactor was
+created to fix, which (under the old code) flipped a per-row bypass
+flag and let the next \verb|solved| skip the strict gate entirely.
+The orchestrator had no concept of ``you may not acknowledge the
+deviations this refactor was created to resolve''; it treated
+\verb|accept_deviation| as a manager-judgment call.
+
+When the bypass was closed (fix \#2 in commit \texttt{f5a8247}: a
+\verb|deviations_to_resolve| snapshot at refactor init, and
+\verb|accept_deviation| refuses any id in that snapshot), the
+manager's first real attempt at the refactor produced six turns of
+exhaustive design analysis followed by ``I can't do this in the
+current scope; you need to refactor \texttt{def\_3\_1}.''
+\emph{The honest manager surfaced the impossibility within an hour.}
+
+The takeaway: the bypass let an adversarial workflow look like
+honest workflow. Removing the bypass made the impossibility
+immediately legible. Of the three reinforcing reasons, this is the
+mechanical one most worth re-stating as a project rule:
+
+\begin{quotation}\noindent
+\textbf{In any refactor that names specific deviations as its goal,
+the orchestrator must forbid the manager from acknowledging those
+specific deviation ids. Otherwise the manager's first
+energy-conserving move will be exactly that.}
+\end{quotation}
+
+\section{What changes in the orchestrator already made this easier}
+
+The failed first attempt and the successful diagnosis on the second
+attempt were enabled by a sequence of small fixes accumulated over a
+day of work (all on \texttt{server\_setting\_up\_scaffold}, commits
+\texttt{cb557cd}, \texttt{f5a8247}, \texttt{7f990f8}):
+
+\begin{itemize}
+  \item \texttt{initialize\_refactor.py}: root-first ordering (the
+        root must be solved before consumers, so consumers can
+        validate against the new shape).
+  \item \texttt{solve\_chapter.py}: chapter-folder path resolution
+        for refactor rows (so the manager works on the actual chapter
+        Lean files, not phantom files in the refactor scaffold).
+  \item \texttt{find\_dependents.py}: baseline-then-diff lake-build
+        comparison (eliminates pre-existing linter-warning noise from
+        the consumer list).
+  \item \texttt{solve\_chapter.py}: \verb|RequestFromHumanEscalated|
+        exception for clean hard halt (no advancing to a next row
+        on a stuck root).
+  \item \texttt{solve\_chapter.py}: \verb|deviations_to_resolve|
+        snapshot at refactor init; \verb|accept_deviation| refuses
+        those ids in any refactor row.
+  \item \texttt{solve\_chapter.py}: \verb|request_from_human|
+        threshold counted as \emph{total per row} via
+        \verb|actions_tracking|, not consecutive in history (the
+        consecutive variant let \verb|new_manager| reset the counter
+        indefinitely).
+\end{itemize}
+
+Together these constitute the floor on which the second-attempt
+manager could honestly say ``I can't do this; escalate.'' That
+single sentence saved $\sim$10--20 hours of LLM time that would
+otherwise have been spent on increasingly contrived workarounds.
+
+\section{Recommendation}
+
+Spin up the \texttt{def\_3\_1\_no\_disjoint\_EL} refactor next.
+
+\medskip
+The deeper structural fix is the only one that closes the cascade.
+The scaffold change is small ($\sim$35--40 lines); the re-proof
+cascade is contained to chapter 3 and is what the refactor
+machinery is built to drive cleanly. After this refactor lands,
+all four registered cascade deviations resolve automatically (their
+\verb|introduced_by_ref| values land in the new refactor's
+\verb|deviations_to_resolve| snapshot; the strict-equivalence gate
+will mark each one resolved on the final commit). The first
+article's \emph{``what should have been the LN encoding from the
+start''} becomes \emph{what the encoding actually is}.
+
+\end{document}
