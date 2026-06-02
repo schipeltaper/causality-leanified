@@ -98,19 +98,44 @@ ADDITIONAL_NOTES_SECTION = """\
 
 ## Additional notes (global)
 
-Anything below the next heading is treated as a **global** addition
-to the LN -- merged into every row's `addition_to_the_LN` field
-(prefixed with `[global]`). Use this for project-wide assumptions
-that don't correspond to a specific subtlety -- e.g. "every CDMG is
-assumed to have a finite vertex set", or "interventions are always
-hard interventions unless otherwise specified".
+Anything you write under `### Notes` below is treated as a **truly
+global** addition to the LN -- merged into every row's
+`addition_to_the_LN` field (prefixed with `[global]`). Use this for
+project-wide assumptions that genuinely apply to every row -- e.g.
+"interventions are always hard interventions unless otherwise specified".
 
-Format: write one assumption per paragraph. Leave the section empty
-if no global additions apply.
+Format: one assumption per paragraph. Leave the section empty if no
+truly-global additions apply.
+
+If an assumption only applies to a *specific* row (e.g. "the CDMG
+defined in def_3_1 has finite node sets"), put it in the
+**Manual row-specific additions** section below instead -- otherwise
+it pollutes the spec for every other row.
 
 ### Notes
 
-<!-- write your global LN additions below this line; one paragraph per assumption -->
+<!-- write your truly-global LN additions below this line; one paragraph per assumption -->
+
+
+---
+
+## Manual row-specific additions
+
+Each paragraph here is appended to a single row's `addition_to_the_LN`.
+This is the place for operator-authored constraints that aren't tied
+to a discovered subtlety -- typically project assumptions targeting
+one specific definition or claim. Each is agent-translated like the
+per-subtlety decisions above (use `--verbatim` to skip).
+
+Format: each paragraph must start with `[<ref>]` (e.g. `[def_3_1]`).
+The rest of the paragraph is your constraint, written informally;
+the interpreter worker rewrites it as a self-contained clause and
+appends `[manual_<ref>_<n>] <formal clause>` to the named row's
+`addition_to_the_LN`.
+
+### Row-specific additions
+
+<!-- write `[<ref>] <constraint>` paragraphs below; one per addition -->
 
 
 """

@@ -100,8 +100,24 @@ _DECISION_RE = re.compile(
 # Match the global notes section: everything after `### Notes` up to
 # the next top-level heading or end-of-file.
 _GLOBAL_NOTES_RE = re.compile(
-    r"###\s+Notes\s*\n+(?P<body>.*?)(?:\n##\s|\Z)",
+    r"###\s+Notes\s*\n+(?P<body>.*?)(?:\n##\s|\n---\s|\Z)",
     re.DOTALL,
+)
+
+# Match the row-specific manual additions section: everything after
+# `### Row-specific additions` up to the next top-level heading or
+# end-of-file. Inside, each paragraph starting with `[<ref>]` is
+# routed to that row's addition_to_the_LN.
+_MANUAL_SECTION_RE = re.compile(
+    r"###\s+Row-specific additions\s*\n+(?P<body>.*?)(?:\n##\s|\n---\s|\Z)",
+    re.DOTALL,
+)
+# Inside the manual-additions body: each paragraph starts with [<ref>]
+# and runs to a blank line or to the next [<ref>] paragraph.
+_MANUAL_ENTRY_RE = re.compile(
+    r"^\[(?P<ref>(?:def|claim)_\d+_\d+)\]\s*(?P<text>.+?)"
+    r"(?=\n\s*\n\s*\[(?:def|claim)_\d+_\d+\]|\Z)",
+    re.DOTALL | re.MULTILINE,
 )
 
 # Stripped from the global notes body (the html comment in the template).
@@ -188,6 +204,31 @@ def _parse_global_notes(text: str) -> str:
     return body
 
 
+def _parse_manual_additions(text: str) -> list[tuple[str, str]]:
+    """Return ``[(ref, raw_text), ...]`` for every ``[<ref>] …``
+    paragraph in the 'Manual row-specific additions' section. Returns
+    an empty list if the section is absent or only contains the
+    template comment.
+
+    Each ``raw_text`` is the operator's informal phrasing; the
+    processor passes it through the interpreter worker (unless
+    ``--verbatim``) before merging into the named row.
+    """
+    section = _MANUAL_SECTION_RE.search(text)
+    if not section:
+        return []
+    body = _TEMPLATE_COMMENT_RE.sub("", section.group("body")).strip()
+    if not body:
+        return []
+    out: list[tuple[str, str]] = []
+    for m in _MANUAL_ENTRY_RE.finditer(body):
+        ref = m.group("ref").strip()
+        clause = m.group("text").strip()
+        if clause:
+            out.append((ref, clause))
+    return out
+
+
 def _interpret_decision_via_worker(sid: str,
                                    register_entry: dict,
                                    row: dict,
@@ -258,17 +299,24 @@ def _strip_existing_clauses(addition: str) -> str:
 
 def _merge_row_addition(existing: str,
                         new_per_row: list[tuple[str, str]],
+                        new_manual: list[str],
                         global_notes: str) -> str:
     """Compose the row's updated ``addition_to_the_LN`` by appending
-    new per-row clauses to ``existing`` and replacing the row's
-    ``[global] …`` portion (if any) with the current ``global_notes``.
+    new per-row clauses to ``existing``, replacing any ``[global]`` /
+    ``[manual_*]`` paragraphs with the current ones, and re-applying
+    the project-wide ``global_notes`` if non-empty.
 
-    - Existing ``[<sid>] …`` paragraphs are preserved (prior runs).
+    - Existing ``[<sid>] …`` per-subtlety paragraphs are preserved
+      (prior runs). Idempotent: if a ``[<sid>] …`` already exists, the
+      new one is skipped.
     - Existing ``[global] …`` paragraph (if any) is stripped; the
-      current ``global_notes`` text is re-appended afterwards.
-    - New per-row clauses are appended in input order. Idempotent: if
-      a ``[<sid>] …`` clause already exists, the new one is skipped.
-    - ``NONE`` decisions append nothing.
+      current ``global_notes`` text is re-appended afterwards (if
+      non-empty).
+    - Existing ``[manual_…] …`` paragraphs are stripped; the current
+      ``new_manual`` clauses are re-appended afterwards (tagged with
+      stable indices so multiple manual additions to the same row are
+      distinguishable).
+    - ``NONE`` per-subtlety decisions append nothing.
     """
     parts: list[str] = []
     seen_sids: set[str] = set()
@@ -276,8 +324,12 @@ def _merge_row_addition(existing: str,
         p = p.strip()
         if not p:
             continue
+        # Strip dynamically-regenerated paragraphs (global + manual);
+        # they get re-added from the current table state below.
         if p.startswith("[global]"):
-            continue                                    # will re-add below
+            continue
+        if re.match(r"\[manual(?:_[A-Za-z0-9_]+)?(?:_\d+)?\]", p):
+            continue
         parts.append(p)
         m = re.match(r"\[([^\]]+)\]", p)
         if m:
@@ -289,6 +341,11 @@ def _merge_row_addition(existing: str,
             continue                                    # idempotent
         parts.append(f"[{sid}] {decision.strip()}")
         seen_sids.add(sid)
+    # Append fresh manual additions (post-worker text). Each gets a
+    # numbered tag so multiple manual clauses on the same row are
+    # individually distinguishable in the merged output.
+    for idx, clause in enumerate(new_manual, start=1):
+        parts.append(f"[manual_{idx}] {clause.strip()}")
     if global_notes:
         parts.append(f"[global] {global_notes.strip()}")
     return "\n\n".join(parts)
@@ -378,9 +435,11 @@ def main(argv: list[str]) -> int:
         else:
             new_marker_pos = len(text_without_marker)
 
-    # 4. Parse the current global notes (always read fresh; their
-    # content can change between runs).
+    # 4. Parse the current global notes + row-specific manual
+    # additions (both always read fresh; their content can change
+    # between runs).
     global_notes = _parse_global_notes(text_without_marker)
+    raw_manual_additions = _parse_manual_additions(text_without_marker)
 
     # 5. Short-circuit: nothing new to process.
     if not decisions:
@@ -465,22 +524,81 @@ def main(argv: list[str]) -> int:
               f"since the table was generated?): {unattributed}",
               file=sys.stderr)
 
-    # 8. Merge into data.json. Per-row clauses are APPENDED to existing
-    # additions; global notes replace any prior `[global] …` paragraph.
-    # Under --reprocess-all, every row's prior bracket-prefixed clauses
-    # are stripped first so the new agent-generated clauses fully
-    # replace any verbatim ones from prior runs.
+    # 7b. Translate each manual row-specific addition (same agent
+    # path as per-subtlety decisions; --verbatim still skips). The
+    # "subtlety explanation" passed to the worker is a fixed
+    # placeholder telling the worker this is an operator-authored
+    # standalone constraint rather than a response to a discovered
+    # subtlety. Manual additions for refs that don't exist in
+    # data.json are warned and dropped.
+    manual_by_ref: dict[str, list[str]] = {}
+    for ref, raw_text in raw_manual_additions:
+        row = row_by_ref.get(ref)
+        if not row:
+            print(f"WARNING: manual addition targets row `{ref}` which "
+                  f"is not in data.json; dropping.", file=sys.stderr)
+            continue
+        if args.verbatim:
+            clause = raw_text
+        else:
+            synthetic_entry = {
+                "explanation": (
+                    "(Operator-authored manual addition for this row; "
+                    "no specific subtlety prompted this. Treat the "
+                    "operator's response as a project assumption / "
+                    "constraint to be appended to the LN for this row "
+                    "and formalize it accordingly.)"
+                ),
+            }
+            try:
+                clause = _interpret_decision_via_worker(
+                    f"manual_for_{ref}",
+                    synthetic_entry,
+                    row,
+                    raw_text,
+                    global_notes,
+                )
+            except Exception as e:                       # noqa: BLE001
+                print(f"WARNING: interpreter worker on manual "
+                      f"addition for `{ref}` failed "
+                      f"({type(e).__name__}: {e}); falling back to "
+                      f"verbatim text.", file=sys.stderr)
+                clause = raw_text
+        manual_by_ref.setdefault(ref, []).append(clause)
+    if raw_manual_additions:
+        print(f"[process_initialization_table] "
+              f"{len(raw_manual_additions)} manual row-specific "
+              f"addition(s) processed across "
+              f"{len(manual_by_ref)} row(s)",
+              file=sys.stderr)
+
+    # 8. Merge into data.json. Per-subtlety clauses are APPENDED to
+    # existing additions; [global] and [manual_*] paragraphs are
+    # stripped and re-added from the current table state. Under
+    # --reprocess-all, every row's prior bracket-prefixed clauses are
+    # stripped first so the new agent-generated clauses fully replace
+    # any verbatim ones from prior runs.
     changed = 0
     for row in rows:
         ref = row.get("ref")
         if not ref:
             continue
-        existing = row.get("addition_to_the_LN") or ""
+        original = row.get("addition_to_the_LN") or ""
+        # The merge input has any prior `[<bracketed>] …` paragraphs
+        # stripped iff --reprocess-all is set; otherwise the merge
+        # itself only strips [global] and [manual_*]. Either way, the
+        # change-detection below compares the merge output against
+        # the ORIGINAL value so a row that "stripped down to nothing"
+        # (e.g. the [global] paragraph removed, no replacement) still
+        # gets written back.
+        existing = original
         if args.reprocess_all:
-            existing = _strip_existing_clauses(existing)
+            existing = _strip_existing_clauses(original)
         new_per_row = by_ref.get(ref, [])
-        addition = _merge_row_addition(existing, new_per_row, global_notes)
-        if addition != existing:
+        new_manual = manual_by_ref.get(ref, [])
+        addition = _merge_row_addition(existing, new_per_row,
+                                       new_manual, global_notes)
+        if addition != original:
             row["addition_to_the_LN"] = addition
             changed += 1
             if args.dry_run:
