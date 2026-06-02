@@ -253,26 +253,58 @@ def _load_refactor_target_devs(data_path: Path) -> list[str]:
     return list(out) if isinstance(out, list) else []
 
 
+def _parse_refactor_extension_new_name(body: str) -> str | None:
+    """Optional ``NEW_NAME: <name>`` line in a refactor-extension body.
+    Returns the name string or ``None`` if absent. Must be ``snake_case``
+    (or PascalCase) -- letters, digits, underscores, max 80 chars."""
+    m = re.search(r"^\s*NEW_NAME\s*:\s*(\S+)\s*$",
+                  body, re.MULTILINE | re.IGNORECASE)
+    if not m:
+        return None
+    name = m.group(1).strip()
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}", name):
+        return None
+    return name
+
+
 def _extend_refactor_scope_and_halt(state: "OrchestrationState",
                                     data: dict,
                                     new_ref: str,
                                     rationale_body: str) -> None:
-    """Add ``new_ref`` as an additional root of the current refactor,
-    rebuild the refactor table from scratch (existing rows are reset),
-    re-snapshot ``deviations_to_resolve``, update the refactor state
-    file, write a run summary, and persist data.json. The orchestrator
-    is expected to ``return`` from the row loop immediately after; the
-    next ``solve_chapter`` invocation picks up the first unsolved row
-    of the rebuilt table.
+    """Restart the refactor from scratch with the new root included.
 
-    Heavy operations: runs ``find_dependents.py`` (which itself runs
-    ``lake build`` twice for baseline-then-diff) and
-    ``initialize_refactor.py``. Both are invoked as subprocesses to
-    keep their CLIs as the single source of truth.
+    Concretely: discard the current refactor's branch entirely (the
+    operator authorised this via the manager's `refactor` action) and
+    spawn a fresh refactor off ``server_setting_up_scaffold`` whose
+    roots are the union of (current refactor's roots) + ``new_ref``.
 
-    Raises if any step fails -- the caller surfaces the error to the
-    manager via ``extra_note`` and the row continues. The refactor
-    state on disk is left in a consistent, recoverable shape.
+    Steps:
+      1. Read ``.refactor_state.json`` for current roots, name,
+         branch, chapter, source branch.
+      2. Compute combined roots and the new refactor name (operator-
+         supplied via ``NEW_NAME:`` in the body, else auto-derived as
+         ``<old_name>_plus_<new_ref>``).
+      3. Save the manager's rationale to a tmp file (we'll move it
+         into the new refactor's folder after init succeeds).
+      4. ``git reset --hard HEAD`` to discard the current row's
+         uncommitted in-flight state (the entire old branch is going
+         away, so anything not committed is lost on purpose).
+      5. ``git checkout <source_branch>``; ``git pull origin <source>``.
+      6. Run ``do_refactor.py init --root-refs <combined> --name
+         <new_name>`` -- this creates the new branch, runs
+         find_dependents per root, builds the refactor table, and
+         commits / pushes.
+      7. Move the rationale into
+         ``<new_refactor_folder>/extension_rationale.md`` so future
+         debuggers can grep for it.
+      8. Delete the OLD local branch (remote untouched -- operator
+         can ``git push origin --delete <old_branch>`` when they no
+         longer want a remote backup).
+
+    Raises on any failure. The caller surfaces the error to the
+    manager. State on disk may be partially advanced (e.g. on
+    server with old branch intact, or on new branch with init
+    incomplete) -- the operator handles recovery.
     """
     if not state.row.get("refactor"):
         raise RuntimeError(
@@ -291,135 +323,155 @@ def _extend_refactor_scope_and_halt(state: "OrchestrationState",
         raise RuntimeError(
             f"`{new_ref}` is already a root of this refactor "
             f"(roots = {existing_roots}); nothing to extend.")
-
     chapter = rstate.get("chapter")
+    source_branch = rstate.get("source_branch") or "server_setting_up_scaffold"
+    old_branch = rstate.get("refactor_branch")
+    old_name = rstate.get("name", "")
+    if not chapter or not old_branch:
+        raise RuntimeError(
+            f"refactor state at {state_path} is missing required "
+            f"fields (chapter or refactor_branch).")
+
+    combined_roots = existing_roots + [new_ref]
+    new_name = (_parse_refactor_extension_new_name(rationale_body)
+                or f"{old_name}_plus_{new_ref}")
+    # Sanitise the auto-derived name: replace any non-alnum/underscore
+    # with underscore.
+    new_name = re.sub(r"[^A-Za-z0-9_]", "_", new_name)
+    new_branch = f"refactor_{new_name}"
+
+    # Pre-flight: target branch must not already exist (locally or on
+    # origin). If it does, the operator picks a different NEW_NAME.
+    def _branch_exists_anywhere(branch: str) -> bool:
+        for ref in (f"refs/heads/{branch}", f"refs/remotes/origin/{branch}"):
+            r = subprocess.run(
+                ["git", "show-ref", "--verify", "--quiet", ref],
+                cwd=str(REPO_ROOT),
+            )
+            if r.returncode == 0:
+                return True
+        return False
+
+    if _branch_exists_anywhere(new_branch):
+        raise RuntimeError(
+            f"target branch `{new_branch}` already exists "
+            f"(locally or on origin). Supply a different name via "
+            f"`NEW_NAME: <name>` in the action body, or delete the "
+            f"existing branch first.")
+
+    print(f"[orchestrator] === refactor restart: discarding "
+          f"`{old_branch}`, spawning fresh refactor from "
+          f"`{source_branch}` with roots "
+          f"{combined_roots} (name: `{new_name}`) ===", flush=True)
+
+    # Stash the rationale to /tmp so it survives the branch flip.
+    rationale_tmp = REPO_ROOT / ".tmp_refactor_extension_rationale.md"
+    rationale_tmp.write_text(rationale_body.strip() + "\n", encoding="utf-8")
+
     extras_dir = REPO_ROOT / "extras"
-    print(f"[orchestrator] === refactor scope-extension: adding "
-          f"`{new_ref}` to roots {existing_roots} ===", flush=True)
+    scaffold_dir = REPO_ROOT / "scaffold"
 
-    # 1. Run find_dependents.py for the new root, output to a per-root
-    # scan file in the refactor folder.
-    new_scan = refactor_folder / f"dependents_scan_{new_ref}.json"
-    fd_cmd = [
-        "python3", str(extras_dir / "find_dependents.py"),
+    def _run_git(cmd: list[str]) -> None:
+        print(f"$ git {' '.join(cmd)}", flush=True)
+        r = subprocess.run(["git", *cmd], cwd=str(REPO_ROOT), text=True)
+        if r.returncode != 0:
+            raise RuntimeError(
+                f"git {cmd[0]} exited {r.returncode}")
+
+    # 1. Discard the in-flight state on the old branch (the whole
+    # branch is about to be abandoned).
+    _run_git(["reset", "--hard", "HEAD"])
+
+    # 2. Switch to the source branch and pull.
+    _run_git(["checkout", source_branch])
+    # `git pull` may fail in airgapped envs; don't make it fatal.
+    pull = subprocess.run(["git", "pull", "origin", source_branch],
+                          cwd=str(REPO_ROOT), text=True)
+    if pull.returncode != 0:
+        print(f"[orchestrator] WARNING: `git pull origin {source_branch}` "
+              f"exited {pull.returncode}; proceeding with local "
+              f"{source_branch}.", flush=True)
+
+    # 3. Run do_refactor.py init with the combined roots. This creates
+    # the new refactor branch, runs find_dependents per root, builds
+    # the table, commits and pushes.
+    init_cmd = [
+        "python3", str(extras_dir / "do_refactor.py"), "init",
         "--chapter", str(chapter),
-        "--ref", new_ref,
-        "--out", str(new_scan),
+        "--root-refs", ",".join(combined_roots),
+        "--name", new_name,
     ]
-    print(f"$ {' '.join(fd_cmd)}", flush=True)
-    r = subprocess.run(fd_cmd, cwd=str(REPO_ROOT), text=True)
+    print(f"$ {' '.join(init_cmd)}", flush=True)
+    r = subprocess.run(init_cmd, cwd=str(REPO_ROOT), text=True)
     if r.returncode != 0:
         raise RuntimeError(
-            f"find_dependents.py for `{new_ref}` exited "
-            f"{r.returncode}")
-    if not new_scan.exists():
-        raise RuntimeError(
-            f"find_dependents.py did not produce {new_scan}")
+            f"do_refactor.py init exited {r.returncode}. The old "
+            f"refactor branch `{old_branch}` is still present (not "
+            f"deleted). To retry, fix the init error and re-emit "
+            f"`refactor` from a fresh solve_chapter run; or recover "
+            f"the old refactor with `git checkout {old_branch}`.")
 
-    # 2. Merge the new per-root scan into the combined dependents JSON.
-    combined_path = refactor_folder / "dependents_scan.json"
-    if combined_path.exists():
-        try:
-            combined = json.loads(combined_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            combined = {}
-    else:
-        combined = {}
-    per_root = dict(combined.get("per_root") or {})
-    new_data = json.loads(new_scan.read_text(encoding="utf-8"))
-    per_root[new_ref] = {
-        "consumer_refs": list(new_data.get("consumer_refs") or [])
-    }
-    new_roots = existing_roots + [new_ref]
-    combined_out = {"roots": new_roots, "per_root": per_root}
-    combined_path.write_text(
-        json.dumps(combined_out, indent=2, ensure_ascii=False) + "\n",
+    # 4. Move the rationale into the new refactor's folder. (We're now
+    # on the new branch after do_refactor.py init's checkout.)
+    new_chapter_folder: Path | None = None
+    for child in (REPO_ROOT / "leanification").iterdir():
+        if child.is_dir() and child.name.startswith(f"Chapter{chapter}_"):
+            new_chapter_folder = child
+            break
+    if new_chapter_folder is None:
+        raise RuntimeError(
+            f"could not locate chapter folder for chapter {chapter} "
+            f"after init")
+    new_refactor_folder = new_chapter_folder / f"Refactor_{new_name}"
+    rationale_dest = new_refactor_folder / "extension_rationale.md"
+    rationale_dest.write_text(
+        f"# Refactor `{new_name}` — extension rationale\n\n"
+        f"This refactor was spawned by a `refactor` action emitted "
+        f"from inside the prior refactor `{old_name}` (branch "
+        f"`{old_branch}`, now deleted). All progress on the old "
+        f"branch was discarded; this is a clean restart with the "
+        f"expanded root set.\n\n"
+        f"## Old roots\n\n{', '.join(existing_roots)}\n\n"
+        f"## New root added\n\n`{new_ref}`\n\n"
+        f"## Combined roots (this refactor)\n\n"
+        f"{', '.join(combined_roots)}\n\n"
+        f"## Manager's rationale (verbatim)\n\n"
+        f"{rationale_body.strip()}\n",
         encoding="utf-8",
     )
+    rationale_tmp.unlink(missing_ok=True)
 
-    # 3. Rebuild the refactor table via initialize_refactor.py --force.
-    # (All rows are reset to unsolved -- existing partial work on Lean
-    # files stays on disk as REPLACEMENT markers, but row-state is
-    # cleared because the new root may invalidate prior assumptions.)
-    ir_cmd = [
-        "python3", str(extras_dir / "initialize_refactor.py"),
-        "--root-chapter", str(chapter),
-        "--root-refs", ",".join(new_roots),
-        "--name", rstate["name"],
-        "--dependents-json", str(combined_path),
-        "--force",
-    ]
-    print(f"$ {' '.join(ir_cmd)}", flush=True)
-    r = subprocess.run(ir_cmd, cwd=str(REPO_ROOT), text=True)
+    # Commit the rationale via build_and_commit.sh (ensures lake build
+    # is clean before the commit lands).
+    bcs = scaffold_dir / "build_and_commit.sh"
+    msg = (f"refactor: extension rationale for `{new_name}` "
+           f"(spawned by `{old_name}` extending to include "
+           f"`{new_ref}`)")
+    r = subprocess.run(["bash", str(bcs), msg],
+                       cwd=str(REPO_ROOT), text=True)
     if r.returncode != 0:
-        raise RuntimeError(
-            f"initialize_refactor.py exited {r.returncode}")
+        print(f"[orchestrator] WARNING: rationale commit failed "
+              f"(returncode {r.returncode}); rationale is on disk "
+              f"but not committed. Operator should commit manually.",
+              flush=True)
 
-    # 4. Re-snapshot deviations_to_resolve over the expanded ref set.
-    rd = json.loads((refactor_folder / "refactor_data.json")
-                    .read_text(encoding="utf-8"))
-    refactor_refs = {r["ref"] for r in rd.get("rows", []) if r.get("ref")}
-    sys.path.insert(0, str(SCAFFOLD_DIR))
-    from deviations import load_register                              # type: ignore
-    deviations_to_resolve = sorted(
-        e["id"] for e in load_register(include_resolved=False)
-        if e.get("introduced_by_ref") in refactor_refs
-    )
+    # 5. Delete the OLD local branch. (Remote is left untouched --
+    # operator can `git push origin --delete <old_branch>` later.)
+    print(f"[orchestrator] deleting old local branch `{old_branch}`",
+          flush=True)
+    r = subprocess.run(["git", "branch", "-D", old_branch],
+                       cwd=str(REPO_ROOT), text=True)
+    if r.returncode != 0:
+        print(f"[orchestrator] WARNING: could not delete local branch "
+              f"`{old_branch}` (returncode {r.returncode}). The new "
+              f"refactor is fine; the old branch is just stale.",
+              flush=True)
 
-    # 5. Update the state file: new roots list + refreshed deviation
-    # snapshot. ``root_ref`` (legacy single-root field) stays at
-    # roots[0] so old tooling still reads it.
-    rstate["roots"] = new_roots
-    rstate["root_ref"] = new_roots[0]
-    rstate["deviations_to_resolve"] = deviations_to_resolve
-    rstate["last_extended_at"] = datetime.now(timezone.utc).isoformat(
-        timespec="seconds")
-    rstate["last_extended_to"] = new_ref
-    state_path.write_text(
-        json.dumps(rstate, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-
-    # 6. Persist the manager's rationale + write a run summary. Note
-    # that data is now stale relative to the rebuilt refactor_data.json
-    # on disk; we still save_data on state.data_path because (a) the
-    # path is the same file initialize_refactor just wrote, (b) the
-    # in-memory `data` dict is no longer authoritative and we want the
-    # disk version to win. We persist via the data_path so file-mtime
-    # / index sees the change.
-    save_data(state.data_path, json.loads(
-        state.data_path.read_text(encoding="utf-8")))
-    append_unsolved_run_summary(
-        state,
-        reason=(
-            f"REFACTOR SCOPE EXTENDED: `{new_ref}` added as a new root "
-            f"of refactor `{rstate['name']}`. Roots are now: "
-            f"{', '.join(new_roots)}.\n\n"
-            f"What the orchestrator did:\n"
-            f"  - ran find_dependents.py for `{new_ref}` "
-            f"(scan: {new_scan.relative_to(REPO_ROOT)})\n"
-            f"  - merged into combined dependents JSON "
-            f"({combined_path.relative_to(REPO_ROOT)})\n"
-            f"  - rebuilt refactor_data.json with all roots; ALL row "
-            f"state reset to unsolved (existing Lean REPLACEMENT "
-            f"markers stay on disk -- managers picking rows up again "
-            f"will see them and decide whether to update or rewrite)\n"
-            f"  - re-snapshotted deviations_to_resolve "
-            f"({len(deviations_to_resolve)} entry(s))\n"
-            f"  - updated .refactor_state.json\n\n"
-            f"Operator next steps:\n"
-            f"  1. inspect the changes (git diff) and commit when ready\n"
-            f"  2. re-invoke solve_chapter with the same --data-path; "
-            f"it will pick up the first unsolved row of the expanded "
-            f"table\n\n"
-            f"Manager's rationale for the scope extension:\n"
-            f"{rationale_body.strip()}"
-        ),
-    )
-    print(f"[orchestrator] refactor scope extended; halting row run. "
-          f"Re-invoke solve_chapter to continue with the rebuilt "
-          f"refactor_data.json ({len(rd.get('rows', []))} row(s) "
-          f"under roots {new_roots}).", flush=True)
+    new_data_path = new_refactor_folder / "refactor_data.json"
+    print(f"[orchestrator] refactor restarted. Re-invoke "
+          f"solve_chapter on the new table:", flush=True)
+    print(f"  python scaffold/solve_chapter.py --data-path "
+          f"{new_data_path.relative_to(REPO_ROOT)}", flush=True)
 
 
 def _chapter_folder_for(data_path: Path) -> Path:
@@ -3385,17 +3437,24 @@ def _render_refactor_block(row: dict) -> str:
         "an additional declaration the strict-equivalence solved-gate\n"
         "validates against the LN.\n"
         "\n"
-        "**The `refactor` action extends the current refactor's scope**\n"
-        "(it is NOT blocked). If you discover a row whose shape also\n"
+        "**The `refactor` action RESTARTS the refactor with an\n"
+        "expanded root set.** If you discover a row whose shape also\n"
         "needs to change for this refactor to succeed, emit `refactor`\n"
         "with the body starting `NEW_ROOT_REF: <ref>` (e.g.\n"
-        "`NEW_ROOT_REF: def_3_14`); the rest of the body is your\n"
-        "rationale. The orchestrator will: run find_dependents.py for\n"
-        "the new root, rebuild refactor_data.json with the expanded\n"
-        "roots list (RESETTING every row's state -- Lean REPLACEMENT\n"
-        "markers stay on disk but row metadata is cleared), re-snapshot\n"
-        "deviations_to_resolve, write a run summary, and halt cleanly.\n"
-        "Re-invoke solve_chapter to continue with the rebuilt table.\n"
+        "`NEW_ROOT_REF: def_3_14`). Optional: `NEW_NAME: <name>` on a\n"
+        "second line; otherwise the new refactor's name is auto-derived\n"
+        "as `<old_name>_plus_<new_ref>`. The rest of the body is your\n"
+        "rationale.\n"
+        "\n"
+        "**This is a full restart, not an in-place extension.** The\n"
+        "orchestrator: discards the current refactor branch entirely\n"
+        "(all partial work lost), switches back to the source branch,\n"
+        "and runs `do_refactor.py init` with roots = current roots +\n"
+        "your new ref. The new refactor branch / table replaces the\n"
+        "old one. Your rationale lands in\n"
+        "`Refactor_<new_name>/extension_rationale.md` on the new\n"
+        "branch. Re-invoke solve_chapter on the new refactor_data.json\n"
+        "to continue.\n"
     )
 
 
@@ -4016,15 +4075,16 @@ def solve_current_row(data_path: Path | None = None) -> None:
             )
 
         elif action == "refactor":
-            # Inside a refactor row: nested `refactor` is interpreted as
-            # an automatic scope-extension. The new ref becomes an
-            # additional root of the current refactor; the orchestrator
-            # re-runs find_dependents for it, rebuilds the refactor
-            # table (existing rows are RESET because the new root may
-            # invalidate their assumptions), re-snapshots
-            # deviations_to_resolve, updates the state file, and halts
-            # cleanly. The next solve_chapter invocation picks up the
-            # first unsolved row of the rebuilt table.
+            # Inside a refactor row: nested `refactor` is a full
+            # restart request. The orchestrator: discards the current
+            # refactor's branch entirely (all partial work lost),
+            # switches back to the source branch (server), and spawns
+            # a fresh refactor whose roots are the union of the
+            # current refactor's roots + the new ref. The new refactor
+            # is created via `do_refactor.py init`, which builds its
+            # own table, commits, and pushes. The orchestrator halts
+            # so the operator re-invokes solve_chapter on the new
+            # refactor_data.json.
             #
             # Outside a refactor row: existing advisory `plan_refactor`
             # behavior (writes a plan markdown, halts for human review).
@@ -4033,22 +4093,27 @@ def solve_current_row(data_path: Path | None = None) -> None:
                 if not new_ref:
                     state.history.append(TurnRecord(
                         turn, action, body,
-                        "(refactor scope-extension: body missing "
+                        "(refactor restart: body missing "
                         "NEW_ROOT_REF line; nudging)"))
                     extra_note = (
                         "Inside a refactor, the `refactor` action "
-                        "extends the current refactor's scope by adding "
-                        "a new root. The body must start with:\n\n"
+                        "RESTARTS the refactor with an expanded root "
+                        "set: the orchestrator discards the current "
+                        "refactor branch entirely (all partial work "
+                        "lost) and spawns a fresh refactor off the "
+                        "source branch with roots = current roots + "
+                        "your new ref.\n\n"
+                        "The body must include:\n\n"
                         "    NEW_ROOT_REF: <ref>\n\n"
-                        "(the rest of the body is your rationale, which "
-                        "lands in the run summary.) The orchestrator "
-                        "will then: add the new ref to the refactor's "
-                        "roots, re-run find_dependents, rebuild the "
-                        "refactor table (RESETTING all rows), re-snapshot "
-                        "deviations_to_resolve, and halt so the next "
-                        "solve_chapter invocation continues with the "
-                        "expanded table. Re-emit with NEW_ROOT_REF on the "
-                        "first line."
+                        "Optional:\n\n"
+                        "    NEW_NAME: <name>\n\n"
+                        "(if NEW_NAME is absent, the new refactor's "
+                        "name is auto-derived as "
+                        "`<old_name>_plus_<new_ref>`.)\n\n"
+                        "The rest of the body is your rationale and "
+                        "will be saved to "
+                        "`Refactor_<new_name>/extension_rationale.md` "
+                        "in the new branch. Re-emit with NEW_ROOT_REF."
                     )
                 else:
                     try:
@@ -4057,23 +4122,29 @@ def solve_current_row(data_path: Path | None = None) -> None:
                     except Exception as e:                       # noqa: BLE001
                         state.history.append(TurnRecord(
                             turn, action, body,
-                            f"refactor scope-extension failed: {e}"))
+                            f"refactor restart failed: {e}"))
                         save_data(state.data_path, data)
                         extra_note = (
-                            f"`refactor` (scope extension to "
+                            f"`refactor` (restart with new root "
                             f"`{new_ref}`) failed: {e}\n\n"
                             f"Manual operator intervention needed. "
-                            f"Investigate the error, fix the underlying "
-                            f"issue, and either re-emit `refactor` "
-                            f"with the same NEW_ROOT_REF, or proceed via "
-                            f"`request_from_human` if the issue is "
-                            f"deeper."
+                            f"Investigate the error and fix it; the "
+                            f"orchestrator may have left the working "
+                            f"tree on either the old refactor branch "
+                            f"(if the failure was before `git checkout` "
+                            f"server) or on server / a partial new "
+                            f"branch (if the failure was during init). "
+                            f"`git status` + `git branch` will show "
+                            f"where you are. Recover by either "
+                            f"re-running `do_refactor.py init` "
+                            f"manually, or `git checkout` back to the "
+                            f"old refactor branch."
                         )
                     else:
-                        # _extend_refactor_scope_and_halt persists state,
-                        # writes the run summary, returns; we exit the
-                        # row loop here so the next solve_chapter
-                        # iteration picks up the rebuilt table.
+                        # Restart succeeded: the orchestrator is now on
+                        # the new refactor branch with a new refactor_
+                        # data.json. Halt; the operator re-invokes
+                        # solve_chapter on the new path.
                         return
             # Advisory refactor: the (rewritten) `plan_refactor.md`
             # worker is NON-DESTRUCTIVE -- it just writes a markdown
