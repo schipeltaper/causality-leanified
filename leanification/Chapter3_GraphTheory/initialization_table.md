@@ -26,7 +26,6 @@ When done, save the file and run::
 
     python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter 3
 
-<!-- --- processed until here --- -->
 
 ### 1. `l_quotient_vs_ordered_pair_typing_inconsistent`
 
@@ -876,6 +875,8 @@ intended) subset relation.
 ```
 NONE
 ```
+
+<!-- --- processed until here --- -->
 
 ### 50. `node_split_on_input_node_semantics_left_implicit`
 
