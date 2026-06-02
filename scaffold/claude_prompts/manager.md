@@ -273,7 +273,7 @@ Two parallel conventions for the two file types:
 
 **Action restrictions on refactor rows:**
 
-- The `refactor` action is **blocked** — a nested refactor request halts the run cleanly with a `Run summary` entry asking the human to decide (extend the current refactor's scope, spin a new refactor branch, or abandon). Use `request_from_human` if you genuinely need new scope.
+- The `refactor` action is **interpreted as a scope-extension request** (NOT blocked). Inside a refactor row, emitting `refactor` adds the named ref as an additional root of the **current** refactor (no new branch is created). The orchestrator: runs `find_dependents.py` for the new root, rebuilds `refactor_data.json` to include the expanded root list (RESETTING every row's state — existing Lean REPLACEMENT markers stay on disk but row metadata goes back to unsolved/formalized=no, since the new root may invalidate prior assumptions), re-snapshots `deviations_to_resolve`, updates `.refactor_state.json`, writes a run summary, and halts. The next `solve_chapter` invocation picks up the first unsolved row of the rebuilt table. **Body format:** the first line must be `NEW_ROOT_REF: <ref>` (e.g. `NEW_ROOT_REF: def_3_14`); the rest of the body is your rationale (lands in the run summary). If the body is missing the `NEW_ROOT_REF:` line, the orchestrator nudges and you re-emit.
 - All other actions (mistake-sweep, accept_deviation, strict-gate, the verifier chain, …) work exactly as in normal rows.
 
 **Multi-root refactors.** A single refactor table can bundle several independent root changes (e.g. `def_3_1_no_disjoint_EL` and `def_3_4_collider_loose_n1` in one run). Two row fields surface the bundle structure:

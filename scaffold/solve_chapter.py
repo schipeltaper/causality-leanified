@@ -253,6 +253,175 @@ def _load_refactor_target_devs(data_path: Path) -> list[str]:
     return list(out) if isinstance(out, list) else []
 
 
+def _extend_refactor_scope_and_halt(state: "OrchestrationState",
+                                    data: dict,
+                                    new_ref: str,
+                                    rationale_body: str) -> None:
+    """Add ``new_ref`` as an additional root of the current refactor,
+    rebuild the refactor table from scratch (existing rows are reset),
+    re-snapshot ``deviations_to_resolve``, update the refactor state
+    file, write a run summary, and persist data.json. The orchestrator
+    is expected to ``return`` from the row loop immediately after; the
+    next ``solve_chapter`` invocation picks up the first unsolved row
+    of the rebuilt table.
+
+    Heavy operations: runs ``find_dependents.py`` (which itself runs
+    ``lake build`` twice for baseline-then-diff) and
+    ``initialize_refactor.py``. Both are invoked as subprocesses to
+    keep their CLIs as the single source of truth.
+
+    Raises if any step fails -- the caller surfaces the error to the
+    manager via ``extra_note`` and the row continues. The refactor
+    state on disk is left in a consistent, recoverable shape.
+    """
+    if not state.row.get("refactor"):
+        raise RuntimeError(
+            "scope-extension only makes sense from a refactor row")
+    refactor_folder = state.data_path.parent
+    state_path = refactor_folder / ".refactor_state.json"
+    if not state_path.exists():
+        raise RuntimeError(
+            f"refactor state file missing at {state_path}; "
+            f"the refactor was not initialized via do_refactor.py init?")
+    rstate = json.loads(state_path.read_text(encoding="utf-8"))
+    existing_roots = list(rstate.get("roots") or [])
+    if not existing_roots and rstate.get("root_ref"):
+        existing_roots = [rstate["root_ref"]]
+    if new_ref in existing_roots:
+        raise RuntimeError(
+            f"`{new_ref}` is already a root of this refactor "
+            f"(roots = {existing_roots}); nothing to extend.")
+
+    chapter = rstate.get("chapter")
+    extras_dir = REPO_ROOT / "extras"
+    print(f"[orchestrator] === refactor scope-extension: adding "
+          f"`{new_ref}` to roots {existing_roots} ===", flush=True)
+
+    # 1. Run find_dependents.py for the new root, output to a per-root
+    # scan file in the refactor folder.
+    new_scan = refactor_folder / f"dependents_scan_{new_ref}.json"
+    fd_cmd = [
+        "python3", str(extras_dir / "find_dependents.py"),
+        "--chapter", str(chapter),
+        "--ref", new_ref,
+        "--out", str(new_scan),
+    ]
+    print(f"$ {' '.join(fd_cmd)}", flush=True)
+    r = subprocess.run(fd_cmd, cwd=str(REPO_ROOT), text=True)
+    if r.returncode != 0:
+        raise RuntimeError(
+            f"find_dependents.py for `{new_ref}` exited "
+            f"{r.returncode}")
+    if not new_scan.exists():
+        raise RuntimeError(
+            f"find_dependents.py did not produce {new_scan}")
+
+    # 2. Merge the new per-root scan into the combined dependents JSON.
+    combined_path = refactor_folder / "dependents_scan.json"
+    if combined_path.exists():
+        try:
+            combined = json.loads(combined_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            combined = {}
+    else:
+        combined = {}
+    per_root = dict(combined.get("per_root") or {})
+    new_data = json.loads(new_scan.read_text(encoding="utf-8"))
+    per_root[new_ref] = {
+        "consumer_refs": list(new_data.get("consumer_refs") or [])
+    }
+    new_roots = existing_roots + [new_ref]
+    combined_out = {"roots": new_roots, "per_root": per_root}
+    combined_path.write_text(
+        json.dumps(combined_out, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    # 3. Rebuild the refactor table via initialize_refactor.py --force.
+    # (All rows are reset to unsolved -- existing partial work on Lean
+    # files stays on disk as REPLACEMENT markers, but row-state is
+    # cleared because the new root may invalidate prior assumptions.)
+    ir_cmd = [
+        "python3", str(extras_dir / "initialize_refactor.py"),
+        "--root-chapter", str(chapter),
+        "--root-refs", ",".join(new_roots),
+        "--name", rstate["name"],
+        "--dependents-json", str(combined_path),
+        "--force",
+    ]
+    print(f"$ {' '.join(ir_cmd)}", flush=True)
+    r = subprocess.run(ir_cmd, cwd=str(REPO_ROOT), text=True)
+    if r.returncode != 0:
+        raise RuntimeError(
+            f"initialize_refactor.py exited {r.returncode}")
+
+    # 4. Re-snapshot deviations_to_resolve over the expanded ref set.
+    rd = json.loads((refactor_folder / "refactor_data.json")
+                    .read_text(encoding="utf-8"))
+    refactor_refs = {r["ref"] for r in rd.get("rows", []) if r.get("ref")}
+    sys.path.insert(0, str(SCAFFOLD_DIR))
+    from deviations import load_register                              # type: ignore
+    deviations_to_resolve = sorted(
+        e["id"] for e in load_register(include_resolved=False)
+        if e.get("introduced_by_ref") in refactor_refs
+    )
+
+    # 5. Update the state file: new roots list + refreshed deviation
+    # snapshot. ``root_ref`` (legacy single-root field) stays at
+    # roots[0] so old tooling still reads it.
+    rstate["roots"] = new_roots
+    rstate["root_ref"] = new_roots[0]
+    rstate["deviations_to_resolve"] = deviations_to_resolve
+    rstate["last_extended_at"] = datetime.now(timezone.utc).isoformat(
+        timespec="seconds")
+    rstate["last_extended_to"] = new_ref
+    state_path.write_text(
+        json.dumps(rstate, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    # 6. Persist the manager's rationale + write a run summary. Note
+    # that data is now stale relative to the rebuilt refactor_data.json
+    # on disk; we still save_data on state.data_path because (a) the
+    # path is the same file initialize_refactor just wrote, (b) the
+    # in-memory `data` dict is no longer authoritative and we want the
+    # disk version to win. We persist via the data_path so file-mtime
+    # / index sees the change.
+    save_data(state.data_path, json.loads(
+        state.data_path.read_text(encoding="utf-8")))
+    append_unsolved_run_summary(
+        state,
+        reason=(
+            f"REFACTOR SCOPE EXTENDED: `{new_ref}` added as a new root "
+            f"of refactor `{rstate['name']}`. Roots are now: "
+            f"{', '.join(new_roots)}.\n\n"
+            f"What the orchestrator did:\n"
+            f"  - ran find_dependents.py for `{new_ref}` "
+            f"(scan: {new_scan.relative_to(REPO_ROOT)})\n"
+            f"  - merged into combined dependents JSON "
+            f"({combined_path.relative_to(REPO_ROOT)})\n"
+            f"  - rebuilt refactor_data.json with all roots; ALL row "
+            f"state reset to unsolved (existing Lean REPLACEMENT "
+            f"markers stay on disk -- managers picking rows up again "
+            f"will see them and decide whether to update or rewrite)\n"
+            f"  - re-snapshotted deviations_to_resolve "
+            f"({len(deviations_to_resolve)} entry(s))\n"
+            f"  - updated .refactor_state.json\n\n"
+            f"Operator next steps:\n"
+            f"  1. inspect the changes (git diff) and commit when ready\n"
+            f"  2. re-invoke solve_chapter with the same --data-path; "
+            f"it will pick up the first unsolved row of the expanded "
+            f"table\n\n"
+            f"Manager's rationale for the scope extension:\n"
+            f"{rationale_body.strip()}"
+        ),
+    )
+    print(f"[orchestrator] refactor scope extended; halting row run. "
+          f"Re-invoke solve_chapter to continue with the rebuilt "
+          f"refactor_data.json ({len(rd.get('rows', []))} row(s) "
+          f"under roots {new_roots}).", flush=True)
+
+
 def _chapter_folder_for(data_path: Path) -> Path:
     """Walk up from ``data_path`` until we hit a ``ChapterN_*`` directory;
     return that directory. Falls back to ``data_path.parent`` if no such
@@ -1881,6 +2050,22 @@ _ACCEPT_DEVIATION_KEYS = (
 )
 
 
+def _parse_refactor_extension_body(body: str) -> str | None:
+    """Extract the ``NEW_ROOT_REF`` from a `refactor` action body emitted
+    from inside a refactor row. The body must start with a line of the
+    form ``NEW_ROOT_REF: <ref>`` (case-insensitive). Returns the ref
+    string or ``None`` if the line is missing.
+    """
+    m = re.search(r"^\s*NEW_ROOT_REF\s*:\s*(\S+)\s*$",
+                  body, re.MULTILINE | re.IGNORECASE)
+    if not m:
+        return None
+    ref = m.group(1).strip()
+    if not re.fullmatch(r"(?:def|claim)_\d+_\d+", ref):
+        return None
+    return ref
+
+
 def _parse_register_ln_subtlety_body(body: str, default_ref: str) -> dict:
     """Parse the manager's ``register_ln_subtlety`` body into an entry
     dict. Required keys: ``id`` and ``explanation``.
@@ -3200,9 +3385,17 @@ def _render_refactor_block(row: dict) -> str:
         "an additional declaration the strict-equivalence solved-gate\n"
         "validates against the LN.\n"
         "\n"
-        "**The `refactor` action is BLOCKED inside refactor rows.** If\n"
-        "you discover a nested refactor need, abort and surface it via\n"
-        "`request_from_human` -- the orchestrator will halt cleanly.\n"
+        "**The `refactor` action extends the current refactor's scope**\n"
+        "(it is NOT blocked). If you discover a row whose shape also\n"
+        "needs to change for this refactor to succeed, emit `refactor`\n"
+        "with the body starting `NEW_ROOT_REF: <ref>` (e.g.\n"
+        "`NEW_ROOT_REF: def_3_14`); the rest of the body is your\n"
+        "rationale. The orchestrator will: run find_dependents.py for\n"
+        "the new root, rebuild refactor_data.json with the expanded\n"
+        "roots list (RESETTING every row's state -- Lean REPLACEMENT\n"
+        "markers stay on disk but row metadata is cleared), re-snapshot\n"
+        "deviations_to_resolve, write a run summary, and halt cleanly.\n"
+        "Re-invoke solve_chapter to continue with the rebuilt table.\n"
     )
 
 
@@ -3823,33 +4016,65 @@ def solve_current_row(data_path: Path | None = None) -> None:
             )
 
         elif action == "refactor":
-            # Guard: nested refactor is not supported. If the manager of
-            # a refactor row asks for another refactor, halt cleanly so a
-            # human can review. (The simplest design: don't auto-anything
-            # recursive; the human decides whether to extend the current
-            # refactor's problem list, spin a new refactor branch, or
-            # abandon.)
+            # Inside a refactor row: nested `refactor` is interpreted as
+            # an automatic scope-extension. The new ref becomes an
+            # additional root of the current refactor; the orchestrator
+            # re-runs find_dependents for it, rebuilds the refactor
+            # table (existing rows are RESET because the new root may
+            # invalidate their assumptions), re-snapshots
+            # deviations_to_resolve, updates the state file, and halts
+            # cleanly. The next solve_chapter invocation picks up the
+            # first unsolved row of the rebuilt table.
+            #
+            # Outside a refactor row: existing advisory `plan_refactor`
+            # behavior (writes a plan markdown, halts for human review).
             if state.row.get("refactor"):
-                print(f"[orchestrator] nested refactor requested for "
-                      f"{state.ref} (inside a refactor row); aborting "
-                      f"run for human review.", flush=True)
-                state.history.append(TurnRecord(
-                    turn, action, body,
-                    "(rejected: nested refactor; aborting for human review)"))
-                save_data(state.data_path, data)
-                append_unsolved_run_summary(
-                    state,
-                    reason=(
-                        "NESTED REFACTOR REQUESTED -- the manager of "
-                        "this refactor row asked for a refactor. "
-                        "Orchestrator halted for human review. The "
-                        "manager's rationale is the action body in the "
-                        "last history entry; decide whether to extend "
-                        "the current refactor's problem list, spin a "
-                        "new refactor branch, or abandon this row."
-                    ),
-                )
-                return
+                new_ref = _parse_refactor_extension_body(body)
+                if not new_ref:
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        "(refactor scope-extension: body missing "
+                        "NEW_ROOT_REF line; nudging)"))
+                    extra_note = (
+                        "Inside a refactor, the `refactor` action "
+                        "extends the current refactor's scope by adding "
+                        "a new root. The body must start with:\n\n"
+                        "    NEW_ROOT_REF: <ref>\n\n"
+                        "(the rest of the body is your rationale, which "
+                        "lands in the run summary.) The orchestrator "
+                        "will then: add the new ref to the refactor's "
+                        "roots, re-run find_dependents, rebuild the "
+                        "refactor table (RESETTING all rows), re-snapshot "
+                        "deviations_to_resolve, and halt so the next "
+                        "solve_chapter invocation continues with the "
+                        "expanded table. Re-emit with NEW_ROOT_REF on the "
+                        "first line."
+                    )
+                else:
+                    try:
+                        _extend_refactor_scope_and_halt(
+                            state, data, new_ref, body)
+                    except Exception as e:                       # noqa: BLE001
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"refactor scope-extension failed: {e}"))
+                        save_data(state.data_path, data)
+                        extra_note = (
+                            f"`refactor` (scope extension to "
+                            f"`{new_ref}`) failed: {e}\n\n"
+                            f"Manual operator intervention needed. "
+                            f"Investigate the error, fix the underlying "
+                            f"issue, and either re-emit `refactor` "
+                            f"with the same NEW_ROOT_REF, or proceed via "
+                            f"`request_from_human` if the issue is "
+                            f"deeper."
+                        )
+                    else:
+                        # _extend_refactor_scope_and_halt persists state,
+                        # writes the run summary, returns; we exit the
+                        # row loop here so the next solve_chapter
+                        # iteration picks up the rebuilt table.
+                        return
             # Advisory refactor: the (rewritten) `plan_refactor.md`
             # worker is NON-DESTRUCTIVE -- it just writes a markdown
             # plan to `leanification/refactors/refactor_<name>.md` and
