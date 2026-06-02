@@ -10,7 +10,7 @@ Used in two places:
   `mark_solved`). On the gate's EXAMPLE_GENERATION verdict the example
   verifier is auto-chained. See ``_run_solved_gate_strict_check`` in
   solve_chapter.py and the "Strict-equivalence solved-gate" section in
-  ``claude_prompts/manager.md``.
+  ``claude_prompts/phase3_solving/manager.md``.
 
 Each dispatcher:
 - builds the prompt for its worker (row context + the prompt markdown);

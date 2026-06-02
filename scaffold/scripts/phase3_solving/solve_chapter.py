@@ -17,7 +17,7 @@ High-level flow
    - **Worker actions** (``write_proof``, ``expand_proof``, ``refactor``,
      ``make_plan``, ``decompose``, ``mistake``, ``spawn_agent_sub_task``):
      spawn a worker Claude agent with the matching prompt under
-     ``claude_prompts/row_workers/`` and feed its output back to the manager.
+     ``claude_prompts/phase3_solving/row_workers/`` and feed its output back to the manager.
    - ``solved``: dispatch the ``verify_row_solved`` worker as an independent
      checker. If it passes, mark the row solved in ``data.json`` and exit.
    - ``new_manager``: discard the running manager's accumulated context and

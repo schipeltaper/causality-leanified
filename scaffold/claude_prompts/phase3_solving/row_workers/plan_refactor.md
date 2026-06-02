@@ -76,7 +76,7 @@ python extras/do_refactor.py init \
     --name <name>
 ```
 
-`do_refactor.py init` will: create the `refactor_<name>` branch, run `find_dependents.py` (bullet-proof transitive scan), run `initialize_refactor.py` (build the refactor_data.json table from the dependents list), commit, and push the new branch. Then the human drives the table with `python scaffold/solve_chapter.py --data-path <refactor_data.json>`, and finalizes with `do_refactor.py finalize` + `do_refactor.py merge` once every refactor row is solved.
+`do_refactor.py init` will: create the `refactor_<name>` branch, run `find_dependents.py` (bullet-proof transitive scan), run `initialize_refactor.py` (build the refactor_data.json table from the dependents list), commit, and push the new branch. Then the human drives the table with `python scaffold/scripts/phase3_solving/solve_chapter.py --data-path <refactor_data.json>`, and finalizes with `do_refactor.py finalize` + `do_refactor.py merge` once every refactor row is solved.
 ```
 
 ## Step 4: Report back
