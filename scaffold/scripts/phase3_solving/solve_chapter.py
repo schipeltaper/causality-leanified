@@ -45,16 +45,27 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Make sibling phase folders + utils/ importable. This script lives at
+# scaffold/scripts/phase3_solving/solve_chapter.py; importing the
+# `_path_setup` module from scripts/ root adds every phase folder
+# (including utils/) to sys.path so `from subtlety_register import …`
+# etc. resolves regardless of caller location.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                                # noqa: F401, E402
+
 # ---------------------------------------------------------------------------
 # Paths and configuration
 # ---------------------------------------------------------------------------
 
-SCAFFOLD_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCAFFOLD_DIR.parent
+SCRIPT_DIR = Path(__file__).resolve().parent                      # scaffold/scripts/phase3_solving/
+SCRIPTS_DIR = SCRIPT_DIR.parent                                   # scaffold/scripts/
+SCAFFOLD_DIR = SCRIPTS_DIR.parent                                 # scaffold/
+REPO_ROOT = SCAFFOLD_DIR.parent                                   # repo root
 LEANIFICATION_DIR = REPO_ROOT / "leanification"
 LECTURE_NOTES_DIR = REPO_ROOT / "lecture-notes" / "lecture_notes"
 PROMPTS_DIR = SCAFFOLD_DIR / "claude_prompts"
-WORKERS_DIR = PROMPTS_DIR / "row_workers"
+WORKERS_DIR = PROMPTS_DIR / "phase3_solving" / "row_workers"
+WORDING_CHECK_PROMPT = PROMPTS_DIR / "phase2_initialization" / "check_ln_wording.md"
 TEX_TEMPLATES_DIR = SCAFFOLD_DIR / "tex_templates"
 
 GLOBAL_VARS_PATH = SCAFFOLD_DIR / "global_vars.json"
@@ -519,7 +530,7 @@ def _extend_refactor_scope_and_halt(state: "OrchestrationState",
     new_data_path = new_refactor_folder / "refactor_data.json"
     print(f"[orchestrator] refactor restarted. Re-invoke "
           f"solve_chapter on the new table:", flush=True)
-    print(f"  python scaffold/solve_chapter.py --data-path "
+    print(f"  python scaffold/scripts/phase3_solving/solve_chapter.py --data-path "
           f"{new_data_path.relative_to(REPO_ROOT)}", flush=True)
 
 
@@ -631,7 +642,7 @@ def regenerate_chapter_aggregator(data_path: Path, data: dict) -> None:
 
     aggregator_path.write_text(
         f"-- Aggregator for chapter folder `{chapter_name}`.\n"
-        f"-- Auto-managed by scaffold/solve_chapter.py; do not edit by hand.\n\n"
+        f"-- Auto-managed by scaffold/scripts/phase3_solving/solve_chapter.py; do not edit by hand.\n\n"
         + "".join(f"import {m}\n" for m in imports),
         encoding="utf-8",
     )
@@ -3213,7 +3224,7 @@ def _run_wording_check_if_needed(state: "OrchestrationState", data: dict) -> Non
     """
     if (state.row.get("wording_check") or {}).get("done"):
         return
-    worker_path = WORKERS_DIR / "check_ln_wording.md"
+    worker_path = WORDING_CHECK_PROMPT
     if not worker_path.exists():
         # Worker prompt missing -- skip silently (back-compat with rows
         # initialised before this feature shipped).
@@ -4258,7 +4269,7 @@ def solve_current_row(data_path: Path | None = None) -> None:
                     f"  2. launch the refactor pipeline:\n"
                     f"       {invocation_line}\n"
                     "  3. drive the refactor table:\n"
-                    "       python scaffold/solve_chapter.py --data-path "
+                    "       python scaffold/scripts/phase3_solving/solve_chapter.py --data-path "
                     "<refactor_data.json>\n"
                     "  4. once every refactor row is solved=yes, finalize:\n"
                     "       python extras/do_refactor.py finalize "

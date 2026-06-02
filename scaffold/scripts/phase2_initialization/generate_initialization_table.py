@@ -20,7 +20,7 @@ Workflow position::
 
 Usage::
 
-    python scaffold/generate_initialization_table.py --chapter 3
+    python scaffold/scripts/phase2_initialization/generate_initialization_table.py --chapter 3
 """
 
 from __future__ import annotations
@@ -30,12 +30,15 @@ import json
 import sys
 from pathlib import Path
 
-SCAFFOLD_DIR = Path(__file__).resolve().parent
+# .../scaffold/scripts/phase2_initialization/<this file>
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCAFFOLD_DIR = SCRIPT_DIR.parent.parent                            # scaffold/
 REPO_ROOT = SCAFFOLD_DIR.parent
 LEANIFICATION = REPO_ROOT / "leanification"
 
-sys.path.insert(0, str(SCAFFOLD_DIR))
-from subtlety_register import load_register                                 # noqa: E402
+sys.path.insert(0, str(SCRIPT_DIR.parent))
+import _path_setup                                                # noqa: F401, E402
+from subtlety_register import load_register                       # noqa: E402
 
 
 HEADER = """\
@@ -70,7 +73,7 @@ constraint, not as a quotient set."
 
 When done, save the file and run::
 
-    python scaffold/process_initialization_table.py --chapter {chapter}
+    python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter {chapter}
 
 """
 
@@ -169,7 +172,7 @@ def main(argv: list[str]) -> int:
     print(f"\nNext step: open {out_path.relative_to(REPO_ROOT)} in your "
           f"editor, replace each `TODO` with `NONE` or your clarifying "
           f"clause, add any global notes at the end, save, and run\n"
-          f"  python scaffold/process_initialization_table.py "
+          f"  python scaffold/scripts/phase2_initialization/process_initialization_table.py "
           f"--chapter {args.chapter}", file=sys.stderr)
     return 0
 

@@ -78,8 +78,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 LEANIFICATION = REPO_ROOT / "leanification"
 SCAFFOLD = REPO_ROOT / "scaffold"
+SCRIPTS = SCAFFOLD / "scripts"
 
-sys.path.insert(0, str(SCAFFOLD))
+# Add scaffold/scripts/ to sys.path so `import _path_setup` resolves;
+# _path_setup then adds every phase folder + utils/ to sys.path.
+sys.path.insert(0, str(SCRIPTS))
+import _path_setup                                              # noqa: F401, E402
 # Imported lazily inside functions (avoid cold-importing the heavy
 # orchestrator when only the cleanup phases are used):
 #   from solve_chapter import _chapter_folder_for, _file_basename,

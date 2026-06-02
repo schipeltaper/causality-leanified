@@ -35,7 +35,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+# .../scaffold/scripts/utils/<this file> -> repo root is three levels up.
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEVIATIONS_PATH = REPO_ROOT / "leanification" / "deviations.json"
 
 # Fields every entry must have for the helpers to behave predictably.
@@ -223,4 +224,4 @@ if __name__ == "__main__":
     else:
         print(f"deviations register: {DEVIATIONS_PATH}")
         print(f"  entry count: {len(load_register())}")
-        print("usage: python scaffold/deviations.py list")
+        print("usage: python scaffold/scripts/utils/deviations.py list")

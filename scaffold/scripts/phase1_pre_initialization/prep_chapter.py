@@ -9,19 +9,28 @@ lecture notes IN PLACE, wrapping every definition with
 Run this once per chapter, BEFORE `initialize_chapter.py`. It is slow and
 costly (one long agent run per chapter), so we keep it isolated.
 
-Entry point: `python3 scaffold/prep_chapter.py` (reads `current_chapter`
+Entry point: `python3 scaffold/scripts/phase1_pre_initialization/prep_chapter.py` (reads `current_chapter`
 from `scaffold/global_vars.json`).
 """
 from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
+# Make sibling phase folders + utils/ importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                                # noqa: F401, E402
 
-SCAFFOLD_DIR = Path(__file__).resolve().parent
-LECTURE_NOTES_DIR = SCAFFOLD_DIR.parent / "lecture-notes" / "lecture_notes"
+# .../scaffold/scripts/phase1_pre_initialization/<this file> -> scaffold/ is three up.
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCAFFOLD_DIR = SCRIPT_DIR.parent.parent                            # scaffold/
+REPO_ROOT = SCAFFOLD_DIR.parent
+LECTURE_NOTES_DIR = REPO_ROOT / "lecture-notes" / "lecture_notes"
 GLOBAL_VARS_PATH = SCAFFOLD_DIR / "global_vars.json"
+PROMPT_PATH = (SCAFFOLD_DIR / "claude_prompts" / "phase1_pre_initialization"
+               / "mark_definitions_and_claims_in_tex.md")
 
 
 def mark_defs_and_claims(chapter: int, tex_file: str) -> None:
@@ -29,15 +38,10 @@ def mark_defs_and_claims(chapter: int, tex_file: str) -> None:
     `.tex` file with ``\\begin{defmark}``/``\\begin{claimmark}`` blocks.
 
     The agent follows the prompt at
-    ``scaffold/claude_prompts/chapter_setup/mark_definitions_and_claims_in_tex.md``.
+    ``scaffold/claude_prompts/phase1_pre_initialization/mark_definitions_and_claims_in_tex.md``.
     Raises ``RuntimeError`` on non-zero exit.
     """
-    prompt_template = (
-        SCAFFOLD_DIR
-        / "claude_prompts"
-        / "chapter_setup"
-        / "mark_definitions_and_claims_in_tex.md"
-    ).read_text(encoding="utf-8")
+    prompt_template = PROMPT_PATH.read_text(encoding="utf-8")
     tex_path = LECTURE_NOTES_DIR / tex_file
 
     context = (

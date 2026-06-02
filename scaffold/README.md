@@ -1,8 +1,8 @@
-# `leanification/` — phases overview
+# `scaffold/` — the formalization workflow
 
-This is the Lean-formalization workspace. The folder is currently **empty** (clean slate; the prior content is in `archive/2026-06-02-pre-clean-slate/leanification/`).
+This is the orchestration layer that drives a chapter from "LN tex" to "fully formalized Lean". The Lean artefacts themselves (per-chapter `data.json`, `Chapter<N>_<Title>/` folders, the registers) live in `leanification/` at the repo root. The scripts and prompts that *operate on* those artefacts live here.
 
-Each chapter moves from "LN tex" to "fully formalized Lean" through **four phases**. The first three are workflows in this repo; the fourth happens outside the workflow.
+The work is organised into **four phases per chapter**. The first three are driven by scripts in `scaffold/scripts/<phase>/`; the fourth happens outside the workflow.
 
 Below, **[human]** = operator step; **[agent]** = orchestrator-driven step.
 
@@ -17,12 +17,12 @@ Below, **[human]** = operator step; **[agent]** = orchestrator-driven step.
 **[agent]** Spawn the marking agent:
 
 ```bash
-python scaffold/prep_chapter.py
+python scaffold/scripts/phase1_pre_initialization/prep_chapter.py
 ```
 
 This reads `current_chapter` from `scaffold/global_vars.json`, locates the chapter's tex file (via `lecture-notes/lecture_notes/main.tex` includes), and runs a Claude Code subprocess against the prompt at:
 
-- `scaffold/claude_prompts/chapter_setup/mark_definitions_and_claims_in_tex.md`
+- `scaffold/claude_prompts/phase1_pre_initialization/mark_definitions_and_claims_in_tex.md`
 
 The prompt instructs the agent to be exhaustive — every theorem, lemma, corollary, remark, plus any claim "hidden in a paragraph" or "inside a definition" gets a `\begin{claimmark}` wrapper. Defs likewise. The agent edits the tex file in place.
 
@@ -44,13 +44,13 @@ The prompt instructs the agent to be exhaustive — every theorem, lemma, coroll
 **[agent]** Run
 
 ```bash
-python scaffold/initialize_chapter.py
+python scaffold/scripts/phase2_initialization/initialize_chapter.py
 ```
 
 This:
 - Resolves the chapter folder name (`Chapter<N>_<PascalCaseTitle>/`).
 - Walks the marked tex file (and any `\input`'d sub-files), extracts every `defmark` / `claimmark` block in source order, and assigns refs (`def_<N>_<i>`, `claim_<N>_<j>`).
-- Writes `leanification/Chapter<N>_<Title>/data.json` with one row per ref. Schema in `scaffold/initialize_chapter.py` (search `"columns"`); `addition_to_the_LN` starts empty.
+- Writes `leanification/Chapter<N>_<Title>/data.json` with one row per ref. Schema in `scaffold/scripts/phase2_initialization/initialize_chapter.py` (search `"columns"`); `addition_to_the_LN` starts empty.
 - Creates section subfolders and inserts `% <ref>` comments in the LN tex so future agents can locate each block.
 - Registers the chapter's globs in `lakefile.toml` and imports the chapter aggregator from `Causality.lean`.
 
@@ -59,7 +59,7 @@ This:
 **[agent]** Run
 
 ```bash
-python scaffold/initial_subtlety_checker.py --chapter <N>
+python scaffold/scripts/phase2_initialization/initial_subtlety_checker.py --chapter <N>
 ```
 
 For every row, spawns the `check_ln_wording` worker on the row's LN tex block. The worker looks for **LN-internal** issues — ambiguity, unintended-looking corner cases admitted by the literal reading, internal inconsistencies, arbitrary or unclear phrasing. It is **not** doing any Lean-vs-LN comparison; only LN-itself sanity.
@@ -73,7 +73,7 @@ Idempotent: re-running skips rows whose subtleties are already on file. `--force
 **[agent]** Run
 
 ```bash
-python scaffold/generate_initialization_table.py --chapter <N>
+python scaffold/scripts/phase2_initialization/generate_initialization_table.py --chapter <N>
 ```
 
 Writes `leanification/Chapter<N>_<Title>/initialization_table.md` — one section per registered subtlety, each with a `Decision` block initialised to `TODO`. The file ends with an **"Additional notes (global)"** section for project-wide LN additions that aren't tied to a specific subtlety.
@@ -100,7 +100,7 @@ Under `### Notes`, write project-wide assumptions like "every CDMG is assumed to
 **[agent]** Run
 
 ```bash
-python scaffold/process_initialization_table.py --chapter <N>
+python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter <N>
 ```
 
 Reads the filled-in table, folds each decision into the observing row's `addition_to_the_LN` field, and prefixes global notes onto every row.
@@ -118,10 +118,10 @@ Reads the filled-in table, folds each decision into the observing row's `additio
 **[agent]** Run
 
 ```bash
-python scaffold/solve_chapter.py
+python scaffold/scripts/phase3_solving/solve_chapter.py
 ```
 
-The orchestrator picks the first unsolved row, spawns a manager (Opus 4.7 1M-context), the manager spawns workers (formalize, verify_equivalence, verify_tex_proof, simplify_proof, …), the manager iterates until the row passes the three-stage solved-gate (sorry-check, friendly equivalence, strict equivalence). The full row-solving workflow lives in `scaffold/claude_prompts/manager.md`.
+The orchestrator picks the first unsolved row, spawns a manager (Opus 4.7 1M-context), the manager spawns workers (formalize, verify_equivalence, verify_tex_proof, simplify_proof, …), the manager iterates until the row passes the three-stage solved-gate (sorry-check, friendly equivalence, strict equivalence). The full row-solving workflow lives in `scaffold/claude_prompts/phase3_solving/manager.md`.
 
 The equivalence checkers (`verify_equivalence`, `verify_equivalence_strict`, `verify_with_examples`) treat **`tex_block + addition_to_the_LN`** as the authoritative spec — the formalization must satisfy the literal LN **AND** every clause in the addition.
 
@@ -145,7 +145,7 @@ python extras/do_refactor.py finalize --refactor-data <refactor table>
 python extras/do_refactor.py merge --refactor-data <archived table> --push --delete-remote-branch
 ```
 
-Finalize swaps every `REFACTOR-BLOCK-REPLACEMENT` block over its `REFACTOR-BLOCK-ORIGINAL` counterpart, runs the post-rename `lake build`, syncs `data.json`, and archives the refactor folder. Merge brings the refactored state back into the source branch. The full refactor lifecycle is in `scaffold/claude_prompts/manager.md` under "Refactor rows".
+Finalize swaps every `REFACTOR-BLOCK-REPLACEMENT` block over its `REFACTOR-BLOCK-ORIGINAL` counterpart, runs the post-rename `lake build`, syncs `data.json`, and archives the refactor folder. Merge brings the refactored state back into the source branch. The full refactor lifecycle is in `scaffold/claude_prompts/phase3_solving/manager.md` under "Refactor rows".
 
 **Inside a refactor row**, the `refactor` action *restarts the entire refactor* with an expanded root set (current roots + new ref). The current refactor branch is discarded; a fresh branch is spawned off the source branch. The rationale lives at `Refactor_<new_name>/extension_rationale.md` on the new branch.
 
@@ -169,11 +169,96 @@ Output of this phase is **not** a file in this repo — it's your signature on t
 
 ---
 
-## File / folder layout (when populated)
+## `scaffold/` folder layout
+
+The scaffold is organised so that every script and every prompt has a clear phase home. Per-phase Python scripts live in `scaffold/scripts/<phase>/`; per-phase agent prompts live in `scaffold/claude_prompts/<phase>/`. Cross-phase Python helpers live in `scaffold/scripts/utils/`. Top-level files in `scaffold/` are shared infrastructure (commit gate, current-chapter pointer, README, tex templates).
+
+```
+scaffold/
+├── README.md                                       <- this file
+├── build_and_commit.sh                             <- cross-phase commit gate (lake build + git push)
+├── global_vars.json                                <- {"current_chapter": <N>}; read by Phases 1 + 2
+├── tex_templates/                                  <- LaTeX templates used by Phases 2 + 3
+│
+├── claude_prompts/                                 <- agent prompts, organised by phase
+│   ├── phase1_pre_initialization/
+│   │   └── mark_definitions_and_claims_in_tex.md   <- prompt for the LN marking agent
+│   ├── phase2_initialization/
+│   │   └── check_ln_wording.md                     <- prompt for the wording-check worker
+│   │                                                  (also re-used in Phase 3 row-solving)
+│   ├── phase3_solving/
+│   │   ├── manager.md                              <- the per-row manager prompt
+│   │   └── row_workers/                            <- worker prompts dispatched by the manager
+│   │       ├── formalize_definition_in_lean.md
+│   │       ├── formalize_claim_in_lean.md
+│   │       ├── verify_equivalence.md
+│   │       ├── verify_equivalence_strict.md
+│   │       ├── verify_with_examples.md
+│   │       ├── verify_tex_proof.md
+│   │       ├── correct_tex_proof.md
+│   │       ├── expand_tex_proof.md
+│   │       ├── simplify_proof.md
+│   │       ├── review_design.md
+│   │       ├── add_design_choice_comments.md
+│   │       ├── plan_subtasks.md
+│   │       ├── plan_refactor.md
+│   │       ├── refactor_lean_code.md
+│   │       └── … (one per row-worker action)
+│   └── phase4_verifying/                           <- (currently empty; Phase 4 is human-only)
+│
+└── scripts/                                        <- Python scripts, organised by phase
+    ├── _path_setup.py                              <- shared sys.path helper (every per-phase
+    │                                                  script imports this so cross-folder
+    │                                                  imports like `from solve_chapter import …`
+    │                                                  resolve regardless of caller location)
+    ├── main.py                                     <- placeholder for a future top-level driver
+    │
+    ├── utils/                                      <- cross-phase Python helpers
+    │   ├── subtlety_register.py                    <- read/write both subtlety registers
+    │   ├── deviations.py                           <- read/write the deviation register
+    │   └── audit_helpers.py                        <- shared dispatchers for the strict-
+    │                                                  equivalence + example-verifier workers
+    │
+    ├── phase1_pre_initialization/
+    │   └── prep_chapter.py                         <- runs the LN marking agent (uses
+    │                                                  claude_prompts/phase1_pre_initialization/)
+    │
+    ├── phase2_initialization/
+    │   ├── initialize_chapter.py                   <- builds Chapter<N>_<Title>/data.json
+    │   ├── create_data.py                          <- helper: walks tex for marks, makes rows
+    │   ├── initial_subtlety_checker.py             <- runs check_ln_wording on every row
+    │   ├── generate_initialization_table.py        <- writes initialization_table.md
+    │   └── process_initialization_table.py         <- folds human answers into addition_to_the_LN
+    │
+    ├── phase3_solving/
+    │   ├── solve_chapter.py                        <- the main row-solver orchestrator
+    │   ├── run_section.py                          <- driver: solve every row of a section
+    │   └── run_until.py                            <- driver: solve until a target ref is done
+    │
+    └── phase4_verifying/                           <- (currently empty; Phase 4 is human-only)
+```
+
+### How the per-phase Python scripts find each other
+
+Each per-phase script has this preamble near the top:
+
+```python
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup  # noqa: F401
+```
+
+`_path_setup` adds every `scripts/<phase>/` folder and `scripts/utils/` to `sys.path`. After that, plain imports like `from solve_chapter import …` or `from subtlety_register import …` work regardless of which phase folder the importing script lives in. We deliberately don't use a real Python package (`__init__.py` + relative imports), because the scripts are invoked via `python scaffold/scripts/<phase>/foo.py` and we want to keep that interface.
+
+`extras/` scripts (refactor lifecycle, audit) do the same `sys.path.insert(... / "scaffold" / "scripts")` + `import _path_setup` dance.
+
+---
+
+## `leanification/` folder layout (when populated)
 
 ```
 leanification/
-├── README.md                            <- this file
 ├── Causality.lean                       <- library root; imports chapter aggregators
 ├── Chapter<N>_<Title>.lean              <- chapter aggregator (auto-managed)
 ├── preamble.tex                         <- shared tex preamble

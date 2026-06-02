@@ -6,10 +6,10 @@ on every row's LN tex block (in order), parses the worker's
 ``leanification/initial_subtlety_register.json``.
 
 The register is informational. After this script finishes, run
-``scaffold/generate_initialization_table.py`` to produce the
+``scaffold/scripts/phase2_initialization/generate_initialization_table.py`` to produce the
 human-facing decision table; the human fills in answers per subtlety
 (plus any additional global notes); then
-``scaffold/process_initialization_table.py`` folds the human's
+``scaffold/scripts/phase2_initialization/process_initialization_table.py`` folds the human's
 answers into ``data.json`` under the new ``addition_to_the_LN``
 column.
 
@@ -19,8 +19,8 @@ re-run. Pass ``--force`` to re-check every row.
 
 Usage::
 
-    python scaffold/initial_subtlety_checker.py --chapter 3
-    python scaffold/initial_subtlety_checker.py --chapter 3 --force
+    python scaffold/scripts/phase2_initialization/initial_subtlety_checker.py --chapter 3
+    python scaffold/scripts/phase2_initialization/initial_subtlety_checker.py --chapter 3 --force
 """
 
 from __future__ import annotations
@@ -31,16 +31,22 @@ import re
 import sys
 from pathlib import Path
 
-SCAFFOLD_DIR = Path(__file__).resolve().parent
+# .../scaffold/scripts/phase2_initialization/<this file>
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCAFFOLD_DIR = SCRIPT_DIR.parent.parent                            # scaffold/
 REPO_ROOT = SCAFFOLD_DIR.parent
 LEANIFICATION = REPO_ROOT / "leanification"
-WORKERS_DIR = SCAFFOLD_DIR / "claude_prompts" / "row_workers"
+WORDING_CHECK_PROMPT = (SCAFFOLD_DIR / "claude_prompts"
+                        / "phase2_initialization" / "check_ln_wording.md")
 
-sys.path.insert(0, str(SCAFFOLD_DIR))
-from subtlety_register import (                                            # noqa: E402
+# Make sibling phase folders + utils/ importable.
+sys.path.insert(0, str(SCRIPT_DIR.parent))
+import _path_setup                                                # noqa: F401, E402
+
+from subtlety_register import (                                  # noqa: E402
     load_register, register_subtlety, mangle_id,
 )
-from solve_chapter import read_tex_block, run_claude                       # noqa: E402
+from solve_chapter import read_tex_block, run_claude             # noqa: E402
 
 
 _SUBTLETY_RE = re.compile(
@@ -160,7 +166,7 @@ def main(argv: list[str]) -> int:
 
     only_refs = {r.strip() for r in args.only_refs.split(",") if r.strip()}
 
-    worker_path = WORKERS_DIR / "check_ln_wording.md"
+    worker_path = WORDING_CHECK_PROMPT
     if not worker_path.exists():
         print(f"ERROR: worker prompt missing: {worker_path}",
               file=sys.stderr)
@@ -189,9 +195,9 @@ def main(argv: list[str]) -> int:
     print(f"\n[initial_subtlety_checker] done: {total_written} new "
           f"entry(s) written, {total_skipped} row(s) skipped (already "
           f"processed). Next step: review the entries via\n"
-          f"  python scaffold/subtlety_register.py initial\n"
+          f"  python scaffold/scripts/utils/subtlety_register.py initial\n"
           f"then generate the human-decision table with\n"
-          f"  python scaffold/generate_initialization_table.py "
+          f"  python scaffold/scripts/phase2_initialization/generate_initialization_table.py "
           f"--chapter {args.chapter}",
           file=sys.stderr)
     return 0

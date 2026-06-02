@@ -9,7 +9,7 @@ Branches involved (hardcoded):
 - ``refactor_<name>``: created by `do_refactor.py init` off
   ``server_setting_up_scaffold``. The refactor table lives here,
   refactor rows are solved here via
-  ``python scaffold/solve_chapter.py --data-path …``, and
+  ``python scaffold/scripts/phase3_solving/solve_chapter.py --data-path …``, and
   ``apply_refactor_cleanup.py`` runs here via
   ``do_refactor.py finalize``.
 
@@ -43,7 +43,7 @@ Usage::
         --name Marginalize
 
     # Drive the refactor table (long-running; over many sessions):
-    python scaffold/solve_chapter.py --data-path \
+    python scaffold/scripts/phase3_solving/solve_chapter.py --data-path \
         leanification/Chapter3_GraphTheory/Refactor_Marginalize/refactor_data.json
 
     # Once every refactor row is solved=yes:
@@ -347,7 +347,8 @@ def cmd_init(args: argparse.Namespace) -> int:
     # at solve-time -- accept_deviation refuses to acknowledge them,
     # forcing the refactor to actually FIX the issue (so the strict
     # gate passes cleanly) rather than rubber-stamp it.
-    sys.path.insert(0, str(SCAFFOLD))
+    sys.path.insert(0, str(SCAFFOLD / "scripts"))
+    import _path_setup                                                # noqa: F401
     from deviations import load_register                              # type: ignore
     refactor_refs = {r["ref"] for r in
                      json.loads(refactor_data.read_text())["rows"]}
@@ -393,7 +394,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     print(f"  refactor table:  {rel} ({n_rows} rows)")
     print(f"\nNext step -- drive the refactor table to completion "
           f"(may take many sessions):")
-    print(f"  python scaffold/solve_chapter.py --data-path {rel}")
+    print(f"  python scaffold/scripts/phase3_solving/solve_chapter.py --data-path {rel}")
     print(f"\nOnce every row is solved=yes, finalize with:")
     print(f"  python extras/do_refactor.py finalize --refactor-data {rel}")
     return 0

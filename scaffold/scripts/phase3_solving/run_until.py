@@ -3,7 +3,7 @@ AND the next first-unsolved row is past it. Stops as soon as either
 condition is hit.
 
 Usage:
-    python scaffold/run_until.py <target_ref>
+    python scaffold/scripts/phase3_solving/run_until.py <target_ref>
 
 The target_ref must exist in the current chapter's data.json. The script
 keeps solving the first unsolved row (the same behavior as plain
@@ -19,8 +19,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-SCAFFOLD = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCAFFOLD))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                         # noqa: F401, E402
 
 from solve_chapter import (  # noqa: E402
     read_current_chapter,

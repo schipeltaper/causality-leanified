@@ -28,7 +28,7 @@ dependents. No root-first bias.
 
 The refactor table can then be driven to completion via::
 
-    python scaffold/solve_chapter.py --data-path \\
+    python scaffold/scripts/phase3_solving/solve_chapter.py --data-path \\
         leanification/Chapter{N}_*/Refactor_{name}/refactor_data.json
 
 Once every row in the table is solved, run
@@ -416,7 +416,7 @@ def main(argv: list[str]) -> int:
         print(f"[initialize_refactor]   - chapter {ch}: {n} row(s)",
               file=sys.stderr)
     print(f"\nNext step: drive the table with\n"
-          f"  python scaffold/solve_chapter.py --data-path {out_path.relative_to(REPO_ROOT)}",
+          f"  python scaffold/scripts/phase3_solving/solve_chapter.py --data-path {out_path.relative_to(REPO_ROOT)}",
           file=sys.stderr)
     return 0
 

@@ -1,34 +1,40 @@
 import json
 import re
+import sys
 from pathlib import Path
 
-from create_data import fill_data
-from solve_chapter import (
+# Make sibling phase folders + utils/ importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                                # noqa: F401, E402
+
+from create_data import fill_data                                 # noqa: E402
+from solve_chapter import (                                       # noqa: E402
     regenerate_subsection_main_tex,
     ensure_request_from_human_file,
     pick_title_for_row,
 )
 
-# Load global variables from the JSON data file.
-GLOBAL_VARS_PATH = Path(__file__).parent / "global_vars.json"
+# .../scaffold/scripts/phase2_initialization/<this file>
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCAFFOLD_DIR = SCRIPT_DIR.parent.parent                            # scaffold/
+REPO_ROOT = SCAFFOLD_DIR.parent
+GLOBAL_VARS_PATH = SCAFFOLD_DIR / "global_vars.json"
 with open(GLOBAL_VARS_PATH) as f:
     global_vars = json.load(f)
 
 current_chapter = global_vars["current_chapter"]
 
-# The lecture notes live one directory up from the scaffold.
-SCAFFOLD_DIR = Path(__file__).resolve().parent
-LECTURE_NOTES_DIR = SCAFFOLD_DIR.parent / "lecture-notes" / "lecture_notes"
+LECTURE_NOTES_DIR = REPO_ROOT / "lecture-notes" / "lecture_notes"
 MAIN_TEX_PATH = LECTURE_NOTES_DIR / "main.tex"
 
 # Where each chapter is formalized: leanification/Chapter{N}_{PascalCaseTitle}/
-LEANIFICATION_DIR = SCAFFOLD_DIR.parent / "leanification"
-LAKEFILE_PATH = SCAFFOLD_DIR.parent / "lakefile.toml"
+LEANIFICATION_DIR = REPO_ROOT / "leanification"
+LAKEFILE_PATH = REPO_ROOT / "lakefile.toml"
 CAUSALITY_LEAN_PATH = LEANIFICATION_DIR / "Causality.lean"
 
 # Initialize current chapter
 #
-# NOTE: this assumes `scaffold/prep_chapter.py` has already been run for this
+# NOTE: this assumes `scaffold/scripts/phase1_pre_initialization/prep_chapter.py` has already been run for this
 # chapter -- the lecture-notes `.tex` file must already contain the
 # `\begin{defmark}`/`\begin{claimmark}` markers. If you skip that step, the
 # fill_data call below will return 0 rows.
@@ -94,7 +100,7 @@ def ensure_chapter_aggregator_stub(chapter_module: str) -> Path:
         return path
     path.write_text(
         f"-- Aggregator for chapter folder `{chapter_module}`.\n"
-        f"-- Auto-managed by scaffold/solve_chapter.py; do not edit by hand.\n",
+        f"-- Auto-managed by scaffold/scripts/phase3_solving/solve_chapter.py; do not edit by hand.\n",
         encoding="utf-8",
     )
     return path

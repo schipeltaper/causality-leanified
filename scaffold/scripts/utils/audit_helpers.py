@@ -31,17 +31,20 @@ import re
 import sys
 from pathlib import Path
 
-SCAFFOLD = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCAFFOLD))
+# .../scaffold/scripts/utils/<this file> -- add scripts/ to sys.path
+# so `import _path_setup` works, then _path_setup adds every phase
+# folder and utils/ to sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                              # noqa: F401, E402
 
-from solve_chapter import (                                    # type: ignore
+from solve_chapter import (                                    # type: ignore  # noqa: E402
     REPO_ROOT,
     WORKERS_DIR,
     read_worker_prompt,
     run_claude,
     WorkerTimeoutError,
 )
-from deviations import load_register                            # type: ignore
+from deviations import load_register                            # type: ignore  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

@@ -1,10 +1,10 @@
 """Loop solve_current_row until the given section is fully solved.
 
 Usage:
-    python scaffold/run_section.py <section>
+    python scaffold/scripts/phase3_solving/run_section.py <section>
 
 Example:
-    python scaffold/run_section.py 3.3      # solve every row of section 3.3
+    python scaffold/scripts/phase3_solving/run_section.py 3.3      # solve every row of section 3.3
 
 Stops as soon as no unsolved rows in ``<section>`` remain -- i.e. the
 chapter's first-unsolved row sits in a different section, or the
@@ -17,10 +17,10 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-SCAFFOLD = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCAFFOLD))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import _path_setup                                         # noqa: F401, E402
 
-from solve_chapter import (                                # type: ignore
+from solve_chapter import (                                # type: ignore  # noqa: E402
     read_current_chapter,
     find_chapter_data_path,
     load_data,

@@ -13,7 +13,7 @@ reading, internal inconsistency, an arbitrary or unclear phrase.
 Two phases, two register files:
 
 - ``leanification/initial_subtlety_register.json`` — written by
-  ``scaffold/initial_subtlety_checker.py`` during the chapter
+  ``scaffold/scripts/phase2_initialization/initial_subtlety_checker.py`` during the chapter
   initialization phase. Every row's tex block is passed through the
   ``check_ln_wording`` worker; any subtleties surface here. The
   initialization-phase table generator then asks the human to
@@ -45,7 +45,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+# .../scaffold/scripts/utils/<this file> -> repo root is three levels up.
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 LEANIFICATION = REPO_ROOT / "leanification"
 
 INITIAL_REGISTER_PATH = LEANIFICATION / "initial_subtlety_register.json"
