@@ -73,6 +73,12 @@ LEANIFICATION = REPO_ROOT / "leanification"
 sys.path.insert(0, str(SCRIPT_DIR.parent))
 import _path_setup                                                # noqa: F401, E402
 from subtlety_register import load_register                       # noqa: E402
+from solve_chapter import run_claude                              # noqa: E402
+
+INTERPRET_PROMPT_PATH = (
+    SCAFFOLD_DIR / "claude_prompts" / "phase2_initialization"
+    / "interpret_subtlety_decision.md"
+)
 
 
 # Match one decision block:
@@ -182,6 +188,74 @@ def _parse_global_notes(text: str) -> str:
     return body
 
 
+def _interpret_decision_via_worker(sid: str,
+                                   register_entry: dict,
+                                   row: dict,
+                                   user_response: str,
+                                   global_notes: str) -> str:
+    """Spawn the ``interpret_subtlety_decision`` worker on a single
+    operator-filled decision. Returns the agent's self-contained
+    clarification clause.
+
+    Reads the worker template (instructions only) and appends an
+    INPUTS block with the subtlety id, the subtlety explanation
+    (verbatim from ``initial_subtlety_register.json``), the row's LN
+    tex block, the operator's response, and the project-wide global
+    notes (context only). The worker returns a single paragraph
+    formal clause that goes into ``addition_to_the_LN`` under the
+    ``[<sid>] …`` prefix.
+
+    If the prompt file is missing, falls back to the raw operator
+    response with a stderr warning so the operator can fix the setup
+    without losing progress.
+    """
+    if not INTERPRET_PROMPT_PATH.exists():
+        print(f"WARNING: interpreter prompt missing at "
+              f"{INTERPRET_PROMPT_PATH}; falling back to verbatim "
+              f"operator response for `{sid}`.", file=sys.stderr)
+        return user_response.strip()
+    template = INTERPRET_PROMPT_PATH.read_text(encoding="utf-8")
+    inputs_block = (
+        "\n\n---\n\n"
+        "## INPUTS\n\n"
+        f"### Subtlety id\n\n`{sid}`\n\n"
+        "### Subtlety explanation "
+        "(what the wording-check worker had to say)\n\n"
+        f"{(register_entry.get('explanation') or '').strip()}\n\n"
+        "### LN tex block (the row being clarified)\n\n"
+        "```latex\n"
+        f"{(row.get('tex_block') or '').strip()}\n"
+        "```\n\n"
+        "### Operator's response (informal; may assume context)\n\n"
+        f"{user_response.strip()}\n\n"
+        "### Project-wide global notes "
+        "(context only; do NOT include in your output)\n\n"
+        f"{global_notes.strip() if global_notes else '(no global notes)'}\n"
+    )
+    prompt = template + inputs_block
+    print(f"  [{sid}] running interpreter worker ...",
+          file=sys.stderr, flush=True)
+    text, _sess = run_claude(prompt, label=f"interpret_{sid}")
+    return text.strip()
+
+
+def _strip_existing_clauses(addition: str) -> str:
+    """Remove every ``[<sid>] …`` and ``[global] …`` paragraph from an
+    existing ``addition_to_the_LN`` value, leaving any free-form text
+    the operator may have added by hand untouched. Used by
+    ``--reprocess-all`` to clear prior agent outputs (or prior
+    verbatim fallback outputs) before a fresh run."""
+    parts: list[str] = []
+    for p in (addition or "").split("\n\n"):
+        p = p.strip()
+        if not p:
+            continue
+        if re.match(r"\[[^\]]+\]", p):
+            continue                                # bracket-prefixed paragraph
+        parts.append(p)
+    return "\n\n".join(parts)
+
+
 def _merge_row_addition(existing: str,
                         new_per_row: list[tuple[str, str]],
                         global_notes: str) -> str:
@@ -234,6 +308,23 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="print what would change but do not write "
                              "data.json or move the marker in the table")
+    parser.add_argument("--verbatim", action="store_true",
+                        help="skip the interpreter worker and dump the "
+                             "operator's raw response into "
+                             "addition_to_the_LN. Faster (no Claude "
+                             "calls) but the downstream equivalence "
+                             "checker sees casual phrasing without "
+                             "the subtlety explanation as context. "
+                             "Useful for testing / quick iteration.")
+    parser.add_argument("--reprocess-all", action="store_true",
+                        help="reset the marker to the top of the table "
+                             "AND strip every `[<sid>] …` and "
+                             "`[global] …` paragraph from every row's "
+                             "addition_to_the_LN before processing. "
+                             "Use this after the table semantics have "
+                             "changed (e.g. enabling the interpreter "
+                             "worker) and you want every prior decision "
+                             "re-processed under the new rules.")
     args = parser.parse_args(argv)
 
     chapter_folder = _find_chapter_folder(args.chapter)
@@ -252,8 +343,17 @@ def main(argv: list[str]) -> int:
 
     # 1. Strip the marker (if any). Decisions below the (former) marker
     # position are what we'll consider for this run; everything above
-    # has already been processed in prior runs.
+    # has already been processed in prior runs. With --reprocess-all,
+    # treat the marker as if it were at the top so every decision is
+    # re-considered (the row-side addition_to_the_LN is also cleared
+    # below to make the re-processing actually overwrite).
     text_without_marker, marker_pos = _strip_marker(table_text)
+    if args.reprocess_all:
+        print(f"[process_initialization_table] --reprocess-all: "
+              f"resetting marker to top and stripping prior "
+              f"`[<sid>] …` / `[global] …` paragraphs from every row.",
+              file=sys.stderr)
+        marker_pos = 0
 
     # 2. Parse decisions below the marker, stopping at the first
     # unfilled entry.
@@ -304,40 +404,80 @@ def main(argv: list[str]) -> int:
         e.get("id"): e.get("observed_by_ref")
         for e in register if e.get("id")
     }
-    by_ref: dict[str, list[tuple[str, str]]] = {}
-    unattributed: list[str] = []
-    for sid, decision in decisions.items():
-        ref = id_to_ref.get(sid)
-        if ref is None:
-            unattributed.append(sid)
-            continue
-        by_ref.setdefault(ref, []).append((sid, decision))
-    if unattributed:
-        print(f"WARNING: {len(unattributed)} decision id(s) have no "
-              f"matching register entry (the register has been changed "
-              f"since the table was generated?): {unattributed}",
-              file=sys.stderr)
+    register_by_id: dict[str, dict] = {
+        e.get("id"): e for e in register if e.get("id")
+    }
 
-    print(f"[process_initialization_table] chapter={args.chapter}, "
-          f"{len(decisions)} new decision(s) (across {len(by_ref)} row(s)), "
-          f"global notes {'present' if global_notes else 'absent'}",
-          file=sys.stderr)
-
-    # 7. Merge into data.json. Per-row clauses are APPENDED to existing
-    # additions; global notes replace any prior `[global] …` paragraph.
+    # Load data.json early so we can attribute decisions to rows
+    # before invoking the interpreter worker (worker needs the row's
+    # tex_block).
     data = json.loads(data_path.read_text(encoding="utf-8"))
     rows = data.get("rows", [])
     columns = list(data.get("columns") or [])
     if "addition_to_the_LN" not in columns:
         columns.append("addition_to_the_LN")
     data["columns"] = columns
+    row_by_ref: dict[str, dict] = {r["ref"]: r for r in rows if r.get("ref")}
 
+    # 7. For each filled decision, either (a) dump verbatim
+    # (--verbatim) or (b) spawn the interpret_subtlety_decision worker
+    # with the subtlety explanation, the row's tex_block, the operator's
+    # response, and the global notes for context. The worker returns a
+    # self-contained formal clarification clause; the orchestrator wraps
+    # it with the `[<sid>]` prefix at merge time.
+    by_ref: dict[str, list[tuple[str, str]]] = {}
+    unattributed: list[str] = []
+    if decisions:
+        mode = "verbatim (no agent)" if args.verbatim else "via interpreter worker"
+        print(f"[process_initialization_table] chapter={args.chapter}, "
+              f"processing {len(decisions)} new decision(s) {mode}; "
+              f"global notes "
+              f"{'present' if global_notes else 'absent'}",
+              file=sys.stderr)
+    for sid, user_response in decisions.items():
+        ref = id_to_ref.get(sid)
+        if ref is None:
+            unattributed.append(sid)
+            continue
+        row = row_by_ref.get(ref)
+        register_entry = register_by_id.get(sid) or {}
+        if not row:
+            print(f"WARNING: subtlety `{sid}` attributed to row `{ref}`, "
+                  f"but no such row in data.json. Skipping.",
+                  file=sys.stderr)
+            continue
+        if args.verbatim or user_response.upper() == "NONE":
+            clause = user_response
+        else:
+            try:
+                clause = _interpret_decision_via_worker(
+                    sid, register_entry, row, user_response, global_notes)
+            except Exception as e:                       # noqa: BLE001
+                print(f"WARNING: interpreter worker on `{sid}` failed "
+                      f"({type(e).__name__}: {e}); falling back to "
+                      f"verbatim operator response.",
+                      file=sys.stderr)
+                clause = user_response
+        by_ref.setdefault(ref, []).append((sid, clause))
+    if unattributed:
+        print(f"WARNING: {len(unattributed)} decision id(s) have no "
+              f"matching register entry (the register has been changed "
+              f"since the table was generated?): {unattributed}",
+              file=sys.stderr)
+
+    # 8. Merge into data.json. Per-row clauses are APPENDED to existing
+    # additions; global notes replace any prior `[global] …` paragraph.
+    # Under --reprocess-all, every row's prior bracket-prefixed clauses
+    # are stripped first so the new agent-generated clauses fully
+    # replace any verbatim ones from prior runs.
     changed = 0
     for row in rows:
         ref = row.get("ref")
         if not ref:
             continue
         existing = row.get("addition_to_the_LN") or ""
+        if args.reprocess_all:
+            existing = _strip_existing_clauses(existing)
         new_per_row = by_ref.get(ref, [])
         addition = _merge_row_addition(existing, new_per_row, global_notes)
         if addition != existing:
