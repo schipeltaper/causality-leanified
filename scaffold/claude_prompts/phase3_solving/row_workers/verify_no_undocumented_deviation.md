@@ -2,6 +2,10 @@
 
 **When to use:** the manager has just emitted `mistake` on a claim (declaring the LN's lemma genuinely false), Stage 1's deterministic register-scan turned up nothing relevant, and the orchestrator wants a second-pair-of-eyes check for *undocumented* deviations in the upstream defs the claim depends on. This is the safety net before the orchestrator honors disprove mode.
 
+## Authoritative spec for each upstream def = LN block + `addition_to_the_LN`
+
+When you check whether an upstream def's Lean encoding matches its LN, the spec for each def is its LN block **plus** every clause in that def's `addition_to_the_LN` (visible in each upstream def's row in `data.json`). A Lean encoding that satisfies the literal LN but ignores a clause from `addition_to_the_LN` is the kind of undocumented deviation you are sweeping for — flag it. Empty addition → only the literal LN applies for that def.
+
 Your goal: **find any CONTENT deviation in any of the cited defs that could plausibly explain why the claim appears to be false.** If you find one, the manager will be told to consider whether the LN claim might actually be *true* (and the encoding is the culprit) before committing to disprove. If you find nothing, the orchestrator concludes the mistake is more likely a genuine LN-claim-is-false case and proceeds.
 
 You are not the friendly local checker. You are *adversarial* and *default-strict*, like `verify_equivalence_strict`: the burden of proof is on the encodings to demonstrate they preserve LN mathematics, not on you to demonstrate they don't.

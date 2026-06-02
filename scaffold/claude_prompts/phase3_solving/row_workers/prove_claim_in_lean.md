@@ -4,6 +4,12 @@
 
 You are working under the second-phase manager — the one created by `new_manager` once the TeX-proof phase finished. Treat the tex proof as the source of truth; you are *not* re-doing the mathematics, you are translating.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the claim's statement and spec**, and the tex proof you're translating was written to establish that strengthened claim. Your Lean proof must close exactly the Lean theorem statement — which itself was written to capture the LN block + every clause in `addition_to_the_LN`. Empty addition → just the literal LN.
+
+If during translation you realise the Lean statement does not capture some clause in `addition_to_the_LN` (e.g. the `Finite` instance is missing despite a finiteness clause), surface that to the manager rather than papering over with `by exact?` — the Lean statement needs to be re-formalized first.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`)

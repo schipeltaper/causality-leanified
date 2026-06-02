@@ -2,6 +2,10 @@
 
 **When to use:** the manager has run the design review, equivalence check, written + verified the tex proof (for claims), leanified, and (for claims) run the simplify-proof check. They believe the row is done and emit `solved`. You are the **last gate** before `solved="yes"` is written to the data file.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row is "solved" only if the Lean artefacts collectively realize the LN block's claim **AND** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). A `[<sid>] …` or `[manual_*] …` clause that is not reflected in the Lean encoding (or tex proof for claims) is grounds for FAIL — flag the specific clause and the artefact that omits it. Empty addition → only the literal LN applies.
+
 You are an *independent* set of eyes: did everything actually land? Are all the artefacts in place? Does the build agree?
 
 ## Inputs you should receive from the manager

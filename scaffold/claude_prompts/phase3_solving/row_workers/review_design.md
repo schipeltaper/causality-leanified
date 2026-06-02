@@ -2,6 +2,10 @@
 
 **When to use:** a definition or claim statement has just been formalized in Lean. Before committing to it, the manager wants an *independent* design-level review. You are not checking exact LN-↔-Lean equivalence (that's `verify_equivalence`); you are checking whether the Lean *shape* is natural, whether it composes well with the rest of the theory, and whether a downstream lemma would be awkward because of how this was set up.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+When you judge "natural", judge against the LN block **plus** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). A design that is awkward against the literal LN may be the most natural shape once the `addition_to_the_LN` clauses are folded in — and vice versa. E.g. a `[manual_1] vertex sets are finite` clause means a Lean encoding that takes `[Finite α]` as a typeclass is *more* natural than one that doesn't. Empty addition → only the literal LN applies.
+
 **Important:** load enough context to do this well. **Read the entire lecture notes (`lecture-notes/lecture_notes/main.tex` and every chapter it `\input`s), not only this subsection.** A definition that "looks fine" for one claim can be the wrong shape for a theorem ten chapters later. You are doing the kind of review a thoughtful coauthor would do over a coffee.
 
 ## Inputs you should receive from the manager

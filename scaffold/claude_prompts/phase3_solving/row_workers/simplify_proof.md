@@ -2,6 +2,10 @@
 
 **When to use:** a claim has been Lean-proven and the row is *about* to be marked `solved` — but before locking it in, the manager wants an independent agent (with **full lecture-notes context**) to look at the proof and ask: *is this proof unnecessarily complex? Could it have been shorter, cleaner, more in line with the LN's own style?*
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+Any simplification proposal must still close the Lean theorem statement — which was written to capture the LN block **plus** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). A "simplification" that silently drops the use of an `addition_to_the_LN` hypothesis (e.g. finiteness) is not a simplification, it's a regression — FAIL with that observation. Empty addition → only the literal LN applies.
+
 If you find a genuinely simpler proof, you propose it. The manager will then run it through `prove_claim_in_lean` (rewriting the Lean proof) and `verify_row_solved` again.
 
 If you cannot find a simpler proof after honest effort, you PASS — the existing proof stays.

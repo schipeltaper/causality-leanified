@@ -2,6 +2,10 @@
 
 **When to use:** a tex proof already exists in `claim_<N>_<M>_proof_<title>.tex (in the subsection folder)` (from `write_tex_proof`) but the verifier flagged a step as too sketchy, or a downstream Lean prover got stuck on what should "follow trivially". Your job is to push that specific step deeper — without rewriting the rest.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+When expanding the sketchy step, treat the LN block + every clause in the row's `addition_to_the_LN` field (surfaced in the row context) as the joint spec. If the step depends on a constraint that appears in `addition_to_the_LN` (e.g. a finiteness assumption, a tightened bifurcation rule), make that dependency explicit in the expanded text so the leanifier sees it. Empty addition → only the literal LN applies.
+
 ## Inputs you should receive from the manager
 
 - `ref` and the path to the tex proof file

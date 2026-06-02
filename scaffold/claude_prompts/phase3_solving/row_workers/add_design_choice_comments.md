@@ -2,6 +2,10 @@
 
 **When to use:** a definition or claim-statement has just been formalized in Lean, and the manager has already PASSed `review_design` and `verify_equivalence`. Before the row can proceed (to `solved` for defs, or to the proof phase for claims), the design-choice comment block above each affected Lean declaration must be filled in with the **why** behind the Lean shape — what alternatives were considered, why this one wins, what downstream lemmas it sets up for.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+When you write the "why", **explicitly reference every clause in the row's `addition_to_the_LN`** that influenced the Lean shape. E.g. if a `[manual_1] vertex sets are finite` clause led to the `[Finite α]` typeclass on the structure, the comment should say so — that's load-bearing context for a future reader. If a `[<sid>] …` clause was the reason a particular field was added, mention it. Empty addition → no addition-driven design choices to mention.
+
 The formalize worker may have left a stub `Design choice:` line; you replace or extend it with a substantive few paragraphs.
 
 ## Inputs you should receive from the manager

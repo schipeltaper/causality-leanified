@@ -2,6 +2,12 @@
 
 **When to use:** the manager has a claim whose Lean statement is already formalized (a `theorem` exists, body is `sorry`) and an empty proof-template subfile already exists. Your job is to fill that file with a self-contained TeX proof.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the claim you are proving**. It carries human-authored clarifications and strengthenings of the LN's literal wording, written during the initialization phase. The tex proof you write must establish the LN block's claim **AND** every clause in the addition. If the addition contradicts the literal LN, the addition wins. Empty addition → only the literal LN applies.
+
+Concretely: every `[<sid>] …` and `[manual_*] …` paragraph in `addition_to_the_LN` either tightens what the claim asserts (you must prove the tighter version) or constrains the ambient setup (you may freely use the constraint in the proof). Use those clauses as additional axioms / hypotheses in the proof body where appropriate.
+
 **Which file**: the manager will tell you the target path. There are two cases:
 
 - **Prove mode** (default): target is `tex/claim_<N>_<M>_proof_<title>.tex`. The proof must establish the claim as stated.

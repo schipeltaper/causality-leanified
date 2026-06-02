@@ -2,6 +2,10 @@
 
 **When to use:** a manager believes a claim's tex proof (under `tex_proofs/<ref>_*.tex`) is complete and wants an independent set of eyes before handing the proof off to the leanification phase. You did not write the proof — you arrived fresh and have to convince yourself it holds up.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The tex proof must establish the LN block's claim **AND** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). A proof that closes the literal LN claim but ignores an `addition_to_the_LN` strengthening is INCOMPLETE — FAIL with feedback pointing at the unclosed clause. A proof that uses an `addition_to_the_LN` clause as a hypothesis (e.g. citing finiteness) is fine — that clause is part of the spec. Empty addition → only the literal LN applies.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`) and the subsection folder

@@ -2,6 +2,10 @@
 
 **When to use:** the manager has concluded that a `claim` row is genuinely false (not just hard to prove). Your job is to make that argument rigorously — by producing a counter-example — and capture it in the Lean source so the row can be marked `proven=disproven` and `solved=yes`.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The claim being refuted is the LN block **together with** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). Your counter-example must refute that *combined* statement — not just the literal LN — to count as a genuine disproof. If the addition contains a clause like `[manual_1] vertex sets are finite`, your counter-example carrier must satisfy that constraint; an "infinite" counter-example doesn't refute the claim as scoped. Empty addition → only the literal LN applies.
+
 > The lecture notes are known to contain at least one big mistake. Treat this as a real possibility, not a last resort. But also: do **not** weaken a claim's statement just because you can't prove it. The bar for "disproven" is a concrete counter-example, not "I'm stuck".
 
 ## Inputs you should receive from the manager

@@ -2,6 +2,12 @@
 
 **When to use:** the manager has handed you a row with `def_or_claim == "def"` that is not yet formalized. The lecture notes have the source text wrapped in `\begin{defmark}...\end{defmark}`. Your job is to write the equivalent Lean 4 declaration.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the spec**. It carries human-authored clarifications, strengthenings, or disambiguations written during the initialization phase. Treat them as part of the LN: the Lean definition you write must satisfy the LN's literal reading **AND** every clause in the addition. If the addition contradicts the literal LN, the addition wins. Empty addition → only the literal LN applies.
+
+Concretely: every `[<sid>] …` paragraph and every `[manual_*] …` paragraph in `addition_to_the_LN` is a constraint your Lean encoding must respect. E.g. a `[manual_1] The vertex sets J and V are assumed to be finite.` clause means the Lean carrier types must be `Finite` (or `Fintype`), even though the literal LN does not say so.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `def_3_5`)

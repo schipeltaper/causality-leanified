@@ -2,6 +2,12 @@
 
 **When to use:** the manager has handed you a row with `def_or_claim == "claim"` that is not yet formalized. The lecture notes have the source text wrapped in `\begin{claimmark}...\end{claimmark}`. Your job is to write the equivalent Lean 4 *statement* — a `theorem`/`lemma` with the right signature and a single `sorry` for the proof. Proving is a separate worker.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the claim's statement**. It carries human-authored clarifications, strengthenings, or disambiguations written during the initialization phase. The Lean theorem signature must capture the claim's literal LN reading **AND** every clause in the addition. If the addition contradicts the literal LN, the addition wins. Empty addition → only the literal LN applies.
+
+Concretely: a `[<sid>] The variable W is implicitly universally quantified …` clause means your Lean theorem must explicitly bind `W` with the right quantifier and hypothesis. A `[manual_1] The vertex sets are finite.` clause means the hypotheses include `[Finite α]` (or analogous). Read every paragraph in `addition_to_the_LN` and make sure no constraint is silently dropped from the Lean statement.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_12`)

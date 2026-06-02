@@ -2,6 +2,10 @@
 
 **When to use:** a TeX proof exists in `tex_proofs/<ref>_proof_<title>.tex` (previously verified by `verify_tex_proof`), but a downstream leanifier discovered a real flaw — a missing case, a wrong invariant, a citation that doesn't actually establish what was claimed. Your job is to **rewrite the TeX proof** to fix the mistake, after which `verify_tex_proof` will run again.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field is part of the claim's spec — the corrected proof must still establish the LN's literal claim **plus** every clause in `addition_to_the_LN`. If the flaw the leanifier surfaced is rooted in a clause from `addition_to_the_LN` (e.g. a finiteness hypothesis was overlooked), use that clause as the load-bearing repair. Empty addition → only the literal LN applies.
+
 This is different from `expand_proof`: that worker adds detail to a step that's underspecified. Here, the proof is actually wrong (or wrong in part) and must be corrected.
 
 ## Inputs you should receive from the manager

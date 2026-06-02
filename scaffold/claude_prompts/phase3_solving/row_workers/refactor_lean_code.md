@@ -2,6 +2,10 @@
 
 **When to use:** the manager has noticed that some Lean code in the row's subsection folder has grown awkward — duplicated logic, a file pushing 700+ lines with a natural split point, a definition that the rest of the theory wants in a different shape — and wants a focused refactor without changing what's been proven.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The refactored Lean code must continue to satisfy the LN block **and** every clause in the row's `addition_to_the_LN` field (surfaced in the row context). A "refactor" that drops a typeclass like `[Finite α]` (load-bearing for a finiteness clause) or removes a field that was added for a `[<sid>] …` clause is a spec regression — not a refactor. Empty addition → only the literal LN applies.
+
 ## Inputs you should receive from the manager
 
 - The Lean file(s) in scope
