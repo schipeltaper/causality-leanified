@@ -51,8 +51,10 @@ HEADER = """\
 Each row below corresponds to one subtlety the `check_ln_wording`
 worker surfaced. For each, fill in the **Decision** column with one of:
 
-- `NONE` — no addition to the LN needed. The formalizer should treat
-  the literal LN reading as authoritative.
+- `NONE` — no addition recorded for this entry. Nothing is appended
+  to the row's `addition_to_the_LN`; this entry is closed out as
+  "decision made, no clarification needed". (`NONE` is not a directive
+  to "use the exact wording"; it just means no extra information.)
 - A free-form clarifying clause that should be appended to the LN's
   meaning when this row (and any downstream row that depends on it)
   is formalized. The clause is a *strengthening or disambiguation* of

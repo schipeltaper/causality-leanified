@@ -12,11 +12,21 @@ prefix.
 
 Decision values:
 
-- ``NONE`` (case-insensitive) — no addition for this subtlety; the
-  row's ``addition_to_the_LN`` is left unchanged on its behalf.
+- ``NONE`` (case-insensitive) — no addition recorded for this entry.
+  Nothing is appended to the row's ``addition_to_the_LN`` on this
+  subtlety's behalf. ``NONE`` is *not* a directive like "use the
+  exact LN wording"; it is simply the absence of any extra information.
+  (When a row's full set of decisions is ``NONE`` and no global notes
+  are written, the row's ``addition_to_the_LN`` ends up empty; the
+  equivalence-checker workers then treat the literal LN as the spec,
+  which is the natural fallback rather than a positive instruction.)
 - Anything else — treated as the clarifying clause; appended to the
   observed row's ``addition_to_the_LN`` (one paragraph per subtlety,
   prefixed with the subtlety id for traceability).
+- ``TODO`` (or blank) — unfilled. The script refuses to process and
+  lists the unfilled subtleties so the operator can finish the table.
+  Pass ``--allow-unfilled`` to override (each unfilled entry is then
+  treated as ``NONE``).
 
 The script is idempotent: re-running it overwrites the
 ``addition_to_the_LN`` field with the latest table contents. To
@@ -88,18 +98,22 @@ def _find_chapter_folder(chapter: int) -> Path:
         f"no leanification folder for chapter {chapter}")
 
 
-def _parse_decisions(text: str) -> dict[str, str]:
-    """Return ``{subtlety_id: decision_text}``. ``decision_text`` is
-    stripped; the literal value ``"TODO"`` is treated as unfilled and
-    omitted from the result."""
+def _parse_decisions(text: str) -> tuple[dict[str, str], list[str]]:
+    """Return ``({subtlety_id: decision_text}, unfilled_ids)``.
+    ``decision_text`` is stripped. The literal value ``"TODO"`` (or
+    an empty decision block) is treated as unfilled and reported via
+    ``unfilled_ids`` so the caller can warn / refuse rather than
+    silently dropping the entry."""
     out: dict[str, str] = {}
+    unfilled: list[str] = []
     for m in _DECISION_RE.finditer(text):
         sid = m.group("id").strip()
         decision = m.group("decision").strip()
         if not decision or decision.upper() == "TODO":
+            unfilled.append(sid)
             continue
         out[sid] = decision
-    return out
+    return out, unfilled
 
 
 def _parse_global_notes(text: str) -> str:
@@ -140,6 +154,13 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="print the resulting per-row additions but "
                              "do not modify data.json")
+    parser.add_argument("--allow-unfilled", action="store_true",
+                        help="proceed even if some decision blocks "
+                             "still say `TODO` or are blank; each "
+                             "unfilled entry is treated as `NONE` "
+                             "(no addition recorded). Default: refuse "
+                             "and list the unfilled subtleties so the "
+                             "operator can finish the table.")
     args = parser.parse_args(argv)
 
     chapter_folder = _find_chapter_folder(args.chapter)
@@ -155,8 +176,29 @@ def main(argv: list[str]) -> int:
         return 1
 
     table_text = table_path.read_text(encoding="utf-8")
-    decisions = _parse_decisions(table_text)
+    decisions, unfilled = _parse_decisions(table_text)
     global_notes = _parse_global_notes(table_text)
+
+    # Surface still-unfilled entries: the table contained `TODO` (or
+    # an empty decision block) for these subtleties. Refuse the
+    # processing unless the operator passes --allow-unfilled, so an
+    # accidentally-skipped subtlety doesn't silently end up with no
+    # addition recorded for it.
+    if unfilled:
+        print(f"WARNING: {len(unfilled)} subtlety/subtleties in the "
+              f"table are still unfilled (TODO or blank):",
+              file=sys.stderr)
+        for sid in unfilled:
+            print(f"  - {sid}", file=sys.stderr)
+        if not args.allow_unfilled:
+            print(f"\nRefusing to process. Either fill these in with "
+                  f"`NONE` or a clarifying clause, or re-run with "
+                  f"--allow-unfilled to treat them as `NONE` (their "
+                  f"row's addition_to_the_LN gains no entry from them).",
+                  file=sys.stderr)
+            return 1
+        print(f"  (--allow-unfilled: treating each as NONE)",
+              file=sys.stderr)
     register = load_register("initial")
     id_to_ref: dict[str, str] = {
         e.get("id"): e.get("observed_by_ref")
