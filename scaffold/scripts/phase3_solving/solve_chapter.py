@@ -148,12 +148,14 @@ ACTION_TO_WORKER: dict[str, str | None] = {
 # back to the manager. They never mutate row state directly.
 VERIFIER_ACTIONS: dict[str, tuple[str, str]] = {
     # action_name -> (worker_prompt_filename, label_suffix)
-    "verify_tex_proof":          ("verify_tex_proof.md",          "tex_proof_verifier"),
-    "review_design":             ("review_design.md",             "design_reviewer"),
-    "verify_equivalence":        ("verify_equivalence.md",        "equivalence_verifier"),
-    "verify_equivalence_strict": ("verify_equivalence_strict.md", "strict_eq_verifier"),
-    "verify_with_examples":      ("verify_with_examples.md",      "examples_verifier"),
-    "simplify_proof":            ("simplify_proof.md",            "simplifier"),
+    "verify_tex_proof":               ("verify_tex_proof.md",               "tex_proof_verifier"),
+    "verify_tex_statement_only":      ("verify_tex_statement_only.md",      "tex_statement_only_verifier"),
+    "verify_tex_statement_plus_proof": ("verify_tex_statement_plus_proof.md", "tex_statement_plus_proof_verifier"),
+    "review_design":                  ("review_design.md",                  "design_reviewer"),
+    "verify_equivalence":             ("verify_equivalence.md",             "equivalence_verifier"),
+    "verify_equivalence_strict":      ("verify_equivalence_strict.md",      "strict_eq_verifier"),
+    "verify_with_examples":           ("verify_with_examples.md",           "examples_verifier"),
+    "simplify_proof":                 ("simplify_proof.md",                 "simplifier"),
 }
 
 # Regex that pulls the (action_name, body) out of a manager message. The

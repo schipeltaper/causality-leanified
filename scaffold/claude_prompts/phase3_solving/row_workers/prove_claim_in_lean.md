@@ -17,6 +17,20 @@ If during translation you realise the Lean statement does not capture some claus
 - The path to the verified tex proof: `leanification/<chapter>/<subsection>/<ref>_proof_<title>.tex`
 - Pointers to the previously-formalized definitions and lemmas the proof depends on (their Lean names)
 
+## Lean statement markers — respect them
+
+The theorem you're proving was wrapped by the formalizer with `-- <ref> -- start statement` / `-- <ref> -- end statement` line comments around the signature. The proof body (`:= by sorry` or `:= proof_term`) sits **below** the end marker. Replace the `sorry` (or whatever placeholder is there) with the real tactic block; **do not move, delete, or alter the marker lines**, and do not write any proof content above the end marker. The website builder relies on the end-statement marker being immediately above the `:=` so it can render the statement separately from the proof. Concretely, the final shape is:
+
+```lean
+-- <ref> -- start statement
+theorem <name> ... : <conclusion>
+-- <ref> -- end statement
+:= by
+  <your tactic proof here>
+```
+
+If a proof helper (a small lemma the proof needs but the statement doesn't) lands in the same file, place it OUTSIDE the markers (below the `end statement` block of this row, or in a clearly separate region). Proof helpers do NOT get any markers — markers are reserved for statement content.
+
 ## What to do
 
 1. **Read the tex proof first.** It is the plan. Note every citation by `ref` and look up the corresponding Lean name in the chapter (open the relevant `.lean` files in the subsection folder).

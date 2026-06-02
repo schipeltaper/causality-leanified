@@ -68,6 +68,8 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `expand_proof` | one specific step in an existing tex proof is too sketchy | brief for `expand_tex_proof.md` (point at the step precisely) |
 | `correct_tex_proof` | leanification revealed a *mistake* in the tex proof | brief for `correct_tex_proof.md` (cite the leanifier's report; describe the flaw) |
 | `verify_tex_proof` | you believe a tex proof is complete and want an independent check | brief for `verify_tex_proof.md` (path to the proof file + the claim) |
+| `verify_tex_statement_only` | after the row's `<ref>_statement_<title>.tex` is written/updated, structurally check it contains the statement and nothing else (no proof, no extra environments). REQUIRED before treating the statement file as ready. | brief for `verify_tex_statement_only.md` (path to the statement file) |
+| `verify_tex_statement_plus_proof` | after the row's `<ref>_proof_<title>.tex` is written, structurally check it contains both the statement and the proof, in that order. REQUIRED before `verify_tex_proof` runs. Structural-only — does not assess mathematical correctness. | brief for `verify_tex_statement_plus_proof.md` (path to the proof file) |
 | `review_design` | a def/claim statement is freshly formalized; check it's a *natural* design | brief for `review_design.md` (the Lean declaration + LN block) |
 | `verify_equivalence` | check the Lean statement is *exactly equivalent* to the LN block (friendly, fast) | brief for `verify_equivalence.md` |
 | `verify_equivalence_strict` | adversarial, default-strict equivalence check. Classifies any difference as CONTENT (changes the math) or PRESENTATION (same math, different packaging). May return `EXAMPLE_GENERATION` asking for the property-based check — when it does, the orchestrator **automatically chains `verify_with_examples`** and feeds the combined result back to you (you don't have to dispatch a second action). Also auto-runs as a gate inside `solved` (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — but you can also invoke it voluntarily, e.g. right after `verify_equivalence` PASSes, to catch deviations the friendly checker missed. The orchestrator inlines the actual Lean source + the current deviation register into the worker prompt for this action. | brief for `verify_equivalence_strict.md` |
@@ -223,6 +225,39 @@ The orchestrator auto-tags every entry with `manager-accepted` so the human can 
 **You can also call `verify_equivalence_strict` and `verify_with_examples` voluntarily** during a row's normal workflow — they're in the actions table above. Useful if you want to know early whether your formalization will pass the gate, rather than learning at `solved`-time. (The friendly `verify_equivalence` is still there; the strict checker is additional, not a replacement.)
 
 After each Lean change, ensure `lake build` from `/home/11716061/repo_scaffold2/` is clean (the workers do this themselves; you don't run it). Never declare `solved` if a verifier in the chain hasn't PASSed.
+
+## Tex file structure checks
+
+After each tex subfile is written/updated, dispatch a structural check before moving on. These are cheap and catch sloppy file shape early:
+
+- `<ref>_statement_<title>.tex` is updated → `verify_tex_statement_only`. Confirms the file holds the statement and nothing else (no proof leaking in, no extra environments).
+- `<ref>_proof_<title>.tex` is written → `verify_tex_statement_plus_proof`. Confirms the file holds both the statement and the proof, in order. **This is the prerequisite for `verify_tex_proof`** (the mathematical check), so dispatch the structural check first.
+
+Both checks return `VERDICT: PASS/FAIL` and surface feedback the same way the existing verifiers do.
+
+## Lean statement markers (`-- <ref> -- start/end statement` / `-- <ref> --- start/end helper`)
+
+The formalize-statement workers (`formalize_definition_in_lean`, `formalize_claim_in_lean`) wrap each Lean declaration that is part of the row's *statement* formalization with line-comment markers. The website builder extracts statements via these markers, so they are load-bearing.
+
+Convention (recap, for your awareness — the workers know to insert them):
+
+```lean
+-- <ref> -- start statement              # for the main def / theorem signature
+def <name> := …
+-- <ref> -- end statement                # immediately below the last line of the wrapped declaration
+
+-- <ref> --- start helper                # for an aux declaration the main statement NEEDS to type-check
+def <helper> := …
+-- <ref> --- end helper
+```
+
+**Markers MUST be immediately adjacent to the declaration they wrap** — no blank lines, no other comments, no docstrings between the start marker and the keyword, or between the declaration's last line and the end marker (docstrings / design-choice comments go *above* the start marker).
+
+For claims with a proof: the markers wrap just the signature `theorem foo … : <conclusion>`. The `:= proof_body` sits *below* the end marker. The prove-claim worker (`prove_claim_in_lean`) knows not to touch the markers.
+
+**Helper-for-statement markers (THREE dashes) are reserved for declarations the statement needs to type-check** — e.g. a custom `def Iso` the theorem's conclusion uses. Auxiliary declarations introduced for proof tactics do NOT get markers.
+
+If a worker reports back without inserting markers (or with markers in the wrong place), surface that as a missing prerequisite and re-dispatch the formalize worker (or write a small `spawn_agent_sub_task` to fix the placement) before any downstream check.
 
 ## Addition to the LN (initialization-phase decisions)
 
