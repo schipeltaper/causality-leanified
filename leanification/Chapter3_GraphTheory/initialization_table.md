@@ -26,6 +26,8 @@ When done, save the file and run::
 
     python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter 3
 
+<!-- --- processed until here --- -->
+
 ### 1. `l_quotient_vs_ordered_pair_typing_inconsistent`
 
 - **Observed by row:** `def_3_1`

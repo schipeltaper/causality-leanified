@@ -73,11 +73,25 @@ degenerate n=1 backward-E case)."
 > "L is treated as a symmetric subset of `V × V` with the irreflexivity \
 constraint, not as a quotient set."
 
-When done, save the file and run::
+**Incremental processing.** A `<!-- --- processed until here --- -->`
+marker is written just below this header (and again, lower in the
+file, after each processing run). Each invocation of
+`process_initialization_table.py --chapter {chapter}` parses
+decisions strictly **below** the marker, stops at the first
+`TODO`/blank entry, folds the filled decisions into `data.json`,
+and moves the marker to just before that unfilled entry. So you can
+fill the table in increments and process as you go without finishing
+everything first.
+
+Run anytime:
 
     python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter {chapter}
 
 """
+
+# This line lives just below the HEADER in the generated table. The
+# processor moves it down as decisions are processed.
+INITIAL_MARKER = "<!-- --- processed until here --- -->\n\n"
 
 ADDITIONAL_NOTES_SECTION = """\
 ---
@@ -155,7 +169,8 @@ def main(argv: list[str]) -> int:
             chapter=args.chapter,
             today=datetime.now(timezone.utc).date().isoformat(),
             n_entries=len(entries),
-        )
+        ),
+        INITIAL_MARKER,
     ]
     if not entries:
         body_parts.append(
