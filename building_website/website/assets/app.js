@@ -401,11 +401,10 @@ function renderEntry(data) {
 
   // ---- actions ----
   //
-  // Four buttons (in this order):
-  //   1. View TeX proof   — claims only; navigates to the proof page
-  //   2. View Lean source — always; opens the .lean file on GitHub
-  //   3. Lean explanation — toggles the panel below; disabled until LLM-populated
-  //   4. Design choices   — toggles the panel below; disabled until LLM-populated
+  // Three buttons (in this order):
+  //   1. View TeX proof   — claims only; navigates to #proof/<ref>
+  //   2. View Lean source — always; opens main_lean_file on GitHub
+  //   3. Design choices   — toggles the panel below; disabled until LLM-populated
   const actions = el("footer", { class: "entry-actions" });
 
   if (data.kind === "claim" && data.tex_proof && data.tex_proof.html) {
@@ -420,18 +419,13 @@ function renderEntry(data) {
     }, "View TeX proof"));
   }
 
-  // One "View Lean source" button per Lean file the row touches —
-  // typically one entry, sometimes 2-3 for rows formalised across
-  // several files (e.g. def_3_4 spans Walks.lean / WalkPredicates.lean
-  // / Bifurcation.lean). URLs come pre-built with #L<start>-L<end>
-  // anchors from the orchestrator.
-  for (const src of data.lean_source_urls || []) {
+  if (data.lean_source_url) {
     actions.append(el("a", {
       class: "btn",
-      href: src.url,
+      href: data.lean_source_url,
       target: "_blank", rel: "noopener",
-      title: src.url,
-    }, `View ${src.title}`));
+      title: data.lean_source_url,
+    }, "View Lean source"));
   }
 
   function explanationButton(label, panelId, content) {
@@ -449,10 +443,9 @@ function renderEntry(data) {
       },
     }, label);
   }
-  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
-  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
+  actions.append(explanationButton("Design choices", `${data.ref}--design`, data.design_choices));
 
-  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
+  // ---- Explanation panel (initially hidden, toggled by the button above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -463,8 +456,7 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`, "Design choices", data.design_choices);
 
   // ---- assemble (no inline TeX/Lean proof panes; those live on the
   //                 dedicated proof page) ----
@@ -472,7 +464,6 @@ function renderEntry(data) {
     header,
     split,
     actions,
-    leanExplPanel,
     designChoicesPanel,
   );
   return article;
