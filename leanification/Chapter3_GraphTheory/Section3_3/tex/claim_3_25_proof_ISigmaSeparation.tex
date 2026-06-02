@@ -1,0 +1,41 @@
+% Claim proof file for row claim_3_25 -- "ISigmaSeparation".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_25 (proof, with statement restated for readability)
+% title: ISigmaSeparation
+\def\rowref{claim\_3\_25}
+\phantomsection\label{claim_3_25}
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
+        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
+        be subsets of nodes such that:
+        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
+        Then we have the equivalence:
+        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

@@ -1,0 +1,40 @@
+% Definition file for row def_3_17 -- "SigmaBlockedWalks".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_17
+% title: SigmaBlockedWalks
+\def\rowref{def\_3\_17}
+\phantomsection\label{def_3_17}
+
+\begin{Def}[$\sigma$-blocked walks]\label{def:sigma_blocking}
+  Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We say that the walk $\pi$ is:
+  \begin{enumerate}
+    \item   \emph{$C$-$\sigma$-open} (or \emph{$\sigma$-open given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+      \item all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
+    \item all blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+  \end{enumerate}
+      \item   \emph{$C$-$\sigma$-blocked}  (or \emph{$\sigma$-blocked given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+    \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^G(C)$, \emph{or}:
+    \item there exists a blockable non-collider $v_k$ on $\pi$ in $C$.
+  \end{enumerate}  \end{enumerate}
+  % claim_3_21
+  \begin{claimmark}
+  Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+  \end{claimmark}
+\end{Def}
+
+\end{document}

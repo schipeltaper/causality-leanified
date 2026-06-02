@@ -1,0 +1,39 @@
+% Definition file for row def_3_19 -- "DBlockedWalks".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_19
+% title: DBlockedWalks
+\def\rowref{def\_3\_19}
+\phantomsection\label{def_3_19}
+
+\begin{Def}[$d$-blocked walks]\label{def:d-blocking}
+      Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+      \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+      \begin{enumerate}
+          \item
+              We say that the walk $\pi$ is \emph{$C$-$d$-blocked} or \emph{$d$-blocked by $C$} to emphasize the use of the bidirected edges\footnote{The ``d'' here stands for ``directional''. d-separation was first only used for DAGs (without bidirected edges).  For ADMGs it was then called ``m-separation'' in \cite{Ric03}. But since the notion of m-separation is arguably the natural extension of d-separation and to avoid introducing more definitions, we will just call it d-separation as well, which will not create any ambiguity.}
+              if either:
+      \begin{enumerate}[label=\roman*.)]
+          \item $v_0 \in C$ or $v_n \in C$ or:
+          \item there are two adjacent edges in $\pi$ of one of the following forms:
+              \[\begin{array}{rccl}
+           \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_k \in C,\\
+           \text{ collider: } & v_{k-1} \suh v_k \hus v_{k+1} & \text{ with } & v_k \notin \Anc^G(C).
+              \end{array}\]
+      \end{enumerate}
+          \item We say that the walk $\pi$ is \emph{$C$-$d$-open} if it is not $C$-$d$-blocked.
+      \end{enumerate}
+\end{Def}
+
+\end{document}

@@ -1,0 +1,33 @@
+% Definition file for row def_3_21 -- "LabelRoman".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_21
+% title: LabelRoman
+\def\rowref{def\_3\_21}
+\phantomsection\label{def_3_21}
+
+\begin{Def}[LabelRoman]\label{def:cdg_acyclification}
+    Given a CDMG $G = ( J, V, E, L)$, we call a CADMG $G' = (J', V', E', L')$
+  an \emph{acyclification of $G$} if
+  \begin{enumerate}[label=(\roman*)]
+    \item $G'$ is acyclic;
+    \item $G'$ has the same input nodes and output nodes as $G$, i.e.\ $J'=J$ and $V'=V$;
+    \item for every pair of nodes $(i,j)$ such that $i \not\in\Sc^G(j)$:
+      \begin{enumerate}
+      \item $i \tuh j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \tuh j' \in E$;
+      \item $i \huh j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \huh j' \in L$;
+      \end{enumerate}\label{def:acyclification_inter_scc}
+  \item for every pair of distinct nodes $(i,j)$ such that $i \in\Sc^G(j)$: $i \tuh j \in E'$ or $i \hut j \in E'$ or $i \huh j \in L'$.\label{def:acyclification_intra_scc}
+  \end{enumerate}
+\end{Def}
+
+\end{document}

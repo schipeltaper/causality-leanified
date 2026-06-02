@@ -1,0 +1,30 @@
+% Claim statement file for row claim_3_25 -- "ISigmaSeparation".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_25_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_25 (statement)
+% title: ISigmaSeparation
+\def\rowref{claim\_3\_25}
+\phantomsection\label{claim_3_25}
+
+\begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
+        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
+        be subsets of nodes such that:
+        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
+        Then we have the equivalence:
+        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+\end{Lem}
+
+\end{document}

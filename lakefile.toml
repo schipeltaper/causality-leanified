@@ -36,4 +36,6 @@ srcDir = "leanification"
 # whenever a new chapter is initialised.
 globs = [
   "Causality",
+  "Chapter3_GraphTheory",
+  "Chapter3_GraphTheory.+",
 ]

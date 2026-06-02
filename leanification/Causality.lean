@@ -5,3 +5,4 @@
 -- the chapter aggregator `Chapter<N>_<Title>.lean` will be created
 -- alongside this file and added as an import below, and the chapter's
 -- glob will be added to `lakefile.toml`.
+import Chapter3_GraphTheory

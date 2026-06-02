@@ -10,8 +10,10 @@ import json
 import re
 from pathlib import Path
 
+# .../scaffold/scripts/phase2_initialization/<this file> -> repo root is three levels up.
 LECTURE_NOTES_DIR = (
-    Path(__file__).resolve().parent.parent / "lecture-notes" / "lecture_notes"
+    Path(__file__).resolve().parent.parent.parent.parent
+    / "lecture-notes" / "lecture_notes"
 )
 
 # LaTeX theorem environments (from thm.tex) -> the `type` recorded for an

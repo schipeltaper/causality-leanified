@@ -1,0 +1,42 @@
+% Claim proof file for row claim_3_4 -- "HardInterventionsCommute".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_4 (proof, with statement restated for readability)
+% title: HardInterventionsCommute
+\def\rowref{claim\_3\_4}
+\phantomsection\label{claim_3_4}
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Hard interventions commute]\label{hard-interventions-commute}
+    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two  subsets of nodes from $G$. 
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)} =  G_{\doit(W_1 \cup W_2)}. \]
+      %This shows that our notion:
+      %\[ G(V \sm (W_1 \cup W_2) | \doit(W_1 \cup W_2 \cup J))   \]
+      %is unambiguous.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}
