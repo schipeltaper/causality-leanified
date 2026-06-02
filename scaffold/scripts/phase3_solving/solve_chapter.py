@@ -3205,7 +3205,7 @@ def _apply_reorder_if_verified(state: "OrchestrationState", data: dict,
 # ---------------------------------------------------------------------------
 
 def read_manager_prompt() -> str:
-    return (PROMPTS_DIR / "manager.md").read_text(encoding="utf-8")
+    return (PROMPTS_DIR / "phase3_solving" / "manager.md").read_text(encoding="utf-8")
 
 
 def read_worker_prompt(filename: str) -> str:
