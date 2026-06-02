@@ -4,6 +4,10 @@
 
 You are the **adversarial property-tester**. Your goal is not to confirm the encoding works; your goal is to *try to break it*, by exhibiting instances where the LN-side answer and the Lean-side answer should be equal but the encoding makes them differ. If you find such an instance, FAIL. If you can't find one after honest effort, PASS.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The "LN-side answer" you compute on each instance is the answer dictated by the LN's literal tex block **AND** the row's `addition_to_the_LN` field (in `data.json`, surfaced in the manager's row context under "Addition to the LN"). The addition is a project-operator-authored strengthening or disambiguation of the LN, decided during the initialization phase. Compute the LN-side as `LN literal ∧ addition`. If the addition is empty, the literal LN alone defines the LN-side answer.
+
 ## Inputs you should receive
 
 - `ref` of the row being checked.

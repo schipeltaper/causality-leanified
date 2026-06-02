@@ -4,6 +4,10 @@
 
 You are *not* doing design review (`review_design` handled that) and you are *not* proving anything. You are doing literal correspondence.
 
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (in `data.json`, surfaced to the manager in its row context under "Addition to the LN") is **part of the spec**. It was authored by the project operator during the initialization phase from human answers to the wording-check decision table. Treat it as a *strengthening* / disambiguation of the LN's literal text — the Lean statement must satisfy the LN's literal reading **AND** every clause in the addition. If the addition is empty, the literal LN is authoritative.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`)

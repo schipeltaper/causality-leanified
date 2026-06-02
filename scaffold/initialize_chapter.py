@@ -196,6 +196,15 @@ def create_data(current_chapter, title_chapter):
                                       # only ticks while solve_chapter is
                                       # actively working on it (sleeping
                                       # during usage-limit pauses counts).
+            "addition_to_the_LN",     # written by the initialization-phase
+                                      # process_initialization_table script
+                                      # from human answers to the wording-
+                                      # check decision table. Treated as a
+                                      # *strengthening* of the LN block by
+                                      # the equivalence-checker workers
+                                      # (verify_equivalence / strict /
+                                      # examples) -- they must satisfy LN +
+                                      # this addition.
         ],
         "rows": [],
     }

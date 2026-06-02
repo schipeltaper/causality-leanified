@@ -76,6 +76,7 @@ ACTIONS = [
     "mistake",       # switch from prove-the-claim to disprove-the-claim mode
     "unmistake",     # flip back: reconsider, the claim might be provable after all
     "accept_deviation",  # record a CONTENT deviation in the register + bypass the next strict-equivalence solved-gate
+    "register_ln_subtlety",  # record a subtlety in the LN wording itself in the working register (informational; never halts)
     "no_action",
 ]
 
@@ -286,6 +287,14 @@ def fill_data(chapter, tex_file, data_path):
             # counts as "active"). Persisted by solve_chapter every turn
             # so an interrupted run resumes from the right baseline.
             "time_needed_to_solve": 0,
+            # Human-authored strengthening / disambiguation of the LN's
+            # literal text, written by process_initialization_table.py
+            # from the operator's answers to the wording-check decision
+            # table. The equivalence-checker workers (verify_equivalence,
+            # verify_equivalence_strict, verify_with_examples) treat this
+            # as PART OF THE LN -- the formalization must satisfy LN +
+            # this addition. Empty string when no addition applies.
+            "addition_to_the_LN": "",
         })
 
     _insert_ref_markers(marks)

@@ -172,6 +172,11 @@ class OrchestrationState:
     # deviation the refactor was created to fix; the strict-
     # equivalence gate must pass cleanly (or the row stays unsolved).
     refactor_target_deviation_ids: list[str] = field(default_factory=list)
+    # Ids the manager already attempted to register in the WORKING
+    # subtlety register but were rejected as duplicates. On a SECOND
+    # attempt with the same id, the handler mangles the id (``<id>_v2``
+    # etc.) and registers the new entry. Per row run.
+    ln_subtle_dup_attempts: set[str] = field(default_factory=set)
 
     @property
     def elapsed_seconds(self) -> float:
@@ -829,7 +834,7 @@ def append_unsolved_run_summary(state: "OrchestrationState", reason: str) -> Non
         ensure_row_workspace(state.row, subsection_folder)
     wp.write_text(wp.read_text(encoding="utf-8") + block, encoding="utf-8")
     print(f"[orchestrator] run summary appended to "
-          f"{wp.relative_to(state.data_path.parent.parent.parent)}",
+          f"{wp.relative_to(REPO_ROOT)}",
           flush=True)
 
 
@@ -1876,6 +1881,59 @@ _ACCEPT_DEVIATION_KEYS = (
 )
 
 
+def _parse_register_ln_subtlety_body(body: str, default_ref: str) -> dict:
+    """Parse the manager's ``register_ln_subtlety`` body into an entry
+    dict. Required keys: ``id`` and ``explanation``.
+
+    Body shape (single entry per action emission)::
+
+        id: <unique_snake_case_id>
+        explanation: <multi-line free-form prose; runs to end>
+
+    The ``explanation`` blob captures everything after the
+    ``explanation:`` line so the manager can write multi-paragraph
+    detail without quoting tricks. The orchestrator backfills
+    ``observed_by_ref`` from the current row's ref.
+    """
+    lines = body.splitlines()
+    entry: dict = {}
+    explanation_start: int | None = None
+    key_re = re.compile(r"^\s*(id|explanation)\s*:\s*(.*?)\s*$", re.IGNORECASE)
+    for i, ln in enumerate(lines):
+        m = key_re.match(ln)
+        if not m:
+            continue
+        key = m.group(1).lower()
+        val = m.group(2).strip()
+        if key == "explanation":
+            explanation_start = i
+            break
+        if key == "id":
+            entry["id"] = val
+    if explanation_start is not None:
+        first_line = lines[explanation_start].split(":", 1)[1].lstrip()
+        rest_lines = lines[explanation_start + 1:]
+        rest = "\n".join(rest_lines).rstrip()
+        entry["explanation"] = (
+            first_line + ("\n" + rest if rest else "")
+        ).strip()
+    if not entry.get("id"):
+        raise ValueError("body missing required key `id`")
+    if not entry.get("explanation"):
+        raise ValueError(
+            "body missing required key `explanation` "
+            "(must be the last key; runs to end of body)"
+        )
+    if not re.fullmatch(r"[a-z][a-z0-9_]{0,79}", entry["id"]):
+        raise ValueError(
+            f"id must be snake_case ([a-z][a-z0-9_]{{0,79}}); got "
+            f"{entry['id']!r}. Use only lowercase letters, digits, and "
+            f"underscores; start with a letter."
+        )
+    entry["observed_by_ref"] = default_ref
+    return entry
+
+
 def _parse_accept_deviation_body(body: str, default_ref: str) -> dict:
     """Parse the manager's `accept_deviation` body into a register entry
     dict. Required keys: ``id``, ``breaks``, ``preserves``,
@@ -2665,7 +2723,7 @@ def _handle_request_from_human(state: "OrchestrationState", body: str,
     else:
         text += block
     req_path.write_text(text, encoding="utf-8")
-    rel = req_path.relative_to(state.data_path.parent.parent.parent)
+    rel = req_path.relative_to(REPO_ROOT)
     print(f"[orchestrator] request_from_human appended to {rel}",
           flush=True)
     # Persist + record the action before raising, so the workspace
@@ -2855,6 +2913,63 @@ def read_worker_prompt(filename: str) -> str:
     return (WORKERS_DIR / filename).read_text(encoding="utf-8")
 
 
+def _run_wording_check_if_needed(state: "OrchestrationState", data: dict) -> None:
+    """Spawn the ``check_ln_wording`` worker once per row run (the
+    result is cached on the row) and save its output for the manager
+    prompt.
+
+    The worker reads the LN tex block and reports any subtleties --
+    ambiguous wording, unintended corner cases, internal
+    inconsistencies. The manager sees the output in its initial
+    context and may emit ``register_ln_subtlety`` to record any worth
+    keeping in the WORKING subtlety register (distinct from the
+    initial-phase register).
+    """
+    if (state.row.get("wording_check") or {}).get("done"):
+        return
+    worker_path = WORKERS_DIR / "check_ln_wording.md"
+    if not worker_path.exists():
+        # Worker prompt missing -- skip silently (back-compat with rows
+        # initialised before this feature shipped).
+        return
+    prompt_body = worker_path.read_text(encoding="utf-8")
+    try:
+        tex_block = read_tex_block(state.row["tex_file"], state.row["ref"])
+    except Exception as e:                                       # noqa: BLE001
+        print(f"[orchestrator] wording-check: could not read tex_block "
+              f"({e}); skipping.", flush=True)
+        state.row["wording_check"] = {"done": True, "output": "", "skipped": True}
+        save_data(state.data_path, data)
+        return
+    prompt = (
+        f"{prompt_body}\n\n"
+        f"## Current row\n"
+        f"- ref: {state.row['ref']}\n"
+        f"- kind: {state.row['def_or_claim']}\n"
+        f"- title: {state.row.get('title', '')}\n"
+        f"- tex_file: {state.row['tex_file']}\n"
+        f"\n## Tex block to audit\n"
+        f"```latex\n{tex_block}\n```\n"
+    )
+    print(f"[orchestrator] running wording-check worker on {state.ref} ...",
+          flush=True)
+    text, sess = run_claude(prompt, label=f"wording_check_{state.ref}")
+    _register_agent(state.row, kind="check_ln_wording", session_id=sess)
+    state.row["wording_check"] = {
+        "done":    True,
+        "output":  text.strip(),
+        "session": sess,
+    }
+    save_data(state.data_path, data)
+    n_subs = text.count("SUBTLETY:")
+    if "NO_SUBTLETIES" in text and n_subs == 0:
+        print(f"[orchestrator] wording-check: NO_SUBTLETIES.", flush=True)
+    else:
+        print(f"[orchestrator] wording-check: {n_subs} subtlety report(s); "
+              f"manager will see them and may register via "
+              f"`register_ln_subtlety`.", flush=True)
+
+
 def render_row_context(state: OrchestrationState) -> str:
     """Compact briefing about which row the manager is solving."""
     row = state.row
@@ -2884,6 +2999,41 @@ def render_row_context(state: OrchestrationState) -> str:
     tips = row.get("tips", "")
     tips_block = f"\n## Carried-over tips for this row\n{tips}\n" if tips else ""
     refactor_block = _render_refactor_block(row) if row.get("refactor") else ""
+    # Addition to the LN (from the initialization-phase decision table).
+    # Treated as authoritative alongside the LN tex block.
+    addition = (row.get("addition_to_the_LN") or "").strip()
+    if addition:
+        addition_block = (
+            "\n## Addition to the LN (human-authored, authoritative)\n"
+            "The operator answered the initialization-phase wording-"
+            "check table with the following clarification(s) for this "
+            "row. **Treat them as part of the LN** -- the equivalence-"
+            "checker workers verify against the literal LN block AND "
+            "these additions.\n\n"
+            f"```\n{addition}\n```\n"
+        )
+    else:
+        addition_block = ""
+    # LN-wording check (working-phase): cached output from the per-row
+    # worker. Manager may register subtleties via `register_ln_subtlety`
+    # to the working subtlety register.
+    wc = row.get("wording_check") or {}
+    wc_out = (wc.get("output") or "").strip()
+    if wc_out:
+        wording_block = (
+            "\n## LN wording-check report (working phase)\n"
+            "Before formalizing, an LN-critic worker scanned this row's "
+            "tex block for ambiguity, unintended corner cases, internal "
+            "inconsistency, or arbitrariness. Read its report; if any "
+            "item is worth a global note, emit `register_ln_subtlety` "
+            "with `id:` and `explanation:` lines (writes to "
+            "`leanification/working_subtlety_register.json` -- "
+            "informational only, never halts the solver). If nothing "
+            "is worth registering, simply proceed.\n\n"
+            f"```\n{wc_out}\n```\n"
+        )
+    else:
+        wording_block = ""
     return (
         f"## Row context\n"
         f"- chapter: {state.chapter}\n"
@@ -2903,7 +3053,7 @@ def render_row_context(state: OrchestrationState) -> str:
         f"proven={row['proven']} solved={row['solved']}\n"
         f"\n## Source block from the lecture notes\n"
         f"```latex\n{tex_block}\n```\n"
-        f"{tips_block}{refactor_block}{registry_block}"
+        f"{addition_block}{wording_block}{tips_block}{refactor_block}{registry_block}"
     )
 
 
@@ -3318,6 +3468,15 @@ def solve_current_row(data_path: Path | None = None) -> None:
     # The chapter-level "request from human" file is created here too so the
     # manager can be told (and the human can pre-seed answers to old requests).
     ensure_request_from_human_file(_chapter_folder_for(state.data_path))
+
+    # LN-wording check (row-solving phase): if this row hasn't yet had
+    # its tex block scanned for wording subtleties during this row run,
+    # run the worker once and cache the output. The manager sees the
+    # output in its initial context and may emit `register_ln_subtlety`
+    # to record any subtlety in the WORKING register (separate from the
+    # initial-phase register populated by initial_subtlety_checker.py).
+    # Informational only; never halts.
+    _run_wording_check_if_needed(state, data)
 
     # Per-turn wall-clock accumulator. `time_mark` is updated each time we
     # persist; `persist_time` flushes the delta into `time_needed_to_solve`
@@ -4098,6 +4257,100 @@ def solve_current_row(data_path: Path | None = None) -> None:
                             f"than the strict gate, you'll need to re-"
                             f"emit `accept_deviation` -- the same id "
                             f"works, since it's now in the register.)"
+                        )
+
+        elif action == "register_ln_subtlety":
+            # Write a single subtlety entry to the global WORKING
+            # subtlety register (distinct from initial_subtlety_register,
+            # populated during the initialization phase).
+            # Informational: never halts, never bypasses any gate.
+            #
+            # Body shape (one entry per action emission)::
+            #
+            #     id: <unique_snake_case_id>
+            #     explanation: <multi-line free-form prose; runs to end>
+            #
+            # On duplicate id: refuse with a nudge that includes the
+            # existing entry's explanation. If the manager re-emits the
+            # SAME id, the handler mangles to `<id>_v2` and registers.
+            from subtlety_register import (                                # type: ignore
+                register_subtlety, find_by_id, mangle_id,
+            )
+            try:
+                entry = _parse_register_ln_subtlety_body(
+                    body, default_ref=state.ref)
+            except ValueError as e:
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    f"register_ln_subtlety body parse failed: {e}"))
+                extra_note = (
+                    f"`register_ln_subtlety` body could not be parsed: {e}\n\n"
+                    "The body must include:\n"
+                    "  - id: <snake_case_id>\n"
+                    "  - explanation: <free-form; runs to end of body>\n"
+                    "Re-emit with the body fixed."
+                )
+            else:
+                proposed_id = entry["id"]
+                existing = find_by_id("working", proposed_id)
+                if existing is not None and proposed_id not in state.ln_subtle_dup_attempts:
+                    # First duplicate attempt: refuse with a nudge.
+                    state.ln_subtle_dup_attempts.add(proposed_id)
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"(refused: id {proposed_id!r} already in working "
+                        f"subtlety register; first duplicate attempt, "
+                        f"nudging)"))
+                    print(f"[orchestrator] register_ln_subtlety: id "
+                          f"{proposed_id!r} already in working register; "
+                          f"refused with nudge (manager may re-emit same "
+                          f"id to force a new entry).", flush=True)
+                    extra_note = (
+                        f"`register_ln_subtlety` refused: id "
+                        f"`{proposed_id}` is already in "
+                        f"`leanification/working_subtlety_register.json`. "
+                        f"Existing entry's explanation:\n\n"
+                        f"```\n{existing.get('explanation', '').strip()}\n```\n\n"
+                        f"If the existing entry already covers your "
+                        f"observation, drop the action (proceed without "
+                        f"registering). If your observation is genuinely "
+                        f"distinct, re-emit `register_ln_subtlety` with "
+                        f"the SAME id and a different explanation -- the "
+                        f"orchestrator will mangle the id (e.g. "
+                        f"`{proposed_id}_v2`) and register the new entry."
+                    )
+                else:
+                    if existing is not None:
+                        new_id = mangle_id("working", proposed_id)
+                        entry["id"] = new_id
+                        state.ln_subtle_dup_attempts.discard(proposed_id)
+                    else:
+                        new_id = proposed_id
+                    try:
+                        register_subtlety("working", entry)
+                    except (ValueError, KeyError) as e:
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"register_ln_subtlety write failed: {e}"))
+                        extra_note = (
+                            f"`register_ln_subtlety` write failed: {e}. "
+                            f"Re-emit after fixing the body."
+                        )
+                    else:
+                        state.history.append(TurnRecord(
+                            turn, action, body,
+                            f"(working-subtlety {new_id!r} registered)"))
+                        print(f"[orchestrator] register_ln_subtlety: "
+                              f"recorded {new_id} in working register "
+                              f"(observed_by_ref={state.ref}).",
+                              flush=True)
+                        extra_note = (
+                            f"`register_ln_subtlety` recorded: entry "
+                            f"`{new_id}` written to "
+                            f"`leanification/working_subtlety_register.json`. "
+                            f"This is informational only -- it does NOT "
+                            f"halt the row, change any gate, or block "
+                            f"any future action. Proceed with formalizing."
                         )
 
         elif action == "reset":
