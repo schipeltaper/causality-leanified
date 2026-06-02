@@ -65,6 +65,33 @@ GLOBAL_VARS_PATH = SCAFFOLD_DIR / "global_vars.json"
 # do_refactor.py init" message and we want both to agree on the name.
 SERVER_BRANCH = "server_setting_up_scaffold"
 
+# Branches the orchestrator MUST NEVER delete -- guarded at every
+# ``git branch -D`` / ``git push origin --delete`` site. Includes the
+# source branch and common protected names. Any code path that
+# computes a branch name to delete (typically read from a state file
+# or input the operator can influence) must first call
+# ``_assert_safe_to_delete(branch)``; if the target is in this set the
+# call raises and the caller surfaces the error rather than deleting.
+PROTECTED_BRANCHES: frozenset[str] = frozenset({
+    SERVER_BRANCH, "main", "master",
+})
+
+
+def _assert_safe_to_delete(branch: str) -> None:
+    """Raise ``RuntimeError`` if ``branch`` is in ``PROTECTED_BRANCHES``.
+
+    Used by every branch-deletion call site as a defense-in-depth
+    guard against a corrupted state file or programmer error that
+    could otherwise nuke the source branch (or main/master).
+    """
+    if branch in PROTECTED_BRANCHES:
+        raise RuntimeError(
+            f"refusing to delete protected branch `{branch}` "
+            f"(PROTECTED_BRANCHES = {sorted(PROTECTED_BRANCHES)}). "
+            f"This branch is the source of truth and must not be "
+            f"deleted by automation; if you really need to, do it "
+            f"manually after confirming intent.")
+
 # Every Claude subprocess uses the strongest model available -- Opus 4.7 (1M
 # context) with the maximum effort level. Cost is justified: each turn does
 # serious mathematical work.
@@ -359,6 +386,24 @@ def _extend_refactor_scope_and_halt(state: "OrchestrationState",
             f"`NEW_NAME: <name>` in the action body, or delete the "
             f"existing branch first.")
 
+    # Defense in depth: the destructive ops below assume we are
+    # currently on the OLD refactor branch (that's the row we're
+    # solving, so the orchestrator must have been invoked there). If
+    # somehow we're not -- e.g. someone copied the refactor_data.json
+    # to server and ran solve_chapter from there -- abort BEFORE any
+    # git reset / branch deletion.
+    cur_branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    ).stdout.strip()
+    if cur_branch != old_branch:
+        raise RuntimeError(
+            f"expected to be on refactor branch `{old_branch}` (from "
+            f".refactor_state.json) but current branch is "
+            f"`{cur_branch}`. Refusing to run destructive operations "
+            f"in unexpected branch context.")
+    _assert_safe_to_delete(old_branch)
+
     print(f"[orchestrator] === refactor restart: discarding "
           f"`{old_branch}`, spawning fresh refactor from "
           f"`{source_branch}` with roots "
@@ -457,6 +502,10 @@ def _extend_refactor_scope_and_halt(state: "OrchestrationState",
 
     # 5. Delete the OLD local branch. (Remote is left untouched --
     # operator can `git push origin --delete <old_branch>` later.)
+    # Guarded against deleting protected branches (server / main /
+    # master): if the state file's `refactor_branch` field has been
+    # corrupted to one of those, this raises instead of deleting.
+    _assert_safe_to_delete(old_branch)
     print(f"[orchestrator] deleting old local branch `{old_branch}`",
           flush=True)
     r = subprocess.run(["git", "branch", "-D", old_branch],

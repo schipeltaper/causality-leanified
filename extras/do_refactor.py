@@ -77,6 +77,29 @@ SERVER_BRANCH = "server_setting_up_scaffold"
 REFACTOR_BRANCH_PREFIX = "refactor_"
 STATE_FILE_NAME = ".refactor_state.json"
 
+# Branches that MUST NEVER be deleted by this script. Includes the
+# source branch (whose deletion would orphan every refactor branch and
+# all chapter data) and the standard upstream names. Every branch-
+# deletion call site (remote or local) calls ``_assert_safe_to_delete``
+# first; if the computed target is in this set, the script aborts.
+PROTECTED_BRANCHES: frozenset[str] = frozenset({
+    SERVER_BRANCH, "main", "master",
+})
+
+
+def _assert_safe_to_delete(branch: str) -> None:
+    """Abort the script if ``branch`` is in ``PROTECTED_BRANCHES``.
+
+    Defense-in-depth guard against a corrupted state file or a
+    programmer error that could otherwise delete the source branch.
+    """
+    if branch in PROTECTED_BRANCHES:
+        sys.exit(
+            f"ERROR: refusing to delete protected branch `{branch}` "
+            f"(PROTECTED_BRANCHES = {sorted(PROTECTED_BRANCHES)}). "
+            f"This branch is the source of truth and must not be "
+            f"deleted by automation. Aborting.")
+
 
 # ---------------------------------------------------------------------------
 # Git helpers
@@ -515,8 +538,12 @@ def cmd_merge(args: argparse.Namespace) -> int:
         print(f"\n[do_refactor] (skipping push; pass --push to publish "
               f"{source_branch} to origin)", flush=True)
 
-    # Optional remote branch deletion
+    # Optional remote branch deletion. Guarded against deleting any
+    # PROTECTED_BRANCHES member (server / main / master) -- if the
+    # state file's ``refactor_branch`` has been corrupted to one of
+    # those, the script aborts before issuing the push.
     if args.delete_remote_branch:
+        _assert_safe_to_delete(refactor_branch)
         if _branch_exists(refactor_branch, remote=True):
             print(f"\n[do_refactor] === Deleting remote branch "
                   f"origin/{refactor_branch} ===", flush=True)
@@ -529,8 +556,10 @@ def cmd_merge(args: argparse.Namespace) -> int:
               f"--delete-remote-branch to drop origin/{refactor_branch})",
               flush=True)
 
-    # Optional local branch deletion (only if remote already gone)
+    # Optional local branch deletion (only if remote already gone).
+    # Same protected-branches guard applies.
     if args.delete_remote_branch:
+        _assert_safe_to_delete(refactor_branch)
         # Safe to delete local too (we just merged it).
         print(f"\n[do_refactor] === Deleting local branch "
               f"{refactor_branch} ===", flush=True)
