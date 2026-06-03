@@ -436,7 +436,7 @@
           "last_used": "2026-06-03T06:56:28+00:00"
         }
       ],
-      "time_needed_to_solve": 1695,
+      "time_needed_to_solve": 1770,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
         "done": true,
@@ -450,29 +450,31 @@
       "section": "3.1",
       "title": "CDMGTypes",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -481,13 +483,26 @@
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
-        "register_ln_subtlety": 0,
+        "register_ln_subtlety": 1,
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "ac17e944-a780-480f-b492-312c5809ae20",
+          "first_seen": "2026-06-03T07:36:35+00:00",
+          "last_used": "2026-06-03T07:36:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1997,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me analyze the subtleties in def_3_7's wording.\n\nThe text defines 7 named graph types via the pattern \"A CDMG is called X if Y\", using three independent constraints:\n- (a) G is acyclic\n- (b) J = ∅\n- (c) L = ∅\n\nItems 3, 5, 6, 7 are conjunctions of items 1, 2, 4. This creates overlapping predicates: any CDMG satisfying all three constraints simultaneously is literally called by all 7 names. Combined with def_3_1 (which allows J = V = ∅), the empty graph trivially satisfies all 7.\n\n```\nSUBTLETY:\nid: subtypes_are_overlapping_predicates_not_partition\nexplanation: The seven named subtypes are defined as overlapping predicates on a single CDMG, not as a partition. The pattern \"A CDMG G=(J,V,E,L) is called X if Y\" attaches a name X to G whenever Y holds, with no clause asserting that names are mutually exclusive. The three atomic constraints (G acyclic; J = ∅; L = ∅) are independent, and items 3, 5, 6, 7 are conjunctions of items 1, 2, 4. Consequently a CDMG with G acyclic, J = ∅, L = ∅ literally satisfies all 7 conditions simultaneously: it is at once a CADMG (G acyclic ✓), DMG (J = ∅ ✓), ADMG (G acyclic and J = ∅ ✓), CDG (L = ∅ ✓), DG (J = ∅ and L = ∅ ✓), CDAG (G acyclic and L = ∅ ✓), and DAG (all three ✓). Since def_3_1 explicitly allows J = V = ∅, even the empty graph qualifies for all 7 names. A reader expecting these to be exclusive categories (i.e. a graph is \"a DAG\" rather than also \"an ADMG\") would be misled. Downstream this matters: if a later claim/proof says \"let G be an ADMG\", the literal reading admits G being a DAG; conversely \"if G is a CDMG, exactly one of the following holds\" would be false. This is standard inclusive lattice taxonomy (DAG ⊆ ADMG ⊆ DMG ⊆ CDMG, DAG ⊆ CDAG ⊆ CDG ⊆ CDMG, etc.), but the text never states the inclusion structure or the predicate (vs. distinct-type) intent.\nEND_SUBTLETY\n\nSUBTLETY:\nid: conditional_and_mixed_prefixes_dont_constrain_components\nexplanation: The naming uses suggestive prefixes that the literal definitions do not enforce. \"Conditional\" in CADMG, CDG, CDAG conventionally signals a non-empty conditioning set J, but each definition only states the OTHER constraints — none requires J ≠ ∅. So a CDMG with J = ∅ and G acyclic literally satisfies \"Conditional Acyclic Directed Mixed Graph (CADMG) if G is acyclic\": this graph is non-conditional in the colloquial sense yet bears the \"Conditional\" label. Symmetrically, \"Mixed\" in CDMG/CADMG/DMG/ADMG suggests both directed (E) and bidirected (L) edges are present, but L = ∅ is never excluded — a \"Directed Mixed Graph\" can have no bidirected edges at all (which would normally just be called a directed graph). The text does not warn the reader that the suggestive prefixes are upper-bound categorizations rather than component requirements; a reader taking the names literally may assume e.g. J ≠ ∅ when a claim says \"let G be a CADMG\", leading to subtly stronger hypotheses than the definition actually provides.\nEND_SUBTLETY\n```",
+        "session": "f69dce70-278a-447a-9110-a2031778b0fc"
+      }
     },
     {
       "def_or_claim": "def",
