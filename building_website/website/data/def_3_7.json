@@ -17,10 +17,39 @@
     "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_7_CDMGTypes.tex"
   },
   "tex_proof": null,
-  "lean_code_with_comments": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic\n\ndef IsDMG (G : CDMG Node) : Prop := G.J = ∅\n\ndef IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅\n\ndef IsCDG (G : CDMG Node) : Prop := G.L = ∅\n\ndef IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅\n\ndef IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅\n\ndef IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
-  "lean_code_without_comments": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic\ndef IsDMG (G : CDMG Node) : Prop := G.J = ∅\ndef IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅\ndef IsCDG (G : CDMG Node) : Prop := G.L = ∅\ndef IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅\ndef IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅\ndef IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
+  "lean_blocks": [
+    {
+      "kind": "main",
+      "code": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic"
+    },
+    {
+      "kind": "main",
+      "code": "def IsDMG (G : CDMG Node) : Prop := G.J = ∅"
+    },
+    {
+      "kind": "main",
+      "code": "def IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅"
+    },
+    {
+      "kind": "main",
+      "code": "def IsCDG (G : CDMG Node) : Prop := G.L = ∅"
+    },
+    {
+      "kind": "main",
+      "code": "def IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅"
+    },
+    {
+      "kind": "main",
+      "code": "def IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅"
+    },
+    {
+      "kind": "main",
+      "code": "def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅"
+    }
+  ],
   "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
   "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
   "addition_to_the_LN": "",
+  "lean_explanation": "Each name is a `Prop`-valued `def`, not a `structure` or refined subtype, so the underlying `CDMG Node` value is the same across all seven predicates and a single `G` may satisfy several of them at once (e.g., the empty CDMG satisfies all seven).\n\nThe `Node` type parameter is left implicit via `variable {Node : Type*}` at the file level — `Type*` is Lean 4 / Mathlib shorthand for \"in some universe\", which is why the `def`s look monomorphic but actually generalise over any node type with `DecidableEq`. The `[DecidableEq Node]` instance is needed because the underlying `CDMG` fields `J`, `V`, `E`, `L` are `Finset`-valued.\n\nThe `G.IsAcyclic` notation is Lean 4's dot-notation: since `G : CDMG Node`, the parser rewrites this to `CDMG.IsAcyclic G`, pulling in the predicate defined in `Acyclicity.lean` (def_3_6). The same dot-notation reads `G.J` and `G.L` as the `Finset` projection fields of the `CDMG` structure from def_3_1.\n\nThe clause `G.J = ∅` is `Finset` equality with `Finset.empty`, not a cardinality or quantifier statement; standard Mathlib lemmas (`Finset.eq_empty_iff_forall_not_mem`, `Finset.card_eq_zero`) bridge to the alternative forms when needed.\n\nThe triple conjunction in `IsDAG` right-associates by Lean convention, parsing as `G.IsAcyclic ∧ (G.J = ∅ ∧ G.L = ∅)` — the shape `obtain ⟨_, _, _⟩` expects.\n\nEverything lives in `namespace Causality.CDMG`, so external callers write `CDMG.IsDAG G` or use dot-notation `G.IsDAG`.",
   "design_choices": "**Predicates over the base `CDMG`, not subtypes or refined structures.** Each of the seven named subtypes is encoded as a `Prop`-valued `def` on `CDMG Node` rather than as a `structure ... extends CDMG`, sum, inductive, or refined subtype. The lecture-notes pattern \"a CDMG is *called* X if Y\" attaches a name to the same underlying object whenever a predicate holds, and the predicate-style encoding mirrors that literally — there are no coercions back to `CDMG` at downstream destructuring sites in chapters 4+ (CBNs, separations, iSCMs), which all need to reach the raw `J / V / E / L` fields directly.\n\n**Overlapping predicates, never a partition.** The seven names denote *overlapping* classes, not disjoint cases. A DAG is simultaneously a CADMG, an ADMG, a DMG, a CDG, a DG, and a CDAG; the empty CDMG admitted by `def_3_1` satisfies all seven at once. A sum or inductive encoding would force a spurious \"primary type\" choice (e.g., is an acyclic CDMG with $J = \\emptyset$ natively a CADMG, ADMG, or DMG?). The predicate encoding sidesteps the question entirely and makes lattices such as $\\text{DAG} \\subseteq \\text{ADMG} \\subseteq \\text{DMG} \\subseteq \\text{CDMG}$ hold definitionally as meets of `Prop`-valued fields, with no extra Lean machinery. This is tracked globally as the subtlety `subtypes_are_overlapping_predicates_not_partition`.\n\n**\"Conditional\" and \"Mixed\" prefixes are upper bounds, not requirements.** The suggestive name fragments do *not* impose extra non-emptiness constraints: `IsCADMG` does not require $J \\neq \\emptyset$, and `IsDMG` does not require $L \\neq \\emptyset$. Only the constraints the lecture notes explicitly list (acyclicity, $J = \\emptyset$, $L = \\emptyset$) are encoded, so a CADMG with $J = \\emptyset$ and a DMG with $L = \\emptyset$ are both admissible. Consumers needing a \"with-J\" or \"with-L\" variant must add that hypothesis at the use site; this is registered as `conditional_and_mixed_prefixes_dont_constrain_components`.\n\n**Conjunctions spelled out atomically rather than via other predicates.** `IsADMG` unfolds to `G.IsAcyclic ∧ G.J = ∅` rather than `G.IsCADMG ∧ G.IsDMG`, matching the surface form of the lecture notes so downstream `rcases`/`obtain` patterns line up with how the LN reads. Equivalences such as `IsADMG ↔ IsCADMG ∧ IsDMG` are one-line `Iff.rfl`-style corollaries and are deliberately *not* added pre-emptively.\n\n**Conjunction order follows the lecture notes left-to-right.** For items combining several atoms, the order in the `∧`-chain matches the LN's textual order (e.g., `IsDAG` is `G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅`, right-associated by Lean convention). This preserves the shape consumers expect when destructuring with `obtain ⟨_, _, _⟩`.\n\n**Atomic bodies reuse existing primitives verbatim.** `IsCADMG` is exactly `G.IsAcyclic` from `def_3_6` rather than an inline re-expansion of the walk-existential, so any `unfold` / rewrite pipeline built on `G.IsAcyclic` lifts to `IsCADMG` for free. The empty-set clauses use literal `G.J = ∅` and `G.L = ∅` `Finset` equalities — the LN's surface form — rather than `card = 0` or quantifier rephrasings, keeping the predicate shapes uniform across the family."
 }

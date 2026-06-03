@@ -160,11 +160,12 @@ function renderMath(root) {
 /* ----------------------------------------------------------------------
    Lean pane.
 
-   Schema (v3): the row's JSON carries a single `lean_code_with_comments`
-   string + a parallel `lean_code_without_comments` string. The website
-   shows one code panel; a small toggle above the code switches between
-   the two. No per-part / multi-slide carousel — the orchestrator
-   produces one curated code blob per row.
+   The row's JSON carries `lean_blocks: [{kind, code}]`, one entry per
+   marker-wrapped region in the .lean source. `kind` is "main" for the
+   row's headline declaration and "helper" for supporting decls the main
+   one needs to type-check. Each block renders as its own block with a
+   small label so the reader can tell support code apart from the
+   headline declaration.
    ---------------------------------------------------------------------- */
 
 /* Highlight every Lean code block inside `root` (idempotent). */
@@ -177,41 +178,23 @@ function highlightLeanIn(root) {
   });
 }
 
-/* Build the Lean pane body — a single <pre><code> plus, when the
-   row carries a comments-off variant, a toggle that swaps between
-   them in place. Returns {body, toggle} so the caller can hoist the
-   toggle into the pane-label row. */
 function buildLeanPane(data) {
-  const withC    = data.lean_code_with_comments    || "";
-  const withoutC = data.lean_code_without_comments || "";
-  const codeNode = el("code", { class: "language-lean" }, withC);
-  const pre      = el("pre", {}, codeNode);
-  const body     = el("div", { class: "pane-body lean-pane-body" }, pre);
-
-  if (!withoutC || withoutC === withC) {
-    return { body, toggle: null };
+  const body = el("div", { class: "pane-body lean-pane-body" });
+  const blocks = data.lean_blocks || [];
+  if (blocks.length === 0) {
+    body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
+    return body;
   }
-
-  let showingComments = true;
-  const toggle = el("button", {
-    class: "lean-comments-toggle on",
-    type: "button",
-    "aria-label": "Toggle Lean comments",
-    title: "Show or hide the comments embedded in the Lean code",
-  }, "Comments: on");
-  toggle.addEventListener("click", () => {
-    showingComments = !showingComments;
-    const next = showingComments ? withC : withoutC;
-    pre.innerHTML = "";
-    const nc = el("code", { class: "language-lean" }, next);
-    pre.append(nc);
-    highlightLeanIn(pre);
-    toggle.textContent = `Comments: ${showingComments ? "on" : "off"}`;
-    toggle.classList.toggle("on",  showingComments);
-    toggle.classList.toggle("off", !showingComments);
-  });
-
-  return { body, toggle };
+  for (const b of blocks) {
+    const kind = b.kind === "main" ? "main" : "helper";
+    body.append(
+      el("div", { class: `lean-block lean-block-${kind}` },
+        el("div", { class: "lean-block-label" }, kind),
+        el("pre", {}, el("code", { class: "language-lean" }, b.code)),
+      ),
+    );
+  }
+  return body;
 }
 
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
@@ -387,13 +370,10 @@ function renderEntry(data) {
     el("div", { class: "pane-body", html: data.tex_statement.html || "<em>(missing)</em>" }),
   );
 
-  // One code block, with a comments-on/off toggle hoisted into the pane label.
-  const { body: leanBody, toggle: leanToggle } = buildLeanPane(data);
+  // One or more labelled code blocks (main + helpers).
+  const leanBody = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
-    el("div", { class: "pane-label" },
-      el("span", {}, "Formalisation"),
-      leanToggle,
-    ),
+    el("div", { class: "pane-label" }, "Formalisation"),
     leanBody,
   );
 
@@ -443,9 +423,10 @@ function renderEntry(data) {
       },
     }, label);
   }
-  actions.append(explanationButton("Design choices", `${data.ref}--design`, data.design_choices));
+  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
+  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
 
-  // ---- Explanation panel (initially hidden, toggled by the button above) ----
+  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -456,7 +437,8 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`, "Design choices", data.design_choices);
+  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
 
   // ---- assemble (no inline TeX/Lean proof panes; those live on the
   //                 dedicated proof page) ----
@@ -464,6 +446,7 @@ function renderEntry(data) {
     header,
     split,
     actions,
+    leanExplPanel,
     designChoicesPanel,
   );
   return article;

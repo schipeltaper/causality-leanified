@@ -182,36 +182,31 @@ def fetch_row(ref: str) -> dict:
     if pp is not None:
         tex_proof = _render_tex(pp, whole_file=True)
 
-    # --- Lean code: helpers first, then main statement(s). Search the
-    #     main file plus any sibling lean_files for helpers (the recipe
-    #     says helpers may live in any of `lean_files`). ---
-    main_statements = extract_lean_statement(main_lean_path, ref)
-    helpers: list[str] = []
-    seen_helper_files: set[Path] = set()
+    # --- Lean code blocks. Each marker-wrapped region is one block;
+    #     `kind` distinguishes the main statement(s) from helpers. The
+    #     website renders each block separately with a small label.
+    #     Order: helpers (in source order of `lean_files`) first, then
+    #     main statements (source order in main_lean_file). ---
+    main_codes = extract_lean_statement(main_lean_path, ref)
+    helper_blocks: list[dict] = []
+    seen_files: set[str] = set()
     for path_rel in [main_lean_rel, *row.get("lean_files", [])]:
-        p = REPO_ROOT / path_rel
-        if p in seen_helper_files or not p.exists():
+        if path_rel in seen_files:
             continue
-        seen_helper_files.add(p)
-        helpers.extend(extract_lean_helpers(p, ref))
+        seen_files.add(path_rel)
+        p = REPO_ROOT / path_rel
+        if not p.exists():
+            continue
+        for code in extract_lean_helpers(p, ref):
+            helper_blocks.append({"kind": "helper", "code": code})
 
-    if not main_statements:
+    if not main_codes:
         sys.exit(
             f"error: no `-- {ref} -- start statement` / `-- {ref} -- end statement`\n"
             f"  marker pair found in {main_lean_rel}"
         )
 
-    # Helpers above, main statement(s) below — so the reader sees the
-    # supporting definitions first and the headline declaration last.
-    chunks: list[str] = []
-    if helpers:
-        chunks.extend(helpers)
-        chunks.append("")  # blank line separator
-    chunks.extend(main_statements)
-    lean_code_with_comments    = "\n\n".join(c for c in chunks if c.strip() or c == "")
-    # Drop any all-blank chunks introduced by the separator above.
-    lean_code_with_comments    = re.sub(r"\n{3,}", "\n\n", lean_code_with_comments).strip()
-    lean_code_without_comments = strip_lean_comments(lean_code_with_comments)
+    lean_blocks = helper_blocks + [{"kind": "main", "code": c} for c in main_codes]
 
     # --- Source URL: a single link to main_lean_file on the repo. ---
     lean_source_url = f"{REPO_URL}/blob/{REPO_BRANCH}/{main_lean_rel}"
@@ -223,31 +218,34 @@ def fetch_row(ref: str) -> dict:
         "solved":     row.get("solved")     or "no",
     }
 
-    # Preserve previously-generated design_choices so re-running fetch_row
-    # doesn't wipe the LLM step's output.
-    prior_dc: str | None = None
+    # Preserve previously-generated LLM prose so re-running fetch_row
+    # doesn't wipe the explanation / design-choices steps' output.
+    prior_expl: str | None = None
+    prior_dc:   str | None = None
     out_path = WEBSITE_DATA / f"{ref}.json"
     if out_path.exists():
         try:
-            prior_dc = json.loads(out_path.read_text(encoding="utf-8")).get("design_choices")
+            prior = json.loads(out_path.read_text(encoding="utf-8"))
+            prior_expl = prior.get("lean_explanation")
+            prior_dc   = prior.get("design_choices")
         except json.JSONDecodeError:
             pass
 
     return {
-        "ref":                        ref,
-        "kind":                       row["def_or_claim"],
-        "section":                    row["section"],
-        "title":                      row.get("title", ""),
-        "type":                       row.get("type", ""),
-        "status":                     status,
-        "tex_statement":              tex_statement,
-        "tex_proof":                  tex_proof,
-        "lean_code_with_comments":    lean_code_with_comments,
-        "lean_code_without_comments": lean_code_without_comments,
-        "lean_source_url":            lean_source_url,
-        "lean_file_path":             main_lean_rel,
-        "addition_to_the_LN":         row.get("addition_to_the_LN", ""),
-        "design_choices":             prior_dc or "",
+        "ref":                ref,
+        "kind":               row["def_or_claim"],
+        "section":            row["section"],
+        "title":              row.get("title", ""),
+        "type":               row.get("type", ""),
+        "status":             status,
+        "tex_statement":      tex_statement,
+        "tex_proof":          tex_proof,
+        "lean_blocks":        lean_blocks,
+        "lean_source_url":    lean_source_url,
+        "lean_file_path":     main_lean_rel,
+        "addition_to_the_LN": row.get("addition_to_the_LN", ""),
+        "lean_explanation":   prior_expl or "",
+        "design_choices":     prior_dc or "",
     }
 
 
