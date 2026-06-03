@@ -371,27 +371,36 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 }
 .pane-lean code { font-family: inherit; background: transparent; }
 
-/* Comments-on / -off toggle pinned to the Lean pane label. */
-.lean-comments-toggle {
+/* Labelled Lean blocks (one entry per marker-wrapped region in the
+   .lean source). Helpers above, main below; thin divider between each
+   block; tiny label at the top so the reader can tell support code
+   apart from the headline declaration. */
+.lean-pane-body { display: flex; flex-direction: column; }
+.lean-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-lean);
+}
+.lean-block:first-child { border-top: none; }
+.lean-block-label {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
-  letter-spacing: 0.02em;
-  padding: 0.18rem 0.55rem;
-  background: var(--bg-pane);
-  border: 1px solid var(--border);
-  border-radius: 3px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--fg-muted);
-  cursor: pointer;
-  text-transform: none;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  padding: 0.6rem 1.4rem 0.15rem;
+  border-bottom: 1px dotted transparent;
 }
-.lean-comments-toggle:hover { color: var(--accent); border-color: var(--accent-soft); }
-.lean-comments-toggle.on {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+.lean-block-main > .lean-block-label  { color: var(--accent); font-weight: 600; }
+.lean-block-helper > .lean-block-label { color: var(--fg-muted); }
+.lean-block pre {
+  margin: 0;
+  padding: 0.4rem 1.4rem 1.1rem;
+  background: transparent;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
-.lean-comments-toggle.on:hover { color: #fff; }
 
 /* Override highlight.js's theme background — we want the pane's bg to show
    through, with only the per-token colors applied. */

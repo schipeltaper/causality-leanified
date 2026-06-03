@@ -17,10 +17,67 @@
     "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_5_FamilyRelationships.tex"
   },
   "tex_proof": null,
-  "lean_code_with_comments": "def Pa (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (w, v) ∈ G.E)\n\ndef PaSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Pa\n\ndef Ch (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.E)\n\ndef ChSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Ch\n\ndef Sib (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.L)\n\nopen Classical in\nnoncomputable def Anc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G w v, p.IsDirectedWalk)\n\nnoncomputable def AncSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Anc\n\nopen Classical in\nnoncomputable def Desc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsDirectedWalk)\n\nnoncomputable def DescSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Desc\n\nnoncomputable def NonDesc (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  (G.J ∪ G.V) \\ G.DescSet A\n\nnoncomputable def Sc (G : CDMG Node) (v : Node) : Finset Node :=\n  G.Anc v ∩ G.Desc v\n\nnoncomputable def ScSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Sc\n\nopen Classical in\nnoncomputable def Dist (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsBidirectedWalk)\n\nnoncomputable def DistSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Dist",
-  "lean_code_without_comments": "def Pa (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (w, v) ∈ G.E)\ndef PaSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Pa\ndef Ch (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.E)\ndef ChSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Ch\ndef Sib (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.L)\nopen Classical in\nnoncomputable def Anc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G w v, p.IsDirectedWalk)\nnoncomputable def AncSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Anc\nopen Classical in\nnoncomputable def Desc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsDirectedWalk)\nnoncomputable def DescSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Desc\nnoncomputable def NonDesc (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  (G.J ∪ G.V) \\ G.DescSet A\nnoncomputable def Sc (G : CDMG Node) (v : Node) : Finset Node :=\n  G.Anc v ∩ G.Desc v\nnoncomputable def ScSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Sc\nopen Classical in\nnoncomputable def Dist (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsBidirectedWalk)\nnoncomputable def DistSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Dist",
+  "lean_blocks": [
+    {
+      "kind": "main",
+      "code": "def Pa (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (w, v) ∈ G.E)"
+    },
+    {
+      "kind": "main",
+      "code": "def PaSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Pa"
+    },
+    {
+      "kind": "main",
+      "code": "def Ch (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.E)"
+    },
+    {
+      "kind": "main",
+      "code": "def ChSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Ch"
+    },
+    {
+      "kind": "main",
+      "code": "def Sib (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => (v, w) ∈ G.L)"
+    },
+    {
+      "kind": "main",
+      "code": "open Classical in\nnoncomputable def Anc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G w v, p.IsDirectedWalk)"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def AncSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Anc"
+    },
+    {
+      "kind": "main",
+      "code": "open Classical in\nnoncomputable def Desc (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsDirectedWalk)"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def DescSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Desc"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def NonDesc (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  (G.J ∪ G.V) \\ G.DescSet A"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def Sc (G : CDMG Node) (v : Node) : Finset Node :=\n  G.Anc v ∩ G.Desc v"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def ScSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Sc"
+    },
+    {
+      "kind": "main",
+      "code": "open Classical in\nnoncomputable def Dist (G : CDMG Node) (v : Node) : Finset Node :=\n  (G.J ∪ G.V).filter (fun w => ∃ p : Walk G v w, p.IsBidirectedWalk)"
+    },
+    {
+      "kind": "main",
+      "code": "noncomputable def DistSet (G : CDMG Node) (A : Finset Node) : Finset Node :=\n  A.biUnion G.Dist"
+    }
+  ],
   "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
   "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
   "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
+  "lean_explanation": "## Naming and idioms\n\n- **`Pa` / `Ch` / `Sib` / `Anc` / `Desc` / `Sc` / `Dist`** match the LN macros (`\\Pa`, `\\Ch`, `\\Sib`, `\\Anc`, `\\Desc`, `\\Sc`, `\\Dist`); the `…Set` suffix marks the set-of-vertices overloads (the LN reuses one symbol, Lean cannot).\n- **`G.Pa v`** uses Lean 4 dot-notation: because `Pa` lives in `namespace CDMG` and `G : CDMG Node` is its first explicit argument, `G.Pa v` and `Pa G v` are the same term.\n- **`(G.J ∪ G.V).filter (…)`** is `Finset.filter`: it carves out the sub-`Finset` of elements satisfying the predicate, so each definition returns a literal `Finset Node` rather than a `Set Node`.\n- **`A.biUnion G.Pa`** is `Finset.biUnion`: the `Finset`-level $\\bigcup_{v\\in A}$ that automatically deduplicates via `DecidableEq Node`.\n- **`(G.J ∪ G.V) \\ G.DescSet A`** uses `Finset.sdiff` (the `\\` operator on `Finset`), not a `Set`-level complement.\n- **`open Classical in noncomputable def`** opens the `Classical` namespace only for this declaration so that `Classical.propDecidable` discharges the `DecidablePred` obligation of `Finset.filter` on the walk-existential predicate; the resulting term has no executable code, hence `noncomputable`.\n- **`∃ p : Walk G w v, p.IsDirectedWalk`** quantifies over the inductive `Walk` type from `Walks.lean`; the trivial constructor `Walk.nil` provides a length-`0` witness, which is why `v ∈ G.Anc v`, `v ∈ G.Desc v`, `v ∈ G.Sc v`, and `v ∈ G.Dist v` hold without any self-loop.\n- **`variable {Node : Type*} [DecidableEq Node]`** makes `Node` an implicit parameter throughout the section, with `DecidableEq` needed for every `Finset` operation above.\n",
   "design_choices": "## Design choices\n\n**Carrier is `Finset Node`, filtered out of `G.J ∪ G.V`.** The natural reading of \"$\\{w \\in G \\mid \\ldots\\}$\" picks out a subset of the graph's vertex universe, itself already a `Finset`. Sticking with `Finset Node` rather than `Set Node` keeps `Pa` computable (its predicate `(w, v) \\in G.E` is `Finset`-membership), lets downstream factorisations like $\\prod_v p(v \\mid \\mathrm{Pa}(v))$ range over a genuine indexing set with `DecidableEq`, and avoids `Finset.toSet` coercions when later definitions take intersections, biUnions, or set-differences of these family sets.\n\n**Edge predicate written as bare `(w, v) ∈ G.E`, not via the `tuh` notation alias.** Both unfold to the same proposition, but the raw membership in `G.E` is one indirection shallower and matches the lecture-notes phrasing \"$w \\tuh v \\in G$\" through `def_3_2`'s definitional unfolding. Consumers who prefer the notation can recover it with a single `simp only [CDMG.tuh]`.\n\n**Signature `v : Node`, unrestricted, rather than `v ∈ G.V`.** This follows the operator addition that reinterprets the LN preamble: the single-vertex form is read for any `v ∈ J ∪ V`, so that the upcoming `PaSet` over `A ⊆ J ∪ V` type-checks without a subset coercion. As a deliberate boundary consequence, `G.Pa j` for any input node `j ∈ G.J` returns the empty `Finset` automatically — `G.hE_subset` forces every directed edge's target into `G.V`, contradicting `G.hJV_disj`. Inputs have no parents falls out for free, exactly as the LN intends, without an explicit case split.\n\n**Directed self-loops keep `v ∈ G.Pa v`.** CDMGs admit directed self-loops at the type level (only bidirected self-loops are forbidden by `hL_irrefl`), so the literal LN reading puts `v` in its own parent set whenever $v \\to v \\in G.E$. The LN source explicitly considered and rejected the \"$\\setminus A$\" exclusion at the set-version level — the author noted it would break $\\mathrm{Pa}^G(\\{v\\}) = \\mathrm{Pa}^G(v)$ — so the inclusive form is intentional. Downstream proofs that need parents distinct from `v` must add a `v ∉ G.Pa v` hypothesis at the use site rather than have it silently baked in here.\n\n**Lives under `namespace CDMG` for dot-notation.** Mirroring the conventions of `CDMGNotation.lean` and `EdgeRelations.lean`, the `G : CDMG Node` argument comes first so that `G.Pa v` reads left-to-right like the LN's $\\mathrm{Pa}^G(v)$.\n"
 }
