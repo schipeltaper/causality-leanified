@@ -278,7 +278,7 @@ def <helper> := …
 
 For claims with a proof: the markers wrap just the signature `theorem foo … : <conclusion>`. The `:= proof_body` sits *below* the end marker. The prove-claim worker (`prove_claim_in_lean`) knows not to touch the markers.
 
-**Helper-for-statement markers (THREE dashes) are reserved for declarations the statement needs to type-check** — e.g. a custom `def Iso` the theorem's conclusion uses. Auxiliary declarations introduced for proof tactics do NOT get markers.
+**Helper-for-statement markers (THREE dashes) are reserved for declarations *and* `variable` directives the statement needs to type-check** — e.g. a custom `def Iso` the theorem's conclusion uses, or a `variable {Node : Type*} [DecidableEq Node]` line whose binders auto-bind into a wrapped `def` / `theorem` signature via Lean 4's auto-binding. A `variable` directive is a one-line block — markers go immediately above and immediately below it. Auxiliary declarations or `variable` directives introduced only for proof tactics, or for downstream rows, do NOT get markers.
 
 If a worker reports back without inserting markers (or with markers in the wrong place), surface that as a missing prerequisite and re-dispatch the formalize worker (or write a small `spawn_agent_sub_task` to fix the placement) before any downstream check.
 

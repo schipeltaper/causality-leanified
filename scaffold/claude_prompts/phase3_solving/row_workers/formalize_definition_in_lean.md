@@ -51,18 +51,24 @@ def <name> ... :=
 
 Where `<ref>` is this row's ref (e.g. `def_3_1`). For multi-item rows (a definition row that produces several `def`s / `notation`s), wrap **each** one separately with its own start/end pair, all using the row's ref. The markers go **immediately** above the `def`/`structure`/`class`/`abbrev`/`instance`/`notation`/`opaque` line and **immediately** below the last line of the declaration. Nothing else may appear between a `-- <ref> -- start statement` line and the declaration it wraps (no blank lines, no comments, no docstrings — those go ABOVE the start marker). Likewise nothing between the declaration's last line and `-- <ref> -- end statement`.
 
-**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary declaration that this row had to introduce to make the main statement well-typed (e.g. a small `def` of a relation the main `structure` uses as a field, an `instance` the main type needs). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
+**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary declaration **or** `variable` directive that this row had to introduce to make the main statement well-typed (e.g. a small `def` of a relation the main `structure` uses as a field, an `instance` the main type needs, **or** a `variable {α : Type*} [DecidableEq α]` line whose binders flow into the wrapped statements via Lean 4's auto-binding). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
 
 ```lean
 -- <ref> --- start helper
 def <helper_name> ... :=
   ...
 -- <ref> --- end helper
+
+-- <ref> --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- <ref> --- end helper
 ```
 
-Same placement rules: immediately above the helper's first line, immediately below its last. Use the **row's ref** (not the helper's name) for `<ref>`.
+Same placement rules: immediately above the helper's first line, immediately below its last. Use the **row's ref** (not the helper's name) for `<ref>`. A single `variable` directive is a one-line block; markers go immediately above and immediately below it. If you have several adjacent `variable` lines that *all* flow into the wrapped statements, you may wrap them as a single contiguous block.
 
-**Do NOT wrap with `--- helper` markers** declarations that exist purely for downstream proofs or for general infrastructure. The helper markers are reserved for "statement support" — declarations the main `def` would not type-check without.
+**Section / namespace boundary:** if the file opens a `section` and the `variable` lives at that section's scope, place the helper-marker pair around the `variable` *inside* the `section` (right where the directive sits), not around the `section` opener.
+
+**Do NOT wrap with `--- helper` markers** declarations or `variable` directives that exist purely for downstream proofs or for general infrastructure. The helper markers are reserved for "statement support" — anything the main `def` (or its auto-bound type quantifiers) would not type-check without. A `variable` whose binders never reach a wrapped statement (e.g. introduced only for a proof later in the file) should NOT be wrapped.
 
 ## Rules
 

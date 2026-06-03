@@ -64,18 +64,24 @@ Where `<ref>` is this row's ref (e.g. `claim_3_5`). For multi-item rows (a claim
 
 The Lean parser is happy with the markers in those positions: line comments are stripped before parsing, and `theorem foo … : Bar` followed by `:= proof` parses the same as `theorem foo … : Bar := proof`.
 
-**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary `def` / `structure` / `class` / `instance` / `notation` you had to introduce in this file so the main theorem signature would type-check (e.g. a `def Iso (G H : CDMG α) : Prop := …` that the theorem's conclusion uses). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
+**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary `def` / `structure` / `class` / `instance` / `notation`, **or** `variable` directive, you had to introduce in this file so the main theorem signature would type-check (e.g. a `def Iso (G H : CDMG α) : Prop := …` that the theorem's conclusion uses, or a `variable {α : Type*} [DecidableEq α]` line whose binders auto-bind into the wrapped theorem signature). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
 
 ```lean
 -- <ref> --- start helper
 def <helper_name> ... :=
   ...
 -- <ref> --- end helper
+
+-- <ref> --- start helper
+variable {α : Type*} [DecidableEq α]
+-- <ref> --- end helper
 ```
 
-Same placement rules: immediately above the helper's first line, immediately below its last. Use the **row's ref** for `<ref>` (the helper exists to support *this* row's statement).
+Same placement rules: immediately above the helper's first line, immediately below its last. Use the **row's ref** for `<ref>` (the helper exists to support *this* row's statement). A single `variable` directive is a one-line block; markers go immediately above and immediately below it. If several adjacent `variable` lines *all* flow into the wrapped theorem signature, you may wrap them as a single contiguous block.
 
-**Do NOT wrap with `--- helper` markers** declarations introduced for proof tactics, side lemmas the proof body invokes, or general infrastructure (those go without markers and the website builder ignores them). The helper markers are strictly for "statement support" -- declarations the main `theorem`'s signature would not type-check without.
+**Section / namespace boundary:** if the file opens a `section` and the `variable` lives at that section's scope, place the helper-marker pair around the `variable` *inside* the section (right where the directive sits), not around the `section` opener.
+
+**Do NOT wrap with `--- helper` markers** declarations or `variable` directives introduced for proof tactics, side lemmas the proof body invokes, or general infrastructure (those go without markers and the website builder ignores them). The helper markers are strictly for "statement support" -- anything the main `theorem`'s signature (or its auto-bound type quantifiers) would not type-check without. A `variable` whose binders never reach a wrapped statement should NOT be wrapped.
 
 ## Rules
 
