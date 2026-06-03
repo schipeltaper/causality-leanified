@@ -1,23 +1,30 @@
 # Worker — formalize a claim's statement in Lean (with `sorry`)
 
-**When to use:** the manager has handed you a row with `def_or_claim == "claim"` that is not yet formalized. The lecture notes have the source text wrapped in `\begin{claimmark}...\end{claimmark}`. Your job is to write the equivalent Lean 4 *statement* — a `theorem`/`lemma` with the right signature and a single `sorry` for the proof. Proving is a separate worker.
+**When to use:** the manager has handed you a row with `def_or_claim == "claim"` whose canonical statement tex file has been **rewritten and verified** by `formalize_claim_in_tex` + `verify_tex_statement_equivalence`. Your job is to translate that rewritten tex statement into the equivalent Lean 4 *statement* — a `theorem`/`lemma` with the right signature and a single `sorry` for the proof. Proving is a separate worker.
 
-## Authoritative spec = LN block + `addition_to_the_LN`
+## Authoritative spec = the rewritten canonical tex statement file
 
-The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the claim's statement**. It carries human-authored clarifications, strengthenings, or disambiguations written during the initialization phase. The Lean theorem signature must capture the claim's literal LN reading **AND** every clause in the addition. If the addition contradicts the literal LN, the addition wins. Empty addition → only the literal LN applies.
+The row's canonical statement tex file at `leanification/<Chapter>/<Section>/tex/<ref>_statement_<title>.tex` is your **primary spec**. It was rewritten by the `formalize_claim_in_tex` worker so that:
 
-Concretely: a `[<sid>] The variable W is implicitly universally quantified …` clause means your Lean theorem must explicitly bind `W` with the right quantifier and hypothesis. A `[manual_1] The vertex sets are finite.` clause means the hypotheses include `[Finite α]` (or analogous). Read every paragraph in `addition_to_the_LN` and make sure no constraint is silently dropped from the Lean statement.
+- Every clause in `addition_to_the_LN` is folded in.
+- Every hypothesis and quantifier is spelled out (no implicit scopes).
+- Bespoke visual notation has been translated to set-theoretic phrasing.
+
+It then passed `verify_tex_statement_equivalence`, which verified it is semantically equivalent to LN block + `addition_to_the_LN`. So: **translate the rewritten file**, not the LN's raw `claimmark` block.
+
+The LN `tex_block` and `addition_to_the_LN` remain available in your row context as *backup reference* — useful for sanity checks, names, and intent — but if you find yourself preferring the LN block over the rewritten tex, that's a signal something is wrong (either with the rewrite or with your reading). Stop, report back to the manager, and ask for a re-spawn of the tex worker.
 
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_12`)
-- `tex_file` and the line range of the `claimmark` block (or the raw contents)
-- the target Lean file path inside the row's subsection folder
-- the LaTeX type (theorem, lemma, corollary, remark, …) — informs naming but not the statement
+- The path to the rewritten canonical tex statement file (your primary spec)
+- The LN `tex_file` for surrounding chapter context (backup)
+- The target Lean file path inside the row's subsection folder
+- The LaTeX type (theorem, lemma, corollary, remark, …) — informs naming but not the statement
 
 ## What to do
 
-1. **Read the source.** The full `claimmark` block plus enough surrounding text to disambiguate notation and quantification.
+1. **Read the rewritten tex statement file** end to end. This is your spec. Read the row's `addition_to_the_LN` and the LN `tex_block` as backup, but the rewritten file is what you formalize.
 2. **Decide single vs. multi-item.** A "claim" row is sometimes a *collection* of claims — several `\begin{Thm}` or `\begin{Lem}` blocks stacked, or a numbered list of statements bundled under one heading. In that case **stack them under each other** as separate `theorem`/`lemma` declarations in the same Lean file. Do not force them into one statement.
 3. **Translate carefully.** Each Lean statement should be (almost) equivalent to its LN counterpart:
    - Same hypotheses, in the same order if reasonable.

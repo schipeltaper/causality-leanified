@@ -1,23 +1,30 @@
 # Worker — formalize a definition in Lean
 
-**When to use:** the manager has handed you a row with `def_or_claim == "def"` that is not yet formalized. The lecture notes have the source text wrapped in `\begin{defmark}...\end{defmark}`. Your job is to write the equivalent Lean 4 declaration.
+**When to use:** the manager has handed you a row with `def_or_claim == "def"` whose canonical statement tex file has been **rewritten and verified** by `formalize_definition_in_tex` + `verify_tex_statement_equivalence`. Your job is to translate that rewritten tex statement into the equivalent Lean 4 declaration.
 
-## Authoritative spec = LN block + `addition_to_the_LN`
+## Authoritative spec = the rewritten canonical tex statement file
 
-The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the spec**. It carries human-authored clarifications, strengthenings, or disambiguations written during the initialization phase. Treat them as part of the LN: the Lean definition you write must satisfy the LN's literal reading **AND** every clause in the addition. If the addition contradicts the literal LN, the addition wins. Empty addition → only the literal LN applies.
+The row's canonical statement tex file at `leanification/<Chapter>/<Section>/tex/<ref>_<title>.tex` is your **primary spec**. It was rewritten by the `formalize_definition_in_tex` worker so that:
 
-Concretely: every `[<sid>] …` paragraph and every `[manual_*] …` paragraph in `addition_to_the_LN` is a constraint your Lean encoding must respect. E.g. a `[manual_1] The vertex sets J and V are assumed to be finite.` clause means the Lean carrier types must be `Finite` (or `Fintype`), even though the literal LN does not say so.
+- Every clause in `addition_to_the_LN` is folded in.
+- The body is exact and unambiguous (no implicit quantifiers, no informal "...").
+- Bespoke visual notation has been translated to set-theoretic phrasing.
+
+It then passed `verify_tex_statement_equivalence`, which verified it is semantically equivalent to LN block + `addition_to_the_LN`. So: **translate the rewritten file**, not the LN's raw `defmark` block.
+
+The LN `tex_block` and `addition_to_the_LN` remain available in your row context as *backup reference* — useful for sanity checks, names, and intent — but if you find yourself preferring the LN block over the rewritten tex, that's a signal something is wrong (either with the rewrite or with your reading). Stop, report back to the manager, and ask for a re-spawn of the tex worker.
 
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `def_3_5`)
-- `tex_file` and the line range of the `defmark` block (or the raw block contents)
-- the target Lean file path inside the row's subsection folder under `leanification/`
-- any tips on the row
+- The path to the rewritten canonical tex statement file (your primary spec)
+- The LN `tex_file` for surrounding chapter context (backup)
+- The target Lean file path inside the row's subsection folder under `leanification/`
+- Any tips on the row
 
 ## What to do
 
-1. **Read the source.** Open the `tex_file` and read the full `defmark` block (and a few surrounding paragraphs if context is needed).
+1. **Read the rewritten tex statement file** end to end. This is your spec. Read the row's `addition_to_the_LN` and the LN `tex_block` as backup, but the rewritten file is what you formalize.
 2. **Decide single vs. multi-item.** A "definition" row in the data file is sometimes a *collection* of definitions — a notation block with several bullet points, or a list of operators introduced together. In that case **do not force them into one Lean declaration**: produce as many `def`s / `notation`s / `structure`s as it takes to mirror the LN faithfully, split across multiple files if a file would otherwise grow past ~700 lines or a natural module boundary suggests it.
 3. **Plan the shape.** For each item decide whether it becomes a `def`, an `abbrev`, a `structure`, a `class`, or a `notation`. Prefer the construct that lets dependent theory build naturally on top of it.
 4. **Write the Lean declaration(s)** in the target file(s), with a comment block above each one containing:

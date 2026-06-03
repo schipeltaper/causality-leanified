@@ -56,8 +56,9 @@ ACTIONS = [
     "expand_proof",          # add detail to an existing tex proof's specific step
     "correct_tex_proof",     # rewrite a tex proof after leanification revealed a mistake
     "verify_tex_proof",      # independent check that a tex proof is complete and correct
-    "verify_tex_statement_only",       # structural check: <ref>_statement_<title>.tex contains the statement and nothing else
-    "verify_tex_statement_plus_proof", # structural check: <ref>_proof_<title>.tex contains both the statement and the proof
+    "verify_tex_statement_only",         # structural check: <ref>_statement_<title>.tex contains the statement and nothing else
+    "verify_tex_statement_equivalence",  # semantic check: rewritten <ref>_statement_<title>.tex is equivalent to LN block + addition_to_the_LN
+    "verify_tex_statement_plus_proof",   # structural check: <ref>_proof_<title>.tex contains both the statement and the proof
     # --- formalization review chain (statement-level) ---------------------
     "review_design",         # full-LN-context review of whether the Lean shape is natural
     "verify_equivalence",    # focused (friendly) check that the Lean statement matches the LN

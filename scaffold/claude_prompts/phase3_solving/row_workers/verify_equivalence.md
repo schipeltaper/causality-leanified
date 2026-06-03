@@ -8,6 +8,8 @@ You are *not* doing design review (`review_design` handled that) and you are *no
 
 The row's `addition_to_the_LN` field (in `data.json`, surfaced to the manager in its row context under "Addition to the LN") is **part of the spec**. It was authored by the project operator during the initialization phase from human answers to the wording-check decision table. Treat it as a *strengthening* / disambiguation of the LN's literal text — the Lean statement must satisfy the LN's literal reading **AND** every clause in the addition. If the addition is empty, the literal LN is authoritative.
 
+The row's subsection folder also contains a **rewritten canonical tex statement file** (`<ref>_<title>.tex` for defs / `<ref>_statement_<title>.tex` for claims) that the `formalize_definition_in_tex` / `formalize_claim_in_tex` worker produced and `verify_tex_statement_equivalence` already verified equivalent to (LN block + `addition_to_the_LN`). You may use it as a **bridge reference** when reading the Lean — it is often easier to compare against than the raw LN+addition because it has already been rendered into the project's set-theoretic vocabulary. But the *target* of the equivalence check remains the conjunction (LN block + addition); the bridge file is not itself the spec — it is one verified rendering of it. If you find a discrepancy between the bridge file and the LN+addition, treat that as upstream evidence and surface it in your report.
+
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`)
