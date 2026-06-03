@@ -496,7 +496,7 @@
           "last_used": "2026-06-03T07:36:35+00:00"
         }
       ],
-      "time_needed_to_solve": 1997,
+      "time_needed_to_solve": 2016,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -510,29 +510,31 @@
       "section": "3.1",
       "title": "TopologicalOrder",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -545,9 +547,22 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "d03f82aa-33ee-42c0-b50d-d0e81b114d2c",
+          "first_seen": "2026-06-03T08:13:57+00:00",
+          "last_used": "2026-06-03T08:13:57+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2096,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block for def_3_8 (Topological order):\n\nThe definition is clean and standard:\n- A total order `<` on `J ∪ V`\n- Constraint: `v ∈ Pa^G(w) ⟹ v < w` (parents precede children)\n- Plus an equivalent reformulation as an indexing `{v_1, ..., v_K}`\n\nChecking for potential issues:\n\n1. **`for all v, w ∈ G`** — technically `G = (J,V,E,L)` is a tuple, so `v ∈ G` is sloppy notation for `v ∈ J ∪ V`. But this is universal abuse-of-notation in graph theory and the intent is unambiguous.\n\n2. **Corner cases** — empty `J ∪ V`: vacuously satisfied; singleton: trivial; cyclic graph: no topological order exists (the definition correctly returns an empty set of valid orders); self-loops: would require `v < v` which fails under strict order, again correctly preventing a topological order.\n\n3. **Equivalence between the two descriptions** — relies on finiteness of `J ∪ V` (indexing by `{1,...,K}`), but finiteness of CDMG node sets is standard in this framework.\n\n4. **Bidirected edges (`L`)** — impose no ordering constraint, since only `Pa^G` (directed parents) appears in the implication. This is intentional and standard.\n\n5. **Strict vs non-strict order** — the `<` notation conventionally denotes strict; consistent with the parent-precedes-child reading.\n\nNo genuine ambiguity, unintended corner case, internal inconsistency, or under-specification.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a8664ffc-33b8-4361-b4f0-ff74284569d9"
+      }
     },
     {
       "def_or_claim": "claim",

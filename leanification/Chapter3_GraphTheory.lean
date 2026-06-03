@@ -10,3 +10,4 @@ import Chapter3_GraphTheory.Section3_1.WalkBifurcation
 import Chapter3_GraphTheory.Section3_1.FamilyRelationships
 import Chapter3_GraphTheory.Section3_1.Acyclicity
 import Chapter3_GraphTheory.Section3_1.CDMGTypes
+import Chapter3_GraphTheory.Section3_1.TopologicalOrder
