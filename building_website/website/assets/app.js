@@ -462,6 +462,7 @@ function renderProofPage(data) {
   const sectionNum = data.section;
 
   const header = el("header", { class: "entry-header" },
+    el("a", { class: "back-link", href: `#${data.ref}` }, "← Back to statement"),
     el("div", { class: "entry-kind" }, `Proof of Claim ${sectionNum.split(".")[0]}.${nIn}`),
     el("h1", { class: "entry-title" }, data.tex_statement.env_title || data.title),
   );
