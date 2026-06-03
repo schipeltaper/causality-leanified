@@ -12,63 +12,63 @@
               "kind": "def",
               "label": "def 3.1 — CDMG",
               "title": "CDMG",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_2",
               "kind": "def",
               "label": "def 3.2 — CDMGNotation",
               "title": "CDMGNotation",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_3",
               "kind": "def",
               "label": "def 3.3 — EdgeRelations",
               "title": "EdgeRelations",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_1",
               "kind": "claim",
               "label": "claim 3.1 — CDMGRestrictions",
               "title": "CDMGRestrictions",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_4",
               "kind": "def",
               "label": "def 3.4 — Walks",
               "title": "Walks",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_5",
               "kind": "def",
               "label": "def 3.5 — FamilyRelationships",
               "title": "FamilyRelationships",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_6",
               "kind": "def",
               "label": "def 3.6 — Acyclicity",
               "title": "Acyclicity",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_7",
               "kind": "def",
               "label": "def 3.7 — CDMGTypes",
               "title": "CDMGTypes",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_8",
               "kind": "def",
               "label": "def 3.8 — TopologicalOrder",
               "title": "TopologicalOrder",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_2",
