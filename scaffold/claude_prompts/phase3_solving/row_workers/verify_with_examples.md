@@ -8,6 +8,8 @@ You are the **adversarial property-tester**. Your goal is not to confirm the enc
 
 The "LN-side answer" you compute on each instance is the answer dictated by the LN's literal tex block **AND** the row's `addition_to_the_LN` field (in `data.json`, surfaced in the manager's row context under "Addition to the LN"). The addition is a project-operator-authored strengthening or disambiguation of the LN, decided during the initialization phase. Compute the LN-side as `LN literal ∧ addition`. If the addition is empty, the literal LN alone defines the LN-side answer.
 
+The row's subsection folder also contains a **rewritten canonical tex statement file** (`<ref>_<title>.tex` for defs / `<ref>_statement_<title>.tex` for claims) that already passed `verify_tex_statement_equivalence` against (LN + addition). It is often easier to read the set-theoretic / first-order phrasing of the spec there than in the raw LN+addition. Use it as a bridge if helpful — but the *ground truth* you instantiate against is still (LN + addition).
+
 ## Inputs you should receive
 
 - `ref` of the row being checked.

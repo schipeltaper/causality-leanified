@@ -68,7 +68,8 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `expand_proof` | one specific step in an existing tex proof is too sketchy | brief for `expand_tex_proof.md` (point at the step precisely) |
 | `correct_tex_proof` | leanification revealed a *mistake* in the tex proof | brief for `correct_tex_proof.md` (cite the leanifier's report; describe the flaw) |
 | `verify_tex_proof` | you believe a tex proof is complete and want an independent check | brief for `verify_tex_proof.md` (path to the proof file + the claim) |
-| `verify_tex_statement_only` | after the row's `<ref>_statement_<title>.tex` is written/updated, structurally check it contains the statement and nothing else (no proof, no extra environments). REQUIRED before treating the statement file as ready. | brief for `verify_tex_statement_only.md` (path to the statement file) |
+| `verify_tex_statement_only` | after the row's canonical statement tex file (`<ref>_<title>.tex` for defs / `<ref>_statement_<title>.tex` for claims) is written/updated, structurally check it contains the statement and nothing else (no proof, no extra environments). REQUIRED before treating the statement file as ready. | brief for `verify_tex_statement_only.md` (path to the statement file) |
+| `verify_tex_statement_equivalence` | after `formalize_definition_in_tex` / `formalize_claim_in_tex` has rewritten the canonical statement tex file, semantically verify the rewrite is equivalent to LN block + `addition_to_the_LN`. REQUIRED before the Lean formalization step. Pairs with the structural `verify_tex_statement_only` (structural first, semantic second). | brief for `verify_tex_statement_equivalence.md` (path to the rewritten statement file) |
 | `verify_tex_statement_plus_proof` | after the row's `<ref>_proof_<title>.tex` is written, structurally check it contains both the statement and the proof, in that order. REQUIRED before `verify_tex_proof` runs. Structural-only — does not assess mathematical correctness. | brief for `verify_tex_statement_plus_proof.md` (path to the proof file) |
 | `review_design` | a def/claim statement is freshly formalized; check it's a *natural* design | brief for `review_design.md` (the Lean declaration + LN block) |
 | `verify_equivalence` | check the Lean statement is *exactly equivalent* to the LN block (friendly, fast) | brief for `verify_equivalence.md` |
@@ -103,15 +104,20 @@ The canonical list of valid action names is in `scaffold/scripts/phase2_initiali
 
 ### Definition row (`def_or_claim == "def"`)
 
-1. `spawn_agent_sub_task` → `formalize_definition_in_lean.md` (writes one or more Lean items; the def subfile is already pre-populated with the LN block by the orchestrator)
-2. `review_design` — full-LN-context check that the Lean shape is natural
-   - On FAIL: re-dispatch the formalizer with the design feedback
-3. `verify_equivalence` — focused (friendly) check that the Lean statement matches the LN block
-   - On FAIL: re-dispatch the formalizer
-4. *(recommended for defs that introduce a new operator / predicate / structure — `marginalize`, `nodeSplittingOn`, walk constructors, etc.)*: `verify_equivalence_strict` (and `verify_with_examples` if it returns `EXAMPLE_GENERATION`). The strict checker runs automatically in the `solved` gate too, but catching a CONTENT deviation here saves a round-trip.
-5. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the row can be solved.
-6. `solved` → orchestrator dispatches `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
-7. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
+1. `spawn_agent_sub_task` → `formalize_definition_in_tex.md` — rewrites the row's canonical statement tex file (`<ref>_<title>.tex`) so it integrates every `addition_to_the_LN` clause, is exact / unambiguous, and uses set-theoretic phrasing instead of visual notation. The orchestrator's pre-fill (the LN block verbatim) is the *starting* draft; the worker rewrites the body. **This is the new first step — do it before any Lean.**
+2. `verify_tex_statement_only` — structural check on the rewritten statement file (no proof block, no extra environments). Cheap and fast.
+   - On FAIL: re-dispatch `formalize_definition_in_tex` with the structural feedback (usually trivial to fix).
+3. `verify_tex_statement_equivalence` — semantic check that the rewritten tex is equivalent to LN block + `addition_to_the_LN`. **This is the gate before any Lean work begins.**
+   - On FAIL: re-dispatch `formalize_definition_in_tex` with the verifier's tagged feedback. Iterate until PASS.
+4. `spawn_agent_sub_task` → `formalize_definition_in_lean.md` — translates the rewritten canonical tex into Lean. The worker's primary spec is the rewritten tex file (LN+addition stays available as backup).
+5. `review_design` — full-LN-context check that the Lean shape is natural.
+   - On FAIL: re-dispatch the Lean formalizer with the design feedback.
+6. `verify_equivalence` — focused (friendly) check that the Lean statement matches LN block + `addition_to_the_LN` (the rewritten tex is also surfaced as a bridge reference).
+   - On FAIL: re-dispatch the Lean formalizer.
+7. *(recommended for defs that introduce a new operator / predicate / structure — `marginalize`, `nodeSplittingOn`, walk constructors, etc.)*: `verify_equivalence_strict` (and `verify_with_examples` if it returns `EXAMPLE_GENERATION`). The strict checker runs automatically in the `solved` gate too, but catching a CONTENT deviation here saves a round-trip.
+8. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the row can be solved.
+9. `solved` → orchestrator dispatches `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
+10. On PASS: the row is marked `formalized="yes"`, `solved="yes"`.
 
 ### Claim row (`def_or_claim == "claim"`) — two managers, three handed-off phases
 
@@ -120,27 +126,34 @@ A claim row passes through **exactly two manager agents**: one for the **stateme
 **Manager A — statement only.**
 
 1. (optional) `make_plan` if the claim is non-trivial.
-2. `spawn_agent_sub_task` → `formalize_claim_in_lean.md` (writes the Lean statement(s) with `sorry`).
-3. `review_design` — full-LN-context check of the Lean shape (statement-level).
-   - On FAIL: re-dispatch the formalizer with the verifier's tagged feedback.
-4. `verify_equivalence` — focused statement-vs-LN check.
-   - On FAIL: re-dispatch the formalizer.
-5. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the proof phase begins.
-6. **`new_manager`** — handoff. Body is the dossier: row ref, the Lean file/statement, the LN block, what verifiers passed, where the empty `<ref>_proof_<title>.tex` stub lives (it already includes the statement at the top).
+2. `spawn_agent_sub_task` → `formalize_claim_in_tex.md` — rewrites the row's canonical statement tex file (`<ref>_statement_<title>.tex`) so it integrates every `addition_to_the_LN` clause, spells out every implicit quantifier, and uses set-theoretic phrasing.
+3. `verify_tex_statement_only` — structural check on the rewritten statement file.
+   - On FAIL: re-dispatch `formalize_claim_in_tex` with the structural feedback.
+4. `verify_tex_statement_equivalence` — semantic check that the rewritten tex is equivalent to LN block + `addition_to_the_LN`. **Gate before any Lean.**
+   - On FAIL: re-dispatch `formalize_claim_in_tex` with the verifier's tagged feedback.
+5. `spawn_agent_sub_task` → `formalize_claim_in_lean.md` — translates the rewritten canonical tex into the Lean theorem signature (with `sorry`).
+6. `review_design` — full-LN-context check of the Lean shape (statement-level).
+   - On FAIL: re-dispatch the Lean formalizer with the verifier's tagged feedback.
+7. `verify_equivalence` — focused statement-vs-(LN + addition) check.
+   - On FAIL: re-dispatch the Lean formalizer.
+8. **`add_design_choice_comments`** — write the *why* behind the Lean shape into the comment block above each declaration. This step is required before the proof phase begins.
+9. **`new_manager`** — handoff. Body is the dossier: row ref, the rewritten canonical tex statement file, the Lean file/statement, what verifiers passed, where the `<ref>_proof_<title>.tex` stub lives. Manager B will sync the proof file's at-the-top statement block from the rewritten canonical statement file when `write_tex_proof.md` runs.
 
 **Manager B — the proof (TeX + Lean, in one manager).**
 
-6. `spawn_agent_sub_task` → `write_tex_proof.md`. **The worker's first step is to search the LN itself for an existing `\begin{proof}` block following the claim — copy/paste if present, else construct from scratch in the LN paradigm.**
-7. `verify_tex_proof` — independent check.
-   - On FAIL: `expand_proof` on the flagged step, or re-dispatch the proof writer with the verifier's feedback.
-8. `spawn_agent_sub_task` → `prove_claim_in_lean.md` (translates the verified TeX proof to Lean tactics).
-   - If the prover hits a sketchy step in the TeX: `expand_proof`.
-   - If the prover finds a *real* mistake in the TeX proof: `correct_tex_proof`, then `verify_tex_proof` again, then re-prove. (You can also `continue_agent` to send the leanifier's feedback to the original tex writer's session.)
-9. `simplify_proof` — full-LN-context check.
-   - **On PASS**: the proof is already as simple as it reasonably gets — keep the existing proof and move on to step 10.
-   - **On FAIL**: a concrete simpler alternative was proposed in the verifier's tagged feedback; dispatch the prover with that simpler version (with `correct_tex_proof` first if the TeX needs to mirror).
-10. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
-11. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
+10. `spawn_agent_sub_task` → `write_tex_proof.md`. **The worker's first step is to (a) sync the at-the-top statement block in `<ref>_proof_<title>.tex` with the rewritten canonical statement file (`<ref>_statement_<title>.tex` — already verified equivalent to LN+addition); (b) search the LN itself for an existing `\begin{proof}` block following the claim — copy/paste if present, else construct from scratch in the LN paradigm.**
+11. `verify_tex_statement_plus_proof` — structural check on the proof file (statement present, proof present, in order).
+    - On FAIL: re-dispatch `write_tex_proof.md` with the structural feedback.
+12. `verify_tex_proof` — independent mathematical check.
+    - On FAIL: `expand_proof` on the flagged step, or re-dispatch the proof writer with the verifier's feedback.
+13. `spawn_agent_sub_task` → `prove_claim_in_lean.md` (translates the verified TeX proof to Lean tactics).
+    - If the prover hits a sketchy step in the TeX: `expand_proof`.
+    - If the prover finds a *real* mistake in the TeX proof: `correct_tex_proof`, then `verify_tex_statement_plus_proof` + `verify_tex_proof` again, then re-prove. (You can also `continue_agent` to send the leanifier's feedback to the original tex writer's session.)
+14. `simplify_proof` — full-LN-context check.
+    - **On PASS**: the proof is already as simple as it reasonably gets — keep the existing proof and move on.
+    - **On FAIL**: a concrete simpler alternative was proposed in the verifier's tagged feedback; dispatch the prover with that simpler version (with `correct_tex_proof` first if the TeX needs to mirror).
+15. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
+16. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
 
 ### Claim that's actually false — **same workflow as proving, on the negation**
 
@@ -230,10 +243,20 @@ After each Lean change, ensure `lake build` from `/home/11716061/repo_scaffold2/
 
 After each tex subfile is written/updated, dispatch a structural check before moving on. These are cheap and catch sloppy file shape early:
 
-- `<ref>_statement_<title>.tex` is updated → `verify_tex_statement_only`. Confirms the file holds the statement and nothing else (no proof leaking in, no extra environments).
+- Canonical statement tex (`<ref>_<title>.tex` for defs, `<ref>_statement_<title>.tex` for claims) is updated → `verify_tex_statement_only` (**structural**: file holds the statement, nothing else). Then → `verify_tex_statement_equivalence` (**semantic**: rewrite is equivalent to LN + `addition_to_the_LN`). Both must PASS before the Lean formalizer is dispatched. Structural first (cheap, fail-fast), semantic second.
 - `<ref>_proof_<title>.tex` is written → `verify_tex_statement_plus_proof`. Confirms the file holds both the statement and the proof, in order. **This is the prerequisite for `verify_tex_proof`** (the mathematical check), so dispatch the structural check first.
 
-Both checks return `VERDICT: PASS/FAIL` and surface feedback the same way the existing verifiers do.
+All checks return `VERDICT: PASS/FAIL` and surface feedback the same way the existing verifiers do.
+
+**Statement-flow recap (defs and claims share this).** The tex-then-Lean order is:
+
+```
+formalize_*_in_tex  →  verify_tex_statement_only  →  verify_tex_statement_equivalence
+                  ↓
+       formalize_*_in_lean  →  review_design  →  verify_equivalence  [→ strict / examples]
+```
+
+The tex rewrite is a **bridge layer**: it makes the spec unambiguous and notation-light so the Lean formalizer can translate cleanly, and it gives the equivalence checkers a verified intermediate to read alongside the raw LN+addition.
 
 ## Lean statement markers (`-- <ref> -- start/end statement` / `-- <ref> --- start/end helper`)
 
@@ -266,6 +289,8 @@ Before the row-solving phase begins, the operator runs the initialization-phase 
 **Treat `addition_to_the_LN` as part of the LN.** The literal LN tex block plus this addition together form the spec the formalization must satisfy. The equivalence-checker workers (`verify_equivalence`, `verify_equivalence_strict`, `verify_with_examples`) are wired to read both and verify against the conjunction.
 
 If the addition is empty, the literal LN is authoritative.
+
+**How additions land in the canonical statement tex.** The first dispatched worker on every row is `formalize_definition_in_tex` (def) / `formalize_claim_in_tex` (claim). That worker reads LN + `addition_to_the_LN` and rewrites the row's canonical statement tex file (`<ref>_<title>.tex` for defs, `<ref>_statement_<title>.tex` for claims) so every addition clause is folded *into* the statement, every implicit quantifier is spelled out, and bespoke visual notation is translated to set-theoretic phrasing. `verify_tex_statement_equivalence` then gates that the rewrite is equivalent to LN+addition. From that point on, the rewritten tex is the spec the Lean formalizer reads — every downstream worker (Lean formalize, equivalence checks, design review) treats it as the canonical statement and uses the LN+addition only as backup. This is why a missing addition in the rewrite is a hard FAIL at the tex-equivalence gate, *before* any Lean is written.
 
 ## LN wording-check input + `register_ln_subtlety` action (working phase)
 

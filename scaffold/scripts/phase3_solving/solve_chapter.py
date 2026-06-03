@@ -150,6 +150,7 @@ VERIFIER_ACTIONS: dict[str, tuple[str, str]] = {
     # action_name -> (worker_prompt_filename, label_suffix)
     "verify_tex_proof":               ("verify_tex_proof.md",               "tex_proof_verifier"),
     "verify_tex_statement_only":      ("verify_tex_statement_only.md",      "tex_statement_only_verifier"),
+    "verify_tex_statement_equivalence": ("verify_tex_statement_equivalence.md", "tex_statement_equivalence_verifier"),
     "verify_tex_statement_plus_proof": ("verify_tex_statement_plus_proof.md", "tex_statement_plus_proof_verifier"),
     "review_design":                  ("review_design.md",                  "design_reviewer"),
     "verify_equivalence":             ("verify_equivalence.md",             "equivalence_verifier"),

@@ -10,6 +10,8 @@ The row's `addition_to_the_LN` field (in `data.json`, also surfaced in the manag
 
 When you FAIL, ROOT_CAUSE attribution can name an `addition_to_the_LN` clause as the basis (just as it would name a literal LN clause).
 
+The row's subsection folder also contains a **rewritten canonical tex statement file** (`<ref>_<title>.tex` for defs / `<ref>_statement_<title>.tex` for claims) that `formalize_definition_in_tex` / `formalize_claim_in_tex` produced and `verify_tex_statement_equivalence` already verified equivalent to (LN block + `addition_to_the_LN`). You may use it as a **bridge reference** while inspecting the Lean. The *target* of the equivalence check, however, remains the conjunction (LN block + addition) — the bridge is one verified rendering, not the spec itself. If you find the bridge file and the LN+addition diverge, that is itself a finding (a `verify_tex_statement_equivalence` miss) and should be surfaced in your feedback; do not let the bridge file silently override your reading of the raw LN+addition.
+
 ## Inputs you should receive
 
 - `ref` of the row being checked.
