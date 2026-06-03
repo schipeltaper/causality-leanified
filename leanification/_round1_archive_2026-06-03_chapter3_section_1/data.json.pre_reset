@@ -31,7 +31,7 @@
       "formalized": "yes",
       "proven": "n/a",
       "solved": "yes",
-      "date_solved": "2026-06-03",
+      "date_solved": "2026-06-02",
       "tips": "",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMG.lean",
@@ -46,7 +46,7 @@
         "verify_equivalence": 1,
         "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
+        "add_design_choice_comments": 0,
         "simplify_proof": 0,
         "solved": 1,
         "refactor": 0,
@@ -62,26 +62,24 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0,
-        "verify_tex_statement_only": 1,
-        "verify_tex_statement_equivalence": 1
+        "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Conditional directed mixed graphs (CDMG)]\n    \\label{def-cdmg}\n    A \\emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of\n    vertices (also called nodes):\n    \\begin{enumerate}[label=\\roman*.)]\n        \\item $J$, whose elements are called input nodes,\n        \\item $V$, whose elements are called output nodes,\n    \\end{enumerate}\n%    such that $J \\cup V \\neq \\emptyset$;\n    and two (disjoint) sets of edges:\n    \\begin{enumerate}[resume,label=\\roman*.)]\n        \\item $E \\ins (J \\cup V) \\times V$ the set of directed edges,\n        \\item $L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1)) $, the set of bidirected edges, \n        \\item[]    with: $(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$.\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
       "agent_registry": [
         {
           "kind": "for_website",
           "spawned_by": "manager",
-          "session_id": "671fa191-9f7f-43ad-a948-fb3473550efb",
-          "first_seen": "2026-06-03T12:26:00+00:00",
-          "last_used": "2026-06-03T12:26:00+00:00"
+          "session_id": "a5115b91-d464-4117-9695-51fff9ebc6b9",
+          "first_seen": "2026-06-02T23:23:21+00:00",
+          "last_used": "2026-06-02T23:23:21+00:00"
         }
       ],
-      "time_needed_to_solve": 1975,
+      "time_needed_to_solve": 2338,
       "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Node sets J and V are both finite.",
       "wording_check": {
         "done": true,
-        "output": "SUBTLETY:\nid: bidirected_edges_quotient_vs_symmetry_redundancy\nexplanation: The bidirected edge set is declared as `L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1))`, i.e. a subset of the quotient of `V × V` by the swap relation. Elements of this quotient are unordered pairs (equivalence classes). But the accompanying condition is written as\n\n    \"$(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$\"\n\nwhich treats elements of `L` as if they were ordered pairs.\n\nIf `L` really is a subset of the quotient, then `(v_1, v_2)` and `(v_2, v_1)` denote the *same* equivalence class, so \"$(v_2, v_1) \\in L$\" follows automatically from \"$(v_1, v_2) \\in L$\" — that half of the conjunction is vacuous. Only the `v_1 ≠ v_2` clause (no self-loops in `L`) carries content.\n\nAlternatively, if the author actually intends `L \\subseteq V \\times V` (no quotient) with the implication forcing symmetry, then the quotient notation is misleading — it suggests a different ambient set.\n\nThis ambiguity matters for any encoding: should `L` be a `Sym2 V`, a `Finset (V × V)` with a symmetry axiom, or an irreflexive symmetric relation? The LN simultaneously suggests two of these.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loops_allowed_but_bidirected_self_loops_forbidden\nexplanation: The constraint `v_1 \\neq v_2` is imposed on `L` (no bidirected self-loops), but `E` has no analogous constraint. The literal definition `E \\ins (J \\cup V) \\times V` permits a pair `(v, v)` with `v \\in V`, since then `v \\in J \\cup V` and `v \\in V`. So a directed self-loop `v \\to v` on an output node is admissible, while a bidirected self-loop `v \\leftrightarrow v` is explicitly forbidden.\n\nThis asymmetry between E and L may be intentional (e.g. directed self-loops sometimes encode feedback) but the LN doesn't justify or even acknowledge it. A reader scanning the definition could easily assume self-loops are uniformly disallowed. Downstream notions like acyclicity (def_3_6) will need to take a stance on whether `v \\to v` counts as a length-1 cycle.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_cdmg_admitted_by_active_definition\nexplanation: The active text imposes no non-emptiness condition on `J \\cup V`. Hence the literal definition admits the fully empty CDMG with `J = V = E = L = \\emptyset`. This is a classic degenerate corner case: any downstream definition that implicitly assumes a non-empty vertex set (walks of positive length, \"the source of a directed edge\", topological orders on non-empty supports, etc.) needs to either gracefully handle, or explicitly exclude, the empty graph. Worth flagging because future claims/proofs that quantify \"for every CDMG …\" will quietly include this trivial case.\nEND_SUBTLETY",
-        "session": "0c491755-26b3-4859-a1fc-685e14055ef4"
+        "output": "SUBTLETY:\nid: bidirected_edge_quotient_vs_implication_redundant\nexplanation: The set $L$ is defined as a subset of the quotient $V \\times V / ((v_1,v_2) \\sim (v_2,v_1))$, i.e., elements of $L$ are equivalence classes of ordered pairs identified with their reverses. Under this reading, the equivalence class of $(v_1, v_2)$ literally *is* the equivalence class of $(v_2, v_1)$, so \"$(v_2, v_1) \\in L$\" is automatic whenever \"$(v_1, v_2) \\in L$\".\n\nBut the constraint then states: \"$(v_1,v_2) \\in L \\implies v_1 \\neq v_2 \\land (v_2,v_1) \\in L$\". The conjunct \"$(v_2,v_1) \\in L$\" is redundant under the quotient interpretation — it's already forced by the very definition of $L$.\n\nThis signals one of two things:\n1. The author intended $L$ as a set of *ordered* pairs (not equivalence classes) and the symmetry \"$(v_2, v_1) \\in L$\" is the real constraint, in which case the quotient notation is misleading.\n2. The author intended $L$ as equivalence classes, in which case the symmetry part of the implication is vacuous and only \"$v_1 \\neq v_2$\" carries content.\n\nThe literal text is internally inconsistent in whether elements of $L$ are ordered or unordered. A formalizer must pick one; the choice will leak into every downstream definition that quantifies \"for each bidirected edge $(v_1,v_2) \\in L$\" (does the same edge then also appear as $(v_2, v_1)$, or is each undirected pair encountered exactly once?).\nEND_SUBTLETY\n\nSUBTLETY:\nid: edge_sets_E_and_L_disjointness_ill_typed\nexplanation: The text says \"two \\emph{(disjoint)} sets of edges\" and then defines:\n- $E \\subseteq (J \\cup V) \\times V$ — a set of ordered pairs.\n- $L \\subseteq V \\times V / ((v_1,v_2) \\sim (v_2,v_1))$ — a set of equivalence classes.\n\nThese live in different ambient sets, so on the most literal reading the disjointness condition is either trivially satisfied (a raw ordered pair is never equal to an equivalence class of pairs, so they cannot share an element) or simply ill-typed.\n\nBut the author plainly meant *something* by writing \"(disjoint)\". A plausible intended reading is: for any $v_1, v_2 \\in V$, you cannot have both a directed edge $(v_1, v_2) \\in E$ (or $(v_2, v_1) \\in E$) and a bidirected edge $\\{v_1, v_2\\} \\in L$ between the same two vertices. This is a much stronger and more interesting structural constraint, and standard ADMG-style mixed graphs sometimes do/don't enforce it depending on the author.\n\nThe literal text does not pin this down. A formalizer who takes the strict type-disjointness reading will produce a CDMG type where the same vertex pair can carry both kinds of edge; one who takes the \"no parallel directed+bidirected edge between same pair\" reading will produce a different (and stricter) type. Downstream proofs about, e.g., edge counts or path structure will behave differently.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loops_unrestricted_in_E\nexplanation: The definition of the directed edge set is simply \"$E \\subseteq (J \\cup V) \\times V$ the set of directed edges\", with no exclusion of the diagonal. For any $v \\in V$, the pair $(v, v)$ lies in $(J \\cup V) \\times V$, so the literal definition admits $(v, v) \\in E$ — a directed self-loop at $v$.\n\nBy contrast, bidirected edges *do* explicitly forbid self-loops via \"$v_1 \\neq v_2$\".\n\nThis asymmetry — directed self-loops permitted, bidirected self-loops forbidden — is unannotated in the text. In the standard ADMG/CDMG literature directed self-loops are usually excluded (since they trivially break acyclicity and complicate notions like parents/ancestors). If the author intended that exclusion, it has been silently omitted. A literal formalization will allow $v \\to v$, which is likely to surface as an unexpected corner case in any later definition that recurses over directed edges (paths, ancestral sets, topological orderings, d-separation).\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_vertex_set_admitted\nexplanation: The active text places no nonemptiness condition on the vertex sets. The literal definition therefore admits $J = V = \\emptyset$ (forcing also $E = L = \\emptyset$): the \"empty CDMG\" is a legal CDMG. Whether this degenerate object is intended to be a legitimate inhabitant of the type is unclear from the tex alone. Downstream constructions that, e.g., pick a vertex, take a marginal over a non-empty subset, or assert the existence of a sink/source vertex, will need to either add a hypothesis at the use site or rule out the empty case here. The literal reading leaves this ambiguous.\nEND_SUBTLETY",
+        "session": "40652bb0-6f77-4a23-896d-f5b79e85410c"
       }
     },
     {
@@ -90,29 +88,31 @@
       "section": "3.1",
       "title": "CDMGNotation",
       "type": "notation",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-02",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -125,13 +125,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Not}\n    \\label{not-cdmg}\n    Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:\n    \\begin{enumerate}\n        %\\item $G(V|\\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.\n        \\item $v \\in G$ to mean $v \\in J \\cup V$,\n        \\item $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n        \\item $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n        \\item $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n        \\item $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.\n    \\end{enumerate}\n    The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "6b78bd2d-b95f-4cc3-af0e-214d58ac4345",
+          "first_seen": "2026-06-03T00:00:37+00:00",
+          "last_used": "2026-06-03T00:00:37+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1771,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "I'll audit only the active (uncommented) tex content of def_3_2's block. Two subtleties surfaced.\n\n```\nSUBTLETY:\nid: star_placeholder_omits_tail_tail_case_in_sus\nexplanation: The trailing sentence states: \"The star stands for a placeholder to mean: ``arrowhead or tail''.\" Applied mechanically to the compound symbol \\sus (\"star, star\"), this rule combinatorially generates four cases for the marks at the two endpoints:\n  - tail/tail = \\tut (an undirected edge)\n  - tail/head = \\tuh (a forward directed edge)\n  - head/tail = \\hut (a backward directed edge)\n  - head/head = \\huh (a bidirected edge)\n\nBut the definition of \\sus only enumerates three: \"$v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$\". The tail/tail case \"$v_1 \\tut v_2$\" is silently excluded. The text neither names \\tut, nor explains the asymmetry between the placeholder rule (which is general) and the \\sus enumeration (which is incomplete with respect to that rule).\n\nThe presumed reason is that CDMGs have no undirected edges, so \\tut has no representation in $G$ — but def_3_2 itself does not say so. By contrast, the placeholder rule produces exactly the right number of cases for the two two-element compounds: \\suh expands to {\\tuh, \\huh} (both listed) and \\hus expands to {\\hut, \\huh} (both listed). Only \\sus has a \"missing\" combinatorial case.\n\nA literal reader applying the placeholder rule to predict what \\sus means may either (i) be surprised by the omission, or (ii) think they're free to extend \\sus to also include \\tut as a vacuously-false disjunct. A formalizer doing case analysis on \"$v_1 \\sus v_2 \\in G$\" needs an explicit guarantee that exhaustiveness is over {\\tuh, \\hut, \\huh} and not over the full {\\tut, \\tuh, \\hut, \\huh}.\nEND_SUBTLETY\n\nSUBTLETY:\nid: huh_membership_writes_ordered_pair_and_lacks_local_symmetry\nexplanation: Item 4 says: \"$v_1 \\huh v_2 \\in G$ to mean $(v_1, v_2) \\in L$.\" Two distinct subtleties arise from this single sentence.\n\n(a) Type/encoding presupposition. The block opens with \"Let $G = (J, V, E, L)$ be a CDMG\", inheriting whatever ambient type def_3_1 chose for $L$. Def_3_1's literal text declares $L \\subseteq V \\times V / ((v_1,v_2) \\sim (v_2,v_1))$, i.e., as a subset of the quotient by edge-reversal — so on the strictest reading, elements of $L$ are equivalence classes, not ordered pairs. Under that reading, def_3_2's phrasing \"$(v_1, v_2) \\in L$\" is literally type-mismatched: an ordered pair is being asserted as an element of a set of equivalence classes. The intended meaning is presumably \"$[(v_1, v_2)]_\\sim \\in L$\", but def_3_2 commits, by its choice of notation, to the alternative ordered-pair encoding of $L$ — without flagging that this is a choice.\n\n(b) Symmetry of \\huh is not stated within def_3_2. The definition gives $v_1 \\huh v_2 \\in G \\iff (v_1, v_2) \\in L$ and would give $v_2 \\huh v_1 \\in G \\iff (v_2, v_1) \\in L$. As ordered pairs these are different, so a reader who restricts attention to def_3_2 alone would not be able to conclude $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$. The equivalence holds only because def_3_1 separately imposes the symmetry constraint \"$(v_1, v_2) \\in L \\implies (v_2, v_1) \\in L$\" (the same constraint that is, under the quotient encoding mentioned in (a), already automatic). The notation block neither restates this constraint nor remarks that \\huh is symmetric.\n\nThis propagates: items 5–7 (\\suh, \\hus, \\sus) all use \\huh as a disjunct, so any downstream argument that, e.g., treats \"$v_1 \\sus v_2 \\in G$\" as a property of the unordered pair $\\{v_1, v_2\\}$ tacitly invokes the external symmetry constraint to handle the \\huh disjunct. A reader who never opens def_3_1 cannot verify this from def_3_2's text.\nEND_SUBTLETY\n```",
+        "session": "1f6394b4-b79a-41b1-af4a-0263d729ca1c"
       }
     },
     {
@@ -140,29 +148,31 @@
       "section": "3.1",
       "title": "EdgeRelations",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -175,13 +185,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n  Let $G=(J,V,E,L)$ be a CDMG.\n  \\begin{enumerate}\n    \\item If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent in $G$}.\n    \\item Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_1$}.  \\\\\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_2$}. \n    \\item Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called \\emph{out of $v_1$}.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "9d9f8ed9-fbb3-41bb-8f80-851e748198da",
+          "first_seen": "2026-06-03T00:31:36+00:00",
+          "last_used": "2026-06-03T00:31:36+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1717,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Looking at this LN block carefully — three numbered items defining \"adjacent\", \"into\", and \"out of\" for edges in a CDMG.\n\nSUBTLETY:\nid: into_split_per_endpoint_out_of_single_clause_asymmetry\nexplanation: Item 2 defines \"into\" via *two separate sub-clauses*, one for each endpoint position:\n\n> \"Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called *into $v_1$*. \\\\\n>  Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called *into $v_2$*.\"\n\nSo \"into the LHS\" and \"into the RHS\" are spelled out separately, holding $v_1, v_2$ fixed as the LHS/RHS positional names of the written edge.\n\nItem 3 has only ONE clause for \"out of\":\n\n> \"Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called *out of $v_1$*.\"\n\nHere the two listed forms are the *same edge* (just two notations for the directed edge with tail at $v_1$). So item 3 covers both LHS- and RHS-positions of the focal vertex inside a single clause, treating $v_1$ as the focal vertex (can sit on either side).\n\nThis is a stylistic asymmetry that, taken literally, has two consequences worth flagging:\n\n1. **No explicit \"out of $v_2$\" counterpart.** A strict reading of item 3 defines \"out of $v_1$\" only. Of course $v_1$ is meant as a placeholder, but item 2 made the same kind of definition with both endpoints written out explicitly — so a formalizer scanning for symmetric coverage might pause here.\n\n2. **Different binding role of $v_1, v_2$ across items.** In item 2's sub-bullets, $v_1$ is positional (LHS of the written edge); in item 3's two patterns, $v_1$ is the focal vertex (LHS in the first pattern, RHS in the second). The same names mean different things item-to-item.\n\nDownstream impact: a formalizer who naively follows item 2's style (positional $v_1, v_2$) and then jumps to item 3 might get confused about which \"side\" the focal vertex sits on. A cleaner unified definition — \"edge $e$ is *into* $v$ iff $e$ has a head at $v$\" / \"*out of* $v$ iff $e$ has a tail at $v$\" — would erase this stylistic mismatch.\nEND_SUBTLETY\n\nSUBTLETY:\nid: edges_of_the_form_pattern_vs_object\nexplanation: Both items 2 and 3 use the phrasing \"Edges of the form $X$\" — e.g. \"Edges of the form $v_1 \\hut v_2$ ... are called *into $v_1$*\". This phrasing is ambiguous between (a) edges whose *written notation literally* matches the given pattern, and (b) edges *as graph objects* that *can be written* in the given form.\n\nThe two readings differ because the same directed edge can be written two ways: e.g., the edge with tail at $a$ and head at $b$ is both \"$a \\tuh b$\" and \"$b \\hut a$\".\n\nUnder reading (a) — strict syntactic form — item 2 sub-bullet 1 (\"$v_1 \\hut v_2$\") would not pick up the edge $a \\tuh b$ when it's written in that orientation; you'd need to flip the notation to \"$b \\hut a$\" first to recognize $b$ as \"the LHS vertex with a head\". Item 2's coverage of all \"into\" edges then depends on the reader silently allowing both notations.\n\nItem 3 actually papers over this by listing *both* notations explicitly (\"$v_1 \\tuh v_2$ or $v_2 \\hut v_1$\"). Item 2 does NOT — each sub-bullet lists only one orientation per arrow type. The asymmetric handling of \"of the form\" between items 2 and 3 reinforces the impression that item 2 is implicitly assuming notation-invariance.\n\nA formalizer encoding edges as oriented syntactic atoms (rather than as canonical orientation-free objects) would need to explicitly take the symmetric closure of item 2's patterns to capture the intended set of \"into $v$\" edges.\nEND_SUBTLETY",
+        "session": "aa292576-3430-4c80-990d-c741d7a6f6c3"
       }
     },
     {
@@ -190,31 +208,33 @@
       "section": "3.1",
       "title": "CDMGRestrictions",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 4,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 7,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -223,16 +243,24 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nWith the notations \\ref{not-cdmg} the restrictions in definition \\ref{def-cdmg} mean that the nodes $j \\in J$ will not have any arrowheads pointing towards them: $ j \\hus v \\notin G$. Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "435ddcbc-ac6e-4792-9209-3c233371df72",
+          "first_seen": "2026-06-03T01:52:09+00:00",
+          "last_used": "2026-06-03T01:52:09+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4698,
       "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Looking at the tex block, I need to audit the literal wording of this remark explaining the CDMG restrictions.\n\nLet me look at what's actually said:\n1. \"nodes $j \\in J$ will not have any arrowheads pointing towards them: $j \\hus v \\notin G$\"\n2. \"Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed\"\n3. \"no two nodes in $J$ are adjacent\"\n\nSUBTLETY:\nid: undirected_edge_between_j_and_v_unaddressed\nexplanation: The remark enumerates three restrictions but leaves the status of an **undirected edge $j - v$** (between a $J$-node and a $V$-node) ambiguous under the literal reading.\n\n- Rule 1 only excludes \"arrowheads pointing towards them\" — an undirected edge $v - j$ has no arrowhead at $j$, so it is *not* excluded by \"$j \\hus v \\notin G$\".\n- Rule 2 says \"Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed\". The phrasing \"can only point towards\" restricts the *destination* of arrows leaving $j$, but the colon-clause is permissive (\"are allowed\"), not exhaustive. It does not literally say \"the only kind of edge incident to $j$ is $j \\tuh v$\".\n- Rule 3 governs only $J$-to-$J$ pairs and is silent on $J$-to-$V$ pairs.\n\nThe fact that rule 3 (\"Furthermore, no two nodes in $J$ are adjacent\") is added as a *separate* constraint — not implied by rule 1 — suggests that undirected edges genuinely exist in the CDMG vocabulary (otherwise rule 3 would be redundant with rule 1). This makes the silence about $j - v$ more salient: if undirected edges are a real edge type, then under the literal reading $j - v$ slips through all three rules.\n\nConcrete corner case: take $J = \\{j\\}$, $V = \\{v\\}$, and let $G$ contain a single undirected edge $j - v$. The literal reading of this remark does not flag $G$ as violating any restriction. A downstream claim that \"every edge incident to $J$ is of the form $j \\tuh v$\" (or that $J$ is a set of \"source-only\" nodes) would then not follow from this remark alone.\nEND_SUBTLETY\n\nSUBTLETY:\nid: only_points_to_V_assumes_J_V_disjoint\nexplanation: The sentence \"Nodes $j \\in J$ can only point towards nodes $v \\in V$\" uses \"only\" as a restriction on the destination. The restriction is non-vacuous *only if* $J \\cap V = \\emptyset$ — otherwise (say $J \\subseteq V$, as is common when $V$ denotes the full vertex set in some CDMG conventions), the universal claim \"$j$ points only to elements of $V$\" is automatically true and adds no content.\n\nThe remark cites `\\ref{not-cdmg}` for the notation but does not restate the disjointness (or containment) relationship between $J$ and $V$ in its own text. A reader who interprets $V$ as the full node set will read \"can only point towards $v \\in V$\" as a tautology rather than as the intended restriction \"points to non-$J$ nodes only\". This matters because rule 1 (no arrowheads at $J$) and rule 2 (only-to-$V$) jointly characterize the asymmetric role of $J$, and that characterization quietly depends on which convention `not-cdmg` adopts.\nEND_SUBTLETY\n\nSUBTLETY:\nid: hus_notation_may_not_cover_bidirected_arrowhead_at_j\nexplanation: The prose \"any arrowheads pointing towards them\" is broad — it should cover both a directed edge $v \\to j$ and a bidirected edge $v \\leftrightarrow j$ (both have an arrowhead at $j$). However the formal example given for this restriction is the single expression \"$j \\hus v \\notin G$\".\n\nIf `\\hus` in `not-cdmg` is defined as the specific edge mark pattern \"arrowhead at $j$, tail/blunt at $v$\" (i.e., the directed arrow $v \\to j$ only), then \"$j \\hus v \\notin G$\" by itself excludes only directed edges into $j$ and leaves bidirected edges $v \\leftrightarrow j$ unmentioned by the formal clause — even though the surrounding prose intends them excluded. A literal reader who keys off the formal expression rather than the prose could conclude that a bidirected edge $j \\leftrightarrow v$ is permitted. The colon construction \"no arrowheads pointing towards them: $j \\hus v \\notin G$\" presents the formal expression as the formalization of the prose, but they may not coincide depending on how `\\hus` is defined.\nEND_SUBTLETY",
+        "session": "75306b3c-1251-47a4-8bc2-eff541485d1b"
       }
     },
     {
@@ -241,30 +269,33 @@
       "section": "3.1",
       "title": "Walks",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
+        "leanification/Chapter3_GraphTheory/Section3_1/WalkBifurcation.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "review_design": 2,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 2,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 1,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
@@ -276,13 +307,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Walks]\\label{def:walks}\n     Let $G=(J,V,E,L)$ be a CDMG and $v,w \\in G$.\n\\begin{enumerate}\n    \\item A \\emph{walk} from $v$ to $w$ in $G$ is a finite alternating sequence of adjacent nodes and edges \n      \\[v=v_0, a_0,  v_1, \\dots v_{n-1}, a_{n-1}, v_n=w\\] \n%      \\[v=v_0 \\sus v_1 \\sus  \\cdots \\sus v_{n-1} \\sus v_n=w\\]\n        in $G$ for some $n \\ge 0$, i.e.\\ such that for every $k=0,\\dots,n-1$ \n        we have that $a_k = (v_k, v_{k+1}) \\in E \\cup L$ or $a_k = (v_{k+1}, v_k) \\in E$, and with end nodes $v_0=v$ and $v_n=w$.\n        An example walk from $v_0$ to $v_3$ could look like:\n        \\[v_0 \\tuh v_1 \\hut  v_2 \\huh v_3, \\qquad\\text{ with } \\qquad  v_0 \\tuh v_1, v_2 \\tuh v_1 \\in E,\\,v_2 \\huh v_3 \\in L. \\]\n        The same node may appear multiple times in a walk.\n        Also the \\emph{trivial walk} consisting of a single node $v_0 \\in G$ is allowed (if $v=w$).\n        The walk is called \\emph{into $v_0$} if $a_0 = v_0 \\hus v_1$, and \\emph{out of $v_0$} if $a_0 = v_0 \\tuh v_1$.\n        Similarly, it is called \\emph{into $v_n$} if $a_{n-1} = v_{n-1} \\suh v_n$ and \\emph{out of $v_n$} if $a_{n-1} = v_{n-1} \\hut v_n$.\n    \\item A \\emph{directed walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\tuh v_1 \\tuh  \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        for some $n \\ge 0$,\n        where all arrowheads point in the direction of $w$ and there are no arrowheads pointing back.\n   % \\item[] Directed walks exclude the trivial walk per definition.\n    \\item A \\emph{bidirected walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\huh v_1 \\huh  \\cdots \\huh v_{n-1} \\huh v_n=w,\\]\n        for some $n \\ge 0$, where all edges are bidirected.\n    \\item A \\emph{collider walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\suh v_1 \\huh  \\cdots \\huh v_{n-1} \\hus v_n=w,\\]\n        for some $n \\ge 0$, where all nodes in between $v$ and $w$ have two arrowheads pointing towards them (a.k.a.\\ collider).\n        Note that for $n=1$ this reads: $v\\sus w \\in G$.\n    \\item A walk is called \\emph{path} if no node occurs more than once.\n    \\item A \\emph{bifurcation} between $v$ and $w$ in $G$ is a walk of the form:\n        \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\hus v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n   %             \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\huh v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        such that $v \\ne w$, the walk contains both endnodes exactly once, \n\tthe subwalk $v_0 \\hut \\cdots v_{k-1}$ is a directed walk from $v_{k-1}$ to $v_0$,\n\tand the subwalk $v_k \\tuh \\cdots v_n$ is a directed walk from $v_k$ to $v_n$.\n        %every node has at most one arrowhead pointing towards it, and \n        %both endnodes have exactly one arrowhead pointing towards them. \n        If the edge $v_{k-1} \\hus v_k$ is directed ($v_{k-1} \\hut v_k$) then we say that the bifurcation has \\emph{source} $v_{k}$.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "52b08130-9df6-4e59-85f0-0ad4a286acf5",
+          "first_seen": "2026-06-03T05:14:49+00:00",
+          "last_used": "2026-06-03T05:14:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 11732,
       "addition_to_the_LN": "[bifurcation_right_chain_trivial_is_just_directed_walk] As an additional constraint on the bifurcation form, both endnodes $v_0$ and $v_n$ must have exactly one arrowhead pointing towards them. In particular, this excludes the degenerate case $k = n$ with directed hinge $v_{n-1} \\hut v_n$, in which the walk reduces to a directed walk $v_0 \\leftarrow v_1 \\leftarrow \\cdots \\leftarrow v_n$ and $v_n$ has no arrowhead pointing towards it.\n\n[collider_walk_n1_form_contradicts_inline_note] For $n=1$, a collider walk from $v$ to $w$ requires a bidirected edge $v \\huh w \\in E$ (arrowheads at both endpoints), as dictated by the form $v_0 \\suh v_1$ combined with $v_{n-1} \\hus v_n$ collapsing onto the single edge. The inline note \"$v \\sus w \\in G$\" is to be read in this stricter sense and does *not* admit purely directed edges $v \\tuh w$ or $v \\hut w$ as collider walks of length 1.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Looking at this definition carefully, I'll audit the literal wording for ambiguities, corner cases, and inconsistencies.\n\nSUBTLETY:\nid: collider_walk_n1_pattern_contradicts_note\nexplanation: The collider walk pattern reads\n`v=v_0 \\suh v_1 \\huh \\cdots \\huh v_{n-1} \\hus v_n=w`\nwith an explicit accompanying note: \"Note that for $n=1$ this reads: $v\\sus w \\in G$.\"\n\nBut the literal pattern for $n=1$ collapses the first segment ($v_0 \\suh v_1$) and the last segment ($v_{n-1} \\hus v_n$) onto the *same* edge $a_0$. So that single edge must simultaneously satisfy $\\suh$ (head at $v_1$) AND $\\hus$ (head at $v_0$), i.e. be bidirected $v_0 \\huh v_1$. The note instead allows *any* edge $v \\sus w$.\n\nThe accompanying structural condition (\"all nodes in between $v$ and $w$ have two arrowheads pointing towards them\") supports the note: it's vacuous for $n=1$ since there are no intermediate nodes. So the *intent* is \"any edge\", but the *literal pattern* is \"bidirected only\". A reader following the pattern strictly would disagree with the note. Downstream: any claim like \"an edge $v \\to w$ counts as a collider walk of length 1\" rests entirely on resolving this in favor of the note.\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_admits_single_edge_at_n1_k1\nexplanation: The bifurcation form\n`v=v_0 \\hut v_1 \\hut \\cdots \\hut v_{k-1} \\hus v_k \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w`\nrequires $1 \\le k \\le n$ for the central edge $v_{k-1} \\hus v_k$ to exist. Take $n=1, k=1$: the left arm $v_0 \\hut \\cdots v_{k-1}$ collapses to the trivial directed walk at $v_0$; the right arm $v_k \\tuh \\cdots v_n$ collapses to the trivial directed walk at $v_1$. Both are valid directed walks (the directed-walk clause allows $n \\ge 0$).\n\nSo the entire bifurcation reduces to the single edge $v_0 \\hus v_1$ — any edge with a head at $v_0$, i.e. either $v_0 \\hut v_1$ (directed, $v_1 \\to v_0$) or $v_0 \\huh v_1$ (bidirected). The conditions $v \\ne w$ and \"both endnodes exactly once\" are still satisfied. The \"source\" clause then names $v_1$ as the source in the directed case.\n\nSo a literal reading: a lone directed edge $v_1 \\to v_0$ counts as a \"bifurcation between $v_0$ and $v_1$\" with source $v_1$ — despite having no fork structure whatsoever. A domain expert would expect a bifurcation to actually *bifurcate* (two arms emanating from a common source).\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_k_equals_n_is_just_directed_walk\nexplanation: Take $k=n$ with $n \\ge 2$ and a directed central edge $v_{n-1} \\hut v_n$ (i.e. $v_n \\to v_{n-1}$). The right arm $v_k \\tuh \\cdots v_n$ collapses (it's the trivial walk at $v_n$). The left arm $v_0 \\hut \\cdots \\hut v_{n-1}$ is a directed walk from $v_{n-1}$ to $v_0$. Combined with the central edge, the whole \"bifurcation\" is\n\n$v_n \\to v_{n-1} \\to v_{n-2} \\to \\cdots \\to v_0$\n\n— a pure directed walk from $w$ to $v$, with no fork at any node. The source clause then declares $v_n = w$ to be the \"source\". Symmetrically, for $k=1$ with $n \\ge 2$ and bidirected central edge $v_0 \\huh v_1$, no fork emanates from any node either.\n\nDownstream impact: any claim asserting properties of \"bifurcations between $v$ and $w$\" (e.g. m-connection or d-separation arguments) inherits these degenerate non-forks. In particular, the *existence* of a directed walk from $w$ to $v$ automatically yields the existence of a bifurcation with source $w$, which may or may not be intended.\nEND_SUBTLETY\n\nSUBTLETY:\nid: trivial_walk_satisfies_all_specialized_walk_types\nexplanation: Items 2 (directed walk), 3 (bidirected walk), and 4 (collider walk) each say \"for some $n \\ge 0$\". For $n=0$, every form collapses to the single-node sequence $v_0 = v_n$ with no edges to check, so the structural conditions hold vacuously.\n\nConsequence: a single node $v \\in G$ is *simultaneously* a directed walk, a bidirected walk, and a collider walk from $v$ to $v$. A domain expert might reasonably expect a \"bidirected walk\" to traverse at least one bidirected edge, or a \"collider walk\" to actually have a collider — but the literal definitions admit none.\n\nThe commented-out item under (2), \"% Directed walks exclude the trivial walk per definition.\", shows the author actively considered excluding it and (by leaving the active text at \"$n \\ge 0$\") chose not to. But the same choice is silently propagated to bidirected and collider walks without similar commentary, so it's unclear whether the inclusion of the trivial case in those two is a considered choice or an inherited default. Downstream proofs using e.g. \"there exists a collider walk from $v$ to $v$\" trivially hold.\nEND_SUBTLETY\n\nSUBTLETY:\nid: walk_into_out_classifications_undefined_for_trivial\nexplanation: The walk is classified \"into $v_0$\" if $a_0 = v_0 \\hus v_1$, \"out of $v_0$\" if $a_0 = v_0 \\tuh v_1$, and analogously for $v_n$ via $a_{n-1}$. For the trivial walk ($n=0$), no $a_0$ or $a_{n-1}$ exists, so none of these four classifications apply.\n\nThe text does not say what the trivial walk is \"into/out of\". This matters because:\n\n- The trivial walk has $v_0 = v_n$, so any classification at $v_0$ is also at $v_n$.\n- Downstream uses of \"walks into $v$\" (often the relevant category for ancestor/m-connection reasoning) would silently exclude the trivial walk at $v$, even though the trivial walk is otherwise a valid walk from $v$ to $v$.\n\nIf a later claim partitions \"walks from $v$ to $w$\" by their into/out-of-endpoint status, the trivial walk (when $v=w$) falls outside every cell.\nEND_SUBTLETY",
+        "session": "00540cbf-85ba-4a95-b89b-3825a8b1d395"
       }
     },
     {
@@ -291,29 +330,31 @@
       "section": "3.1",
       "title": "FamilyRelationships",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -326,13 +367,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Family relationships]\n     Let $G=(J,V,E,L)$ be a CDMG, $v,w \\in V$ and $A \\ins J \\cup V$ a subset of nodes.\n     We then define:\n     \\begin{enumerate}\n         \\item The set of \\emph{parents} of $v$ in $G$: \\[\\Pa^G(v):=\\lC w \\in G\\,|\\, w \\tuh v \\in G \\rC.\\]\n         \\item[] The set of \\emph{parents} of $A$ in $G$: \\[\\Pa^G(A):= \\bigcup_{v \\in A} \\Pa^G(v).\\]\n         %\\item[] \\PF{maybe better for sets (???) :The set of \\emph{parents} of $A$ in $G$: \\[\\Pa^G(A):= \\lp \\bigcup_{v \\in A} \\Pa^G(v)\\rp \\sm A.\\]\n         %    but then  if $v \\tuh v \\in E$ then $v \\notin \\Pa^G(\\lC v\\rC ) \\neq \\Pa^G(v) \\ni v$ ... }\n         \\item The set of \\emph{children} of $v$ in $G$: \\[\\Ch^G(v):=\\lC w \\in G\\,|\\, v \\tuh w \\in G \\rC.\\]\n         \\item[] The set of \\emph{children} of $A$ in $G$: \\[\\Ch^G(A):= \\bigcup_{v \\in A} \\Ch^G(v).\\]\n         \\item The set of \\emph{siblings} of $v$ in $G$: \\[\\Sib^G(v):=\\lC w \\in G\\,|\\, v \\huh w \\in G \\rC.\\]\n         %\\item[] The set of \\emph{children} of $A$ in $G$: \\[\\Ch^G(A):= \\bigcup_{v \\in A} \\Ch^G(v).\\]\n         \\item The set of \\emph{ancestors} of $v$ in $G$: \n             \\[\\Anc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } w \\tuh \\cdots \\tuh v \\in G \\rC.\\]\n             Note: $v \\in \\Anc^G(v)$.\n         \\item[] The set of \\emph{ancestors} of $A$ in $G$: \\[\\Anc^G(A):= \\bigcup_{v \\in A} \\Anc^G(v).\\]\n             Note: $A \\ins \\Anc^G(A)$.\n         \\item The set of \\emph{descendants} of $v$ in $G$: \n             \\[\\Desc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } v \\tuh \\cdots \\tuh w \\in G \\rC.\\]\n             Note: $v \\in \\Desc^G(v)$.\n         \\item[] The set of \\emph{descendants} of $A$ in $G$: \\[\\Desc^G(A):= \\bigcup_{v \\in A} \\Desc^G(v).\\]\n             Note: $A \\ins \\Desc^G(A)$.\n         \\item The set of \\emph{non-descendants} of $A$ in $G$:\n             \\[ \\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A).\\]\n         \\item The \\emph{strongly connected component} of $v$ in $G$:\n             \\[ \\Sc^G(v) := \\Anc^G(v) \\cap \\Desc^G(v).\\]\n             Note: $v \\in \\Sc^G(v)$.\n         \\item[] The (union of) \\emph{strongly connected components} of $A$ in $G$:\n             \\[ \\Sc^G(A) := \\bigcup_{v \\in A} \\Sc^G(v).\\]\n             Note: $A \\ins \\Sc^G(A)$.\n         \\item The \\emph{district} of $v$ in $G$:\n             \\[\\Dist^G(v) := \\lC w \\in G\\,|\\, \\exists \\text{ bidirected walk: } \n             v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w \\in G \\rC.\\]\n             Note: $v\\in \\Dist^G(v)$.\n         \\item[] The \\emph{district} of $A$ in $G$:\n             \\[\\Dist^G(A) := \\bigcup_{v \\in A} \\Dist^G(v).\\]\n             Note: $A \\ins \\Dist^G(A)$.\n         %\\item The d-\\emph{Markov blanket} of $v$ in $G$:\n         %    \\[\\MBl^G_d(v):=\\lC w \\in G\\,|\\,\\exists \\text{ collider walk: } \n         %    v \\suh v_1 \\huh \\cdots \\huh v_{n-1} \\hus w \\in G \\rC \\sm \\{v\\}.\\]\n         %    Note: $\\lp\\Pa^G(v) \\cup \\Ch^G(v) \\cup \\Pa^G(\\Ch^G(v))\\rp \\sm \\{v\\} \\ins \\MBl^G_d(v)$.\n         %\\item[] The d-\\emph{Markov blanket} of $A$ in $G$:\n         %    \\[\\MBl^G_d(A) := \\bigcup_{v \\in A} \\MBl^G_d(v) \\sm A.\\]\n         %\\item The $\\sigma$-\\emph{Markov blanket} of $A$ in $G$:\n         %    \\[\\MBl^G_\\sigma(A):= \\MBl^{G^\\acy}_d(A), \\]\n         %    where $G^\\acy$ is an acyclification of $G$, a notion defined below in Definition~\\ref{def:cdg_acyclification}.\n     \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "88c762f2-8faa-40c5-8dd9-dd46b384f483",
+          "first_seen": "2026-06-03T06:25:11+00:00",
+          "last_used": "2026-06-03T06:25:11+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3895,
       "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "I have enough context. Let me audit the tex block now.\n\nKey facts I've confirmed:\n- def_3_1 (CDMG): `E ⊆ (J ∪ V) × V` with no self-loop restriction → **directed self-loops are allowed on V**; `L` explicitly forbids bidirected self-loops.\n- def_3_2: \"$v \\in G$\" means $v \\in J \\cup V$.\n- def_3_4 (Walks): directed/bidirected walks both allow `n ≥ 0`; trivial walks (single node) are explicitly admitted.\n\nNow I'll produce my report.\n\n```\nSUBTLETY:\nid: single_vertex_defs_typed_V_but_set_versions_iterate_over_A_in_JV\nexplanation: The intro declares \"$v,w \\in V$ and $A \\ins J \\cup V$\",\ntyping $v$ as an output node. Every single-vertex definition\n($\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$,\n$\\Sc^G(v)$, $\\Dist^G(v)$) is therefore literally only stated for\n$v \\in V$. But the set-versions invoke the single-vertex definition on\n$v$ ranging over $A$, which may include nodes from $J$, e.g.\n\"$\\Pa^G(A):= \\bigcup_{v \\in A} \\Pa^G(v)$\".\n\nThe formula extends naturally — $\\Pa^G(j)$ for $j \\in J$ would just be\n$\\emptyset$ since the CDMG axiom $E \\ins (J\\cup V) \\times V$ forbids\nincoming edges into $J$ — but the LN never explicitly extends the\nsingle-vertex defs to $J$. A formalizer who types $\\Pa^G, \\Ch^G$ etc.\nstrictly as functions on $V$ will hit a domain mismatch in the set\nversions, and a corresponding cast/extension decision will need to be\nmade silently.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loop_makes_v_own_parent_child\nexplanation: Per def_3_1, $E \\ins (J \\cup V) \\times V$ with no\nself-loop exclusion, so a directed self-loop $v \\tuh v$ on an output\nnode $v \\in V$ is *allowed* in a CDMG. (Only bidirected self-loops are\nforbidden, via \"$(v_1,v_2) \\in L \\implies v_1 \\neq v_2$\".)\n\nReading literally, \"$\\Pa^G(v):=\\lC w \\in G\\,|\\, w \\tuh v \\in G \\rC$\"\nthen puts $v \\in \\Pa^G(v)$ whenever $v \\tuh v \\in E$, and likewise\n$v \\in \\Ch^G(v)$. The commented-out alternative for the set version,\n\"%maybe better for sets (???) :$\\Pa^G(A):=(\\bigcup_{v \\in A}\\Pa^G(v))\n\\sm A$. but then if $v \\tuh v \\in E$ then $v \\notin \\Pa^G(\\{v\\}) \\neq\n\\Pa^G(v) \\ni v$\", shows the author was aware of this corner case and\ndeliberately chose the inclusive form so that $\\Pa^G(\\{v\\}) = \\Pa^G(v)$.\n\nWorth surfacing because (a) downstream claims that quietly assume\n\"parents are distinct from the node\" would silently fail under a CDMG\nwith a directed self-loop, and (b) the LN never states anywhere\nwhether CDMGs in practice allow directed self-loops — so the formal\nencoding has to face the question head-on.\nEND_SUBTLETY\n\nSUBTLETY:\nid: anc_desc_dist_self_inclusion_relies_on_trivial_walk_convention\nexplanation: The notes \"$v \\in \\Anc^G(v)$\", \"$v \\in \\Desc^G(v)$\",\n\"$v \\in \\Dist^G(v)$\" only hold because def_3_4 admits the trivial\nwalk (length $n = 0$, a single node) as a valid directed and\nbidirected walk. The notation used here, e.g.\n\"$\\exists$ directed walk: $w \\tuh \\cdots \\tuh v$\" and\n\"$\\exists$ bidirected walk: $v \\huh v_1 \\huh \\cdots \\huh v_{n-1}\n\\huh w$\", *visually* suggests at least one edge — there is no\nexplicit \"$v=w$ counts trivially\" escape hatch within def_3_5's text.\n\nFor the bidirected case this is load-bearing: since CDMG forbids\nbidirected self-loops ($v \\huh v$ never holds), the *only* way for\n$v \\in \\Dist^G(v)$ to be true is the $n=0$ trivial walk. A reader (or\nformalizer) who interprets the \"$v \\huh v_1 \\huh \\cdots \\huh v_{n-1}\n\\huh w$\" notation as requiring at least one edge would derive\n$\\Dist^G(v) = \\emptyset$ in extreme cases (e.g. a graph with no\nbidirected edges incident to $v$), contradicting the stated note.\nThe note is correct only under the def_3_4 reading that includes the\ntrivial walk.\nEND_SUBTLETY\n\nSUBTLETY:\nid: district_walk_notation_does_not_quantify_n\nexplanation: Compare the district's walk notation\n\"$\\exists \\text{ bidirected walk: } v \\huh v_1 \\huh \\cdots \\huh\nv_{n-1} \\huh w$\" with def_3_4's bidirected walk\n\"$v=v_0 \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh v_n=w$, for some\n$n \\ge 0$\". The def_3_5 version (a) does not name $v_0$ and $v_n$\n(uses $v$ and $w$ directly), and (b) crucially *does not quantify\n$n$ at all*.\n\nThe notation is awkward for small $n$: for $n = 0$ (trivial walk),\nthe indexed sequence \"$v_1 \\huh \\cdots \\huh v_{n-1}$\" is vacuous and\nthe visible \"$v \\huh w$\" piece is misleading; for $n = 1$ we get\n\"$v_{n-1} = v_0$\" which doesn't appear in the indexing (which starts\nat $v_1$). The reader must mentally cross-reference def_3_4 to figure\nout the intended quantification.\n\nSame concern (notation-without-quantifier) applies to\n\"$\\exists \\text{ directed walk: } w \\tuh \\cdots \\tuh v$\" in\n$\\Anc^G(v)$ and the dual in $\\Desc^G(v)$, though the absence of\nindexed intermediates there makes the ambiguity slightly milder.\nEND_SUBTLETY\n```",
+        "session": "381d7ac3-49eb-4a6d-94f3-cea07a358421"
       }
     },
     {
@@ -341,29 +390,31 @@
       "section": "3.1",
       "title": "Acyclicity",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -376,13 +427,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Acyclicity]\n    \\label{def-acylic}\n    A  CDMG  $G=(J,V,E,L)$  is called \\emph{acyclic} if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "bc63063e-9499-4fb5-8947-24bc3ba1cd71",
+          "first_seen": "2026-06-03T06:56:28+00:00",
+          "last_used": "2026-06-03T06:56:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1770,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Now I have enough context. Let me analyze the def_3_6 tex block against def_3_4 (Walks) and def_3_1 (CDMG).\n\n```\nSUBTLETY:\nid: non_trivial_qualifier_depends_on_def_3_4\nexplanation: The block says \"there does not exist any non-trivial directed\nwalk from $v$ to itself\", but never defines \"non-trivial\" within this block.\nThe qualifier is essential: per def_3_4 item 2, \"A directed walk from v to\nw in G is of the form: v=v_0 → v_1 → ... → v_n=w, for some n ≥ 0\", and per\nitem 1, \"the trivial walk consisting of a single node v_0 ∈ G is allowed\n(if v=w)\". So the trivial directed walk (n=0) from v to itself always\nexists for every node. Without the \"non-trivial\" qualifier, every CDMG\nwould be non-acyclic. The reader must pick up the \"trivial walk\" terminology\nfrom def_3_4 and apply its negation here. Note also that def_3_4 has a\ncommented-out line \"% Directed walks exclude the trivial walk per\ndefinition.\" — the author considered carving the trivial walk out of the\n\"directed walk\" notion entirely but did not. So in def_3_6 the carve-out\nis delegated to the \"non-trivial\" qualifier. A downstream Lean formalization\nneeds to interpret \"non-trivial\" as \"n ≥ 1\" (i.e., the walk has at least\none edge).\nEND_SUBTLETY\nSUBTLETY:\nid: node_membership_v_in_g_informal\nexplanation: The block writes \"for any node $v \\in G$\", but per def_3_1\n$G = (J, V, E, L)$ is a tuple, not a set, so \"$v \\in G$\" is not literally\nwell-defined. The natural reading (and the convention used in def_3_4's\npreamble \"Let $G=(J,V,E,L)$ be a CDMG and $v,w \\in G$\") is $v \\in V \\cup J$,\ni.e., the disjoint union of input and output nodes. This matters because\nJ-nodes are quantified over too, yet per def_3_1 directed edges satisfy\n$E \\subseteq (J \\cup V) \\times V$ — J-nodes can never be a *target* of a\ndirected edge. Hence no non-trivial directed walk can end at a J-node, and\nthe acyclicity condition is vacuous for $v \\in J$. Whether the author\nintended to quantify only over output nodes $V$ (since J-nodes trivially\nsatisfy the property) or over all nodes (with vacuous coverage of J) is\nleft implicit. A downstream proof that uses acyclicity to derive a\ntopological order, or to drop the last node of a cycle into a particular\nset, could be sensitive to this distinction.\nEND_SUBTLETY\nSUBTLETY:\nid: directed_self_loops_not_excluded\nexplanation: The block treats \"non-trivial directed walk from $v$ to itself\"\nas the obstruction to acyclicity. Per def_3_4 item 2, a directed walk of\nlength $n=1$ is of the form $v = v_0 \\tuh v_1 = v$, i.e., a single directed\nedge from $v$ to itself. Per def_3_1, the bidirected edge set $L$ is\nexplicitly irreflexive (\"$(v_1,v_2) \\in L \\implies v_1 \\neq v_2$\"), but\nthe directed edge set $E \\subseteq (J \\cup V) \\times V$ carries no analogous\nrestriction. So directed self-loops $(v,v) \\in E$ for $v \\in V$ are\npermitted by def_3_1, and any CDMG containing one is automatically\nnon-acyclic by def_3_6. This is consistent with standard graph theory but\nis a corner case worth noting: a CDMG with a single directed self-loop\nand no other edges is \"cyclic\" under this definition. The asymmetric\ntreatment of $E$ vs $L$ in def_3_1 (where $L$ excludes self-loops but $E$\ndoes not) means downstream claims about acyclicity must accommodate\nlength-1 closed directed walks, not just length-≥-2 cycles through\ndistinct vertices.\nEND_SUBTLETY\n```",
+        "session": "603efd07-a4e9-4fad-b86a-6bbf5e2a637b"
       }
     },
     {
@@ -391,29 +450,31 @@
       "section": "3.1",
       "title": "CDMGTypes",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -422,17 +483,25 @@
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
-        "register_ln_subtlety": 0,
+        "register_ln_subtlety": 1,
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "ac17e944-a780-480f-b492-312c5809ae20",
+          "first_seen": "2026-06-03T07:36:35+00:00",
+          "last_used": "2026-06-03T07:36:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2016,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Now I have enough context. Let me analyze the subtleties in def_3_7's wording.\n\nThe text defines 7 named graph types via the pattern \"A CDMG is called X if Y\", using three independent constraints:\n- (a) G is acyclic\n- (b) J = ∅\n- (c) L = ∅\n\nItems 3, 5, 6, 7 are conjunctions of items 1, 2, 4. This creates overlapping predicates: any CDMG satisfying all three constraints simultaneously is literally called by all 7 names. Combined with def_3_1 (which allows J = V = ∅), the empty graph trivially satisfies all 7.\n\n```\nSUBTLETY:\nid: subtypes_are_overlapping_predicates_not_partition\nexplanation: The seven named subtypes are defined as overlapping predicates on a single CDMG, not as a partition. The pattern \"A CDMG G=(J,V,E,L) is called X if Y\" attaches a name X to G whenever Y holds, with no clause asserting that names are mutually exclusive. The three atomic constraints (G acyclic; J = ∅; L = ∅) are independent, and items 3, 5, 6, 7 are conjunctions of items 1, 2, 4. Consequently a CDMG with G acyclic, J = ∅, L = ∅ literally satisfies all 7 conditions simultaneously: it is at once a CADMG (G acyclic ✓), DMG (J = ∅ ✓), ADMG (G acyclic and J = ∅ ✓), CDG (L = ∅ ✓), DG (J = ∅ and L = ∅ ✓), CDAG (G acyclic and L = ∅ ✓), and DAG (all three ✓). Since def_3_1 explicitly allows J = V = ∅, even the empty graph qualifies for all 7 names. A reader expecting these to be exclusive categories (i.e. a graph is \"a DAG\" rather than also \"an ADMG\") would be misled. Downstream this matters: if a later claim/proof says \"let G be an ADMG\", the literal reading admits G being a DAG; conversely \"if G is a CDMG, exactly one of the following holds\" would be false. This is standard inclusive lattice taxonomy (DAG ⊆ ADMG ⊆ DMG ⊆ CDMG, DAG ⊆ CDAG ⊆ CDG ⊆ CDMG, etc.), but the text never states the inclusion structure or the predicate (vs. distinct-type) intent.\nEND_SUBTLETY\n\nSUBTLETY:\nid: conditional_and_mixed_prefixes_dont_constrain_components\nexplanation: The naming uses suggestive prefixes that the literal definitions do not enforce. \"Conditional\" in CADMG, CDG, CDAG conventionally signals a non-empty conditioning set J, but each definition only states the OTHER constraints — none requires J ≠ ∅. So a CDMG with J = ∅ and G acyclic literally satisfies \"Conditional Acyclic Directed Mixed Graph (CADMG) if G is acyclic\": this graph is non-conditional in the colloquial sense yet bears the \"Conditional\" label. Symmetrically, \"Mixed\" in CDMG/CADMG/DMG/ADMG suggests both directed (E) and bidirected (L) edges are present, but L = ∅ is never excluded — a \"Directed Mixed Graph\" can have no bidirected edges at all (which would normally just be called a directed graph). The text does not warn the reader that the suggestive prefixes are upper-bound categorizations rather than component requirements; a reader taking the names literally may assume e.g. J ≠ ∅ when a claim says \"let G be a CADMG\", leading to subtly stronger hypotheses than the definition actually provides.\nEND_SUBTLETY\n```",
+        "session": "f69dce70-278a-447a-9110-a2031778b0fc"
       }
     },
     {
@@ -441,29 +510,31 @@
       "section": "3.1",
       "title": "TopologicalOrder",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -476,13 +547,21 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "d03f82aa-33ee-42c0-b50d-d0e81b114d2c",
+          "first_seen": "2026-06-03T08:13:57+00:00",
+          "last_used": "2026-06-03T08:13:57+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2116,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Looking at the tex block for def_3_8 (Topological order):\n\nThe definition is clean and standard:\n- A total order `<` on `J ∪ V`\n- Constraint: `v ∈ Pa^G(w) ⟹ v < w` (parents precede children)\n- Plus an equivalent reformulation as an indexing `{v_1, ..., v_K}`\n\nChecking for potential issues:\n\n1. **`for all v, w ∈ G`** — technically `G = (J,V,E,L)` is a tuple, so `v ∈ G` is sloppy notation for `v ∈ J ∪ V`. But this is universal abuse-of-notation in graph theory and the intent is unambiguous.\n\n2. **Corner cases** — empty `J ∪ V`: vacuously satisfied; singleton: trivial; cyclic graph: no topological order exists (the definition correctly returns an empty set of valid orders); self-loops: would require `v < v` which fails under strict order, again correctly preventing a topological order.\n\n3. **Equivalence between the two descriptions** — relies on finiteness of `J ∪ V` (indexing by `{1,...,K}`), but finiteness of CDMG node sets is standard in this framework.\n\n4. **Bidirected edges (`L`)** — impose no ordering constraint, since only `Pa^G` (directed parents) appears in the implication. This is intentional and standard.\n\n5. **Strict vs non-strict order** — the `<` notation conventionally denotes strict; consistent with the parent-precedes-child reading.\n\nNo genuine ambiguity, unintended corner case, internal inconsistency, or under-specification.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a8664ffc-33b8-4361-b4f0-ff74284569d9"
       }
     },
     {
@@ -502,20 +581,20 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
         "solved": 0,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -524,16 +603,129 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "6a1a85c1-0141-4e1c-83df-9ac9131e7e23",
+          "first_seen": "2026-06-03T08:15:54+00:00",
+          "last_used": "2026-06-03T08:15:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "81c983c4-efbe-4ba0-84db-9abd917ba90a",
+          "first_seen": "2026-06-03T08:18:04+00:00",
+          "last_used": "2026-06-03T08:18:04+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f87ac893-e0f1-4e3b-bb45-3886c6ed3eb7",
+          "first_seen": "2026-06-03T08:21:34+00:00",
+          "last_used": "2026-06-03T08:21:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b6e7e552-8ec3-4e8c-bbd4-50a6b39bf05a",
+          "first_seen": "2026-06-03T08:22:22+00:00",
+          "last_used": "2026-06-03T08:22:22+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "47dea882-d5b9-468e-93bd-970d91eb1311",
+          "first_seen": "2026-06-03T08:24:03+00:00",
+          "last_used": "2026-06-03T08:24:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f988c021-fb77-4e9e-b23b-fb1bb4860f36",
+          "first_seen": "2026-06-03T08:24:31+00:00",
+          "last_used": "2026-06-03T08:24:31+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "971f2fa0-2f39-483c-adac-1a51a671d749",
+          "first_seen": "2026-06-03T08:26:05+00:00",
+          "last_used": "2026-06-03T08:26:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c2f5b185-8ab9-4402-87f6-850eb0925b50",
+          "first_seen": "2026-06-03T08:26:59+00:00",
+          "last_used": "2026-06-03T08:26:59+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "ee49ff15-27a8-480d-853e-6d9324d90d00",
+          "first_seen": "2026-06-03T08:31:18+00:00",
+          "last_used": "2026-06-03T08:31:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f18a0263-3a8e-4a4d-b71c-e159fdcdf0e2",
+          "first_seen": "2026-06-03T08:33:25+00:00",
+          "last_used": "2026-06-03T08:33:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b6523a11-f351-41ab-b788-b0bac6815f69",
+          "first_seen": "2026-06-03T08:35:03+00:00",
+          "last_used": "2026-06-03T08:35:03+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f8a046b4-ea13-4c1e-a3f7-7f458ccc41fd",
+          "first_seen": "2026-06-03T08:36:07+00:00",
+          "last_used": "2026-06-03T08:36:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4c794fe4-babd-42ee-b399-61e7ce3ac71a",
+          "first_seen": "2026-06-03T08:36:30+00:00",
+          "last_used": "2026-06-03T08:36:30+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "aeefec29-78c9-4416-aad3-ab7b2514f688",
+          "first_seen": "2026-06-03T08:37:15+00:00",
+          "last_used": "2026-06-03T08:37:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1a80b023-b304-4222-94ea-f2ba71839822",
+          "first_seen": "2026-06-03T08:37:48+00:00",
+          "last_used": "2026-06-03T08:37:48+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "13cd910a-d44b-4d53-8b48-983f40fa7fbf",
+          "first_seen": "2026-06-03T08:40:03+00:00",
+          "last_used": "2026-06-03T08:40:03+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1449,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "I'll audit the LN tex block for claim_3_2 along with its citing definitions (acyclicity, topological order, CDMG) to ground the subtlety analysis.\n\nSUBTLETY:\nid: claim_finiteness_not_stated_but_required_by_def_3_8\nexplanation: The claim says simply \"A CDMG $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\" with no hypothesis on the size of $J \\cup V$. CDMGs (def_3_1) are not required to be finite. However, the definition of topological order this claim is built on (def_3_8) gives two formulations of the same notion:\n\n  1. a total order $<$ on $J \\cup V$ with $v \\in \\Pa^G(w) \\implies v < w$, and\n  2. \"an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\"\n\nThe second formulation literally requires $J \\cup V$ to be enumerable as $\\{v_1,\\dots,v_K\\}$ — i.e. finite with cardinality $K$. The claim never says \"finite CDMG\", so a literal reader is left to wonder which formulation it is asserting equivalence to. The forward direction of the lemma (acyclic ⟹ topological order exists), interpreted under formulation (1), is the Szpilrajn extension theorem in the infinite case and relies on the Axiom of Choice (or is genuinely false in choice-free settings). Under formulation (2), the lemma fails outright as soon as $J \\cup V$ is infinite, because no infinite set admits an indexing $\\{v_1,\\dots,v_K\\}$. Either the claim implicitly assumes finiteness — in which case the statement should say so — or it doesn't, in which case the proof must specify which definition of topological order it is using and invoke AC. Downstream, any claim that pulls \"the topological order $v_1 < \\dots < v_K$ on $J \\cup V$\" out of acyclicity (a very common pattern, e.g. induction on a topological index) is silently using the finite reading.\nEND_SUBTLETY\n\nSUBTLETY:\nid: has_a_topological_order_existence_vs_equipment\nexplanation: The phrase \"it has a topological order\" is slightly under-specified. Read literally, \"has\" could mean either (a) \"there exists at least one topological order on $G$\" or (b) \"$G$ comes equipped with a distinguished topological order\". The intended reading is plainly (a) — topological orders are not unique, and \"is acyclic\" is a property of the bare graph, not of any extra structure — but the tex never spells this out. The corresponding Lean encoding has to make this an existential, not a structure field. A reader who instead encoded \"has\" as a structural component (a CDMG-with-topological-order) would render the biconditional trivial in one direction and ill-typed in the other.\nEND_SUBTLETY",
+        "session": "6a1a85c1-0141-4e1c-83df-9ac9131e7e23"
       }
     },
     {

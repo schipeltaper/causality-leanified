@@ -1,0 +1,67 @@
+% Definition file for row def_3_5 -- "FamilyRelationships".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_5
+% title: FamilyRelationships
+\def\rowref{def\_3\_5}
+\phantomsection\label{def_3_5}
+
+\begin{Def}[Family relationships]
+     Let $G=(J,V,E,L)$ be a CDMG, $v,w \in V$ and $A \ins J \cup V$ a subset of nodes.
+     We then define:
+     \begin{enumerate}
+         \item The set of \emph{parents} of $v$ in $G$: \[\Pa^G(v):=\lC w \in G\,|\, w \tuh v \in G \rC.\]
+         \item[] The set of \emph{parents} of $A$ in $G$: \[\Pa^G(A):= \bigcup_{v \in A} \Pa^G(v).\]
+         %\item[] \PF{maybe better for sets (???) :The set of \emph{parents} of $A$ in $G$: \[\Pa^G(A):= \lp \bigcup_{v \in A} \Pa^G(v)\rp \sm A.\]
+         %    but then  if $v \tuh v \in E$ then $v \notin \Pa^G(\lC v\rC ) \neq \Pa^G(v) \ni v$ ... }
+         \item The set of \emph{children} of $v$ in $G$: \[\Ch^G(v):=\lC w \in G\,|\, v \tuh w \in G \rC.\]
+         \item[] The set of \emph{children} of $A$ in $G$: \[\Ch^G(A):= \bigcup_{v \in A} \Ch^G(v).\]
+         \item The set of \emph{siblings} of $v$ in $G$: \[\Sib^G(v):=\lC w \in G\,|\, v \huh w \in G \rC.\]
+         %\item[] The set of \emph{children} of $A$ in $G$: \[\Ch^G(A):= \bigcup_{v \in A} \Ch^G(v).\]
+         \item The set of \emph{ancestors} of $v$ in $G$: 
+             \[\Anc^G(v):=\lC w \in G\,|\,\exists \text{ directed walk: } w \tuh \cdots \tuh v \in G \rC.\]
+             Note: $v \in \Anc^G(v)$.
+         \item[] The set of \emph{ancestors} of $A$ in $G$: \[\Anc^G(A):= \bigcup_{v \in A} \Anc^G(v).\]
+             Note: $A \ins \Anc^G(A)$.
+         \item The set of \emph{descendants} of $v$ in $G$: 
+             \[\Desc^G(v):=\lC w \in G\,|\,\exists \text{ directed walk: } v \tuh \cdots \tuh w \in G \rC.\]
+             Note: $v \in \Desc^G(v)$.
+         \item[] The set of \emph{descendants} of $A$ in $G$: \[\Desc^G(A):= \bigcup_{v \in A} \Desc^G(v).\]
+             Note: $A \ins \Desc^G(A)$.
+         \item The set of \emph{non-descendants} of $A$ in $G$:
+             \[ \NonDesc^G(A) := (J \cup V) \sm \Desc^G(A).\]
+         \item The \emph{strongly connected component} of $v$ in $G$:
+             \[ \Sc^G(v) := \Anc^G(v) \cap \Desc^G(v).\]
+             Note: $v \in \Sc^G(v)$.
+         \item[] The (union of) \emph{strongly connected components} of $A$ in $G$:
+             \[ \Sc^G(A) := \bigcup_{v \in A} \Sc^G(v).\]
+             Note: $A \ins \Sc^G(A)$.
+         \item The \emph{district} of $v$ in $G$:
+             \[\Dist^G(v) := \lC w \in G\,|\, \exists \text{ bidirected walk: } 
+             v \huh v_1 \huh \cdots \huh v_{n-1} \huh w \in G \rC.\]
+             Note: $v\in \Dist^G(v)$.
+         \item[] The \emph{district} of $A$ in $G$:
+             \[\Dist^G(A) := \bigcup_{v \in A} \Dist^G(v).\]
+             Note: $A \ins \Dist^G(A)$.
+         %\item The d-\emph{Markov blanket} of $v$ in $G$:
+         %    \[\MBl^G_d(v):=\lC w \in G\,|\,\exists \text{ collider walk: } 
+         %    v \suh v_1 \huh \cdots \huh v_{n-1} \hus w \in G \rC \sm \{v\}.\]
+         %    Note: $\lp\Pa^G(v) \cup \Ch^G(v) \cup \Pa^G(\Ch^G(v))\rp \sm \{v\} \ins \MBl^G_d(v)$.
+         %\item[] The d-\emph{Markov blanket} of $A$ in $G$:
+         %    \[\MBl^G_d(A) := \bigcup_{v \in A} \MBl^G_d(v) \sm A.\]
+         %\item The $\sigma$-\emph{Markov blanket} of $A$ in $G$:
+         %    \[\MBl^G_\sigma(A):= \MBl^{G^\acy}_d(A), \]
+         %    where $G^\acy$ is an acyclification of $G$, a notion defined below in Definition~\ref{def:cdg_acyclification}.
+     \end{enumerate}
+\end{Def}
+
+\end{document}
