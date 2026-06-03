@@ -1,8 +1,8 @@
--- Root of the `Causality` Lean library.
+-- Lean library root for the causality formalization.
 --
--- Each chapter has an aggregator file `Chapter<N>_<PascalCaseTitle>.lean`
--- next to its folder. This file imports the chapter aggregators so a
--- single `lake build` walks the whole project. The chapter aggregators
--- themselves are auto-managed by `scaffold/solving_current_row.py`.
-
+-- On a clean-slate leanification/ folder, this file imports nothing.
+-- As each chapter is initialised (via `scaffold/initialize_chapter.py`)
+-- the chapter aggregator `Chapter<N>_<Title>.lean` will be created
+-- alongside this file and added as an import below, and the chapter's
+-- glob will be added to `lakefile.toml`.
 import Chapter3_GraphTheory

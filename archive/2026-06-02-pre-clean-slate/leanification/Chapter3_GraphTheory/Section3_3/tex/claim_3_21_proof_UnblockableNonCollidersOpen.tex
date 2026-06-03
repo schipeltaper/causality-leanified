@@ -1,0 +1,52 @@
+% Claim proof file for row claim_3_21 -- "UnblockableNonCollidersOpen".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_21 (proof, with statement restated for readability)
+% title: UnblockableNonCollidersOpen
+\def\rowref{claim\_3\_21}
+\phantomsection\label{claim_3_21}
+
+\begin{Note}[UnblockableNonCollidersOpen]
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+\end{Note}
+
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+Fix the walk $\pi = \lp v_0 \sus \cdots \sus v_n \rp$ in $G$ and a position $k$ for which $v_k$ is an unblockable non-collider on $\pi$. We establish the two conjuncts of the claim in turn.
+
+\emph{$v_k$ is not a collider on $\pi$.}
+By \refrow{def_3_16}, $v_k$ being an unblockable non-collider on $\pi$ requires in particular that $k$ is an interior position ($0 < k < n$) and that the joint $(v_{k-1}, v_k, v_{k+1})$ on $\pi$ falls into exactly one of the three sub-patterns
+\[\begin{array}{rcl}
+  \text{left chain:} & v_{k-1} \hut v_k \hus v_{k+1}, \\
+  \text{right chain:} & v_{k-1} \suh v_k \tuh v_{k+1}, \\
+  \text{fork:} & v_{k-1} \hut v_k \tuh v_{k+1}.
+\end{array}\]
+Common to all three patterns is that the joint at $v_k$ never carries an arrowhead at $v_k$ on the edge $v_{k-1} \sus v_k$ \emph{and} an arrowhead at $v_k$ on the edge $v_k \sus v_{k+1}$ simultaneously: in the left chain only the right incident edge $v_k \hus v_{k+1}$ has an arrowhead at $v_k$, in the right chain only the left incident edge $v_{k-1} \suh v_k$ does, and in the fork neither does. Equivalently, the pattern $v_{k-1} \suh v_k \hus v_{k+1}$ is excluded by the very definition of \refrow{def_3_16}. But by \refrow{def_3_15} that excluded pattern -- ``two arrowheads pointing at $v_k$'' -- is precisely the defining shape of a collider at $v_k$. Hence $v_k$ is not a collider on $\pi$.
+
+\emph{$v_k$ is not a blockable non-collider on $\pi$.}
+By the ``otherwise'' clause of \refrow{def_3_16}, a position $v_k$ on $\pi$ is by definition a blockable non-collider on $\pi$ exactly when $v_k$ is a non-collider on $\pi$ \emph{and} $v_k$ is \emph{not} an unblockable non-collider on $\pi$. The standing hypothesis -- that $v_k$ \emph{is} an unblockable non-collider on $\pi$ -- directly negates the second conjunct of this characterisation, so $v_k$ is not a blockable non-collider on $\pi$.
+
+The two predicates just refuted at $v_k$ are precisely the gating antecedents of \refrow{def_3_17}'s two $\sigma$-open universals (item~(1.i) ``every collider $v_k$ on $\pi$ lies in $\Anc^G(C)$'' and item~(1.ii) ``every blockable non-collider $v_k$ on $\pi$ lies outside $C$'') and of the two dual $\sigma$-blocking existentials (items~(2.i)--(2.ii)); since both refutations were established without any reference to the conditioning set, the position $v_k$ satisfies clause~(1) vacuously at $k$ and cannot be a witness of clause~(2) at $k$ regardless of the subset $C \ins V \cup J$, which is the asserted ``$C$-$\sigma$-openness regardless of $C$''.
+\end{proof}
+
+\end{document}

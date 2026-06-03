@@ -1,0 +1,58 @@
+# Worker — leanify a verified TeX proof
+
+**When to use:** a claim's Lean statement is formalized (body is `sorry`) **and** a verified TeX proof exists in `<ref>_proof_<title>.tex` (in the row's subsection folder) (passed by an earlier `verify_tex_proof` round). Your job is to translate that verified proof into Lean tactics.
+
+You are working under the second-phase manager — the one created by `new_manager` once the TeX-proof phase finished. Treat the tex proof as the source of truth; you are *not* re-doing the mathematics, you are translating.
+
+## Authoritative spec = LN block + `addition_to_the_LN`
+
+The row's `addition_to_the_LN` field (surfaced in the row context) is **part of the claim's statement and spec**, and the tex proof you're translating was written to establish that strengthened claim. Your Lean proof must close exactly the Lean theorem statement — which itself was written to capture the LN block + every clause in `addition_to_the_LN`. Empty addition → just the literal LN.
+
+If during translation you realise the Lean statement does not capture some clause in `addition_to_the_LN` (e.g. the `Finite` instance is missing despite a finiteness clause), surface that to the manager rather than papering over with `by exact?` — the Lean statement needs to be re-formalized first.
+
+## Inputs you should receive from the manager
+
+- `ref` (e.g. `claim_3_5`)
+- The Lean file and the theorem name to prove
+- The path to the verified tex proof: `leanification/<chapter>/<subsection>/<ref>_proof_<title>.tex`
+- Pointers to the previously-formalized definitions and lemmas the proof depends on (their Lean names)
+
+## Lean statement markers — respect them
+
+The theorem you're proving was wrapped by the formalizer with `-- <ref> -- start statement` / `-- <ref> -- end statement` line comments around the signature. The proof body (`:= by sorry` or `:= proof_term`) sits **below** the end marker. Replace the `sorry` (or whatever placeholder is there) with the real tactic block; **do not move, delete, or alter the marker lines**, and do not write any proof content above the end marker. The website builder relies on the end-statement marker being immediately above the `:=` so it can render the statement separately from the proof. Concretely, the final shape is:
+
+```lean
+-- <ref> -- start statement
+theorem <name> ... : <conclusion>
+-- <ref> -- end statement
+:= by
+  <your tactic proof here>
+```
+
+If a proof helper (a small lemma the proof needs but the statement doesn't) lands in the same file, place it OUTSIDE the markers (below the `end statement` block of this row, or in a clearly separate region). Proof helpers do NOT get any markers — markers are reserved for statement content.
+
+## What to do
+
+1. **Read the tex proof first.** It is the plan. Note every citation by `ref` and look up the corresponding Lean name in the chapter (open the relevant `.lean` files in the subsection folder).
+2. **Translate step-by-step.** Each TeX paragraph or named step usually becomes one tactic chunk:
+   - `intro`/`obtain`/`rcases` for the hypotheses
+   - `induction` matching the TeX induction variable
+   - explicit cases mirroring the TeX case analysis
+   - `exact` / `apply` of the cited lemmas
+3. **No detours.** Do not invent a shorter proof in Lean if the tex version differs — the tex was verified, deviating is a regression. Exception: a tactic-level cleanup that doesn't change the strategy (e.g. `omega` closes a numeric goal the TeX hand-waved).
+4. **No `sorry`, no `True`.** The proof must reduce all the way to the axioms — `lake build` from `/home/11716061/repo_scaffold2/` must succeed.
+5. **Use the lean-lsp MCP** to iterate: `lean_goal`, `lean_diagnostic_messages`, `lean_multi_attempt`.
+6. **Cross-link** at the top of the Lean file: add a short comment `-- TeX proof: <ref>_proof_<title>.tex` so a reader can jump to the canonical proof.
+7. **Report back** to the manager: confirmation that the proof closes, any auxiliary Lean lemmas you added (and why they aren't separate rows), any place the Lean machinery let you collapse two TeX steps into one.
+
+## If a TeX step doesn't translate
+
+- A specific step won't go through cleanly → request `expand_proof` on that step (point at it precisely) — do **not** silently weaken the Lean statement.
+- The TeX proof seems wrong on closer inspection → escalate to the manager (`help`) rather than papering over.
+- A mathlib lemma collapses a multi-step argument cleanly → fine, but note the substitution in the Lean comment so the file documents the divergence.
+
+## Rules
+
+- Stay close to the TeX proof's structure. Same induction variable, same case split, same key lemmas.
+- Edit only files inside your subsection's folder under `leanification/`.
+- After each meaningful change, build before declaring success.

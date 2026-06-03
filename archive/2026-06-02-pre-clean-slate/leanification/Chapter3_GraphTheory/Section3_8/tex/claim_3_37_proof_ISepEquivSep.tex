@@ -1,0 +1,41 @@
+% Claim proof file for row claim_3_37 -- "ISepEquivSep".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_37 (proof, with statement restated for readability)
+% title: ISepEquivSep
+\def\rowref{claim\_3\_37}
+\phantomsection\label{claim_3_37}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[ISepEquivSep]\label{lem:isep_equiv_sep_restricted}
+  Let $G=(J,V,E,L)$ be a CDMG.
+  Let $\bar{G}=(\bar{V},\bar{E},\bar{L})$ be a DMG with nodes $\bar{V} := V \dcup J$, directed edges $E \subseteq \bar{E} \subseteq E \cup \{j \tuh j' : j, j' \in J, j \ne j'\}$ and bidirected edges $L \subseteq \bar{L} \subseteq L \cup \{j \huh j' : j, j' \in J, j \ne j'\}$.
+  Then, for $A, B, C \subseteq J \cup V$ with $A \cap J = \emptyset$, $J \subseteq B \cup C$:
+  $$A \isPerp_G B \given C \iff A \sPerp_{\bar{G}} B \given C$$
+  and
+  $$A \idPerp_G B \given C \iff A \dPerp_{\bar{G}} B \given C.$$
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% TODO: write the proof body.
+\end{proof}
+
+\end{document}

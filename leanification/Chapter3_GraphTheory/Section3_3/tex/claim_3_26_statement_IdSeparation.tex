@@ -1,0 +1,37 @@
+% Claim statement file for row claim_3_26 -- "IdSeparation".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_26_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_26 (statement)
+% title: IdSeparation
+\def\rowref{claim\_3\_26}
+\phantomsection\label{claim_3_26}
+
+\begin{Rem}[IdSeparation]
+    If a CDMG $G$ is acyclic then all non-colliders are blockable.
+    So, the partial condition for $i\sigma$-separation
+    ``a blockable non-collider in $C$''
+    can be simplified to ``(any) non-collider in $C$''.
+    
+    So in the acyclic case we can simplify the notion of $i\sigma$-separation, 
+    which we will refer to as \emph{$id$-separation}.
+    However, in the non-acyclic setting $id$-separation (``(any) non-collider in $C$'') and $i\sigma$-separation (``a blockable non-collider in $C$'') are clearly not equivalent.
+
+    It turned out that in the non-acyclic case $i\sigma$-separation is the more general concept (and as said above it also captures the acyclic case equivalently well), see \cite{FM17,FM18,FM20,BFPM21}.
+    We will first focus on CADMGs (acyclic) for which we can restrict ourselves to the somewhat simpler $id$-separation.
+    Later, we will pick up $i\sigma$-separation again when we deal with cycles.
+\end{Rem}
+
+\end{document}

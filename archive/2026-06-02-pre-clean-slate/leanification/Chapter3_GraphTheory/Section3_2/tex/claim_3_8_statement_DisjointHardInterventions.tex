@@ -1,0 +1,23 @@
+% Claim statement file for row claim_3_8 -- "DisjointHardInterventions".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_8 (statement)
+% title: DisjointHardInterventions
+\def\rowref{claim\_3\_8}
+\phantomsection\label{claim_3_8}
+
+\begin{Lem}[Disjoint hard interventions and node-splittings commute]
+   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes of $G$.
+   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.
+      \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\doit(W_1)}.   \]
+\end{Lem}
+
+\end{document}

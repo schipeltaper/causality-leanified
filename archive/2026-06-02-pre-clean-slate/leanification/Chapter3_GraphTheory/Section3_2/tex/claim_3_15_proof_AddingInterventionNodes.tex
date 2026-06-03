@@ -1,0 +1,78 @@
+% Claim proof file for row claim_3_15 -- "AddingInterventionNodes".
+%
+% Proof lifted from lecture-notes/lecture_notes/graphs.tex:887--930 (the
+% \Claude{...} block immediately following the claim). The LN proof is
+% directly usable and componentwise complete; only light edits applied:
+% the LN's "Definition~\ref{def:cdmg_intervention_nodes}" rewritten as
+% \refrow{def_3_13} (LN-style \ref labels lose their counter under our
+% star-numbered envs and would render as "??"; the row's def_3_13 stub is
+% the canonical Lean-side reference for the same definition). The
+% \Claude{...} wrapper from the LN source is dropped.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_15 (proof, with statement restated for readability)
+% title: AddingInterventionNodes
+\def\rowref{claim\_3\_15}
+\phantomsection\label{claim_3_15}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]
+  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins V$ and $W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:
+    \[  \lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}. \]
+  %  So there is no ambiguity in the notation:
+  %  \[ G(V\sm W_1 \dcup W_1^o|\doit(W_1^i \dcup J \dcup I_{W_2})).  \]
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+For $w \in W_1$ we write $w^o, w^i$ for the SWIG copies; for $v \notin W_1$ we have $v^o = v^i = v$.
+Since $W_1 \cap W_2 = \emptyset$, every $w \in W_2$ satisfies $w \notin W_1$, so $w^o = w^i = w$.
+
+\medskip\noindent\emph{Computing $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$.}
+
+By~\refrow{def_3_13},
+$G_{\doit(I_{W_2})} = (J',\, V,\, \widetilde{E},\, L)$
+with $J' := J \dcup \lC I_w \mid w \in W_2 \sm J \rC$ and $\widetilde{E} := E \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC$.
+Since $W_1 \ins V$ and $I_w \notin W_1$ for all $w \in W_2 \sm J$, we may apply $\swig(W_1)$:
+\begin{align*}
+  J_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= J \dcup \lC I_w \mid w \in W_2 \sm J \rC \dcup W_1^i,\\
+  V_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= (V \sm W_1) \dcup W_1^o,\\
+  E_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC
+       \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC,\\
+  L_{\lp G_{\doit(I_{W_2})}\rp_{\swig(W_1)}}
+    &= \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC,
+\end{align*}
+using $I_w^i = I_w$ and $w^o = w$ for $w \in W_2 \sm J$ (since $W_1 \cap W_2 = \emptyset$).
+
+\medskip\noindent\emph{Computing $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$.}
+
+$G_{\swig(W_1)} = (\hat{J},\, \hat{V},\, \hat{E},\, \hat{L})$
+with $\hat{J} = J \dcup W_1^i$, $\hat{V} = (V \sm W_1) \dcup W_1^o$.
+Since $W_2 \sm \hat{J} = W_2 \sm J$ (using $W_1 \cap W_2 = \emptyset$), applying $\doit(I_{W_2})$ via~\refrow{def_3_13}:
+\begin{align*}
+  J_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= J \dcup W_1^i \dcup \lC I_w \mid w \in W_2 \sm J \rC,\\
+  V_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= (V \sm W_1) \dcup W_1^o,\\
+  E_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC
+       \dcup \lC I_w \tuh w \mid w \in W_2 \sm J \rC,\\
+  L_{\lp G_{\swig(W_1)}\rp_{\doit(I_{W_2})}}
+    &= \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC.
+\end{align*}
+
+All four components coincide, so the two CADMGs are equal.
+\end{proof}
+
+\end{document}

@@ -1,0 +1,495 @@
+% When the encoding lies: how disjoint_EL turned a true LN lemma false.
+% Standalone TeX article documenting the chain of cascading design
+% choices behind the claim_3_25 "disproof". Compiles via
+%   latexmk -pdflua 01_disjoint_EL_cascade.tex
+% from this folder. (Requires lualatex because the embedded Lean code
+% blocks contain UTF-8 mathematical symbols.)
+% !TEX program = lualatex
+
+\documentclass[11pt,a4paper]{article}
+
+% Minimal self-contained preamble. Cannot use the leanification
+% preamble because it loads inputenc=latin1, which collides with the
+% UTF-8 Lean code blocks below. Only the macros actually referenced in
+% this article are defined.
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{stmaryrd}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,decorations.markings}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\usepackage{listings}
+
+% LN graph-notation macros (subset of leanification/preamble.tex).
+\providecommand{\arrhead}{{Latex}}
+\providecommand{\arrtail}{{}}
+\providecommand{\arrstar}{Rays[n=6]}
+\providecommand{\tuh}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrtail-\arrhead, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\hut}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrhead-\arrtail, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\huh}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrhead-\arrhead, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\sus}[1][]{\mathrel{\tikz [baseline=-0.25ex,{Rays[n=6]}-{Rays[n=6]}, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\hus}[1][]{\mathrel{\tikz [baseline=-0.25ex,\arrhead-{Rays[n=6]}, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+\providecommand{\suh}[1][]{\mathrel{\tikz [baseline=-0.25ex,{Rays[n=6]}-\arrhead, #1] \draw [#1] (0pt,0.5ex) -- (1.3em,0.5ex);}}
+
+% Set / operator macros.
+\providecommand{\sm}{\setminus}
+\providecommand{\ins}{\subseteq}
+\providecommand{\lp}{\left ( }
+\providecommand{\rp}{\right ) }
+\providecommand{\lC}{\left \{ }
+\providecommand{\rC}{\right \} }
+\providecommand{\given}{\mathbin{|}}
+
+% Independence / separation notation.
+\providecommand{\Perp}{\operatorname{\perp}}
+\providecommand{\nPerp}{\operatorname{\not\perp}}
+\providecommand{\iPerp}{\Perp^i}
+\providecommand{\niPerp}{\nPerp^i}
+\providecommand{\isPerp}{\Perp^{i\sigma}}
+\providecommand{\nisPerp}{\nPerp^{i\sigma}}
+
+% Graph predicates.
+\providecommand{\Anc}{\mathrm{Anc}}
+\providecommand{\Desc}{\mathrm{Desc}}
+\providecommand{\Sc}{\mathrm{Sc}}
+
+% A bare theorem env so we can render the lemma statement.
+\newtheorem*{Lem}{Lemma}
+
+% Light Lean syntax highlighting. The goal is readability, not a full
+% Lean-mode -- just keywords and inline UTF-8 mathematical symbols.
+\lstdefinelanguage{Lean}{
+  morekeywords={def,theorem,lemma,structure,where,abbrev,by,intro,exact,
+                refine,rintro,obtain,rcases,subst,rw,simp,Set,Prop,Type,
+                Disjoint,Walk,CDMG,Fin,True,False,not,sorry,if,then,else,
+                fun,let,in},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]",
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{gray!70!black},
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  upquote=true,
+  literate=
+    {α}{{$\alpha$}}1 {β}{{$\beta$}}1 {γ}{{$\gamma$}}1 {δ}{{$\delta$}}1
+    {ε}{{$\varepsilon$}}1 {λ}{{$\lambda$}}1 {μ}{{$\mu$}}1 {π}{{$\pi$}}1
+    {σ}{{$\sigma$}}1 {τ}{{$\tau$}}1 {Σ}{{$\Sigma$}}1 {Π}{{$\Pi$}}1
+    {ℕ}{{$\mathbb{N}$}}1 {ℤ}{{$\mathbb{Z}$}}1 {ℝ}{{$\mathbb{R}$}}1
+    {⊆}{{$\subseteq$}}1 {∈}{{$\in$}}1 {∉}{{$\notin$}}1 {∅}{{$\emptyset$}}1
+    {∪}{{$\cup$}}1 {∩}{{$\cap$}}1 {∧}{{$\wedge$}}1 {∨}{{$\vee$}}1
+    {¬}{{$\neg$}}1 {≠}{{$\neq$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1
+    {→}{{$\to$}}1 {←}{{$\leftarrow$}}1 {⟶}{{$\longrightarrow$}}1
+    {↔}{{$\leftrightarrow$}}1 {⟨}{{$\langle$}}1 {⟩}{{$\rangle$}}1
+    {⦃}{{\{\!|}}1 {⦄}{{|\!\}}}1 {×ˢ}{{$\times^{\!s}$}}1 {∃}{{$\exists$}}1
+    {∀}{{$\forall$}}1 {≔}{{$:=$}}1,
+}
+
+\title{When the encoding lies:\\
+how one disjointness field made a true lemma false}
+\author{Documenting Progression}
+\date{2026-05-29}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+On 2026-05-28 the orchestrator marked \texttt{claim\_3\_25} (the
+lecture notes' $i\sigma$-separation-under-marginalization lemma) as
+solved. The artefact is in fact a \emph{disproof}: a concrete
+counter-example whose Lean theorem name is
+\texttt{isISigmaSeparated\_marginalize\_iff\_disproved}. Yet the
+lemma is a standard, well-known result in the latent-projection
+literature. This note traces, line by line, why the disproof is
+nonetheless correct \emph{under our Lean encoding}, and isolates the
+exact design choice -- one disjointness field on the \texttt{CDMG}
+structure -- that cascaded all the way to a false lemma. The lecture
+notes are not wrong; one of our encoding choices is.
+\end{abstract}
+
+\section{Where the chain starts: \texttt{def\_3\_1.CDMG}}
+
+The lecture notes' \texttt{CDMG} definition (def 3.1 of the LN) says
+\textit{``a CDMG consists of two (disjoint) sets of edges''}: a set
+$E$ of directed edges (carrier $\subseteq (J \cup V) \times V$) and
+a set $L$ of bidirected edges (carrier $\subseteq V \times V$,
+quotiented by $(v_1, v_2) \sim (v_2, v_1)$). Because $E$ and $L$
+inhabit \emph{different} ambient types in the LN's reading
+($(J \cup V) \times V$ vs.\ $V \times V / \!\!\sim$), the
+``disjointness'' phrase is automatically satisfied: a pair is either
+a directed edge or a bidirected edge, never both -- the carriers do
+not even share an object that could be in both.
+
+Our Lean encoding (\texttt{Section3\_1/CDMG.lean}) is the verbatim
+\texttt{structure} below:
+
+\begin{lstlisting}
+structure CDMG (α : Type*) where
+  /-- The set of *input* nodes. -/
+  J : Set α
+  /-- The set of *output* nodes. -/
+  V : Set α
+  /-- Inputs and outputs are disjoint sets of vertices. -/
+  disjoint_JV : Disjoint J V
+  /-- The set of *directed* edges. -/
+  E : Set (α × α)
+  E_subset : E ⊆ (J ∪ V) ×ˢ V
+  /-- The set of *bidirected* edges, encoded as a subset of `V × V`
+  required to be symmetric and irreflexive. -/
+  L : Set (α × α)
+  L_subset : L ⊆ V ×ˢ V
+  L_irrefl : ∀ ⦃v₁ v₂ : α⦄, (v₁, v₂) ∈ L → v₁ ≠ v₂
+  L_symm   : ∀ ⦃v₁ v₂ : α⦄, (v₁, v₂) ∈ L → (v₂, v₁) ∈ L
+  /-- Directed and bidirected edges are disjoint as subsets of `α × α`. -/
+  disjoint_EL : Disjoint E L
+\end{lstlisting}
+
+The collapse the LN never made is right there in the carrier of $L$:
+\texttt{L : Set ($\alpha$ $\times$ $\alpha$)}, with the \emph{same}
+ambient type as \texttt{E}. Where the LN's $E$ and $L$ inhabit
+disjoint sorts and never collide, our $E$ and $L$ are both subsets
+of the same $\alpha \times \alpha$, so the same pair $(u, v)$ could
+in principle live in both. To rescue the LN's ``two disjoint sets of
+edges'' phrasing, the structure adds the literal-disjointness field
+\texttt{disjoint\_EL : Disjoint E L} as a proof obligation.
+
+The trade-off was deliberate: a single carrier gives downstream
+proofs ergonomic uniform membership ($(u, v) \in G.E$ /
+$(u, v) \in G.L$ as parallel idioms), no quotient plumbing, no
+ordered-vs-unordered-pair lift gymnastics. The cost was supposed to
+be one extra hypothesis. As we'll see, that cost is much bigger.
+
+\section{The cascade reaches \texttt{def\_3\_14.marginalize}}
+
+Marginalization (also known as latent projection) takes a CDMG $G$
+and a subset $W \subseteq V$ of vertices to ``project away''. The
+LN's marginalized graph $G^{\sm W}$ has vertex set
+$(J, V \setminus W)$ and edge sets defined by:
+
+\begin{itemize}
+\item $(u, v) \in E^{\sm W}$ iff there is a length-$\geq 1$
+      directed walk $u \tuh \cdots \tuh v$ in $G$ whose interior
+      vertices (i.e.\ everything strictly between $u$ and $v$) all
+      lie in $W$.
+\item $(u, v) \in L^{\sm W}$ iff there is a length-$\geq 1$
+      \emph{bifurcation} walk between $u$ and $v$ in $G$ with all
+      interior vertices in $W$. (A bifurcation here is a walk of
+      shape $u \hut \cdots \hut x \tuh \cdots \tuh v$ or
+      $u \huh \cdots \huh v$ -- two arms diverging from a common
+      source, possibly through a bidirected edge in the middle.)
+\end{itemize}
+
+Critically: \textbf{the LN's definition imposes no exclusion between
+$E^{\sm W}$ and $L^{\sm W}$.} The same pair $(u, v)$ may inhabit
+both -- e.g.\ a vertex $u$ has both a directed walk to $v$ through
+$W$ \emph{and} a fork bifurcation with $v$ through $W$. Under the
+LN's separate-ambient-types reading, both contributions are
+recorded independently; no conflict.
+
+Our Lean \texttt{marginalize} (\texttt{Section3\_2/Marginalization.lean})
+cannot do that: it has to satisfy
+\texttt{disjoint\_EL : Disjoint E L} on the output graph. So it
+\emph{adds two exclusion clauses to $L^{\sm W}$}:
+
+\begin{lstlisting}
+def marginalize (G : CDMG α) (W : Set α) : CDMG α where
+  J := G.J
+  V := G.V \ W
+  ...
+  E := { p : α × α |
+    p.1 ∈ G.J ∪ (G.V \ W) ∧ p.2 ∈ G.V \ W ∧
+    ∃ π : Walk G p.1 p.2,
+      π.IsDirected ∧ π.InteriorIn W ∧ 1 ≤ π.length }
+  ...
+  L := { p : α × α |
+    p.1 ∈ G.V \ W ∧ p.2 ∈ G.V \ W ∧ p.1 ≠ p.2 ∧
+    -- exclusion A: forbid p if a directed walk p.1 → p.2 through W exists
+    (¬ ∃ π : Walk G p.1 p.2, π.IsDirected ∧ π.InteriorIn W) ∧
+    -- exclusion B: forbid p if a directed walk p.2 → p.1 through W exists
+    (¬ ∃ π : Walk G p.2 p.1, π.IsDirected ∧ π.InteriorIn W) ∧
+    -- and require an actual bifurcation in either direction
+    ((∃ π : Walk G p.1 p.2, π.IsBifurcation ∧ π.InteriorIn W) ∨
+     (∃ π : Walk G p.2 p.1, π.IsBifurcation ∧ π.InteriorIn W)) }
+  ...
+  disjoint_EL := by
+    rw [Set.disjoint_left]
+    intro p hE hL
+    obtain ⟨_, _, π, hπ_dir, hπ_int, _⟩ := hE
+    obtain ⟨_, _, _, hnE_uv, _, _⟩ := hL
+    exact hnE_uv ⟨π, hπ_dir, hπ_int⟩
+\end{lstlisting}
+
+The two exclusion clauses \texttt{(¬ $\exists$ $\pi$, ...)} are not
+in the LN's definition. They are there \emph{only} because
+\texttt{disjoint\_EL} on \texttt{CDMG} demands it: without them, any
+pair $(u, v)$ that gets in via both a directed-walk-through-$W$ and a
+bifurcation-through-$W$ would land in both $E^{\sm W}$ and $L^{\sm W}$,
+violating \texttt{disjoint\_EL} on the marginalized graph.
+
+The author of the file knew this and documented it in the design block:
+
+\begin{quote}
+``\texttt{L\^{}\{$\sm$ W\}} excludes pairs already in
+\texttt{E\^{}\{$\sm$ W\}} (in either direction). This is the most
+subtle deviation from the LN's literal definition, forced by the
+\texttt{disjoint\_EL} field of \texttt{def\_3\_1.CDMG}. The LN treats
+directed and bidirected edges as different kinds of objects \dots\
+so the LN's `two (disjoint) sets of edges' is automatically satisfied
+even if some pair $(u, v)$ is both a directed edge from $u$ to $v$
+\emph{and} a bidirected edge between $u$ and $v$\dots\ The LN's
+marginalization \emph{can} produce collisions of this kind.''
+\end{quote}
+
+The author's defense was that this deviation is benign because what
+downstream proofs need is \emph{bifurcation existence}, not literal
+membership in $L^{\sm W}$, and bifurcation existence survives the
+exclusion (a directed walk reverses to an all-backward walk, which
+counts as a bifurcation with empty right arm). Under that interpretation
+\texttt{claim\_3\_16} (``marginalization preserves bifurcations'')
+goes through and the encoding looks safe.
+
+But \texttt{claim\_3\_25}'s proof needs more.
+
+\section{The LN's lemma and the rerouting step it depends on}
+
+The lemma in question is the LN's
+\texttt{lem:stability\_separation\_marginalization}
+(claim\_3\_25 in our data file):
+
+\begin{Lem}[$i\sigma$-separation under marginalization]
+Let $G = (J, V, E, L)$ be a CDMG, $A, B, C \ins J \cup V$ and
+$D \ins V$ subsets such that
+$D \cap (A \cup B \cup C) = \emptyset$. Then
+\[ A \isPerp_G B \given C \qquad \iff \qquad
+   A \isPerp_{G^{\sm D}} B \given C. \]
+\end{Lem}
+
+The LN's proof of $(\Longleftarrow)$ -- if the marginalized graph
+$\sigma$-separates, so does the original -- proceeds by contrapositive.
+Take a $C$-$\sigma$-open walk $\pi$ in $G$; transform it into a
+$C$-$\sigma$-open walk in $G^{\sm D}$ that contradicts the
+$\sigma$-separation in $G^{\sm D}$. The transformation removes
+$D$-interior vertices one at a time and, at each step, may need to
+\emph{reroute a fork bifurcation through a bidirected edge of
+$L^{\sm D}$}. The breaking step in the LN's proof
+(\texttt{graphs.tex}:1559) is exactly:
+
+\begin{quote}
+\textit{If $w \hut u \tuh b_{j+1}$ is a fork in $G$ with $u \in D$,
+then in $G^{\sm \lC u \rC}$ there is a bidirected edge
+$w \huh b_{j+1} \in L^{\sm \lC u \rC}$.}
+\end{quote}
+
+In the LN, this membership is immediate: the fork is a bifurcation
+through $\lC u \rC$; bifurcations through $W$ deposit bidirected
+edges in $L^{\sm W}$. In our encoding, the membership is conditional
+on \emph{no} directed walk between $w$ and $b_{j+1}$ existing through
+$\lC u \rC$ in either direction. Make one exist, and the rerouting
+step the LN's proof relies on becomes unavailable.
+
+\section{The counter-example}
+
+The disproof of \texttt{claim\_3\_25} (in the row's tex proof file
+\texttt{tex/claim\_3\_25\_proof\_ISigmaSeparation.tex}) constructs
+exactly such a graph. Vertices are six labels
+$v_0, b_j, u, w, b_{j+1}, v_n$ (encoded as
+\texttt{Fin 6 = $\lC 0, 1, 2, 3, 4, 5\rC$} in Lean). The edges are:
+
+\[
+  E := \lC
+    (v_0, b_j),\ (b_j, u),\ (u, b_{j+1}),\ (b_{j+1}, v_n),\
+    (u, w),\ (w, u),\ (w, b_j)
+  \rC, \qquad L := \emptyset.
+\]
+
+Read as a directed-mixed graph:
+
+\begin{itemize}
+\item A spine $v_0 \tuh b_j \tuh u \tuh b_{j+1} \tuh v_n$.
+\item A 2-cycle $u \tuh w$ and $w \tuh u$ at the middle vertex.
+\item An extra edge $w \tuh b_j$ closing a triangle on
+      $\lC b_j, u, w \rC$.
+\end{itemize}
+
+The choices are
+\[ A := \lC v_0 \rC,\quad B := \lC v_n \rC,\quad
+   C := \lC b_j, w \rC,\quad D := \lC u \rC. \]
+Then $D \cap (A \cup B \cup C) = \emptyset$, satisfying the lemma's
+hypothesis.
+
+\paragraph{LHS: $A \nisPerp_G B \given C$.}
+The walk $\pi := \lp v_0 \tuh b_j \tuh u \tuh b_{j+1} \tuh v_n \rp$
+is $C$-$\sigma$-open in $G$. Per-position:
+\begin{itemize}
+\item At $b_j \in C$: right-chain non-collider whose forward-out
+      target $u$ lies in $\Sc^G(b_j) = \lC b_j, u, w \rC$ -- so $b_j$
+      is \emph{unblockable}, and being in $C$ does not block.
+\item At $u \notin C$: blockable non-collider but not in $C$, so does
+      not block.
+\item At $b_{j+1} \notin C$: blockable non-collider but not in $C$,
+      so does not block.
+\end{itemize}
+No colliders (every step is forward). Hence
+$A \nisPerp_G B \given C$ holds.
+
+\paragraph{RHS: $A \isPerp_{G^{\sm \lC u \rC}} B \given C$.}
+This is where the exclusion clauses bite. Marginalizing out $u$
+under our \texttt{marginalize}, we compute:
+
+\begin{itemize}
+\item $E^{\sm \lC u \rC}$ contains, beside the obvious survivors,
+      \emph{the pair $(w, b_{j+1})$}, via the directed walk
+      $w \tuh u \tuh b_{j+1}$ (length 2, interior $\lC u \rC$).
+\item $L^{\sm \lC u \rC}$ would \emph{ideally} contain
+      $w \leftrightarrow b_{j+1}$, via the fork bifurcation
+      $w \hut u \tuh b_{j+1}$. \textbf{Under our encoding it does
+      not}: the directed walk $w \tuh u \tuh b_{j+1}$ in the
+      \texttt{(u, w)} direction triggers exclusion clause A,
+      forbidding $(w, b_{j+1}) \in L^{\sm \lC u \rC}$.
+\end{itemize}
+
+With $(w, b_{j+1}) \notin L^{\sm \lC u \rC}$, the LN's
+rerouting move from $w$ to $b_{j+1}$ via a bidirected edge is
+not available. The only path through $w$ in $G^{\sm \lC u \rC}$
+uses the surviving directed edge $(w, b_{j+1}) \in E^{\sm \lC u \rC}$
+as a \emph{forward step}, which makes $w$ a blockable
+non-collider on any walk through it -- and $w \in C$ then blocks
+the walk. Combined with $b_j \in C$ blocking (now blockable, not
+unblockable, in the marginalized graph because $u$ is gone from
+$\Sc$) it turns out \emph{every} walk in
+$G^{\sm \lC u \rC}$ from $v_0$ to $v_n$ is $C$-$\sigma$-blocked.
+So $A \isPerp_{G^{\sm \lC u \rC}} B \given C$ holds.
+
+Combining: LHS fails, RHS holds, the equivalence is broken.
+
+\section{The witness in Lean}
+
+The same graph, expressed in our \texttt{CDMG (Fin 6)}:
+
+\begin{lstlisting}
+def G_witness : CDMG (Fin 6) where
+  J := ∅
+  V := {0, 1, 2, 3, 4, 5}
+  disjoint_JV := by
+    rw [Set.disjoint_left]; intro _ hJ _; exact hJ
+  E := {(0, 1), (1, 2), (2, 4), (4, 5), (2, 3), (3, 2), (3, 1)}
+  E_subset := by
+    intro p hp
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hp
+    rcases hp with h | h | h | h | h | h | h <;>
+      (subst h; refine ⟨Or.inr ?_, ?_⟩ <;>
+        simp [Set.mem_insert_iff, Set.mem_singleton_iff])
+  L := ∅
+  L_subset := by intro _ h; exact h.elim
+  L_irrefl := by intro _ _ h; exact h.elim
+  L_symm := by intro _ _ h; exact h.elim
+  disjoint_EL := by
+    rw [Set.disjoint_left]; intro _ _ hL; exact hL.elim
+\end{lstlisting}
+
+with the labelling $v_0 = 0,\ b_j = 1,\ u = 2,\ w = 3,\ b_{j+1} = 4,\
+v_n = 5$. The conditioning set in Lean is
+\texttt{C\_witness := \{1, 3\}} and the disproof theorem is:
+
+\begin{lstlisting}
+theorem isISigmaSeparated_marginalize_iff_disproved :
+    ∃ (G : CDMG (Fin 6)) (A B C D : Set (Fin 6)),
+      D ⊆ G.V ∧ Disjoint D (A ∪ B ∪ C) ∧
+      ¬ (G.IsISigmaSeparated A B C ↔
+           (G.marginalize D).IsISigmaSeparated A B C) := by
+  refine ⟨G_witness, {0}, {5}, C_witness, {2}, ?_, ?_, ?_⟩
+  · -- D = {2} ⊆ G_witness.V = {0, 1, 2, 3, 4, 5}.
+    intro x hx
+    rw [Set.mem_singleton_iff] at hx; subst hx
+    exact G_witness_V_univ 2
+  · -- Disjoint {2} ({0} ∪ {5} ∪ {1, 3}).
+    rw [Set.disjoint_singleton_left]
+    simp [C_witness, Set.mem_insert_iff, Set.mem_singleton_iff]
+  · -- ¬ (LHS ↔ RHS). LHS-side: ¬ G.IsISigmaSeparated.
+    -- RHS-side: marg.IsISigmaSeparated. iff forces RHS → LHS,
+    -- contradicting both.
+    intro hiff
+    exact not_isISigmaSeparated_G_witness
+      (hiff.mpr marg_isISigmaSeparated_G_witness)
+\end{lstlisting}
+
+The theorem type-checks. It is genuinely a proof of the negation of
+the biconditional, instantiated on the explicit
+\texttt{G\_witness}. \texttt{lake build} accepts it with no
+\texttt{sorry}. It is, in every formal sense, ``proven'' -- but what
+is proven is the encoding's lemma, not the LN's.
+
+\section{Where the actual bug lives}
+
+The chain of causes, as a directed walk through our own design space:
+
+\begin{enumerate}
+\item \texttt{def\_3\_1.CDMG} collapses directed and bidirected edges
+      onto the common carrier \texttt{Set ($\alpha$ $\times$ $\alpha$)}
+      and adds the field \texttt{disjoint\_EL : Disjoint E L}.
+\item To keep \texttt{disjoint\_EL} valid post-marginalization,
+      \texttt{def\_3\_14.marginalize} adds two ``no directed walk
+      through $W$'' exclusion clauses to $L^{\sm W}$.
+\item These exclusion clauses remove fork-induced bidirected edges
+      whenever a directed walk also happens to exist between the
+      same endpoints through $W$.
+\item The LN's proof of
+      \texttt{lem:stability\_separation\_marginalization} relies on
+      exactly such a fork-induced bidirected edge being available
+      for rerouting. With it removed, the rerouting step has no
+      target, and the lemma becomes false on a structurally
+      non-trivial subset of inputs.
+\item \texttt{claim\_3\_25} is solved with a disproof exhibiting a
+      member of that subset. Both the disproof and its Lean witness
+      are \emph{correct} -- the encoding's lemma really is false.
+\end{enumerate}
+
+What is \emph{not} broken: the LN's marginalization, the LN's lemma,
+the disproof itself, the formalization of the disproof in Lean, or
+the workflow's machinery for recording a disprove-mode solve. What
+\emph{is} broken: the encoding agreement between our
+\texttt{marginalize} and the LN's. The two agree on bifurcation
+existence; they disagree on literal $L^{\sm W}$ membership exactly
+in the cases the lemma needs.
+
+\section{What this means going forward}
+
+Three actionable observations:
+
+\paragraph{1. The fix lives upstream in \texttt{def\_3\_1}, not in
+\texttt{def\_3\_14}.} As long as \texttt{CDMG} demands literal
+\texttt{Disjoint E L} on a shared $\alpha \times \alpha$ carrier,
+any LN-faithful marginalization will be unrepresentable. Options:
+drop \texttt{disjoint\_EL} (and patch downstream call-sites that
+assumed it), or move \texttt{L} to a different ambient type that
+makes set-disjointness vacuous (e.g.\ \texttt{Sym2 α} via mathlib,
+or a wrapped \texttt{Set ($\alpha$ $\times$ $\alpha$)} type).
+
+\paragraph{2. The workflow's disprove pathway worked --
+exactly where it shouldn't have.} The
+\texttt{mistake} action was added so the manager could surrender
+gracefully when the LN really is wrong. Here it surrendered
+to the LN being right and the encoding being wrong, and the
+orchestrator dutifully recorded a ``disproof'' of a true statement.
+The verifier chain has no way to distinguish ``the LN is wrong''
+from ``the encoding is wrong'' -- both look like the manager
+hitting a real wall.
+
+\paragraph{3. There is at least one more claim downstream that
+inherits this issue.} The LN's $i\sigma$-separation calculus (§3.3
+and beyond) uses the rerouting move repeatedly. Any LN claim whose
+proof relies on a marginalization-induced bidirected edge that
+also has a directed-walk version is potentially false under the
+current encoding. \texttt{claim\_3\_25} is the first; it is
+unlikely to be the last.
+
+\end{document}
