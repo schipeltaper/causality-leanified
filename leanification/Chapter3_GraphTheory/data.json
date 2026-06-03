@@ -255,7 +255,7 @@
           "last_used": "2026-06-03T01:52:09+00:00"
         }
       ],
-      "time_needed_to_solve": 4620,
+      "time_needed_to_solve": 4698,
       "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
       "wording_check": {
         "done": true,
@@ -269,30 +269,33 @@
       "section": "3.1",
       "title": "Walks",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
+        "leanification/Chapter3_GraphTheory/Section3_1/WalkBifurcation.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "review_design": 2,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 2,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 1,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
@@ -304,9 +307,22 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Walks]\\label{def:walks}\n     Let $G=(J,V,E,L)$ be a CDMG and $v,w \\in G$.\n\\begin{enumerate}\n    \\item A \\emph{walk} from $v$ to $w$ in $G$ is a finite alternating sequence of adjacent nodes and edges \n      \\[v=v_0, a_0,  v_1, \\dots v_{n-1}, a_{n-1}, v_n=w\\] \n%      \\[v=v_0 \\sus v_1 \\sus  \\cdots \\sus v_{n-1} \\sus v_n=w\\]\n        in $G$ for some $n \\ge 0$, i.e.\\ such that for every $k=0,\\dots,n-1$ \n        we have that $a_k = (v_k, v_{k+1}) \\in E \\cup L$ or $a_k = (v_{k+1}, v_k) \\in E$, and with end nodes $v_0=v$ and $v_n=w$.\n        An example walk from $v_0$ to $v_3$ could look like:\n        \\[v_0 \\tuh v_1 \\hut  v_2 \\huh v_3, \\qquad\\text{ with } \\qquad  v_0 \\tuh v_1, v_2 \\tuh v_1 \\in E,\\,v_2 \\huh v_3 \\in L. \\]\n        The same node may appear multiple times in a walk.\n        Also the \\emph{trivial walk} consisting of a single node $v_0 \\in G$ is allowed (if $v=w$).\n        The walk is called \\emph{into $v_0$} if $a_0 = v_0 \\hus v_1$, and \\emph{out of $v_0$} if $a_0 = v_0 \\tuh v_1$.\n        Similarly, it is called \\emph{into $v_n$} if $a_{n-1} = v_{n-1} \\suh v_n$ and \\emph{out of $v_n$} if $a_{n-1} = v_{n-1} \\hut v_n$.\n    \\item A \\emph{directed walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\tuh v_1 \\tuh  \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        for some $n \\ge 0$,\n        where all arrowheads point in the direction of $w$ and there are no arrowheads pointing back.\n   % \\item[] Directed walks exclude the trivial walk per definition.\n    \\item A \\emph{bidirected walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\huh v_1 \\huh  \\cdots \\huh v_{n-1} \\huh v_n=w,\\]\n        for some $n \\ge 0$, where all edges are bidirected.\n    \\item A \\emph{collider walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\suh v_1 \\huh  \\cdots \\huh v_{n-1} \\hus v_n=w,\\]\n        for some $n \\ge 0$, where all nodes in between $v$ and $w$ have two arrowheads pointing towards them (a.k.a.\\ collider).\n        Note that for $n=1$ this reads: $v\\sus w \\in G$.\n    \\item A walk is called \\emph{path} if no node occurs more than once.\n    \\item A \\emph{bifurcation} between $v$ and $w$ in $G$ is a walk of the form:\n        \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\hus v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n   %             \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\huh v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        such that $v \\ne w$, the walk contains both endnodes exactly once, \n\tthe subwalk $v_0 \\hut \\cdots v_{k-1}$ is a directed walk from $v_{k-1}$ to $v_0$,\n\tand the subwalk $v_k \\tuh \\cdots v_n$ is a directed walk from $v_k$ to $v_n$.\n        %every node has at most one arrowhead pointing towards it, and \n        %both endnodes have exactly one arrowhead pointing towards them. \n        If the edge $v_{k-1} \\hus v_k$ is directed ($v_{k-1} \\hut v_k$) then we say that the bifurcation has \\emph{source} $v_{k}$.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[bifurcation_right_chain_trivial_is_just_directed_walk] As an additional constraint on the bifurcation form, both endnodes $v_0$ and $v_n$ must have exactly one arrowhead pointing towards them. In particular, this excludes the degenerate case $k = n$ with directed hinge $v_{n-1} \\hut v_n$, in which the walk reduces to a directed walk $v_0 \\leftarrow v_1 \\leftarrow \\cdots \\leftarrow v_n$ and $v_n$ has no arrowhead pointing towards it.\n\n[collider_walk_n1_form_contradicts_inline_note] For $n=1$, a collider walk from $v$ to $w$ requires a bidirected edge $v \\huh w \\in E$ (arrowheads at both endpoints), as dictated by the form $v_0 \\suh v_1$ combined with $v_{n-1} \\hus v_n$ collapsing onto the single edge. The inline note \"$v \\sus w \\in G$\" is to be read in this stricter sense and does *not* admit purely directed edges $v \\tuh w$ or $v \\hut w$ as collider walks of length 1."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "52b08130-9df6-4e59-85f0-0ad4a286acf5",
+          "first_seen": "2026-06-03T05:14:49+00:00",
+          "last_used": "2026-06-03T05:14:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 11655,
+      "addition_to_the_LN": "[bifurcation_right_chain_trivial_is_just_directed_walk] As an additional constraint on the bifurcation form, both endnodes $v_0$ and $v_n$ must have exactly one arrowhead pointing towards them. In particular, this excludes the degenerate case $k = n$ with directed hinge $v_{n-1} \\hut v_n$, in which the walk reduces to a directed walk $v_0 \\leftarrow v_1 \\leftarrow \\cdots \\leftarrow v_n$ and $v_n$ has no arrowhead pointing towards it.\n\n[collider_walk_n1_form_contradicts_inline_note] For $n=1$, a collider walk from $v$ to $w$ requires a bidirected edge $v \\huh w \\in E$ (arrowheads at both endpoints), as dictated by the form $v_0 \\suh v_1$ combined with $v_{n-1} \\hus v_n$ collapsing onto the single edge. The inline note \"$v \\sus w \\in G$\" is to be read in this stricter sense and does *not* admit purely directed edges $v \\tuh w$ or $v \\hut w$ as collider walks of length 1.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this definition carefully, I'll audit the literal wording for ambiguities, corner cases, and inconsistencies.\n\nSUBTLETY:\nid: collider_walk_n1_pattern_contradicts_note\nexplanation: The collider walk pattern reads\n`v=v_0 \\suh v_1 \\huh \\cdots \\huh v_{n-1} \\hus v_n=w`\nwith an explicit accompanying note: \"Note that for $n=1$ this reads: $v\\sus w \\in G$.\"\n\nBut the literal pattern for $n=1$ collapses the first segment ($v_0 \\suh v_1$) and the last segment ($v_{n-1} \\hus v_n$) onto the *same* edge $a_0$. So that single edge must simultaneously satisfy $\\suh$ (head at $v_1$) AND $\\hus$ (head at $v_0$), i.e. be bidirected $v_0 \\huh v_1$. The note instead allows *any* edge $v \\sus w$.\n\nThe accompanying structural condition (\"all nodes in between $v$ and $w$ have two arrowheads pointing towards them\") supports the note: it's vacuous for $n=1$ since there are no intermediate nodes. So the *intent* is \"any edge\", but the *literal pattern* is \"bidirected only\". A reader following the pattern strictly would disagree with the note. Downstream: any claim like \"an edge $v \\to w$ counts as a collider walk of length 1\" rests entirely on resolving this in favor of the note.\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_admits_single_edge_at_n1_k1\nexplanation: The bifurcation form\n`v=v_0 \\hut v_1 \\hut \\cdots \\hut v_{k-1} \\hus v_k \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w`\nrequires $1 \\le k \\le n$ for the central edge $v_{k-1} \\hus v_k$ to exist. Take $n=1, k=1$: the left arm $v_0 \\hut \\cdots v_{k-1}$ collapses to the trivial directed walk at $v_0$; the right arm $v_k \\tuh \\cdots v_n$ collapses to the trivial directed walk at $v_1$. Both are valid directed walks (the directed-walk clause allows $n \\ge 0$).\n\nSo the entire bifurcation reduces to the single edge $v_0 \\hus v_1$ — any edge with a head at $v_0$, i.e. either $v_0 \\hut v_1$ (directed, $v_1 \\to v_0$) or $v_0 \\huh v_1$ (bidirected). The conditions $v \\ne w$ and \"both endnodes exactly once\" are still satisfied. The \"source\" clause then names $v_1$ as the source in the directed case.\n\nSo a literal reading: a lone directed edge $v_1 \\to v_0$ counts as a \"bifurcation between $v_0$ and $v_1$\" with source $v_1$ — despite having no fork structure whatsoever. A domain expert would expect a bifurcation to actually *bifurcate* (two arms emanating from a common source).\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_k_equals_n_is_just_directed_walk\nexplanation: Take $k=n$ with $n \\ge 2$ and a directed central edge $v_{n-1} \\hut v_n$ (i.e. $v_n \\to v_{n-1}$). The right arm $v_k \\tuh \\cdots v_n$ collapses (it's the trivial walk at $v_n$). The left arm $v_0 \\hut \\cdots \\hut v_{n-1}$ is a directed walk from $v_{n-1}$ to $v_0$. Combined with the central edge, the whole \"bifurcation\" is\n\n$v_n \\to v_{n-1} \\to v_{n-2} \\to \\cdots \\to v_0$\n\n— a pure directed walk from $w$ to $v$, with no fork at any node. The source clause then declares $v_n = w$ to be the \"source\". Symmetrically, for $k=1$ with $n \\ge 2$ and bidirected central edge $v_0 \\huh v_1$, no fork emanates from any node either.\n\nDownstream impact: any claim asserting properties of \"bifurcations between $v$ and $w$\" (e.g. m-connection or d-separation arguments) inherits these degenerate non-forks. In particular, the *existence* of a directed walk from $w$ to $v$ automatically yields the existence of a bifurcation with source $w$, which may or may not be intended.\nEND_SUBTLETY\n\nSUBTLETY:\nid: trivial_walk_satisfies_all_specialized_walk_types\nexplanation: Items 2 (directed walk), 3 (bidirected walk), and 4 (collider walk) each say \"for some $n \\ge 0$\". For $n=0$, every form collapses to the single-node sequence $v_0 = v_n$ with no edges to check, so the structural conditions hold vacuously.\n\nConsequence: a single node $v \\in G$ is *simultaneously* a directed walk, a bidirected walk, and a collider walk from $v$ to $v$. A domain expert might reasonably expect a \"bidirected walk\" to traverse at least one bidirected edge, or a \"collider walk\" to actually have a collider — but the literal definitions admit none.\n\nThe commented-out item under (2), \"% Directed walks exclude the trivial walk per definition.\", shows the author actively considered excluding it and (by leaving the active text at \"$n \\ge 0$\") chose not to. But the same choice is silently propagated to bidirected and collider walks without similar commentary, so it's unclear whether the inclusion of the trivial case in those two is a considered choice or an inherited default. Downstream proofs using e.g. \"there exists a collider walk from $v$ to $v$\" trivially hold.\nEND_SUBTLETY\n\nSUBTLETY:\nid: walk_into_out_classifications_undefined_for_trivial\nexplanation: The walk is classified \"into $v_0$\" if $a_0 = v_0 \\hus v_1$, \"out of $v_0$\" if $a_0 = v_0 \\tuh v_1$, and analogously for $v_n$ via $a_{n-1}$. For the trivial walk ($n=0$), no $a_0$ or $a_{n-1}$ exists, so none of these four classifications apply.\n\nThe text does not say what the trivial walk is \"into/out of\". This matters because:\n\n- The trivial walk has $v_0 = v_n$, so any classification at $v_0$ is also at $v_n$.\n- Downstream uses of \"walks into $v$\" (often the relevant category for ancestor/m-connection reasoning) would silently exclude the trivial walk at $v$, even though the trivial walk is otherwise a valid walk from $v$ to $v$.\n\nIf a later claim partitions \"walks from $v$ to $w$\" by their into/out-of-endpoint status, the trivial walk (when $v=w$) falls outside every cell.\nEND_SUBTLETY",
+        "session": "00540cbf-85ba-4a95-b89b-3825a8b1d395"
+      }
     },
     {
       "def_or_claim": "def",
