@@ -31,26 +31,7 @@ With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} 
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% No LN proof attached at graphs.tex:84-89 (the claim is a Remark);
-% constructed from scratch from def-cdmg and not-cdmg.
-Fix a CDMG $G=(J,V,E,L)$ and let $j \in J$.
-
-\textbf{Sentence 1.} Let $v$ be any node in $G$. Suppose, for contradiction, that $j \hus v \in G$. By \refrow{def_3_2} this means either $j \hut v \in G$ or $j \huh v \in G$.
-\begin{itemize}
-  \item If $j \hut v \in G$, then by \refrow{def_3_2} $(v,j) \in E$. The directed-edges restriction $E \ins (J \cup V) \times V$ from \refrow{def_3_1} forces $j \in V$. But $j \in J$, contradicting the disjointness $J \cap V = \emptyset$ from \refrow{def_3_1}.
-  \item If $j \huh v \in G$, then by \refrow{def_3_2} $(j,v) \in L$. The bidirected-edges restriction $L \ins V \times V$ from \refrow{def_3_1} forces $j \in V$ --- the same contradiction.
-\end{itemize}
-Hence $j \hus v \notin G$ for every node $v$, as claimed.
-
-\textbf{Sentence 2.} Let $v$ be any node in $G$ and suppose $j \tuh v \in G$. By \refrow{def_3_2}, $(j,v) \in E$. The directed-edges restriction $E \ins (J \cup V) \times V$ from \refrow{def_3_1} then forces $v \in V$. This is the restrictive direction of the LN sentence ``edges $j \tuh v$ are allowed''; per the addition to the LN, this is permissive and no positive existence of such an edge is asserted.
-
-\textbf{Sentence 3.} Let $j_1, j_2 \in J$ and suppose, for contradiction, that $j_1$ and $j_2$ are adjacent in $G$. By \refrow{def_3_3} this means $j_1 \sus j_2 \in G$, and by \refrow{def_3_2} one of three cases holds.
-\begin{itemize}
-  \item $j_1 \tuh j_2 \in G$: then $(j_1,j_2) \in E$ by \refrow{def_3_2}; the restriction $E \ins (J \cup V) \times V$ from \refrow{def_3_1} gives $j_2 \in V$, contradicting $j_2 \in J$ via the disjointness $J \cap V = \emptyset$ of \refrow{def_3_1}.
-  \item $j_1 \hut j_2 \in G$: then $(j_2,j_1) \in E$ by \refrow{def_3_2}; the same restriction from \refrow{def_3_1} gives $j_1 \in V$, contradicting $j_1 \in J$ via disjointness.
-  \item $j_1 \huh j_2 \in G$: then $(j_1,j_2) \in L$ by \refrow{def_3_2}; the restriction $L \ins V \times V$ from \refrow{def_3_1} gives $j_1 \in V$, again contradicting $j_1 \in J$.
-\end{itemize}
-Each case yields a contradiction, so no two nodes in $J$ are adjacent.
+% TODO: write the proof body.
 \end{proof}
 
 \end{document}

@@ -19,56 +19,56 @@
               "kind": "def",
               "label": "def 3.2 — CDMGNotation",
               "title": "CDMGNotation",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_3",
               "kind": "def",
               "label": "def 3.3 — EdgeRelations",
               "title": "EdgeRelations",
-              "available": true
+              "available": false
             },
             {
               "ref": "claim_3_1",
               "kind": "claim",
               "label": "claim 3.1 — CDMGRestrictions",
               "title": "CDMGRestrictions",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_4",
               "kind": "def",
               "label": "def 3.4 — Walks",
               "title": "Walks",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_5",
               "kind": "def",
               "label": "def 3.5 — FamilyRelationships",
               "title": "FamilyRelationships",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_6",
               "kind": "def",
               "label": "def 3.6 — Acyclicity",
               "title": "Acyclicity",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_7",
               "kind": "def",
               "label": "def 3.7 — CDMGTypes",
               "title": "CDMGTypes",
-              "available": true
+              "available": false
             },
             {
               "ref": "def_3_8",
               "kind": "def",
               "label": "def 3.8 — TopologicalOrder",
               "title": "TopologicalOrder",
-              "available": true
+              "available": false
             },
             {
               "ref": "claim_3_2",
