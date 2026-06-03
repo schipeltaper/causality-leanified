@@ -376,7 +376,7 @@
           "last_used": "2026-06-03T06:25:11+00:00"
         }
       ],
-      "time_needed_to_solve": 3875,
+      "time_needed_to_solve": 3895,
       "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
       "wording_check": {
         "done": true,
@@ -390,29 +390,31 @@
       "section": "3.1",
       "title": "Acyclicity",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -425,9 +427,22 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Acyclicity]\n    \\label{def-acylic}\n    A  CDMG  $G=(J,V,E,L)$  is called \\emph{acyclic} if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "bc63063e-9499-4fb5-8947-24bc3ba1cd71",
+          "first_seen": "2026-06-03T06:56:28+00:00",
+          "last_used": "2026-06-03T06:56:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1695,
+      "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me analyze the def_3_6 tex block against def_3_4 (Walks) and def_3_1 (CDMG).\n\n```\nSUBTLETY:\nid: non_trivial_qualifier_depends_on_def_3_4\nexplanation: The block says \"there does not exist any non-trivial directed\nwalk from $v$ to itself\", but never defines \"non-trivial\" within this block.\nThe qualifier is essential: per def_3_4 item 2, \"A directed walk from v to\nw in G is of the form: v=v_0 → v_1 → ... → v_n=w, for some n ≥ 0\", and per\nitem 1, \"the trivial walk consisting of a single node v_0 ∈ G is allowed\n(if v=w)\". So the trivial directed walk (n=0) from v to itself always\nexists for every node. Without the \"non-trivial\" qualifier, every CDMG\nwould be non-acyclic. The reader must pick up the \"trivial walk\" terminology\nfrom def_3_4 and apply its negation here. Note also that def_3_4 has a\ncommented-out line \"% Directed walks exclude the trivial walk per\ndefinition.\" — the author considered carving the trivial walk out of the\n\"directed walk\" notion entirely but did not. So in def_3_6 the carve-out\nis delegated to the \"non-trivial\" qualifier. A downstream Lean formalization\nneeds to interpret \"non-trivial\" as \"n ≥ 1\" (i.e., the walk has at least\none edge).\nEND_SUBTLETY\nSUBTLETY:\nid: node_membership_v_in_g_informal\nexplanation: The block writes \"for any node $v \\in G$\", but per def_3_1\n$G = (J, V, E, L)$ is a tuple, not a set, so \"$v \\in G$\" is not literally\nwell-defined. The natural reading (and the convention used in def_3_4's\npreamble \"Let $G=(J,V,E,L)$ be a CDMG and $v,w \\in G$\") is $v \\in V \\cup J$,\ni.e., the disjoint union of input and output nodes. This matters because\nJ-nodes are quantified over too, yet per def_3_1 directed edges satisfy\n$E \\subseteq (J \\cup V) \\times V$ — J-nodes can never be a *target* of a\ndirected edge. Hence no non-trivial directed walk can end at a J-node, and\nthe acyclicity condition is vacuous for $v \\in J$. Whether the author\nintended to quantify only over output nodes $V$ (since J-nodes trivially\nsatisfy the property) or over all nodes (with vacuous coverage of J) is\nleft implicit. A downstream proof that uses acyclicity to derive a\ntopological order, or to drop the last node of a cycle into a particular\nset, could be sensitive to this distinction.\nEND_SUBTLETY\nSUBTLETY:\nid: directed_self_loops_not_excluded\nexplanation: The block treats \"non-trivial directed walk from $v$ to itself\"\nas the obstruction to acyclicity. Per def_3_4 item 2, a directed walk of\nlength $n=1$ is of the form $v = v_0 \\tuh v_1 = v$, i.e., a single directed\nedge from $v$ to itself. Per def_3_1, the bidirected edge set $L$ is\nexplicitly irreflexive (\"$(v_1,v_2) \\in L \\implies v_1 \\neq v_2$\"), but\nthe directed edge set $E \\subseteq (J \\cup V) \\times V$ carries no analogous\nrestriction. So directed self-loops $(v,v) \\in E$ for $v \\in V$ are\npermitted by def_3_1, and any CDMG containing one is automatically\nnon-acyclic by def_3_6. This is consistent with standard graph theory but\nis a corner case worth noting: a CDMG with a single directed self-loop\nand no other edges is \"cyclic\" under this definition. The asymmetric\ntreatment of $E$ vs $L$ in def_3_1 (where $L$ excludes self-loops but $E$\ndoes not) means downstream claims about acyclicity must accommodate\nlength-1 closed directed walks, not just length-≥-2 cycles through\ndistinct vertices.\nEND_SUBTLETY\n```",
+        "session": "603efd07-a4e9-4fad-b86a-6bbf5e2a637b"
+      }
     },
     {
       "def_or_claim": "def",

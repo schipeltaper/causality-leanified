@@ -8,3 +8,4 @@ import Chapter3_GraphTheory.Section3_1.CDMGRestrictions
 import Chapter3_GraphTheory.Section3_1.Walks
 import Chapter3_GraphTheory.Section3_1.WalkBifurcation
 import Chapter3_GraphTheory.Section3_1.FamilyRelationships
+import Chapter3_GraphTheory.Section3_1.Acyclicity
