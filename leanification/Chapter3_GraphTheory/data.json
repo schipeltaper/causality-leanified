@@ -76,7 +76,7 @@
           "last_used": "2026-06-03T12:26:00+00:00"
         }
       ],
-      "time_needed_to_solve": 1975,
+      "time_needed_to_solve": 2052,
       "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Node sets J and V are both finite.",
       "wording_check": {
         "done": true,
@@ -90,29 +90,31 @@
       "section": "3.1",
       "title": "CDMGNotation",
       "type": "notation",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -122,16 +124,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Not}\n    \\label{not-cdmg}\n    Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:\n    \\begin{enumerate}\n        %\\item $G(V|\\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.\n        \\item $v \\in G$ to mean $v \\in J \\cup V$,\n        \\item $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n        \\item $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n        \\item $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n        \\item $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.\n    \\end{enumerate}\n    The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "1b779a86-b2e3-45a7-ad1e-f3259e194643",
+          "first_seen": "2026-06-03T14:04:48+00:00",
+          "last_used": "2026-06-03T14:04:48+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2685,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "I've reviewed the tex block carefully and cross-checked the CDMG definition (def_3_1) and the usage of `\\sus` in def_3_3 (as \"adjacent\").\n\n```\nSUBTLETY:\nid: star_placeholder_omits_tail_tail_in_sus\nexplanation: The trailing sentence says \"The star stands for a placeholder to mean: ``arrowhead or tail''.''\nRead literally, this is a meta-rule: any star in $\\suh$, $\\hus$, $\\sus$ can be expanded to either \"arrowhead\" (i.e.\\ head) or \"tail\". Mechanically applying that rule to $\\sus$ gives four combinations for (left, right):\n\n  (tail, tail) — $\\tut$\n  (tail, head) — $\\tuh$\n  (head, tail) — $\\hut$\n  (head, head) — $\\huh$\n\nBut the actual enumeration in the definition lists only three of these:\n\n  ``$v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$''\n\nThe fourth case, $\\tut$ (tail--tail), is silently omitted. The omission is consistent with the CDMG edge inventory of def_3_1 — directed edges in $E$ have one tail and one head, bidirected edges in $L$ have two heads, and no edge type has two tails — so $\\tut$ is vacuous as an edge of $G$ regardless. So the enumeration is semantically correct *for CDMG*.\n\nHowever, the literal text creates a mild internal inconsistency: the meta-description (\"star = arrowhead or tail\") predicts 4 cases for $\\sus$, while the enumeration gives 3. A reader (or a formalizer mechanically unfolding the placeholder) would expect either (a) the meta-rule to qualify itself with \"...such that the resulting edge type exists in the graph\", or (b) an explicit tail--tail clause that resolves to $\\bot$.\n\nA concrete corner case: a Lean encoding that defines $\\mathrm{star}$ as an inductive with two constructors {arrowhead, tail} and then defines $\\sus$ by pattern-matching all $2\\times 2 = 4$ combinations would faithfully follow the meta-rule but would need a fourth (vacuous) case the LN doesn't spell out. Conversely, an encoding that hard-codes only the three listed cases is faithful to the enumeration but not to the meta-description.\n\nDownstream, def_3_3 uses $\\sus$ to define adjacency. The 3-case enumeration matches the intended \"any edge between $v_1$ and $v_2$\" meaning, so the substantive content is fine; the subtlety is purely in the wording of the placeholder explanation versus the explicit list.\nEND_SUBTLETY\n```",
+        "session": "dfc4faa3-4a3d-4231-aff4-87b086562f6c"
       }
     },
     {
