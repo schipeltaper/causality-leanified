@@ -17,18 +17,21 @@
 
 \begin{Def}[Conditional directed mixed graphs (CDMG)]
     \label{def-cdmg}
-    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of
+    A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two finite, disjoint sets of
     vertices (also called nodes):
     \begin{enumerate}[label=\roman*.)]
         \item $J$, whose elements are called input nodes,
         \item $V$, whose elements are called output nodes,
     \end{enumerate}
+    with both $J$ and $V$ finite and $J \cap V = \emptyset$;
 %    such that $J \cup V \neq \emptyset$;
-    and two (disjoint) sets of edges:
+    and two sets of edges (here ``disjoint'' is to be read as trivial type-level disjointness only: directed edges and bidirected edges are objects of distinct types, and no graph-theoretic mutual-exclusion is imposed between $E$ and $L$):
     \begin{enumerate}[resume,label=\roman*.)]
-        \item $E \ins (J \cup V) \times V$ the set of directed edges,
-        \item $L \ins V \times V/((v_1,v_2) \sim (v_2,v_1)) $, the set of bidirected edges, 
-        \item[]    with: $(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$.
+        \item $E \subseteq (J \cup V) \times V$, the set of directed edges,
+        \item $L \subseteq V \times V$, the set of bidirected edges, subject to the irreflexivity and symmetry constraint
+            \[ \forall\, (v_1, v_2) \in V \times V :\quad (v_1, v_2) \in L \;\Longrightarrow\; v_1 \neq v_2 \,\land\, (v_2, v_1) \in L. \]
+            Equivalently, $L$ may be identified with a subset of the quotient $(V \times V)/{\sim}$ under the swap relation $(v_1, v_2) \sim (v_2, v_1)$ (i.e.\ a set of unordered pairs of distinct elements of $V$); under the ordered-pair encoding above, membership of $(v_1, v_2)$ and of $(v_2, v_1)$ in $L$ always coincide, and the irreflexivity condition $v_1 \neq v_2$ applies under either encoding.
+        \item[] In particular, for $v_1, v_2 \in V$ with $v_1 \neq v_2$, it is permitted to have $(v_1, v_2) \in E$ and the unordered pair $\{v_1, v_2\}$ in $L$ simultaneously; under the ordered-pair encoding of $L$, the same ordered pair $(v, w) \in V \times V$ may belong to both $E$ and $L$.
     \end{enumerate}
 \end{Def}
 
