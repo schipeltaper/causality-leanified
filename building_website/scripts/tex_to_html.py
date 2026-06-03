@@ -31,6 +31,42 @@ Extend as new patterns appear. The patterns currently handled:
 from __future__ import annotations
 import re
 from dataclasses import dataclass
+from pathlib import Path
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_LABEL_REF_RE = re.compile(r"^(def|claim)_\d+_\d+")
+_LABEL_INDEX: dict[str, str] | None = None
+
+
+def _label_index() -> dict[str, str]:
+    """Lazy-built map from LaTeX label (the `X` in `\\label{X}`) to the
+    row ref that owns the file the label appears in. Walks every per-row
+    .tex under leanification/ once.
+
+    Used by inline_convert to turn `\\ref{X}` into a link to the row's
+    page on the website. If a label isn't found (e.g. labels in the LN
+    aggregate `main.tex` or unsolved rows), `\\ref{X}` still renders as
+    inline code with the bare label."""
+    global _LABEL_INDEX
+    if _LABEL_INDEX is not None:
+        return _LABEL_INDEX
+    idx: dict[str, str] = {}
+    label_re = re.compile(r"\\label\{([^}]+)\}")
+    for tex in (_REPO_ROOT / "leanification").glob("Chapter*/Section*/tex/*.tex"):
+        m = _LABEL_REF_RE.match(tex.name)
+        if not m:
+            continue
+        ref = m.group(0)
+        try:
+            text = tex.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for lm in label_re.finditer(text):
+            label = lm.group(1)
+            idx.setdefault(label, ref)
+    _LABEL_INDEX = idx
+    return idx
 
 
 # Every theorem-like env declared in `leanification/preamble.tex` via
@@ -257,6 +293,18 @@ def inline_convert(tex: str) -> str:
         ref = m.group(1).replace("\\_", "_")
         return f'<a href="#{ref}" class="refrow"><code>{ref}</code></a>'
     protected = re.sub(r"\\refrow\{([^{}]*)\}", _refrow_sub, protected)
+
+    # `\ref{X}` — LaTeX cross-reference to a `\label{X}` defined elsewhere.
+    # Resolve the label to its owning row's ref via the lazy index below;
+    # link if found, otherwise show the bare label as styled inline code so
+    # the user at least sees what was being referenced.
+    def _ref_sub(m: re.Match) -> str:
+        label = m.group(1).replace("\\_", "_")
+        target_ref = _label_index().get(label)
+        if target_ref:
+            return f'<a href="#{target_ref}" class="refrow"><code>{label}</code></a>'
+        return f"<code>{label}</code>"
+    protected = re.sub(r"\\ref\{([^{}]*)\}", _ref_sub, protected)
     # Prose-level spacing / layout commands carry no meaning on the web —
     # drop them so they don't render as literal backslash text.
     protected = re.sub(
