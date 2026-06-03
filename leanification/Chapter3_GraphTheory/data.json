@@ -138,7 +138,7 @@
           "last_used": "2026-06-03T14:04:48+00:00"
         }
       ],
-      "time_needed_to_solve": 2685,
+      "time_needed_to_solve": 2705,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
         "done": true,
