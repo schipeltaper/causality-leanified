@@ -87,7 +87,9 @@ G.sus` via plain dot-notation.
 
 namespace CDMG
 
+-- def_3_2 --- start helper
 variable {Node : Type*} [DecidableEq Node]
+-- def_3_2 --- end helper
 
 -- ref: def_3_2 (item 1)
 --
