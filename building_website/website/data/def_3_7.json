@@ -1,0 +1,26 @@
+{
+  "ref": "def_3_7",
+  "kind": "def",
+  "section": "3.1",
+  "title": "CDMGTypes",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_7 -- \"CDMGTypes\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_7\n% title: CDMGTypes\n\\def\\rowref{def\\_3\\_7}\n\\phantomsection\\label{def_3_7}\n\n\\begin{Def}[CDMGTypes]\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:</p>\n<ol class=\"enum\"><li>Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.</li><li>Directed Mixed Graph (DMG) if $J = \\emptyset$.</li><li>Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.</li><li>Conditional Directed Graph (CDG) if $L = \\emptyset$.</li><li>Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.</li><li>Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.</li><li>Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.</li></ol>",
+    "env": "Def",
+    "env_title": "CDMGTypes",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_7_CDMGTypes.tex"
+  },
+  "tex_proof": null,
+  "lean_code_with_comments": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic\n\ndef IsDMG (G : CDMG Node) : Prop := G.J = ∅\n\ndef IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅\n\ndef IsCDG (G : CDMG Node) : Prop := G.L = ∅\n\ndef IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅\n\ndef IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅\n\ndef IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
+  "lean_code_without_comments": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic\ndef IsDMG (G : CDMG Node) : Prop := G.J = ∅\ndef IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅\ndef IsCDG (G : CDMG Node) : Prop := G.L = ∅\ndef IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅\ndef IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅\ndef IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+  "addition_to_the_LN": "",
+  "design_choices": ""
+}

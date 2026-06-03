@@ -1,0 +1,26 @@
+{
+  "ref": "def_3_8",
+  "kind": "def",
+  "section": "3.1",
+  "title": "TopologicalOrder",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_8 -- \"TopologicalOrder\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_8\n% title: TopologicalOrder\n\\def\\rowref{def\\_3\\_8}\n\\phantomsection\\label{def_3_8}\n\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G=(J,V,E,L)$ be a CDMG.\n    A <em>topological order</em> of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.</p>",
+    "env": "Def",
+    "env_title": "Topological order",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_TopologicalOrder.tex"
+  },
+  "tex_proof": null,
+  "lean_code_with_comments": "def IsTotalOrderOn (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\n  (∀ v ∈ G, ¬ lt v v) ∧\n  (∀ ⦃u v w : Node⦄, u ∈ G → v ∈ G → w ∈ G → lt u v → lt v w → lt u w) ∧\n  (∀ ⦃v w : Node⦄, v ∈ G → w ∈ G → lt v w ∨ v = w ∨ lt w v)\n\ndef IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\n  G.IsTotalOrderOn lt ∧ ∀ ⦃v w : Node⦄, v ∈ G.Pa w → lt v w",
+  "lean_code_without_comments": "def IsTotalOrderOn (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\n  (∀ v ∈ G, ¬ lt v v) ∧\n  (∀ ⦃u v w : Node⦄, u ∈ G → v ∈ G → w ∈ G → lt u v → lt v w → lt u w) ∧\n  (∀ ⦃v w : Node⦄, v ∈ G → w ∈ G → lt v w ∨ v = w ∨ lt w v)\ndef IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\n  G.IsTotalOrderOn lt ∧ ∀ ⦃v w : Node⦄, v ∈ G.Pa w → lt v w",
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+  "addition_to_the_LN": "",
+  "design_choices": ""
+}

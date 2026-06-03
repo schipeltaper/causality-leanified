@@ -1,0 +1,26 @@
+{
+  "ref": "def_3_6",
+  "kind": "def",
+  "section": "3.1",
+  "title": "Acyclicity",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_6 -- \"Acyclicity\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_6\n% title: Acyclicity\n\\def\\rowref{def\\_3\\_6}\n\\phantomsection\\label{def_3_6}\n\n\\begin{Def}[Acyclicity]\n    \\label{def-acylic}\n    A  CDMG  $G=(J,V,E,L)$  is called \\emph{acyclic} if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>A  CDMG  $G=(J,V,E,L)$  is called <em>acyclic</em> if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.</p>",
+    "env": "Def",
+    "env_title": "Acyclicity",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_6_Acyclicity.tex"
+  },
+  "tex_proof": null,
+  "lean_code_with_comments": "def IsAcyclic (G : CDMG Node) : Prop :=\n  ∀ v ∈ G, ¬ ∃ p : Walk G v v, p.IsDirectedWalk ∧ 0 < p.length",
+  "lean_code_without_comments": "def IsAcyclic (G : CDMG Node) : Prop :=\n  ∀ v ∈ G, ¬ ∃ p : Walk G v v, p.IsDirectedWalk ∧ 0 < p.length",
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
+  "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
+  "design_choices": ""
+}
