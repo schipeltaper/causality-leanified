@@ -74,7 +74,7 @@
           "last_used": "2026-06-02T23:23:21+00:00"
         }
       ],
-      "time_needed_to_solve": 2289,
+      "time_needed_to_solve": 2338,
       "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Node sets J and V are both finite.",
       "wording_check": {
         "done": true,
@@ -88,29 +88,31 @@
       "section": "3.1",
       "title": "CDMGNotation",
       "type": "notation",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-02",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -123,9 +125,22 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Not}\n    \\label{not-cdmg}\n    Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:\n    \\begin{enumerate}\n        %\\item $G(V|\\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.\n        \\item $v \\in G$ to mean $v \\in J \\cup V$,\n        \\item $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n        \\item $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n        \\item $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n        \\item $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.\n    \\end{enumerate}\n    The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "6b78bd2d-b95f-4cc3-af0e-214d58ac4345",
+          "first_seen": "2026-06-03T00:00:37+00:00",
+          "last_used": "2026-06-03T00:00:37+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1752,
+      "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
+      "wording_check": {
+        "done": true,
+        "output": "I'll audit only the active (uncommented) tex content of def_3_2's block. Two subtleties surfaced.\n\n```\nSUBTLETY:\nid: star_placeholder_omits_tail_tail_case_in_sus\nexplanation: The trailing sentence states: \"The star stands for a placeholder to mean: ``arrowhead or tail''.\" Applied mechanically to the compound symbol \\sus (\"star, star\"), this rule combinatorially generates four cases for the marks at the two endpoints:\n  - tail/tail = \\tut (an undirected edge)\n  - tail/head = \\tuh (a forward directed edge)\n  - head/tail = \\hut (a backward directed edge)\n  - head/head = \\huh (a bidirected edge)\n\nBut the definition of \\sus only enumerates three: \"$v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$\". The tail/tail case \"$v_1 \\tut v_2$\" is silently excluded. The text neither names \\tut, nor explains the asymmetry between the placeholder rule (which is general) and the \\sus enumeration (which is incomplete with respect to that rule).\n\nThe presumed reason is that CDMGs have no undirected edges, so \\tut has no representation in $G$ — but def_3_2 itself does not say so. By contrast, the placeholder rule produces exactly the right number of cases for the two two-element compounds: \\suh expands to {\\tuh, \\huh} (both listed) and \\hus expands to {\\hut, \\huh} (both listed). Only \\sus has a \"missing\" combinatorial case.\n\nA literal reader applying the placeholder rule to predict what \\sus means may either (i) be surprised by the omission, or (ii) think they're free to extend \\sus to also include \\tut as a vacuously-false disjunct. A formalizer doing case analysis on \"$v_1 \\sus v_2 \\in G$\" needs an explicit guarantee that exhaustiveness is over {\\tuh, \\hut, \\huh} and not over the full {\\tut, \\tuh, \\hut, \\huh}.\nEND_SUBTLETY\n\nSUBTLETY:\nid: huh_membership_writes_ordered_pair_and_lacks_local_symmetry\nexplanation: Item 4 says: \"$v_1 \\huh v_2 \\in G$ to mean $(v_1, v_2) \\in L$.\" Two distinct subtleties arise from this single sentence.\n\n(a) Type/encoding presupposition. The block opens with \"Let $G = (J, V, E, L)$ be a CDMG\", inheriting whatever ambient type def_3_1 chose for $L$. Def_3_1's literal text declares $L \\subseteq V \\times V / ((v_1,v_2) \\sim (v_2,v_1))$, i.e., as a subset of the quotient by edge-reversal — so on the strictest reading, elements of $L$ are equivalence classes, not ordered pairs. Under that reading, def_3_2's phrasing \"$(v_1, v_2) \\in L$\" is literally type-mismatched: an ordered pair is being asserted as an element of a set of equivalence classes. The intended meaning is presumably \"$[(v_1, v_2)]_\\sim \\in L$\", but def_3_2 commits, by its choice of notation, to the alternative ordered-pair encoding of $L$ — without flagging that this is a choice.\n\n(b) Symmetry of \\huh is not stated within def_3_2. The definition gives $v_1 \\huh v_2 \\in G \\iff (v_1, v_2) \\in L$ and would give $v_2 \\huh v_1 \\in G \\iff (v_2, v_1) \\in L$. As ordered pairs these are different, so a reader who restricts attention to def_3_2 alone would not be able to conclude $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$. The equivalence holds only because def_3_1 separately imposes the symmetry constraint \"$(v_1, v_2) \\in L \\implies (v_2, v_1) \\in L$\" (the same constraint that is, under the quotient encoding mentioned in (a), already automatic). The notation block neither restates this constraint nor remarks that \\huh is symmetric.\n\nThis propagates: items 5–7 (\\suh, \\hus, \\sus) all use \\huh as a disjunct, so any downstream argument that, e.g., treats \"$v_1 \\sus v_2 \\in G$\" as a property of the unordered pair $\\{v_1, v_2\\}$ tacitly invokes the external symmetry constraint to handle the \\huh disjunct. A reader who never opens def_3_1 cannot verify this from def_3_2's text.\nEND_SUBTLETY\n```",
+        "session": "1f6394b4-b79a-41b1-af4a-0263d729ca1c"
+      }
     },
     {
       "def_or_claim": "def",
