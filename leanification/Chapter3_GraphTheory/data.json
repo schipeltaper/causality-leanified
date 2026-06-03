@@ -194,7 +194,7 @@
           "last_used": "2026-06-03T00:31:36+00:00"
         }
       ],
-      "time_needed_to_solve": 1639,
+      "time_needed_to_solve": 1717,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
         "done": true,
@@ -208,31 +208,33 @@
       "section": "3.1",
       "title": "CDMGRestrictions",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 4,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 7,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -240,12 +242,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nWith the notations \\ref{not-cdmg} the restrictions in definition \\ref{def-cdmg} mean that the nodes $j \\in J$ will not have any arrowheads pointing towards them: $ j \\hus v \\notin G$. Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it)."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "435ddcbc-ac6e-4792-9209-3c233371df72",
+          "first_seen": "2026-06-03T01:52:09+00:00",
+          "last_used": "2026-06-03T01:52:09+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4620,
+      "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block, I need to audit the literal wording of this remark explaining the CDMG restrictions.\n\nLet me look at what's actually said:\n1. \"nodes $j \\in J$ will not have any arrowheads pointing towards them: $j \\hus v \\notin G$\"\n2. \"Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed\"\n3. \"no two nodes in $J$ are adjacent\"\n\nSUBTLETY:\nid: undirected_edge_between_j_and_v_unaddressed\nexplanation: The remark enumerates three restrictions but leaves the status of an **undirected edge $j - v$** (between a $J$-node and a $V$-node) ambiguous under the literal reading.\n\n- Rule 1 only excludes \"arrowheads pointing towards them\" — an undirected edge $v - j$ has no arrowhead at $j$, so it is *not* excluded by \"$j \\hus v \\notin G$\".\n- Rule 2 says \"Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed\". The phrasing \"can only point towards\" restricts the *destination* of arrows leaving $j$, but the colon-clause is permissive (\"are allowed\"), not exhaustive. It does not literally say \"the only kind of edge incident to $j$ is $j \\tuh v$\".\n- Rule 3 governs only $J$-to-$J$ pairs and is silent on $J$-to-$V$ pairs.\n\nThe fact that rule 3 (\"Furthermore, no two nodes in $J$ are adjacent\") is added as a *separate* constraint — not implied by rule 1 — suggests that undirected edges genuinely exist in the CDMG vocabulary (otherwise rule 3 would be redundant with rule 1). This makes the silence about $j - v$ more salient: if undirected edges are a real edge type, then under the literal reading $j - v$ slips through all three rules.\n\nConcrete corner case: take $J = \\{j\\}$, $V = \\{v\\}$, and let $G$ contain a single undirected edge $j - v$. The literal reading of this remark does not flag $G$ as violating any restriction. A downstream claim that \"every edge incident to $J$ is of the form $j \\tuh v$\" (or that $J$ is a set of \"source-only\" nodes) would then not follow from this remark alone.\nEND_SUBTLETY\n\nSUBTLETY:\nid: only_points_to_V_assumes_J_V_disjoint\nexplanation: The sentence \"Nodes $j \\in J$ can only point towards nodes $v \\in V$\" uses \"only\" as a restriction on the destination. The restriction is non-vacuous *only if* $J \\cap V = \\emptyset$ — otherwise (say $J \\subseteq V$, as is common when $V$ denotes the full vertex set in some CDMG conventions), the universal claim \"$j$ points only to elements of $V$\" is automatically true and adds no content.\n\nThe remark cites `\\ref{not-cdmg}` for the notation but does not restate the disjointness (or containment) relationship between $J$ and $V$ in its own text. A reader who interprets $V$ as the full node set will read \"can only point towards $v \\in V$\" as a tautology rather than as the intended restriction \"points to non-$J$ nodes only\". This matters because rule 1 (no arrowheads at $J$) and rule 2 (only-to-$V$) jointly characterize the asymmetric role of $J$, and that characterization quietly depends on which convention `not-cdmg` adopts.\nEND_SUBTLETY\n\nSUBTLETY:\nid: hus_notation_may_not_cover_bidirected_arrowhead_at_j\nexplanation: The prose \"any arrowheads pointing towards them\" is broad — it should cover both a directed edge $v \\to j$ and a bidirected edge $v \\leftrightarrow j$ (both have an arrowhead at $j$). However the formal example given for this restriction is the single expression \"$j \\hus v \\notin G$\".\n\nIf `\\hus` in `not-cdmg` is defined as the specific edge mark pattern \"arrowhead at $j$, tail/blunt at $v$\" (i.e., the directed arrow $v \\to j$ only), then \"$j \\hus v \\notin G$\" by itself excludes only directed edges into $j$ and leaves bidirected edges $v \\leftrightarrow j$ unmentioned by the formal clause — even though the surrounding prose intends them excluded. A literal reader who keys off the formal expression rather than the prose could conclude that a bidirected edge $j \\leftrightarrow v$ is permitted. The colon construction \"no arrowheads pointing towards them: $j \\hus v \\notin G$\" presents the formal expression as the formalization of the prose, but they may not coincide depending on how `\\hus` is defined.\nEND_SUBTLETY",
+        "session": "75306b3c-1251-47a4-8bc2-eff541485d1b"
+      }
     },
     {
       "def_or_claim": "def",
