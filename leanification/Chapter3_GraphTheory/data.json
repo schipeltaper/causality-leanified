@@ -134,7 +134,7 @@
           "last_used": "2026-06-03T00:00:37+00:00"
         }
       ],
-      "time_needed_to_solve": 1752,
+      "time_needed_to_solve": 1771,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
         "done": true,
@@ -148,29 +148,31 @@
       "section": "3.1",
       "title": "EdgeRelations",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-03",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -183,9 +185,22 @@
         "no_action": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n  Let $G=(J,V,E,L)$ be a CDMG.\n  \\begin{enumerate}\n    \\item If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent in $G$}.\n    \\item Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_1$}.  \\\\\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_2$}. \n    \\item Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called \\emph{out of $v_1$}.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "9d9f8ed9-fbb3-41bb-8f80-851e748198da",
+          "first_seen": "2026-06-03T00:31:36+00:00",
+          "last_used": "2026-06-03T00:31:36+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1639,
+      "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this LN block carefully — three numbered items defining \"adjacent\", \"into\", and \"out of\" for edges in a CDMG.\n\nSUBTLETY:\nid: into_split_per_endpoint_out_of_single_clause_asymmetry\nexplanation: Item 2 defines \"into\" via *two separate sub-clauses*, one for each endpoint position:\n\n> \"Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called *into $v_1$*. \\\\\n>  Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called *into $v_2$*.\"\n\nSo \"into the LHS\" and \"into the RHS\" are spelled out separately, holding $v_1, v_2$ fixed as the LHS/RHS positional names of the written edge.\n\nItem 3 has only ONE clause for \"out of\":\n\n> \"Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called *out of $v_1$*.\"\n\nHere the two listed forms are the *same edge* (just two notations for the directed edge with tail at $v_1$). So item 3 covers both LHS- and RHS-positions of the focal vertex inside a single clause, treating $v_1$ as the focal vertex (can sit on either side).\n\nThis is a stylistic asymmetry that, taken literally, has two consequences worth flagging:\n\n1. **No explicit \"out of $v_2$\" counterpart.** A strict reading of item 3 defines \"out of $v_1$\" only. Of course $v_1$ is meant as a placeholder, but item 2 made the same kind of definition with both endpoints written out explicitly — so a formalizer scanning for symmetric coverage might pause here.\n\n2. **Different binding role of $v_1, v_2$ across items.** In item 2's sub-bullets, $v_1$ is positional (LHS of the written edge); in item 3's two patterns, $v_1$ is the focal vertex (LHS in the first pattern, RHS in the second). The same names mean different things item-to-item.\n\nDownstream impact: a formalizer who naively follows item 2's style (positional $v_1, v_2$) and then jumps to item 3 might get confused about which \"side\" the focal vertex sits on. A cleaner unified definition — \"edge $e$ is *into* $v$ iff $e$ has a head at $v$\" / \"*out of* $v$ iff $e$ has a tail at $v$\" — would erase this stylistic mismatch.\nEND_SUBTLETY\n\nSUBTLETY:\nid: edges_of_the_form_pattern_vs_object\nexplanation: Both items 2 and 3 use the phrasing \"Edges of the form $X$\" — e.g. \"Edges of the form $v_1 \\hut v_2$ ... are called *into $v_1$*\". This phrasing is ambiguous between (a) edges whose *written notation literally* matches the given pattern, and (b) edges *as graph objects* that *can be written* in the given form.\n\nThe two readings differ because the same directed edge can be written two ways: e.g., the edge with tail at $a$ and head at $b$ is both \"$a \\tuh b$\" and \"$b \\hut a$\".\n\nUnder reading (a) — strict syntactic form — item 2 sub-bullet 1 (\"$v_1 \\hut v_2$\") would not pick up the edge $a \\tuh b$ when it's written in that orientation; you'd need to flip the notation to \"$b \\hut a$\" first to recognize $b$ as \"the LHS vertex with a head\". Item 2's coverage of all \"into\" edges then depends on the reader silently allowing both notations.\n\nItem 3 actually papers over this by listing *both* notations explicitly (\"$v_1 \\tuh v_2$ or $v_2 \\hut v_1$\"). Item 2 does NOT — each sub-bullet lists only one orientation per arrow type. The asymmetric handling of \"of the form\" between items 2 and 3 reinforces the impression that item 2 is implicitly assuming notation-invariance.\n\nA formalizer encoding edges as oriented syntactic atoms (rather than as canonical orientation-free objects) would need to explicitly take the symmetric closure of item 2's patterns to capture the intended set of \"into $v$\" edges.\nEND_SUBTLETY",
+        "session": "aa292576-3430-4c80-990d-c741d7a6f6c3"
+      }
     },
     {
       "def_or_claim": "claim",

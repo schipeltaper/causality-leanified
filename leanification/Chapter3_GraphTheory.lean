@@ -3,3 +3,4 @@
 
 import Chapter3_GraphTheory.Section3_1.CDMG
 import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.EdgeRelations
