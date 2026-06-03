@@ -19,6 +19,10 @@
   "tex_proof": null,
   "lean_blocks": [
     {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]"
+    },
+    {
       "kind": "main",
       "code": "instance instMembership : Membership Node (CDMG Node) where\n  mem G v := v ∈ G.J ∪ G.V"
     },
