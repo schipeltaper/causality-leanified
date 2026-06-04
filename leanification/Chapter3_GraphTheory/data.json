@@ -152,29 +152,31 @@
       "section": "3.1",
       "title": "EdgeRelations",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-04",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -184,16 +186,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n  Let $G=(J,V,E,L)$ be a CDMG.\n  \\begin{enumerate}\n    \\item If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent in $G$}.\n    \\item Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_1$}.  \\\\\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_2$}. \n    \\item Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called \\emph{out of $v_1$}.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "4b59689b-8bfd-469e-a180-be5a70b8ab84",
+          "first_seen": "2026-06-04T11:54:18+00:00",
+          "last_used": "2026-06-04T11:54:18+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2913,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "SUBTLETY:\nid: out_of_v2_not_literally_defined\nexplanation: Item 2 separately defines \"into $v_1$\" and \"into $v_2$\" using a fixed edge ordering ($v_1 \\star v_2$) and gives two distinct cases. Item 3, by contrast, only defines \"out of $v_1$\" and absorbs the two orderings of writing the edge into a single case: \"$v_1 \\tuh v_2$ or $v_2 \\hut v_1$\". The literal text never defines \"out of $v_2$\" at all. By analogy a reader would expect \"out of $v_2$\" to be: edges of the form $v_1 \\hut v_2$ or $v_2 \\tuh v_1$ — but that has to be supplied by the reader; it is not in the tex. A pedantic formalizer will encode \"out of $v_1$\" exactly as written and find that downstream claims that range over arbitrary vertices (\"for every $v \\in V$, the edges out of $v$ …\") strictly speaking only cover the case where $v$ has been bound to the first label of the edge.\nEND_SUBTLETY\n\nSUBTLETY:\nid: bidirected_huh_into_both_out_of_neither\nexplanation: Under the literal reading of item 2, the bidirected edge $v_1 \\huh v_2$ is \"into $v_1$\" AND \"into $v_2$\". Under item 3, no $\\huh$-edge ever counts as \"out of $v_1$\" — the enumerated forms are only $v_1 \\tuh v_2$ and $v_2 \\hut v_1$. So a $\\huh$-edge is \"into both endpoints\" but \"out of neither\". This is consistent with CDMG semantics (a bidirected edge denotes latent confounding, with no directed influence either way), but it has a counter-intuitive consequence: \"into\" and \"out of\" are NOT complementary classifications of incident edges. A reader or formalizer who treats \"out of $v$\" as shorthand for \"incident at $v$ but not into $v$\" will get the wrong answer for $\\huh$-edges — they are \"into\" and \"not out of\". This matters for any downstream notion built on \"out of\" (out-degree, children, directed-out-neighbourhood), where bidirected edges must contribute zero, not \"the remainder after removing in-edges\". Corner case: if a vertex $v$ has only $\\huh$-edges incident to it, then $v$ has no out-edges at all, despite having non-zero adjacency.\nEND_SUBTLETY",
+        "session": "f2323e28-393b-40c0-9f8c-ea2fcd438b11"
       }
     },
     {

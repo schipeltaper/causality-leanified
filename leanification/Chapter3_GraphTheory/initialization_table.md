@@ -905,7 +905,7 @@ composition is well-defined at all on the overlap.
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+This remark should not be formalized, and can thus be immediately marked as 'solved'. It is not meant as a claim, more as something to think about.
 ```
 
 ### 51. `two_input_node_plural_typo`
@@ -925,7 +925,7 @@ denote which nodes.
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+This remark should not be formalized, and can thus be immediately marked as 'solved'. It is not meant as a claim, more as something to think about.
 ```
 
 ### 52. `intervention_on_context_node_is_structural_noop`
@@ -946,7 +946,7 @@ The author's commented-out side note ("%not W \sm J, makes weak and hard interve
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 53. `fresh_intervention_symbols_only_implicit`
@@ -966,7 +966,7 @@ If one tries to apply the definition to a CDMG that happens to already contain a
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 54. `I_W_mixes_fresh_nodes_and_existing_context_nodes`
@@ -986,7 +986,7 @@ Concrete consequence: if a later result or claim writes something like "for each
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+The intervention nodes are new nodes. They did not exist in the graph before the intervention operation was applied.
 ```
 
 ### 55. `do_intervention_topo_order_reverse_direction_depends_on_edge_removal`
@@ -1008,7 +1008,7 @@ Note that the *forward* direction in the next sentence — "any topological orde
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 56. `topo_order_vertex_sets_of_g_and_g_do_differ_implicit_restriction`
@@ -1022,7 +1022,7 @@ A topological order for $G_{\doit(I_W)}$ is, strictly speaking, an ordering of *
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 57. `doit_overloaded_for_node_addition_vs_hard_intervention`
@@ -1036,7 +1036,7 @@ The notation $G_{\doit(\cdot)}$ is used with two structurally different meanings
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+In this lemma the do() operation is used in two different ways. Say W is a subsect of J union V. If we see G_{do(I_W)} then it refers to adding intervention nodes, and G_{do(W)} refers to the hard intervention operation on W. So we we see both in the same do(), this is notation of having done both operations.
 ```
 
 ### 58. `compound_doit_two_argument_notation_unspecified`
@@ -1050,7 +1050,7 @@ The RHS of the second equation, $G_{\doit(I_{W_1}, W_2)}$, uses a comma-separate
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 59. `first_equation_not_a_hard_intervention_statement`
@@ -1066,7 +1066,7 @@ contains no hard intervention at all — both operations on either side are inte
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 60. `W_subset_may_contain_existing_intervention_nodes_in_J`
@@ -1080,7 +1080,7 @@ The hypothesis is "$W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 61. `w2_may_include_existing_intervention_nodes_in_j`
