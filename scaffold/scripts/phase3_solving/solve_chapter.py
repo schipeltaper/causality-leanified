@@ -2801,11 +2801,19 @@ def run_claude(prompt: str, label: str,
     while True:
         attempt += 1
         try:
+            # Capture binary, then decode with errors='replace' so a single
+            # stray non-UTF-8 byte in the CLI's stdout (seen once in a
+            # for_website worker response on def_3_4) becomes a U+FFFD
+            # replacement character instead of raising UnicodeDecodeError
+            # from inside subprocess.run -- which would skip every
+            # downstream try/except and crash solve_current_row.
             result = subprocess.run(
-                cmd, input=prompt,
-                capture_output=True, text=True,
+                cmd, input=prompt.encode("utf-8"),
+                capture_output=True,
                 timeout=PER_CALL_TIMEOUT_SECONDS, check=False,
             )
+            result_stdout = (result.stdout or b"").decode("utf-8", errors="replace")
+            result_stderr = (result.stderr or b"").decode("utf-8", errors="replace")
         except subprocess.TimeoutExpired as e:
             raise WorkerTimeoutError(
                 f"claude call '{label}' timed out after "
@@ -2816,7 +2824,7 @@ def run_claude(prompt: str, label: str,
             break
 
         # Usage-limit pauses don't count against generic retries.
-        wait = _parse_usage_limit_wait(result.stderr or "", result.stdout or "")
+        wait = _parse_usage_limit_wait(result_stderr, result_stdout)
         if wait is not None:
             print(f"[run_claude] '{label}' hit a usage limit; sleeping "
                   f"{wait}s before retrying...", flush=True)
@@ -2829,7 +2837,7 @@ def run_claude(prompt: str, label: str,
             attempt -= 1   # this attempt is "free"
             continue
 
-        last_error = (result.stderr or "")[:500]
+        last_error = result_stderr[:500]
         if attempt > retries:
             raise RuntimeError(
                 f"claude call '{label}' exited {result.returncode} after "
@@ -2847,12 +2855,12 @@ def run_claude(prompt: str, label: str,
     #   result  -> the assistant's text reply
     #   session_id -> the conversation's id, used to resume later
     try:
-        envelope = json.loads(result.stdout)
+        envelope = json.loads(result_stdout)
         text = envelope.get("result") or envelope.get("response") or ""
         session_id = envelope.get("session_id")
     except json.JSONDecodeError:
         # Older versions / unexpected output: degrade gracefully.
-        text = result.stdout
+        text = result_stdout
         session_id = None
     return text, session_id
 
