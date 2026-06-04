@@ -16,13 +16,40 @@
 \phantomsection\label{def_3_3}
 
 \begin{Def}[EdgeRelations]
-  Let $G=(J,V,E,L)$ be a CDMG.
-  \begin{enumerate}
-    \item If $v_1 \sus v_2 \in G$ then we call $v_1$ and $v_2$ \emph{adjacent in $G$}.
-    \item Edges of the form $v_1 \hut v_2$ or $v_1 \huh v_2$ are called \emph{into $v_1$}.  \\
-          Edges of the form $v_1 \tuh v_2$ or $v_1 \huh v_2$ are called \emph{into $v_2$}. 
-    \item Edges of the form $v_1 \tuh v_2$ or $v_2 \hut v_1$ are called \emph{out of $v_1$}.
-  \end{enumerate}
+    \label{def-edge-relations}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, and recall that $E \subseteq (J \cup V) \times V$ and $L \subseteq V \times V$, with $L$ symmetric in its two coordinates.
+
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Adjacency.}
+              For $v_1, v_2 \in J \cup V$, the nodes $v_1$ and $v_2$ are called \emph{adjacent in $G$} iff
+              \[ (v_1, v_2) \in E \;\lor\; (v_2, v_1) \in E \;\lor\; (v_1, v_2) \in L, \]
+              equivalently iff $v_1 \sus v_2 \in G$ (def \ref{not-cdmg}, item~7).
+
+        \item \emph{Edge into a vertex.}
+              The relations \emph{into} and \emph{out of} below classify \emph{edges} of $G$ (the underlying ordered pairs of $E$ or of $L$) relative to a single bound vertex parameter $v$ -- not relative to a particular labelling $v_1, v_2$ of the edge's endpoints.
+              For an ordered pair $e = (e_1, e_2) \in (J \cup V) \times (J \cup V)$ and a vertex $v \in J \cup V$, we call $e$ an \emph{edge into $v$ (in $G$)} iff
+              \[
+                \bigl(e \in E \;\land\; e_2 = v\bigr) \;\lor\; \bigl(e \in L \;\land\; (e_1 = v \,\lor\, e_2 = v)\bigr).
+              \]
+              In particular, only ordered pairs $e \in E \cup L$ can be edges into $v$.
+
+        \item \emph{Edge out of a vertex.}
+              For an ordered pair $e = (e_1, e_2) \in (J \cup V) \times (J \cup V)$ and a vertex $v \in J \cup V$, we call $e$ an \emph{edge out of $v$ (in $G$)} iff
+              \[ e \in E \;\land\; e_1 = v. \]
+              In particular, no $L$-edge is out of any vertex.
+
+        \item \emph{Reconciliation with the source-block writings $v_1 \tuh v_2$, $v_1 \hut v_2$, $v_1 \huh v_2$.}
+              The two writings $v_1 \tuh v_2$ and $v_2 \hut v_1$ both abbreviate the single underlying statement $(v_1, v_2) \in E$ (def \ref{not-cdmg}, items~2--3); and the two writings $v_1 \huh v_2$ and $v_2 \huh v_1$ both abbreviate $(v_1, v_2) \in L$, which moreover coincides with $(v_2, v_1) \in L$ by the symmetry of $L$ (def \ref{def-cdmg}).
+              Hence membership of an edge in the categories \emph{into $v$} or \emph{out of $v$} depends only on the underlying element of $E$ or of $L$, not on which of these textual writings is used; in particular, the source block's listing $v_1 \tuh v_2$ \emph{or} $v_2 \hut v_1$ in its item~3 and its single-writing listings in item~2 are equivalent under this identification.
+
+              Spelled out per writing, items~ii.--iii.\ above agree with the source block's items~2--3 as follows.
+              \begin{itemize}
+                  \item An $E$-edge written $v_1 \tuh v_2$ -- i.e.\ underlying ordered pair $(v_1, v_2) \in E$, equivalently written $v_2 \hut v_1$ -- is \emph{into $v_2$} (clause ii.\ fires via $e \in E$ with $e_2 = v_2$) and \emph{out of $v_1$} (clause iii.\ fires via $e \in E$ with $e_1 = v_1$).
+                  \item An $E$-edge written $v_1 \hut v_2$ -- i.e.\ underlying ordered pair $(v_2, v_1) \in E$, equivalently written $v_2 \tuh v_1$ -- is \emph{into $v_1$} and \emph{out of $v_2$}, by the same clauses with $v_1$ and $v_2$ interchanged.
+                  \item An $L$-edge written $v_1 \huh v_2$ -- i.e.\ underlying ordered pair $(v_1, v_2) \in L$, equivalently $(v_2, v_1) \in L$ and equivalently written $v_2 \huh v_1$ -- is \emph{into $v_1$ and into $v_2$} (the $L$-clause of ii.\ fires for either endpoint), and is \emph{out of neither} $v_1$ nor $v_2$ (clause iii.\ requires $e \in E$, whereas $e \in L$).
+              \end{itemize}
+              In particular, \emph{into $v$} and \emph{out of $v$} are not complementary classifications of edges incident at $v$: an $L$-edge incident at $v$ is into $v$ but never out of $v$.
+    \end{enumerate}
 \end{Def}
 
 \end{document}
