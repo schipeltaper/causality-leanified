@@ -33,7 +33,7 @@
               "kind": "claim",
               "label": "claim 3.1 — CDMGRestrictions",
               "title": "CDMGRestrictions",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_4",
