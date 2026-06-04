@@ -200,7 +200,7 @@
           "last_used": "2026-06-04T11:54:18+00:00"
         }
       ],
-      "time_needed_to_solve": 2913,
+      "time_needed_to_solve": 2933,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
         "done": true,
@@ -214,31 +214,33 @@
       "section": "3.1",
       "title": "CDMGRestrictions",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-04",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "simplify_proof": 0,
-        "solved": 0,
+        "simplify_proof": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -247,16 +249,26 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nWith the notations \\ref{not-cdmg} the restrictions in definition \\ref{def-cdmg} mean that the nodes $j \\in J$ will not have any arrowheads pointing towards them: $ j \\hus v \\notin G$. Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "a07de5da-e178-4a18-b7ba-9ed5de5b8dfd",
+          "first_seen": "2026-06-04T14:06:00+00:00",
+          "last_used": "2026-06-04T14:06:00+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3409,
       "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "I now have full context. Let me audit each statement of the remark carefully against the CDMG definition and notation.\n\n**Statement 1**: \"$j \\hus v \\notin G$\" — given $\\hus = \\hut$ or $\\huh$. For $j \\hut v$: needs $(v,j) \\in E \\ins (J\\cup V) \\times V$, forcing $j \\in V$, contradicts $j \\in J$. For $j \\huh v$: needs $(j,v) \\in L \\ins V \\times V$, again forces $j \\in V$. ✓\n\n**Statement 2**: \"$j \\tuh v$ are allowed\" with $v \\in V$ — directly matches $E$'s codomain constraint. ✓\n\n**Statement 3**: \"no two nodes in $J$ are adjacent\" — follows from edge-type constraints (no $j_1 \\tuh j_2$ since target must be in $V$; no $j_1 \\huh j_2$ since both ends must be in $V$). ✓\n\nCorner cases ($J = \\emptyset$, $V = \\emptyset$, singleton $J$) all check out vacuously.\n\nThe variable $v$ in statement 1 is implicitly universally quantified — standard math-text convention (and the not-cdmg bullets confirm $v$ defaults to ranging over $G = J \\cup V$). The mild inconsistency where statement 2 re-binds $v$ to $V$ explicitly does not create a substantive ambiguity since both readings yield equivalent truth values (the J-J cases are excluded by the edge-set definitions regardless). The \"Furthermore\" introduces a consequence, not new content — but the remark itself is a derived characterization, so that's expected.\n\nNO_SUBTLETIES",
+        "session": "db7f00c2-441b-457f-9667-327d3265c6d1"
       }
     },
     {
