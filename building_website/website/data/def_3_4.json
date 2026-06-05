@@ -22,116 +22,116 @@
     {
       "kind": "helper",
       "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Section-wide `variable` declaration. Lean 4's `variable` mechanism makes `Node` and its `DecidableEq` instance available as auto-bound implicit arguments to every declaration below: any later `def`/`inductive` that mentions `Node` will silently pick up `{Node : Type*} [DecidableEq Node]` in its signature. `Type*` is the universe-polymorphic flavour (Lean 4 inserts a fresh universe variable), letting `Node` live in any universe. The `DecidableEq Node` typeclass is needed downstream to compute `Finset`-membership of edges in `CDMG`, to use `List.Nodup` in `IsPath`, and to call `List.tail` / `dropLast` / `getLast?` on vertex lists. This sets the type-level stage for the rest of the row.",
+      "code_annotated": "-- Section-wide implicit binders, auto-added to every later declaration\n-- `Type*` is universe-polymorphic; `DecidableEq` enables Finset/List ops\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
       "kind": "helper",
       "code": "def WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=\n  (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∨ (a = (v, u) ∧ a ∈ G.E)",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Helper predicate factoring the LN's per-edge constraint. `G.WalkStep u a v` says the ordered pair `a` is a valid walk-step from `u` to `v`: either `a` is the *forward* writing `(u, v)` with `a ∈ E ∪ L` (an edge directed or bidirected from `u` to `v`), or `a` is the *backward* writing `(v, u)` with `a ∈ E` (a directed edge from `v` back to `u`, traversed against its direction). Note `G.E`, `G.L` are `Finset (Node × Node)` fields of the CDMG. A fourth backward-`L` case is omitted because `hL_symm` (symmetry of `L`) collapses it into the forward `L`-disjunct. This predicate is fed as a hypothesis to `Walk.cons` below, so every edge in a walk carries a structural witness of validity.",
+      "code_annotated": "-- Per-edge validity predicate, used as the `h` hypothesis in `Walk.cons`\ndef WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=\n  -- Forward writing: directed or bidirected edge from `u` to `v`\n  (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∨ (a = (v, u) ∧ a ∈ G.E)"
     },
     {
       "kind": "helper",
       "code": "variable {G : CDMG Node}",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Namespace-level `variable` declaration binding `G` implicitly. Every declaration inside the `Walk` namespace below (vertex/edge extractors, four end-node classifiers, walk-class predicates, bifurcation helpers) takes a walk of type `Walk G u v`, and Lean's auto-bound `variable` mechanism inserts `{G : CDMG Node}` into each of their signatures. Making `G` implicit lets downstream callers use dot-notation (`p.vertices` rather than `Walk.vertices G p`) since `G` is recoverable from the walk's type. The three-dash `-- def_3_4 --- start helper` marker used in the source file (visible in the surrounding comments) distinguishes this load-bearing infrastructure binder from the two-dash markers used on actual statement bodies.",
+      "code_annotated": "-- Namespace-wide implicit `G`, inferred from `Walk G u v` at call sites\nvariable {G : CDMG Node}"
     },
     {
       "kind": "helper",
       "code": "def vertices : ∀ {u v : Node}, Walk G u v → List Node\n  | _, _, .nil v _ => [v]\n  | u, _, .cons _ _ _ p => u :: p.vertices",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Recursive function extracting the vertex sequence `[v_0, v_1, …, v_n]` from a walk. The signature `∀ {u v : Node}, Walk G u v → List Node` with implicit endpoints lets callers write `p.vertices` directly. Two pattern-match cases on the `Walk` inductive: a trivial walk `.nil v _` (the single-vertex walk) returns `[v]`; a `cons` step `.cons _ _ _ p` with current start vertex `u` (matched as the first binder of the implicit `∀`) prepends `u` to the recursive vertex list of the tail `p`. This produces a `List Node` of length `n + 1`, matching the LN's tuple. Using `List` (not `Finset` or `Fin n → Node`) preserves order and duplicates and unlocks `List.Nodup` for `IsPath`.",
+      "code_annotated": "-- Extracts the LN's vertex tuple `(v_0, v_1, …, v_n)` as a `List Node`\ndef vertices : ∀ {u v : Node}, Walk G u v → List Node\n  -- Trivial walk: a single-vertex list containing just the endpoint\n  | _, _, .nil v _ => [v]\n  -- Cons step: prepend current start vertex `u`, recurse on the tail `p`\n  | u, _, .cons _ _ _ p => u :: p.vertices"
     },
     {
       "kind": "helper",
       "code": "def edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)\n  | _, _, .nil _ _ => []\n  | _, _, .cons _ a _ p => a :: p.edges",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Recursive function extracting the edge sequence `[a_0, a_1, …, a_{n-1}]` from a walk, as a `List (Node × Node)`. Mirrors `vertices` but is one element shorter: the trivial walk `.nil _ _` has no edges and returns `[]`; a `cons` cell `.cons _ a _ p` (where `a : Node × Node` is the step's edge pair) prepends `a` to the recursive edge list of `p`. The empty list on `nil` is what makes `List.getLast?` return `none` on the trivial walk, which in turn powers `intoEnd` / `outOfEnd` returning `False` vacuously. Splitting vertices and edges into two parallel lists (rather than one alternating list) matches the LN presentation and lets each downstream predicate touch only the data it needs.",
+      "code_annotated": "-- Extracts the LN's edge tuple `(a_0, a_1, …, a_{n-1})` as a list of pairs\ndef edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)\n  -- Trivial walk has no edges\n  | _, _, .nil _ _ => []\n  -- Cons step: prepend the current edge `a`, recurse on tail `p`\n  | _, _, .cons _ a _ p => a :: p.edges"
     },
     {
       "kind": "helper",
       "code": "def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => True\n  | u, _, .cons v a _ (.nil _ _) =>\n      (a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>\n      a = (u, v) ∧ a ∈ G.L ∧ p.IsColliderRest",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Helper predicate carrying the *interior + last-edge* half of an `n ≥ 2` collider walk after its first edge has been consumed. Three branches: (i) on `.nil _ _` (unreachable from the only call site, set to `True` for totality); (ii) on a single remaining edge `cons v a _ (.nil _ _)` this *is* the LN's last edge `a_{n-1}`, which must place an arrowhead at the current start `u` (i.e. at `v_{n-1}` in LN naming) — encoded as the disjunction `(v, u) ∈ E ∨ (u, v) ∈ L`; (iii) on a longer tail `cons v a _ (p@(.cons _ _ _ _))` this is a true *interior* edge `a_k`, required to be forward-bidirected (`a = (u, v) ∧ a ∈ G.L`), and the rest must recursively satisfy `IsColliderRest`. Note the `p@(.cons _ _ _ _)` pattern is Lean's *as-pattern* binding the inner `cons` to `p` while matching its shape.",
+      "code_annotated": "-- Tail predicate for collider walks: interior edges bidirected, last edge into `v_{n-1}`\ndef IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop\n  -- Unreachable from caller; vacuously `True` for totality\n  | _, _, .nil _ _ => True\n  -- Last edge of the walk: arrowhead at current start vertex `u` (LN's `v_{n-1}`)\n  | u, _, .cons v a _ (.nil _ _) =>\n      (a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)\n  -- Interior edge: must be forward-bidirected; recurse on tail using as-pattern `p@…`\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>\n      a = (u, v) ∧ a ∈ G.L ∧ p.IsColliderRest"
     },
     {
       "kind": "helper",
       "code": "def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop\n  | _, _, .nil _ _, _ => False\n  | u, _, .cons v a _ (.nil _ _), 0 => a = (u, v) ∧ a ∈ G.L\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>\n      ((a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)) ∧ p.IsDirectedWalk\n  | u, _, .cons v a _ p, k + 1 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationWithSplit k",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Helper predicate parametrised by a split-index counter `i : ℕ`, where `i + 1` is the LN's bifurcation hinge position `k`. Recurses jointly on the walk and the counter: (i) `nil`, any `i`: `False` (a bifurcation needs at least the hinge edge); (ii) `cons v a _ (.nil _ _), 0` — the *first edge* is also the *last* (`n = 1`, `k = n`), so by the operator addition the hinge must be bidirected: `a = (u, v) ∧ a ∈ G.L`; (iii) `cons v a _ (p@(.cons _ _ _ _)), 0` — the first edge *is* the hinge but the right arm is non-trivial, so both hinge alternatives (`(v,u) ∈ E` directed or `(u,v) ∈ L` bidirected) are admitted, and the rest must be a directed walk; (iv) `cons v a _ p, k + 1` — the first edge is a *left-arm* edge, reverse-directed `(v, u) ∈ E`, and we recurse on the tail with counter `k`. The `ℕ`-counter avoids list-indexing bounds plumbing.",
+      "code_annotated": "-- Bifurcation predicate parametrised by `i = k - 1` (split position in edges)\ndef IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop\n  -- Empty walk cannot be a bifurcation at any split\n  | _, _, .nil _ _, _ => False\n  -- n=1, k=n case: hinge is also the only edge; must be bidirected per addition\n  | u, _, .cons v a _ (.nil _ _), 0 => a = (u, v) ∧ a ∈ G.L\n  -- n≥2, k=1 case: hinge admits both directed-backward and bidirected; right arm is directed\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>\n      ((a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)) ∧ p.IsDirectedWalk\n  -- Left-arm edge: reverse-directed `(v, u) ∈ E`; decrement counter and recurse\n  | u, _, .cons v a _ p, k + 1 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationWithSplit k"
     },
     {
       "kind": "helper",
       "code": "def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop\n  | _, _, .nil _ _, _ => False\n  | _, _, .cons _ _ _ (.nil _ _), 0 => False\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk\n  | u, _, .cons v a _ p, k + 1 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Variant of `IsBifurcationWithSplit` restricting the hinge to its *directed* alternative (LN clause (d) first disjunct, `(v_k, v_{k-1}) ∈ E`), which is the LN's precondition for a bifurcation to have a *source*. Differs from the general helper in two branches: (i) the `cons _ _ _ (.nil _ _), 0` case is now `False` rather than admitting a bidirected hinge — by the operator addition, an `n = 1` `k = n` directed-hinge walk has its arrowhead at `v_{n-1}` not `v_n`, so `v_n` lacks the required arrowhead; (ii) the `n ≥ 2` hinge case pins the directed form `(v, u) ∈ E` alone, dropping the bidirected `(u, v) ∈ L` disjunct. The left-arm recursive case is identical to the general helper. Used by `IsBifurcationSource` to identify the unique vertex `v_{i+1}` deserving the LN's source label.",
+      "code_annotated": "-- Directed-hinge variant of `IsBifurcationWithSplit`; powers `IsBifurcationSource`\ndef IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop\n  -- Empty walk: no bifurcation, no source\n  | _, _, .nil _ _, _ => False\n  -- n=1, k=n with directed hinge would place arrowhead at v_0, excluded by addition\n  | _, _, .cons _ _ _ (.nil _ _), 0 => False\n  -- n≥2 directed hinge `(v_k, v_{k-1}) ∈ E`; right arm must be directed\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk\n  -- Left-arm step: same reverse-directed edge as in the general helper\n  | u, _, .cons v a _ p, k + 1 =>\n      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k"
     },
     {
       "kind": "main",
       "code": "inductive Walk (G : CDMG Node) : Node → Node → Type _ where\n  | nil (v : Node) (hv : v ∈ G) : Walk G v v\n  | cons {u w : Node} (v : Node) (a : Node × Node)\n      (h : G.WalkStep u a v) (p : Walk G v w) : Walk G u w",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "The central `inductive Type` of the row. `Walk G u v` is the type of walks from `u` to `v` in `G`, with both endpoints baked into the index of the type (so the trivial walk lives at `Walk G v v`, enforcing the LN's `v = w` precondition at the type level). The constructors mirror the LN's two presentations: `nil v hv` is the *trivial walk* `(v_0)` and carries an explicit membership witness `hv : v ∈ G` since for `n = 0` no edge is around to recover `v ∈ J ∪ V` from. `cons v a h p` prepends one alternating step `v_0, a_0, v_1` in front of an existing walk `p : Walk G v w`; the middle vertex `v` is made *explicit* (departing from `SimpleGraph.Walk`) so downstream pattern matches reach it without `(v := …)` named-pattern syntax. The hypothesis `h : G.WalkStep u a v` is the per-edge LN constraint.",
+      "code_annotated": "-- The walk type, indexed by source/target nodes; mirrors mathlib's `SimpleGraph.Walk`\ninductive Walk (G : CDMG Node) : Node → Node → Type _ where\n  -- Trivial walk `(v_0)`; needs explicit `hv : v ∈ G` since no edge witnesses it\n  | nil (v : Node) (hv : v ∈ G) : Walk G v v\n  -- Cons step: prepend `(v_0, a_0, v_1)` to an existing walk; middle `v` is explicit\n  | cons {u w : Node} (v : Node) (a : Node × Node)\n      (h : G.WalkStep u a v) (p : Walk G v w) : Walk G u w"
     },
     {
       "kind": "main",
       "code": "def intoStart : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => False\n  | u, _, .cons _ a _ _ => G.into u a",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "End-node classifier predicate: `p.intoStart` is true iff `p` is non-trivial AND its first edge `a_0` is an edge *into* `v_0` in the sense of def_3_3 item ii (i.e. an arrowhead points at `v_0`). Recursion is direct: the trivial walk `.nil _ _` returns `False` (no `a_0` exists, so the LN clause is vacuously not satisfied), and the `cons _ a _ _` case delegates to `G.into u a` from `EdgeRelations.lean` — keeping the LN-macro-grep correspondence. The four classifiers (`intoStart`, `outOfStart`, `intoEnd`, `outOfEnd`) are deliberately encoded as four *independent* `Prop`s rather than a four-way enum, because they are not jointly exhaustive: a bidirected first edge yields `intoStart ∧ ¬outOfStart`.",
+      "code_annotated": "-- Walk classifier: is the first edge `a_0` an edge into `v_0`?\ndef intoStart : ∀ {u v : Node}, Walk G u v → Prop\n  -- Trivial walk has no first edge; LN's `a_0` does not exist\n  | _, _, .nil _ _ => False\n  -- Delegate to `G.into u a` from EdgeRelations.lean (def_3_3 item ii)\n  | u, _, .cons _ a _ _ => G.into u a"
     },
     {
       "kind": "main",
       "code": "def outOfStart : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => False\n  | u, _, .cons _ a _ _ => G.outOf u a",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Mirror of `intoStart` for the opposite end-node behaviour at `v_0`: `p.outOfStart` iff `p` is non-trivial AND its first edge `a_0` is an edge *out of* `v_0` (def_3_3 item iii), i.e. `a_0 = (v_0, v_1) ∈ E` — a directed edge pointing away from `v_0`. Because `G.outOf` excludes `L`-edges entirely (per def_3_3), a bidirected first edge satisfies `intoStart` but not `outOfStart` — the two classifiers are mutually exclusive on `E`-edges but jointly *not* exhaustive over all walks. The trivial walk returns `False` by the same vacuity argument as `intoStart`. The recursion shape (direct `nil`/`cons` match, delegate to `G.outOf` on the first edge) is identical.",
+      "code_annotated": "-- Walk classifier: is the first edge `a_0` an edge out of `v_0`?\ndef outOfStart : ∀ {u v : Node}, Walk G u v → Prop\n  -- Trivial walk: vacuously not out of anything\n  | _, _, .nil _ _ => False\n  -- Delegate to `G.outOf u a`; note `outOf` excludes L-edges per def_3_3 iii\n  | u, _, .cons _ a _ _ => G.outOf u a"
     },
     {
       "kind": "main",
       "code": "def intoEnd {u v : Node} (p : Walk G u v) : Prop :=\n  match p.edges.getLast? with\n  | none => False\n  | some a => G.into v a",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "End-node classifier for the *right* end of the walk: `p.intoEnd` iff `p` is non-trivial AND its last edge `a_{n-1}` is an edge into `v_n` (def_3_3 item ii). Unlike `intoStart`, this is *not* recursive on the walk — there is no direct constructor pattern for the last `cons` cell — so we use `p.edges.getLast?` to peek at the final edge as an `Option (Node × Node)`. A `match` on the option: `none` (empty edge list, i.e. trivial walk) returns `False`; `some a` delegates to `G.into v a`. This `getLast?`-based access pattern lets the predicate's definitional unfolding be one `List.getLast?` lookup rather than `Walk.length p` recursion steps.",
+      "code_annotated": "-- Walk classifier: is the last edge `a_{n-1}` an edge into `v_n`?\ndef intoEnd {u v : Node} (p : Walk G u v) : Prop :=\n  -- Peek at the last edge via List.getLast?; returns `none` on the empty edge list\n  match p.edges.getLast? with\n  -- Trivial walk has no last edge\n  | none => False\n  -- Delegate to `G.into v a` from EdgeRelations.lean\n  | some a => G.into v a"
     },
     {
       "kind": "main",
       "code": "def outOfEnd {u v : Node} (p : Walk G u v) : Prop :=\n  match p.edges.getLast? with\n  | none => False\n  | some a => G.outOf v a",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Mirror of `intoEnd` for *out of* `v_n`: `p.outOfEnd` iff `p` is non-trivial AND its last edge `a_{n-1}` is an edge out of `v_n` (def_3_3 item iii), i.e. `a_{n-1} = (v_n, v_{n-1}) ∈ E`. Same `p.edges.getLast?` access as `intoEnd`, but delegates to `G.outOf v a` instead of `G.into v a`. As with `outOfStart`, `G.outOf` excludes `L`-edges, so a bidirected last edge gives `intoEnd ∧ ¬outOfEnd` — again the non-partition shape: the four classifiers are pairwise mutually exclusive in their natural pairings but never jointly exhaustive.",
+      "code_annotated": "-- Walk classifier: is the last edge `a_{n-1}` an edge out of `v_n`?\ndef outOfEnd {u v : Node} (p : Walk G u v) : Prop :=\n  -- Same `getLast?` access pattern as `intoEnd`\n  match p.edges.getLast? with\n  -- Empty edge list: trivial walk, vacuously False\n  | none => False\n  -- Delegate to `G.outOf v a`; excludes L-edges so non-symmetric with `intoEnd`\n  | some a => G.outOf v a"
     },
     {
       "kind": "main",
       "code": "def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => True\n  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.E ∧ p.IsDirectedWalk",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Walk-class predicate: `p.IsDirectedWalk` iff every edge of `p` is a *forward* `E`-edge (LN item ii). The recursion is structural: the trivial walk returns `True` (vacuously a directed walk, matching the LN rewrite \"the trivial walk is admitted as a directed walk\"); a `cons v a _ p` cell requires `a = (u, v)` (forward writing — the direction pin distinguishing this from `WalkStep`'s backward alternative), `a ∈ G.E` (directed not bidirected), and recursively `p.IsDirectedWalk`. Encoded as a `Prop`-predicate on `Walk` rather than a separate inductive type, so a `(p, hp)` pair carries exactly the LN's data and \"every directed walk is a walk\" is the identity function — no forgetful coercion.",
+      "code_annotated": "-- Predicate: every edge is a forward `E`-edge (LN item ii)\ndef IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop\n  -- Trivial walk: vacuously directed, per LN rewrite\n  | _, _, .nil _ _ => True\n  -- Each step: forward writing `(u, v)`, in `G.E`, and tail is directed too\n  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.E ∧ p.IsDirectedWalk"
     },
     {
       "kind": "main",
       "code": "def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => True\n  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.L ∧ p.IsBidirectedWalk",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Walk-class predicate: `p.IsBidirectedWalk` iff every edge is a *forward* `L`-edge (LN item iii). Structurally identical to `IsDirectedWalk` with `G.L` substituted for `G.E`: vacuously `True` on the trivial walk, and each `cons` step requires the forward writing `a = (u, v)`, membership `a ∈ G.L`, and recursively bidirected tail. Pinning the forward writing (rather than admitting `(u, v) ∨ (v, u)`) follows the LN's primary form; the backward writing is automatically equivalent via `CDMG.hL_symm` (symmetry of `L`), so the more general two-way form is a one-line corollary rather than a primary disjunct.",
+      "code_annotated": "-- Predicate: every edge is a forward `L`-edge (LN item iii)\ndef IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop\n  -- Trivial walk: vacuously bidirected\n  | _, _, .nil _ _ => True\n  -- Each step: forward writing, in `G.L`; backward writing equivalent via hL_symm\n  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.L ∧ p.IsBidirectedWalk"
     },
     {
       "kind": "main",
       "code": "def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop\n  | _, _, .nil _ _ => True\n  | u, _, .cons v a _ (.nil _ _) => a = (u, v) ∧ a ∈ G.L\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>\n      (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∧ p.IsColliderRest",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Walk-class predicate for collider walks (LN item iv), case-distinguished on length `n` via nested pattern matching: (i) `nil` (`n = 0`): vacuously `True` — the trivial walk is a collider walk; (ii) `cons v a _ (.nil _ _)` (`n = 1`): the lone edge must be *bidirected*, `a = (u, v) ∧ a ∈ G.L`. This is the strict reading per addition `[collider_walk_n1_form_contradicts_inline_note]`, overriding the LN's inline \"$v \\sus w \\in G$\" remark which would admit any adjacency; (iii) `cons v a _ (p@(.cons _ _ _ _))` (`n ≥ 2`): the first edge places an arrowhead at `v_1` (`a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)`), and the rest of the walk satisfies the helper `IsColliderRest` (interior edges bidirected, last edge with arrowhead at `v_{n-1}`).",
+      "code_annotated": "-- Predicate: collider walk per LN item iv (with strict n=1 reading from addition)\ndef IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop\n  -- n=0: trivial walk is vacuously a collider walk\n  | _, _, .nil _ _ => True\n  -- n=1: lone edge must be bidirected (overrides LN inline note)\n  | u, _, .cons v a _ (.nil _ _) => a = (u, v) ∧ a ∈ G.L\n  -- n≥2: first edge has arrowhead at v_1, tail handled by `IsColliderRest`\n  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>\n      (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∧ p.IsColliderRest"
     },
     {
       "kind": "main",
       "code": "def IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "One-liner predicate: `p.IsPath` iff the vertex list `p.vertices` is duplicate-free, encoded via mathlib's `List.Nodup`. The LN's \"no node occurs more than once\" (item v) is exactly this. The trivial walk's singleton vertex list `[v_0]` is vacuously `Nodup` (via `List.nodup_singleton`), so the trivial walk is a path — matching the LN rewrite's \"vacuously a path\" reading. Defining `IsPath` over `List.Nodup` (rather than as a fresh structural recursion on `Walk`) inherits decidability, monotonicity, and every other mathlib `Nodup` lemma for free. Index-based pairwise-distinctness (`∀ i < j, vᵢ ≠ vⱼ`) is the equivalent classical form but is non-idiomatic in mathlib.",
+      "code_annotated": "-- A path is a walk whose vertex list has no repeats (mathlib `List.Nodup`)\ndef IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup"
     },
     {
       "kind": "main",
       "code": "def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=\n  u ≠ v ∧\n  u ∉ p.vertices.tail ∧\n  v ∉ p.vertices.dropLast ∧\n  ∃ i, p.IsBifurcationWithSplit i",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Main bifurcation predicate (LN item vi), built as a four-way conjunction: (i) `u ≠ v` — distinct end-nodes (LN clause (a) first half); (ii) `u ∉ p.vertices.tail` — `u` does not reappear after position 0 (LN's `v_0 ∉ {v_1, …, v_n}`); (iii) `v ∉ p.vertices.dropLast` — `v` does not appear before the last position (LN's `v_n ∉ {v_0, …, v_{n-1}}`); (iv) `∃ i, p.IsBifurcationWithSplit i` — there exists a split index packaging LN clauses (b)–(d) plus the operator addition (e). Note this is *weaker* than `IsPath`'s `Nodup`: interior vertices may repeat. `List.tail` and `List.dropLast` are mathlib convenience functions for \"drop first/last element\".",
+      "code_annotated": "-- A bifurcation between `u` and `v`: distinct endpoints + a valid split\ndef IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=\n  -- LN clause (a): endpoints differ\n  u ≠ v ∧\n  -- u appears exactly once (only at position 0); `tail` drops the head\n  u ∉ p.vertices.tail ∧\n  -- v appears exactly once (only at last position); `dropLast` drops the tail\n  v ∉ p.vertices.dropLast ∧\n  -- LN clauses (b)–(d) plus addition (e), packaged via the existential split\n  ∃ i, p.IsBifurcationWithSplit i"
     },
     {
       "kind": "main",
       "code": "def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=\n  u ≠ v ∧\n  u ∉ p.vertices.tail ∧\n  v ∉ p.vertices.dropLast ∧\n  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "Predicate stating that `x` is *a source* of the bifurcation `p`. Inlines the same three end-node constraints as `IsBifurcation` (`u ≠ v`, `u ∉ vertices.tail`, `v ∉ vertices.dropLast`) and replaces the existential by `∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x`: there is a split index `i` whose hinge is *directed* (per the directed-hinge helper) and at which the post-hinge vertex `v_{i+1}` (LN's `v_k`) is exactly `x`. The `vertices[i + 1]?` notation is Lean 4's `Option`-valued indexed lookup, avoiding in-bounds proof plumbing. Combined with the operator addition, `IsBifurcationSource` automatically forces the source `x` to be an interior vertex (`1 ≤ k ≤ n - 1`), distinct from both end-nodes. A predicate (not an `Option Node` accessor) matches the LN's \"we say that the bifurcation has source\" reading.",
+      "code_annotated": "-- Predicate: `x` is a source of the bifurcation `p` (LN item vi final sentence)\ndef IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=\n  -- Same endpoint-uniqueness conjuncts as `IsBifurcation`\n  u ≠ v ∧\n  u ∉ p.vertices.tail ∧\n  v ∉ p.vertices.dropLast ∧\n  -- Directed-hinge split exists, and the post-hinge vertex `v_{i+1}` equals `x`\n  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x"
     }
   ],
   "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
