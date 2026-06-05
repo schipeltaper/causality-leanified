@@ -339,29 +339,31 @@
       "section": "3.1",
       "title": "FamilyRelationships",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-05",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
         "simplify_proof": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -371,16 +373,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Family relationships]\n     Let $G=(J,V,E,L)$ be a CDMG, $v,w \\in V$ and $A \\ins J \\cup V$ a subset of nodes.\n     We then define:\n     \\begin{enumerate}\n         \\item The set of \\emph{parents} of $v$ in $G$: \\[\\Pa^G(v):=\\lC w \\in G\\,|\\, w \\tuh v \\in G \\rC.\\]\n         \\item[] The set of \\emph{parents} of $A$ in $G$: \\[\\Pa^G(A):= \\bigcup_{v \\in A} \\Pa^G(v).\\]\n         %\\item[] \\PF{maybe better for sets (???) :The set of \\emph{parents} of $A$ in $G$: \\[\\Pa^G(A):= \\lp \\bigcup_{v \\in A} \\Pa^G(v)\\rp \\sm A.\\]\n         %    but then  if $v \\tuh v \\in E$ then $v \\notin \\Pa^G(\\lC v\\rC ) \\neq \\Pa^G(v) \\ni v$ ... }\n         \\item The set of \\emph{children} of $v$ in $G$: \\[\\Ch^G(v):=\\lC w \\in G\\,|\\, v \\tuh w \\in G \\rC.\\]\n         \\item[] The set of \\emph{children} of $A$ in $G$: \\[\\Ch^G(A):= \\bigcup_{v \\in A} \\Ch^G(v).\\]\n         \\item The set of \\emph{siblings} of $v$ in $G$: \\[\\Sib^G(v):=\\lC w \\in G\\,|\\, v \\huh w \\in G \\rC.\\]\n         %\\item[] The set of \\emph{children} of $A$ in $G$: \\[\\Ch^G(A):= \\bigcup_{v \\in A} \\Ch^G(v).\\]\n         \\item The set of \\emph{ancestors} of $v$ in $G$: \n             \\[\\Anc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } w \\tuh \\cdots \\tuh v \\in G \\rC.\\]\n             Note: $v \\in \\Anc^G(v)$.\n         \\item[] The set of \\emph{ancestors} of $A$ in $G$: \\[\\Anc^G(A):= \\bigcup_{v \\in A} \\Anc^G(v).\\]\n             Note: $A \\ins \\Anc^G(A)$.\n         \\item The set of \\emph{descendants} of $v$ in $G$: \n             \\[\\Desc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } v \\tuh \\cdots \\tuh w \\in G \\rC.\\]\n             Note: $v \\in \\Desc^G(v)$.\n         \\item[] The set of \\emph{descendants} of $A$ in $G$: \\[\\Desc^G(A):= \\bigcup_{v \\in A} \\Desc^G(v).\\]\n             Note: $A \\ins \\Desc^G(A)$.\n         \\item The set of \\emph{non-descendants} of $A$ in $G$:\n             \\[ \\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A).\\]\n         \\item The \\emph{strongly connected component} of $v$ in $G$:\n             \\[ \\Sc^G(v) := \\Anc^G(v) \\cap \\Desc^G(v).\\]\n             Note: $v \\in \\Sc^G(v)$.\n         \\item[] The (union of) \\emph{strongly connected components} of $A$ in $G$:\n             \\[ \\Sc^G(A) := \\bigcup_{v \\in A} \\Sc^G(v).\\]\n             Note: $A \\ins \\Sc^G(A)$.\n         \\item The \\emph{district} of $v$ in $G$:\n             \\[\\Dist^G(v) := \\lC w \\in G\\,|\\, \\exists \\text{ bidirected walk: } \n             v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w \\in G \\rC.\\]\n             Note: $v\\in \\Dist^G(v)$.\n         \\item[] The \\emph{district} of $A$ in $G$:\n             \\[\\Dist^G(A) := \\bigcup_{v \\in A} \\Dist^G(v).\\]\n             Note: $A \\ins \\Dist^G(A)$.\n         %\\item The d-\\emph{Markov blanket} of $v$ in $G$:\n         %    \\[\\MBl^G_d(v):=\\lC w \\in G\\,|\\,\\exists \\text{ collider walk: } \n         %    v \\suh v_1 \\huh \\cdots \\huh v_{n-1} \\hus w \\in G \\rC \\sm \\{v\\}.\\]\n         %    Note: $\\lp\\Pa^G(v) \\cup \\Ch^G(v) \\cup \\Pa^G(\\Ch^G(v))\\rp \\sm \\{v\\} \\ins \\MBl^G_d(v)$.\n         %\\item[] The d-\\emph{Markov blanket} of $A$ in $G$:\n         %    \\[\\MBl^G_d(A) := \\bigcup_{v \\in A} \\MBl^G_d(v) \\sm A.\\]\n         %\\item The $\\sigma$-\\emph{Markov blanket} of $A$ in $G$:\n         %    \\[\\MBl^G_\\sigma(A):= \\MBl^{G^\\acy}_d(A), \\]\n         %    where $G^\\acy$ is an acyclification of $G$, a notion defined below in Definition~\\ref{def:cdg_acyclification}.\n     \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "6ecc8d4c-2176-4161-b7a1-c074fa95cac7",
+          "first_seen": "2026-06-05T12:40:59+00:00",
+          "last_used": "2026-06-05T12:40:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5016,
       "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "SUBTLETY:\nid: trivial_walk_implicit_in_self_membership_notes\nexplanation: The notes \"$v \\in \\Anc^G(v)$\", \"$v \\in \\Desc^G(v)$\", and \"$v \\in \\Dist^G(v)$\" require that the trivial (length-0) walk from a node to itself counts as a \"directed walk\" (resp. \"bidirected walk\"). But the literal pictorial body of each definition suggests at least one edge: \"$\\exists \\text{ directed walk: } w \\tuh \\cdots \\tuh v$\" and \"$\\exists \\text{ bidirected walk: } v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w$\". A literal reading of the formula alone (with no edge-free convention) would force $\\Anc^G(v)$ to be empty when $v$ has no incoming directed self-loop, contradicting the note. So either def_3_4 (Walks) admits length-0 walks by convention, or the note is implicitly adding a \"$\\cup \\{v\\}$\" — these are different mathematical objects and a formalizer must commit to one. Downstream: any later claim relying on $v \\in \\Anc^G(v)$ (e.g., reflexivity of the ancestor relation, or any well-founded induction on ancestor depth) is sensitive to which reading is canonical.\nEND_SUBTLETY\n\nSUBTLETY:\nid: self_loop_makes_v_its_own_parent_child_sibling\nexplanation: The literal definitions\n\\[\\Pa^G(v):=\\{w \\in G \\mid w \\tuh v \\in G\\},\\quad \\Ch^G(v):=\\{w \\in G \\mid v \\tuh w \\in G\\},\\quad \\Sib^G(v):=\\{w \\in G \\mid v \\huh w \\in G\\}\\]\nall admit the case $w = v$ when a self-loop $v \\tuh v$ (or $v \\huh v$) is present in $G$. The author is explicitly aware of this for parents — the commented-out alternative reads \"if $v \\tuh v \\in E$ then $v \\notin \\Pa^G(\\{v\\}) \\neq \\Pa^G(v) \\ni v$\", and the chosen definition deliberately keeps $v \\in \\Pa^G(v)$ to preserve $\\Pa^G(\\{v\\}) = \\Pa^G(v)$. So for parents the convention is intentional, but the same corner case for $\\Ch^G$ and $\\Sib^G$ is not flagged. A formalizer needs to know self-loops yield $v \\in \\Pa^G(v) \\cap \\Ch^G(v) \\cap \\Sib^G(v)$ — this is the chosen reading, not an oversight. Downstream: any claim of the form \"$\\Pa^G(v) \\cap \\{v\\} = \\emptyset$\" or \"siblings are distinct from $v$\" will fail in CDMGs that allow self-loops.\nEND_SUBTLETY\n\nSUBTLETY:\nid: domain_mismatch_between_setup_and_set_versions\nexplanation: The setup declares \"$v, w \\in V$ and $A \\ins J \\cup V$\". The per-node definitions then read e.g. \"$\\Pa^G(v) := \\{w \\in G \\mid w \\tuh v \\in G\\}$\" — stated for $v \\in V$. But the set version \"$\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$\" ranges $v$ over $A \\subseteq J \\cup V$, so the inner $\\Pa^G(v)$ is being invoked with $v$ possibly a context node in $J$ — outside the stated domain of the per-node definition. The formula still makes literal sense (the set-builder notation works for any node), but the variable declaration is too narrow to type-check the set unfolding without an implicit extension. A formalizer must decide: do parents/children/siblings/ancestors/etc. take inputs in $V$, or in $J \\cup V$? In CDMGs context nodes typically have no incoming arrows, so $\\Pa^G(j) = \\emptyset$ for $j \\in J$ is the harmless default, but this is not made explicit.\nEND_SUBTLETY\n\nSUBTLETY:\nid: district_walk_indexing_ambiguous_for_small_n\nexplanation: The district definition writes the witnessing walk as \"$v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w$\". For $n = 1$ the indices $v_1, \\ldots, v_0$ are empty, leaving \"$v \\huh w$\" (a single bidirected edge); for $n = 0$ they are also empty, but now both literal endpoints written are $v$ and $w$ with no edges between them, which can only mean $v = w$ (trivial walk). The text never states what $n$ counts (edges? intermediate vertices? vertices?), nor what the smallest legal $n$ is. Combined with the note \"$v \\in \\Dist^G(v)$\" (which seems to require $n = 0$ to be allowed and to mean a trivial walk), this leaves the formalizer to commit to a convention that the LN never states. The same indexing concern does not appear for $\\Anc^G/\\Desc^G$, where the body uses \"$\\cdots$\" without bound variables, but the reader is still forced to fill in \"walks include length 0\".\nEND_SUBTLETY\n\nSUBTLETY:\nid: nondesc_only_defined_for_sets\nexplanation: $\\NonDesc^G$ is defined only for a subset $A$: \"$\\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A)$\". Every other family relation in this definition (Pa, Ch, Sib, Anc, Desc, Sc, Dist) has both a single-vertex form and a set form, with the set form built from the vertex form by union. The asymmetry is mild — $\\NonDesc^G(v)$ can be read as $\\NonDesc^G(\\{v\\}) = (J \\cup V) \\sm \\Desc^G(v)$ — but it is not spelled out, and a future claim phrased as \"$\\NonDesc^G(v)$\" will need a reader to silently insert the singleton coercion. Note also that \"non-descendants\" via this definition is NOT the complement of $\\Desc$ in $V$ alone but in $J \\cup V$, so context nodes are always non-descendants of any non-empty $A$ (unless they happen to be descendants), which is a deliberate but not advertised choice.\nEND_SUBTLETY",
+        "session": "06933083-20d6-4b22-b57c-cfa932cfdb05"
       }
     },
     {
