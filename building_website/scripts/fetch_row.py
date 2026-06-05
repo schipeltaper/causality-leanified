@@ -208,6 +208,15 @@ def fetch_row(ref: str) -> dict:
 
     lean_blocks = helper_blocks + [{"kind": "main", "code": c} for c in main_codes]
 
+    # --- Original LN tex excerpt (row.tex_block in data.json) rendered to
+    #     HTML once. The website shows this by default and lets the user
+    #     toggle to the orchestrator's unambiguous version. ---
+    tex_block_html = ""
+    raw_tex_block = (row.get("tex_block") or "").strip()
+    if raw_tex_block:
+        block = tex_to_html(raw_tex_block)
+        tex_block_html = block.body_html
+
     # --- Source URL: a single link to main_lean_file on the repo. ---
     lean_source_url = f"{REPO_URL}/blob/{REPO_BRANCH}/{main_lean_rel}"
 
@@ -219,17 +228,26 @@ def fetch_row(ref: str) -> dict:
     }
 
     # Preserve previously-generated LLM prose so re-running fetch_row
-    # doesn't wipe the explanation / design-choices steps' output.
-    prior_expl: str | None = None
-    prior_dc:   str | None = None
+    # doesn't wipe the LLM-step output. Per-block fields
+    # (`explanation`, `code_annotated`) are matched on the block's
+    # `code` so a re-formalized row with rearranged blocks just loses
+    # the now-stale annotations and we regenerate them.
+    prior_dc:    str | None = None
+    prior_by_code: dict[str, dict] = {}
     out_path = WEBSITE_DATA / f"{ref}.json"
     if out_path.exists():
         try:
             prior = json.loads(out_path.read_text(encoding="utf-8"))
-            prior_expl = prior.get("lean_explanation")
-            prior_dc   = prior.get("design_choices")
+            prior_dc = prior.get("design_choices")
+            for pb in prior.get("lean_blocks") or []:
+                if pb.get("code"):
+                    prior_by_code[pb["code"]] = pb
         except json.JSONDecodeError:
             pass
+    for blk in lean_blocks:
+        prev = prior_by_code.get(blk["code"]) or {}
+        blk["explanation"]    = prev.get("explanation") or ""
+        blk["code_annotated"] = prev.get("code_annotated") or ""
 
     return {
         "ref":                ref,
@@ -238,13 +256,13 @@ def fetch_row(ref: str) -> dict:
         "title":              row.get("title", ""),
         "type":               row.get("type", ""),
         "status":             status,
+        "tex_block_html":     tex_block_html,
         "tex_statement":      tex_statement,
         "tex_proof":          tex_proof,
         "lean_blocks":        lean_blocks,
         "lean_source_url":    lean_source_url,
         "lean_file_path":     main_lean_rel,
         "addition_to_the_LN": row.get("addition_to_the_LN", ""),
-        "lean_explanation":   prior_expl or "",
         "design_choices":     prior_dc or "",
     }
 

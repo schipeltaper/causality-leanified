@@ -178,23 +178,138 @@ function highlightLeanIn(root) {
   });
 }
 
+/* Lean pane returns { body, commentsToggle } so the caller can hoist
+   the toggle into the pane label. Each block renders with:
+     - a label (kind: main / helper)
+     - a per-block "Explain ▾" button that toggles a Markdown explanation
+       panel beneath the code (disabled if the block has no explanation)
+     - the code itself, optionally rendered in its annotated form (with
+       line-by-line `--` comments) when the page-level comments toggle
+       is on. */
 function buildLeanPane(data) {
   const body = el("div", { class: "pane-body lean-pane-body" });
   const blocks = data.lean_blocks || [];
   if (blocks.length === 0) {
     body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
-    return body;
+    return { body, commentsToggle: null };
   }
+
+  let commentsOn = false;        // page-level: off → show `code`; on → `code_annotated`
+  const blockEntries = [];        // per-block records so toggles can flip them in place
+
   for (const b of blocks) {
     const kind = b.kind === "main" ? "main" : "helper";
-    body.append(
-      el("div", { class: `lean-block lean-block-${kind}` },
+    const codeNode = el("code", { class: "language-lean" }, b.code);
+    const codePre  = el("pre", {}, codeNode);
+
+    const explanation = (b.explanation || "").trim();
+    const explanationDiv = el("div", { class: "block-explanation markdown-body" });
+    if (explanation) {
+      explanationDiv.innerHTML = typeof marked !== "undefined"
+        ? marked.parse(explanation, { gfm: true, breaks: false })
+        : `<pre>${explanation}</pre>`;
+    }
+
+    let explainOpen = false;
+    const explainBtn = el("button", {
+      class: "block-explain-btn", type: "button",
+      "aria-label": "Toggle explanation for this block",
+    }, "Explain");
+    if (!explanation) {
+      explainBtn.disabled = true;
+      explainBtn.classList.add("disabled");
+      explainBtn.title = "No explanation generated for this block yet.";
+    } else {
+      explainBtn.addEventListener("click", () => {
+        explainOpen = !explainOpen;
+        explainBtn.textContent = explainOpen ? "Explain ▴" : "Explain ▾";
+        explainBtn.classList.toggle("open", explainOpen);
+        explanationDiv.classList.toggle("open", explainOpen);
+        if (explainOpen) renderMath(explanationDiv);
+      });
+      explainBtn.textContent = "Explain ▾";
+    }
+
+    const element = el("div", { class: `lean-block lean-block-${kind}` },
+      el("div", { class: "lean-block-header" },
         el("div", { class: "lean-block-label" }, kind),
-        el("pre", {}, el("code", { class: "language-lean" }, b.code)),
+        explainBtn,
       ),
+      codePre,
+      explanationDiv,
     );
+
+    blockEntries.push({ block: b, codePre });
+    body.append(element);
   }
-  return body;
+
+  // Page-level comments toggle, only when at least one block has a
+  // non-trivial annotated variant.
+  const annotatable = blocks.some(
+    (b) => b.code_annotated && b.code_annotated.trim() && b.code_annotated !== b.code,
+  );
+  let commentsToggle = null;
+  if (annotatable) {
+    commentsToggle = el("button", {
+      class: "lean-comments-toggle off", type: "button",
+      "aria-label": "Toggle line-by-line comments in every Lean block",
+      title: "Inserts a comment above each Lean line explaining the naming, the functions used, and the logic.",
+    }, "Comments: off");
+    commentsToggle.addEventListener("click", () => {
+      commentsOn = !commentsOn;
+      commentsToggle.textContent = `Comments: ${commentsOn ? "on" : "off"}`;
+      commentsToggle.classList.toggle("on",  commentsOn);
+      commentsToggle.classList.toggle("off", !commentsOn);
+      for (const be of blockEntries) {
+        const next = commentsOn ? (be.block.code_annotated || be.block.code) : be.block.code;
+        be.codePre.innerHTML = "";
+        be.codePre.append(el("code", { class: "language-lean" }, next));
+      }
+      highlightLeanIn(body);
+    });
+  }
+
+  return { body, commentsToggle };
+}
+
+/* The TeX pane has two versions: the original LN excerpt
+   (`tex_block_html`) shown by default, and the worker's unambiguous
+   version (`tex_statement.html`) reachable via a toggle. The pane
+   label updates to match. */
+function buildTexPane(data) {
+  const origHtml    = data.tex_block_html || "";
+  const unambigHtml = (data.tex_statement && data.tex_statement.html) || "";
+  const body        = el("div", { class: "pane-body" });
+  const labelText   = el("span", { class: "pane-label-main" });
+  const toggle      = el("button", { class: "tex-version-toggle", type: "button" });
+
+  // If only one version is available, fall through to that one and hide
+  // the toggle entirely.
+  const haveBoth = !!(origHtml && unambigHtml);
+  let showingOriginal = !!origHtml;  // default: original; falls back to unambig when only that exists
+
+  function paint() {
+    const html = showingOriginal ? origHtml : unambigHtml;
+    body.innerHTML = html || "<em>(missing)</em>";
+    labelText.textContent = showingOriginal
+      ? "Statement (lecture notes)"
+      : "Statement (unambiguous)";
+    toggle.textContent = showingOriginal
+      ? "Unambiguous version →"
+      : "← Back to original";
+    renderMath(body);
+  }
+  if (!haveBoth) {
+    toggle.style.display = "none";
+  } else {
+    toggle.addEventListener("click", () => { showingOriginal = !showingOriginal; paint(); });
+  }
+  paint();
+
+  return el("section", { class: "pane pane-tex" },
+    el("div", { class: "pane-label" }, labelText, toggle),
+    body,
+  );
 }
 
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
@@ -364,16 +479,14 @@ function renderEntry(data) {
     el("div", { class: "entry-status" }, ...statusBadges),
   );
 
-  // ---- split ----
-  const texPane = el("section", { class: "pane pane-tex" },
-    el("div", { class: "pane-label" }, "Statement (lecture notes)"),
-    el("div", { class: "pane-body", html: data.tex_statement.html || "<em>(missing)</em>" }),
-  );
-
-  // One or more labelled code blocks (main + helpers).
-  const leanBody = buildLeanPane(data);
+  // ---- split: TeX (LN original ↔ unambiguous) | Lean (per-block panels) ----
+  const texPane = buildTexPane(data);
+  const { body: leanBody, commentsToggle } = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
-    el("div", { class: "pane-label" }, "Formalisation"),
+    el("div", { class: "pane-label" },
+      el("span", { class: "pane-label-main" }, "Formalisation"),
+      commentsToggle,
+    ),
     leanBody,
   );
 
@@ -423,10 +536,9 @@ function renderEntry(data) {
       },
     }, label);
   }
-  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
-  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
+  actions.append(explanationButton("Design choices", `${data.ref}--design`, data.design_choices));
 
-  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
+  // ---- Explanation panel (initially hidden, toggled by the button above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -437,16 +549,15 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`, "Design choices", data.design_choices);
 
-  // ---- assemble (no inline TeX/Lean proof panes; those live on the
-  //                 dedicated proof page) ----
+  // The page-wide "Lean explanation" button + panel is gone — per-block
+  // Explain buttons (rendered inline within each .lean-block) replace it.
+
   const article = el("article", { class: "entry", id: data.ref },
     header,
     split,
     actions,
-    leanExplPanel,
     designChoicesPanel,
   );
   return article;

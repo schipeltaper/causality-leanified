@@ -381,17 +381,87 @@ ol.roman-paren > li.no-marker::before { content: ""; }
   background: var(--bg-lean);
 }
 .lean-block:first-child { border-top: none; }
+.lean-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1.4rem 0.15rem;
+}
 .lean-block-label {
   font-family: var(--font-ui);
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fg-muted);
-  padding: 0.6rem 1.4rem 0.15rem;
-  border-bottom: 1px dotted transparent;
 }
-.lean-block-main > .lean-block-label  { color: var(--accent); font-weight: 600; }
-.lean-block-helper > .lean-block-label { color: var(--fg-muted); }
+.lean-block-main > .lean-block-header > .lean-block-label  { color: var(--accent); font-weight: 600; }
+.lean-block-helper > .lean-block-header > .lean-block-label { color: var(--fg-muted); }
+
+/* Per-block "Explain ▾" button — opens a Markdown panel beneath the
+   code with a logic walkthrough for THIS block. */
+.block-explain-btn {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  padding: 0.15rem 0.55rem;
+  background: var(--bg-pane);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.block-explain-btn:hover:not(.disabled) { color: var(--accent); border-color: var(--accent-soft); }
+.block-explain-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
+.block-explain-btn.disabled,
+.block-explain-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.block-explanation {
+  display: none;
+  padding: 0 1.4rem 1rem;
+  font-family: var(--font-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  border-top: 1px dotted var(--border);
+  margin-top: 0.6rem;
+}
+.block-explanation.open { display: block; }
+.block-explanation p:first-child { margin-top: 0.8rem; }
+.block-explanation p:last-child  { margin-bottom: 0; }
+
+/* Page-wide "Comments: on/off" toggle on the Lean pane label — swaps
+   every block between its bare `code` and its line-by-line annotated
+   `code_annotated` variant simultaneously. */
+.lean-comments-toggle {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  padding: 0.15rem 0.55rem;
+  background: var(--bg-pane);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.lean-comments-toggle.on {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.lean-comments-toggle:hover { border-color: var(--accent-soft); }
+.lean-comments-toggle.on:hover { background: #5a1418; color: #fff; }
+
+/* TeX pane "Unambiguous version →" / "← Back to original" toggle. */
+.tex-version-toggle {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  padding: 0.15rem 0.6rem;
+  background: var(--bg-pane);
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.tex-version-toggle:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pane-label-main { font-weight: inherit; }
 .lean-block pre {
   margin: 0;
   padding: 0.4rem 1.4rem 1.1rem;
