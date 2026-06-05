@@ -397,8 +397,15 @@ ol.roman-paren > li.no-marker::before { content: ""; }
 .lean-block-main > .lean-block-header > .lean-block-label  { color: var(--accent); font-weight: 600; }
 .lean-block-helper > .lean-block-header > .lean-block-label { color: var(--fg-muted); }
 
-/* Per-block "Explain ▾" button — opens a Markdown panel beneath the
-   code with a logic walkthrough for THIS block. */
+/* Per-block control row (right side of the lean-block-header). */
+.lean-block-controls {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* Per-block "Comments ▾" + "Explain ▾" buttons — same visual style;
+   "open" state highlighted in the accent colour. */
+.block-comments-btn,
 .block-explain-btn {
   font-family: var(--font-ui);
   font-size: 0.72rem;
@@ -409,10 +416,19 @@ ol.roman-paren > li.no-marker::before { content: ""; }
   border-radius: 3px;
   cursor: pointer;
 }
-.block-explain-btn:hover:not(.disabled) { color: var(--accent); border-color: var(--accent-soft); }
-.block-explain-btn.open { background: var(--accent); color: #fff; border-color: var(--accent); }
-.block-explain-btn.disabled,
-.block-explain-btn:disabled {
+.block-comments-btn:hover:not(.disabled),
+.block-explain-btn:hover:not(.disabled) {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+}
+.block-comments-btn.on,
+.block-explain-btn.open {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.block-comments-btn.disabled, .block-comments-btn:disabled,
+.block-explain-btn.disabled,  .block-explain-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

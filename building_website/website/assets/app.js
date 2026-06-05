@@ -178,30 +178,56 @@ function highlightLeanIn(root) {
   });
 }
 
-/* Lean pane returns { body, commentsToggle } so the caller can hoist
-   the toggle into the pane label. Each block renders with:
+/* Lean pane. Each block renders with:
      - a label (kind: main / helper)
-     - a per-block "Explain ▾" button that toggles a Markdown explanation
-       panel beneath the code (disabled if the block has no explanation)
-     - the code itself, optionally rendered in its annotated form (with
-       line-by-line `--` comments) when the page-level comments toggle
-       is on. */
+     - a per-block "Comments ▾" button that flips this block's code
+       between its bare `code` and its `code_annotated` variant (the
+       same code with a `--` comment line above each non-trivial line).
+       Default: off. Each block toggles independently.
+     - a per-block "Explain ▾" button that toggles a Markdown
+       explanation panel beneath the code (disabled if no explanation
+       was generated). */
 function buildLeanPane(data) {
   const body = el("div", { class: "pane-body lean-pane-body" });
   const blocks = data.lean_blocks || [];
   if (blocks.length === 0) {
     body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
-    return { body, commentsToggle: null };
+    return body;
   }
-
-  let commentsOn = false;        // page-level: off → show `code`; on → `code_annotated`
-  const blockEntries = [];        // per-block records so toggles can flip them in place
 
   for (const b of blocks) {
     const kind = b.kind === "main" ? "main" : "helper";
     const codeNode = el("code", { class: "language-lean" }, b.code);
     const codePre  = el("pre", {}, codeNode);
 
+    // Per-block comments toggle (only when a non-trivial annotated
+    // version exists).
+    const hasAnnotated = !!(b.code_annotated && b.code_annotated.trim() && b.code_annotated !== b.code);
+    let commentsOn = false;
+    const commentsBtn = el("button", {
+      class: "block-comments-btn", type: "button",
+      "aria-label": "Toggle line-by-line comments in this block",
+      title: hasAnnotated
+        ? "Show or hide a `-- comment` line above each non-trivial Lean line in this block."
+        : "No annotated variant generated for this block.",
+    }, "Comments");
+    if (!hasAnnotated) {
+      commentsBtn.disabled = true;
+      commentsBtn.classList.add("disabled");
+    } else {
+      commentsBtn.textContent = "Comments ▾";
+      commentsBtn.addEventListener("click", () => {
+        commentsOn = !commentsOn;
+        const next = commentsOn ? b.code_annotated : b.code;
+        codePre.innerHTML = "";
+        codePre.append(el("code", { class: "language-lean" }, next));
+        commentsBtn.textContent = commentsOn ? "Comments ▴" : "Comments ▾";
+        commentsBtn.classList.toggle("on", commentsOn);
+        highlightLeanIn(codePre);
+      });
+    }
+
+    // Per-block explanation panel.
     const explanation = (b.explanation || "").trim();
     const explanationDiv = el("div", { class: "block-explanation markdown-body" });
     if (explanation) {
@@ -209,17 +235,17 @@ function buildLeanPane(data) {
         ? marked.parse(explanation, { gfm: true, breaks: false })
         : `<pre>${explanation}</pre>`;
     }
-
     let explainOpen = false;
     const explainBtn = el("button", {
       class: "block-explain-btn", type: "button",
-      "aria-label": "Toggle explanation for this block",
+      "aria-label": "Toggle the human-language explanation for this block",
     }, "Explain");
     if (!explanation) {
       explainBtn.disabled = true;
       explainBtn.classList.add("disabled");
       explainBtn.title = "No explanation generated for this block yet.";
     } else {
+      explainBtn.textContent = "Explain ▾";
       explainBtn.addEventListener("click", () => {
         explainOpen = !explainOpen;
         explainBtn.textContent = explainOpen ? "Explain ▴" : "Explain ▾";
@@ -227,49 +253,21 @@ function buildLeanPane(data) {
         explanationDiv.classList.toggle("open", explainOpen);
         if (explainOpen) renderMath(explanationDiv);
       });
-      explainBtn.textContent = "Explain ▾";
     }
 
-    const element = el("div", { class: `lean-block lean-block-${kind}` },
-      el("div", { class: "lean-block-header" },
-        el("div", { class: "lean-block-label" }, kind),
-        explainBtn,
+    body.append(
+      el("div", { class: `lean-block lean-block-${kind}` },
+        el("div", { class: "lean-block-header" },
+          el("div", { class: "lean-block-label" }, kind),
+          el("div", { class: "lean-block-controls" }, commentsBtn, explainBtn),
+        ),
+        codePre,
+        explanationDiv,
       ),
-      codePre,
-      explanationDiv,
     );
-
-    blockEntries.push({ block: b, codePre });
-    body.append(element);
   }
 
-  // Page-level comments toggle, only when at least one block has a
-  // non-trivial annotated variant.
-  const annotatable = blocks.some(
-    (b) => b.code_annotated && b.code_annotated.trim() && b.code_annotated !== b.code,
-  );
-  let commentsToggle = null;
-  if (annotatable) {
-    commentsToggle = el("button", {
-      class: "lean-comments-toggle off", type: "button",
-      "aria-label": "Toggle line-by-line comments in every Lean block",
-      title: "Inserts a comment above each Lean line explaining the naming, the functions used, and the logic.",
-    }, "Comments: off");
-    commentsToggle.addEventListener("click", () => {
-      commentsOn = !commentsOn;
-      commentsToggle.textContent = `Comments: ${commentsOn ? "on" : "off"}`;
-      commentsToggle.classList.toggle("on",  commentsOn);
-      commentsToggle.classList.toggle("off", !commentsOn);
-      for (const be of blockEntries) {
-        const next = commentsOn ? (be.block.code_annotated || be.block.code) : be.block.code;
-        be.codePre.innerHTML = "";
-        be.codePre.append(el("code", { class: "language-lean" }, next));
-      }
-      highlightLeanIn(body);
-    });
-  }
-
-  return { body, commentsToggle };
+  return body;
 }
 
 /* The TeX pane has two versions: the original LN excerpt
@@ -481,12 +479,9 @@ function renderEntry(data) {
 
   // ---- split: TeX (LN original ↔ unambiguous) | Lean (per-block panels) ----
   const texPane = buildTexPane(data);
-  const { body: leanBody, commentsToggle } = buildLeanPane(data);
+  const leanBody = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
-    el("div", { class: "pane-label" },
-      el("span", { class: "pane-label-main" }, "Formalisation"),
-      commentsToggle,
-    ),
+    el("div", { class: "pane-label" }, "Formalisation"),
     leanBody,
   );
 
