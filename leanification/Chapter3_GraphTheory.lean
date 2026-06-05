@@ -6,3 +6,4 @@ import Chapter3_GraphTheory.Section3_1.CDMGNotation
 import Chapter3_GraphTheory.Section3_1.EdgeRelations
 import Chapter3_GraphTheory.Section3_1.CDMGRestrictions
 import Chapter3_GraphTheory.Section3_1.Walks
+import Chapter3_GraphTheory.Section3_1.FamilyRelationships
