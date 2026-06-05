@@ -47,7 +47,7 @@
               "kind": "def",
               "label": "def 3.5 — FamilyRelationships",
               "title": "FamilyRelationships",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_6",

@@ -1,0 +1,117 @@
+{
+  "ref": "def_3_5",
+  "kind": "def",
+  "section": "3.1",
+  "title": "FamilyRelationships",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>Let $G=(J,V,E,L)$ be a CDMG, $v,w \\in V$ and $A \\ins J \\cup V$ a subset of nodes.\n     We then define:</p>\n<ol class=\"enum\"><li>The set of <em>parents</em> of $v$ in $G$: \\[\\Pa^G(v):=\\lC w \\in G\\,|\\, w \\tuh v \\in G \\rC.\\]</li><li class=\"no-marker\">The set of <em>parents</em> of $A$ in $G$: \\[\\Pa^G(A):= \\bigcup_{v \\in A} \\Pa^G(v).\\]</li><li>The set of <em>children</em> of $v$ in $G$: \\[\\Ch^G(v):=\\lC w \\in G\\,|\\, v \\tuh w \\in G \\rC.\\]</li><li class=\"no-marker\">The set of <em>children</em> of $A$ in $G$: \\[\\Ch^G(A):= \\bigcup_{v \\in A} \\Ch^G(v).\\]</li><li>The set of <em>siblings</em> of $v$ in $G$: \\[\\Sib^G(v):=\\lC w \\in G\\,|\\, v \\huh w \\in G \\rC.\\]</li><li>The set of <em>ancestors</em> of $v$ in $G$: \n             \\[\\Anc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } w \\tuh \\cdots \\tuh v \\in G \\rC.\\]\n             Note: $v \\in \\Anc^G(v)$.</li><li class=\"no-marker\">The set of <em>ancestors</em> of $A$ in $G$: \\[\\Anc^G(A):= \\bigcup_{v \\in A} \\Anc^G(v).\\]\n             Note: $A \\ins \\Anc^G(A)$.</li><li>The set of <em>descendants</em> of $v$ in $G$: \n             \\[\\Desc^G(v):=\\lC w \\in G\\,|\\,\\exists \\text{ directed walk: } v \\tuh \\cdots \\tuh w \\in G \\rC.\\]\n             Note: $v \\in \\Desc^G(v)$.</li><li class=\"no-marker\">The set of <em>descendants</em> of $A$ in $G$: \\[\\Desc^G(A):= \\bigcup_{v \\in A} \\Desc^G(v).\\]\n             Note: $A \\ins \\Desc^G(A)$.</li><li>The set of <em>non-descendants</em> of $A$ in $G$:\n             \\[ \\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A).\\]</li><li>The <em>strongly connected component</em> of $v$ in $G$:\n             \\[ \\Sc^G(v) := \\Anc^G(v) \\cap \\Desc^G(v).\\]\n             Note: $v \\in \\Sc^G(v)$.</li><li class=\"no-marker\">The (union of) <em>strongly connected components</em> of $A$ in $G$:\n             \\[ \\Sc^G(A) := \\bigcup_{v \\in A} \\Sc^G(v).\\]\n             Note: $A \\ins \\Sc^G(A)$.</li><li>The <em>district</em> of $v$ in $G$:\n             \\[\\Dist^G(v) := \\lC w \\in G\\,|\\, \\exists \\text{ bidirected walk: } \n             v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w \\in G \\rC.\\]\n             Note: $v\\in \\Dist^G(v)$.</li><li class=\"no-marker\">The <em>district</em> of $A$ in $G$:\n             \\[\\Dist^G(A) := \\bigcup_{v \\in A} \\Dist^G(v).\\]\n             Note: $A \\ins \\Dist^G(A)$.</li></ol>",
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_5 -- \"FamilyRelationships\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_5\n% title: FamilyRelationships\n\\def\\rowref{def\\_3\\_5}\n\\phantomsection\\label{def_3_5}\n\n\\begin{Def}[Family relationships]\n    Let $G = (J, V, E, L)$ be a CDMG (def \\ref{def-cdmg}); throughout we use the notation of def \\ref{not-cdmg} and the walk definitions of def \\ref{def:walks}. Let $v, w \\in J \\cup V$ and let $A \\ins J \\cup V$ be a subset of nodes. We adopt the convention that each individual form $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, $\\Dist^G(v)$ defined below is defined for any $v \\in J \\cup V$ (not only $v \\in V$); in particular, input nodes $v \\in J$ admit the same set-builder definitions, and each set form $\\Pa^G(A)$, $\\Ch^G(A)$, $\\Anc^G(A)$, $\\Desc^G(A)$, $\\Sc^G(A)$, $\\Dist^G(A)$ is well-typed for $A \\ins J \\cup V$ because every summand $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, $\\Dist^G(v)$ is defined.\n\n    \\begin{enumerate}[label=\\roman*.)]\n        \\item \\emph{Parents.}\n            The set of \\emph{parents} of $v$ in $G$ is\n            \\[\n                \\Pa^G(v) := \\lC w \\in J \\cup V \\,|\\, (w, v) \\in E \\rC.\n            \\]\n            The set of \\emph{parents} of $A$ in $G$ is\n            \\[\n                \\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v).\n            \\]\n\n        \\item \\emph{Children.}\n            The set of \\emph{children} of $v$ in $G$ is\n            \\[\n                \\Ch^G(v) := \\lC w \\in J \\cup V \\,|\\, (v, w) \\in E \\rC.\n            \\]\n            The set of \\emph{children} of $A$ in $G$ is\n            \\[\n                \\Ch^G(A) := \\bigcup_{v \\in A} \\Ch^G(v).\n            \\]\n\n        \\item \\emph{Siblings.}\n            The set of \\emph{siblings} of $v$ in $G$ is\n            \\[\n                \\Sib^G(v) := \\lC w \\in J \\cup V \\,|\\, (v, w) \\in L \\rC.\n            \\]\n\n        \\item \\emph{Ancestors.}\n            The set of \\emph{ancestors} of $v$ in $G$ is\n            \\[\n                \\Anc^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a directed walk from } w \\text{ to } v \\text{ in } G \\rC,\n            \\]\n            where ``directed walk'' is in the sense of def \\ref{def:walks}, item~ii., admitted to be of any length $n \\ge 0$. In particular, the length-$0$ (trivial) directed walk at $v$ (admitted by def \\ref{def:walks}, item~ii., as the single-vertex tuple $(v)$ with no edges) witnesses $v \\in \\Anc^G(v)$. Hence\n            \\[\n                v \\in \\Anc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            \\emph{unconditionally}: this holds regardless of whether any edge (in particular any directed self-loop) incident to $v$ exists in $G$.\n\n            The set of \\emph{ancestors} of $A$ in $G$ is\n            \\[\n                \\Anc^G(A) := \\bigcup_{v \\in A} \\Anc^G(v),\n            \\]\n            and consequently $A \\ins \\Anc^G(A)$ unconditionally.\n\n        \\item \\emph{Descendants.}\n            The set of \\emph{descendants} of $v$ in $G$ is\n            \\[\n                \\Desc^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a directed walk from } v \\text{ to } w \\text{ in } G \\rC,\n            \\]\n            with ``directed walk'' as in def \\ref{def:walks}, item~ii., admitted to be of any length $n \\ge 0$. The length-$0$ (trivial) directed walk at $v$ witnesses $v \\in \\Desc^G(v)$, so\n            \\[\n                v \\in \\Desc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            \\emph{unconditionally} (regardless of whether any edge, in particular any directed self-loop, incident to $v$ exists in $G$).\n\n            The set of \\emph{descendants} of $A$ in $G$ is\n            \\[\n                \\Desc^G(A) := \\bigcup_{v \\in A} \\Desc^G(v),\n            \\]\n            and consequently $A \\ins \\Desc^G(A)$ unconditionally.\n\n        \\item \\emph{Non-descendants.}\n            The set of \\emph{non-descendants} of $A$ in $G$ is\n            \\[\n                \\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A).\n            \\]\n\n        \\item \\emph{Strongly connected component.}\n            The \\emph{strongly connected component} of $v$ in $G$ is\n            \\[\n                \\Sc^G(v) := \\Anc^G(v) \\cap \\Desc^G(v).\n            \\]\n            Since $v \\in \\Anc^G(v)$ and $v \\in \\Desc^G(v)$ unconditionally (items~iv.\\ and~v.), it follows that\n            \\[\n                v \\in \\Sc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            \\emph{unconditionally} (regardless of whether any edge incident to $v$ exists in $G$).\n\n            The (union of) \\emph{strongly connected components} of $A$ in $G$ is\n            \\[\n                \\Sc^G(A) := \\bigcup_{v \\in A} \\Sc^G(v),\n            \\]\n            and consequently $A \\ins \\Sc^G(A)$ unconditionally.\n\n        \\item \\emph{District.}\n            The \\emph{district} of $v$ in $G$ is\n            \\[\n                \\Dist^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a bidirected walk from } v \\text{ to } w \\text{ in } G \\rC,\n            \\]\n            where ``bidirected walk'' is in the sense of def \\ref{def:walks}, item~iii., admitted to be of any length $n \\ge 0$. The lecture notes' displayed shape ``$v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w$'' is to be read here purely as syntactic sugar for ``walk all of whose edges lie in $L$''; the intermediate-node indexing $v_1, \\dots, v_{n-1}$ imposes no lower bound on $n$, and in particular admits $n = 0$. The length-$0$ (trivial) bidirected walk at $v$ witnesses $v \\in \\Dist^G(v)$, so\n            \\[\n                v \\in \\Dist^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            \\emph{unconditionally}: neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required for self-membership (and indeed a bidirected self-loop at $v$ is excluded a priori by the irreflexivity of $L$ in def \\ref{def-cdmg}).\n\n            The \\emph{district} of $A$ in $G$ is\n            \\[\n                \\Dist^G(A) := \\bigcup_{v \\in A} \\Dist^G(v),\n            \\]\n            and consequently $A \\ins \\Dist^G(A)$ unconditionally.\n    \\end{enumerate}\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G = (J, V, E, L)$ be a CDMG (def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>); throughout we use the notation of def <a href=\"#def_3_2\" class=\"refrow\"><code>not-cdmg</code></a> and the walk definitions of def <a href=\"#def_3_4\" class=\"refrow\"><code>def:walks</code></a>. Let $v, w \\in J \\cup V$ and let $A \\ins J \\cup V$ be a subset of nodes. We adopt the convention that each individual form $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, $\\Dist^G(v)$ defined below is defined for any $v \\in J \\cup V$ (not only $v \\in V$); in particular, input nodes $v \\in J$ admit the same set-builder definitions, and each set form $\\Pa^G(A)$, $\\Ch^G(A)$, $\\Anc^G(A)$, $\\Desc^G(A)$, $\\Sc^G(A)$, $\\Dist^G(A)$ is well-typed for $A \\ins J \\cup V$ because every summand $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, $\\Dist^G(v)$ is defined.</p>\n<ol class=\"roman-paren\"><li><em>Parents.</em>\n            The set of <em>parents</em> of $v$ in $G$ is\n            \\[\n                \\Pa^G(v) := \\lC w \\in J \\cup V \\,|\\, (w, v) \\in E \\rC.\n            \\]\n            The set of <em>parents</em> of $A$ in $G$ is\n            \\[\n                \\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v).\n            \\]</li><li><em>Children.</em>\n            The set of <em>children</em> of $v$ in $G$ is\n            \\[\n                \\Ch^G(v) := \\lC w \\in J \\cup V \\,|\\, (v, w) \\in E \\rC.\n            \\]\n            The set of <em>children</em> of $A$ in $G$ is\n            \\[\n                \\Ch^G(A) := \\bigcup_{v \\in A} \\Ch^G(v).\n            \\]</li><li><em>Siblings.</em>\n            The set of <em>siblings</em> of $v$ in $G$ is\n            \\[\n                \\Sib^G(v) := \\lC w \\in J \\cup V \\,|\\, (v, w) \\in L \\rC.\n            \\]</li><li><em>Ancestors.</em>\n            The set of <em>ancestors</em> of $v$ in $G$ is\n            \\[\n                \\Anc^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a directed walk from } w \\text{ to } v \\text{ in } G \\rC,\n            \\]\n            where “directed walk” is in the sense of def <a href=\"#def_3_4\" class=\"refrow\"><code>def:walks</code></a>, item&nbsp;ii., admitted to be of any length $n \\ge 0$. In particular, the length-$0$ (trivial) directed walk at $v$ (admitted by def <a href=\"#def_3_4\" class=\"refrow\"><code>def:walks</code></a>, item&nbsp;ii., as the single-vertex tuple $(v)$ with no edges) witnesses $v \\in \\Anc^G(v)$. Hence\n            \\[\n                v \\in \\Anc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            <em>unconditionally</em>: this holds regardless of whether any edge (in particular any directed self-loop) incident to $v$ exists in $G$.\n<p>The set of <em>ancestors</em> of $A$ in $G$ is\n            \\[\n                \\Anc^G(A) := \\bigcup_{v \\in A} \\Anc^G(v),\n            \\]\n            and consequently $A \\ins \\Anc^G(A)$ unconditionally.</li><li><em>Descendants.</em>\n            The set of <em>descendants</em> of $v$ in $G$ is\n            \\[\n                \\Desc^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a directed walk from } v \\text{ to } w \\text{ in } G \\rC,\n            \\]\n            with “directed walk” as in def <a href=\"#def_3_4\" class=\"refrow\"><code>def:walks</code></a>, item&nbsp;ii., admitted to be of any length $n \\ge 0$. The length-$0$ (trivial) directed walk at $v$ witnesses $v \\in \\Desc^G(v)$, so\n            \\[\n                v \\in \\Desc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            <em>unconditionally</em> (regardless of whether any edge, in particular any directed self-loop, incident to $v$ exists in $G$).</p>\n<p>The set of <em>descendants</em> of $A$ in $G$ is\n            \\[\n                \\Desc^G(A) := \\bigcup_{v \\in A} \\Desc^G(v),\n            \\]\n            and consequently $A \\ins \\Desc^G(A)$ unconditionally.</li><li><em>Non-descendants.</em>\n            The set of <em>non-descendants</em> of $A$ in $G$ is\n            \\[\n                \\NonDesc^G(A) := (J \\cup V) \\sm \\Desc^G(A).\n            \\]</li><li><em>Strongly connected component.</em>\n            The <em>strongly connected component</em> of $v$ in $G$ is\n            \\[\n                \\Sc^G(v) := \\Anc^G(v) \\cap \\Desc^G(v).\n            \\]\n            Since $v \\in \\Anc^G(v)$ and $v \\in \\Desc^G(v)$ unconditionally (items&nbsp;iv.\\ and&nbsp;v.), it follows that\n            \\[\n                v \\in \\Sc^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            <em>unconditionally</em> (regardless of whether any edge incident to $v$ exists in $G$).</p>\n<p>The (union of) <em>strongly connected components</em> of $A$ in $G$ is\n            \\[\n                \\Sc^G(A) := \\bigcup_{v \\in A} \\Sc^G(v),\n            \\]\n            and consequently $A \\ins \\Sc^G(A)$ unconditionally.</li><li><em>District.</em>\n            The <em>district</em> of $v$ in $G$ is\n            \\[\n                \\Dist^G(v) := \\lC w \\in J \\cup V \\,|\\, \\text{there exists a bidirected walk from } v \\text{ to } w \\text{ in } G \\rC,\n            \\]\n            where “bidirected walk” is in the sense of def <a href=\"#def_3_4\" class=\"refrow\"><code>def:walks</code></a>, item&nbsp;iii., admitted to be of any length $n \\ge 0$. The lecture notes' displayed shape “$v \\huh v_1 \\huh \\cdots \\huh v_{n-1} \\huh w$” is to be read here purely as syntactic sugar for “walk all of whose edges lie in $L$”; the intermediate-node indexing $v_1, \\dots, v_{n-1}$ imposes no lower bound on $n$, and in particular admits $n = 0$. The length-$0$ (trivial) bidirected walk at $v$ witnesses $v \\in \\Dist^G(v)$, so\n            \\[\n                v \\in \\Dist^G(v) \\qquad \\text{for every } v \\in J \\cup V,\n            \\]\n            <em>unconditionally</em>: neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required for self-membership (and indeed a bidirected self-loop at $v$ is excluded a priori by the irreflexivity of $L$ in def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>).</p>\n<p>The <em>district</em> of $A$ in $G$ is\n            \\[\n                \\Dist^G(A) := \\bigcup_{v \\in A} \\Dist^G(v),\n            \\]\n            and consequently $A \\ins \\Dist^G(A)$ unconditionally.</li></ol></p>",
+    "env": "Def",
+    "env_title": "Family relationships",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_5_FamilyRelationships.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [
+    {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Pa (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ (w, v) ∈ G.E}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def PaSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Pa v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Ch (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ (v, w) ∈ G.E}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def ChSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Ch v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Sib (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ (v, w) ∈ G.L}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Anc (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ ∃ p : Walk G w v, p.IsDirectedWalk}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def AncSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Anc v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Desc (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsDirectedWalk}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def DescSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Desc v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def NonDesc (G : CDMG Node) (A : Set Node) : Set Node :=\n  ((G.J ∪ G.V : Finset Node) : Set Node) \\ G.DescSet A",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Sc (G : CDMG Node) (v : Node) : Set Node :=\n  G.Anc v ∩ G.Desc v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def ScSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Sc v",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Dist (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsBidirectedWalk}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def DistSet (G : CDMG Node) (A : Set Node) : Set Node :=\n  ⋃ v ∈ A, G.Dist v",
+      "explanation": "",
+      "code_annotated": ""
+    }
+  ],
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/FamilyRelationships.lean",
+  "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
+  "design_choices": ""
+}
