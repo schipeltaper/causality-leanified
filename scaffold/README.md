@@ -121,7 +121,7 @@ Reads the filled-in table, folds each decision into the observing row's `additio
 python scaffold/scripts/phase3_solving/solve_chapter.py
 ```
 
-The orchestrator picks the first unsolved row, spawns a manager (Opus 4.7 1M-context), the manager spawns workers (formalize, verify_equivalence, verify_tex_proof, simplify_proof, …), the manager iterates until the row passes the three-stage solved-gate (sorry-check, friendly equivalence, strict equivalence). The full row-solving workflow lives in `scaffold/claude_prompts/phase3_solving/manager.md`.
+The orchestrator picks the first unsolved row, spawns a manager (Opus 4.7 1M-context), the manager spawns workers (formalize, verify_equivalence, verify_tex_proof, …), the manager iterates until the row passes the three-stage solved-gate (sorry-check, friendly equivalence, strict equivalence). The full row-solving workflow lives in `scaffold/claude_prompts/phase3_solving/manager.md`.
 
 The equivalence checkers (`verify_equivalence`, `verify_equivalence_strict`, `verify_with_examples`) treat **`tex_block + addition_to_the_LN`** as the authoritative spec — the formalization must satisfy the literal LN **AND** every clause in the addition.
 
@@ -197,7 +197,6 @@ scaffold/
 │   │       ├── verify_tex_proof.md
 │   │       ├── correct_tex_proof.md
 │   │       ├── expand_tex_proof.md
-│   │       ├── simplify_proof.md
 │   │       ├── review_design.md
 │   │       ├── add_design_choice_comments.md
 │   │       ├── plan_subtasks.md

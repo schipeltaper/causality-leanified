@@ -76,7 +76,6 @@ The action name must be **exactly one of the values listed below**. No other tex
 | `verify_equivalence_strict` | adversarial, default-strict equivalence check. Classifies any difference as CONTENT (changes the math) or PRESENTATION (same math, different packaging). May return `EXAMPLE_GENERATION` asking for the property-based check — when it does, the orchestrator **automatically chains `verify_with_examples`** and feeds the combined result back to you (you don't have to dispatch a second action). Also auto-runs as a gate inside `solved` (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — but you can also invoke it voluntarily, e.g. right after `verify_equivalence` PASSes, to catch deviations the friendly checker missed. The orchestrator inlines the actual Lean source + the current deviation register into the worker prompt for this action. | brief for `verify_equivalence_strict.md` |
 | `verify_with_examples` | property-based equivalence check via concrete Lean instances (uses `lean_run_code` to actually compute both sides). Usually reached *automatically* via the auto-chain above; invoke directly when you want the example check without first running the strict checker (e.g., as an additional sanity-check on a def that introduces a new operator/predicate/structure — `marginalize`, `nodeSplittingOn`, walk constructors, …). Like `verify_equivalence_strict`, the orchestrator inlines the actual Lean source + deviation register into the worker prompt for this action. | brief for `verify_with_examples.md` (what to instantiate, edge cases of interest) |
 | `add_design_choice_comments` | after equivalence PASS: enrich the comment block above each Lean declaration with the *why* (this is mandatory before proceeding) | brief for `add_design_choice_comments.md` (which Lean file(s), which declaration(s), what review_design surfaced) |
-| `simplify_proof` | a Lean proof closes — check it isn't unnecessarily complex | brief for `simplify_proof.md` (proof file path + Lean file path) |
 | `solved` | every prerequisite verifier has PASSed; you want the final-gate check | short summary of what was done; orchestrator dispatches `verify_row_solved` |
 | `make_plan` | the job is chunky and needs ordered subtasks | brief for `plan_subtasks.md` (the worker writes the plan into your `workspace_<ref>.md`) |
 | `decompose` | synonym for `make_plan` | brief for `plan_subtasks.md` |
@@ -95,7 +94,7 @@ The canonical list of valid action names is in `scaffold/scripts/phase2_initiali
 ## When you spawn a worker — always pass
 
 - The row context: `ref`, `tex_file`, `tex_block`, the row's subsection folder
-- For verifiers that need full LN context (`review_design`, `simplify_proof`): tell them explicitly to read `lecture-notes/lecture_notes/main.tex` and the chapters that `\input`s it
+- For verifiers that need full LN context (`review_design`): tell them explicitly to read `lecture-notes/lecture_notes/main.tex` and the chapters that `\input`s it
 - A pointer back to `claude.md` and to the worker's own prompt under `scaffold/claude_prompts/phase3_solving/row_workers/`
 - A reminder: stay close to the lecture notes
 - Encouragement — this is hard, focused work; frame it positively
@@ -149,11 +148,8 @@ A claim row passes through **exactly two manager agents**: one for the **stateme
 13. `spawn_agent_sub_task` → `prove_claim_in_lean.md` (translates the verified TeX proof to Lean tactics).
     - If the prover hits a sketchy step in the TeX: `expand_proof`.
     - If the prover finds a *real* mistake in the TeX proof: `correct_tex_proof`, then `verify_tex_statement_plus_proof` + `verify_tex_proof` again, then re-prove. (You can also `continue_agent` to send the leanifier's feedback to the original tex writer's session.)
-14. `simplify_proof` — full-LN-context check.
-    - **On PASS**: the proof is already as simple as it reasonably gets — keep the existing proof and move on.
-    - **On FAIL**: a concrete simpler alternative was proposed in the verifier's tagged feedback; dispatch the prover with that simpler version (with `correct_tex_proof` first if the TeX needs to mirror).
-15. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
-16. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
+14. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (see [Strict-equivalence solved-gate](#strict-equivalence-solved-gate)) — all three must clear.
+15. On PASS: row marked `formalized="yes"`, `proven="proven"`, `solved="yes"`.
 
 ### Claim that's actually false — **same workflow as proving, on the negation**
 
@@ -163,8 +159,7 @@ Disproving uses the identical pipeline as proving: first a TeX proof of the nega
 2. `spawn_agent_sub_task` → `write_tex_proof.md` — tell the worker (i) target file is `tex/claim_<ref>_disproof_<title>.tex` (the disprove-side stub), (ii) the proof must establish `NOT-claim` with a concrete counter-example.
 3. `verify_tex_proof` — same; the verifier verifies the disprove tex.
 4. `spawn_agent_sub_task` → `prove_claim_in_lean.md` — leanify the negation into the **new file** `<Title>Disproof.lean` (sibling of `<Title>.lean`). The Lean target is typically `theorem not_<original> : ¬ <claim> := …` (or an existential witness like `∃ <setup>, hypotheses ∧ ¬ conclusion`). **Do not edit `<Title>.lean`** — that file holds the prove-direction work and stays untouched in case you flip back.
-5. `simplify_proof` — same; targets the disprove Lean file.
-6. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (now run on the disprove Lean; the strict checker is disprove-mode-aware via the row's `proven` field, so it compares to the *negation* of the LN claim). The verifier verifies whichever side the manager's most recent `mistake`/`unmistake` indicates. The orchestrator writes `proven="disproven"` based on that last toggle, then `cleanup_row_artefacts` *deletes* the prove-side tex + `<Title>.lean` (irrelevant now) and re-points `main_lean_file` to the disprove Lean. (If you'd emitted `unmistake` before `solved` PASSed, the reverse happens — the disprove side is the one deleted.)
+5. `solved` → `verify_row_solved` → hard sorry-check → **strict-equivalence gate** (now run on the disprove Lean; the strict checker is disprove-mode-aware via the row's `proven` field, so it compares to the *negation* of the LN claim). The verifier verifies whichever side the manager's most recent `mistake`/`unmistake` indicates. The orchestrator writes `proven="disproven"` based on that last toggle, then `cleanup_row_artefacts` *deletes* the prove-side tex + `<Title>.lean` (irrelevant now) and re-points `main_lean_file` to the disprove Lean. (If you'd emitted `unmistake` before `solved` PASSed, the reverse happens — the disprove side is the one deleted.)
 
 **Flipping back via `unmistake`**: if the counter-example doesn't pan out, emit `unmistake`. The orchestrator tells you in its `extra_note` that the prove-direction files are intact and exactly where prior prove-work left them. Resume the standard prove pipeline from there. You can flip again via `mistake` later; both sides' files persist across toggles.
 

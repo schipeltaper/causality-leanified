@@ -156,7 +156,6 @@ VERIFIER_ACTIONS: dict[str, tuple[str, str]] = {
     "verify_equivalence":             ("verify_equivalence.md",             "equivalence_verifier"),
     "verify_equivalence_strict":      ("verify_equivalence_strict.md",      "strict_eq_verifier"),
     "verify_with_examples":           ("verify_with_examples.md",           "examples_verifier"),
-    "simplify_proof":                 ("simplify_proof.md",                 "simplifier"),
 }
 
 # Regex that pulls the (action_name, body) out of a manager message. The
@@ -4861,24 +4860,6 @@ def solve_current_row(data_path: Path | None = None) -> None:
                         f"{kind}: {e}.{feedback}"
                         "Dispatch `verify_with_examples` yourself, or "
                         "pick another action."
-                    )
-            # `simplify_proof` has inverted semantics worth spelling out:
-            # PASS = couldn't find a simpler proof, the existing one is fine;
-            # FAIL = a concrete simpler alternative was proposed.
-            elif action == "simplify_proof":
-                if verdict == "PASS":
-                    extra_note = (
-                        "`simplify_proof` returned PASS: the verifier could "
-                        "NOT find a simpler proof. The existing Lean proof "
-                        "is therefore confirmed acceptable as-is -- keep it "
-                        "and proceed to `solved`."
-                    )
-                else:
-                    extra_note = (
-                        f"`simplify_proof` returned {verdict}; a simpler "
-                        f"alternative was proposed.{feedback}"
-                        "Dispatch the prover (and `correct_tex_proof` first "
-                        "if the TeX sketch needs to mirror) to apply it."
                     )
             else:
                 extra_note = (

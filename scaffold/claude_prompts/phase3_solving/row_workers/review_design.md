@@ -51,4 +51,4 @@ if the design is genuinely sub-optimal in a way that will hurt downstream work. 
 
 - This review is **about design, not exact LN equivalence**. The wording of the Lean statement can match the LN exactly and still fail this review (if the Lean shape is awkward) — or differ slightly and pass (if the Lean shape is natural and faithful to the LN's intent).
 - You do not edit any file. You only read and report.
-- Do not get distracted into reviewing the proof — that's `simplify_proof`'s job.
+- Do not get distracted into reviewing the proof — proof review happens via `verify_tex_proof` (math correctness) and the leanification + `verify_equivalence` chain.

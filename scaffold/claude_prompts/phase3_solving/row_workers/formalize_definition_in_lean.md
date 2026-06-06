@@ -22,19 +22,33 @@ The LN `tex_block` and `addition_to_the_LN` remain available in your row context
 - The target Lean file path inside the row's subsection folder under `leanification/`
 - Any tips on the row
 
+## Build on what is already there
+
+You are not formalizing this row in isolation. By the time you are spawned, every earlier row in this chapter is already formalized in Lean and lives in this subsection's folder (or a sibling subsection). **Read those existing Lean files before writing your own.** The right shape for your new declaration is almost always one that reuses an earlier row's types, predicates, notation, and naming conventions — not a parallel re-introduction.
+
+Concretely, before you start writing:
+
+1. **Open every sibling Lean file** in this row's subsection folder under `leanification/<Chapter>/<Section>/`. The chapter aggregator `leanification/<Chapter>.lean` is a quick index of what already exists.
+2. **For each type / predicate / notation your row's spec references** (e.g. `CDMG`, `G.tuh`, `Walk G u v`, `G.IsAcyclic`), find where it's defined and read its declaration plus its design-choice comment block. Use those exact names; do not introduce alternative spellings or duplicate definitions.
+3. **Match the chapter's conventions** for namespace placement, variable binders (`variable {Node : Type*} [DecidableEq Node]`), implicit-vs-explicit parameter style, `def` vs `abbrev` choice, dot-notation accessibility, and similar low-level decisions. Where a sibling file took a specific design choice (e.g. "use `Finset (Node × Node)` plus a symmetry field rather than `Sym2`"), inherit that choice unless the row's `addition_to_the_LN` explicitly requires a deviation.
+4. **If the spec needs something that doesn't yet exist** (a missing helper predicate, a missing notation), surface that in your report — it may indicate the missing piece should belong to an earlier row or warrant its own `--- helper` block here. Do not silently invent a parallel concept that competes with what an earlier row already covered.
+
+The rewritten canonical tex statement file is your *spec*; the existing Lean files are your *vocabulary*. Together they pin down both *what* to formalize and *how* it should look in this codebase.
+
 ## What to do
 
 1. **Read the rewritten tex statement file** end to end. This is your spec. Read the row's `addition_to_the_LN` and the LN `tex_block` as backup, but the rewritten file is what you formalize.
-2. **Decide single vs. multi-item.** A "definition" row in the data file is sometimes a *collection* of definitions — a notation block with several bullet points, or a list of operators introduced together. In that case **do not force them into one Lean declaration**: produce as many `def`s / `notation`s / `structure`s as it takes to mirror the LN faithfully, split across multiple files if a file would otherwise grow past ~700 lines or a natural module boundary suggests it.
-3. **Plan the shape.** For each item decide whether it becomes a `def`, an `abbrev`, a `structure`, a `class`, or a `notation`. Prefer the construct that lets dependent theory build naturally on top of it.
-4. **Write the Lean declaration(s)** in the target file(s), with a comment block above each one containing:
+2. **Read sibling Lean files** (per *Build on what is already there* above) so the new code uses existing names, types, and conventions.
+3. **Decide single vs. multi-item.** A "definition" row in the data file is sometimes a *collection* of definitions — a notation block with several bullet points, or a list of operators introduced together. In that case **do not force them into one Lean declaration**: produce as many `def`s / `notation`s / `structure`s as it takes to mirror the LN faithfully, split across multiple files if a file would otherwise grow past ~700 lines or a natural module boundary suggests it.
+4. **Plan the shape.** For each item decide whether it becomes a `def`, an `abbrev`, a `structure`, a `class`, or a `notation`. Prefer the construct that lets dependent theory build naturally on top of it.
+5. **Write the Lean declaration(s)** in the target file(s), with a comment block above each one containing:
    - The `ref` (e.g. `-- def_3_5`)
    - A short human-language description of what is being defined
    - The TeX of the definition (verbatim, between `/-` and `-/`), for traceability
-   - A short **Design choice** note: why you chose this Lean shape, what mathlib structure you built on (or why you didn't), trade-offs
-5. **Wrap the main declaration(s) with statement markers.** This is REQUIRED -- the website builder relies on them to extract just the statement formalization for display. The markers are *plain Lean line comments*. See **Marker conventions** below.
-6. **Check it builds**: `lake build` from `/home/11716061/repo_scaffold2/`. Fix any errors.
-7. **Report back** to the manager: every Lean file path you wrote to, each declaration name, and any decisions that may affect later claims that depend on this definition.
+   - A short **Design choice** note: why you chose this Lean shape, what mathlib structure you built on (or why you didn't), trade-offs — and explicitly which sibling Lean files / declarations you built on.
+6. **Wrap the main declaration(s) with statement markers.** This is REQUIRED -- the website builder relies on them to extract just the statement formalization for display. The markers are *plain Lean line comments*. See **Marker conventions** below.
+7. **Check it builds**: `lake build` from `/home/11716061/repo_scaffold2/`. Fix any errors.
+8. **Report back** to the manager: every Lean file path you wrote to, each declaration name, which sibling defs / predicates you reused, and any decisions that may affect later claims that depend on this definition.
 
 ## Marker conventions (REQUIRED)
 

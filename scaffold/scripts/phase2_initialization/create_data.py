@@ -65,8 +65,6 @@ ACTIONS = [
     "verify_equivalence_strict",  # adversarial, default-strict equivalence (CONTENT vs PRESENTATION)
     "verify_with_examples",  # property-based equivalence check via concrete Lean instances
     "add_design_choice_comments",  # after equivalence PASS: enrich the Lean comments with WHY
-    # --- proof review (after Lean proof closes) ---------------------------
-    "simplify_proof",        # check if the Lean proof is over-complex; propose simpler if any
     # --- terminal / dispatch / control flow -------------------------------
     "solved",                # signal that the whole row is done (triggers row verifier)
     "refactor",
