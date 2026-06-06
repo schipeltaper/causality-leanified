@@ -16,10 +16,21 @@
 \phantomsection\label{def_3_8}
 
 \begin{Def}[Topological order]
-    Let $G=(J,V,E,L)$ be a CDMG.
-    A \emph{topological order} of $G$ is a total order $<$ of $J \cup V$ such that for all $v,w \in G$:
-    \[ v \in \Pa^G(w) \; \implies \; v < w.\]
-    Equivalently, it can be described as an indexing of the nodes $J \cup V = \{v_1,\dots,v_K\}$ where parents always precede their children.
+    \label{def-topological-order}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and the family-relationship notation of def \ref{def_3_5}. By def \ref{def-cdmg}, items~i.--ii., the node set $J \cup V$ is finite (as a union of two finite sets).
+
+    A \emph{topological order} of $G$ is a \emph{strict} total order $<$ on $J \cup V$ -- i.e.\ a binary relation $<$ on $J \cup V$ that is irreflexive, transitive, and satisfies trichotomy ($v < w$, $v = w$, or $w < v$ for every $v, w \in J \cup V$); the lecture notes' order symbol $<$ is read strictly throughout -- such that
+    \[
+        \forall\, v, w \in J \cup V :\quad v \in \Pa^G(w) \;\Longrightarrow\; v < w.
+    \]
+    The displayed implication is well-typed because, by the set-builder defining clause $\Pa^G(w) := \lC u \in J \cup V \,|\, (u, w) \in E \rC$ of def \ref{def_3_5}, item~i., any $v \in \Pa^G(w)$ automatically lies in $J \cup V$, so the comparison $v < w$ is defined.
+
+    \emph{Equivalent indexing form.}
+    Set $K := |J \cup V|$, the cardinality of the (finite) node set. Because $<$ is a strict total order on the finite set $J \cup V$, its order type is the finite ordinal $K$, so $<$ may equivalently be presented as a bijection $\{1, 2, \dots, K\} \to J \cup V$, $i \mapsto v_i$, with $v_1 < v_2 < \cdots < v_K$ under $<$. Under this presentation, the parents-precede-children condition above becomes
+    \[
+        \forall\, i, j \in \{1, 2, \dots, K\} :\quad v_i \in \Pa^G(v_j) \;\Longrightarrow\; i < j,
+    \]
+    i.e.\ \emph{parents always precede their children} in the enumeration $v_1, v_2, \dots, v_K$. The equivalence between the primary (strict-total-order) form and this indexed form relies essentially on the finiteness of $J \cup V$ guaranteed by def \ref{def-cdmg}: without finiteness, the indexed form would be strictly stronger than the primary form (it forces order type at most $\omega$).
 \end{Def}
 
 \end{document}
