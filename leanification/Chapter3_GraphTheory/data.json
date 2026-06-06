@@ -395,28 +395,30 @@
       "section": "3.1",
       "title": "Acyclicity",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-06",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -426,16 +428,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Acyclicity]\n    \\label{def-acylic}\n    A  CDMG  $G=(J,V,E,L)$  is called \\emph{acyclic} if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "a694ca59-5c7a-4d2b-bec6-268ba6e97782",
+          "first_seen": "2026-06-06T12:33:10+00:00",
+          "last_used": "2026-06-06T12:33:10+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2271,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "SUBTLETY:\nid: non_trivial_walk_undefined_admits_self_loop_and_2cycle_ambiguity\nexplanation: The block uses \"non-trivial directed walk from $v$ to itself\" without defining \"non-trivial\" anywhere in this definition. Two plausible readings:\n\n  (a) **Length ≥ 1**: any closed walk other than the zero-length walk at $v$. Under this reading, a self-loop $v \\to v$ is itself a non-trivial walk from $v$ to $v$, so acyclicity forbids self-loops, and a 2-cycle $v \\to w \\to v$ is also forbidden.\n\n  (b) **Length ≥ 2** (or \"passes through a vertex other than $v$\"): self-loops would not count as non-trivial, so a CDMG consisting of just $v \\to v$ would still be \"acyclic\" under this reading. Some authors use \"non-trivial\" this way when they want to single out \"real\" cycles.\n\n  The standard graph-theoretic intent is almost certainly (a), but the LN never says so. This becomes a real corner-case question whenever the rest of the LN reasons about acyclic CDMGs: for instance, any later argument that invokes a topological ordering of $V$ implicitly needs self-loops excluded, i.e. reading (a). Conversely, any later claim that an acyclic CDMG may have $v \\to v$ as a benign self-edge would force reading (b). Without an explicit anchor, downstream proofs can silently rely on whichever convention the formalizer chose.\nEND_SUBTLETY\n\nSUBTLETY:\nid: node_quantifier_scope_v_in_G_unclear_J_versus_V\nexplanation: The quantifier reads \"for any node $v \\in G$\", but $G = (J, V, E, L)$ is a 4-tuple, not a set of nodes. The literal text leaves it unclear whether $v$ ranges over\n\n  (i) just $V$, or\n  (ii) $V \\cup J$ (the full node set, assuming $J$ also consists of nodes).\n\n  In a CDMG, $J$ typically plays a distinguished role (e.g., context/parameter/index nodes that do not receive directed edges, or that are treated structurally differently from $V$). If acyclicity is meant to be a condition only on the endogenous part $V$, the definition should say \"$v \\in V$\"; if it's meant to apply to all nodes regardless of role, it should say \"$v \\in V \\cup J$\" (and even then $v \\in G$ is sloppy).\n\n  Corner case: suppose a node $j \\in J$ has only outgoing edges (by construction of CDMG). Then no walk from $j$ to $j$ exists anyway, so under reading (ii) the condition is trivially satisfied at $j$ — no practical difference. But if the CDMG model permits some incoming structure at $J$, the two readings genuinely diverge: a $j$-to-$j$ walk could exist and would only be forbidden under reading (ii). A formalizer must pick one; the LN does not say which.\nEND_SUBTLETY",
+        "session": "ef4949ac-9efb-4072-a5c6-cbfe43c93f97"
       }
     },
     {

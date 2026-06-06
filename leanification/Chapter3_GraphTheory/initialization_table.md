@@ -1094,7 +1094,7 @@ The hypothesis states "$W_2 \ins J \cup V$", explicitly allowing $W_2$ to includ
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 62. `prose_and_equation_orders_are_swapped`
@@ -1108,7 +1108,7 @@ The prose describes the equality as: "the CADMG that arises from first introduci
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 63. `bifurcation_index_boundary_excludes_natural_cases`
