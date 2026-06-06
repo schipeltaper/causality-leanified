@@ -564,7 +564,7 @@
           "last_used": "2026-06-06T20:10:06+00:00"
         }
       ],
-      "time_needed_to_solve": 2276,
+      "time_needed_to_solve": 2295,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -578,30 +578,32 @@
       "section": "3.1",
       "title": "AcyclicIffTopologicalOrder",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-06",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -610,16 +612,26 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "56453e22-328e-454f-9bbd-a5aca4cfd80e",
+          "first_seen": "2026-06-06T21:49:38+00:00",
+          "last_used": "2026-06-06T21:49:38+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3925,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Now I have the full context. Let me carefully analyze the claim's wording.\n\nThe tex block under audit:\n```latex\n\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}\n```\n\nAuditing for issues:\n\n1. **Existence reading of \"has a topological order\"** — standard reading is \"there exists at least one\". Unambiguous.\n2. **Finiteness concern** — def 3.8 explicitly notes \"the node set $J \\cup V$ is finite (as a union of two finite sets)\" and def-cdmg enforces this. So the classical finite-DAG↔topological-order theorem applies; no missing finiteness hypothesis.\n3. **Role of $L$** — labels don't enter either property; the biconditional is independent of $L$, consistent with both referenced definitions.\n4. **Empty / singleton corner cases** — empty $J \\cup V$: vacuously acyclic; empty relation is a strict total order. Singleton: trivially both. No degeneracy issue.\n5. **Self-loops** — covered by the acyclicity definition (length-1 walks are non-trivial).\n6. **J vs V asymmetry** — acyclicity is vacuous for $v \\in J$ (no incoming edges since $E \\subseteq (J \\cup V) \\times V$), and topological order extends to all of $J \\cup V$. Both definitions handle this cleanly.\n7. **Biconditional direction** — standard well-known theorem; both directions hold for finite directed graphs.\n\nThe claim is a clean, one-sentence statement of a well-known classical theorem. All referenced definitions (def 3.6 acyclicity, def 3.8 topological order, def-cdmg) explicitly account for the corner cases and finiteness. The literal wording admits no problematic interpretation.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a4cf9ece-fd63-421a-9aa3-fd25315811d6"
       }
     },
     {

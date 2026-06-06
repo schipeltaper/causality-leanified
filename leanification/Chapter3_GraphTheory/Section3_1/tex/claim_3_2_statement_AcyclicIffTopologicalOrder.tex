@@ -20,7 +20,7 @@
 \phantomsection\label{claim_3_2}
 
 \begin{Lem}[AcyclicIffTopologicalOrder]
-        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}). Then $G$ is acyclic (in the sense of def \ref{def-acylic}) if and only if there exists a topological order of $G$ (in the sense of def \ref{def-topological-order}); equivalently, $G$ is acyclic if and only if there exists a strict total order $<$ on $J \cup V$ -- i.e.\ a binary relation $<$ on $J \cup V$ that is irreflexive, transitive, and trichotomous -- such that, for every $v, w \in J \cup V$, $v \in \Pa^G(w) \implies v < w$ (using the parent-set notation $\Pa^G$ of def \ref{def_3_5}, item~i.). The label set $L$ plays no role on either side of the biconditional.
 \end{Lem}
 
 \end{document}
