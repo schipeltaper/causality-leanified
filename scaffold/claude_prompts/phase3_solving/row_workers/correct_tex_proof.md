@@ -4,13 +4,16 @@
 
 ## Authoritative spec = LN block + `addition_to_the_LN`
 
-The row's `addition_to_the_LN` field is part of the claim's spec — the corrected proof must still establish the LN's literal claim **plus** every clause in `addition_to_the_LN`. If the flaw the leanifier surfaced is rooted in a clause from `addition_to_the_LN` (e.g. a finiteness hypothesis was overlooked), use that clause as the load-bearing repair. Empty addition → only the literal LN applies.
+**In prove mode**, the row's `addition_to_the_LN` field is part of the claim's spec — the corrected proof must still establish the LN's literal claim **plus** every clause in `addition_to_the_LN`. If the flaw the leanifier surfaced is rooted in a clause from `addition_to_the_LN` (e.g. a finiteness hypothesis was overlooked), use that clause as the load-bearing repair. Empty addition → only the literal LN applies.
+
+**In disprove mode**, the corrected proof must establish ¬(LN block + `addition_to_the_LN`) — i.e. the negation that the disprove file's at-the-top statement claims. If the flaw the leanifier surfaced is "the disproof doesn't actually disprove the LN's claim" (the witness fails to satisfy a hypothesis, or the conclusion isn't actually violated for that witness), fix the proof body to address the gap. If the flaw exposes that the disproof's statement is itself wrong (you negated the wrong thing), surface that to the manager rather than fixing the proof body alone — the at-the-top statement may need to be rewritten too.
 
 This is different from `expand_proof`: that worker adds detail to a step that's underspecified. Here, the proof is actually wrong (or wrong in part) and must be corrected.
 
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`)
+- **Mode signal**: `MODE: prove` (default) or `MODE: disprove`.
 - The path to the `.tex` proof file (`leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex` in prove mode, or `…/<ref>_disproof_<title>.tex` in disprove mode)
 - **A concrete description of the flaw** — the leanifier's report on *what* doesn't go through and *why*. The manager should pass this verbatim; don't guess.
 - Pointers to the relevant definitions/lemmas in this chapter (and any new helper lemma the leanifier needs you to introduce)

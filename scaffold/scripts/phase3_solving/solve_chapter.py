@@ -904,10 +904,16 @@ def ensure_row_subfiles(row: dict, subsection_folder: Path) -> list[Path]:
 def ensure_disprove_stubs(row: dict, subsection_folder: Path) -> None:
     """Create the disprove-side tex stub for a claim row, lazily on the
     first ``mistake`` action. Mirrors ``ensure_row_subfiles`` but only
-    creates ``tex/<ref>_disproof_<title>.tex`` (uses the same
-    ``claim_proof.tex.template``; the body slot starts as a
-    ``% TODO: write a proof of NOT-<claim>`` placeholder, with the
-    NEGATED statement restated above the proof env).
+    creates ``tex/<ref>_disproof_<title>.tex``.
+
+    The stub's statement-at-top is a **negation placeholder** (NOT the
+    positive claim verbatim). Restating the positive claim and then
+    proving its negation in the same file would render as an internal
+    contradiction: "Lemma X: [claim]. Proof: counter-example to claim."
+    Instead, the stub presents the positive claim inside a clearly
+    marked NEGATION-PENDING comment block and instructs the disprove-
+    side ``write_tex_proof`` worker to replace it with a precise tex
+    statement of the negation (and then fill the proof body).
 
     Idempotent: if the disprove tex already exists, nothing happens.
     The disprove-side Lean file (``<Title>Disproof.lean``) is *not*
@@ -922,13 +928,36 @@ def ensure_disprove_stubs(row: dict, subsection_folder: Path) -> None:
     out = tex_dir / _file_basename(row, "disproof")
     if out.exists():
         return
-    # Restate the (positive) claim above the disprove proof so the file
-    # renders self-contained; the proof body is left as a TODO that the
-    # disprove-side worker fills in with a proof of NOT-claim.
-    body_from_block = _strip_mark_wrapper(row.get("tex_block", "")).strip()
-    body_from_block = _rewrite_env_to_type(body_from_block, row.get("type", ""))
-    body_from_block = _inject_title_into_bare_env(
-        body_from_block, row.get("title", ""))
+    # Compose the negation placeholder. We keep the positive claim body
+    # *inside a tex comment* so the disprove worker has it as a
+    # reference, then expose a clear TODO for the worker to fill in
+    # with the actual negation.
+    positive_body = _strip_mark_wrapper(row.get("tex_block", "")).strip()
+    positive_body = _rewrite_env_to_type(positive_body, row.get("type", ""))
+    positive_body = _inject_title_into_bare_env(
+        positive_body, row.get("title", ""))
+    # Comment-out every line of the positive body so it lives inside the
+    # statement env as a `% reference` block rather than rendering.
+    commented_positive = "\n".join(
+        f"% {line}" if line else "%" for line in positive_body.splitlines()
+    )
+    statement_body = (
+        "% NEGATION-PENDING -- replace this placeholder with a precise tex\n"
+        "% statement of the NEGATION of the positive claim below. The proof\n"
+        "% block underneath must then establish exactly the negation you\n"
+        "% write here.\n"
+        "%\n"
+        "% --- positive claim (reference only; do NOT keep this in the\n"
+        "% --- rendered statement; replace the whole block with the\n"
+        "% --- negation):\n"
+        f"{commented_positive}\n"
+        "%\n"
+        "% (Typical negation shapes: a flat \\lnot of the positive claim,\n"
+        "% or an explicit existential counter-example \"$\\exists \\dots$,\n"
+        "% such that $\\dots$ and $\\lnot\\dots$\". Pick whichever reads\n"
+        "% cleanly for the proof below.)\n"
+        "\\textbf{NEGATION PENDING -- disprove worker must fill this in.}"
+    )
     ref = row["ref"]
     ref_text = ref.replace("_", r"\_")
     content = _render_template(
@@ -936,11 +965,12 @@ def ensure_disprove_stubs(row: dict, subsection_folder: Path) -> None:
         REF=ref,
         REF_TEXT=ref_text,
         TITLE=row.get("title", ""),
-        STATEMENT_BODY=body_from_block,
-        BODY=("% TODO: write a proof of the NEGATION of the above "
-              "statement.\n% Disprove-mode: the manager judged the claim "
-              "false and is constructing a counter-example or proof of "
-              "\\lnot<claim>."),
+        STATEMENT_BODY=statement_body,
+        BODY=("% TODO: write a proof establishing the negation stated above.\n"
+              "% Disprove-mode: the manager judged the positive claim false\n"
+              "% and is constructing a counter-example or direct proof of\n"
+              "% \\lnot<claim>. Cite the failing instance precisely; do not\n"
+              "% silently weaken the claim being disproven."),
     )
     out.write_text(content, encoding="utf-8")
     print(f"[orchestrator] created disprove-side tex stub: {out.name}",

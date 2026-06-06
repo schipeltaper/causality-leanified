@@ -10,10 +10,16 @@ Concretely: every `[<sid>] …` and `[manual_*] …` paragraph in `addition_to_t
 
 **Which file**: the manager will tell you the target path. There are two cases:
 
-- **Prove mode** (default): target is `tex/claim_<N>_<M>_proof_<title>.tex`. The proof must establish the claim as stated.
-- **Disprove mode** (the manager has emitted `mistake` for this row): target is `tex/claim_<N>_<M>_disproof_<title>.tex`. The proof must establish the **NEGATION** of the claim — typically via a concrete counter-example.
+- **Prove mode** (default): target is `tex/<ref>_proof_<title>.tex`. The proof must establish the claim as stated. The target file already has the framing (`\documentclass[main]{subfiles}`, the rowref block, the **statement restated from the canonical statement file**, a `\begin{proof}...\end{proof}` shell). **You only fill the proof body**; the statement at the top is already correct.
+- **Disprove mode** (the manager has emitted `mistake` for this row and the mistake-sweep has cleared): target is `tex/<ref>_disproof_<title>.tex`. The proof must establish the **NEGATION** of the canonical claim. The file's statement block is a **NEGATION-PENDING placeholder** put there by the orchestrator (it intentionally does *not* restate the positive claim — that would render the file as a literal contradiction). **In disprove mode you have *two* edits to make**:
+  1. **Replace the placeholder statement** at the top of the file with a precise tex statement of the negation. Read the canonical statement file `<ref>_statement_<title>.tex` to know exactly what you are negating, then write the negation inside the file's `\begin{<Type>}[...]...\end{<Type>}` block. The orchestrator left the positive claim commented out inside the placeholder as a reference; remove the placeholder commentary entirely once you have the real negation.
+  2. **Write the proof body** establishing that negation — typically via a concrete counter-example. Cite the failing instance precisely; do not silently weaken the claim being disproven.
 
-In both cases the target file already has the framing (`\documentclass[main]{subfiles}`, the rowref block, the statement restated, a `\begin{proof}...\end{proof}` shell). You only fill the proof body.
+  Typical negation shapes (pick whichever reads cleanly for your proof):
+  - **Flat negation**: `\lnot (\text{positive claim})`.
+  - **Explicit existential counter-example**: `\exists \dots \text{such that} \dots \text{and} \lnot \dots`.
+
+  Down the line `verify_tex_statement_equivalence` (disprove mode) will verify your at-the-top statement is semantically equivalent to ¬(LN block + `addition_to_the_LN`), and `verify_tex_proof` (disprove mode) will verify your proof actually closes that negation. Get both right.
 
 A separate worker (`verify_tex_proof`) checks completeness; only then does a different manager translate the proof into Lean tactics. **Do not write any Lean.**
 
@@ -47,7 +53,8 @@ Structure your proof:
 Fill the body of the existing stub file:
 
 ```
-leanification/<chapter_folder>/<subsection_folder>/claim_<N>_<M>_proof_<title>.tex
+leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex           (prove mode)
+leanification/<Chapter>/<Section>/tex/<ref>_disproof_<title>.tex        (disprove mode)
 ```
 
 Do **not** rename the file or move it. The orchestrator created it from the template with the right name; the manager has its path.
@@ -59,8 +66,11 @@ The file already has:
   rendering ("<ref> <Type> <title>.") and anchors `\refrow{<ref>}` links
   from other subfiles. **Leave this block alone.**
 - a **statement (restated)** section above the proof, containing the claim's
-  `\begin{Thm}/\begin{Def}/\begin{Lem}/...` block (pre-filled at stub creation
-  from the row's `tex_block`),
+  `\begin{Thm}/\begin{Def}/\begin{Lem}/...` block. In **prove mode** this is
+  pre-filled from the row's `tex_block` and you leave it alone. In **disprove
+  mode** this contains a `NEGATION-PENDING` placeholder that you **must
+  replace** with a precise tex statement of the negation (see the disprove-mode
+  section above).
 - a `\begin{proof}` ... `\end{proof}` block with a `% TODO` placeholder.
 
 **Replace ONLY the `% TODO` placeholder inside `\begin{proof}...\end{proof}`** with your proof body. Leave the restated statement above it untouched -- it's there so the proof file renders self-contained when read alone. If the pre-filled statement is wrong or out of date, fix it in the sibling `claim_<ref>_statement_<title>.tex` and copy the corrected block back over the restated statement; do not improvise.
