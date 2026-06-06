@@ -68,7 +68,7 @@
               "kind": "def",
               "label": "def 3.8 — TopologicalOrder",
               "title": "TopologicalOrder",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_2",

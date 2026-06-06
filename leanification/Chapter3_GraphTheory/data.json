@@ -503,7 +503,7 @@
           "last_used": "2026-06-06T13:42:33+00:00"
         }
       ],
-      "time_needed_to_solve": 1847,
+      "time_needed_to_solve": 1867,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -517,28 +517,30 @@
       "section": "3.1",
       "title": "TopologicalOrder",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-06",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -548,16 +550,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "18478cc0-6dd9-4107-8b39-67124722d7bb",
+          "first_seen": "2026-06-06T20:10:06+00:00",
+          "last_used": "2026-06-06T20:10:06+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2276,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "SUBTLETY:\nid: equivalent_indexing_assumes_finite_node_set\nexplanation: The LN gives a primary definition — \"a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$: $v \\in \\Pa^G(w) \\implies v < w$\" — and then claims \"Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\" The two formulations are equivalent only when $J \\cup V$ is finite (so that the strict total order has order type a finite ordinal and can be written as $v_1 < v_2 < \\dots < v_K$). For an infinite node set, the primary definition is still meaningful (any total order on an infinite set is fine), but the \"indexing\" reformulation either fails entirely (uncountable case) or requires further conditions (the order type must be $\\omega$ for a countable set). The definition does not state a finiteness hypothesis on $J \\cup V$ — if CDMGs are taken to be finite implicitly (likely the intended convention), the equivalence is fine; if not, the \"Equivalently\" clause is genuinely stronger than the primary definition. A downstream argument that picks an index `i` and inducts on the index relies on the indexing formulation and would silently inherit a finiteness assumption.\nEND_SUBTLETY\n\nSUBTLETY:\nid: quantifier_domain_v_w_in_G_is_tuple_not_set\nexplanation: The implication is stated \"for all $v,w \\in G$\", but $G = (J,V,E,L)$ is literally a 4-tuple, not a set, so \"$v \\in G$\" does not type-check on the nose. The clearly intended domain is $J \\cup V$ (matching \"a total order $<$ of $J \\cup V$\" in the previous clause, and matching what makes \"$v < w$\" defined). This is conventional graph-theoretic shorthand and unambiguous in intent, but a formalization must commit to the domain explicitly — and in particular must ensure that whenever $v \\in \\Pa^G(w)$, $v$ is in fact in $J \\cup V$ so that the comparison $v < w$ is defined. (For a CDMG this should follow from the definition of $\\Pa^G$, but it is a side-condition the LN never spells out.)\nEND_SUBTLETY",
+        "session": "0750f1c9-1269-44c8-b56f-0418d2e4776d"
       }
     },
     {
