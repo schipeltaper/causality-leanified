@@ -442,7 +442,7 @@
           "last_used": "2026-06-06T12:33:10+00:00"
         }
       ],
-      "time_needed_to_solve": 2271,
+      "time_needed_to_solve": 2347,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
         "done": true,
@@ -456,28 +456,30 @@
       "section": "3.1",
       "title": "CDMGTypes",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-06",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -487,16 +489,26 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "e207ba54-df35-4347-8a90-6dd668f2488a",
+          "first_seen": "2026-06-06T13:42:33+00:00",
+          "last_used": "2026-06-06T13:42:33+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1847,
       "addition_to_the_LN": "",
       "wording_check": {
-        "done": false,
-        "output": "",
-        "session": ""
+        "done": true,
+        "output": "Looking at this taxonomic definition that classifies CDMGs into 7 subtypes based on three boolean properties (acyclicity, J = ∅, L = ∅).\n\nLet me audit each clause for ambiguity, corner cases, internal inconsistency, or arbitrariness.\n\n**Conditions checked:**\n1. CADMG: acyclic\n2. DMG: J = ∅\n3. ADMG: acyclic ∧ J = ∅\n4. CDG: L = ∅\n5. DG: J = ∅ ∧ L = ∅\n6. CDAG: acyclic ∧ L = ∅\n7. DAG: acyclic ∧ J = ∅ ∧ L = ∅\n\n**Coverage**: The 7 named subtypes plus the unrestricted CDMG cover all 2³ = 8 combinations of the three properties. Complete.\n\n**Naming consistency**: \"C\" prefix ↔ J unrestricted; \"M\" (Mixed) ↔ L unrestricted; \"A\" (Acyclic) ↔ acyclicity required. Acronyms match expansions (CADMG = Conditional Acyclic DMG; CDAG = Conditional DAG). Consistent.\n\n**\"Is called\" semantics**: A DAG satisfies all 7 conditions, so it would be called by all 7 names simultaneously. This is standard nested-class taxonomy and conventional in mathematical text — not a genuine subtlety.\n\n**Corner cases**: Empty V (or V = J = ∅) makes the graph trivially satisfy all conditions. This is standard and the literal text handles it consistently — no surprises.\n\n**Acyclicity**: Relies on def_3_6's notion of acyclic; that's def_3_6's responsibility, not this block's.\n\n**E unrestricted**: No subtype constrains E. Consistent with \"Directed\" appearing in every name.\n\nThe taxonomy is clean, the conditions characterize each type precisely, and the naming convention is internally consistent.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "031848c0-5d82-4ae8-b488-1e06641ece84"
       }
     },
     {

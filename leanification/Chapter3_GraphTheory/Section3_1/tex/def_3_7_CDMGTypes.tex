@@ -16,16 +16,40 @@
 \phantomsection\label{def_3_7}
 
 \begin{Def}[CDMGTypes]
-    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:
-   \begin{enumerate}
-       \item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.
-       \item Directed Mixed Graph (DMG) if $J = \emptyset$.
-       \item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \emptyset$.
-       \item Conditional Directed Graph (CDG) if $L = \emptyset$.
-       \item Directed Graph (DG) if $J = \emptyset$ and $L = \emptyset$.
-       \item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \emptyset$.
-       \item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\emptyset$ and $L = \emptyset$.
-   \end{enumerate}
+    \label{def-cdmg-types}
+    Let $G = (J, V, E, L)$ be a CDMG in the sense of def \ref{def-cdmg}. Items~i.--vii.\ below introduce seven names; each name is an \emph{attribute} that $G$ may bear, declared by a clause of the form ``$G$ is called \emph{<name>} iff <condition>''. Every condition is a conjunction drawn from the three atomic conditions
+    \begin{itemize}
+        \item ``$G$ is acyclic'', the acyclicity predicate of def \ref{def-acylic};
+        \item ``$J = \emptyset$'', read as equality of the (finite) input-node set $J$ with the empty set, as elements of the finite-subset type of the underlying node universe of $G$;
+        \item ``$L = \emptyset$'', read as equality of the (finite) bidirected-edge set $L$ with the empty set, as elements of the finite-subset type of $V \times V$ (the ambient type on which $L$ lives per def \ref{def-cdmg}).
+    \end{itemize}
+
+    \emph{Nested-name semantics.} The seven names below do \emph{not} partition CDMGs. ``$G$ is called \emph{<name>}'' is read as ``$G$ \emph{satisfies the attribute} \emph{<name>}'', and a single CDMG $G$ may simultaneously satisfy several of the listed conditions, in which case it simultaneously bears each corresponding name. In particular, whenever the condition of item~vii.\ (DAG) holds, so do the conditions of items~i.--vi.\ and the base attribute ``CDMG'' of def \ref{def-cdmg}, so $G$ then bears all eight names at once.
+
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Conditional Acyclic Directed Mixed Graph (CADMG).}
+              $G$ is called a \emph{CADMG} iff $G$ is acyclic in the sense of def \ref{def-acylic}.
+
+        \item \emph{Directed Mixed Graph (DMG).}
+              $G$ is called a \emph{DMG} iff $J = \emptyset$.
+
+        \item \emph{Acyclic Directed Mixed Graph (ADMG).}
+              $G$ is called an \emph{ADMG} iff $G$ is acyclic in the sense of def \ref{def-acylic} \emph{and} $J = \emptyset$.
+
+        \item \emph{Conditional Directed Graph (CDG).}
+              $G$ is called a \emph{CDG} iff $L = \emptyset$.
+
+        \item \emph{Directed Graph (DG).}
+              $G$ is called a \emph{DG} iff $J = \emptyset$ \emph{and} $L = \emptyset$.
+
+        \item \emph{Conditional Directed Acyclic Graph (CDAG).}
+              $G$ is called a \emph{CDAG} iff $G$ is acyclic in the sense of def \ref{def-acylic} \emph{and} $L = \emptyset$.
+
+        \item \emph{Directed Acyclic Graph (DAG).}
+              $G$ is called a \emph{DAG} iff $G$ is acyclic in the sense of def \ref{def-acylic}, $J = \emptyset$, \emph{and} $L = \emptyset$.
+    \end{enumerate}
+
+    \emph{Coverage.} The three atomic conditions ``$G$ is acyclic'', ``$J = \emptyset$'', ``$L = \emptyset$'' are independent boolean predicates on $G$, yielding $2^3 = 8$ possible truth-value tuples. Each of items~i.--vii.\ requires a distinct non-empty subset of these three to hold (CADMG: $\{\text{acyclic}\}$; DMG: $\{J = \emptyset\}$; ADMG: $\{\text{acyclic}, J = \emptyset\}$; CDG: $\{L = \emptyset\}$; DG: $\{J = \emptyset, L = \emptyset\}$; CDAG: $\{\text{acyclic}, L = \emptyset\}$; DAG: $\{\text{acyclic}, J = \emptyset, L = \emptyset\}$); the bare CDMG of def \ref{def-cdmg} (requiring the empty subset, i.e.\ none of the three) accounts for the remaining combination, so the seven named attributes together with the base CDMG attribute exhaust all $2^3 = 8$ boolean combinations. No item constrains the output-node set $V$ or the directed-edge set $E$ beyond what def \ref{def-cdmg} already requires.
 \end{Def}
 
 \end{document}
