@@ -54,7 +54,7 @@
               "kind": "def",
               "label": "def 3.6 — Acyclicity",
               "title": "Acyclicity",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_7",

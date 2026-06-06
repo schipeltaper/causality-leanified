@@ -4,28 +4,34 @@
 
 You are **NOT** doing a structural check (that's `verify_tex_statement_only` — runs separately and checks the file has no proof block / no extra environments). You are doing a *semantic correspondence check*: every piece of math in (LN + addition) is in the rewrite, every piece of math in the rewrite is justified by (LN + addition), and no meaning has shifted.
 
-## Authoritative spec = LN block + `addition_to_the_LN`
+## Authoritative spec = LN block + `addition_to_the_LN` (mode-dependent)
 
-The reference you compare *against* is the conjunction of:
+The reference you compare *against* depends on the row's **mode**:
+
+**Prove mode** (default — defs, and claims that haven't entered disprove mode): the at-the-top statement must be equivalent to the conjunction of:
 
 1. The row's `tex_block` — the LN's literal `\begin{Def}/\begin{Thm}/…` block, verbatim.
 2. The row's `addition_to_the_LN` — every `[<sid>] …` and every `[manual_*] …` paragraph.
 
-If the addition is empty, the literal LN is authoritative.
+**Disprove mode** (the row is `proven=disproven` or the manager has emitted a still-active `mistake`): the at-the-top statement of the **disproof file** (`<ref>_disproof_<title>.tex`) must be equivalent to the **NEGATION** of that same conjunction — i.e. equivalent to ¬(LN block + `addition_to_the_LN`). Both flat-negation form `\lnot(\text{LN claim})` and existential counter-example form `\exists \dots, \text{hypotheses} \land \lnot \text{conclusion}` are acceptable encodings of the negation; pick whichever the disprove worker chose and check that the encoding really is the negation.
 
-If the addition contradicts the literal LN, the addition wins (this is project policy: the operator's clarification supersedes the LN's literal text).
-
-If two addition clauses contradict each other, that is an *upstream* bug — flag it in your feedback and FAIL.
+In both modes:
+- If the addition is empty, the literal LN (or its negation) is authoritative.
+- If the addition contradicts the literal LN, the addition wins (this is project policy: the operator's clarification supersedes the LN's literal text).
+- If two addition clauses contradict each other, that is an *upstream* bug — flag it in your feedback and FAIL.
 
 ## Inputs you should receive from the manager
 
-- `ref` (e.g. `def_3_4`, `claim_3_5`)
-- The path to the rewritten tex statement file (`<ref>_<title>.tex` for defs, `<ref>_statement_<title>.tex` for claims).
+- `ref` (e.g. `def_3_4`, `claim_3_5`).
+- **Mode signal**: `MODE: prove` (default) or `MODE: disprove`.
+- The path to the tex file:
+  - Prove mode: the **rewritten canonical statement file** (`<ref>_<title>.tex` for defs, `<ref>_statement_<title>.tex` for claims).
+  - Disprove mode: the **disproof file** (`<ref>_disproof_<title>.tex`); you compare its at-the-top statement block (not the proof body) against the negation.
 - The row's `tex_block` (verbatim) and `addition_to_the_LN` (verbatim) — both already in the row context the manager passes you.
 
-## Checklist
+## Checklist (prove mode)
 
-For each item, write a short line. The verdict aggregates them.
+Use this checklist when `MODE: prove`. For each item, write a short line. The verdict aggregates them.
 
 1. **Every LN hypothesis is present in the rewrite.** Walk the LN block; check each `let`, `assume`, `suppose`, "such that", "for any", "given", and implicit assumption appears in the rewrite. None silently dropped, none silently strengthened.
 
@@ -42,6 +48,27 @@ For each item, write a short line. The verdict aggregates them.
 7. **Multi-item rows fully covered.** If the LN block has multiple items (a numbered list of definitions; multiple stacked `\begin{Thm}` blocks), every item is present in the rewrite.
 
 8. **Project-internal references are valid.** If the rewrite cites earlier formalised defs (`\ref{def_X_Y}`, named operators, etc.), confirm those defs exist in the chapter and are used with the right semantics.
+
+## Checklist (disprove mode)
+
+Use this checklist when `MODE: disprove`. You are reading the **at-the-top statement block** of the disproof file (NOT the proof body below it). For each item, write a short line.
+
+1. **The statement at the top is recognisably a negation, not the positive claim.** If the file still shows the orchestrator's `NEGATION-PENDING` placeholder text or the rendered text reads as the original LN claim, FAIL immediately — the disprove worker did not replace the placeholder.
+
+2. **The negation is logically equivalent to ¬(LN block + `addition_to_the_LN`).** Walk both sides:
+   - Construct the positive side: LN block + every `[<sid>]` / `[manual_*]` clause from the addition.
+   - Take its propositional negation: hypotheses become existentially-quantified (an instance for which …), the conclusion becomes negated, universal-over-witnesses becomes existential-over-witnesses.
+   - Confirm the rewritten statement encodes that negation. Both flat-negation form `\lnot(\text{claim})` and existential-witness form `\exists G, A, B, \dots, \text{hypotheses hold} \land \lnot \text{conclusion}` are acceptable encodings.
+
+3. **No clause silently dropped from the negation.** A common failure: the disprove worker negates only the *conclusion* of the LN claim and leaves an `addition_to_the_LN` strengthening untouched in the hypotheses (or vice versa). The negation must account for *every* clause that the positive spec included.
+
+4. **No silent weakening of the negation.** A counter-example that satisfies only *some* of the LN's hypotheses still proves something — but it does not disprove the LN's claim. Specifically check: in an existential-witness encoding, the witness must satisfy **every** hypothesis of the positive LN claim (not a subset). If the negation weakens the hypotheses, FAIL.
+
+5. **No silent strengthening of the negation.** Equivalently in the other direction: the negation must not require *more* than ¬(LN+addition) demands. E.g. claiming "the LN's conclusion fails for every input" when ¬(claim) only requires "the conclusion fails for some input" is a strengthening (and likely false).
+
+6. **The negation matches the proof body in spirit.** Skim the `\begin{proof}` block underneath. If the proof exhibits a concrete counter-example `(G_0, A_0, …)` but the at-the-top statement is the flat-negation form, that's OK — both encode the same negation, and the proof closes the existential. If the proof tries to prove the *positive* claim despite the at-the-top statement being a negation, that's a hard FAIL (mode mismatch between the worker's statement-writing and proof-writing).
+
+7. **Project-internal references are valid.** If the negation cites earlier formalised defs, confirm those defs exist and are used with the right semantics.
 
 ## Output
 
@@ -62,7 +89,7 @@ concrete fix the formalizer should apply when re-spawned>
 END[feedback]
 ```
 
-The orchestrator pattern-matches `VERDICT:` and the `BEGIN[feedback]` / `END[feedback]` block, surfacing the feedback directly to the manager's next turn. On FAIL the manager re-dispatches `formalize_definition_in_tex` / `formalize_claim_in_tex` with your feedback.
+The orchestrator pattern-matches `VERDICT:` and the `BEGIN[feedback]` / `END[feedback]` block, surfacing the feedback directly to the manager's next turn. On FAIL the manager re-dispatches `formalize_definition_in_tex` / `formalize_claim_in_tex` (prove mode) or `write_tex_proof` (disprove mode, since the disprove worker writes both the negation statement and the proof body) with your feedback.
 
 ## Rules
 
