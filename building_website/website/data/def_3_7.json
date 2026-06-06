@@ -1,0 +1,75 @@
+{
+  "ref": "def_3_7",
+  "kind": "def",
+  "section": "3.1",
+  "title": "CDMGTypes",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:</p>\n<ol class=\"enum\"><li>Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.</li><li>Directed Mixed Graph (DMG) if $J = \\emptyset$.</li><li>Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.</li><li>Conditional Directed Graph (CDG) if $L = \\emptyset$.</li><li>Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.</li><li>Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.</li><li>Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.</li></ol>",
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_7 -- \"CDMGTypes\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_7\n% title: CDMGTypes\n\\def\\rowref{def\\_3\\_7}\n\\phantomsection\\label{def_3_7}\n\n\\begin{Def}[CDMGTypes]\n    \\label{def-cdmg-types}\n    Let $G = (J, V, E, L)$ be a CDMG in the sense of def \\ref{def-cdmg}. Items~i.--vii.\\ below introduce seven names; each name is an \\emph{attribute} that $G$ may bear, declared by a clause of the form ``$G$ is called \\emph{<name>} iff <condition>''. Every condition is a conjunction drawn from the three atomic conditions\n    \\begin{itemize}\n        \\item ``$G$ is acyclic'', the acyclicity predicate of def \\ref{def-acylic};\n        \\item ``$J = \\emptyset$'', read as equality of the (finite) input-node set $J$ with the empty set, as elements of the finite-subset type of the underlying node universe of $G$;\n        \\item ``$L = \\emptyset$'', read as equality of the (finite) bidirected-edge set $L$ with the empty set, as elements of the finite-subset type of $V \\times V$ (the ambient type on which $L$ lives per def \\ref{def-cdmg}).\n    \\end{itemize}\n\n    \\emph{Nested-name semantics.} The seven names below do \\emph{not} partition CDMGs. ``$G$ is called \\emph{<name>}'' is read as ``$G$ \\emph{satisfies the attribute} \\emph{<name>}'', and a single CDMG $G$ may simultaneously satisfy several of the listed conditions, in which case it simultaneously bears each corresponding name. In particular, whenever the condition of item~vii.\\ (DAG) holds, so do the conditions of items~i.--vi.\\ and the base attribute ``CDMG'' of def \\ref{def-cdmg}, so $G$ then bears all eight names at once.\n\n    \\begin{enumerate}[label=\\roman*.)]\n        \\item \\emph{Conditional Acyclic Directed Mixed Graph (CADMG).}\n              $G$ is called a \\emph{CADMG} iff $G$ is acyclic in the sense of def \\ref{def-acylic}.\n\n        \\item \\emph{Directed Mixed Graph (DMG).}\n              $G$ is called a \\emph{DMG} iff $J = \\emptyset$.\n\n        \\item \\emph{Acyclic Directed Mixed Graph (ADMG).}\n              $G$ is called an \\emph{ADMG} iff $G$ is acyclic in the sense of def \\ref{def-acylic} \\emph{and} $J = \\emptyset$.\n\n        \\item \\emph{Conditional Directed Graph (CDG).}\n              $G$ is called a \\emph{CDG} iff $L = \\emptyset$.\n\n        \\item \\emph{Directed Graph (DG).}\n              $G$ is called a \\emph{DG} iff $J = \\emptyset$ \\emph{and} $L = \\emptyset$.\n\n        \\item \\emph{Conditional Directed Acyclic Graph (CDAG).}\n              $G$ is called a \\emph{CDAG} iff $G$ is acyclic in the sense of def \\ref{def-acylic} \\emph{and} $L = \\emptyset$.\n\n        \\item \\emph{Directed Acyclic Graph (DAG).}\n              $G$ is called a \\emph{DAG} iff $G$ is acyclic in the sense of def \\ref{def-acylic}, $J = \\emptyset$, \\emph{and} $L = \\emptyset$.\n    \\end{enumerate}\n\n    \\emph{Coverage.} The three atomic conditions ``$G$ is acyclic'', ``$J = \\emptyset$'', ``$L = \\emptyset$'' are independent boolean predicates on $G$, yielding $2^3 = 8$ possible truth-value tuples. Each of items~i.--vii.\\ requires a distinct non-empty subset of these three to hold (CADMG: $\\{\\text{acyclic}\\}$; DMG: $\\{J = \\emptyset\\}$; ADMG: $\\{\\text{acyclic}, J = \\emptyset\\}$; CDG: $\\{L = \\emptyset\\}$; DG: $\\{J = \\emptyset, L = \\emptyset\\}$; CDAG: $\\{\\text{acyclic}, L = \\emptyset\\}$; DAG: $\\{\\text{acyclic}, J = \\emptyset, L = \\emptyset\\}$); the bare CDMG of def \\ref{def-cdmg} (requiring the empty subset, i.e.\\ none of the three) accounts for the remaining combination, so the seven named attributes together with the base CDMG attribute exhaust all $2^3 = 8$ boolean combinations. No item constrains the output-node set $V$ or the directed-edge set $E$ beyond what def \\ref{def-cdmg} already requires.\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G = (J, V, E, L)$ be a CDMG in the sense of def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>. Items&nbsp;i.–vii.\\ below introduce seven names; each name is an <em>attribute</em> that $G$ may bear, declared by a clause of the form “$G$ is called <em><name></em> iff <condition>”. Every condition is a conjunction drawn from the three atomic conditions</p>\n<ul><li>“$G$ is acyclic”, the acyclicity predicate of def <a href=\"#def_3_6\" class=\"refrow\"><code>def-acylic</code></a>;</li><li>“$J = \\emptyset$”, read as equality of the (finite) input-node set $J$ with the empty set, as elements of the finite-subset type of the underlying node universe of $G$;</li><li>“$L = \\emptyset$”, read as equality of the (finite) bidirected-edge set $L$ with the empty set, as elements of the finite-subset type of $V \\times V$ (the ambient type on which $L$ lives per def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>).</li></ul>\n<p><em>Nested-name semantics.</em> The seven names below do <em>not</em> partition CDMGs. “$G$ is called <em><name></em>” is read as “$G$ <em>satisfies the attribute</em> <em><name></em>”, and a single CDMG $G$ may simultaneously satisfy several of the listed conditions, in which case it simultaneously bears each corresponding name. In particular, whenever the condition of item&nbsp;vii.\\ (DAG) holds, so do the conditions of items&nbsp;i.–vi.\\ and the base attribute “CDMG” of def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>, so $G$ then bears all eight names at once.</p>\n<ol class=\"roman-paren\"><li><em>Conditional Acyclic Directed Mixed Graph (CADMG).</em>\n              $G$ is called a <em>CADMG</em> iff $G$ is acyclic in the sense of def <a href=\"#def_3_6\" class=\"refrow\"><code>def-acylic</code></a>.</li><li><em>Directed Mixed Graph (DMG).</em>\n              $G$ is called a <em>DMG</em> iff $J = \\emptyset$.</li><li><em>Acyclic Directed Mixed Graph (ADMG).</em>\n              $G$ is called an <em>ADMG</em> iff $G$ is acyclic in the sense of def <a href=\"#def_3_6\" class=\"refrow\"><code>def-acylic</code></a> <em>and</em> $J = \\emptyset$.</li><li><em>Conditional Directed Graph (CDG).</em>\n              $G$ is called a <em>CDG</em> iff $L = \\emptyset$.</li><li><em>Directed Graph (DG).</em>\n              $G$ is called a <em>DG</em> iff $J = \\emptyset$ <em>and</em> $L = \\emptyset$.</li><li><em>Conditional Directed Acyclic Graph (CDAG).</em>\n              $G$ is called a <em>CDAG</em> iff $G$ is acyclic in the sense of def <a href=\"#def_3_6\" class=\"refrow\"><code>def-acylic</code></a> <em>and</em> $L = \\emptyset$.</li><li><em>Directed Acyclic Graph (DAG).</em>\n              $G$ is called a <em>DAG</em> iff $G$ is acyclic in the sense of def <a href=\"#def_3_6\" class=\"refrow\"><code>def-acylic</code></a>, $J = \\emptyset$, <em>and</em> $L = \\emptyset$.</li></ol>\n<p><em>Coverage.</em> The three atomic conditions “$G$ is acyclic”, “$J = \\emptyset$”, “$L = \\emptyset$” are independent boolean predicates on $G$, yielding $2^3 = 8$ possible truth-value tuples. Each of items&nbsp;i.–vii.\\ requires a distinct non-empty subset of these three to hold (CADMG: $\\{\\text{acyclic}\\}$; DMG: $\\{J = \\emptyset\\}$; ADMG: $\\{\\text{acyclic}, J = \\emptyset\\}$; CDG: $\\{L = \\emptyset\\}$; DG: $\\{J = \\emptyset, L = \\emptyset\\}$; CDAG: $\\{\\text{acyclic}, L = \\emptyset\\}$; DAG: $\\{\\text{acyclic}, J = \\emptyset, L = \\emptyset\\}$); the bare CDMG of def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a> (requiring the empty subset, i.e.\\ none of the three) accounts for the remaining combination, so the seven named attributes together with the base CDMG attribute exhaust all $2^3 = 8$ boolean combinations. No item constrains the output-node set $V$ or the directed-edge set $E$ beyond what def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a> already requires.</p>",
+    "env": "Def",
+    "env_title": "CDMGTypes",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_7_CDMGTypes.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [
+    {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsDMG (G : CDMG Node) : Prop := G.J = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsCDG (G : CDMG Node) : Prop := G.L = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅",
+      "explanation": "",
+      "code_annotated": ""
+    }
+  ],
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
+  "addition_to_the_LN": "",
+  "design_choices": ""
+}
