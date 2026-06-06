@@ -1,0 +1,39 @@
+{
+  "ref": "def_3_8",
+  "kind": "def",
+  "section": "3.1",
+  "title": "TopologicalOrder",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>Let $G=(J,V,E,L)$ be a CDMG.\n    A <em>topological order</em> of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.</p>",
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_8 -- \"TopologicalOrder\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_8\n% title: TopologicalOrder\n\\def\\rowref{def\\_3\\_8}\n\\phantomsection\\label{def_3_8}\n\n\\begin{Def}[Topological order]\n    \\label{def-topological-order}\n    Let $G = (J, V, E, L)$ be a CDMG (def \\ref{def-cdmg}); throughout we use the notation of def \\ref{not-cdmg} and the family-relationship notation of def \\ref{def_3_5}. By def \\ref{def-cdmg}, items~i.--ii., the node set $J \\cup V$ is finite (as a union of two finite sets).\n\n    A \\emph{topological order} of $G$ is a \\emph{strict} total order $<$ on $J \\cup V$ -- i.e.\\ a binary relation $<$ on $J \\cup V$ that is irreflexive, transitive, and satisfies trichotomy ($v < w$, $v = w$, or $w < v$ for every $v, w \\in J \\cup V$); the lecture notes' order symbol $<$ is read strictly throughout -- such that\n    \\[\n        \\forall\\, v, w \\in J \\cup V :\\quad v \\in \\Pa^G(w) \\;\\Longrightarrow\\; v < w.\n    \\]\n    The displayed implication is well-typed because, by the set-builder defining clause $\\Pa^G(w) := \\lC u \\in J \\cup V \\,|\\, (u, w) \\in E \\rC$ of def \\ref{def_3_5}, item~i., any $v \\in \\Pa^G(w)$ automatically lies in $J \\cup V$, so the comparison $v < w$ is defined.\n\n    \\emph{Equivalent indexing form.}\n    Set $K := |J \\cup V|$, the cardinality of the (finite) node set. Because $<$ is a strict total order on the finite set $J \\cup V$, its order type is the finite ordinal $K$, so $<$ may equivalently be presented as a bijection $\\{1, 2, \\dots, K\\} \\to J \\cup V$, $i \\mapsto v_i$, with $v_1 < v_2 < \\cdots < v_K$ under $<$. Under this presentation, the parents-precede-children condition above becomes\n    \\[\n        \\forall\\, i, j \\in \\{1, 2, \\dots, K\\} :\\quad v_i \\in \\Pa^G(v_j) \\;\\Longrightarrow\\; i < j,\n    \\]\n    i.e.\\ \\emph{parents always precede their children} in the enumeration $v_1, v_2, \\dots, v_K$. The equivalence between the primary (strict-total-order) form and this indexed form relies essentially on the finiteness of $J \\cup V$ guaranteed by def \\ref{def-cdmg}: without finiteness, the indexed form would be strictly stronger than the primary form (it forces order type at most $\\omega$).\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G = (J, V, E, L)$ be a CDMG (def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>); throughout we use the notation of def <a href=\"#def_3_2\" class=\"refrow\"><code>not-cdmg</code></a> and the family-relationship notation of def <a href=\"#def_3_5\" class=\"refrow\"><code>def_3_5</code></a>. By def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>, items&nbsp;i.–ii., the node set $J \\cup V$ is finite (as a union of two finite sets).</p>\n<p>A <em>topological order</em> of $G$ is a <em>strict</em> total order $<$ on $J \\cup V$ – i.e.\\ a binary relation $<$ on $J \\cup V$ that is irreflexive, transitive, and satisfies trichotomy ($v < w$, $v = w$, or $w < v$ for every $v, w \\in J \\cup V$); the lecture notes' order symbol $<$ is read strictly throughout – such that\n    \\[\n        \\forall\\, v, w \\in J \\cup V :\\quad v \\in \\Pa^G(w) \\;\\Longrightarrow\\; v < w.\n    \\]\n    The displayed implication is well-typed because, by the set-builder defining clause $\\Pa^G(w) := \\lC u \\in J \\cup V \\,|\\, (u, w) \\in E \\rC$ of def <a href=\"#def_3_5\" class=\"refrow\"><code>def_3_5</code></a>, item&nbsp;i., any $v \\in \\Pa^G(w)$ automatically lies in $J \\cup V$, so the comparison $v < w$ is defined.</p>\n<p><em>Equivalent indexing form.</em>\n    Set $K := |J \\cup V|$, the cardinality of the (finite) node set. Because $<$ is a strict total order on the finite set $J \\cup V$, its order type is the finite ordinal $K$, so $<$ may equivalently be presented as a bijection $\\{1, 2, \\dots, K\\} \\to J \\cup V$, $i \\mapsto v_i$, with $v_1 < v_2 < \\cdots < v_K$ under $<$. Under this presentation, the parents-precede-children condition above becomes\n    \\[\n        \\forall\\, i, j \\in \\{1, 2, \\dots, K\\} :\\quad v_i \\in \\Pa^G(v_j) \\;\\Longrightarrow\\; i < j,\n    \\]\n    i.e.\\ <em>parents always precede their children</em> in the enumeration $v_1, v_2, \\dots, v_K$. The equivalence between the primary (strict-total-order) form and this indexed form relies essentially on the finiteness of $J \\cup V$ guaranteed by def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>: without finiteness, the indexed form would be strictly stronger than the primary form (it forces order type at most $\\omega$).</p>",
+    "env": "Def",
+    "env_title": "Topological order",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_TopologicalOrder.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [
+    {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\n  (∀ v ∈ G, ¬ lt v v) ∧\n  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧\n  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v) ∧\n  (∀ v w, v ∈ G.Pa w → lt v w)",
+      "explanation": "",
+      "code_annotated": ""
+    }
+  ],
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+  "addition_to_the_LN": "",
+  "design_choices": ""
+}
