@@ -1,6 +1,6 @@
 # Worker — independently verify a TeX proof
 
-**When to use:** a manager believes a claim's tex proof (under `tex_proofs/<ref>_*.tex`) is complete and wants an independent set of eyes before handing the proof off to the leanification phase. You did not write the proof — you arrived fresh and have to convince yourself it holds up.
+**When to use:** a manager believes a claim's tex proof (in `leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex`) is complete and wants an independent set of eyes before handing the proof off to the leanification phase. You did not write the proof — you arrived fresh and have to convince yourself it holds up.
 
 ## Authoritative spec = LN block + `addition_to_the_LN`
 
@@ -9,7 +9,7 @@ The tex proof must establish the LN block's claim **AND** every clause in the ro
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`) and the subsection folder
-- The path of the tex proof file under `tex_proofs/`
+- The path of the tex proof file (`leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex` in prove mode, or `…/<ref>_disproof_<title>.tex` in disprove mode)
 - The LaTeX source of the claim itself (from `tex_block` or `main.tex`)
 
 ## Checklist
@@ -23,7 +23,7 @@ Go through each item explicitly. Report PASS/FAIL with a one-line note for each.
 5. **Citations are valid.** Every `def_N_M` / `claim_N_M` referenced corresponds to a real row in the chapter's `data.json`. (You may need to read `data.json` to check.)
 6. **Stays close to the LN.** Same induction variable, same case split, same key lemmas as the LN's own proof — substitutions are OK if explicitly justified.
 7. **The argument actually closes.** Walk it: every conclusion the proof claims follows from explicit hypotheses or previously-established lemmas. No hidden assumptions.
-8. **Scope.** No files outside `tex_proofs/<ref>_*.tex` (and the row's data.json, if you needed to look up refs) have been modified.
+8. **Scope.** No files outside the tex proof file you were asked to verify (and the row's `data.json`, if you needed to look up refs) have been modified.
 
 ## Output
 

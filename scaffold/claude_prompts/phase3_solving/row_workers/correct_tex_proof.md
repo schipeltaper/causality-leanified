@@ -1,6 +1,6 @@
 # Worker — rewrite a TeX proof to fix a mistake found while leanifying
 
-**When to use:** a TeX proof exists in `tex_proofs/<ref>_proof_<title>.tex` (previously verified by `verify_tex_proof`), but a downstream leanifier discovered a real flaw — a missing case, a wrong invariant, a citation that doesn't actually establish what was claimed. Your job is to **rewrite the TeX proof** to fix the mistake, after which `verify_tex_proof` will run again.
+**When to use:** a TeX proof exists in `leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex` (previously verified by `verify_tex_proof`), but a downstream leanifier discovered a real flaw — a missing case, a wrong invariant, a citation that doesn't actually establish what was claimed. Your job is to **rewrite the TeX proof** to fix the mistake, after which `verify_tex_proof` will run again.
 
 ## Authoritative spec = LN block + `addition_to_the_LN`
 
@@ -11,7 +11,7 @@ This is different from `expand_proof`: that worker adds detail to a step that's 
 ## Inputs you should receive from the manager
 
 - `ref` (e.g. `claim_3_5`)
-- The path to the `.tex` proof file under `tex_proofs/`
+- The path to the `.tex` proof file (`leanification/<Chapter>/<Section>/tex/<ref>_proof_<title>.tex` in prove mode, or `…/<ref>_disproof_<title>.tex` in disprove mode)
 - **A concrete description of the flaw** — the leanifier's report on *what* doesn't go through and *why*. The manager should pass this verbatim; don't guess.
 - Pointers to the relevant definitions/lemmas in this chapter (and any new helper lemma the leanifier needs you to introduce)
 
@@ -31,6 +31,6 @@ If the leanifier's "flaw" exposes a real bug in the LN (the original claim is ge
 
 ## Rules
 
-- Edit only the affected tex proof file under `tex_proofs/`.
+- Edit only the affected tex proof file under the row's `leanification/<Chapter>/<Section>/tex/` folder (the active one — prove or disprove — depending on the row's mode).
 - Stay close to the LN's argument; only deviate where the leanifier's report shows the LN argument is wrong or incomplete.
 - Report back to the manager with: a one-paragraph summary of the change, the location in the file, whether the fix introduces a new helper lemma, and whether you suspect this is an LN-level mistake.
