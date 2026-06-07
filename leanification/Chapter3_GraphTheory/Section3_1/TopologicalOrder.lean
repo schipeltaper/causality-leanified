@@ -50,39 +50,6 @@ order of `G`.  The existence claim "a topological order of `G` exists"
 is what `claim_3_2` ("acyclic iff a topological order exists") will
 quantify over.
 
-## Refactor `total_order_helper` (in progress)
-
-The *original* `IsTopologicalOrder` — wrapped below in a
-`-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsTopologicalOrder` /
-`-- REFACTOR-BLOCK-ORIGINAL-END: IsTopologicalOrder` pair — was a flat
-4-way `∧` that bundled three strict-total-order conjuncts (irreflexive,
-transitive, trichotomous on `J ∪ V`) together with the topological
-conjunct (`∀ v w, v ∈ G.Pa w → lt v w`).  The *replacement* — wrapped
-below in matching `-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: …` /
-`-- REFACTOR-BLOCK-REPLACEMENT-END: …` pairs — introduces
-`IsTotalOrder` as a named substantive sub-concept (mirroring the LN's
-"*Let `<` be a total order of `J ∪ V`*" framing) and defines
-`IsTopologicalOrder := IsTotalOrder ∧ parent_precedes` as a nested
-2-conjunct.  The two shapes are logically equivalent — the conjuncts
-unfold to exactly the same four propositions in the same order — but
-the destructure pattern flips from
-`⟨h_irrefl, h_trans, h_total, h_topo⟩` to
-`⟨⟨h_irrefl, h_trans, h_total⟩, h_topo⟩` (and the constructor flips
-symmetrically).  The refactor also exposes `IsTotalOrder` so that
-`def_3_9`'s `Pred` / `PredLE` (the refactor's second root) can take
-`(h : G.IsTotalOrder lt)` as an explicit type-level hypothesis,
-closing the loosened-domain failure that `verify_equivalence` item~1a
-and `verify_equivalence_strict`'s "loosening a quantifier's domain"
-flag would otherwise propagate to every downstream consumer.
-
-**Coexistence during the refactor.**  Both the original and the
-replacement definitions live in this file as top-level declarations of
-`Causality.CDMG` until Phase~7 cleanup of the refactor.  Consumers that
-have not yet been re-validated (e.g.\ `claim_3_2`'s proof body) keep
-calling the original `G.IsTopologicalOrder`, so the build stays green
-throughout.  At cleanup, the original block is deleted and every
-occurrence of `IsTotalOrder` / `IsTopologicalOrder`
-across the chapter is renamed to the unprefixed form.
 -/
 
 namespace CDMG
@@ -117,7 +84,6 @@ namespace CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_8 --- end helper
 
-
 -- ref: def_3_8 (refactor helper)
 -- `G.IsTotalOrder lt` asserts that the strict binary relation
 -- `lt : Node → Node → Prop` restricts to a *strict total order* on the
@@ -143,8 +109,7 @@ file `def_3_8_TopologicalOrder.tex`):
 --   of `J ∪ V` such that ..." -- it treats "total order on `J ∪ V`"
 --   as a named substantive sub-concept, mentioned in prose rather
 --   than defined in its own `defmark` block.  The original flat
---   4-way `∧` encoding (see the `REFACTOR-BLOCK-ORIGINAL` block
---   above) silently merged the total-order conjuncts into
+--   4-way `∧` encoding silently merged the total-order conjuncts into
 --   `IsTopologicalOrder`, leaving downstream rows no handle to refer
 --   to "just the total-order premise".  Pulling the predicate out
 --   exposes the LN's two-tier reading at the type level.  All three
@@ -308,8 +273,7 @@ def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
 -- the `IsTotalOrder` REPLACEMENT block above) -- and (ii) for every
 -- parent-child pair `v ∈ Pa^G(w)` we have `lt v w`: parents precede
 -- their children under `<`.  Logically equivalent to the original
--- flat 4-way `∧` encoding (see the `REFACTOR-BLOCK-ORIGINAL` block
--- earlier in this file); only the *destructure shape* changes (see
+-- flat 4-way `∧` encoding; only the *destructure shape* changes (see
 -- the "Structural change" bullet below).
 /-
 LN tex (rewritten canonical statement for `def_3_8`):
@@ -323,7 +287,7 @@ LN tex (rewritten canonical statement for `def_3_8`):
 -- ## Design choice
 --
 -- *Structural change from flat 4-conjunct to nested 2-conjunct.*
---   The original (`REFACTOR-BLOCK-ORIGINAL` above) was
+--   The original was
 --     `(∀ v ∈ G, ¬ lt v v) ∧
 --      (∀ u v w ∈ G, lt u v → lt v w → lt u w) ∧
 --      (∀ v w ∈ G, lt v w ∨ v = w ∨ lt w v) ∧
@@ -454,8 +418,7 @@ LN tex (rewritten canonical statement for `def_3_8`):
 --   `IsTotalOrder` REPLACEMENT block above.
 --
 -- *Refactor coexistence note.*  Until Phase~7 cleanup, the original
---   flat-4-conjunct `IsTopologicalOrder` (in the
---   `REFACTOR-BLOCK-ORIGINAL` block above) and this nested
+--   flat-4-conjunct `IsTopologicalOrder` and this nested
 --   `IsTopologicalOrder` both exist as top-level
 --   declarations of `Causality.CDMG`.  The body below uses
 --   `G.IsTotalOrder lt` (not `G.IsTotalOrder lt`) so that

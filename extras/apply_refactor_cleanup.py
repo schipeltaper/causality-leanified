@@ -331,13 +331,23 @@ def _strip_refactor_narratives(
         content = coex_pat.sub("", content)
         strips.append(f"stripped {n2} 'Coexistence during the refactor' paragraph(s)")
 
-    # Pattern 3: inline parenthetical `(see the `REFACTOR-BLOCK-...` ...)`
-    # cross-references. Matches across line breaks since solver agents
-    # sometimes wrap long parentheticals.
+    # Pattern 3: any inline parenthetical aside that mentions a
+    # `REFACTOR-BLOCK-*` marker. Catches the common forms:
+    #   "(see the `REFACTOR-BLOCK-ORIGINAL` block above)"
+    #   "(`REFACTOR-BLOCK-ORIGINAL` above)"
+    #   "(the `REFACTOR-BLOCK-ORIGINAL: Foo` block earlier in this file)"
+    #   "(in the `REFACTOR-BLOCK-ORIGINAL` …)"
+    # The `[^)]*` segments confine each match to a single parenthetical
+    # (no `)` inside the match), so false positives would need to
+    # genuinely place "REFACTOR-BLOCK-*" inside a parenthetical aside —
+    # vanishingly unlikely outside the refactor-narrative pattern this
+    # function targets. Non-parenthetical mentions are intentionally
+    # NOT stripped (they sit in design-choice prose where blanket
+    # removal would damage surrounding sentences); the operator can
+    # rewrite those by hand if needed.
     xref_pat = re.compile(
-        r"\s*\(see the\s+`?REFACTOR-BLOCK-[A-Z]+(?:-[A-Z]+)*"
-        r"[^)]*\)",
-        re.IGNORECASE | re.DOTALL,
+        r"[ \t]*\([^)]*REFACTOR-BLOCK-[A-Z]+(?:-[A-Z]+)*\b[^)]*\)",
+        re.IGNORECASE,
     )
     n3 = len(xref_pat.findall(content))
     if n3 > 0:

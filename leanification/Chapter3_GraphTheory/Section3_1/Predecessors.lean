@@ -57,62 +57,6 @@ relation may be plugged into; downstream consumers will typically
 pass an `lt` carrying `G.IsTopologicalOrder lt`, but the
 definitional shape does not require it.
 
-## Refactor `total_order_helper` (in progress)
-
-The *original* `Pred` / `PredLE` — wrapped below in
-`-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Pred` /
-`-- REFACTOR-BLOCK-ORIGINAL-END: Pred` and
-`-- REFACTOR-BLOCK-ORIGINAL-BEGIN: PredLE` /
-`-- REFACTOR-BLOCK-ORIGINAL-END: PredLE` marker pairs — took a raw
-`lt : Node → Node → Prop` argument with **no** total-order
-hypothesis on the type contract.  The Lean was well-typed for *any*
-binary relation `lt`, but the LN's `Pred^G_<(v)` is only well-defined
-when `<` is a total order on `J ∪ V` (the LN block opens with "*Let
-`<` be a total order of `J ∪ V`*").  This is exactly the failure
-pattern `verify_equivalence` item~1a flags ("hypothesis dropped from
-Lean's type contract; only documented in design comments") and
-`verify_equivalence_strict`'s CONTENT example calls "loosening a
-quantifier's domain": the LN's premise lived in the 60+ lines of
-design-choice comments above each of the original `def Pred` /
-`def PredLE` lines, where the type checker could not enforce it on
-consumers.  `G.Pred lt v` and `G.Pred^G_<(v)` were not the same
-mathematical object, even though they coincide on the LN's intended
-inputs.
-
-The *replacement* — wrapped below in matching `REFACTOR-BLOCK`
-marker pairs for `Pred` and `PredLE` (see the actual markers around
-the new defs further down the file) —
-introduces an explicit `(h : G.IsTotalOrder lt)` hypothesis
-sitting between `lt` and `v` on both signatures.  The hypothesis is
-*not used* in either body (the bodies are textually identical to the
-originals' — `{w | w ∈ G ∧ lt w v}` and `Pred lt v ∪ {v}`
-respectively); it is there purely as a type-level enforcement of the
-LN's "*Let `<` be a total order of `J ∪ V`*" premise.  Closing the
-leak at the source forces every downstream consumer to supply the
-total-order witness rather than smuggling the LN premise in at the
-use site.  The helper name `IsTotalOrder` matches the one
-exposed by `def_3_8`'s REPLACEMENT block (the refactor's first root,
-see `TopologicalOrder.lean`); the helper is deliberately
-`IsTotalOrder` and **not** the full `IsTopologicalOrder` — the
-parent-precedence conjunct is not needed for predecessor sets to be
-well-defined (e.g.\ chapter 5's ID-algorithm "preceding Markov
-blanket" slice carves `J ∪ V` purely via total-order content,
-without parent-precedence).
-
-**Coexistence during the refactor.**  Both the original and the
-replacement definitions live in this file as top-level declarations
-of `Causality.CDMG` until Phase~7 cleanup.  The replacement
-`PredLE` calls `G.Pred lt h v` (prefixed) so that
-the file type-checks during the refactor — the cleanup script flips
-every `Pred` / `PredLE` / `IsTotalOrder`
-occurrence to the unprefixed form across all touched files, after
-which the unprefixed `PredLE` will call the unprefixed `Pred`,
-identical to the original wiring but with the threaded `h`.
-Consumers that have not yet been re-validated keep calling the
-original `G.Pred` / `G.PredLE` (no §3.1 row currently consumes
-`Pred` / `PredLE` — the refactor's `claim_3_2` DEPENDENT row is
-included for `def_3_8`'s shape change, not for `def_3_9`), so the
-build stays green throughout.
 -/
 
 namespace CDMG
@@ -142,15 +86,13 @@ namespace CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_9 --- end helper
 
-
-
 -- ref: def_3_9 (refactor: total_order_helper, strict predecessors)
 --
 -- `G.Pred lt h v` (post-refactor shape) is the set of
 -- *strict* predecessors of `v` in `G` under the order `lt`: nodes
 -- `w ∈ J ∪ V` (i.e.\ `w ∈ G` via `def_3_2`'s `Membership` instance)
 -- with `lt w v`.  The body is *textually identical* to the original
--- (the `REFACTOR-BLOCK-ORIGINAL: Pred` block earlier in this file);
+--;
 -- the only difference is the signature, which now takes an explicit
 -- `(h : G.IsTotalOrder lt)` hypothesis sitting between `lt`
 -- and `v`.  The hypothesis enforces the LN's "*Let `<` be a total
@@ -170,11 +112,10 @@ LN tex (rewritten canonical statement for `def_3_9`, strict form):
 --   failure pattern `verify_equivalence` item~1a flags ("hypothesis
 --   dropped from Lean's type contract; only documented in design
 --   comments") and `verify_equivalence_strict`'s CONTENT example
---   calls "loosening a quantifier's domain": the original `Pred`'s
---   "let `<` be a total order" premise lived only in the 60+ lines
---   of design-choice comments above the `REFACTOR-BLOCK-ORIGINAL:
---   Pred` block, where the type checker cannot enforce it on
---   downstream consumers.  Adding `h` to the type contract closes
+--   calls "loosening a quantifier's domain": the pre-refactor `Pred`'s
+--   "let `<` be a total order" premise lived only in 60+ lines
+--   of design-choice comments, where the type checker cannot enforce
+--   it on downstream consumers.  Adding `h` to the type contract closes
 --   the leak at the source: every downstream consumer is now forced
 --   to supply the total-order witness, rather than smuggling the LN
 --   premise in at the use site or relying on documentation the type
@@ -292,21 +233,6 @@ LN tex (rewritten canonical statement for `def_3_9`, strict form):
 --   to supply the witness even when `v` lies in `G.J ∪ G.V` by
 --   construction.
 --
--- *Refactor coexistence note.*  Both the prefixed `Pred`
---   here and the unprefixed `Pred` in the `REFACTOR-BLOCK-ORIGINAL`
---   block above coexist as top-level declarations of
---   `Causality.CDMG` until Phase~7 cleanup.  No §3.1 row currently
---   consumes `Pred` / `PredLE` outside this refactor table — the
---   refactor's `claim_3_2` DEPENDENT row is included for `def_3_8`'s
---   shape change (the iff theorem's destructure / construct
---   pattern), not for `def_3_9` (the iff theorem does not touch
---   predecessor sets) — so the build stays green throughout the
---   refactor.  At cleanup, the original block is deleted and every
---   occurrence of `Pred` / `IsTotalOrder` across
---   the codebase is renamed to the unprefixed form.  After cleanup,
---   `G.IsTotalOrder` is the (now unique) name of the total-order
---   helper introduced by `def_3_8`.
---
 -- *Downstream consumers (post-refactor).*  Chapter 4 CBN
 --   factorisation reads "for each `v ∈ V`, condition on the values
 --   at `Pred^G_<(v) ∩ V`"; do-calculus (chapter 5) uses
@@ -331,7 +257,7 @@ def Pred (G : CDMG Node) (lt : Node → Node → Prop)
 -- *non-strict* predecessors of `v` in `G` under `lt`: the strict
 -- predecessor set `G.Pred lt h v` together with `v`
 -- itself.  The body's semantic content is unchanged from the
--- original (`REFACTOR-BLOCK-ORIGINAL: PredLE` above) — still
+-- original — still
 -- `Pred lt v ∪ {v}` semantically — but now wired to the
 -- post-refactor `Pred` (which itself carries the threaded
 -- `h`).  The signature adds the same explicit
@@ -449,8 +375,7 @@ LN tex (rewritten canonical statement for `def_3_9`, non-strict form):
 --   the matching `Set` instance, no explicit ascription needed.
 --
 -- *Refactor coexistence note.*  Both the prefixed `PredLE`
---   and the unprefixed `PredLE` (in the `REFACTOR-BLOCK-ORIGINAL`
---   block above) live in this file as top-level declarations of
+--   and the unprefixed `PredLE` live in this file as top-level declarations of
 --   `Causality.CDMG` until Phase~7 cleanup.  Cleanup deletes the
 --   originals and renames `Pred` → `Pred`,
 --   `PredLE` → `PredLE` globally; after that, the

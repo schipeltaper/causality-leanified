@@ -49,33 +49,6 @@ directed walks, single-edge directed walk, walk-induction on `lt`)
 live just below the `variable` block, outside the marker zones
 because they are not statement content.
 
-## Refactor `total_order_helper` (in progress)
-
-This row is a DEPENDENT in the refactor `total_order_helper` (root:
-`def_3_8` -- see `TopologicalOrder.lean`'s `## Refactor` section).
-The root refactor split `IsTopologicalOrder` from a flat 4-way `∧`
-into a nested 2-conjunct `IsTotalOrder ∧ parent_precedes`, naming
-the strict-total-order sub-concept `IsTotalOrder`.  Below we add a
-`acyclic_iff_topological_order` that references the new
-`IsTopologicalOrder` (wrapped in matching
-`-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: …` / `…-END: …` markers); the
-original `acyclic_iff_topological_order` -- wrapped in
-`-- REFACTOR-BLOCK-ORIGINAL-BEGIN: …` / `…-END: …` markers -- stays
-in place untouched until Phase 7 cleanup, so the build stays green
-throughout.  The *statement shape* is unchanged: it remains
-`G.IsAcyclic ↔ ∃ lt, G.<topological-order-predicate> lt`; only the
-referenced predicate flips.  The *proof body* differs from the
-original in exactly two surgical sites -- the (⇒)-direction
-`refine` (constructor-side flip from flat `?_, ?_, ?_, ?_` to
-nested `⟨?_, ?_, ?_⟩, ?_`) and the (⇐)-direction `rintro`
-(destructure-side flip from flat `⟨lt, hi, htr, htri, hp⟩` to
-nested `⟨lt, ⟨hi, htr, htri⟩, hp⟩`) -- mirroring `def_3_8`'s
-nested 2-conjunct shape.  Every other step (the walk-reachability
-preorder, Szpilrajn extension, the four sub-proofs, the (⇐)
-contradiction via `Walk.lt_of_directedWalk_pos`) is byte-identical
-to the original.  Proof-only helpers (lines below the `variable`
-block) are shared by both versions and carry no marker block of
-their own.
 -/
 
 namespace CDMG
@@ -211,7 +184,6 @@ private lemma Walk.lt_of_directedWalk_pos {G : CDMG Node}
         have hlen0 : q.length = 0 := by omega
         match q, hq_dir, hlen0 with
         | .nil _ _, _, _ => exact hlt_uv
-
 
 -- ref: claim_3_2 (refactor)
 -- A CDMG `G = (J, V, E, L)` is acyclic (in the sense of `def_3_6`) iff
