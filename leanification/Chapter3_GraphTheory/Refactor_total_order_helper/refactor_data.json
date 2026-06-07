@@ -349,7 +349,7 @@
           "last_used": "2026-06-07T14:51:30+00:00"
         }
       ],
-      "time_needed_to_solve": 2907,
+      "time_needed_to_solve": 2927,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -368,10 +368,10 @@
       "section": "3.1",
       "title": "Predecessors",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-07",
       "tips": "REFACTOR row. This row is a refactor ROOT in `total_order_helper` (roots: `def_3_8`, `def_3_9`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
@@ -383,15 +383,15 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -406,8 +406,79 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Predecessors]\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\cup V$.\n   The set of \\emph{predecessors} of $v$ in $G$ are:\n   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]\n   We also put:\n   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e7b6ada8-a57c-492f-8496-d21d0b689161",
+          "first_seen": "2026-06-07T14:57:53+00:00",
+          "last_used": "2026-06-07T14:57:53+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a0961e1b-691c-46f2-9b55-f817b5a419d2",
+          "first_seen": "2026-06-07T15:11:07+00:00",
+          "last_used": "2026-06-07T15:11:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "06ff4dce-acb9-44a8-8447-104038c117d5",
+          "first_seen": "2026-06-07T15:12:21+00:00",
+          "last_used": "2026-06-07T15:12:21+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3efbc78b-7c82-41cb-b26c-0736cf60d3e1",
+          "first_seen": "2026-06-07T15:16:14+00:00",
+          "last_used": "2026-06-07T15:16:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "19b68c3c-77c2-459b-a07c-310403a7ab8a",
+          "first_seen": "2026-06-07T15:18:22+00:00",
+          "last_used": "2026-06-07T15:18:22+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "c4e5db57-a5ac-4eb1-8064-81285a9a081e",
+          "first_seen": "2026-06-07T15:19:28+00:00",
+          "last_used": "2026-06-07T15:19:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7ec45528-4cf3-4749-ace1-09251bc5cad4",
+          "first_seen": "2026-06-07T15:21:29+00:00",
+          "last_used": "2026-06-07T15:21:29+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "957bed70-deb0-4f69-961b-c78ff62c7fcb",
+          "first_seen": "2026-06-07T15:27:14+00:00",
+          "last_used": "2026-06-07T15:27:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1f6826ba-1abf-4c0b-922e-5b5750144d3d",
+          "first_seen": "2026-06-07T15:27:46+00:00",
+          "last_used": "2026-06-07T15:27:46+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "4c68702b-5357-49e6-a33c-4311665ddb06",
+          "first_seen": "2026-06-07T15:29:12+00:00",
+          "last_used": "2026-06-07T15:29:12+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2334,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
