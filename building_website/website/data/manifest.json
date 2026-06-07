@@ -31,8 +31,8 @@
             {
               "ref": "claim_3_1",
               "kind": "claim",
-              "label": "claim 3.1 — JNodeProperties",
-              "title": "JNodeProperties",
+              "label": "claim 3.1 — CDMGRestrictions",
+              "title": "CDMGRestrictions",
               "available": true
             },
             {
@@ -59,8 +59,8 @@
             {
               "ref": "def_3_7",
               "kind": "def",
-              "label": "def 3.7 — GraphTypes",
-              "title": "GraphTypes",
+              "label": "def 3.7 — CDMGTypes",
+              "title": "CDMGTypes",
               "available": true
             },
             {
@@ -82,7 +82,7 @@
               "kind": "def",
               "label": "def 3.9 — Predecessors",
               "title": "Predecessors",
-              "available": true
+              "available": false
             }
           ]
         }

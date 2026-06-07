@@ -22,42 +22,87 @@ const REPO_BRANCH = "main";  // the file viewers link to this branch
    only ever used as bare operator-style tokens (`v_1 \tuh v_2`).
    Extend this dict as new macros surface in later sections.            */
 const KATEX_MACROS = {
+  /* delimiter pairs ( \lp…\rp, \lB…\rB, \lI…\rI, \lC…\rC ) */
+  "\\lp": "\\left(",  "\\rp": "\\right)",
+  "\\lt": "\\left(",  "\\rt": "\\right)",
+  "\\lB": "\\left[",  "\\rB": "\\right]",
+  "\\lI": "\\left|",  "\\rI": "\\right|",
+  "\\lC": "\\left\\{","\\rC": "\\right\\}",
+
   /* set operations */
-  "\\ins":  "\\subseteq",
-  "\\x":    "\\times",
-  "\\sm":   "\\setminus",
-  "\\id":   "\\mathrm{id}",
+  "\\ins": "\\subseteq",  "\\sni": "\\supseteq",
+  "\\sm":  "\\setminus",  "\\x":   "\\times",
+  "\\dcup": "\\mathbin{\\dot{\\cup}}",
+  "\\bigdcup": "\\bigsqcup",
+  "\\cmpl": "\\mathsf{c}",
 
-  /* number sets */
-  "\\N":    "\\mathbb{N}",
-  "\\Z":    "\\mathbb{Z}",
-  "\\R":    "\\mathbb{R}",
-  "\\Q":    "\\mathbb{Q}",
+  /* "such that" / conditioning bars */
+  "\\st":     "\\mid",
+  "\\given":  "\\mid",
+  "\\kgiven": "\\,\\|\\,",
 
-  /* large brace delimiter pair  ( \lC … \rC )  */
-  "\\lC":   "\\left\\{",
-  "\\rC":   "\\right\\}",
+  /* number sets / blackboard */
+  "\\N": "\\mathbb{N}", "\\Z": "\\mathbb{Z}",
+  "\\R": "\\mathbb{R}", "\\Q": "\\mathbb{Q}",
+  "\\E": "\\mathbb{E}", "\\Exp": "\\mathbb{E}",
+  "\\I": "\\mathbf{1}",
+
+  /* decorations */
+  "\\id": "\\mathrm{id}",
+  "\\ol": "\\overline",  "\\ul": "\\underline",
 
   /* graph-theoretic roman operators */
-  "\\Pa":    "\\mathrm{Pa}",
-  "\\Ch":    "\\mathrm{Ch}",
-  "\\Anc":   "\\mathrm{Anc}",
-  "\\Desc":  "\\mathrm{Desc}",
-  "\\Dist":  "\\mathrm{Dist}",
-  "\\Sc":    "\\mathrm{Sc}",
-  "\\MBl":   "\\mathrm{Mb}",
-  "\\Pred":  "\\mathrm{Pred}",
+  "\\Pa": "\\mathrm{Pa}",   "\\pa": "\\mathrm{pa}",
+  "\\Ch": "\\mathrm{Ch}",   "\\Anc": "\\mathrm{Anc}",
+  "\\Desc": "\\mathrm{Desc}", "\\NonDesc": "\\mathrm{NonDesc}",
+  "\\Dist": "\\mathrm{Dist}", "\\Sc": "\\mathrm{Sc}",
+  "\\MBl": "\\mathrm{Mb}",  "\\Pred": "\\mathrm{Pred}",
+  "\\Adj": "\\mathrm{Adj}", "\\AnCl": "\\mathrm{AnCl}",
+  "\\Ant": "\\mathrm{Ant}", "\\Fa": "\\mathrm{Fa}",
+  "\\Nb": "\\mathrm{Nb}",   "\\Sib": "\\mathrm{Sib}",
+  "\\Di": "\\mathrm{Di}",
 
-  /* CDMG edge relations — TIKZ arrows in the LN; approximated here.
-     `t`/`h`/`s` = tail / arrowhead / star (i.e. "either"). The first
-     letter is the endpoint at the LEFT argument, the second at the
-     RIGHT argument. So `\tuh` = tail-…-head (right arrow), etc.       */
-  "\\tuh":   "\\mathrel{\\rightarrow}",
-  "\\hut":   "\\mathrel{\\leftarrow}",
-  "\\huh":   "\\mathrel{\\leftrightarrow}",
-  "\\hus":   "\\mathrel{\\leftarrow\\!{*}}",
-  "\\suh":   "\\mathrel{{*}\\!\\rightarrow}",
-  "\\sus":   "\\mathrel{{*}\\!\\leftrightarrow\\!{*}}",
+  /* construction / do-calculus operators */
+  "\\doit": "\\operatorname{do}",
+  "\\swig": "\\mathrm{swig}",
+  "\\spl":  "\\mathrm{split}",
+  "\\marg": "\\mathrm{mar}",  "\\moral": "\\mathrm{mor}",
+  "\\ske":  "\\mathrm{ske}",  "\\can":  "\\mathrm{can}",
+  "\\aug":  "\\mathrm{aug}",  "\\acy":  "\\mathrm{acy}",
+
+  /* (conditional) independence — the full Perp / iPerp family */
+  "\\Indep":   "\\mathrel{\\perp\\!\\!\\!\\perp}",
+  "\\nIndep":  "\\mathrel{\\not\\mkern-2mu\\perp\\!\\!\\!\\perp}",
+  "\\Perp":    "\\perp",
+  "\\nPerp":   "\\not\\perp",
+  "\\dPerp":   "\\perp^{d}",
+  "\\iPerp":   "\\perp^{i}",
+  "\\mPerp":   "\\perp^{m}",
+  "\\sPerp":   "\\perp^{\\sigma}",
+  "\\isPerp":  "\\perp^{i\\sigma}",
+  "\\imPerp":  "\\perp^{im}",
+  "\\idPerp":  "\\perp^{id}",
+  "\\ndPerp":  "\\not\\perp^{d}",
+  "\\niPerp":  "\\not\\perp^{i}",
+  "\\nmPerp":  "\\not\\perp^{m}",
+  "\\nsPerp":  "\\not\\perp^{\\sigma}",
+  "\\nisPerp": "\\not\\perp^{i\\sigma}",
+  "\\nimPerp": "\\not\\perp^{im}",
+  "\\nidPerp": "\\not\\perp^{id}",
+
+  /* CDMG / PAG edge relations — TIKZ arrows in the LN; approximated
+     here. `t`/`h`/`s`/`o` = tail / arrowhead / star ("either") /
+     circle. The first letter is the endpoint at the LEFT argument,
+     the second at the RIGHT. So `\tuh` = tail-…-head (right arrow). */
+  "\\tuh": "\\mathrel{\\rightarrow}",
+  "\\hut": "\\mathrel{\\leftarrow}",
+  "\\huh": "\\mathrel{\\leftrightarrow}",
+  "\\hus": "\\mathrel{\\leftarrow\\!{*}}",
+  "\\suh": "\\mathrel{{*}\\!\\rightarrow}",
+  "\\sus": "\\mathrel{{*}\\!\\leftrightarrow\\!{*}}",
+  "\\ot":  "\\mathrel{\\leftarrow}",
+  "\\oto": "\\mathrel{\\leftrightarrow}",
+  "\\tut": "\\mathrel{-}",
 };
 
 /* `\Acal` … `\Zcal`  →  `\mathcal{A}` … `\mathcal{Z}`, plus the `\Abf`
@@ -113,120 +158,156 @@ function renderMath(root) {
 }
 
 /* ----------------------------------------------------------------------
-   Lean-pane carousel: when a row's `lean` array carries blocks for
-   multiple LN items (e.g. def_3_4 spans items 1-6, claim_3_1 has parts
-   1/3..3/3), we group blocks by item and show one slide at a time with
-   prev/next buttons rather than stacking all 21 blocks vertically.
+   Lean pane.
+
+   The row's JSON carries `lean_blocks: [{kind, code}]`, one entry per
+   marker-wrapped region in the .lean source. `kind` is "main" for the
+   row's headline declaration and "helper" for supporting decls the main
+   one needs to type-check. Each block renders as its own block with a
+   small label so the reader can tell support code apart from the
+   headline declaration.
    ---------------------------------------------------------------------- */
 
-/* Extract a stable "item key" from a marker's part text — used both for
-   grouping and as a slide identifier. */
-function itemKey(part) {
-  if (!part) return "_none";
-  let m = part.match(/^items?\s+(\d+(?:[\s\-–]+\d+)?)/i);
-  if (m) return m[1].replace(/\s+/g, "");
-  m = part.match(/^part\s+(\d+\/\d+)/i);
-  if (m) return m[1];
-  return part;
+/* Highlight every Lean code block inside `root` (idempotent). */
+function highlightLeanIn(root) {
+  if (typeof hljs === "undefined") return;
+  registerLeanGrammar();
+  root.querySelectorAll("pre code.language-lean").forEach((b) => {
+    if (b.dataset.highlighted === "yes") return;
+    hljs.highlightElement(b);
+  });
 }
 
-/* Strip the "item N" / "items N-M" / "part N/M" prefix from a block's
-   part text, leaving only the sub-description so it can sit under the
-   slide's own header. Returns "" when the part is just the item id with
-   no description, in which case no sub-label is rendered. */
-function blockSubLabel(part) {
-  if (!part) return "";
-  let s = part.replace(/^items?\s+\d+(?:[\s\-–]+\d+)?\s*[,:]?\s*/i, "");
-  s = s.replace(/^part\s+\d+\/\d+\s*[,:]?\s*/i, "");
-  return s.trim();
-}
+/* Lean pane. Each block renders with:
+     - a label (kind: main / helper)
+     - a per-block "Comments ▾" button that flips this block's code
+       between its bare `code` and its `code_annotated` variant (the
+       same code with a `--` comment line above each non-trivial line).
+       Default: off. Each block toggles independently.
+     - a per-block "Explain ▾" button that toggles a Markdown
+       explanation panel beneath the code (disabled if no explanation
+       was generated). */
+function buildLeanPane(data) {
+  const body = el("div", { class: "pane-body lean-pane-body" });
+  const blocks = data.lean_blocks || [];
+  if (blocks.length === 0) {
+    body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
+    return body;
+  }
 
-/* Slide title for the carousel header. "item 6, witness structure" →
-   "Item 6". "items 2-4" → "Items 2-4". "part 1/3" → "Part 1/3". */
-function slideTitle(blocks) {
-  const part = blocks[0].part || "";
-  const base = part.split(",")[0].trim();
-  return base ? base.charAt(0).toUpperCase() + base.slice(1) : "";
-}
-
-function groupSlides(blocks) {
-  const slides = [];
-  let cur = null;
   for (const b of blocks) {
-    const key = itemKey(b.part);
-    if (!cur || cur.key !== key) {
-      cur = { key, blocks: [b] };
-      slides.push(cur);
+    const kind = b.kind === "main" ? "main" : "helper";
+    const codeNode = el("code", { class: "language-lean" }, b.code);
+    const codePre  = el("pre", {}, codeNode);
+
+    // Per-block comments toggle (only when a non-trivial annotated
+    // version exists).
+    const hasAnnotated = !!(b.code_annotated && b.code_annotated.trim() && b.code_annotated !== b.code);
+    let commentsOn = false;
+    const commentsBtn = el("button", {
+      class: "block-comments-btn", type: "button",
+      "aria-label": "Toggle line-by-line comments in this block",
+      title: hasAnnotated
+        ? "Show or hide a `-- comment` line above each non-trivial Lean line in this block."
+        : "No annotated variant generated for this block.",
+    }, "Comments");
+    if (!hasAnnotated) {
+      commentsBtn.disabled = true;
+      commentsBtn.classList.add("disabled");
     } else {
-      cur.blocks.push(b);
-    }
-  }
-  return slides;
-}
-
-/* Append the contents of one slide (one or more Lean blocks) into a
-   parent node. Each sub-block gets its own `-- subLabel` header when
-   the description is non-empty. */
-function renderSlideInto(parent, slide) {
-  for (const b of slide.blocks) {
-    const sub = blockSubLabel(b.part);
-    if (sub) parent.append(el("div", { class: "lean-part-label" }, sub));
-    parent.append(
-      el("pre", {}, el("code", { class: "language-lean" }, b.statement)),
-    );
-  }
-}
-
-function renderCarousel(slides) {
-  let current = 0;
-  const slideBox  = el("div", { class: "lean-slide" });
-  const titleEl   = el("span", { class: "lean-carousel-title" });
-  const counter   = el("span", { class: "lean-carousel-counter" });
-
-  const prev = el("button", {
-    class: "lean-carousel-btn",
-    type: "button",
-    "aria-label": "Previous item",
-  }, "‹");
-  const next = el("button", {
-    class: "lean-carousel-btn",
-    type: "button",
-    "aria-label": "Next item",
-  }, "›");
-
-  function paint() {
-    slideBox.innerHTML = "";
-    renderSlideInto(slideBox, slides[current]);
-    titleEl.textContent = slideTitle(slides[current].blocks);
-    counter.textContent = `${current + 1} / ${slides.length}`;
-    prev.disabled = current === 0;
-    next.disabled = current === slides.length - 1;
-    if (typeof hljs !== "undefined") {
-      registerLeanGrammar();
-      slideBox.querySelectorAll("pre code.language-lean").forEach((b) => {
-        if (b.dataset.highlighted !== "yes") hljs.highlightElement(b);
+      commentsBtn.textContent = "Comments ▾";
+      commentsBtn.addEventListener("click", () => {
+        commentsOn = !commentsOn;
+        const next = commentsOn ? b.code_annotated : b.code;
+        codePre.innerHTML = "";
+        codePre.append(el("code", { class: "language-lean" }, next));
+        commentsBtn.textContent = commentsOn ? "Comments ▴" : "Comments ▾";
+        commentsBtn.classList.toggle("on", commentsOn);
+        highlightLeanIn(codePre);
       });
     }
-  }
-  prev.addEventListener("click", () => { if (current > 0) { current--; paint(); } });
-  next.addEventListener("click", () => { if (current < slides.length - 1) { current++; paint(); } });
-  // Keyboard arrows when the Lean pane has focus.
-  slideBox.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft")  { e.preventDefault(); prev.click(); }
-    if (e.key === "ArrowRight") { e.preventDefault(); next.click(); }
-  });
-  slideBox.setAttribute("tabindex", "0");
 
-  const carousel = el("div", { class: "lean-carousel" },
-    el("div", { class: "lean-carousel-controls" },
-      prev,
-      el("div", { class: "lean-carousel-label" }, titleEl, counter),
-      next,
-    ),
-    slideBox,
-  );
+    // Per-block explanation panel.
+    const explanation = (b.explanation || "").trim();
+    const explanationDiv = el("div", { class: "block-explanation markdown-body" });
+    if (explanation) {
+      explanationDiv.innerHTML = typeof marked !== "undefined"
+        ? marked.parse(explanation, { gfm: true, breaks: false })
+        : `<pre>${explanation}</pre>`;
+    }
+    let explainOpen = false;
+    const explainBtn = el("button", {
+      class: "block-explain-btn", type: "button",
+      "aria-label": "Toggle the human-language explanation for this block",
+    }, "Explain");
+    if (!explanation) {
+      explainBtn.disabled = true;
+      explainBtn.classList.add("disabled");
+      explainBtn.title = "No explanation generated for this block yet.";
+    } else {
+      explainBtn.textContent = "Explain ▾";
+      explainBtn.addEventListener("click", () => {
+        explainOpen = !explainOpen;
+        explainBtn.textContent = explainOpen ? "Explain ▴" : "Explain ▾";
+        explainBtn.classList.toggle("open", explainOpen);
+        explanationDiv.classList.toggle("open", explainOpen);
+        if (explainOpen) renderMath(explanationDiv);
+      });
+    }
+
+    body.append(
+      el("div", { class: `lean-block lean-block-${kind}` },
+        el("div", { class: "lean-block-header" },
+          el("div", { class: "lean-block-label" }, kind),
+          el("div", { class: "lean-block-controls" }, commentsBtn, explainBtn),
+        ),
+        codePre,
+        explanationDiv,
+      ),
+    );
+  }
+
+  return body;
+}
+
+/* The TeX pane has two versions: the original LN excerpt
+   (`tex_block_html`) shown by default, and the worker's unambiguous
+   version (`tex_statement.html`) reachable via a toggle. The pane
+   label updates to match. */
+function buildTexPane(data) {
+  const origHtml    = data.tex_block_html || "";
+  const unambigHtml = (data.tex_statement && data.tex_statement.html) || "";
+  const body        = el("div", { class: "pane-body" });
+  const labelText   = el("span", { class: "pane-label-main" });
+  const toggle      = el("button", { class: "tex-version-toggle", type: "button" });
+
+  // If only one version is available, fall through to that one and hide
+  // the toggle entirely.
+  const haveBoth = !!(origHtml && unambigHtml);
+  let showingOriginal = !!origHtml;  // default: original; falls back to unambig when only that exists
+
+  function paint() {
+    const html = showingOriginal ? origHtml : unambigHtml;
+    body.innerHTML = html || "<em>(missing)</em>";
+    labelText.textContent = showingOriginal
+      ? "Statement (lecture notes)"
+      : "Statement (unambiguous)";
+    toggle.textContent = showingOriginal
+      ? "Unambiguous version →"
+      : "← Back to original";
+    renderMath(body);
+  }
+  if (!haveBoth) {
+    toggle.style.display = "none";
+  } else {
+    toggle.addEventListener("click", () => { showingOriginal = !showingOriginal; paint(); });
+  }
   paint();
-  return carousel;
+
+  return el("section", { class: "pane pane-tex" },
+    el("div", { class: "pane-label" }, labelText, toggle),
+    body,
+  );
 }
 
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
@@ -396,37 +477,11 @@ function renderEntry(data) {
     el("div", { class: "entry-status" }, ...statusBadges),
   );
 
-  // ---- split ----
-  const texPane = el("section", { class: "pane pane-tex" },
-    el("div", { class: "pane-label" }, "Statement (lecture notes)"),
-    el("div", { class: "pane-body", html: data.tex_statement.html || "<em>(missing)</em>" }),
-  );
-
-  const leanBody = el("div", { class: "pane-body" });
-  if (data.lean.length === 0) {
-    leanBody.append(el("div", { class: "missing" }, "(no Lean blocks found)"));
-  } else {
-    // Group blocks into slides by their item key — all sub-blocks of
-    // "item 6" go in one slide, all of "item 1" in another, etc.
-    const slides = groupSlides(data.lean);
-    if (slides.length <= 1) {
-      // Single-item row (def_3_1, single-part claim, etc.): no carousel,
-      // just render the blocks directly.
-      renderSlideInto(leanBody, slides[0] || { blocks: data.lean });
-    } else {
-      // Multi-item row: render a prev/next carousel.
-      leanBody.append(renderCarousel(slides));
-    }
-  }
-
-  const leanMainPath = data.lean[0]?.source_path;
+  // ---- split: TeX (LN original ↔ unambiguous) | Lean (per-block panels) ----
+  const texPane = buildTexPane(data);
+  const leanBody = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
-    el("div", { class: "pane-label" },
-      "Formalisation",
-      leanMainPath
-        ? el("span", { class: "pane-label-aux" }, leanMainPath.split("/").pop())
-        : null,
-    ),
+    el("div", { class: "pane-label" }, "Formalisation"),
     leanBody,
   );
 
@@ -434,11 +489,10 @@ function renderEntry(data) {
 
   // ---- actions ----
   //
-  // Four buttons (in this order):
-  //   1. View TeX proof   — claims only; navigates to the proof page
-  //   2. View Lean source — always; opens the .lean file on GitHub
-  //   3. Lean explanation — toggles the panel below; disabled until LLM-populated
-  //   4. Design choices   — toggles the panel below; disabled until LLM-populated
+  // Three buttons (in this order):
+  //   1. View TeX proof   — claims only; navigates to #proof/<ref>
+  //   2. View Lean source — always; opens main_lean_file on GitHub
+  //   3. Design choices   — toggles the panel below; disabled until LLM-populated
   const actions = el("footer", { class: "entry-actions" });
 
   if (data.kind === "claim" && data.tex_proof && data.tex_proof.html) {
@@ -453,11 +507,12 @@ function renderEntry(data) {
     }, "View TeX proof"));
   }
 
-  if (leanMainPath) {
+  if (data.lean_source_url) {
     actions.append(el("a", {
       class: "btn",
-      href: `${REPO_URL}/blob/${REPO_BRANCH}/${leanMainPath}`,
+      href: data.lean_source_url,
       target: "_blank", rel: "noopener",
+      title: data.lean_source_url,
     }, "View Lean source"));
   }
 
@@ -476,10 +531,9 @@ function renderEntry(data) {
       },
     }, label);
   }
-  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
-  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
+  actions.append(explanationButton("Design choices", `${data.ref}--design`, data.design_choices));
 
-  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
+  // ---- Explanation panel (initially hidden, toggled by the button above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -490,16 +544,15 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`, "Design choices", data.design_choices);
 
-  // ---- assemble (no inline TeX/Lean proof panes; those live on the
-  //                 dedicated proof page) ----
+  // The page-wide "Lean explanation" button + panel is gone — per-block
+  // Explain buttons (rendered inline within each .lean-block) replace it.
+
   const article = el("article", { class: "entry", id: data.ref },
     header,
     split,
     actions,
-    leanExplPanel,
     designChoicesPanel,
   );
   return article;
@@ -515,6 +568,7 @@ function renderProofPage(data) {
   const sectionNum = data.section;
 
   const header = el("header", { class: "entry-header" },
+    el("a", { class: "back-link", href: `#${data.ref}` }, "← Back to statement"),
     el("div", { class: "entry-kind" }, `Proof of Claim ${sectionNum.split(".")[0]}.${nIn}`),
     el("h1", { class: "entry-title" }, data.tex_statement.env_title || data.title),
   );

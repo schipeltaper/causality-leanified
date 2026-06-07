@@ -31,6 +31,42 @@ Extend as new patterns appear. The patterns currently handled:
 from __future__ import annotations
 import re
 from dataclasses import dataclass
+from pathlib import Path
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_LABEL_REF_RE = re.compile(r"^(def|claim)_\d+_\d+")
+_LABEL_INDEX: dict[str, str] | None = None
+
+
+def _label_index() -> dict[str, str]:
+    """Lazy-built map from LaTeX label (the `X` in `\\label{X}`) to the
+    row ref that owns the file the label appears in. Walks every per-row
+    .tex under leanification/ once.
+
+    Used by inline_convert to turn `\\ref{X}` into a link to the row's
+    page on the website. If a label isn't found (e.g. labels in the LN
+    aggregate `main.tex` or unsolved rows), `\\ref{X}` still renders as
+    inline code with the bare label."""
+    global _LABEL_INDEX
+    if _LABEL_INDEX is not None:
+        return _LABEL_INDEX
+    idx: dict[str, str] = {}
+    label_re = re.compile(r"\\label\{([^}]+)\}")
+    for tex in (_REPO_ROOT / "leanification").glob("Chapter*/Section*/tex/*.tex"):
+        m = _LABEL_REF_RE.match(tex.name)
+        if not m:
+            continue
+        ref = m.group(0)
+        try:
+            text = tex.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for lm in label_re.finditer(text):
+            label = lm.group(1)
+            idx.setdefault(label, ref)
+    _LABEL_INDEX = idx
+    return idx
 
 
 # Every theorem-like env declared in `leanification/preamble.tex` via
@@ -57,7 +93,10 @@ class TexBlock:
 
 def strip_subfiles_wrapper(tex: str) -> str:
     """Keep only what's between \\begin{document} and \\end{document}, drop
-    bookkeeping directives, and remove whole-line `%` comments."""
+    bookkeeping directives, and remove whole-line `%` comments. Also
+    rewrites `\\begin{restatable}{TYPE}{NAME}…\\end{restatable}` to
+    `\\begin{TYPE}…\\end{TYPE}` so the downstream theorem-env unwrap
+    handles it like any other Prp/Lem/Rem."""
     m = re.search(r"\\begin\{document\}(.*?)\\end\{document\}", tex, re.DOTALL)
     if m:
         tex = m.group(1)
@@ -65,7 +104,70 @@ def strip_subfiles_wrapper(tex: str) -> str:
     tex = re.sub(r"\\phantomsection", "", tex)
     tex = re.sub(r"\\label\{[^}]*\}", "", tex)
     tex = re.sub(r"^\s*%.*$", "", tex, flags=re.MULTILINE)
+    # `\begin{restatable}{TYPE}{NAME}…\end{restatable}` → `\begin{TYPE}…\end{TYPE}`
+    def _restatable(m: re.Match) -> str:
+        env_type = m.group(1)
+        body     = m.group(3)
+        return f"\\begin{{{env_type}}}{body}\\end{{{env_type}}}"
+    tex = re.sub(
+        r"\\begin\{restatable\}\{(\w+)\}\{(\w+)\}(.*?)\\end\{restatable\}",
+        _restatable, tex, flags=re.DOTALL,
+    )
     return tex
+
+
+def _strip_proof_blocks(body: str) -> str:
+    """Strip `\\begin{proof}…\\end{proof}` blocks from a body. Used only
+    on STATEMENT files — statements should never contain a proof block,
+    but some are authored with one embedded (e.g. claim_3_27 in the LN's
+    convention) and showing that on the statement page mixes content
+    that belongs on the dedicated proof page."""
+    return _strip_balanced_env(body, "proof")
+
+
+def _find_matching_end(text: str, env: str, after_begin: int) -> tuple[int, int] | None:
+    """Find the `\\end{env}` that matches a `\\begin{env}` whose body
+    starts at `after_begin`, accounting for any nested same-env begins.
+    Returns (start, end) of the matching `\\end{…}` or None."""
+    begin_re = re.compile(rf"\\begin\{{{re.escape(env)}\}}")
+    end_re   = re.compile(rf"\\end\{{{re.escape(env)}\}}")
+    depth = 1
+    pos = after_begin
+    while pos < len(text):
+        nb = begin_re.search(text, pos)
+        ne = end_re.search(text, pos)
+        if ne is None:
+            return None
+        if nb is not None and nb.start() < ne.start():
+            depth += 1
+            pos = nb.end()
+        else:
+            depth -= 1
+            if depth == 0:
+                return (ne.start(), ne.end())
+            pos = ne.end()
+    return None
+
+
+def _strip_balanced_env(text: str, env: str) -> str:
+    """Remove every balanced `\\begin{env}…\\end{env}` block, including
+    nested instances of the same env."""
+    out: list[str] = []
+    begin_re = re.compile(rf"\\begin\{{{re.escape(env)}\}}")
+    pos = 0
+    while True:
+        m = begin_re.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            break
+        out.append(text[pos:m.start()])
+        end = _find_matching_end(text, env, m.end())
+        if end is None:
+            out.append(text[m.start():])
+            break
+        pos = end[1]
+    return "".join(out)
+
 
 
 def unwrap_outer_env(tex: str) -> TexBlock:
@@ -93,6 +195,10 @@ def _convert_enumerate(body: str, klass: str, resume_from: int = 0) -> tuple[str
     `\\item[label]` (non-empty) is rendered with the label as a manual prefix
     in front of the body — we use this only for the `\\item[]` resume-skip
     pattern in practice."""
+    # Process any nested enumerate/itemize/proof envs FIRST. Otherwise the
+    # split-on-`\item` below would tear an inner enumerate apart along its
+    # own `\item`s, attributing the inner items to the outer list.
+    body = _convert_block_envs(body)
     parts = re.split(r"(?=\\item\b)", body)
     parts = [p for p in parts if p.strip()]
     lis: list[str] = []
@@ -153,10 +259,58 @@ def inline_convert(tex: str) -> str:
     protected = re.sub(r"\\emph\{([^{}]*)\}",   r"<em>\1</em>", protected)
     protected = re.sub(r"\\textit\{([^{}]*)\}", r"<em>\1</em>", protected)
     protected = re.sub(r"\\textbf\{([^{}]*)\}", r"<strong>\1</strong>", protected)
+    # `\texttt{X}` → inline <code>; the inner text often has escaped
+    # underscores `\_` which read better as literal `_` in monospace.
+    protected = re.sub(
+        r"\\texttt\{([^{}]*)\}",
+        lambda m: f"<code>{m.group(1).replace(chr(92)+'_', '_')}</code>",
+        protected,
+    )
+    # `\paragraph{X}` / `\subparagraph{X}` are LaTeX's inline-heading
+    # commands (rendered bold-lead-in-on-its-own-line). Render as a
+    # bold run on a new line.
+    protected = re.sub(
+        r"\\paragraph\{([^{}]*)\}",
+        r'<br><strong class="tex-paragraph">\1</strong> ',
+        protected,
+    )
+    protected = re.sub(
+        r"\\subparagraph\{([^{}]*)\}",
+        r'<br><strong class="tex-subparagraph">\1</strong> ',
+        protected,
+    )
+    # `\footnote{X}` — drop. Footnotes work poorly on the web layout
+    # and the proof body is the primary content.
+    protected = re.sub(r"\\footnote\{[^{}]*\}", "", protected)
+    # `\Claude{…}` — blue annotation macro from the LN preamble, used in
+    # some proof files. Render as a styled inline note.
+    protected = re.sub(
+        r"\\Claude\{([^{}]*)\}",
+        r'<span class="claude-note">Claude: \1</span>',
+        protected,
+    )
     def _refrow_sub(m: re.Match) -> str:
         ref = m.group(1).replace("\\_", "_")
         return f'<a href="#{ref}" class="refrow"><code>{ref}</code></a>'
     protected = re.sub(r"\\refrow\{([^{}]*)\}", _refrow_sub, protected)
+
+    # `\ref{X}` — LaTeX cross-reference to a `\label{X}` defined elsewhere.
+    # Resolve the label to its owning row's ref via the lazy index below;
+    # link if found, otherwise show the bare label as styled inline code so
+    # the user at least sees what was being referenced.
+    def _ref_sub(m: re.Match) -> str:
+        label = m.group(1).replace("\\_", "_")
+        target_ref = _label_index().get(label)
+        if target_ref:
+            return f'<a href="#{target_ref}" class="refrow"><code>{label}</code></a>'
+        return f"<code>{label}</code>"
+    protected = re.sub(r"\\ref\{([^{}]*)\}", _ref_sub, protected)
+    # Prose-level spacing / layout commands carry no meaning on the web —
+    # drop them so they don't render as literal backslash text.
+    protected = re.sub(
+        r"\\(noindent|medskip|smallskip|bigskip|par|newpage|clearpage|centering|raggedright|raggedleft|null)\b",
+        "", protected,
+    )
     # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
     # Only the doubled forms are converted unambiguously; the single
     # backtick / quote forms get used too often inside identifiers
@@ -173,22 +327,72 @@ def inline_convert(tex: str) -> str:
     return re.sub(r"\x00MATH(\d+)\x00", restore, protected)
 
 
+def _convert_math_envs(tex: str) -> str:
+    """Convert LaTeX math environments to a KaTeX-compatible form by
+    wrapping them in `\\[ … \\]` display-math delimiters. The body env
+    is rewritten to KaTeX's `aligned` / `gathered` variants where
+    needed (`align*` / `equation*` etc. are TeX-only)."""
+    def repl(m: re.Match) -> str:
+        env = m.group(1)
+        body = m.group(2)
+        if env in ("align", "align*"):
+            return f"\\[\\begin{{aligned}}{body}\\end{{aligned}}\\]"
+        if env in ("gather", "gather*", "eqnarray", "eqnarray*"):
+            return f"\\[\\begin{{gathered}}{body}\\end{{gathered}}\\]"
+        # equation / equation*  → plain display math
+        return f"\\[{body}\\]"
+    return re.sub(
+        r"\\begin\{(align\*?|equation\*?|eqnarray\*?|gather\*?)\}(.*?)\\end\{\1\}",
+        repl, tex, flags=re.DOTALL,
+    )
+
+
+def _convert_description(body: str) -> str:
+    """`\\begin{description}\\item[term] body \\item[term] body\\end{description}`
+    → an HTML <dl> list."""
+    parts = re.split(r"(?=\\item\b)", body)
+    parts = [p for p in parts if p.strip()]
+    out: list[str] = []
+    for p in parts:
+        m = re.match(r"\\item\s*\[(.*?)\]\s*(.*)", p, re.DOTALL)
+        if not m:
+            continue
+        out.append(
+            f"<dt>{inline_convert(m.group(1))}</dt>"
+            f"<dd>{inline_convert(m.group(2).strip())}</dd>"
+        )
+    return f"<dl>{''.join(out)}</dl>"
+
+
 def _convert_block_envs(tex: str) -> str:
-    """Convert enumerate/itemize/proof environments to HTML, in order, with
-    enumerate's `resume` option carrying the counter across consecutive lists.
-    Each block-level conversion is surrounded by blank lines so the later
-    paragraph-wrapper treats it as a standalone block."""
-    out_parts: list[str] = []
+    """Convert enumerate/itemize/proof environments to HTML, with proper
+    depth-aware matching so nested `\\begin{enumerate}…\\end{enumerate}`
+    inside an outer enumerate (e.g. claim_3_24) doesn't get severed at
+    the first inner `\\end`. enumerate's `resume` option carries the
+    counter across consecutive lists. Each block-level conversion is
+    surrounded by blank lines so the paragraph-wrapper treats it as a
+    standalone block."""
+    out: list[str] = []
     pos = 0
     resume_count = 0
 
-    pattern = re.compile(
-        r"\\begin\{(enumerate|itemize|proof)\}(\[[^\]]*\])?(.*?)\\end\{\1\}",
-        re.DOTALL,
-    )
-    for m in pattern.finditer(tex):
-        out_parts.append(tex[pos:m.start()])
-        env, opts, body = m.group(1), (m.group(2) or "")[1:-1], m.group(3)
+    begin_re = re.compile(r"\\begin\{(enumerate|itemize|proof|quote|description|verbatim)\}(\[[^\]]*\])?")
+    while True:
+        m = begin_re.search(tex, pos)
+        if not m:
+            out.append(tex[pos:])
+            break
+        out.append(tex[pos:m.start()])
+        env  = m.group(1)
+        opts = (m.group(2) or "")[1:-1]
+        body_start = m.end()
+        end = _find_matching_end(tex, env, body_start)
+        if end is None:
+            # No matching end — leave the begin literal and move on.
+            out.append(tex[m.start():m.end()])
+            pos = m.end()
+            continue
+        body = tex[body_start:end[0]]
         if env == "enumerate":
             roman = "label=\\roman*.)" in opts
             resume = "resume" in opts
@@ -197,19 +401,31 @@ def _convert_block_envs(tex: str) -> str:
                 body, klass, resume_from=resume_count if resume else 0
             )
             resume_count = (resume_count if resume else 0) + count
-            out_parts.append(f"\n\n{html}\n\n")
+            out.append(f"\n\n{html}\n\n")
         elif env == "itemize":
-            out_parts.append(f"\n\n{_convert_itemize(body)}\n\n")
+            out.append(f"\n\n{_convert_itemize(body)}\n\n")
             resume_count = 0
         elif env == "proof":
             inner = tex_body_to_html(body)
-            out_parts.append(
+            out.append(
                 f'\n\n<div class="tex-proof"><span class="proof-label">Proof.</span>{inner}</div>\n\n'
             )
             resume_count = 0
-        pos = m.end()
-    out_parts.append(tex[pos:])
-    return "".join(out_parts)
+        elif env == "quote":
+            inner = tex_body_to_html(body)
+            out.append(f"\n\n<blockquote>{inner}</blockquote>\n\n")
+            resume_count = 0
+        elif env == "description":
+            out.append(f"\n\n{_convert_description(body)}\n\n")
+            resume_count = 0
+        elif env == "verbatim":
+            # Verbatim content is shown as-is in a <pre>; the body might
+            # contain `<` or `&` that must be escaped first.
+            esc = body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            out.append(f"\n\n<pre class=\"verbatim\">{esc}</pre>\n\n")
+            resume_count = 0
+        pos = end[1]
+    return "".join(out)
 
 
 def _paragraphs(html: str) -> str:
@@ -274,7 +490,11 @@ def _convert_theorem_envs(tex: str) -> str:
 def tex_body_to_html(tex_body: str) -> str:
     """Public: convert a TeX body (no subfiles/wrapper) to HTML prose with math
     delimiters intact for KaTeX."""
-    s = _convert_theorem_envs(tex_body)
+    # Wrap math envs (`align*`/`equation*`/…) in `\[ … \]` first so the
+    # rest of the pipeline treats them like any other display math
+    # rather than as prose text containing literal `\begin{align*}`.
+    s = _convert_math_envs(tex_body)
+    s = _convert_theorem_envs(s)
     s = _convert_block_envs(s)
     s = inline_convert(s)
     s = _paragraphs(s)
@@ -282,8 +502,12 @@ def tex_body_to_html(tex_body: str) -> str:
 
 
 def tex_to_html(tex: str) -> TexBlock:
-    """End-to-end: subfiles wrapper → outer env → HTML body."""
+    """End-to-end statement renderer: subfiles wrapper → outer env →
+    HTML body. Strips any `\\begin{proof}…\\end{proof}` block from the
+    body — some statement files (e.g. claim_3_27_statement) embed a
+    proof against their own header comment; that content belongs on the
+    dedicated proof page, not the entry page."""
     s = strip_subfiles_wrapper(tex)
     block = unwrap_outer_env(s)
-    block.body_html = tex_body_to_html(block.body_html)
+    block.body_html = tex_body_to_html(_strip_proof_blocks(block.body_html))
     return block

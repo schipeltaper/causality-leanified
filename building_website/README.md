@@ -1,327 +1,330 @@
-# `building_website/` — MVP for the side-by-side presentation site
+# `building_website/` — the side-by-side presentation site
 
-A scratch area to develop the static site that presents the Forré–Mooij
-leanification side-by-side (TeX on the left, Lean on the right), organised
-by chapter → section → row. Once we like the look, we'll promote
-`building_website/website/` to `website/` at the repo root.
-
-## Folder layout
+The static site at <https://leanification.samritchie.dev/> that
+presents the Forré–Mooij leanification side-by-side: the lecture-notes
+statement on the left, the Lean 4 formalisation on the right, organised
+by chapter → section → row.
 
 ```
 building_website/
-├── README.md                       ← this file
+├── README.md                        ← this file
 ├── scripts/
-│   ├── tex_to_html.py              ← LaTeX-prose → HTML converter (math left for KaTeX)
-│   ├── fetch_row.py                ← per-row data extractor (the workhorse)
-│   └── build_manifest.py           ← generates the sidebar tree
+│   ├── tex_to_html.py               ← LaTeX-prose → HTML converter
+│   ├── fetch_row.py                 ← per-row data assembler
+│   ├── process_lean_explanation.py  ← LLM step 1
+│   ├── process_design_choices.py    ← LLM step 2
+│   └── build_manifest.py            ← sidebar tree + asset cache-bust
 └── website/
-    ├── index.html                  ← shell page; sidebar + content containers
+    ├── index.html                   ← shell page (asset URLs stamped by build_manifest)
+    ├── CNAME                        ← leanification.samritchie.dev
+    ├── .nojekyll
     ├── assets/
-    │   ├── style.css               ← all styling
-    │   └── app.js                  ← fetches JSON, renders entries
-    └── data/                       ← generated artifacts (in git so GH Pages serves them)
-        ├── manifest.json           ← sidebar tree
-        └── def_3_1.json            ← one file per fetched row
+    │   ├── style.css
+    │   └── app.js                   ← client-side renderer
+    └── data/                        ← generated artefacts (committed; GH Pages serves them)
+        ├── manifest.json            ← sidebar tree
+        └── <ref>.json               ← one per row
 ```
 
-## What it does today
+## TL;DR — the per-row workflow
 
-Section 3.1 lives in the sidebar; **def_3_1** is fully fetched, every other
-row is shown as "unavailable" (italic, click to see how to populate it).
-Open `index.html` (served over HTTP, see below) and you'll see:
+When the orchestrator (the leanification side, outside this folder)
+finishes formalising a row and writes its marker comments into the
+`.lean` file, run:
 
-- left sidebar tree: Chapter 3 → 3.1 → 11 rows;
-- a two-pane split with TeX on the left (KaTeX rendering) and the Lean
-  `structure CDMG` on the right (highlight.js with the `lean` grammar);
-- status badges (Formalised / No proof — definition);
-- action buttons (View TeX source, View Lean source);
-- collapsible **Lean comments & design notes** panel — surfaces every
-  `--` / `/- … -/` comment block that lives directly above the
-  declaration in the Lean file.
-
-## The data pipeline
-
-The script in `scripts/fetch_row.py` is the one place that knows how to
-read a row of `data.json` and produce the six pieces the website needs.
-For one `ref` (e.g. `def_3_1`) it emits a single JSON file:
-
+```bash
+python3 building_website/scripts/fetch_row.py <ref>
+python3 building_website/scripts/process_lean_explanation.py <ref>
+python3 building_website/scripts/process_design_choices.py <ref>
+python3 building_website/scripts/build_manifest.py
+git add -A && git commit -m "…" && git push
 ```
+
+That's the whole loop. Each script writes to
+`building_website/website/data/<ref>.json`; the website fetches that
+file at runtime and renders it. Merging to `main` triggers the GitHub
+Pages workflow that publishes everything in `building_website/website/`.
+
+## Inputs: what each row needs upstream
+
+Everything below assumes the row has reached Phase 3 (`solved="yes"`
+in `data.json`) and has the worker-written artefacts described in
+[`temp_for_website_builder.md`](../temp_for_website_builder.md) at the
+repo root. Concretely, the orchestrator promises:
+
+1. **A row in `data.json`**
+
+   At `leanification/Chapter<N>_*/data.json`, with at minimum:
+   `ref`, `title`, `section`, `def_or_claim`, `type`, `solved`, `proven`,
+   `main_lean_file`, `lean_files`, `addition_to_the_LN`.
+
+2. **A per-row TeX statement file**
+
+   ```
+   leanification/Chapter<N>_*/Section<N>_<M>/tex/<ref>_<title>.tex          # for defs
+   leanification/Chapter<N>_*/Section<N>_<M>/tex/<ref>_statement_<title>.tex # for claims
+   ```
+
+   Verified by the `verify_tex_statement_only` gate to contain the LN's
+   statement block and nothing else.
+
+3. **A per-row TeX proof file (claims only)**
+
+   ```
+   leanification/Chapter<N>_*/Section<N>_<M>/tex/<ref>_proof_<title>.tex
+   ```
+
+   Verified by `verify_tex_statement_plus_proof` to contain the statement
+   restated followed by a non-empty `\begin{proof}…\end{proof}` block.
+
+4. **Marker-wrapped Lean declarations**
+
+   Inside `main_lean_file` (and possibly sibling files in `lean_files`),
+   the formalize worker brackets each declaration with one of two
+   marker forms:
+
+   ```lean
+   -- <ref> --  start statement       (two dashes around "start"/"end")
+   def someName … := …
+   -- <ref> --  end statement
+
+   -- <ref> --- start helper          (three dashes — a helper the main decl
+   def someHelper … := …                  needs to type-check)
+   -- <ref> --- end helper
+   ```
+
+   Markers are immediately adjacent to the wrapped declaration — no
+   blank lines, comments, or docstrings between the start marker and
+   the keyword. The slice between the markers is the *exact* declaration
+   source.
+
+5. **Design-choice notes preceding the start marker**
+
+   The formalize worker writes design-choice prose as `--` / `/- … -/` /
+   `/-- … -/` comments directly before the row's first
+   `-- <ref> --  start statement` marker. These comments are the
+   raw material both LLM passes read.
+
+## Output: what the website consumes
+
+Each row's `data/<ref>.json`:
+
+```jsonc
 {
-  "ref":         "def_3_1",
-  "kind":        "def",                ← "def" | "claim"
-  "section":     "3.1",
-  "title":       "CDMG",
-  "type":        "definition",
-  "status":      { "formalized": "yes", "proven": "n/a", "solved": "yes" },
+  "ref":  "def_3_1",
+  "kind": "def",                         // "def" | "claim"
+  "section": "3.1",
+  "title":   "CDMG",
+  "type":    "definition",               // definition / claim / lemma / remark / notation / …
+  "status":  { "formalized": "yes", "proven": "n/a", "solved": "yes" },
 
-  "tex_statement": {
-    "raw":         "<verbatim TeX, with subfiles wrapper>",
-    "html":        "<HTML rendering, math intact for KaTeX>",
-    "env":         "Def",                ← the theorem env name
-    "env_title":   "Conditional directed mixed graphs (CDMG)",
+  "tex_statement": {                     // rendered LaTeX statement
+    "raw":  "<verbatim .tex>",
+    "html": "<HTML with KaTeX-ready math>",
+    "env":  "Def",
+    "env_title": "Conditional directed mixed graphs (CDMG)",
     "source_path": "leanification/.../def_3_1_CDMG.tex"
   },
+  "tex_proof": null,                     // {raw, html, source_path} for claims
 
-  "tex_proof": null,                   ← non-null for claims
-  "lean": [
-    {
-      "part":        null,             ← "1/3" etc. for multi-part claims
-      "title":       "CDMG",
-      "comments":    "<every -- and /- … -/ comment block above the decl>",
-      "statement":   "structure CDMG (α : Type*) where ...",
-      "proof":       null,             ← non-null for theorems/lemmas
-      "source_path": "leanification/.../CDMG.lean",
-      "source_line": 17
-    }
-  ]
+  "lean_blocks": [                       // one entry per marker-wrapped region
+    { "kind": "helper", "code": "…" },
+    { "kind": "main",   "code": "…" }
+  ],
+
+  "lean_source_url":   "https://github.com/…/blob/main/leanification/.../CDMG.lean",
+  "lean_file_path":    "leanification/.../CDMG.lean",
+  "addition_to_the_LN": "<operator notes from data.json>",
+
+  "lean_explanation": "<polished Markdown — naming + Mathlib idioms>",
+  "design_choices":   "<polished Markdown — structural trade-offs>"
 }
 ```
 
-### How extraction works
+## Scripts in detail
 
-For a given `ref` like `def_3_1`:
+### `fetch_row.py`
 
-1. **find the row.** Walks `leanification/Chapter*/data.json` until it
-   finds a row whose `ref` matches. The row carries `section`, `title`,
-   `def_or_claim`, `main_lean_file`, `lean_files`.
-
-2. **TeX statement file.** Derived from the row:
-   - `def`:   `…/Section<N>_<M>/tex/<ref>_<Title>.tex`
-   - `claim`: `…/Section<N>_<M>/tex/<ref>_statement_<Title>.tex`
-
-   Read, run through `tex_to_html.tex_to_html()`:
-   - strip the `\documentclass[main]{subfiles}` / `\begin{document}` /
-     bookkeeping framing,
-   - unwrap the outer `\begin{Def}[Title]…\end{Def}` (or `Lem`, `Rem`,
-     `Note`, `Cor`, `Prop`, `Thm`; plus the `defmark` / `claimmark`
-     wrappers),
-   - convert `\emph` / `\textbf` / `\refrow` / em-dashes / non-breaking
-     spaces inline,
-   - convert `\begin{enumerate}[label=\roman*.)]` blocks (including the
-     `resume` option) into `<ol class="roman-paren">` with proper counter
-     offsets,
-   - leave every `$…$` / `\(…\)` / `$$…$$` / `\[…\]` math segment
-     **untouched** — KaTeX renders those client-side.
-
-3. **TeX proof file** (claims only). Read
-   `…/<ref>_proof_<Title>.tex`, strip the wrapper, extract the body of
-   `\begin{proof}…\end{proof}` and run it through the same prose
-   converter.
-
-4. **Lean blocks.** For each path in
-   `[main_lean_file, *lean_files]` (de-duplicated), look for ref-marker
-   comments of the form
-
-   ```
-   -- def_3_1
-   -- title: CDMG
-   ```
-
-   or, for multi-part claims:
-
-   ```
-   -- claim_3_1 (part 1/3)
-   -- title: JNodeProperties -- short description
-   ```
-
-   For each marker matching the target ref, slice the lines from that
-   marker up to (but not including) the next marker for *any* ref, end
-   of file, or a top-level `end` line. Then split:
-   - `comments` — everything between the marker line and the first line
-     that introduces a Lean declaration
-     (`structure` / `def` / `abbrev` / `class` / `instance` /
-     `inductive` / `theorem` / `lemma` / `example`).
-   - `statement` — for theorem/lemma/example, everything up to and
-     including `:= by` (or term-mode `:=`). For
-     structure/def/abbrev/…, the whole block.
-   - `proof` — for theorem/lemma/example, everything after the `:= by`
-     opener. `null` for structure-family declarations.
-
-5. **Emit.** Write
-   `building_website/website/data/<ref>.json` (or stdout / a chosen
-   path via `--out`).
-
-### How the website consumes it
-
-`app.js` is a thin renderer (~250 lines). On load:
-
-1. `fetch('data/manifest.json')` → builds the sidebar tree.
-2. Reads the URL hash (`#def_3_1`) or defaults to `def_3_1`,
-   then `fetch('data/<ref>.json')`.
-3. Builds DOM nodes for the entry — header, two-column split, optional
-   proof panes (TeX + Lean), action buttons, and the collapsible
-   "Lean comments" pre block.
-4. Runs `renderMathInElement` (KaTeX) over the content and
-   `hljs.highlightElement` on each `<pre><code class="language-lean">`.
-5. `hashchange` re-renders.
-
-Math macros that aren't native KaTeX are registered in `app.js` under
-`KATEX_MACROS`; right now there are three:
-
-```js
-const KATEX_MACROS = {
-  "\\ins": "\\subseteq",
-  "\\x":   "\\times",
-  "\\id":  "\\mathrm{id}",
-};
+```
+python3 building_website/scripts/fetch_row.py <ref> [--out PATH | --stdout]
 ```
 
-As we ingest more rows we'll add `\hus`, `\tuh`, `\huh`, `\hut`, etc.,
-matching `leanification/preamble.tex`.
+1. Locates the row in `leanification/Chapter*/data.json`.
+2. Resolves the TeX statement / proof paths (extension depends on
+   `def_or_claim`) and runs them through `tex_to_html.py`.
+3. Extracts the Lean code by slicing marker-wrapped blocks:
+   - `extract_lean_statement(file, ref)` — `--  start statement` /
+     `--  end statement` (2 dashes)
+   - `extract_lean_helpers(file, ref)` — `--- start helper` /
+     `--- end helper` (3 dashes), searched across every entry of
+     `lean_files`.
+4. Assembles `lean_blocks` in display order: helpers first, then main
+   statements. Each entry carries `kind: "helper" | "main"` and the
+   raw `code`.
+5. Builds `lean_source_url` from `main_lean_file`.
+6. Reads `status` (`formalized`/`proven`/`solved`) straight from
+   `data.json`.
+7. **Preserves any prior `lean_explanation` and `design_choices`** so
+   re-fetching doesn't wipe the LLM steps' output.
+8. Writes `building_website/website/data/<ref>.json`.
 
-## How to run it
+Errors clearly when `main_lean_file` is empty (row not solved) or when
+no start-statement marker is found.
+
+### `process_lean_explanation.py`
+
+```
+python3 building_website/scripts/process_lean_explanation.py <ref>
+python3 building_website/scripts/process_lean_explanation.py --all
+python3 building_website/scripts/process_lean_explanation.py <ref> --force
+```
+
+Needs `pip install anthropic` and `ANTHROPIC_API_KEY` in the env.
+
+1. Loads `data/<ref>.json`.
+2. Re-walks the row's Lean file to gather (a) the main statement
+   block(s), (b) the helper blocks, and (c) the comments preceding the
+   first start marker (the formalize worker's pre-statement notes).
+3. Sends them to Claude with a prompt focused **only** on explaining
+   what isn't obvious from the code: identifier names that don't speak
+   for themselves and Mathlib idioms the reader may not recognise.
+4. Writes the markdown into the JSON's `lean_explanation` field.
+
+Idempotent — re-running on a row that already has prose skips it
+unless `--force` is set.
+
+### `process_design_choices.py`
+
+```
+python3 building_website/scripts/process_design_choices.py <ref>
+python3 building_website/scripts/process_design_choices.py --all
+python3 building_website/scripts/process_design_choices.py <ref> --force
+```
+
+Same shape as `process_lean_explanation.py`, but the prompt focuses on
+**design choices** — the trade-offs the formalize worker considered
+(structure vs class vs abbrev, `Finset` vs `Set`, `Sym2` vs ordered
+pairs, etc.), each rendered as a paragraph beginning with a bolded
+one-line summary.
+
+Both prompt JSONs are at the top of the respective scripts and easy to
+tweak.
+
+### `tex_to_html.py`
+
+Converts the prose-level LaTeX our authors actually use into HTML,
+leaving math segments (`$…$`, `\(…\)`, `$$…$$`, `\[…\]`,
+`\begin{align*}…\end{align*}` and friends) intact for client-side KaTeX
+rendering. Highlights:
+
+- subfiles wrapper (`\documentclass[main]{subfiles}` / `\begin{document}`
+  / row bookkeeping) stripped;
+- `\begin{restatable}{TYPE}{NAME}…\end{restatable}` rewritten to
+  `\begin{TYPE}…\end{TYPE}`;
+- the project's theorem-like envs (`Def`, `Lem`, `Prp`, `Rem`, `Not`,
+  …) unwrapped via `unwrap_outer_env`;
+- `align*` / `equation*` / `gather*` / `eqnarray*` wrapped in `\[ \]`
+  with KaTeX-friendly `aligned` / `gathered` inside;
+- nested `enumerate` / `itemize` / `proof` / `quote` / `description` /
+  `verbatim` envs converted via a depth-aware matcher
+  (`_find_matching_end`) so inner blocks don't get severed at the
+  first `\end{…}`;
+- inline commands: `\emph` / `\textit` / `\textbf` / `\texttt` /
+  `\paragraph` / `\subparagraph` / `\footnote` / `\refrow{<ref>}` /
+  `\Claude{…}`;
+- prose-only `\noindent`, `\medskip`, `\centering`, etc. stripped.
+
+Statement files additionally have any embedded `\begin{proof}…\end{proof}`
+stripped before rendering, so a statement page never accidentally
+shows proof text.
+
+### `build_manifest.py`
+
+```
+python3 building_website/scripts/build_manifest.py
+```
+
+1. Reads each chapter's `data.json` for the rows in `SCOPE` (a small
+   dict at the top — currently `{3: ["3.1"]}`).
+2. Emits `building_website/website/data/manifest.json` — the sidebar
+   tree. Each row's `available` flag is `True` iff its
+   `data/<ref>.json` exists, so the sidebar correctly greys out
+   rows we haven't fetched yet.
+3. **Cache-busts the assets** — appends a content-hash `?v=…` query
+   string to `app.js` and `style.css` in `index.html` so browsers
+   always fetch the freshest bundle after a deploy that changed them.
+
+To expand coverage, edit `SCOPE`.
+
+## The website (`website/`)
+
+`app.js` is a thin client-side renderer (no build step on the JS side).
+On load it fetches `data/manifest.json` for the sidebar, then
+`data/<ref>.json` for the hash-routed row:
+
+- `#` / `#home` → home page
+- `#<ref>` → entry view (TeX statement on left, Lean formalisation
+  on right; "View TeX proof" + "View Lean source" + Lean
+  explanation + Design choices buttons)
+- `#proof/<ref>` → dedicated proof page (rendered TeX statement +
+  proof, with a "← Back to statement" link and "View TeX source"
+  button)
+
+Math is rendered by KaTeX with project-specific macros registered in
+`KATEX_MACROS` (see `app.js`); Lean code uses `highlight.js` with a
+custom Lean 4 grammar registered inline. Markdown panels
+(`lean_explanation`, `design_choices`) are rendered with `marked` and
+get KaTeX passed over them too.
+
+The Lean pane shows each block as a `<div class="lean-block">` with a
+small label above the code — "main" in accent colour for the headline
+declaration, "helper" in muted grey for supporting decls.
+
+## Deploy
+
+`.github/workflows/pages.yml` triggers on every push to `main`:
+
+1. Checks out the repo.
+2. Runs `build_manifest.py` (which also re-stamps `index.html`).
+3. Uploads `building_website/website/` as the Pages artefact.
+4. Deploys.
+
+GitHub Pages serves the result at <https://leanification.samritchie.dev/>
+via the `CNAME` file + Namecheap DNS.
+
+## Testing
+
+`/tmp/test_render.js` (a jsdom harness, not committed) exercises
+`renderEntry` against every `data/<ref>.json` to catch render-time
+crashes — worth recreating and running after any `app.js` change.
+
+## Common operations
+
+**Add a new row to the site** (after the orchestrator has solved it):
 
 ```bash
-# 1. (Re)generate one row's data
-python3 building_website/scripts/fetch_row.py def_3_1
-
-# 2. Update the sidebar manifest
+python3 building_website/scripts/fetch_row.py <ref>
+python3 building_website/scripts/process_lean_explanation.py <ref>
+python3 building_website/scripts/process_design_choices.py <ref>
 python3 building_website/scripts/build_manifest.py
+git add -A && git commit -m "…" && git push
+```
 
-# 3. Serve the static site
-cd building_website/website
-python3 -m http.server 8000
+**Re-process LLM prose for a row** (e.g. after refining the prompt):
+
+```bash
+python3 building_website/scripts/process_lean_explanation.py <ref> --force
+python3 building_website/scripts/process_design_choices.py <ref> --force
+```
+
+**Expand the manifest scope** (e.g. add section 3.2):
+
+Edit `scripts/build_manifest.py`'s `SCOPE` dict, then run
+`build_manifest.py`.
+
+**Iterate locally**:
+
+```bash
+cd building_website/website && python3 -m http.server 8000
 # → http://localhost:8000
 ```
-
-`fetch_row.py` works for any ref — `def_3_1`, `claim_3_4`, etc. —
-provided the corresponding `data.json` row exists. The script's CLI:
-
-```
-python3 fetch_row.py <ref> [--out PATH | --stdout]
-```
-
-### Adding more rows
-
-```bash
-python3 building_website/scripts/fetch_row.py def_3_2
-python3 building_website/scripts/fetch_row.py claim_3_1
-python3 building_website/scripts/build_manifest.py
-```
-
-The manifest auto-detects which rows have a `data/<ref>.json` and marks
-the sidebar accordingly (italic = not yet generated).
-
-### Expanding the scope of the sidebar
-
-`scripts/build_manifest.py` has a `SCOPE` dict at the top:
-
-```python
-SCOPE: dict[int, list[str] | None] = {
-    3: ["3.1"],            # only section 3.1 of chapter 3
-}
-# Change to:
-SCOPE: dict[int, list[str] | None] = {
-    3: None,               # all sections of chapter 3
-}
-```
-
-## What still needs polish (known gaps)
-
-These are deliberate cuts for the MVP, not bugs:
-
-1. **TeX prose converter coverage.** Today it handles every pattern that
-   appears in `def_3_1`. As we fetch more rows we'll hit things like
-   `\autoref`, `\cref`, custom theorem-like envs (`Aufgabe`, `Bsp`),
-   nested itemize/enumerate, etc. — extend `tex_to_html.py` per
-   pattern.
-2. **Custom math macros.** Add to `KATEX_MACROS` in `app.js` as we
-   encounter them. The full list lives in `leanification/preamble.tex`.
-3. **TeX proof rendering for claims.** Wired but untested — `claim_3_X`
-   will exercise it.
-4. **Lean proof block extraction.** Splits at `:= by` correctly; doesn't
-   yet handle multi-line `where` blocks at the end of a proof (those'd
-   end up appended to the proof body, which is fine for display).
-5. **No build step in CI yet.** The data files are committed to git
-   so GitHub Pages serves them directly. Eventually we'd add an Actions
-   workflow that re-runs `fetch_row.py` for every solved row + the
-   manifest builder on every push to `main`.
-
-## Deploying to GitHub Pages with a Namecheap subdomain
-
-When the design is final, move `building_website/website/` →
-`website/` (or `docs/`) at the repo root. Two routes:
-
-### Route A — serve from a folder on main
-
-In **repo settings → Pages**:
-
-- Source: **Deploy from a branch**
-- Branch: `main` / folder `/docs` (rename `website` → `docs` if you
-  go this route; Pages only auto-serves `/`, `/docs`, or `/site`).
-
-Commit a `CNAME` file in that folder with one line:
-
-```
-causality.yourdomain.com
-```
-
-### Route B — Actions workflow (preferred once we have a build step)
-
-`.github/workflows/pages.yml`:
-
-```yaml
-name: Deploy site
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - name: Regenerate site data
-        run: |
-          # Fetch every solved row + build manifest
-          python3 - <<'PY'
-          import json, subprocess
-          from pathlib import Path
-          for d in Path("leanification").glob("Chapter*/data.json"):
-              data = json.loads(d.read_text())
-              for row in data["rows"]:
-                  if row.get("solved") == "yes":
-                      subprocess.check_call(
-                          ["python3", "building_website/scripts/fetch_row.py", row["ref"]]
-                      )
-          subprocess.check_call(["python3", "building_website/scripts/build_manifest.py"])
-          PY
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: ./building_website/website }
-      - uses: actions/deploy-pages@v4
-```
-
-### Namecheap DNS
-
-In **Advanced DNS** for the apex domain:
-
-| Type    | Host        | Value                       | TTL  |
-| ------- | ----------- | --------------------------- | ---- |
-| `CNAME` | `causality` | `schipeltaper.github.io.`   | Auto |
-
-(Trailing dot is significant.) For the apex itself, use four `A`
-records to `185.199.108.153`, `…109.153`, `…110.153`, `…111.153`.
-
-Then in repo settings → Pages → **Custom domain** enter
-`causality.yourdomain.com` and tick **Enforce HTTPS** once the cert
-provisions.
-
-## Workflow suggestions (small scaffold tweaks)
-
-The pipeline already works with the existing scaffold output. Two
-optional changes would make it more robust:
-
-1. **Explicit `-- END_STATEMENT <ref>` marker** in `.lean` files.
-   Right now the slicer bounds at the *next* marker for any ref or
-   `end` line. An explicit end marker would make slices unambiguous
-   when one file packs many declarations.
-2. **`depends_on: ["def_3_1"]`** field per row in `data.json`. Not used
-   today, but it'd unlock the dep-graph visualisation later for ~free.
-
-Neither is required.

@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Encourage browsers to revalidate index.html on every visit so the
+       content-hash cache-bust on app.js / style.css always reflects the
+       latest deploy. The hashed asset URLs themselves stay cacheable. -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
   <title>Causality, Leanified - Sam Ritchie</title>
 
   <link rel="stylesheet"
@@ -11,7 +15,7 @@
         crossorigin="anonymous" />
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" />
-  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/style.css?v=c3791b1536" />
 </head>
 <body>
 
@@ -54,7 +58,7 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
 
 <!-- App -->
-<script defer src="assets/app.js"></script>
+<script defer src="assets/app.js?v=c3791b1536"></script>
 
 </body>
 </html>
