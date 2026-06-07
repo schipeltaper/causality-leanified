@@ -173,9 +173,11 @@ def website_payload_for_row(chapter: int, ref: str) -> dict:
 
 - **Multi-file rows.** A row whose Lean spans multiple files lists them in `row["lean_files"]`. The main statement is in `row["main_lean_file"]`; helpers may be in sibling files in the same subsection folder. Search all of `row["lean_files"]` to be safe.
 - **Multi-item rows.** A def row that defines several `notation`s, or a claim row that bundles several `theorem`s, will have multiple `-- <ref> -- start statement` / `-- <ref> -- end statement` blocks in the file (one per item). The extraction functions above return a *list* of bodies for exactly this reason.
-- **Disproven claims.** A row with `proven="disproven"` has a `document_counterexample`-shaped Lean artefact instead of a real proof. The statement markers are still there (wrapping the *false* original claim); the proof file (if present) describes the counter-example. Render accordingly — the row is solved, just not proven.
+- **`variable` directives are now valid helper-marker targets.** A `variable {Node : Type*} [DecidableEq Node]` line whose binders auto-bind into one of the wrapped main statements is wrapped with `-- <ref> --- start helper` / `... end helper` (three dashes, like other helpers). The extraction recipe in section 6 already handles this — the regex picks up the `variable` line the same way it picks up a `def` helper. Render the variable directive as part of the "Lean helpers" surface so the rendered statement is self-contained and not full of seemingly-free type variables. See `CDMGNotation.lean` (def_3_2) and `Walks.lean` (def_3_4) for examples.
+- **Disprove mode (`proven="disproven"`).** The workflow now mirrors the prove flow on the negation — see section 10 for the full file convention.
 - **Empty `addition_to_the_LN`.** Means no operator-authored clarifications apply; the literal LN is the spec. Render without an "Addition" section for these rows.
 - **Markers missing.** If a Lean file lacks the markers (older work pre-dating this convention, or a bug in a formalize worker), the extraction returns `[]`. Fall back to rendering the whole file with a "marker-extraction missing" badge, and surface the row to the human for re-formalization.
+- **Canonical statement tex is now operator-curated.** Every solved row's `<ref>_<title>.tex` (def) / `<ref>_statement_<title>.tex` (claim) is no longer the LN's `defmark` / `claimmark` body verbatim — it has been rewritten by the `formalize_definition_in_tex` / `formalize_claim_in_tex` worker so every `addition_to_the_LN` clause is folded *into* the statement, every implicit quantifier is spelled out, and visual notation (`v_0 \tuh v_1 \hus \cdots`) is translated to set-theoretic phrasing. A semantic-equivalence verifier (`verify_tex_statement_equivalence`) gates it against the LN + addition before any Lean is written. **The website should render this rewritten statement, not the LN's `tex_block`.** The path is unchanged; only the contents are richer.
 
 ## 9. File paths recap
 
@@ -189,3 +191,44 @@ def website_payload_for_row(chapter: int, ref: str) -> dict:
 | Chapter's `request_from_human.tex` | `…/Chapter<N>_<Title>/request_from_human.tex` |
 
 All paths are repo-relative (resolve against the repo root, `/home/11716061/repo_scaffold2/` in development).
+
+---
+
+## 10. Disprove-mode rows (`proven="disproven"`)
+
+When a claim row's manager concludes the LN claim is genuinely false, it emits `mistake` and the orchestrator engages the **disprove flow**, which mirrors the prove flow on the *negation* of the claim. The end-state file layout differs from the prove flow:
+
+| Artefact (disprove mode) | Path |
+|---|---|
+| Row's canonical statement tex | `…/Section<N>_<M>/tex/<ref>_statement_<title>.tex` — **unchanged**; still the positive claim. Kept for reference; the row's `proven` field tells you the claim is disproven. |
+| Row's disprove "statement + proof" tex | `…/Section<N>_<M>/tex/<ref>_disproof_<title>.tex` — the at-the-top statement is a precise tex rendering of the **negation** (typically `\lnot (\text{LN claim})` or an explicit existential counter-example `\exists \ldots, \text{hypotheses} \land \lnot \text{conclusion}`); the proof body underneath establishes that negation. |
+| Row's main Lean file | `row["main_lean_file"]` — re-pointed at the disprove Lean file at solved-time (the prove-side `<Title>.lean` is *deleted*, leaving only the disprove file). |
+| The disprove Lean file | `<subsection>/<Title>Disproof.lean` — contains `theorem not_<original_name> : ¬ <claim>` (or an existential-witness equivalent) wrapped in the standard statement markers, plus its proof body. |
+
+**What the website should render for a `proven="disproven"` row:**
+
+- The **positive** canonical statement tex (`<ref>_statement_<title>.tex`) with a clear "DISPROVEN" badge alongside.
+- The **disprove** tex file as the "statement-of-the-negation + proof" surface — this is the analogue of the prove-mode `<ref>_proof_<title>.tex` surface.
+- The **disprove** Lean file's marker-extracted statement + helpers (same regex as section 5+6; the `<ref>` in the markers is the original row ref).
+- Optionally, a short narrative explaining where the LN's reasoning broke down (the `prove_claim_in_lean` worker is told to put this in the Lean file's design-choice comment block above the negation theorem).
+
+**Files that are guaranteed NOT to exist on a disproven row:**
+
+- `<ref>_proof_<title>.tex` — deleted by `cleanup_row_artefacts` at solved-time once `proven="disproven"` is committed.
+- `<Title>.lean` — same; deleted.
+
+If a row is mid-flight in disprove mode (manager has emitted `mistake` but the row hasn't been solved yet), both sides' files may coexist. Don't render anything until `solved="yes"` is on the row; the workflow's `unmistake` action can flip a row back to prove mode at any point before solving.
+
+---
+
+## 11. What changed in the workflow recently (June 2026)
+
+For the website-builder team's awareness:
+
+1. **Tex bridge layer.** Every solved row's canonical statement tex is now a rewritten, operator-spec-faithful version of the LN — see section 8's "Canonical statement tex is now operator-curated" caveat. Render this file, not the LN's raw `tex_block`.
+2. **`variable` directives as helpers.** The marker convention now wraps `variable` directives whose binders auto-bind into the wrapped statement. The extraction regex in section 6 already matches them — no code change on your side; just make sure the rendered "Lean statement" surface includes the variable block.
+3. **Disprove mode is fully fleshed out.** Where previously a disproven row had ad-hoc `document_counterexample`-shaped artefacts, it now follows the structured convention in section 10.
+4. **`simplify_proof` removed.** The action and worker prompt no longer exist. If your pipeline tracked `actions_tracking.simplify_proof`, that key is now absent from every newly-solved row's data.json entry. (Vestigial counters were stripped at clean-slate.)
+5. **Orchestrator hardened against non-UTF-8 bytes in subprocess output.** Doesn't affect the website builder; documenting for completeness — the for_website worker should now reliably produce the v3 JSON shape (sections 4-7) without the orchestrator crashing mid-stream.
+
+If anything above requires action on the website-builder side beyond what's documented here, surface it and I'll update this file.
