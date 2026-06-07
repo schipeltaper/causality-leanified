@@ -26,12 +26,27 @@
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Lem}[AcyclicIffTopologicalOrder]
-        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}). Then $G$ is acyclic (in the sense of def \ref{def-acylic}) if and only if there exists a topological order of $G$ (in the sense of def \ref{def-topological-order}); equivalently, $G$ is acyclic if and only if there exists a strict total order $<$ on $J \cup V$ -- i.e.\ a binary relation $<$ on $J \cup V$ that is irreflexive, transitive, and trichotomous -- such that, for every $v, w \in J \cup V$, $v \in \Pa^G(w) \implies v < w$ (using the parent-set notation $\Pa^G$ of def \ref{def_3_5}, item~i.). The label set $L$ plays no role on either side of the biconditional.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
+% Proof lifted verbatim from the LN at lecture-notes/lecture_notes/graphs.tex:228-244.
 \begin{proof}
-% TODO: write the proof body.
+($\Leftarrow$)
+Suppose $<$ is a topological order of $G$, i.e.\ $v \in \Pa^G(w) \implies v < w$.
+If there were a non-trivial directed walk $v = v_0 \tuh v_1 \tuh \cdots \tuh v_n = v$ ($n \ge 1$),
+then $v_0 < v_1 < \cdots < v_n = v_0$, a contradiction.
+
+\medskip\noindent($\Rightarrow$)
+Suppose $G$ is acyclic. We construct a topological order by repeatedly selecting a node with no parents in the remaining graph.
+Define a sequence $v_1, \dots, v_K$ ($K = |J \cup V|$) inductively: given $v_1,\dots,v_{i-1}$, let $R_i := (J \cup V) \sm \{v_1,\dots,v_{i-1}\}$
+and $G_i$ the subgraph of $G$ induced on $R_i$.
+Since $G_i$ is acyclic (as an induced subgraph of an acyclic graph) and finite, it has a node $v_i$ with $\Pa^{G_i}(v_i) = \emptyset$
+(otherwise, following parent edges would produce a directed cycle).
+Choose any such $v_i$.
+
+This gives a total order $v_1 < v_2 < \cdots < v_K$.
+If $v = v_j \in \Pa^G(w = v_i)$, then when $w$ was selected, $v$ was still in $R_i$, so $v$ would have been a parent of $w$ in $G_i$, contradicting $\Pa^{G_i}(v_i) = \emptyset$---unless $v$ was already selected, i.e.\ $j < i$. Hence $v < w$.
 \end{proof}
 
 \end{document}
