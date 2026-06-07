@@ -163,7 +163,7 @@
           "last_used": "2026-06-07T14:02:07+00:00"
         }
       ],
-      "time_needed_to_solve": 2542,
+      "time_needed_to_solve": 2561,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -182,10 +182,10 @@
       "section": "3.1",
       "title": "AcyclicIffTopologicalOrder",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-07",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `total_order_helper`; it was pulled in because root(s) `def_3_8` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
@@ -195,17 +195,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -216,13 +216,140 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0,
+        "verify_tex_statement_plus_proof": 1,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f53f6589-9300-41af-8170-c13f0b1204d1",
+          "first_seen": "2026-06-07T14:09:54+00:00",
+          "last_used": "2026-06-07T14:09:54+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "fdaf831a-c806-449e-a74d-49d8dcfa66a8",
+          "first_seen": "2026-06-07T14:11:14+00:00",
+          "last_used": "2026-06-07T14:11:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "244051a9-0cdf-4a18-aa28-a3e08247a837",
+          "first_seen": "2026-06-07T14:12:29+00:00",
+          "last_used": "2026-06-07T14:12:29+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "cbdbc6b1-f68c-4034-8070-e0fd0eb60ec2",
+          "first_seen": "2026-06-07T14:12:48+00:00",
+          "last_used": "2026-06-07T14:12:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a08b8231-5b22-441b-9f5f-c8eb6fcff0f6",
+          "first_seen": "2026-06-07T14:13:49+00:00",
+          "last_used": "2026-06-07T14:13:49+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "8e0e040d-94fe-4a12-adc9-78fbce468034",
+          "first_seen": "2026-06-07T14:16:50+00:00",
+          "last_used": "2026-06-07T14:16:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "23035c13-1fa8-4dc8-8474-7b8dcdf7c661",
+          "first_seen": "2026-06-07T14:18:36+00:00",
+          "last_used": "2026-06-07T14:18:36+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "933c4f42-45cd-4ed2-8f7e-152e7da463ce",
+          "first_seen": "2026-06-07T14:28:58+00:00",
+          "last_used": "2026-06-07T14:28:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8005debd-33b4-4a71-9063-67acadb784c7",
+          "first_seen": "2026-06-07T14:29:53+00:00",
+          "last_used": "2026-06-07T14:29:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "df67a59b-5db5-4b89-b695-d96e91ecfc30",
+          "first_seen": "2026-06-07T14:34:00+00:00",
+          "last_used": "2026-06-07T14:34:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4dfe6ec1-5f0a-49e1-a63a-184b9af0989b",
+          "first_seen": "2026-06-07T14:34:41+00:00",
+          "last_used": "2026-06-07T14:34:41+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "53367978-1f19-47e7-a39b-f8414fe2e242",
+          "first_seen": "2026-06-07T14:38:17+00:00",
+          "last_used": "2026-06-07T14:38:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "76218ff8-2dc2-4090-9d7a-11850dbd297b",
+          "first_seen": "2026-06-07T14:38:53+00:00",
+          "last_used": "2026-06-07T14:38:53+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "b166660a-1d98-4728-af2b-d0b2c4f975a1",
+          "first_seen": "2026-06-07T14:40:10+00:00",
+          "last_used": "2026-06-07T14:40:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "757abec0-d84b-4960-912d-3adeecdf510e",
+          "first_seen": "2026-06-07T14:41:10+00:00",
+          "last_used": "2026-06-07T14:41:10+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e741f98a-b5aa-46c6-81d6-28d0423339ca",
+          "first_seen": "2026-06-07T14:49:24+00:00",
+          "last_used": "2026-06-07T14:49:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "afbf9171-450d-4ee5-a927-8f6c2e1c036a",
+          "first_seen": "2026-06-07T14:49:59+00:00",
+          "last_used": "2026-06-07T14:49:59+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "ba14b7ff-ab03-47a0-857b-f5f42415cd61",
+          "first_seen": "2026-06-07T14:51:30+00:00",
+          "last_used": "2026-06-07T14:51:30+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2907,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
