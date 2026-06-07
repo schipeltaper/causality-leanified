@@ -35,6 +35,41 @@ Concretely, before you start writing:
 
 The rewritten canonical tex statement file is your *spec*; the existing Lean files are your *vocabulary*. Together they pin down both *what* to formalize and *how* it should look in this codebase.
 
+## Helper predicates for substantive sub-concepts
+
+Sometimes the rewritten canonical tex statement introduces a substantive sub-concept that doesn't have its own LN definition row — e.g., *"Let `<` be a total order of `J ∪ V`"* introduces "total order on `J ∪ V`" as a concept, used inline rather than as a separate LN def. When this happens, **introduce the sub-concept as a named helper predicate** in the Lean (with `--- start helper` markers) *before* writing the main def, then use the helper as a hypothesis (or as a conjunct / field) of the main def. Two reasons:
+
+1. **Makes the sub-concept reusable.** Downstream rows that need "the LN's <sub-concept>" hypothesis can write `(h : G.IsXxx ...)` directly, rather than re-spelling the atomic conditions every time.
+2. **Forces the hypothesis to be carried explicitly through downstream rows.** A later row that defines something *in terms of* this sub-concept will naturally take `(h : G.IsXxx ...)` as a hypothesis — the existence of the helper predicate is a constant reminder that the LN's premise must be enforced at the type level, not pushed to a use-site obligation.
+
+Three signals that a sub-concept earns its own helper. **All three required**:
+
+- **(a)** It is genuinely referenced by this row's spec (not invented for ergonomics or hypothetical futures).
+- **(b)** It has *substantive content* — at least 2-3 atomic conditions, not a single typeclass or unary predicate.
+- **(c)** It is likely to be referenced by a downstream row's hypothesis (so the helper becomes reusable, not a one-off).
+
+Single-line predicates ("the set is non-empty", "the relation is decidable") do **not** earn their own helper — fold them into the main def's signature directly.
+
+**Worked example** — `def_3_8` (IsTopologicalOrder) introduces "total order on `J ∪ V`" as a sub-concept. Three atomic conditions, referenced again by `def_3_9` (Predecessors). The right shape:
+
+```lean
+-- def_3_8 --- start helper
+def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
+  (∀ v ∈ G, ¬ lt v v) ∧
+  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
+  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
+-- def_3_8 --- end helper
+
+-- def_3_8 -- start statement
+def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
+  G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)
+-- def_3_8 -- end statement
+```
+
+Now `def_3_9`'s `Pred` can naturally take `(h : G.IsTotalOrder lt)` as a hypothesis, and the LN's "let `<` be a total order" survives all the way into the Lean's type contract. **Without the helper**, the next formalizer is tempted to drop the LN's hypothesis with a "constraint at use-site" rationale — which `verify_equivalence` (item 1a) will now FAIL, and `verify_equivalence_strict` will mark CONTENT.
+
+Helpers carry their own `## Design choice` comment block — same treatment as a main declaration.
+
 ## What to do
 
 1. **Read the rewritten tex statement file** end to end. This is your spec. Read the row's `addition_to_the_LN` and the LN `tex_block` as backup, but the rewritten file is what you formalize.

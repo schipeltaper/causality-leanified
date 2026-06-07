@@ -1,0 +1,401 @@
+{
+  "target_ref": "def_3_9",
+  "target_title": "Pred",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 14,
+      "snippet": ">   `Pred^G_<(v) := {w ∈ G | w < v}`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 16,
+      "snippet": ">   `Pred^G_≤(v) := {w ∈ G | w < v} ∪ {v}`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 41,
+      "snippet": "  body `Pred lt v ∪ {v}`; the two forms coincide whenever"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 50,
+      "snippet": "an `lt` to `Pred` / `PredLE`, not by carrying it on a `[LT Node]`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 54,
+      "snippet": "`Pred` / `PredLE` are *predecessor-set* primitives that *any* strict"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 81,
+      "snippet": "--   parameters that the `Pred` / `PredLE` defs below rely on, but is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 92,
+      "snippet": "-- `Pred^G_<(v) := {w ∈ J ∪ V | w < v}`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 97,
+      "snippet": "    Pred^G_<(v) := {w ∈ J ∪ V | w < v}."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 103,
+      "snippet": "--   and then writes `Pred^G_<(v)` — the subscript `<` is the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 112,
+      "snippet": "--   statements about topological orders.  `Pred G lt v` reads on"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 131,
+      "snippet": "--   `Pred^G_<(v) ∩ V`, do-calculus on `Pred^G_<(v) ∩ Pa^G(v)`); all"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 160,
+      "snippet": "--   `h : w ∈ Pred G lt v` as `⟨hw_mem, hw_lt⟩` deliver"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 167,
+      "snippet": "--   `Pred^G_<(v) ∩ V`\"; do-calculus (chapter 5) uses"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 168,
+      "snippet": "--   `Pred^G_<(v)` to identify the temporal-ordering context of an"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 172,
+      "snippet": "--   values at `v` from values at `Pred^G_<(v)`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 174,
+      "snippet": "def Pred (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : Set Node :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 181,
+      "snippet": "-- the strict predecessor set `G.Pred lt v` together with `v`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 183,
+      "snippet": "-- `Pred^G_≤(v) := {w ∈ J ∪ V | w < v} ∪ {v}` — the body is the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 189,
+      "snippet": "    Pred^G_≤(v) := {w ∈ J ∪ V | w < v} ∪ {v}."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 193,
+      "snippet": "-- *Literal LN body `G.Pred lt v ∪ {v}`, NOT `{w | w ∈ G ∧"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 197,
+      "snippet": "--   We mirror the literal LN spelling, taking `Pred lt v ∪ {v}` as"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 210,
+      "snippet": "-- *`G.Pred lt v ∪ {v}` spelled with the named `G.Pred`, NOT"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 214,
+      "snippet": "--   already have `h : w ∈ G.Pred lt v` in scope can use `Or.inl h`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 230,
+      "snippet": "--   `PredLE`.  The split between `Pred` and `PredLE` is purely the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 236,
+      "snippet": "  G.Pred lt v ∪ {v}"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 24,
+      "snippet": "        \\Pred^G_<(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 28,
+      "snippet": "        \\Pred^G_\\le(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC \\cup \\{v\\}."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 31,
+      "snippet": "    \\emph{Notational quirk: the ``$\\le$'' subscript vs.\\ the strict body.} The subscript ``$\\le$'' on $\\Pred^G_\\le$ marks the non-strict variant, but the set-builder body the LN writes is \\emph{strict"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 33,
+      "snippet": "    \\emph{Corner case $v \\notin J \\cup V$.} Under the literal LN body, $w < v$ for $w \\in J \\cup V$ is not provided by the total order $<$ (whose domain is $J \\cup V$), so the natural reading is $\\Pre"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def Pred (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : Set Node :=\\n  {w | w ∈ G ∧ lt w v}\\n\\ndef PredLE (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : S"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def Pred (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : Set Node :=\\n  {w | w ∈ G ∧ lt w v}\\n\\ndef PredLE (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The file formalises the LN definition of *predecessors* of a vertex $v$ under a strict total order on a CDMG, exposing two operators: `Pred` (strict) and `PredLE` (non-strict).\\"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**The strict order is passed as a raw `lt : Node → Node → Prop`, not via a `[LT Node]` typeclass.** A `[LT Node]` instance would pin a single canonical strict order to the *type* "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/data.json",
+      "line": 680,
+      "snippet": "      \"tex_block\": \"\\\\begin{defmark}\\n\\\\begin{Def}[Predecessors]\\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\\\cup V$.\\n   The set of \\\\emph{predecessors} of $v$ in $G$ are:\\n   \\\\[\\\\P"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/data.json",
+      "line": 694,
+      "snippet": "        \"output\": \"SUBTLETY:\\nid: ambiguous_w_in_G_notation\\nexplanation: The definition writes `\\\\{w \\\\in G \\\\mid w < v\\\\}` but $G = (J, V, E, L)$ is a 4-tuple, not a set. There is no canonical meani"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/initialization_table.md",
+      "line": 484,
+      "snippet": "\\[\\Pred^G_<(v) := \\lC w\\in G\\,|\\, w < v \\rC\\]"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/initialization_table.md",
+      "line": 486,
+      "snippet": "\\[\\Pred^G_\\le(v) := \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/initialization_table.md",
+      "line": 501,
+      "snippet": "The definition says \"the set of \\emph{predecessors} of $v$ in $G$\" but never imposes \"$v \\in J \\cup V$\". The total order $<$ is declared to be \"a total order of $J \\cup V$\", so the relation \"$w < v$\" "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/initialization_table.md",
+      "line": 516,
+      "snippet": "\\[\\Pred^G_\\le(v) := \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\},\\]"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/initialization_table.md",
+      "line": 517,
+      "snippet": "i.e. the subscript is \"$\\le$\" but the body still uses the strict \"$<$\" and then explicitly unions in $\\{v\\}$. Under the standard reading \"$w \\le v \\iff w < v \\lor w = v$\" (with $v \\in J \\cup V$ so equ"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 14,
+      "snippet": "parameter to define `Pred^G_<(v) := {w ∈ G | w < v}`; the intervention-"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 20,
+      "snippet": "on the values at `Pred^G_<(v)`."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 71,
+      "snippet": "  (`def_3_9` Predecessors `Pred^G_<(v)`, `claim_3_2`, `def_3_13`-style"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 89,
+      "snippet": "  subtype-coercion overhead at every walk-step / Pred lookup, and"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 225,
+      "snippet": "--   fire, but every downstream consumer (`Pred^G_<`, walk-on-an-"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 272,
+      "snippet": "--      `<` a total order of J ∪ V.  Pred^G_<(v) := {w ∈ G | w < v}\""
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 273,
+      "snippet": "--      — `<` is a parameter to `Pred`, NOT a structure projection"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 291,
+      "snippet": "--      each `v`, `f_v` depends on `Pred^G_<(v)`.  The bound `<` is"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 292,
+      "snippet": "--      used parametrically through `Pred`; a structure encoding"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 293,
+      "snippet": "--      would force a `.lt`-field projection at every `Pred` call"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 327,
+      "snippet": "--      `Pa^G(v)` lookup, every walk-step, every `Pred^G_<` call)"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 402,
+      "snippet": "--   `def_3_9` `Pred^G_<` takes the relation).  Provide the"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 446,
+      "snippet": "--   * `def_3_9` (Predecessors).  Defines `Pred^G_<(v) := (G.J ∪"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 466,
+      "snippet": "--     `Pred^G_<(v)`.  The relation `lt` is the iteration index."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 474,
+      "snippet": "--      `Pred^G_≤(v) := {w ∈ G | w ≤ v} = {w ∈ G | w < v} ∪ {v}`)."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Predicate, not a bundled structure.** The single most consequential choice. `IsTopologicalOrder` is `Prop`-valued and *parametric* in the relation `lt`, rather than a record `To"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 21,
+      "snippet": "   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_9_Predecessors.tex",
+      "line": 23,
+      "snippet": "   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/data.json.pre_reset",
+      "line": 771,
+      "snippet": "      \"tex_block\": \"\\\\begin{defmark}\\n\\\\begin{Def}[Predecessors]\\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\\\cup V$.\\n   The set of \\\\emph{predecessors} of $v$ in $G$ are:\\n   \\\\[\\\\P"
+    },
+    {
+      "file": "leanification/initial_subtlety_register.json",
+      "line": 129,
+      "snippet": "    \"explanation\": \"The set-builder uses \\\"$w\\\\in G$\\\" in both\\n\\\\[\\\\Pred^G_<(v) := \\\\lC w\\\\in G\\\\,|\\\\, w < v \\\\rC\\\\]\\nand\\n\\\\[\\\\Pred^G_\\\\le(v) := \\\\lC w\\\\in G\\\\,|\\\\, w < v \\\\rC \\\\cup \\\\{v\\\\}.\\\\]\\nBut"
+    },
+    {
+      "file": "leanification/initial_subtlety_register.json",
+      "line": 134,
+      "snippet": "    \"explanation\": \"The definition says \\\"the set of \\\\emph{predecessors} of $v$ in $G$\\\" but never imposes \\\"$v \\\\in J \\\\cup V$\\\". The total order $<$ is declared to be \\\"a total order of $J \\\\cup V$"
+    },
+    {
+      "file": "leanification/initial_subtlety_register.json",
+      "line": 139,
+      "snippet": "    \"explanation\": \"The non-strict predecessor set is written as\\n\\\\[\\\\Pred^G_\\\\le(v) := \\\\lC w\\\\in G\\\\,|\\\\, w < v \\\\rC \\\\cup \\\\{v\\\\},\\\\]\\ni.e. the subscript is \\\"$\\\\le$\\\" but the body still uses the "
+    },
+    {
+      "file": "leanification/preamble.tex",
+      "line": 327,
+      "snippet": "\\providecommand{\\Pred}{\\mathrm{Pred}} "
+    },
+    {
+      "file": "leanification/preamble.tex",
+      "line": 641,
+      "snippet": "\\providecommand{\\Pred}{\\mathrm{Pred}} "
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 14,
+      "snippet": "1. **`def_3_8` (IsTopologicalOrder)** bundles three total-order properties (irreflexive, transitive, trichotomous on `J ∪ V`) with the topological condition (`∀ v w, v ∈ G.Pa w → lt v w`) into a singl"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 16,
+      "snippet": "2. **`def_3_9` (Predecessors)** takes a raw `lt : Node → Node → Prop` argument to `Pred` / `PredLE`, with **no** total-order hypothesis in the type contract. The LN's *\"Let `<` be a total order\"* prem"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 18,
+      "snippet": "A refactor — rather than a row-level re-solve — is warranted because the fix changes the **shape** of a foundational def (`IsTopologicalOrder`) and propagates downstream: consumers of `IsTopologicalOr"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 56,
+      "snippet": "`Pred` and `PredLE` gain `(h : G.IsTotalOrder lt)` as an explicit hypothesis between `lt` and `v`:"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 60,
+      "snippet": "def Pred (G : CDMG Node) (lt : Node → Node → Prop)"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 68,
+      "snippet": "  G.Pred lt h v ∪ {v}"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 72,
+      "snippet": "The `h` argument is *not used* in the body — that's intentional. It's there to enforce the LN's premise at the type level: callers can only invoke `Pred` / `PredLE` if they can supply a proof that `lt"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 90,
+      "snippet": "| `def_3_9` | 3 | `Predecessors.lean` | Add `(h : G.IsTotalOrder lt)` hypothesis to `Pred` and `PredLE`; ripple `h` through the `PredLE` body's use of `Pred`. |"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 93,
+      "snippet": "No other §3.1 row currently consumes `Pred` / `PredLE` (def_3_9 is the last row of §3.1). No §3.1 row consumes `IsTopologicalOrder` other than `claim_3_2`. Validation: run `extras/find_dependents.py -"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 97,
+      "snippet": "If `verify_equivalence_strict` is run during the refactor on the *new* shape, it will see `G.IsTotalOrder lt` as a named hypothesis on `Pred` — the loosened-domain pattern is gone. The new design-bloc"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 236,
+      "col": 4,
+      "snippet": "Invalid field `Pred`: The environment does not contain `Causality.CDMG.Pred`, so it is not possible to project the field `Pred` from an expression"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex",
+    "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+    "leanification/Chapter3_GraphTheory/data.json",
+    "leanification/Chapter3_GraphTheory/initialization_table.md",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_9_Predecessors.tex",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/data.json.pre_reset",
+    "leanification/initial_subtlety_register.json",
+    "leanification/preamble.tex",
+    "leanification/refactors/refactor_total_order_helper.md"
+  ],
+  "consumer_refs": []
+}

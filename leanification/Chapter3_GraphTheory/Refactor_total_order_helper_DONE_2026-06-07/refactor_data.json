@@ -1,0 +1,496 @@
+{
+  "chapter": 3,
+  "title": "Refactor: total_order_helper (roots: def_3_8, def_3_9)",
+  "refactor": true,
+  "refactor_name": "total_order_helper",
+  "refactor_roots": [
+    "def_3_8",
+    "def_3_9"
+  ],
+  "refactor_root": "def_3_8",
+  "created_at": "2026-06-07T12:34:26+00:00",
+  "columns": [
+    "def_or_claim",
+    "ref",
+    "section",
+    "title",
+    "type",
+    "formalized",
+    "proven",
+    "solved",
+    "date_solved",
+    "tips",
+    "tex_file",
+    "main_lean_file",
+    "lean_files",
+    "actions_tracking",
+    "tex_block",
+    "agent_registry",
+    "time_needed_to_solve",
+    "addition_to_the_LN",
+    "refactor",
+    "refactor_role",
+    "caused_by_roots"
+  ],
+  "rows": [
+    {
+      "def_or_claim": "def",
+      "ref": "def_3_8",
+      "section": "3.1",
+      "title": "TopologicalOrder",
+      "type": "definition",
+      "formalized": "yes",
+      "proven": "n/a",
+      "solved": "yes",
+      "date_solved": "2026-06-07",
+      "tips": "REFACTOR row. This row is a refactor ROOT in `total_order_helper` (roots: `def_3_8`, `def_3_9`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 1,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 0,
+        "verify_tex_statement_equivalence": 0
+      },
+      "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3eae83fc-efc1-438c-ba6c-b3920326a455",
+          "first_seen": "2026-06-07T13:26:16+00:00",
+          "last_used": "2026-06-07T13:26:16+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ace4a08a-d5a9-451f-807c-edbd4be832fa",
+          "first_seen": "2026-06-07T13:39:03+00:00",
+          "last_used": "2026-06-07T13:39:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0501d7d2-57ba-446a-8cc4-ea0ed3ce1067",
+          "first_seen": "2026-06-07T13:40:52+00:00",
+          "last_used": "2026-06-07T13:40:52+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "36703457-127b-4234-a02b-151c0f7ef065",
+          "first_seen": "2026-06-07T13:44:15+00:00",
+          "last_used": "2026-06-07T13:44:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5164af07-8c16-47c2-a139-2bd49702bb1d",
+          "first_seen": "2026-06-07T13:45:14+00:00",
+          "last_used": "2026-06-07T13:45:14+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "5808f2aa-a935-488b-88aa-cf36d8e6fa10",
+          "first_seen": "2026-06-07T13:47:17+00:00",
+          "last_used": "2026-06-07T13:47:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0ea1d06e-84d9-4627-97e0-2f6fed9466d1",
+          "first_seen": "2026-06-07T13:48:21+00:00",
+          "last_used": "2026-06-07T13:48:21+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "6949b22d-fb3d-43e8-9c4a-1967cc63514d",
+          "first_seen": "2026-06-07T13:51:10+00:00",
+          "last_used": "2026-06-07T13:51:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "43340aa2-f8f0-45f7-9ef0-587b7b5070b6",
+          "first_seen": "2026-06-07T13:52:12+00:00",
+          "last_used": "2026-06-07T13:52:12+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "b2072ecc-055c-4062-9b26-6ca18fba149b",
+          "first_seen": "2026-06-07T13:59:43+00:00",
+          "last_used": "2026-06-07T13:59:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "43acb2a1-a7b5-4b0f-b8bf-4d73465a715b",
+          "first_seen": "2026-06-07T14:00:20+00:00",
+          "last_used": "2026-06-07T14:00:20+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "66de61e9-0b40-4947-ba79-75f6ba2703b9",
+          "first_seen": "2026-06-07T14:02:07+00:00",
+          "last_used": "2026-06-07T14:02:07+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2561,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: equivalent_indexing_assumes_finite_node_set\nexplanation: The LN gives a primary definition — \"a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$: $v \\in \\Pa^G(w) \\implies v < w$\" — and then claims \"Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\" The two formulations are equivalent only when $J \\cup V$ is finite (so that the strict total order has order type a finite ordinal and can be written as $v_1 < v_2 < \\dots < v_K$). For an infinite node set, the primary definition is still meaningful (any total order on an infinite set is fine), but the \"indexing\" reformulation either fails entirely (uncountable case) or requires further conditions (the order type must be $\\omega$ for a countable set). The definition does not state a finiteness hypothesis on $J \\cup V$ — if CDMGs are taken to be finite implicitly (likely the intended convention), the equivalence is fine; if not, the \"Equivalently\" clause is genuinely stronger than the primary definition. A downstream argument that picks an index `i` and inducts on the index relies on the indexing formulation and would silently inherit a finiteness assumption.\nEND_SUBTLETY\n\nSUBTLETY:\nid: quantifier_domain_v_w_in_G_is_tuple_not_set\nexplanation: The implication is stated \"for all $v,w \\in G$\", but $G = (J,V,E,L)$ is literally a 4-tuple, not a set, so \"$v \\in G$\" does not type-check on the nose. The clearly intended domain is $J \\cup V$ (matching \"a total order $<$ of $J \\cup V$\" in the previous clause, and matching what makes \"$v < w$\" defined). This is conventional graph-theoretic shorthand and unambiguous in intent, but a formalization must commit to the domain explicitly — and in particular must ensure that whenever $v \\in \\Pa^G(w)$, $v$ is in fact in $J \\cup V$ so that the comparison $v < w$ is defined. (For a CDMG this should follow from the definition of $\\Pa^G$, but it is a side-condition the LN never spells out.)\nEND_SUBTLETY",
+        "session": "0750f1c9-1269-44c8-b56f-0418d2e4776d"
+      },
+      "refactor": true,
+      "refactor_role": "root",
+      "caused_by_roots": [
+        "def_3_8"
+      ]
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_2",
+      "section": "3.1",
+      "title": "AcyclicIffTopologicalOrder",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-07",
+      "tips": "REFACTOR row. This row is a DEPENDENT in refactor `total_order_helper`; it was pulled in because root(s) `def_3_8` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 0,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 0,
+        "solved": 2,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_plus_proof": 1,
+        "verify_tex_statement_only": 0,
+        "verify_tex_statement_equivalence": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f53f6589-9300-41af-8170-c13f0b1204d1",
+          "first_seen": "2026-06-07T14:09:54+00:00",
+          "last_used": "2026-06-07T14:09:54+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "fdaf831a-c806-449e-a74d-49d8dcfa66a8",
+          "first_seen": "2026-06-07T14:11:14+00:00",
+          "last_used": "2026-06-07T14:11:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "244051a9-0cdf-4a18-aa28-a3e08247a837",
+          "first_seen": "2026-06-07T14:12:29+00:00",
+          "last_used": "2026-06-07T14:12:29+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "cbdbc6b1-f68c-4034-8070-e0fd0eb60ec2",
+          "first_seen": "2026-06-07T14:12:48+00:00",
+          "last_used": "2026-06-07T14:12:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a08b8231-5b22-441b-9f5f-c8eb6fcff0f6",
+          "first_seen": "2026-06-07T14:13:49+00:00",
+          "last_used": "2026-06-07T14:13:49+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "8e0e040d-94fe-4a12-adc9-78fbce468034",
+          "first_seen": "2026-06-07T14:16:50+00:00",
+          "last_used": "2026-06-07T14:16:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "23035c13-1fa8-4dc8-8474-7b8dcdf7c661",
+          "first_seen": "2026-06-07T14:18:36+00:00",
+          "last_used": "2026-06-07T14:18:36+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "933c4f42-45cd-4ed2-8f7e-152e7da463ce",
+          "first_seen": "2026-06-07T14:28:58+00:00",
+          "last_used": "2026-06-07T14:28:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8005debd-33b4-4a71-9063-67acadb784c7",
+          "first_seen": "2026-06-07T14:29:53+00:00",
+          "last_used": "2026-06-07T14:29:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "df67a59b-5db5-4b89-b695-d96e91ecfc30",
+          "first_seen": "2026-06-07T14:34:00+00:00",
+          "last_used": "2026-06-07T14:34:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4dfe6ec1-5f0a-49e1-a63a-184b9af0989b",
+          "first_seen": "2026-06-07T14:34:41+00:00",
+          "last_used": "2026-06-07T14:34:41+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "53367978-1f19-47e7-a39b-f8414fe2e242",
+          "first_seen": "2026-06-07T14:38:17+00:00",
+          "last_used": "2026-06-07T14:38:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "76218ff8-2dc2-4090-9d7a-11850dbd297b",
+          "first_seen": "2026-06-07T14:38:53+00:00",
+          "last_used": "2026-06-07T14:38:53+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "b166660a-1d98-4728-af2b-d0b2c4f975a1",
+          "first_seen": "2026-06-07T14:40:10+00:00",
+          "last_used": "2026-06-07T14:40:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "757abec0-d84b-4960-912d-3adeecdf510e",
+          "first_seen": "2026-06-07T14:41:10+00:00",
+          "last_used": "2026-06-07T14:41:10+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e741f98a-b5aa-46c6-81d6-28d0423339ca",
+          "first_seen": "2026-06-07T14:49:24+00:00",
+          "last_used": "2026-06-07T14:49:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "afbf9171-450d-4ee5-a927-8f6c2e1c036a",
+          "first_seen": "2026-06-07T14:49:59+00:00",
+          "last_used": "2026-06-07T14:49:59+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "ba14b7ff-ab03-47a0-857b-f5f42415cd61",
+          "first_seen": "2026-06-07T14:51:30+00:00",
+          "last_used": "2026-06-07T14:51:30+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2927,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have the full context. Let me carefully analyze the claim's wording.\n\nThe tex block under audit:\n```latex\n\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}\n```\n\nAuditing for issues:\n\n1. **Existence reading of \"has a topological order\"** — standard reading is \"there exists at least one\". Unambiguous.\n2. **Finiteness concern** — def 3.8 explicitly notes \"the node set $J \\cup V$ is finite (as a union of two finite sets)\" and def-cdmg enforces this. So the classical finite-DAG↔topological-order theorem applies; no missing finiteness hypothesis.\n3. **Role of $L$** — labels don't enter either property; the biconditional is independent of $L$, consistent with both referenced definitions.\n4. **Empty / singleton corner cases** — empty $J \\cup V$: vacuously acyclic; empty relation is a strict total order. Singleton: trivially both. No degeneracy issue.\n5. **Self-loops** — covered by the acyclicity definition (length-1 walks are non-trivial).\n6. **J vs V asymmetry** — acyclicity is vacuous for $v \\in J$ (no incoming edges since $E \\subseteq (J \\cup V) \\times V$), and topological order extends to all of $J \\cup V$. Both definitions handle this cleanly.\n7. **Biconditional direction** — standard well-known theorem; both directions hold for finite directed graphs.\n\nThe claim is a clean, one-sentence statement of a well-known classical theorem. All referenced definitions (def 3.6 acyclicity, def 3.8 topological order, def-cdmg) explicitly account for the corner cases and finiteness. The literal wording admits no problematic interpretation.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a4cf9ece-fd63-421a-9aa3-fd25315811d6"
+      },
+      "refactor": true,
+      "refactor_role": "dependent",
+      "caused_by_roots": [
+        "def_3_8"
+      ]
+    },
+    {
+      "def_or_claim": "def",
+      "ref": "def_3_9",
+      "section": "3.1",
+      "title": "Predecessors",
+      "type": "definition",
+      "formalized": "yes",
+      "proven": "n/a",
+      "solved": "yes",
+      "date_solved": "2026-06-07",
+      "tips": "REFACTOR row. This row is a refactor ROOT in `total_order_helper` (roots: `def_3_8`, `def_3_9`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 0,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 0,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 0,
+        "verify_tex_statement_equivalence": 0
+      },
+      "tex_block": "\\begin{defmark}\n\\begin{Def}[Predecessors]\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\cup V$.\n   The set of \\emph{predecessors} of $v$ in $G$ are:\n   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]\n   We also put:\n   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]\n\\end{Def}\n\\end{defmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e7b6ada8-a57c-492f-8496-d21d0b689161",
+          "first_seen": "2026-06-07T14:57:53+00:00",
+          "last_used": "2026-06-07T14:57:53+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a0961e1b-691c-46f2-9b55-f817b5a419d2",
+          "first_seen": "2026-06-07T15:11:07+00:00",
+          "last_used": "2026-06-07T15:11:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "06ff4dce-acb9-44a8-8447-104038c117d5",
+          "first_seen": "2026-06-07T15:12:21+00:00",
+          "last_used": "2026-06-07T15:12:21+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3efbc78b-7c82-41cb-b26c-0736cf60d3e1",
+          "first_seen": "2026-06-07T15:16:14+00:00",
+          "last_used": "2026-06-07T15:16:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "19b68c3c-77c2-459b-a07c-310403a7ab8a",
+          "first_seen": "2026-06-07T15:18:22+00:00",
+          "last_used": "2026-06-07T15:18:22+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "c4e5db57-a5ac-4eb1-8064-81285a9a081e",
+          "first_seen": "2026-06-07T15:19:28+00:00",
+          "last_used": "2026-06-07T15:19:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7ec45528-4cf3-4749-ace1-09251bc5cad4",
+          "first_seen": "2026-06-07T15:21:29+00:00",
+          "last_used": "2026-06-07T15:21:29+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "957bed70-deb0-4f69-961b-c78ff62c7fcb",
+          "first_seen": "2026-06-07T15:27:14+00:00",
+          "last_used": "2026-06-07T15:27:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1f6826ba-1abf-4c0b-922e-5b5750144d3d",
+          "first_seen": "2026-06-07T15:27:46+00:00",
+          "last_used": "2026-06-07T15:27:46+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "4c68702b-5357-49e6-a33c-4311665ddb06",
+          "first_seen": "2026-06-07T15:29:12+00:00",
+          "last_used": "2026-06-07T15:29:12+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2355,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: ambiguous_w_in_G_notation\nexplanation: The definition writes `\\{w \\in G \\mid w < v\\}` but $G = (J, V, E, L)$ is a 4-tuple, not a set. There is no canonical meaning for \"$w \\in G$\". The most natural reading is $w \\in J \\cup V$ (matching the stated domain of $<$, which is \"a total order of $J \\cup V$\"). But a literal reader could just as easily ask whether $w$ might range over $J \\cup V \\cup E$, or even include labels from $L$. The resulting set depends entirely on this unstated choice. Any downstream argument that pattern-matches on the shape of an element of $\\Pred^G_<(v)$ (e.g., \"every predecessor is either an identifier or a vertex\") has to silently smuggle in the convention.\nEND_SUBTLETY\n\nSUBTLETY:\nid: v_not_required_to_be_in_J_union_V\nexplanation: The text says \"The set of predecessors of $v$ in $G$ are…\" without constraining $v$. Since $<$ is \"a total order of $J \\cup V$\", the comparison `$w < v$` is only well-defined when $v \\in J \\cup V$. The literal definition does not state this precondition. In the second clause, `\\Pred^G_\\le(v) := \\{w \\in G \\mid w < v\\} \\cup \\{v\\}`, the singleton $\\{v\\}$ is added unconditionally, so the set would contain $v$ even in the degenerate case where $v$ is not in the underlying set of $G$ — making \"$v$ is its own (non-strict) predecessor in $G$\" hold for $v$ outside the graph. A formalization will be forced to pick an answer: require $v \\in J \\cup V$ as a hypothesis, return $\\emptyset$ / $\\{v\\}$ otherwise, or leave the function partial.\nEND_SUBTLETY\n\nSUBTLETY:\nid: subscript_le_body_uses_strict\nexplanation: The second definition is named `\\Pred^G_\\le(v)` (subscript $\\le$) but its body is written as `\\{w \\in G \\mid w < v\\} \\cup \\{v\\}` rather than the more direct `\\{w \\in G \\mid w \\le v\\}`. The two are mathematically equal *provided* one assumes the order $<$ is actually antisymmetric/strict and $v \\in J \\cup V$ (so that the $\\le$ extension of $<$ is well-defined and $v \\le v$). The literal reading is correct, but the mismatch between the subscript convention and the body invites a reader to wonder whether the author intended a subtle distinction (e.g., always adding $v$ even when $v \\notin J \\cup V$, as flagged above). A formalization that defines `Pred_le` as `{w | w ≤ v}` rather than as `Pred_lt ∪ {v}` would technically diverge in that edge case.\nEND_SUBTLETY",
+        "session": "9fae26ca-9c14-4b5f-b3d3-578b8b67f7b7"
+      },
+      "refactor": true,
+      "refactor_role": "root",
+      "caused_by_roots": [
+        "def_3_8",
+        "def_3_9"
+      ]
+    }
+  ]
+}

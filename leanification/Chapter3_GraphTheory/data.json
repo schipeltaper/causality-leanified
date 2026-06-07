@@ -521,7 +521,7 @@
       "proven": "n/a",
       "solved": "yes",
       "date_solved": "2026-06-06",
-      "tips": "",
+      "tips": "Refactored on 2026-06-07 via `total_order_helper` (see leanification/Chapter*/Refactor_total_order_helper_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
       "lean_files": [
@@ -570,7 +570,8 @@
         "done": true,
         "output": "SUBTLETY:\nid: equivalent_indexing_assumes_finite_node_set\nexplanation: The LN gives a primary definition — \"a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$: $v \\in \\Pa^G(w) \\implies v < w$\" — and then claims \"Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\" The two formulations are equivalent only when $J \\cup V$ is finite (so that the strict total order has order type a finite ordinal and can be written as $v_1 < v_2 < \\dots < v_K$). For an infinite node set, the primary definition is still meaningful (any total order on an infinite set is fine), but the \"indexing\" reformulation either fails entirely (uncountable case) or requires further conditions (the order type must be $\\omega$ for a countable set). The definition does not state a finiteness hypothesis on $J \\cup V$ — if CDMGs are taken to be finite implicitly (likely the intended convention), the equivalence is fine; if not, the \"Equivalently\" clause is genuinely stronger than the primary definition. A downstream argument that picks an index `i` and inducts on the index relies on the indexing formulation and would silently inherit a finiteness assumption.\nEND_SUBTLETY\n\nSUBTLETY:\nid: quantifier_domain_v_w_in_G_is_tuple_not_set\nexplanation: The implication is stated \"for all $v,w \\in G$\", but $G = (J,V,E,L)$ is literally a 4-tuple, not a set, so \"$v \\in G$\" does not type-check on the nose. The clearly intended domain is $J \\cup V$ (matching \"a total order $<$ of $J \\cup V$\" in the previous clause, and matching what makes \"$v < w$\" defined). This is conventional graph-theoretic shorthand and unambiguous in intent, but a formalization must commit to the domain explicitly — and in particular must ensure that whenever $v \\in \\Pa^G(w)$, $v$ is in fact in $J \\cup V$ so that the comparison $v < w$ is defined. (For a CDMG this should follow from the definition of $\\Pa^G$, but it is a side-condition the LN never spells out.)\nEND_SUBTLETY",
         "session": "0750f1c9-1269-44c8-b56f-0418d2e4776d"
-      }
+      },
+      "last_refactored_at": "2026-06-07"
     },
     {
       "def_or_claim": "claim",
@@ -582,7 +583,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-06",
-      "tips": "",
+      "tips": "Refactored on 2026-06-07 via `total_order_helper` (see leanification/Chapter*/Refactor_total_order_helper_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
       "lean_files": [
@@ -632,7 +633,8 @@
         "done": true,
         "output": "Now I have the full context. Let me carefully analyze the claim's wording.\n\nThe tex block under audit:\n```latex\n\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}\n```\n\nAuditing for issues:\n\n1. **Existence reading of \"has a topological order\"** — standard reading is \"there exists at least one\". Unambiguous.\n2. **Finiteness concern** — def 3.8 explicitly notes \"the node set $J \\cup V$ is finite (as a union of two finite sets)\" and def-cdmg enforces this. So the classical finite-DAG↔topological-order theorem applies; no missing finiteness hypothesis.\n3. **Role of $L$** — labels don't enter either property; the biconditional is independent of $L$, consistent with both referenced definitions.\n4. **Empty / singleton corner cases** — empty $J \\cup V$: vacuously acyclic; empty relation is a strict total order. Singleton: trivially both. No degeneracy issue.\n5. **Self-loops** — covered by the acyclicity definition (length-1 walks are non-trivial).\n6. **J vs V asymmetry** — acyclicity is vacuous for $v \\in J$ (no incoming edges since $E \\subseteq (J \\cup V) \\times V$), and topological order extends to all of $J \\cup V$. Both definitions handle this cleanly.\n7. **Biconditional direction** — standard well-known theorem; both directions hold for finite directed graphs.\n\nThe claim is a clean, one-sentence statement of a well-known classical theorem. All referenced definitions (def 3.6 acyclicity, def 3.8 topological order, def-cdmg) explicitly account for the corner cases and finiteness. The literal wording admits no problematic interpretation.\n\n```\nNO_SUBTLETIES\n```",
         "session": "a4cf9ece-fd63-421a-9aa3-fd25315811d6"
-      }
+      },
+      "last_refactored_at": "2026-06-07"
     },
     {
       "def_or_claim": "def",
@@ -644,7 +646,7 @@
       "proven": "n/a",
       "solved": "yes",
       "date_solved": "2026-06-07",
-      "tips": "",
+      "tips": "Refactored on 2026-06-07 via `total_order_helper` (see leanification/Chapter*/Refactor_total_order_helper_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
       "lean_files": [
@@ -693,7 +695,8 @@
         "done": true,
         "output": "SUBTLETY:\nid: ambiguous_w_in_G_notation\nexplanation: The definition writes `\\{w \\in G \\mid w < v\\}` but $G = (J, V, E, L)$ is a 4-tuple, not a set. There is no canonical meaning for \"$w \\in G$\". The most natural reading is $w \\in J \\cup V$ (matching the stated domain of $<$, which is \"a total order of $J \\cup V$\"). But a literal reader could just as easily ask whether $w$ might range over $J \\cup V \\cup E$, or even include labels from $L$. The resulting set depends entirely on this unstated choice. Any downstream argument that pattern-matches on the shape of an element of $\\Pred^G_<(v)$ (e.g., \"every predecessor is either an identifier or a vertex\") has to silently smuggle in the convention.\nEND_SUBTLETY\n\nSUBTLETY:\nid: v_not_required_to_be_in_J_union_V\nexplanation: The text says \"The set of predecessors of $v$ in $G$ are…\" without constraining $v$. Since $<$ is \"a total order of $J \\cup V$\", the comparison `$w < v$` is only well-defined when $v \\in J \\cup V$. The literal definition does not state this precondition. In the second clause, `\\Pred^G_\\le(v) := \\{w \\in G \\mid w < v\\} \\cup \\{v\\}`, the singleton $\\{v\\}$ is added unconditionally, so the set would contain $v$ even in the degenerate case where $v$ is not in the underlying set of $G$ — making \"$v$ is its own (non-strict) predecessor in $G$\" hold for $v$ outside the graph. A formalization will be forced to pick an answer: require $v \\in J \\cup V$ as a hypothesis, return $\\emptyset$ / $\\{v\\}$ otherwise, or leave the function partial.\nEND_SUBTLETY\n\nSUBTLETY:\nid: subscript_le_body_uses_strict\nexplanation: The second definition is named `\\Pred^G_\\le(v)` (subscript $\\le$) but its body is written as `\\{w \\in G \\mid w < v\\} \\cup \\{v\\}` rather than the more direct `\\{w \\in G \\mid w \\le v\\}`. The two are mathematically equal *provided* one assumes the order $<$ is actually antisymmetric/strict and $v \\in J \\cup V$ (so that the $\\le$ extension of $<$ is well-defined and $v \\le v$). The literal reading is correct, but the mismatch between the subscript convention and the body invites a reader to wonder whether the author intended a subtle distinction (e.g., always adding $v$ even when $v \\notin J \\cup V$, as flagged above). A formalization that defines `Pred_le` as `{w | w ≤ v}` rather than as `Pred_lt ∪ {v}` would technically diverge in that edge case.\nEND_SUBTLETY",
         "session": "9fae26ca-9c14-4b5f-b3d3-578b8b67f7b7"
-      }
+      },
+      "last_refactored_at": "2026-06-07"
     },
     {
       "def_or_claim": "def",
