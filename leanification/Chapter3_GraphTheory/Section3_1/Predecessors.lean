@@ -79,9 +79,9 @@ consumers.  `G.Pred lt v` and `G.Pred^G_<(v)` were not the same
 mathematical object, even though they coincide on the LN's intended
 inputs.
 
-The *replacement* — wrapped below in matching
-`-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Pred` /
-`-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: PredLE` marker pairs —
+The *replacement* — wrapped below in matching `REFACTOR-BLOCK`
+marker pairs for `Pred` and `PredLE` (see the actual markers around
+the new defs further down the file) —
 introduces an explicit `(h : G.refactor_IsTotalOrder lt)` hypothesis
 sitting between `lt` and `v` on both signatures.  The hypothesis is
 *not used* in either body (the bodies are textually identical to the
