@@ -75,7 +75,7 @@
               "kind": "claim",
               "label": "claim 3.2 — AcyclicIffTopologicalOrder",
               "title": "AcyclicIffTopologicalOrder",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_9",
