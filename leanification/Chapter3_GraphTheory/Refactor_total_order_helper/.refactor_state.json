@@ -1,0 +1,13 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_total_order_helper",
+  "roots": [
+    "def_3_8",
+    "def_3_9"
+  ],
+  "root_ref": "def_3_8",
+  "name": "total_order_helper",
+  "chapter": 3,
+  "init_date": "2026-06-07T12:34:26+00:00",
+  "deviations_to_resolve": []
+}
