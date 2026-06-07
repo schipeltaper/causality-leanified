@@ -407,8 +407,8 @@ def _extend_refactor_scope_and_halt(state: "OrchestrationState",
     # git reset / branch deletion.
     cur_branch = subprocess.run(
         ["git", "branch", "--show-current"],
-        cwd=str(REPO_ROOT), capture_output=True,
-    ).stdout.decode("utf-8", errors="replace").strip()
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    ).stdout.strip()
     if cur_branch != old_branch:
         raise RuntimeError(
             f"expected to be on refactor branch `{old_branch}` (from "
@@ -1238,18 +1238,13 @@ def _latexmk_build(tex_file: Path) -> tuple[bool, str]:
     Never raises -- a build is a best-effort cleanup-phase artefact.
     """
     try:
-        # Binary capture + replace-decode so a stray non-UTF-8 byte in
-        # latex log output doesn't crash the orchestrator (the post-solve
-        # commit chain runs through here).
         result = subprocess.run(
             ["latexmk", "-pdf", "-interaction=nonstopmode",
              "-halt-on-error", tex_file.name],
             cwd=tex_file.parent,
-            capture_output=True,
+            capture_output=True, text=True,
             timeout=LATEXMK_TIMEOUT_SECONDS,
         )
-        result.stdout = (result.stdout or b"").decode("utf-8", errors="replace")
-        result.stderr = (result.stderr or b"").decode("utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         return False, f"latexmk timed out after {LATEXMK_TIMEOUT_SECONDS}s"
     except FileNotFoundError:
@@ -1973,16 +1968,12 @@ def check_no_sorry(lean_files: list[str]) -> str | None:
 
     # --- Stage 2: lake build warning scan -----------------------------
     try:
-        # Binary capture + replace-decode: lake's stdout may contain
-        # non-UTF-8 bytes in compiler diagnostics; don't crash here.
         result = subprocess.run(
             ["lake", "build"],
             cwd=str(REPO_ROOT),
-            capture_output=True,
+            capture_output=True, text=True,
             timeout=SORRY_CHECK_BUILD_TIMEOUT_SECONDS,
         )
-        result.stdout = (result.stdout or b"").decode("utf-8", errors="replace")
-        result.stderr = (result.stderr or b"").decode("utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         # Build is slow but file-grep already passed; let it through with
         # a log note rather than block the solve indefinitely.
@@ -2661,17 +2652,12 @@ def commit_solved_row(state: "OrchestrationState") -> None:
         return
     print(f"[orchestrator] committing: {msg}", flush=True)
     try:
-        # Binary capture + replace-decode: build_and_commit.sh runs lake
-        # + git, whose output may contain non-UTF-8 bytes; the previous
-        # text=True crashed mid-stream on def_3_4 and def_3_9.
         result = subprocess.run(
             ["bash", str(script), msg],
             cwd=str(REPO_ROOT),
-            capture_output=True,
+            capture_output=True, text=True,
             timeout=COMMIT_SCRIPT_TIMEOUT_SECONDS,
         )
-        result.stdout = (result.stdout or b"").decode("utf-8", errors="replace")
-        result.stderr = (result.stderr or b"").decode("utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         print(f"[orchestrator] commit script timed out after "
               f"{COMMIT_SCRIPT_TIMEOUT_SECONDS//60} min; row stays "
