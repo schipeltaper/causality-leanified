@@ -1,0 +1,45 @@
+{
+  "ref": "def_3_9",
+  "kind": "def",
+  "section": "3.1",
+  "title": "Predecessors",
+  "type": "definition",
+  "status": {
+    "formalized": "yes",
+    "proven": "n/a",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\cup V$.\n   The set of <em>predecessors</em> of $v$ in $G$ are:\n   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]\n   We also put:\n   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]</p>",
+  "tex_statement": {
+    "raw": "% Definition file for row def_3_9 -- \"Predecessors\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker dispatched by it) fills the body below with the\n% Lean-faithful definition statement(s). Stays close to the lecture notes.\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it compile both standalone (resolving its\n% preamble via `main.tex`) and as part of `main.tex` via `\\subfile{...}`.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: def_3_9\n% title: Predecessors\n\\def\\rowref{def\\_3\\_9}\n\\phantomsection\\label{def_3_9}\n\n\\begin{Def}[Predecessors]\n    \\label{def-predecessors}\n    Let $G = (J, V, E, L)$ be a CDMG (def \\ref{def-cdmg}); throughout we use the notation of def \\ref{not-cdmg}. Let $<$ be a total order of $J \\cup V$, read as a \\emph{strict} total order in the sense of def \\ref{def-topological-order} (irreflexive, transitive, and trichotomous on $J \\cup V$); the symbol $<$ is read strictly throughout. The element $v$ is left unconstrained by the LN -- in particular, the LN does \\emph{not} impose $v \\in J \\cup V$ -- and we follow that literal stance below; note that the comparison $w < v$ is only directly given by $<$ when $v \\in J \\cup V$, since $<$ is supplied only as a total order of $J \\cup V$. Adopting the convention of def \\ref{not-cdmg}, item~1, that ``$w \\in G$'' abbreviates ``$w \\in J \\cup V$'', we write the set-builder bodies below explicitly with $w \\in J \\cup V$.\n\n    The set of \\emph{predecessors} of $v$ in $G$ is\n    \\[\n        \\Pred^G_<(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC.\n    \\]\n    We also put\n    \\[\n        \\Pred^G_\\le(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC \\cup \\{v\\}.\n    \\]\n\n    \\emph{Notational quirk: the ``$\\le$'' subscript vs.\\ the strict body.} The subscript ``$\\le$'' on $\\Pred^G_\\le$ marks the non-strict variant, but the set-builder body the LN writes is \\emph{strict} (the membership condition is $w < v$, not $w \\le v$), with the singleton $\\{v\\}$ adjoined separately. We implement this literal LN body $\\Pred^G_<(v) \\cup \\{v\\}$, \\emph{not} the alternative $\\lC w \\in J \\cup V \\,|\\, w \\le v \\rC$; the two forms coincide whenever $v \\in J \\cup V$ (irreflexivity of $<$ keeps $v$ out of the strict body, while the reflexive-closure form $w \\le v$ would pick it up via $v \\le v$), and they diverge only in the corner case noted next.\n\n    \\emph{Corner case $v \\notin J \\cup V$.} Under the literal LN body, $w < v$ for $w \\in J \\cup V$ is not provided by the total order $<$ (whose domain is $J \\cup V$), so the natural reading is $\\Pred^G_<(v) = \\emptyset$; the non-strict body's adjoined singleton then degenerately gives $\\Pred^G_\\le(v) = \\{v\\}$, so $v$ is its own non-strict predecessor even when $v$ lies outside the underlying node set of $G$. We follow the LN's lack of hypothesis on $v$ and do \\emph{not} impose $v \\in J \\cup V$ here; downstream consumers that pattern-match on the shape of an element of $\\Pred^G_<(v)$ or $\\Pred^G_\\le(v)$ may assume $v \\in J \\cup V$ at the point of use as a separate hypothesis.\n\\end{Def}\n\n\\end{document}\n",
+    "html": "<p>Let $G = (J, V, E, L)$ be a CDMG (def <a href=\"#def_3_1\" class=\"refrow\"><code>def-cdmg</code></a>); throughout we use the notation of def <a href=\"#def_3_2\" class=\"refrow\"><code>not-cdmg</code></a>. Let $<$ be a total order of $J \\cup V$, read as a <em>strict</em> total order in the sense of def <a href=\"#def_3_8\" class=\"refrow\"><code>def-topological-order</code></a> (irreflexive, transitive, and trichotomous on $J \\cup V$); the symbol $<$ is read strictly throughout. The element $v$ is left unconstrained by the LN – in particular, the LN does <em>not</em> impose $v \\in J \\cup V$ – and we follow that literal stance below; note that the comparison $w < v$ is only directly given by $<$ when $v \\in J \\cup V$, since $<$ is supplied only as a total order of $J \\cup V$. Adopting the convention of def <a href=\"#def_3_2\" class=\"refrow\"><code>not-cdmg</code></a>, item&nbsp;1, that “$w \\in G$” abbreviates “$w \\in J \\cup V$”, we write the set-builder bodies below explicitly with $w \\in J \\cup V$.</p>\n<p>The set of <em>predecessors</em> of $v$ in $G$ is\n    \\[\n        \\Pred^G_<(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC.\n    \\]\n    We also put\n    \\[\n        \\Pred^G_\\le(v) := \\lC w \\in J \\cup V \\,|\\, w < v \\rC \\cup \\{v\\}.\n    \\]</p>\n<p><em>Notational quirk: the “$\\le$” subscript vs.\\ the strict body.</em> The subscript “$\\le$” on $\\Pred^G_\\le$ marks the non-strict variant, but the set-builder body the LN writes is <em>strict</em> (the membership condition is $w < v$, not $w \\le v$), with the singleton $\\{v\\}$ adjoined separately. We implement this literal LN body $\\Pred^G_<(v) \\cup \\{v\\}$, <em>not</em> the alternative $\\lC w \\in J \\cup V \\,|\\, w \\le v \\rC$; the two forms coincide whenever $v \\in J \\cup V$ (irreflexivity of $<$ keeps $v$ out of the strict body, while the reflexive-closure form $w \\le v$ would pick it up via $v \\le v$), and they diverge only in the corner case noted next.</p>\n<p><em>Corner case $v \\notin J \\cup V$.</em> Under the literal LN body, $w < v$ for $w \\in J \\cup V$ is not provided by the total order $<$ (whose domain is $J \\cup V$), so the natural reading is $\\Pred^G_<(v) = \\emptyset$; the non-strict body's adjoined singleton then degenerately gives $\\Pred^G_\\le(v) = \\{v\\}$, so $v$ is its own non-strict predecessor even when $v$ lies outside the underlying node set of $G$. We follow the LN's lack of hypothesis on $v$ and do <em>not</em> impose $v \\in J \\cup V$ here; downstream consumers that pattern-match on the shape of an element of $\\Pred^G_<(v)$ or $\\Pred^G_\\le(v)$ may assume $v \\in J \\cup V$ at the point of use as a separate hypothesis.</p>",
+    "env": "Def",
+    "env_title": "Predecessors",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_Predecessors.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [
+    {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def Pred (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ lt w v}",
+      "explanation": "",
+      "code_annotated": ""
+    },
+    {
+      "kind": "main",
+      "code": "def PredLE (G : CDMG Node) (lt : Node → Node → Prop) (v : Node) : Set Node :=\n  G.Pred lt v ∪ {v}",
+      "explanation": "",
+      "code_annotated": ""
+    }
+  ],
+  "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+  "lean_file_path": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+  "addition_to_the_LN": "",
+  "design_choices": ""
+}
