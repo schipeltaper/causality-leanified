@@ -16,11 +16,21 @@
 \phantomsection\label{def_3_9}
 
 \begin{Def}[Predecessors]
-   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \cup V$.
-   The set of \emph{predecessors} of $v$ in $G$ are:
-   \[\Pred^G_<(v) : = \lC w\in G\,|\, w < v \rC.\]
-   We also put:
-   \[\Pred^G_\le(v) : = \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
+    \label{def-predecessors}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}. Let $<$ be a total order of $J \cup V$, read as a \emph{strict} total order in the sense of def \ref{def-topological-order} (irreflexive, transitive, and trichotomous on $J \cup V$); the symbol $<$ is read strictly throughout. The element $v$ is left unconstrained by the LN -- in particular, the LN does \emph{not} impose $v \in J \cup V$ -- and we follow that literal stance below; note that the comparison $w < v$ is only directly given by $<$ when $v \in J \cup V$, since $<$ is supplied only as a total order of $J \cup V$. Adopting the convention of def \ref{not-cdmg}, item~1, that ``$w \in G$'' abbreviates ``$w \in J \cup V$'', we write the set-builder bodies below explicitly with $w \in J \cup V$.
+
+    The set of \emph{predecessors} of $v$ in $G$ is
+    \[
+        \Pred^G_<(v) := \lC w \in J \cup V \,|\, w < v \rC.
+    \]
+    We also put
+    \[
+        \Pred^G_\le(v) := \lC w \in J \cup V \,|\, w < v \rC \cup \{v\}.
+    \]
+
+    \emph{Notational quirk: the ``$\le$'' subscript vs.\ the strict body.} The subscript ``$\le$'' on $\Pred^G_\le$ marks the non-strict variant, but the set-builder body the LN writes is \emph{strict} (the membership condition is $w < v$, not $w \le v$), with the singleton $\{v\}$ adjoined separately. We implement this literal LN body $\Pred^G_<(v) \cup \{v\}$, \emph{not} the alternative $\lC w \in J \cup V \,|\, w \le v \rC$; the two forms coincide whenever $v \in J \cup V$ (irreflexivity of $<$ keeps $v$ out of the strict body, while the reflexive-closure form $w \le v$ would pick it up via $v \le v$), and they diverge only in the corner case noted next.
+
+    \emph{Corner case $v \notin J \cup V$.} Under the literal LN body, $w < v$ for $w \in J \cup V$ is not provided by the total order $<$ (whose domain is $J \cup V$), so the natural reading is $\Pred^G_<(v) = \emptyset$; the non-strict body's adjoined singleton then degenerately gives $\Pred^G_\le(v) = \{v\}$, so $v$ is its own non-strict predecessor even when $v$ lies outside the underlying node set of $G$. We follow the LN's lack of hypothesis on $v$ and do \emph{not} impose $v \in J \cup V$ here; downstream consumers that pattern-match on the shape of an element of $\Pred^G_<(v)$ or $\Pred^G_\le(v)$ may assume $v \in J \cup V$ at the point of use as a separate hypothesis.
 \end{Def}
 
 \end{document}

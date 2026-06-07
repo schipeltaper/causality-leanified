@@ -626,7 +626,7 @@
           "last_used": "2026-06-06T21:49:38+00:00"
         }
       ],
-      "time_needed_to_solve": 3925,
+      "time_needed_to_solve": 4001,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -640,28 +640,30 @@
       "section": "3.1",
       "title": "Predecessors",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-07",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -671,12 +673,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Predecessors]\n   Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \\cup V$.\n   The set of \\emph{predecessors} of $v$ in $G$ are:\n   \\[\\Pred^G_<(v) : = \\lC w\\in G\\,|\\, w < v \\rC.\\]\n   We also put:\n   \\[\\Pred^G_\\le(v) : = \\lC w\\in G\\,|\\, w < v \\rC \\cup \\{v\\}.\\]\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "63262526-02b4-4540-ac09-bdd15bc821a6",
+          "first_seen": "2026-06-07T10:07:31+00:00",
+          "last_used": "2026-06-07T10:07:31+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2190,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: ambiguous_w_in_G_notation\nexplanation: The definition writes `\\{w \\in G \\mid w < v\\}` but $G = (J, V, E, L)$ is a 4-tuple, not a set. There is no canonical meaning for \"$w \\in G$\". The most natural reading is $w \\in J \\cup V$ (matching the stated domain of $<$, which is \"a total order of $J \\cup V$\"). But a literal reader could just as easily ask whether $w$ might range over $J \\cup V \\cup E$, or even include labels from $L$. The resulting set depends entirely on this unstated choice. Any downstream argument that pattern-matches on the shape of an element of $\\Pred^G_<(v)$ (e.g., \"every predecessor is either an identifier or a vertex\") has to silently smuggle in the convention.\nEND_SUBTLETY\n\nSUBTLETY:\nid: v_not_required_to_be_in_J_union_V\nexplanation: The text says \"The set of predecessors of $v$ in $G$ are…\" without constraining $v$. Since $<$ is \"a total order of $J \\cup V$\", the comparison `$w < v$` is only well-defined when $v \\in J \\cup V$. The literal definition does not state this precondition. In the second clause, `\\Pred^G_\\le(v) := \\{w \\in G \\mid w < v\\} \\cup \\{v\\}`, the singleton $\\{v\\}$ is added unconditionally, so the set would contain $v$ even in the degenerate case where $v$ is not in the underlying set of $G$ — making \"$v$ is its own (non-strict) predecessor in $G$\" hold for $v$ outside the graph. A formalization will be forced to pick an answer: require $v \\in J \\cup V$ as a hypothesis, return $\\emptyset$ / $\\{v\\}$ otherwise, or leave the function partial.\nEND_SUBTLETY\n\nSUBTLETY:\nid: subscript_le_body_uses_strict\nexplanation: The second definition is named `\\Pred^G_\\le(v)` (subscript $\\le$) but its body is written as `\\{w \\in G \\mid w < v\\} \\cup \\{v\\}` rather than the more direct `\\{w \\in G \\mid w \\le v\\}`. The two are mathematically equal *provided* one assumes the order $<$ is actually antisymmetric/strict and $v \\in J \\cup V$ (so that the $\\le$ extension of $<$ is well-defined and $v \\le v$). The literal reading is correct, but the mismatch between the subscript convention and the body invites a reader to wonder whether the author intended a subtle distinction (e.g., always adding $v$ even when $v \\notin J \\cup V$, as flagged above). A formalization that defines `Pred_le` as `{w | w ≤ v}` rather than as `Pred_lt ∪ {v}` would technically diverge in that edge case.\nEND_SUBTLETY",
+        "session": "9fae26ca-9c14-4b5f-b3d3-578b8b67f7b7"
+      }
     },
     {
       "def_or_claim": "def",
