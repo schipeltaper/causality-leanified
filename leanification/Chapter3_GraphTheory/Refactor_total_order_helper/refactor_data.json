@@ -39,10 +39,10 @@
       "section": "3.1",
       "title": "TopologicalOrder",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-07",
       "tips": "REFACTOR row. This row is a refactor ROOT in `total_order_helper` (roots: `def_3_8`, `def_3_9`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
@@ -53,16 +53,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -77,8 +77,93 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3eae83fc-efc1-438c-ba6c-b3920326a455",
+          "first_seen": "2026-06-07T13:26:16+00:00",
+          "last_used": "2026-06-07T13:26:16+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ace4a08a-d5a9-451f-807c-edbd4be832fa",
+          "first_seen": "2026-06-07T13:39:03+00:00",
+          "last_used": "2026-06-07T13:39:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0501d7d2-57ba-446a-8cc4-ea0ed3ce1067",
+          "first_seen": "2026-06-07T13:40:52+00:00",
+          "last_used": "2026-06-07T13:40:52+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "36703457-127b-4234-a02b-151c0f7ef065",
+          "first_seen": "2026-06-07T13:44:15+00:00",
+          "last_used": "2026-06-07T13:44:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5164af07-8c16-47c2-a139-2bd49702bb1d",
+          "first_seen": "2026-06-07T13:45:14+00:00",
+          "last_used": "2026-06-07T13:45:14+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "5808f2aa-a935-488b-88aa-cf36d8e6fa10",
+          "first_seen": "2026-06-07T13:47:17+00:00",
+          "last_used": "2026-06-07T13:47:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0ea1d06e-84d9-4627-97e0-2f6fed9466d1",
+          "first_seen": "2026-06-07T13:48:21+00:00",
+          "last_used": "2026-06-07T13:48:21+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "6949b22d-fb3d-43e8-9c4a-1967cc63514d",
+          "first_seen": "2026-06-07T13:51:10+00:00",
+          "last_used": "2026-06-07T13:51:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "43340aa2-f8f0-45f7-9ef0-587b7b5070b6",
+          "first_seen": "2026-06-07T13:52:12+00:00",
+          "last_used": "2026-06-07T13:52:12+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "b2072ecc-055c-4062-9b26-6ca18fba149b",
+          "first_seen": "2026-06-07T13:59:43+00:00",
+          "last_used": "2026-06-07T13:59:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "43acb2a1-a7b5-4b0f-b8bf-4d73465a715b",
+          "first_seen": "2026-06-07T14:00:20+00:00",
+          "last_used": "2026-06-07T14:00:20+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "66de61e9-0b40-4947-ba79-75f6ba2703b9",
+          "first_seen": "2026-06-07T14:02:07+00:00",
+          "last_used": "2026-06-07T14:02:07+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2542,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
