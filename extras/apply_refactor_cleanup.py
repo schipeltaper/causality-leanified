@@ -265,6 +265,105 @@ def _apply_to_content(content: str, file_path: Path,
     }
 
 
+# ----- phase 7a pass 3 helpers: strip stale refactor narratives ------
+
+def _strip_refactor_narratives(
+    content: str, refactor_name: str,
+) -> tuple[str, list[str]]:
+    """Strip stale solver-written refactor narratives from a Lean file.
+
+    During a refactor row's solve, the solver agents typically write
+    "in-progress" documentation in the affected file's docstrings and
+    inline comments — section headings like
+    ``## Refactor `<name>` (in progress)``, paragraphs explaining how
+    ORIGINAL and REPLACEMENT blocks coexist, and cross-references like
+    ``(see the `REFACTOR-BLOCK-ORIGINAL` block above)``. After Pass 2
+    strips the markers and ORIGINAL blocks, those narratives become
+    historically inaccurate (the markers they reference are gone, the
+    "in progress" tense is wrong, and the "Coexistence" paragraphs
+    describe a state that no longer exists).
+
+    Three patterns are stripped (each idempotent — re-running on
+    already-cleaned content is a no-op):
+
+    1. The file-top docstring's ``## Refactor `<refactor_name>` (in
+       progress)`` section heading plus the narrative body that
+       follows it, up to the next ``## `` heading or the docstring
+       closer ``-/``.
+    2. Standalone ``**Coexistence during the refactor.**`` paragraphs.
+    3. Inline parenthetical asides of the form
+       ``(see the `REFACTOR-BLOCK-...` ... above)``.
+
+    Patterns 1 and 2 are pinned to phrases solver agents emit verbatim;
+    pattern 3 is a narrow regex for the specific cross-reference
+    shape. All three are deliberately conservative — false positives
+    would have to use these exact phrases AND reference the refactor's
+    name by string.
+
+    Returns ``(new_content, descriptions)``. ``descriptions`` is the
+    list of human-readable strings naming what was stripped (empty
+    list if nothing changed).
+    """
+    strips: list[str] = []
+    name_re = re.escape(refactor_name)
+
+    # Pattern 1: `## Refactor `<name>` (in progress)` section heading + body
+    # up to next `## ` heading or `-/` docstring closer.
+    section_pat = re.compile(
+        rf"^## Refactor\s*`?{name_re}`?\s*\(in progress\).*?"
+        rf"(?=^## |^-/|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    n1 = len(section_pat.findall(content))
+    if n1 > 0:
+        content = section_pat.sub("", content)
+        strips.append(f"stripped {n1} 'Refactor (in progress)' section(s)")
+
+    # Pattern 2: `**Coexistence during the refactor.**` paragraph,
+    # running until the next blank line, `## ` heading, or `-/` closer.
+    coex_pat = re.compile(
+        r"\*\*Coexistence during the refactor\.\*\*.*?"
+        r"(?=\n[ \t]*\n|^## |^-/|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    n2 = len(coex_pat.findall(content))
+    if n2 > 0:
+        content = coex_pat.sub("", content)
+        strips.append(f"stripped {n2} 'Coexistence during the refactor' paragraph(s)")
+
+    # Pattern 3: any inline parenthetical aside that mentions a
+    # `REFACTOR-BLOCK-*` marker. Catches the common forms:
+    #   "(see the `REFACTOR-BLOCK-ORIGINAL` block above)"
+    #   "(`REFACTOR-BLOCK-ORIGINAL` above)"
+    #   "(the `REFACTOR-BLOCK-ORIGINAL: Foo` block earlier in this file)"
+    #   "(in the `REFACTOR-BLOCK-ORIGINAL` …)"
+    # The `[^)]*` segments confine each match to a single parenthetical
+    # (no `)` inside the match), so false positives would need to
+    # genuinely place "REFACTOR-BLOCK-*" inside a parenthetical aside —
+    # vanishingly unlikely outside the refactor-narrative pattern this
+    # function targets. Non-parenthetical mentions are intentionally
+    # NOT stripped (they sit in design-choice prose where blanket
+    # removal would damage surrounding sentences); the operator can
+    # rewrite those by hand if needed.
+    xref_pat = re.compile(
+        r"[ \t]*\([^)]*REFACTOR-BLOCK-[A-Z]+(?:-[A-Z]+)*\b[^)]*\)",
+        re.IGNORECASE,
+    )
+    n3 = len(xref_pat.findall(content))
+    if n3 > 0:
+        content = xref_pat.sub("", content)
+        strips.append(
+            f"stripped {n3} REFACTOR-BLOCK cross-reference(s) "
+            f"from inline comments"
+        )
+
+    # Normalize: collapse 3+ consecutive blank lines that may have
+    # resulted from strips into a single blank line.
+    content = re.sub(r"\n{3,}", "\n\n", content)
+
+    return content, strips
+
+
 # ----- file collection -----------------------------------------------
 
 def _collect_affected_lean_files(refactor_data: dict) -> list[Path]:
@@ -639,6 +738,52 @@ def main(argv: list[str]) -> int:
         print(f"  wrote {len(transformed_writes)} file(s) "
               f"(-{total_orig_deleted} orig, +{total_repl_kept} repl)",
               file=sys.stderr)
+
+    # Pass 3: strip stale solver-written refactor narratives from
+    # docstrings and inline comments. Pass 2 removed the actual marker
+    # blocks; Pass 3 removes the commentary about those blocks ("##
+    # Refactor (in progress)" sections, "**Coexistence during the
+    # refactor**" paragraphs, "(see the `REFACTOR-BLOCK-ORIGINAL` block
+    # above)" cross-references). Each pattern is pinned narrowly enough
+    # that false positives are vanishingly unlikely; see
+    # `_strip_refactor_narratives`'s docstring.
+    print(f"\n  [pass 3] stripping stale refactor narratives ...",
+          file=sys.stderr)
+    n_pass3_changed = 0
+    pass3_writes: list[tuple[Path, str]] = []
+    for p in file_blobs:
+        # Re-read from disk in apply mode (Pass 2 just wrote);
+        # in dry-run, take Pass 2's in-memory result if it exists,
+        # otherwise the original.
+        if args.dry_run:
+            old_for_pass3 = next(
+                (n for fp, n in transformed_writes if fp == p),
+                file_blobs[p],
+            )
+        else:
+            old_for_pass3 = p.read_text(encoding="utf-8")
+        new_p3, descs = _strip_refactor_narratives(
+            old_for_pass3, refactor_name)
+        if not descs:
+            continue
+        n_pass3_changed += 1
+        rel = p.relative_to(REPO_ROOT)
+        print(f"    - {rel}: " + "; ".join(descs), file=sys.stderr)
+        if args.dry_run:
+            sys.stdout.write(_diff(old_for_pass3, new_p3,
+                                   f"{rel} (pass 3)"))
+        else:
+            pass3_writes.append((p, new_p3))
+    if not args.dry_run:
+        for p, new in pass3_writes:
+            p.write_text(new, encoding="utf-8")
+        if n_pass3_changed:
+            print(f"  pass 3 cleaned {n_pass3_changed} file(s)",
+                  file=sys.stderr)
+        else:
+            print(f"  pass 3: no narratives to strip", file=sys.stderr)
+    elif n_pass3_changed == 0:
+        print(f"  pass 3: no narratives to strip", file=sys.stderr)
 
     # =================================================================
     # Phase 7b: Lake build verification

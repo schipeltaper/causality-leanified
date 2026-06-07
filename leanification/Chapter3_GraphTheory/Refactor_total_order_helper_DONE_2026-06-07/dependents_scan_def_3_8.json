@@ -1,0 +1,450 @@
+{
+  "target_ref": "def_3_8",
+  "target_title": "IsTopologicalOrder",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 29,
+      "snippet": "* `G.IsTopologicalOrder lt` from `def_3_8` (`TopologicalOrder.lean`) —"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 38,
+      "snippet": "`∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt` — exactly the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 60,
+      "snippet": "--   and `G.IsTopologicalOrder`, each of which depends on"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 231,
+      "snippet": "-- *RHS is `∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt` — an"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 235,
+      "snippet": "--   `IsTopologicalOrder` is a property of an external `lt`, not a"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 239,
+      "snippet": "--   `∃ lt, G.IsTopologicalOrder lt` shape).  Bundled alternatives"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 267,
+      "snippet": "--   `G.IsTopologicalOrder lt` (its `v ∈ G` quantifiers and `G.Pa w`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 279,
+      "snippet": "--   walks built from `G.E`; `IsTopologicalOrder` (`def_3_8`) only"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 311,
+      "snippet": "    G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 324,
+      "snippet": "    -- strict total order witnessing `IsTopologicalOrder`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 48,
+      "snippet": "`def_3_8`'s `IsTopologicalOrder` (`TopologicalOrder.lean`): the LN's"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 56,
+      "snippet": "pass an `lt` carrying `G.IsTopologicalOrder lt`, but the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+      "line": 105,
+      "snippet": "--   `lt` exactly the same way `IsTopologicalOrder` does: as an"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 46,
+      "snippet": "The predicate `IsTopologicalOrder` below is a *property of an external"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 77,
+      "snippet": "--   binds the implicit parameters that the `IsTopologicalOrder` def"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 87,
+      "snippet": "-- `G.IsTopologicalOrder lt` asserts that the strict binary relation"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 109,
+      "snippet": "--     `IsTopologicalOrder : CDMG Node → (Node → Node → Prop) → Prop`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 112,
+      "snippet": "--   `G.IsAcyclic → ∃ lt, G.IsTopologicalOrder lt` — the existential is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 261,
+      "snippet": "--   states `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder lt`; its proof"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 267,
+      "snippet": "--   existential, taking a single `(h : G.IsTopologicalOrder lt)`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
+      "line": 272,
+      "snippet": "def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/claim_3_2_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"theorem acyclic_iff_topological_order (G : CDMG Node) :\\n    G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt\\n-- claim_3_2 -- end statement\\n:= by\\n  -- "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/claim_3_2_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"theorem acyclic_iff_topological_order (G : CDMG Node) :\\n    G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt\\n\\n:= by\\n\\n  constructor\\n  ·\\n\\n    int"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/claim_3_2_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The theorem signature binds a single graph `G : CDMG Node`, where the implicit `Node : Type*` is the ambient vertex carrier — the silent universe of vertex labels that the LN's "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/claim_3_2_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Biconditional `↔` mirrors the LN's \\\"if and only if\\\" verbatim.** A single `Iff` packages both directions: `.mp` (acyclic ⟹ a topological order exists) is the workhorse projecti"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\\n  (∀ v ∈ G, ¬ lt v v) ∧\\n  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧\\n  (∀ v ∈ G"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\\n  (∀ v ∈ G, ¬ lt v v) ∧\\n  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧\\n  (∀ v "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The predicate `IsTopologicalOrder G lt` characterises *which* strict relations qualify as topological orders of a given CDMG `G`; it is not an existence claim. The implicit para"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Predicate over an external ordering, not an existence claim.** The LN reads \\\"a topological order of `G` is a total order `<` of `J ∪ V` such that …\\\" — it characterises *which*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The file formalises the LN definition of *predecessors* of a vertex $v$ under a strict total order on a CDMG, exposing two operators: `Pred` (strict) and `PredLE` (non-strict).\\"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**The strict order is passed as a raw `lt : Node → Node → Prop`, not via a `[LT Node]` typeclass.** A `[LT Node]` instance would pin a single canonical strict order to the *type* "
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 42,
+      "snippet": "`G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt` —"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 60,
+      "snippet": "-- `lt : Node → Node → Prop` satisfying `G.IsTopologicalOrder lt`)"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 63,
+      "snippet": "-- the existential `∃ lt, G.IsTopologicalOrder lt` (def_3_8)."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 72,
+      "snippet": "-- *Why an existential `∃ lt, G.IsTopologicalOrder lt`, not a"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 99,
+      "snippet": "--   from `def_3_8` (`IsTopologicalOrder`): a relation on the ambient"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 130,
+      "snippet": "--   `G.IsTopologicalOrder lt`, `G.Pa v`, …) is stated in terms of"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 176,
+      "snippet": "--      `∃ lt, G.IsTopologicalOrder lt` bind a *chosen* witness and"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 231,
+      "snippet": "    {G : CDMG Node} {lt : Node → Node → Prop} (hlt : G.IsTopologicalOrder lt) :"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 465,
+      "snippet": "    G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 67,
+      "snippet": "  `IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop`"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 147,
+      "snippet": "`IsTopologicalOrder` below."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 156,
+      "snippet": "-- *Why a separate helper, not inlined into `IsTopologicalOrder`.*  The"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 162,
+      "snippet": "--   alternative — inlining the three axioms into `IsTopologicalOrder`"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 170,
+      "snippet": "--   prompt: `IsTotalOrderOn` is required for `IsTopologicalOrder`'s"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 180,
+      "snippet": "--   `j₁, j₂ ∉ G.J ∪ G.V` is vacuous data — `IsTopologicalOrder` does"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 240,
+      "snippet": "-- `G.IsTopologicalOrder lt` holds when the relation `lt` is a strict"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 264,
+      "snippet": "-- *Why a predicate `IsTopologicalOrder G lt`, not a bundled structure"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 274,
+      "snippet": "--      `topo.lt`.  Matching this paradigm requires `IsTopologicalOrder`"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 290,
+      "snippet": "--      `∃ <, IsTopologicalOrder G <`, binds `<`, then iterates: for"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 299,
+      "snippet": "--      arguments).  Encoding `IsTopologicalOrder` as a predicate"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 304,
+      "snippet": "--      `∃ lt, G.IsTopologicalOrder lt` (which is exactly the form"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 305,
+      "snippet": "--      `claim_3_2` will use: `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 312,
+      "snippet": "--   more naturally\"; but `∃ lt, G.IsTopologicalOrder lt` reads"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 404,
+      "snippet": "--   `IsTopologicalOrder` if any later chapter needs it.  *Both"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 409,
+      "snippet": "--   G.IsTopologicalOrder lt` are existence claims, NOT uniqueness"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 442,
+      "snippet": "--     `G.IsAcyclic → ∃ lt, G.IsTopologicalOrder lt`.  Backward:"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 443,
+      "snippet": "--     `(∃ lt, G.IsTopologicalOrder lt) → G.IsAcyclic`.  Both"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 444,
+      "snippet": "--     directions pattern-match on `G.IsTopologicalOrder lt`'s two"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 482,
+      "snippet": "--      Prop` satisfies `G.IsTopologicalOrder lt` vacuously."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+      "line": 495,
+      "snippet": "def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :="
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def IsTotalOrderOn (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\\n  (∀ v ∈ G, ¬ lt v v) ∧\\n  (∀ ⦃u v w : Node⦄, u ∈ G → v ∈ G → w ∈ G → lt u v → lt v w → lt u w) ∧\\"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def IsTotalOrderOn (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=\\n  (∀ v ∈ G, ¬ lt v v) ∧\\n  (∀ ⦃u v w : Node⦄, u ∈ G → v ∈ G → w ∈ G → lt u v → lt v w → lt u w)"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The file encodes the LN's `def_3_8` (topological order of a CDMG) as a two-clause `Prop`-valued predicate. The ambient `Node : Type*` is the vertex carrier (the LN's silent type"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Predicate, not a bundled structure.** The single most consequential choice. `IsTopologicalOrder` is `Prop`-valued and *parametric* in the relation `lt`, rather than a record `To"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/workspace_claim_3_2.md",
+      "line": 45,
+      "snippet": "   G.IsTopologicalOrder lt`\". No global note needed."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/workspace_claim_3_2.md",
+      "line": 51,
+      "snippet": "1. ✅ Read claude.md, LN proof, predecessor Lean files (IsAcyclic, IsTopologicalOrder)."
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/workspace_claim_3_2.md",
+      "line": 54,
+      "snippet": "      G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt := by sorry`"
+    },
+    {
+      "file": "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/workspace_claim_3_2.md",
+      "line": 79,
+      "snippet": "  `∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt` shape pinned by the"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 5,
+      "snippet": "**Root refs:** def_3_8 (IsTopologicalOrder), def_3_9 (Predecessors)"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 14,
+      "snippet": "1. **`def_3_8` (IsTopologicalOrder)** bundles three total-order properties (irreflexive, transitive, trichotomous on `J ∪ V`) with the topological condition (`∀ v w, v ∈ G.Pa w → lt v w`) into a singl"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 18,
+      "snippet": "A refactor — rather than a row-level re-solve — is warranted because the fix changes the **shape** of a foundational def (`IsTopologicalOrder`) and propagates downstream: consumers of `IsTopologicalOr"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 24,
+      "snippet": "Introduce `IsTotalOrder` as a named helper predicate inside the same file, wrapped with `-- def_3_8 --- start helper` / `-- def_3_8 --- end helper` markers (three dashes — the standard helper-marker c"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 35,
+      "snippet": "def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :="
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 52,
+      "snippet": "Both old and new will coexist in TopologicalOrder.lean during the refactor (the original `IsTopologicalOrder` lives in a `-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsTopologicalOrder` block; the replacement `"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 72,
+      "snippet": "The `h` argument is *not used* in the body — that's intentional. It's there to enforce the LN's premise at the type level: callers can only invoke `Pred` / `PredLE` if they can supply a proof that `lt"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 76,
+      "snippet": "The theorem statement is unchanged in shape (it's an iff over `∃ lt, G.IsTopologicalOrder lt`). But the proof body has two pattern-matching sites that need adjusting:"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 78,
+      "snippet": "- The **forward direction (Acyclic → ∃ TO)** constructs `IsTopologicalOrder` at the end. The constructor goes from a flat 4-tuple to a nested `⟨⟨...⟩, ...⟩`."
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 79,
+      "snippet": "- The **backward direction (∃ TO → Acyclic)** destructures an `IsTopologicalOrder` hypothesis to pull out the three total-order properties + the topological condition. Same flat-to-nested change in re"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 89,
+      "snippet": "| `def_3_8` | 3 | `TopologicalOrder.lean` | Add `IsTotalOrder` helper; redefine `IsTopologicalOrder := IsTotalOrder ∧ topo_clause`. |"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 93,
+      "snippet": "No other §3.1 row currently consumes `Pred` / `PredLE` (def_3_9 is the last row of §3.1). No §3.1 row consumes `IsTopologicalOrder` other than `claim_3_2`. Validation: run `extras/find_dependents.py -"
+    },
+    {
+      "file": "leanification/refactors/refactor_total_order_helper.md",
+      "line": 97,
+      "snippet": "If `verify_equivalence_strict` is run during the refactor on the *new* shape, it will see `G.IsTotalOrder lt` as a named hypothesis on `Pred` — the loosened-domain pattern is gone. The new design-bloc"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 311,
+      "col": 47,
+      "snippet": "Invalid field `IsTopologicalOrder`: The environment does not contain `Causality.CDMG.IsTopologicalOrder`, so it is not possible to project the field `IsTopologicalOrder` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "line": 377,
+      "col": 4,
+      "snippet": "No goals to be solved"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+    "leanification/Chapter3_GraphTheory/Section3_1/Predecessors.lean",
+    "leanification/Chapter3_GraphTheory/Section3_1/tex/claim_3_2_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_8_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_9_for_website.json",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/AcyclicIffTopologicalOrder.lean",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/TopologicalOrder.lean",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/tex/def_3_8_for_website.json",
+    "leanification/_round1_archive_2026-06-03_chapter3_section_1/Section3_1/workspace_claim_3_2.md",
+    "leanification/refactors/refactor_total_order_helper.md"
+  ],
+  "consumer_refs": [
+    "claim_3_2",
+    "def_3_9"
+  ]
+}

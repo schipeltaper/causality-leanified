@@ -1,0 +1,17 @@
+{
+  "roots": [
+    "def_3_8",
+    "def_3_9"
+  ],
+  "per_root": {
+    "def_3_8": {
+      "consumer_refs": [
+        "claim_3_2",
+        "def_3_9"
+      ]
+    },
+    "def_3_9": {
+      "consumer_refs": []
+    }
+  }
+}
