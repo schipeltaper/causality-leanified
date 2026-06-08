@@ -4,6 +4,24 @@
 
 Your job is the **last polish step**: read the file as if the refactor never happened, and rewrite every comment / docstring so the current code reads as the canonical code, with no lingering meta-narrative about how it got here. Minimal pruning: short historical notes are fine, but long pre-/post- comparisons should be cut down or removed.
 
+## Hard outcome rule — zero "refactor" mentions when you're done
+
+After your edits, **the word "refactor" (case-insensitive) must not appear anywhere in the file's comments or docstrings.** Not as past-tense pipeline narrative, not in forward-looking design notes, not in section headings, not in cross-references. The principle: comments describe what the code *is* — what it does, why this shape, what invariants hold. Not how the code got here, and not hypothetical maintenance flows framed in pipeline vocabulary.
+
+This means you have *two* targets:
+
+1. **Pipeline-history residue** — `pre-refactor`, `post-refactor`, `(refactor)` ref-tag parentheticals, `*Refactor coexistence note.*` paragraphs, `tex/refactor_<ref>_proof_*.tex` cross-references. These describe a transition that has finished; strip them.
+
+2. **Forward-looking design notes that frame future maintenance as a "refactor"** — examples and how to rewrite:
+
+   - `for the tex/Lean reconciliation tooling and any future refactor` → `for the tex/Lean reconciliation tooling` (drop the trailing `and any future refactor`)
+   - `*Refactor warning — keep in sync if X*` → `*Update warning — keep in sync if X*` or `*Sync warning — keep in sync if X*`
+   - `surface this comment at refactor time` → `surface this comment if/when this spec is revisited` (or `... if X is later added`)
+   - `should a future refactor X, then Y` → `if X is later added/changed, then Y`
+   - `this would force a refactor at that row` → `this would force a redesign at that row` (or drop entirely if the meaning is implicit)
+
+The content of these warnings often genuinely matters (architectural FYIs for future maintainers — *"if CDMGs ever gain a tail-tail edge type, the `sus` definition must be updated"*). **Preserve the substance; just drop the pipeline-flavoured vocabulary.** Reach for *update*, *change*, *revision*, *redesign*, *modification*, *sync*, *revisit*, or just describe the trigger directly without naming the maintenance action.
+
 ## Hard rule — comments and docstrings ONLY
 
 You may edit text **only** inside:
@@ -47,21 +65,22 @@ Lines <N>–<M> (paragraph): <one-line summary of current content>
 Reason: <one phrase>
 ```
 
-Categories to look for:
+Categories to look for (both the just-completed refactor's residue AND any earlier solver-written mentions of "refactor"; the outcome rule above demands zero mentions of either kind):
 
-- **`pre-refactor` / `post-refactor` qualifiers** — usually safe to drop the qualifier. `"post-refactor signature makes them coincide"` → `"the signature makes them coincide"`. Keep one or two passing mentions if they clarify *why* the shape is what it is.
-- **Stale `tex/refactor_<ref>_proof_<title>.tex` cross-references** — the tex twin was renamed over the original during Phase 7c. Rewrite the path to drop the `refactor_` prefix.
-- **`*Refactor coexistence note.*` / `**Coexistence during the refactor**` paragraphs** — describe a state that no longer exists. Delete the paragraph (or trim to one sentence if it carries info worth keeping, like which downstream consumers exist).
-- **`refactor` in section headers and `-- ref:` tags** — e.g. `-- ref: def_3_8 (refactor)` or `-- ref: def_3_9 (refactor: total_order_helper, strict predecessors)`. Drop the `(refactor)` / `(refactor: …)` parenthetical; the `-- ref:` tag and the row's metadata are enough.
-- **Long "this used to be X, now it's Y" narratives** — trim to "this is X". If the contrast is genuinely educational for future readers (e.g. flagging a deviation from a published reference), keep one short sentence.
-- **References to the refactor pipeline machinery** — `"the refactor's claim_3_2 DEPENDENT row is included for def_3_8's shape change"` — drop these entirely; they're solver-pipeline metadata that belongs in git history, not the source.
+- **`pre-refactor` / `post-refactor` qualifiers** — drop the qualifier. `"post-refactor signature makes them coincide"` → `"the signature makes them coincide"`.
+- **Stale `tex/refactor_<ref>_proof_<title>.tex` cross-references** — the tex twin was renamed during Phase 7c. Rewrite the path to drop the `refactor_` prefix.
+- **`*Refactor coexistence note.*` / `**Coexistence during the refactor**` paragraphs** — describe a state that no longer exists. Delete the paragraph (or trim to one sentence if it carries info worth keeping).
+- **`refactor` in section headers and `-- ref:` tags** — e.g. `-- ref: def_3_8 (refactor)` or `-- ref: def_3_9 (refactor: total_order_helper, strict predecessors)`. Drop the `(refactor)` / `(refactor: …)` parenthetical.
+- **Long "this used to be X, now it's Y" narratives** — trim to "this is X". Reword to avoid the word "refactor" entirely.
+- **References to the refactor pipeline machinery** — `"the refactor's claim_3_2 DEPENDENT row is included for def_3_8's shape change"` — drop these entirely; they belong in git history.
+- **Forward-looking "future refactor" / `*Refactor warning ...*` / "at refactor time" / "if X needs a refactor" design notes** — preserve the substance (the architectural FYI is often genuinely valuable: *"if CDMGs ever gain a tail-tail edge type, sus needs updating"*) but reword without the word "refactor". Use *update*, *change*, *revision*, *redesign*, *modification*, *sync*, *revisit*, or describe the triggering condition directly.
 
 Leave alone:
 
-- Genuine mathematical commentary, even if it happens to mention the word "refactor" (rare).
-- One-line `-- ref: <ref>` headers (these are not refactor-tagged; they're permanent metadata).
+- Genuine mathematical commentary (which by definition won't use the word "refactor" anyway).
+- One-line `-- ref: <ref>` headers (these are permanent metadata, not refactor-tagged).
 
-If no comment is worth changing, the plan section is `(no changes)` and Step 3 is a no-op.
+If no comment is worth changing AND the file already contains zero `refactor` mentions, the plan section is `(no changes)` and Step 3 is a no-op.
 
 ### Step 3 — Apply.
 
@@ -75,6 +94,7 @@ After all Edits, `Read` the file again. Confirm:
 - No `def` / `theorem` / `lemma` / signature / proof body was altered.
 - Statement markers (`-- <ref> -- start/end statement`, `-- <ref> --- start/end helper`) are byte-for-byte unchanged.
 - File still parses as Lean (the operator will run `lake build` after you exit; if your plan respected the comment-only rule, this is guaranteed).
+- **Grep mentally for the word "refactor" (case-insensitive). It must not appear anywhere.** If even one survived your plan, write one more Edit pass. The zero-`refactor`-mentions outcome rule is load-bearing.
 
 If anything in this list is off, **revert the offending Edit** and re-plan.
 

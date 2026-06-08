@@ -99,7 +99,7 @@ namespace CDMG
 --   throwaway local sugar.  The three-dash `helper` flavour tags it
 --   as load-bearing infrastructure (distinct from the per-theorem
 --   `-- start statement` markers) for the tex/Lean reconciliation
---   tooling and any future refactor.  Matches the wrapping used by
+--   tooling.  Matches the wrapping used by
 --   `CDMGNotation.lean` (line 90) and `EdgeRelations.lean` (line 91)
 --   on the identical `variable` line.
 --

@@ -472,9 +472,23 @@ def _run_polish_worker(file_path: Path, refactor_name: str,
 
 
 def _polish_refactor_comments(archived_data: Path, state: dict) -> None:
-    """Iterate the archived refactor table's affected Lean files and
-    dispatch the polish worker on each. All errors are best-effort: a
-    file that fails polish is left as-is; the commit step still runs.
+    """Dispatch the polish worker on every Lean file that could plausibly
+    have a leftover "refactor" mention after this refactor finishes.
+    Scope: the union of
+
+      (a) refactor-affected files (`main_lean_file` + `lean_files`
+          across the refactor table's rows), AND
+      (b) every other Lean file in the same chapter folder(s) that
+          *currently contains* the word "refactor" (case-insensitive).
+
+    (b) catches forward-looking design notes (`*Refactor warning ...*`,
+    `for any future refactor`, etc.) that solver agents wrote during
+    pre-refactor row solves — these aren't products of this refactor
+    but they violate the post-refactor invariant "no Lean file mentions
+    the word 'refactor'" that this polish step enforces.
+
+    All errors are best-effort: a file that fails polish is left as-is
+    with a warning; the commit step still runs.
     """
     try:
         data = json.loads(archived_data.read_text(encoding="utf-8"))
@@ -484,6 +498,8 @@ def _polish_refactor_comments(archived_data: Path, state: dict) -> None:
         return
 
     roots = state.get("roots") or [state.get("root_ref", "")]
+
+    # (a) refactor-affected files
     affected: set[Path] = set()
     for row in data.get("rows", []):
         if row.get("main_lean_file"):
@@ -491,20 +507,58 @@ def _polish_refactor_comments(archived_data: Path, state: dict) -> None:
         for lf in row.get("lean_files") or []:
             affected.add(REPO_ROOT / lf)
 
+    # (b) every other Lean file in the same chapter(s) that currently
+    # contains the word "refactor" — these are typically forward-looking
+    # design notes left by earlier row solves; the strict outcome rule
+    # demands they get polished too.
+    chapter_folders: set[Path] = set()
+    for f in affected:
+        # f layout: leanification/Chapter<N>_<Title>/Section<N>_<M>/Foo.lean
+        # parent.parent = chapter folder
+        try:
+            cf = f.parent.parent
+            if cf.exists() and cf.is_dir():
+                chapter_folders.add(cf)
+        except Exception:
+            pass
+
+    extra: set[Path] = set()
+    for cf in chapter_folders:
+        for lean_path in cf.rglob("*.lean"):
+            # Skip archives + already-affected files
+            s = str(lean_path)
+            if "_DONE_" in s or "_BUILDFAIL_" in s or "_archive_" in s:
+                continue
+            if lean_path in affected:
+                continue
+            try:
+                content = lean_path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            if "refactor" in content.lower():
+                extra.add(lean_path)
+
+    all_files = sorted(affected | extra)
+    if not all_files:
+        print(f"  no Lean files to polish.")
+        return
+
+    print(f"  scope: {len(affected)} refactor-affected file(s) + "
+          f"{len(extra)} other chapter file(s) with stale 'refactor' "
+          f"mentions = {len(all_files)} total.")
     n_ok = 0
     n_total = 0
-    for f in sorted(affected):
+    for f in all_files:
         if not f.exists():
             print(f"  - {f.relative_to(REPO_ROOT)}: not on disk, skipping")
             continue
         n_total += 1
-        print(f"  - {f.relative_to(REPO_ROOT)}: dispatching polish worker ...")
+        bucket = "refactor-affected" if f in affected else "chapter-sweep"
+        print(f"  - {f.relative_to(REPO_ROOT)}  [{bucket}]: "
+              f"dispatching polish worker ...")
         if _run_polish_worker(f, state["name"], roots):
             n_ok += 1
-    if n_total == 0:
-        print(f"  no Lean files to polish.")
-    else:
-        print(f"  polish: {n_ok}/{n_total} file(s) cleaned by the worker.")
+    print(f"  polish: {n_ok}/{n_total} file(s) cleaned by the worker.")
 
 
 def _post_polish_lake_check() -> None:
