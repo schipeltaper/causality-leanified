@@ -661,3 +661,78 @@ def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
 % NOTES-END def_3_9
 \vspace{\appendixNotesGap}
 %% ROW-END def_3_9
+
+\section*{Section 3.2}
+
+%% ROW-BEGIN def_3_10
+\noindent\textbf{Definition: Hard intervention on CDMGs}\par\smallskip
+{\appendixTexSize
+\label{def:G_hard_intervention}
+    Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG: 
+  \[ G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  %\[G(V\sm W|\doit(W \cup J)):=G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\doit(W)}:= J \cup W$,
+      \item $V_{\doit(W)}:= V \sm W$,
+      \item $E_{\doit(W)}:= E \sm \lC v \tuh w \,|\, v \in G, w  \in W  \rC$,
+      \item $L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC$,
+  \end{enumerate}
+  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def hardInterventionOn (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
+  J := G.J ∪ W
+  V := G.V \ W
+  hJV_disj := by
+    -- `hW` is part of the signature for LN-faithfulness ("Let
+    -- `W ⊆ J ∪ V`"), but is not consumed in the five proof obligations:
+    -- `def_3_1`'s typing constraints on `G.E` / `G.L` already exclude
+    -- every problematic case (see the `W ∩ J ≠ ∅` design-choice bullet
+    -- above).  The `let _` mirrors the convention used in
+    -- `CDMGRestrictions.lean` for unused LN-faithful hypotheses.
+    let _ := hW
+    refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
+    · exact Finset.disjoint_left.mpr fun a haJ haVW =>
+        Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
+    · exact Finset.disjoint_left.mpr fun a haW haVW =>
+        (Finset.mem_sdiff.mp haVW).2 haW
+  E := G.E.filter (fun e => e.2 ∉ W)
+  hE_subset := by
+    intro e he
+    obtain ⟨heE, he2⟩ := Finset.mem_filter.mp he
+    obtain ⟨he1, he2V⟩ := G.hE_subset heE
+    refine ⟨?_, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
+    rcases Finset.mem_union.mp he1 with hJ | hV
+    · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
+    · by_cases hW1 : e.1 ∈ W
+      · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW1)
+      · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW1⟩)
+  L := G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W)
+  hL_subset := by
+    intro e he
+    obtain ⟨heL, he1, he2⟩ := Finset.mem_filter.mp he
+    obtain ⟨he1V, he2V⟩ := G.hL_subset heL
+    exact ⟨Finset.mem_sdiff.mpr ⟨he1V, he1⟩, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
+  hL_irrefl := by
+    intro v1 v2 h
+    exact G.hL_irrefl (Finset.mem_filter.mp h).1
+  hL_symm := by
+    intro v1 v2 h
+    obtain ⟨hL, h1, h2⟩ := Finset.mem_filter.mp h
+    exact Finset.mem_filter.mpr ⟨G.hL_symm hL, h2, h1⟩
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_10
+
+% NOTES-END def_3_10
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_10
