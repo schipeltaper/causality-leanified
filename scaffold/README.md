@@ -305,7 +305,7 @@ python extras/do_refactor.py merge --refactor-data <archived path> --push --dele
 
 The human reads the plan markdown, confirms, and types the commands. Only then does the actual refactor pipeline run (branch creation, transitive consumer discovery, table generation). The system never auto-executes a refactor — every step from `init` onward requires explicit human invocation.
 
-`do_refactor.py init` spawns a fresh `refactor_<name>` branch off `server_setting_up_scaffold`, runs `find_dependents.py` per root (each root gets its transitive consumer set computed via a destructive-but-restored rename probe), and builds a `Refactor_<name>/refactor_data.json` table covering root + every transitive consumer. The operator drives that table via `solve_chapter.py --data-path <refactor_data.json>`. `finalize` swaps replacement blocks over their originals via the same-file Lean marker convention, runs the post-rename `lake build`, syncs `data.json`, and archives the refactor folder. `merge` brings the refactored state back into the source branch.
+`do_refactor.py init` spawns a fresh `refactor_<name>` branch off `server_setting_up_scaffold`, runs `find_dependents.py` per root (each root gets its transitive consumer set computed via a destructive-but-restored rename probe), and builds a `Refactor_<name>/refactor_data.json` table covering root + every transitive consumer. The operator drives that table via `solve_chapter.py --data-path <refactor_data.json>`. `finalize` swaps replacement blocks over their originals via the same-file Lean marker convention, runs the post-rename `lake build`, syncs `data.json`, archives the refactor folder, then dispatches the `polish_refactor_comments` worker per affected Lean file to rewrite leftover `pre-refactor` / `post-refactor` / `coexistence` prose out of comments (LLM-driven, comment-only edits, with a post-polish `lake build` regression check) before committing. `merge` brings the refactored state back into the source branch.
 
 **Inside a refactor row** (i.e. running `solve_chapter.py` on a `refactor_data.json`), emitting `refactor` *restarts the entire refactor* with an expanded root set (current roots + new ref). The current refactor branch is discarded; a fresh branch is spawned off the source branch. The rationale lives at `Refactor_<new_name>/extension_rationale.md` on the new branch. This is the one branch in the refactor flow that does NOT halt for human review — the implicit reasoning is that the operator already approved the parent refactor.
 
@@ -389,6 +389,10 @@ scaffold/
 │   │       ├── plan_refactor.md                    <- writes an advisory refactor plan
 │   │       │                                          (non-destructive; halts for human review)
 │   │       ├── refactor_lean_code.md               <- light code-level cleanup (no design change)
+│   │       ├── polish_refactor_comments.md         <- final-phase refactor cleanup: rewrites
+│   │       │                                          pre-refactor / post-refactor / coexistence
+│   │       │                                          prose out of comments (comment-only edits;
+│   │       │                                          dispatched by do_refactor.py finalize)
 │   │       ├── produce_for_website.md              <- post-solve: anchors + prose for the website
 │   │       │
 │   │       │  Legacy (kept for reference, not in the standard pipeline)

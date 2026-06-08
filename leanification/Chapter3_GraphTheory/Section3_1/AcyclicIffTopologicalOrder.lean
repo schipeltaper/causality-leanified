@@ -185,14 +185,10 @@ private lemma Walk.lt_of_directedWalk_pos {G : CDMG Node}
         match q, hq_dir, hlen0 with
         | .nil _ _, _, _ => exact hlt_uv
 
--- ref: claim_3_2 (refactor)
+-- ref: claim_3_2
 -- A CDMG `G = (J, V, E, L)` is acyclic (in the sense of `def_3_6`) iff
--- there exists a topological order of `G` (in the sense of `def_3_8`,
--- post-refactor: the nested 2-conjunct `IsTotalOrder ∧ parent_precedes`
--- shape -- see `TopologicalOrder.lean`).  The statement is identical in
--- *shape* to the original: `G.IsAcyclic ↔ ∃ lt, G.<...> lt`; only the
--- referenced predicate flips from the original flat-4 `IsTopologicalOrder`
--- to the refactored nested-2 `IsTopologicalOrder`.
+-- there exists a topological order of `G` (in the sense of `def_3_8`).
+-- The biconditional has shape `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder lt`.
 /-
 LN tex (rewritten canonical statement for `claim_3_2`):
 
@@ -272,9 +268,8 @@ LN tex (rewritten canonical statement for `claim_3_2`):
 --   extension) without committing the type to any global order
 --   structure.
 --
--- *Proof body: same mathematics, witness-assembly tracks the nested
---   shape.*  The proof's *mathematical* structure follows the LN
---   verbatim:
+-- *Proof body: witness-assembly via the nested encoding.*  The proof's
+--   *mathematical* structure follows the LN verbatim:
 --   * (⇒) walk-reachability `le₀ u v := u = v ∨ ∃ directed walk
 --     u → v of length ≥ 1` is shown to be a partial order (refl / trans
 --     via `Walk.comp`, antisymm via acyclicity ruling out the cycle
@@ -297,13 +292,7 @@ LN tex (rewritten canonical statement for `claim_3_2`):
 --   opening `rintro ⟨lt, ⟨hi, htr, htri⟩, hp⟩` destructures the
 --   existential with the matching nested pattern, putting the four
 --   hypotheses needed for the contradiction in scope under their
---   natural names.  Only the witness-assembly differs from a flat-4
---   encoding -- every other line (the `le₀` relation, the `hrefl` /
---   `htrans` / `hantisymm` lemmas, the `IsPreorder` / `IsPartialOrder`
---   typeclass promotions via `haveI`, the `extend_partialOrder` call,
---   the four sub-proofs of irreflexivity / transitivity / trichotomy /
---   parent-precedes, the `Walk.lt_of_directedWalk_pos` invocation) is
---   independent of the topological-order predicate's internal shape.
+--   natural names.
 --
 -- *Proof-only helpers (above the theorem, outside the marker zone).*
 --   The walk-level plumbing -- `Walk.comp`, `Walk.length_comp`,
@@ -354,7 +343,7 @@ theorem acyclic_iff_topological_order (G : CDMG Node) :
     G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt
 -- claim_3_2 -- end statement
 := by
-  -- TeX proof: tex/refactor_claim_3_2_proof_AcyclicIffTopologicalOrder.tex
+  -- TeX proof: tex/claim_3_2_proof_AcyclicIffTopologicalOrder.tex
   constructor
   · -- (⇒) Acyclic ⇒ a topological order exists.
     --

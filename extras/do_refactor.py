@@ -404,6 +404,140 @@ def cmd_init(args: argparse.Namespace) -> int:
 # finalize
 # ---------------------------------------------------------------------------
 
+_POLISH_WORKER_PROMPT = (
+    SCAFFOLD / "claude_prompts" / "phase3_solving"
+    / "row_workers" / "polish_refactor_comments.md"
+)
+_POLISH_PER_FILE_TIMEOUT_S = 900   # 15 min per file; the worker is small
+
+
+def _run_polish_worker(file_path: Path, refactor_name: str,
+                       roots: list[str]) -> bool:
+    """Spawn the polish_refactor_comments worker against a single Lean
+    file. Returns True iff the worker exited 0; on timeout / non-zero
+    exit, prints a warning and returns False (the file is left as-is).
+
+    The worker reads the prompt at ``polish_refactor_comments.md``
+    plus the brief constructed here, then makes its own Edit calls to
+    rewrite comments. The dispatcher doesn't validate the worker's
+    edits beyond the post-step lake build (see ``_post_polish_lake_check``).
+    """
+    if not _POLISH_WORKER_PROMPT.exists():
+        print(f"  WARNING: polish worker prompt missing at "
+              f"{_POLISH_WORKER_PROMPT.relative_to(REPO_ROOT)}; "
+              f"skipping polish for this file.")
+        return False
+
+    rel = file_path.relative_to(REPO_ROOT)
+    prompt = _POLISH_WORKER_PROMPT.read_text(encoding="utf-8")
+    brief = (
+        f"\n\n# Brief\n\n"
+        f"- Lean file to polish (absolute path): `{file_path}`\n"
+        f"- Lean file (repo-relative): `{rel}`\n"
+        f"- Refactor name: `{refactor_name}`\n"
+        f"- Refactor root refs: {', '.join(roots)}\n"
+        f"\nFollow the worker prompt above: read the whole file, write "
+        f"the plan, apply Edits in plan order, sanity-check, report.\n"
+    )
+    full_prompt = prompt + brief
+
+    cmd = [
+        "claude", "-p", "--dangerously-skip-permissions",
+        "--model", "claude-opus-4-7",
+        "--effort", "max",
+        "--output-format", "json",
+    ]
+    try:
+        result = subprocess.run(
+            cmd, input=full_prompt.encode("utf-8"),
+            capture_output=True,
+            timeout=_POLISH_PER_FILE_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"  WARNING: polish worker on {rel} timed out after "
+              f"{_POLISH_PER_FILE_TIMEOUT_S//60} min; leaving as-is.")
+        return False
+    except FileNotFoundError:
+        print(f"  WARNING: `claude` CLI not on PATH; skipping polish.")
+        return False
+
+    if result.returncode != 0:
+        stderr_tail = (result.stderr or b"").decode(
+            "utf-8", errors="replace")[:500]
+        print(f"  WARNING: polish worker on {rel} exited "
+              f"{result.returncode}; leaving as-is.\n"
+              f"    stderr: {stderr_tail}")
+        return False
+    return True
+
+
+def _polish_refactor_comments(archived_data: Path, state: dict) -> None:
+    """Iterate the archived refactor table's affected Lean files and
+    dispatch the polish worker on each. All errors are best-effort: a
+    file that fails polish is left as-is; the commit step still runs.
+    """
+    try:
+        data = json.loads(archived_data.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"  WARNING: could not read archived refactor_data.json: "
+              f"{e}; skipping polish step.")
+        return
+
+    roots = state.get("roots") or [state.get("root_ref", "")]
+    affected: set[Path] = set()
+    for row in data.get("rows", []):
+        if row.get("main_lean_file"):
+            affected.add(REPO_ROOT / row["main_lean_file"])
+        for lf in row.get("lean_files") or []:
+            affected.add(REPO_ROOT / lf)
+
+    n_ok = 0
+    n_total = 0
+    for f in sorted(affected):
+        if not f.exists():
+            print(f"  - {f.relative_to(REPO_ROOT)}: not on disk, skipping")
+            continue
+        n_total += 1
+        print(f"  - {f.relative_to(REPO_ROOT)}: dispatching polish worker ...")
+        if _run_polish_worker(f, state["name"], roots):
+            n_ok += 1
+    if n_total == 0:
+        print(f"  no Lean files to polish.")
+    else:
+        print(f"  polish: {n_ok}/{n_total} file(s) cleaned by the worker.")
+
+
+def _post_polish_lake_check() -> None:
+    """Run `lake build` after the polish step to confirm the worker
+    didn't accidentally damage non-comment code. Non-fatal: a failure
+    here logs a loud warning but lets build_and_commit.sh run (which
+    will itself fail loudly if the build is broken, halting the commit).
+    """
+    try:
+        r = subprocess.run(
+            ["lake", "build"], cwd=str(REPO_ROOT),
+            capture_output=True, timeout=900,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"  WARNING: post-polish lake build timed out; "
+              f"build_and_commit.sh will re-run it.")
+        return
+    except FileNotFoundError:
+        print(f"  WARNING: `lake` not on PATH; skipping post-polish "
+              f"build check.")
+        return
+    if r.returncode == 0:
+        print(f"  build clean.")
+    else:
+        tail = ((r.stdout or b"") + (r.stderr or b"")).decode(
+            "utf-8", errors="replace").splitlines()[-15:]
+        print(f"  WARNING: lake build returned {r.returncode} after "
+              f"polish. Tail:\n  " + "\n  ".join(tail))
+        print(f"  The polish worker may have edited non-comment "
+              f"code; build_and_commit.sh will refuse to commit if "
+              f"so.")
+
+
 def cmd_finalize(args: argparse.Namespace) -> int:
     refactor_data = args.refactor_data.resolve()
     if not refactor_data.exists():
@@ -442,6 +576,21 @@ def cmd_finalize(args: argparse.Namespace) -> int:
     archived_folder = _find_archived_refactor_folder(
         state, datetime.now(timezone.utc).date().isoformat())
     archived_data = archived_folder / "refactor_data.json"
+
+    # LLM polish step: dispatch the polish_refactor_comments worker
+    # per affected Lean file to remove leftover "refactor"/"pre-refactor"
+    # /"post-refactor" prose, stale tex-twin cross-references, and
+    # coexistence-narrative paragraphs that Pass 3's regex didn't quite
+    # catch. Comment-edit only — the worker prompt forbids touching any
+    # non-comment code. Best-effort: timeouts / non-zero exits log a
+    # warning and skip the affected file; the commit step still runs.
+    print(f"\n[do_refactor] === Polish step: refactor-naming comment "
+          f"cleanup ===", flush=True)
+    _polish_refactor_comments(archived_data, state)
+
+    # Verify the polish didn't break anything before commit.
+    print(f"\n[do_refactor] === Post-polish lake build ===", flush=True)
+    _post_polish_lake_check()
 
     print(f"\n[do_refactor] === Committing + pushing via "
           f"build_and_commit.sh ===", flush=True)
