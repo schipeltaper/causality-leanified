@@ -22,6 +22,44 @@ The LN `tex_block` and `addition_to_the_LN` remain available in your row context
 - The target Lean file path inside the row's subsection folder
 - The LaTeX type (theorem, lemma, corollary, remark, …) — informs naming but not the statement
 
+## Helper predicates for substantive sub-concepts
+
+Sometimes the rewritten canonical tex statement introduces a substantive sub-concept that doesn't have its own LN definition row — e.g., a claim's hypothesis might say *"Let `<` be a total order of `J ∪ V`"* where "total order on `J ∪ V`" is a concept used inline rather than as a separate LN def. When this happens, **introduce the sub-concept as a named helper predicate** in the Lean (with `--- start helper` markers) *before* writing the main theorem signature, then use the helper as a hypothesis of the theorem. Two reasons:
+
+1. **Makes the sub-concept reusable** across downstream rows that need the same hypothesis.
+2. **Forces the hypothesis to be carried explicitly** in the type contract, not pushed to a use-site obligation.
+
+Three signals that a sub-concept earns its own helper. **All three required**:
+
+- **(a)** It is genuinely referenced by this row's spec (not invented for ergonomics).
+- **(b)** It has *substantive content* — at least 2-3 atomic conditions, not a single typeclass or unary predicate.
+- **(c)** It is likely to be referenced by a downstream row's hypothesis (so the helper becomes reusable, not a one-off).
+
+Single-line predicates ("the set is non-empty", "the relation is decidable") do **not** earn their own helper — fold them into the signature directly.
+
+**Worked example.** A claim whose statement is *"Let `<` be a total order of `J ∪ V`. Then ..."* should be encoded with an explicit `IsTotalOrder` helper:
+
+```lean
+-- claim_3_X --- start helper
+def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
+  (∀ v ∈ G, ¬ lt v v) ∧
+  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
+  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
+-- claim_3_X --- end helper
+
+-- claim_3_X -- start statement
+theorem foo (G : CDMG Node) (lt : Node → Node → Prop)
+    (h : G.IsTotalOrder lt) : <conclusion>
+-- claim_3_X -- end statement
+:= by sorry
+```
+
+(If a sibling row already defined the helper, **reuse it** instead of duplicating — that's a "Build on what is already there" failure mode.)
+
+The LN's "let `<` be a total order" must survive into the theorem's type contract via this hypothesis. **Without the helper**, dropping the hypothesis to a use-site obligation will FAIL `verify_equivalence` (item 1a) and trip `verify_equivalence_strict` as CONTENT.
+
+Helpers carry their own `## Design choice` comment block — same treatment as a main declaration.
+
 ## What to do
 
 1. **Read the rewritten tex statement file** end to end. This is your spec. Read the row's `addition_to_the_LN` and the LN `tex_block` as backup, but the rewritten file is what you formalize.

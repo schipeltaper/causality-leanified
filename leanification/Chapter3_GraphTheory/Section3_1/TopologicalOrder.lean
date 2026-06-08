@@ -49,6 +49,7 @@ explicit argument and asserts that this particular `lt` is a topological
 order of `G`.  The existence claim "a topological order of `G` exists"
 is what `claim_3_2` ("acyclic iff a topological order exists") will
 quantify over.
+
 -/
 
 namespace CDMG
@@ -84,196 +85,324 @@ variable {Node : Type*} [DecidableEq Node]
 -- def_3_8 --- end helper
 
 -- ref: def_3_8
+-- `G.IsTotalOrder lt` asserts that the strict binary relation
+-- `lt : Node → Node → Prop` restricts to a *strict total order* on the
+-- vertex set `J ∪ V` of `G`, i.e.\ (i) irreflexive on `J ∪ V`
+-- (`¬ lt v v` for `v ∈ G`), (ii) transitive on `J ∪ V`
+-- (`lt u v` and `lt v w` imply `lt u w` for `u, v, w ∈ G`), and (iii)
+-- trichotomous on `J ∪ V` (`lt v w`, `v = w`, or `lt w v` for every
+-- `v, w ∈ G`).  This is the LN's substantive sub-concept
+-- "*total order of `J ∪ V`*" pulled out as its own named predicate so
+-- downstream rows can carry it as an explicit type-level hypothesis.
+/-
+LN tex fragment (extracted from the rewritten canonical statement
+file `def_3_8_TopologicalOrder.tex`):
+
+  ... a *strict* total order `<` on `J ∪ V` -- i.e.\ a binary relation
+  `<` on `J ∪ V` that is irreflexive, transitive, and satisfies
+  trichotomy (`v < w`, `v = w`, or `w < v` for every `v, w ∈ J ∪ V`) ...
+-/
+-- ## Design choice
+--
+-- *Why a named helper predicate, separate from
+--   `IsTopologicalOrder`.*  The LN reads "Let `<` be a *total order*
+--   of `J ∪ V` such that ..." -- it treats "total order on `J ∪ V`"
+--   as a named substantive sub-concept, mentioned in prose rather
+--   than defined in its own `defmark` block.  Pulling the
+--   total-order content out as its own predicate exposes the LN's
+--   two-tier reading at the type level and gives downstream rows a
+--   handle to refer to "just the total-order premise".  All three
+--   signals from `formalize_definition_in_lean.md` §"Helper
+--   predicates for substantive sub-concepts" are met:
+--   (a) **referenced by spec** -- the rewritten canonical tex literally
+--   writes "a *strict* total order `<` on `J ∪ V`" (see the LN tex
+--   fragment above);
+--   (b) **substantive content** -- three atomic conditions
+--   (irreflexive, transitive, trichotomous), not a single one-liner;
+--   (c) **reused by a downstream row** -- `def_3_9`'s `Pred` and
+--   `PredLE` (`Predecessors.lean`) consume
+--   `Pred^G_<(v) = {w ∈ J ∪ V ∣ w < v}`, which is meaningful for
+--   *any* total order on `J ∪ V` (no parent-precedence required); ch.\
+--   5's ID-algorithm chapter (id-algorithm.tex §"preceding Markov
+--   blanket", lines 227-240) likewise slices `J ∪ V` into
+--   `{w | w < v}`, `{v}`, `{w | v < w}` purely via the total-order
+--   content, and ch.\ 5's factorisation step (id-algorithm.tex line
+--   466) takes "the reverse topological order" -- an order-reversal
+--   operation on the total-order content alone.  Without the helper,
+--   every such consumer would either re-spell the three atomic
+--   conditions or import the whole `IsTopologicalOrder` (silently
+--   over-committing on the parent-precedence clause).
+--
+-- *Type-level home for `def_3_9`'s domain hypothesis.*  The LN's
+--   `Pred^G_<(v)` is only well-defined when `<` is a total order on
+--   `J ∪ V` -- without a named predicate to point at, `def_3_9` would
+--   have to either re-spell the three atomic conditions in its own
+--   signature or document the assumption only in prose.  Exposing
+--   `IsTotalOrder` here lets `def_3_9` take
+--   `(h : G.IsTotalOrder lt)` as an explicit hypothesis on
+--   `Pred` / `PredLE`, anchoring the LN's domain restriction in
+--   Lean's type contract rather than in side commentary.
+--
+-- *Strict reading of `<`: irreflexive, transitive, trichotomous.*
+--   The LN's order symbol `<` is read strictly throughout, so the
+--   three properties pin down a strict total
+--   order rather than a `≤`-style order.  The rewritten canonical
+--   tex makes this explicit by writing "*strict* total order" and
+--   spelling out the trichotomy disjunct.  Wording-check subtlety
+--   `equivalent_indexing_assumes_finite_node_set` is unaffected
+--   (finiteness still holds via `def_3_1`'s `Finset`-valued
+--   `J, V`); `quantifier_domain_v_w_in_G_is_tuple_not_set` is
+--   resolved exactly as before via the `Membership Node (CDMG Node)`
+--   instance from `def_3_2`.
+--
+-- *Domain `J ∪ V`, encoded via `∀ v ∈ G, …`.*  The
+--   `Membership Node (CDMG Node)` instance from `def_3_2`
+--   (`CDMGNotation.lean`) makes `v ∈ G` reduce to
+--   `v ∈ G.J ∪ G.V`, so the three conjuncts quantify over the LN's
+--   node set on the nose.  Restricting to `J ∪ V` (rather than the
+--   ambient `Node` type) is load-bearing: the LN never asks `<` to
+--   relate nodes outside `J ∪ V`, and Mathlib's
+--   `IsStrictTotalOrder` typeclass would over-commit `lt` on the
+--   whole `Node` type -- ruling out perfectly valid orders that
+--   happen to leave non-`G` nodes unrelated, and tying the canonical
+--   `<` to the type-level (the same uniqueness problem the
+--   typeclass-rejection bullet below addresses).  A custom
+--   `IsStrictTotalOrderOn (S : Finset Node) (lt) : Prop` was
+--   considered and rejected: bundling the three conjuncts under a
+--   fresh name would obscure the LN's plain "strict total order on
+--   `J ∪ V`" reading without offering anything `∀ v ∈ G, …` does not
+--   already.
+--
+-- *Trichotomy disjunct order: `lt v w ∨ v = w ∨ lt w v` (Mathlib's
+--   `Trichotomous` convention).*  Mathlib's
+--   `Trichotomous (r : α → α → Prop)` places the equality case in
+--   the middle slot; we adopt that order so any future lift to a
+--   `Trichotomous` instance on the subtype `↥(G.J ∪ G.V)` (or any
+--   `rcases h with hlt | heq | hlt'` destructure mirroring Mathlib
+--   convention) lines up without alternative-flipping.  The LN's
+--   "`v < w`, `v = w`, or `w < v`" is symmetric in disjunct order,
+--   so this is a free choice we spend on Mathlib alignment.
+--
+-- *Three-dash `--- start helper` markers, not the two-dash
+--   `-- start statement`.*  `IsTotalOrder` is a *helper-for-statement*
+--   in the row-worker sense: the row's primary LN content is
+--   `IsTopologicalOrder` (which gets the two-dash statement markers
+--   below); `IsTotalOrder` exists to support its definition and to
+--   carry the LN's "let `<` be a total order" hypothesis through
+--   downstream consumers.  The website builder pulls helper-marked
+--   declarations alongside the main statement so the rendered
+--   statement is self-contained.  Matches the helper-vs-statement
+--   convention used throughout the chapter.
+--
+-- *`Prop`-valued predicate, not a `structure` / `class`.*
+--   Multiple total orders may coexist on a fixed `G`, and an
+--   `lt : Node → Node → Prop` plus `(h : G.IsTotalOrder lt)`
+--   hypothesis lets the existence quantifier of `claim_3_2` (and
+--   the chosen-order parameter of ch.\ 4 CBN factorisation, ch.\ 5
+--   ID-algorithm) range over relations freely.  A bundled
+--   `structure TotalOrder G where lt + h_irrefl + h_trans + h_total`
+--   was rejected on three grounds: (a) it conflates the
+--   *property* (`G.IsTotalOrder lt`) with *witness data* (`lt`
+--   itself), (b) consumers wanting to *check* a candidate `lt`
+--   would have to package it into a structure first, (c) it tempts
+--   downstream code to single out "the canonical total order" the
+--   LN never picks.  The same rationale rules out a bundled
+--   `structure TopologicalOrder G` shape for `IsTopologicalOrder`
+--   below.
+--
+-- *`def : Prop`, not a typeclass or structure.*  Beyond the
+--   domain-restriction argument above, three further reasons rule
+--   out a `class IsTotalOrderOn ...` or `instance : IsTotalOrder
+--   ...` shape.  (a) **LN-faithfulness**: the LN's "total order of
+--   `J ∪ V`" is a *property of a chosen relation*, not a typeclass
+--   instance the type system resolves silently; a `def` returning
+--   `Prop` is the closest Lean rendering of that prose reading.
+--   (b) **No instance plumbing at every use site**: a class would
+--   force every consumer (`def_3_9`'s `Pred`, ch.\ 4's CBN
+--   factorisation, ch.\ 5's ID-algorithm, ch.\ 7's acyclification)
+--   to either thread `[G.IsTotalOrder lt]` brackets through every
+--   signature or rely on Lean's resolver to surface the witness --
+--   neither matches the LN's pattern of *naming* the order
+--   explicitly and quantifying over it.  (c) **No need to invent a
+--   wrapper relation**: `lt` is already the bare `Node → Node →
+--   Prop` the LN writes -- there is no subtype `↥(G.J ∪ G.V)` or
+--   `Restricted lt` to define and pass around.  Reusing a Mathlib
+--   typeclass would have required first manufacturing such a
+--   wrapper, then proving an instance for it, then peeling the
+--   wrapper back off at every use site that wants the raw `lt v w`
+--   form the LN uses.  A `def : Prop` skips that round-trip.
+--
+-- *Mathlib re-use.*  `Membership Node (CDMG Node)` instance from
+--   `def_3_2`.  No mathlib `IsStrictTotalOrder` / `LinearOrder` /
+--   `Preorder` -- those are type-level, not domain-restricted, and
+--   would over-commit `lt` on the whole `Node` type (see the domain
+--   and typeclass-rejection discussions above).
+--
+-- *Downstream consumers.*  `def_3_9` (`Predecessors.lean`) takes
+--   `(h : G.IsTotalOrder lt)` as an explicit hypothesis on
+--   `Pred` / `PredLE`.  `claim_3_2`
+--   (`AcyclicIffTopologicalOrder.lean`) accesses the total-order
+--   content via the first projection of the nested
+--   `IsTopologicalOrder` shape (`(h_topo : G.IsTopologicalOrder
+--   lt).1 : G.IsTotalOrder lt`); its proof body destructures
+--   further as `⟨h_irrefl, h_trans, h_total⟩`.  Ch.\ 4-10 consumers
+--   that take a topological-order hypothesis and reach into the
+--   total-order content (e.g.\ ch.\ 5's `Pred^G_<(v)` slicing,
+--   ch.\ 5's factorisation reverse-ordering, ch.\ 7's
+--   acyclification ordering on SCCs) all reuse this projection
+--   pattern.
+-- def_3_8 --- start helper
+def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
+  (∀ v ∈ G, ¬ lt v v) ∧
+  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
+  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
+-- def_3_8 --- end helper
+
+-- ref: def_3_8
 -- `G.IsTopologicalOrder lt` asserts that the strict binary relation
--- `lt : Node → Node → Prop` is a *topological order* of the CDMG `G`,
--- i.e. (i) `lt` restricted to the vertex set `J ∪ V` is a strict total
--- order (irreflexive, transitive, trichotomous), and (ii) for every
--- parent–child pair `v ∈ Pa^G(w)` we have `lt v w` — parents precede
--- their children under `<`.
+-- `lt : Node → Node → Prop` is a *topological order* of the CDMG
+-- `G`, i.e.\ (i) `G.IsTotalOrder lt` -- a strict total order on
+-- `J ∪ V` (irreflexive, transitive, trichotomous; see the
+-- `IsTotalOrder` block above) -- and (ii) for every parent-child
+-- pair `v ∈ Pa^G(w)` we have `lt v w`: parents precede their
+-- children under `<`.
 /-
 LN tex (rewritten canonical statement for `def_3_8`):
 
   A *topological order* of `G` is a *strict* total order `<` on
-  `J ∪ V` — i.e. a binary relation `<` on `J ∪ V` that is irreflexive,
-  transitive, and satisfies trichotomy (`v < w`, `v = w`, or `w < v`
-  for every `v, w ∈ J ∪ V`) — such that
+  `J ∪ V` -- i.e.\ a binary relation `<` on `J ∪ V` that is
+  irreflexive, transitive, and satisfies trichotomy (`v < w`,
+  `v = w`, or `w < v` for every `v, w ∈ J ∪ V`) -- such that
     ∀ v, w ∈ J ∪ V :  v ∈ Pa^G(w)  ⟹  v < w.
 -/
 -- ## Design choice
 --
+-- *Nested 2-conjunct shape: `IsTotalOrder ∧ parent-precedence`.*
+--   The body packages the total-order conditions (irreflexive,
+--   transitive, trichotomous on `J ∪ V`) into the helper predicate
+--   `IsTotalOrder` above, and pairs that with the parent-precedence
+--   clause.  This mirrors the LN's two-tier reading "Let `<` be a
+--   *total order* of `J ∪ V` *such that* ... whenever
+--   `v ∈ Pa^G(w)` we have `v < w`" (graphs.tex around the
+--   topological-order `defmark` block): the LN names the
+--   total-order premise as a substantive sub-concept and only then
+--   layers the parent-precedence clause on top.  Destructure
+--   patterns: `⟨⟨h_irrefl, h_trans, h_total⟩, h_topo⟩` in one step
+--   or `⟨h_to, h_topo⟩` followed by destructuring `h_to`;
+--   constructors mirror.  See the `IsTotalOrder` block above for
+--   why the helper earns its own name.
+--
 -- *Predicate over an external ordering, not an existence claim.*
 --   The LN reads "a topological order of `G` is a total order `<`
---   of `J ∪ V` such that …" — i.e. it characterises *which* orders
---   qualify, not whether one exists.  Mirroring this, the Lean
---   declaration is a `Prop`-valued predicate on `(G, lt)`:
---     `IsTopologicalOrder : CDMG Node → (Node → Node → Prop) → Prop`.
---   The downstream existence claim "an acyclic CDMG admits a
---   topological order" (`claim_3_2`) will be stated as
---   `G.IsAcyclic → ∃ lt, G.IsTopologicalOrder lt` — the existential is
---   *not* baked into this row's definition.  An alternative
---   "bundled" shape `structure TopologicalOrder (G) where lt + props`
---   was rejected on three grounds: (a) it would conflate the
---   *property* this row defines with the *witness data* that
---   `claim_3_2` will quantify over, breaking the LN's
---   property-vs-existence layering; (b) every consumer that just
---   wanted to *check* a candidate `lt` would have to package it into
---   a structure first, fighting the LN's reading; (c) a bundled
---   structure encourages downstream code to thread "the canonical
---   topological order" through a graph, but the LN never picks one —
---   multiple topological orders generally exist and the theory does
---   not privilege one.
+--   of `J ∪ V` such that ...", i.e.\ it characterises *which*
+--   orders qualify, not whether one exists.  The Lean is a
+--   `Prop`-valued predicate on `(G, lt)`, and `claim_3_2` (the very
+--   next row) states `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder lt`
+--   -- existence is at the use site, not baked into this definition.
+--   Bundled-structure alternatives (`structure TopologicalOrder (G)
+--   where lt + props`) were rejected on three grounds: (a)
+--   conflates property with witness data; (b) forces consumers to
+--   package a candidate `lt` into a structure just to *check* it
+--   (fighting the LN's reading); (c) tempts downstream code to
+--   single out "the canonical topological order" the LN never picks
+--   (multiple typically coexist).
 --
--- *`lt : Node → Node → Prop` as an external argument, not a
---   typeclass `[LT Node]` or a structure field.*  Mathlib's
---   `[LT Node]` instance would force *exactly one* canonical `<` per
---   `Node` type — but a single `Node` type underlies *every* CDMG in
---   the codebase, and each CDMG may admit many different topological
---   orders; locking `<` to the type level would make the existence
---   claim of `claim_3_2` vacuous or false depending on the chosen
---   instance.  A typeclass `[CDMG.TopologicalOrder G]` would face the
---   same problem on the structure level (Lean's resolution forces
---   uniqueness).  An explicit `lt : Node → Node → Prop` argument
---   exposes the choice and lets `claim_3_2` quantify over it
---   existentially.
+-- *`lt : Node → Node → Prop` as an explicit external argument, not
+--   a typeclass `[LT Node]` or a structure field.*  Mathlib's
+--   `[LT Node]` would force exactly one canonical `<` per `Node`
+--   type -- but a single `Node` underlies every CDMG in the
+--   codebase and each CDMG may admit many topological orders;
+--   locking `<` to the type level would make `claim_3_2`'s
+--   existential vacuous or false depending on the chosen instance.
+--   A typeclass `[CDMG.TopologicalOrder G]` would face the same
+--   Lean-resolution-forces-uniqueness problem on the structure
+--   level.  An explicit relation argument exposes the choice and
+--   lets `claim_3_2` quantify over it.
 --
--- *Strict-total-order conjuncts unfolded inline, not Mathlib's
---   `IsStrictTotalOrder lt`.*  Mathlib's `IsStrictTotalOrder` class
---   asserts irreflexivity / transitivity / trichotomy *on the entire
---   ambient type `Node`*; ours must be restricted to `J ∪ V`.  Using
---   the typeclass would either (a) force `lt` to behave as a strict
---   total order on the *full* `Node` type — a stronger requirement
---   than the LN, ruling out perfectly valid orders that happen to
---   leave nodes outside `J ∪ V` unrelated — or (b) require a
---   restriction wrapper (a fresh subtype `↥(G.J ∪ G.V)` and a derived
---   relation), which would force every downstream use to coerce nodes
---   and relations across the subtype boundary.  Unfolding the three
---   conjuncts inline with `∀ v ∈ G, …` is the cleanest LN-faithful
---   form: the LN literally writes "for every `v, w ∈ J ∪ V`", and
---   `∀ v ∈ G, …` is the standard Lean rendering (via the
---   `Membership Node (CDMG Node)` instance from `def_3_2`).  A custom
---   helper `IsStrictTotalOrderOn (S : Finset Node) (lt) : Prop` was
---   considered and rejected as scope creep — no other row in the
---   chapter currently needs it, and bundling the three conjuncts
---   under a fresh name would obscure the LN's plain reading "strict
---   total order on `J ∪ V`".
+-- *Parent implication: no `v ≠ w` guard, no `v ∈ G` / `w ∈ G`
+--   guard.*  (i) `def_3_5`'s
+--   `Pa G w := {u | u ∈ G ∧ (u, w) ∈ G.E}` already forces
+--   `v ∈ G` from the set-builder body and `w ∈ G` from `def_3_1`'s
+--   `hE_subset`, so `v ∈ G → w ∈ G →` guards would be redundant.
+--   This is the working-phase wording-check subtlety
+--   `quantifier_domain_v_w_in_G_is_tuple_not_set`: the LN's literal
+--   "for all `v, w ∈ G`" with `G` a 4-tuple is shorthand for
+--   `v, w ∈ J ∪ V`, and parenthood already entails that membership
+--   for both endpoints -- so the unrestricted `∀ v w, v ∈ G.Pa w
+--   → lt v w` is both LN-faithful in conclusion and *stronger-looking*
+--   only in quantifier scope (logically the two forms agree).
+--   (ii) Omitting the `v ≠ w` guard is *load-bearing* for
+--   `claim_3_2`: when `v = w` and a directed self-loop
+--   `(v, v) ∈ G.E` is present, the parent implication forces
+--   `lt v v`, contradicting irreflexivity (the first conjunct of
+--   `IsTotalOrder`).  So the existence of any topological order
+--   entails the absence of directed self-loops on `J ∪ V`, which
+--   is exactly what `def_3_6`'s `IsAcyclic` encodes; this matching
+--   constraint drives the `⇐` direction of `claim_3_2`.  Inserting
+--   a `v ≠ w` guard here would silently weaken the predicate and
+--   break that direction.
 --
--- *Three properties of `<` *plus* the parent-precedes conjunct —
---   four conjuncts in LN order.*  The LN's prose enumerates: (1)
---   irreflexive, (2) transitive, (3) trichotomous, (4) parents
---   precede.  We encode it as a four-fold `∧` in the same order.
---   Mirroring LN order keeps `obtain ⟨hi, htr, htri, hp⟩ := h`
---   downstream destructuring syntactically aligned with the LN
---   reading.  Lean's `∧` is right-associative, so this parses as
---   `h_irrefl ∧ (h_trans ∧ (h_tri ∧ h_parent))`; the
---   anonymous-constructor pattern `⟨_, _, _, _⟩` unpacks all four
---   on one line.
+-- *`Pa G w` (`Set Node`), not `Finset Node` or `(w, v) ∈ G.E`.*
+--   Reuse of `def_3_5`'s parent vocabulary keeps the chapter
+--   uniform; downstream proofs can `unfold CDMG.Pa` when they need
+--   the literal edge form.
+--   Spelling the implication as `(v, w) ∈ G.E → lt v w` would lose
+--   the `v ∈ G` witness baked into `Pa`'s body and would require
+--   re-deriving `v ∈ J ∪ V` from `hE_subset` at every use site, or
+--   weaken the LN-faithful parent reading.
 --
--- *Trichotomy disjunct order: `lt v w ∨ v = w ∨ lt w v` (Mathlib's
---   `Trichotomous` convention).*  Mathlib defines
---   `Trichotomous (r : α → α → Prop)` as `∀ a b, r a b ∨ a = b ∨ r b a`
---   — the equality case sits in the *middle* slot.  Adopting the
---   alternative order `lt v w ∨ lt w v ∨ v = w` would (i) force every
---   downstream destructure that mirrors Mathlib's
---   `rcases h with hlt | heq | hlt'` shape to flip alternatives, and
---   (ii) if a later proof ever lifts this predicate to a Mathlib
---   `Trichotomous` instance on a subtype `↥(G.J ∪ G.V)` (to reuse
---   strict-total-order lemmas), the disjunct shape would need
---   translating.  The LN's "`v < w`, `v = w`, or `w < v`" is
---   symmetric in disjunct order, so this is a free choice we spend
---   on Mathlib alignment.
---
--- *Parent implication: no explicit `v ∈ G`/`w ∈ G` guard.*  The
---   universal `∀ v w, v ∈ G.Pa w → lt v w` is well-typed without
---   guards because `def_3_5`'s `Pa G w := {u | u ∈ G ∧ (u, w) ∈ G.E}`
---   *already* forces (i) `v ∈ G` (= `v ∈ J ∪ V`) directly from the
---   `u ∈ G` conjunct of the set-builder body, and (ii) `w ∈ G` from
---   `def_3_1`'s `hE_subset : (u, w) ∈ G.E → u ∈ J ∪ V ∧ w ∈ V` (so
---   `w ∈ V ⊆ J ∪ V`).  Adding `v ∈ G → w ∈ G →` guards would be
---   redundant.  The LN's "for all `v, w ∈ J ∪ V`" prefix is what the
---   `Pa`-body already encodes, so the universal `∀ v w` form is both
---   LN-faithful in conclusion and stronger-looking in quantifier
---   scope; logically the two are equivalent.  Wording-check subtlety
---   `quantifier_domain_v_w_in_G_is_tuple_not_set` (the LN's literal
---   "for all `v, w ∈ G`" with `G` a 4-tuple) is resolved by reading
---   `v ∈ G` via `def_3_2` item~1 as `v ∈ J ∪ V`; the redundancy
---   above means the Lean encoding can drop the prefix without
---   semantic loss.
---
--- *No `v ≠ w` precondition on the parent implication, even though
---   `lt v v` is forbidden by irreflexivity.*  The LN's implication
---   reads `v ∈ Pa^G(w) ⟹ v < w` without case-splitting on `v = w`.
---   When `v = w` and `(v, v) ∈ G.E` (i.e.\ a directed self-loop is
---   present), the implication would force `lt v v` — which
---   contradicts irreflexivity.  So the existence of *any*
---   topological order entails the absence of directed self-loops on
---   nodes of `J ∪ V`, which is exactly the consequence
---   `def_3_6`'s `IsAcyclic` encodes (see `Acyclicity.lean`'s
---   "Consequence: no directed self-loops" paragraph).  This
---   matching constraint is *load-bearing* for `claim_3_2`'s "acyclic
---   iff topological order exists" direction: a topological order
---   exists ⟹ the graph is acyclic (via, among other things, no
---   self-loops).  Inserting a `v ≠ w` guard here would silently
---   weaken the predicate and break that direction of `claim_3_2`.
---
--- *`Pa G w` (`Set Node`), not `Finset Node` or a `(w, v) ∈ G.E`
---   spelling.*  Reuse of `def_3_5`'s `G.Pa w` keeps the chapter's
---   parent vocabulary uniform; downstream proofs of `claim_3_2` can
---   unfold `Pa` (one `unfold CDMG.Pa` step lands on
---   `{u | u ∈ G ∧ (u, w) ∈ G.E}`) when they need the literal edge
---   form, but the named `Pa` form keeps the LN-grep correspondence
---   intact.  Spelling the implication as `(v, w) ∈ G.E → lt v w`
---   would lose the `v ∈ G` witness baked into `Pa`'s body and would
---   require either re-deriving `v ∈ J ∪ V` from `hE_subset` at every
---   use site or weakening the LN-faithful parent reading.
---
--- *Scope choice: only the primary (strict-total-order) form is
---   formalised; the "Equivalent indexing form"
---   `J ∪ V = {v_1, …, v_K}` with `v_1 < … < v_K` is NOT a separate
---   declaration.*  The rewritten canonical tex spells out *both*
---   forms and proves them equivalent under finiteness; per the
---   manager-brief's "Design considerations" §4, we encode the primary
---   form only and leave the indexed form to a *separate downstream
---   theorem* (roughly `∃ K : ℕ, ∃ idx : Fin K → Node, …` shape) any
---   consumer can derive on demand — a finite strict total order is
---   `Equiv`-able to `Fin K` ordered by `<`, and `J ∪ V` is finite by
---   `def_3_1`'s `Finset`-valued `J, V`.  A future reader hunting for
---   the indexing form should look for that derived theorem, not for
---   a parallel predicate here.  Two
---   reasons: (a) introducing an `IsTopologicalOrderIndexed` parallel
---   predicate would invite spurious case-splits at every downstream
---   site over which form is in scope, while the LN treats the two as
---   logically identical "presentations" of one notion; (b) the
---   indexed form is essentially a `(Fin K → Node)` bijection plus an
---   order-respecting condition, and constructing the bijection
---   requires picking a specific enumeration — but the LN never picks
---   one, so any choice we make in Lean would be arbitrary and
---   inherited by every downstream consumer of the indexed form.
---   Sticking to the primary predicate keeps the API minimal.
+-- *Scope choice: primary form only; indexed form is a downstream
+--   theorem.*  The rewritten canonical tex spells out both the
+--   strict-total-order form and
+--   the "`J ∪ V = {v_1, …, v_K}` with `v_1 < … < v_K`" indexed
+--   form, and proves them equivalent under finiteness.  We encode
+--   the primary form only; any consumer that needs the indexed
+--   form derives it on demand (a finite strict total order is
+--   `Equiv`-able to `Fin K` ordered by `<`, and `J ∪ V` is finite
+--   by `def_3_1`'s `Finset`-valued `J, V`).  This is exactly the
+--   working-phase wording-check subtlety
+--   `equivalent_indexing_assumes_finite_node_set`: the LN's
+--   "Equivalently ..." clause is *only* an equivalence under
+--   finiteness (any strict total order on a finite set has order
+--   type a finite ordinal and so can be presented as
+--   `v_1 < ... < v_K`); on an infinite node set the primary form
+--   is still meaningful but the indexing form would either fail or
+--   need extra conditions.  Formalising the primary form keeps
+--   `IsTopologicalOrder` general (no implicit finiteness baked
+--   into its type contract); finiteness for the indexed
+--   reformulation is available *when needed* via `def_3_1`'s
+--   `Finset`-valued `J, V`, so no consumer is shut out.  A parallel
+--   `IsTopologicalOrderIndexed` predicate would invite spurious
+--   case-splits at every downstream site over which form is in
+--   scope, while the LN treats the two as logically identical
+--   "presentations" of one notion (under finiteness).
 --
 -- *Mathlib re-use.*  `Membership Node (CDMG Node)` instance from
---   `def_3_2` (used by `∀ v ∈ G, …`).  `Set` and `∈` on `G.Pa w` come
---   from `def_3_5`.  No mathlib `IsStrictTotalOrder` / `LinearOrder`
---   / `Preorder` machinery: those are type-level, not
---   domain-restricted, and would over-commit `lt` on nodes outside
---   `J ∪ V` (see the typeclass discussion above).
+--   `def_3_2` (used inside `G.IsTotalOrder lt`'s conjuncts), `Set`
+--   and `∈` on `G.Pa w` from `def_3_5`.  No mathlib
+--   `IsStrictTotalOrder` / `LinearOrder` / `Preorder` for the
+--   reasons spelled out in the `IsTotalOrder` block above.
 --
--- *Downstream consumers.*  `claim_3_2` (the very next row in the LN)
---   states `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder lt`; its proof
---   destructures this four-conjunct shape both ways
---   (`obtain ⟨hi, htr, htri, hp⟩` for the ⟸ direction, anonymous
---   constructor for the ⟹ direction's witness construction).
---   Chapter 4 onwards (CBN factorisation, do-calculus, iSCMs) will
---   index over a topological order chosen from `claim_3_2`'s
---   existential, taking a single `(h : G.IsTopologicalOrder lt)`
---   hypothesis and destructuring the parent conjunct `hp` at the
---   point where the factorisation needs "every parent comes earlier
---   in the order".
+-- *Downstream consumers.*  `def_3_9`
+--   (`Predecessors.lean`) takes `(h : G.IsTotalOrder lt)` as an
+--   explicit type-level hypothesis on `Pred` / `PredLE`; from a
+--   topological-order witness this is reached via the first
+--   projection `(h_topo : G.IsTopologicalOrder lt).1`.  `claim_3_2`
+--   (`AcyclicIffTopologicalOrder.lean`) destructures the nested
+--   2-conjunct shape both ways (`⟨⟨h_irrefl, h_trans, h_total⟩,
+--   h_topo⟩` on inputs; the symmetric nested anonymous constructor
+--   on outputs).  Ch.\ 4 onwards (CBN factorisation, ID-algorithm,
+--   σ / d-separation, iSCMs) typically takes
+--   `(h : G.IsTopologicalOrder lt)` and projects either via `.1`
+--   for the total-order content (e.g.\ to feed
+--   `Pred^G_<(v) := {w ∈ G | lt w v}` to `def_3_9` or to slice
+--   `J ∪ V` into `{w | w < v}`, `{v}`, `{w | v < w}` for an
+--   id-separation argument) or via `.2` for the parent-precedence
+--   clause (e.g.\ when factorising a joint kernel into mechanism
+--   conditionals).
 -- def_3_8 -- start statement
 def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
-  (∀ v ∈ G, ¬ lt v v) ∧
-  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
-  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v) ∧
-  (∀ v w, v ∈ G.Pa w → lt v w)
+  G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)
 -- def_3_8 -- end statement
 
 end CDMG
