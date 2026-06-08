@@ -23,8 +23,8 @@ building_website/
 ├── scripts/
 │   ├── tex_to_html.py               ← LaTeX-prose → HTML converter
 │   ├── fetch_row.py                 ← per-row data assembler
-│   ├── process_lean_explanation.py  ← LLM step 1
-│   ├── process_design_choices.py    ← LLM step 2
+│   ├── process_block_explanations.py← LLM fallback (Claude does this in-session)
+│   ├── process_design_choices.py    ← LLM fallback (Claude does this in-session)
 │   ├── build_manifest.py            ← sidebar tree + asset cache-bust
 │   ├── build_appendix.py            ← appendix.tex
 │   └── build_results.py             ← results.tex
@@ -48,18 +48,37 @@ finishes formalising a row and writes its marker comments into the
 
 ```bash
 python3 building_website/scripts/fetch_row.py <ref>
-python3 building_website/scripts/process_lean_explanation.py <ref>
-python3 building_website/scripts/process_design_choices.py <ref>
+# Claude (in-session) writes per-block `explanation` + `code_annotated`
+# and top-level `design_choices` directly into the panel JSON — no LLM
+# script invocation needed.  See "LLM-generated prose" below.
 python3 building_website/scripts/build_manifest.py
 python3 building_website/scripts/build_appendix.py
 python3 building_website/scripts/build_results.py
 git add -A && git commit -m "…" && git push
 ```
 
-That's the whole loop. The first four scripts feed the website
-(`building_website/website/data/<ref>.json` per row + the manifest).
-The last two regenerate `appendix.tex` and `results.tex` at the root
-of this folder from the same data. Merging to `main` triggers the
+That's the whole loop. `fetch_row.py` produces the basic panel JSON
+(LN tex, marker-sliced Lean blocks, status flags). The LLM-derived
+prose (`lean_blocks[i].explanation`, `lean_blocks[i].code_annotated`,
+top-level `design_choices`) is written by Claude inside the same
+session — Claude already has model access, so calling out to an API
+wrapper just to call another model is redundant. The three `build_*`
+scripts regenerate the manifest plus `appendix.tex` and `results.tex`
+at the root of this folder.
+
+If you're running the pipeline **outside Claude Code** (e.g. a batch
+job on a developer box with `ANTHROPIC_API_KEY` set), the standalone
+LLM scripts still work:
+
+```bash
+python3 building_website/scripts/process_block_explanations.py <ref>
+python3 building_website/scripts/process_design_choices.py <ref>
+```
+
+Both are idempotent (skip rows whose fields are already populated
+unless `--force` is given) and write into the same panel JSON fields.
+
+Merging to `main` triggers the
 GitHub Pages workflow that publishes everything in
 `building_website/website/`.
 
@@ -159,6 +178,49 @@ Each row's `data/<ref>.json`:
 }
 ```
 
+## LLM-generated prose (Claude in-session)
+
+Three panel fields are LLM-generated and not produced by `fetch_row.py`:
+
+  * `lean_blocks[i].explanation`   — 80–200-word Markdown article per
+                                     block: identifier naming + Mathlib
+                                     idioms + how this block sits in
+                                     the row.
+  * `lean_blocks[i].code_annotated`— the same Lean source with `--`
+                                     comments inserted above non-trivial
+                                     lines (10–15 words each).  Existing
+                                     in-source comments are preserved
+                                     verbatim; only `--` lines are added.
+  * `design_choices`               — Markdown article distilling the
+                                     design choices recorded in the
+                                     `--` comments immediately preceding
+                                     the row's start-statement marker.
+                                     Each meaningful choice is one
+                                     paragraph beginning with a bolded
+                                     one-line summary.
+
+When **Claude is processing a row in-session**, it reads the inputs
+itself (panel JSON, the row's `.lean` file, the LN tex block, the
+pre-statement comment block) and writes those three fields directly
+into `building_website/website/data/<ref>.json`.  The prompt contracts
+that govern shape and length live at the top of
+`process_block_explanations.py` and `process_design_choices.py` and are
+the source of truth for what Claude should produce.
+
+When **running outside Claude** (CI, batch jobs, a developer box with
+`ANTHROPIC_API_KEY`), the same two scripts call the API directly:
+
+```bash
+python3 building_website/scripts/process_block_explanations.py <ref>
+python3 building_website/scripts/process_design_choices.py <ref>
+# or --all to walk every panel; --force to regenerate populated fields
+```
+
+Both modes write into the same JSON fields, so panels produced one way
+are indistinguishable from panels produced the other.  Re-running the
+scripts on a row that already has prose is a no-op unless `--force` is
+given.
+
 ## Scripts in detail
 
 ### `fetch_row.py`
@@ -189,27 +251,31 @@ python3 building_website/scripts/fetch_row.py <ref> [--out PATH | --stdout]
 Errors clearly when `main_lean_file` is empty (row not solved) or when
 no start-statement marker is found.
 
-### `process_lean_explanation.py`
+### `process_block_explanations.py`
 
 ```
-python3 building_website/scripts/process_lean_explanation.py <ref>
-python3 building_website/scripts/process_lean_explanation.py --all
-python3 building_website/scripts/process_lean_explanation.py <ref> --force
+python3 building_website/scripts/process_block_explanations.py <ref>
+python3 building_website/scripts/process_block_explanations.py --all
+python3 building_website/scripts/process_block_explanations.py <ref> --force
 ```
 
 Needs `pip install anthropic` and `ANTHROPIC_API_KEY` in the env.
+**Only needed when Claude isn't doing the work in-session** (see
+"LLM-generated prose" above).
 
 1. Loads `data/<ref>.json`.
-2. Re-walks the row's Lean file to gather (a) the main statement
-   block(s), (b) the helper blocks, and (c) the comments preceding the
-   first start marker (the formalize worker's pre-statement notes).
-3. Sends them to Claude with a prompt focused **only** on explaining
-   what isn't obvious from the code: identifier names that don't speak
-   for themselves and Mathlib idioms the reader may not recognise.
-4. Writes the markdown into the JSON's `lean_explanation` field.
+2. For each `lean_blocks[i]`, sends a focused prompt to Claude
+   containing the row context (ref, kind, section, title), the LN tex
+   block, the pre-statement comments, and every Lean block (with the
+   focus block marked).
+3. Receives a JSON object with `explanation` (80–200-word Markdown
+   article on that block) and `code_annotated` (the same Lean source
+   with `--` comments inserted above non-trivial lines).
+4. Writes both fields into `lean_blocks[i]` of the panel JSON.
 
-Idempotent — re-running on a row that already has prose skips it
-unless `--force` is set.
+Idempotent — blocks that already carry both fields are skipped unless
+`--force` is set. The exact prompt is at the top of the script and is
+also the contract Claude follows when handling rows in-session.
 
 ### `process_design_choices.py`
 
@@ -219,14 +285,13 @@ python3 building_website/scripts/process_design_choices.py --all
 python3 building_website/scripts/process_design_choices.py <ref> --force
 ```
 
-Same shape as `process_lean_explanation.py`, but the prompt focuses on
-**design choices** — the trade-offs the formalize worker considered
-(structure vs class vs abbrev, `Finset` vs `Set`, `Sym2` vs ordered
-pairs, etc.), each rendered as a paragraph beginning with a bolded
-one-line summary.
-
-Both prompt JSONs are at the top of the respective scripts and easy to
-tweak.
+Same shape as `process_block_explanations.py`, but produces a single
+top-level `design_choices` field from the `--` comments immediately
+preceding the row's start-statement marker (the formalize worker's
+design notes). Each meaningful choice is rendered as a paragraph
+beginning with a bolded one-line summary. Same prompt contract Claude
+follows in-session; prompt JSONs are at the top of the script and easy
+to tweak.
 
 ### `tex_to_html.py`
 
@@ -382,8 +447,11 @@ crashes — worth recreating and running after any `app.js` change.
 
 ```bash
 python3 building_website/scripts/fetch_row.py <ref>
-python3 building_website/scripts/process_lean_explanation.py <ref>
-python3 building_website/scripts/process_design_choices.py <ref>
+# In-session: Claude writes the per-block explanation + code_annotated
+# and the top-level design_choices into building_website/website/data/<ref>.json.
+# Out-of-session fallback:
+#   python3 building_website/scripts/process_block_explanations.py <ref>
+#   python3 building_website/scripts/process_design_choices.py <ref>
 python3 building_website/scripts/build_manifest.py
 python3 building_website/scripts/build_appendix.py
 python3 building_website/scripts/build_results.py
@@ -398,12 +466,16 @@ python3 building_website/scripts/build_appendix.py
 python3 building_website/scripts/build_results.py
 ```
 
-**Re-process LLM prose for a row** (e.g. after refining the prompt):
+**Re-process LLM prose for a row** (e.g. after refining the prompt or
+wanting to retry — out-of-session path):
 
 ```bash
-python3 building_website/scripts/process_lean_explanation.py <ref> --force
+python3 building_website/scripts/process_block_explanations.py <ref> --force
 python3 building_website/scripts/process_design_choices.py <ref> --force
 ```
+
+In-session, ask Claude to redo the prose; it will overwrite the
+existing fields in the panel JSON.
 
 **Expand the manifest scope** (e.g. add section 3.2):
 
