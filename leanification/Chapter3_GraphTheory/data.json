@@ -765,30 +765,32 @@
       "section": "3.2",
       "title": "AcyclicPreservedUnderDo",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-08",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicPreservedUnderDo.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AcyclicPreservedUnderDo.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -796,12 +798,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If $G$ is acyclic then also $G_{\\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\\doit(W)}$.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "8d216727-5fb7-4a51-a832-ad93119172c2",
+          "first_seen": "2026-06-08T23:55:15+00:00",
+          "last_used": "2026-06-08T23:55:15+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3878,
+      "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this claim carefully:\n\nThe claim states two things about $G_{\\doit(W)}$ when $G$ is acyclic:\n1. $G_{\\doit(W)}$ is acyclic\n2. Any topological order for $G$ is also a topological order for $G_{\\doit(W)}$\n\nSince $\\doit(W)$ removes incoming edges to vertices in $W$ (yielding an edge-subset of the original graph), both properties follow immediately and trivially. Let me check corner cases:\n\n- **$W = \\emptyset$**: $G_{\\doit(W)} = G$, both claims trivially hold.\n- **$W = V(G)$**: $G_{\\doit(W)}$ has no edges; trivially acyclic, any order is topological.\n- **$W$ contains source vertices (no incoming edges)**: $\\doit$ is a no-op for those, fine.\n- **\"a topological order for $G$\"**: The indefinite article reads naturally as universal (\"any\") in mathematical English, which is the intended and correct reading.\n\nThe wording is brief, but the literal reading matches the intended reading in all degenerate cases I can construct. The \"also\" is stylistically a bit informal but not ambiguous.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "f3c962b8-71a5-4252-a577-e0f4cf76cf58"
+      }
     },
     {
       "def_or_claim": "claim",
