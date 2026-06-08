@@ -6,12 +6,10 @@
 % supplied by the wrapping document; this file only emits body content.
 
 %% ====== Size / layout knobs — tweak freely ===================
-% Font size of the LN tex on the left.
+% Font size of the LN tex.
 \providecommand{\appendixTexSize}{\footnotesize}
-% Font size of the Lean code on the right.
+% Font size of the Lean code.
 \providecommand{\appendixLeanSize}{\footnotesize}
-% Width of each side-by-side column (twice this + a tiny gap = \textwidth).
-\providecommand{\appendixColWidth}{0.495\textwidth}
 % Vertical space reserved for hand-written notes under each row.
 \providecommand{\appendixNotesGap}{1em}
 %% ==============================================================
@@ -20,7 +18,7 @@
 
 %% ROW-BEGIN def_3_1
 \noindent\textbf{Definition: Conditional directed mixed graphs (CDMG)}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
     \label{def-cdmg}
     A \emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of
     vertices (also called nodes):
@@ -35,7 +33,9 @@
         \item $L \ins V \times V/((v_1,v_2) \sim (v_2,v_1)) $, the set of bidirected edges, 
         \item[]    with: $(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$.
     \end{enumerate}
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 structure CDMG (Node : Type*) [DecidableEq Node] where
   J : Finset Node
@@ -48,7 +48,6 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
   hL_irrefl : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → v1 ≠ v2
   hL_symm : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → (v2, v1) ∈ L
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_1
 
@@ -58,7 +57,7 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
 
 %% ROW-BEGIN def_3_2
 \noindent\textbf{Definition: CDMGNotation}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
     \label{not-cdmg}
     Let $G=(J,V,E,L)$ be a CDMG.
     We will write:
@@ -73,29 +72,44 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
         \item $v_1 \sus v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$.
     \end{enumerate}
     The star stands for a placeholder to mean: ``arrowhead or tail''.
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 instance instMembership : Membership Node (CDMG Node) where
   mem G v := v ∈ G.J ∪ G.V
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def tuh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.E
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def hut (G : CDMG Node) (v1 v2 : Node) : Prop := (v2, v1) ∈ G.E
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def huh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.L
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def suh (G : CDMG Node) (v1 v2 : Node) : Prop :=
   G.tuh v1 v2 ∨ G.huh v1 v2
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def hus (G : CDMG Node) (v1 v2 : Node) : Prop :=
   G.hut v1 v2 ∨ G.huh v1 v2
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
   G.tuh v1 v2 ∨ G.hut v1 v2 ∨ G.huh v1 v2
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_2
 
@@ -105,7 +119,7 @@ def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
 
 %% ROW-BEGIN def_3_3
 \noindent\textbf{Definition: EdgeRelations}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
   Let $G=(J,V,E,L)$ be a CDMG.
   \begin{enumerate}
     \item If $v_1 \sus v_2 \in G$ then we call $v_1$ and $v_2$ \emph{adjacent in $G$}.
@@ -113,19 +127,26 @@ def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
           Edges of the form $v_1 \tuh v_2$ or $v_1 \huh v_2$ are called \emph{into $v_2$}. 
     \item Edges of the form $v_1 \tuh v_2$ or $v_2 \hut v_1$ are called \emph{out of $v_1$}.
   \end{enumerate}
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop := G.sus v1 v2
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def into (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
   (e ∈ G.E ∧ e.2 = v) ∨ (e ∈ G.L ∧ (e.1 = v ∨ e.2 = v))
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def outOf (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
   e ∈ G.E ∧ e.1 = v
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_3
 
@@ -135,25 +156,32 @@ def outOf (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
 
 %% ROW-BEGIN claim_3_1
 \noindent\textbf{Claim: CDMGRestrictions}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
 With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem no_arrowhead_into_J (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
     {v : Node} (hv : v ∈ G.J ∪ G.V) :
     ¬ G.hus j v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem J_to_V_edge_admissible (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
     {v : Node} (hv : v ∈ G.V) :
     j ∈ G.J ∪ G.V ∧ v ∈ G.V
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node} (hj₁ : j₁ ∈ G.J)
     {j₂ : Node} (hj₂ : j₂ ∈ G.J) :
     ¬ G.adjacent j₁ j₂
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_1
 
@@ -163,7 +191,7 @@ theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node} (hj₁ : j₁ ∈ G.J
 
 %% ROW-BEGIN def_3_4
 \noindent\textbf{Definition: Walks}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
 \label{def:walks}
      Let $G=(J,V,E,L)$ be a CDMG and $v,w \in G$.
 \begin{enumerate}
@@ -201,30 +229,44 @@ theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node} (hj₁ : j₁ ∈ G.J
         %both endnodes have exactly one arrowhead pointing towards them. 
         If the edge $v_{k-1} \hus v_k$ is directed ($v_{k-1} \hut v_k$) then we say that the bifurcation has \emph{source} $v_{k}$.
   \end{enumerate}
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=
   (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∨ (a = (v, u) ∧ a ∈ G.E)
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {G : CDMG Node}
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def vertices : ∀ {u v : Node}, Walk G u v → List Node
   | _, _, .nil v _ => [v]
   | u, _, .cons _ _ _ p => u :: p.vertices
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)
   | _, _, .nil _ _ => []
   | _, _, .cons _ a _ p => a :: p.edges
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | u, _, .cons v a _ (.nil _ _) =>
       (a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)
   | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
       a = (u, v) ∧ a ∈ G.L ∧ p.IsColliderRest
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | u, _, .cons v a _ (.nil _ _), 0 => a = (u, v) ∧ a ∈ G.L
@@ -232,7 +274,9 @@ def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
       ((a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)) ∧ p.IsDirectedWalk
   | u, _, .cons v a _ p, k + 1 =>
       a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationWithSplit k
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ _ _ (.nil _ _), 0 => False
@@ -240,59 +284,80 @@ def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ �
       a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk
   | u, _, .cons v a _ p, k + 1 =>
       a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 inductive Walk (G : CDMG Node) : Node → Node → Type _ where
   | nil (v : Node) (hv : v ∈ G) : Walk G v v
   | cons {u w : Node} (v : Node) (a : Node × Node)
       (h : G.WalkStep u a v) (p : Walk G v w) : Walk G u w
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def intoStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | u, _, .cons _ a _ _ => G.into u a
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def outOfStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | u, _, .cons _ a _ _ => G.outOf u a
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def intoEnd {u v : Node} (p : Walk G u v) : Prop :=
   match p.edges.getLast? with
   | none => False
   | some a => G.into v a
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def outOfEnd {u v : Node} (p : Walk G u v) : Prop :=
   match p.edges.getLast? with
   | none => False
   | some a => G.outOf v a
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.E ∧ p.IsDirectedWalk
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.L ∧ p.IsBidirectedWalk
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | u, _, .cons v a _ (.nil _ _) => a = (u, v) ∧ a ∈ G.L
   | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
       (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∧ p.IsColliderRest
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=
   u ≠ v ∧
   u ∉ p.vertices.tail ∧
   v ∉ p.vertices.dropLast ∧
   ∃ i, p.IsBifurcationWithSplit i
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
   u ≠ v ∧
   u ∉ p.vertices.tail ∧
   v ∉ p.vertices.dropLast ∧
   ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_4
 
@@ -302,7 +367,7 @@ def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
 
 %% ROW-BEGIN def_3_5
 \noindent\textbf{Definition: Family relationships}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
      Let $G=(J,V,E,L)$ be a CDMG, $v,w \in V$ and $A \ins J \cup V$ a subset of nodes.
      We then define:
      \begin{enumerate}
@@ -349,53 +414,82 @@ def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
          %    \[\MBl^G_\sigma(A):= \MBl^{G^\acy}_d(A), \]
          %    where $G^\acy$ is an acyclification of $G$, a notion defined below in Definition~\ref{def:cdg_acyclification}.
      \end{enumerate}
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Pa (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (w, v) ∈ G.E}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def PaSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Pa v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Ch (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (v, w) ∈ G.E}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def ChSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Ch v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Sib (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (v, w) ∈ G.L}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Anc (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G w v, p.IsDirectedWalk}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def AncSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Anc v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Desc (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsDirectedWalk}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def DescSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Desc v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def NonDesc (G : CDMG Node) (A : Set Node) : Set Node :=
   ((G.J ∪ G.V : Finset Node) : Set Node) \ G.DescSet A
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Sc (G : CDMG Node) (v : Node) : Set Node :=
   G.Anc v ∩ G.Desc v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def ScSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Sc v
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Dist (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsBidirectedWalk}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def DistSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Dist v
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_5
 
@@ -405,18 +499,21 @@ def DistSet (G : CDMG Node) (A : Set Node) : Set Node :=
 
 %% ROW-BEGIN def_3_6
 \noindent\textbf{Definition: Acyclicity}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
     \label{def-acylic}
     A  CDMG  $G=(J,V,E,L)$  is called \emph{acyclic} if there does not exist
     any non-trivial directed walk from $v$ to itself in $G$ for any node $v \in G$.
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsAcyclic (G : CDMG Node) : Prop :=
   ∀ v ∈ G, ¬ ∃ p : Walk G v v, p.IsDirectedWalk ∧ p.length ≥ 1
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_6
 
@@ -426,7 +523,7 @@ def IsAcyclic (G : CDMG Node) : Prop :=
 
 %% ROW-BEGIN def_3_7
 \noindent\textbf{Definition: CDMGTypes}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
     A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:
    \begin{enumerate}
        \item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.
@@ -437,25 +534,40 @@ def IsAcyclic (G : CDMG Node) : Prop :=
        \item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \emptyset$.
        \item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\emptyset$ and $L = \emptyset$.
    \end{enumerate}
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsDMG (G : CDMG Node) : Prop := G.J = ∅
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsCDG (G : CDMG Node) : Prop := G.L = ∅
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_7
 
@@ -465,24 +577,29 @@ def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅
 
 %% ROW-BEGIN def_3_8
 \noindent\textbf{Definition: Topological order}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
     Let $G=(J,V,E,L)$ be a CDMG.
     A \emph{topological order} of $G$ is a total order $<$ of $J \cup V$ such that for all $v,w \in G$:
     \[ v \in \Pa^G(w) \; \implies \; v < w.\]
     Equivalently, it can be described as an indexing of the nodes $J \cup V = \{v_1,\dots,v_K\}$ where parents always precede their children.
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
   (∀ v ∈ G, ¬ lt v v) ∧
   (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
   (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
   G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_8
 
@@ -492,16 +609,19 @@ def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
 
 %% ROW-BEGIN claim_3_2
 \noindent\textbf{Claim: AcyclicIffTopologicalOrder}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
         A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem acyclic_iff_topological_order (G : CDMG Node) :
     G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_2
 
@@ -511,25 +631,30 @@ theorem acyclic_iff_topological_order (G : CDMG Node) :
 
 %% ROW-BEGIN def_3_9
 \noindent\textbf{Definition: Predecessors}\par\smallskip
-\noindent\begin{minipage}[t]{\appendixColWidth}\appendixTexSize
+{\appendixTexSize
    Let $G=(J,V,E,L)$ be a CDMG and $<$ a total order of $J \cup V$.
    The set of \emph{predecessors} of $v$ in $G$ are:
    \[\Pred^G_<(v) : = \lC w\in G\,|\, w < v \rC.\]
    We also put:
    \[\Pred^G_\le(v) : = \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
-\end{minipage}\hfill\begin{minipage}[t]{\appendixColWidth}
+\par}
+\smallskip
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Pred (G : CDMG Node) (lt : Node → Node → Prop)
     (_h : G.IsTotalOrder lt) (v : Node) : Set Node :=
   {w | w ∈ G ∧ lt w v}
-
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
     (h : G.IsTotalOrder lt) (v : Node) : Set Node :=
   G.Pred lt h v ∪ {v}
 \end{minted}
-\end{minipage}\par
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_9
 
