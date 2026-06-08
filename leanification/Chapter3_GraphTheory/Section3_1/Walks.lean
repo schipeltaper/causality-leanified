@@ -107,7 +107,7 @@ namespace CDMG
 --   three-dash flavour tags this as helper-level wrapping (distinct
 --   from the per-statement `-- start statement` markers used by
 --   `Walk`, `Walk.intoStart`, …) for the tex/Lean reconciliation
---   tooling.  Matches the wrapping used by
+--   tooling and any future refactor.  Matches the wrapping used by
 --   `CDMGNotation.lean`, `EdgeRelations.lean`, and
 --   `CDMGRestrictions.lean` on the identical `variable` line.
 -- def_3_4 --- start helper

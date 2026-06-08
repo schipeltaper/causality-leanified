@@ -433,7 +433,7 @@ LN tex (item 7 of `not-cdmg`):
 --   Any case analysis on `G.sus v1 v2` downstream is exhaustive over
 --   exactly these three alternatives.
 --
--- *Update warning — keep in sync if CDMGs ever gain a tail-tail
+-- *Refactor warning — keep in sync if CDMGs ever gain a tail-tail
 --   edge type.*  If a future revision of `def_3_1` adds a fourth
 --   edge field (e.g. `T : Finset (Node × Node)` for undirected
 --   `\tut` edges), this `sus` def MUST be updated to add the
@@ -442,8 +442,8 @@ LN tex (item 7 of `not-cdmg`):
 --   over three cases) becomes incomplete and must be revisited.
 --   The `addition_to_the_LN` clause referenced above is the
 --   load-bearing reason these proofs are sound today; surface this
---   comment if/when that change is made so the exhaustiveness
---   contract is renegotiated explicitly rather than silently broken.
+--   comment at refactor time so the exhaustiveness contract is
+--   renegotiated explicitly rather than silently broken.
 --
 -- *Disjunction order matches the LN.*  `tuh ∨ hut ∨ huh`, in that
 --   left-to-right order, mirrors item 7 of the tex block verbatim.
