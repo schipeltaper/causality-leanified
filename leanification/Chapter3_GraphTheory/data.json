@@ -704,43 +704,60 @@
       "section": "3.2",
       "title": "HardInterventionOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-08",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 1,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
         "unmistake": 0,
-        "accept_deviation": 0,
+        "accept_deviation": 2,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 2
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Hard intervention on CDMGs]\\label{def:G_hard_intervention}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{intervened CDMG} w.r.t.\\ $W$ of $G$ is the CDMG: \n  \\[ G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  %\\[G(V\\sm W|\\doit(W \\cup J)):=G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\doit(W)}:= J \\cup W$,\n      \\item $V_{\\doit(W)}:= V \\sm W$,\n      \\item $E_{\\doit(W)}:= E \\sm \\lC v \\tuh w \\,|\\, v \\in G, w  \\in W  \\rC$,\n      \\item $L_{\\doit(W)}:= L \\sm \\lC v \\huh w\\,|\\, v \\in G, w \\in W \\rC$,\n  \\end{enumerate}\n  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "a66f5f7e-ed85-47dd-a864-dba5c49076bd",
+          "first_seen": "2026-06-08T19:50:42+00:00",
+          "last_used": "2026-06-08T19:50:42+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4734,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: bidirected_edge_removal_assumes_symmetric_representation\nexplanation: The bidirected-edge removal set is written as\n\\[\nL_{\\doit(W)} := L \\sm \\lC v \\huh w \\,|\\, v \\in G, w \\in W \\rC,\n\\]\nwhich literally picks out bidirected edges whose *second* endpoint is in $W$. The notation $\\huh$ (head-to-head) connotes symmetry, but the LN never says whether $L$ is stored as an unordered set of pairs (in which case $v \\huh w$ and $w \\huh v$ denote the same element and the removal is symmetric) or as an ordered/directed-representation set (in which case the formula only matches edges where the in-$W$ endpoint sits in the second slot).\n\nCorner case: suppose $L$ contains the ordered tuple $(w, v)$ where $w \\in W$ and $v \\notin W$. With ordered-pair semantics, the removal pattern requires the second component to be in $W$, so $(w,v)$ would *not* be matched and the bidirected edge incident to $w$ would survive the intervention. With unordered/symmetric semantics, it is matched. The literal text leaves this open.\n\nThis matters because the natural-language gloss \"remove all edges into nodes from $W$\" suggests the author intends \"remove every bidirected edge incident to $W$\", which is the symmetric reading — but the formula does not symmetrize, so any downstream claim of the form \"the intervened CDMG has no bidirected edge with an endpoint in $W$\" silently relies on the symmetry of $L$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: intervention_on_already_input_nodes_admits_nontrivial_edge_changes\nexplanation: The hypothesis is $W \\ins J \\cup V$, so $W$ is allowed to contain nodes that are already in $J$ (i.e.\\ already input nodes). For the node sets this is harmless and idempotent: $J_{\\doit(W)} = J \\cup W$, $V_{\\doit(W)} = V \\sm W$ both leave $W \\cap J$ untouched. But the edge removal sets do *not* see \"already in $J$\" as a special case — they still strip every $v \\tuh w$ and $v \\huh w$ with $w \\in W \\cap J$.\n\nCorner case: take $W = \\{j\\}$ with $j \\in J$. Conceptually one would expect \"intervening on a node that is already exogenous\" to be a no-op. Structurally it is a no-op for $(J, V)$, but if the underlying CDMG admits any bidirected edge $v \\huh j$ with $v \\neq j$ (a confounding link incident to an input), the literal definition deletes it. The natural-language summary \"we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$\" elides this case — it reads as describing a conversion that does not apply to nodes already in $J$, but the formal removal still fires on them.\n\nIf a downstream lemma asserts something like \"intervening twice on the same set is the same as intervening once\" or \"intervening on a subset of $J$ leaves $G$ unchanged\", it would have to be reconciled with this asymmetry between the node-set rule (idempotent on $J$) and the edge-set rule (not idempotent in the presence of bidirected edges touching $J$).\nEND_SUBTLETY\n\nSUBTLETY:\nid: v_in_G_is_informal_notation\nexplanation: Both removal sets use the quantifier \"$v \\in G$\", e.g.\\ $\\lC v \\tuh w \\,|\\, v \\in G, w \\in W \\rC$. Strictly, $G = (J, V, E, L)$ is a 4-tuple, not a set, so \"$v \\in G$\" has no formal meaning. The intended reading is presumably $v \\in J \\cup V$ (any node of $G$), but the literal text does not say so. This matters mildly because it determines whether $v = w$ is allowed (self-loops $w \\tuh w$, $w \\huh w$ with $w \\in W$): under the charitable reading $v \\in J \\cup V$, self-loops are included in the removal set; under a stricter reading they might not be. The LN does not pin this down.\nEND_SUBTLETY",
+        "session": "cbd87c62-8f43-4c19-9c2b-ab3ade714a2b"
+      }
     },
     {
       "def_or_claim": "claim",
