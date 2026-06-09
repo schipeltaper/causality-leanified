@@ -16,3 +16,4 @@ import Chapter3_GraphTheory.Section3_2.HardInterventionOn
 import Chapter3_GraphTheory.Section3_2.AcyclicPreservedUnderDo
 import Chapter3_GraphTheory.Section3_2.HardInterventionsCommute
 import Chapter3_GraphTheory.Section3_2.BifurcationAlternative
+import Chapter3_GraphTheory.Section3_2.NodeSplittingOn

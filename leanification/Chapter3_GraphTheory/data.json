@@ -937,7 +937,7 @@
           "last_used": "2026-06-09T06:41:34+00:00"
         }
       ],
-      "time_needed_to_solve": 19359,
+      "time_needed_to_solve": 19379,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -951,28 +951,30 @@
       "section": "3.2",
       "title": "NodeSplittingOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -982,12 +984,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting on CDMGs]\n  \\label{def:G_node-splitting}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{node-split graph} w.r.t.\\ $W$ of $G$ is the CDMG: \n    \\[ G_{\\spl(W)} :=\\lp J_{\\spl(W)}, V_{\\spl(W)}, E_{\\spl(W)},L_{\\spl(W)} \\rp,\\]\n    %\\[ G_{\\spl(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^0:=\\lC w^0\\st w \\in W \\rC, \\qquad W^1:=\\lC w^1 \\st w \\in W \\rC.  \\]\n    Note that we consider $w^0 \\neq w^1$ for $w \\in W$.\n    Additionally (for convenience), for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^0:=v^1:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\spl(W)} := J$,\n      \\item $V_{\\spl(W)} := (V \\sm W) \\dcup W^0 \\dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.\n      \\item $E_{\\spl(W)} := \\lC v^1_1 \\tuh v_2^0 \\st v_1 \\tuh v_2 \\in E \\rC \\cup \\lC w^0 \\tuh w^1 \\st w \\in W \\rC$,\n      \\item $L_{\\spl(W)} :=\\lC v_1^0 \\huh v_2^0 \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,\n  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,\n  and edges $w^0 \\tuh w^1$ are added for all nodes in $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "45a72ad7-ace6-4032-8d39-55fd03b68617",
+          "first_seen": "2026-06-09T08:21:56+00:00",
+          "last_used": "2026-06-09T08:21:56+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5342,
+      "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block for `def_3_11` (Node-splitting on CDMGs), I need to read carefully for ambiguities, corner cases, or unintended consequences.\n\nLet me audit the definition step by step:\n\n1. The construction: split each $w \\in W$ into $w^0$ (incoming copy) and $w^1$ (outgoing copy), with added edge $w^0 \\tuh w^1$.\n2. Directed edges: $v_1 \\tuh v_2 \\in E$ lifts to $v_1^1 \\tuh v_2^0$.\n3. Bidirected edges: $v_1 \\huh v_2 \\in L$ lifts to $v_1^0 \\huh v_2^0$.\n\nTwo things stand out worth flagging:\n\nSUBTLETY:\nid: spl_self_loop_creates_two_cycle_in_split\nexplanation: The literal definition does not preclude self-loops $w \\tuh w$ in $E$ for $w \\in W$. For such a self-loop, the first comprehension $\\lC v_1^1 \\tuh v_2^0 \\st v_1 \\tuh v_2 \\in E \\rC$ produces the lifted edge $w^1 \\tuh w^0 \\in E_{\\spl(W)}$. Combined with the added \"transfer\" edge $w^0 \\tuh w^1$ from the second comprehension $\\lC w^0 \\tuh w^1 \\st w \\in W \\rC$, this creates a 2-cycle $w^0 \\tuh w^1 \\tuh w^0$ in $G_{\\spl(W)}$. If CDMGs are required to be acyclic (the typical convention), the construction fails to produce a valid CDMG on this input, contradicting the claim \"$G_{\\spl(W)}$ is the CDMG: $\\ldots$\" The definition does not state an assumption that $G$ has no self-loops on $W$, nor does it verify acyclicity of the result. Any downstream claim that \"splitting preserves acyclicity\" or that uses topological orderings of $G_{\\spl(W)}$ would implicitly need a self-loop-free precondition. The corner case is degenerate but not vacuous — a formalizer would need to know whether the no-self-loop assumption is part of the CDMG definition or part of the node-splitting precondition.\nEND_SUBTLETY\n\nSUBTLETY:\nid: spl_L_attached_to_W0_only_silently\nexplanation: The definition $L_{\\spl(W)} :=\\lC v_1^0 \\huh v_2^0 \\st v_1 \\huh v_2 \\in L \\rC$ uses the $v^0$-superscript for *both* endpoints of every lifted bidirected edge. Consequently, all bidirected edges in $L_{\\spl(W)}$ are attached to $W^0$-copies; the $W^1$-copies never appear as endpoints of any bidirected edge. For example, a bidirected edge $w_1 \\huh w_2 \\in L$ with $w_1, w_2 \\in W$ lifts only to $w_1^0 \\huh w_2^0$ — never to $w_1^1 \\huh w_2^1$, nor mixed. A reader might reasonably expect bidirected edges to follow an \"incoming/outgoing\" pattern analogous to directed edges, or to be duplicated symmetrically across both copies. The text never states *why* $W^0$ is chosen over $W^1$ (the SWIG-style semantic interpretation — confounding belongs on the \"natural\"/observational side, while the \"intervened\" side $W^1$ is causally isolated — is not made explicit). The informal summary at the end exacerbates this by discussing only directed edges (incoming/outgoing/added), giving no hint that bidirected edges follow a different convention than directed ones. Any downstream claim about the bidirected/latent structure of $G_{\\spl(W)}$ (c-components, m-separation, latent projection, confounding ancestry) must take into account that $W^1$ has no latent structure at all — a fact a casual reading of the informal summary would not surface.\nEND_SUBTLETY",
+        "session": "1b2196b6-08d0-4e3c-9849-33daf6d69309"
+      }
     },
     {
       "def_or_claim": "claim",
