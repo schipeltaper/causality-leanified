@@ -1060,7 +1060,7 @@
           "last_used": "2026-06-09T10:19:53+00:00"
         }
       ],
-      "time_needed_to_solve": 6786,
+      "time_needed_to_solve": 6865,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1074,30 +1074,32 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 4,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1105,12 +1107,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 2,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\n   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:\n   \\[ \\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}  =  G_{\\spl(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "77fc4c55-c458-42e7-b319-9b7da8ac260c",
+          "first_seen": "2026-06-09T12:52:29+00:00",
+          "last_used": "2026-06-09T12:52:29+00:00"
+        }
+      ],
+      "time_needed_to_solve": 9023,
+      "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs.",
+      "wording_check": {
+        "done": true,
+        "output": "```\nSUBTLETY:\nid: cdmg_vs_cadmg_terminology_drift\nexplanation: The opening of the lemma declares \"Let $G=(J,V,E,L)$ be a CDMG\" and then the prose says \"the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$...\". Note the drift from \"CDMG\" to \"CADMG\" mid-sentence. Either (a) these are intended to be synonymous in the LN — in which case picking one consistently would help — or (b) one is a typo for the other. If node-splitting is meant to land in CADMGs (i.e., the result is always acyclic), then the input \"CDMG\" probably should have been \"CADMG\" too (or vice versa). Downstream, a formalizer who reads this literally has to decide which signature to use for `node_split` (CDMG → CDMG, CDMG → CADMG, or CADMG → CADMG).\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_subset_of_output_nodes_after_first_split\nexplanation: The hypothesis is \"$W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\" The iterated expression $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ then applies node-splitting to $W_2$ inside $G_{\\spl(W_1)}$, which only makes sense if $W_2$ is a subset of the output nodes of $G_{\\spl(W_1)}$ — not of the original $G$. Node-splitting typically removes the split nodes from $V$ and adds fresh \"split copies\" elsewhere, so after splitting $W_1$ the output-node set becomes something like $(V \\setminus W_1) \\cup \\text{copies}(W_1)$. Disjointness $W_1 \\cap W_2 = \\emptyset$ then *does* give $W_2 \\subseteq V \\setminus W_1 \\subseteq V_{\\spl(W_1)}$, so the iterated splitting *is* well-defined — but only conditional on the precise behavior of node-splitting in def_3_11. The lemma never states this well-definedness condition explicitly; it is left implicit in the hypothesis \"disjoint subsets of the output nodes\". A formalizer will need to discharge \"$W_2$ is still a subset of output nodes after splitting $W_1$\" as a side-condition, and this depends crucially on whether def_3_11 keeps the unsplit output nodes in the output set.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_or_singleton_disjoint_union_degenerate_cases\nexplanation: The right-hand side uses $W_1 \\dcup W_2$ (disjoint union). For the degenerate case $W_1 = \\emptyset$ (or $W_2 = \\emptyset$), the lemma reduces to $G_{\\spl(\\emptyset)})_{\\spl(W_2)} = G_{\\spl(W_2)} = G_{\\spl(\\emptyset \\dcup W_2)}$, which requires $G_{\\spl(\\emptyset)} = G$ — i.e., node-splitting the empty set is the identity. This is presumably true, but it is not stated in this lemma's text; the lemma silently assumes it. Similarly, the lemma says nothing about whether \"disjoint\" allows $W_1 = W_2 = \\emptyset$ (vacuously disjoint). A literal reader could ask whether the lemma is vacuous in those cases, or whether the author intended $W_1, W_2$ to be nonempty.\nEND_SUBTLETY\n```",
+        "session": "48a24061-bd32-4442-bda1-6568d4eda46e"
+      }
     },
     {
       "def_or_claim": "claim",
