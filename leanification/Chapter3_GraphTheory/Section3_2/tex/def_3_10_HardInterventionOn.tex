@@ -16,18 +16,34 @@
 \phantomsection\label{def_3_10}
 
 \begin{Def}[Hard intervention on CDMGs]\label{def:G_hard_intervention}
-    Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
-  The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG: 
-  \[ G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
-  %\[G(V\sm W|\doit(W \cup J)):=G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\] 
-  where:
-  \begin{enumerate}[label=\roman*.)]
-      \item $J_{\doit(W)}:= J \cup W$,
-      \item $V_{\doit(W)}:= V \sm W$,
-      \item $E_{\doit(W)}:= E \sm \lC v \tuh w \,|\, v \in G, w  \in W  \rC$,
-      \item $L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC$,
-  \end{enumerate}
-  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let $W \subseteq J \cup V$ be a subset of nodes; we do \emph{not} require $W \cap J = \emptyset$, i.e.\ $W$ is permitted to overlap the input-node set $J$.
+
+    The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG
+    \[ G_{\doit(W)} := (J_{\doit(W)},\, V_{\doit(W)},\, E_{\doit(W)},\, L_{\doit(W)}), \]
+    %\[G(V\sm W|\doit(W \cup J)):=G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\]
+    whose four components are defined as follows.
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Input nodes:}
+            \[ J_{\doit(W)} := J \cup W. \]
+        \item \emph{Output nodes:}
+            \[ V_{\doit(W)} := V \sm W. \]
+        \item \emph{Directed edges:}
+            \[ E_{\doit(W)} := E \sm \lC (v_1, v_2) \in E \,|\, v_2 \in W \rC. \]
+            Equivalently, rendered through def \ref{not-cdmg}: every directed edge $v_1 \tuh v_2$ in $G$ whose head $v_2$ lies in $W$ is removed; every other directed edge of $G$ is retained.
+        \item \emph{Bidirected edges:}
+            \[ L_{\doit(W)} := L \sm \lC (v_1, v_2) \in L \,|\, v_2 \in W \rC. \]
+            Equivalently, rendered through def \ref{not-cdmg}: every ordered pair $(v_1, v_2) \in L$ (equivalently $v_1 \huh v_2$ in $G$) whose second component $v_2$ lies in $W$ is removed; pairs whose second component lies in $V \sm W$ are retained.
+    \end{enumerate}
+    Intuitively, we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
+
+    \emph{Remark on item iv.\ and the symmetry of $L$.}
+    Under def \ref{def-cdmg}'s encoding of $L$ as a symmetric set of ordered pairs in $V \times V$ (the axiom $(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$), the literal one-sided formula for $L_{\doit(W)}$ at item iv.\ above does not in general preserve symmetry. Concretely, take $w \in W \cap V$ and $v \in V \sm W$; by the symmetry of $L$ both ordered pairs $(v, w)$ and $(w, v)$ lie in $L$ and together represent the same bidirected edge between $v$ and $w$. The one-sided removal set $\lC (v_1, v_2) \in L \,|\, v_2 \in W \rC$ catches $(v, w)$ (its second component is $w \in W$) but not $(w, v)$ (its second component is $v \notin W$); hence $(v, w)$ is deleted while $(w, v)$ survives, and $L_{\doit(W)}$ — read literally — need not satisfy the symmetry constraint of def \ref{def-cdmg}. The LN's natural-language gloss ``remove all edges into nodes from $W$'' and the LN's own assertion that $G_{\doit(W)}$ is itself a CDMG both demand the symmetric reading, since a bidirected edge $v_1 \huh v_2$ is into \emph{both} of its endpoints (def \ref{def-edge-relations}, item~ii.) and since the CDMG axioms of def \ref{def-cdmg} require the bidirected-edge set to be symmetric; the formal set-builder text at item iv.\ above, however, does not itself symmetrize. The reconciliation of this tension between the literal one-sided formula and the CDMG axioms is deferred to def\_3\_10's Lean encoding (downstream of this tex specification), where the constructor of $G_{\doit(W)}$ must produce a symmetric $L_{\doit(W)}$ in order to satisfy the CDMG axioms.
+
+    \emph{Disambiguation of the LN's ``$v \in G$'' quantifier.}
+    The LN's quantifier ``$v \in G$'' is shorthand for $v \in J \cup V$ (def \ref{not-cdmg}, item~1); $G$ is a 4-tuple and has no direct $\in$-relation. In the rewritten removal sets at items iii.\ and iv.\ this clause has been folded into the ambient typing of the corresponding edge set ($E \subseteq (J \cup V) \times V$ at item iii., $L \subseteq V \times V$ at item iv.), so no explicit ``$v_1 \in J \cup V$'' clause is needed. In particular, the directed self-loop case $(w, w) \in E$ with $w \in W$ is included in the removal set at item iii.\ (such pairs are matched by $v_2 = w \in W$); the bidirected self-loop case $(w, w) \in L$ at item iv.\ is automatically vacuous because $L$ is irreflexive (def \ref{def-cdmg}).
+
+    \emph{On the case $W \cap J \neq \emptyset$.}
+    The LN hypothesis $W \subseteq J \cup V$ admits the case $W \cap J \neq \emptyset$, i.e.\ $W$ may contain nodes that are already input nodes of $G$. The four components then behave as follows: items i.\ and ii.\ are idempotent on $W \cap J$ (since $W \cap J \subseteq J$ already, $J \cup W$ does not change at those nodes, and $V \sm W$ is unaffected by $W \cap J$ because $J \cap V = \emptyset$); items iii.\ and iv.\ still fire on edges incident to $W \cap J$ at the head slot, but the typing constraints of def \ref{def-cdmg} ($E \subseteq (J \cup V) \times V$ and $L \subseteq V \times V$) force any such head to lie in $V$, so no edge of $G$ has its head in $W \cap J$ in the first place. Concretely: for $w \in W \cap J$, no directed edge $(v_1, w) \in E$ exists (since $w \notin V$), and no bidirected edge $(v_1, w) \in L$ or $(w, v_1) \in L$ exists (since $w \notin V$). Thus items iii.\ and iv.\ are also de facto no-ops at $W \cap J$, even though their set-builder clauses are written without a special case for it.
 \end{Def}
 
 \end{document}

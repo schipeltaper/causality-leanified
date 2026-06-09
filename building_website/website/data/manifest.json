@@ -85,6 +85,165 @@
               "available": true
             }
           ]
+        },
+        {
+          "section": "3.2",
+          "rows": [
+            {
+              "ref": "def_3_10",
+              "kind": "def",
+              "label": "def 3.10 — HardInterventionOn",
+              "title": "HardInterventionOn",
+              "available": true
+            },
+            {
+              "ref": "claim_3_3",
+              "kind": "claim",
+              "label": "claim 3.3 — AcyclicPreservedUnderDo",
+              "title": "AcyclicPreservedUnderDo",
+              "available": true
+            },
+            {
+              "ref": "claim_3_4",
+              "kind": "claim",
+              "label": "claim 3.4 — HardInterventionsCommute",
+              "title": "HardInterventionsCommute",
+              "available": true
+            },
+            {
+              "ref": "claim_3_5",
+              "kind": "claim",
+              "label": "claim 3.5 — BifurcationAlternative",
+              "title": "BifurcationAlternative",
+              "available": true
+            },
+            {
+              "ref": "def_3_11",
+              "kind": "def",
+              "label": "def 3.11 — NodeSplittingOn",
+              "title": "NodeSplittingOn",
+              "available": true
+            },
+            {
+              "ref": "claim_3_6",
+              "kind": "claim",
+              "label": "claim 3.6 — SplitTopologicalOrder",
+              "title": "SplitTopologicalOrder",
+              "available": true
+            },
+            {
+              "ref": "claim_3_7",
+              "kind": "claim",
+              "label": "claim 3.7 — TwoDisjointNode",
+              "title": "TwoDisjointNode",
+              "available": true
+            },
+            {
+              "ref": "claim_3_8",
+              "kind": "claim",
+              "label": "claim 3.8 — DisjointHardInterventions",
+              "title": "DisjointHardInterventions",
+              "available": true
+            },
+            {
+              "ref": "def_3_12",
+              "kind": "def",
+              "label": "def 3.12 — NodeSplittingHard",
+              "title": "NodeSplittingHard",
+              "available": false
+            },
+            {
+              "ref": "claim_3_9",
+              "kind": "claim",
+              "label": "claim 3.9 — SwigAcyclic",
+              "title": "SwigAcyclic",
+              "available": false
+            },
+            {
+              "ref": "claim_3_10",
+              "kind": "claim",
+              "label": "claim 3.10 — TwoDisjointNode",
+              "title": "TwoDisjointNode",
+              "available": false
+            },
+            {
+              "ref": "claim_3_11",
+              "kind": "claim",
+              "label": "claim 3.11 — DisjointHardInterventions",
+              "title": "DisjointHardInterventions",
+              "available": false
+            },
+            {
+              "ref": "claim_3_12",
+              "kind": "claim",
+              "label": "claim 3.12 — HardInterventionNodeSplit",
+              "title": "HardInterventionNodeSplit",
+              "available": false
+            },
+            {
+              "ref": "def_3_13",
+              "kind": "def",
+              "label": "def 3.13 — ExtendingCDMGsWith",
+              "title": "ExtendingCDMGsWith",
+              "available": false
+            },
+            {
+              "ref": "claim_3_13",
+              "kind": "claim",
+              "label": "claim 3.13 — AcyclicHardInterventionTopologicalOrder",
+              "title": "AcyclicHardInterventionTopologicalOrder",
+              "available": false
+            },
+            {
+              "ref": "claim_3_14",
+              "kind": "claim",
+              "label": "claim 3.14 — AddingInterventionNodes",
+              "title": "AddingInterventionNodes",
+              "available": false
+            },
+            {
+              "ref": "claim_3_15",
+              "kind": "claim",
+              "label": "claim 3.15 — AddingInterventionNodes",
+              "title": "AddingInterventionNodes",
+              "available": false
+            },
+            {
+              "ref": "def_3_14",
+              "kind": "def",
+              "label": "def 3.14 — MarginalizationAK",
+              "title": "MarginalizationAK",
+              "available": false
+            },
+            {
+              "ref": "claim_3_16",
+              "kind": "claim",
+              "label": "claim 3.16 — MargPreservesAncestors",
+              "title": "MargPreservesAncestors",
+              "available": false
+            },
+            {
+              "ref": "claim_3_17",
+              "kind": "claim",
+              "label": "claim 3.17 — MarginalizationsCommute",
+              "title": "MarginalizationsCommute",
+              "available": false
+            },
+            {
+              "ref": "claim_3_18",
+              "kind": "claim",
+              "label": "claim 3.18 — MarginalizationAndIntervention",
+              "title": "MarginalizationAndIntervention",
+              "available": false
+            },
+            {
+              "ref": "claim_3_19",
+              "kind": "claim",
+              "label": "claim 3.19 — MarginalizingOutThe",
+              "title": "MarginalizingOutThe",
+              "available": false
+            }
+          ]
         }
       ]
     }

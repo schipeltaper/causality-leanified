@@ -76,7 +76,7 @@
         }
       ],
       "time_needed_to_solve": 2052,
-      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Node sets J and V are both finite.",
+      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] The node sets $J$ and $V$ are both assumed to be finite.",
       "wording_check": {
         "done": true,
         "output": "SUBTLETY:\nid: bidirected_edges_quotient_vs_symmetry_redundancy\nexplanation: The bidirected edge set is declared as `L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1))`, i.e. a subset of the quotient of `V × V` by the swap relation. Elements of this quotient are unordered pairs (equivalence classes). But the accompanying condition is written as\n\n    \"$(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$\"\n\nwhich treats elements of `L` as if they were ordered pairs.\n\nIf `L` really is a subset of the quotient, then `(v_1, v_2)` and `(v_2, v_1)` denote the *same* equivalence class, so \"$(v_2, v_1) \\in L$\" follows automatically from \"$(v_1, v_2) \\in L$\" — that half of the conjunction is vacuous. Only the `v_1 ≠ v_2` clause (no self-loops in `L`) carries content.\n\nAlternatively, if the author actually intends `L \\subseteq V \\times V` (no quotient) with the implication forcing symmetry, then the quotient notation is misleading — it suggests a different ambient set.\n\nThis ambiguity matters for any encoding: should `L` be a `Sym2 V`, a `Finset (V × V)` with a symmetry axiom, or an irreflexive symmetric relation? The LN simultaneously suggests two of these.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loops_allowed_but_bidirected_self_loops_forbidden\nexplanation: The constraint `v_1 \\neq v_2` is imposed on `L` (no bidirected self-loops), but `E` has no analogous constraint. The literal definition `E \\ins (J \\cup V) \\times V` permits a pair `(v, v)` with `v \\in V`, since then `v \\in J \\cup V` and `v \\in V`. So a directed self-loop `v \\to v` on an output node is admissible, while a bidirected self-loop `v \\leftrightarrow v` is explicitly forbidden.\n\nThis asymmetry between E and L may be intentional (e.g. directed self-loops sometimes encode feedback) but the LN doesn't justify or even acknowledge it. A reader scanning the definition could easily assume self-loops are uniformly disallowed. Downstream notions like acyclicity (def_3_6) will need to take a stance on whether `v \\to v` counts as a length-1 cycle.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_cdmg_admitted_by_active_definition\nexplanation: The active text imposes no non-emptiness condition on `J \\cup V`. Hence the literal definition admits the fully empty CDMG with `J = V = E = L = \\emptyset`. This is a classic degenerate corner case: any downstream definition that implicitly assumes a non-empty vertex set (walks of positive length, \"the source of a directed edge\", topological orders on non-empty supports, etc.) needs to either gracefully handle, or explicitly exclude, the empty graph. Worth flagging because future claims/proofs that quantify \"for every CDMG …\" will quietly include this trivial case.\nEND_SUBTLETY",
@@ -704,43 +704,60 @@
       "section": "3.2",
       "title": "HardInterventionOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-08",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 1,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
         "unmistake": 0,
-        "accept_deviation": 0,
+        "accept_deviation": 2,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 2
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Hard intervention on CDMGs]\\label{def:G_hard_intervention}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{intervened CDMG} w.r.t.\\ $W$ of $G$ is the CDMG: \n  \\[ G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  %\\[G(V\\sm W|\\doit(W \\cup J)):=G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\doit(W)}:= J \\cup W$,\n      \\item $V_{\\doit(W)}:= V \\sm W$,\n      \\item $E_{\\doit(W)}:= E \\sm \\lC v \\tuh w \\,|\\, v \\in G, w  \\in W  \\rC$,\n      \\item $L_{\\doit(W)}:= L \\sm \\lC v \\huh w\\,|\\, v \\in G, w \\in W \\rC$,\n  \\end{enumerate}\n  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "a66f5f7e-ed85-47dd-a864-dba5c49076bd",
+          "first_seen": "2026-06-08T19:50:42+00:00",
+          "last_used": "2026-06-08T19:50:42+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4753,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: bidirected_edge_removal_assumes_symmetric_representation\nexplanation: The bidirected-edge removal set is written as\n\\[\nL_{\\doit(W)} := L \\sm \\lC v \\huh w \\,|\\, v \\in G, w \\in W \\rC,\n\\]\nwhich literally picks out bidirected edges whose *second* endpoint is in $W$. The notation $\\huh$ (head-to-head) connotes symmetry, but the LN never says whether $L$ is stored as an unordered set of pairs (in which case $v \\huh w$ and $w \\huh v$ denote the same element and the removal is symmetric) or as an ordered/directed-representation set (in which case the formula only matches edges where the in-$W$ endpoint sits in the second slot).\n\nCorner case: suppose $L$ contains the ordered tuple $(w, v)$ where $w \\in W$ and $v \\notin W$. With ordered-pair semantics, the removal pattern requires the second component to be in $W$, so $(w,v)$ would *not* be matched and the bidirected edge incident to $w$ would survive the intervention. With unordered/symmetric semantics, it is matched. The literal text leaves this open.\n\nThis matters because the natural-language gloss \"remove all edges into nodes from $W$\" suggests the author intends \"remove every bidirected edge incident to $W$\", which is the symmetric reading — but the formula does not symmetrize, so any downstream claim of the form \"the intervened CDMG has no bidirected edge with an endpoint in $W$\" silently relies on the symmetry of $L$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: intervention_on_already_input_nodes_admits_nontrivial_edge_changes\nexplanation: The hypothesis is $W \\ins J \\cup V$, so $W$ is allowed to contain nodes that are already in $J$ (i.e.\\ already input nodes). For the node sets this is harmless and idempotent: $J_{\\doit(W)} = J \\cup W$, $V_{\\doit(W)} = V \\sm W$ both leave $W \\cap J$ untouched. But the edge removal sets do *not* see \"already in $J$\" as a special case — they still strip every $v \\tuh w$ and $v \\huh w$ with $w \\in W \\cap J$.\n\nCorner case: take $W = \\{j\\}$ with $j \\in J$. Conceptually one would expect \"intervening on a node that is already exogenous\" to be a no-op. Structurally it is a no-op for $(J, V)$, but if the underlying CDMG admits any bidirected edge $v \\huh j$ with $v \\neq j$ (a confounding link incident to an input), the literal definition deletes it. The natural-language summary \"we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$\" elides this case — it reads as describing a conversion that does not apply to nodes already in $J$, but the formal removal still fires on them.\n\nIf a downstream lemma asserts something like \"intervening twice on the same set is the same as intervening once\" or \"intervening on a subset of $J$ leaves $G$ unchanged\", it would have to be reconciled with this asymmetry between the node-set rule (idempotent on $J$) and the edge-set rule (not idempotent in the presence of bidirected edges touching $J$).\nEND_SUBTLETY\n\nSUBTLETY:\nid: v_in_G_is_informal_notation\nexplanation: Both removal sets use the quantifier \"$v \\in G$\", e.g.\\ $\\lC v \\tuh w \\,|\\, v \\in G, w \\in W \\rC$. Strictly, $G = (J, V, E, L)$ is a 4-tuple, not a set, so \"$v \\in G$\" has no formal meaning. The intended reading is presumably $v \\in J \\cup V$ (any node of $G$), but the literal text does not say so. This matters mildly because it determines whether $v = w$ is allowed (self-loops $w \\tuh w$, $w \\huh w$ with $w \\in W$): under the charitable reading $v \\in J \\cup V$, self-loops are included in the removal set; under a stricter reading they might not be. The LN does not pin this down.\nEND_SUBTLETY",
+        "session": "cbd87c62-8f43-4c19-9c2b-ab3ade714a2b"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -748,30 +765,32 @@
       "section": "3.2",
       "title": "AcyclicPreservedUnderDo",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-08",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicPreservedUnderDo.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AcyclicPreservedUnderDo.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -779,12 +798,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If $G$ is acyclic then also $G_{\\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\\doit(W)}$.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "8d216727-5fb7-4a51-a832-ad93119172c2",
+          "first_seen": "2026-06-08T23:55:15+00:00",
+          "last_used": "2026-06-08T23:55:15+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3956,
+      "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this claim carefully:\n\nThe claim states two things about $G_{\\doit(W)}$ when $G$ is acyclic:\n1. $G_{\\doit(W)}$ is acyclic\n2. Any topological order for $G$ is also a topological order for $G_{\\doit(W)}$\n\nSince $\\doit(W)$ removes incoming edges to vertices in $W$ (yielding an edge-subset of the original graph), both properties follow immediately and trivially. Let me check corner cases:\n\n- **$W = \\emptyset$**: $G_{\\doit(W)} = G$, both claims trivially hold.\n- **$W = V(G)$**: $G_{\\doit(W)}$ has no edges; trivially acyclic, any order is topological.\n- **$W$ contains source vertices (no incoming edges)**: $\\doit$ is a no-op for those, fine.\n- **\"a topological order for $G$\"**: The indefinite article reads naturally as universal (\"any\") in mathematical English, which is the intended and correct reading.\n\nThe wording is brief, but the literal reading matches the intended reading in all degenerate cases I can construct. The \"also\" is stylistically a bit informal but not ambiguous.\n\n```\nNO_SUBTLETIES\n```",
+        "session": "f3c962b8-71a5-4252-a577-e0f4cf76cf58"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -792,30 +827,32 @@
       "section": "3.2",
       "title": "HardInterventionsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionsCommute.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionsCommute.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -823,12 +860,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Hard interventions commute]\\label{hard-interventions-commute}\n    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two  subsets of nodes from $G$. \n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(W_1)} =  G_{\\doit(W_1 \\cup W_2)}. \\]\n      %This shows that our notion:\n      %\\[ G(V \\sm (W_1 \\cup W_2) | \\doit(W_1 \\cup W_2 \\cup J))   \\]\n      %is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "5660be4e-01ad-4fec-9963-cf8c48f5de07",
+          "first_seen": "2026-06-09T01:07:46+00:00",
+          "last_used": "2026-06-09T01:07:46+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4224,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "NO_SUBTLETIES",
+        "session": "ebcba673-20de-4a45-bbf9-fb4341f471a5"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -836,30 +889,32 @@
       "section": "3.2",
       "title": "BifurcationAlternative",
       "type": "proposition",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/BifurcationAlternative.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/BifurcationAlternative.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 12,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -867,12 +922,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Prp}\\label{prp:bifurcations_alternative}\n  Let $G = \\lt J, V, E, L \\rt$ be a CDMG. For $v, w, c \\in V \\cup J$:\n  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \\ne w$ and $c \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$ and $c \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$.\n\\end{Prp}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "3ee443fc-6c83-42f9-9829-01c8cb70da50",
+          "first_seen": "2026-06-09T06:41:34+00:00",
+          "last_used": "2026-06-09T06:41:34+00:00"
+        }
+      ],
+      "time_needed_to_solve": 19379,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "I've examined the bifurcation definition (def 3.4, lines 120-128) that this claim cites. The \"source\" is defined via an arbitrary index $k$ along the bifurcation walk, and a degenerate boundary case arises.\n\n```\nSUBTLETY:\nid: source_at_endpoint_w_when_right_arm_trivial\nexplanation: The RHS implicitly forces $c \\neq v$ and $c \\neq w$ via the set\nsubtractions $\\sm \\{v\\}$ and $\\sm \\{w\\}$. But the cited \"source\" notion from\nthe bifurcation definition (def 3.4) literally permits $c = w$ in a\ndegenerate case, breaking the \"$\\implies$\" direction of the iff.\n\nDef 3.4's bifurcation form is\n  $v = v_0 \\hut v_1 \\hut \\cdots \\hut v_{k-1} \\hus v_k \\tuh \\cdots \\tuh v_n = w$,\nwhere the subwalks \"$v_0 \\hut \\cdots v_{k-1}$\" and \"$v_k \\tuh \\cdots v_n$\" are\ndirected walks (and trivial directed walks of length 0 are explicitly allowed\nelsewhere in def 3.4). For $k = n$ the right arm is trivial (just $v_n = w$),\nthe middle directed edge is $v_{n-1} \\hut v_n$ (i.e. $w \\to v_{n-1}$), and\ndef 3.4 says: \"we say that the bifurcation has source $v_k$\", giving source\n$= v_n = w$.\n\nConcrete corner case: in an acyclic CDMG with a single directed edge\n$w \\to v$, def 3.4 admits this as a bifurcation between $v$ and $w$ with\nsource $w$ (take $n = 1$, $k = 1$: left arm trivial $v_0 = v$, right arm\ntrivial $v_1 = w$, middle edge $v_0 \\hut v_1$, source $v_1 = w$). The RHS of\nthis proposition, with $c = w$, requires $w \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$\n— i.e., $w$ is a strict ancestor of itself in $G_{\\doit(v)}$ — which is\nimpossible in an acyclic graph. So LHS = TRUE, RHS = FALSE.\n\nThe discrepancy is even sharper when $w \\in J$: by claim 3.1, $J$-vertices\nhave no incoming edges, so $\\Anc^{G_{\\doit(v)}}(w) = \\{w\\}$ unconditionally,\nmaking $\\sm \\{w\\} = \\emptyset$ — yet any $w \\in J$ with $w \\to v$ trivially\nyields a \"bifurcation with source $w$\" under def 3.4.\n\nThe accompanying proof papers over this: \"A bifurcation between $v$ and $w$\nwith source $c$ is a walk in $G$ of the form $v \\hut \\cdots \\hut c \\tuh \\cdots \\tuh w$\"\ntacitly reads \"$\\cdots$\" as non-empty on both sides — but def 3.4 does not\nimpose that.\n\nThere is also a related asymmetry worth flagging: def 3.4 fixes $v_0 = v$ and\n$v_n = w$, so source $= v_k$ with $k \\ge 1$ excludes $c = v$ but allows\n$c = w$ (when $k = n$); yet this proposition's RHS is fully symmetric in $v$\nand $w$. So the RHS is strictly stronger than def 3.4 on the $w$-end and\nexactly aligns on the $v$-end.\n\nResolution requires picking one convention: either def 3.4 implicitly demands\n$1 \\le k \\le n-1$ (strictly internal source), in which case this proposition\nis correct but def 3.4 needs the constraint made explicit; or source can\ncoincide with $w$, in which case this proposition's RHS needs an extra\ndisjunct (e.g. allow $c = w$ when $w \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$).\nDownstream uses that conclude \"no bifurcation between $v$ and $w$ with\nsource $c$\" from the RHS being false will, under the permissive reading,\nsilently miss the $w \\to v$ edge case.\nEND_SUBTLETY\n```",
+        "session": "9ab13a22-46cd-41ed-b7d3-a75d7d2ded1d"
+      }
     },
     {
       "def_or_claim": "def",
@@ -880,28 +951,30 @@
       "section": "3.2",
       "title": "NodeSplittingOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -911,12 +984,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting on CDMGs]\n  \\label{def:G_node-splitting}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{node-split graph} w.r.t.\\ $W$ of $G$ is the CDMG: \n    \\[ G_{\\spl(W)} :=\\lp J_{\\spl(W)}, V_{\\spl(W)}, E_{\\spl(W)},L_{\\spl(W)} \\rp,\\]\n    %\\[ G_{\\spl(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^0:=\\lC w^0\\st w \\in W \\rC, \\qquad W^1:=\\lC w^1 \\st w \\in W \\rC.  \\]\n    Note that we consider $w^0 \\neq w^1$ for $w \\in W$.\n    Additionally (for convenience), for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^0:=v^1:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\spl(W)} := J$,\n      \\item $V_{\\spl(W)} := (V \\sm W) \\dcup W^0 \\dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.\n      \\item $E_{\\spl(W)} := \\lC v^1_1 \\tuh v_2^0 \\st v_1 \\tuh v_2 \\in E \\rC \\cup \\lC w^0 \\tuh w^1 \\st w \\in W \\rC$,\n      \\item $L_{\\spl(W)} :=\\lC v_1^0 \\huh v_2^0 \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,\n  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,\n  and edges $w^0 \\tuh w^1$ are added for all nodes in $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "45a72ad7-ace6-4032-8d39-55fd03b68617",
+          "first_seen": "2026-06-09T08:21:56+00:00",
+          "last_used": "2026-06-09T08:21:56+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5362,
+      "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block for `def_3_11` (Node-splitting on CDMGs), I need to read carefully for ambiguities, corner cases, or unintended consequences.\n\nLet me audit the definition step by step:\n\n1. The construction: split each $w \\in W$ into $w^0$ (incoming copy) and $w^1$ (outgoing copy), with added edge $w^0 \\tuh w^1$.\n2. Directed edges: $v_1 \\tuh v_2 \\in E$ lifts to $v_1^1 \\tuh v_2^0$.\n3. Bidirected edges: $v_1 \\huh v_2 \\in L$ lifts to $v_1^0 \\huh v_2^0$.\n\nTwo things stand out worth flagging:\n\nSUBTLETY:\nid: spl_self_loop_creates_two_cycle_in_split\nexplanation: The literal definition does not preclude self-loops $w \\tuh w$ in $E$ for $w \\in W$. For such a self-loop, the first comprehension $\\lC v_1^1 \\tuh v_2^0 \\st v_1 \\tuh v_2 \\in E \\rC$ produces the lifted edge $w^1 \\tuh w^0 \\in E_{\\spl(W)}$. Combined with the added \"transfer\" edge $w^0 \\tuh w^1$ from the second comprehension $\\lC w^0 \\tuh w^1 \\st w \\in W \\rC$, this creates a 2-cycle $w^0 \\tuh w^1 \\tuh w^0$ in $G_{\\spl(W)}$. If CDMGs are required to be acyclic (the typical convention), the construction fails to produce a valid CDMG on this input, contradicting the claim \"$G_{\\spl(W)}$ is the CDMG: $\\ldots$\" The definition does not state an assumption that $G$ has no self-loops on $W$, nor does it verify acyclicity of the result. Any downstream claim that \"splitting preserves acyclicity\" or that uses topological orderings of $G_{\\spl(W)}$ would implicitly need a self-loop-free precondition. The corner case is degenerate but not vacuous — a formalizer would need to know whether the no-self-loop assumption is part of the CDMG definition or part of the node-splitting precondition.\nEND_SUBTLETY\n\nSUBTLETY:\nid: spl_L_attached_to_W0_only_silently\nexplanation: The definition $L_{\\spl(W)} :=\\lC v_1^0 \\huh v_2^0 \\st v_1 \\huh v_2 \\in L \\rC$ uses the $v^0$-superscript for *both* endpoints of every lifted bidirected edge. Consequently, all bidirected edges in $L_{\\spl(W)}$ are attached to $W^0$-copies; the $W^1$-copies never appear as endpoints of any bidirected edge. For example, a bidirected edge $w_1 \\huh w_2 \\in L$ with $w_1, w_2 \\in W$ lifts only to $w_1^0 \\huh w_2^0$ — never to $w_1^1 \\huh w_2^1$, nor mixed. A reader might reasonably expect bidirected edges to follow an \"incoming/outgoing\" pattern analogous to directed edges, or to be duplicated symmetrically across both copies. The text never states *why* $W^0$ is chosen over $W^1$ (the SWIG-style semantic interpretation — confounding belongs on the \"natural\"/observational side, while the \"intervened\" side $W^1$ is causally isolated — is not made explicit). The informal summary at the end exacerbates this by discussing only directed edges (incoming/outgoing/added), giving no hint that bidirected edges follow a different convention than directed ones. Any downstream claim about the bidirected/latent structure of $G_{\\spl(W)}$ (c-components, m-separation, latent projection, confounding ancestry) must take into account that $W^1$ has no latent structure at all — a fact a casual reading of the informal summary would not surface.\nEND_SUBTLETY",
+        "session": "1b2196b6-08d0-4e3c-9849-33daf6d69309"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -924,43 +1012,61 @@
       "section": "3.2",
       "title": "SplitTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
-        "register_ln_subtlety": 0,
-        "no_action": 0
+        "register_ln_subtlety": 1,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\spl(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\spl(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^0$ the index $j-\\frac{1}{3}$\n    and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "40f1f7e3-2f02-45c5-87b7-804293b2ff6c",
+          "first_seen": "2026-06-09T10:19:53+00:00",
+          "last_used": "2026-06-09T10:19:53+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6865,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me audit the tex block carefully.\n\nThe remark sets up: $G$ is a CADMG, $<$ is a topological order $v_1 < \\ldots < v_n$ on $J \\cup V$, and the construction assigns $v_j^0 \\mapsto j - 1/3$ and $v_j^1 \\mapsto j + 1/3$ for $v_j \\in W$, then orders by index value.\n\nKey facts from the surrounding context:\n- def_3_11: $W \\subseteq V$; the lifted edge for $(v_1, v_2) \\in E$ is $(v_1^1, v_2^0)$; transfer edge is $(w^0, w^1)$; bidirected edges all use the $^0$-superscript.\n- def_3_6: A CADMG has no directed self-loops on $V$.\n- def_3_8: A topological order is a strict total order on $J \\cup V$, indexable as $v_1 < \\ldots < v_K$.\n\nI see two literal-text subtleties worth recording.\n\nSUBTLETY:\nid: unsplit_nodes_implicit_index_retention\nexplanation: The remark explicitly describes new indices only for split copies: \"assigning for a node $v_j \\in W$ with index $j$ the node $v_j^0$ the index $j-\\frac{1}{3}$ and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\" But the node set of $G_{\\spl(W)}$ (per def 3.11) is $J \\cup (V \\setminus W) \\cup W^0 \\cup W^1$, and the remark says nothing about the indices of the unsplit nodes $v_j \\in J \\cup (V \\setminus W)$. The only interpretation that makes the construction well-defined is that such $v_j$ keeps its original index $j$ from the enumeration $v_1 < v_2 < \\cdots < v_n$, but that retention rule is left implicit.\n\nA pedantic reader applying the literal procedure would find unsplit nodes have no assigned index and would be unable to perform the final \"ordering all nodes according to their index value.\" The natural fix is a clause such as \"…and to each $v_j \\in (J \\cup V) \\setminus W$ the index $j$.\" Downstream formalisation needs to supply this clause.\n\nFor a corner case making the gap concrete: take $n = 2$, $W = \\{v_2\\}$. The remark assigns $v_2^0 \\mapsto 5/3$ and $v_2^1 \\mapsto 7/3$. The literal text gives no index for $v_1$, so the ordering relation between $v_1$ and the split copies is unspecified by what is written; only the implicit \"$v_1$ keeps index $1$\" recovers the correct order $v_1 < v_2^0 < v_2^1$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: orientation_convention_v0_below_v1\nexplanation: The construction's correctness rests on the convention $v_j^0 < v_j^1$ in the new order (since $j - 1/3 < j + 1/3$). This is consistent with def 3.11's orientation: in def 3.11, every incoming edge onto $w \\in W$ is reattached at $w^0$, every outgoing edge from $w$ leaves $w^1$, and the transfer edge is $(w^0, w^1)$. With those conventions, the transfer edge $w^0 \\tuh w^1$ requires $w^0$ to precede $w^1$, matching the index assignment.\n\nThe remark itself does not state this dependence on def 3.11's specific orientation. Under the opposite convention (where $w^0$ collects outgoing edges and $w^1$ collects incoming edges, transfer $w^1 \\tuh w^0$), the construction would produce an INVALID topological order—the transfer edge would point from the larger to the smaller index. A reader who imports an opposite mental model of \"split into copies\" from elsewhere in the literature would silently get the wrong construction.\n\nThis is a hidden cross-reference dependency: the remark is \"self-contained-looking\" but only because the specific subscript choice happens to match def 3.11.\nEND_SUBTLETY",
+        "session": "582a9f27-290b-40df-b760-79178e408607"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -968,30 +1074,32 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 4,
+        "continue_agent": 1,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -999,12 +1107,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 2,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\n   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:\n   \\[ \\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}  =  G_{\\spl(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "77fc4c55-c458-42e7-b319-9b7da8ac260c",
+          "first_seen": "2026-06-09T12:52:29+00:00",
+          "last_used": "2026-06-09T12:52:29+00:00"
+        }
+      ],
+      "time_needed_to_solve": 9101,
+      "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs.",
+      "wording_check": {
+        "done": true,
+        "output": "```\nSUBTLETY:\nid: cdmg_vs_cadmg_terminology_drift\nexplanation: The opening of the lemma declares \"Let $G=(J,V,E,L)$ be a CDMG\" and then the prose says \"the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$...\". Note the drift from \"CDMG\" to \"CADMG\" mid-sentence. Either (a) these are intended to be synonymous in the LN — in which case picking one consistently would help — or (b) one is a typo for the other. If node-splitting is meant to land in CADMGs (i.e., the result is always acyclic), then the input \"CDMG\" probably should have been \"CADMG\" too (or vice versa). Downstream, a formalizer who reads this literally has to decide which signature to use for `node_split` (CDMG → CDMG, CDMG → CADMG, or CADMG → CADMG).\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_subset_of_output_nodes_after_first_split\nexplanation: The hypothesis is \"$W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\" The iterated expression $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ then applies node-splitting to $W_2$ inside $G_{\\spl(W_1)}$, which only makes sense if $W_2$ is a subset of the output nodes of $G_{\\spl(W_1)}$ — not of the original $G$. Node-splitting typically removes the split nodes from $V$ and adds fresh \"split copies\" elsewhere, so after splitting $W_1$ the output-node set becomes something like $(V \\setminus W_1) \\cup \\text{copies}(W_1)$. Disjointness $W_1 \\cap W_2 = \\emptyset$ then *does* give $W_2 \\subseteq V \\setminus W_1 \\subseteq V_{\\spl(W_1)}$, so the iterated splitting *is* well-defined — but only conditional on the precise behavior of node-splitting in def_3_11. The lemma never states this well-definedness condition explicitly; it is left implicit in the hypothesis \"disjoint subsets of the output nodes\". A formalizer will need to discharge \"$W_2$ is still a subset of output nodes after splitting $W_1$\" as a side-condition, and this depends crucially on whether def_3_11 keeps the unsplit output nodes in the output set.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_or_singleton_disjoint_union_degenerate_cases\nexplanation: The right-hand side uses $W_1 \\dcup W_2$ (disjoint union). For the degenerate case $W_1 = \\emptyset$ (or $W_2 = \\emptyset$), the lemma reduces to $G_{\\spl(\\emptyset)})_{\\spl(W_2)} = G_{\\spl(W_2)} = G_{\\spl(\\emptyset \\dcup W_2)}$, which requires $G_{\\spl(\\emptyset)} = G$ — i.e., node-splitting the empty set is the identity. This is presumably true, but it is not stated in this lemma's text; the lemma silently assumes it. Similarly, the lemma says nothing about whether \"disjoint\" allows $W_1 = W_2 = \\emptyset$ (vacuously disjoint). A literal reader could ask whether the lemma is vacuous in those cases, or whether the author intended $W_1, W_2$ to be nonempty.\nEND_SUBTLETY\n```",
+        "session": "48a24061-bd32-4442-bda1-6568d4eda46e"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1012,30 +1136,32 @@
       "section": "3.2",
       "title": "DisjointHardInterventions",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1043,12 +1169,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes of $G$.\n   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "693ac190-b6cc-4767-8254-c9a4f0582d54",
+          "first_seen": "2026-06-09T14:22:11+00:00",
+          "last_used": "2026-06-09T14:22:11+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5231,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "NO_SUBTLETIES",
+        "session": "58b791f0-6ac3-4fba-b0a3-c5ae55415a02"
+      }
     },
     {
       "def_or_claim": "def",
@@ -1268,7 +1410,7 @@
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block."
     },
     {
       "def_or_claim": "def",
@@ -1312,7 +1454,7 @@
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Extending CDMGs with intervention nodes]\\label{def:cdmg_intervention_nodes}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{extended CDMG} of $G$ w.r.t.\\ nodes $W \\ins J \\cup V$  and corresponding \\emph{intervention nodes} \n%  $I_W = \\{I_w \\,|\\, w \\in W\\}$ \\Joris{with $I_j:=j$ for $j \\in J$},\n  $I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$,\n  is the CDMG: \n  \\[ G_{\\doit(I_W)}:=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  %\\[G(V|\\doit(J \\dcup I_W)):=G_{\\doit(I_W)}=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n%      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\Joris{\\sm J} \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $V_{\\doit(I_W)}:= V$,\n      \\item $E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$,\n      \\item $L_{\\doit(I_W)}:= L$,\n  \\end{enumerate}\n%  where we just add \\Joris{nodes $I_w$ for $w \\in W \\sm J$ and} edges $I_w \\tuh w$ for $ w \\in W \\sm J$. \n  where we just add nodes $I_w$ for $w \\in W \\sm J$ and edges $I_w \\tuh w$ for $ w \\in W \\sm J$.\n\\end{Def}\n\\end{defmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it."
     },
     {
       "def_or_claim": "claim",
@@ -1400,7 +1542,7 @@
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]\n    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\doit(I_{W_1})} \n      =  G_{\\doit(I_{W_1 \\cup W_2})}. \\]\n      We also have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\n   % So there is not ambiguity in the following notations and identifications:\n   % \\[ G(V|\\doit(J\\cup I_{W_1} \\cup I_{W_2})) = G(V|\\doit(J\\cup I_{W_1 \\cup W_2})),\n   % \\qquad G(V\\sm W_2|\\doit(W_2 \\cup J\\cup I_{W_1})).\\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations."
     },
     {
       "def_or_claim": "claim",

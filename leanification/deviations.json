@@ -1,0 +1,19 @@
+[
+  {
+    "id": "hard_intervention_l_symmetrized_removal",
+    "introduced_by_ref": "def_3_10",
+    "breaks": "LN item iv.'s literal one-sided filter `L_{do(W)} := L ∖ { (v_1,v_2) ∈ L | v_2 ∈ W }`; mirror pairs `(w, v)` with `w ∈ W` and `v ∉ W` are kept by the literal LN reading but dropped by the Lean's two-sided filter `e.1 ∉ W ∧ e.2 ∉ W`.",
+    "preserves": "The LN's natural-language gloss \"remove all edges into nodes from W\" read symmetrically (= remove every bidirected edge with at least one endpoint in W); the closure-under-symmetry axiom `hL_symm` on the resulting CDMG; the intended symmetric semantics of the `\\huh` notation declared in `def-not-cdmg`.",
+    "at_risk_pattern": "hardInterventionOn.*\\.L membership reads that assume the LN-literal one-sided rule \"only the second component matters\"; case-splits on which endpoint of a bidirected edge lies in W under an intervention; any new CDMG-constructing operator that filters L by an endpoint predicate. Grep targets: `hardInterventionOn`, `\\\\huh.*\\\\doit`, `L_\\{\\\\doit(`, `bidirected.*intervention`.",
+    "tags": [
+      "bidirected_edges",
+      "symmetry_forced",
+      "def_3_1_encoding",
+      "hard_intervention",
+      "item_iv",
+      "manager-accepted"
+    ],
+    "notes": "Forced by `def_3_1`'s storage convention — L is a `Finset (Node × Node)` with a separate `hL_symm : ∀ {v1 v2}, (v1, v2) ∈ L → (v2, v1) ∈ L` axiom. The literal LN formula filters by the second component only; applied to a symmetric L this leaves a non-symmetric residue (mirror pair `(w, v)` survives while `(v, w)` is removed), which cannot be packaged as a CDMG.L field without violating `hL_symm`. The verifier's `verify_with_examples` worker confirmed the divergence on a concrete two-node instance (G2 over Fin 2, L = {(0,1),(1,0)}, W = {1}: LN-literal gives {(1,0)}, Lean gives ∅). The symmetric reading is what the LN's own natural-language gloss endorses, and is the only reading consistent with `def_3_1`'s `hL_symm`. The rewritten canonical tex (`def_3_10_HardInterventionOn.tex`) makes the deviation explicit in its \"Remark on item iv. and the symmetry of L\" paragraph. Downstream consumers (do-calculus, ch. 5+; iSCM intervention algebra, ch. 8+; `claim_3_18` marginalisation-intervention interaction) inherit the symmetric semantics, which is what mathematical practice in the LN actually uses. No purely-bidirected lemma should depend on the literal one-sided form; if one does, that is the place to revisit. The deviation is structural (forced by upstream encoding choice in `def_3_1`), not a local choice that could be undone without a chapter-wide refactor of L's storage representation.",
+    "introduced_at": "2026-06-08"
+  }
+]
