@@ -26,18 +26,211 @@
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}[SplitTopologicalOrder]
-    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
-    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
-    \[ v_1 < v_2 < \cdots < v_n,\]
-    then, for instance, 
-    a topological order for $G_{\spl(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
-    $v_j^0$ the index $j-\frac{1}{3}$
-    and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+    Let $G = (J, V, E, L)$ be a CADMG, i.e.\ a CDMG (def \ref{def-cdmg}) that is acyclic in the sense of def \ref{def-acylic} (equivalently, $G$ satisfies the attribute ``CADMG'' of def \ref{def-cdmg-types}, item~i.); throughout we use the notation of def \ref{not-cdmg}, the family-relationship notation of def \ref{def_3_5}, the topological-order definition of def \ref{def-topological-order}, and the node-splitting construction of def \ref{def:G_node-splitting}. Let
+    \[ W \ins V \]
+    be a subset of the output-node set of $G$, and let
+    \[ G_{\spl(W)} \;=\; \lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)}, L_{\spl(W)} \rp \]
+    be the node-split graph of $G$ w.r.t.\ $W$ as constructed in def \ref{def:G_node-splitting}. Both quantifiers ``for every CADMG $G$'' and ``for every $W \ins V$'' are read \emph{universally}, with the side condition $W \ins V$ inherited verbatim from def \ref{def:G_node-splitting}; the case $W = \emptyset$ is admitted (then $W^0 = W^1 = \emptyset$ and $G_{\spl(W)} = G$ by items i.--iv.\ of def \ref{def:G_node-splitting}).
+
+    \emph{Carrier of $G_{\spl(W)}$.} By items i.\ and ii.\ of def \ref{def:G_node-splitting},
+    \[
+        J_{\spl(W)} \cup V_{\spl(W)} \;=\; J \cup (V \sm W) \dcup W^0 \dcup W^1,
+    \]
+    where $W^0 := \lC w^0 \st w \in W \rC$ and $W^1 := \lC w^1 \st w \in W \rC$ are the two tagged copies of $W$ introduced in def \ref{def:G_node-splitting}. The four constituents $J$, $V \sm W$, $W^0$, $W^1$ are pairwise type-level disjoint by def \ref{def:G_node-splitting}: $J \cap V = \emptyset$ (def \ref{def-cdmg}), $(V \sm W) \cap W = \emptyset$, and the tagged copies $W^0$, $W^1$ are formally distinct from each element of $J \cup V$ and from each other ($W^0 \cap W^1 = \emptyset$, $w^0 \neq w^1$ for every $w \in W$).
+
+    \emph{Finiteness and indexing of $J \cup V$.} By def \ref{def-cdmg} items~i.--ii., the set $J \cup V$ is finite; set
+    \[ n \;:=\; |J \cup V|. \]
+
+    \emph{The remark.} The following conjunction of sub-claims holds.
+
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{$G_{\spl(W)}$ is acyclic.}
+              The CDMG $G_{\spl(W)}$ is acyclic in the sense of def \ref{def-acylic}, i.e.\ for every $x \in J_{\spl(W)} \cup V_{\spl(W)} = J \cup (V \sm W) \dcup W^0 \dcup W^1$, there does not exist any non-trivial directed walk from $x$ to itself in $G_{\spl(W)}$.
+
+        \item \emph{An explicit topological order on $G_{\spl(W)}$ obtained from any topological order on $G$.}
+              For every topological order $<$ of $G$ in the sense of def \ref{def-topological-order}, presented in the equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form'') as a bijection
+              \[
+                  \{1, 2, \dots, n\} \;\longrightarrow\; J \cup V, \qquad i \;\longmapsto\; v_i,
+              \]
+              with $v_1 < v_2 < \cdots < v_n$ (so that ``parents precede children'' holds in this enumeration: $v_i \in \Pa^G(v_j) \Rightarrow i < j$), the binary relation $<_{\spl}$ on $J_{\spl(W)} \cup V_{\spl(W)}$ defined below is a topological order of $G_{\spl(W)}$ in the sense of def \ref{def-topological-order}.
+
+              \emph{Index map.}
+              Define the index map
+              \[ \phi \,:\, J_{\spl(W)} \cup V_{\spl(W)} \;\longrightarrow\; \Q \]
+              by case analysis on the disjoint-union carrier $J \cup (V \sm W) \dcup W^0 \dcup W^1$:
+              \begin{itemize}
+                  \item \emph{Unsplit nodes retain their original index.}
+                        For every $x \in J \cup (V \sm W)$, write $x = v_j$ with $j \in \{1, 2, \dots, n\}$ the unique index given by the enumeration of $J \cup V$ above, and put
+                        \[ \phi(x) \;:=\; j. \]
+                  \item \emph{Tagged copies of $W$ are placed symmetrically around the original index.}
+                        For every $w \in W$, write $w = v_j$ with $j \in \{1, 2, \dots, n\}$ the unique index given by the enumeration of $J \cup V$ above, and put
+                        \[
+                            \phi(w^0) \;:=\; j - \tfrac{1}{3}, \qquad \phi(w^1) \;:=\; j + \tfrac{1}{3}.
+                        \]
+              \end{itemize}
+
+              \emph{Order from index map.}
+              Define
+              \[
+                  x \;<_{\spl}\; y \quad :\Longleftrightarrow\quad \phi(x) \,<\, \phi(y) \qquad \text{for } x, y \in J_{\spl(W)} \cup V_{\spl(W)},
+              \]
+              where the right-hand inequality is the standard strict order on $\Q$.
+    \end{enumerate}
+
+    \emph{Where each clause of the LN's prose lands.}
+    The LN's clauses ``$v_j^0$ the index $j - \tfrac{1}{3}$'' and ``$v_j^1$ the index $j + \tfrac{1}{3}$'' for $v_j \in W$ are the second bullet of the index map above. The LN's closing prose ``and then ordering all nodes according to their index value'' is the definition of $<_{\spl}$ from $\phi$ via the strict order on $\Q$. The first bullet of the index map -- ``unsplit nodes $v_j \in J \cup (V \sm W)$ retain index $j$'' -- is the rule the LN leaves implicit: the LN's literal text assigns indices only to the tagged copies $v_j^0$, $v_j^1$ of split nodes $v_j \in W$ and says nothing about the indices of $v_j \in J \cup (V \sm W)$, but the closing instruction ``order all nodes according to their index value'' is well-defined on the carrier $J_{\spl(W)} \cup V_{\spl(W)}$ only if the unsplit nodes also carry an index. The natural and only-consistent reading is that the original index $j$ is retained for unsplit nodes; the first bullet records this retention rule explicitly.
+
+    \emph{Compatibility of the tagging convention with def \ref{def:G_node-splitting}.}
+    For every $w \in W$ with $w = v_j$, $\phi(w^0) = j - \tfrac{1}{3} < j + \tfrac{1}{3} = \phi(w^1)$, so $w^0 <_{\spl} w^1$. This is consistent with item iii.\ of def \ref{def:G_node-splitting}: that item adds the \emph{transfer} edge $(w^0, w^1) \in E_{\spl(W)}$ for every $w \in W$, i.e.\ $w^0 \in \Pa^{G_{\spl(W)}}(w^1)$ in the sense of def \ref{def_3_5}, item~i., and the parent-precedence clause of def \ref{def-topological-order} for $G_{\spl(W)}$ then demands precisely $w^0 <_{\spl} w^1$. (Under the opposite tagging convention -- transfer edge $(w^1, w^0)$, incoming edges into $w$ reattached at $w^1$, outgoing edges out of $w$ leaving $w^0$ -- the symmetric index assignment ``$j - \tfrac{1}{3}$ for the $^0$-copy and $j + \tfrac{1}{3}$ for the $^1$-copy'' would not produce a topological order; sub-claim~(b) is correct as stated precisely because the index choice matches def \ref{def:G_node-splitting}'s tagging convention.)
+
+    \emph{Role of the CADMG (acyclicity) precondition.}
+    The construction of def \ref{def:G_node-splitting} on its own does not preserve acyclicity from $G$ to $G_{\spl(W)}$: if $(w, w) \in E$ for some $w \in W$, then the first set-builder in item iii.\ of def \ref{def:G_node-splitting} adds the lifted directed edge $(w^1, w^0) \in E_{\spl(W)}$, which together with the transfer edge $(w^0, w^1) \in E_{\spl(W)}$ realises a length-$2$ directed cycle $w^0 \to w^1 \to w^0$ in $G_{\spl(W)}$ (cf.\ the closing paragraph ``Self-loops on $W$ produce $2$-cycles, and $G_{\spl(W)}$ is still a CDMG'' of def \ref{def:G_node-splitting}). The CADMG hypothesis on $G$ -- i.e.\ acyclicity of $G$ in the sense of def \ref{def-acylic} -- rules this hazard out: by the consequence ``no directed self-loops on output nodes'' established in def \ref{def-acylic}, an acyclic CDMG has $(v, v) \notin E$ for every $v \in V$, and in particular $(w, w) \notin E$ for every $w \in W \ins V$. Thus the directed-edge set $E_{\spl(W)}$ is free of the $2$-cycle hazard of def \ref{def:G_node-splitting}, which is what allows sub-claim~(a) to hold. The bidirected-edge set $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic}) is defined via the non-existence of non-trivial directed walks (which use only $E$), and a topological order (def \ref{def-topological-order}) is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which is defined from $E$ alone).
 \end{Rem}
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+% The LN's claim_3_6 block in lecture-notes/lecture_notes/graphs.tex:444--455
+% is a \begin{Rem} that only describes the construction (the $j \pm 1/3$
+% index map) and does NOT contain a \begin{proof} block. We therefore
+% construct the proof from scratch, in the LN paradigm.
+%
+% Strategy: prove (b) first via two key lemmas about the index map $\phi$
+% -- (i) $\phi$ is injective, (ii) $\phi$ is strictly increasing along
+% every directed edge of $G_{\spl(W)}$ -- and then derive (a) as an
+% immediate corollary of (ii) via the standard cycle-vs-strict-increase
+% contradiction.
+
+We prove the two sub-claims in the order (b), then (a). Sub-claim~(a) is derived from the same key lemma about the index map $\phi$ that drives sub-claim~(b): that $\phi$ is strictly increasing along every directed edge of $G_{\spl(W)}$. Throughout the proof we use the explicit form of the carrier and edge set of $G_{\spl(W)}$ given in def \ref{def:G_node-splitting}, namely
+\[
+    J_{\spl(W)} \cup V_{\spl(W)} \;=\; J \cup (V \sm W) \dcup W^0 \dcup W^1
+\]
+(items i.\ and ii.\ of def \ref{def:G_node-splitting}, type-level disjoint by the tagged construction recalled in the statement block above), and
+\[
+    E_{\spl(W)} \;=\; \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E \rC \;\cup\; \lC (w^0, w^1) \st w \in W \rC
+\]
+(item iii.\ of def \ref{def:G_node-splitting}, the two set-builders being respectively the \emph{lifted} and the \emph{transfer} edges). The bidirected-edge set $L_{\spl(W)}$ plays no role in either sub-claim, for the reason recorded in the closing paragraph of the statement block above (acyclicity, def \ref{def-acylic}, and topological orders, def \ref{def-topological-order}, are both defined from $E$ alone).
+
+Fix once and for all an enumeration $\{1, 2, \dots, n\} \to J \cup V$, $i \mapsto v_i$, of the carrier of $G$ as in the statement of sub-claim~(b), and let $\phi : J_{\spl(W)} \cup V_{\spl(W)} \to \Q$ be the index map defined there. For $x \in J \cup (V \sm W)$, the unique $j \in \{1, \dots, n\}$ with $x = v_j$ exists by bijectivity of the enumeration; for $w \in W$, the unique $j \in \{1, \dots, n\}$ with $w = v_j$ exists for the same reason. Hence $\phi$ is well-defined on the disjoint-union carrier $J \cup (V \sm W) \dcup W^0 \dcup W^1$ by the two-bullet case analysis: every $x \in J_{\spl(W)} \cup V_{\spl(W)}$ lies in exactly one of the four constituents and the corresponding bullet supplies $\phi(x)$ unambiguously.
+
+\medskip\noindent\emph{(0) Lemma: $\phi$ is injective.}
+Let $x, y \in J_{\spl(W)} \cup V_{\spl(W)}$ with $\phi(x) = \phi(y)$; we show $x = y$ by case analysis on which of the four constituents each of $x$ and $y$ lies in.
+
+By the definition of $\phi$ via the two bullets and the disjointness of $J \cup (V \sm W)$, $W^0$, $W^1$, the value $\phi(x)$ lies in:
+\begin{itemize}
+    \item $\{1, 2, \dots, n\} \subseteq \Z$ if $x \in J \cup (V \sm W)$ (first bullet);
+    \item $\{j - \tfrac{1}{3} : j \in \{1, \dots, n\}\} \subseteq \Z - \tfrac{1}{3}$ if $x \in W^0$ (second bullet, $^0$-half);
+    \item $\{j + \tfrac{1}{3} : j \in \{1, \dots, n\}\} \subseteq \Z + \tfrac{1}{3}$ if $x \in W^1$ (second bullet, $^1$-half);
+\end{itemize}
+and analogously for $\phi(y)$. The three target sets are pairwise disjoint in $\Q$: an integer $j \in \Z$ is never of the form $k - \tfrac{1}{3}$ or $k + \tfrac{1}{3}$ for any integer $k$ (since $\tfrac{1}{3} \notin \Z$), and $j - \tfrac{1}{3} = k + \tfrac{1}{3}$ would force $j - k = \tfrac{2}{3}$, impossible for $j, k \in \Z$. Hence $\phi(x) = \phi(y)$ already forces $x$ and $y$ to lie in the \emph{same} constituent. We consider the three possible such constituents.
+
+\emph{Case 1: $x, y \in J \cup (V \sm W)$.} Write $x = v_{j_x}$ and $y = v_{j_y}$ with $j_x, j_y \in \{1, \dots, n\}$. Then $\phi(x) = j_x$ and $\phi(y) = j_y$ by the first bullet, so $\phi(x) = \phi(y)$ gives $j_x = j_y$, and bijectivity of the enumeration $i \mapsto v_i$ then gives $v_{j_x} = v_{j_y}$, i.e.\ $x = y$.
+
+\emph{Case 2: $x, y \in W^0$.} Write $x = w_x^0$ and $y = w_y^0$ with $w_x, w_y \in W$, and let $j_x, j_y \in \{1, \dots, n\}$ be such that $w_x = v_{j_x}$ and $w_y = v_{j_y}$. Then $\phi(x) = j_x - \tfrac{1}{3}$ and $\phi(y) = j_y - \tfrac{1}{3}$ by the second bullet, so $\phi(x) = \phi(y)$ gives $j_x = j_y$, hence $w_x = v_{j_x} = v_{j_y} = w_y$, and finally $x = w_x^0 = w_y^0 = y$ (injectivity of $w \mapsto w^0$, def \ref{def:G_node-splitting}).
+
+\emph{Case 3: $x, y \in W^1$.} Symmetric to Case~2, with $w^1$ in place of $w^0$ and $j + \tfrac{1}{3}$ in place of $j - \tfrac{1}{3}$ throughout.
+
+In each case $x = y$, completing the proof of injectivity of $\phi$.
+
+\medskip\noindent\emph{(1) Lemma: $\phi$ is strictly increasing along every directed edge of $G_{\spl(W)}$.}
+We show that for every $(x, y) \in E_{\spl(W)}$,
+\[
+    \phi(x) \;<\; \phi(y).
+\]
+By the explicit form of $E_{\spl(W)}$ recalled above (item iii.\ of def \ref{def:G_node-splitting}), every $(x, y) \in E_{\spl(W)}$ is either a \emph{lifted} edge $(x, y) = (v_1^1, v_2^0)$ arising from some $(v_1, v_2) \in E$, or a \emph{transfer} edge $(x, y) = (w^0, w^1)$ arising from some $w \in W$. We handle the two cases.
+
+\emph{Case T (transfer edge).} If $(x, y) = (w^0, w^1)$ for some $w \in W$, write $w = v_j$ with $j \in \{1, \dots, n\}$. By the second bullet of the index map,
+\[
+    \phi(x) \;=\; \phi(w^0) \;=\; j - \tfrac{1}{3} \;<\; j + \tfrac{1}{3} \;=\; \phi(w^1) \;=\; \phi(y),
+\]
+using $-\tfrac{1}{3} < +\tfrac{1}{3}$ in $\Q$. (This case does not use the topological-order hypothesis on $<$ at all; the transfer edge is hard-wired into the construction of def \ref{def:G_node-splitting}, and the symmetric placement $j \pm \tfrac{1}{3}$ of the two tagged copies around the original index $j$ encodes its direction.)
+
+\emph{Case L (lifted edge).} If $(x, y) = (v_1^1, v_2^0)$ for some $(v_1, v_2) \in E$, write $v_1 = v_{j_1}$ and $v_2 = v_{j_2}$ with $j_1, j_2 \in \{1, \dots, n\}$ (using the typing $E \ins (J \cup V) \times V$ of def \ref{def-cdmg}, item~iii., so that both endpoints lie in $J \cup V$ and the enumeration applies to each).
+
+Since $(v_1, v_2) \in E$, the set-builder definition of the parent set in $G$ (def \ref{def_3_5}, item~i.) gives $v_1 \in \Pa^G(v_2)$. The hypothesis that $<$ is a topological order of $G$ (def \ref{def-topological-order}), unwound in its equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form''), then yields
+\[
+    j_1 \;<\; j_2 \qquad \text{in } \{1, 2, \dots, n\} \ins \Z.
+\]
+Since $j_1, j_2$ are integers, $j_1 < j_2$ implies $j_2 - j_1 \ge 1$.
+
+We now bound $\phi(v_1^1)$ from above and $\phi(v_2^0)$ from below by case analysis on the membership of $v_1$ and $v_2$ in $W$, using the shorthand-and-tag convention of def \ref{def:G_node-splitting} (recalled in the lifted-edge bullets of item iii.\ of def \ref{def:G_node-splitting}):
+\begin{itemize}
+    \item For the \emph{source} $v_1^1$: if $v_1 \in W$, then $v_1^1 \in W^1$ is the tagged copy and $\phi(v_1^1) = j_1 + \tfrac{1}{3}$ by the second bullet of the index map; if $v_1 \in J \cup (V \sm W)$, then $v_1^1 = v_1$ (the shorthand for unsplit nodes, def \ref{def:G_node-splitting}) and $\phi(v_1^1) = \phi(v_1) = j_1$ by the first bullet. In either subcase,
+        \[
+            \phi(v_1^1) \;\le\; j_1 + \tfrac{1}{3}.
+        \]
+    \item For the \emph{target} $v_2^0$: by def \ref{def-cdmg}, item~iii., the second endpoint of every directed edge in $E$ lies in $V$, so $v_2 \in V$, and the dichotomy $v_2 \in W$ vs.\ $v_2 \in V \sm W$ is exhaustive. If $v_2 \in W$, then $v_2^0 \in W^0$ is the tagged copy and $\phi(v_2^0) = j_2 - \tfrac{1}{3}$ by the second bullet; if $v_2 \in V \sm W$, then $v_2^0 = v_2$ (the shorthand for unsplit nodes) and $\phi(v_2^0) = \phi(v_2) = j_2$ by the first bullet. In either subcase,
+        \[
+            \phi(v_2^0) \;\ge\; j_2 - \tfrac{1}{3}.
+        \]
+\end{itemize}
+
+Combining the two displayed bounds with $j_2 - j_1 \ge 1$,
+\[
+    \phi(v_1^1) \;\le\; j_1 + \tfrac{1}{3}
+                \;=\; j_2 - \bigl( (j_2 - j_1) - \tfrac{1}{3} \bigr)
+                \;\le\; j_2 - \bigl( 1 - \tfrac{1}{3} \bigr)
+                \;=\; j_2 - \tfrac{2}{3}
+                \;<\; j_2 - \tfrac{1}{3}
+                \;\le\; \phi(v_2^0),
+\]
+where the strict inequality $j_2 - \tfrac{2}{3} < j_2 - \tfrac{1}{3}$ is $-\tfrac{2}{3} < -\tfrac{1}{3}$ in $\Q$. Hence $\phi(x) = \phi(v_1^1) < \phi(v_2^0) = \phi(y)$.
+
+In both cases T and L, $\phi(x) < \phi(y)$, completing the proof of Lemma~(1).
+
+\medskip\noindent\emph{Proof of sub-claim (b): $<_{\spl}$ is a topological order of $G_{\spl(W)}$.}
+
+By def \ref{def-topological-order}, we must verify that $<_{\spl}$ is a strict total order on $J_{\spl(W)} \cup V_{\spl(W)}$ -- i.e.\ irreflexive, transitive, and trichotomous on that carrier -- and that the parent-precedence clause
+\[
+    \forall\, x, y \in J_{\spl(W)} \cup V_{\spl(W)} :\quad x \in \Pa^{G_{\spl(W)}}(y) \;\Longrightarrow\; x <_{\spl} y
+\]
+holds.
+
+\emph{Strict total order on $J_{\spl(W)} \cup V_{\spl(W)}$.} By definition, $x <_{\spl} y \Leftrightarrow \phi(x) < \phi(y)$, with the right-hand $<$ the standard strict order on $\Q$. The standard strict order on $\Q$ is irreflexive, transitive, and trichotomous on $\Q$; we transfer each property to $<_{\spl}$ on $J_{\spl(W)} \cup V_{\spl(W)}$ via the map $\phi : J_{\spl(W)} \cup V_{\spl(W)} \to \Q$.
+\begin{itemize}
+    \item \emph{Irreflexivity.} For every $x \in J_{\spl(W)} \cup V_{\spl(W)}$, $\phi(x) < \phi(x)$ is false in $\Q$ (irreflexivity of $<$ on $\Q$). Hence $x <_{\spl} x$ is false.
+    \item \emph{Transitivity.} For $x, y, z \in J_{\spl(W)} \cup V_{\spl(W)}$ with $x <_{\spl} y$ and $y <_{\spl} z$, we have $\phi(x) < \phi(y)$ and $\phi(y) < \phi(z)$ in $\Q$, hence $\phi(x) < \phi(z)$ by transitivity of $<$ on $\Q$, i.e.\ $x <_{\spl} z$.
+    \item \emph{Trichotomy.} For $x, y \in J_{\spl(W)} \cup V_{\spl(W)}$, trichotomy of $<$ on $\Q$ applied to $\phi(x), \phi(y)$ gives one of the three alternatives
+        \[
+            \phi(x) < \phi(y), \quad \phi(x) = \phi(y), \quad \phi(y) < \phi(x).
+        \]
+        The middle alternative $\phi(x) = \phi(y)$ implies $x = y$ by Lemma~(0). The other two alternatives say $x <_{\spl} y$ and $y <_{\spl} x$ respectively. Hence one of $x <_{\spl} y$, $x = y$, $y <_{\spl} x$ holds for every pair $x, y \in J_{\spl(W)} \cup V_{\spl(W)}$.
+\end{itemize}
+This verifies that $<_{\spl}$ is a strict total order on $J_{\spl(W)} \cup V_{\spl(W)}$.
+
+\emph{Parent-precedence.} Let $x, y \in J_{\spl(W)} \cup V_{\spl(W)}$ with $x \in \Pa^{G_{\spl(W)}}(y)$. By the set-builder definition of the parent set (def \ref{def_3_5}, item~i.) applied to the CDMG $G_{\spl(W)}$,
+\[
+    \Pa^{G_{\spl(W)}}(y) \;=\; \lC u \in J_{\spl(W)} \cup V_{\spl(W)} \,\big|\, (u, y) \in E_{\spl(W)} \rC,
+\]
+so $(x, y) \in E_{\spl(W)}$. By Lemma~(1), $\phi(x) < \phi(y)$, i.e.\ $x <_{\spl} y$.
+
+Both conjuncts of def \ref{def-topological-order} are verified for $<_{\spl}$ on the CDMG $G_{\spl(W)}$, so $<_{\spl}$ is a topological order of $G_{\spl(W)}$, establishing sub-claim~(b).
+
+\medskip\noindent\emph{Proof of sub-claim (a): $G_{\spl(W)}$ is acyclic.}
+
+Sub-claim~(a) makes no reference to any choice of topological order, so the index map $\phi$ used in Lemmas~(0)--(1) above is not provided by the hypotheses of (a) alone. We obtain one as follows. Since $G$ is a CADMG, $G$ is acyclic in the sense of def \ref{def-acylic}; by the $\Rightarrow$ direction of \refrow{claim_3_2} applied to $G$, there exists at least one topological order of $G$ in the sense of def \ref{def-topological-order}. Fix any such order $<$ and present it in its equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form'') as a bijection $\{1, 2, \dots, n\} \to J \cup V$, $i \mapsto v_i$, with $v_1 < v_2 < \cdots < v_n$. With this $<$ and this enumeration in hand, build the index map $\phi : J_{\spl(W)} \cup V_{\spl(W)} \to \Q$ exactly as in the statement of sub-claim~(b), and apply Lemma~(1) (whose statement and proof only require that $<$ is some topological order of $G$): for every $(x, y) \in E_{\spl(W)}$,
+\[
+    \phi(x) \;<\; \phi(y).
+\]
+
+We now argue by contradiction. Suppose, for contradiction, that $G_{\spl(W)}$ admits a non-trivial directed walk from some node to itself, i.e.\ (in the sense of def \ref{def:walks}, item~ii., and def \ref{def-acylic}) a tuple
+\[
+    p \;=\; (x_0, a_0, x_1, a_1, \dots, a_{k-1}, x_k)
+\]
+with $k \ge 1$, $x_0 = x_k \in J_{\spl(W)} \cup V_{\spl(W)}$, each $x_i \in J_{\spl(W)} \cup V_{\spl(W)}$, and each $a_i = (x_i, x_{i+1}) \in E_{\spl(W)}$.
+
+By Lemma~(1) applied to each edge $a_i = (x_i, x_{i+1}) \in E_{\spl(W)}$,
+\[
+    \phi(x_0) \;<\; \phi(x_1) \;<\; \phi(x_2) \;<\; \cdots \;<\; \phi(x_k),
+\]
+hence $\phi(x_0) < \phi(x_k)$ by $k \ge 1$ applications of strict transitivity of $<$ on $\Q$ (the chain is non-degenerate since $k \ge 1$ supplies at least one strict step). But $x_0 = x_k$, so $\phi(x_0) = \phi(x_k)$, contradicting the strict inequality $\phi(x_0) < \phi(x_k)$ via irreflexivity of $<$ on $\Q$.
+
+No such walk $p$ can exist, so $G_{\spl(W)}$ is acyclic in the sense of def \ref{def-acylic}, establishing sub-claim~(a).
+
+\medskip\noindent\emph{Remark on an alternative derivation of (a) as a corollary of (b).}
+Once sub-claim~(b) is established, sub-claim~(a) admits a one-line derivation: pick any topological order $<$ of $G$ (which exists by the $\Rightarrow$ direction of \refrow{claim_3_2}, since $G$ is acyclic by the CADMG hypothesis); by (b), $<_{\spl}$ is a topological order of $G_{\spl(W)}$; and then the $\Leftarrow$ direction of \refrow{claim_3_2} applied to the CDMG $G_{\spl(W)}$ (which is a CDMG by the construction and consistency check of def \ref{def:G_node-splitting}) yields acyclicity of $G_{\spl(W)}$. Our direct proof of (a) above is the unwinding of this corollary at the level of the index map $\phi$: it makes the chain $\phi(x_0) < \cdots < \phi(x_k)$ explicit instead of bundling it inside the proof of \refrow{claim_3_2}. The two arguments are equivalent; we have presented the direct version because it makes the index-map $\phi$ the single shared mechanism behind both sub-claims.
+
+\medskip\noindent\emph{Closing remark on the role of the CADMG hypothesis.}
+The CADMG hypothesis on $G$ -- i.e.\ acyclicity of $G$ in the sense of def \ref{def-acylic} -- enters the proof of (a) as the precondition for invoking the $\Rightarrow$ direction of \refrow{claim_3_2} to obtain a topological order $<$ of $G$; sub-claim~(b), in contrast, only uses that the supplied $<$ \emph{is} a topological order, not the acyclicity hypothesis on $G$ directly. The structural hazard flagged in the closing paragraph of the statement block above -- a self-loop $(w, w) \in E$ on some $w \in W$ producing the $2$-cycle $w^0 \to w^1 \to w^0$ in $G_{\spl(W)}$ -- is ruled out by the same hypothesis: the ``no directed self-loops on output nodes'' consequence of def \ref{def-acylic} gives $(w, w) \notin E$ for every $w \in W \ins V$, so the lifted edge $(w^1, w^0)$ never enters $E_{\spl(W)}$. Consistently with this, were $(w, w) \in E$ to hold for some $w \in W$, Case~L of Lemma~(1) applied to the lifted edge $(w^1, w^0)$ would demand $j_1 < j_2$ for $j_1 = j_2 = j$ (the index of $w = v_j$), which is false; the CADMG hypothesis is precisely what prevents this incoherence from arising upstream.
 \end{proof}
 
 \end{document}

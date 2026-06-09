@@ -12,6 +12,34 @@ loop has moved on to a later row.
 
 Used by the user to drive partial solving runs (e.g. "finish section 3.2
 + the first row of 3.3, then stop").
+
+----------------------------------------------------------------------
+SAFE STOP SIGNAL — operators driving via a monitor / live tail
+----------------------------------------------------------------------
+
+After each iteration's ``solve_current_row()`` returns, this driver emits:
+
+    [run_until] === iteration <N> complete: <ref> ... — safe to stop now ===
+
+That line is the **only guaranteed safe point** to interrupt a
+``run_until.py`` batch. By the time it prints, the orchestrator has:
+
+  - written ``solved=yes`` to data.json (if applicable),
+  - regenerated the chapter aggregator + section main.tex,
+  - cleaned the row's workspace + agent_registry,
+  - compiled the row's tex files,
+  - dispatched the for_website worker,
+  - flushed data.json + time tracker,
+  - run ``build_and_commit.sh`` (lake build → git commit → git push),
+
+so no Lean / tex / git operation is in-flight. Killing here is clean.
+
+The earlier ``[orchestrator] <ref> marked solved (...)`` log line is
+NOT a safe stop point — ``commit_solved_row`` runs *after* it. A
+SIGPIPE / kill caught between "marked solved" and the
+"iteration complete" line will interrupt the commit step, leaving
+``data.json`` updated but the row uncommitted (recoverable by re-
+running ``scaffold/build_and_commit.sh "<message>"`` once).
 """
 
 from __future__ import annotations
@@ -78,6 +106,16 @@ def main(argv: list[str]) -> int:
         except Exception as e:  # noqa: BLE001
             print(f"[run_until] solve_current_row raised: {e}", flush=True)
             return 1
+
+        # Safe-to-stop signal — see the module docstring at the top of this
+        # file for the rationale. By the time this prints, the orchestrator's
+        # commit_solved_row has either succeeded or fully failed-and-logged;
+        # no subprocess is in flight and the working tree is in a known state.
+        print(f"[run_until] === iteration {iteration} complete: "
+              f"{first_unsolved['ref']} (section "
+              f"{first_unsolved.get('section')}, "
+              f"{first_unsolved.get('def_or_claim')}) — safe to stop now ===",
+              flush=True)
 
         # No-progress safety: stop if the *same* row is still the chapter's
         # first unsolved. Comparing by `ref` so a `reorder` action that

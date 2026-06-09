@@ -68,6 +68,19 @@ def main(argv: list[str]) -> int:
             print(f"[run_section] solve_current_row raised: {e}", flush=True)
             return 1
 
+        # Safe-to-stop signal — by the time this prints, the orchestrator's
+        # commit_solved_row has either succeeded or fully failed-and-logged;
+        # no subprocess is in flight, and the working tree is in a known
+        # state. Operators piping this driver through a live monitor should
+        # use this line (NOT the earlier "marked solved" event) as the
+        # SIGPIPE / TaskStop trigger. See run_until.py's module docstring
+        # for the full post-mark_solved sequence and rationale.
+        print(f"[run_section] === iteration {iteration} complete: "
+              f"{first_unsolved['ref']} (section "
+              f"{first_unsolved.get('section')}, "
+              f"{first_unsolved.get('def_or_claim')}) — safe to stop now ===",
+              flush=True)
+
         # No-progress safety: stop if the *same* row is still the chapter's
         # first unsolved (i.e. nothing useful happened). Comparing by `ref`
         # so a `reorder` action that bumps this row to a later position
