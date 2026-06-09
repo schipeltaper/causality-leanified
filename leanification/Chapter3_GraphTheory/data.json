@@ -889,14 +889,16 @@
       "section": "3.2",
       "title": "BifurcationAlternative",
       "type": "proposition",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/BifurcationAlternative.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/BifurcationAlternative.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
@@ -906,11 +908,11 @@
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 1,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 11,
+        "spawn_agent_sub_task": 12,
         "continue_agent": 0,
         "new_manager": 1,
         "reorder": 0,
@@ -928,287 +930,14 @@
       "tex_block": "\\begin{claimmark}\n\\begin{Prp}\\label{prp:bifurcations_alternative}\n  Let $G = \\lt J, V, E, L \\rt$ be a CDMG. For $v, w, c \\in V \\cup J$:\n  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \\ne w$ and $c \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$ and $c \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$.\n\\end{Prp}\n\\end{claimmark}",
       "agent_registry": [
         {
-          "kind": "check_ln_wording",
+          "kind": "for_website",
           "spawned_by": "manager",
-          "session_id": "9ab13a22-46cd-41ed-b7d3-a75d7d2ded1d",
-          "first_seen": "2026-06-09T01:18:55+00:00",
-          "last_used": "2026-06-09T01:18:55+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "da965224-0eca-4b4c-ba69-3f16310c2fbf",
-          "first_seen": "2026-06-09T01:21:29+00:00",
-          "last_used": "2026-06-09T01:21:29+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "c81923e9-8773-4a27-9329-761c00254502",
-          "first_seen": "2026-06-09T01:26:22+00:00",
-          "last_used": "2026-06-09T01:26:22+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "03da69d8-6217-41af-99c7-d2529c720309",
-          "first_seen": "2026-06-09T01:26:40+00:00",
-          "last_used": "2026-06-09T01:26:40+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_only",
-          "spawned_by": "manager",
-          "session_id": "909b5264-9ca3-4db8-8e52-9eea74fdcdff",
-          "first_seen": "2026-06-09T01:26:59+00:00",
-          "last_used": "2026-06-09T01:26:59+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "3bd7391e-e9c3-42a3-b7d6-e3e1b7c562c7",
-          "first_seen": "2026-06-09T01:27:36+00:00",
-          "last_used": "2026-06-09T01:27:36+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_equivalence",
-          "spawned_by": "manager",
-          "session_id": "ca5fba78-68b7-45bb-b8f6-852c1bf6da68",
-          "first_seen": "2026-06-09T01:28:46+00:00",
-          "last_used": "2026-06-09T01:28:46+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "726ea7b8-86a3-438b-b945-715116ff0159",
-          "first_seen": "2026-06-09T01:29:31+00:00",
-          "last_used": "2026-06-09T01:29:31+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "3d5c51eb-5665-420d-8160-0423acb6a585",
-          "first_seen": "2026-06-09T01:37:18+00:00",
-          "last_used": "2026-06-09T01:37:18+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "05234eba-66f3-497f-a9b7-4cbfcc810f27",
-          "first_seen": "2026-06-09T01:38:15+00:00",
-          "last_used": "2026-06-09T01:38:15+00:00"
-        },
-        {
-          "kind": "review_design",
-          "spawned_by": "manager",
-          "session_id": "69aa90a7-531a-4dc8-ae10-c326574fde66",
-          "first_seen": "2026-06-09T01:41:06+00:00",
-          "last_used": "2026-06-09T01:41:06+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "f450b232-8ea0-43e1-9fe1-8bdd75060ca0",
-          "first_seen": "2026-06-09T01:41:34+00:00",
-          "last_used": "2026-06-09T01:41:34+00:00"
-        },
-        {
-          "kind": "verify_equivalence",
-          "spawned_by": "manager",
-          "session_id": "c549a363-d8ad-4e1b-bbfb-ed398ee7b4f9",
-          "first_seen": "2026-06-09T01:43:00+00:00",
-          "last_used": "2026-06-09T01:43:00+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "decec1eb-d1e7-4716-96bd-7047f9566209",
-          "first_seen": "2026-06-09T01:43:46+00:00",
-          "last_used": "2026-06-09T01:43:46+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "44c8fc9d-cc5a-4c6b-9442-ef93a9908a19",
-          "first_seen": "2026-06-09T01:50:18+00:00",
-          "last_used": "2026-06-09T01:50:18+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "71b2eee4-8809-4d18-a6be-cffd71de264f",
-          "first_seen": "2026-06-09T01:51:20+00:00",
-          "last_used": "2026-06-09T01:51:20+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "b5f7a0d9-52bb-49d5-8885-8ee1fc38b2a1",
-          "first_seen": "2026-06-09T01:53:51+00:00",
-          "last_used": "2026-06-09T01:53:51+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "f4784cb6-436c-42ad-bcfd-2e52317d93a8",
-          "first_seen": "2026-06-09T02:02:46+00:00",
-          "last_used": "2026-06-09T02:02:46+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "940bc2fa-1db7-4bbc-b2b0-956505d5a693",
-          "first_seen": "2026-06-09T02:03:19+00:00",
-          "last_used": "2026-06-09T02:03:19+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "fe6584ac-1dba-4394-944f-213064ffd07e",
-          "first_seen": "2026-06-09T02:04:14+00:00",
-          "last_used": "2026-06-09T02:04:14+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "a8b88d57-b033-42dc-bfa1-c62b2f9c189d",
-          "first_seen": "2026-06-09T02:05:05+00:00",
-          "last_used": "2026-06-09T02:05:05+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "37aeebf7-a3f0-4c76-a12d-cd421ceb9e8a",
-          "first_seen": "2026-06-09T02:07:34+00:00",
-          "last_used": "2026-06-09T02:07:34+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "0bfe8715-8312-40ba-a1fa-21da2c700857",
-          "first_seen": "2026-06-09T02:08:14+00:00",
-          "last_used": "2026-06-09T02:08:14+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "770ae43f-ae4a-4e1f-a74f-8de8a01696ec",
-          "first_seen": "2026-06-09T03:10:50+00:00",
-          "last_used": "2026-06-09T03:10:50+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "8a7d5555-adc2-4521-a20c-7a69ef96f7a2",
-          "first_seen": "2026-06-09T03:14:00+00:00",
-          "last_used": "2026-06-09T03:14:00+00:00"
-        },
-        {
-          "kind": "make_plan",
-          "spawned_by": "manager",
-          "session_id": "df7b68ef-5eeb-47d8-a56f-a0de9e7e0f50",
-          "first_seen": "2026-06-09T03:19:14+00:00",
-          "last_used": "2026-06-09T03:19:14+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "d67fe32a-4b0a-4dcb-a1b4-c07de030ecaf",
-          "first_seen": "2026-06-09T03:20:08+00:00",
-          "last_used": "2026-06-09T03:20:08+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "038ae027-0cdf-4089-b366-c13e7b5f4e00",
-          "first_seen": "2026-06-09T03:27:31+00:00",
-          "last_used": "2026-06-09T03:27:31+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "62cc8780-1260-48eb-8f9d-2b16c9ee9ae8",
-          "first_seen": "2026-06-09T03:29:22+00:00",
-          "last_used": "2026-06-09T03:29:22+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "f50eb734-dfc0-4575-82d0-c36015c7f25b",
-          "first_seen": "2026-06-09T03:37:00+00:00",
-          "last_used": "2026-06-09T03:37:00+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "c455dec1-b80f-4d5b-9732-22942eec6ba8",
-          "first_seen": "2026-06-09T03:38:08+00:00",
-          "last_used": "2026-06-09T03:38:08+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "63a03837-594b-4f6e-adc7-43ca7b84aec5",
-          "first_seen": "2026-06-09T03:58:32+00:00",
-          "last_used": "2026-06-09T03:58:32+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "a1ddfca8-ab59-4c3e-9234-1f5f570c4bd0",
-          "first_seen": "2026-06-09T04:00:01+00:00",
-          "last_used": "2026-06-09T04:00:01+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "9d439969-7577-4e47-bcf0-c14093b0a2d0",
-          "first_seen": "2026-06-09T04:27:16+00:00",
-          "last_used": "2026-06-09T04:27:16+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "da16a591-08b8-4417-8df0-cca3810e2f2f",
-          "first_seen": "2026-06-09T04:28:52+00:00",
-          "last_used": "2026-06-09T04:28:52+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "57e85cdb-ceb5-4a09-8169-5a7cc5d076a5",
-          "first_seen": "2026-06-09T04:44:03+00:00",
-          "last_used": "2026-06-09T04:44:03+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "5c25de63-4427-42ac-8098-89ae88eefffd",
-          "first_seen": "2026-06-09T04:47:48+00:00",
-          "last_used": "2026-06-09T04:47:48+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "ade70201-d7f7-4613-bba6-0eafc3f79e4a",
-          "first_seen": "2026-06-09T05:07:46+00:00",
-          "last_used": "2026-06-09T05:07:46+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "a01d9066-484d-4415-8f66-b5cf74918643",
-          "first_seen": "2026-06-09T05:10:27+00:00",
-          "last_used": "2026-06-09T05:10:27+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "ec73882c-77d9-49cd-8627-5df66e5ab561",
-          "first_seen": "2026-06-09T05:47:29+00:00",
-          "last_used": "2026-06-09T05:47:29+00:00"
+          "session_id": "3ee443fc-6c83-42f9-9829-01c8cb70da50",
+          "first_seen": "2026-06-09T06:41:34+00:00",
+          "last_used": "2026-06-09T06:41:34+00:00"
         }
       ],
-      "time_needed_to_solve": 16114,
+      "time_needed_to_solve": 19359,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,

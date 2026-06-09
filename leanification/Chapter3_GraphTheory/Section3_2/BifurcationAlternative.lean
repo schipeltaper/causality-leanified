@@ -53,33 +53,31 @@ the verified TeX proof at
 
 TeX proof: `claim_3_5_proof_BifurcationAlternative.tex`.
 
-## Proof status / handoff note
+## Proof status
 
-The TeX proof has been verified by `verify_tex_statement_plus_proof`
-and `verify_tex_proof`.  The Lean translation requires substantial
-walk-level infrastructure beyond `def_3_4`/`def_3_5`/`def_3_10`:
+The TeX proof was verified by `verify_tex_statement_plus_proof` and
+`verify_tex_proof`, and the Lean translation is complete.  The
+walk-level infrastructure built up in the helper block of this file
+(subtasks 1–7 of the planned dispatch) supplies:
 
-* a walk concatenation `Walk.comp` (already mirrored in
-  `AcyclicIffTopologicalOrder.lean` privately),
-* a walk lift `Walk.liftFromHardIntervention` and its converse
-  `Walk.liftTo_hardInterventionOn` between `G` and `G_{do(W)}`,
-* a `Walk.truncateAtFirst` truncation function (for the minimum-
-  length argument in the (⇐) direction),
-* a `mkBifurcation` constructor that combines two directed arms
-  into a bifurcation walk and the associated structure lemmas
-  (`isBifurcationDirectedHinge_mkBifurcation_general`,
-  `isBifurcationDirectedHinge_mkBifurcation`),
+* a walk concatenation `Walk.comp` (subtask 2; mirrored from
+  `AcyclicIffTopologicalOrder.lean`),
+* a walk lift `Walk.liftFromHardIntervention` (subtask 1) and its
+  converse `Walk.liftTo_hardInterventionOn` (subtask 3) between `G`
+  and `G_{do(W)}`,
+* a `Walk.truncateAtFirst` truncation function plus the
+  minimum-length-walk existence `exists_directed_walk_v_not_in_dropLast`
+  (subtask 4) used by the (⇐) direction's clause (e) bookkeeping,
+* a `mkBifurcation` constructor that combines two directed arms into
+  a bifurcation walk (subtask 5) and the associated
+  `isBifurcationDirectedHinge_mkBifurcation` realisation (subtask 6),
 * an arm-extraction lemma `exists_arms_of_bifurcation_directed_hinge`
-  that turns an `IsBifurcationDirectedHingeWithSplit p i` hypothesis
-  into directed walks `qL : Walk G c u` and `qR : Walk G c w` with
-  vertex-membership constraints lifting via the
-  `vertices.dropLast` / `vertices.tail` clauses of
-  `IsBifurcationSource`.
+  (subtask 7) that turns an `IsBifurcationDirectedHingeWithSplit p i`
+  hypothesis into directed walks `L : Walk G c v` and `R : Walk G c w`
+  whose vertices lie inside `p.vertices.dropLast` / `p.vertices.tail`.
 
-Detailed notes on the helpers' API surface and the open
-vertex-uniqueness bookkeeping are recorded in
-`workspace_claim_3_5.md`.  The Lean proof body is left as a `sorry`
-pending completion of those helpers in a follow-up dispatch.
+The main theorem body (subtask 8) glues these helpers together
+following the verified TeX proof step-by-step in both directions.
 -/
 
 namespace CDMG
@@ -1913,7 +1911,270 @@ theorem bifurcationAlternative (G : CDMG Node) (v w c : Node)
   -- convention used in `HardInterventionOn.lean`'s `hardInterventionOn`
   -- definition.
   let _ := hc
-  sorry
+  constructor
+  · -- (⇒) direction: from the bifurcation walk extract the two
+    -- directed arms (subtask 7), then lift each arm into the
+    -- appropriate intervened CDMG (subtask 3).
+    rintro ⟨p, h_bif⟩
+    obtain ⟨huv_ne, hu_tail, hv_drop, i, h_hinge, h_src⟩ := h_bif
+    obtain ⟨c', L, R, hL_dir, hR_dir, hL_pos, hR_pos, hc_idx, hL_sub, hR_sub⟩ :=
+      Walk.exists_arms_of_bifurcation_directed_hinge p i h_hinge
+    -- Identify `c' = c` using the source-index identification.  We
+    -- keep both names alive (rather than `subst`-ing) so the theorem's
+    -- universally-quantified `c` stays visible to the final
+    -- `refine`'s LN-faithful conjuncts.
+    have hc'_eq_c : c' = c := by
+      rw [hc_idx] at h_src
+      exact Option.some.inj h_src
+    -- `c'` lies in `p.vertices.dropLast` (head of `L`'s vertices, all
+    -- of which are in `p.vertices.dropLast` by `hL_sub`), and in
+    -- `p.vertices.tail` (head of `R`'s vertices, all in
+    -- `p.vertices.tail` by `hR_sub`).  Combined with the
+    -- end-node-uniqueness clauses of `IsBifurcationSource`, this gives
+    -- `c' ≠ v` and `c' ≠ w`, hence `c ≠ v` and `c ≠ w` via
+    -- `hc'_eq_c`.
+    have hc'_in_drop : c' ∈ p.vertices.dropLast :=
+      hL_sub c' (Walk.head_mem_vertices L)
+    have hc'_in_tail : c' ∈ p.vertices.tail :=
+      hR_sub c' (Walk.head_mem_vertices R)
+    have hc_ne_v : c ≠ v := by
+      intro h
+      apply hu_tail
+      have heq : c' = v := hc'_eq_c.trans h
+      exact heq ▸ hc'_in_tail
+    have hc_ne_w : c ≠ w := by
+      intro h
+      apply hv_drop
+      have heq : c' = w := hc'_eq_c.trans h
+      exact heq ▸ hc'_in_drop
+    -- `c ∈ G_{do(w)}`: from `c ∈ G` (which is `c ∈ G.J ∪ G.V`) plus
+    -- `c ≠ w`, we conclude `c ∈ (G.J ∪ {w}) ∪ (G.V \ {w})`.
+    have hc_in_Gdow :
+        c ∈ G.hardInterventionOn {w} (Finset.singleton_subset_iff.mpr hw) := by
+      change c ∈ (G.J ∪ {w}) ∪ (G.V \ {w})
+      rcases Finset.mem_union.mp hc with hJ | hV
+      · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
+      · refine Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, ?_⟩)
+        rw [Finset.mem_singleton]
+        exact hc_ne_w
+    have hc_in_Gdov :
+        c ∈ G.hardInterventionOn {v} (Finset.singleton_subset_iff.mpr hv) := by
+      change c ∈ (G.J ∪ {v}) ∪ (G.V \ {v})
+      rcases Finset.mem_union.mp hc with hJ | hV
+      · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
+      · refine Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, ?_⟩)
+        rw [Finset.mem_singleton]
+        exact hc_ne_v
+    -- Transfer `c ∈ G_{do(w)}` to `c' ∈ G_{do(w)}` (and similarly for
+    -- `c' ∈ G_{do(v)}`) so the lift consumer accepts `L : Walk G c' v`
+    -- / `R : Walk G c' w` directly.
+    have hc'_in_Gdow :
+        c' ∈ G.hardInterventionOn {w}
+          (Finset.singleton_subset_iff.mpr hw) := hc'_eq_c ▸ hc_in_Gdow
+    have hc'_in_Gdov :
+        c' ∈ G.hardInterventionOn {v}
+          (Finset.singleton_subset_iff.mpr hv) := hc'_eq_c ▸ hc_in_Gdov
+    -- Avoidance hypotheses for the lift: every tail-vertex of the
+    -- left arm avoids `{w}`, and every tail-vertex of the right arm
+    -- avoids `{v}`.  Both follow from `hL_sub` / `hR_sub` plus the
+    -- end-node uniqueness clauses.
+    have hL_avoid_w : ∀ x ∈ L.vertices.tail, x ∉ ({w} : Finset Node) := by
+      intro x hx hxw
+      rw [Finset.mem_singleton] at hxw
+      exact hv_drop (hxw ▸ hL_sub x (List.mem_of_mem_tail hx))
+    have hR_avoid_v : ∀ x ∈ R.vertices.tail, x ∉ ({v} : Finset Node) := by
+      intro x hx hxv
+      rw [Finset.mem_singleton] at hxv
+      exact hu_tail (hxv ▸ hR_sub x (List.mem_of_mem_tail hx))
+    refine ⟨huv_ne, ?_, ?_⟩
+    · -- `c ∈ Anc^{G_{do(w)}}(v) \ {v}`.  Build at `c'` first, then
+      -- transport via `hc'_eq_c`.
+      refine ⟨hc'_eq_c ▸ ⟨hc'_in_Gdow,
+              Walk.liftTo_hardInterventionOn L hc'_in_Gdow hL_dir hL_avoid_w,
+              Walk.isDirectedWalk_liftTo_hardInterventionOn
+                L hc'_in_Gdow hL_dir hL_avoid_w⟩, ?_⟩
+      rw [Set.mem_singleton_iff]
+      exact hc_ne_v
+    · -- `c ∈ Anc^{G_{do(v)}}(w) \ {w}`.
+      refine ⟨hc'_eq_c ▸ ⟨hc'_in_Gdov,
+              Walk.liftTo_hardInterventionOn R hc'_in_Gdov hR_dir hR_avoid_v,
+              Walk.isDirectedWalk_liftTo_hardInterventionOn
+                R hc'_in_Gdov hR_dir hR_avoid_v⟩, ?_⟩
+      rw [Set.mem_singleton_iff]
+      exact hc_ne_w
+  · -- (⇐) direction: extract minimum-length directed walks in each
+    -- intervened CDMG (subtask 4), lift them back to `G` (subtask 1),
+    -- assemble the bifurcation walk (subtask 5), and verify
+    -- `IsBifurcationSource` (subtask 6 plus vertex bookkeeping).
+    rintro ⟨hvw_ne, hc_anc_v_full, hc_anc_w_full⟩
+    have hc_ne_v : c ≠ v := fun h =>
+      hc_anc_v_full.2 (Set.mem_singleton_iff.mpr h)
+    have hc_ne_w : c ≠ w := fun h =>
+      hc_anc_w_full.2 (Set.mem_singleton_iff.mpr h)
+    have hc_in_Gdow_anc :
+        c ∈ (G.hardInterventionOn {w}
+          (Finset.singleton_subset_iff.mpr hw)).Anc v := hc_anc_v_full.1
+    have hc_in_Gdov_anc :
+        c ∈ (G.hardInterventionOn {v}
+          (Finset.singleton_subset_iff.mpr hv)).Anc w := hc_anc_w_full.1
+    obtain ⟨q_v_Gdow, hq_v_Gdow_dir, hq_v_Gdow_drop⟩ :=
+      exists_directed_walk_v_not_in_dropLast hc_in_Gdow_anc hc_ne_v
+    obtain ⟨q_w_Gdov, hq_w_Gdov_dir, hq_w_Gdov_drop⟩ :=
+      exists_directed_walk_v_not_in_dropLast hc_in_Gdov_anc hc_ne_w
+    -- Inline structural-walk-length identity: `q.vertices.length = q.length + 1`
+    -- (used downstream to derive `q.vertices.tail ≠ []` from `q.length ≥ 1`).
+    have hvert_len_succ :
+        ∀ {G' : CDMG Node} {u₁ u₂ : Node} (q : Walk G' u₁ u₂),
+          q.vertices.length = q.length + 1 := by
+      intro G' u₁ u₂ q
+      induction q with
+      | nil _ _ => rfl
+      | cons _ _ _ q' ih =>
+        change q'.vertices.length + 1 = q'.length + 1 + 1
+        omega
+    -- The two source walks have length `≥ 1`: a length-`0` walk would be
+    -- `Walk.nil`, forcing `c = v` (resp. `c = w`) and contradicting
+    -- `hc_ne_v` (resp. `hc_ne_w`).
+    have hq_v_Gdow_pos : q_v_Gdow.length ≥ 1 := by
+      cases q_v_Gdow with
+      | nil _ _ => exact (hc_ne_v rfl).elim
+      | cons _ _ _ _ =>
+        change _ + 1 ≥ 1
+        exact Nat.succ_le_succ (Nat.zero_le _)
+    have hq_w_Gdov_pos : q_w_Gdov.length ≥ 1 := by
+      cases q_w_Gdov with
+      | nil _ _ => exact (hc_ne_w rfl).elim
+      | cons _ _ _ _ =>
+        change _ + 1 ≥ 1
+        exact Nat.succ_le_succ (Nat.zero_le _)
+    -- Tail-vertices of `q_v_Gdow` / `q_w_Gdov` avoid `{w}` / `{v}`
+    -- by the head-of-edge argument of `def_3_10` item iii (subtask 3a).
+    have hq_v_Gdow_avoid :
+        ∀ x ∈ q_v_Gdow.vertices.tail, x ∉ ({w} : Finset Node) :=
+      Walk.vertices_directed_avoid_of_hardInterventionOn
+        q_v_Gdow hq_v_Gdow_dir
+    have hq_w_Gdov_avoid :
+        ∀ x ∈ q_w_Gdov.vertices.tail, x ∉ ({v} : Finset Node) :=
+      Walk.vertices_directed_avoid_of_hardInterventionOn
+        q_w_Gdov hq_w_Gdov_dir
+    -- Abbreviations for the lifted walks in `G`.
+    set qv := Walk.liftFromHardIntervention q_v_Gdow with hqv_def
+    set qw := Walk.liftFromHardIntervention q_w_Gdov with hqw_def
+    have hqv_dir : qv.IsDirectedWalk :=
+      Walk.isDirectedWalk_liftFromHardIntervention q_v_Gdow hq_v_Gdow_dir
+    have hqw_dir : qw.IsDirectedWalk :=
+      Walk.isDirectedWalk_liftFromHardIntervention q_w_Gdov hq_w_Gdov_dir
+    have hqv_verts : qv.vertices = q_v_Gdow.vertices :=
+      Walk.vertices_liftFromHardIntervention q_v_Gdow
+    have hqw_verts : qw.vertices = q_w_Gdov.vertices :=
+      Walk.vertices_liftFromHardIntervention q_w_Gdov
+    have hqv_len : qv.length = q_v_Gdow.length :=
+      Walk.length_liftFromHardIntervention q_v_Gdow
+    have hqw_len : qw.length = q_w_Gdov.length :=
+      Walk.length_liftFromHardIntervention q_w_Gdov
+    have hqv_pos : qv.length ≥ 1 := by rw [hqv_len]; exact hq_v_Gdow_pos
+    have hqw_pos : qw.length ≥ 1 := by rw [hqw_len]; exact hq_w_Gdov_pos
+    have hqv_head : qv.vertices = c :: qv.vertices.tail :=
+      Walk.vertices_eq_head_cons_tail qv
+    have hqw_head : qw.vertices = c :: qw.vertices.tail :=
+      Walk.vertices_eq_head_cons_tail qw
+    have hqv_vs_len : qv.vertices.length = qv.length + 1 := hvert_len_succ qv
+    have hqw_vs_len : qw.vertices.length = qw.length + 1 := hvert_len_succ qw
+    have hqv_tail_ne_nil : qv.vertices.tail ≠ [] := by
+      intro h
+      have h1 : qv.vertices.length = 1 := by rw [hqv_head]; simp [h]
+      omega
+    have hqw_tail_ne_nil : qw.vertices.tail ≠ [] := by
+      intro h
+      have h1 : qw.vertices.length = 1 := by rw [hqw_head]; simp [h]
+      omega
+    have hqv_tail_rev_ne_nil : qv.vertices.tail.reverse ≠ [] :=
+      fun h => hqv_tail_ne_nil (List.reverse_eq_nil_iff.mp h)
+    -- Tail-vertex avoidance, transferred from the intervened to lifted form.
+    have hqv_avoid_w : ∀ x ∈ qv.vertices.tail, x ≠ w := by
+      intro x hx hxw
+      have hx_Gdow : x ∈ q_v_Gdow.vertices.tail := by
+        rw [hqv_verts] at hx; exact hx
+      exact hq_v_Gdow_avoid x hx_Gdow (by
+        rw [Finset.mem_singleton]; exact hxw)
+    have hqw_avoid_v : ∀ x ∈ qw.vertices.tail, x ≠ v := by
+      intro x hx hxv
+      have hx_Gdov : x ∈ q_w_Gdov.vertices.tail := by
+        rw [hqw_verts] at hx; exact hx
+      exact hq_w_Gdov_avoid x hx_Gdov (by
+        rw [Finset.mem_singleton]; exact hxv)
+    -- Minimum-length dropLast clauses transferred.
+    have hqv_drop_v : v ∉ qv.vertices.dropLast := by
+      rw [hqv_verts]; exact hq_v_Gdow_drop
+    have hqw_drop_w : w ∉ qw.vertices.dropLast := by
+      rw [hqw_verts]; exact hq_w_Gdov_drop
+    -- Cross-arm non-memberships: `v ∉ qw.vertices` and `w ∉ qv.vertices`.
+    have hv_notin_qw : v ∉ qw.vertices := by
+      rw [hqw_head]
+      intro hv_in
+      rcases List.mem_cons.mp hv_in with hv_eq_c | hv_in_tail
+      · exact hc_ne_v hv_eq_c.symm
+      · exact hqw_avoid_v v hv_in_tail rfl
+    have hw_notin_qv : w ∉ qv.vertices := by
+      rw [hqv_head]
+      intro hw_in
+      rcases List.mem_cons.mp hw_in with hw_eq_c | hw_in_tail
+      · exact hc_ne_w hw_eq_c.symm
+      · exact hqv_avoid_w w hw_in_tail rfl
+    -- The vertex list of the bifurcation walk:
+    --   p.vertices = qv.vertices.reverse.dropLast ++ qw.vertices
+    --              = qv.vertices.tail.reverse ++ qw.vertices.
+    have hp_verts :
+        (Walk.mkBifurcation qv hqv_dir hqv_pos qw).vertices
+          = qv.vertices.tail.reverse ++ qw.vertices := by
+      rw [Walk.vertices_mkBifurcation qv hqv_dir hqv_pos qw]
+      -- Only rewrite the LHS to avoid touching `qv.vertices.tail` on the RHS.
+      conv_lhs => rw [hqv_head, List.reverse_cons, List.dropLast_concat]
+    -- Index arithmetic: `qv.length - 1 + 1 = qv.length` and
+    -- `qv.vertices.tail.reverse.length = qv.length`.
+    have hidx_succ : qv.length - 1 + 1 = qv.length := by omega
+    have hqv_tail_rev_len : qv.vertices.tail.reverse.length = qv.length := by
+      rw [List.length_reverse]
+      have hlen : qv.vertices.tail.length + 1 = qv.vertices.length := by
+        rw [hqv_head]; simp
+      omega
+    -- Construct the bifurcation walk and discharge each clause of
+    -- `IsBifurcationSource`.
+    refine ⟨Walk.mkBifurcation qv hqv_dir hqv_pos qw,
+            hvw_ne, ?_, ?_, qv.length - 1, ?_, ?_⟩
+    · -- (1) `v ∉ p.vertices.tail`.
+      rw [hp_verts, List.tail_append_of_ne_nil hqv_tail_rev_ne_nil]
+      intro hv_in
+      rcases List.mem_append.mp hv_in with hv_left | hv_right
+      · -- `v ∈ qv.vertices.tail.reverse.tail`.
+        rw [List.tail_reverse, List.mem_reverse] at hv_left
+        -- `v ∈ qv.vertices.tail.dropLast → v ∈ qv.vertices.dropLast`
+        -- (since `qv.vertices.dropLast = c :: qv.vertices.tail.dropLast`).
+        apply hqv_drop_v
+        rw [hqv_head, List.dropLast_cons_of_ne_nil hqv_tail_ne_nil]
+        exact List.mem_cons.mpr (Or.inr hv_left)
+      · exact hv_notin_qw hv_right
+    · -- (2) `w ∉ p.vertices.dropLast`.
+      rw [hp_verts, List.dropLast_append_of_ne_nil
+              (l := qw.vertices) (l' := qv.vertices.tail.reverse)
+              (Walk.vertices_ne_nil qw)]
+      intro hw_in
+      rcases List.mem_append.mp hw_in with hw_left | hw_right
+      · -- `w ∈ qv.vertices.tail.reverse → w ∈ qv.vertices.tail → w ∈ qv.vertices`.
+        rw [List.mem_reverse] at hw_left
+        apply hw_notin_qv
+        rw [hqv_head]
+        exact List.mem_cons.mpr (Or.inr hw_left)
+      · exact hqw_drop_w hw_right
+    · -- (3) `IsBifurcationDirectedHingeWithSplit (qv.length - 1)`.
+      exact Walk.isBifurcationDirectedHinge_mkBifurcation
+        qv hqv_dir hqv_pos qw hqw_dir hqw_pos
+    · -- (4) `p.vertices[qv.length - 1 + 1]? = some c`.
+      rw [hidx_succ, hp_verts,
+          List.getElem?_append_right (hqv_tail_rev_len ▸ Nat.le_refl _)]
+      rw [hqv_tail_rev_len, Nat.sub_self]
+      rw [hqw_head]
+      rfl
 
 end CDMG
 
