@@ -1378,6 +1378,321 @@ private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
       exact ih
 -- claim_3_5 --- end helper
 
+-- ## Private helpers — arm extraction from a directed-hinge bifurcation
+--
+-- Subtask 7 of the proof of `claim_3_5` builds the *inverse* of
+-- subtask 5's `mkBifurcation` constructor: given a bifurcation walk
+-- `p : Walk G v w` realising
+-- `Walk.IsBifurcationDirectedHingeWithSplit i`, extract the source
+-- vertex `c = p.vertices[i + 1]`, the *left arm* `L : Walk G c v` (a
+-- directed walk consisting of the bifurcation's first `i + 1` edges
+-- read backwards), and the *right arm* `R : Walk G c w` (a directed
+-- walk consisting of the bifurcation's remaining `n - (i + 1)` edges
+-- read forwards).
+--
+-- The (⇒) direction of the TeX proof (lines 170–250 of
+-- `tex/claim_3_5_proof_BifurcationAlternative.tex`) is exactly this
+-- decomposition: the bifurcation's structure at the directed hinge
+-- splits the walk into two directed arms that each land in the
+-- appropriate intervened CDMG via subtask 3's
+-- `Walk.liftTo_hardInterventionOn` (after subtask 8 combines this
+-- lemma's vertex-containment clauses with the bifurcation walk's
+-- clause~(a) end-node-uniqueness to discharge the avoidance
+-- hypothesis).
+--
+-- The lemma is delivered in a single *unified* form:
+--
+-- * the source vertex `c` (paired with the `vertices[i + 1]?`
+--   identification),
+-- * a directed walk `L : Walk G c v` of length `≥ 1`,
+-- * a directed walk `R : Walk G c w` of length `≥ 1`,
+-- * vertex-containment clauses `L.vertices ⊆ p.vertices.dropLast`
+--   and `R.vertices ⊆ p.vertices.tail`.
+--
+-- The vertex-containment shape is the load-bearing one: combined with
+-- `IsBifurcationSource`'s `w ∉ p.vertices.dropLast` and
+-- `v ∉ p.vertices.tail` clauses (from `Walks.lean:1127-1128`), it
+-- yields `w ∉ L.vertices` and `v ∉ R.vertices`, exactly the avoidance
+-- hypotheses subtask 8 feeds into `liftTo_hardInterventionOn`.
+--
+-- ## Design choice
+--
+-- *Unified single-lemma form (rather than the workspace plan's
+--   fallback three-lemma split).*  The arm extraction is a single
+--   structural recursion on `p` (case-splitting on `i` and the inner
+--   walk inside each cons branch), and the L / R / source data are
+--   built simultaneously in each clause.  Splitting into three lemmas
+--   ("extract source", "extract L", "extract R") would duplicate the
+--   case analysis three times with no real win — the per-case L /
+--   R / source constructions interlock at exactly the same case
+--   junctures.  If a future consumer wants only one piece, the
+--   `obtain` at the call site discards the others for free.
+--
+-- *Vertex-containment via `.dropLast` / `.tail` set-membership (not
+--   exact equality `L.vertices = p.vertices.take (i + 2).reverse`).*
+--   The exact-equality shape `L.vertices = (p.vertices.take (i + 2)).reverse`
+--   and `R.vertices = p.vertices.drop (i + 1)` would be slightly
+--   stronger but would force every consumer to derive set-membership
+--   facts from the equation.  Subtask 8 needs exactly the
+--   set-membership shape (to discharge `liftTo_hardInterventionOn`'s
+--   avoidance hypothesis), and the equations would also force fiddly
+--   `List.take` / `List.drop` arithmetic at every consumer site that
+--   the set-membership form sidesteps.  The `.dropLast` / `.tail`
+--   choice exactly matches `IsBifurcationSource`'s clause shape
+--   (`u ∉ vertices.tail` / `v ∉ vertices.dropLast`), giving subtask 8
+--   a one-step set-membership transport rather than an
+--   `.take` / `.drop` / `.reverse` chain.
+--
+-- *Induction on `p` (structurally) with `i` generalised, then
+--   nested case-analysis on `i` and the inner walk `p'`.*  The
+--   `IsBifurcationDirectedHingeWithSplit` predicate recurses
+--   simultaneously on `p` and `i` (`Walks.lean:1042-1048`), and
+--   the four clauses (`nil`, `cons _ _ _ (.nil _ _), 0`,
+--   `cons _ _ _ (cons _ _ _ _), 0`, `cons _ _ _ _, k+1`) split
+--   the proof into four cases.  The outer `induction p generalizing i`
+--   handles the recursion on `p`; the inner `match i, p', h_hinge`
+--   case-splits on the four clauses.  An alternative (Plan B in the
+--   workspace: induct on `i` first, then case on `p` inside) was
+--   considered but produces extra bookkeeping at the `i + 1` /
+--   `p = nil` case (which is dispatched here via a direct `h_rec.elim`
+--   on the inner walk's nil pattern), since the IH on `i` does not
+--   structurally decrease the walk.  The chosen Plan A's IH on `p`
+--   directly decreases the walk, matching the predicate's recursion
+--   shape one-for-one.
+--
+-- *Length-≥1 conjuncts kept on both arms even though only the
+--   `L.length ≥ 1` clause carries non-trivial content (R's length is
+--   inherited from the IH or the base-case `cons` pattern).*  Subtask
+--   8 needs both length conjuncts to derive `c ≠ v` (from
+--   `L.length ≥ 1` + `L` going from `c` to `v`) and `c ≠ w` (from
+--   `R.length ≥ 1` + `R` going from `c` to `w`).  Pinning both
+--   conjuncts here keeps the API self-contained — the consumer reads
+--   `c ≠ v` and `c ≠ w` off the lemma without re-extracting from the
+--   walks' shapes.
+-- claim_3_5 --- start helper
+
+/-- **Subtask 7 of `claim_3_5` (the arm extractor):** given a
+bifurcation walk `p : Walk G v w` together with a directed-hinge
+witness `p.IsBifurcationDirectedHingeWithSplit i`, extract:
+
+* the *source vertex* `c = p.vertices[i + 1]`,
+* the *left arm* `L : Walk G c v` — a directed walk of length `≥ 1`
+  whose vertices are all in `p.vertices.dropLast` (equivalently,
+  every vertex of `L` appears among the first `n` of the bifurcation
+  walk, where `n = p.length`);
+* the *right arm* `R : Walk G c w` — a directed walk of length
+  `≥ 1` whose vertices are all in `p.vertices.tail` (equivalently,
+  every vertex of `R` appears among the last `n` of the bifurcation
+  walk).
+
+The two `vertices.dropLast` / `vertices.tail` containment clauses are
+load-bearing for the (⇒) direction's lift step: combined with
+`Walk.IsBifurcationSource`'s `v ∉ p.vertices.tail` and
+`w ∉ p.vertices.dropLast` clauses (from `Walks.lean:1127-1128`), they
+yield `w ∉ L.vertices` and `v ∉ R.vertices` — the avoidance
+hypotheses required by `liftTo_hardInterventionOn` (subtask 3) to lift
+`L` into `G_{do({w})}` and `R` into `G_{do({v})}`.
+
+The source identification `p.vertices[i + 1]? = some c` lets subtask
+8's `IsBifurcationSource` unfolding cross-match the lemma's returned
+`c` against the externally-given source.
+
+Proof: outer `induction p generalizing i`, then for the `cons` case,
+inner `cases i` and `cases p'` (with `obtain` on the predicate data).
+Four leaf cases:
+
+* `(nil _ _), i`: predicate is `False`, contradiction.
+* `(cons _ _ _ (.nil _ _)), 0`: predicate is `False`, contradiction.
+* `(cons vMid a hStep (.cons vMid' a' hStep' p'')), 0`: base case;
+  `L = .cons v a forwardStep (.nil v hv)` (a single forward edge from
+  `vMid` to `v`, using the directed alternative `a = (vMid, v) ∧ a ∈ G.E`),
+  `R = .cons vMid' a' hStep' p''` (the tail), `c = vMid`.
+* `(cons vMid a hStep p'), k+1`: inner `cases p'`:
+    * `p' = nil _ _`: predicate's `h_rec` is `False`, contradiction.
+    * `p' = cons vMid' a' hStep' p''`: recursive case; apply IH to
+      get `(c, L', R)` from `p'`, then build the new `L = L'.comp
+      (single forward edge from vMid to v)` and keep `R` unchanged.
+
+Vertex-containment in the recursive case uses `Walk.vertices_comp`
+(subtask 2) to compute `L.vertices = L'.vertices.dropLast ++ [vMid, v]`,
+and dispatches each element of `L.vertices` to `L'.vertices.dropLast`
+(via the IH's containment) or to the literal `vMid` / `v` cases (both
+of which lie in `p.vertices.dropLast = v :: vMid :: p''.vertices.dropLast`
+after unfolding via `List.dropLast_cons_of_ne_nil` and
+`Walk.vertices_ne_nil`). -/
+private lemma Walk.exists_arms_of_bifurcation_directed_hinge
+    {G : CDMG Node} {v w : Node} (p : Walk G v w) :
+    ∀ (i : ℕ), p.IsBifurcationDirectedHingeWithSplit i →
+      ∃ (c : Node) (L : Walk G c v) (R : Walk G c w),
+        L.IsDirectedWalk ∧ R.IsDirectedWalk ∧
+        L.length ≥ 1 ∧ R.length ≥ 1 ∧
+        p.vertices[i + 1]? = some c ∧
+        (∀ x ∈ L.vertices, x ∈ p.vertices.dropLast) ∧
+        (∀ x ∈ R.vertices, x ∈ p.vertices.tail) := by
+  induction p with
+  | nil v hv =>
+      intro i h_hinge
+      exact h_hinge.elim
+  | @cons u w vMid a hStep p' ih =>
+      intro i h_hinge
+      cases i with
+      | zero =>
+          cases p' with
+          | nil v_p' h_p' =>
+              -- Predicate's second clause: cons _ _ _ (.nil _ _), 0 => False.
+              exact h_hinge.elim
+          | cons vMid' a' hStep' p'' =>
+              -- Predicate's third clause: cons _ _ _ (cons _ _ _ _), 0 =>
+              -- a = (vMid, u) ∧ a ∈ G.E ∧ tail.IsDirectedWalk.
+              have h_unfold :
+                  a = (vMid, u) ∧ a ∈ G.E ∧
+                    (Walk.cons vMid' a' hStep' p'').IsDirectedWalk :=
+                h_hinge
+              obtain ⟨ha_eq, ha_mem, hp'_dir⟩ := h_unfold
+              -- Base case: source c = vMid; L = single forward edge
+              -- from vMid to u; R = the tail.
+              have hu_in_G : u ∈ G := WalkStep.source_mem hStep
+              let forwardStep : G.WalkStep vMid a u :=
+                Or.inl ⟨ha_eq, Or.inl ha_mem⟩
+              refine ⟨vMid,
+                      Walk.cons u a forwardStep (Walk.nil u hu_in_G),
+                      Walk.cons vMid' a' hStep' p'',
+                      ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+              · -- L.IsDirectedWalk
+                exact ⟨ha_eq, ha_mem, trivial⟩
+              · -- R.IsDirectedWalk
+                exact hp'_dir
+              · -- L.length ≥ 1
+                change 0 + 1 ≥ 1
+                exact Nat.le_refl 1
+              · -- R.length ≥ 1
+                change p''.length + 1 ≥ 1
+                exact Nat.succ_le_succ (Nat.zero_le _)
+              · -- p.vertices[1]? = some vMid
+                rfl
+              · -- ∀ x ∈ L.vertices, x ∈ p.vertices.dropLast
+                intro x hx
+                -- L.vertices = [vMid, u].
+                have hxv : x = vMid ∨ x = u := by
+                  rcases List.mem_cons.mp hx with rfl | hx2
+                  · exact Or.inl rfl
+                  · rcases List.mem_cons.mp hx2 with rfl | hx3
+                    · exact Or.inr rfl
+                    · simp at hx3
+                -- p.vertices.dropLast = u :: vMid :: p''.vertices.dropLast.
+                have hp'_ne : (Walk.cons vMid' a' hStep' p'').vertices ≠ [] :=
+                  Walk.vertices_ne_nil _
+                have hp''_ne : p''.vertices ≠ [] := Walk.vertices_ne_nil _
+                change x ∈ (u :: (Walk.cons vMid' a' hStep' p'').vertices).dropLast
+                rw [List.dropLast_cons_of_ne_nil hp'_ne]
+                change x ∈ u :: (vMid :: p''.vertices).dropLast
+                rw [List.dropLast_cons_of_ne_nil hp''_ne]
+                rcases hxv with rfl | rfl
+                · exact List.mem_cons.mpr (Or.inr List.mem_cons_self)
+                · exact List.mem_cons_self
+              · -- ∀ x ∈ R.vertices, x ∈ p.vertices.tail
+                intro x hx
+                change x ∈ (u :: (Walk.cons vMid' a' hStep' p'').vertices).tail
+                exact hx
+      | succ k =>
+          -- The predicate at (cons vMid a hStep p', k+1) needs p' to be
+          -- concrete before it reduces (the second predicate clause's
+          -- match on `cons _ _ _ (.nil _ _)` blocks reduction otherwise).
+          -- Case-split p' first; in each branch the predicate match fires
+          -- and we can extract the three conjuncts via `obtain` directly.
+          cases p' with
+          | nil vNil hNil =>
+              -- h_hinge unfolds to ⟨_, _, False⟩; the False is in the
+              -- third conjunct via `(nil _ _).IsBifurcationDirectedHingeWithSplit k = False`.
+              obtain ⟨_, _, h_rec⟩ := h_hinge
+              exact h_rec.elim
+          | cons vMid' a' hStep' p'' =>
+              -- h_hinge unfolds to a = (vMid, u) ∧ a ∈ G.E ∧
+              -- (cons vMid' a' hStep' p'').IsBifurcationDirectedHingeWithSplit k.
+              obtain ⟨ha_eq, ha_mem, h_rec⟩ := h_hinge
+              -- Apply IH to p' (= cons vMid' a' hStep' p'') and k.
+              obtain ⟨c, L', R, hL'_dir, hR_dir, _hL'_pos, hR_pos, h_idx_p',
+                      hL'_sub, hR_sub⟩ :=
+                ih k h_rec
+              -- Build L_new : Walk G c u by composing L' with a single
+              -- forward edge from vMid to u.
+              have hu_in_G : u ∈ G := WalkStep.source_mem hStep
+              let forwardStep : G.WalkStep vMid a u :=
+                Or.inl ⟨ha_eq, Or.inl ha_mem⟩
+              let single : Walk G vMid u :=
+                Walk.cons u a forwardStep (Walk.nil u hu_in_G)
+              have hsingle_dir : single.IsDirectedWalk :=
+                ⟨ha_eq, ha_mem, trivial⟩
+              refine ⟨c, L'.comp single, R, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+              · -- (L'.comp single).IsDirectedWalk
+                exact Walk.isDirectedWalk_comp L' single hL'_dir hsingle_dir
+              · -- R.IsDirectedWalk
+                exact hR_dir
+              · -- (L'.comp single).length ≥ 1
+                rw [Walk.length_comp]
+                change L'.length + 1 ≥ 1
+                exact Nat.succ_le_succ (Nat.zero_le _)
+              · -- R.length ≥ 1
+                exact hR_pos
+              · -- p.vertices[(k+1) + 1]? = some c
+                -- p.vertices = u :: p'.vertices = u :: vMid :: p''.vertices,
+                -- so p.vertices[k+2]? = p'.vertices[k+1]?.
+                -- IH gives p'.vertices[k+1]? = some c.
+                change (u :: (Walk.cons vMid' a' hStep' p'').vertices)[k + 1 + 1]?
+                      = some c
+                simpa using h_idx_p'
+              · -- ∀ x ∈ (L'.comp single).vertices, x ∈ p.vertices.dropLast
+                intro x hx
+                -- (L'.comp single).vertices = L'.vertices.dropLast ++ single.vertices
+                --                            = L'.vertices.dropLast ++ [vMid, u].
+                have hL_new_vs : (L'.comp single).vertices
+                    = L'.vertices.dropLast ++ [vMid, u] := by
+                  rw [Walk.vertices_comp]
+                  rfl
+                rw [hL_new_vs] at hx
+                -- p.vertices.dropLast = u :: vMid :: p''.vertices.dropLast.
+                have hp'_ne : (Walk.cons vMid' a' hStep' p'').vertices ≠ [] :=
+                  Walk.vertices_ne_nil _
+                have hp''_ne : p''.vertices ≠ [] := Walk.vertices_ne_nil _
+                change x ∈ (u :: (Walk.cons vMid' a' hStep' p'').vertices).dropLast
+                rw [List.dropLast_cons_of_ne_nil hp'_ne]
+                change x ∈ u :: (vMid :: p''.vertices).dropLast
+                rw [List.dropLast_cons_of_ne_nil hp''_ne]
+                rcases List.mem_append.mp hx with hL'drop | h_in_tail
+                · -- x ∈ L'.vertices.dropLast: x ∈ L'.vertices via mem_of_mem_dropLast,
+                  -- then x ∈ p'.vertices.dropLast via hL'_sub.
+                  have hx_L'_vertices : x ∈ L'.vertices :=
+                    List.mem_of_mem_dropLast hL'drop
+                  have hx_p'_drop : x ∈ (Walk.cons vMid' a' hStep' p'').vertices.dropLast :=
+                    hL'_sub x hx_L'_vertices
+                  -- p'.vertices.dropLast = (vMid :: p''.vertices).dropLast
+                  --                      = vMid :: p''.vertices.dropLast.
+                  have hx_in : x ∈ (vMid :: p''.vertices).dropLast := by
+                    have h_eq : (Walk.cons vMid' a' hStep' p'').vertices.dropLast
+                        = (vMid :: p''.vertices).dropLast := by
+                      rfl
+                    rw [h_eq] at hx_p'_drop
+                    exact hx_p'_drop
+                  rw [List.dropLast_cons_of_ne_nil hp''_ne] at hx_in
+                  exact List.mem_cons.mpr (Or.inr hx_in)
+                · -- x ∈ [vMid, u]
+                  rcases List.mem_cons.mp h_in_tail with rfl | hx_in2
+                  · -- x = vMid
+                    exact List.mem_cons.mpr (Or.inr List.mem_cons_self)
+                  · rcases List.mem_cons.mp hx_in2 with rfl | hx_empty
+                    · -- x = u
+                      exact List.mem_cons_self
+                    · simp at hx_empty
+              · -- ∀ x ∈ R.vertices, x ∈ p.vertices.tail
+                intro x hx
+                have hx_p'_tail : x ∈ (Walk.cons vMid' a' hStep' p'').vertices.tail :=
+                  hR_sub x hx
+                have hx_p' : x ∈ (Walk.cons vMid' a' hStep' p'').vertices :=
+                  List.mem_of_mem_tail hx_p'_tail
+                change x ∈ (u :: (Walk.cons vMid' a' hStep' p'').vertices).tail
+                exact hx_p'
+-- claim_3_5 --- end helper
+
 -- ref: claim_3_5
 -- For any CDMG `G : CDMG Node` and any three (not necessarily
 -- distinct) nodes `v, w, c ∈ G` (i.e. `v, w, c ∈ G.J ∪ G.V`), the

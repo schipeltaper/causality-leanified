@@ -910,7 +910,7 @@
         "refactor": 0,
         "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 10,
+        "spawn_agent_sub_task": 11,
         "continue_agent": 0,
         "new_manager": 1,
         "reorder": 0,
@@ -1192,9 +1192,23 @@
           "session_id": "ade70201-d7f7-4613-bba6-0eafc3f79e4a",
           "first_seen": "2026-06-09T05:07:46+00:00",
           "last_used": "2026-06-09T05:07:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a01d9066-484d-4415-8f66-b5cf74918643",
+          "first_seen": "2026-06-09T05:10:27+00:00",
+          "last_used": "2026-06-09T05:10:27+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ec73882c-77d9-49cd-8627-5df66e5ab561",
+          "first_seen": "2026-06-09T05:47:29+00:00",
+          "last_used": "2026-06-09T05:47:29+00:00"
         }
       ],
-      "time_needed_to_solve": 13730,
+      "time_needed_to_solve": 16114,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
