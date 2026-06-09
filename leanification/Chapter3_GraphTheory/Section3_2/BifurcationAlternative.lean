@@ -236,6 +236,892 @@ private lemma Walk.vertices_liftFromHardIntervention
       congrArg (u :: ·) (vertices_liftFromHardIntervention p)
 -- claim_3_5 --- end helper
 
+-- ## Private helpers — `Walk` concatenation infrastructure
+--
+-- Subtask 2 of the proof of `claim_3_5` builds the `Walk.comp`
+-- concatenation primitive that the (⇐) direction of the proof uses to
+-- assemble the candidate bifurcation walk from its two arms.  The
+-- first three helpers below mirror `claim_3_2`'s
+-- `AcyclicIffTopologicalOrder.lean` lines 96–116 verbatim; the fourth,
+-- `Walk.vertices_comp`, is new infrastructure needed for the (⇐)
+-- direction's clause~(a) end-node-uniqueness bookkeeping in step 5 of
+-- the TeX proof (the concatenated walk's vertex list factors as
+-- `p.vertices.dropLast ++ q.vertices`).  An auxiliary
+-- `Walk.vertices_ne_nil` lemma is added to discharge the
+-- `List.dropLast_cons_of_ne_nil` side condition in the `cons` case.
+--
+-- ## Design choice
+--
+-- *Localised verbatim copy rather than cross-file `import`.*  The
+--   sibling `AcyclicIffTopologicalOrder.lean` already declares these
+--   three lemmas `private`, so they are not accessible from this file.
+--   Re-declaring `private` here matches the chapter precedent of
+--   localising walk-level plumbing to the consuming row (same
+--   rationale as for the `liftFromHardIntervention` cluster in subtask
+--   1).  A future chapter-wide refactor can hoist these into
+--   `Walks.lean`; until then, the local copy keeps the consuming file
+--   self-contained.
+-- claim_3_5 --- start helper
+
+/-- Concatenate two walks `p : Walk G u v` and `q : Walk G v w` into a
+walk `Walk G u w`.  The `nil` case forwards `q` unchanged; the `cons`
+case recurses on the tail and re-attaches the head edge.  Verbatim copy
+of `AcyclicIffTopologicalOrder.lean`'s `private Walk.comp`; re-declared
+locally because the sibling copy is `private`. -/
+private def Walk.comp {G : CDMG Node} :
+    ∀ {u v w : Node}, Walk G u v → Walk G v w → Walk G u w
+  | _, _, _, .nil _ _, q => q
+  | _, _, _, .cons v a h p, q => .cons v a h (p.comp q)
+
+/-- `Walk.comp` is additive on lengths: the number of edges of the
+concatenation equals the sum of the two arms' edge counts.  Verbatim
+copy of the same-named `private` lemma in
+`AcyclicIffTopologicalOrder.lean`. -/
+private lemma Walk.length_comp {G : CDMG Node} :
+    ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
+      (p.comp q).length = p.length + q.length
+  | _, _, _, .nil _ _, q => by
+      simp [Walk.comp, Walk.length]
+  | _, _, _, .cons _ _ _ p, q => by
+      simp [Walk.comp, Walk.length, Walk.length_comp p q,
+            Nat.add_comm, Nat.add_left_comm]
+
+/-- `Walk.comp` preserves `IsDirectedWalk` when both arms are directed:
+the per-edge `def_3_4` item~ii constraint `a = (u, v) ∧ a ∈ G.E` is
+preserved cell-by-cell along the recursion.  Verbatim copy of the
+same-named `private` lemma in `AcyclicIffTopologicalOrder.lean`. -/
+private lemma Walk.isDirectedWalk_comp {G : CDMG Node} :
+    ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
+      p.IsDirectedWalk → q.IsDirectedWalk → (p.comp q).IsDirectedWalk
+  | _, _, _, .nil _ _, _, _, hq => hq
+  | _, _, _, .cons _ _ _ p, q, hp, hq => by
+      obtain ⟨h1, h2, h3⟩ := hp
+      exact ⟨h1, h2, Walk.isDirectedWalk_comp p q h3 hq⟩
+
+/-- Auxiliary: every walk's `vertices` list is non-empty.  The `nil`
+walk gives `[v]`; every `cons` cell prepends a new head vertex.  Needed
+by `Walk.vertices_comp`'s `cons` case to discharge the side condition
+of `List.dropLast_cons_of_ne_nil`. -/
+private lemma Walk.vertices_ne_nil {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v), p.vertices ≠ []
+  | _, _, .nil _ _ => by simp [Walk.vertices]
+  | _, _, .cons _ _ _ _ => by simp [Walk.vertices]
+
+/-- **New (subtask 2 of `claim_3_5`):** `Walk.comp` interacts with
+`vertices` by dropping the last vertex of the left arm and
+concatenating with the full vertex list of the right arm.  This is the
+load-bearing bookkeeping lemma for the (⇐) direction: the candidate
+bifurcation walk built from `(reverse q_v).comp q_w` has vertex list
+`(reverse q_v).vertices.dropLast ++ q_w.vertices`, and end-node /
+interior-membership conditions like `v ∉ p.vertices.tail` or
+`v ∈ p.vertices` reduce to per-arm membership statements via this
+equation.
+
+The `nil` case closes by `rfl`: `[v].dropLast = []` and `[] ++ _ = _`
+are both definitionally true.  The `cons` case applies the inductive
+hypothesis and uses `List.dropLast_cons_of_ne_nil
+(Walk.vertices_ne_nil p)` to unfold `(u :: p.vertices).dropLast`. -/
+private lemma Walk.vertices_comp {G : CDMG Node} :
+    ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
+      (p.comp q).vertices = p.vertices.dropLast ++ q.vertices
+  | _, _, _, .nil _ _, _ => rfl
+  | _, _, _, .cons _ _ _ p, q => by
+      have hne : p.vertices ≠ [] := Walk.vertices_ne_nil p
+      simp [Walk.comp, Walk.vertices, Walk.vertices_comp p q,
+            List.dropLast_cons_of_ne_nil hne]
+-- claim_3_5 --- end helper
+
+-- ## Private helpers — `G → G_{do(W)}` walk-lift infrastructure
+--
+-- Subtask 3 of the proof of `claim_3_5` builds the reverse-direction
+-- walk-lift infrastructure that the (⇒) direction of the proof uses
+-- to transport the directed bifurcation arms `qL : Walk G c v` and
+-- `qR : Walk G c w` from the ambient CDMG `G` to the intervened CDMGs
+-- `G.hardInterventionOn {w} _` / `G.hardInterventionOn {v} _` after
+-- verifying that no internal vertex of each arm coincides with the
+-- opposite end-node (via the bifurcation walk's clause~(a)
+-- end-node-uniqueness).
+--
+-- The three load-bearing declarations are:
+--
+-- * `Walk.vertices_directed_avoid_of_hardInterventionOn` — every
+--   directed walk in `G.hardInterventionOn W hW` automatically avoids
+--   `W` on all non-source positions, because `def_3_10` item iii
+--   deletes every edge whose head is in `W` (the `e.2 ∉ W` clause of
+--   the `Finset.filter`).  Mirror of the dual fact used by subtask 1's
+--   `liftFromHardIntervention` direction, but read off the *intervened*
+--   walks rather than the *ambient* ones.
+--
+-- * `Walk.liftTo_hardInterventionOn` — the converse of subtask 1's
+--   `Walk.liftFromHardIntervention`.  Given a directed walk in `G`
+--   whose source belongs to the intervention and whose non-source
+--   vertices avoid `W`, rebuild the walk cell-by-cell in
+--   `G.hardInterventionOn W hW`, witnessing each `cons` step's edge
+--   via `Finset.mem_filter.mpr`-style packaging of the `e.2 ∉ W`
+--   clause.
+--
+-- * `Walk.isDirectedWalk_liftTo_hardInterventionOn` — the lift
+--   preserves `IsDirectedWalk`.  Each `cons` step retains the
+--   `a = (u, v) ∧ a ∈ G.E` constraints of `def_3_4` item ii, with
+--   the second conjunct upgraded through the filter membership.
+--
+-- Two small auxiliaries support the recursion:
+-- `Walk.head_mem_vertices` (the source of a walk lies in its vertex
+-- list, used to extract `vMid ∉ W` from the cons-walk's tail-avoidance
+-- hypothesis) and `Walk.vertices_eq_head_cons_tail` (every walk's
+-- vertex list factors as `source :: tail`, used to split `x ∈ p.vertices`
+-- into "x equals the source" / "x lies in the strict tail" branches).
+--
+-- ## Design choice
+--
+-- *Source-membership hypothesis `hu : u ∈ G.hardInterventionOn W hW`
+--   as an explicit argument.*  The `Walk.nil` base case has no edge
+--   from which to recover the source's `J ∪ V`-membership in the
+--   intervened CDMG (in subtask 1's reverse direction this is solved
+--   by `mem_of_mem_hardInterventionOn` extracting `G`-membership from
+--   `G_{do(W)}`-membership via a subset relation; we go the other
+--   direction here, and the source's `J ∪ V`-membership is precisely
+--   what the `nil` constructor needs).  For `n ≥ 1`, each cons cell
+--   propagates the new source's membership through the directed-walk
+--   constraint `a ∈ G.E` (`G.hE_subset` extracts `a.2 ∈ G.V` from
+--   this) plus the avoidance hypothesis (`a.2 ∉ W` puts `a.2` in the
+--   `G.V ∖ W` right-disjunct of the intervention's `J ∪ V` carrier),
+--   so no further input is needed downstream.
+--
+-- *Avoidance hypothesis on `.vertices.tail`, not the full
+--   `.vertices`.*  The source `u = u_0` is unconstrained — the LN's
+--   "$\Anc^{G_{\doit(w)}}(v) \sm \{v\}$" reading places no restriction
+--   on `v` itself, only on its strict ancestors.  Only the *heads* of
+--   the edges (positions `1, 2, …, n` of `vertices`) must avoid `W`,
+--   because `(u_i, u_{i+1}) ∈ E_{do(W)}` forces `u_{i+1} ∉ W` via the
+--   `filter`-clause of `def_3_10` item iii.  The `.tail` carve-out is
+--   the load-bearing book-keeping that lets the (⇒) direction's
+--   `mkBifurcation`-based candidate walk reuse the LN's
+--   `Anc^{G_{do(w)}}` ancestor sets verbatim.
+--
+-- *`isDirectedWalk_liftTo_hardInterventionOn` re-derives the
+--   intermediate values used inside `liftTo_hardInterventionOn`'s
+--   cons-case recursive call.*  The cons-case RHS of
+--   `liftTo_hardInterventionOn` computes specific proof terms
+--   (`hvMid_inHard`, `hp'_avoid`) inside its body and threads them
+--   into the recursive call; the IH of the directedness lemma must
+--   unify with that recursive call, so the lemma's proof reproduces
+--   those `have`-bindings verbatim.  Proof-irrelevance bridges any
+--   syntactic differences in how the proofs are written, but
+--   reproducing the bindings keeps the unification local and robust.
+-- claim_3_5 --- start helper
+
+/-- Auxiliary: the source `u` of a walk `p : Walk G u v` is the head of
+`p.vertices`, hence lies in `p.vertices`.  The `nil` case unfolds to
+`u ∈ [u]`; the `cons` case unfolds to `u ∈ u :: rest`; both close by
+`simp [Walk.vertices]`.  Used by `liftTo_hardInterventionOn`'s `cons`
+recursion to extract `vMid ∉ W` from the cons-walk's `vertices.tail`-
+avoidance hypothesis (the cons-walk's `.vertices.tail` definitionally
+equals `p'.vertices`, whose head is `vMid`). -/
+private lemma Walk.head_mem_vertices {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v), u ∈ p.vertices
+  | _, _, .nil _ _ => by simp [Walk.vertices]
+  | _, _, .cons _ _ _ _ => by simp [Walk.vertices]
+
+/-- Auxiliary: every walk's vertex list factors as `source :: tail`.
+The `nil` case: `[u].tail = []` and `u :: [] = [u]`, so the equality is
+definitional.  The `cons` case: `(u :: p'.vertices).tail = p'.vertices`,
+so `u :: ((cons _ _ _ p').vertices.tail) = u :: p'.vertices = (cons _ _ _ p').vertices`,
+again definitional.  Used by `vertices_directed_avoid_of_hardInterventionOn`'s
+`cons` case to split `x ∈ p'.vertices` into "x equals the source vertex
+`vMid`" / "x lies in `p'.vertices.tail`" via `List.mem_cons`. -/
+private lemma Walk.vertices_eq_head_cons_tail {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v), p.vertices = u :: p.vertices.tail
+  | _, _, .nil _ _ => rfl
+  | _, _, .cons _ _ _ _ => rfl
+
+/-- **Subtask 3a:** every vertex of a *directed* walk in
+`G.hardInterventionOn W hW`, except the source, avoids `W`.
+
+The `.tail` carve-out is load-bearing: the source `u = u_0` is
+unconstrained — it may or may not be in `W`.  Only the heads of the
+edges (positions `1, 2, …, n` of `vertices`) must avoid `W`, because
+`(u_i, u_{i+1}) ∈ E_{do(W)}` forces `u_{i+1} ∉ W` via the `e.2 ∉ W`
+clause of `def_3_10` item iii's `Finset.filter`.
+
+Proof: induction on `p`.  The `nil` case is vacuous
+(`(.nil v _).vertices.tail = []`).  The `cons` case obtains
+`a ∈ (G.hardInterventionOn W hW).E` from the `IsDirectedWalk`
+conjunct, extracts `vMid ∉ W` via `Finset.mem_filter.mp` and the
+`ha_eq : a = (u, vMid)` head identification, then splits the membership
+`x ∈ p'.vertices` into "x = vMid" (closed by the just-extracted
+`vMid ∉ W`) and "x ∈ p'.vertices.tail" (closed by the IH applied to
+`p'` and its directedness hypothesis). -/
+private lemma Walk.vertices_directed_avoid_of_hardInterventionOn
+    {G : CDMG Node} {W : Finset Node} {hW : W ⊆ G.J ∪ G.V} :
+    ∀ {u v : Node} (p : Walk (G.hardInterventionOn W hW) u v),
+      p.IsDirectedWalk → ∀ x ∈ p.vertices.tail, x ∉ W
+  | _, _, .nil _ _, _, _, hx => by simp [Walk.vertices] at hx
+  | _, _, .cons vMid a _ p', hp_dir, x, hx => by
+      change x ∈ p'.vertices at hx
+      obtain ⟨ha_eq, ha_E, hp'_dir⟩ := hp_dir
+      have hvMid_notW : vMid ∉ W := by
+        have hh := (Finset.mem_filter.mp ha_E).2
+        rw [ha_eq] at hh
+        exact hh
+      rw [Walk.vertices_eq_head_cons_tail p'] at hx
+      rcases List.mem_cons.mp hx with rfl | hx_tail
+      · exact hvMid_notW
+      · exact Walk.vertices_directed_avoid_of_hardInterventionOn p'
+          hp'_dir x hx_tail
+
+/-- **Subtask 3b:** rebuild a directed walk `p : Walk G u v` in the
+intervened CDMG `G.hardInterventionOn W hW`, provided the source `u`
+is itself a node of the intervention and every non-source vertex of
+`p` avoids `W`.
+
+Cell-by-cell: each `cons` step's `WalkStep` witness is built from the
+`def_3_4`-item-ii data `a = (u, vMid) ∧ a ∈ G.E` (extracted from
+`hp_dir`) together with `vMid ∉ W` (extracted from `hp_avoid` applied
+to the head of the tail walk's vertex list, via
+`Walk.head_mem_vertices`).  The recursive call's source-membership
+hypothesis `hvMid_inHard` is re-derived in the `cons` case from
+`G.hE_subset` applied to `a ∈ G.E` (giving `a.2 ∈ G.V`, hence
+`vMid ∈ G.V`) and `vMid ∉ W` (placing `vMid` in the `G.V ∖ W`
+right-disjunct of the intervention's `J ∪ V` carrier). -/
+private def Walk.liftTo_hardInterventionOn
+    {G : CDMG Node} {W : Finset Node} {hW : W ⊆ G.J ∪ G.V} :
+    ∀ {u v : Node} (p : Walk G u v),
+      u ∈ G.hardInterventionOn W hW →
+      p.IsDirectedWalk →
+      (∀ x ∈ p.vertices.tail, x ∉ W) →
+      Walk (G.hardInterventionOn W hW) u v
+  | _, _, .nil v _, hu, _, _ => Walk.nil v hu
+  | u, _, .cons vMid a _ p', _, hp_dir, hp_avoid =>
+      have hvMid_notW : vMid ∉ W :=
+        hp_avoid vMid (Walk.head_mem_vertices p')
+      have hvMid_V : vMid ∈ G.V := by
+        have hh := (G.hE_subset hp_dir.2.1).2
+        rw [hp_dir.1] at hh
+        exact hh
+      have hvMid_inHard : vMid ∈ G.hardInterventionOn W hW := by
+        change vMid ∈ (G.J ∪ W) ∪ (G.V \ W)
+        exact Finset.mem_union_right _
+          (Finset.mem_sdiff.mpr ⟨hvMid_V, hvMid_notW⟩)
+      have hStepNew : (G.hardInterventionOn W hW).WalkStep u a vMid := by
+        refine Or.inl ⟨hp_dir.1, Or.inl ?_⟩
+        refine Finset.mem_filter.mpr ⟨hp_dir.2.1, ?_⟩
+        rw [hp_dir.1]
+        exact hvMid_notW
+      have hp'_avoid : ∀ x ∈ p'.vertices.tail, x ∉ W := fun y hy =>
+        hp_avoid y (List.mem_of_mem_tail hy)
+      Walk.cons vMid a hStepNew
+        (Walk.liftTo_hardInterventionOn p' hvMid_inHard hp_dir.2.2 hp'_avoid)
+
+/-- **Subtask 3c:** the `liftTo_hardInterventionOn` lift preserves
+`IsDirectedWalk`.
+
+The `nil` case is `trivial` (`(Walk.nil v _).IsDirectedWalk = True`).
+The `cons` case reduces by the equation compiler to
+`(Walk.cons vMid a hStepNew (p'.liftTo_hardInterventionOn …)).IsDirectedWalk`,
+which by the `cons` clause of `IsDirectedWalk` decomposes as the
+conjunction of (a) `a = (u, vMid)` from `hp_dir`, (b)
+`a ∈ (G.hardInterventionOn W hW).E` from `Finset.mem_filter.mpr`
+packaging of `hp_dir.2.1` and the head-avoidance `vMid ∉ W`, and (c)
+`(p'.liftTo…).IsDirectedWalk` from the IH applied to `p'` and the
+re-derived recursive-call hypotheses. -/
+private lemma Walk.isDirectedWalk_liftTo_hardInterventionOn
+    {G : CDMG Node} {W : Finset Node} {hW : W ⊆ G.J ∪ G.V} :
+    ∀ {u v : Node} (p : Walk G u v) (hu : u ∈ G.hardInterventionOn W hW)
+      (hp_dir : p.IsDirectedWalk)
+      (hp_avoid : ∀ x ∈ p.vertices.tail, x ∉ W),
+      (Walk.liftTo_hardInterventionOn (hW := hW) p hu hp_dir hp_avoid).IsDirectedWalk
+  | _, _, .nil _ _, _, _, _ => trivial
+  | _, _, .cons vMid a _ p', _, hp_dir, hp_avoid => by
+      have hvMid_notW : vMid ∉ W :=
+        hp_avoid vMid (Walk.head_mem_vertices p')
+      have hvMid_V : vMid ∈ G.V := by
+        have hh := (G.hE_subset hp_dir.2.1).2
+        rw [hp_dir.1] at hh
+        exact hh
+      have hvMid_inHard : vMid ∈ G.hardInterventionOn W hW := by
+        change vMid ∈ (G.J ∪ W) ∪ (G.V \ W)
+        exact Finset.mem_union_right _
+          (Finset.mem_sdiff.mpr ⟨hvMid_V, hvMid_notW⟩)
+      have hp'_avoid : ∀ x ∈ p'.vertices.tail, x ∉ W := fun y hy =>
+        hp_avoid y (List.mem_of_mem_tail hy)
+      refine ⟨hp_dir.1, ?_, ?_⟩
+      · refine Finset.mem_filter.mpr ⟨hp_dir.2.1, ?_⟩
+        rw [hp_dir.1]
+        exact hvMid_notW
+      · exact Walk.isDirectedWalk_liftTo_hardInterventionOn p'
+          hvMid_inHard hp_dir.2.2 hp'_avoid
+-- claim_3_5 --- end helper
+
+-- ## Private helpers — `Walk.truncateAtFirst` + minimum-length walk
+--
+-- Subtask 4 of the proof of `claim_3_5` builds the truncation /
+-- minimum-length-walk infrastructure that the (⇐) direction of the
+-- proof uses to upgrade an arbitrary directed walk from `c` to `v`
+-- into a *minimum-length* one whose target vertex `v` does not appear
+-- inside its `vertices.dropLast`.  Concretely:
+--
+-- * `Walk.truncateAtFirst p t h` truncates a walk `p : Walk G u v`
+--   at the *first* occurrence of `t` in `p.vertices`, returning a
+--   `Σ' (v' : Node), Walk G u v'` whose target `v'` equals `t`
+--   (Shape A; the equality is exposed as
+--   `Walk.truncateAtFirst_target_eq`).
+-- * `Walk.length_truncateAtFirst_le` and
+--   `Walk.isDirectedWalk_truncateAtFirst` carry length / directedness
+--   through the truncation.
+-- * `Walk.length_truncateAtFirst_lt_of_mem_dropLast` is the
+--   load-bearing strict-inequality: when `t` appears in
+--   `p.vertices.dropLast` (i.e.\ at any non-terminal position), the
+--   truncation drops at least one cell, so its length is strictly
+--   smaller than `p.length`.
+-- * `exists_directed_walk_v_not_in_dropLast` uses `Nat.find` to pick
+--   a *minimum-length* directed walk from `c` to `v`; its minimality
+--   then forces `v ∉ p.vertices.dropLast` (otherwise, truncating at
+--   `v`'s first occurrence would yield a strictly shorter directed
+--   walk from `c` to `v`, contradicting `Nat.find_min`).
+--
+-- Step 1 of the (⇐) direction of the TeX proof exhibits a *minimum-
+-- length* directed walk `q_v : Walk (G.hardInterventionOn {w} _) c v`
+-- and uses its minimality to argue that `v` does not appear in
+-- `q_v.vertices.dropLast` (Step 3.2 of the TeX proof; analogously for
+-- `q_w`).  This package translates that argument into Lean once and
+-- for all, decoupling the "minimum length" extraction from the
+-- consuming proof.
+--
+-- ## Design choice
+--
+-- *Shape A (`Σ' (v' : Node), Walk G u v'`) rather than Shape B
+--   (`Walk G u t`).*  Shape B would tie the truncated walk's target
+--   index to `t` at the type level, eliminating the
+--   `Walk.truncateAtFirst_target_eq` bookkeeping at consumer sites
+--   but forcing an `Eq.rec` / `subst`-style cast in the `nil` arm of
+--   the recursion and in the `t = u` branch of the `cons` arm (both
+--   produce a `Walk.nil _ _` whose type indices need re-indexing).
+--   The cast pollutes the equation lemmas Lean auto-generates for
+--   the function, breaking `simp`-based reductions in the
+--   `length_truncateAtFirst_le` / `isDirectedWalk_truncateAtFirst`
+--   proofs.  Shape A keeps the function body cast-free and relies on
+--   `Walk.truncateAtFirst_target_eq` plus a single `subst h_target`
+--   step at the consumer (`exists_directed_walk_v_not_in_dropLast`)
+--   to recover the `Walk G c v` shape — net less bookkeeping.
+--
+-- *Per-`WalkStep` source-membership helper `WalkStep.source_mem`.*
+--   The `t = u` branch of the `cons` arm needs `Walk.nil u h_u_in_G`
+--   for the truncated walk, but the `cons`-pattern data does not
+--   carry `u ∈ G` directly (only `Walk.nil` has that field — see
+--   `Walks.lean`'s design block on the `nil`/`cons` membership-
+--   witness asymmetry).  We extract it from `hStep : G.WalkStep u a
+--   vMid`: a `WalkStep` is either a forward `E`-edge, a forward
+--   `L`-edge, or a backward `E`-edge, and in all three cases `u`'s
+--   membership in `G.J ∪ G.V` follows from `G.hE_subset` /
+--   `G.hL_subset`.  Factoring this out into one lemma keeps the
+--   `truncateAtFirst` body terse.
+--
+-- *`Nat.find` over a (classically) decidable existential, not
+--   `Classical.byContradiction` + size-induction.*  The (⇐) direction
+--   needs *minimum length*, not just any walk.  `Nat.find` with
+--   `Classical.dec` (auto-instantiated via `classical`) over the
+--   predicate "there exists a directed walk from `c` to `v` of length
+--   `n`" gives the cleanest minimum extraction.  An alternative
+--   `Classical.choose` + `WellFounded.min` approach was rejected as
+--   more verbose; `Nat.find_spec` and `Nat.find_min` package the
+--   exact two pieces we need (the witness at the minimum and the
+--   contradiction with any smaller walk).
+--
+-- *`exists_directed_walk_v_not_in_dropLast` takes `c ≠ v` as a
+--   hypothesis even though `Anc`'s body admits the trivial length-0
+--   walk `Walk.nil c hc` (giving `c ∈ G.Anc c` unconditionally).*
+--   The dropLast clause `v ∉ p.vertices.dropLast` is vacuous when
+--   `p` is the trivial walk (`p.vertices.dropLast = []` for
+--   `p = Walk.nil c _` when `c = v`), so technically the lemma is
+--   true even without `hcv`.  We carry `hcv` because the (⇐)
+--   direction's consumer always has `c ≠ v` available (from the LN's
+--   `c ∈ Anc^{G_{do(w)}}(v) \ {v}` clause's `\ {v}` part) and the
+--   hypothesis sharpens the lemma's statement: the produced walk has
+--   length ≥ 1, so its `vertices.dropLast` is non-empty in an
+--   informative way.  Downstream `mkBifurcation` constructions also
+--   require length ≥ 1 to assemble the bifurcation's left arm.
+-- claim_3_5 --- start helper
+
+/-- Auxiliary: the source vertex of a `WalkStep` lies in `G`.  Used by
+`Walk.truncateAtFirst`'s `t = u` branch in the `cons` arm to recover
+`u ∈ G` from `hStep : G.WalkStep u a vMid` — the `cons`-pattern data
+does not carry `u ∈ G` directly (only `Walk.nil` has that field).
+The proof case-splits `WalkStep` into its three disjuncts (forward
+`E`, forward `L`, backward `E`) and reads off `u`'s membership from
+the appropriate `G.hE_subset` / `G.hL_subset` projection. -/
+private lemma WalkStep.source_mem {G : CDMG Node} {u v : Node}
+    {a : Node × Node} (h : G.WalkStep u a v) : u ∈ G := by
+  change u ∈ G.J ∪ G.V
+  rcases h with ⟨ha_eq, ha_or⟩ | ⟨ha_eq, ha_E⟩
+  · rcases ha_or with ha_E | ha_L
+    · have h1 := (G.hE_subset ha_E).1
+      rw [ha_eq] at h1
+      exact h1
+    · have h1 := (G.hL_subset ha_L).1
+      rw [ha_eq] at h1
+      exact Finset.mem_union_right _ h1
+  · have h1 := (G.hE_subset ha_E).2
+    rw [ha_eq] at h1
+    exact Finset.mem_union_right _ h1
+
+/-- **Subtask 4a:** truncate `p : Walk G u v` at the *first* occurrence
+of `t` in `p.vertices`, returning a `Σ' (v' : Node), Walk G u v'`
+whose target `v'` equals `t` (the equality is the content of
+`Walk.truncateAtFirst_target_eq` immediately below).
+
+* `nil` arm: `p.vertices = [v]`, so `h : t ∈ [v]` forces `t = v`;
+  the truncation is the trivial walk `⟨v, .nil v hv⟩`.  The Sigma
+  fst is `v`, which equals `t` via `List.mem_singleton`.
+* `cons` arm: `p = .cons vMid a hStep p'`, `p.vertices = u ::
+  p'.vertices`.  Case-split on `t = u`:
+    * If `t = u`: the *first* occurrence of `t` is at position 0 of
+      `p.vertices`, so the truncated walk is `⟨u, .nil u _⟩`.  The
+      needed `u ∈ G` is extracted from `hStep` via
+      `WalkStep.source_mem`.
+    * If `t ≠ u`: the first occurrence of `t` lies in
+      `p'.vertices`; recurse on `p'` and re-prepend the head edge
+      with `Walk.cons`.
+
+Structural recursion terminates on the `cons` arm's `p'` (a strict
+subterm of `.cons vMid a hStep p'`). -/
+private def Walk.truncateAtFirst {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v) (t : Node) (_h : t ∈ p.vertices),
+      Σ' (v' : Node), Walk G u v'
+  | _, _, .nil w hw, _, _ => ⟨w, .nil w hw⟩
+  | u, _, .cons vMid a hStep p', t, h =>
+      if h_eq : t = u then
+        ⟨u, .nil u (WalkStep.source_mem hStep)⟩
+      else
+        have h_in_p' : t ∈ p'.vertices := by
+          have h' : t ∈ u :: p'.vertices := h
+          rcases List.mem_cons.mp h' with rfl | h_in
+          · exact absurd rfl h_eq
+          · exact h_in
+        let res := Walk.truncateAtFirst p' t h_in_p'
+        ⟨res.1, .cons vMid a hStep res.2⟩
+
+/-- **Subtask 4b:** the truncated walk's target (`Σ'.fst`) equals `t`.
+This is the Shape-A bookkeeping that consumers use to convert the
+`Walk G u (truncate p t h).1` into a `Walk G u t` (via `subst` on the
+fst-equality).  Proved by structural recursion mirroring
+`Walk.truncateAtFirst`'s shape:
+
+* `nil` arm: the fst is `w` (the trivial walk's source), and
+  `t = w` follows from `h : t ∈ [w]` via `List.mem_singleton`.
+* `cons` arm: case-split on `t = u`.  If `t = u`, fst is `u = t`;
+  if `t ≠ u`, fst is `(truncate p' t _).1`, which equals `t` by
+  the inductive hypothesis. -/
+private lemma Walk.truncateAtFirst_target_eq {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v) (t : Node) (h : t ∈ p.vertices),
+      (Walk.truncateAtFirst p t h).1 = t
+  | _, _, .nil _ _, _, h => (List.mem_singleton.mp h).symm
+  | u, _, .cons _ _ _ p', t, h => by
+      simp only [Walk.truncateAtFirst]
+      by_cases h_eq : t = u
+      · rw [dif_pos h_eq]
+        exact h_eq.symm
+      · rw [dif_neg h_eq]
+        have h_in_p' : t ∈ p'.vertices := by
+          have h' : t ∈ u :: p'.vertices := h
+          rcases List.mem_cons.mp h' with rfl | h_in
+          · exact absurd rfl h_eq
+          · exact h_in
+        exact Walk.truncateAtFirst_target_eq p' t h_in_p'
+
+/-- **Subtask 4c:** the truncated walk's length is bounded by the
+original walk's length.  Both endpoints (`≤`) are attained: a `nil`
+input gives a `nil` output of the same length 0; a `cons` input whose
+truncation does not drop any cell (only possible when `t` equals the
+walk's final vertex and never appears earlier) yields equality.  The
+strict-inequality version
+`Walk.length_truncateAtFirst_lt_of_mem_dropLast` strengthens this
+under the `t ∈ p.vertices.dropLast` hypothesis. -/
+private lemma Walk.length_truncateAtFirst_le {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v) (t : Node) (h : t ∈ p.vertices),
+      (Walk.truncateAtFirst p t h).2.length ≤ p.length
+  | _, _, .nil _ _, _, _ => by
+      simp only [Walk.truncateAtFirst, Walk.length, le_refl]
+  | u, _, .cons _ _ _ p', t, h => by
+      simp only [Walk.truncateAtFirst, Walk.length]
+      by_cases h_eq : t = u
+      · rw [dif_pos h_eq]
+        simp [Walk.length]
+      · rw [dif_neg h_eq]
+        have h_in_p' : t ∈ p'.vertices := by
+          have h' : t ∈ u :: p'.vertices := h
+          rcases List.mem_cons.mp h' with rfl | h_in
+          · exact absurd rfl h_eq
+          · exact h_in
+        have ih := Walk.length_truncateAtFirst_le p' t h_in_p'
+        change (Walk.truncateAtFirst p' t h_in_p').2.length + 1 ≤ p'.length + 1
+        omega
+
+/-- **Subtask 4d:** the truncated walk inherits `IsDirectedWalk` from
+the original walk.  The `nil` arm produces a `.nil` walk, which is
+directed vacuously.  The `cons` arm's `t = u` branch also produces a
+`.nil` (trivially directed); the `t ≠ u` branch re-prepends the head
+edge `a = (u, vMid)` (extracted from `p.IsDirectedWalk`'s first
+conjunct), with the `IsDirectedWalk` of the recursive tail provided by
+the inductive hypothesis. -/
+private lemma Walk.isDirectedWalk_truncateAtFirst {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v) (t : Node) (h : t ∈ p.vertices),
+      p.IsDirectedWalk → (Walk.truncateAtFirst p t h).2.IsDirectedWalk
+  | _, _, .nil _ _, _, _, _ => by
+      simp only [Walk.truncateAtFirst]
+      trivial
+  | u, _, .cons _ _ _ p', t, h, hp_dir => by
+      simp only [Walk.truncateAtFirst]
+      by_cases h_eq : t = u
+      · rw [dif_pos h_eq]
+        trivial
+      · rw [dif_neg h_eq]
+        have h_in_p' : t ∈ p'.vertices := by
+          have h' : t ∈ u :: p'.vertices := h
+          rcases List.mem_cons.mp h' with rfl | h_in
+          · exact absurd rfl h_eq
+          · exact h_in
+        obtain ⟨ha_eq, ha_E, hp'_dir⟩ := hp_dir
+        refine ⟨ha_eq, ha_E, ?_⟩
+        exact Walk.isDirectedWalk_truncateAtFirst p' t h_in_p' hp'_dir
+
+/-- Auxiliary: every `t ∈ p.vertices.dropLast` automatically lies in
+the full `p.vertices`.  Direct application of mathlib's
+`List.mem_of_mem_dropLast`.  Used by
+`Walk.length_truncateAtFirst_lt_of_mem_dropLast` and
+`exists_directed_walk_v_not_in_dropLast` to feed a `dropLast`
+membership into `Walk.truncateAtFirst`'s `p.vertices`-membership
+hypothesis. -/
+private lemma Walk.mem_vertices_of_mem_dropLast {G : CDMG Node}
+    {u v : Node} {p : Walk G u v} {t : Node}
+    (h : t ∈ p.vertices.dropLast) : t ∈ p.vertices :=
+  List.mem_of_mem_dropLast h
+
+/-- **Subtask 4e:** the load-bearing *strict* inequality.  When `t`
+appears in `p.vertices.dropLast` (i.e.\ at some non-terminal position
+in the walk's vertex list), the truncation drops at least one `cons`
+cell, so its length is strictly smaller than `p.length`.
+
+The `nil` case is vacuous: `(.nil v _).vertices.dropLast = [].dropLast
+= []`, so no `t` can satisfy the hypothesis.
+
+The `cons` case unfolds `(u :: p'.vertices).dropLast = u ::
+p'.vertices.dropLast` (using `Walk.vertices_ne_nil` from subtask 2)
+and case-splits `t ∈ u :: p'.vertices.dropLast`:
+* If `t = u`: truncation returns the trivial walk `⟨u, .nil u _⟩`
+  of length 0, strictly less than the original `p.length ≥ 1` (since
+  the cons walk has at least one edge).
+* If `t ∈ p'.vertices.dropLast`: recurse on `p'` via the inductive
+  hypothesis, getting `(truncate p' t _).2.length < p'.length`;
+  adding 1 to both sides (the `cons` cell that the outer truncation
+  re-prepends) gives `< p'.length + 1 = p.length`. -/
+private lemma Walk.length_truncateAtFirst_lt_of_mem_dropLast {G : CDMG Node} :
+    ∀ {u v : Node} (p : Walk G u v) (t : Node)
+      (h_in_dropLast : t ∈ p.vertices.dropLast),
+      (Walk.truncateAtFirst p t
+          (Walk.mem_vertices_of_mem_dropLast h_in_dropLast)).2.length < p.length
+  | _, _, .nil _ _, _, h => by
+      -- (.nil _ _).vertices.dropLast = [_].dropLast = []
+      simp [Walk.vertices] at h
+  | u, _, .cons _ _ _ p', t, h_in_dropLast => by
+      have hne : p'.vertices ≠ [] := Walk.vertices_ne_nil p'
+      -- Unfold (cons …).vertices.dropLast = u :: p'.vertices.dropLast.
+      change t ∈ (u :: p'.vertices).dropLast at h_in_dropLast
+      rw [List.dropLast_cons_of_ne_nil hne] at h_in_dropLast
+      -- h_in_dropLast : t ∈ u :: p'.vertices.dropLast.
+      simp only [Walk.truncateAtFirst, Walk.length]
+      by_cases h_eq : t = u
+      · rw [dif_pos h_eq]
+        simp [Walk.length]
+      · rw [dif_neg h_eq]
+        have h_in_p'_drop : t ∈ p'.vertices.dropLast := by
+          rcases List.mem_cons.mp h_in_dropLast with rfl | h_in
+          · exact absurd rfl h_eq
+          · exact h_in
+        have ih := Walk.length_truncateAtFirst_lt_of_mem_dropLast p' t h_in_p'_drop
+        change (Walk.truncateAtFirst p' t _).2.length + 1 < p'.length + 1
+        omega
+
+/-- **Subtask 4f:** the (⇐) direction's load-bearing existence lemma.
+Given any ancestor `c ∈ G.Anc v` with `c ≠ v`, there exists a
+*minimum-length* directed walk from `c` to `v` whose target `v` does
+not appear in its `vertices.dropLast` (i.e.\ `v` occurs *only* at the
+walk's final position).
+
+Proof strategy (per the design block above):
+
+1.  Extract an initial directed walk `p₀ : Walk G c v` from `c ∈ G.Anc
+    v` (`Anc`'s body unfolds to `c ∈ G ∧ ∃ p : Walk G c v,
+    p.IsDirectedWalk`).
+2.  Define `P n := ∃ p : Walk G c v, p.IsDirectedWalk ∧ p.length = n`.
+    `p₀` shows `P p₀.length`, so the set `{n | P n}` is non-empty.
+3.  Let `n₀ := Nat.find hP_nonempty`; `Nat.find_spec` gives a walk
+    `p_min` of length `n₀` with `p_min.IsDirectedWalk`.
+4.  Suppose `v ∈ p_min.vertices.dropLast` for contradiction.
+    Truncate `p_min` at `v`'s first occurrence; by
+    `Walk.length_truncateAtFirst_lt_of_mem_dropLast` the resulting
+    walk has length strictly less than `p_min.length = n₀`.  The
+    truncated walk's target equals `v` (by
+    `Walk.truncateAtFirst_target_eq`), so after `subst`-ing the
+    target equality we get a `Walk G c v` of length `< n₀` with
+    `IsDirectedWalk` (by `Walk.isDirectedWalk_truncateAtFirst`).
+    This contradicts `Nat.find_min`.
+
+The `hcv : c ≠ v` hypothesis is not strictly needed (the dropLast
+clause is vacuously true when the minimum-length walk is trivial
+`Walk.nil c hc`, which only happens when `c = v`), but consumers
+always have it available and it sharpens the produced walk's content
+— see the design block above. -/
+private lemma exists_directed_walk_v_not_in_dropLast
+    {G : CDMG Node} {c v : Node}
+    (hc_anc : c ∈ G.Anc v) (hcv : c ≠ v) :
+    ∃ (p : Walk G c v), p.IsDirectedWalk ∧ v ∉ p.vertices.dropLast := by
+  classical
+  -- Step 1: extract initial walk from c ∈ Anc v.
+  -- `Anc`'s body: `c ∈ G ∧ ∃ p : Walk G c v, p.IsDirectedWalk`.
+  obtain ⟨_hc_in, p₀, hp₀_dir⟩ := hc_anc
+  -- Step 2: predicate "exists directed c→v walk of length n", and witness.
+  let P : ℕ → Prop :=
+    fun n => ∃ (p : Walk G c v), p.IsDirectedWalk ∧ p.length = n
+  have hP_nonempty : ∃ n, P n := ⟨p₀.length, p₀, hp₀_dir, rfl⟩
+  -- Step 3: minimum length witness via Nat.find.
+  obtain ⟨p_min, hp_min_dir, hp_min_len⟩ :
+      P (Nat.find hP_nonempty) := Nat.find_spec hP_nonempty
+  refine ⟨p_min, hp_min_dir, ?_⟩
+  -- Step 4: contradiction with minimality.
+  intro hv_drop
+  -- Promote dropLast-membership to full vertices-membership.
+  have h_v_in : v ∈ p_min.vertices :=
+    Walk.mem_vertices_of_mem_dropLast hv_drop
+  -- Bundle the truncation's outputs (target, directedness, length-lt)
+  -- and `subst` the target equality to land at `Walk G c v`.
+  obtain ⟨v', p_short, h_target, h_dir, h_lt⟩ :
+      ∃ (v' : Node) (p_short : Walk G c v'),
+        v' = v ∧ p_short.IsDirectedWalk ∧ p_short.length < p_min.length := by
+    refine ⟨(Walk.truncateAtFirst p_min v h_v_in).1,
+            (Walk.truncateAtFirst p_min v h_v_in).2, ?_, ?_, ?_⟩
+    · exact Walk.truncateAtFirst_target_eq p_min v h_v_in
+    · exact Walk.isDirectedWalk_truncateAtFirst p_min v h_v_in hp_min_dir
+    · exact Walk.length_truncateAtFirst_lt_of_mem_dropLast p_min v hv_drop
+  subst h_target
+  -- p_short : Walk G c v; contradict Nat.find_min.
+  have h_lt_n₀ : p_short.length < Nat.find hP_nonempty :=
+    hp_min_len ▸ h_lt
+  exact Nat.find_min hP_nonempty h_lt_n₀ ⟨p_short, h_dir, rfl⟩
+-- claim_3_5 --- end helper
+
+-- ## Private helpers — `Walk.reverseDirected` + `Walk.mkBifurcation`
+--
+-- Subtask 5 of the proof of `claim_3_5` builds the bifurcation-walk
+-- *constructor* that the (⇐) direction of the proof uses to assemble
+-- the candidate bifurcation walk from its two directed arms.  See the
+-- workspace `Section3_2/workspace_claim_3_5.md` (lines 385–440) for the
+-- subtask spec.
+--
+-- The TeX proof's Step 4 of (⇐) writes the candidate as
+--   `p := (reverse q_v) ⌢ q_w  : Walk G v w`
+-- where `reverse q_v` reads the left arm `q_v : Walk G c v` from `v`
+-- back to `c` along the same edges traversed in reverse (each cell of
+-- `reverse q_v` uses the *backward* `WalkStep` constructor, the
+-- `Or.inr` disjunct of `WalkStep`'s definition).  The middle vertex
+-- is the common source `c`; the split index of the bifurcation is
+-- `k = q_v.length`; the source of the bifurcation is `c`.
+--
+-- The two-step factoring (per the workspace plan):
+--
+-- * `Walk.reverseDirected qv hqv_dir : Walk G v c` — auxiliary that
+--   reverses a directed walk `qv : Walk G c v`.  Defined by
+--   structural recursion on `qv`: the cons case appends the recursive
+--   reverse to a length-1 backward-edge walk via subtask 2's
+--   `Walk.comp`.
+--
+-- * `Walk.mkBifurcation qv hqv_dir hqv_pos qw : Walk G v w` — defined
+--   as `(Walk.reverseDirected qv hqv_dir).comp qw`.  The
+--   `hqv_pos : qv.length ≥ 1` hypothesis is carried through but is
+--   not used by the definition itself; it is needed in subtask 6
+--   (which realises `IsBifurcationDirectedHingeWithSplit` on the
+--   produced walk) to exclude the trivial-left-arm case from the
+--   bifurcation predicate.
+--
+-- Both `length` and `vertices` for `mkBifurcation` factor through
+-- subtask 2's `length_comp` / `vertices_comp` plus this subtask's
+-- `length_reverseDirected` / `vertices_reverseDirected`.
+--
+-- ## Design choice
+--
+-- *Two-step factoring (define `reverseDirected` first, then
+--   `mkBifurcation` as a one-line composition).*  An alternative
+--   would inline the reverse-and-concatenate in a single recursive
+--   definition of `mkBifurcation`, recursing on `qv` from the front
+--   and *prepending* a backward edge to a partially-built bifurcation
+--   walk at each step.  But the partial walk's type indices change
+--   as we peel forward cells (the source index migrates), which
+--   forces awkward cast bookkeeping.  Factoring via `reverseDirected`
+--   delegates the type-index dance to a cast-free structurally-
+--   recursive function returning `Walk G v c` at every step, then
+--   re-uses subtask 2's `Walk.comp` to attach `qw` at `c`.
+--
+-- *`reverseDirected`'s cons case uses `Walk.comp` to append a
+--   length-1 backward-edge walk, rather than directly constructing
+--   a single `Walk.cons` from the recursion.*  Our `Walk` inductive
+--   (`Walks.lean:247`) only has `nil` and `cons` constructors and
+--   `cons` only *prepends* an edge.  Recursing into `qv'` gives a
+--   `Walk G v vMid`, and we need to append the backward edge
+--   `vMid → c`.  Without a `snoc`-style constructor (or a custom
+--   parallel recursion), the cleanest route is `Walk.comp` with a
+--   length-1 walk on the right.  The length / vertices arithmetic
+--   factors transparently through `length_comp` / `vertices_comp`,
+--   so the cost is one extra `comp` application per `cons` cell.
+--
+-- *No standalone `isDirectedWalk_reverseDirected` lemma.*  The
+--   reversed walk is *not* a directed walk in the standard
+--   "forward edges only" sense (`IsDirectedWalk` requires every cell
+--   to use the *forward* `WalkStep` disjunct
+--   `a = (u, v) ∧ a ∈ G.E`).  Each cell of `reverseDirected qv` uses
+--   the *backward* `WalkStep` disjunct (`Or.inr ⟨ha_eq, ha_E⟩`,
+--   i.e.\ `a = (v, u) ∧ a ∈ G.E`).  The correct correctness property
+--   is per-cell "every cell is backward", which has no clean named
+--   predicate in `Walks.lean` and is subtask-6-specific (subtask 6
+--   needs it inline when realising
+--   `IsBifurcationDirectedHingeWithSplit` on `mkBifurcation`'s
+--   output, where the left-arm `cons` clauses
+--   `a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k`
+--   match the backward `WalkStep` shape directly).  Per the
+--   workspace plan's recommendation, we skip this standalone lemma
+--   here and let subtask 6 build the per-cell fact directly.
+--
+-- *`hqv_pos : qv.length ≥ 1` is carried on `mkBifurcation` even
+--   though the definition does not consume it.*  Subtask 6 needs
+--   `qv.length ≥ 1` to (i) split the
+--   `IsBifurcationDirectedHingeWithSplit` recursion at the hinge
+--   (which is `qv`'s first cell traversed backward, present only
+--   when `qv.length ≥ 1`) and (ii) exclude the `k = 0`
+--   `cons _ _ _ (.nil _ _)` branch of
+--   `IsBifurcationDirectedHingeWithSplit` (`Walks.lean:1044` returns
+--   `False`).  Threading `hqv_pos` through `mkBifurcation`'s
+--   signature keeps the downstream subtask 6 / 8 API uniform.
+-- claim_3_5 --- start helper
+
+/-- **Subtask 5a:** reverse a *directed* walk `qv : Walk G c v` into a
+walk `Walk G v c`.  Every cell of the result uses the *backward*
+`WalkStep` disjunct (`Or.inr`), re-using the same edges as `qv`
+traversed in reverse.
+
+Structural recursion on `qv`:
+* `nil` case (`qv = .nil w hw`, forcing `c = v = w`): return the
+  trivial walk `Walk.nil w hw`.
+* `cons` case (`qv = .cons vMid a hStep qv'`, with
+  `qv' : Walk G vMid v` and
+  `hqv_dir = ⟨a = (c, vMid), a ∈ G.E, qv'.IsDirectedWalk⟩`): recurse
+  on `qv'` to get `qv'_rev : Walk G v vMid`; build a length-1
+  backward-edge walk `Walk G vMid c` by
+  `Walk.cons c a backStep (Walk.nil c h_c)`, where
+  `backStep : G.WalkStep vMid a c` is `Or.inr ⟨hqv_dir.1, hqv_dir.2.1⟩`
+  (packaging the original edge `a = (c, vMid) ∈ G.E` into the
+  *backward* `WalkStep` disjunct `a = (v, u) ∧ a ∈ G.E` with
+  `(u, v) := (vMid, c)`); compose via subtask 2's `Walk.comp`. -/
+private def Walk.reverseDirected {G : CDMG Node} :
+    ∀ {c v : Node} (qv : Walk G c v), qv.IsDirectedWalk → Walk G v c
+  | _, _, .nil w hw, _ => Walk.nil w hw
+  | c, _, .cons _ a hStep qv', hqv_dir =>
+      (Walk.reverseDirected qv' hqv_dir.2.2).comp
+        (Walk.cons c a (Or.inr ⟨hqv_dir.1, hqv_dir.2.1⟩)
+          (Walk.nil c (WalkStep.source_mem hStep)))
+
+/-- **Subtask 5b:** `reverseDirected` preserves length.  Each cell of
+the input produces one cell in the recursion (length-summed via
+`length_comp`) plus one cell in the length-1 backward-edge walk, so
+the total length is `qv'.length + 1 = qv.length`. -/
+private lemma Walk.length_reverseDirected {G : CDMG Node} :
+    ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk),
+      (Walk.reverseDirected qv hqv_dir).length = qv.length
+  | _, _, .nil _ _, _ => rfl
+  | _, _, .cons _ _ _ qv', hqv_dir => by
+      change ((Walk.reverseDirected qv' hqv_dir.2.2).comp _).length
+            = qv'.length + 1
+      rw [Walk.length_comp, Walk.length_reverseDirected qv' hqv_dir.2.2]
+      rfl
+
+/-- **Subtask 5c:** `reverseDirected` reverses the vertex list.
+
+The `nil` case is `rfl`: `[w].reverse = [w]` by definitional
+reduction.
+
+The `cons` case combines `vertices_comp` + IH + the head-of-walk fact
+(`qv'.vertices = vMid :: qv'.vertices.tail` from subtask 3's
+`vertices_eq_head_cons_tail`).  Concretely, after `vertices_comp` and
+IH the goal is
+  `qv'.vertices.reverse.dropLast ++ [vMid, c] = (c :: qv'.vertices).reverse`,
+which equals
+  `qv'.vertices.tail.reverse ++ [vMid, c] = qv'.vertices.tail.reverse ++ [vMid, c]`
+after rewriting `qv'.vertices` to `vMid :: qv'.vertices.tail` on both
+sides — closed by `simp [Walk.vertices, List.reverse_cons]`. -/
+private lemma Walk.vertices_reverseDirected {G : CDMG Node} :
+    ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk),
+      (Walk.reverseDirected qv hqv_dir).vertices = qv.vertices.reverse
+  | _, _, .nil _ _, _ => rfl
+  | c, _, .cons vMid _ _ qv', hqv_dir => by
+      have ih := Walk.vertices_reverseDirected qv' hqv_dir.2.2
+      have h_head : qv'.vertices = vMid :: qv'.vertices.tail :=
+        Walk.vertices_eq_head_cons_tail qv'
+      change ((Walk.reverseDirected qv' hqv_dir.2.2).comp _).vertices
+            = (c :: qv'.vertices).reverse
+      rw [Walk.vertices_comp, ih]
+      conv_lhs => rw [h_head]
+      conv_rhs => rw [h_head]
+      simp [Walk.vertices, List.reverse_cons]
+
+/-- **Subtask 5d:** the bifurcation-walk constructor.  Given a directed
+*left arm* `qv : Walk G c v` (`c → v`, length ≥ 1) and a *right arm*
+`qw : Walk G c w` (`c → w`, no directedness constraint at this stage),
+assemble the candidate bifurcation walk
+`(reverse qv) ⌢ qw : Walk G v w` whose middle vertex is `c` (the
+common source of the two arms).
+
+The `hqv_pos` hypothesis is unused at the definition level but is
+required downstream (subtask 6) to realise the LN's `1 ≤ k ≤ n`
+interior-source constraint on the split index — see the design block
+above. -/
+private def Walk.mkBifurcation {G : CDMG Node} {c v w : Node}
+    (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+    (_hqv_pos : qv.length ≥ 1) (qw : Walk G c w) : Walk G v w :=
+  (Walk.reverseDirected qv hqv_dir).comp qw
+
+/-- **Subtask 5e:** the bifurcation walk's length is
+`qv.length + qw.length`.  Direct from `length_comp` +
+`length_reverseDirected`. -/
+private lemma Walk.length_mkBifurcation {G : CDMG Node} {c v w : Node}
+    (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+    (hqv_pos : qv.length ≥ 1) (qw : Walk G c w) :
+    (Walk.mkBifurcation qv hqv_dir hqv_pos qw).length
+      = qv.length + qw.length := by
+  change ((Walk.reverseDirected qv hqv_dir).comp qw).length
+        = qv.length + qw.length
+  rw [Walk.length_comp, Walk.length_reverseDirected qv hqv_dir]
+
+/-- **Subtask 5f:** the bifurcation walk's vertex list is
+`qv.vertices.reverse.dropLast ++ qw.vertices`.  Direct from
+`vertices_comp` + `vertices_reverseDirected`.
+
+This is the load-bearing splitting formula for the (⇐) direction's
+clause~(a) end-node-uniqueness bookkeeping in Step 5 of the TeX
+proof: the candidate bifurcation walk's vertex list factors as the
+*reverse of the left arm without its source* (`qv.vertices.reverse.dropLast`,
+i.e.\ `[v, …, vMid_1]` reading from `v` to the vertex just before
+`c`) followed by the *full right arm* (`qw.vertices`, i.e.\
+`[c, …, w]`).  The end-node constraints `v ≠ w`,
+`v ∉ p.vertices.tail`, `w ∉ p.vertices.dropLast` then reduce to
+per-arm vertex-membership statements via this equation. -/
+private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
+    (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+    (hqv_pos : qv.length ≥ 1) (qw : Walk G c w) :
+    (Walk.mkBifurcation qv hqv_dir hqv_pos qw).vertices
+      = qv.vertices.reverse.dropLast ++ qw.vertices := by
+  change ((Walk.reverseDirected qv hqv_dir).comp qw).vertices
+        = qv.vertices.reverse.dropLast ++ qw.vertices
+  rw [Walk.vertices_comp, Walk.vertices_reverseDirected qv hqv_dir]
+-- claim_3_5 --- end helper
+
 -- ref: claim_3_5
 -- For any CDMG `G : CDMG Node` and any three (not necessarily
 -- distinct) nodes `v, w, c ∈ G` (i.e. `v, w, c ∈ G.J ∪ G.V`), the

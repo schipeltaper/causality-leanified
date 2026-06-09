@@ -910,7 +910,7 @@
         "refactor": 0,
         "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 5,
+        "spawn_agent_sub_task": 9,
         "continue_agent": 0,
         "new_manager": 1,
         "reorder": 0,
@@ -1122,9 +1122,65 @@
           "session_id": "038ae027-0cdf-4089-b366-c13e7b5f4e00",
           "first_seen": "2026-06-09T03:27:31+00:00",
           "last_used": "2026-06-09T03:27:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "62cc8780-1260-48eb-8f9d-2b16c9ee9ae8",
+          "first_seen": "2026-06-09T03:29:22+00:00",
+          "last_used": "2026-06-09T03:29:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f50eb734-dfc0-4575-82d0-c36015c7f25b",
+          "first_seen": "2026-06-09T03:37:00+00:00",
+          "last_used": "2026-06-09T03:37:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c455dec1-b80f-4d5b-9732-22942eec6ba8",
+          "first_seen": "2026-06-09T03:38:08+00:00",
+          "last_used": "2026-06-09T03:38:08+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "63a03837-594b-4f6e-adc7-43ca7b84aec5",
+          "first_seen": "2026-06-09T03:58:32+00:00",
+          "last_used": "2026-06-09T03:58:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a1ddfca8-ab59-4c3e-9234-1f5f570c4bd0",
+          "first_seen": "2026-06-09T04:00:01+00:00",
+          "last_used": "2026-06-09T04:00:01+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9d439969-7577-4e47-bcf0-c14093b0a2d0",
+          "first_seen": "2026-06-09T04:27:16+00:00",
+          "last_used": "2026-06-09T04:27:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "da16a591-08b8-4417-8df0-cca3810e2f2f",
+          "first_seen": "2026-06-09T04:28:52+00:00",
+          "last_used": "2026-06-09T04:28:52+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "57e85cdb-ceb5-4a09-8169-5a7cc5d076a5",
+          "first_seen": "2026-06-09T04:44:03+00:00",
+          "last_used": "2026-06-09T04:44:03+00:00"
         }
       ],
-      "time_needed_to_solve": 7716,
+      "time_needed_to_solve": 12307,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
