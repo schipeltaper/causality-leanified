@@ -1122,6 +1122,262 @@ private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
   rw [Walk.vertices_comp, Walk.vertices_reverseDirected qv hqv_dir]
 -- claim_3_5 --- end helper
 
+-- ## Private helpers — `mkBifurcation` realises the directed-hinge predicate
+--
+-- Subtask 6 of the proof of `claim_3_5` connects subtask 5's
+-- `Walk.mkBifurcation` constructor to the
+-- `Walk.IsBifurcationDirectedHingeWithSplit` predicate from
+-- `Section3_1/Walks.lean:1042-1049`.  The (⇐) direction's Step 5
+-- (TeX proof) needs all five clauses (a)–(e) of `def_3_4` item~vi to
+-- hold on the constructed walk at index `k = qv.length - 1`; the
+-- directed-hinge predicate covers clauses (b), (c), (d) — the
+-- chained backward-`E` edges of the left arm followed by the
+-- forward-`E` edges of the right arm, with a directed hinge at the
+-- source vertex `c`.  Clauses (a) (end-node uniqueness) and (e)
+-- (`1 ≤ k ≤ n - 1`) are handled separately by subtask 8 using
+-- `vertices_mkBifurcation` from subtask 5.
+--
+-- Three helpers are added:
+--
+-- * `Walk.comp_assoc` — an auxiliary `(p.comp q).comp r = p.comp (q.comp r)`
+--   that the inductive step of Helper 2 needs to re-associate the
+--   factorisation `reverseDirected (cons _ _ _ qv') = (reverseDirected
+--   qv').comp single-back-edge` with the trailing right-arm `qw`.
+--   Mathlib's walk concatenation does provide a `comp_assoc`, but our
+--   `Walk.comp` is a locally-`private` re-declaration (subtask 2),
+--   so the associativity lemma is also localised here.
+--
+-- * `Walk.isBifurcationDirectedHinge_cons_backward_of_directed` —
+--   the *base case* of the induction.  A single backward `E`-edge
+--   `(v, u)` followed by a non-trivial directed walk `p : Walk G v w`
+--   realises the directed-hinge predicate at index 0.  Discharges the
+--   third clause of `IsBifurcationDirectedHingeWithSplit`'s recursion
+--   (`u, _, .cons v a _ (p@(.cons _ _ _ _)), 0` returning
+--   `a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk`).  The `hp_nonempty`
+--   hypothesis is *load-bearing*: without it, the predicate's second
+--   clause (`cons _ _ _ (.nil _ _), 0` returning `False`) would fire
+--   instead.  Downstream this corresponds to the `qw.length ≥ 1`
+--   constraint that the (⇐) direction obtains from `c ≠ w`.
+--
+-- * `Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux` —
+--   the *parametrised inductive step*: prepending the
+--   `reverseDirected qv` backward chain (of length `qv.length`) to
+--   any walk `rest` that already realises the directed-hinge
+--   predicate at index `k` shifts the index by `qv.length`.  This
+--   parametrised formulation (with `rest` and `k` as extra arguments)
+--   is necessary to make the structural induction on `qv` go through:
+--   the natural induction is on `qv`'s *outermost* cons cell, but
+--   `reverseDirected`'s definition places the new cell at the
+--   *rightmost* position of the recursion (via the `comp` factoring
+--   `(reverseDirected qv').comp single-back-edge`), so the IH must
+--   re-associate the trailing chain through `Walk.comp_assoc` and
+--   apply itself to the smaller `qv'` with an *enriched* `rest`
+--   (the original `rest` prepended with one more backward edge).
+--
+-- * `Walk.isBifurcationDirectedHinge_mkBifurcation` — the
+--   consumer-facing wrapper.  Combines the base case (Helper 1) with
+--   the inductive auxiliary (Helper 2) by decomposing `qv` once and
+--   applying the auxiliary to its tail `qv'`.
+--
+-- ## Design choice
+--
+-- *Parametrised auxiliary with `rest` + `k` arguments, rather than the
+--   plan-sketch's `qw`-only form.*  The plan's sketch parametrises
+--   only on `qv` and uses `qw` as the right arm directly, with
+--   conclusion `IsBifurcationDirectedHingeWithSplit (qv.length - 1)`.
+--   That signature does not have a workable IH: the natural induction
+--   on `qv`'s outermost cons cell needs to thread an extra backward
+--   edge into the `rest` walk, but the original signature's `rest = qw`
+--   is fixed.  Generalising to `rest : Walk G c w` and arbitrary `k`
+--   (with conclusion `IsBifurcationDirectedHingeWithSplit (qv.length
+--   + k)`) makes the IH applicable to the strictly smaller `qv'` with
+--   `rest' = cons c a backStep rest` and `k' = k + 1`.  The wrapper
+--   (Helper 3) then instantiates `rest := qw`, `k := 0` and uses
+--   Helper 1 to satisfy the `rest.IsBifurcationDirectedHingeWithSplit
+--   0` precondition.
+--
+-- *`hqw_dir : qw.IsDirectedWalk` is required (not in the plan
+--   sketch).*  The third clause of `IsBifurcationDirectedHingeWithSplit`
+--   (the `cons _ _ _ (cons _), 0` case) requires `p.IsDirectedWalk`
+--   on the tail, which becomes `qw.IsDirectedWalk` at the base case
+--   of Helper 3.  The plan sketch omitted this hypothesis; we add it
+--   here.  Downstream (subtask 8) `qw.IsDirectedWalk` is guaranteed by
+--   the (⇐) direction's construction: `qw` is built as a directed
+--   walk in the do-on-`{v}` intervened CDMG, then lifted to `G` via
+--   subtask 1's `Walk.liftFromHardIntervention` (which preserves
+--   `IsDirectedWalk`).
+-- claim_3_5 --- start helper
+
+/-- Auxiliary: `Walk.comp` is associative.  Verbatim structural induction
+on the first argument: the `nil` case reduces by definition
+(`nil.comp q = q`, so `(nil.comp q).comp r = q.comp r = nil.comp (q.comp r)`),
+and the `cons` case unfolds `comp` once on each side, exposing the IH on
+the tail.  Needed by `Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux`'s
+inductive step to re-associate
+`((reverseDirected qv').comp single-back-edge).comp rest` into the form
+`(reverseDirected qv').comp (single-back-edge.comp rest)` that the IH
+matches. -/
+private lemma Walk.comp_assoc {G : CDMG Node} :
+    ∀ {u₁ u₂ u₃ u₄ : Node} (p : Walk G u₁ u₂) (q : Walk G u₂ u₃)
+      (r : Walk G u₃ u₄),
+      (p.comp q).comp r = p.comp (q.comp r)
+  | _, _, _, _, .nil _ _, _, _ => rfl
+  | _, _, _, _, .cons _ a hStep p, q, r => by
+      change Walk.cons _ a hStep ((p.comp q).comp r)
+            = Walk.cons _ a hStep (p.comp (q.comp r))
+      rw [Walk.comp_assoc p q r]
+
+/-- **Subtask 6a (base case):** a single backward `E`-edge `(v, u)`
+followed by a non-trivial directed walk `p : Walk G v w` realises the
+directed-hinge predicate at index 0.
+
+Matches the third clause of `IsBifurcationDirectedHingeWithSplit`'s
+recursion (`Walks.lean:1045-1046`: `u, _, .cons v a _ (p@(.cons _ _ _ _)),
+0 => a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk`).  The `hp_nonempty`
+hypothesis rules out the second clause (`cons _ _ _ (.nil _ _), 0 =>
+False`) — a degenerate single-edge "bifurcation" with no right arm.
+
+Proof: case-split on `p`.  The `nil` branch contradicts `hp_nonempty`
+(`(.nil _ _).length = 0`).  The `cons` branch lands in the third
+predicate clause; the triple `⟨ha_eq, ha_mem, hp_dir⟩` is the data
+itself. -/
+private lemma Walk.isBifurcationDirectedHinge_cons_backward_of_directed
+    {G : CDMG Node} {u v w : Node}
+    (a : Node × Node) (h : G.WalkStep u a v) (p : Walk G v w)
+    (hp_dir : p.IsDirectedWalk) (ha_eq : a = (v, u)) (ha_mem : a ∈ G.E)
+    (hp_nonempty : p.length ≥ 1) :
+    (Walk.cons v a h p).IsBifurcationDirectedHingeWithSplit 0 := by
+  cases p with
+  | nil _ _ => simp [Walk.length] at hp_nonempty
+  | cons _ _ _ _ => exact ⟨ha_eq, ha_mem, hp_dir⟩
+
+/-- **Subtask 6b (parametrised inductive step):** prepending the
+`reverseDirected qv` backward-edge chain (of length `qv.length`) in
+front of any walk `rest` that already realises the directed-hinge
+predicate at index `k` shifts the index by `qv.length`.
+
+The parametrisation by `rest` and `k` is what makes the structural
+induction on `qv` go through.  The natural induction is on `qv`'s
+outermost cons cell, but `reverseDirected`'s definition places the
+new edge at the *rightmost* position of the recursion via
+`(reverseDirected qv').comp single-back-edge`.  So the IH on `qv'`
+must apply with an enriched `rest' = cons c a backStep rest` and
+shifted index `k' = k + 1`.
+
+Proof: structural recursion on `qv`.
+* `nil` case (`qv.length = 0`, `reverseDirected (nil w hw) = nil w hw`):
+  `(nil w hw).comp rest = rest` (by `Walk.comp`'s `nil` clause), so
+  the goal reduces to `rest.IsBifurcationDirectedHingeWithSplit
+  (0 + k) = rest.IsBifurcationDirectedHingeWithSplit k`, which is
+  exactly `hrest`.
+* `cons vMid a hStep qv'` case (`qv.length = qv'.length + 1`):
+  - Form the backward `WalkStep` witness `backStep : G.WalkStep vMid
+    a c` from `hqv_dir`'s `a = (c, vMid) ∧ a ∈ G.E` data (the same
+    packaging used inside `reverseDirected`'s `cons` clause).
+  - Form the enriched right-arm `Walk.cons c a backStep rest` and its
+    directed-hinge witness at index `k + 1`: the predicate's `k + 1`
+    clause (`Walks.lean:1047-1048`) gives
+    `a = (c, vMid) ∧ a ∈ G.E ∧ rest.IsBifurcationDirectedHingeWithSplit k`,
+    each conjunct supplied by `hqv_dir` / `hrest`.
+  - Apply the IH to `qv'` with `rest' := cons c a backStep rest`,
+    `k' := k + 1`.  The IH conclusion is
+    `((reverseDirected qv').comp (cons c a backStep rest))
+       .IsBifurcationDirectedHingeWithSplit (qv'.length + (k + 1))`.
+  - Re-associate the LHS via `Walk.comp_assoc`: the original goal
+    `(((reverseDirected qv').comp single-back-edge).comp rest)` becomes
+    `((reverseDirected qv').comp (single-back-edge.comp rest))`.
+    Since `single-back-edge = cons c a backStep (nil c _)` and
+    `(nil c _).comp rest = rest` (by `Walk.comp`'s `nil` clause),
+    we have `single-back-edge.comp rest = cons c a backStep rest`
+    definitionally, matching the IH's LHS.
+  - Arithmetic: `qv'.length + 1 + k = qv'.length + (k + 1)`. -/
+private lemma Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
+    {G : CDMG Node} :
+    ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+      {w : Node} (rest : Walk G c w) (k : ℕ)
+      (_hrest : rest.IsBifurcationDirectedHingeWithSplit k),
+      Walk.IsBifurcationDirectedHingeWithSplit
+        ((Walk.reverseDirected qv hqv_dir).comp rest) (qv.length + k)
+  | _, _, .nil w hw, _, _, rest, k, hrest => by
+      simp only [Walk.reverseDirected, Walk.comp, Walk.length, Nat.zero_add]
+      exact hrest
+  | c, _, .cons vMid a hStep qv', hqv_dir, _, rest, k, hrest => by
+      have backStep : G.WalkStep vMid a c :=
+        Or.inr ⟨hqv_dir.1, hqv_dir.2.1⟩
+      have h_cons : Walk.IsBifurcationDirectedHingeWithSplit
+          (Walk.cons c a backStep rest) (k + 1) := by
+        simp only [Walk.IsBifurcationDirectedHingeWithSplit]
+        exact ⟨hqv_dir.1, hqv_dir.2.1, hrest⟩
+      have ih := Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
+        qv' hqv_dir.2.2 (Walk.cons c a backStep rest) (k + 1) h_cons
+      change Walk.IsBifurcationDirectedHingeWithSplit
+        (((Walk.reverseDirected qv' hqv_dir.2.2).comp
+            (Walk.cons c a backStep
+              (Walk.nil c (WalkStep.source_mem hStep)))).comp rest)
+        (qv'.length + 1 + k)
+      rw [Walk.comp_assoc]
+      change Walk.IsBifurcationDirectedHingeWithSplit
+        ((Walk.reverseDirected qv' hqv_dir.2.2).comp
+          (Walk.cons c a backStep rest))
+        (qv'.length + 1 + k)
+      have hidx : qv'.length + 1 + k = qv'.length + (k + 1) := by omega
+      rw [hidx]
+      exact ih
+
+/-- **Subtask 6c (consumer-facing wrapper):** the `mkBifurcation`-shaped
+output of subtask 5 realises the directed-hinge predicate at the
+intended split index `qv.length - 1`.
+
+The proof decomposes `qv` once: the `nil` branch contradicts
+`hqv_pos`; the `cons vMid a hStep qv'` branch invokes Helper 1 to
+build `(cons c a backStep qw).IsBifurcationDirectedHingeWithSplit 0`
+(needing `qw.IsDirectedWalk` and `qw.length ≥ 1`), then applies
+Helper 2 with `rest := cons c a backStep qw`, `k := 0` on the
+smaller arm `qv'`.  The composed walk
+`(reverseDirected qv).comp qw` rewrites — via the `Walk.comp_assoc`
++ `Walk.comp`-on-`nil` chain inside Helper 2 — to
+`(reverseDirected qv').comp (cons c a backStep qw)`, matching
+Helper 2's LHS.
+
+The index arithmetic `qv.length - 1 = qv'.length` (in the `cons`
+branch, since `qv.length = qv'.length + 1 ≥ 1`) is discharged by
+`omega` after the conversion. -/
+private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
+    {G : CDMG Node} {c v w : Node}
+    (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+    (hqv_pos : qv.length ≥ 1)
+    (qw : Walk G c w) (hqw_dir : qw.IsDirectedWalk)
+    (hqw_pos : qw.length ≥ 1) :
+    Walk.IsBifurcationDirectedHingeWithSplit
+      (Walk.mkBifurcation qv hqv_dir hqv_pos qw) (qv.length - 1) := by
+  change Walk.IsBifurcationDirectedHingeWithSplit
+    ((Walk.reverseDirected qv hqv_dir).comp qw) (qv.length - 1)
+  match qv, hqv_dir, hqv_pos with
+  | .nil _ _, _, hpos => simp [Walk.length] at hpos
+  | .cons vMid a hStep qv', hqv_dir, _ =>
+      have backStep : G.WalkStep vMid a c :=
+        Or.inr ⟨hqv_dir.1, hqv_dir.2.1⟩
+      have h_base : Walk.IsBifurcationDirectedHingeWithSplit
+          (Walk.cons c a backStep qw) 0 :=
+        Walk.isBifurcationDirectedHinge_cons_backward_of_directed
+          a backStep qw hqw_dir hqv_dir.1 hqv_dir.2.1 hqw_pos
+      have ih := Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
+        qv' hqv_dir.2.2 (Walk.cons c a backStep qw) 0 h_base
+      change Walk.IsBifurcationDirectedHingeWithSplit
+        (((Walk.reverseDirected qv' hqv_dir.2.2).comp
+            (Walk.cons c a backStep
+              (Walk.nil c (WalkStep.source_mem hStep)))).comp qw)
+        (qv'.length + 1 - 1)
+      rw [Walk.comp_assoc]
+      change Walk.IsBifurcationDirectedHingeWithSplit
+        ((Walk.reverseDirected qv' hqv_dir.2.2).comp
+          (Walk.cons c a backStep qw))
+        (qv'.length + 1 - 1)
+      have hidx : qv'.length + 1 - 1 = qv'.length + 0 := by omega
+      rw [hidx]
+      exact ih
+-- claim_3_5 --- end helper
+
 -- ref: claim_3_5
 -- For any CDMG `G : CDMG Node` and any three (not necessarily
 -- distinct) nodes `v, w, c ∈ G` (i.e. `v, w, c ∈ G.J ∪ G.V`), the
