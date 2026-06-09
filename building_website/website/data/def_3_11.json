@@ -22,26 +22,26 @@
     {
       "kind": "helper",
       "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This is a `variable` declaration: Lean auto-binds `Node : Type*` and the instance `[DecidableEq Node]` as implicit arguments to every subsequent declaration in the surrounding `CDMG` namespace, sparing us from rewriting the same parameters on `toCopy0`, `toCopy1`, and `nodeSplittingOn`. The `Type*` notation makes `Node` universe-polymorphic, so callers can instantiate it at any universe level. The `DecidableEq Node` assumption is load-bearing for the node-splitting construction in particular: the body uses `Finset.image` (to inject `G.J`, `G.V \\ W`, and `W` through the `SplitNode` constructors), `Finset.filter`-style `if v ∈ W then …` branching inside `toCopy0` / `toCopy1`, and `Finset.disjoint_left` rewrites to discharge `hJV_disj` — all of which need decidable equality on the element type so the resulting `Finset` can be computed and membership in `W` is a decidable proposition. Stronger structure on `Node` (e.g.\\ `Fintype`, `LinearOrder`) is not required here and is deferred to downstream consumers that actually use it. Same convention as the rest of `Chapter3_GraphTheory`'s files.",
+      "code_annotated": "-- Auto-binds `Node` + `DecidableEq Node` as implicits; decidability drives `Finset.image`, the `v ∈ W` branch in `toCopy0`/`toCopy1`, and `Finset.disjoint_*` below.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
       "kind": "helper",
       "code": "inductive SplitNode (Node : Type*) where\n  | unsplit (v : Node) : SplitNode Node\n  | copy0 (w : Node) : SplitNode Node\n  | copy1 (w : Node) : SplitNode Node\n  deriving DecidableEq",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block introduces the carrier type of the split graph: an `inductive` with three named constructors that mirror the LN's three kinds of node one-for-one. `unsplit v` encodes an untagged node (any $v \\in J \\cup (V \\setminus W)$ in the LN), while `copy0 w` and `copy1 w` encode the tagged copies $w^0 \\in W^0$ and $w^1 \\in W^1$. Because the three constructors are structurally distinct, the LN's disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ hold automatically at the type level — they reduce to constructor mismatches via `cases` rather than being asserted as side conditions on the underlying `Finset`s. The `deriving DecidableEq` clause asks Lean to synthesise the decidability instance, which the upstream `CDMG (SplitNode Node)` carrier requires.",
+      "code_annotated": "-- Carrier of the split graph; three named constructors mirror LN's `v`, `w^0`, `w^1`.\ninductive SplitNode (Node : Type*) where\n  -- `unsplit v` injects an untagged node `v ∈ J ∪ (V \\ W)` into the new carrier.\n  | unsplit (v : Node) : SplitNode Node\n  -- `copy0 w` is the tagged copy `w^0 ∈ W^0` (natural / observational side).\n  | copy0 (w : Node) : SplitNode Node\n  -- `copy1 w` is the tagged copy `w^1 ∈ W^1` (intervened / `do`-side).\n  | copy1 (w : Node) : SplitNode Node\n  -- Synthesises `DecidableEq (SplitNode Node)` from `[DecidableEq Node]`; required by `CDMG`.\n  deriving DecidableEq"
     },
     {
       "kind": "helper",
       "code": "def toCopy0 (W : Finset Node) (v : Node) : SplitNode Node :=\n  if v ∈ W then SplitNode.copy0 v else SplitNode.unsplit v",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This helper realises the LN's notational shorthand $v^0$: branch on `v ∈ W` (decidable from `[DecidableEq Node]` since `W : Finset Node`) and return either the tagged copy `SplitNode.copy0 v` on the `W`-branch or the `.unsplit v` injection on the complement. The function is total on all of `Node`, including inputs `v ∈ G.J` or `v ∈ G.V \\ W`, where it returns `.unsplit v` — exactly the LN's \"$v^0 := v$ for $v \\in J \\cup (V \\setminus W)$\" convention. It is used inside `nodeSplittingOn`'s `L` clause to lift both endpoints of every bidirected edge, and on the target side of the `E` clause. Encoding the shorthand as a function (rather than as two inline branches inside every set-builder) mirrors the LN's framing of $v^0$ as meta-notation and keeps the edge clauses terse.",
+      "code_annotated": "-- LN shorthand `v^0`: tagged on the `W`-branch, plain `.unsplit v` on the complement.\ndef toCopy0 (W : Finset Node) (v : Node) : SplitNode Node :=\n  -- `v ∈ W` is decidable via `DecidableEq Node` on `Finset Node`; total on all of `Node`.\n  if v ∈ W then SplitNode.copy0 v else SplitNode.unsplit v"
     },
     {
       "kind": "helper",
       "code": "def toCopy1 (W : Finset Node) (v : Node) : SplitNode Node :=\n  if v ∈ W then SplitNode.copy1 v else SplitNode.unsplit v",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This helper realises the LN's notational shorthand $v^1$: same shape as `toCopy0` above, but returning `SplitNode.copy1 v` on the `W`-branch instead of `SplitNode.copy0 v`. Outside `W`, both helpers agree, returning the `.unsplit v` injection — exactly the LN's collapse $v^0 := v^1 := v$ for $v \\in J \\cup (V \\setminus W)$. `toCopy1` is used only on the source side of the lifted directed edges inside `nodeSplittingOn`'s `E` clause; the target side and both endpoints of every bidirected edge route through `toCopy0` instead. This asymmetric usage encodes the LN's directional convention that incoming edges land on the $^0$-copy of $W$ while outgoing edges originate from the $^1$-copy.",
+      "code_annotated": "-- LN shorthand `v^1`: identical to `toCopy0` except the `W`-branch picks `.copy1 v`.\ndef toCopy1 (W : Finset Node) (v : Node) : SplitNode Node :=\n  -- Used only on the source side of lifted directed edges in `nodeSplittingOn`'s `E` clause.\n  if v ∈ W then SplitNode.copy1 v else SplitNode.unsplit v"
     },
     {
       "kind": "main",
