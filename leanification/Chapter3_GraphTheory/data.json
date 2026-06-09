@@ -998,7 +998,7 @@
           "last_used": "2026-06-09T08:21:56+00:00"
         }
       ],
-      "time_needed_to_solve": 5342,
+      "time_needed_to_solve": 5362,
       "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types.",
       "wording_check": {
         "done": true,
@@ -1012,43 +1012,61 @@
       "section": "3.2",
       "title": "SplitTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-09",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
-        "register_ln_subtlety": 0,
-        "no_action": 0
+        "register_ln_subtlety": 1,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\spl(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\spl(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^0$ the index $j-\\frac{1}{3}$\n    and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "40f1f7e3-2f02-45c5-87b7-804293b2ff6c",
+          "first_seen": "2026-06-09T10:19:53+00:00",
+          "last_used": "2026-06-09T10:19:53+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6786,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me audit the tex block carefully.\n\nThe remark sets up: $G$ is a CADMG, $<$ is a topological order $v_1 < \\ldots < v_n$ on $J \\cup V$, and the construction assigns $v_j^0 \\mapsto j - 1/3$ and $v_j^1 \\mapsto j + 1/3$ for $v_j \\in W$, then orders by index value.\n\nKey facts from the surrounding context:\n- def_3_11: $W \\subseteq V$; the lifted edge for $(v_1, v_2) \\in E$ is $(v_1^1, v_2^0)$; transfer edge is $(w^0, w^1)$; bidirected edges all use the $^0$-superscript.\n- def_3_6: A CADMG has no directed self-loops on $V$.\n- def_3_8: A topological order is a strict total order on $J \\cup V$, indexable as $v_1 < \\ldots < v_K$.\n\nI see two literal-text subtleties worth recording.\n\nSUBTLETY:\nid: unsplit_nodes_implicit_index_retention\nexplanation: The remark explicitly describes new indices only for split copies: \"assigning for a node $v_j \\in W$ with index $j$ the node $v_j^0$ the index $j-\\frac{1}{3}$ and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\" But the node set of $G_{\\spl(W)}$ (per def 3.11) is $J \\cup (V \\setminus W) \\cup W^0 \\cup W^1$, and the remark says nothing about the indices of the unsplit nodes $v_j \\in J \\cup (V \\setminus W)$. The only interpretation that makes the construction well-defined is that such $v_j$ keeps its original index $j$ from the enumeration $v_1 < v_2 < \\cdots < v_n$, but that retention rule is left implicit.\n\nA pedantic reader applying the literal procedure would find unsplit nodes have no assigned index and would be unable to perform the final \"ordering all nodes according to their index value.\" The natural fix is a clause such as \"…and to each $v_j \\in (J \\cup V) \\setminus W$ the index $j$.\" Downstream formalisation needs to supply this clause.\n\nFor a corner case making the gap concrete: take $n = 2$, $W = \\{v_2\\}$. The remark assigns $v_2^0 \\mapsto 5/3$ and $v_2^1 \\mapsto 7/3$. The literal text gives no index for $v_1$, so the ordering relation between $v_1$ and the split copies is unspecified by what is written; only the implicit \"$v_1$ keeps index $1$\" recovers the correct order $v_1 < v_2^0 < v_2^1$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: orientation_convention_v0_below_v1\nexplanation: The construction's correctness rests on the convention $v_j^0 < v_j^1$ in the new order (since $j - 1/3 < j + 1/3$). This is consistent with def 3.11's orientation: in def 3.11, every incoming edge onto $w \\in W$ is reattached at $w^0$, every outgoing edge from $w$ leaves $w^1$, and the transfer edge is $(w^0, w^1)$. With those conventions, the transfer edge $w^0 \\tuh w^1$ requires $w^0$ to precede $w^1$, matching the index assignment.\n\nThe remark itself does not state this dependence on def 3.11's specific orientation. Under the opposite convention (where $w^0$ collects outgoing edges and $w^1$ collects incoming edges, transfer $w^1 \\tuh w^0$), the construction would produce an INVALID topological order—the transfer edge would point from the larger to the smaller index. A reader who imports an opposite mental model of \"split into copies\" from elsewhere in the literature would silently get the wrong construction.\n\nThis is a hidden cross-reference dependency: the remark is \"self-contained-looking\" but only because the specific subscript choice happens to match def 3.11.\nEND_SUBTLETY",
+        "session": "582a9f27-290b-40df-b760-79178e408607"
+      }
     },
     {
       "def_or_claim": "claim",
