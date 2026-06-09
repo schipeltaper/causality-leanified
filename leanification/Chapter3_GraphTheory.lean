@@ -19,3 +19,4 @@ import Chapter3_GraphTheory.Section3_2.BifurcationAlternative
 import Chapter3_GraphTheory.Section3_2.NodeSplittingOn
 import Chapter3_GraphTheory.Section3_2.SplitTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.TwoDisjointNode
+import Chapter3_GraphTheory.Section3_2.DisjointHardInterventions
