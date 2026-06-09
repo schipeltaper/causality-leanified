@@ -875,7 +875,7 @@
           "last_used": "2026-06-09T01:07:46+00:00"
         }
       ],
-      "time_needed_to_solve": 4204,
+      "time_needed_to_solve": 4224,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -900,19 +900,19 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "solved": 0,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -920,12 +920,217 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Prp}\\label{prp:bifurcations_alternative}\n  Let $G = \\lt J, V, E, L \\rt$ be a CDMG. For $v, w, c \\in V \\cup J$:\n  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \\ne w$ and $c \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$ and $c \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$.\n\\end{Prp}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "9ab13a22-46cd-41ed-b7d3-a75d7d2ded1d",
+          "first_seen": "2026-06-09T01:18:55+00:00",
+          "last_used": "2026-06-09T01:18:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "da965224-0eca-4b4c-ba69-3f16310c2fbf",
+          "first_seen": "2026-06-09T01:21:29+00:00",
+          "last_used": "2026-06-09T01:21:29+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c81923e9-8773-4a27-9329-761c00254502",
+          "first_seen": "2026-06-09T01:26:22+00:00",
+          "last_used": "2026-06-09T01:26:22+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "03da69d8-6217-41af-99c7-d2529c720309",
+          "first_seen": "2026-06-09T01:26:40+00:00",
+          "last_used": "2026-06-09T01:26:40+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_only",
+          "spawned_by": "manager",
+          "session_id": "909b5264-9ca3-4db8-8e52-9eea74fdcdff",
+          "first_seen": "2026-06-09T01:26:59+00:00",
+          "last_used": "2026-06-09T01:26:59+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3bd7391e-e9c3-42a3-b7d6-e3e1b7c562c7",
+          "first_seen": "2026-06-09T01:27:36+00:00",
+          "last_used": "2026-06-09T01:27:36+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_equivalence",
+          "spawned_by": "manager",
+          "session_id": "ca5fba78-68b7-45bb-b8f6-852c1bf6da68",
+          "first_seen": "2026-06-09T01:28:46+00:00",
+          "last_used": "2026-06-09T01:28:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "726ea7b8-86a3-438b-b945-715116ff0159",
+          "first_seen": "2026-06-09T01:29:31+00:00",
+          "last_used": "2026-06-09T01:29:31+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3d5c51eb-5665-420d-8160-0423acb6a585",
+          "first_seen": "2026-06-09T01:37:18+00:00",
+          "last_used": "2026-06-09T01:37:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "05234eba-66f3-497f-a9b7-4cbfcc810f27",
+          "first_seen": "2026-06-09T01:38:15+00:00",
+          "last_used": "2026-06-09T01:38:15+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "69aa90a7-531a-4dc8-ae10-c326574fde66",
+          "first_seen": "2026-06-09T01:41:06+00:00",
+          "last_used": "2026-06-09T01:41:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f450b232-8ea0-43e1-9fe1-8bdd75060ca0",
+          "first_seen": "2026-06-09T01:41:34+00:00",
+          "last_used": "2026-06-09T01:41:34+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "c549a363-d8ad-4e1b-bbfb-ed398ee7b4f9",
+          "first_seen": "2026-06-09T01:43:00+00:00",
+          "last_used": "2026-06-09T01:43:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "decec1eb-d1e7-4716-96bd-7047f9566209",
+          "first_seen": "2026-06-09T01:43:46+00:00",
+          "last_used": "2026-06-09T01:43:46+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "44c8fc9d-cc5a-4c6b-9442-ef93a9908a19",
+          "first_seen": "2026-06-09T01:50:18+00:00",
+          "last_used": "2026-06-09T01:50:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "71b2eee4-8809-4d18-a6be-cffd71de264f",
+          "first_seen": "2026-06-09T01:51:20+00:00",
+          "last_used": "2026-06-09T01:51:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b5f7a0d9-52bb-49d5-8885-8ee1fc38b2a1",
+          "first_seen": "2026-06-09T01:53:51+00:00",
+          "last_used": "2026-06-09T01:53:51+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f4784cb6-436c-42ad-bcfd-2e52317d93a8",
+          "first_seen": "2026-06-09T02:02:46+00:00",
+          "last_used": "2026-06-09T02:02:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "940bc2fa-1db7-4bbc-b2b0-956505d5a693",
+          "first_seen": "2026-06-09T02:03:19+00:00",
+          "last_used": "2026-06-09T02:03:19+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "fe6584ac-1dba-4394-944f-213064ffd07e",
+          "first_seen": "2026-06-09T02:04:14+00:00",
+          "last_used": "2026-06-09T02:04:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a8b88d57-b033-42dc-bfa1-c62b2f9c189d",
+          "first_seen": "2026-06-09T02:05:05+00:00",
+          "last_used": "2026-06-09T02:05:05+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "37aeebf7-a3f0-4c76-a12d-cd421ceb9e8a",
+          "first_seen": "2026-06-09T02:07:34+00:00",
+          "last_used": "2026-06-09T02:07:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0bfe8715-8312-40ba-a1fa-21da2c700857",
+          "first_seen": "2026-06-09T02:08:14+00:00",
+          "last_used": "2026-06-09T02:08:14+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "770ae43f-ae4a-4e1f-a74f-8de8a01696ec",
+          "first_seen": "2026-06-09T03:10:50+00:00",
+          "last_used": "2026-06-09T03:10:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8a7d5555-adc2-4521-a20c-7a69ef96f7a2",
+          "first_seen": "2026-06-09T03:14:00+00:00",
+          "last_used": "2026-06-09T03:14:00+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "df7b68ef-5eeb-47d8-a56f-a0de9e7e0f50",
+          "first_seen": "2026-06-09T03:19:14+00:00",
+          "last_used": "2026-06-09T03:19:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d67fe32a-4b0a-4dcb-a1b4-c07de030ecaf",
+          "first_seen": "2026-06-09T03:20:08+00:00",
+          "last_used": "2026-06-09T03:20:08+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "038ae027-0cdf-4089-b366-c13e7b5f4e00",
+          "first_seen": "2026-06-09T03:27:31+00:00",
+          "last_used": "2026-06-09T03:27:31+00:00"
+        }
+      ],
+      "time_needed_to_solve": 7716,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "I've examined the bifurcation definition (def 3.4, lines 120-128) that this claim cites. The \"source\" is defined via an arbitrary index $k$ along the bifurcation walk, and a degenerate boundary case arises.\n\n```\nSUBTLETY:\nid: source_at_endpoint_w_when_right_arm_trivial\nexplanation: The RHS implicitly forces $c \\neq v$ and $c \\neq w$ via the set\nsubtractions $\\sm \\{v\\}$ and $\\sm \\{w\\}$. But the cited \"source\" notion from\nthe bifurcation definition (def 3.4) literally permits $c = w$ in a\ndegenerate case, breaking the \"$\\implies$\" direction of the iff.\n\nDef 3.4's bifurcation form is\n  $v = v_0 \\hut v_1 \\hut \\cdots \\hut v_{k-1} \\hus v_k \\tuh \\cdots \\tuh v_n = w$,\nwhere the subwalks \"$v_0 \\hut \\cdots v_{k-1}$\" and \"$v_k \\tuh \\cdots v_n$\" are\ndirected walks (and trivial directed walks of length 0 are explicitly allowed\nelsewhere in def 3.4). For $k = n$ the right arm is trivial (just $v_n = w$),\nthe middle directed edge is $v_{n-1} \\hut v_n$ (i.e. $w \\to v_{n-1}$), and\ndef 3.4 says: \"we say that the bifurcation has source $v_k$\", giving source\n$= v_n = w$.\n\nConcrete corner case: in an acyclic CDMG with a single directed edge\n$w \\to v$, def 3.4 admits this as a bifurcation between $v$ and $w$ with\nsource $w$ (take $n = 1$, $k = 1$: left arm trivial $v_0 = v$, right arm\ntrivial $v_1 = w$, middle edge $v_0 \\hut v_1$, source $v_1 = w$). The RHS of\nthis proposition, with $c = w$, requires $w \\in \\Anc^{G_{\\doit(v)}}(w) \\sm \\{w\\}$\n— i.e., $w$ is a strict ancestor of itself in $G_{\\doit(v)}$ — which is\nimpossible in an acyclic graph. So LHS = TRUE, RHS = FALSE.\n\nThe discrepancy is even sharper when $w \\in J$: by claim 3.1, $J$-vertices\nhave no incoming edges, so $\\Anc^{G_{\\doit(v)}}(w) = \\{w\\}$ unconditionally,\nmaking $\\sm \\{w\\} = \\emptyset$ — yet any $w \\in J$ with $w \\to v$ trivially\nyields a \"bifurcation with source $w$\" under def 3.4.\n\nThe accompanying proof papers over this: \"A bifurcation between $v$ and $w$\nwith source $c$ is a walk in $G$ of the form $v \\hut \\cdots \\hut c \\tuh \\cdots \\tuh w$\"\ntacitly reads \"$\\cdots$\" as non-empty on both sides — but def 3.4 does not\nimpose that.\n\nThere is also a related asymmetry worth flagging: def 3.4 fixes $v_0 = v$ and\n$v_n = w$, so source $= v_k$ with $k \\ge 1$ excludes $c = v$ but allows\n$c = w$ (when $k = n$); yet this proposition's RHS is fully symmetric in $v$\nand $w$. So the RHS is strictly stronger than def 3.4 on the $w$-end and\nexactly aligns on the $v$-end.\n\nResolution requires picking one convention: either def 3.4 implicitly demands\n$1 \\le k \\le n-1$ (strictly internal source), in which case this proposition\nis correct but def 3.4 needs the constraint made explicit; or source can\ncoincide with $w$, in which case this proposition's RHS needs an extra\ndisjunct (e.g. allow $c = w$ when $w \\in \\Anc^{G_{\\doit(w)}}(v) \\sm \\{v\\}$).\nDownstream uses that conclude \"no bifurcation between $v$ and $w$ with\nsource $c$\" from the RHS being false will, under the permissive reading,\nsilently miss the $w \\to v$ edge case.\nEND_SUBTLETY\n```",
+        "session": "9ab13a22-46cd-41ed-b7d3-a75d7d2ded1d"
+      }
     },
     {
       "def_or_claim": "def",

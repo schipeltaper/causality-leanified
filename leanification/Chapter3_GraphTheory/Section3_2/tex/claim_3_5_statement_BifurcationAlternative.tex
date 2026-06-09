@@ -19,9 +19,127 @@
 \def\rowref{claim\_3\_5}
 \phantomsection\label{claim_3_5}
 
+% NOTE on the bifurcation-source convention assumed by this proposition.
+%
+% Literal LN def 3.4 (Walks, item vi.) writes a bifurcation as
+%     $v = v_0 \hut v_1 \hut \cdots \hut v_{k-1} \hus v_k \tuh \cdots \tuh v_n = w$
+% with $1 \le k \le n$ and source $v_k$ at the directed hinge. The boundary
+% case $k = n$ with directed hinge (right arm trivial, single edge
+% $w \to v_{n-1}$) would let the source coincide with $w$, contradicting the
+% RHS clause $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$ in any acyclic graph
+% (and in particular whenever $w \in J$, since by claim \ref{claim_3_1}
+% input nodes have no incoming edges, so $\Anc^{G_{\doit(v)}}(w) = \{w\}$).
+%
+% Our def_3_4 encoding has already committed to the strictly-interior-source
+% convention via the chapter-init addition recorded in clause (e) of
+% def \ref{def:walks}, item~vi. ("each end-node has exactly one arrowhead
+% pointing toward it"), which excludes the $k = n$ directed-hinge case. As
+% stated in the closing paragraph "Source of the bifurcation" of
+% def \ref{def:walks}, item~vi., whenever a source $v_k$ is defined we
+% automatically have $1 \le k \le n - 1$, so the source is an interior
+% vertex distinct from both end-nodes $v_0 = v$ and $v_n = w$. Under this
+% convention the LN proposition below is provable as-stated, and no
+% addition_to_the_LN clause is needed for claim_3_5.
+
 \begin{Prp}[BifurcationAlternative]\label{prp:bifurcations_alternative}
-  Let $G = \lt J, V, E, L \rt$ be a CDMG. For $v, w, c \in V \cup J$:
-  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \ne w$ and $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$ and $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we
+    use the notation of def \ref{not-cdmg}, the walk definitions of def
+    \ref{def:walks}, the family-relationship notation of def
+    \ref{def_3_5}, and the hard-intervention construction of def
+    \ref{def:G_hard_intervention}. Let
+    \[ v,\ w,\ c \;\in\; J \cup V \]
+    be three (not necessarily distinct) nodes. All four quantifiers
+    ``for every CDMG $G$'', ``for every $v \in J \cup V$'', ``for every
+    $w \in J \cup V$'', and ``for every $c \in J \cup V$'' are read
+    \emph{universally}, and the biconditional below is asserted for every
+    such tuple $(G, v, w, c)$.
+
+    \emph{Hard interventions on singletons.}
+    The expressions $G_{\doit(w)}$ and $G_{\doit(v)}$ appearing on the
+    right-hand side are read as the singleton-set hard interventions
+    $G_{\doit(\{w\})}$ and $G_{\doit(\{v\})}$ in the sense of def
+    \ref{def:G_hard_intervention} (the LN's lowercase $w$, $v$ inside the
+    $\doit(\cdot)$ slot is shorthand for the singleton sets $\{w\}$ and
+    $\{v\}$). Since $\{w\}, \{v\} \subseteq J \cup V$ the precondition of
+    def \ref{def:G_hard_intervention} is met, so both intervened CDMGs
+    are defined; and by items i.\ and ii.\ of def
+    \ref{def:G_hard_intervention},
+    \[
+        J_{\doit(\{w\})} \cup V_{\doit(\{w\})}
+        \;=\; (J \cup \{w\}) \cup (V \sm \{w\}) \;=\; J \cup V,
+    \]
+    and analogously for $\{v\}$ in place of $\{w\}$. Consequently
+    $\Anc^{G_{\doit(w)}}(\cdot)$ and $\Anc^{G_{\doit(v)}}(\cdot)$ (def
+    \ref{def_3_5}, item~iv.) are evaluated on the same carrier $J \cup V$
+    on which $v$, $w$, $c$ range, and the set-minus clauses
+    $\sm \{v\}$ and $\sm \{w\}$ are well-typed.
+
+    \emph{The biconditional.} Propositions (a) and (b) below are
+    equivalent.
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Existence of a bifurcation between $v$ and $w$ with
+              source $c$.}
+              There exists a walk
+              \[
+                  p \;=\; (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+              \]
+              in $G$ from $v$ to $w$ (so $v_0 = v$ and $v_n = w$, in the
+              sense of def \ref{def:walks}, item~i., with some integer
+              $n \ge 0$), together with an index $k$ with
+              $1 \le k \le n$, such that both of the following hold:
+              \begin{itemize}
+                  \item $p$ is a bifurcation between $v$ and $w$ in $G$
+                        with witness index $k$, in the sense of def
+                        \ref{def:walks}, item~vi., i.e.\ all five
+                        clauses (a)--(e) of def \ref{def:walks},
+                        item~vi.\ hold for $p$ at the index $k$;
+                  \item $c$ is a source of this bifurcation, in the sense
+                        of def \ref{def:walks}, item~vi., closing
+                        paragraph ``Source of the bifurcation'', i.e.\
+                        clause~(d) of def \ref{def:walks}, item~vi.\ is
+                        realised at $k$ by the \emph{directed}
+                        alternative $a_{k-1} = (v_k, v_{k-1}) \in E$,
+                        and $c = v_k$.
+              \end{itemize}
+              By clause~(e) of def \ref{def:walks}, item~vi., the
+              combination of these two requirements forces the witness
+              index to satisfy $1 \le k \le n - 1$ (and hence $n \ge 2$);
+              so the source $c = v_k$ is automatically an interior vertex
+              of $p$, with $c \ne v$ and $c \ne w$.
+
+        \item \emph{Set-theoretic ancestral characterisation.}
+              All three of the following clauses hold:
+              \begin{enumerate}[label=(\roman*)]
+                  \item $v \ne w$;
+                  \item $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$;
+                        equivalently, unfolding $\Anc$ via def
+                        \ref{def_3_5}, item~iv., and the singleton-set
+                        reading of $\doit(w)$ above: \emph{$c$ is an
+                        ancestor of $v$ in the do-on-$\{w\}$ intervened
+                        CDMG $G_{\doit(\{w\})}$}, i.e.\ there exists a
+                        directed walk from $c$ to $v$ in
+                        $G_{\doit(\{w\})}$ (def \ref{def:walks},
+                        item~ii.; def \ref{def:G_hard_intervention}),
+                        \emph{and} $c \ne v$;
+                  \item $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$;
+                        equivalently, unfolding $\Anc$ via def
+                        \ref{def_3_5}, item~iv., and the singleton-set
+                        reading of $\doit(v)$ above: \emph{$c$ is an
+                        ancestor of $w$ in the do-on-$\{v\}$ intervened
+                        CDMG $G_{\doit(\{v\})}$}, i.e.\ there exists a
+                        directed walk from $c$ to $w$ in
+                        $G_{\doit(\{v\})}$ (def \ref{def:walks},
+                        item~ii.; def \ref{def:G_hard_intervention}),
+                        \emph{and} $c \ne w$.
+              \end{enumerate}
+              In LN macro form, (b) is the conjunction
+              \[
+                  v \ne w \;\land\;
+                  c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\} \;\land\;
+                  c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\},
+              \]
+              matching the LN's RHS verbatim.
+    \end{enumerate}
 \end{Prp}
 
 \end{document}
