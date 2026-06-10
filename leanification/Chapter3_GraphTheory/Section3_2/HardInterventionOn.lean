@@ -290,48 +290,81 @@ LN block (verbatim, for backup):
 --   those rows rely on; any deviation would break the
 --   "`G_{\doit(W)}` is itself a CDMG" assumption every one of them
 --   silently uses.
+-- ## Proof helpers for the five CDMG axioms under hard intervention
+--
+-- The five private lemmas below discharge the five proof obligations
+-- of `def_3_1`'s `CDMG` structure (`hJV_disj`, `hE_subset`,
+-- `hL_subset`, `hL_irrefl`, `hL_symm`) for the hard-intervention
+-- construction.  They are factored out of the structure-literal body
+-- of `hardInterventionOn` so the def body is pure data + lemma
+-- references — the website builder renders the def's signature, and
+-- a reader sees the data assignments without proof clutter.  Per the
+-- `W ∩ J ≠ ∅` design-choice bullet above, none of the obligations
+-- consume `hW`; `hW` is carried on the def's signature purely for
+-- LN-faithfulness.
+
+private lemma hardInterventionOn_hJV_disj (G : CDMG Node) (W : Finset Node) :
+    Disjoint (G.J ∪ W) (G.V \ W) := by
+  refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
+  · exact Finset.disjoint_left.mpr fun a haJ haVW =>
+      Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
+  · exact Finset.disjoint_left.mpr fun a haW haVW =>
+      (Finset.mem_sdiff.mp haVW).2 haW
+
+private lemma hardInterventionOn_hE_subset (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : Node × Node⦄, e ∈ G.E.filter (fun e => e.2 ∉ W) →
+      e.1 ∈ (G.J ∪ W) ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
+  intro e he
+  obtain ⟨heE, he2⟩ := Finset.mem_filter.mp he
+  obtain ⟨he1, he2V⟩ := G.hE_subset heE
+  refine ⟨?_, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
+  rcases Finset.mem_union.mp he1 with hJ | hV
+  · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
+  · by_cases hW1 : e.1 ∈ W
+    · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW1)
+    · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW1⟩)
+
+private lemma hardInterventionOn_hL_subset (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : Node × Node⦄, e ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
+      e.1 ∈ G.V \ W ∧ e.2 ∈ G.V \ W := by
+  intro e he
+  obtain ⟨heL, he1, he2⟩ := Finset.mem_filter.mp he
+  obtain ⟨he1V, he2V⟩ := G.hL_subset heL
+  exact ⟨Finset.mem_sdiff.mpr ⟨he1V, he1⟩, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
+
+private lemma hardInterventionOn_hL_irrefl (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
+      v1 ≠ v2 := by
+  intro _ _ h
+  exact G.hL_irrefl (Finset.mem_filter.mp h).1
+
+private lemma hardInterventionOn_hL_symm (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
+      (v2, v1) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) := by
+  intro _ _ h
+  obtain ⟨hL, h1, h2⟩ := Finset.mem_filter.mp h
+  exact Finset.mem_filter.mpr ⟨G.hL_symm hL, h2, h1⟩
+
+-- `hW` is bound on the signature for LN-faithfulness ("Let
+-- `W ⊆ J ∪ V`") but is not consumed by any of the five obligations —
+-- `def_3_1`'s typing constraints already exclude every problematic
+-- case (see the `W ∩ J ≠ ∅` design-choice bullet above).  The
+-- `set_option` keeps the linter quiet without dropping the binder
+-- from the signature (which is part of the LN-faithful encoding and
+-- the call-site contract `G.hardInterventionOn W hW`).
+set_option linter.unusedVariables false in
 -- def_3_10 -- start statement
 def hardInterventionOn (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
   J := G.J ∪ W
   V := G.V \ W
-  hJV_disj := by
-    -- `hW` is part of the signature for LN-faithfulness ("Let
-    -- `W ⊆ J ∪ V`"), but is not consumed in the five proof obligations:
-    -- `def_3_1`'s typing constraints on `G.E` / `G.L` already exclude
-    -- every problematic case (see the `W ∩ J ≠ ∅` design-choice bullet
-    -- above).  The `let _` mirrors the convention used in
-    -- `CDMGRestrictions.lean` for unused LN-faithful hypotheses.
-    let _ := hW
-    refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
-    · exact Finset.disjoint_left.mpr fun a haJ haVW =>
-        Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
-    · exact Finset.disjoint_left.mpr fun a haW haVW =>
-        (Finset.mem_sdiff.mp haVW).2 haW
+  hJV_disj := hardInterventionOn_hJV_disj G W
   E := G.E.filter (fun e => e.2 ∉ W)
-  hE_subset := by
-    intro e he
-    obtain ⟨heE, he2⟩ := Finset.mem_filter.mp he
-    obtain ⟨he1, he2V⟩ := G.hE_subset heE
-    refine ⟨?_, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
-    rcases Finset.mem_union.mp he1 with hJ | hV
-    · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
-    · by_cases hW1 : e.1 ∈ W
-      · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW1)
-      · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW1⟩)
+  hE_subset := hardInterventionOn_hE_subset G W
   L := G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W)
-  hL_subset := by
-    intro e he
-    obtain ⟨heL, he1, he2⟩ := Finset.mem_filter.mp he
-    obtain ⟨he1V, he2V⟩ := G.hL_subset heL
-    exact ⟨Finset.mem_sdiff.mpr ⟨he1V, he1⟩, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
-  hL_irrefl := by
-    intro v1 v2 h
-    exact G.hL_irrefl (Finset.mem_filter.mp h).1
-  hL_symm := by
-    intro v1 v2 h
-    obtain ⟨hL, h1, h2⟩ := Finset.mem_filter.mp h
-    exact Finset.mem_filter.mpr ⟨G.hL_symm hL, h2, h1⟩
+  hL_subset := hardInterventionOn_hL_subset G W
+  hL_irrefl := hardInterventionOn_hL_irrefl G W
+  hL_symm := hardInterventionOn_hL_symm G W
 -- def_3_10 -- end statement
 
 end CDMG

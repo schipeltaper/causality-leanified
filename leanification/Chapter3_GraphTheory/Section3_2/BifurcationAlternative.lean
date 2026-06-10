@@ -138,7 +138,6 @@ variable {Node : Type*} [DecidableEq Node]
 --   walk-level plumbing to the consuming row.  A future chapter-wide
 --   refactor can hoist these into `Walks.lean`; until then, the
 --   local copy keeps the consuming file self-contained.
--- claim_3_5 --- start helper
 
 /-- Forward direction of the carrier-matching equality
 `(G.J ∪ W) ∪ (G.V \ W) = G.J ∪ G.V`: every node of the intervened
@@ -232,7 +231,6 @@ private lemma Walk.vertices_liftFromHardIntervention
   | _, _, .nil _ _ => rfl
   | u, _, .cons _ _ _ p =>
       congrArg (u :: ·) (vertices_liftFromHardIntervention p)
--- claim_3_5 --- end helper
 
 -- ## Private helpers — `Walk` concatenation infrastructure
 --
@@ -259,7 +257,6 @@ private lemma Walk.vertices_liftFromHardIntervention
 --   1).  A future chapter-wide refactor can hoist these into
 --   `Walks.lean`; until then, the local copy keeps the consuming file
 --   self-contained.
--- claim_3_5 --- start helper
 
 /-- Concatenate two walks `p : Walk G u v` and `q : Walk G v w` into a
 walk `Walk G u w`.  The `nil` case forwards `q` unchanged; the `cons`
@@ -327,7 +324,6 @@ private lemma Walk.vertices_comp {G : CDMG Node} :
       have hne : p.vertices ≠ [] := Walk.vertices_ne_nil p
       simp [Walk.comp, Walk.vertices, Walk.vertices_comp p q,
             List.dropLast_cons_of_ne_nil hne]
--- claim_3_5 --- end helper
 
 -- ## Private helpers — `G → G_{do(W)}` walk-lift infrastructure
 --
@@ -407,7 +403,6 @@ private lemma Walk.vertices_comp {G : CDMG Node} :
 --   those `have`-bindings verbatim.  Proof-irrelevance bridges any
 --   syntactic differences in how the proofs are written, but
 --   reproducing the bindings keeps the unification local and robust.
--- claim_3_5 --- start helper
 
 /-- Auxiliary: the source `u` of a walk `p : Walk G u v` is the head of
 `p.vertices`, hence lies in `p.vertices`.  The `nil` case unfolds to
@@ -549,7 +544,6 @@ private lemma Walk.isDirectedWalk_liftTo_hardInterventionOn
         exact hvMid_notW
       · exact Walk.isDirectedWalk_liftTo_hardInterventionOn p'
           hvMid_inHard hp_dir.2.2 hp'_avoid
--- claim_3_5 --- end helper
 
 -- ## Private helpers — `Walk.truncateAtFirst` + minimum-length walk
 --
@@ -639,7 +633,6 @@ private lemma Walk.isDirectedWalk_liftTo_hardInterventionOn
 --   length ≥ 1, so its `vertices.dropLast` is non-empty in an
 --   informative way.  Downstream `mkBifurcation` constructions also
 --   require length ≥ 1 to assemble the bifurcation's left arm.
--- claim_3_5 --- start helper
 
 /-- Auxiliary: the source vertex of a `WalkStep` lies in `G`.  Used by
 `Walk.truncateAtFirst`'s `t = u` branch in the `cons` arm to recover
@@ -906,7 +899,6 @@ private lemma exists_directed_walk_v_not_in_dropLast
   have h_lt_n₀ : p_short.length < Nat.find hP_nonempty :=
     hp_min_len ▸ h_lt
   exact Nat.find_min hP_nonempty h_lt_n₀ ⟨p_short, h_dir, rfl⟩
--- claim_3_5 --- end helper
 
 -- ## Private helpers — `Walk.reverseDirected` + `Walk.mkBifurcation`
 --
@@ -998,7 +990,6 @@ private lemma exists_directed_walk_v_not_in_dropLast
 --   `IsBifurcationDirectedHingeWithSplit` (`Walks.lean:1044` returns
 --   `False`).  Threading `hqv_pos` through `mkBifurcation`'s
 --   signature keeps the downstream subtask 6 / 8 API uniform.
--- claim_3_5 --- start helper
 
 /-- **Subtask 5a:** reverse a *directed* walk `qv : Walk G c v` into a
 walk `Walk G v c`.  Every cell of the result uses the *backward*
@@ -1118,7 +1109,6 @@ private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
   change ((Walk.reverseDirected qv hqv_dir).comp qw).vertices
         = qv.vertices.reverse.dropLast ++ qw.vertices
   rw [Walk.vertices_comp, Walk.vertices_reverseDirected qv hqv_dir]
--- claim_3_5 --- end helper
 
 -- ## Private helpers — `mkBifurcation` realises the directed-hinge predicate
 --
@@ -1204,7 +1194,6 @@ private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
 --   walk in the do-on-`{v}` intervened CDMG, then lifted to `G` via
 --   subtask 1's `Walk.liftFromHardIntervention` (which preserves
 --   `IsDirectedWalk`).
--- claim_3_5 --- start helper
 
 /-- Auxiliary: `Walk.comp` is associative.  Verbatim structural induction
 on the first argument: the `nil` case reduces by definition
@@ -1374,7 +1363,6 @@ private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
       have hidx : qv'.length + 1 - 1 = qv'.length + 0 := by omega
       rw [hidx]
       exact ih
--- claim_3_5 --- end helper
 
 -- ## Private helpers — arm extraction from a directed-hinge bifurcation
 --
@@ -1467,7 +1455,6 @@ private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
 --   conjuncts here keeps the API self-contained — the consumer reads
 --   `c ≠ v` and `c ≠ w` off the lemma without re-extracting from the
 --   walks' shapes.
--- claim_3_5 --- start helper
 
 /-- **Subtask 7 of `claim_3_5` (the arm extractor):** given a
 bifurcation walk `p : Walk G v w` together with a directed-hinge
@@ -1689,7 +1676,6 @@ private lemma Walk.exists_arms_of_bifurcation_directed_hinge
                   List.mem_of_mem_tail hx_p'_tail
                 change x ∈ (u :: (Walk.cons vMid' a' hStep' p'').vertices).tail
                 exact hx_p'
--- claim_3_5 --- end helper
 
 -- ref: claim_3_5
 -- For any CDMG `G : CDMG Node` and any three (not necessarily

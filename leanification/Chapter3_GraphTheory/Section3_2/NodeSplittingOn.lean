@@ -165,6 +165,152 @@ private lemma toCopy0_inj {W : Finset Node} {a b : Node}
     · rw [if_neg hWa, if_neg hWb] at h
       injection h
 
+-- ## Proof helpers for the five CDMG axioms under node splitting
+--
+-- The five private lemmas below discharge the five proof obligations
+-- of `def_3_1`'s `CDMG` structure (`hJV_disj`, `hE_subset`,
+-- `hL_subset`, `hL_irrefl`, `hL_symm`) for the node-splitting
+-- construction.  They are factored out of the structure-literal body
+-- of `nodeSplittingOn` so the def body is pure data + lemma
+-- references — the website builder renders the def's signature, and
+-- a reader sees the data assignments without proof clutter.  None of
+-- the obligations consume `hW`; `hW` is carried on the def's
+-- signature purely for LN-faithfulness (the LN's "Let `W ⊆ V`").
+
+private lemma nodeSplittingOn_hJV_disj (G : CDMG Node) (W : Finset Node) :
+    Disjoint (G.J.image SplitNode.unsplit)
+        ((G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+          ∪ W.image SplitNode.copy1) := by
+  rw [Finset.disjoint_left]
+  rintro x hxJ hxV
+  obtain ⟨j, hjJ, rfl⟩ := Finset.mem_image.mp hxJ
+  rcases Finset.mem_union.mp hxV with hxV12 | hxC1
+  · rcases Finset.mem_union.mp hxV12 with hxVuns | hxC0
+    · -- `x = .unsplit j` is in `(G.V \ W).image .unsplit`: the
+      -- preimage `v` agrees with `j` by constructor injectivity, so
+      -- `j ∈ G.V \ W ⊆ G.V`, contradicting `j ∈ G.J`.
+      obtain ⟨v, hvVW, hveq⟩ := Finset.mem_image.mp hxVuns
+      cases hveq
+      exact Finset.disjoint_left.mp G.hJV_disj hjJ
+        (Finset.mem_sdiff.mp hvVW).1
+    · -- `x = .unsplit j` is in `W.image .copy0`: constructor mismatch.
+      obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC0
+      cases hweq
+  · -- `x = .unsplit j` is in `W.image .copy1`: same constructor mismatch.
+    obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC1
+    cases hweq
+
+private lemma nodeSplittingOn_hE_subset (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : SplitNode Node × SplitNode Node⦄,
+      e ∈ G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
+          ∪ W.image (fun w => (SplitNode.copy0 w, SplitNode.copy1 w)) →
+      e.1 ∈ G.J.image SplitNode.unsplit ∪
+              ((G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+                ∪ W.image SplitNode.copy1) ∧
+        e.2 ∈ (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+                ∪ W.image SplitNode.copy1 := by
+  intro e he
+  rcases Finset.mem_union.mp he with hImg | hTrans
+  · -- Lifted edge.
+    obtain ⟨e', he'E, rfl⟩ := Finset.mem_image.mp hImg
+    obtain ⟨he'1, he'2⟩ := G.hE_subset he'E
+    refine ⟨?_, ?_⟩
+    · by_cases hW1 : e'.1 ∈ W
+      · simp only [toCopy1, hW1, if_true]
+        refine Finset.mem_union_right _ ?_
+        refine Finset.mem_union_right _ ?_
+        exact Finset.mem_image.mpr ⟨e'.1, hW1, rfl⟩
+      · simp only [toCopy1, hW1, if_false]
+        rcases Finset.mem_union.mp he'1 with hJ | hV
+        · exact Finset.mem_union_left _ (Finset.mem_image.mpr ⟨e'.1, hJ, rfl⟩)
+        · refine Finset.mem_union_right _ ?_
+          refine Finset.mem_union_left _ ?_
+          refine Finset.mem_union_left _ ?_
+          exact Finset.mem_image.mpr
+            ⟨e'.1, Finset.mem_sdiff.mpr ⟨hV, hW1⟩, rfl⟩
+    · by_cases hW2 : e'.2 ∈ W
+      · simp only [toCopy0, hW2, if_true]
+        refine Finset.mem_union_left _ ?_
+        refine Finset.mem_union_right _ ?_
+        exact Finset.mem_image.mpr ⟨e'.2, hW2, rfl⟩
+      · simp only [toCopy0, hW2, if_false]
+        refine Finset.mem_union_left _ ?_
+        refine Finset.mem_union_left _ ?_
+        exact Finset.mem_image.mpr
+          ⟨e'.2, Finset.mem_sdiff.mpr ⟨he'2, hW2⟩, rfl⟩
+  · -- Transfer edge.
+    obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hTrans
+    refine ⟨?_, ?_⟩
+    · refine Finset.mem_union_right _ ?_
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
+    · refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
+
+private lemma nodeSplittingOn_hL_subset (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : SplitNode Node × SplitNode Node⦄,
+      e ∈ G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2)) →
+      e.1 ∈ (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+              ∪ W.image SplitNode.copy1 ∧
+        e.2 ∈ (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+                ∪ W.image SplitNode.copy1 := by
+  intro e he
+  obtain ⟨e', he'L, rfl⟩ := Finset.mem_image.mp he
+  obtain ⟨he'1, he'2⟩ := G.hL_subset he'L
+  refine ⟨?_, ?_⟩
+  · by_cases hW1 : e'.1 ∈ W
+    · simp only [toCopy0, hW1, if_true]
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨e'.1, hW1, rfl⟩
+    · simp only [toCopy0, hW1, if_false]
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_left _ ?_
+      exact Finset.mem_image.mpr
+        ⟨e'.1, Finset.mem_sdiff.mpr ⟨he'1, hW1⟩, rfl⟩
+  · by_cases hW2 : e'.2 ∈ W
+    · simp only [toCopy0, hW2, if_true]
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨e'.2, hW2, rfl⟩
+    · simp only [toCopy0, hW2, if_false]
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_left _ ?_
+      exact Finset.mem_image.mpr
+        ⟨e'.2, Finset.mem_sdiff.mpr ⟨he'2, hW2⟩, rfl⟩
+
+private lemma nodeSplittingOn_hL_irrefl (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃v1 v2 : SplitNode Node⦄,
+      (v1, v2) ∈ G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2)) →
+      v1 ≠ v2 := by
+  intro v1 v2 h
+  obtain ⟨e', he'L, heq⟩ := Finset.mem_image.mp h
+  have hne : e'.1 ≠ e'.2 := G.hL_irrefl he'L
+  intro hv12
+  apply hne
+  have h1 : toCopy0 W e'.1 = v1 := by
+    have := congrArg Prod.fst heq; simpa using this
+  have h2 : toCopy0 W e'.2 = v2 := by
+    have := congrArg Prod.snd heq; simpa using this
+  have hSplitEq : toCopy0 W e'.1 = toCopy0 W e'.2 := by
+    rw [h1, h2, hv12]
+  exact toCopy0_inj hSplitEq
+
+private lemma nodeSplittingOn_hL_symm (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃v1 v2 : SplitNode Node⦄,
+      (v1, v2) ∈ G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2)) →
+      (v2, v1) ∈ G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2)) := by
+  intro v1 v2 h
+  obtain ⟨e', he'L, heq⟩ := Finset.mem_image.mp h
+  have h1 : toCopy0 W e'.1 = v1 := by
+    have := congrArg Prod.fst heq; simpa using this
+  have h2 : toCopy0 W e'.2 = v2 := by
+    have := congrArg Prod.snd heq; simpa using this
+  have hsym : (e'.2, e'.1) ∈ G.L := G.hL_symm he'L
+  refine Finset.mem_image.mpr ⟨(e'.2, e'.1), hsym, ?_⟩
+  simp [h1, h2]
+
 -- ref: def_3_11
 --
 -- The *node-splitting on `G` with respect to `W`* is the CDMG
@@ -425,155 +571,28 @@ LN block (verbatim, for backup):
 --   assignments above are the contract those examples validate;
 --   any future structural change to this `def` should be re-run
 --   against the same instances.
+-- `hW` is bound on the signature for LN-faithfulness ("Let
+-- `W ⊆ V`") but is not consumed by any of the five obligations — the
+-- type-level distinction of `SplitNode`'s three constructors and
+-- `G`'s own axioms discharge them.  The `set_option` keeps the
+-- linter quiet without dropping the binder from the signature
+-- (which is part of the LN-faithful encoding and the call-site
+-- contract `G.nodeSplittingOn W hW`).
+set_option linter.unusedVariables false in
 -- def_3_11 -- start statement
 def nodeSplittingOn (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) :
     CDMG (SplitNode Node) where
   J := G.J.image SplitNode.unsplit
   V := (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
         ∪ W.image SplitNode.copy1
-  hJV_disj := by
-    -- `hW` is part of the signature for LN-faithfulness ("Let
-    -- `W ⊆ V`"), but is not consumed in this proof — the
-    -- type-level distinction of the three `SplitNode` constructors
-    -- discharges the constructor-mismatch branches, and `G.hJV_disj`
-    -- discharges the `unsplit`-vs-`unsplit` branch on its own.
-    let _ := hW
-    rw [Finset.disjoint_left]
-    rintro x hxJ hxV
-    obtain ⟨j, hjJ, rfl⟩ := Finset.mem_image.mp hxJ
-    rcases Finset.mem_union.mp hxV with hxV12 | hxC1
-    · rcases Finset.mem_union.mp hxV12 with hxVuns | hxC0
-      · -- `x = .unsplit j` is in `(G.V \ W).image .unsplit`: the
-        -- preimage `v` agrees with `j` by constructor injectivity,
-        -- so `j ∈ G.V \ W ⊆ G.V`, contradicting `j ∈ G.J`.
-        obtain ⟨v, hvVW, hveq⟩ := Finset.mem_image.mp hxVuns
-        cases hveq
-        exact Finset.disjoint_left.mp G.hJV_disj hjJ
-          (Finset.mem_sdiff.mp hvVW).1
-      · -- `x = .unsplit j` is in `W.image .copy0`: the constructors
-        -- `.unsplit` and `.copy0` differ — impossible.
-        obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC0
-        cases hweq
-    · -- `x = .unsplit j` is in `W.image .copy1`: same constructor
-      -- mismatch as above.
-      obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC1
-      cases hweq
+  hJV_disj := nodeSplittingOn_hJV_disj G W
   E := G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
         ∪ W.image (fun w => (SplitNode.copy0 w, SplitNode.copy1 w))
-  hE_subset := by
-    intro e he
-    rcases Finset.mem_union.mp he with hImg | hTrans
-    · -- Lifted edge: `e = (toCopy1 W e'.1, toCopy0 W e'.2)` for
-      --   `(v_1, v_2) := e' ∈ G.E`, with `v_1 ∈ G.J ∪ G.V` and
-      --   `v_2 ∈ G.V` by `G.hE_subset`.
-      obtain ⟨e', he'E, rfl⟩ := Finset.mem_image.mp hImg
-      obtain ⟨he'1, he'2⟩ := G.hE_subset he'E
-      refine ⟨?_, ?_⟩
-      · -- `(toCopy1 W e'.1) ∈ J' ∪ V'`.
-        by_cases hW1 : e'.1 ∈ W
-        · -- `toCopy1 W e'.1 = .copy1 e'.1`, which lives in `V'`
-          --   (the `W.image .copy1` piece).
-          simp only [toCopy1, hW1, if_true]
-          refine Finset.mem_union_right _ ?_
-          refine Finset.mem_union_right _ ?_
-          exact Finset.mem_image.mpr ⟨e'.1, hW1, rfl⟩
-        · -- `toCopy1 W e'.1 = .unsplit e'.1`; branch on whether
-          --   `e'.1 ∈ G.J` (lives in `J'`) or `e'.1 ∈ G.V` (lives
-          --   in the `.unsplit (G.V \ W)` piece of `V'`).
-          simp only [toCopy1, hW1, if_false]
-          rcases Finset.mem_union.mp he'1 with hJ | hV
-          · exact Finset.mem_union_left _ (Finset.mem_image.mpr ⟨e'.1, hJ, rfl⟩)
-          · refine Finset.mem_union_right _ ?_
-            refine Finset.mem_union_left _ ?_
-            refine Finset.mem_union_left _ ?_
-            exact Finset.mem_image.mpr
-              ⟨e'.1, Finset.mem_sdiff.mpr ⟨hV, hW1⟩, rfl⟩
-      · -- `(toCopy0 W e'.2) ∈ V'`.
-        by_cases hW2 : e'.2 ∈ W
-        · simp only [toCopy0, hW2, if_true]
-          refine Finset.mem_union_left _ ?_
-          refine Finset.mem_union_right _ ?_
-          exact Finset.mem_image.mpr ⟨e'.2, hW2, rfl⟩
-        · simp only [toCopy0, hW2, if_false]
-          refine Finset.mem_union_left _ ?_
-          refine Finset.mem_union_left _ ?_
-          exact Finset.mem_image.mpr
-            ⟨e'.2, Finset.mem_sdiff.mpr ⟨he'2, hW2⟩, rfl⟩
-    · -- Transfer edge: `e = (.copy0 w, .copy1 w)` for `w ∈ W`.
-      --   Both endpoints lie in `V'`: `.copy0 w ∈ W.image .copy0`,
-      --   `.copy1 w ∈ W.image .copy1`.
-      obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hTrans
-      refine ⟨?_, ?_⟩
-      · refine Finset.mem_union_right _ ?_
-        refine Finset.mem_union_left _ ?_
-        refine Finset.mem_union_right _ ?_
-        exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
-      · refine Finset.mem_union_right _ ?_
-        exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
+  hE_subset := by exact nodeSplittingOn_hE_subset G W
   L := G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2))
-  hL_subset := by
-    intro e he
-    obtain ⟨e', he'L, rfl⟩ := Finset.mem_image.mp he
-    obtain ⟨he'1, he'2⟩ := G.hL_subset he'L
-    -- Reusable per-endpoint case analysis: for any `v ∈ G.V`,
-    --   `toCopy0 W v ∈ V'` because it is either `.copy0 v` (when
-    --   `v ∈ W`) or `.unsplit v` (when `v ∈ G.V \ W`).
-    refine ⟨?_, ?_⟩
-    · by_cases hW1 : e'.1 ∈ W
-      · simp only [toCopy0, hW1, if_true]
-        refine Finset.mem_union_left _ ?_
-        refine Finset.mem_union_right _ ?_
-        exact Finset.mem_image.mpr ⟨e'.1, hW1, rfl⟩
-      · simp only [toCopy0, hW1, if_false]
-        refine Finset.mem_union_left _ ?_
-        refine Finset.mem_union_left _ ?_
-        exact Finset.mem_image.mpr
-          ⟨e'.1, Finset.mem_sdiff.mpr ⟨he'1, hW1⟩, rfl⟩
-    · by_cases hW2 : e'.2 ∈ W
-      · simp only [toCopy0, hW2, if_true]
-        refine Finset.mem_union_left _ ?_
-        refine Finset.mem_union_right _ ?_
-        exact Finset.mem_image.mpr ⟨e'.2, hW2, rfl⟩
-      · simp only [toCopy0, hW2, if_false]
-        refine Finset.mem_union_left _ ?_
-        refine Finset.mem_union_left _ ?_
-        exact Finset.mem_image.mpr
-          ⟨e'.2, Finset.mem_sdiff.mpr ⟨he'2, hW2⟩, rfl⟩
-  hL_irrefl := by
-    -- For `(v_1, v_2) ∈ L'`, the underlying `(v_1', v_2') ∈ G.L`
-    --   satisfies `v_1' ≠ v_2'` by `G.hL_irrefl`; injectivity of
-    --   `toCopy0 W` on `Node` lifts this to `toCopy0 W v_1' ≠
-    --   toCopy0 W v_2'`.  Injectivity of `toCopy0 W`: distinct
-    --   constructors `.copy0` vs `.unsplit` on the `v ∈ W` /
-    --   `v ∉ W` split, and constructor injectivity within each
-    --   branch.
-    intro v1 v2 h
-    obtain ⟨e', he'L, heq⟩ := Finset.mem_image.mp h
-    have hne : e'.1 ≠ e'.2 := G.hL_irrefl he'L
-    intro hv12
-    apply hne
-    have h1 : toCopy0 W e'.1 = v1 := by
-      have := congrArg Prod.fst heq; simpa using this
-    have h2 : toCopy0 W e'.2 = v2 := by
-      have := congrArg Prod.snd heq; simpa using this
-    -- From `toCopy0 W e'.1 = toCopy0 W e'.2`, deduce `e'.1 = e'.2`
-    --   by injectivity of `toCopy0 W`.
-    have hSplitEq : toCopy0 W e'.1 = toCopy0 W e'.2 := by
-      rw [h1, h2, hv12]
-    exact toCopy0_inj hSplitEq
-  hL_symm := by
-    -- `G.hL_symm` swaps the underlying ordered pair; the image
-    --   under `(toCopy0 W ·.1, toCopy0 W ·.2)` commutes with the
-    --   swap, so the symmetry transports literally.
-    intro v1 v2 h
-    obtain ⟨e', he'L, heq⟩ := Finset.mem_image.mp h
-    have h1 : toCopy0 W e'.1 = v1 := by
-      have := congrArg Prod.fst heq; simpa using this
-    have h2 : toCopy0 W e'.2 = v2 := by
-      have := congrArg Prod.snd heq; simpa using this
-    have hsym : (e'.2, e'.1) ∈ G.L := G.hL_symm he'L
-    refine Finset.mem_image.mpr ⟨(e'.2, e'.1), hsym, ?_⟩
-    simp [h1, h2]
+  hL_subset := by exact nodeSplittingOn_hL_subset G W
+  hL_irrefl := by exact nodeSplittingOn_hL_irrefl G W
+  hL_symm := by exact nodeSplittingOn_hL_symm G W
 -- def_3_11 -- end statement
 
 end CDMG

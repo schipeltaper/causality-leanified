@@ -291,25 +291,33 @@ The tex rewrite is a **bridge layer**: it makes the spec unambiguous and notatio
 
 The formalize-statement workers (`formalize_definition_in_lean`, `formalize_claim_in_lean`) wrap each Lean declaration that is part of the row's *statement* formalization with line-comment markers. The website builder extracts statements via these markers, so they are load-bearing.
 
-Convention (recap, for your awareness — the workers know to insert them):
+**Three shapes** (recap, for your awareness — the workers know which to insert):
 
 ```lean
--- <ref> -- start statement              # for the main def / theorem signature
-def <name> := …
--- <ref> -- end statement                # immediately below the last line of the wrapped declaration
+-- <ref> -- start statement              # main def / theorem signature (TWO dashes)
+def/theorem <name> ... : <type>
+-- <ref> -- end statement                # immediately below the type annotation
+:= <body or by tactic block>             # body sits BELOW the end marker
 
--- <ref> --- start helper                # for an aux declaration the main statement NEEDS to type-check
-def <helper> := …
--- <ref> --- end helper
+-- <ref> --- start helper                # statement-supporting helper (THREE dashes)
+def/lemma/instance/variable <helper> ... : <type>
+-- <ref> --- end helper                  # immediately below the type / single line
+:= <body or by tactic block>             # any := by ... proof body sits BELOW the end marker
+
+# Proof-supporting declarations (smart constructors, walk algebra,
+# private lemmas consumed only by tactic blocks) get NO markers at all.
 ```
 
 **Markers MUST be immediately adjacent to the declaration they wrap** — no blank lines, no other comments, no docstrings between the start marker and the keyword, or between the declaration's last line and the end marker (docstrings / design-choice comments go *above* the start marker).
 
-For claims with a proof: the markers wrap just the signature `theorem foo … : <conclusion>`. The `:= proof_body` sits *below* the end marker. The prove-claim worker (`prove_claim_in_lean`) knows not to touch the markers.
+**Signature only, no proof body inside the markers.** For both shapes (statement and helper), the end marker sits immediately after the type annotation. Any `:= by ...` (or `:= <term>`) proof body sits *below* the end marker. The prove-claim worker (`prove_claim_in_lean`) replaces the placeholder body without touching the markers.
 
-**Helper-for-statement markers (THREE dashes) are reserved for declarations *and* `variable` directives the statement needs to type-check** — e.g. a custom `def Iso` the theorem's conclusion uses, or a `variable {Node : Type*} [DecidableEq Node]` line whose binders auto-bind into a wrapped `def` / `theorem` signature via Lean 4's auto-binding. A `variable` directive is a one-line block — markers go immediately above and immediately below it. Auxiliary declarations or `variable` directives introduced only for proof tactics, or for downstream rows, do NOT get markers.
+**Litmus test for helper markers**: would removing this declaration cause the main-statement-marker-wrapped signature to fail to compile? If yes → wrap with helper markers. If no → no markers.
 
-If a worker reports back without inserting markers (or with markers in the wrong place), surface that as a missing prerequisite and re-dispatch the formalize worker (or write a small `spawn_agent_sub_task` to fix the placement) before any downstream check.
+- **YES (wrap)**: a `variable {Node : Type*} [DecidableEq Node]` line whose binders auto-bind into a wrapped signature; a `def IsTotalOrder` the theorem's hypothesis names; an `instance` the wrapped type needs; a `structure` the def takes as a parameter.
+- **NO (no markers)**: smart constructors used only inside tactic blocks (`def mkBifurcation`); lifted constructor-obligation proofs (`private lemma hardInterventionOn_hJV_disj` etc., extracted from a `def`'s structure-literal proof fields per the formalize-def "Constructor-proof obligations live outside the def" rule); walk-algebra / set-algebra / general-utility lemmas; any `private lemma` whose only consumers are tactic proofs further down the file.
+
+If a worker reports back without inserting markers (or with markers in the wrong place — e.g. wrapping a smart constructor, or including a `:= by ...` proof body inside the markers), surface that as a missing prerequisite and re-dispatch the formalize worker (or write a small `spawn_agent_sub_task` to fix the placement) before any downstream check.
 
 ## Addition to the LN (initialization-phase decisions)
 
