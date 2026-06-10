@@ -1245,7 +1245,7 @@
           "last_used": "2026-06-10T12:08:20+00:00"
         }
       ],
-      "time_needed_to_solve": 5395,
+      "time_needed_to_solve": 5414,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1259,30 +1259,32 @@
       "section": "3.2",
       "title": "SwigAcyclic",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SwigAcyclic.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/SwigAcyclic.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1290,12 +1292,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\swig(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\swig(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^o$ the index $j-\\frac{1}{3}$\n    and $v_j^i$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "befec2e6-e732-417d-a5d7-175798361460",
+          "first_seen": "2026-06-10T13:23:13+00:00",
+          "last_used": "2026-06-10T13:23:13+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4059,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have full context. Let me analyze the claim text carefully against the SWIG definition (def_3_12).\n\nKey facts from def_3_12 (SWIG / NodeSplittingHard):\n- $W \\subseteq V$\n- $W^i \\subseteq J_{\\swig(W)}$ (input nodes), $W^o \\subseteq V_{\\swig(W)}$ (output nodes)\n- Directed edges: $E_{\\swig(W)} = \\{(v_1^i, v_2^o) : (v_1,v_2) \\in E\\}$ — source always $\\cdot^i$-tagged (or in $J \\cup (V\\sm W)$), target always $\\cdot^o$-tagged (or in $V\\sm W$)\n- **No transfer edges** between $w^o$ and $w^i$ (this is the key difference from def_3_11)\n\nThe proposed topological order works correctly: I verified by case analysis on edge $(v_1,v_2)\\in E$ with $a < b$ in the original order, all four sub-cases (whether each of $v_1, v_2$ is in $W$) yield source-index $<$ target-index after applying $\\pm 1/3$ offsets.\n\nThe construction is valid, but I see two subtleties in the literal wording.\n\nSUBTLETY:\nid: non_W_node_index_assignment_implicit\nexplanation: The remark explicitly assigns indices only to $v_j^o$ and $v_j^i$ for $v_j \\in W$ (\"assigning for a node $v_j \\in W$ with index $j$ the node $v_j^o$ the index $j-\\frac{1}{3}$ and $v_j^i$ the index $j+\\frac{1}{3}$\"). It then concludes by \"ordering all nodes according to their index value\". But \"all nodes\" of $G_{\\swig(W)}$ also includes nodes in $J \\cup (V \\sm W)$ (the unchanged input nodes and unsplit output nodes), and the rule for their index is *never stated*. The intended reading — these nodes inherit the original integer index $j$ from the enumeration $v_1 < \\cdots < v_n$ — is natural but implicit. A literal-minded formalizer needs to fill in this gap before the construction is fully defined. The wording would be unambiguous if it explicitly said something like \"and assigning to every other node its original index $j$\".\nEND_SUBTLETY\n\nSUBTLETY:\nid: one_third_offset_is_load_bearing_not_arbitrary\nexplanation: The choice of the specific offset $\\pm \\frac{1}{3}$ (\"the index $j-\\frac{1}{3}$ ... the index $j+\\frac{1}{3}$\") looks arbitrary on the page but is in fact load-bearing: any offset $\\delta \\in (0, \\tfrac{1}{2})$ would work, but $\\delta = \\tfrac{1}{2}$ already fails. Concrete corner case: if $v_j \\in W$ and $v_{j+1} \\in W$ are both split (consecutive split nodes), then with $\\delta = \\tfrac{1}{2}$ the indices $v_j^i = j + \\tfrac{1}{2}$ and $v_{j+1}^o = (j+1) - \\tfrac{1}{2} = j + \\tfrac{1}{2}$ collide, so \"ordering all nodes according to their index value\" no longer yields a strict total order. The literal text gives no hint that the specific value $\\tfrac{1}{3}$ is doing real work as opposed to being an arbitrary aesthetic choice. A reader/formalizer \"simplifying\" $\\tfrac{1}{3}$ to $\\tfrac{1}{2}$ (or to a parameter chosen freely) could silently break the construction precisely in the case of two adjacent split nodes.\nEND_SUBTLETY\n\nSUBTLETY:\nid: topological_order_claim_unverified_relies_on_no_transfer_edges\nexplanation: The remark asserts as a bare \"for instance\" that the indexing yields \"a topological order for $G_{\\swig(W)}$\", but does not state — let alone verify — the property of the SWIG construction on which this rests, namely that $G_{\\swig(W)}$ contains **no transfer edge** between $v_j^o$ and $v_j^i$ for $v_j \\in W$. Under the proposed assignment $v_j^o$ at $j-\\tfrac{1}{3}$ and $v_j^i$ at $j+\\tfrac{1}{3}$, we would have $v_j^o < v_j^i$; if the SWIG construction had instead carried over a transfer edge $v_j^i \\to v_j^o$ (as the node-splitting construction of def_3_11 does in the form $w^0 \\to w^1$), the proposed order would be *wrong* in exactly the trivial corner case $W = \\{v_j\\}$ (a single split node). The validity of the literal construction in this remark is silently dependent on knowing that the SWIG's $E_{\\swig(W)}$ omits transfer edges (def_3_12 item iii), and the wording does not signal this dependency.\nEND_SUBTLETY",
+        "session": "82b9cad8-9669-4b4d-bf2a-68bd8e07ae4d"
+      }
     },
     {
       "def_or_claim": "claim",

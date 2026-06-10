@@ -21,3 +21,4 @@ import Chapter3_GraphTheory.Section3_2.SplitTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.TwoDisjointNode
 import Chapter3_GraphTheory.Section3_2.DisjointHardInterventions
 import Chapter3_GraphTheory.Section3_2.NodeSplittingHard
+import Chapter3_GraphTheory.Section3_2.SwigAcyclic
