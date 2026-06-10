@@ -1307,7 +1307,7 @@
           "last_used": "2026-06-10T13:23:13+00:00"
         }
       ],
-      "time_needed_to_solve": 4059,
+      "time_needed_to_solve": 4135,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1321,30 +1321,32 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1352,12 +1354,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes from $G$. \n   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:\n   \\[ \\lp G_{\\swig(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\swig(W_1)}  =  G_{\\swig(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "deb807a3-f212-4944-9ff5-e92abe1bf62e",
+          "first_seen": "2026-06-10T15:00:06+00:00",
+          "last_used": "2026-06-10T15:00:06+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5667,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "NO_SUBTLETIES",
+        "session": "e8737303-aafa-4b2e-982e-c4759d9e7fda"
+      }
     },
     {
       "def_or_claim": "claim",
