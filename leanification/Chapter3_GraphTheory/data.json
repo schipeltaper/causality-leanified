@@ -1198,29 +1198,31 @@
       "section": "3.2",
       "title": "NodeSplittingHard",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 2,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
@@ -1229,12 +1231,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 2
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting hard intervention on CADMGs]\n  \\label{def:G_node-splitting_intervention}\n    Let $G=(J,V,E,L)$ be a CADMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{single-world intervention graph (SWIG)} w.r.t.\\ $W$ of $G$ is the CADMG: \n    \\[ G_{\\swig(W)} :=\\lp J_{\\swig(W)}, V_{\\swig(W)}, E_{\\swig(W)},L_{\\swig(W)} \\rp,\\]\n    %\\[ G_{\\swig(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^o:=\\lC w^o\\st w \\in W \\rC, \\qquad W^i:=\\lC w^i \\st w \\in W \\rC.  \\]\n    Note that we consider $w^o \\neq w^i$ for $w \\in W$.\n  However, for brevity, for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^o:=v^i:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\swig(W)} := J \\dcup W^i$,\n      \\item $V_{\\swig(W)} := (V \\sm W) \\dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.\n      \\item $E_{\\swig(W)} := \\lC v^i_1 \\tuh v_2^o \\st v_1 \\tuh v_2 \\in E  \\rC$,\n      \\item $L_{\\swig(W)} :=\\lC v_1^o \\huh v_2^o \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,\n  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "eca263cb-f643-4a0b-a4b9-68733ad35252",
+          "first_seen": "2026-06-10T12:08:20+00:00",
+          "last_used": "2026-06-10T12:08:20+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5395,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking carefully at the tex block for def_3_12 (NodeSplittingHard / SWIG).\n\nSUBTLETY:\nid: implicit_disjointness_of_copies_from_original_nodes\nexplanation: The LN introduces $W^o$ and $W^i$ as \"two disjont copies of the nodes in $W$\" and explicitly states \"$w^o \\neq w^i$ for $w \\in W$\", but never asserts that these new symbols are disjoint from the original node set $J \\cup V$. Specifically, the definition does not state $W^o \\cap (V \\setminus W) = \\emptyset$, $W^o \\cap J = \\emptyset$, $W^i \\cap V = \\emptyset$, or $W^i \\cap J = \\emptyset$.\n\nThis matters because the constructions\n\\[ J_{\\swig(W)} := J \\dcup W^i \\qquad V_{\\swig(W)} := (V \\sm W) \\dcup W^o \\]\nuse disjoint-union notation $\\dcup$, which presumes the operands are already disjoint. A literal reading admits the pathological case where, say, some symbol $w^o$ happens to coincide with an existing $v \\in V \\setminus W$ — in which case the convention \"$v^o := v^i := v$ for $v \\in J \\cup V \\sm W$\" collides with the fresh-copy interpretation (the same symbol $v$ would simultaneously be $v^o$ for \"itself\" AND $w^o$ for some $w \\in W$), making the entire indexing scheme inconsistent.\n\nSimilarly the LN's $L_{\\swig(W)} := \\{v_1^o \\huh v_2^o : \\dots\\}$ implicitly relies on $v \\mapsto v^o$ being a well-defined injection on $V$ — true under the natural intent but not derivable from the literal text.\n\nStandard treatments fix this by saying \"fresh copies disjoint from the underlying universe\"; the LN omits that qualifier.\nEND_SUBTLETY\n\nSUBTLETY:\nid: closing_remark_uses_removal_language_for_a_constructive_definition\nexplanation: The closing sentence — \"where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$, and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$\" — describes the SWIG as if it were produced by *removing* edges from some intermediate graph. But the actual construction in clauses (iii)–(iv) is a direct mapping:\n\\[ E_{\\swig(W)} := \\{v_1^i \\tuh v_2^o : v_1 \\tuh v_2 \\in E\\}, \\qquad L_{\\swig(W)} := \\{v_1^o \\huh v_2^o : v_1 \\huh v_2 \\in L\\}. \\]\nNo edges are ever included and then removed; the mapping itself ensures no edge ends at $W^i$ (since targets are always tagged $\\cdot^o$) and no directed edge leaves $W^o$ (since sources are always tagged $\\cdot^i$). A reader taking the remark literally might suspect there is a separate edge-deletion step they should perform, or that some original edges are silently discarded — neither of which is true. This is descriptive imprecision rather than mathematical error, but is the kind of phrasing that produces \"what are we removing exactly?\" confusion downstream.\n\nAdditionally, the word \"edges\" in \"removing all edges out of $W^o$\" is ambiguous between directed and bidirected: clause (iv) does place bidirected edges incident to $W^o$, so the remark must implicitly mean \"directed edges out of $W^o$\" — but the LN never disambiguates. If a downstream argument cites this clause to claim \"$W^o$ has no edges except parents\", that would be wrong with respect to $L_{\\swig(W)}$.\nEND_SUBTLETY",
+        "session": "63638ba4-fffa-4d5b-9690-195f6783d5f3"
+      }
     },
     {
       "def_or_claim": "claim",
