@@ -316,6 +316,13 @@ def inline_convert(tex: str) -> str:
     )
     # Standard LaTeX text-mode symbols KaTeX won't see (they sit outside `$…$`).
     protected = re.sub(r"\\checkmark\b", "✓", protected)
+    protected = re.sub(r"\\ldots\b", "…", protected)
+    # Horizontal / vertical spacing: drop the command + brace argument.
+    protected = re.sub(r"\\[hv]space\{[^{}]*\}", "", protected)
+    # Enumerate-counter macros (`\alph*`, `\Alph*`, `\arabic*`, `\roman*`,
+    # `\Roman*`) — only meaningful inside `[label=…]` brackets, which we
+    # parse separately; strip the bare token so it doesn't leak as text.
+    protected = re.sub(r"\\(?:alph|Alph|arabic|roman|Roman)\*?\b", "", protected)
     # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
     # Only the doubled forms are converted unambiguously; the single
     # backtick / quote forms get used too often inside identifiers

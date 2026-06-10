@@ -27,7 +27,8 @@ building_website/
 │   ├── process_design_choices.py    ← LLM fallback (Claude does this in-session)
 │   ├── build_manifest.py            ← sidebar tree + asset cache-bust
 │   ├── build_appendix.py            ← appendix.tex
-│   └── build_results.py             ← results.tex
+│   ├── build_results.py             ← results.tex
+│   └── check_render.py              ← preventive: unrendered macros
 └── website/
     ├── index.html                   ← shell page (asset URLs stamped by build_manifest)
     ├── CNAME                        ← leanification.samritchie.dev
@@ -54,6 +55,7 @@ python3 building_website/scripts/fetch_row.py <ref>
 python3 building_website/scripts/build_manifest.py
 python3 building_website/scripts/build_appendix.py
 python3 building_website/scripts/build_results.py
+python3 building_website/scripts/check_render.py   # exit-1 if any \foo leaks
 git add -A && git commit -m "…" && git push
 ```
 
@@ -64,7 +66,11 @@ top-level `design_choices`) is written by Claude inside the same
 session — Claude already has model access, so calling out to an API
 wrapper just to call another model is redundant. The three `build_*`
 scripts regenerate the manifest plus `appendix.tex` and `results.tex`
-at the root of this folder.
+at the root of this folder. `check_render.py` is the final guard:
+it walks every panel's rendered HTML and stops the push if any
+`\foo` would render as raw text (prose-mode leak through
+`tex_to_html.py`) or as a red KaTeX ParseError (math-mode macro
+not in `KATEX_MACROS`).
 
 If you're running the pipeline **outside Claude Code** (e.g. a batch
 job on a developer box with `ANTHROPIC_API_KEY` set), the standalone
@@ -165,15 +171,23 @@ Each row's `data/<ref>.json`:
   "tex_proof": null,                     // {raw, html, source_path} for claims
 
   "lean_blocks": [                       // one entry per marker-wrapped region
-    { "kind": "helper", "code": "…" },
-    { "kind": "main",   "code": "…" }
+    {
+      "kind": "helper",                  // "helper" | "main"
+      "code": "…",                       // raw Lean source between markers
+      "explanation":    "<Markdown — what this block does, Mathlib idioms>",
+      "code_annotated": "<same code, `--` comments above non-trivial lines>"
+    },
+    {
+      "kind": "main",
+      "code": "…",
+      "explanation":    "…",
+      "code_annotated": "…"
+    }
   ],
 
   "lean_source_url":   "https://github.com/…/blob/main/leanification/.../CDMG.lean",
   "lean_file_path":    "leanification/.../CDMG.lean",
   "addition_to_the_LN": "<operator notes from data.json>",
-
-  "lean_explanation": "<polished Markdown — naming + Mathlib idioms>",
   "design_choices":   "<polished Markdown — structural trade-offs>"
 }
 ```
@@ -244,8 +258,11 @@ python3 building_website/scripts/fetch_row.py <ref> [--out PATH | --stdout]
 5. Builds `lean_source_url` from `main_lean_file`.
 6. Reads `status` (`formalized`/`proven`/`solved`) straight from
    `data.json`.
-7. **Preserves any prior `lean_explanation` and `design_choices`** so
-   re-fetching doesn't wipe the LLM steps' output.
+7. **Preserves any prior per-block `explanation` + `code_annotated`
+   and top-level `design_choices`** so re-fetching doesn't wipe the
+   LLM steps' output.  Per-block preservation is keyed on the clean
+   `code` string, so if a row's `.lean` is restructured the matching
+   block's prose carries over only if `code` is identical.
 8. Writes `building_website/website/data/<ref>.json`.
 
 Errors clearly when `main_lean_file` is empty (row not solved) or when
@@ -328,7 +345,7 @@ python3 building_website/scripts/build_manifest.py
 ```
 
 1. Reads each chapter's `data.json` for the rows in `SCOPE` (a small
-   dict at the top — currently `{3: ["3.1"]}`).
+   dict at the top — currently `{3: ["3.1", "3.2"]}`).
 2. Emits `building_website/website/data/manifest.json` — the sidebar
    tree. Each row's `available` flag is `True` iff its
    `data/<ref>.json` exists, so the sidebar correctly greys out
@@ -399,6 +416,52 @@ Size knob at the top of `results.tex`:
 
 Body-only — same convention as `appendix.tex`.
 
+### `check_render.py`
+
+```
+python3 building_website/scripts/check_render.py
+```
+
+Preventive guard against the two classes of LaTeX-rendering bugs we've
+hit on the rendered site:
+
+  * **Prose-mode leaks** — `\foo` outside `$…$` that `tex_to_html.py`
+    didn't handle.  These show up as literal "\foo" text on the page
+    (e.g. `\checkmark` until the substitution rule was added).
+  * **Unregistered math macros** — `\foo` inside `$…$` that's not in
+    `KATEX_MACROS` (extracted from `app.js`) and not on the script's
+    built-in allowlist of common KaTeX commands.  These show up as a
+    red ParseError box on the page (e.g. `\Sym` until the macro was
+    added).
+
+Walks every `data/<ref>.json`'s rendered HTML (`tex_block_html`,
+`tex_statement.html`, `tex_proof.html`), classifies each `\foo` token
+by math- vs prose-context, and exits non-zero with a per-panel
+findings list when any unknown command is found.  Output looks like:
+
+```
+def_3_4:
+  tex_statement.html:
+    PROSE \alph  «\begin{enumerate}[label=(\alph*)]</li><li>(the…»
+
+7 unrendered command(s) found across panels — see recipe in the
+docstring at the top of this script for the fix.
+```
+
+Three ways to resolve a finding (the docstring at the top of the
+script restates these):
+
+  1. **Math-mode**: add the macro to `KATEX_MACROS` in
+     `building_website/website/assets/app.js`.
+  2. **Prose-mode**: add a substitution in `tex_to_html.py`'s
+     `inline_convert` (e.g. `\\checkmark` → `✓`).
+  3. **False positive** (the command is a KaTeX builtin the script's
+     allowlist doesn't know about): add the name to `KATEX_BUILTINS`
+     inside `check_render.py`.
+
+Run after every `fetch_row.py` — wired into the TL;DR workflow as the
+last step before commit.
+
 ## The website (`website/`)
 
 `app.js` is a thin client-side renderer (no build step on the JS side).
@@ -455,6 +518,7 @@ python3 building_website/scripts/fetch_row.py <ref>
 python3 building_website/scripts/build_manifest.py
 python3 building_website/scripts/build_appendix.py
 python3 building_website/scripts/build_results.py
+python3 building_website/scripts/check_render.py
 git add -A && git commit -m "…" && git push
 ```
 
