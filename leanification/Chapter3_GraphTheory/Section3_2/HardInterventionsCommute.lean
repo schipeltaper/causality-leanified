@@ -93,7 +93,9 @@ variable {Node : Type*} [DecidableEq Node]
 private lemma subset_carrier_of_hardInterventionOn
     {G : CDMG Node} {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
     {S : Finset Node} (hS : S ⊆ G.J ∪ G.V) :
-    S ⊆ (G.hardInterventionOn W hW).J ∪ (G.hardInterventionOn W hW).V := by
+    S ⊆ (G.hardInterventionOn W hW).J ∪ (G.hardInterventionOn W hW).V
+-- claim_3_4 --- end helper
+:= by
   intro v hv
   change v ∈ (G.J ∪ W) ∪ (G.V \ W)
   rcases Finset.mem_union.mp (hS hv) with hJ | hV
@@ -101,7 +103,6 @@ private lemma subset_carrier_of_hardInterventionOn
   · by_cases hW' : v ∈ W
     · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW')
     · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW'⟩)
--- claim_3_4 --- end helper
 
 -- ref: claim_3_4
 -- For any CDMG `G : CDMG Node` and any two subsets `W₁, W₂ ⊆ G.J ∪
