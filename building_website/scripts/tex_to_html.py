@@ -93,9 +93,9 @@ class TexBlock:
 
 def strip_subfiles_wrapper(tex: str) -> str:
     """Keep only what's between \\begin{document} and \\end{document}, drop
-    bookkeeping directives, and remove whole-line `%` comments. Also
-    rewrites `\\begin{restatable}{TYPE}{NAME}…\\end{restatable}` to
-    `\\begin{TYPE}…\\end{TYPE}` so the downstream theorem-env unwrap
+    bookkeeping directives, and remove LaTeX `%` comments (both whole-line
+    and inline). Also rewrites `\\begin{restatable}{TYPE}{NAME}…\\end{restatable}`
+    to `\\begin{TYPE}…\\end{TYPE}` so the downstream theorem-env unwrap
     handles it like any other Prp/Lem/Rem."""
     m = re.search(r"\\begin\{document\}(.*?)\\end\{document\}", tex, re.DOTALL)
     if m:
@@ -103,7 +103,10 @@ def strip_subfiles_wrapper(tex: str) -> str:
     tex = re.sub(r"\\def\\row(ref|title)\{[^}]*\}", "", tex)
     tex = re.sub(r"\\phantomsection", "", tex)
     tex = re.sub(r"\\label\{[^}]*\}", "", tex)
-    tex = re.sub(r"^\s*%.*$", "", tex, flags=re.MULTILINE)
+    # Strip LaTeX comments: any unescaped `%` runs to end of line.  Matches both
+    # whole-line `%`-prefixed comments and inline trailing `%`-comments; the
+    # negative lookbehind preserves escaped `\%` (literal percent in TeX).
+    tex = re.sub(r"(?<!\\)%.*$", "", tex, flags=re.MULTILINE)
     # `\begin{restatable}{TYPE}{NAME}…\end{restatable}` → `\begin{TYPE}…\end{TYPE}`
     def _restatable(m: re.Match) -> str:
         env_type = m.group(1)
