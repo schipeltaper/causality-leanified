@@ -264,7 +264,9 @@ def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
 private lemma image_unsplit_subset_nodeSplittingOn_V
     {G : CDMG Node} {W₁ W₂ : Finset Node} (hW₁ : W₁ ⊆ G.V)
     (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
-    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V := by
+    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V
+-- claim_3_7 --- end helper
+:= by
   intro x hx
   obtain ⟨v, hvW₂, rfl⟩ := Finset.mem_image.mp hx
   -- `(G.nodeSplittingOn W₁ hW₁).V` unfolds to
@@ -275,7 +277,6 @@ private lemma image_unsplit_subset_nodeSplittingOn_V
   refine Finset.mem_union_left _ ?_
   refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
   exact Finset.mem_sdiff.mpr ⟨hW₂ hvW₂, Finset.disjoint_right.mp hDisj hvW₂⟩
--- claim_3_7 --- end helper
 
 -- ref: claim_3_7
 --

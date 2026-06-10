@@ -82,8 +82,44 @@ Helpers carry their own `## Design choice` comment block — same treatment as a
    - The TeX of the definition (verbatim, between `/-` and `-/`), for traceability
    - A short **Design choice** note: why you chose this Lean shape, what mathlib structure you built on (or why you didn't), trade-offs — and explicitly which sibling Lean files / declarations you built on.
 6. **Wrap the main declaration(s) with statement markers.** This is REQUIRED -- the website builder relies on them to extract just the statement formalization for display. The markers are *plain Lean line comments*. See **Marker conventions** below.
-7. **Check it builds**: `lake build` from `/home/11716061/repo_scaffold2/`. Fix any errors.
-8. **Report back** to the manager: every Lean file path you wrote to, each declaration name, which sibling defs / predicates you reused, and any decisions that may affect later claims that depend on this definition.
+7. **No proofs inside the wrapped definition.** See **Constructor-proof obligations live outside the def** below. The main wrapped declaration must be data-shaped — no `by ...` tactic blocks inside a `where`-clause / structure literal / `{ ... }` record-update body.
+8. **Check it builds**: `lake build` from `/home/11716061/repo_scaffold2/`. Fix any errors.
+9. **Report back** to the manager: every Lean file path you wrote to, each declaration name, which sibling defs / predicates you reused, and any decisions that may affect later claims that depend on this definition.
+
+## Constructor-proof obligations live outside the def
+
+When the row's definition constructs an instance of a `structure` (a common case in this project — every CDMG-operator row produces `CDMG Node where { J := ..., V := ..., hJV_disj := ..., E := ..., hE_subset := ..., L := ..., hL_subset := ..., hL_irrefl := ..., hL_symm := ... }`), the structure's *proof-shaped fields* (the `h*` invariants — disjointness, subset, irreflexivity, symmetry, etc.) **must NOT** be written as inline `by ...` tactic blocks inside the structure literal.
+
+Each proof obligation gets its own **private lemma** declared *above* the def; the def then references each lemma by name. Concrete shape:
+
+```lean
+private lemma <opName>_<obligation>
+    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.J ∪ G.V) :
+    <statement of the obligation> := by
+  <tactic proof>
+
+-- (one private lemma per proof obligation: hJV_disj, hE_subset, hL_subset, hL_irrefl, hL_symm, …)
+
+-- <ref> -- start statement
+def <opName> (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
+  J := G.J ∪ W
+  V := G.V \ W
+  hJV_disj := <opName>_hJV_disj G W hW
+  E := G.E.filter (fun e => e.2 ∉ W)
+  hE_subset := <opName>_hE_subset G W hW
+  L := G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W)
+  hL_subset := <opName>_hL_subset G W hW
+  hL_irrefl := <opName>_hL_irrefl G W hW
+  hL_symm := <opName>_hL_symm G W hW
+-- <ref> -- end statement
+```
+
+**Concrete check**: the wrapped def's body should contain only *data* (`field := <expression>` where the expression is data, not a proof) and *lemma-name references* (`field := <lemma_name> <args>` where the lemma was declared above). There should be **zero** `by` tokens between the `start statement` and `end statement` markers.
+
+**Why**: the website renders the marker-wrapped def as the row's "what is this operator?" surface. A reader needs to see what data the operator produces — they don't need to wade through `refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩` tactic proofs of well-formedness. The lemmas above the def carry the proof obligations; the def itself reads as the mathematical definition of the operator.
+
+**The lifted obligation lemmas do NOT get helper markers.** They're proof-supporting infrastructure for the def's well-typedness — they belong to the proof side, not the statement side. See "Marker conventions" below for the helper-marker scope rule.
 
 ## Marker conventions (REQUIRED)
 
@@ -100,7 +136,23 @@ def <name> ... :=
 
 Where `<ref>` is this row's ref (e.g. `def_3_1`). For multi-item rows (a definition row that produces several `def`s / `notation`s), wrap **each** one separately with its own start/end pair, all using the row's ref. The markers go **immediately** above the `def`/`structure`/`class`/`abbrev`/`instance`/`notation`/`opaque` line and **immediately** below the last line of the declaration. Nothing else may appear between a `-- <ref> -- start statement` line and the declaration it wraps (no blank lines, no comments, no docstrings — those go ABOVE the start marker). Likewise nothing between the declaration's last line and `-- <ref> -- end statement`.
 
-**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary declaration **or** `variable` directive that this row had to introduce to make the main statement well-typed (e.g. a small `def` of a relation the main `structure` uses as a field, an `instance` the main type needs, **or** a `variable {α : Type*} [DecidableEq α]` line whose binders flow into the wrapped statements via Lean 4's auto-binding). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
+**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap exactly the declarations the **main statement's signature can't type-check without**. The website builder pulls these out alongside the main statement so the rendered statement surface is self-contained.
+
+**Litmus test for when to wrap**: would removing this declaration cause the main-statement-marker-wrapped signature to fail to compile? If yes → wrap as a helper. If no → leave it unwrapped.
+
+Concrete categories that pass the litmus test and DO get helper markers:
+
+- `variable {α : Type*} [DecidableEq α]` directives whose binders auto-bind into the wrapped statements via Lean 4's auto-binding — without them the wrapped signature has free type variables.
+- A small `def` of a relation or operator the wrapped def uses inside its own signature or body — e.g. `def IsTotalOrder` declared before `def IsTopologicalOrder` that uses it.
+- An `instance` the wrapped type needs to reduce / decide membership.
+- A `structure` the wrapped def takes as a parameter.
+
+Concrete categories that DO NOT pass the litmus test and get NO markers (they're proof-supporting infrastructure, invisible to the website):
+
+- Smart-constructor `def`s used only inside tactic blocks downstream (e.g. `def mkSomething := ...`).
+- Lifted obligation proofs from "Constructor-proof obligations live outside the def" above (e.g. `private lemma hardInterventionOn_hJV_disj`).
+- Walk-algebra / set-algebra / general-utility lemmas used only inside `:= by ...` proof bodies of downstream rows.
+- Any `private lemma` whose only consumers are proof bodies.
 
 ```lean
 -- <ref> --- start helper
@@ -117,7 +169,19 @@ Same placement rules: immediately above the helper's first line, immediately bel
 
 **Section / namespace boundary:** if the file opens a `section` and the `variable` lives at that section's scope, place the helper-marker pair around the `variable` *inside* the `section` (right where the directive sits), not around the `section` opener.
 
-**Do NOT wrap with `--- helper` markers** declarations or `variable` directives that exist purely for downstream proofs or for general infrastructure. The helper markers are reserved for "statement support" — anything the main `def` (or its auto-bound type quantifiers) would not type-check without. A `variable` whose binders never reach a wrapped statement (e.g. introduced only for a proof later in the file) should NOT be wrapped.
+**Helper signature only, no proof body** — when a helper-marker-wrapped declaration is a `lemma` (has a `:= by ...` proof body), the end marker sits *immediately after the type annotation* and the `:= by ...` proof body sits *below* the end marker — exactly like the main-statement marker convention:
+
+```lean
+-- <ref> --- start helper
+lemma <name> (...) : <type>
+-- <ref> --- end helper
+:= by
+  <proof tactics>
+```
+
+For a helper `def` with `:= <expr>` (no `by`, no proof — just data), the markers wrap the whole declaration (start above, end below the last line of the body). For a helper `variable` line, no proof exists, markers wrap the single line. The rule: anywhere there's a `:= by ...` tactic block, it lives *outside* the helper markers.
+
+**Negative case (won't pass review)**: wrapping a `private lemma` whose only purpose is to discharge a proof obligation inside a downstream `:= by ...`. Such lemmas are proof helpers — they get no markers and stay invisible to the website builder. Examples include lifted constructor-proof obligations (per "Constructor-proof obligations live outside the def" above), smart-constructor smart-`def`s used only in tactic proofs, and structural lemmas like `Walk.comp_assoc`.
 
 ## Rules
 

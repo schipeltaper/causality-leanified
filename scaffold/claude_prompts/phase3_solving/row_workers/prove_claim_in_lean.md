@@ -59,9 +59,17 @@ theorem not_<original_name> ... :
   <proof exhibiting the concrete counter-example>
 ```
 
-If you need helper definitions for the negation signature to type-check, wrap them with `-- <ref> --- start helper` / `-- <ref> --- end helper` (three dashes). Proof helpers do NOT get any markers — markers are reserved for statement content.
+If you need helper definitions for the negation signature to type-check, wrap them with `-- <ref> --- start helper` / `-- <ref> --- end helper` (three dashes). **Proof helpers do NOT get any markers** — markers are reserved for statement content.
 
 In both modes, the website builder relies on the end-statement marker being immediately above the `:=` so it can render the statement separately from the proof. If a proof helper (a small lemma the proof needs but the statement doesn't) lands in the same file, place it OUTSIDE the markers.
+
+**Proof helpers — what's allowed and what's not, expanded.** Proofs of substantive theorems often need supporting lemmas / smart constructors / structural facts (e.g. for the bifurcation-alternative proof: `Walk.comp`, `Walk.comp_assoc`, `mkBifurcation`, walk-source recovery, walk reversal, …). All of these are **proof helpers** and must NOT be wrapped with helper markers — they get *no markers at all*. The litmus test is the same as the formalizers': would removing this declaration cause the main *statement signature* to fail to compile? If no, it's a proof helper, no markers.
+
+When you write a proof helper that happens to be a `lemma` (signature + `:= by ...` proof body), declare it as a plain top-level (or `private`) `lemma`, with a `--` docstring above it. No `--- start/end helper` markers. The website builder ignores it; only the operator reading the source sees it.
+
+When the proof needs a brand-new top-level `def` (e.g. a smart constructor like `mkBifurcation` that the statement doesn't reference), same rule: declare without markers. Place it above its first use site.
+
+**Helper signature only, no proof body** — when you DO wrap a declaration with `--- start/end helper` markers (the rare statement-supporting case in disprove mode), the same rule that governs main-statement markers applies: the end marker sits *immediately after the type annotation* and the `:= by ...` proof body sits *below* the end marker, exactly the shape shown above for the main statement. For a helper `def` with `:= <expr>` (just data, no `by`), markers wrap the whole declaration.
 
 ## What to do
 

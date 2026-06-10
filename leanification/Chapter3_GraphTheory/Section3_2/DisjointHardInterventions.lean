@@ -119,11 +119,12 @@ variable {Node : Type*} [DecidableEq Node]
 private lemma subset_V_of_hardInterventionOn
     {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
     {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
-    W₂ ⊆ (G.hardInterventionOn W₁ hW₁).V := by
+    W₂ ⊆ (G.hardInterventionOn W₁ hW₁).V
+-- claim_3_8 --- end helper
+:= by
   intro v hv
   change v ∈ G.V \ W₁
   exact Finset.mem_sdiff.mpr ⟨hW₂ hv, Finset.disjoint_right.mp hDisj hv⟩
--- claim_3_8 --- end helper
 
 -- ## Helper — `W₁.image .unsplit` sits inside the carrier of the inner node-splitting
 --
@@ -196,7 +197,9 @@ private lemma image_unsplit_subset_carrier_of_nodeSplittingOn
     {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
     {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
     W₁.image SplitNode.unsplit ⊆
-      (G.nodeSplittingOn W₂ hW₂).J ∪ (G.nodeSplittingOn W₂ hW₂).V := by
+      (G.nodeSplittingOn W₂ hW₂).J ∪ (G.nodeSplittingOn W₂ hW₂).V
+-- claim_3_8 --- end helper
+:= by
   intro x hx
   obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
   rcases Finset.mem_union.mp (hW₁ hv) with hJ | hV
@@ -212,7 +215,6 @@ private lemma image_unsplit_subset_carrier_of_nodeSplittingOn
     refine Finset.mem_union_left _ ?_
     refine Finset.mem_union_left _ ?_
     exact Finset.mem_image.mpr ⟨v, Finset.mem_sdiff.mpr ⟨hV, hv_notW₂⟩, rfl⟩
--- claim_3_8 --- end helper
 
 -- ref: claim_3_8
 -- For any CDMG `G : CDMG Node` and any two subsets `W₁ ⊆ G.J ∪ G.V`,

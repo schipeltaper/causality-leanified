@@ -102,7 +102,23 @@ Where `<ref>` is this row's ref (e.g. `claim_3_5`). For multi-item rows (a claim
 
 The Lean parser is happy with the markers in those positions: line comments are stripped before parsing, and `theorem foo … : Bar` followed by `:= proof` parses the same as `theorem foo … : Bar := proof`.
 
-**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap any auxiliary `def` / `structure` / `class` / `instance` / `notation`, **or** `variable` directive, you had to introduce in this file so the main theorem signature would type-check (e.g. a `def Iso (G H : CDMG α) : Prop := …` that the theorem's conclusion uses, or a `variable {α : Type*} [DecidableEq α]` line whose binders auto-bind into the wrapped theorem signature). The website builder pulls these out alongside the main statement so the rendered statement is self-contained.
+**Helper-for-statement markers** (THREE dashes, distinct from the start/end markers) — wrap exactly the declarations the **main theorem signature can't type-check without**. The website builder pulls these out alongside the main statement so the rendered statement surface is self-contained.
+
+**Litmus test for when to wrap**: would removing this declaration cause the main-statement-marker-wrapped signature to fail to compile? If yes → wrap as a helper. If no → leave it unwrapped.
+
+Concrete categories that pass the litmus test and DO get helper markers:
+
+- `variable {α : Type*} [DecidableEq α]` directives whose binders auto-bind into the wrapped theorem signature via Lean 4's auto-binding.
+- A `def IsXxx ...` predicate the theorem's hypothesis or conclusion names (e.g. `def IsTotalOrder` declared before a theorem that takes `(h : G.IsTotalOrder lt)`).
+- An `instance` the wrapped type needs.
+- A `structure` the theorem takes as a parameter.
+
+Concrete categories that DO NOT pass the litmus test and get NO markers (they're proof-supporting infrastructure, invisible to the website):
+
+- Smart-constructor `def`s used only inside the theorem's tactic block (e.g. `def mkBifurcation := ...`).
+- Walk-algebra / set-algebra / general-utility lemmas used only inside `:= by ...` proof bodies.
+- Auxiliary `lemma`s whose only consumers are tactic proofs further down the file.
+- Any `private lemma` that supports the *proof*, not the *statement signature*.
 
 ```lean
 -- <ref> --- start helper
@@ -119,7 +135,17 @@ Same placement rules: immediately above the helper's first line, immediately bel
 
 **Section / namespace boundary:** if the file opens a `section` and the `variable` lives at that section's scope, place the helper-marker pair around the `variable` *inside* the section (right where the directive sits), not around the `section` opener.
 
-**Do NOT wrap with `--- helper` markers** declarations or `variable` directives introduced for proof tactics, side lemmas the proof body invokes, or general infrastructure (those go without markers and the website builder ignores them). The helper markers are strictly for "statement support" -- anything the main `theorem`'s signature (or its auto-bound type quantifiers) would not type-check without. A `variable` whose binders never reach a wrapped statement should NOT be wrapped.
+**Helper signature only, no proof body** — when a helper-marker-wrapped declaration is a `lemma` (has a `:= by ...` proof body), the end marker sits *immediately after the type annotation* and the `:= by ...` proof body sits *below* the end marker — exactly like the main-statement marker convention:
+
+```lean
+-- <ref> --- start helper
+lemma <name> (...) : <type>
+-- <ref> --- end helper
+:= by
+  <proof tactics>
+```
+
+For a helper `def` with `:= <expr>` (no `by`, no proof — just data, like `def IsTotalOrder := ...`), markers wrap the whole declaration (start above, end below the last line of the body). For a helper `variable` line, no proof exists, markers wrap the single line. The rule: anywhere there's a `:= by ...` tactic block, it lives *outside* the helper markers.
 
 ## Rules
 
