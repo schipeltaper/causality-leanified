@@ -314,6 +314,8 @@ def inline_convert(tex: str) -> str:
         r"\\(noindent|medskip|smallskip|bigskip|par|newpage|clearpage|centering|raggedright|raggedleft|null)\b",
         "", protected,
     )
+    # Standard LaTeX text-mode symbols KaTeX won't see (they sit outside `$…$`).
+    protected = re.sub(r"\\checkmark\b", "✓", protected)
     # LaTeX typographic quotes: `` … '' → “ … ”, ` … ' → ‘ … ’.
     # Only the doubled forms are converted unambiguously; the single
     # backtick / quote forms get used too often inside identifiers

@@ -69,6 +69,7 @@ const KATEX_MACROS = {
   "\\marg": "\\mathrm{mar}",  "\\moral": "\\mathrm{mor}",
   "\\ske":  "\\mathrm{ske}",  "\\can":  "\\mathrm{can}",
   "\\aug":  "\\mathrm{aug}",  "\\acy":  "\\mathrm{acy}",
+  "\\Sym":  "\\mathrm{Sym}",
 
   /* (conditional) independence — the full Perp / iPerp family */
   "\\Indep":   "\\mathrel{\\perp\\!\\!\\!\\perp}",
