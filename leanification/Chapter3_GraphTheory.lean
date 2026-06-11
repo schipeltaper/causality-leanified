@@ -24,3 +24,4 @@ import Chapter3_GraphTheory.Section3_2.NodeSplittingHard
 import Chapter3_GraphTheory.Section3_2.SwigAcyclic
 import Chapter3_GraphTheory.Section3_2.TwoDisjointNodeSwig
 import Chapter3_GraphTheory.Section3_2.DisjointHardInterventionsSwig
+import Chapter3_GraphTheory.Section3_2.ExtendingCDMGsWith

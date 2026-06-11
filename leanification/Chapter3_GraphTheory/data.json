@@ -1431,7 +1431,7 @@
           "last_used": "2026-06-10T16:23:35+00:00"
         }
       ],
-      "time_needed_to_solve": 4868,
+      "time_needed_to_solve": 4888,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1447,7 +1447,7 @@
       "type": "remark",
       "formalized": "no",
       "proven": "not proven",
-      "solved": "no",
+      "solved": "yes",
       "date_solved": "",
       "tips": "",
       "tex_file": "graphs.tex",
@@ -1471,7 +1471,7 @@
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
-        "request_from_human": 0,
+        "request_from_human": 3,
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
@@ -1479,9 +1479,43 @@
         "no_action": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block."
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "f21c822f-ae1c-44cf-b58a-5690eb510ee1",
+          "first_seen": "2026-06-10T16:27:44+00:00",
+          "last_used": "2026-06-10T16:27:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "083b1517-7ade-4963-a5fe-fb7c3948325a",
+          "first_seen": "2026-06-10T16:30:40+00:00",
+          "last_used": "2026-06-10T16:30:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dffe8db4-3f2d-4475-aadd-e3423efd6c8a",
+          "first_seen": "2026-06-10T16:33:49+00:00",
+          "last_used": "2026-06-10T16:33:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a71821e0-a5ec-4197-943a-fb5d574cc925",
+          "first_seen": "2026-06-10T16:42:28+00:00",
+          "last_used": "2026-06-10T16:42:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 884,
+      "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this tex block, I need to audit a Remark that explores what happens when the sets $W_1$ (hard intervention) and $W_2$ (node-splitting hard intervention) overlap on a node $w$. The remark considers two orderings of operations and notes ambiguities, motivating why disjointness is desirable.\n\nLet me read carefully through the literal text:\n\n1. **`\\ins V`** appears to be a custom macro (likely `\\subseteq`), readable from context — not a subtlety.\n\n2. **\"two input node\"** is a grammatical typo (missing plural \"s\"), not a mathematical issue.\n\n3. **\"would not change $w^i$\"** is presented as a hypothetical extension, with the qualifier \"(if we would define it for input nodes)\" already flagging the speculative nature.\n\n4. **Scenario asymmetry** — the remark restricts the post-split ambiguity to \"which of those two\", implicitly excluding \"both\" or \"neither\" as options. But this is in service of illustrating ambiguity, which is the remark's whole point.\n\n5. **The convention** that $w^i$ is the no-incoming-edges half and $w^o$ is the with-incoming-edges half (inferred from \"$w^i$, which might have outgoing edges\" and \"hard intervening on $w^o$ would turn $w^o$ into an additional input node\") is consistently applied within the remark.\n\n6. The remark is **motivational/exploratory text**, not a precise mathematical claim. It's meant to discuss why disjointness is needed in the actual definition, not to formalize anything.\n\nThe imprecisions and arbitrary assumptions are inherent to the informal discussion nature of a Remark and don't rise to the level of subtleties that would mislead a careful reader or have downstream proof consequences.\n\nNO_SUBTLETIES",
+        "session": "f21c822f-ae1c-44cf-b58a-5690eb510ee1"
+      }
     },
     {
       "def_or_claim": "def",
@@ -1489,28 +1523,30 @@
       "section": "3.2",
       "title": "ExtendingCDMGsWith",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-11",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/ExtendingCDMGsWith.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/ExtendingCDMGsWith.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1520,12 +1556,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Extending CDMGs with intervention nodes]\\label{def:cdmg_intervention_nodes}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{extended CDMG} of $G$ w.r.t.\\ nodes $W \\ins J \\cup V$  and corresponding \\emph{intervention nodes} \n%  $I_W = \\{I_w \\,|\\, w \\in W\\}$ \\Joris{with $I_j:=j$ for $j \\in J$},\n  $I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$,\n  is the CDMG: \n  \\[ G_{\\doit(I_W)}:=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  %\\[G(V|\\doit(J \\dcup I_W)):=G_{\\doit(I_W)}=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n%      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\Joris{\\sm J} \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $V_{\\doit(I_W)}:= V$,\n      \\item $E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$,\n      \\item $L_{\\doit(I_W)}:= L$,\n  \\end{enumerate}\n%  where we just add \\Joris{nodes $I_w$ for $w \\in W \\sm J$ and} edges $I_w \\tuh w$ for $ w \\in W \\sm J$. \n  where we just add nodes $I_w$ for $w \\in W \\sm J$ and edges $I_w \\tuh w$ for $ w \\in W \\sm J$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "c2d4f49f-4f2d-46f8-b882-e9a81dba935c",
+          "first_seen": "2026-06-11T14:35:50+00:00",
+          "last_used": "2026-06-11T14:35:50+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4669,
+      "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it.",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have a clear picture. Let me analyze the active definition (starting line 799) for subtleties.\n\nThe L issue I initially considered is NOT a real problem — L is bidirected edges ⊆ V×V, and V is unchanged. But I do see a concrete subtlety in how the new intervention nodes are introduced.\n\nSUBTLETY:\nid: fresh_intervention_nodes_not_required_disjoint_from_V\nexplanation: The construction introduces new intervention nodes via\n\"$J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$\"\nand the only explicit constraint on the $I_w$ (for $w \\in W \\sm J$) is what\nthe disjoint-union symbol $\\dot\\cup$ enforces: disjointness from $J$. The\ntext never explicitly requires $I_w \\notin V$, nor that distinct $w \\ne w'$\nyield distinct $I_w \\ne I_{w'}$. The clause \"$I_j := j$ for $j \\in J \\cap W$\"\npins down $I_w$ only on $J \\cap W$; for $w \\in W \\sm J \\subseteq V$, the LN\nsimply uses the symbol $I_w$ without ever saying it is fresh.\n\nWhy this matters: a CDMG requires $J' \\cap V' = \\emptyset$ (see def-cdmg\nline 35-40, where $J$ and $V$ are required to be disjoint). The literal\nreading admits a pathological assignment such as \"$I_w := w$ for $w \\in\nW \\sm J \\subseteq V$\": that satisfies $\\{I_w\\}\\cap J = \\emptyset$ (so the\n$\\dot\\cup$ in i.) is fine) but it makes $J_{\\doit(I_W)} \\cap V_{\\doit(I_W)}\n= W \\cap V \\ne \\emptyset$ (whenever $W$ hits $V$), so the result is not a\nvalid CDMG. Similarly, \"$I_{w_1}=I_{w_2}$\" for distinct $w_1, w_2 \\in W\n\\sm J$ is not ruled out, and would make the new edges $I_{w_1}\\tuh w_1$\nand $I_{w_2}\\tuh w_2$ share a source that the LN clearly intends to keep\nseparate.\n\nConcrete corner case: take $W = V$ with $V = \\{v_1, v_2\\}$, and let the\nreader set $I_{v_1} := v_2$, $I_{v_2} := v_1$. Both are outside $J$, so\nthe disjoint union in i.) is well-defined. But then $J_{\\doit(I_W)} = J\n\\cup \\{v_1, v_2\\} = J \\cup V$, $V_{\\doit(I_W)} = V$, and $J' \\cap V' = V\n\\ne \\emptyset$. Equally the new \"edges\" $v_2 \\tuh v_1$ and $v_1 \\tuh v_2$\nmay already be in $E$, making $E \\dot\\cup \\{\\ldots\\}$ also ill-defined.\n\nWhat the author plainly intends — judging from the surrounding prose \"we\njust add nodes $I_w$ for $w \\in W \\sm J$\" — is that each $I_w$ for $w \\in\nW \\sm J$ is a brand-new symbol distinct from anything in $J \\cup V$ and\nfrom any other $I_{w'}$. But the formal text only states disjointness\nfrom $J$.\n\nDownstream impact: any claim about the extended CDMG (e.g. about\n$|J_{\\doit(I_W)}|$, about acyclicity, about $I_w$ being a parentless\n\"source\", or about adding/removing intervention edges commuting with\nother operations) silently relies on this freshness. A formalization\nwill need to commit to a specific freshness mechanism (e.g.\\ a sum-type\nconstruction, or an explicit \"fresh\" hypothesis), since the LN does not\nsupply one.\nEND_SUBTLETY",
+        "session": "a8b09c9a-9df6-43fe-b57a-bd97baaf9d3b"
+      }
     },
     {
       "def_or_claim": "claim",
