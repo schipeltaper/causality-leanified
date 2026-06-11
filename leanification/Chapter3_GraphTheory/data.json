@@ -1570,7 +1570,7 @@
           "last_used": "2026-06-11T14:35:50+00:00"
         }
       ],
-      "time_needed_to_solve": 4669,
+      "time_needed_to_solve": 4688,
       "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it.",
       "wording_check": {
         "done": true,
@@ -1584,30 +1584,32 @@
       "section": "3.2",
       "title": "AcyclicHardInterventionTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-11",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicHardInterventionTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AcyclicHardInterventionTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1615,12 +1617,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If a CDMG $G=(J,V,E,L)$ is acyclic then also $G_{\\doit(I_W)}$ is acyclic and a topological order for\n    $G_{\\doit(I_W)}$ is also one for $G$.\n    Any topological order of $G$ can be extended to one for $G_{\\doit(I_W)}$, e.g.\\\n    by putting all the $I_w$ nodes first in the ordering.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "86eea6c8-36de-4205-b9b0-e7917ba990fe",
+          "first_seen": "2026-06-11T16:07:17+00:00",
+          "last_used": "2026-06-11T16:07:17+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5227,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "I've analyzed the tex block. The remark makes three claims: (1) acyclicity is preserved, (2) a topological order on $G_{\\doit(I_W)}$ is one for $G$, (3) any topological order of $G$ can be extended, with the example \"putting all $I_w$ first\". Combined with `def_3_13`, which explicitly permits $W \\cap J \\neq \\emptyset$ and sets $I_w := w$ for $w \\in J \\cap W$, several subtleties arise.\n\n```\nSUBTLETY:\nid: all_I_w_first_clashes_with_J_cap_W_nonempty\nexplanation: The example \"by putting all the $I_w$ nodes first in the ordering\" reads ambiguously\nonce one inspects the underlying def_3_13. The set $I_W$ is defined there as\n$I_W = (J \\cap W) \\cup \\{I_w : w \\in W \\setminus J\\}$, with the explicit convention \"for\n$j \\in J \\cap W$ we put $I_j := j$ purely as a notational shorthand: the symbol $I_j$ is a label\nfor the pre-existing input node $j \\in J$ itself, and \\emph{no new node is introduced on the\n$J \\cap W$ branch}\". So a literal reading of \"all the $I_w$ nodes\" includes the pre-existing\n$J$-nodes for $w \\in J \\cap W$.\n\nCorner case where this bites: let $W \\cap J \\neq \\emptyset$, e.g.\\ $G$ has $J = \\{j_1, j_2\\}$,\n$V = \\{v_1, v_2\\}$ with edges $j_1 \\to v_1, j_2 \\to v_2, v_1 \\to v_2$, and take $W = \\{j_2, v_1\\}$.\nThen $I_W = \\{j_2, I_{v_1}\\}$ (the first is the pre-existing $j_2$; the second is fresh). The\ninput topological order on $G$ could be $j_1 < v_1 < j_2 < v_2$. \"Putting all the $I_w$ nodes\nfirst\" would force $j_2$ and $I_{v_1}$ to the very front, producing something like\n$I_{v_1} < j_2 < j_1 < v_1 < v_2$. This is a valid topological order on $G_{\\doit(I_W)}$, but its\nrestriction to $J \\cup V$ is $j_2 < j_1 < v_1 < v_2$, which is \\emph{not} the input order we\nstarted from. So the example does not literally \"extend\" the given topological order of $G$ — it\nreshuffles part of it.\n\nThe author almost certainly means \"put just the fresh $I_w$ (those for $w \\in W \\setminus J$)\nfirst\", which does extend correctly because the fresh nodes are by construction disjoint from\n$J \\cup V$. But because def_3_13 went out of its way to say $I_w$ is a notation defined on\n\\emph{all} of $W$, the literal phrase \"all the $I_w$ nodes\" is the broader set.\nEND_SUBTLETY\n\nSUBTLETY:\nid: extend_meaning_unspecified\nexplanation: The remark uses \"extended\" without defining what extending a topological order means\nin this setting. Standard mathematical usage takes \"extension of an order\" to require that the\nnew (strict total) order, when restricted to the original ground set, equals the original order.\nUnder that reading, \"putting all the $I_w$ nodes first\" is the problematic example documented in\nthe subtlety above — when $W \\cap J$ is non-empty, the restriction can differ from the original\norder. A weaker reading of \"extend\" (e.g.\\ \"produce some topological order on $G_{\\doit(I_W)}$\nwhose underlying ground set includes the nodes of $G$\") makes the example trivially correct but\nmakes the word \"extend\" essentially vacuous: any topological order on $G_{\\doit(I_W)}$ is then an\n\"extension\" of any topological order on $G$. The text gives no hint which reading is intended,\nand only the strict reading would forbid the corner case above.\nEND_SUBTLETY\n\nSUBTLETY:\nid: top_order_node_set_mismatch\nexplanation: The phrase \"a topological order for $G_{\\doit(I_W)}$ is also one for $G$\" reads\nloosely. By def_3_8 a topological order of $G$ is a strict total order on $J \\cup V$, and one for\n$G_{\\doit(I_W)}$ is a strict total order on $J \\cup V \\cup \\{I_w : w \\in W \\setminus J\\}$. When\n$W \\setminus J \\neq \\emptyset$ those node sets are not equal, so the relation literally given as a\ntopological order of $G_{\\doit(I_W)}$ is \\emph{not} a relation on $J \\cup V$ — its restriction\nis. This is the kind of standard informal abuse a domain expert glosses over, but a strict\nformalization needs to insert a restriction step that the LN does not name. The same\ninformality reappears in reverse in \"extended\", as flagged separately.\nEND_SUBTLETY\n\nSUBTLETY:\nid: order_among_I_w_unspecified\nexplanation: \"putting all the $I_w$ nodes first in the ordering\" leaves the relative order\n\\emph{among} the $I_w$ nodes themselves unspecified. This is harmless on the merits — fresh\n$I_w$ nodes are pairwise unrelated in $G_{\\doit(I_W)}$ (each has a single outgoing edge to its\ntarget $w \\in V$ and no incoming edges, and there are no edges between distinct $I_w, I_{w'}$),\nso any internal ordering is fine — but the text neither states this nor selects a representative.\nWorth flagging only because a formalization must pick a concrete construction (e.g.\\ an arbitrary\nenumeration of $W \\setminus J$) where the prose stays silent.\nEND_SUBTLETY\n```",
+        "session": "ad2e9510-a94b-47dc-9a20-cfd507862475"
+      }
     },
     {
       "def_or_claim": "claim",
