@@ -1632,7 +1632,7 @@
           "last_used": "2026-06-11T16:07:17+00:00"
         }
       ],
-      "time_needed_to_solve": 5227,
+      "time_needed_to_solve": 5305,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1646,30 +1646,32 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 6,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1677,12 +1679,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]\n    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\doit(I_{W_1})} \n      =  G_{\\doit(I_{W_1 \\cup W_2})}. \\]\n      We also have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\n   % So there is not ambiguity in the following notations and identifications:\n   % \\[ G(V|\\doit(J\\cup I_{W_1} \\cup I_{W_2})) = G(V|\\doit(J\\cup I_{W_1 \\cup W_2})),\n   % \\qquad G(V\\sm W_2|\\doit(W_2 \\cup J\\cup I_{W_1})).\\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "7cff464f-4a23-4943-96ff-d54194fec08a",
+          "first_seen": "2026-06-12T11:03:29+00:00",
+          "last_used": "2026-06-12T11:03:29+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8848,
+      "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me audit the literal text of claim_3_14.\n\n**Analysis:**\n\nDef 3.13 takes $W \\ins J \\cup V$ (with $I_j := j$ for $j \\in J \\cap W$, and new nodes only for $W \\sm J$).\nDef 3.10 (hard intervention) also takes $W \\ins J \\cup V$.\nSo the hypothesis is internally consistent with both upstream definitions.\n\nThe first equation is unambiguous — both sides use only $\\doit(I_\\cdot)$.\n\nThe second equation introduces a notation that does not appear earlier in the LN.\n\n```\nSUBTLETY:\nid: ad_hoc_mixed_doit_notation_g_doit_iw1_comma_w2\nexplanation: The second equation uses the notation $G_{\\doit(I_{W_1}, W_2)}$, which is introduced here for the first time and is *not* defined anywhere in the LN — neither by Def~3.10 (hard intervention, which takes a single set $W$) nor by Def~3.13 (intervention-node extension, which takes a single set $W$). The lemma is the sole specification of this notation, and its meaning is given only implicitly via the equation\n\\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\nA literal reader has to infer that the comma in \"$\\doit(I_{W_1}, W_2)$\" splits two semantically different operations: $I_{W_1}$ (intervention-node addition for $W_1$, per Def~3.13) and $W_2$ (hard intervention on $W_2$, per Def~3.10). The reader cannot, for example, infer this from the first equation, where \"$\\doit(I_{W_1 \\cup W_2})$\" denotes a *single* intervention-node operation on the union and has no comma in its argument. Contrast this with naive parsings the syntax admits:\n\\begin{itemize}\n\\item \"$\\doit$ on the set $I_{W_1} \\cup W_2$\" (treating the comma as $\\cup$),\n\\item \"$\\doit(I_{W_1, W_2})$\" with an indexed set $I_{W_1, W_2}$,\n\\item Both $I_{W_1}$ \\emph{and} $W_2$ treated as intervention-node operations (since the same $\\doit$ symbol covers both kinds elsewhere).\n\\end{itemize}\nNone of these are what is meant — the proof and the asymmetric roles of $W_1$ and $W_2$ in the LHS/middle force the intended reading. Downstream uses of \"$G_{\\doit(I_{W_1}, W_2)}$\" (if any) must remember that this is shorthand for \"first $\\doit(I_{W_1})$, then $\\doit(W_2)$\" (or vice versa, since the lemma proves they commute). Any formalization will need to either (a) pick one of the two orderings as the definition and prove the other as an equality, or (b) define a primitive \"mixed\" operation and prove both single-operation orderings equal it.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w_subseteq_j_makes_both_operations_near_identity\nexplanation: The hypothesis \"$W_1, W_2 \\ins J \\cup V$\" literally allows either set to lie entirely in $J$ (i.e.\\ to consist solely of input nodes). The literal definitions then make both interventions essentially trivial in this corner case:\n\\begin{itemize}\n\\item By Def~3.13 (line~811), $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$. For $W \\ins J$, $W \\sm J = \\emptyset$, so $G_{\\doit(I_W)} = G$ exactly.\n\\item By Def~3.10 (lines~299--302), $J_{\\doit(W)} := J \\cup W$ and $V_{\\doit(W)} := V \\sm W$. For $W \\ins J$, this gives $J \\cup W = J$ and $V \\sm W = V$ (since $J \\cap V = \\emptyset$), and removing \"incoming edges into $W$\" is also vacuous if the CDMG has no edges into $J$.\n\\end{itemize}\nConsequently, for, e.g., $W_1 \\ins J$ with $W_2 \\ins V$, the first equation reads $G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})}$ — trivially true — and similarly for the second equation. A reader expecting the lemma to assert a non-trivial commutativity for *all* $W_1, W_2 \\ins J \\cup V$ does not get more than the $W \\sm J$ content; the $W \\cap J$ portion contributes nothing. The literal text does not flag this, and there is no companion hypothesis \"$W_1, W_2 \\ins V$\" (which would be the truly load-bearing case). This is not strictly incorrect, but a formalization that relies on the lemma being \"tight\" on $J \\cup V$ inputs should note that the substantive content reduces to $W_i \\sm J$.\nEND_SUBTLETY\n```",
+        "session": "45a71638-c8c0-487f-951b-274057e099c0"
+      }
     },
     {
       "def_or_claim": "claim",

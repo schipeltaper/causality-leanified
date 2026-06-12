@@ -26,3 +26,4 @@ import Chapter3_GraphTheory.Section3_2.TwoDisjointNodeSwig
 import Chapter3_GraphTheory.Section3_2.DisjointHardInterventionsSwig
 import Chapter3_GraphTheory.Section3_2.ExtendingCDMGsWith
 import Chapter3_GraphTheory.Section3_2.AcyclicHardInterventionTopologicalOrder
+import Chapter3_GraphTheory.Section3_2.AddingInterventionNodes
