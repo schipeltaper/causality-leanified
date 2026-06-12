@@ -1110,7 +1110,6 @@ The prose describes the equality as: "the CADMG that arises from first introduci
 NONE
 ```
 
-<!-- --- processed until here --- -->
 
 ### 63. `bifurcation_index_boundary_excludes_natural_cases`
 
@@ -1135,7 +1134,7 @@ Concrete consequence: a downstream encoder/proof that takes the displayed index 
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+Use the definition of bifurcation that is already formalized. That is the correct one.
 ```
 
 ### 64. `self_cycle_asymmetry_between_directed_and_bidirected`
@@ -1153,7 +1152,7 @@ This is a real interpretive asymmetry, not a typo: it is built into the text via
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+The observed assymetry is correct. One thing I will add: that a directed walk of length 1 (where all intermediate nodes, which are none, are in W) should not result in the self-cycle. These directed walks should have length at least 2 (note that in the case of length=2, we also don't have intermediate nodes in W, but then that is fine and that edge should remain) 
 ```
 
 ### 65. `walk_vs_path_unspecified_for_bifurcation`
@@ -1169,7 +1168,7 @@ In existential, set-level semantics this almost certainly does not change which 
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 66. `bifurcation_optional_v3_phrasing_ambiguity`
@@ -1187,7 +1186,7 @@ The remark would be unambiguous if split into two separate statements rather tha
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+Part 2 is basically two claims. Once read without the parenthesese, and once read with the parentheses
 ```
 
 ### 67. `bifurcation_source_in_W_silently_unaddressed`
@@ -1205,7 +1204,7 @@ This source-transformation is a substantive fact about marginalization that is h
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 68. `trailing_similar_statement_two_unstated_claims`
@@ -1219,7 +1218,7 @@ The lemma's final sentence reads: "A similar statement holds for marginalization
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+There are in fact 3 claims being made here. The main one, and then two additional claims in the final sentence. All 3 should be formalized.
 ```
 
 ### 69. `doit_on_W1_intersect_J_corner_case`
@@ -1233,7 +1232,7 @@ The hypothesis allows $W_1 \ins J \cup V$, so $W_1$ may contain nodes that are a
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
 
 ### 70. `title_singular_intervention_vs_three_claims`
@@ -1247,8 +1246,10 @@ The lemma's title is "Marginalization and intervention commute" (singular "inter
 **Decision** (replace `TODO` with `NONE` or your clarifying clause):
 
 ```
-TODO
+NONE
 ```
+
+<!-- --- processed until here --- -->
 
 ### 71. `left_right_chain_admit_bidirected_far_edge`
 
