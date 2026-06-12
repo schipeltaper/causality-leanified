@@ -150,63 +150,63 @@
               "kind": "def",
               "label": "def 3.12 — NodeSplittingHard",
               "title": "NodeSplittingHard",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_9",
               "kind": "claim",
               "label": "claim 3.9 — SwigAcyclic",
               "title": "SwigAcyclic",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_10",
               "kind": "claim",
               "label": "claim 3.10 — TwoDisjointNode",
               "title": "TwoDisjointNode",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_11",
               "kind": "claim",
               "label": "claim 3.11 — DisjointHardInterventions",
               "title": "DisjointHardInterventions",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_12",
               "kind": "claim",
               "label": "claim 3.12 — HardInterventionNodeSplit",
               "title": "HardInterventionNodeSplit",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_13",
               "kind": "def",
               "label": "def 3.13 — ExtendingCDMGsWith",
               "title": "ExtendingCDMGsWith",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_13",
               "kind": "claim",
               "label": "claim 3.13 — AcyclicHardInterventionTopologicalOrder",
               "title": "AcyclicHardInterventionTopologicalOrder",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_14",
               "kind": "claim",
               "label": "claim 3.14 — AddingInterventionNodes",
               "title": "AddingInterventionNodes",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_15",
               "kind": "claim",
               "label": "claim 3.15 — AddingInterventionNodes",
               "title": "AddingInterventionNodes",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_14",

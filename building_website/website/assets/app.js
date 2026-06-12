@@ -192,7 +192,15 @@ function buildLeanPane(data) {
   const body = el("div", { class: "pane-body lean-pane-body" });
   const blocks = data.lean_blocks || [];
   if (blocks.length === 0) {
-    body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
+    const userSkipped = data.status &&
+      data.status.solved === "yes" &&
+      data.status.formalized === "no";
+    if (userSkipped) {
+      body.append(el("div", { class: "user-skipped" },
+        "User did not deem it necessary to formalize this into Lean."));
+    } else {
+      body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
+    }
     return body;
   }
 
@@ -463,14 +471,18 @@ function renderEntry(data) {
   const nIn = data.ref.split("_").pop();
 
   // ---- header ----
-  const statusBadges = [
-    data.status.formalized === "yes" ? el("span", { class: "badge badge-ok" }, "Formalised") : null,
-    data.kind === "def"
-      ? el("span", { class: "badge badge-note" }, "No proof (definition)")
-      : (data.status.proven === "yes"
-          ? el("span", { class: "badge badge-ok" }, "Proof complete")
-          : el("span", { class: "badge badge-warn" }, "Proof in progress")),
-  ];
+  const userSkippedFormalization = data.status.solved === "yes"
+    && data.status.formalized === "no";
+  const statusBadges = userSkippedFormalization
+    ? [el("span", { class: "badge badge-note" }, "Not formalised — by choice")]
+    : [
+        data.status.formalized === "yes" ? el("span", { class: "badge badge-ok" }, "Formalised") : null,
+        data.kind === "def"
+          ? el("span", { class: "badge badge-note" }, "No proof (definition)")
+          : (data.status.proven === "yes"
+              ? el("span", { class: "badge badge-ok" }, "Proof complete")
+              : el("span", { class: "badge badge-warn" }, "Proof in progress")),
+      ];
 
   const header = el("header", { class: "entry-header" },
     el("div", { class: "entry-kind" }, `${kindWord} ${sectionNum.split(".")[0]}.${nIn}`),

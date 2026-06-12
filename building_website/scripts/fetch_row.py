@@ -166,47 +166,62 @@ def fetch_row(ref: str) -> dict:
     row, chapter_folder = find_row(ref)
 
     main_lean_rel = row.get("main_lean_file") or ""
-    if not main_lean_rel:
-        sys.exit(
-            f"error: {ref}'s data.json row has no `main_lean_file`\n"
-            f"  (row is unsolved or final-gate worker hasn't run yet)"
-        )
-    main_lean_path = REPO_ROOT / main_lean_rel
-    if not main_lean_path.exists():
-        sys.exit(f"error: main_lean_file does not exist on disk: {main_lean_rel}")
+    solved        = (row.get("solved") or "no") == "yes"
+    formalized    = (row.get("formalized") or "no") == "yes"
+    # "User-forced" row: the operator marked `solved: yes` even though
+    # the row was never formalized into Lean (`formalized: no`, no
+    # `main_lean_file`).  We still surface the LN-tex statement, but
+    # the Lean pane carries a static placeholder string instead of
+    # extracted code blocks, and we don't try to render the
+    # auto-generated proof stub either.
+    user_skipped_formalization = solved and not formalized
+
+    if not user_skipped_formalization:
+        if not main_lean_rel:
+            sys.exit(
+                f"error: {ref}'s data.json row has no `main_lean_file`\n"
+                f"  (row is unsolved or final-gate worker hasn't run yet)"
+            )
+        main_lean_path = REPO_ROOT / main_lean_rel
+        if not main_lean_path.exists():
+            sys.exit(f"error: main_lean_file does not exist on disk: {main_lean_rel}")
+    else:
+        main_lean_path = None
 
     # --- TeX statement / proof — unchanged pipeline ---
     tex_statement = _render_tex(tex_statement_path(row, chapter_folder), whole_file=False)
     tex_proof = None
-    pp = tex_proof_path(row, chapter_folder)
-    if pp is not None:
-        tex_proof = _render_tex(pp, whole_file=True)
+    if not user_skipped_formalization:
+        pp = tex_proof_path(row, chapter_folder)
+        if pp is not None:
+            tex_proof = _render_tex(pp, whole_file=True)
 
-    # --- Lean code blocks. Each marker-wrapped region is one block;
-    #     `kind` distinguishes the main statement(s) from helpers. The
-    #     website renders each block separately with a small label.
-    #     Order: helpers (in source order of `lean_files`) first, then
-    #     main statements (source order in main_lean_file). ---
-    main_codes = extract_lean_statement(main_lean_path, ref)
-    helper_blocks: list[dict] = []
-    seen_files: set[str] = set()
-    for path_rel in [main_lean_rel, *row.get("lean_files", [])]:
-        if path_rel in seen_files:
-            continue
-        seen_files.add(path_rel)
-        p = REPO_ROOT / path_rel
-        if not p.exists():
-            continue
-        for code in extract_lean_helpers(p, ref):
-            helper_blocks.append({"kind": "helper", "code": code})
+    # --- Lean code blocks.  Empty for user-skipped rows; otherwise
+    #     each marker-wrapped region is one block; `kind` distinguishes
+    #     the main statement(s) from helpers. ---
+    if user_skipped_formalization:
+        lean_blocks: list[dict] = []
+    else:
+        main_codes = extract_lean_statement(main_lean_path, ref)
+        helper_blocks: list[dict] = []
+        seen_files: set[str] = set()
+        for path_rel in [main_lean_rel, *row.get("lean_files", [])]:
+            if path_rel in seen_files:
+                continue
+            seen_files.add(path_rel)
+            p = REPO_ROOT / path_rel
+            if not p.exists():
+                continue
+            for code in extract_lean_helpers(p, ref):
+                helper_blocks.append({"kind": "helper", "code": code})
 
-    if not main_codes:
-        sys.exit(
-            f"error: no `-- {ref} -- start statement` / `-- {ref} -- end statement`\n"
-            f"  marker pair found in {main_lean_rel}"
-        )
+        if not main_codes:
+            sys.exit(
+                f"error: no `-- {ref} -- start statement` / `-- {ref} -- end statement`\n"
+                f"  marker pair found in {main_lean_rel}"
+            )
 
-    lean_blocks = helper_blocks + [{"kind": "main", "code": c} for c in main_codes]
+        lean_blocks = helper_blocks + [{"kind": "main", "code": c} for c in main_codes]
 
     # --- Original LN tex excerpt (row.tex_block in data.json) rendered to
     #     HTML once. The website shows this by default and lets the user
@@ -217,8 +232,13 @@ def fetch_row(ref: str) -> dict:
         block = tex_to_html(raw_tex_block)
         tex_block_html = block.body_html
 
-    # --- Source URL: a single link to main_lean_file on the repo. ---
-    lean_source_url = f"{REPO_URL}/blob/{REPO_BRANCH}/{main_lean_rel}"
+    # --- Source URL: a single link to main_lean_file on the repo.
+    #     Empty for user-skipped rows so the website hides the
+    #     "View Lean source" button. ---
+    if user_skipped_formalization:
+        lean_source_url = ""
+    else:
+        lean_source_url = f"{REPO_URL}/blob/{REPO_BRANCH}/{main_lean_rel}"
 
     # --- Status, derived from data.json. ---
     status = {
@@ -261,7 +281,7 @@ def fetch_row(ref: str) -> dict:
         "tex_proof":          tex_proof,
         "lean_blocks":        lean_blocks,
         "lean_source_url":    lean_source_url,
-        "lean_file_path":     main_lean_rel,
+        "lean_file_path":     ("" if user_skipped_formalization else main_lean_rel),
         "addition_to_the_LN": row.get("addition_to_the_LN", ""),
         "design_choices":     prior_dc or "",
     }

@@ -1162,3 +1162,467 @@ theorem disjointHardInterventionsAndNodeSplittingsCommute (G : CDMG Node)
 % NOTES-END claim_3_8
 \vspace{\appendixNotesGap}
 %% ROW-END claim_3_8
+
+%% ROW-BEGIN def_3_12
+\noindent\textbf{Definition: Node-splitting hard intervention on CADMGs}\par\smallskip
+{\appendixTexSize
+  \label{def:G_node-splitting_intervention}
+    Let $G=(J,V,E,L)$ be a CADMG and $W \ins V$ a subset of the output nodes.
+    The \emph{single-world intervention graph (SWIG)} w.r.t.\ $W$ of $G$ is the CADMG: 
+    \[ G_{\swig(W)} :=\lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)},L_{\swig(W)} \rp,\]
+    %\[ G_{\swig(W)} := G':=(J',V',E',L'),\]
+    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    constructed as follows.
+    We first make two disjont copies of the nodes in $W$:
+    \[ W^o:=\lC w^o\st w \in W \rC, \qquad W^i:=\lC w^i \st w \in W \rC.  \]
+    Note that we consider $w^o \neq w^i$ for $w \in W$.
+  However, for brevity, for $v \in J \cup V \sm W$ we put:
+  \[ v^o:=v^i:=v.  \]
+  We then define:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J_{\swig(W)} := J \dcup W^i$,
+      \item $V_{\swig(W)} := (V \sm W) \dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.
+      \item $E_{\swig(W)} := \lC v^i_1 \tuh v_2^o \st v_1 \tuh v_2 \in E  \rC$,
+      \item $L_{\swig(W)} :=\lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$.
+  \end{enumerate}
+  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,
+  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def nodeSplittingHard (G : CDMG Node) (hG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V) :
+    CDMG (SplitNode Node) where
+  J := G.J.image SplitNode.unsplit ∪ W.image SplitNode.copy1
+  V := (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
+  hJV_disj := by exact nodeSplittingHard_hJV_disj G W
+  E := G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
+  hE_subset := by exact nodeSplittingHard_hE_subset G W
+  L := G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2))
+  hL_subset := by exact nodeSplittingHard_hL_subset G W
+  hL_irrefl := by exact nodeSplittingHard_hL_irrefl G W
+  hL_symm := by exact nodeSplittingHard_hL_symm G W
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_12
+
+% NOTES-END def_3_12
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_12
+
+%% ROW-BEGIN claim_3_9
+\noindent\textbf{Claim: SwigAcyclic}\par\smallskip
+{\appendixTexSize
+    For a CADMG $G=(J,V,E,L)$, also $G_{\swig(W)}$ is acyclic.
+    If $<$ is any topological order of $G$ given by enumerating all nodes $v \in J \cup V$ via:
+    \[ v_1 < v_2 < \cdots < v_n,\]
+    then, for instance, 
+    a topological order for $G_{\swig(W)}$ can be achieved by assigning for a node $v_j \in W$ with index $j$ the node 
+    $v_j^o$ the index $j-\frac{1}{3}$
+    and $v_j^i$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem swigAcyclic (G : CDMG Node) (hCADMG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V) :
+    (G.nodeSplittingHard hCADMG W hW).IsAcyclic
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem swigTopologicalOrder (G : CDMG Node) (hCADMG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
+    (G.nodeSplittingHard hCADMG W hW).IsTopologicalOrder (splOrder lt)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_9
+
+% NOTES-END claim_3_9
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_9
+
+%% ROW-BEGIN claim_3_10
+\noindent\textbf{Claim: Two disjoint node-splitting hard interventions commute}\par\smallskip
+{\appendixTexSize
+   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \ins V$ two disjoint subsets of the output nodes from $G$. 
+   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:
+   \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\swig(W_1)}  =  G_{\swig(W_1 \dcup W_2)}.   \]
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_nodeSplittingHard_V
+    {G : CDMG Node} {hG : G.IsCADMG} {W₁ W₂ : Finset Node}
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingHard hG W₁ hW₁).V
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
+    (hG : G.IsCADMG) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    eqViaNodeMap
+        ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+            (swigAcyclic G hG W₁ hW₁)
+            (W₂.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+      ∧
+    eqViaNodeMap
+        ((G.nodeSplittingHard hG W₂ hW₂).nodeSplittingHard
+            (swigAcyclic G hG W₂ hW₂)
+            (W₁.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingHard_V hW₂ hW₁ hDisj.symm))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_10
+
+% NOTES-END claim_3_10
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_10
+
+%% ROW-BEGIN claim_3_11
+\noindent\textbf{Claim: Disjoint hard interventions and node-splitting hard interventions commute}\par\smallskip
+{\appendixTexSize
+   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
+   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.
+      \[ \lp G_{\doit(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\doit(W_1)}.   \]
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_V_of_hardInterventionOn
+    {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
+    {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₂ ⊆ (G.hardInterventionOn W₁ hW₁).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_carrier_of_nodeSplittingHard
+    {G : CDMG Node} {hG : G.IsCADMG}
+    {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
+    {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₁.image SplitNode.unsplit ⊆
+      (G.nodeSplittingHard hG W₂ hW₂).J ∪ (G.nodeSplittingHard hG W₂ hW₂).V
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem disjointHardInterventionsAndNodeSplittingHardsCommute
+    (G : CDMG Node) (hG : G.IsCADMG)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    (G.hardInterventionOn W₁ hW₁).nodeSplittingHard
+        (hardInterventionOn_isCADMG_of_isCADMG hG hW₁) W₂
+        (subset_V_of_hardInterventionOn hW₁ hW₂ hDisj)
+      = (G.nodeSplittingHard hG W₂ hW₂).hardInterventionOn
+          (W₁.image SplitNode.unsplit)
+          (image_unsplit_subset_carrier_of_nodeSplittingHard hW₁ hW₂ hDisj)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_11
+
+% NOTES-END claim_3_11
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_11
+
+%% ROW-BEGIN claim_3_12
+\noindent\textbf{Claim: HardInterventionNodeSplit}\par\smallskip
+{\appendixTexSize
+    Note that if $W_1$ and $W_2$ are not disjoint and $w \in W_1 \cap W_2 \ins V$
+    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.
+    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.
+\par}
+\smallskip
+\textit{User did not deem it necessary to formalize this into Lean.}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_12
+
+% NOTES-END claim_3_12
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_12
+
+%% ROW-BEGIN def_3_13
+\noindent\textbf{Definition: Extending CDMGs with intervention nodes}\par\smallskip
+{\appendixTexSize
+\label{def:cdmg_intervention_nodes}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
+  The \emph{extended CDMG} of $G$ w.r.t.\ nodes $W \ins J \cup V$  and corresponding \emph{intervention nodes} 
+%  $I_W = \{I_w \,|\, w \in W\}$ \Joris{with $I_j:=j$ for $j \in J$},
+  $I_W = \{I_w \,|\, w \in W\}$ with $I_j:=j$ for $j \in J \cap W$,
+  is the CDMG: 
+  \[ G_{\doit(I_W)}:=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  %\[G(V|\doit(J \dcup I_W)):=G_{\doit(I_W)}=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
+  where:
+  \begin{enumerate}[label=\roman*.)]
+%      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \Joris{\sm J} \rC$, %not W \sm J, makes weak and hard interventions commute
+      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \sm J \rC$, %not W \sm J, makes weak and hard interventions commute
+      \item $V_{\doit(I_W)}:= V$,
+      \item $E_{\doit(I_W)}:= E\, \dot{\cup} \, \lC I_w \tuh w \,|\, w \in W\sm J \rC$,
+      \item $L_{\doit(I_W)}:= L$,
+  \end{enumerate}
+%  where we just add \Joris{nodes $I_w$ for $w \in W \sm J$ and} edges $I_w \tuh w$ for $ w \in W \sm J$. 
+  where we just add nodes $I_w$ for $w \in W \sm J$ and edges $I_w \tuh w$ for $ w \in W \sm J$.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+inductive IntExtNode (Node : Type*) where
+  | unsplit (v : Node) : IntExtNode Node
+  | intCopy (w : Node) : IntExtNode Node
+  deriving DecidableEq
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def extendingCDMGsWith (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) : CDMG (IntExtNode Node) where
+  J := G.J.image IntExtNode.unsplit ∪ (W \ G.J).image IntExtNode.intCopy
+  V := G.V.image IntExtNode.unsplit
+  hJV_disj := extendingCDMGsWith_hJV_disj G W
+  E := G.E.image (fun e => (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
+        ∪ (W \ G.J).image (fun w => (IntExtNode.intCopy w, IntExtNode.unsplit w))
+  hE_subset := extendingCDMGsWith_hE_subset G W hW
+  L := G.L.image (fun e => (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
+  hL_subset := extendingCDMGsWith_hL_subset G
+  hL_irrefl := extendingCDMGsWith_hL_irrefl G
+  hL_symm := extendingCDMGsWith_hL_symm G
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_13
+
+% NOTES-END def_3_13
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_13
+
+%% ROW-BEGIN claim_3_13
+\noindent\textbf{Claim: AcyclicHardInterventionTopologicalOrder}\par\smallskip
+{\appendixTexSize
+    If a CDMG $G=(J,V,E,L)$ is acyclic then also $G_{\doit(I_W)}$ is acyclic and a topological order for
+    $G_{\doit(I_W)}$ is also one for $G$.
+    Any topological order of $G$ can be extended to one for $G_{\doit(I_W)}$, e.g.\
+    by putting all the $I_w$ nodes first in the ordering.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def extOrder (lt : Node → Node → Prop) :
+    IntExtNode Node → IntExtNode Node → Prop
+  | .intCopy w1, .intCopy w2 => lt w1 w2
+  | .intCopy _,  .unsplit _  => True
+  | .unsplit _,  .intCopy _  => False
+  | .unsplit u1, .unsplit u2 => lt u1 u2
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def restrictOrder (lt' : IntExtNode Node → IntExtNode Node → Prop) :
+    Node → Node → Prop :=
+  fun v1 v2 => lt' (.unsplit v1) (.unsplit v2)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem extAcyclic (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.J ∪ G.V)
+    (hAcyc : G.IsAcyclic) :
+    (G.extendingCDMGsWith W hW).IsAcyclic
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem extRestrictsTopologicalOrder (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V)
+    (lt' : IntExtNode Node → IntExtNode Node → Prop)
+    (hlt' : (G.extendingCDMGsWith W hW).IsTopologicalOrder lt') :
+    G.IsTopologicalOrder (restrictOrder lt')
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem extExtendsTopologicalOrder (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V)
+    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
+    (G.extendingCDMGsWith W hW).IsTopologicalOrder (extOrder lt)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_13
+
+% NOTES-END claim_3_13
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_13
+
+%% ROW-BEGIN claim_3_14
+\noindent\textbf{Claim: Adding intervention nodes commutes with disjoint hard interventions}\par\smallskip
+{\appendixTexSize
+    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} 
+      =  G_{\doit(I_{W_1 \cup W_2})}. \]
+      We also have:
+      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})} =  G_{\doit(I_{W_1}, W_2)}. \]
+   % So there is not ambiguity in the following notations and identifications:
+   % \[ G(V|\doit(J\cup I_{W_1} \cup I_{W_2})) = G(V|\doit(J\cup I_{W_1 \cup W_2})),
+   % \qquad G(V\sm W_2|\doit(W_2 \cup J\cup I_{W_1})).\]
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_extendingCDMGsWith_carrier
+    {G : CDMG Node} {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
+    {S : Finset Node} (hS : S ⊆ G.J ∪ G.V) :
+    S.image IntExtNode.unsplit ⊆
+      (G.extendingCDMGsWith W hW).J ∪ (G.extendingCDMGsWith W hW).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_carrier_of_hardInterventionOn
+    {G : CDMG Node} {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
+    {S : Finset Node} (hS : S ⊆ G.J ∪ G.V) :
+    S ⊆ (G.hardInterventionOn W hW).J ∪ (G.hardInterventionOn W hW).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def flattenIntExt : IntExtNode (IntExtNode Node) → IntExtNode Node
+  | .unsplit (.unsplit v) => IntExtNode.unsplit v
+  | .unsplit (.intCopy w) => IntExtNode.intCopy w
+  | .intCopy (.unsplit v) => IntExtNode.intCopy v
+  | .intCopy (.intCopy w) => IntExtNode.intCopy w
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def addInterventionNodesAndHardInterventionOn (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V) :
+    CDMG (IntExtNode Node) :=
+  (G.extendingCDMGsWith W₁ hW₁).hardInterventionOn
+      (W₂.image IntExtNode.unsplit)
+      (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem addInterventionNodes_comm_disjoint (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    eqViaNodeMap
+        ((G.extendingCDMGsWith W₁ hW₁).extendingCDMGsWith
+            (W₂.image IntExtNode.unsplit)
+            (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂))
+        (G.extendingCDMGsWith (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenIntExt
+      ∧
+    eqViaNodeMap
+        ((G.extendingCDMGsWith W₂ hW₂).extendingCDMGsWith
+            (W₁.image IntExtNode.unsplit)
+            (image_unsplit_subset_extendingCDMGsWith_carrier hW₂ hW₁))
+        (G.extendingCDMGsWith (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenIntExt
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem addInterventionNodes_comm_hardIntervention (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    (G.extendingCDMGsWith W₁ hW₁).hardInterventionOn
+        (W₂.image IntExtNode.unsplit)
+        (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂)
+      = addInterventionNodesAndHardInterventionOn G W₁ W₂ hW₁ hW₂
+      ∧
+    (G.hardInterventionOn W₂ hW₂).extendingCDMGsWith W₁
+        (subset_carrier_of_hardInterventionOn hW₂ hW₁)
+      = addInterventionNodesAndHardInterventionOn G W₁ W₂ hW₁ hW₂
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_14
+
+% NOTES-END claim_3_14
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_14
+
+%% ROW-BEGIN claim_3_15
+\noindent\textbf{Claim: Adding intervention nodes commutes with disjoint node-splitting hard interventions}\par\smallskip
+{\appendixTexSize
+  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins V$ and $W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
+    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:
+    \[  \lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}. \]
+  %  So there is no ambiguity in the notation:
+  %  \[ G(V\sm W_1 \dcup W_1^o|\doit(W_1^i \dcup J \dcup I_{W_2})).  \]
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_extendingCDMGsWith_V
+    {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    {W₂ : Finset Node} {hW₂ : W₂ ⊆ G.J ∪ G.V} :
+    W₁.image IntExtNode.unsplit ⊆ (G.extendingCDMGsWith W₂ hW₂).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_nodeSplittingHard_carrier
+    {G : CDMG Node} {hG : G.IsCADMG}
+    {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.J ∪ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₂.image SplitNode.unsplit ⊆
+      (G.nodeSplittingHard hG W₁ hW₁).J ∪ (G.nodeSplittingHard hG W₁ hW₁).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def flattenSwigDoit : SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)
+  | .unsplit (.unsplit v) => IntExtNode.unsplit (SplitNode.unsplit v)
+  | .unsplit (.intCopy w) => IntExtNode.intCopy (SplitNode.unsplit w)
+  | .copy0 (.unsplit w) => IntExtNode.unsplit (SplitNode.copy0 w)
+  | .copy0 (.intCopy w) => IntExtNode.intCopy (SplitNode.unsplit w)
+  | .copy1 (.unsplit w) => IntExtNode.unsplit (SplitNode.copy1 w)
+  | .copy1 (.intCopy w) => IntExtNode.intCopy (SplitNode.unsplit w)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem addInterventionNodes_comm_swig (G : CDMG Node) (hG : G.IsCADMG)
+    (W₁ : Finset Node) (hW₁ : W₁ ⊆ G.V)
+    (W₂ : Finset Node) (hW₂ : W₂ ⊆ G.J ∪ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    eqViaNodeMap
+        ((G.extendingCDMGsWith W₂ hW₂).nodeSplittingHard
+            (extendingCDMGsWith_isCADMG_of_isCADMG hG hW₂)
+            (W₁.image IntExtNode.unsplit)
+            (image_unsplit_subset_extendingCDMGsWith_V hW₁))
+        ((G.nodeSplittingHard hG W₁ hW₁).extendingCDMGsWith
+            (W₂.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingHard_carrier hW₁ hW₂ hDisj))
+        flattenSwigDoit
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_15
+
+% NOTES-END claim_3_15
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_15

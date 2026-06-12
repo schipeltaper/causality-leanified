@@ -119,9 +119,22 @@ def left_column(panel: dict, ln_parsed) -> str:
 
 def render_lean_blocks(panel: dict) -> str:
     """Emit one `\\begin{minted}{lean4}` block per Lean block, each preceded
-    by a small `helper` / `main` label."""
+    by a small `helper` / `main` label.  For user-skipped rows (the
+    operator marked `solved: yes` without formalising) emit a one-line
+    italic placeholder instead — same wording the website uses."""
+    blocks = panel.get("lean_blocks") or []
+    status = panel.get("status") or {}
+    user_skipped = (
+        status.get("solved") == "yes"
+        and status.get("formalized") == "no"
+    )
+    if not blocks and user_skipped:
+        return (
+            "\\textit{User did not deem it necessary to formalize this "
+            "into Lean.}"
+        )
     parts = []
-    for block in panel.get("lean_blocks", []):
+    for block in blocks:
         kind = block.get("kind", "")
         code = block["code"].rstrip()
         parts.append(f"{{\\small\\textit{{{kind}}}}}")

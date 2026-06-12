@@ -148,6 +148,36 @@ repo root. Concretely, the orchestrator promises:
    `-- <ref> --  start statement` marker. These comments are the
    raw material both LLM passes read.
 
+## User-skipped rows (`solved: yes` + `formalized: no`)
+
+The operator may mark a row `solved: yes` without formalising it
+into Lean — typically a remark or expository row whose mathematical
+content adds no new claim worth proving.  Concretely, the row's
+`data.json` entry has `solved: "yes"`, `formalized: "no"`,
+`main_lean_file: ""`, and `lean_files: []`.
+
+`fetch_row.py` detects this combination and produces a panel with:
+
+  * `lean_blocks: []`
+  * `lean_file_path: ""` and `lean_source_url: ""` (so the website
+    hides the "View Lean source" button)
+  * `tex_proof: null` (so the website hides the "View TeX proof"
+    button — the auto-generated proof stub isn't worth showing)
+  * `tex_statement` and `tex_block_html` populated as usual from
+    the orchestrator-written statement `.tex` file and the
+    `data.json.tex_block` snippet, so the LN view still renders
+
+The website renderer (`app.js`'s `buildLeanPane`) and the appendix
+builder (`build_appendix.py`'s `render_lean_blocks`) detect the same
+condition (`status.solved == "yes" && status.formalized == "no"`)
+and substitute a single italic line for the Lean code pane:
+
+> *User did not deem it necessary to formalize this into Lean.*
+
+`results.tex` still includes the row's `time_needed_to_solve` (the
+orchestrator's effort before the operator closed it) — it's the same
+table treatment as a fully-formalised row.
+
 ## Output: what the website consumes
 
 Each row's `data/<ref>.json`:
@@ -265,8 +295,10 @@ python3 building_website/scripts/fetch_row.py <ref> [--out PATH | --stdout]
    block's prose carries over only if `code` is identical.
 8. Writes `building_website/website/data/<ref>.json`.
 
-Errors clearly when `main_lean_file` is empty (row not solved) or when
-no start-statement marker is found.
+For user-skipped rows (`solved: yes` + `formalized: no`) the Lean
+extraction is bypassed entirely — see "User-skipped rows" above.
+Otherwise errors clearly when `main_lean_file` is empty (row not
+solved) or when no start-statement marker is found.
 
 ### `process_block_explanations.py`
 

@@ -1,0 +1,26 @@
+{
+  "ref": "claim_3_12",
+  "kind": "claim",
+  "section": "3.2",
+  "title": "HardInterventionNodeSplit",
+  "type": "remark",
+  "status": {
+    "formalized": "no",
+    "proven": "not proven",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.</p>",
+  "tex_statement": {
+    "raw": "% Claim statement file for row claim_3_12 -- \"HardInterventionNodeSplit\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker it dispatches) fills the body below with the\n% claim's statement(s) from the lecture notes -- statement only, no proof\n% (proofs live in the sibling `claim_3_12_proof_*.tex` file).\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it render both standalone and as part of\n% `main.tex`. Note: `main.tex` does NOT \\subfile this statement file -- the\n% sibling `_proof_` file restates the statement above the proof, so\n% including both in `main.tex` would be redundant. This file exists for\n% standalone reading / grep convenience.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: claim_3_12 (statement)\n% title: HardInterventionNodeSplit\n\\def\\rowref{claim\\_3\\_12}\n\\phantomsection\\label{claim_3_12}\n\n\\begin{Rem}[HardInterventionNodeSplit]\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\n\\end{document}\n",
+    "html": "<p>Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.</p>",
+    "env": "Rem",
+    "env_title": "HardInterventionNodeSplit",
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_12_statement_HardInterventionNodeSplit.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [],
+  "lean_source_url": "",
+  "lean_file_path": "",
+  "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block.",
+  "design_choices": ""
+}
