@@ -1694,7 +1694,7 @@
           "last_used": "2026-06-12T11:03:29+00:00"
         }
       ],
-      "time_needed_to_solve": 8848,
+      "time_needed_to_solve": 8868,
       "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
       "wording_check": {
         "done": true,
@@ -1708,30 +1708,32 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1739,12 +1741,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]\n  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins V$ and $W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:\n    \\[  \\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}. \\]\n  %  So there is no ambiguity in the notation:\n  %  \\[ G(V\\sm W_1 \\dcup W_1^o|\\doit(W_1^i \\dcup J \\dcup I_{W_2})).  \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "3c654cee-e1cf-4ae4-aec7-bc9b0fe7bf33",
+          "first_seen": "2026-06-12T12:55:37+00:00",
+          "last_used": "2026-06-12T12:55:37+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6462,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the claim, I'll examine it against def_3_13 (which it relies on) to find subtleties.\n\nKey findings from def_3_13 (`cdmg_intervention_nodes`):\n- `$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$`\n- `$J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$`\n- `$E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$`\n\nSo for `w ∈ W ∩ J`, no new node is introduced and no new edge is added — the doit operation is a no-op for these elements.\n\nAlso noticed in caption at line 757: \"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\" — this convention is explicitly acknowledged elsewhere but not in this claim's own text.\n\n```\nSUBTLETY:\nid: w2_in_J_makes_doit_a_no_op_via_Ij_identification\nexplanation: The claim allows $W_2 \\ins J \\cup V$ (rather than restricting to $W_2 \\ins V$), and the prose says \"introducing intervention nodes $I_{W_2}$\". But per Definition~\\ref{def:cdmg_intervention_nodes} (def_3_13), the convention is \"$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$\", and concretely $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ (only adds nodes for $w \\in W \\sm J$) and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$ (only adds edges for $w \\in W \\sm J$).\n\nThe literal reading \"introducing intervention nodes $I_{W_2}$\" naively suggests one new intervention node per element of $W_2$. But for $w \\in W_2 \\cap J$, $I_w := w$ is identified with the existing context node — no new node is introduced and no edge is added. The claim does not flag this convention to the reader, even though the same paper acknowledges it explicitly in the figure caption at line 757 (\"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\").\n\nCorner case: take $W_2 \\ins J$ entirely (e.g., $W_2 = \\{j\\}$ for some single context node $j \\in J$, with $W_1$ any subset of $V$). Then $G_{\\doit(I_{W_2})} = G$ (no change at all), and the lemma's equation degenerates to the trivial $G_{\\swig(W_1)} = G_{\\swig(W_1)}$. The claim is vacuously true, but the prose suggests something non-trivial is being commuted. A reader (or downstream formalizer) interpreting \"introducing intervention nodes $I_{W_2}$\" literally as \"adding $|W_2|$ new $I_w$ nodes to $J$\" would have an interpretation inconsistent with def_3_13. This matters because a formalization that constructs $I_{W_2}$ as a fresh disjoint set of size $|W_2|$ (rather than identifying $I_j = j$ for $j \\in J$) would silently disagree with the LN for any $W_2$ that intersects $J$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_partial_overlap_with_J_partial_no_op\nexplanation: A milder version of the corner case above: when $W_2 \\cap J \\neq \\emptyset$ but $W_2 \\cap V \\neq \\emptyset$ as well, the \"introducing intervention nodes $I_{W_2}$\" operation is a *partial* no-op — new nodes $\\{I_w \\mid w \\in W_2 \\sm J\\}$ are added for the $V$-elements of $W_2$, but nothing happens for the $J$-elements. The proof of the claim (lines 894-896) explicitly uses $J \\dcup \\{I_w \\mid w \\in W_2 \\sm J\\}$ rather than $J \\dcup \\{I_w \\mid w \\in W_2\\}$, confirming this convention.\n\nThe subtlety is that the claim's stated equation $\\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}$ uses the symbol \"$I_{W_2}$\" which, read naively as a set of $|W_2|$ fresh nodes, would suggest a different operation than what def_3_13 specifies. The literal type-level reading of the equation depends crucially on whether $I_w$ for $w \\in J$ is interpreted as a fresh node or as the existing $w$. The claim does not re-state this convention.\nEND_SUBTLETY\n```",
+        "session": "e8e8c21d-c0da-4779-9c39-91f4c73d7714"
+      }
     },
     {
       "def_or_claim": "def",
