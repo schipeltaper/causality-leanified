@@ -1198,29 +1198,31 @@
       "section": "3.2",
       "title": "NodeSplittingHard",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingHard.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 2,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
@@ -1229,12 +1231,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 2
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting hard intervention on CADMGs]\n  \\label{def:G_node-splitting_intervention}\n    Let $G=(J,V,E,L)$ be a CADMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{single-world intervention graph (SWIG)} w.r.t.\\ $W$ of $G$ is the CADMG: \n    \\[ G_{\\swig(W)} :=\\lp J_{\\swig(W)}, V_{\\swig(W)}, E_{\\swig(W)},L_{\\swig(W)} \\rp,\\]\n    %\\[ G_{\\swig(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^o:=\\lC w^o\\st w \\in W \\rC, \\qquad W^i:=\\lC w^i \\st w \\in W \\rC.  \\]\n    Note that we consider $w^o \\neq w^i$ for $w \\in W$.\n  However, for brevity, for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^o:=v^i:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\swig(W)} := J \\dcup W^i$,\n      \\item $V_{\\swig(W)} := (V \\sm W) \\dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.\n      \\item $E_{\\swig(W)} := \\lC v^i_1 \\tuh v_2^o \\st v_1 \\tuh v_2 \\in E  \\rC$,\n      \\item $L_{\\swig(W)} :=\\lC v_1^o \\huh v_2^o \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,\n  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "eca263cb-f643-4a0b-a4b9-68733ad35252",
+          "first_seen": "2026-06-10T12:08:20+00:00",
+          "last_used": "2026-06-10T12:08:20+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5414,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking carefully at the tex block for def_3_12 (NodeSplittingHard / SWIG).\n\nSUBTLETY:\nid: implicit_disjointness_of_copies_from_original_nodes\nexplanation: The LN introduces $W^o$ and $W^i$ as \"two disjont copies of the nodes in $W$\" and explicitly states \"$w^o \\neq w^i$ for $w \\in W$\", but never asserts that these new symbols are disjoint from the original node set $J \\cup V$. Specifically, the definition does not state $W^o \\cap (V \\setminus W) = \\emptyset$, $W^o \\cap J = \\emptyset$, $W^i \\cap V = \\emptyset$, or $W^i \\cap J = \\emptyset$.\n\nThis matters because the constructions\n\\[ J_{\\swig(W)} := J \\dcup W^i \\qquad V_{\\swig(W)} := (V \\sm W) \\dcup W^o \\]\nuse disjoint-union notation $\\dcup$, which presumes the operands are already disjoint. A literal reading admits the pathological case where, say, some symbol $w^o$ happens to coincide with an existing $v \\in V \\setminus W$ — in which case the convention \"$v^o := v^i := v$ for $v \\in J \\cup V \\sm W$\" collides with the fresh-copy interpretation (the same symbol $v$ would simultaneously be $v^o$ for \"itself\" AND $w^o$ for some $w \\in W$), making the entire indexing scheme inconsistent.\n\nSimilarly the LN's $L_{\\swig(W)} := \\{v_1^o \\huh v_2^o : \\dots\\}$ implicitly relies on $v \\mapsto v^o$ being a well-defined injection on $V$ — true under the natural intent but not derivable from the literal text.\n\nStandard treatments fix this by saying \"fresh copies disjoint from the underlying universe\"; the LN omits that qualifier.\nEND_SUBTLETY\n\nSUBTLETY:\nid: closing_remark_uses_removal_language_for_a_constructive_definition\nexplanation: The closing sentence — \"where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$, and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$\" — describes the SWIG as if it were produced by *removing* edges from some intermediate graph. But the actual construction in clauses (iii)–(iv) is a direct mapping:\n\\[ E_{\\swig(W)} := \\{v_1^i \\tuh v_2^o : v_1 \\tuh v_2 \\in E\\}, \\qquad L_{\\swig(W)} := \\{v_1^o \\huh v_2^o : v_1 \\huh v_2 \\in L\\}. \\]\nNo edges are ever included and then removed; the mapping itself ensures no edge ends at $W^i$ (since targets are always tagged $\\cdot^o$) and no directed edge leaves $W^o$ (since sources are always tagged $\\cdot^i$). A reader taking the remark literally might suspect there is a separate edge-deletion step they should perform, or that some original edges are silently discarded — neither of which is true. This is descriptive imprecision rather than mathematical error, but is the kind of phrasing that produces \"what are we removing exactly?\" confusion downstream.\n\nAdditionally, the word \"edges\" in \"removing all edges out of $W^o$\" is ambiguous between directed and bidirected: clause (iv) does place bidirected edges incident to $W^o$, so the remark must implicitly mean \"directed edges out of $W^o$\" — but the LN never disambiguates. If a downstream argument cites this clause to claim \"$W^o$ has no edges except parents\", that would be wrong with respect to $L_{\\swig(W)}$.\nEND_SUBTLETY",
+        "session": "63638ba4-fffa-4d5b-9690-195f6783d5f3"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1242,30 +1259,32 @@
       "section": "3.2",
       "title": "SwigAcyclic",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SwigAcyclic.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/SwigAcyclic.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1273,12 +1292,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\swig(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\swig(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^o$ the index $j-\\frac{1}{3}$\n    and $v_j^i$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "befec2e6-e732-417d-a5d7-175798361460",
+          "first_seen": "2026-06-10T13:23:13+00:00",
+          "last_used": "2026-06-10T13:23:13+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4135,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have full context. Let me analyze the claim text carefully against the SWIG definition (def_3_12).\n\nKey facts from def_3_12 (SWIG / NodeSplittingHard):\n- $W \\subseteq V$\n- $W^i \\subseteq J_{\\swig(W)}$ (input nodes), $W^o \\subseteq V_{\\swig(W)}$ (output nodes)\n- Directed edges: $E_{\\swig(W)} = \\{(v_1^i, v_2^o) : (v_1,v_2) \\in E\\}$ — source always $\\cdot^i$-tagged (or in $J \\cup (V\\sm W)$), target always $\\cdot^o$-tagged (or in $V\\sm W$)\n- **No transfer edges** between $w^o$ and $w^i$ (this is the key difference from def_3_11)\n\nThe proposed topological order works correctly: I verified by case analysis on edge $(v_1,v_2)\\in E$ with $a < b$ in the original order, all four sub-cases (whether each of $v_1, v_2$ is in $W$) yield source-index $<$ target-index after applying $\\pm 1/3$ offsets.\n\nThe construction is valid, but I see two subtleties in the literal wording.\n\nSUBTLETY:\nid: non_W_node_index_assignment_implicit\nexplanation: The remark explicitly assigns indices only to $v_j^o$ and $v_j^i$ for $v_j \\in W$ (\"assigning for a node $v_j \\in W$ with index $j$ the node $v_j^o$ the index $j-\\frac{1}{3}$ and $v_j^i$ the index $j+\\frac{1}{3}$\"). It then concludes by \"ordering all nodes according to their index value\". But \"all nodes\" of $G_{\\swig(W)}$ also includes nodes in $J \\cup (V \\sm W)$ (the unchanged input nodes and unsplit output nodes), and the rule for their index is *never stated*. The intended reading — these nodes inherit the original integer index $j$ from the enumeration $v_1 < \\cdots < v_n$ — is natural but implicit. A literal-minded formalizer needs to fill in this gap before the construction is fully defined. The wording would be unambiguous if it explicitly said something like \"and assigning to every other node its original index $j$\".\nEND_SUBTLETY\n\nSUBTLETY:\nid: one_third_offset_is_load_bearing_not_arbitrary\nexplanation: The choice of the specific offset $\\pm \\frac{1}{3}$ (\"the index $j-\\frac{1}{3}$ ... the index $j+\\frac{1}{3}$\") looks arbitrary on the page but is in fact load-bearing: any offset $\\delta \\in (0, \\tfrac{1}{2})$ would work, but $\\delta = \\tfrac{1}{2}$ already fails. Concrete corner case: if $v_j \\in W$ and $v_{j+1} \\in W$ are both split (consecutive split nodes), then with $\\delta = \\tfrac{1}{2}$ the indices $v_j^i = j + \\tfrac{1}{2}$ and $v_{j+1}^o = (j+1) - \\tfrac{1}{2} = j + \\tfrac{1}{2}$ collide, so \"ordering all nodes according to their index value\" no longer yields a strict total order. The literal text gives no hint that the specific value $\\tfrac{1}{3}$ is doing real work as opposed to being an arbitrary aesthetic choice. A reader/formalizer \"simplifying\" $\\tfrac{1}{3}$ to $\\tfrac{1}{2}$ (or to a parameter chosen freely) could silently break the construction precisely in the case of two adjacent split nodes.\nEND_SUBTLETY\n\nSUBTLETY:\nid: topological_order_claim_unverified_relies_on_no_transfer_edges\nexplanation: The remark asserts as a bare \"for instance\" that the indexing yields \"a topological order for $G_{\\swig(W)}$\", but does not state — let alone verify — the property of the SWIG construction on which this rests, namely that $G_{\\swig(W)}$ contains **no transfer edge** between $v_j^o$ and $v_j^i$ for $v_j \\in W$. Under the proposed assignment $v_j^o$ at $j-\\tfrac{1}{3}$ and $v_j^i$ at $j+\\tfrac{1}{3}$, we would have $v_j^o < v_j^i$; if the SWIG construction had instead carried over a transfer edge $v_j^i \\to v_j^o$ (as the node-splitting construction of def_3_11 does in the form $w^0 \\to w^1$), the proposed order would be *wrong* in exactly the trivial corner case $W = \\{v_j\\}$ (a single split node). The validity of the literal construction in this remark is silently dependent on knowing that the SWIG's $E_{\\swig(W)}$ omits transfer edges (def_3_12 item iii), and the wording does not signal this dependency.\nEND_SUBTLETY",
+        "session": "82b9cad8-9669-4b4d-bf2a-68bd8e07ae4d"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1286,30 +1321,32 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1317,12 +1354,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes from $G$. \n   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:\n   \\[ \\lp G_{\\swig(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\swig(W_1)}  =  G_{\\swig(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "deb807a3-f212-4944-9ff5-e92abe1bf62e",
+          "first_seen": "2026-06-10T15:00:06+00:00",
+          "last_used": "2026-06-10T15:00:06+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5686,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "NO_SUBTLETIES",
+        "session": "e8737303-aafa-4b2e-982e-c4759d9e7fda"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1330,30 +1383,32 @@
       "section": "3.2",
       "title": "DisjointHardInterventions",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-10",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1361,12 +1416,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "509be642-9213-42ac-8641-689c641b64d2",
+          "first_seen": "2026-06-10T16:23:35+00:00",
+          "last_used": "2026-06-10T16:23:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4888,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this claim, I need to check whether the literal wording introduces any ambiguity, unintended corner cases, internal inconsistency, or arbitrariness.\n\nLet me trace through the structure:\n- $G = (J, V, E, L)$ is a CADMG\n- $W_1 \\subseteq J \\cup V$ (can include context nodes)\n- $W_2 \\subseteq V$ (must be random/observable nodes)\n- \"two disjoint subsets\" → $W_1 \\cap W_2 = \\emptyset$\n\nChecking compositional well-definedness:\n- LHS $(G_{\\doit(W_1)})_{\\swig(W_2)}$: After $\\doit(W_1)$, $W_2 \\subseteq V \\setminus W_1 \\subseteq V_{\\doit(W_1)}$, so $\\swig(W_2)$ is well-defined.\n- RHS $(G_{\\swig(W_2)})_{\\doit(W_1)}$: After $\\swig(W_2)$, $W_1 \\cap V \\subseteq V \\setminus W_2 \\subseteq V_{\\swig(W_2)}$ and $W_1 \\cap J \\subseteq J_{\\swig(W_2)}$, so $\\doit(W_1)$ is well-defined.\n\nChecking degenerate cases:\n- $W_1 = \\emptyset$ or $W_2 = \\emptyset$: trivially commutes.\n- $W_1 \\cap J \\neq \\emptyset$: intervening on context nodes is presumably a no-op, no harm done.\n\nEdge interactions across $W_1 / W_2$ boundary:\n- $a \\in W_1 \\cap V$, $b \\in W_2$, edge $a \\to b$: preserved in both orderings (becomes $a \\to b_{\\text{fixed}}$).\n- $a \\in W_2$, $b \\in W_1$, edge $a \\to b$: removed in both orderings.\n- Bidirected edges similarly consistent.\n\nThe disjointness phrasing is unambiguous, the equality is structural CADMG equality, and the formula matches the prose. Nothing literal in the text creates a counterintuitive corner case or hidden ambiguity.\n\nNO_SUBTLETIES",
+        "session": "dfdc3fa1-a11a-4a9d-ae3d-74ea2174d4fa"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1376,7 +1447,7 @@
       "type": "remark",
       "formalized": "no",
       "proven": "not proven",
-      "solved": "no",
+      "solved": "yes",
       "date_solved": "",
       "tips": "",
       "tex_file": "graphs.tex",
@@ -1400,7 +1471,7 @@
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
-        "request_from_human": 0,
+        "request_from_human": 3,
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
@@ -1408,9 +1479,43 @@
         "no_action": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block."
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "f21c822f-ae1c-44cf-b58a-5690eb510ee1",
+          "first_seen": "2026-06-10T16:27:44+00:00",
+          "last_used": "2026-06-10T16:27:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "083b1517-7ade-4963-a5fe-fb7c3948325a",
+          "first_seen": "2026-06-10T16:30:40+00:00",
+          "last_used": "2026-06-10T16:30:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dffe8db4-3f2d-4475-aadd-e3423efd6c8a",
+          "first_seen": "2026-06-10T16:33:49+00:00",
+          "last_used": "2026-06-10T16:33:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a71821e0-a5ec-4197-943a-fb5d574cc925",
+          "first_seen": "2026-06-10T16:42:28+00:00",
+          "last_used": "2026-06-10T16:42:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 884,
+      "addition_to_the_LN": "[node_split_on_input_node_semantics_left_implicit] This remark is informal exposition rather than a formal claim, and is not intended to be formalized. It is provided as conceptual commentary on the interaction of node-splitting and hard intervention on overlapping vertex sets, not as a definitional commitment; no Lean encoding is required for this block.\n\n[two_input_node_plural_typo] This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at this tex block, I need to audit a Remark that explores what happens when the sets $W_1$ (hard intervention) and $W_2$ (node-splitting hard intervention) overlap on a node $w$. The remark considers two orderings of operations and notes ambiguities, motivating why disjointness is desirable.\n\nLet me read carefully through the literal text:\n\n1. **`\\ins V`** appears to be a custom macro (likely `\\subseteq`), readable from context — not a subtlety.\n\n2. **\"two input node\"** is a grammatical typo (missing plural \"s\"), not a mathematical issue.\n\n3. **\"would not change $w^i$\"** is presented as a hypothetical extension, with the qualifier \"(if we would define it for input nodes)\" already flagging the speculative nature.\n\n4. **Scenario asymmetry** — the remark restricts the post-split ambiguity to \"which of those two\", implicitly excluding \"both\" or \"neither\" as options. But this is in service of illustrating ambiguity, which is the remark's whole point.\n\n5. **The convention** that $w^i$ is the no-incoming-edges half and $w^o$ is the with-incoming-edges half (inferred from \"$w^i$, which might have outgoing edges\" and \"hard intervening on $w^o$ would turn $w^o$ into an additional input node\") is consistently applied within the remark.\n\n6. The remark is **motivational/exploratory text**, not a precise mathematical claim. It's meant to discuss why disjointness is needed in the actual definition, not to formalize anything.\n\nThe imprecisions and arbitrary assumptions are inherent to the informal discussion nature of a Remark and don't rise to the level of subtleties that would mislead a careful reader or have downstream proof consequences.\n\nNO_SUBTLETIES",
+        "session": "f21c822f-ae1c-44cf-b58a-5690eb510ee1"
+      }
     },
     {
       "def_or_claim": "def",
@@ -1418,28 +1523,30 @@
       "section": "3.2",
       "title": "ExtendingCDMGsWith",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-11",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/ExtendingCDMGsWith.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/ExtendingCDMGsWith.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1449,12 +1556,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Extending CDMGs with intervention nodes]\\label{def:cdmg_intervention_nodes}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{extended CDMG} of $G$ w.r.t.\\ nodes $W \\ins J \\cup V$  and corresponding \\emph{intervention nodes} \n%  $I_W = \\{I_w \\,|\\, w \\in W\\}$ \\Joris{with $I_j:=j$ for $j \\in J$},\n  $I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$,\n  is the CDMG: \n  \\[ G_{\\doit(I_W)}:=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  %\\[G(V|\\doit(J \\dcup I_W)):=G_{\\doit(I_W)}=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n%      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\Joris{\\sm J} \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $V_{\\doit(I_W)}:= V$,\n      \\item $E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$,\n      \\item $L_{\\doit(I_W)}:= L$,\n  \\end{enumerate}\n%  where we just add \\Joris{nodes $I_w$ for $w \\in W \\sm J$ and} edges $I_w \\tuh w$ for $ w \\in W \\sm J$. \n  where we just add nodes $I_w$ for $w \\in W \\sm J$ and edges $I_w \\tuh w$ for $ w \\in W \\sm J$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "c2d4f49f-4f2d-46f8-b882-e9a81dba935c",
+          "first_seen": "2026-06-11T14:35:50+00:00",
+          "last_used": "2026-06-11T14:35:50+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4688,
+      "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it.",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have a clear picture. Let me analyze the active definition (starting line 799) for subtleties.\n\nThe L issue I initially considered is NOT a real problem — L is bidirected edges ⊆ V×V, and V is unchanged. But I do see a concrete subtlety in how the new intervention nodes are introduced.\n\nSUBTLETY:\nid: fresh_intervention_nodes_not_required_disjoint_from_V\nexplanation: The construction introduces new intervention nodes via\n\"$J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$\"\nand the only explicit constraint on the $I_w$ (for $w \\in W \\sm J$) is what\nthe disjoint-union symbol $\\dot\\cup$ enforces: disjointness from $J$. The\ntext never explicitly requires $I_w \\notin V$, nor that distinct $w \\ne w'$\nyield distinct $I_w \\ne I_{w'}$. The clause \"$I_j := j$ for $j \\in J \\cap W$\"\npins down $I_w$ only on $J \\cap W$; for $w \\in W \\sm J \\subseteq V$, the LN\nsimply uses the symbol $I_w$ without ever saying it is fresh.\n\nWhy this matters: a CDMG requires $J' \\cap V' = \\emptyset$ (see def-cdmg\nline 35-40, where $J$ and $V$ are required to be disjoint). The literal\nreading admits a pathological assignment such as \"$I_w := w$ for $w \\in\nW \\sm J \\subseteq V$\": that satisfies $\\{I_w\\}\\cap J = \\emptyset$ (so the\n$\\dot\\cup$ in i.) is fine) but it makes $J_{\\doit(I_W)} \\cap V_{\\doit(I_W)}\n= W \\cap V \\ne \\emptyset$ (whenever $W$ hits $V$), so the result is not a\nvalid CDMG. Similarly, \"$I_{w_1}=I_{w_2}$\" for distinct $w_1, w_2 \\in W\n\\sm J$ is not ruled out, and would make the new edges $I_{w_1}\\tuh w_1$\nand $I_{w_2}\\tuh w_2$ share a source that the LN clearly intends to keep\nseparate.\n\nConcrete corner case: take $W = V$ with $V = \\{v_1, v_2\\}$, and let the\nreader set $I_{v_1} := v_2$, $I_{v_2} := v_1$. Both are outside $J$, so\nthe disjoint union in i.) is well-defined. But then $J_{\\doit(I_W)} = J\n\\cup \\{v_1, v_2\\} = J \\cup V$, $V_{\\doit(I_W)} = V$, and $J' \\cap V' = V\n\\ne \\emptyset$. Equally the new \"edges\" $v_2 \\tuh v_1$ and $v_1 \\tuh v_2$\nmay already be in $E$, making $E \\dot\\cup \\{\\ldots\\}$ also ill-defined.\n\nWhat the author plainly intends — judging from the surrounding prose \"we\njust add nodes $I_w$ for $w \\in W \\sm J$\" — is that each $I_w$ for $w \\in\nW \\sm J$ is a brand-new symbol distinct from anything in $J \\cup V$ and\nfrom any other $I_{w'}$. But the formal text only states disjointness\nfrom $J$.\n\nDownstream impact: any claim about the extended CDMG (e.g. about\n$|J_{\\doit(I_W)}|$, about acyclicity, about $I_w$ being a parentless\n\"source\", or about adding/removing intervention edges commuting with\nother operations) silently relies on this freshness. A formalization\nwill need to commit to a specific freshness mechanism (e.g.\\ a sum-type\nconstruction, or an explicit \"fresh\" hypothesis), since the LN does not\nsupply one.\nEND_SUBTLETY",
+        "session": "a8b09c9a-9df6-43fe-b57a-bd97baaf9d3b"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1462,30 +1584,32 @@
       "section": "3.2",
       "title": "AcyclicHardInterventionTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-11",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicHardInterventionTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AcyclicHardInterventionTopologicalOrder.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1493,12 +1617,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If a CDMG $G=(J,V,E,L)$ is acyclic then also $G_{\\doit(I_W)}$ is acyclic and a topological order for\n    $G_{\\doit(I_W)}$ is also one for $G$.\n    Any topological order of $G$ can be extended to one for $G_{\\doit(I_W)}$, e.g.\\\n    by putting all the $I_w$ nodes first in the ordering.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "86eea6c8-36de-4205-b9b0-e7917ba990fe",
+          "first_seen": "2026-06-11T16:07:17+00:00",
+          "last_used": "2026-06-11T16:07:17+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5305,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "I've analyzed the tex block. The remark makes three claims: (1) acyclicity is preserved, (2) a topological order on $G_{\\doit(I_W)}$ is one for $G$, (3) any topological order of $G$ can be extended, with the example \"putting all $I_w$ first\". Combined with `def_3_13`, which explicitly permits $W \\cap J \\neq \\emptyset$ and sets $I_w := w$ for $w \\in J \\cap W$, several subtleties arise.\n\n```\nSUBTLETY:\nid: all_I_w_first_clashes_with_J_cap_W_nonempty\nexplanation: The example \"by putting all the $I_w$ nodes first in the ordering\" reads ambiguously\nonce one inspects the underlying def_3_13. The set $I_W$ is defined there as\n$I_W = (J \\cap W) \\cup \\{I_w : w \\in W \\setminus J\\}$, with the explicit convention \"for\n$j \\in J \\cap W$ we put $I_j := j$ purely as a notational shorthand: the symbol $I_j$ is a label\nfor the pre-existing input node $j \\in J$ itself, and \\emph{no new node is introduced on the\n$J \\cap W$ branch}\". So a literal reading of \"all the $I_w$ nodes\" includes the pre-existing\n$J$-nodes for $w \\in J \\cap W$.\n\nCorner case where this bites: let $W \\cap J \\neq \\emptyset$, e.g.\\ $G$ has $J = \\{j_1, j_2\\}$,\n$V = \\{v_1, v_2\\}$ with edges $j_1 \\to v_1, j_2 \\to v_2, v_1 \\to v_2$, and take $W = \\{j_2, v_1\\}$.\nThen $I_W = \\{j_2, I_{v_1}\\}$ (the first is the pre-existing $j_2$; the second is fresh). The\ninput topological order on $G$ could be $j_1 < v_1 < j_2 < v_2$. \"Putting all the $I_w$ nodes\nfirst\" would force $j_2$ and $I_{v_1}$ to the very front, producing something like\n$I_{v_1} < j_2 < j_1 < v_1 < v_2$. This is a valid topological order on $G_{\\doit(I_W)}$, but its\nrestriction to $J \\cup V$ is $j_2 < j_1 < v_1 < v_2$, which is \\emph{not} the input order we\nstarted from. So the example does not literally \"extend\" the given topological order of $G$ — it\nreshuffles part of it.\n\nThe author almost certainly means \"put just the fresh $I_w$ (those for $w \\in W \\setminus J$)\nfirst\", which does extend correctly because the fresh nodes are by construction disjoint from\n$J \\cup V$. But because def_3_13 went out of its way to say $I_w$ is a notation defined on\n\\emph{all} of $W$, the literal phrase \"all the $I_w$ nodes\" is the broader set.\nEND_SUBTLETY\n\nSUBTLETY:\nid: extend_meaning_unspecified\nexplanation: The remark uses \"extended\" without defining what extending a topological order means\nin this setting. Standard mathematical usage takes \"extension of an order\" to require that the\nnew (strict total) order, when restricted to the original ground set, equals the original order.\nUnder that reading, \"putting all the $I_w$ nodes first\" is the problematic example documented in\nthe subtlety above — when $W \\cap J$ is non-empty, the restriction can differ from the original\norder. A weaker reading of \"extend\" (e.g.\\ \"produce some topological order on $G_{\\doit(I_W)}$\nwhose underlying ground set includes the nodes of $G$\") makes the example trivially correct but\nmakes the word \"extend\" essentially vacuous: any topological order on $G_{\\doit(I_W)}$ is then an\n\"extension\" of any topological order on $G$. The text gives no hint which reading is intended,\nand only the strict reading would forbid the corner case above.\nEND_SUBTLETY\n\nSUBTLETY:\nid: top_order_node_set_mismatch\nexplanation: The phrase \"a topological order for $G_{\\doit(I_W)}$ is also one for $G$\" reads\nloosely. By def_3_8 a topological order of $G$ is a strict total order on $J \\cup V$, and one for\n$G_{\\doit(I_W)}$ is a strict total order on $J \\cup V \\cup \\{I_w : w \\in W \\setminus J\\}$. When\n$W \\setminus J \\neq \\emptyset$ those node sets are not equal, so the relation literally given as a\ntopological order of $G_{\\doit(I_W)}$ is \\emph{not} a relation on $J \\cup V$ — its restriction\nis. This is the kind of standard informal abuse a domain expert glosses over, but a strict\nformalization needs to insert a restriction step that the LN does not name. The same\ninformality reappears in reverse in \"extended\", as flagged separately.\nEND_SUBTLETY\n\nSUBTLETY:\nid: order_among_I_w_unspecified\nexplanation: \"putting all the $I_w$ nodes first in the ordering\" leaves the relative order\n\\emph{among} the $I_w$ nodes themselves unspecified. This is harmless on the merits — fresh\n$I_w$ nodes are pairwise unrelated in $G_{\\doit(I_W)}$ (each has a single outgoing edge to its\ntarget $w \\in V$ and no incoming edges, and there are no edges between distinct $I_w, I_{w'}$),\nso any internal ordering is fine — but the text neither states this nor selects a representative.\nWorth flagging only because a formalization must pick a concrete construction (e.g.\\ an arbitrary\nenumeration of $W \\setminus J$) where the prose stays silent.\nEND_SUBTLETY\n```",
+        "session": "ad2e9510-a94b-47dc-9a20-cfd507862475"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1506,30 +1646,32 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 6,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1537,12 +1679,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]\n    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\doit(I_{W_1})} \n      =  G_{\\doit(I_{W_1 \\cup W_2})}. \\]\n      We also have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\n   % So there is not ambiguity in the following notations and identifications:\n   % \\[ G(V|\\doit(J\\cup I_{W_1} \\cup I_{W_2})) = G(V|\\doit(J\\cup I_{W_1 \\cup W_2})),\n   % \\qquad G(V\\sm W_2|\\doit(W_2 \\cup J\\cup I_{W_1})).\\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "7cff464f-4a23-4943-96ff-d54194fec08a",
+          "first_seen": "2026-06-12T11:03:29+00:00",
+          "last_used": "2026-06-12T11:03:29+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8868,
+      "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have enough context. Let me audit the literal text of claim_3_14.\n\n**Analysis:**\n\nDef 3.13 takes $W \\ins J \\cup V$ (with $I_j := j$ for $j \\in J \\cap W$, and new nodes only for $W \\sm J$).\nDef 3.10 (hard intervention) also takes $W \\ins J \\cup V$.\nSo the hypothesis is internally consistent with both upstream definitions.\n\nThe first equation is unambiguous — both sides use only $\\doit(I_\\cdot)$.\n\nThe second equation introduces a notation that does not appear earlier in the LN.\n\n```\nSUBTLETY:\nid: ad_hoc_mixed_doit_notation_g_doit_iw1_comma_w2\nexplanation: The second equation uses the notation $G_{\\doit(I_{W_1}, W_2)}$, which is introduced here for the first time and is *not* defined anywhere in the LN — neither by Def~3.10 (hard intervention, which takes a single set $W$) nor by Def~3.13 (intervention-node extension, which takes a single set $W$). The lemma is the sole specification of this notation, and its meaning is given only implicitly via the equation\n\\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\nA literal reader has to infer that the comma in \"$\\doit(I_{W_1}, W_2)$\" splits two semantically different operations: $I_{W_1}$ (intervention-node addition for $W_1$, per Def~3.13) and $W_2$ (hard intervention on $W_2$, per Def~3.10). The reader cannot, for example, infer this from the first equation, where \"$\\doit(I_{W_1 \\cup W_2})$\" denotes a *single* intervention-node operation on the union and has no comma in its argument. Contrast this with naive parsings the syntax admits:\n\\begin{itemize}\n\\item \"$\\doit$ on the set $I_{W_1} \\cup W_2$\" (treating the comma as $\\cup$),\n\\item \"$\\doit(I_{W_1, W_2})$\" with an indexed set $I_{W_1, W_2}$,\n\\item Both $I_{W_1}$ \\emph{and} $W_2$ treated as intervention-node operations (since the same $\\doit$ symbol covers both kinds elsewhere).\n\\end{itemize}\nNone of these are what is meant — the proof and the asymmetric roles of $W_1$ and $W_2$ in the LHS/middle force the intended reading. Downstream uses of \"$G_{\\doit(I_{W_1}, W_2)}$\" (if any) must remember that this is shorthand for \"first $\\doit(I_{W_1})$, then $\\doit(W_2)$\" (or vice versa, since the lemma proves they commute). Any formalization will need to either (a) pick one of the two orderings as the definition and prove the other as an equality, or (b) define a primitive \"mixed\" operation and prove both single-operation orderings equal it.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w_subseteq_j_makes_both_operations_near_identity\nexplanation: The hypothesis \"$W_1, W_2 \\ins J \\cup V$\" literally allows either set to lie entirely in $J$ (i.e.\\ to consist solely of input nodes). The literal definitions then make both interventions essentially trivial in this corner case:\n\\begin{itemize}\n\\item By Def~3.13 (line~811), $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$. For $W \\ins J$, $W \\sm J = \\emptyset$, so $G_{\\doit(I_W)} = G$ exactly.\n\\item By Def~3.10 (lines~299--302), $J_{\\doit(W)} := J \\cup W$ and $V_{\\doit(W)} := V \\sm W$. For $W \\ins J$, this gives $J \\cup W = J$ and $V \\sm W = V$ (since $J \\cap V = \\emptyset$), and removing \"incoming edges into $W$\" is also vacuous if the CDMG has no edges into $J$.\n\\end{itemize}\nConsequently, for, e.g., $W_1 \\ins J$ with $W_2 \\ins V$, the first equation reads $G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})}$ — trivially true — and similarly for the second equation. A reader expecting the lemma to assert a non-trivial commutativity for *all* $W_1, W_2 \\ins J \\cup V$ does not get more than the $W \\sm J$ content; the $W \\cap J$ portion contributes nothing. The literal text does not flag this, and there is no companion hypothesis \"$W_1, W_2 \\ins V$\" (which would be the truly load-bearing case). This is not strictly incorrect, but a formalization that relies on the lemma being \"tight\" on $J \\cup V$ inputs should note that the substantive content reduces to $W_i \\sm J$.\nEND_SUBTLETY\n```",
+        "session": "45a71638-c8c0-487f-951b-274057e099c0"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1550,30 +1708,32 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1581,12 +1741,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]\n  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins V$ and $W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:\n    \\[  \\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}. \\]\n  %  So there is no ambiguity in the notation:\n  %  \\[ G(V\\sm W_1 \\dcup W_1^o|\\doit(W_1^i \\dcup J \\dcup I_{W_2})).  \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "3c654cee-e1cf-4ae4-aec7-bc9b0fe7bf33",
+          "first_seen": "2026-06-12T12:55:37+00:00",
+          "last_used": "2026-06-12T12:55:37+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6462,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the claim, I'll examine it against def_3_13 (which it relies on) to find subtleties.\n\nKey findings from def_3_13 (`cdmg_intervention_nodes`):\n- `$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$`\n- `$J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$`\n- `$E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$`\n\nSo for `w ∈ W ∩ J`, no new node is introduced and no new edge is added — the doit operation is a no-op for these elements.\n\nAlso noticed in caption at line 757: \"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\" — this convention is explicitly acknowledged elsewhere but not in this claim's own text.\n\n```\nSUBTLETY:\nid: w2_in_J_makes_doit_a_no_op_via_Ij_identification\nexplanation: The claim allows $W_2 \\ins J \\cup V$ (rather than restricting to $W_2 \\ins V$), and the prose says \"introducing intervention nodes $I_{W_2}$\". But per Definition~\\ref{def:cdmg_intervention_nodes} (def_3_13), the convention is \"$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$\", and concretely $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ (only adds nodes for $w \\in W \\sm J$) and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$ (only adds edges for $w \\in W \\sm J$).\n\nThe literal reading \"introducing intervention nodes $I_{W_2}$\" naively suggests one new intervention node per element of $W_2$. But for $w \\in W_2 \\cap J$, $I_w := w$ is identified with the existing context node — no new node is introduced and no edge is added. The claim does not flag this convention to the reader, even though the same paper acknowledges it explicitly in the figure caption at line 757 (\"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\").\n\nCorner case: take $W_2 \\ins J$ entirely (e.g., $W_2 = \\{j\\}$ for some single context node $j \\in J$, with $W_1$ any subset of $V$). Then $G_{\\doit(I_{W_2})} = G$ (no change at all), and the lemma's equation degenerates to the trivial $G_{\\swig(W_1)} = G_{\\swig(W_1)}$. The claim is vacuously true, but the prose suggests something non-trivial is being commuted. A reader (or downstream formalizer) interpreting \"introducing intervention nodes $I_{W_2}$\" literally as \"adding $|W_2|$ new $I_w$ nodes to $J$\" would have an interpretation inconsistent with def_3_13. This matters because a formalization that constructs $I_{W_2}$ as a fresh disjoint set of size $|W_2|$ (rather than identifying $I_j = j$ for $j \\in J$) would silently disagree with the LN for any $W_2$ that intersects $J$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_partial_overlap_with_J_partial_no_op\nexplanation: A milder version of the corner case above: when $W_2 \\cap J \\neq \\emptyset$ but $W_2 \\cap V \\neq \\emptyset$ as well, the \"introducing intervention nodes $I_{W_2}$\" operation is a *partial* no-op — new nodes $\\{I_w \\mid w \\in W_2 \\sm J\\}$ are added for the $V$-elements of $W_2$, but nothing happens for the $J$-elements. The proof of the claim (lines 894-896) explicitly uses $J \\dcup \\{I_w \\mid w \\in W_2 \\sm J\\}$ rather than $J \\dcup \\{I_w \\mid w \\in W_2\\}$, confirming this convention.\n\nThe subtlety is that the claim's stated equation $\\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}$ uses the symbol \"$I_{W_2}$\" which, read naively as a set of $|W_2|$ fresh nodes, would suggest a different operation than what def_3_13 specifies. The literal type-level reading of the equation depends crucially on whether $I_w$ for $w \\in J$ is interpreted as a fresh node or as the existing $w$. The claim does not re-state this convention.\nEND_SUBTLETY\n```",
+        "session": "e8e8c21d-c0da-4779-9c39-91f4c73d7714"
+      }
     },
     {
       "def_or_claim": "def",
