@@ -1770,28 +1770,30 @@
       "section": "3.2",
       "title": "MarginalizationAK",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1801,12 +1803,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Marginalization a.k.a.\\ latent projection on CDMGs]\\label{def:G_marginalization}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of output nodes.\n  Then the \\emph{marginalization of $G$ w.r.t.\\ $W$} or the \\emph{latent projection of $G$ onto $J\\cup V \\sm W$} is the CDMG:\n  \\[  G^{V\\sm W | J} := G^{\\sm W} := (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  %\\[ G(V \\sm W | \\doit(J)) := G^{\\sm W} = (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J^{\\sm W}:= J$,\n      \\item $V^{\\sm W}:= V \\sm W$,\n      \\item $E^{\\sm W}$ consists of all directed edges $\\ul{v} \\tuh \\ol{v}$ with $\\ul{v},\\ol{v} \\in J \\cup V \\sm W$ \n          for which there exists a directed walk in $G$:\n          \\[\\ul{v} \\tuh w_1 \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\\footnote{Note that this may introduce self-cycles.}\n      \\item $L^{\\sm W}$ consists of all bidirected edges $\\ul{v} \\huh \\ol{v}$ with \n          $\\ul{v},\\ol{v} \\in V \\sm W$, $\\ul{v} \\neq \\ol{v}$, \n          for which there exists a bifurcation in $G$:\n          \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\n      %\\item $L^{\\sm W}:= \\lC \\ul{v} \\huh \\ol{v}\\,|\\, \\ul{v},\\ol{v} \\in V \\sm W: \n      %    \\exists \\text{ bifurcation: } \\ul{v} \\hut w_1 \\cdots w_{n-1} \\tuh \\ol{v} \\in G \n      %    \\text{ with } w_1,\\dots,w_{n-1} \\in W \\rC$,\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.\n\nAdditionally, in clause (iii), a self-cycle $v \\tuh v$ is admitted to $E^{\\sm W}$ only when witnessed by a directed walk of length at least 2 (i.e., $n \\geq 2$, equivalently with at least one intermediate node $w_i \\in W$). A length-1 walk (a direct edge $v \\tuh v$ already present in $G$, with no intermediates) does not on its own justify a self-cycle in $E^{\\sm W}$. For non-self edges ($\\ul{v} \\neq \\ol{v}$), length-1 walks remain admissible."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "4deac71d-b8ba-4d3b-b449-c9a8e32b446b",
+          "first_seen": "2026-06-12T18:35:06+00:00",
+          "last_used": "2026-06-12T18:35:06+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6324,
+      "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.\n\nAdditionally, in clause (iii), a self-cycle $v \\tuh v$ is admitted to $E^{\\sm W}$ only when witnessed by a directed walk of length at least 2 (i.e., $n \\geq 2$, equivalently with at least one intermediate node $w_i \\in W$). A length-1 walk (a direct edge $v \\tuh v$ already present in $G$, with no intermediates) does not on its own justify a self-cycle in $E^{\\sm W}$. For non-self edges ($\\ul{v} \\neq \\ol{v}$), length-1 walks remain admissible.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block for def_3_14 (MarginalizationAK), I need to audit the literal wording for subtleties, ambiguities, and corner cases.\n\nLet me analyze each component carefully, focusing on what the LN literally says.\n\n```\nSUBTLETY:\nid: bifurcation_indexing_unclear_at_k_boundaries\nexplanation: The bifurcation formula in item iv\n\n    \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n\nuses indices $w_{k-1}$ and $w_k$ to name the endpoints of the bidirected hinge. The \"(if any)\" qualifier addresses the case when the intermediate list $w_1,\\dots,w_{n-1}$ is empty, but says nothing about the hinge indices when they fall outside that list.\n\nFor $k = 1$, the hinge \"$w_{k-1} \\hus w_k$\" literally reads \"$w_0 \\hus w_1$\", and $w_0$ is undefined in the intermediate range. The intended reading is that $w_0$ becomes $\\ul{v}$ implicitly — so the bifurcation is $\\ul{v} \\hus w_1 \\tuh \\cdots \\tuh \\ol{v}$. Symmetrically, when $k = n$, $w_n$ implicitly becomes $\\ol{v}$, giving $\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{n-1} \\hus \\ol{v}$. And when $n = 1, k = 1$, both arms are empty and the bifurcation degenerates to $\\ul{v} \\hus \\ol{v}$ — a direct bidirected edge in $G$.\n\nThis boundary case is not cosmetic: it's the only way a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ in $L$ (where $\\ul{v},\\ol{v} \\in V \\sm W$) ever gets captured by a bifurcation and preserved in $L^{\\sm W}$. If a strict reader instead requires $w_{k-1}, w_k$ to be in the intermediate range $\\{1,\\dots,n-1\\}$, the boundary cases are excluded and original bidirected edges between non-marginalized nodes are silently dropped — clearly not intended.\n\nThe convention \"$w_0 = \\ul{v}$, $w_n = \\ol{v}$\" is left implicit, and a strict reading of the formula admits this confusion. Downstream claims about preservation of edges under the trivial marginalization ($W = \\emptyset$) or about subset relationships of bifurcations would rely on this implicit convention.\nEND_SUBTLETY\n\nSUBTLETY:\nid: self_bidirected_excluded_asymmetric_with_directed_self_cycles\nexplanation: Item iii ($E^{\\sm W}$) explicitly allows self-loops, with the footnote \"Note that this may introduce self-cycles.\" Item iv ($L^{\\sm W}$), by contrast, requires \"$\\ul{v} \\neq \\ol{v}$\", silently excluding self-bidirected edges that bifurcations through $W$ would otherwise create.\n\nConcrete corner case: take $v \\in V \\sm W$ and $w_1, w_2 \\in W$ such that $G$ contains the structure\n    $v \\hut w_1 \\hus w_2 \\tuh v$ (i.e., $w_1 \\tuh v$, $w_1 \\hus w_2$, and $w_2 \\tuh v$ all in $G$).\nThis is a bona-fide bifurcation in the sense of the displayed formula, with $\\ul{v} = \\ol{v} = v$, $k = 2$, $n = 2$, and intermediates $w_1, w_2 \\in W$. The natural reading would add a self-bidirected $v \\huh v$ to $L^{\\sm W}$, capturing \"confounding of $v$ with itself through latent path in $W$\". The \"$\\ul{v} \\neq \\ol{v}$\" condition discards this case.\n\nThe asymmetry with item iii's footnote is jarring: the directed case acknowledges self-cycle creation as a feature, while the bidirected case rules it out without justification in the definition itself. If the surrounding CDMG framework forbids self-bidirected edges by convention, that justifies the asymmetry — but the definition doesn't say so. Downstream proofs about which confounding paths are \"preserved\" by marginalization should account for the fact that confounding paths returning to their starting node are silently dropped, while directed cycles returning to the starting node are kept.\nEND_SUBTLETY\n```",
+        "session": "9f454cc0-5341-4296-a9a5-1556bba268a1"
+      }
     },
     {
       "def_or_claim": "claim",
