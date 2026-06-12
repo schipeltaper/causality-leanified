@@ -81,7 +81,7 @@ KATEX_BUILTINS: set[str] = set("""
     rightharpoonup leftharpoonup rightharpoondown leftharpoondown
     rightleftarrows leftrightarrows rightleftharpoons leftrightharpoons
     leadsto rightsquigarrow leftsquigarrow
-    le ge leq geq ll gg lll ggg
+    le ge leq geq ll gg lll ggg prec preceq succ succeq precsim succsim
     ne neq equiv simeq cong approx sim propto
     aleph beth gimel hbar ell wp Re Im infty partial nabla
     quad qquad hspace hskip mspace thinspace negthinspace medspace negmedspace thickspace negthickspace
