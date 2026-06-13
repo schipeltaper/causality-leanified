@@ -649,7 +649,7 @@
           "last_used": "2026-06-13T16:30:00+00:00"
         }
       ],
-      "time_needed_to_solve": 9080,
+      "time_needed_to_solve": 9099,
       "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
       "wording_check": {
         "done": true,
