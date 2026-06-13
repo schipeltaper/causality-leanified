@@ -29,3 +29,4 @@ import Chapter3_GraphTheory.Section3_2.AcyclicHardInterventionTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.AddingInterventionNodes
 import Chapter3_GraphTheory.Section3_2.AddingInterventionNodesSwig
 import Chapter3_GraphTheory.Section3_2.MarginalizationAK
+import Chapter3_GraphTheory.Section3_2.MargPreservesAncestors

@@ -1817,7 +1817,7 @@
           "last_used": "2026-06-12T18:35:06+00:00"
         }
       ],
-      "time_needed_to_solve": 6324,
+      "time_needed_to_solve": 6343,
       "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.\n\nAdditionally, in clause (iii), a self-cycle $v \\tuh v$ is admitted to $E^{\\sm W}$ only when witnessed by a directed walk of length at least 2 (i.e., $n \\geq 2$, equivalently with at least one intermediate node $w_i \\in W$). A length-1 walk (a direct edge $v \\tuh v$ already present in $G$, with no intermediates) does not on its own justify a self-cycle in $E^{\\sm W}$. For non-self edges ($\\ul{v} \\neq \\ol{v}$), length-1 walks remain admissible.",
       "wording_check": {
         "done": true,
@@ -1831,30 +1831,32 @@
       "section": "3.2",
       "title": "MargPreservesAncestors",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-13",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
-        "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "correct_tex_proof": 1,
+        "verify_tex_proof": 2,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 4,
+        "continue_agent": 7,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1862,12 +1864,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 2,
+        "verify_tex_statement_plus_proof": 2
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "527e2983-61e1-47a5-80ef-8184f3fc9b47",
+          "first_seen": "2026-06-13T03:54:13+00:00",
+          "last_used": "2026-06-13T03:54:13+00:00"
+        }
+      ],
+      "time_needed_to_solve": 33287,
+      "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: optionally_v3_phrasing_creates_dual_claim\nexplanation: Item 2 reads:\n\n> \"For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\"\n\nThe parenthetical \"(and, optionally, $v_3 \\in G\\sm W$)\" combined with the embedded \"(with source $v_3$)\" makes the statement ambiguous: it bundles two distinct claims into one sentence.\n\n- Reading A — two separate claims: (i) for all $v_1,v_2 \\in G \\sm W$, an unsourced bifurcation between $v_1,v_2$ exists in $G$ iff in $G^{\\sm W}$; (ii) for all $v_1,v_2,v_3 \\in G\\sm W$, a bifurcation between $v_1,v_2$ with source $v_3$ exists in $G$ iff in $G^{\\sm W}$.\n- Reading B — a single claim where $v_3$ is universally quantified and the \"(with source $v_3$)\" is mandatory wherever it appears.\n\n\"Optionally\" is mathematically unusual; a formalization (or a careful reader) has to commit to one interpretation, and the two readings are not the same claim. In particular, reading A includes the unsourced version with its existential over sources, which is the strictly stronger statement.\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_no_source_existential_admits_w_source\nexplanation: Under reading A of item 2 (the \"(with source $v_3$)\" optional), the unsourced version reads \"bifurcation between $v_1$ and $v_2$ in $G$ iff bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$\" with $v_1,v_2 \\in G \\sm W$. The LHS implicitly quantifies the source existentially over all of $V(G)$, including $W$. The RHS quantifies over $V(G^{\\sm W}) = V(G)\\sm W$, which by construction contains no $W$ vertices.\n\nConcrete corner case: suppose the only bifurcation between $v_1$ and $v_2$ in $G$ is the fork $v_1 \\leftarrow w \\rightarrow v_2$ with $w \\in W$ (no other common-source vertex in $V(G)$, no bidirected edge in $G$). The LHS is true. For the RHS to also be true, $G^{\\sm W}$ must contain something that counts as a \"bifurcation between $v_1$ and $v_2$\" — typically the bidirected edge $v_1 \\leftrightarrow v_2$ that marginalization is meant to introduce.\n\nSo the unsourced biconditional silently relies on: (a) \"bifurcation\" being defined inclusively enough to count bidirected edges as bifurcations (with an implicit unobserved source), and (b) the marginalization $G \\mapsto G^{\\sm W}$ actually inserting such bidirected edges for marginalized common causes. If the document's local notion of \"bifurcation\" is the strict three-vertex fork $v_1 \\leftarrow v_3 \\rightarrow v_2$ with $v_3$ a vertex of the graph, then under that strict reading the unsourced direction fails on this corner case, and a downstream proof that walks through the unsourced biconditional would silently rely on the more permissive definition.\nEND_SUBTLETY",
+        "session": "4dea3671-60d6-46ef-a274-073421be6684"
+      }
     },
     {
       "def_or_claim": "claim",

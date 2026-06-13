@@ -20,14 +20,99 @@
 \phantomsection\label{claim_3_16}
 
 \begin{Rem}[MargPreservesAncestors]\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}
-Marginalization preserves ancestral relations, bifurcations and acyclicity:
-    \begin{enumerate}
-        \item For $v_1,v_2 \in G$ with $v_1,v_2 \notin W$ we have the equivalence:
-            \[ v_1 \in \Anc^G(v_2)\quad \iff \quad v_1 \in \Anc^{G^{\sm W}}(v_2).   \]
-          \item\label{rem:marg_preserves_bifurcations} 
-            For $v_1,v_2 \in G \sm W$ (and, optionally, $v_3 \in G\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$.
-        \item If the CDMG $G$ is acyclic then so is $G^{\sm W}$ and a topological order of $G$ induces a
-            topological order on $G^{\sm W}$ (by just ignoring the nodes from $W$).
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definitions of def \ref{def:walks}, the family-relationship notation of def \ref{def_3_5}, the acyclicity notion of def \ref{def-acylic}, the topological-order notion of def \ref{def-topological-order}, and the marginalization operator of def \ref{def:G_marginalization}. Let
+    \[
+        W \;\ins\; V
+    \]
+    be a subset of output nodes, and let
+    \[
+        G^{\sm W} \;=\; \lp J^{\sm W},\, V^{\sm W},\, E^{\sm W},\, L^{\sm W} \rp
+    \]
+    be the marginalization of $G$ with respect to $W$ in the sense of def \ref{def:G_marginalization}. Recall from items~i.\ and~ii.\ of def \ref{def:G_marginalization} that
+    \[
+        J^{\sm W} \;=\; J
+        \qquad\text{and}\qquad
+        V^{\sm W} \;=\; V \sm W;
+    \]
+    consequently the node set (carrier) of $G^{\sm W}$ is
+    \[
+        J^{\sm W} \cup V^{\sm W} \;=\; J \cup (V \sm W) \;=\; (J \cup V) \sm W,
+    \]
+    where the second equality uses $W \ins V$ together with $J \cap V = \emptyset$ from def \ref{def-cdmg}. Both quantifiers ``for every CDMG $G$'' and ``for every $W \ins V$'' are read \emph{universally}, with the side condition $W \ins V$ inherited verbatim from def \ref{def:G_marginalization} (so $W$ is required to consist of output nodes only); the case $W = \emptyset$ is admitted (then $V \sm W = V$, so $G^{\sm W} = G$ verbatim by items~i.--iv.\ of def \ref{def:G_marginalization}).
+
+    \emph{Marginalization preserves ancestral relations, bifurcations, and acyclicity:} the following three sub-claims hold.
+
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Preservation of ancestral relations.}
+            For every pair of nodes
+            \[
+                v_1,\, v_2 \;\in\; (J \cup V) \sm W \;=\; J \cup (V \sm W),
+            \]
+            the biconditional
+            \[
+                v_1 \in \Anc^G(v_2) \;\Longleftrightarrow\; v_1 \in \Anc^{G^{\sm W}}(v_2)
+            \]
+            holds, where $\Anc^G(v_2)$ is the ancestor set of $v_2$ in $G$ in the sense of def \ref{def_3_5}, item~iv., evaluated on the carrier $J \cup V$, and $\Anc^{G^{\sm W}}(v_2)$ is the ancestor set of $v_2$ in $G^{\sm W}$, also in the sense of def \ref{def_3_5}, item~iv., applied to the CDMG $G^{\sm W}$ and so evaluated on the carrier $J \cup (V \sm W)$.
+
+            \emph{Reading of the precondition.} The LN's literal phrasing ``$v_1, v_2 \in G$ with $v_1, v_2 \notin W$'' is read set-theoretically as $v_1, v_2 \in (J \cup V) \sm W$, equivalently $v_1, v_2 \in J \cup (V \sm W)$ (the two are the same set because $W \ins V$ and $J \cap V = \emptyset$, so $J \sm W = J$). Equivalently, $v_1, v_2$ are required to lie in the carrier of $G^{\sm W}$; this is the precondition under which the right-hand membership $v_1 \in \Anc^{G^{\sm W}}(v_2)$ is well-typed.
+
+        \item \label{rem:marg_preserves_bifurcations}
+            \emph{Preservation of bifurcations (two biconditionals).}
+            The following two assertions (a) and (b) both hold. They correspond to reading the LN's literal phrasing
+            \begin{quote}
+                ``there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$''
+            \end{quote}
+            once with the two parenthetical clauses ``(with source $v_3$)'' omitted (this gives (a) below) and once with them included (this gives (b) below).
+
+            \begin{enumerate}[label=(\alph*)]
+                \item \emph{Sourceless biconditional.}
+                    For every pair of nodes
+                    \[
+                        v_1,\, v_2 \;\in\; (J \cup V) \sm W \;=\; J \cup (V \sm W),
+                    \]
+                    the following two propositions are equivalent.
+
+                    \emph{Reading of the precondition.} The LN's literal phrasing ``$v_1, v_2 \in G \sm W$'' is read set-theoretically as $v_1, v_2 \in (J \cup V) \sm W$, equivalently $v_1, v_2 \in J \cup (V \sm W)$, matching the outer-quantifier convention adopted in item~i.\ above and in item~iii.\ below (and matching the carrier of $G^{\sm W}$). Although the LN's $v_1, v_2$ are intended as the endpoints of the bifurcation walk and are therefore \emph{automatically} forced into $V \cap ((J \cup V) \sm W) = V \sm W$ by clauses~(b) and~(c) of def \ref{def:walks}, item~vi.\ (which require $a_0, a_{n-1}$ to be incident to the bifurcation hinge via directed edges of $G$, so that the endpoint-targets $v_0 = w_0$ and $v_n = w_n$ lie in $V$ by $E \ins (J \cup V) \times V$), no a priori restriction to $V \sm W$ is imposed on the outer quantifier: input-node endpoints simply make both sides of the biconditional vacuously false.
+                    \begin{itemize}
+                        \item There exists a bifurcation between $v_1$ and $v_2$ in $G$ in the sense of def \ref{def:walks}, item~vi.: i.e.\ there exist an integer $n \ge 1$, an index $k \in \{1, \dots, n\}$, and a walk $p = (w_0, a_0, w_1, a_1, \dots, w_{n-1}, a_{n-1}, w_n)$ in $G$ (def \ref{def:walks}, item~i., with $w_0, w_1, \dots, w_n \in J \cup V$ and $a_0, a_1, \dots, a_{n-1} \in (J \cup V) \times (J \cup V)$) with $\lC w_0, w_n \rC = \lC v_1, v_2 \rC$, such that $p$ together with the index $k$ satisfies clauses~(a)--(e) of def \ref{def:walks}, item~vi.
+                        \item There exists a bifurcation between $v_1$ and $v_2$ in $G^{\sm W}$ in the sense of def \ref{def:walks}, item~vi., applied to the CDMG $G^{\sm W}$: i.e.\ there exist an integer $n' \ge 1$, an index $k' \in \{1, \dots, n'\}$, and a walk $p' = (w'_0, a'_0, w'_1, \dots, a'_{n' - 1}, w'_{n'})$ in $G^{\sm W}$ (with $w'_0, w'_1, \dots, w'_{n'} \in J \cup (V \sm W)$ and $a'_0, a'_1, \dots, a'_{n' - 1} \in (J \cup (V \sm W)) \times (J \cup (V \sm W))$) with $\lC w'_0, w'_{n'} \rC = \lC v_1, v_2 \rC$, such that $p'$ together with $k'$ satisfies clauses~(a)--(e) of def \ref{def:walks}, item~vi., where every occurrence of ``$E$'' (resp.\ ``$L$'') in those clauses is read as ``$E^{\sm W}$'' (resp.\ ``$L^{\sm W}$'').
+                    \end{itemize}
+                    The set equality $\lC w_0, w_n \rC = \lC v_1, v_2 \rC$ (and analogously $\lC w'_0, w'_{n'} \rC = \lC v_1, v_2 \rC$) makes the symmetric ``between $v_1$ and $v_2$'' phrasing explicit: either $w_0 = v_1, w_n = v_2$ or $w_0 = v_2, w_n = v_1$ is admissible.
+
+                \item \emph{Sourced biconditional.}
+                    For every triple of nodes
+                    \[
+                        v_1,\, v_2,\, v_3 \;\in\; (J \cup V) \sm W \;=\; J \cup (V \sm W),
+                    \]
+                    the following two propositions are equivalent.
+
+                    \emph{Reading of the precondition.} The LN's literal phrasing ``$v_1, v_2, v_3 \in G \sm W$'' is again read set-theoretically as $v_1, v_2, v_3 \in (J \cup V) \sm W = J \cup (V \sm W)$, matching items~i.\ and~iii.\ As in sub-claim~(a), the bifurcation endpoints $v_1, v_2$ are automatically forced into $V \sm W$ by clauses~(b) and~(c) of def \ref{def:walks}, item~vi.; the source $v_3 = w_k$, however, is \emph{not} so forced --- by clause~(d) directed alternative $a_{k-1} = (w_k, w_{k-1}) \in E$ together with $E \ins (J \cup V) \times V$, only $w_{k-1} \in V$ is implied, while $w_k$ may lie in $J$ (cf.\ prp \ref{prp:bifurcations_alternative}, which types the source $c \in J \cup V$). Hence the source $v_3$ may genuinely be an input node $v_3 \in J$, and the broader outer quantifier $(J \cup V) \sm W$ on $v_3$ is non-vacuously needed.
+                    \begin{itemize}
+                        \item There exists a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$, in the sense of def \ref{def:walks}, item~vi., and its closing paragraph ``Source of the bifurcation'': i.e.\ there exist an integer $n \ge 1$, an index $k \in \{1, \dots, n\}$, and a walk $p = (w_0, a_0, w_1, \dots, a_{n-1}, w_n)$ in $G$ with $\lC w_0, w_n \rC = \lC v_1, v_2 \rC$, satisfying clauses~(a)--(e) of def \ref{def:walks}, item~vi., \emph{and} clause~(d) of def \ref{def:walks}, item~vi., is realised at $k$ by the \emph{directed} alternative $a_{k-1} = (w_k, w_{k-1}) \in E$ with $w_k = v_3$ (so $v_3 = w_k$ is the source of $p$ in the sense of def \ref{def:walks}, item~vi., closing paragraph). By clause~(e) of def \ref{def:walks}, item~vi., the source $v_3 = w_k$ is automatically an interior vertex of $p$ with $1 \le k \le n - 1$ (hence $n \ge 2$), and $v_3 \ne v_1$, $v_3 \ne v_2$.
+                        \item There exists a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\sm W}$, in the sense of def \ref{def:walks}, item~vi., applied to the CDMG $G^{\sm W}$: i.e.\ the analogous existential, with primed objects $n', k', p' = (w'_0, a'_0, \dots, a'_{n' - 1}, w'_{n'})$ in $G^{\sm W}$, all walk vertices $w'_0, \dots, w'_{n'}$ drawn from the carrier $J \cup (V \sm W)$ of $G^{\sm W}$, $\lC w'_0, w'_{n'} \rC = \lC v_1, v_2 \rC$, clauses~(a)--(e) of def \ref{def:walks}, item~vi., satisfied with ``$E$'' read as ``$E^{\sm W}$'' and ``$L$'' read as ``$L^{\sm W}$'', and clause~(d) realised at $k'$ by the directed alternative $a'_{k' - 1} = (w'_{k'}, w'_{k' - 1}) \in E^{\sm W}$ with $w'_{k'} = v_3$.
+                    \end{itemize}
+            \end{enumerate}
+            The biconditional in (a) is the LN's ``parenthetical clauses omitted'' reading; the biconditional in (b) is the LN's ``parenthetical clauses included'' reading. The addition to the LN explicitly authorises asserting both.
+
+        \item \emph{Preservation of acyclicity and induced topological order.}
+            Suppose $G$ is acyclic in the sense of def \ref{def-acylic}. Then both of the following sub-assertions (a) and (b) hold.
+            \begin{enumerate}[label=(\alph*)]
+                \item \emph{Acyclicity is preserved.}
+                    $G^{\sm W}$ is acyclic in the sense of def \ref{def-acylic}, evaluated on the carrier $J \cup (V \sm W)$ of $G^{\sm W}$: explicitly, for every $v \in J \cup (V \sm W)$, there does not exist any non-trivial directed walk from $v$ to $v$ in $G^{\sm W}$ (where ``directed walk in $G^{\sm W}$'' is in the sense of def \ref{def:walks}, item~ii., applied to $G^{\sm W}$ --- with edge-membership read against $E^{\sm W}$ instead of $E$ --- and ``non-trivial'' means walk length $n \ge 1$).
+
+                \item \emph{Topological order is induced by restriction.}
+                    For every binary relation $<_G$ on $J \cup V$ that is a topological order of $G$ in the sense of def \ref{def-topological-order}, the binary relation $<_{G^{\sm W}}$ on $J \cup (V \sm W)$ defined by \emph{restriction of $<_G$ to the smaller carrier}, namely
+                    \[
+                        \forall\, v_1, v_2 \in J \cup (V \sm W) :\quad
+                        v_1 \,<_{G^{\sm W}}\, v_2 \;\;:\Longleftrightarrow\;\; v_1 \,<_G\, v_2,
+                    \]
+                    is a topological order of $G^{\sm W}$ in the sense of def \ref{def-topological-order}, evaluated on the carrier $J \cup (V \sm W)$ of $G^{\sm W}$.
+
+                    \emph{Reading of the LN's ``induces'' / ``by just ignoring the nodes from $W$''.}
+                    The LN's clause ``a topological order of $G$ induces a topological order on $G^{\sm W}$ (by just ignoring the nodes from $W$)'' is read here as the explicit \emph{restriction operation} above: the carrier of $<_{G^{\sm W}}$ is the smaller set $J \cup (V \sm W) = (J \cup V) \sm W$, the input nodes $J$ are unchanged (since $W \ins V$ does not intersect $J$ by $J \cap V = \emptyset$), the output nodes $W$ are removed from the carrier, and for every pair $(v_1, v_2)$ both of whose entries lie in the smaller carrier, the value of $<_{G^{\sm W}}$ on $(v_1, v_2)$ coincides with the value of $<_G$ on the same pair. The LN's ``by just ignoring the nodes from $W$'' is the assertion that the value of $<_{G^{\sm W}}(v_1, v_2)$ does not require any reassignment of order between unsplit nodes; it equals $<_G(v_1, v_2)$ on every pair in the smaller carrier.
+
+                    Being a topological order of $G^{\sm W}$ means, per def \ref{def-topological-order} applied to $G^{\sm W}$, that $<_{G^{\sm W}}$ is a strict total order on $J \cup (V \sm W)$ (i.e.\ irreflexive, transitive, and trichotomous on $J \cup (V \sm W)$) and that for every $v_1, v_2 \in J \cup (V \sm W)$, $v_1 \in \Pa^{G^{\sm W}}(v_2)$ implies $v_1 <_{G^{\sm W}} v_2$, where $\Pa^{G^{\sm W}}(v_2) = \lC u \in J \cup (V \sm W) \st (u, v_2) \in E^{\sm W} \rC$ is the parent set of $v_2$ in $G^{\sm W}$ in the sense of def \ref{def_3_5}, item~i.
+            \end{enumerate}
     \end{enumerate}
 \end{Rem}
 
