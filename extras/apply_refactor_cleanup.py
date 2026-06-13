@@ -21,10 +21,19 @@ Runs in eight phases (each opt-out via ``--skip-<phase>``):
       change in a refactor).
 
   7d. **Original data.json sync.** For each refactor row, find the
-      matching row in the chapter's original ``data.json``: copy
-      ``proven`` over (in case the mistake-sweep flipped the verdict),
-      add a ``last_refactored_at`` field, append a one-line tip
-      pointing at the refactor name + date.
+      matching row in the chapter's original ``data.json``. Before
+      mutating, snapshot the pre-sync row state into
+      ``pre_refactor_rows.json`` inside the refactor folder (rides
+      along to ``Refactor_<name>_DONE_<date>/`` after Phase 7h).
+      Then overwrite the LN-independent fields the refactor may have
+      updated -- ``proven`` (mistake-sweep), ``formalized``,
+      ``time_needed_to_solve``, ``addition_to_the_LN``,
+      ``main_lean_file`` / ``lean_files``, ``actions_tracking``,
+      ``agent_registry`` -- stamp ``last_refactored_at``, and append a
+      one-line tip pointing at the refactor name + date. LN-anchored
+      fields (``tex_block``, ``tex_file``, ``def_or_claim``, ``ref``,
+      ``section``, ``title``, ``type``) and historical state
+      (``date_solved``, ``wording_check``) are left untouched.
 
   7e. **Deviation register surface + (optional) mark-resolved.** List
       every entry in ``leanification/deviations.json`` whose
@@ -66,6 +75,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import copy
 import difflib
 import json
 import re
@@ -438,10 +448,31 @@ def _find_original_row_locations(refactor_refs: list[str]
     return out
 
 
+# Fields the refactor row may have updated, which should overwrite the
+# original row's values when they differ. Anchored / structural fields
+# (def_or_claim, ref, section, title, type, tex_file, tex_block,
+# wording_check, solved, date_solved) are deliberately NOT in this list
+# -- those either come from the LN and never change, or carry historical
+# state that the pre-refactor snapshot already preserves.
+_SYNC_OVERWRITE_FIELDS = (
+    "formalized",
+    "time_needed_to_solve",
+    "addition_to_the_LN",
+    "main_lean_file",
+    "lean_files",
+    "actions_tracking",
+    "agent_registry",
+)
+
+
 def _sync_original_row(refactor_row: dict, original_row: dict,
                        refactor_name: str, today: str) -> dict:
     """Mutate ``original_row`` (in-place) to reflect the refactor
-    outcome, then return the per-row sync summary for logging."""
+    outcome, then return the per-row sync summary for logging.
+
+    The caller is responsible for snapshotting ``original_row`` BEFORE
+    invoking this function if it wants to archive the pre-sync state
+    (see the Phase 7d block in ``main``)."""
     changed: list[str] = []
     # proven: mistake-sweep may have flipped it
     rp = refactor_row.get("proven")
@@ -449,6 +480,17 @@ def _sync_original_row(refactor_row: dict, original_row: dict,
     if rp and rp != op:
         original_row["proven"] = rp
         changed.append(f"proven {op!r} -> {rp!r}")
+    # Overwrite refactor-driven fields when they differ. These reflect
+    # the row's CURRENT state after the refactor; the pre-sync snapshot
+    # the caller archives preserves the original values for audit.
+    for fld in _SYNC_OVERWRITE_FIELDS:
+        if fld not in refactor_row:
+            continue
+        rv = refactor_row[fld]
+        ov = original_row.get(fld)
+        if rv != ov:
+            original_row[fld] = rv
+            changed.append(f"{fld} overwritten")
     # Stamp the refactor date (new field; visible in row JSON)
     original_row["last_refactored_at"] = today
     changed.append("last_refactored_at set")
@@ -880,9 +922,20 @@ def main(argv: list[str]) -> int:
             dj, idx = locations[ref]
             by_data.setdefault(dj, []).append((idx, next(
                 r for r in rows if r["ref"] == ref)))
+        # Accumulate pre-sync snapshots across all chapters' rows so
+        # one archive file in the refactor folder captures the full
+        # pre-refactor state of every touched row.
+        pre_sync_snapshots: list[dict] = []
         for dj, items in by_data.items():
             data = json.loads(dj.read_text(encoding="utf-8"))
             for idx, refactor_row in items:
+                # Snapshot BEFORE _sync_original_row mutates the row.
+                pre_sync_snapshots.append({
+                    "ref": data["rows"][idx]["ref"],
+                    "chapter_data_path": str(dj.relative_to(REPO_ROOT)),
+                    "row_index": idx,
+                    "pre_sync_row": copy.deepcopy(data["rows"][idx]),
+                })
                 summary = _sync_original_row(
                     refactor_row, data["rows"][idx],
                     refactor_name, today)
@@ -892,6 +945,23 @@ def main(argv: list[str]) -> int:
             if not args.dry_run:
                 dj.write_text(
                     json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8")
+        # Archive the pre-sync snapshots into the refactor folder so
+        # they ride along when Phase 7h renames the folder to DONE_*.
+        # The file accumulates one entry per touched row across all
+        # chapters.
+        if pre_sync_snapshots:
+            archive_path = (
+                args.refactor_data.parent / "pre_refactor_rows.json"
+            )
+            print(f"  - pre-sync snapshot: "
+                  f"{archive_path.relative_to(REPO_ROOT)} "
+                  f"({len(pre_sync_snapshots)} row(s))",
+                  file=sys.stderr)
+            if not args.dry_run:
+                archive_path.write_text(
+                    json.dumps(pre_sync_snapshots, indent=2,
+                               ensure_ascii=False) + "\n",
                     encoding="utf-8")
 
     # =================================================================

@@ -1879,7 +1879,7 @@
           "last_used": "2026-06-13T03:54:13+00:00"
         }
       ],
-      "time_needed_to_solve": 33287,
+      "time_needed_to_solve": 33307,
       "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
       "wording_check": {
         "done": true,
@@ -1904,19 +1904,19 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
+        "add_design_choice_comments": 1,
         "solved": 0,
-        "refactor": 0,
+        "refactor": 1,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1924,12 +1924,189 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "ffca47d3-50e0-4722-85e3-3f1adb7320a5",
+          "first_seen": "2026-06-13T03:55:46+00:00",
+          "last_used": "2026-06-13T03:55:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "343d8fa4-0b14-4c5d-840f-33e17946bfd9",
+          "first_seen": "2026-06-13T03:57:50+00:00",
+          "last_used": "2026-06-13T03:57:50+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "393b9f87-03c2-406b-8271-ab40dc2d6ee8",
+          "first_seen": "2026-06-13T04:01:57+00:00",
+          "last_used": "2026-06-13T04:01:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5347995a-a091-4806-97ab-d0b4d6de912e",
+          "first_seen": "2026-06-13T04:02:34+00:00",
+          "last_used": "2026-06-13T04:02:34+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_only",
+          "spawned_by": "manager",
+          "session_id": "5cfb7e15-9f03-4137-81c7-80f30eede77f",
+          "first_seen": "2026-06-13T04:02:57+00:00",
+          "last_used": "2026-06-13T04:02:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5bfb9ef0-8255-4d4f-b170-09eb179368a6",
+          "first_seen": "2026-06-13T04:03:26+00:00",
+          "last_used": "2026-06-13T04:03:26+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_equivalence",
+          "spawned_by": "manager",
+          "session_id": "da398020-2780-46a0-91cd-b3ca6174d8f1",
+          "first_seen": "2026-06-13T04:06:15+00:00",
+          "last_used": "2026-06-13T04:06:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f66525ee-8ac6-457b-be52-6487aca81625",
+          "first_seen": "2026-06-13T04:07:33+00:00",
+          "last_used": "2026-06-13T04:07:33+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "453690c8-5487-4b52-95c8-77b2da71917c",
+          "first_seen": "2026-06-13T04:12:18+00:00",
+          "last_used": "2026-06-13T04:12:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "17f140f7-c83b-43b5-a71c-3d44f0a8e9f9",
+          "first_seen": "2026-06-13T04:13:07+00:00",
+          "last_used": "2026-06-13T04:13:07+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "30fb47af-ec5d-4d6c-a997-d101d6192b28",
+          "first_seen": "2026-06-13T04:15:50+00:00",
+          "last_used": "2026-06-13T04:15:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ebcddfd0-1518-4d40-932f-3eafb05f5f5f",
+          "first_seen": "2026-06-13T04:16:33+00:00",
+          "last_used": "2026-06-13T04:16:33+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "f5bb5bc0-582a-4529-be39-9378d694dac8",
+          "first_seen": "2026-06-13T04:17:35+00:00",
+          "last_used": "2026-06-13T04:17:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1f572eaa-d4f9-4f75-84c8-a8c089250e15",
+          "first_seen": "2026-06-13T04:18:32+00:00",
+          "last_used": "2026-06-13T04:18:32+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "befe613c-4e5e-4138-8b84-fbb3fef73440",
+          "first_seen": "2026-06-13T04:23:42+00:00",
+          "last_used": "2026-06-13T04:23:42+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0fe419f9-4abf-4617-b2eb-a5bda9ef1504",
+          "first_seen": "2026-06-13T04:24:44+00:00",
+          "last_used": "2026-06-13T04:24:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "65751c42-cd32-4000-a2a3-aeb37ca155cf",
+          "first_seen": "2026-06-13T04:25:56+00:00",
+          "last_used": "2026-06-13T04:25:56+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "13de7aea-86cf-4e80-a0fd-8adb2171f66d",
+          "first_seen": "2026-06-13T04:27:44+00:00",
+          "last_used": "2026-06-13T04:27:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e2f734ab-b741-442c-941a-1b54b778a375",
+          "first_seen": "2026-06-13T04:28:02+00:00",
+          "last_used": "2026-06-13T04:28:02+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "0f397414-864f-423a-b68a-3235817b9539",
+          "first_seen": "2026-06-13T04:28:25+00:00",
+          "last_used": "2026-06-13T04:28:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ba7e31b9-e39c-41c0-b4d8-d17afd81b75a",
+          "first_seen": "2026-06-13T04:29:17+00:00",
+          "last_used": "2026-06-13T04:29:17+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "5d7a989b-ca38-4693-b1ec-4bbced362911",
+          "first_seen": "2026-06-13T05:08:27+00:00",
+          "last_used": "2026-06-13T05:08:27+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "325753a5-aff3-4759-80ee-f5f23b3cc287",
+          "first_seen": "2026-06-13T05:12:03+00:00",
+          "last_used": "2026-06-13T05:12:03+00:00"
+        },
+        {
+          "kind": "refactor",
+          "spawned_by": "manager",
+          "session_id": "e98d758e-676a-4db8-8ef9-08c011ed7356",
+          "first_seen": "2026-06-13T05:17:24+00:00",
+          "last_used": "2026-06-13T05:17:24+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4898,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the claim carefully:\n\nThe lemma states that for a CDMG $G=(J,V,E,L)$ and two disjoint subsets $W_1, W_2 \\subseteq V$, the iterated marginalizations $(G^{\\sm W_1})^{\\sm W_2}$, $(G^{\\sm W_2})^{\\sm W_1}$, and the joint marginalization $G^{\\sm (W_1 \\cup W_2)}$ are all equal.\n\nLet me check potential issues:\n\n1. **Type safety of nested marginalization**: For $(G^{\\sm W_1})^{\\sm W_2}$ to be well-defined, $W_2$ must be a subset of the output nodes of $G^{\\sm W_1}$, namely $V \\setminus W_1$. The disjointness assumption $W_1 \\cap W_2 = \\emptyset$ combined with $W_2 \\subseteq V$ ensures this. ✓\n\n2. **Degenerate cases**:\n   - $W_1 = W_2 = \\emptyset$: Two empty sets are disjoint; the claim reduces to $G = G = G$. ✓\n   - $W_1 = \\emptyset$, $W_2 \\neq \\emptyset$: Reduces to $G^{\\sm W_2} = G^{\\sm W_2} = G^{\\sm W_2}$. ✓\n   - $W_1 = V$: After marginalizing, output set is empty; $W_2 \\subseteq V$ disjoint from $V$ forces $W_2 = \\emptyset$. ✓\n\n3. **Internal consistency**: The notation $G^{\\sm (W_1 \\cup W_2)}$ is well-defined since $W_1 \\cup W_2 \\subseteq V$.\n\n4. **\"Output nodes\"**: The terminology is consistent with the CDMG convention where $V$ are the output (observed) nodes and $J$ the intervention nodes.\n\n5. **Disjointness**: \"Two disjoint subsets\" unambiguously means $W_1 \\cap W_2 = \\emptyset$.\n\nThe wording is clean. Whether the equality actually holds is a proof concern (it depends on the marginalization definition producing a canonical graph regardless of order), but the *statement* itself is unambiguous about what is being asserted.\n\nNO_SUBTLETIES",
+        "session": "ffca47d3-50e0-4722-85e3-3f1adb7320a5"
+      }
     },
     {
       "def_or_claim": "claim",
