@@ -27,38 +27,35 @@ This file formalises the LN remark `claim_3_16`
 >        order of `G` induces a topological order of `G^{∖W}` (by
 >        just ignoring the nodes from `W`).
 
-The authoritative spec is the rewritten canonical tex statement at
+The authoritative spec is the canonical tex statement at
 `leanification/Chapter3_GraphTheory/Section3_2/tex/`
-`claim_3_16_statement_MargPreservesAncestors.tex`, verified
-equivalent to the LN block + `addition_to_the_LN` by
-`verify_tex_statement_only` and `verify_tex_statement_equivalence`.
-The `addition_to_the_LN` clarifies the ambiguous "(and, optionally,
+`claim_3_16_statement_MargPreservesAncestors.tex`, equivalent to
+the LN block plus the `addition_to_the_LN` clarifications.  The
+`addition_to_the_LN` clarifies the ambiguous "(and, optionally,
 `v_3 ∈ G ∖ W`)" parenthetical of item ii as **two separate
 biconditionals** — once with the parenthetical clauses omitted (the
 sourceless form (a)) and once with them included (the sourced form
-(b)).  Sub-claim iii is further unfolded by the rewrite into two
-sub-assertions: (a) preservation of acyclicity, and (b) restriction
-of any topological order of `G` to a topological order of `G^{∖W}`.
+(b)).  Sub-claim iii is unfolded into two sub-assertions: (a)
+preservation of acyclicity, and (b) restriction of any topological
+order of `G` to a topological order of `G^{∖W}`.
 
-The rewrite folded two LN-critic working-phase subtleties into the
-canonical tex as structural resolutions:
+Two subtleties in the LN's wording are made explicit by the
+canonical tex:
 
-* `optionally_v3_phrasing_creates_dual_claim` — resolved by the
-  `addition_to_the_LN` clauses (a) and (b) above: the literal LN
-  asserts two biconditionals, not one.
-* `bifurcation_no_source_existential_admits_w_source` — under the
-  sourceless reading, the LHS's existential over the source ranges
-  over `J ∪ V` (including `W`), while the RHS's ranges over
-  `J ∪ (V ∖ W)`.  The biconditional silently relies on
+* The "(and, optionally, `v_3 ∈ G ∖ W`)" parenthetical is resolved
+  by the `addition_to_the_LN` clauses (a) and (b) above: the
+  literal LN asserts two biconditionals, not one.
+* Under the sourceless reading, the LHS's existential over the
+  source ranges over `J ∪ V` (including `W`), while the RHS's
+  ranges over `J ∪ (V ∖ W)`.  The biconditional silently relies on
   `Walk.IsBifurcation` admitting the `n = 1` direct bidirected edge
   case (so that a `Y`-fork through `W` collapses to a bidirected
   edge in `G^{∖W}`); this is exactly what the chapter-init addition
   `[bifurcation_index_boundary_excludes_natural_cases]` of
-  `def_3_4` `IsBifurcation` admits.  Worth a global subtlety
-  register entry (handled separately by the manager).
+  `def_3_4` `IsBifurcation` admits.
 
 The remark bundles five sub-assertions — three primary sub-claims,
-two of which split further per the rewrite — under one `\begin{Rem}`.
+two of which split further — under one `\begin{Rem}`.
 This file states each as its **own top-level theorem**:
 
 * `marginalize_preserves_ancestors` (sub-claim i): the ancestral-
@@ -80,9 +77,8 @@ This file states each as its **own top-level theorem**:
   inside `IsTopologicalOrder` already restricts the order's
   effective domain to `J ∪ (V ∖ W)`).
 
-The proof bodies are filled in by `prove_claim_in_lean` (Manager B),
-following the verified TeX proof at
-`tex/claim_3_16_proof_MargPreservesAncestors.tex` (to be written).
+The proof bodies follow the TeX proof at
+`tex/claim_3_16_proof_MargPreservesAncestors.tex`.
 -/
 
 namespace CDMG
@@ -234,7 +230,7 @@ private lemma Walk.target_in_G_of_directedWalk_pos {G : CDMG Node} :
   exact Finset.mem_union_right _
     (Walk.target_in_GV_of_directedWalk_pos p hdir hlen)
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: mem_of_mem_marginalize
+
 /-- Lift node membership from the marginalized CDMG back to `G`. -/
 private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
     {hW : W ⊆ G.V} {v : Node} (h : v ∈ G.marginalize W hW) : v ∈ G := by
@@ -243,20 +239,8 @@ private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
   rcases Finset.mem_union.mp h with hJ | hVW
   · exact Finset.mem_union_left _ hJ
   · exact Finset.mem_union_right _ (Finset.mem_sdiff.mp hVW).1
--- REFACTOR-BLOCK-ORIGINAL-END: mem_of_mem_marginalize
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: mem_of_mem_marginalize (was: refactor_mem_of_mem_marginalize)
-/-- Lift node membership from the marginalized CDMG back to `G`. -/
-private lemma refactor_mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
-    {hW : W ⊆ G.V} {v : Node} (h : v ∈ G.refactor_marginalize W hW) : v ∈ G := by
-  change v ∈ G.J ∪ (G.V \ W) at h
-  change v ∈ G.J ∪ G.V
-  rcases Finset.mem_union.mp h with hJ | hVW
-  · exact Finset.mem_union_left _ hJ
-  · exact Finset.mem_union_right _ (Finset.mem_sdiff.mp hVW).1
--- REFACTOR-BLOCK-REPLACEMENT-END: mem_of_mem_marginalize
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: notW_of_mem_marginalize
 /-- A node in `G.marginalize W hW` is outside `W` (uses `hJV_disj`
 to handle the `J`-disjunct). -/
 private lemma notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
@@ -267,20 +251,6 @@ private lemma notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
   · have hv_V : v ∈ G.V := hW hv_W
     exact Finset.disjoint_left.mp G.hJV_disj hJ hv_V
   · exact (Finset.mem_sdiff.mp hVW).2 hv_W
--- REFACTOR-BLOCK-ORIGINAL-END: notW_of_mem_marginalize
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: notW_of_mem_marginalize (was: refactor_notW_of_mem_marginalize)
-/-- A node in `G.refactor_marginalize W hW` is outside `W` (uses `hJV_disj`
-to handle the `J`-disjunct). -/
-private lemma refactor_notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
-    (hW : W ⊆ G.V) {v : Node} (h : v ∈ G.refactor_marginalize W hW) : v ∉ W := by
-  intro hv_W
-  change v ∈ G.J ∪ (G.V \ W) at h
-  rcases Finset.mem_union.mp h with hJ | hVW
-  · have hv_V : v ∈ G.V := hW hv_W
-    exact Finset.disjoint_left.mp G.hJV_disj hJ hv_V
-  · exact (Finset.mem_sdiff.mp hVW).2 hv_W
--- REFACTOR-BLOCK-REPLACEMENT-END: notW_of_mem_marginalize
 
 /-- Along a non-trivial directed walk in `G`, parent-precedence plus
 transitivity force `lt` between source and target.  This is the
@@ -331,7 +301,7 @@ private lemma Walk.tail_vertices_ne_nil_of_pos {G : CDMG Node} :
   | _, _, .nil _ _, h => by simp [Walk.length] at h
   | _, _, .cons _ _ _ p', _ => Walk.vertices_ne_nil p'
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: expand_directed_walk_marginalize
+
 /-- Lift a directed walk in the marginalized CDMG to a directed walk
 in the ambient `G`, with length at least the original AND vertex
 bounds linking the expansion's vertices to the marg-walk's vertices
@@ -367,93 +337,6 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
             ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
               (fun e => G.MarginalizationΦE W e.1 e.2) := ha_mem'
       have ha_phi : G.MarginalizationΦE W u vMid :=
-        (Finset.mem_filter.mp ha_filter).2
-      obtain ⟨q_edge, hq_edge_dir, hq_edge_pos, hq_edge_inter, _⟩ := ha_phi
-      obtain ⟨q_tail, hq_tail_dir, hq_tail_len, hq_tail_sub, hq_tail_drop_sub⟩ :=
-        ih hp'_dir
-      have hq_edge_vs : q_edge.vertices = u :: q_edge.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail q_edge
-      have h_qe_tail_ne : q_edge.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos q_edge hq_edge_pos
-      have h_qt_vs_ne : q_tail.vertices ≠ [] := Walk.vertices_ne_nil q_tail
-      have hp'_vs_ne : p'.vertices ≠ [] := Walk.vertices_ne_nil p'
-      refine ⟨q_edge.comp q_tail,
-              Walk.isDirectedWalk_comp q_edge q_tail hq_edge_dir hq_tail_dir,
-              ?_, ?_, ?_⟩
-      · rw [Walk.length_comp]
-        change q_edge.length + q_tail.length ≥ p'.length + 1
-        omega
-      · -- (q_edge.comp q_tail).vertices ⊆ p.vertices ∪ W.
-        intro x hx
-        rw [Walk.vertices_comp] at hx
-        change x ∈ u :: p'.vertices ∨ x ∈ W
-        rcases List.mem_append.mp hx with hx_edge | hx_tail
-        · rw [hq_edge_vs] at hx_edge
-          rw [List.dropLast_cons_of_ne_nil h_qe_tail_ne] at hx_edge
-          rcases List.mem_cons.mp hx_edge with rfl | hx_in_qe_t_d
-          · exact Or.inl List.mem_cons_self
-          · exact Or.inr (hq_edge_inter x hx_in_qe_t_d)
-        · rcases hq_tail_sub x hx_tail with h_p' | h_w
-          · exact Or.inl (List.mem_cons.mpr (Or.inr h_p'))
-          · exact Or.inr h_w
-      · -- (q_edge.comp q_tail).vertices.dropLast ⊆ p.vertices.dropLast ∪ W.
-        intro x hx
-        have h_vs_comp : (q_edge.comp q_tail).vertices
-            = q_edge.vertices.dropLast ++ q_tail.vertices :=
-          Walk.vertices_comp q_edge q_tail
-        rw [h_vs_comp] at hx
-        rw [List.dropLast_append_of_ne_nil h_qt_vs_ne] at hx
-        -- (cons u a hStep p').vertices = u :: p'.vertices.
-        -- (u :: p'.vertices).dropLast = u :: p'.vertices.dropLast.
-        change x ∈ (u :: p'.vertices).dropLast ∨ x ∈ W
-        rw [List.dropLast_cons_of_ne_nil hp'_vs_ne]
-        rcases List.mem_append.mp hx with hx_edge | hx_tail_drop
-        · rw [hq_edge_vs] at hx_edge
-          rw [List.dropLast_cons_of_ne_nil h_qe_tail_ne] at hx_edge
-          rcases List.mem_cons.mp hx_edge with rfl | hx_in_qe_t_d
-          · exact Or.inl List.mem_cons_self
-          · exact Or.inr (hq_edge_inter x hx_in_qe_t_d)
-        · rcases hq_tail_drop_sub x hx_tail_drop with h_p' | h_w
-          · exact Or.inl (List.mem_cons.mpr (Or.inr h_p'))
-          · exact Or.inr h_w
--- REFACTOR-BLOCK-ORIGINAL-END: expand_directed_walk_marginalize
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: expand_directed_walk_marginalize (was: refactor_expand_directed_walk_marginalize)
-/-- Lift a directed walk in the marginalized CDMG to a directed walk
-in the ambient `G`, with length at least the original AND vertex
-bounds linking the expansion's vertices to the marg-walk's vertices
-plus `W`.  Each marg-edge expands via the `Φ_E` witness (whose
-intermediates lie in `W`); the concatenation of expansions preserves
-directedness and is at least as long as the marg-walk. -/
-private lemma refactor_expand_directed_walk_marginalize {G : CDMG Node}
-    {W : Finset Node} {hW : W ⊆ G.V} :
-    ∀ {u v : Node} (p : Walk (G.refactor_marginalize W hW) u v),
-      p.IsDirectedWalk →
-      ∃ (q : Walk G u v),
-        q.IsDirectedWalk ∧ q.length ≥ p.length ∧
-        (∀ x ∈ q.vertices, x ∈ p.vertices ∨ x ∈ W) ∧
-        (∀ x ∈ q.vertices.dropLast, x ∈ p.vertices.dropLast ∨ x ∈ W) := by
-  intro u v p
-  induction p with
-  | nil v hv =>
-      intro _
-      have hv_g : v ∈ G := refactor_mem_of_mem_marginalize hv
-      refine ⟨Walk.nil v hv_g, trivial, by simp [Walk.length], ?_, ?_⟩
-      · intro x hx
-        change x ∈ [v] at hx
-        change x ∈ [v] ∨ x ∈ W
-        exact Or.inl hx
-      · intro x hx
-        change x ∈ ([v] : List Node).dropLast at hx
-        simp [List.dropLast] at hx
-  | @cons u v_end vMid a hStep p' ih =>
-      intro hp_dir
-      obtain ⟨ha_eq, ha_mem, hp'_dir⟩ := hp_dir
-      have ha_mem' : (u, vMid) ∈ (G.refactor_marginalize W hW).E := ha_eq ▸ ha_mem
-      have ha_filter : (u, vMid) ∈
-            ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-              (fun e => G.refactor_MarginalizationΦE W e.1 e.2) := ha_mem'
-      have ha_phi : G.refactor_MarginalizationΦE W u vMid :=
         (Finset.mem_filter.mp ha_filter).2
       obtain ⟨q_edge, hq_edge_dir, hq_edge_pos, hq_edge_inter⟩ := ha_phi
       obtain ⟨q_tail, hq_tail_dir, hq_tail_len, hq_tail_sub, hq_tail_drop_sub⟩ :=
@@ -503,7 +386,6 @@ private lemma refactor_expand_directed_walk_marginalize {G : CDMG Node}
         · rcases hq_tail_drop_sub x hx_tail_drop with h_p' | h_w
           · exact Or.inl (List.mem_cons.mpr (Or.inr h_p'))
           · exact Or.inr h_w
--- REFACTOR-BLOCK-REPLACEMENT-END: expand_directed_walk_marginalize
 
 -- ## Walk projection: given a directed walk in `G` whose target lies
 -- outside `W`, find the first non-`W` vertex along the walk (other
@@ -584,11 +466,11 @@ private lemma find_first_non_W_directed {G : CDMG Node} (W : Finset Node) :
           change u :: p'.vertices = [u] ++ p'.vertices
           rfl
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: project_directed_walk_aux
+
 /-- Project a directed walk from `G` to the marginalized CDMG, given
-both endpoints lie in `G.marginalize W hW`.  Constructed by strong
-induction on walk length: iteratively peel off a head segment from
-`v₁` to the first non-`W` vertex, witness the corresponding
+both endpoints lie in `G.marginalize W hW`.  Constructed by
+strong induction on walk length: iteratively peel off a head segment
+from `v₁` to the first non-`W` vertex, witness the corresponding
 `marg`-edge via the `Φ_E` predicate, and recurse on the tail.  The
 projected walk is shorter than the original (a single `marg`-edge
 absorbs an arbitrary `W`-traversal). -/
@@ -629,11 +511,8 @@ private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
           ih tail h_tail_len h_tail_dir hm_marg hv₂
         by_cases hv₁_eq_m : v₁ = m
         · -- Self-loop / degenerate case: head is a `v₁ → ... → v₁` cycle
-          -- through `W`.  The projected walk simply skips this loop
-          -- (the marg-side self-edge `(v₁, v₁) ∈ marg.E` requires a
-          -- length-`≥ 2` witness, but we can avoid producing such an
-          -- edge entirely by returning `q_tail` directly with `v₁ = m`
-          -- on the type level).
+          -- through `W`.  Return `q_tail` directly (with `v₁ = m` on
+          -- the type level).
           subst hv₁_eq_m
           exact ⟨q_tail, hq_tail_dir⟩
         · -- v₁ ≠ m: build a single `marg`-edge from v₁ to m, then
@@ -645,84 +524,13 @@ private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
             · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
               exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
             · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
-              refine ⟨head, h_head_dir, h_head_pos, h_head_inter, ?_⟩
-              intro heq
-              exact absurd heq hv₁_eq_m
+              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
           have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :=
             Or.inl ⟨rfl, Or.inl h_edge_marg⟩
           exact ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
                  ⟨rfl, h_edge_marg, hq_tail_dir⟩⟩
--- REFACTOR-BLOCK-ORIGINAL-END: project_directed_walk_aux
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: project_directed_walk_aux (was: refactor_project_directed_walk_aux)
-/-- Project a directed walk from `G` to the marginalized CDMG, given
-both endpoints lie in `G.refactor_marginalize W hW`.  Constructed by
-strong induction on walk length: iteratively peel off a head segment
-from `v₁` to the first non-`W` vertex, witness the corresponding
-`marg`-edge via the `Φ_E` predicate, and recurse on the tail.  The
-projected walk is shorter than the original (a single `marg`-edge
-absorbs an arbitrary `W`-traversal). -/
-private lemma refactor_project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
-    {hW : W ⊆ G.V} :
-    ∀ (n : ℕ) {v₁ v₂ : Node} (p : Walk G v₁ v₂),
-      p.length ≤ n →
-      p.IsDirectedWalk →
-      v₁ ∈ G.refactor_marginalize W hW →
-      v₂ ∈ G.refactor_marginalize W hW →
-      ∃ (q : Walk (G.refactor_marginalize W hW) v₁ v₂), q.IsDirectedWalk := by
-  intro n
-  induction n with
-  | zero =>
-      intros v₁ v₂ p hp_len _ hv₁ _
-      have hp_zero : p.length = 0 := by omega
-      match p, hp_zero with
-      | .nil v _, _ => exact ⟨Walk.nil v hv₁, trivial⟩
-  | succ k ih =>
-      intros v₁ v₂ p hp_len hp_dir hv₁ hv₂
-      by_cases hp_zero : p.length = 0
-      · match p, hp_zero with
-        | .nil v _, _ => exact ⟨Walk.nil v hv₁, trivial⟩
-      · have hp_pos : p.length ≥ 1 := Nat.one_le_iff_ne_zero.mpr hp_zero
-        have hv₂_notW : v₂ ∉ W := refactor_notW_of_mem_marginalize hW hv₂
-        obtain ⟨m, head, tail, h_head_dir, h_tail_dir, h_head_pos,
-                hm_notW, h_head_inter, h_lens, _⟩ :=
-          find_first_non_W_directed W p hp_dir hp_pos hv₂_notW
-        -- m ∈ G.V (target of a directed walk of length ≥ 1).
-        have hm_V : m ∈ G.V :=
-          Walk.target_in_GV_of_directedWalk_pos head h_head_dir h_head_pos
-        have hm_marg : m ∈ G.refactor_marginalize W hW := by
-          change m ∈ G.J ∪ (G.V \ W)
-          exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩)
-        -- Project the tail.
-        have h_tail_len : tail.length ≤ k := by omega
-        obtain ⟨q_tail, hq_tail_dir⟩ :=
-          ih tail h_tail_len h_tail_dir hm_marg hv₂
-        by_cases hv₁_eq_m : v₁ = m
-        · -- Self-loop / degenerate case: head is a `v₁ → ... → v₁` cycle
-          -- through `W`.  Under refactor, the marg-side self-edge
-          -- `(v₁, v₁) ∈ marg.E` is admitted with a length-`≥ 1`
-          -- witness, but we keep the legacy shortcut of returning
-          -- `q_tail` directly (with `v₁ = m` on the type level) for
-          -- proof-structural parity with the original.
-          subst hv₁_eq_m
-          exact ⟨q_tail, hq_tail_dir⟩
-        · -- v₁ ≠ m: build a single `marg`-edge from v₁ to m, then
-          -- prepend to the projected tail.
-          have h_edge_marg : (v₁, m) ∈ (G.refactor_marginalize W hW).E := by
-            change (v₁, m) ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-                  (fun e => G.refactor_MarginalizationΦE W e.1 e.2)
-            refine Finset.mem_filter.mpr ⟨?_, ?_⟩
-            · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
-              exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
-            · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
-              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
-          have hStep_marg : (G.refactor_marginalize W hW).WalkStep v₁ (v₁, m) m :=
-            Or.inl ⟨rfl, Or.inl h_edge_marg⟩
-          exact ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
-                 ⟨rfl, h_edge_marg, hq_tail_dir⟩⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: project_directed_walk_aux
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: project_directed_walk_marginalize
 /-- Convenience wrapper: project a directed walk from `G` to
 `G.marginalize W hW`, with both endpoints in the marg-carrier. -/
 private lemma project_directed_walk_marginalize {G : CDMG Node}
@@ -731,23 +539,11 @@ private lemma project_directed_walk_marginalize {G : CDMG Node}
     (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
     ∃ (q : Walk (G.marginalize W hW) v₁ v₂), q.IsDirectedWalk :=
   project_directed_walk_aux (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
--- REFACTOR-BLOCK-ORIGINAL-END: project_directed_walk_marginalize
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: project_directed_walk_marginalize (was: refactor_project_directed_walk_marginalize)
-/-- Convenience wrapper: project a directed walk from `G` to
-`G.refactor_marginalize W hW`, with both endpoints in the marg-carrier. -/
-private lemma refactor_project_directed_walk_marginalize {G : CDMG Node}
-    {W : Finset Node} {hW : W ⊆ G.V}
-    {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
-    (hv₁ : v₁ ∈ G.refactor_marginalize W hW) (hv₂ : v₂ ∈ G.refactor_marginalize W hW) :
-    ∃ (q : Walk (G.refactor_marginalize W hW) v₁ v₂), q.IsDirectedWalk :=
-  refactor_project_directed_walk_aux (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
--- REFACTOR-BLOCK-REPLACEMENT-END: project_directed_walk_marginalize
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: project_directed_walk_with_vertex_subset_aux
 /-- Strengthened projection: project a directed walk in `G` (between
-two marg-nodes) to a directed walk in `marg`, with the additional
-guarantees:
+two marg-nodes of `G.marginalize W hW`) to a directed walk
+in the same marg, with the additional guarantees:
   - every vertex of the projected walk appears in the original;
   - every vertex of the projected walk's `dropLast` appears in the
     original's `dropLast` (i.e.\ excluding-target sub-list);
@@ -838,7 +634,8 @@ private lemma project_directed_walk_with_vertex_subset_aux
           rw [h_p_eq, h_head_drop_vs]
           rfl
         by_cases hv₁_eq_m : v₁ = m
-        · -- Self-loop case: return q_tail.
+        · -- Self-loop case: return `q_tail` directly (with `v₁ = m` on
+          -- the type level).
           subst hv₁_eq_m
           refine ⟨q_tail, hq_tail_dir, ?_, ?_, ?_⟩
           · -- q_tail.vertices ⊆ p.vertices.
@@ -861,9 +658,8 @@ private lemma project_directed_walk_with_vertex_subset_aux
             refine Finset.mem_filter.mpr ⟨?_, ?_⟩
             · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
               exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
-            · refine ⟨head, h_head_dir, h_head_pos, h_head_inter, ?_⟩
-              intro heq
-              exact absurd heq hv₁_eq_m
+            · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
+              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
           have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :=
             Or.inl ⟨rfl, Or.inl h_edge_marg⟩
           refine ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
@@ -896,169 +692,12 @@ private lemma project_directed_walk_with_vertex_subset_aux
             -- p.vertices.tail = head.vertices.dropLast.tail ++ tail.vertices.
             -- q_tail.vertices ⊆ tail.vertices ⊆ p.vertices.tail.
             exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx))
--- REFACTOR-BLOCK-ORIGINAL-END: project_directed_walk_with_vertex_subset_aux
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: project_directed_walk_with_vertex_subset_aux (was: refactor_project_directed_walk_with_vertex_subset_aux)
-/-- Strengthened projection: project a directed walk in `G` (between
-two marg-nodes of `G.refactor_marginalize W hW`) to a directed walk
-in the same marg, with the additional guarantees:
-  - every vertex of the projected walk appears in the original;
-  - every vertex of the projected walk's `dropLast` appears in the
-    original's `dropLast` (i.e.\ excluding-target sub-list);
-  - every vertex of the projected walk's `tail` appears in the
-    original's `tail` (i.e.\ excluding-source sub-list).
-Used by sub-claim ii(b) `(⟹)`'s end-node uniqueness bookkeeping. -/
-private lemma refactor_project_directed_walk_with_vertex_subset_aux
-    {G : CDMG Node} {W : Finset Node} {hW : W ⊆ G.V} :
-    ∀ (n : ℕ) {v₁ v₂ : Node} (p : Walk G v₁ v₂),
-      p.length ≤ n →
-      p.IsDirectedWalk →
-      v₁ ∈ G.refactor_marginalize W hW →
-      v₂ ∈ G.refactor_marginalize W hW →
-      ∃ (q : Walk (G.refactor_marginalize W hW) v₁ v₂),
-        q.IsDirectedWalk ∧
-        (∀ x ∈ q.vertices, x ∈ p.vertices) ∧
-        (∀ x ∈ q.vertices.dropLast, x ∈ p.vertices.dropLast) ∧
-        (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail) := by
-  intro n
-  induction n with
-  | zero =>
-      intros v₁ v₂ p hp_len _ hv₁ _
-      have hp_zero : p.length = 0 := by omega
-      match p, hp_zero with
-      | .nil v _, _ =>
-          refine ⟨Walk.nil v hv₁, trivial, ?_, ?_, ?_⟩
-          · intro x hx
-            change x ∈ [v] at hx
-            change x ∈ [v]
-            exact hx
-          · intro x hx
-            change x ∈ ([v] : List Node).dropLast at hx
-            simp [List.dropLast] at hx
-          · intro x hx
-            change x ∈ ([v] : List Node).tail at hx
-            simp [List.tail] at hx
-  | succ k ih =>
-      intros v₁ v₂ p hp_len hp_dir hv₁ hv₂
-      by_cases hp_zero : p.length = 0
-      · match p, hp_zero with
-        | .nil v _, _ =>
-            refine ⟨Walk.nil v hv₁, trivial, ?_, ?_, ?_⟩
-            · intro x hx
-              change x ∈ [v] at hx
-              change x ∈ [v]
-              exact hx
-            · intro x hx
-              change x ∈ ([v] : List Node).dropLast at hx
-              simp [List.dropLast] at hx
-            · intro x hx
-              change x ∈ ([v] : List Node).tail at hx
-              simp [List.tail] at hx
-      · have hp_pos : p.length ≥ 1 := Nat.one_le_iff_ne_zero.mpr hp_zero
-        have hv₂_notW : v₂ ∉ W := refactor_notW_of_mem_marginalize hW hv₂
-        obtain ⟨m, head, tail, h_head_dir, h_tail_dir, h_head_pos,
-                hm_notW, h_head_inter, h_lens, h_p_eq⟩ :=
-          find_first_non_W_directed W p hp_dir hp_pos hv₂_notW
-        have hm_V : m ∈ G.V :=
-          Walk.target_in_GV_of_directedWalk_pos head h_head_dir h_head_pos
-        have hm_marg : m ∈ G.refactor_marginalize W hW := by
-          change m ∈ G.J ∪ (G.V \ W)
-          exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩)
-        have h_tail_len : tail.length ≤ k := by omega
-        obtain ⟨q_tail, hq_tail_dir, hq_tail_sub, hq_tail_drop, hq_tail_tail⟩ :=
-          ih tail h_tail_len h_tail_dir hm_marg hv₂
-        -- Bookkeeping: head.vertices = v₁ :: head.vertices.tail, with
-        -- non-empty tail.
-        have h_head_drop_ne : head.vertices.tail ≠ [] :=
-            Walk.tail_vertices_ne_nil_of_pos head h_head_pos
-        have h_head_vs : head.vertices = v₁ :: head.vertices.tail :=
-            Walk.vertices_eq_head_cons_tail head
-        have h_v1_in_drop : v₁ ∈ head.vertices.dropLast := by
-          rw [h_head_vs]
-          rw [List.dropLast_cons_of_ne_nil h_head_drop_ne]
-          exact List.mem_cons_self
-        have h_head_drop_vs : head.vertices.dropLast =
-            v₁ :: head.vertices.tail.dropLast := by
-          rw [h_head_vs]
-          exact List.dropLast_cons_of_ne_nil h_head_drop_ne
-        -- p.vertices.dropLast: derived from p.vertices = head.dropLast ++ tail.
-        have h_tail_vs_ne : tail.vertices ≠ [] := Walk.vertices_ne_nil tail
-        have h_p_drop : p.vertices.dropLast =
-            head.vertices.dropLast ++ tail.vertices.dropLast := by
-          rw [h_p_eq]
-          exact List.dropLast_append_of_ne_nil h_tail_vs_ne
-        have h_p_tail : p.vertices.tail =
-            head.vertices.dropLast.tail ++ tail.vertices := by
-          rw [h_p_eq, h_head_drop_vs]
-          rfl
-        by_cases hv₁_eq_m : v₁ = m
-        · -- Self-loop case: return q_tail.  Under refactor, the marg-side
-          -- self-edge `(v₁, v₁) ∈ marg.E` is admitted with a length-`≥ 1`
-          -- witness, but the legacy shortcut of returning `q_tail` directly
-          -- (with `v₁ = m` on the type level) still works and keeps the
-          -- proof structure parallel to the original.
-          subst hv₁_eq_m
-          refine ⟨q_tail, hq_tail_dir, ?_, ?_, ?_⟩
-          · -- q_tail.vertices ⊆ p.vertices.
-            intro x hx
-            rw [h_p_eq]
-            exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx))
-          · -- q_tail.vertices.dropLast ⊆ p.vertices.dropLast.
-            intro x hx
-            rw [h_p_drop]
-            exact List.mem_append.mpr (Or.inr (hq_tail_drop x hx))
-          · -- q_tail.vertices.tail ⊆ p.vertices.tail.
-            intro x hx
-            rw [h_p_tail]
-            have hx_t : x ∈ tail.vertices.tail := hq_tail_tail x hx
-            exact List.mem_append.mpr (Or.inr (List.mem_of_mem_tail hx_t))
-        · -- Non-self-loop case: build single marg-edge.
-          have h_edge_marg : (v₁, m) ∈ (G.refactor_marginalize W hW).E := by
-            change (v₁, m) ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-                  (fun e => G.refactor_MarginalizationΦE W e.1 e.2)
-            refine Finset.mem_filter.mpr ⟨?_, ?_⟩
-            · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
-              exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
-            · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
-              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
-          have hStep_marg : (G.refactor_marginalize W hW).WalkStep v₁ (v₁, m) m :=
-            Or.inl ⟨rfl, Or.inl h_edge_marg⟩
-          refine ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
-                  ⟨rfl, h_edge_marg, hq_tail_dir⟩, ?_, ?_, ?_⟩
-          · -- q.vertices ⊆ p.vertices.
-            intro x hx
-            change x ∈ v₁ :: q_tail.vertices at hx
-            rw [h_p_eq]
-            rcases List.mem_cons.mp hx with hx_v1 | hx_tail
-            · subst hx_v1
-              exact List.mem_append.mpr (Or.inl h_v1_in_drop)
-            · exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx_tail))
-          · -- q.vertices.dropLast ⊆ p.vertices.dropLast.
-            -- q.vertices = v₁ :: q_tail.vertices.  q_tail.vertices is non-empty,
-            -- so q.vertices.dropLast = v₁ :: q_tail.vertices.dropLast.
-            intro x hx
-            have h_qt_vs_ne : q_tail.vertices ≠ [] := Walk.vertices_ne_nil q_tail
-            change x ∈ (v₁ :: q_tail.vertices).dropLast at hx
-            rw [List.dropLast_cons_of_ne_nil h_qt_vs_ne] at hx
-            rw [h_p_drop]
-            rcases List.mem_cons.mp hx with hx_v1 | hx_qtl
-            · subst hx_v1
-              exact List.mem_append.mpr (Or.inl h_v1_in_drop)
-            · exact List.mem_append.mpr (Or.inr (hq_tail_drop x hx_qtl))
-          · -- q.vertices.tail ⊆ p.vertices.tail.
-            -- q.vertices = v₁ :: q_tail.vertices.  q.vertices.tail = q_tail.vertices.
-            intro x hx
-            change x ∈ q_tail.vertices at hx
-            rw [h_p_tail]
-            -- p.vertices.tail = head.vertices.dropLast.tail ++ tail.vertices.
-            -- q_tail.vertices ⊆ tail.vertices ⊆ p.vertices.tail.
-            exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx))
--- REFACTOR-BLOCK-REPLACEMENT-END: project_directed_walk_with_vertex_subset_aux
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: project_directed_walk_strong
 /-- Convenience wrapper for the strong projection: project a directed
-walk `p : Walk G v₁ v₂` (between marg-nodes) to a directed walk
-`q : Walk marg v₁ v₂` with the three vertex-subset clauses. -/
+walk `p : Walk G v₁ v₂` (between marg-nodes of `G.marginalize W hW`)
+to a directed walk `q : Walk marg v₁ v₂` with the three vertex-subset
+clauses. -/
 private lemma project_directed_walk_strong {G : CDMG Node}
     {W : Finset Node} {hW : W ⊆ G.V}
     {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
@@ -1070,25 +709,6 @@ private lemma project_directed_walk_strong {G : CDMG Node}
       (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail) :=
   project_directed_walk_with_vertex_subset_aux
     (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
--- REFACTOR-BLOCK-ORIGINAL-END: project_directed_walk_strong
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: project_directed_walk_strong (was: refactor_project_directed_walk_strong)
-/-- Convenience wrapper for the strong projection: project a directed
-walk `p : Walk G v₁ v₂` (between marg-nodes of `G.refactor_marginalize W hW`)
-to a directed walk `q : Walk marg v₁ v₂` with the three vertex-subset
-clauses. -/
-private lemma refactor_project_directed_walk_strong {G : CDMG Node}
-    {W : Finset Node} {hW : W ⊆ G.V}
-    {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
-    (hv₁ : v₁ ∈ G.refactor_marginalize W hW) (hv₂ : v₂ ∈ G.refactor_marginalize W hW) :
-    ∃ (q : Walk (G.refactor_marginalize W hW) v₁ v₂),
-      q.IsDirectedWalk ∧
-      (∀ x ∈ q.vertices, x ∈ p.vertices) ∧
-      (∀ x ∈ q.vertices.dropLast, x ∈ p.vertices.dropLast) ∧
-      (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail) :=
-  refactor_project_directed_walk_with_vertex_subset_aux
-    (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
--- REFACTOR-BLOCK-REPLACEMENT-END: project_directed_walk_strong
 
 /-- A walk between distinct endpoints has length `≥ 1`. -/
 private lemma Walk.length_pos_of_ne {G : CDMG Node} {u v : Node}
@@ -2082,7 +1702,7 @@ private lemma Walk.exists_arms_of_bifurcation_bidir_hinge_strong
 
 -- ## Helper: forward direction of sub-claim ii(b) for one orientation.
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_preserves_bifSource_forward
+
 private lemma marg_preserves_bifSource_forward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2147,78 +1767,10 @@ private lemma marg_preserves_bifSource_forward (G : CDMG Node)
     Walk.mkBifurcation_isBifurcationSource L' hL'_dir hL'_pos R' hR'_dir hR'_pos
       huw_ne hu_notin_L'_drop hu_notin_R' hw_notin_L' hw_notin_R'_drop
   exact hc_eq_v3 ▸ h_bif_src
--- REFACTOR-BLOCK-ORIGINAL-END: marg_preserves_bifSource_forward
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_preserves_bifSource_forward (was: refactor_marg_preserves_bifSource_forward)
-private lemma refactor_marg_preserves_bifSource_forward (G : CDMG Node)
-    (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (hv₃ : v₃ ∈ G.refactor_marginalize W hW)
-    (h : ∃ p : Walk G u w, p.IsBifurcationSource v₃) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcationSource v₃ := by
-  obtain ⟨p, hp_src⟩ := h
-  obtain ⟨huw_ne, hu_tail, hw_drop, i, hhinge, hsrc⟩ := hp_src
-  obtain ⟨c, L, R, hL_dir, hR_dir, hL_pos, hR_pos, hidx,
-          hL_sub, hR_sub, hL_drop_sub, hR_drop_sub⟩ :=
-    Walk.exists_arms_of_bifurcation_directed_hinge_strong p i hhinge
-  have hc_eq_v3 : c = v₃ := by
-    rw [hidx] at hsrc
-    exact Option.some.inj hsrc
-  -- v₃ ≠ u via L.vertices.dropLast ⊆ p.vertices.tail + hu_tail.
-  have hv3_ne_u : v₃ ≠ u := by
-    intro heq
-    have h_c_drop : c ∈ L.vertices.dropLast := by
-      have hL_vs : L.vertices = c :: L.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail L
-      have h_t_ne : L.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos L hL_pos
-      rw [hL_vs]
-      rw [List.dropLast_cons_of_ne_nil h_t_ne]
-      exact List.mem_cons_self
-    have h_c_p_tail : c ∈ p.vertices.tail := hL_drop_sub c h_c_drop
-    have hc_eq_u : c = u := hc_eq_v3.trans heq
-    exact hu_tail (hc_eq_u ▸ h_c_p_tail)
-  have hv3_ne_w : v₃ ≠ w := by
-    intro heq
-    have h_c_drop : c ∈ R.vertices.dropLast := by
-      have hR_vs : R.vertices = c :: R.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail R
-      have h_t_ne : R.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos R hR_pos
-      rw [hR_vs]
-      rw [List.dropLast_cons_of_ne_nil h_t_ne]
-      exact List.mem_cons_self
-    have h_c_p_drop : c ∈ p.vertices.dropLast := hR_drop_sub c h_c_drop
-    have hc_eq_w : c = w := hc_eq_v3.trans heq
-    exact hw_drop (hc_eq_w ▸ h_c_p_drop)
-  have hc_marg : c ∈ G.refactor_marginalize W hW := hc_eq_v3 ▸ hv₃
-  obtain ⟨L', hL'_dir, hL'_sub, hL'_drop, _⟩ :=
-    refactor_project_directed_walk_strong L hL_dir hc_marg hu
-  obtain ⟨R', hR'_dir, hR'_sub, hR'_drop, _⟩ :=
-    refactor_project_directed_walk_strong R hR_dir hc_marg hw
-  have hL'_pos : L'.length ≥ 1 :=
-    Walk.length_pos_of_ne L' (hc_eq_v3 ▸ hv3_ne_u)
-  have hR'_pos : R'.length ≥ 1 :=
-    Walk.length_pos_of_ne R' (hc_eq_v3 ▸ hv3_ne_w)
-  -- Verify the four vertex-bound conditions for the generic mkBif lemma.
-  have hu_notin_L'_drop : u ∉ L'.vertices.dropLast := fun h_u =>
-    hu_tail (hL_drop_sub u (hL'_drop u h_u))
-  have hu_notin_R' : u ∉ R'.vertices := fun h_u =>
-    hu_tail (hR_sub u (hR'_sub u h_u))
-  have hw_notin_L' : w ∉ L'.vertices := fun h_w =>
-    hw_drop (hL_sub w (hL'_sub w h_w))
-  have hw_notin_R'_drop : w ∉ R'.vertices.dropLast := fun h_w =>
-    hw_drop (hR_drop_sub w (hR'_drop w h_w))
-  refine ⟨Walk.mkBifurcation L' hL'_dir hL'_pos R', ?_⟩
-  have h_bif_src :=
-    Walk.mkBifurcation_isBifurcationSource L' hL'_dir hL'_pos R' hR'_dir hR'_pos
-      huw_ne hu_notin_L'_drop hu_notin_R' hw_notin_L' hw_notin_R'_drop
-  exact hc_eq_v3 ▸ h_bif_src
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_preserves_bifSource_forward
 
 -- ## Helper: backward direction of sub-claim ii(b) for one orientation.
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_preserves_bifSource_backward
+
 private lemma marg_preserves_bifSource_backward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2301,99 +1853,13 @@ private lemma marg_preserves_bifSource_backward (G : CDMG Node)
     Walk.mkBifurcation_isBifurcationSource L hL_dir hL_pos R hR_dir hR_pos
       huw_ne hu_notin_L_drop hu_notin_R hw_notin_L hw_notin_R_drop
   exact hc_eq_v3 ▸ h_bif_src
--- REFACTOR-BLOCK-ORIGINAL-END: marg_preserves_bifSource_backward
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_preserves_bifSource_backward (was: refactor_marg_preserves_bifSource_backward)
-private lemma refactor_marg_preserves_bifSource_backward (G : CDMG Node)
-    (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (hv₃ : v₃ ∈ G.refactor_marginalize W hW)
-    (h : ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcationSource v₃) :
-    ∃ p : Walk G u w, p.IsBifurcationSource v₃ := by
-  obtain ⟨q, hq_src⟩ := h
-  obtain ⟨huw_ne, hu_tail, hw_drop, i, hhinge, hsrc⟩ := hq_src
-  obtain ⟨c, Lq, Rq, hLq_dir, hRq_dir, hLq_pos, hRq_pos, hidx,
-          hLq_sub, hRq_sub, hLq_drop_sub, hRq_drop_sub⟩ :=
-    Walk.exists_arms_of_bifurcation_directed_hinge_strong q i hhinge
-  have hc_eq_v3 : c = v₃ := by
-    rw [hidx] at hsrc
-    exact Option.some.inj hsrc
-  -- v₃ ≠ u, v₃ ≠ w (analogous to forward direction).
-  have hv3_ne_u : v₃ ≠ u := by
-    intro heq
-    have h_c_drop : c ∈ Lq.vertices.dropLast := by
-      have hLq_vs : Lq.vertices = c :: Lq.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail Lq
-      have h_t_ne : Lq.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos Lq hLq_pos
-      rw [hLq_vs]
-      rw [List.dropLast_cons_of_ne_nil h_t_ne]
-      exact List.mem_cons_self
-    have h_c_q_tail : c ∈ q.vertices.tail := hLq_drop_sub c h_c_drop
-    have hc_eq_u : c = u := hc_eq_v3.trans heq
-    exact hu_tail (hc_eq_u ▸ h_c_q_tail)
-  have hv3_ne_w : v₃ ≠ w := by
-    intro heq
-    have h_c_drop : c ∈ Rq.vertices.dropLast := by
-      have hRq_vs : Rq.vertices = c :: Rq.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail Rq
-      have h_t_ne : Rq.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos Rq hRq_pos
-      rw [hRq_vs]
-      rw [List.dropLast_cons_of_ne_nil h_t_ne]
-      exact List.mem_cons_self
-    have h_c_q_drop : c ∈ q.vertices.dropLast := hRq_drop_sub c h_c_drop
-    have hc_eq_w : c = w := hc_eq_v3.trans heq
-    exact hw_drop (hc_eq_w ▸ h_c_q_drop)
-  -- Expand Lq and Rq to walks in G.
-  obtain ⟨L, hL_dir, hL_len, hL_sub_W, hL_drop_sub_W⟩ :=
-    refactor_expand_directed_walk_marginalize Lq hLq_dir
-  obtain ⟨R, hR_dir, hR_len, hR_sub_W, hR_drop_sub_W⟩ :=
-    refactor_expand_directed_walk_marginalize Rq hRq_dir
-  have hL_pos : L.length ≥ 1 := by omega
-  have hR_pos : R.length ≥ 1 := by omega
-  -- Auxiliary: c ∉ W (since c = v₃ ∈ marg).
-  have hc_notW : c ∉ W := by
-    rw [hc_eq_v3]
-    exact refactor_notW_of_mem_marginalize hW hv₃
-  have hu_notW : u ∉ W := refactor_notW_of_mem_marginalize hW hu
-  have hw_notW : w ∉ W := refactor_notW_of_mem_marginalize hW hw
-  -- Verify the four conditions.
-  have hu_notin_L_drop : u ∉ L.vertices.dropLast := by
-    intro h_u
-    rcases hL_drop_sub_W u h_u with h_Lq_drop | h_u_W
-    · -- u ∈ Lq.vertices.dropLast → u ∈ q.vertices.tail. But u ∉ q.vertices.tail.
-      exact hu_tail (hLq_drop_sub u h_Lq_drop)
-    · exact hu_notW h_u_W
-  have hu_notin_R : u ∉ R.vertices := by
-    intro h_u
-    rcases hR_sub_W u h_u with h_Rq | h_u_W
-    · -- u ∈ Rq.vertices → u ∈ q.vertices.tail.
-      exact hu_tail (hRq_sub u h_Rq)
-    · exact hu_notW h_u_W
-  have hw_notin_L : w ∉ L.vertices := by
-    intro h_w
-    rcases hL_sub_W w h_w with h_Lq | h_w_W
-    · exact hw_drop (hLq_sub w h_Lq)
-    · exact hw_notW h_w_W
-  have hw_notin_R_drop : w ∉ R.vertices.dropLast := by
-    intro h_w
-    rcases hR_drop_sub_W w h_w with h_Rq_drop | h_w_W
-    · exact hw_drop (hRq_drop_sub w h_Rq_drop)
-    · exact hw_notW h_w_W
-  refine ⟨Walk.mkBifurcation L hL_dir hL_pos R, ?_⟩
-  have h_bif_src :=
-    Walk.mkBifurcation_isBifurcationSource L hL_dir hL_pos R hR_dir hR_pos
-      huw_ne hu_notin_L_drop hu_notin_R hw_notin_L hw_notin_R_drop
-  exact hc_eq_v3 ▸ h_bif_src
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_preserves_bifSource_backward
 
 -- ## Helper: forward direction — directed-hinge with source in marg.
 --
 -- Sub-case (H.B) of the TeX proof: the directed hinge's source lies
 -- outside W (so in marg).  Reduces to sub-claim ii(b)'s forward helper
 -- followed by the conversion `IsBifurcationSource → IsBifurcation`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_dir_hinge_src_marg
+
 private lemma marg_bif_forward_dir_hinge_src_marg
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2408,24 +1874,6 @@ private lemma marg_bif_forward_dir_hinge_src_marg
   obtain ⟨q, hq_src⟩ :=
     marg_preserves_bifSource_forward G W hW hu hw hc_marg ⟨p, hp_src⟩
   exact ⟨q, Walk.isBifurcationSource_to_isBifurcation q c hq_src⟩
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_dir_hinge_src_marg
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_dir_hinge_src_marg (was: refactor_marg_bif_forward_dir_hinge_src_marg)
-private lemma refactor_marg_bif_forward_dir_hinge_src_marg
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {p : Walk G u w} (hp : p.IsBifurcation)
-    {i : ℕ} (h_dir : p.IsBifurcationDirectedHingeWithSplit i)
-    {c : Node} (hidx : p.vertices[i + 1]? = some c)
-    (hc_marg : c ∈ G.refactor_marginalize W hW) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hp
-  have hp_src : p.IsBifurcationSource c :=
-    ⟨huw_ne, hu_tail, hw_drop, i, h_dir, hidx⟩
-  obtain ⟨q, hq_src⟩ :=
-    refactor_marg_preserves_bifSource_forward G W hW hu hw hc_marg ⟨p, hp_src⟩
-  exact ⟨q, Walk.isBifurcationSource_to_isBifurcation q c hq_src⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_dir_hinge_src_marg
 
 -- ## Helper: backward direction — directed-hinge marg-bifurcation.
 --
@@ -2433,7 +1881,7 @@ private lemma refactor_marg_bif_forward_dir_hinge_src_marg
 -- marg (since the source is a vertex of the marg walk and all vertices
 -- of a marg walk lie in marg).  Reduces to sub-claim ii(b)'s backward
 -- helper followed by the conversion `IsBifurcationSource → IsBifurcation`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_backward_dir_hinge
+
 private lemma marg_bif_backward_dir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2450,26 +1898,6 @@ private lemma marg_bif_backward_dir_hinge
   obtain ⟨p, hp_src⟩ :=
     marg_preserves_bifSource_backward G W hW hu hw hc_marg ⟨q, hq_src⟩
   exact ⟨p, Walk.isBifurcationSource_to_isBifurcation p c hp_src⟩
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_backward_dir_hinge
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_backward_dir_hinge (was: refactor_marg_bif_backward_dir_hinge)
-private lemma refactor_marg_bif_backward_dir_hinge
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {q : Walk (G.refactor_marginalize W hW) u w} (hq : q.IsBifurcation)
-    {i : ℕ} (h_dir : q.IsBifurcationDirectedHingeWithSplit i) :
-    ∃ p : Walk G u w, p.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hq
-  obtain ⟨c, _, _, _, _, _, _, hidx, _, _, _, _⟩ :=
-    Walk.exists_arms_of_bifurcation_directed_hinge_strong q i h_dir
-  have hc_in_q : c ∈ q.vertices := List.mem_of_getElem? hidx
-  have hc_marg : c ∈ G.refactor_marginalize W hW := Walk.mem_of_mem_vertices q hc_in_q
-  have hq_src : q.IsBifurcationSource c :=
-    ⟨huw_ne, hu_tail, hw_drop, i, h_dir, hidx⟩
-  obtain ⟨p, hp_src⟩ :=
-    refactor_marg_preserves_bifSource_backward G W hW hu hw hc_marg ⟨q, hq_src⟩
-  exact ⟨p, Walk.isBifurcationSource_to_isBifurcation p c hp_src⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_backward_dir_hinge
 
 /-- The last vertex of any walk equals its target. -/
 private lemma Walk.vertices_getLast {G : CDMG Node} :
@@ -2555,7 +1983,7 @@ private lemma Walk.arm_dropLast_in_W {G : CDMG Node} {a b : Node}
 -- M's hinge is directed) or `mkBifurcationBidir` (if M's hinge is
 -- bidirected).  Vertex-bound conditions are dispatched via
 -- `Walk.arm_dropLast_in_W` and the expansion helpers.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_backward_bidir_hinge
+
 private lemma marg_bif_backward_bidir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2889,343 +2317,6 @@ private lemma marg_bif_backward_bidir_hinge
       exact Walk.mkBifurcationBidir_isBifurcation (M_R.comp L_g) hLc_dir
         (M_L.comp R_g) hRc_dir hMLR_sym huw_ne hu_notin_Lc_drop hu_notin_Rc
         hw_notin_Lc hw_notin_Rc_drop
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_backward_bidir_hinge
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_backward_bidir_hinge (was: refactor_marg_bif_backward_bidir_hinge)
-private lemma refactor_marg_bif_backward_bidir_hinge
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {q : Walk (G.refactor_marginalize W hW) u w} (hq : q.IsBifurcation)
-    {i : ℕ} (h_split : q.IsBifurcationWithSplit i)
-    (h_not_dir : ¬ q.IsBifurcationDirectedHingeWithSplit i) :
-    ∃ p : Walk G u w, p.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hq
-  obtain ⟨vL, vR, L_marg, R_marg, hL_marg_dir, hR_marg_dir, hLR_marg, hidx,
-          hL_marg_sub, hR_marg_sub, hL_marg_drop_sub, hR_marg_drop_sub⟩ :=
-    Walk.exists_arms_of_bifurcation_bidir_hinge_strong q i h_split h_not_dir
-  -- Unfold marg.L's filter.
-  have hLR_filter : (vL, vR) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-                                (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2) :=
-    hLR_marg
-  rw [Finset.mem_filter, Finset.mem_product] at hLR_filter
-  obtain ⟨⟨hvL_VW, hvR_VW⟩, _, h_phi_L⟩ := hLR_filter
-  have hvL_notW : vL ∉ W := (Finset.mem_sdiff.mp hvL_VW).2
-  have hvR_notW : vR ∉ W := (Finset.mem_sdiff.mp hvR_VW).2
-  have hu_notW : u ∉ W := refactor_notW_of_mem_marginalize hW hu
-  have hw_notW : w ∉ W := refactor_notW_of_mem_marginalize hW hw
-  -- Show vR ∈ q.vertices.tail (vR is at position i+1 of q.vertices, which is
-  -- ≥ 1, so vR sits in the tail).
-  have hvR_in_q_tail : vR ∈ q.vertices.tail := by
-    have h_vs_eq : q.vertices = u :: q.vertices.tail :=
-      Walk.vertices_eq_head_cons_tail q
-    rw [h_vs_eq] at hidx
-    have h_tail_idx : q.vertices.tail[i]? = some vR := by simpa using hidx
-    exact List.mem_of_getElem? h_tail_idx
-  have hu_ne_vR : u ≠ vR := fun heq => hu_tail (heq ▸ hvR_in_q_tail)
-  -- Show w ≠ vL (since vL is at position i in q.vertices.dropLast).
-  have hvL_in_q_drop : vL ∈ q.vertices.dropLast :=
-    hL_marg_sub vL (Walk.head_mem_vertices L_marg)
-  have hw_ne_vL : w ≠ vL := fun heq => hw_drop (heq ▸ hvL_in_q_drop)
-  -- Expand L_marg, R_marg to G-walks.
-  obtain ⟨L_g, hL_g_dir, _hL_g_len, hL_g_sub_W, hL_g_drop_sub_W⟩ :=
-    refactor_expand_directed_walk_marginalize L_marg hL_marg_dir
-  obtain ⟨R_g, hR_g_dir, _hR_g_len, hR_g_sub_W, hR_g_drop_sub_W⟩ :=
-    refactor_expand_directed_walk_marginalize R_marg hR_marg_dir
-  -- Vertex-bound facts for L_g and R_g (inline chains).
-  have hu_notin_L_g_drop : u ∉ L_g.vertices.dropLast := fun h_in =>
-    (hL_g_drop_sub_W u h_in).elim
-      (fun h_marg => hu_tail (hL_marg_drop_sub u h_marg)) hu_notW
-  have hu_notin_R_g : u ∉ R_g.vertices := fun h_in =>
-    (hR_g_sub_W u h_in).elim
-      (fun h_marg => hu_tail (hR_marg_sub u h_marg)) hu_notW
-  have hw_notin_L_g : w ∉ L_g.vertices := fun h_in =>
-    (hL_g_sub_W w h_in).elim
-      (fun h_marg => hw_drop (hL_marg_sub w h_marg)) hw_notW
-  have hw_notin_R_g_drop : w ∉ R_g.vertices.dropLast := fun h_in =>
-    (hR_g_drop_sub_W w h_in).elim
-      (fun h_marg => hw_drop (hR_marg_drop_sub w h_marg)) hw_notW
-  -- Case-split on Φ_L orientation.
-  rcases h_phi_L with ⟨M, hM_bif, hM_W⟩ | ⟨M, hM_bif, hM_W⟩
-  · -- inl case: M : Walk G vL vR.
-    have hM_split_ex : ∃ i, M.IsBifurcationWithSplit i := hM_bif.2.2.2
-    obtain ⟨k_M, hM_split⟩ := hM_split_ex
-    by_cases h_M_dir : M.IsBifurcationDirectedHingeWithSplit k_M
-    · -- Inl + directed M-hinge.
-      obtain ⟨c_M, M_L, M_R, hM_L_dir, hM_R_dir, hM_L_pos, hM_R_pos, _,
-              hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
-        Walk.exists_arms_of_bifurcation_directed_hinge_strong M k_M h_M_dir
-      -- qv (c_M → u) = M_L.comp(L_g), qw (c_M → w) = M_R.comp(R_g).
-      have hqv_dir : (M_L.comp L_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_L L_g hM_L_dir hL_g_dir
-      have hqw_dir : (M_R.comp R_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_R R_g hM_R_dir hR_g_dir
-      have hqv_len : (M_L.comp L_g).length = M_L.length + L_g.length :=
-        Walk.length_comp M_L L_g
-      have hqw_len : (M_R.comp R_g).length = M_R.length + R_g.length :=
-        Walk.length_comp M_R R_g
-      have hqv_pos : (M_L.comp L_g).length ≥ 1 := by rw [hqv_len]; omega
-      have hqw_pos : (M_R.comp R_g).length ≥ 1 := by rw [hqw_len]; omega
-      -- Vertex-bound checks (chained through arm_dropLast_in_W + expansion).
-      have hu_notin_M_L_drop : u ∉ M_L.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) u h_in)
-      have hu_notin_M_R_drop : u ∉ M_R.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub u h_in)
-      have hw_notin_M_L_drop : w ∉ M_L.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) w h_in)
-      have hw_notin_M_R_drop : w ∉ M_R.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub w h_in)
-      -- qv = M_L.comp L_g.  qv.vertices = M_L.vertices.dropLast ++ L_g.vertices.
-      have h_qv_vs : (M_L.comp L_g).vertices = M_L.vertices.dropLast ++ L_g.vertices :=
-        Walk.vertices_comp M_L L_g
-      have h_qw_vs : (M_R.comp R_g).vertices = M_R.vertices.dropLast ++ R_g.vertices :=
-        Walk.vertices_comp M_R R_g
-      have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
-      have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
-      have h_qv_drop :
-          (M_L.comp L_g).vertices.dropLast = M_L.vertices.dropLast ++ L_g.vertices.dropLast := by
-        rw [h_qv_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
-      have h_qw_drop :
-          (M_R.comp R_g).vertices.dropLast = M_R.vertices.dropLast ++ R_g.vertices.dropLast := by
-        rw [h_qw_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
-      have hu_notin_qv_drop : u ∉ (M_L.comp L_g).vertices.dropLast := by
-        rw [h_qv_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hu_notin_M_L_drop h_M
-        · exact hu_notin_L_g_drop h_L
-      have hu_notin_qw : u ∉ (M_R.comp R_g).vertices := by
-        rw [h_qw_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hu_notin_M_R_drop h_M
-        · exact hu_notin_R_g h_R
-      have hw_notin_qv : w ∉ (M_L.comp L_g).vertices := by
-        rw [h_qv_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hw_notin_M_L_drop h_M
-        · exact hw_notin_L_g h_L
-      have hw_notin_qw_drop : w ∉ (M_R.comp R_g).vertices.dropLast := by
-        rw [h_qw_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hw_notin_M_R_drop h_M
-        · exact hw_notin_R_g_drop h_R
-      refine ⟨Walk.mkBifurcation (M_L.comp L_g) hqv_dir hqv_pos (M_R.comp R_g), ?_⟩
-      have h_bif_src :=
-        Walk.mkBifurcation_isBifurcationSource (M_L.comp L_g) hqv_dir hqv_pos
-          (M_R.comp R_g) hqw_dir hqw_pos
-          huw_ne hu_notin_qv_drop hu_notin_qw hw_notin_qv hw_notin_qw_drop
-      exact Walk.isBifurcationSource_to_isBifurcation _ c_M h_bif_src
-    · -- Inl + bidirected M-hinge.
-      obtain ⟨vML, vMR, M_L, M_R, hM_L_dir, hM_R_dir, hMLR, _,
-              hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
-        Walk.exists_arms_of_bifurcation_bidir_hinge_strong M k_M hM_split h_M_dir
-      -- M_L : Walk G vML vL (M's left arm ending at M's source vL).
-      -- M_R : Walk G vMR vR (M's right arm ending at M's target vR).
-      -- (vML, vMR) ∈ G.L.
-      -- L_combined = M_L.comp L_g : Walk G vML u.
-      -- R_combined = M_R.comp R_g : Walk G vMR w.
-      have hLc_dir : (M_L.comp L_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_L L_g hM_L_dir hL_g_dir
-      have hRc_dir : (M_R.comp R_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_R R_g hM_R_dir hR_g_dir
-      have hu_notin_M_L_drop : u ∉ M_L.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) u h_in)
-      have hu_notin_M_R_drop : u ∉ M_R.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub u h_in)
-      have hw_notin_M_L_drop : w ∉ M_L.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) w h_in)
-      have hw_notin_M_R_drop : w ∉ M_R.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub w h_in)
-      have h_Lc_vs : (M_L.comp L_g).vertices = M_L.vertices.dropLast ++ L_g.vertices :=
-        Walk.vertices_comp M_L L_g
-      have h_Rc_vs : (M_R.comp R_g).vertices = M_R.vertices.dropLast ++ R_g.vertices :=
-        Walk.vertices_comp M_R R_g
-      have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
-      have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
-      have h_Lc_drop :
-          (M_L.comp L_g).vertices.dropLast = M_L.vertices.dropLast ++ L_g.vertices.dropLast := by
-        rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
-      have h_Rc_drop :
-          (M_R.comp R_g).vertices.dropLast = M_R.vertices.dropLast ++ R_g.vertices.dropLast := by
-        rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
-      have hu_notin_Lc_drop : u ∉ (M_L.comp L_g).vertices.dropLast := by
-        rw [h_Lc_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hu_notin_M_L_drop h_M
-        · exact hu_notin_L_g_drop h_L
-      have hu_notin_Rc : u ∉ (M_R.comp R_g).vertices := by
-        rw [h_Rc_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hu_notin_M_R_drop h_M
-        · exact hu_notin_R_g h_R
-      have hw_notin_Lc : w ∉ (M_L.comp L_g).vertices := by
-        rw [h_Lc_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hw_notin_M_L_drop h_M
-        · exact hw_notin_L_g h_L
-      have hw_notin_Rc_drop : w ∉ (M_R.comp R_g).vertices.dropLast := by
-        rw [h_Rc_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hw_notin_M_R_drop h_M
-        · exact hw_notin_R_g_drop h_R
-      refine ⟨Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir (M_R.comp R_g) hMLR, ?_⟩
-      exact Walk.mkBifurcationBidir_isBifurcation (M_L.comp L_g) hLc_dir
-        (M_R.comp R_g) hRc_dir hMLR huw_ne hu_notin_Lc_drop hu_notin_Rc
-        hw_notin_Lc hw_notin_Rc_drop
-  · -- inr case: M : Walk G vR vL.
-    have hM_split_ex : ∃ i, M.IsBifurcationWithSplit i := hM_bif.2.2.2
-    obtain ⟨k_M, hM_split⟩ := hM_split_ex
-    by_cases h_M_dir : M.IsBifurcationDirectedHingeWithSplit k_M
-    · -- Inr + directed M-hinge.
-      obtain ⟨c_M, M_L, M_R, hM_L_dir, hM_R_dir, hM_L_pos, hM_R_pos, _,
-              hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
-        Walk.exists_arms_of_bifurcation_directed_hinge_strong M k_M h_M_dir
-      -- M_L : Walk G c_M vR (M's source), M_R : Walk G c_M vL (M's target).
-      -- qv (c_M → u) = M_R.comp(L_g) [M_R ends at vL, L_g starts at vL].
-      -- qw (c_M → w) = M_L.comp(R_g) [M_L ends at vR, R_g starts at vR].
-      have hqv_dir : (M_R.comp L_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_R L_g hM_R_dir hL_g_dir
-      have hqw_dir : (M_L.comp R_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_L R_g hM_L_dir hR_g_dir
-      have hqv_pos : (M_R.comp L_g).length ≥ 1 := by
-        rw [Walk.length_comp]; omega
-      have hqw_pos : (M_L.comp R_g).length ≥ 1 := by
-        rw [Walk.length_comp]; omega
-      have hu_notin_M_L_drop : u ∉ M_L.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) u h_in)
-      have hu_notin_M_R_drop : u ∉ M_R.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub u h_in)
-      have hw_notin_M_L_drop : w ∉ M_L.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) w h_in)
-      have hw_notin_M_R_drop : w ∉ M_R.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub w h_in)
-      have h_qv_vs : (M_R.comp L_g).vertices = M_R.vertices.dropLast ++ L_g.vertices :=
-        Walk.vertices_comp M_R L_g
-      have h_qw_vs : (M_L.comp R_g).vertices = M_L.vertices.dropLast ++ R_g.vertices :=
-        Walk.vertices_comp M_L R_g
-      have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
-      have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
-      have h_qv_drop :
-          (M_R.comp L_g).vertices.dropLast = M_R.vertices.dropLast ++ L_g.vertices.dropLast := by
-        rw [h_qv_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
-      have h_qw_drop :
-          (M_L.comp R_g).vertices.dropLast = M_L.vertices.dropLast ++ R_g.vertices.dropLast := by
-        rw [h_qw_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
-      have hu_notin_qv_drop : u ∉ (M_R.comp L_g).vertices.dropLast := by
-        rw [h_qv_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hu_notin_M_R_drop h_M
-        · exact hu_notin_L_g_drop h_L
-      have hu_notin_qw : u ∉ (M_L.comp R_g).vertices := by
-        rw [h_qw_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hu_notin_M_L_drop h_M
-        · exact hu_notin_R_g h_R
-      have hw_notin_qv : w ∉ (M_R.comp L_g).vertices := by
-        rw [h_qv_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hw_notin_M_R_drop h_M
-        · exact hw_notin_L_g h_L
-      have hw_notin_qw_drop : w ∉ (M_L.comp R_g).vertices.dropLast := by
-        rw [h_qw_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hw_notin_M_L_drop h_M
-        · exact hw_notin_R_g_drop h_R
-      refine ⟨Walk.mkBifurcation (M_R.comp L_g) hqv_dir hqv_pos (M_L.comp R_g), ?_⟩
-      have h_bif_src :=
-        Walk.mkBifurcation_isBifurcationSource (M_R.comp L_g) hqv_dir hqv_pos
-          (M_L.comp R_g) hqw_dir hqw_pos
-          huw_ne hu_notin_qv_drop hu_notin_qw hw_notin_qv hw_notin_qw_drop
-      exact Walk.isBifurcationSource_to_isBifurcation _ c_M h_bif_src
-    · -- Inr + bidirected M-hinge.
-      obtain ⟨vML, vMR, M_L, M_R, hM_L_dir, hM_R_dir, hMLR, _,
-              hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
-        Walk.exists_arms_of_bifurcation_bidir_hinge_strong M k_M hM_split h_M_dir
-      -- M_L : Walk G vML vR (M's source), M_R : Walk G vMR vL (M's target).
-      -- (vML, vMR) ∈ G.L.
-      -- L_combined = M_R.comp(L_g) [M_R ends at vL, L_g starts at vL]: Walk G vMR u.
-      -- R_combined = M_L.comp(R_g) [M_L ends at vR, R_g starts at vR]: Walk G vML w.
-      -- Hinge: (vMR, vML) ∈ G.L (by hL_symm on (vML, vMR) ∈ G.L).
-      have hMLR_sym : (vMR, vML) ∈ G.L := G.hL_symm hMLR
-      have hLc_dir : (M_R.comp L_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_R L_g hM_R_dir hL_g_dir
-      have hRc_dir : (M_L.comp R_g).IsDirectedWalk :=
-        Walk.isDirectedWalk_comp M_L R_g hM_L_dir hR_g_dir
-      have hu_notin_M_L_drop : u ∉ M_L.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) u h_in)
-      have hu_notin_M_R_drop : u ∉ M_R.vertices.dropLast := fun h_in =>
-        hu_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub u h_in)
-      have hw_notin_M_L_drop : w ∉ M_L.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
-            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx)) w h_in)
-      have hw_notin_M_R_drop : w ∉ M_R.vertices.dropLast := fun h_in =>
-        hw_notW (Walk.arm_dropLast_in_W hM_bif hM_W
-            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub w h_in)
-      have h_Lc_vs : (M_R.comp L_g).vertices = M_R.vertices.dropLast ++ L_g.vertices :=
-        Walk.vertices_comp M_R L_g
-      have h_Rc_vs : (M_L.comp R_g).vertices = M_L.vertices.dropLast ++ R_g.vertices :=
-        Walk.vertices_comp M_L R_g
-      have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
-      have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
-      have h_Lc_drop :
-          (M_R.comp L_g).vertices.dropLast = M_R.vertices.dropLast ++ L_g.vertices.dropLast := by
-        rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
-      have h_Rc_drop :
-          (M_L.comp R_g).vertices.dropLast = M_L.vertices.dropLast ++ R_g.vertices.dropLast := by
-        rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
-      have hu_notin_Lc_drop : u ∉ (M_R.comp L_g).vertices.dropLast := by
-        rw [h_Lc_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hu_notin_M_R_drop h_M
-        · exact hu_notin_L_g_drop h_L
-      have hu_notin_Rc : u ∉ (M_L.comp R_g).vertices := by
-        rw [h_Rc_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hu_notin_M_L_drop h_M
-        · exact hu_notin_R_g h_R
-      have hw_notin_Lc : w ∉ (M_R.comp L_g).vertices := by
-        rw [h_Lc_vs]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_L
-        · exact hw_notin_M_R_drop h_M
-        · exact hw_notin_L_g h_L
-      have hw_notin_Rc_drop : w ∉ (M_L.comp R_g).vertices.dropLast := by
-        rw [h_Rc_drop]
-        intro h_in
-        rcases List.mem_append.mp h_in with h_M | h_R
-        · exact hw_notin_M_L_drop h_M
-        · exact hw_notin_R_g_drop h_R
-      refine ⟨Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir (M_L.comp R_g) hMLR_sym, ?_⟩
-      exact Walk.mkBifurcationBidir_isBifurcation (M_R.comp L_g) hLc_dir
-        (M_L.comp R_g) hRc_dir hMLR_sym huw_ne hu_notin_Lc_drop hu_notin_Rc
-        hw_notin_Lc hw_notin_Rc_drop
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_backward_bidir_hinge
 
 -- ## Helper: forward direction — bidirected hinge in `p`, both hinge
 -- endpoints outside `W`.
@@ -3235,7 +2326,7 @@ private lemma refactor_marg_bif_backward_bidir_hinge
 -- edge `(vL, vR) ∈ (G.marginalize W hW).L` is witnessed by the single
 -- bidirected G-edge directly (`Φ_L` with no W-interior).  The arms are
 -- projected to marg directly via `project_directed_walk_strong`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_bidir_both_notW
+
 private lemma marg_bif_forward_bidir_both_notW
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3302,76 +2393,6 @@ private lemma marg_bif_forward_bidir_both_notW
   exact Walk.mkBifurcationBidir_isBifurcation
     L_marg hL_marg_dir R_marg hR_marg_dir hLR_marg
     huw_ne hu_notin_L_drop hu_notin_R hw_notin_L hw_notin_R_drop
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_bidir_both_notW
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_bidir_both_notW (was: refactor_marg_bif_forward_bidir_both_notW)
-private lemma refactor_marg_bif_forward_bidir_both_notW
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {p : Walk G u w} (hp : p.IsBifurcation)
-    {vL vR : Node}
-    (hvL_notW : vL ∉ W) (hvR_notW : vR ∉ W)
-    (L_g : Walk G vL u) (R_g : Walk G vR w)
-    (hL_dir : L_g.IsDirectedWalk) (hR_dir : R_g.IsDirectedWalk)
-    (hLR_G : (vL, vR) ∈ G.L)
-    (hL_sub : ∀ x ∈ L_g.vertices, x ∈ p.vertices.dropLast)
-    (hR_sub : ∀ x ∈ R_g.vertices, x ∈ p.vertices.tail)
-    (hL_drop_sub : ∀ x ∈ L_g.vertices.dropLast, x ∈ p.vertices.tail)
-    (hR_drop_sub : ∀ x ∈ R_g.vertices.dropLast, x ∈ p.vertices.dropLast) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hp
-  -- vL, vR ∈ G.V via hL_subset on bidirected G-edge.
-  have hvL_GV : vL ∈ G.V := (G.hL_subset hLR_G).1
-  have hvR_GV : vR ∈ G.V := (G.hL_subset hLR_G).2
-  -- vL, vR ∈ G (J ∪ V).
-  have hvL_g : vL ∈ G := Finset.mem_union_right _ hvL_GV
-  have hvR_g : vR ∈ G := Finset.mem_union_right _ hvR_GV
-  -- vL, vR ∈ G.V \ W.
-  have hvL_VW : vL ∈ G.V \ W := Finset.mem_sdiff.mpr ⟨hvL_GV, hvL_notW⟩
-  have hvR_VW : vR ∈ G.V \ W := Finset.mem_sdiff.mpr ⟨hvR_GV, hvR_notW⟩
-  -- vL, vR ∈ marg.
-  have hvL_marg : vL ∈ G.refactor_marginalize W hW := by
-    change vL ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvL_VW
-  have hvR_marg : vR ∈ G.refactor_marginalize W hW := by
-    change vR ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvR_VW
-  -- vL ≠ vR via hL_irrefl.
-  have hvLvR_ne : vL ≠ vR := G.hL_irrefl hLR_G
-  -- Construct single-edge witness for Φ_L.
-  let hStep : G.WalkStep vL (vL, vR) vR := Or.inl ⟨rfl, Or.inr hLR_G⟩
-  let single : Walk G vL vR := Walk.cons vR (vL, vR) hStep (Walk.nil vR hvR_g)
-  have h_single_bif : single.IsBifurcation :=
-    Walk.singleEdge_isBifurcation_of_bidir hvL_g hvR_g hLR_G hvLvR_ne
-  have h_single_W : ∀ x ∈ single.vertices.tail.dropLast, x ∈ W := by
-    intro x hx
-    change x ∈ ([vL, vR] : List Node).tail.dropLast at hx
-    simp at hx
-  -- (vL, vR) ∈ marg.L via Φ_L.
-  have hLR_marg : (vL, vR) ∈ (G.refactor_marginalize W hW).L := by
-    change (vL, vR) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-                      (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
-    rw [Finset.mem_filter, Finset.mem_product]
-    refine ⟨⟨hvL_VW, hvR_VW⟩, hvLvR_ne, ?_⟩
-    exact Or.inl ⟨single, h_single_bif, h_single_W⟩
-  -- Project L_g, R_g to marg.
-  obtain ⟨L_marg, hL_marg_dir, hL_marg_sub, hL_marg_drop_sub, hL_marg_tail_sub⟩ :=
-    refactor_project_directed_walk_strong L_g hL_dir hvL_marg hu
-  obtain ⟨R_marg, hR_marg_dir, hR_marg_sub, hR_marg_drop_sub, hR_marg_tail_sub⟩ :=
-    refactor_project_directed_walk_strong R_g hR_dir hvR_marg hw
-  -- Verify the four vertex-bound conditions for mkBifurcationBidir_isBifurcation.
-  have hu_notin_L_drop : u ∉ L_marg.vertices.dropLast := fun h_in =>
-    hu_tail (hL_drop_sub u (hL_marg_drop_sub u h_in))
-  have hu_notin_R : u ∉ R_marg.vertices := fun h_in =>
-    hu_tail (hR_sub u (hR_marg_sub u h_in))
-  have hw_notin_L : w ∉ L_marg.vertices := fun h_in =>
-    hw_drop (hL_sub w (hL_marg_sub w h_in))
-  have hw_notin_R_drop : w ∉ R_marg.vertices.dropLast := fun h_in =>
-    hw_drop (hR_drop_sub w (hR_marg_drop_sub w h_in))
-  -- Assemble the marg bifurcation.
-  refine ⟨Walk.mkBifurcationBidir L_marg hL_marg_dir R_marg hLR_marg, ?_⟩
-  exact Walk.mkBifurcationBidir_isBifurcation
-    L_marg hL_marg_dir R_marg hR_marg_dir hLR_marg
-    huw_ne hu_notin_L_drop hu_notin_R hw_notin_L hw_notin_R_drop
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_bidir_both_notW
 
 -- ## Helper: assemble a marg bidirected-hinge bifurcation from the two
 -- "marg-segment" arms and a Φ_L witness.
@@ -3381,7 +2402,7 @@ private lemma refactor_marg_bif_forward_bidir_both_notW
 -- (`L_marg_seg : Walk G vL_exit u`, `R_marg_seg : Walk G vR_exit w`), plus
 -- a Φ_L witness for `(vL_exit, vR_exit) ∈ marg.L`, and assembles via
 -- `mkBifurcationBidir_isBifurcation`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_assemble_bidirected
+
 private lemma marg_bif_forward_assemble_bidirected
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3425,56 +2446,9 @@ private lemma marg_bif_forward_assemble_bidirected
   exact Walk.mkBifurcationBidir_isBifurcation L_marg_proj hL_marg_proj_dir
     R_marg_proj hR_marg_proj_dir hLR_marg huw_ne
     hu_notin_L_proj_drop hu_notin_R_proj hw_notin_L_proj hw_notin_R_proj_drop
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_assemble_bidirected
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_assemble_bidirected (was: refactor_marg_bif_forward_assemble_bidirected)
-private lemma refactor_marg_bif_forward_assemble_bidirected
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (huw_ne : u ≠ w)
-    {vL_exit vR_exit : Node}
-    (hvL_exit_VW : vL_exit ∈ G.V \ W) (hvR_exit_VW : vR_exit ∈ G.V \ W)
-    (hvL_vR_exit_eq : vL_exit ≠ vR_exit)
-    (hPhi_L : G.MarginalizationΦL W vL_exit vR_exit)
-    {L_marg_seg : Walk G vL_exit u} (hL_marg_dir : L_marg_seg.IsDirectedWalk)
-    {R_marg_seg : Walk G vR_exit w} (hR_marg_dir : R_marg_seg.IsDirectedWalk)
-    (hu_notin_L_drop : u ∉ L_marg_seg.vertices.dropLast)
-    (hu_notin_R : u ∉ R_marg_seg.vertices)
-    (hw_notin_L : w ∉ L_marg_seg.vertices)
-    (hw_notin_R_drop : w ∉ R_marg_seg.vertices.dropLast) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  have hvL_marg : vL_exit ∈ G.refactor_marginalize W hW := by
-    change vL_exit ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvL_exit_VW
-  have hvR_marg : vR_exit ∈ G.refactor_marginalize W hW := by
-    change vR_exit ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvR_exit_VW
-  have hLR_marg : (vL_exit, vR_exit) ∈ (G.refactor_marginalize W hW).L := by
-    change (vL_exit, vR_exit) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-                              (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
-    rw [Finset.mem_filter, Finset.mem_product]
-    exact ⟨⟨hvL_exit_VW, hvR_exit_VW⟩, hvL_vR_exit_eq, hPhi_L⟩
-  obtain ⟨L_marg_proj, hL_marg_proj_dir, hL_marg_proj_sub,
-          hL_marg_proj_drop_sub, _⟩ :=
-    refactor_project_directed_walk_strong L_marg_seg hL_marg_dir hvL_marg hu
-  obtain ⟨R_marg_proj, hR_marg_proj_dir, hR_marg_proj_sub,
-          hR_marg_proj_drop_sub, _⟩ :=
-    refactor_project_directed_walk_strong R_marg_seg hR_marg_dir hvR_marg hw
-  have hu_notin_L_proj_drop : u ∉ L_marg_proj.vertices.dropLast := fun h_in =>
-    hu_notin_L_drop (hL_marg_proj_drop_sub u h_in)
-  have hu_notin_R_proj : u ∉ R_marg_proj.vertices := fun h_in =>
-    hu_notin_R (hR_marg_proj_sub u h_in)
-  have hw_notin_L_proj : w ∉ L_marg_proj.vertices := fun h_in =>
-    hw_notin_L (hL_marg_proj_sub w h_in)
-  have hw_notin_R_proj_drop : w ∉ R_marg_proj.vertices.dropLast := fun h_in =>
-    hw_notin_R_drop (hR_marg_proj_drop_sub w h_in)
-  refine ⟨Walk.mkBifurcationBidir L_marg_proj hL_marg_proj_dir
-            R_marg_proj hLR_marg, ?_⟩
-  exact Walk.mkBifurcationBidir_isBifurcation L_marg_proj hL_marg_proj_dir
-    R_marg_proj hR_marg_proj_dir hLR_marg huw_ne
-    hu_notin_L_proj_drop hu_notin_R_proj hw_notin_L_proj hw_notin_R_proj_drop
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_assemble_bidirected
 
 -- ## Helper (forward Case 2) — directed hinge with source `c ∈ W`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_dir_hinge_src_W
+
 private lemma marg_bif_forward_dir_hinge_src_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3768,303 +2742,6 @@ private lemma marg_bif_forward_dir_hinge_src_W
     exact marg_bif_forward_assemble_bidirected G W hW hu hw huw_ne
       hvL_exit_VW hvR_exit_VW hvL_vR_exit_eq hPhi_L hL_marg_dir hR_marg_dir
       hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_dir_hinge_src_W
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_dir_hinge_src_W (was: refactor_marg_bif_forward_dir_hinge_src_W)
-private lemma refactor_marg_bif_forward_dir_hinge_src_W
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {p : Walk G u w} (hp : p.IsBifurcation)
-    {i : ℕ} (h_dir : p.IsBifurcationDirectedHingeWithSplit i)
-    {c : Node} (hidx : p.vertices[i + 1]? = some c)
-    (hc_notin_marg : c ∉ G.refactor_marginalize W hW) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hp
-  obtain ⟨c', L_p, R_p, hL_p_dir, hR_p_dir, hL_p_pos, hR_p_pos, hidx',
-          hL_p_sub, hR_p_sub, hL_p_drop_sub, hR_p_drop_sub⟩ :=
-    Walk.exists_arms_of_bifurcation_directed_hinge_strong p i h_dir
-  have hc_eq : c = c' := by
-    rw [hidx] at hidx'; exact Option.some.inj hidx'
-  subst hc_eq
-  have hu_notW : u ∉ W := refactor_notW_of_mem_marginalize hW hu
-  have hw_notW : w ∉ W := refactor_notW_of_mem_marginalize hW hw
-  have hc_in_p : c ∈ p.vertices := List.mem_of_getElem? hidx
-  have hc_g : c ∈ G := Walk.mem_of_mem_vertices p hc_in_p
-  have hc_W : c ∈ W := by
-    by_contra hc_notW
-    apply hc_notin_marg
-    change c ∈ G.J ∪ (G.V \ W)
-    rcases Finset.mem_union.mp hc_g with hc_J | hc_V
-    · exact Finset.mem_union_left _ hc_J
-    · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hc_V, hc_notW⟩)
-  obtain ⟨vL_exit, L_W_seg, L_marg_seg, hL_W_dir, hL_marg_dir, hL_W_pos,
-          hvL_exit_notW, hL_W_inter, _hL_lens_eq, hL_p_vs_eq⟩ :=
-    find_first_non_W_directed W L_p hL_p_dir hL_p_pos hu_notW
-  obtain ⟨vR_exit, R_W_seg, R_marg_seg, hR_W_dir, hR_marg_dir, hR_W_pos,
-          hvR_exit_notW, hR_W_inter, _hR_lens_eq, hR_p_vs_eq⟩ :=
-    find_first_non_W_directed W R_p hR_p_dir hR_p_pos hw_notW
-  have hvL_exit_GV : vL_exit ∈ G.V :=
-    Walk.target_in_GV_of_directedWalk_pos L_W_seg hL_W_dir hL_W_pos
-  have hvR_exit_GV : vR_exit ∈ G.V :=
-    Walk.target_in_GV_of_directedWalk_pos R_W_seg hR_W_dir hR_W_pos
-  have hvL_exit_VW : vL_exit ∈ G.V \ W :=
-    Finset.mem_sdiff.mpr ⟨hvL_exit_GV, hvL_exit_notW⟩
-  have hvR_exit_VW : vR_exit ∈ G.V \ W :=
-    Finset.mem_sdiff.mpr ⟨hvR_exit_GV, hvR_exit_notW⟩
-  have hL_marg_ne : L_marg_seg.vertices ≠ [] := Walk.vertices_ne_nil L_marg_seg
-  have hR_marg_ne : R_marg_seg.vertices ≠ [] := Walk.vertices_ne_nil R_marg_seg
-  -- L_marg_seg vertex bounds (chained through L_p ⊆ p).
-  have hL_marg_sub_L_p : ∀ x ∈ L_marg_seg.vertices, x ∈ L_p.vertices := by
-    intro x hx; rw [hL_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
-  have hR_marg_sub_R_p : ∀ x ∈ R_marg_seg.vertices, x ∈ R_p.vertices := by
-    intro x hx; rw [hR_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
-  have hL_marg_drop_sub_L_p_drop :
-      ∀ x ∈ L_marg_seg.vertices.dropLast, x ∈ L_p.vertices.dropLast := by
-    intro x hx
-    rw [hL_p_vs_eq, List.dropLast_append_of_ne_nil hL_marg_ne]
-    exact List.mem_append.mpr (Or.inr hx)
-  have hR_marg_drop_sub_R_p_drop :
-      ∀ x ∈ R_marg_seg.vertices.dropLast, x ∈ R_p.vertices.dropLast := by
-    intro x hx
-    rw [hR_p_vs_eq, List.dropLast_append_of_ne_nil hR_marg_ne]
-    exact List.mem_append.mpr (Or.inr hx)
-  have hu_notin_L_marg_drop : u ∉ L_marg_seg.vertices.dropLast := fun h_in =>
-    hu_tail (hL_p_drop_sub u (hL_marg_drop_sub_L_p_drop u h_in))
-  have hu_notin_R_marg : u ∉ R_marg_seg.vertices := fun h_in =>
-    hu_tail (hR_p_sub u (hR_marg_sub_R_p u h_in))
-  have hw_notin_L_marg : w ∉ L_marg_seg.vertices := fun h_in =>
-    hw_drop (hL_p_sub w (hL_marg_sub_L_p w h_in))
-  have hw_notin_R_marg_drop : w ∉ R_marg_seg.vertices.dropLast := fun h_in =>
-    hw_drop (hR_p_drop_sub w (hR_marg_drop_sub_R_p_drop w h_in))
-  -- L_W_seg vertex bounds.
-  have hL_W_sub_L_p : ∀ x ∈ L_W_seg.vertices, x ∈ L_p.vertices := by
-    intro x hx
-    rw [hL_p_vs_eq]
-    by_cases h_drop : x ∈ L_W_seg.vertices.dropLast
-    · exact List.mem_append.mpr (Or.inl h_drop)
-    · have h_x_last : x = vL_exit := by
-        have h_W_seg_ne : L_W_seg.vertices ≠ [] := Walk.vertices_ne_nil L_W_seg
-        have h_W_seg_last : L_W_seg.vertices.getLast h_W_seg_ne = vL_exit :=
-          Walk.vertices_getLast L_W_seg
-        have := List.dropLast_append_getLast h_W_seg_ne
-        rw [h_W_seg_last] at this
-        have hx_in : x ∈ L_W_seg.vertices.dropLast ++ [vL_exit] := by rw [this]; exact hx
-        rcases List.mem_append.mp hx_in with h | h
-        · exact absurd h h_drop
-        · exact List.mem_singleton.mp h
-      rw [h_x_last]
-      apply List.mem_append.mpr
-      right
-      exact Walk.head_mem_vertices L_marg_seg
-  have hR_W_sub_R_p : ∀ x ∈ R_W_seg.vertices, x ∈ R_p.vertices := by
-    intro x hx
-    rw [hR_p_vs_eq]
-    by_cases h_drop : x ∈ R_W_seg.vertices.dropLast
-    · exact List.mem_append.mpr (Or.inl h_drop)
-    · have h_x_last : x = vR_exit := by
-        have h_W_seg_ne : R_W_seg.vertices ≠ [] := Walk.vertices_ne_nil R_W_seg
-        have h_W_seg_last : R_W_seg.vertices.getLast h_W_seg_ne = vR_exit :=
-          Walk.vertices_getLast R_W_seg
-        have := List.dropLast_append_getLast h_W_seg_ne
-        rw [h_W_seg_last] at this
-        have hx_in : x ∈ R_W_seg.vertices.dropLast ++ [vR_exit] := by rw [this]; exact hx
-        rcases List.mem_append.mp hx_in with h | h
-        · exact absurd h h_drop
-        · exact List.mem_singleton.mp h
-      rw [h_x_last]
-      apply List.mem_append.mpr
-      right
-      exact Walk.head_mem_vertices R_marg_seg
-  -- For both L_W and R_W: vertices.tail ⊆ W ∪ {vL_exit / vR_exit}.
-  -- The walks' interior (vertices.tail.dropLast) is ⊆ W (from find_first_non_W).
-  by_cases hvL_vR_exit_eq : vL_exit = vR_exit
-  · -- Degenerate case: vL_exit = vR_exit = v*.  Construct a sourced
-    -- G-bifurcation with source v* ∉ W, then apply ii(b) forward + convert.
-    subst hvL_vR_exit_eq
-    -- L_marg_seg.length ≥ 1 (since vL_exit ≠ u, because vL_exit ∉ p.vertices.tail
-    -- isn't true... let me think differently).
-    -- Actually we DON'T know L_marg_seg.length ≥ 1 in general.
-    -- For the degenerate case to work, we need both L_marg_seg and R_marg_seg lengths ≥ 1.
-    -- If L_marg_seg.length = 0 (so vL_exit = u): can this happen?
-    -- vL_exit ∈ p.vertices (via L_p). And vR_exit ∈ R_p.vertices ⊆ p.vertices.tail.
-    -- If vL_exit = vR_exit = u: vR_exit = u ∈ p.vertices.tail. But u ∉ p.vertices.tail. Contradiction.
-    -- So vL_exit ≠ u in the degenerate case.  Hence L_marg_seg.length ≥ 1.
-    have hvL_exit_ne_u : vL_exit ≠ u := by
-      intro h_eq
-      have hvL_in_R_p_tail : vL_exit ∈ R_p.vertices := hR_marg_sub_R_p _
-        (Walk.head_mem_vertices R_marg_seg)
-      have hvL_in_p_tail : vL_exit ∈ p.vertices.tail := hR_p_sub _ hvL_in_R_p_tail
-      exact hu_tail (h_eq ▸ hvL_in_p_tail)
-    have hvL_exit_ne_w : vL_exit ≠ w := by
-      intro h_eq
-      have hvL_in_L_p : vL_exit ∈ L_p.vertices := hL_marg_sub_L_p _
-        (Walk.head_mem_vertices L_marg_seg)
-      have hvL_in_p_drop : vL_exit ∈ p.vertices.dropLast := hL_p_sub _ hvL_in_L_p
-      exact hw_drop (h_eq ▸ hvL_in_p_drop)
-    have hL_marg_pos : L_marg_seg.length ≥ 1 :=
-      Walk.length_pos_of_ne L_marg_seg hvL_exit_ne_u
-    have hR_marg_pos : R_marg_seg.length ≥ 1 :=
-      Walk.length_pos_of_ne R_marg_seg hvL_exit_ne_w
-    have hvL_marg : vL_exit ∈ G.refactor_marginalize W hW := by
-      change vL_exit ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvL_exit_VW
-    -- Build sourced G-bifurcation: mkBifurcation L_marg_seg R_marg_seg.
-    have h_src : (Walk.mkBifurcation L_marg_seg hL_marg_dir hL_marg_pos
-                    R_marg_seg).IsBifurcationSource vL_exit :=
-      Walk.mkBifurcation_isBifurcationSource L_marg_seg hL_marg_dir hL_marg_pos
-        R_marg_seg hR_marg_dir hR_marg_pos huw_ne
-        hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
-    obtain ⟨q, hq_src⟩ := refactor_marg_preserves_bifSource_forward G W hW hu hw hvL_marg
-      ⟨_, h_src⟩
-    exact ⟨q, Walk.isBifurcationSource_to_isBifurcation q vL_exit hq_src⟩
-  · -- Non-degenerate case: vL_exit ≠ vR_exit.
-    -- Build Φ_L witness as mkBifurcation L_W_seg R_W_seg.
-    -- Need vertex bounds for the mkBifurcation (vL_exit ∉ L_W_seg.vertices.dropLast etc.).
-    -- vL_exit ∉ L_W_seg.vertices.dropLast: L_W_seg.vertices.dropLast = c :: L_W_seg.vertices.tail.dropLast
-    --   (when L_W_seg.length ≥ 1, so L_W_seg.vertices.tail non-empty).
-    -- vertices.tail.dropLast ⊆ W (from hL_W_inter). c ∈ W. vL_exit ∉ W.
-    have hvL_notin_L_W_drop : vL_exit ∉ L_W_seg.vertices.dropLast := by
-      intro h_in
-      have h_W_seg_ne : L_W_seg.vertices ≠ [] := Walk.vertices_ne_nil L_W_seg
-      have h_W_seg_tail_ne : L_W_seg.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos L_W_seg hL_W_pos
-      -- L_W_seg.vertices.dropLast = c :: L_W_seg.vertices.tail.dropLast.
-      have h_vs_eq : L_W_seg.vertices = c :: L_W_seg.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail L_W_seg
-      rw [h_vs_eq, List.dropLast_cons_of_ne_nil h_W_seg_tail_ne] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · exact hvL_exit_notW (h_eq ▸ hc_W)
-      · exact hvL_exit_notW (hL_W_inter vL_exit h_rest)
-    have hvR_notin_R_W_drop : vR_exit ∉ R_W_seg.vertices.dropLast := by
-      intro h_in
-      have h_W_seg_tail_ne : R_W_seg.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos R_W_seg hR_W_pos
-      have h_vs_eq : R_W_seg.vertices = c :: R_W_seg.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail R_W_seg
-      rw [h_vs_eq, List.dropLast_cons_of_ne_nil h_W_seg_tail_ne] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · exact hvR_exit_notW (h_eq ▸ hc_W)
-      · exact hvR_exit_notW (hR_W_inter vR_exit h_rest)
-    -- vL_exit ∉ R_W_seg.vertices: R_W_seg = c :: R_W_seg.tail.
-    -- R_W_seg.tail = R_W_seg.tail.dropLast ++ [vR_exit] (last is target).
-    -- For x ∈ R_W_seg.vertices: x = c or x ∈ R_W_seg.tail.
-    -- x ∈ R_W_seg.tail → x ∈ W (interior) or x = vR_exit.
-    have h_R_W_target : R_W_seg.vertices.tail.getLast
-        (Walk.tail_vertices_ne_nil_of_pos R_W_seg hR_W_pos) = vR_exit :=
-      Walk.tail_getLast_of_pos R_W_seg hR_W_pos
-    have h_L_W_target : L_W_seg.vertices.tail.getLast
-        (Walk.tail_vertices_ne_nil_of_pos L_W_seg hL_W_pos) = vL_exit :=
-      Walk.tail_getLast_of_pos L_W_seg hL_W_pos
-    have hvL_notin_R_W : vL_exit ∉ R_W_seg.vertices := by
-      intro h_in
-      have h_R_W_tail_ne : R_W_seg.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos R_W_seg hR_W_pos
-      have h_vs_eq : R_W_seg.vertices = c :: R_W_seg.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail R_W_seg
-      rw [h_vs_eq] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · exact hvL_exit_notW (h_eq ▸ hc_W)
-      · -- vL_exit ∈ R_W_seg.vertices.tail.
-        -- R_W_seg.vertices.tail = R_W_seg.vertices.tail.dropLast ++ [vR_exit].
-        have h_tail_decomp : R_W_seg.vertices.tail
-            = R_W_seg.vertices.tail.dropLast ++ [vR_exit] := by
-          have := List.dropLast_append_getLast h_R_W_tail_ne
-          rw [h_R_W_target] at this
-          exact this.symm
-        rw [h_tail_decomp] at h_rest
-        rcases List.mem_append.mp h_rest with h_W | h_eq2
-        · exact hvL_exit_notW (hR_W_inter vL_exit h_W)
-        · rw [List.mem_singleton] at h_eq2
-          exact hvL_vR_exit_eq h_eq2
-    have hvR_notin_L_W : vR_exit ∉ L_W_seg.vertices := by
-      intro h_in
-      have h_L_W_tail_ne : L_W_seg.vertices.tail ≠ [] :=
-        Walk.tail_vertices_ne_nil_of_pos L_W_seg hL_W_pos
-      have h_vs_eq : L_W_seg.vertices = c :: L_W_seg.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail L_W_seg
-      rw [h_vs_eq] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · exact hvR_exit_notW (h_eq ▸ hc_W)
-      · have h_tail_decomp : L_W_seg.vertices.tail
-            = L_W_seg.vertices.tail.dropLast ++ [vL_exit] := by
-          have := List.dropLast_append_getLast h_L_W_tail_ne
-          rw [h_L_W_target] at this
-          exact this.symm
-        rw [h_tail_decomp] at h_rest
-        rcases List.mem_append.mp h_rest with h_W | h_eq2
-        · exact hvR_exit_notW (hL_W_inter vR_exit h_W)
-        · rw [List.mem_singleton] at h_eq2
-          exact hvL_vR_exit_eq h_eq2.symm
-    -- The mkBifurcation L_W_seg R_W_seg has IsBifurcationSource c.
-    have h_phi_src : (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
-                        R_W_seg).IsBifurcationSource c :=
-      Walk.mkBifurcation_isBifurcationSource L_W_seg hL_W_dir hL_W_pos
-        R_W_seg hR_W_dir hR_W_pos hvL_vR_exit_eq
-        hvL_notin_L_W_drop hvL_notin_R_W hvR_notin_L_W hvR_notin_R_W_drop
-    have h_phi_bif : (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
-                        R_W_seg).IsBifurcation :=
-      Walk.isBifurcationSource_to_isBifurcation _ c h_phi_src
-    -- Verify the Φ_L witness's interior is in W.
-    -- vertices = L_W_seg.vertices.reverse.dropLast ++ R_W_seg.vertices.
-    -- vertices.tail.dropLast = (drop first and last of vertices).
-    -- We need to show all interior is in W.
-    have h_phi_W : ∀ x ∈ (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
-                            R_W_seg).vertices.tail.dropLast, x ∈ W := by
-      intro x hx
-      -- vertices = L_W_seg.vertices.reverse.dropLast ++ R_W_seg.vertices.
-      have h_vs : (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos R_W_seg).vertices
-          = L_W_seg.vertices.reverse.dropLast ++ R_W_seg.vertices :=
-        Walk.vertices_mkBifurcation L_W_seg hL_W_dir hL_W_pos R_W_seg
-      -- L_W_seg.vertices.reverse.dropLast = L_W_seg.vertices.tail.reverse.
-      have h_rev_drop : L_W_seg.vertices.reverse.dropLast = L_W_seg.vertices.tail.reverse :=
-        Walk.vertices_reverse_dropLast L_W_seg
-      -- L_W_seg.vertices.tail starts at the 2nd vertex of L_W_seg and ends at vL_exit.
-      -- L_W_seg.vertices.tail = L_W_seg.vertices.tail.dropLast ++ [vL_exit].
-      have h_L_W_tail_decomp : L_W_seg.vertices.tail
-          = L_W_seg.vertices.tail.dropLast ++ [vL_exit] := by
-        have h_tail_ne : L_W_seg.vertices.tail ≠ [] :=
-          Walk.tail_vertices_ne_nil_of_pos L_W_seg hL_W_pos
-        have := List.dropLast_append_getLast h_tail_ne
-        rw [h_L_W_target] at this
-        exact this.symm
-      -- Reverse: L_W_seg.vertices.tail.reverse = vL_exit :: L_W_seg.vertices.tail.dropLast.reverse.
-      have h_L_W_rev_eq : L_W_seg.vertices.tail.reverse
-          = vL_exit :: L_W_seg.vertices.tail.dropLast.reverse := by
-        conv_lhs => rw [h_L_W_tail_decomp]
-        simp [List.reverse_append]
-      rw [h_vs, h_rev_drop, h_L_W_rev_eq] at hx
-      -- hx : x ∈ (vL_exit :: L_W_seg.vertices.tail.dropLast.reverse ++ R_W_seg.vertices).tail.dropLast.
-      -- Hmm wait, the .tail.dropLast operates on the full appended list.
-      -- Let me work through this more carefully.
-      -- (vL_exit :: L_W_seg.vertices.tail.dropLast.reverse) ++ R_W_seg.vertices
-      --   = vL_exit :: (L_W_seg.vertices.tail.dropLast.reverse ++ R_W_seg.vertices).
-      -- .tail = L_W_seg.vertices.tail.dropLast.reverse ++ R_W_seg.vertices.
-      -- .tail.dropLast = L_W_seg.vertices.tail.dropLast.reverse ++ R_W_seg.vertices.dropLast (if R_W_seg.vertices non-empty).
-      have h_R_W_ne : R_W_seg.vertices ≠ [] := Walk.vertices_ne_nil R_W_seg
-      rw [List.cons_append] at hx
-      change x ∈ (L_W_seg.vertices.tail.dropLast.reverse ++ R_W_seg.vertices).dropLast at hx
-      rw [List.dropLast_append_of_ne_nil h_R_W_ne] at hx
-      rcases List.mem_append.mp hx with h_L | h_R
-      · -- x ∈ L_W_seg.vertices.tail.dropLast.reverse → x ∈ L_W_seg.vertices.tail.dropLast → in W.
-        rw [List.mem_reverse] at h_L
-        exact hL_W_inter x h_L
-      · -- x ∈ R_W_seg.vertices.dropLast.
-        -- R_W_seg.vertices.dropLast = c :: R_W_seg.vertices.tail.dropLast.
-        have h_R_W_tail_ne : R_W_seg.vertices.tail ≠ [] :=
-          Walk.tail_vertices_ne_nil_of_pos R_W_seg hR_W_pos
-        have h_R_W_vs_eq : R_W_seg.vertices = c :: R_W_seg.vertices.tail :=
-          Walk.vertices_eq_head_cons_tail R_W_seg
-        rw [h_R_W_vs_eq, List.dropLast_cons_of_ne_nil h_R_W_tail_ne] at h_R
-        rcases List.mem_cons.mp h_R with h_eq | h_rest
-        · exact h_eq ▸ hc_W
-        · exact hR_W_inter x h_rest
-    -- Φ_L witness for (vL_exit, vR_exit) ∈ marg.L: the inl disjunct.
-    have hPhi_L : G.MarginalizationΦL W vL_exit vR_exit := by
-      left
-      exact ⟨_, h_phi_bif, h_phi_W⟩
-    exact refactor_marg_bif_forward_assemble_bidirected G W hW hu hw huw_ne
-      hvL_exit_VW hvR_exit_VW hvL_vR_exit_eq hPhi_L hL_marg_dir hR_marg_dir
-      hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_dir_hinge_src_W
 
 -- ## Helper: given W-segments and marg-segments, finish Case 3.B by
 -- either constructing a sourced G-bifurcation (degenerate `vL_exit =
@@ -4073,7 +2750,7 @@ private lemma refactor_marg_bif_forward_dir_hinge_src_W
 -- Linked hypothesis `hL_W_link`: either (L_W_part.length ≥ 1 AND vL ∈ W)
 -- or (L_W_part.length = 0 AND vL = vL_exit).  This precludes the
 -- pathological "L_W_part has cycle at vL ∉ W" case.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_bidir_finish
+
 private lemma marg_bif_forward_bidir_finish
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -4299,239 +2976,10 @@ private lemma marg_bif_forward_bidir_finish
     exact marg_bif_forward_assemble_bidirected G W hW hu hw huw_ne
       hvL_exit_VW hvR_exit_VW hvL_vR_exit_eq hPhi_L hL_marg_dir hR_marg_dir
       hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_bidir_finish
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_bidir_finish (was: refactor_marg_bif_forward_bidir_finish)
-private lemma refactor_marg_bif_forward_bidir_finish
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (huw_ne : u ≠ w)
-    {vL vR vL_exit vR_exit : Node}
-    (hvL_g : vL ∈ G) (hvR_g : vR ∈ G)
-    (hLR_G : (vL, vR) ∈ G.L) (hvL_vR_ne : vL ≠ vR)
-    (hvL_exit_VW : vL_exit ∈ G.V \ W) (hvR_exit_VW : vR_exit ∈ G.V \ W)
-    (L_W_part : Walk G vL vL_exit)
-    (hL_W_dir : L_W_part.IsDirectedWalk)
-    (hL_W_inter : ∀ x ∈ L_W_part.vertices.tail.dropLast, x ∈ W)
-    (hL_W_link : (L_W_part.length ≥ 1 ∧ vL ∈ W) ∨
-                 (L_W_part.length = 0 ∧ vL = vL_exit))
-    (R_W_part : Walk G vR vR_exit)
-    (hR_W_dir : R_W_part.IsDirectedWalk)
-    (hR_W_inter : ∀ x ∈ R_W_part.vertices.tail.dropLast, x ∈ W)
-    (hR_W_link : (R_W_part.length ≥ 1 ∧ vR ∈ W) ∨
-                 (R_W_part.length = 0 ∧ vR = vR_exit))
-    (L_marg_part : Walk G vL_exit u) (hL_marg_dir : L_marg_part.IsDirectedWalk)
-    (R_marg_part : Walk G vR_exit w) (hR_marg_dir : R_marg_part.IsDirectedWalk)
-    (hu_notin_L_marg_drop : u ∉ L_marg_part.vertices.dropLast)
-    (hu_notin_R_marg : u ∉ R_marg_part.vertices)
-    (hw_notin_L_marg : w ∉ L_marg_part.vertices)
-    (hw_notin_R_marg_drop : w ∉ R_marg_part.vertices.dropLast)
-    (hvR_exit_ne_u : vR_exit ≠ u) (hvL_exit_ne_w : vL_exit ≠ w) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  have hvL_exit_notW : vL_exit ∉ W := (Finset.mem_sdiff.mp hvL_exit_VW).2
-  have hvR_exit_notW : vR_exit ∉ W := (Finset.mem_sdiff.mp hvR_exit_VW).2
-  by_cases hvL_vR_exit_eq : vL_exit = vR_exit
-  · -- Degenerate case: build sourced G-bifurcation.
-    subst hvL_vR_exit_eq
-    have hvL_exit_ne_u : vL_exit ≠ u := hvR_exit_ne_u
-    have hL_marg_pos : L_marg_part.length ≥ 1 :=
-      Walk.length_pos_of_ne L_marg_part hvL_exit_ne_u
-    have hR_marg_pos : R_marg_part.length ≥ 1 :=
-      Walk.length_pos_of_ne R_marg_part hvL_exit_ne_w
-    have hvL_exit_marg : vL_exit ∈ G.refactor_marginalize W hW := by
-      change vL_exit ∈ G.J ∪ (G.V \ W); exact Finset.mem_union_right _ hvL_exit_VW
-    have h_src : (Walk.mkBifurcation L_marg_part hL_marg_dir hL_marg_pos
-                    R_marg_part).IsBifurcationSource vL_exit :=
-      Walk.mkBifurcation_isBifurcationSource L_marg_part hL_marg_dir hL_marg_pos
-        R_marg_part hR_marg_dir hR_marg_pos huw_ne
-        hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
-    obtain ⟨q, hq_src⟩ := refactor_marg_preserves_bifSource_forward G W hW hu hw
-      hvL_exit_marg ⟨_, h_src⟩
-    exact ⟨q, Walk.isBifurcationSource_to_isBifurcation q vL_exit hq_src⟩
-  · -- Non-degenerate case: build Φ_L witness via mkBifurcationBidir.
-    -- Vertex bounds for mkBifurcationBidir_isBifurcation.
-    have hvL_exit_notin_L_W_drop : vL_exit ∉ L_W_part.vertices.dropLast := by
-      intro h_in
-      rcases hL_W_link with ⟨hL_W_pos, hvL_W⟩ | ⟨hL_W_zero, _⟩
-      · have h_tail_ne : L_W_part.vertices.tail ≠ [] :=
-          Walk.tail_vertices_ne_nil_of_pos L_W_part hL_W_pos
-        have h_vs_eq : L_W_part.vertices = vL :: L_W_part.vertices.tail :=
-          Walk.vertices_eq_head_cons_tail L_W_part
-        rw [h_vs_eq, List.dropLast_cons_of_ne_nil h_tail_ne] at h_in
-        rcases List.mem_cons.mp h_in with h_eq | h_rest
-        · exact hvL_exit_notW (h_eq ▸ hvL_W)
-        · exact hvL_exit_notW (hL_W_inter vL_exit h_rest)
-      · cases L_W_part with
-        | nil _ _ => simp [Walk.vertices, List.dropLast] at h_in
-        | cons _ _ _ _ => simp [Walk.length] at hL_W_zero
-    have hvR_exit_notin_R_W_drop : vR_exit ∉ R_W_part.vertices.dropLast := by
-      intro h_in
-      rcases hR_W_link with ⟨hR_W_pos, hvR_W⟩ | ⟨hR_W_zero, _⟩
-      · have h_tail_ne : R_W_part.vertices.tail ≠ [] :=
-          Walk.tail_vertices_ne_nil_of_pos R_W_part hR_W_pos
-        have h_vs_eq : R_W_part.vertices = vR :: R_W_part.vertices.tail :=
-          Walk.vertices_eq_head_cons_tail R_W_part
-        rw [h_vs_eq, List.dropLast_cons_of_ne_nil h_tail_ne] at h_in
-        rcases List.mem_cons.mp h_in with h_eq | h_rest
-        · exact hvR_exit_notW (h_eq ▸ hvR_W)
-        · exact hvR_exit_notW (hR_W_inter vR_exit h_rest)
-      · cases R_W_part with
-        | nil _ _ => simp [Walk.vertices, List.dropLast] at h_in
-        | cons _ _ _ _ => simp [Walk.length] at hR_W_zero
-    have hvL_exit_notin_R_W : vL_exit ∉ R_W_part.vertices := by
-      intro h_in
-      have h_vs_eq : R_W_part.vertices = vR :: R_W_part.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail R_W_part
-      rw [h_vs_eq] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · -- vL_exit = vR.
-        rcases hR_W_link with ⟨_, hvR_W⟩ | ⟨_, hvR_eq⟩
-        · exact hvL_exit_notW (h_eq ▸ hvR_W)
-        · exact hvL_vR_exit_eq (h_eq.trans hvR_eq)
-      · -- vL_exit ∈ R_W_part.vertices.tail.
-        rcases hR_W_link with ⟨hR_W_pos, _⟩ | ⟨hR_W_zero, _⟩
-        · -- R_W_part.length ≥ 1: tail = tail.dropLast ++ [vR_exit].
-          have h_R_W_tail_ne : R_W_part.vertices.tail ≠ [] :=
-            Walk.tail_vertices_ne_nil_of_pos R_W_part hR_W_pos
-          have h_R_W_target : R_W_part.vertices.tail.getLast h_R_W_tail_ne = vR_exit :=
-            Walk.tail_getLast_of_pos R_W_part hR_W_pos
-          have h_tail_decomp : R_W_part.vertices.tail
-              = R_W_part.vertices.tail.dropLast ++ [vR_exit] := by
-            have := List.dropLast_append_getLast h_R_W_tail_ne
-            rw [h_R_W_target] at this; exact this.symm
-          rw [h_tail_decomp] at h_rest
-          rcases List.mem_append.mp h_rest with h_W | h_eq2
-          · exact hvL_exit_notW (hR_W_inter vL_exit h_W)
-          · rw [List.mem_singleton] at h_eq2
-            exact hvL_vR_exit_eq h_eq2
-        · -- R_W_part.length = 0: tail = [].
-          cases R_W_part with
-          | nil _ _ => simp [Walk.vertices, List.tail] at h_rest
-          | cons _ _ _ _ => simp [Walk.length] at hR_W_zero
-    have hvR_exit_notin_L_W : vR_exit ∉ L_W_part.vertices := by
-      intro h_in
-      have h_vs_eq : L_W_part.vertices = vL :: L_W_part.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail L_W_part
-      rw [h_vs_eq] at h_in
-      rcases List.mem_cons.mp h_in with h_eq | h_rest
-      · rcases hL_W_link with ⟨_, hvL_W⟩ | ⟨_, hvL_eq⟩
-        · exact hvR_exit_notW (h_eq ▸ hvL_W)
-        · exact hvL_vR_exit_eq (hvL_eq.symm.trans h_eq.symm)
-      · rcases hL_W_link with ⟨hL_W_pos, _⟩ | ⟨hL_W_zero, _⟩
-        · have h_L_W_tail_ne : L_W_part.vertices.tail ≠ [] :=
-            Walk.tail_vertices_ne_nil_of_pos L_W_part hL_W_pos
-          have h_L_W_target : L_W_part.vertices.tail.getLast h_L_W_tail_ne = vL_exit :=
-            Walk.tail_getLast_of_pos L_W_part hL_W_pos
-          have h_tail_decomp : L_W_part.vertices.tail
-              = L_W_part.vertices.tail.dropLast ++ [vL_exit] := by
-            have := List.dropLast_append_getLast h_L_W_tail_ne
-            rw [h_L_W_target] at this; exact this.symm
-          rw [h_tail_decomp] at h_rest
-          rcases List.mem_append.mp h_rest with h_W | h_eq2
-          · exact hvR_exit_notW (hL_W_inter vR_exit h_W)
-          · rw [List.mem_singleton] at h_eq2
-            exact hvL_vR_exit_eq h_eq2.symm
-        · cases L_W_part with
-          | nil _ _ => simp [Walk.vertices, List.tail] at h_rest
-          | cons _ _ _ _ => simp [Walk.length] at hL_W_zero
-    -- Construct Φ_L witness.
-    have h_phi_bif : (Walk.mkBifurcationBidir L_W_part hL_W_dir
-                        R_W_part hLR_G).IsBifurcation :=
-      Walk.mkBifurcationBidir_isBifurcation L_W_part hL_W_dir
-        R_W_part hR_W_dir hLR_G hvL_vR_exit_eq
-        hvL_exit_notin_L_W_drop hvL_exit_notin_R_W
-        hvR_exit_notin_L_W hvR_exit_notin_R_W_drop
-    -- Interior in W.
-    have h_phi_W : ∀ x ∈ (Walk.mkBifurcationBidir L_W_part hL_W_dir
-                            R_W_part hLR_G).vertices.tail.dropLast, x ∈ W := by
-      intro x hx
-      have h_vs : (Walk.mkBifurcationBidir L_W_part hL_W_dir R_W_part hLR_G).vertices
-          = L_W_part.vertices.reverse.dropLast ++ (vL :: R_W_part.vertices) :=
-        Walk.vertices_mkBifurcationBidir L_W_part hL_W_dir R_W_part hLR_G
-      rw [h_vs] at hx
-      have h_R_W_vs_eq : R_W_part.vertices = vR :: R_W_part.vertices.tail :=
-        Walk.vertices_eq_head_cons_tail R_W_part
-      have h_R_W_cons_ne : (vL :: R_W_part.vertices) ≠ [] := by simp
-      -- Case-split on whether L_W_part is nil or non-nil.
-      rcases hL_W_link with ⟨hL_W_pos, hvL_W⟩ | ⟨hL_W_zero, _⟩
-      · -- L_W_part has length ≥ 1.
-        have h_L_W_rev_drop : L_W_part.vertices.reverse.dropLast
-            = L_W_part.vertices.tail.reverse :=
-          Walk.vertices_reverse_dropLast L_W_part
-        rw [h_L_W_rev_drop] at hx
-        have h_L_W_tail_ne : L_W_part.vertices.tail ≠ [] :=
-          Walk.tail_vertices_ne_nil_of_pos L_W_part hL_W_pos
-        have h_L_W_rev_ne : L_W_part.vertices.tail.reverse ≠ [] := by
-          intro h
-          apply h_L_W_tail_ne
-          have := List.reverse_eq_nil_iff.mp h
-          exact this
-        rw [List.tail_append_of_ne_nil h_L_W_rev_ne,
-            List.dropLast_append_of_ne_nil h_R_W_cons_ne] at hx
-        rcases List.mem_append.mp hx with h_L | h_R
-        · -- x ∈ L_W_part.vertices.tail.reverse.tail.
-          have h_L_W_target : L_W_part.vertices.tail.getLast h_L_W_tail_ne = vL_exit :=
-            Walk.tail_getLast_of_pos L_W_part hL_W_pos
-          have h_L_W_tail_decomp : L_W_part.vertices.tail
-              = L_W_part.vertices.tail.dropLast ++ [vL_exit] := by
-            have := List.dropLast_append_getLast h_L_W_tail_ne
-            rw [h_L_W_target] at this; exact this.symm
-          have h_L_W_rev_eq : L_W_part.vertices.tail.reverse
-              = vL_exit :: L_W_part.vertices.tail.dropLast.reverse := by
-            conv_lhs => rw [h_L_W_tail_decomp]
-            simp [List.reverse_append]
-          rw [h_L_W_rev_eq, List.tail_cons] at h_L
-          have h_in_dropLast : x ∈ L_W_part.vertices.tail.dropLast := by
-            have := h_L
-            rwa [List.mem_reverse] at this
-          exact hL_W_inter x h_in_dropLast
-        · -- x ∈ (vL :: R_W_part.vertices).dropLast.
-          rw [List.dropLast_cons_of_ne_nil (Walk.vertices_ne_nil R_W_part)] at h_R
-          rcases List.mem_cons.mp h_R with h_eq | h_in_R_drop
-          · exact h_eq ▸ hvL_W
-          · -- x ∈ R_W_part.vertices.dropLast.
-            rcases hR_W_link with ⟨hR_W_pos, hvR_W⟩ | ⟨hR_W_zero, _⟩
-            · -- R_W_part.length ≥ 1.
-              have h_R_tail_ne : R_W_part.vertices.tail ≠ [] :=
-                Walk.tail_vertices_ne_nil_of_pos R_W_part hR_W_pos
-              have h_R_vs_eq : R_W_part.vertices = vR :: R_W_part.vertices.tail :=
-                Walk.vertices_eq_head_cons_tail R_W_part
-              rw [h_R_vs_eq, List.dropLast_cons_of_ne_nil h_R_tail_ne] at h_in_R_drop
-              rcases List.mem_cons.mp h_in_R_drop with h_eq | h_rest
-              · exact h_eq ▸ hvR_W
-              · exact hR_W_inter x h_rest
-            · cases R_W_part with
-              | nil _ _ => simp [Walk.vertices, List.dropLast] at h_in_R_drop
-              | cons _ _ _ _ => simp [Walk.length] at hR_W_zero
-      · -- L_W_part is nil.  L_W_part.vertices.reverse.dropLast = [].
-        have h_L_W_drop_empty : L_W_part.vertices.reverse.dropLast = [] := by
-          cases L_W_part with
-          | nil _ _ => rfl
-          | cons _ _ _ _ => simp [Walk.length] at hL_W_zero
-        rw [h_L_W_drop_empty, List.nil_append, List.tail_cons] at hx
-        -- hx : x ∈ R_W_part.vertices.dropLast.
-        rcases hR_W_link with ⟨hR_W_pos, hvR_W⟩ | ⟨hR_W_zero, _⟩
-        · have h_R_tail_ne : R_W_part.vertices.tail ≠ [] :=
-            Walk.tail_vertices_ne_nil_of_pos R_W_part hR_W_pos
-          have h_R_vs_eq : R_W_part.vertices = vR :: R_W_part.vertices.tail :=
-            Walk.vertices_eq_head_cons_tail R_W_part
-          rw [h_R_vs_eq, List.dropLast_cons_of_ne_nil h_R_tail_ne] at hx
-          rcases List.mem_cons.mp hx with h_eq | h_rest
-          · exact h_eq ▸ hvR_W
-          · exact hR_W_inter x h_rest
-        · cases R_W_part with
-          | nil _ _ => simp [Walk.vertices, List.dropLast] at hx
-          | cons _ _ _ _ => simp [Walk.length] at hR_W_zero
-    have hPhi_L : G.MarginalizationΦL W vL_exit vR_exit := by
-      left; exact ⟨_, h_phi_bif, h_phi_W⟩
-    exact refactor_marg_bif_forward_assemble_bidirected G W hW hu hw huw_ne
-      hvL_exit_VW hvR_exit_VW hvL_vR_exit_eq hPhi_L hL_marg_dir hR_marg_dir
-      hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_bidir_finish
 
 -- ## Helper (forward Case 3.B) — bidirected hinge with at least one
 -- endpoint in W.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_bif_forward_bidir_with_W
+
 private lemma marg_bif_forward_bidir_with_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -4672,152 +3120,8 @@ private lemma marg_bif_forward_bidir_with_W
       L_g hL_dir R_marg_part hR_marg_dir
       hu_notin_L_g_drop hu_notin_R_marg hw_notin_L_g hw_notin_R_marg_drop
       hvR_exit_ne_u hvL_ne_w
--- REFACTOR-BLOCK-ORIGINAL-END: marg_bif_forward_bidir_with_W
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_bif_forward_bidir_with_W (was: refactor_marg_bif_forward_bidir_with_W)
-private lemma refactor_marg_bif_forward_bidir_with_W
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    {p : Walk G u w} (hp : p.IsBifurcation)
-    {vL vR : Node}
-    (hvL_or_vR_W : vL ∈ W ∨ vR ∈ W)
-    (L_g : Walk G vL u) (R_g : Walk G vR w)
-    (hL_dir : L_g.IsDirectedWalk) (hR_dir : R_g.IsDirectedWalk)
-    (hLR_G : (vL, vR) ∈ G.L)
-    (hL_sub : ∀ x ∈ L_g.vertices, x ∈ p.vertices.dropLast)
-    (hR_sub : ∀ x ∈ R_g.vertices, x ∈ p.vertices.tail)
-    (hL_drop_sub : ∀ x ∈ L_g.vertices.dropLast, x ∈ p.vertices.tail)
-    (hR_drop_sub : ∀ x ∈ R_g.vertices.dropLast, x ∈ p.vertices.dropLast) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  obtain ⟨huw_ne, hu_tail, hw_drop, _, _⟩ := hp
-  have hu_notW : u ∉ W := refactor_notW_of_mem_marginalize hW hu
-  have hw_notW : w ∉ W := refactor_notW_of_mem_marginalize hW hw
-  have hvL_GV : vL ∈ G.V := (G.hL_subset hLR_G).1
-  have hvR_GV : vR ∈ G.V := (G.hL_subset hLR_G).2
-  have hvL_g : vL ∈ G := Finset.mem_union_right _ hvL_GV
-  have hvR_g : vR ∈ G := Finset.mem_union_right _ hvR_GV
-  have hvL_vR_ne : vL ≠ vR := G.hL_irrefl hLR_G
-  -- Case-split on (vL ∈ W, vR ∈ W).  In each sub-case, set up:
-  -- vL_exit, vR_exit, L_W_part, R_W_part, L_marg_part, R_marg_part.
-  -- After setup, share the by_cases on degenerate (vL_exit = vR_exit).
-  by_cases hvL_W : vL ∈ W
-  · -- vL ∈ W: find_first_non_W on L_g.
-    have hL_g_pos : L_g.length ≥ 1 :=
-      Walk.length_pos_of_ne L_g (fun heq => hu_notW (heq ▸ hvL_W))
-    obtain ⟨vL_exit, L_W_part, L_marg_part, hL_W_dir, hL_marg_dir, hL_W_pos,
-            hvL_exit_notW, hL_W_inter, _, hL_g_vs_eq⟩ :=
-      find_first_non_W_directed W L_g hL_dir hL_g_pos hu_notW
-    have hvL_exit_GV : vL_exit ∈ G.V :=
-      Walk.target_in_GV_of_directedWalk_pos L_W_part hL_W_dir hL_W_pos
-    have hvL_exit_VW : vL_exit ∈ G.V \ W :=
-      Finset.mem_sdiff.mpr ⟨hvL_exit_GV, hvL_exit_notW⟩
-    have hL_marg_ne : L_marg_part.vertices ≠ [] := Walk.vertices_ne_nil L_marg_part
-    have hL_marg_sub_L_g : ∀ x ∈ L_marg_part.vertices, x ∈ L_g.vertices := fun x hx =>
-      by rw [hL_g_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
-    have hL_marg_drop_sub_L_g_drop :
-        ∀ x ∈ L_marg_part.vertices.dropLast, x ∈ L_g.vertices.dropLast := fun x hx => by
-      rw [hL_g_vs_eq, List.dropLast_append_of_ne_nil hL_marg_ne]
-      exact List.mem_append.mpr (Or.inr hx)
-    have hu_notin_L_marg_drop : u ∉ L_marg_part.vertices.dropLast := fun h_in =>
-      hu_tail (hL_drop_sub u (hL_marg_drop_sub_L_g_drop u h_in))
-    have hw_notin_L_marg : w ∉ L_marg_part.vertices := fun h_in =>
-      hw_drop (hL_sub w (hL_marg_sub_L_g w h_in))
-    by_cases hvR_W : vR ∈ W
-    · -- Sub-case (C): vL ∈ W AND vR ∈ W.  Apply find_first_non_W on R_g.
-      have hR_g_pos : R_g.length ≥ 1 :=
-        Walk.length_pos_of_ne R_g (fun heq => hw_notW (heq ▸ hvR_W))
-      obtain ⟨vR_exit, R_W_part, R_marg_part, hR_W_dir, hR_marg_dir, hR_W_pos,
-              hvR_exit_notW, hR_W_inter, _, hR_g_vs_eq⟩ :=
-        find_first_non_W_directed W R_g hR_dir hR_g_pos hw_notW
-      have hvR_exit_GV : vR_exit ∈ G.V :=
-        Walk.target_in_GV_of_directedWalk_pos R_W_part hR_W_dir hR_W_pos
-      have hvR_exit_VW : vR_exit ∈ G.V \ W :=
-        Finset.mem_sdiff.mpr ⟨hvR_exit_GV, hvR_exit_notW⟩
-      have hR_marg_ne : R_marg_part.vertices ≠ [] := Walk.vertices_ne_nil R_marg_part
-      have hR_marg_sub_R_g : ∀ x ∈ R_marg_part.vertices, x ∈ R_g.vertices := fun x hx =>
-        by rw [hR_g_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
-      have hR_marg_drop_sub_R_g_drop :
-          ∀ x ∈ R_marg_part.vertices.dropLast, x ∈ R_g.vertices.dropLast := fun x hx => by
-        rw [hR_g_vs_eq, List.dropLast_append_of_ne_nil hR_marg_ne]
-        exact List.mem_append.mpr (Or.inr hx)
-      have hu_notin_R_marg : u ∉ R_marg_part.vertices := fun h_in =>
-        hu_tail (hR_sub u (hR_marg_sub_R_g u h_in))
-      have hw_notin_R_marg_drop : w ∉ R_marg_part.vertices.dropLast := fun h_in =>
-        hw_drop (hR_drop_sub w (hR_marg_drop_sub_R_g_drop w h_in))
-      have hvR_exit_ne_u : vR_exit ≠ u := fun heq =>
-        hu_tail (hR_sub _ (hR_marg_sub_R_g _ (heq ▸ Walk.head_mem_vertices R_marg_part)))
-      have hvL_exit_ne_w : vL_exit ≠ w := fun heq =>
-        hw_drop (hL_sub _ (hL_marg_sub_L_g _ (heq ▸ Walk.head_mem_vertices L_marg_part)))
-      exact refactor_marg_bif_forward_bidir_finish G W hW hu hw huw_ne
-        hvL_g hvR_g hLR_G hvL_vR_ne hvL_exit_VW hvR_exit_VW
-        L_W_part hL_W_dir hL_W_inter (Or.inl ⟨hL_W_pos, hvL_W⟩)
-        R_W_part hR_W_dir hR_W_inter (Or.inl ⟨hR_W_pos, hvR_W⟩)
-        L_marg_part hL_marg_dir R_marg_part hR_marg_dir
-        hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
-        hvR_exit_ne_u hvL_exit_ne_w
-    · -- Sub-case (A): vL ∈ W, vR ∉ W.  R_W_part = nil at vR, vR_exit = vR.
-      have hvR_exit_VW : vR ∈ G.V \ W := Finset.mem_sdiff.mpr ⟨hvR_GV, hvR_W⟩
-      have hu_notin_R_g : u ∉ R_g.vertices := fun h_in => hu_tail (hR_sub u h_in)
-      have hw_notin_R_g_drop : w ∉ R_g.vertices.dropLast := fun h_in =>
-        hw_drop (hR_drop_sub w h_in)
-      have hvR_ne_u : vR ≠ u := fun heq =>
-        hu_tail (hR_sub _ (heq ▸ Walk.head_mem_vertices R_g))
-      have hvL_exit_ne_w : vL_exit ≠ w := fun heq =>
-        hw_drop (hL_sub _ (hL_marg_sub_L_g _ (heq ▸ Walk.head_mem_vertices L_marg_part)))
-      have h_nil_R : (Walk.nil vR hvR_g : Walk G vR vR).length = 0 := rfl
-      exact refactor_marg_bif_forward_bidir_finish G W hW hu hw huw_ne
-        hvL_g hvR_g hLR_G hvL_vR_ne hvL_exit_VW hvR_exit_VW
-        L_W_part hL_W_dir hL_W_inter (Or.inl ⟨hL_W_pos, hvL_W⟩)
-        (Walk.nil vR hvR_g) trivial
-        (by intro x hx; simp [Walk.vertices, List.tail, List.dropLast] at hx)
-        (Or.inr ⟨h_nil_R, rfl⟩)
-        L_marg_part hL_marg_dir R_g hR_dir
-        hu_notin_L_marg_drop hu_notin_R_g hw_notin_L_marg hw_notin_R_g_drop
-        hvR_ne_u hvL_exit_ne_w
-  · -- vL ∉ W, so vR ∈ W.
-    have hvR_W : vR ∈ W := hvL_or_vR_W.resolve_left hvL_W
-    have hvL_VW : vL ∈ G.V \ W := Finset.mem_sdiff.mpr ⟨hvL_GV, hvL_W⟩
-    have hR_g_pos : R_g.length ≥ 1 :=
-      Walk.length_pos_of_ne R_g (fun heq => hw_notW (heq ▸ hvR_W))
-    obtain ⟨vR_exit, R_W_part, R_marg_part, hR_W_dir, hR_marg_dir, hR_W_pos,
-            hvR_exit_notW, hR_W_inter, _, hR_g_vs_eq⟩ :=
-      find_first_non_W_directed W R_g hR_dir hR_g_pos hw_notW
-    have hvR_exit_GV : vR_exit ∈ G.V :=
-      Walk.target_in_GV_of_directedWalk_pos R_W_part hR_W_dir hR_W_pos
-    have hvR_exit_VW : vR_exit ∈ G.V \ W :=
-      Finset.mem_sdiff.mpr ⟨hvR_exit_GV, hvR_exit_notW⟩
-    have hR_marg_ne : R_marg_part.vertices ≠ [] := Walk.vertices_ne_nil R_marg_part
-    have hR_marg_sub_R_g : ∀ x ∈ R_marg_part.vertices, x ∈ R_g.vertices := fun x hx =>
-      by rw [hR_g_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
-    have hR_marg_drop_sub_R_g_drop :
-        ∀ x ∈ R_marg_part.vertices.dropLast, x ∈ R_g.vertices.dropLast := fun x hx => by
-      rw [hR_g_vs_eq, List.dropLast_append_of_ne_nil hR_marg_ne]
-      exact List.mem_append.mpr (Or.inr hx)
-    have hu_notin_R_marg : u ∉ R_marg_part.vertices := fun h_in =>
-      hu_tail (hR_sub u (hR_marg_sub_R_g u h_in))
-    have hw_notin_R_marg_drop : w ∉ R_marg_part.vertices.dropLast := fun h_in =>
-      hw_drop (hR_drop_sub w (hR_marg_drop_sub_R_g_drop w h_in))
-    have hu_notin_L_g_drop : u ∉ L_g.vertices.dropLast := fun h_in =>
-      hu_tail (hL_drop_sub u h_in)
-    have hw_notin_L_g : w ∉ L_g.vertices := fun h_in =>
-      hw_drop (hL_sub w h_in)
-    have hvR_exit_ne_u : vR_exit ≠ u := fun heq =>
-      hu_tail (hR_sub _ (hR_marg_sub_R_g _ (heq ▸ Walk.head_mem_vertices R_marg_part)))
-    have hvL_ne_w : vL ≠ w := fun heq =>
-      hw_drop (hL_sub _ (heq ▸ Walk.head_mem_vertices L_g))
-    have h_nil_L : (Walk.nil vL hvL_g : Walk G vL vL).length = 0 := rfl
-    exact refactor_marg_bif_forward_bidir_finish G W hW hu hw huw_ne
-      hvL_g hvR_g hLR_G hvL_vR_ne hvL_VW hvR_exit_VW
-      (Walk.nil vL hvL_g) trivial
-      (by intro x hx; simp [Walk.vertices, List.tail, List.dropLast] at hx)
-      (Or.inr ⟨h_nil_L, rfl⟩)
-      R_W_part hR_W_dir hR_W_inter (Or.inl ⟨hR_W_pos, hvR_W⟩)
-      L_g hL_dir R_marg_part hR_marg_dir
-      hu_notin_L_g_drop hu_notin_R_marg hw_notin_L_g hw_notin_R_marg_drop
-      hvR_exit_ne_u hvL_ne_w
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_bif_forward_bidir_with_W
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_preserves_bif_forward
 private lemma marg_preserves_bif_forward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -4843,38 +3147,9 @@ private lemma marg_preserves_bif_forward
       · exact marg_bif_forward_bidir_both_notW G W hW hu hw hp
           hvL_W hvR_W L_g R_g hL_dir hR_dir hLR_G
           hL_sub hR_sub hL_drop_sub hR_drop_sub
--- REFACTOR-BLOCK-ORIGINAL-END: marg_preserves_bif_forward
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_preserves_bif_forward (was: refactor_marg_preserves_bif_forward)
-private lemma refactor_marg_preserves_bif_forward
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (h : ∃ p : Walk G u w, p.IsBifurcation) :
-    ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation := by
-  obtain ⟨p, hp⟩ := h
-  obtain ⟨i, hp_split⟩ := hp.2.2.2
-  by_cases h_dir : p.IsBifurcationDirectedHingeWithSplit i
-  · obtain ⟨c, _, _, _, _, _, _, hidx, _, _, _, _⟩ :=
-      Walk.exists_arms_of_bifurcation_directed_hinge_strong p i h_dir
-    by_cases hc_marg : c ∈ G.refactor_marginalize W hW
-    · exact refactor_marg_bif_forward_dir_hinge_src_marg G W hW hu hw hp h_dir hidx hc_marg
-    · exact refactor_marg_bif_forward_dir_hinge_src_W G W hW hu hw hp h_dir hidx hc_marg
-  · obtain ⟨vL, vR, L_g, R_g, hL_dir, hR_dir, hLR_G, _,
-            hL_sub, hR_sub, hL_drop_sub, hR_drop_sub⟩ :=
-      Walk.exists_arms_of_bifurcation_bidir_hinge_strong p i hp_split h_dir
-    by_cases hvL_W : vL ∈ W
-    · exact refactor_marg_bif_forward_bidir_with_W G W hW hu hw hp (Or.inl hvL_W)
-        L_g R_g hL_dir hR_dir hLR_G hL_sub hR_sub hL_drop_sub hR_drop_sub
-    · by_cases hvR_W : vR ∈ W
-      · exact refactor_marg_bif_forward_bidir_with_W G W hW hu hw hp (Or.inr hvR_W)
-          L_g R_g hL_dir hR_dir hLR_G hL_sub hR_sub hL_drop_sub hR_drop_sub
-      · exact refactor_marg_bif_forward_bidir_both_notW G W hW hu hw hp
-          hvL_W hvR_W L_g R_g hL_dir hR_dir hLR_G
-          hL_sub hR_sub hL_drop_sub hR_drop_sub
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_preserves_bif_forward
 
 -- ## Wrapper: backward direction (case-splits on hinge type).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marg_preserves_bif_backward
+
 private lemma marg_preserves_bif_backward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -4885,20 +3160,6 @@ private lemma marg_preserves_bif_backward
   by_cases h_dir : q.IsBifurcationDirectedHingeWithSplit i
   · exact marg_bif_backward_dir_hinge G W hW hu hw hq h_dir
   · exact marg_bif_backward_bidir_hinge G W hW hu hw hq hq_split h_dir
--- REFACTOR-BLOCK-ORIGINAL-END: marg_preserves_bif_backward
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marg_preserves_bif_backward (was: refactor_marg_preserves_bif_backward)
-private lemma refactor_marg_preserves_bif_backward
-    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
-    (hu : u ∈ G.refactor_marginalize W hW) (hw : w ∈ G.refactor_marginalize W hW)
-    (h : ∃ q : Walk (G.refactor_marginalize W hW) u w, q.IsBifurcation) :
-    ∃ p : Walk G u w, p.IsBifurcation := by
-  obtain ⟨q, hq⟩ := h
-  obtain ⟨i, hq_split⟩ := hq.2.2.2
-  by_cases h_dir : q.IsBifurcationDirectedHingeWithSplit i
-  · exact refactor_marg_bif_backward_dir_hinge G W hW hu hw hq h_dir
-  · exact refactor_marg_bif_backward_bidir_hinge G W hW hu hw hq hq_split h_dir
--- REFACTOR-BLOCK-REPLACEMENT-END: marg_preserves_bif_backward
 
 -- ref: claim_3_16 (sub-claim i, preservation of ancestral relations)
 --
@@ -4914,7 +3175,7 @@ private lemma refactor_marg_preserves_bif_backward
 -- `W`-segment into a single `E^{∖W}`-edge per `def_3_14` item iii),
 -- and conversely.
 /-
-LN tex (sub-claim i, from the rewritten canonical statement):
+LN tex (sub-claim i, from the canonical statement):
 
   i.) Preservation of ancestral relations.  For every pair of nodes
       `v_1, v_2 ∈ (J ∪ V) ∖ W = J ∪ (V ∖ W)`, the biconditional
@@ -4991,7 +3252,7 @@ LN tex (sub-claim i, from the rewritten canonical statement):
 --   by the trivial walk `Walk.nil v₁ hv₁`; same for the
 --   marginalized side).  Imposing `v₁ ≠ v₂` would silently weaken
 --   the LN's universal quantifier.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_preserves_ancestors
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (v₁ v₂ : Node)
@@ -5014,32 +3275,6 @@ theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
     refine ⟨mem_of_mem_marginalize hv₁, ?_⟩
     obtain ⟨q, hq_dir, _, _, _⟩ := expand_directed_walk_marginalize p hp_dir
     exact ⟨q, hq_dir⟩
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_preserves_ancestors
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_preserves_ancestors (was: refactor_marginalize_preserves_ancestors)
--- claim_3_16 -- start statement
-theorem refactor_marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) (v₁ v₂ : Node)
-    (hv₁ : v₁ ∈ G.refactor_marginalize W hW) (hv₂ : v₂ ∈ G.refactor_marginalize W hW) :
-    v₁ ∈ G.Anc v₂ ↔ v₁ ∈ (G.refactor_marginalize W hW).Anc v₂
--- claim_3_16 -- end statement
-  := by
-  -- Sub-claim i: the projection / expansion duality on directed walks
-  -- (`def_3_5` item iv) under marginalization.  Each direction unfolds
-  -- `Anc` (`def_3_5`) to "exists a directed walk", then
-  -- projects (⟹) via `refactor_project_directed_walk_marginalize` or expands
-  -- (⟸) via `refactor_expand_directed_walk_marginalize`.
-  constructor
-  · -- (⟹) forward direction: project the directed `G`-walk.
-    rintro ⟨_, p, hp_dir⟩
-    refine ⟨hv₁, ?_⟩
-    exact refactor_project_directed_walk_marginalize p hp_dir hv₁ hv₂
-  · -- (⟸) converse direction: expand the directed marg-walk.
-    rintro ⟨_, p, hp_dir⟩
-    refine ⟨refactor_mem_of_mem_marginalize hv₁, ?_⟩
-    obtain ⟨q, hq_dir, _, _, _⟩ := refactor_expand_directed_walk_marginalize p hp_dir
-    exact ⟨q, hq_dir⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_preserves_ancestors
 
 -- ref: claim_3_16 (sub-claim ii(a), preservation of bifurcations — sourceless)
 --
@@ -5063,7 +3298,7 @@ theorem refactor_marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Nod
 -- in its endpoints), so the `∨` does not strengthen / weaken the
 -- predicate.
 /-
-LN tex (sub-claim ii(a), from the rewritten canonical statement):
+LN tex (sub-claim ii(a), from the canonical statement):
 
   ii.) (a) Sourceless biconditional.  For every pair of nodes
        `v_1, v_2 ∈ (J ∪ V) ∖ W`, the following two propositions
@@ -5159,7 +3394,7 @@ LN tex (sub-claim ii(a), from the rewritten canonical statement):
 --   broader outer quantifier `(J ∪ V) ∖ W` is LN-faithful and the
 --   biconditional remains correct on input-node endpoints
 --   (vacuously true).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_preserves_bifurcation
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (v₁ v₂ : Node)
@@ -5172,84 +3407,10 @@ theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
 -- claim_3_16 -- end statement
   := by
   -- Sub-claim ii(a) (sourceless bifurcation biconditional).
-  --
-  -- ## Infrastructure status (cumulative across runs)
-  --
-  -- * Bidirected arm extractor `Walk.exists_arms_of_bifurcation_bidir_hinge_strong`
-  --   — mirror of the directed-hinge extractor, uses term-mode `match` to
-  --   avoid the dependent-`cases` scoping issue from the previous run.
-  -- * `Walk.mem_of_mem_vertices` — every vertex of a walk lies in `G`.
-  --   Used to derive `c ∈ marg` from a marg-walk in the backward
-  --   direction's directed-hinge case.
-  -- * `Walk.isBifurcationWithSplit_comp_right_directed` — right-extension
-  --   of a bifurcation by a directed walk preserves
-  --   `IsBifurcationWithSplit` at the same index.  Companion to the
-  --   existing left-extension `Walk.isBifurcationWithSplit_comp_reverseDirected_bidir_aux`.
-  --   Needed for the backward bidirected splice.
-  -- * Case 1 forward / backward helpers:
-  --   - `marg_bif_forward_dir_hinge_src_marg` (forward, directed hinge,
-  --     source in marg → reuse ii(b) forward).
-  --   - `marg_bif_backward_dir_hinge` (backward, directed hinge — source
-  --     is automatically in marg because it's a vertex of the marg walk).
-  -- * Case 3.A forward helper:
-  --   - `marg_bif_forward_bidir_both_notW` (forward, bidirected hinge,
-  --     both `vL, vR ∉ W`).  Uses the single bidirected G-edge as the
-  --     `Φ_L` witness, projects both arms directly, assembles via
-  --     `mkBifurcationBidir_isBifurcation`.
-  --
-  -- ## What remains (each ~150-300 lines of Lean)
-  --
-  -- * **Backward bidirected** (~250-350 lines): the marg-walk `q` has a
-  --   bidirected hinge `(vL, vR) ∈ marg.L`.  Unfold marg.L's filter to
-  --   get a `Φ_L` witness (a G-bifurcation `M` between `vL` and `vR`
-  --   with interior in W).  Apply M's own bifurcation arm extractor
-  --   (directed or bidirected, depending on M's hinge type) to extract
-  --   M's structure.  Splice with the expanded `L_g`, `R_g` arms via
-  --   `M_arm_L.comp(L_g)` and `M_arm_R.comp(R_g)`, assemble via
-  --   `mkBifurcation` (if M's hinge is directed) or `mkBifurcationBidir`
-  --   (if M's hinge is bidirected).  Handles inl and inr cases of the
-  --   `Φ_L` disjunction by swapping which M-arm composes with `L_g` vs
-  --   `R_g`.  Vertex-bound verification: chain through M's arm extractor
-  --   sub-clauses, expansion's W-bound clauses, and q's arm extractor
-  --   sub-clauses.
-  --
-  -- * **Forward Case 2** (~150-200 lines): directed hinge with source
-  --   `c ∈ W`.  Find first non-W exit `vL_exit` on left arm and
-  --   `vR_exit` on right arm via `find_first_non_W_directed`.  The
-  --   hinge-straddle sub-walk from `vL_exit` through `c` to `vR_exit`
-  --   is a Φ_L witness (its interior is in W).  Build the marg-`L`
-  --   edge `(vL_exit, vR_exit) ∈ marg.L` and assemble via
-  --   `mkBifurcationBidir`.  Requires handling the degenerate
-  --   `vL_exit = vR_exit` case via cycle excision (which reduces back
-  --   to Case 1 forward).
-  --
-  -- * **Forward Case 3.B** (~150-200 lines): bidirected hinge with at
-  --   least one of `vL, vR` in W.  Same exit-finding approach as
-  --   Case 2 but the Φ_L witness includes the bidirected G-edge step
-  --   `(vL, vR) ∈ G.L` instead of a directed hinge.
-  --
-  -- * **Cycle excision** (~80-100 lines): for forward Cases 2 / 3.B's
-  --   degenerate `w_{c_j} = w_{c_{j+1}}` sub-case.  Strong induction on
-  --   walk length.
-  --
-  -- * **Main theorem case-split scaffolding** (~30 lines): wire up
-  --   `constructor` / `rintro` / `Classical.em` on
-  --   `IsBifurcationDirectedHingeWithSplit` to dispatch to the four
-  --   leaf helpers (forward directed-hinge × source ∈ marg / W,
-  --   forward bidirected-hinge × vL/vR ∈ W mix, backward
-  --   directed-hinge / bidirected-hinge).
-  --
-  -- TeX proof for this sub-claim:
-  -- `tex/claim_3_16_proof_MargPreservesAncestors.tex`,
-  -- §"Sub-claim ii(a): sourceless bifurcation biconditional",
-  -- Region H (lines ~252–410 of the post-correction tex).
-  --
-  -- Wired up below.  The case-split dispatches to the leaf helpers
-  -- `marg_preserves_bif_forward` / `marg_preserves_bif_backward`, which
-  -- in turn dispatch to the per-case helpers above.  Forward Case 3.B
-  -- (`marg_bif_forward_bidir_with_W`) currently has a localized `sorry`
-  -- with documented sub-case structure (~250-350 lines remaining); all
-  -- other case-leaves are closed.
+  -- Wires up the per-direction helpers, which themselves dispatch to the
+  -- per-case leaf helpers (forward directed-hinge × source ∈ marg / W,
+  -- forward bidirected-hinge × vL/vR ∈ W mix, backward directed-hinge /
+  -- bidirected-hinge).
   constructor
   · rintro (⟨p, hp⟩ | ⟨p, hp⟩)
     · exact Or.inl (marg_preserves_bif_forward G W hW hv₁ hv₂ ⟨p, hp⟩)
@@ -5257,33 +3418,6 @@ theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
   · rintro (⟨q, hq⟩ | ⟨q, hq⟩)
     · exact Or.inl (marg_preserves_bif_backward G W hW hv₁ hv₂ ⟨q, hq⟩)
     · exact Or.inr (marg_preserves_bif_backward G W hW hv₂ hv₁ ⟨q, hq⟩)
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_preserves_bifurcation
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_preserves_bifurcation (was: refactor_marginalize_preserves_bifurcation)
--- claim_3_16 -- start statement
-theorem refactor_marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) (v₁ v₂ : Node)
-    (hv₁ : v₁ ∈ G.refactor_marginalize W hW) (hv₂ : v₂ ∈ G.refactor_marginalize W hW) :
-    ((∃ p : Walk G v₁ v₂, p.IsBifurcation) ∨
-        (∃ p : Walk G v₂ v₁, p.IsBifurcation))
-      ↔
-    ((∃ p : Walk (G.refactor_marginalize W hW) v₁ v₂, p.IsBifurcation) ∨
-        (∃ p : Walk (G.refactor_marginalize W hW) v₂ v₁, p.IsBifurcation))
--- claim_3_16 -- end statement
-  := by
-  -- Sub-claim ii(a) (sourceless bifurcation biconditional), refactor twin.
-  -- Wires up the per-direction helpers, which themselves dispatch to the
-  -- per-case leaf helpers (forward directed-hinge × source ∈ marg / W,
-  -- forward bidirected-hinge × vL/vR ∈ W mix, backward directed-hinge /
-  -- bidirected-hinge).
-  constructor
-  · rintro (⟨p, hp⟩ | ⟨p, hp⟩)
-    · exact Or.inl (refactor_marg_preserves_bif_forward G W hW hv₁ hv₂ ⟨p, hp⟩)
-    · exact Or.inr (refactor_marg_preserves_bif_forward G W hW hv₂ hv₁ ⟨p, hp⟩)
-  · rintro (⟨q, hq⟩ | ⟨q, hq⟩)
-    · exact Or.inl (refactor_marg_preserves_bif_backward G W hW hv₁ hv₂ ⟨q, hq⟩)
-    · exact Or.inr (refactor_marg_preserves_bif_backward G W hW hv₂ hv₁ ⟨q, hq⟩)
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_preserves_bifurcation
 
 -- ref: claim_3_16 (sub-claim ii(b), preservation of bifurcations — sourced)
 --
@@ -5296,7 +3430,7 @@ theorem refactor_marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset N
 -- reading of the LN's parenthetical phrase, made explicit by
 -- `addition_to_the_LN` clause (b) — see the file-header note.
 /-
-LN tex (sub-claim ii(b), from the rewritten canonical statement):
+LN tex (sub-claim ii(b), from the canonical statement):
 
   ii.) (b) Sourced biconditional.  For every triple of nodes
        `v_1, v_2, v_3 ∈ (J ∪ V) ∖ W`, the following two
@@ -5354,7 +3488,7 @@ LN tex (sub-claim ii(b), from the rewritten canonical statement):
 --   preconditions would silently weaken the LN's universal
 --   quantifier on degenerate triples (which the biconditional
 --   handles vacuously).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_preserves_bifurcation_with_source
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) (v₁ v₂ v₃ : Node)
@@ -5375,30 +3509,6 @@ theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
   · rintro (h12 | h21)
     · exact Or.inl (marg_preserves_bifSource_backward G W hW hv₁ hv₂ hv₃ h12)
     · exact Or.inr (marg_preserves_bifSource_backward G W hW hv₂ hv₁ hv₃ h21)
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_preserves_bifurcation_with_source
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_preserves_bifurcation_with_source (was: refactor_marginalize_preserves_bifurcation_with_source)
--- claim_3_16 -- start statement
-theorem refactor_marginalize_preserves_bifurcation_with_source (G : CDMG Node)
-    (W : Finset Node) (hW : W ⊆ G.V) (v₁ v₂ v₃ : Node)
-    (hv₁ : v₁ ∈ G.refactor_marginalize W hW) (hv₂ : v₂ ∈ G.refactor_marginalize W hW)
-    (hv₃ : v₃ ∈ G.refactor_marginalize W hW) :
-    ((∃ p : Walk G v₁ v₂, p.IsBifurcationSource v₃) ∨
-        (∃ p : Walk G v₂ v₁, p.IsBifurcationSource v₃))
-      ↔
-    ((∃ p : Walk (G.refactor_marginalize W hW) v₁ v₂, p.IsBifurcationSource v₃) ∨
-        (∃ p : Walk (G.refactor_marginalize W hW) v₂ v₁, p.IsBifurcationSource v₃))
--- claim_3_16 -- end statement
-  := by
-  -- Apply the forward/backward orientation-helpers to each disjunct.
-  constructor
-  · rintro (h12 | h21)
-    · exact Or.inl (refactor_marg_preserves_bifSource_forward G W hW hv₁ hv₂ hv₃ h12)
-    · exact Or.inr (refactor_marg_preserves_bifSource_forward G W hW hv₂ hv₁ hv₃ h21)
-  · rintro (h12 | h21)
-    · exact Or.inl (refactor_marg_preserves_bifSource_backward G W hW hv₁ hv₂ hv₃ h12)
-    · exact Or.inr (refactor_marg_preserves_bifSource_backward G W hW hv₂ hv₁ hv₃ h21)
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_preserves_bifurcation_with_source
 
 -- ref: claim_3_16 (sub-claim iii(a), preservation of acyclicity)
 --
@@ -5416,7 +3526,7 @@ theorem refactor_marginalize_preserves_bifurcation_with_source (G : CDMG Node)
 -- non-trivial directed cycle in `G^{∖W}` would induce one in
 -- `G`, contradicting `G.IsAcyclic`.
 /-
-LN tex (sub-claim iii(a), from the rewritten canonical statement):
+LN tex (sub-claim iii(a), from the canonical statement):
 
   iii.) (a) Acyclicity is preserved.  `G^{∖W}` is acyclic in the
         sense of def \ref{def-acylic}, evaluated on the carrier
@@ -5471,7 +3581,7 @@ LN tex (sub-claim iii(a), from the rewritten canonical statement):
 --   identification arguments that build CBN factorisations on
 --   `G^{∖W}` consume this theorem to upgrade `G.marginalize W
 --   hW : CDMG Node` to an `IsCADMG` graph.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_preserves_acyclic
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (hAcyc : G.IsAcyclic) :
@@ -5486,24 +3596,6 @@ theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
   obtain ⟨q, hq_dir, hq_len, _, _⟩ := expand_directed_walk_marginalize p hp_dir
   have hq_pos : q.length ≥ 1 := by omega
   exact hAcyc v hv_g ⟨q, hq_dir, hq_pos⟩
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_preserves_acyclic
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_preserves_acyclic (was: refactor_marginalize_preserves_acyclic)
--- claim_3_16 -- start statement
-theorem refactor_marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) (hAcyc : G.IsAcyclic) :
-    (G.refactor_marginalize W hW).IsAcyclic
--- claim_3_16 -- end statement
-  := by
-  -- Sub-claim iii(a): a non-trivial directed cycle in `G^{∖W}` would
-  -- lift to a non-trivial directed cycle in `G` via
-  -- `refactor_expand_directed_walk_marginalize`, contradicting `G.IsAcyclic`.
-  intro v hv_marg ⟨p, hp_dir, hp_pos⟩
-  have hv_g : v ∈ G := refactor_mem_of_mem_marginalize hv_marg
-  obtain ⟨q, hq_dir, hq_len, _, _⟩ := refactor_expand_directed_walk_marginalize p hp_dir
-  have hq_pos : q.length ≥ 1 := by omega
-  exact hAcyc v hv_g ⟨q, hq_dir, hq_pos⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_preserves_acyclic
 
 -- ref: claim_3_16 (sub-claim iii(b), topological order via restriction)
 --
@@ -5529,7 +3621,7 @@ theorem refactor_marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
 -- `extOrder` / `restrictOrder` helpers bridge the tagged-sum
 -- carrier change `Node ↔ IntExtNode Node`).
 /-
-LN tex (sub-claim iii(b), from the rewritten canonical statement):
+LN tex (sub-claim iii(b), from the canonical statement):
 
   iii.) (b) Topological order is induced by restriction.  For
         every binary relation `<_G` on `J ∪ V` that is a
@@ -5593,16 +3685,13 @@ LN tex (sub-claim iii(b), from the rewritten canonical statement):
 --   via the `.unsplit` inclusion — that machinery is irrelevant
 --   here because marginalization has no such carrier change.
 --
--- *No `extOrder` / `restrictOrder` helper needed.*  Per the
---   manager's note in the row context: "match whatever
---   convention the existing `IsTopologicalOrder` expects (likely
---   `lt` on the full `Node` type with the membership-side-
---   condition idiom)".  `IsTopologicalOrder` exactly uses that
---   idiom (`∀ v ∈ G, …`), so the LN's restriction transports
---   verbatim with no auxiliary helper.  Introducing one would
---   add noise without changing the statement's content; future
---   downstream rows that need a Prop-level restriction operator
---   on relations can define it locally where needed.
+-- *No `extOrder` / `restrictOrder` helper needed.*
+--   `IsTopologicalOrder` uses the membership-side-condition idiom
+--   (`∀ v ∈ G, …`), so the LN's restriction transports verbatim
+--   with no auxiliary helper.  Introducing one would add noise
+--   without changing the statement's content; future downstream
+--   rows that need a Prop-level restriction operator on relations
+--   can define it locally where needed.
 --
 -- *`lt` and `hlt` as explicit positional arguments, not bundled
 --   into an inner `∀ lt, …` quantifier.*  Same rationale as
@@ -5651,7 +3740,7 @@ LN tex (sub-claim iii(b), from the rewritten canonical statement):
 --   this theorem to lift an `lt` from `G` to a topological
 --   order on `G.marginalize W hW` without re-proving any
 --   total-order / parent-precedence content from scratch.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_restricts_topological_order
+
 -- claim_3_16 -- start statement
 theorem marginalize_restricts_topological_order (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V)
@@ -5688,50 +3777,8 @@ theorem marginalize_restricts_topological_order (G : CDMG Node)
           (fun e => G.MarginalizationΦE W e.1 e.2) := hvw_edge
     have hvw_phi : G.MarginalizationΦE W v w :=
       (Finset.mem_filter.mp hvw_filter).2
-    obtain ⟨p, hp_dir, hp_pos, _, _⟩ := hvw_phi
-    exact Walk.lt_of_directedWalk_pos h_trans h_parent p hp_dir hp_pos
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_restricts_topological_order
-
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_restricts_topological_order (was: refactor_marginalize_restricts_topological_order)
--- claim_3_16 -- start statement
-theorem refactor_marginalize_restricts_topological_order (G : CDMG Node)
-    (W : Finset Node) (hW : W ⊆ G.V)
-    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
-    (G.refactor_marginalize W hW).IsTopologicalOrder lt
--- claim_3_16 -- end statement
-  := by
-  -- Sub-claim iii(b): pointwise transport via the carrier inclusion
-  -- `J ∪ (V ∖ W) ⊆ J ∪ V`.  For the parent-precedence clause, lift
-  -- the marginalized parent witness through `Φ_E^{∖W}` to a directed
-  -- walk in `G` and chain `lt` along it via
-  -- `Walk.lt_of_directedWalk_pos`.
-  obtain ⟨⟨h_irrefl, h_trans, h_total⟩, h_parent⟩ := hlt
-  refine ⟨⟨?_, ?_, ?_⟩, ?_⟩
-  · -- Irreflexivity on the smaller carrier.
-    intro v hv
-    exact h_irrefl v (refactor_mem_of_mem_marginalize hv)
-  · -- Transitivity on the smaller carrier.
-    intro u hu v hv w hw huv hvw
-    exact h_trans u (refactor_mem_of_mem_marginalize hu)
-                  v (refactor_mem_of_mem_marginalize hv)
-                  w (refactor_mem_of_mem_marginalize hw) huv hvw
-  · -- Trichotomy on the smaller carrier.
-    intro v hv w hw
-    exact h_total v (refactor_mem_of_mem_marginalize hv) w (refactor_mem_of_mem_marginalize hw)
-  · -- Parent precedence in `G.refactor_marginalize W hW`: unfold the marg-parent
-    -- predicate to a `Φ_E` witness, then chain `lt` along the
-    -- witnessing directed `G`-walk via `Walk.lt_of_directedWalk_pos`.
-    intro v w hvw_parent
-    obtain ⟨hv_marg, hvw_edge⟩ := hvw_parent
-    -- `hvw_edge : (v, w) ∈ (G.refactor_marginalize W hW).E`.  Unfold to the
-    -- `Finset.filter` form, extract the `Φ_E` witness.
-    have hvw_filter : (v, w) ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-          (fun e => G.refactor_MarginalizationΦE W e.1 e.2) := hvw_edge
-    have hvw_phi : G.refactor_MarginalizationΦE W v w :=
-      (Finset.mem_filter.mp hvw_filter).2
     obtain ⟨p, hp_dir, hp_pos, _⟩ := hvw_phi
     exact Walk.lt_of_directedWalk_pos h_trans h_parent p hp_dir hp_pos
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_restricts_topological_order
 
 end CDMG
 

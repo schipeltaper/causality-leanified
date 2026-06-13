@@ -101,115 +101,6 @@ variable {Node : Type*} [DecidableEq Node]
 --
 -- One-sentence summary: `G.MarginalizationΦE W u v` says there exists
 -- a directed walk in `G` from `u` to `v` of length `n ≥ 1` whose
--- intermediate vertices `w_1, …, w_{n-1}` all lie in `W`, with the
--- self-cycle restriction that `u = v` forces `n ≥ 2`.
---
--- ## Authoritative encoding (LN + rewritten tex + addition)
---
--- Clause (iii) of the rewritten tex spells out `Φ_E` as the
--- conjunction of (a) end-points (`w_0 = u`, `w_n = v`), (b)
--- intermediates in `W`, (c) consecutive `E`-edges, and (d) self-cycle
--- length restriction.  Our Lean encoding bundles (a)–(d) onto a
--- single `Walk G u v` witness `p`:
---
--- * (a) end-points: built into the type `Walk G u v` (`def_3_4`
---   item~i, encoded via the inductive's index).
--- * (c) consecutive `E`-edges: `p.IsDirectedWalk` (`def_3_4`
---   item~ii).
--- * `n ≥ 1`: `p.length ≥ 1`.  Without this conjunct the trivial walk
---   `Walk.nil v hv : Walk G v v` (vacuously a directed walk per
---   `def_3_4` item~ii) would satisfy `Φ_E(v, v)` for every `v ∈ G`,
---   silently admitting every self-pair into `E^{∖W}`.
--- * (b) intermediates in `W`: `∀ x ∈ p.vertices.tail.dropLast, x ∈ W`.
---   `p.vertices` is the LN's vertex list `[w_0, w_1, …, w_n]`
---   (`def_3_4` helper `Walk.vertices`); dropping the head `w_0 = u`
---   via `List.tail` and the last `w_n = v` via `List.dropLast`
---   leaves the intermediate slice `[w_1, …, w_{n-1}]` (vacuous when
---   `n = 1`, matching the LN's "(if any)" qualifier).
--- * (d) self-cycle restriction: `u = v → p.length ≥ 2`.  When
---   `u = v` this excludes the length-1 witness — a direct edge
---   `(v, v) ∈ G.E` alone does *not* justify membership of `(v, v)`
---   in `E^{∖W}` (per the addition
---   `[self_cycle_asymmetry_between_directed_and_bidirected]`).
---   When `u ≠ v` the implication is vacuously satisfied and the
---   length-1 case (a direct edge `(u, v) ∈ G.E`, no intermediates)
---   remains admissible.
---
--- ## Design choice
---
--- *Why factored out as a named top-level `def`, not inlined inside
---   the `E^{∖W}` field body of `marginalize`.*  Every downstream
---   marginalization claim (`claim_3_16` preserves-ancestors,
---   `claim_3_17` commutes, `claim_3_18` marg-vs-intervention,
---   `claim_3_19` empty-marginalisation) reasons by unfolding
---   "membership in `(G.marginalize W).E`" to "exists a witnessing
---   directed walk through `W`"; a named predicate carries that
---   unfolding step as a single rewrite + dot-notation API, where
---   inlining would drag the four-conjunct existential through every
---   such proof and force ad-hoc destructuring.  Mirrors the sibling
---   chapter-3 CDMG operators' membership-predicate naming
---   convention.
---
--- *Why `Walk G u v` as the witness type, not a fresh `List Node` /
---   `Fin (n+1) → Node` enumeration of the walk's vertices.*  The
---   chapter has already paid the foundational cost of `def_3_4`'s
---   `Walk` inductive (`Walks.lean`) — it carries the LN's "$v_0$ /
---   $a_0$ / $v_1$ / …" alternation with the per-edge `WalkStep`
---   constraint built in, and downstream definitions / claims
---   (`def_3_5` ancestors, `def_3_6` acyclicity, `claim_3_5`
---   bifurcation alternative) consume walks uniformly.  A bespoke
---   `List Node`-based reformulation would force every downstream
---   marginalization claim (`claim_3_16` preserves-ancestors,
---   `claim_3_18` marg-vs-intervention) to translate back to the
---   `Walk` API, doubling the work.
---
--- *Why a single Lean predicate covering both branches (`u = v` and
---   `u ≠ v`), not two separate predicates.*  The set-builder for
---   `E^{∖W}` is a single set over `(J ∪ (V ∖ W)) × (V ∖ W)`; the
---   self-cycle restriction is a *conditional* inside the predicate,
---   not a partition of the carrier.  Splitting `Φ_E` into
---   `Φ_E_non_self` and `Φ_E_self` would force `E^{∖W}` to be a
---   `Finset.union` of two pieces, scattering the LN's single-set
---   reading across two pattern matches per consumer.  The
---   conditional `u = v → p.length ≥ 2` keeps both cases unified in
---   one quantifier.
---
--- *Why `p.length ≥ 1` and `u = v → p.length ≥ 2` as separate
---   conjuncts, not a single `if-then-else`.*  Lean's classical
---   `if h : u = v then p.length ≥ 2 else p.length ≥ 1` would force
---   downstream proofs to `by_cases h : u = v` before reaching the
---   length bound; the two-conjunct form admits direct case-splits
---   on whichever bound the consumer needs.  Semantically the two
---   formulations are equivalent.
---
--- *Why `p.vertices.tail.dropLast`, not `p.vertices.drop 1 |>.take
---   (p.length - 1)` or an indexed `Fin (n - 1)` lookup.*  The
---   `List.tail` / `List.dropLast` pair is the directly readable
---   "drop first, drop last" idiom over `Walk.vertices`; downstream
---   chapter-3 proofs already use this idiom (`def_3_4`'s
---   `IsBifurcation`: `u ∉ p.vertices.tail`, `v ∉ p.vertices.dropLast`),
---   so the marginalization API stays uniform.  An indexed form would
---   force `Fin`-arithmetic and `List.get?` plumbing at every use
---   site.
---
--- *Symmetry status.*  Φ_E is *not* symmetric in `(u, v)` — directed
---   walks have a direction.  This matches the LN's `E^{∖W}` (a set
---   of directed edges, asymmetric like `G.E`).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: MarginalizationΦE
--- def_3_14 --- start helper
-def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
-  ∃ (p : Walk G u v),
-    p.IsDirectedWalk ∧
-    p.length ≥ 1 ∧
-    (∀ x ∈ p.vertices.tail.dropLast, x ∈ W) ∧
-    (u = v → p.length ≥ 2)
--- def_3_14 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: MarginalizationΦE
-
--- ## Helper: `MarginalizationΦE` — the directed-walk-through-`W` predicate
---
--- One-sentence summary: `G.MarginalizationΦE W u v` says there exists
--- a directed walk in `G` from `u` to `v` of length `n ≥ 1` whose
 -- intermediate vertices `w_1, …, w_{n-1}` all lie in `W`.
 --
 -- ## Authoritative encoding (LN + rewritten tex + addition)
@@ -324,15 +215,13 @@ def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
 --   Equivalence to LN + addition confirmed via `verify_equivalence`
 --   (against the rewritten bridge tex
 --   `tex/def_3_14_MarginalizationAK.tex`).
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: MarginalizationΦE (was: refactor_MarginalizationΦE)
 -- def_3_14 --- start helper
-def refactor_MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
+def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
   ∃ (p : Walk G u v),
     p.IsDirectedWalk ∧
     p.length ≥ 1 ∧
     (∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
 -- def_3_14 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: MarginalizationΦE
 
 -- ## Helper: `MarginalizationΦL` — the bifurcation-through-`W` predicate
 --
@@ -507,12 +396,6 @@ def MarginalizationΦL (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
 --   each independently without needing to unfold a packaged
 --   "marginalization predicate" sum.
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: instDecidableMarginalizationΦE
-noncomputable instance instDecidableMarginalizationΦE
-    (G : CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.MarginalizationΦE W u v) :=
-  Classical.propDecidable _
--- REFACTOR-BLOCK-ORIGINAL-END: instDecidableMarginalizationΦE
 
 -- ## Classical decidability instance for `Φ_E` (internal plumbing)
 --
@@ -532,12 +415,10 @@ noncomputable instance instDecidableMarginalizationΦE
 -- a single `DecidablePred (G.MarginalizationΦE W)`) so typeclass
 -- resolution can unify `u := e.1`, `v := e.2` for each concrete
 -- `e : Node × Node` flowing into the filter.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: instDecidableMarginalizationΦE (was: refactor_instDecidableMarginalizationΦE)
-noncomputable instance refactor_instDecidableMarginalizationΦE
+noncomputable instance instDecidableMarginalizationΦE
     (G : CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.refactor_MarginalizationΦE W u v) :=
+    Decidable (G.MarginalizationΦE W u v) :=
   Classical.propDecidable _
--- REFACTOR-BLOCK-REPLACEMENT-END: instDecidableMarginalizationΦE
 
 noncomputable instance instDecidableMarginalizationΦL
     (G : CDMG Node) (W : Finset Node) (u v : Node) :
@@ -567,15 +448,6 @@ private lemma marginalize_hJV_disj (G : CDMG Node) (W : Finset Node) :
   refine Finset.disjoint_left.mpr fun a haJ haVW => ?_
   exact Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hE_subset
-private lemma marginalize_hE_subset (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃e : Node × Node⦄,
-      e ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-            (fun e => G.MarginalizationΦE W e.1 e.2) →
-      e.1 ∈ G.J ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
-  intro e he
-  exact Finset.mem_product.mp (Finset.mem_filter.mp he).1
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hE_subset
 
 -- ## `hE_subset` proof obligation for the `E^{∖W}` filter (internal plumbing)
 --
@@ -592,15 +464,13 @@ private lemma marginalize_hE_subset (G : CDMG Node) (W : Finset Node) :
 -- named-lemma references, the website builder renders the def's
 -- signature, and a reader sees the data assignments without proof
 -- clutter.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hE_subset (was: refactor_marginalize_hE_subset)
-private lemma refactor_marginalize_hE_subset (G : CDMG Node) (W : Finset Node) :
+private lemma marginalize_hE_subset (G : CDMG Node) (W : Finset Node) :
     ∀ ⦃e : Node × Node⦄,
       e ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-            (fun e => G.refactor_MarginalizationΦE W e.1 e.2) →
+            (fun e => G.MarginalizationΦE W e.1 e.2) →
       e.1 ∈ G.J ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
   intro e he
   exact Finset.mem_product.mp (Finset.mem_filter.mp he).1
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hE_subset
 
 private lemma marginalize_hL_subset (G : CDMG Node) (W : Finset Node) :
     ∀ ⦃e : Node × Node⦄,
@@ -632,248 +502,6 @@ private lemma marginalize_hL_symm (G : CDMG Node) (W : Finset Node) :
   rcases hPhi with hLeft | hRight
   · exact Or.inr hLeft
   · exact Or.inl hRight
-
--- ref: def_3_14
---
--- The *marginalization* of `G` w.r.t. `W` — the LN's `G^{∖W}` — is
--- the CDMG `G.marginalize W hW` whose four components are
---
---   * `J^{∖W} := G.J`                                 — input nodes
---     unchanged;
---   * `V^{∖W} := G.V \ W`                             — output nodes
---     with `W` removed;
---   * `E^{∖W} := { e ∈ (G.J ∪ (G.V \ W)) × (G.V \ W) | Φ_E W e.1 e.2 }`
---     — the directed-edge set of pairs witnessed by a directed walk in
---     `G` whose intermediate vertices all lie in `W` (with the
---     self-cycle restriction baked into `Φ_E`);
---   * `L^{∖W} := { e ∈ (G.V \ W) × (G.V \ W) | e.1 ≠ e.2 ∧
---                  Φ_L W e.1 e.2 }` — the bidirected-edge set of
---     distinct pairs witnessed by a bifurcation in `G` whose
---     intermediate vertices all lie in `W`.
---
--- The hypothesis `hW : W ⊆ G.V` is the LN's "$W \subseteq V$"
--- precondition that `W` is a subset of output nodes only.
-/-
-LN tex (rewritten `def_3_14_MarginalizationAK`, items i–iv,
-condensed):
-
-    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq V$.  The
-    marginalization of $G$ w.r.t. $W$ is the CDMG
-    $G^{\sm W} := (J^{\sm W}, V^{\sm W}, E^{\sm W}, L^{\sm W})$,
-    where:
-      i.   $J^{\sm W} := J$;
-      ii.  $V^{\sm W} := V \sm W$;
-      iii. $E^{\sm W} := \{ (\ul{v}, \ol{v}) \in (J \cup (V \sm W))
-              \times (V \sm W) \mid \Phi_E(\ul{v}, \ol{v}) \}$,
-           where $\Phi_E$ asserts the existence of a directed walk
-           in $G$ from $\ul{v}$ to $\ol{v}$ of length $n \ge 1$ with
-           all intermediate vertices in $W$, subject to the
-           self-cycle restriction that $\ul{v} = \ol{v}$ forces
-           $n \ge 2$;
-      iv.  $L^{\sm W} := \{ (\ul{v}, \ol{v}) \in (V \sm W) \times
-              (V \sm W) \mid \ul{v} \neq \ol{v} \land
-              \Phi_L(\ul{v}, \ol{v}) \}$,
-           where $\Phi_L$ asserts the existence of a bifurcation in
-           $G$ (in the sense of `def_3_4` item~vi.) between
-           $\ul{v}$ and $\ol{v}$ with all intermediate vertices in
-           $W$.
-
-LN block (verbatim, for backup):
-
-    Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of output
-    nodes.  Then the marginalization of $G$ w.r.t. $W$ is the CDMG:
-      $G^{V \sm W | J} := G^{\sm W} := (J^{\sm W}, V^{\sm W},
-        E^{\sm W}, L^{\sm W})$, where:
-      i.)   $J^{\sm W} := J$,
-      ii.)  $V^{\sm W} := V \sm W$,
-      iii.) $E^{\sm W}$ consists of all directed edges
-            $\ul{v} \tuh \ol{v}$ with $\ul{v}, \ol{v} \in J \cup
-            (V \sm W)$ for which there exists a directed walk in
-            $G$: $\ul{v} \tuh w_1 \tuh \cdots \tuh w_{n-1} \tuh
-            \ol{v}$, where all intermediate nodes $w_1, \dots,
-            w_{n-1} \in W$ (if any);
-      iv.)  $L^{\sm W}$ consists of all bidirected edges
-            $\ul{v} \huh \ol{v}$ with $\ul{v}, \ol{v} \in V \sm W$,
-            $\ul{v} \neq \ol{v}$, for which there exists a
-            bifurcation in $G$: $\ul{v} \hut w_1 \hut \cdots \hut
-            w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh
-            \ol{v}$, where all intermediate nodes $w_1, \dots,
-            w_{n-1} \in W$ (if any).
--/
--- ## Design choice (load-bearing contract for downstream chapter 3 rows)
---
--- * **`def`, not `structure` / `inductive` / `class`.**  Marginalization
---   is a *function* `CDMG Node → Finset Node → … → CDMG Node`, not new
---   data and not a typeclass-resolvable property.  The CDMG already
---   has its `structure` (`def_3_1`); this row simply produces a new
---   CDMG from an existing one.  Mirrors the sibling row pattern
---   (`def_3_10` `HardInterventionOn`, `def_3_11` `NodeSplittingOn`,
---   `def_3_12` `NodeSplittingHard`, `def_3_13` `ExtendingCDMGsWith`):
---   every CDMG operator is a `def`, never a wrapper structure.
---
--- * **Carrier of the result is `Node`, NOT a tagged-sum carrier.**
---   Unlike `def_3_11` (`NodeSplittingOn`) and `def_3_13`
---   (`ExtendingCDMGsWith`), which *create* new nodes (tagged copies /
---   intervention symbols) and therefore live in `CDMG (SplitNode
---   Node)` / `CDMG (IntExtNode Node)`, marginalization only *removes*
---   nodes (`V \ W`) — every node of `G^{∖W}` already inhabits the
---   original `Node` carrier.  Matches `def_3_10` (`HardInterventionOn`).
---
--- * **`hW : W ⊆ G.V` is an explicit argument, not consumed by the five
---   proof obligations.**  The LN's "Let $W \subseteq V$" is part of
---   the *signature* of marginalization (the precondition that `W` is
---   a subset of output nodes only).  Contrast with `def_3_10`'s
---   `W ⊆ G.J ∪ G.V` (which admits `W ∩ G.J ≠ ∅`): marginalization
---   strictly requires `W ⊆ G.V`, matching the LN literally.  The
---   five obligations close on (i) `G.hJV_disj` plus `G.V \ W ⊆ G.V`
---   for `hJV_disj`, (ii) the product carrier `(G.J ∪ (G.V \ W)) ×ˢ
---   (G.V \ W)` for `hE_subset`, (iii) the product carrier
---   `(G.V \ W) ×ˢ (G.V \ W)` for `hL_subset`, (iv) the explicit
---   `e.1 ≠ e.2` filter conjunct for `hL_irrefl`, and (v) `Or.comm`
---   on `Φ_L`'s two walk-orientation disjuncts for `hL_symm`.
---   `hW` is carried purely for LN-faithfulness of the signature; the
---   `set_option linter.unusedVariables false in` suppresses the
---   linter warning the same way `def_3_10` does.
---
--- * **`Finset.filter` over the product carrier, with classical
---   decidability.**  The LN writes the edge sets as set-builders
---   ranging over `(J ∪ (V \ W)) × (V \ W)` and `(V \ W) × (V \ W)`,
---   filtered by Φ_E and Φ_L respectively.  Lean's `Finset.filter` is
---   the closest primitive on `Finset (Node × Node)`; the product
---   carrier `_ ×ˢ _` materialises the LN's "ranging over" range.
---   `Finset.filter` requires `DecidablePred` — supplied by the
---   classical instances above.  Alternatives considered and rejected:
---   (a) `Set (Node × Node)` for the edge sets would make
---   `marginalize` return a non-CDMG type (`def_3_1` requires
---   `Finset`-backed edges); (b) a constructive reachability fixpoint
---   would add a substantial chunk of new chapter-3 infrastructure for
---   no downstream gain (claims reason set-theoretically, not
---   procedurally).
---
--- * **The `noncomputable` annotation is a direct consequence of
---   classical decidability.**  `Classical.propDecidable` is
---   `noncomputable`; the per-element `Decidable` instances above
---   inherit the annotation; `Finset.filter` consumes the instances;
---   `marginalize` inherits the annotation in turn.  This is the
---   standard Mathlib idiom for "data structure exists, decision
---   procedure deferred to classical reasoning"; downstream rows that
---   need a *constructive* description of `(G.marginalize W hW).E` /
---   `…L` can derive membership characterisations via the iff
---   lemmas `Finset.mem_filter` + `Finset.mem_product` + `Φ_E` /
---   `Φ_L` unfolding (one-shot per claim).
---
--- * **The directed-walk predicate Φ_E captures clauses (a)–(d) in
---   one go.**  See the design block above the `MarginalizationΦE`
---   helper for the per-conjunct rationale; key points: (i) the
---   single Lean predicate covers both `u = v` (with `p.length ≥ 2`)
---   and `u ≠ v` (with `p.length ≥ 1`) cases, matching the LN's
---   single set-builder; (ii) the addition-clause
---   `[self_cycle_asymmetry_between_directed_and_bidirected]`'s
---   "length-1 walk insufficient for self-cycle" is enforced by the
---   `u = v → p.length ≥ 2` conjunct.
---
--- * **The bifurcation-through-`W` predicate Φ_L reuses
---   `Walk.IsBifurcation` verbatim and is symmetrised via `Or`.**
---   See the design block above the `MarginalizationΦL` helper for
---   the rationale; key points: (i) all three boundary cases of the
---   addition `[bifurcation_index_boundary_excludes_natural_cases]`
---   are admitted by `Walk.IsBifurcation` (n=1 direct bidirected
---   edge, n=2,k=1 Y-fork, n=2,k=n mirror Y); (ii) Φ_L is *evidently*
---   symmetric in `(u, v)` via the disjunction over both walk
---   orientations, so `hL_symm` reduces to `Or.comm` rather than
---   requiring a general `Walk.reverse` construction.
---
--- * **Asymmetry between (iii) and (iv) preserved.**  The
---   addition `[self_cycle_asymmetry_between_directed_and_bidirected]`
---   stipulates: (a) directed self-cycles `(v, v) ∈ E^{∖W}` may
---   exist (but only via a walk of length ≥ 2 through `W`); (b)
---   bidirected self-edges `(v, v) ∈ L^{∖W}` are excluded outright.
---   Our encoding preserves both:
---   * (iii) `E^{∖W}` is filtered over `(G.J ∪ (G.V \ W)) ×ˢ
---     (G.V \ W)` *without* an `e.1 ≠ e.2` conjunct; self-cycle
---     admission is controlled by Φ_E's `u = v → p.length ≥ 2`
---     conjunct alone.
---   * (iv) `L^{∖W}` is filtered with an *explicit* `e.1 ≠ e.2`
---     conjunct as the first clause — this is the load-bearing
---     `hL_irrefl` discharge, and it is the *only* place the
---     bidirected self-exclusion lives (Φ_L's implicit `u ≠ v`
---     constraint inside `Walk.IsBifurcation` is a secondary
---     reinforcement, not the primary mechanism).
---
--- * **`hL_symm` via `Or.comm` on Φ_L's two disjuncts.**  The
---   symmetrisation of Φ_L bakes the symmetry into the predicate
---   itself; `hL_symm` becomes a one-shot `rcases hPhi with
---   hLeft | hRight; exact Or.inr hLeft / Or.inl hRight`.  No
---   general walk-reversal infrastructure is required, which keeps
---   this row's footprint local to its own subsection folder.
---   A `Walk.reverse` general operation would be a clean
---   `Walks.lean`-level addition, but the chapter has not paid that
---   cost yet (only `Walk.reverseDirected` exists in
---   `BifurcationAlternative.lean`, for the directed-walk case);
---   building it here would be premature.
---
--- * **No `Disjoint` requirement on `W ⊆ G.V`.**  Unlike
---   `def_3_11` (`NodeSplittingOn`) and `def_3_12` (`NodeSplittingHard`),
---   which restrict `W ⊆ G.V` for distinct semantic reasons (tagged
---   copies are introduced per `w ∈ W`), marginalization's `W ⊆ G.V`
---   is a *structural* constraint (we can only marginalise output
---   nodes; marginalising input nodes is meaningless because input
---   nodes have no edges *into* them by `def_3_1`'s
---   `hE_subset : e.2 ∈ V`).  This is captured by `hW`'s type alone;
---   no additional disjointness is needed.
---
--- * **Argument order `(G : CDMG Node) (W : Finset Node) (hW : …)`.**
---   Matches the convention of every chapter-3 CDMG operator
---   (`G.hardInterventionOn`, `G.nodeSplittingOn`,
---   `G.nodeSplittingHard`, `G.extendingCDMGsWith`), enabling
---   dot-notation `G.marginalize W hW`.  `W` precedes `hW` so the
---   call site reads left-to-right like the LN's "let `W ⊆ V` be
---   a subset".
---
--- * **`where` syntax with named fields.**  Same convention as every
---   other chapter-3 CDMG operator; keeps the four data assignments
---   aligned with the LN's items i–iv and the five proof-obligation
---   references aligned with `def_3_1`'s axioms.
---
--- * **Constructor-proof obligations live outside the def.**  The
---   five private lemmas `marginalize_hJV_disj` /
---   `marginalize_hE_subset` / `marginalize_hL_subset` /
---   `marginalize_hL_irrefl` / `marginalize_hL_symm` above discharge
---   the `def_3_1` `CDMG`-axiom proof obligations; the def body is
---   pure data + named-lemma references.  Mirrors the convention of
---   `def_3_10` / `def_3_11` / `def_3_12` / `def_3_13`.
---
--- * **Downstream consumers.**  `claim_3_16` (marginalization
---   preserves ancestors), `claim_3_17` (marginalizations commute),
---   `claim_3_18` (marginalization vs hard intervention), and
---   `claim_3_19` (marginalisation out of empty intervention) are
---   the immediate consumers in chapter 3.  Beyond chapter 3, every
---   row that builds on latent projections — the do-calculus
---   identifiability machinery (chapter 5), the iSCM intervention
---   algebra (chapters 8–10), and the causal-discovery FCI / ICDF
---   pipeline (chapters 11+) — depends on this operator's `E^{∖W}` /
---   `L^{∖W}` shape.  The four field assignments above are the
---   contract those rows rely on; the classical-decidability /
---   `noncomputable` story is invisible to them (membership iff
---   lemmas, derived per-claim, are the surface they consume).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize
-set_option linter.unusedVariables false in
--- def_3_14 -- start statement
-noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) : CDMG Node where
-  J := G.J
-  V := G.V \ W
-  hJV_disj := marginalize_hJV_disj G W
-  E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-        (fun e => G.MarginalizationΦE W e.1 e.2)
-  hE_subset := marginalize_hE_subset G W
-  L := ((G.V \ W) ×ˢ (G.V \ W)).filter
-        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
-  hL_subset := marginalize_hL_subset G W
-  hL_irrefl := marginalize_hL_irrefl G W
-  hL_symm := marginalize_hL_symm G W
--- def_3_14 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize
 
 -- ref: def_3_14
 --
@@ -1123,24 +751,22 @@ LN block (verbatim, for backup):
 --   downstream.  Equivalence to LN + addition confirmed via
 --   `verify_equivalence` (against the rewritten bridge tex
 --   `tex/def_3_14_MarginalizationAK.tex`).
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize (was: refactor_marginalize)
 set_option linter.unusedVariables false in
 -- def_3_14 -- start statement
-noncomputable def refactor_marginalize (G : CDMG Node) (W : Finset Node)
+noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) : CDMG Node where
   J := G.J
   V := G.V \ W
   hJV_disj := marginalize_hJV_disj G W
   E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-        (fun e => G.refactor_MarginalizationΦE W e.1 e.2)
-  hE_subset := refactor_marginalize_hE_subset G W
+        (fun e => G.MarginalizationΦE W e.1 e.2)
+  hE_subset := marginalize_hE_subset G W
   L := ((G.V \ W) ×ˢ (G.V \ W)).filter
         (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
   hL_subset := marginalize_hL_subset G W
   hL_irrefl := marginalize_hL_irrefl G W
   hL_symm := marginalize_hL_symm G W
 -- def_3_14 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize
 
 end CDMG
 
