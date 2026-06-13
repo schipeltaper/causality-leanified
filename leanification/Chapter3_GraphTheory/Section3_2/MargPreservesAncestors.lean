@@ -27,38 +27,35 @@ This file formalises the LN remark `claim_3_16`
 >        order of `G` induces a topological order of `G^{∖W}` (by
 >        just ignoring the nodes from `W`).
 
-The authoritative spec is the rewritten canonical tex statement at
+The authoritative spec is the canonical tex statement at
 `leanification/Chapter3_GraphTheory/Section3_2/tex/`
-`claim_3_16_statement_MargPreservesAncestors.tex`, verified
-equivalent to the LN block + `addition_to_the_LN` by
-`verify_tex_statement_only` and `verify_tex_statement_equivalence`.
-The `addition_to_the_LN` clarifies the ambiguous "(and, optionally,
+`claim_3_16_statement_MargPreservesAncestors.tex`, equivalent to
+the LN block plus the `addition_to_the_LN` clarifications.  The
+`addition_to_the_LN` clarifies the ambiguous "(and, optionally,
 `v_3 ∈ G ∖ W`)" parenthetical of item ii as **two separate
 biconditionals** — once with the parenthetical clauses omitted (the
 sourceless form (a)) and once with them included (the sourced form
-(b)).  Sub-claim iii is further unfolded by the rewrite into two
-sub-assertions: (a) preservation of acyclicity, and (b) restriction
-of any topological order of `G` to a topological order of `G^{∖W}`.
+(b)).  Sub-claim iii is unfolded into two sub-assertions: (a)
+preservation of acyclicity, and (b) restriction of any topological
+order of `G` to a topological order of `G^{∖W}`.
 
-The rewrite folded two LN-critic working-phase subtleties into the
-canonical tex as structural resolutions:
+Two subtleties in the LN's wording are made explicit by the
+canonical tex:
 
-* `optionally_v3_phrasing_creates_dual_claim` — resolved by the
-  `addition_to_the_LN` clauses (a) and (b) above: the literal LN
-  asserts two biconditionals, not one.
-* `bifurcation_no_source_existential_admits_w_source` — under the
-  sourceless reading, the LHS's existential over the source ranges
-  over `J ∪ V` (including `W`), while the RHS's ranges over
-  `J ∪ (V ∖ W)`.  The biconditional silently relies on
+* The "(and, optionally, `v_3 ∈ G ∖ W`)" parenthetical is resolved
+  by the `addition_to_the_LN` clauses (a) and (b) above: the
+  literal LN asserts two biconditionals, not one.
+* Under the sourceless reading, the LHS's existential over the
+  source ranges over `J ∪ V` (including `W`), while the RHS's
+  ranges over `J ∪ (V ∖ W)`.  The biconditional silently relies on
   `Walk.IsBifurcation` admitting the `n = 1` direct bidirected edge
   case (so that a `Y`-fork through `W` collapses to a bidirected
   edge in `G^{∖W}`); this is exactly what the chapter-init addition
   `[bifurcation_index_boundary_excludes_natural_cases]` of
-  `def_3_4` `IsBifurcation` admits.  Worth a global subtlety
-  register entry (handled separately by the manager).
+  `def_3_4` `IsBifurcation` admits.
 
 The remark bundles five sub-assertions — three primary sub-claims,
-two of which split further per the rewrite — under one `\begin{Rem}`.
+two of which split further — under one `\begin{Rem}`.
 This file states each as its **own top-level theorem**:
 
 * `marginalize_preserves_ancestors` (sub-claim i): the ancestral-
@@ -80,9 +77,8 @@ This file states each as its **own top-level theorem**:
   inside `IsTopologicalOrder` already restricts the order's
   effective domain to `J ∪ (V ∖ W)`).
 
-The proof bodies are filled in by `prove_claim_in_lean` (Manager B),
-following the verified TeX proof at
-`tex/claim_3_16_proof_MargPreservesAncestors.tex` (to be written).
+The proof bodies follow the TeX proof at
+`tex/claim_3_16_proof_MargPreservesAncestors.tex`.
 -/
 
 namespace CDMG
@@ -234,6 +230,7 @@ private lemma Walk.target_in_G_of_directedWalk_pos {G : CDMG Node} :
   exact Finset.mem_union_right _
     (Walk.target_in_GV_of_directedWalk_pos p hdir hlen)
 
+
 /-- Lift node membership from the marginalized CDMG back to `G`. -/
 private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
     {hW : W ⊆ G.V} {v : Node} (h : v ∈ G.marginalize W hW) : v ∈ G := by
@@ -242,6 +239,7 @@ private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
   rcases Finset.mem_union.mp h with hJ | hVW
   · exact Finset.mem_union_left _ hJ
   · exact Finset.mem_union_right _ (Finset.mem_sdiff.mp hVW).1
+
 
 /-- A node in `G.marginalize W hW` is outside `W` (uses `hJV_disj`
 to handle the `J`-disjunct). -/
@@ -303,6 +301,7 @@ private lemma Walk.tail_vertices_ne_nil_of_pos {G : CDMG Node} :
   | _, _, .nil _ _, h => by simp [Walk.length] at h
   | _, _, .cons _ _ _ p', _ => Walk.vertices_ne_nil p'
 
+
 /-- Lift a directed walk in the marginalized CDMG to a directed walk
 in the ambient `G`, with length at least the original AND vertex
 bounds linking the expansion's vertices to the marg-walk's vertices
@@ -339,7 +338,7 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
               (fun e => G.MarginalizationΦE W e.1 e.2) := ha_mem'
       have ha_phi : G.MarginalizationΦE W u vMid :=
         (Finset.mem_filter.mp ha_filter).2
-      obtain ⟨q_edge, hq_edge_dir, hq_edge_pos, hq_edge_inter, _⟩ := ha_phi
+      obtain ⟨q_edge, hq_edge_dir, hq_edge_pos, hq_edge_inter⟩ := ha_phi
       obtain ⟨q_tail, hq_tail_dir, hq_tail_len, hq_tail_sub, hq_tail_drop_sub⟩ :=
         ih hp'_dir
       have hq_edge_vs : q_edge.vertices = u :: q_edge.vertices.tail :=
@@ -467,10 +466,11 @@ private lemma find_first_non_W_directed {G : CDMG Node} (W : Finset Node) :
           change u :: p'.vertices = [u] ++ p'.vertices
           rfl
 
+
 /-- Project a directed walk from `G` to the marginalized CDMG, given
-both endpoints lie in `G.marginalize W hW`.  Constructed by strong
-induction on walk length: iteratively peel off a head segment from
-`v₁` to the first non-`W` vertex, witness the corresponding
+both endpoints lie in `G.marginalize W hW`.  Constructed by
+strong induction on walk length: iteratively peel off a head segment
+from `v₁` to the first non-`W` vertex, witness the corresponding
 `marg`-edge via the `Φ_E` predicate, and recurse on the tail.  The
 projected walk is shorter than the original (a single `marg`-edge
 absorbs an arbitrary `W`-traversal). -/
@@ -511,11 +511,8 @@ private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
           ih tail h_tail_len h_tail_dir hm_marg hv₂
         by_cases hv₁_eq_m : v₁ = m
         · -- Self-loop / degenerate case: head is a `v₁ → ... → v₁` cycle
-          -- through `W`.  The projected walk simply skips this loop
-          -- (the marg-side self-edge `(v₁, v₁) ∈ marg.E` requires a
-          -- length-`≥ 2` witness, but we can avoid producing such an
-          -- edge entirely by returning `q_tail` directly with `v₁ = m`
-          -- on the type level).
+          -- through `W`.  Return `q_tail` directly (with `v₁ = m` on
+          -- the type level).
           subst hv₁_eq_m
           exact ⟨q_tail, hq_tail_dir⟩
         · -- v₁ ≠ m: build a single `marg`-edge from v₁ to m, then
@@ -527,13 +524,12 @@ private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
             · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
               exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
             · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
-              refine ⟨head, h_head_dir, h_head_pos, h_head_inter, ?_⟩
-              intro heq
-              exact absurd heq hv₁_eq_m
+              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
           have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :=
             Or.inl ⟨rfl, Or.inl h_edge_marg⟩
           exact ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
                  ⟨rfl, h_edge_marg, hq_tail_dir⟩⟩
+
 
 /-- Convenience wrapper: project a directed walk from `G` to
 `G.marginalize W hW`, with both endpoints in the marg-carrier. -/
@@ -544,9 +540,10 @@ private lemma project_directed_walk_marginalize {G : CDMG Node}
     ∃ (q : Walk (G.marginalize W hW) v₁ v₂), q.IsDirectedWalk :=
   project_directed_walk_aux (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
 
+
 /-- Strengthened projection: project a directed walk in `G` (between
-two marg-nodes) to a directed walk in `marg`, with the additional
-guarantees:
+two marg-nodes of `G.marginalize W hW`) to a directed walk
+in the same marg, with the additional guarantees:
   - every vertex of the projected walk appears in the original;
   - every vertex of the projected walk's `dropLast` appears in the
     original's `dropLast` (i.e.\ excluding-target sub-list);
@@ -637,7 +634,8 @@ private lemma project_directed_walk_with_vertex_subset_aux
           rw [h_p_eq, h_head_drop_vs]
           rfl
         by_cases hv₁_eq_m : v₁ = m
-        · -- Self-loop case: return q_tail.
+        · -- Self-loop case: return `q_tail` directly (with `v₁ = m` on
+          -- the type level).
           subst hv₁_eq_m
           refine ⟨q_tail, hq_tail_dir, ?_, ?_, ?_⟩
           · -- q_tail.vertices ⊆ p.vertices.
@@ -660,9 +658,8 @@ private lemma project_directed_walk_with_vertex_subset_aux
             refine Finset.mem_filter.mpr ⟨?_, ?_⟩
             · refine Finset.mem_product.mpr ⟨hv₁, ?_⟩
               exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notW⟩
-            · refine ⟨head, h_head_dir, h_head_pos, h_head_inter, ?_⟩
-              intro heq
-              exact absurd heq hv₁_eq_m
+            · -- `Φ_E W v₁ m`: the head walk itself witnesses it.
+              exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
           have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :=
             Or.inl ⟨rfl, Or.inl h_edge_marg⟩
           refine ⟨Walk.cons m (v₁, m) hStep_marg q_tail,
@@ -696,9 +693,11 @@ private lemma project_directed_walk_with_vertex_subset_aux
             -- q_tail.vertices ⊆ tail.vertices ⊆ p.vertices.tail.
             exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx))
 
+
 /-- Convenience wrapper for the strong projection: project a directed
-walk `p : Walk G v₁ v₂` (between marg-nodes) to a directed walk
-`q : Walk marg v₁ v₂` with the three vertex-subset clauses. -/
+walk `p : Walk G v₁ v₂` (between marg-nodes of `G.marginalize W hW`)
+to a directed walk `q : Walk marg v₁ v₂` with the three vertex-subset
+clauses. -/
 private lemma project_directed_walk_strong {G : CDMG Node}
     {W : Finset Node} {hW : W ⊆ G.V}
     {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
@@ -1703,6 +1702,7 @@ private lemma Walk.exists_arms_of_bifurcation_bidir_hinge_strong
 
 -- ## Helper: forward direction of sub-claim ii(b) for one orientation.
 
+
 private lemma marg_preserves_bifSource_forward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -1769,6 +1769,7 @@ private lemma marg_preserves_bifSource_forward (G : CDMG Node)
   exact hc_eq_v3 ▸ h_bif_src
 
 -- ## Helper: backward direction of sub-claim ii(b) for one orientation.
+
 
 private lemma marg_preserves_bifSource_backward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
@@ -1858,6 +1859,7 @@ private lemma marg_preserves_bifSource_backward (G : CDMG Node)
 -- Sub-case (H.B) of the TeX proof: the directed hinge's source lies
 -- outside W (so in marg).  Reduces to sub-claim ii(b)'s forward helper
 -- followed by the conversion `IsBifurcationSource → IsBifurcation`.
+
 private lemma marg_bif_forward_dir_hinge_src_marg
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -1879,6 +1881,7 @@ private lemma marg_bif_forward_dir_hinge_src_marg
 -- marg (since the source is a vertex of the marg walk and all vertices
 -- of a marg walk lie in marg).  Reduces to sub-claim ii(b)'s backward
 -- helper followed by the conversion `IsBifurcationSource → IsBifurcation`.
+
 private lemma marg_bif_backward_dir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -1980,6 +1983,7 @@ private lemma Walk.arm_dropLast_in_W {G : CDMG Node} {a b : Node}
 -- M's hinge is directed) or `mkBifurcationBidir` (if M's hinge is
 -- bidirected).  Vertex-bound conditions are dispatched via
 -- `Walk.arm_dropLast_in_W` and the expansion helpers.
+
 private lemma marg_bif_backward_bidir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2322,6 +2326,7 @@ private lemma marg_bif_backward_bidir_hinge
 -- edge `(vL, vR) ∈ (G.marginalize W hW).L` is witnessed by the single
 -- bidirected G-edge directly (`Φ_L` with no W-interior).  The arms are
 -- projected to marg directly via `project_directed_walk_strong`.
+
 private lemma marg_bif_forward_bidir_both_notW
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2397,6 +2402,7 @@ private lemma marg_bif_forward_bidir_both_notW
 -- (`L_marg_seg : Walk G vL_exit u`, `R_marg_seg : Walk G vR_exit w`), plus
 -- a Φ_L witness for `(vL_exit, vR_exit) ∈ marg.L`, and assembles via
 -- `mkBifurcationBidir_isBifurcation`.
+
 private lemma marg_bif_forward_assemble_bidirected
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2442,6 +2448,7 @@ private lemma marg_bif_forward_assemble_bidirected
     hu_notin_L_proj_drop hu_notin_R_proj hw_notin_L_proj hw_notin_R_proj_drop
 
 -- ## Helper (forward Case 2) — directed hinge with source `c ∈ W`.
+
 private lemma marg_bif_forward_dir_hinge_src_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2735,6 +2742,7 @@ private lemma marg_bif_forward_dir_hinge_src_W
     exact marg_bif_forward_assemble_bidirected G W hW hu hw huw_ne
       hvL_exit_VW hvR_exit_VW hvL_vR_exit_eq hPhi_L hL_marg_dir hR_marg_dir
       hu_notin_L_marg_drop hu_notin_R_marg hw_notin_L_marg hw_notin_R_marg_drop
+
 -- ## Helper: given W-segments and marg-segments, finish Case 3.B by
 -- either constructing a sourced G-bifurcation (degenerate `vL_exit =
 -- vR_exit`) or assembling via `mkBifurcationBidir` + assembly helper.
@@ -2742,6 +2750,7 @@ private lemma marg_bif_forward_dir_hinge_src_W
 -- Linked hypothesis `hL_W_link`: either (L_W_part.length ≥ 1 AND vL ∈ W)
 -- or (L_W_part.length = 0 AND vL = vL_exit).  This precludes the
 -- pathological "L_W_part has cycle at vL ∉ W" case.
+
 private lemma marg_bif_forward_bidir_finish
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -2970,6 +2979,7 @@ private lemma marg_bif_forward_bidir_finish
 
 -- ## Helper (forward Case 3.B) — bidirected hinge with at least one
 -- endpoint in W.
+
 private lemma marg_bif_forward_bidir_with_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3111,6 +3121,7 @@ private lemma marg_bif_forward_bidir_with_W
       hu_notin_L_g_drop hu_notin_R_marg hw_notin_L_g hw_notin_R_marg_drop
       hvR_exit_ne_u hvL_ne_w
 
+
 private lemma marg_preserves_bif_forward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3138,6 +3149,7 @@ private lemma marg_preserves_bif_forward
           hL_sub hR_sub hL_drop_sub hR_drop_sub
 
 -- ## Wrapper: backward direction (case-splits on hinge type).
+
 private lemma marg_preserves_bif_backward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
@@ -3163,7 +3175,7 @@ private lemma marg_preserves_bif_backward
 -- `W`-segment into a single `E^{∖W}`-edge per `def_3_14` item iii),
 -- and conversely.
 /-
-LN tex (sub-claim i, from the rewritten canonical statement):
+LN tex (sub-claim i, from the canonical statement):
 
   i.) Preservation of ancestral relations.  For every pair of nodes
       `v_1, v_2 ∈ (J ∪ V) ∖ W = J ∪ (V ∖ W)`, the biconditional
@@ -3240,6 +3252,7 @@ LN tex (sub-claim i, from the rewritten canonical statement):
 --   by the trivial walk `Walk.nil v₁ hv₁`; same for the
 --   marginalized side).  Imposing `v₁ ≠ v₂` would silently weaken
 --   the LN's universal quantifier.
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (v₁ v₂ : Node)
@@ -3285,7 +3298,7 @@ theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
 -- in its endpoints), so the `∨` does not strengthen / weaken the
 -- predicate.
 /-
-LN tex (sub-claim ii(a), from the rewritten canonical statement):
+LN tex (sub-claim ii(a), from the canonical statement):
 
   ii.) (a) Sourceless biconditional.  For every pair of nodes
        `v_1, v_2 ∈ (J ∪ V) ∖ W`, the following two propositions
@@ -3381,6 +3394,7 @@ LN tex (sub-claim ii(a), from the rewritten canonical statement):
 --   broader outer quantifier `(J ∪ V) ∖ W` is LN-faithful and the
 --   biconditional remains correct on input-node endpoints
 --   (vacuously true).
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (v₁ v₂ : Node)
@@ -3393,84 +3407,10 @@ theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
 -- claim_3_16 -- end statement
   := by
   -- Sub-claim ii(a) (sourceless bifurcation biconditional).
-  --
-  -- ## Infrastructure status (cumulative across runs)
-  --
-  -- * Bidirected arm extractor `Walk.exists_arms_of_bifurcation_bidir_hinge_strong`
-  --   — mirror of the directed-hinge extractor, uses term-mode `match` to
-  --   avoid the dependent-`cases` scoping issue from the previous run.
-  -- * `Walk.mem_of_mem_vertices` — every vertex of a walk lies in `G`.
-  --   Used to derive `c ∈ marg` from a marg-walk in the backward
-  --   direction's directed-hinge case.
-  -- * `Walk.isBifurcationWithSplit_comp_right_directed` — right-extension
-  --   of a bifurcation by a directed walk preserves
-  --   `IsBifurcationWithSplit` at the same index.  Companion to the
-  --   existing left-extension `Walk.isBifurcationWithSplit_comp_reverseDirected_bidir_aux`.
-  --   Needed for the backward bidirected splice.
-  -- * Case 1 forward / backward helpers:
-  --   - `marg_bif_forward_dir_hinge_src_marg` (forward, directed hinge,
-  --     source in marg → reuse ii(b) forward).
-  --   - `marg_bif_backward_dir_hinge` (backward, directed hinge — source
-  --     is automatically in marg because it's a vertex of the marg walk).
-  -- * Case 3.A forward helper:
-  --   - `marg_bif_forward_bidir_both_notW` (forward, bidirected hinge,
-  --     both `vL, vR ∉ W`).  Uses the single bidirected G-edge as the
-  --     `Φ_L` witness, projects both arms directly, assembles via
-  --     `mkBifurcationBidir_isBifurcation`.
-  --
-  -- ## What remains (each ~150-300 lines of Lean)
-  --
-  -- * **Backward bidirected** (~250-350 lines): the marg-walk `q` has a
-  --   bidirected hinge `(vL, vR) ∈ marg.L`.  Unfold marg.L's filter to
-  --   get a `Φ_L` witness (a G-bifurcation `M` between `vL` and `vR`
-  --   with interior in W).  Apply M's own bifurcation arm extractor
-  --   (directed or bidirected, depending on M's hinge type) to extract
-  --   M's structure.  Splice with the expanded `L_g`, `R_g` arms via
-  --   `M_arm_L.comp(L_g)` and `M_arm_R.comp(R_g)`, assemble via
-  --   `mkBifurcation` (if M's hinge is directed) or `mkBifurcationBidir`
-  --   (if M's hinge is bidirected).  Handles inl and inr cases of the
-  --   `Φ_L` disjunction by swapping which M-arm composes with `L_g` vs
-  --   `R_g`.  Vertex-bound verification: chain through M's arm extractor
-  --   sub-clauses, expansion's W-bound clauses, and q's arm extractor
-  --   sub-clauses.
-  --
-  -- * **Forward Case 2** (~150-200 lines): directed hinge with source
-  --   `c ∈ W`.  Find first non-W exit `vL_exit` on left arm and
-  --   `vR_exit` on right arm via `find_first_non_W_directed`.  The
-  --   hinge-straddle sub-walk from `vL_exit` through `c` to `vR_exit`
-  --   is a Φ_L witness (its interior is in W).  Build the marg-`L`
-  --   edge `(vL_exit, vR_exit) ∈ marg.L` and assemble via
-  --   `mkBifurcationBidir`.  Requires handling the degenerate
-  --   `vL_exit = vR_exit` case via cycle excision (which reduces back
-  --   to Case 1 forward).
-  --
-  -- * **Forward Case 3.B** (~150-200 lines): bidirected hinge with at
-  --   least one of `vL, vR` in W.  Same exit-finding approach as
-  --   Case 2 but the Φ_L witness includes the bidirected G-edge step
-  --   `(vL, vR) ∈ G.L` instead of a directed hinge.
-  --
-  -- * **Cycle excision** (~80-100 lines): for forward Cases 2 / 3.B's
-  --   degenerate `w_{c_j} = w_{c_{j+1}}` sub-case.  Strong induction on
-  --   walk length.
-  --
-  -- * **Main theorem case-split scaffolding** (~30 lines): wire up
-  --   `constructor` / `rintro` / `Classical.em` on
-  --   `IsBifurcationDirectedHingeWithSplit` to dispatch to the four
-  --   leaf helpers (forward directed-hinge × source ∈ marg / W,
-  --   forward bidirected-hinge × vL/vR ∈ W mix, backward
-  --   directed-hinge / bidirected-hinge).
-  --
-  -- TeX proof for this sub-claim:
-  -- `tex/claim_3_16_proof_MargPreservesAncestors.tex`,
-  -- §"Sub-claim ii(a): sourceless bifurcation biconditional",
-  -- Region H (lines ~252–410 of the post-correction tex).
-  --
-  -- Wired up below.  The case-split dispatches to the leaf helpers
-  -- `marg_preserves_bif_forward` / `marg_preserves_bif_backward`, which
-  -- in turn dispatch to the per-case helpers above.  Forward Case 3.B
-  -- (`marg_bif_forward_bidir_with_W`) currently has a localized `sorry`
-  -- with documented sub-case structure (~250-350 lines remaining); all
-  -- other case-leaves are closed.
+  -- Wires up the per-direction helpers, which themselves dispatch to the
+  -- per-case leaf helpers (forward directed-hinge × source ∈ marg / W,
+  -- forward bidirected-hinge × vL/vR ∈ W mix, backward directed-hinge /
+  -- bidirected-hinge).
   constructor
   · rintro (⟨p, hp⟩ | ⟨p, hp⟩)
     · exact Or.inl (marg_preserves_bif_forward G W hW hv₁ hv₂ ⟨p, hp⟩)
@@ -3490,7 +3430,7 @@ theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
 -- reading of the LN's parenthetical phrase, made explicit by
 -- `addition_to_the_LN` clause (b) — see the file-header note.
 /-
-LN tex (sub-claim ii(b), from the rewritten canonical statement):
+LN tex (sub-claim ii(b), from the canonical statement):
 
   ii.) (b) Sourced biconditional.  For every triple of nodes
        `v_1, v_2, v_3 ∈ (J ∪ V) ∖ W`, the following two
@@ -3548,6 +3488,7 @@ LN tex (sub-claim ii(b), from the rewritten canonical statement):
 --   preconditions would silently weaken the LN's universal
 --   quantifier on degenerate triples (which the biconditional
 --   handles vacuously).
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) (v₁ v₂ v₃ : Node)
@@ -3585,7 +3526,7 @@ theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
 -- non-trivial directed cycle in `G^{∖W}` would induce one in
 -- `G`, contradicting `G.IsAcyclic`.
 /-
-LN tex (sub-claim iii(a), from the rewritten canonical statement):
+LN tex (sub-claim iii(a), from the canonical statement):
 
   iii.) (a) Acyclicity is preserved.  `G^{∖W}` is acyclic in the
         sense of def \ref{def-acylic}, evaluated on the carrier
@@ -3640,6 +3581,7 @@ LN tex (sub-claim iii(a), from the rewritten canonical statement):
 --   identification arguments that build CBN factorisations on
 --   `G^{∖W}` consume this theorem to upgrade `G.marginalize W
 --   hW : CDMG Node` to an `IsCADMG` graph.
+
 -- claim_3_16 -- start statement
 theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.V) (hAcyc : G.IsAcyclic) :
@@ -3679,7 +3621,7 @@ theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
 -- `extOrder` / `restrictOrder` helpers bridge the tagged-sum
 -- carrier change `Node ↔ IntExtNode Node`).
 /-
-LN tex (sub-claim iii(b), from the rewritten canonical statement):
+LN tex (sub-claim iii(b), from the canonical statement):
 
   iii.) (b) Topological order is induced by restriction.  For
         every binary relation `<_G` on `J ∪ V` that is a
@@ -3743,16 +3685,13 @@ LN tex (sub-claim iii(b), from the rewritten canonical statement):
 --   via the `.unsplit` inclusion — that machinery is irrelevant
 --   here because marginalization has no such carrier change.
 --
--- *No `extOrder` / `restrictOrder` helper needed.*  Per the
---   manager's note in the row context: "match whatever
---   convention the existing `IsTopologicalOrder` expects (likely
---   `lt` on the full `Node` type with the membership-side-
---   condition idiom)".  `IsTopologicalOrder` exactly uses that
---   idiom (`∀ v ∈ G, …`), so the LN's restriction transports
---   verbatim with no auxiliary helper.  Introducing one would
---   add noise without changing the statement's content; future
---   downstream rows that need a Prop-level restriction operator
---   on relations can define it locally where needed.
+-- *No `extOrder` / `restrictOrder` helper needed.*
+--   `IsTopologicalOrder` uses the membership-side-condition idiom
+--   (`∀ v ∈ G, …`), so the LN's restriction transports verbatim
+--   with no auxiliary helper.  Introducing one would add noise
+--   without changing the statement's content; future downstream
+--   rows that need a Prop-level restriction operator on relations
+--   can define it locally where needed.
 --
 -- *`lt` and `hlt` as explicit positional arguments, not bundled
 --   into an inner `∀ lt, …` quantifier.*  Same rationale as
@@ -3801,6 +3740,7 @@ LN tex (sub-claim iii(b), from the rewritten canonical statement):
 --   this theorem to lift an `lt` from `G` to a topological
 --   order on `G.marginalize W hW` without re-proving any
 --   total-order / parent-precedence content from scratch.
+
 -- claim_3_16 -- start statement
 theorem marginalize_restricts_topological_order (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V)
@@ -3837,7 +3777,7 @@ theorem marginalize_restricts_topological_order (G : CDMG Node)
           (fun e => G.MarginalizationΦE W e.1 e.2) := hvw_edge
     have hvw_phi : G.MarginalizationΦE W v w :=
       (Finset.mem_filter.mp hvw_filter).2
-    obtain ⟨p, hp_dir, hp_pos, _, _⟩ := hvw_phi
+    obtain ⟨p, hp_dir, hp_pos, _⟩ := hvw_phi
     exact Walk.lt_of_directedWalk_pos h_trans h_parent p hp_dir hp_pos
 
 end CDMG
