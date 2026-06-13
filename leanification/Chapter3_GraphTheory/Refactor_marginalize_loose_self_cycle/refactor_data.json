@@ -38,10 +38,10 @@
       "section": "3.2",
       "title": "MarginalizationAK",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-13",
       "tips": "REFACTOR row. This row is a refactor ROOT in `marginalize_loose_self_cycle` (roots: `def_3_14`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
@@ -52,16 +52,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 2,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 5,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -72,12 +72,258 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_only": 0,
-        "verify_tex_statement_equivalence": 0
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Marginalization a.k.a.\\ latent projection on CDMGs]\\label{def:G_marginalization}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of output nodes.\n  Then the \\emph{marginalization of $G$ w.r.t.\\ $W$} or the \\emph{latent projection of $G$ onto $J\\cup V \\sm W$} is the CDMG:\n  \\[  G^{V\\sm W | J} := G^{\\sm W} := (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  %\\[ G(V \\sm W | \\doit(J)) := G^{\\sm W} = (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J^{\\sm W}:= J$,\n      \\item $V^{\\sm W}:= V \\sm W$,\n      \\item $E^{\\sm W}$ consists of all directed edges $\\ul{v} \\tuh \\ol{v}$ with $\\ul{v},\\ol{v} \\in J \\cup V \\sm W$ \n          for which there exists a directed walk in $G$:\n          \\[\\ul{v} \\tuh w_1 \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\\footnote{Note that this may introduce self-cycles.}\n      \\item $L^{\\sm W}$ consists of all bidirected edges $\\ul{v} \\huh \\ol{v}$ with \n          $\\ul{v},\\ol{v} \\in V \\sm W$, $\\ul{v} \\neq \\ol{v}$, \n          for which there exists a bifurcation in $G$:\n          \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\n      %\\item $L^{\\sm W}:= \\lC \\ul{v} \\huh \\ol{v}\\,|\\, \\ul{v},\\ol{v} \\in V \\sm W: \n      %    \\exists \\text{ bifurcation: } \\ul{v} \\hut w_1 \\cdots w_{n-1} \\tuh \\ol{v} \\in G \n      %    \\text{ with } w_1,\\dots,w_{n-1} \\in W \\rC$,\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2ab46ca1-f81b-449a-b3da-bc61413c5263",
+          "first_seen": "2026-06-13T11:44:13+00:00",
+          "last_used": "2026-06-13T11:44:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a715747b-9284-4af4-a708-5dc959a85d33",
+          "first_seen": "2026-06-13T11:47:01+00:00",
+          "last_used": "2026-06-13T11:47:01+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "84a6f4e3-88fe-49e5-ac36-260a396d00fd",
+          "first_seen": "2026-06-13T11:47:35+00:00",
+          "last_used": "2026-06-13T11:47:35+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_only",
+          "spawned_by": "manager",
+          "session_id": "e3c98db6-fc21-4568-af9a-23fb4407be9c",
+          "first_seen": "2026-06-13T11:47:52+00:00",
+          "last_used": "2026-06-13T11:47:52+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6e2f5f20-fd7a-4dc7-9669-ad72a16a7c24",
+          "first_seen": "2026-06-13T11:52:30+00:00",
+          "last_used": "2026-06-13T11:52:30+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_equivalence",
+          "spawned_by": "manager",
+          "session_id": "86d08823-c6f5-4cad-a392-93a558c55a4c",
+          "first_seen": "2026-06-13T11:57:18+00:00",
+          "last_used": "2026-06-13T11:57:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "33a6b45a-9156-47db-8148-f8224b1c3fbf",
+          "first_seen": "2026-06-13T11:58:09+00:00",
+          "last_used": "2026-06-13T11:58:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "1c5890d7-0afc-48b2-bf8a-8cad9f74a4ac",
+          "first_seen": "2026-06-13T12:10:01+00:00",
+          "last_used": "2026-06-13T12:10:01+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2fd62f7c-1821-4020-a6fe-4de90f7279e8",
+          "first_seen": "2026-06-13T12:11:27+00:00",
+          "last_used": "2026-06-13T12:11:27+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "19e449ed-c2bb-4f3f-9fd6-4a1a57d5b8fa",
+          "first_seen": "2026-06-13T12:16:05+00:00",
+          "last_used": "2026-06-13T12:16:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f5cfab81-b0df-44ab-af8f-1fec90c7172b",
+          "first_seen": "2026-06-13T12:16:50+00:00",
+          "last_used": "2026-06-13T12:16:50+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "64d37d3d-9b23-4a53-afa3-593e4edbb42c",
+          "first_seen": "2026-06-13T12:20:12+00:00",
+          "last_used": "2026-06-13T12:20:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d64e740b-cf6d-4aff-809e-9243abe828ba",
+          "first_seen": "2026-06-13T12:21:39+00:00",
+          "last_used": "2026-06-13T12:21:39+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "2f6ad1e6-eeb8-4771-ac1f-e5a9df2dcf04",
+          "first_seen": "2026-06-13T12:36:15+00:00",
+          "last_used": "2026-06-13T12:36:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f6fef7ee-357a-4291-b7ab-d99379006aec",
+          "first_seen": "2026-06-13T12:37:42+00:00",
+          "last_used": "2026-06-13T12:37:42+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "b32376b2-4500-40d2-b373-ff6bb94a5b5b",
+          "first_seen": "2026-06-13T12:43:13+00:00",
+          "last_used": "2026-06-13T12:43:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a15176d3-a6b1-4734-8412-6dd94e296510",
+          "first_seen": "2026-06-13T12:46:09+00:00",
+          "last_used": "2026-06-13T12:46:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "04057776-4fae-4539-b668-7fa987634694",
+          "first_seen": "2026-06-13T12:48:33+00:00",
+          "last_used": "2026-06-13T12:48:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "20a0c16d-ad79-463a-82e2-8207a3042511",
+          "first_seen": "2026-06-13T12:49:20+00:00",
+          "last_used": "2026-06-13T12:49:20+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "eeb8f6ef-2f58-4dee-a831-ea8fdeb3871d",
+          "first_seen": "2026-06-13T12:55:22+00:00",
+          "last_used": "2026-06-13T12:55:22+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2a1d63ee-4156-4e6e-8c89-237cc886ad20",
+          "first_seen": "2026-06-13T12:56:07+00:00",
+          "last_used": "2026-06-13T12:56:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ee82a41e-1fc0-48b9-aa74-96d03b2d23e0",
+          "first_seen": "2026-06-13T12:59:19+00:00",
+          "last_used": "2026-06-13T12:59:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e55233a5-df10-4954-8ed0-5e60b5c28bbf",
+          "first_seen": "2026-06-13T12:59:59+00:00",
+          "last_used": "2026-06-13T12:59:59+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "77802587-b723-40d7-9549-ff0252c50ea7",
+          "first_seen": "2026-06-13T13:03:02+00:00",
+          "last_used": "2026-06-13T13:03:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a8b527e3-b8b5-4c12-ae2a-21738fdfce7f",
+          "first_seen": "2026-06-13T13:04:15+00:00",
+          "last_used": "2026-06-13T13:04:15+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "cc2c2042-b708-417a-9ff7-30e4a2b2b85e",
+          "first_seen": "2026-06-13T13:07:20+00:00",
+          "last_used": "2026-06-13T13:07:20+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "48d9cff9-c68e-401d-ad89-b2670e5c4a1c",
+          "first_seen": "2026-06-13T13:22:07+00:00",
+          "last_used": "2026-06-13T13:22:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1b9c2a24-9ab2-473b-a7b0-536c2dc60fc1",
+          "first_seen": "2026-06-13T13:22:40+00:00",
+          "last_used": "2026-06-13T13:22:40+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "281b7cee-b80a-473b-a817-1af92d97bcff",
+          "first_seen": "2026-06-13T13:26:50+00:00",
+          "last_used": "2026-06-13T13:26:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "95536690-73b0-4901-9660-0a1fc68a6efc",
+          "first_seen": "2026-06-13T13:27:51+00:00",
+          "last_used": "2026-06-13T13:27:51+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "888530c8-c567-4d4f-abe8-0212ff865e2e",
+          "first_seen": "2026-06-13T13:29:43+00:00",
+          "last_used": "2026-06-13T13:29:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ddef0096-cbd5-41e3-861b-29e9dc838c81",
+          "first_seen": "2026-06-13T13:31:25+00:00",
+          "last_used": "2026-06-13T13:31:25+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5f568547-478c-43f6-abd6-ad98baf211e2",
+          "first_seen": "2026-06-13T13:36:24+00:00",
+          "last_used": "2026-06-13T13:36:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ae968f73-5fad-4ab7-a554-c77a12521d0c",
+          "first_seen": "2026-06-13T13:38:35+00:00",
+          "last_used": "2026-06-13T13:38:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "2532ae39-4c4f-4a38-8dea-5b6056b05c20",
+          "first_seen": "2026-06-13T13:45:49+00:00",
+          "last_used": "2026-06-13T13:45:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8841,
       "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.\n\nAdditionally, in clause (iii), a self-cycle $v \\tuh v$ is admitted to $E^{\\sm W}$ only when witnessed by a directed walk of length at least 2 (i.e., $n \\geq 2$, equivalently with at least one intermediate node $w_i \\in W$). A length-1 walk (a direct edge $v \\tuh v$ already present in $G$, with no intermediates) does not on its own justify a self-cycle in $E^{\\sm W}$. For non-self edges ($\\ul{v} \\neq \\ol{v}$), length-1 walks remain admissible.",
       "wording_check": {
         "done": true,

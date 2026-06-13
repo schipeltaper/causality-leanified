@@ -28,7 +28,7 @@
         \item \emph{Output nodes.}
             \[ V^{\sm W} \;:=\; V \sm W. \]
 
-        \item \emph{Directed edges.} The directed-edge set is the set of pairs witnessed by a directed walk in $G$ whose intermediate vertices lie in $W$, subject to the length restriction described below:
+        \item \emph{Directed edges.} The directed-edge set is the set of pairs witnessed by a directed walk in $G$ whose intermediate vertices lie in $W$:
             \[
                 E^{\sm W} \;:=\; \lC (\ul{v}, \ol{v}) \in \lp J \cup (V \sm W) \rp \times (V \sm W) \st \Phi_E(\ul{v}, \ol{v}) \rC,
             \]
@@ -37,11 +37,10 @@
                 \item \emph{End-points.} $w_0 = \ul{v}$ and $w_n = \ol{v}$.
                 \item \emph{Intermediates lie in $W$.} $w_i \in W$ for every $i \in \{1, \ldots, n - 1\}$ (vacuous when $n = 1$).
                 \item \emph{Consecutive $E$-edges.} $(w_{i-1}, w_i) \in E$ for every $i \in \{1, \ldots, n\}$.
-                \item \emph{Self-cycle length restriction.} If $\ul{v} = \ol{v}$ then $n \ge 2$ (equivalently, the witnessing walk must contain at least one intermediate vertex $w_i \in W$). When $\ul{v} \neq \ol{v}$ no such restriction applies: the length-$1$ case $n = 1$ (a direct edge $(\ul{v}, \ol{v}) \in E$, with no intermediates) is admitted.
             \end{enumerate}
-            In words: $\Phi_E(\ul{v}, \ol{v})$ asserts the existence of a directed walk in $G$ from $\ul{v}$ to $\ol{v}$, in the sense of def \ref{def:walks}, item~ii., of length $n \ge 1$, all of whose intermediate vertices $w_1, \ldots, w_{n-1}$ (if any) lie in $W$; clause~(d) imposes the additional self-cycle exclusion that, when $\ul{v} = \ol{v}$, a length-$1$ witness is not sufficient.\footnote{This clause may introduce self-cycles $v \tuh v$ into $E^{\sm W}$: namely, whenever $G$ contains a directed walk of length $\ge 2$ from $v$ back to $v$ with all intermediate vertices in $W$. However, the pre-existing length-$1$ edge $(v, v) \in E$ alone (with no intermediates through $W$) does \emph{not} on its own justify membership of $(v, v)$ in $E^{\sm W}$.}
+            In words: $\Phi_E(\ul{v}, \ol{v})$ asserts the existence of a directed walk in $G$ from $\ul{v}$ to $\ol{v}$, in the sense of def \ref{def:walks}, item~ii., of length $n \ge 1$, all of whose intermediate vertices $w_1, \ldots, w_{n-1}$ (if any) lie in $W$.
 
-            \emph{No $\ul{v} \neq \ol{v}$ constraint.} The condition $\ul{v} \neq \ol{v}$ is \emph{not} imposed in the set-builder for $E^{\sm W}$. Self-cycles $(v, v) \in E^{\sm W}$ are admitted exactly under the witness conditions above, namely via a directed walk of length $\ge 2$ through $W$ that returns to $v$.
+            \emph{No $\ul{v} \neq \ol{v}$ constraint.} The condition $\ul{v} \neq \ol{v}$ is \emph{not} imposed in the set-builder for $E^{\sm W}$. Self-cycles $(v, v) \in E^{\sm W}$ are admitted exactly under the witness conditions above, namely via a directed walk through $W$ that returns to $v$.\footnote{This may introduce self-cycles into $E^{\sm W}$.}
 
         \item \emph{Bidirected edges.} The bidirected-edge set is the set of distinct pairs witnessed by a bifurcation in $G$ whose intermediate vertices lie in $W$:
             \[
@@ -75,7 +74,7 @@
     \emph{Asymmetry between (iii) and (iv) regarding self-edges (intentional; to be preserved by any formalisation).}
     The constraint $\ul{v} \neq \ol{v}$ is imposed in clause (iv) on $L^{\sm W}$ but is \emph{not} imposed in clause (iii) on $E^{\sm W}$. Consequently:
     \begin{itemize}
-        \item Directed self-cycles $v \tuh v$ may appear in $E^{\sm W}$, but \emph{only} when witnessed by a directed walk of length $\ge 2$ through $W$ (per clause (iii)(d)); a pre-existing length-$1$ edge $(v, v) \in E$ alone is insufficient.
+        \item Directed self-cycles $v \tuh v$ may appear in $E^{\sm W}$ when witnessed by a directed walk through $W$ that returns to $v$.
         \item Bidirected self-edges $v \huh v$ are \emph{excluded} from $L^{\sm W}$ outright by the $\ul{v} \neq \ol{v}$ constraint, irrespective of any bifurcation-through-$W$ that might otherwise witness one.
     \end{itemize}
     Any formalisation of this definition shall preserve this asymmetry exactly: no $\ul{v} \neq \ol{v}$ constraint is to be imposed on $E^{\sm W}$, and no relaxation of the $\ul{v} \neq \ol{v}$ constraint is to be made on $L^{\sm W}$.
