@@ -60,6 +60,7 @@ KATEX_MACRO_RE = re.compile(r'"\\\\([A-Za-z]+)"\s*:')
 KATEX_BUILTINS: set[str] = set("""
     left right middle bigl bigr Bigl Bigr biggl biggr Biggl Biggr
     text mathrm mathbf mathit mathsf mathtt mathcal mathbb mathfrak
+    textrm textbf textit textsf texttt textnormal
     boldsymbol operatorname displaystyle textstyle scriptstyle scriptscriptstyle
     overline underline overbrace underbrace overrightarrow overleftarrow
     widetilde widehat hat tilde bar vec dot ddot acute grave breve check mathring

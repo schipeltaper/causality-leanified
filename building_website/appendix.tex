@@ -1626,3 +1626,263 @@ theorem addInterventionNodes_comm_swig (G : CDMG Node) (hG : G.IsCADMG)
 % NOTES-END claim_3_15
 \vspace{\appendixNotesGap}
 %% ROW-END claim_3_15
+
+%% ROW-BEGIN def_3_14
+\noindent\textbf{Definition: Marginalization a.k.a.\ latent projection on CDMGs}\par\smallskip
+{\appendixTexSize
+\label{def:G_marginalization}
+  Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of output nodes.
+  Then the \emph{marginalization of $G$ w.r.t.\ $W$} or the \emph{latent projection of $G$ onto $J\cup V \sm W$} is the CDMG:
+  \[  G^{V\sm W | J} := G^{\sm W} := (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  %\[ G(V \sm W | \doit(J)) := G^{\sm W} = (J^{\sm W},V^{\sm W},E^{\sm W},L^{\sm W}), \] 
+  where:
+  \begin{enumerate}[label=\roman*.)]
+      \item $J^{\sm W}:= J$,
+      \item $V^{\sm W}:= V \sm W$,
+      \item $E^{\sm W}$ consists of all directed edges $\ul{v} \tuh \ol{v}$ with $\ul{v},\ol{v} \in J \cup V \sm W$ 
+          for which there exists a directed walk in $G$:
+          \[\ul{v} \tuh w_1 \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).\footnote{Note that this may introduce self-cycles.}
+      \item $L^{\sm W}$ consists of all bidirected edges $\ul{v} \huh \ol{v}$ with 
+          $\ul{v},\ol{v} \in V \sm W$, $\ul{v} \neq \ol{v}$, 
+          for which there exists a bifurcation in $G$:
+          \[\ul{v} \hut w_1 \hut \cdots \hut w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh \ol{v}, \]
+          where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any).
+      %\item $L^{\sm W}:= \lC \ul{v} \huh \ol{v}\,|\, \ul{v},\ol{v} \in V \sm W: 
+      %    \exists \text{ bifurcation: } \ul{v} \hut w_1 \cdots w_{n-1} \tuh \ol{v} \in G 
+      %    \text{ with } w_1,\dots,w_{n-1} \in W \rC$,
+  \end{enumerate}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
+  ∃ (p : Walk G u v),
+    p.IsDirectedWalk ∧
+    p.length ≥ 1 ∧
+    (∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def MarginalizationΦL (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
+  (∃ (p : Walk G u v),
+      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W) ∨
+  (∃ (p : Walk G v u),
+      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) : CDMG Node where
+  J := G.J
+  V := G.V \ W
+  hJV_disj := marginalize_hJV_disj G W
+  E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
+        (fun e => G.MarginalizationΦE W e.1 e.2)
+  hE_subset := marginalize_hE_subset G W
+  L := ((G.V \ W) ×ˢ (G.V \ W)).filter
+        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
+  hL_subset := marginalize_hL_subset G W
+  hL_irrefl := marginalize_hL_irrefl G W
+  hL_symm := marginalize_hL_symm G W
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_14
+
+% NOTES-END def_3_14
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_14
+
+%% ROW-BEGIN claim_3_16
+\noindent\textbf{Claim: MargPreservesAncestors}\par\smallskip
+{\appendixTexSize
+\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}
+Marginalization preserves ancestral relations, bifurcations and acyclicity:
+    \begin{enumerate}
+        \item For $v_1,v_2 \in G$ with $v_1,v_2 \notin W$ we have the equivalence:
+            \[ v_1 \in \Anc^G(v_2)\quad \iff \quad v_1 \in \Anc^{G^{\sm W}}(v_2).   \]
+          \item\label{rem:marg_preserves_bifurcations} 
+            For $v_1,v_2 \in G \sm W$ (and, optionally, $v_3 \in G\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$.
+        \item If the CDMG $G$ is acyclic then so is $G^{\sm W}$ and a topological order of $G$ induces a
+            topological order on $G^{\sm W}$ (by just ignoring the nodes from $W$).
+    \end{enumerate}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) (v₁ v₂ : Node)
+    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
+    v₁ ∈ G.Anc v₂ ↔ v₁ ∈ (G.marginalize W hW).Anc v₂
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_preserves_bifurcation (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) (v₁ v₂ : Node)
+    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
+    ((∃ p : Walk G v₁ v₂, p.IsBifurcation) ∨
+        (∃ p : Walk G v₂ v₁, p.IsBifurcation))
+      ↔
+    ((∃ p : Walk (G.marginalize W hW) v₁ v₂, p.IsBifurcation) ∨
+        (∃ p : Walk (G.marginalize W hW) v₂ v₁, p.IsBifurcation))
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
+    (W : Finset Node) (hW : W ⊆ G.V) (v₁ v₂ v₃ : Node)
+    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW)
+    (hv₃ : v₃ ∈ G.marginalize W hW) :
+    ((∃ p : Walk G v₁ v₂, p.IsBifurcationSource v₃) ∨
+        (∃ p : Walk G v₂ v₁, p.IsBifurcationSource v₃))
+      ↔
+    ((∃ p : Walk (G.marginalize W hW) v₁ v₂, p.IsBifurcationSource v₃) ∨
+        (∃ p : Walk (G.marginalize W hW) v₂ v₁, p.IsBifurcationSource v₃))
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) (hAcyc : G.IsAcyclic) :
+    (G.marginalize W hW).IsAcyclic
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_restricts_topological_order (G : CDMG Node)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
+    (G.marginalize W hW).IsTopologicalOrder lt
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_16
+
+% NOTES-END claim_3_16
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_16
+
+%% ROW-BEGIN claim_3_17
+\noindent\textbf{Claim: Marginalizations commute}\par\smallskip
+{\appendixTexSize
+\label{marginalizations-commute}
+      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of output nodes.
+      Then we have:
+      \[ \lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1} =  G^{\sm (W_1 \cup W_2)}. \]
+     % This shows that the notation:
+     % \[ G(V \sm (W_1 \cup W_2)|\doit(J))  \]
+     % is unambiguous.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_sdiff_of_disjoint {S T : Finset Node}
+    {U : Finset Node} (hS : S ⊆ U) (hDisj : Disjoint S T) :
+    S ⊆ U \ T
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_comm (G : CDMG Node) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    (G.marginalize W₁ hW₁).marginalize W₂
+        (subset_sdiff_of_disjoint hW₂ hDisj.symm)
+      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)
+    ∧
+    (G.marginalize W₂ hW₂).marginalize W₁
+        (subset_sdiff_of_disjoint hW₁ hDisj)
+      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_17
+
+% NOTES-END claim_3_17
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_17
+
+%% ROW-BEGIN claim_3_18
+\noindent\textbf{Claim: Marginalization and intervention commute}\par\smallskip
+{\appendixTexSize
+      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
+      Then we have:
+      \[ \lp G_{\doit(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(W_1)}. \]
+     % This shows that the following notations are unambiguous:
+     % \[G(V\sm (W_1 \cup W_2)|\doit(W_1 \cup J))=G_{\doit(W_1)}^{\sm W_2}.\]
+      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_sdiff_of_disjoint {S T : Finset Node}
+    {U : Finset Node} (hS : S ⊆ U) (hDisj : Disjoint S T) :
+    S ⊆ U \ T
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_carrier_of_marginalize {G : CDMG Node} {W : Finset Node}
+    (hW : W ⊆ G.V) {S : Finset Node} (hS : S ⊆ G.J ∪ G.V)
+    (hDisj : Disjoint S W) :
+    S ⊆ (G.marginalize W hW).J ∪ (G.marginalize W hW).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+set_option linter.unusedVariables false in
+private lemma image_unsplit_subset_extendingCDMGsWith_V {G : CDMG Node}
+    {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
+    {S : Finset Node} (hS : S ⊆ G.V) :
+    S.image IntExtNode.unsplit ⊆ (G.extendingCDMGsWith W hW).V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_unsplit_subset_nodeSplittingOn_V_of_disjoint
+    {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    {S : Finset Node} (hS : S ⊆ G.V) (hDisj : Disjoint S W₁) :
+    S.image SplitNode.unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_hardInterventionOn_comm (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    (G.hardInterventionOn W₁ hW₁).marginalize W₂
+        (subset_sdiff_of_disjoint hW₂ hDisj.symm)
+      = (G.marginalize W₂ hW₂).hardInterventionOn W₁
+        (subset_carrier_of_marginalize hW₂ hW₁ hDisj)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_extendingCDMGsWith_comm (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    (G.extendingCDMGsWith W₁ hW₁).marginalize (W₂.image IntExtNode.unsplit)
+        (image_unsplit_subset_extendingCDMGsWith_V hW₁ hW₂)
+      = (G.marginalize W₂ hW₂).extendingCDMGsWith W₁
+        (subset_carrier_of_marginalize hW₂ hW₁ hDisj)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_nodeSplittingOn_comm (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    (G.nodeSplittingOn W₁ hW₁).marginalize (W₂.image SplitNode.unsplit)
+        (image_unsplit_subset_nodeSplittingOn_V_of_disjoint hW₁ hW₂ hDisj.symm)
+      = (G.marginalize W₂ hW₂).nodeSplittingOn W₁
+        (subset_sdiff_of_disjoint hW₁ hDisj)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_18
+
+% NOTES-END claim_3_18
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_18

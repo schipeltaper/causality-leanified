@@ -213,28 +213,28 @@
               "kind": "def",
               "label": "def 3.14 — MarginalizationAK",
               "title": "MarginalizationAK",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_16",
               "kind": "claim",
               "label": "claim 3.16 — MargPreservesAncestors",
               "title": "MargPreservesAncestors",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_17",
               "kind": "claim",
               "label": "claim 3.17 — MarginalizationsCommute",
               "title": "MarginalizationsCommute",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_18",
               "kind": "claim",
               "label": "claim 3.18 — MarginalizationAndIntervention",
               "title": "MarginalizationAndIntervention",
-              "available": false
+              "available": true
             },
             {
               "ref": "claim_3_19",
