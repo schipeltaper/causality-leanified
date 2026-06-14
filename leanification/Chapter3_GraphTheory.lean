@@ -31,3 +31,4 @@ import Chapter3_GraphTheory.Section3_2.AddingInterventionNodesSwig
 import Chapter3_GraphTheory.Section3_2.MarginalizationAK
 import Chapter3_GraphTheory.Section3_2.MargPreservesAncestors
 import Chapter3_GraphTheory.Section3_2.MarginalizationsCommute
+import Chapter3_GraphTheory.Section3_2.MarginalizationAndIntervention

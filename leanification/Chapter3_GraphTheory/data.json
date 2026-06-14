@@ -2440,7 +2440,7 @@
           "last_used": "2026-06-14T03:01:18+00:00"
         }
       ],
-      "time_needed_to_solve": 27325,
+      "time_needed_to_solve": 27404,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2454,30 +2454,32 @@
       "section": "3.2",
       "title": "MarginalizationAndIntervention",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-14",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 2,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 9,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -2485,12 +2487,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "d480ef5e-fd33-48c0-91e1-176bcd9bbebf",
+          "first_seen": "2026-06-14T14:39:59+00:00",
+          "last_used": "2026-06-14T14:39:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 41702,
+      "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
+      "wording_check": {
+        "done": true,
+        "output": "Based on my analysis of the literal tex block:\n\nSUBTLETY:\nid: w1_may_contain_existing_intervention_nodes\nexplanation: The lemma states \"$W_1 \\ins J \\cup V$\", explicitly allowing $W_1$ to contain nodes that are already intervention nodes (i.e., $W_1 \\cap J$ may be nonempty). The behavior of $\\doit(\\cdot)$ on already-intervention nodes is not specified within this block, and the disjointness constraint with $W_2$ only restricts $W_1 \\cap V$ (since $W_2 \\ins V$ and $J \\cap V = \\emptyset$, disjointness places zero constraint on $W_1 \\cap J$).\n\nConcrete corner case: take $W_1 \\subseteq J$ entirely (allowed by the literal text). Then both sides should reduce to $G^{\\sm W_2}$ if $\\doit$ acts as identity on $J$-elements — but the LN never explicitly says this. A reader/formalizer must look outside this block (to the definition of $\\doit$) to know whether the $W_1 \\cap J$ part is a no-op, undefined, or has some other semantics. If the upstream definition restricts $\\doit$ to $V$-subsets only, then this lemma's quantification over $W_1 \\ins J \\cup V$ is literally ill-typed.\n\nDownstream impact: a Lean formalization will either need a coercion/normalization step that drops $W_1 \\cap J$, or will need to require $W_1 \\ins V$ to match the upstream definition. The wording \"two disjoint subsets of nodes from $G$\" plus $W_1 \\ins J \\cup V$ is broader than typical formulations and leaves the $W_1 \\cap J$ behavior arbitrary at this level.\nEND_SUBTLETY\n\nSUBTLETY:\nid: similar_statement_trailer_is_unspecified\nexplanation: The block closes with \"A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\" This sentence asserts two additional commutativity results without stating them precisely — neither the operations involved (e.g., what \"adding intervention nodes\" vs. $\\doit$ means here, what \"node-splitting interventions\" denotes) nor the precise side conditions (analogue of the $W_1, W_2$ disjointness, what subset constraints apply) are given.\n\nThe literal reading leaves it ambiguous whether the trailer is (a) part of the lemma's mathematical content (i.e., something one would need to formalize/prove alongside the main equation) or (b) merely a heuristic pointer to related results stated separately. If (a), a future formalizer cannot encode it without further input; if (b), the reader can ignore it here. The choice matters downstream when deciding the scope of the corresponding Lean theorem.\nEND_SUBTLETY",
+        "session": "17bd5297-f5ad-4f3a-91c1-779ea9732b45"
+      }
     },
     {
       "def_or_claim": "claim",
