@@ -117,18 +117,25 @@ variable {Node : Type*} [DecidableEq Node]
 -- five proof bodies that follow.  It mirrors the `private` walk
 -- helpers in `Section3_1/AcyclicIffTopologicalOrder.lean` and
 -- `Section3_2/BifurcationAlternative.lean`; we re-declare here
--- because those siblings keep them `private`.  Every helper is also
--- marked `private`, restricted to this file's proofs of
--- `claim_3_16`'s five sub-assertions.
+-- because those siblings keep them `private`.  The foundational
+-- walk-algebra and marginalization helpers (`Walk.comp`,
+-- `Walk.mkBifurcation`, `expand_directed_walk_marginalize`,
+-- `find_first_non_W_directed`, etc.) are declared *non-`private`*
+-- here so the sibling row `claim_3_17`
+-- (`MarginalizationsCommute.lean`) can import them as a single
+-- source of truth: the same lifting/expanding/reversing infrastructure
+-- powers both rows' walk surgery.  Sub-claim-specific helpers (the
+-- `marg_preserves_bif*` family below the helper block) remain
+-- `private`.
 
 /-- Concatenate two walks `p : u → v` and `q : v → w` into a walk
 `u → w`. -/
-private def Walk.comp {G : CDMG Node} :
+def Walk.comp {G : CDMG Node} :
     ∀ {u v w : Node}, Walk G u v → Walk G v w → Walk G u w
   | _, _, _, .nil _ _, q => q
   | _, _, _, .cons v a h p, q => .cons v a h (p.comp q)
 
-private lemma Walk.length_comp {G : CDMG Node} :
+lemma Walk.length_comp {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
       (p.comp q).length = p.length + q.length
   | _, _, _, .nil _ _, q => by simp [Walk.comp, Walk.length]
@@ -136,7 +143,7 @@ private lemma Walk.length_comp {G : CDMG Node} :
       simp [Walk.comp, Walk.length, Walk.length_comp p q,
             Nat.add_comm, Nat.add_left_comm]
 
-private lemma Walk.isDirectedWalk_comp {G : CDMG Node} :
+lemma Walk.isDirectedWalk_comp {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
       p.IsDirectedWalk → q.IsDirectedWalk → (p.comp q).IsDirectedWalk
   | _, _, _, .nil _ _, _, _, hq => hq
@@ -146,18 +153,18 @@ private lemma Walk.isDirectedWalk_comp {G : CDMG Node} :
 
 /-- A walk's vertex list is non-empty (`nil` gives `[v]`, `cons`
 prepends). -/
-private lemma Walk.vertices_ne_nil {G : CDMG Node} :
+lemma Walk.vertices_ne_nil {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.vertices ≠ []
   | _, _, .nil _ _ => by simp [Walk.vertices]
   | _, _, .cons _ _ _ _ => by simp [Walk.vertices]
 
 /-- The source of a walk is in its vertex list. -/
-private lemma Walk.head_mem_vertices {G : CDMG Node} :
+lemma Walk.head_mem_vertices {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), u ∈ p.vertices
   | _, _, .nil _ _ => by simp [Walk.vertices]
   | _, _, .cons _ _ _ _ => by simp [Walk.vertices]
 
-private lemma Walk.vertices_comp {G : CDMG Node} :
+lemma Walk.vertices_comp {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
       (p.comp q).vertices = p.vertices.dropLast ++ q.vertices
   | _, _, _, .nil _ _, _ => rfl
@@ -167,7 +174,7 @@ private lemma Walk.vertices_comp {G : CDMG Node} :
             List.dropLast_cons_of_ne_nil hne]
 
 /-- The source vertex of a `WalkStep` lies in `G`. -/
-private lemma WalkStep.source_mem {G : CDMG Node} {u v : Node}
+lemma WalkStep.source_mem {G : CDMG Node} {u v : Node}
     {a : Node × Node} (h : G.WalkStep u a v) : u ∈ G := by
   change u ∈ G.J ∪ G.V
   rcases h with ⟨ha_eq, ha_or⟩ | ⟨ha_eq, ha_E⟩
@@ -183,7 +190,7 @@ private lemma WalkStep.source_mem {G : CDMG Node} {u v : Node}
     exact Finset.mem_union_right _ h1
 
 /-- Every vertex of a walk lies in the underlying CDMG. -/
-private lemma Walk.mem_of_mem_vertices {G : CDMG Node} :
+lemma Walk.mem_of_mem_vertices {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v) {x : Node}, x ∈ p.vertices → x ∈ G
   | _, _, .nil v hv, x, hx => by
       change x ∈ [v] at hx
@@ -196,7 +203,7 @@ private lemma Walk.mem_of_mem_vertices {G : CDMG Node} :
       · exact Walk.mem_of_mem_vertices p' h_in
 
 /-- The source of a non-trivial directed walk lies in `G`. -/
-private lemma Walk.source_in_G_of_directedWalk_pos {G : CDMG Node} :
+lemma Walk.source_in_G_of_directedWalk_pos {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v),
       p.IsDirectedWalk → p.length ≥ 1 → u ∈ G
   | _, _, .nil _ _, _, hlen => by simp [Walk.length] at hlen
@@ -206,7 +213,7 @@ private lemma Walk.source_in_G_of_directedWalk_pos {G : CDMG Node} :
       exact (G.hE_subset h_edge).1
 
 /-- The target of a non-trivial directed walk lies in `G.V`. -/
-private lemma Walk.target_in_GV_of_directedWalk_pos {G : CDMG Node} :
+lemma Walk.target_in_GV_of_directedWalk_pos {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v),
       p.IsDirectedWalk → p.length ≥ 1 → v ∈ G.V := by
   intro u v p
@@ -223,7 +230,7 @@ private lemma Walk.target_in_GV_of_directedWalk_pos {G : CDMG Node} :
         match q, hq_dir, hlen0 with
         | .nil _ _, _, _ => exact (G.hE_subset h_edge).2
 
-private lemma Walk.target_in_G_of_directedWalk_pos {G : CDMG Node} :
+lemma Walk.target_in_G_of_directedWalk_pos {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v),
       p.IsDirectedWalk → p.length ≥ 1 → v ∈ G := by
   intro u v p hdir hlen
@@ -232,7 +239,7 @@ private lemma Walk.target_in_G_of_directedWalk_pos {G : CDMG Node} :
 
 
 /-- Lift node membership from the marginalized CDMG back to `G`. -/
-private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
+lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
     {hW : W ⊆ G.V} {v : Node} (h : v ∈ G.marginalize W hW) : v ∈ G := by
   change v ∈ G.J ∪ (G.V \ W) at h
   change v ∈ G.J ∪ G.V
@@ -243,7 +250,7 @@ private lemma mem_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
 
 /-- A node in `G.marginalize W hW` is outside `W` (uses `hJV_disj`
 to handle the `J`-disjunct). -/
-private lemma notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
+lemma notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
     (hW : W ⊆ G.V) {v : Node} (h : v ∈ G.marginalize W hW) : v ∉ W := by
   intro hv_W
   change v ∈ G.J ∪ (G.V \ W) at h
@@ -256,7 +263,7 @@ private lemma notW_of_mem_marginalize {G : CDMG Node} {W : Finset Node}
 transitivity force `lt` between source and target.  This is the
 chained version of `IsTopologicalOrder`'s parent clause for sub-claim
 iii(b)'s parent-precedence verification. -/
-private lemma Walk.lt_of_directedWalk_pos {G : CDMG Node}
+lemma Walk.lt_of_directedWalk_pos {G : CDMG Node}
     {lt : Node → Node → Prop}
     (h_trans : ∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w)
     (h_parent : ∀ v w, v ∈ G.Pa w → lt v w) :
@@ -289,13 +296,13 @@ private lemma Walk.lt_of_directedWalk_pos {G : CDMG Node}
 -- a step in sub-claim ii(b) `(⟸)`.
 
 /-- Every walk's vertex list factors as `source :: tail`. -/
-private lemma Walk.vertices_eq_head_cons_tail {G : CDMG Node} :
+lemma Walk.vertices_eq_head_cons_tail {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.vertices = u :: p.vertices.tail
   | _, _, .nil _ _ => rfl
   | _, _, .cons _ _ _ _ => rfl
 
 /-- The vertex list's tail of a walk of length `≥ 1` is non-empty. -/
-private lemma Walk.tail_vertices_ne_nil_of_pos {G : CDMG Node} :
+lemma Walk.tail_vertices_ne_nil_of_pos {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v),
       p.length ≥ 1 → p.vertices.tail ≠ []
   | _, _, .nil _ _, h => by simp [Walk.length] at h
@@ -307,21 +314,33 @@ in the ambient `G`, with length at least the original AND vertex
 bounds linking the expansion's vertices to the marg-walk's vertices
 plus `W`.  Each marg-edge expands via the `Φ_E` witness (whose
 intermediates lie in `W`); the concatenation of expansions preserves
-directedness and is at least as long as the marg-walk. -/
-private lemma expand_directed_walk_marginalize {G : CDMG Node}
+directedness and is at least as long as the marg-walk.
+
+Four symmetric bounds are provided: on `q.vertices`, on
+`q.vertices.dropLast`, on `q.vertices.tail`, and on the interior
+`q.vertices.tail.dropLast`.  The latter two are load-bearing for
+`claim_3_17` (`MarginalizationsCommute.lean`), which needs to refine
+`p.vertices.dropLast ∨ W` to `p.vertices.tail.dropLast ∨ W` so that
+the source vertex `u` (which is *not* assumed to lie in `W` ∪ the
+target marg-interior set) does not leak into the bound. -/
+lemma expand_directed_walk_marginalize {G : CDMG Node}
     {W : Finset Node} {hW : W ⊆ G.V} :
     ∀ {u v : Node} (p : Walk (G.marginalize W hW) u v),
       p.IsDirectedWalk →
       ∃ (q : Walk G u v),
         q.IsDirectedWalk ∧ q.length ≥ p.length ∧
         (∀ x ∈ q.vertices, x ∈ p.vertices ∨ x ∈ W) ∧
-        (∀ x ∈ q.vertices.dropLast, x ∈ p.vertices.dropLast ∨ x ∈ W) := by
+        (∀ x ∈ q.vertices.dropLast, x ∈ p.vertices.dropLast ∨ x ∈ W) ∧
+        (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail ∨ x ∈ W) ∧
+        (∀ x ∈ q.vertices.tail.dropLast,
+          x ∈ p.vertices.tail.dropLast ∨ x ∈ W) := by
   intro u v p
   induction p with
   | nil v hv =>
       intro _
       have hv_g : v ∈ G := mem_of_mem_marginalize hv
-      refine ⟨Walk.nil v hv_g, trivial, by simp [Walk.length], ?_, ?_⟩
+      refine ⟨Walk.nil v hv_g, trivial, by simp [Walk.length],
+              ?_, ?_, ?_, ?_⟩
       · intro x hx
         change x ∈ [v] at hx
         change x ∈ [v] ∨ x ∈ W
@@ -329,6 +348,12 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
       · intro x hx
         change x ∈ ([v] : List Node).dropLast at hx
         simp [List.dropLast] at hx
+      · intro x hx
+        change x ∈ ([v] : List Node).tail at hx
+        simp [List.tail] at hx
+      · intro x hx
+        change x ∈ ([v] : List Node).tail.dropLast at hx
+        simp [List.tail, List.dropLast] at hx
   | @cons u v_end vMid a hStep p' ih =>
       intro hp_dir
       obtain ⟨ha_eq, ha_mem, hp'_dir⟩ := hp_dir
@@ -339,7 +364,8 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
       have ha_phi : G.MarginalizationΦE W u vMid :=
         (Finset.mem_filter.mp ha_filter).2
       obtain ⟨q_edge, hq_edge_dir, hq_edge_pos, hq_edge_inter⟩ := ha_phi
-      obtain ⟨q_tail, hq_tail_dir, hq_tail_len, hq_tail_sub, hq_tail_drop_sub⟩ :=
+      obtain ⟨q_tail, hq_tail_dir, hq_tail_len, hq_tail_sub,
+              hq_tail_drop_sub, hq_tail_tail_sub, hq_tail_inter_sub⟩ :=
         ih hp'_dir
       have hq_edge_vs : q_edge.vertices = u :: q_edge.vertices.tail :=
         Walk.vertices_eq_head_cons_tail q_edge
@@ -347,9 +373,17 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
         Walk.tail_vertices_ne_nil_of_pos q_edge hq_edge_pos
       have h_qt_vs_ne : q_tail.vertices ≠ [] := Walk.vertices_ne_nil q_tail
       have hp'_vs_ne : p'.vertices ≠ [] := Walk.vertices_ne_nil p'
+      -- q_edge.vertices.dropLast = u :: q_edge.vertices.tail.dropLast.
+      have h_qe_drop : q_edge.vertices.dropLast
+          = u :: q_edge.vertices.tail.dropLast := by
+        rw [hq_edge_vs]
+        exact List.dropLast_cons_of_ne_nil h_qe_tail_ne
+      -- q_edge.vertices.dropLast is non-empty (its head is u).
+      have h_qe_drop_ne : q_edge.vertices.dropLast ≠ [] := by
+        rw [h_qe_drop]; exact List.cons_ne_nil _ _
       refine ⟨q_edge.comp q_tail,
               Walk.isDirectedWalk_comp q_edge q_tail hq_edge_dir hq_tail_dir,
-              ?_, ?_, ?_⟩
+              ?_, ?_, ?_, ?_, ?_⟩
       · rw [Walk.length_comp]
         change q_edge.length + q_tail.length ≥ p'.length + 1
         omega
@@ -373,8 +407,6 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
           Walk.vertices_comp q_edge q_tail
         rw [h_vs_comp] at hx
         rw [List.dropLast_append_of_ne_nil h_qt_vs_ne] at hx
-        -- (cons u a hStep p').vertices = u :: p'.vertices.
-        -- (u :: p'.vertices).dropLast = u :: p'.vertices.dropLast.
         change x ∈ (u :: p'.vertices).dropLast ∨ x ∈ W
         rw [List.dropLast_cons_of_ne_nil hp'_vs_ne]
         rcases List.mem_append.mp hx with hx_edge | hx_tail_drop
@@ -385,6 +417,43 @@ private lemma expand_directed_walk_marginalize {G : CDMG Node}
           · exact Or.inr (hq_edge_inter x hx_in_qe_t_d)
         · rcases hq_tail_drop_sub x hx_tail_drop with h_p' | h_w
           · exact Or.inl (List.mem_cons.mpr (Or.inr h_p'))
+          · exact Or.inr h_w
+      · -- (q_edge.comp q_tail).vertices.tail ⊆ p.vertices.tail ∪ W.
+        intro x hx
+        have h_vs_comp : (q_edge.comp q_tail).vertices
+            = q_edge.vertices.dropLast ++ q_tail.vertices :=
+          Walk.vertices_comp q_edge q_tail
+        rw [h_vs_comp] at hx
+        rw [List.tail_append_of_ne_nil h_qe_drop_ne] at hx
+        -- q_edge.vertices.dropLast.tail = q_edge.vertices.tail.dropLast.
+        have h_qe_drop_tail :
+            q_edge.vertices.dropLast.tail = q_edge.vertices.tail.dropLast := by
+          rw [h_qe_drop]; rfl
+        rw [h_qe_drop_tail] at hx
+        -- p.vertices.tail = p'.vertices (since p = cons u _ _ p').
+        change x ∈ p'.vertices ∨ x ∈ W
+        rcases List.mem_append.mp hx with hx_qe_inter | hx_qt
+        · exact Or.inr (hq_edge_inter x hx_qe_inter)
+        · rcases hq_tail_sub x hx_qt with h_p' | h_w
+          · exact Or.inl h_p'
+          · exact Or.inr h_w
+      · -- (q_edge.comp q_tail).vertices.tail.dropLast ⊆ p.vertices.tail.dropLast ∪ W.
+        intro x hx
+        have h_vs_comp : (q_edge.comp q_tail).vertices
+            = q_edge.vertices.dropLast ++ q_tail.vertices :=
+          Walk.vertices_comp q_edge q_tail
+        rw [h_vs_comp] at hx
+        rw [List.tail_append_of_ne_nil h_qe_drop_ne] at hx
+        rw [List.dropLast_append_of_ne_nil h_qt_vs_ne] at hx
+        have h_qe_drop_tail :
+            q_edge.vertices.dropLast.tail = q_edge.vertices.tail.dropLast := by
+          rw [h_qe_drop]; rfl
+        rw [h_qe_drop_tail] at hx
+        change x ∈ p'.vertices.dropLast ∨ x ∈ W
+        rcases List.mem_append.mp hx with hx_qe_inter | hx_qt_drop
+        · exact Or.inr (hq_edge_inter x hx_qe_inter)
+        · rcases hq_tail_drop_sub x hx_qt_drop with h_p' | h_w
+          · exact Or.inl h_p'
           · exact Or.inr h_w
 
 -- ## Walk projection: given a directed walk in `G` whose target lies
@@ -400,7 +469,7 @@ non-trivial directed walk whose target is outside `W`, and split the
 walk at that vertex.  Additionally guarantees that
 `p.vertices = head.vertices.dropLast ++ tail.vertices`, i.e.\ the
 split factors `p` exactly as a `Walk.comp`. -/
-private lemma find_first_non_W_directed {G : CDMG Node} (W : Finset Node) :
+lemma find_first_non_W_directed {G : CDMG Node} (W : Finset Node) :
     ∀ {u v : Node} (p : Walk G u v),
       p.IsDirectedWalk → p.length ≥ 1 → v ∉ W →
       ∃ (m : Node) (head : Walk G u m) (tail : Walk G m v),
@@ -474,7 +543,7 @@ from `v₁` to the first non-`W` vertex, witness the corresponding
 `marg`-edge via the `Φ_E` predicate, and recurse on the tail.  The
 projected walk is shorter than the original (a single `marg`-edge
 absorbs an arbitrary `W`-traversal). -/
-private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
+lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
     {hW : W ⊆ G.V} :
     ∀ (n : ℕ) {v₁ v₂ : Node} (p : Walk G v₁ v₂),
       p.length ≤ n →
@@ -533,7 +602,7 @@ private lemma project_directed_walk_aux {G : CDMG Node} {W : Finset Node}
 
 /-- Convenience wrapper: project a directed walk from `G` to
 `G.marginalize W hW`, with both endpoints in the marg-carrier. -/
-private lemma project_directed_walk_marginalize {G : CDMG Node}
+lemma project_directed_walk_marginalize {G : CDMG Node}
     {W : Finset Node} {hW : W ⊆ G.V}
     {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
     (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
@@ -550,7 +619,7 @@ in the same marg, with the additional guarantees:
   - every vertex of the projected walk's `tail` appears in the
     original's `tail` (i.e.\ excluding-source sub-list).
 Used by sub-claim ii(b) `(⟹)`'s end-node uniqueness bookkeeping. -/
-private lemma project_directed_walk_with_vertex_subset_aux
+lemma project_directed_walk_with_vertex_subset_aux
     {G : CDMG Node} {W : Finset Node} {hW : W ⊆ G.V} :
     ∀ (n : ℕ) {v₁ v₂ : Node} (p : Walk G v₁ v₂),
       p.length ≤ n →
@@ -698,7 +767,7 @@ private lemma project_directed_walk_with_vertex_subset_aux
 walk `p : Walk G v₁ v₂` (between marg-nodes of `G.marginalize W hW`)
 to a directed walk `q : Walk marg v₁ v₂` with the three vertex-subset
 clauses. -/
-private lemma project_directed_walk_strong {G : CDMG Node}
+lemma project_directed_walk_strong {G : CDMG Node}
     {W : Finset Node} {hW : W ⊆ G.V}
     {v₁ v₂ : Node} (p : Walk G v₁ v₂) (hp_dir : p.IsDirectedWalk)
     (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
@@ -711,7 +780,7 @@ private lemma project_directed_walk_strong {G : CDMG Node}
     (hW := hW) p.length p le_rfl hp_dir hv₁ hv₂
 
 /-- A walk between distinct endpoints has length `≥ 1`. -/
-private lemma Walk.length_pos_of_ne {G : CDMG Node} {u v : Node}
+lemma Walk.length_pos_of_ne {G : CDMG Node} {u v : Node}
     (p : Walk G u v) (h : u ≠ v) : p.length ≥ 1 := by
   cases p with
   | nil _ _ => exact absurd rfl h
@@ -724,7 +793,7 @@ private lemma Walk.length_pos_of_ne {G : CDMG Node} {u v : Node}
 -- to assemble the projected / expanded bifurcation walks.
 
 /-- Reverse a directed walk. -/
-private def Walk.reverseDirected {G : CDMG Node} :
+def Walk.reverseDirected {G : CDMG Node} :
     ∀ {c v : Node} (qv : Walk G c v), qv.IsDirectedWalk → Walk G v c
   | _, _, .nil w hw, _ => Walk.nil w hw
   | c, _, .cons _ a hStep qv', hqv_dir =>
@@ -732,7 +801,7 @@ private def Walk.reverseDirected {G : CDMG Node} :
         (Walk.cons c a (Or.inr ⟨hqv_dir.1, hqv_dir.2.1⟩)
           (Walk.nil c (WalkStep.source_mem hStep)))
 
-private lemma Walk.length_reverseDirected {G : CDMG Node} :
+lemma Walk.length_reverseDirected {G : CDMG Node} :
     ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk),
       (Walk.reverseDirected qv hqv_dir).length = qv.length
   | _, _, .nil _ _, _ => rfl
@@ -742,7 +811,7 @@ private lemma Walk.length_reverseDirected {G : CDMG Node} :
       rw [Walk.length_comp, Walk.length_reverseDirected qv' hqv_dir.2.2]
       rfl
 
-private lemma Walk.vertices_reverseDirected {G : CDMG Node} :
+lemma Walk.vertices_reverseDirected {G : CDMG Node} :
     ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk),
       (Walk.reverseDirected qv hqv_dir).vertices = qv.vertices.reverse
   | _, _, .nil _ _, _ => rfl
@@ -758,12 +827,12 @@ private lemma Walk.vertices_reverseDirected {G : CDMG Node} :
       simp [Walk.vertices, List.reverse_cons]
 
 /-- The bifurcation-walk constructor. -/
-private def Walk.mkBifurcation {G : CDMG Node} {c v w : Node}
+def Walk.mkBifurcation {G : CDMG Node} {c v w : Node}
     (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
     (_hqv_pos : qv.length ≥ 1) (qw : Walk G c w) : Walk G v w :=
   (Walk.reverseDirected qv hqv_dir).comp qw
 
-private lemma Walk.length_mkBifurcation {G : CDMG Node} {c v w : Node}
+lemma Walk.length_mkBifurcation {G : CDMG Node} {c v w : Node}
     (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
     (hqv_pos : qv.length ≥ 1) (qw : Walk G c w) :
     (Walk.mkBifurcation qv hqv_dir hqv_pos qw).length
@@ -772,7 +841,7 @@ private lemma Walk.length_mkBifurcation {G : CDMG Node} {c v w : Node}
         = qv.length + qw.length
   rw [Walk.length_comp, Walk.length_reverseDirected qv hqv_dir]
 
-private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
+lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
     (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
     (hqv_pos : qv.length ≥ 1) (qw : Walk G c w) :
     (Walk.mkBifurcation qv hqv_dir hqv_pos qw).vertices
@@ -781,7 +850,7 @@ private lemma Walk.vertices_mkBifurcation {G : CDMG Node} {c v w : Node}
         = qv.vertices.reverse.dropLast ++ qw.vertices
   rw [Walk.vertices_comp, Walk.vertices_reverseDirected qv hqv_dir]
 
-private lemma Walk.comp_assoc {G : CDMG Node} :
+lemma Walk.comp_assoc {G : CDMG Node} :
     ∀ {u₁ u₂ u₃ u₄ : Node} (p : Walk G u₁ u₂) (q : Walk G u₂ u₃)
       (r : Walk G u₃ u₄),
       (p.comp q).comp r = p.comp (q.comp r)
@@ -791,7 +860,7 @@ private lemma Walk.comp_assoc {G : CDMG Node} :
             = Walk.cons _ a hStep (p.comp (q.comp r))
       rw [Walk.comp_assoc p q r]
 
-private lemma Walk.isBifurcationDirectedHinge_cons_backward_of_directed
+lemma Walk.isBifurcationDirectedHinge_cons_backward_of_directed
     {G : CDMG Node} {u v w : Node}
     (a : Node × Node) (h : G.WalkStep u a v) (p : Walk G v w)
     (hp_dir : p.IsDirectedWalk) (ha_eq : a = (v, u)) (ha_mem : a ∈ G.E)
@@ -801,7 +870,7 @@ private lemma Walk.isBifurcationDirectedHinge_cons_backward_of_directed
   | nil _ _ => simp [Walk.length] at hp_nonempty
   | cons _ _ _ _ => exact ⟨ha_eq, ha_mem, hp_dir⟩
 
-private lemma Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
+lemma Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
     {G : CDMG Node} :
     ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
       {w : Node} (rest : Walk G c w) (k : ℕ)
@@ -834,7 +903,7 @@ private lemma Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux
       rw [hidx]
       exact ih
 
-private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
+lemma Walk.isBifurcationDirectedHinge_mkBifurcation
     {G : CDMG Node} {c v w : Node}
     (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
     (hqv_pos : qv.length ≥ 1)
@@ -888,7 +957,7 @@ private lemma Walk.isBifurcationDirectedHinge_mkBifurcation
 
 /-- Vertex-list re-expression: `L.vertices.reverse.dropLast =
 L.vertices.tail.reverse`. -/
-private lemma Walk.vertices_reverse_dropLast {G : CDMG Node} {u v : Node}
+lemma Walk.vertices_reverse_dropLast {G : CDMG Node} {u v : Node}
     (p : Walk G u v) :
     p.vertices.reverse.dropLast = p.vertices.tail.reverse := by
   conv_lhs => rw [Walk.vertices_eq_head_cons_tail p]
@@ -896,14 +965,14 @@ private lemma Walk.vertices_reverse_dropLast {G : CDMG Node} {u v : Node}
   exact List.dropLast_concat
 
 /-- The bidirected-hinge bifurcation walk constructor. -/
-private def Walk.mkBifurcationBidir {G : CDMG Node} {vL vR v1 v2 : Node}
+def Walk.mkBifurcationBidir {G : CDMG Node} {vL vR v1 v2 : Node}
     (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
     (R : Walk G vR v2)
     (hLR : (vL, vR) ∈ G.L) : Walk G v1 v2 :=
   (Walk.reverseDirected L hL_dir).comp
     (Walk.cons vR (vL, vR) (Or.inl ⟨rfl, Or.inr hLR⟩) R)
 
-private lemma Walk.length_mkBifurcationBidir
+lemma Walk.length_mkBifurcationBidir
     {G : CDMG Node} {vL vR v1 v2 : Node}
     (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
     (R : Walk G vR v2) (hLR : (vL, vR) ∈ G.L) :
@@ -914,7 +983,7 @@ private lemma Walk.length_mkBifurcationBidir
   change L.length + (R.length + 1) = L.length + R.length + 1
   omega
 
-private lemma Walk.vertices_mkBifurcationBidir
+lemma Walk.vertices_mkBifurcationBidir
     {G : CDMG Node} {vL vR v1 v2 : Node}
     (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
     (R : Walk G vR v2) (hLR : (vL, vR) ∈ G.L) :
@@ -925,7 +994,7 @@ private lemma Walk.vertices_mkBifurcationBidir
   rfl
 
 /-- Bidirected analog of `Walk.isBifurcationDirectedHinge_comp_reverseDirected_aux`. -/
-private lemma Walk.isBifurcationWithSplit_comp_reverseDirected_bidir_aux
+lemma Walk.isBifurcationWithSplit_comp_reverseDirected_bidir_aux
     {G : CDMG Node} :
     ∀ {c v : Node} (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
       {w : Node} (rest : Walk G c w) (k : ℕ)
@@ -961,7 +1030,7 @@ private lemma Walk.isBifurcationWithSplit_comp_reverseDirected_bidir_aux
 /-- Right-extension: appending a directed walk `D` to the right of a
 bifurcation walk `M` preserves the `IsBifurcationWithSplit` predicate
 at the same index. -/
-private lemma Walk.isBifurcationWithSplit_comp_right_directed
+lemma Walk.isBifurcationWithSplit_comp_right_directed
     {G : CDMG Node} :
     ∀ {u v : Node} (M : Walk G u v) (k : ℕ),
       M.IsBifurcationWithSplit k →
@@ -995,7 +1064,7 @@ private lemma Walk.isBifurcationWithSplit_comp_right_directed
 
 /-- `mkBifurcationBidir L hL_dir R hLR` realises `IsBifurcationWithSplit`
 at index `L.length` (the position of the bidirected hinge). -/
-private lemma Walk.isBifurcationWithSplit_mkBifurcationBidir
+lemma Walk.isBifurcationWithSplit_mkBifurcationBidir
     {G : CDMG Node} {vL vR v1 v2 : Node}
     (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
     (R : Walk G vR v2) (hR_dir : R.IsDirectedWalk)
@@ -1024,7 +1093,7 @@ private lemma Walk.isBifurcationWithSplit_mkBifurcationBidir
 *sourceless* `IsBifurcation` (since the hinge is bidirected, there
 is no source vertex).  Handles both `L.length ≥ 1` and `L = nil`
 (degenerate "no left arm" case where `vL = v1`). -/
-private lemma Walk.mkBifurcationBidir_isBifurcation
+lemma Walk.mkBifurcationBidir_isBifurcation
     {G : CDMG Node} {vL vR v1 v2 : Node}
     (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
     (R : Walk G vR v2) (hR_dir : R.IsDirectedWalk)
@@ -1134,7 +1203,7 @@ private lemma Walk.mkBifurcationBidir_isBifurcation
 -- and `R.vertices.tail ⊆ p.vertices.dropLast` — that the end-node
 -- uniqueness bookkeeping of sub-claims ii(b) and ii(a) needs.
 
-private lemma Walk.exists_arms_of_bifurcation_directed_hinge_strong
+lemma Walk.exists_arms_of_bifurcation_directed_hinge_strong
     {G : CDMG Node} {v w : Node} (p : Walk G v w) :
     ∀ (i : ℕ), p.IsBifurcationDirectedHingeWithSplit i →
       ∃ (c : Node) (L : Walk G c v) (R : Walk G c w),
@@ -1324,7 +1393,7 @@ private lemma Walk.exists_arms_of_bifurcation_directed_hinge_strong
 `qw : Walk G c w` of length `≥ 1` satisfy the end-node uniqueness
 conditions, then `mkBifurcation qv qw` realises
 `IsBifurcationSource c`. -/
-private lemma Walk.mkBifurcation_isBifurcationSource
+lemma Walk.mkBifurcation_isBifurcationSource
     {G : CDMG Node} {c v w : Node}
     (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk) (hqv_pos : qv.length ≥ 1)
     (qw : Walk G c w) (hqw_dir : qw.IsDirectedWalk) (hqw_pos : qw.length ≥ 1)
@@ -1439,7 +1508,7 @@ private lemma Walk.mkBifurcation_isBifurcationSource
 
 /-- A directed-hinge bifurcation walk is also a (generic, sourceless)
 bifurcation walk at the same split index. -/
-private lemma Walk.isBifurcationDirectedHingeWithSplit_to_isBifurcationWithSplit
+lemma Walk.isBifurcationDirectedHingeWithSplit_to_isBifurcationWithSplit
     {G : CDMG Node} {u v : Node} :
     ∀ (p : Walk G u v) (i : ℕ),
       p.IsBifurcationDirectedHingeWithSplit i → p.IsBifurcationWithSplit i := by
@@ -1463,7 +1532,7 @@ private lemma Walk.isBifurcationDirectedHingeWithSplit_to_isBifurcationWithSplit
 
 /-- `IsBifurcationSource` implies `IsBifurcation`: just drop the
 source-tracking conjunct. -/
-private lemma Walk.isBifurcationSource_to_isBifurcation
+lemma Walk.isBifurcationSource_to_isBifurcation
     {G : CDMG Node} {u v : Node} (p : Walk G u v) (c : Node)
     (h : p.IsBifurcationSource c) : p.IsBifurcation := by
   obtain ⟨huv_ne, hu_tail, hv_drop, i, hh_dir, _⟩ := h
@@ -1473,7 +1542,7 @@ private lemma Walk.isBifurcationSource_to_isBifurcation
 /-- A single bidirected edge `(u, v) ∈ G.L` gives a length-1 walk
 `u → v` whose `IsBifurcation` predicate is satisfied (the `n = 1`
 direct bidirected edge boundary case of `def_3_4` item~vi). -/
-private lemma Walk.singleEdge_isBifurcation_of_bidir {G : CDMG Node}
+lemma Walk.singleEdge_isBifurcation_of_bidir {G : CDMG Node}
     {u v : Node} (hu : u ∈ G) (hv : v ∈ G)
     (hLR : (u, v) ∈ G.L) (huv : u ≠ v) :
     let hStep : G.WalkStep u (u, v) v := Or.inl ⟨rfl, Or.inr hLR⟩
@@ -1499,7 +1568,7 @@ hinge endpoints `vL = p.vertices[i]` and `vR = p.vertices[i+1]`,
 together with the left arm `L : Walk G vL v` (directed, possibly
 length 0) and the right arm `R : Walk G vR w` (directed, possibly
 length 0).  The hinge edge `(vL, vR) ∈ G.L`. -/
-private lemma Walk.exists_arms_of_bifurcation_bidir_hinge_strong
+lemma Walk.exists_arms_of_bifurcation_bidir_hinge_strong
     {G : CDMG Node} {v w : Node} (p : Walk G v w) :
     ∀ (i : ℕ), p.IsBifurcationWithSplit i →
       ¬ p.IsBifurcationDirectedHingeWithSplit i →
@@ -1703,7 +1772,7 @@ private lemma Walk.exists_arms_of_bifurcation_bidir_hinge_strong
 -- ## Helper: forward direction of sub-claim ii(b) for one orientation.
 
 
-private lemma marg_preserves_bifSource_forward (G : CDMG Node)
+lemma marg_preserves_bifSource_forward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (hv₃ : v₃ ∈ G.marginalize W hW)
@@ -1771,7 +1840,7 @@ private lemma marg_preserves_bifSource_forward (G : CDMG Node)
 -- ## Helper: backward direction of sub-claim ii(b) for one orientation.
 
 
-private lemma marg_preserves_bifSource_backward (G : CDMG Node)
+lemma marg_preserves_bifSource_backward (G : CDMG Node)
     (W : Finset Node) (hW : W ⊆ G.V) {u w v₃ : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (hv₃ : v₃ ∈ G.marginalize W hW)
@@ -1813,9 +1882,9 @@ private lemma marg_preserves_bifSource_backward (G : CDMG Node)
     have hc_eq_w : c = w := hc_eq_v3.trans heq
     exact hw_drop (hc_eq_w ▸ h_c_q_drop)
   -- Expand Lq and Rq to walks in G.
-  obtain ⟨L, hL_dir, hL_len, hL_sub_W, hL_drop_sub_W⟩ :=
+  obtain ⟨L, hL_dir, hL_len, hL_sub_W, hL_drop_sub_W, _, _⟩ :=
     expand_directed_walk_marginalize Lq hLq_dir
-  obtain ⟨R, hR_dir, hR_len, hR_sub_W, hR_drop_sub_W⟩ :=
+  obtain ⟨R, hR_dir, hR_len, hR_sub_W, hR_drop_sub_W, _, _⟩ :=
     expand_directed_walk_marginalize Rq hRq_dir
   have hL_pos : L.length ≥ 1 := by omega
   have hR_pos : R.length ≥ 1 := by omega
@@ -1860,7 +1929,7 @@ private lemma marg_preserves_bifSource_backward (G : CDMG Node)
 -- outside W (so in marg).  Reduces to sub-claim ii(b)'s forward helper
 -- followed by the conversion `IsBifurcationSource → IsBifurcation`.
 
-private lemma marg_bif_forward_dir_hinge_src_marg
+lemma marg_bif_forward_dir_hinge_src_marg
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {p : Walk G u w} (hp : p.IsBifurcation)
@@ -1882,7 +1951,7 @@ private lemma marg_bif_forward_dir_hinge_src_marg
 -- of a marg walk lie in marg).  Reduces to sub-claim ii(b)'s backward
 -- helper followed by the conversion `IsBifurcationSource → IsBifurcation`.
 
-private lemma marg_bif_backward_dir_hinge
+lemma marg_bif_backward_dir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {q : Walk (G.marginalize W hW) u w} (hq : q.IsBifurcation)
@@ -1900,7 +1969,7 @@ private lemma marg_bif_backward_dir_hinge
   exact ⟨p, Walk.isBifurcationSource_to_isBifurcation p c hp_src⟩
 
 /-- The last vertex of any walk equals its target. -/
-private lemma Walk.vertices_getLast {G : CDMG Node} :
+lemma Walk.vertices_getLast {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v),
       p.vertices.getLast (Walk.vertices_ne_nil p) = v
   | _, _, .nil _ _ => rfl
@@ -1911,7 +1980,7 @@ private lemma Walk.vertices_getLast {G : CDMG Node} :
 
 /-- For a walk with `length ≥ 1`, its vertex list's tail is non-empty
 and ends at the target. -/
-private lemma Walk.tail_getLast_of_pos {G : CDMG Node} {u v : Node}
+lemma Walk.tail_getLast_of_pos {G : CDMG Node} {u v : Node}
     (p : Walk G u v) (hp_pos : p.length ≥ 1) :
     p.vertices.tail.getLast (Walk.tail_vertices_ne_nil_of_pos p hp_pos) = v := by
   cases p with
@@ -1921,7 +1990,7 @@ private lemma Walk.tail_getLast_of_pos {G : CDMG Node} {u v : Node}
       exact Walk.vertices_getLast p'
 
 /-- `M.IsBifurcation → M.length ≥ 1`. -/
-private lemma Walk.length_pos_of_isBifurcation {G : CDMG Node} {u v : Node}
+lemma Walk.length_pos_of_isBifurcation {G : CDMG Node} {u v : Node}
     {M : Walk G u v} (hM : M.IsBifurcation) : M.length ≥ 1 := by
   obtain ⟨_, _, _, _, h_split⟩ := hM
   cases M with
@@ -1933,7 +2002,7 @@ private lemma Walk.length_pos_of_isBifurcation {G : CDMG Node} {u v : Node}
 into both M.vertices.tail and M.vertices.dropLast.  Used uniformly across
 all four sub-cases (the user derives the two bounds from M's arm extractor
 clauses, which differ by L/R orientation). -/
-private lemma Walk.arm_dropLast_in_W {G : CDMG Node} {a b : Node}
+lemma Walk.arm_dropLast_in_W {G : CDMG Node} {a b : Node}
     {M : Walk G a b} (hM_bif : M.IsBifurcation)
     {W : Finset Node} (hM_W : ∀ x ∈ M.vertices.tail.dropLast, x ∈ W)
     {c d : Node} {arm : Walk G c d}
@@ -1984,7 +2053,7 @@ private lemma Walk.arm_dropLast_in_W {G : CDMG Node} {a b : Node}
 -- bidirected).  Vertex-bound conditions are dispatched via
 -- `Walk.arm_dropLast_in_W` and the expansion helpers.
 
-private lemma marg_bif_backward_bidir_hinge
+lemma marg_bif_backward_bidir_hinge
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {q : Walk (G.marginalize W hW) u w} (hq : q.IsBifurcation)
@@ -2019,9 +2088,9 @@ private lemma marg_bif_backward_bidir_hinge
     hL_marg_sub vL (Walk.head_mem_vertices L_marg)
   have hw_ne_vL : w ≠ vL := fun heq => hw_drop (heq ▸ hvL_in_q_drop)
   -- Expand L_marg, R_marg to G-walks.
-  obtain ⟨L_g, hL_g_dir, _hL_g_len, hL_g_sub_W, hL_g_drop_sub_W⟩ :=
+  obtain ⟨L_g, hL_g_dir, _hL_g_len, hL_g_sub_W, hL_g_drop_sub_W, _, _⟩ :=
     expand_directed_walk_marginalize L_marg hL_marg_dir
-  obtain ⟨R_g, hR_g_dir, _hR_g_len, hR_g_sub_W, hR_g_drop_sub_W⟩ :=
+  obtain ⟨R_g, hR_g_dir, _hR_g_len, hR_g_sub_W, hR_g_drop_sub_W, _, _⟩ :=
     expand_directed_walk_marginalize R_marg hR_marg_dir
   -- Vertex-bound facts for L_g and R_g (inline chains).
   have hu_notin_L_g_drop : u ∉ L_g.vertices.dropLast := fun h_in =>
@@ -2327,7 +2396,7 @@ private lemma marg_bif_backward_bidir_hinge
 -- bidirected G-edge directly (`Φ_L` with no W-interior).  The arms are
 -- projected to marg directly via `project_directed_walk_strong`.
 
-private lemma marg_bif_forward_bidir_both_notW
+lemma marg_bif_forward_bidir_both_notW
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {p : Walk G u w} (hp : p.IsBifurcation)
@@ -2403,7 +2472,7 @@ private lemma marg_bif_forward_bidir_both_notW
 -- a Φ_L witness for `(vL_exit, vR_exit) ∈ marg.L`, and assembles via
 -- `mkBifurcationBidir_isBifurcation`.
 
-private lemma marg_bif_forward_assemble_bidirected
+lemma marg_bif_forward_assemble_bidirected
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (huw_ne : u ≠ w)
@@ -2449,7 +2518,7 @@ private lemma marg_bif_forward_assemble_bidirected
 
 -- ## Helper (forward Case 2) — directed hinge with source `c ∈ W`.
 
-private lemma marg_bif_forward_dir_hinge_src_W
+lemma marg_bif_forward_dir_hinge_src_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {p : Walk G u w} (hp : p.IsBifurcation)
@@ -2751,7 +2820,7 @@ private lemma marg_bif_forward_dir_hinge_src_W
 -- or (L_W_part.length = 0 AND vL = vL_exit).  This precludes the
 -- pathological "L_W_part has cycle at vL ∉ W" case.
 
-private lemma marg_bif_forward_bidir_finish
+lemma marg_bif_forward_bidir_finish
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (huw_ne : u ≠ w)
@@ -2980,7 +3049,7 @@ private lemma marg_bif_forward_bidir_finish
 -- ## Helper (forward Case 3.B) — bidirected hinge with at least one
 -- endpoint in W.
 
-private lemma marg_bif_forward_bidir_with_W
+lemma marg_bif_forward_bidir_with_W
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     {p : Walk G u w} (hp : p.IsBifurcation)
@@ -3122,7 +3191,7 @@ private lemma marg_bif_forward_bidir_with_W
       hvR_exit_ne_u hvL_ne_w
 
 
-private lemma marg_preserves_bif_forward
+lemma marg_preserves_bif_forward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (h : ∃ p : Walk G u w, p.IsBifurcation) :
@@ -3150,7 +3219,7 @@ private lemma marg_preserves_bif_forward
 
 -- ## Wrapper: backward direction (case-splits on hinge type).
 
-private lemma marg_preserves_bif_backward
+lemma marg_preserves_bif_backward
     (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) {u w : Node}
     (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)
     (h : ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation) :
@@ -3273,7 +3342,7 @@ theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)
   · -- (⟸) converse direction: expand the directed marg-walk.
     rintro ⟨_, p, hp_dir⟩
     refine ⟨mem_of_mem_marginalize hv₁, ?_⟩
-    obtain ⟨q, hq_dir, _, _, _⟩ := expand_directed_walk_marginalize p hp_dir
+    obtain ⟨q, hq_dir, _, _, _, _, _⟩ := expand_directed_walk_marginalize p hp_dir
     exact ⟨q, hq_dir⟩
 
 -- ref: claim_3_16 (sub-claim ii(a), preservation of bifurcations — sourceless)
@@ -3593,7 +3662,8 @@ theorem marginalize_preserves_acyclic (G : CDMG Node) (W : Finset Node)
   -- `expand_directed_walk_marginalize`, contradicting `G.IsAcyclic`.
   intro v hv_marg ⟨p, hp_dir, hp_pos⟩
   have hv_g : v ∈ G := mem_of_mem_marginalize hv_marg
-  obtain ⟨q, hq_dir, hq_len, _, _⟩ := expand_directed_walk_marginalize p hp_dir
+  obtain ⟨q, hq_dir, hq_len, _, _, _, _⟩ :=
+    expand_directed_walk_marginalize p hp_dir
   have hq_pos : q.length ≥ 1 := by omega
   exact hAcyc v hv_g ⟨q, hq_dir, hq_pos⟩
 
