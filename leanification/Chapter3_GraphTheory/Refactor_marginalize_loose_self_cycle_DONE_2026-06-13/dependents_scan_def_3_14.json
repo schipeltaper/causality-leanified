@@ -1,0 +1,1420 @@
+{
+  "target_ref": "def_3_14",
+  "target_title": "marginalize",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 95,
+      "snippet": "--   (`def_3_1`), `G.marginalize W hW` (`def_3_14`) producing another"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 239,
+      "snippet": "    {hW : W ⊆ G.V} {v : Node} (h : v ∈ G.marginalize W hW) : v ∈ G := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 246,
+      "snippet": "/-- A node in `G.marginalize W hW` is outside `W` (uses `hJV_disj`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 249,
+      "snippet": "    (hW : W ⊆ G.V) {v : Node} (h : v ∈ G.marginalize W hW) : v ∉ W := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 286,
+      "snippet": "-- ## Walk expansion: lift a directed walk from `G.marginalize W hW`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 314,
+      "snippet": "    ∀ {u v : Node} (p : Walk (G.marginalize W hW) u v),"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 336,
+      "snippet": "      have ha_mem' : (u, vMid) ∈ (G.marginalize W hW).E := ha_eq ▸ ha_mem"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 471,
+      "snippet": "both endpoints lie in `G.marginalize W hW`.  Constructed by strong"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 482,
+      "snippet": "      v₁ ∈ G.marginalize W hW →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 483,
+      "snippet": "      v₂ ∈ G.marginalize W hW →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 484,
+      "snippet": "      ∃ (q : Walk (G.marginalize W hW) v₁ v₂), q.IsDirectedWalk := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 505,
+      "snippet": "        have hm_marg : m ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 523,
+      "snippet": "          have h_edge_marg : (v₁, m) ∈ (G.marginalize W hW).E := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 533,
+      "snippet": "          have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 539,
+      "snippet": "`G.marginalize W hW`, with both endpoints in the marg-carrier. -/"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 543,
+      "snippet": "    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 544,
+      "snippet": "    ∃ (q : Walk (G.marginalize W hW) v₁ v₂), q.IsDirectedWalk :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 561,
+      "snippet": "      v₁ ∈ G.marginalize W hW →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 562,
+      "snippet": "      v₂ ∈ G.marginalize W hW →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 563,
+      "snippet": "      ∃ (q : Walk (G.marginalize W hW) v₁ v₂),"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 609,
+      "snippet": "        have hm_marg : m ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 657,
+      "snippet": "          have h_edge_marg : (v₁, m) ∈ (G.marginalize W hW).E := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 666,
+      "snippet": "          have hStep_marg : (G.marginalize W hW).WalkStep v₁ (v₁, m) m :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 705,
+      "snippet": "    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 706,
+      "snippet": "    ∃ (q : Walk (G.marginalize W hW) v₁ v₂),"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1708,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1709,
+      "snippet": "    (hv₃ : v₃ ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1711,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcationSource v₃ := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1747,
+      "snippet": "  have hc_marg : c ∈ G.marginalize W hW := hc_eq_v3 ▸ hv₃"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1775,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1776,
+      "snippet": "    (hv₃ : v₃ ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1777,
+      "snippet": "    (h : ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcationSource v₃) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1863,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1867,
+      "snippet": "    (hc_marg : c ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1868,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1884,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1885,
+      "snippet": "    {q : Walk (G.marginalize W hW) u w} (hq : q.IsBifurcation)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1892,
+      "snippet": "  have hc_marg : c ∈ G.marginalize W hW := Walk.mem_of_mem_vertices q hc_in_q"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1985,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1986,
+      "snippet": "    {q : Walk (G.marginalize W hW) u w} (hq : q.IsBifurcation)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2322,
+      "snippet": "-- edge `(vL, vR) ∈ (G.marginalize W hW).L` is witnessed by the single"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2327,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2338,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2350,
+      "snippet": "  have hvL_marg : vL ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2352,
+      "snippet": "  have hvR_marg : vR ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2366,
+      "snippet": "  have hLR_marg : (vL, vR) ∈ (G.marginalize W hW).L := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2402,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2414,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2415,
+      "snippet": "  have hvL_marg : vL_exit ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2417,
+      "snippet": "  have hvR_marg : vR_exit ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2419,
+      "snippet": "  have hLR_marg : (vL_exit, vR_exit) ∈ (G.marginalize W hW).L := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2447,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2451,
+      "snippet": "    (hc_notin_marg : c ∉ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2452,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2579,
+      "snippet": "    have hvL_marg : vL_exit ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2747,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2770,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2781,
+      "snippet": "    have hvL_exit_marg : vL_exit ∈ G.marginalize W hW := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2975,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2986,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3116,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3118,
+      "snippet": "    ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3124,
+      "snippet": "    by_cases hc_marg : c ∈ G.marginalize W hW"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3143,
+      "snippet": "    (hu : u ∈ G.marginalize W hW) (hw : w ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3144,
+      "snippet": "    (h : ∃ q : Walk (G.marginalize W hW) u w, q.IsBifurcation) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3156,
+      "snippet": "-- `G.marginalize W hW`), `v₁` is an ancestor of `v₂` in `G` iff"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3199,
+      "snippet": "--   prefix `(G, W, hW)` matches `def_3_14 marginalize`'s binder"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3216,
+      "snippet": "-- *Membership hypothesis `v₁ ∈ G.marginalize W hW` (not the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3218,
+      "snippet": "--   same set `G.J ∪ (G.V ∖ W)`, but the marginalize-pointing form"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3222,
+      "snippet": "--   `marginalize`'s field assignments at every use site; (iii) is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3224,
+      "snippet": "--   operators (e.g.\\ `(G.marginalize W₁ hW₁).marginalize W₂ hW₂` in"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3226,
+      "snippet": "--   by `unfold CDMG.marginalize` plus `Finset.mem_union`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3229,
+      "snippet": "-- *Conclusion `v₁ ∈ G.Anc v₂ ↔ v₁ ∈ (G.marginalize W hW).Anc v₂`.*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3246,
+      "snippet": "    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3247,
+      "snippet": "    v₁ ∈ G.Anc v₂ ↔ v₁ ∈ (G.marginalize W hW).Anc v₂"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3334,
+      "snippet": "--   `W`\") fires on exactly this walk, so `marginalize` inserts"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3371,
+      "snippet": "-- *Membership hypotheses `hv₁, hv₂` on `G.marginalize W hW`.*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3374,
+      "snippet": "--   `v_1, v_2 ∈ J ∪ (V ∖ W)`, the carrier of `G.marginalize W hW`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3387,
+      "snippet": "    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3391,
+      "snippet": "    ((∃ p : Walk (G.marginalize W hW) v₁ v₂, p.IsBifurcation) ∨"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3392,
+      "snippet": "        (∃ p : Walk (G.marginalize W hW) v₂ v₁, p.IsBifurcation))"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3554,
+      "snippet": "    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3555,
+      "snippet": "    (hv₃ : v₃ ∈ G.marginalize W hW) :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3559,
+      "snippet": "    ((∃ p : Walk (G.marginalize W hW) v₁ v₂, p.IsBifurcationSource v₃) ∨"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3560,
+      "snippet": "        (∃ p : Walk (G.marginalize W hW) v₂ v₁, p.IsBifurcationSource v₃))"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3575,
+      "snippet": "-- marginalization `G.marginalize W hW`.  No topological-order"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3577,
+      "snippet": "-- `(G.marginalize W hW).IsAcyclic` is a universal statement"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3578,
+      "snippet": "-- ranging over `v ∈ G.marginalize W hW`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3605,
+      "snippet": "--   counterfactual chapters typically need `(G.marginalize W"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3632,
+      "snippet": "-- *Conclusion via dot-notation `(G.marginalize W hW).IsAcyclic`.*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3641,
+      "snippet": "--   `G^{∖W}` consume this theorem to upgrade `G.marginalize W"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3646,
+      "snippet": "    (G.marginalize W hW).IsAcyclic"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3663,
+      "snippet": "-- marginalization `G.marginalize W hW`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3673,
+      "snippet": "-- `G.marginalize W hW` automatically restricts its quantifiers"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3709,
+      "snippet": "--       `(G.marginalize W hW).IsAcyclic`;"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3711,
+      "snippet": "--       `(G.marginalize W hW).IsTopologicalOrder lt`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3728,
+      "snippet": "--   `G.marginalize W hW`, not a restricted relation `lt' :"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3737,
+      "snippet": "--   `G.marginalize W hW`.  `IsTopologicalOrder`'s"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3781,
+      "snippet": "--   marginalize signature.  Mirrors"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3787,
+      "snippet": "--   `G` to `G.marginalize W hW` via the carrier inclusion"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3802,
+      "snippet": "--   order on `G.marginalize W hW` without re-proving any"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3808,
+      "snippet": "    (G.marginalize W hW).IsTopologicalOrder lt"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3829,
+      "snippet": "  · -- Parent precedence in `G.marginalize W hW`: unfold the marg-parent"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3834,
+      "snippet": "    -- `hvw_edge : (v, w) ∈ (G.marginalize W hW).E`.  Unfold to the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 78,
+      "snippet": "--   lemmas, and the main `marginalize` `def`, keeping their"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 141,
+      "snippet": "--   the `E^{∖W}` field body of `marginalize`.*  Every downstream"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 145,
+      "snippet": "--   \"membership in `(G.marginalize W).E`\" to \"exists a witnessing"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 233,
+      "snippet": "--   the `L^{∖W}` field body of `marginalize`.*  Same rationale as"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 235,
+      "snippet": "--   unfolding \"membership in `(G.marginalize W).L`\" wants the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 241,
+      "snippet": "--   convention so the API of `(G.marginalize W).E` / `…L`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 343,
+      "snippet": "-- instances; the `marginalize` def below is consequently"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 396,
+      "snippet": "-- of `marginalize` so the def body is pure data + lemma references —"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 455,
+      "snippet": "-- the CDMG `G.marginalize W hW` whose four components are"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 563,
+      "snippet": "--   `marginalize` return a non-CDMG type (`def_3_1` requires"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 573,
+      "snippet": "--   `marginalize` inherits the annotation in turn.  This is the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 576,
+      "snippet": "--   need a *constructive* description of `(G.marginalize W hW).E` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 645,
+      "snippet": "--   dot-notation `G.marginalize W hW`.  `W` precedes `hW` so the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "line": 677,
+      "snippet": "noncomputable def marginalize (G : CDMG Node) (W : Finset Node)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 33,
+      "snippet": "`G.marginalize W₁ hW₁` has output-node set `G.V \\ W₁`; the outer"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 53,
+      "snippet": "--   the signature references `CDMG Node` and `G.marginalize`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 65,
+      "snippet": "-- The main theorem signature evaluates `(G.marginalize W₁ hW₁).marginalize"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 68,
+      "snippet": "-- `?_ : W₂ ⊆ (G.marginalize W₁ hW₁).V`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 69,
+      "snippet": "-- and `(G.marginalize W₁ hW₁).V` reduces definitionally to `G.V \\ W₁`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 155,
+      "snippet": "--   (a) `(G.marginalize W₁ hW₁).marginalize W₂ … ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 156,
+      "snippet": "--         G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 157,
+      "snippet": "--   (b) `(G.marginalize W₂ hW₂).marginalize W₁ … ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 158,
+      "snippet": "--         G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 160,
+      "snippet": "-- `(G.marginalize W₁ hW₁).marginalize W₂ … ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 161,
+      "snippet": "--  (G.marginalize W₂ hW₂).marginalize W₁ …` from (a) ∧ (b)."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 188,
+      "snippet": "--   `(G.marginalize W₁ hW₁).marginalize W₂ … ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 189,
+      "snippet": "--    (G.marginalize W₂ hW₂).marginalize W₁ …` is recovered as"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 207,
+      "snippet": "-- *Right-hand side `G.marginalize (W₁ ∪ W₂) (Finset.union_subset"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 218,
+      "snippet": "--   `subset_sdiff_of_disjoint`.*  The outer `.marginalize W₂` (in"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 219,
+      "snippet": "--   (a)) and `.marginalize W₁` (in (b)) need a subset proof against"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 220,
+      "snippet": "--   the carrier `(G.marginalize Wᵢ hWᵢ).V = G.V \\ Wᵢ` of the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 239,
+      "snippet": "--   calculation about `marginalize`'s domain, (ii) force every call"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 275,
+      "snippet": "--   matching `marginalize`'s binder convention.*  `def_3_14`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 278,
+      "snippet": "--   sites `G.marginalize Wᵢ hWᵢ` parse identically here and at every"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 296,
+      "snippet": "    (G.marginalize W₁ hW₁).marginalize W₂"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 298,
+      "snippet": "      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 300,
+      "snippet": "    (G.marginalize W₂ hW₂).marginalize W₁"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 302,
+      "snippet": "      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_16_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)\\n    (hW : W ⊆ G.V) (v₁ v₂ : Node)\\n    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginaliz"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_16_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"theorem marginalize_preserves_ancestors (G : CDMG Node) (W : Finset Node)\\n    (hW : W ⊆ G.V) (v₁ v₂ : Node)\\n    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.margina"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_16_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"This file formalises the LN remark `MargPreservesAncestors`: marginalizing a CDMG $G = (J, V, E, L)$ by removing a subset $W \\\\subseteq V$ of output nodes preserves three struct"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_16_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Five separate theorems, not one bundled conjunction.** The LN's single `\\\\begin{Rem}` bundles all five sub-assertions, but they have *different hypotheses* and *different conclu"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_14_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=\\n  ∃ (p : Walk G u v),\\n    p.IsDirectedWalk ∧\\n    p.length ≥ 1 ∧\\n    (∀ x ∈ p.vertices.t"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_14_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=\\n  ∃ (p : Walk G u v),\\n    p.IsDirectedWalk ∧\\n    p.length ≥ 1 ∧\\n    (∀ x ∈ p.vertice"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_14_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The Lean encoding of marginalization on a CDMG is split into three top-level declarations: two membership predicates (`MarginalizationΦE`, `MarginalizationΦL`) and the main `def"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_14_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Two membership predicates factored out as named `def`s, not inlined into `marginalize`.** Every downstream claim about marginalized edges reasons by unfolding \\\"membership in `("
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 19,
+      "snippet": "- The marginalization operator `G.marginalize W hW : CDMG Node` is the `def_3_14`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 30,
+      "snippet": "To state `(G.marginalize W₁ hW₁).marginalize W₂ hW₂` we need:"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 32,
+      "snippet": "- `hW₂ : W₂ ⊆ (G.marginalize W₁ hW₁).V = G.V \\ W₁`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 35,
+      "snippet": "Mirror: `(G.marginalize W₂ hW₂').marginalize W₁ hW₁'`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 37,
+      "snippet": "Joint: `G.marginalize (W₁ ∪ W₂) hW₁₂`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+      "line": 57,
+      "snippet": "   `theorem` whose statement is `(G.marginalize W₁ hW₁).marginalize W₂ hW₂ = … = …`."
+    },
+    {
+      "file": "leanification/refactors/refactor_marginalize_loose_self_cycle.md",
+      "line": 56,
+      "snippet": "The `marginalize` def's `where`-body fields are unaffected at the level of source-text; only their *content* via `Φ_E` shifts (slightly more pairs admitted in the self-cycle case)."
+    },
+    {
+      "file": "leanification/refactors/refactor_marginalize_loose_self_cycle.md",
+      "line": 95,
+      "snippet": "Crucially: **no other Lean file in the repo touches `MarginalizationΦE`, `MarginalizationΦL`, `G.marginalize`, or `MarginalizationAK`**. A `grep -rln \"marginalize\\|MarginalizationAK\"` across `leanific"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 298,
+      "col": 10,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 302,
+      "col": 10,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 296,
+      "col": 7,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "line": 300,
+      "col": 7,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 239,
+      "col": 41,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 249,
+      "col": 41,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 314,
+      "col": 32,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 324,
+      "col": 27,
+      "snippet": "Unknown identifier `mem_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 336,
+      "col": 36,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 482,
+      "col": 13,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 483,
+      "col": 13,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 484,
+      "col": 21,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 498,
+      "col": 34,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 505,
+      "col": 29,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 543,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 544,
+      "col": 19,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 545,
+      "col": 2,
+      "snippet": "Unknown identifier `project_directed_walk_aux`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 561,
+      "col": 13,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 562,
+      "col": 13,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 563,
+      "col": 21,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 603,
+      "col": 34,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 609,
+      "col": 29,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 705,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 706,
+      "col": 19,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 711,
+      "col": 2,
+      "snippet": "Unknown identifier `project_directed_walk_with_vertex_subset_aux`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1708,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1709,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1711,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1747,
+      "col": 23,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1749,
+      "col": 4,
+      "snippet": "Unknown identifier `project_directed_walk_strong`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1751,
+      "col": 4,
+      "snippet": "Unknown identifier `project_directed_walk_strong`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1750,
+      "col": 9,
+      "snippet": "Tactic `rcases` failed: `x✝ : ?m.378` is not an inductive datatype"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1775,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1776,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1777,
+      "col": 23,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1778,
+      "col": 50,
+      "snippet": "unsolved goals"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1863,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1867,
+      "col": 21,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1868,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1884,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1885,
+      "col": 17,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1892,
+      "col": 23,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1896,
+      "col": 4,
+      "snippet": "Unknown identifier `marg_preserves_bifSource_backward`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1895,
+      "col": 9,
+      "snippet": "Tactic `rcases` failed: `x✝ : ?m.193` is not an inductive datatype"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1985,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1986,
+      "col": 17,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2002,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2003,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 1989,
+      "col": 41,
+      "snippet": "unsolved goals"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2327,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2338,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2350,
+      "col": 25,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2402,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2414,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2415,
+      "col": 30,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2447,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2451,
+      "col": 27,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2452,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2460,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2461,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2579,
+      "col": 32,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2735,
+      "col": 10,
+      "snippet": "Unknown identifier `marg_bif_forward_assemble_bidirected`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2747,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2770,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2781,
+      "col": 37,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2967,
+      "col": 10,
+      "snippet": "Unknown identifier `marg_bif_forward_assemble_bidirected`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2975,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2986,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2988,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 2989,
+      "col": 26,
+      "snippet": "Unknown identifier `notW_of_mem_marginalize`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3046,
+      "col": 12,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_finish`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3063,
+      "col": 12,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_finish`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3104,
+      "col": 10,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_finish`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3116,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3118,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3124,
+      "col": 29,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3131,
+      "col": 12,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_with_W`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3134,
+      "col": 14,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_with_W`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3136,
+      "col": 14,
+      "snippet": "Unknown identifier `marg_bif_forward_bidir_both_notW`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3143,
+      "col": 16,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3144,
+      "col": 23,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3149,
+      "col": 10,
+      "snippet": "Unknown identifier `marg_bif_backward_dir_hinge`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3150,
+      "col": 10,
+      "snippet": "Unknown identifier `marg_bif_backward_bidir_hinge`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3246,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3247,
+      "col": 28,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3259,
+      "col": 4,
+      "snippet": "No goals to be solved"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "line": 3387,
+      "col": 18,
+      "snippet": "Invalid field `marginalize`: The environment does not contain `Causality.CDMG.marginalize`, so it is not possible to project the field `marginalize` from an expression"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_16_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_14_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_2/workspace_claim_3_17.md",
+    "leanification/refactors/refactor_marginalize_loose_self_cycle.md"
+  ],
+  "consumer_refs": [
+    "claim_3_16"
+  ]
+}

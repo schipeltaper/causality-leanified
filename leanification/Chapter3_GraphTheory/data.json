@@ -76,7 +76,7 @@
         }
       ],
       "time_needed_to_solve": 2052,
-      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] The node sets $J$ and $V$ are both assumed to be finite.",
+      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Both the input node set $J$ and the output node set $V$ are assumed to be finite.",
       "wording_check": {
         "done": true,
         "output": "SUBTLETY:\nid: bidirected_edges_quotient_vs_symmetry_redundancy\nexplanation: The bidirected edge set is declared as `L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1))`, i.e. a subset of the quotient of `V × V` by the swap relation. Elements of this quotient are unordered pairs (equivalence classes). But the accompanying condition is written as\n\n    \"$(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$\"\n\nwhich treats elements of `L` as if they were ordered pairs.\n\nIf `L` really is a subset of the quotient, then `(v_1, v_2)` and `(v_2, v_1)` denote the *same* equivalence class, so \"$(v_2, v_1) \\in L$\" follows automatically from \"$(v_1, v_2) \\in L$\" — that half of the conjunction is vacuous. Only the `v_1 ≠ v_2` clause (no self-loops in `L`) carries content.\n\nAlternatively, if the author actually intends `L \\subseteq V \\times V` (no quotient) with the implication forcing symmetry, then the quotient notation is misleading — it suggests a different ambient set.\n\nThis ambiguity matters for any encoding: should `L` be a `Sym2 V`, a `Finset (V × V)` with a symmetry axiom, or an irreflexive symmetric relation? The LN simultaneously suggests two of these.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loops_allowed_but_bidirected_self_loops_forbidden\nexplanation: The constraint `v_1 \\neq v_2` is imposed on `L` (no bidirected self-loops), but `E` has no analogous constraint. The literal definition `E \\ins (J \\cup V) \\times V` permits a pair `(v, v)` with `v \\in V`, since then `v \\in J \\cup V` and `v \\in V`. So a directed self-loop `v \\to v` on an output node is admissible, while a bidirected self-loop `v \\leftrightarrow v` is explicitly forbidden.\n\nThis asymmetry between E and L may be intentional (e.g. directed self-loops sometimes encode feedback) but the LN doesn't justify or even acknowledge it. A reader scanning the definition could easily assume self-loops are uniformly disallowed. Downstream notions like acyclicity (def_3_6) will need to take a stance on whether `v \\to v` counts as a length-1 cycle.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_cdmg_admitted_by_active_definition\nexplanation: The active text imposes no non-emptiness condition on `J \\cup V`. Hence the literal definition admits the fully empty CDMG with `J = V = E = L = \\emptyset`. This is a classic degenerate corner case: any downstream definition that implicitly assumes a non-empty vertex set (walks of positive length, \"the source of a directed edge\", topological orders on non-empty supports, etc.) needs to either gracefully handle, or explicitly exclude, the empty graph. Worth flagging because future claims/proofs that quantify \"for every CDMG …\" will quietly include this trivial case.\nEND_SUBTLETY",
@@ -1756,7 +1756,7 @@
           "last_used": "2026-06-12T12:55:37+00:00"
         }
       ],
-      "time_needed_to_solve": 6462,
+      "time_needed_to_solve": 6539,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1770,28 +1770,30 @@
       "section": "3.2",
       "title": "MarginalizationAK",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
-      "tips": "",
+      "solved": "yes",
+      "date_solved": "2026-06-12",
+      "tips": "Refactored on 2026-06-13 via `marginalize_loose_self_cycle` (see leanification/Chapter*/Refactor_marginalize_loose_self_cycle_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 2,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 5,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1801,12 +1803,266 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Marginalization a.k.a.\\ latent projection on CDMGs]\\label{def:G_marginalization}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of output nodes.\n  Then the \\emph{marginalization of $G$ w.r.t.\\ $W$} or the \\emph{latent projection of $G$ onto $J\\cup V \\sm W$} is the CDMG:\n  \\[  G^{V\\sm W | J} := G^{\\sm W} := (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  %\\[ G(V \\sm W | \\doit(J)) := G^{\\sm W} = (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J^{\\sm W}:= J$,\n      \\item $V^{\\sm W}:= V \\sm W$,\n      \\item $E^{\\sm W}$ consists of all directed edges $\\ul{v} \\tuh \\ol{v}$ with $\\ul{v},\\ol{v} \\in J \\cup V \\sm W$ \n          for which there exists a directed walk in $G$:\n          \\[\\ul{v} \\tuh w_1 \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\\footnote{Note that this may introduce self-cycles.}\n      \\item $L^{\\sm W}$ consists of all bidirected edges $\\ul{v} \\huh \\ol{v}$ with \n          $\\ul{v},\\ol{v} \\in V \\sm W$, $\\ul{v} \\neq \\ol{v}$, \n          for which there exists a bifurcation in $G$:\n          \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\n      %\\item $L^{\\sm W}:= \\lC \\ul{v} \\huh \\ol{v}\\,|\\, \\ul{v},\\ol{v} \\in V \\sm W: \n      %    \\exists \\text{ bifurcation: } \\ul{v} \\hut w_1 \\cdots w_{n-1} \\tuh \\ol{v} \\in G \n      %    \\text{ with } w_1,\\dots,w_{n-1} \\in W \\rC$,\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2ab46ca1-f81b-449a-b3da-bc61413c5263",
+          "first_seen": "2026-06-13T11:44:13+00:00",
+          "last_used": "2026-06-13T11:44:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a715747b-9284-4af4-a708-5dc959a85d33",
+          "first_seen": "2026-06-13T11:47:01+00:00",
+          "last_used": "2026-06-13T11:47:01+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "84a6f4e3-88fe-49e5-ac36-260a396d00fd",
+          "first_seen": "2026-06-13T11:47:35+00:00",
+          "last_used": "2026-06-13T11:47:35+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_only",
+          "spawned_by": "manager",
+          "session_id": "e3c98db6-fc21-4568-af9a-23fb4407be9c",
+          "first_seen": "2026-06-13T11:47:52+00:00",
+          "last_used": "2026-06-13T11:47:52+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6e2f5f20-fd7a-4dc7-9669-ad72a16a7c24",
+          "first_seen": "2026-06-13T11:52:30+00:00",
+          "last_used": "2026-06-13T11:52:30+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_equivalence",
+          "spawned_by": "manager",
+          "session_id": "86d08823-c6f5-4cad-a392-93a558c55a4c",
+          "first_seen": "2026-06-13T11:57:18+00:00",
+          "last_used": "2026-06-13T11:57:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "33a6b45a-9156-47db-8148-f8224b1c3fbf",
+          "first_seen": "2026-06-13T11:58:09+00:00",
+          "last_used": "2026-06-13T11:58:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "1c5890d7-0afc-48b2-bf8a-8cad9f74a4ac",
+          "first_seen": "2026-06-13T12:10:01+00:00",
+          "last_used": "2026-06-13T12:10:01+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2fd62f7c-1821-4020-a6fe-4de90f7279e8",
+          "first_seen": "2026-06-13T12:11:27+00:00",
+          "last_used": "2026-06-13T12:11:27+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "19e449ed-c2bb-4f3f-9fd6-4a1a57d5b8fa",
+          "first_seen": "2026-06-13T12:16:05+00:00",
+          "last_used": "2026-06-13T12:16:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f5cfab81-b0df-44ab-af8f-1fec90c7172b",
+          "first_seen": "2026-06-13T12:16:50+00:00",
+          "last_used": "2026-06-13T12:16:50+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "64d37d3d-9b23-4a53-afa3-593e4edbb42c",
+          "first_seen": "2026-06-13T12:20:12+00:00",
+          "last_used": "2026-06-13T12:20:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d64e740b-cf6d-4aff-809e-9243abe828ba",
+          "first_seen": "2026-06-13T12:21:39+00:00",
+          "last_used": "2026-06-13T12:21:39+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "2f6ad1e6-eeb8-4771-ac1f-e5a9df2dcf04",
+          "first_seen": "2026-06-13T12:36:15+00:00",
+          "last_used": "2026-06-13T12:36:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f6fef7ee-357a-4291-b7ab-d99379006aec",
+          "first_seen": "2026-06-13T12:37:42+00:00",
+          "last_used": "2026-06-13T12:37:42+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "b32376b2-4500-40d2-b373-ff6bb94a5b5b",
+          "first_seen": "2026-06-13T12:43:13+00:00",
+          "last_used": "2026-06-13T12:43:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a15176d3-a6b1-4734-8412-6dd94e296510",
+          "first_seen": "2026-06-13T12:46:09+00:00",
+          "last_used": "2026-06-13T12:46:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "04057776-4fae-4539-b668-7fa987634694",
+          "first_seen": "2026-06-13T12:48:33+00:00",
+          "last_used": "2026-06-13T12:48:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "20a0c16d-ad79-463a-82e2-8207a3042511",
+          "first_seen": "2026-06-13T12:49:20+00:00",
+          "last_used": "2026-06-13T12:49:20+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "eeb8f6ef-2f58-4dee-a831-ea8fdeb3871d",
+          "first_seen": "2026-06-13T12:55:22+00:00",
+          "last_used": "2026-06-13T12:55:22+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2a1d63ee-4156-4e6e-8c89-237cc886ad20",
+          "first_seen": "2026-06-13T12:56:07+00:00",
+          "last_used": "2026-06-13T12:56:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ee82a41e-1fc0-48b9-aa74-96d03b2d23e0",
+          "first_seen": "2026-06-13T12:59:19+00:00",
+          "last_used": "2026-06-13T12:59:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e55233a5-df10-4954-8ed0-5e60b5c28bbf",
+          "first_seen": "2026-06-13T12:59:59+00:00",
+          "last_used": "2026-06-13T12:59:59+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "77802587-b723-40d7-9549-ff0252c50ea7",
+          "first_seen": "2026-06-13T13:03:02+00:00",
+          "last_used": "2026-06-13T13:03:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a8b527e3-b8b5-4c12-ae2a-21738fdfce7f",
+          "first_seen": "2026-06-13T13:04:15+00:00",
+          "last_used": "2026-06-13T13:04:15+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "cc2c2042-b708-417a-9ff7-30e4a2b2b85e",
+          "first_seen": "2026-06-13T13:07:20+00:00",
+          "last_used": "2026-06-13T13:07:20+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "48d9cff9-c68e-401d-ad89-b2670e5c4a1c",
+          "first_seen": "2026-06-13T13:22:07+00:00",
+          "last_used": "2026-06-13T13:22:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1b9c2a24-9ab2-473b-a7b0-536c2dc60fc1",
+          "first_seen": "2026-06-13T13:22:40+00:00",
+          "last_used": "2026-06-13T13:22:40+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "281b7cee-b80a-473b-a817-1af92d97bcff",
+          "first_seen": "2026-06-13T13:26:50+00:00",
+          "last_used": "2026-06-13T13:26:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "95536690-73b0-4901-9660-0a1fc68a6efc",
+          "first_seen": "2026-06-13T13:27:51+00:00",
+          "last_used": "2026-06-13T13:27:51+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "888530c8-c567-4d4f-abe8-0212ff865e2e",
+          "first_seen": "2026-06-13T13:29:43+00:00",
+          "last_used": "2026-06-13T13:29:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ddef0096-cbd5-41e3-861b-29e9dc838c81",
+          "first_seen": "2026-06-13T13:31:25+00:00",
+          "last_used": "2026-06-13T13:31:25+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5f568547-478c-43f6-abd6-ad98baf211e2",
+          "first_seen": "2026-06-13T13:36:24+00:00",
+          "last_used": "2026-06-13T13:36:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ae968f73-5fad-4ab7-a554-c77a12521d0c",
+          "first_seen": "2026-06-13T13:38:35+00:00",
+          "last_used": "2026-06-13T13:38:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "2532ae39-4c4f-4a38-8dea-5b6056b05c20",
+          "first_seen": "2026-06-13T13:45:49+00:00",
+          "last_used": "2026-06-13T13:45:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8860,
+      "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block for def_3_14 (MarginalizationAK), I need to audit the literal wording for subtleties, ambiguities, and corner cases.\n\nLet me analyze each component carefully, focusing on what the LN literally says.\n\n```\nSUBTLETY:\nid: bifurcation_indexing_unclear_at_k_boundaries\nexplanation: The bifurcation formula in item iv\n\n    \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n\nuses indices $w_{k-1}$ and $w_k$ to name the endpoints of the bidirected hinge. The \"(if any)\" qualifier addresses the case when the intermediate list $w_1,\\dots,w_{n-1}$ is empty, but says nothing about the hinge indices when they fall outside that list.\n\nFor $k = 1$, the hinge \"$w_{k-1} \\hus w_k$\" literally reads \"$w_0 \\hus w_1$\", and $w_0$ is undefined in the intermediate range. The intended reading is that $w_0$ becomes $\\ul{v}$ implicitly — so the bifurcation is $\\ul{v} \\hus w_1 \\tuh \\cdots \\tuh \\ol{v}$. Symmetrically, when $k = n$, $w_n$ implicitly becomes $\\ol{v}$, giving $\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{n-1} \\hus \\ol{v}$. And when $n = 1, k = 1$, both arms are empty and the bifurcation degenerates to $\\ul{v} \\hus \\ol{v}$ — a direct bidirected edge in $G$.\n\nThis boundary case is not cosmetic: it's the only way a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ in $L$ (where $\\ul{v},\\ol{v} \\in V \\sm W$) ever gets captured by a bifurcation and preserved in $L^{\\sm W}$. If a strict reader instead requires $w_{k-1}, w_k$ to be in the intermediate range $\\{1,\\dots,n-1\\}$, the boundary cases are excluded and original bidirected edges between non-marginalized nodes are silently dropped — clearly not intended.\n\nThe convention \"$w_0 = \\ul{v}$, $w_n = \\ol{v}$\" is left implicit, and a strict reading of the formula admits this confusion. Downstream claims about preservation of edges under the trivial marginalization ($W = \\emptyset$) or about subset relationships of bifurcations would rely on this implicit convention.\nEND_SUBTLETY\n\nSUBTLETY:\nid: self_bidirected_excluded_asymmetric_with_directed_self_cycles\nexplanation: Item iii ($E^{\\sm W}$) explicitly allows self-loops, with the footnote \"Note that this may introduce self-cycles.\" Item iv ($L^{\\sm W}$), by contrast, requires \"$\\ul{v} \\neq \\ol{v}$\", silently excluding self-bidirected edges that bifurcations through $W$ would otherwise create.\n\nConcrete corner case: take $v \\in V \\sm W$ and $w_1, w_2 \\in W$ such that $G$ contains the structure\n    $v \\hut w_1 \\hus w_2 \\tuh v$ (i.e., $w_1 \\tuh v$, $w_1 \\hus w_2$, and $w_2 \\tuh v$ all in $G$).\nThis is a bona-fide bifurcation in the sense of the displayed formula, with $\\ul{v} = \\ol{v} = v$, $k = 2$, $n = 2$, and intermediates $w_1, w_2 \\in W$. The natural reading would add a self-bidirected $v \\huh v$ to $L^{\\sm W}$, capturing \"confounding of $v$ with itself through latent path in $W$\". The \"$\\ul{v} \\neq \\ol{v}$\" condition discards this case.\n\nThe asymmetry with item iii's footnote is jarring: the directed case acknowledges self-cycle creation as a feature, while the bidirected case rules it out without justification in the definition itself. If the surrounding CDMG framework forbids self-bidirected edges by convention, that justifies the asymmetry — but the definition doesn't say so. Downstream proofs about which confounding paths are \"preserved\" by marginalization should account for the fact that confounding paths returning to their starting node are silently dropped, while directed cycles returning to the starting node are kept.\nEND_SUBTLETY\n```",
+        "session": "9f454cc0-5341-4296-a9a5-1556bba268a1"
+      },
+      "last_refactored_at": "2026-06-13"
     },
     {
       "def_or_claim": "claim",
@@ -1814,28 +2070,30 @@
       "section": "3.2",
       "title": "MargPreservesAncestors",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
-      "tips": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-13",
+      "tips": "Refactored on 2026-06-13 via `marginalize_loose_self_cycle` (see leanification/Chapter*/Refactor_marginalize_loose_self_cycle_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 15,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1845,12 +2103,288 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 0,
+        "verify_tex_statement_equivalence": 0,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "35f3eeaa-fd1a-486b-b1dc-1d4eba5cc69a",
+          "first_seen": "2026-06-13T14:10:30+00:00",
+          "last_used": "2026-06-13T14:10:30+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "61515110-d997-4d0e-99e2-f208f3a67653",
+          "first_seen": "2026-06-13T14:19:33+00:00",
+          "last_used": "2026-06-13T14:19:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ff0ea82f-6519-4817-b944-0d4f0adf5f01",
+          "first_seen": "2026-06-13T14:20:09+00:00",
+          "last_used": "2026-06-13T14:20:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "24482ac9-b1a4-45d7-91cc-80dcd1cd4b34",
+          "first_seen": "2026-06-13T14:25:28+00:00",
+          "last_used": "2026-06-13T14:25:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9a986d2a-a92c-4673-9650-a56ca8710ad2",
+          "first_seen": "2026-06-13T14:26:04+00:00",
+          "last_used": "2026-06-13T14:26:04+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3612e2c2-8e84-4eec-a0cf-12d20395ad2f",
+          "first_seen": "2026-06-13T14:31:04+00:00",
+          "last_used": "2026-06-13T14:31:04+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a65faa2c-c04e-4c16-9df2-0a0e5103d4d4",
+          "first_seen": "2026-06-13T14:31:49+00:00",
+          "last_used": "2026-06-13T14:31:49+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "73c79a3a-c91b-4e45-bdae-6465adcef919",
+          "first_seen": "2026-06-13T14:40:30+00:00",
+          "last_used": "2026-06-13T14:40:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0a20a792-80af-4e27-9863-7ce8938b60b3",
+          "first_seen": "2026-06-13T14:41:09+00:00",
+          "last_used": "2026-06-13T14:41:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "08bb8bfb-0bf9-41fb-be82-e07fad8b29e3",
+          "first_seen": "2026-06-13T14:48:43+00:00",
+          "last_used": "2026-06-13T14:48:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "43666170-5166-4132-a5f7-983d29699de8",
+          "first_seen": "2026-06-13T14:49:34+00:00",
+          "last_used": "2026-06-13T14:49:34+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ddc14ef1-72ae-45d5-ac90-193ba4eb4861",
+          "first_seen": "2026-06-13T14:56:24+00:00",
+          "last_used": "2026-06-13T14:56:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3b22d0fa-f84a-4d7b-aa96-e15c60c57e9e",
+          "first_seen": "2026-06-13T14:57:05+00:00",
+          "last_used": "2026-06-13T14:57:05+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "abadf72d-a996-4d7f-9e53-6727986bac36",
+          "first_seen": "2026-06-13T15:01:45+00:00",
+          "last_used": "2026-06-13T15:01:45+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9bbdf6f5-8eea-4f13-98ac-fbf3c57906b1",
+          "first_seen": "2026-06-13T15:02:39+00:00",
+          "last_used": "2026-06-13T15:02:39+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a2dd4e95-0b30-4224-bd50-1dad3e851341",
+          "first_seen": "2026-06-13T15:11:10+00:00",
+          "last_used": "2026-06-13T15:11:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "78dd2b53-aced-46cd-b9d8-06fcae1a32e3",
+          "first_seen": "2026-06-13T15:11:55+00:00",
+          "last_used": "2026-06-13T15:11:55+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "846ce070-2d64-40b8-ae1e-bd13f7f47415",
+          "first_seen": "2026-06-13T15:18:04+00:00",
+          "last_used": "2026-06-13T15:18:04+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ff696cd5-a75e-4fbf-b52a-71b938a08854",
+          "first_seen": "2026-06-13T15:18:45+00:00",
+          "last_used": "2026-06-13T15:18:45+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "258575cc-97b6-4888-9015-3874ed3c1d2f",
+          "first_seen": "2026-06-13T15:23:19+00:00",
+          "last_used": "2026-06-13T15:23:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f6332fc3-5247-487a-86d3-09e8969f7246",
+          "first_seen": "2026-06-13T15:24:01+00:00",
+          "last_used": "2026-06-13T15:24:01+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c835f555-104f-42f3-8633-fb184822622f",
+          "first_seen": "2026-06-13T15:31:36+00:00",
+          "last_used": "2026-06-13T15:31:36+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e5d0f918-d69c-4c8f-989c-b7301aef7e73",
+          "first_seen": "2026-06-13T15:32:20+00:00",
+          "last_used": "2026-06-13T15:32:20+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8846bd77-1d11-4af2-b93e-0930ad858209",
+          "first_seen": "2026-06-13T15:38:35+00:00",
+          "last_used": "2026-06-13T15:38:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "660ce75a-70ad-4ee9-8060-d3665b4213c6",
+          "first_seen": "2026-06-13T15:39:26+00:00",
+          "last_used": "2026-06-13T15:39:26+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "1dea7e61-6623-4403-97e6-d53534bc5479",
+          "first_seen": "2026-06-13T15:45:59+00:00",
+          "last_used": "2026-06-13T15:45:59+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1e696280-5938-44e3-bb62-7898f4c66ce3",
+          "first_seen": "2026-06-13T15:46:44+00:00",
+          "last_used": "2026-06-13T15:46:44+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e4e1f77e-fa43-4fbf-bad9-dff1060bd4c3",
+          "first_seen": "2026-06-13T15:53:17+00:00",
+          "last_used": "2026-06-13T15:53:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fee47732-7325-4ace-aa6b-ddf7e75f03f8",
+          "first_seen": "2026-06-13T15:54:21+00:00",
+          "last_used": "2026-06-13T15:54:21+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ecd995be-4803-416d-b648-11cbe2826a27",
+          "first_seen": "2026-06-13T16:12:43+00:00",
+          "last_used": "2026-06-13T16:12:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5cb43b1a-49c6-4cca-8d6f-f8e41c8455d6",
+          "first_seen": "2026-06-13T16:13:39+00:00",
+          "last_used": "2026-06-13T16:13:39+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e989ab1e-4678-461f-98b3-43b1ed2f5b3f",
+          "first_seen": "2026-06-13T16:16:55+00:00",
+          "last_used": "2026-06-13T16:16:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "59e97880-31ef-41bb-9e89-5e8b04e3a9d3",
+          "first_seen": "2026-06-13T16:17:29+00:00",
+          "last_used": "2026-06-13T16:17:29+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "6a438695-cf11-4891-bb3c-6320a805fd69",
+          "first_seen": "2026-06-13T16:18:14+00:00",
+          "last_used": "2026-06-13T16:18:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "eae6f304-2780-4db3-bf44-90f2341c6390",
+          "first_seen": "2026-06-13T16:18:47+00:00",
+          "last_used": "2026-06-13T16:18:47+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "b0be3b30-f87b-4d2b-b192-d390a8ca6a4e",
+          "first_seen": "2026-06-13T16:26:03+00:00",
+          "last_used": "2026-06-13T16:26:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "393763c9-f103-49e9-a83a-214eab15dd6c",
+          "first_seen": "2026-06-13T16:26:37+00:00",
+          "last_used": "2026-06-13T16:26:37+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5298b6cb-a7f8-44f2-8d38-9a0498e311f4",
+          "first_seen": "2026-06-13T16:30:00+00:00",
+          "last_used": "2026-06-13T16:30:00+00:00"
+        }
+      ],
+      "time_needed_to_solve": 9099,
+      "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: optionally_v3_phrasing_creates_dual_claim\nexplanation: Item 2 reads:\n\n> \"For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\"\n\nThe parenthetical \"(and, optionally, $v_3 \\in G\\sm W$)\" combined with the embedded \"(with source $v_3$)\" makes the statement ambiguous: it bundles two distinct claims into one sentence.\n\n- Reading A — two separate claims: (i) for all $v_1,v_2 \\in G \\sm W$, an unsourced bifurcation between $v_1,v_2$ exists in $G$ iff in $G^{\\sm W}$; (ii) for all $v_1,v_2,v_3 \\in G\\sm W$, a bifurcation between $v_1,v_2$ with source $v_3$ exists in $G$ iff in $G^{\\sm W}$.\n- Reading B — a single claim where $v_3$ is universally quantified and the \"(with source $v_3$)\" is mandatory wherever it appears.\n\n\"Optionally\" is mathematically unusual; a formalization (or a careful reader) has to commit to one interpretation, and the two readings are not the same claim. In particular, reading A includes the unsourced version with its existential over sources, which is the strictly stronger statement.\nEND_SUBTLETY\n\nSUBTLETY:\nid: bifurcation_no_source_existential_admits_w_source\nexplanation: Under reading A of item 2 (the \"(with source $v_3$)\" optional), the unsourced version reads \"bifurcation between $v_1$ and $v_2$ in $G$ iff bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$\" with $v_1,v_2 \\in G \\sm W$. The LHS implicitly quantifies the source existentially over all of $V(G)$, including $W$. The RHS quantifies over $V(G^{\\sm W}) = V(G)\\sm W$, which by construction contains no $W$ vertices.\n\nConcrete corner case: suppose the only bifurcation between $v_1$ and $v_2$ in $G$ is the fork $v_1 \\leftarrow w \\rightarrow v_2$ with $w \\in W$ (no other common-source vertex in $V(G)$, no bidirected edge in $G$). The LHS is true. For the RHS to also be true, $G^{\\sm W}$ must contain something that counts as a \"bifurcation between $v_1$ and $v_2$\" — typically the bidirected edge $v_1 \\leftrightarrow v_2$ that marginalization is meant to introduce.\n\nSo the unsourced biconditional silently relies on: (a) \"bifurcation\" being defined inclusively enough to count bidirected edges as bifurcations (with an implicit unobserved source), and (b) the marginalization $G \\mapsto G^{\\sm W}$ actually inserting such bidirected edges for marginalized common causes. If the document's local notion of \"bifurcation\" is the strict three-vertex fork $v_1 \\leftarrow v_3 \\rightarrow v_2$ with $v_3$ a vertex of the graph, then under that strict reading the unsourced direction fails on this corner case, and a downstream proof that walks through the unsourced biconditional would silently rely on the more permissive definition.\nEND_SUBTLETY",
+        "session": "4dea3671-60d6-46ef-a274-073421be6684"
+      },
+      "last_refactored_at": "2026-06-13"
     },
     {
       "def_or_claim": "claim",
@@ -1858,30 +2392,32 @@
       "section": "3.2",
       "title": "MarginalizationsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-14",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
-        "refactor": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
+        "refactor": 1,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 9,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1889,12 +2425,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "e59b3333-5ce0-4016-b54d-08451a13a2fe",
+          "first_seen": "2026-06-14T03:01:18+00:00",
+          "last_used": "2026-06-14T03:01:18+00:00"
+        }
+      ],
+      "time_needed_to_solve": 27404,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the claim carefully:\n\nThe lemma states that for a CDMG $G=(J,V,E,L)$ and two disjoint subsets $W_1, W_2 \\subseteq V$, the iterated marginalizations $(G^{\\sm W_1})^{\\sm W_2}$, $(G^{\\sm W_2})^{\\sm W_1}$, and the joint marginalization $G^{\\sm (W_1 \\cup W_2)}$ are all equal.\n\nLet me check potential issues:\n\n1. **Type safety of nested marginalization**: For $(G^{\\sm W_1})^{\\sm W_2}$ to be well-defined, $W_2$ must be a subset of the output nodes of $G^{\\sm W_1}$, namely $V \\setminus W_1$. The disjointness assumption $W_1 \\cap W_2 = \\emptyset$ combined with $W_2 \\subseteq V$ ensures this. ✓\n\n2. **Degenerate cases**:\n   - $W_1 = W_2 = \\emptyset$: Two empty sets are disjoint; the claim reduces to $G = G = G$. ✓\n   - $W_1 = \\emptyset$, $W_2 \\neq \\emptyset$: Reduces to $G^{\\sm W_2} = G^{\\sm W_2} = G^{\\sm W_2}$. ✓\n   - $W_1 = V$: After marginalizing, output set is empty; $W_2 \\subseteq V$ disjoint from $V$ forces $W_2 = \\emptyset$. ✓\n\n3. **Internal consistency**: The notation $G^{\\sm (W_1 \\cup W_2)}$ is well-defined since $W_1 \\cup W_2 \\subseteq V$.\n\n4. **\"Output nodes\"**: The terminology is consistent with the CDMG convention where $V$ are the output (observed) nodes and $J$ the intervention nodes.\n\n5. **Disjointness**: \"Two disjoint subsets\" unambiguously means $W_1 \\cap W_2 = \\emptyset$.\n\nThe wording is clean. Whether the equality actually holds is a proof concern (it depends on the marginalization definition producing a canonical graph regardless of order), but the *statement* itself is unambiguous about what is being asserted.\n\nNO_SUBTLETIES",
+        "session": "ffca47d3-50e0-4722-85e3-3f1adb7320a5"
+      }
     },
     {
       "def_or_claim": "claim",
@@ -1902,30 +2454,32 @@
       "section": "3.2",
       "title": "MarginalizationAndIntervention",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-14",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 2,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 9,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -1933,12 +2487,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "d480ef5e-fd33-48c0-91e1-176bcd9bbebf",
+          "first_seen": "2026-06-14T14:39:59+00:00",
+          "last_used": "2026-06-14T14:39:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 41778,
+      "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
+      "wording_check": {
+        "done": true,
+        "output": "Based on my analysis of the literal tex block:\n\nSUBTLETY:\nid: w1_may_contain_existing_intervention_nodes\nexplanation: The lemma states \"$W_1 \\ins J \\cup V$\", explicitly allowing $W_1$ to contain nodes that are already intervention nodes (i.e., $W_1 \\cap J$ may be nonempty). The behavior of $\\doit(\\cdot)$ on already-intervention nodes is not specified within this block, and the disjointness constraint with $W_2$ only restricts $W_1 \\cap V$ (since $W_2 \\ins V$ and $J \\cap V = \\emptyset$, disjointness places zero constraint on $W_1 \\cap J$).\n\nConcrete corner case: take $W_1 \\subseteq J$ entirely (allowed by the literal text). Then both sides should reduce to $G^{\\sm W_2}$ if $\\doit$ acts as identity on $J$-elements — but the LN never explicitly says this. A reader/formalizer must look outside this block (to the definition of $\\doit$) to know whether the $W_1 \\cap J$ part is a no-op, undefined, or has some other semantics. If the upstream definition restricts $\\doit$ to $V$-subsets only, then this lemma's quantification over $W_1 \\ins J \\cup V$ is literally ill-typed.\n\nDownstream impact: a Lean formalization will either need a coercion/normalization step that drops $W_1 \\cap J$, or will need to require $W_1 \\ins V$ to match the upstream definition. The wording \"two disjoint subsets of nodes from $G$\" plus $W_1 \\ins J \\cup V$ is broader than typical formulations and leaves the $W_1 \\cap J$ behavior arbitrary at this level.\nEND_SUBTLETY\n\nSUBTLETY:\nid: similar_statement_trailer_is_unspecified\nexplanation: The block closes with \"A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\" This sentence asserts two additional commutativity results without stating them precisely — neither the operations involved (e.g., what \"adding intervention nodes\" vs. $\\doit$ means here, what \"node-splitting interventions\" denotes) nor the precise side conditions (analogue of the $W_1, W_2$ disjointness, what subset constraints apply) are given.\n\nThe literal reading leaves it ambiguous whether the trailer is (a) part of the lemma's mathematical content (i.e., something one would need to formalize/prove alongside the main equation) or (b) merely a heuristic pointer to related results stated separately. If (a), a future formalizer cannot encode it without further input; if (b), the reader can ignore it here. The choice matters downstream when deciding the scope of the corresponding Lean theorem.\nEND_SUBTLETY",
+        "session": "17bd5297-f5ad-4f3a-91c1-779ea9732b45"
+      }
     },
     {
       "def_or_claim": "claim",
