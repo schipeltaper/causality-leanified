@@ -119,7 +119,7 @@ HUMAN_REQUEST_THRESHOLD = 3
 MAX_RUNTIME_SECONDS = 20 * 60 * 60         # 20 hours
 
 # Per-subprocess timeout. A single agent should not run longer than this.
-PER_CALL_TIMEOUT_SECONDS = 2 * 60 * 60         # 2 hours
+PER_CALL_TIMEOUT_SECONDS = 4 * 60 * 60         # 4 hours
 
 # Maximum number of manager turns before we bail out, just in case the loop
 # is stuck producing the same no-op action over and over.

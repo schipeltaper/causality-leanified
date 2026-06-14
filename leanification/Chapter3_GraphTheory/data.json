@@ -2502,7 +2502,7 @@
           "last_used": "2026-06-14T14:39:59+00:00"
         }
       ],
-      "time_needed_to_solve": 41702,
+      "time_needed_to_solve": 41778,
       "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
       "wording_check": {
         "done": true,
