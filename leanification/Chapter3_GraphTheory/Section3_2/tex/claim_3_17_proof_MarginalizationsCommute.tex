@@ -15,6 +15,11 @@
 %   - Be self-contained enough that a mathematician can follow it without
 %     re-reading the LN.
 %   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Proof body lifted verbatim from lecture-notes/lecture_notes/graphs.tex
+% lines 1006-1118 (the LN's own \Claude{\begin{proof}...\end{proof}} block
+% immediately following the claim), with the \Claude{...} wrapper dropped
+% and the inline %\TODO{...} meta-comment removed for cleanliness.
 
 \documentclass[main]{subfiles}
 
@@ -26,17 +31,164 @@
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Lem}[Marginalizations commute]\label{marginalizations-commute}
-      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of output nodes.
-      Then we have:
-      \[ \lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1} =  G^{\sm (W_1 \cup W_2)}. \]
-     % This shows that the notation:
-     % \[ G(V \sm (W_1 \cup W_2)|\doit(J))  \]
-     % is unambiguous.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). We rely throughout on the marginalization operator $G^{\sm W}$ of def \ref{def:G_marginalization}. Let
+    \[
+        W_1 \;\ins\; V \quad\text{and}\quad W_2 \;\ins\; V
+    \]
+    be two subsets of output nodes of $G$ (both subsets are constrained to lie on the output side $V$, matching the precondition ``$W \ins V$'' of def \ref{def:G_marginalization} for the inner marginalizations $G^{\sm W_1}$ and $G^{\sm W_2}$), subject to the disjointness side condition
+    \[
+        W_1 \cap W_2 \;=\; \emptyset.
+    \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \ins V$'', and ``for every $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) degenerate cases $W_1 = W_2 = \emptyset$, $W_1 = \emptyset$ alone, and $W_2 = \emptyset$ alone are all admitted (def \ref{def:G_marginalization} explicitly admits the $W = \emptyset$ input, in which case $G^{\sm \emptyset} = G$ verbatim by items~i.--iv.\ of that def, and the displayed triple equality below collapses accordingly).
+
+    \emph{Well-typedness of the iterated and joint marginalizations.} Each of the three CDMGs appearing in the displayed triple equality below is well-typed per def \ref{def:G_marginalization}'s precondition ``$W \ins V$ of the input CDMG'', evaluated against the input CDMG's output-node set (item~ii.\ of that def):
+    \begin{itemize}
+        \item \emph{LHS, $\lp G^{\sm W_1} \rp^{\sm W_2}$.} The inner $G^{\sm W_1}$ is defined per def \ref{def:G_marginalization} from $W_1 \ins V$. By items~i.\ and~ii.\ of that def, the input-node and output-node sets of $G^{\sm W_1}$ are
+              \[ J^{\sm W_1} \;=\; J \qquad\text{and}\qquad V^{\sm W_1} \;=\; V \sm W_1. \]
+              For the outer marginalization $(\,\cdot\,)^{\sm W_2}$ applied to $G^{\sm W_1}$ to be defined per def \ref{def:G_marginalization}, we need $W_2$ to be a subset of the output-node set $V^{\sm W_1} = V \sm W_1$ of $G^{\sm W_1}$. This holds because $W_2 \ins V$ together with $W_1 \cap W_2 = \emptyset$ yields $W_2 \ins V \sm W_1 = V^{\sm W_1}$. \emph{This is precisely the load-bearing role of the disjointness hypothesis $W_1 \cap W_2 = \emptyset$:} without it, $W_2$ could overlap with $W_1$ -- a set of nodes that has already been removed from the output side by the inner marginalization $G^{\sm W_1}$ -- and the outer marginalization on $G^{\sm W_1}$ would be ill-typed against def \ref{def:G_marginalization}'s precondition.
+
+        \item \emph{Mirror, $\lp G^{\sm W_2} \rp^{\sm W_1}$.} Symmetrically: the inner $G^{\sm W_2}$ is defined per def \ref{def:G_marginalization} from $W_2 \ins V$, with input-node and output-node sets
+              \[ J^{\sm W_2} \;=\; J \qquad\text{and}\qquad V^{\sm W_2} \;=\; V \sm W_2 \]
+              (items~i.\ and~ii.\ of def \ref{def:G_marginalization}). The outer marginalization $(\,\cdot\,)^{\sm W_1}$ applied to $G^{\sm W_2}$ is defined because $W_1 \ins V$ together with $W_1 \cap W_2 = \emptyset$ yields $W_1 \ins V \sm W_2 = V^{\sm W_2}$.
+
+        \item \emph{Joint, $G^{\sm (W_1 \cup W_2)}$.} The single marginalization $G^{\sm (W_1 \cup W_2)}$ is defined per def \ref{def:G_marginalization} from $W_1 \cup W_2 \ins V$, which is immediate from $W_1 \ins V$ and $W_2 \ins V$. (Disjointness is \emph{not} needed to verify the subset-of-$V$ precondition on the joint side, but is built into the lemma's hypothesis so that all three CDMGs in the triple equality are simultaneously well-typed.)
+    \end{itemize}
+
+    \emph{Carrier identification across the three CDMGs.} By items~i.\ and~ii.\ of def \ref{def:G_marginalization} applied iteratively (for the two iterated marginalizations) and once (for the joint marginalization), the input-node and output-node sets of the three CDMGs in the displayed triple equality below coincide:
+    \begin{align*}
+        J_{\lp G^{\sm W_1} \rp^{\sm W_2}} \;&=\; J_{\lp G^{\sm W_2} \rp^{\sm W_1}} \;=\; J_{G^{\sm (W_1 \cup W_2)}} \;=\; J, \\
+        V_{\lp G^{\sm W_1} \rp^{\sm W_2}} \;&=\; V_{\lp G^{\sm W_2} \rp^{\sm W_1}} \;=\; V_{G^{\sm (W_1 \cup W_2)}} \;=\; V \sm (W_1 \cup W_2).
+    \end{align*}
+    The $J$-component identification follows because every application of def \ref{def:G_marginalization} fixes $J$ (item~i.: $J^{\sm W} = J$); the $V$-component identification uses item~ii.\ of def \ref{def:G_marginalization} together with the elementary set identities $(V \sm W_1) \sm W_2 = V \sm (W_1 \cup W_2)$ and $(V \sm W_2) \sm W_1 = V \sm (W_1 \cup W_2)$ on the iterated marginalizations, and direct substitution of $W_1 \cup W_2$ into item~ii.\ on the joint marginalization. Consequently, the asserted triple equality of CDMGs is well-typed at the level of input/output partitions, and the substantive content of the lemma -- deferred to the proof -- is the equality of the directed-edge and bidirected-edge sets.
+
+    \emph{The conclusion.} The three CDMGs $\lp G^{\sm W_1} \rp^{\sm W_2}$, $\lp G^{\sm W_2} \rp^{\sm W_1}$, and $G^{\sm (W_1 \cup W_2)}$ (all constructed via def \ref{def:G_marginalization} as just verified) coincide as CDMGs in the sense of def \ref{def-cdmg}, i.e.\ as four-tuples $(J, V, E, L)$. Concretely, the LN's displayed triple equality
+    \[
+        \lp G^{\sm W_1} \rp^{\sm W_2} \;=\; \lp G^{\sm W_2} \rp^{\sm W_1} \;=\; G^{\sm (W_1 \cup W_2)}
+    \]
+    is the conjunction of the two following equalities of CDMGs:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Composition with $W_1$ first, then $W_2$.}
+              \[ \lp G^{\sm W_1} \rp^{\sm W_2} \;=\; G^{\sm (W_1 \cup W_2)}. \]
+        \item \emph{Composition with $W_2$ first, then $W_1$.}
+              \[ \lp G^{\sm W_2} \rp^{\sm W_1} \;=\; G^{\sm (W_1 \cup W_2)}. \]
+    \end{enumerate}
+    Together (a) and (b) yield the LN's ``symmetry under swap'' reading $\lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1}$ by transitivity of equality. The equality of CDMGs in (a) and (b) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}: the $J$- and $V$-component equalities are the carrier identifications already displayed above, while the $E$- and $L$-component equalities -- the substantive content of the lemma -- assert that the directed-walk-through-$W$ predicate $\Phi_E$ (item~iii.\ of def \ref{def:G_marginalization}) and the bifurcation-through-$W$ predicate $\Phi_L$ (item~iv.\ of def \ref{def:G_marginalization}), instantiated iteratively first with $W = W_1$ on $G$ and then with $W = W_2$ on $G^{\sm W_1}$ (respectively first with $W = W_2$ on $G$ and then with $W = W_1$ on $G^{\sm W_2}$), pick out exactly the same directed edges (over $\lp J \cup (V \sm (W_1 \cup W_2)) \rp \times (V \sm (W_1 \cup W_2))$) and the same bidirected edges (over $(V \sm (W_1 \cup W_2)) \times (V \sm (W_1 \cup W_2))$ with the $\ul{v} \neq \ol{v}$ constraint on $L$ from item~iv.) as the single instantiation of $\Phi_E$ and $\Phi_L$ with $W = W_1 \cup W_2$ on $G$. The conjunctive unpacking of (a) and (b) into the four field-by-field equalities of $J$, $V$, $E$, and $L$ is deferred to the proof.
+
+    %This shows that the notation:
+    %\[ G(V \sm (W_1 \cup W_2)|\doit(J))  \]
+    %is unambiguous.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+We show $\lp G^{\sm W_1}\rp^{\sm W_2} = G^{\sm(W_1 \cup W_2)}$; the other equality then follows by symmetry (swapping $W_1$ and $W_2$).
+
+Both graphs have input nodes $J$ and output nodes $V \sm (W_1 \cup W_2)$.
+It remains to show that the directed and bidirected edge sets coincide.
+
+\medskip\noindent\emph{Directed edges.}
+We show: for $\ul{v},\ol{v} \in J \cup V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$, there is a directed walk
+$\ul{v} = u_0 \tuh u_1 \tuh \cdots \tuh u_m = \ol{v}$
+in $G^{\sm W_1}$ with all intermediate nodes $u_1,\dots,u_{m-1} \in W_2$.
+Each edge $u_i \tuh u_{i+1} \in E^{\sm W_1}$ corresponds to a directed walk
+in $G$ from $u_i$ to $u_{i+1}$ with intermediate nodes in $W_1$.
+Concatenating all these walks yields a directed walk from $\ul{v}$ to $\ol{v}$
+in $G$ with all intermediate nodes in $W_1 \cup W_2$, so
+$\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \tuh \ol{v} \in E^{\sm(W_1 \cup W_2)}$, there is a directed walk
+$\ul{v} = a_0 \tuh a_1 \tuh \cdots \tuh a_n = \ol{v}$
+in $G$ with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+Extract the subsequence of nodes not in $W_1$:
+$\ul{v}=b_0, b_1, \dots, b_r, b_{r+1}=\ol{v}$ with $b_1,\dots,b_r \in W_2$.
+Between consecutive nodes $b_j$ and $b_{j+1}$, all intermediate nodes of
+the original walk lie in $W_1$, so $b_j \tuh b_{j+1} \in E^{\sm W_1}$.
+This gives a directed walk from $\ul{v}$ to $\ol{v}$ in $G^{\sm W_1}$
+with intermediate nodes in $W_2$, hence
+$\ul{v} \tuh \ol{v} \in (E^{\sm W_1})^{\sm W_2}$.
+
+\medskip\noindent\emph{Bidirected edges.}
+We show: for distinct $\ul{v}, \ol{v} \in V \sm (W_1 \cup W_2)$,
+\[
+  \ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}
+  \quad\iff\quad
+  \ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}.
+\]
+
+$(\Rightarrow)$
+If $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$, there exists a bifurcation
+in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_2$:
+\[
+  \ul{v} \hut u_1 \hut \cdots \hut u_{k-1} \hus u_k \tuh \cdots \tuh u_{m-1} \tuh \ol{v}
+\]
+with $u_1,\dots,u_{m-1} \in W_2$.
+Each directed edge on the bifurcation (in $E^{\sm W_1}$) expands to a directed walk
+in $G$ with intermediate nodes in $W_1$.
+If the hinge edge $u_{k-1} \hus u_k$ is directed ($u_{k-1} \hut u_k \in E^{\sm W_1}$),
+it likewise expands to a directed walk in $G$ through $W_1$.
+If the hinge edge is bidirected ($u_{k-1} \huh u_k \in L^{\sm W_1}$),
+it expands to a bifurcation in $G$ between $u_{k-1}$ and $u_k$ with intermediate nodes in $W_1$.
+Substituting all these expansions into the bifurcation yields a bifurcation in $G$
+between $\ul{v}$ and $\ol{v}$ with all intermediate nodes in $W_1 \cup W_2$,
+so $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$.
+
+$(\Leftarrow)$
+If $\ul{v} \huh \ol{v} \in L^{\sm(W_1 \cup W_2)}$, there exists a bifurcation in $G$:
+\[
+  \ul{v} = a_0 \hut a_1 \hut \cdots \hut a_{k-1} \hus a_k \tuh \cdots \tuh a_{n-1} \tuh a_n = \ol{v}
+\]
+with all intermediate nodes $a_1,\dots,a_{n-1} \in W_1 \cup W_2$.
+We construct a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with intermediate nodes in $W_2$.
+
+\emph{Left arm.}
+Reading the left arm in forward direction gives a directed walk in $G$:
+$a_{k^*} \tuh \cdots \tuh a_1 \tuh \ul{v},$
+where $a_{k^*}$ equals $a_k$ if the hinge is directed ($a_{k-1} \hut a_k$) and
+$a_{k^*}$ equals $a_{k-1}$ if the hinge is bidirected ($a_{k-1} \huh a_k$).
+All intermediate nodes of this directed walk lie in $W_1 \cup W_2$.
+Extracting the subsequence of non-$W_1$ nodes and applying the same argument as
+for directed edges gives a directed walk from $a_{k^*}$ (or its
+first non-$W_1$ descendant on this arm) to $\ul{v}$ in $G^{\sm W_1}$ with
+intermediate nodes in $W_2$.
+
+\emph{Right arm.}
+Similarly, $a_k \tuh \cdots \tuh a_{n-1} \tuh \ol{v}$ is a directed walk in $G$
+with intermediate nodes in $W_1 \cup W_2$.
+The non-$W_1$ extraction gives a directed walk in $G^{\sm W_1}$ from
+$a_k$ (or its first non-$W_1$ descendant on this arm) to $\ol{v}$
+with intermediate nodes in $W_2$.
+
+\emph{Hinge.}
+Let $\beta$ be the first non-$W_1$ node reached from the hinge going along
+the left arm towards $\ul{v}$ (or $\ul{v}$ itself if all intermediate left-arm
+nodes lie in $W_1$).
+Let $\gamma$ be the first non-$W_1$ node reached from the hinge going along
+the right arm towards $\ol{v}$ (or $\ol{v}$ itself if all intermediate right-arm
+nodes lie in $W_1$).
+
+If $\beta \neq \gamma$: the subwalk from $\beta$ backwards along the left arm,
+through the hinge, and forward along the right arm to $\gamma$
+is a bifurcation in $G$ with all intermediate nodes in $W_1$, so
+$\beta \huh \gamma \in L^{\sm W_1}$.
+
+If $\beta = \gamma$: all nodes between $\beta$ and the hinge on both arms lie in $W_1$,
+so the node $\beta$ is the source of directed walks to both $\ul{v}$ and $\ol{v}$
+in $G^{\sm W_1}$ (with intermediate nodes in $W_2$).
+
+In all cases, assembling the contracted left arm, the contracted hinge
+($\beta \huh \gamma$ or source~$\beta{=}\gamma$), and the contracted right arm yields
+a bifurcation in $G^{\sm W_1}$ between $\ul{v}$ and $\ol{v}$ with all intermediate
+nodes in $W_2$.
+Hence $\ul{v} \huh \ol{v} \in (L^{\sm W_1})^{\sm W_2}$.
 \end{proof}
 
 \end{document}
