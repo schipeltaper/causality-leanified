@@ -76,7 +76,7 @@
         }
       ],
       "time_needed_to_solve": 2052,
-      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] Both the input node set $J$ and the output node set $V$ are assumed to be finite.",
+      "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] The vertex sets $J$ and $V$ are both finite.",
       "wording_check": {
         "done": true,
         "output": "SUBTLETY:\nid: bidirected_edges_quotient_vs_symmetry_redundancy\nexplanation: The bidirected edge set is declared as `L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1))`, i.e. a subset of the quotient of `V × V` by the swap relation. Elements of this quotient are unordered pairs (equivalence classes). But the accompanying condition is written as\n\n    \"$(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$\"\n\nwhich treats elements of `L` as if they were ordered pairs.\n\nIf `L` really is a subset of the quotient, then `(v_1, v_2)` and `(v_2, v_1)` denote the *same* equivalence class, so \"$(v_2, v_1) \\in L$\" follows automatically from \"$(v_1, v_2) \\in L$\" — that half of the conjunction is vacuous. Only the `v_1 ≠ v_2` clause (no self-loops in `L`) carries content.\n\nAlternatively, if the author actually intends `L \\subseteq V \\times V` (no quotient) with the implication forcing symmetry, then the quotient notation is misleading — it suggests a different ambient set.\n\nThis ambiguity matters for any encoding: should `L` be a `Sym2 V`, a `Finset (V × V)` with a symmetry axiom, or an irreflexive symmetric relation? The LN simultaneously suggests two of these.\nEND_SUBTLETY\n\nSUBTLETY:\nid: directed_self_loops_allowed_but_bidirected_self_loops_forbidden\nexplanation: The constraint `v_1 \\neq v_2` is imposed on `L` (no bidirected self-loops), but `E` has no analogous constraint. The literal definition `E \\ins (J \\cup V) \\times V` permits a pair `(v, v)` with `v \\in V`, since then `v \\in J \\cup V` and `v \\in V`. So a directed self-loop `v \\to v` on an output node is admissible, while a bidirected self-loop `v \\leftrightarrow v` is explicitly forbidden.\n\nThis asymmetry between E and L may be intentional (e.g. directed self-loops sometimes encode feedback) but the LN doesn't justify or even acknowledge it. A reader scanning the definition could easily assume self-loops are uniformly disallowed. Downstream notions like acyclicity (def_3_6) will need to take a stance on whether `v \\to v` counts as a length-1 cycle.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_cdmg_admitted_by_active_definition\nexplanation: The active text imposes no non-emptiness condition on `J \\cup V`. Hence the literal definition admits the fully empty CDMG with `J = V = E = L = \\emptyset`. This is a classic degenerate corner case: any downstream definition that implicitly assumes a non-empty vertex set (walks of positive length, \"the source of a directed edge\", topological orders on non-empty supports, etc.) needs to either gracefully handle, or explicitly exclude, the empty graph. Worth flagging because future claims/proofs that quantify \"for every CDMG …\" will quietly include this trivial case.\nEND_SUBTLETY",
@@ -2684,7 +2684,7 @@
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nIf $G$ is acyclic then all non-colliders are blockable.\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure."
     },
     {
       "def_or_claim": "def",
@@ -2728,7 +2728,7 @@
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$\\sigma$-blocked walks]\\label{def:sigma_blocking}\n  Let $G=(J,V,E,L)$ be a CDMG and $C \\ins J \\cup V$ a subset of nodes and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We say that the walk $\\pi$ is:\n  \\begin{enumerate}\n    \\item   \\emph{$C$-$\\sigma$-open} (or \\emph{$\\sigma$-open given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item all colliders $v_k$ on $\\pi$ are in $\\Anc^G(C)$, \\emph{and}:\n    \\item all blockable non-colliders $v_k$ on $\\pi$ are \\emph{not} in $C$.\n      % all of its adjacent children, $v_{k\\pm 1}$, on $\\pi$ lie in its strongly connected component $\\Sc^G(v_k)$. \\Joris{the last part ``all of its neighboring children on $\\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}\n  \\end{enumerate}\n      \\item   \\emph{$C$-$\\sigma$-blocked}  (or \\emph{$\\sigma$-blocked given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n    \\item there exists a collider $v_k$ on $\\pi$ that is \\emph{not} in $\\Anc^G(C)$, \\emph{or}:\n    \\item there exists a blockable non-collider $v_k$ on $\\pi$ in $C$.\n  \\end{enumerate}  \\end{enumerate}\n  % claim_3_21\n  \\begin{claimmark}\n  Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n  \\end{claimmark}\n\\end{Def}\n\\end{defmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[claim_type_mismatch_vertex_vs_walk] The trailing claim asserting that unblockable non-colliders are always $C$-$\\sigma$-open is excluded from the formalization. It is informal commentary, not part of Definition~\\ref{def:sigma_blocking}, and no Lean obligation should be derived from it."
     },
     {
       "def_or_claim": "claim",
@@ -2738,7 +2738,7 @@
       "type": "note",
       "formalized": "no",
       "proven": "not proven",
-      "solved": "no",
+      "solved": "yes",
       "date_solved": "",
       "tips": "",
       "tex_file": "graphs.tex",
@@ -2772,7 +2772,7 @@
       "tex_block": "  \\begin{claimmark}\n  Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n  \\end{claimmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[claim_is_tautology_against_def_3_17] This statement is a direct unfolding of Definition 3.17, whose $\\sigma$-open and $\\sigma$-blocking criteria range only over colliders and blockable non-colliders. Unblockable non-colliders are therefore unconstrained for every $C \\subseteq V \\cup J$, and the row carries no substantive proof obligation beyond this definitional observation."
     },
     {
       "def_or_claim": "def",
@@ -2816,7 +2816,7 @@
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$i\\sigma$-separation]\\label{def:sigma_separation}\n    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \\ins J \\cup V$ (not necessarily disjoint) subset of nodes.\n    We then say that:\n    \\begin{enumerate}\n        \\item \\emph{$A$ is $i\\sigma$-separated from $B$ given $C$ in $G$}, in symbols:\n    \\[ A \\isPerp_G B \\given C, \\]\n    if every walk from a node in $A$ to a node in $J \\cup B$ (sic!)\\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\\label{fn:why-J}} is $\\sigma$-blocked by $C$.\n        \\item If that property does not hold we will write:\n            \\[ A \\nisPerp_G B \\given C. \\]\n        \\item We also define the special case:\n                \\[ A \\isPerp_G B \\qquad :\\iff \\qquad A \\isPerp_G B \\given \\emptyset.\\]\n        \\item For the special case $J = \\emptyset$---that is, if $G$ has no input nodes---$i\\sigma$-separation is also called \\emph{$\\sigma$-separation}, and we write:\n          \\[A \\sPerp_G B \\given C := A \\isPerp_G B \\given C, \\qquad A \\nsPerp_G B \\given C := A \\nisPerp_G B \\given C.\\]\n          % claim_3_22\n          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal."
     },
     {
       "def_or_claim": "claim",
@@ -2948,7 +2948,7 @@
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    \\begin{enumerate}\n        \\item By Proposition \\ref{prp:sigma_opens} we have that $A \\isPerp_G B \\given C$ is equivalent to either of the following:\n  \\begin{enumerate}\n      \\item every walk from a node in $A$ to a node in $J \\cup B$ is $C$-$\\sigma$-blocked by $C$;\n      \\item every path from a node in $A$ to a node in $J \\cup B$ is $C$-$\\sigma$-blocked by $C$.\n  \\end{enumerate}\n    \\item Proposition \\ref{prp:sigma_opens} also shows that if $A \\nisPerp_G B \\given C$ holds then:\n  \\begin{enumerate}\n      \\item there exists a (shortest) $C$-$\\sigma$-open path from a node in $A$ to a node in $J \\cup B$;\n      \\item there exists a (shortest) $C$-$\\sigma$-open walk from a node in $A$ to a node in $J \\cup B$ such that all its colliders lie in $C$.\n  \\end{enumerate}\n  \\end{enumerate}\n  In practice we usually check if every path is $C$-$\\sigma$-blocked or not. This is because there are, in contrast to walks, only a finite number of paths in a (finite) graph. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).\n\\end{Rem}\n\\end{claimmark}",
       "agent_registry": [],
       "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "addition_to_the_LN": "[shortest_qualifier_reference_class_ambiguous] In items 2(a) and 2(b), the parenthetical \"(shortest)\" is part of the existence claim: the asserted walk (resp. path) is of minimum length among those satisfying all of the stated conditions. In 2(b) in particular, the minimization ranges over $C$-$\\sigma$-open walks from a node in $A$ to a node in $J \\cup B$ whose colliders all lie in $C$ — i.e., the shortest is taken within this joint class, not within the wider class of $C$-$\\sigma$-open walks. Length of a walk/path is taken to be its number of edges; if a length notion has not yet been fixed, it must be defined before this statement is used."
     },
     {
       "def_or_claim": "claim",
@@ -3002,7 +3002,7 @@
       "type": "remark",
       "formalized": "no",
       "proven": "not proven",
-      "solved": "no",
+      "solved": "yes",
       "date_solved": "",
       "tips": "",
       "tex_file": "graphs.tex",
