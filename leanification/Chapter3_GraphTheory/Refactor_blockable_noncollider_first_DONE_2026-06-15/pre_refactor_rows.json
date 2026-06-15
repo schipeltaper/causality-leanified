@@ -1,0 +1,267 @@
+[
+  {
+    "ref": "def_3_16",
+    "chapter_data_path": "leanification/Chapter3_GraphTheory/data.json",
+    "row_index": 34,
+    "pre_sync_row": {
+      "def_or_claim": "def",
+      "ref": "def_3_16",
+      "section": "3.3",
+      "title": "BlockableAndUnblockable",
+      "type": "definition",
+      "formalized": "yes",
+      "proven": "n/a",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
+      "tips": "",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 3,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
+      },
+      "tex_block": "\\begin{defmark}\n\\begin{Def}[Blockable and unblockable non-colliders]\\label{def:unblockable_noncollider}\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We call a non-collider $v_k$ on $\\pi$ an \\emph{unblockable non-collider} on $\\pi$ if it is not an end-node ($k \\notin \\{0,n\\}$) and it only has outgoing edges on $\\pi$ to nodes in the same strongly connected component of $G$. That is,\n  it is one of the following patterns:\n  \\[\\begin{array}{rccl}\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1} & \\text{ with } & v_{k+1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_k) \\land v_{k+1} \\in \\Sc^G(v_k)\n  \\end{array}\\]\n  Otherwise, $v_k$ is called a \\emph{blockable non-collider} on $\\pi$.\n  This means that $v_k$ is either an end-node ($k \\in \\lC 0,n\\rC$) or it has at least one outgoing arrow \n  $v_k \\tuh v_{k\\pm1}$ pointing to a node $v_{k\\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\\ $v_{k\\pm1} \\notin \\Sc^G(v_k)$.\n\\end{Def}\n\\end{defmark}",
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "1f376832-4b8a-40b9-9a9f-34184bafa75c",
+          "first_seen": "2026-06-15T04:06:22+00:00",
+          "last_used": "2026-06-15T04:06:22+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5829,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have full context. The CDMG has edges $E$ (directed) and $L$ (bidirected — symmetric, two heads). The shorthand symbols (`\\hut`, `\\hus`, etc.) per def_3_2 are EXISTENCE claims about edges in $G$, not statements about the walk's specific edges. And def_3_15 explicitly reconciled this ambiguity for the collider/non-collider classification, but def_3_16 does not.\n\nLet me write my audit.\n\nSUBTLETY:\nid: pattern_shorthands_existential_in_g_not_walk_specific\nexplanation: The unblockable patterns \"$v_{k-1} \\hut v_k \\hus v_{k+1}$\", \"$v_{k-1} \\suh v_k \\tuh v_{k+1}$\", and \"$v_{k-1} \\hut v_k \\tuh v_{k+1}$\" use shorthand defined in def_3_2 as *existence* claims about edges in $G$ (e.g. $v_{k-1} \\hut v_k :\\iff (v_k, v_{k-1}) \\in E$). The verbal characterization that precedes the patterns — \"it only has outgoing edges **on $\\pi$** to nodes in the same strongly connected component of $G$\" — is about the walk's *specific* incident edges $a_{k-1}, a_k$.\n\nDef_3_15 had to explicitly reconcile this exact mismatch (\"the LN writing $v_{k-1} \\hut v_k \\hus v_{k+1}$ ... spelled out via the walk constraint, $a_{k-1} = (v_k, v_{k-1}) \\in E$...\"), declaring the count-based, walk-specific reading \"canonical\". Def_3_16 inherits the shorthand without restating this reconciliation.\n\nConcrete corner case: suppose between adjacent walk-positions $v_{k-1}$ and $v_k$ the graph contains *both* $(v_k, v_{k-1}) \\in E$ and $(v_{k-1}, v_k) \\in E$, and the walk uses $a_{k-1} = (v_k, v_{k-1})$. Suppose further $a_k = (v_k, v_{k+1}) \\in E$, so on the walk $v_k$ is a fork (count $= 0$, both walk-incident edges out of $v_k$). Now suppose only $v_{k-1} \\in \\Sc^G(v_k)$ while $v_{k+1} \\notin \\Sc^G(v_k)$. Walk-based reading: $v_k$ has an outgoing walk-edge ($a_k$) to a different SC component, so it should be blockable. But existential pattern reading: $v_{k-1} \\hut v_k$ holds (one of the $E$-edges supplies it) and $v_k \\hus v_{k+1}$ requires $(v_{k+1}, v_k) \\in E$ or $(v_k, v_{k+1}) \\in L$. If either of those exists (e.g. add a bidirected edge $(v_k, v_{k+1}) \\in L$ to the example), the \"left chain\" pattern matches existentially and the condition $v_{k-1} \\in \\Sc^G(v_k)$ is met — so the literal pattern classification calls $v_k$ unblockable, contradicting the walk-based intent.\n\nDownstream this matters for any proof about $\\sigma$-blocking (def_3_17 cites this definition): a formalization that follows the patterns literally will disagree with one that follows the verbal \"outgoing edges on $\\pi$\" characterization, exactly on positions whose walk-incident edges differ from other edges that the shorthand existence-quantifies over.\nEND_SUBTLETY\n\nSUBTLETY:\nid: self_loop_pattern_overlap_inherited\nexplanation: Def_3_15 explicitly warns that at a directed self-loop traversed by a walk — i.e. at a position $k$ with $v_{k-1} = v_k$ via $(v,v) \\in E$ — \"a single interior position $k$ traversing a directed self-loop can simultaneously satisfy the 'left chain', 'right chain', 'fork', and 'collider' pattern conjunctions\" under the literal def_3_2 reading of $\\hut, \\tuh, \\hus, \\suh$. Def_3_16 reuses these same patterns (\"left chain\", \"right chain\", \"fork\") without restating this caveat, so the same overlap occurs here. Concretely: if $v_{k-1} = v_k = v$ with $(v,v) \\in E$, then $v_{k-1} \\hut v_k$ and $v_k \\tuh v_{k-1}$ collapse to the same condition $(v,v) \\in E$, and $v \\in \\Sc^G(v)$ trivially, so the \"fork\" unblockable pattern matches automatically — even though the walk's actual classification (per def_3_15's canonical count-based reading) might be collider. Whether $v_k$ ends up \"unblockable non-collider\" thus depends on which reading governs def_3_16; the text doesn't pick one explicitly.\nEND_SUBTLETY\n\nSUBTLETY:\nid: blockable_clause_says_arrow_not_outgoing_edge\nexplanation: The \"blockable\" elaboration says \"it has at least one outgoing arrow $v_k \\tuh v_{k\\pm 1}$ pointing to a node $v_{k\\pm 1}$ that lies in a different strongly connected component\". Per def_3_2 item 2, $v_k \\tuh v_{k\\pm 1}$ is the *existence* of $(v_k, v_{k\\pm 1}) \\in E$ in $G$, regardless of whether that directed edge is the walk's specific incident edge at position $k$.\n\nSo under the literal reading: $v_k$ can have an outgoing arrow $v_k \\tuh v_{k-1}$ in $G$ to a node $v_{k-1} \\notin \\Sc^G(v_k)$ even if the walk's $a_{k-1}$ is actually $(v_{k-1}, v_k) \\in E$ (into $v_k$). The blockable condition would then literally be satisfied via an edge that is not the walk's edge. Combined with the symmetric ambiguity in the unblockable patterns, $v_k$ could literally satisfy both \"unblockable left chain\" (via some auxiliary edge configuration meeting same-SC) and \"blockable via outgoing arrow to non-SC\" (via the auxiliary $v_k \\tuh v_{k-1}$ to non-SC $v_{k-1}$). The intent is clearly the walk-edge reading, but the text says \"outgoing arrow $v_k \\tuh v_{k\\pm 1}$\", not \"the walk's $a_{k\\pm 1}$ is an outgoing edge from $v_k$ to a node not in $\\Sc^G(v_k)$\".\nEND_SUBTLETY",
+        "session": "624c183b-3ddf-4457-9d6d-a6da40a6fdf2"
+      }
+    }
+  },
+  {
+    "ref": "claim_3_20",
+    "chapter_data_path": "leanification/Chapter3_GraphTheory/data.json",
+    "row_index": 35,
+    "pre_sync_row": {
+      "def_or_claim": "claim",
+      "ref": "claim_3_20",
+      "section": "3.3",
+      "title": "AcyclicNonCollidersBlockable",
+      "type": "remark",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
+      "tips": "",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 0,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 5,
+        "continue_agent": 0,
+        "new_manager": 1,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nIf $G$ is acyclic then all non-colliders are blockable.\n\\end{Rem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "33485513-6d97-462e-a860-25ccf514820d",
+          "first_seen": "2026-06-15T05:28:52+00:00",
+          "last_used": "2026-06-15T05:28:52+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4730,
+      "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure.",
+      "wording_check": {
+        "done": true,
+        "output": "Based on my analysis, let me audit this claim carefully.\n\nThe claim states: \"If $G$ is acyclic then all non-colliders are blockable.\"\n\nLet me verify by checking the relevant definitions:\n- **def_3_15** (CollidersAndNon): non-collider is per-walk (end-node, left chain, right chain, or fork pattern)\n- **def_3_16** (BlockableAndUnblockable): unblockable requires non-end-node AND all directed outgoing edges go to $\\Sc^G(v_k)$; otherwise blockable\n- **def_3_6** (Acyclicity): no non-trivial directed walk from $v$ to itself\n- **$\\Sc^G(v)$**: $\\Anc^G(v) \\cap \\Desc^G(v)$, always contains $v$\n\nIn an acyclic CDMG, $\\Sc^G(v_k) = \\{v_k\\}$ (otherwise we'd have a non-trivial directed cycle). For an unblockable non-collider, the outgoing edge $v_k \\tuh v_{k\\pm1}$ would require $v_{k\\pm1} \\in \\{v_k\\}$, i.e., a self-loop — but self-loops are excluded by acyclicity (length-1 directed walk from $v_k$ to itself). End-nodes are trivially blockable. So the claim holds straightforwardly.\n\nThe wording uses standard mathematical shorthand: \"all non-colliders are blockable\" implicitly quantifies over walks and positions (since both notions are per-walk). This is unambiguous given the surrounding definitions.\n\nThe edge cases all behave reasonably:\n- Walks of length 0/1: end-nodes only, trivially blockable\n- Empty graphs / no walks: vacuously true\n- Self-loops: excluded by acyclicity\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a7ad7bf7-271a-4b58-a887-e33b8aa799a9"
+      }
+    }
+  },
+  {
+    "ref": "def_3_17",
+    "chapter_data_path": "leanification/Chapter3_GraphTheory/data.json",
+    "row_index": 36,
+    "pre_sync_row": {
+      "def_or_claim": "def",
+      "ref": "def_3_17",
+      "section": "3.3",
+      "title": "SigmaBlockedWalks",
+      "type": "definition",
+      "formalized": "yes",
+      "proven": "n/a",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
+      "tips": "",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
+      },
+      "tex_block": "\\begin{defmark}\n\\begin{Def}[$\\sigma$-blocked walks]\\label{def:sigma_blocking}\n  Let $G=(J,V,E,L)$ be a CDMG and $C \\ins J \\cup V$ a subset of nodes and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We say that the walk $\\pi$ is:\n  \\begin{enumerate}\n    \\item   \\emph{$C$-$\\sigma$-open} (or \\emph{$\\sigma$-open given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item all colliders $v_k$ on $\\pi$ are in $\\Anc^G(C)$, \\emph{and}:\n    \\item all blockable non-colliders $v_k$ on $\\pi$ are \\emph{not} in $C$.\n      % all of its adjacent children, $v_{k\\pm 1}$, on $\\pi$ lie in its strongly connected component $\\Sc^G(v_k)$. \\Joris{the last part ``all of its neighboring children on $\\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}\n  \\end{enumerate}\n      \\item   \\emph{$C$-$\\sigma$-blocked}  (or \\emph{$\\sigma$-blocked given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n    \\item there exists a collider $v_k$ on $\\pi$ that is \\emph{not} in $\\Anc^G(C)$, \\emph{or}:\n    \\item there exists a blockable non-collider $v_k$ on $\\pi$ in $C$.\n  \\end{enumerate}  \\end{enumerate}\n  % claim_3_21\n  \\begin{claimmark}\n  Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n  \\end{claimmark}\n\\end{Def}\n\\end{defmark}",
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "4d2f8f1d-c9a3-4c40-99d8-ed96de55a03f",
+          "first_seen": "2026-06-15T06:16:59+00:00",
+          "last_used": "2026-06-15T06:16:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2834,
+      "addition_to_the_LN": "[claim_type_mismatch_vertex_vs_walk] The trailing claim asserting that unblockable non-colliders are always $C$-$\\sigma$-open is excluded from the formalization. It is informal commentary, not part of Definition~\\ref{def:sigma_blocking}, and no Lean obligation should be derived from it.",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: trailing_claim_applies_sigma_open_to_vertices_not_walks\nexplanation: The formal definition introduces \"C-σ-open\" exclusively as a property of WALKS: \"We say that the walk π is: ... C-σ-open (or σ-open given C) if and only if [conditions on colliders and blockable non-colliders along π]\". However, the embedded claim at the end states:\n\n\"Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\"\n\nThis applies the predicate \"C-σ-open\" to *vertices* (specifically, unblockable non-collider occurrences on a walk), not to walks. The formal definition gives no meaning to \"a non-collider is C-σ-open\" — only walks have been declared open or blocked. So the literal reading is a category/type mismatch with the just-stated definition.\n\nTwo plausible intended readings:\n(a) \"An unblockable non-collider on a walk does not contribute to blocking\" — i.e., condition (ii) of σ-blocked only quantifies over BLOCKABLE non-colliders, so unblockable ones are silently ignored. This is the safest reading and is essentially a remark about which vertices appear in condition (ii).\n(b) An implicit per-vertex extension of σ-open: a non-collider v_k is σ-open given C iff v_k is unblockable, or (v_k is blockable and v_k ∉ C). Under this reading the walk-level σ-open would decompose as \"every collider is in Anc(C) and every non-collider is vertex-level σ-open.\"\n\nNeither reading is made explicit. A downstream proof or formalization that wants to invoke this remark (e.g., to argue case-by-case along the walk that no individual non-collider blocks, when proving σ-openness of a constructed walk) will have to commit to interpretation (a) or (b). If a future definition or claim writes phrases like \"v_k is σ-open\" expecting the vertex-level extension (b), this remark is the only textual hook for that reading — and it is not actually a definition.\n\nA secondary, smaller note: the opening line writes \"$C \\ins J \\cup V$\" while the trailing claim writes \"$C \\ins V \\cup J$\". Same set as a union, but the swapped order is a minor cosmetic inconsistency.\nEND_SUBTLETY",
+        "session": "1895f97a-9da6-48ba-92d0-a1fee8c41f85"
+      }
+    }
+  },
+  {
+    "ref": "def_3_18",
+    "chapter_data_path": "leanification/Chapter3_GraphTheory/data.json",
+    "row_index": 38,
+    "pre_sync_row": {
+      "def_or_claim": "def",
+      "ref": "def_3_18",
+      "section": "3.3",
+      "title": "ISigmaSeparation",
+      "type": "definition",
+      "formalized": "yes",
+      "proven": "n/a",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
+      "tips": "",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
+      },
+      "tex_block": "\\begin{defmark}\n\\begin{Def}[$i\\sigma$-separation]\\label{def:sigma_separation}\n    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \\ins J \\cup V$ (not necessarily disjoint) subset of nodes.\n    We then say that:\n    \\begin{enumerate}\n        \\item \\emph{$A$ is $i\\sigma$-separated from $B$ given $C$ in $G$}, in symbols:\n    \\[ A \\isPerp_G B \\given C, \\]\n    if every walk from a node in $A$ to a node in $J \\cup B$ (sic!)\\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\\label{fn:why-J}} is $\\sigma$-blocked by $C$.\n        \\item If that property does not hold we will write:\n            \\[ A \\nisPerp_G B \\given C. \\]\n        \\item We also define the special case:\n                \\[ A \\isPerp_G B \\qquad :\\iff \\qquad A \\isPerp_G B \\given \\emptyset.\\]\n        \\item For the special case $J = \\emptyset$---that is, if $G$ has no input nodes---$i\\sigma$-separation is also called \\emph{$\\sigma$-separation}, and we write:\n          \\[A \\sPerp_G B \\given C := A \\isPerp_G B \\given C, \\qquad A \\nsPerp_G B \\given C := A \\nisPerp_G B \\given C.\\]\n          % claim_3_22\n          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "a1ec2af8-6794-4d59-ab94-35336beb1f20",
+          "first_seen": "2026-06-15T07:28:20+00:00",
+          "last_used": "2026-06-15T07:28:20+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4043,
+      "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal.",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: empty_b_non_vacuous_when_j_nonempty\nexplanation: The literal definition of $A \\isPerp_G B \\given C$ requires \"every walk from a node in $A$ to a node in $J \\cup B$\" to be $\\sigma$-blocked. Consider the corner case $B = \\emptyset$ with $J \\neq \\emptyset$. One might naively expect \"separation from the empty set\" to be vacuously true (standard separoid intuition: $A \\perp \\emptyset \\given C$ holds trivially because there's nothing to separate from). But here $J \\cup B = J \\cup \\emptyset = J$ is nonempty, so $A \\isPerp_G \\emptyset \\given C$ literally asserts that every walk from $A$ into the input nodes $J$ is $\\sigma$-blocked — a non-trivial condition, not a vacuous truth. This is a direct consequence of the (sic!) choice to include $J$ in the target, but the footnote justifies it only via separoid-rules-matching-Markov-kernels, not by explicitly flagging this loss of the usual vacuity. A reader who sees \"$A \\isPerp_G \\emptyset \\given C$\" downstream and reaches for vacuity would be wrong whenever $J \\neq \\emptyset$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: symmetry_claim_walks_between_wording_imprecise\nexplanation: The embedded claim (marked `% claim_3_22`) justifies $\\sigma$-separation symmetry by saying \"when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction\". Read literally, this is imprecise: walks in a CDMG are directed sequences of vertices and edges, so the *set* of walks from $A$ to $B$ is not literally equal to the *set* of walks from $B$ to $A$. What is true is that walk *reversal* induces a bijection between these two sets, and the $\\sigma$-blocking property is invariant under that bijection (because the collider/non-collider role of each internal vertex is preserved by reversal). The current wording conflates \"set equality\" with \"bijection-preserving-blocking-status\", which weakens the proof sketch: a careful reader trying to formalize this claim from the literal text would have to recover the missing reversal-bijection step themselves. This matters if claim_3_22 is later proved from this justification.\nEND_SUBTLETY\n\nSUBTLETY:\nid: overlap_with_j_or_target_creates_self_walks\nexplanation: The definition explicitly permits $A, B, C \\ins J \\cup V$ \"not necessarily disjoint\". Combined with the asymmetric inclusion of $J$ on the right (\"walks from a node in $A$ to a node in $J \\cup B$\"), this creates a literal-reading corner case: if $A \\cap (J \\cup B) \\neq \\emptyset$ — in particular if $A \\cap J \\neq \\emptyset$, or if $A \\cap B \\neq \\emptyset$, or even if $A = B$ — then every node $a \\in A \\cap (J \\cup B)$ is simultaneously a starting node *and* an endpoint of the \"walk from a node in $A$ to a node in $J \\cup B$\" quantification. Whether this forces trivial/length-zero walks (e.g. the walk $\\langle a \\rangle$) to be required to be $\\sigma$-blocked depends entirely on whether the upstream walk definition admits length-zero walks (a question this block leaves implicit). If it does, then e.g. $A \\isPerp_G A \\given C$ degenerates to a condition about every $a \\in A$ having its trivial self-walk $\\sigma$-blocked by $C$, which is a very different statement than the usual \"separation of $A$ from itself\". The tex block does not pin this down; downstream lemmas like \"$A \\isPerp_G B$ when $A = B \\subseteq C$\" could hinge on this convention.\nEND_SUBTLETY",
+        "session": "12100739-a6e9-42c5-b0d6-c26ef6b1fab5"
+      }
+    }
+  }
+]

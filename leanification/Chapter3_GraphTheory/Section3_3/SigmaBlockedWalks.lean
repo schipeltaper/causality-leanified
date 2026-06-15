@@ -108,34 +108,6 @@ clarification:
    definitional but would force downstream witness-construction
    proofs to wade through a double-negation push, inverting the
    readability win.
-
-## Refactor compatibility (`blockable_noncollider_first`)
-
-This row was pulled into the `blockable_noncollider_first` refactor as
-a DEPENDENT because root row `def_3_16` swapped the primary / derived
-split of `IsBlockableNonCollider`: the *old* primary form derived
-"blockable" as `p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k`
-(unblockable defined first, blockable as the boolean complement); the
-*new* primary form is a positive existential disjunction over end
-positions and outgoing walk-edges of `v_k` leaving its strongly-
-connected component (blockable defined first, unblockable as the
-boolean complement).  No declaration shape in *this* file changes for
-the refactor: both `IsSigmaOpenGiven` and `IsSigmaBlockedGiven`
-reference `IsBlockableNonCollider` as a *black-box predicate* —
-neither destructures the predicate nor inspects its internal
-existential witnesses — and the refactor proves the new and old
-shapes agree extensionally on `p.IsNonCollider k` positions case-by-
-case (see the design-choice block above
-`refactor_IsBlockableNonCollider` in `BlockableAndUnblockable.lean`,
-lines ~493–523).  So the two def-3-17 predicates retain identical
-extensional content under the swap.  Phase-7 cleanup renames
-`refactor_IsBlockableNonCollider → IsBlockableNonCollider` globally;
-the two references in this file pass through that rename unchanged,
-and no `REFACTOR-BLOCK-ORIGINAL` / `REFACTOR-BLOCK-REPLACEMENT`
-marker pairs are needed here.
-
-The substantive per-declaration design rationale lives in the comment
-block immediately above each `-- def_3_17 -- start statement` marker.
 -/
 
 namespace CDMG

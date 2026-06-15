@@ -91,44 +91,6 @@ clarification:
    `IsSigmaSeparated`: the LN treats this as a renaming under the
    assumption (a property of the consumer's CDMG), not a logical
    condition on the predicate.
-
-## Refactor compatibility (`blockable_noncollider_first`)
-
-This row was pulled into the `blockable_noncollider_first` refactor as
-a DEPENDENT because root row `def_3_16` swapped the primary / derived
-split of `IsBlockableNonCollider`: the *old* primary form derived
-"blockable" as `p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k`
-(unblockable defined first, blockable as the boolean complement); the
-*new* primary form is a positive existential disjunction over end
-positions and outgoing walk-edges of `v_k` leaving its strongly-
-connected component (blockable defined first, unblockable as the
-boolean complement).  No declaration shape in *this* file changes for
-the refactor: `IsISigmaSeparated` references `Walk.IsSigmaBlockedGiven`
-(from `def_3_17`, `SigmaBlockedWalks.lean`) as a *black-box
-predicate* — it neither destructures the predicate nor inspects its
-internal existential witnesses — and `IsBlockableNonCollider` itself
-appears nowhere in this file's Lean code path.  The reference chain
-is one hop longer than the sibling `SigmaBlockedWalks.lean`'s:
-`IsISigmaSeparated` → `IsSigmaBlockedGiven` (black box) →
-`IsBlockableNonCollider` (refactored), so this row is two black-box
-hops removed from the swapped predicate.  The refactor proves the new
-and old `IsBlockableNonCollider` shapes agree extensionally on
-`p.IsNonCollider k` positions case-by-case (see the design-choice
-block above `refactor_IsBlockableNonCollider` in
-`BlockableAndUnblockable.lean`, lines ~493–523); so the extensional
-content of `IsSigmaBlockedGiven` is preserved at the first remove and
-the extensional content of `IsISigmaSeparated` (a universal over
-walks of `π.IsSigmaBlockedGiven C`) is preserved at the next.  The
-upstream `SigmaBlockedWalks.lean` made the same determination — black-
-box treatment, no marker pairs — and that pattern carries through to
-this file.  Phase-7 cleanup renames `refactor_IsBlockableNonCollider
-→ IsBlockableNonCollider` globally; the (single, transitive)
-reference in this file passes through that rename unchanged via the
-import of `SigmaBlockedWalks`, and no `REFACTOR-BLOCK-ORIGINAL` /
-`REFACTOR-BLOCK-REPLACEMENT` marker pairs are needed in this file.
-
-The substantive per-declaration design rationale lives in the
-comment block immediately above each `-- def_3_18 --` marker.
 -/
 
 namespace CDMG
