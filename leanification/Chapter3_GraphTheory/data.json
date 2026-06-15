@@ -2686,7 +2686,7 @@
           "last_used": "2026-06-15T04:06:22+00:00"
         }
       ],
-      "time_needed_to_solve": 5809,
+      "time_needed_to_solve": 5829,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2700,30 +2700,32 @@
       "section": "3.3",
       "title": "AcyclicNonCollidersBlockable",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 5,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -2731,12 +2733,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nIf $G$ is acyclic then all non-colliders are blockable.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "33485513-6d97-462e-a860-25ccf514820d",
+          "first_seen": "2026-06-15T05:28:52+00:00",
+          "last_used": "2026-06-15T05:28:52+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4710,
+      "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure.",
+      "wording_check": {
+        "done": true,
+        "output": "Based on my analysis, let me audit this claim carefully.\n\nThe claim states: \"If $G$ is acyclic then all non-colliders are blockable.\"\n\nLet me verify by checking the relevant definitions:\n- **def_3_15** (CollidersAndNon): non-collider is per-walk (end-node, left chain, right chain, or fork pattern)\n- **def_3_16** (BlockableAndUnblockable): unblockable requires non-end-node AND all directed outgoing edges go to $\\Sc^G(v_k)$; otherwise blockable\n- **def_3_6** (Acyclicity): no non-trivial directed walk from $v$ to itself\n- **$\\Sc^G(v)$**: $\\Anc^G(v) \\cap \\Desc^G(v)$, always contains $v$\n\nIn an acyclic CDMG, $\\Sc^G(v_k) = \\{v_k\\}$ (otherwise we'd have a non-trivial directed cycle). For an unblockable non-collider, the outgoing edge $v_k \\tuh v_{k\\pm1}$ would require $v_{k\\pm1} \\in \\{v_k\\}$, i.e., a self-loop — but self-loops are excluded by acyclicity (length-1 directed walk from $v_k$ to itself). End-nodes are trivially blockable. So the claim holds straightforwardly.\n\nThe wording uses standard mathematical shorthand: \"all non-colliders are blockable\" implicitly quantifies over walks and positions (since both notions are per-walk). This is unambiguous given the surrounding definitions.\n\nThe edge cases all behave reasonably:\n- Walks of length 0/1: end-nodes only, trivially blockable\n- Empty graphs / no walks: vacuously true\n- Self-loops: excluded by acyclicity\n\n```\nNO_SUBTLETIES\n```",
+        "session": "a7ad7bf7-271a-4b58-a887-e33b8aa799a9"
+      }
     },
     {
       "def_or_claim": "def",
