@@ -84,6 +84,10 @@ KATEX_BUILTINS: set[str] = set("""
     leadsto rightsquigarrow leftsquigarrow
     le ge leq geq ll gg lll ggg prec preceq succ succeq precsim succsim
     ne neq equiv simeq cong approx sim propto
+    lvert rvert lVert rVert lvert rvert
+    xrightarrow xleftarrow xRightarrow xLeftarrow xleftrightarrow xLeftrightarrow
+    xmapsto xhookleftarrow xhookrightarrow
+    bigm Bigm biggm Biggm bigl Bigl biggl Biggl bigr Bigr biggr Biggr
     aleph beth gimel hbar ell wp Re Im infty partial nabla
     quad qquad hspace hskip mspace thinspace negthinspace medspace negmedspace thickspace negthickspace
     big Big bigg Bigg

@@ -1886,3 +1886,289 @@ theorem marginalize_nodeSplittingOn_comm (G : CDMG Node)
 % NOTES-END claim_3_18
 \vspace{\appendixNotesGap}
 %% ROW-END claim_3_18
+
+%% ROW-BEGIN claim_3_19
+\noindent\textbf{Claim: Marginalizing out the output part of splitted nodes equals hard intervention}\par\smallskip
+{\appendixTexSize
+     Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ be a subset of output nodes from $G$.
+     Then the CDMG that arises by first splitting the nodes on $W$
+      and then marginalizing out the nodes from $W^o$
+     can be identified with the CDMG that arises by hard intervention on $W$:
+     \[ G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}, \qquad w \mapsto w^i. \]
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma subset_J_union_V_of_subset_V {G : CDMG Node} {W : Finset Node}
+    (hW : W ⊆ G.V) : W ⊆ G.J ∪ G.V
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+private lemma image_copy0_subset_nodeSplittingHard_V
+    {G : CDMG Node} {hG : G.IsCADMG}
+    {W : Finset Node} {hW : W ⊆ G.V} :
+    W.image SplitNode.copy0 ⊆ (G.nodeSplittingHard hG W hW).V
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V) :
+    eqViaNodeMap
+        (G.hardInterventionOn W (subset_J_union_V_of_subset_V hW))
+        ((G.nodeSplittingHard hG W hW).marginalize
+            (W.image SplitNode.copy0)
+            image_copy0_subset_nodeSplittingHard_V)
+        (toCopy1 W)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_19
+
+% NOTES-END claim_3_19
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_19
+
+\section*{Section 3.3}
+
+%% ROW-BEGIN def_3_15
+\noindent\textbf{Definition: Colliders and non-colliders}\par\smallskip
+{\appendixTexSize
+  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  A node $v_k$, or more precisely, the position $k \in \lC 0,\dots, n \rC$,
+  on the walk $\pi$ is called:
+     \begin{enumerate}
+     \item a \emph{non-collider} on $\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\ if it falls into one of the following cases:
+  \[\begin{array}{rccl}
+    \text{ end-node: } & k \in \lC 0,n \rC, \\
+    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1}, \\
+    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1},\\
+    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1};
+    \end{array}\]
+  \item a \emph{collider} on $\pi$, if it is of the form: 
+             \[v_{k-1} \suh v_k \hus v_{k+1},\] 
+             i.e.\ if there are two arrowheads pointing towards $v_k$ on the walk $\pi$.
+     \end{enumerate}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  1 ≤ k ∧ ∃ (vk : Node) (a₁ a₂ : Node × Node),
+    p.vertices[k]? = some vk ∧
+    p.edges[k - 1]? = some a₁ ∧
+    p.edges[k]? = some a₂ ∧
+    G.into vk a₁ ∧
+    G.into vk a₂
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  k ≤ p.length ∧ ¬ p.IsCollider k
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_15
+
+% NOTES-END def_3_15
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_15
+
+%% ROW-BEGIN def_3_16
+\noindent\textbf{Definition: Blockable and unblockable non-colliders}\par\smallskip
+{\appendixTexSize
+\label{def:unblockable_noncollider}
+  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We call a non-collider $v_k$ on $\pi$ an \emph{unblockable non-collider} on $\pi$ if it is not an end-node ($k \notin \{0,n\}$) and it only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$. That is,
+  it is one of the following patterns:
+  \[\begin{array}{rccl}
+    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_{k})\\
+    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_{k})\\
+    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)
+  \end{array}\]
+  Otherwise, $v_k$ is called a \emph{blockable non-collider} on $\pi$.
+  This means that $v_k$ is either an end-node ($k \in \lC 0,n\rC$) or it has at least one outgoing arrow 
+  $v_k \tuh v_{k\pm1}$ pointing to a node $v_{k\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\ $v_{k\pm1} \notin \Sc^G(v_k)$.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.IsNonCollider k ∧
+  1 ≤ k ∧ ∃ (vkm1 vk vkp1 : Node),
+    p.vertices[k - 1]? = some vkm1 ∧
+    p.vertices[k]? = some vk ∧
+    p.vertices[k + 1]? = some vkp1 ∧
+    (p.edges[k - 1]? = some (vk, vkm1) ∧ (vk, vkm1) ∈ G.E → vkm1 ∈ G.Sc vk) ∧
+    (p.edges[k]? = some (vk, vkp1) ∧ (vk, vkp1) ∈ G.E → vkp1 ∈ G.Sc vk)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_16
+
+% NOTES-END def_3_16
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_16
+
+%% ROW-BEGIN claim_3_20
+\noindent\textbf{Claim: AcyclicNonCollidersBlockable}\par\smallskip
+{\appendixTexSize
+If $G$ is acyclic then all non-colliders are blockable.
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem acyclic_non_colliders_blockable
+    (G : CDMG Node) (hG : G.IsAcyclic)
+    {u v : Node} (π : Walk G u v) (k : ℕ) :
+    π.IsNonCollider k → π.IsBlockableNonCollider k
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_20
+
+% NOTES-END claim_3_20
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_20
+
+%% ROW-BEGIN def_3_17
+\noindent\textbf{Definition: $\sigma$-blocked walks}\par\smallskip
+{\appendixTexSize
+\label{def:sigma_blocking}
+  Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes and $\pi$ a walk in $G$:
+  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
+  We say that the walk $\pi$ is:
+  \begin{enumerate}
+    \item   \emph{$C$-$\sigma$-open} (or \emph{$\sigma$-open given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+      \item all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$, \emph{and}:
+    \item all blockable non-colliders $v_k$ on $\pi$ are \emph{not} in $C$.
+      % all of its adjacent children, $v_{k\pm 1}$, on $\pi$ lie in its strongly connected component $\Sc^G(v_k)$. \Joris{the last part ``all of its neighboring children on $\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}
+  \end{enumerate}
+      \item   \emph{$C$-$\sigma$-blocked}  (or \emph{$\sigma$-blocked given $C$}) if and only if:
+  \begin{enumerate}[label=\roman*.)]
+    \item there exists a collider $v_k$ on $\pi$ that is \emph{not} in $\Anc^G(C)$, \emph{or}:
+    \item there exists a blockable non-collider $v_k$ on $\pi$ in $C$.
+  \end{enumerate}  \end{enumerate}
+  % claim_3_21
+  \begin{claimmark}
+  Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$.
+  \end{claimmark}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsSigmaOpenGiven {u v : Node} (p : Walk G u v) (C : Set Node) : Prop :=
+  (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk → p.IsCollider k →
+      vk ∈ G.AncSet C) ∧
+  (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk →
+      p.IsBlockableNonCollider k → vk ∉ C)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsSigmaBlockedGiven {u v : Node} (p : Walk G u v) (C : Set Node) : Prop :=
+  (∃ (k : ℕ) (vk : Node),
+      p.vertices[k]? = some vk ∧ p.IsCollider k ∧ vk ∉ G.AncSet C) ∨
+  (∃ (k : ℕ) (vk : Node),
+      p.vertices[k]? = some vk ∧ p.IsBlockableNonCollider k ∧ vk ∈ C)
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_17
+
+% NOTES-END def_3_17
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_17
+
+%% ROW-BEGIN def_3_18
+\noindent\textbf{Definition: $i\sigma$-separation}\par\smallskip
+{\appendixTexSize
+\label{def:sigma_separation}
+    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    We then say that:
+    \begin{enumerate}
+        \item \emph{$A$ is $i\sigma$-separated from $B$ given $C$ in $G$}, in symbols:
+    \[ A \isPerp_G B \given C, \]
+    if every walk from a node in $A$ to a node in $J \cup B$ (sic!)\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\label{fn:why-J}} is $\sigma$-blocked by $C$.
+        \item If that property does not hold we will write:
+            \[ A \nisPerp_G B \given C. \]
+        \item We also define the special case:
+                \[ A \isPerp_G B \qquad :\iff \qquad A \isPerp_G B \given \emptyset.\]
+        \item For the special case $J = \emptyset$---that is, if $G$ has no input nodes---$i\sigma$-separation is also called \emph{$\sigma$-separation}, and we write:
+          \[A \sPerp_G B \given C := A \isPerp_G B \given C, \qquad A \nsPerp_G B \given C := A \nisPerp_G B \given C.\]
+          % claim_3_22
+          \begin{claimmark}
+          Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, since when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\sigma$-blocking conditions are invariant under walk reversal.
+          \end{claimmark}
+    \end{enumerate}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
+  ¬ G.IsISigmaSeparated A B C
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
+  G.IsISigmaSeparated A B ∅
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
+  G.IsISigmaSeparated A B C
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
+  G.IsNotISigmaSeparated A B C
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
+  ∀ {u v : Node} (π : Walk G u v),
+      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN def_3_18
+
+% NOTES-END def_3_18
+\vspace{\appendixNotesGap}
+%% ROW-END def_3_18
