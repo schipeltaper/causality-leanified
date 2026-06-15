@@ -21,6 +21,21 @@ You **must not** touch any of the following:
 
 If your plan touches anything in this list, **stop and report** instead of executing — that's a bug in the plan and the operator needs to see it.
 
+## Hard rule — never introduce `-/` inside a `/- ... -/` or `/-! ... -/` or `/-- ... -/` block
+
+Lean's lexer treats `-/` as the **block-comment end sentinel** regardless of surrounding text. If your replacement text introduces the literal two-character sequence `-/` anywhere inside a `/- ... -/`, `/-! ... -/`, or `/-- ... -/` block, Lean closes the comment at that point and treats everything after as code — which will not parse, and the file will fail `lake build`.
+
+This bites in subtle ways: `σ-/iσ-name`, `id-/iσ-separation`, `pre-/post-refactor`, `n-/m-step`, `A-/B-side`, any hyphen-prefixed slash. Inside a *line comment* (`--`) it's harmless; inside a *block comment* (`/-`, `/-!`, `/--`) it's a hard build break.
+
+When you rewrite content that originally lived in a line comment and now lands in (or sits next to) a block-comment context, audit every occurrence of `-/` you introduce. Two safe rewrites:
+
+- Replace `X-/Y` with `X-vs-Y` (semantic, reads naturally).
+- Replace `X-/Y` with `X/Y` (drop the hyphen; works when the hyphen wasn't load-bearing).
+
+Pick whichever fits the prose. Before issuing an `Edit`, mentally re-scan the resulting block-comment span and confirm no fresh `-/` was introduced.
+
+Same caveat applies to **declaration docstrings** (`/-- ... -/`) — they're block comments too.
+
 ## Inputs you receive from the operator's brief
 
 - The Lean file's full path.
@@ -74,7 +89,8 @@ After all Edits, `Read` the file again. Confirm:
 - Every change you made falls inside a comment / docstring.
 - No `def` / `theorem` / `lemma` / signature / proof body was altered.
 - Statement markers (`-- <ref> -- start/end statement`, `-- <ref> --- start/end helper`) are byte-for-byte unchanged.
-- File still parses as Lean (the operator will run `lake build` after you exit; if your plan respected the comment-only rule, this is guaranteed).
+- **No newly-introduced `-/` inside any `/- ... -/`, `/-! ... -/`, or `/-- ... -/` block comment** (see the "Hard rule" above). Grep the file for `-/` and confirm each occurrence either (a) sits in a `--` line comment (harmless), (b) is the legitimate block-comment close marker, or (c) was already present in the file before your edits.
+- File still parses as Lean (the operator will run `lake build` after you exit; if your plan respected the comment-only rule **and the `-/` rule**, this is guaranteed).
 
 If anything in this list is off, **revert the offending Edit** and re-plan.
 

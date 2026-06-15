@@ -1,0 +1,205 @@
+{
+  "target_ref": "def_3_18",
+  "target_title": "IsISigmaSeparated",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 13,
+      "snippet": "* `G.IsISigmaSeparated A B C` — `A \\isPerp_G B \\given C`: every walk"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 21,
+      "snippet": "  negation, definitionally `¬ G.IsISigmaSeparated A B C`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 23,
+      "snippet": "  (`C = ∅`) shorthand of `G.IsISigmaSeparated A B ∅`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 25,
+      "snippet": "  `J = ∅` notation alias of `G.IsISigmaSeparated A B C`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 70,
+      "snippet": "   `G.IsISigmaSeparated A ∅ C` asserts every walk from `A` into the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 77,
+      "snippet": "   `¬ IsISigmaSeparated` — the LN's `\\nisPerp` is purely a"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 89,
+      "snippet": "   `IsISigmaSeparated` at every elaboration site without an"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 117,
+      "snippet": "-- `G.IsISigmaSeparated A B C` iff every walk `π : Walk G u v` with"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 141,
+      "snippet": "--   `IsISigmaSeparated A B ∅` syntactically lightweight."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 187,
+      "snippet": "--   `Set.union_comm`) directly to walks of `IsISigmaSeparated`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 227,
+      "snippet": "--   downstream surprise: e.g. `G.IsISigmaSeparated A A C`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 255,
+      "snippet": "def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 263,
+      "snippet": "-- C`: the definitional negation of `G.IsISigmaSeparated A B C`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 271,
+      "snippet": "--   sites to spell `¬ G.IsISigmaSeparated A B C`.*  LN item 2"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 278,
+      "snippet": "--   have to inline `¬ G.IsISigmaSeparated A B C`, breaking the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 283,
+      "snippet": "--   existential.*  Encoding it as `¬ IsISigmaSeparated` keeps the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 285,
+      "snippet": "--   A B C` unfolds to `¬ G.IsISigmaSeparated A B C` by `rfl`, so"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 297,
+      "snippet": "--   `IsISigmaSeparated` and require a classical bridging lemma"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 301,
+      "snippet": "  ¬ G.IsISigmaSeparated A B C"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 308,
+      "snippet": "-- `G.IsISigmaSeparated A B ∅`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 316,
+      "snippet": "--   to `G.IsISigmaSeparated A B ∅` at every use site without an"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 335,
+      "snippet": "  G.IsISigmaSeparated A B ∅"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 341,
+      "snippet": "-- the `J = ∅` notation alias of `G.IsISigmaSeparated A B C`.  The"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 350,
+      "snippet": "--   to write `IsISigmaSeparated` with `G.J = ∅`.*  LN item 4"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 378,
+      "snippet": "--   `G.IsISigmaSeparated A B C` at every use site, so every"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 407,
+      "snippet": "  G.IsISigmaSeparated A B C"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 16,
+      "snippet": "| 1 | `A ⫫ᵢ B \\| C` (iσ-separation) | `def IsISigmaSeparated` | **main statement** (`--` markers) |"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 24,
+      "snippet": "1. **All four items are LN-mandated parts of the definition's statement, not statement-supporting infrastructure.** The current helper-marker assignment for items 2-4 misrepresents their status: the w"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 26,
+      "snippet": "2. **The `J = ∅` aliases silently drop the LN's `J = ∅` premise.** The LN's σ-separation notation `A ⫫_G B \\| C` is defined only when `G` is a DMG (i.e. when `G.J = ∅`). The current `abbrev IsSigmaSep"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 32,
+      "snippet": "Each of the 5 declarations (`IsISigmaSeparated`, `IsNotISigmaSeparated`, `IsISigmaSeparatedEmpty`, `IsSigmaSeparated`, `IsNotSigmaSeparated`) gets `-- def_3_18 -- start statement` / `-- def_3_18 -- en"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 43,
+      "snippet": "  G.IsISigmaSeparated A B C"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 49,
+      "snippet": "  G.IsISigmaSeparated A B C"
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 52,
+      "snippet": "Either way the body stays the same (transparent forwarding to `IsISigmaSeparated`); only the type signature gains the premise. Same treatment for `IsNotSigmaSeparated`."
+    },
+    {
+      "file": "leanification/refactors/refactor_sigma_separation_J_empty_premise.md",
+      "line": 58,
+      "snippet": "Per the grep scan: no chapter-3 Lean file outside `Section3_3/ISigmaSeparation.lean` itself references any of these five predicates (`IsISigmaSeparated`, `IsNotISigmaSeparated`, `IsISigmaSeparatedEmpt"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 301,
+      "col": 6,
+      "snippet": "Invalid field `IsISigmaSeparated`: The environment does not contain `Causality.CDMG.IsISigmaSeparated`, so it is not possible to project the field `IsISigmaSeparated` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 335,
+      "col": 4,
+      "snippet": "Invalid field `IsISigmaSeparated`: The environment does not contain `Causality.CDMG.IsISigmaSeparated`, so it is not possible to project the field `IsISigmaSeparated` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 407,
+      "col": 4,
+      "snippet": "Invalid field `IsISigmaSeparated`: The environment does not contain `Causality.CDMG.IsISigmaSeparated`, so it is not possible to project the field `IsISigmaSeparated` from an expression"
+    }
+  ],
+  "consumer_files": [
+    "leanification/refactors/refactor_sigma_separation_J_empty_premise.md"
+  ],
+  "consumer_refs": []
+}
