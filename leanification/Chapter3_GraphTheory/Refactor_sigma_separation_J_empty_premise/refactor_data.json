@@ -38,10 +38,10 @@
       "section": "3.3",
       "title": "ISigmaSeparation",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "Refactored on 2026-06-15 via `blockable_noncollider_first` (see leanification/Chapter*/Refactor_blockable_noncollider_first_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a refactor ROOT in `sigma_separation_J_empty_premise` (roots: `def_3_18`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
@@ -53,15 +53,15 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -76,8 +76,107 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$i\\sigma$-separation]\\label{def:sigma_separation}\n    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \\ins J \\cup V$ (not necessarily disjoint) subset of nodes.\n    We then say that:\n    \\begin{enumerate}\n        \\item \\emph{$A$ is $i\\sigma$-separated from $B$ given $C$ in $G$}, in symbols:\n    \\[ A \\isPerp_G B \\given C, \\]\n    if every walk from a node in $A$ to a node in $J \\cup B$ (sic!)\\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\\label{fn:why-J}} is $\\sigma$-blocked by $C$.\n        \\item If that property does not hold we will write:\n            \\[ A \\nisPerp_G B \\given C. \\]\n        \\item We also define the special case:\n                \\[ A \\isPerp_G B \\qquad :\\iff \\qquad A \\isPerp_G B \\given \\emptyset.\\]\n        \\item For the special case $J = \\emptyset$---that is, if $G$ has no input nodes---$i\\sigma$-separation is also called \\emph{$\\sigma$-separation}, and we write:\n          \\[A \\sPerp_G B \\given C := A \\isPerp_G B \\given C, \\qquad A \\nsPerp_G B \\given C := A \\nisPerp_G B \\given C.\\]\n          % claim_3_22\n          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ad100e68-86ab-4cf2-840e-a642d845ce98",
+          "first_seen": "2026-06-15T21:51:28+00:00",
+          "last_used": "2026-06-15T21:51:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "0421ffcb-bc10-4744-a236-01b1aac3758d",
+          "first_seen": "2026-06-15T21:57:12+00:00",
+          "last_used": "2026-06-15T21:57:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "96cd1c76-7ccf-4031-a658-59b85340be9e",
+          "first_seen": "2026-06-15T21:58:33+00:00",
+          "last_used": "2026-06-15T21:58:33+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "4c6597fa-8d1e-4b98-90fc-7baef6fdd93d",
+          "first_seen": "2026-06-15T22:06:00+00:00",
+          "last_used": "2026-06-15T22:06:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0f727948-4b42-4c67-8a2c-dc0db9b9cb64",
+          "first_seen": "2026-06-15T22:06:56+00:00",
+          "last_used": "2026-06-15T22:06:56+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "71ed4265-435e-44a8-82d9-fdab4f3f5c69",
+          "first_seen": "2026-06-15T22:08:45+00:00",
+          "last_used": "2026-06-15T22:08:45+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f16239f0-8e54-400f-ad38-f5c5d9c61158",
+          "first_seen": "2026-06-15T22:10:08+00:00",
+          "last_used": "2026-06-15T22:10:08+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f95dff74-37b2-40b9-abcc-d94e377ef334",
+          "first_seen": "2026-06-15T22:17:06+00:00",
+          "last_used": "2026-06-15T22:17:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "26989797-824e-42c6-bbd1-5bb5747b8947",
+          "first_seen": "2026-06-15T22:17:53+00:00",
+          "last_used": "2026-06-15T22:17:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "24541f9e-a0a5-473e-a5a2-cd5646320d5b",
+          "first_seen": "2026-06-15T22:29:12+00:00",
+          "last_used": "2026-06-15T22:29:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b156368a-8271-4e16-b203-828f2f12ce9c",
+          "first_seen": "2026-06-15T22:30:05+00:00",
+          "last_used": "2026-06-15T22:30:05+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "60258843-5588-44fb-9b69-c92f8431cea9",
+          "first_seen": "2026-06-15T22:35:49+00:00",
+          "last_used": "2026-06-15T22:35:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c48191db-85a1-456f-8cb5-5468e52c5b4e",
+          "first_seen": "2026-06-15T22:36:14+00:00",
+          "last_used": "2026-06-15T22:36:14+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "9260a1e3-fe0a-4d41-b52e-29cd8c9c20ae",
+          "first_seen": "2026-06-15T22:39:02+00:00",
+          "last_used": "2026-06-15T22:39:02+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3416,
       "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal.",
       "wording_check": {
         "done": true,
