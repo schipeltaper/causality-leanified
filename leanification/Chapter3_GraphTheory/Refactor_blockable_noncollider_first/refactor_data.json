@@ -470,7 +470,7 @@
           "last_used": "2026-06-15T19:22:44+00:00"
         }
       ],
-      "time_needed_to_solve": 1408,
+      "time_needed_to_solve": 1428,
       "addition_to_the_LN": "[claim_type_mismatch_vertex_vs_walk] The trailing claim asserting that unblockable non-colliders are always $C$-$\\sigma$-open is excluded from the formalization. It is informal commentary, not part of Definition~\\ref{def:sigma_blocking}, and no Lean obligation should be derived from it.",
       "wording_check": {
         "done": true,
@@ -489,10 +489,10 @@
       "section": "3.3",
       "title": "ISigmaSeparation",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `blockable_noncollider_first`; it was pulled in because root(s) `def_3_16` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
@@ -504,11 +504,11 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -527,8 +527,51 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$i\\sigma$-separation]\\label{def:sigma_separation}\n    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \\ins J \\cup V$ (not necessarily disjoint) subset of nodes.\n    We then say that:\n    \\begin{enumerate}\n        \\item \\emph{$A$ is $i\\sigma$-separated from $B$ given $C$ in $G$}, in symbols:\n    \\[ A \\isPerp_G B \\given C, \\]\n    if every walk from a node in $A$ to a node in $J \\cup B$ (sic!)\\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\\label{fn:why-J}} is $\\sigma$-blocked by $C$.\n        \\item If that property does not hold we will write:\n            \\[ A \\nisPerp_G B \\given C. \\]\n        \\item We also define the special case:\n                \\[ A \\isPerp_G B \\qquad :\\iff \\qquad A \\isPerp_G B \\given \\emptyset.\\]\n        \\item For the special case $J = \\emptyset$---that is, if $G$ has no input nodes---$i\\sigma$-separation is also called \\emph{$\\sigma$-separation}, and we write:\n          \\[A \\sPerp_G B \\given C := A \\isPerp_G B \\given C, \\qquad A \\nsPerp_G B \\given C := A \\nisPerp_G B \\given C.\\]\n          % claim_3_22\n          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dd7de3ee-0315-431b-a200-533745b7a98a",
+          "first_seen": "2026-06-15T19:31:30+00:00",
+          "last_used": "2026-06-15T19:31:30+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "51dc1de8-643d-4489-863e-fef0de1383fc",
+          "first_seen": "2026-06-15T19:33:53+00:00",
+          "last_used": "2026-06-15T19:33:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4e11c950-6b1b-4119-962c-474648ec632a",
+          "first_seen": "2026-06-15T19:35:17+00:00",
+          "last_used": "2026-06-15T19:35:17+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "a05d0f51-05d3-40a0-b42f-3ec770ed508d",
+          "first_seen": "2026-06-15T19:38:17+00:00",
+          "last_used": "2026-06-15T19:38:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dabe368b-7dc6-4fff-a434-23cfdf00a319",
+          "first_seen": "2026-06-15T19:38:56+00:00",
+          "last_used": "2026-06-15T19:38:56+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "620ea657-1550-4346-8639-dffb09d56bf3",
+          "first_seen": "2026-06-15T19:40:44+00:00",
+          "last_used": "2026-06-15T19:40:44+00:00"
+        }
+      ],
+      "time_needed_to_solve": 992,
       "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal.",
       "wording_check": {
         "done": true,
