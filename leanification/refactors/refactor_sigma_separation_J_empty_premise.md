@@ -25,6 +25,8 @@ Two problems with the current shape:
 
 2. **The `J = ∅` aliases silently drop the LN's `J = ∅` premise.** The LN's σ-separation notation `A ⫫_G B \| C` is defined only when `G` is a DMG (i.e. when `G.J = ∅`). The current `abbrev IsSigmaSeparated` body is just `G.IsISigmaSeparated A B C` with **no premise on `G.J`** — so a consumer can write `G.IsSigmaSeparated A B C` for a CDMG with non-empty `J` and get back the iσ-separated relation under a misleading name. The LN's typed-concept distinction (σ vs iσ) is lost. The fix: add a `J = ∅` premise (via an explicit `(hJ : G.J = ∅)` hypothesis, or by routing through the `IsDMG` typeclass / predicate if one exists).
 
+3. **All five predicates silently drop the LN's `A, B, C ⊆ J ∪ V` premise.** The LN's σ- and iσ-separation are defined for `A, B, C` that are subsets of the graph's node carrier `J ∪ V`. The current Lean shape types `A B C : Set Node` without any subset constraint — a consumer can pass arbitrary `Set Node` (including nodes that don't exist in the graph) and get back a definitionally well-formed predicate that the LN never assigned a meaning to. The fix: add `(hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V)` premises to **every** predicate (or a more compact `(hABC : A ⊆ ↑G.J ∪ ↑G.V ∧ B ⊆ ↑G.J ∪ ↑G.V ∧ C ⊆ ↑G.J ∪ ↑G.V)` bundle). For `IsISigmaSeparatedEmpty` (items 3), there is no `C` — only `hA` and `hB`. The σ-aliases (items 4a, 4b) get this on top of the `J = ∅` premise.
+
 ## Proposed new shape
 
 ### Promote all 5 sub-defs to main-statement markers
@@ -53,13 +55,32 @@ Either way the body stays the same (transparent forwarding to `IsISigmaSeparated
 
 The `abbrev` form is replaced by `def` since the premise turns the declaration from a pure notational alias into a property-bearing definition.
 
+### Add `A, B, C ⊆ G.J ∪ G.V` premises to all five predicates
+
+Every predicate gains explicit subset hypotheses on its `Set Node` arguments. Concretely:
+
+- `IsISigmaSeparated` and `IsNotISigmaSeparated` (items 1, 2): three subset hypotheses `(hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V)`.
+- `IsISigmaSeparatedEmpty` (item 3): two subset hypotheses `(hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V)` — there is no `C`.
+- `IsSigmaSeparated` and `IsNotSigmaSeparated` (items 4a, 4b): three subset hypotheses, in addition to the `J = ∅` premise above.
+
+```lean
+def IsISigmaSeparated (G : CDMG Node)
+    (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) :
+    Prop :=
+  ∀ {u v : Node} (π : Walk G u v),
+      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
+```
+
+Alternative bundling: a single `(hABC : A ⊆ ↑G.J ∪ ↑G.V ∧ B ⊆ ↑G.J ∪ ↑G.V ∧ C ⊆ ↑G.J ∪ ↑G.V)` hypothesis. The refactor row's manager picks whichever shape best matches the chapter convention (likely three separate hypotheses, matching the LN's per-set discussion).
+
 ## Affected rows
 
 Per the grep scan: no chapter-3 Lean file outside `Section3_3/ISigmaSeparation.lean` itself references any of these five predicates (`IsISigmaSeparated`, `IsNotISigmaSeparated`, `IsISigmaSeparatedEmpty`, `IsSigmaSeparated`, `IsNotSigmaSeparated`). The refactor table is **single-row**:
 
 | Ref | File | What changes |
 |-----|------|--------------|
-| `def_3_18` | `Section3_3/ISigmaSeparation.lean` | Promote 4 of the 5 sub-defs to main-statement markers; add `J = ∅` premise to the two `J = ∅` aliases |
+| `def_3_18` | `Section3_3/ISigmaSeparation.lean` | (a) Promote 4 of the 5 sub-defs to main-statement markers. (b) Add `J = ∅` premise to the two `J = ∅` aliases. (c) Add `A, B, C ⊆ ↑G.J ∪ ↑G.V` subset premises to all five predicates (where `A, B, C` are present — `IsISigmaSeparatedEmpty` only has `A, B`). |
 
 `claim_3_22+` are not yet started (consumed σ-separation reasoning conceptually but haven't compiled against these names yet); they pick up the new shape directly when they are next attempted.
 
