@@ -36,3 +36,4 @@ import Chapter3_GraphTheory.Section3_2.MarginalizingOutThe
 import Chapter3_GraphTheory.Section3_3.CollidersAndNon
 import Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable
 import Chapter3_GraphTheory.Section3_3.AcyclicNonCollidersBlockable
+import Chapter3_GraphTheory.Section3_3.SigmaBlockedWalks

@@ -2748,7 +2748,7 @@
           "last_used": "2026-06-15T05:28:52+00:00"
         }
       ],
-      "time_needed_to_solve": 4710,
+      "time_needed_to_solve": 4730,
       "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure.",
       "wording_check": {
         "done": true,
@@ -2762,28 +2762,30 @@
       "section": "3.3",
       "title": "SigmaBlockedWalks",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2793,12 +2795,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[$\\sigma$-blocked walks]\\label{def:sigma_blocking}\n  Let $G=(J,V,E,L)$ be a CDMG and $C \\ins J \\cup V$ a subset of nodes and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We say that the walk $\\pi$ is:\n  \\begin{enumerate}\n    \\item   \\emph{$C$-$\\sigma$-open} (or \\emph{$\\sigma$-open given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item all colliders $v_k$ on $\\pi$ are in $\\Anc^G(C)$, \\emph{and}:\n    \\item all blockable non-colliders $v_k$ on $\\pi$ are \\emph{not} in $C$.\n      % all of its adjacent children, $v_{k\\pm 1}$, on $\\pi$ lie in its strongly connected component $\\Sc^G(v_k)$. \\Joris{the last part ``all of its neighboring children on $\\pi$ lie in its strongly connected component'' is equivalent to ``unblockable'' (see Definition~\\ref{def:unblockable_noncollider}); we might move that definition to here for convenience.}\n  \\end{enumerate}\n      \\item   \\emph{$C$-$\\sigma$-blocked}  (or \\emph{$\\sigma$-blocked given $C$}) if and only if:\n  \\begin{enumerate}[label=\\roman*.)]\n    \\item there exists a collider $v_k$ on $\\pi$ that is \\emph{not} in $\\Anc^G(C)$, \\emph{or}:\n    \\item there exists a blockable non-collider $v_k$ on $\\pi$ in $C$.\n  \\end{enumerate}  \\end{enumerate}\n  % claim_3_21\n  \\begin{claimmark}\n  Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n  \\end{claimmark}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[claim_type_mismatch_vertex_vs_walk] The trailing claim asserting that unblockable non-colliders are always $C$-$\\sigma$-open is excluded from the formalization. It is informal commentary, not part of Definition~\\ref{def:sigma_blocking}, and no Lean obligation should be derived from it."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "4d2f8f1d-c9a3-4c40-99d8-ed96de55a03f",
+          "first_seen": "2026-06-15T06:16:59+00:00",
+          "last_used": "2026-06-15T06:16:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2758,
+      "addition_to_the_LN": "[claim_type_mismatch_vertex_vs_walk] The trailing claim asserting that unblockable non-colliders are always $C$-$\\sigma$-open is excluded from the formalization. It is informal commentary, not part of Definition~\\ref{def:sigma_blocking}, and no Lean obligation should be derived from it.",
+      "wording_check": {
+        "done": true,
+        "output": "SUBTLETY:\nid: trailing_claim_applies_sigma_open_to_vertices_not_walks\nexplanation: The formal definition introduces \"C-σ-open\" exclusively as a property of WALKS: \"We say that the walk π is: ... C-σ-open (or σ-open given C) if and only if [conditions on colliders and blockable non-colliders along π]\". However, the embedded claim at the end states:\n\n\"Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\"\n\nThis applies the predicate \"C-σ-open\" to *vertices* (specifically, unblockable non-collider occurrences on a walk), not to walks. The formal definition gives no meaning to \"a non-collider is C-σ-open\" — only walks have been declared open or blocked. So the literal reading is a category/type mismatch with the just-stated definition.\n\nTwo plausible intended readings:\n(a) \"An unblockable non-collider on a walk does not contribute to blocking\" — i.e., condition (ii) of σ-blocked only quantifies over BLOCKABLE non-colliders, so unblockable ones are silently ignored. This is the safest reading and is essentially a remark about which vertices appear in condition (ii).\n(b) An implicit per-vertex extension of σ-open: a non-collider v_k is σ-open given C iff v_k is unblockable, or (v_k is blockable and v_k ∉ C). Under this reading the walk-level σ-open would decompose as \"every collider is in Anc(C) and every non-collider is vertex-level σ-open.\"\n\nNeither reading is made explicit. A downstream proof or formalization that wants to invoke this remark (e.g., to argue case-by-case along the walk that no individual non-collider blocks, when proving σ-openness of a constructed walk) will have to commit to interpretation (a) or (b). If a future definition or claim writes phrases like \"v_k is σ-open\" expecting the vertex-level extension (b), this remark is the only textual hook for that reading — and it is not actually a definition.\n\nA secondary, smaller note: the opening line writes \"$C \\ins J \\cup V$\" while the trailing claim writes \"$C \\ins V \\cup J$\". Same set as a union, but the swapped order is a minor cosmetic inconsistency.\nEND_SUBTLETY",
+        "session": "1895f97a-9da6-48ba-92d0-a1fee8c41f85"
+      }
     },
     {
       "def_or_claim": "claim",
