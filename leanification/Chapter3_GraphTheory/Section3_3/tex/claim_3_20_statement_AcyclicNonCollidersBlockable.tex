@@ -20,7 +20,22 @@
 \phantomsection\label{claim_3_20}
 
 \begin{Rem}[AcyclicNonCollidersBlockable]
-If $G$ is acyclic then all non-colliders are blockable.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}) and suppose $G$ is acyclic in the sense of def \ref{def-acylic}. Then, for every integer $n \ge 0$, every walk
+    \[
+        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    in $G$ in the sense of def \ref{def:walks}, item~i.\ (so $v_0, \dots, v_n \in J \cup V$, $a_0, \dots, a_{n-1} \in E \cup L$, and the walk constraint
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\lor\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr)
+    \]
+    holds at every $k \in \{0, 1, \dots, n - 1\}$), and every position $k \in \{0, 1, \dots, n\}$, the following implication holds:
+    \[
+        \bigl(\text{$k$ is a non-collider on $\pi$ per def \ref{def:collider_noncollider}, item~i.}\bigr)
+        \;\implies\;
+        \bigl(\text{$k$ is a blockable non-collider on $\pi$ per def \ref{def:unblockable_noncollider}}\bigr).
+    \]
 \end{Rem}
 
 \end{document}
