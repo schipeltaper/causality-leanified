@@ -38,10 +38,10 @@
       "section": "3.3",
       "title": "BlockableAndUnblockable",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "REFACTOR row. This row is a refactor ROOT in `blockable_noncollider_first` (roots: `def_3_16`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
@@ -53,15 +53,15 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -76,8 +76,100 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Blockable and unblockable non-colliders]\\label{def:unblockable_noncollider}\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We call a non-collider $v_k$ on $\\pi$ an \\emph{unblockable non-collider} on $\\pi$ if it is not an end-node ($k \\notin \\{0,n\\}$) and it only has outgoing edges on $\\pi$ to nodes in the same strongly connected component of $G$. That is,\n  it is one of the following patterns:\n  \\[\\begin{array}{rccl}\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1} & \\text{ with } & v_{k+1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_k) \\land v_{k+1} \\in \\Sc^G(v_k)\n  \\end{array}\\]\n  Otherwise, $v_k$ is called a \\emph{blockable non-collider} on $\\pi$.\n  This means that $v_k$ is either an end-node ($k \\in \\lC 0,n\\rC$) or it has at least one outgoing arrow \n  $v_k \\tuh v_{k\\pm1}$ pointing to a node $v_{k\\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\\ $v_{k\\pm1} \\notin \\Sc^G(v_k)$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2b168d46-8972-4676-96dd-4988fd02a040",
+          "first_seen": "2026-06-15T16:23:06+00:00",
+          "last_used": "2026-06-15T16:23:06+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "43c84a27-2df0-4127-8613-6a9496f87681",
+          "first_seen": "2026-06-15T16:32:24+00:00",
+          "last_used": "2026-06-15T16:32:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "459950f5-4ee4-4c72-a247-4ed60f84d1c3",
+          "first_seen": "2026-06-15T16:33:22+00:00",
+          "last_used": "2026-06-15T16:33:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9441df95-ffb0-479e-9dfd-610afef7203b",
+          "first_seen": "2026-06-15T16:40:07+00:00",
+          "last_used": "2026-06-15T16:40:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bdc36c52-5084-4c52-beb6-876b37355ded",
+          "first_seen": "2026-06-15T16:41:24+00:00",
+          "last_used": "2026-06-15T16:41:24+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "f07f5a19-fc56-4021-8f87-de8e3332c1de",
+          "first_seen": "2026-06-15T16:44:26+00:00",
+          "last_used": "2026-06-15T16:44:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "125f4d08-aae0-4cef-9efe-a05aa15519cf",
+          "first_seen": "2026-06-15T16:45:51+00:00",
+          "last_used": "2026-06-15T16:45:51+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "c194bc2c-fd21-4c0b-997f-c11522469568",
+          "first_seen": "2026-06-15T16:52:59+00:00",
+          "last_used": "2026-06-15T16:52:59+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "fff0c48c-a319-40ef-a5fd-1457d0c7c144",
+          "first_seen": "2026-06-15T17:22:53+00:00",
+          "last_used": "2026-06-15T17:22:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b4c32ba9-66e1-49f1-9aa3-9f81a01aef07",
+          "first_seen": "2026-06-15T17:24:03+00:00",
+          "last_used": "2026-06-15T17:24:03+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "5c6b277d-6b7f-4df6-ae08-57c079e45368",
+          "first_seen": "2026-06-15T17:32:14+00:00",
+          "last_used": "2026-06-15T17:32:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b892fe13-e792-456e-824d-a66d1ef85f04",
+          "first_seen": "2026-06-15T17:32:46+00:00",
+          "last_used": "2026-06-15T17:32:46+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "43610d2e-61b9-4117-904b-34f222b1f0a2",
+          "first_seen": "2026-06-15T17:34:57+00:00",
+          "last_used": "2026-06-15T17:34:57+00:00"
+        }
+      ],
+      "time_needed_to_solve": 6513,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,

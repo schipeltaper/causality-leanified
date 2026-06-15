@@ -149,6 +149,7 @@ namespace Walk
 variable {G : CDMG Node}
 -- def_3_16 --- end helper
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsUnblockableNonCollider
 -- ref: def_3_16 (paragraph "Unblockable non-collider on π")
 --
 -- `p.IsUnblockableNonCollider k` iff position `k` on the walk `p` is
@@ -277,7 +278,9 @@ def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
     (p.edges[k - 1]? = some (vk, vkm1) ∧ (vk, vkm1) ∈ G.E → vkm1 ∈ G.Sc vk) ∧
     (p.edges[k]? = some (vk, vkp1) ∧ (vk, vkp1) ∈ G.E → vkp1 ∈ G.Sc vk)
 -- def_3_16 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsUnblockableNonCollider
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBlockableNonCollider
 -- ref: def_3_16 (paragraph "Blockable non-collider on π")
 --
 -- `p.IsBlockableNonCollider k` iff position `k` on the walk `p` is a
@@ -348,6 +351,295 @@ def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
 def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k
 -- def_3_16 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsBlockableNonCollider
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBlockableNonCollider (was: refactor_IsBlockableNonCollider)
+-- ref: def_3_16 (paragraph "Blockable non-collider on π")
+--
+-- `p.refactor_IsBlockableNonCollider k` iff position `k` on the walk
+-- `p` is a non-collider on `p` (per `def_3_15`) AND it is either at
+-- an end-position (`k = 0` or `k = p.length`) or there is some
+-- outgoing walk-edge of `v_k` on `π` whose other walk-endpoint along
+-- `π` lies outside `G.Sc vk`.  This encodes the LN's "blockable
+-- disjunction" elaboration (canonical tex's spelled-out disjunction
+-- form) one-for-one:
+--
+--   k = 0  ∨  k = p.length
+--   ∨  (a_{k - 1} = (v_k, v_{k - 1}) ∈ E  ∧  v_{k - 1} ∉ Sc^G(v_k))
+--   ∨  (a_k     = (v_k, v_{k + 1}) ∈ E  ∧  v_{k + 1} ∉ Sc^G(v_k)).
+--
+-- ## Design choice
+--
+-- *Refactor rationale (`blockable_noncollider_first`).*  Swaps the
+--   primary/derived split of the LN's blockable / unblockable
+--   classification.  The LN's "blockable" elaboration is itself a
+--   disjunction (end-position OR some outgoing walk-edge to a node
+--   not in the strongly connected component), so taking *blockable*
+--   as the primary predicate reads off the LN one-for-one;
+--   `refactor_IsUnblockableNonCollider` then becomes a derived
+--   predicate via negation on the non-collider sub-class.  Two
+--   payoffs: (a) walk-reversal proofs downstream (claim_3_22 onward)
+--   reduce to preservation of the positive `IsBlockableNonCollider`
+--   predicate — a much cleaner case-split structure than the
+--   universally-quantified-implication form of the previous
+--   `IsUnblockableNonCollider`; (b) mutual exclusivity of the two
+--   classifications on the non-collider sub-class remains
+--   definitional, with the roles of blockable / unblockable simply
+--   swapped relative to the previous shape.  The previous primary
+--   `IsUnblockableNonCollider` and derived `IsBlockableNonCollider`
+--   still satisfy the LN, but they push the LN's disjunction through
+--   a double negation that obscures the positive existence of a
+--   blocking walk-edge — exactly the witness downstream proofs need
+--   to manipulate.
+--
+-- *Walk-edge reading, not existential-shorthand reading.*  Each
+--   interior-position disjunct uses the walk's specific edge lookup
+--   `p.edges[k - 1]? = some (vk, vkm1)` (resp.
+--   `p.edges[k]? = some (vk, vkp1)`) as one of its conjuncts — NOT
+--   a generic existence claim about edges in `G`.  The canonical
+--   tex's "Reconciliation" paragraph and its trailing "outgoing
+--   arrow" reconciliation explicitly reject the existential reading
+--   of the LN's `v_k \tuh v_{k\pm 1}` shorthand: a non-walk
+--   directed edge `(vk, w) ∈ G.E` of `G` that does not appear as
+--   `a_{k - 1}` or `a_k` on `π` is irrelevant to the classification
+--   of `k` on `π`.  This resolves the LN-critic's
+--   `pattern_shorthands_existential_in_g_not_walk_specific` and
+--   `blockable_clause_says_arrow_not_outgoing_edge` subtleties (and
+--   inherits the resolution of `self_loop_pattern_overlap_inherited`
+--   via the canonical tex's "Treatment of directed self-loops"
+--   paragraph).  Stress-tested by `verify_with_examples` (instance
+--   4) on a graph where the existential and walk-edge readings
+--   diverge: confirmed that the new disjunction-form encoding picks
+--   the walk-edge reading, matching the original predicate pair and
+--   the LN-faithful reading of `def_3_15`.
+--
+-- *Slot-keyed disjunction (`i = k - 1` and `i = k` as explicit
+--   disjuncts), not slot-agnostic `∃ i ∈ {k - 1, k}`.*  The two
+--   outgoing-walk-edge cases are spelled out as two explicit
+--   disjuncts — one for the `i = k - 1` slot (backward writing
+--   `a_{k - 1} = (v_k, v_{k - 1}) ∈ E`, guarded by `1 ≤ k`) and one
+--   for the `i = k` slot (forward writing `a_k =
+--   (v_k, v_{k + 1}) ∈ E`) — rather than as a single quantification
+--   `∃ i ∈ {k - 1, k}, …`.  Three reasons: (a) the slot-keyed form
+--   matches the LN's "blockable disjunction" verbatim — the
+--   canonical tex's "Blockable non-collider on π" paragraph spells
+--   out exactly the same two `∧`-conjuncts, one per slot; (b)
+--   `Walk.vertices` / `Walk.edges` are already slot-indexed
+--   (`p.vertices[k - 1]?`, `p.vertices[k]?`, `p.edges[k - 1]?`,
+--   `p.edges[k]?` are distinct lookups), so the slot-keyed form
+--   avoids an extra `∃ i` layer over the Option-membership lookups
+--   that would have to be case-split into `i = k - 1` / `i = k` at
+--   the first use anyway; (c) `IsCollider`
+--   (`CollidersAndNon.lean`, `def_3_15`) commits the chapter to the
+--   slot-keyed `1 ≤ k ∧ ∃ vk a₁ a₂, …` idiom, which the present
+--   predicate mirrors slot-by-slot.  The unifying `∃ i ∈ {k - 1, k}`
+--   abstraction would be elegant but inconsistent with the
+--   chapter's existing conventions.
+--
+-- *Outgoing walk-edge condition is `E`-only, not `E ∪ L`.*  Each
+--   non-trivial disjunct requires `(vk, vkm1) ∈ G.E` (resp.
+--   `(vk, vkp1) ∈ G.E`): a directed edge whose tail is `v_k`.
+--   Bidirected `L`-edges are **not** counted as contributing outgoing
+--   arrowheads from `v_k`.  Three independent LN witnesses pin this
+--   down: (1) the LN's blockable elaboration says "at least one
+--   outgoing arrow `v_k \tuh v_{k \pm 1}`", and `\tuh` per def_3_2
+--   item~2 unfolds strictly to `(v_k, v_{k \pm 1}) ∈ E` — directed
+--   `E`-edges only, never `L`; (2) def_3_3's definition of "out of
+--   `v_1`" explicitly excludes `L`-edges; (3) the canonical tex's
+--   "Reconciliation" paragraph commits to the `E`-only reading
+--   explicitly ("Bidirected edges (`a_i ∈ L`) ... are excluded from
+--   this predicate").  The `blockable_noncollider_first` refactor
+--   plan asked for `L`-edge coverage in this predicate; that change
+--   was dropped after deeper LN reading because adding `L`-coverage
+--   would flip some LN-unblockable positions to refactor-blockable —
+--   a content divergence from the LN that `verify_equivalence_strict`
+--   would catch.  The architectural improvement (swapping
+--   primary/derived) stands on its own without the `L`-extension.
+--
+-- *End-position disjuncts `k = 0 ∨ k = p.length`.*  The LN's
+--   blockable elaboration places end-positions in the blockable
+--   class explicitly (canonical tex's "Reconciliation" item
+--   "end-position": "the source-block elaboration assigns
+--   end-positions to the blockable category via the `k \in \{0, n\}`
+--   disjunct").  We encode that placement as the first two disjuncts
+--   of the disjunction.  Both end-positions automatically satisfy
+--   the `p.IsNonCollider k` conjunct (at `k = 0`, `IsCollider`'s
+--   `1 ≤ k` guard fails so `¬IsCollider 0` holds and `0 ≤ p.length`
+--   is automatic; at `k = p.length`, the missing edge lookup
+--   `p.edges[k]? = none` forces `¬IsCollider p.length` and
+--   `p.length ≤ p.length` is automatic), so at both end-positions
+--   `refactor_IsBlockableNonCollider` reduces to `True ∧ True =
+--   True`, matching the LN.
+--
+-- *`p.IsNonCollider k` conjunct is load-bearing, not cosmetic.*
+--   Without it the predicate would over-fire on collider positions:
+--   an interior collider `k` might happen to admit a walk-edge
+--   `p.edges[k]? = some (vk, vkp1)` with `(vk, vkp1) ∈ G.E` and
+--   `vkp1 ∉ G.Sc vk` (the existence of such walks is not blocked by
+--   the `IsCollider` predicate at all), and would then be
+--   mis-classified as blockable.  The LN restricts "blockable" to
+--   the non-collider sub-class — they are a classification *of
+--   non-colliders*, not of all walk positions — and the
+--   `p.IsNonCollider k` conjunct is the predicate-level encoding of
+--   that restriction.
+--
+-- *No `Decidable` instance, `Prop`-only.*  Matches the chapter
+--   convention for walk-position predicates (`IsCollider`,
+--   `IsNonCollider`, `IsDirectedWalk`, ...).  A `Bool` form would
+--   require deciding `(vk, vkm1) ∈ G.E` and `vkm1 ∈ G.Sc vk` at every
+--   elaboration site, adding infrastructure with no payoff for
+--   downstream `σ`-separation rows (`def_3_17`+).
+--
+-- *Why the new shape is equivalent to the old `IsNonCollider ∧
+--   ¬IsUnblockableNonCollider` form.*  Case-by-case on a position
+--   `k` satisfying `p.IsNonCollider k`:
+--   - *End-position (`k ∈ {0, p.length}`).*  Old form: at `k = 0`
+--     the old `IsUnblockableNonCollider`'s `1 ≤ k` guard fails, so
+--     `¬IsUnblockableNonCollider` holds; at `k = p.length` the
+--     existential's `p.vertices[k + 1]? = some vkp1` fails (out of
+--     range), so `¬IsUnblockableNonCollider` holds.  New form: the
+--     `k = 0 ∨ k = p.length` disjunct fires directly.  Both forms
+--     yield `True`.
+--   - *Interior with every outgoing walk-edge of `v_k` landing in
+--     `G.Sc vk`.*  Old form: both implications of the old
+--     `IsUnblockableNonCollider` are satisfied (their conclusions
+--     hold), so `IsUnblockableNonCollider` holds and the old
+--     blockable predicate is `False`.  New form: the `k = 0 ∨ k =
+--     p.length` disjuncts are `False` (interior), and each
+--     `∃`-disjunct requires a walk-edge landing outside `G.Sc vk`
+--     (no such edge exists), so both are `False`; overall `False`.
+--     Both forms agree.
+--   - *Interior with some outgoing walk-edge of `v_k` landing
+--     outside `G.Sc vk`.*  Old form: the corresponding implication
+--     of the old `IsUnblockableNonCollider` is violated (antecedent
+--     `p.edges[i]? = some (vk, _) ∧ (vk, _) ∈ G.E` holds, conclusion
+--     `_ ∈ G.Sc vk` fails), so `IsUnblockableNonCollider` fails and
+--     the old blockable predicate is `True`.  New form: the
+--     matching `∃`-disjunct fires directly.  Both forms agree.
+--   These three cases cover the `p.IsNonCollider k` sub-class
+--   exhaustively (interior vs end-position via `IsNonCollider`'s `k
+--   ≤ p.length` bound; within interior, every outgoing in `G.Sc vk`
+--   vs some outgoing outside is a binary split), so the new and old
+--   predicates agree as predicates on the non-collider sub-class.
+-- def_3_16 -- start statement
+def refactor_IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.IsNonCollider k ∧
+  ( k = 0 ∨ k = p.length ∨
+    (1 ≤ k ∧ ∃ (vkm1 vk : Node),
+        p.vertices[k - 1]? = some vkm1 ∧
+        p.vertices[k]? = some vk ∧
+        p.edges[k - 1]? = some (vk, vkm1) ∧
+        (vk, vkm1) ∈ G.E ∧
+        vkm1 ∉ G.Sc vk) ∨
+    (∃ (vk vkp1 : Node),
+        p.vertices[k]? = some vk ∧
+        p.vertices[k + 1]? = some vkp1 ∧
+        p.edges[k]? = some (vk, vkp1) ∧
+        (vk, vkp1) ∈ G.E ∧
+        vkp1 ∉ G.Sc vk) )
+-- def_3_16 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsBlockableNonCollider
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsUnblockableNonCollider (was: refactor_IsUnblockableNonCollider)
+-- ref: def_3_16 (paragraph "Unblockable non-collider on π")
+--
+-- `p.refactor_IsUnblockableNonCollider k` iff position `k` on the
+-- walk `p` is a non-collider on `p` (per `def_3_15`) AND it is NOT a
+-- blockable non-collider on `p`.  Unfolding the negation of
+-- `refactor_IsBlockableNonCollider`'s disjunction recovers the LN's
+-- two-implication unblockable characterisation: `k` is interior
+-- (`k ≠ 0 ∧ k ≠ p.length`, equivalently `1 ≤ k ≤ p.length - 1` on
+-- the in-range fragment) and every outgoing walk-edge of `v_k` on
+-- `π` lands in `G.Sc vk`.
+--
+-- ## Design choice
+--
+-- *Refactor rationale (`blockable_noncollider_first`).*  The new
+--   primary predicate of this refactor is
+--   `refactor_IsBlockableNonCollider` (positive existence on the
+--   LN's disjunction form); `refactor_IsUnblockableNonCollider`
+--   reads off as the derived complement on the non-collider
+--   sub-class.  The previous shape — `IsUnblockableNonCollider` as
+--   primary (positive universal-implication form),
+--   `IsBlockableNonCollider` as derived — is still correct, but its
+--   universally-quantified-implication form pushes the LN's
+--   *disjunction* through a double negation, which obscures the
+--   positive witness of a "blocking" walk-edge that downstream
+--   walk-reversal proofs need to manipulate.  Reversing the
+--   primary/derived split exposes that witness directly on the
+--   primary side and reduces unblockable to a one-line negation
+--   here.
+--
+-- *Encoded as `p.IsNonCollider k ∧ ¬ p.refactor_IsBlockableNonCollider
+--   k`.*  The LN's "unblockable" classifier is the *non-blockable*
+--   sub-class of non-collider positions; the canonical tex's
+--   "Unblockable non-collider on π" paragraph spells out exactly this
+--   characterisation (modulo the choice of primary/derived).
+--   Encoding the conjunction directly makes the LN's mutual
+--   exclusivity ("every non-collider position is exactly one of
+--   unblockable or blockable") definitional: for any `k` satisfying
+--   `p.IsNonCollider k`, exactly one of `refactor_IsBlockableNonCollider
+--   k` and `refactor_IsUnblockableNonCollider k` holds, by
+--   unfolding.  This is the same mutual-exclusivity guarantee the
+--   previous shape provided, with the roles of blockable /
+--   unblockable simply swapped — both predicates remain
+--   definitionally interlocked on the `IsNonCollider` sub-class.
+--
+-- *`p.IsNonCollider k` conjunct is load-bearing, not cosmetic.*
+--   Without it the predicate would over-fire on collider positions:
+--   any collider `k` automatically satisfies
+--   `¬ refactor_IsBlockableNonCollider k` (because
+--   `refactor_IsBlockableNonCollider` carries `IsNonCollider` as its
+--   first conjunct, so colliders fail it), so dropping the
+--   `IsNonCollider` conjunct here would mis-classify every collider
+--   as unblockable.  The LN restricts both "unblockable" and
+--   "blockable" to the non-collider sub-class — they are mutually
+--   exclusive classifications *of non-colliders*, not of all walk
+--   positions — and the `p.IsNonCollider k` conjunct is the
+--   predicate-level encoding of that restriction.
+--
+-- *Why the derived predicate has the LN's intended meaning.*  By
+--   unfolding `refactor_IsBlockableNonCollider`, the negation
+--   distributes over the disjunction and gives: `k ≠ 0 ∧ k ≠
+--   p.length` (negation of the end-position disjuncts — the LN's
+--   "interior" clause (ii)) ∧ negation of each `∃`-disjunct ∧
+--   `p.IsNonCollider k` (positive conjunct preserved by the
+--   conjunction here).  Negating each `∃`-disjunct gives a universal
+--   implication: "for every choice of `vk` and `vk±1` such that the
+--   walk lookups match, `(vk, vk±1) ∈ G.E → vk±1 ∈ G.Sc vk`" — the
+--   exact two implications of LN clause (iii).  So derivedness
+--   preserves the LN's unblockable characterisation case-by-case.
+--
+-- *Dot-notation `p.refactor_IsBlockableNonCollider k`.*
+--   `refactor_IsBlockableNonCollider` is declared in the same
+--   `namespace Walk` and takes `p : Walk G u v` as its first
+--   explicit positional argument, so the dot-notation resolves to
+--   `Walk.refactor_IsBlockableNonCollider p k` — same idiom used by
+--   `p.IsNonCollider k`, `p.IsCollider k`, and the original
+--   `p.IsBlockableNonCollider k` directly above.
+--
+-- *Predicate order: blockable-first, unblockable-second.*  The
+--   declaration order in this file is (a) original
+--   `IsUnblockableNonCollider`, (b) original `IsBlockableNonCollider`,
+--   (c) replacement `refactor_IsBlockableNonCollider` (this is the
+--   new primary), (d) replacement `refactor_IsUnblockableNonCollider`
+--   (this declaration, derived).  Within the replacement pair the
+--   positive primary is stated first and the negation-based
+--   secondary references it — the typical Lean idiom and the
+--   mirror image of the original pair's positive-first /
+--   negation-second split (where the positive `IsUnblockableNonCollider`
+--   came first).
+--
+-- *No `Decidable` instance, `Prop`-only.*  Same rationale as
+--   `refactor_IsBlockableNonCollider` above.  Downstream consumers
+--   (`def_3_17` σ-blocked walks) take `IsUnblockableNonCollider` as
+--   a hypothesis-style `Prop` predicate; matching that shape keeps
+--   the type contract clean.
+-- def_3_16 -- start statement
+def refactor_IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.IsNonCollider k ∧ ¬ p.refactor_IsBlockableNonCollider k
+-- def_3_16 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsUnblockableNonCollider
 
 end Walk
 
