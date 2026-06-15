@@ -16,18 +16,87 @@
 \phantomsection\label{def_3_16}
 
 \begin{Def}[Blockable and unblockable non-colliders]\label{def:unblockable_noncollider}
-  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
-  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
-  We call a non-collider $v_k$ on $\pi$ an \emph{unblockable non-collider} on $\pi$ if it is not an end-node ($k \notin \{0,n\}$) and it only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$. That is,
-  it is one of the following patterns:
-  \[\begin{array}{rccl}
-    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_{k})\\
-    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_{k})\\
-    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)
-  \end{array}\]
-  Otherwise, $v_k$ is called a \emph{blockable non-collider} on $\pi$.
-  This means that $v_k$ is either an end-node ($k \in \lC 0,n\rC$) or it has at least one outgoing arrow 
-  $v_k \tuh v_{k\pm1}$ pointing to a node $v_{k\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\ $v_{k\pm1} \notin \Sc^G(v_k)$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and the collider/non-collider machinery of def \ref{def:collider_noncollider}. Let
+    \[
+        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    be a walk in $G$ (def \ref{def:walks}, item~i.) for some integer $n \ge 0$, with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$ satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\lor\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr).
+    \]
+
+    \emph{Strongly connected component.}
+    For $v \in J \cup V$ we write $\Sc^G(v) \subseteq J \cup V$ for the strongly connected component of $v$ in $G$, defined per the family-relationships definition (the LN block introducing $\Anc^G, \Desc^G, \Sc^G$ on graphs) as
+    \[
+        \Sc^G(v) := \Anc^G(v) \cap \Desc^G(v);
+    \]
+    in particular $v \in \Sc^G(v)$. Membership $w \in \Sc^G(v)$ is the set-theoretic predicate ``$w$ is both an ancestor and a descendant of $v$ in $G$''.
+
+    \emph{Walk-incident indices and outgoing walk-edges at a position.}
+    Mirroring the index-set convention of def \ref{def:collider_noncollider}, for a position $k \in \{0, 1, \dots, n\}$ on $\pi$ let the set of \emph{walk-incident indices at $k$} be
+    \[
+        I_\pi(k) := \bigl\{\, i \in \{k - 1, k\} \,\bigm|\, 0 \le i \le n - 1 \,\bigr\}.
+    \]
+    So $|I_\pi(k)| \le 2$: at an end-position $k \in \{0, n\}$ on a non-trivial walk ($n \ge 1$) we have $|I_\pi(k)| = 1$ (namely $\{0\}$ at $k = 0$ and $\{n - 1\}$ at $k = n$); on the trivial walk $n = 0$ we have $I_\pi(0) = \emptyset$; at an interior position $1 \le k \le n - 1$ we have $I_\pi(k) = \{k - 1, k\}$. For $i \in I_\pi(k)$, writing $a_i = (e_1, e_2)$, we say that \emph{$a_i$ is an outgoing walk-edge of $v_k$ at position $k$ on $\pi$} iff
+    \[
+        a_i \in E \;\land\; e_1 = v_k,
+    \]
+    i.e.\ $a_i$ is a directed edge whose tail is $v_k$. Spelled out via the walk constraint at index $i$, the only ways this can occur are:
+    \begin{itemize}
+        \item for $i = k - 1$ (requires $k \ge 1$): $a_{k-1} = (v_k, v_{k-1}) \in E$; its ``other endpoint'' along $\pi$ is $v_{k-1}$.
+        \item for $i = k$ (requires $k \le n - 1$): $a_k = (v_k, v_{k+1}) \in E$; its ``other endpoint'' along $\pi$ is $v_{k+1}$.
+    \end{itemize}
+    Bidirected edges ($a_i \in L$) and directed edges into $v_k$ (i.e.\ $a_i \in E$ with $e_2 = v_k$ and $e_1 \neq v_k$) are excluded from this predicate. Edges of $G$ that do not appear as $a_{k-1}$ or $a_k$ on $\pi$ are not considered: ``outgoing walk-edge'' is a walk-specific property, not an existence claim about edges in $G$.
+
+    \emph{Unblockable non-collider on $\pi$.}
+    A position $k \in \{0, 1, \dots, n\}$ on $\pi$ -- or, by abuse, the node $v_k$ at position $k$ -- is called an \emph{unblockable non-collider on $\pi$} iff all three of the following hold:
+    \begin{enumerate}[label=\roman*.)]
+        \item $k$ is a non-collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~i.\ (equivalently, $\mathrm{ah}_\pi(k) \le 1$);
+        \item $k$ is interior, i.e.\ $k \notin \{0, n\}$ (equivalently, $1 \le k \le n - 1$, which forces $I_\pi(k) = \{k - 1, k\}$);
+        \item for every $i \in I_\pi(k)$ such that $a_i$ is an outgoing walk-edge of $v_k$ at position $k$ on $\pi$, the other endpoint of $a_i$ along $\pi$ lies in $\Sc^G(v_k)$. Spelled out as two implications (with $1 \le k \le n - 1$):
+        \[
+            \bigl(a_{k-1} = (v_k, v_{k-1}) \in E \;\implies\; v_{k-1} \in \Sc^G(v_k)\bigr)
+            \;\land\;
+            \bigl(a_k = (v_k, v_{k+1}) \in E \;\implies\; v_{k+1} \in \Sc^G(v_k)\bigr).
+        \]
+    \end{enumerate}
+
+    \emph{Blockable non-collider on $\pi$.}
+    A position $k \in \{0, 1, \dots, n\}$ on $\pi$ -- or, by abuse, the node $v_k$ at position $k$ -- is called a \emph{blockable non-collider on $\pi$} iff:
+    \begin{enumerate}[label=\roman*.)]
+        \item $k$ is a non-collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~i.; AND
+        \item $k$ is not an unblockable non-collider on $\pi$.
+    \end{enumerate}
+    Unfolding the negation of clauses (ii)--(iii) of unblockable, the second condition is equivalent to: either $k \in \{0, n\}$ (end-position), or there exists $i \in I_\pi(k)$ such that $a_i$ is an outgoing walk-edge of $v_k$ at position $k$ on $\pi$ whose other endpoint along $\pi$ does not lie in $\Sc^G(v_k)$. Spelled out explicitly as a disjunction (the latter two disjuncts implicitly requiring $k \ge 1$ resp.\ $k \le n - 1$, and being vacuously false outside that range):
+    \[
+        k \in \{0, n\}
+        \;\;\lor\;\;
+        \bigl(a_{k-1} = (v_k, v_{k-1}) \in E \;\land\; v_{k-1} \notin \Sc^G(v_k)\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_k, v_{k+1}) \in E \;\land\; v_{k+1} \notin \Sc^G(v_k)\bigr).
+    \]
+    On the sub-class of non-collider positions of $\pi$, the unblockable and blockable classifications are by construction mutually exclusive and jointly exhaustive: every non-collider position $k \in \{0, 1, \dots, n\}$ on $\pi$ is exactly one of an unblockable non-collider on $\pi$ or a blockable non-collider on $\pi$.
+
+    \emph{Reconciliation with the source-block pattern writings.}
+    The source block characterises the interior unblockable non-collider via a list of three pattern-cases (left chain, right chain, fork) glossed as ``$v_k$ only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$''. Below we reconcile these visual writings with the walk-edge-based classification above, taking the walk-edge-based classification (the LN's ``i.e.''\ gloss ``outgoing edges on $\pi$'') as canonical. The visual writings $v_{k-1} \tuh v_k$, $v_{k-1} \hut v_k$, $v_{k-1} \huh v_k$, $v_{k-1} \suh v_k$, $v_{k-1} \hus v_k$ are unfolded per def \ref{not-cdmg}, items~2--6; each of the three patterns refers to an interior position $1 \le k \le n - 1$, so $I_\pi(k) = \{k - 1, k\}$.
+    \begin{itemize}
+        \item \textbf{left chain} ($1 \le k \le n - 1$; LN writing $v_{k-1} \hut v_k \hus v_{k+1}$ with $v_{k-1} \in \Sc^G(v_k)$): only the walk-edge $a_{k-1}$ is outgoing from $v_k$ on $\pi$. Spelled out via the walk constraint, $a_{k-1} = (v_k, v_{k-1}) \in E$ (a directed edge with tail $v_k$), and either $a_k = (v_{k+1}, v_k) \in E$ or $a_k = (v_k, v_{k+1}) \in L$ (so $a_k$ is not an outgoing walk-edge of $v_k$). The SC requirement attaches to the unique outgoing walk-edge $a_{k-1}$, reading $v_{k-1} \in \Sc^G(v_k)$ -- matching the LN. The non-collider count from def \ref{def:collider_noncollider} is $0 + 1 = 1$, consistent with the non-collider precondition.
+        \item \textbf{right chain} ($1 \le k \le n - 1$; LN writing $v_{k-1} \suh v_k \tuh v_{k+1}$ with $v_{k+1} \in \Sc^G(v_k)$): only the walk-edge $a_k$ is outgoing from $v_k$ on $\pi$. Spelled out via the walk constraint, either $a_{k-1} = (v_{k-1}, v_k) \in E$ or $a_{k-1} = (v_{k-1}, v_k) \in L$ (so $a_{k-1}$ is not an outgoing walk-edge of $v_k$), and $a_k = (v_k, v_{k+1}) \in E$. The SC requirement attaches to the unique outgoing walk-edge $a_k$, reading $v_{k+1} \in \Sc^G(v_k)$ -- matching the LN. The non-collider count is $1 + 0 = 1$.
+        \item \textbf{fork} ($1 \le k \le n - 1$; LN writing $v_{k-1} \hut v_k \tuh v_{k+1}$ with $v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)$): both walk-edges $a_{k-1}$ and $a_k$ are outgoing from $v_k$ on $\pi$. Spelled out, $a_{k-1} = (v_k, v_{k-1}) \in E$ and $a_k = (v_k, v_{k+1}) \in E$. The SC requirement attaches to both outgoing walk-edges, reading $v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k)$ -- matching the LN. The non-collider count is $0 + 0 = 0$.
+        \item \textbf{end-position} ($k \in \{0, n\}$): excluded from the unblockable classification by clause (ii); the source-block elaboration assigns end-positions to the blockable category via the $k \in \{0, n\}$ disjunct, consistent with the disjunction above.
+        \item \textbf{collider position} ($\mathrm{ah}_\pi(k) = 2$, LN writing $v_{k-1} \suh v_k \hus v_{k+1}$): excluded from both unblockable and blockable by the non-collider precondition (clause (i) in either definition).
+    \end{itemize}
+    The visual shorthands $\hut, \tuh, \hus, \suh, \huh$ in def \ref{not-cdmg} are statements about the \emph{existence} of edges in $G$, not about the walk's specific incident edges $a_{k-1}, a_k$. The source block's verbal gloss ``outgoing edges on $\pi$'' fixes the intended walk-edge reading, which is what we have adopted above. In particular: a non-walk directed edge $(v_k, w) \in E$ of $G$ (one that does not appear as $a_{k-1}$ or $a_k$ on $\pi$) is irrelevant to whether the position $k$ on $\pi$ is unblockable or blockable; symmetrically, the negation of the unblockable condition in the source block (``it has at least one outgoing arrow $v_k \tuh v_{k \pm 1}$ \dots'') is to be read as ``the walk's $a_{k - 1}$ or $a_k$ is a directed edge $(v_k, v_{k - 1}) \in E$ resp.\ $(v_k, v_{k + 1}) \in E$ whose tail is $v_k$ and whose other endpoint along $\pi$ is not in $\Sc^G(v_k)$'', not an existence claim about a $\tuh$-arrow in $G$ unrelated to the walk.
+
+    \emph{Treatment of directed self-loops.}
+    As in def \ref{def:collider_noncollider}, a directed self-loop $(v, v) \in E$ is admitted by def \ref{def-cdmg} (the irreflexivity restriction applies to $L$, not to $E$). If a walk-incident edge $a_i$ is such a self-loop -- so $a_i = (v_i, v_{i+1}) = (v, v) \in E$ with $v_i = v_{i+1} = v$ -- and the unblockable/blockable classification is evaluated at a position $k \in \{i, i + 1\}$ for which $v_k = v$, then:
+    \begin{itemize}
+        \item $a_i$ contributes exactly once to $I_\pi(k)$ (indexed by the unique $i$ with $a_i = (v, v)$); the walk-edge enumeration does not double-count self-loops.
+        \item $a_i$ is an outgoing walk-edge of $v_k$ at position $k$ on $\pi$ in the sense above (the predicate $a_i \in E \land e_1 = v_k$ fires with $e_1 = v = v_k$). The ``other endpoint'' of $a_i$ along $\pi$ is again $v$, and $v \in \Sc^G(v)$ holds trivially, so this particular contribution to the unblockable-pattern check is automatically satisfied. (In particular, a self-loop alone never disqualifies an interior position from being unblockable; whether the position is unblockable depends on the other walk-incident edge -- if any -- in the standard way.)
+    \end{itemize}
+    The walk-edge-based unblockable/blockable classification above thus assigns a single, well-defined status to such a $k$ on $\pi$, regardless of self-loop traversals. The apparent overlap of the source block's visual ``left chain'', ``right chain'', and ``fork'' pattern conjunctions at directed self-loops -- where ``$v_{k - 1} \hut v_k$'' and ``$v_k \tuh v_{k - 1}$'' both unfold (per def \ref{not-cdmg}, items~2--3) to the single condition $(v, v) \in E$ when $v_{k - 1} = v_k = v$, so several pattern conjunctions can simultaneously match -- is uniformly resolved by the walk-edge unfolding, inheriting the canonical resolution of def \ref{def:collider_noncollider}.
 \end{Def}
 
 \end{document}

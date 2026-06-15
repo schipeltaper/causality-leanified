@@ -2625,7 +2625,7 @@
           "last_used": "2026-06-15T02:20:20+00:00"
         }
       ],
-      "time_needed_to_solve": 4934,
+      "time_needed_to_solve": 4954,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2639,28 +2639,30 @@
       "section": "3.3",
       "title": "BlockableAndUnblockable",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2670,12 +2672,27 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Blockable and unblockable non-colliders]\\label{def:unblockable_noncollider}\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  We call a non-collider $v_k$ on $\\pi$ an \\emph{unblockable non-collider} on $\\pi$ if it is not an end-node ($k \\notin \\{0,n\\}$) and it only has outgoing edges on $\\pi$ to nodes in the same strongly connected component of $G$. That is,\n  it is one of the following patterns:\n  \\[\\begin{array}{rccl}\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1} & \\text{ with } & v_{k+1} \\in \\Sc^G(v_{k})\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1} & \\text{ with } & v_{k-1} \\in \\Sc^G(v_k) \\land v_{k+1} \\in \\Sc^G(v_k)\n  \\end{array}\\]\n  Otherwise, $v_k$ is called a \\emph{blockable non-collider} on $\\pi$.\n  This means that $v_k$ is either an end-node ($k \\in \\lC 0,n\\rC$) or it has at least one outgoing arrow \n  $v_k \\tuh v_{k\\pm1}$ pointing to a node $v_{k\\pm1}$ that lies in a different strongly connected component than $v_k$, i.e.\\ $v_{k\\pm1} \\notin \\Sc^G(v_k)$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "1f376832-4b8a-40b9-9a9f-34184bafa75c",
+          "first_seen": "2026-06-15T04:06:22+00:00",
+          "last_used": "2026-06-15T04:06:22+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5809,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Now I have full context. The CDMG has edges $E$ (directed) and $L$ (bidirected — symmetric, two heads). The shorthand symbols (`\\hut`, `\\hus`, etc.) per def_3_2 are EXISTENCE claims about edges in $G$, not statements about the walk's specific edges. And def_3_15 explicitly reconciled this ambiguity for the collider/non-collider classification, but def_3_16 does not.\n\nLet me write my audit.\n\nSUBTLETY:\nid: pattern_shorthands_existential_in_g_not_walk_specific\nexplanation: The unblockable patterns \"$v_{k-1} \\hut v_k \\hus v_{k+1}$\", \"$v_{k-1} \\suh v_k \\tuh v_{k+1}$\", and \"$v_{k-1} \\hut v_k \\tuh v_{k+1}$\" use shorthand defined in def_3_2 as *existence* claims about edges in $G$ (e.g. $v_{k-1} \\hut v_k :\\iff (v_k, v_{k-1}) \\in E$). The verbal characterization that precedes the patterns — \"it only has outgoing edges **on $\\pi$** to nodes in the same strongly connected component of $G$\" — is about the walk's *specific* incident edges $a_{k-1}, a_k$.\n\nDef_3_15 had to explicitly reconcile this exact mismatch (\"the LN writing $v_{k-1} \\hut v_k \\hus v_{k+1}$ ... spelled out via the walk constraint, $a_{k-1} = (v_k, v_{k-1}) \\in E$...\"), declaring the count-based, walk-specific reading \"canonical\". Def_3_16 inherits the shorthand without restating this reconciliation.\n\nConcrete corner case: suppose between adjacent walk-positions $v_{k-1}$ and $v_k$ the graph contains *both* $(v_k, v_{k-1}) \\in E$ and $(v_{k-1}, v_k) \\in E$, and the walk uses $a_{k-1} = (v_k, v_{k-1})$. Suppose further $a_k = (v_k, v_{k+1}) \\in E$, so on the walk $v_k$ is a fork (count $= 0$, both walk-incident edges out of $v_k$). Now suppose only $v_{k-1} \\in \\Sc^G(v_k)$ while $v_{k+1} \\notin \\Sc^G(v_k)$. Walk-based reading: $v_k$ has an outgoing walk-edge ($a_k$) to a different SC component, so it should be blockable. But existential pattern reading: $v_{k-1} \\hut v_k$ holds (one of the $E$-edges supplies it) and $v_k \\hus v_{k+1}$ requires $(v_{k+1}, v_k) \\in E$ or $(v_k, v_{k+1}) \\in L$. If either of those exists (e.g. add a bidirected edge $(v_k, v_{k+1}) \\in L$ to the example), the \"left chain\" pattern matches existentially and the condition $v_{k-1} \\in \\Sc^G(v_k)$ is met — so the literal pattern classification calls $v_k$ unblockable, contradicting the walk-based intent.\n\nDownstream this matters for any proof about $\\sigma$-blocking (def_3_17 cites this definition): a formalization that follows the patterns literally will disagree with one that follows the verbal \"outgoing edges on $\\pi$\" characterization, exactly on positions whose walk-incident edges differ from other edges that the shorthand existence-quantifies over.\nEND_SUBTLETY\n\nSUBTLETY:\nid: self_loop_pattern_overlap_inherited\nexplanation: Def_3_15 explicitly warns that at a directed self-loop traversed by a walk — i.e. at a position $k$ with $v_{k-1} = v_k$ via $(v,v) \\in E$ — \"a single interior position $k$ traversing a directed self-loop can simultaneously satisfy the 'left chain', 'right chain', 'fork', and 'collider' pattern conjunctions\" under the literal def_3_2 reading of $\\hut, \\tuh, \\hus, \\suh$. Def_3_16 reuses these same patterns (\"left chain\", \"right chain\", \"fork\") without restating this caveat, so the same overlap occurs here. Concretely: if $v_{k-1} = v_k = v$ with $(v,v) \\in E$, then $v_{k-1} \\hut v_k$ and $v_k \\tuh v_{k-1}$ collapse to the same condition $(v,v) \\in E$, and $v \\in \\Sc^G(v)$ trivially, so the \"fork\" unblockable pattern matches automatically — even though the walk's actual classification (per def_3_15's canonical count-based reading) might be collider. Whether $v_k$ ends up \"unblockable non-collider\" thus depends on which reading governs def_3_16; the text doesn't pick one explicitly.\nEND_SUBTLETY\n\nSUBTLETY:\nid: blockable_clause_says_arrow_not_outgoing_edge\nexplanation: The \"blockable\" elaboration says \"it has at least one outgoing arrow $v_k \\tuh v_{k\\pm 1}$ pointing to a node $v_{k\\pm 1}$ that lies in a different strongly connected component\". Per def_3_2 item 2, $v_k \\tuh v_{k\\pm 1}$ is the *existence* of $(v_k, v_{k\\pm 1}) \\in E$ in $G$, regardless of whether that directed edge is the walk's specific incident edge at position $k$.\n\nSo under the literal reading: $v_k$ can have an outgoing arrow $v_k \\tuh v_{k-1}$ in $G$ to a node $v_{k-1} \\notin \\Sc^G(v_k)$ even if the walk's $a_{k-1}$ is actually $(v_{k-1}, v_k) \\in E$ (into $v_k$). The blockable condition would then literally be satisfied via an edge that is not the walk's edge. Combined with the symmetric ambiguity in the unblockable patterns, $v_k$ could literally satisfy both \"unblockable left chain\" (via some auxiliary edge configuration meeting same-SC) and \"blockable via outgoing arrow to non-SC\" (via the auxiliary $v_k \\tuh v_{k-1}$ to non-SC $v_{k-1}$). The intent is clearly the walk-edge reading, but the text says \"outgoing arrow $v_k \\tuh v_{k\\pm 1}$\", not \"the walk's $a_{k\\pm 1}$ is an outgoing edge from $v_k$ to a node not in $\\Sc^G(v_k)$\".\nEND_SUBTLETY",
+        "session": "624c183b-3ddf-4457-9d6d-a6da40a6fdf2"
+      }
     },
     {
       "def_or_claim": "claim",

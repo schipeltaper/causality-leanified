@@ -34,3 +34,4 @@ import Chapter3_GraphTheory.Section3_2.MarginalizationsCommute
 import Chapter3_GraphTheory.Section3_2.MarginalizationAndIntervention
 import Chapter3_GraphTheory.Section3_2.MarginalizingOutThe
 import Chapter3_GraphTheory.Section3_3.CollidersAndNon
+import Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable
