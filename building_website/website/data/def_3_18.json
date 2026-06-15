@@ -22,38 +22,38 @@
     {
       "kind": "helper",
       "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This is a `variable` declaration: Lean auto-binds `Node : Type*` and the instance `[DecidableEq Node]` as implicit arguments to every subsequent declaration in the surrounding `CDMG` namespace, sparing us from rewriting the same parameters on `IsISigmaSeparated` and its four notational siblings. The `Type*` notation makes `Node` universe-polymorphic, so callers can instantiate it at any universe level. The `DecidableEq Node` assumption is load-bearing because the ambient `CDMG Node` structure stores `J, V : Finset Node` and `E, L : Finset (Node × Node)`; decidable equality is what lets those `Finset`s exist and what enables the `(G.J : Set Node)` coercion appearing in the main predicate. Stronger structure on `Node` (e.g. `Fintype`, `LinearOrder`) is not required here and is deferred to downstream consumers that actually use it. Same convention as the rest of `Chapter3_GraphTheory`'s files.",
+      "code_annotated": "-- Auto-binds `Node` + `DecidableEq Node` as implicits; decidability backs `CDMG`'s `Finset` fields and the `G.J` coercion below.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
       "kind": "helper",
       "code": "def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  ¬ G.IsISigmaSeparated A B C",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block formalises item 2 of the LN: the named negation $A \\nisPerp_G B \\given C$, the failure of $i\\sigma$-separation. Rather than re-quantifying as a positive existential (\"there exists a walk from $A$ into $J \\cup B$ that is not $C$-$\\sigma$-blocked\"), it is defined as the literal Lean negation `¬ G.IsISigmaSeparated A B C`. The two predicates are then definitionally equal: `unfold IsNotISigmaSeparated` collapses one to the other by `rfl`, and any downstream interchange site avoids invoking a classical bridging lemma. The LN's \"equivalently, $\\exists$ walk \\dots not $C$-$\\sigma$-blocked\" reformulation is the classical De Morgan dual of the negated universal, derivable as a one-line lemma when needed. The named alias keeps the LN's `\\nisPerp` notation grep-aligned with the Lean source: every LN reference to $A \\nisPerp_G B \\given C$ has a literal `G.IsNotISigmaSeparated A B C` counterpart.",
+      "code_annotated": "-- `IsNotISigmaSeparated` is the LN's `\\nisPerp` — named alias for the negation of `IsISigmaSeparated`.\ndef IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  -- Definitionally equal to `¬ IsISigmaSeparated G A B C`; `rfl`-interchangeable at every site.\n  ¬ G.IsISigmaSeparated A B C"
     },
     {
       "kind": "helper",
       "code": "abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=\n  G.IsISigmaSeparated A B ∅",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block formalises item 3 of the LN: the unconditional shorthand $A \\isPerp_G B :\\iff A \\isPerp_G B \\given \\emptyset$. There is no fresh mathematical content — $A \\isPerp_G B$ is *defined to mean* $A \\isPerp_G B \\given \\emptyset$ — so it is encoded as an `abbrev`, the Lean keyword for a fully transparent alias. Lean reduces `G.IsISigmaSeparatedEmpty A B` to `G.IsISigmaSeparated A B ∅` at every elaboration site without an `unfold` step, so any lemma targeting the underlying predicate fires automatically on the shorthand. The empty set on the right is Lean's `Set Node`-valued `∅` (the standard `EmptyCollection` instance), matching the conditioning slot's `Set Node` carrier. The LN introduces no separate symbol for the negation of this case, so no `IsNotISigmaSeparatedEmpty` is provided; downstream consumers spell it as `¬ G.IsISigmaSeparatedEmpty A B` or `G.IsNotISigmaSeparated A B ∅`, interchangeable via the `abbrev`'s transparency.",
+      "code_annotated": "-- LN item 3: unconditional shorthand `A ⫫ⁱˢ_G B := A ⫫ⁱˢ_G B | ∅`. `abbrev` keeps it transparent at every use site.\nabbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=\n  -- Body: instantiate the conditioning slot with `Set Node`-valued `∅` (Lean's `EmptyCollection`).\n  G.IsISigmaSeparated A B ∅"
     },
     {
       "kind": "helper",
       "code": "abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  G.IsISigmaSeparated A B C",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block formalises the first half of item 4 of the LN: under $J = \\emptyset$, $i\\sigma$-separation is renamed to $\\sigma$-separation (the LN's $A \\sPerp_G B \\given C$). The underlying predicate is unchanged — the same mathematical object acquires a new name when the input-node set is empty. Mirroring the LN, this is encoded as an `abbrev`, transparent to elaboration, so `G.IsSigmaSeparated A B C` reduces to `G.IsISigmaSeparated A B C` automatically. Crucially, no `(hJ : G.J = ∅)` hypothesis is attached: the LN treats $J = \\emptyset$ as a *call-site* fact about the consumer's CDMG (handed in as an explicit hypothesis by e.g. `claim_3_22`), not a logical condition baked into the predicate. Under that $J = \\emptyset$ assumption, the right-endpoint constraint `v ∈ (G.J : Set Node) ∪ B` of the main predicate reduces to `v ∈ B`, recovering the literature-standard $\\sigma$-separation. The alias is the predicate this section's downstream consumers (most prominently `claim_3_22` on $\\sigma$-symmetry) speak in.",
+      "code_annotated": "-- LN item 4: under `G.J = ∅` we rename `IsISigmaSeparated` to `IsSigmaSeparated`. Predicate unchanged; precondition lives at the call site.\nabbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  -- Body is literally `IsISigmaSeparated`; `abbrev` makes the rename `rfl`-transparent.\n  G.IsISigmaSeparated A B C"
     },
     {
       "kind": "helper",
       "code": "abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  G.IsNotISigmaSeparated A B C",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block formalises the negation half of item 4 of the LN: the $J = \\emptyset$ notation alias for $A \\nsPerp_G B \\given C$. The LN renames `\\nisPerp` to `\\nsPerp` under $J = \\emptyset$ in the same breath that it renames `\\isPerp` to `\\sPerp`; the pair is introduced and used as a unit — claim statements and proof case-splits in `claim_3_22` (and chapter 4+) routinely write $A \\sPerp_G B \\given C$ and $A \\nsPerp_G B \\given C$ side by side. The encoding is the matching `abbrev`, transparently unfolding to `G.IsNotISigmaSeparated A B C`. A proof that establishes `G.IsNotSigmaSeparated A B C` immediately discharges a goal `G.IsNotISigmaSeparated A B C` and vice versa, without a bridging lemma. As with `IsSigmaSeparated`, no $J = \\emptyset$ hypothesis is bound — the renaming is *under* the consumer's assumption, not *conditional on* a Lean-tracked proof of it.",
+      "code_annotated": "-- LN item 4 (negation half): `J = ∅` rename of `IsNotISigmaSeparated`. Paired with `IsSigmaSeparated` at every call site.\nabbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  -- Body delegates to `IsNotISigmaSeparated`, itself definitionally `¬ IsISigmaSeparated`.\n  G.IsNotISigmaSeparated A B C"
     },
     {
       "kind": "main",
       "code": "def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  ∀ {u v : Node} (π : Walk G u v),\n      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block formalises item 1 of the LN: the central predicate $A \\isPerp_G B \\given C$, $i\\sigma$-separation of $A$ from $B$ given $C$ in $G$. The body is a single universal over walks: for every walk $\\pi : \\mathtt{Walk}\\,G\\,u\\,v$ in $G$ (per `def_3_4` item i.) with $u \\in A$ and $v \\in J \\cup B$, $\\pi$ is $C$-$\\sigma$-blocked in the sense of `def_3_17`. The endpoint variables `{u v : Node}` are implicit so Lean infers them from $\\pi$'s type, while the walk itself is the explicit subject of the quantifier — the same shape as `def_3_16`'s `IsBlockableNonCollider`. The right-endpoint constraint `v ∈ (G.J : Set Node) ∪ B` coerces `G.J : Finset Node` up to `Set Node` so the set-union with `B : Set Node` is well-typed; the literal `G.J ∪ B` would be ill-typed because no union instance bridges the two carriers. Dot-notation `π.IsSigmaBlockedGiven C` invokes the blocking predicate from `def_3_17` directly on the walk. Length-zero walks `Walk.nil` are in scope by construction — `def_3_17`'s `IsSigmaBlockedGiven` is `False` on `Walk.nil`, so the quantifier exposes them on a careful footing rather than vacuously. The asymmetric inclusion of $J$ on the right is the LN's deliberate non-standard choice (footnote `fn:why-J`), aligning the implied separoid rules with Markov-kernel conditional independence; the marginal case $B = \\emptyset$ is therefore *not* vacuous when $J \\neq \\emptyset$.",
+      "code_annotated": "-- ref: def_3_18 item 1 — the central `IsISigmaSeparated` predicate. LN's `A ⫫ⁱˢ_G B | C`.\ndef IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=\n  -- Walk-first universal: endpoints `{u v}` implicit (inferred from `π`), walk `π` explicit subject.\n  ∀ {u v : Node} (π : Walk G u v),\n      -- Endpoint constraints: source `u ∈ A`; target `v ∈ J ∪ B` with `G.J` coerced from `Finset` to `Set Node`.\n      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C"
     }
   ],
   "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
