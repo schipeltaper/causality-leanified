@@ -280,9 +280,11 @@ variable {G : CDMG Node}
 -- def_3_4 --- end helper
 
 /-- Length of a walk: the number `n` of edges (matches the LN's `n`). -/
+-- def_3_6 --- start helper
 def length : ∀ {u v : Node}, Walk G u v → ℕ
   | _, _, .nil _ _ => 0
   | _, _, .cons _ _ _ p => p.length + 1
+-- def_3_6 --- end helper
 
 -- ref: def_3_4 (helper, vertex sequence)
 --
