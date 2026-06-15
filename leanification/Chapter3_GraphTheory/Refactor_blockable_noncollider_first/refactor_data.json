@@ -169,7 +169,7 @@
           "last_used": "2026-06-15T17:34:57+00:00"
         }
       ],
-      "time_needed_to_solve": 6513,
+      "time_needed_to_solve": 6532,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -188,10 +188,10 @@
       "section": "3.3",
       "title": "AcyclicNonCollidersBlockable",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `blockable_noncollider_first`; it was pulled in because root(s) `def_3_16` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
@@ -201,17 +201,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -224,11 +224,152 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nIf $G$ is acyclic then all non-colliders are blockable.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "86224464-dcde-4572-8af0-409be312813b",
+          "first_seen": "2026-06-15T18:04:37+00:00",
+          "last_used": "2026-06-15T18:04:37+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "37de437a-2f88-4d36-9b6f-9dc12b51e358",
+          "first_seen": "2026-06-15T18:08:57+00:00",
+          "last_used": "2026-06-15T18:08:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5c77bd8a-6a68-449b-853a-949466f7fdfd",
+          "first_seen": "2026-06-15T18:09:27+00:00",
+          "last_used": "2026-06-15T18:09:27+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "2e43567e-c195-493d-b9f2-912ae96b0d96",
+          "first_seen": "2026-06-15T18:09:55+00:00",
+          "last_used": "2026-06-15T18:09:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "08fbb63f-0b0b-4a4a-876e-9502ca1c5f19",
+          "first_seen": "2026-06-15T18:10:43+00:00",
+          "last_used": "2026-06-15T18:10:43+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "c232182e-bc0c-4060-b456-48fcf4592206",
+          "first_seen": "2026-06-15T18:13:13+00:00",
+          "last_used": "2026-06-15T18:13:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e5b7cbc4-be4f-4082-8d30-90a1f5e27e42",
+          "first_seen": "2026-06-15T18:14:23+00:00",
+          "last_used": "2026-06-15T18:14:23+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c097b458-550f-4b3d-a791-947a8ab83498",
+          "first_seen": "2026-06-15T18:34:35+00:00",
+          "last_used": "2026-06-15T18:34:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b0b36872-2070-4177-b30e-3eeed887d187",
+          "first_seen": "2026-06-15T18:36:23+00:00",
+          "last_used": "2026-06-15T18:36:23+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "e4fecc46-3218-4040-8dd3-2589fe6b834d",
+          "first_seen": "2026-06-15T18:40:46+00:00",
+          "last_used": "2026-06-15T18:40:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2fc52766-7f4d-4403-9ab7-f635ad41ba4d",
+          "first_seen": "2026-06-15T18:41:29+00:00",
+          "last_used": "2026-06-15T18:41:29+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "8a184724-4295-4b34-845a-04e0cec2c10c",
+          "first_seen": "2026-06-15T18:42:30+00:00",
+          "last_used": "2026-06-15T18:42:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3a61696d-a867-478d-96f4-61ca3a2927ff",
+          "first_seen": "2026-06-15T18:43:35+00:00",
+          "last_used": "2026-06-15T18:43:35+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "82fe5e35-3bc3-47b7-8e27-6200d0ec3d28",
+          "first_seen": "2026-06-15T18:49:12+00:00",
+          "last_used": "2026-06-15T18:49:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "37d2e93e-3c14-460d-ba0f-0face3844ea8",
+          "first_seen": "2026-06-15T18:49:39+00:00",
+          "last_used": "2026-06-15T18:49:39+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "1190c784-2a3a-4371-bafc-7f83eaee42f9",
+          "first_seen": "2026-06-15T18:53:54+00:00",
+          "last_used": "2026-06-15T18:53:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "67384065-70a0-4e04-9d1c-565bddb204e0",
+          "first_seen": "2026-06-15T18:54:21+00:00",
+          "last_used": "2026-06-15T18:54:21+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3e6e0043-d0de-4005-aad2-d0b68edf5ab6",
+          "first_seen": "2026-06-15T18:58:10+00:00",
+          "last_used": "2026-06-15T18:58:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1c5c3c6d-d5b4-469e-ae70-ca671e33fdde",
+          "first_seen": "2026-06-15T18:59:03+00:00",
+          "last_used": "2026-06-15T18:59:03+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "fc6f6049-6746-4009-9ae9-2ce598a336f6",
+          "first_seen": "2026-06-15T19:00:50+00:00",
+          "last_used": "2026-06-15T19:00:50+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3771,
       "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure.",
       "wording_check": {
         "done": true,
