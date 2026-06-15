@@ -281,7 +281,7 @@
               "kind": "claim",
               "label": "claim 3.21 — UnblockableNonCollidersOpen",
               "title": "UnblockableNonCollidersOpen",
-              "available": false
+              "available": true
             },
             {
               "ref": "def_3_18",

@@ -1,0 +1,26 @@
+{
+  "ref": "claim_3_21",
+  "kind": "claim",
+  "section": "3.3",
+  "title": "UnblockableNonCollidersOpen",
+  "type": "note",
+  "status": {
+    "formalized": "no",
+    "proven": "not proven",
+    "solved": "yes"
+  },
+  "tex_block_html": "<p>Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.</p>",
+  "tex_statement": {
+    "raw": "% Claim statement file for row claim_3_21 -- \"UnblockableNonCollidersOpen\".\n% Auto-generated stub by scaffold/solve_chapter.py at row start. The\n% manager agent (or a worker it dispatches) fills the body below with the\n% claim's statement(s) from the lecture notes -- statement only, no proof\n% (proofs live in the sibling `claim_3_21_proof_*.tex` file).\n%\n% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The\n% `subfiles` package lets it render both standalone and as part of\n% `main.tex`. Note: `main.tex` does NOT \\subfile this statement file -- the\n% sibling `_proof_` file restates the statement above the proof, so\n% including both in `main.tex` would be redundant. This file exists for\n% standalone reading / grep convenience.\n\n\\documentclass[main]{subfiles}\n\n\\begin{document}\n% ref: claim_3_21 (statement)\n% title: UnblockableNonCollidersOpen\n\\def\\rowref{claim\\_3\\_21}\n\\phantomsection\\label{claim_3_21}\n\nNote that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.\n\n\\end{document}\n",
+    "html": "<p>Note that unblockable non-colliders are always $C$-$\\sigma$-open, regardless of the subset $C \\ins V \\cup J$.</p>",
+    "env": null,
+    "env_title": null,
+    "source_path": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_21_statement_UnblockableNonCollidersOpen.tex"
+  },
+  "tex_proof": null,
+  "lean_blocks": [],
+  "lean_source_url": "",
+  "lean_file_path": "",
+  "addition_to_the_LN": "[claim_is_tautology_against_def_3_17] This statement is a direct unfolding of Definition 3.17, whose $\\sigma$-open and $\\sigma$-blocking criteria range only over colliders and blockable non-colliders. Unblockable non-colliders are therefore unconstrained for every $C \\subseteq V \\cup J$, and the row carries no substantive proof obligation beyond this definitional observation.",
+  "design_choices": ""
+}
