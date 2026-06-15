@@ -81,16 +81,17 @@ clarification:
    universal, not a parallel definition.  Keeping the negation
    definitional avoids a redundant existential encoding.
 
-5. **`abbrev` for the unconditional `C = ∅` and `J = ∅`
-   specialisations, not new `def`s.**  Items 3 and 4 of the LN are
-   *notation aliases*: `A \isPerp_G B := A \isPerp_G B \given ∅`
-   and `A \sPerp_G B \given C := A \isPerp_G B \given C`.  `abbrev`
-   is transparent — `IsSigmaSeparated` reduces to
-   `IsISigmaSeparated` at every elaboration site without an
-   `unfold` step.  No `J = ∅` hypothesis is added to
-   `IsSigmaSeparated`: the LN treats this as a renaming under the
-   assumption (a property of the consumer's CDMG), not a logical
-   condition on the predicate.
+5. **`abbrev` for the unconditional `C = ∅` shorthand; `def` with
+   explicit `hJ : G.J = ∅` for the `J = ∅` renames.**  Item 3 of
+   the LN is a pure notation alias `A \isPerp_G B :=
+   A \isPerp_G B \given ∅` — encoded as `abbrev` so
+   `IsISigmaSeparatedEmpty A B` reduces to
+   `IsISigmaSeparated A B ∅` at every elaboration site without an
+   `unfold` step.  Item 4 renames the predicate under `J = ∅`;
+   encoded as `def` with explicit `(hJ : G.J = ∅)` premise so the
+   σ-vs-iσ-name distinction stays visible at the call site (an
+   `abbrev` would unfold eagerly and erase `hJ` from goal displays
+   at unrelated tactic steps).
 -/
 
 namespace CDMG
@@ -231,15 +232,6 @@ LN tex (item 1 of `def_3_18`, rewritten canonical statement):
 --   for any non-empty `A`; consumers reaching for "separation of
 --   `A` from itself = True" should be aware.
 --
--- *No `A ⊆ J ∪ V` / `B ⊆ J ∪ V` / `C ⊆ J ∪ V` hypotheses at the
---   def site.*  The LN allows the three sets to be arbitrary
---   subsets of `J ∪ V`, but doesn't require it at the predicate
---   level — out-of-graph nodes contribute vacuously to the walk
---   universal (no walk in `G` has an out-of-graph endpoint).
---   Matches the analogous "no subset hypothesis" convention from
---   `def_3_17`'s `IsSigmaBlockedGiven` (also takes `C : Set Node`
---   with no constraint).
---
 -- *`Walk.IsSigmaBlockedGiven` reused verbatim from `def_3_17`
 --   (`SigmaBlockedWalks.lean`).*  The LN's "π is σ-blocked by C"
 --   is exactly that predicate.  Dot-notation
@@ -251,8 +243,63 @@ LN tex (item 1 of `def_3_18`, rewritten canonical statement):
 --   correspondence.  Downstream proofs that need the unfolded
 --   existential disjunction can `unfold IsSigmaBlockedGiven` at
 --   the use site.
+
+-- ## Design choice — subset premises on `A`, `B`, `C`
+--
+-- *Three explicit subset hypotheses
+--   `(hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V)
+--   (hC : C ⊆ ↑G.J ∪ ↑G.V)` on the predicate itself, not on
+--   downstream theorem sites and not bundled.*  The LN writes
+--   "$A, B, C \ins J \cup V$" once at the head of the separation
+--   block — three named, per-set premises mirror that exactly and
+--   close the silent-admission leak the predicate would otherwise
+--   exhibit (a caller could pass arbitrary `Set Node` including
+--   nodes that don't exist in `G`, and the predicate would be
+--   well-typed under a meaning the LN never assigned it).
+--   Pinning the constraint on the def — not on theorem sites — is
+--   the only encoding that closes that leak at the source.
+--
+-- *Separate named hypotheses, not a bundled
+--   `A ∪ B ∪ C ⊆ ↑G.J ∪ ↑G.V` union or an `∧`-conjunction.*
+--   Matches the chapter convention from Section 3.2
+--   (`HardInterventionsCommute`, `DisjointHardInterventionsSwig`,
+--   `AddingInterventionNodes`), each of which carries separate
+--   named `(hW₁ : …) (hW₂ : …)` binders rather than `∧`-bundled
+--   side conditions.  A bundled form would force every downstream
+--   proof to `.1`/`.2.1`/`.2.2`-project the conjunction at the use
+--   site and lose the per-set readability the LN's prose relies on.
+--
+-- *Asymmetric `J` inclusion on the right
+--   (`v ∈ (G.J : Set Node) ∪ B`).*  LN footnote `fn:why-J` is
+--   the load-bearing justification: it makes the implied
+--   (asymmetric) separoid rules for `id`-/`iσ`-separation match
+--   those for Markov-kernel conditional independence (chapter 4+).
+--   This is intentional, not a typo for a future reader to
+--   "symmetrise".  The subset hypotheses tighten the predicate's
+--   *domain*, not the walk universal's reach into `G.J`; the
+--   wording-check subtlety `empty_b_non_vacuous_when_j_nonempty`
+--   still applies (`B = ∅` stays non-vacuous when `G.J ≠ ∅`
+--   under the restricted domain).
+--
+-- *Subset premises live only on the signature; body is the
+--   walk universal alone.*  The body remains
+--   `∀ {u v} (π : Walk G u v), u ∈ A → v ∈ J ∪ B →
+--   π.IsSigmaBlockedGiven C`.  `hA`, `hB`, `hC` restrict the
+--   domain of definition (which `(A, B, C)` triples the predicate
+--   admits), not the semantics of the walk universal.
+-- `hA`, `hB`, `hC` are bound on the signature for LN-faithfulness
+-- ("$A, B, C \ins J \cup V$") and to close the silent-admission leak
+-- documented in the design-choice block above, but the body is the
+-- walk-universal over `G`'s own structure and does not consume them
+-- (out-of-graph nodes contribute vacuously to the walk universal).
+-- The `set_option` matches the chapter convention (`HardInterventionOn`,
+-- `NodeSplittingOn`, `NodeSplittingHard`, `AddingInterventionNodes`,
+-- `MarginalizationAndIntervention`) for LN-faithful binders that are
+-- load-bearing on the *signature* but inert in the body.
+set_option linter.unusedVariables false in
 -- def_3_18 -- start statement
-def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
+def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   ∀ {u v : Node} (π : Walk G u v),
       u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
 -- def_3_18 -- end statement
@@ -296,10 +343,24 @@ def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   classically, but it would break the definitional link with
 --   `IsISigmaSeparated` and require a classical bridging lemma
 --   at every interconversion site.
--- def_3_18 --- start helper
-def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  ¬ G.IsISigmaSeparated A B C
--- def_3_18 --- end helper
+
+-- ## Design choice
+--
+-- *Pure named negation, carrying the same three subset premises
+--   as `IsISigmaSeparated`.*  LN item 2 introduces `\nisPerp` as
+--   named notation for the negation of `\isPerp` — a named
+--   convenience predicate, not a new concept.  Mirroring the
+--   subset hypotheses on the underlying iσ predicate keeps the
+--   two predicates' call-site signatures aligned (every use of
+--   `IsNotISigmaSeparated` already has the data to discharge
+--   `IsISigmaSeparated`'s premises), and the body forwards to
+--   `¬ IsISigmaSeparated` definitionally — no parallel
+--   existential, no bridging lemma.
+-- def_3_18 -- start statement
+def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  ¬ G.IsISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
 
 -- ref: def_3_18 (item 3)
 --
@@ -330,10 +391,40 @@ def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   `¬ G.IsISigmaSeparatedEmpty A B` or
 --   `G.IsNotISigmaSeparated A B ∅`; the `abbrev`'s transparency
 --   makes both interchangeable.
--- def_3_18 --- start helper
-abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
-  G.IsISigmaSeparated A B ∅
--- def_3_18 --- end helper
+
+-- ## Design choice — derived predicate for the `C = ∅` case
+--
+-- *Named derived predicate for the unconditional case
+--   `(A B : Set Node) (hA hB)`, not the iσ predicate always
+--   carrying a vacuous third subset proof.*  LN item 3 *defines*
+--   `A \isPerp_G B` as the special case
+--   `A \isPerp_G B \given ∅`; mirroring that with a dedicated
+--   `IsISigmaSeparatedEmpty` gives consumers a clean name for the
+--   marginal case without making them supply a vacuous third
+--   subset proof.  The body forwards to
+--   `IsISigmaSeparated A B ∅` and discharges
+--   `hC : ∅ ⊆ ↑G.J ∪ ↑G.V` automatically via
+--   `Set.empty_subset _`, so the user never has to write the
+--   empty-subset proof at the call site.
+--
+-- *Two subset hypotheses `(hA hB)`, not three.*  The third slot
+--   would be a constant `Set.empty_subset _` — making it implicit
+--   in the alias keeps the call-site signature minimal and
+--   reflects the LN's notation `A \isPerp_G B` (no `C` argument
+--   appears).
+--
+-- *`abbrev`, not `def`.*  Pure notational alias — Lean reduces
+--   `G.IsISigmaSeparatedEmpty A B hA hB` to
+--   `G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)` at
+--   every use site without an explicit `unfold`, so every lemma
+--   about the underlying iσ predicate fires automatically on the
+--   shorthand and vice versa.  No `hJ` is involved here, so the
+--   `def` encoding the σ-aliases below use does not apply.
+-- def_3_18 -- start statement
+abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
+-- def_3_18 -- end statement
 
 -- ref: def_3_18 (item 4)
 --
@@ -363,30 +454,6 @@ abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
 --   correspondence on the LN's most-used graphical-separation
 --   predicate.
 --
--- *`abbrev`, not a `J = ∅`-conditional `def`.*  The LN writes
---   "when `J = ∅`, … is also called …" — the renaming is in force
---   under the assumption, but the predicate itself is unchanged.
---   Adding `(hJ : G.J = ∅)` as a hypothesis would over-fire:
---   `IsSigmaSeparated` would then need to take the proof at every
---   call site, even though the LN's "we write …" introduces no
---   such proof obligation.  The `J = ∅` precondition is a
---   *call-site* fact about the consumer's CDMG (e.g. `claim_3_22`
---   hands it in as an explicit hypothesis), not a logical
---   condition baked into the predicate.  Same `abbrev`
---   transparency rationale as `IsISigmaSeparatedEmpty`: Lean
---   reduces `G.IsSigmaSeparated A B C` to
---   `G.IsISigmaSeparated A B C` at every use site, so every
---   lemma about either form fires on the other.
---
--- *Why an `abbrev` is the right choice over notation /
---   `local notation`.*  A `notation` macro would also be
---   transparent but would not survive cross-file boundaries
---   without re-declaration; an `abbrev` is namespaced under
---   `CDMG` and inherits the chapter-wide `Causality` /
---   `CDMG`-namespace open conventions, so downstream sites in
---   later chapters can write `G.IsSigmaSeparated A B C` without
---   special imports.
---
 -- *No symmetry claim here.*  The LN's embedded `claimmark` for
 --   σ-separation symmetry (`claim_3_22`) is intentionally excluded
 --   from this row, per the rewritten canonical tex's "Treatment of
@@ -402,10 +469,56 @@ abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
 --   that walk-reversal is an involution and σ-blocking is
 --   invariant under it) — that gap is to be addressed inside
 --   `claim_3_22`'s proof, not here.
--- def_3_18 --- start helper
-abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsISigmaSeparated A B C
--- def_3_18 --- end helper
+
+-- ## Design choice — `J = ∅` hypothesis
+--
+-- *Explicit `(hJ : G.J = ∅)` premise on the predicate, not a
+--   separate `DMG` subtype or typeclass.*  LN item 4 defines
+--   `A \sPerp_G B \given C := A \isPerp_G B \given C` *for the
+--   special case `J = ∅`* — a notational renaming under the
+--   assumption, not a new type.  Taking the equation `G.J = ∅`
+--   directly as a hypothesis matches the LN reading word-for-word
+--   and keeps the declaration lightweight (no new typeclass, no
+--   structure projection at every use site).  Downstream
+--   consumers (e.g. `claim_3_22` σ-separation symmetry) can
+--   discharge `hJ` directly from their own hypotheses.
+--
+-- *`def IsDMG (G : CDMG Node) : Prop := G.J = ∅` already exists
+--   in `Section3_1/CDMGTypes.lean` (`def_3_7`)* — a downstream
+--   consumer who prefers the named property can write
+--   `(hDMG : G.IsDMG)` and unfold to `G.J = ∅`.  But this
+--   predicate takes the bare equation to stay self-contained
+--   relative to the CDMG-property hierarchy and to avoid making
+--   def_3_18 transitively depend on def_3_7 (which it otherwise
+--   does not need).
+--
+-- *Same three subset hypotheses as the underlying iσ predicate.*
+--   The LN's "$A, B, C \ins J \cup V$" applies under both names;
+--   the renaming under `J = ∅` does not loosen the LN's domain of
+--   definition.  Body forwards `(A, B, C, hA, hB, hC)` unchanged
+--   to `IsISigmaSeparated`.
+--
+-- *`def`, not `abbrev`.*  With `hJ` as a dependent hypothesis,
+--   `abbrev`'s aggressive reducibility becomes a footgun: Lean
+--   would unfold the alias eagerly and the `hJ` evidence would
+--   disappear from goal displays at unrelated tactic steps.
+--   `def` keeps the alias opaque-by-default and preserves the
+--   σ-vs-iσ symbolic distinction at every use site.
+-- `hJ : G.J = ∅` is bound on the signature for LN-faithfulness ("for
+-- the special case $J = \emptyset$") and to keep the σ-/iσ-name
+-- distinction visible at the call site, but the body forwards
+-- `(A, B, C, hA, hB, hC)` unchanged to `IsISigmaSeparated` —
+-- the `J = ∅` precondition is a consumer-side fact about the CDMG,
+-- not a logical condition baked into the body.  Same `set_option`
+-- convention as `HardInterventionOn` / `NodeSplittingOn` /
+-- `NodeSplittingHard` / `AddingInterventionNodes` /
+-- `MarginalizationAndIntervention`.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
 
 -- ref: def_3_18 (item 4, negation)
 --
@@ -423,27 +536,36 @@ abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   statements and proof case-splits).  Including the negated
 --   alias keeps that pairing intact in Lean.
 --
--- *`abbrev` for the same reasons as `IsSigmaSeparated`.*  Pure
---   notational renaming under a `J = ∅` precondition that is a
---   *consumer-side* fact about the CDMG.  Transparent unfolding
---   means a proof that establishes
---   `G.IsNotSigmaSeparated A B C` immediately discharges any
---   goal `G.IsNotISigmaSeparated A B C` (and vice versa), without
---   a bridging lemma.  The `J = ∅`-conditional `def` shape was
---   rejected for the same over-fire reason as `IsSigmaSeparated`:
---   the LN's renaming is *under* the assumption, not
---   *conditional on* a Lean-tracked proof of it.
---
 -- *No new content beyond `IsNotISigmaSeparated ∘ rename`.*  In
 --   particular this alias does *not* re-introduce the "positive
 --   existential" formulation of the negation — the existential
 --   reformulation, when needed, remains the standalone classical
 --   De Morgan lemma noted in `IsNotISigmaSeparated`'s design
 --   block and is shared across both `iσ` and `σ` names.
--- def_3_18 --- start helper
-abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsNotISigmaSeparated A B C
--- def_3_18 --- end helper
+
+-- ## Design choice
+--
+-- *Negation of `IsSigmaSeparated`, carrying the same `(hJ : G.J =
+--   ∅)` and three subset premises.*  LN item 4 introduces
+--   `\nsPerp` alongside `\sPerp` as the paired negated notation
+--   under `J = ∅` — a named convenience predicate, not a new
+--   concept; the σ and ¬σ names are introduced and used as a unit
+--   (claim statements and proof case-splits alternate between the
+--   two), so the predicate signatures stay aligned.  Body
+--   forwards to `IsNotISigmaSeparated`.  Same `def` (not
+--   `abbrev`) encoding as `IsSigmaSeparated` for the same
+--   `hJ`-dependency reason.
+-- `hJ : G.J = ∅` is bound on the signature for LN-faithfulness and
+-- σ-/iσ-name pairing with `IsSigmaSeparated`, but the body
+-- forwards `(A, B, C, hA, hB, hC)` unchanged to
+-- `IsNotISigmaSeparated`.  Same `set_option` exemption as
+-- `IsSigmaSeparated` above, for the same reason.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsNotISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
 
 end CDMG
 

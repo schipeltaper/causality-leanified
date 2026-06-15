@@ -2172,31 +2172,36 @@ Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of 
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{helper}}
+{\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  ¬ G.IsISigmaSeparated A B C
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
-  G.IsISigmaSeparated A B ∅
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsISigmaSeparated A B C
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsNotISigmaSeparated A B C
+def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  ∀ {u v : Node} (π : Walk G u v),
+      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  ∀ {u v : Node} (π : Walk G u v),
-      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
+def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  ¬ G.IsISigmaSeparated A B C hA hB hC
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsISigmaSeparated A B C hA hB hC
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.IsNotISigmaSeparated A B C hA hB hC
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_18

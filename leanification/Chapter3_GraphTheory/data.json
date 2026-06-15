@@ -3126,7 +3126,7 @@
       "proven": "n/a",
       "solved": "yes",
       "date_solved": "2026-06-15",
-      "tips": "Refactored on 2026-06-15 via `blockable_noncollider_first` (see leanification/Chapter*/Refactor_blockable_noncollider_first_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-15 via `blockable_noncollider_first` (see leanification/Chapter*/Refactor_blockable_noncollider_first_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-15 via `sigma_separation_J_empty_premise` (see leanification/Chapter*/Refactor_sigma_separation_J_empty_premise_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
       "lean_files": [
@@ -3140,12 +3140,12 @@
         "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
-        "solved": 1,
+        "add_design_choice_comments": 0,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3164,47 +3164,103 @@
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "dd7de3ee-0315-431b-a200-533745b7a98a",
-          "first_seen": "2026-06-15T19:31:30+00:00",
-          "last_used": "2026-06-15T19:31:30+00:00"
+          "session_id": "ad100e68-86ab-4cf2-840e-a642d845ce98",
+          "first_seen": "2026-06-15T21:51:28+00:00",
+          "last_used": "2026-06-15T21:51:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "0421ffcb-bc10-4744-a236-01b1aac3758d",
+          "first_seen": "2026-06-15T21:57:12+00:00",
+          "last_used": "2026-06-15T21:57:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "96cd1c76-7ccf-4031-a658-59b85340be9e",
+          "first_seen": "2026-06-15T21:58:33+00:00",
+          "last_used": "2026-06-15T21:58:33+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "4c6597fa-8d1e-4b98-90fc-7baef6fdd93d",
+          "first_seen": "2026-06-15T22:06:00+00:00",
+          "last_used": "2026-06-15T22:06:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0f727948-4b42-4c67-8a2c-dc0db9b9cb64",
+          "first_seen": "2026-06-15T22:06:56+00:00",
+          "last_used": "2026-06-15T22:06:56+00:00"
         },
         {
           "kind": "verify_equivalence",
           "spawned_by": "manager",
-          "session_id": "51dc1de8-643d-4489-863e-fef0de1383fc",
-          "first_seen": "2026-06-15T19:33:53+00:00",
-          "last_used": "2026-06-15T19:33:53+00:00"
+          "session_id": "71ed4265-435e-44a8-82d9-fdab4f3f5c69",
+          "first_seen": "2026-06-15T22:08:45+00:00",
+          "last_used": "2026-06-15T22:08:45+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "4e11c950-6b1b-4119-962c-474648ec632a",
-          "first_seen": "2026-06-15T19:35:17+00:00",
-          "last_used": "2026-06-15T19:35:17+00:00"
+          "session_id": "f16239f0-8e54-400f-ad38-f5c5d9c61158",
+          "first_seen": "2026-06-15T22:10:08+00:00",
+          "last_used": "2026-06-15T22:10:08+00:00"
         },
         {
-          "kind": "add_design_choice_comments",
+          "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "a05d0f51-05d3-40a0-b42f-3ec770ed508d",
-          "first_seen": "2026-06-15T19:38:17+00:00",
-          "last_used": "2026-06-15T19:38:17+00:00"
+          "session_id": "f95dff74-37b2-40b9-abcc-d94e377ef334",
+          "first_seen": "2026-06-15T22:17:06+00:00",
+          "last_used": "2026-06-15T22:17:06+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "dabe368b-7dc6-4fff-a434-23cfdf00a319",
-          "first_seen": "2026-06-15T19:38:56+00:00",
-          "last_used": "2026-06-15T19:38:56+00:00"
+          "session_id": "26989797-824e-42c6-bbd1-5bb5747b8947",
+          "first_seen": "2026-06-15T22:17:53+00:00",
+          "last_used": "2026-06-15T22:17:53+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "620ea657-1550-4346-8639-dffb09d56bf3",
-          "first_seen": "2026-06-15T19:40:44+00:00",
-          "last_used": "2026-06-15T19:40:44+00:00"
+          "session_id": "24541f9e-a0a5-473e-a5a2-cd5646320d5b",
+          "first_seen": "2026-06-15T22:29:12+00:00",
+          "last_used": "2026-06-15T22:29:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b156368a-8271-4e16-b203-828f2f12ce9c",
+          "first_seen": "2026-06-15T22:30:05+00:00",
+          "last_used": "2026-06-15T22:30:05+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "60258843-5588-44fb-9b69-c92f8431cea9",
+          "first_seen": "2026-06-15T22:35:49+00:00",
+          "last_used": "2026-06-15T22:35:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c48191db-85a1-456f-8cb5-5468e52c5b4e",
+          "first_seen": "2026-06-15T22:36:14+00:00",
+          "last_used": "2026-06-15T22:36:14+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "9260a1e3-fe0a-4d41-b52e-29cd8c9c20ae",
+          "first_seen": "2026-06-15T22:39:02+00:00",
+          "last_used": "2026-06-15T22:39:02+00:00"
         }
       ],
-      "time_needed_to_solve": 1011,
+      "time_needed_to_solve": 3436,
       "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal.",
       "wording_check": {
         "done": true,
