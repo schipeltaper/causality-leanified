@@ -91,9 +91,6 @@ clarification:
    `IsSigmaSeparated`: the LN treats this as a renaming under the
    assumption (a property of the consumer's CDMG), not a logical
    condition on the predicate.
-
-The substantive per-declaration design rationale lives in the
-comment block immediately above each `-- def_3_18 --` marker.
 -/
 
 namespace CDMG

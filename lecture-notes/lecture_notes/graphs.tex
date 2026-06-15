@@ -1421,162 +1421,162 @@ The following result is often helpful to simplify proofs and to make checking $i
         \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
 \end{Lem}
 \end{claimmark}
-\Claude{%
-\begin{proof}
-By Lemma~\ref{marginalizations-commute} and induction on $\#D$, it suffices to prove the case $D=\{u\}$ for a single node $u \in V \sm (A \cup B \cup C)$.
+% \Claude{%
+% \begin{proof}
+% By Lemma~\ref{marginalizations-commute} and induction on $\#D$, it suffices to prove the case $D=\{u\}$ for a single node $u \in V \sm (A \cup B \cup C)$.
 
-We use three preparatory facts.
-First, marginalization preserves ancestral relations
-(Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}):
-for $v_1,v_2 \in J \cup V \sm \{u\}$,
-\begin{equation}\label{eq:anc_preserved}
-  v_1 \in \Anc^G(v_2) \;\iff\; v_1 \in \Anc^{G^{\sm u}}(v_2).
-\end{equation}
-In particular, $\Anc^{G^{\sm u}}(C) = \Anc^G(C) \cap (J \cup V \sm \{u\})$,
-since $u \notin C$.
-Second, marginalization preserves strongly connected components:
-for $v \in V \sm \{u\}$,
-\begin{equation}\label{eq:sc_preserved}
-  \Sc^{G^{\sm u}}(v) = \Sc^G(v) \sm \{u\}.
-\end{equation}
-Indeed, $\Sc^G(v) = \Anc^G(v) \cap \Desc^G(v)$, and by \eqref{eq:anc_preserved}
-both $\Anc$ and $\Desc$ are preserved on $V \sm \{u\}$.
-Third, every edge in $G^{\sm u}$ lifts to a short walk through $u$ in $G$:
-\begin{itemize}
-  \item A directed edge $v \tuh w$ in $G^{\sm u}$ comes from
-    $v \tuh w$ or $v \tuh u \tuh w$ in $G$.
-  \item A bidirected edge $v \huh w$ in $G^{\sm u}$ comes from
-    a bifurcation through $u$ in $G$, i.e.:
-    $v \huh w$, or
-    $v \hut u \tuh w$ (fork), or
-    $v \huh u \tuh w$ (left hinge), or
-    $v \hut u \huh w$ (right hinge).\footnote{We exclude longer bifurcations through repeated self-loop traversals of $u$ for simplicity; they can be handled analogously.}
-\end{itemize}
-In all bifurcation cases, $u$ appears as a non-collider
-(at most one arrowhead towards $u$).
+% We use three preparatory facts.
+% First, marginalization preserves ancestral relations
+% (Remark~\ref{rem:marg_preserves_ancestors_bifurcations_acyclicity}):
+% for $v_1,v_2 \in J \cup V \sm \{u\}$,
+% \begin{equation}\label{eq:anc_preserved}
+%   v_1 \in \Anc^G(v_2) \;\iff\; v_1 \in \Anc^{G^{\sm u}}(v_2).
+% \end{equation}
+% In particular, $\Anc^{G^{\sm u}}(C) = \Anc^G(C) \cap (J \cup V \sm \{u\})$,
+% since $u \notin C$.
+% Second, marginalization preserves strongly connected components:
+% for $v \in V \sm \{u\}$,
+% \begin{equation}\label{eq:sc_preserved}
+%   \Sc^{G^{\sm u}}(v) = \Sc^G(v) \sm \{u\}.
+% \end{equation}
+% Indeed, $\Sc^G(v) = \Anc^G(v) \cap \Desc^G(v)$, and by \eqref{eq:anc_preserved}
+% both $\Anc$ and $\Desc$ are preserved on $V \sm \{u\}$.
+% Third, every edge in $G^{\sm u}$ lifts to a short walk through $u$ in $G$:
+% \begin{itemize}
+%   \item A directed edge $v \tuh w$ in $G^{\sm u}$ comes from
+%     $v \tuh w$ or $v \tuh u \tuh w$ in $G$.
+%   \item A bidirected edge $v \huh w$ in $G^{\sm u}$ comes from
+%     a bifurcation through $u$ in $G$, i.e.:
+%     $v \huh w$, or
+%     $v \hut u \tuh w$ (fork), or
+%     $v \huh u \tuh w$ (left hinge), or
+%     $v \hut u \huh w$ (right hinge).\footnote{We exclude longer bifurcations through repeated self-loop traversals of $u$ for simplicity; they can be handled analogously.}
+% \end{itemize}
+% In all bifurcation cases, $u$ appears as a non-collider
+% (at most one arrowhead towards $u$).
 
-\medskip\noindent$(\implies)$
-Suppose $A \nisPerp_{G^{\sm u}} B \given C$.
-Let $\pi' = (b_0 \sus \cdots \sus b_s)$ be a $C$-$\sigma$-open walk in $G^{\sm u}$
-from $b_0 \in A$ to $b_s \in J \cup B$.
-Lift each edge of $\pi'$ to a walk segment in $G$ as above, obtaining a walk $\pi$ in $G$ from $b_0$ to $b_s$.
-We verify that $\pi$ is $C$-$\sigma$-open.
+% \medskip\noindent$(\implies)$
+% Suppose $A \nisPerp_{G^{\sm u}} B \given C$.
+% Let $\pi' = (b_0 \sus \cdots \sus b_s)$ be a $C$-$\sigma$-open walk in $G^{\sm u}$
+% from $b_0 \in A$ to $b_s \in J \cup B$.
+% Lift each edge of $\pi'$ to a walk segment in $G$ as above, obtaining a walk $\pi$ in $G$ from $b_0$ to $b_s$.
+% We verify that $\pi$ is $C$-$\sigma$-open.
 
-\emph{Arrowheads at non-$u$ nodes are preserved:}
-For each $b_j$ ($0 \le j \le s$), the arrowhead towards $b_j$ from each adjacent edge
-is the same in $\pi$ as in $\pi'$
-(for directed edges this is immediate;
-for bifurcation expansions, the arrowhead at $v$ from $v \hut u$ or $v \huh u$
-matches the arrowhead at $v$ from the original $v \huh w$).
-So collider/non-collider status at each $b_j$ is preserved.
+% \emph{Arrowheads at non-$u$ nodes are preserved:}
+% For each $b_j$ ($0 \le j \le s$), the arrowhead towards $b_j$ from each adjacent edge
+% is the same in $\pi$ as in $\pi'$
+% (for directed edges this is immediate;
+% for bifurcation expansions, the arrowhead at $v$ from $v \hut u$ or $v \huh u$
+% matches the arrowhead at $v$ from the original $v \huh w$).
+% So collider/non-collider status at each $b_j$ is preserved.
 
-\emph{Colliders remain open:}
-A collider $b_j$ on $\pi$ satisfies
-$b_j \in \Anc^{G^{\sm u}}(C) \subseteq \Anc^G(C)$ by \eqref{eq:anc_preserved}. %, so it is $\sigma$-open in $G$.
+% \emph{Colliders remain open:}
+% A collider $b_j$ on $\pi$ satisfies
+% $b_j \in \Anc^{G^{\sm u}}(C) \subseteq \Anc^G(C)$ by \eqref{eq:anc_preserved}. %, so it is $\sigma$-open in $G$.
 
-\emph{Blockable non-colliders remain open:}
-A blockable non-collider $b_j \notin C$ on $\pi'$ may become unblockable in $G$
-(since $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$), but in either case $b_j \notin C$ means it is $\sigma$-open.
+% \emph{Blockable non-colliders remain open:}
+% A blockable non-collider $b_j \notin C$ on $\pi'$ may become unblockable in $G$
+% (since $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$), but in either case $b_j \notin C$ means it is $\sigma$-open.
 
-\emph{Unblockable non-colliders remain open:}
-An unblockable non-collider $b_j$ on $\pi'$ has its outgoing edge(s) going to nodes in $\Sc^{G^{\sm u}}(b_j)$.
-If $b_j$'s outgoing edge was not expanded through $u$, the same neighbor lies in $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$.
-If $b_j$'s outgoing edge in $\pi$ goes to $u$ (from expansion), then $b_j$ has a directed edge to $u$,
-and $u$ has a directed edge to some $b_{j\pm 1} \in \Sc^{G^{\sm u}}(b_j) \subseteq \Sc^G(b_j)$;
-since $b_{j\pm 1}$ can reach $b_j$ in $G$ (they share an SCC) and $b_j$ reaches $u$ directly,
-we get $u \in \Sc^G(b_j)$, so $b_j$ remains unblockable.
+% \emph{Unblockable non-colliders remain open:}
+% An unblockable non-collider $b_j$ on $\pi'$ has its outgoing edge(s) going to nodes in $\Sc^{G^{\sm u}}(b_j)$.
+% If $b_j$'s outgoing edge was not expanded through $u$, the same neighbor lies in $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$.
+% If $b_j$'s outgoing edge in $\pi$ goes to $u$ (from expansion), then $b_j$ has a directed edge to $u$,
+% and $u$ has a directed edge to some $b_{j\pm 1} \in \Sc^{G^{\sm u}}(b_j) \subseteq \Sc^G(b_j)$;
+% since $b_{j\pm 1}$ can reach $b_j$ in $G$ (they share an SCC) and $b_j$ reaches $u$ directly,
+% we get $u \in \Sc^G(b_j)$, so $b_j$ remains unblockable.
 
-\emph{Inserted $u$-nodes are $\sigma$-open:}
-Each inserted $u$ is a non-collider (at most one arrowhead towards $u$)
-with $u \notin C$, so it is $\sigma$-open regardless of whether it is blockable or unblockable.
+% \emph{Inserted $u$-nodes are $\sigma$-open:}
+% Each inserted $u$ is a non-collider (at most one arrowhead towards $u$)
+% with $u \notin C$, so it is $\sigma$-open regardless of whether it is blockable or unblockable.
 
-\medskip\noindent$(\impliedby)$
-Suppose $A \nisPerp_G B \given C$.
-By Proposition~\ref{prp:sigma_opens}(3),
-there exists a $C$-$\sigma$-open walk $\pi = (v_0 \sus \cdots \sus v_n)$
-in $G$ from $v_0 \in A$ to $v_n \in J \cup B$
-such that all colliders on $\pi$ lie in $C$.
-Since $u \notin C$, the node $u$ is a non-collider at every position where it appears on $\pi$.
-Since $u \notin A \cup B$ and $u \in V$ (so $u \notin J$),
-$u$ is not an endpoint of $\pi$.
+% \medskip\noindent$(\impliedby)$
+% Suppose $A \nisPerp_G B \given C$.
+% By Proposition~\ref{prp:sigma_opens}(3),
+% there exists a $C$-$\sigma$-open walk $\pi = (v_0 \sus \cdots \sus v_n)$
+% in $G$ from $v_0 \in A$ to $v_n \in J \cup B$
+% such that all colliders on $\pi$ lie in $C$.
+% Since $u \notin C$, the node $u$ is a non-collider at every position where it appears on $\pi$.
+% Since $u \notin A \cup B$ and $u \in V$ (so $u \notin J$),
+% $u$ is not an endpoint of $\pi$.
 
-We construct a $C$-$\sigma$-open walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$
-by contracting each maximal run of $u$'s between consecutive non-$u$ nodes.
-Let $b_0 = v_0, b_1, \dots, b_r, b_{r+1} = v_n$ be the subsequence of
-non-$u$ nodes on $\pi$ (in order of appearance).
+% We construct a $C$-$\sigma$-open walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$
+% by contracting each maximal run of $u$'s between consecutive non-$u$ nodes.
+% Let $b_0 = v_0, b_1, \dots, b_r, b_{r+1} = v_n$ be the subsequence of
+% non-$u$ nodes on $\pi$ (in order of appearance).
 
-\emph{Contraction of each $u$-segment:}
-For each consecutive pair $(b_j, b_{j+1})$, the subwalk of $\pi$ from $b_j$ to $b_{j+1}$
-has all intermediate nodes equal to $u$, where each $u$ is a non-collider.
-We claim this subwalk yields a single edge in $G^{\sm u}$,
-with the arrowhead types at $b_j$ and $b_{j+1}$ preserved.
-If there is no intermediate $u$, the edge $b_j \sus b_{j+1}$ in $G$
-is already present in $G^{\sm u}$ (with the same arrowheads).
-Otherwise, the possible local patterns (for a single intermediate $u$;
-longer runs through self-loops are handled analogously) are,
-up to left--right reflection:
-\[\begin{array}{rclcl}
-  b_j \tuh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \tuh b_{j+1} \in E^{\sm u}
-  & \quad & \text{(directed walk)}\\
-  b_j \hut u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
-  & \quad & \text{(fork bifurcation)}\\
-  b_j \huh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
-  & \quad & \text{(hinge bifurcation)}
-\end{array}\]
-In all cases the arrowhead towards $b_j$ (and $b_{j+1}$) from the
-contracted edge matches the arrowhead from the original edge adjacent to $b_j$ (resp.\ $b_{j+1}$).
+% \emph{Contraction of each $u$-segment:}
+% For each consecutive pair $(b_j, b_{j+1})$, the subwalk of $\pi$ from $b_j$ to $b_{j+1}$
+% has all intermediate nodes equal to $u$, where each $u$ is a non-collider.
+% We claim this subwalk yields a single edge in $G^{\sm u}$,
+% with the arrowhead types at $b_j$ and $b_{j+1}$ preserved.
+% If there is no intermediate $u$, the edge $b_j \sus b_{j+1}$ in $G$
+% is already present in $G^{\sm u}$ (with the same arrowheads).
+% Otherwise, the possible local patterns (for a single intermediate $u$;
+% longer runs through self-loops are handled analogously) are,
+% up to left--right reflection:
+% \[\begin{array}{rclcl}
+%   b_j \tuh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \tuh b_{j+1} \in E^{\sm u}
+%   & \quad & \text{(directed walk)}\\
+%   b_j \hut u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
+%   & \quad & \text{(fork bifurcation)}\\
+%   b_j \huh u \tuh b_{j+1} & \;\longrightarrow\; & b_j \huh b_{j+1} \in L^{\sm u}
+%   & \quad & \text{(hinge bifurcation)}
+% \end{array}\]
+% In all cases the arrowhead towards $b_j$ (and $b_{j+1}$) from the
+% contracted edge matches the arrowhead from the original edge adjacent to $b_j$ (resp.\ $b_{j+1}$).
 
-Assembling these edges yields a walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$.
+% Assembling these edges yields a walk $\pi'$ in $G^{\sm u}$ from $v_0$ to $v_n$.
 
-\emph{Collider/non-collider status is preserved:}
-Since arrowhead types at each $b_j$ are preserved on both sides,
-collider/non-collider status at $b_j$ in $\pi'$ is the same as in $\pi$.
+% \emph{Collider/non-collider status is preserved:}
+% Since arrowhead types at each $b_j$ are preserved on both sides,
+% collider/non-collider status at $b_j$ in $\pi'$ is the same as in $\pi$.
 
-\emph{Colliders remain open:}
-Colliders on $\pi$ lie in $C \subseteq \Anc^G(C)$.
-By \eqref{eq:anc_preserved}, $C \subseteq \Anc^{G^{\sm u}}(C)$, so they are $\sigma$-open in $G^{\sm u}$.
+% \emph{Colliders remain open:}
+% Colliders on $\pi$ lie in $C \subseteq \Anc^G(C)$.
+% By \eqref{eq:anc_preserved}, $C \subseteq \Anc^{G^{\sm u}}(C)$, so they are $\sigma$-open in $G^{\sm u}$.
 
-\emph{Non-colliders remain $\sigma$-open (with possible walk modification):}
-By \eqref{eq:sc_preserved}, $\Sc^{G^{\sm u}}(b_j) = \Sc^G(b_j) \sm \{u\}$.
-A blockable non-collider $b_j \notin C$ on $\pi$ stays $\notin C$, hence $\sigma$-open in $\pi'$,
-whether it stays blockable or becomes unblockable in $G^{\sm u}$.
-An unblockable non-collider $b_j$ on $\pi$ whose outgoing edges on $\pi'$ all go to
-$\Sc^{G^{\sm u}}(b_j)$ remains unblockable, hence $\sigma$-open.
+% \emph{Non-colliders remain $\sigma$-open (with possible walk modification):}
+% By \eqref{eq:sc_preserved}, $\Sc^{G^{\sm u}}(b_j) = \Sc^G(b_j) \sm \{u\}$.
+% A blockable non-collider $b_j \notin C$ on $\pi$ stays $\notin C$, hence $\sigma$-open in $\pi'$,
+% whether it stays blockable or becomes unblockable in $G^{\sm u}$.
+% An unblockable non-collider $b_j$ on $\pi$ whose outgoing edges on $\pi'$ all go to
+% $\Sc^{G^{\sm u}}(b_j)$ remains unblockable, hence $\sigma$-open.
 
-It remains to consider an unblockable non-collider $b_j$ on $\pi$
-with an outgoing edge on $\pi'$ to (w.l.o.g.)\ $b_{j+1} \notin \Sc^{G^{\sm u}}(b_j)$.
-On $\pi$, this outgoing edge went to $u \in \Sc^G(b_j)$ via $b_j \tuh u \in E$,
-which contracted to $b_j \tuh b_{j+1} \in E^{\sm u}$.
-If $b_j \notin C$, then $b_j$ is $\sigma$-open as a blockable non-collider.
+% It remains to consider an unblockable non-collider $b_j$ on $\pi$
+% with an outgoing edge on $\pi'$ to (w.l.o.g.)\ $b_{j+1} \notin \Sc^{G^{\sm u}}(b_j)$.
+% On $\pi$, this outgoing edge went to $u \in \Sc^G(b_j)$ via $b_j \tuh u \in E$,
+% which contracted to $b_j \tuh b_{j+1} \in E^{\sm u}$.
+% If $b_j \notin C$, then $b_j$ is $\sigma$-open as a blockable non-collider.
 
-Suppose $b_j \in C$.
-Since $u \in \Sc^G(b_j)$, there is a directed path from $u$ to $b_j$ in $G$;
-let $w$ be the successor of $u$ on this path,
-so $u \tuh w \in E$ and $w \in \Sc^G(b_j) \sm \{u\} = \Sc^{G^{\sm u}}(b_j)$
-(note $w \ne b_{j+1}$ since $b_{j+1} \notin \Sc^G(b_j)$).
-Since $b_j \tuh u \tuh w$ is a directed walk through $u$ in $G$,
-we have $b_j \tuh w \in E^{\sm u}$ (trivially satisfied if $w = b_j$).
-The fork bifurcation $w \ot u \tuh b_{j+1}$ yields $w \huh b_{j+1} \in L^{\sm u}$.
-We replace the edge $b_j \tuh b_{j+1}$ in $\pi'$ by
-$b_j \tuh w \huh b_{j+1}$ (or just $b_j \huh b_{j+1}$ if $w = b_j$).
-The arrowhead at $b_{j+1}$ is preserved (arrowhead in both cases).
-The node $w$ is a collider; since $w \in \Sc^{G^{\sm u}}(b_j)$ and $b_j \in C$,
-we get $w \in \Anc^{G^{\sm u}}(C)$, so $w$ is $\sigma$-open.
-If $w \ne b_j$, then $b_j$'s outgoing edge toward $b_{j+1}$ now goes to
-$w \in \Sc^{G^{\sm u}}(b_j)$.
-If $w = b_j$, the directed edge $b_j \tuh b_{j+1}$ is replaced by the
-bidirected edge $b_j \huh b_{j+1}$,
-adding an arrowhead at $b_j$ on this side.
-Applying this construction to each problematic outgoing edge of $b_j$
-(symmetrically for $b_{j-1}$ if needed),
-after all modifications $b_j$ is either unblockable
-(all outgoing edges go to $\Sc^{G^{\sm u}}(b_j)$)
-or a collider in $C \subseteq \Anc^{G^{\sm u}}(C)$;
-in both cases $\sigma$-open.
+% Suppose $b_j \in C$.
+% Since $u \in \Sc^G(b_j)$, there is a directed path from $u$ to $b_j$ in $G$;
+% let $w$ be the successor of $u$ on this path,
+% so $u \tuh w \in E$ and $w \in \Sc^G(b_j) \sm \{u\} = \Sc^{G^{\sm u}}(b_j)$
+% (note $w \ne b_{j+1}$ since $b_{j+1} \notin \Sc^G(b_j)$).
+% Since $b_j \tuh u \tuh w$ is a directed walk through $u$ in $G$,
+% we have $b_j \tuh w \in E^{\sm u}$ (trivially satisfied if $w = b_j$).
+% The fork bifurcation $w \ot u \tuh b_{j+1}$ yields $w \huh b_{j+1} \in L^{\sm u}$.
+% We replace the edge $b_j \tuh b_{j+1}$ in $\pi'$ by
+% $b_j \tuh w \huh b_{j+1}$ (or just $b_j \huh b_{j+1}$ if $w = b_j$).
+% The arrowhead at $b_{j+1}$ is preserved (arrowhead in both cases).
+% The node $w$ is a collider; since $w \in \Sc^{G^{\sm u}}(b_j)$ and $b_j \in C$,
+% we get $w \in \Anc^{G^{\sm u}}(C)$, so $w$ is $\sigma$-open.
+% If $w \ne b_j$, then $b_j$'s outgoing edge toward $b_{j+1}$ now goes to
+% $w \in \Sc^{G^{\sm u}}(b_j)$.
+% If $w = b_j$, the directed edge $b_j \tuh b_{j+1}$ is replaced by the
+% bidirected edge $b_j \huh b_{j+1}$,
+% adding an arrowhead at $b_j$ on this side.
+% Applying this construction to each problematic outgoing edge of $b_j$
+% (symmetrically for $b_{j-1}$ if needed),
+% after all modifications $b_j$ is either unblockable
+% (all outgoing edges go to $\Sc^{G^{\sm u}}(b_j)$)
+% or a collider in $C \subseteq \Anc^{G^{\sm u}}(C)$;
+% in both cases $\sigma$-open.
 
-Applying all such modifications yields a $C$-$\sigma$-open walk in $G^{\sm u}$ from $v_0$ to $v_n$.
-\end{proof}
-}%end Claude
+% Applying all such modifications yields a $C$-$\sigma$-open walk in $G^{\sm u}$ from $v_0$ to $v_n$.
+% \end{proof}
+% }%end Claude
 
 % claim_3_26
 \begin{claimmark}
