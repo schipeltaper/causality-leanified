@@ -26,14 +26,14 @@
     {
       "kind": "helper",
       "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This is a `variable` declaration: Lean auto-binds `Node : Type*` and the instance `[DecidableEq Node]` as implicit arguments to every subsequent declaration in the surrounding `CDMG` namespace, sparing us from rewriting the same parameters on `acyclic_non_colliders_blockable`. The `Type*` notation makes `Node` universe-polymorphic, so callers can instantiate it at any universe level. The `DecidableEq Node` assumption is load-bearing because the per-position predicates `IsNonCollider` (from `def_3_15`) and `IsBlockableNonCollider` (from `def_3_16`) both require it — their internal `Finset.filter` over the walk's incident edges needs decidable equality on `Node` to compute the arrowhead count $\\mathrm{ah}_\\pi(k)$. Stronger structure on `Node` (e.g.\\ `Fintype`, `LinearOrder`) is not required here and is deferred to downstream consumers that actually use it. Same convention as the rest of `Chapter3_GraphTheory`'s files.",
+      "code_annotated": "-- Auto-binds `Node` + `DecidableEq Node` as implicits; decidability is required by `IsNonCollider`/`IsBlockableNonCollider`'s internal `Finset` machinery.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
       "kind": "main",
       "code": "theorem acyclic_non_colliders_blockable\n    (G : CDMG Node) (hG : G.IsAcyclic)\n    {u v : Node} (π : Walk G u v) (k : ℕ) :\n    π.IsNonCollider k → π.IsBlockableNonCollider k",
-      "explanation": "",
-      "code_annotated": ""
+      "explanation": "This block is the statement head of the LN remark: in an acyclic CDMG, every non-collider position on every walk is blockable. The binder list reads `(G : CDMG Node) (hG : G.IsAcyclic) {u v : Node} (π : Walk G u v) (k : ℕ)`, mirroring the LN's layered \"let $G$ be a CDMG, suppose $G$ is acyclic, then for every walk $\\pi$ … every position $k$\". CDMG-hood is structural (typed `G : CDMG Node`), while acyclicity is the propositional `def_3_6` predicate `G.IsAcyclic`. The endpoints `{u v}` are implicit because `Walk G u v` already carries them. The conclusion `π.IsNonCollider k → π.IsBlockableNonCollider k` reuses the per-position predicates of `def_3_15` and `def_3_16` verbatim; by `def_3_16`, `IsBlockableNonCollider` unfolds to `IsNonCollider ∧ ¬ IsUnblockableNonCollider`, so the conclusion definitionally re-asserts the antecedent in its first conjunct. No `k ≤ π.length` side condition appears: `IsNonCollider`'s own in-range conjunct makes the antecedent `False` at out-of-range positions, rendering the implication vacuous and the LN's $k \\in \\{0, \\dots, n\\}$ scope implicit. The proof body, omitted from this surface block, executes the TeX proof's Step 2.1–2.5 cascade.",
+      "code_annotated": "-- ref: claim_3_20 — statement head; the proof body lives below the wrapped surface.\ntheorem acyclic_non_colliders_blockable\n    -- `G` typed as a CDMG (structural CDMG-hood); `hG` carries `def_3_6`'s acyclicity proposition.\n    (G : CDMG Node) (hG : G.IsAcyclic)\n    -- Endpoints `{u v}` implicit — recoverable from `Walk G u v`'s type; `π` and `k` explicit per `def_3_16`'s binder shape.\n    {u v : Node} (π : Walk G u v) (k : ℕ) :\n    -- LN-faithful implication: `def_3_15`'s `IsNonCollider` ⟹ `def_3_16`'s `IsBlockableNonCollider`; `IsNonCollider`'s in-range conjunct makes out-of-range `k` vacuous.\n    π.IsNonCollider k → π.IsBlockableNonCollider k"
     }
   ],
   "lean_source_url": "https://github.com/schipeltaper/causality-leanified/blob/main/leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
