@@ -176,7 +176,7 @@
           "last_used": "2026-06-15T22:39:02+00:00"
         }
       ],
-      "time_needed_to_solve": 3416,
+      "time_needed_to_solve": 3436,
       "addition_to_the_LN": "[sigma_symmetry_claim_invokes_unstated_reversal_invariance] In a CDMG, a walk is a sequence of incident edges without regard to edge orientation; consequently, every walk from $A$ to $B$ is, read in reverse, a walk from $B$ to $A$, and this reversal is an involution on the set of walks. The symmetry of $\\sigma$-separation (when $J = \\emptyset$) is to be understood as resting on this walk-reversal involution together with the fact that the $\\sigma$-blocking conditions on internal nodes are stated in a manner invariant under reversal.",
       "wording_check": {
         "done": true,
