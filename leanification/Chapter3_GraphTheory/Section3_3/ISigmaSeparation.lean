@@ -81,16 +81,17 @@ clarification:
    universal, not a parallel definition.  Keeping the negation
    definitional avoids a redundant existential encoding.
 
-5. **`abbrev` for the unconditional `C = ∅` and `J = ∅`
-   specialisations, not new `def`s.**  Items 3 and 4 of the LN are
-   *notation aliases*: `A \isPerp_G B := A \isPerp_G B \given ∅`
-   and `A \sPerp_G B \given C := A \isPerp_G B \given C`.  `abbrev`
-   is transparent — `IsSigmaSeparated` reduces to
-   `IsISigmaSeparated` at every elaboration site without an
-   `unfold` step.  No `J = ∅` hypothesis is added to
-   `IsSigmaSeparated`: the LN treats this as a renaming under the
-   assumption (a property of the consumer's CDMG), not a logical
-   condition on the predicate.
+5. **`abbrev` for the unconditional `C = ∅` shorthand; `def` with
+   explicit `hJ : G.J = ∅` for the `J = ∅` renames.**  Item 3 of
+   the LN is a pure notation alias `A \isPerp_G B :=
+   A \isPerp_G B \given ∅` — encoded as `abbrev` so
+   `IsISigmaSeparatedEmpty A B` reduces to
+   `IsISigmaSeparated A B ∅` at every elaboration site without an
+   `unfold` step.  Item 4 renames the predicate under `J = ∅`;
+   encoded as `def` with explicit `(hJ : G.J = ∅)` premise so the
+   σ-vs-iσ-name distinction stays visible at the call site (an
+   `abbrev` would unfold eagerly and erase `hJ` from goal displays
+   at unrelated tactic steps).
 -/
 
 namespace CDMG
@@ -231,15 +232,6 @@ LN tex (item 1 of `def_3_18`, rewritten canonical statement):
 --   for any non-empty `A`; consumers reaching for "separation of
 --   `A` from itself = True" should be aware.
 --
--- *No `A ⊆ J ∪ V` / `B ⊆ J ∪ V` / `C ⊆ J ∪ V` hypotheses at the
---   def site.*  The LN allows the three sets to be arbitrary
---   subsets of `J ∪ V`, but doesn't require it at the predicate
---   level — out-of-graph nodes contribute vacuously to the walk
---   universal (no walk in `G` has an out-of-graph endpoint).
---   Matches the analogous "no subset hypothesis" convention from
---   `def_3_17`'s `IsSigmaBlockedGiven` (also takes `C : Set Node`
---   with no constraint).
---
 -- *`Walk.IsSigmaBlockedGiven` reused verbatim from `def_3_17`
 --   (`SigmaBlockedWalks.lean`).*  The LN's "π is σ-blocked by C"
 --   is exactly that predicate.  Dot-notation
@@ -251,13 +243,6 @@ LN tex (item 1 of `def_3_18`, rewritten canonical statement):
 --   correspondence.  Downstream proofs that need the unfolded
 --   existential disjunction can `unfold IsSigmaBlockedGiven` at
 --   the use site.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsISigmaSeparated
--- def_3_18 -- start statement
-def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  ∀ {u v : Node} (π : Walk G u v),
-      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
--- def_3_18 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsISigmaSeparated
 
 -- ## Design choice — subset premises on `A`, `B`, `C`
 --
@@ -285,24 +270,23 @@ def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   site and lose the per-set readability the LN's prose relies on.
 --
 -- *Asymmetric `J` inclusion on the right
---   (`v ∈ (G.J : Set Node) ∪ B`) preserved unchanged.*  LN
---   footnote `fn:why-J` is the load-bearing justification: it
---   makes the implied (asymmetric) separoid rules for `id`-/`iσ`-
---   separation match those for Markov-kernel conditional
---   independence (chapter 4+).  This is intentional, not a typo
---   for a future reader to "symmetrise".  The new subset
---   hypotheses tighten the predicate's *domain*, not the walk
---   universal's reach into `G.J`; the wording-check subtlety
---   `empty_b_non_vacuous_when_j_nonempty` still applies (`B = ∅`
---   stays non-vacuous when `G.J ≠ ∅`, now under the restricted
---   domain).
+--   (`v ∈ (G.J : Set Node) ∪ B`).*  LN footnote `fn:why-J` is
+--   the load-bearing justification: it makes the implied
+--   (asymmetric) separoid rules for `id`-/`iσ`-separation match
+--   those for Markov-kernel conditional independence (chapter 4+).
+--   This is intentional, not a typo for a future reader to
+--   "symmetrise".  The subset hypotheses tighten the predicate's
+--   *domain*, not the walk universal's reach into `G.J`; the
+--   wording-check subtlety `empty_b_non_vacuous_when_j_nonempty`
+--   still applies (`B = ∅` stays non-vacuous when `G.J ≠ ∅`
+--   under the restricted domain).
 --
--- *Body byte-identical to the original.*  Only the signature
---   gains the three hypotheses; the universal-over-walks remains
+-- *Subset premises live only on the signature; body is the
+--   walk universal alone.*  The body remains
 --   `∀ {u v} (π : Walk G u v), u ∈ A → v ∈ J ∪ B →
---   π.IsSigmaBlockedGiven C`.  The refactor restricts the
---   *domain of definition*, not the semantics, of the predicate.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsISigmaSeparated (was: refactor_IsISigmaSeparated)
+--   π.IsSigmaBlockedGiven C`.  `hA`, `hB`, `hC` restrict the
+--   domain of definition (which `(A, B, C)` triples the predicate
+--   admits), not the semantics of the walk universal.
 -- `hA`, `hB`, `hC` are bound on the signature for LN-faithfulness
 -- ("$A, B, C \ins J \cup V$") and to close the silent-admission leak
 -- documented in the design-choice block above, but the body is the
@@ -314,12 +298,11 @@ def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 -- load-bearing on the *signature* but inert in the body.
 set_option linter.unusedVariables false in
 -- def_3_18 -- start statement
-def refactor_IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   ∀ {u v : Node} (π : Walk G u v),
       u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
 -- def_3_18 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsISigmaSeparated
 
 -- ref: def_3_18 (item 2)
 --
@@ -360,12 +343,6 @@ def refactor_IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
 --   classically, but it would break the definitional link with
 --   `IsISigmaSeparated` and require a classical bridging lemma
 --   at every interconversion site.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNotISigmaSeparated
--- def_3_18 --- start helper
-def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  ¬ G.IsISigmaSeparated A B C
--- def_3_18 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsNotISigmaSeparated
 
 -- ## Design choice
 --
@@ -379,13 +356,11 @@ def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   `IsISigmaSeparated`'s premises), and the body forwards to
 --   `¬ IsISigmaSeparated` definitionally — no parallel
 --   existential, no bridging lemma.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNotISigmaSeparated (was: refactor_IsNotISigmaSeparated)
 -- def_3_18 -- start statement
-def refactor_IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
-  ¬ G.refactor_IsISigmaSeparated A B C hA hB hC
+  ¬ G.IsISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsNotISigmaSeparated
 
 -- ref: def_3_18 (item 3)
 --
@@ -416,12 +391,6 @@ def refactor_IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
 --   `¬ G.IsISigmaSeparatedEmpty A B` or
 --   `G.IsNotISigmaSeparated A B ∅`; the `abbrev`'s transparency
 --   makes both interchangeable.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsISigmaSeparatedEmpty
--- def_3_18 --- start helper
-abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
-  G.IsISigmaSeparated A B ∅
--- def_3_18 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsISigmaSeparatedEmpty
 
 -- ## Design choice — derived predicate for the `C = ∅` case
 --
@@ -450,15 +419,12 @@ abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node) : Prop :=
 --   every use site without an explicit `unfold`, so every lemma
 --   about the underlying iσ predicate fires automatically on the
 --   shorthand and vice versa.  No `hJ` is involved here, so the
---   `abbrev → def` promotion that applies to the σ-aliases below
---   does *not* apply here.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsISigmaSeparatedEmpty (was: refactor_IsISigmaSeparatedEmpty)
+--   `def` encoding the σ-aliases below use does not apply.
 -- def_3_18 -- start statement
-abbrev refactor_IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
+abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) : Prop :=
-  G.refactor_IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
+  G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
 -- def_3_18 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsISigmaSeparatedEmpty
 
 -- ref: def_3_18 (item 4)
 --
@@ -488,30 +454,6 @@ abbrev refactor_IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
 --   correspondence on the LN's most-used graphical-separation
 --   predicate.
 --
--- *`abbrev`, not a `J = ∅`-conditional `def`.*  The LN writes
---   "when `J = ∅`, … is also called …" — the renaming is in force
---   under the assumption, but the predicate itself is unchanged.
---   Adding `(hJ : G.J = ∅)` as a hypothesis would over-fire:
---   `IsSigmaSeparated` would then need to take the proof at every
---   call site, even though the LN's "we write …" introduces no
---   such proof obligation.  The `J = ∅` precondition is a
---   *call-site* fact about the consumer's CDMG (e.g. `claim_3_22`
---   hands it in as an explicit hypothesis), not a logical
---   condition baked into the predicate.  Same `abbrev`
---   transparency rationale as `IsISigmaSeparatedEmpty`: Lean
---   reduces `G.IsSigmaSeparated A B C` to
---   `G.IsISigmaSeparated A B C` at every use site, so every
---   lemma about either form fires on the other.
---
--- *Why an `abbrev` is the right choice over notation /
---   `local notation`.*  A `notation` macro would also be
---   transparent but would not survive cross-file boundaries
---   without re-declaration; an `abbrev` is namespaced under
---   `CDMG` and inherits the chapter-wide `Causality` /
---   `CDMG`-namespace open conventions, so downstream sites in
---   later chapters can write `G.IsSigmaSeparated A B C` without
---   special imports.
---
 -- *No symmetry claim here.*  The LN's embedded `claimmark` for
 --   σ-separation symmetry (`claim_3_22`) is intentionally excluded
 --   from this row, per the rewritten canonical tex's "Treatment of
@@ -527,12 +469,6 @@ abbrev refactor_IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
 --   that walk-reversal is an involution and σ-blocking is
 --   invariant under it) — that gap is to be addressed inside
 --   `claim_3_22`'s proof, not here.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsSigmaSeparated
--- def_3_18 --- start helper
-abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsISigmaSeparated A B C
--- def_3_18 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsSigmaSeparated
 
 -- ## Design choice — `J = ∅` hypothesis
 --
@@ -562,19 +498,16 @@ abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   definition.  Body forwards `(A, B, C, hA, hB, hC)` unchanged
 --   to `IsISigmaSeparated`.
 --
--- *Promoted `abbrev → def`.*  The earlier shape used `abbrev`
---   because the body was a transparent notational alias; once
---   `hJ` enters as a dependent hypothesis, `abbrev`'s aggressive
---   reducibility becomes a footgun (Lean would unfold the alias
---   eagerly and the `hJ` evidence would disappear from goal
---   displays at unrelated tactic steps).  `def` keeps the alias
---   opaque-by-default and preserves the σ-vs-iσ symbolic
---   distinction at every use site.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsSigmaSeparated (was: refactor_IsSigmaSeparated)
+-- *`def`, not `abbrev`.*  With `hJ` as a dependent hypothesis,
+--   `abbrev`'s aggressive reducibility becomes a footgun: Lean
+--   would unfold the alias eagerly and the `hJ` evidence would
+--   disappear from goal displays at unrelated tactic steps.
+--   `def` keeps the alias opaque-by-default and preserves the
+--   σ-vs-iσ symbolic distinction at every use site.
 -- `hJ : G.J = ∅` is bound on the signature for LN-faithfulness ("for
 -- the special case $J = \emptyset$") and to keep the σ-/iσ-name
 -- distinction visible at the call site, but the body forwards
--- `(A, B, C, hA, hB, hC)` unchanged to `refactor_IsISigmaSeparated` —
+-- `(A, B, C, hA, hB, hC)` unchanged to `IsISigmaSeparated` —
 -- the `J = ∅` precondition is a consumer-side fact about the CDMG,
 -- not a logical condition baked into the body.  Same `set_option`
 -- convention as `HardInterventionOn` / `NodeSplittingOn` /
@@ -582,11 +515,10 @@ abbrev IsSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 -- `MarginalizationAndIntervention`.
 set_option linter.unusedVariables false in
 -- def_3_18 -- start statement
-def refactor_IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+def IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
-  G.refactor_IsISigmaSeparated A B C hA hB hC
+  G.IsISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsSigmaSeparated
 
 -- ref: def_3_18 (item 4, negation)
 --
@@ -604,29 +536,12 @@ def refactor_IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node
 --   statements and proof case-splits).  Including the negated
 --   alias keeps that pairing intact in Lean.
 --
--- *`abbrev` for the same reasons as `IsSigmaSeparated`.*  Pure
---   notational renaming under a `J = ∅` precondition that is a
---   *consumer-side* fact about the CDMG.  Transparent unfolding
---   means a proof that establishes
---   `G.IsNotSigmaSeparated A B C` immediately discharges any
---   goal `G.IsNotISigmaSeparated A B C` (and vice versa), without
---   a bridging lemma.  The `J = ∅`-conditional `def` shape was
---   rejected for the same over-fire reason as `IsSigmaSeparated`:
---   the LN's renaming is *under* the assumption, not
---   *conditional on* a Lean-tracked proof of it.
---
 -- *No new content beyond `IsNotISigmaSeparated ∘ rename`.*  In
 --   particular this alias does *not* re-introduce the "positive
 --   existential" formulation of the negation — the existential
 --   reformulation, when needed, remains the standalone classical
 --   De Morgan lemma noted in `IsNotISigmaSeparated`'s design
 --   block and is shared across both `iσ` and `σ` names.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNotSigmaSeparated
--- def_3_18 --- start helper
-abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
-  G.IsNotISigmaSeparated A B C
--- def_3_18 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsNotSigmaSeparated
 
 -- ## Design choice
 --
@@ -637,22 +552,20 @@ abbrev IsNotSigmaSeparated (G : CDMG Node) (A B C : Set Node) : Prop :=
 --   concept; the σ and ¬σ names are introduced and used as a unit
 --   (claim statements and proof case-splits alternate between the
 --   two), so the predicate signatures stay aligned.  Body
---   forwards to `IsNotISigmaSeparated`.  Same `abbrev → def`
---   promotion as `IsSigmaSeparated` for the same `hJ`-dependency
---   reason.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNotSigmaSeparated (was: refactor_IsNotSigmaSeparated)
+--   forwards to `IsNotISigmaSeparated`.  Same `def` (not
+--   `abbrev`) encoding as `IsSigmaSeparated` for the same
+--   `hJ`-dependency reason.
 -- `hJ : G.J = ∅` is bound on the signature for LN-faithfulness and
--- σ-/iσ-name pairing with `refactor_IsSigmaSeparated`, but the body
+-- σ-/iσ-name pairing with `IsSigmaSeparated`, but the body
 -- forwards `(A, B, C, hA, hB, hC)` unchanged to
--- `refactor_IsNotISigmaSeparated`.  Same `set_option` exemption as
--- `refactor_IsSigmaSeparated` above, for the same reason.
+-- `IsNotISigmaSeparated`.  Same `set_option` exemption as
+-- `IsSigmaSeparated` above, for the same reason.
 set_option linter.unusedVariables false in
 -- def_3_18 -- start statement
-def refactor_IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+def IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
-  G.refactor_IsNotISigmaSeparated A B C hA hB hC
+  G.IsNotISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsNotSigmaSeparated
 
 end CDMG
 
