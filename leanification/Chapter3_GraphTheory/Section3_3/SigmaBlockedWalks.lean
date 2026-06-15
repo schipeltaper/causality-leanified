@@ -108,9 +108,6 @@ clarification:
    definitional but would force downstream witness-construction
    proofs to wade through a double-negation push, inverting the
    readability win.
-
-The substantive per-declaration design rationale lives in the comment
-block immediately above each `-- def_3_17 -- start statement` marker.
 -/
 
 namespace CDMG

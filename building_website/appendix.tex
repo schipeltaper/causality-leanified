@@ -509,6 +509,12 @@ def DistSet (G : CDMG Node) (A : Set Node) : Set Node :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def length : ∀ {u v : Node}, Walk G u v → ℕ
+  | _, _, .nil _ _ => 0
+  | _, _, .cons _ _ _ p => p.length + 1
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsAcyclic (G : CDMG Node) : Prop :=
@@ -2012,19 +2018,26 @@ variable {G : CDMG Node}
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧
-  1 ≤ k ∧ ∃ (vkm1 vk vkp1 : Node),
-    p.vertices[k - 1]? = some vkm1 ∧
-    p.vertices[k]? = some vk ∧
-    p.vertices[k + 1]? = some vkp1 ∧
-    (p.edges[k - 1]? = some (vk, vkm1) ∧ (vk, vkm1) ∈ G.E → vkm1 ∈ G.Sc vk) ∧
-    (p.edges[k]? = some (vk, vkp1) ∧ (vk, vkp1) ∈ G.E → vkp1 ∈ G.Sc vk)
+  ( k = 0 ∨ k = p.length ∨
+    (1 ≤ k ∧ ∃ (vkm1 vk : Node),
+        p.vertices[k - 1]? = some vkm1 ∧
+        p.vertices[k]? = some vk ∧
+        p.edges[k - 1]? = some (vk, vkm1) ∧
+        (vk, vkm1) ∈ G.E ∧
+        vkm1 ∉ G.Sc vk) ∨
+    (∃ (vk vkp1 : Node),
+        p.vertices[k]? = some vk ∧
+        p.vertices[k + 1]? = some vkp1 ∧
+        p.edges[k]? = some (vk, vkp1) ∧
+        (vk, vkp1) ∈ G.E ∧
+        vkp1 ∉ G.Sc vk) )
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
-  p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k
+def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider k
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_16
