@@ -19,12 +19,110 @@
 \def\rowref{claim\_3\_19}
 \phantomsection\label{claim_3_19}
 
-\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]
-     Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ be a subset of output nodes from $G$.
-     Then the CDMG that arises by first splitting the nodes on $W$
-      and then marginalizing out the nodes from $W^o$
-     can be identified with the CDMG that arises by hard intervention on $W$:
-     \[ G_{\doit(W)} \cong \lp G_{\swig(W)}\rp^{\sm W^o}, \qquad w \mapsto w^i. \]
+\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\label{marginalizing-out-the-output-part-of-splitted-nodes-equals-hard-intervention}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). We rely throughout on the hard-intervention construction $\doit$ of def \ref{def:G_hard_intervention}, the node-splitting hard-intervention (SWIG) construction $\swig$ of def \ref{def:G_node-splitting_intervention}, and the marginalization operator $G^{\sm W}$ of def \ref{def:G_marginalization}. Let
+    \[
+        W \;\ins\; V
+    \]
+    be a subset of output nodes of $G$. The LN's phrasing ``subset of output nodes from $G$'' is read here as ``$W \ins V$'': by def \ref{def-cdmg} the set $V$ \emph{is} the output-node set of $G$, so the qualifier ``of output nodes'' is the standing typing $W \ins V$ and imposes no further constraint. The quantifiers ``for every CDMG $G$'' and ``for every $W \ins V$'' are read \emph{universally}; the degenerate case $W = \emptyset$ is admitted (then both sides of the displayed isomorphism collapse to $G$ verbatim, with the bijection $\phi$ below reducing to the identity on $J \cup V$, since $W = \emptyset$ makes $W^o = W^i = \emptyset$).
+
+    \emph{Well-typedness of the two CDMGs in the displayed isomorphism.}
+    \begin{itemize}
+        \item \emph{LHS, $G_{\doit(W)}$.}
+              The hard-intervention construction of def \ref{def:G_hard_intervention} is defined under the precondition $W \ins J \cup V$. Since $W \ins V$ and $V \ins J \cup V$, this precondition is met. By items~i.--iv.\ of def \ref{def:G_hard_intervention}, the four components of $G_{\doit(W)}$ are
+              \[
+                  J_{\doit(W)} \;=\; J \cup W,
+                  \qquad
+                  V_{\doit(W)} \;=\; V \sm W,
+              \]
+              \[
+                  E_{\doit(W)} \;=\; E \sm \lC (v_1, v_2) \in E \st v_2 \in W \rC,
+                  \qquad
+                  L_{\doit(W)} \;=\; L \sm \lC (v_1, v_2) \in L \st v_2 \in W \rC,
+              \]
+              read along the symmetrised reading of item~iv.\ of def \ref{def:G_hard_intervention}. The carrier of $G_{\doit(W)}$ is
+              \[
+                  J_{\doit(W)} \cup V_{\doit(W)} \;=\; (J \cup W) \cup (V \sm W) \;=\; J \cup V,
+              \]
+              using $W \ins V$ and $J \cap V = \emptyset$.
+
+        \item \emph{RHS, $\lp G_{\swig(W)} \rp^{\sm W^o}$.}
+              The SWIG construction of def \ref{def:G_node-splitting_intervention} requires the input CDMG $G$ to be a CADMG (i.e.\ acyclic in the sense of def \ref{def-acylic}) and $W \ins V$. The LN's literal hypothesis on $G$ in the present row, however, asserts only that $G$ is a CDMG; we therefore explicitly require here, in addition to the standing CDMG hypothesis on $G$, the CDMG-level reading of $\swig(W)$ as the set-builder construction of items~i.--iv.\ of def \ref{def:G_node-splitting_intervention} (the construction is well-typed at the CDMG level using only the CDMG axioms, per the ``Paradigm observation (which axioms each clause uses)'' paragraph of def \ref{def:G_node-splitting_intervention}; acyclicity of the input is not consumed by items~i.--iv.\ themselves, only by the downstream upgrade to a CADMG, which is not needed here since both sides of the displayed isomorphism are read at the CDMG level). With $W \ins V$, items~i.--iv.\ of def \ref{def:G_node-splitting_intervention} yield
+              \[
+                  J_{\swig(W)} \;=\; J \dcup W^i,
+                  \qquad
+                  V_{\swig(W)} \;=\; (V \sm W) \dcup W^o,
+              \]
+              \[
+                  E_{\swig(W)} \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC,
+                  \qquad
+                  L_{\swig(W)} \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC,
+              \]
+              with $W^o := \lC w^o \st w \in W \rC$ and $W^i := \lC w^i \st w \in W \rC$ the two type-level tagged copies of $W$ from def \ref{def:G_node-splitting_intervention} (so $W^o \cap W^i = \emptyset$, and both $W^o, W^i$ are disjoint from every element of $J \cup V$), and with the unsplit-injection shorthand ``$v^o := v^i := v$ for $v \in J \cup (V \sm W)$'' from def \ref{def:G_node-splitting_intervention} in force inside the set-builders for $E_{\swig(W)}$ and $L_{\swig(W)}$.
+
+              For the outer marginalization $(\,\cdot\,)^{\sm W^o}$ applied to $G_{\swig(W)}$ to be defined per def \ref{def:G_marginalization}'s precondition ``$W' \ins V'$ of the input CDMG'' (instantiated with $W' = W^o$ and $V' = V_{\swig(W)} = (V \sm W) \dcup W^o$), we need $W^o \ins V_{\swig(W)}$. This is immediate from $W^o \ins (V \sm W) \dcup W^o = V_{\swig(W)}$. By items~i.\ and~ii.\ of def \ref{def:G_marginalization} applied to the input CDMG $G_{\swig(W)}$ with $W^o$ marginalized out, the input-node and output-node sets of $\lp G_{\swig(W)} \rp^{\sm W^o}$ are
+              \[
+                  J_{\lp G_{\swig(W)} \rp^{\sm W^o}} \;=\; J_{\swig(W)} \;=\; J \dcup W^i,
+                  \qquad
+                  V_{\lp G_{\swig(W)} \rp^{\sm W^o}} \;=\; V_{\swig(W)} \sm W^o \;=\; V \sm W,
+              \]
+              where the second equality uses $(V \sm W) \cap W^o = \emptyset$ (since $W^o$ is type-level disjoint from $V$ by the tagged-copy construction). The carrier of $\lp G_{\swig(W)} \rp^{\sm W^o}$ is therefore
+              \[
+                  J_{\lp G_{\swig(W)} \rp^{\sm W^o}} \cup V_{\lp G_{\swig(W)} \rp^{\sm W^o}} \;=\; (J \dcup W^i) \cup (V \sm W) \;=\; J \cup W^i \cup (V \sm W).
+              \]
+              The directed-edge and bidirected-edge sets $E_{\lp G_{\swig(W)} \rp^{\sm W^o}}$ and $L_{\lp G_{\swig(W)} \rp^{\sm W^o}}$ are obtained from items~iii.\ and~iv.\ of def \ref{def:G_marginalization} applied to $G_{\swig(W)}$ marginalized at $W^o$; their explicit unfolding into directed-walk-through-$W^o$ and bifurcation-through-$W^o$ predicates ($\Phi_E$ and $\Phi_L$ of def \ref{def:G_marginalization}) is deferred to the proof.
+    \end{itemize}
+
+    \emph{The conclusion: a CDMG-isomorphism with explicit bijection $\phi$.}
+    There exists a CDMG-isomorphism
+    \[
+        \phi \;:\; G_{\doit(W)} \;\xrightarrow{\;\cong\;}\; \lp G_{\swig(W)} \rp^{\sm W^o}
+    \]
+    in the sense made precise below, defined on the carrier $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$ of $G_{\doit(W)}$ by the following case split (exhaustive and pairwise disjoint because $W \ins V$ and $J \cap V = \emptyset$, hence $J$, $V \sm W$, $W$ partition $J \cup V$):
+    \[
+        \phi(v) \;:=\;
+        \begin{cases}
+            v & \text{if } v \in J, \\
+            v & \text{if } v \in V \sm W, \\
+            v^i & \text{if } v \in W.
+        \end{cases}
+    \]
+    Equivalently, $\phi$ is the identity on $J \cup (V \sm W)$ and sends $w \mapsto w^i$ on $W$ (the LN's literal ``$w \mapsto w^i$'' clause, supplemented with the identity action on $J \cup (V \sm W)$ that the LN leaves implicit). The codomain of $\phi$ is the carrier $J_{\lp G_{\swig(W)} \rp^{\sm W^o}} \cup V_{\lp G_{\swig(W)} \rp^{\sm W^o}} = J \cup W^i \cup (V \sm W)$ of $\lp G_{\swig(W)} \rp^{\sm W^o}$, displayed above; on each branch of the case split, $\phi(v)$ lies in this codomain (for $v \in J$: $\phi(v) = v \in J$; for $v \in V \sm W$: $\phi(v) = v \in V \sm W$; for $v \in W$: $\phi(v) = v^i \in W^i$). Bijectivity of $\phi$ holds because the codomain partitions as $J \cup W^i \cup (V \sm W)$ with $\phi$ restricting to a bijection on each of the three partition pieces (the identity on $J$, the identity on $V \sm W$, and the injection $w \mapsto w^i$ from $W$ to $W^i$, which is a bijection by def \ref{def:G_node-splitting_intervention}'s tagged-copy construction).
+
+    \emph{Reading of ``CDMG-isomorphism''.}
+    The relation $G_{\doit(W)} \cong \lp G_{\swig(W)} \rp^{\sm W^o}$ asserted by the LN's $\cong$ symbol is read here as the conjunction of the following four clauses, jointly stating that $\phi$ above is a CDMG-isomorphism of the two CDMGs (def \ref{def-cdmg}) under their four-tuple structures $(J, V, E, L)$:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{$\phi$ maps input nodes to input nodes.}
+              For every $v \in J_{\doit(W)} = J \cup W$,
+              \[
+                  \phi(v) \;\in\; J_{\lp G_{\swig(W)} \rp^{\sm W^o}} \;=\; J \dcup W^i.
+              \]
+              Equivalently, the restriction $\phi\rvert_{J \cup W} : J \cup W \to J \dcup W^i$ is a bijection: on $J$ it is the identity (and $J \ins J \dcup W^i$), and on $W$ it sends $w \mapsto w^i \in W^i$ (and the latter is a bijection $W \to W^i$ by def \ref{def:G_node-splitting_intervention}).
+
+        \item \emph{$\phi$ maps output nodes to output nodes.}
+              For every $v \in V_{\doit(W)} = V \sm W$,
+              \[
+                  \phi(v) \;\in\; V_{\lp G_{\swig(W)} \rp^{\sm W^o}} \;=\; V \sm W.
+              \]
+              Equivalently, the restriction $\phi\rvert_{V \sm W} : V \sm W \to V \sm W$ is the identity, hence trivially a bijection.
+
+        \item \emph{$\phi$ preserves directed edges.}
+              For every $(v_1, v_2) \in (J \cup V) \times V$ that lies in the typing of $E_{\doit(W)}$ (i.e.\ $v_1 \in J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$ and $v_2 \in V_{\doit(W)} = V \sm W$, matching the precondition $E_{\doit(W)} \ins (J_{\doit(W)} \cup V_{\doit(W)}) \times V_{\doit(W)}$ of def \ref{def-cdmg} applied to $G_{\doit(W)}$),
+              \[
+                  (v_1, v_2) \;\in\; E_{\doit(W)}
+                  \quad\Longleftrightarrow\quad
+                  (\phi(v_1), \phi(v_2)) \;\in\; E_{\lp G_{\swig(W)} \rp^{\sm W^o}}.
+              \]
+
+        \item \emph{$\phi$ preserves bidirected edges.}
+              For every $(v_1, v_2) \in V \times V$ that lies in the typing of $L_{\doit(W)}$ (i.e.\ $v_1, v_2 \in V_{\doit(W)} = V \sm W$, matching the precondition $L_{\doit(W)} \ins V_{\doit(W)} \times V_{\doit(W)}$ of def \ref{def-cdmg} applied to $G_{\doit(W)}$),
+              \[
+                  (v_1, v_2) \;\in\; L_{\doit(W)}
+                  \quad\Longleftrightarrow\quad
+                  (\phi(v_1), \phi(v_2)) \;\in\; L_{\lp G_{\swig(W)} \rp^{\sm W^o}}.
+              \]
+    \end{enumerate}
+    Clauses~(a) and~(b) together state that $\phi$ is a bijection of carriers respecting the input/output partition (so it transports the $J$- and $V$-components of the two CDMGs onto each other); clauses~(c) and~(d) state that the directed- and bidirected-edge sets of the two CDMGs correspond under the bijection $\phi$, where the edge sets on the right-hand side are the marginalization-of-SWIG edge sets $E_{\lp G_{\swig(W)} \rp^{\sm W^o}}$ and $L_{\lp G_{\swig(W)} \rp^{\sm W^o}}$ of def \ref{def:G_marginalization} applied to $G_{\swig(W)}$ with $W^o$ marginalized out (unfolded into the directed-walk-through-$W^o$ predicate $\Phi_E$ and the bifurcation-through-$W^o$ predicate $\Phi_L$ at items~iii.\ and~iv.\ of def \ref{def:G_marginalization}). The conjunctive unpacking of clauses~(a)--(d) into the four field-by-field bijection / preservation statements of $J$, $V$, $E$, and $L$ is deferred to the proof.
 \end{Lem}
 
 \end{document}
