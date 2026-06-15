@@ -35,6 +35,20 @@ Use this checklist when `MODE: prove`. For each item, write a short line. The ve
 
 1. **Every LN hypothesis is present in the rewrite.** Walk the LN block; check each `let`, `assume`, `suppose`, "such that", "for any", "given", and implicit assumption appears in the rewrite. None silently dropped, none silently strengthened.
 
+1b. **Implicit set-typing / set-membership premises are spelled out in the rewrite.**
+
+    A class of LN premises is easy to miss because the LN rarely states them as separate `let` lines — they're baked into the LN's universe of discourse. The rewrite's job is to spell every one of them out so the Lean formalizer has no excuse to drop them. Concretely:
+
+    - **Sets-of-nodes are subsets of the graph carrier.** If the LN says "a subset $A$ of $V$" / "$A, B, C \subseteq J \cup V$" / "any $W \subseteq V \cup J$", the rewrite must say so explicitly in the statement's `let` / `\item` block — not assume the reader will infer it from "$A \subseteq V$" being mathematically obvious. A rewrite that omits `$A \subseteq J \cup V$` (or whichever subset condition the LN demands) is a FAIL.
+
+    - **Vertex / node membership.** "Let $v$ be a vertex of $G$" must appear in the rewrite as `Let $v \in G$` (or `$v \in J \cup V$`), not as a free node variable.
+
+    - **Edge membership.** "Let $e$ be a directed edge of $G$" must spell out `$e \in E$`; a free pair-typed variable is a FAIL.
+
+    - **Side-condition aliases (graph-class restrictions).** If the LN defines a notation only when a side condition holds — e.g. "$A \perp_G B \mid C$ is defined when $G$ is a DMG" — the rewrite must state the side condition as an explicit premise (`Let $G = (J, V, E, L)$ be a DMG (i.e. $J = \emptyset$)`). A premise-less alias is a FAIL — the LN's typed-concept distinction is silently lost.
+
+    Heuristic: read the rewrite *as if you didn't know what the LN was about*, and ask "could I plug in a non-graph subset for $A$, or a CDMG that the LN never assigned this notation to, and have the statement still parse?". If yes — FAIL.
+
 2. **The rewrite's conclusion is the LN conclusion** (after applying every clause in `addition_to_the_LN`). Same proposition, same quantifiers, same constructor.
 
 3. **Every `[<sid>]` / `[manual_*]` clause in `addition_to_the_LN` is in the rewrite.** For each paragraph in the addition: locate where it landed in the rewrite (a hypothesis, a refinement of an existing hypothesis, an item in a list, a parenthetical in the conclusion, …). If a clause is *missing* — FAIL with that clause cited. If a clause is *paraphrased* in a way that drops or shifts meaning — FAIL with the meaning shift named.

@@ -46,6 +46,22 @@ Use this checklist when `MODE: prove`. For each item, write a short line. The ve
 
     Surface the failure precisely: "LN hypothesis dropped from Lean: <LN clause>; the Lean's <var> is unconstrained." The manager will either re-dispatch the formalizer to fold the constraint into the def, or — if the looseness really is intentional — `accept_deviation` with the explicit rationale (which writes the gap to `deviations.json` and is auditable).
 
+1b. **Implicit set-typing / set-membership premises are encoded explicitly.**
+
+    A class of LN premises that is easy to miss because the LN rarely states them as separate `let` / `suppose` lines — they are baked into the LN's universe of discourse and the reader is expected to supply them. The Lean encoding must carry them on the type contract; a bare untyped argument is a **FAIL** of the same shape as item 1a, even when the LN's literal text contains no matching `let` line.
+
+    Patterns to check on every signature:
+
+    - **Sets-of-nodes are subsets of the graph carrier.** If the LN talks about "a subset $A$ of $V$" / "two subsets $A, B \subseteq J \cup V$" / "any $W \subseteq V \cup J$", the Lean must carry `(A : Set Node) (hA : A ⊆ ↑G.J ∪ ↑G.V)` (or `A ⊆ ↑G.V`, whichever the LN demands). A bare `A : Set Node` argument without the subset hypothesis is a FAIL — it admits "subsets" containing nodes the graph doesn't have, which the LN never assigned a meaning to.
+
+    - **Vertex / node membership.** "Let $v$ be a vertex of $G$" / "for $v \in G$" / "for any node $u$" in the LN means the Lean signature carries `(v : Node) (hv : v ∈ G)` (or `v ∈ G.J ∪ G.V` / `v ∈ G.V` depending on the LN). A bare `v : Node` without the membership hypothesis is a FAIL.
+
+    - **Edge membership.** "Let $e$ be a directed edge of $G$" means `(e : Node × Node) (he : e ∈ G.E)`; "a bidirected edge" means `e ∈ G.L`. A bare `e : Node × Node` argument is a FAIL.
+
+    - **Side-condition aliases (graph-class restrictions).** If the LN defines a notation only when a side condition holds — e.g. "$A \perp_G B \mid C$ is defined when $G$ is a DMG (i.e. $J = \emptyset$)" — the Lean encoding of that alias must carry the side condition as a premise (`(hJ : G.J = ∅)` or `(hDMG : G.IsDMG)`). A premise-less alias that compiles for any CDMG is a FAIL; the LN's typed-concept distinction (σ vs iσ, DAG vs CADMG, etc.) is silently lost.
+
+    Heuristic: read the signature *as if you knew nothing about the project*, and ask "could I instantiate this with an `A` containing nodes that aren't in the graph?" or "could I instantiate this with a CDMG that the LN never assigned this notation to?". If yes — FAIL.
+
 2. **The Lean conclusion is the LN conclusion.** Same proposition, same quantifiers, same constructor (existence vs. universal, equality vs. iff, etc.).
 3. **Trivial sub-clauses are present.** If the LN claim says "and clearly $X = Y$ too" or includes a "remark" inside a `\begin{Thm}` block, that sub-clause must be in the Lean statement — not silently dropped.
 4. **No "fix" in disguise.** If the LN's wording is slightly imprecise (e.g. ambiguous quantifier scope), the Lean has not silently picked an interpretation that "makes more sense". If interpretation was needed, it's documented in the design-choice comment.
