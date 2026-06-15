@@ -205,6 +205,7 @@ def fetch_row(ref: str) -> dict:
         main_codes = extract_lean_statement(main_lean_path, ref)
         helper_blocks: list[dict] = []
         seen_files: set[str] = set()
+        # First: walk the row's declared files (main + `lean_files`).
         for path_rel in [main_lean_rel, *row.get("lean_files", [])]:
             if path_rel in seen_files:
                 continue
@@ -212,6 +213,21 @@ def fetch_row(ref: str) -> dict:
             p = REPO_ROOT / path_rel
             if not p.exists():
                 continue
+            for code in extract_lean_helpers(p, ref):
+                helper_blocks.append({"kind": "helper", "code": code})
+        # Then: also scan every other `.lean` file in the same section
+        # folder for a helper marker carrying this row's ref.  The marker
+        # `-- <ref> --- start helper` is ref-specific, so picking up
+        # cross-file helpers this way is safe and explicit (the file
+        # author opted in by writing the marker).  Catches helpers the
+        # `data.json` row hasn't yet been updated to list — e.g. a
+        # `Walk.length` helper for `def_3_6` in `Walks.lean`.
+        section_dir = (REPO_ROOT / main_lean_rel).parent
+        for p in sorted(section_dir.glob("*.lean")):
+            rel = str(p.relative_to(REPO_ROOT))
+            if rel in seen_files:
+                continue
+            seen_files.add(rel)
             for code in extract_lean_helpers(p, ref):
                 helper_blocks.append({"kind": "helper", "code": code})
 

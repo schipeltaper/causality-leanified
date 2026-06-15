@@ -280,8 +280,14 @@ python3 building_website/scripts/fetch_row.py <ref> [--out PATH | --stdout]
    - `extract_lean_statement(file, ref)` — `--  start statement` /
      `--  end statement` (2 dashes)
    - `extract_lean_helpers(file, ref)` — `--- start helper` /
-     `--- end helper` (3 dashes), searched across every entry of
-     `lean_files`.
+     `--- end helper` (3 dashes).  Searched across (a) the row's
+     declared files (`main_lean_file` + every entry of `lean_files`)
+     and then (b) any other `.lean` file in the same section folder.
+     The fallback (b) catches cross-file helpers the `data.json` row
+     hasn't been updated to list — e.g. a `Walk.length` helper for
+     `def_3_6` defined in `Walks.lean`.  The marker
+     `-- <ref> --- start helper` is ref-specific, so the broader scan
+     only picks up declarations the file author explicitly opted in.
 4. Assembles `lean_blocks` in display order: helpers first, then main
    statements. Each entry carries `kind: "helper" | "main"` and the
    raw `code`.
