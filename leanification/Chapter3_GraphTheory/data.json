@@ -2564,7 +2564,7 @@
           "last_used": "2026-06-15T00:47:01+00:00"
         }
       ],
-      "time_needed_to_solve": 6670,
+      "time_needed_to_solve": 6690,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2578,28 +2578,30 @@
       "section": "3.3",
       "title": "CollidersAndNon",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": "",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2608,13 +2610,28 @@
         "mistake": 0,
         "unmistake": 0,
         "accept_deviation": 0,
-        "register_ln_subtlety": 0,
-        "no_action": 0
+        "register_ln_subtlety": 1,
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Colliders and non-colliders]\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  A node $v_k$, or more precisely, the position $k \\in \\lC 0,\\dots, n \\rC$,\n  on the walk $\\pi$ is called:\n     \\begin{enumerate}\n     \\item a \\emph{non-collider} on $\\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\\ if it falls into one of the following cases:\n  \\[\\begin{array}{rccl}\n    \\text{ end-node: } & k \\in \\lC 0,n \\rC, \\\\\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1}, \\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1},\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1};\n    \\end{array}\\]\n  \\item a \\emph{collider} on $\\pi$, if it is of the form: \n             \\[v_{k-1} \\suh v_k \\hus v_{k+1},\\] \n             i.e.\\ if there are two arrowheads pointing towards $v_k$ on the walk $\\pi$.\n     \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "9f1f2958-a1ef-41c8-944e-0ef1c787c362",
+          "first_seen": "2026-06-15T02:20:20+00:00",
+          "last_used": "2026-06-15T02:20:20+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4934,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "I have enough context. Let me also check if `def_3_4` constrains away self-loops in walks.\n\nThe walk definition explicitly allows $a_k = (v_k, v_{k+1}) \\in E$ with the possibility that $v_k = v_{k+1}$ (no distinctness requirement). The CDMG def only forbids self-loops in $L$, not in $E$. The walk also allows \"trivial\" walks ($n=0$).\n\nBased on this analysis, here is my assessment of the tex block of `def_3_15`:\n\nSUBTLETY:\nid: self_loop_makes_tuh_and_hut_simultaneously_true\nexplanation: A directed self-loop $(v,v) \\in E$ is permitted by the CDMG definition (`def-cdmg`: $E \\subseteq (J \\cup V) \\times V$ contains no $v \\ne v$ exclusion — only $L$ explicitly forbids self-loops). Per the notation `def_3_2`, the macros decode to $v_1 \\tuh v_2 \\iff (v_1, v_2) \\in E$ and $v_1 \\hut v_2 \\iff (v_2, v_1) \\in E$. So for a self-loop, $v \\tuh v$ and $v \\hut v$ are **both** true simultaneously, since $(v,v) = (v,v)$.\n\nNow consider a walk position $k$ where $a_{k-1}$ is a directed self-loop at $v$ (so $v_{k-1} = v_k = v$) and $a_k$ is a directed edge into $v_k$ from $v_{k+1}$ (so $v_k \\hut v_{k+1}$ and thus $v_k \\hus v_{k+1}$). The literal tex says position $k$ is a non-collider iff it falls into one of the listed cases, and a collider iff it has the collider form. We compute:\n\n- \"left chain\" $v_{k-1} \\hut v_k \\hus v_{k+1}$: the self-loop satisfies $v_{k-1} \\hut v_k$ (as shown above), and $v_k \\hus v_{k+1}$ holds. **Matches → non-collider.**\n- \"collider\" $v_{k-1} \\suh v_k \\hus v_{k+1}$: the self-loop also satisfies $v_{k-1} \\tuh v_k$, which implies $v_{k-1} \\suh v_k$ (since $\\suh \\iff \\tuh \\lor \\huh$). And $v_k \\hus v_{k+1}$ holds. **Matches → collider.**\n\nSo a single position is *literally classified as both a non-collider and a collider* by the block, breaking the implicit mutual exclusivity that the wording (\"if it falls into **one** of the following cases\" vs. \"is **of the form**\") relies on. The mark-count gloss \"i.e.\\ if there is at most one arrowhead pointing towards $v_k$\" / \"i.e.\\ if there are two arrowheads pointing towards $v_k$\" is also ambiguous for self-loops: the loop has its arrowhead and its tail both anchored at $v_k$, and the tex never specifies whether that contributes 0, 1, or 2 to the count.\n\nThis is not a vacuous corner: the recent \"Refactor_marginalize_loose_self_cycle\" work in this codebase confirms self-cycles are actively handled, and downstream notions (`def_3_16` blockable/unblockable, `def_3_17` $\\sigma$-blocked walks, claim_3_25 / claim_3_27, etc.) inherit this ambiguity for any walk that traverses a self-loop. A faithful encoding will have to pick a tie-breaking convention (e.g. read the walk's $a_{k-1}$ as carrying a *directed* orientation $(v_{k-1}, v_k)$ vs $(v_k, v_{k-1})$ and use only the $v_k$-side mark of that ordered pair), but the literal tex does not commit to one.\nEND_SUBTLETY\n\nSUBTLETY:\nid: arrowhead_count_scope_implicit_not_stated\nexplanation: The non-collider definition says \"if there is at most one arrowhead pointing towards $v_k$\" with no explicit restriction to the walk's two incident edges $a_{k-1}, a_k$. By contrast, the collider half says \"if there are two arrowheads pointing towards $v_k$ **on the walk $\\pi$**\" — the qualifier \"on the walk $\\pi$\" appears in the collider gloss but is absent in the non-collider gloss. A strictly literal reading of the non-collider clause could count arrowheads from *every* edge of $G$ incident to $v_k$ (including non-walk edges); under that reading an end-node $v_0$ that has, say, three other incoming edges in $E$ outside the walk would fail \"at most one arrowhead\" yet still be classified as a non-collider by the end-node bullet — contradicting the \"i.e.\" equivalence. The intended scope is clearly walk-adjacent, but the tex relies on the reader inferring this from the leading \"on $\\pi$\" qualifier rather than stating it consistently with the collider half.\nEND_SUBTLETY",
+        "session": "8714454f-6074-4f4d-bbb4-79d8e5d4d87b"
+      }
     },
     {
       "def_or_claim": "def",
