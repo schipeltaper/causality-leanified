@@ -1,0 +1,12 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_blockable_noncollider_first",
+  "roots": [
+    "def_3_16"
+  ],
+  "root_ref": "def_3_16",
+  "name": "blockable_noncollider_first",
+  "chapter": 3,
+  "init_date": "2026-06-15T16:10:52+00:00",
+  "deviations_to_resolve": []
+}

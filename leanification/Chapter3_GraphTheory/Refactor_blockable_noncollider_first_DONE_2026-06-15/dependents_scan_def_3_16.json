@@ -1,0 +1,188 @@
+{
+  "target_ref": "def_3_16",
+  "target_title": "IsUnblockableNonCollider",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 240,
+      "snippet": "--   IsNonCollider ∧ ¬ IsUnblockableNonCollider`, so the conclusion"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 245,
+      "snippet": "--         `π.IsNonCollider k → ¬ π.IsUnblockableNonCollider k`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 287,
+      "snippet": "  -- ¬ IsUnblockableNonCollider`, the implication reduces to: assume"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 292,
+      "snippet": "  -- Once `hu` is in scope, `IsUnblockableNonCollider`'s clauses force"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 21,
+      "snippet": "* `Walk.IsUnblockableNonCollider p k` — `p` is a non-collider at `k`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 31,
+      "snippet": "  `p.IsUnblockableNonCollider k`.  Unfolding the negation, this is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 139,
+      "snippet": "--   `IsUnblockableNonCollider` and `IsBlockableNonCollider` take a"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 147,
+      "snippet": "--   (`p.IsUnblockableNonCollider k`)."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 154,
+      "snippet": "-- `p.IsUnblockableNonCollider k` iff position `k` on the walk `p` is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 241,
+      "snippet": "-- *End-positions never satisfy `IsUnblockableNonCollider`.*  At"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 271,
+      "snippet": "def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 293,
+      "snippet": "-- *Encoded as `p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k`.*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 300,
+      "snippet": "--   `p.IsNonCollider k`, exactly one of `IsUnblockableNonCollider k`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 306,
+      "snippet": "--   `¬ p.IsUnblockableNonCollider k`, because"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 307,
+      "snippet": "--   `IsUnblockableNonCollider` carries `IsNonCollider` as its"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 315,
+      "snippet": "-- *Asymmetric encoding (positive `IsUnblockableNonCollider` +"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 330,
+      "snippet": "--   already-verified `IsUnblockableNonCollider` predicate inherits"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 343,
+      "snippet": "--   rationale as `IsUnblockableNonCollider` above.  Downstream"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 349,
+      "snippet": "  p.IsNonCollider k ∧ ¬ p.IsUnblockableNonCollider k"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 73,
+      "snippet": "   `IsCollider` / `IsUnblockableNonCollider` idiom.**  The LN writes"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 178,
+      "snippet": "--   `IsCollider` / `IsUnblockableNonCollider` idiom of `def_3_15`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_20_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"theorem acyclic_non_colliders_blockable\\n    (G : CDMG Node) (hG : G.IsAcyclic)\\n    {u v : Node} (π : Walk G u v) (k : ℕ) :\\n    π.IsNonCollider k → π.IsBlockableNonColl"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_20_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The theorem `acyclic_non_colliders_blockable` formalises the LN remark \\\"every non-collider on a walk in an acyclic CDMG is blockable\\\" as a per-walk-per-position implication. I"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_20_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**The CDMG is typed; acyclicity is propositional.** The LN reads \\\"let $G$ be a CDMG and suppose $G$ is acyclic\\\". The formalization splits these asymmetrically: CDMG-hood is enfo"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_16_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=\\n  p.IsNonCollider k ∧\\n  1 ≤ k ∧ ∃ (vkm1 vk vkp1 : Node),\\n    p.vertices[k - 1]? = some vkm"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_16_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=\\n  p.IsNonCollider k ∧\\n  1 ≤ k ∧ ∃ (vkm1 vk vkp1 : Node),\\n    p.vertices[k - 1]? = some "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_16_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"The definition introduces two `Prop`-valued predicates on walks in a CDMG, both indexed by a natural-number position `k`. The implicit binder `Node : Type*` with `[DecidableEq N"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_16_for_website.json",
+      "line": 11,
+      "snippet": "  \"design_choices\": \"**Walk-edge reading, not existential-shorthand reading.** Each implication fires on the walk's *specific* incident edge — the antecedent reads `p.edges[k - 1]? = some (vk, vkm1)`,"
+    },
+    {
+      "file": "leanification/refactors/refactor_blockable_noncollider_first.md",
+      "line": 12,
+      "snippet": "The current `IsUnblockableNonCollider` predicate (`Section3_3/BlockableAndUnblockable.lean:271`) checks outgoing arrowheads from `v_k` by pattern-matching the stored walk-edge ordered pair against `(v"
+    },
+    {
+      "file": "leanification/refactors/refactor_blockable_noncollider_first.md",
+      "line": 37,
+      "snippet": "Then **derive `IsUnblockableNonCollider`** as the complement:"
+    },
+    {
+      "file": "leanification/refactors/refactor_blockable_noncollider_first.md",
+      "line": 40,
+      "snippet": "def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :="
+    },
+    {
+      "file": "leanification/refactors/refactor_blockable_noncollider_first.md",
+      "line": 47,
+      "snippet": "2. `IsUnblockableNonCollider` becomes a derived predicate; downstream proofs about \"preservation under walk-reversal\" no longer touch a literal-pair pattern at all — they reduce to preservation of `Is"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 349,
+      "col": 26,
+      "snippet": "Invalid field `IsUnblockableNonCollider`: The environment does not contain `Causality.CDMG.Walk.IsUnblockableNonCollider`, so it is not possible to project the field `IsUnblockableNonCollider` from an"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_20_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_16_for_website.json",
+    "leanification/refactors/refactor_blockable_noncollider_first.md"
+  ],
+  "consumer_refs": [
+    "claim_3_20",
+    "def_3_17"
+  ]
+}
