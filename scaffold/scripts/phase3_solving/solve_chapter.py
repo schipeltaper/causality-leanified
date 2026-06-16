@@ -217,6 +217,20 @@ class OrchestrationState:
     # attempt with the same id, the handler mangles the id (``<id>_v2``
     # etc.) and registers the new entry. Per row run.
     ln_subtle_dup_attempts: set[str] = field(default_factory=set)
+    # One-time local-fix nudge gate for the `refactor` action (on
+    # non-refactor rows). A real refactor is the heaviest action
+    # available -- it forks a branch, builds a refactor table, and
+    # drives every consumer row through a full re-validation pipeline.
+    # Many ad-hoc "I need a refactor" emissions can actually be closed
+    # locally with an auxiliary def / a custom variant defined for
+    # this row's proof only / a smart-constructor helper. The
+    # orchestrator nudges the manager once with a "try a local fix
+    # first" prompt; if the manager re-emits `refactor` after the
+    # nudge, the orchestrator honors it on the next turn. Resets per
+    # row run. Refactor-row paths (expand-scope) are unaffected --
+    # they go through their own NEW_ROOT_REF handler before reaching
+    # this gate.
+    refactor_local_fix_nudge_done: bool = False
 
     @property
     def elapsed_seconds(self) -> float:
@@ -4260,6 +4274,75 @@ def solve_current_row(data_path: Path | None = None) -> None:
                         # data.json. Halt; the operator re-invokes
                         # solve_chapter on the new path.
                         return
+            # ----- One-time local-fix nudge -----------------------------
+            # Refactor is the most expensive escalation in the system:
+            # a forked branch, a refactor table, every consumer re-
+            # validated. Most ad-hoc "I need a refactor" emissions
+            # are actually local-fix obstacles in disguise -- an
+            # auxiliary def / a custom variant of the upstream concept
+            # defined locally for this proof / a smart-constructor
+            # helper threading the missing invariant -- and the
+            # cheapest way to verify this is to make the manager try
+            # before honoring. The FIRST refactor emission in a
+            # non-refactor row gets bounced back with a nudge. The
+            # SECOND emission (after the manager has had a turn to
+            # actively rule out local fixes) is honored normally.
+            if not state.refactor_local_fix_nudge_done:
+                state.refactor_local_fix_nudge_done = True
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    "(refactor: one-time local-fix nudge; not yet "
+                    "dispatching plan_refactor)"))
+                print(f"[orchestrator] refactor: one-time local-fix "
+                      f"nudge; bouncing back to manager.", flush=True)
+                extra_note = (
+                    "REFACTOR is the heaviest action available -- it "
+                    "forks a branch, builds a refactor table, and drives "
+                    "every consumer row through a full re-validation "
+                    "pipeline (multi-day, multi-row). Before this "
+                    "orchestrator dispatches `plan_refactor.md`, spend "
+                    "ONE turn to actively rule out a LOCAL FIX. Many "
+                    "obstacles that present as 'the upstream type is "
+                    "wrong' are actually 'I need an auxiliary structure "
+                    "at the use site'.\n\n"
+                    "Concretely, ask yourself:\n\n"
+                    "1. **Custom helper definition** -- could a new "
+                    "private `def` / `lemma` in THIS row's file thread "
+                    "the obstacle without changing the upstream concept? "
+                    "Examples: a custom walk-reversal that goes through "
+                    "an intermediate structure tagging each step's "
+                    "channel; a smart constructor that bundles a missing "
+                    "invariant; a use-site wrapper that discharges the "
+                    "upstream's loose interface to the LN's intended "
+                    "one.\n\n"
+                    "2. **Custom variant of the upstream concept** -- "
+                    "could you define a LOCAL variant of the upstream "
+                    "concept (defined only for the restricted class "
+                    "your row actually consumes) and prove against it "
+                    "instead? Downstream consumers don't need to know "
+                    "about your local variant; you just need your row's "
+                    "proof to work.\n\n"
+                    "3. **Use-site discharge** -- is the obstacle really "
+                    "at the upstream level, or is it a use-site obstacle "
+                    "that auxiliary infrastructure (helper lemmas, "
+                    "intermediate structures, casing) can discharge? "
+                    "Casing on hypotheses you control is often cheaper "
+                    "than restructuring an upstream type that other "
+                    "rows have already committed against.\n\n"
+                    "Spend the next turn on `spawn_agent_sub_task` "
+                    "exploring these. If you come back with a concrete "
+                    "write-up of why each local approach genuinely "
+                    "doesn't work for THIS row (not just 'it's clunky' "
+                    "or 'the LN-faithful answer is upstream'), re-emit "
+                    "`refactor` and the orchestrator will honor it. If "
+                    "a local fix works, you save days of pipeline.\n\n"
+                    "Your previous `refactor` body has been preserved "
+                    "for re-use on the re-emission."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
+
             # Advisory refactor: the (rewritten) `plan_refactor.md`
             # worker is NON-DESTRUCTIVE -- it just writes a markdown
             # plan to `leanification/refactors/refactor_<name>.md` and
