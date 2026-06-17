@@ -2361,7 +2361,7 @@
           "last_used": "2026-06-17T17:31:43+00:00"
         }
       ],
-      "time_needed_to_solve": 8799,
+      "time_needed_to_solve": 8819,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2381,10 +2381,10 @@
       "section": "3.2",
       "title": "NodeSplittingOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/NodeSplittingOn.lean",
@@ -2395,16 +2395,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2419,8 +2419,100 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Node-splitting on CDMGs]\n  \\label{def:G_node-splitting}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of the output nodes.\n    The \\emph{node-split graph} w.r.t.\\ $W$ of $G$ is the CDMG: \n    \\[ G_{\\spl(W)} :=\\lp J_{\\spl(W)}, V_{\\spl(W)}, E_{\\spl(W)},L_{\\spl(W)} \\rp,\\]\n    %\\[ G_{\\spl(W)} := G':=(J',V',E',L'),\\]\n    %\\[G((V\\sm W) \\dcup W^o|\\doit(W^i \\dcup J)):=G':=(J',V',E',L'),\\]\n    constructed as follows.\n    We first make two disjont copies of the nodes in $W$:\n    \\[ W^0:=\\lC w^0\\st w \\in W \\rC, \\qquad W^1:=\\lC w^1 \\st w \\in W \\rC.  \\]\n    Note that we consider $w^0 \\neq w^1$ for $w \\in W$.\n    Additionally (for convenience), for $v \\in J \\cup V \\sm W$ we put:\n  \\[ v^0:=v^1:=v.  \\]\n  We then define:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\spl(W)} := J$,\n      \\item $V_{\\spl(W)} := (V \\sm W) \\dcup W^0 \\dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.\n      \\item $E_{\\spl(W)} := \\lC v^1_1 \\tuh v_2^0 \\st v_1 \\tuh v_2 \\in E \\rC \\cup \\lC w^0 \\tuh w^1 \\st w \\in W \\rC$,\n      \\item $L_{\\spl(W)} :=\\lC v_1^0 \\huh v_2^0 \\st v_1 \\huh v_2 \\in L \\rC$.\n  \\end{enumerate}\n  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,\n  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,\n  and edges $w^0 \\tuh w^1$ are added for all nodes in $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "acb7bbca-b1a4-4be9-a225-c229d0d5090f",
+          "first_seen": "2026-06-17T17:41:07+00:00",
+          "last_used": "2026-06-17T17:41:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c6eaaab7-8b17-4b14-a70e-85a45d58e53c",
+          "first_seen": "2026-06-17T17:53:24+00:00",
+          "last_used": "2026-06-17T17:53:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "14b63ab7-7415-4e72-a73f-366f76abf4b6",
+          "first_seen": "2026-06-17T17:55:09+00:00",
+          "last_used": "2026-06-17T17:55:09+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "c81b2bd3-8964-44c5-9e21-1a2aa89b130d",
+          "first_seen": "2026-06-17T17:58:41+00:00",
+          "last_used": "2026-06-17T17:58:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "55a71cfa-9bee-42c2-98ad-17e9b565c34f",
+          "first_seen": "2026-06-17T17:59:44+00:00",
+          "last_used": "2026-06-17T17:59:44+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "6595b503-372a-4570-9f95-4691ae473de7",
+          "first_seen": "2026-06-17T18:01:50+00:00",
+          "last_used": "2026-06-17T18:01:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5b19c27b-93b0-4a37-a685-8d312eaab510",
+          "first_seen": "2026-06-17T18:03:07+00:00",
+          "last_used": "2026-06-17T18:03:07+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "fe91abd6-7f63-4c5d-8ebf-2052f3e48849",
+          "first_seen": "2026-06-17T18:06:28+00:00",
+          "last_used": "2026-06-17T18:06:28+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "5d955099-1541-42c4-a404-a13a79bdac5a",
+          "first_seen": "2026-06-17T18:12:11+00:00",
+          "last_used": "2026-06-17T18:12:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "96e9d18f-b9ed-49e4-a1ed-bc1fc8e7b30b",
+          "first_seen": "2026-06-17T18:13:23+00:00",
+          "last_used": "2026-06-17T18:13:23+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "78451f9c-7908-4b0c-b21b-608b335e0261",
+          "first_seen": "2026-06-17T18:26:33+00:00",
+          "last_used": "2026-06-17T18:26:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fb671adf-4fdd-4494-ae70-63e236c6956e",
+          "first_seen": "2026-06-17T18:27:06+00:00",
+          "last_used": "2026-06-17T18:27:06+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "f229ee27-5fd4-4d23-bf35-89e294baa2b3",
+          "first_seen": "2026-06-17T18:30:34+00:00",
+          "last_used": "2026-06-17T18:30:34+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4098,
       "addition_to_the_LN": "[disjointness_of_new_copies_only_partially_stipulated] The disjointness assertions $W^0 \\cap V = W^1 \\cap V = W^0 \\cap J = W^1 \\cap J = W^0 \\cap W^1 = \\emptyset$ are to be realized at the type level: in a formal encoding, $W^0$ and $W^1$ are constructed as tagged copies (e.g. via a $\\Sigma$-type or tagged sum) so that their elements are of a distinct type from elements of $V$ and $J$, making disjointness hold automatically rather than as a side condition. The convention $v^0 := v^1 := v$ for $v \\in J \\cup (V \\sm W)$ is purely notational shorthand used inside the definitions of $E_{\\spl(W)}$ and $L_{\\spl(W)}$, and does not reassign these elements to the tagged copy types.",
       "wording_check": {
         "done": true,
