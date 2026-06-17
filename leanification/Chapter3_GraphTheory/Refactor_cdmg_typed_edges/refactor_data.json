@@ -607,7 +607,7 @@
           "last_used": "2026-06-17T05:27:41+00:00"
         }
       ],
-      "time_needed_to_solve": 2474,
+      "time_needed_to_solve": 2494,
       "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
       "wording_check": {
         "done": true,
@@ -626,10 +626,10 @@
       "section": "3.1",
       "title": "Walks",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a refactor ROOT in `cdmg_typed_edges` (roots: `def_3_1`, `def_3_4`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Walks.lean",
@@ -640,16 +640,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 6,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -664,8 +664,170 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Walks]\\label{def:walks}\n     Let $G=(J,V,E,L)$ be a CDMG and $v,w \\in G$.\n\\begin{enumerate}\n    \\item A \\emph{walk} from $v$ to $w$ in $G$ is a finite alternating sequence of adjacent nodes and edges \n      \\[v=v_0, a_0,  v_1, \\dots v_{n-1}, a_{n-1}, v_n=w\\] \n%      \\[v=v_0 \\sus v_1 \\sus  \\cdots \\sus v_{n-1} \\sus v_n=w\\]\n        in $G$ for some $n \\ge 0$, i.e.\\ such that for every $k=0,\\dots,n-1$ \n        we have that $a_k = (v_k, v_{k+1}) \\in E \\cup L$ or $a_k = (v_{k+1}, v_k) \\in E$, and with end nodes $v_0=v$ and $v_n=w$.\n        An example walk from $v_0$ to $v_3$ could look like:\n        \\[v_0 \\tuh v_1 \\hut  v_2 \\huh v_3, \\qquad\\text{ with } \\qquad  v_0 \\tuh v_1, v_2 \\tuh v_1 \\in E,\\,v_2 \\huh v_3 \\in L. \\]\n        The same node may appear multiple times in a walk.\n        Also the \\emph{trivial walk} consisting of a single node $v_0 \\in G$ is allowed (if $v=w$).\n        The walk is called \\emph{into $v_0$} if $a_0 = v_0 \\hus v_1$, and \\emph{out of $v_0$} if $a_0 = v_0 \\tuh v_1$.\n        Similarly, it is called \\emph{into $v_n$} if $a_{n-1} = v_{n-1} \\suh v_n$ and \\emph{out of $v_n$} if $a_{n-1} = v_{n-1} \\hut v_n$.\n    \\item A \\emph{directed walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\tuh v_1 \\tuh  \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        for some $n \\ge 0$,\n        where all arrowheads point in the direction of $w$ and there are no arrowheads pointing back.\n   % \\item[] Directed walks exclude the trivial walk per definition.\n    \\item A \\emph{bidirected walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\huh v_1 \\huh  \\cdots \\huh v_{n-1} \\huh v_n=w,\\]\n        for some $n \\ge 0$, where all edges are bidirected.\n    \\item A \\emph{collider walk} from $v$ to $w$ in $G$ is of the form:\n        \\[v=v_0 \\suh v_1 \\huh  \\cdots \\huh v_{n-1} \\hus v_n=w,\\]\n        for some $n \\ge 0$, where all nodes in between $v$ and $w$ have two arrowheads pointing towards them (a.k.a.\\ collider).\n        Note that for $n=1$ this reads: $v\\sus w \\in G$.\n    \\item A walk is called \\emph{path} if no node occurs more than once.\n    \\item A \\emph{bifurcation} between $v$ and $w$ in $G$ is a walk of the form:\n        \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\hus v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n   %             \\[v=v_0 \\hut v_1 \\hut  \\cdots \\hut v_{k-1} \\huh v_k  \\tuh \\cdots \\tuh v_{n-1} \\tuh v_n=w,\\]\n        such that $v \\ne w$, the walk contains both endnodes exactly once, \n\tthe subwalk $v_0 \\hut \\cdots v_{k-1}$ is a directed walk from $v_{k-1}$ to $v_0$,\n\tand the subwalk $v_k \\tuh \\cdots v_n$ is a directed walk from $v_k$ to $v_n$.\n        %every node has at most one arrowhead pointing towards it, and \n        %both endnodes have exactly one arrowhead pointing towards them. \n        If the edge $v_{k-1} \\hus v_k$ is directed ($v_{k-1} \\hut v_k$) then we say that the bifurcation has \\emph{source} $v_{k}$.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a38398a2-4be0-4b88-940a-1739f8299850",
+          "first_seen": "2026-06-17T05:38:05+00:00",
+          "last_used": "2026-06-17T05:38:05+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "5858af43-ae9e-465b-9413-e7fd475ca09d",
+          "first_seen": "2026-06-17T05:42:46+00:00",
+          "last_used": "2026-06-17T05:42:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c8c31138-020e-4136-a978-41df7ecfb0a5",
+          "first_seen": "2026-06-17T05:44:01+00:00",
+          "last_used": "2026-06-17T05:44:01+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "7d4c4440-e51d-42e5-94dd-06743d840f80",
+          "first_seen": "2026-06-17T05:56:29+00:00",
+          "last_used": "2026-06-17T05:56:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "237fa3eb-becd-4113-a8da-5b40189b2b8b",
+          "first_seen": "2026-06-17T05:58:06+00:00",
+          "last_used": "2026-06-17T05:58:06+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f5368f3d-4284-469c-bfa6-d91ca3c6a05d",
+          "first_seen": "2026-06-17T06:11:13+00:00",
+          "last_used": "2026-06-17T06:11:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7c61b8dc-a05f-4786-9671-10f500da8d24",
+          "first_seen": "2026-06-17T06:12:37+00:00",
+          "last_used": "2026-06-17T06:12:37+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "b69e920d-5540-493d-b43b-540766491616",
+          "first_seen": "2026-06-17T06:27:00+00:00",
+          "last_used": "2026-06-17T06:27:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fd87039f-93fb-4189-916b-be9fd009d299",
+          "first_seen": "2026-06-17T06:28:22+00:00",
+          "last_used": "2026-06-17T06:28:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "586f3412-663e-4ad2-b991-a3986d6d912b",
+          "first_seen": "2026-06-17T06:42:15+00:00",
+          "last_used": "2026-06-17T06:42:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "992f3aa0-195d-4fa9-b936-e0bb60cac377",
+          "first_seen": "2026-06-17T06:43:43+00:00",
+          "last_used": "2026-06-17T06:43:43+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "52cb8177-2e51-40a6-b4b4-bab6a0ffd135",
+          "first_seen": "2026-06-17T07:14:00+00:00",
+          "last_used": "2026-06-17T07:14:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "72c388c7-7037-4f9b-82ef-255b2a9eb22a",
+          "first_seen": "2026-06-17T07:16:11+00:00",
+          "last_used": "2026-06-17T07:16:11+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "4f04c416-3cb3-4f47-8def-f468595876f8",
+          "first_seen": "2026-06-17T07:20:49+00:00",
+          "last_used": "2026-06-17T07:20:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c490f44d-7d57-4e65-95b5-fd0b390f66e0",
+          "first_seen": "2026-06-17T07:21:42+00:00",
+          "last_used": "2026-06-17T07:21:42+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "b55bb423-386e-4c7b-ab5a-6c1399bc9137",
+          "first_seen": "2026-06-17T07:25:47+00:00",
+          "last_used": "2026-06-17T07:25:47+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "237e4c7e-b9d9-4d0d-98d0-85198934a414",
+          "first_seen": "2026-06-17T07:26:56+00:00",
+          "last_used": "2026-06-17T07:26:56+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "9c371c1c-0af5-4ba7-bf23-ea04aa39b363",
+          "first_seen": "2026-06-17T07:38:24+00:00",
+          "last_used": "2026-06-17T07:38:24+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "7b80cc6c-56e4-4653-948d-d12d4de4aaca",
+          "first_seen": "2026-06-17T07:52:47+00:00",
+          "last_used": "2026-06-17T07:52:47+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ee6c445c-6e85-450f-aebd-c0e929c923fb",
+          "first_seen": "2026-06-17T07:54:01+00:00",
+          "last_used": "2026-06-17T07:54:01+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8e96b558-f77d-41f3-805c-3b3fa1472bcd",
+          "first_seen": "2026-06-17T08:05:43+00:00",
+          "last_used": "2026-06-17T08:05:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "947d9db2-656b-42a6-b4a3-239386bb99ee",
+          "first_seen": "2026-06-17T08:06:14+00:00",
+          "last_used": "2026-06-17T08:06:14+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "7990beec-89f6-4c2f-874f-f948612930af",
+          "first_seen": "2026-06-17T08:09:01+00:00",
+          "last_used": "2026-06-17T08:09:01+00:00"
+        }
+      ],
+      "time_needed_to_solve": 10765,
       "addition_to_the_LN": "[bifurcation_right_chain_trivial_is_just_directed_walk] As an additional constraint on the bifurcation form, both endnodes $v_0$ and $v_n$ must have exactly one arrowhead pointing towards them. In particular, this excludes the degenerate case $k = n$ with directed hinge $v_{n-1} \\hut v_n$, in which the walk reduces to a directed walk $v_0 \\leftarrow v_1 \\leftarrow \\cdots \\leftarrow v_n$ and $v_n$ has no arrowhead pointing towards it.\n\n[collider_walk_n1_form_contradicts_inline_note] For $n=1$, a collider walk from $v$ to $w$ requires a bidirected edge $v \\huh w \\in E$ (arrowheads at both endpoints), as dictated by the form $v_0 \\suh v_1$ combined with $v_{n-1} \\hus v_n$ collapsing onto the single edge. The inline note \"$v \\sus w \\in G$\" is to be read in this stricter sense and does *not* admit purely directed edges $v \\tuh w$ or $v \\hut w$ as collider walks of length 1.",
       "wording_check": {
         "done": true,
