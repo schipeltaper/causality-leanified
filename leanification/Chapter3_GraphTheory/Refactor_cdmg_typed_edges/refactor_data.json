@@ -1816,7 +1816,7 @@
           "last_used": "2026-06-17T13:21:38+00:00"
         }
       ],
-      "time_needed_to_solve": 3965,
+      "time_needed_to_solve": 3983,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1835,10 +1835,10 @@
       "section": "3.2",
       "title": "AcyclicPreservedUnderDo",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicPreservedUnderDo.lean",
@@ -1849,16 +1849,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
+        "review_design": 1,
         "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 3,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1874,8 +1874,93 @@
         "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If $G$ is acyclic then also $G_{\\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\\doit(W)}$.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a785da6e-4b09-4a88-bd45-87a313c6605b",
+          "first_seen": "2026-06-17T13:40:44+00:00",
+          "last_used": "2026-06-17T13:40:44+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "de31693b-c2b6-4a4e-b047-c0c665a1e16d",
+          "first_seen": "2026-06-17T13:54:51+00:00",
+          "last_used": "2026-06-17T13:54:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8ef5f319-1a56-494f-830f-e2e4f54ce96d",
+          "first_seen": "2026-06-17T13:57:14+00:00",
+          "last_used": "2026-06-17T13:57:14+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "05a5d33e-51bb-43cb-829a-0ce52352a6ab",
+          "first_seen": "2026-06-17T13:59:48+00:00",
+          "last_used": "2026-06-17T13:59:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ea0f4672-c50e-4b9a-b8a5-00851e1624de",
+          "first_seen": "2026-06-17T14:00:34+00:00",
+          "last_used": "2026-06-17T14:00:34+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "e60b317c-5ec3-46ba-8070-92b6010f5054",
+          "first_seen": "2026-06-17T14:04:09+00:00",
+          "last_used": "2026-06-17T14:04:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "cc35b365-fd69-4612-a410-145a27e8104c",
+          "first_seen": "2026-06-17T14:06:08+00:00",
+          "last_used": "2026-06-17T14:06:08+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "90c6ed30-a36e-45fa-9f07-08256b010c88",
+          "first_seen": "2026-06-17T14:11:20+00:00",
+          "last_used": "2026-06-17T14:11:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "48e31efa-39b3-45cb-8dae-dee87232e8db",
+          "first_seen": "2026-06-17T14:12:01+00:00",
+          "last_used": "2026-06-17T14:12:01+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "c46a9cb2-9ecb-4f5d-8702-7d998fac21f4",
+          "first_seen": "2026-06-17T14:14:28+00:00",
+          "last_used": "2026-06-17T14:14:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9d7e1607-4297-47b1-a74a-8f2b8d40bbfe",
+          "first_seen": "2026-06-17T14:15:09+00:00",
+          "last_used": "2026-06-17T14:15:09+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "28e0e198-c540-42f5-bd97-184964b1234f",
+          "first_seen": "2026-06-17T14:17:53+00:00",
+          "last_used": "2026-06-17T14:17:53+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2953,
       "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here.",
       "wording_check": {
         "done": true,
