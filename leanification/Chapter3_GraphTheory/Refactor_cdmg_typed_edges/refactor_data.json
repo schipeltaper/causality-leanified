@@ -163,7 +163,7 @@
           "last_used": "2026-06-17T02:58:49+00:00"
         }
       ],
-      "time_needed_to_solve": 2860,
+      "time_needed_to_solve": 2880,
       "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] The vertex sets $J$ and $V$ are both finite.",
       "wording_check": {
         "done": true,
@@ -182,10 +182,10 @@
       "section": "3.1",
       "title": "CDMGNotation",
       "type": "notation",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGNotation.lean",
@@ -196,12 +196,12 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -220,8 +220,79 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Not}\n    \\label{not-cdmg}\n    Let $G=(J,V,E,L)$ be a CDMG.\n    We will write:\n    \\begin{enumerate}\n        %\\item $G(V|\\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.\n        \\item $v \\in G$ to mean $v \\in J \\cup V$,\n        \\item $v_1 \\tuh v_2 \\in G$ to mean $(v_1,v_2) \\in E$,\n        \\item $v_1 \\hut v_2 \\in G$ to mean $(v_2,v_1) \\in E$,\n        \\item $v_1 \\huh v_2 \\in G$ to mean $(v_1,v_2) \\in L$,\n        \\item $v_1 \\suh v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\hus v_2 \\in G$ to mean that either $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$,\n        \\item $v_1 \\sus v_2 \\in G$ to mean that either $v_1 \\tuh v_2 \\in G$ or $v_1 \\hut v_2 \\in G$ or $v_1 \\huh v_2 \\in G$.\n    \\end{enumerate}\n    The star stands for a placeholder to mean: ``arrowhead or tail''.\n\\end{Not}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "713582e8-1e1c-4a1e-8aa3-d03ac6fd05f5",
+          "first_seen": "2026-06-17T03:24:38+00:00",
+          "last_used": "2026-06-17T03:24:38+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "5114aee5-e445-4e88-ad20-59c8e8c5238d",
+          "first_seen": "2026-06-17T03:26:10+00:00",
+          "last_used": "2026-06-17T03:26:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5c01c619-7759-4082-8ac0-e68eb0ae9125",
+          "first_seen": "2026-06-17T03:28:26+00:00",
+          "last_used": "2026-06-17T03:28:26+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "2ef68457-30b4-41a8-bc0b-c6279aaf9c97",
+          "first_seen": "2026-06-17T03:30:40+00:00",
+          "last_used": "2026-06-17T03:30:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e65c40f4-998c-49cc-9931-406cbb0612d4",
+          "first_seen": "2026-06-17T03:32:32+00:00",
+          "last_used": "2026-06-17T03:32:32+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "0b5c8d53-5cf2-4ceb-bef2-2ec27124b5e2",
+          "first_seen": "2026-06-17T03:37:33+00:00",
+          "last_used": "2026-06-17T03:37:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0adf6aef-aae3-437c-a493-b4186a5d0ab7",
+          "first_seen": "2026-06-17T03:38:56+00:00",
+          "last_used": "2026-06-17T03:38:56+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "ab1912f6-7115-4450-9c0e-926cb7bab658",
+          "first_seen": "2026-06-17T03:53:57+00:00",
+          "last_used": "2026-06-17T03:53:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c07b23b0-360b-4336-8fff-75c57c2e3084",
+          "first_seen": "2026-06-17T03:54:53+00:00",
+          "last_used": "2026-06-17T03:54:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d8ec8db8-0704-4dd3-a03d-814e76924ef5",
+          "first_seen": "2026-06-17T03:57:51+00:00",
+          "last_used": "2026-06-17T03:57:51+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3541,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
         "done": true,
