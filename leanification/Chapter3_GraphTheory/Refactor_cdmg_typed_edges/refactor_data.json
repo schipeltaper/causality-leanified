@@ -39,10 +39,10 @@
       "section": "3.1",
       "title": "CDMG",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a refactor ROOT in `cdmg_typed_edges` (roots: `def_3_1`, `def_3_4`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMG.lean",
@@ -53,16 +53,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -77,8 +77,93 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Conditional directed mixed graphs (CDMG)]\n    \\label{def-cdmg}\n    A \\emph{conditional directed mixed graph (CDMG)} $G$---per definition---consists of two (disjoint) sets of\n    vertices (also called nodes):\n    \\begin{enumerate}[label=\\roman*.)]\n        \\item $J$, whose elements are called input nodes,\n        \\item $V$, whose elements are called output nodes,\n    \\end{enumerate}\n%    such that $J \\cup V \\neq \\emptyset$;\n    and two (disjoint) sets of edges:\n    \\begin{enumerate}[resume,label=\\roman*.)]\n        \\item $E \\ins (J \\cup V) \\times V$ the set of directed edges,\n        \\item $L \\ins V \\times V/((v_1,v_2) \\sim (v_2,v_1)) $, the set of bidirected edges, \n        \\item[]    with: $(v_1,v_2) \\in L \\, \\implies\\, v_1\\neq v_2 \\land (v_2,v_1) \\in L$.\n    \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bf474850-61c9-48d8-a1bc-03dd9ded2fd0",
+          "first_seen": "2026-06-17T02:22:06+00:00",
+          "last_used": "2026-06-17T02:22:06+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9923cf06-2815-43bc-9b25-dc66fbf00942",
+          "first_seen": "2026-06-17T02:30:25+00:00",
+          "last_used": "2026-06-17T02:30:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c8a18a5c-e5d8-47d8-b769-251d003aca29",
+          "first_seen": "2026-06-17T02:31:17+00:00",
+          "last_used": "2026-06-17T02:31:17+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "a143ce2d-73ea-4349-9d7d-74b62b60dd77",
+          "first_seen": "2026-06-17T02:36:57+00:00",
+          "last_used": "2026-06-17T02:36:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "60415b29-a64d-47e2-b98b-d6ee0ccbb5d9",
+          "first_seen": "2026-06-17T02:37:35+00:00",
+          "last_used": "2026-06-17T02:37:35+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "6a098b5d-12fa-40f1-a852-33fe74cca139",
+          "first_seen": "2026-06-17T02:38:46+00:00",
+          "last_used": "2026-06-17T02:38:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6cda220f-0bf1-4aac-bc5e-0bdfb9808aa3",
+          "first_seen": "2026-06-17T02:39:54+00:00",
+          "last_used": "2026-06-17T02:39:54+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "1d77eb17-cdc9-4b22-98c9-42b1ac8e2c30",
+          "first_seen": "2026-06-17T02:41:58+00:00",
+          "last_used": "2026-06-17T02:41:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0f213eaf-60ce-4c28-ba3d-c7e650a20d67",
+          "first_seen": "2026-06-17T02:43:14+00:00",
+          "last_used": "2026-06-17T02:43:14+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "e56a0da3-809d-44a6-bf58-99e3609cfff6",
+          "first_seen": "2026-06-17T02:55:52+00:00",
+          "last_used": "2026-06-17T02:55:52+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "da1f141c-a932-44ff-bc0e-8459b75b2499",
+          "first_seen": "2026-06-17T02:56:36+00:00",
+          "last_used": "2026-06-17T02:56:36+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "020bc55f-4d37-4874-9a81-55e3fea2a562",
+          "first_seen": "2026-06-17T02:58:49+00:00",
+          "last_used": "2026-06-17T02:58:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2860,
       "addition_to_the_LN": "[l_quotient_vs_ordered_pair_typing_inconsistent] The set $L$ of bidirected edges may be encoded either as a subset of the quotient $V \\times V / {\\sim}$ (with $(v_1, v_2) \\sim (v_2, v_1)$, i.e., as unordered pairs) or as a subset of $V \\times V$ subject to the symmetry constraint $(v_1, v_2) \\in L \\iff (v_2, v_1) \\in L$. Both encodings are admissible; in the ordered-pair encoding, membership of $(v_1, v_2)$ and $(v_2, v_1)$ must always coincide. The irreflexivity condition $v_1 \\neq v_2$ applies under either encoding.\n\n[edge_set_disjointness_under_specified] The qualifier \"disjoint\" applied to the edge sets $E$ and $L$ is to be read as trivial type-level disjointness — directed edges and bidirected edges are objects of distinct types — and imposes no graph-theoretic mutual-exclusion constraint between them. In particular, for $v_1, v_2 \\in V$, it is permitted to have $(v_1, v_2) \\in E$ and $\\{v_1, v_2\\} \\in L$ simultaneously; if a formalization encodes both $E$ and $L$ as subsets of ordered pairs over $V$, the same ordered pair $(v, w)$ may belong to both $E$ and $L$.\n\n[manual_1] The vertex sets $J$ and $V$ are both finite.",
       "wording_check": {
         "done": true,
