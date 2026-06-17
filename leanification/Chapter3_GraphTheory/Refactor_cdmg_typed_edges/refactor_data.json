@@ -1665,7 +1665,7 @@
           "last_used": "2026-06-17T12:15:25+00:00"
         }
       ],
-      "time_needed_to_solve": 2072,
+      "time_needed_to_solve": 2092,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1685,10 +1685,10 @@
       "section": "3.2",
       "title": "HardInterventionOn",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionOn.lean",
@@ -1699,16 +1699,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
+        "verify_with_examples": 1,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1723,8 +1723,100 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Hard intervention on CDMGs]\\label{def:G_hard_intervention}\n    Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{intervened CDMG} w.r.t.\\ $W$ of $G$ is the CDMG: \n  \\[ G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  %\\[G(V\\sm W|\\doit(W \\cup J)):=G_{\\doit(W)}:=(J_{\\doit(W)},V_{\\doit(W)},E_{\\doit(W)},L_{\\doit(W)}),\\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J_{\\doit(W)}:= J \\cup W$,\n      \\item $V_{\\doit(W)}:= V \\sm W$,\n      \\item $E_{\\doit(W)}:= E \\sm \\lC v \\tuh w \\,|\\, v \\in G, w  \\in W  \\rC$,\n      \\item $L_{\\doit(W)}:= L \\sm \\lC v \\huh w\\,|\\, v \\in G, w \\in W \\rC$,\n  \\end{enumerate}\n  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e584eb88-1458-4d23-9cf0-147a2e9bb599",
+          "first_seen": "2026-06-17T12:29:20+00:00",
+          "last_used": "2026-06-17T12:29:20+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a8e63739-d61c-41f6-bc22-06a176ff0bd6",
+          "first_seen": "2026-06-17T12:41:37+00:00",
+          "last_used": "2026-06-17T12:41:37+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2b878fad-7197-49e6-92a0-50d5ae5bb40b",
+          "first_seen": "2026-06-17T12:43:07+00:00",
+          "last_used": "2026-06-17T12:43:07+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "08b3d387-1d46-4948-9d3c-a918924a3fcc",
+          "first_seen": "2026-06-17T12:48:18+00:00",
+          "last_used": "2026-06-17T12:48:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ba8d98cf-6c23-4945-8b5b-3ac467460ba0",
+          "first_seen": "2026-06-17T12:49:01+00:00",
+          "last_used": "2026-06-17T12:49:01+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "84b9122c-23c7-48ef-90ca-d5c529f9b4d1",
+          "first_seen": "2026-06-17T12:50:48+00:00",
+          "last_used": "2026-06-17T12:50:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6ae6f107-3004-4ef7-86c5-8aa2d3e74820",
+          "first_seen": "2026-06-17T12:52:24+00:00",
+          "last_used": "2026-06-17T12:52:24+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "68fd10a4-1c84-4d00-9dbb-b4e57c411ad4",
+          "first_seen": "2026-06-17T12:56:04+00:00",
+          "last_used": "2026-06-17T12:56:04+00:00"
+        },
+        {
+          "kind": "verify_with_examples",
+          "spawned_by": "manager",
+          "session_id": "77133412-aa88-4535-b097-a62a09b01284",
+          "first_seen": "2026-06-17T13:06:16+00:00",
+          "last_used": "2026-06-17T13:06:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b90ab5bc-c32a-45cb-b68d-d74e59287ee9",
+          "first_seen": "2026-06-17T13:07:38+00:00",
+          "last_used": "2026-06-17T13:07:38+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "9f57415e-c060-4999-8250-fe875d6c7f2f",
+          "first_seen": "2026-06-17T13:18:25+00:00",
+          "last_used": "2026-06-17T13:18:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "368e7b85-7132-4d60-a52f-de777556288f",
+          "first_seen": "2026-06-17T13:18:54+00:00",
+          "last_used": "2026-06-17T13:18:54+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "978c46a2-1c19-442e-8829-e43fc5b6b33b",
+          "first_seen": "2026-06-17T13:21:38+00:00",
+          "last_used": "2026-06-17T13:21:38+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3965,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
