@@ -435,7 +435,7 @@
           "last_used": "2026-06-17T04:47:06+00:00"
         }
       ],
-      "time_needed_to_solve": 3003,
+      "time_needed_to_solve": 3023,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
         "done": true,
@@ -454,10 +454,10 @@
       "section": "3.1",
       "title": "CDMGRestrictions",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGRestrictions.lean",
@@ -467,17 +467,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -488,13 +488,126 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0,
+        "verify_tex_statement_plus_proof": 1,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nWith the notations \\ref{not-cdmg} the restrictions in definition \\ref{def-cdmg} mean that the nodes $j \\in J$ will not have any arrowheads pointing towards them: $ j \\hus v \\notin G$. Nodes $j \\in J$ can only point towards nodes $v \\in V$: edges $j \\tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "291fdea1-425c-4920-a9f7-70427d4719d0",
+          "first_seen": "2026-06-17T04:55:58+00:00",
+          "last_used": "2026-06-17T04:55:58+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "12d8df68-22c7-42b3-b21f-9006e0fb9166",
+          "first_seen": "2026-06-17T04:59:02+00:00",
+          "last_used": "2026-06-17T04:59:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "58c53f70-8f92-4720-ab95-a4f88c62ac98",
+          "first_seen": "2026-06-17T04:59:45+00:00",
+          "last_used": "2026-06-17T04:59:45+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "6a51e173-4d93-49f3-b339-466ebf539404",
+          "first_seen": "2026-06-17T05:00:11+00:00",
+          "last_used": "2026-06-17T05:00:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2b7c0b20-8332-4d3a-8059-455bc24404d9",
+          "first_seen": "2026-06-17T05:01:02+00:00",
+          "last_used": "2026-06-17T05:01:02+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "63dfb0d2-846f-4a4f-b7bb-3deab7f99ee1",
+          "first_seen": "2026-06-17T05:02:26+00:00",
+          "last_used": "2026-06-17T05:02:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0539b2b7-e35e-43b7-b88c-c228c89149b4",
+          "first_seen": "2026-06-17T05:03:16+00:00",
+          "last_used": "2026-06-17T05:03:16+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "61fa6bda-89f1-4ea0-95a1-f2f48007c47e",
+          "first_seen": "2026-06-17T05:11:51+00:00",
+          "last_used": "2026-06-17T05:11:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4650cab9-0218-4cb6-a4fa-9047b21c9dac",
+          "first_seen": "2026-06-17T05:13:20+00:00",
+          "last_used": "2026-06-17T05:13:20+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "bebdfe1f-6081-491b-8840-49b3a6a495d8",
+          "first_seen": "2026-06-17T05:15:05+00:00",
+          "last_used": "2026-06-17T05:15:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9bab9d32-89f3-4f21-b3e2-3b2454ba0f7f",
+          "first_seen": "2026-06-17T05:15:55+00:00",
+          "last_used": "2026-06-17T05:15:55+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "4ed6d2ed-0611-4696-a5cc-d4ebd8c0d62c",
+          "first_seen": "2026-06-17T05:18:56+00:00",
+          "last_used": "2026-06-17T05:18:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2546441c-6a95-4c91-8b31-c11e6b2e1885",
+          "first_seen": "2026-06-17T05:19:39+00:00",
+          "last_used": "2026-06-17T05:19:39+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "b9513d4d-62eb-4493-a71e-8bc18bf29ed1",
+          "first_seen": "2026-06-17T05:22:38+00:00",
+          "last_used": "2026-06-17T05:22:38+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fe882749-baa6-4de0-8aa4-34aab28da298",
+          "first_seen": "2026-06-17T05:24:38+00:00",
+          "last_used": "2026-06-17T05:24:38+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "ad8321e6-80f2-4f55-a187-f109f023896d",
+          "first_seen": "2026-06-17T05:27:41+00:00",
+          "last_used": "2026-06-17T05:27:41+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2474,
       "addition_to_the_LN": "[implicit_universal_quantifier_in_hus_clause] The statements \"$j \\hus v \\notin G$\" and \"edges $j \\tuh v$ are allowed\" carry implicit universal quantification over $v$. Precisely: for every $j \\in J$ and every node $v$ in the graph, $j \\hus v \\notin G$; and for every $j \\in J$ and every $v \\in V$, an edge $j \\tuh v$ is permitted in $G$ (its presence is not asserted, only that no restriction forbids it).",
       "wording_check": {
         "done": true,
