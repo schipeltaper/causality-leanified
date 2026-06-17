@@ -292,7 +292,7 @@
           "last_used": "2026-06-17T03:57:51+00:00"
         }
       ],
-      "time_needed_to_solve": 3541,
+      "time_needed_to_solve": 3560,
       "addition_to_the_LN": "[sus_omits_tail_tail_despite_star_eq_head_or_tail] CDMGs do not admit a tail-tail edge type; consequently the placeholder rule \"the star stands for arrowhead or tail\" yields only the three enumerated configurations in item 7 (the tail-tail case \"$v_1 \\tut v_2$\" is excluded by definition, not omitted by oversight). Any case analysis on \"$v_1 \\sus v_2 \\in G$\" may assume exhaustiveness over exactly the three listed alternatives $\\{\\tuh, \\hut, \\huh\\}$.\n\n[huh_visual_symmetry_vs_ordered_pair_in_L] The relation $L$ is required to be symmetric: for all $v_1, v_2$, $(v_1, v_2) \\in L$ if and only if $(v_2, v_1) \\in L$. Consequently, $v_1 \\huh v_2 \\in G \\iff v_2 \\huh v_1 \\in G$, and the symmetry of the $\\huh$-disjunct propagates to items 5–7 accordingly.",
       "wording_check": {
         "done": true,
@@ -311,10 +311,10 @@
       "section": "3.1",
       "title": "EdgeRelations",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/EdgeRelations.lean",
@@ -325,16 +325,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -349,8 +349,93 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n  Let $G=(J,V,E,L)$ be a CDMG.\n  \\begin{enumerate}\n    \\item If $v_1 \\sus v_2 \\in G$ then we call $v_1$ and $v_2$ \\emph{adjacent in $G$}.\n    \\item Edges of the form $v_1 \\hut v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_1$}.  \\\\\n          Edges of the form $v_1 \\tuh v_2$ or $v_1 \\huh v_2$ are called \\emph{into $v_2$}. \n    \\item Edges of the form $v_1 \\tuh v_2$ or $v_2 \\hut v_1$ are called \\emph{out of $v_1$}.\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3a87cc8d-df41-42c0-b04e-c3bfd777eb8e",
+          "first_seen": "2026-06-17T04:06:40+00:00",
+          "last_used": "2026-06-17T04:06:40+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "24898876-382f-4792-a49a-1f6626ba7b41",
+          "first_seen": "2026-06-17T04:17:47+00:00",
+          "last_used": "2026-06-17T04:17:47+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d73b6fdd-cdad-4f11-bc5c-23b9b0a54e25",
+          "first_seen": "2026-06-17T04:19:15+00:00",
+          "last_used": "2026-06-17T04:19:15+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "421f4a01-52b7-4e73-aa9a-7ed30cd351ac",
+          "first_seen": "2026-06-17T04:22:44+00:00",
+          "last_used": "2026-06-17T04:22:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "35040dc0-fee6-4915-a3d5-281533564194",
+          "first_seen": "2026-06-17T04:23:24+00:00",
+          "last_used": "2026-06-17T04:23:24+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "6004520a-9b98-428a-a137-98a88c8aec8b",
+          "first_seen": "2026-06-17T04:25:54+00:00",
+          "last_used": "2026-06-17T04:25:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5e952bfa-c602-4ae2-9a69-ddbc876be0d4",
+          "first_seen": "2026-06-17T04:26:58+00:00",
+          "last_used": "2026-06-17T04:26:58+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "2c936ee8-71e8-41d7-9304-7841604e6524",
+          "first_seen": "2026-06-17T04:29:45+00:00",
+          "last_used": "2026-06-17T04:29:45+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a3dcde71-3434-431c-b66c-7212030476b1",
+          "first_seen": "2026-06-17T04:30:57+00:00",
+          "last_used": "2026-06-17T04:30:57+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9294f1b0-965e-484e-ae0f-1faa253d93da",
+          "first_seen": "2026-06-17T04:43:55+00:00",
+          "last_used": "2026-06-17T04:43:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dce93d85-7217-43c4-956b-bd696898def3",
+          "first_seen": "2026-06-17T04:44:26+00:00",
+          "last_used": "2026-06-17T04:44:26+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "9d4a6eb0-ccb8-4041-9d15-b2eb82c97300",
+          "first_seen": "2026-06-17T04:47:06+00:00",
+          "last_used": "2026-06-17T04:47:06+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3003,
       "addition_to_the_LN": "[inconsistent_writing_order_enumeration_into_vs_out_of] Throughout the enumeration above, the writings $v_1 \\tuh v_2$ and $v_2 \\hut v_1$ denote the same edge (and the bidirected writings $v_1 \\huh v_2$ and $v_2 \\huh v_1$ likewise coincide). Membership of an edge in the categories \"into $v$\" or \"out of $v$\" depends only on the underlying element of $E$, not on which of these textual writings is used; item 3's explicit listing of both writings and item 2's single-writing enumeration are therefore equivalent under this identification.",
       "wording_check": {
         "done": true,
