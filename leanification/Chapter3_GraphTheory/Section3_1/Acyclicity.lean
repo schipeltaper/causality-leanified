@@ -181,11 +181,91 @@ LN tex (rewritten canonical statement for `def_3_6`):
 --   such an instance, so the decidability plumbing is deferred to
 --   the use site that needs it (e.g.\ causal-discovery algorithms
 --   in chapters 11+).
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsAcyclic
 -- def_3_6 -- start statement
 def IsAcyclic (G : CDMG Node) : Prop :=
   ∀ v ∈ G, ¬ ∃ p : Walk G v v, p.IsDirectedWalk ∧ p.length ≥ 1
 -- def_3_6 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsAcyclic
 
 end CDMG
+
+namespace refactor_CDMG
+
+-- def_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_6 --- end helper
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsAcyclic (was: refactor_IsAcyclic)
+-- ref: def_3_6 (acyclicity) — refactor
+--
+-- *Structural port of the original `IsAcyclic`* (`namespace CDMG`,
+-- lines ~39–187 above) onto the `cdmg_typed_edges` refactor's new
+-- upstream types (DEPENDENT row; roots `def_3_1`, `def_3_4`). The
+-- mathematical design — quantifier scope `∀ v ∈ G` resolved to
+-- `J ∪ V`, "non-trivial" as `p.length ≥ 1`, predicate built on
+-- `Walk + IsDirectedWalk` (not on a separate `Cycle` / `Path`
+-- type), conjunction-under-`∃` instead of a subtype or bundled
+-- `DirectedCycle`, the Mathlib `SimpleGraph.IsAcyclic` re-use
+-- trade-off, and the three known-limitations notes — is
+-- **unchanged**.  See the original block above for the full
+-- rationale; the resolutions of wording-check subtleties
+-- `node_quantifier_scope_v_in_G_unclear_J_versus_V` and
+-- `non_trivial_walk_undefined_admits_self_loop_and_2cycle_ambiguity`
+-- carry over verbatim.
+--
+-- *Upstream-type shifts (and only those).*
+--   `CDMG Node          → refactor_CDMG Node`
+--   `Walk G v v         → refactor_Walk G v v`
+--   `p.IsDirectedWalk   → p.refactor_IsDirectedWalk`
+--   `p.length           → p.refactor_length`
+-- The `∀ v ∈ G` quantifier reads verbatim via the
+-- `refactor_instMembership` instance in `CDMGNotation.lean`
+-- (`def_3_2` refactor twin), and the structural argument that the
+-- `J`-half of the quantifier is vacuous — relying on `hE_subset`
+-- and `hJV_disj` — is unchanged: both fields exist on
+-- `refactor_CDMG` with identical signatures.
+--
+-- ## Refactor-specific design deltas (choices made *against* the
+-- new typed-edge shape)
+--
+-- *Predicate-on-walk, not structural recursion on typed
+--   `refactor_WalkStep`.*  Because `refactor_Walk` now carries
+--   each step's channel in the type
+--   (`.forwardE` / `.backwardE` / `.bidir`), `IsAcyclic` *could*
+--   have been re-encoded directly via the inductive — e.g.\ "no
+--   `refactor_Walk G v v` of length ≥ 1 has every step
+--   `.forwardE`", inlining `refactor_IsDirectedWalk` into the
+--   predicate.  Rejected on two counts: (i) the LN speaks of
+--   "directed walks" as a separate notion and the strict-
+--   equivalence solved-gate compares against that LN text, so
+--   collapsing the two would obscure the LN-to-Lean
+--   correspondence at this row; (ii) downstream consumers
+--   (`def_3_8` topological order, `claim_3_2`, chs.\ 6–7
+--   d-/σ-separation) re-use `refactor_IsDirectedWalk`
+--   independently of acyclicity, so layering `IsAcyclic` *on top
+--   of* `refactor_IsDirectedWalk` shares the inversion / recursion
+--   lemmas across rows rather than re-proving them per consumer.
+--
+-- *Non-triviality stays `refactor_length ≥ 1`, not baked into
+--   `refactor_Walk` as a "non-empty walk" constructor split.*  The
+--   `def_3_4` refactor preserved the `nil` / `cons` constructor
+--   shape of `Walk` (only the per-step datum moved from an
+--   untyped `Node × Node` pair to a typed `refactor_WalkStep`),
+--   so the length-counting story is unchanged.  A constructor-
+--   level non-triviality split on `refactor_Walk` would force
+--   every walk-predicate recursion (`refactor_IsDirectedWalk`,
+--   `refactor_IsColliderWalk`, `refactor_IsBidirectedWalk`,
+--   `refactor_IsBifurcationWithSplit`, …) to branch on it,
+--   propagating the change far beyond this row for no local
+--   benefit.  `refactor_length ≥ 1` keeps the encoding local and
+--   matches the LN's `n \ge 1` literally.
+-- def_3_6 -- start statement
+def refactor_IsAcyclic (G : refactor_CDMG Node) : Prop :=
+  ∀ v ∈ G, ¬ ∃ p : refactor_Walk G v v, p.refactor_IsDirectedWalk ∧ p.refactor_length ≥ 1
+-- def_3_6 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsAcyclic
+
+end refactor_CDMG
 
 end Causality

@@ -943,7 +943,7 @@
           "last_used": "2026-06-17T08:56:45+00:00"
         }
       ],
-      "time_needed_to_solve": 2599,
+      "time_needed_to_solve": 2618,
       "addition_to_the_LN": "[self_membership_notes_require_length_zero_walks] In the definitions of $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$, the directed and bidirected walks are understood to include the trivial walk of length $0$ consisting of the single vertex $v$ with no edges. Consequently, $v \\in \\Anc^G(v)$, $v \\in \\Desc^G(v)$, $v \\in \\Sc^G(v)$, and $v \\in \\Dist^G(v)$ hold for every $v \\in V$ unconditionally, regardless of whether any edge (in particular any self-loop) incident to $v$ exists in $G$.\n\n[type_mismatch_individual_vs_set_versions] The preamble should read \"$v, w \\in J \\cup V$\" rather than \"$v, w \\in V$\": the individual definitions $\\Pa^G(v)$, $\\Ch^G(v)$, $\\Sib^G(v)$, $\\Anc^G(v)$, $\\Desc^G(v)$, $\\Sc^G(v)$, and $\\Dist^G(v)$ are defined for any $v \\in J \\cup V$, using the same set-builder expressions given. In particular, input nodes ($v \\in J$) may have children, descendants, etc., and the set-version definitions $\\Pa^G(A) := \\bigcup_{v \\in A} \\Pa^G(v)$ (and analogously for the other operators) are well-typed for $A \\ins J \\cup V$ because each summand is defined.\n\n[district_walk_indexing_ambiguous_for_small_n] $w \\in \\Dist^G(v)$ iff there exists a walk from $v$ to $w$ in $G$ in which every edge is bidirected ($\\huh$). The walk may have any length $\\geq 0$; in particular, the length-$0$ walk at $v$ witnesses $v \\in \\Dist^G(v)$, so neither a bidirected self-loop at $v$ nor a length-$2$ bidirected cycle through $v$ is required. The intermediate-node indexing $v_1, \\ldots, v_{n-1}$ in the displayed formula should be read as syntactic sugar for \"walk consisting of bidirected edges\" and imposes no lower bound on walk length.",
       "wording_check": {
         "done": true,
@@ -963,10 +963,10 @@
       "section": "3.1",
       "title": "Acyclicity",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/Acyclicity.lean",
@@ -977,16 +977,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1001,8 +1001,107 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Acyclicity]\n    \\label{def-acylic}\n    A  CDMG  $G=(J,V,E,L)$  is called \\emph{acyclic} if there does not exist\n    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \\in G$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dccb041c-62eb-45ee-835f-5ddea3e9749d",
+          "first_seen": "2026-06-17T09:19:52+00:00",
+          "last_used": "2026-06-17T09:19:52+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "34930323-11db-44fb-93ff-4bfbd54a7c4e",
+          "first_seen": "2026-06-17T09:26:11+00:00",
+          "last_used": "2026-06-17T09:26:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9a8850d9-7835-47cd-aa5b-4e854f5ce6d2",
+          "first_seen": "2026-06-17T09:26:54+00:00",
+          "last_used": "2026-06-17T09:26:54+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "6419faf0-31fb-4c9f-8b55-6f38d2f896f6",
+          "first_seen": "2026-06-17T09:28:08+00:00",
+          "last_used": "2026-06-17T09:28:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e416a2ca-7b6f-4fb3-b95e-d7e9c1cdfe32",
+          "first_seen": "2026-06-17T09:29:26+00:00",
+          "last_used": "2026-06-17T09:29:26+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "cea95224-bfb5-4371-aa2c-b3fe251feff2",
+          "first_seen": "2026-06-17T09:31:00+00:00",
+          "last_used": "2026-06-17T09:31:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c7d0a8ed-92c4-4d55-b13e-b9e43609fa30",
+          "first_seen": "2026-06-17T09:31:53+00:00",
+          "last_used": "2026-06-17T09:31:53+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "ba687609-434a-477f-82eb-46bed07e4722",
+          "first_seen": "2026-06-17T09:40:40+00:00",
+          "last_used": "2026-06-17T09:40:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9aae97a7-b9f2-4e15-aaa6-c1769ab71fca",
+          "first_seen": "2026-06-17T09:41:07+00:00",
+          "last_used": "2026-06-17T09:41:07+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d63e8c0b-ba1a-4dfd-8913-b2927acb2365",
+          "first_seen": "2026-06-17T09:43:41+00:00",
+          "last_used": "2026-06-17T09:43:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d5b049e2-a24a-4893-a6df-d309f1b14e42",
+          "first_seen": "2026-06-17T09:44:09+00:00",
+          "last_used": "2026-06-17T09:44:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "4b6232a6-34a4-4abc-ae77-d2a4b71ea892",
+          "first_seen": "2026-06-17T09:50:06+00:00",
+          "last_used": "2026-06-17T09:50:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7f70c88c-75d0-4163-9797-edc79d41124e",
+          "first_seen": "2026-06-17T09:50:26+00:00",
+          "last_used": "2026-06-17T09:50:26+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "8fe1d83a-7844-4da3-a343-bb5ce029bf52",
+          "first_seen": "2026-06-17T09:52:09+00:00",
+          "last_used": "2026-06-17T09:52:09+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2304,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
         "done": true,
