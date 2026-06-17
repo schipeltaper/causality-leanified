@@ -1101,7 +1101,7 @@
           "last_used": "2026-06-17T09:52:09+00:00"
         }
       ],
-      "time_needed_to_solve": 2304,
+      "time_needed_to_solve": 2323,
       "addition_to_the_LN": "[nontrivial_directed_walk_not_defined_in_block] A non-trivial directed walk is a directed walk $v_0 \\tuh \\cdots \\tuh v_n$ with $n \\ge 1$ (i.e., one that traverses at least one edge); the trivial walk consisting of a single node $v_0$ is excluded. In particular, a self-loop $v \\tuh v$ constitutes a non-trivial directed walk from $v$ to itself, so an acyclic CDMG contains no self-loops on any $v \\in V$.",
       "wording_check": {
         "done": true,
@@ -1121,10 +1121,10 @@
       "section": "3.1",
       "title": "CDMGTypes",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/CDMGTypes.lean",
@@ -1135,16 +1135,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1159,8 +1159,79 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}\n    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:\n   \\begin{enumerate}\n       \\item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.\n       \\item Directed Mixed Graph (DMG) if $J = \\emptyset$.\n       \\item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \\emptyset$.\n       \\item Conditional Directed Graph (CDG) if $L = \\emptyset$.\n       \\item Directed Graph (DG) if $J = \\emptyset$ and $L = \\emptyset$.\n       \\item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \\emptyset$.\n       \\item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\\emptyset$ and $L = \\emptyset$.\n   \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "11105497-79a0-40c0-a764-464e6e58f634",
+          "first_seen": "2026-06-17T09:58:24+00:00",
+          "last_used": "2026-06-17T09:58:24+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3bb5554c-543f-4e89-b1d6-4fe448458212",
+          "first_seen": "2026-06-17T10:05:50+00:00",
+          "last_used": "2026-06-17T10:05:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "26b29958-b04a-41b2-a3d3-df20856bb793",
+          "first_seen": "2026-06-17T10:07:23+00:00",
+          "last_used": "2026-06-17T10:07:23+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "27190b8a-9f6a-4ab8-abf3-3966aaea892b",
+          "first_seen": "2026-06-17T10:10:02+00:00",
+          "last_used": "2026-06-17T10:10:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5bf8038b-9c3a-4ac3-b90d-7ea29130825a",
+          "first_seen": "2026-06-17T10:10:52+00:00",
+          "last_used": "2026-06-17T10:10:52+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "bbeb14d1-5ce0-41ab-a971-5e298e7997bc",
+          "first_seen": "2026-06-17T10:11:41+00:00",
+          "last_used": "2026-06-17T10:11:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "92cf8bf3-9cd6-4570-a811-61c3054a290a",
+          "first_seen": "2026-06-17T10:12:56+00:00",
+          "last_used": "2026-06-17T10:12:56+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "bc72084b-6084-419f-a380-f9e48f283f97",
+          "first_seen": "2026-06-17T10:18:45+00:00",
+          "last_used": "2026-06-17T10:18:45+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "df94209b-5d85-4786-bbf3-c8a7346c51e5",
+          "first_seen": "2026-06-17T10:19:13+00:00",
+          "last_used": "2026-06-17T10:19:13+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "421b0f89-c2a0-493b-abe0-921723e8feb7",
+          "first_seen": "2026-06-17T10:20:50+00:00",
+          "last_used": "2026-06-17T10:20:50+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1611,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
