@@ -1361,7 +1361,7 @@
           "last_used": "2026-06-17T10:48:51+00:00"
         }
       ],
-      "time_needed_to_solve": 1831,
+      "time_needed_to_solve": 1851,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1381,10 +1381,10 @@
       "section": "3.1",
       "title": "AcyclicIffTopologicalOrder",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "Refactored on 2026-06-07 via `total_order_helper` (see leanification/Chapter*/Refactor_total_order_helper_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
@@ -1394,17 +1394,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1415,13 +1415,126 @@
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_plus_proof": 0,
+        "verify_tex_statement_plus_proof": 1,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3fe18a57-cdc5-4d88-a343-8130a9baf700",
+          "first_seen": "2026-06-17T10:58:22+00:00",
+          "last_used": "2026-06-17T10:58:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "70ffb6c4-c484-417c-a67d-7e9070bed35c",
+          "first_seen": "2026-06-17T11:18:28+00:00",
+          "last_used": "2026-06-17T11:18:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "75575316-85a0-45d3-b802-b712fe05034b",
+          "first_seen": "2026-06-17T11:19:36+00:00",
+          "last_used": "2026-06-17T11:19:36+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "8f9a6571-dbc1-4d52-9f98-e81020f5f944",
+          "first_seen": "2026-06-17T11:19:56+00:00",
+          "last_used": "2026-06-17T11:19:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c5dee47f-9eb2-4e33-994d-03aff9e3258f",
+          "first_seen": "2026-06-17T11:20:29+00:00",
+          "last_used": "2026-06-17T11:20:29+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "713d7963-abb7-46bb-966b-e2f22ac95f0b",
+          "first_seen": "2026-06-17T11:22:30+00:00",
+          "last_used": "2026-06-17T11:22:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "df5b5389-b0df-4aa3-91a8-b160dec70d32",
+          "first_seen": "2026-06-17T11:23:35+00:00",
+          "last_used": "2026-06-17T11:23:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "6624c9a6-7e0d-4d16-8336-12076a203499",
+          "first_seen": "2026-06-17T11:26:32+00:00",
+          "last_used": "2026-06-17T11:26:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a97efda4-6340-451e-9f06-455377a21bc2",
+          "first_seen": "2026-06-17T11:27:11+00:00",
+          "last_used": "2026-06-17T11:27:11+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "7a210ed7-3469-4816-a9bf-ff706bcf4c9a",
+          "first_seen": "2026-06-17T11:29:07+00:00",
+          "last_used": "2026-06-17T11:29:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2c78f930-c1d9-464b-9866-ad67cd46bb20",
+          "first_seen": "2026-06-17T11:29:40+00:00",
+          "last_used": "2026-06-17T11:29:40+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "c92c945a-8966-4316-bc58-37a05652697f",
+          "first_seen": "2026-06-17T11:31:24+00:00",
+          "last_used": "2026-06-17T11:31:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "586f5eb4-97aa-4e3e-a543-c3bac8aba013",
+          "first_seen": "2026-06-17T11:32:38+00:00",
+          "last_used": "2026-06-17T11:32:38+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "99b35dc9-9400-421e-92ac-b415a0144b87",
+          "first_seen": "2026-06-17T11:45:22+00:00",
+          "last_used": "2026-06-17T11:45:22+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b1ac619f-f710-4a09-9910-b541b10a089b",
+          "first_seen": "2026-06-17T11:45:47+00:00",
+          "last_used": "2026-06-17T11:45:47+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "9a5066ec-14e1-44d8-94ac-788ba1197365",
+          "first_seen": "2026-06-17T11:48:23+00:00",
+          "last_used": "2026-06-17T11:48:23+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3415,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
