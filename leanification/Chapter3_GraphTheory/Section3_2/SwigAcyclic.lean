@@ -258,6 +258,7 @@ private lemma aux_swigTopologicalOrder (G : CDMG Node) (hCADMG : G.IsCADMG)
     have hlt_v1_v2 : lt v1 v2 := h_pa v1 v2 ⟨hv1_in_G, he_E⟩
     exact splOrder_lifted_edge W hlt_v1_v2
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swigAcyclic
 -- ref: claim_3_9 (sub-claim (a), acyclicity preservation)
 --
 -- For a CADMG `G` and `W ⊆ G.V`, the SWIG
@@ -383,7 +384,9 @@ theorem swigAcyclic (G : CDMG Node) (hCADMG : G.IsCADMG)
   obtain ⟨lt, hlt⟩ := (acyclic_iff_topological_order G).mp hAcyclic
   exact (acyclic_iff_topological_order (G.nodeSplittingHard hCADMG W hW)).mpr
     ⟨splOrder lt, aux_swigTopologicalOrder G hCADMG W hW lt hlt⟩
+-- REFACTOR-BLOCK-ORIGINAL-END: swigAcyclic
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swigTopologicalOrder
 -- ref: claim_3_9 (sub-claim (b), explicit topological-order construction)
 --
 -- For a CADMG `G`, a subset `W ⊆ G.V`, and any topological order `lt`
@@ -616,7 +619,577 @@ theorem swigTopologicalOrder (G : CDMG Node) (hCADMG : G.IsCADMG)
   -- V_{swig(W)}` plus parent-precedence on the SWIG edge set).  Mirrors
   -- `splTopologicalOrder`'s wrapper in `SplitTopologicalOrder.lean`.
   exact aux_swigTopologicalOrder G hCADMG W hW lt hlt
+-- REFACTOR-BLOCK-ORIGINAL-END: swigTopologicalOrder
 
 end CDMG
+
+namespace refactor_CDMG
+
+-- ## Design choice — statement context (refactor twin)
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Both fixtures are
+--   inherited from `def_3_1`'s refactor twin (`refactor_CDMG`).  The
+--   refactor twin's signature references `refactor_CDMG Node`
+--   (root `def_3_1`), `G.refactor_IsCADMG` (`def_3_7` refactor twin),
+--   `G.refactor_nodeSplittingHard hCADMG W hW` (`def_3_12` refactor
+--   twin), `(G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsAcyclic`
+--   (`def_3_6` refactor twin), `G.refactor_IsTopologicalOrder lt`
+--   (`def_3_8` refactor twin), and
+--   `(G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsTopologicalOrder
+--    (refactor_splOrder lt)` (which goes through the SWIG CDMG's
+--   `refactor_Pa` from `def_3_5` refactor twin, in turn requiring
+--   `[DecidableEq (refactor_SplitNode Node)]` — provided automatically
+--   by `def_3_11`'s refactor twin via `deriving DecidableEq` on the
+--   tagged-sum inductive `refactor_SplitNode` that `def_3_12`'s
+--   refactor twin reuses).  No new typeclasses are needed: the
+--   mathematical content of this row is unchanged by the refactor —
+--   the bidirected-edge set `L` plays no role in either sub-claim, so
+--   the `Finset (Node × Node) → Finset (Sym2 Node)` retyping at root
+--   `def_3_1` does not reach this row at all.
+--
+-- *Three-dash `--- start helper` marker.*  Same convention as the
+--   pre-refactor block above and as every sibling refactor twin in
+--   `Section3_1/` and `Section3_2/`.
+-- claim_3_9 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_9 --- end helper
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of
+-- `refactor_swigAcyclic` and `refactor_swigTopologicalOrder`.  They
+-- are deliberately private, carry no helper marker comments, and do
+-- not appear in the rendered statement.  Most mirror their analogs in
+-- `SplitTopologicalOrder.lean`'s refactor twin (also private there)
+-- and are re-derived here because Lean's `private` mechanism makes
+-- file-scoped helpers invisible across files.  Each is wrapped in its
+-- own REPLACEMENT marker pair so the Phase 7 cleanup script renames
+-- `refactor_<name>` → `<name>` across the codebase.  See
+-- `tex/refactor_claim_3_9_proof_SwigAcyclic.tex` for the TeX proof
+-- these helpers implement; the role of each helper is:
+--
+-- *`refactor_baseOf` / `refactor_tagOf`.*  Case-analysis projections
+--   onto the underlying base node (`refactor_baseOf`) and onto the
+--   constructor tag in `{0, 1, 2}` (`refactor_tagOf`) with the
+--   convention `.copy0 ↦ 0 < .unsplit ↦ 1 < .copy1 ↦ 2`, matching
+--   the lex orientation baked into `refactor_splOrder`.  Same shape
+--   as in `SplitTopologicalOrder.lean`'s refactor twin; re-derived
+--   here against `refactor_SplitNode Node`.  These two projections
+--   are also where the LN-critic working-phase wording subtleties
+--   `non_W_node_index_assignment_implicit` and
+--   `one_third_offset_is_load_bearing_not_arbitrary` get *structurally*
+--   resolved: (i) `refactor_baseOf (.unsplit u) = u` makes the LN's
+--   implicit "unsplit nodes keep their original index `j`" explicit
+--   — an `.unsplit` node's `refactor_splOrder`-position is literally
+--   its base node's `lt`-position; (ii) no rational offset `δ ∈ ℚ`
+--   appears in the encoding, the discrete `refactor_tagOf` secondary
+--   key rules out consecutive-`W` collisions by construction.
+--
+-- *`refactor_splOrder_iff`.*  Lex characterisation of
+--   `refactor_splOrder` —
+--   `refactor_splOrder lt x y ↔ lt (refactor_baseOf x) (refactor_baseOf y)
+--   ∨ (refactor_baseOf x = refactor_baseOf y ∧
+--   refactor_tagOf x < refactor_tagOf y)`.  Reduces the 9 / 27-way
+--   constructor case analyses (trichotomy / transitivity) to plain
+--   lex reasoning over the base/tag pair.
+--
+-- *`refactor_splitNode_ext`.*  Two `refactor_SplitNode Node` agreeing
+--   on base and tag are equal — needed to extract `x = y` from a
+--   base/tag equality inside the trichotomy proof.
+--
+-- *`refactor_baseOf_mem_swig`.*  Membership
+--   `x ∈ G.refactor_nodeSplittingHard hCADMG W hW` projects to
+--   `refactor_baseOf x ∈ G`, via case analysis on the SWIG carrier
+--   `(G.J ∪ W^i) ∪ ((G.V ∖ W) ∪ W^o)`.  Differs from
+--   `SplitTopologicalOrder.lean`'s `refactor_baseOf_mem` because the
+--   SWIG construction reclassifies `W.image .copy1` into `J` (item i
+--   of `def_3_12`) rather than leaving both tagged copies in `V`.
+--
+-- *`refactor_splOrder_lifted_edge`.*  Parent-precedence for a lifted
+--   edge `(refactor_toCopy1 W v_1, refactor_toCopy0 W v_2)` given
+--   `lt v_1 v_2`.  Same proof as in `SplitTopologicalOrder.lean`'s
+--   refactor twin; re-derived locally.  Note that there is *no*
+--   analog of `refactor_splOrder_transfer_edge` here, because
+--   `def_3_12` item iii omits the transfer-edge set-builder entirely
+--   — see the design block on `refactor_swigTopologicalOrder` for
+--   the structural reason.
+--
+-- *`refactor_aux_swigTopologicalOrder`.*  Shared workhorse — proves
+--   `(G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsTopologicalOrder
+--   (refactor_splOrder lt)` directly under the hypotheses of
+--   sub-claim (b), consumed by both `refactor_swigTopologicalOrder`
+--   (as a one-liner wrapper) and `refactor_swigAcyclic` (where the
+--   topological-order witness is fed to the `⇐` direction of
+--   `claim_3_2`'s refactor twin to derive acyclicity).  Mirrors
+--   `SplitTopologicalOrder.lean`'s `refactor_aux_splTopologicalOrder`
+--   with one structural simplification in the parent-precedence
+--   branch: only the lifted-edge sub-case is present (the
+--   transfer-edge sub-case of `refactor_aux_splTopologicalOrder` has
+--   no analog here because `def_3_12` item iii omits the second
+--   set-builder).  Litmus: removing any of the six other helpers
+--   above would break this auxiliary lemma, and removing this
+--   auxiliary lemma would break both top-level theorems.
+--
+-- *Independent of the bidirected-edge channel `L`.*  None of the
+--   seven helpers above inspects the `L` field of any
+--   `refactor_CDMG`; every helper reads only `J` / `V` / `E` or the
+--   constructor tag of `refactor_SplitNode`.  The
+--   `Finset (Sym2 Node)` retyping of `L` at root `def_3_1` does not
+--   reach any helper, which is why the file-level refactor delta on
+--   this row is purely a name-bump from `CDMG` / `SplitNode` / `Pa`
+--   / ... to `refactor_CDMG` / `refactor_SplitNode` / `refactor_Pa`
+--   / ... .
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: baseOf (was: refactor_baseOf)
+private def refactor_baseOf : refactor_SplitNode Node → Node
+  | .unsplit u => u
+  | .copy0 w => w
+  | .copy1 w => w
+-- REFACTOR-BLOCK-REPLACEMENT-END: baseOf
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: tagOf (was: refactor_tagOf)
+private def refactor_tagOf : refactor_SplitNode Node → ℕ
+  | .copy0 _ => 0
+  | .unsplit _ => 1
+  | .copy1 _ => 2
+-- REFACTOR-BLOCK-REPLACEMENT-END: tagOf
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: splOrder_iff (was: refactor_splOrder_iff)
+omit [DecidableEq Node] in
+private lemma refactor_splOrder_iff (lt : Node → Node → Prop)
+    (x y : refactor_SplitNode Node) :
+    refactor_splOrder lt x y ↔
+      lt (refactor_baseOf x) (refactor_baseOf y) ∨
+        (refactor_baseOf x = refactor_baseOf y ∧
+          refactor_tagOf x < refactor_tagOf y) := by
+  cases x <;> cases y <;> simp [refactor_splOrder, refactor_baseOf, refactor_tagOf]
+-- REFACTOR-BLOCK-REPLACEMENT-END: splOrder_iff
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: splitNode_ext (was: refactor_splitNode_ext)
+omit [DecidableEq Node] in
+private lemma refactor_splitNode_ext {x y : refactor_SplitNode Node}
+    (hbase : refactor_baseOf x = refactor_baseOf y)
+    (htag : refactor_tagOf x = refactor_tagOf y) : x = y := by
+  cases x <;> cases y <;> simp_all [refactor_baseOf, refactor_tagOf]
+-- REFACTOR-BLOCK-REPLACEMENT-END: splitNode_ext
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: baseOf_mem_swig (was: refactor_baseOf_mem_swig)
+private lemma refactor_baseOf_mem_swig {G : refactor_CDMG Node}
+    {hCADMG : G.refactor_IsCADMG} {W : Finset Node} {hW : W ⊆ G.V}
+    {x : refactor_SplitNode Node}
+    (hx : x ∈ G.refactor_nodeSplittingHard hCADMG W hW) :
+    refactor_baseOf x ∈ G := by
+  change refactor_baseOf x ∈ G.J ∪ G.V
+  rcases Finset.mem_union.mp hx with hJ | hV
+  · -- `x ∈ J_{swig(W)} = G.J.image .unsplit ∪ W.image .copy1`
+    rcases Finset.mem_union.mp hJ with hJuns | hC1
+    · obtain ⟨j, hj, rfl⟩ := Finset.mem_image.mp hJuns
+      exact Finset.mem_union_left _ hj
+    · obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hC1
+      exact Finset.mem_union_right _ (hW hwW)
+  · -- `x ∈ V_{swig(W)} = (G.V \ W).image .unsplit ∪ W.image .copy0`
+    rcases Finset.mem_union.mp hV with hVuns | hC0
+    · obtain ⟨v, hvVW, rfl⟩ := Finset.mem_image.mp hVuns
+      exact Finset.mem_union_right _ (Finset.mem_sdiff.mp hvVW).1
+    · obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hC0
+      exact Finset.mem_union_right _ (hW hwW)
+-- REFACTOR-BLOCK-REPLACEMENT-END: baseOf_mem_swig
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: splOrder_lifted_edge (was: refactor_splOrder_lifted_edge)
+private lemma refactor_splOrder_lifted_edge {lt : Node → Node → Prop}
+    (W : Finset Node) {v1 v2 : Node} (h : lt v1 v2) :
+    refactor_splOrder lt (refactor_toCopy1 W v1) (refactor_toCopy0 W v2) := by
+  unfold refactor_toCopy0 refactor_toCopy1
+  split_ifs <;> exact h
+-- REFACTOR-BLOCK-REPLACEMENT-END: splOrder_lifted_edge
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: aux_swigTopologicalOrder (was: refactor_aux_swigTopologicalOrder)
+private lemma refactor_aux_swigTopologicalOrder (G : refactor_CDMG Node)
+    (hCADMG : G.refactor_IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.refactor_IsTopologicalOrder lt) :
+    (G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsTopologicalOrder
+      (refactor_splOrder lt) := by
+  obtain ⟨⟨h_irrefl, h_trans, h_tri⟩, h_pa⟩ := hlt
+  refine ⟨⟨?_, ?_, ?_⟩, ?_⟩
+  · -- Irreflexivity
+    intro x hx hsplx
+    rw [refactor_splOrder_iff] at hsplx
+    rcases hsplx with hlt_xx | ⟨_, htag⟩
+    · exact h_irrefl (refactor_baseOf x) (refactor_baseOf_mem_swig hx) hlt_xx
+    · exact Nat.lt_irrefl _ htag
+  · -- Transitivity
+    intro x hx y hy z hz hxy hyz
+    rw [refactor_splOrder_iff] at hxy hyz ⊢
+    rcases hxy with hlt_xy | ⟨hbase_xy, htag_xy⟩
+    · rcases hyz with hlt_yz | ⟨hbase_yz, _⟩
+      · left
+        exact h_trans (refactor_baseOf x) (refactor_baseOf_mem_swig hx)
+          (refactor_baseOf y) (refactor_baseOf_mem_swig hy)
+          (refactor_baseOf z) (refactor_baseOf_mem_swig hz) hlt_xy hlt_yz
+      · left; rw [← hbase_yz]; exact hlt_xy
+    · rcases hyz with hlt_yz | ⟨hbase_yz, htag_yz⟩
+      · left; rw [hbase_xy]; exact hlt_yz
+      · right
+        exact ⟨hbase_xy.trans hbase_yz, htag_xy.trans htag_yz⟩
+  · -- Trichotomy
+    intro x hx y hy
+    rcases h_tri (refactor_baseOf x) (refactor_baseOf_mem_swig hx)
+      (refactor_baseOf y) (refactor_baseOf_mem_swig hy)
+      with hlt_xy | hbase_eq | hlt_yx
+    · left; rw [refactor_splOrder_iff]; left; exact hlt_xy
+    · rcases Nat.lt_trichotomy (refactor_tagOf x) (refactor_tagOf y)
+        with htag | htag | htag
+      · left; rw [refactor_splOrder_iff]; right; exact ⟨hbase_eq, htag⟩
+      · right; left; exact refactor_splitNode_ext hbase_eq htag
+      · right; right; rw [refactor_splOrder_iff]; right
+        exact ⟨hbase_eq.symm, htag⟩
+    · right; right; rw [refactor_splOrder_iff]; left; exact hlt_yx
+  · -- Parent precedence — single case (lifted edge); no transfer-edge case
+    -- because `def_3_12` item iii omits the transfer-edge set-builder.
+    intro u w h_pa_uw
+    obtain ⟨_, h_uw_E⟩ := h_pa_uw
+    -- (u, w) ∈ E_{swig(W)} = G.E.image (fun e => (refactor_toCopy1 W e.1,
+    --                                              refactor_toCopy0 W e.2))
+    obtain ⟨⟨v1, v2⟩, he_E, h_eq⟩ := Finset.mem_image.mp h_uw_E
+    simp only [Prod.mk.injEq] at h_eq
+    obtain ⟨h_u_eq, h_w_eq⟩ := h_eq
+    rw [← h_u_eq, ← h_w_eq]
+    have hv1_in_G : v1 ∈ G := (G.hE_subset he_E).1
+    have hlt_v1_v2 : lt v1 v2 := h_pa v1 v2 ⟨hv1_in_G, he_E⟩
+    exact refactor_splOrder_lifted_edge W hlt_v1_v2
+-- REFACTOR-BLOCK-REPLACEMENT-END: aux_swigTopologicalOrder
+
+-- ref: claim_3_9 (sub-claim (a), acyclicity preservation)
+--
+-- For a CADMG `G` and `W ⊆ G.V`, the SWIG
+-- `G.refactor_nodeSplittingHard hCADMG W hW` (`def_3_12`) is acyclic
+-- in the sense of `def_3_6`'s `refactor_IsAcyclic`.
+--
+-- *Why the `refactor_IsCADMG` hypothesis is load-bearing.*  Without
+-- it, the SWIG construction does NOT preserve acyclicity in general:
+-- per the rewritten tex spec's "Role of the CADMG (acyclicity)
+-- precondition" paragraph, two failure modes appear if `G` is allowed
+-- to be cyclic.  (i) A directed cycle in `G` whose nodes lie entirely
+-- in `V ∖ W` lifts under `def_3_12` item iii to a directed cycle of
+-- the same length in `G_{swig(W)}` (the shorthand `v^i = v^o = v` for
+-- `v ∉ W` makes each lifted edge coincide with the original).
+-- (ii) A directed self-loop `(w, w) ∈ G.E` for `w ∈ W` lifts to the
+-- directed edge `(w^i, w^o) = (.copy1 w, .copy0 w)`, which is *not* a
+-- self-loop (different constructors) but whose endpoint indices
+-- `φ(w^i) = j + 1/3 > j - 1/3 = φ(w^o)` *would* violate the
+-- parent-precedence requirement of any topological order, so the
+-- existence claim of sub-claim (b) fails on this graph — and by
+-- `claim_3_2` (acyclic ⟺ topological-order-exists) that already
+-- implies the SWIG is *not* acyclic.  `hCADMG` rules both modes out:
+-- acyclicity of `G` forbids the `V ∖ W` cycle directly and forbids
+-- directed self-loops on `V` (the `def_3_6` no-self-loop consequence),
+-- hence forbids `(w, w) ∈ G.E` for any `w ∈ W ⊆ G.V`.  Note: unlike
+-- `refactor_splAcyclic` (claim_3_6 sub-claim (a)), there is no
+-- length-2 `w^o → w^i → w^o` cycle to worry about, because SWIG omits
+-- the transfer edge `(w^o, w^i)` that `def_3_11` includes (cf.\
+-- `NodeSplittingHard.lean`'s "Self-loops on `W` produce no cycles in
+-- `G_{swig(W)}`" design bullet).
+/-
+LN tex (sub-claim (a), from the rewritten canonical statement for
+`claim_3_9`):
+
+  (a) `G_{swig(W)}` is acyclic.  The CDMG `G_{swig(W)}` is acyclic
+      in the sense of def \ref{def-acylic}, i.e.\ for every
+      `x ∈ J_{swig(W)} ∪ V_{swig(W)} = J ∪ (V ∖ W) ⊍ W^o ⊍ W^i`,
+      there does not exist any non-trivial directed walk from `x` to
+      itself in `G_{swig(W)}`.
+-/
+-- ## Design choice
+--
+-- *Single-theorem statement (sub-claim (a) only), separated from
+--   sub-claim (b).*  See the shared "one theorem vs.\ two separate
+--   theorems" bullet in the `refactor_swigTopologicalOrder` design
+--   block below.  Briefly: `refactor_swigAcyclic` is the standalone
+--   acyclicity-preservation fact that downstream consumers (the
+--   do-calculus and counterfactual identification chapters that
+--   build joint distributions over the SWIG) are expected to need
+--   *on its own* (without dragging in the topological-order
+--   construction); keeping it as its own theorem lets those
+--   consumers state `G.refactor_swigAcyclic hCADMG W hW` without
+--   ever mentioning `refactor_splOrder` or a chosen `lt`.  Matches
+--   the `refactor_splAcyclic` / `refactor_splTopologicalOrder` split
+--   in `SplitTopologicalOrder.lean` exactly.
+--
+-- *`refactor_IsCADMG`, not `refactor_IsAcyclic`.*  See the shared
+--   bullet in the `refactor_swigTopologicalOrder` design block
+--   below; the same choice applies here.  LN-faithful naming
+--   (`def_3_7` item i) wins over the micro-simplification of
+--   inlining the `refactor_IsAcyclic` alias.  In addition,
+--   `refactor_nodeSplittingHard` (`def_3_12`) *requires*
+--   `(hCADMG : G.refactor_IsCADMG)` in its own signature — so
+--   taking `hCADMG` here lets us pass it through to
+--   `refactor_nodeSplittingHard` without an extra
+--   `refactor_IsCADMG`/`refactor_IsAcyclic` round-trip.
+--
+-- *Hypotheses ordered `(G, hCADMG, W, hW)`.*  Mirrors the LN reading
+--   "For a CADMG `G` ... and `W ⊆ V`, ..." and matches the binder
+--   ordering of `def_3_12` `refactor_nodeSplittingHard` exactly
+--   (`(G) (hG := hCADMG) (W) (hW)`), so the conclusion's
+--   `G.refactor_nodeSplittingHard hCADMG W hW` application reads
+--   left-to-right with the binder block.
+--
+-- *Independent of the bidirected-edge channel `L`.*  None of
+--   `refactor_IsCADMG`, `refactor_nodeSplittingHard`,
+--   `refactor_IsAcyclic` consumes the `L` field of the underlying
+--   CDMG record at the level of *this* statement: acyclicity is a
+--   property of directed walks on the `E`-side alone.  The CDMG
+--   record itself carries an `L`-channel (see `def_3_1`'s docstring
+--   on `refactor_CDMG` for the `Finset (Sym2 Node)` encoding), and
+--   `refactor_nodeSplittingHard` populates the SWIG's `L`-channel
+--   via `Sym2.map (refactor_toCopy0 W)`, but acyclicity of the
+--   result reads only the new `E`-side.  Sub-claim (a) is therefore
+--   robust under any future change to the `L`-channel encoding.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swigAcyclic (was: refactor_swigAcyclic)
+-- claim_3_9 -- start statement
+theorem refactor_swigAcyclic (G : refactor_CDMG Node) (hCADMG : G.refactor_IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V) :
+    (G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsAcyclic
+-- claim_3_9 -- end statement
+  := by
+  have hAcyclic : G.refactor_IsAcyclic := hCADMG
+  obtain ⟨lt, hlt⟩ := (refactor_acyclic_iff_topological_order G).mp hAcyclic
+  exact (refactor_acyclic_iff_topological_order
+      (G.refactor_nodeSplittingHard hCADMG W hW)).mpr
+    ⟨refactor_splOrder lt,
+      refactor_aux_swigTopologicalOrder G hCADMG W hW lt hlt⟩
+-- REFACTOR-BLOCK-REPLACEMENT-END: swigAcyclic
+
+-- ref: claim_3_9 (sub-claim (b), explicit topological-order construction)
+--
+-- For a CADMG `G`, a subset `W ⊆ G.V`, and any topological order
+-- `lt` of `G` in the sense of `def_3_8`, the lifted relation
+-- `refactor_splOrder lt` (reused verbatim from
+-- `SplitTopologicalOrder.lean`'s refactor twin) is a topological
+-- order of the SWIG `G.refactor_nodeSplittingHard hCADMG W hW`.
+--
+-- Unfolded,
+-- `(G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsTopologicalOrder
+--  (refactor_splOrder lt)` asserts (per `def_3_8`):
+--
+--   * `refactor_splOrder lt` is a strict total order on
+--     `J_{swig(W)} ∪ V_{swig(W)}` (irreflexive, transitive,
+--     trichotomous; via the nested `refactor_IsTotalOrder`
+--     projection);
+--   * for every parent–child pair
+--     `v ∈ (G.refactor_nodeSplittingHard hCADMG W hW).refactor_Pa w`,
+--     we have `refactor_splOrder lt v w`.
+--
+-- The parent-precedence clause is the load-bearing content of the
+-- construction: every edge of `E_{swig(W)}` is a lifted edge
+-- `(v_1^i, v_2^o) = (refactor_toCopy1 W v_1, refactor_toCopy0 W v_2)`
+-- arising from `(v_1, v_2) ∈ G.E` — where parent-precedence under
+-- `refactor_splOrder` follows from parent-precedence under `lt`
+-- (which `hlt` provides) plus the lex-order layout of
+-- `refactor_splOrder` on the resulting tagged pair (one of four
+-- mixed-tag cases depending on whether `v_1` and `v_2` lie in `W`).
+-- Crucially — and unlike `refactor_splTopologicalOrder` (claim_3_6
+-- sub-claim (b)) — there is *no* transfer-edge case to discharge:
+-- `def_3_12` item iii does not introduce `(w^o, w^i)` edges, so the
+-- parent-precedence obligation has exactly one (lifted-edge)
+-- sub-case.  See the
+-- `topological_order_claim_unverified_relies_on_no_transfer_edges`
+-- bullet in the file header for the LN-critic working-phase
+-- subtlety this clean parent-precedence shape resolves.
+/-
+LN tex (sub-claim (b), from the rewritten canonical statement for
+`claim_3_9`):
+
+  (b) An explicit topological order on `G_{swig(W)}` obtained from
+      any topological order on `G`.  For every topological order `<`
+      of `G` ..., the binary relation `<_{swig}` on
+      `J_{swig(W)} ∪ V_{swig(W)}` defined below is a topological
+      order of `G_{swig(W)}` in the sense of
+      def \ref{def-topological-order}.
+
+      Index map.  Define `φ : J_{swig(W)} ∪ V_{swig(W)} → ℚ` by case
+      analysis on the disjoint-union carrier
+      `J ∪ (V ∖ W) ⊍ W^o ⊍ W^i`:
+        · `φ(v_j) := j` for unsplit `v_j ∈ J ∪ (V ∖ W)`;
+        · `φ(w^o) := j - 1/3`, `φ(w^i) := j + 1/3` for `w = v_j ∈ W`.
+
+      Order from index map.  Define
+        `x <_{swig} y :⇔ φ(x) < φ(y)`
+      for `x, y ∈ J_{swig(W)} ∪ V_{swig(W)}`, where the right-hand
+      inequality is the standard strict order on `ℚ`.
+-/
+-- ## Design choice
+--
+-- *One theorem vs.\ two separate theorems — picked TWO.*  The LN
+--   bundles (a) and (b) inside one `\begin{Rem}`, but the two
+--   sub-claims have *different downstream consumers*: the
+--   do-calculus / counterfactual chapters typically consume only (a)
+--   — the acyclicity / CADMG-ness of the SWIG — to lift the CDMG
+--   return type to an `refactor_IsCADMG` graph and invoke chapter-4
+--   / 5 CBN-shaped results.  Bundling (a) and (b) into a single
+--   `refactor_swigAcyclic ∧ refactor_swigTopologicalOrder`-shaped
+--   theorem would force every such consumer to take a topological-
+--   order argument it does not use.  Splitting them keeps each
+--   statement focused.  Matches the `refactor_splAcyclic` /
+--   `refactor_splTopologicalOrder` split in
+--   `SplitTopologicalOrder.lean` (claim_3_6) and the chapter
+--   convention in `def_3_7`'s `refactor_IsCADMG`, `refactor_IsADMG`,
+--   `refactor_IsDAG`, … (one atomic-condition predicate per
+--   sub-statement).  The LN-faithful reading of "the remark holds"
+--   is preserved because both theorems are stated under the same
+--   `-- ref: claim_3_9 ...` heading and read as the two sub-claims
+--   of one remark.
+--
+-- *Reuse `refactor_splOrder` from `SplitTopologicalOrder.lean`'s
+--   refactor twin, do NOT introduce a parallel `refactor_swigOrder`.*
+--   `refactor_splOrder` is defined as a pure case-analysis lex order
+--   on `refactor_SplitNode Node` with the convention
+--   `.copy0 < .unsplit < .copy1` per base node — its semantics
+--   depends *only* on the constructor tag and the underlying `lt`,
+--   NOT on whether we are in the spl or SWIG construction.
+--   Concretely, the LN's two index assignments
+--     · spl  : `v_j^0 ↦ j - 1/3`, `v_j^1 ↦ j + 1/3`
+--              (so `.copy0 < .copy1` per base node)
+--     · SWIG : `v_j^o ↦ j - 1/3`, `v_j^i ↦ j + 1/3`
+--              (so `.copy0 < .copy1` per base node)
+--   coincide on the nose, because in both cases `def_3_11` /
+--   `def_3_12` identify `^0 / ^o ↔ .copy0` and `^1 / ^i ↔ .copy1`
+--   (cf.\ `NodeSplittingHard.lean`'s design bullet (a): "the
+--   convention `.copy0 ↔ ^o` (output side) and `.copy1 ↔ ^i` (input
+--   side)").  So `refactor_splOrder lt` is literally the same
+--   relation we'd write down for a freshly named
+--   `refactor_swigOrder lt`; introducing a parallel
+--   `refactor_swigOrder := refactor_splOrder` (or duplicating the
+--   case-analysis) would be pure noise — it would (i) duplicate
+--   every irreflexivity / transitivity / trichotomy lemma already
+--   proven for `refactor_splOrder` in
+--   `SplitTopologicalOrder.lean`, (ii) tempt future refactors to
+--   diverge the two definitions, and (iii) hide the structural
+--   identity that the same `refactor_SplitNode Node` carrier
+--   supports both constructions with the same lex orientation.  This
+--   is the "Build on what is already there" pattern called out in
+--   the row-worker prompt.
+--
+-- *`refactor_IsCADMG`, not `refactor_IsAcyclic`.*  The LN reads
+--   "For a CADMG `G`", referring explicitly to `def_3_7`'s named
+--   attribute.  `refactor_IsCADMG` unfolds to `refactor_IsAcyclic`
+--   (`def_3_7` item i — see `CDMGTypes.lean`), so the two would be
+--   interchangeable at the *content* level.  We pick
+--   `refactor_IsCADMG` to keep the Lean signature LN-faithful (a
+--   reader greps `CADMG` from the LN and finds the matching Lean
+--   hypothesis without a translation step).  In addition, `def_3_12
+--   refactor_nodeSplittingHard`'s signature *requires*
+--   `(hG : G.refactor_IsCADMG)`, so taking `hCADMG :
+--   G.refactor_IsCADMG` here threads through the SWIG application
+--   `G.refactor_nodeSplittingHard hCADMG W hW` directly without an
+--   extra `refactor_IsCADMG ↔ refactor_IsAcyclic` round-trip.  See
+--   `BifurcationAlternative.lean` and `SplitTopologicalOrder.lean`
+--   for the matching chapter-3 precedents.
+--
+-- *`lt` and `hlt` as explicit positional arguments, not bundled
+--   into an inner `∀ lt, …` quantifier.*  The LN's "for every
+--   topological order `<` of `G`" is universal over `lt`, but
+--   encoding it as an *outer* binder on the theorem is equivalent
+--   and substantially more ergonomic at the call site.  Matches the
+--   chapter convention of carrying universal-quantifier inputs as
+--   outermost positional arguments (cf.\
+--   `refactor_splTopologicalOrder` in the sibling
+--   `SplitTopologicalOrder.lean`).
+--
+-- *`lt` typed as a bare `Node → Node → Prop`, not as a
+--   `[LinearOrder Node]` / `[StrictTotalOrder Node]` / `[LT Node]`
+--   typeclass instance.*  The LN's "for any topological order `<`
+--   of `G`" universally quantifies over an arbitrary binary
+--   relation that *happens* to satisfy `refactor_IsTopologicalOrder`
+--   (`def_3_8`); it does NOT presume `Node` carries a canonical,
+--   typeclass-resolved order.  Encoding `lt` as a positional
+--   `Node → Node → Prop` argument matches that reading exactly.
+--   Matches the convention spelled out in
+--   `SplitTopologicalOrder.lean`'s `refactor_splTopologicalOrder`
+--   design block.
+--
+-- *Conclusion `refactor_IsTopologicalOrder (refactor_splOrder lt)`,
+--   not a fresh indexed-order predicate.*  We reuse `def_3_8`'s
+--   `refactor_IsTopologicalOrder` *verbatim* against the *SWIG*
+--   CDMG: every ingredient is already in place because
+--   `G.refactor_nodeSplittingHard hCADMG W hW` is a
+--   `refactor_CDMG (refactor_SplitNode Node)` (per `def_3_12`'s
+--   return type) and `refactor_IsTopologicalOrder` is polymorphic
+--   in the node type.
+--
+-- *Hypotheses ordered `(G, hCADMG, W, hW, lt, hlt)`.*  Matches the
+--   `refactor_swigAcyclic` ordering, then adds `(lt, hlt)` at the
+--   end (the *additional* hypotheses sub-claim (b) needs over (a)).
+--
+-- *No transfer-edge sub-case in the parent-precedence obligation.*
+--   In `refactor_splTopologicalOrder`, the parent-precedence proof
+--   case-splits on whether an edge of `E_{spl(W)}` is a *lifted*
+--   edge or a *transfer* edge `(.copy0 w, .copy1 w)`.  In
+--   `refactor_swigTopologicalOrder`, the second case is absent:
+--   `def_3_12` item iii has *no* transfer-edge sub-builder.  Every
+--   edge of `E_{swig(W)}` comes from the lifted set-builder
+--   `G.E.image (fun e => (refactor_toCopy1 W e.1, refactor_toCopy0 W e.2))`
+--   alone.  This is a structural simplification, not a content
+--   change.  Resolves the LN-critic working-phase wording subtlety
+--   `topological_order_claim_unverified_relies_on_no_transfer_edges`
+--   by surfacing the dependency on `def_3_12` item iii at the type
+--   level: there is exactly one (lifted-edge) sub-case in the proof,
+--   and the absence of a transfer-edge sub-case is visible in the
+--   `refactor_aux_swigTopologicalOrder` body (no
+--   `splOrder_transfer_edge` helper exists in this file, contrast
+--   with `SplitTopologicalOrder.lean`).
+--
+-- *Structural resolution of the remaining two LN-critic wording
+--   subtleties.*  The reused lex-based `refactor_splOrder` also
+--   resolves the other two subtleties flagged in the working-phase
+--   critic report (the file header lists all three).
+--   (i) `one_third_offset_is_load_bearing_not_arbitrary` — the
+--   LN's literal `φ : J_{swig(W)} ∪ V_{swig(W)} → ℚ` with `±1/3`
+--   offsets on `w^o`, `w^i` is replaced by a *structural*
+--   `(refactor_baseOf, refactor_tagOf)` lex order on the tagged-sum
+--   carrier `refactor_SplitNode Node`; no rational offset appears
+--   in the encoding at all, so the LN's "any `δ ∈ (0, 1/2)` would
+--   also have worked" degree of freedom is collapsed into a single
+--   canonical discrete tag ordering, and the consecutive-`W`
+--   collision that would occur at `δ = 1/2` is *impossible by
+--   construction* (the `refactor_tagOf` secondary key only resolves
+--   ties on the same base node).  (ii)
+--   `non_W_node_index_assignment_implicit` — the LN states `φ`
+--   only on the tagged copies `v_j^o`, `v_j^i` for `v_j ∈ W` and
+--   leaves the index of unsplit `v_j ∈ J ∪ (V ∖ W)` implicit.  The
+--   Lean encoding makes the implicit reading explicit by routing
+--   `.unsplit u` through `refactor_baseOf .unsplit u = u`: an
+--   unsplit node's `refactor_splOrder`-position is *literally* its
+--   `lt`-position on the underlying base node.  No fresh index
+--   assignment is needed because the carrier `refactor_SplitNode`
+--   has a structural `.unsplit` constructor that the original
+--   topological order `lt` already covers.  Both resolutions are
+--   inherited verbatim from `SplitTopologicalOrder.lean`'s twin
+--   (the design block on `refactor_splOrder` there spells the
+--   structural reasoning in full).
+--
+-- *Independent of the bidirected-edge channel `L`.*
+--   `refactor_IsTopologicalOrder` only inspects
+--   `refactor_IsTotalOrder` (totality conditions on `J ∪ V`) and
+--   `refactor_Pa` (parent set from `G.E` alone) — both
+--   `(J, V, E)`-skeleton facts.  `refactor_splOrder` reads only the
+--   constructor tag of `refactor_SplitNode` and the underlying
+--   `lt`, so it likewise does not touch `L`.  See `def_3_1`'s
+--   docstring on `refactor_CDMG` for the canonical `L`-channel
+--   design; none of that detail reaches this theorem.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swigTopologicalOrder (was: refactor_swigTopologicalOrder)
+-- claim_3_9 -- start statement
+theorem refactor_swigTopologicalOrder (G : refactor_CDMG Node)
+    (hCADMG : G.refactor_IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.refactor_IsTopologicalOrder lt) :
+    (G.refactor_nodeSplittingHard hCADMG W hW).refactor_IsTopologicalOrder
+      (refactor_splOrder lt)
+-- claim_3_9 -- end statement
+  := by
+  exact refactor_aux_swigTopologicalOrder G hCADMG W hW lt hlt
+-- REFACTOR-BLOCK-REPLACEMENT-END: swigTopologicalOrder
+
+end refactor_CDMG
 
 end Causality
