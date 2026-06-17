@@ -666,6 +666,102 @@ function renderHome(manifest) {
     ),
 
     el("section", { class: "home-section" },
+      el("h2", {}, "How to read this website"),
+
+      el("p", {},
+        "Use the sidebar to navigate by chapter → section → row. Each row " +
+        "is one definition, claim, lemma, remark, or notation block from the " +
+        "lecture notes. The left pane renders the authors' original text — " +
+        "math via KaTeX, cross-references between rows clickable. The right " +
+        "pane shows the Lean 4 formalisation.",
+      ),
+
+      el("p", {},
+        "Lean code is split into labelled blocks. A ",
+        el("strong", {}, "main"),
+        " block holds the row's headline declaration — what the row formally " +
+        "states. For a definition that's the ",
+        el("code", {}, "def"), " / ", el("code", {}, "structure"),
+        " itself; for a claim it's the ",
+        el("code", {}, "theorem"),
+        " signature. A ",
+        el("strong", {}, "helper"),
+        " block holds a supporting declaration the main couldn't type-check " +
+        "without — typically a ",
+        el("code", {}, "variable {Node : Type*} [DecidableEq Node]"),
+        " line that auto-binds implicits into every subsequent declaration, " +
+        "or a small ",
+        el("code", {}, "def"),
+        " of a relation / inductive type / instance the main signature " +
+        "references. Helpers exist purely to make the main well-typed; the " +
+        "labels let you see at a glance which lines are the mathematical " +
+        "content and which are infrastructure.",
+      ),
+
+      el("p", {},
+        el("strong", {}, "Proofs are not displayed."),
+        " The Lean pane shows each declaration's signature and data shape; " +
+        "the proof tactics and well-formedness obligations live in the " +
+        "underlying ",
+        el("code", {}, ".lean"),
+        " file but are deliberately omitted here. For a claim that means " +
+        "the ",
+        el("code", {}, ":= by <tactics>"),
+        " body sits outside the rendered slice. For a definition that " +
+        "constructs a record (e.g. a CDMG-operator like ",
+        el("code", {}, "hardInterventionOn"),
+        "), the same applies to the structure's proof-shaped fields (",
+        el("code", {}, "hJV_disj"),
+        ", ", el("code", {}, "hE_subset"), ", ", el("code", {}, "hL_symm"),
+        ", …): each is discharged by a named ",
+        el("code", {}, "private lemma"),
+        " declared above the def, so the ",
+        el("code", {}, "h*"),
+        " field reads as a one-line lemma reference rather than a multi-step " +
+        "tactic proof. The intent is to surface what the row ",
+        el("em", {}, "states"),
+        ", not how the proof obligations are discharged. The full ",
+        el("code", {}, ".lean"),
+        " file — proofs included — is one click away via ",
+        el("strong", {}, "View Lean source"),
+        ".",
+      ),
+
+      el("p", {},
+        "Each block has two toggles: ",
+        el("strong", {}, "Comments ▾"),
+        " flips the source between bare and an annotated version with ",
+        el("code", {}, "--"),
+        " comments inserted above each non-trivial line, and ",
+        el("strong", {}, "Explain ▾"),
+        " opens a short Markdown article on what the block does and which " +
+        "Mathlib idioms it uses. Three buttons sit in the row's footer: ",
+        el("strong", {}, "View TeX proof"),
+        " (claims only) opens the lecture-notes proof on a separate page; ",
+        el("strong", {}, "View Lean source"),
+        " links to the ",
+        el("code", {}, ".lean"),
+        " file on GitHub; ",
+        el("strong", {}, "Design choices"),
+        " expands a panel distilling the formalisation trade-offs the worker " +
+        "considered (which Mathlib structure, which encoding, which side of " +
+        "an LN ambiguity, …), one paragraph per choice with a bolded " +
+        "one-line summary.",
+      ),
+
+      el("p", {},
+        "A small number of rows are ",
+        el("strong", {}, "user-skipped"),
+        " — typically remarks or expository asides whose content adds no " +
+        "claim worth formalising. These appear with a ",
+        el("em", {}, "“Not formalised — by choice”"),
+        " badge and a single italic line in place of the Lean code pane: ",
+        el("em", {}, "“User did not deem it necessary to formalize this into Lean.”"),
+        " The LN statement is still rendered on the left.",
+      ),
+    ),
+
+    el("section", { class: "home-section" },
       el("h2", {}, "The project"),
       el("p", {},
         "This site is the visible output of an experiment by ",
