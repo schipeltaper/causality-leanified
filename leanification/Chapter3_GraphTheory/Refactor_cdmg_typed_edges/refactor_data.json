@@ -1960,7 +1960,7 @@
           "last_used": "2026-06-17T14:17:53+00:00"
         }
       ],
-      "time_needed_to_solve": 2953,
+      "time_needed_to_solve": 2973,
       "addition_to_the_LN": "[w_is_free_unquantified_in_claim_body] The variable $W$ is universally quantified, ranging over all $W$ for which $G_{\\doit(W)}$ is defined per the preceding definition of the $\\doit$ operator; any side condition on $W$ (such as $W \\subseteq V(G)$) is inherited from that definition rather than restated here.",
       "wording_check": {
         "done": true,
@@ -1980,10 +1980,10 @@
       "section": "3.2",
       "title": "HardInterventionsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionsCommute.lean",
@@ -1993,17 +1993,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2016,11 +2016,110 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Hard interventions commute]\\label{hard-interventions-commute}\n    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two  subsets of nodes from $G$. \n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(W_1)} =  G_{\\doit(W_1 \\cup W_2)}. \\]\n      %This shows that our notion:\n      %\\[ G(V \\sm (W_1 \\cup W_2) | \\doit(W_1 \\cup W_2 \\cup J))   \\]\n      %is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e391b14e-9474-48d6-82fb-ae90b4dcf2d0",
+          "first_seen": "2026-06-17T14:24:52+00:00",
+          "last_used": "2026-06-17T14:24:52+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a123feab-9646-46e9-93f6-07b4d5ea0568",
+          "first_seen": "2026-06-17T14:35:42+00:00",
+          "last_used": "2026-06-17T14:35:42+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "29eee6fc-b682-4525-aad0-5a84a48977f0",
+          "first_seen": "2026-06-17T14:36:35+00:00",
+          "last_used": "2026-06-17T14:36:35+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "6f89eb3e-2e06-4cd6-b71b-94e8d81a34d4",
+          "first_seen": "2026-06-17T14:37:00+00:00",
+          "last_used": "2026-06-17T14:37:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "69187afd-f714-4d94-b9e3-87654f5445f1",
+          "first_seen": "2026-06-17T14:37:44+00:00",
+          "last_used": "2026-06-17T14:37:44+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "e4ba077c-635f-4d19-85be-1085cd51e9e9",
+          "first_seen": "2026-06-17T14:41:17+00:00",
+          "last_used": "2026-06-17T14:41:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "da95cf5b-b084-45f2-8b0c-6f6af1de51dc",
+          "first_seen": "2026-06-17T14:44:29+00:00",
+          "last_used": "2026-06-17T14:44:29+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "1150fe28-3354-4c1d-98dd-a90f85431321",
+          "first_seen": "2026-06-17T14:52:31+00:00",
+          "last_used": "2026-06-17T14:52:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c04a0747-b709-4cbf-8a34-5d0d4ec1a5b2",
+          "first_seen": "2026-06-17T14:52:59+00:00",
+          "last_used": "2026-06-17T14:52:59+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "36fd7ada-79d1-4e1c-9088-a278216c66fb",
+          "first_seen": "2026-06-17T14:55:47+00:00",
+          "last_used": "2026-06-17T14:55:47+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "097ace65-c4d0-4a21-b152-8ff764e4dc2e",
+          "first_seen": "2026-06-17T14:56:08+00:00",
+          "last_used": "2026-06-17T14:56:08+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "cf028fea-b4f9-42c3-9dba-22c7fc1e058f",
+          "first_seen": "2026-06-17T15:01:13+00:00",
+          "last_used": "2026-06-17T15:01:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bd4af43b-6f4f-4f17-8053-e44a91b1896a",
+          "first_seen": "2026-06-17T15:01:35+00:00",
+          "last_used": "2026-06-17T15:01:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "aeb1fc96-6c2e-4715-ba1b-e99a358a4cf6",
+          "first_seen": "2026-06-17T15:04:45+00:00",
+          "last_used": "2026-06-17T15:04:45+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2797,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
