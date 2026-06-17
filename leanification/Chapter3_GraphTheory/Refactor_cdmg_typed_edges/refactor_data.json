@@ -2747,7 +2747,7 @@
           "last_used": "2026-06-17T19:58:40+00:00"
         }
       ],
-      "time_needed_to_solve": 5297,
+      "time_needed_to_solve": 5316,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -2766,10 +2766,10 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
@@ -2779,17 +2779,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2802,11 +2802,82 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\n   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:\n   \\[ \\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}  =  G_{\\spl(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a1797428-2447-43ca-8bc9-3ab4fd1acd5c",
+          "first_seen": "2026-06-17T20:19:40+00:00",
+          "last_used": "2026-06-17T20:19:40+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "44976c1a-da66-4510-a470-efec4249f56d",
+          "first_seen": "2026-06-17T20:19:57+00:00",
+          "last_used": "2026-06-17T20:19:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1043ce2a-a029-4fcd-9b0c-64b01c28105f",
+          "first_seen": "2026-06-17T20:20:51+00:00",
+          "last_used": "2026-06-17T20:20:51+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "822a560b-5d93-47ad-9eaf-83c1d098e102",
+          "first_seen": "2026-06-17T20:22:42+00:00",
+          "last_used": "2026-06-17T20:22:42+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f1ac89b5-1a03-4425-95da-afc81547fa0e",
+          "first_seen": "2026-06-17T20:24:27+00:00",
+          "last_used": "2026-06-17T20:24:27+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "77545399-744b-43a5-a1c5-57db33aca43f",
+          "first_seen": "2026-06-17T20:42:14+00:00",
+          "last_used": "2026-06-17T20:42:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8ccd4699-1791-4a91-97fd-e6ea8f4dca3d",
+          "first_seen": "2026-06-17T20:43:43+00:00",
+          "last_used": "2026-06-17T20:43:43+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "0f1292ef-a18a-4fe0-b9ef-93b530b0ee04",
+          "first_seen": "2026-06-17T20:45:32+00:00",
+          "last_used": "2026-06-17T20:45:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "52217ea4-0a94-42d6-82da-cc4cf19f29ff",
+          "first_seen": "2026-06-17T20:46:13+00:00",
+          "last_used": "2026-06-17T20:46:13+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "e3c72dc3-4e30-4c5f-ab66-d8d6a8643213",
+          "first_seen": "2026-06-17T20:48:57+00:00",
+          "last_used": "2026-06-17T20:48:57+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3274,
       "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs.",
       "wording_check": {
         "done": true,
