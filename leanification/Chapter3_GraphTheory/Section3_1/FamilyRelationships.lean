@@ -101,6 +101,7 @@ namespace CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_5 --- end helper
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Pa
 -- ref: def_3_5 (item i, parents of a vertex)
 -- The set of parents of `v` in `G`: nodes `w ∈ J ∪ V` such that `(w, v) ∈ E`.
 --
@@ -139,7 +140,9 @@ variable {Node : Type*} [DecidableEq Node]
 def Pa (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (w, v) ∈ G.E}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Pa
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: PaSet
 -- ref: def_3_5 (item i, parents of a set)
 -- The set of parents of `A` in `G`: the indexed union of `Pa G v` over `v ∈ A`.
 --
@@ -184,7 +187,9 @@ def Pa (G : CDMG Node) (v : Node) : Set Node :=
 def PaSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Pa v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: PaSet
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Ch
 -- ref: def_3_5 (item ii, children of a vertex)
 -- The set of children of `v` in `G`: nodes `w ∈ J ∪ V` such that `(v, w) ∈ E`.
 --
@@ -220,7 +225,9 @@ def PaSet (G : CDMG Node) (A : Set Node) : Set Node :=
 def Ch (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (v, w) ∈ G.E}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Ch
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: ChSet
 -- ref: def_3_5 (item ii, children of a set)
 -- The set of children of `A` in `G`: the indexed union of `Ch G v` over `v ∈ A`.
 --
@@ -236,7 +243,9 @@ def Ch (G : CDMG Node) (v : Node) : Set Node :=
 def ChSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Ch v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: ChSet
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Sib
 -- ref: def_3_5 (item iii, siblings of a vertex)
 -- The set of siblings of `v` in `G`: nodes `w ∈ J ∪ V` such that `(v, w) ∈ L`.
 --
@@ -284,7 +293,9 @@ def ChSet (G : CDMG Node) (A : Set Node) : Set Node :=
 def Sib (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ (v, w) ∈ G.L}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Sib
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Anc
 -- ref: def_3_5 (item iv, ancestors of a vertex)
 -- The set of ancestors of `v` in `G`: nodes `w ∈ J ∪ V` for which there
 -- exists a directed walk (of any length `≥ 0`, including the trivial
@@ -346,7 +357,9 @@ def Sib (G : CDMG Node) (v : Node) : Set Node :=
 def Anc (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G w v, p.IsDirectedWalk}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Anc
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: AncSet
 -- ref: def_3_5 (item iv, ancestors of a set)
 -- The set of ancestors of `A` in `G`: the indexed union of `Anc G v` over `v ∈ A`.
 --
@@ -371,7 +384,9 @@ def Anc (G : CDMG Node) (v : Node) : Set Node :=
 def AncSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Anc v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: AncSet
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Desc
 -- ref: def_3_5 (item v, descendants of a vertex)
 -- The set of descendants of `v` in `G`: nodes `w ∈ J ∪ V` for which there
 -- exists a directed walk (of any length `≥ 0`, including the trivial
@@ -411,7 +426,9 @@ def AncSet (G : CDMG Node) (A : Set Node) : Set Node :=
 def Desc (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsDirectedWalk}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Desc
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: DescSet
 -- ref: def_3_5 (item v, descendants of a set)
 -- The set of descendants of `A` in `G`: the indexed union of `Desc G v` over `v ∈ A`.
 --
@@ -433,7 +450,9 @@ def Desc (G : CDMG Node) (v : Node) : Set Node :=
 def DescSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Desc v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: DescSet
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: NonDesc
 -- ref: def_3_5 (item vi, non-descendants of a set)
 -- The set of non-descendants of `A` in `G`: the complement of `DescSet G A`
 -- inside the ambient node set `J ∪ V` of `G`.
@@ -497,7 +516,9 @@ def DescSet (G : CDMG Node) (A : Set Node) : Set Node :=
 def NonDesc (G : CDMG Node) (A : Set Node) : Set Node :=
   ((G.J ∪ G.V : Finset Node) : Set Node) \ G.DescSet A
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: NonDesc
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Sc
 -- ref: def_3_5 (item vii, strongly connected component of a vertex)
 -- The strongly connected component of `v` in `G`: the intersection of the
 -- ancestors and descendants of `v` in `G`.
@@ -542,7 +563,9 @@ def NonDesc (G : CDMG Node) (A : Set Node) : Set Node :=
 def Sc (G : CDMG Node) (v : Node) : Set Node :=
   G.Anc v ∩ G.Desc v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Sc
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: ScSet
 -- ref: def_3_5 (item vii, strongly connected components of a set)
 -- The (union of) strongly connected components of `A` in `G`: the indexed
 -- union of `Sc G v` over `v ∈ A`.
@@ -568,7 +591,9 @@ def Sc (G : CDMG Node) (v : Node) : Set Node :=
 def ScSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Sc v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: ScSet
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: Dist
 -- ref: def_3_5 (item viii, district of a vertex)
 -- The district of `v` in `G`: nodes `w ∈ J ∪ V` for which there exists a
 -- bidirected walk (of any length `≥ 0`, including the trivial length-0
@@ -632,7 +657,9 @@ def ScSet (G : CDMG Node) (A : Set Node) : Set Node :=
 def Dist (G : CDMG Node) (v : Node) : Set Node :=
   {w | w ∈ G ∧ ∃ p : Walk G v w, p.IsBidirectedWalk}
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: Dist
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: DistSet
 -- ref: def_3_5 (item viii, district of a set)
 -- The district of `A` in `G`: the indexed union of `Dist G v` over `v ∈ A`.
 --
@@ -657,7 +684,248 @@ def Dist (G : CDMG Node) (v : Node) : Set Node :=
 def DistSet (G : CDMG Node) (A : Set Node) : Set Node :=
   ⋃ v ∈ A, G.Dist v
 -- def_3_5 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: DistSet
 
 end CDMG
+
+namespace refactor_CDMG
+
+-- def_3_5 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_5 --- end helper
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Pa (was: refactor_Pa)
+-- ref: def_3_5 (item i, parents of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Pa` design block above for the
+-- load-bearing rationale (LN-faithful set-builder, deliberate
+-- inclusion of `v` on directed self-loops, redundant-but-kept
+-- `w ∈ G` guard).  This twin shares all of it; the only shift is
+-- the upstream type `CDMG Node → refactor_CDMG Node`.  `G.E`'s
+-- carrier `Finset (Node × Node)` is unchanged by the refactor, so
+-- the body `(w, v) ∈ G.E` reads verbatim.
+-- def_3_5 -- start statement
+def refactor_Pa (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ (w, v) ∈ G.E}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Pa
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: PaSet (was: refactor_PaSet)
+-- ref: def_3_5 (item i, parents of a set) — refactor
+--
+-- One-line cross-ref: see the `PaSet` design block above for the
+-- `Set.biUnion` rationale, the `A : Set Node` choice, and the
+-- singleton identity `PaSet G {v} = Pa G v`.  This twin shares all
+-- of it; only the upstream type and the inner per-vertex primitive
+-- `G.Pa v → G.refactor_Pa v` change.
+-- def_3_5 -- start statement
+def refactor_PaSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Pa v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: PaSet
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Ch (was: refactor_Ch)
+-- ref: def_3_5 (item ii, children of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Ch` design block above for the
+-- mirror-of-`Pa` rationale and the self-loop convention.  This
+-- twin shares all of it; only the upstream type shifts.  `G.E` is
+-- unchanged by the refactor, so the body `(v, w) ∈ G.E` reads
+-- verbatim.
+-- def_3_5 -- start statement
+def refactor_Ch (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ (v, w) ∈ G.E}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Ch
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: ChSet (was: refactor_ChSet)
+-- ref: def_3_5 (item ii, children of a set) — refactor
+--
+-- One-line cross-ref: see the `ChSet` design block above for the
+-- `Set.biUnion` rationale shared with `PaSet`.  This twin shares
+-- all of it; only the upstream type and the inner per-vertex
+-- primitive `G.Ch v → G.refactor_Ch v` change.
+-- def_3_5 -- start statement
+def refactor_ChSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Ch v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: ChSet
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Sib (was: refactor_Sib)
+-- ref: def_3_5 (item iii, siblings of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Sib` design block above for the
+-- mirror-of-`Ch`-with-`L` rationale, the `w ∈ G` redundancy, the
+-- no-set-form decision, and the graph-theoretic symmetry note.
+-- This twin shares all of it; the upstream encoding shift is more
+-- substantive than for `Pa` / `Ch` because the L-channel carrier
+-- changed.
+--
+-- Encoded against `G.L : Finset (Sym2 Node)` via `s(v, w) ∈ G.L`;
+-- symmetry is now definitional (`s(v, w) = s(w, v)` by `Sym2`'s
+-- swap quotient), so the `[huh_visual_symmetry_vs_ordered_pair_in_L]`
+-- concern from the original's design block is structurally
+-- discharged — `Sib`'s symmetry no longer routes through
+-- `hL_symm` and is instead an identity on `Sym2`.  Wording-check
+-- `self_loop_makes_v_its_own_parent_child_sibling`: `Sym2.IsDiag
+-- s(v, v)` together with `hL_irrefl` still rules out `v ∈ Sib G v`
+-- — `hL_irrefl` is the refactor's `s ∈ L → ¬ s.IsDiag` form, which
+-- on `s(v, v)` reads "if `s(v, v) ∈ G.L` then `¬ s(v, v).IsDiag`",
+-- but `s(v, v).IsDiag = True`, so `s(v, v) ∉ G.L` and `v ∉ Sib G
+-- v`.  The asymmetry with `Pa` / `Ch` (where self-loops are
+-- admitted) is preserved.
+-- def_3_5 -- start statement
+def refactor_Sib (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ s(v, w) ∈ G.L}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Sib
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Anc (was: refactor_Anc)
+-- ref: def_3_5 (item iv, ancestors of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Anc` design block above for the
+-- `Walk + IsDirectedWalk` rationale, the unconditional self-
+-- membership argument via `Walk.nil`, and the resolution of the
+-- `trivial_walk_implicit_in_self_membership_notes` wording-check
+-- subtlety.  This twin shares all of it; the upstream witness
+-- `Walk.nil v hv` becomes `refactor_Walk.nil v hv` and the
+-- predicate `IsDirectedWalk` becomes `refactor_IsDirectedWalk` —
+-- same structural argument (the refactored `refactor_IsDirectedWalk
+-- (.nil _ _) = True` branch is unchanged from the original
+-- `IsDirectedWalk (.nil _ _) = True`), no semantic change.
+-- def_3_5 -- start statement
+def refactor_Anc (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ ∃ p : refactor_Walk G w v, p.refactor_IsDirectedWalk}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Anc
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: AncSet (was: refactor_AncSet)
+-- ref: def_3_5 (item iv, ancestors of a set) — refactor
+--
+-- One-line cross-ref: see the `AncSet` design block above for the
+-- `Set.biUnion` rationale and the LN's `A ⊆ Anc^G(A)` corollary.
+-- This twin shares all of it; only the upstream type and the inner
+-- per-vertex primitive `G.Anc v → G.refactor_Anc v` change.
+-- def_3_5 -- start statement
+def refactor_AncSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Anc v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: AncSet
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Desc (was: refactor_Desc)
+-- ref: def_3_5 (item v, descendants of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Desc` design block above for the
+-- mirror-of-`Anc`-with-reversed-walk-direction rationale and the
+-- unconditional self-membership via `Walk.nil`.  This twin shares
+-- all of it; the upstream witness `Walk.nil v hv` becomes
+-- `refactor_Walk.nil v hv` and the predicate `IsDirectedWalk`
+-- becomes `refactor_IsDirectedWalk` — same structural argument
+-- (the refactored `refactor_IsDirectedWalk (.nil _ _) = True`
+-- branch is unchanged), no semantic change.
+-- def_3_5 -- start statement
+def refactor_Desc (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ ∃ p : refactor_Walk G v w, p.refactor_IsDirectedWalk}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Desc
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: DescSet (was: refactor_DescSet)
+-- ref: def_3_5 (item v, descendants of a set) — refactor
+--
+-- One-line cross-ref: see the `DescSet` design block above for the
+-- `Set.biUnion` rationale and the load-bearing role this set form
+-- plays for `NonDesc` below.  This twin shares all of it; only the
+-- upstream type and the inner per-vertex primitive `G.Desc v →
+-- G.refactor_Desc v` change.
+-- def_3_5 -- start statement
+def refactor_DescSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Desc v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: DescSet
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: NonDesc (was: refactor_NonDesc)
+-- ref: def_3_5 (item vi, non-descendants of a set) — refactor
+--
+-- One-line cross-ref: see the `NonDesc` design block above for the
+-- no-per-vertex-form decision, the complement-inside-`J ∪ V`
+-- rationale, the `Finset → Set` coercion choice, and the downstream
+-- Markov-blanket pattern.  This twin shares all of it; only the
+-- upstream type and the inner `G.DescSet A → G.refactor_DescSet A`
+-- reference change.  `G.J`, `G.V` are unchanged by the refactor, so
+-- the `((G.J ∪ G.V : Finset Node) : Set Node)` form reads verbatim.
+-- def_3_5 -- start statement
+def refactor_NonDesc (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ((G.J ∪ G.V : Finset Node) : Set Node) \ G.refactor_DescSet A
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: NonDesc
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Sc (was: refactor_Sc)
+-- ref: def_3_5 (item vii, strongly connected component of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Sc` design block above for the
+-- literal-`Anc ∩ Desc` rationale, the corollary-not-axiom shape of
+-- the `v ∈ Sc G v` self-membership note, and the downstream
+-- acyclification / ID-algorithm pattern.  This twin shares all of
+-- it; only the upstream type and the inner cross-references
+-- `G.Anc v → G.refactor_Anc v`, `G.Desc v → G.refactor_Desc v`
+-- change.
+-- def_3_5 -- start statement
+def refactor_Sc (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  G.refactor_Anc v ∩ G.refactor_Desc v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Sc
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: ScSet (was: refactor_ScSet)
+-- ref: def_3_5 (item vii, strongly connected components of a set) — refactor
+--
+-- One-line cross-ref: see the `ScSet` design block above for the
+-- `Set.biUnion` rationale and the union-of-components-vs-single-
+-- component terminology note.  This twin shares all of it; only the
+-- upstream type and the inner per-vertex primitive `G.Sc v →
+-- G.refactor_Sc v` change.
+-- def_3_5 -- start statement
+def refactor_ScSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Sc v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: ScSet
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Dist (was: refactor_Dist)
+-- ref: def_3_5 (item viii, district of a vertex) — refactor
+--
+-- One-line cross-ref: see the `Dist` design block above for the
+-- shared-walk-carrier-with-`Anc`/`Desc` rationale, the resolution
+-- of the `district_walk_indexing_ambiguous_for_small_n` wording-
+-- check subtlety, the unconditional self-membership argument, and
+-- the downstream ID-algorithm pattern.  This twin shares all of
+-- it; the upstream witness `Walk.nil v hv` becomes
+-- `refactor_Walk.nil v hv` and the predicate `IsBidirectedWalk`
+-- becomes `refactor_IsBidirectedWalk` — same structural argument
+-- (the refactored `refactor_IsBidirectedWalk (.nil _ _) = True`
+-- branch is unchanged), no semantic change.  The graph-theoretic
+-- symmetry `w ∈ Dist G v ↔ v ∈ Dist G w` now follows from `Sym2`'s
+-- definitional swap symmetry plus walk reversal, rather than from
+-- `hL_symm` — see the `refactor_Sib` block for the analogous
+-- discharge of the `hL_symm` route.
+-- def_3_5 -- start statement
+def refactor_Dist (G : refactor_CDMG Node) (v : Node) : Set Node :=
+  {w | w ∈ G ∧ ∃ p : refactor_Walk G v w, p.refactor_IsBidirectedWalk}
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: Dist
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: DistSet (was: refactor_DistSet)
+-- ref: def_3_5 (item viii, district of a set) — refactor
+--
+-- One-line cross-ref: see the `DistSet` design block above for the
+-- `Set.biUnion` rationale and the union-vs-maximal-component
+-- terminology note.  This twin shares all of it; only the upstream
+-- type and the inner per-vertex primitive `G.Dist v →
+-- G.refactor_Dist v` change.
+-- def_3_5 -- start statement
+def refactor_DistSet (G : refactor_CDMG Node) (A : Set Node) : Set Node :=
+  ⋃ v ∈ A, G.refactor_Dist v
+-- def_3_5 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: DistSet
+
+end refactor_CDMG
 
 end Causality
