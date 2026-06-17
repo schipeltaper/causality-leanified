@@ -1231,7 +1231,7 @@
           "last_used": "2026-06-17T10:20:50+00:00"
         }
       ],
-      "time_needed_to_solve": 1611,
+      "time_needed_to_solve": 1631,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -1251,10 +1251,10 @@
       "section": "3.1",
       "title": "TopologicalOrder",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-17",
       "tips": "Refactored on 2026-06-07 via `total_order_helper` (see leanification/Chapter*/Refactor_total_order_helper_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/TopologicalOrder.lean",
@@ -1265,16 +1265,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -1289,8 +1289,79 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Topological order]\n    Let $G=(J,V,E,L)$ be a CDMG.\n    A \\emph{topological order} of $G$ is a total order $<$ of $J \\cup V$ such that for all $v,w \\in G$:\n    \\[ v \\in \\Pa^G(w) \\; \\implies \\; v < w.\\]\n    Equivalently, it can be described as an indexing of the nodes $J \\cup V = \\{v_1,\\dots,v_K\\}$ where parents always precede their children.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "55681c5e-59d8-4526-b958-ab9cb304e50d",
+          "first_seen": "2026-06-17T10:26:04+00:00",
+          "last_used": "2026-06-17T10:26:04+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "5f944879-da0e-4b35-9862-0af7cfb0719c",
+          "first_seen": "2026-06-17T10:33:03+00:00",
+          "last_used": "2026-06-17T10:33:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5cb3d076-041e-4160-a08f-041858e6ed4d",
+          "first_seen": "2026-06-17T10:34:19+00:00",
+          "last_used": "2026-06-17T10:34:19+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "9d0e4063-2456-464f-b064-6a4c65e749ce",
+          "first_seen": "2026-06-17T10:35:39+00:00",
+          "last_used": "2026-06-17T10:35:39+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "015fa1e9-8a34-4548-b24f-73c51da4050a",
+          "first_seen": "2026-06-17T10:36:12+00:00",
+          "last_used": "2026-06-17T10:36:12+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "a6f60c90-3089-414f-9fc8-c2621fc69dfc",
+          "first_seen": "2026-06-17T10:38:03+00:00",
+          "last_used": "2026-06-17T10:38:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "375a71d1-8f58-4083-aae0-52bd76167310",
+          "first_seen": "2026-06-17T10:39:10+00:00",
+          "last_used": "2026-06-17T10:39:10+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "363fd3a7-e27c-4561-b3ea-4eed973a4168",
+          "first_seen": "2026-06-17T10:46:43+00:00",
+          "last_used": "2026-06-17T10:46:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ad640bf3-b81a-4987-9357-def821e3438d",
+          "first_seen": "2026-06-17T10:47:12+00:00",
+          "last_used": "2026-06-17T10:47:12+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "08a980c3-941f-44cd-a9e0-feeac4c62986",
+          "first_seen": "2026-06-17T10:48:51+00:00",
+          "last_used": "2026-06-17T10:48:51+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1831,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
