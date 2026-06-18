@@ -3322,7 +3322,7 @@
           "last_used": "2026-06-17T23:31:14+00:00"
         }
       ],
-      "time_needed_to_solve": 3147,
+      "time_needed_to_solve": 3167,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -3341,10 +3341,10 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
@@ -3354,17 +3354,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3377,11 +3377,82 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes from $G$. \n   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:\n   \\[ \\lp G_{\\swig(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\swig(W_1)}  =  G_{\\swig(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "32b5a512-0238-4598-8767-e333a5854533",
+          "first_seen": "2026-06-17T23:41:39+00:00",
+          "last_used": "2026-06-17T23:41:39+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "805ffc51-2fa6-4464-bbf8-81691a9ce7f2",
+          "first_seen": "2026-06-17T23:45:10+00:00",
+          "last_used": "2026-06-17T23:45:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "38c45b5f-fb31-4932-b1f1-10ba7825084c",
+          "first_seen": "2026-06-17T23:46:02+00:00",
+          "last_used": "2026-06-17T23:46:02+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "83c21a22-5064-43bd-b8e0-32b21411cbab",
+          "first_seen": "2026-06-17T23:46:31+00:00",
+          "last_used": "2026-06-17T23:46:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "cf85de60-68d5-4651-b2b7-d9af33e7ea69",
+          "first_seen": "2026-06-17T23:47:23+00:00",
+          "last_used": "2026-06-17T23:47:23+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "e308a541-f2fe-4e52-85c6-b7148682c9b3",
+          "first_seen": "2026-06-17T23:49:38+00:00",
+          "last_used": "2026-06-17T23:49:38+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "10966938-f962-4b70-b1b6-dac1f02681af",
+          "first_seen": "2026-06-17T23:50:22+00:00",
+          "last_used": "2026-06-17T23:50:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "192de13c-027f-44ee-b66f-24ad46ae9cd4",
+          "first_seen": "2026-06-17T23:57:58+00:00",
+          "last_used": "2026-06-17T23:57:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0675d563-7405-491d-89bb-f0266e46d5ce",
+          "first_seen": "2026-06-17T23:58:52+00:00",
+          "last_used": "2026-06-17T23:58:52+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "a5698158-4214-4ad9-8a31-ffb0f7c7c6a1",
+          "first_seen": "2026-06-18T00:02:41+00:00",
+          "last_used": "2026-06-18T00:02:41+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1909,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
