@@ -4586,7 +4586,7 @@
           "last_used": "2026-06-18T13:35:24+00:00"
         }
       ],
-      "time_needed_to_solve": 16564,
+      "time_needed_to_solve": 16587,
       "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
       "wording_check": {
         "done": true,
@@ -4607,10 +4607,10 @@
       "section": "3.2",
       "title": "MarginalizationsCommute",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
@@ -4626,11 +4626,11 @@
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 8,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4646,8 +4646,149 @@
         "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "40e99ce1-f20d-4238-b3df-6b47ee421395",
+          "first_seen": "2026-06-18T13:46:52+00:00",
+          "last_used": "2026-06-18T13:46:52+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "163cfa40-2657-42b3-8bb1-76aa8d77f76f",
+          "first_seen": "2026-06-18T13:54:24+00:00",
+          "last_used": "2026-06-18T13:54:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bd102dff-73d7-48e9-98a1-419437bfa020",
+          "first_seen": "2026-06-18T13:55:31+00:00",
+          "last_used": "2026-06-18T13:55:31+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "d274472e-4d77-4aa2-ad4f-cc79aef3753b",
+          "first_seen": "2026-06-18T13:59:33+00:00",
+          "last_used": "2026-06-18T13:59:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "805dd04f-f92e-4f10-a8aa-726ec94f8aab",
+          "first_seen": "2026-06-18T14:00:30+00:00",
+          "last_used": "2026-06-18T14:00:30+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "61f326f0-947c-42c4-b86f-565dc5fcdd79",
+          "first_seen": "2026-06-18T14:19:33+00:00",
+          "last_used": "2026-06-18T14:19:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fc39cd3f-55bb-4869-902e-d1610b4fc44a",
+          "first_seen": "2026-06-18T14:20:23+00:00",
+          "last_used": "2026-06-18T14:20:23+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3a430a03-59c4-49a2-a111-d3db13b1309d",
+          "first_seen": "2026-06-18T14:31:09+00:00",
+          "last_used": "2026-06-18T14:31:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1b8f6331-8a38-4cb6-8e20-dd3c4842e3dd",
+          "first_seen": "2026-06-18T14:32:41+00:00",
+          "last_used": "2026-06-18T14:32:41+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "52c85314-67e5-4a62-986f-cc7433a9ba02",
+          "first_seen": "2026-06-18T14:47:48+00:00",
+          "last_used": "2026-06-18T14:47:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "253ed1ee-545b-4dc3-ab33-694e740550ab",
+          "first_seen": "2026-06-18T14:48:59+00:00",
+          "last_used": "2026-06-18T14:48:59+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "0cd2c37c-761e-4184-baed-b9e58ba76734",
+          "first_seen": "2026-06-18T14:58:38+00:00",
+          "last_used": "2026-06-18T14:58:38+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b12abeea-7398-4089-9d08-b805a96dcb68",
+          "first_seen": "2026-06-18T15:00:15+00:00",
+          "last_used": "2026-06-18T15:00:15+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "5dfed93e-7ef8-40e7-a21e-2f6e449ed741",
+          "first_seen": "2026-06-18T15:08:54+00:00",
+          "last_used": "2026-06-18T15:08:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "785b733d-7755-4c85-8382-9b4fbf442aab",
+          "first_seen": "2026-06-18T15:09:41+00:00",
+          "last_used": "2026-06-18T15:09:41+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "16ff3142-3bb4-4d4a-a44e-bae1ebdc638f",
+          "first_seen": "2026-06-18T15:21:35+00:00",
+          "last_used": "2026-06-18T15:21:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e216ead6-95a7-431c-8956-f37255fd5003",
+          "first_seen": "2026-06-18T15:22:25+00:00",
+          "last_used": "2026-06-18T15:22:25+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c03a2702-a7d0-4d2b-81a4-89015628218b",
+          "first_seen": "2026-06-18T15:28:57+00:00",
+          "last_used": "2026-06-18T15:28:57+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2a21f01b-29f6-4212-a76b-f50b9d679ff5",
+          "first_seen": "2026-06-18T15:30:36+00:00",
+          "last_used": "2026-06-18T15:30:36+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "451bdef0-e2a6-4c8b-9c4c-cb278f736950",
+          "first_seen": "2026-06-18T15:34:58+00:00",
+          "last_used": "2026-06-18T15:34:58+00:00"
+        }
+      ],
+      "time_needed_to_solve": 7038,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
