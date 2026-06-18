@@ -4286,7 +4286,7 @@
           "last_used": "2026-06-18T05:49:54+00:00"
         }
       ],
-      "time_needed_to_solve": 3933,
+      "time_needed_to_solve": 3951,
       "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.",
       "wording_check": {
         "done": true,
@@ -4307,10 +4307,10 @@
       "section": "3.2",
       "title": "MargPreservesAncestors",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "Refactored on 2026-06-13 via `marginalize_loose_self_cycle` (see leanification/Chapter*/Refactor_marginalize_loose_self_cycle_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MargPreservesAncestors.lean",
@@ -4320,17 +4320,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 13,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4343,11 +4343,250 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0c234054-51f2-485a-ad74-63ec47001806",
+          "first_seen": "2026-06-18T06:17:17+00:00",
+          "last_used": "2026-06-18T06:17:17+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "9fba7970-bb2a-4b39-96ff-8ad85f37280c",
+          "first_seen": "2026-06-18T06:25:49+00:00",
+          "last_used": "2026-06-18T06:25:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e1936530-4fc7-4f8d-b2c5-da4d65c10094",
+          "first_seen": "2026-06-18T06:26:28+00:00",
+          "last_used": "2026-06-18T06:26:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c5926bf8-fe43-426d-9334-30245f8a72e5",
+          "first_seen": "2026-06-18T06:28:02+00:00",
+          "last_used": "2026-06-18T06:28:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fe8fb803-fc58-4d46-8c47-0c9dd91ab1ee",
+          "first_seen": "2026-06-18T06:30:27+00:00",
+          "last_used": "2026-06-18T06:30:27+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "dbc660b8-4125-489b-9172-b426fa787fbd",
+          "first_seen": "2026-06-18T06:52:59+00:00",
+          "last_used": "2026-06-18T06:52:59+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9ffc6310-7acd-4960-ab94-170c4df52d92",
+          "first_seen": "2026-06-18T06:54:09+00:00",
+          "last_used": "2026-06-18T06:54:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "2b0f4741-bcb0-4567-b9fb-911060342d95",
+          "first_seen": "2026-06-18T07:05:44+00:00",
+          "last_used": "2026-06-18T07:05:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2f1d9f74-ff71-46ca-85a5-f5db572f3875",
+          "first_seen": "2026-06-18T07:06:39+00:00",
+          "last_used": "2026-06-18T07:06:39+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "d24371c5-3f2a-42ed-bb25-cc9f5a9c8212",
+          "first_seen": "2026-06-18T07:17:59+00:00",
+          "last_used": "2026-06-18T07:17:59+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bb6314f6-a224-413e-9f70-9d310699453a",
+          "first_seen": "2026-06-18T07:19:13+00:00",
+          "last_used": "2026-06-18T07:19:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "4f8244e1-2dae-44ed-a141-437b36ab073d",
+          "first_seen": "2026-06-18T07:34:20+00:00",
+          "last_used": "2026-06-18T07:34:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "20ecbfaa-da43-4862-9760-06fb4d59d10c",
+          "first_seen": "2026-06-18T07:35:37+00:00",
+          "last_used": "2026-06-18T07:35:37+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ed0aee8b-9b8f-4b17-9699-bd19c59bc4b7",
+          "first_seen": "2026-06-18T07:57:51+00:00",
+          "last_used": "2026-06-18T07:57:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "84b952e5-5783-4cad-90a1-7a7ef608a0aa",
+          "first_seen": "2026-06-18T07:58:54+00:00",
+          "last_used": "2026-06-18T07:58:54+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c40cc63e-2388-44e9-9601-75b411973092",
+          "first_seen": "2026-06-18T08:19:36+00:00",
+          "last_used": "2026-06-18T08:19:36+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ab113cb7-3aa9-473c-a728-fca282685572",
+          "first_seen": "2026-06-18T08:20:56+00:00",
+          "last_used": "2026-06-18T08:20:56+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "b5ab62fd-da98-494d-84b5-3f7376f9f423",
+          "first_seen": "2026-06-18T08:53:43+00:00",
+          "last_used": "2026-06-18T08:53:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "be49f9fe-a185-46db-955a-d83d313ffbea",
+          "first_seen": "2026-06-18T08:54:59+00:00",
+          "last_used": "2026-06-18T08:54:59+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "629347f4-0346-4617-a201-6bb8b4f6e779",
+          "first_seen": "2026-06-18T09:17:31+00:00",
+          "last_used": "2026-06-18T09:17:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c5307e02-84cc-4ec3-8349-11dfb548dd76",
+          "first_seen": "2026-06-18T09:18:37+00:00",
+          "last_used": "2026-06-18T09:18:37+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "da2894e4-de50-4cdd-94b6-326a647dbf30",
+          "first_seen": "2026-06-18T09:34:10+00:00",
+          "last_used": "2026-06-18T09:34:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d6e35865-2169-4162-b3f0-9a8c3047b8c8",
+          "first_seen": "2026-06-18T09:35:27+00:00",
+          "last_used": "2026-06-18T09:35:27+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "7bbd7bbc-0992-457a-ba09-43364f2eee2b",
+          "first_seen": "2026-06-18T09:51:15+00:00",
+          "last_used": "2026-06-18T09:51:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2acb2d11-d872-49b9-8474-8f89e9248f45",
+          "first_seen": "2026-06-18T12:48:25+00:00",
+          "last_used": "2026-06-18T12:48:25+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "af20dc49-abe6-4abd-b3a9-fac2fb2c0b76",
+          "first_seen": "2026-06-18T13:05:53+00:00",
+          "last_used": "2026-06-18T13:05:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b80901c5-90fb-4f4a-931e-bdffa659b51b",
+          "first_seen": "2026-06-18T13:10:49+00:00",
+          "last_used": "2026-06-18T13:10:49+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "859bbaa7-ec3f-482f-9b28-480d14c780aa",
+          "first_seen": "2026-06-18T13:20:55+00:00",
+          "last_used": "2026-06-18T13:20:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "58b35aff-a604-40b3-b5f9-c92c2be01931",
+          "first_seen": "2026-06-18T13:21:32+00:00",
+          "last_used": "2026-06-18T13:21:32+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "d82b2e12-de94-4e06-b8c5-67a49ff6574f",
+          "first_seen": "2026-06-18T13:22:38+00:00",
+          "last_used": "2026-06-18T13:22:38+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "fba65e3f-a3d9-48a1-b528-082653f031da",
+          "first_seen": "2026-06-18T13:23:20+00:00",
+          "last_used": "2026-06-18T13:23:20+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "3c5eb6bb-c882-46ac-a2de-8b121cfaba9c",
+          "first_seen": "2026-06-18T13:29:11+00:00",
+          "last_used": "2026-06-18T13:29:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b68aceba-95ed-4fca-82e3-9eaef0a186a5",
+          "first_seen": "2026-06-18T13:31:19+00:00",
+          "last_used": "2026-06-18T13:31:19+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "74d2042f-cb95-4346-a66d-8edf4e5e1772",
+          "first_seen": "2026-06-18T13:35:24+00:00",
+          "last_used": "2026-06-18T13:35:24+00:00"
+        }
+      ],
+      "time_needed_to_solve": 16564,
       "addition_to_the_LN": "[bifurcation_optional_v3_phrasing_ambiguity] Part 2 of the remark asserts two separate biconditionals, corresponding to reading the statement once with the parenthetical clauses omitted and once with them included. Explicitly:\n(a) For $v_1, v_2 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ in $G^{\\sm W}$.\n(b) For $v_1, v_2, v_3 \\in G \\sm W$: there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ with source $v_3$ in $G^{\\sm W}$.",
       "wording_check": {
         "done": true,
