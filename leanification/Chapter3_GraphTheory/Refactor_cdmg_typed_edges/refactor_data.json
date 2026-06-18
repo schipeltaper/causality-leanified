@@ -3610,7 +3610,7 @@
           "last_used": "2026-06-18T00:52:03+00:00"
         }
       ],
-      "time_needed_to_solve": 2808,
+      "time_needed_to_solve": 2828,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -3629,10 +3629,10 @@
       "section": "3.2",
       "title": "ExtendingCDMGsWith",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/ExtendingCDMGsWith.lean",
@@ -3643,16 +3643,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3667,8 +3667,79 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Extending CDMGs with intervention nodes]\\label{def:cdmg_intervention_nodes}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins J \\cup V$ a subset of nodes.\n  The \\emph{extended CDMG} of $G$ w.r.t.\\ nodes $W \\ins J \\cup V$  and corresponding \\emph{intervention nodes} \n%  $I_W = \\{I_w \\,|\\, w \\in W\\}$ \\Joris{with $I_j:=j$ for $j \\in J$},\n  $I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$,\n  is the CDMG: \n  \\[ G_{\\doit(I_W)}:=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  %\\[G(V|\\doit(J \\dcup I_W)):=G_{\\doit(I_W)}=(J_{\\doit(I_W)},V_{\\doit(I_W)},E_{\\doit(I_W)},L_{\\doit(I_W)}),\\]\n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n%      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\Joris{\\sm J} \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$, %not W \\sm J, makes weak and hard interventions commute\n      \\item $V_{\\doit(I_W)}:= V$,\n      \\item $E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$,\n      \\item $L_{\\doit(I_W)}:= L$,\n  \\end{enumerate}\n%  where we just add \\Joris{nodes $I_w$ for $w \\in W \\sm J$ and} edges $I_w \\tuh w$ for $ w \\in W \\sm J$. \n  where we just add nodes $I_w$ for $w \\in W \\sm J$ and edges $I_w \\tuh w$ for $ w \\in W \\sm J$.\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "652044d8-2678-4e43-8122-4c3ca9697061",
+          "first_seen": "2026-06-18T00:59:38+00:00",
+          "last_used": "2026-06-18T00:59:38+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "07f3d62d-b9be-4264-86eb-c474617333a6",
+          "first_seen": "2026-06-18T01:16:29+00:00",
+          "last_used": "2026-06-18T01:16:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "31d704e4-fb15-4e55-ab21-5dfc41b8d8b2",
+          "first_seen": "2026-06-18T01:18:43+00:00",
+          "last_used": "2026-06-18T01:18:43+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "05a6c0ce-ac21-4ea3-be84-a9f2188696d1",
+          "first_seen": "2026-06-18T01:20:37+00:00",
+          "last_used": "2026-06-18T01:20:37+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b3e8a044-abbd-40e8-85ea-46dd53a4097f",
+          "first_seen": "2026-06-18T01:21:12+00:00",
+          "last_used": "2026-06-18T01:21:12+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "5685fb7c-d90d-4b6a-af16-c21e0cbc9502",
+          "first_seen": "2026-06-18T01:23:15+00:00",
+          "last_used": "2026-06-18T01:23:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "77823597-a4b4-41ff-a7f6-0ba254c09828",
+          "first_seen": "2026-06-18T01:24:08+00:00",
+          "last_used": "2026-06-18T01:24:08+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "a0b93e16-c4e0-4592-a6c4-59e650f579a6",
+          "first_seen": "2026-06-18T01:35:03+00:00",
+          "last_used": "2026-06-18T01:35:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a91e55ba-9fcd-45b0-bea8-6fb534f36c5d",
+          "first_seen": "2026-06-18T01:36:07+00:00",
+          "last_used": "2026-06-18T01:36:07+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "37d88340-9cb7-4ba2-9892-2aa51d1bbd42",
+          "first_seen": "2026-06-18T01:38:59+00:00",
+          "last_used": "2026-06-18T01:38:59+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3488,
       "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it.",
       "wording_check": {
         "done": true,
