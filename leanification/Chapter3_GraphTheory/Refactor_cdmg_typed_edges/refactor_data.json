@@ -4171,7 +4171,7 @@
           "last_used": "2026-06-18T05:02:28+00:00"
         }
       ],
-      "time_needed_to_solve": 4166,
+      "time_needed_to_solve": 4186,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -4190,10 +4190,10 @@
       "section": "3.2",
       "title": "MarginalizationAK",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "Refactored on 2026-06-13 via `marginalize_loose_self_cycle` (see leanification/Chapter*/Refactor_marginalize_loose_self_cycle_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAK.lean",
@@ -4205,15 +4205,15 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4228,8 +4228,65 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Marginalization a.k.a.\\ latent projection on CDMGs]\\label{def:G_marginalization}\n  Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ a subset of output nodes.\n  Then the \\emph{marginalization of $G$ w.r.t.\\ $W$} or the \\emph{latent projection of $G$ onto $J\\cup V \\sm W$} is the CDMG:\n  \\[  G^{V\\sm W | J} := G^{\\sm W} := (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  %\\[ G(V \\sm W | \\doit(J)) := G^{\\sm W} = (J^{\\sm W},V^{\\sm W},E^{\\sm W},L^{\\sm W}), \\] \n  where:\n  \\begin{enumerate}[label=\\roman*.)]\n      \\item $J^{\\sm W}:= J$,\n      \\item $V^{\\sm W}:= V \\sm W$,\n      \\item $E^{\\sm W}$ consists of all directed edges $\\ul{v} \\tuh \\ol{v}$ with $\\ul{v},\\ol{v} \\in J \\cup V \\sm W$ \n          for which there exists a directed walk in $G$:\n          \\[\\ul{v} \\tuh w_1 \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\\footnote{Note that this may introduce self-cycles.}\n      \\item $L^{\\sm W}$ consists of all bidirected edges $\\ul{v} \\huh \\ol{v}$ with \n          $\\ul{v},\\ol{v} \\in V \\sm W$, $\\ul{v} \\neq \\ol{v}$, \n          for which there exists a bifurcation in $G$:\n          \\[\\ul{v} \\hut w_1 \\hut \\cdots \\hut w_{k-1} \\hus w_k \\tuh \\cdots \\tuh w_{n-1} \\tuh \\ol{v}, \\]\n          where all intermediate nodes $w_1,\\dots,w_{n-1} \\in W$ (if any).\n      %\\item $L^{\\sm W}:= \\lC \\ul{v} \\huh \\ol{v}\\,|\\, \\ul{v},\\ol{v} \\in V \\sm W: \n      %    \\exists \\text{ bifurcation: } \\ul{v} \\hut w_1 \\cdots w_{n-1} \\tuh \\ol{v} \\in G \n      %    \\text{ with } w_1,\\dots,w_{n-1} \\in W \\rC$,\n  \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "da806196-1b64-44aa-9180-078e9932fc1b",
+          "first_seen": "2026-06-18T05:12:45+00:00",
+          "last_used": "2026-06-18T05:12:45+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e490db97-d8a2-4e8c-9b1b-08bfa78a8bfd",
+          "first_seen": "2026-06-18T05:28:28+00:00",
+          "last_used": "2026-06-18T05:28:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9e5d1801-5f0f-48f2-ae28-7472dec57a60",
+          "first_seen": "2026-06-18T05:29:40+00:00",
+          "last_used": "2026-06-18T05:29:40+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "cf1ae80d-f735-4a02-a0fa-b21c75229405",
+          "first_seen": "2026-06-18T05:35:08+00:00",
+          "last_used": "2026-06-18T05:35:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2bba2dc2-989b-4769-9cca-2fa819c5da89",
+          "first_seen": "2026-06-18T05:36:42+00:00",
+          "last_used": "2026-06-18T05:36:42+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "a9a95dad-81ec-4ee9-a515-1da499e2f9c0",
+          "first_seen": "2026-06-18T05:41:41+00:00",
+          "last_used": "2026-06-18T05:41:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "354a380e-fcfd-437f-832b-9f3175cbddf1",
+          "first_seen": "2026-06-18T05:43:03+00:00",
+          "last_used": "2026-06-18T05:43:03+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d96afc6e-c83d-4771-acee-766044ca04b1",
+          "first_seen": "2026-06-18T05:49:54+00:00",
+          "last_used": "2026-06-18T05:49:54+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3933,
       "addition_to_the_LN": "[bifurcation_index_boundary_excludes_natural_cases] The \"bifurcation\" in (iv) is to be interpreted according to the previously formalized definition of bifurcation, not by the literal index range $w_1, \\dots, w_{n-1}$ displayed in the walk. In particular, with the convention $w_0 := \\ul{v}$ and $w_n := \\ol{v}$, the bidirected-edge position index $k$ ranges over $\\{1, \\dots, n\\}$, so that $n=1$ (a direct bidirected edge $\\ul{v} \\huh \\ol{v}$ already present in $L$ with no intermediates), $n=2, k=1$ (a \"Y\" $\\ul{v} \\hus w_1 \\tuh \\ol{v}$), and $n=2, k=n$ (the mirror \"Y\" $\\ul{v} \\hut w_1 \\hus \\ol{v}$) all qualify as bifurcations witnessing membership in $L^{\\sm W}$, provided the intermediate nodes (if any) lie in $W$.\n\n[self_cycle_asymmetry_between_directed_and_bidirected] The asymmetry between clauses (iii) and (iv) regarding self-edges is intentional and shall be preserved by any formalization: directed self-cycles $v \\tuh v$ may appear in $E^{\\sm W}$ (as flagged by the footnote), while bidirected self-edges $v \\huh v$ are excluded from $L^{\\sm W}$ by the explicit $\\ul{v} \\neq \\ol{v}$ constraint in clause (iv). A formalization should neither impose $\\ul{v} \\neq \\ol{v}$ on $E^{\\sm W}$ nor relax it on $L^{\\sm W}$.",
       "wording_check": {
         "done": true,
