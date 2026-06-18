@@ -3739,7 +3739,7 @@
           "last_used": "2026-06-18T01:38:59+00:00"
         }
       ],
-      "time_needed_to_solve": 3488,
+      "time_needed_to_solve": 3506,
       "addition_to_the_LN": "[I_W_mixes_fresh_nodes_and_existing_context_nodes] Intervention nodes are by default fresh nodes disjoint from $J \\cup V$, not present in $G$ prior to the intervention. For $w \\in W \\sm J$, $I_w$ is such a new symbol, added to the junction set with a single outgoing edge $I_w \\tuh w$. For $w \\in J \\cap W$, the identification $I_w := w$ introduces no new node and serves only as a notational convenience so that $I_W$ is well-defined as a set; here the pre-existing context node $w \\in J$ retains whatever edges $G$ already assigned to it.",
       "wording_check": {
         "done": true,
@@ -3758,10 +3758,10 @@
       "section": "3.2",
       "title": "AcyclicHardInterventionTopologicalOrder",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AcyclicHardInterventionTopologicalOrder.lean",
@@ -3773,15 +3773,15 @@
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 2,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3797,8 +3797,93 @@
         "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    If a CDMG $G=(J,V,E,L)$ is acyclic then also $G_{\\doit(I_W)}$ is acyclic and a topological order for\n    $G_{\\doit(I_W)}$ is also one for $G$.\n    Any topological order of $G$ can be extended to one for $G_{\\doit(I_W)}$, e.g.\\\n    by putting all the $I_w$ nodes first in the ordering.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1afd1334-88ad-419a-a545-fe5e8654b819",
+          "first_seen": "2026-06-18T01:57:09+00:00",
+          "last_used": "2026-06-18T01:57:09+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "85b6a7e3-2916-4197-bce9-6ebcd23b7e7e",
+          "first_seen": "2026-06-18T02:26:11+00:00",
+          "last_used": "2026-06-18T02:26:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "04511e71-a854-4734-b188-b1300d335cb9",
+          "first_seen": "2026-06-18T02:28:24+00:00",
+          "last_used": "2026-06-18T02:28:24+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "a0431e1f-b4d3-444e-823b-86abebf2e56b",
+          "first_seen": "2026-06-18T02:32:51+00:00",
+          "last_used": "2026-06-18T02:32:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7b2e2674-14e7-4507-a565-ae82cf515b67",
+          "first_seen": "2026-06-18T02:33:42+00:00",
+          "last_used": "2026-06-18T02:33:42+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "87115622-a719-4c20-829b-2fba9bcd4638",
+          "first_seen": "2026-06-18T02:41:56+00:00",
+          "last_used": "2026-06-18T02:41:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e4b28d24-b81e-47d9-965e-3a26cfa95181",
+          "first_seen": "2026-06-18T02:43:22+00:00",
+          "last_used": "2026-06-18T02:43:22+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "280b6136-6a58-4f3c-91cc-607438529f23",
+          "first_seen": "2026-06-18T02:48:19+00:00",
+          "last_used": "2026-06-18T02:48:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b0083364-79de-4e54-8310-9c5010fcd82b",
+          "first_seen": "2026-06-18T02:49:27+00:00",
+          "last_used": "2026-06-18T02:49:27+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "466a8c4d-bb5a-4e30-b4d3-890cd8de43ce",
+          "first_seen": "2026-06-18T03:00:30+00:00",
+          "last_used": "2026-06-18T03:00:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bcd3ebf0-a125-49a2-8a17-208fbfe1758c",
+          "first_seen": "2026-06-18T03:02:26+00:00",
+          "last_used": "2026-06-18T03:02:26+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "7f663e8e-ec29-47cc-9093-d47022c4c9de",
+          "first_seen": "2026-06-18T03:07:08+00:00",
+          "last_used": "2026-06-18T03:07:08+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4744,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
