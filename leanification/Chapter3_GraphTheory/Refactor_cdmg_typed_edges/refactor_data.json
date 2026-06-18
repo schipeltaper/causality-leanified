@@ -3452,7 +3452,7 @@
           "last_used": "2026-06-18T00:02:41+00:00"
         }
       ],
-      "time_needed_to_solve": 1909,
+      "time_needed_to_solve": 1928,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -3471,10 +3471,10 @@
       "section": "3.2",
       "title": "DisjointHardInterventions",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
@@ -3484,17 +3484,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3507,11 +3507,110 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bd6661f3-e95f-4fcd-b1f0-1d7c6d5e856c",
+          "first_seen": "2026-06-18T00:14:30+00:00",
+          "last_used": "2026-06-18T00:14:30+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "46e12a92-3dea-454d-a7d5-775260d45339",
+          "first_seen": "2026-06-18T00:19:19+00:00",
+          "last_used": "2026-06-18T00:19:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d9e18958-0eab-48ea-8e98-33a455f21e08",
+          "first_seen": "2026-06-18T00:19:53+00:00",
+          "last_used": "2026-06-18T00:19:53+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "6f2cd8c5-da27-44dc-aa37-2577d574a766",
+          "first_seen": "2026-06-18T00:20:11+00:00",
+          "last_used": "2026-06-18T00:20:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c50e0142-f3b3-44c1-aa7b-87e6bf3fcc28",
+          "first_seen": "2026-06-18T00:21:00+00:00",
+          "last_used": "2026-06-18T00:21:00+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "174ea864-8ad5-4c79-ac96-2b6b7fc3dda0",
+          "first_seen": "2026-06-18T00:24:08+00:00",
+          "last_used": "2026-06-18T00:24:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ceb39733-8d8e-4713-845d-c6eadd390850",
+          "first_seen": "2026-06-18T00:25:24+00:00",
+          "last_used": "2026-06-18T00:25:24+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "36419bbd-d902-4dd2-96cb-f2b631a00630",
+          "first_seen": "2026-06-18T00:33:58+00:00",
+          "last_used": "2026-06-18T00:33:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "526bfb88-a68f-434e-b755-bdc3104632a8",
+          "first_seen": "2026-06-18T00:34:45+00:00",
+          "last_used": "2026-06-18T00:34:45+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "035a746e-0e61-4e48-a3f0-1a45c306aa92",
+          "first_seen": "2026-06-18T00:37:20+00:00",
+          "last_used": "2026-06-18T00:37:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "37440f72-843b-4793-b5dc-f80360d5476c",
+          "first_seen": "2026-06-18T00:38:14+00:00",
+          "last_used": "2026-06-18T00:38:14+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "479e5669-a700-4ef8-a040-3cc1d49b4cd6",
+          "first_seen": "2026-06-18T00:47:17+00:00",
+          "last_used": "2026-06-18T00:47:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "27c6f832-2208-42ce-9948-de003dd64727",
+          "first_seen": "2026-06-18T00:47:39+00:00",
+          "last_used": "2026-06-18T00:47:39+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "83df32bf-eda2-495c-a24c-2fe487a22a4f",
+          "first_seen": "2026-06-18T00:52:03+00:00",
+          "last_used": "2026-06-18T00:52:03+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2808,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
