@@ -4013,7 +4013,7 @@
           "last_used": "2026-06-18T03:52:37+00:00"
         }
       ],
-      "time_needed_to_solve": 2680,
+      "time_needed_to_solve": 2700,
       "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
       "wording_check": {
         "done": true,
@@ -4032,10 +4032,10 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-18",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
@@ -4045,17 +4045,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 1,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4068,11 +4068,110 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]\n  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins V$ and $W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:\n    \\[  \\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}. \\]\n  %  So there is no ambiguity in the notation:\n  %  \\[ G(V\\sm W_1 \\dcup W_1^o|\\doit(W_1^i \\dcup J \\dcup I_{W_2})).  \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "74c22184-4d25-4f93-a8b9-3bd665dd7cd0",
+          "first_seen": "2026-06-18T04:07:11+00:00",
+          "last_used": "2026-06-18T04:07:11+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "e7f95105-a9ec-46e9-85bc-a216622fb614",
+          "first_seen": "2026-06-18T04:32:24+00:00",
+          "last_used": "2026-06-18T04:32:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6fb6f276-bf22-4b38-9b18-db182e28d8d7",
+          "first_seen": "2026-06-18T04:34:27+00:00",
+          "last_used": "2026-06-18T04:34:27+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "b1b231a0-997f-48ac-9e4f-71efb233b2c6",
+          "first_seen": "2026-06-18T04:34:48+00:00",
+          "last_used": "2026-06-18T04:34:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f19afdec-e52c-4e77-b774-561db588958f",
+          "first_seen": "2026-06-18T04:35:32+00:00",
+          "last_used": "2026-06-18T04:35:32+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "04ea27d7-866b-4efe-b8f8-ef4d2ed25fd7",
+          "first_seen": "2026-06-18T04:40:21+00:00",
+          "last_used": "2026-06-18T04:40:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "16844b4e-4b68-4d24-ade3-7726a86482cc",
+          "first_seen": "2026-06-18T04:41:44+00:00",
+          "last_used": "2026-06-18T04:41:44+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "cf9fe3a3-7916-4eb5-a9d8-310936035032",
+          "first_seen": "2026-06-18T04:44:58+00:00",
+          "last_used": "2026-06-18T04:44:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "01b3e2e9-969d-4bf3-b0b7-5dffead2d728",
+          "first_seen": "2026-06-18T04:45:35+00:00",
+          "last_used": "2026-06-18T04:45:35+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "304c4adc-568d-4ab8-9bd8-33acea855da4",
+          "first_seen": "2026-06-18T04:49:02+00:00",
+          "last_used": "2026-06-18T04:49:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "630fc3d0-00e2-49d2-a698-b79fa3b2ada8",
+          "first_seen": "2026-06-18T04:50:18+00:00",
+          "last_used": "2026-06-18T04:50:18+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "066a1213-899b-48ac-ab64-78c18257afbd",
+          "first_seen": "2026-06-18T04:59:30+00:00",
+          "last_used": "2026-06-18T04:59:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "679ca5fa-bd63-4ca2-b960-178bbda030bd",
+          "first_seen": "2026-06-18T04:59:57+00:00",
+          "last_used": "2026-06-18T04:59:57+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "c39c43c4-e67f-431a-8d9a-a72cc0731aab",
+          "first_seen": "2026-06-18T05:02:28+00:00",
+          "last_used": "2026-06-18T05:02:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4166,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,

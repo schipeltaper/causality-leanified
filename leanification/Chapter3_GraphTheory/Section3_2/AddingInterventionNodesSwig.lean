@@ -57,9 +57,11 @@ namespace CDMG
 --   Mirrors the convention of every section-3.2 row.  The implicit
 --   `Node : Type*` and `[DecidableEq Node]` auto-bind into the
 --   helpers and the main theorem signature.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: variable_Node
 -- claim_3_15 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- claim_3_15 --- end helper
+-- REFACTOR-BLOCK-ORIGINAL-END: variable_Node
 
 -- ## Private helper — `IsCADMG` witness for the inner extension
 --
@@ -95,11 +97,13 @@ variable {Node : Type*} [DecidableEq Node]
 --   theorem head and not referenced by name in the LN are kept
 --   marker-less so the website renderer does not pull them out as
 --   first-class declarations.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: extendingCDMGsWith_isCADMG_of_isCADMG
 private lemma extendingCDMGsWith_isCADMG_of_isCADMG
     {G : CDMG Node} (hG : G.IsCADMG)
     {W : Finset Node} (hW : W ⊆ G.J ∪ G.V) :
     (G.extendingCDMGsWith W hW).IsCADMG :=
   extAcyclic G W hW hG
+-- REFACTOR-BLOCK-ORIGINAL-END: extendingCDMGsWith_isCADMG_of_isCADMG
 
 -- ## Helper — `W₁.image .unsplit ⊆ V_{doit(I_{W₂})}`
 --
@@ -130,6 +134,7 @@ private lemma extendingCDMGsWith_isCADMG_of_isCADMG
 --   the extension preserves `V` literally (`V_{doit(I_W)} := V`,
 --   per `def_3_13` item ii), so disjointness from `W₂` plays no
 --   role on the `V`-component.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: image_unsplit_subset_extendingCDMGsWith_V
 -- claim_3_15 --- start helper
 private lemma image_unsplit_subset_extendingCDMGsWith_V
     {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
@@ -141,6 +146,7 @@ private lemma image_unsplit_subset_extendingCDMGsWith_V
   obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
   change IntExtNode.unsplit v ∈ G.V.image IntExtNode.unsplit
   exact Finset.mem_image.mpr ⟨v, hW₁ hv, rfl⟩
+-- REFACTOR-BLOCK-ORIGINAL-END: image_unsplit_subset_extendingCDMGsWith_V
 
 -- ## Helper — `W₂.image .unsplit ⊆ J_{swig(W₁)} ∪ V_{swig(W₁)}`
 --
@@ -177,6 +183,7 @@ private lemma image_unsplit_subset_extendingCDMGsWith_V
 --   `V_{swig(W₁)}` — it would have to land instead in
 --   `W₁.image .copy0`, which has the wrong constructor.  The
 --   well-typedness of the LHS therefore requires `Disjoint W₁ W₂`.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: image_unsplit_subset_nodeSplittingHard_carrier
 -- claim_3_15 --- start helper
 private lemma image_unsplit_subset_nodeSplittingHard_carrier
     {G : CDMG Node} {hG : G.IsCADMG}
@@ -199,6 +206,7 @@ private lemma image_unsplit_subset_nodeSplittingHard_carrier
     refine Finset.mem_union_right _ ?_
     refine Finset.mem_union_left _ ?_
     exact Finset.mem_image.mpr ⟨v, Finset.mem_sdiff.mpr ⟨hV, hvW₁⟩, rfl⟩
+-- REFACTOR-BLOCK-ORIGINAL-END: image_unsplit_subset_nodeSplittingHard_carrier
 
 -- ## Helper — the canonical flatten map
 --   `SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)`
@@ -272,6 +280,7 @@ private lemma image_unsplit_subset_nodeSplittingHard_carrier
 --
 -- *Mathlib re-use.*  Rolled our own — Mathlib carries no general
 --   "flatten heterogeneous nested tagged sum" map.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: flattenSwigDoit
 -- claim_3_15 --- start helper
 def flattenSwigDoit : SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)
   | .unsplit (.unsplit v) => IntExtNode.unsplit (SplitNode.unsplit v)
@@ -281,6 +290,7 @@ def flattenSwigDoit : SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node
   | .copy1 (.unsplit w) => IntExtNode.unsplit (SplitNode.copy1 w)
   | .copy1 (.intCopy w) => IntExtNode.intCopy (SplitNode.unsplit w)
 -- claim_3_15 --- end helper
+-- REFACTOR-BLOCK-ORIGINAL-END: flattenSwigDoit
 
 -- ref: claim_3_15
 --
@@ -429,6 +439,7 @@ LN block (verbatim, for backup):
 --   ("what if `W₂ ⊆ J`?") will not find them; they live one level
 --   below, in the constructor definitions of `IntExtNode` and
 --   `extendingCDMGsWith`.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: addInterventionNodes_comm_swig
 -- claim_3_15 -- start statement
 theorem addInterventionNodes_comm_swig (G : CDMG Node) (hG : G.IsCADMG)
     (W₁ : Finset Node) (hW₁ : W₁ ⊆ G.V)
@@ -708,7 +719,739 @@ theorem addInterventionNodes_comm_swig (G : CDMG Node) (hG : G.IsCADMG)
           flattenSwigDoit (toCopy0 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit e.2)))
         = (IntExtNode.unsplit (toCopy0 W₁ e.1), IntExtNode.unsplit (toCopy0 W₁ e.2))
     rw [h_flat_toCopy0_unsplit, h_flat_toCopy0_unsplit]
+-- REFACTOR-BLOCK-ORIGINAL-END: addInterventionNodes_comm_swig
 
 end CDMG
+
+-- ## Post-refactor port (`cdmg_typed_edges`)
+--
+-- The block below is the refactor twin of the row's declarations
+-- against the `cdmg_typed_edges` redesign of `def_3_1` — same
+-- mathematical content, retyped against `refactor_CDMG` and
+-- `refactor_SplitNode`.  Only the L sub-goal genuinely changes
+-- shape; the J / V / E sub-goals port mechanically because those
+-- fields are untouched by the refactor (the refactor only restructures
+-- L).
+--
+-- The L sub-goal uses `Sym2.map` in place of `Prod.map .unsplit .unsplit`,
+-- and closes via `Sym2.map_map` (fuses two stages of `Sym2.map` into a
+-- single one) followed by `Sym2.map_congr` (reduces to a pointwise
+-- identity at the underlying-`Node` level).  The pointwise identity
+-- `refactor_flattenSwigDoit (refactor_toCopy0 (W₁.image .unsplit)
+-- (.unsplit a)) = .unsplit (refactor_toCopy0 W₁ a)` is the same `Node`-
+-- level case-split as the original `h_flat_toCopy0_unsplit`, with only
+-- the `refactor_` prefix added.  Mirrors `claim_3_14`'s sibling
+-- refactor twin `refactor_addInterventionNodes_comm_disjoint`'s L
+-- handling around `h_L_lift_uu_collapse`.
+namespace refactor_CDMG
+open CDMG
+
+-- ## Helper — variable binders for this row's refactor-twin declarations
+--
+-- One-sentence summary: identical `Node : Type*` + `[DecidableEq Node]`
+-- binders to the pre-refactor variable line, re-declared inside
+-- `namespace refactor_CDMG` so the refactor-twin helpers and theorem
+-- below pick them up the same way the pre-refactor block (still in
+-- `namespace CDMG`) does.
+--
+-- ## Design choice
+--
+-- *`variable` block, not `def`-local binders on each refactor-twin
+--   declaration.*  Mirrors the pre-refactor pattern verbatim — the
+--   implicit `Node : Type*` and `[DecidableEq Node]` auto-bind into
+--   every subsequent helper signature and into the main theorem.
+--
+-- *Re-declared inside `namespace refactor_CDMG`, not relied on from
+--   the outer `namespace CDMG` `variable` line.*  Lean's `variable`
+--   binders are namespace-scoped; closing `end CDMG` (line 724) drops
+--   the original binders.  We re-declare here so every refactor-twin
+--   signature picks up `Node` / `DecidableEq Node` automatically
+--   without a per-declaration `{Node : Type*} [DecidableEq Node]`
+--   prefix.  No name collision with the pre-refactor variable line —
+--   the two `variable` blocks live in distinct namespaces.
+--
+-- *Why a second `namespace refactor_CDMG` wrapper (vs.\ keeping
+--   everything in `namespace CDMG`).*  The wrapper keeps the
+--   refactor-twin declarations' field-projector dot notation aligned
+--   with their *carrier* type: `(G : refactor_CDMG Node).J` resolves
+--   via `refactor_CDMG.J`, which lives in this namespace, and
+--   `G.refactor_nodeSplittingHard …` resolves via
+--   `refactor_CDMG.refactor_nodeSplittingHard`.  Inlining everything
+--   under `namespace CDMG` would force fully-qualified
+--   `refactor_CDMG.J` at every use site (since dot notation routes
+--   through the carrier's namespace, not the ambient one), or force
+--   us to name the helpers `refactor_CDMG.refactor_<name>` directly
+--   — both noisier than the namespace wrapper.  The `open CDMG`
+--   immediately below this `variable` line brings the shared
+--   identifiers (`IntExtNode`, `refactor_extendingCDMGsWith`,
+--   `refactor_toCopy0`, `refactor_toCopy1`, etc., which were
+--   declared inside `namespace CDMG` in `def_3_13` / `def_3_12`'s
+--   refactor twins) into scope so we can call them function-style
+--   without qualification.  Same pattern as `claim_3_14`'s refactor
+--   twin in `AddingInterventionNodes.lean`.
+--
+-- *Mathlib re-use.*  Standard Lean `variable` mechanism; no Mathlib
+--   structure involved.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: variable_Node (was: refactor_variable_Node)
+-- claim_3_15 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_15 --- end helper
+-- REFACTOR-BLOCK-REPLACEMENT-END: variable_Node
+
+-- ## Private helper — `refactor_IsCADMG` witness for the inner
+--   extension (refactor twin)
+--
+-- One-sentence summary: refactor port of
+-- `extendingCDMGsWith_isCADMG_of_isCADMG`; discharges the
+-- `refactor_IsCADMG` precondition that the RHS branch's outer
+-- `refactor_nodeSplittingHard` needs on its inner
+-- `refactor_extendingCDMGsWith` argument.
+--
+-- Refactor port of `extendingCDMGsWith_isCADMG_of_isCADMG`.
+-- Mechanical rename: `CDMG → refactor_CDMG`,
+-- `extendingCDMGsWith → refactor_extendingCDMGsWith`,
+-- `IsCADMG → refactor_IsCADMG`, `extAcyclic → refactor_extAcyclic`.
+-- The definitional unfolding `refactor_IsCADMG := refactor_IsAcyclic`
+-- (cf.\ `def_3_7` refactor twin) makes the projection from
+-- `refactor_extAcyclic`'s `refactor_IsAcyclic` conclusion to the
+-- ambient `refactor_IsCADMG` goal definitional, exactly as in the
+-- pre-refactor encoding.
+--
+-- ## Design choice
+--
+-- *Net-new declaration in this refactor port, not a rename of a
+--   pre-existing entity.*  Although the surface text is a copy of
+--   `extendingCDMGsWith_isCADMG_of_isCADMG` with each upstream
+--   identifier prefixed `refactor_`, the resulting lemma is a fresh
+--   declaration: its conclusion's type mentions
+--   `refactor_extendingCDMGsWith`, which is a *different* function
+--   from `extendingCDMGsWith` (it operates on `refactor_CDMG`, which
+--   is a *different* structure from `CDMG`).  The pre-refactor
+--   lemma cannot serve the refactor variant, so the rename is
+--   forced.  See the BEFORE/AFTER block on `refactor_CDMG` in
+--   `CDMG.lean` for the underlying structural divergence between
+--   `CDMG` and `refactor_CDMG` (the `Sym2` encoding of L).
+--
+-- *Same Prop-level shape as the pre-refactor.*  Stays a `private`
+--   plumbing lemma — not LN content, no helper marker — because the
+--   refactor preserves the constructor signature shape of
+--   `refactor_nodeSplittingHard`: it still takes a separate
+--   `(hG : G.refactor_IsCADMG)` argument, and the LN-RHS branch's
+--   outer `refactor_nodeSplittingHard ?hG ?W ?hW` still consumes
+--   exactly this `refactor_IsCADMG` witness on the inner
+--   `refactor_extendingCDMGsWith G W₂ hW₂`.
+--
+-- *Mathlib re-use.*  Same as the pre-refactor — the helper is a
+--   thin term-mode wrapper around `refactor_extAcyclic` (the
+--   `claim_3_13` refactor twin's acyclicity-preservation theorem);
+--   no Mathlib API is involved.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: extendingCDMGsWith_isCADMG_of_isCADMG (was: refactor_extendingCDMGsWith_isCADMG_of_isCADMG)
+private lemma refactor_extendingCDMGsWith_isCADMG_of_isCADMG
+    {G : refactor_CDMG Node} (hG : G.refactor_IsCADMG)
+    {W : Finset Node} (hW : W ⊆ G.J ∪ G.V) :
+    (refactor_extendingCDMGsWith G W hW).refactor_IsCADMG :=
+  refactor_extAcyclic G W hW hG
+-- REFACTOR-BLOCK-REPLACEMENT-END: extendingCDMGsWith_isCADMG_of_isCADMG
+
+-- ## Helper — `W₁.image .unsplit ⊆ V_{doit(I_{W₂})}` (refactor twin)
+--
+-- One-sentence summary: refactor port of
+-- `image_unsplit_subset_extendingCDMGsWith_V`; discharges the
+-- `?_ : W₁.image .unsplit ⊆ (refactor_extendingCDMGsWith G W₂ hW₂).V`
+-- precondition that the LN-RHS branch's outer
+-- `refactor_nodeSplittingHard … (W₁.image IntExtNode.unsplit) ?_`
+-- needs.
+--
+-- Refactor port of `image_unsplit_subset_extendingCDMGsWith_V`.
+-- Mechanical rename: `CDMG → refactor_CDMG`,
+-- `extendingCDMGsWith → refactor_extendingCDMGsWith`.  The
+-- `V`-component of `refactor_extendingCDMGsWith` is structurally
+-- identical to the pre-refactor `extendingCDMGsWith` (the refactor
+-- only touches L), so the proof body carries over verbatim with the
+-- rename.
+--
+-- ## Design choice
+--
+-- *Why the lemma needs a refactor twin at all.*  The pre-refactor
+--   `image_unsplit_subset_extendingCDMGsWith_V` is privately scoped
+--   to the pre-refactor `addInterventionNodes_comm_swig` proof; its
+--   conclusion's type mentions `(G.extendingCDMGsWith W₂ hW₂).V`
+--   for `G : CDMG Node`.  The refactor-twin theorem needs the
+--   analogous fact for `G : refactor_CDMG Node`, with conclusion
+--   `(refactor_extendingCDMGsWith G W₂ hW₂).V`.  Since `CDMG` and
+--   `refactor_CDMG` are *distinct structures*, the pre-refactor
+--   lemma cannot serve the refactor variant — a separate twin is
+--   required.  Driven by the upstream rename, not by a design
+--   change in this row.
+--
+-- *Body unchanged from the pre-refactor.*  Per the upstream
+--   `refactor_CDMG` design-choice comment in `CDMG.lean`, the
+--   refactor touches only the L-channel encoding (ordered pairs +
+--   symmetry → `Sym2`); the `J`, `V`, and `E` fields are
+--   structurally untouched, and so is
+--   `refactor_extendingCDMGsWith`'s definition of its `V` field
+--   (`V_{doit(I_W)} := G.V.image .unsplit`, identical to its
+--   pre-refactor counterpart).  The proof body therefore ports
+--   tactic-for-tactic with only the `CDMG → refactor_CDMG` /
+--   `extendingCDMGsWith → refactor_extendingCDMGsWith` renames.
+--
+-- *Binder convention unchanged.*  Implicit `G`, `W₁`, `W₂`, `hW₂`;
+--   explicit `hW₁`.  Matches the pre-refactor binder convention
+--   verbatim so the call site at the refactor-twin theorem head
+--   (`refactor_image_unsplit_subset_extendingCDMGsWith_V hW₁`)
+--   reads identically to the pre-refactor call site.
+--
+-- *Mathlib re-use.*  Same as the pre-refactor — `Finset.mem_image`
+--   forward and back, no Mathlib-level lemma about
+--   `refactor_extendingCDMGsWith` is invoked (and none exists; the
+--   constructor's `V`-field is exposed directly).
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: image_unsplit_subset_extendingCDMGsWith_V (was: refactor_image_unsplit_subset_extendingCDMGsWith_V)
+-- claim_3_15 --- start helper
+private lemma refactor_image_unsplit_subset_extendingCDMGsWith_V
+    {G : refactor_CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    {W₂ : Finset Node} {hW₂ : W₂ ⊆ G.J ∪ G.V} :
+    W₁.image IntExtNode.unsplit ⊆ (refactor_extendingCDMGsWith G W₂ hW₂).V
+-- claim_3_15 --- end helper
+:= by
+  intro x hx
+  obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
+  change IntExtNode.unsplit v ∈ G.V.image IntExtNode.unsplit
+  exact Finset.mem_image.mpr ⟨v, hW₁ hv, rfl⟩
+-- REFACTOR-BLOCK-REPLACEMENT-END: image_unsplit_subset_extendingCDMGsWith_V
+
+-- ## Helper — `W₂.image .unsplit ⊆ J_{swig(W₁)} ∪ V_{swig(W₁)}`
+--   (refactor twin)
+--
+-- One-sentence summary: refactor port of
+-- `image_unsplit_subset_nodeSplittingHard_carrier`; discharges the
+-- `?_ : W₂.image .unsplit ⊆ (G.refactor_nodeSplittingHard hG W₁ hW₁).J
+--                            ∪ (G.refactor_nodeSplittingHard hG W₁ hW₁).V`
+-- precondition that the LN-LHS branch's outer
+-- `(G.refactor_nodeSplittingHard hG W₁ hW₁).refactor_extendingCDMGsWith
+-- (W₂.image refactor_SplitNode.unsplit) ?_` needs.
+--
+-- Refactor port of `image_unsplit_subset_nodeSplittingHard_carrier`.
+-- Mechanical rename: `CDMG → refactor_CDMG`,
+-- `SplitNode → refactor_SplitNode`,
+-- `nodeSplittingHard → refactor_nodeSplittingHard`.  The J / V
+-- partition of `refactor_nodeSplittingHard` is structurally
+-- identical to the pre-refactor `nodeSplittingHard` (the refactor
+-- only touches L), so the proof body carries over verbatim with the
+-- rename.
+--
+-- ## Design choice
+--
+-- *Why the lemma needs a refactor twin at all.*  Same reason as
+--   `refactor_image_unsplit_subset_extendingCDMGsWith_V`: the
+--   conclusion mentions `(G.refactor_nodeSplittingHard hG W₁ hW₁).J`
+--   and `.V`, which only exist for `G : refactor_CDMG Node` —
+--   `refactor_nodeSplittingHard` operates on `refactor_CDMG`, a
+--   distinct structure from `CDMG`.  The lemma is forced by the
+--   refactor's upstream rename, not by a substantive design change.
+--
+-- *Body carries over verbatim under the rename.*  The
+--   case-split on `w ∈ G.J` vs.\ `w ∈ G.V` and the disjointness-
+--   driven routing of `w ∈ G.V \ W₁ ⊆ (G.V \ W₁).image .unsplit`
+--   are identical to the pre-refactor.  `refactor_nodeSplittingHard`'s
+--   J / V definitions
+--   (`J ∪ W₁`-style image union, `V \ W₁`-style image union plus
+--   `W₁`'s `.copy0` copy) are structurally identical to
+--   `nodeSplittingHard`'s — the upstream `refactor_CDMG` design-choice
+--   comment in `CDMG.lean` documents that only the L channel
+--   changed.
+--
+-- *Disjointness `Disjoint W₁ W₂` is still load-bearing on the
+--   `V`-branch.*  Unchanged from the pre-refactor — without it, a
+--   `w ∈ W₂ ∩ W₁ ∩ G.V` could not be routed through the
+--   `(G.V \ W₁).image .unsplit` summand of `V_{swig(W₁)}` (it
+--   would have to land in `W₁.image refactor_SplitNode.copy0`,
+--   which has the wrong constructor).  Surfacing the same constraint
+--   here as in the pre-refactor preserves the well-typedness
+--   guarantee for the LHS's outer `refactor_extendingCDMGsWith`.
+--
+-- *Binder convention unchanged.*  Implicit `G`, `hG`, `W₁`, `W₂`;
+--   explicit `hW₁`, `hW₂`, `hDisj`.  Matches the pre-refactor
+--   verbatim so the call site at the refactor-twin theorem head
+--   (`refactor_image_unsplit_subset_nodeSplittingHard_carrier hW₁
+--   hW₂ hDisj`) reads identically to the pre-refactor.
+--
+-- *Mathlib re-use.*  Same as the pre-refactor — `Finset.mem_image`,
+--   `Finset.disjoint_right`, `Finset.mem_sdiff`; no new Mathlib API
+--   is engaged by the refactor.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: image_unsplit_subset_nodeSplittingHard_carrier (was: refactor_image_unsplit_subset_nodeSplittingHard_carrier)
+-- claim_3_15 --- start helper
+private lemma refactor_image_unsplit_subset_nodeSplittingHard_carrier
+    {G : refactor_CDMG Node} {hG : G.refactor_IsCADMG}
+    {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.J ∪ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₂.image refactor_SplitNode.unsplit ⊆
+      (G.refactor_nodeSplittingHard hG W₁ hW₁).J ∪
+        (G.refactor_nodeSplittingHard hG W₁ hW₁).V
+-- claim_3_15 --- end helper
+:= by
+  intro x hx
+  obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
+  change refactor_SplitNode.unsplit v ∈
+    (G.J.image refactor_SplitNode.unsplit ∪ W₁.image refactor_SplitNode.copy1) ∪
+      ((G.V \ W₁).image refactor_SplitNode.unsplit ∪ W₁.image refactor_SplitNode.copy0)
+  rcases Finset.mem_union.mp (hW₂ hv) with hJ | hV
+  · refine Finset.mem_union_left _ ?_
+    refine Finset.mem_union_left _ ?_
+    exact Finset.mem_image.mpr ⟨v, hJ, rfl⟩
+  · have hvW₁ : v ∉ W₁ := Finset.disjoint_right.mp hDisj hv
+    refine Finset.mem_union_right _ ?_
+    refine Finset.mem_union_left _ ?_
+    exact Finset.mem_image.mpr ⟨v, Finset.mem_sdiff.mpr ⟨hV, hvW₁⟩, rfl⟩
+-- REFACTOR-BLOCK-REPLACEMENT-END: image_unsplit_subset_nodeSplittingHard_carrier
+
+-- ## Helper — the canonical flatten map (refactor twin)
+--
+-- One-sentence summary: refactor port of `flattenSwigDoit`; the same
+-- pattern-matched bridge function as the pre-refactor, but operating
+-- between the typed inductives `refactor_SplitNode (IntExtNode Node)`
+-- (LN-RHS carrier under the refactor) and
+-- `IntExtNode (refactor_SplitNode Node)` (LN-LHS carrier under the
+-- refactor).
+--
+-- Refactor port of `flattenSwigDoit`.  Mechanical rename: the
+-- `SplitNode` in the function signature and pattern-match clauses
+-- becomes `refactor_SplitNode`.  The body is unchanged — every
+-- pattern-match clause is a constructor-level identity that
+-- transports verbatim across the rename (`refactor_SplitNode`'s
+-- three constructors `.unsplit`, `.copy0`, `.copy1` are named
+-- identically to the pre-refactor `SplitNode`).  The off-carrier
+-- fillers `.intCopy (.unsplit _)` for `.copy0 (.intCopy _)` and
+-- `.copy1 (.intCopy _)` are unchanged in semantics.  See the
+-- pre-refactor design block above the original `flattenSwigDoit` for
+-- the substantive design rationale (function vs.\ `Equiv`, direction
+-- of the map, totality fillers, no Mathlib re-use).
+--
+-- ## Design choice
+--
+-- *Net-new declaration, not a rename of `flattenSwigDoit` itself.*
+--   This is one of the few places in the refactor where we *must*
+--   produce a brand-new `refactor_*` declaration even though the
+--   refactor's primary change is to `def_3_1`'s L-channel encoding.
+--   The reason: `SplitNode` (the pre-refactor inductive from
+--   `def_3_12`) and `refactor_SplitNode` (the refactor twin) are
+--   *distinct Lean inductive types* — they share constructor names
+--   `.unsplit`, `.copy0`, `.copy1` only by convention, not at the
+--   type-equality level.  So the existing
+--   `flattenSwigDoit : SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)`
+--   cannot serve the refactor variant, whose carriers
+--   `refactor_SplitNode (IntExtNode Node)` and
+--   `IntExtNode (refactor_SplitNode Node)` Lean treats as entirely
+--   different types from the pre-refactor carriers.  A separate
+--   `refactor_flattenSwigDoit` is therefore required.  Wrapped with
+--   `REFACTOR-BLOCK-REPLACEMENT-…` markers but with no companion
+--   ORIGINAL block: this is net-new in the REPLACEMENT, and Phase 7
+--   cleanup's strict refusal rule for top-level `refactor_*`
+--   declarations without REPLACEMENT markers is satisfied by the
+--   marker block we placed here.
+--
+-- *Function direction `refactor_SplitNode (IntExtNode Node) →
+--   IntExtNode (refactor_SplitNode Node)` matches the pre-refactor
+--   pre-`SplitNode → IntExtNode` direction.*  Picked so the call
+--   site `refactor_eqViaNodeMap RHS LHS refactor_flattenSwigDoit`
+--   below pattern-matches the
+--   `eqViaNodeMap iter joint flatten` convention established by
+--   `claim_3_7` and inherited through `claim_3_14`(a) — the
+--   "RHS-with-relabelling = LHS componentwise" reading.  Reversing
+--   the arrow would have worked mathematically but would have broken
+--   the convention shared across the section.
+--
+-- *Pattern-match shape ported verbatim.*  Each of the six clauses is
+--   a constructor-level identity that transports across the rename
+--   without any reasoning.  No Mathlib API is invoked; rolled our
+--   own, same as the pre-refactor.
+--
+-- *Limitation (carried over from the pre-refactor).*  Not a
+--   bijection on types — `refactor_flattenSwigDoit` is only
+--   injective when restricted to the *reachable* RHS carrier
+--   (`{.unsplit (.unsplit _)} ∪ {.unsplit (.intCopy _)} ∪
+--   {.copy0 (.unsplit _)} ∪ {.copy1 (.unsplit _)}`); the
+--   `.copy0 (.intCopy _)` and `.copy1 (.intCopy _)` cases are
+--   filler-only and do not participate in the
+--   `refactor_eqViaNodeMap` claim.  Disjointness `Disjoint W₁ W₂`
+--   on the main theorem is precisely what keeps the reachable
+--   image well-behaved.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: flattenSwigDoit (was: refactor_flattenSwigDoit)
+-- claim_3_15 --- start helper
+def refactor_flattenSwigDoit :
+    refactor_SplitNode (IntExtNode Node) → IntExtNode (refactor_SplitNode Node)
+  | .unsplit (.unsplit v) => IntExtNode.unsplit (refactor_SplitNode.unsplit v)
+  | .unsplit (.intCopy w) => IntExtNode.intCopy (refactor_SplitNode.unsplit w)
+  | .copy0 (.unsplit w) => IntExtNode.unsplit (refactor_SplitNode.copy0 w)
+  | .copy0 (.intCopy w) => IntExtNode.intCopy (refactor_SplitNode.unsplit w)
+  | .copy1 (.unsplit w) => IntExtNode.unsplit (refactor_SplitNode.copy1 w)
+  | .copy1 (.intCopy w) => IntExtNode.intCopy (refactor_SplitNode.unsplit w)
+-- claim_3_15 --- end helper
+-- REFACTOR-BLOCK-REPLACEMENT-END: flattenSwigDoit
+
+-- ref: claim_3_15 — refactor twin
+--
+-- For any `G : refactor_CDMG Node` (`hG : G.refactor_IsCADMG`), any
+-- `W₁ ⊆ G.V` (`hW₁`), any `W₂ ⊆ G.J ∪ G.V` (`hW₂`), and any
+-- `Disjoint W₁ W₂` (`hDisj`), the LN's displayed equality
+--   `(G_{swig(W₁)})_{doit(I_{W₂})} = (G_{doit(I_{W₂})})_{swig(W₁)}`
+-- is rendered (per the rewritten tex twin's "Distinct carriers and
+-- the canonical relabelling identifying them" paragraph) as
+-- `refactor_eqViaNodeMap RHS LHS refactor_flattenSwigDoit`.
+--
+-- The mathematical content is unchanged from the pre-refactor sibling
+-- `addInterventionNodes_comm_swig`.  Under the `cdmg_typed_edges`
+-- refactor only the L-field's encoding changes — from
+-- `Finset (Node × Node) + hL_symm` to `Finset (Sym2 Node)` — so the
+-- J / V / E sub-goals port mechanically under a rename pass while the
+-- L sub-goal is restructured around `Sym2`-quotient API
+-- (`Sym2.map`, `Sym2.map_map`, `Sym2.map_congr`).  The pointwise
+-- `Node`-level identity at the bottom of the L sub-goal is the same
+-- `h_flat_toCopy0_unsplit` case-split as the original.
+--
+-- ## Design choice (the main theorem)
+--
+-- *Mechanical port, not a re-derivation.*  This row is a DEPENDENT
+--   in refactor `cdmg_typed_edges`, pulled in because root `def_3_1`
+--   changed underneath it.  The mathematical content of the LN
+--   claim is unchanged; only the upstream L-channel encoding
+--   changed.  Every type and helper that mentioned the pre-refactor
+--   `CDMG` / `SplitNode` / `IsCADMG` / `extendingCDMGsWith` /
+--   `nodeSplittingHard` is mechanically renamed to its
+--   `refactor_*` counterpart.  See the upstream design-choice
+--   comment on `refactor_CDMG` in `CDMG.lean` for the `Sym2`
+--   encoding rationale and downstream consequences — we do not
+--   re-litigate that choice here; this row only consumes it.
+--
+-- *L-channel encoding change is not visible in the theorem's
+--   shape, only in the tactic block.*  The theorem statement
+--   itself is identical in shape to the pre-refactor sibling —
+--   same four binder pairs, same `refactor_eqViaNodeMap`
+--   componentwise reading, same `refactor_flattenSwigDoit`
+--   relabelling — because `refactor_eqViaNodeMap` is defined the
+--   same componentwise-over-`(J, V, E, L)` way as `eqViaNodeMap`.
+--   The encoding change shows up only in the L sub-goal's tactic
+--   block (sub-goal 4), where lifts that read `Prod.map _ _` in
+--   the pre-refactor read `Sym2.map _` here, and the two-stage
+--   composition closes via `Sym2.map_map` + `Sym2.map_congr`
+--   instead of `Finset.image_image` + `congr_arg₂`.  The J / V / E
+--   sub-goals are line-for-line ports under the rename pass — see
+--   the comment block at line 727 for the structural framing.
+--
+-- *Why all six pre-refactor design choices port over without
+--   re-litigation.*  Single-theorem-no-conjunction;
+--   `refactor_eqViaNodeMap` not literal `=`; explicit LN-side ↔
+--   Lean-operand mapping; binder order `(G) (hG) (W₁) (hW₁) (W₂)
+--   (hW₂) (hDisj)`; `Disjoint W₁ W₂` as Mathlib `Finset`
+--   disjointness; direction of `refactor_eqViaNodeMap` with RHS on
+--   the left; no case-split for `W₂ ∩ J ≠ ∅` corner cases.  All
+--   six are upstream-encoding-agnostic — none of them depends on
+--   how L is encoded — so each ports verbatim from the
+--   pre-refactor design block (lines 329-441) under the
+--   `eqViaNodeMap → refactor_eqViaNodeMap`,
+--   `flattenSwigDoit → refactor_flattenSwigDoit` renames.  Read
+--   the pre-refactor block for the substantive justifications;
+--   they apply unchanged here.
+--
+-- *Why no `addition_to_the_LN` revision was needed.*  The wording-
+--   check report flagged two related subtleties
+--   (`w2_in_J_makes_doit_a_no_op_via_Ij_identification` and
+--   `w2_partial_overlap_with_J_partial_no_op`) about the LN's
+--   "introducing intervention nodes `I_{W₂}`" prose being ambiguous
+--   when `W₂ ∩ J ≠ ∅`.  Both are *resolved at the carrier-encoding
+--   level* by `def_3_13`'s `IntExtNode.intCopy`-only-ranges-over-
+--   `W₂ ∖ J` convention, which is preserved verbatim by the
+--   `cdmg_typed_edges` refactor (the refactor changes L only).
+--   The convention propagates through both
+--   `refactor_extendingCDMGsWith` and the iterated
+--   `refactor_nodeSplittingHard ∘ refactor_extendingCDMGsWith`
+--   automatically, and `refactor_eqViaNodeMap` with
+--   `refactor_flattenSwigDoit` tracks the degeneration through
+--   both sides.  No statement-level case-split required.
+--
+-- *Mathlib re-use.*  The L-component sub-goal's `Sym2.map`,
+--   `Sym2.map_map`, and `Sym2.map_congr` are the precise Mathlib
+--   APIs the upstream `refactor_CDMG` design-choice block named as
+--   the payoff for the `Sym2` encoding (so the `Sym2` lift commutes
+--   functorially with composition and lifts pointwise identities).
+--   Their use here is the predicted Mathlib re-use — no rolling
+--   our own `Sym2`-level lemmas.  The J / V / E sub-goals continue
+--   to use Mathlib's `Finset.image_image`, `Finset.image_union`,
+--   `Finset.image_congr`, `Finset.union_assoc`, `Finset.union_comm`
+--   exactly as the pre-refactor.
+--
+-- *Constraints / known limitations carried over.*  Identical to the
+--   pre-refactor: `refactor_flattenSwigDoit` is total but injective
+--   only on the reachable RHS carrier (so a hypothetical attempt
+--   to invert the equality without `Disjoint W₁ W₂` would fail);
+--   the `IntExtNode.unsplit` vs.\ `IntExtNode.intCopy` branch in
+--   `def_3_13`'s `refactor_extendingCDMGsWith` makes the `W₂ ∩ J`
+--   corner cases degenerate quietly rather than via an explicit
+--   case-split.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: addInterventionNodes_comm_swig (was: refactor_addInterventionNodes_comm_swig)
+-- claim_3_15 -- start statement
+theorem refactor_addInterventionNodes_comm_swig (G : refactor_CDMG Node) (hG : G.refactor_IsCADMG)
+    (W₁ : Finset Node) (hW₁ : W₁ ⊆ G.V)
+    (W₂ : Finset Node) (hW₂ : W₂ ⊆ G.J ∪ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    refactor_eqViaNodeMap
+        ((refactor_extendingCDMGsWith G W₂ hW₂).refactor_nodeSplittingHard
+            (refactor_extendingCDMGsWith_isCADMG_of_isCADMG hG hW₂)
+            (W₁.image IntExtNode.unsplit)
+            (refactor_image_unsplit_subset_extendingCDMGsWith_V hW₁))
+        (refactor_extendingCDMGsWith
+            (G.refactor_nodeSplittingHard hG W₁ hW₁)
+            (W₂.image refactor_SplitNode.unsplit)
+            (refactor_image_unsplit_subset_nodeSplittingHard_carrier hW₁ hW₂ hDisj))
+        refactor_flattenSwigDoit
+-- claim_3_15 -- end statement
+  := by
+  -- TeX proof: refactor_claim_3_15_proof_AddingInterventionNodes.tex.
+  -- Same structure as the pre-refactor sibling, with J / V / E sub-goals
+  -- ported mechanically and the L sub-goal restructured around
+  -- `Sym2.map` / `Sym2.map_map` / `Sym2.map_congr`.
+  -- ## Single-node flatten collapses (J / V components).
+  have h_uu_collapse : ∀ (S : Finset Node),
+      ((S.image IntExtNode.unsplit).image refactor_SplitNode.unsplit).image
+          refactor_flattenSwigDoit
+      = S.image (fun v => IntExtNode.unsplit (refactor_SplitNode.unsplit v)) := by
+    intro S
+    rw [Finset.image_image, Finset.image_image]
+    rfl
+  have h_iu_collapse : ∀ (S : Finset Node),
+      ((S.image IntExtNode.intCopy).image refactor_SplitNode.unsplit).image
+          refactor_flattenSwigDoit
+      = S.image (fun w => IntExtNode.intCopy (refactor_SplitNode.unsplit w)) := by
+    intro S
+    rw [Finset.image_image, Finset.image_image]
+    rfl
+  have h_c0u_collapse : ∀ (S : Finset Node),
+      ((S.image IntExtNode.unsplit).image refactor_SplitNode.copy0).image
+          refactor_flattenSwigDoit
+      = S.image (fun w => IntExtNode.unsplit (refactor_SplitNode.copy0 w)) := by
+    intro S
+    rw [Finset.image_image, Finset.image_image]
+    rfl
+  have h_c1u_collapse : ∀ (S : Finset Node),
+      ((S.image IntExtNode.unsplit).image refactor_SplitNode.copy1).image
+          refactor_flattenSwigDoit
+      = S.image (fun w => IntExtNode.unsplit (refactor_SplitNode.copy1 w)) := by
+    intro S
+    rw [Finset.image_image, Finset.image_image]
+    rfl
+  -- ## J-side sdiff identity.
+  have h_J_sdiff : W₂.image refactor_SplitNode.unsplit \
+      (G.J.image refactor_SplitNode.unsplit ∪ W₁.image refactor_SplitNode.copy1)
+      = (W₂ \ G.J).image refactor_SplitNode.unsplit := by
+    ext x
+    constructor
+    · intro hx
+      obtain ⟨hxW, hxNot⟩ := Finset.mem_sdiff.mp hx
+      obtain ⟨v, hvW, rfl⟩ := Finset.mem_image.mp hxW
+      have hv_notJ : v ∉ G.J := by
+        intro hjG
+        apply hxNot
+        exact Finset.mem_union_left _ (Finset.mem_image.mpr ⟨v, hjG, rfl⟩)
+      exact Finset.mem_image.mpr ⟨v, Finset.mem_sdiff.mpr ⟨hvW, hv_notJ⟩, rfl⟩
+    · intro hx
+      obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
+      obtain ⟨hvW, hv_notJ⟩ := Finset.mem_sdiff.mp hv
+      refine Finset.mem_sdiff.mpr ⟨Finset.mem_image.mpr ⟨v, hvW, rfl⟩, ?_⟩
+      intro h_in
+      rcases Finset.mem_union.mp h_in with hL | hR
+      · obtain ⟨j, hjJ, hjEq⟩ := Finset.mem_image.mp hL
+        cases hjEq
+        exact hv_notJ hjJ
+      · obtain ⟨_, _, hwEq⟩ := Finset.mem_image.mp hR
+        cases hwEq
+  -- ## V-side sdiff identity.
+  have h_V_sdiff : G.V.image (IntExtNode.unsplit (Node := Node)) \
+      W₁.image IntExtNode.unsplit
+      = (G.V \ W₁).image IntExtNode.unsplit := by
+    ext x
+    constructor
+    · intro hx
+      obtain ⟨hxV, hxNot⟩ := Finset.mem_sdiff.mp hx
+      obtain ⟨v, hvV, rfl⟩ := Finset.mem_image.mp hxV
+      have hv_notW₁ : v ∉ W₁ := by
+        intro hw
+        apply hxNot
+        exact Finset.mem_image.mpr ⟨v, hw, rfl⟩
+      exact Finset.mem_image.mpr ⟨v, Finset.mem_sdiff.mpr ⟨hvV, hv_notW₁⟩, rfl⟩
+    · intro hx
+      obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx
+      obtain ⟨hvV, hv_notW₁⟩ := Finset.mem_sdiff.mp hv
+      refine Finset.mem_sdiff.mpr ⟨Finset.mem_image.mpr ⟨v, hvV, rfl⟩, ?_⟩
+      intro h_in
+      obtain ⟨w, hw, hwEq⟩ := Finset.mem_image.mp h_in
+      cases hwEq
+      exact hv_notW₁ hw
+  -- ## Pointwise identity for `refactor_toCopy1 (W₁.image .unsplit) ∘ .unsplit`.
+  have h_flat_toCopy1_unsplit : ∀ (v : Node),
+      refactor_flattenSwigDoit
+          (refactor_toCopy1 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit v))
+      = IntExtNode.unsplit (refactor_toCopy1 W₁ v) := by
+    intro v
+    unfold refactor_toCopy1
+    by_cases hv : v ∈ W₁
+    · have h₁ : IntExtNode.unsplit v ∈ W₁.image IntExtNode.unsplit :=
+        Finset.mem_image.mpr ⟨v, hv, rfl⟩
+      rw [if_pos h₁, if_pos hv]
+      rfl
+    · have h₁ : IntExtNode.unsplit v ∉ W₁.image IntExtNode.unsplit := by
+        intro h
+        obtain ⟨v', hv', hveq⟩ := Finset.mem_image.mp h
+        cases hveq
+        exact hv hv'
+      rw [if_neg h₁, if_neg hv]
+      rfl
+  -- ## Pointwise identity for `refactor_toCopy0 (W₁.image .unsplit) ∘ .unsplit`.
+  have h_flat_toCopy0_unsplit : ∀ (v : Node),
+      refactor_flattenSwigDoit
+          (refactor_toCopy0 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit v))
+      = IntExtNode.unsplit (refactor_toCopy0 W₁ v) := by
+    intro v
+    unfold refactor_toCopy0
+    by_cases hv : v ∈ W₁
+    · have h₁ : IntExtNode.unsplit v ∈ W₁.image IntExtNode.unsplit :=
+        Finset.mem_image.mpr ⟨v, hv, rfl⟩
+      rw [if_pos h₁, if_pos hv]
+      rfl
+    · have h₁ : IntExtNode.unsplit v ∉ W₁.image IntExtNode.unsplit := by
+        intro h
+        obtain ⟨v', hv', hveq⟩ := Finset.mem_image.mp h
+        cases hveq
+        exact hv hv'
+      rw [if_neg h₁, if_neg hv]
+      rfl
+  refine ⟨?_, ?_, ?_, ?_⟩
+  -- ===================== Sub-goal 1: J component =====================
+  · change (((G.J.image IntExtNode.unsplit ∪ (W₂ \ G.J).image IntExtNode.intCopy).image
+                refactor_SplitNode.unsplit
+              ∪ (W₁.image IntExtNode.unsplit).image refactor_SplitNode.copy1).image
+              refactor_flattenSwigDoit
+            = (G.J.image refactor_SplitNode.unsplit ∪ W₁.image refactor_SplitNode.copy1).image
+                IntExtNode.unsplit
+              ∪ (W₂.image refactor_SplitNode.unsplit \
+                  (G.J.image refactor_SplitNode.unsplit ∪ W₁.image refactor_SplitNode.copy1)).image
+                IntExtNode.intCopy)
+    rw [h_J_sdiff]
+    simp only [Finset.image_union]
+    rw [h_uu_collapse, h_iu_collapse, h_c1u_collapse]
+    rw [show (G.J.image refactor_SplitNode.unsplit).image
+            (IntExtNode.unsplit (Node := refactor_SplitNode Node))
+            = G.J.image (fun j => IntExtNode.unsplit (refactor_SplitNode.unsplit j))
+          from Finset.image_image,
+        show (W₁.image refactor_SplitNode.copy1).image
+            (IntExtNode.unsplit (Node := refactor_SplitNode Node))
+            = W₁.image (fun w => IntExtNode.unsplit (refactor_SplitNode.copy1 w))
+          from Finset.image_image,
+        show ((W₂ \ G.J).image refactor_SplitNode.unsplit).image
+                (IntExtNode.intCopy (Node := refactor_SplitNode Node))
+            = (W₂ \ G.J).image (fun w => IntExtNode.intCopy (refactor_SplitNode.unsplit w))
+          from Finset.image_image]
+    rw [Finset.union_assoc,
+        Finset.union_comm
+            ((W₂ \ G.J).image (fun w => IntExtNode.intCopy (refactor_SplitNode.unsplit w)))
+            (W₁.image (fun w => IntExtNode.unsplit (refactor_SplitNode.copy1 w))),
+        ← Finset.union_assoc]
+  -- ===================== Sub-goal 2: V component =====================
+  · change ((G.V.image IntExtNode.unsplit \ W₁.image IntExtNode.unsplit).image
+              refactor_SplitNode.unsplit
+            ∪ (W₁.image IntExtNode.unsplit).image refactor_SplitNode.copy0).image
+              refactor_flattenSwigDoit
+          = ((G.V \ W₁).image refactor_SplitNode.unsplit ∪
+              W₁.image refactor_SplitNode.copy0).image
+              IntExtNode.unsplit
+    rw [h_V_sdiff]
+    simp only [Finset.image_union]
+    rw [h_uu_collapse, h_c0u_collapse]
+    rw [show ((G.V \ W₁).image refactor_SplitNode.unsplit).image
+              (IntExtNode.unsplit (Node := refactor_SplitNode Node))
+            = (G.V \ W₁).image (fun v => IntExtNode.unsplit (refactor_SplitNode.unsplit v))
+          from Finset.image_image,
+        show (W₁.image refactor_SplitNode.copy0).image
+              (IntExtNode.unsplit (Node := refactor_SplitNode Node))
+            = W₁.image (fun w => IntExtNode.unsplit (refactor_SplitNode.copy0 w))
+          from Finset.image_image]
+  -- ===================== Sub-goal 3: E component =====================
+  · change ((G.E.image (fun e : Node × Node =>
+                  (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
+              ∪ (W₂ \ G.J).image (fun w : Node =>
+                  (IntExtNode.intCopy w, IntExtNode.unsplit w))).image
+                (fun e : IntExtNode Node × IntExtNode Node =>
+                  (refactor_toCopy1 (W₁.image IntExtNode.unsplit) e.1,
+                   refactor_toCopy0 (W₁.image IntExtNode.unsplit) e.2))).image
+              (Prod.map refactor_flattenSwigDoit refactor_flattenSwigDoit)
+            = (G.E.image (fun e : Node × Node =>
+                (refactor_toCopy1 W₁ e.1, refactor_toCopy0 W₁ e.2))).image
+                (fun e : refactor_SplitNode Node × refactor_SplitNode Node =>
+                  (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
+              ∪ (W₂.image refactor_SplitNode.unsplit \
+                  (G.J.image refactor_SplitNode.unsplit ∪
+                    W₁.image refactor_SplitNode.copy1)).image
+                (fun w : refactor_SplitNode Node =>
+                  (IntExtNode.intCopy w, IntExtNode.unsplit w))
+    rw [h_J_sdiff]
+    simp only [Finset.image_union, Finset.image_image]
+    refine congr_arg₂ (· ∪ ·) ?_ ?_
+    · refine Finset.image_congr ?_
+      intro e _
+      change (refactor_flattenSwigDoit
+                (refactor_toCopy1 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit e.1)),
+              refactor_flattenSwigDoit
+                (refactor_toCopy0 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit e.2)))
+          = (IntExtNode.unsplit (refactor_toCopy1 W₁ e.1),
+             IntExtNode.unsplit (refactor_toCopy0 W₁ e.2))
+      rw [h_flat_toCopy1_unsplit, h_flat_toCopy0_unsplit]
+    · refine Finset.image_congr ?_
+      intro w hw
+      obtain ⟨hw_W₂, _⟩ := Finset.mem_sdiff.mp hw
+      have hw_notW₁ : w ∉ W₁ := Finset.disjoint_right.mp hDisj hw_W₂
+      change (refactor_flattenSwigDoit
+                (refactor_toCopy1 (W₁.image IntExtNode.unsplit) (IntExtNode.intCopy w)),
+              refactor_flattenSwigDoit
+                (refactor_toCopy0 (W₁.image IntExtNode.unsplit) (IntExtNode.unsplit w)))
+          = (IntExtNode.intCopy (refactor_SplitNode.unsplit w),
+             IntExtNode.unsplit (refactor_SplitNode.unsplit w))
+      unfold refactor_toCopy1 refactor_toCopy0
+      have h1 : IntExtNode.intCopy w ∉ W₁.image IntExtNode.unsplit := by
+        intro h
+        obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
+        cases hweq
+      have h2 : IntExtNode.unsplit w ∉ W₁.image IntExtNode.unsplit := by
+        intro h
+        obtain ⟨v', hv', hveq⟩ := Finset.mem_image.mp h
+        cases hveq
+        exact hw_notW₁ hv'
+      rw [if_neg h1, if_neg h2]
+      rfl
+  -- ===================== Sub-goal 4: L component =====================
+  -- The genuine encoding-change sub-goal: under the `cdmg_typed_edges`
+  -- refactor, L migrates from `Finset (Node × Node)` to
+  -- `Finset (Sym2 Node)`, so the lifts are `Sym2.map` rather than
+  -- `Prod.map _ _`.  Close by fusing the two-stage Sym2.map composition
+  -- via `Sym2.map_map` and reducing to the pointwise
+  -- `h_flat_toCopy0_unsplit` identity via `Sym2.map_congr`.  Mirrors
+  -- the L sub-goal pattern in `claim_3_14`'s refactor twin
+  -- (`h_L_lift_uu_collapse`).
+  · change ((G.L.image (Sym2.map IntExtNode.unsplit)).image
+              (Sym2.map (refactor_toCopy0 (W₁.image IntExtNode.unsplit)))).image
+              (Sym2.map refactor_flattenSwigDoit)
+            = (G.L.image (Sym2.map (refactor_toCopy0 W₁))).image
+                (Sym2.map IntExtNode.unsplit)
+    rw [Finset.image_image, Finset.image_image, Finset.image_image]
+    refine Finset.image_congr ?_
+    intro s _
+    change Sym2.map refactor_flattenSwigDoit
+            (Sym2.map (refactor_toCopy0 (W₁.image IntExtNode.unsplit))
+              (Sym2.map IntExtNode.unsplit s))
+          = Sym2.map IntExtNode.unsplit (Sym2.map (refactor_toCopy0 W₁) s)
+    rw [Sym2.map_map, Sym2.map_map, Sym2.map_map]
+    refine Sym2.map_congr ?_
+    intro a _
+    exact h_flat_toCopy0_unsplit a
+-- REFACTOR-BLOCK-REPLACEMENT-END: addInterventionNodes_comm_swig
+
+end refactor_CDMG
 
 end Causality
