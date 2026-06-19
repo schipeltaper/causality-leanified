@@ -162,12 +162,6 @@ variable {Node : Type*} [DecidableEq Node]
 --   `Finset` memberships are decidable) but it would force every
 --   `Walk.cons` to carry a coerced `Bool`-witness instead of a clean
 --   `Prop`-hypothesis, making downstream rewrites uglier.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: WalkStep
--- def_3_4 --- start helper
-def WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=
-  (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∨ (a = (v, u) ∧ a ∈ G.E)
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: WalkStep
 
 -- ref: def_3_4 (item~i, Walk)
 --
@@ -245,14 +239,6 @@ def WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=
 --   `hL_subset` recover its membership without an extra field on
 --   `cons`.  Asymmetric, but minimal: data is added exactly where it
 --   cannot be inferred.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: Walk
--- def_3_4 -- start statement
-inductive Walk (G : CDMG Node) : Node → Node → Type _ where
-  | nil (v : Node) (hv : v ∈ G) : Walk G v v
-  | cons {u w : Node} (v : Node) (a : Node × Node)
-      (h : G.WalkStep u a v) (p : Walk G v w) : Walk G u w
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: Walk
 
 namespace Walk
 
@@ -283,14 +269,6 @@ namespace Walk
 variable {G : CDMG Node}
 -- def_3_4 --- end helper
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: length
-/-- Length of a walk: the number `n` of edges (matches the LN's `n`). -/
--- def_3_6 --- start helper
-def length : ∀ {u v : Node}, Walk G u v → ℕ
-  | _, _, .nil _ _ => 0
-  | _, _, .cons _ _ _ p => p.length + 1
--- def_3_6 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: length
 
 -- ref: def_3_4 (helper, vertex sequence)
 --
@@ -332,13 +310,6 @@ def length : ∀ {u v : Node}, Walk G u v → ℕ
 --   the middle vertex `v` and matches the LN's "$v_0, v_1, …, v_n$"
 --   convention: each vertex appears exactly once in the index list
 --   (though may appear multiple times in *value*).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: vertices
--- def_3_4 --- start helper
-def vertices : ∀ {u v : Node}, Walk G u v → List Node
-  | _, _, .nil v _ => [v]
-  | u, _, .cons _ _ _ p => u :: p.vertices
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: vertices
 
 -- ref: def_3_4 (helper, edge sequence)
 --
@@ -377,13 +348,6 @@ def vertices : ∀ {u v : Node}, Walk G u v → List Node
 --   on the trivial walk is what makes the end-node classifiers
 --   return `False` (see `intoEnd` / `outOfEnd`), exactly matching
 --   the LN's "neither $a_0$ nor $a_{n-1}$ exists" reading.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: edges
--- def_3_4 --- start helper
-def edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)
-  | _, _, .nil _ _ => []
-  | _, _, .cons _ a _ p => a :: p.edges
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: edges
 
 -- ref: def_3_4 (item~i, end-node classifier "into v_0")
 --
@@ -458,13 +422,6 @@ def edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)
 --   See `intoEnd` / `outOfEnd` below, which *do* go through
 --   `edges.getLast?` because the LN classifier reaches the *last*
 --   edge — for which there is no direct constructor pattern.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: intoStart
--- def_3_4 -- start statement
-def intoStart : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => False
-  | u, _, .cons _ a _ _ => G.into u a
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: intoStart
 
 -- ref: def_3_4 (item~i, end-node classifier "out of v_0")
 --
@@ -486,13 +443,6 @@ def intoStart : ∀ {u v : Node}, Walk G u v → Prop
 --   produces `intoStart ∧ ¬outOfStart` — the non-partition shape
 --   surfaced by the LN-critic's
 --   `into_out_of_undefined_for_trivial_walk` subtlety.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: outOfStart
--- def_3_4 -- start statement
-def outOfStart : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => False
-  | u, _, .cons _ a _ _ => G.outOf u a
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: outOfStart
 
 -- ref: def_3_4 (item~i, end-node classifier "into v_n")
 --
@@ -527,14 +477,6 @@ def outOfStart : ∀ {u v : Node}, Walk G u v → Prop
 --   `Walk.length p` recursion steps.  Downstream proofs that need
 --   `intoEnd` on a specific walk simply `simp [Walk.intoEnd,
 --   Walk.edges, List.getLast?]` to reach the underlying edge.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: intoEnd
--- def_3_4 -- start statement
-def intoEnd {u v : Node} (p : Walk G u v) : Prop :=
-  match p.edges.getLast? with
-  | none => False
-  | some a => G.into v a
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: intoEnd
 
 -- ref: def_3_4 (item~i, end-node classifier "out of v_n")
 --
@@ -551,14 +493,6 @@ def intoEnd {u v : Node} (p : Walk G u v) : Prop :=
 --   `G.outOf` excludes `L`-edges per `def_3_3` item~iii, so a
 --   bidirected last edge produces `intoEnd ∧ ¬outOfEnd` — the same
 --   non-partition shape at the right end of the walk.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: outOfEnd
--- def_3_4 -- start statement
-def outOfEnd {u v : Node} (p : Walk G u v) : Prop :=
-  match p.edges.getLast? with
-  | none => False
-  | some a => G.outOf v a
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: outOfEnd
 
 -- ref: def_3_4 (item~ii, directed walk)
 --
@@ -615,13 +549,6 @@ def outOfEnd {u v : Node} (p : Walk G u v) : Prop :=
 --   the contrast with `WalkStep`'s general two-way disjunction
 --   visible — a directed walk is precisely the case where only the
 --   forward `E`-disjunct of `WalkStep` is taken at every step.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsDirectedWalk
--- def_3_4 -- start statement
-def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => True
-  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.E ∧ p.IsDirectedWalk
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsDirectedWalk
 
 -- ref: def_3_4 (item~iii, bidirected walk)
 --
@@ -650,13 +577,6 @@ def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
 --   `def` matches the LN's primary form (forward writing) — the
 --   symmetric reading is a one-line corollary `(a = (v, u) ∧ a ∈
 --   G.L) ↔ (a = (u, v) ∧ a ∈ G.L)` via `hL_symm`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBidirectedWalk
--- def_3_4 -- start statement
-def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => True
-  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.L ∧ p.IsBidirectedWalk
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsBidirectedWalk
 
 -- ref: def_3_4 (helper, collider-walk "interior+last" tail)
 --
@@ -728,16 +648,6 @@ def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
 --   `cons u :: v :: nil`-cell at the last step, `v_{n-1} = u` and
 --   `v_n = v`, so the LN forms are `(v, u) ∈ E` and `(u, v) ∈ L`
 --   — exactly the two-way disjunction encoded here.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsColliderRest
--- def_3_4 --- start helper
-def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => True
-  | u, _, .cons v a _ (.nil _ _) =>
-      (a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
-      a = (u, v) ∧ a ∈ G.L ∧ p.IsColliderRest
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsColliderRest
 
 -- ref: def_3_4 (item~iv, collider walk)
 --
@@ -799,15 +709,6 @@ def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop
 --   *other* end (arrowhead at `v_{n-1}`) is carried by
 --   `IsColliderRest` (the last-edge case), keeping the symmetry
 --   between left and right endpoints visible.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsColliderWalk
--- def_3_4 -- start statement
-def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop
-  | _, _, .nil _ _ => True
-  | u, _, .cons v a _ (.nil _ _) => a = (u, v) ∧ a ∈ G.L
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
-      (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∧ p.IsColliderRest
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsColliderWalk
 
 -- ref: def_3_4 (item~v, path)
 --
@@ -851,11 +752,6 @@ def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop
 --   shortest walks / longest paths) and chapters 6–7 (active paths
 --   for d-/σ-separation).  Centralising `IsPath` here lets every
 --   consumer write `(p : Walk …) (hp : p.IsPath)` uniformly.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsPath
--- def_3_4 -- start statement
-def IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsPath
 
 -- ref: def_3_4 (helper, bifurcation "left arm + hinge + right arm")
 --
@@ -948,17 +844,6 @@ def IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup
 --   In local naming, the first edge of a recursive call is at
 --   position $j$, with `u = v_j` and `v = v_{j+1}`, so the LN form
 --   `(v_{j+1}, v_j) = (v, u)` is exactly the pin `a = (v, u)`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBifurcationWithSplit
--- def_3_4 --- start helper
-def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
-  | _, _, .nil _ _, _ => False
-  | u, _, .cons v a _ (.nil _ _), 0 => a = (u, v) ∧ a ∈ G.L
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>
-      ((a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)) ∧ p.IsDirectedWalk
-  | u, _, .cons v a _ p, k + 1 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationWithSplit k
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsBifurcationWithSplit
 
 -- ref: def_3_4 (item~vi, bifurcation)
 --
@@ -1021,15 +906,6 @@ def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 --   treats "is a bifurcation" as a yes/no classification of the
 --   walk; we match that, and downstream consumers who *need* the
 --   split index can invoke `IsBifurcationWithSplit` directly.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBifurcation
--- def_3_4 -- start statement
-def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=
-  u ≠ v ∧
-  u ∉ p.vertices.tail ∧
-  v ∉ p.vertices.dropLast ∧
-  ∃ i, p.IsBifurcationWithSplit i
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsBifurcation
 
 -- ref: def_3_4 (helper, bifurcation with directed hinge)
 --
@@ -1072,17 +948,6 @@ def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=
 --   alternative.  The right arm `p` (after the hinge) is still
 --   required to be a directed walk (clause (c)), encoded as
 --   `p.IsDirectedWalk`.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBifurcationDirectedHingeWithSplit
--- def_3_4 --- start helper
-def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
-  | _, _, .nil _ _, _ => False
-  | _, _, .cons _ _ _ (.nil _ _), 0 => False
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk
-  | u, _, .cons v a _ p, k + 1 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k
--- def_3_4 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsBifurcationDirectedHingeWithSplit
 
 -- ref: def_3_4 (item~vi, source of a bifurcation)
 --
@@ -1156,15 +1021,6 @@ def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ �
 --   need to chain through `IsBifurcation`'s existential.  The
 --   redundancy is shallow (four conjuncts; the existential payload
 --   is the only substantive difference).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBifurcationSource
--- def_3_4 -- start statement
-def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
-  u ≠ v ∧
-  u ∉ p.vertices.tail ∧
-  v ∉ p.vertices.dropLast ∧
-  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x
--- def_3_4 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsBifurcationSource
 
 end Walk
 
@@ -1174,13 +1030,13 @@ end Causality
 
 namespace Causality
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — refactor section-wide statement context
 --
 -- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Same
 --   chapter convention used by the original `CDMG` namespace above
---   and by every other `refactor_CDMG`-opening file in the chapter
+--   and by every other `CDMG`-opening file in the chapter
 --   (`EdgeRelations.lean:357`, `CDMGNotation.lean`, etc.).  The
 --   refactor does not alter the carrier-type discipline — only the
 --   shape of the per-step walk-edge data and the `cons`-cell of
@@ -1204,17 +1060,17 @@ variable {Node : Type*} [DecidableEq Node]
 
 -- ref: def_3_4 (item~i, WalkStep) — refactor
 --
--- `G.refactor_WalkStep u v` is the **typed** carrier of "a valid
+-- `G.WalkStep u v` is the **typed** carrier of "a valid
 -- walk-edge from `u` to `v` in `G`": a `Type`-level inductive whose
 -- three constructors enumerate the three LN-admissible channel /
 -- direction combinations a walk-edge can take.  Replaces the original
 -- `WalkStep : Prop`-level two-disjunct from `Walks.lean:166-168`.
 --
 -- ```
--- inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ where
---   | forwardE  {u v : Node} (h : (u, v) ∈ G.E)   : refactor_WalkStep G u v
---   | backwardE {u v : Node} (h : (v, u) ∈ G.E)   : refactor_WalkStep G u v
---   | bidir     {u v : Node} (h : s(u, v) ∈ G.L)  : refactor_WalkStep G u v
+-- inductive WalkStep (G : CDMG Node) : Node → Node → Type _ where
+--   | forwardE  {u v : Node} (h : (u, v) ∈ G.E)   : WalkStep G u v
+--   | backwardE {u v : Node} (h : (v, u) ∈ G.E)   : WalkStep G u v
+--   | bidir     {u v : Node} (h : s(u, v) ∈ G.L)  : WalkStep G u v
 -- ```
 --
 -- The three constructors map directly onto the LN-item~i clause (b)
@@ -1258,8 +1114,8 @@ variable {Node : Type*} [DecidableEq Node]
 --     `hL_symm` invocation, no possibility of channel confusion.
 --
 --   - **Definitional pattern-matching on channel + direction.**
---     Downstream walk-class predicates (`refactor_IsDirectedWalk`,
---     `refactor_IsBidirectedWalk`, `refactor_IsColliderRest`, the
+--     Downstream walk-class predicates (`IsDirectedWalk`,
+--     `IsBidirectedWalk`, `IsColliderRest`, the
 --     bifurcation hinge classifier, …) all need to ask "what channel
 --     and direction is this walk-edge?" at every cons-cell.  Under
 --     the original `Prop`-disjunction encoding the question is
@@ -1306,10 +1162,10 @@ variable {Node : Type*} [DecidableEq Node]
 --   stored `a : Node × Node` is needed because `a` is recoverable
 --   from the indices (for the `E`-cases) or canonical-up-to-swap
 --   (for the `.bidir` case).  Dropping the stored pair makes the
---   `cons`-cell of `refactor_Walk` strictly leaner (the channel +
+--   `cons`-cell of `Walk` strictly leaner (the channel +
 --   endpoints are *all* now part of the cons-cell's type indices,
 --   not a runtime field).  See the design block above
---   `refactor_Walk` below for the downstream consequence.
+--   `Walk` below for the downstream consequence.
 --
 -- *Why the `.bidir` argument is `s(u, v) ∈ G.L`, not `(u, v) ∈ G.L`
 --   or `{u, v} ⊆ G.V ∧ ...`.*  Under the refactor `G.L : Finset
@@ -1321,7 +1177,7 @@ variable {Node : Type*} [DecidableEq Node]
 --   any other formulation would force a re-derivation through `Sym2`'s
 --   API at every L-step construction site.  The notation is the same
 --   `s(...)` Mathlib uses elsewhere for `Sym2`, and the same notation
---   `refactor_huh` in `CDMGNotation.lean:833` uses to express
+--   `huh` in `CDMGNotation.lean:833` uses to express
 --   `v_1 \huh v_2 \in G`.  The cross-reference to `EdgeRelations.lean`'s
 --   `refactor_E` (still `Finset (Node × Node)`, retained verbatim) and
 --   `refactor_L` (now `Finset (Sym2 Node)`) is exactly the asymmetry
@@ -1329,10 +1185,10 @@ variable {Node : Type*} [DecidableEq Node]
 --
 -- *Why implicit `{u v : Node}` on every constructor, not explicit.*
 --   The walk-step constructors are consumed primarily by pattern
---   matches inside `refactor_Walk.cons` and the walk-class
+--   matches inside `Walk.cons` and the walk-class
 --   predicates downstream, where the endpoints are *already*
 --   determined by the surrounding `Walk` type indices (the cons-cell
---   types its WalkStep as `refactor_WalkStep G u v` with `u` and `v`
+--   types its WalkStep as `WalkStep G u v` with `u` and `v`
 --   pinned by the outer match).  Making `u v` explicit would force
 --   every construction site to spell them out (`.forwardE (u := …)
 --   (v := …) h`), even when they could be inferred from the membership
@@ -1340,7 +1196,7 @@ variable {Node : Type*} [DecidableEq Node]
 --
 -- *Why a single inductive type, not three separate inductives
 --   (`ForwardEStep`, `BackwardEStep`, `BidirStep`).*  Splitting would
---   force `refactor_Walk.cons` to be a higher-rank constructor taking
+--   force `Walk.cons` to be a higher-rank constructor taking
 --   one of three differently-typed step witnesses — either via a
 --   coproduct or via three `cons` constructors.  Either choice
 --   explodes the cons-cell pattern surface area: every walk-class
@@ -1358,49 +1214,47 @@ variable {Node : Type*} [DecidableEq Node]
 --   carrier) but a different syntactic category.  The
 --   `REFACTOR-BLOCK-REPLACEMENT` marker pair wraps the entire
 --   inductive declaration; the Phase 7 cleanup script will rename
---   `refactor_WalkStep` to `WalkStep` (whole-word) across every file
+--   `WalkStep` to `WalkStep` (whole-word) across every file
 --   the refactor touches, leaving an inductive named `WalkStep` in the
 --   final tree — which is exactly the LN's intended object.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: WalkStep (was: refactor_WalkStep)
 -- def_3_4 -- start statement
-inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ where
-  | forwardE  {u v : Node} (h : (u, v) ∈ G.E) : refactor_WalkStep G u v
-  | backwardE {u v : Node} (h : (v, u) ∈ G.E) : refactor_WalkStep G u v
-  | bidir     {u v : Node} (h : s(u, v) ∈ G.L) : refactor_WalkStep G u v
+inductive WalkStep (G : CDMG Node) : Node → Node → Type _ where
+  | forwardE  {u v : Node} (h : (u, v) ∈ G.E) : WalkStep G u v
+  | backwardE {u v : Node} (h : (v, u) ∈ G.E) : WalkStep G u v
+  | bidir     {u v : Node} (h : s(u, v) ∈ G.L) : WalkStep G u v
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: WalkStep
 
 -- ref: def_3_4 (item~i, Walk) — refactor
 --
 -- A *walk* from `u` to `v` in `G`, with the per-step constraint
--- carried by `refactor_WalkStep` instead of the original
+-- carried by `WalkStep` instead of the original
 -- `(a : Node × Node) + (h : G.WalkStep u a v)` ordered-pair-plus-Prop
 -- pairing.  Inductive type with two constructors:
 --
--- * `refactor_Walk.nil v hv` — the *trivial walk* `(v_0)` consisting
+-- * `Walk.nil v hv` — the *trivial walk* `(v_0)` consisting
 --   of a single node `v ∈ G`.  Identical to the original `Walk.nil`
 --   modulo the `G` type retarget; `hv` remains as a stored membership
 --   witness (see the design block below for why).
--- * `refactor_Walk.cons v s p` — prepend the alternating step
+-- * `Walk.cons v s p` — prepend the alternating step
 --   "$v_0, a_0, v_1$" in front of an existing walk `p` from `v_1` to
 --   `w`.  The middle vertex `v_1` is the explicit `v` parameter (same
 --   as the original); the LN-edge-constraint is now the *typed
---   WalkStep* `s : refactor_WalkStep G u v`.  No stored ordered pair
+--   WalkStep* `s : WalkStep G u v`.  No stored ordered pair
 --   `a : Node × Node` — the channel and pair (where applicable) are
 --   recovered from `s`'s constructor tag.
 --
 -- ```
--- inductive refactor_Walk (G : refactor_CDMG Node) : Node → Node → Type _ where
---   | nil  (v : Node) (hv : v ∈ G) : refactor_Walk G v v
+-- inductive Walk (G : CDMG Node) : Node → Node → Type _ where
+--   | nil  (v : Node) (hv : v ∈ G) : Walk G v v
 --   | cons {u w : Node} (v : Node)
---       (s : refactor_WalkStep G u v) (p : refactor_Walk G v w)
---       : refactor_Walk G u w
+--       (s : WalkStep G u v) (p : Walk G v w)
+--       : Walk G u w
 -- ```
 --
 -- ## Design choice — `cons` no longer stores `a : Node × Node`
 --
 -- *Why drop the original `(a : Node × Node)` field on `cons`.*  Under
---   the typed `refactor_WalkStep`, the endpoints `u` and `v` of a
+--   the typed `WalkStep`, the endpoints `u` and `v` of a
 --   single walk-step are *already* present as the WalkStep's type
 --   indices.  Storing them again as a runtime field `a = (u, v)` (or
 --   `a = (v, u)`) would be (i) redundant — the indices pin the
@@ -1415,7 +1269,7 @@ inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ 
 --
 -- *Why drop the original `(h : G.WalkStep u a v)` Prop field on
 --   `cons`.*  Same point in reverse: the typed `WalkStep` *replaces*
---   the (`a`, `h`) pair with a single `s : refactor_WalkStep G u v`
+--   the (`a`, `h`) pair with a single `s : WalkStep G u v`
 --   datum.  The constructor tag of `s` *is* the channel; the
 --   constructor's argument *is* the LN-membership witness
 --   (`(u, v) ∈ G.E` / `(v, u) ∈ G.E` / `s(u, v) ∈ G.L`).  No proof
@@ -1428,27 +1282,27 @@ inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ 
 --   there is no edge from which the `J ∪ V`-membership of `v` could
 --   be recovered, so `nil`'s constructor carries the witness
 --   directly.  For `n ≥ 1`, each new vertex sits at the head of an
---   `E` or `L` edge — `refactor_CDMG.hE_subset` and `hL_subset`
+--   `E` or `L` edge — `CDMG.hE_subset` and `hL_subset`
 --   recover its membership from the cons-cell's WalkStep without an
 --   extra field on `cons`.  The asymmetry is the same as in the
 --   original and is minimal: data is added exactly where it cannot
 --   be inferred.  The `v ∈ G` notation here resolves via
---   `CDMGNotation.lean:587`'s `refactor_instMembership`
---   (`Membership Node (refactor_CDMG Node)`), so the `nil`
+--   `CDMGNotation.lean:587`'s `instMembership`
+--   (`Membership Node (CDMG Node)`), so the `nil`
 --   constructor's membership check unfolds to `v ∈ G.J ∪ G.V` as in
 --   the LN.
 --
 -- *Why keep the explicit middle vertex `v` on `cons`, not switch to
 --   the implicit `{u v w}` SimpleGraph.Walk-style convention.*  This
 --   matches the original's choice at `Walks.lean:249`.  The seven
---   Walk-namespace predicates in Phases B-E (`refactor_length`,
---   `refactor_vertices`, `refactor_intoStart`, `refactor_outOfStart`,
---   `refactor_intoEnd`, `refactor_outOfEnd`, `refactor_IsDirectedWalk`,
---   `refactor_IsBidirectedWalk`, `refactor_IsColliderRest`,
---   `refactor_IsColliderWalk`, `refactor_IsPath`,
---   `refactor_IsBifurcationWithSplit`, `refactor_IsBifurcation`,
---   `refactor_IsBifurcationDirectedHingeWithSplit`,
---   `refactor_IsBifurcationSource`) all pattern-match on `.cons v s p`
+--   Walk-namespace predicates in Phases B-E (`length`,
+--   `vertices`, `intoStart`, `outOfStart`,
+--   `intoEnd`, `outOfEnd`, `IsDirectedWalk`,
+--   `IsBidirectedWalk`, `IsColliderRest`,
+--   `IsColliderWalk`, `IsPath`,
+--   `IsBifurcationWithSplit`, `IsBifurcation`,
+--   `IsBifurcationDirectedHingeWithSplit`,
+--   `IsBifurcationSource`) all pattern-match on `.cons v s p`
 --   and refer to `v` (the LN's `v_1` in the cons-cell) by name.
 --   Promoting `v` to explicit lets those patterns continue to read
 --   naturally; the small ergonomic cost (one extra arg per `cons`
@@ -1461,7 +1315,7 @@ inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ 
 --   (p : Walk G v w)` exactly, with `(a, h)` replaced by the single
 --   typed step `s`.
 --
--- *Why `inductive Type _`, not `List (refactor_WalkStep G u v) +
+-- *Why `inductive Type _`, not `List (WalkStep G u v) +
 --   coherence`.*  Same rationale as the original (`Walks.lean:204-216`
 --   design block).  Walks carry data that downstream chapters consume
 --   by recursion; pattern-matching on `nil` vs `cons` reads exactly
@@ -1470,14 +1324,14 @@ inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ 
 --   one edge at a time.  The inductive shape factorises the LN's
 --   alternating-sequence recursion structurally.
 --
--- *Two-vertex index `refactor_Walk G u v`, endpoints in the type.*
+-- *Two-vertex index `Walk G u v`, endpoints in the type.*
 --   Unchanged from the original; the LN's "*walk from $v$ to $w$*"
 --   phrasing pins both endpoints into the type, and the trivial walk
---   has type `refactor_Walk G v v` enforcing the "$v = w$"
+--   has type `Walk G v v` enforcing the "$v = w$"
 --   precondition at the type level.  No regression on this front.
 --   The refactor keeps this discipline because it is *load-bearing*
---   for the typed `refactor_WalkStep`: the cons-cell's WalkStep
---   `s : refactor_WalkStep G u v` *requires* the outer walk's start
+--   for the typed `WalkStep`: the cons-cell's WalkStep
+--   `s : WalkStep G u v` *requires* the outer walk's start
 --   index `u` and the middle vertex `v` at the type level (the
 --   WalkStep's own indices are pinned to these), so the type-level
 --   start/end indexing is what makes the WalkStep refactor coherent
@@ -1499,32 +1353,30 @@ inductive refactor_WalkStep (G : refactor_CDMG Node) : Node → Node → Type _ 
 --   consumer (`def_3_5`, `def_3_6`, etc.) continues to compile against
 --   the original shape until its own refactor row lands.  The
 --   `REFACTOR-BLOCK-REPLACEMENT` marker pair wraps the entire
---   replacement inductive; Phase 7 cleanup renames `refactor_Walk`
+--   replacement inductive; Phase 7 cleanup renames `Walk`
 --   to `Walk` globally across every refactored file, leaving an
 --   inductive named `Walk` in the final tree.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Walk (was: refactor_Walk)
 -- def_3_4 -- start statement
-inductive refactor_Walk (G : refactor_CDMG Node) : Node → Node → Type _ where
-  | nil  (v : Node) (hv : v ∈ G) : refactor_Walk G v v
+inductive Walk (G : CDMG Node) : Node → Node → Type _ where
+  | nil  (v : Node) (hv : v ∈ G) : Walk G v v
   | cons {u w : Node} (v : Node)
-      (s : refactor_WalkStep G u v) (p : refactor_Walk G v w) : refactor_Walk G u w
+      (s : WalkStep G u v) (p : Walk G v w) : Walk G u w
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: Walk
 
-namespace refactor_Walk
+namespace Walk
 
--- ## Design choice — refactor_Walk-namespace statement context
+-- ## Design choice — Walk-namespace statement context
 --
--- *Why a namespace-level `variable {G : refactor_CDMG Node}`.*  Every
+-- *Why a namespace-level `variable {G : CDMG Node}`.*  Every
 --   declaration in this namespace recurses over a walk
---   `p : refactor_Walk G u v`.  Without the namespace-wide `variable`,
---   every signature would carry an explicit `{G : refactor_CDMG Node}`
+--   `p : Walk G u v`.  Without the namespace-wide `variable`,
+--   every signature would carry an explicit `{G : CDMG Node}`
 --   binder.  Mirrors the original `namespace Walk` opening at
---   `Walks.lean:282-284` byte-for-byte modulo the `CDMG → refactor_CDMG`
+--   `Walks.lean:282-284` byte-for-byte modulo the `CDMG → CDMG`
 --   type retarget — neither the implicit-vs-explicit convention nor
 --   the marker shape needed adjustment in the refactor.  Downstream
 --   consumers reach into `G` via dot-notation on the walk
---   (`p.refactor_length`, `p.refactor_vertices`), so the `{G}`
+--   (`p.length`, `p.vertices`), so the `{G}`
 --   implicit-binder convention from the original carries over verbatim.
 --
 -- *Three-dash helper marker, not two-dash statement marker.*  Same
@@ -1534,28 +1386,28 @@ namespace refactor_Walk
 --   infrastructure that the tex/Lean reconciliation tooling and the
 --   Phase 7 cleanup script must recognise as helper-flavour.
 -- def_3_4 --- start helper
-variable {G : refactor_CDMG Node}
+variable {G : CDMG Node}
 -- def_3_4 --- end helper
 
 -- ref: def_3_4 / def_3_6 (helper, walk length) — refactor
 --
--- `Walk.refactor_length p` is the number `n` of edges in `p` (matches
+-- `Walk.length p` is the number `n` of edges in `p` (matches
 -- the LN's `n`).  Body identical to the original `Walk.length`
 -- (`Walks.lean` `def length` ORIGINAL block) modulo the `cons`-cell
 -- pattern change: the original `.cons _ _ _ p` skipped four
 -- constructor arguments (`v`, `a`, `h`, `p`); the refactored
 -- `.cons _ _ p` skips three (`v`, `s`, `p`), reflecting the new
--- constructor signature of `refactor_Walk.cons` documented in the
+-- constructor signature of `Walk.cons` documented in the
 -- design block at `Walks.lean:1462-1469`.
 --
--- ## Design choice — refactor_length
+-- ## Design choice — length
 --
 -- *Why the refactor needs to touch this helper.*  `length` is a pure
 --   structural recursion on the `Walk` constructors.  Phase A changed
 --   the `cons`-cell signature — dropped the stored `(a : Node × Node)`
 --   and re-typed the per-step witness from `WalkStep`-Prop to the
---   typed inductive `refactor_WalkStep`.  So every recursion on
---   `refactor_Walk` that previously matched `.cons _ _ _ p` (four
+--   typed inductive `WalkStep`.  So every recursion on
+--   `Walk` that previously matched `.cons _ _ _ p` (four
 --   args) now matches `.cons _ _ p` (three args).  The cons-cell
 --   shape change is the *only* delta; the recursion structure, the
 --   natural-number return type, the LN-correspondence `n` (the LN's
@@ -1576,37 +1428,35 @@ variable {G : refactor_CDMG Node}
 --   position with its `def_3_6 --- start/end helper` markers still
 --   pointing at the def_3_6 ownership reference.
 --
--- *Recursion via `p.refactor_length`, not a sigma-typed helper or
---   auxiliary length counter.*  The recursive call `p.refactor_length`
---   resolves through dot-notation on `p : refactor_Walk G v w` (the
+-- *Recursion via `p.length`, not a sigma-typed helper or
+--   auxiliary length counter.*  The recursive call `p.length`
+--   resolves through dot-notation on `p : Walk G v w` (the
 --   `cons` constructor's third argument).  The dot-notation lookup
---   finds `refactor_Walk.refactor_length` in this namespace, exactly
+--   finds `Walk.length` in this namespace, exactly
 --   as the original `p.length` finds `Walk.length`.  Lean 4's
 --   structural-recursion checker accepts the recursion directly on
---   `refactor_Walk` — no `termination_by` annotation, no
+--   `Walk` — no `termination_by` annotation, no
 --   sigma-typed intermediary, no auxiliary walk-length helper.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: length (was: refactor_length)
 -- def_3_6 --- start helper
-def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
+def length : ∀ {u v : Node}, Walk G u v → ℕ
   | _, _, .nil _ _ => 0
-  | _, _, .cons _ _ p => p.refactor_length + 1
+  | _, _, .cons _ _ p => p.length + 1
 -- def_3_6 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: length
 
 -- ref: def_3_4 (helper, vertex sequence) — refactor
 --
--- `Walk.refactor_vertices p` is the list `[v_0, v_1, …, v_n]` from
+-- `Walk.vertices p` is the list `[v_0, v_1, …, v_n]` from
 -- LN item~i, i.e.\ the ordered sequence of vertices traversed by `p`.
 -- Body identical to the original `Walk.vertices` (`Walks.lean`
 -- `def vertices` ORIGINAL block) modulo the `cons`-cell pattern
 -- change: `.cons _ _ _ p` becomes `.cons _ _ p`, matching the new
--- constructor signature of `refactor_Walk.cons` documented at
+-- constructor signature of `Walk.cons` documented at
 -- `Walks.lean:1462-1469`.
 --
--- ## Design choice — refactor_vertices
+-- ## Design choice — vertices
 --
 -- *Why the refactor needs to touch this helper.*  Same cons-cell
---   signature change as `refactor_length` above: the original
+--   signature change as `length` above: the original
 --   `.cons _ _ _ p` four-arg pattern becomes the refactor's
 --   `.cons _ _ p` three-arg pattern.  The recursion structure, the
 --   `List Node` return type, and the LN-traversal semantics
@@ -1617,7 +1467,7 @@ def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
 --   from the original (`Walks.lean` `def vertices` ORIGINAL block's
 --   design notes).  The LN's tuple is ordered and may repeat, ruling
 --   out `Finset`; a length-indexed function would impose
---   `Fin`-arithmetic plumbing on every consumer of `refactor_IsPath`
+--   `Fin`-arithmetic plumbing on every consumer of `IsPath`
 --   (which wants `vertices.Nodup` directly).  The Mathlib `List`-API
 --   (`Nodup`, `head?`, `getLast?`, `tail`, `dropLast`) is the natural
 --   toolkit and remains so under the refactor.
@@ -1628,14 +1478,14 @@ def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
 --   appears as `p`'s head element) and matches the LN's
 --   "$v_0, v_1, …, v_n$" convention exactly.
 --
--- ## Why no `refactor_edges`
+-- ## Why no `edges`
 --
 -- *The original `Walk.edges` is dropped entirely under the refactor;
---   no `refactor_edges` REPLACEMENT counterpart exists.*  The original
+--   no `edges` REPLACEMENT counterpart exists.*  The original
 --   `Walk.edges : Walk G u v → List (Node × Node)` (the wrapped
 --   ORIGINAL block above) projected the stored ordered pair
 --   `a : Node × Node` out of each `cons`-cell.  Under the typed
---   `refactor_WalkStep` refactor, the `cons`-cell no longer stores
+--   `WalkStep` refactor, the `cons`-cell no longer stores
 --   `a` — the channel comes from the WalkStep constructor tag and
 --   the endpoints come from the WalkStep's type indices.  There is
 --   nothing to project: the original ordered-pair carrier has been
@@ -1654,7 +1504,7 @@ def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
 --   acceptable", reintroducing the channel-confusion the typed
 --   refactor was designed to eliminate.
 --
--- *Why not a sigma-typed `List (Σ u v, refactor_WalkStep G u v)`
+-- *Why not a sigma-typed `List (Σ u v, WalkStep G u v)`
 --   (option c).*  Considered and rejected as heavyweight.  Every
 --   downstream consumer of the edge list would have to thread
 --   `Sigma.fst` / `Sigma.snd` plumbing to recover the endpoints from
@@ -1666,7 +1516,7 @@ def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
 -- *Decision: drop entirely (option a).*  The only in-file consumers
 --   of `p.edges.getLast?` are the end-node classifiers `intoEnd` and
 --   `outOfEnd` (originals in this file).  Both are refactored in
---   Phase C to recurse on `refactor_Walk` directly: peel cons-cells
+--   Phase C to recurse on `Walk` directly: peel cons-cells
 --   until the tail is `nil`, then read the WalkStep on the last
 --   `cons`.  Channel + endpoints come from the WalkStep constructor
 --   at the point of use — no intermediate `List` carrier is needed.
@@ -1678,20 +1528,17 @@ def refactor_length : ∀ {u v : Node}, refactor_Walk G u v → ℕ
 -- *External consumer impact.*  Any future row downstream of this
 --   file that grepped for `p.edges` will need to switch to direct
 --   `Walk` recursion (the Phase C pattern) or, if it genuinely needs
---   an edge list, build one locally over `refactor_vertices` zipped
+--   an edge list, build one locally over `vertices` zipped
 --   with WalkStep constructor projections.  The find_dependents scan
 --   logged at refactor init flagged the in-file consumers
 --   (`intoEnd`, `outOfEnd`) handled by Phase C; cross-file consumers
 --   are addressed by their own refactor rows.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: vertices (was: refactor_vertices)
 -- def_3_4 --- start helper
-def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
+def vertices : ∀ {u v : Node}, Walk G u v → List Node
   | _, _, .nil v _ => [v]
-  | u, _, .cons _ _ p => u :: p.refactor_vertices
+  | u, _, .cons _ _ p => u :: p.vertices
 -- def_3_4 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: vertices
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: edges
 -- The pre-refactor `Walk.edges` accessor returned a `List (Node × Node)`
 -- by reading off the explicit `a : Node × Node` field of each `cons`
 -- step.  Under `cdmg_typed_edges` the new `Walk` keeps no such field —
@@ -1703,11 +1550,10 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 -- empty REPLACEMENT block exists only so the finalize-time marker
 -- validator can pair the ORIGINAL `edges` block with a same-named
 -- REPLACEMENT.
--- REFACTOR-BLOCK-REPLACEMENT-END: edges
 
 -- ref: def_3_4 (item~i, end-node classifier "into v_0") — refactor
 --
--- `refactor_Walk.refactor_intoStart p` iff `p` is non-trivial AND its
+-- `Walk.intoStart p` iff `p` is non-trivial AND its
 -- first WalkStep places an arrowhead at v_0 (the LN's `\hus` at the
 -- start node).  Reads the cons-cell's typed WalkStep directly: a
 -- `.forwardE` first-step is "out of v_0" (LN `\tuh`), NOT into v_0 →
@@ -1716,14 +1562,14 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 -- `s(v_0, v_1) ∈ L`, also placing an arrowhead at v_0 → `True`.  The
 -- trivial walk is vacuously `False`.
 --
--- ## Design choice — refactor_intoStart
+-- ## Design choice — intoStart
 --
 -- *Why the refactor needs to touch this classifier.*  Same `cons`-cell
---   shape change that drove `refactor_length` / `refactor_vertices`
+--   shape change that drove `length` / `vertices`
 --   above.  The original `intoStart` (`Walks.lean` `intoStart`
 --   ORIGINAL block) read the LN's "$a_0 = \dots$" disjunction off the
 --   stored `(a : Node × Node)` field via `G.into u a`.  Under the
---   typed `refactor_WalkStep` (Phase A), the channel and the arrowhead
+--   typed `WalkStep` (Phase A), the channel and the arrowhead
 --   direction are *already* encoded in the WalkStep's constructor
 --   tag — there is no stored ordered pair to consult, and `G.into`
 --   (which took an ordered-pair argument) is not directly applicable
@@ -1735,18 +1581,18 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 --   workspace plan (`workspace_def_3_4.md` §"Recommendations on the
 --   7 design decisions", item 2) we keep ONE Prop matching all three
 --   constructor cases, rather than mirroring `EdgeRelations`'
---   upstream `refactor_intoE` / `refactor_intoL` split.  The upstream
+--   upstream `intoE` / `intoL` split.  The upstream
 --   `intoE` / `intoL` split was forced because L's *carrier type*
 --   changed from `Node × Node` to `Sym2 Node` — a single ordered-pair
 --   argument could no longer typecheck for both channels.  No such
---   pressure exists at walk-step level: the typed `refactor_WalkStep`
+--   pressure exists at walk-step level: the typed `WalkStep`
 --   already absorbs all three channel cases into one inductive, so a
---   unified Prop on `refactor_Walk` consumes a single WalkStep through
+--   unified Prop on `Walk` consumes a single WalkStep through
 --   a uniform constructor case-analysis.  A channel-split here
 --   (`refactor_intoStartE` / `refactor_intoStartL`) would double the
 --   predicate count without semantic gain and would break the LN's
 --   channel-neutral "into v_0" phrasing.  Decision (2) carries to
---   `refactor_outOfStart`, `refactor_intoEnd`, and `refactor_outOfEnd`
+--   `outOfStart`, `intoEnd`, and `outOfEnd`
 --   below for the same reason.
 --
 -- *Why `.bidir → True` — bidirected first edge qualifies as "into
@@ -1761,8 +1607,8 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 --   canonical encoding of `\hus`'s admittance of bidirected edges;
 --   downstream consumers can rely on this without re-deriving from
 --   the LN's macro semantics.  This produces a *non-partition* shape
---   on bidirected first edges: `refactor_intoStart p ∧
---   ¬ refactor_outOfStart p` — see `refactor_outOfStart` below for
+--   on bidirected first edges: `intoStart p ∧
+--   ¬ outOfStart p` — see `outOfStart` below for
 --   the contrasting `.bidir → False` branch.
 --
 -- *Why the trivial walk is `False`.*  Same vacuity reading as the
@@ -1772,19 +1618,17 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 --   reading would silently include trivial walks in BOTH the "into"
 --   and "out of" categories, breaking downstream conditional checks
 --   ("walk is into v_0 ⇒ walk has at least one edge").
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: intoStart (was: refactor_intoStart)
 -- def_3_4 -- start statement
-def refactor_intoStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def intoStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ (.forwardE _) _ => False
   | _, _, .cons _ (.backwardE _) _ => True
   | _, _, .cons _ (.bidir _) _ => True
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: intoStart
 
 -- ref: def_3_4 (item~i, end-node classifier "out of v_0") — refactor
 --
--- `refactor_Walk.refactor_outOfStart p` iff `p` is non-trivial AND its
+-- `Walk.outOfStart p` iff `p` is non-trivial AND its
 -- first WalkStep is a *forward*-E edge `(v_0, v_1) ∈ E` (the LN's
 -- `\tuh` at v_0 — tail at v_0 with arrowhead at v_1).  Reads the
 -- cons-cell's typed WalkStep directly: only `.forwardE` qualifies →
@@ -1793,16 +1637,16 @@ def refactor_intoStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- `False` (LN's "out of" is E-only `\tuh`, NOT bidirected).  The
 -- trivial walk is vacuously `False`.
 --
--- ## Design choice — refactor_outOfStart
+-- ## Design choice — outOfStart
 --
--- *Mirror of `refactor_intoStart`.*  Same rationale on all structural
+-- *Mirror of `intoStart`.*  Same rationale on all structural
 --   points: the typed-WalkStep refactor dissolves the original's
 --   stored `(a : Node × Node)` carrier (so `G.outOf u a` has no direct
 --   counterpart), so the rewrite case-splits on the cons-cell's
 --   WalkStep constructor; we keep a single unified Prop (decision 2)
 --   rather than a per-channel split, since the typed WalkStep already
 --   absorbs the channel distinction; trivial walk is vacuously
---   `False`.  See `refactor_intoStart`'s design block above for the
+--   `False`.  See `intoStart`'s design block above for the
 --   full justification of the unified-Prop choice and the trivial-
 --   walk convention.
 --
@@ -1813,23 +1657,21 @@ def refactor_intoStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   an arrowhead at v_0, where `\tuh` requires a tail.  Equivalently,
 --   the LN's "out of" relation (def_3_3 item~iii) excludes L-edges
 --   entirely.  So `.bidir → False` is the canonical encoding: a
---   bidirected first edge produces `refactor_intoStart p ∧
---   ¬ refactor_outOfStart p`, the same non-partition shape flagged
+--   bidirected first edge produces `intoStart p ∧
+--   ¬ outOfStart p`, the same non-partition shape flagged
 --   by the LN-critic's `into_out_of_undefined_for_trivial_walk`
---   subtlety and recorded in the `refactor_intoStart` block above.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: outOfStart (was: refactor_outOfStart)
+--   subtlety and recorded in the `intoStart` block above.
 -- def_3_4 -- start statement
-def refactor_outOfStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def outOfStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ (.forwardE _) _ => True
   | _, _, .cons _ (.backwardE _) _ => False
   | _, _, .cons _ (.bidir _) _ => False
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: outOfStart
 
 -- ref: def_3_4 (item~i, end-node classifier "into v_n") — refactor
 --
--- `refactor_Walk.refactor_intoEnd p` iff `p` is non-trivial AND its
+-- `Walk.intoEnd p` iff `p` is non-trivial AND its
 -- *last* WalkStep places an arrowhead at v_n (the LN's `\suh` at the
 -- end node).  Walks the cons chain via direct recursion until the
 -- tail is `.nil _ _`, at which point the outer cons-cell's WalkStep
@@ -1839,22 +1681,22 @@ def refactor_outOfStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- → `False`; `.bidir` encodes `s(v_{n-1}, v_n) ∈ L` with arrowhead
 -- at v_n → `True`.  The trivial walk is vacuously `False`.
 --
--- ## Design choice — refactor_intoEnd
+-- ## Design choice — intoEnd
 --
--- *Decision (3) — direct `refactor_Walk` recursion, NO separate
+-- *Decision (3) — direct `Walk` recursion, NO separate
 --   `refactor_lastStep` helper.*  The original `intoEnd` reached the
 --   last edge via `p.edges.getLast?`.  Under the refactor, `edges`
---   is dropped entirely — see the WHY-no-`refactor_edges` block above
---   the `refactor_vertices` REPLACEMENT for the full rationale; the
---   short version is that under the typed `refactor_WalkStep` the
+--   is dropped entirely — see the WHY-no-`edges` block above
+--   the `vertices` REPLACEMENT for the full rationale; the
+--   short version is that under the typed `WalkStep` the
 --   original ordered-pair carrier is dissolved into the WalkStep's
 --   typed structure and no canonical `(u, v)` representative is
 --   recoverable from the `.bidir` case (Sym2 has no canonical
 --   ordering), so `getLast?` has no direct counterpart.  Per workspace
 --   decision (3), the natural replacement is direct recursion on
---   `refactor_Walk`: peel cons-cells until the tail is `nil`, then
+--   `Walk`: peel cons-cells until the tail is `nil`, then
 --   read the WalkStep on the last `cons`.  A separate
---   `refactor_lastStep` sigma-typed helper (`Σ u', refactor_WalkStep
+--   `refactor_lastStep` sigma-typed helper (`Σ u', WalkStep
 --   G u' v`) was considered and rejected — it forces a
 --   wrap/unwrap pass and adds a net-new declaration with no
 --   downstream re-use; inline recursion is simpler and keeps the
@@ -1862,23 +1704,23 @@ def refactor_outOfStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --
 -- *Cost the design pays.*  The "peel-cons-until-nil" recursion is
 --   duplicated structurally in two predicates: this one
---   (`refactor_intoEnd`) and the mirror `refactor_outOfEnd` below.
+--   (`intoEnd`) and the mirror `outOfEnd` below.
 --   Both share the same five-branch pattern (`nil`, three
 --   constructor-tagged length-1-tail branches, one recursion case)
 --   and differ only in the `True` / `False` assignments per
 --   constructor tag.  The duplication was accepted (over factoring
---   the recursion through a hypothetical `refactor_Walk.last` /
+--   the recursion through a hypothetical `Walk.last` /
 --   `refactor_lastStep` helper) because (i) a helper that returns a
 --   sigma-typed last step would need its own correctness lemma
 --   ("`p.last = .cons _ s (.nil _ _) ↔ s = …`") and the two end-
 --   classifier predicates would gain nothing simpler in exchange;
 --   (ii) the duplicated recursion is shallow (one pattern per
 --   constructor tag, no nested logic), so the maintenance burden is
---   bounded by the three-constructor count of `refactor_WalkStep`
+--   bounded by the three-constructor count of `WalkStep`
 --   and does not grow as new walk-class predicates are added; (iii)
 --   keeping the two predicates self-contained makes the LN-
---   correspondence ("`refactor_intoEnd` encodes `\suh` at $v_n$";
---   "`refactor_outOfEnd` encodes `\hut` at $v_n$") readable in a
+--   correspondence ("`intoEnd` encodes `\suh` at $v_n$";
+--   "`outOfEnd` encodes `\hut` at $v_n$") readable in a
 --   single-file local view, without having to follow a helper's
 --   indirection.  The cost is real but small and localised.
 --
@@ -1893,11 +1735,11 @@ def refactor_outOfStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   `Walks.lean:719-726` byte-for-byte modulo the cons-arg count
 --   change (4 → 3); naming the bottoming-out pattern keeps future
 --   readers from rebuilding the structure from scratch and serves as
---   the template for `refactor_outOfEnd` below.
+--   the template for `outOfEnd` below.
 --
 -- *Decision (2) reapplied — single unified Prop on the last
---   WalkStep.*  Same rationale as `refactor_intoStart`: the typed
---   `refactor_WalkStep` already absorbs the three channel cases, so
+--   WalkStep.*  Same rationale as `intoStart`: the typed
+--   `WalkStep` already absorbs the three channel cases, so
 --   a uniform constructor case-analysis on the last step suffices.
 --   No `refactor_intoEndE` / `refactor_intoEndL` split needed.
 --
@@ -1913,50 +1755,48 @@ def refactor_outOfStart : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   v_n → `True`.
 --
 -- *Why the trivial walk is `False`.*  Same vacuity reading as
---   `refactor_intoStart` above: on the trivial walk no `a_{n-1}`
+--   `intoStart` above: on the trivial walk no `a_{n-1}`
 --   exists, so the LN's existentially-loaded clause is vacuously
 --   false.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: intoEnd (was: refactor_intoEnd)
 -- def_3_4 -- start statement
-def refactor_intoEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def intoEnd : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ (.forwardE _) (.nil _ _) => True
   | _, _, .cons _ (.backwardE _) (.nil _ _) => False
   | _, _, .cons _ (.bidir _) (.nil _ _) => True
-  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.refactor_intoEnd
+  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.intoEnd
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: intoEnd
 
 -- ref: def_3_4 (item~i, end-node classifier "out of v_n") — refactor
 --
--- `refactor_Walk.refactor_outOfEnd p` iff `p` is non-trivial AND its
+-- `Walk.outOfEnd p` iff `p` is non-trivial AND its
 -- *last* WalkStep is a *backward*-E edge `(v_n, v_{n-1}) ∈ E` (the
 -- LN's `\hut` at v_n — tail at v_n with arrowhead at v_{n-1}).  Same
--- direct-recursion access path as `refactor_intoEnd`: peel cons-cells
+-- direct-recursion access path as `intoEnd`: peel cons-cells
 -- until the tail is `.nil _ _`, then case-split on the last cons-
 -- cell's WalkStep: `.forwardE` puts an arrowhead at v_n → `False`;
 -- `.backwardE` puts a tail at v_n → `True`; `.bidir` puts an arrowhead
 -- at v_n → `False` (LN's "out of v_n" is E-only `\hut`, NOT
 -- bidirected).  The trivial walk is vacuously `False`.
 --
--- ## Design choice — refactor_outOfEnd
+-- ## Design choice — outOfEnd
 --
--- *Mirror of `refactor_intoEnd`.*  Same recursion shape (decision 3,
---   direct `refactor_Walk` recursion replacing `getLast?`), same
+-- *Mirror of `intoEnd`.*  Same recursion shape (decision 3,
+--   direct `Walk` recursion replacing `getLast?`), same
 --   bottoming-out pattern `.cons _ _ (.nil _ _)` and recursion case
 --   `.cons _ _ (p@(.cons _ _ _))`, same unified-Prop choice
 --   (decision 2), same trivial-walk-`False` convention.  See
---   `refactor_intoEnd`'s design block above for the full
---   justification of the recursion structure, the no-`refactor_edges`
+--   `intoEnd`'s design block above for the full
+--   justification of the recursion structure, the no-`edges`
 --   rationale (which forced the `getLast?` replacement), the
 --   `IsColliderRest` template the bottoming-out pattern mirrors,
 --   *and the cost paid by direct recursion vs a hypothetical
 --   `refactor_lastStep` helper* (the "peel-cons-until-nil"
 --   recursion is shared structurally between this predicate and
---   `refactor_intoEnd` above; the duplication is shallow and self-
+--   `intoEnd` above; the duplication is shallow and self-
 --   contained, and was preferred over a sigma-typed `last`-helper
 --   that would need its own correctness lemma).  The only semantic
---   difference is that `refactor_outOfEnd` encodes the LN's `\hut`
+--   difference is that `outOfEnd` encodes the LN's `\hut`
 --   at v_n (E-only, tail at v_n) instead of `\suh` (any-tail with
 --   arrowhead at v_n).
 --
@@ -1966,24 +1806,22 @@ def refactor_intoEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   bidirected macro `\huh` does NOT match `\hut`: `\huh` places an
 --   arrowhead at v_n, where `\hut` requires a tail.  Equivalently,
 --   the LN's "out of" relation (def_3_3 item~iii) excludes L-edges
---   entirely.  So `.bidir → False` here mirrors `refactor_outOfStart`'s
+--   entirely.  So `.bidir → False` here mirrors `outOfStart`'s
 --   `.bidir → False` branch — a bidirected last edge produces
---   `refactor_intoEnd p ∧ ¬ refactor_outOfEnd p`, the same non-
+--   `intoEnd p ∧ ¬ outOfEnd p`, the same non-
 --   partition shape on the right end of the walk.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: outOfEnd (was: refactor_outOfEnd)
 -- def_3_4 -- start statement
-def refactor_outOfEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def outOfEnd : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ (.forwardE _) (.nil _ _) => False
   | _, _, .cons _ (.backwardE _) (.nil _ _) => True
   | _, _, .cons _ (.bidir _) (.nil _ _) => False
-  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.refactor_outOfEnd
+  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.outOfEnd
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: outOfEnd
 
 -- ref: def_3_4 (item~ii, directed walk) — refactor
 --
--- `refactor_Walk.refactor_IsDirectedWalk p` iff every WalkStep of `p`
+-- `Walk.IsDirectedWalk p` iff every WalkStep of `p`
 -- is a `.forwardE _` (the LN's clause~ii in
 -- `tex/def_3_4_Walks.tex`: "$a_k = (v_k, v_{k+1}) \in E$ for every
 -- $k \in \{0, 1, \dots, n - 1\}$").  Reads the cons-cell's typed
@@ -1996,14 +1834,14 @@ def refactor_outOfEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- sentence: "The trivial walk … is admitted as a directed walk from
 -- $v$ to itself").
 --
--- ## Design choice — refactor_IsDirectedWalk
+-- ## Design choice — IsDirectedWalk
 --
 -- *Why the refactor needs to touch this predicate.*  The original
 --   `IsDirectedWalk` (`Walks.lean` `IsDirectedWalk` ORIGINAL block)
 --   used a stored-pair conjunction `a = (u, v) ∧ a ∈ G.E ∧
 --   p.IsDirectedWalk` at every cons-cell — the ordered-pair `a : Node
 --   × Node` field of the original `Walk.cons` was the channel and
---   direction carrier.  Under the typed `refactor_WalkStep` refactor
+--   direction carrier.  Under the typed `WalkStep` refactor
 --   (Phase A), the channel and direction are baked into the WalkStep's
 --   constructor tag, so the original's `a = (u, v) ∧ ...` disjunction
 --   collapses to a single constructor case-match: "this step is
@@ -2022,15 +1860,15 @@ def refactor_outOfEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   an L-channel edge `s(u, v) ∈ G.L`, also excluded.
 --
 -- *Why a four-way pattern match (one nil + three constructor cases),
---   not `cons _ s p => (∃ h, s = .forwardE h) ∧ p.refactor_IsDirectedWalk`.*
+--   not `cons _ s p => (∃ h, s = .forwardE h) ∧ p.IsDirectedWalk`.*
 --   An existential encoding is logically equivalent but introduces an
 --   ∃ quantifier that every downstream proof would have to eliminate
 --   at every use site (`obtain ⟨_, rfl⟩ := ...`).  Direct
 --   constructor case-splitting keeps the definitional unfolding flat:
---   `simp` on `refactor_IsDirectedWalk` against a walk with known
+--   `simp` on `IsDirectedWalk` against a walk with known
 --   constructor patterns reduces in one step, no existential to
 --   discharge.  This mirrors the Phase C precedent
---   (`refactor_intoStart`, `refactor_outOfStart`, … above) of
+--   (`intoStart`, `outOfStart`, … above) of
 --   case-splitting on the WalkStep constructor directly.
 --
 -- *Why the trivial walk is `True`.*  Unchanged from the original
@@ -2042,19 +1880,17 @@ def refactor_outOfEnd : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   $v \to v$" formulation, which counts on the trivial walk
 --   `Walk G v v` being directed by default) to carry a special-case
 --   hypothesis.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsDirectedWalk (was: refactor_IsDirectedWalk)
 -- def_3_4 -- start statement
-def refactor_IsDirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
-  | _, _, .cons _ (.forwardE _) p => p.refactor_IsDirectedWalk
+  | _, _, .cons _ (.forwardE _) p => p.IsDirectedWalk
   | _, _, .cons _ (.backwardE _) _ => False
   | _, _, .cons _ (.bidir _) _ => False
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsDirectedWalk
 
 -- ref: def_3_4 (item~iii, bidirected walk) — refactor
 --
--- `refactor_Walk.refactor_IsBidirectedWalk p` iff every WalkStep of
+-- `Walk.IsBidirectedWalk p` iff every WalkStep of
 -- `p` is a `.bidir _` (the LN's clause~iii in
 -- `tex/def_3_4_Walks.tex`: "$a_k = (v_k, v_{k+1}) \in L$ for every
 -- $k \in \{0, 1, \dots, n - 1\}$").  Reads the cons-cell's typed
@@ -2065,13 +1901,13 @@ def refactor_IsDirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- trivial walk satisfies vacuously
 -- (`tex/def_3_4_Walks.tex` clause~iii final sentence).
 --
--- ## Design choice — refactor_IsBidirectedWalk
+-- ## Design choice — IsBidirectedWalk
 --
--- *Mirror of `refactor_IsDirectedWalk`.*  Same shape: nil branch
+-- *Mirror of `IsDirectedWalk`.*  Same shape: nil branch
 --   `True` (LN admits the trivial walk as bidirected), one
 --   constructor case advances the recursion (`.bidir _` here vs
 --   `.forwardE _` above), the other two reject.  See
---   `refactor_IsDirectedWalk`'s design block above for the full
+--   `IsDirectedWalk`'s design block above for the full
 --   justification of the constructor-case-split shape (over
 --   `∃ h, s = .bidir h`) and the trivial-walk-vacuous-`True` choice.
 --
@@ -2092,21 +1928,19 @@ def refactor_IsDirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   (`Walks.lean` `IsBidirectedWalk` ORIGINAL design block).  LN
 --   clause~iii's final sentence explicitly admits the trivial walk
 --   as bidirected; an `nil → False` reading would impose the same
---   special-case burden flagged in `refactor_IsDirectedWalk`'s
+--   special-case burden flagged in `IsDirectedWalk`'s
 --   design block.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBidirectedWalk (was: refactor_IsBidirectedWalk)
 -- def_3_4 -- start statement
-def refactor_IsBidirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | _, _, .cons _ (.forwardE _) _ => False
   | _, _, .cons _ (.backwardE _) _ => False
-  | _, _, .cons _ (.bidir _) p => p.refactor_IsBidirectedWalk
+  | _, _, .cons _ (.bidir _) p => p.IsBidirectedWalk
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsBidirectedWalk
 
 -- ref: def_3_4 (helper, collider-walk "interior+last" tail) — refactor
 --
--- `refactor_Walk.refactor_IsColliderRest p` carries the trailing
+-- `Walk.IsColliderRest p` carries the trailing
 -- constraint of an $n \ge 2$ collider walk after its first edge has
 -- been consumed.  Concretely:
 -- * if the tail has length 1 (i.e.\ the outer cons is the LN's
@@ -2121,12 +1955,12 @@ def refactor_IsBidirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   clause~iv(b): every interior edge is bidirected), and the deeper
 --   tail recursively satisfies the same predicate.
 -- The `nil` branch is `True` for totality; it is not reached from the
--- only call sites (the $n \ge 2$ branches of `refactor_IsColliderWalk`,
+-- only call sites (the $n \ge 2$ branches of `IsColliderWalk`,
 -- where the first edge has already been consumed, so the original
 -- walk had length $\ge 2$ and the tail has length $\ge 1$ — never
 -- `nil`).
 --
--- ## Design choice — refactor_IsColliderRest
+-- ## Design choice — IsColliderRest
 --
 -- *Why the refactor needs to touch this helper.*  The original
 --   `IsColliderRest` (`Walks.lean` `IsColliderRest` ORIGINAL block)
@@ -2135,7 +1969,7 @@ def refactor_IsBidirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   conjunction at the interior branch `a = (u, v) ∧ a ∈ G.L ∧
 --   p.IsColliderRest`.  Both phrasings read the channel and direction
 --   off the cons-cell's stored ordered pair `a : Node × Node`.  Under
---   the typed `refactor_WalkStep` refactor (Phase A), the stored pair
+--   the typed `WalkStep` refactor (Phase A), the stored pair
 --   is dissolved into the WalkStep's typed structure, so both
 --   disjunction and conjunction collapse into constructor case-splits
 --   that read the channel and direction directly from the WalkStep's
@@ -2167,7 +2001,7 @@ def refactor_IsBidirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- *Why a seven-branch pattern match.*  Three constructor tags for the
 --   outer WalkStep × two cases for the tail (`.nil` vs `.cons …`)
 --   gives six covered cases; the seventh branch is the `nil` for the
---   *outer* walk (the `refactor_Walk G u v` argument).  Lean's
+--   *outer* walk (the `Walk G u v` argument).  Lean's
 --   exhaustiveness checker requires all six (constructor, tail) pairs
 --   to be covered explicitly under the case-split-on-constructor
 --   convention; lumping them into fewer branches via wildcards
@@ -2181,38 +2015,36 @@ def refactor_IsBidirectedWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   sites).*  Same rationale as the original (`Walks.lean`
 --   `IsColliderRest` ORIGINAL design block).  Lean's structural
 --   recursion needs *some* answer for the `nil` constructor.
---   `refactor_IsColliderRest` is called only from the $n \ge 2$
---   branches of `refactor_IsColliderWalk` below (where the outer
+--   `IsColliderRest` is called only from the $n \ge 2$
+--   branches of `IsColliderWalk` below (where the outer
 --   walk had at least two edges, so the tail handed to
---   `refactor_IsColliderRest` has length $\ge 1$ — never `nil`).
+--   `IsColliderRest` has length $\ge 1$ — never `nil`).
 --   Setting the `nil` branch to `True` makes the predicate vacuous
 --   on this unreachable case.
 --
 -- *Why a separate auxiliary recursive predicate, not an inline
---   constraint inside `refactor_IsColliderWalk`.*  Unchanged
+--   constraint inside `IsColliderWalk`.*  Unchanged
 --   rationale from the original: the LN's clause~iv (the $n \ge 2$
 --   case) has a *positional* structure (first edge / interior /
 --   last) that would be clumsy to express in a single recursion on
 --   the outer walk.  Factoring the "interior + last" half into
---   `refactor_IsColliderRest` and letting `refactor_IsColliderWalk`
+--   `IsColliderRest` and letting `IsColliderWalk`
 --   handle only the first edge keeps each predicate's recursion
 --   shape simple.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsColliderRest (was: refactor_IsColliderRest)
 -- def_3_4 --- start helper
-def refactor_IsColliderRest : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | _, _, .cons _ (.forwardE _) (.nil _ _) => False
   | _, _, .cons _ (.backwardE _) (.nil _ _) => True
   | _, _, .cons _ (.bidir _) (.nil _ _) => True
   | _, _, .cons _ (.forwardE _) (.cons _ _ _) => False
   | _, _, .cons _ (.backwardE _) (.cons _ _ _) => False
-  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.refactor_IsColliderRest
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.IsColliderRest
 -- def_3_4 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: IsColliderRest
 
 -- ref: def_3_4 (item~iv, collider walk) — refactor
 --
--- `refactor_Walk.refactor_IsColliderWalk p` encodes the case-
+-- `Walk.IsColliderWalk p` encodes the case-
 -- distinguished spec of `tex/def_3_4_Walks.tex` clause~iv:
 -- * Case $n = 0$ (trivial walk): no constraint — `True`.
 -- * Case $n = 1$ (single edge): the lone WalkStep is *bidirected*
@@ -2225,17 +2057,17 @@ def refactor_IsColliderRest : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   (`.forwardE _` or `.bidir _` — both put an arrowhead at the head
 --   vertex `v`; `.backwardE _` puts the arrowhead at the tail vertex
 --   `u = v_0` and is rejected), and the rest of the walk satisfies
---   `refactor_IsColliderRest` (interior edges bidirected + last
+--   `IsColliderRest` (interior edges bidirected + last
 --   edge places an arrowhead at $v_{n-1}$).
 --
--- ## Design choice — refactor_IsColliderWalk
+-- ## Design choice — IsColliderWalk
 --
 -- *Why the refactor needs to touch this predicate.*  The original
 --   `IsColliderWalk` (`Walks.lean` `IsColliderWalk` ORIGINAL block)
 --   used a stored-pair conjunction at the $n = 1$ branch
 --   (`a = (u, v) ∧ a ∈ G.L`) and a stored-pair disjunction at the
 --   $n \ge 2$ first-edge branch (`a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)`).
---   Under the typed `refactor_WalkStep` refactor, both phrasings
+--   Under the typed `WalkStep` refactor, both phrasings
 --   collapse to constructor case-splits.
 --
 -- *$n = 1$ branch: only `.bidir _` admitted.*  Load-bearing addition
@@ -2257,14 +2089,14 @@ def refactor_IsColliderRest : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   misclassified directed-E edges.
 --
 -- *$n \ge 2$ branch: first step `.forwardE _ \/ .bidir _`, then
---   `refactor_IsColliderRest`.*  LN clause~iv(a) ("the first edge
+--   `IsColliderRest`.*  LN clause~iv(a) ("the first edge
 --   places an arrowhead at $v_1$") covers `(a_0 = (v_0, v_1) \in E)`
 --   — i.e.\ `.forwardE _` in the refactor — OR `(a_0 = (v_0, v_1)
 --   \in L)` — i.e.\ `.bidir _`.  The third constructor tag
 --   `.backwardE _` would encode `(v_1, v_0) \in E`, placing the
 --   arrowhead at $v_0$ (the tail vertex), not at $v_1$ — LN-rejected.
 --   The trailing constraint on the rest of the walk is delegated to
---   `refactor_IsColliderRest`, which enforces interior-edge-
+--   `IsColliderRest`, which enforces interior-edge-
 --   bidirected + last-edge-arrowhead-at-$v_{n-1}$.
 --
 -- *Why a seven-branch pattern match (nil + three $n = 1$ + three
@@ -2275,7 +2107,7 @@ def refactor_IsColliderRest : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   For the $n = 1$ and $n \ge 2$ cases, the constructor case-split
 --   on `s` (three tags) gives three branches each — six total, plus
 --   the one `nil` for $n = 0$.  Lumping branches via `_` wildcards
---   was rejected (same rationale as `refactor_IsColliderRest`): the
+--   was rejected (same rationale as `IsColliderRest`): the
 --   wildcard would silently admit the rejected constructor tags
 --   (`.backwardE` at $n = 1$, etc.).
 --
@@ -2288,25 +2120,23 @@ def refactor_IsColliderRest : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   is vacuous).  Encoding the same three cases as Lean pattern
 --   branches makes definitional unfolding match the rewrite's
 --   structure.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsColliderWalk (was: refactor_IsColliderWalk)
 -- def_3_4 -- start statement
-def refactor_IsColliderWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
+def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | _, _, .cons _ (.forwardE _) (.nil _ _) => False
   | _, _, .cons _ (.backwardE _) (.nil _ _) => False
   | _, _, .cons _ (.bidir _) (.nil _ _) => True
-  | _, _, .cons _ (.forwardE _) (p@(.cons _ _ _)) => p.refactor_IsColliderRest
+  | _, _, .cons _ (.forwardE _) (p@(.cons _ _ _)) => p.IsColliderRest
   | _, _, .cons _ (.backwardE _) (.cons _ _ _) => False
-  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.refactor_IsColliderRest
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.IsColliderRest
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsColliderWalk
 
 -- ref: def_3_4 (item~v, path) — refactor
 --
--- `refactor_Walk.refactor_IsPath p` iff the vertex sequence
+-- `Walk.IsPath p` iff the vertex sequence
 -- `[v_0, v_1, …, v_n]` is duplicate-free.  Body identical to the
 -- original `Walk.IsPath` (`Walks.lean` `IsPath` ORIGINAL block)
--- modulo the `refactor_vertices` retarget — the LN-level semantics
+-- modulo the `vertices` retarget — the LN-level semantics
 -- (clause~v of `tex/def_3_4_Walks.tex`: "the vertex sequence
 -- contains no repetitions, $v_i \ne v_j$ whenever $0 \le i < j \le
 -- n$") and the `List.Nodup` encoding are unchanged.  The trivial
@@ -2314,11 +2144,11 @@ def refactor_IsColliderWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 -- trivial walk is a path (matching `tex/def_3_4_Walks.tex` clause~v
 -- "The trivial walk $n = 0$ is vacuously a path").
 --
--- ## Design choice — refactor_IsPath
+-- ## Design choice — IsPath
 --
 -- *Why the refactor needs to touch this predicate.*  Only one
 --   surface change: `p.vertices.Nodup` retargets to
---   `p.refactor_vertices.Nodup`.  The typed `refactor_WalkStep`
+--   `p.vertices.Nodup`.  The typed `WalkStep`
 --   refactor doesn't affect the vertex extraction (the cons-cell's
 --   middle vertex `v` and the tail's vertices form the vertex list
 --   the same way under both encodings), so the LN-level Nodup
@@ -2326,20 +2156,20 @@ def refactor_IsColliderWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   Phase D predicates — a one-line retarget, no constructor case-
 --   splits required.
 --
--- *Why a one-liner over `refactor_vertices`, not a structural
---   recursion on `refactor_Walk` directly.*  Unchanged rationale
+-- *Why a one-liner over `vertices`, not a structural
+--   recursion on `Walk` directly.*  Unchanged rationale
 --   from the original (`Walks.lean` `IsPath` ORIGINAL design block).
---   `refactor_vertices` already extracts the LN's vertex tuple as
+--   `vertices` already extracts the LN's vertex tuple as
 --   `List Node`; combining with `List.Nodup` from mathlib makes
---   `refactor_IsPath` a one-liner and inherits every mathlib `Nodup`
+--   `IsPath` a one-liner and inherits every mathlib `Nodup`
 --   lemma (decidability, sub-list monotonicity, …) for free.  A
---   structural recursion `refactor_IsPath (cons v _ p) = v ∉
---   p.refactor_vertices ∧ p.refactor_IsPath` would be equivalent
+--   structural recursion `IsPath (cons v _ p) = v ∉
+--   p.vertices ∧ p.IsPath` would be equivalent
 --   but duplicate `List.Nodup`'s body in the walk-specific namespace.
 --
--- *Trivial walk vacuously a path (`refactor_vertices = [v]` is
+-- *Trivial walk vacuously a path (`vertices = [v]` is
 --   `Nodup`).*  Same as the original — `List.nodup_singleton` makes
---   it `rfl`-true.  No special case in `refactor_IsPath` is needed.
+--   it `rfl`-true.  No special case in `IsPath` is needed.
 --
 -- *Why the LN's index-based pairwise-distinctness form is not used
 --   directly.*  Index-based pairwise-distinctness would force every
@@ -2347,26 +2177,24 @@ def refactor_IsColliderWalk : ∀ {u v : Node}, refactor_Walk G u v → Prop
 --   (n+1)`-arithmetic.  `List.Nodup` is the standard index-free
 --   encoding, equivalent (`List.nodup_iff_get?_ne_get?` in mathlib)
 --   and the consensus mathlib idiom.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsPath (was: refactor_IsPath)
 -- def_3_4 -- start statement
-def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_vertices.Nodup
+def IsPath {u v : Node} (p : Walk G u v) : Prop := p.vertices.Nodup
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsPath
 
 -- ref: def_3_4 (helper, bifurcation "left arm + hinge + right arm") — refactor
 --
--- `refactor_Walk.refactor_IsBifurcationWithSplit p k` says: `p` is a
+-- `Walk.IsBifurcationWithSplit p k` says: `p` is a
 -- bifurcation walk in which the left arm has exactly `k` reverse-
 -- directed edges (so the hinge edge is at edge position `k`,
 -- corresponding to the LN's split index `k = k + 1`).  The original
 -- (`Walks.lean` `IsBifurcationWithSplit` ORIGINAL block) encoded each
 -- branch's per-edge constraint as a stored-pair equality + channel-
 -- membership disjunction (`a = (v, u) ∧ a ∈ G.E ∨ a = (u, v) ∧ a ∈ G.L`);
--- under the typed `refactor_WalkStep` (Phase A), these disjunctions
+-- under the typed `WalkStep` (Phase A), these disjunctions
 -- collapse to constructor-pattern case-splits per workspace decision (4)'s
 -- hinge mapping.
 --
--- ## Design choice — refactor_IsBifurcationWithSplit
+-- ## Design choice — IsBifurcationWithSplit
 --
 -- *Why the refactor needs to touch this helper.*  The original carried
 --   the per-step channel + direction information in a stored ordered
@@ -2390,7 +2218,7 @@ def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_
 --     forward and bidir tags are LN-rejected (clause~vi(b) of the LN
 --     rewrite pins the *backward*-E writing only for left-arm edges).
 --   - LN right-arm "$p.IsDirectedWalk$" constraint → recurse via
---     `refactor_IsDirectedWalk`, which requires every right-arm step
+--     `IsDirectedWalk`, which requires every right-arm step
 --     to be `.forwardE _` (the LN's `\tuh`, edge pointing forward
 --     toward $v_n$).
 --
@@ -2413,7 +2241,7 @@ def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_
 -- *Why the $n \ge 2, k = 0$ branch (`cons _ s (.cons _ _ _), 0`)
 --   admits both `.backwardE _` and `.bidir _`.*  When the right arm is
 --   non-trivial, the right-arm's first `.forwardE _` step (forced by
---   `refactor_IsDirectedWalk`) gives $v_n$ an inbound arrowhead, so
+--   `IsDirectedWalk`) gives $v_n$ an inbound arrowhead, so
 --   the addition's "$v_n$ has exactly one arrowhead" constraint is
 --   automatically satisfied at $v_n$ by the right arm.  At the hinge,
 --   either `.backwardE _` (directed) or `.bidir _` (bidirected) is
@@ -2421,7 +2249,7 @@ def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_
 --   `\hus` reading).  `.forwardE _` is rejected because forward-E
 --   would put the hinge's arrowhead at $v_k$, not $v_{k-1}$ —
 --   contradicting clause~vi(d)'s "$a_{k-1} \hus v_k$" requires the
---   arrowhead at $v_{k-1}$.  The trailing `p.refactor_IsDirectedWalk`
+--   arrowhead at $v_{k-1}$.  The trailing `p.IsDirectedWalk`
 --   pins the right arm as a directed walk per clause~vi(c).
 --
 -- *Why the $k + 1$ branches (`cons _ s p, k + 1`) admit only
@@ -2442,7 +2270,7 @@ def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_
 --   × two tail shapes (`.nil` / `.cons`) × two k-shapes (`0` / `k+1`)
 --   would naively give twelve branches, but at the $k+1$ recursion
 --   layer the tail-shape distinction collapses (the tail recursion
---   `p.refactor_IsBifurcationWithSplit k` handles both nil and cons
+--   `p.IsBifurcationWithSplit k` handles both nil and cons
 --   tails uniformly — the tail being `nil` yields `False` via the
 --   nil-branch of the recursion, which is exactly the original's
 --   behaviour at $k > n$ degenerations).  So the ten branches are:
@@ -2450,49 +2278,47 @@ def refactor_IsPath {u v : Node} (p : refactor_Walk G u v) : Prop := p.refactor_
 --   branches at $k = 0$ + three constructor-tagged length-≥2-tail
 --   branches at $k = 0$ + three constructor-tagged $k + 1$ branches.
 --   Lumping branches via `_` wildcards on the step constructor was
---   rejected (same rationale as `refactor_IsColliderRest`'s seven-
+--   rejected (same rationale as `IsColliderRest`'s seven-
 --   branch design): the wildcard would silently admit LN-rejected
 --   constructor tags and break the load-bearing addition.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBifurcationWithSplit (was: refactor_IsBifurcationWithSplit)
 -- def_3_4 --- start helper
-def refactor_IsBifurcationWithSplit : ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
+def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ (.forwardE _) (.nil _ _), 0 => False
   | _, _, .cons _ (.backwardE _) (.nil _ _), 0 => False
   | _, _, .cons _ (.bidir _) (.nil _ _), 0 => True
   | _, _, .cons _ (.forwardE _) (.cons _ _ _), 0 => False
-  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.refactor_IsDirectedWalk
-  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)), 0 => p.refactor_IsDirectedWalk
+  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
   | _, _, .cons _ (.forwardE _) _, _ + 1 => False
-  | _, _, .cons _ (.backwardE _) p, k + 1 => p.refactor_IsBifurcationWithSplit k
+  | _, _, .cons _ (.backwardE _) p, k + 1 => p.IsBifurcationWithSplit k
   | _, _, .cons _ (.bidir _) _, _ + 1 => False
 -- def_3_4 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: IsBifurcationWithSplit
 
 -- ref: def_3_4 (item~vi, bifurcation) — refactor
 --
--- `refactor_Walk.refactor_IsBifurcation p` iff `p` is a bifurcation
+-- `Walk.IsBifurcation p` iff `p` is a bifurcation
 -- between its end-nodes `u` and `v`.  Body identical to the original
 -- `Walk.IsBifurcation` (`Walks.lean` `IsBifurcation` ORIGINAL block)
--- modulo two surface retargets: `p.vertices` → `p.refactor_vertices`,
+-- modulo two surface retargets: `p.vertices` → `p.vertices`,
 -- and the existential `∃ i, p.IsBifurcationWithSplit i` →
--- `∃ i, p.refactor_IsBifurcationWithSplit i`.  The four-conjunct
+-- `∃ i, p.IsBifurcationWithSplit i`.  The four-conjunct
 -- decomposition (LN's "$v \ne w$" + "$v_0 \notin \{v_1, \dots, v_n\}$"
 -- + "$v_n \notin \{v_0, \dots, v_{n-1}\}$" + existence of a split
 -- index) is unchanged — only the helper-level encoding shifts to the
 -- typed-WalkStep refactor through the existential.
 --
--- ## Design choice — refactor_IsBifurcation
+-- ## Design choice — IsBifurcation
 --
 -- *Why the refactor needs to touch this predicate.*  Two of the four
---   conjuncts reach into refactor-affected helpers: `refactor_vertices`
+--   conjuncts reach into refactor-affected helpers: `vertices`
 --   (Phase B) is the typed-WalkStep refactor of the vertex extractor,
---   and `refactor_IsBifurcationWithSplit` (the previous REPLACEMENT
+--   and `IsBifurcationWithSplit` (the previous REPLACEMENT
 --   block above) is the typed-WalkStep refactor of the split-index
 --   helper.  The other two conjuncts (`u ≠ v` and the
 --   `tail`/`dropLast`-based non-membership clauses) are at the
 --   list-shape layer and are byte-identical to the original modulo
---   the `refactor_vertices` retarget.  No constructor case-splits
+--   the `vertices` retarget.  No constructor case-splits
 --   appear here — the WalkStep refactor's surface effects are
 --   delegated entirely to the helper.
 --
@@ -2505,7 +2331,7 @@ def refactor_IsBifurcationWithSplit : ∀ {u v : Node}, refactor_Walk G u v → 
 --   existential for clauses (b)-(d) plus the (e) addition.  None of
 --   these readings change under the refactor — the LN-level semantics
 --   are untouched, only the helper-level encoding shifts.  Mirrors
---   how `refactor_IsPath` is a one-line retarget of the original
+--   how `IsPath` is a one-line retarget of the original
 --   `IsPath`.
 --
 -- *Why no per-conjunct design-comment block restating each clause.*
@@ -2525,29 +2351,27 @@ def refactor_IsBifurcationWithSplit : ∀ {u v : Node}, refactor_Walk G u v → 
 --   and the explicit exclusion of the degenerate $n = k = 1$ case
 --   with a directed hinge — are NOT enforced at this four-conjunct
 --   level.  They are enforced inside the existential conjunct
---   `∃ i, p.refactor_IsBifurcationWithSplit i`, specifically by the
+--   `∃ i, p.IsBifurcationWithSplit i`, specifically by the
 --   helper's $n = 1, k = 0$ branch (which admits ONLY `.bidir _` for
 --   the hinge, rejecting both `.forwardE _` and `.backwardE _`) —
 --   see the helper's design block above for the constructor-by-
 --   constructor cross-walking of the addition's text into Lean's
 --   pattern-match cases.  Phrasing the enforcement at the helper
---   level (and not duplicating it here) keeps `refactor_IsBifurcation`
+--   level (and not duplicating it here) keeps `IsBifurcation`
 --   itself as a thin four-conjunct list; the load-bearing addition
 --   text appears in exactly one place.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBifurcation (was: refactor_IsBifurcation)
 -- def_3_4 -- start statement
-def refactor_IsBifurcation {u v : Node} (p : refactor_Walk G u v) : Prop :=
+def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=
   u ≠ v ∧
-  u ∉ p.refactor_vertices.tail ∧
-  v ∉ p.refactor_vertices.dropLast ∧
-  ∃ i, p.refactor_IsBifurcationWithSplit i
+  u ∉ p.vertices.tail ∧
+  v ∉ p.vertices.dropLast ∧
+  ∃ i, p.IsBifurcationWithSplit i
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsBifurcation
 
 -- ref: def_3_4 (helper, bifurcation with directed hinge) — refactor
 --
--- `refactor_Walk.refactor_IsBifurcationDirectedHingeWithSplit p k` is
--- the variant of `refactor_IsBifurcationWithSplit` restricted to a
+-- `Walk.IsBifurcationDirectedHingeWithSplit p k` is
+-- the variant of `IsBifurcationWithSplit` restricted to a
 -- *directed* hinge (clause~vi(d)'s first alternative
 -- $a_{k-1} = (v_k, v_{k-1}) \in E$, encoded as `.backwardE _` per
 -- decision (4)).  The precondition for the LN's "source $v_k$" to be
@@ -2557,19 +2381,19 @@ def refactor_IsBifurcation {u v : Node} (p : refactor_Walk G u v) : Prop :=
 -- walk where $v_n$ has no arrowhead — explicitly excluded — so this
 -- branch is `False` here.
 --
--- ## Design choice — refactor_IsBifurcationDirectedHingeWithSplit
+-- ## Design choice — IsBifurcationDirectedHingeWithSplit
 --
 -- *Why the refactor needs to touch this helper.*  Same as
---   `refactor_IsBifurcationWithSplit` above: the original encoded the
+--   `IsBifurcationWithSplit` above: the original encoded the
 --   directed-hinge constraint as a stored-pair conjunction
 --   `a = (v, u) ∧ a ∈ G.E ∧ …`; under the typed-WalkStep refactor
 --   this collapses to a constructor-pattern pin on `.backwardE _`.
 --   The hinge-constraint specialisation (directed-only, no bidir
 --   alternative) is the *defining* difference from
---   `refactor_IsBifurcationWithSplit`.
+--   `IsBifurcationWithSplit`.
 --
 -- *Encoding map LN → constructor — directed-hinge specialisation.*
---   Same as `refactor_IsBifurcationWithSplit`'s decision (4) mapping
+--   Same as `IsBifurcationWithSplit`'s decision (4) mapping
 --   except: at $k = 0$ with non-trivial right arm, only `.backwardE _`
 --   is admissible (not `.bidir _`); at $k = 0$ with trivial right arm
 --   (`.nil _ _`), all three step constructors are `False` (the
@@ -2598,71 +2422,69 @@ def refactor_IsBifurcation {u v : Node} (p : refactor_Walk G u v) : Prop :=
 --   not backward as the LN requires for the left-end of the hinge);
 --   `.bidir _` is the bidirected-hinge alternative, *excluded* here
 --   by construction (this helper is the directed-hinge variant).
---   The trailing `p.refactor_IsDirectedWalk` pins the right arm as a
+--   The trailing `p.IsDirectedWalk` pins the right arm as a
 --   directed walk per clause~vi(c).
 --
 -- *Why the $k + 1$ branches admit only `.backwardE _`.*  Same
---   rationale as `refactor_IsBifurcationWithSplit`'s $k + 1$ case
+--   rationale as `IsBifurcationWithSplit`'s $k + 1$ case
 --   (LN clause~vi(b): every left-arm step is an `E`-edge running
 --   backward).  No difference between the bifurcation and
 --   directed-hinge bifurcation at left-arm steps — both inherit the
 --   clause~vi(b) constraint.
 --
 -- *Why a ten-branch pattern match.*  Same structure as
---   `refactor_IsBifurcationWithSplit` above: one `nil` outer-walk +
+--   `IsBifurcationWithSplit` above: one `nil` outer-walk +
 --   three constructor-tagged length-1-tail branches at $k = 0$ +
 --   three constructor-tagged length-≥2-tail branches at $k = 0$ +
 --   three constructor-tagged $k + 1$ branches.  Lean's
 --   exhaustiveness checker requires all (constructor, tail-shape, k-
 --   shape) combinations to be covered explicitly; wildcards on the
 --   step constructor were rejected (same rationale as
---   `refactor_IsBifurcationWithSplit`).
+--   `IsBifurcationWithSplit`).
 set_option linter.style.longLine false in
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBifurcationDirectedHingeWithSplit (was: refactor_IsBifurcationDirectedHingeWithSplit)
 -- def_3_4 --- start helper
-def refactor_IsBifurcationDirectedHingeWithSplit :
-    ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
+def IsBifurcationDirectedHingeWithSplit :
+    ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ (.forwardE _) (.nil _ _), 0 => False
   | _, _, .cons _ (.backwardE _) (.nil _ _), 0 => False
   | _, _, .cons _ (.bidir _) (.nil _ _), 0 => False
   | _, _, .cons _ (.forwardE _) (.cons _ _ _), 0 => False
-  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.refactor_IsDirectedWalk
+  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
   | _, _, .cons _ (.bidir _) (.cons _ _ _), 0 => False
   | _, _, .cons _ (.forwardE _) _, _ + 1 => False
   | _, _, .cons _ (.backwardE _) p, k + 1 =>
-      p.refactor_IsBifurcationDirectedHingeWithSplit k
+      p.IsBifurcationDirectedHingeWithSplit k
   | _, _, .cons _ (.bidir _) _, _ + 1 => False
 -- def_3_4 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: IsBifurcationDirectedHingeWithSplit
 
 -- ref: def_3_4 (item~vi, source of a bifurcation) — refactor
 --
--- `refactor_Walk.refactor_IsBifurcationSource p x` iff `p` is a
+-- `Walk.IsBifurcationSource p x` iff `p` is a
 -- bifurcation between `u` and `v` AND there is a split index `i` for
 -- which the hinge is *directed* AND `x = v_{i + 1}` (LN's `v_k` for
 -- `k = i + 1`).  Body identical to the original
 -- `Walk.IsBifurcationSource` (`Walks.lean` `IsBifurcationSource`
 -- ORIGINAL block) modulo three surface retargets: `p.vertices` →
--- `p.refactor_vertices` (twice), and
+-- `p.vertices` (twice), and
 -- `p.IsBifurcationDirectedHingeWithSplit i` →
--- `p.refactor_IsBifurcationDirectedHingeWithSplit i`.  No constructor
+-- `p.IsBifurcationDirectedHingeWithSplit i`.  No constructor
 -- case-splits appear here — the WalkStep refactor's surface effects
 -- are delegated to the helpers.
 --
--- ## Design choice — refactor_IsBifurcationSource
+-- ## Design choice — IsBifurcationSource
 --
 -- *Why the refactor needs to touch this predicate.*  Two reaching
---   dependencies: the `refactor_vertices` Phase B helper (used twice,
+--   dependencies: the `vertices` Phase B helper (used twice,
 --   for the `tail`/`dropLast` non-membership clauses AND the
 --   `[i + 1]?` indexed lookup of $v_k$) and the
---   `refactor_IsBifurcationDirectedHingeWithSplit` helper (the
+--   `IsBifurcationDirectedHingeWithSplit` helper (the
 --   previous REPLACEMENT block).  The four-conjunct shape and the
 --   semantics (combining "directed-hinge bifurcation at index $i$"
 --   with "$x$ is at vertex position $i + 1$") are unchanged.
 --
 -- *Why retain the four-conjunct shape verbatim.*  Same rationale as
---   `refactor_IsBifurcation`'s design block above.  The original's
+--   `IsBifurcation`'s design block above.  The original's
 --   per-conjunct design-comment block (`Walks.lean`
 --   `IsBifurcationSource` ORIGINAL block) records: why a
 --   `Prop`-predicate on `x` rather than an `Option Node` accessor;
@@ -2677,9 +2499,9 @@ def refactor_IsBifurcationDirectedHingeWithSplit :
 --
 -- *Where the addition `[bifurcation_right_chain_trivial_is_just_
 --   directed_walk]` is enforced.*  Same delegation pattern as
---   `refactor_IsBifurcation`: the addition's exclusion of the
+--   `IsBifurcation`: the addition's exclusion of the
 --   degenerate $n = k = 1$ case is enforced INSIDE
---   `refactor_IsBifurcationDirectedHingeWithSplit`'s $n = 1, k = 0$
+--   `IsBifurcationDirectedHingeWithSplit`'s $n = 1, k = 0$
 --   branches, which return `False` for ALL three constructor tags
 --   (not just `.bidir _`, because this helper is the *directed-
 --   hinge* specialisation and `.bidir _` is the bidirected-hinge
@@ -2689,20 +2511,18 @@ def refactor_IsBifurcationDirectedHingeWithSplit :
 --   length-1 walk has a "source" in the LN sense.  See the helper's
 --   design block above for the constructor-by-constructor cross-
 --   walking.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBifurcationSource (was: refactor_IsBifurcationSource)
 -- def_3_4 -- start statement
-def refactor_IsBifurcationSource {u v : Node} (p : refactor_Walk G u v)
+def IsBifurcationSource {u v : Node} (p : Walk G u v)
     (x : Node) : Prop :=
   u ≠ v ∧
-  u ∉ p.refactor_vertices.tail ∧
-  v ∉ p.refactor_vertices.dropLast ∧
-  ∃ i, p.refactor_IsBifurcationDirectedHingeWithSplit i ∧
-       p.refactor_vertices[i + 1]? = some x
+  u ∉ p.vertices.tail ∧
+  v ∉ p.vertices.dropLast ∧
+  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧
+       p.vertices[i + 1]? = some x
 -- def_3_4 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsBifurcationSource
 
-end refactor_Walk
+end Walk
 
-end refactor_CDMG
+end CDMG
 
 end Causality

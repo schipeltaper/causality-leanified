@@ -197,17 +197,6 @@ variable {G : CDMG Node}
 --   pattern-match writings (`\tuh / \hut / \huh / \suh / \hus`)
 --   would otherwise classify the same position as both collider
 --   and non-collider for any walk that traverses a self-loop.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsCollider
--- def_3_15 -- start statement
-def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
-  1 ≤ k ∧ ∃ (vk : Node) (a₁ a₂ : Node × Node),
-    p.vertices[k]? = some vk ∧
-    p.edges[k - 1]? = some a₁ ∧
-    p.edges[k]? = some a₂ ∧
-    G.into vk a₁ ∧
-    G.into vk a₂
--- def_3_15 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsCollider
 
 -- ref: def_3_15 (item i, non-collider)
 --
@@ -276,12 +265,6 @@ def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
 --   `def_3_17` SigmaBlockedWalks) consume `IsNonCollider` as a
 --   hypothesis-style `Prop` predicate; matching that shape keeps
 --   the type-contract clean.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNonCollider
--- def_3_15 -- start statement
-def IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
-  k ≤ p.length ∧ ¬ p.IsCollider k
--- def_3_15 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsNonCollider
 
 end Walk
 
@@ -291,20 +274,20 @@ end Causality
 
 namespace Causality
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — refactor section-wide statement context
 --
 -- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Same chapter
 --   convention used by the original `CDMG` namespace above and by every
---   other `refactor_CDMG`-opening file in the chapter
+--   other `CDMG`-opening file in the chapter
 --   (`Walks.lean:1201-1203`, `CDMG.lean`, `CDMGNotation.lean`,
 --   `EdgeRelations.lean`).  The refactor does not alter the carrier-type
 --   discipline — only (a) `def_3_1`'s `L`-field shape (`Finset (Sym2 Node)`
 --   with `hL_irrefl : ∀ ⦃s⦄, s ∈ L → ¬ s.IsDiag`) and (b) `def_3_4`'s
---   per-step walk-edge data (typed `refactor_WalkStep` with three
+--   per-step walk-edge data (typed `WalkStep` with three
 --   constructors `.forwardE / .backwardE / .bidir`) and the `cons`-cell of
---   `refactor_Walk` — so the binders below are byte-identical to the
+--   `Walk` — so the binders below are byte-identical to the
 --   original `CDMG`-namespace variable line at the top of this file.
 --
 -- *Three-dash `--- start helper` / `--- end helper`, not two-dash
@@ -312,7 +295,7 @@ namespace refactor_CDMG
 --   implicit binders into every refactored declaration below exactly as
 --   it does for the originals.  The three-dash flavour tags this as
 --   helper-level wrapping, consistent with how the original `variable`
---   line at the top of this file and the `refactor_CDMG` section-wide
+--   line at the top of this file and the `CDMG` section-wide
 --   `variable` at `Walks.lean:1201-1203` are tagged.  The Phase 7
 --   cleanup script's whole-word rename (`refactor_<Name>` → `<Name>`)
 --   leaves the `def_3_15` marker text inside this block untouched (the
@@ -321,33 +304,33 @@ namespace refactor_CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_15 --- end helper
 
-namespace refactor_WalkStep
+namespace WalkStep
 
--- ## Design choice — refactor_WalkStep-namespace statement context
+-- ## Design choice — WalkStep-namespace statement context
 --
--- *Why a namespace-level `variable {G : refactor_CDMG Node}`.*  The
---   helper `refactor_IsInto` below takes a typed WalkStep
---   `s : refactor_WalkStep G u v` and asks whether it places an
+-- *Why a namespace-level `variable {G : CDMG Node}`.*  The
+--   helper `IsInto` below takes a typed WalkStep
+--   `s : WalkStep G u v` and asks whether it places an
 --   arrowhead at a given node.  Without the namespace-wide `variable`,
---   the signature would carry an explicit `{G : refactor_CDMG Node}`
+--   the signature would carry an explicit `{G : CDMG Node}`
 --   binder; the auto-binding keeps the signature readable and matches
 --   the chapter-wide implicit-G convention used by every
---   `refactor_CDMG`-opening file in the chapter
+--   `CDMG`-opening file in the chapter
 --   (`Walks.lean:1201-1203`, `EdgeRelations.lean:357`, etc.).
 --
 -- *Three-dash helper marker, not two-dash statement marker.*  Same
---   rationale as the `refactor_Walk` namespace `variable` block below
+--   rationale as the `Walk` namespace `variable` block below
 --   and as the refactor section's section-wide `variable` immediately
 --   above: this `{G}` binder is load-bearing infrastructure that the
 --   tex/Lean reconciliation tooling and the Phase 7 cleanup script
 --   must recognise as helper-flavour.
 -- def_3_15 --- start helper
-variable {G : refactor_CDMG Node}
+variable {G : CDMG Node}
 -- def_3_15 --- end helper
 
 -- ref: def_3_15 (helper, "edge into a node" at a typed WalkStep) — refactor
 --
--- `s.refactor_IsInto w` iff the typed WalkStep `s : refactor_WalkStep
+-- `s.IsInto w` iff the typed WalkStep `s : WalkStep
 -- G u v` places an arrowhead at the node `w` when traversed.  The
 -- canonical per-WalkStep "arrowhead-at-node" predicate at the typed-
 -- WalkStep level, reading the channel and direction off the WalkStep's
@@ -362,35 +345,35 @@ variable {G : refactor_CDMG Node}
 -- - `.bidir _` (encoding `s(u, v) ∈ G.L`, bidirected): arrowheads at
 --   BOTH endpoints simultaneously.  `IsInto w := (w = u ∨ w = v)`.
 --
--- The sole consumer is `refactor_Walk.refactor_IsCollider` below, which
--- uses `s.refactor_IsInto vk` to test arrowhead-presence at the
+-- The sole consumer is `Walk.IsCollider` below, which
+-- uses `s.IsInto vk` to test arrowhead-presence at the
 -- position-`k` vertex on the walk.
 --
--- ## Design choice — refactor_IsInto
+-- ## Design choice — IsInto
 --
 -- *Why a helper at all, rather than inlining the per-WalkStep
---   classification directly into `refactor_IsCollider`'s pattern
+--   classification directly into `IsCollider`'s pattern
 --   match.*  The LN block phrases the collider case as "there are two
 --   arrowheads pointing towards $v_k$ on the walk $\pi$" (canonical
 --   tex `def_3_15`, item~ii of the Classification paragraph: collider
 --   iff `ah_π(k) = 2`, with `ah_π(k)` defined as the count of walk-
 --   incident edges `a_{k-1}, a_k` that are edges into $v_k$).
 --   Factoring "this WalkStep contributes an arrowhead at node `w`"
---   out as `refactor_IsInto` lets the consumer
---   `refactor_IsCollider` mirror the LN's phrasing word-for-word at
+--   out as `IsInto` lets the consumer
+--   `IsCollider` mirror the LN's phrasing word-for-word at
 --   its `k = 1` branch as the conjunction
---   `s₀.refactor_IsInto vk ∧ s₁.refactor_IsInto vk` — one conjunct
+--   `s₀.IsInto vk ∧ s₁.IsInto vk` — one conjunct
 --   per "arrowhead pointing towards $v_k$".  Inlining would instead
 --   force a 9-Cartesian-product branch (one per pair of constructor
---   tags) at the `k = 1` slot of `refactor_IsCollider`, breaking the
+--   tags) at the `k = 1` slot of `IsCollider`, breaking the
 --   LN-mirroring reading and re-introducing the writing-mirror /
 --   self-loop pathologies the helper is designed to absorb (see the
 --   next bullet for the writing-mirror union fix, and the "Self-loop
---   semantics" bullet on `refactor_IsCollider` below for the self-
+--   semantics" bullet on `IsCollider` below for the self-
 --   loop fix).  The helper's "arrowhead-at-node" framing is also the
 --   LN-faithful one: `def_3_3` item~ii ("edge into a node") is the
 --   per-edge primitive the LN itself uses to build the collider
---   count, so `refactor_IsInto` is the typed-WalkStep transcription
+--   count, so `IsInto` is the typed-WalkStep transcription
 --   of that exact primitive.
 --
 -- *Writing-mirror union semantics on directed branches.*  The LN's
@@ -482,11 +465,11 @@ variable {G : refactor_CDMG Node}
 --   `a : Node × Node`.  Under the typed-WalkStep refactor (a) the
 --   stored pair is dissolved into the WalkStep's typed structure and
 --   (b) the original `Walk.edges` projection that fed `G.into` no
---   longer exists (see `Walks.lean:1631-1685`'s "Why no `refactor_edges`"
+--   longer exists (see `Walks.lean:1631-1685`'s "Why no `edges`"
 --   block for the intentional omission).  A per-WalkStep
 --   "arrowhead-at-w" predicate is therefore needed as new
 --   infrastructure to translate "edge into `v_k`" through the refactor
---   shape — `refactor_IsInto` is that predicate.  Wrapped as a
+--   shape — `IsInto` is that predicate.  Wrapped as a
 --   REPLACEMENT block with no ORIGINAL counterpart per the manager's
 --   net-new-helper marker convention.
 --
@@ -497,12 +480,12 @@ variable {G : refactor_CDMG Node}
 --   not the source side" — loses information at directed self-loops,
 --   where the WalkStep's source and target type indices are *the same
 --   node*.  Concretely: at a self-loop `(v, v) ∈ G.E` encoded as
---   `.forwardE _ : refactor_WalkStep G v v`, the source-vs-target
+--   `.forwardE _ : WalkStep G v v`, the source-vs-target
 --   reading would label this as "arrowhead at v but not at v" — a
 --   semantically empty statement that cannot distinguish "arrowhead at
 --   the loop vertex" from "no arrowhead at the loop vertex".  The
 --   node-equality test resolves this cleanly: `IsInto v` evaluates to
---   `(v = v) = True` for `.forwardE _ : refactor_WalkStep G v v`,
+--   `(v = v) = True` for `.forwardE _ : WalkStep G v v`,
 --   matching the original's `G.into v (v, v) = True` (via the
 --   E-clause's `e.2 = v` condition).  Wording-check subtlety
 --   `self_loop_makes_tuh_and_hut_simultaneously_true` flagged exactly
@@ -513,24 +496,24 @@ variable {G : refactor_CDMG Node}
 --   the original's `G.into`-based semantics.
 --
 -- *Why a `Prop` predicate, not a `Bool` decidable.*  Same rationale as
---   `refactor_IsCollider` below: walks live at `Type _`, their per-
+--   `IsCollider` below: walks live at `Type _`, their per-
 --   position classification at `Prop`.  A `Bool` form would require a
 --   `DecidableEq Node` discharge at every elaboration site — possible
 --   in principle (we already have `[DecidableEq Node]` from the section-
 --   wide variable), but adds infrastructure with no payoff for the
---   predicate's role as a `Prop`-conjunct inside `refactor_IsCollider`.
+--   predicate's role as a `Prop`-conjunct inside `IsCollider`.
 --
 -- *Why the explicit `w : Node` argument, not curried via the
 --   WalkStep's source/target indices.*  The two call sites in
---   `refactor_IsCollider` both pass the SAME node `vk` (the position-
+--   `IsCollider` both pass the SAME node `vk` (the position-
 --   `k` vertex on the walk) to two different WalkSteps `s_{k-1}` and
 --   `s_k`, only one of which has `vk` as its type-level target index
 --   (`s_{k-1}` has target `vk`; `s_k` has source `vk`).  The `w : Node`
 --   argument keeps the helper position-independent: either WalkStep
 --   can be queried "is your arrowhead at `vk`?" without the caller
 --   having to remember whether `vk` is the source or target index.
---   This is exactly the call pattern `refactor_IsCollider` uses:
---   `s₀.refactor_IsInto vk` and `s₁.refactor_IsInto vk` where `vk` is
+--   This is exactly the call pattern `IsCollider` uses:
+--   `s₀.IsInto vk` and `s₁.IsInto vk` where `vk` is
 --   the cons-cell's middle vertex binder.
 --
 -- *Why the pattern binds `u` / `v` from the implicit binders rather
@@ -543,34 +526,32 @@ variable {G : refactor_CDMG Node}
 --   shape used by every existing pattern-match-on-implicits def in
 --   `Walks.lean` (e.g.\ `vertices`, `IsBidirectedWalk`,
 --   `intoStart`-via-`outOf` original).
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsInto (was: refactor_IsInto)
 -- def_3_15 --- start helper
-def refactor_IsInto : ∀ {u v : Node}, refactor_WalkStep G u v → Node → Prop
+def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
   | u, v, .forwardE _,  w => w = v ∨ (s(u, v) ∈ G.L ∧ (w = u ∨ w = v))
   | u, v, .backwardE _, w => w = u ∨ (s(u, v) ∈ G.L ∧ (w = u ∨ w = v))
   | u, v, .bidir _,     w => w = u ∨ w = v
 -- def_3_15 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: IsInto
 
-end refactor_WalkStep
+end WalkStep
 
-namespace refactor_Walk
+namespace Walk
 
--- ## Design choice — refactor_Walk-namespace statement context
+-- ## Design choice — Walk-namespace statement context
 --
--- *Why a namespace-level `variable {G : refactor_CDMG Node}`.*  Both
---   `refactor_IsCollider` and `refactor_IsNonCollider` recurse over /
---   take a walk `p : refactor_Walk G u v`.  Without the namespace-wide
+-- *Why a namespace-level `variable {G : CDMG Node}`.*  Both
+--   `IsCollider` and `IsNonCollider` recurse over /
+--   take a walk `p : Walk G u v`.  Without the namespace-wide
 --   `variable`, every signature would carry an explicit
---   `{G : refactor_CDMG Node}` binder; the auto-binding keeps the
+--   `{G : CDMG Node}` binder; the auto-binding keeps the
 --   signatures readable and matches the LN's "Let $G = (J, V, E, L)$ be
 --   a CDMG" once-at-the-top quantifier.  Mirrors the original
 --   `namespace Walk` opening earlier in this file and the refactor
---   `namespace refactor_Walk` opening at `Walks.lean:1514-1538`
---   byte-for-byte modulo the `CDMG → refactor_CDMG` type retarget.
+--   `namespace Walk` opening at `Walks.lean:1514-1538`
+--   byte-for-byte modulo the `CDMG → CDMG` type retarget.
 --   `{G}` is implicit because downstream consumers reach into `G` via
---   dot-notation on the walk (`p.refactor_IsCollider k` rather than
---   `refactor_Walk.refactor_IsCollider G p k`).
+--   dot-notation on the walk (`p.IsCollider k` rather than
+--   `Walk.IsCollider G p k`).
 --
 -- *Three-dash helper marker, not two-dash statement marker.*  Same
 --   rationale as the original (Walk-namespace block above) and as the
@@ -579,18 +560,18 @@ namespace refactor_Walk
 --   reconciliation tooling and the Phase 7 cleanup script must
 --   recognise as helper-flavour.
 -- def_3_15 --- start helper
-variable {G : refactor_CDMG Node}
+variable {G : CDMG Node}
 -- def_3_15 --- end helper
 
 -- ref: def_3_15 (item ii, collider) — refactor
 --
--- `p.refactor_IsCollider k` iff position `k` on the walk `p` has
+-- `p.IsCollider k` iff position `k` on the walk `p` has
 -- arrowhead count `ah_π(k) = 2`, i.e.\ both walk-incident edges
--- `s_{k - 1}` and `s_k` exist (forcing `1 ≤ k ≤ p.refactor_length - 1`,
+-- `s_{k - 1}` and `s_k` exist (forcing `1 ≤ k ≤ p.length - 1`,
 -- an interior position) and both are "edges into the vertex `v_k`" in
 -- the LN sense of `def_3_3` item~ii.  Under the typed-WalkStep refactor
 -- this classification is delegated to the helper
--- `refactor_WalkStep.refactor_IsInto` (defined above), which tests
+-- `WalkStep.IsInto` (defined above), which tests
 -- arrowhead-presence by *node-equality* on the WalkStep's type indices
 -- rather than by a constructor-tag "source vs target" reading.  This
 -- preserves the original's `G.into`-driven semantics including the
@@ -598,24 +579,24 @@ variable {G : refactor_CDMG Node}
 -- arrowhead at the loop vertex, matching `G.into v (v, v) = True` via
 -- the original's E-clause's `e.2 = v` condition).
 --
--- ## Design choice — refactor_IsCollider
+-- ## Design choice — IsCollider
 --
 -- *Mutual exclusivity pulls back along the forgetful map.*  No code
---   change is required in `refactor_IsCollider` itself for the
+--   change is required in `IsCollider` itself for the
 --   writing-mirror union-semantics fix (the entire fix is encapsulated
---   inside `refactor_IsInto` above), but the consequence at this level
+--   inside `IsInto` above), but the consequence at this level
 --   is worth stating: the LN's "every position on `π` is exactly one
 --   of a non-collider or a collider on `π`" mutual-exclusivity
 --   property (canonical tex `def_3_15`, "Classification" paragraph)
 --   now pulls back *cleanly* along the forgetful map
---   `refactor_Walk G u v → LN walk in G` even for writing-mirror
+--   `Walk G u v → LN walk in G` even for writing-mirror
 --   walks (those traversing a stored pair that lives in both `G.E`
 --   and `G.L`).  Concretely, a single LN walk position has a
 --   well-defined `ah_π(k) ∈ {0, 1, 2}` count independent of the
 --   walker's constructor choice when typifying the underlying ordered
---   pair, and `refactor_IsCollider` / `refactor_IsNonCollider` agree
+--   pair, and `IsCollider` / `IsNonCollider` agree
 --   with the LN classification at every encoding — the writing-mirror
---   union fix in `refactor_IsInto` is the load-bearing piece that
+--   union fix in `IsInto` is the load-bearing piece that
 --   makes this constructor-choice invariance hold.  Without that fix,
 --   the same LN walk position could be classified differently
 --   depending on whether the walker stored each step as `.forwardE`
@@ -631,22 +612,22 @@ variable {G : refactor_CDMG Node}
 --   over `G.E` and `G.L`.  Under the typed-WalkStep refactor (a)
 --   `p.edges` no longer exists — the original's `Walk.edges` block has
 --   been intentionally dropped under the refactor (see
---   `Walks.lean:1631-1685`'s "Why no `refactor_edges`" block), so any
+--   `Walks.lean:1631-1685`'s "Why no `edges`" block), so any
 --   port that goes through `p.edges`-style indexing is non-buildable;
 --   and (b) the channel and direction information that the original
 --   read off the ordered pair `a : Node × Node` plus `G.into` is now
 --   carried by the WalkStep's *constructor tag* (channel) and *type
 --   indices* (source/target endpoints).  The natural refactor port is
---   therefore a *recursive pattern-match* on the `refactor_Walk`
+--   therefore a *recursive pattern-match* on the `Walk`
 --   constructors that case-splits at the head cons-cell and recurses
 --   on the tail — same recursion shape as
---   `refactor_IsBifurcationWithSplit` (`Walks.lean:2444-2455`) and
---   `refactor_IsColliderRest` (`Walks.lean:2186-2197`).  The per-step
+--   `IsBifurcationWithSplit` (`Walks.lean:2444-2455`) and
+--   `IsColliderRest` (`Walks.lean:2186-2197`).  The per-step
 --   "edge into `v_k`" test is delegated to
---   `refactor_WalkStep.refactor_IsInto` (defined above) — see the
+--   `WalkStep.IsInto` (defined above) — see the
 --   next bullet for why a helper rather than inline pattern-matching.
 --
--- *Why the helper `refactor_IsInto` rather than an inline constructor-
+-- *Why the helper `IsInto` rather than an inline constructor-
 --   tag enumeration.*  The naive port — enumerate all 9 combinations
 --   of (`s_{k-1}`'s tag) × (`s_k`'s tag) at position `k = 1` and ask
 --   "does this pair of tags encode an arrowhead at `v_k` from both
@@ -665,7 +646,7 @@ variable {G : refactor_CDMG Node}
 --   tag loses the self-loop coincidence; both readings are
 --   simultaneously valid for the same edge.  The fix is to test "is
 --   there an arrowhead at `v_k`?" by *node-equality* on the type
---   indices instead — exactly what `refactor_IsInto` does.  Under the
+--   indices instead — exactly what `IsInto` does.  Under the
 --   helper, both `.forwardE _` and `.backwardE _` encodings of a
 --   self-loop at `v_k` correctly fire `IsInto v_k = True`, recovering
 --   the original's count.  Wording-check subtlety
@@ -676,42 +657,42 @@ variable {G : refactor_CDMG Node}
 -- *Why the recursive pattern-match style rather than retaining the
 --   original's existential-with-`vertices`/`edges`-indexing shape.*
 --   Two converging reasons:
---   - **`refactor_edges` does not exist** (`Walks.lean:1631-1685`'s
---     "Why no `refactor_edges`" block documents the intentional
+--   - **`edges` does not exist** (`Walks.lean:1631-1685`'s
+--     "Why no `edges`" block documents the intentional
 --     omission), so the original's `p.edges[k - 1]? = some a₁ ∧
 --     p.edges[k]? = some a₂` indexing has no refactor counterpart at
---     all.  Without `refactor_edges`, every per-step classification
+--     all.  Without `edges`, every per-step classification
 --     *must* be done by pattern-matching on the typed
---     `refactor_WalkStep` constructors directly off the
---     `refactor_Walk.cons` cell.
+--     `WalkStep` constructors directly off the
+--     `Walk.cons` cell.
 --   - **Pattern-match on constructors is structurally exclusive** —
 --     `.forwardE`, `.backwardE`, `.bidir` are mutually disjoint
 --     constructors, so the recursion bottoms out structurally rather
 --     than by Option-membership failure as in the original.  The
---     `nil` / `cons-nil` / `cons-cons` shape of `refactor_Walk`
+--     `nil` / `cons-nil` / `cons-cons` shape of `Walk`
 --     translates the original's in-range / out-of-range / end-position
 --     case analysis into pattern-match exhaustiveness checked by Lean's
 --     equation compiler.
 --
--- *Self-loop semantics preserved via the `refactor_IsInto` helper.*
+-- *Self-loop semantics preserved via the `IsInto` helper.*
 --   A directed self-loop `(v, v) ∈ G.E` at step `s_i` is encoded as
 --   either `.forwardE h` (with `h : (u, v) ∈ G.E`, here `u = v`) or
 --   `.backwardE h` (with `h : (v, u) ∈ G.E`, here `v = u`).  At a
 --   self-loop position, the WalkStep's source and target type indices
 --   are the SAME node, so the node-equality test inside
---   `refactor_IsInto` fires `True` for BOTH `.forwardE` and
+--   `IsInto` fires `True` for BOTH `.forwardE` and
 --   `.backwardE` encodings of the self-loop — matching the original's
 --   `G.into v_k (v_k, v_k) = True` via the E-clause's `e.2 = v_k`
---   condition.  Concretely: a `.forwardE _ : refactor_WalkStep G v_k
+--   condition.  Concretely: a `.forwardE _ : WalkStep G v_k
 --   v_k` at slot `s_{k-1}` hits `IsInto`'s `w = v` branch with
 --   `w = v_k` and `v = v_k`, returning `True`; a
---   `.backwardE _ : refactor_WalkStep G v_k v_k` at slot `s_k` hits
+--   `.backwardE _ : WalkStep G v_k v_k` at slot `s_k` hits
 --   `IsInto`'s `w = u` branch with `w = v_k` and `u = v_k`, also
 --   returning `True`.  `.bidir _` is *impossible* on a self-loop
 --   because the refactor's `hL_irrefl : ∀ ⦃s⦄, s ∈ G.L → ¬ s.IsDiag`
 --   rules out `s(v, v) ∈ G.L` outright, so the bidir disjunction never
 --   fires at a self-loop.  No special-casing is needed in
---   `refactor_IsCollider` itself — the helper absorbs the self-loop
+--   `IsCollider` itself — the helper absorbs the self-loop
 --   convention through its node-equality test.
 --
 -- *Why the cons-nil branch (length-1 walk) returns `False` uniformly
@@ -721,7 +702,7 @@ variable {G : refactor_CDMG Node}
 --   `def_3_15`): at an end-position `k ∈ {0, n}` at most one walk-
 --   incident index is admissible, so `ah_π(k) ≤ 1` automatically and
 --   the position is a non-collider.  A length-1 walk
---   (`refactor_Walk.cons _ _ (.nil _ _)`, `n = 1`) has *only* end-
+--   (`Walk.cons _ _ (.nil _ _)`, `n = 1`) has *only* end-
 --   positions `k ∈ {0, 1}` — no interior positions exist — so
 --   `ah_π(k) = 2` is impossible at every `k`, and the position is
 --   *necessarily* a non-collider.  The `.cons _ _ (.nil _ _), _`
@@ -738,12 +719,12 @@ variable {G : refactor_CDMG Node}
 --   encoded the same content via the `p.edges[k - 1]? = some _ ∧
 --   p.edges[k]? = some _` Option-membership conjuncts (which fail at
 --   `k = 0` and at `k ≥ p.length`); the refactor port encodes it
---   structurally via the cons-pattern instead, since `refactor_edges`
+--   structurally via the cons-pattern instead, since `edges`
 --   does not exist (see "Why the recursive pattern-match style"
 --   below).
 --
 -- *Why no explicit `1 ≤ k` end-position guard, and why no
---   `k ≤ p.refactor_length - 1` end-position guard.*  Both are
+--   `k ≤ p.length - 1` end-position guard.*  Both are
 --   absorbed into the recursive structure of the pattern match itself.
 --   - At `k = 0`: the only branches firing are `.nil _ _, _` (a trivial
 --     walk has no interior, returns `False`),
@@ -754,7 +735,7 @@ variable {G : refactor_CDMG Node}
 --     branch catches all `k`, returning `False` — correct since
 --     position 1 is the end of a length-1 walk and the original's
 --     `p.edges[1]? = none` would also return `False` here.
---   - At `k > p.refactor_length`: the recursion bottoms out by
+--   - At `k > p.length`: the recursion bottoms out by
 --     descending through cons-cells with `k + 2` decrementing to
 --     `k + 1`, until eventually the walk is `.nil _ _` or
 --     `.cons _ _ (.nil _ _)`, both of which return `False`.  Out-of-
@@ -762,9 +743,9 @@ variable {G : refactor_CDMG Node}
 --     bound check, exactly as the original did via the
 --     `p.edges[k]? = none` Option-membership failure.
 --   This is the same recursion discipline used by
---   `refactor_IsBifurcationWithSplit`: the trivial walk and the
+--   `IsBifurcationWithSplit`: the trivial walk and the
 --   length-1 walk are explicit base cases; longer walks recurse via
---   `p.refactor_IsCollider (k + 1)` (index shift by 1 because the
+--   `p.IsCollider (k + 1)` (index shift by 1 because the
 --   tail walk starts at v_1, not v_0 — see the next bullet).
 --
 -- *Why the recursive call is on `p` at index `k + 1` (not at `k`).*
@@ -773,7 +754,7 @@ variable {G : refactor_CDMG Node}
 --   tail walk starts at vertex `v_1`, not `v_0`).  The LN's position
 --   `k + 2` on the outer walk corresponds to position `k + 1` on the
 --   tail walk (vertex re-indexing shifts by 1).  Hence the call is
---   `p.refactor_IsCollider (k + 1)`, not `p.refactor_IsCollider k`.
+--   `p.IsCollider (k + 1)`, not `p.IsCollider k`.
 --   Note that the tail walk here starts with the cons-cell containing
 --   `s_1` (which becomes the new `s_0` of the tail), so position
 --   `k + 1` on the tail corresponds correctly to position `k + 2` on
@@ -797,7 +778,7 @@ variable {G : refactor_CDMG Node}
 --   instead the tail's first two steps `(s_1, s_2)` form the relevant
 --   pair at the outer's position `k + 2 = (tail position) + 1`, and
 --   the tail's position-1 query recovers
---   `tail.refactor_IsCollider 1 ↔ s_1.IsInto v_2 ∧ s_2.IsInto v_2`,
+--   `tail.IsCollider 1 ↔ s_1.IsInto v_2 ∧ s_2.IsInto v_2`,
 --   which is exactly the outer's position-2 query
 --   `cons s_0 (cons s_1 …).IsCollider 2`.  Net effect: position 1 is
 --   special-cased (dedicated branch); positions `2..n−1` are recursed
@@ -815,11 +796,11 @@ variable {G : refactor_CDMG Node}
 --   the `k = 1` branch.*  The `IsInto` helper calls require `vk`
 --   (= `v_1` of the walk) on the RHS as the node to test arrowhead-
 --   presence for.  Binding `vk` in the pattern reads the cons-cell's
---   middle vertex out for use in both `s₀.refactor_IsInto vk` and
---   `s₁.refactor_IsInto vk`.  This is `refactor_Walk.cons`'s first
+--   middle vertex out for use in both `s₀.IsInto vk` and
+--   `s₁.IsInto vk`.  This is `Walk.cons`'s first
 --   explicit constructor argument (the `(v : Node)` slot of
---   `cons {u w : Node} (v : Node) (s : refactor_WalkStep G u v) (p :
---   refactor_Walk G v w)`), so binding the first pattern position of
+--   `cons {u w : Node} (v : Node) (s : WalkStep G u v) (p :
+--   Walk G v w)`), so binding the first pattern position of
 --   the cons reads exactly `v_1`.  No other branch references the
 --   middle vertex (the `False`/recursion branches don't need it), so
 --   they keep their `_` wildcard.
@@ -828,37 +809,35 @@ variable {G : refactor_CDMG Node}
 --   level beyond the wrapped ORIGINAL block above.*  The original
 --   `Walk.IsCollider` (ORIGINAL block) remains under the original
 --   `CDMG` namespace and continues to compile; the refactor's
---   `refactor_IsCollider` is a separate `def` under the
---   `refactor_CDMG.refactor_Walk` namespace.  The
+--   `IsCollider` is a separate `def` under the
+--   `CDMG.Walk` namespace.  The
 --   `REFACTOR-BLOCK-REPLACEMENT` marker pair wraps the entire `def`;
---   Phase 7 cleanup will rename `refactor_IsCollider` to `IsCollider`
+--   Phase 7 cleanup will rename `IsCollider` to `IsCollider`
 --   (whole-word) across every refactored file, leaving a `def IsCollider`
 --   in the final tree — the LN's intended object name.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsCollider (was: refactor_IsCollider)
 -- def_3_15 -- start statement
-def refactor_IsCollider : ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
+def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ _ (.nil _ _), _ => False
   | _, _, .cons _ _ (.cons _ _ _), 0 => False
   | _, _, .cons vk s₀ (.cons _ s₁ _), 1 =>
-      s₀.refactor_IsInto vk ∧ s₁.refactor_IsInto vk
-  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.refactor_IsCollider (k + 1)
+      s₀.IsInto vk ∧ s₁.IsInto vk
+  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)
 -- def_3_15 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsCollider
 
 -- ref: def_3_15 (item i, non-collider) — refactor
 --
--- `p.refactor_IsNonCollider k` iff position `k` on the walk `p` is in
--- range (`k ≤ p.refactor_length`) and has arrowhead count
--- `ah_π(k) ≤ 1`, equivalently `¬ p.refactor_IsCollider k`.  Body
+-- `p.IsNonCollider k` iff position `k` on the walk `p` is in
+-- range (`k ≤ p.length`) and has arrowhead count
+-- `ah_π(k) ≤ 1`, equivalently `¬ p.IsCollider k`.  Body
 -- identical to the original `Walk.IsNonCollider` (ORIGINAL block above)
 -- modulo two mechanical retargets:
--- - `p.length` → `p.refactor_length` (the refactor-ported walk-length
+-- - `p.length` → `p.length` (the refactor-ported walk-length
 --   helper at `Walks.lean:1590-1593`); and
--- - `p.IsCollider` → `p.refactor_IsCollider` (the REPLACEMENT def
+-- - `p.IsCollider` → `p.IsCollider` (the REPLACEMENT def
 --   immediately above).
 --
--- ## Design choice — refactor_IsNonCollider
+-- ## Design choice — IsNonCollider
 --
 -- *Why the refactor needs to touch this predicate.*  Mechanically only,
 --   not semantically.  The body references two walk-helpers that have
@@ -867,21 +846,21 @@ def refactor_IsCollider : ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
 --   `Prop`-level conjunction `k ≤ … ∧ ¬ …`, the bound-via-natural-
 --   number-comparison shape, the LN-correspondence to the canonical
 --   tex's "non-collider iff `ah_π(k) ≤ 1`" reading — all unchanged.
---   Note that the `refactor_IsCollider` reference now resolves to the
+--   Note that the `IsCollider` reference now resolves to the
 --   `IsInto`-helper-based predicate immediately above, so the self-
 --   loop convention (a self-loop contributes exactly one arrowhead at
 --   the loop vertex) is preserved through this indirection — see the
---   `refactor_IsCollider` design block for the load-bearing
+--   `IsCollider` design block for the load-bearing
 --   node-equality-based reading.
 --
--- *Why `k ≤ p.refactor_length` rather than the Option-membership style
---   (`p.refactor_vertices[k]? = some _`).*  Same rationale as the
+-- *Why `k ≤ p.length` rather than the Option-membership style
+--   (`p.vertices[k]? = some _`).*  Same rationale as the
 --   original (ORIGINAL block above's design notes): the LN's "every
 --   position on `π`" scope is `{0, 1, …, n}`, and the bound
---   `k ≤ p.refactor_length` is the exact ℕ-comparison encoding of this
+--   `k ≤ p.length` is the exact ℕ-comparison encoding of this
 --   index set.  An Option-membership encoding would force every
 --   downstream consumer to destructure the witness, which is not needed
---   here because the body's other conjunct (`¬ p.refactor_IsCollider k`)
+--   here because the body's other conjunct (`¬ p.IsCollider k`)
 --   does not consume a `v_k` witness.  Preserving the asymmetry between
 --   the original's `IsCollider` (positive existential with Option-
 --   membership) and `IsNonCollider` (bounded negation with explicit
@@ -889,23 +868,23 @@ def refactor_IsCollider : ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
 --   the helper-level surface retargets to the typed-WalkStep API.
 --
 -- *Why mutual exclusivity on the in-range fragment stays definitional
---   after the port.*  `refactor_IsNonCollider p k` literally unfolds
---   to `k ≤ p.refactor_length ∧ ¬ p.refactor_IsCollider k`, so on the
---   in-range fragment `k ≤ p.refactor_length` the statement
---   `p.refactor_IsNonCollider k ↔ ¬ p.refactor_IsCollider k` reduces
+--   after the port.*  `IsNonCollider p k` literally unfolds
+--   to `k ≤ p.length ∧ ¬ p.IsCollider k`, so on the
+--   in-range fragment `k ≤ p.length` the statement
+--   `p.IsNonCollider k ↔ ¬ p.IsCollider k` reduces
 --   by definitional unfolding alone — no external theorem needed.  The
 --   original's symmetry property (ORIGINAL block above's design notes)
 --   is preserved verbatim through the mechanical retarget; only the
 --   referenced helpers change, not the logical shape of the predicate.
 --
 -- *End-positions are non-colliders automatically (preserved).*  Both
---   `k = 0` (`0 ≤ p.refactor_length` always holds) and
---   `k = p.refactor_length` satisfy the in-range bound.  At `k = 0`,
---   `refactor_IsCollider` fires the `.nil _ _, _` or `.cons _ _ _, 0`
---   branches, returning `False`.  At `k = p.refactor_length`, the
+--   `k = 0` (`0 ≤ p.length` always holds) and
+--   `k = p.length` satisfy the in-range bound.  At `k = 0`,
+--   `IsCollider` fires the `.nil _ _, _` or `.cons _ _ _, 0`
+--   branches, returning `False`.  At `k = p.length`, the
 --   recursion eventually descends into a `.nil _ _` or
 --   `.cons _ _ (.nil _ _)` tail at the indexed position, also returning
---   `False`.  Either way `refactor_IsNonCollider` evaluates to `True`,
+--   `False`.  Either way `IsNonCollider` evaluates to `True`,
 --   preserving the LN's "end-positions are non-colliders by
 --   construction" reading without modification.
 --
@@ -913,20 +892,18 @@ def refactor_IsCollider : ∀ {u v : Node}, refactor_Walk G u v → ℕ → Prop
 --   level beyond the wrapped ORIGINAL block above.*  The original
 --   `Walk.IsNonCollider` (ORIGINAL block) remains under the original
 --   `CDMG` namespace and continues to compile; the refactor's
---   `refactor_IsNonCollider` is a separate `def` under the
---   `refactor_CDMG.refactor_Walk` namespace.  Phase 7 cleanup will
---   rename `refactor_IsNonCollider` to `IsNonCollider` (whole-word)
+--   `IsNonCollider` is a separate `def` under the
+--   `CDMG.Walk` namespace.  Phase 7 cleanup will
+--   rename `IsNonCollider` to `IsNonCollider` (whole-word)
 --   across every refactored file, leaving a `def IsNonCollider` in the
 --   final tree — the LN's intended object name.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNonCollider (was: refactor_IsNonCollider)
 -- def_3_15 -- start statement
-def refactor_IsNonCollider {u v : Node} (p : refactor_Walk G u v) (k : ℕ) : Prop :=
-  k ≤ p.refactor_length ∧ ¬ p.refactor_IsCollider k
+def IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  k ≤ p.length ∧ ¬ p.IsCollider k
 -- def_3_15 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsNonCollider
 
-end refactor_Walk
+end Walk
 
-end refactor_CDMG
+end CDMG
 
 end Causality

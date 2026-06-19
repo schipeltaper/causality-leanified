@@ -251,14 +251,6 @@ file `def_3_8_TopologicalOrder.tex`):
 --   ch.\ 5's factorisation reverse-ordering, ch.\ 7's
 --   acyclification ordering on SCCs) all reuse this projection
 --   pattern.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsTotalOrder
--- def_3_8 --- start helper
-def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
-  (∀ v ∈ G, ¬ lt v v) ∧
-  (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
-  (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
--- def_3_8 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: IsTotalOrder
 
 -- ref: def_3_8
 -- `G.IsTopologicalOrder lt` asserts that the strict binary relation
@@ -402,16 +394,10 @@ LN tex (rewritten canonical statement for `def_3_8`):
 --   id-separation argument) or via `.2` for the parent-precedence
 --   clause (e.g.\ when factorising a joint kernel into mechanism
 --   conditionals).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsTopologicalOrder
--- def_3_8 -- start statement
-def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
-  G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)
--- def_3_8 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsTopologicalOrder
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — statement context (refactor twin)
 --
@@ -422,23 +408,22 @@ namespace refactor_CDMG
 -- `variable` line that binds the implicit parameters into the
 -- predicates wrapped below.  Both `Node : Type*` and
 -- `[DecidableEq Node]` are inherited verbatim from `def_3_1`'s
--- refactor twin (`refactor_CDMG`): the `Membership Node
--- (refactor_CDMG Node)` instance from `def_3_2`'s refactor twin
--- (`refactor_instMembership` in `CDMGNotation.lean`) — driving the
+-- refactor twin (`CDMG`): the `Membership Node
+-- (CDMG Node)` instance from `def_3_2`'s refactor twin
+-- (`instMembership` in `CDMGNotation.lean`) — driving the
 -- `v ∈ G` quantifier scope below — reduces to `Finset.mem` on
 -- `G.J ∪ G.V`, which needs `DecidableEq Node`; the
--- `G.refactor_Pa w : Set Node` reference in
--- `refactor_IsTopologicalOrder` reaches back to `def_3_5`'s
--- refactor twin (`refactor_Pa` in `FamilyRelationships.lean`)
+-- `G.Pa w : Set Node` reference in
+-- `IsTopologicalOrder` reaches back to `def_3_5`'s
+-- refactor twin (`Pa` in `FamilyRelationships.lean`)
 -- whose body `{u | u ∈ G ∧ (u, w) ∈ G.E}` likewise depends on
 -- `DecidableEq` through `Finset` membership.
 -- def_3_8 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_8 --- end helper
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsTotalOrder (was: refactor_IsTotalOrder)
 -- ref: def_3_8 — refactor twin
--- `G.refactor_IsTotalOrder lt` asserts that the strict binary
+-- `G.IsTotalOrder lt` asserts that the strict binary
 -- relation `lt : Node → Node → Prop` restricts to a *strict total
 -- order* on the vertex set `J ∪ V` of `G`, i.e.\ (i) irreflexive on
 -- `J ∪ V` (`¬ lt v v` for `v ∈ G`), (ii) transitive on `J ∪ V`, and
@@ -469,36 +454,34 @@ rewritten canonical statement file `def_3_8_TopologicalOrder.tex`):
 -- structure — is **unchanged**.  Both wording-check subtleties
 -- carried by this row remain resolved exactly as before:
 -- `quantifier_domain_v_w_in_G_is_tuple_not_set` is handled by the
--- `refactor_instMembership` instance reducing `v ∈ G` to
+-- `instMembership` instance reducing `v ∈ G` to
 -- `v ∈ G.J ∪ G.V`, and `equivalent_indexing_assumes_finite_node_set`
 -- is unaffected (finiteness still holds via `def_3_1`'s
 -- `Finset`-valued `J, V` — both fields are unchanged on
--- `refactor_CDMG`).
+-- `CDMG`).
 --
 -- *Upstream-type shifts (and only those).*
---   `CDMG Node → refactor_CDMG Node`
+--   `CDMG Node → CDMG Node`
 -- No other change.  In particular, the `∀ v ∈ G, …` quantifier
--- ports verbatim because the `refactor_instMembership` instance
+-- ports verbatim because the `instMembership` instance
 -- (`CDMGNotation.lean`'s refactor twin of `def_3_2`) gives the same
--- `v ∈ G.J ∪ G.V` reduction on `refactor_CDMG Node` as the original
+-- `v ∈ G.J ∪ G.V` reduction on `CDMG Node` as the original
 -- `instMembership` does on `CDMG Node`.  This predicate does not
 -- touch the `L` field, so the `Finset (Node × Node) → Finset (Sym2
 -- Node)` retyping at root `def_3_1` does not propagate here.
 -- def_3_8 --- start helper
-def refactor_IsTotalOrder (G : refactor_CDMG Node) (lt : Node → Node → Prop) : Prop :=
+def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
   (∀ v ∈ G, ¬ lt v v) ∧
   (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
   (∀ v ∈ G, ∀ w ∈ G, lt v w ∨ v = w ∨ lt w v)
 -- def_3_8 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: IsTotalOrder
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsTopologicalOrder (was: refactor_IsTopologicalOrder)
 -- ref: def_3_8 — refactor twin
--- `G.refactor_IsTopologicalOrder lt` asserts that the strict binary
+-- `G.IsTopologicalOrder lt` asserts that the strict binary
 -- relation `lt : Node → Node → Prop` is a *topological order* of
--- the CDMG `G`, i.e.\ (i) `G.refactor_IsTotalOrder lt` — a strict
+-- the CDMG `G`, i.e.\ (i) `G.IsTotalOrder lt` — a strict
 -- total order on `J ∪ V` (irreflexive, transitive, trichotomous;
--- see the `refactor_IsTotalOrder` block above) — and (ii) for every
+-- see the `IsTotalOrder` block above) — and (ii) for every
 -- parent-child pair `v ∈ Pa^G(w)` we have `lt v w`: parents precede
 -- their children under `<`.  See the `IsTopologicalOrder` design
 -- block above (`namespace CDMG`) for the full rationale — the
@@ -525,7 +508,7 @@ the refactor):
 -- *Structural port of the original `IsTopologicalOrder`*
 -- (`namespace CDMG`, lines above) onto the `cdmg_typed_edges`
 -- refactor's new upstream types (DEPENDENT row; roots `def_3_1`,
--- via `def_3_5`'s `refactor_Pa`).  The mathematical design — the
+-- via `def_3_5`'s `Pa`).  The mathematical design — the
 -- nested 2-conjunct shape `IsTotalOrder ∧ parent-precedence`, the
 -- predicate-not-existence shape, the explicit-`lt`-argument
 -- choice, the deliberate no-guard form of the parent implication
@@ -535,16 +518,16 @@ the refactor):
 -- indexed predicate) — is **unchanged**.  Both wording-check
 -- subtleties remain resolved exactly as before
 -- (`quantifier_domain_v_w_in_G_is_tuple_not_set` via the
--- `refactor_instMembership` instance,
+-- `instMembership` instance,
 -- `equivalent_indexing_assumes_finite_node_set` via
--- `refactor_CDMG`'s unchanged `Finset`-valued `J, V`).
+-- `CDMG`'s unchanged `Finset`-valued `J, V`).
 --
 -- *Upstream-type shifts (and only those).*
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsTotalOrder  → G.refactor_IsTotalOrder`  (the cross-call
+--   `CDMG Node       → CDMG Node`
+--   `G.IsTotalOrder  → G.IsTotalOrder`  (the cross-call
 --                      to the helper above, retyped onto the
 --                      refactor namespace)
---   `G.Pa            → G.refactor_Pa`  (the per-vertex parent set
+--   `G.Pa            → G.Pa`  (the per-vertex parent set
 --                      from `def_3_5`'s refactor twin in
 --                      `FamilyRelationships.lean`; its body
 --                      `{u | u ∈ G ∧ (u, w) ∈ G.E}` is unchanged
@@ -552,21 +535,20 @@ the refactor):
 --                      `Finset (Node × Node)` is unchanged by the
 --                      refactor — only the `L`-side of `def_3_1`
 --                      retyped to `Finset (Sym2 Node)`).
--- No other change.  The unrestricted `∀ v w, v ∈ G.refactor_Pa w
+-- No other change.  The unrestricted `∀ v w, v ∈ G.Pa w
 -- → lt v w` quantifier reads identically to the original: the
 -- inner `v ∈ G` and `w ∈ G` witnesses still come from
--- `refactor_Pa`'s set-builder body / `refactor_CDMG.hE_subset`,
+-- `Pa`'s set-builder body / `CDMG.hE_subset`,
 -- and the LN's "for all `v, w ∈ G`" is again shorthand for
 -- `v, w ∈ J ∪ V`.  Neither this predicate nor its constituents
--- `refactor_IsTotalOrder` and `refactor_Pa` reach into the `L`
+-- `IsTotalOrder` and `Pa` reach into the `L`
 -- field, so the `Finset (Node × Node) → Finset (Sym2 Node)`
 -- retyping at root `def_3_1` does not propagate here.
 -- def_3_8 -- start statement
-def refactor_IsTopologicalOrder (G : refactor_CDMG Node) (lt : Node → Node → Prop) : Prop :=
-  G.refactor_IsTotalOrder lt ∧ (∀ v w, v ∈ G.refactor_Pa w → lt v w)
+def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
+  G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)
 -- def_3_8 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsTopologicalOrder
 
-end refactor_CDMG
+end CDMG
 
 end Causality

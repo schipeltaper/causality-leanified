@@ -171,22 +171,7 @@ is the load-bearing contract for the rest of chapter 3.
 --   order exists via `def_3_8`, marginalising over a non-empty
 --   subset) add that hypothesis at the use site rather than baking
 --   it into the foundational type.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: CDMG
--- def_3_1 -- start statement
-structure CDMG (Node : Type*) [DecidableEq Node] where
-  J : Finset Node
-  V : Finset Node
-  hJV_disj : Disjoint J V
-  E : Finset (Node × Node)
-  hE_subset : ∀ ⦃e : Node × Node⦄, e ∈ E → e.1 ∈ J ∪ V ∧ e.2 ∈ V
-  L : Finset (Node × Node)
-  hL_subset : ∀ ⦃e : Node × Node⦄, e ∈ L → e.1 ∈ V ∧ e.2 ∈ V
-  hL_irrefl : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → v1 ≠ v2
-  hL_symm : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → (v2, v1) ∈ L
--- def_3_1 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: CDMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: CDMG (was: refactor_CDMG)
 -- ref: def_3_1
 --
 -- A *conditional directed mixed graph* `G` over an ambient node type
@@ -380,7 +365,7 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
 --   subset) add that hypothesis at the use site rather than baking
 --   it into the foundational type.
 -- def_3_1 -- start statement
-structure refactor_CDMG (Node : Type*) [DecidableEq Node] where
+structure CDMG (Node : Type*) [DecidableEq Node] where
   J : Finset Node
   V : Finset Node
   hJV_disj : Disjoint J V
@@ -390,6 +375,5 @@ structure refactor_CDMG (Node : Type*) [DecidableEq Node] where
   hL_subset : ∀ ⦃s : Sym2 Node⦄, s ∈ L → ∀ ⦃v : Node⦄, v ∈ s → v ∈ V
   hL_irrefl : ∀ ⦃s : Sym2 Node⦄, s ∈ L → ¬ s.IsDiag
 -- def_3_1 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: CDMG
 
 end Causality

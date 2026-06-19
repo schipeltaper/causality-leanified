@@ -224,13 +224,6 @@ LN tex (rewritten canonical statement for `def_3_9`, strict form):
 --   call to `G.Pred lt h v`, typically obtained via the first
 --   projection `(h_topo : G.IsTopologicalOrder lt).1` from a
 --   topological-order hypothesis already in scope.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: Pred
--- def_3_9 -- start statement
-def Pred (G : CDMG Node) (lt : Node → Node → Prop)
-    (_h : G.IsTotalOrder lt) (v : Node) : Set Node :=
-  {w | w ∈ G ∧ lt w v}
--- def_3_9 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: Pred
 
 -- ref: def_3_9 (non-strict predecessors)
 --
@@ -332,17 +325,10 @@ LN tex (rewritten canonical statement for `def_3_9`, non-strict form):
 --   between `Pred` and `PredLE` is purely the strict-vs-non-strict
 --   variant the LN explicitly introduces; both names appear under
 --   that distinction in later chapters.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: PredLE
--- def_3_9 -- start statement
-def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
-    (h : G.IsTotalOrder lt) (v : Node) : Set Node :=
-  G.Pred lt h v ∪ {v}
--- def_3_9 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: PredLE
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — statement context (refactor twin)
 --
@@ -353,23 +339,22 @@ namespace refactor_CDMG
 -- `TopologicalOrder.lean` for the `variable` line that binds the
 -- implicit parameters into the predicates wrapped below.  Both
 -- `Node : Type*` and `[DecidableEq Node]` are inherited verbatim
--- from `def_3_1`'s refactor twin (`refactor_CDMG`): the
--- `Membership Node (refactor_CDMG Node)` instance from `def_3_2`'s
--- refactor twin (`refactor_instMembership` in `CDMGNotation.lean`) —
--- driving the `w ∈ G` conjunct of the `refactor_Pred` set-builder
+-- from `def_3_1`'s refactor twin (`CDMG`): the
+-- `Membership Node (CDMG Node)` instance from `def_3_2`'s
+-- refactor twin (`instMembership` in `CDMGNotation.lean`) —
+-- driving the `w ∈ G` conjunct of the `Pred` set-builder
 -- body below — reduces to `Finset.mem` on `G.J ∪ G.V`, which needs
 -- `DecidableEq Node`.
 -- def_3_9 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_9 --- end helper
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Pred (was: refactor_Pred)
 -- ref: def_3_9 — refactor twin (strict predecessors)
--- `G.refactor_Pred lt h v` is the set of *strict* predecessors of
+-- `G.Pred lt h v` is the set of *strict* predecessors of
 -- `v` in `G` under the order `lt`: nodes `w ∈ J ∪ V` (i.e.\ `w ∈ G`
 -- via `def_3_2`'s refactor-twin `Membership` instance) with
 -- `lt w v`.  The signature carries an explicit
--- `(h : G.refactor_IsTotalOrder lt)` hypothesis sitting between
+-- `(h : G.IsTotalOrder lt)` hypothesis sitting between
 -- `lt` and `v`, enforcing the LN's "*Let `<` be a total order of
 -- `J ∪ V`*" premise at the type level.  See the `Pred` design block
 -- above (`namespace CDMG`) for the full rationale — the
@@ -403,22 +388,22 @@ unchanged by refactor):
 -- — is **unchanged** (byte-identical to the original modulo the
 -- type-shifts listed below).  All three wording-check subtleties
 -- carried by this row remain resolved exactly as before:
--- `ambiguous_w_in_G_notation` via the `refactor_instMembership`
+-- `ambiguous_w_in_G_notation` via the `instMembership`
 -- instance (`CDMGNotation.lean`'s refactor twin of `def_3_2`)
 -- reducing `w ∈ G` to `w ∈ G.J ∪ G.V`,
 -- `v_not_required_to_be_in_J_union_V` via the literal LN stance on
 -- `v : Node`, and `subscript_le_body_uses_strict` deferred to the
--- `refactor_PredLE` block below (the strict body here is unaffected).
+-- `PredLE` block below (the strict body here is unaffected).
 --
 -- *Upstream-type shifts (and only those).*
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsTotalOrder  → G.refactor_IsTotalOrder`  (the `h`-hypothesis
+--   `CDMG Node       → CDMG Node`
+--   `G.IsTotalOrder  → G.IsTotalOrder`  (the `h`-hypothesis
 --                      premise, retyped onto the refactor namespace
 --                      via `TopologicalOrder.lean`'s refactor twin)
 -- No other change.  In particular, the `w ∈ G` conjunct of the
 -- set-builder body ports verbatim because the
--- `refactor_instMembership` instance gives the same `w ∈ G.J ∪ G.V`
--- reduction on `refactor_CDMG Node` as the original `instMembership`
+-- `instMembership` instance gives the same `w ∈ G.J ∪ G.V`
+-- reduction on `CDMG Node` as the original `instMembership`
 -- does on `CDMG Node`.  This predicate does not reach into the `L`
 -- field at all — neither directly nor through any of its sub-terms
 -- (`G.J ∪ G.V`, `lt`, `h`) — so the
@@ -426,21 +411,19 @@ unchanged by refactor):
 -- `def_3_1` flows through transparently; this is precisely the
 -- natural-port property that makes the row a mechanical DEPENDENT.
 -- def_3_9 -- start statement
-def refactor_Pred (G : refactor_CDMG Node) (lt : Node → Node → Prop)
-    (_h : G.refactor_IsTotalOrder lt) (v : Node) : Set Node :=
+def Pred (G : CDMG Node) (lt : Node → Node → Prop)
+    (_h : G.IsTotalOrder lt) (v : Node) : Set Node :=
   {w | w ∈ G ∧ lt w v}
 -- def_3_9 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: Pred
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: PredLE (was: refactor_PredLE)
 -- ref: def_3_9 — refactor twin (non-strict predecessors)
--- `G.refactor_PredLE lt h v` is the set of *non-strict* predecessors
+-- `G.PredLE lt h v` is the set of *non-strict* predecessors
 -- of `v` in `G` under `lt`: the strict predecessor set
--- `G.refactor_Pred lt h v` together with `v` itself, i.e.\
--- `refactor_Pred lt v ∪ {v}`.  The signature carries the same
--- explicit `(h : G.refactor_IsTotalOrder lt)` hypothesis as
--- `refactor_Pred`, sitting between `lt` and `v`, and the body
--- forwards `h` into the call to `refactor_Pred`.  See the `PredLE`
+-- `G.Pred lt h v` together with `v` itself, i.e.\
+-- `Pred lt v ∪ {v}`.  The signature carries the same
+-- explicit `(h : G.IsTotalOrder lt)` hypothesis as
+-- `Pred`, sitting between `lt` and `v`, and the body
+-- forwards `h` into the call to `Pred`.  See the `PredLE`
 -- design block above (`namespace CDMG`) for the full rationale — the
 -- literal-LN `Pred lt v ∪ {v}` body (strict body adjoined with the
 -- bare singleton, *not* the reflexive-closure `{w | w ≤ v}` form
@@ -448,7 +431,7 @@ def refactor_Pred (G : refactor_CDMG Node) (lt : Node → Node → Prop)
 -- `PredLE = Pred ∪ {v}`-recursion-on-`Pred` choice (vs unfolding to
 -- `{w | w ∈ G ∧ lt w v} ∪ {v}`), the `h`-forwarded-not-inspected
 -- pattern (binder named `h` not `_h` because the body references it
--- to forward into `refactor_Pred`), the
+-- to forward into `Pred`), the
 -- `IsTotalOrder`-not-`IsTopologicalOrder` premise level, the
 -- `Set Node` return type with set-builder / `Set`-union body
 -- (`Finset`-valued alternatives rejected for the same
@@ -470,49 +453,48 @@ form, unchanged by refactor):
 -- *Structural port of the original `PredLE`* (`namespace CDMG`,
 -- lines above) onto the `cdmg_typed_edges` refactor's new upstream
 -- types (DEPENDENT row; root `def_3_1`, via `def_3_8`'s
--- `refactor_IsTotalOrder` and this file's `refactor_Pred` just
+-- `IsTotalOrder` and this file's `Pred` just
 -- above).  The mathematical content — literal LN body
 -- `G.…Pred lt h v ∪ {v}` (strict-set-plus-singleton, not the
 -- reflexive-closure `{w | w ≤ v}` form, not unfolded into an
 -- independent set-builder), the `h`-forwarded-through-the-call
 -- pattern, the `Set Node` return type, and the literal-LN
--- corner-case `v ∈ refactor_PredLE lt h v` unconditionally — is
+-- corner-case `v ∈ PredLE lt h v` unconditionally — is
 -- **unchanged** (byte-identical to the original modulo the type
 -- shifts listed below).  All three wording-check subtleties remain
 -- resolved as before: `ambiguous_w_in_G_notation` via the
--- `refactor_instMembership` instance (reached transitively through
--- the `refactor_Pred` call), `v_not_required_to_be_in_J_union_V` via
+-- `instMembership` instance (reached transitively through
+-- the `Pred` call), `v_not_required_to_be_in_J_union_V` via
 -- the unconstrained `v : Node`, and `subscript_le_body_uses_strict`
--- via the literal LN body spelled with the strict `refactor_Pred`
+-- via the literal LN body spelled with the strict `Pred`
 -- plus the bare singleton `{v}` (so `v` lands in the non-strict set
 -- through `{v}`, not through `lt`; under the corner case `v ∉ G`,
 -- the strict half is empty and the singleton carries `v` alone).
 --
 -- *Upstream-type shifts (and only those).*
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsTotalOrder  → G.refactor_IsTotalOrder`  (the `h`-hypothesis
+--   `CDMG Node       → CDMG Node`
+--   `G.IsTotalOrder  → G.IsTotalOrder`  (the `h`-hypothesis
 --                      premise)
---   `G.Pred          → G.refactor_Pred`          (the cross-call to
+--   `G.Pred          → G.Pred`          (the cross-call to
 --                      the strict predecessor set just above, retyped
 --                      onto the refactor namespace)
--- No other change.  The literal LN body `G.refactor_Pred lt h v ∪
+-- No other change.  The literal LN body `G.Pred lt h v ∪
 -- {v}` ports verbatim — Lean elaborates the brace notation `{v}` to
 -- the `Set Node` singleton via `Set.instSingleton` exactly as in the
 -- original, and `∪` resolves to `Set.union` on the same return type.
 -- This predicate does not reach into the `L` field at all (neither
--- directly nor through `refactor_Pred` — see that block above for
+-- directly nor through `Pred` — see that block above for
 -- the same property at one remove), so the
 -- `Finset (Node × Node) → Finset (Sym2 Node)` retyping at root
 -- `def_3_1` flows through transparently; this is the natural-port
--- property that lets `refactor_PredLE` track its strict cousin as a
+-- property that lets `PredLE` track its strict cousin as a
 -- mechanical DEPENDENT.
 -- def_3_9 -- start statement
-def refactor_PredLE (G : refactor_CDMG Node) (lt : Node → Node → Prop)
-    (h : G.refactor_IsTotalOrder lt) (v : Node) : Set Node :=
-  G.refactor_Pred lt h v ∪ {v}
+def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
+    (h : G.IsTotalOrder lt) (v : Node) : Set Node :=
+  G.Pred lt h v ∪ {v}
 -- def_3_9 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: PredLE
 
-end refactor_CDMG
+end CDMG
 
 end Causality

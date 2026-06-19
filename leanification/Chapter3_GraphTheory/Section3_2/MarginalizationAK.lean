@@ -93,11 +93,6 @@ namespace CDMG
 --   instances (`Fintype`, `LinearOrder`) are not needed at this
 --   row's level and would couple every consumer to the stronger
 --   constraint unnecessarily.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: variable_Node
--- def_3_14 --- start helper
-variable {Node : Type*} [DecidableEq Node]
--- def_3_14 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: variable_Node
 
 -- ## Helper: `MarginalizationΦE` — the directed-walk-through-`W` predicate
 --
@@ -217,15 +212,6 @@ variable {Node : Type*} [DecidableEq Node]
 --   Equivalence to LN + addition confirmed via `verify_equivalence`
 --   (against the rewritten bridge tex
 --   `tex/def_3_14_MarginalizationAK.tex`).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: MarginalizationΦE
--- def_3_14 --- start helper
-def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
-  ∃ (p : Walk G u v),
-    p.IsDirectedWalk ∧
-    p.length ≥ 1 ∧
-    (∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
--- def_3_14 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: MarginalizationΦE
 
 -- ## Helper: `MarginalizationΦL` — the bifurcation-through-`W` predicate
 --
@@ -345,15 +331,6 @@ def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
 -- *Symmetry status.*  Φ_L is *evidently* symmetric in `(u, v)` by
 --   `Or.comm`.  This matches the LN's `L^{∖W}` (a set of
 --   bidirected edges, symmetric like `G.L`).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: MarginalizationΦL
--- def_3_14 --- start helper
-def MarginalizationΦL (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
-  (∃ (p : Walk G u v),
-      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W) ∨
-  (∃ (p : Walk G v u),
-      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
--- def_3_14 --- end helper
--- REFACTOR-BLOCK-ORIGINAL-END: MarginalizationΦL
 
 -- ## Classical decidability instances for `Finset.filter`
 --
@@ -421,19 +398,7 @@ def MarginalizationΦL (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
 -- a single `DecidablePred (G.MarginalizationΦE W)`) so typeclass
 -- resolution can unify `u := e.1`, `v := e.2` for each concrete
 -- `e : Node × Node` flowing into the filter.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: instDecidableMarginalizationΦE
-noncomputable instance instDecidableMarginalizationΦE
-    (G : CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.MarginalizationΦE W u v) :=
-  Classical.propDecidable _
--- REFACTOR-BLOCK-ORIGINAL-END: instDecidableMarginalizationΦE
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: instDecidableMarginalizationΦL
-noncomputable instance instDecidableMarginalizationΦL
-    (G : CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.MarginalizationΦL W u v) :=
-  Classical.propDecidable _
--- REFACTOR-BLOCK-ORIGINAL-END: instDecidableMarginalizationΦL
 
 -- ## Proof helpers for the five CDMG axioms under marginalization
 --
@@ -453,12 +418,6 @@ noncomputable instance instDecidableMarginalizationΦL
 -- (symm).  `hW` is carried on the def's signature purely for
 -- LN-faithfulness of the precondition `W ⊆ V`.
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hJV_disj
-private lemma marginalize_hJV_disj (G : CDMG Node) (W : Finset Node) :
-    Disjoint G.J (G.V \ W) := by
-  refine Finset.disjoint_left.mpr fun a haJ haVW => ?_
-  exact Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hJV_disj
 
 
 -- ## `hE_subset` proof obligation for the `E^{∖W}` filter (internal plumbing)
@@ -476,52 +435,9 @@ private lemma marginalize_hJV_disj (G : CDMG Node) (W : Finset Node) :
 -- named-lemma references, the website builder renders the def's
 -- signature, and a reader sees the data assignments without proof
 -- clutter.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hE_subset
-private lemma marginalize_hE_subset (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃e : Node × Node⦄,
-      e ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-            (fun e => G.MarginalizationΦE W e.1 e.2) →
-      e.1 ∈ G.J ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
-  intro e he
-  exact Finset.mem_product.mp (Finset.mem_filter.mp he).1
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hE_subset
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hL_subset
-private lemma marginalize_hL_subset (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃e : Node × Node⦄,
-      e ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-            (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2) →
-      e.1 ∈ G.V \ W ∧ e.2 ∈ G.V \ W := by
-  intro e he
-  exact Finset.mem_product.mp (Finset.mem_filter.mp he).1
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hL_subset
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hL_irrefl
-private lemma marginalize_hL_irrefl (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃v1 v2 : Node⦄,
-      (v1, v2) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-            (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2) →
-      v1 ≠ v2 := by
-  intro _ _ h
-  exact (Finset.mem_filter.mp h).2.1
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hL_irrefl
 
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_hL_symm
-private lemma marginalize_hL_symm (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃v1 v2 : Node⦄,
-      (v1, v2) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-            (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2) →
-      (v2, v1) ∈ ((G.V \ W) ×ˢ (G.V \ W)).filter
-            (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2) := by
-  intro v1 v2 h
-  obtain ⟨hProd, hNe, hPhi⟩ := Finset.mem_filter.mp h
-  obtain ⟨h1, h2⟩ := Finset.mem_product.mp hProd
-  refine Finset.mem_filter.mpr ⟨Finset.mem_product.mpr ⟨h2, h1⟩, Ne.symm hNe, ?_⟩
-  -- Φ_L swaps as `Or.comm` on its two walk-orientation disjuncts.
-  rcases hPhi with hLeft | hRight
-  · exact Or.inr hLeft
-  · exact Or.inl hRight
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize_hL_symm
 
 -- ref: def_3_14
 --
@@ -771,131 +687,99 @@ LN block (verbatim, for backup):
 --   downstream.  Equivalence to LN + addition confirmed via
 --   `verify_equivalence` (against the rewritten bridge tex
 --   `tex/def_3_14_MarginalizationAK.tex`).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize
-set_option linter.unusedVariables false in
--- def_3_14 -- start statement
-noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) : CDMG Node where
-  J := G.J
-  V := G.V \ W
-  hJV_disj := marginalize_hJV_disj G W
-  E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-        (fun e => G.MarginalizationΦE W e.1 e.2)
-  hE_subset := marginalize_hE_subset G W
-  L := ((G.V \ W) ×ˢ (G.V \ W)).filter
-        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
-  hL_subset := marginalize_hL_subset G W
-  hL_irrefl := marginalize_hL_irrefl G W
-  hL_symm := marginalize_hL_symm G W
--- def_3_14 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: marginalize
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: variable_Node (was: refactor_variable_Node)
 -- def_3_14 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_14 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: variable_Node
 
 -- ref: def_3_14 (helper, directed-walk-through-`W` predicate) — refactor
 --
--- `refactor_MarginalizationΦE G W u v` is the post-refactor port of
+-- `MarginalizationΦE G W u v` is the post-refactor port of
 -- `MarginalizationΦE`: identical LN-level semantics ("exists a directed
 -- walk of length ≥ 1 in `G` from `u` to `v` whose intermediate vertices
--- all lie in `W`"), retargeted onto the new `refactor_Walk` /
--- `refactor_IsDirectedWalk` / `refactor_length` / `refactor_vertices`
+-- all lie in `W`"), retargeted onto the new `Walk` /
+-- `IsDirectedWalk` / `length` / `vertices`
 -- API.  The body is byte-identical to the original modulo those four
 -- surface retargets — no constructor case-splits or LN-conjunct changes.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: MarginalizationΦE (was: refactor_MarginalizationΦE)
 -- def_3_14 --- start helper
-def refactor_MarginalizationΦE (G : refactor_CDMG Node) (W : Finset Node)
+def MarginalizationΦE (G : CDMG Node) (W : Finset Node)
     (u v : Node) : Prop :=
-  ∃ (p : refactor_Walk G u v),
-    p.refactor_IsDirectedWalk ∧
-    p.refactor_length ≥ 1 ∧
-    (∀ x ∈ p.refactor_vertices.tail.dropLast, x ∈ W)
+  ∃ (p : Walk G u v),
+    p.IsDirectedWalk ∧
+    p.length ≥ 1 ∧
+    (∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
 -- def_3_14 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: MarginalizationΦE
 
 -- ref: def_3_14 (helper, bifurcation-through-`W` predicate) — refactor
 --
--- `refactor_MarginalizationΦL G W u v` is the post-refactor port of
+-- `MarginalizationΦL G W u v` is the post-refactor port of
 -- `MarginalizationΦL`: identical LN-level semantics ("exists a
 -- bifurcation in `G` between `u` and `v` whose intermediate vertices
--- all lie in `W`"), retargeted onto `refactor_Walk` /
--- `refactor_IsBifurcation` / `refactor_vertices`.  The symmetric
+-- all lie in `W`"), retargeted onto `Walk` /
+-- `IsBifurcation` / `vertices`.  The symmetric
 -- `Or` over the two walk orientations is preserved — under the new
--- `refactor_CDMG` there is no `hL_symm` field, but the symmetric `Or`
+-- `CDMG` there is no `hL_symm` field, but the symmetric `Or`
 -- in Φ_L remains LN-faithful (Φ_L is still semantically symmetric in
 -- `(u, v)`).  Body byte-identical modulo the three surface retargets.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: MarginalizationΦL (was: refactor_MarginalizationΦL)
 -- def_3_14 --- start helper
-def refactor_MarginalizationΦL (G : refactor_CDMG Node) (W : Finset Node)
+def MarginalizationΦL (G : CDMG Node) (W : Finset Node)
     (u v : Node) : Prop :=
-  (∃ (p : refactor_Walk G u v),
-      p.refactor_IsBifurcation ∧ ∀ x ∈ p.refactor_vertices.tail.dropLast, x ∈ W) ∨
-  (∃ (p : refactor_Walk G v u),
-      p.refactor_IsBifurcation ∧ ∀ x ∈ p.refactor_vertices.tail.dropLast, x ∈ W)
+  (∃ (p : Walk G u v),
+      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W) ∨
+  (∃ (p : Walk G v u),
+      p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W)
 -- def_3_14 --- end helper
--- REFACTOR-BLOCK-REPLACEMENT-END: MarginalizationΦL
 
--- Classical decidability instance for `refactor_MarginalizationΦE`
+-- Classical decidability instance for `MarginalizationΦE`
 -- (internal plumbing).  Same rationale as the original
 -- `instDecidableMarginalizationΦE`: the existential over
--- `refactor_Walk G u v` is not constructively decidable without a
+-- `Walk G u v` is not constructively decidable without a
 -- separate reachability-bound argument the chapter has not paid for;
 -- `Classical.propDecidable` is the standard Mathlib fallback, and the
 -- consequent `noncomputable` annotation propagates to
--- `refactor_marginalize`.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: instDecidableMarginalizationΦE (was: refactor_instDecidableMarginalizationΦE)
-noncomputable instance refactor_instDecidableMarginalizationΦE
-    (G : refactor_CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.refactor_MarginalizationΦE W u v) :=
+-- `marginalize`.
+noncomputable instance instDecidableMarginalizationΦE
+    (G : CDMG Node) (W : Finset Node) (u v : Node) :
+    Decidable (G.MarginalizationΦE W u v) :=
   Classical.propDecidable _
--- REFACTOR-BLOCK-REPLACEMENT-END: instDecidableMarginalizationΦE
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: instDecidableMarginalizationΦL (was: refactor_instDecidableMarginalizationΦL)
-noncomputable instance refactor_instDecidableMarginalizationΦL
-    (G : refactor_CDMG Node) (W : Finset Node) (u v : Node) :
-    Decidable (G.refactor_MarginalizationΦL W u v) :=
+noncomputable instance instDecidableMarginalizationΦL
+    (G : CDMG Node) (W : Finset Node) (u v : Node) :
+    Decidable (G.MarginalizationΦL W u v) :=
   Classical.propDecidable _
--- REFACTOR-BLOCK-REPLACEMENT-END: instDecidableMarginalizationΦL
 
--- ## Proof helpers for the four CDMG axioms under refactor_marginalize
+-- ## Proof helpers for the four CDMG axioms under marginalize
 --
 -- Four private lemmas (one fewer than the pre-refactor five — the
--- `hL_symm` obligation has been removed since `refactor_CDMG` carries
+-- `hL_symm` obligation has been removed since `CDMG` carries
 -- `L : Finset (Sym2 Node)` and swap-symmetry is *definitional* via
--- `Sym2`).  Factored out of `refactor_marginalize`'s structure literal
+-- `Sym2`).  Factored out of `marginalize`'s structure literal
 -- so the def body is pure data + lemma references.  None of the
 -- obligations consume `hW`; it is carried on the def signature purely
 -- for LN-faithfulness ("Let `W ⊆ V`").
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hJV_disj (was: refactor_marginalize_hJV_disj)
-private lemma refactor_marginalize_hJV_disj (G : refactor_CDMG Node)
+private lemma marginalize_hJV_disj (G : CDMG Node)
     (W : Finset Node) :
     Disjoint G.J (G.V \ W) := by
   refine Finset.disjoint_left.mpr fun a haJ haVW => ?_
   exact Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hJV_disj
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hE_subset (was: refactor_marginalize_hE_subset)
-private lemma refactor_marginalize_hE_subset (G : refactor_CDMG Node)
+private lemma marginalize_hE_subset (G : CDMG Node)
     (W : Finset Node) :
     ∀ ⦃e : Node × Node⦄,
       e ∈ ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-            (fun e => G.refactor_MarginalizationΦE W e.1 e.2) →
+            (fun e => G.MarginalizationΦE W e.1 e.2) →
       e.1 ∈ G.J ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
   intro e he
   exact Finset.mem_product.mp (Finset.mem_filter.mp he).1
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hE_subset
 
--- ## `refactor_marginalize_hL_subset` — `Sym2.Mem`-shaped obligation
+-- ## `marginalize_hL_subset` — `Sym2.Mem`-shaped obligation
 --
--- The post-refactor `hL_subset` axiom on `refactor_CDMG` quantifies
+-- The post-refactor `hL_subset` axiom on `CDMG` quantifies
 -- *unordered-pair* membership via `Sym2.Mem` (`v ∈ s`), not by
 -- destructuring `s = s(v₁, v₂)`.  Our `L` is built as
 -- `(filter …).image (fun e => s(e.1, e.2))`, so the proof:
@@ -906,12 +790,11 @@ private lemma refactor_marginalize_hE_subset (G : refactor_CDMG Node)
 -- (3) `Finset.mem_product` gives `e.1 ∈ G.V \ W ∧ e.2 ∈ G.V \ W`;
 -- (4) `Sym2.mem_iff.mp hv` reduces `v ∈ s(e.1, e.2)` to
 -- `v = e.1 ∨ v = e.2`, and a case-split closes via `rfl`.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hL_subset (was: refactor_marginalize_hL_subset)
-private lemma refactor_marginalize_hL_subset (G : refactor_CDMG Node)
+private lemma marginalize_hL_subset (G : CDMG Node)
     (W : Finset Node) :
     ∀ ⦃s : Sym2 Node⦄,
       s ∈ (((G.V \ W) ×ˢ (G.V \ W)).filter
-              (fun e => e.1 ≠ e.2 ∧ G.refactor_MarginalizationΦL W e.1 e.2)).image
+              (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)).image
             (fun e => s(e.1, e.2)) →
       ∀ ⦃v : Node⦄, v ∈ s → v ∈ G.V \ W := by
   intro s hs v hv
@@ -921,30 +804,26 @@ private lemma refactor_marginalize_hL_subset (G : refactor_CDMG Node)
   rcases Sym2.mem_iff.mp hv with rfl | rfl
   · exact h1
   · exact h2
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hL_subset
 
--- ## `refactor_marginalize_hL_irrefl` — `Sym2.IsDiag`-shaped obligation
+-- ## `marginalize_hL_irrefl` — `Sym2.IsDiag`-shaped obligation
 --
--- The post-refactor `hL_irrefl` axiom on `refactor_CDMG` is phrased as
+-- The post-refactor `hL_irrefl` axiom on `CDMG` is phrased as
 -- `¬ s.IsDiag` (Mathlib's canonical "no self-pair" predicate on `Sym2`),
 -- not as the pre-refactor `v₁ ≠ v₂` on ordered pairs.  The proof reads
 -- the `e.1 ≠ e.2` conjunct off the filter, and `Sym2.mk_isDiag_iff`
 -- pulls `s(e.1, e.2).IsDiag` back to `e.1 = e.2`, contradicting.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hL_irrefl (was: refactor_marginalize_hL_irrefl)
-private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
+private lemma marginalize_hL_irrefl (G : CDMG Node)
     (W : Finset Node) :
     ∀ ⦃s : Sym2 Node⦄,
       s ∈ (((G.V \ W) ×ˢ (G.V \ W)).filter
-              (fun e => e.1 ≠ e.2 ∧ G.refactor_MarginalizationΦL W e.1 e.2)).image
+              (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)).image
             (fun e => s(e.1, e.2)) →
       ¬ s.IsDiag := by
   intro s hs hDiag
   obtain ⟨e, hFilter, rfl⟩ := Finset.mem_image.mp hs
   obtain ⟨_, hNe, _⟩ := Finset.mem_filter.mp hFilter
   exact hNe (Sym2.mk_isDiag_iff.mp hDiag)
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hL_irrefl
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hL_symm
 -- The pre-refactor CDMG carried an `hL_symm` axiom because `L` was
 -- encoded as a `Finset (Node × Node)` needing a separate symmetry
 -- obligation.  Under `cdmg_typed_edges` the new `L` is a
@@ -953,12 +832,11 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
 -- disappears from the refactor.  This empty REPLACEMENT block exists
 -- only so the finalize-time marker validator can pair the ORIGINAL
 -- `marginalize_hL_symm` block with a same-named REPLACEMENT.
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hL_symm
 
 -- ref: def_3_14
 --
 -- The *marginalization* of `G` w.r.t. `W` — the LN's `G^{∖W}` — as the
--- `refactor_CDMG` `G.refactor_marginalize W hW`.  Post-refactor port of
+-- `CDMG` `G.marginalize W hW`.  Post-refactor port of
 -- `marginalize` against the `cdmg_typed_edges` design (`def_3_1`'s
 -- post-refactor shape: `L : Finset (Sym2 Node)`, no `hL_symm` axiom).
 -- The four data fields are:
@@ -966,7 +844,7 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
 --   * `V^{∖W} := G.V \ W`;
 --   * `E^{∖W} := { e ∈ (G.J ∪ (G.V \ W)) × (G.V \ W) | Φ_E W e.1 e.2 }`
 --     — unchanged shape from the original, retargeted onto
---     `refactor_MarginalizationΦE`;
+--     `MarginalizationΦE`;
 --   * `L^{∖W} := { s(e.1, e.2) | e ∈ (G.V \ W) × (G.V \ W),
 --                  e.1 ≠ e.2, Φ_L W e.1 e.2 }` — the same set of
 --     unordered pairs as the original's ordered-pair `L^{∖W}`, lifted
@@ -993,8 +871,8 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
 --   collapse to the same `s(u, v)` in the image, mirroring the
 --   unordered-pair semantics.
 --
--- * **No `refactor_marginalize_hL_symm` field.**  The post-refactor
---   `refactor_CDMG` structure carries only four proof obligations
+-- * **No `marginalize_hL_symm` field.**  The post-refactor
+--   `CDMG` structure carries only four proof obligations
 --   (`hJV_disj`, `hE_subset`, `hL_subset`, `hL_irrefl`); the
 --   pre-refactor `hL_symm` field is gone because swap-symmetry is
 --   *definitional* on `Sym2` (`s(v, w) = s(w, v)` by quotient
@@ -1003,7 +881,7 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
 --   disjuncts) has no analogue here — the symmetry it asserted is
 --   structurally vacuous post-refactor.
 --
--- * **`refactor_MarginalizationΦL` keeps the symmetric `Or` over the
+-- * **`MarginalizationΦL` keeps the symmetric `Or` over the
 --   two walk orientations**, even though no `hL_symm` field consumes
 --   it.  The symmetric encoding is *semantically* faithful to the LN's
 --   "bifurcation between `ū` and `ō`" phrasing (an undirected concept
@@ -1019,26 +897,24 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
 --   decidability instances above.  Same `set_option
 --   linter.unusedVariables false in` to suppress the linter warning
 --   on the unused `hW`.
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize (was: refactor_marginalize)
 set_option linter.unusedVariables false in
 set_option maxHeartbeats 800000 in
 -- def_3_14 -- start statement
-noncomputable def refactor_marginalize (G : refactor_CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) : refactor_CDMG Node where
+noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) : CDMG Node where
   J := G.J
   V := G.V \ W
-  hJV_disj := refactor_marginalize_hJV_disj G W
+  hJV_disj := marginalize_hJV_disj G W
   E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
-        (fun e => G.refactor_MarginalizationΦE W e.1 e.2)
-  hE_subset := refactor_marginalize_hE_subset G W
+        (fun e => G.MarginalizationΦE W e.1 e.2)
+  hE_subset := marginalize_hE_subset G W
   L := (((G.V \ W) ×ˢ (G.V \ W)).filter
-        (fun e => e.1 ≠ e.2 ∧ G.refactor_MarginalizationΦL W e.1 e.2)).image
+        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)).image
         (fun e => s(e.1, e.2))
-  hL_subset := refactor_marginalize_hL_subset G W
-  hL_irrefl := refactor_marginalize_hL_irrefl G W
+  hL_subset := marginalize_hL_subset G W
+  hL_irrefl := marginalize_hL_irrefl G W
 -- def_3_14 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: marginalize
 
-end refactor_CDMG
+end CDMG
 
 end Causality

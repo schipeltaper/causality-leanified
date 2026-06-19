@@ -290,89 +290,10 @@ LN block (verbatim, for backup):
 --   those rows rely on; any deviation would break the
 --   "`G_{\doit(W)}` is itself a CDMG" assumption every one of them
 --   silently uses.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: hardInterventionOn
--- ## Proof helpers for the five CDMG axioms under hard intervention
---
--- The five private lemmas below discharge the five proof obligations
--- of `def_3_1`'s `CDMG` structure (`hJV_disj`, `hE_subset`,
--- `hL_subset`, `hL_irrefl`, `hL_symm`) for the hard-intervention
--- construction.  They are factored out of the structure-literal body
--- of `hardInterventionOn` so the def body is pure data + lemma
--- references — the website builder renders the def's signature, and
--- a reader sees the data assignments without proof clutter.  Per the
--- `W ∩ J ≠ ∅` design-choice bullet above, none of the obligations
--- consume `hW`; `hW` is carried on the def's signature purely for
--- LN-faithfulness.
-
-private lemma hardInterventionOn_hJV_disj (G : CDMG Node) (W : Finset Node) :
-    Disjoint (G.J ∪ W) (G.V \ W) := by
-  refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
-  · exact Finset.disjoint_left.mpr fun a haJ haVW =>
-      Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
-  · exact Finset.disjoint_left.mpr fun a haW haVW =>
-      (Finset.mem_sdiff.mp haVW).2 haW
-
-private lemma hardInterventionOn_hE_subset (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃e : Node × Node⦄, e ∈ G.E.filter (fun e => e.2 ∉ W) →
-      e.1 ∈ (G.J ∪ W) ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
-  intro e he
-  obtain ⟨heE, he2⟩ := Finset.mem_filter.mp he
-  obtain ⟨he1, he2V⟩ := G.hE_subset heE
-  refine ⟨?_, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
-  rcases Finset.mem_union.mp he1 with hJ | hV
-  · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
-  · by_cases hW1 : e.1 ∈ W
-    · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW1)
-    · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW1⟩)
-
-private lemma hardInterventionOn_hL_subset (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃e : Node × Node⦄, e ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
-      e.1 ∈ G.V \ W ∧ e.2 ∈ G.V \ W := by
-  intro e he
-  obtain ⟨heL, he1, he2⟩ := Finset.mem_filter.mp he
-  obtain ⟨he1V, he2V⟩ := G.hL_subset heL
-  exact ⟨Finset.mem_sdiff.mpr ⟨he1V, he1⟩, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
-
-private lemma hardInterventionOn_hL_irrefl (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
-      v1 ≠ v2 := by
-  intro _ _ h
-  exact G.hL_irrefl (Finset.mem_filter.mp h).1
-
-private lemma hardInterventionOn_hL_symm (G : CDMG Node) (W : Finset Node) :
-    ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) →
-      (v2, v1) ∈ G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W) := by
-  intro _ _ h
-  obtain ⟨hL, h1, h2⟩ := Finset.mem_filter.mp h
-  exact Finset.mem_filter.mpr ⟨G.hL_symm hL, h2, h1⟩
-
--- `hW` is bound on the signature for LN-faithfulness ("Let
--- `W ⊆ J ∪ V`") but is not consumed by any of the five obligations —
--- `def_3_1`'s typing constraints already exclude every problematic
--- case (see the `W ∩ J ≠ ∅` design-choice bullet above).  The
--- `set_option` keeps the linter quiet without dropping the binder
--- from the signature (which is part of the LN-faithful encoding and
--- the call-site contract `G.hardInterventionOn W hW`).
-set_option linter.unusedVariables false in
--- def_3_10 -- start statement
-def hardInterventionOn (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
-  J := G.J ∪ W
-  V := G.V \ W
-  hJV_disj := hardInterventionOn_hJV_disj G W
-  E := G.E.filter (fun e => e.2 ∉ W)
-  hE_subset := hardInterventionOn_hE_subset G W
-  L := G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W)
-  hL_subset := hardInterventionOn_hL_subset G W
-  hL_irrefl := hardInterventionOn_hL_irrefl G W
-  hL_symm := hardInterventionOn_hL_symm G W
--- def_3_10 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: hardInterventionOn
 
 end CDMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: hardInterventionOn (was: refactor_hardInterventionOn)
-namespace refactor_CDMG
+namespace CDMG
 
 -- def_3_10 --- start helper
 variable {Node : Type*} [DecidableEq Node]
@@ -381,7 +302,7 @@ variable {Node : Type*} [DecidableEq Node]
 -- ref: def_3_10
 --
 -- The *hard intervention on `G` with respect to `W`* is the
--- `refactor_CDMG` `G.refactor_hardInterventionOn W hW` whose four
+-- `CDMG` `G.hardInterventionOn W hW` whose four
 -- components are
 --
 --   * `J' := G.J ∪ W`                                 — every node of
@@ -442,7 +363,7 @@ LN block (verbatim, for backup):
 --
 -- * **`def`, not `structure` / `inductive` / `class`.**  A hard
 --   intervention is a *function*
---   `refactor_CDMG Node → Finset Node → … → refactor_CDMG Node`, not
+--   `CDMG Node → Finset Node → … → CDMG Node`, not
 --   new data and not a typeclass-resolvable property.  The CDMG
 --   already has its `structure` (`def_3_1`); this row simply produces
 --   a new CDMG from an existing one.  Wrapping the result in a fresh
@@ -450,7 +371,7 @@ LN block (verbatim, for backup):
 --   intervened graph as a field) was rejected because every downstream
 --   consumer in ch. 5 / ch. 8+ destructures the intervened graph the
 --   same way any other CDMG is destructured — via
---   `(G.refactor_hardInterventionOn W hW).J`, `…V`, `…E`, `…L` — and
+--   `(G.hardInterventionOn W hW).J`, `…V`, `…E`, `…L` — and
 --   an extra wrapping layer would force a re-destructuring step at
 --   every such call site.  An `inductive` was rejected for the same
 --   reason: it would force pattern-matching on the constructor where
@@ -460,14 +381,14 @@ LN block (verbatim, for backup):
 --   sub-condition threaded through the body.**  The LN's
 --   "Let $W \subseteq J \cup V$" is part of the *signature* of the
 --   hard intervention operation; without it the resulting tuple would
---   still satisfy the four `refactor_CDMG` axioms (the typing
+--   still satisfy the four `CDMG` axioms (the typing
 --   constraints on `G.E` and `G.L` alone are strong enough — see the
 --   "$W \cap J \neq \emptyset$" bullet below for why `hW` is not
 --   consumed in the proofs), but the LN-faithful *statement* requires
 --   `hW` at the signature level.  Making it an explicit argument
 --   keeps the precondition visible at every call site and is the
 --   natural place for downstream lemmas about
---   `G.refactor_hardInterventionOn W` to plug it in.  Pushing `hW`
+--   `G.hardInterventionOn W` to plug it in.  Pushing `hW`
 --   into an instance was rejected: subset facts are not
 --   typeclass-resolvable in any general way and would force every
 --   caller to manually discharge the membership.
@@ -559,7 +480,7 @@ LN block (verbatim, for backup):
 --   contract `claim_3_22`'s proof relies on at this row.
 --
 --   The `hL_irrefl` proof obligation of
---   `G.refactor_hardInterventionOn W hW` transports cleanly from
+--   `G.hardInterventionOn W hW` transports cleanly from
 --   `G.hL_irrefl`: since `L' = G.L.filter (fun s => ∀ v ∈ s, v ∉ W)`
 --   is a subset of `G.L`, every `s ∈ L'` satisfies
 --   `¬ s.IsDiag` because `G.hL_irrefl` says so for every `s ∈ G.L`.
@@ -568,9 +489,9 @@ LN block (verbatim, for backup):
 --   `G.hL_subset` (applied to `s ∈ G.L` and `v ∈ s`) gives `v ∈ G.V`;
 --   combine to land in `G.V \ W`.
 --
---   Membership rule on `(G.refactor_hardInterventionOn W hW).L` is
+--   Membership rule on `(G.hardInterventionOn W hW).L` is
 --   now the clean, single-equation form
---     `s ∈ (G.refactor_hardInterventionOn W hW).L
+--     `s ∈ (G.hardInterventionOn W hW).L
 --        ↔ s ∈ G.L ∧ ∀ v ∈ s, v ∉ W`,
 --   directly from `Finset.mem_filter`.  No mirror-pair gotcha can
 --   arise — the pre-refactor file had a WARNING block flagging the
@@ -656,15 +577,15 @@ LN block (verbatim, for backup):
 --   LN-faithfulness of the *signature*.
 --
 -- * **Argument order
---   `(G : refactor_CDMG Node) (W : Finset Node) (hW : …)`.**
+--   `(G : CDMG Node) (W : Finset Node) (hW : …)`.**
 --   `G` first matches the convention of every chapter-3 predicate
 --   (`G.tuh`, `G.huh`, `G.adjacent`, `G.into`, `G.outOf`), enabling
---   dot-notation `G.refactor_hardInterventionOn W hW`.  `W` precedes
+--   dot-notation `G.hardInterventionOn W hW`.  `W` precedes
 --   `hW` so the call site reads left-to-right like the LN's "let
 --   `W ⊆ J ∪ V` be a subset".
 --
 -- * **`where` syntax with named fields, not anonymous-constructor
---   `⟨ … ⟩`.**  The `refactor_CDMG` `structure` has eight fields
+--   `⟨ … ⟩`.**  The `CDMG` `structure` has eight fields
 --   (`J`, `V`, `hJV_disj`, `E`, `hE_subset`, `L`, `hL_subset`,
 --   `hL_irrefl`) — one fewer than the pre-refactor nine, because
 --   `hL_symm` is gone (swap-symmetry is definitional on `Sym2`).
@@ -692,11 +613,11 @@ LN block (verbatim, for backup):
 --   predicate via `Sym2.lift` + a custom subtype-of-pair-function
 --   (which would create boilerplate at every membership-reasoning
 --   site).  No `[Decidable]` instance burden propagates to
---   consumers of `G.refactor_hardInterventionOn W hW`: this private
+--   consumers of `G.hardInterventionOn W hW`: this private
 --   instance is found automatically by typeclass resolution at the
 --   `Finset.filter` elaboration site, and the only typeclass
 --   parameter consumers see remains `[DecidableEq Node]` — the same
---   one `def_3_1`'s `refactor_CDMG` already requires.
+--   one `def_3_1`'s `CDMG` already requires.
 --
 -- * **`def`, not `noncomputable def`.**  Both filters
 --   (`G.E.filter (fun e => e.2 ∉ W)` and
@@ -708,7 +629,7 @@ LN block (verbatim, for backup):
 --   handles the bounded universal `∀ v ∈ s, v ∉ W`).  The
 --   intervened CDMG is therefore a *computable* construction,
 --   matching the pre-refactor design and keeping
---   `#eval (G.refactor_hardInterventionOn W hW).L` available for
+--   `#eval (G.hardInterventionOn W hW).L` available for
 --   inspecting the intervened graph on small concrete examples
 --   (the same channel `verify_with_examples` exercised to validate
 --   this row).  No `Classical.dec`-style shortcut was needed —
@@ -728,7 +649,7 @@ LN block (verbatim, for backup):
 --   `claim_3_13`, all rest on the four field assignments above.
 --   Post-refactor, these consumers see the `Sym2`-native L filter —
 --   no symmetrisation step is needed in any of them, and the
---   membership rule on `(G.refactor_hardInterventionOn W hW).L`
+--   membership rule on `(G.hardInterventionOn W hW).L`
 --   reduces to a single `Finset.mem_filter` application without
 --   case-splitting on which endpoint sat in `W`.  This is the
 --   primary downstream payoff of the `cdmg_typed_edges` refactor
@@ -736,20 +657,20 @@ LN block (verbatim, for backup):
 -- ## Proof helpers for the four CDMG axioms under hard intervention
 --
 -- The four private lemmas below discharge the four proof obligations
--- of `def_3_1`'s post-refactor `refactor_CDMG` structure
+-- of `def_3_1`'s post-refactor `CDMG` structure
 -- (`hJV_disj`, `hE_subset`, `hL_subset`, `hL_irrefl`) for the
 -- hard-intervention construction.  One fewer than the pre-refactor
 -- five, because the pre-refactor `hL_symm` obligation has gone away
 -- — swap-symmetry is definitional on `Sym2`.  They are factored out
--- of the structure-literal body of `refactor_hardInterventionOn` so
+-- of the structure-literal body of `hardInterventionOn` so
 -- the def body is pure data + lemma references — the website builder
 -- renders the def's signature, and a reader sees the data
 -- assignments without proof clutter.  Per the `W ∩ J ≠ ∅`
 -- design-choice bullet above, none of the obligations consume `hW`;
 -- `hW` is carried on the def's signature purely for LN-faithfulness.
 
-private lemma refactor_hardInterventionOn_hJV_disj
-    (G : refactor_CDMG Node) (W : Finset Node) :
+private lemma hardInterventionOn_hJV_disj
+    (G : CDMG Node) (W : Finset Node) :
     Disjoint (G.J ∪ W) (G.V \ W) := by
   refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
   · exact Finset.disjoint_left.mpr fun a haJ haVW =>
@@ -757,8 +678,8 @@ private lemma refactor_hardInterventionOn_hJV_disj
   · exact Finset.disjoint_left.mpr fun a haW haVW =>
       (Finset.mem_sdiff.mp haVW).2 haW
 
-private lemma refactor_hardInterventionOn_hE_subset
-    (G : refactor_CDMG Node) (W : Finset Node) :
+private lemma hardInterventionOn_hE_subset
+    (G : CDMG Node) (W : Finset Node) :
     ∀ ⦃e : Node × Node⦄, e ∈ G.E.filter (fun e => e.2 ∉ W) →
       e.1 ∈ (G.J ∪ W) ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
   intro e he
@@ -777,21 +698,21 @@ private lemma refactor_hardInterventionOn_hE_subset
 -- consumer should need to reach in and reference it by name (Lean's
 -- typeclass resolution finds it automatically at the `Finset.filter`
 -- elaboration site).
-private instance refactor_hardInterventionOn_decidable_bAll
+private instance hardInterventionOn_decidable_bAll
     (W : Finset Node) :
     DecidablePred (fun s : Sym2 Node => ∀ v ∈ s, v ∉ W) := fun s =>
   s.recOnSubsingleton fun _ _ => decidable_of_iff' _ Sym2.ball
 
-private lemma refactor_hardInterventionOn_hL_subset
-    (G : refactor_CDMG Node) (W : Finset Node) :
+private lemma hardInterventionOn_hL_subset
+    (G : CDMG Node) (W : Finset Node) :
     ∀ ⦃s : Sym2 Node⦄, s ∈ G.L.filter (fun s => ∀ v ∈ s, v ∉ W) →
       ∀ ⦃v : Node⦄, v ∈ s → v ∈ G.V \ W := by
   intro s hs v hv
   obtain ⟨hsL, hsW⟩ := Finset.mem_filter.mp hs
   exact Finset.mem_sdiff.mpr ⟨G.hL_subset hsL hv, hsW v hv⟩
 
-private lemma refactor_hardInterventionOn_hL_irrefl
-    (G : refactor_CDMG Node) (W : Finset Node) :
+private lemma hardInterventionOn_hL_irrefl
+    (G : CDMG Node) (W : Finset Node) :
     ∀ ⦃s : Sym2 Node⦄, s ∈ G.L.filter (fun s => ∀ v ∈ s, v ∉ W) →
       ¬ s.IsDiag := by
   intro s hs
@@ -803,23 +724,22 @@ private lemma refactor_hardInterventionOn_hL_irrefl
 -- case (see the `W ∩ J ≠ ∅` design-choice bullet above).  The
 -- `set_option` keeps the linter quiet without dropping the binder
 -- from the signature (which is part of the LN-faithful encoding and
--- the call-site contract `G.refactor_hardInterventionOn W hW`).
+-- the call-site contract `G.hardInterventionOn W hW`).
 set_option linter.unusedVariables false in
 -- def_3_10 -- start statement
-def refactor_hardInterventionOn (G : refactor_CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : refactor_CDMG Node
+def hardInterventionOn (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node
 -- def_3_10 -- end statement
     where
   J := G.J ∪ W
   V := G.V \ W
-  hJV_disj := refactor_hardInterventionOn_hJV_disj G W
+  hJV_disj := hardInterventionOn_hJV_disj G W
   E := G.E.filter (fun e => e.2 ∉ W)
-  hE_subset := refactor_hardInterventionOn_hE_subset G W
+  hE_subset := hardInterventionOn_hE_subset G W
   L := G.L.filter (fun s => ∀ v ∈ s, v ∉ W)
-  hL_subset := refactor_hardInterventionOn_hL_subset G W
-  hL_irrefl := refactor_hardInterventionOn_hL_irrefl G W
+  hL_subset := hardInterventionOn_hL_subset G W
+  hL_irrefl := hardInterventionOn_hL_irrefl G W
 
-end refactor_CDMG
--- REFACTOR-BLOCK-REPLACEMENT-END: hardInterventionOn
+end CDMG
 
 end Causality

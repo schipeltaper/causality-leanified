@@ -166,26 +166,6 @@ LN block (verbatim, for backup):
 -- *`G : CDMG Node` first and explicit.*  Enables dot-notation:
 --   `G.no_arrowhead_into_J hj hv`.  Matches `G.adjacent`, `G.hus`,
 --   `G.hE_subset` style throughout the section.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: no_arrowhead_into_J
--- claim_3_1 -- start statement
-theorem no_arrowhead_into_J (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
-    {v : Node} (hv : v ∈ G.J ∪ G.V) :
-    ¬ G.hus j v
--- claim_3_1 -- end statement
-  := by
-    -- `hv` is part of the statement for LN-faithful quantifier range
-    -- (`v ∈ J ∪ V`), but the contradiction below uses only `hj` and the
-    -- typing constraints — the proof faithfully mirrors the tex proof,
-    -- which also "fixes $v$" without consuming it.
-    let _ := hv
-    intro h
-    unfold CDMG.hus CDMG.hut CDMG.huh at h
-    rcases h with h | h
-    · obtain ⟨_, hjV⟩ := G.hE_subset h
-      exact Finset.disjoint_left.mp G.hJV_disj hj hjV
-    · obtain ⟨hjV, _⟩ := G.hL_subset h
-      exact Finset.disjoint_left.mp G.hJV_disj hj hjV
--- REFACTOR-BLOCK-ORIGINAL-END: no_arrowhead_into_J
 
 -- ref: claim_3_1 (part ii/iii)
 --
@@ -250,14 +230,6 @@ LN block (verbatim, for backup):
 --   and treat the `\tuh` reading as commentary.
 --
 -- *Implicit binders for `j` and `v`.*  Same rationale as part (i).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: J_to_V_edge_admissible
--- claim_3_1 -- start statement
-theorem J_to_V_edge_admissible (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
-    {v : Node} (hv : v ∈ G.V) :
-    j ∈ G.J ∪ G.V ∧ v ∈ G.V
--- claim_3_1 -- end statement
-  := by exact ⟨Finset.mem_union_left _ hj, hv⟩
--- REFACTOR-BLOCK-ORIGINAL-END: J_to_V_edge_admissible
 
 -- ref: claim_3_1 (part iii/iii)
 --
@@ -308,33 +280,16 @@ LN block (verbatim, for backup):
 --   `¬ G.adjacent j₁ j₂ ↔ ¬ G.adjacent j₂ j₁`.  Stating the theorem
 --   in one direction suffices; the symmetric reading is a one-line
 --   corollary.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: J_nodes_not_adjacent
--- claim_3_1 -- start statement
-theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node} (hj₁ : j₁ ∈ G.J)
-    {j₂ : Node} (hj₂ : j₂ ∈ G.J) :
-    ¬ G.adjacent j₁ j₂
--- claim_3_1 -- end statement
-  := by
-    intro h
-    unfold CDMG.adjacent CDMG.sus CDMG.tuh CDMG.hut CDMG.huh at h
-    rcases h with h | h | h
-    · obtain ⟨_, hj₂V⟩ := G.hE_subset h
-      exact Finset.disjoint_left.mp G.hJV_disj hj₂ hj₂V
-    · obtain ⟨_, hj₁V⟩ := G.hE_subset h
-      exact Finset.disjoint_left.mp G.hJV_disj hj₁ hj₁V
-    · obtain ⟨hj₁V, _⟩ := G.hL_subset h
-      exact Finset.disjoint_left.mp G.hJV_disj hj₁ hj₁V
--- REFACTOR-BLOCK-ORIGINAL-END: J_nodes_not_adjacent
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — section-wide statement context (refactor)
 --
 -- *Polymorphic `Node : Type*` with `[DecidableEq Node]`, mirror of the
 --   pre-refactor `namespace CDMG` helper.*  Inherits unchanged from
---   the original section header: `refactor_CDMG` is parameterised by
+--   the original section header: `CDMG` is parameterised by
 --   the same arbitrary node type as the original `CDMG`, and the
 --   downstream chapter-3 / chapter-4+ consumers continue to
 --   instantiate `Node` at their ambient (random-)variable type.  The
@@ -347,7 +302,7 @@ namespace refactor_CDMG
 --
 -- *Three-dash `--- start helper` / `--- end helper` markers, matching
 --   the convention used in `CDMG.lean`, `CDMGNotation.lean`,
---   `EdgeRelations.lean` for their `refactor_CDMG`-namespace helper
+--   `EdgeRelations.lean` for their `CDMG`-namespace helper
 --   `variable` lines.*  Auto-binding into every theorem below makes
 --   this line *load-bearing* (each theorem implicitly carries
 --   `{Node : Type*} [DecidableEq Node]`); the three-dash flavour tags
@@ -357,14 +312,13 @@ namespace refactor_CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- claim_3_1 --- end helper
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: no_arrowhead_into_J (was: refactor_no_arrowhead_into_J)
 -- ref: claim_3_1 (part i/iii) — refactor
 --
 -- For every `j ∈ G.J` and every `v ∈ G.J ∪ G.V`, there is no
 -- "head-star" edge `j \hus v` in `G`.  Body identical in structure to
 -- the original proof; only the L-disjunct's typing argument adapts —
 -- under the refactor `G.L : Finset (Sym2 Node)`, the L-branch of
--- `refactor_hus` is `s(j, v) ∈ G.L` (not the ordered pair
+-- `hus` is `s(j, v) ∈ G.L` (not the ordered pair
 -- `(j, v) ∈ G.L`), and `G.hL_subset h (Sym2.mem_mk_left j v)` extracts
 -- the LN's "j is mentioned by an L-edge, hence j ∈ V" step in one
 -- `Sym2.Mem` invocation rather than via ordered-pair component
@@ -383,12 +337,12 @@ LN tex (item i of `refactor_claim_3_1_proof_CDMGRestrictions`):
 -/
 -- ## Design choice
 --
--- *Why `¬ G.refactor_hus j v`, not the unfolded
+-- *Why `¬ G.hus j v`, not the unfolded
 --   `(v, j) ∉ G.E ∧ s(j, v) ∉ G.L`.*  Same rationale as the original
---   `no_arrowhead_into_J`: `CDMGNotation.lean`'s `refactor_hus` is the
+--   `no_arrowhead_into_J`: `CDMGNotation.lean`'s `hus` is the
 --   LN macro's 1:1 Lean form (the LN's verbatim
 --   `$j \hus v \notin G$`), and downstream consumers should reach for
---   `unfold refactor_CDMG.refactor_hus` once rather than re-derive the
+--   `unfold CDMG.hus` once rather than re-derive the
 --   disjunction-to-conjunction step at every use site.
 --
 -- *Why `v ∈ G.J ∪ G.V` rather than `v ∈ G.V` or no constraint at all.*
@@ -396,7 +350,7 @@ LN tex (item i of `refactor_claim_3_1_proof_CDMGRestrictions`):
 --   `[implicit_universal_quantifier_in_hus_clause]` puts `v` in the
 --   wider set `J ∪ V` for this clause; under the refactor the L-side
 --   of the disjunction (`s(j, v) ∈ G.L`) is also vacuously false for
---   `v ∉ G.V` (by `refactor_CDMG.hL_subset`'s "every node of an L-edge
+--   `v ∉ G.V` (by `CDMG.hL_subset`'s "every node of an L-edge
 --   lies in `V`"), but the LN's quantifier range stays the wider one.
 --
 -- *L-branch port: from `obtain ⟨hjV, _⟩ := G.hL_subset h` to
@@ -413,19 +367,19 @@ LN tex (item i of `refactor_claim_3_1_proof_CDMGRestrictions`):
 --   `Sym2.mk (j, v)`, and the left endpoint of the underlying ordered
 --   pair is always a member of the quotient class).  No `Sym2.lift`
 --   destructuring, no representative choice.  This is the canonical
---   `Sym2.Mem` idiom matching `refactor_CDMG.hL_subset`'s own
+--   `Sym2.Mem` idiom matching `CDMG.hL_subset`'s own
 --   `Sym2.Mem` quantifier.
 --
--- *E-branch unchanged.*  `G.refactor_hut j v` still unfolds to
---   `(v, j) ∈ G.E`, and `refactor_CDMG.hE_subset` is unchanged
+-- *E-branch unchanged.*  `G.hut j v` still unfolds to
+--   `(v, j) ∈ G.E`, and `CDMG.hE_subset` is unchanged
 --   (`E : Finset (Node × Node)` was *not* retyped).  The E-side of the
 --   original proof — destructure `G.hE_subset h` to get the head
 --   component `j ∈ G.V`, contradict against `hj` ∈ `G.J` via
 --   `Finset.disjoint_left.mp G.hJV_disj` — ports mechanically.
 -- claim_3_1 -- start statement
-theorem refactor_no_arrowhead_into_J (G : refactor_CDMG Node) {j : Node}
+theorem no_arrowhead_into_J (G : CDMG Node) {j : Node}
     (hj : j ∈ G.J) {v : Node} (hv : v ∈ G.J ∪ G.V) :
-    ¬ G.refactor_hus j v
+    ¬ G.hus j v
 -- claim_3_1 -- end statement
   := by
     -- `hv` is part of the statement for LN-faithful quantifier range
@@ -434,16 +388,14 @@ theorem refactor_no_arrowhead_into_J (G : refactor_CDMG Node) {j : Node}
     -- which also "fixes $v$" without consuming it.
     let _ := hv
     intro h
-    unfold refactor_CDMG.refactor_hus refactor_CDMG.refactor_hut
-      refactor_CDMG.refactor_huh at h
+    unfold CDMG.hus CDMG.hut
+      CDMG.huh at h
     rcases h with h | h
     · obtain ⟨_, hjV⟩ := G.hE_subset h
       exact Finset.disjoint_left.mp G.hJV_disj hj hjV
     · have hjV : j ∈ G.V := G.hL_subset h (Sym2.mem_mk_left j v)
       exact Finset.disjoint_left.mp G.hJV_disj hj hjV
--- REFACTOR-BLOCK-REPLACEMENT-END: no_arrowhead_into_J
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: J_to_V_edge_admissible (was: refactor_J_to_V_edge_admissible)
 -- ref: claim_3_1 (part ii/iii) — refactor
 --
 -- For every `j ∈ G.J` and every `v ∈ G.V`, the typing constraint
@@ -454,7 +406,7 @@ theorem refactor_no_arrowhead_into_J (G : refactor_CDMG Node) {j : Node}
 -- in `G.E`.  Port is fully mechanical: the refactor only changed `L`'s
 -- carrier, not `E`'s, and this clause is *entirely* about `E`'s typing
 -- precondition.  Body unchanged; only `G`'s type is retargeted from
--- `CDMG` to `refactor_CDMG`.
+-- `CDMG` to `CDMG`.
 /-
 LN tex (item ii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 
@@ -475,7 +427,7 @@ LN tex (item ii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 --   and the conclusion's *proof* uses only `Finset.mem_union_left`
 --   on `hj`.  No `L`-fact, no `hL_subset`, no `hL_irrefl`, no
 --   `hL_symm` — this clause is structurally invisible to the
---   refactor.  Archetypal mechanical-port case (cf. `refactor_outOf`
+--   refactor.  Archetypal mechanical-port case (cf. `outOf`
 --   in `EdgeRelations.lean` for the parallel reasoning).
 --
 -- *Why the theorem is "trivial" but worth formalising.*  Mirror of
@@ -488,14 +440,12 @@ LN tex (item ii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 -- *Implicit binders for `j` and `v`.*  Same rationale as parts (i)
 --   and (iii).
 -- claim_3_1 -- start statement
-theorem refactor_J_to_V_edge_admissible (G : refactor_CDMG Node) {j : Node}
+theorem J_to_V_edge_admissible (G : CDMG Node) {j : Node}
     (hj : j ∈ G.J) {v : Node} (hv : v ∈ G.V) :
     j ∈ G.J ∪ G.V ∧ v ∈ G.V
 -- claim_3_1 -- end statement
   := by exact ⟨Finset.mem_union_left _ hj, hv⟩
--- REFACTOR-BLOCK-REPLACEMENT-END: J_to_V_edge_admissible
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: J_nodes_not_adjacent (was: refactor_J_nodes_not_adjacent)
 -- ref: claim_3_1 (part iii/iii) — refactor
 --
 -- For every `j₁ ∈ G.J` and every `j₂ ∈ G.J`, the nodes `j₁` and `j₂`
@@ -503,7 +453,7 @@ theorem refactor_J_to_V_edge_admissible (G : refactor_CDMG Node) {j : Node}
 -- either direction and no bidirected edge connects them.  Body
 -- structurally identical to the original; only the L-branch's typing
 -- argument adapts to the `Sym2`-membership form of
--- `refactor_CDMG.hL_subset`, exactly as in `refactor_no_arrowhead_into_J`.
+-- `CDMG.hL_subset`, exactly as in `no_arrowhead_into_J`.
 /-
 LN tex (item iii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 
@@ -515,20 +465,20 @@ LN tex (item iii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 -/
 -- ## Design choice
 --
--- *Why `¬ G.refactor_adjacent j₁ j₂`, not the unfolded three-way
---   conjunction.*  Mirror of the original.  `refactor_adjacent` is
---   precisely def_3_3 item i (over `refactor_CDMG`), and the canonical
+-- *Why `¬ G.adjacent j₁ j₂`, not the unfolded three-way
+--   conjunction.*  Mirror of the original.  `adjacent` is
+--   precisely def_3_3 item i (over `CDMG`), and the canonical
 --   tex makes the connection explicit ("not adjacent in `G` in the
 --   sense of def `\ref{def-edge-relations}` item~i.").  Using the
 --   named predicate keeps the statement aligned with that sentence
 --   and lets downstream proofs unfold to the three-disjunct
---   `refactor_tuh ∨ refactor_hut ∨ refactor_huh` on demand.
+--   `tuh ∨ hut ∨ huh` on demand.
 --
 -- *No `j₁ ≠ j₂` precondition.*  Mirror of the original.  The LN says
 --   "no two nodes in `J` are adjacent" without restricting to distinct
 --   nodes; the case `j₁ = j₂` is also covered.  Under the refactor,
---   the `huh` self-loop case `refactor_huh j j` (i.e.
---   `s(j, j) ∈ G.L`) is ruled out by `refactor_CDMG.hL_irrefl` (no
+--   the `huh` self-loop case `huh j j` (i.e.
+--   `s(j, j) ∈ G.L`) is ruled out by `CDMG.hL_irrefl` (no
 --   bidirected self-loop — phrased now as `¬ s.IsDiag`, with
 --   `s(j, j).IsDiag` immediate via `Sym2.isDiag_iff_proj_eq` or the
 --   constructor `Sym2.IsDiag.mk`).  The directed self-loop case
@@ -538,7 +488,7 @@ LN tex (item iii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 --   pre-refactor case.  So the statement holds also for `j₁ = j₂`,
 --   and we omit the distinctness hypothesis.
 --
--- *L-branch port (same as for `refactor_no_arrowhead_into_J`).*  The
+-- *L-branch port (same as for `no_arrowhead_into_J`).*  The
 --   pre-refactor L-branch destructured `G.hL_subset h` to get
 --   `(j₁, j₂).1 ∈ G.V ∧ (j₁, j₂).2 ∈ G.V` — the first component was
 --   `j₁ ∈ G.V`.  Post-refactor `h : s(j₁, j₂) ∈ G.L`, and
@@ -549,31 +499,31 @@ LN tex (item iii of `refactor_claim_3_1_proof_CDMGRestrictions`):
 --
 -- *Two E-branches unchanged in structure: head-component of `E`'s
 --   ordered pair forces the relevant `j_i` into `G.V`.*  The
---   `refactor_CDMG.E` carrier is unchanged (still
+--   `CDMG.E` carrier is unchanged (still
 --   `Finset (Node × Node)`), and `hE_subset`'s signature is unchanged
 --   too.  Both branches port mechanically — first branch reads `j₂`
---   off `e.2`, second branch reads `j₁` off `e.2` (note: `refactor_hut
+--   off `e.2`, second branch reads `j₁` off `e.2` (note: `hut
 --   j₁ j₂` unfolds to `(j₂, j₁) ∈ G.E`, so the head is `j₁`).
 --
 -- *Implicit binders for `j₁`, `j₂`.*  Same rationale as parts (i) and
 --   (ii).
 --
--- *Symmetry, not stated explicitly.*  `refactor_adjacent` is symmetric
---   in its two arguments (inherits from `refactor_sus`'s `tuh ∨ hut`
+-- *Symmetry, not stated explicitly.*  `adjacent` is symmetric
+--   in its two arguments (inherits from `sus`'s `tuh ∨ hut`
 --   flip combined with the *definitional* swap symmetry of
---   `refactor_huh` under the `Sym2` quotient — no `hL_symm` invocation
+--   `huh` under the `Sym2` quotient — no `hL_symm` invocation
 --   needed, contrast with the pre-refactor encoding).  Stating the
 --   theorem in one direction suffices.
 -- claim_3_1 -- start statement
-theorem refactor_J_nodes_not_adjacent (G : refactor_CDMG Node) {j₁ : Node}
+theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node}
     (hj₁ : j₁ ∈ G.J) {j₂ : Node} (hj₂ : j₂ ∈ G.J) :
-    ¬ G.refactor_adjacent j₁ j₂
+    ¬ G.adjacent j₁ j₂
 -- claim_3_1 -- end statement
   := by
     intro h
-    unfold refactor_CDMG.refactor_adjacent refactor_CDMG.refactor_sus
-      refactor_CDMG.refactor_tuh refactor_CDMG.refactor_hut
-      refactor_CDMG.refactor_huh at h
+    unfold CDMG.adjacent CDMG.sus
+      CDMG.tuh CDMG.hut
+      CDMG.huh at h
     rcases h with h | h | h
     · obtain ⟨_, hj₂V⟩ := G.hE_subset h
       exact Finset.disjoint_left.mp G.hJV_disj hj₂ hj₂V
@@ -581,8 +531,7 @@ theorem refactor_J_nodes_not_adjacent (G : refactor_CDMG Node) {j₁ : Node}
       exact Finset.disjoint_left.mp G.hJV_disj hj₁ hj₁V
     · have hj₁V : j₁ ∈ G.V := G.hL_subset h (Sym2.mem_mk_left j₁ j₂)
       exact Finset.disjoint_left.mp G.hJV_disj hj₁ hj₁V
--- REFACTOR-BLOCK-REPLACEMENT-END: J_nodes_not_adjacent
 
-end refactor_CDMG
+end CDMG
 
 end Causality

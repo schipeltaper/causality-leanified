@@ -172,11 +172,6 @@ LN tex (item i of `def_3_7`):
 -- source shape of hard intervention `def_3_10` (which moves `W ⊆ V`
 -- into `J` while preserving acyclicity), so the named hypothesis
 -- `(h : G.IsCADMG)` pays off as soon as intervention enters scope.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsCADMG
--- def_3_7 -- start statement
-def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsCADMG
 
 -- ref: def_3_7 (item ii)
 -- A CDMG `G = (J, V, E, L)` is a *DMG* (Directed Mixed Graph) iff
@@ -194,11 +189,6 @@ LN tex (item ii of `def_3_7`):
 -- / quantifier reformulations" rationales.  DMG is the no-input-node
 -- root of the M-suffixed (Mixed = bidirected-edges-allowed) taxonomy
 -- branch DMG ⊃ ADMG ⊃ DAG.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsDMG
--- def_3_7 -- start statement
-def IsDMG (G : CDMG Node) : Prop := G.J = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsDMG
 
 -- ref: def_3_7 (item iii)
 -- A CDMG `G = (J, V, E, L)` is an *ADMG* (Acyclic Directed Mixed
@@ -220,11 +210,6 @@ LN tex (item iii of `def_3_7`):
 -- result in those chapters quantifies over `IsADMG` graphs, so a
 -- one-line `unfold CDMG.IsADMG at h` (or `obtain` destructuring)
 -- restores the two atomic conditions whenever a proof needs them.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsADMG
--- def_3_7 -- start statement
-def IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsADMG
 
 -- ref: def_3_7 (item iv)
 -- A CDMG `G = (J, V, E, L)` is a *CDG* (Conditional Directed Graph)
@@ -241,11 +226,6 @@ LN tex (item iv of `def_3_7`):
 -- shared design block).  CDG is the no-bidirected-edge root of the
 -- G-suffixed (Graph, "no Mixed" — no confounding) taxonomy branch
 -- CDG ⊃ CDAG ⊃ DAG and CDG ⊃ DG ⊃ DAG.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsCDG
--- def_3_7 -- start statement
-def IsCDG (G : CDMG Node) : Prop := G.L = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsCDG
 
 -- ref: def_3_7 (item v)
 -- A CDMG `G = (J, V, E, L)` is a *DG* (Directed Graph) iff
@@ -265,11 +245,6 @@ LN tex (item v of `def_3_7`):
 -- edges (no `J`, no bidirected `L`) but which may still contain
 -- directed cycles.  A reader expecting "DG implies DAG" is wrong;
 -- the implication only runs the other direction.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsDG
--- def_3_7 -- start statement
-def IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsDG
 
 -- ref: def_3_7 (item vi)
 -- A CDMG `G = (J, V, E, L)` is a *CDAG* (Conditional Directed Acyclic
@@ -287,11 +262,6 @@ LN tex (item vi of `def_3_7`):
 -- allowed, but bidirected edges (`L = ∅`) and cycles (acyclic) are
 -- not.  Sits between `IsCDG` (drop the acyclicity conjunct) and
 -- `IsDAG` (add `G.J = ∅` as a third conjunct).
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsCDAG
--- def_3_7 -- start statement
-def IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsCDAG
 
 -- ref: def_3_7 (item vii)
 -- A CDMG `G = (J, V, E, L)` is a *DAG* (Directed Acyclic Graph) iff
@@ -326,29 +296,24 @@ LN tex (item vii of `def_3_7`):
 -- first conjunct, so the LN-order choice (acyclic first) keeps the
 -- topological-order proof's `obtain ⟨hac, _, _⟩` shape syntactically
 -- aligned with the LN reading.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsDAG
--- def_3_7 -- start statement
-def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅
--- def_3_7 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: IsDAG
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- ## Design choice — statement context (refactor twin)
 --
 -- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim
---   from `def_3_1`'s refactor twin `refactor_CDMG` (`CDMG.lean`).
+--   from `def_3_1`'s refactor twin `CDMG` (`CDMG.lean`).
 --   The typeclass is load-bearing for the same reasons it was in
 --   the original `namespace CDMG` block above: (i) `G.J = ∅` and
 --   `G.L = ∅` are `Finset` equalities (over `Finset Node` and
 --   `Finset (Sym2 Node)` respectively — see the per-predicate
 --   notes below for the L-type change) that decompose to per-
 --   element decidable membership tests, and (ii) the refactor
---   twin's `G.refactor_IsAcyclic` (`Acyclicity.lean`) carries the
+--   twin's `G.IsAcyclic` (`Acyclicity.lean`) carries the
 --   same `[DecidableEq Node]` requirement (its body's
---   `refactor_Walk` / `refactor_IsDirectedWalk` / `v ∈ G`
+--   `Walk` / `IsDirectedWalk` / `v ∈ G`
 --   machinery all depend on it).  Dropping the typeclass would
 --   make every predicate below fail to type-check.
 --
@@ -369,35 +334,35 @@ variable {Node : Type*} [DecidableEq Node]
 -- The design is a *structural port* of the original
 -- `namespace CDMG` block (see lines ~69–154 above for the full
 -- per-choice rationale): seven separate `Prop` predicates on
--- `refactor_CDMG Node`, one per LN item; `Is`-prefixed acronyms
+-- `CDMG Node`, one per LN item; `Is`-prefixed acronyms
 -- in LN order; literal conjunctions of the LN's atomic
 -- conditions in LN-stated order (acyclic first; `J = ∅` before
 -- `L = ∅` where both appear); `def`, not `abbrev`, to preserve
 -- the LN-named abstraction across downstream chapter-4+
 -- consumption; `G.J = ∅` / `G.L = ∅` as the literal LN `Finset`
--- equality; reuse of the refactor twin `refactor_IsAcyclic`
--- (`Acyclicity.lean`'s `namespace refactor_CDMG`) verbatim where
+-- equality; reuse of the refactor twin `IsAcyclic`
+-- (`Acyclicity.lean`'s `namespace CDMG`) verbatim where
 -- the LN says "G is acyclic"; no `Decidable` instances exposed
 -- here.  All of those choices carry over unchanged.
 --
 -- ## Refactor-specific notes (only the upstream-type shifts)
 --
 -- The `cdmg_typed_edges` refactor touches the upstream types
--- `def_3_1` (CDMG → refactor_CDMG, with `L : Finset (Sym2 Node)`
+-- `def_3_1` (CDMG → CDMG, with `L : Finset (Sym2 Node)`
 -- instead of `Finset (Node × Node)`, no `hL_symm` field, and the
 -- `hL_irrefl` field rephrased via `¬ s.IsDiag` on `Sym2 Node`)
--- and `def_3_6` (`IsAcyclic` → `refactor_IsAcyclic`, built on
--- `def_3_4`'s typed `refactor_Walk` / `refactor_IsDirectedWalk` /
--- `refactor_length`).  For *this* row's seven predicates the only
+-- and `def_3_6` (`IsAcyclic` → `IsAcyclic`, built on
+-- `def_3_4`'s typed `Walk` / `IsDirectedWalk` /
+-- `length`).  For *this* row's seven predicates the only
 -- shifts are:
 --
---   * Type annotation `(G : CDMG Node) → (G : refactor_CDMG Node)`
+--   * Type annotation `(G : CDMG Node) → (G : CDMG Node)`
 --     on every predicate (all 7 / 7).
---   * `G.IsAcyclic → G.refactor_IsAcyclic` on the four predicates
---     that mention acyclicity (`refactor_IsCADMG`,
---     `refactor_IsADMG`, `refactor_IsCDAG`, `refactor_IsDAG`).
---   * The remaining three (`refactor_IsDMG`, `refactor_IsCDG`,
---     `refactor_IsDG`) port with only the type-annotation change.
+--   * `G.IsAcyclic → G.IsAcyclic` on the four predicates
+--     that mention acyclicity (`IsCADMG`,
+--     `IsADMG`, `IsCDAG`, `IsDAG`).
+--   * The remaining three (`IsDMG`, `IsCDG`,
+--     `IsDG`) port with only the type-annotation change.
 --
 -- *The `G.L = ∅` spelling is identical despite `L`'s type
 -- change.*  In the original, `G.L : Finset (Node × Node)`; in
@@ -405,37 +370,37 @@ variable {Node : Type*} [DecidableEq Node]
 -- `∅` resolves via `EmptyCollection` to `Finset.empty` at the
 -- relevant element type, so the literal text `G.L = ∅` reads
 -- identically on either side of the refactor.  The four
--- predicates that touch `L` (`refactor_IsCDG`, `refactor_IsDG`,
--- `refactor_IsCDAG`, `refactor_IsDAG`) therefore have *no*
+-- predicates that touch `L` (`IsCDG`, `IsDG`,
+-- `IsCDAG`, `IsDAG`) therefore have *no*
 -- visible textual change to the `L = ∅` conjunct relative to
 -- their originals — the entire shift is type-level, sitting on
--- the upstream `refactor_CDMG.L` field.
+-- the upstream `CDMG.L` field.
 --
 -- *Why the refactor's upstream changes don't open new
 -- encodings here.*  The `cdmg_typed_edges` refactor's
 -- substantive changes — `L : Finset (Sym2 Node)` instead of
 -- `Finset (Node × Node)`, the dropped `hL_symm` axiom, the
 -- `hL_irrefl` rephrasing via `¬ s.IsDiag`, and the typed
--- `refactor_WalkStep` / `refactor_Walk` /
--- `refactor_IsDirectedWalk` chain underpinning
--- `refactor_IsAcyclic` — all sit *beneath* the level at which
+-- `WalkStep` / `Walk` /
+-- `IsDirectedWalk` chain underpinning
+-- `IsAcyclic` — all sit *beneath* the level at which
 -- these seven predicates operate.  Each predicate only tests
 -- (i) the *emptiness* of the `J` and / or `L` `Finset` carriers
 -- (encoded identically across the L-type change via the
 -- `EmptyCollection`-resolved `∅` literal — see the previous
 -- paragraph) and (ii) the LN-meaning of
--- `refactor_CDMG.refactor_IsAcyclic`, which `Acyclicity.lean`'s
--- refactor-twin design block (`namespace refactor_CDMG`,
+-- `CDMG.IsAcyclic`, which `Acyclicity.lean`'s
+-- refactor-twin design block (`namespace CDMG`,
 -- "Structural port of the original `IsAcyclic`") establishes
 -- as the behavioural port of `CDMG.IsAcyclic` modulo the
--- upstream `refactor_Walk` retyping: the universal-quantifier
+-- upstream `Walk` retyping: the universal-quantifier
 -- structure `∀ v ∈ G, ¬ ∃ p : Walk G v v, …` carries through
--- verbatim with `refactor_Walk` / `refactor_IsDirectedWalk` /
--- `refactor_length` substituted pointwise.  The seven
+-- verbatim with `Walk` / `IsDirectedWalk` /
+-- `length` substituted pointwise.  The seven
 -- predicates therefore see no new design surface to consume:
 -- none of them reaches into `L`'s carrier shape, the `hL_*`
 -- field set, the typed-step constructors, or the inductive
--- structure of `refactor_Walk`.
+-- structure of `Walk`.
 --
 -- *Mathematical design fully unchanged.*  No new alternative
 -- formulations were considered.  Every per-predicate design
@@ -443,11 +408,10 @@ variable {Node : Type*} [DecidableEq Node]
 -- enum, named-`def` over `abbrev` or inlined conjunction,
 -- LN-order on conjuncts, `Is`-prefixed acronyms verbatim from
 -- the LN, atomic-condition encoding via `Finset` equality and
--- via the chapter's own `refactor_IsAcyclic`) carries through
+-- via the chapter's own `IsAcyclic`) carries through
 -- verbatim — no per-predicate encoding here would be *more
 -- natural* against the new upstream than against the old.
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsCADMG (was: refactor_IsCADMG)
 -- ref: def_3_7 (item i) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *CADMG* (Conditional Acyclic
 -- Directed Mixed Graph) iff `G` is acyclic in the sense of
@@ -468,15 +432,13 @@ LN tex (item i of `def_3_7`):
 -- hard intervention (`def_3_10`).
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsAcyclic     → G.refactor_IsAcyclic`
+--   `CDMG Node       → CDMG Node`
+--   `G.IsAcyclic     → G.IsAcyclic`
 -- No other change.
 -- def_3_7 -- start statement
-def refactor_IsCADMG (G : refactor_CDMG Node) : Prop := G.refactor_IsAcyclic
+def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsCADMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsDMG (was: refactor_IsDMG)
 -- ref: def_3_7 (item ii) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *DMG* (Directed Mixed Graph)
 -- iff `J = ∅` (the input-node `Finset` is empty).
@@ -497,17 +459,15 @@ LN tex (item ii of `def_3_7`):
 -- DMG ⊃ ADMG ⊃ DAG.
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node → refactor_CDMG Node`
+--   `CDMG Node → CDMG Node`
 -- The `G.J = ∅` spelling is unchanged: `J : Finset Node` on
--- both the original `CDMG` and on `refactor_CDMG` (the
+-- both the original `CDMG` and on `CDMG` (the
 -- `cdmg_typed_edges` refactor leaves the `J` field shape
 -- untouched).
 -- def_3_7 -- start statement
-def refactor_IsDMG (G : refactor_CDMG Node) : Prop := G.J = ∅
+def IsDMG (G : CDMG Node) : Prop := G.J = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsDMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsADMG (was: refactor_IsADMG)
 -- ref: def_3_7 (item iii) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is an *ADMG* (Acyclic Directed
 -- Mixed Graph) iff `G` is acyclic in the sense of `def_3_6` and
@@ -521,7 +481,7 @@ LN tex (item iii of `def_3_7`):
 -- ## Design choice
 -- Structural port of the original `IsADMG` (see
 -- `namespace CDMG` block above for the full rationale): literal
--- two-conjunct `G.refactor_IsAcyclic ∧ G.J = ∅` in LN order
+-- two-conjunct `G.IsAcyclic ∧ G.J = ∅` in LN order
 -- (acyclic first, `J = ∅` second).  Design unchanged — same
 -- LN-order-preserving rationale so that
 -- `obtain ⟨hac, hJ⟩ := h` reads back as "acyclic and `J = ∅`",
@@ -529,15 +489,13 @@ LN tex (item iii of `def_3_7`):
 -- do-calculus / d-separation / iSCM results.
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsAcyclic     → G.refactor_IsAcyclic`
+--   `CDMG Node       → CDMG Node`
+--   `G.IsAcyclic     → G.IsAcyclic`
 -- The `G.J = ∅` conjunct ports unchanged at the spelling level.
 -- def_3_7 -- start statement
-def refactor_IsADMG (G : refactor_CDMG Node) : Prop := G.refactor_IsAcyclic ∧ G.J = ∅
+def IsADMG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsADMG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsCDG (was: refactor_IsCDG)
 -- ref: def_3_7 (item iv) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *CDG* (Conditional Directed
 -- Graph) iff `L = ∅` (the bidirected-edge `Finset` is empty).
@@ -557,7 +515,7 @@ LN tex (item iv of `def_3_7`):
 -- CDG ⊃ DG ⊃ DAG.
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node → refactor_CDMG Node`
+--   `CDMG Node → CDMG Node`
 -- The `G.L = ∅` spelling is *textually identical* to the
 -- original even though the underlying type of `L` changed from
 -- `Finset (Node × Node)` to `Finset (Sym2 Node)`: in both cases
@@ -565,11 +523,9 @@ LN tex (item iv of `def_3_7`):
 -- relevant element type, so the literal `G.L = ∅` reads the
 -- same on either side of the refactor.
 -- def_3_7 -- start statement
-def refactor_IsCDG (G : refactor_CDMG Node) : Prop := G.L = ∅
+def IsCDG (G : CDMG Node) : Prop := G.L = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsCDG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsDG (was: refactor_IsDG)
 -- ref: def_3_7 (item v) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *DG* (Directed Graph) iff
 -- `J = ∅` and `L = ∅`.
@@ -589,7 +545,7 @@ LN tex (item v of `def_3_7`):
 -- to `IsDG`, not the other direction.
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node → refactor_CDMG Node`
+--   `CDMG Node → CDMG Node`
 -- Both `G.J = ∅` and `G.L = ∅` port unchanged at the spelling
 -- level: `J : Finset Node` on both sides of the refactor, and
 -- `G.L = ∅` reads identically even though the underlying type
@@ -597,11 +553,9 @@ LN tex (item v of `def_3_7`):
 -- `Finset (Sym2 Node)` (`∅` resolves via `EmptyCollection` at
 -- whichever element type).
 -- def_3_7 -- start statement
-def refactor_IsDG (G : refactor_CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅
+def IsDG (G : CDMG Node) : Prop := G.J = ∅ ∧ G.L = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsDG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsCDAG (was: refactor_IsCDAG)
 -- ref: def_3_7 (item vi) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *CDAG* (Conditional Directed
 -- Acyclic Graph) iff `G` is acyclic in the sense of `def_3_6`
@@ -615,25 +569,23 @@ LN tex (item vi of `def_3_7`):
 -- ## Design choice
 -- Structural port of the original `IsCDAG` (see
 -- `namespace CDMG` block above for the full rationale): literal
--- two-conjunct `G.refactor_IsAcyclic ∧ G.L = ∅` in LN order
+-- two-conjunct `G.IsAcyclic ∧ G.L = ∅` in LN order
 -- (acyclic first, `L = ∅` second).  Design unchanged — same
 -- conditional-analogue-of-`IsDAG` role, sitting between
--- `refactor_IsCDG` (drop the acyclicity conjunct) and
--- `refactor_IsDAG` (add `G.J = ∅` as a third conjunct).
+-- `IsCDG` (drop the acyclicity conjunct) and
+-- `IsDAG` (add `G.J = ∅` as a third conjunct).
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsAcyclic     → G.refactor_IsAcyclic`
+--   `CDMG Node       → CDMG Node`
+--   `G.IsAcyclic     → G.IsAcyclic`
 -- The `G.L = ∅` conjunct ports unchanged at the spelling level
 -- despite `L`'s type changing from `Finset (Node × Node)` to
 -- `Finset (Sym2 Node)` — `∅` resolves via `EmptyCollection` at
 -- whichever element type.
 -- def_3_7 -- start statement
-def refactor_IsCDAG (G : refactor_CDMG Node) : Prop := G.refactor_IsAcyclic ∧ G.L = ∅
+def IsCDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.L = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsCDAG
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsDAG (was: refactor_IsDAG)
 -- ref: def_3_7 (item vii) — refactor twin
 -- A CDMG `G = (J, V, E, L)` is a *DAG* (Directed Acyclic Graph)
 -- iff `G` is acyclic in the sense of `def_3_6`, `J = ∅`, and
@@ -649,10 +601,10 @@ LN tex (item vii of `def_3_7`):
 -- ## Design choice
 -- Structural port of the original `IsDAG` (see `namespace CDMG`
 -- block above for the full rationale): right-associated three-
--- conjunct `G.refactor_IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅` in LN
+-- conjunct `G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅` in LN
 -- order.  Design unchanged — same right-associative parse via
 -- Lean's `∧`-associativity giving
--- `G.refactor_IsAcyclic ∧ (G.J = ∅ ∧ G.L = ∅)` and
+-- `G.IsAcyclic ∧ (G.J = ∅ ∧ G.L = ∅)` and
 -- `obtain ⟨hac, hJ, hL⟩ := h` chained destructuring, same
 -- distinctive-feature role as the strongest predicate in the
 -- taxonomy (bears every weaker name), same anchoring for
@@ -660,19 +612,18 @@ LN tex (item vii of `def_3_7`):
 -- LN-order-preserving "acyclic first" choice.
 --
 -- Upstream-type shifts that apply to this predicate:
---   `CDMG Node       → refactor_CDMG Node`
---   `G.IsAcyclic     → G.refactor_IsAcyclic`
+--   `CDMG Node       → CDMG Node`
+--   `G.IsAcyclic     → G.IsAcyclic`
 -- Both `G.J = ∅` and `G.L = ∅` conjuncts port unchanged at the
 -- spelling level: `J : Finset Node` on both sides, and the
 -- `G.L = ∅` text reads identically across the `L`-type change
 -- from `Finset (Node × Node)` to `Finset (Sym2 Node)` for the
 -- same `EmptyCollection`-resolution reason noted on
--- `refactor_IsCDG` above.
+-- `IsCDG` above.
 -- def_3_7 -- start statement
-def refactor_IsDAG (G : refactor_CDMG Node) : Prop := G.refactor_IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅
+def IsDAG (G : CDMG Node) : Prop := G.IsAcyclic ∧ G.J = ∅ ∧ G.L = ∅
 -- def_3_7 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: IsDAG
 
-end refactor_CDMG
+end CDMG
 
 end Causality

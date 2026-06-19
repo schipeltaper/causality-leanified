@@ -138,11 +138,6 @@ LN tex (item i of `def-edge-relations`, after rewrite):
 --   sets are subsets of the adjacency relation; chapters 6–7's
 --   d-/σ-separation define "paths" on the underlying adjacency
 --   graph.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: adjacent
--- def_3_3 -- start statement
-def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop := G.sus v1 v2
--- def_3_3 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: adjacent
 
 -- ref: def_3_3 (item ii)
 --
@@ -260,12 +255,6 @@ LN tex (item ii of `def-edge-relations`, after rewrite):
 --   intervened vertex; chapters 6–7's d-/σ-separation collider
 --   conditions are formulated in terms of "two edges into the same
 --   vertex".
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: into
--- def_3_3 -- start statement
-def into (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
-  (e ∈ G.E ∧ e.2 = v) ∨ (e ∈ G.L ∧ (e.1 = v ∨ e.2 = v))
--- def_3_3 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: into
 
 -- ref: def_3_3 (item iii)
 --
@@ -342,27 +331,20 @@ LN tex (item iii of `def-edge-relations`, after rewrite):
 --   hard intervention's edge-removal `E_{do(W)} := E \setminus
 --   \{e \in E | e.1 \in W\}` deletes exactly the edges out of every
 --   intervened vertex.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: outOf
--- def_3_3 -- start statement
-def outOf (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
-  e ∈ G.E ∧ e.1 = v
--- def_3_3 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: outOf
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- def_3_3 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_3 --- end helper
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: adjacent (was: refactor_adjacent)
 -- ref: def_3_3 (item i) — refactor
 --
--- Adjacency in `G`: `G.refactor_adjacent v1 v2` unfolds to
--- `G.refactor_sus v1 v2`.  Body identical to the original modulo the
--- `CDMG → refactor_CDMG` type retarget; the `sus` predicate already
+-- Adjacency in `G`: `G.adjacent v1 v2` unfolds to
+-- `G.sus v1 v2`.  Body identical to the original modulo the
+-- `CDMG → CDMG` type retarget; the `sus` predicate already
 -- absorbs the `Sym2`-based re-typing of `L` inside its `huh`-disjunct,
 -- so no ordered-pair-on-`L` syntax surfaces at this site.
 /-
@@ -375,13 +357,13 @@ LN tex (item i of `def-edge-relations`):
 -/
 -- ## Design choice
 --
--- *Delegation to `refactor_sus`, not inlining the three-way
+-- *Delegation to `sus`, not inlining the three-way
 --   disjunction.*  Item i of the LN block lists two equivalent
 --   spellings of adjacency — a three-disjunct set-theoretic form
 --   `(v_1, v_2) \in E \lor (v_2, v_1) \in E \lor (v_1, v_2) \in L` and
 --   the compact macro form `v_1 \sus v_2 \in G` (def_3_2 item 7).
---   `refactor_sus` already encodes exactly that three-disjunct as
---   `refactor_tuh ∨ refactor_hut ∨ refactor_huh`, which in turn unfolds
+--   `sus` already encodes exactly that three-disjunct as
+--   `tuh ∨ hut ∨ huh`, which in turn unfolds
 --   to the set-theoretic form (with the `huh`-disjunct now phrased as
 --   `s(v_1, v_2) ∈ G.L` under the `Sym2` retyping of `L`).  Delegating
 --   keeps adjacency *definitionally tied* to the notation primitive
@@ -391,42 +373,42 @@ LN tex (item i of `def-edge-relations`):
 --   later refactor), adjacency follows automatically, with no
 --   shadow copy of the disjunction to keep in sync.  Recomputing the
 --   body would also force every downstream proof that case-analyses on
---   adjacency to carry two names (`refactor_adjacent` and
---   `refactor_sus`) for the same predicate.
+--   adjacency to carry two names (`adjacent` and
+--   `sus`) for the same predicate.
 --
 -- *Body unchanged modulo the `G`-type retarget; the `Sym2` retyping
---   of `L` is fully absorbed inside `refactor_sus`.*  The original
+--   of `L` is fully absorbed inside `sus`.*  The original
 --   `adjacent` was `G.sus v1 v2`; the refactored version is
---   `G.refactor_sus v1 v2`.  No ordered-pair-on-`L` syntax surfaces at
---   this site, because the `huh`-disjunct inside `refactor_sus`
+--   `G.sus v1 v2`.  No ordered-pair-on-`L` syntax surfaces at
+--   this site, because the `huh`-disjunct inside `sus`
 --   internally rewrites `(v_1, v_2) ∈ L` to `s(v_1, v_2) ∈ G.L` (see
---   `CDMGNotation.lean`'s `refactor_huh` design block).  This is the
+--   `CDMGNotation.lean`'s `huh` design block).  This is the
 --   minimal-touch port the refactor demands: adjacency itself has no
 --   `L`-clause to retype.
 --
--- *Symmetry of `refactor_adjacent G v1 v2` and
---   `refactor_adjacent G v2 v1` is inherited from `refactor_sus`.*
---   Under the `Sym2` typing of `L`, `refactor_sus` is *structurally*
+-- *Symmetry of `adjacent G v1 v2` and
+--   `adjacent G v2 v1` is inherited from `sus`.*
+--   Under the `Sym2` typing of `L`, `sus` is *structurally*
 --   symmetric: the `tuh ∨ hut` pair flips into itself when arguments
 --   are swapped, and the `huh`-disjunct's symmetry is now a
 --   *definitional* equality `s(v_1, v_2) = s(v_2, v_1)` via Mathlib's
 --   `Sym2` swap quotient (no `hL_symm` invocation needed, contrast
 --   with the pre-refactor encoding).  Hence
---   `refactor_adjacent G v1 v2 ↔ refactor_adjacent G v2 v1` is a
+--   `adjacent G v1 v2 ↔ adjacent G v2 v1` is a
 --   one-line consequence — no separate `hadjacent_symm` field or
 --   lemma is needed in this row; downstream consumers can lean on
---   `refactor_sus`'s symmetry directly.  This is why the LN uses
+--   `sus`'s symmetry directly.  This is why the LN uses
 --   `\sus` (not `\suh` or `\hus`) for adjacency in the first place.
 --
 -- *Why `def`, not `abbrev`.*  Same rationale as in the original
---   `adjacent` and as `refactor_sus` itself: the LN treats "adjacent
+--   `adjacent` and as `sus` itself: the LN treats "adjacent
 --   in `G`" as a named relation, the building block for walks
 --   (`def_3_4`), family relationships (`def_3_5`), and later
 --   d-/σ-separation (chapters 6–7).  An `abbrev` would auto-unfold to
---   `refactor_sus` at every elaboration site, eliminating the named
+--   `sus` at every elaboration site, eliminating the named
 --   abstraction.  Downstream proofs that want the disjunction explicit
---   can chain `unfold refactor_CDMG.refactor_adjacent
---   refactor_CDMG.refactor_sus` to reach the three primitive cases.
+--   can chain `unfold CDMG.adjacent
+--   CDMG.sus` to reach the three primitive cases.
 --
 -- *Downstream consumers are insensitive to the refactor at this
 --   site.*  `def_3_4`'s "alternating sequence of adjacent nodes and
@@ -439,21 +421,19 @@ LN tex (item i of `def-edge-relations`):
 --   refactor's cascade through adjacency is structurally invisible to
 --   every adjacency-consuming proof.
 -- def_3_3 -- start statement
-def refactor_adjacent (G : refactor_CDMG Node) (v1 v2 : Node) : Prop :=
-  G.refactor_sus v1 v2
+def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop :=
+  G.sus v1 v2
 -- def_3_3 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: adjacent
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: intoE (was: refactor_intoE)
 -- ref: def_3_3 (item ii, E-channel half) — refactor
 --
 -- Directed (E-channel) edge `e` into vertex `v` in `G`:
--- `G.refactor_intoE v e` unfolds to `e ∈ G.E ∧ e.2 = v` — an ordered
+-- `G.intoE v e` unfolds to `e ∈ G.E ∧ e.2 = v` — an ordered
 -- pair counts as "into v" on the directed channel iff its head is `v`.
 -- Net-new declaration: the original unified `into` is split by channel
 -- because under the refactor `G.L : Finset (Sym2 Node)` no longer
 -- admits ordered-pair membership, so the L-clause needs its own
--- predicate (next decl `refactor_intoL`).  Body identical to the
+-- predicate (next decl `intoL`).  Body identical to the
 -- E-disjunct of the original `into`.
 /-
 LN tex (item ii of `def-edge-relations`, E-channel half):
@@ -496,29 +476,29 @@ LN tex (item ii of `def-edge-relations`, E-channel half):
 --
 -- *Argument typing `(e : Node × Node)`, same as the original `into`'s
 --   E-clause.*  No subtype wrapping into `((J ∪ V) × V)` — consistent
---   with `refactor_CDMG.E : Finset (Node × Node)` keeping its carrier
+--   with `CDMG.E : Finset (Node × Node)` keeping its carrier
 --   ordered-pair-typed plus a separate `hE_subset` field, rather than
 --   pushing the subset constraint into the type.  The "in particular,
 --   only edges in `G.E` can be into `v` on the E-channel" property is
 --   a *consequence* of the `e ∈ G.E` conjunct in the body, not a
 --   precondition the caller must supply.  An ordered pair `e ∉ G.E`
---   falls through the `e ∈ G.E` check and `G.refactor_intoE v e` is
+--   falls through the `e ∈ G.E` check and `G.intoE v e` is
 --   `False`, exactly as desired.
 --
 -- *Body `e ∈ G.E ∧ e.2 = v`, not `e ∈ G.E ∧ (e.1 = v ∨ e.2 = v)`.*
 --   The LN's "into `v`" specifically means "`v` is the head"; the head
 --   coordinate is `.2` under the LN's `(tail, head)` directed-edge
 --   convention used throughout chapter 3 (cf. `CDMGNotation.lean`'s
---   `refactor_tuh` body `(v1, v2) ∈ G.E` for the writing
+--   `tuh` body `(v1, v2) ∈ G.E` for the writing
 --   `v_1 \tuh v_2`).  Replacing `e.2 = v` with the symmetric form
 --   `e.1 = v ∨ e.2 = v` would conflate "into" with "incident at" for
 --   directed edges — sweeping up the tail-incident edges that the LN
 --   classifies as `outOf`, not `into`.  This was a load-bearing design
 --   constraint of the original `into` and is preserved verbatim here.
 --
--- *Why no unified `refactor_into` that abstracts over both carriers.*
---   Built on top of the split below (`refactor_intoL`), a unified
---   predicate `refactor_into v` would have to take its edge argument
+-- *Why no unified `into` that abstracts over both carriers.*
+--   Built on top of the split below (`intoL`), a unified
+--   predicate `into v` would have to take its edge argument
 --   as either a sum type (`Node × Node ⊕ Sym2 Node`) or behind an
 --   existential.  Either way, downstream consumers gain nothing: every
 --   use site already knows which channel it's working on (walk-step
@@ -534,7 +514,7 @@ LN tex (item ii of `def-edge-relations`, E-channel half):
 -- *Edge-level predicate parameterised by `(v, e)`, mirroring the
 --   original `into` shape.*  The LN's item ii classifies *edges* of
 --   `G` relative to a bound vertex `v`; the order `(v : Node) (e :
---   Node × Node)` matches that reading ("`G.refactor_intoE v`
+--   Node × Node)` matches that reading ("`G.intoE v`
 --   partially applied is the predicate `edge is into v on the E
 --   channel`").  Resolves the LN-wording-check subtlety
 --   `out_of_v2_not_literally_defined` the same way the original
@@ -543,10 +523,10 @@ LN tex (item ii of `def-edge-relations`, E-channel half):
 --
 -- *Why `v` ranges over the ambient `Node`, not over `v ∈ G.V`
 --   (or `v ∈ G.J ∪ G.V`).*  Mirror of the original `into`'s argument
---   convention, in turn matching `refactor_sus`, `refactor_tuh`, etc.
+--   convention, in turn matching `sus`, `tuh`, etc.
 --   in `CDMGNotation.lean`.  If `v ∉ G`, no pair in `G.E` can have
---   `v` at the `.2` coordinate (by `refactor_CDMG.hE_subset`'s
---   `e.2 ∈ V`), so `G.refactor_intoE v e` is vacuously `False` — no
+--   `v` at the `.2` coordinate (by `CDMG.hE_subset`'s
+--   `e.2 ∈ V`), so `G.intoE v e` is vacuously `False` — no
 --   junk side-condition is threaded through call sites.  Restricting
 --   `v` to `G.V ∪ G.J` at the type level would force every downstream
 --   chain ("vertex-on-walk → into-which-edges" in `def_3_4`,
@@ -555,37 +535,35 @@ LN tex (item ii of `def-edge-relations`, E-channel half):
 --   can otherwise discharge implicitly.
 --
 -- *Why `def`, not `abbrev`.*  Same rationale as the original `into`
---   and the items in `CDMGNotation.lean`: `refactor_intoE v` is a
+--   and the items in `CDMGNotation.lean`: `intoE v` is a
 --   named LN relation ("edges into `v` on the directed channel")
 --   used downstream as an abstraction.  An `abbrev` would auto-unfold
 --   to `e ∈ G.E ∧ e.2 = v` at every elaboration site, masking the
 --   abstraction.  Downstream proofs unfold on demand via
---   `unfold refactor_CDMG.refactor_intoE`.
+--   `unfold CDMG.intoE`.
 --
 -- *Downstream consumers (E-channel half of `into`'s original
 --   consumers).*  `def_3_5`'s `Pa^G(v) := {w | w \tuh v \in G}`
---   (parents) is the source-vertex projection of `refactor_intoE`;
---   `def_3_10` hard intervention rewrites `refactor_intoE` for every
+--   (parents) is the source-vertex projection of `intoE`;
+--   `def_3_10` hard intervention rewrites `intoE` for every
 --   intervened vertex (the removed-edges set is
---   `{e ∈ G.E | e.2 ∈ W}`, exactly the union of `refactor_intoE` over
+--   `{e ∈ G.E | e.2 ∈ W}`, exactly the union of `intoE` over
 --   `W`); chapters 6–7's d-/σ-separation collider conditions, on the
---   directed-edge half, are formulated as "two `refactor_intoE`-edges
+--   directed-edge half, are formulated as "two `intoE`-edges
 --   at the same vertex".
 -- def_3_3 -- start statement
-def refactor_intoE (G : refactor_CDMG Node) (v : Node) (e : Node × Node) : Prop :=
+def intoE (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
   e ∈ G.E ∧ e.2 = v
 -- def_3_3 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: intoE
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: intoL (was: refactor_intoL)
 -- ref: def_3_3 (item ii, L-channel half) — refactor
 --
 -- Bidirected (L-channel) edge `s` into vertex `v` in `G`:
--- `G.refactor_intoL v s` unfolds to `s ∈ G.L ∧ v ∈ s` — an unordered
+-- `G.intoL v s` unfolds to `s ∈ G.L ∧ v ∈ s` — an unordered
 -- pair `s : Sym2 Node` counts as "into v" on the bidirected channel iff
 -- `s ∈ G.L` and `v` is one of the two endpoints `s` mentions (Mathlib's
 -- `Sym2.Mem` / `Membership Node (Sym2 Node)`).  Net-new declaration
--- paired with `refactor_intoE`; the representative-free `v ∈ s`
+-- paired with `intoE`; the representative-free `v ∈ s`
 -- collapses the original `into`'s `e.1 = v ∨ e.2 = v` disjunction by
 -- construction, and recovers the LN's "into both endpoints" reading of
 -- a bidirected edge exactly.
@@ -602,17 +580,17 @@ LN tex (item ii of `def-edge-relations`, L-channel half):
 --   net-new in the sense that the original unified `into` body was a
 --   single disjunction `(e ∈ G.E ∧ e.2 = v) ∨ (e ∈ G.L ∧ (e.1 = v ∨
 --   e.2 = v))` rather than two pre-split halves.  The forcing reason
---   is the same as for `refactor_intoE`: under
+--   is the same as for `intoE`: under
 --   `G.L : Finset (Sym2 Node)`, the unified disjunction can no longer
 --   typecheck because a single `e` cannot simultaneously be an ordered
 --   pair and an unordered pair.  Splitting the L-half off into its
 --   own predicate with a `Sym2 Node`-typed argument is the natural
---   resolution; see `refactor_intoE`'s "split rather than a sum-type
+--   resolution; see `intoE`'s "split rather than a sum-type
 --   unification" item for the cross-cutting rationale shared between
 --   the two halves.
 --
 -- *Argument typing `(s : Sym2 Node)`, the carrier of `G.L`.*  Mirrors
---   `refactor_CDMG.L : Finset (Sym2 Node)` exactly; no subtype wrap.
+--   `CDMG.L : Finset (Sym2 Node)` exactly; no subtype wrap.
 --   The change from the original's `e : Node × Node` to `s : Sym2 Node`
 --   is purely a *carrier-typing* shift: the L-channel "edge" the LN
 --   refers to is now an unordered pair (the LN's
@@ -622,7 +600,7 @@ LN tex (item ii of `def-edge-relations`, L-channel half):
 --   `Membership Node (Sym2 Node)`), the canonical idiom for "every
 --   node `s` mentions" — handling both endpoints simultaneously
 --   without picking a representative.  This mirrors
---   `refactor_CDMG.hL_subset`'s use of `Sym2.Mem` to express "every
+--   `CDMG.hL_subset`'s use of `Sym2.Mem` to express "every
 --   node of every L-edge lies in `V`".
 --
 -- *Body `s ∈ G.L ∧ v ∈ s`, not destructuring `s` to `s(v_1, v_2)` and
@@ -633,10 +611,10 @@ LN tex (item ii of `def-edge-relations`, L-channel half):
 --   form `v ∈ s` handles both endpoints simultaneously and is
 --   *literally* the LN's "`v` is one of the two endpoints `s`
 --   mentions".  Destructuring via `Sym2.mk` was rejected for the same
---   reasons as in `refactor_CDMG.hL_subset` (see `CDMG.lean`'s design
+--   reasons as in `CDMG.hL_subset` (see `CDMG.lean`'s design
 --   block, item on `hL_subset`): forces a choice that the quotient
 --   has no canonical answer for, *and* would require every
---   `refactor_intoL`-consuming proof to destructure through `Sym2.lift`
+--   `intoL`-consuming proof to destructure through `Sym2.lift`
 --   /`Sym2.ind` at the use site rather than the centralised
 --   `Sym2.Mem` lookup.
 --
@@ -645,8 +623,8 @@ LN tex (item ii of `def-edge-relations`, L-channel half):
 --   `bidirected_huh_into_both_out_of_neither`).  The LN's literal item
 --   2 says a `v_1 \huh v_2` edge is "into `v_1` AND into `v_2`".
 --   Under our split this is captured by *both*
---   `G.refactor_intoL v_1 s(v_1, v_2)` AND
---   `G.refactor_intoL v_2 s(v_1, v_2)` holding, which the
+--   `G.intoL v_1 s(v_1, v_2)` AND
+--   `G.intoL v_2 s(v_1, v_2)` holding, which the
 --   `Sym2`-membership condition `v ∈ s` delivers automatically:
 --   `v_1 ∈ s(v_1, v_2)` and `v_2 ∈ s(v_1, v_2)` are both true by
 --   construction (Mathlib's `Sym2.mem_iff_exists` /
@@ -654,67 +632,65 @@ LN tex (item ii of `def-edge-relations`, L-channel half):
 --   v)` disjunction needed — the swap quotient does the disjunction
 --   for free.  This is faithful to the LN; *downstream consumers that
 --   build out-degree, children, or any "incident-at-v-but-not-into-v"
---   notion must NOT treat `refactor_intoL` as complementary to
---   `refactor_outOf`*: an `L`-edge incident at `v` is `refactor_intoL`
---   but never `refactor_outOf`, exactly mirroring the LN.
+--   notion must NOT treat `intoL` as complementary to
+--   `outOf`*: an `L`-edge incident at `v` is `intoL`
+--   but never `outOf`, exactly mirroring the LN.
 --
 -- *No precondition `s ∈ G.L` on the argument.*  Same reasoning as the
---   original `into` and `refactor_intoE`: the predicate body's
+--   original `into` and `intoE`: the predicate body's
 --   `s ∈ G.L` conjunct makes any `s` outside `G.L` automatically
 --   `False`.  No call site needs to thread an `s ∈ G.L` hypothesis.
 --
 -- *Why `v` ranges over the ambient `Node`, not over `v ∈ G.V` (or
---   `G.J ∪ G.V`).*  Mirror of `refactor_intoE` and the original
---   `into`: `refactor_CDMG.hL_subset` guarantees `v ∈ s ∈ G.L → v ∈
---   G.V`, so a `v ∉ G` makes `G.refactor_intoL v s` vacuously `False`
+--   `G.J ∪ G.V`).*  Mirror of `intoE` and the original
+--   `into`: `CDMG.hL_subset` guarantees `v ∈ s ∈ G.L → v ∈
+--   G.V`, so a `v ∉ G` makes `G.intoL v s` vacuously `False`
 --   without any caller-side membership proof.  Note: even though the
 --   LN's text restricts `v` to `J ∪ V`, our `v ∈ G.V` (via
 --   `hL_subset`) is the tighter property the L-channel actually
 --   delivers — L-edges live over `V`, not over `J ∪ V`.
 --
--- *Why two predicates, not a unified `refactor_into`.*  See the
---   matching item in `refactor_intoE`'s design block.  The split lets
+-- *Why two predicates, not a unified `into`.*  See the
+--   matching item in `intoE`'s design block.  The split lets
 --   each downstream consumer dispatch on its known channel without
 --   case-analysing a sum type; under the typed-walks design of
 --   `def_3_4`'s refactored `WalkStep`, the `.bidir` constructor's
---   "edge into endpoint" lookup naturally picks `refactor_intoL`,
---   while `.forwardE` / `.backwardE` pick `refactor_intoE`.  Each
+--   "edge into endpoint" lookup naturally picks `intoL`,
+--   while `.forwardE` / `.backwardE` pick `intoE`.  Each
 --   walk-step type knows which to call without an intermediate sum.
 --
--- *Why `def`, not `abbrev`.*  Same as `refactor_intoE`: `intoL v` is
+-- *Why `def`, not `abbrev`.*  Same as `intoE`: `intoL v` is
 --   a named LN-derived relation used downstream; `abbrev` would
 --   auto-unfold and mask the abstraction.
 --
 -- *Downstream consumers (L-channel half of `into`'s original
 --   consumers).*  `def_3_5`'s `Sib^G(v) := {w | v \huh w \in G}`
---   (siblings) is the partner-vertex projection of `refactor_intoL`
+--   (siblings) is the partner-vertex projection of `intoL`
 --   (via `Sym2.lift` over the unordered pair); `def_3_10` hard
 --   intervention's L-side removal (`L_{do(W)} := L \ {s ∈ L | ∃ v ∈
 --   W, v ∈ s}`) is `Finset.filter` against the existential closure
---   of `refactor_intoL`; chapters 6–7's collider conditions, on the
---   bidirected-edge half, are "two `refactor_intoL`-edges at the
+--   of `intoL`; chapters 6–7's collider conditions, on the
+--   bidirected-edge half, are "two `intoL`-edges at the
 --   same vertex" — and crucially can use the structural symmetry of
 --   `Sym2` membership for the σ-separation symmetry of `claim_3_22`
 --   (the *driving* downstream consumer of the encoding choice).
 -- def_3_3 -- start statement
-def refactor_intoL (G : refactor_CDMG Node) (v : Node) (s : Sym2 Node) : Prop :=
+def intoL (G : CDMG Node) (v : Node) (s : Sym2 Node) : Prop :=
   s ∈ G.L ∧ v ∈ s
 -- def_3_3 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: intoL
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: outOf (was: refactor_outOf)
 -- ref: def_3_3 (item iii) — refactor
 --
--- Edge `e` out of vertex `v` in `G`: `G.refactor_outOf v e` unfolds to
+-- Edge `e` out of vertex `v` in `G`: `G.outOf v e` unfolds to
 -- `e ∈ G.E ∧ e.1 = v`.  Only directed edges, with `v` at the tail
 -- endpoint, count; no `L`-edge is ever out of any vertex.  Body
--- identical to the original `outOf` modulo the `CDMG → refactor_CDMG`
+-- identical to the original `outOf` modulo the `CDMG → CDMG`
 -- type retarget: the LN excludes L-edges from `outOf` by construction
 -- (no L-clause in item iii), so the refactor's L-side retyping is
 -- structurally invisible here.  The LN-wording-check subtlety
 -- `bidirected_huh_into_both_out_of_neither` continues to apply:
 -- bidirected edges contribute zero to `outOf`, even though
--- `refactor_intoL` matches at both their endpoints.
+-- `intoL` matches at both their endpoints.
 /-
 LN tex (item iii of `def-edge-relations`):
 
@@ -726,7 +702,7 @@ LN tex (item iii of `def-edge-relations`):
 -- ## Design choice
 --
 -- *Body unchanged from the original `outOf`; only `G`'s type is
---   retargeted from `CDMG` to `refactor_CDMG`.*  The LN's item iii
+--   retargeted from `CDMG` to `CDMG`.*  The LN's item iii
 --   enumerates only the E-channel orderings `v_1 \tuh v_2` and
 --   `v_2 \hut v_1` — both writings of the *same* ordered `E`-edge.
 --   There is no L-channel disjunct in the literal LN text, so there is
@@ -734,7 +710,7 @@ LN tex (item iii of `def-edge-relations`):
 --   `Finset (Node × Node) → Finset (Sym2 Node)` doesn't surface at any
 --   site in the body.  The pre-refactor proof script — "destructure on
 --   `e ∈ G.E` and read `e.1`" — ports mechanically: the only diff is
---   the `G : refactor_CDMG Node` parameter shape.  This is the
+--   the `G : CDMG Node` parameter shape.  This is the
 --   archetypal mechanical-port case the refactor-row briefing
 --   describes.
 --
@@ -744,7 +720,7 @@ LN tex (item iii of `def-edge-relations`):
 --   the LN treats a bidirected edge as "into both endpoints, out of
 --   neither".  Under the LN's CDMG semantics this is *intentional* —
 --   a bidirected edge denotes latent confounding, with no directed
---   influence either way — so `refactor_outOf` correctly excludes the
+--   influence either way — so `outOf` correctly excludes the
 --   `L` channel, just as the original `outOf` did.  *Critical
 --   consequence: "into" and "out of" are NOT complementary at any
 --   vertex with incident `\huh`-edges.*  A future downstream consumer
@@ -752,23 +728,23 @@ LN tex (item iii of `def-edge-relations`):
 --   `G.E` will need *this exact predicate* (E-channel only); the
 --   literal LN behaviour is the right anchor.  Any consumer that
 --   wants "incident at `v` but not into `v`" must combine
---   `refactor_intoE` / `refactor_intoL` with its own incidence
---   predicate — *not* read it off `¬ refactor_outOf`.
+--   `intoE` / `intoL` with its own incidence
+--   predicate — *not* read it off `¬ outOf`.
 --
--- *Symmetry with `refactor_intoE`: same E-only argument typing
+-- *Symmetry with `intoE`: same E-only argument typing
 --   `(e : Node × Node)`.*  Keeps the E-channel half of "into vs out
 --   of" syntactically uniform — the same `Finset (Node × Node)`
 --   carrier, the same vertex-ranges-over-`Node` convention, the same
 --   `.1` / `.2` head-vs-tail dispatch.  Asymmetry lives only in
---   *which* coordinate is checked: `refactor_intoE` checks `e.2 = v`
---   (head-at-`v`); `refactor_outOf` checks `e.1 = v` (tail-at-`v`).
+--   *which* coordinate is checked: `intoE` checks `e.2 = v`
+--   (head-at-`v`); `outOf` checks `e.1 = v` (tail-at-`v`).
 --   This dual shape is what makes downstream destructurings of a
 --   single edge produce both classifications cheaply: case-analyse on
---   `e = (s, t)`, then `refactor_intoE` fires for `t = v` and
---   `refactor_outOf` fires for `s = v`, with no further pattern
+--   `e = (s, t)`, then `intoE` fires for `t = v` and
+--   `outOf` fires for `s = v`, with no further pattern
 --   matching.
 --
--- *`e.1 = v` (tail position), the dual of `refactor_intoE`'s
+-- *`e.1 = v` (tail position), the dual of `intoE`'s
 --   `e.2 = v` (head position).*  Under the directed-edge convention of
 --   `CDMGNotation.lean` (items 2–3) an element `(s, t) ∈ G.E` is the
 --   edge from tail `s` to head `t`, equivalently the writings
@@ -787,7 +763,7 @@ LN tex (item iii of `def-edge-relations`):
 --   The addition resolves this by clarifying that edge-set membership
 --   in the "out of `v`" category depends only on the underlying
 --   `E`-element, not on the textual writing.  *This is exactly what
---   `refactor_outOf` encodes*: `e ∈ G.E ∧ e.1 = v` ranges over edges
+--   `outOf` encodes*: `e ∈ G.E ∧ e.1 = v` ranges over edges
 --   whose tail is `v` regardless of writing order, with `v` a freely
 --   bound vertex parameter — no implicit-writing-order ambiguity
 --   carries over into the Lean.  The original `outOf` already resolved
@@ -795,39 +771,37 @@ LN tex (item iii of `def-edge-relations`):
 --   verbatim.
 --
 -- *No precondition `e ∈ G.E` on the argument.*  Same reasoning as the
---   original `outOf` and `refactor_intoE`: the predicate body
+--   original `outOf` and `intoE`: the predicate body
 --   `e ∈ G.E ∧ e.1 = v` makes any pair outside `G.E` automatically
 --   evaluate to `False`.  Threading a precondition would force every
 --   call site to carry it.
 --
 -- *Why `v` ranges over the ambient `Node`.*  Same rationale as
---   `refactor_intoE`: `refactor_CDMG.hE_subset` guarantees any
+--   `intoE`: `CDMG.hE_subset` guarantees any
 --   `(s, t) ∈ G.E` has `s ∈ G.J ∪ G.V`, so supplying a `v ∉ G`
 --   makes the predicate vacuously `False` without any caller-side
 --   membership proof.
 --
--- *Why `def`, not `abbrev`.*  Same rationale: `refactor_outOf v` is a
+-- *Why `def`, not `abbrev`.*  Same rationale: `outOf v` is a
 --   named LN relation, used as an abstraction downstream.
 --
 -- *Downstream consumers (unchanged shape from the original `outOf`).*
 --   `def_3_5`'s `Ch^G(v) := {w | v \tuh w \in G}` (children) is the
---   target-vertex projection of `refactor_outOf`; `def_3_6`
---   acyclicity's directed-walk condition uses `refactor_outOf v`
+--   target-vertex projection of `outOf`; `def_3_6`
+--   acyclicity's directed-walk condition uses `outOf v`
 --   implicitly (each directed walk-edge is out of its source);
 --   `def_3_10` hard intervention's edge-removal
 --   `E_{do(W)} := E \setminus \{e ∈ E | e.1 ∈ W\}` deletes exactly
 --   the edges out of every intervened vertex — i.e. the union of
---   `refactor_outOf v` over `v ∈ W`.  None of these consumers need to
+--   `outOf v` over `v ∈ W`.  None of these consumers need to
 --   adapt to the refactor: the `outOf` API surface is identical
 --   pre/post (modulo the `G` type), because the `L`-channel retyping
 --   does not surface here.
 -- def_3_3 -- start statement
-def refactor_outOf (G : refactor_CDMG Node) (v : Node) (e : Node × Node) : Prop :=
+def outOf (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
   e ∈ G.E ∧ e.1 = v
 -- def_3_3 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: outOf
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: into
 -- The pre-refactor `into` predicate combined the E- and L-channels in a
 -- single Prop.  Under `cdmg_typed_edges` it is split into two channel-
 -- specific predicates, `intoE` and `intoL`, each carried by its own
@@ -835,8 +809,7 @@ def refactor_outOf (G : refactor_CDMG Node) (v : Node) (e : Node × Node) : Prop
 -- the post-refactor design; this empty REPLACEMENT block exists only so
 -- the finalize-time marker validator can pair the ORIGINAL `into` block
 -- with a same-named REPLACEMENT.
--- REFACTOR-BLOCK-REPLACEMENT-END: into
 
-end refactor_CDMG
+end CDMG
 
 end Causality

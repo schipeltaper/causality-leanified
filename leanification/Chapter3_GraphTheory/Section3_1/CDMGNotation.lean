@@ -142,12 +142,6 @@ LN tex (item 1 of `not-cdmg`):
 --   `def_3_7` onwards (CDMG-type predicates).  Making this an
 --   `instance` rather than a `def` is what lets all those use sites
 --   read verbatim from the LN.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: instMembership
--- def_3_2 -- start statement
-instance instMembership : Membership Node (CDMG Node) where
-  mem G v := v ∈ G.J ∪ G.V
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: instMembership
 
 -- ref: def_3_2 (item 2)
 --
@@ -188,11 +182,6 @@ LN tex (item 2 of `not-cdmg`):
 --   non-trivial directed walk uses chains of `tuh`; `def_3_10` hard
 --   intervention's `E_{do(W)} := E \ {v → w | v ∈ G, w ∈ W}` rewrites
 --   `tuh` edges in bulk.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: tuh
--- def_3_2 -- start statement
-def tuh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.E
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: tuh
 
 -- ref: def_3_2 (item 3)
 --
@@ -240,11 +229,6 @@ LN tex (item 3 of `not-cdmg`):
 --   `G.hut v_k v_{k+1}` after rewriting; `def_3_4` collider-walk and
 --   bifurcation patterns use `hut` for the "incoming-from-the-right"
 --   half.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: hut
--- def_3_2 -- start statement
-def hut (G : CDMG Node) (v1 v2 : Node) : Prop := (v2, v1) ∈ G.E
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: hut
 
 -- ref: def_3_2 (item 4)
 --
@@ -299,11 +283,6 @@ LN tex (item 4 of `not-cdmg`):
 --   walks built from `huh`; `def_3_10`'s
 --   `L_{do(W)} := L \ {v \huh w | v ∈ G, w ∈ W}` and `def_3_11`'s
 --   split-graph `L`-rewriting both rewrite `huh` edges.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: huh
--- def_3_2 -- start statement
-def huh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.L
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: huh
 
 -- ref: def_3_2 (item 5)
 --
@@ -364,12 +343,6 @@ LN tex (item 5 of `not-cdmg`):
 --   `\suh`; `claim_3_2` (acyclic ⟺ topological order) does not need
 --   `suh` directly but `def_3_6` acyclicity is stated over `tuh`-only
 --   walks.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: suh
--- def_3_2 -- start statement
-def suh (G : CDMG Node) (v1 v2 : Node) : Prop :=
-  G.tuh v1 v2 ∨ G.huh v1 v2
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: suh
 
 -- ref: def_3_2 (item 6)
 --
@@ -408,12 +381,6 @@ LN tex (item 6 of `not-cdmg`):
 --   collider walk has `a_{n-1} = v_{n-1} \hus v_n` for the closing
 --   half-edge; `def_3_4`'s bifurcation has `v_{k-1} \hus v_k` as the
 --   middle "tip" edge.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: hus
--- def_3_2 -- start statement
-def hus (G : CDMG Node) (v1 v2 : Node) : Prop :=
-  G.hut v1 v2 ∨ G.huh v1 v2
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: hus
 
 -- ref: def_3_2 (item 7)
 --
@@ -488,22 +455,15 @@ LN tex (item 7 of `not-cdmg`):
 --   `def_3_4` collider-walk note "for `n=1` this reads
 --   `v \sus w \in G`"; later d-/σ-separation chapters use
 --   `sus`-adjacency to define "active paths" in CDMGs.
--- REFACTOR-BLOCK-ORIGINAL-BEGIN: sus
--- def_3_2 -- start statement
-def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
-  G.tuh v1 v2 ∨ G.hut v1 v2 ∨ G.huh v1 v2
--- def_3_2 -- end statement
--- REFACTOR-BLOCK-ORIGINAL-END: sus
 
 end CDMG
 
-namespace refactor_CDMG
+namespace CDMG
 
 -- def_3_2 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_2 --- end helper
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: instMembership (was: refactor_instMembership)
 -- ref: def_3_2 (item 1) — refactor
 --
 -- Membership of a node in a CDMG: `v ∈ G` unfolds to `v ∈ G.J ∪ G.V`,
@@ -539,14 +499,14 @@ LN tex (item 1 of `not-cdmg`):
 --   instance, while the outer `v ∈ G` on a `CDMG Node` dispatches to
 --   ours.  Both coexist transparently.
 --
--- *Why an `instance`, not a `Coe (refactor_CDMG Node) (Finset Node)`
+-- *Why an `instance`, not a `Coe (CDMG Node) (Finset Node)`
 --   coercion to "the vertex set".*  A coercion routing
---   `(G : refactor_CDMG Node)` to `G.J ∪ G.V` was considered and
+--   `(G : CDMG Node)` to `G.J ∪ G.V` was considered and
 --   rejected on two grounds.  First, it would collide with — or at
 --   best shadow — `Finset.instMembership`: at every `v ∈ G` site Lean
 --   would have to *decide* whether to coerce `G` to a `Finset Node`
 --   and then dispatch through `Finset.instMembership`, or to dispatch
---   directly through our `Membership Node (refactor_CDMG Node)`
+--   directly through our `Membership Node (CDMG Node)`
 --   instance, with the choice depending on elaboration order at each
 --   call site.  Second, a coercion type-erases the distinction
 --   between "node mentioned by graph `G`" (the semantic concept) and
@@ -554,7 +514,7 @@ LN tex (item 1 of `not-cdmg`):
 --   `Finset` happening to equal `G.J ∪ G.V`); downstream lemmas
 --   reading `v ∈ G` mean the former, and a coercion would silently
 --   allow rewrites that mix the two.  The `Membership` instance
---   keeps `refactor_CDMG Node` a distinct logical category whose `∈`
+--   keeps `CDMG Node` a distinct logical category whose `∈`
 --   is *defined* to be vertex membership — no ambiguity, no
 --   precedence races.
 --
@@ -584,12 +544,10 @@ LN tex (item 1 of `not-cdmg`):
 --   `instance` rather than a `def` is what lets all those use sites
 --   read verbatim from the LN.
 -- def_3_2 -- start statement
-instance refactor_instMembership : Membership Node (refactor_CDMG Node) where
+instance instMembership : Membership Node (CDMG Node) where
   mem G v := v ∈ G.J ∪ G.V
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: instMembership
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: tuh (was: refactor_tuh)
 -- ref: def_3_2 (item 2) — refactor
 --
 -- Directed edge `v1 → v2` in `G`: `G.tuh v1 v2` unfolds to the literal
@@ -614,12 +572,12 @@ LN tex (item 2 of `not-cdmg`):
 --   reach the underlying `Finset` membership only when they need to;
 --   an `abbrev` would always unfold and could mask intent.  An
 --   `instance`-as-typeclass spelling (e.g. parametrising a
---   `class HasDirectedEdge (G : refactor_CDMG Node) (v1 v2 : Node)`)
+--   `class HasDirectedEdge (G : CDMG Node) (v1 v2 : Node)`)
 --   was rejected too: `tuh` is a binary `Prop` *predicate* about a
 --   specific ordered triple `(G, v1, v2)`, not a typeclass-resolvable
 --   property of some single type, so typeclass synthesis has no
 --   sensible search target.  A `def` with a fixed name is the right
---   shape — downstream consumers rewrite by name (`G.refactor_tuh`)
+--   shape — downstream consumers rewrite by name (`G.tuh`)
 --   rather than relying on instance resolution, which keeps the
 --   rewriting predictable.
 --
@@ -640,11 +598,9 @@ LN tex (item 2 of `not-cdmg`):
 --   intervention's `E_{do(W)} := E \ {v → w | v ∈ G, w ∈ W}` rewrites
 --   `tuh` edges in bulk.
 -- def_3_2 -- start statement
-def refactor_tuh (G : refactor_CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.E
+def tuh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.E
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: tuh
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: hut (was: refactor_hut)
 -- ref: def_3_2 (item 3) — refactor
 --
 -- Backwards directed edge `v1 ← v2` in `G`: `G.hut v1 v2` unfolds to
@@ -718,11 +674,9 @@ LN tex (item 3 of `not-cdmg`):
 --   bifurcation patterns use `hut` for the "incoming-from-the-right"
 --   half.
 -- def_3_2 -- start statement
-def refactor_hut (G : refactor_CDMG Node) (v1 v2 : Node) : Prop := (v2, v1) ∈ G.E
+def hut (G : CDMG Node) (v1 v2 : Node) : Prop := (v2, v1) ∈ G.E
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: hut
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: huh (was: refactor_huh)
 -- ref: def_3_2 (item 4) — refactor
 --
 -- Bidirected edge `v1 ↔ v2` in `G`: `G.huh v1 v2` unfolds to
@@ -762,7 +716,7 @@ LN tex (item 4 of `not-cdmg`):
 --   `Sym2.eq_swap : s(a, b) = s(b, a)` in Mathlib, propositional via
 --   `Quot.sound` and proof-irrelevant).  So
 --   `G.huh v1 v2 ↔ G.huh v2 v1` collapses to `rfl` after
---   `unfold refactor_CDMG.huh` (literally the same `s(v1, v2) ∈ G.L`
+--   `unfold CDMG.huh` (literally the same `s(v1, v2) ∈ G.L`
 --   on both sides) — a one-line `huh_symm` lemma any consumer can
 --   invoke without any `hL_symm` machinery to chain.  Addition
 --   `[huh_visual_symmetry_vs_ordered_pair_in_L]` — which articulated
@@ -794,13 +748,13 @@ LN tex (item 4 of `not-cdmg`):
 --   `v_1 \huh v_2 \in G` is binary in two *named* vertices, and every
 --   downstream consumer (`def_3_3` adjacency, `def_3_5`'s `Sib`,
 --   `def_3_4`'s `.bidir` walk constructor, `def_3_15`–`def_3_18`
---   collider/blockable patterns) reaches `refactor_huh` from a
+--   collider/blockable patterns) reaches `huh` from a
 --   context where the two endpoints `v1` and `v2` are named
 --   separately and case-analysed individually.  Taking
 --   `(s : Sym2 Node)` directly would force a
 --   `Sym2.mk (v1, v2)` (or destructure-through-`Sym2.lift`) at every
 --   such use site instead of in one centralised place inside `huh`.
---   The ordered-argument signature `G.refactor_huh v1 v2` is the
+--   The ordered-argument signature `G.huh v1 v2` is the
 --   binary-predicate idiom the LN intends; the `Sym2` quotient lives
 --   *inside* the body, hidden from every downstream binary call.
 --   That keeps the LN-to-Lean mapping syntactically uniform across
@@ -830,11 +784,9 @@ LN tex (item 4 of `not-cdmg`):
 --   of the orientation-free encoding; the structural symmetry that
 --   `huh` now enjoys is the payoff.
 -- def_3_2 -- start statement
-def refactor_huh (G : refactor_CDMG Node) (v1 v2 : Node) : Prop := s(v1, v2) ∈ G.L
+def huh (G : CDMG Node) (v1 v2 : Node) : Prop := s(v1, v2) ∈ G.L
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: huh
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: suh (was: refactor_suh)
 -- ref: def_3_2 (item 5) — refactor
 --
 -- Star-head edge `v1 *→ v2` in `G`: `G.suh v1 v2` is the disjunction
@@ -873,8 +825,8 @@ LN tex (item 5 of `not-cdmg`):
 --   "into-`v_2`" classification and in `def_3_4` collider-walk
 --   endpoint constraints), not as a shorthand for its two cases.
 --   The formalization preserves that: downstream proofs that *want*
---   the disjunction explicit invoke `unfold refactor_CDMG.suh` or
---   `simp only [refactor_CDMG.suh]` on demand, while other proofs can
+--   the disjunction explicit invoke `unfold CDMG.suh` or
+--   `simp only [CDMG.suh]` on demand, while other proofs can
 --   carry `G.suh v1 v2` opaquely.  Same rationale as `tuh` (item 2
 --   above) but here the abstraction has explicit logical content (a
 --   disjunction), so the elaboration-time cost of an over-eager
@@ -909,11 +861,11 @@ LN tex (item 5 of `not-cdmg`):
 --   identity is `G.suh v1 v2 ↔ G.hus v2 v1`, used as a one-line lemma
 --   by consumers that need it.
 --
--- *Why the body uses `G.refactor_tuh` / `G.refactor_huh`, not
+-- *Why the body uses `G.tuh` / `G.huh`, not
 --   `G.tuh` / `G.huh`.*  Pre-cleanup, the namespace contains the
 --   `refactor_*`-prefixed copies of items 2 and 4.  Dot-notation
---   `G.refactor_tuh` / `G.refactor_huh` resolves in
---   `refactor_CDMG.refactor_tuh` / `refactor_CDMG.refactor_huh`,
+--   `G.tuh` / `G.huh` resolves in
+--   `CDMG.tuh` / `CDMG.huh`,
 --   matching the names defined just above.  After Phase 7 cleanup
 --   strips the `refactor_` prefix globally, the body reads
 --   `G.tuh v1 v2 ∨ G.huh v1 v2` — identical to the original.
@@ -927,12 +879,10 @@ LN tex (item 5 of `not-cdmg`):
 --   `suh` directly but `def_3_6` acyclicity is stated over `tuh`-only
 --   walks.
 -- def_3_2 -- start statement
-def refactor_suh (G : refactor_CDMG Node) (v1 v2 : Node) : Prop :=
-  G.refactor_tuh v1 v2 ∨ G.refactor_huh v1 v2
+def suh (G : CDMG Node) (v1 v2 : Node) : Prop :=
+  G.tuh v1 v2 ∨ G.huh v1 v2
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: suh
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: hus (was: refactor_hus)
 -- ref: def_3_2 (item 6) — refactor
 --
 -- Head-star edge `v1 ←* v2` in `G`: `G.hus v1 v2` is the disjunction
@@ -977,7 +927,7 @@ LN tex (item 6 of `not-cdmg`):
 --   reversal with the now-definitional `huh` symmetry — a one-line
 --   corollary, not part of the def.
 --
--- *Why the body uses `G.refactor_hut` / `G.refactor_huh`, not
+-- *Why the body uses `G.hut` / `G.huh`, not
 --   `G.hut` / `G.huh`.*  Pre-cleanup, the namespace contains the
 --   `refactor_*`-prefixed copies of items 3 and 4; dot-notation
 --   resolves there.  Phase 7 cleanup strips the prefix globally.
@@ -990,12 +940,10 @@ LN tex (item 6 of `not-cdmg`):
 --   half-edge; `def_3_4`'s bifurcation has `v_{k-1} \hus v_k` as the
 --   middle "tip" edge.
 -- def_3_2 -- start statement
-def refactor_hus (G : refactor_CDMG Node) (v1 v2 : Node) : Prop :=
-  G.refactor_hut v1 v2 ∨ G.refactor_huh v1 v2
+def hus (G : CDMG Node) (v1 v2 : Node) : Prop :=
+  G.hut v1 v2 ∨ G.huh v1 v2
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: hus
 
--- REFACTOR-BLOCK-REPLACEMENT-BEGIN: sus (was: refactor_sus)
 -- ref: def_3_2 (item 7) — refactor
 --
 -- Star-star (adjacency) edge `v1 *−* v2` in `G`: `G.sus v1 v2` is
@@ -1084,8 +1032,8 @@ LN tex (item 7 of `not-cdmg`):
 --   `rfl` after unfolding rather than an `hL_symm` invocation; the
 --   overall symmetry of `sus` reduces accordingly.
 --
--- *Why the body uses `G.refactor_tuh` / `G.refactor_hut` /
---   `G.refactor_huh`, not their unprefixed counterparts.*  Pre-cleanup
+-- *Why the body uses `G.tuh` / `G.hut` /
+--   `G.huh`, not their unprefixed counterparts.*  Pre-cleanup
 --   naming convention (see items 5 and 6 above); Phase 7 cleanup
 --   strips the prefix globally so the body ends up reading
 --   `G.tuh v1 v2 ∨ G.hut v1 v2 ∨ G.huh v1 v2`.
@@ -1098,11 +1046,10 @@ LN tex (item 7 of `not-cdmg`):
 --   `v \sus w \in G`"; later d-/σ-separation chapters use
 --   `sus`-adjacency to define "active paths" in CDMGs.
 -- def_3_2 -- start statement
-def refactor_sus (G : refactor_CDMG Node) (v1 v2 : Node) : Prop :=
-  G.refactor_tuh v1 v2 ∨ G.refactor_hut v1 v2 ∨ G.refactor_huh v1 v2
+def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
+  G.tuh v1 v2 ∨ G.hut v1 v2 ∨ G.huh v1 v2
 -- def_3_2 -- end statement
--- REFACTOR-BLOCK-REPLACEMENT-END: sus
 
-end refactor_CDMG
+end CDMG
 
 end Causality

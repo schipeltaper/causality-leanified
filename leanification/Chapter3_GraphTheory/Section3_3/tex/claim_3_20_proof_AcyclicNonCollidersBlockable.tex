@@ -1,27 +1,26 @@
 % Refactor twin of claim_3_20 -- "AcyclicNonCollidersBlockable".
 %
-% Refactor: `blockable_noncollider_first`. The root row `def_3_16`
-% swapped the primary/derived split of the blockable / unblockable
-% classification: the LN's "blockable" disjunction (end-position OR
-% some outgoing walk-edge to a node outside the strongly connected
-% component) is now the primary positive predicate, and "unblockable"
-% is the derived negation on the non-collider sub-class.  Accordingly
-% this proof is now CONSTRUCTIVE: rather than assuming the position is
-% unblockable and deriving a directed cycle to contradict acyclicity,
-% we directly exhibit a witness for the blockable disjunction.  The
-% cycle-construction argument of the original proof (Step 2.4) is
-% reused, but its conclusion is now `v_{k \pm 1} \notin \Sc^G(v_k)`
-% (a sub-goal feeding the existential witness) rather than `False`.
+% Refactor: `cdmg_typed_edges`. The root rows `def_3_1` (CDMG, with the
+% `L`-field reshaped to `Finset (Sym2 Node)`) and `def_3_4` (Walk +
+% typed `WalkStep` inductive, no stored ordered-pair edge datum)
+% changed the Lean encoding of the underlying graph and walk types.
+% The LN-level mathematics of this claim -- the implication
+% "non-collider on \pi implies blockable non-collider on \pi", under
+% acyclicity of G -- is **unchanged** by the refactor.  The proof body
+% below is therefore byte-for-byte identical to the canonical original
+% (`claim_3_20_proof_AcyclicNonCollidersBlockable.tex`); only the Lean
+% encoding of "blockable" (helpers `HasBlockingLeftSlot` /
+% `HasBlockingRightSlot` over typed-WalkStep cons-cells, instead of
+% existentials over `Walk.edges` Option-membership) and the underlying
+% `Walk` / `CDMG` types change, neither of which is visible in the
+% LN-prose proof.
 %
 % Twin of `claim_3_20_proof_AcyclicNonCollidersBlockable.tex`; the
 % original proof stays in place untouched until the Phase 7 cleanup of
 % the refactor swaps this twin over the original.  Statement block is
 % synced verbatim from the canonical statement file
 % `claim_3_20_statement_AcyclicNonCollidersBlockable.tex` -- the
-% claim is unchanged by the refactor, only the Lean encoding of
-% "blockable" flipped, and Step 2.1 of the original LN-proof (the
-% non-collider-count derivation of an outgoing walk-edge) is reused
-% almost verbatim below.
+% claim is unchanged by the refactor.
 
 \documentclass[main]{subfiles}
 

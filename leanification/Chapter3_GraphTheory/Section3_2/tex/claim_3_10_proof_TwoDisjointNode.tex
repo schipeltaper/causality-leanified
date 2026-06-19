@@ -1,20 +1,20 @@
-% Claim proof file for row claim_3_10 -- "TwoDisjointNode".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Claim proof file (REFACTOR TWIN) for row claim_3_10 -- "TwoDisjointNode".
+% This is the twin file produced during the `cdmg_typed_edges` refactor;
+% the original `claim_3_10_proof_TwoDisjointNode.tex` stays untouched until
+% cleanup eventually renames this twin over it.
+%
+% Mathematically the LN-level proof is unchanged by the refactor: at the
+% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
+% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
+% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
+% capture. The only prose adjustment versus the original is a light
+% rewording of the L-axiom recitation in the statement-restatement block
+% to drop the explicit ordered-pair phrasing and use the unordered-pair
+% phrasing instead; the proof body itself is verbatim from the original.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
 % `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
 
 \documentclass[main]{subfiles}
 
@@ -26,9 +26,13 @@
 
 % --- statement (restated) ---------------------------------------------------
 % Statement body below is synced from the canonical statement file
-% `tex/claim_3_10_statement_TwoDisjointNode.tex` (which has already passed
-% `verify_tex_statement_only` and `verify_tex_statement_equivalence`).
-% Do not edit it here; fix the canonical file first and re-sync.
+% `tex/claim_3_10_statement_TwoDisjointNode.tex`, with one light
+% refactor-aware rewording: the L-axiom recitation drops the explicit
+% ordered-pair "$L \ins V \times V$, $L$ irreflexive (...), and $L$
+% symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)"
+% clauses and uses the unordered-pair phrasing
+% "$L$ consists of unordered pairs of distinct vertices in $V$"; the
+% mathematics is unchanged and the same as in the LN.
 %
 % NOTE on the iterated-splitting carrier mismatch (Lean encoding).
 %
@@ -50,7 +54,7 @@
 % the encoding-design discussion.
 
 \begin{Lem}[Two disjoint node-splitting hard interventions commute]
-    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, recall the typing and axioms of def \ref{def-cdmg} (namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)), and rely on the node-splitting hard intervention (SWIG) construction of def \ref{def:G_node-splitting_intervention}. Let
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, recall the typing and axioms of def \ref{def-cdmg} (namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, and $L$ consists of unordered pairs of distinct vertices in $V$), and rely on the node-splitting hard intervention (SWIG) construction of def \ref{def:G_node-splitting_intervention}. Let
     \[ W_1 \ins V \quad\text{and}\quad W_2 \ins V \]
     be two subsets of the output-node set of $G$, subject to the disjointness side condition
     \[ W_1 \cap W_2 \;=\; \emptyset. \]
