@@ -412,6 +412,99 @@ def _strip_refactor_narratives(
     return content, strips
 
 
+# ----- phase 7a pass 4 helpers: prune empty namespace shells ----------
+
+_NAMESPACE_OPEN_RE = re.compile(
+    r"^[ \t]*namespace\s+(?P<name>[A-Za-z_][\w.]*)\s*$",
+    re.MULTILINE,
+)
+_NAMESPACE_CLOSE_RE = re.compile(
+    r"^[ \t]*end\s+(?P<name>[A-Za-z_][\w.]*)\s*$",
+    re.MULTILINE,
+)
+_BLOCK_COMMENT_RE = re.compile(r"/-[^-]?.*?-/", re.DOTALL)
+
+
+def _is_empty_namespace_body(body: str) -> bool:
+    """A namespace body counts as "empty" if every line is one of:
+    blank, a ``--`` line-comment, content of a ``/- ... -/`` block
+    comment, or a single bare ``variable`` declaration. The dual-
+    namespace refactor pattern leaves shells of this form behind once
+    Pass 2 deletes the ORIGINAL marker blocks they enclosed; Pass 4
+    sweeps them away."""
+    # Strip block comments first (they're nestable in Lean but very
+    # rarely nested in practice; this strips the outer pass).
+    stripped = _BLOCK_COMMENT_RE.sub("", body)
+    var_seen = False
+    for raw in stripped.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("--"):
+            continue
+        if line.startswith("variable"):
+            if var_seen:
+                return False                       # >1 variable line
+            var_seen = True
+            continue
+        return False
+    return True
+
+
+def _strip_empty_namespace_shells(content: str) -> tuple[str, list[str]]:
+    """Find ``namespace X`` ... ``end X`` blocks whose body is empty
+    (per `_is_empty_namespace_body`) and delete the whole shell.
+
+    Pairs are matched via a simple stack-based pass over open/close
+    lines; only correctly nested pairs are considered (a mismatch
+    leaves the file alone). Idempotent: re-running on already-pruned
+    content is a no-op.
+
+    Returns ``(new_content, descriptions)``. The descriptions list
+    names each pruned shell (empty list if no change)."""
+    strips: list[str] = []
+    while True:
+        # Collect all open/close marker positions in source order.
+        opens = [(m.start(), m.end(), m.group("name"))
+                 for m in _NAMESPACE_OPEN_RE.finditer(content)]
+        closes = [(m.start(), m.end(), m.group("name"))
+                  for m in _NAMESPACE_CLOSE_RE.finditer(content)]
+        events = sorted(
+            [(s, e, n, "open")  for (s, e, n) in opens] +
+            [(s, e, n, "close") for (s, e, n) in closes],
+            key=lambda x: x[0],
+        )
+        # Pair using a stack; find the FIRST innermost empty pair.
+        stack: list[tuple[int, int, str]] = []      # (line_start, line_end, name)
+        pruned = False
+        for (start, end, name, kind) in events:
+            if kind == "open":
+                stack.append((start, end, name))
+            else:
+                if not stack or stack[-1][2] != name:
+                    # mismatch -- bail without touching the file
+                    return content, strips
+                (open_start, open_end, open_name) = stack.pop()
+                body = content[open_end:start]
+                if _is_empty_namespace_body(body):
+                    # Delete from the start of the `namespace X` line
+                    # through the end of the `end X` line (and its
+                    # trailing newline if present).
+                    cut_start = open_start
+                    cut_end = end
+                    if cut_end < len(content) and content[cut_end] == "\n":
+                        cut_end += 1
+                    content = content[:cut_start] + content[cut_end:]
+                    strips.append(f"pruned empty `namespace {name}` shell")
+                    pruned = True
+                    break                          # restart the scan
+        if not pruned:
+            break
+    # Normalize trailing blank-line runs.
+    content = re.sub(r"\n{3,}", "\n\n", content)
+    return content, strips
+
+
 # ----- file collection -----------------------------------------------
 
 def _collect_affected_lean_files(refactor_data: dict) -> list[Path]:
@@ -866,6 +959,50 @@ def main(argv: list[str]) -> int:
             print(f"  pass 3: no narratives to strip", file=sys.stderr)
     elif n_pass3_changed == 0:
         print(f"  pass 3: no narratives to strip", file=sys.stderr)
+
+    # Pass 4: prune empty namespace shells. Pass 2 deletes ORIGINAL
+    # marker blocks; for refactors that used the dual-namespace pattern
+    # (one `namespace CDMG` block for the pre-refactor body, a separate
+    # `namespace CDMG` block for the refactor twin), that leaves an
+    # orphan shell of the form `namespace X / [comments + variable
+    # only] / end X`. Build-correct but noisy. Pass 4 sweeps them.
+    print(f"\n  [pass 4] pruning empty namespace shells ...",
+          file=sys.stderr)
+    n_pass4_changed = 0
+    pass4_writes: list[tuple[Path, str]] = []
+    for p in file_blobs:
+        if args.dry_run:
+            old_for_pass4 = next(
+                (n for fp, n in (pass3_writes or [])
+                 if fp == p),
+                next(
+                    (n for fp, n in transformed_writes if fp == p),
+                    file_blobs[p],
+                ),
+            )
+        else:
+            old_for_pass4 = p.read_text(encoding="utf-8")
+        new_p4, descs = _strip_empty_namespace_shells(old_for_pass4)
+        if not descs:
+            continue
+        n_pass4_changed += 1
+        rel = p.relative_to(REPO_ROOT)
+        print(f"    - {rel}: " + "; ".join(descs), file=sys.stderr)
+        if args.dry_run:
+            sys.stdout.write(_diff(old_for_pass4, new_p4,
+                                   f"{rel} (pass 4)"))
+        else:
+            pass4_writes.append((p, new_p4))
+    if not args.dry_run:
+        for p, new in pass4_writes:
+            p.write_text(new, encoding="utf-8")
+        if n_pass4_changed:
+            print(f"  pass 4 pruned {n_pass4_changed} file(s)",
+                  file=sys.stderr)
+        else:
+            print(f"  pass 4: no empty shells", file=sys.stderr)
+    elif n_pass4_changed == 0:
+        print(f"  pass 4: no empty shells", file=sys.stderr)
 
     # =================================================================
     # Phase 7b: Lake build verification
