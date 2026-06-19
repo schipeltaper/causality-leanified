@@ -26,6 +26,12 @@
       "code_annotated": "-- Binds Node and DecidableEq Node implicitly for every later decl; load-bearing for Finset/Walk decidability.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "This is the file-level helper that binds two implicit parameters for every declaration that follows in the surrounding `namespace`. In Lean 4, `variable` does not itself introduce a definition; it tells the elaborator that any later `def`/`theorem` mentioning `Node` (or needing a `DecidableEq Node` instance) should automatically have those arguments inserted at the front. Here `Node : Type*` is the universe-polymorphic node universe of the graph, and `[DecidableEq Node]` is a typeclass instance that lets Mathlib decide equality between two nodes. The instance is load-bearing because each predicate below either compares two `Finset`s for equality (`G.J = ∅`, `G.L = ∅`, where `Finset` operations dispatch on `DecidableEq`) or invokes `G.IsAcyclic` from `def_3_6`, whose `Walk.IsDirectedWalk` recursion uses `Finset.mem` on `G.E`. Without `DecidableEq Node` none of the predicates would type-check.",
+      "code_annotated": "-- Binds Node and DecidableEq Node implicitly for every later decl; load-bearing for Finset/Walk decidability.\nvariable {Node : Type*} [DecidableEq Node]"
+    },
+    {
       "kind": "main",
       "code": "def IsCADMG (G : CDMG Node) : Prop := G.IsAcyclic",
       "explanation": "This block captures the LN's item i: a *Conditional Acyclic Directed Mixed Graph* (CADMG) is a CDMG whose only extra constraint is acyclicity. Of the three atomic conditions in this family — `G.IsAcyclic`, `G.J = ∅`, `G.L = ∅` — only the first is required, so input nodes and bidirected edges remain unrestricted. The predicate is a thin `Prop`-valued alias for `G.IsAcyclic` (from `def_3_6`), packaged under the LN acronym so downstream callers can carry a single `(h : G.IsCADMG)` hypothesis instead of unfolding the acyclicity definition each time. In the naming pattern used by the family (`A` = acyclic, absence of `C` = no input nodes, absence of `M` = no bidirected edges), CADMG occupies the weakest slot above plain CDMG — it is the only predicate of the seven imposing exactly one atomic condition. Since the body is not a conjunction, `rintro` destructuring is not needed; downstream proofs use the hypothesis directly or via `unfold CDMG.IsCADMG`.",

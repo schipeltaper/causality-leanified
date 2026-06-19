@@ -1,30 +1,44 @@
-% Claim proof file for row claim_3_9 -- "SwigAcyclic".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Claim proof TWIN file for row claim_3_9 -- "SwigAcyclic".
+% This is the refactor twin produced under refactor `cdmg_typed_edges` for
+% the DEPENDENT row claim_3_9. The original pre-refactor proof lives at the
+% sibling file `claim_3_9_proof_SwigAcyclic.tex` and remains untouched until
+% the Phase 7 cleanup script renames this twin over it.
+%
+% Why a verbatim port suffices here: both sub-claims of claim_3_9 live
+% entirely on the (J, V, E)-skeleton -- sub-claim (a) is acyclicity via
+% directed walks on E, sub-claim (b) is a topological order built from
+% Pa^G, which is defined from E alone -- and the bidirected-edge channel
+% L plays no role in either sub-claim. This is recorded explicitly in the
+% closing paragraph of the statement block below: "The bidirected-edge set
+% $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic})
+% is defined via the non-existence of non-trivial directed walks (which
+% use only $E$), and a topological order (def \ref{def-topological-order})
+% is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which
+% is defined from $E$ alone)." The refactor `cdmg_typed_edges` changes
+% only the encoding of L (from a Finset (Node x Node) carrier with a
+% symmetry axiom to a quotient Finset (Sym2 Node) carrier with no
+% symmetry axiom), and that change is invisible to the prose of this
+% remark: the tex talks about CADMGs, edges, walks, topological orders,
+% and parent sets abstractly and never references the Lean-side typing of
+% L. Hence the statement block (synced verbatim with the canonical
+% statement file `claim_3_9_statement_SwigAcyclic.tex`) and the proof
+% body (ported verbatim from the existing pre-refactor proof file
+% `claim_3_9_proof_SwigAcyclic.tex`) are identical to their pre-refactor
+% counterparts. No `addition_to_the_LN` is attached to this row.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
 % `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
 
 \documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_9 (proof, with statement restated for readability)
+% ref: claim_3_9 (proof twin for refactor `cdmg_typed_edges`, with statement restated for readability)
 % title: SwigAcyclic
 \def\rowref{claim\_3\_9}
 \phantomsection\label{claim_3_9}
 
-% --- statement (restated) ---------------------------------------------------
+% --- statement (restated, synced verbatim with claim_3_9_statement_SwigAcyclic.tex) -----
 \begin{Rem}[SwigAcyclic]
     Let $G = (J, V, E, L)$ be a CADMG, i.e.\ a CDMG (def \ref{def-cdmg}) that is acyclic in the sense of def \ref{def-acylic} (equivalently, $G$ satisfies the attribute ``CADMG'' of def \ref{def-cdmg-types}, item~i.); throughout we use the notation of def \ref{not-cdmg}, the family-relationship notation of def \ref{def_3_5}, the topological-order definition of def \ref{def-topological-order}, and the SWIG (node-splitting hard-intervention) construction of def \ref{def:G_node-splitting_intervention}. Let
     \[ W \ins V \]
@@ -95,7 +109,7 @@
     Note that, in contrast to claim_3_6 for the node-splitting construction, no directed self-loop $(w, w) \in E$ for $w \in W$ can produce a length-$2$ cycle $w^o \tuh w^i \tuh w^o$ in $G_{\swig(W)}$ here, because no transfer edge $(w^o, w^i)$ is included in $E_{\swig(W)}$ by item~iii.'s typing (cf.\ def \ref{def:G_node-splitting_intervention}, closing paragraph ``Self-loops on $W$ produce no cycles in $G_{\swig(W)}$''); the self-loop is nevertheless ruled out by the CADMG hypothesis for the topological-order reason above. The bidirected-edge set $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic}) is defined via the non-existence of non-trivial directed walks (which use only $E$), and a topological order (def \ref{def-topological-order}) is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which is defined from $E$ alone).
 \end{Rem}
 
-% --- proof ------------------------------------------------------------------
+% --- proof (ported verbatim from claim_3_9_proof_SwigAcyclic.tex) -----
 \begin{proof}
 % The LN's claim_3_9 block in lecture-notes/lecture_notes/graphs.tex:612--623
 % is a \begin{Rem} that only describes the construction (the $j \pm 1/3$

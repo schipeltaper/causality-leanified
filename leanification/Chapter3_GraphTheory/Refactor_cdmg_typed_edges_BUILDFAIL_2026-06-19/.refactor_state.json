@@ -1,0 +1,15 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_cdmg_typed_edges",
+  "roots": [
+    "def_3_1",
+    "def_3_4"
+  ],
+  "root_ref": "def_3_1",
+  "name": "cdmg_typed_edges",
+  "chapter": 3,
+  "init_date": "2026-06-17T02:07:35+00:00",
+  "deviations_to_resolve": [
+    "hard_intervention_l_symmetrized_removal"
+  ]
+}

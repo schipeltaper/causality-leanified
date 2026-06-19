@@ -1,20 +1,23 @@
 % Claim proof file for row claim_3_16 -- "MargPreservesAncestors".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
-%
-% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
-% `subfiles` package lets it render both standalone and as part of
-% `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+% Refactor twin of `claim_3_16_proof_MargPreservesAncestors.tex` produced
+% under the `cdmg_typed_edges` refactor: the LN-level mathematical
+% argument is unchanged, but the bidirected-edge component `L` of every
+% CDMG appearing below is now encoded as a subset of `Sym2 Node` (the
+% unordered-pair quotient `(V × V) / ((v1,v2) ~ (v2,v1))`) rather than
+% as a `Finset (Node × Node)` paired with a separate symmetry axiom.
+% Concretely this twin differs from the original only in:
+%   - the statement block restatement gains a brief `\emph{Encoding of
+%     bidirected edges.}` paragraph naming the `Sym2`-typing of `L`,
+%     `L^{\sm W}`, and noting that swap-symmetry is now definitional and
+%     irreflexivity reads as ``no self-pair'';
+%   - the proof's setup paragraph names the same encoding for
+%     `L^{\sm W}`, so the set-builder displayed below is read as the
+%     image of the ordered-pair filter under the `Sym2` quotient map;
+%   - no proof step is added, removed, or rephrased; the LN argument is
+%     preserved verbatim, since the unordered-pair brace notation
+%     `\lC v, w \rC \in L` (and similarly for `L^{\sm W}`) that the
+%     original proof already uses for bidirected-edge membership is
+%     already the quotient form and requires no further rewriting.
 
 \documentclass[main]{subfiles}
 
@@ -45,6 +48,13 @@
         J^{\sm W} \cup V^{\sm W} \;=\; J \cup (V \sm W) \;=\; (J \cup V) \sm W,
     \]
     where the second equality uses $W \ins V$ together with $J \cap V = \emptyset$ from def \ref{def-cdmg}. Both quantifiers ``for every CDMG $G$'' and ``for every $W \ins V$'' are read \emph{universally}, with the side condition $W \ins V$ inherited verbatim from def \ref{def:G_marginalization} (so $W$ is required to consist of output nodes only); the case $W = \emptyset$ is admitted (then $V \sm W = V$, so $G^{\sm W} = G$ verbatim by items~i.--iv.\ of def \ref{def:G_marginalization}).
+
+    \emph{Encoding of bidirected edges (refactor twin).}
+    Under the project's \texttt{cdmg\_typed\_edges} refactor (the encoding in which this twin proof is written), the bidirected-edge component $L$ of every CDMG below is taken as a subset of
+    \[
+        \text{Sym}_2(V) \;=\; V \times V / ((v_1, v_2) \sim (v_2, v_1))
+    \]
+    --- the unordered-pair quotient of def \ref{def-cdmg}, realised in the project's Lean encoding by Mathlib's $\text{Sym}_2$ type. Three downstream consequences hold uniformly throughout the proof below: (i) swap-symmetry $(v_1, v_2) \sim (v_2, v_1)$ is \emph{definitional} (so the LN's separate symmetry implication $(v_1, v_2) \in L \Rightarrow (v_2, v_1) \in L$ is vacuous and not separately invoked); (ii) irreflexivity reads as ``no self-pair'' $\lC v, v \rC \notin L$ rather than as the LN's separate axiom $(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$; (iii) the same encoding propagates to the marginalized component $L^{\sm W} \ins \text{Sym}_2(V \sm W)$ via the natural lift of the def \ref{def:G_marginalization} set-builder (made explicit in the proof's setup paragraph below). Concretely, the unordered-pair brace shape $\lC v_1, v_2 \rC \in L$ (resp.\ $\lC v_1, v_2 \rC \in L^{\sm W}$) for bidirected-edge membership is the canonical (and only) presentation throughout this twin; the ordered-pair shape $(v_1, v_2) \in L$ used by the pre-refactor proof is read as its image under the quotient map $V \times V \twoheadrightarrow \text{Sym}_2(V)$ whenever it appears.
 
     \emph{Marginalization preserves ancestral relations, bifurcations, and acyclicity:} the following three sub-claims hold.
 
@@ -143,9 +153,9 @@ We use throughout the expanded notation of the statement block above. We open wi
 Per items~iii.\ and~iv.\ of def \ref{def:G_marginalization},
 \begin{align*}
     E^{\sm W} \;&=\; \lC (\ul{v}, \ol{v}) \in (J \cup (V \sm W)) \times (V \sm W) \st \Phi_E^{\sm W}(\ul{v}, \ol{v}) \rC,\\
-    L^{\sm W} \;&=\; \lC (\ul{v}, \ol{v}) \in (V \sm W) \times (V \sm W) \st \ul{v} \neq \ol{v} \;\wedge\; \Phi_L^{\sm W}(\ul{v}, \ol{v}) \rC,
+    L^{\sm W} \;&=\; \lC \lC \ul{v}, \ol{v} \rC \in \text{Sym}_2(V \sm W) \st \ul{v} \neq \ol{v} \;\wedge\; \Phi_L^{\sm W}(\ul{v}, \ol{v}) \rC,
 \end{align*}
-where the membership predicates $\Phi_E^{\sm W}$ and $\Phi_L^{\sm W}$ unfold as follows:
+where the bidirected component $L^{\sm W}$ is read under the \texttt{cdmg\_typed\_edges} encoding announced in the statement block (so $L^{\sm W} \ins \text{Sym}_2(V \sm W)$ is the natural lift of the def \ref{def:G_marginalization} ordered-pair filter under the quotient map $(V \sm W) \times (V \sm W) \twoheadrightarrow \text{Sym}_2(V \sm W)$; the conjunct $\Phi_L^{\sm W}(\ul{v}, \ol{v})$ is well-defined on the unordered pair because, as $\Phi_L^{\sm W}$ asserts the existence of a bifurcation between $\ul{v}$ and $\ol{v}$ in $G$ --- and bifurcations are symmetric in their two end-vertices by def \ref{def:walks}, item~vi.\ --- it descends through the quotient verbatim), and the membership predicates $\Phi_E^{\sm W}$ and $\Phi_L^{\sm W}$ unfold as follows:
 \begin{itemize}
     \item $\Phi_E^{\sm W}(\ul{v}, \ol{v})$ asserts the existence of a directed walk in $G$ (in the sense of def \ref{def:walks}, item~ii.) from $\ul{v}$ to $\ol{v}$ of length $n \ge 1$ whose intermediate vertices $w_1, \dots, w_{n-1}$ (if any) all lie in $W$. (Note: per the LN footnote at item~iii.\ of def \ref{def:G_marginalization}, self-cycles $\ul{v} = \ol{v}$ are admitted, in particular by length-$1$ direct edges $(\ul{v}, \ul{v}) \in E$ with $\ul{v} \in V \sm W$, and equally by longer $W$-traversing walks $\ul{v} \to w_1 \to \dots \to \ul{v}$.)
     \item $\Phi_L^{\sm W}(\ul{v}, \ol{v})$ asserts the existence of a bifurcation in $G$ (in the sense of def \ref{def:walks}, item~vi.) between $\ul{v}$ and $\ol{v}$ --- i.e.\ a walk $\tilde{p}$ together with a split index $\tilde{k}$ satisfying clauses~(a)--(e) --- with all intermediate vertices of $\tilde{p}$ (the vertices $w_1, \dots, w_{n-1}$ in $\tilde{p}$'s expansion) lying in $W$.
@@ -353,7 +363,11 @@ holds (the hinge-straddle sub-walk is itself a witnessing bifurcation
 in $G$ between $w_{c_j}$ and $w_{c_{j+1}}$ with intermediate vertices in
 $W$). Combined with $w_{c_j} \ne w_{c_{j+1}}$,
 $\lC w_{c_j}, w_{c_{j+1}} \rC \in L^{\sm W}$ as an unordered bidirected
-edge of $G^{\sm W}$, and
+edge of $G^{\sm W}$ (under the \texttt{cdmg\_typed\_edges} encoding
+announced in the statement block, $\lC w_{c_j}, w_{c_{j+1}} \rC$ is its
+image under the quotient map $(V \sm W) \times (V \sm W) \twoheadrightarrow
+\text{Sym}_2(V \sm W)$; the same comment applies to every
+$\lC \cdot, \cdot \rC \in L^{\sm W}$ occurring below), and
 \[
     a'_{k'-1} \;:=\; \text{the bidirected edge } \lC w'_{k'-1}, w'_{k'} \rC \in L^{\sm W}
 \]
@@ -421,7 +435,7 @@ For each $j \in \{0, 1, \dots, s-1\} \sm \lC k' - 1 \rC$, the edge $a'_j$ lies i
 \emph{Expand the hinge edge.}
 Two sub-cases by the type of $a'_{k'-1}$ (clause~(d) for $p'$ admits both):
 \begin{itemize}
-    \item \emph{Bidirected hinge of $p'$:} $\lC w'_{k'-1}, w'_{k'} \rC \in L^{\sm W}$. By the expansion direction of $\Phi_L^{\sm W}$ (item~iv.\ of def \ref{def:G_marginalization}), there exists a bifurcation $q_{k'-1}$ in $G$ between $w'_{k'-1}$ and $w'_{k'}$ with all intermediate vertices in $W$ --- explicitly, a walk together with a split index satisfying clauses~(a)--(e) of def \ref{def:walks}, item~vi.\ (the LN's converse-direction reading: ``a bifurcation in $G$ of the form $w'_{k'-1} \hut z_1 \hut \dots \hut z_{\tilde k - 1} \hus z_{\tilde k} \tuh \dots \tuh z_{\tilde n - 1} \tuh w'_{k'}$ with $z_1, \dots, z_{\tilde n - 1} \in W$'').
+    \item \emph{Bidirected hinge of $p'$:} $\lC w'_{k'-1}, w'_{k'} \rC \in L^{\sm W}$. By the expansion direction of $\Phi_L^{\sm W}$ (item~iv.\ of def \ref{def:G_marginalization}), there exists a bifurcation $q_{k'-1}$ in $G$ between $w'_{k'-1}$ and $w'_{k'}$ with all intermediate vertices in $W$ --- explicitly, a walk together with a split index satisfying clauses~(a)--(e) of def \ref{def:walks}, item~vi.\ (the LN's converse-direction reading: ``a bifurcation in $G$ of the form $w'_{k'-1} \hut z_1 \hut \dots \hut z_{\tilde k - 1} \hus z_{\tilde k} \tuh \dots \tuh z_{\tilde n - 1} \tuh w'_{k'}$ with $z_1, \dots, z_{\tilde n - 1} \in W$''). (The bidirected hinge $\lC w'_{k'-1}, w'_{k'} \rC$ is well-defined as a $\text{Sym}_2$ element under the \texttt{cdmg\_typed\_edges} encoding announced in the statement block; the expansion existential is consequently invariant under swapping $w'_{k'-1}$ and $w'_{k'}$, matching the symmetric ``bifurcation between $\ul{v}$ and $\ol{v}$'' phrasing of $\Phi_L^{\sm W}$.)
     \item \emph{Directed hinge of $p'$:} $a'_{k'-1} = (w'_{k'}, w'_{k'-1}) \in E^{\sm W}$ (the source-of-$p'$ case). By the expansion direction of $\Phi_E^{\sm W}$, there exists a directed walk $q_{k'-1}$ in $G$ from $w'_{k'}$ to $w'_{k'-1}$ of length $\ge 1$ with intermediate vertices in $W$.
 \end{itemize}
 

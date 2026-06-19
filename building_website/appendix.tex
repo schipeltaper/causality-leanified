@@ -43,10 +43,9 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
   hJV_disj : Disjoint J V
   E : Finset (Node × Node)
   hE_subset : ∀ ⦃e : Node × Node⦄, e ∈ E → e.1 ∈ J ∪ V ∧ e.2 ∈ V
-  L : Finset (Node × Node)
-  hL_subset : ∀ ⦃e : Node × Node⦄, e ∈ L → e.1 ∈ V ∧ e.2 ∈ V
-  hL_irrefl : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → v1 ≠ v2
-  hL_symm : ∀ ⦃v1 v2 : Node⦄, (v1, v2) ∈ L → (v2, v1) ∈ L
+  L : Finset (Sym2 Node)
+  hL_subset : ∀ ⦃s : Sym2 Node⦄, s ∈ L → ∀ ⦃v : Node⦄, v ∈ s → v ∈ V
+  hL_irrefl : ∀ ⦃s : Sym2 Node⦄, s ∈ L → ¬ s.IsDiag
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_1
@@ -78,6 +77,10 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 instance instMembership : Membership Node (CDMG Node) where
@@ -93,7 +96,7 @@ def hut (G : CDMG Node) (v1 v2 : Node) : Prop := (v2, v1) ∈ G.E
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def huh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.L
+def huh (G : CDMG Node) (v1 v2 : Node) : Prop := s(v1, v2) ∈ G.L
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -133,14 +136,24 @@ def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{main}}
+{\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop := G.sus v1 v2
+variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def into (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
-  (e ∈ G.E ∧ e.2 = v) ∨ (e ∈ G.L ∧ (e.1 = v ∨ e.2 = v))
+def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop :=
+  G.sus v1 v2
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def intoE (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
+  e ∈ G.E ∧ e.2 = v
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def intoL (G : CDMG Node) (v : Node) (s : Sym2 Node) : Prop :=
+  s ∈ G.L ∧ v ∈ s
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -164,22 +177,26 @@ With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} 
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem no_arrowhead_into_J (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
-    {v : Node} (hv : v ∈ G.J ∪ G.V) :
+theorem no_arrowhead_into_J (G : CDMG Node) {j : Node}
+    (hj : j ∈ G.J) {v : Node} (hv : v ∈ G.J ∪ G.V) :
     ¬ G.hus j v
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem J_to_V_edge_admissible (G : CDMG Node) {j : Node} (hj : j ∈ G.J)
-    {v : Node} (hv : v ∈ G.V) :
+theorem J_to_V_edge_admissible (G : CDMG Node) {j : Node}
+    (hj : j ∈ G.J) {v : Node} (hv : v ∈ G.V) :
     j ∈ G.J ∪ G.V ∧ v ∈ G.V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node} (hj₁ : j₁ ∈ G.J)
-    {j₂ : Node} (hj₂ : j₂ ∈ G.J) :
+theorem J_nodes_not_adjacent (G : CDMG Node) {j₁ : Node}
+    (hj₁ : j₁ ∈ G.J) {j₂ : Node} (hj₂ : j₂ ∈ G.J) :
     ¬ G.adjacent j₁ j₂
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
@@ -237,8 +254,11 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def WalkStep (G : CDMG Node) (u : Node) (a : Node × Node) (v : Node) : Prop :=
-  (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∨ (a = (v, u) ∧ a ∈ G.E)
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -248,95 +268,123 @@ variable {G : CDMG Node}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def vertices : ∀ {u v : Node}, Walk G u v → List Node
   | _, _, .nil v _ => [v]
-  | u, _, .cons _ _ _ p => u :: p.vertices
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def edges : ∀ {u v : Node}, Walk G u v → List (Node × Node)
-  | _, _, .nil _ _ => []
-  | _, _, .cons _ a _ p => a :: p.edges
+  | u, _, .cons _ _ p => u :: p.vertices
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsColliderRest : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
-  | u, _, .cons v a _ (.nil _ _) =>
-      (a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
-      a = (u, v) ∧ a ∈ G.L ∧ p.IsColliderRest
+  | _, _, .cons _ (.forwardE _) (.nil _ _) => False
+  | _, _, .cons _ (.backwardE _) (.nil _ _) => True
+  | _, _, .cons _ (.bidir _) (.nil _ _) => True
+  | _, _, .cons _ (.forwardE _) (.cons _ _ _) => False
+  | _, _, .cons _ (.backwardE _) (.cons _ _ _) => False
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.IsColliderRest
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBifurcationWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
-  | u, _, .cons v a _ (.nil _ _), 0 => a = (u, v) ∧ a ∈ G.L
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>
-      ((a = (v, u) ∧ a ∈ G.E) ∨ (a = (u, v) ∧ a ∈ G.L)) ∧ p.IsDirectedWalk
-  | u, _, .cons v a _ p, k + 1 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationWithSplit k
+  | _, _, .cons _ (.forwardE _) (.nil _ _), 0 => False
+  | _, _, .cons _ (.backwardE _) (.nil _ _), 0 => False
+  | _, _, .cons _ (.bidir _) (.nil _ _), 0 => True
+  | _, _, .cons _ (.forwardE _) (.cons _ _ _), 0 => False
+  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
+  | _, _, .cons _ (.forwardE _) _, _ + 1 => False
+  | _, _, .cons _ (.backwardE _) p, k + 1 => p.IsBifurcationWithSplit k
+  | _, _, .cons _ (.bidir _) _, _ + 1 => False
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsBifurcationDirectedHingeWithSplit : ∀ {u v : Node}, Walk G u v → ℕ → Prop
+def IsBifurcationDirectedHingeWithSplit :
+    ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
-  | _, _, .cons _ _ _ (.nil _ _), 0 => False
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)), 0 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsDirectedWalk
-  | u, _, .cons v a _ p, k + 1 =>
-      a = (v, u) ∧ a ∈ G.E ∧ p.IsBifurcationDirectedHingeWithSplit k
+  | _, _, .cons _ (.forwardE _) (.nil _ _), 0 => False
+  | _, _, .cons _ (.backwardE _) (.nil _ _), 0 => False
+  | _, _, .cons _ (.bidir _) (.nil _ _), 0 => False
+  | _, _, .cons _ (.forwardE _) (.cons _ _ _), 0 => False
+  | _, _, .cons _ (.backwardE _) (p@(.cons _ _ _)), 0 => p.IsDirectedWalk
+  | _, _, .cons _ (.bidir _) (.cons _ _ _), 0 => False
+  | _, _, .cons _ (.forwardE _) _, _ + 1 => False
+  | _, _, .cons _ (.backwardE _) p, k + 1 =>
+      p.IsBifurcationDirectedHingeWithSplit k
+  | _, _, .cons _ (.bidir _) _, _ + 1 => False
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+inductive WalkStep (G : CDMG Node) : Node → Node → Type _ where
+  | forwardE  {u v : Node} (h : (u, v) ∈ G.E) : WalkStep G u v
+  | backwardE {u v : Node} (h : (v, u) ∈ G.E) : WalkStep G u v
+  | bidir     {u v : Node} (h : s(u, v) ∈ G.L) : WalkStep G u v
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 inductive Walk (G : CDMG Node) : Node → Node → Type _ where
-  | nil (v : Node) (hv : v ∈ G) : Walk G v v
-  | cons {u w : Node} (v : Node) (a : Node × Node)
-      (h : G.WalkStep u a v) (p : Walk G v w) : Walk G u w
+  | nil  (v : Node) (hv : v ∈ G) : Walk G v v
+  | cons {u w : Node} (v : Node)
+      (s : WalkStep G u v) (p : Walk G v w) : Walk G u w
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def intoStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
-  | u, _, .cons _ a _ _ => G.into u a
+  | _, _, .cons _ (.forwardE _) _ => False
+  | _, _, .cons _ (.backwardE _) _ => True
+  | _, _, .cons _ (.bidir _) _ => True
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def outOfStart : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
-  | u, _, .cons _ a _ _ => G.outOf u a
+  | _, _, .cons _ (.forwardE _) _ => True
+  | _, _, .cons _ (.backwardE _) _ => False
+  | _, _, .cons _ (.bidir _) _ => False
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def intoEnd {u v : Node} (p : Walk G u v) : Prop :=
-  match p.edges.getLast? with
-  | none => False
-  | some a => G.into v a
+def intoEnd : ∀ {u v : Node}, Walk G u v → Prop
+  | _, _, .nil _ _ => False
+  | _, _, .cons _ (.forwardE _) (.nil _ _) => True
+  | _, _, .cons _ (.backwardE _) (.nil _ _) => False
+  | _, _, .cons _ (.bidir _) (.nil _ _) => True
+  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.intoEnd
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def outOfEnd {u v : Node} (p : Walk G u v) : Prop :=
-  match p.edges.getLast? with
-  | none => False
-  | some a => G.outOf v a
+def outOfEnd : ∀ {u v : Node}, Walk G u v → Prop
+  | _, _, .nil _ _ => False
+  | _, _, .cons _ (.forwardE _) (.nil _ _) => False
+  | _, _, .cons _ (.backwardE _) (.nil _ _) => True
+  | _, _, .cons _ (.bidir _) (.nil _ _) => False
+  | _, _, .cons _ _ (p@(.cons _ _ _)) => p.outOfEnd
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsDirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
-  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.E ∧ p.IsDirectedWalk
+  | _, _, .cons _ (.forwardE _) p => p.IsDirectedWalk
+  | _, _, .cons _ (.backwardE _) _ => False
+  | _, _, .cons _ (.bidir _) _ => False
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBidirectedWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
-  | u, _, .cons v a _ p => a = (u, v) ∧ a ∈ G.L ∧ p.IsBidirectedWalk
+  | _, _, .cons _ (.forwardE _) _ => False
+  | _, _, .cons _ (.backwardE _) _ => False
+  | _, _, .cons _ (.bidir _) p => p.IsBidirectedWalk
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsColliderWalk : ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
-  | u, _, .cons v a _ (.nil _ _) => a = (u, v) ∧ a ∈ G.L
-  | u, _, .cons v a _ (p@(.cons _ _ _ _)) =>
-      (a = (u, v) ∧ (a ∈ G.E ∨ a ∈ G.L)) ∧ p.IsColliderRest
+  | _, _, .cons _ (.forwardE _) (.nil _ _) => False
+  | _, _, .cons _ (.backwardE _) (.nil _ _) => False
+  | _, _, .cons _ (.bidir _) (.nil _ _) => True
+  | _, _, .cons _ (.forwardE _) (p@(.cons _ _ _)) => p.IsColliderRest
+  | _, _, .cons _ (.backwardE _) (.cons _ _ _) => False
+  | _, _, .cons _ (.bidir _) (p@(.cons _ _ _)) => p.IsColliderRest
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -352,11 +400,13 @@ def IsBifurcation {u v : Node} (p : Walk G u v) : Prop :=
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
+def IsBifurcationSource {u v : Node} (p : Walk G u v)
+    (x : Node) : Prop :=
   u ≠ v ∧
   u ∉ p.vertices.tail ∧
   v ∉ p.vertices.dropLast ∧
-  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧ p.vertices[i + 1]? = some x
+  ∃ i, p.IsBifurcationDirectedHingeWithSplit i ∧
+       p.vertices[i + 1]? = some x
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_4
@@ -420,6 +470,10 @@ def IsBifurcationSource {u v : Node} (p : Walk G u v) (x : Node) : Prop :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Pa (G : CDMG Node) (v : Node) : Set Node :=
@@ -443,7 +497,7 @@ def ChSet (G : CDMG Node) (A : Set Node) : Set Node :=
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def Sib (G : CDMG Node) (v : Node) : Set Node :=
-  {w | w ∈ G ∧ (v, w) ∈ G.L}
+  {w | w ∈ G ∧ s(v, w) ∈ G.L}
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -511,9 +565,13 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def length : ∀ {u v : Node}, Walk G u v → ℕ
   | _, _, .nil _ _ => 0
-  | _, _, .cons _ _ _ p => p.length + 1
+  | _, _, .cons _ _ p => p.length + 1
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -542,6 +600,10 @@ def IsAcyclic (G : CDMG Node) : Prop :=
    \end{enumerate}
 \par}
 \smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -596,6 +658,10 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
   (∀ v ∈ G, ¬ lt v v) ∧
   (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
@@ -623,10 +689,15 @@ def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem acyclic_iff_topological_order (G : CDMG Node) :
-    G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt
+    G.IsAcyclic ↔
+      ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_2
@@ -645,6 +716,10 @@ theorem acyclic_iff_topological_order (G : CDMG Node) :
    \[\Pred^G_\le(v) : = \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
 \par}
 \smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -692,19 +767,14 @@ def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def hardInterventionOn (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
-  J := G.J ∪ W
-  V := G.V \ W
-  hJV_disj := hardInterventionOn_hJV_disj G W
-  E := G.E.filter (fun e => e.2 ∉ W)
-  hE_subset := hardInterventionOn_hE_subset G W
-  L := G.L.filter (fun e => e.1 ∉ W ∧ e.2 ∉ W)
-  hL_subset := hardInterventionOn_hL_subset G W
-  hL_irrefl := hardInterventionOn_hL_irrefl G W
-  hL_symm := hardInterventionOn_hL_symm G W
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_10
@@ -723,10 +793,14 @@ def hardInterventionOn (G : CDMG Node) (W : Finset Node)
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem acyclic_preserved_under_do (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) :
+theorem acyclic_preserved_under_do (G : CDMG Node)
+    (W : Finset Node) (hW : W ⊆ G.J ∪ G.V) :
     G.IsAcyclic →
       (G.hardInterventionOn W hW).IsAcyclic ∧
         (∀ lt : Node → Node → Prop,
@@ -758,14 +832,20 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 private lemma subset_carrier_of_hardInterventionOn
     {G : CDMG Node} {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
     {S : Finset Node} (hS : S ⊆ G.J ∪ G.V) :
-    S ⊆ (G.hardInterventionOn W hW).J ∪ (G.hardInterventionOn W hW).V
+    S ⊆ (G.hardInterventionOn W hW).J ∪
+          (G.hardInterventionOn W hW).V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem hardInterventionsCommute (G : CDMG Node) (W₁ W₂ : Finset Node)
+theorem hardInterventionsCommute (G : CDMG Node)
+    (W₁ W₂ : Finset Node)
     (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V) :
     (G.hardInterventionOn W₁ hW₁).hardInterventionOn W₂
         (subset_carrier_of_hardInterventionOn hW₁ hW₂)
@@ -918,6 +998,10 @@ theorem hardInterventionsCommute (G : CDMG Node) (W₁ W₂ : Finset Node)
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem bifurcationAlternative (G : CDMG Node) (v w c : Node)
@@ -988,19 +1072,8 @@ def toCopy1 (W : Finset Node) (v : Node) : SplitNode Node :=
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def nodeSplittingOn (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) :
-    CDMG (SplitNode Node) where
-  J := G.J.image SplitNode.unsplit
-  V := (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
-        ∪ W.image SplitNode.copy1
-  hJV_disj := nodeSplittingOn_hJV_disj G W
-  E := G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
-        ∪ W.image (fun w => (SplitNode.copy0 w, SplitNode.copy1 w))
-  hE_subset := by exact nodeSplittingOn_hE_subset G W
-  L := G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2))
-  hL_subset := by exact nodeSplittingOn_hL_subset G W
-  hL_irrefl := by exact nodeSplittingOn_hL_irrefl G W
-  hL_symm := by exact nodeSplittingOn_hL_symm G W
+def nodeSplittingOn (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) : CDMG (SplitNode Node)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_11
@@ -1021,6 +1094,10 @@ def nodeSplittingOn (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V) :
     and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all nodes according to their index value.
 \par}
 \smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -1073,7 +1150,8 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def flattenSplit : SplitNode (SplitNode Node) → SplitNode Node
+def flattenSplit :
+    SplitNode (SplitNode Node) → SplitNode Node
   | .unsplit x => x
   | .copy0 (.unsplit w) => SplitNode.copy0 w
   | .copy0 (.copy0 w) => SplitNode.copy0 w
@@ -1089,7 +1167,7 @@ def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
   G.J.image f = G'.J
     ∧ G.V.image f = G'.V
     ∧ G.E.image (Prod.map f f) = G'.E
-    ∧ G.L.image (Prod.map f f) = G'.L
+    ∧ G.L.image (Sym2.map f) = G'.L
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1149,13 +1227,14 @@ private lemma image_unsplit_subset_carrier_of_nodeSplittingOn
     {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
     {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
     W₁.image SplitNode.unsplit ⊆
-      (G.nodeSplittingOn W₂ hW₂).J ∪ (G.nodeSplittingOn W₂ hW₂).V
+      (G.nodeSplittingOn W₂ hW₂).J ∪
+        (G.nodeSplittingOn W₂ hW₂).V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem disjointHardInterventionsAndNodeSplittingsCommute (G : CDMG Node)
-    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V)
-    (hDisj : Disjoint W₁ W₂) :
+theorem disjointHardInterventionsAndNodeSplittingsCommute
+    (G : CDMG Node) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
     (G.hardInterventionOn W₁ hW₁).nodeSplittingOn W₂
         (subset_V_of_hardInterventionOn hW₁ hW₂ hDisj)
       = (G.nodeSplittingOn W₂ hW₂).hardInterventionOn
@@ -1201,18 +1280,9 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def nodeSplittingHard (G : CDMG Node) (hG : G.IsCADMG)
-    (W : Finset Node) (hW : W ⊆ G.V) :
-    CDMG (SplitNode Node) where
-  J := G.J.image SplitNode.unsplit ∪ W.image SplitNode.copy1
-  V := (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
-  hJV_disj := by exact nodeSplittingHard_hJV_disj G W
-  E := G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
-  hE_subset := by exact nodeSplittingHard_hE_subset G W
-  L := G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2))
-  hL_subset := by exact nodeSplittingHard_hL_subset G W
-  hL_irrefl := by exact nodeSplittingHard_hL_irrefl G W
-  hL_symm := by exact nodeSplittingHard_hL_symm G W
+def nodeSplittingHard (G : CDMG Node)
+    (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V) :
+    CDMG (SplitNode Node)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_12
@@ -1237,6 +1307,10 @@ def nodeSplittingHard (G : CDMG Node) (hG : G.IsCADMG)
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem swigAcyclic (G : CDMG Node) (hCADMG : G.IsCADMG)
@@ -1245,10 +1319,12 @@ theorem swigAcyclic (G : CDMG Node) (hCADMG : G.IsCADMG)
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem swigTopologicalOrder (G : CDMG Node) (hCADMG : G.IsCADMG)
+theorem swigTopologicalOrder (G : CDMG Node)
+    (hCADMG : G.IsCADMG)
     (W : Finset Node) (hW : W ⊆ G.V)
     (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
-    (G.nodeSplittingHard hCADMG W hW).IsTopologicalOrder (splOrder lt)
+    (G.nodeSplittingHard hCADMG W hW).IsTopologicalOrder
+      (splOrder lt)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_9
@@ -1271,10 +1347,16 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 private lemma image_unsplit_subset_nodeSplittingHard_V
-    {G : CDMG Node} {hG : G.IsCADMG} {W₁ W₂ : Finset Node}
+    {G : CDMG Node} {hG : G.IsCADMG}
+    {W₁ W₂ : Finset Node}
     (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
-    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingHard hG W₁ hW₁).V
+    W₂.image SplitNode.unsplit ⊆
+      (G.nodeSplittingHard hG W₁ hW₁).V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1286,7 +1368,8 @@ theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
             (swigAcyclic G hG W₁ hW₁)
             (W₂.image SplitNode.unsplit)
             (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj))
-        (G.nodeSplittingHard hG (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂)
+            (Finset.union_subset hW₁ hW₂))
         flattenSplit
       ∧
     eqViaNodeMap
@@ -1294,7 +1377,8 @@ theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
             (swigAcyclic G hG W₂ hW₂)
             (W₁.image SplitNode.unsplit)
             (image_unsplit_subset_nodeSplittingHard_V hW₂ hW₁ hDisj.symm))
-        (G.nodeSplittingHard hG (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂)
+            (Finset.union_subset hW₁ hW₂))
         flattenSplit
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
@@ -1330,7 +1414,8 @@ private lemma image_unsplit_subset_carrier_of_nodeSplittingHard
     {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.J ∪ G.V)
     {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
     W₁.image SplitNode.unsplit ⊆
-      (G.nodeSplittingHard hG W₂ hW₂).J ∪ (G.nodeSplittingHard hG W₂ hW₂).V
+      (G.nodeSplittingHard hG W₂ hW₂).J ∪
+        (G.nodeSplittingHard hG W₂ hW₂).V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1343,7 +1428,8 @@ theorem disjointHardInterventionsAndNodeSplittingHardsCommute
         (subset_V_of_hardInterventionOn hW₁ hW₂ hDisj)
       = (G.nodeSplittingHard hG W₂ hW₂).hardInterventionOn
           (W₁.image SplitNode.unsplit)
-          (image_unsplit_subset_carrier_of_nodeSplittingHard hW₁ hW₂ hDisj)
+          (image_unsplit_subset_carrier_of_nodeSplittingHard
+            hW₁ hW₂ hDisj)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_11
@@ -1405,17 +1491,7 @@ inductive IntExtNode (Node : Type*) where
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def extendingCDMGsWith (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : CDMG (IntExtNode Node) where
-  J := G.J.image IntExtNode.unsplit ∪ (W \ G.J).image IntExtNode.intCopy
-  V := G.V.image IntExtNode.unsplit
-  hJV_disj := extendingCDMGsWith_hJV_disj G W
-  E := G.E.image (fun e => (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
-        ∪ (W \ G.J).image (fun w => (IntExtNode.intCopy w, IntExtNode.unsplit w))
-  hE_subset := extendingCDMGsWith_hE_subset G W hW
-  L := G.L.image (fun e => (IntExtNode.unsplit e.1, IntExtNode.unsplit e.2))
-  hL_subset := extendingCDMGsWith_hL_subset G
-  hL_irrefl := extendingCDMGsWith_hL_irrefl G
-  hL_symm := extendingCDMGsWith_hL_symm G
+    (hW : W ⊆ G.J ∪ G.V) : CDMG (IntExtNode Node)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_13
@@ -1454,16 +1530,16 @@ def restrictOrder (lt' : IntExtNode Node → IntExtNode Node → Prop) :
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem extAcyclic (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.J ∪ G.V)
-    (hAcyc : G.IsAcyclic) :
-    (G.extendingCDMGsWith W hW).IsAcyclic
+theorem extAcyclic (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) (hAcyc : G.IsAcyclic) :
+    (extendingCDMGsWith G W hW).IsAcyclic
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem extRestrictsTopologicalOrder (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.J ∪ G.V)
     (lt' : IntExtNode Node → IntExtNode Node → Prop)
-    (hlt' : (G.extendingCDMGsWith W hW).IsTopologicalOrder lt') :
+    (hlt' : (extendingCDMGsWith G W hW).IsTopologicalOrder lt') :
     G.IsTopologicalOrder (restrictOrder lt')
 \end{minted}
 {\small\textit{main}}
@@ -1471,7 +1547,7 @@ theorem extRestrictsTopologicalOrder (G : CDMG Node) (W : Finset Node)
 theorem extExtendsTopologicalOrder (G : CDMG Node) (W : Finset Node)
     (hW : W ⊆ G.J ∪ G.V)
     (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
-    (G.extendingCDMGsWith W hW).IsTopologicalOrder (extOrder lt)
+    (extendingCDMGsWith G W hW).IsTopologicalOrder (extOrder lt)
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_13
@@ -1504,7 +1580,7 @@ private lemma image_unsplit_subset_extendingCDMGsWith_carrier
     {G : CDMG Node} {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
     {S : Finset Node} (hS : S ⊆ G.J ∪ G.V) :
     S.image IntExtNode.unsplit ⊆
-      (G.extendingCDMGsWith W hW).J ∪ (G.extendingCDMGsWith W hW).V
+      (extendingCDMGsWith G W hW).J ∪ (extendingCDMGsWith G W hW).V
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1526,7 +1602,7 @@ def flattenIntExt : IntExtNode (IntExtNode Node) → IntExtNode Node
 def addInterventionNodesAndHardInterventionOn (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V) :
     CDMG (IntExtNode Node) :=
-  (G.extendingCDMGsWith W₁ hW₁).hardInterventionOn
+  (extendingCDMGsWith G W₁ hW₁).hardInterventionOn
       (W₂.image IntExtNode.unsplit)
       (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂)
 \end{minted}
@@ -1536,17 +1612,19 @@ theorem addInterventionNodes_comm_disjoint (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V)
     (hDisj : Disjoint W₁ W₂) :
     eqViaNodeMap
-        ((G.extendingCDMGsWith W₁ hW₁).extendingCDMGsWith
+        (extendingCDMGsWith
+            (extendingCDMGsWith G W₁ hW₁)
             (W₂.image IntExtNode.unsplit)
             (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂))
-        (G.extendingCDMGsWith (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        (extendingCDMGsWith G (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
         flattenIntExt
       ∧
     eqViaNodeMap
-        ((G.extendingCDMGsWith W₂ hW₂).extendingCDMGsWith
+        (extendingCDMGsWith
+            (extendingCDMGsWith G W₂ hW₂)
             (W₁.image IntExtNode.unsplit)
             (image_unsplit_subset_extendingCDMGsWith_carrier hW₂ hW₁))
-        (G.extendingCDMGsWith (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        (extendingCDMGsWith G (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
         flattenIntExt
 \end{minted}
 {\small\textit{main}}
@@ -1554,12 +1632,12 @@ theorem addInterventionNodes_comm_disjoint (G : CDMG Node)
 theorem addInterventionNodes_comm_hardIntervention (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.J ∪ G.V)
     (hDisj : Disjoint W₁ W₂) :
-    (G.extendingCDMGsWith W₁ hW₁).hardInterventionOn
+    (extendingCDMGsWith G W₁ hW₁).hardInterventionOn
         (W₂.image IntExtNode.unsplit)
         (image_unsplit_subset_extendingCDMGsWith_carrier hW₁ hW₂)
       = addInterventionNodesAndHardInterventionOn G W₁ W₂ hW₁ hW₂
       ∧
-    (G.hardInterventionOn W₂ hW₂).extendingCDMGsWith W₁
+    extendingCDMGsWith (G.hardInterventionOn W₂ hW₂) W₁
         (subset_carrier_of_hardInterventionOn hW₂ hW₁)
       = addInterventionNodesAndHardInterventionOn G W₁ W₂ hW₁ hW₂
 \end{minted}
@@ -1589,7 +1667,7 @@ variable {Node : Type*} [DecidableEq Node]
 private lemma image_unsplit_subset_extendingCDMGsWith_V
     {G : CDMG Node} {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
     {W₂ : Finset Node} {hW₂ : W₂ ⊆ G.J ∪ G.V} :
-    W₁.image IntExtNode.unsplit ⊆ (G.extendingCDMGsWith W₂ hW₂).V
+    W₁.image IntExtNode.unsplit ⊆ (extendingCDMGsWith G W₂ hW₂).V
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1598,11 +1676,13 @@ private lemma image_unsplit_subset_nodeSplittingHard_carrier
     {W₁ : Finset Node} (hW₁ : W₁ ⊆ G.V)
     {W₂ : Finset Node} (hW₂ : W₂ ⊆ G.J ∪ G.V) (hDisj : Disjoint W₁ W₂) :
     W₂.image SplitNode.unsplit ⊆
-      (G.nodeSplittingHard hG W₁ hW₁).J ∪ (G.nodeSplittingHard hG W₁ hW₁).V
+      (G.nodeSplittingHard hG W₁ hW₁).J ∪
+        (G.nodeSplittingHard hG W₁ hW₁).V
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def flattenSwigDoit : SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)
+def flattenSwigDoit :
+    SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)
   | .unsplit (.unsplit v) => IntExtNode.unsplit (SplitNode.unsplit v)
   | .unsplit (.intCopy w) => IntExtNode.intCopy (SplitNode.unsplit w)
   | .copy0 (.unsplit w) => IntExtNode.unsplit (SplitNode.copy0 w)
@@ -1617,11 +1697,12 @@ theorem addInterventionNodes_comm_swig (G : CDMG Node) (hG : G.IsCADMG)
     (W₂ : Finset Node) (hW₂ : W₂ ⊆ G.J ∪ G.V)
     (hDisj : Disjoint W₁ W₂) :
     eqViaNodeMap
-        ((G.extendingCDMGsWith W₂ hW₂).nodeSplittingHard
+        ((extendingCDMGsWith G W₂ hW₂).nodeSplittingHard
             (extendingCDMGsWith_isCADMG_of_isCADMG hG hW₂)
             (W₁.image IntExtNode.unsplit)
             (image_unsplit_subset_extendingCDMGsWith_V hW₁))
-        ((G.nodeSplittingHard hG W₁ hW₁).extendingCDMGsWith
+        (extendingCDMGsWith
+            (G.nodeSplittingHard hG W₁ hW₁)
             (W₂.image SplitNode.unsplit)
             (image_unsplit_subset_nodeSplittingHard_carrier hW₁ hW₂ hDisj))
         flattenSwigDoit
@@ -1666,7 +1747,8 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
+def MarginalizationΦE (G : CDMG Node) (W : Finset Node)
+    (u v : Node) : Prop :=
   ∃ (p : Walk G u v),
     p.IsDirectedWalk ∧
     p.length ≥ 1 ∧
@@ -1674,7 +1756,8 @@ def MarginalizationΦE (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def MarginalizationΦL (G : CDMG Node) (W : Finset Node) (u v : Node) : Prop :=
+def MarginalizationΦL (G : CDMG Node) (W : Finset Node)
+    (u v : Node) : Prop :=
   (∃ (p : Walk G u v),
       p.IsBifurcation ∧ ∀ x ∈ p.vertices.tail.dropLast, x ∈ W) ∨
   (∃ (p : Walk G v u),
@@ -1690,11 +1773,11 @@ noncomputable def marginalize (G : CDMG Node) (W : Finset Node)
   E := ((G.J ∪ (G.V \ W)) ×ˢ (G.V \ W)).filter
         (fun e => G.MarginalizationΦE W e.1 e.2)
   hE_subset := marginalize_hE_subset G W
-  L := ((G.V \ W) ×ˢ (G.V \ W)).filter
-        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)
+  L := (((G.V \ W) ×ˢ (G.V \ W)).filter
+        (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL W e.1 e.2)).image
+        (fun e => s(e.1, e.2))
   hL_subset := marginalize_hL_subset G W
   hL_irrefl := marginalize_hL_irrefl G W
-  hL_symm := marginalize_hL_symm G W
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN def_3_14
@@ -1749,8 +1832,10 @@ theorem marginalize_preserves_bifurcation_with_source (G : CDMG Node)
     ((∃ p : Walk G v₁ v₂, p.IsBifurcationSource v₃) ∨
         (∃ p : Walk G v₂ v₁, p.IsBifurcationSource v₃))
       ↔
-    ((∃ p : Walk (G.marginalize W hW) v₁ v₂, p.IsBifurcationSource v₃) ∨
-        (∃ p : Walk (G.marginalize W hW) v₂ v₁, p.IsBifurcationSource v₃))
+    ((∃ p : Walk (G.marginalize W hW) v₁ v₂,
+        p.IsBifurcationSource v₃) ∨
+        (∃ p : Walk (G.marginalize W hW) v₂ v₁,
+          p.IsBifurcationSource v₃))
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1830,13 +1915,18 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 private lemma subset_sdiff_of_disjoint {S T : Finset Node}
     {U : Finset Node} (hS : S ⊆ U) (hDisj : Disjoint S T) :
     S ⊆ U \ T
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-private lemma subset_carrier_of_marginalize {G : CDMG Node} {W : Finset Node}
+private lemma subset_carrier_of_marginalize
+    {G : CDMG Node} {W : Finset Node}
     (hW : W ⊆ G.V) {S : Finset Node} (hS : S ⊆ G.J ∪ G.V)
     (hDisj : Disjoint S W) :
     S ⊆ (G.marginalize W hW).J ∪ (G.marginalize W hW).V
@@ -1844,10 +1934,11 @@ private lemma subset_carrier_of_marginalize {G : CDMG Node} {W : Finset Node}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 set_option linter.unusedVariables false in
-private lemma image_unsplit_subset_extendingCDMGsWith_V {G : CDMG Node}
+private lemma image_unsplit_subset_extendingCDMGsWith_V
+    {G : CDMG Node}
     {W : Finset Node} (hW : W ⊆ G.J ∪ G.V)
     {S : Finset Node} (hS : S ⊆ G.V) :
-    S.image IntExtNode.unsplit ⊆ (G.extendingCDMGsWith W hW).V
+    S.image IntExtNode.unsplit ⊆ (extendingCDMGsWith G W hW).V
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -1871,9 +1962,10 @@ theorem marginalize_hardInterventionOn_comm (G : CDMG Node)
 theorem marginalize_extendingCDMGsWith_comm (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.J ∪ G.V) (hW₂ : W₂ ⊆ G.V)
     (hDisj : Disjoint W₁ W₂) :
-    (G.extendingCDMGsWith W₁ hW₁).marginalize (W₂.image IntExtNode.unsplit)
+    (extendingCDMGsWith G W₁ hW₁).marginalize
+        (W₂.image IntExtNode.unsplit)
         (image_unsplit_subset_extendingCDMGsWith_V hW₁ hW₂)
-      = (G.marginalize W₂ hW₂).extendingCDMGsWith W₁
+      = extendingCDMGsWith (G.marginalize W₂ hW₂) W₁
         (subset_carrier_of_marginalize hW₂ hW₁ hDisj)
 \end{minted}
 {\small\textit{main}}
@@ -1881,7 +1973,8 @@ theorem marginalize_extendingCDMGsWith_comm (G : CDMG Node)
 theorem marginalize_nodeSplittingOn_comm (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V)
     (hDisj : Disjoint W₁ W₂) :
-    (G.nodeSplittingOn W₁ hW₁).marginalize (W₂.image SplitNode.unsplit)
+    (G.nodeSplittingOn W₁ hW₁).marginalize
+        (W₂.image SplitNode.unsplit)
         (image_unsplit_subset_nodeSplittingOn_V_of_disjoint hW₁ hW₂ hDisj.symm)
       = (G.marginalize W₂ hW₂).nodeSplittingOn W₁
         (subset_sdiff_of_disjoint hW₁ hDisj)
@@ -1909,7 +2002,8 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-private lemma subset_J_union_V_of_subset_V {G : CDMG Node} {W : Finset Node}
+private lemma subset_J_union_V_of_subset_V
+    {G : CDMG Node} {W : Finset Node}
     (hW : W ⊆ G.V) : W ⊆ G.J ∪ G.V
 \end{minted}
 {\small\textit{helper}}
@@ -1921,8 +2015,8 @@ private lemma image_copy0_subset_nodeSplittingHard_V
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)
-    (W : Finset Node) (hW : W ⊆ G.V) :
+theorem marginalize_swig_eq_doit (G : CDMG Node)
+    (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V) :
     eqViaNodeMap
         (G.hardInterventionOn W (subset_J_union_V_of_subset_V hW))
         ((G.nodeSplittingHard hG W hW).marginalize
@@ -1968,15 +2062,34 @@ variable {Node : Type*} [DecidableEq Node]
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {G : CDMG Node}
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
+  | u, v, .forwardE _,  w => w = v ∨ (s(u, v) ∈ G.L ∧ (w = u ∨ w = v))
+  | u, v, .backwardE _, w => w = u ∨ (s(u, v) ∈ G.L ∧ (w = u ∨ w = v))
+  | u, v, .bidir _,     w => w = u ∨ w = v
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
-  1 ≤ k ∧ ∃ (vk : Node) (a₁ a₂ : Node × Node),
-    p.vertices[k]? = some vk ∧
-    p.edges[k - 1]? = some a₁ ∧
-    p.edges[k]? = some a₂ ∧
-    G.into vk a₁ ∧
-    G.into vk a₂
+def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
+  | _, _, .nil _ _, _ => False
+  | _, _, .cons _ _ (.nil _ _), _ => False
+  | _, _, .cons _ _ (.cons _ _ _), 0 => False
+  | _, _, .cons vk s₀ (.cons _ s₁ _), 1 =>
+      s₀.IsInto vk ∧ s₁.IsInto vk
+  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -2016,23 +2129,40 @@ variable {Node : Type*} [DecidableEq Node]
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {G : CDMG Node}
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
+  | _, _, .nil _ _, _ => False
+  | _, _, .cons _ _ _, 0 => False
+  | u, _, .cons v (.backwardE _) _, 1 => u ∉ G.Sc v
+  | _, _, .cons _ (.forwardE _) _, 1 => False
+  | _, _, .cons _ (.bidir _) _, 1 => False
+  | _, _, .cons _ _ p, k + 2 => p.HasBlockingLeftSlot (k + 1)
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def HasBlockingRightSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
+  | _, _, .nil _ _, _ => False
+  | u, _, .cons v (.forwardE _) _, 0 => v ∉ G.Sc u
+  | _, _, .cons _ (.backwardE _) _, 0 => False
+  | _, _, .cons _ (.bidir _) _, 0 => False
+  | _, _, .cons _ _ p, k + 1 => p.HasBlockingRightSlot k
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧
   ( k = 0 ∨ k = p.length ∨
-    (1 ≤ k ∧ ∃ (vkm1 vk : Node),
-        p.vertices[k - 1]? = some vkm1 ∧
-        p.vertices[k]? = some vk ∧
-        p.edges[k - 1]? = some (vk, vkm1) ∧
-        (vk, vkm1) ∈ G.E ∧
-        vkm1 ∉ G.Sc vk) ∨
-    (∃ (vk vkp1 : Node),
-        p.vertices[k]? = some vk ∧
-        p.vertices[k + 1]? = some vkp1 ∧
-        p.edges[k]? = some (vk, vkp1) ∧
-        (vk, vkp1) ∈ G.E ∧
-        vkp1 ∉ G.Sc vk) )
+    p.HasBlockingLeftSlot k ∨
+    p.HasBlockingRightSlot k )
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -2052,6 +2182,10 @@ def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
 If $G$ is acyclic then all non-colliders are blockable.
 \par}
 \smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -2103,9 +2237,18 @@ variable {Node : Type*} [DecidableEq Node]
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {G : CDMG Node}
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {G : CDMG Node}
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsSigmaOpenGiven {u v : Node} (p : Walk G u v) (C : Set Node) : Prop :=
+def IsSigmaOpenGiven {u v : Node} (p : Walk G u v) (C : Set Node)
+    (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk → p.IsCollider k →
       vk ∈ G.AncSet C) ∧
   (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk →
@@ -2113,7 +2256,8 @@ def IsSigmaOpenGiven {u v : Node} (p : Walk G u v) (C : Set Node) : Prop :=
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-def IsSigmaBlockedGiven {u v : Node} (p : Walk G u v) (C : Set Node) : Prop :=
+def IsSigmaBlockedGiven {u v : Node} (p : Walk G u v) (C : Set Node)
+    (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   (∃ (k : ℕ) (vk : Node),
       p.vertices[k]? = some vk ∧ p.IsCollider k ∧ vk ∉ G.AncSet C) ∨
   (∃ (k : ℕ) (vk : Node),
@@ -2172,12 +2316,16 @@ Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of 
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   ∀ {u v : Node} (π : Walk G u v),
-      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C
+      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C hC
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
