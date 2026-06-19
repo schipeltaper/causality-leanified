@@ -26,12 +26,6 @@
       "code_annotated": "-- Section-wide implicit type variable and decidability instance shared by every def below.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
-      "kind": "helper",
-      "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "This helper introduces section-wide variables shared by every definition that follows. The Lean `variable` command does not create a new declaration; it tells the elaborator that any later `def` mentioning `Node` should auto-insert these binders. The braces around `{Node : Type*}` make `Node` an *implicit* argument: callers write `Pa G v` and Lean infers `Node` from `G`'s type. `Type*` is Mathlib shorthand for a universe-polymorphic `Type u` — useful because nothing in this row forces a concrete universe level. The `[DecidableEq Node]` instance argument provides decidable equality on the carrier, needed by `Finset` operations (the CDMG stores edges in `Finset (Node × Node)`). Keeping this variable block here means the family operators inherit the same instance without each `def` restating it.",
-      "code_annotated": "-- Section-wide implicit type variable and decidability instance shared by every def below.\nvariable {Node : Type*} [DecidableEq Node]"
-    },
-    {
       "kind": "main",
       "code": "def Pa (G : CDMG Node) (v : Node) : Set Node :=\n  {w | w ∈ G ∧ (w, v) ∈ G.E}",
       "explanation": "`Pa G v` is the set of *parents* of a vertex `v`: every node `w` with a directed edge `w → v` in `G`. The return type `Set Node` is Mathlib's predicate-based set (a function `Node → Prop`), chosen uniformly for the whole row so walk-based operators (`Anc`, `Desc`, `Dist`) — which would otherwise need a decidability proof for `Finset` — share the same carrier. The body uses set-builder notation `{w | …}`. The conjunct `w ∈ G` invokes the `Membership Node (CDMG Node)` instance from `CDMGNotation.lean` and unfolds to `w ∈ G.J ∪ G.V`. It is technically redundant — the CDMG axiom `hE_subset` already pins edge endpoints inside `J ∪ V` — but kept to mirror the LN tex character-for-character and let consumers destructure `⟨hw_mem, hw_edge⟩` immediately.",
