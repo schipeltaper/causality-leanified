@@ -1,6 +1,12 @@
 % Claim proof file for row claim_3_4 -- "HardInterventionsCommute".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Refactor twin of `claim_3_4_proof_HardInterventionsCommute.tex` for the
+% `cdmg_typed_edges` refactor.  The LN statement is unchanged; the proof
+% body is identical to the original on the (J, V, E) components, and the
+% L-component paragraph plus its closing "Remark on the Lean encoding of
+% L" are revised to reflect the post-refactor `Sym2 Node` encoding of L
+% (under which the previously-registered deviation
+% hard_intervention_l_symmetrized_removal is structurally resolved at the
+% def_3_10 row).
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
@@ -60,9 +66,11 @@
 % (i) the opening is re-framed to reference the rewrite's (a) and (b) labels,
 % (ii) the closing "by symmetry" remark for (b) is expanded into an explicit
 % W_1 <-> W_2 swap + commutativity-of-union step, and
-% (iii) the bidirected-edge paragraph carries an inline note flagging the
-% Lean-side two-sided filter on L (registered deviation
-% hard_intervention_l_symmetrized_removal attached to def_3_10's encoding).
+% (iii) the bidirected-edge paragraph carries an inline note that, under the
+% cdmg_typed_edges refactor's `Sym2 Node` encoding of L, the previously-
+% registered deviation `hard_intervention_l_symmetrized_removal` is
+% structurally resolved at the def_3_10 row (no symmetrisation step in either
+% encoding is needed at this proof's L-component step).
 \begin{proof}
 We prove sub-claim (a), $\lp G_{\doit(W_1)} \rp_{\doit(W_2)} = G_{\doit(W_1 \cup W_2)}$, by checking the equality of the two CDMGs componentwise on each of the four components $(J, V, E, L)$ of def \ref{def-cdmg} in turn; sub-claim (b), $\lp G_{\doit(W_2)} \rp_{\doit(W_1)} = G_{\doit(W_1 \cup W_2)}$, is then obtained by an explicit symmetry argument at the end of the proof. Both sub-claims rely on the carrier-matching observation already established in the statement block above to license the outer $\doit(\cdot)$ application.
 
@@ -107,7 +115,11 @@ By item iv.\ of def \ref{def:G_hard_intervention} applied twice,
 \end{align*}
 The penultimate equality combines the two removal clauses by the same union-of-conditions step used for the directed-edge case, with $v \huh w$ in place of $v \tuh w$. \checkmark
 
-\smallskip\noindent\emph{Remark on the Lean encoding of $L$.} In the Lean formalisation of def \ref{def:G_hard_intervention}, item iv.\ is implemented with a \emph{two-sided} filter on the bidirected-edge set: the ordered pair $(v_1, v_2) \in L$ is retained iff $v_1 \notin W$ \emph{and} $v_2 \notin W$, rather than the LN's literal one-sided ``$v_2 \notin W$'' clause. This two-sided convention is the symmetrisation forced by the CDMG axioms (it is the registered deviation \emph{hard\_intervention\_l\_symmetrized\_removal}, attached to def\_3\_10's encoding and explained in the remark of def \ref{def:G_hard_intervention}: the literal one-sided formula does not preserve the symmetry of $L$). The deviation is harmless for the composition step above because $L$ is $\Sym$-symmetric and because composition of two such filters reads identically in either convention: ``filter-by-$p$ then filter-by-$q$ = filter-by-$(p \wedge q)$'' applied with $p(v_1, v_2) := (v_1 \notin W_1) \wedge (v_2 \notin W_1)$ and $q(v_1, v_2) := (v_1 \notin W_2) \wedge (v_2 \notin W_2)$ yields the predicate $(v_1, v_2) \mapsto (v_1 \notin W_1 \cup W_2) \wedge (v_2 \notin W_1 \cup W_2)$, which is precisely the two-sided filter for the union $W_1 \cup W_2$. Both the LN one-sided convention and the Lean two-sided convention therefore land on the same final bidirected-edge set $L_{\doit(W_1 \cup W_2)}$.
+\smallskip\noindent\emph{Remark on the Lean encoding of $L$ under the \texttt{cdmg\_typed\_edges} refactor.} Under the post-refactor Lean encoding of def \ref{def-cdmg} (the \texttt{cdmg\_typed\_edges} refactor; see \texttt{leanification/refactors/refactor\_cdmg\_typed\_edges.md} for the design block), $L$ is typed as a $\Finset$ of \emph{unordered} pairs $\Sym_2(\Node)$ rather than as a $\Finset$ of ordered pairs $\Node \times \Node$ paired with a separate $\Sym$-symmetry axiom. Consequently, item iv.\ of def \ref{def:G_hard_intervention} reads literally: a bidirected edge $s \in L$ (an unordered pair) is removed iff some endpoint $v$ of $s$ lies in $W$ (kept-condition: $\forall v \in s,\ v \notin W$). There is no ``second component'' on an unordered pair to test in isolation, so the LN's literal one-sided phrasing $v_2 \in W$ collapses to ``any endpoint in $W$'', and no symmetrisation step is required to satisfy any CDMG axiom (swap-symmetry is definitional on $\Sym_2$, so $s(v_1, v_2) = s(v_2, v_1)$ holds by construction). The previously-registered deviation \emph{hard\_intervention\_l\_symmetrized\_removal} -- attached to the pre-refactor encoding of def \ref{def:G_hard_intervention} -- is therefore \emph{structurally resolved at the def\_3\_10 row} under the refactor, and does not surface at this row. The composition step of this proof, expressed at the Lean level, reads as ``filter-by-$p_1$ then filter-by-$p_2 = $ filter-by-$(p_1 \wedge p_2)$'' with $p_i(s) := (\forall v \in s,\ v \notin W_i)$: applied at the union $W_1 \cup W_2$, the pointwise predicate equivalence
+\[
+    (\forall v \in s,\ v \notin W_1) \wedge (\forall v \in s,\ v \notin W_2) \;\Longleftrightarrow\; \forall v \in s,\ v \notin W_1 \cup W_2
+\]
+follows by pulling the conjunction inside the bounded universal (each disjoint-$v$ instance is one $\wedge$-pair) plus the membership-in-union rewrite $v \notin W_1 \cup W_2 \Leftrightarrow v \notin W_1 \wedge v \notin W_2$. Both the LN's set-difference algebra in the displayed line and the Lean-level composition step land on the same final bidirected-edge set $L_{\doit(W_1 \cup W_2)}$.
 
 \smallskip
 Combining the four componentwise equalities above, the CDMGs $\lp G_{\doit(W_1)} \rp_{\doit(W_2)}$ and $G_{\doit(W_1 \cup W_2)}$ agree field by field on each of $(J, V, E, L)$ and are therefore equal as CDMGs (def \ref{def-cdmg}). This establishes sub-claim (a).

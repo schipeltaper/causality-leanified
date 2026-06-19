@@ -1,20 +1,10 @@
-% Claim proof file for row claim_3_14 -- "AddingInterventionNodes".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
-%
-% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
-% `subfiles` package lets it render both standalone and as part of
-% `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+% Refactor-twin of `claim_3_14_proof_AddingInterventionNodes.tex` for
+% refactor `cdmg_typed_edges`.  The refactor migrates the bidirected-edge
+% encoding `L : Finset (Node × Node)` (with separate `hL_symm` axiom) to
+% `L : Finset (Sym2 Node)` (where swap-symmetry holds by construction).
+% This is a Lean-level encoding change only; the mathematical content of
+% the lemma is unchanged from the original.  Phase-7 cleanup renames this
+% twin file over the original.
 
 \documentclass[main]{subfiles}
 

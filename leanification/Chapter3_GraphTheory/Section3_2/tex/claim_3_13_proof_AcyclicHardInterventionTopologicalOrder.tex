@@ -26,7 +26,7 @@
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Rem}[AcyclicHardInterventionTopologicalOrder]
-    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V / ((v_1, v_2) \sim (v_2, v_1))$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$). Let
     \[ W \ins J \cup V \]
     be a subset of nodes, and let
     \[ G_{\doit(I_W)} \;=\; \lp J_{\doit(I_W)},\, V_{\doit(I_W)},\, E_{\doit(I_W)},\, L_{\doit(I_W)} \rp \]

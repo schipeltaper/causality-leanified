@@ -564,6 +564,10 @@ def cmd_finalize(args: argparse.Namespace) -> int:
                        args.mark_deviations_resolved])
     if args.dry_run:
         rc_cmd.append("--dry-run")
+    if getattr(args, "auto_rename_strays", False):
+        rc_cmd.append("--auto-rename-strays")
+    if getattr(args, "allow_strays", False):
+        rc_cmd.append("--allow-strays")
     _run(rc_cmd)
 
     if args.dry_run:
@@ -801,6 +805,16 @@ def main(argv: list[str]) -> int:
     p_fin.add_argument("--dry-run", action="store_true",
                        help="forward --dry-run to apply_refactor_cleanup; "
                             "no commit/push")
+    p_fin_strays = p_fin.add_mutually_exclusive_group()
+    p_fin_strays.add_argument("--auto-rename-strays", action="store_true",
+                              help="forward --auto-rename-strays to "
+                                   "apply_refactor_cleanup; drops the "
+                                   "`refactor_` prefix on any top-level "
+                                   "`refactor_*` decl not covered by a "
+                                   "REPLACEMENT marker (collision-checked)")
+    p_fin_strays.add_argument("--allow-strays", action="store_true",
+                              help="forward --allow-strays to "
+                                   "apply_refactor_cleanup; last resort")
 
     # merge
     p_merge = sub.add_parser(

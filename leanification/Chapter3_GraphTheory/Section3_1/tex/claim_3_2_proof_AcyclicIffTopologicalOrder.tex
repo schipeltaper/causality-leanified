@@ -1,8 +1,15 @@
-% REFACTOR TWIN -- refactor `total_order_helper` (root: def_3_8).
+% REFACTOR TWIN -- refactor `cdmg_typed_edges` (roots: def_3_1, def_3_4).
 % The mathematical proof of claim_3_2 is UNCHANGED by the refactor.
-% Only the Lean *encoding* of IsTopologicalOrder shifts: the original
-% flat 4-way conjunction becomes a nested 2-way conjunction with a
-% named `IsTotalOrder` helper for the first three sub-conjuncts.
+% Both `IsAcyclic` (def_3_6) and `IsTopologicalOrder` (def_3_8) are
+% skeleton-level properties of the (J, V, E)-shape only: neither side
+% of the biconditional reads the `L` field, so the def_3_1 retyping
+% `Finset (Node x Node) -> Finset (Sym2 Node)` does not enter the
+% argument. The def_3_4 rebuild of walk-class predicates onto a typed
+% `refactor_WalkStep` inductive changes only the *Lean constructor
+% names* the proof matches against; the LN-level reasoning (walk
+% reachability + Szpilrajn extension for the forward direction;
+% parents-precede + irreflexivity contradiction for the backward
+% direction) is preserved verbatim.
 % This twin will be renamed over the original at Phase 7 cleanup.
 
 % Claim proof file for row claim_3_2 -- "AcyclicIffTopologicalOrder".
