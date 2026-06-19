@@ -787,6 +787,18 @@ private lemma refactor_extendingCDMGsWith_hL_irrefl (G : refactor_CDMG Node) :
   exact G.hL_irrefl hs'L hs'Diag
 -- REFACTOR-BLOCK-REPLACEMENT-END: extendingCDMGsWith_hL_irrefl
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: extendingCDMGsWith_hL_symm
+-- The pre-refactor CDMG carried an `hL_symm` axiom because `L` was
+-- encoded as a `Finset (Node × Node)` that needed a separate
+-- symmetry obligation.  Under `cdmg_typed_edges` the new `L` is a
+-- `Finset (Sym2 Node)`, which is symmetric by construction, so the
+-- `hL_symm` field — and every proof obligation that previously
+-- discharged it — disappears from the refactor.  This empty
+-- REPLACEMENT block exists only so the finalize-time marker validator
+-- can pair the ORIGINAL `extendingCDMGsWith_hL_symm` block with a
+-- same-named REPLACEMENT.
+-- REFACTOR-BLOCK-REPLACEMENT-END: extendingCDMGsWith_hL_symm
+
 -- REFACTOR-BLOCK-REPLACEMENT-BEGIN: extendingCDMGsWith (was: refactor_extendingCDMGsWith)
 -- ref: def_3_13
 --

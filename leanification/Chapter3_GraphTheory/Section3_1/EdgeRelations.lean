@@ -827,6 +827,16 @@ def refactor_outOf (G : refactor_CDMG Node) (v : Node) (e : Node × Node) : Prop
 -- def_3_3 -- end statement
 -- REFACTOR-BLOCK-REPLACEMENT-END: outOf
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: into
+-- The pre-refactor `into` predicate combined the E- and L-channels in a
+-- single Prop.  Under `cdmg_typed_edges` it is split into two channel-
+-- specific predicates, `intoE` and `intoL`, each carried by its own
+-- REPLACEMENT block above.  No combined `into` declaration survives in
+-- the post-refactor design; this empty REPLACEMENT block exists only so
+-- the finalize-time marker validator can pair the ORIGINAL `into` block
+-- with a same-named REPLACEMENT.
+-- REFACTOR-BLOCK-REPLACEMENT-END: into
+
 end refactor_CDMG
 
 end Causality

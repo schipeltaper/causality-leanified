@@ -1691,6 +1691,20 @@ def refactor_vertices : ∀ {u v : Node}, refactor_Walk G u v → List Node
 -- def_3_4 --- end helper
 -- REFACTOR-BLOCK-REPLACEMENT-END: vertices
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: edges
+-- The pre-refactor `Walk.edges` accessor returned a `List (Node × Node)`
+-- by reading off the explicit `a : Node × Node` field of each `cons`
+-- step.  Under `cdmg_typed_edges` the new `Walk` keeps no such field —
+-- the `WalkStep` constructor itself carries the typed witness
+-- (`.forwardE` / `.backwardE` / `.bidir`) — so a single uniform "edges"
+-- projection no longer makes sense at the walk level; every consumer
+-- that previously inspected `p.edges` has been ported (or is being
+-- ported) to pattern-match on the typed `WalkStep` directly.  This
+-- empty REPLACEMENT block exists only so the finalize-time marker
+-- validator can pair the ORIGINAL `edges` block with a same-named
+-- REPLACEMENT.
+-- REFACTOR-BLOCK-REPLACEMENT-END: edges
+
 -- ref: def_3_4 (item~i, end-node classifier "into v_0") — refactor
 --
 -- `refactor_Walk.refactor_intoStart p` iff `p` is non-trivial AND its

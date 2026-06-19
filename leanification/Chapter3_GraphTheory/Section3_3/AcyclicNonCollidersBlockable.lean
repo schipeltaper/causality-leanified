@@ -637,6 +637,22 @@ theorem refactor_acyclic_non_colliders_blockable
   · exact Or.inr (Or.inr (Or.inr hR))
 -- REFACTOR-BLOCK-REPLACEMENT-END: acyclic_non_colliders_blockable
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: Walk
+-- The pre-refactor proof of `acyclic_non_colliders_blockable` relied on
+-- four `Walk.*` helpers (`Walk.vertices_length_eq`,
+-- `Walk.vertices_head?_eq_source`, `Walk.walkStep_at`,
+-- `Walk.walkStep_at_vertices`) defined above this proof in their own
+-- ORIGINAL blocks.  Under `cdmg_typed_edges` the post-refactor proof
+-- (the `outgoing_E_not_in_Sc` + `blocking_interior_helper` +
+-- `acyclic_non_colliders_blockable` REPLACEMENT trio above) inspects
+-- the typed `WalkStep` constructor directly, so the four helpers are
+-- now dead code.  Because the cleanup script's marker parser truncates
+-- block names at the first non-identifier character, all four
+-- `Walk.<suffix>` ORIGINAL blocks register as a single `Walk` name in
+-- the validator's set diff; this empty REPLACEMENT block pairs all
+-- four of them at once so the finalize-time marker validator passes.
+-- REFACTOR-BLOCK-REPLACEMENT-END: Walk
+
 end refactor_CDMG
 
 end Causality

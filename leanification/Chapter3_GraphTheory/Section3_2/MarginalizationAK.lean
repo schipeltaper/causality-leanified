@@ -944,6 +944,17 @@ private lemma refactor_marginalize_hL_irrefl (G : refactor_CDMG Node)
   exact hNe (Sym2.mk_isDiag_iff.mp hDiag)
 -- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hL_irrefl
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_hL_symm
+-- The pre-refactor CDMG carried an `hL_symm` axiom because `L` was
+-- encoded as a `Finset (Node × Node)` needing a separate symmetry
+-- obligation.  Under `cdmg_typed_edges` the new `L` is a
+-- `Finset (Sym2 Node)`, symmetric by construction, so the `hL_symm`
+-- field — and every proof obligation that previously discharged it —
+-- disappears from the refactor.  This empty REPLACEMENT block exists
+-- only so the finalize-time marker validator can pair the ORIGINAL
+-- `marginalize_hL_symm` block with a same-named REPLACEMENT.
+-- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_hL_symm
+
 -- ref: def_3_14
 --
 -- The *marginalization* of `G` w.r.t. `W` — the LN's `G^{∖W}` — as the
