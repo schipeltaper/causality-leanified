@@ -427,21 +427,28 @@ _BLOCK_COMMENT_RE = re.compile(r"/-[^-]?.*?-/", re.DOTALL)
 
 def _is_empty_namespace_body(body: str) -> bool:
     """A namespace body counts as "empty" if every line is one of:
-    blank, a ``--`` line-comment, content of a ``/- ... -/`` block
-    comment, or a single bare ``variable`` declaration. The dual-
-    namespace refactor pattern leaves shells of this form behind once
-    Pass 2 deletes the ORIGINAL marker blocks they enclosed; Pass 4
-    sweeps them away."""
-    # Strip block comments first (they're nestable in Lean but very
-    # rarely nested in practice; this strips the outer pass).
-    stripped = _BLOCK_COMMENT_RE.sub("", body)
+    blank, a ``--`` line-comment, or a single bare ``variable``
+    declaration. ``/- ... -/`` and ``/-! ... -/`` block comments do
+    NOT count as empty -- they are load-bearing documentation
+    (file-top docstrings, section explainers) and must survive Pass
+    4. Pruning a namespace that contains a block comment would
+    silently strip docs that real readers rely on, with no Lean
+    error to surface the loss. The dual-namespace refactor pattern
+    leaves shells of THIS narrow form behind once Pass 2 deletes
+    the ORIGINAL marker blocks they enclosed; Pass 4 sweeps them
+    away without touching docstring-bearing namespaces."""
     var_seen = False
-    for raw in stripped.splitlines():
+    for raw in body.splitlines():
         line = raw.strip()
         if not line:
             continue
         if line.startswith("--"):
-            continue
+            continue                                # full-line line-comment
+        # Any non-line-comment line that touches block-comment syntax
+        # makes the body non-empty (presence of a `/- ... -/` or
+        # `/-! ... -/` block, possibly multi-line).
+        if "/-" in line or "-/" in line:
+            return False
         if line.startswith("variable"):
             if var_seen:
                 return False                       # >1 variable line
