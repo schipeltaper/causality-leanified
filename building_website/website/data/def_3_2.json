@@ -26,6 +26,12 @@
       "code_annotated": "-- Section-wide binders; auto-injected into following decls that use `Node`.\n-- `Type*` is universe-polymorphic; `[DecidableEq Node]` powers `Finset` membership.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
+      "kind": "helper",
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "Section-level `variable` declaration introducing the carrier type `Node` (implicit, universe-polymorphic via `Type*`) and a `DecidableEq Node` instance shared across every declaration that follows. Lean's `variable` mechanism auto-binds these arguments into any `def` or `instance` in the same scope that actually references them, so the seven main declarations need not repeat `{Node : Type*} [DecidableEq Node]` individually. `DecidableEq Node` is the prerequisite for `Finset Node` membership to compute: `v ∈ G.J ∪ G.V` and the pair-membership clauses `(v1, v2) ∈ G.E` / `(v1, v2) ∈ G.L` all rely on `Finset`'s decidable membership, which itself needs decidable equality on the element type. Keeping the binder implicit (`{...}`) means call sites write `G.tuh v1 v2`, not `@G.tuh Node _ v1 v2`.",
+      "code_annotated": "-- Section-wide binders; auto-injected into following decls that use `Node`.\n-- `Type*` is universe-polymorphic; `[DecidableEq Node]` powers `Finset` membership.\nvariable {Node : Type*} [DecidableEq Node]"
+    },
+    {
       "kind": "main",
       "code": "instance instMembership : Membership Node (CDMG Node) where\n  mem G v := v ∈ G.J ∪ G.V",
       "explanation": "Registers an instance of Mathlib's `Membership Node (CDMG Node)` typeclass so that the literal LN syntax `v ∈ G` elaborates on a CDMG without needing a custom function call like `G.Mem v`. The `Membership` typeclass dispatches the `∈` symbol based on the second type argument; here it reads `G : CDMG Node` on the right and selects this instance. The body `v ∈ G.J ∪ G.V` reuses `∈` a second time, but now against a `Finset Node`, so Lean transparently resolves the inner `∈` to `Finset.instMembership` and the outer to ours. The disjointness witness `hJV_disj` carried by `CDMG` is deliberately not threaded here: membership only asks whether `v` lies in `J` or `V`, not in exactly one. Downstream rows invoke `hJV_disj` directly when they need the exclusive form.",
@@ -45,9 +51,9 @@
     },
     {
       "kind": "main",
-      "code": "def huh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.L",
-      "explanation": "Item 4: the bidirected-edge relation. The name `huh` is head-on-both-sides; both endpoints carry arrowheads. The body is `(v1, v2) ∈ G.L`, where `G.L : Finset (Node × Node)` is the bidirected-edge finset. Although the Lean definition picks an ordered pair, the relation is graph-theoretically symmetric: `CDMG.hL_symm` forces `(v1, v2) ∈ G.L ↔ (v2, v1) ∈ G.L`, so `G.huh v1 v2 ↔ G.huh v2 v1` holds as a corollary rather than being baked into the `def`. Keeping symmetry external means `hL_symm` invocations and `huh`-unfoldings stay independent; irreflexivity (no self-loops) similarly lives on the `CDMG` structure as `hL_irrefl`, not inside `huh`. Storing `L` as an ordered-pair `Finset` rather than a quotient lets all standard `Finset` machinery (`card`, `filter`, `sdiff`, `Decidable` membership) lift to `huh` for free.",
-      "code_annotated": "-- `huh` = head-head: bidirected edge between `v1` and `v2`; LN macro $\\huh$.\n-- Symmetry is a *consequence* of `CDMG.hL_symm`, not part of this definition.\ndef huh (G : CDMG Node) (v1 v2 : Node) : Prop := (v1, v2) ∈ G.L"
+      "code": "def huh (G : CDMG Node) (v1 v2 : Node) : Prop := s(v1, v2) ∈ G.L",
+      "explanation": "",
+      "code_annotated": ""
     },
     {
       "kind": "main",

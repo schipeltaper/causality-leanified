@@ -27,9 +27,15 @@
     },
     {
       "kind": "helper",
-      "code": "def length : ∀ {u v : Node}, Walk G u v → ℕ\n  | _, _, .nil _ _ => 0\n  | _, _, .cons _ _ _ p => p.length + 1",
-      "explanation": "This helper is defined in `Walks.lean` alongside the `Walk` structure itself (def_3_4's file) and is surfaced on this row because `def_3_6`'s acyclicity statement consumes it directly. `Walk.length p` is the LN's $n$ — the number of edges traversed by the walk `p : Walk G u v` — defined by recursion on the `Walk` constructor: the trivial walk `.nil _ _` (one vertex, no edges) has length `0`, and the `.cons _ _ _ p` case adds `1` to the tail's length. The `def_3_6` main statement uses the predicate `p.length ≥ 1` to exclude the trivial walk from acyclicity's quantification, matching the LN's literal hypothesis $n \\ge 1$ in the definition: a CDMG is acyclic iff there is no directed walk from $v$ back to itself with at least one edge. The `length`-zero self-walk is admitted (it always exists for any $v$) and is what `p.length ≥ 1` filters out.",
-      "code_annotated": "/-- Length of a walk: the number `n` of edges (matches the LN's `n`). -/\n-- Recurses on the `Walk` constructor: `.nil _ _` has length 0; `.cons _ _ _ p` adds 1 to `p.length`.\ndef length : ∀ {u v : Node}, Walk G u v → ℕ\n  | _, _, .nil _ _ => 0\n  | _, _, .cons _ _ _ p => p.length + 1"
+      "code": "variable {Node : Type*} [DecidableEq Node]",
+      "explanation": "Lean 4's `variable` command does not produce a declaration of its own; instead it tells the elaborator that any later `def`, `theorem`, or `lemma` in this scope that mentions `Node` should have these binders auto-inserted at the front of its signature. The braces around `{Node : Type*}` make `Node` an *implicit* argument inferred from later arguments (e.g. from `G : CDMG Node`), and `Type*` is Mathlib shorthand for a universe-polymorphic `Type u`. The `[DecidableEq Node]` is an instance argument supplying decidable equality on the carrier. Both fixtures are load-bearing for the `IsAcyclic` definition below: `Walk.IsDirectedWalk` (from `def_3_4`) recurses through the walk and on each step checks `a ∈ G.E`, a `Finset (Node × Node)` membership that needs decidable equality on pairs of `Node`. The same instance also drives the `Membership Node (CDMG Node)` instance from `def_3_2`, which unfolds `v ∈ G` to `Finset.mem` on `G.J ∪ G.V`. Drop either fixture and the next block fails to type-check.",
+      "code_annotated": "-- Auto-implicits for every later decl: load-bearing for `v ∈ G` and `Walk.IsDirectedWalk`'s per-edge `Finset` checks.\nvariable {Node : Type*} [DecidableEq Node]"
+    },
+    {
+      "kind": "helper",
+      "code": "def length : ∀ {u v : Node}, Walk G u v → ℕ\n  | _, _, .nil _ _ => 0\n  | _, _, .cons _ _ p => p.length + 1",
+      "explanation": "",
+      "code_annotated": ""
     },
     {
       "kind": "main",
