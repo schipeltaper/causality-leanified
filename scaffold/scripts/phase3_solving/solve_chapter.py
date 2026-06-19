@@ -217,6 +217,20 @@ class OrchestrationState:
     # attempt with the same id, the handler mangles the id (``<id>_v2``
     # etc.) and registers the new entry. Per row run.
     ln_subtle_dup_attempts: set[str] = field(default_factory=set)
+    # One-time local-fix nudge gate for the `refactor` action (on
+    # non-refactor rows). A real refactor is the heaviest action
+    # available -- it forks a branch, builds a refactor table, and
+    # drives every consumer row through a full re-validation pipeline.
+    # Many ad-hoc "I need a refactor" emissions can actually be closed
+    # locally with an auxiliary def / a custom variant defined for
+    # this row's proof only / a smart-constructor helper. The
+    # orchestrator nudges the manager once with a "try a local fix
+    # first" prompt; if the manager re-emits `refactor` after the
+    # nudge, the orchestrator honors it on the next turn. Resets per
+    # row run. Refactor-row paths (expand-scope) are unaffected --
+    # they go through their own NEW_ROOT_REF handler before reaching
+    # this gate.
+    refactor_local_fix_nudge_done: bool = False
 
     @property
     def elapsed_seconds(self) -> float:
@@ -3349,7 +3363,10 @@ def render_row_context(state: OrchestrationState) -> str:
         registry_block = ""
     tips = row.get("tips", "")
     tips_block = f"\n## Carried-over tips for this row\n{tips}\n" if tips else ""
-    refactor_block = _render_refactor_block(row) if row.get("refactor") else ""
+    refactor_block = (
+        _render_refactor_block(row, state.data_path)
+        if row.get("refactor") else ""
+    )
     # Addition to the LN (from the initialization-phase decision table).
     # Treated as authoritative alongside the LN tex block.
     addition = (row.get("addition_to_the_LN") or "").strip()
@@ -3408,7 +3425,81 @@ def render_row_context(state: OrchestrationState) -> str:
     )
 
 
-def _render_refactor_block(row: dict) -> str:
+# Regexes for the marker convention used by Phase 7a's swap:
+# `-- REFACTOR-BLOCK-ORIGINAL-BEGIN: <Name>` ... `-- REFACTOR-BLOCK-ORIGINAL-END: <Name>`
+# `-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: <Name> (was: refactor_<Name>)` ...
+# `-- REFACTOR-BLOCK-REPLACEMENT-END: <Name>`
+# The REPLACEMENT-BEGIN marker may carry trailing `(was: ...)` text; the
+# `[^\n]*` chunk after the captured name absorbs that.
+_REFACTOR_ORIGINAL_BLOCK_RE = re.compile(
+    r"--\s*REFACTOR-BLOCK-ORIGINAL-BEGIN:\s*(\S+)[^\n]*\n"
+    r"(.*?)\n"
+    r"--\s*REFACTOR-BLOCK-ORIGINAL-END:\s*\1\b",
+    re.DOTALL,
+)
+_REFACTOR_REPLACEMENT_BLOCK_RE = re.compile(
+    r"--\s*REFACTOR-BLOCK-REPLACEMENT-BEGIN:\s*(\S+)[^\n]*\n"
+    r"(.*?)\n"
+    r"--\s*REFACTOR-BLOCK-REPLACEMENT-END:\s*\1\b",
+    re.DOTALL,
+)
+
+
+def _extract_refactor_block_pairs(lean_file: Path
+                                  ) -> list[tuple[str, str, str]]:
+    """Read a Lean file and return paired ORIGINAL / REPLACEMENT marker
+    blocks as ``(decl_name, original_text, replacement_text)`` tuples.
+
+    Decls present in only one half (e.g. a root row whose REPLACEMENT
+    hasn't been written yet) appear with the missing half empty. The
+    function is read-only -- it does not write or modify the file --
+    so Phase 7a's later swap is unaffected.
+    """
+    try:
+        text = lean_file.read_text(encoding="utf-8")
+    except (OSError, FileNotFoundError):
+        return []
+    originals: dict[str, str] = {
+        m.group(1): m.group(2)
+        for m in _REFACTOR_ORIGINAL_BLOCK_RE.finditer(text)
+    }
+    replacements: dict[str, str] = {
+        m.group(1): m.group(2)
+        for m in _REFACTOR_REPLACEMENT_BLOCK_RE.finditer(text)
+    }
+    out: list[tuple[str, str, str]] = []
+    for name in sorted(set(originals) | set(replacements)):
+        out.append((name, originals.get(name, ""), replacements.get(name, "")))
+    return out
+
+
+def _lookup_refactor_root_lean_file(data_path: Path,
+                                    root_ref: str) -> Path | None:
+    """For a refactor row's briefing: given the path to the active
+    ``refactor_data.json`` and a root ref from ``caused_by_roots``,
+    return the absolute path to the root row's ``main_lean_file``.
+
+    Returns ``None`` if the refactor_data.json can't be read, the root
+    row isn't in the table, or its ``main_lean_file`` is unset.
+    """
+    try:
+        rdata = json.loads(data_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    root_row = next(
+        (r for r in rdata.get("rows", []) if r.get("ref") == root_ref),
+        None,
+    )
+    if not root_row:
+        return None
+    main_lean = root_row.get("main_lean_file")
+    if not main_lean:
+        return None
+    p = (REPO_ROOT / main_lean) if not Path(main_lean).is_absolute() else Path(main_lean)
+    return p if p.exists() else None
+
+
+def _render_refactor_block(row: dict, data_path: Path | None = None) -> str:
     """Render the manager-facing "this is a refactor row" briefing.
 
     Refactor rows live in a separate ``refactor_data.json`` (one per
@@ -3474,20 +3565,100 @@ def _render_refactor_block(row: dict) -> str:
                      if caused_by else "(unknown -- see refactor_data.json)")
         role_line = (
             f"**Role:** DEPENDENT. This row was pulled into the refactor "
-            f"because root(s) {cause_str} changed underneath it. Read "
-            f"the marker-block REPLACEMENTs the manager(s) of those root "
-            f"rows wrote, understand the new shape, and update this "
-            f"row's proof/declaration to fit. If multiple roots changed, "
-            f"the briefing for each lives in its own row; you can grep "
-            f"the refactor folder for `caused_by_roots`.\n"
+            f"because root(s) {cause_str} changed underneath it. **Your "
+            f"primary task is to PORT this row's existing proof / "
+            f"declaration against the new root shape — not to re-derive "
+            f"it from scratch.** The row's mathematical content is "
+            f"unchanged; only its expression against the upstream root(s) "
+            f"changes. Read the embedded BEFORE / AFTER blocks below, "
+            f"then quote this row's pre-refactor signature (from the "
+            f"`REFACTOR-BLOCK-ORIGINAL` markers in your `main_lean_file`) "
+            f"and adjust each upstream-touching reference. If a "
+            f"mechanical port works, ship it; only when the new shape "
+            f"genuinely needs a different argument should you re-derive.\n"
         )
+    # ----- Dependent rows: embed the root's BEFORE/AFTER blocks ---------
+    # For dependent rows, surface each root's REFACTOR-BLOCK-ORIGINAL
+    # (pre-refactor shape) and REFACTOR-BLOCK-REPLACEMENT (post-refactor
+    # shape) inline so the manager has the structural change in their
+    # working context from turn 1 -- no need to grep the refactor folder
+    # or open the root row's file separately. The blocks are read from
+    # the root row's main_lean_file via the markers Phase 7a uses for
+    # its swap; this code is read-only and does not modify the file.
+    root_diff_section = ""
+    if role == "dependent" and caused_by and data_path is not None:
+        chunks: list[str] = []
+        for root_ref in caused_by:
+            root_lean_path = _lookup_refactor_root_lean_file(
+                data_path, root_ref)
+            if root_lean_path is None:
+                chunks.append(
+                    f"\n### Root `{root_ref}`: file not located\n"
+                    f"(refactor_data.json had no `main_lean_file` for "
+                    f"this root, or the file is missing. Read the root's "
+                    f"row data in `refactor_data.json` and open the file "
+                    f"manually.)\n"
+                )
+                continue
+            pairs = _extract_refactor_block_pairs(root_lean_path)
+            if not pairs:
+                chunks.append(
+                    f"\n### Root `{root_ref}` ({root_lean_path.name}): "
+                    f"no REFACTOR-BLOCK markers found yet\n"
+                    f"(the root row may not have been solved yet, or its "
+                    f"manager hasn't placed marker blocks. Check back "
+                    f"after the root is solved, or read the plan markdown "
+                    f"in `leanification/refactors/` for the design "
+                    f"intent.)\n"
+                )
+                continue
+            for decl_name, pre, post in pairs:
+                chunks.append(
+                    f"\n### Root `{root_ref}` -- declaration "
+                    f"`{decl_name}` (in `{root_lean_path.name}`)\n"
+                )
+                if pre.strip():
+                    chunks.append(
+                        f"\n**BEFORE** (pre-refactor):\n"
+                        f"```lean\n{pre.rstrip()}\n```\n"
+                    )
+                else:
+                    chunks.append(
+                        f"\n**BEFORE**: (no ORIGINAL block found for "
+                        f"this declaration)\n"
+                    )
+                if post.strip():
+                    chunks.append(
+                        f"\n**AFTER** (post-refactor):\n"
+                        f"```lean\n{post.rstrip()}\n```\n"
+                    )
+                else:
+                    chunks.append(
+                        f"\n**AFTER**: (REPLACEMENT block not written "
+                        f"yet -- root row likely still in progress; "
+                        f"work on root-independent aspects first or "
+                        f"`make_plan` to wait.)\n"
+                    )
+        if chunks:
+            root_diff_section = (
+                "\n## Root refactor structural change (BEFORE / AFTER)\n"
+                "The roots that pulled this row into the refactor table "
+                "underwent the following structural changes. Port your "
+                "row's code so it compiles against the AFTER shapes "
+                "below. The BEFORE shapes are quoted so you can locate "
+                "exactly which fields / signatures / bodies changed and "
+                "translate mechanically.\n"
+                + "".join(chunks)
+            )
+
     return (
         "\n## Refactor-row briefing -- READ FIRST\n"
         "**This row is part of a refactor.** Your goal is to produce\n"
         "*replacement* artefacts that live alongside the originals --\n"
         "nothing is deleted before Phase 7 cleanup.\n"
         "\n"
-        + role_line +
+        + role_line
+        + root_diff_section +
         "\n"
         "**Where the original lives:** the original declaration and its\n"
         "tex block are in the same files your `main_lean_file` /\n"
@@ -4260,6 +4431,75 @@ def solve_current_row(data_path: Path | None = None) -> None:
                         # data.json. Halt; the operator re-invokes
                         # solve_chapter on the new path.
                         return
+            # ----- One-time local-fix nudge -----------------------------
+            # Refactor is the most expensive escalation in the system:
+            # a forked branch, a refactor table, every consumer re-
+            # validated. Most ad-hoc "I need a refactor" emissions
+            # are actually local-fix obstacles in disguise -- an
+            # auxiliary def / a custom variant of the upstream concept
+            # defined locally for this proof / a smart-constructor
+            # helper threading the missing invariant -- and the
+            # cheapest way to verify this is to make the manager try
+            # before honoring. The FIRST refactor emission in a
+            # non-refactor row gets bounced back with a nudge. The
+            # SECOND emission (after the manager has had a turn to
+            # actively rule out local fixes) is honored normally.
+            if not state.refactor_local_fix_nudge_done:
+                state.refactor_local_fix_nudge_done = True
+                state.history.append(TurnRecord(
+                    turn, action, body,
+                    "(refactor: one-time local-fix nudge; not yet "
+                    "dispatching plan_refactor)"))
+                print(f"[orchestrator] refactor: one-time local-fix "
+                      f"nudge; bouncing back to manager.", flush=True)
+                extra_note = (
+                    "REFACTOR is the heaviest action available -- it "
+                    "forks a branch, builds a refactor table, and drives "
+                    "every consumer row through a full re-validation "
+                    "pipeline (multi-day, multi-row). Before this "
+                    "orchestrator dispatches `plan_refactor.md`, spend "
+                    "ONE turn to actively rule out a LOCAL FIX. Many "
+                    "obstacles that present as 'the upstream type is "
+                    "wrong' are actually 'I need an auxiliary structure "
+                    "at the use site'.\n\n"
+                    "Concretely, ask yourself:\n\n"
+                    "1. **Custom helper definition** -- could a new "
+                    "private `def` / `lemma` in THIS row's file thread "
+                    "the obstacle without changing the upstream concept? "
+                    "Examples: a custom walk-reversal that goes through "
+                    "an intermediate structure tagging each step's "
+                    "channel; a smart constructor that bundles a missing "
+                    "invariant; a use-site wrapper that discharges the "
+                    "upstream's loose interface to the LN's intended "
+                    "one.\n\n"
+                    "2. **Custom variant of the upstream concept** -- "
+                    "could you define a LOCAL variant of the upstream "
+                    "concept (defined only for the restricted class "
+                    "your row actually consumes) and prove against it "
+                    "instead? Downstream consumers don't need to know "
+                    "about your local variant; you just need your row's "
+                    "proof to work.\n\n"
+                    "3. **Use-site discharge** -- is the obstacle really "
+                    "at the upstream level, or is it a use-site obstacle "
+                    "that auxiliary infrastructure (helper lemmas, "
+                    "intermediate structures, casing) can discharge? "
+                    "Casing on hypotheses you control is often cheaper "
+                    "than restructuring an upstream type that other "
+                    "rows have already committed against.\n\n"
+                    "Spend the next turn on `spawn_agent_sub_task` "
+                    "exploring these. If you come back with a concrete "
+                    "write-up of why each local approach genuinely "
+                    "doesn't work for THIS row (not just 'it's clunky' "
+                    "or 'the LN-faithful answer is upstream'), re-emit "
+                    "`refactor` and the orchestrator will honor it. If "
+                    "a local fix works, you save days of pipeline.\n\n"
+                    "Your previous `refactor` body has been preserved "
+                    "for re-use on the re-emission."
+                )
+                save_data(state.data_path, data)
+                persist_time()
+                continue
+
             # Advisory refactor: the (rewritten) `plan_refactor.md`
             # worker is NON-DESTRUCTIVE -- it just writes a markdown
             # plan to `leanification/refactors/refactor_<name>.md` and

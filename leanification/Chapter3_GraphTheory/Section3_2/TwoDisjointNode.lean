@@ -74,9 +74,6 @@ namespace CDMG
 -- `def_3_11`, on the iterated and single-step carriers as well).
 -- Stronger instances (`Fintype`, `LinearOrder`) are not needed at the
 -- statement level and are deferred to the proof body's use sites.
--- claim_3_7 --- start helper
-variable {Node : Type*} [DecidableEq Node]
--- claim_3_7 --- end helper
 
 -- ## Helper: the canonical flatten map `SplitNode (SplitNode Node) → SplitNode Node`
 --
@@ -139,16 +136,6 @@ variable {Node : Type*} [DecidableEq Node]
 --   copy1` triple of `def_3_11`.  A `Sum`-based encoding of `SplitNode`
 --   would let us reuse `Sum.elim`, but the case-analysis would not
 --   shorten; only the names of the constructors would change.
--- claim_3_7 --- start helper
-def flattenSplit : SplitNode (SplitNode Node) → SplitNode Node
-  | .unsplit x => x
-  | .copy0 (.unsplit w) => SplitNode.copy0 w
-  | .copy0 (.copy0 w) => SplitNode.copy0 w
-  | .copy0 (.copy1 w) => SplitNode.copy1 w
-  | .copy1 (.unsplit w) => SplitNode.copy1 w
-  | .copy1 (.copy0 w) => SplitNode.copy0 w
-  | .copy1 (.copy1 w) => SplitNode.copy1 w
--- claim_3_7 --- end helper
 
 -- ## Helper: equality of two CDMGs (over possibly different carriers) via a node map
 --
@@ -203,14 +190,6 @@ def flattenSplit : SplitNode (SplitNode Node) → SplitNode Node
 --   abstractions assume a two-sided invertible carrier map (or a
 --   morphism-and-inverse pair); neither shape fits a one-directional
 --   image equality under a non-bijective carrier function.
--- claim_3_7 --- start helper
-def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
-    (G : CDMG α) (G' : CDMG β) (f : α → β) : Prop :=
-  G.J.image f = G'.J
-    ∧ G.V.image f = G'.V
-    ∧ G.E.image (Prod.map f f) = G'.E
-    ∧ G.L.image (Prod.map f f) = G'.L
--- claim_3_7 --- end helper
 
 -- ## Helper: well-typedness of the iterated splitting
 --
@@ -260,23 +239,6 @@ def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
 --   `image_unsplit_subset_nodeSplittingOn_V hW₂ hW₁ hDisj.symm`
 --   for the (b) direction.*  A single helper covers both; splitting
 --   into two named lemmas would duplicate the proof.
--- claim_3_7 --- start helper
-private lemma image_unsplit_subset_nodeSplittingOn_V
-    {G : CDMG Node} {W₁ W₂ : Finset Node} (hW₁ : W₁ ⊆ G.V)
-    (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
-    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V
--- claim_3_7 --- end helper
-:= by
-  intro x hx
-  obtain ⟨v, hvW₂, rfl⟩ := Finset.mem_image.mp hx
-  -- `(G.nodeSplittingOn W₁ hW₁).V` unfolds to
-  --   `(G.V ∖ W₁).image .unsplit ∪ W₁.image .copy0 ∪ W₁.image .copy1`.
-  -- `v ∈ W₂` with `Disjoint W₁ W₂` gives `v ∈ G.V ∖ W₁`, hence
-  -- `.unsplit v ∈ (G.V ∖ W₁).image .unsplit`.
-  refine Finset.mem_union_left _ ?_
-  refine Finset.mem_union_left _ ?_
-  refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
-  exact Finset.mem_sdiff.mpr ⟨hW₂ hvW₂, Finset.disjoint_right.mp hDisj hvW₂⟩
 
 -- ref: claim_3_7
 --
@@ -389,6 +351,175 @@ equality is an equality of CDMGs.)
 --   with the four data fields of the single splitting.  This is the
 --   strongest equality form available without introducing quotient
 --   types or a `CDMG.Iso` layer.
+
+end CDMG
+
+namespace CDMG
+
+-- ## Refactor port — REPLACEMENT blocks for the `cdmg_typed_edges` design
+--
+-- The five `REFACTOR-BLOCK-REPLACEMENT` blocks below port the
+-- pre-refactor declarations in this file to the post-refactor
+-- `def_3_1` / `def_3_11` shapes (`CDMG` with
+-- `L : Finset (Sym2 Node)`; `nodeSplittingOn` with
+-- `L := G.L.image (Sym2.map (toCopy0 W))`).  Each block
+-- mirrors its ORIGINAL above with the prefix `refactor_` and the
+-- type / operation substitutions:
+--
+--   * `CDMG → CDMG`
+--   * `SplitNode → SplitNode`
+--   * `toCopy0 / toCopy1 → toCopy0 / toCopy1`
+--   * `nodeSplittingOn → nodeSplittingOn`
+--   * `flattenSplit / eqViaNodeMap / image_unsplit_subset_…` →
+--     same with the `refactor_` prefix
+--
+-- The J/V/E sides of the main theorem port mechanically — same
+-- tactics, just renames.  Only the L-side (sub-goals 4 and 8) is
+-- structurally reworked, because `L`'s storage changed from
+-- ordered pairs (`Prod.map f f`) to `Sym2`-quotient
+-- unordered pairs (`Sym2.map f`).  The rework uses Mathlib's
+-- `Sym2.map_map` (`Sym2.map g (Sym2.map f x) = Sym2.map (g ∘ f) x`)
+-- to fuse the two-stage tagged-sum lift back into a single-stage
+-- one, then closes pointwise via `Sym2.map_congr` and the inline
+-- `flatten_refactor_toCopy0_refactor_toCopy0` helper (verbatim port
+-- of the original `flatten_toCopy0_toCopy0`).
+
+-- claim_3_7 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_7 --- end helper
+
+-- ## Helper: flatten map (refactor)
+--
+-- Refactor port of `flattenSplit` for the `cdmg_typed_edges`
+-- design.  Structurally identical to the pre-refactor
+-- `flattenSplit`; only the carrier `SplitNode` is replaced by
+-- `SplitNode` throughout the pattern match.  The seven
+-- case clauses are unchanged because `SplitNode`
+-- (`def_3_11` post-refactor) has the same three named constructors
+-- `unsplit / copy0 / copy1` as the pre-refactor `SplitNode` — the
+-- refactor changes only the L-side of `def_3_1` / `def_3_11`, not
+-- the tagged-sum carrier of the split-graph node universe.
+-- See the design block above the original `flattenSplit` for the
+-- substantive design rationale (function-not-`Equiv`, total
+-- pattern match including off-carrier cases, symmetric in
+-- `W₁` / `W₂` for both iteration orders).  Nothing about the
+-- encoding choice changes under the refactor.
+-- claim_3_7 --- start helper
+def flattenSplit :
+    SplitNode (SplitNode Node) → SplitNode Node
+  | .unsplit x => x
+  | .copy0 (.unsplit w) => SplitNode.copy0 w
+  | .copy0 (.copy0 w) => SplitNode.copy0 w
+  | .copy0 (.copy1 w) => SplitNode.copy1 w
+  | .copy1 (.unsplit w) => SplitNode.copy1 w
+  | .copy1 (.copy0 w) => SplitNode.copy0 w
+  | .copy1 (.copy1 w) => SplitNode.copy1 w
+-- claim_3_7 --- end helper
+
+-- ## Helper: `eqViaNodeMap` (refactor)
+--
+-- Refactor port of `eqViaNodeMap` for the `cdmg_typed_edges`
+-- design.  Same 4-conjunct shape, but the L-conjunct uses
+-- `Sym2.map f` instead of `Prod.map f f`: under the post-refactor
+-- `def_3_1` shape `L : Finset (Sym2 Node)`, the per-element lift
+-- along `f : α → β` is `Sym2.map f : Sym2 α → Sym2 β` (the action
+-- of `f` on the `Sym2`-quotient `(Node × Node) / swap`), not the
+-- Cartesian `Prod.map f f`.
+--
+-- See the design block above the original `eqViaNodeMap` for the
+-- substantive design rationale (`Prop`-valued helper, four
+-- conjuncts mirroring `CDMG`'s four data fields, image-level
+-- reading of the LN's "equality up to the canonical bijection of
+-- carriers").  Only the L-conjunct's typing changes; the
+-- conjunctive shape, the use of `Finset.image` over four data
+-- fields, and the design choice against bundling a transported
+-- CDMG are unchanged.
+-- claim_3_7 --- start helper
+def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
+    (G : CDMG α) (G' : CDMG β) (f : α → β) : Prop :=
+  G.J.image f = G'.J
+    ∧ G.V.image f = G'.V
+    ∧ G.E.image (Prod.map f f) = G'.E
+    ∧ G.L.image (Sym2.map f) = G'.L
+-- claim_3_7 --- end helper
+
+-- ## Helper: well-typedness of the iterated splitting (refactor)
+--
+-- Refactor port of `image_unsplit_subset_nodeSplittingOn_V` for
+-- the `cdmg_typed_edges` design.  Statement and proof are
+-- structurally identical to the original; only the type carrier
+-- (`CDMG → CDMG`), the splitting operation
+-- (`nodeSplittingOn → nodeSplittingOn`), and the
+-- unsplit-injection constructor
+-- (`SplitNode.unsplit → SplitNode.unsplit`) change.  The
+-- proof body uses the same `Finset.mem_sdiff` /
+-- `Finset.disjoint_right` machinery — the V-side of
+-- `nodeSplittingOn` is structurally identical to the
+-- pre-refactor `nodeSplittingOn`'s V-side, so the lemma carries
+-- over verbatim with only the rename pass.
+-- claim_3_7 --- start helper
+private lemma image_unsplit_subset_nodeSplittingOn_V
+    {G : CDMG Node} {W₁ W₂ : Finset Node} (hW₁ : W₁ ⊆ G.V)
+    (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    W₂.image SplitNode.unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V
+-- claim_3_7 --- end helper
+:= by
+  intro x hx
+  obtain ⟨v, hvW₂, rfl⟩ := Finset.mem_image.mp hx
+  -- `(G.nodeSplittingOn W₁ hW₁).V` unfolds to
+  --   `(G.V ∖ W₁).image .unsplit ∪ W₁.image .copy0 ∪ W₁.image .copy1`.
+  -- `v ∈ W₂` with `Disjoint W₁ W₂` gives `v ∈ G.V ∖ W₁`, hence
+  -- `.unsplit v ∈ (G.V ∖ W₁).image .unsplit`.
+  refine Finset.mem_union_left _ ?_
+  refine Finset.mem_union_left _ ?_
+  refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
+  exact Finset.mem_sdiff.mpr ⟨hW₂ hvW₂, Finset.disjoint_right.mp hDisj hvW₂⟩
+
+-- ref: claim_3_7
+--
+-- Refactor port of `twoDisjointNodeSplittingsCommute` for the
+-- `cdmg_typed_edges` design.  Same statement structure as the
+-- original — a conjunction `(a) ∧ (b)` of two
+-- `eqViaNodeMap` equalities through the shared joint
+-- intervention `G_{spl(W₁ ∪ W₂)}` — and the same eight
+-- sub-goals (J, V, E, L for each iteration order).
+--
+-- ## Refactor port — proof structure
+--
+-- * **J / V / E sub-goals (1, 2, 3, 5, 6, 7) port mechanically.**
+--   The tactic blocks are verbatim from the original up to the
+--   rename pass `SplitNode → SplitNode`,
+--   `toCopy0 → toCopy0`, `toCopy1 → toCopy1`,
+--   helper-name `flatten_toCopy0_toCopy0 →
+--   flatten_refactor_toCopy0_refactor_toCopy0`, etc.  The
+--   structural reason this works is that
+--   `nodeSplittingOn`'s J / V / E fields are unchanged
+--   from `nodeSplittingOn`'s (the refactor changes only the L
+--   side); every `change`-target, every `Finset.image_image`
+--   fusion, every `Finset.image_congr` pointwise check has the
+--   same shape after the rename.
+--
+-- * **L sub-goals (4 and 8) are structurally reworked for
+--   `Sym2.map`.**  The original L-side threaded the lift through
+--   `Prod.map flattenSplit flattenSplit` on ordered pairs; the
+--   refactor threads it through `Sym2.map flattenSplit`
+--   on the `Sym2`-quotient.  The double-image fuses via
+--   `Finset.image_image` exactly as before, but the inner
+--   map-composition `Sym2.map f ∘ Sym2.map g` fuses (now) to
+--   `Sym2.map (f ∘ g)` via Mathlib's `Sym2.map_map`
+--   (`Sym2.map g (Sym2.map f x) = Sym2.map (g ∘ f) x`).  The
+--   pointwise close uses the inline helper
+--   `flatten_refactor_toCopy0_refactor_toCopy0` (verbatim port of
+--   `flatten_toCopy0_toCopy0`, all branches unchanged because the
+--   tagged-sum carrier `SplitNode` is structurally the
+--   same as the pre-refactor `SplitNode`).
+--
+-- * **Inline `have`-locals match the original's style.**  Per the
+--   manager.md "Net-new helpers also need REPLACEMENT markers"
+--   guidance: prefer inline `have`-locals over hoisted top-level
+--   declarations.  The original `twoDisjointNodeSplittingsCommute`
+--   keeps `flatten_toCopy0_toCopy0` / `flatten_toCopy1_toCopy1`
+--   inline; we do the same with the `refactor_`-prefixed twins.
 -- claim_3_7 -- start statement
 theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V)
@@ -408,73 +539,58 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
         flattenSplit
 -- claim_3_7 -- end statement
   := by
-  -- The proof follows the verified tex proof at
-  -- `tex/claim_3_7_proof_TwoDisjointNode.tex`, working componentwise on
-  -- the four `Finset` data fields `(J, V, E, L)` of each CDMG, for each
-  -- of the two iteration orders (a) and (b).
-  --
-  -- Every sub-goal is a `Finset` equality of the form
-  --   `iter.X.image (Prod.map flattenSplit flattenSplit?) = single.X`,
-  -- the inner `Prod.map` only on the edge components.  The strategy
-  -- is uniform: (i) `change` the goal into its fully-unfolded
-  -- form (`nodeSplittingOn` is a `where`-syntax `def`, so its field
-  -- projections reduce definitionally); (ii) push `.image flattenSplit`
-  -- through unions (`Finset.image_union`) and compositions
-  -- (`Finset.image_image`); (iii) close via helper lemmas about
-  -- `flattenSplit ∘ toCopy{0,1}` and a per-element extensionality
-  -- check where sdiffs remain.
-  --
-  -- Helper: `flattenSplit` collapses the two-stage `toCopy0` chain to
-  -- the single `toCopy0 (A ∪ B)`.  Mirrors the LN's "unsplit-injection
-  -- shorthand commutes with disjoint-union of split sets" reading from
-  -- def_3_11; works for *any* `A, B` (the proof needs no disjointness
-  -- because the case-split goes through `B ∋ v` / `A ∋ v` symmetrically,
-  -- and the overlap case `v ∈ A ∩ B` is resolved by `Finset.mem_union_left`
-  -- regardless).
-  have flatten_toCopy0_toCopy0 : ∀ (A B : Finset Node) (v : Node),
-      flattenSplit (toCopy0 (B.image SplitNode.unsplit) (toCopy0 A v))
-        = toCopy0 (A ∪ B) v := by
+  -- Inline helpers: `flattenSplit` collapses the two-stage
+  -- `toCopy0` chain to the single `toCopy0 (A ∪ B)`.
+  -- Verbatim port of the original `flatten_toCopy0_toCopy0` with the
+  -- refactor renames; the proof case-splits on `v ∈ A` / `v ∈ B` and
+  -- uses constructor mismatch to discharge each branch.
+  have flatten_refactor_toCopy0_refactor_toCopy0 :
+      ∀ (A B : Finset Node) (v : Node),
+        flattenSplit
+            (toCopy0 (B.image SplitNode.unsplit)
+              (toCopy0 A v))
+          = toCopy0 (A ∪ B) v := by
     intro A B v
     unfold toCopy0
     by_cases hA : v ∈ A
-    · -- Inner `toCopy0 A v = .copy0 v` (a `SplitNode Node`).
-      rw [if_pos hA]
-      -- `.copy0 v ∉ B.image .unsplit` by constructor mismatch.
+    · rw [if_pos hA]
       have h_notimg : SplitNode.copy0 v ∉ B.image SplitNode.unsplit := by
         intro h
         obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
         cases hweq
       rw [if_neg h_notimg]
-      -- LHS now `flattenSplit (.unsplit (.copy0 v)) = .copy0 v`.
-      change SplitNode.copy0 v = (if v ∈ A ∪ B then SplitNode.copy0 v else SplitNode.unsplit v)
+      change SplitNode.copy0 v
+          = (if v ∈ A ∪ B then SplitNode.copy0 v
+              else SplitNode.unsplit v)
       rw [if_pos (Finset.mem_union_left _ hA)]
-    · -- Inner `toCopy0 A v = .unsplit v` (a `SplitNode Node`).
-      rw [if_neg hA]
+    · rw [if_neg hA]
       by_cases hB : v ∈ B
-      · -- `.unsplit v ∈ B.image .unsplit`.
-        have h_img : SplitNode.unsplit v ∈ B.image SplitNode.unsplit :=
+      · have h_img : SplitNode.unsplit v ∈ B.image SplitNode.unsplit :=
           Finset.mem_image.mpr ⟨v, hB, rfl⟩
         rw [if_pos h_img]
-        -- LHS `flattenSplit (.copy0 (.unsplit v)) = .copy0 v`.
-        change SplitNode.copy0 v = (if v ∈ A ∪ B then SplitNode.copy0 v else SplitNode.unsplit v)
+        change SplitNode.copy0 v
+            = (if v ∈ A ∪ B then SplitNode.copy0 v
+                else SplitNode.unsplit v)
         rw [if_pos (Finset.mem_union_right _ hB)]
-      · -- `.unsplit v ∉ B.image .unsplit` by injectivity of `.unsplit`.
-        have h_notimg : SplitNode.unsplit v ∉ B.image SplitNode.unsplit := by
+      · have h_notimg : SplitNode.unsplit v ∉ B.image SplitNode.unsplit := by
           intro h
           obtain ⟨w, hw, hweq⟩ := Finset.mem_image.mp h
           cases hweq
           exact hB hw
         rw [if_neg h_notimg]
-        -- LHS `flattenSplit (.unsplit (.unsplit v)) = .unsplit v`.
-        change SplitNode.unsplit v = (if v ∈ A ∪ B then SplitNode.copy0 v else SplitNode.unsplit v)
+        change SplitNode.unsplit v
+            = (if v ∈ A ∪ B then SplitNode.copy0 v
+                else SplitNode.unsplit v)
         have hVU : v ∉ A ∪ B := fun h =>
           (Finset.mem_union.mp h).elim hA hB
         rw [if_neg hVU]
-  -- Helper: `flattenSplit` collapses the two-stage `toCopy1` chain.
-  -- Symmetric to `flatten_toCopy0_toCopy0`.
-  have flatten_toCopy1_toCopy1 : ∀ (A B : Finset Node) (v : Node),
-      flattenSplit (toCopy1 (B.image SplitNode.unsplit) (toCopy1 A v))
-        = toCopy1 (A ∪ B) v := by
+  -- Symmetric helper for `toCopy1`.
+  have flatten_refactor_toCopy1_refactor_toCopy1 :
+      ∀ (A B : Finset Node) (v : Node),
+        flattenSplit
+            (toCopy1 (B.image SplitNode.unsplit)
+              (toCopy1 A v))
+          = toCopy1 (A ∪ B) v := by
     intro A B v
     unfold toCopy1
     by_cases hA : v ∈ A
@@ -484,14 +600,18 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
         obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
         cases hweq
       rw [if_neg h_notimg]
-      change SplitNode.copy1 v = (if v ∈ A ∪ B then SplitNode.copy1 v else SplitNode.unsplit v)
+      change SplitNode.copy1 v
+          = (if v ∈ A ∪ B then SplitNode.copy1 v
+              else SplitNode.unsplit v)
       rw [if_pos (Finset.mem_union_left _ hA)]
     · rw [if_neg hA]
       by_cases hB : v ∈ B
       · have h_img : SplitNode.unsplit v ∈ B.image SplitNode.unsplit :=
           Finset.mem_image.mpr ⟨v, hB, rfl⟩
         rw [if_pos h_img]
-        change SplitNode.copy1 v = (if v ∈ A ∪ B then SplitNode.copy1 v else SplitNode.unsplit v)
+        change SplitNode.copy1 v
+            = (if v ∈ A ∪ B then SplitNode.copy1 v
+                else SplitNode.unsplit v)
         rw [if_pos (Finset.mem_union_right _ hB)]
       · have h_notimg : SplitNode.unsplit v ∉ B.image SplitNode.unsplit := by
           intro h
@@ -499,28 +619,26 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
           cases hweq
           exact hB hw
         rw [if_neg h_notimg]
-        change SplitNode.unsplit v = (if v ∈ A ∪ B then SplitNode.copy1 v else SplitNode.unsplit v)
+        change SplitNode.unsplit v
+            = (if v ∈ A ∪ B then SplitNode.copy1 v
+                else SplitNode.unsplit v)
         have hVU : v ∉ A ∪ B := fun h =>
           (Finset.mem_union.mp h).elim hA hB
         rw [if_neg hVU]
   refine ⟨⟨?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_⟩⟩
-  -- ===== Sub-goal 1: J for (a) =====
-  -- `((G.J.image .unsplit).image .unsplit).image flattenSplit = G.J.image .unsplit`.
-  -- Two applications of `Finset.image_image` reduce to
-  -- `G.J.image (flattenSplit ∘ .unsplit ∘ .unsplit)`, and the inner
-  -- composition reduces definitionally to `.unsplit` via the first
-  -- pattern-match clause of `flattenSplit`.
-  · change ((G.J.image SplitNode.unsplit).image SplitNode.unsplit).image flattenSplit
+  -- ===== Sub-goal 1: J for (a) — port mechanically. =====
+  · change ((G.J.image SplitNode.unsplit).image
+                SplitNode.unsplit).image flattenSplit
           = G.J.image SplitNode.unsplit
     rw [Finset.image_image, Finset.image_image]
     rfl
-  -- ===== Sub-goal 2: V for (a) =====
-  -- Componentwise extensionality on the iterated-vs-single output
-  -- node sets.  See the V-component paragraph of the tex proof.
-  · change ((((G.V \ W₁).image SplitNode.unsplit ∪ W₁.image SplitNode.copy0 ∪
-              W₁.image SplitNode.copy1) \ (W₂.image SplitNode.unsplit)).image SplitNode.unsplit
+  -- ===== Sub-goal 2: V for (a) — port mechanically. =====
+  · change ((((G.V \ W₁).image SplitNode.unsplit
+                ∪ W₁.image SplitNode.copy0 ∪ W₁.image SplitNode.copy1)
+              \ (W₂.image SplitNode.unsplit)).image SplitNode.unsplit
             ∪ (W₂.image SplitNode.unsplit).image SplitNode.copy0
-            ∪ (W₂.image SplitNode.unsplit).image SplitNode.copy1).image flattenSplit
+            ∪ (W₂.image SplitNode.unsplit).image SplitNode.copy1).image
+              flattenSplit
           = (G.V \ (W₁ ∪ W₂)).image SplitNode.unsplit
             ∪ (W₁ ∪ W₂).image SplitNode.copy0
             ∪ (W₁ ∪ W₂).image SplitNode.copy1
@@ -530,52 +648,42 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
       obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hx
       rcases Finset.mem_union.mp hy with hy12 | hy3
       · rcases Finset.mem_union.mp hy12 with hy1 | hy2
-        · -- `y ∈ (inner_diff).image .unsplit`.
-          obtain ⟨z, hz, rfl⟩ := Finset.mem_image.mp hy1
+        · obtain ⟨z, hz, rfl⟩ := Finset.mem_image.mp hy1
           obtain ⟨hz_inner, hz_notW₂img⟩ := Finset.mem_sdiff.mp hz
           rcases Finset.mem_union.mp hz_inner with hz12 | hz3
           · rcases Finset.mem_union.mp hz12 with hz1 | hz2
-            · -- `z = .unsplit v`, `v ∈ G.V \ W₁`.
-              obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hz1
+            · obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hz1
               obtain ⟨hv_V, hv_notW₁⟩ := Finset.mem_sdiff.mp hv
-              -- Disjointness with `W₂` from `hz_notW₂img`.
               have hv_notW₂ : v ∉ W₂ := fun h =>
                 hz_notW₂img (Finset.mem_image.mpr ⟨v, h, rfl⟩)
-              -- `flattenSplit (.unsplit (.unsplit v)) = .unsplit v`.
               refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
               refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
               refine Finset.mem_sdiff.mpr ⟨hv_V, ?_⟩
               intro hu
               exact (Finset.mem_union.mp hu).elim hv_notW₁ hv_notW₂
-            · -- `z = .copy0 w`, `w ∈ W₁`.
-              obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hz2
-              -- `flattenSplit (.unsplit (.copy0 w)) = .copy0 w`.
+            · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hz2
               refine Finset.mem_union_left _ (Finset.mem_union_right _ ?_)
               exact Finset.mem_image.mpr ⟨w, Finset.mem_union_left _ hw, rfl⟩
-          · -- `z = .copy1 w`, `w ∈ W₁`.
-            obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hz3
+          · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hz3
             refine Finset.mem_union_right _ ?_
             exact Finset.mem_image.mpr ⟨w, Finset.mem_union_left _ hw, rfl⟩
-        · -- `y = .copy0 (.unsplit w)`, `w ∈ W₂`.
-          obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hy2
+        · obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hy2
           obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy'
           refine Finset.mem_union_left _ (Finset.mem_union_right _ ?_)
           exact Finset.mem_image.mpr ⟨w, Finset.mem_union_right _ hw, rfl⟩
-      · -- `y = .copy1 (.unsplit w)`, `w ∈ W₂`.
-        obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hy3
+      · obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hy3
         obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy'
         refine Finset.mem_union_right _ ?_
         exact Finset.mem_image.mpr ⟨w, Finset.mem_union_right _ hw, rfl⟩
     · intro hx
       rcases Finset.mem_union.mp hx with hx12 | hx3
       · rcases Finset.mem_union.mp hx12 with hx1 | hx2
-        · -- `x = .unsplit v`, `v ∈ G.V \ (W₁ ∪ W₂)`.
-          obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx1
+        · obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hx1
           obtain ⟨hv_V, hv_notW₁₂⟩ := Finset.mem_sdiff.mp hv
           have hv_notW₁ : v ∉ W₁ := fun h => hv_notW₁₂ (Finset.mem_union_left _ h)
           have hv_notW₂ : v ∉ W₂ := fun h => hv_notW₁₂ (Finset.mem_union_right _ h)
-          -- Take preimage `.unsplit (.unsplit v)`.
-          refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.unsplit v), ?_, rfl⟩
+          refine Finset.mem_image.mpr
+            ⟨SplitNode.unsplit (SplitNode.unsplit v), ?_, rfl⟩
           refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
           refine Finset.mem_image.mpr ⟨SplitNode.unsplit v, ?_, rfl⟩
           refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -585,11 +693,10 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
             obtain ⟨v', hv'_mem, hv'_eq⟩ := Finset.mem_image.mp h
             cases hv'_eq
             exact hv_notW₂ hv'_mem
-        · -- `x = .copy0 w`, `w ∈ W₁ ∪ W₂`.
-          obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx2
+        · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx2
           rcases Finset.mem_union.mp hw with hwW₁ | hwW₂
-          · -- `w ∈ W₁`: preimage `.unsplit (.copy0 w)`.
-            refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.copy0 w), ?_, rfl⟩
+          · refine Finset.mem_image.mpr
+              ⟨SplitNode.unsplit (SplitNode.copy0 w), ?_, rfl⟩
             refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
             refine Finset.mem_image.mpr ⟨SplitNode.copy0 w, ?_, rfl⟩
             refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -598,15 +705,15 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
             · intro h
               obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
               cases hweq
-          · -- `w ∈ W₂`: preimage `.copy0 (.unsplit w)`.
-            refine Finset.mem_image.mpr ⟨SplitNode.copy0 (SplitNode.unsplit w), ?_, rfl⟩
+          · refine Finset.mem_image.mpr
+              ⟨SplitNode.copy0 (SplitNode.unsplit w), ?_, rfl⟩
             refine Finset.mem_union_left _ (Finset.mem_union_right _ ?_)
             refine Finset.mem_image.mpr ⟨SplitNode.unsplit w, ?_, rfl⟩
             exact Finset.mem_image.mpr ⟨w, hwW₂, rfl⟩
-      · -- `x = .copy1 w`, `w ∈ W₁ ∪ W₂`.
-        obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx3
+      · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx3
         rcases Finset.mem_union.mp hw with hwW₁ | hwW₂
-        · refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.copy1 w), ?_, rfl⟩
+        · refine Finset.mem_image.mpr
+            ⟨SplitNode.unsplit (SplitNode.copy1 w), ?_, rfl⟩
           refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
           refine Finset.mem_image.mpr ⟨SplitNode.copy1 w, ?_, rfl⟩
           refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -615,25 +722,15 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
           · intro h
             obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
             cases hweq
-        · refine Finset.mem_image.mpr ⟨SplitNode.copy1 (SplitNode.unsplit w), ?_, rfl⟩
+        · refine Finset.mem_image.mpr
+            ⟨SplitNode.copy1 (SplitNode.unsplit w), ?_, rfl⟩
           refine Finset.mem_union_right _ ?_
           refine Finset.mem_image.mpr ⟨SplitNode.unsplit w, ?_, rfl⟩
           exact Finset.mem_image.mpr ⟨w, hwW₂, rfl⟩
-  -- ===== Sub-goal 3: E for (a) =====
-  -- The edge components decompose into three pieces after both
-  -- splittings:
-  --   * `G.E` edges, lifted to `(toCopy1 W₁_∪_W₂ v_1, toCopy0 W₁_∪_W₂ v_2)`;
-  --   * inner-transfer edges `(.copy0 w, .copy1 w)` for `w ∈ W₁`;
-  --   * outer-transfer edges `(.copy0 w, .copy1 w)` for `w ∈ W₂`.
-  -- The latter two combine into `(W₁ ∪ W₂).image (fun w => (.copy0 w, .copy1 w))`,
-  -- matching `single.E`.
-  · -- Step 1: prove the three "lifted-piece" equalities separately, each
-    --   of the form `((s.image f).image g).image (Prod.map ff) = s.image h`
-    --   where `h` is the canonical single-step form.
-    -- Step 2: combine them via `Finset.image_union` on the original
-    --   compound LHS.
-    have hG_E :
-        ((G.E.image (fun e : Node × Node => (toCopy1 W₁ e.1, toCopy0 W₁ e.2))).image
+  -- ===== Sub-goal 3: E for (a) — port mechanically. =====
+  · have hG_E :
+        ((G.E.image (fun e : Node × Node =>
+              (toCopy1 W₁ e.1, toCopy0 W₁ e.2))).image
             (fun e => (toCopy1 (W₂.image SplitNode.unsplit) e.1,
                        toCopy0 (W₂.image SplitNode.unsplit) e.2))).image
           (Prod.map flattenSplit flattenSplit)
@@ -642,21 +739,32 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro e _
-      change (flattenSplit (toCopy1 (W₂.image SplitNode.unsplit) (toCopy1 W₁ e.1)),
-              flattenSplit (toCopy0 (W₂.image SplitNode.unsplit) (toCopy0 W₁ e.2)))
+      change (flattenSplit
+                  (toCopy1 (W₂.image SplitNode.unsplit)
+                    (toCopy1 W₁ e.1)),
+              flattenSplit
+                  (toCopy0 (W₂.image SplitNode.unsplit)
+                    (toCopy0 W₁ e.2)))
             = (toCopy1 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2)
-      rw [flatten_toCopy0_toCopy0, flatten_toCopy1_toCopy1]
+      rw [flatten_refactor_toCopy0_refactor_toCopy0,
+          flatten_refactor_toCopy1_refactor_toCopy1]
     have hW₁_tr :
-        ((W₁.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+        ((W₁.image (fun w : Node =>
+              (SplitNode.copy0 w, SplitNode.copy1 w))).image
             (fun e => (toCopy1 (W₂.image SplitNode.unsplit) e.1,
                        toCopy0 (W₂.image SplitNode.unsplit) e.2))).image
           (Prod.map flattenSplit flattenSplit)
-        = W₁.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w)) := by
+        = W₁.image (fun w : Node =>
+            (SplitNode.copy0 w, SplitNode.copy1 w)) := by
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro w _
-      change (flattenSplit (toCopy1 (W₂.image SplitNode.unsplit) (SplitNode.copy0 w)),
-              flattenSplit (toCopy0 (W₂.image SplitNode.unsplit) (SplitNode.copy1 w)))
+      change (flattenSplit
+                  (toCopy1 (W₂.image SplitNode.unsplit)
+                    (SplitNode.copy0 w)),
+              flattenSplit
+                  (toCopy0 (W₂.image SplitNode.unsplit)
+                    (SplitNode.copy1 w)))
             = (SplitNode.copy0 w, SplitNode.copy1 w)
       have h1 : SplitNode.copy0 w ∉ W₂.image SplitNode.unsplit := by
         intro h; obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h; cases hweq
@@ -667,63 +775,61 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
       rfl
     have hW₂_tr :
         ((W₂.image SplitNode.unsplit).image
-            (fun w : SplitNode Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+            (fun w : SplitNode Node =>
+              (SplitNode.copy0 w, SplitNode.copy1 w))).image
           (Prod.map flattenSplit flattenSplit)
-        = W₂.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w)) := by
+        = W₂.image (fun w : Node =>
+            (SplitNode.copy0 w, SplitNode.copy1 w)) := by
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro w _
       rfl
-    -- Combine: push `.image (Prod.map ff)` through unions, then apply
-    -- `Finset.image_union` to the inner lift over `G.E ∪ W₁`.
-    change ((G.E.image (fun e : Node × Node => (toCopy1 W₁ e.1, toCopy0 W₁ e.2))
-              ∪ W₁.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+    change ((G.E.image (fun e : Node × Node =>
+                (toCopy1 W₁ e.1, toCopy0 W₁ e.2))
+              ∪ W₁.image (fun w : Node =>
+                  (SplitNode.copy0 w, SplitNode.copy1 w))).image
                 (fun e => (toCopy1 (W₂.image SplitNode.unsplit) e.1,
                            toCopy0 (W₂.image SplitNode.unsplit) e.2))
             ∪ (W₂.image SplitNode.unsplit).image
-                (fun w : SplitNode Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+                (fun w : SplitNode Node =>
+                  (SplitNode.copy0 w, SplitNode.copy1 w))).image
               (Prod.map flattenSplit flattenSplit)
-          = G.E.image (fun e : Node × Node => (toCopy1 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
-            ∪ (W₁ ∪ W₂).image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))
+          = G.E.image (fun e : Node × Node =>
+              (toCopy1 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
+            ∪ (W₁ ∪ W₂).image (fun w : Node =>
+                (SplitNode.copy0 w, SplitNode.copy1 w))
     simp only [Finset.image_union]
     rw [hG_E, hW₁_tr, hW₂_tr]
-    -- Now LHS: (G.E.image (single_lift) ∪ W₁.image (single_transfer)) ∪
-    --   W₂.image (single_transfer)
-    --   RHS: G.E.image (single_lift) ∪ (W₁.image (single_transfer) ∪
-    --   W₂.image (single_transfer))  (right-assoc from `simp` expanding
-    --   `(W₁ ∪ W₂).image (transfer)` on the RHS).  Realign by
-    --   `Finset.union_assoc`.
     rw [Finset.union_assoc]
-  -- ===== Sub-goal 4: L for (a) =====
-  -- The bidirected-edge component has a single piece: lifted edges
-  -- `(toCopy0 (W₂.image .unsplit) (toCopy0 W₁ v_1), toCopy0 (...) (toCopy0 W₁ v_2))`
-  -- from `G.L`, which `flattenSplit` collapses to `(toCopy0 (W₁ ∪ W₂) v_1,
-  -- toCopy0 (W₁ ∪ W₂) v_2)`, matching `single.L`.
-  · change ((G.L.image (fun e => (toCopy0 W₁ e.1, toCopy0 W₁ e.2))).image
-                (fun e => (toCopy0 (W₂.image SplitNode.unsplit) e.1,
-                           toCopy0 (W₂.image SplitNode.unsplit) e.2))).image
-              (Prod.map flattenSplit flattenSplit)
-          = G.L.image (fun e => (toCopy0 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
+  -- ===== Sub-goal 4: L for (a) — Sym2.map rework. =====
+  · change ((G.L.image (Sym2.map (toCopy0 W₁))).image
+                (Sym2.map (toCopy0 (W₂.image SplitNode.unsplit)))).image
+              (Sym2.map flattenSplit)
+          = G.L.image (Sym2.map (toCopy0 (W₁ ∪ W₂)))
     rw [Finset.image_image, Finset.image_image]
     refine Finset.image_congr ?_
-    intro e _
-    change (flattenSplit (toCopy0 (W₂.image SplitNode.unsplit) (toCopy0 W₁ e.1)),
-            flattenSplit (toCopy0 (W₂.image SplitNode.unsplit) (toCopy0 W₁ e.2)))
-          = (toCopy0 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2)
-    rw [flatten_toCopy0_toCopy0, flatten_toCopy0_toCopy0]
-  -- ===== Sub-goal 5: J for (b) =====
-  -- Same shape as Sub-goal 1.
-  · change ((G.J.image SplitNode.unsplit).image SplitNode.unsplit).image flattenSplit
+    intro s _
+    change Sym2.map flattenSplit
+              (Sym2.map (toCopy0 (W₂.image SplitNode.unsplit))
+                (Sym2.map (toCopy0 W₁) s))
+          = Sym2.map (toCopy0 (W₁ ∪ W₂)) s
+    rw [Sym2.map_map, Sym2.map_map]
+    refine Sym2.map_congr ?_
+    intro x _
+    exact flatten_refactor_toCopy0_refactor_toCopy0 W₁ W₂ x
+  -- ===== Sub-goal 5: J for (b) — same shape as Sub-goal 1. =====
+  · change ((G.J.image SplitNode.unsplit).image
+                SplitNode.unsplit).image flattenSplit
           = G.J.image SplitNode.unsplit
     rw [Finset.image_image, Finset.image_image]
     rfl
-  -- ===== Sub-goal 6: V for (b) =====
-  -- Same shape as Sub-goal 2 with `W₁ ↔ W₂` swapped; the `W₁ ∪ W₂` on
-  -- the RHS comes from `Finset.union_comm`.
-  · change ((((G.V \ W₂).image SplitNode.unsplit ∪ W₂.image SplitNode.copy0 ∪
-              W₂.image SplitNode.copy1) \ (W₁.image SplitNode.unsplit)).image SplitNode.unsplit
+  -- ===== Sub-goal 6: V for (b) — same shape as Sub-goal 2 with W₁ ↔ W₂. =====
+  · change ((((G.V \ W₂).image SplitNode.unsplit
+                ∪ W₂.image SplitNode.copy0 ∪ W₂.image SplitNode.copy1)
+              \ (W₁.image SplitNode.unsplit)).image SplitNode.unsplit
             ∪ (W₁.image SplitNode.unsplit).image SplitNode.copy0
-            ∪ (W₁.image SplitNode.unsplit).image SplitNode.copy1).image flattenSplit
+            ∪ (W₁.image SplitNode.unsplit).image SplitNode.copy1).image
+              flattenSplit
           = (G.V \ (W₁ ∪ W₂)).image SplitNode.unsplit
             ∪ (W₁ ∪ W₂).image SplitNode.copy0
             ∪ (W₁ ∪ W₂).image SplitNode.copy1
@@ -767,7 +873,8 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
           obtain ⟨hv_V, hv_notW₁₂⟩ := Finset.mem_sdiff.mp hv
           have hv_notW₁ : v ∉ W₁ := fun h => hv_notW₁₂ (Finset.mem_union_left _ h)
           have hv_notW₂ : v ∉ W₂ := fun h => hv_notW₁₂ (Finset.mem_union_right _ h)
-          refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.unsplit v), ?_, rfl⟩
+          refine Finset.mem_image.mpr
+            ⟨SplitNode.unsplit (SplitNode.unsplit v), ?_, rfl⟩
           refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
           refine Finset.mem_image.mpr ⟨SplitNode.unsplit v, ?_, rfl⟩
           refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -779,11 +886,13 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
             exact hv_notW₁ hv'_mem
         · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx2
           rcases Finset.mem_union.mp hw with hwW₁ | hwW₂
-          · refine Finset.mem_image.mpr ⟨SplitNode.copy0 (SplitNode.unsplit w), ?_, rfl⟩
+          · refine Finset.mem_image.mpr
+              ⟨SplitNode.copy0 (SplitNode.unsplit w), ?_, rfl⟩
             refine Finset.mem_union_left _ (Finset.mem_union_right _ ?_)
             refine Finset.mem_image.mpr ⟨SplitNode.unsplit w, ?_, rfl⟩
             exact Finset.mem_image.mpr ⟨w, hwW₁, rfl⟩
-          · refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.copy0 w), ?_, rfl⟩
+          · refine Finset.mem_image.mpr
+              ⟨SplitNode.unsplit (SplitNode.copy0 w), ?_, rfl⟩
             refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
             refine Finset.mem_image.mpr ⟨SplitNode.copy0 w, ?_, rfl⟩
             refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -794,11 +903,13 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
               cases hweq
       · obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hx3
         rcases Finset.mem_union.mp hw with hwW₁ | hwW₂
-        · refine Finset.mem_image.mpr ⟨SplitNode.copy1 (SplitNode.unsplit w), ?_, rfl⟩
+        · refine Finset.mem_image.mpr
+            ⟨SplitNode.copy1 (SplitNode.unsplit w), ?_, rfl⟩
           refine Finset.mem_union_right _ ?_
           refine Finset.mem_image.mpr ⟨SplitNode.unsplit w, ?_, rfl⟩
           exact Finset.mem_image.mpr ⟨w, hwW₁, rfl⟩
-        · refine Finset.mem_image.mpr ⟨SplitNode.unsplit (SplitNode.copy1 w), ?_, rfl⟩
+        · refine Finset.mem_image.mpr
+            ⟨SplitNode.unsplit (SplitNode.copy1 w), ?_, rfl⟩
           refine Finset.mem_union_left _ (Finset.mem_union_left _ ?_)
           refine Finset.mem_image.mpr ⟨SplitNode.copy1 w, ?_, rfl⟩
           refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
@@ -807,13 +918,10 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
           · intro h
             obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h
             cases hweq
-  -- ===== Sub-goal 7: E for (b) =====
-  -- Same shape as Sub-goal 3 with `W₁ ↔ W₂` swapped; the
-  -- `flatten_toCopy0_toCopy0`/`flatten_toCopy1_toCopy1` helpers fire
-  -- with `(A, B) = (W₂, W₁)`, giving `toCopy0/1 (W₂ ∪ W₁) v` on the RHS,
-  -- which is `toCopy0/1 (W₁ ∪ W₂) v` after `Finset.union_comm`.
+  -- ===== Sub-goal 7: E for (b) — same shape as Sub-goal 3 with W₁ ↔ W₂. =====
   · have hG_E :
-        ((G.E.image (fun e : Node × Node => (toCopy1 W₂ e.1, toCopy0 W₂ e.2))).image
+        ((G.E.image (fun e : Node × Node =>
+              (toCopy1 W₂ e.1, toCopy0 W₂ e.2))).image
             (fun e => (toCopy1 (W₁.image SplitNode.unsplit) e.1,
                        toCopy0 (W₁.image SplitNode.unsplit) e.2))).image
           (Prod.map flattenSplit flattenSplit)
@@ -822,21 +930,32 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro e _
-      change (flattenSplit (toCopy1 (W₁.image SplitNode.unsplit) (toCopy1 W₂ e.1)),
-              flattenSplit (toCopy0 (W₁.image SplitNode.unsplit) (toCopy0 W₂ e.2)))
+      change (flattenSplit
+                  (toCopy1 (W₁.image SplitNode.unsplit)
+                    (toCopy1 W₂ e.1)),
+              flattenSplit
+                  (toCopy0 (W₁.image SplitNode.unsplit)
+                    (toCopy0 W₂ e.2)))
             = (toCopy1 (W₂ ∪ W₁) e.1, toCopy0 (W₂ ∪ W₁) e.2)
-      rw [flatten_toCopy0_toCopy0, flatten_toCopy1_toCopy1]
+      rw [flatten_refactor_toCopy0_refactor_toCopy0,
+          flatten_refactor_toCopy1_refactor_toCopy1]
     have hW₂_tr :
-        ((W₂.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+        ((W₂.image (fun w : Node =>
+              (SplitNode.copy0 w, SplitNode.copy1 w))).image
             (fun e => (toCopy1 (W₁.image SplitNode.unsplit) e.1,
                        toCopy0 (W₁.image SplitNode.unsplit) e.2))).image
           (Prod.map flattenSplit flattenSplit)
-        = W₂.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w)) := by
+        = W₂.image (fun w : Node =>
+            (SplitNode.copy0 w, SplitNode.copy1 w)) := by
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro w _
-      change (flattenSplit (toCopy1 (W₁.image SplitNode.unsplit) (SplitNode.copy0 w)),
-              flattenSplit (toCopy0 (W₁.image SplitNode.unsplit) (SplitNode.copy1 w)))
+      change (flattenSplit
+                  (toCopy1 (W₁.image SplitNode.unsplit)
+                    (SplitNode.copy0 w)),
+              flattenSplit
+                  (toCopy0 (W₁.image SplitNode.unsplit)
+                    (SplitNode.copy1 w)))
             = (SplitNode.copy0 w, SplitNode.copy1 w)
       have h1 : SplitNode.copy0 w ∉ W₁.image SplitNode.unsplit := by
         intro h; obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp h; cases hweq
@@ -847,41 +966,50 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
       rfl
     have hW₁_tr :
         ((W₁.image SplitNode.unsplit).image
-            (fun w : SplitNode Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+            (fun w : SplitNode Node =>
+              (SplitNode.copy0 w, SplitNode.copy1 w))).image
           (Prod.map flattenSplit flattenSplit)
-        = W₁.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w)) := by
+        = W₁.image (fun w : Node =>
+            (SplitNode.copy0 w, SplitNode.copy1 w)) := by
       rw [Finset.image_image, Finset.image_image]
       refine Finset.image_congr ?_
       intro w _
       rfl
-    change ((G.E.image (fun e : Node × Node => (toCopy1 W₂ e.1, toCopy0 W₂ e.2))
-              ∪ W₂.image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+    change ((G.E.image (fun e : Node × Node =>
+                (toCopy1 W₂ e.1, toCopy0 W₂ e.2))
+              ∪ W₂.image (fun w : Node =>
+                  (SplitNode.copy0 w, SplitNode.copy1 w))).image
                 (fun e => (toCopy1 (W₁.image SplitNode.unsplit) e.1,
                            toCopy0 (W₁.image SplitNode.unsplit) e.2))
             ∪ (W₁.image SplitNode.unsplit).image
-                (fun w : SplitNode Node => (SplitNode.copy0 w, SplitNode.copy1 w))).image
+                (fun w : SplitNode Node =>
+                  (SplitNode.copy0 w, SplitNode.copy1 w))).image
               (Prod.map flattenSplit flattenSplit)
-          = G.E.image (fun e : Node × Node => (toCopy1 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
-            ∪ (W₁ ∪ W₂).image (fun w : Node => (SplitNode.copy0 w, SplitNode.copy1 w))
+          = G.E.image (fun e : Node × Node =>
+              (toCopy1 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
+            ∪ (W₁ ∪ W₂).image (fun w : Node =>
+                (SplitNode.copy0 w, SplitNode.copy1 w))
     rw [Finset.union_comm W₁ W₂]
     simp only [Finset.image_union]
     rw [hG_E, hW₂_tr, hW₁_tr]
     rw [Finset.union_assoc]
-  -- ===== Sub-goal 8: L for (b) =====
-  -- Same shape as Sub-goal 4 with `W₁ ↔ W₂` swapped.
-  · change ((G.L.image (fun e => (toCopy0 W₂ e.1, toCopy0 W₂ e.2))).image
-                (fun e => (toCopy0 (W₁.image SplitNode.unsplit) e.1,
-                           toCopy0 (W₁.image SplitNode.unsplit) e.2))).image
-              (Prod.map flattenSplit flattenSplit)
-          = G.L.image (fun e => (toCopy0 (W₁ ∪ W₂) e.1, toCopy0 (W₁ ∪ W₂) e.2))
+  -- ===== Sub-goal 8: L for (b) — Sym2.map rework with W₁ ↔ W₂. =====
+  · change ((G.L.image (Sym2.map (toCopy0 W₂))).image
+                (Sym2.map (toCopy0 (W₁.image SplitNode.unsplit)))).image
+              (Sym2.map flattenSplit)
+          = G.L.image (Sym2.map (toCopy0 (W₁ ∪ W₂)))
     rw [Finset.union_comm W₁ W₂]
     rw [Finset.image_image, Finset.image_image]
     refine Finset.image_congr ?_
-    intro e _
-    change (flattenSplit (toCopy0 (W₁.image SplitNode.unsplit) (toCopy0 W₂ e.1)),
-            flattenSplit (toCopy0 (W₁.image SplitNode.unsplit) (toCopy0 W₂ e.2)))
-          = (toCopy0 (W₂ ∪ W₁) e.1, toCopy0 (W₂ ∪ W₁) e.2)
-    rw [flatten_toCopy0_toCopy0, flatten_toCopy0_toCopy0]
+    intro s _
+    change Sym2.map flattenSplit
+              (Sym2.map (toCopy0 (W₁.image SplitNode.unsplit))
+                (Sym2.map (toCopy0 W₂) s))
+          = Sym2.map (toCopy0 (W₂ ∪ W₁)) s
+    rw [Sym2.map_map, Sym2.map_map]
+    refine Sym2.map_congr ?_
+    intro x _
+    exact flatten_refactor_toCopy0_refactor_toCopy0 W₂ W₁ x
 
 end CDMG
 

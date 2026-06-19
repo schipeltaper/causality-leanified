@@ -1,20 +1,45 @@
-% Claim proof file for row claim_3_11 -- "DisjointHardInterventions".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Claim proof file (REFACTOR TWIN) for row claim_3_11 -- "DisjointHardInterventions".
+% This is the twin file produced during the `cdmg_typed_edges` refactor;
+% the original `claim_3_11_proof_DisjointHardInterventions.tex` stays
+% untouched until cleanup eventually renames this twin over it.
+%
+% Mathematically the LN-level proof is unchanged by the refactor: at the
+% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
+% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
+% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
+% capture. There are two prose adjustments versus the original:
+%
+% (i) the L-axiom recitation in the statement-restatement block drops the
+%     explicit ordered-pair phrasing ($L \subseteq V \times V$, $L$
+%     irreflexive on ordered pairs, $L$ symmetric in the swap of
+%     components) and uses the unordered-pair phrasing instead;
+%
+% (ii) the "Bidirected edges" section of the proof body no longer needs
+%      the "Registered two-sided removal of $L$" deviation paragraph: in
+%      the post-refactor `Sym2`-typed encoding the LN's literal one-sided
+%      removal clause $L \sm \lC v \huh w \mid w \in W_1 \rC$ translates
+%      directly to "all endpoints of the unordered pair lie outside
+%      $W_1$" (there is no ordered "second component" to filter on), so
+%      the LN reading is by construction the same as the Lean encoding
+%      and no symmetrisation step is required. We replace the deviation
+%      paragraph with a short refactor-context note, and use
+%      endpoint-universal wording ("$v_1, v_2 \notin W_1$" read as
+%      "every endpoint of the bidirected edge lies outside $W_1$")
+%      throughout the calculation that follows. The calculation itself
+%      is otherwise unchanged, and all SWIG-specific content -- the
+%      \ref{claim_3_3} citation for inner-LHS-acyclicity (the SWIG
+%      construction of def \ref{def:G_node-splitting_intervention}
+%      requires a CADMG input), the "no transfer edges" remark in the
+%      $E$ section, the carrier-arithmetic observations
+%      $W_1 \cap W_2^o = W_1 \cap W_2^i = \emptyset$, the
+%      $W_2^i \subseteq J_{\swig}$ / $W_2^o \subseteq V_{\swig}$
+%      placement, and the closing acyclicity-preservation argument via
+%      \ref{claim_3_9} (\emph{SwigAcyclic}) for the SWIG side -- is
+%      carried over verbatim from the pre-refactor SWIG twin.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
 % `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
 
 \documentclass[main]{subfiles}
 
@@ -26,21 +51,17 @@
 
 % --- statement (restated) ---------------------------------------------------
 % Statement body below is synced from the canonical statement file
-% `tex/claim_3_11_statement_DisjointHardInterventions.tex` (which has
-% already passed `verify_tex_statement_only` and
-% `verify_tex_statement_equivalence`). Do not edit it here; fix the
-% canonical file first and re-sync.
-%
-% The inner `\label{disjoint-hard-interventions-and-node-splitting-hard-interventions-commute}`
-% of the canonical Lem is kept so the body is byte-faithful to the
-% canonical statement. No duplicate-label clash arises with the outer
-% `\phantomsection\label{claim_3_11}` because the two labels resolve to
-% distinct strings; and `main.tex` only includes the proof file (not the
-% statement file) for claims, so the canonical file's labels never fire
-% in the same compile as this file.
+% `tex/claim_3_11_statement_DisjointHardInterventions.tex`, with one
+% light refactor-aware rewording: the L-axiom recitation drops the
+% explicit-ordered-pair phrasing ("$L \subseteq V \times V$, $L$
+% irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$
+% symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)") and
+% replaces it with the unordered-pair phrasing "$L$ consists of
+% unordered pairs of distinct vertices in $V$". The mathematics is
+% unchanged and the same as in the LN.
 
 \begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\label{disjoint-hard-interventions-and-node-splitting-hard-interventions-commute}
-    Let $G = (J, V, E, L)$ be a CADMG (def \ref{def-cdmg-types}, item~i., equivalently a CDMG of def \ref{def-cdmg} that is acyclic in the sense of def \ref{def-acylic}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). We rely throughout on the hard-intervention construction $\doit$ of def \ref{def:G_hard_intervention} and the node-splitting hard-intervention (SWIG) construction $\swig$ of def \ref{def:G_node-splitting_intervention}. Let
+    Let $G = (J, V, E, L)$ be a CADMG (def \ref{def-cdmg-types}, item~i., equivalently a CDMG of def \ref{def-cdmg} that is acyclic in the sense of def \ref{def-acylic}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, and $L$ consists of unordered pairs of distinct vertices in $V$. We rely throughout on the hard-intervention construction $\doit$ of def \ref{def:G_hard_intervention} and the node-splitting hard-intervention (SWIG) construction $\swig$ of def \ref{def:G_node-splitting_intervention}. Let
     \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq V \]
     be two subsets of nodes of $G$ (both automatically finite, since $J \cup V$ is finite by def \ref{def-cdmg}; this matches the project's Lean encoding of $W_1$ and $W_2$ as \texttt{Finset}s), subject to the disjointness side condition
     \[ W_1 \cap W_2 \;=\; \emptyset. \]
@@ -68,7 +89,8 @@
 % --- proof ------------------------------------------------------------------
 % Proof body adapted from the LN's \Claude{...} block at
 % lecture-notes/lecture_notes/graphs.tex lines 672-700, with the following
-% refinements:
+% refinements (carried over from the pre-refactor SWIG twin, except for
+% the bidirected-edge refactor-context note flagged in (iv)):
 % (i) explicit citation of \ref{claim_3_3} (AcyclicPreservedUnderDo) for
 %     the CADMG-hood of G_{\doit(W_1)} required by the inner \swig(W_2) on
 %     the LHS (the LN's terse opening sentence "both operations are
@@ -86,11 +108,17 @@
 %       into two sub-cases on whether v_2 \in W_2 or v_2 \in V \sm W_2, with
 %       the disjointness W_1 \cap W_2 = \emptyset cross-checked in the
 %       v_2 \in W_2 branch;
-% (iv) the bidirected-edge section carries an explicit paragraph on the
-%      registered deviation `hard_intervention_l_symmetrized_removal'
-%      attached to def_3_10's encoding (two-sided filter on L instead
-%      of the LN's literal one-sided filter), with the reconciliation
-%      under L's symmetry axiom (def_3_1) spelled out.
+% (iv) in the post-refactor `Sym2`-typed encoding the LN's literal
+%      one-sided removal clause translates directly to "every endpoint
+%      of the unordered pair lies outside $W_1$" (there is no ordered
+%      "second component" to filter on), so the "Registered two-sided
+%      removal of $L$" deviation paragraph carried by the pre-refactor
+%      SWIG twin is no longer needed; it is replaced here by a short
+%      refactor-context note, and the calculation that follows uses
+%      endpoint-universal wording for the single removal condition
+%      "$v_1, v_2 \notin W_1$" and unordered-pair notation
+%      "$v_1 \huh v_2$" in place of the pre-refactor ordered-pair
+%      notation "$(v_1, v_2)$".
 % The proof is organised under the LN's three section headings
 % (Node sets / Directed edges / Bidirected edges); the "Node sets" section
 % covers the J and V fields jointly, matching the LN's grouping and
@@ -108,7 +136,7 @@ On the right-hand side, the outer $\doit(W_1)$ is read on the lifted interventio
 \[ W_1 \cap W_2^o \;=\; \emptyset \qquad\text{and}\qquad W_1 \cap W_2^i \;=\; \emptyset, \]
 both of which follow from $W_1 \subseteq J \cup V$ together with the tagged-construction disjointness $W_2^o \cap (J \cup V) = W_2^i \cap (J \cup V) = \emptyset$ of def \ref{def:G_node-splitting_intervention}.
 
-``Head'' of a directed edge $(a, b) \in E$ means its second component $b$; ``endpoints'' of a bidirected edge $(a, b) \in L$ means the pair $\{a, b\}$ of its first and second components.
+``Head'' of a directed edge $(a, b) \in E$ means its second component $b$; ``endpoints'' of a bidirected edge $v_1 \huh v_2 \in L$ means the unordered pair $\{v_1, v_2\}$ of its two vertices.
 
 \medskip\noindent\emph{Node sets.}
 
@@ -219,36 +247,36 @@ Comparing with the LHS,
 We show
 \[ L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
 
-\smallskip\noindent\emph{Registered two-sided removal of $L$.}
-The Lean encoding of def \ref{def:G_hard_intervention} item~iv.\ filters $L_{\doit(W)}$ \emph{two-sidedly}: an ordered pair $(v_1, v_2) \in L$ is removed whenever \emph{either} endpoint lies in $W$, not only when the second component does. This is the registered deviation \emph{hard\_intervention\_l\_symmetrized\_removal} attached to def\_3\_10's encoding, motivated in its remark on the symmetry of $L$: the LN's literal one-sided removal set $\lC (v_1, v_2) \in L \st v_2 \in W \rC$ does not in general preserve the symmetry axiom of def \ref{def-cdmg}, since for $w \in W \cap V$ and $v \in V \sm W$ both ordered pairs $(v, w)$ and $(w, v)$ lie in $L$ by symmetry but only $(v, w)$ is caught by the one-sided clause. The two-sided clause ``$v_1 \in W \vee v_2 \in W$'' symmetrises the removal and agrees with the LN's natural-language gloss ``remove all edges into nodes from $W$'' (a bidirected edge $v_1 \huh v_2$ is into \emph{both} of its endpoints). Crucially, under the symmetry axiom of $L$ (def \ref{def-cdmg}'s axiom $(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$), the LN's one-sided form and the registered two-sided form produce the \emph{same} survivor set: a pair $(v_1, v_2) \in L$ survives the one-sided filter iff $v_2 \notin W$, and its symmetric partner $(v_2, v_1) \in L$ (which is also in $L$ by symmetry) survives iff $v_1 \notin W$; closing under symmetry, both readings land on
+\smallskip\noindent\emph{Refactor-context note on the removal clause of $\doit$ for $L$.}
+At the LN level the bidirected-edge set $L$ consists of unordered pairs of distinct vertices in $V$, and def \ref{def:G_hard_intervention} item~iv.\ removes those pairs that touch $W_1$. The LN's literal one-sided gloss ``$L \sm \lC v \huh w \mid w \in W_1 \rC$'' selects an ordered-pair representative of each unordered pair and tests its second component, which presumes an ordered-pair encoding of $L$. The post-refactor encoding of def \ref{def-cdmg} (and downstream def \ref{def:G_hard_intervention}) carries $L$ as a set of \emph{unordered} pairs, so there is no ordered ``second component'' to single out: the structurally well-defined reading of the LN's removal clause is the endpoint-universal form
 \[
-    \lC (v_1, v_2) \in L \st v_1 \notin W,\; v_2 \notin W \rC.
+    L_{\doit(W)} \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W,\; v_2 \notin W \rC,
 \]
-We adopt the two-sided form throughout the calculations below; the LN's literal one-sided gloss ``$L \sm \lC v \huh w \mid w \in W_1 \rC$'' of \texttt{graphs.tex} lines 692--698 yields the same survivor set by the just-noted symmetric-closure argument.
+i.e.\ ``$v_1 \huh v_2$ survives iff every endpoint of the unordered pair lies outside $W$''. This is precisely the LN's intended ``remove all edges into nodes from $W$'' applied to bidirected edges (which are incident to \emph{both} endpoints) and agrees on the survivor set with the LN's literal one-sided gloss after closing under the implicit swap of representatives. The pre-refactor encoding of def \ref{def:G_hard_intervention} had to spell this symmetrisation out as a registered deviation; under the post-refactor unordered-pair encoding the LN-faithful reading is the literal one and no symmetrisation step is required. We use the endpoint-universal form throughout the calculations below.
 
-By def \ref{def:G_hard_intervention} item~iv.\ (two-sided), applied to $G$ with intervention set $W_1$,
+By def \ref{def:G_hard_intervention} item~iv.\ (endpoint-universal form), applied to $G$ with intervention set $W_1$,
 \[
     L_{G_{\doit(W_1)}}
-    \;=\; \lC (v_1, v_2) \in L \st v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+    \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W_1,\; v_2 \notin W_1 \rC.
 \]
-By def \ref{def:G_node-splitting_intervention} item~iv.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (every surviving bidirected edge $(v_1, v_2) \in L_{G_{\doit(W_1)}}$ is lifted to $(v_1^o, v_2^o)$, with \emph{both} endpoints carrying the output-side $^o$ superscript -- in particular no element of $W_2^i$ appears as an endpoint of any bidirected edge),
+By def \ref{def:G_node-splitting_intervention} item~iv.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (every surviving bidirected edge $v_1 \huh v_2 \in L_{G_{\doit(W_1)}}$ is lifted to $v_1^o \huh v_2^o$, with \emph{both} endpoints carrying the output-side $^o$ superscript -- in particular no element of $W_2^i$ appears as an endpoint of any bidirected edge),
 \[
     L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
-    \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L_{G_{\doit(W_1)}} \rC
-    \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L_{G_{\doit(W_1)}} \rC
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
 \]
 
 For the RHS, by def \ref{def:G_node-splitting_intervention} item~iv.\ applied to $G$ with split set $W_2$,
 \[
     L_{G_{\swig(W_2)}}
-    \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC.
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC.
 \]
-By def \ref{def:G_hard_intervention} item~iv.\ (two-sided), applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted to the SWIG carrier via the unsplit injection),
+By def \ref{def:G_hard_intervention} item~iv.\ (endpoint-universal form), applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted to the SWIG carrier via the unsplit injection),
 \[
     L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
-    \;=\; \lC (a, b) \in L_{G_{\swig(W_2)}} \st a \notin W_1,\; b \notin W_1 \rC.
+    \;=\; \lC a \huh b \in L_{G_{\swig(W_2)}} \st a \notin W_1,\; b \notin W_1 \rC.
 \]
-We compute the surviving pairs by analysing each endpoint of the generator $(v_1^o, v_2^o)$ arising from $(v_1, v_2) \in L$. By def \ref{def-cdmg}'s typing $L \subseteq V \times V$ we have $v_1, v_2 \in V$. For each $k \in \{1, 2\}$:
+We compute the surviving pairs by analysing each endpoint of the generator $v_1^o \huh v_2^o$ arising from $v_1 \huh v_2 \in L$. Since $L$ consists of unordered pairs of distinct vertices in $V$, both $v_1, v_2 \in V$. For each $k \in \{1, 2\}$:
 \begin{itemize}
     \item \emph{If $v_k \in W_2$:} $v_k^o \in W_2^o$ is a tagged copy. By $W_1 \cap W_2^o = \emptyset$ (from the notational reminder), $v_k^o \notin W_1$ (in the SWIG carrier). Cross-check with the LHS: by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, $v_k \in W_2$ also forces $v_k \notin W_1$, so both the RHS-side condition ``$v_k^o \notin W_1$'' and the LHS-side condition ``$v_k \notin W_1$'' are satisfied automatically in this branch.
     \item \emph{If $v_k \in V \sm W_2$:} $v_k^o = v_k$ (unsplit shorthand, since $v_k \in V \sm W_2 \subseteq J \cup (V \sm W_2)$). The lifted $W_1$ in the SWIG carrier is the unsplit image $\lC w \st w \in W_1 \rC$, so $v_k^o \in W_1$ iff $v_k \in W_1$ (the unsplit injection is injective). Hence the RHS-side condition ``$v_k^o \notin W_1$'' is equivalent to the LHS-side condition ``$v_k \notin W_1$''.
@@ -256,12 +284,12 @@ We compute the surviving pairs by analysing each endpoint of the generator $(v_1
 In both sub-cases the condition ``$v_k^o \notin W_1$'' is equivalent to ``$v_k \notin W_1$''. Applying this to both endpoints $v_1$ and $v_2$ independently,
 \[
     L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
-    \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
 \]
 Comparing with the LHS,
 \[
     L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
-    \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC
     \;=\; L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}.
 \]
 \checkmark
