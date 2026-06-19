@@ -50,50 +50,6 @@ The proof follows the tex proof at
 `tex/claim_3_20_proof_AcyclicNonCollidersBlockable.tex`.
 -/
 
-namespace CDMG
-
--- ## Design choice — statement context
---
--- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited from
---   `def_3_15` (`CollidersAndNon.lean`) and `def_3_16`
---   (`BlockableAndUnblockable.lean`): both per-position predicates
---   require this shape, so the wrapped main theorem signature below
---   does not type-check without it.  Matches the chapter convention
---   set by every prior file in this chapter — including the directly
---   analogous claim-row `claim_3_19` (`MarginalizingOutThe.lean`),
---   which uses the same `{Node : Type*} [DecidableEq Node]` shape at
---   its own statement-typing helper block.
---
--- *Three-dash `--- start helper` / `--- end helper` markers, not
---   two-dash `-- start statement`.*  Lean 4's `variable` auto-binding
---   folds the implicit `Node` and the `DecidableEq Node` instance
---   into the theorem below — they are *statement-typing
---   infrastructure*, not the formalised LN content of this row, and
---   the `start statement` / `end statement` markers must wrap only
---   the LN-meaningful declaration head (the `theorem
---   acyclic_non_colliders_blockable …` line itself).  Wrapping the
---   `variable` line with three-dash helper markers is the standard
---   chapter-3 convention: see the analogous helper block in
---   `def_3_15`, `def_3_16`, and `claim_3_19` for prior art.
--- claim_3_20 --- start helper
-variable {Node : Type*} [DecidableEq Node]
--- claim_3_20 --- end helper
-
--- Proof helpers (no markers).  Walk-position infrastructure used by
--- the main proof to extract the `WalkStep` relations at the two
--- walk-incident edges of an interior position `k`.  These are
--- proof-only — removing them would not break the wrapped main
--- theorem signature — so they carry no marker comments per the
--- chapter convention.
-
-
-
-
-
-
-
-end CDMG
-
 end Causality
 
 namespace Causality

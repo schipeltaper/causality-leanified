@@ -701,9 +701,7 @@ LN block (verbatim, for backup):
 -- those fields are untouched by the refactor.
 -- def_3_13 -- start statement
 def extendingCDMGsWith (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : CDMG (IntExtNode Node)
--- def_3_13 -- end statement
-    where
+    (hW : W ⊆ G.J ∪ G.V) : CDMG (IntExtNode Node) where
   J := G.J.image IntExtNode.unsplit ∪ (W \ G.J).image IntExtNode.intCopy
   V := G.V.image IntExtNode.unsplit
   hJV_disj := extendingCDMGsWith_hJV_disj G W
@@ -713,6 +711,7 @@ def extendingCDMGsWith (G : CDMG Node) (W : Finset Node)
   L := G.L.image (Sym2.map IntExtNode.unsplit)
   hL_subset := extendingCDMGsWith_hL_subset G
   hL_irrefl := extendingCDMGsWith_hL_irrefl G
+-- def_3_13 -- end statement
 
 end CDMG
 

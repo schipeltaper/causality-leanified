@@ -62,11 +62,6 @@ membership.
 
 namespace CDMG
 
-
-end CDMG
-
-namespace CDMG
-
 -- def_3_12 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_12 --- end helper
@@ -640,9 +635,7 @@ set_option linter.unusedVariables false in
 -- def_3_12 -- start statement
 def nodeSplittingHard (G : CDMG Node)
     (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V) :
-    CDMG (SplitNode Node)
--- def_3_12 -- end statement
-    where
+    CDMG (SplitNode Node) where
   J := G.J.image SplitNode.unsplit ∪ W.image SplitNode.copy1
   V := (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
   hJV_disj := by exact nodeSplittingHard_hJV_disj G W
@@ -651,6 +644,7 @@ def nodeSplittingHard (G : CDMG Node)
   L := G.L.image (Sym2.map (toCopy0 W))
   hL_subset := by exact nodeSplittingHard_hL_subset G W
   hL_irrefl := by exact nodeSplittingHard_hL_irrefl G W
+-- def_3_12 -- end statement
 
 end CDMG
 

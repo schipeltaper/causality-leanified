@@ -33,18 +33,6 @@
     },
     {
       "kind": "helper",
-      "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "Section-wide `variable` declaration. Lean 4's `variable` mechanism makes `Node` and its `DecidableEq` instance available as auto-bound implicit arguments to every declaration below: any later `def`/`inductive` that mentions `Node` will silently pick up `{Node : Type*} [DecidableEq Node]` in its signature. `Type*` is the universe-polymorphic flavour (Lean 4 inserts a fresh universe variable), letting `Node` live in any universe. The `DecidableEq Node` typeclass is needed downstream to compute `Finset`-membership of edges in `CDMG`, to use `List.Nodup` in `IsPath`, and to call `List.tail` / `dropLast` / `getLast?` on vertex lists. This sets the type-level stage for the rest of the row.",
-      "code_annotated": "-- Section-wide implicit binders, auto-added to every later declaration\n-- `Type*` is universe-polymorphic; `DecidableEq` enables Finset/List ops\nvariable {Node : Type*} [DecidableEq Node]"
-    },
-    {
-      "kind": "helper",
-      "code": "variable {G : CDMG Node}",
-      "explanation": "Namespace-level `variable` declaration binding `G` implicitly. Every declaration inside the `Walk` namespace below (vertex/edge extractors, four end-node classifiers, walk-class predicates, bifurcation helpers) takes a walk of type `Walk G u v`, and Lean's auto-bound `variable` mechanism inserts `{G : CDMG Node}` into each of their signatures. Making `G` implicit lets downstream callers use dot-notation (`p.vertices` rather than `Walk.vertices G p`) since `G` is recoverable from the walk's type. The three-dash `-- def_3_4 --- start helper` marker used in the source file (visible in the surrounding comments) distinguishes this load-bearing infrastructure binder from the two-dash markers used on actual statement bodies.",
-      "code_annotated": "-- Namespace-wide implicit `G`, inferred from `Walk G u v` at call sites\nvariable {G : CDMG Node}"
-    },
-    {
-      "kind": "helper",
       "code": "def vertices : ∀ {u v : Node}, Walk G u v → List Node\n  | _, _, .nil v _ => [v]\n  | u, _, .cons _ _ p => u :: p.vertices",
       "explanation": "`Walk.vertices p` extracts the LN's vertex tuple `[v_0, v_1, …, v_n]` as a `List Node` by structural recursion on the `Walk` constructors. The `nil v _` branch returns the singleton `[v]` — the trivial walk's only vertex. The `cons _ _ p` branch prepends the outer start vertex `u` (an explicit pattern parameter, recoverable from the cons-cell's outer index) to the recursive call on the tail `p`; this avoids double-counting the middle vertex `v`, which is already the head of `p.vertices`. Returning a `List` (not a `Finset`, not a length-indexed `Fin (n+1) → Node`) is the LN-faithful carrier: the LN's tuple is ordered and may repeat, and `List` unlocks Mathlib's `Nodup`/`head?`/`getLast?`/`tail`/`dropLast` API directly — each used by a downstream predicate in this file.",
       "code_annotated": "-- The LN vertex tuple `[v_0, …, v_n]` as a `List Node`, by structural\n-- recursion on the `Walk` constructors.\ndef vertices : ∀ {u v : Node}, Walk G u v → List Node\n  -- Trivial walk: the single vertex `v` IS the whole tuple.\n  | _, _, .nil v _ => [v]\n  -- Cons-cell: prepend the outer start `u`; the middle vertex `v` is\n  -- already the head of `p.vertices`, so recursing on `p` avoids dup.\n  | u, _, .cons _ _ p => u :: p.vertices"
