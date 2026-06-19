@@ -89,9 +89,11 @@ namespace CDMG
 --   constraint into its return type's `CDMG` structure.  Stronger
 --   instances (`Fintype`, `LinearOrder`) are not needed at the
 --   statement level and are deferred to the proof body's use sites.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: variable_Node
 -- claim_3_19 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- claim_3_19 --- end helper
+-- REFACTOR-BLOCK-ORIGINAL-END: variable_Node
 
 -- ## Helper — `W ⊆ G.J ∪ G.V` from `W ⊆ G.V`
 --
@@ -122,11 +124,13 @@ variable {Node : Type*} [DecidableEq Node]
 --   proof.*  The conclusion is a direct restatement of "the right
 --   summand of a union contains every element of itself"; a
 --   `by`-block would add tactic-state noise for zero readability gain.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: subset_J_union_V_of_subset_V
 -- claim_3_19 --- start helper
 private lemma subset_J_union_V_of_subset_V {G : CDMG Node} {W : Finset Node}
     (hW : W ⊆ G.V) : W ⊆ G.J ∪ G.V
 -- claim_3_19 --- end helper
 := fun _ hv => Finset.mem_union_right _ (hW hv)
+-- REFACTOR-BLOCK-ORIGINAL-END: subset_J_union_V_of_subset_V
 
 -- ## Helper — `W.image .copy0 ⊆ V_{swig(W)}`
 --
@@ -180,6 +184,7 @@ private lemma subset_J_union_V_of_subset_V {G : CDMG Node} {W : Finset Node}
 --   require chasing the `where`-syntax field reduction by hand; the
 --   two-line tactic form is shorter and reads identically to the
 --   `claim_3_15` helper above.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: image_copy0_subset_nodeSplittingHard_V
 -- claim_3_19 --- start helper
 private lemma image_copy0_subset_nodeSplittingHard_V
     {G : CDMG Node} {hG : G.IsCADMG}
@@ -190,6 +195,7 @@ private lemma image_copy0_subset_nodeSplittingHard_V
   intro x hx
   change x ∈ (G.V \ W).image SplitNode.unsplit ∪ W.image SplitNode.copy0
   exact Finset.mem_union_right _ hx
+-- REFACTOR-BLOCK-ORIGINAL-END: image_copy0_subset_nodeSplittingHard_V
 
 -- Proof helper: structural observation from the verified tex proof.
 -- No directed edge of `(G.nodeSplittingHard hG W hW).E` has its source
@@ -198,6 +204,7 @@ private lemma image_copy0_subset_nodeSplittingHard_V
 -- slot `toCopy1 W a` is either `.unsplit a` (when `a ∉ W`) or `.copy1 a`
 -- (when `a ∈ W`) — never `.copy0 _`.  This is the lynchpin observation
 -- that the proof of clauses (c) and (d) repeatedly invokes.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_edge_source_notMem_W_copy0
 private lemma swig_edge_source_notMem_W_copy0
     {G : CDMG Node} (hG : G.IsCADMG) {W : Finset Node} (hW : W ⊆ G.V)
     {e : SplitNode Node × SplitNode Node}
@@ -210,21 +217,25 @@ private lemma swig_edge_source_notMem_W_copy0
   -- `hweq : SplitNode.copy0 _ = toCopy1 W e'.1`.
   unfold toCopy1 at hweq
   split_ifs at hweq <;> contradiction
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_edge_source_notMem_W_copy0
 
 -- Proof helper: any walk's vertex list is non-empty.  Mirrors
 -- `Walk.vertices_ne_nil` of `MargPreservesAncestors.lean`, kept local
 -- to avoid a chapter-wide cross-import in this file (which would only
 -- be needed for this single utility).
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_vertices_ne_nil
 private lemma swig_vertices_ne_nil
     {G : CDMG Node} (hG : G.IsCADMG) {W : Finset Node} (hW : W ⊆ G.V) :
     ∀ {a b : SplitNode Node} (p : Walk (G.nodeSplittingHard hG W hW) a b),
       p.vertices ≠ []
   | _, _, .nil _ _ => by simp [Walk.vertices]
   | _, _, .cons _ _ _ _ => by simp [Walk.vertices]
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_vertices_ne_nil
 
 -- Proof helper: middle vertex of a length-`≥ 2` walk `cons w a h q`
 -- (with `q` non-trivial) appears in `p.vertices.tail.dropLast` — i.e.\
 -- it is registered as a marginalisation intermediate.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_middle_vertex_mem_tail_dropLast
 private lemma swig_middle_vertex_mem_tail_dropLast
     {G : CDMG Node} (hG : G.IsCADMG) {W : Finset Node} (hW : W ⊆ G.V)
     {a b : SplitNode Node} (w : SplitNode Node) (c : SplitNode Node × SplitNode Node)
@@ -239,6 +250,7 @@ private lemma swig_middle_vertex_mem_tail_dropLast
   rw [List.tail_cons]
   rw [List.dropLast_cons_of_ne_nil hr_ne]
   exact List.mem_cons.mpr (Or.inl rfl)
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_middle_vertex_mem_tail_dropLast
 
 -- Proof helper: `swig.MarginalizationΦE (W.image .copy0) u v` iff
 -- `(u, v) ∈ swig.E`.  The structural observation collapses any
@@ -246,6 +258,7 @@ private lemma swig_middle_vertex_mem_tail_dropLast
 -- edge (a walk of length `≥ 2` would have a `copy0`-tagged
 -- intermediate as the source of its next edge — impossible).  The
 -- converse direction constructs the trivial length-1 walk.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_marginalization_phi_E_W_copy0_iff
 private lemma swig_marginalization_phi_E_W_copy0_iff
     (G : CDMG Node) (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V)
     (u v : SplitNode Node) :
@@ -283,8 +296,10 @@ private lemma swig_marginalization_phi_E_W_copy0_iff
     · show 0 + 1 ≥ 1; omega
     · intro x hx
       simp [Walk.vertices, List.tail] at hx
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_marginalization_phi_E_W_copy0_iff
 
 -- Proof helper: q.IsBifurcationWithSplit i implies q is non-trivial (cons).
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_bif_with_split_cons_form
 private lemma swig_bif_with_split_cons_form
     {G : CDMG Node} (hG : G.IsCADMG) {W : Finset Node} (hW : W ⊆ G.V) :
     ∀ {a b : SplitNode Node} (q : Walk (G.nodeSplittingHard hG W hW) a b) (i : ℕ),
@@ -295,12 +310,14 @@ private lemma swig_bif_with_split_cons_form
         q = Walk.cons mid c h r
   | _, _, .nil _ _, _, hSpl => by simp only [Walk.IsBifurcationWithSplit] at hSpl
   | _, _, .cons mid c h r, _, _ => ⟨mid, c, h, r, rfl⟩
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_bif_with_split_cons_form
 
 -- Proof helper: `swig.MarginalizationΦL (W.image .copy0) u v` iff
 -- `(u, v) ∈ swig.L`.  Bifurcation walks in `swig` with intermediates
 -- in `W^o` collapse to the `n = 1` (single bidirected edge) case for
 -- the same structural reason: any intermediate in `W^o` would be the
 -- source of a left-arm / hinge / right-arm directed edge.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: swig_marginalization_phi_L_W_copy0_iff
 private lemma swig_marginalization_phi_L_W_copy0_iff
     (G : CDMG Node) (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V)
     (u v : SplitNode Node) :
@@ -385,6 +402,7 @@ private lemma swig_marginalization_phi_L_W_copy0_iff
         exact hu_ne_v h_eq.symm
     · intro x hx
       simp [Walk.vertices, List.tail] at hx
+-- REFACTOR-BLOCK-ORIGINAL-END: swig_marginalization_phi_L_W_copy0_iff
 
 -- ref: claim_3_19
 --
@@ -593,6 +611,7 @@ LN block (verbatim, for backup):
 --   clauses (a)–(d) of the rewrite literally, with the
 --   field-by-field bijection / edge-preservation reasoning deferred
 --   to the proof per the rewritten tex's closing remark.
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_swig_eq_doit
 set_option maxHeartbeats 800000 in
 -- claim_3_19 -- start statement
 theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)
@@ -850,7 +869,603 @@ theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)
         rw [← hpair_eq]
         show (toCopy1 W e.1, toCopy1 W e.2) = (toCopy0 W e.1, toCopy0 W e.2)
         rw [hC0eqC1 he1_notW, hC0eqC1 he2_notW]
+-- REFACTOR-BLOCK-ORIGINAL-END: marginalize_swig_eq_doit
 
 end CDMG
+
+-- ## Post-refactor port (`cdmg_typed_edges`)
+--
+-- The block below is the refactor twin of this row's declarations
+-- against the `cdmg_typed_edges` redesign of `def_3_1` / `def_3_4` —
+-- same mathematical content, retyped against `refactor_CDMG`,
+-- `refactor_SplitNode`, and the typed `refactor_WalkStep` / `refactor_Walk`
+-- inductives.  J / V / E sub-goals of the main theorem port mechanically;
+-- the L sub-goal is restructured around `Sym2.map` and `Sym2.mem_iff`.
+namespace refactor_CDMG
+open CDMG
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: variable_Node (was: refactor_variable_Node)
+-- claim_3_19 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_19 --- end helper
+-- REFACTOR-BLOCK-REPLACEMENT-END: variable_Node
+
+-- Refactor port of `subset_J_union_V_of_subset_V` — mechanical rename
+-- pass; body identical.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: subset_J_union_V_of_subset_V (was: refactor_subset_J_union_V_of_subset_V)
+-- claim_3_19 --- start helper
+private lemma refactor_subset_J_union_V_of_subset_V
+    {G : refactor_CDMG Node} {W : Finset Node}
+    (hW : W ⊆ G.V) : W ⊆ G.J ∪ G.V
+-- claim_3_19 --- end helper
+:= fun _ hv => Finset.mem_union_right _ (hW hv)
+-- REFACTOR-BLOCK-REPLACEMENT-END: subset_J_union_V_of_subset_V
+
+-- Refactor port of `image_copy0_subset_nodeSplittingHard_V` —
+-- mechanical rename pass; `nodeSplittingHard.V` unchanged in shape.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: image_copy0_subset_nodeSplittingHard_V (was: refactor_image_copy0_subset_nodeSplittingHard_V)
+-- claim_3_19 --- start helper
+private lemma refactor_image_copy0_subset_nodeSplittingHard_V
+    {G : refactor_CDMG Node} {hG : G.refactor_IsCADMG}
+    {W : Finset Node} {hW : W ⊆ G.V} :
+    W.image refactor_SplitNode.copy0 ⊆ (G.refactor_nodeSplittingHard hG W hW).V
+-- claim_3_19 --- end helper
+:= by
+  intro x hx
+  change x ∈ (G.V \ W).image refactor_SplitNode.unsplit ∪ W.image refactor_SplitNode.copy0
+  exact Finset.mem_union_right _ hx
+-- REFACTOR-BLOCK-REPLACEMENT-END: image_copy0_subset_nodeSplittingHard_V
+
+-- Refactor port of `swig_edge_source_notMem_W_copy0`.  The SWIG's E
+-- field is unchanged in shape under the refactor (the refactor only
+-- touches L), so this lemma carries over verbatim modulo the type
+-- and helper renames.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_edge_source_notMem_W_copy0 (was: refactor_swig_edge_source_notMem_W_copy0)
+private lemma refactor_swig_edge_source_notMem_W_copy0
+    {G : refactor_CDMG Node} (hG : G.refactor_IsCADMG)
+    {W : Finset Node} (hW : W ⊆ G.V)
+    {e : refactor_SplitNode Node × refactor_SplitNode Node}
+    (he : e ∈ (G.refactor_nodeSplittingHard hG W hW).E) :
+    e.1 ∉ W.image refactor_SplitNode.copy0 := by
+  change e ∈ G.E.image (fun e => (refactor_toCopy1 W e.1, refactor_toCopy0 W e.2)) at he
+  obtain ⟨e', _, rfl⟩ := Finset.mem_image.mp he
+  intro hContra
+  obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hContra
+  unfold refactor_toCopy1 at hweq
+  split_ifs at hweq
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_edge_source_notMem_W_copy0
+
+-- Refactor port of `swig_vertices_ne_nil`.  The 4-arg `.cons _ _ _ _`
+-- pattern collapses to the 3-arg `.cons _ _ _` pattern (the typed
+-- `refactor_WalkStep` replaces the original's stored ordered-pair +
+-- WalkStep Prop pair).
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_vertices_ne_nil (was: refactor_swig_vertices_ne_nil)
+private lemma refactor_swig_vertices_ne_nil
+    {G : refactor_CDMG Node} (hG : G.refactor_IsCADMG)
+    {W : Finset Node} (hW : W ⊆ G.V) :
+    ∀ {a b : refactor_SplitNode Node}
+      (p : refactor_Walk (G.refactor_nodeSplittingHard hG W hW) a b),
+      p.refactor_vertices ≠ []
+  | _, _, .nil _ _ => by simp [refactor_Walk.refactor_vertices]
+  | _, _, .cons _ _ _ => by simp [refactor_Walk.refactor_vertices]
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_vertices_ne_nil
+
+-- Refactor port of `swig_middle_vertex_mem_tail_dropLast`.  Signature
+-- shape change: drops the pair `c : Node × Node` and the WalkStep Prop
+-- `h : WalkStep`, replaced by the typed `s : refactor_WalkStep`
+-- (mirroring the `refactor_Walk.cons` 3-arg shape).
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_middle_vertex_mem_tail_dropLast (was: refactor_swig_middle_vertex_mem_tail_dropLast)
+private lemma refactor_swig_middle_vertex_mem_tail_dropLast
+    {G : refactor_CDMG Node} (hG : G.refactor_IsCADMG)
+    {W : Finset Node} (hW : W ⊆ G.V)
+    {a b : refactor_SplitNode Node} (w : refactor_SplitNode Node)
+    (s : refactor_WalkStep (G.refactor_nodeSplittingHard hG W hW) a w)
+    {bMid : refactor_SplitNode Node}
+    (s' : refactor_WalkStep (G.refactor_nodeSplittingHard hG W hW) w bMid)
+    (r : refactor_Walk (G.refactor_nodeSplittingHard hG W hW) bMid b) :
+    w ∈ (refactor_Walk.cons w s
+              (refactor_Walk.cons bMid s' r)).refactor_vertices.tail.dropLast := by
+  have hr_ne : r.refactor_vertices ≠ [] := refactor_swig_vertices_ne_nil hG hW r
+  change w ∈ (a :: w :: r.refactor_vertices).tail.dropLast
+  rw [List.tail_cons]
+  rw [List.dropLast_cons_of_ne_nil hr_ne]
+  exact List.mem_cons.mpr (Or.inl rfl)
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_middle_vertex_mem_tail_dropLast
+
+-- Refactor port of `swig_marginalization_phi_E_W_copy0_iff`.  The
+-- `Walk.IsDirectedWalk` Prop-level conjunction collapses to a
+-- constructor case-split on `refactor_WalkStep`: only `.forwardE`
+-- survives in directed walks; `.backwardE` / `.bidir` reduce to
+-- `False`.  Length-1 construction in the reverse direction uses
+-- `refactor_Walk.cons _ (.forwardE _) (refactor_Walk.nil _ _)`.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_marginalization_phi_E_W_copy0_iff (was: refactor_swig_marginalization_phi_E_W_copy0_iff)
+private lemma refactor_swig_marginalization_phi_E_W_copy0_iff
+    (G : refactor_CDMG Node) (hG : G.refactor_IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (u v : refactor_SplitNode Node) :
+    (G.refactor_nodeSplittingHard hG W hW).refactor_MarginalizationΦE
+        (W.image refactor_SplitNode.copy0) u v
+      ↔ (u, v) ∈ (G.refactor_nodeSplittingHard hG W hW).E := by
+  constructor
+  · rintro ⟨p, hp_dir, hp_len, hp_inter⟩
+    cases p with
+    | nil v' hv' =>
+      simp [refactor_Walk.refactor_length] at hp_len
+    | cons mid s q =>
+      cases s with
+      | backwardE _ =>
+        simp only [refactor_Walk.refactor_IsDirectedWalk] at hp_dir
+      | bidir _ =>
+        simp only [refactor_Walk.refactor_IsDirectedWalk] at hp_dir
+      | forwardE h_edge =>
+        cases q with
+        | nil v' hv' =>
+          exact h_edge
+        | cons w' s' r =>
+          cases s' with
+          | backwardE _ =>
+            simp only [refactor_Walk.refactor_IsDirectedWalk] at hp_dir
+          | bidir _ =>
+            simp only [refactor_Walk.refactor_IsDirectedWalk] at hp_dir
+          | forwardE h_edge' =>
+            have h_w_mem : mid ∈ W.image refactor_SplitNode.copy0 :=
+              hp_inter mid
+                (refactor_swig_middle_vertex_mem_tail_dropLast hG hW mid
+                  (.forwardE h_edge) (.forwardE h_edge') r)
+            exact (refactor_swig_edge_source_notMem_W_copy0 hG hW h_edge' h_w_mem).elim
+  · intro h_edge
+    have hv_in : v ∈ G.refactor_nodeSplittingHard hG W hW := by
+      show v ∈ (G.refactor_nodeSplittingHard hG W hW).J
+              ∪ (G.refactor_nodeSplittingHard hG W hW).V
+      refine Finset.mem_union_right _ ?_
+      exact ((G.refactor_nodeSplittingHard hG W hW).hE_subset h_edge).2
+    refine ⟨refactor_Walk.cons v (.forwardE h_edge) (refactor_Walk.nil v hv_in),
+      ?_, ?_, ?_⟩
+    · trivial
+    · show 0 + 1 ≥ 1; omega
+    · intro x hx
+      simp [refactor_Walk.refactor_vertices, List.tail] at hx
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_marginalization_phi_E_W_copy0_iff
+
+-- Refactor port of `swig_bif_with_split_cons_form` — pattern-match
+-- structure shifts from 4-arg cons to 3-arg cons; existential drops
+-- the ordered-pair / Prop pair, replaced by the typed `s`.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_bif_with_split_cons_form (was: refactor_swig_bif_with_split_cons_form)
+private lemma refactor_swig_bif_with_split_cons_form
+    {G : refactor_CDMG Node} (hG : G.refactor_IsCADMG)
+    {W : Finset Node} (hW : W ⊆ G.V) :
+    ∀ {a b : refactor_SplitNode Node}
+      (q : refactor_Walk (G.refactor_nodeSplittingHard hG W hW) a b) (i : ℕ),
+      q.refactor_IsBifurcationWithSplit i →
+      ∃ (mid : refactor_SplitNode Node)
+        (s : refactor_WalkStep (G.refactor_nodeSplittingHard hG W hW) a mid)
+        (r : refactor_Walk (G.refactor_nodeSplittingHard hG W hW) mid b),
+        q = refactor_Walk.cons mid s r
+  | _, _, .nil _ _, _, hSpl => by
+      simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+  | _, _, .cons mid s r, _, _ => ⟨mid, s, r, rfl⟩
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_bif_with_split_cons_form
+
+-- Refactor port of `swig_marginalization_phi_L_W_copy0_iff`.  The
+-- bifurcation-walk Prop-level disjunction collapses to a constructor
+-- case-split on `refactor_WalkStep`; the `hL_symm` invocation in the
+-- reverse direction's "other-orientation" branch is replaced by
+-- `Sym2.eq_swap` (`s(v, u) = s(u, v)` definitionally on `Sym2`).
+-- The conclusion changes from `(u, v) ∈ swig.L` (ordered-pair) to
+-- `s(u, v) ∈ swig.L` (`Sym2`-quotient).
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: swig_marginalization_phi_L_W_copy0_iff (was: refactor_swig_marginalization_phi_L_W_copy0_iff)
+private lemma refactor_swig_marginalization_phi_L_W_copy0_iff
+    (G : refactor_CDMG Node) (hG : G.refactor_IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (u v : refactor_SplitNode Node) :
+    (G.refactor_nodeSplittingHard hG W hW).refactor_MarginalizationΦL
+        (W.image refactor_SplitNode.copy0) u v
+      ↔ s(u, v) ∈ (G.refactor_nodeSplittingHard hG W hW).L := by
+  have bifSplitAux :
+      ∀ {a b : refactor_SplitNode Node} (i : ℕ)
+        (p : refactor_Walk (G.refactor_nodeSplittingHard hG W hW) a b),
+        p.refactor_IsBifurcationWithSplit i →
+        (∀ x ∈ p.refactor_vertices.tail.dropLast, x ∈ W.image refactor_SplitNode.copy0) →
+        s(a, b) ∈ (G.refactor_nodeSplittingHard hG W hW).L := by
+    intro a b i
+    induction i generalizing a b with
+    | zero =>
+      intro p hSpl hInter
+      cases p with
+      | nil v' hv' =>
+        simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+      | cons mid s q =>
+        cases q with
+        | nil v' hv' =>
+          cases s with
+          | forwardE _ =>
+            simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+          | backwardE _ =>
+            simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+          | bidir h_L =>
+            exact h_L
+        | cons w' s' r =>
+          cases s with
+          | forwardE _ =>
+            simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+          | backwardE h_first =>
+            cases s' with
+            | backwardE _ =>
+              simp only [refactor_Walk.refactor_IsBifurcationWithSplit,
+                refactor_Walk.refactor_IsDirectedWalk] at hSpl
+            | bidir _ =>
+              simp only [refactor_Walk.refactor_IsBifurcationWithSplit,
+                refactor_Walk.refactor_IsDirectedWalk] at hSpl
+            | forwardE h_edge' =>
+              have h_w_mem : mid ∈ W.image refactor_SplitNode.copy0 :=
+                hInter mid
+                  (refactor_swig_middle_vertex_mem_tail_dropLast hG hW mid
+                    (.backwardE h_first) (.forwardE h_edge') r)
+              exact (refactor_swig_edge_source_notMem_W_copy0 hG hW h_edge' h_w_mem).elim
+          | bidir h_first =>
+            cases s' with
+            | backwardE _ =>
+              simp only [refactor_Walk.refactor_IsBifurcationWithSplit,
+                refactor_Walk.refactor_IsDirectedWalk] at hSpl
+            | bidir _ =>
+              simp only [refactor_Walk.refactor_IsBifurcationWithSplit,
+                refactor_Walk.refactor_IsDirectedWalk] at hSpl
+            | forwardE h_edge' =>
+              have h_w_mem : mid ∈ W.image refactor_SplitNode.copy0 :=
+                hInter mid
+                  (refactor_swig_middle_vertex_mem_tail_dropLast hG hW mid
+                    (.bidir h_first) (.forwardE h_edge') r)
+              exact (refactor_swig_edge_source_notMem_W_copy0 hG hW h_edge' h_w_mem).elim
+    | succ k ih =>
+      intro p hSpl hInter
+      cases p with
+      | nil v' hv' =>
+        simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+      | cons mid s q =>
+        cases s with
+        | forwardE _ =>
+          simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+        | bidir _ =>
+          simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+        | backwardE h_edge =>
+          simp only [refactor_Walk.refactor_IsBifurcationWithSplit] at hSpl
+          obtain ⟨wMid, s', r, hq_eq⟩ :=
+            refactor_swig_bif_with_split_cons_form hG hW q k hSpl
+          have h_w_mem : mid ∈ W.image refactor_SplitNode.copy0 := by
+            apply hInter
+            rw [hq_eq]
+            exact refactor_swig_middle_vertex_mem_tail_dropLast hG hW mid
+              (.backwardE h_edge) s' r
+          exact (refactor_swig_edge_source_notMem_W_copy0 hG hW h_edge h_w_mem).elim
+  constructor
+  · rintro (⟨p, hp_bif, hp_inter⟩ | ⟨p, hp_bif, hp_inter⟩)
+    · obtain ⟨_, _, _, i, hi⟩ := hp_bif
+      exact bifSplitAux i p hi hp_inter
+    · obtain ⟨_, _, _, i, hi⟩ := hp_bif
+      have h := bifSplitAux i p hi hp_inter
+      rwa [show (s(u, v) : Sym2 (refactor_SplitNode Node)) = s(v, u) from Sym2.eq_swap]
+  · intro h_edge
+    have hv_in : v ∈ G.refactor_nodeSplittingHard hG W hW := by
+      show v ∈ (G.refactor_nodeSplittingHard hG W hW).J
+              ∪ (G.refactor_nodeSplittingHard hG W hW).V
+      refine Finset.mem_union_right _ ?_
+      exact (G.refactor_nodeSplittingHard hG W hW).hL_subset h_edge (Sym2.mem_mk_right u v)
+    have hu_ne_v : u ≠ v := fun h_eq =>
+      (G.refactor_nodeSplittingHard hG W hW).hL_irrefl h_edge
+        (Sym2.mk_isDiag_iff.mpr h_eq)
+    refine Or.inl ⟨refactor_Walk.cons v (.bidir h_edge) (refactor_Walk.nil v hv_in),
+      ?_, ?_⟩
+    · refine ⟨hu_ne_v, ?_, ?_, 0, ?_⟩
+      · intro h_mem
+        exact hu_ne_v (List.mem_singleton.mp h_mem)
+      · intro h_mem
+        exact hu_ne_v (List.mem_singleton.mp h_mem).symm
+      · trivial
+    · intro x hx
+      exact (List.not_mem_nil hx).elim
+-- REFACTOR-BLOCK-REPLACEMENT-END: swig_marginalization_phi_L_W_copy0_iff
+
+-- Refactor port of `marginalize_swig_eq_doit`.  J / V / E sub-goals
+-- port mechanically (the refactor leaves these fields untouched);
+-- the L sub-goal is restructured around `Sym2.map` and `Sym2.ind`.
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_swig_eq_doit (was: refactor_marginalize_swig_eq_doit)
+set_option maxHeartbeats 800000 in
+-- claim_3_19 -- start statement
+theorem refactor_marginalize_swig_eq_doit (G : refactor_CDMG Node)
+    (hG : G.refactor_IsCADMG) (W : Finset Node) (hW : W ⊆ G.V) :
+    refactor_eqViaNodeMap
+        (G.refactor_hardInterventionOn W (refactor_subset_J_union_V_of_subset_V hW))
+        ((G.refactor_nodeSplittingHard hG W hW).refactor_marginalize
+            (W.image refactor_SplitNode.copy0)
+            refactor_image_copy0_subset_nodeSplittingHard_V)
+        (refactor_toCopy1 W)
+-- claim_3_19 -- end statement
+:= by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  -- ===== Clause (a): J equality =====
+  · change (G.J ∪ W).image (refactor_toCopy1 W)
+        = G.J.image refactor_SplitNode.unsplit ∪ W.image refactor_SplitNode.copy1
+    rw [Finset.image_union]
+    have hGJ : G.J.image (refactor_toCopy1 W) = G.J.image refactor_SplitNode.unsplit := by
+      refine Finset.image_congr ?_
+      intro j hj
+      have hjJ : j ∈ G.J := Finset.mem_coe.mp hj
+      have hj_notW : j ∉ W := by
+        intro hjW
+        exact Finset.disjoint_left.mp G.hJV_disj hjJ (hW hjW)
+      show refactor_toCopy1 W j = refactor_SplitNode.unsplit j
+      unfold refactor_toCopy1
+      rw [if_neg hj_notW]
+    have hW1 : W.image (refactor_toCopy1 W) = W.image refactor_SplitNode.copy1 := by
+      refine Finset.image_congr ?_
+      intro w hw
+      have hwW : w ∈ W := Finset.mem_coe.mp hw
+      show refactor_toCopy1 W w = refactor_SplitNode.copy1 w
+      unfold refactor_toCopy1
+      rw [if_pos hwW]
+    rw [hGJ, hW1]
+  -- ===== Clause (b): V equality =====
+  · change (G.V \ W).image (refactor_toCopy1 W)
+        = ((G.V \ W).image refactor_SplitNode.unsplit ∪ W.image refactor_SplitNode.copy0)
+            \ (W.image refactor_SplitNode.copy0)
+    have hLHS : (G.V \ W).image (refactor_toCopy1 W)
+                  = (G.V \ W).image refactor_SplitNode.unsplit := by
+      refine Finset.image_congr ?_
+      intro v hv
+      have hvSdiff : v ∈ G.V \ W := Finset.mem_coe.mp hv
+      have hv_notW : v ∉ W := (Finset.mem_sdiff.mp hvSdiff).2
+      show refactor_toCopy1 W v = refactor_SplitNode.unsplit v
+      unfold refactor_toCopy1
+      rw [if_neg hv_notW]
+    rw [hLHS]
+    apply Finset.ext
+    intro x
+    constructor
+    · intro hx
+      refine Finset.mem_sdiff.mpr ⟨Finset.mem_union_left _ hx, ?_⟩
+      intro hx_inW
+      obtain ⟨v, _, hveq⟩ := Finset.mem_image.mp hx
+      obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hx_inW
+      rw [← hveq] at hweq
+      cases hweq
+    · intro hx
+      obtain ⟨hx_union, hx_notC0⟩ := Finset.mem_sdiff.mp hx
+      rcases Finset.mem_union.mp hx_union with hxA | hxB
+      · exact hxA
+      · exact absurd hxB hx_notC0
+  -- ===== Clause (c): E directed-edge equality =====
+  · change (G.E.filter (fun e => e.2 ∉ W)).image
+            (Prod.map (refactor_toCopy1 W) (refactor_toCopy1 W))
+        = (((G.refactor_nodeSplittingHard hG W hW).J
+              ∪ ((G.refactor_nodeSplittingHard hG W hW).V \
+                  (W.image refactor_SplitNode.copy0)))
+              ×ˢ
+              ((G.refactor_nodeSplittingHard hG W hW).V \
+                (W.image refactor_SplitNode.copy0))).filter
+            (fun e =>
+              (G.refactor_nodeSplittingHard hG W hW).refactor_MarginalizationΦE
+                (W.image refactor_SplitNode.copy0) e.1 e.2)
+    have hC0eqC1 : ∀ {x : Node}, x ∉ W → refactor_toCopy0 W x = refactor_toCopy1 W x := by
+      intro x hx
+      unfold refactor_toCopy0 refactor_toCopy1
+      rw [if_neg hx, if_neg hx]
+    apply Finset.ext
+    intro pair
+    constructor
+    · intro hpair
+      obtain ⟨e, he, hPM⟩ := Finset.mem_image.mp hpair
+      obtain ⟨he_E, he_notW⟩ := Finset.mem_filter.mp he
+      obtain ⟨he1_in, he2_V⟩ := G.hE_subset he_E
+      have hPM_eq : pair = (refactor_toCopy1 W e.1, refactor_toCopy1 W e.2) := by
+        rw [← hPM]; rfl
+      have h_swig_E : pair ∈ (G.refactor_nodeSplittingHard hG W hW).E := by
+        change pair ∈ G.E.image
+          (fun e => (refactor_toCopy1 W e.1, refactor_toCopy0 W e.2))
+        refine Finset.mem_image.mpr ⟨e, he_E, ?_⟩
+        rw [hPM_eq]
+        rw [hC0eqC1 he_notW]
+      have hSub := (G.refactor_nodeSplittingHard hG W hW).hE_subset h_swig_E
+      have hpair1_notC0 : pair.1 ∉ W.image refactor_SplitNode.copy0 :=
+        refactor_swig_edge_source_notMem_W_copy0 hG hW h_swig_E
+      refine Finset.mem_filter.mpr ⟨?_, ?_⟩
+      · refine Finset.mem_product.mpr ⟨?_, ?_⟩
+        · rcases Finset.mem_union.mp hSub.1 with hJ | hV
+          · exact Finset.mem_union_left _ hJ
+          · exact Finset.mem_union_right _
+              (Finset.mem_sdiff.mpr ⟨hV, hpair1_notC0⟩)
+        · refine Finset.mem_sdiff.mpr ⟨hSub.2, ?_⟩
+          rw [hPM_eq]
+          show refactor_toCopy1 W e.2 ∉ W.image refactor_SplitNode.copy0
+          unfold refactor_toCopy1
+          rw [if_neg he_notW]
+          intro hContra
+          obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hContra
+          cases hweq
+      · exact (refactor_swig_marginalization_phi_E_W_copy0_iff
+          G hG W hW _ _).mpr h_swig_E
+    · intro hpair
+      obtain ⟨hProd, hPhi⟩ := Finset.mem_filter.mp hpair
+      have h_swig_E : pair ∈ (G.refactor_nodeSplittingHard hG W hW).E :=
+        (refactor_swig_marginalization_phi_E_W_copy0_iff G hG W hW _ _).mp hPhi
+      change pair ∈ G.E.image
+        (fun e => (refactor_toCopy1 W e.1, refactor_toCopy0 W e.2)) at h_swig_E
+      obtain ⟨e, he_E, hpair_eq⟩ := Finset.mem_image.mp h_swig_E
+      obtain ⟨_, hv⟩ := Finset.mem_product.mp hProd
+      obtain ⟨_, hv_notC0⟩ := Finset.mem_sdiff.mp hv
+      have he2_notW : e.2 ∉ W := by
+        intro he2W
+        apply hv_notC0
+        have h2 : pair.2 = refactor_toCopy0 W e.2 := by rw [← hpair_eq]
+        rw [h2]
+        show refactor_toCopy0 W e.2 ∈ W.image refactor_SplitNode.copy0
+        unfold refactor_toCopy0
+        rw [if_pos he2W]
+        exact Finset.mem_image.mpr ⟨e.2, he2W, rfl⟩
+      refine Finset.mem_image.mpr ⟨e, ?_, ?_⟩
+      · exact Finset.mem_filter.mpr ⟨he_E, he2_notW⟩
+      · show Prod.map (refactor_toCopy1 W) (refactor_toCopy1 W) e = pair
+        rw [← hpair_eq]
+        show (refactor_toCopy1 W e.1, refactor_toCopy1 W e.2)
+              = (refactor_toCopy1 W e.1, refactor_toCopy0 W e.2)
+        rw [hC0eqC1 he2_notW]
+  -- ===== Clause (d): L bidirected-edge equality =====
+  · change (G.L.filter (fun s => ∀ v ∈ s, v ∉ W)).image
+            (Sym2.map (refactor_toCopy1 W))
+        = ((((G.refactor_nodeSplittingHard hG W hW).V \
+                (W.image refactor_SplitNode.copy0))
+              ×ˢ
+              ((G.refactor_nodeSplittingHard hG W hW).V \
+                (W.image refactor_SplitNode.copy0))).filter
+            (fun e => e.1 ≠ e.2
+              ∧ (G.refactor_nodeSplittingHard hG W hW).refactor_MarginalizationΦL
+                  (W.image refactor_SplitNode.copy0) e.1 e.2)).image
+            (fun e => s(e.1, e.2))
+    have hToCopy1_unsplit : ∀ {x : Node}, x ∉ W →
+        refactor_toCopy1 W x = refactor_SplitNode.unsplit x := by
+      intro x hx
+      unfold refactor_toCopy1
+      rw [if_neg hx]
+    have hToCopy0_unsplit : ∀ {x : Node}, x ∉ W →
+        refactor_toCopy0 W x = refactor_SplitNode.unsplit x := by
+      intro x hx
+      unfold refactor_toCopy0
+      rw [if_neg hx]
+    apply Finset.ext
+    refine Sym2.ind (fun a b => ?_)
+    constructor
+    · -- Forward (⇒): s(a, b) ∈ image of G.L.filter → s(a, b) ∈ image of (... filter ...)
+      intro hLHS
+      obtain ⟨s_src, hs_src_filter, hs_src_map⟩ := Finset.mem_image.mp hLHS
+      obtain ⟨hs_src_L, hs_src_notW⟩ := Finset.mem_filter.mp hs_src_filter
+      induction s_src using Sym2.ind with | _ a₀ b₀ =>
+      -- hs_src_map : Sym2.map (refactor_toCopy1 W) s(a₀, b₀) = s(a, b)
+      have ha₀_notW : a₀ ∉ W := hs_src_notW a₀ (Sym2.mem_mk_left _ _)
+      have hb₀_notW : b₀ ∉ W := hs_src_notW b₀ (Sym2.mem_mk_right _ _)
+      have ha₀_V : a₀ ∈ G.V := G.hL_subset hs_src_L (Sym2.mem_mk_left _ _)
+      have hb₀_V : b₀ ∈ G.V := G.hL_subset hs_src_L (Sym2.mem_mk_right _ _)
+      have hab₀_ne : a₀ ≠ b₀ := fun h_eq =>
+        G.hL_irrefl hs_src_L (Sym2.mk_isDiag_iff.mpr h_eq)
+      -- Build swig.L membership of s(.unsplit a₀, .unsplit b₀)
+      have h_swig_L : s(refactor_SplitNode.unsplit a₀, refactor_SplitNode.unsplit b₀)
+                        ∈ (G.refactor_nodeSplittingHard hG W hW).L := by
+        change s(refactor_SplitNode.unsplit a₀, refactor_SplitNode.unsplit b₀)
+                ∈ G.L.image (Sym2.map (refactor_toCopy0 W))
+        refine Finset.mem_image.mpr ⟨s(a₀, b₀), hs_src_L, ?_⟩
+        show Sym2.map (refactor_toCopy0 W) s(a₀, b₀)
+              = s(refactor_SplitNode.unsplit a₀, refactor_SplitNode.unsplit b₀)
+        rw [Sym2.map_mk, hToCopy0_unsplit ha₀_notW, hToCopy0_unsplit hb₀_notW]
+      -- Use witness pair (refactor_toCopy1 W a₀, refactor_toCopy1 W b₀)
+      refine Finset.mem_image.mpr
+        ⟨(refactor_toCopy1 W a₀, refactor_toCopy1 W b₀), ?_, ?_⟩
+      · refine Finset.mem_filter.mpr ⟨?_, ?_, ?_⟩
+        · refine Finset.mem_product.mpr ⟨?_, ?_⟩
+          · refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
+            · show refactor_toCopy1 W a₀ ∈ (G.refactor_nodeSplittingHard hG W hW).V
+              change refactor_toCopy1 W a₀ ∈
+                (G.V \ W).image refactor_SplitNode.unsplit
+                  ∪ W.image refactor_SplitNode.copy0
+              rw [hToCopy1_unsplit ha₀_notW]
+              refine Finset.mem_union_left _ ?_
+              exact Finset.mem_image.mpr
+                ⟨a₀, Finset.mem_sdiff.mpr ⟨ha₀_V, ha₀_notW⟩, rfl⟩
+            · rw [hToCopy1_unsplit ha₀_notW]
+              intro hContra
+              obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hContra
+              cases hweq
+          · refine Finset.mem_sdiff.mpr ⟨?_, ?_⟩
+            · change refactor_toCopy1 W b₀ ∈
+                (G.V \ W).image refactor_SplitNode.unsplit
+                  ∪ W.image refactor_SplitNode.copy0
+              rw [hToCopy1_unsplit hb₀_notW]
+              refine Finset.mem_union_left _ ?_
+              exact Finset.mem_image.mpr
+                ⟨b₀, Finset.mem_sdiff.mpr ⟨hb₀_V, hb₀_notW⟩, rfl⟩
+            · rw [hToCopy1_unsplit hb₀_notW]
+              intro hContra
+              obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hContra
+              cases hweq
+        · show refactor_toCopy1 W a₀ ≠ refactor_toCopy1 W b₀
+          rw [hToCopy1_unsplit ha₀_notW, hToCopy1_unsplit hb₀_notW]
+          intro h_eq
+          injection h_eq with h_inj
+          exact hab₀_ne h_inj
+        · -- Φ_L: use the iff helper
+          refine (refactor_swig_marginalization_phi_L_W_copy0_iff
+            G hG W hW _ _).mpr ?_
+          show s(refactor_toCopy1 W a₀, refactor_toCopy1 W b₀)
+                ∈ (G.refactor_nodeSplittingHard hG W hW).L
+          rw [hToCopy1_unsplit ha₀_notW, hToCopy1_unsplit hb₀_notW]
+          exact h_swig_L
+      · -- s(refactor_toCopy1 W a₀, refactor_toCopy1 W b₀) = s(a, b)
+        show s(refactor_toCopy1 W a₀, refactor_toCopy1 W b₀) = s(a, b)
+        rw [← Sym2.map_mk]
+        exact hs_src_map
+    · -- Reverse (⇐)
+      intro hRHS
+      obtain ⟨pair, hpair_filter, hpair_eq⟩ := Finset.mem_image.mp hRHS
+      obtain ⟨hpair_prod, hpair_ne, hPhi⟩ := Finset.mem_filter.mp hpair_filter
+      have h_swig_L : s(pair.1, pair.2) ∈ (G.refactor_nodeSplittingHard hG W hW).L :=
+        (refactor_swig_marginalization_phi_L_W_copy0_iff G hG W hW _ _).mp hPhi
+      change s(pair.1, pair.2)
+        ∈ G.L.image (Sym2.map (refactor_toCopy0 W)) at h_swig_L
+      obtain ⟨s₀, hs₀_L, hs₀_map⟩ := Finset.mem_image.mp h_swig_L
+      induction s₀ using Sym2.ind with | _ a₀ b₀ =>
+      -- hs₀_map : Sym2.map (refactor_toCopy0 W) s(a₀, b₀) = s(pair.1, pair.2)
+      have hpair1_notC0 : pair.1 ∉ W.image refactor_SplitNode.copy0 :=
+        (Finset.mem_sdiff.mp (Finset.mem_product.mp hpair_prod).1).2
+      have hpair2_notC0 : pair.2 ∉ W.image refactor_SplitNode.copy0 :=
+        (Finset.mem_sdiff.mp (Finset.mem_product.mp hpair_prod).2).2
+      -- Derive a₀ ∉ W using the contradiction approach
+      have ha₀_notW : a₀ ∉ W := by
+        intro ha₀W
+        have h_tc0_eq : refactor_toCopy0 W a₀ = refactor_SplitNode.copy0 a₀ := by
+          unfold refactor_toCopy0; rw [if_pos ha₀W]
+        have h_mem : refactor_toCopy0 W a₀ ∈ s(pair.1, pair.2) := by
+          rw [← hs₀_map, Sym2.map_mk]
+          exact Sym2.mem_mk_left _ _
+        rcases Sym2.mem_iff.mp h_mem with h_eq | h_eq
+        · apply hpair1_notC0
+          rw [← h_eq, h_tc0_eq]
+          exact Finset.mem_image.mpr ⟨a₀, ha₀W, rfl⟩
+        · apply hpair2_notC0
+          rw [← h_eq, h_tc0_eq]
+          exact Finset.mem_image.mpr ⟨a₀, ha₀W, rfl⟩
+      have hb₀_notW : b₀ ∉ W := by
+        intro hb₀W
+        have h_tc0_eq : refactor_toCopy0 W b₀ = refactor_SplitNode.copy0 b₀ := by
+          unfold refactor_toCopy0; rw [if_pos hb₀W]
+        have h_mem : refactor_toCopy0 W b₀ ∈ s(pair.1, pair.2) := by
+          rw [← hs₀_map, Sym2.map_mk]
+          exact Sym2.mem_mk_right _ _
+        rcases Sym2.mem_iff.mp h_mem with h_eq | h_eq
+        · apply hpair1_notC0
+          rw [← h_eq, h_tc0_eq]
+          exact Finset.mem_image.mpr ⟨b₀, hb₀W, rfl⟩
+        · apply hpair2_notC0
+          rw [← h_eq, h_tc0_eq]
+          exact Finset.mem_image.mpr ⟨b₀, hb₀W, rfl⟩
+      -- Use s(a₀, b₀) as witness in G.L.filter
+      refine Finset.mem_image.mpr ⟨s(a₀, b₀), ?_, ?_⟩
+      · refine Finset.mem_filter.mpr ⟨hs₀_L, ?_⟩
+        intro x hx
+        rcases Sym2.mem_iff.mp hx with rfl | rfl
+        · exact ha₀_notW
+        · exact hb₀_notW
+      · -- Sym2.map (refactor_toCopy1 W) s(a₀, b₀) = s(a, b)
+        show Sym2.map (refactor_toCopy1 W) s(a₀, b₀) = s(a, b)
+        rw [Sym2.map_mk, hToCopy1_unsplit ha₀_notW, hToCopy1_unsplit hb₀_notW]
+        -- Goal: s(.unsplit a₀, .unsplit b₀) = s(a, b)
+        -- From hs₀_map: s(refactor_toCopy0 W a₀, refactor_toCopy0 W b₀) = s(pair.1, pair.2)
+        -- After rewriting hToCopy0: s(.unsplit a₀, .unsplit b₀) = s(pair.1, pair.2)
+        -- From hpair_eq: s(pair.1, pair.2) = s(a, b)
+        rw [show (s(refactor_SplitNode.unsplit a₀, refactor_SplitNode.unsplit b₀) : Sym2 _)
+                = s(pair.1, pair.2) by
+              rw [← hToCopy0_unsplit ha₀_notW, ← hToCopy0_unsplit hb₀_notW,
+                  ← Sym2.map_mk]
+              exact hs₀_map]
+        exact hpair_eq
+-- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_swig_eq_doit
+
+end refactor_CDMG
 
 end Causality

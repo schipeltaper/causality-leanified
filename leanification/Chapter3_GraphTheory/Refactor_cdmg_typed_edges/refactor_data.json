@@ -4975,7 +4975,7 @@
           "last_used": "2026-06-19T01:56:08+00:00"
         }
       ],
-      "time_needed_to_solve": 37211,
+      "time_needed_to_solve": 37233,
       "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
       "wording_check": {
         "done": true,
@@ -4995,10 +4995,10 @@
       "section": "3.2",
       "title": "MarginalizingOutThe",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-19",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
@@ -5014,11 +5014,11 @@
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 1,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -5034,8 +5034,65 @@
         "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0ff8aae4-244f-48ca-b4b9-d3f20314f4cc",
+          "first_seen": "2026-06-19T02:06:52+00:00",
+          "last_used": "2026-06-19T02:06:52+00:00"
+        },
+        {
+          "kind": "make_plan",
+          "spawned_by": "manager",
+          "session_id": "cbf08d02-65a5-4182-8324-5831f1e842c4",
+          "first_seen": "2026-06-19T02:12:27+00:00",
+          "last_used": "2026-06-19T02:12:27+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2d3cdb33-06fe-4d42-9d53-e3e54cce78ec",
+          "first_seen": "2026-06-19T02:13:10+00:00",
+          "last_used": "2026-06-19T02:13:10+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "1eb488b6-1d24-484d-98bf-75fa9ca8ad48",
+          "first_seen": "2026-06-19T02:13:29+00:00",
+          "last_used": "2026-06-19T02:13:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1c389aa5-a975-4d29-8b7c-f78eb79aaf79",
+          "first_seen": "2026-06-19T02:14:44+00:00",
+          "last_used": "2026-06-19T02:14:44+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a0fcc6ef-151c-4524-bf6c-63acb94c9647",
+          "first_seen": "2026-06-19T03:14:28+00:00",
+          "last_used": "2026-06-19T03:14:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2ef9a5a7-50b0-4ed0-9691-23d72f61ba77",
+          "first_seen": "2026-06-19T03:15:29+00:00",
+          "last_used": "2026-06-19T03:15:29+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "203c5d29-7631-4be0-8102-f4c1510dd69c",
+          "first_seen": "2026-06-19T03:20:20+00:00",
+          "last_used": "2026-06-19T03:20:20+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5421,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
