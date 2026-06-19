@@ -5429,7 +5429,7 @@
           "last_used": "2026-06-19T07:03:21+00:00"
         }
       ],
-      "time_needed_to_solve": 5195,
+      "time_needed_to_solve": 5215,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -5450,10 +5450,10 @@
       "section": "3.3",
       "title": "AcyclicNonCollidersBlockable",
       "type": "remark",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-19",
       "tips": "Refactored on 2026-06-15 via `blockable_noncollider_first` (see leanification/Chapter*/Refactor_blockable_noncollider_first_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
@@ -5463,13 +5463,13 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -5486,11 +5486,54 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\nIf $G$ is acyclic then all non-colliders are blockable.\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8e0d57fe-ab05-4c6d-a7f0-38fe1535729f",
+          "first_seen": "2026-06-19T08:04:55+00:00",
+          "last_used": "2026-06-19T08:04:55+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "ef756e58-d4ec-41c1-b774-b97162e4059d",
+          "first_seen": "2026-06-19T08:05:20+00:00",
+          "last_used": "2026-06-19T08:05:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "382ac4a0-a10a-49bd-9394-ce7ffa711f2e",
+          "first_seen": "2026-06-19T08:06:06+00:00",
+          "last_used": "2026-06-19T08:06:06+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "19a14a63-c6a4-4ca0-aa07-e90ee36ba106",
+          "first_seen": "2026-06-19T08:09:18+00:00",
+          "last_used": "2026-06-19T08:09:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aea24ab1-f02f-464f-ae5c-d9b0e0eeba20",
+          "first_seen": "2026-06-19T08:10:07+00:00",
+          "last_used": "2026-06-19T08:10:07+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "174364e8-81f2-41d3-bef4-408b32796e38",
+          "first_seen": "2026-06-19T08:13:55+00:00",
+          "last_used": "2026-06-19T08:13:55+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3074,
       "addition_to_the_LN": "[acyclic_does_not_imply_directed_in_text] In this remark $G$ is a CDMG, as fixed by the surrounding context; the hypothesis \"$G$ is acyclic\" is to be read as acyclicity in the CDMG sense, so the edge orientations needed to define (non-)colliders are already part of the ambient structure.",
       "wording_check": {
         "done": true,
