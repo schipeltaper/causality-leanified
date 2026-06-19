@@ -1,18 +1,45 @@
-% Claim proof file for row claim_3_11 -- "DisjointHardInterventions".
+% Claim proof file (REFACTOR TWIN) for row claim_3_11 -- "DisjointHardInterventions".
+% This is the twin file produced during the `cdmg_typed_edges` refactor;
+% the original `claim_3_11_proof_DisjointHardInterventions.tex` stays
+% untouched until cleanup eventually renames this twin over it.
 %
-% Proof lifted from lecture-notes/lecture_notes/graphs.tex:673--699 (the
-% \Claude{...} block immediately following the claim). Only light edits:
-% explicit \refrow{def_3_10} and \refrow{def_3_12} cross-links the first
-% time \doit and \swig appear in the body, \medskip\noindent\emph{...}
-% section headers mirroring the bare-NS sibling
-% claim_3_8_proof_DisjointHardInterventions.tex, a \checkmark at the end
-% of each component-agree paragraph, expansion of the disjoint-copy case
-% analysis to match the sibling's level of detail, a one-phrase inline
-% note recording the SWIG-vs-NS edge-set difference (the SWIG's inner
-% hard intervention erases the bare-split edges), and a closing
-% one-liner. The \Claude{...} wrapper from the LN source is dropped.
+% Mathematically the LN-level proof is unchanged by the refactor: at the
+% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
+% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
+% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
+% capture. There are two prose adjustments versus the original:
 %
-% Compiles standalone via the `subfiles` package.
+% (i) the L-axiom recitation in the statement-restatement block drops the
+%     explicit ordered-pair phrasing ($L \subseteq V \times V$, $L$
+%     irreflexive on ordered pairs, $L$ symmetric in the swap of
+%     components) and uses the unordered-pair phrasing instead;
+%
+% (ii) the "Bidirected edges" section of the proof body no longer needs
+%      the "Registered two-sided removal of $L$" deviation paragraph: in
+%      the post-refactor `Sym2`-typed encoding the LN's literal one-sided
+%      removal clause $L \sm \lC v \huh w \mid w \in W_1 \rC$ translates
+%      directly to "all endpoints of the unordered pair lie outside
+%      $W_1$" (there is no ordered "second component" to filter on), so
+%      the LN reading is by construction the same as the Lean encoding
+%      and no symmetrisation step is required. We replace the deviation
+%      paragraph with a short refactor-context note, and use
+%      endpoint-universal wording ("$v_1, v_2 \notin W_1$" read as
+%      "every endpoint of the bidirected edge lies outside $W_1$")
+%      throughout the calculation that follows. The calculation itself
+%      is otherwise unchanged, and all SWIG-specific content -- the
+%      \ref{claim_3_3} citation for inner-LHS-acyclicity (the SWIG
+%      construction of def \ref{def:G_node-splitting_intervention}
+%      requires a CADMG input), the "no transfer edges" remark in the
+%      $E$ section, the carrier-arithmetic observations
+%      $W_1 \cap W_2^o = W_1 \cap W_2^i = \emptyset$, the
+%      $W_2^i \subseteq J_{\swig}$ / $W_2^o \subseteq V_{\swig}$
+%      placement, and the closing acyclicity-preservation argument via
+%      \ref{claim_3_9} (\emph{SwigAcyclic}) for the SWIG side -- is
+%      carried over verbatim from the pre-refactor SWIG twin.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -21,85 +48,254 @@
 % title: DisjointHardInterventions
 \def\rowref{claim\_3\_11}
 \phantomsection\label{claim_3_11}
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
 % --- statement (restated) ---------------------------------------------------
-\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]
-   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
-   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.
-      \[ \lp G_{\doit(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\doit(W_1)}.   \]
+% Statement body below is synced from the canonical statement file
+% `tex/claim_3_11_statement_DisjointHardInterventions.tex`, with one
+% light refactor-aware rewording: the L-axiom recitation drops the
+% explicit-ordered-pair phrasing ("$L \subseteq V \times V$, $L$
+% irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$
+% symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)") and
+% replaces it with the unordered-pair phrasing "$L$ consists of
+% unordered pairs of distinct vertices in $V$". The mathematics is
+% unchanged and the same as in the LN.
+
+\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\label{disjoint-hard-interventions-and-node-splitting-hard-interventions-commute}
+    Let $G = (J, V, E, L)$ be a CADMG (def \ref{def-cdmg-types}, item~i., equivalently a CDMG of def \ref{def-cdmg} that is acyclic in the sense of def \ref{def-acylic}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, and $L$ consists of unordered pairs of distinct vertices in $V$. We rely throughout on the hard-intervention construction $\doit$ of def \ref{def:G_hard_intervention} and the node-splitting hard-intervention (SWIG) construction $\swig$ of def \ref{def:G_node-splitting_intervention}. Let
+    \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq V \]
+    be two subsets of nodes of $G$ (both automatically finite, since $J \cup V$ is finite by def \ref{def-cdmg}; this matches the project's Lean encoding of $W_1$ and $W_2$ as \texttt{Finset}s), subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CADMG $G$'', ``for every $W_1 \subseteq J \cup V$'', and ``for every $W_2 \subseteq V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted.
+
+    \emph{Reading of ``CADMG'' in the LN's prose.}
+    The LN's literal text opens with ``Let $G = (J, V, E, L)$ be a CADMG'' and refers in the prose to ``the CADMG obtained from $\ldots$'' for both sides of the displayed equality. Both sides of the equality are produced by applying $\doit$ (def \ref{def:G_hard_intervention}) and $\swig$ (def \ref{def:G_node-splitting_intervention}) to $G$. The constructor of def \ref{def:G_node-splitting_intervention} requires the CADMG hypothesis on its input -- on $G$ for the RHS's inner $\swig(W_2)$, and on $G_{\doit(W_1)}$ for the LHS's outer $\swig(W_2)$. Acyclicity of $G_{\doit(W_1)}$ under the CADMG hypothesis on $G$ is established by \ref{claim_3_3} (\emph{AcyclicPreservedUnderDo}); acyclicity of $G_{\swig(W_2)}$ under the same hypothesis is established by \ref{claim_3_9} (\emph{SwigAcyclic}). Hence both sides of the displayed equality are CADMGs. At the underlying CDMG-type level, the asserted equality below is first an equality of CDMGs (def \ref{def-cdmg}) -- componentwise on the four components $(J, V, E, L)$ -- and the upgrade to an equality of CADMGs is automatic once both sides are known to be acyclic CDMGs (acyclicity is a propositional condition on a fixed CDMG, transported along the CDMG-equality).
+
+    \emph{Well-typedness of the inner SWIG on the LHS.}
+    The LHS $\lp G_{\doit(W_1)} \rp_{\swig(W_2)}$ requires its outer $\swig(W_2)$ to act on a CADMG whose output-node set contains $W_2$, i.e.\ $W_2 \subseteq V_{\doit(W_1)}$ per def \ref{def:G_node-splitting_intervention}'s precondition (the CADMG-ness of $G_{\doit(W_1)}$ itself comes from \ref{claim_3_3} on top of $G$ being a CADMG). By item~ii.\ of def \ref{def:G_hard_intervention} we have $V_{\doit(W_1)} = V \sm W_1$, and the inclusion
+    \[ W_2 \;\subseteq\; V \sm W_1 \;=\; V_{\doit(W_1)} \]
+    follows from $W_2 \subseteq V$ together with $W_1 \cap W_2 = \emptyset$. Hence the LHS is defined per def \ref{def:G_node-splitting_intervention}. Well-typedness of the RHS $\lp G_{\swig(W_2)} \rp_{\doit(W_1)}$ is spelled out in the carrier-reading paragraph below the displayed equality.
+
+    \emph{The conclusion.}
+    The CADMG obtained from first hard intervening on $W_1$ and then node-splitting (in the SWIG sense of def \ref{def:G_node-splitting_intervention}) on $W_2$ equals the CADMG obtained from first node-splitting (in the same sense) on $W_2$ and then hard intervening on $W_1$:
+    \[ \lp G_{\doit(W_1)} \rp_{\swig(W_2)} \;=\; \lp G_{\swig(W_2)} \rp_{\doit(W_1)}. \]
+    The equality is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}: equal input-node sets ($J_{\text{LHS}} = J_{\text{RHS}}$), equal output-node sets ($V_{\text{LHS}} = V_{\text{RHS}}$), equal directed-edge sets ($E_{\text{LHS}} = E_{\text{RHS}}$), and equal bidirected-edge sets ($L_{\text{LHS}} = L_{\text{RHS}}$); the conjunctive unpacking into these four field-by-field equalities is deferred to the proof.
+
+    \medskip\emph{Carrier reading of the equality.}
+    By def \ref{def:G_node-splitting_intervention} the operation $\swig(W_2)$ shifts the carrier from $J \cup V$ to the tagged-disjoint-union carrier
+    \[ J_{\swig(W_2)} \cup V_{\swig(W_2)} \;=\; \lp J \dcup W_2^i \rp \;\cup\; \lp (V \sm W_2) \dcup W_2^o \rp, \]
+    where $W_2^o := \lC w^o \st w \in W_2 \rC$ and $W_2^i := \lC w^i \st w \in W_2 \rC$ are the two type-level tagged copies of $W_2$ introduced in def \ref{def:G_node-splitting_intervention} (so $W_2^o \cap W_2^i = \emptyset$ and both $W_2^o$ and $W_2^i$ are disjoint from every element of $J \cup V$). Crucially, the input-side tagged copy $W_2^i$ sits in $J_{\swig(W_2)}$ and the output-side tagged copy $W_2^o$ sits in $V_{\swig(W_2)}$ -- this is the distinguishing feature of $\swig$ versus the regular node-splitting $\spl$ of def \ref{def:G_node-splitting}, whose output-node set carries \emph{both} tagged copies. By def \ref{def:G_hard_intervention} the operation $\doit$ preserves the carrier $J \cup V$ of its input as a set (items~i.\ and~ii.\ give $J_{\doit(W)} \cup V_{\doit(W)} = (J \cup W) \cup (V \sm W) = J \cup V$ whenever $W \subseteq J \cup V$). Thus both sides of the displayed equality live in a CDMG over the same $\swig(W_2)$-carrier just displayed, and the asserted equality is a \emph{literal} $=$ of CDMGs (def \ref{def-cdmg}) -- \emph{not} an equality up to a carrier-relabelling map. On the right-hand side, $\doit(W_1)$ is read as hard-intervening on the \emph{unsplit copies} of the nodes of $W_1$ inside the $\swig(W_2)$-carrier: every $w \in W_1$ satisfies $w \in J \cup V$ (by $W_1 \subseteq J \cup V$) and $w \notin W_2$ (by $W_1 \cap W_2 = \emptyset$), so $w \in J \cup (V \sm W_2)$, which is the untagged piece of $J_{\swig(W_2)} \cup V_{\swig(W_2)}$ under def \ref{def:G_node-splitting_intervention}'s notational shorthand ``$v^o := v^i := v$ for $v \in J \cup (V \sm W_2)$'' (i.e.\ $W_1$ injects into the $\swig(W_2)$-carrier as the unsplit injection $w \mapsto w$). The precondition $W_1 \subseteq J_{\swig(W_2)} \cup V_{\swig(W_2)}$ of def \ref{def:G_hard_intervention} is thereby met by these unsplit copies, so the RHS is also defined per def \ref{def:G_hard_intervention}, and the LN's $G_{\swig(W_2)}$ carrier reading agrees with the unique LN-faithful reading of $\doit(W_1)$ on it.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
+% Proof body adapted from the LN's \Claude{...} block at
+% lecture-notes/lecture_notes/graphs.tex lines 672-700, with the following
+% refinements (carried over from the pre-refactor SWIG twin, except for
+% the bidirected-edge refactor-context note flagged in (iv)):
+% (i) explicit citation of \ref{claim_3_3} (AcyclicPreservedUnderDo) for
+%     the CADMG-hood of G_{\doit(W_1)} required by the inner \swig(W_2) on
+%     the LHS (the LN's terse opening sentence "both operations are
+%     well-defined in either order" glossed over this; the SWIG construction
+%     of def_3_12 -- in contrast to the spl construction of def_3_11 used in
+%     claim_3_8 -- requires its input to be a CADMG, so an acyclicity
+%     witness must be exhibited);
+% (ii) the LN's terse parenthetical "with W_1 \cap W_2^o = \emptyset" is
+%      unpacked into an explicit decomposition of ((V \sm W_2) \dcup W_2^o)
+%      \sm W_1 that splits the intersection across the two disjoint pieces,
+%      citing the SWIG-specific tagged-construction disjointness
+%      W_1 \cap W_2^o = W_1 \cap W_2^i = \emptyset at the tagged pieces and
+%      the hypothesis W_1 \cap W_2 = \emptyset only on the untagged piece;
+% (iii) the LN's "head v_2^o \in W_1 iff v_2 \in W_1" claim is unpacked
+%       into two sub-cases on whether v_2 \in W_2 or v_2 \in V \sm W_2, with
+%       the disjointness W_1 \cap W_2 = \emptyset cross-checked in the
+%       v_2 \in W_2 branch;
+% (iv) in the post-refactor `Sym2`-typed encoding the LN's literal
+%      one-sided removal clause translates directly to "every endpoint
+%      of the unordered pair lies outside $W_1$" (there is no ordered
+%      "second component" to filter on), so the "Registered two-sided
+%      removal of $L$" deviation paragraph carried by the pre-refactor
+%      SWIG twin is no longer needed; it is replaced here by a short
+%      refactor-context note, and the calculation that follows uses
+%      endpoint-universal wording for the single removal condition
+%      "$v_1, v_2 \notin W_1$" and unordered-pair notation
+%      "$v_1 \huh v_2$" in place of the pre-refactor ordered-pair
+%      notation "$(v_1, v_2)$".
+% The proof is organised under the LN's three section headings
+% (Node sets / Directed edges / Bidirected edges); the "Node sets" section
+% covers the J and V fields jointly, matching the LN's grouping and
+% the four-field componentwise check of the downstream Lean proof.
 \begin{proof}
-\medskip\noindent\emph{Preamble.}
-Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are
-well-defined in either order: on the left, $\swig(W_2)$ acts on $G_{\doit(W_1)}$
-whose output set $V \sm W_1$ still contains $W_2$ (using $W_1 \cap W_2 = \emptyset$);
-on the right, $\doit(W_1)$ acts on $G_{\swig(W_2)}$, whose input/output universe
-contains every vertex of $W_1 \ins J \cup V$ untouched by the split (again using
-$W_1 \cap W_2 = \emptyset$, so $W_1 \ins J \cup (V \sm W_2)$). For $w \in W_2$ we
-write $w^o$ (output copy) and $w^i$ (input copy) for the two SWIG copies of $w$;
-for $v \notin W_2$ we identify $v^o = v^i = v$. Each side of the displayed equation
-is a CADMG presented as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$, and we verify
-the four components in turn.
+We verify the equality $\lp G_{\doit(W_1)} \rp_{\swig(W_2)} = \lp G_{\swig(W_2)} \rp_{\doit(W_1)}$ componentwise on the four fields $(J, V, E, L)$ of def \ref{def-cdmg}, organised as in the LN under three section headings: ``Node sets'' (covering $J$ and $V$ jointly), ``Directed edges'' (the $E$ field), and ``Bidirected edges'' (the $L$ field).
+
+\smallskip\noindent\emph{Well-typedness of both iteration orders.}
+For the LHS $\lp G_{\doit(W_1)} \rp_{\swig(W_2)}$: the outer $\swig(W_2)$ of def \ref{def:G_node-splitting_intervention} requires (a) its input to be a CADMG and (b) $W_2 \subseteq V_{\doit(W_1)}$. For (a), $G_{\doit(W_1)}$ is itself a CADMG by \ref{claim_3_3} (\emph{AcyclicPreservedUnderDo}) applied to the standing CADMG hypothesis on $G$ -- this is the SWIG-specific acyclicity step that the spl analog (\refrow{claim_3_8}) did not need, since the regular node-splitting $\spl$ of def \ref{def:G_node-splitting} does not require a CADMG input. For (b), by def \ref{def:G_hard_intervention} item~ii., $V_{\doit(W_1)} = V \sm W_1$, and the inclusion $W_2 \subseteq V \sm W_1$ follows from $W_2 \subseteq V$ together with $W_1 \cap W_2 = \emptyset$. For the RHS $\lp G_{\swig(W_2)} \rp_{\doit(W_1)}$: the outer $\doit(W_1)$ of def \ref{def:G_hard_intervention} requires only $W_1 \subseteq J_{\swig(W_2)} \cup V_{\swig(W_2)}$, which holds by the carrier-reading paragraph of the statement above: every $w \in W_1$ satisfies $w \in J \cup V$ (from $W_1 \subseteq J \cup V$) and $w \notin W_2$ (from $W_1 \cap W_2 = \emptyset$), so $w \in J \cup (V \sm W_2)$, the untagged piece of $J_{\swig(W_2)} \cup V_{\swig(W_2)}$ under def \ref{def:G_node-splitting_intervention}'s unsplit shorthand $v^o := v^i := v$.
+
+\smallskip\noindent\emph{Notational reminder.}
+For $w \in W_2$ we write $w^o$, $w^i$ for the two tagged copies produced by $\swig(W_2)$ per def \ref{def:G_node-splitting_intervention}; these live in the tagged-disjoint-union pieces $W_2^o$ and $W_2^i$ respectively, and are formally distinct from every element of $J \cup V$ (and from each other), per def \ref{def:G_node-splitting_intervention}'s tagged-copies disjointness assertions $W_2^o \cap V = W_2^i \cap V = W_2^o \cap J = W_2^i \cap J = W_2^o \cap W_2^i = \emptyset$. For $v \in J \cup (V \sm W_2)$ we use def \ref{def:G_node-splitting_intervention}'s unsplit shorthand $v^o := v^i := v$, which leaves $v$ in the untagged piece of $J_{\swig(W_2)} \cup V_{\swig(W_2)}$. \emph{Crucially for SWIG, the input copies $W_2^i$ sit in $J_{\swig(W_2)}$ and the output copies $W_2^o$ sit in $V_{\swig(W_2)}$} -- the distinguishing feature of $\swig$ versus the regular node-splitting $\spl$ of def \ref{def:G_node-splitting}, whose output-node set carries \emph{both} tagged copies.
+
+On the right-hand side, the outer $\doit(W_1)$ is read on the lifted intervention set ``$W_1$ inside the $\swig(W_2)$-carrier'', which by the carrier-reading paragraph of the statement is the unsplit image $\lC w \st w \in W_1 \rC \subseteq J \cup (V \sm W_2)$ (using $W_1 \subseteq J \cup V$ and $W_1 \cap W_2 = \emptyset$); throughout the proof we write $W_1$ for this lifted set, using the unsplit shorthand $w = w^o = w^i$ for $w \in W_1$. The SWIG-specific carrier-arithmetic observation we use repeatedly below is
+\[ W_1 \cap W_2^o \;=\; \emptyset \qquad\text{and}\qquad W_1 \cap W_2^i \;=\; \emptyset, \]
+both of which follow from $W_1 \subseteq J \cup V$ together with the tagged-construction disjointness $W_2^o \cap (J \cup V) = W_2^i \cap (J \cup V) = \emptyset$ of def \ref{def:G_node-splitting_intervention}.
+
+``Head'' of a directed edge $(a, b) \in E$ means its second component $b$; ``endpoints'' of a bidirected edge $v_1 \huh v_2 \in L$ means the unordered pair $\{v_1, v_2\}$ of its two vertices.
 
 \medskip\noindent\emph{Node sets.}
-Left: by \refrow{def_3_10}, $G_{\doit(W_1)}$ has input set $J \cup W_1$ and output
-set $V \sm W_1$; then $\swig(W_2)$~\refrow{def_3_12} (with $W_2 \ins V \sm W_1$,
-by $W_1 \cap W_2 = \emptyset$) gives
+
+\smallskip\noindent\emph{Input nodes ($J$).}
+We show
+\[ J_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; J_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
+By def \ref{def:G_hard_intervention} item~i.\ applied to $G$ with intervention set $W_1$,
+\[ J_{G_{\doit(W_1)}} \;=\; J \cup W_1. \]
+By def \ref{def:G_node-splitting_intervention} item~i.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (well-typed by $W_2 \subseteq V \sm W_1 = V_{\doit(W_1)}$),
+\[ J_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; J_{G_{\doit(W_1)}} \dcup W_2^i \;=\; (J \cup W_1) \dcup W_2^i. \]
+The $\dcup$ here is a literal disjoint union: $W_2^i$ is disjoint from $J \cup W_1$ since $W_1 \subseteq J \cup V$ gives $(J \cup W_1) \subseteq J \cup V$, and $W_2^i \cap (J \cup V) = \emptyset$ by the tagged-construction disjointness from the notational reminder.
+
+For the RHS, by def \ref{def:G_node-splitting_intervention} item~i.\ applied to $G$ with split set $W_2$,
+\[ J_{G_{\swig(W_2)}} \;=\; J \dcup W_2^i. \]
+By def \ref{def:G_hard_intervention} item~i.\ applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted via the unsplit injection per the well-typedness paragraph),
+\[ J_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}} \;=\; J_{G_{\swig(W_2)}} \cup W_1 \;=\; (J \dcup W_2^i) \cup W_1. \]
+By $W_1 \cap W_2^i = \emptyset$ (from the notational reminder), adjoining $W_1$ to $J \dcup W_2^i$ folds $W_1$ into the $J$ piece while leaving the $W_2^i$ piece untouched:
+\[ (J \dcup W_2^i) \cup W_1 \;=\; (J \cup W_1) \dcup W_2^i. \]
+Hence
+\[ J_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; (J \cup W_1) \dcup W_2^i \;=\; J_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
+\checkmark
+
+\smallskip\noindent\emph{Output nodes ($V$).}
+We show
+\[ V_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; V_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
+By def \ref{def:G_hard_intervention} item~ii.\ applied to $G$ with intervention set $W_1$ and then def \ref{def:G_node-splitting_intervention} item~ii.\ applied to $G_{\doit(W_1)}$ with split set $W_2 \subseteq V \sm W_1 = V_{\doit(W_1)}$,
 \[
-  (J \cup W_1) \dcup W_2^i
-  \qquad\text{and}\qquad
-  (V \sm W_1 \sm W_2) \dcup W_2^o.
+    V_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lp V_{G_{\doit(W_1)}} \sm W_2 \rp \;\dcup\; W_2^o
+    \;=\; \lp (V \sm W_1) \sm W_2 \rp \;\dcup\; W_2^o,
 \]
-Right: $G_{\swig(W_2)}$ has input set $J \dcup W_2^i$ and output set
-$(V \sm W_2) \dcup W_2^o$; then $\doit(W_1)$ (with $W_1 \cap W_2^o = \emptyset$,
-since $W_2^o$ consists of fresh output copies of vertices in $W_2$ and
-$W_1 \cap W_2 = \emptyset$, so $W_1 \ins J \cup (V \sm W_2)$) gives
+which simplifies (by $(V \sm W_1) \sm W_2 = V \sm W_1 \sm W_2$, the standard ``two-step removal'' identity for set-difference) to
 \[
-  (J \cup W_1) \dcup W_2^i
-  \qquad\text{and}\qquad
-  (V \sm W_1 \sm W_2) \dcup W_2^o.
+    V_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^o.
 \]
-These agree. \checkmark
+
+For the RHS, by def \ref{def:G_node-splitting_intervention} item~ii.\ applied to $G$ with split set $W_2$ and then def \ref{def:G_hard_intervention} item~ii.\ applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted to the SWIG carrier via the unsplit injection),
+\[
+    V_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
+    \;=\; V_{G_{\swig(W_2)}} \sm W_1
+    \;=\; \lp (V \sm W_2) \;\dcup\; W_2^o \rp \sm W_1.
+\]
+We simplify the latter by decomposing the set-difference across the two disjoint pieces of the disjoint union, using both the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ (on the untagged piece) and the SWIG-specific tagged-construction disjointness (on the tagged piece):
+\begin{itemize}
+    \item $W_1 \cap W_2^o = \emptyset$: this is the SWIG-specific carrier-arithmetic observation from the notational reminder. Since the lifted $W_1$ sits in the untagged piece $J \cup (V \sm W_2) \subseteq J \cup V$, and $W_2^o \cap (J \cup V) = \emptyset$ by def \ref{def:G_node-splitting_intervention}'s tagged-construction disjointness, the lifted $W_1$ does not meet $W_2^o$. Hence the set-difference acts as the identity on $W_2^o$.
+    \item $(V \sm W_2) \sm W_1 = V \sm W_1 \sm W_2$: indeed, for any $x$, the chain of equivalences $x \in (V \sm W_2) \sm W_1$ iff $x \in V$, $x \notin W_2$, $x \notin W_1$ iff $x \in V$, $x \notin W_1$, $x \notin W_2$ iff $x \in V \sm W_1 \sm W_2$ holds. (Here the disjointness $W_1 \cap W_2 = \emptyset$ is \emph{not} needed for this equality; the two iterated removals commute by associativity of $\sm$ alone.)
+\end{itemize}
+Combining the two piecewise calculations,
+\[
+    \lp (V \sm W_2) \;\dcup\; W_2^o \rp \sm W_1
+    \;=\; \lp (V \sm W_2) \sm W_1 \rp \;\dcup\; W_2^o
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^o.
+\]
+Hence
+\[
+    V_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^o
+    \;=\; V_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
 
 \medskip\noindent\emph{Directed edges.}
-Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\swig(W_2)$
-(whose inner hard intervention erases the bare-split edges $w^i \tuh w^o$ that
-node-splitting alone would produce) yields
+We show
+\[ E_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; E_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
+By def \ref{def:G_hard_intervention} item~iii.\ applied to $G$ with intervention set $W_1$,
 \[
-  \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC.
+    E_{G_{\doit(W_1)}}
+    \;=\; E \sm \lC (v_1, v_2) \in E \st v_2 \in W_1 \rC
+    \;=\; \lC (v_1, v_2) \in E \st v_2 \notin W_1 \rC.
 \]
-Right: $E_{\swig(W_2)} = \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E \rC$;
-then $\doit(W_1)$ removes the edges with head in $W_1$. An edge $v_1^i \tuh v_2^o$
-has head $v_2^o \in W_1$ iff $v_2 \in W_1$ (using $W_1 \cap W_2 = \emptyset$: if
-$v_2 \in W_2$ then $v_2^o$ is a fresh output copy not in $W_1$, and if $v_2 \notin W_2$
-then $v_2^o = v_2$). After removal we obtain
+By def \ref{def:G_node-splitting_intervention} item~iii.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (every surviving directed edge $(v_1, v_2) \in E_{G_{\doit(W_1)}}$ is lifted to $(v_1^i, v_2^o)$; note that the SWIG construction of def \ref{def:G_node-splitting_intervention} introduces \emph{no} transfer edges, in contrast to the regular node-splitting $\spl$ of def \ref{def:G_node-splitting}),
 \[
-  \lC v_1^i \tuh v_2^o \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC,
+    E_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E_{G_{\doit(W_1)}} \rC
+    \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC.
 \]
-which agrees with the left-hand side. \checkmark
+
+For the RHS, by def \ref{def:G_node-splitting_intervention} item~iii.\ applied to $G$ with split set $W_2$,
+\[
+    E_{G_{\swig(W_2)}}
+    \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC.
+\]
+By def \ref{def:G_hard_intervention} item~iii.\ applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted to the SWIG carrier via the unsplit injection),
+\[
+    E_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
+    \;=\; E_{G_{\swig(W_2)}} \sm \lC (a, b) \in E_{G_{\swig(W_2)}} \st b \in W_1 \rC.
+\]
+The removal condition ``$b \in W_1$'' inspects the head $b = v_2^o$ of each candidate generator $(v_1^i, v_2^o)$ arising from $(v_1, v_2) \in E$. By def \ref{def-cdmg}'s typing $E \subseteq (J \cup V) \times V$ we have $v_2 \in V$, so we case-split on whether $v_2 \in W_2$:
+\begin{itemize}
+    \item \emph{If $v_2 \in W_2$:} $v_2^o \in W_2^o$ is a tagged copy, lying in the disjoint-union piece $W_2^o$. By $W_1 \cap W_2^o = \emptyset$ (from the notational reminder), $v_2^o \notin W_1$ (read in the SWIG carrier via the unsplit lift). The edge \emph{survives} the RHS removal. Cross-check with the LHS: by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, $v_2 \in W_2$ also forces $v_2 \notin W_1$, so the LHS-side condition ``$v_2 \notin W_1$'' is automatically met -- both sides keep this edge.
+    \item \emph{If $v_2 \in V \sm W_2$:} $v_2^o = v_2$ (unsplit shorthand, since $v_2 \in V \sm W_2 \subseteq J \cup (V \sm W_2)$). The lifted $W_1$ in the SWIG carrier is the unsplit image $\lC w \st w \in W_1 \rC$, so $v_2^o \in W_1$ iff $v_2 \in W_1$ (the unsplit injection $J \cup (V \sm W_2) \hookrightarrow J_{\swig(W_2)} \cup V_{\swig(W_2)}$ is injective). The edge is removed by the RHS iff $v_2 \in W_1$, equivalently kept iff $v_2 \notin W_1$. This matches the LHS condition ``$v_2 \notin W_1$'' verbatim.
+\end{itemize}
+Combining the two sub-cases, the generator $(v_1^i, v_2^o)$ from $(v_1, v_2) \in E$ survives the RHS removal iff $v_2 \notin W_1$, matching the LHS surviving condition exactly. (In the $v_2 \in W_2$ branch this is supplied automatically by the disjointness $W_1 \cap W_2 = \emptyset$; in the $v_2 \in V \sm W_2$ branch it is read off the unsplit identification.) Therefore
+\[
+    E_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC.
+\]
+Comparing with the LHS,
+\[
+    E_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC
+    \;=\; E_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
 
 \medskip\noindent\emph{Bidirected edges.}
-Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\swig(W_2)$
-yields
-\[
-  \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC.
-\]
-Right: $L_{\swig(W_2)} = \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L \rC$;
-then $\doit(W_1)$ removes the bidirected edges touching $W_1$. Using
-$v_k^o \in W_1 \iff v_k \in W_1$ for $k = 1, 2$ (same fresh-copy / identity case
-analysis as for the directed edges, again using $W_1 \cap W_2 = \emptyset$), the
-result is
-\[
-  \lC v_1^o \huh v_2^o \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC,
-\]
-which agrees with the left-hand side. \checkmark
+We show
+\[ L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}} \;=\; L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}. \]
 
-All four components agree, completing the proof.
+\smallskip\noindent\emph{Refactor-context note on the removal clause of $\doit$ for $L$.}
+At the LN level the bidirected-edge set $L$ consists of unordered pairs of distinct vertices in $V$, and def \ref{def:G_hard_intervention} item~iv.\ removes those pairs that touch $W_1$. The LN's literal one-sided gloss ``$L \sm \lC v \huh w \mid w \in W_1 \rC$'' selects an ordered-pair representative of each unordered pair and tests its second component, which presumes an ordered-pair encoding of $L$. The post-refactor encoding of def \ref{def-cdmg} (and downstream def \ref{def:G_hard_intervention}) carries $L$ as a set of \emph{unordered} pairs, so there is no ordered ``second component'' to single out: the structurally well-defined reading of the LN's removal clause is the endpoint-universal form
+\[
+    L_{\doit(W)} \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W,\; v_2 \notin W \rC,
+\]
+i.e.\ ``$v_1 \huh v_2$ survives iff every endpoint of the unordered pair lies outside $W$''. This is precisely the LN's intended ``remove all edges into nodes from $W$'' applied to bidirected edges (which are incident to \emph{both} endpoints) and agrees on the survivor set with the LN's literal one-sided gloss after closing under the implicit swap of representatives. The pre-refactor encoding of def \ref{def:G_hard_intervention} had to spell this symmetrisation out as a registered deviation; under the post-refactor unordered-pair encoding the LN-faithful reading is the literal one and no symmetrisation step is required. We use the endpoint-universal form throughout the calculations below.
+
+By def \ref{def:G_hard_intervention} item~iv.\ (endpoint-universal form), applied to $G$ with intervention set $W_1$,
+\[
+    L_{G_{\doit(W_1)}}
+    \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+By def \ref{def:G_node-splitting_intervention} item~iv.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (every surviving bidirected edge $v_1 \huh v_2 \in L_{G_{\doit(W_1)}}$ is lifted to $v_1^o \huh v_2^o$, with \emph{both} endpoints carrying the output-side $^o$ superscript -- in particular no element of $W_2^i$ appears as an endpoint of any bidirected edge),
+\[
+    L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L_{G_{\doit(W_1)}} \rC
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+
+For the RHS, by def \ref{def:G_node-splitting_intervention} item~iv.\ applied to $G$ with split set $W_2$,
+\[
+    L_{G_{\swig(W_2)}}
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC.
+\]
+By def \ref{def:G_hard_intervention} item~iv.\ (endpoint-universal form), applied to $G_{\swig(W_2)}$ with intervention set $W_1$ (lifted to the SWIG carrier via the unsplit injection),
+\[
+    L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC a \huh b \in L_{G_{\swig(W_2)}} \st a \notin W_1,\; b \notin W_1 \rC.
+\]
+We compute the surviving pairs by analysing each endpoint of the generator $v_1^o \huh v_2^o$ arising from $v_1 \huh v_2 \in L$. Since $L$ consists of unordered pairs of distinct vertices in $V$, both $v_1, v_2 \in V$. For each $k \in \{1, 2\}$:
+\begin{itemize}
+    \item \emph{If $v_k \in W_2$:} $v_k^o \in W_2^o$ is a tagged copy. By $W_1 \cap W_2^o = \emptyset$ (from the notational reminder), $v_k^o \notin W_1$ (in the SWIG carrier). Cross-check with the LHS: by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, $v_k \in W_2$ also forces $v_k \notin W_1$, so both the RHS-side condition ``$v_k^o \notin W_1$'' and the LHS-side condition ``$v_k \notin W_1$'' are satisfied automatically in this branch.
+    \item \emph{If $v_k \in V \sm W_2$:} $v_k^o = v_k$ (unsplit shorthand, since $v_k \in V \sm W_2 \subseteq J \cup (V \sm W_2)$). The lifted $W_1$ in the SWIG carrier is the unsplit image $\lC w \st w \in W_1 \rC$, so $v_k^o \in W_1$ iff $v_k \in W_1$ (the unsplit injection is injective). Hence the RHS-side condition ``$v_k^o \notin W_1$'' is equivalent to the LHS-side condition ``$v_k \notin W_1$''.
+\end{itemize}
+In both sub-cases the condition ``$v_k^o \notin W_1$'' is equivalent to ``$v_k \notin W_1$''. Applying this to both endpoints $v_1$ and $v_2$ independently,
+\[
+    L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+Comparing with the LHS,
+\[
+    L_{\lp G_{\doit(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC
+    \;=\; L_{\lp G_{\swig(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
+
+\smallskip
+Combining the four componentwise equalities ($J$, $V$, $E$, $L$) above, the CDMGs $\lp G_{\doit(W_1)} \rp_{\swig(W_2)}$ and $\lp G_{\swig(W_2)} \rp_{\doit(W_1)}$ agree field by field on each of $(J, V, E, L)$ and are therefore equal as CDMGs (def \ref{def-cdmg}). The upgrade to an equality of CADMGs is automatic: acyclicity is a propositional condition on a fixed CDMG and transports along the CDMG-equality (acyclicity of the LHS follows from \ref{claim_3_9} (\emph{SwigAcyclic}) applied to $G_{\doit(W_1)}$, which is itself a CADMG by \ref{claim_3_3}; acyclicity of the RHS follows from \ref{claim_3_3} applied to $G_{\swig(W_2)}$, which is itself a CADMG by \ref{claim_3_9}).
 \end{proof}
 
 \end{document}

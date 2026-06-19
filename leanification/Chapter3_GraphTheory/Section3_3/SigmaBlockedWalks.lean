@@ -1,616 +1,711 @@
-import Chapter3_GraphTheory.Section3_1.FamilyReachability
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.EdgeRelations
+import Chapter3_GraphTheory.Section3_1.Walks
+import Chapter3_GraphTheory.Section3_1.FamilyRelationships
+import Chapter3_GraphTheory.Section3_3.CollidersAndNon
 import Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable
-
-/-!
-# $\sigma$-blocked walks (def 3.17)
-
-This file formalises *definition 3.17* of the lecture notes
-(Forré & Mooij, `lecture-notes/lecture_notes/graphs.tex`): the
-two-clause classification of a walk $\pi$ in a CDMG $G$,
-relative to a conditioning set $C \subseteq J \cup V$, as
-either *$C$-$\sigma$-open* or *$C$-$\sigma$-blocked*.
-
-## Predicates exposed (under `Causality.Walk`)
-
-* `nodeAt : Walk G v w → ℕ → α` -- helper returning the vertex
-  $v_k$ at position $k$ on the walk
-  $\pi = (v_0 \sus \cdots \sus v_n)$. Defined by structural
-  recursion on the walk + pattern-match on `k`: the source
-  vertex at `k = 0`, the tail's $k$-th vertex at `k + 1`, and
-  (junk-totally-fine) the walk's *endpoint* `w` for
-  `k > π.length`. See "Position-indexing convention" below for
-  why the junk is never semantically observed.
-* `IsSigmaOpen (π : Walk G v w) (C : Set α) : Prop` -- LN's
-  "$\pi$ is $C$-$\sigma$-open": every collider on $\pi$ lies
-  in $\Anc^G(C)$, *and* every blockable non-collider on $\pi$
-  lies outside $C$.
-* `IsSigmaBlocked (π : Walk G v w) (C : Set α) : Prop` -- LN's
-  "$\pi$ is $C$-$\sigma$-blocked": there exists a collider on
-  $\pi$ outside $\Anc^G(C)$, *or* there exists a blockable
-  non-collider on $\pi$ inside $C$.
-
-Plus the De-Morgan dual sanity lemma
-`isSigmaBlocked_iff_not_isSigmaOpen`: classically (via
-`Classical.em`), `π.IsSigmaBlocked C ↔ ¬ π.IsSigmaOpen C`.
-The LN's two clauses are explicitly *complementary*
-("$\sigma$-open *or* $\sigma$-blocked, never both, always at
-least one"), and the dual is the natural sanity check.
-
-## Position-indexing convention
-
-Inherited from `Section3_3.CollidersAndNon` and
-`Section3_3.BlockableAndUnblockable`:
-
-* Positions are indexed by `ℕ` over `{0, …, π.length}`.
-* `nodeAt` is *junk-on-out-of-range*: for `k > π.length` it
-  returns the endpoint `w`. The junk is never semantically
-  observed because:
-  - In `IsSigmaOpen`, the two universal quantifiers are gated
-    by `IsColliderAt` / `IsBlockableNonColliderAt`, both of
-    which return `False` at out-of-range positions (the
-    collider recursion exits via the `cons _ (nil _)` case
-    and the blockable predicate carries `IsNonColliderAt`'s
-    `k ≤ π.length` guard). The implication `False → P` is
-    vacuous, so the body's value of `nodeAt` is irrelevant.
-  - In `IsSigmaBlocked`, the existential witnesses must
-    additionally satisfy `IsColliderAt` /
-    `IsBlockableNonColliderAt`, which exclude out-of-range
-    positions; no such witness can be produced
-    out-of-range, so the junk value cannot be observed either.
-
-## Downstream usage
-
-* **def_3_18** ($i$-$\sigma$-separation,
-  `graphs.tex` lines 1351 -- 1372): "every walk from $A$ to
-  $J \cup B$ is $\sigma$-blocked by $C$". Consumes
-  `IsSigmaBlocked` directly as the per-walk blocking
-  predicate.
-* **claim_3_21**
-  (the trailing claimmark of this definition,
-  `graphs.tex` lines 1343 -- 1346): "unblockable
-  non-colliders are always $C$-$\sigma$-open" (regardless of
-  $C$). Proves a property of an unblockable non-collider
-  position vis-à-vis any `IsSigmaOpen` predicate.
-* **claim_3_22** ($\sigma$-separation symmetry,
-  `graphs.tex` lines 1366 -- 1369): pivots between
-  `IsSigmaOpen` and `IsSigmaBlocked` via the De-Morgan dual.
-* **claim_3_23 / claim_3_24** ($\sigma$-open path /
-  $\sigma$-separation equivalences): rewrite $\sigma$-blocked
-  walks in terms of $\sigma$-open paths and vice versa.
-* Chapters 4 onwards (do-calculus, identification, iSCMs)
-  consume `IsSigmaBlocked` and `IsSigmaOpen` through
-  $\sigma$-separation.
-
-## LN-faithfulness note
-
-The LN's clauses (i) and (ii) under both *open* and *blocked*
-single out *colliders* and *blockable non-colliders* -- a
-distinction inherited from def_3_16, where non-colliders are
-refined into *blockable* and *unblockable*. We faithfully
-mirror that split: `IsSigmaOpen` and `IsSigmaBlocked`
-reference `IsBlockableNonColliderAt`, *not* `IsNonColliderAt`.
-Collapsing to "every non-collider" would mis-state the
-definition: claim_3_21 (the trailing claimmark of def 3.17)
-explicitly observes that *unblockable* non-colliders are
-*always* $\sigma$-open and so play no role in the blocking
-conditions. In the acyclic case claim_3_20 then collapses
-"blockable non-collider" back to "non-collider", but this is
-a *derived* equivalence (under acyclicity), not the LN's
-definition.
-
-The LN's preamble "$C \subseteq J \cup V$" is *not* a
-type-level restriction here: the existing `AncSet G C` is
-already `Set α → Set α` and silently ignores set members
-outside `G` (same paradigm as `Anc G v`). So we keep
-`C : Set α` and let the LN-precondition $C \subseteq J \cup V$
-be propagated by callers (def_3_18 will state it as a
-side-condition on $A$, $B$, $C$ when it consumes
-`IsSigmaBlocked`).
-
-## Style precedents
-
-* `Chapter3_GraphTheory.Section3_3.CollidersAndNon` (def_3_15)
-  and `Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable`
-  (def_3_16) -- same module-docstring structure, same
-  per-declaration design-choice block convention, same
-  per-constructor `@[simp]` characterisation pattern.
-* `Chapter3_GraphTheory.Section3_1.FamilyReachability` --
-  source of `AncSet G C`, the LN's $\Anc^G(C)$.
-* `Chapter3_GraphTheory.Section3_1.Walks` -- source of the
-  `Walk` / `WalkStep` / `length` types whose `nil` / `cons`
-  constructor pair structures the `nodeAt` recursion.
--/
 
 namespace Causality
 
-open scoped Causality.CDMG
+/-!
+# σ-blocked and σ-open walks (`def_3_17`)
 
-variable {α : Type*}
+This file formalises `def_3_17` (`\label{def:sigma_blocking}`), the
+third definition of Section 3.3 of the lecture notes.  Given a CDMG
+`G = (J, V, E, L)`, a subset of nodes `C ⊆ J ∪ V`, and a walk
+`π = (v_0, a_0, v_1, …, a_{n-1}, v_n)` in `G`, the walk `π` is
+classified as either `C-σ-open` or `C-σ-blocked`:
+
+* `Walk.IsSigmaOpenGiven p C` — every collider position `k` on `p` has
+  `v_k ∈ Anc^G(C)`, AND every blockable non-collider position `k` on
+  `p` has `v_k ∉ C`.
+* `Walk.IsSigmaBlockedGiven p C` — there exists a collider position
+  `k` on `p` with `v_k ∉ Anc^G(C)`, OR there exists a blockable
+  non-collider position `k` on `p` with `v_k ∈ C`.
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_3/tex/def_3_17_SigmaBlockedWalks.tex`,
+verified equivalent to the LN block (`graphs.tex`,
+`\label{def:sigma_blocking}`) augmented with one operator
+clarification:
+
+* `[claim_type_mismatch_vertex_vs_walk]` — the trailing LN remark
+  ("unblockable non-colliders are always `C-σ-open`") is informal
+  commentary, not part of the definition proper.  It applies the
+  walk-level predicate `C-σ-open` to *vertices* (specifically to
+  unblockable non-collider occurrences on a walk), which is a type
+  mismatch with the just-stated definition (which only classifies
+  *walks* as σ-open or σ-blocked).  No Lean obligation is derived
+  from it here; any walk-level reformulation of its underlying
+  content is handled separately as the dedicated claim row
+  `claim_3_21`.
+
+## Design pillars
+
+1. **Walk-level `Prop` predicates `(p : Walk G u v) (C : Set Node)`.**
+   The LN classifies *walks* as σ-open / σ-blocked relative to a
+   conditioning set; matching that shape directly via
+   `Walk.IsSigmaOpenGiven` / `Walk.IsSigmaBlockedGiven` reads as the
+   LN does, and dot-notation `p.IsSigmaOpenGiven C` mirrors the LN's
+   "π is C-σ-open" prose.  No vertex-level σ-open predicate is
+   introduced — the addition `[claim_type_mismatch_vertex_vs_walk]`
+   explicitly excludes that direction from this row's formalisation.
+
+2. **Per-position quantification via the existing `IsCollider` and
+   `IsBlockableNonCollider` predicates.**  Collider and blockable
+   non-collider positions are *already* classified by `def_3_15`
+   (`CollidersAndNon.lean`) and `def_3_16`
+   (`BlockableAndUnblockable.lean`); reusing those predicates verbatim
+   keeps the LN's "for every collider on π" / "for every blockable
+   non-collider on π" scope visible at the type level rather than
+   re-spelling the arrowhead-count / outgoing-walk-edge case-splits.
+
+3. **`G.AncSet` reused from `FamilyRelationships.lean` (`def_3_5`,
+   item iv set form).**  The LN's `Anc^G(C)` for `C ⊆ J ∪ V` is the
+   indexed-union ancestor set `⋃_{c ∈ C} Anc^G(c)`, which
+   `CDMG.AncSet : CDMG Node → Set Node → Set Node` already encodes.
+   Out-of-graph `c ∈ C` contribute `G.Anc c = ∅` (via the `w ∈ G`
+   guard inside `Anc`), so no `C ⊆ J ∪ V` hypothesis is needed at
+   the def site.
+
+4. **Vertex lookup via `p.vertices[k]? = some vk`, mirroring the
+   `IsCollider` / `IsUnblockableNonCollider` idiom.**  The LN writes
+   `v_k` for the vertex at position `k` on the walk; in Lean this
+   reads off `p.vertices` as an `Option Node` lookup.  Pinning down
+   `vk` with a `p.vertices[k]? = some vk` hypothesis lets the
+   membership claim `vk ∈ G.AncSet C` (resp. `vk ∈ C`) be stated
+   directly on the witness.  Out-of-range `k > p.length` make the
+   lookup `none`, so the universal antecedents in `IsSigmaOpenGiven`
+   become vacuous and the existential witnesses in
+   `IsSigmaBlockedGiven` cannot be formed — matching the LN's
+   scoping to `{0, …, n}` without an explicit upper-bound hypothesis.
+
+5. **Unblockable non-colliders are silently outside both
+   quantifications.**  Clause (i) ranges over collider positions;
+   clause (ii) ranges over *blockable* non-collider positions.
+   Unblockable non-collider positions are therefore not constrained
+   by either clause — they are "vacuously open" in the walk-level
+   sense.  The addition `[claim_type_mismatch_vertex_vs_walk]`
+   excludes any per-vertex extension of "σ-open" to unblockable
+   positions from this row's formalisation; the closest walk-level
+   reformulation of the trailing LN remark lives in `claim_3_21`.
+
+6. **Positive existential disjunction for `IsSigmaBlockedGiven`, NOT
+   `¬ IsSigmaOpenGiven`.**  The rewritten canonical tex notes that
+   the two classifiers are De Morgan duals and "by construction
+   mutually exclusive and jointly exhaustive over walks in `G`".  We
+   nonetheless encode `IsSigmaBlockedGiven` *directly* in the
+   positive existential form: (a) it mirrors the LN's literal
+   `∃ … \notin Anc^G(C) ∨ ∃ … \in C` writing; (b) downstream proofs
+   that construct a blocking witness can directly form the
+   `Or.inl ⟨k, vk, …⟩` / `Or.inr ⟨k, vk, …⟩` term; (c) the
+   equivalence `¬ p.IsSigmaOpenGiven C ↔ p.IsSigmaBlockedGiven C` is
+   a standalone (classical) De Morgan lemma to be proved when a
+   downstream row needs it — not a definitional reduction the
+   def-shape forces.  Encoding `IsSigmaBlockedGiven` as
+   `¬ IsSigmaOpenGiven` was considered: it would make the negation
+   definitional but would force downstream witness-construction
+   proofs to wade through a double-negation push, inverting the
+   readability win.
+-/
+
+namespace CDMG
+
+-- ## Design choice — section-wide statement context
+--
+-- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Matches
+--   the chapter convention set by every prior file (`CDMG.lean`,
+--   `CDMGNotation.lean`, `EdgeRelations.lean`, `Walks.lean`,
+--   `FamilyRelationships.lean`, `CollidersAndNon.lean`,
+--   `BlockableAndUnblockable.lean`).  Without the `variable` the
+--   wrapped predicate signatures below have free type variables and
+--   fail to type-check.
+--
+-- *Three-dash `--- start helper` / `--- end helper` markers, not
+--   two-dash `-- start statement`.*  Lean 4's `variable` auto-binding
+--   folds these implicit binders into every declaration below — they
+--   are load-bearing infrastructure, not throwaway local sugar.
+--   Matches the wrapping convention used by every prior file in this
+--   chapter on the identical `variable` line.
+-- def_3_17 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_17 --- end helper
 
 namespace Walk
 
-variable {G : CDMG α}
-
-/-! ### nodeAt (helper: vertex at position `k` on a walk) -/
-
--- def_3_17 (helper)
--- title: Walks -- vertex at position k on a walk
+-- ## Design choice — Walk-namespace statement context
 --
--- `π.nodeAt k` returns the vertex $v_k$ at position $k$ on the
--- walk $\pi = (v_0 \sus \cdots \sus v_n)$. Defined by structural
--- recursion on the walk + pattern-match on `k`: the source
--- vertex `v` at `k = 0` (any walk), the tail's $k$-th vertex
--- at `k + 1` on a `cons` walk, and -- junk-totally-fine -- the
--- walk's endpoint `w` for `k > π.length`.
+-- *Namespace-level `variable {G : CDMG Node}`.*  Both
+--   `IsSigmaOpenGiven` and `IsSigmaBlockedGiven` take a walk
+--   `p : Walk G u v` and reach into `G` for `G.AncSet`.  Without the
+--   namespace-wide `variable`, every signature would carry an
+--   explicit `{G : CDMG Node}` binder; the auto-binding keeps the
+--   signatures readable and matches the LN's once-at-the-top "Let
+--   $G = (J, V, E, L)$ be a CDMG" quantifier.  `{G}` is implicit
+--   because downstream consumers reach into `G` via dot-notation on
+--   the walk (`p.IsSigmaOpenGiven C`).
+-- def_3_17 --- start helper
+variable {G : CDMG Node}
+-- def_3_17 --- end helper
+
+-- ref: def_3_17 (paragraph "C-σ-open walk")
 --
--- This is the first row of section 3.3 that genuinely needs
--- such a helper: def_3_15 / def_3_16 are position-indexed but
--- their predicates only ever inspect the *joint of two
--- consecutive steps* at position $k$ (the head two steps of
--- the recursion), which the structural recursion exposes
--- directly without ever materialising "the vertex at $k$" as a
--- value of type `α`. def_3_17, by contrast, says "the *vertex*
--- $v_k$ is/is-not in $C$ / in $\Anc^G(C)$", which forces an
--- `α`-valued look-up. Hence this helper.
+-- `p.IsSigmaOpenGiven C` iff the walk `p` is `C-σ-open` in the LN's
+-- sense:
+--   (i)   for every position `k` on `p` and every vertex `vk` with
+--         `p.vertices[k]? = some vk`, if `p.IsCollider k` (per
+--         `def_3_15` item ii) then `vk ∈ G.AncSet C`;
+--   (ii)  for every position `k` on `p` and every vertex `vk` with
+--         `p.vertices[k]? = some vk`, if
+--         `p.IsBlockableNonCollider k` (per `def_3_16` paragraph
+--         "Blockable non-collider on π") then `vk ∉ C`.
 --
 -- ## Design choice
 --
--- * **Total `Walk G v w → ℕ → α`, no `Option`.** The LN
---   silently restricts the position $k$ to
---   $\{0, \dots, \pi.\text{length}\}$ and the syntactic
---   expressions "$v_k$ is/is-not in $C$" only ever appear
---   under the (i)/(ii) clauses' implicit "all colliders on
---   $\pi$" / "all blockable non-colliders on $\pi$"
---   quantifiers, which are themselves gated by
---   `IsColliderAt` / `IsBlockableNonColliderAt`. Both gating
---   predicates return `False` at out-of-range positions (the
---   collider recursion's `cons _ (nil _)` exit and the
---   blockable predicate's `IsNonColliderAt`-guard
---   respectively), so the out-of-range value of `nodeAt` is
---   *never semantically observed* by `IsSigmaOpen` /
---   `IsSigmaBlocked`. Returning the endpoint `w` as a junk
---   value keeps the helper total (no `Option` plumbing on
---   every call site), keeps every `@[simp]` characterisation
---   lemma `rfl`-reducible (no `some _` / `none` boilerplate),
---   and matches the precedent set by `length` /
---   `IsColliderAt` / `IsUnblockableNonColliderAt` -- each of
---   which is total on `ℕ` and silently returns a vacuous
---   value (`0`, `False`, `False`) on out-of-range positions.
---   A `Walk G v w → Fin (π.length + 1) → α` total signature
---   would also be junk-free, but it forces every downstream
---   caller to carry the dependent bound through every
---   quantifier (`Fin.val` / `Fin.mk` plumbing) -- the same
---   anti-pattern we ruled out for `IsColliderAt`'s position
---   index, and rejected for the same reasons. Concretely, the
---   length bound would have to thread through every collider /
---   blockable-non-collider quantifier in the API
---   downstream of this row: claim_3_21's "σ-open ⇒ every
---   collider on $\pi$ is in $\Anc^G(C)$ and every blockable
---   non-collider is not in $C$", claim_3_22's σ-symmetry pivot
---   between `IsSigmaOpen` and `IsSigmaBlocked`, def_3_18's
---   $i$-σ-separation universal over walks, and every
---   chapter-$\ge 4$ consumer that reasons about
---   $\sigma$-separation (do-calculus, identification, iSCMs).
---   Symmetrically, an `Option α`-return shape would push
---   `some _` / `none` pattern-matching into every one of those
---   call sites for zero gain over the gating-predicate
---   convention.
+-- *Universally quantified over all `(k, vk)` pairs witnessing a
+--   vertex of `p`.*  The LN's "for every collider `v_k` on `π`"
+--   ranges over positions `k ∈ {0, …, n}`; the `(k, vk)` pair
+--   together pins down both the position index AND the vertex it
+--   refers to.  The `p.vertices[k]? = some vk` hypothesis bounds
+--   `k ≤ p.length` implicitly (out-of-range lookups return `none`),
+--   so out-of-range `k` make the antecedent `False` and the
+--   implication vacuous — matching the LN's scoping to `{0, …, n}`
+--   without an explicit upper-bound conjunct.  This mirrors the
+--   `IsCollider` / `IsUnblockableNonCollider` idiom of `def_3_15`
+--   / `def_3_16`, which both pin down `v_k` the same way.
 --
--- * **Source vertex at `k = 0`, tail recursion at `k + 1`.**
---   The LN's notation $v_0 \sus \cdots \sus v_n$ pins down
---   $v_0$ as the source endpoint of the walk; `cons` walks
---   have that source as the start vertex of the *head step*,
---   which the pattern `cons _ _, 0 => v` (with `v` bound to
---   the source via the implicit-index match) returns
---   directly. At `k + 1`, the LN's $v_{k+1}$ is the $k$-th
---   vertex of the tail walk (which starts at the joint after
---   the head step), so recursion shifts by exactly one: the
---   head step is consumed, the tail's position index
---   decrements. This is the same index shift that
---   `IsColliderAt` and `IsUnblockableNonColliderAt` use for
---   their `cons _ (cons _ _), k + 2 ↦ ..., k + 1` rule -- one
---   `cons` consumed, one position index shifted left.
+-- *`p.IsCollider k` as antecedent, not unfolding to the arrowhead-
+--   count witness.*  The LN's "every collider on π" is already the
+--   `IsCollider` predicate of `def_3_15`; reusing it verbatim keeps
+--   the LN-grep correspondence and avoids re-spelling the count-
+--   based classification.  An alternative shape that ranges over
+--   the existential witnesses already inside `IsCollider` (e.g.
+--   `∀ k a₁ a₂, p.edges[k - 1]? = some a₁ → … → vk ∈ G.AncSet C`)
+--   would inline the collider definition and break the one-to-one
+--   LN-to-Lean correspondence.
 --
--- * **Junk value is the walk's endpoint `w`, not "some
---   uninhabited fallback".** At `k > π.length` the recursion
---   eventually exits at a `nil w' , _ ↦ w'` case (every
---   `cons` recursion peels one step off the front and one
---   position index off the back until the tail is `nil`,
---   whose junk return is *its own* `nil`-vertex). On the
---   full walk that final `nil`-vertex is `w` -- the walk's
---   destination endpoint. Concretely, `(cons s p).nodeAt 5`
---   on a length-2 walk reduces
---   `cons s p, 5 ↦ p.nodeAt 4 ↦ (tail's nil).nodeAt 3 ↦ w`,
---   so out-of-range positions all collapse to `w`. This is
---   well-defined (any `α` would do, but `w` is the locally
---   available "default"), reproducible (the same `k` always
---   returns the same value), and matches the LN's silent
---   "$v_k$ is undefined for $k > n$" convention by being
---   semantically un-observable through the gating predicates.
+-- *`p.IsBlockableNonCollider k`, NOT `p.IsNonCollider k`.*  The LN's
+--   clause (ii) restricts to *blockable* non-colliders; unblockable
+--   non-colliders are silently outside both clauses.  This is the
+--   LN's intended restriction (per the addition
+--   `[claim_type_mismatch_vertex_vs_walk]`, which excludes the
+--   trailing LN remark "unblockable non-colliders are always
+--   σ-open" from this row's formalisation; any walk-level
+--   reformulation of that remark is deferred to the dedicated claim
+--   row `claim_3_21`).  The addition nonetheless records the
+--   underlying intent the remark was gesturing at — that unblockable
+--   positions do not contribute to (un)blocking — and that intent is
+--   encoded structurally here: clause (ii)'s quantification over
+--   *blockable* non-colliders only is its predicate-level
+--   realisation.  Encoding clause (ii) as `p.IsNonCollider k →
+--   vk ∉ C` would over-fire: it would require unblockable
+--   non-collider positions to be outside `C`, which is *not* what
+--   the LN says.
 --
--- * **Per-constructor `@[simp]` characterisation lemmas, all
---   `rfl`-reducible.** Matches the
---   `CollidersAndNon` / `BlockableAndUnblockable` precedent:
---   each pattern case of the definition is mirrored by an
---   explicit simp lemma -- `nodeAt_nil` (any `k` on `nil _`),
---   `nodeAt_cons_zero` (`k = 0` on `cons _ _`),
---   `nodeAt_cons_succ` (`k + 1` shifts into the tail).
---   Downstream proofs reduce `nodeAt` to its body case-by-case
---   via `simp`, without needing to unfold the recursion
---   manually.
+-- *`G.AncSet C` reused from `FamilyRelationships.lean` (`def_3_5`,
+--   item iv set form).*  The LN's `Anc^G(C)` for `C ⊆ J ∪ V` is the
+--   indexed-union ancestor set, which `CDMG.AncSet` already encodes
+--   verbatim.  Out-of-graph `c ∈ C` contribute `G.Anc c = ∅` (by
+--   the `w ∈ G` guard inside `Anc`), so the LN's `C ⊆ J ∪ V`
+--   hypothesis is not needed at the def site — an escaping `C`
+--   simply restricts the effective ancestor set to
+--   `Anc^G(C ∩ (J ∪ V))`.  Downstream consumers that genuinely
+--   need `C ⊆ J ∪ V` pass it as an extra hypothesis at the use
+--   site, following the chapter convention from `def_3_5`'s
+--   `PaSet` / `AncSet` / `DescSet`.
 --
--- * **Named endpoint lemmas `nodeAt_zero` and
---   `nodeAt_length`.** $v_0$ = source and $v_n$ = endpoint
---   are the LN's explicit endpoints in the walk notation;
---   they show up everywhere in `i`-$\sigma$-separation
---   reasoning (the two endpoints of a blocking-witness walk
---   play distinguished roles -- they sit in the "$A$" and
---   "$J \cup B$" sets). The two lemmas expose those endpoint
---   values for callers without forcing them to unfold
---   `nodeAt` against the walk's constructor.
+-- *Conjunction of two universals, NOT a single universal over a
+--   sum-typed predicate.*  The LN spells the two clauses as two
+--   parallel universals (one over colliders, one over blockable
+--   non-colliders); a single universal of the form
+--   `∀ k vk, p.vertices[k]? = some vk → (collider-clause ∧
+--   blockable-clause)` would also be admissible, but the two-clause
+--   form mirrors the LN's bullet-list writing literally and lets a
+--   downstream proof destructure `⟨h_collider, h_blockable⟩`
+--   without a per-position conjunction shuffle.
 
-/-- `π.nodeAt k` -- the vertex $v_k$ at position $k$ on the
-walk $\pi$. Returns the source vertex `v` at `k = 0` (any
-walk), the tail's $k$-th vertex at `k + 1` on a `cons` walk,
-and -- junk-totally-fine, never semantically observed by
-`IsSigmaOpen` / `IsSigmaBlocked` -- the walk's endpoint `w`
-for `k > π.length`. -/
-def nodeAt : {v w : α} → Walk G v w → ℕ → α
-  | v, _, .nil _,    _     => v
-  | v, _, .cons _ _, 0     => v
-  | _, _, .cons _ p, k + 1 => p.nodeAt k
-
-@[simp] theorem nodeAt_nil (v : α) (k : ℕ) :
-    (Walk.nil v : Walk G v v).nodeAt k = v := by
-  cases k <;> rfl
-
-@[simp] theorem nodeAt_cons_zero {v w u : α}
-    (s : WalkStep G v w) (p : Walk G w u) :
-    (Walk.cons s p).nodeAt 0 = v := rfl
-
-@[simp] theorem nodeAt_cons_succ {v w u : α}
-    (s : WalkStep G v w) (p : Walk G w u) (k : ℕ) :
-    (Walk.cons s p).nodeAt (k + 1) = p.nodeAt k := rfl
-
-/-- The first vertex on any walk (LN's $v_0$) is the source
-endpoint `v`. -/
-theorem nodeAt_zero {v w : α} (π : Walk G v w) :
-    π.nodeAt 0 = v := by
-  cases π with
-  | nil _    => rfl
-  | cons _ _ => rfl
-
-/-- The last vertex on any walk (LN's $v_n$, with
-$n = \pi.\text{length}$) is the destination endpoint `w`. -/
-theorem nodeAt_length {v w : α} (π : Walk G v w) :
-    π.nodeAt π.length = w := by
-  induction π with
-  | nil _      => rfl
-  | cons _ _ ih => simpa [Walk.length_cons] using ih
-
-/-! ### IsSigmaOpen (LN def 3.17, item 1) -/
-
--- def_3_17 (item 1)
--- title: Walks -- σ-open walk predicate
+-- ref: def_3_17 (paragraph "C-σ-blocked walk")
 --
--- `π.IsSigmaOpen C` says the walk $\pi$ is $C$-$\sigma$-open:
--- *every* collider position $v_k$ on $\pi$ lies in
--- $\Anc^G(C)$, *and* *every* blockable non-collider position
--- $v_k$ on $\pi$ lies *outside* $C$.
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.17,
-item 1):
-
-  Let $G=(J,V,E,L)$ be a CDMG and $C \ins J \cup V$ a subset of
-  nodes and $\pi$ a walk in $G$:
-    $\pi =\lp v_0 \sus \cdots \sus v_n \rp.$
-  We say that the walk $\pi$ is:
-  (1) \emph{$C$-$\sigma$-open} (or \emph{$\sigma$-open given
-      $C$}) if and only if:
-        i.)  all colliders $v_k$ on $\pi$ are in $\Anc^G(C)$,
-             and:
-        ii.) all blockable non-colliders $v_k$ on $\pi$ are
-             not in $C$.
--/
+-- `p.IsSigmaBlockedGiven C` iff the walk `p` is `C-σ-blocked` in the
+-- LN's sense — the existential disjunction dual of
+-- `IsSigmaOpenGiven`:
+--   (i)   there exists a position `k` on `p` and vertex `vk` with
+--         `p.vertices[k]? = some vk`, `p.IsCollider k`, and
+--         `vk ∉ G.AncSet C`; OR
+--   (ii)  there exists a position `k` on `p` and vertex `vk` with
+--         `p.vertices[k]? = some vk`, `p.IsBlockableNonCollider k`,
+--         and `vk ∈ C`.
 --
 -- ## Design choice
 --
--- * **`Prop`-valued conjunction of two universal
---   quantifiers, in the LN's exact order.** The LN's clauses
---   (i) and (ii) are joined by "and"; we mirror that with `∧`
---   between the two `∀ k, ...` universals. Clause (i) reads
---   "all colliders ... are in $\Anc^G(C)$", which becomes
---   `∀ k, π.IsColliderAt k → π.nodeAt k ∈ G.AncSet C` -- the
---   gating `IsColliderAt k` is the LN's "$v_k$ on $\pi$ is a
---   collider", the conclusion is the LN's "$v_k \in
---   \Anc^G(C)$". Clause (ii) is the dual, mutatis mutandis,
---   with `IsBlockableNonColliderAt` and `∉ C`.
+-- *Positive existential disjunction, NOT `¬ IsSigmaOpenGiven`.*  The
+--   LN spells `C-σ-blocked` as an existential ∨ of negated forms of
+--   the universal clauses of `C-σ-open` — the De Morgan dual.  We
+--   encode it directly in that existential form, rather than as
+--   `¬ p.IsSigmaOpenGiven C`, for three reasons: (a) it mirrors the
+--   LN's `∃ … \notin Anc^G(C) ∨ ∃ … \in C` writing literally; (b)
+--   downstream proofs that *construct* a blocking witness can
+--   directly form the `Or.inl ⟨k, vk, _, _, _⟩` /
+--   `Or.inr ⟨k, vk, _, _, _⟩` term, rather than pushing a double
+--   negation through universal quantifiers and conjunctions; (c)
+--   the equivalence `¬ p.IsSigmaOpenGiven C ↔
+--   p.IsSigmaBlockedGiven C` is a standalone (classical) De Morgan
+--   lemma to be proved when a downstream row needs it — not a
+--   definitional reduction the def-shape forces.
 --
--- * **Standalone `def`, not bundled into a `WalkStatus`
---   inductive or a single `Iff`-shaped definition.**
---   Alternatives considered:
---   (a) a `inductive WalkStatus | sigmaOpen | sigmaBlocked`
---       indexed by `(π, C)`, with the two predicates derived
---       by membership;
---   (b) one definition packaging both clauses behind a single
---       `Iff` (`IsSigmaOpen ↔ ¬ IsSigmaBlocked`) as its
---       defining equation.
---   Both rejected because downstream rows quantify over
---   *one* of the two predicates at a time, not the pair:
---   def_3_18 ($i$-σ-separation) consumes `IsSigmaBlocked`
---   only; claim_3_21 reasons about `IsSigmaOpen` only;
---   claim_3_22 (σ-symmetry) needs both *separately* to pivot
---   between them. Two definitionally-separate `def`s let each
---   consumer cite the predicate it actually needs without
---   destructuring an inductive or unfolding a bundled `Iff`,
---   and they make `isSigmaBlocked_iff_not_isSigmaOpen` below
---   a *theorem about two pre-existing predicates* rather than
---   a tautology over a single bundled definition.
+-- *Same `(k, vk)` pair encoding as `IsSigmaOpenGiven`.*  The
+--   existential takes `∃ k vk` pinning both the position index and
+--   the vertex at that position via `p.vertices[k]? = some vk`.
+--   Keeping both classifiers structurally symmetric makes the De
+--   Morgan duality lemma (when proved) align witness-to-witness on
+--   each clause.
 --
--- * **Composes directly with the chapter-3 vocabulary
---   (`IsColliderAt`, `IsBlockableNonColliderAt`,
---   `G.AncSet`).** Every downstream Section 3.3 consumer
---   (claim_3_20, claim_3_21, claim_3_22, def_3_18) can
---   `unfold IsSigmaOpen` once and reason in the same
---   per-position primitives that def_3_15 / def_3_16
---   established -- no translation lemmas, no parallel
---   re-derivations.
+-- *Conjunction `p.vertices[k]? = some vk ∧ p.IsCollider k ∧ vk ∉
+--   G.AncSet C` inside the existential.*  Mirrors the LN's "there
+--   exists a position `k` on `π` such that [k is a collider on π]
+--   and [v_k ∉ Anc^G(C)]" writing, with the vertex-lookup conjunct
+--   added to extract `vk` from the existential.  The three-conjunct
+--   shape destructures cleanly as `⟨h_lookup, h_collider, h_anc⟩`
+--   at the use site.
 --
--- * **`IsBlockableNonColliderAt`, not `IsNonColliderAt`.**
---   The LN explicitly singles out *blockable* non-colliders
---   in clause (ii) -- not all non-colliders. The distinction
---   is load-bearing: the trailing claimmark of def 3.17
---   (claim_3_21) is precisely "unblockable non-colliders are
---   always $C$-$\sigma$-open, regardless of $C$", which is
---   tautological under our `IsBlockableNonColliderAt`-only
---   reading (the universal vacuously skips unblockable
---   positions) and false under a "every non-collider" reading
---   (it would force unblockable non-colliders out of $C$ for
---   the walk to be open, which is exactly what claim_3_21
---   denies). In the acyclic case claim_3_20 then proves
---   "blockable non-collider = non-collider"
---   (`isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic`
---   in `AcyclicNonCollidersBlockable.lean`), making the two
---   readings equivalent *under acyclicity*; but this is a
---   *derived* equivalence, not the LN's definition.
+-- *`p.IsBlockableNonCollider k`, same as `IsSigmaOpenGiven`.*  The
+--   LN's "blockable non-collider on π in C" of clause (ii) is
+--   exactly the `IsBlockableNonCollider` predicate of `def_3_16`,
+--   conjoined with `vk ∈ C`.  Reusing the existing predicate keeps
+--   the LN-grep correspondence and inherits the walk-edge reading
+--   of "blockable" from `def_3_16` rather than re-spelling the
+--   outgoing-walk-edge case-split.  Encoding clause (ii) as
+--   `p.IsNonCollider k ∧ vk ∈ C` would under-fire: it would admit
+--   unblockable non-collider positions inside `C` as blocking
+--   witnesses, which is *not* what the LN says — the dual of the
+--   over-fire argument on `IsSigmaOpenGiven`, and equally a
+--   consequence of the addition
+--   `[claim_type_mismatch_vertex_vs_walk]`'s exclusion of any
+--   per-vertex "unblockable ⇒ open" extension (walk-level
+--   reformulation deferred to `claim_3_21`).
 --
--- * **`AncSet G C`, not `⋃ v ∈ C, Anc G v` inlined.** The
---   LN's $\Anc^G(C)$ is the family-relationship operator from
---   def_3_5, formalised in `FamilyReachability.lean` as
---   `AncSet G C`. Reusing the existing operator (with its
---   `mem_AncSet` simp lemma, set reflexivity
---   `subset_Anc_set`, etc.) keeps `IsSigmaOpen` aligned with
---   how the LN composes def 3.17 on top of def 3.5, and lets
---   downstream proofs (`claim_3_22` symmetry,
---   `claim_3_23 / claim_3_24` equivalences) reason about
---   $\Anc^G(C)$ membership via the established API rather
---   than re-deriving the bigunion structure each time.
---
--- * **`C : Set α`, not `C : { C : Set α // C ⊆ G.J ∪ G.V }`.**
---   The LN's "$C \ins J \cup V$" is a side-condition on the
---   conditioning set, *not* a type-level restriction: it is
---   stated in the preamble of the def in standard
---   set-theoretic prose. The existing `AncSet G C` is
---   `Set α → Set α` and silently ignores members outside
---   `G.J ∪ G.V` (since `Anc G v` is empty for `v ∉ G`); so
---   `IsSigmaOpen` -- which is downstream of `AncSet` --
---   inherits the same convention. Carrying a subtype around
---   would pollute every downstream signature
---   (`IsSigmaBlocked`, def_3_18's `i`-$\sigma$-separation,
---   every claim's quantifier over $C$) for no proof
---   ergonomic gain. Callers that genuinely need
---   $C \subseteq J \cup V$ (e.g. def_3_18 will need it to
---   pin $A$ / $B$ into the graph) state that as a separate
---   hypothesis.
---
--- * **`π` first, `C` second.** Lean's dot-notation
---   `π.IsSigmaOpen C` works iff `π` is the first explicit
---   argument; we follow that. Matches every other walk
---   predicate in section 3.3 (`π.IsColliderAt k`,
---   `π.IsBlockableNonColliderAt k`, ...).
---
--- * **No structural recursion, no `@[simp]` characterisation
---   lemmas.** Unlike `IsColliderAt` / `IsUnblockableNonColliderAt`,
---   `IsSigmaOpen` is *not* defined by recursion on the walk;
---   it is a one-line composition of two universal
---   quantifiers over already-recursively-defined per-position
---   predicates. So there are no per-constructor cases to
---   characterise. Downstream proofs that need to inspect
---   `IsSigmaOpen` simply unfold the definition (or apply
---   `.1` / `.2` for the two conjuncts and dispatch the gated
---   quantifier).
-
-/-- The walk `π` is *$C$-$\sigma$-open* (LN def 3.17, item 1):
-every collider position on `π` is in $\Anc^G(C)$, *and* every
-blockable non-collider position on `π` is *not* in `C`. -/
-def IsSigmaOpen {v w : α} (π : Walk G v w) (C : Set α) : Prop :=
-  (∀ k, π.IsColliderAt k → π.nodeAt k ∈ G.AncSet C) ∧
-  (∀ k, π.IsBlockableNonColliderAt k → π.nodeAt k ∉ C)
-
-/-- Defining equation for `IsSigmaOpen`. Useful when unfolding
-the definition directly. -/
-theorem isSigmaOpen_iff {v w : α} (π : Walk G v w) (C : Set α) :
-    π.IsSigmaOpen C ↔
-      (∀ k, π.IsColliderAt k → π.nodeAt k ∈ G.AncSet C) ∧
-      (∀ k, π.IsBlockableNonColliderAt k → π.nodeAt k ∉ C) :=
-  Iff.rfl
-
-/-! ### IsSigmaBlocked (LN def 3.17, item 2) -/
-
--- def_3_17 (item 2)
--- title: Walks -- σ-blocked walk predicate
---
--- `π.IsSigmaBlocked C` says the walk $\pi$ is
--- $C$-$\sigma$-blocked: *there exists* a collider position
--- $v_k$ on $\pi$ outside $\Anc^G(C)$, *or* *there exists* a
--- blockable non-collider position $v_k$ on $\pi$ inside $C$.
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.17,
-item 2):
-
-  ...
-  (2) \emph{$C$-$\sigma$-blocked} (or \emph{$\sigma$-blocked
-      given $C$}) if and only if:
-        i.)  there exists a collider $v_k$ on $\pi$ that is
-             not in $\Anc^G(C)$, or:
-        ii.) there exists a blockable non-collider $v_k$ on
-             $\pi$ in $C$.
--/
---
--- ## Design choice
---
--- * **`Prop`-valued disjunction of two existentials, in the
---   LN's exact order.** The LN's clauses (i) and (ii) are
---   joined by "or"; we mirror that with `∨`. Clause (i) reads
---   "there exists a collider ... not in $\Anc^G(C)$", which
---   becomes `∃ k, π.IsColliderAt k ∧ π.nodeAt k ∉ G.AncSet C`
---   -- the existential carries both the "$v_k$ is a collider"
---   witness and the "$v_k \notin \Anc^G(C)$" witness as a
---   conjunction. Clause (ii) is the dual.
---
--- * **Standalone `def`, mirroring `IsSigmaOpen`'s standalone
---   shape -- not folded into a single `WalkStatus` inductive
---   or derived from `¬ IsSigmaOpen`.** Same reasoning as on
---   `IsSigmaOpen` (separate consumers want separate
---   predicates), but with two `IsSigmaBlocked`-specific
---   sharpenings:
---   (a) def_3_18 ($i$-σ-separation) consumes
---       `IsSigmaBlocked` as the *primary* blocking condition
---       ("every walk from $A$ to $J \cup B$ is σ-blocked by
---       $C$") -- a derived-from-`¬ IsSigmaOpen` shape would
---       force the universal quantifier in def_3_18 to unfold
---       a negation at every use, where the literal
---       `∃-of-∃` shape lets witnesses be produced directly;
---   (b) the existential witnesses (collider $k$ in clause
---       (i), blockable non-collider $k$ in clause (ii)) are
---       the LN's actual "what blocks the walk?" certificates,
---       which downstream proofs need to *extract* (claim_3_20
---       in particular constructs such witnesses for acyclic
---       walks); a `¬ IsSigmaOpen` shape would hide those
---       witnesses behind classical reasoning at every
---       extraction.
---   The De-Morgan dual `isSigmaBlocked_iff_not_isSigmaOpen`
---   below stays available for the proof-direction that does
---   want to negate `IsSigmaOpen` instead.
---
--- * **Composes with the same chapter-3 primitives as
---   `IsSigmaOpen`.** Downstream consumers (claim_3_20,
---   claim_3_22, def_3_18) `unfold IsSigmaBlocked` once and
---   then work in `IsColliderAt` / `IsBlockableNonColliderAt`
---   / `G.AncSet` -- the exact vocabulary def_3_15, def_3_16,
---   def_3_5 already provide simp lemmas and characterisations
---   for.
---
--- * **De-Morgan dual of `IsSigmaOpen`, established by
---   `isSigmaBlocked_iff_not_isSigmaOpen` below.** The LN's
---   two clauses are explicitly *complementary*: the (1) /
---   (2) bullet structure of def 3.17 reads "$\pi$ is either
---   (1) $C$-$\sigma$-open or (2) $C$-$\sigma$-blocked",
---   never both, always exactly one. The dual lemma encodes
---   the "never both, always exactly one" half formally
---   (using classical reasoning to push $\neg \forall$
---   through to $\exists \neg$); see its design block below
---   for why it ships co-located with these two predicates.
---
--- * **Same `IsBlockableNonColliderAt` (not
---   `IsNonColliderAt`) reading.** See the design block on
---   `IsSigmaOpen`. Mirroring matters: the (1)/(2) clauses
---   are exact duals, so they reference the *same* pair of
---   per-position predicates (colliders + blockable
---   non-colliders) under exactly opposite quantifiers
---   ($\forall$ vs.\ $\exists$).
---
--- * **Same `AncSet G C` / `C : Set α` / `π`-first
---   conventions as `IsSigmaOpen`.** See the design block on
---   `IsSigmaOpen` for the rationale; we keep both predicates
---   in lockstep so the dual lemma below reads cleanly and
---   downstream proofs can pivot between them
---   syntax-for-syntax.
-
-/-- The walk `π` is *$C$-$\sigma$-blocked* (LN def 3.17,
-item 2): there exists a collider position on `π` not in
-$\Anc^G(C)$, *or* there exists a blockable non-collider
-position on `π` in `C`. -/
-def IsSigmaBlocked {v w : α} (π : Walk G v w) (C : Set α) : Prop :=
-  (∃ k, π.IsColliderAt k ∧ π.nodeAt k ∉ G.AncSet C) ∨
-  (∃ k, π.IsBlockableNonColliderAt k ∧ π.nodeAt k ∈ C)
-
-/-- Defining equation for `IsSigmaBlocked`. Useful when
-unfolding the definition directly. -/
-theorem isSigmaBlocked_iff {v w : α} (π : Walk G v w) (C : Set α) :
-    π.IsSigmaBlocked C ↔
-      (∃ k, π.IsColliderAt k ∧ π.nodeAt k ∉ G.AncSet C) ∨
-      (∃ k, π.IsBlockableNonColliderAt k ∧ π.nodeAt k ∈ C) :=
-  Iff.rfl
-
-/-! ### σ-blocked is the De-Morgan dual of σ-open -/
-
--- def_3_17 (sanity lemma)
--- title: Walks -- σ-blocked iff not σ-open (classical De-Morgan dual)
---
--- The LN's two clauses (1) $C$-$\sigma$-open and (2)
--- $C$-$\sigma$-blocked are explicitly *complementary*: every
--- walk is exactly one of the two, never both. Formally, on
--- the conjunctions / disjunctions of universals /
--- existentials we picked, this is the De-Morgan dual:
---   ¬ (P ∧ Q) = ¬P ∨ ¬Q,    ¬(∀ k, R k) = ∃ k, ¬ R k.
--- The proof uses classical reasoning (`by_contra` to pull a
--- non-block witness from `¬ IsSigmaOpen`), which is fine
--- because we are in `Prop` and Lean+mathlib install classical
--- logic by default.
---
--- ## Design choice
---
--- * **Ships co-located with the two predicates.** The LN's
---   "(1) ... or (2) ..." structure is a *definitional* pair;
---   the dual identity ties the pair together formally and is
---   exactly the rewrite that every downstream consumer
---   reaches for ("a walk is not $\sigma$-blocked iff it is
---   $\sigma$-open", and vice versa). Stating it here -- next
---   to the two predicates -- means downstream rows
---   (def_3_18, claim_3_21, claim_3_22, claim_3_23 / 24) can
---   pivot between the two predicates by *citation*, without
---   re-deriving the De-Morgan dual each time.
---
--- * **`Iff`, not two separate `→`s.** The forward direction
---   (`IsSigmaBlocked → ¬ IsSigmaOpen`) is the "incompatible
---   with $\sigma$-open" half; the backward direction
---   (`¬ IsSigmaOpen → IsSigmaBlocked`) is the "exhaustive"
---   half ("if the walk fails $\sigma$-open, it must be
---   $\sigma$-blocked"). Both are equally consumed downstream,
---   so packing them into a single `Iff` is the natural API.
---
--- * **Classical proof via `by_contra` + `push_neg`-style
---   manual case construction, no `Classical.em` boilerplate
---   at call sites.** The backward direction needs to extract
---   a counterexample to a universal, which is classical. We
---   absorb the classical reasoning inside the proof; callers
---   apply `isSigmaBlocked_iff_not_isSigmaOpen.mp` /
---   `.mpr` without ever touching `Classical.em` themselves.
-
-/-- LN def 3.17 sanity: a walk is $C$-$\sigma$-blocked iff it
-fails to be $C$-$\sigma$-open. The two LN clauses
-(1) $C$-$\sigma$-open and (2) $C$-$\sigma$-blocked are
-explicitly *complementary* ("either (1) or (2), never both,
-always exactly one"); this lemma is the De-Morgan dual making
-that complementarity formal. -/
-theorem isSigmaBlocked_iff_not_isSigmaOpen
-    {v w : α} (π : Walk G v w) (C : Set α) :
-    π.IsSigmaBlocked C ↔ ¬ π.IsSigmaOpen C := by
-  constructor
-  · rintro (⟨k, hcoll, hout⟩ | ⟨k, hblock, hin⟩) ⟨hOpenColl, hOpenBlock⟩
-    · exact hout (hOpenColl k hcoll)
-    · exact hOpenBlock k hblock hin
-  · intro hNotOpen
-    by_contra hNotBlock
-    apply hNotOpen
-    refine ⟨?_, ?_⟩
-    · intro k hcoll
-      by_contra hout
-      exact hNotBlock (Or.inl ⟨k, hcoll, hout⟩)
-    · intro k hblock hin
-      exact hNotBlock (Or.inr ⟨k, hblock, hin⟩)
+-- *Mutually exclusive and jointly exhaustive — by classical De
+--   Morgan, not by Lean reduction.*  Per the rewritten canonical
+--   tex's "De Morgan duality" paragraph, `p.IsSigmaBlockedGiven C
+--   ↔ ¬ p.IsSigmaOpenGiven C` holds.  This is a downstream lemma
+--   (classical, by De Morgan) intentionally not forced at the def
+--   site — see the "Positive existential disjunction" rationale
+--   above for why the positive existential shape is primary.
 
 end Walk
+
+end CDMG
+
+end Causality
+
+namespace Causality
+
+namespace CDMG
+
+-- ## Design choice — refactor section-wide statement context
+--
+-- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Same chapter
+--   convention used by the original `CDMG` namespace above and by every
+--   other `CDMG`-opening file in the chapter
+--   (`BlockableAndUnblockable.lean:402-404`,
+--   `CollidersAndNon.lean:320-322`, `Walks.lean:1201-1203`,
+--   `CDMG.lean`, `CDMGNotation.lean`, `EdgeRelations.lean`,
+--   `FamilyRelationships.lean`).  The refactor does not alter the
+--   carrier-type discipline — only (a) `def_3_1`'s `L`-field shape
+--   (`Finset (Sym2 Node)` with `hL_irrefl : ∀ ⦃s⦄, s ∈ L → ¬ s.IsDiag`)
+--   and (b) `def_3_4`'s per-step walk-edge data (typed
+--   `WalkStep` with three constructors
+--   `.forwardE / .backwardE / .bidir`) and the `cons`-cell of
+--   `Walk` — so the binders below are byte-identical to the
+--   original `CDMG`-namespace variable line at the top of this file.
+--
+-- *Three-dash `--- start helper` / `--- end helper`, not two-dash
+--   `-- start statement`.*  Lean 4's `variable` auto-binding folds these
+--   implicit binders into every refactored declaration below exactly as
+--   it does for the originals.  Matches the helper-flavour tagging used
+--   by every prior refactor section in this chapter.
+-- def_3_17 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_17 --- end helper
+
+namespace Walk
+
+-- ## Design choice — Walk-namespace statement context
+--
+-- *Why a namespace-level `variable {G : CDMG Node}`.*  Both
+--   `IsSigmaOpenGiven` and `IsSigmaBlockedGiven` take
+--   a walk `p : Walk G u v` and reach into `G` for
+--   `G.AncSet`.  Without the namespace-wide `variable`, every
+--   signature would carry an explicit `{G : CDMG Node}` binder;
+--   the auto-binding keeps the signatures readable and matches the LN's
+--   once-at-the-top "Let $G = (J, V, E, L)$ be a CDMG" quantifier.
+--   Mirrors the original `namespace Walk` opening earlier in this file
+--   and the refactor `namespace Walk` opening at
+--   `BlockableAndUnblockable.lean:406-434` and
+--   `CollidersAndNon.lean:557-583` byte-for-byte modulo the
+--   `CDMG → CDMG` type retarget.  `{G}` is implicit because
+--   downstream consumers reach into `G` via dot-notation on the walk
+--   (`p.IsSigmaOpenGiven C`).
+-- def_3_17 --- start helper
+variable {G : CDMG Node}
+-- def_3_17 --- end helper
+
+-- ref: def_3_17 (paragraph "C-σ-open walk") — refactor
+--
+-- `p.IsSigmaOpenGiven C` iff the walk `p` is `C-σ-open` in
+-- the LN's sense, expressed against the typed-WalkStep refactor:
+--   (i)   for every position `k` on `p` and every vertex `vk` with
+--         `p.vertices[k]? = some vk`, if
+--         `p.IsCollider k` then `vk ∈ G.AncSet C`;
+--   (ii)  for every position `k` on `p` and every vertex `vk` with
+--         `p.vertices[k]? = some vk`, if
+--         `p.IsBlockableNonCollider k` then `vk ∉ C`.
+--
+-- Body identical to the original `Walk.IsSigmaOpenGiven` (ORIGINAL
+-- block above) modulo mechanical upstream retargets:
+-- - `Walk G u v` → `Walk G u v` (typed-WalkStep walk);
+-- - `p.vertices` → `p.vertices`
+--   (`Walks.lean:1688`);
+-- - `p.IsCollider` → `p.IsCollider`
+--   (`CollidersAndNon.lean:839`);
+-- - `p.IsBlockableNonCollider` → `p.IsBlockableNonCollider`
+--   (`BlockableAndUnblockable.lean:865`);
+-- - `G.AncSet` → `G.AncSet`
+--   (`FamilyRelationships.lean:810`).
+-- The two-clause structure, the per-position universal quantification
+-- via `p.vertices[k]? = some vk`, the asymmetric treatment of
+-- blockable vs unblockable non-colliders (clause (ii) ranges over
+-- blockable ONLY), and the `AncSet` quantification are all
+-- preserved verbatim — only the names change.
+--
+-- ## Design choice — IsSigmaOpenGiven
+--
+-- *Why the refactor needs to touch this predicate.*  Mechanically only,
+--   not semantically.  The body references five upstream symbols that
+--   have all themselves been refactored (typed `Walk`,
+--   `vertices`, `IsCollider`,
+--   `IsBlockableNonCollider`, `AncSet`), so the def
+--   needs to be re-stated using the refactored upstreams.  The
+--   `Prop`-level conjunction of two universals, the
+--   `p.vertices[k]? = some vk` Option-membership lookup
+--   convention, the LN-correspondence to the canonical tex's "for every
+--   collider on π" / "for every blockable non-collider on π" scope —
+--   all unchanged.  The original's design pillars (ORIGINAL block above)
+--   carry through verbatim; the heavy design rationale lives in the
+--   ORIGINAL block's comment.
+--
+-- *What the typed-WalkStep + `Sym2 Node` upstream refactor buys σ-open
+--   classification.*  The refactor's load-bearing payoff at *this*
+--   level is constructor-choice invariance on writing-mirror walks.
+--   Under the original ordered-pair encoding, the walker chose per
+--   step an `a : Node × Node` representation; on a writing-mirror
+--   step (a vertex pair `{v, w}` that simultaneously sits in `G.E`
+--   and `G.L`, admitted by `def_3_1`'s
+--   `[edge_set_disjointness_under_specified]` addition — channels are
+--   type-disjoint carriers but not graph-theoretically exclusive at
+--   the vertex-pair level) the same underlying walk position could be
+--   stored as either an E-step or an L-step, and the original
+--   `IsCollider` / `IsBlockableNonCollider` read the channel off the
+--   stored pair via `G.into` / `G.outOf` union-membership.  The per-
+--   position classification was therefore sensitive to the walker's
+--   storage choice, which pulled through to σ-open classification
+--   *here* — the same LN walk could fall on different sides of clauses
+--   (i) / (ii) depending on writing-mirror typification.  Under the
+--   refactor the channel is carried by the WalkStep constructor tag
+--   and writing-mirror coincidence is resolved via node-equality on
+--   the type indices (see `CollidersAndNon.lean`'s `IsInto`
+--   design block and `BlockableAndUnblockable.lean`'s slot-helper
+--   design blocks).  Consequence at *this* level:
+--   `IsSigmaOpenGiven` inherits constructor-choice invariance
+--   along the forgetful map `Walk G u v → LN walk in G` "for
+--   free", purely from the upstream encoding change — no new code in
+--   *this* file performs the writing-mirror fix; the upstream
+--   predicates `IsCollider` and
+--   `IsBlockableNonCollider` do, and σ-open just quantifies
+--   over them.
+--
+-- *Walk-reversal channel preservation inherited from `L : Finset
+--   (Sym2 Node)`.*  Under the refactor, a `.bidir` step stores an
+--   L-membership witness `s(u, v) ∈ G.L` whose carrier is the
+--   quotient `Sym2 Node = (Node × Node) / swap` rather than an ordered
+--   pair plus a `hL_symm` symmetry implication (see `def_3_1`'s
+--   refactor design block, "Walk reversal preserves channel" bullet).
+--   Walk reversal therefore preserves the `.bidir` channel by
+--   *definitional* swap-equality `s(u, v) = s(v, u)`; no orientation
+--   swap on the stored witness is needed, and a position that was
+--   classified collider / blockable non-collider pre-reversal
+--   classifies identically post-reversal.  Under the ordered-pair-
+--   plus-symmetry alternative on writing-mirror CDMGs, reversing an
+--   L-step storing `(u, v)` could land the swapped `(v, u)` in `G.E`
+--   coincidentally and silently reclassify the reversed step's
+--   contribution to σ-open.  Consequence for *this* file:
+--   `IsSigmaOpenGiven` is reversal-symmetric on
+--   `Walk` by *upstream* construction — no σ-open-level code
+--   spells out reversal — which is the structural precondition for
+--   the eventual σ-separation-symmetry result (the *driving*
+--   downstream consumer of this refactor's encoding choice per
+--   `leanification/refactors/refactor_cdmg_typed_edges.md` and
+--   `def_3_1`'s refactor design block).
+--
+-- *Downstream consumers of this REPLACEMENT.*  The immediate
+--   refactor-table consumer is `def_3_18` (`ISigmaSeparation`), which
+--   lifts `IsSigmaBlockedGiven` to a `σ`-separation relation
+--   on disjoint subsets of `J ∪ V` and inherits σ-open's two-clause
+--   shape via its negated existential.  Future downstream consumers
+--   that this REPLACEMENT's shape is chosen to support (not in the
+--   current refactor table but flagged in `def_3_1`'s refactor design
+--   block as the *driving* motivation): the LN's future `claim_3_21`
+--   (the trailing-remark reformulation about unblockable non-colliders
+--   being σ-open, excluded from *this* row per
+--   `[claim_type_mismatch_vertex_vs_walk]` and deferred to its own
+--   claim row), and `claim_3_22` (σ-separation symmetry).  The
+--   constructor-choice invariance and walk-reversal channel-
+--   preservation properties inherited from the upstream encoding are
+--   precisely the structural ingredients that the σ-symmetry
+--   downstream consumer pattern-matches on.
+--
+-- *Why NOT re-thinking the σ-open def shape under the refactor.*  The
+--   typed-WalkStep encoding change is orthogonal to
+--   `IsSigmaOpenGiven`'s `Prop`-level shape (conjunction of two
+--   universals indexed by walk position, ranging over collider and
+--   blockable non-collider positions respectively).  The encoding
+--   change *strengthens* the per-position predicates this def ranges
+--   over — they are now constructor-choice invariant and reversal-
+--   friendly — but does not motivate a re-design at the walk-level
+--   σ-open layer.  Re-designing σ-open here (e.g. by structural
+--   recursion on `Walk`'s `cons` cells, mirroring
+--   `IsCollider`'s pattern-match shape) was rejected: (a)
+--   the LN's two-universal shape is already the right reading for
+--   both proof-direction discharges and downstream witness extraction;
+--   (b) a recursive `cons`-pattern encoding would force σ-open into
+--   `Bool` decidability shape, losing the `Prop`-level conjunction
+--   structure that the De Morgan duality with
+--   `IsSigmaBlockedGiven` is stated against; (c) the
+--   mechanical port preserves the LN-grep one-to-one correspondence
+--   at the def site, matching the priority shared with the original
+--   (ORIGINAL block above).
+--
+-- *Asymmetric quantification preserved: clause (ii) ranges over
+--   blockable non-colliders ONLY.*  The original (ORIGINAL block above)
+--   pins this asymmetry as a load-bearing design pillar (per the
+--   addition `[claim_type_mismatch_vertex_vs_walk]`'s exclusion of any
+--   per-vertex extension of σ-open to unblockable positions).  Both
+--   upstream predicates `IsCollider` and
+--   `IsBlockableNonCollider` preserve the same shape as their
+--   originals (per their respective design blocks at
+--   `CollidersAndNon.lean` and `BlockableAndUnblockable.lean`), so the
+--   asymmetry survives the port verbatim.  Encoding clause (ii) as
+--   `p.IsNonCollider k → vk ∉ C` would over-fire on unblockable
+--   non-collider positions — the same critique as the original.
+--
+-- *`G.AncSet C` reused from `FamilyRelationships.lean` (line
+--   810).*  Same role as the original's `G.AncSet C`: encodes the LN's
+--   `Anc^G(C)` for `C ⊆ J ∪ V` as the indexed-union
+--   `⋃_{c ∈ C} G.Anc c`.  Out-of-graph `c ∈ C` contribute
+--   `G.Anc c = ∅` (the `w ∈ G` guard inside `Anc`
+--   inherits the original's empty-on-out-of-graph behaviour through the
+--   mechanical retarget) — but this guarantees only *value*-invariance
+--   of the predicate on `C ↦ C ∩ (G.J ∪ G.V)`, not LN-faithfulness of
+--   the *signature*; see the `hC` rationale below.
+--
+-- *Explicit `hC : C ⊆ ↑G.J ∪ ↑G.V` on the signature, with
+--   `set_option linter.unusedVariables false in`.*  The LN's
+--   `def:sigma_blocking` opens with the typing premise "Let $G = (J, V,
+--   E, L)$ be a CDMG and $C \ins J \cup V$ a subset of nodes".  The
+--   original (pre-refactor) `IsSigmaOpenGiven` *dropped* this premise and
+--   took a bare `C : Set Node`; the strict-equivalence checker flagged
+--   that as a CONTENT deviation (the predicate is then declared on a
+--   strictly larger class of inputs than the LN gives meaning to —
+--   e.g. `C = {x}` for `x ∉ G.J ∪ G.V` parses fine but has no LN
+--   referent).  The value-invariance argument above documents that the
+--   *predicate value* coincides with the LN's on `C ∩ (G.J ∪ G.V)`, but
+--   it does not undo the *signature*-level looseness.  The refactor
+--   takes the fix: add the explicit subset hypothesis (load-bearing on
+--   the signature, inert in the body — out-of-graph nodes contribute
+--   vacuously through the value-invariance just discussed), matching
+--   the chapter-wide convention already used by `def_3_18`'s
+--   `IsISigmaSeparated` (`ISigmaSeparation.lean:300–305`) and (per its
+--   own design block) by `HardInterventionOn`, `NodeSplittingOn`,
+--   `NodeSplittingHard`, `AddingInterventionNodes`, and
+--   `MarginalizationAndIntervention`.  The `set_option
+--   linter.unusedVariables false in` prefix suppresses the unused-binder
+--   warning that the chapter convention triggers on every LN-faithful-
+--   but-body-inert binder.  Downstream consumer `def_3_18` already has
+--   `hC : C ⊆ ↑G.J ∪ ↑G.V` in scope (it threads the same hypothesis on
+--   its own signature) and passes it through to `π.refactor_IsSigma…`,
+--   so the tightening is propagation-free.
+--
+-- *Dot-notation `p.IsCollider k` / `p.IsBlockableNonCollider k`.*
+--   Both predicates are declared in the `namespace Walk` and
+--   take `p : Walk G u v` as their first explicit positional
+--   argument, so the dot-notation resolves correctly under the
+--   `CDMG.Walk` namespace.  Same idiom used by
+--   `IsUnblockableNonCollider` in `BlockableAndUnblockable.lean`.
+--
+-- *Two-clause conjunction shape preserved.*  Mirrors the LN's bullet-
+--   list writing and matches the original's `⟨h_collider, h_blockable⟩`
+--   destructure-friendly shape.  A single universal over a sum-typed
+--   predicate would also be admissible but would break the one-to-one
+--   LN-grep correspondence — same rationale as the original.
+set_option linter.unusedVariables false in
+-- def_3_17 -- start statement
+def IsSigmaOpenGiven {u v : Node} (p : Walk G u v) (C : Set Node)
+    (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk → p.IsCollider k →
+      vk ∈ G.AncSet C) ∧
+  (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk →
+      p.IsBlockableNonCollider k → vk ∉ C)
+-- def_3_17 -- end statement
+
+-- ref: def_3_17 (paragraph "C-σ-blocked walk") — refactor
+--
+-- `p.IsSigmaBlockedGiven C` iff the walk `p` is
+-- `C-σ-blocked` in the LN's sense — the positive existential
+-- disjunction dual of `IsSigmaOpenGiven`:
+--   (i)   there exists a position `k` on `p` and vertex `vk` with
+--         `p.vertices[k]? = some vk`, `p.IsCollider k`,
+--         and `vk ∉ G.AncSet C`; OR
+--   (ii)  there exists a position `k` on `p` and vertex `vk` with
+--         `p.vertices[k]? = some vk`,
+--         `p.IsBlockableNonCollider k`, and `vk ∈ C`.
+--
+-- Body identical to the original `Walk.IsSigmaBlockedGiven` (ORIGINAL
+-- block above) modulo the same five mechanical upstream retargets as
+-- `IsSigmaOpenGiven`.  The positive existential disjunction
+-- shape, the three-conjunct-per-existential structure, and the
+-- asymmetric quantification over blockable non-colliders ONLY are all
+-- preserved verbatim.
+--
+-- ## Design choice — IsSigmaBlockedGiven
+--
+-- *Why the refactor needs to touch this predicate.*  Mechanically only,
+--   not semantically.  Same five upstream retargets as
+--   `IsSigmaOpenGiven`; same retention of the LN's literal
+--   `∃ … \notin Anc^G(C) ∨ ∃ … \in C` writing.  The heavy design
+--   rationale lives in the ORIGINAL block's comment above (positive
+--   existential disjunction NOT `¬ IsSigmaOpenGiven`; same `(k, vk)`
+--   pair encoding as the open form; conjunction shape inside the
+--   existential).
+--
+-- *Upstream-driven inheritance: constructor-choice invariance of the
+--   blocking witness.*  Same property as `IsSigmaOpenGiven`
+--   (see its design block above), specialised to the existential
+--   dual: a blocking witness `⟨k, vk, h_lookup, h_collider, h_anc⟩`
+--   (clause i) or `⟨k, vk, h_lookup, h_blockable, h_inC⟩` (clause
+--   ii) constructed from a `Walk G u v` is *invariant* under
+--   the walker's constructor-tag typification on writing-mirror walks
+--   — because the upstream `IsCollider` and
+--   `IsBlockableNonCollider` predicates (which provide
+--   `h_collider` and `h_blockable`) are themselves constructor-choice
+--   invariant per the typed-WalkStep + `Sym2 Node` design.  Under the
+--   original ordered-pair encoding, the same LN walk position could
+--   produce a spurious blocking witness — or fail to produce a real
+--   one — depending on writing-mirror typification, which propagated
+--   forward to `def_3_18`'s σ-separation and produced
+--   CONTENT-class divergences on writing-mirror CDMGs.  Under the
+--   refactor that source of divergence is structurally eliminated at
+--   the *upstream* predicate layer; no σ-blocked-level code performs
+--   the fix.  Walk reversal preserves the blocking witness for the
+--   same reason as the σ-open case: an L-step's `.bidir` witness
+--   `s(u, v) ∈ G.L` is reversal-invariant by `Sym2`-quotient swap-
+--   equality, so a reversed walk yields the same `(k, vk)` witness
+--   (modulo re-indexing) without any `hL_symm` lemma invocation —
+--   the structural ingredient that the eventual σ-separation
+--   symmetry argument needs at the σ-blocked existential.
+--
+-- *Downstream consumers of this REPLACEMENT.*  The immediate
+--   refactor-table consumer is `def_3_18` (`ISigmaSeparation`), which
+--   pattern-matches on `IsSigmaBlockedGiven` via its negated
+--   form to encode `A ⊥^σ B | C` as a universal-over-walks claim.
+--   Future downstream consumers under the same refactor (not in the
+--   current refactor table; flagged in `def_3_1`'s refactor design
+--   block as the *driving* motivation for the `Sym2 Node` encoding of
+--   `L`): the LN's future `claim_3_22` (σ-separation symmetry on
+--   writing-mirror CDMGs) — which closes by construction under the
+--   refactor precisely because the σ-blocked existential witness is
+--   reversal-invariant; and the LN's future `claim_3_21` (the
+--   trailing-remark reformulation about unblockable non-colliders
+--   being σ-open, excluded from *this* row per
+--   `[claim_type_mismatch_vertex_vs_walk]`).  Re-stating σ-blocked's
+--   existential shape to fold either claim into the def site was
+--   rejected for the same reason as the σ-open case: those claims
+--   are orthogonal to the def's shape and folding either in would
+--   force a re-derivation rather than a port.
+--
+-- *Why NOT re-thinking the σ-blocked def shape under the refactor.*
+--   Same rationale as `IsSigmaOpenGiven`: the typed-
+--   WalkStep encoding strengthens the per-position predicates the
+--   existential ranges over but does not motivate a re-design at the
+--   walk-level σ-blocked layer.  A `Bool`-valued structural-recursion
+--   encoding (`Walk.cons`-pattern matching the way
+--   `IsCollider` and `IsBifurcationWithSplit` do)
+--   was considered and rejected: (a) it would lose the `Prop`-level
+--   existential structure that downstream proofs constructively
+--   exploit when forming `Or.inl ⟨k, vk, _, _, _⟩` /
+--   `Or.inr ⟨k, vk, _, _, _⟩` witnesses; (b) the recursive shape
+--   would make the σ-open / σ-blocked De Morgan duality harder to
+--   state (the existential dual of a recursive conjunction is not
+--   syntactically symmetric to the recursive conjunction itself);
+--   (c) the mechanical port preserves the LN-grep one-to-one
+--   correspondence at the def site.
+--
+-- *Positive existential disjunction preserved, NOT
+--   `¬ IsSigmaOpenGiven`.*  The original's three-reason
+--   rationale (ORIGINAL block above) carries through verbatim under the
+--   refactor: (a) it mirrors the LN's `∃ … \notin Anc^G(C) ∨ ∃ … \in C`
+--   writing literally; (b) downstream proofs that *construct* a blocking
+--   witness can directly form `Or.inl ⟨k, vk, _, _, _⟩` /
+--   `Or.inr ⟨k, vk, _, _, _⟩` terms; (c) the equivalence
+--   `¬ p.IsSigmaOpenGiven C ↔ p.IsSigmaBlockedGiven C`
+--   is a standalone (classical) De Morgan lemma to be proved when a
+--   downstream row needs it — not a definitional reduction the def-shape
+--   forces.  Encoding `IsSigmaBlockedGiven` as
+--   `¬ IsSigmaOpenGiven` was considered: same rejection
+--   rationale as the original.
+--
+-- *Same `(k, vk)` pair encoding as `IsSigmaOpenGiven`.*  The
+--   existential takes `∃ k vk` pinning both the position index and the
+--   vertex at that position via `p.vertices[k]? = some vk`.
+--   Keeping both classifiers structurally symmetric makes the De Morgan
+--   duality lemma (when proved downstream) align witness-to-witness on
+--   each clause — same property as the original.
+--
+-- *Asymmetric quantification preserved: clause (ii) ranges over
+--   blockable non-colliders ONLY.*  Same critique as
+--   `IsSigmaOpenGiven`: encoding clause (ii) with
+--   `IsNonCollider k ∧ vk ∈ C` would under-fire by admitting
+--   unblockable non-collider positions inside `C` as blocking witnesses,
+--   which is NOT what the LN says.  The addition
+--   `[claim_type_mismatch_vertex_vs_walk]`'s exclusion of any per-vertex
+--   "unblockable ⇒ open" extension applies verbatim to this clause.
+--
+-- *Mutually exclusive and jointly exhaustive — by classical De Morgan,
+--   not by Lean reduction.*  Same property as the original: the def-
+--   shape does not force the negation equivalence, which is left as a
+--   standalone (classical) downstream lemma.  See the "Positive
+--   existential disjunction" bullet above for the rationale.
+--
+-- *Explicit `hC : C ⊆ ↑G.J ∪ ↑G.V` on the signature, with
+--   `set_option linter.unusedVariables false in`.*  Same rationale as
+--   `IsSigmaOpenGiven`'s `hC`-rationale bullet above —
+--   LN-faithful subset hypothesis, load-bearing on the signature, inert
+--   in the body (out-of-graph nodes contribute vacuously to the
+--   existential disjunction via the same `G.AncSet C` value-
+--   invariance and the walk-vertex-in-`G` walk-type guarantee).  Same
+--   chapter-wide convention as `def_3_18`'s `IsISigmaSeparated`.
+set_option linter.unusedVariables false in
+-- def_3_17 -- start statement
+def IsSigmaBlockedGiven {u v : Node} (p : Walk G u v) (C : Set Node)
+    (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  (∃ (k : ℕ) (vk : Node),
+      p.vertices[k]? = some vk ∧ p.IsCollider k ∧ vk ∉ G.AncSet C) ∨
+  (∃ (k : ℕ) (vk : Node),
+      p.vertices[k]? = some vk ∧ p.IsBlockableNonCollider k ∧ vk ∈ C)
+-- def_3_17 -- end statement
+
+end Walk
+
+end CDMG
 
 end Causality

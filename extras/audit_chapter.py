@@ -43,9 +43,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 SCAFFOLD = Path(__file__).resolve().parent.parent / "scaffold"
-sys.path.insert(0, str(SCAFFOLD))
+SCRIPTS = SCAFFOLD / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+import _path_setup                                              # noqa: F401, E402
 
-from solve_chapter import (                                    # type: ignore
+from solve_chapter import (                                    # type: ignore  # noqa: E402
     LEANIFICATION_DIR,
     find_chapter_data_path,
     load_data,

@@ -1,0 +1,100 @@
+% Refactor twin claim proof file for row claim_3_2 -- "AcyclicIffTopologicalOrder".
+% Created by the write_tex_proof worker for the claim_3_2_no_finite refactor.
+%
+% This twin will replace the original tex proof at Phase 7 cleanup. The
+% LN's iterative parent-free-node construction (preserved verbatim in
+% `claim_3_2_proof_AcyclicIffTopologicalOrder.tex`) presupposes
+% finiteness of $J \cup V$ -- it explicitly cites "since $G_i$ is acyclic
+% ... and finite, it has a node $v_i$ with $\Pa^{G_i}(v_i) = \emptyset$"
+% -- so it cannot serve as the proof of the no-finiteness variant of the
+% Lem. The twin below proves the same equivalence by the Szpilrajn
+% order-extension route, which does not enumerate vertices and so works
+% for arbitrary (possibly infinite) $J \cup V$.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_2 (proof twin, with statement restated for readability)
+% title: AcyclicIffTopologicalOrder (refactor: no-finiteness variant)
+\def\rowref{claim\_3\_2}
+\phantomsection\label{claim_3_2}
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[AcyclicIffTopologicalOrder]
+        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+This is the \emph{refactor twin}. The original proof, preserved in
+\texttt{claim\_3\_2\_proof\_AcyclicIffTopologicalOrder.tex}, constructs
+a topological order by iteratively picking a parent-free node from the
+induced subgraph on the remaining vertices -- a step which explicitly
+invokes finiteness of $J \cup V$. The statement of the Lem makes no
+finiteness assumption, so we re-prove the $(\Rightarrow)$ direction via
+\emph{Szpilrajn's order-extension theorem} applied to the
+``reachable-by-a-directed-walk'' preorder, a route which never enumerates
+vertices and therefore works for arbitrary $J \cup V$. Both proofs
+establish the same equivalence; the choice is a route change driven by
+the removal of the finiteness hypothesis.
+
+\medskip
+\noindent\emph{$(\Leftarrow)$ Existence of a topological order implies acyclicity.}
+Suppose $<$ is a topological order of $G$ (\refrow{def_3_8}): a total
+order on $J \cup V$ satisfying $v \in \Pa^G(w) \implies v < w$. If there
+were a non-trivial directed walk $v = v_0 \tuh v_1 \tuh \cdots \tuh v_n = v$
+with $n \geq 1$ and $v \in J \cup V$, then $v_{i-1} \in \Pa^G(v_i)$ for
+each $i$, so the parent-lt clause gives $v_0 < v_1 < \cdots < v_n$, which
+collapses by transitivity to $v_0 < v_n = v_0$, contradicting
+irreflexivity of $<$. Hence $G$ has no such walk, i.e.\ $G$ is acyclic
+(\refrow{def_3_6}).
+
+\medskip
+\noindent\emph{$(\Rightarrow)$ Acyclicity implies the existence of a topological order.}
+Assume $G$ is acyclic. We construct a topological order on $J \cup V$
+without enumerating its elements.
+
+Define a binary relation $r_0$ on $J \cup V$ by
+\[
+  r_0(v, w) \;\iff\; \text{there exists a directed walk } v = u_0 \tuh u_1 \tuh \cdots \tuh u_n = w \text{ in } G,\; n \geq 0.
+\]
+We verify that $r_0$ is a partial order.
+
+\begin{itemize}
+\item \emph{Reflexivity.} The trivial walk of length zero witnesses $r_0(v, v)$ for every $v$.
+
+\item \emph{Transitivity.} Given $r_0(x, y)$ and $r_0(y, z)$, concatenate the witnessing walks at their common endpoint $y$. Concatenation preserves directedness (every step of either walk is a forward edge), so the result is a directed walk from $x$ to $z$, witnessing $r_0(x, z)$.
+
+\item \emph{Antisymmetry.} Suppose $r_0(x, y)$ and $r_0(y, x)$, witnessed by directed walks $\pi_1 \colon x \to y$ and $\pi_2 \colon y \to x$. Assume towards a contradiction that $x \neq y$. Then $\pi_1$ has at least one step, so it begins with a forward edge $x \tuh u_1 \in E$; because $E \ins (J \cup V) \times V$ (\refrow{def_3_1}), the source $x$ of this edge lies in $J \cup V$. Now the concatenation $\pi_1$ followed by $\pi_2$ is a directed walk from $x$ to $x$ of length $\geq 1$, i.e.\ a non-trivial directed cycle through $x \in J \cup V$, contradicting acyclicity (\refrow{def_3_6}). Therefore $x = y$.
+\end{itemize}
+
+By \emph{Szpilrajn's order-extension theorem} (Szpilrajn, 1930; formalised
+in Mathlib as \texttt{extend\_partialOrder}), every partial order extends
+to a linear (total) order on the same underlying set. Applied to $r_0$,
+this yields a linear order $s$ on $J \cup V$ such that
+$r_0(v, w) \implies s(v, w)$ for all $v, w \in J \cup V$.
+
+Take $<$ to be the strict part of $s$:
+\[
+  v < w \;\iff\; s(v, w) \wedge v \neq w.
+\]
+We verify the four clauses required for $<$ to be a topological order of
+$G$ (\refrow{def_3_8}):
+
+\begin{itemize}
+\item \emph{Irreflexivity.} $v < v$ would require $v \neq v$, which is impossible.
+
+\item \emph{Transitivity.} Suppose $v < w$ and $w < u$, i.e.\ $s(v, w)$ with $v \neq w$, and $s(w, u)$ with $w \neq u$. Transitivity of $s$ gives $s(v, u)$. To see $v \neq u$: if $v = u$ then $s(v, w)$ and $s(w, v)$ together force $v = w$ by antisymmetry of the linear order $s$, contradicting $v \neq w$. Hence $v < u$.
+
+\item \emph{Trichotomy.} Given $v, w \in J \cup V$, either $v = w$, or $v \neq w$ and then totality of $s$ supplies $s(v, w)$ or $s(w, v)$, yielding $v < w$ or $w < v$ respectively.
+
+\item \emph{Parent-lt.} Suppose $v \in \Pa^G(w)$, i.e.\ $v \tuh w \in G$. The single forward edge $v \tuh w \in E$ is a directed walk of length one, so $r_0(v, w)$, hence $s(v, w)$. To see $v \neq w$: if $v = w$ then $v \tuh v$ is a non-trivial directed walk from $v$ to $v$, and the source $v$ of this edge lies in $J \cup V$ by $E \ins (J \cup V) \times V$ (\refrow{def_3_1}), contradicting acyclicity (\refrow{def_3_6}). Hence $v < w$.
+\end{itemize}
+
+Thus $<$ is a topological order of $G$ in the sense of \refrow{def_3_8},
+so $G$ has a topological order.
+\end{proof}
+
+\end{document}

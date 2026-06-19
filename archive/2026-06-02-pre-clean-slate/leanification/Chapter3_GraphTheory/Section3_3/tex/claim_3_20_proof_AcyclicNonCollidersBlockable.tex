@@ -1,0 +1,52 @@
+% Claim proof file for row claim_3_20 -- "AcyclicNonCollidersBlockable".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. A
+% manager agent dedicated to writing the TeX proof fills in the body below.
+% The proof must:
+%   - Stay close to the lecture notes' proof if one exists (always search
+%     the LN first for a `\begin{proof}` block immediately following the
+%     claim; copy / lightly edit when present).
+%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
+%   - Be self-contained enough that a mathematician can follow it without
+%     re-reading the LN.
+%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_20 (proof, with statement restated for readability)
+% title: AcyclicNonCollidersBlockable
+\def\rowref{claim\_3\_20}
+\phantomsection\label{claim_3_20}
+%
+% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
+% for the corresponding statement.
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Rem}[AcyclicNonCollidersBlockable]
+If $G$ is acyclic then all non-colliders are blockable.
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+Let $v_k$ be a non-collider on $\pi$. By def 3.16, $v_k$ is a blockable non-collider on $\pi$ if and only if it is a non-collider on $\pi$ and is \emph{not} an unblockable non-collider on $\pi$. The non-collider clause already holds by hypothesis, so it suffices to show that $v_k$ is not unblockable on $\pi$.
+
+Suppose for contradiction that $v_k$ were an unblockable non-collider on $\pi$. Then, by def 3.16, $k \notin \lC 0, n\rC$ (so both neighbours $v_{k-1}$ and $v_{k+1}$ exist on $\pi$) and the joint at $v_k$ falls into one of the three patterns
+\[\begin{array}{rccl}
+  \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k),\\
+  \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1} & \text{ with } & v_{k+1} \in \Sc^G(v_k),\\
+  \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1} & \text{ with } & v_{k-1} \in \Sc^G(v_k) \land v_{k+1} \in \Sc^G(v_k).
+\end{array}\]
+By def 3.5(7), $\Sc^G(v_k) = \Anc^G(v_k) \cap \Desc^G(v_k) \ins \Anc^G(v_k)$, so any neighbour of $v_k$ on $\pi$ landing in $\Sc^G(v_k)$ in particular admits a directed walk into $v_k$.
+
+In the \emph{left chain} pattern the edge $v_{k-1} \hut v_k$ is the directed edge $v_k \tuh v_{k-1}$ in $G$, i.e.\ a directed walk from $v_k$ to $v_{k-1}$ of length $1$. Combined with the directed walk $v_{k-1} \to \cdots \to v_k$ witnessing $v_{k-1} \in \Anc^G(v_k)$, this concatenates to a directed walk from $v_k$ to itself of length at least $1$, contradicting acyclicity of $G$ (def 3.6).
+
+The \emph{right chain} pattern is symmetric: $v_k \tuh v_{k+1}$ is a directed edge $v_k \to v_{k+1}$, and $v_{k+1} \in \Sc^G(v_k) \ins \Anc^G(v_k)$ supplies a directed walk $v_{k+1} \to \cdots \to v_k$, so concatenation again yields a directed walk from $v_k$ to itself of length at least $1$, contradicting def 3.6.
+
+In the \emph{fork} pattern both arms point outward from $v_k$ and both endpoints lie in $\Sc^G(v_k)$, so either side closes a directed cycle through $v_k$ exactly as in the left or right chain case, contradicting def 3.6.
+
+In all three cases we reach a contradiction. Therefore $v_k$ is not an unblockable non-collider on $\pi$, and combined with the non-collider hypothesis we conclude that $v_k$ is a blockable non-collider on $\pi$.
+\end{proof}
+
+\end{document}

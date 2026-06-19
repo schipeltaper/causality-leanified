@@ -1,10 +1,11 @@
 % Definition file for row def_3_6 -- "Acyclicity".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -16,8 +17,16 @@
 
 \begin{Def}[Acyclicity]
     \label{def-acylic}
-    A  CDMG  $G=(J,V,E,L)$  is called \emph{acyclic} if there does not exist
-    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \in G$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and the walk definitions of def \ref{def:walks}. By a \emph{directed walk from $v$ to $w$ in $G$} (for $v, w \in J \cup V$) we mean a directed walk in the sense of def \ref{def:walks}, item~ii., admitted to be of any length $n \ge 0$: a tuple $(v_0, a_0, v_1, a_1, \dots, a_{n-1}, v_n)$ with $v_0, v_1, \dots, v_n \in J \cup V$, $v_0 = v$, $v_n = w$, and $a_k = (v_k, v_{k+1}) \in E$ for every $k \in \{0, 1, \dots, n - 1\}$ (in the LN's diagrammatic shorthand of def \ref{not-cdmg}, item~2: $v = v_0 \tuh v_1 \tuh \cdots \tuh v_{n-1} \tuh v_n = w$). Such a directed walk is called \emph{non-trivial} iff its length $n$ satisfies $n \ge 1$, equivalently iff it traverses at least one edge; the length-$0$ \emph{trivial} directed walk $(v_0)$ at $v_0 = v = w$ (admitted by def \ref{def:walks}, item~ii., as the single-vertex tuple with no edges) is excluded.
+
+    The CDMG $G$ is called \emph{acyclic} iff
+    \[
+        \text{for every } v \in J \cup V, \quad \text{there does not exist any non-trivial directed walk from } v \text{ to itself in } G.
+    \]
+    Spelled out as a first-order statement over the components $J, V, E$ of $G$: for every $v \in J \cup V$, every integer $n \ge 1$, and every tuple $(v_0, v_1, \dots, v_n) \in (J \cup V)^{n+1}$ with $v_0 = v_n = v$, there exists some $k \in \{0, 1, \dots, n - 1\}$ with $(v_k, v_{k+1}) \notin E$ (i.e.\ no such vertex tuple is the vertex sequence of a directed walk from $v$ to itself in $G$).
+
+    \emph{Consequence: no directed self-loops on output nodes.}
+    For any $v \in V$, a directed self-loop on $v$ -- i.e.\ the ordered pair $(v, v) \in E$, equivalently $v \tuh v \in G$ in the notation of def \ref{not-cdmg}, item~2 -- yields the length-$1$ directed walk $\bigl(v, (v, v), v\bigr)$ from $v$ to itself, which is non-trivial in the sense above. Hence if $G$ is acyclic, then $(v, v) \notin E$ for every $v \in V$. (For $v \in J$, the CDMG-type constraint $E \subseteq (J \cup V) \times V$ together with $J \cap V = \emptyset$ already excludes $(v, v) \in E$ a priori, so the acyclicity hypothesis adds no further constraint at $v \in J$.) In particular, an acyclic CDMG contains no directed self-loops on any $v \in V$.
 \end{Def}
 
 \end{document}

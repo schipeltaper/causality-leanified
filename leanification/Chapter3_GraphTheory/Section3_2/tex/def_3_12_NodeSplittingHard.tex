@@ -1,10 +1,11 @@
 % Definition file for row def_3_12 -- "NodeSplittingHard".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -16,26 +17,71 @@
 
 \begin{Def}[Node-splitting hard intervention on CADMGs]
   \label{def:G_node-splitting_intervention}
-    Let $G=(J,V,E,L)$ be a CADMG and $W \ins V$ a subset of the output nodes.
-    The \emph{single-world intervention graph (SWIG)} w.r.t.\ $W$ of $G$ is the CADMG: 
-    \[ G_{\swig(W)} :=\lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)},L_{\swig(W)} \rp,\]
-    %\[ G_{\swig(W)} := G':=(J',V',E',L'),\]
-    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    Let $G = (J, V, E, L)$ be a CADMG (def \ref{def-cdmg-types}, item~i., equivalently a CDMG of def \ref{def-cdmg} that is acyclic in the sense of def \ref{def-acylic}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let $W \ins V$ be a subset of the output nodes; in particular $W \cap J = \emptyset$, since $W \ins V$ and $J \cap V = \emptyset$, so the construction acts only on output-side nodes.
+
+    \emph{Paradigm observation (which axioms each clause uses).}
+    The CADMG hypothesis on $G$ bundles together the CDMG typing axioms of def \ref{def-cdmg} ($J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ symmetric and irreflexive) and the acyclicity hypothesis of def \ref{def-acylic}. Items~i.--iv.\ below, and the CDMG axiom-check at the end, in fact only consume the CDMG typing axioms; the acyclicity hypothesis is only consumed downstream, by claim_3_9, which asserts that the constructed $G_{\swig(W)}$ is itself acyclic under the CADMG hypothesis on $G$. This is an observation about which axioms each clause uses; it does \emph{not} weaken the standing CADMG hypothesis above, which we keep as the literal LN's.
+
+    The \emph{single-world intervention graph (SWIG)} w.r.t.\ $W$ of $G$ is the CADMG
+    \[ G_{\swig(W)} := \lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)}, L_{\swig(W)} \rp, \]
     constructed as follows.
-    We first make two disjont copies of the nodes in $W$:
-    \[ W^o:=\lC w^o\st w \in W \rC, \qquad W^i:=\lC w^i \st w \in W \rC.  \]
-    Note that we consider $w^o \neq w^i$ for $w \in W$.
-  However, for brevity, for $v \in J \cup V \sm W$ we put:
-  \[ v^o:=v^i:=v.  \]
-  We then define:
-  \begin{enumerate}[label=\roman*.)]
-      \item $J_{\swig(W)} := J \dcup W^i$,
-      \item $V_{\swig(W)} := (V \sm W) \dcup W^o$, %which could be identified with $V$ again if we want to make the identification $W=W^o$.
-      \item $E_{\swig(W)} := \lC v^i_1 \tuh v_2^o \st v_1 \tuh v_2 \in E  \rC$,
-      \item $L_{\swig(W)} :=\lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$.
-  \end{enumerate}
-  where we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$,
-  and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.
+
+    \emph{Conceptual motivation (informal).}
+    The LN's commented-out shorthand $G((V \sm W) \dcup W^o \mid \doit(W^i \dcup J))$ encodes the SWIG construction as ``node-split (def \ref{def:G_node-splitting}) at $W$, then hard-intervene (def \ref{def:G_hard_intervention}) at the input-side copies $W^i$''. Concretely, node-splitting introduces two tagged copies $W^o$ and $W^i$ of $W$ together with transfer edges $w^o \tuh w^i$ for each $w \in W$; hard intervention at $W^i$ then both reclassifies $W^i$ as input nodes and removes every directed edge whose head lies in $W^i$ (in particular, removes the transfer edges). Items~i.--iv.\ below realise this composite construction \emph{directly} as four set-builders, without first constructing the intermediate node-split graph: nothing is ``included and then removed''.
+
+    \emph{Tagged copies of $W$.}
+    We introduce two \emph{tagged} copies of the nodes in $W$,
+    \[ W^o := \lC w^o \st w \in W \rC, \qquad W^i := \lC w^i \st w \in W \rC, \]
+    where $w \mapsto w^o$ and $w \mapsto w^i$ are injective and produce elements that are of a formally distinct kind from every element of $J \cup V$ and from each other: in a formal encoding, $W^o$ and $W^i$ are realised as tagged copies (e.g.\ via a $\Sigma$-type or tagged sum over $W$) so that the disjointness assertions
+    \[ W^o \cap V \;=\; W^i \cap V \;=\; W^o \cap J \;=\; W^i \cap J \;=\; W^o \cap W^i \;=\; \emptyset \]
+    hold \emph{automatically by typing} rather than being asserted as a side condition; in particular $w^o \neq w^i$ for every $w \in W$, matching the LN's note that ``$w^o \neq w^i$ for $w \in W$''.
+
+    \emph{Notational shorthand for non-$W$ nodes.}
+    For $v \in J \cup (V \sm W)$ we put
+    \[ v^o \;:=\; v^i \;:=\; v, \]
+    purely as notational shorthand to be used \emph{inside} the set-builder definitions of $E_{\swig(W)}$ and $L_{\swig(W)}$ below. This convention does \emph{not} reassign such $v$ into either tagged-copy carrier $W^o$ or $W^i$: untagged nodes $v \in J \cup (V \sm W)$ remain of their original kind in the ambient carrier, and the writings $v^o$, $v^i$ are simply two labels for $v$ itself. (Note that $J \cup (V \sm W)$ is itself a disjoint union, since $J \cap V = \emptyset$ and $V \sm W \ins V$. The LN writes this set as ``$J \cup V \sm W$''; the intended grouping is $J \cup (V \sm W)$, since otherwise the shorthand $v^o := v$ for $v \in W$ would conflict with the tagged construction of $W^o$.)
+
+    With these conventions in place, the four components of $G_{\swig(W)}$ are defined as follows.
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Input nodes:}
+            \[ J_{\swig(W)} := J \dcup W^i, \]
+            understood as a type-level disjoint union per the tagged construction above: each $w^i \in W^i$ is automatically distinct from every element of $J$, so the $\dcup$ holds without a separate side condition.
+        \item \emph{Output nodes:}
+            \[ V_{\swig(W)} := (V \sm W) \dcup W^o, \]
+            understood likewise as a type-level disjoint union: each $w^o \in W^o$ is automatically distinct from every element of $V \sm W$ (and from every element of $J$), so the $\dcup$ holds without a separate side condition.
+        \item \emph{Directed edges:}
+            \[
+                E_{\swig(W)} \;:=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC.
+            \]
+            The set-builder ranges over $(v_1, v_2) \in E$, so $v_1 \in J \cup V$ and $v_2 \in V$ by the typing $E \ins (J \cup V) \times V$, and the shorthand $v_1^i, v_2^o$ resolves as follows:
+            \begin{itemize}
+                \item if $v_1 \in W$, then $v_1^i$ denotes the tagged copy of $v_1$ in $W^i$; otherwise $v_1 \in J \cup (V \sm W)$ and $v_1^i = v_1$ denotes $v_1$ itself (untagged);
+                \item if $v_2 \in W$, then $v_2^o$ denotes the tagged copy of $v_2$ in $W^o$; otherwise $v_2 \in V \sm W$ and $v_2^o = v_2$ denotes $v_2$ itself (untagged).
+            \end{itemize}
+            Equivalently, rendered through def \ref{not-cdmg}, item~2: every directed edge $v_1 \tuh v_2 \in E$ of $G$ is lifted to a directed edge $v_1^i \tuh v_2^o \in E_{\swig(W)}$, and no other directed edges are present in $E_{\swig(W)}$. In particular, every directed edge of $G_{\swig(W)}$ has its source tagged $\cdot^i$ (or in $J \cup (V \sm W)$ under the shorthand) and its target tagged $\cdot^o$ (or in $V \sm W$ under the shorthand).
+        \item \emph{Bidirected edges:}
+            \[
+                L_{\swig(W)} \;:=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC.
+            \]
+            The set-builder ranges over $(v_1, v_2) \in L$, so $v_1, v_2 \in V$ by the typing $L \ins V \times V$, and the shorthand $v_k^o$ (for $k \in \{1, 2\}$) resolves as: if $v_k \in W$ then $v_k^o$ denotes the tagged copy of $v_k$ in $W^o$; otherwise $v_k \in V \sm W$ and $v_k^o = v_k$ denotes $v_k$ itself. Equivalently, rendered through def \ref{not-cdmg}: every bidirected edge $v_1 \huh v_2 \in L$ of $G$ is lifted to a bidirected edge $v_1^o \huh v_2^o \in L_{\swig(W)}$. Note that \emph{both} endpoints carry the same superscript $^o$; no element of $W^i$ appears as an endpoint of any bidirected edge of $G_{\swig(W)}$. This matches the one-sided $W^0$-only bidirected convention of node-splitting (def \ref{def:G_node-splitting}, item~iv.), and is the reason that bidirected edges incident to $W^o$ survive in $G_{\swig(W)}$ (cf.\ the disambiguation remark on the LN's closing sentence below).
+    \end{enumerate}
+    The CDMG axioms (def \ref{def-cdmg}) hold for $G_{\swig(W)}$: $J_{\swig(W)} \cap V_{\swig(W)} = \emptyset$ (since $J \cap V = \emptyset$, $J \cap W^o = \emptyset$, $W^i \cap (V \sm W) = \emptyset$, and $W^i \cap W^o = \emptyset$, all from the tagged-copy construction); the typing $E_{\swig(W)} \ins (J_{\swig(W)} \cup V_{\swig(W)}) \times V_{\swig(W)}$ holds by case analysis on the set-builder's source $v_1^i$ (if $v_1 \in W$, then $v_1^i \in W^i \ins J_{\swig(W)}$; if $v_1 \in J$, then $v_1^i = v_1 \in J \ins J_{\swig(W)}$; if $v_1 \in V \sm W$, then $v_1^i = v_1 \in V \sm W \ins V_{\swig(W)}$, hence into $J_{\swig(W)} \cup V_{\swig(W)}$ in every case) and on its target $v_2^o$ (if $v_2 \in W$, then $v_2^o \in W^o \ins V_{\swig(W)}$; if $v_2 \in V \sm W$, then $v_2^o = v_2 \in V \sm W \ins V_{\swig(W)}$, hence into $V_{\swig(W)}$ in every case); the typing $L_{\swig(W)} \ins V_{\swig(W)} \times V_{\swig(W)}$ holds analogously, both endpoints $v_1^o$ and $v_2^o$ lying in $W^o \cup (V \sm W) \ins V_{\swig(W)}$ by the same $W$-vs-$V \sm W$ case split; symmetry of $L_{\swig(W)}$ follows from symmetry of $L$ (the set-builder commutes with swapping the two coordinates: $(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$ lifts to $(v_1^o, v_2^o) \in L_{\swig(W)} \Leftrightarrow (v_2^o, v_1^o) \in L_{\swig(W)}$); and irreflexivity of $L_{\swig(W)}$ follows from irreflexivity of $L$ together with injectivity of $v \mapsto v^o$ on $V$ (so $v_1^o = v_2^o \Rightarrow v_1 = v_2$, contradicting $v_1 \neq v_2$ from $L$'s irreflexivity). Note that this axiom-check establishes only that $G_{\swig(W)}$ is a CDMG; \emph{acyclicity} of $G_{\swig(W)}$ -- the remaining clause needed to upgrade it to a CADMG, matching the LN's claim that the SWIG is itself a CADMG -- is not derived from items~i.--iv.\ here. It is deferred to claim_3_9, which establishes acyclicity of $G_{\swig(W)}$ under the standing CADMG hypothesis on $G$.
+
+    Informally: every directed edge $v_1 \tuh v_2 \in E$ of $G$ is reattached as a directed edge from the input-side tag of $v_1$ to the output-side tag of $v_2$, so in $G_{\swig(W)}$ the source slot of every directed edge is $\cdot^i$-tagged (or untagged in $J \cup (V \sm W)$) and the target slot is $\cdot^o$-tagged (or untagged in $V \sm W$); every bidirected edge of $G$ is reattached at the output-side tags of both endpoints. The input-side copies $W^i$ act as input nodes in $G_{\swig(W)}$ -- they appear in $J_{\swig(W)}$ and never as an endpoint of any edge of $G_{\swig(W)}$ at either slot -- while the output-side copies $W^o$ act as output nodes -- they appear in $V_{\swig(W)}$, never as the source of any directed edge, but may appear at either endpoint of a bidirected edge.
+
+    \emph{Disambiguation of the LN's closing remark.}
+    The LN closes the definition with the sentence
+    \begin{quote}
+    \emph{``we turn all nodes of $W^i$ into input nodes, removing all edges into $W^i$, and we turn all nodes of $W^o$ into output nodes, removing all edges out of $W^o$.''}
+    \end{quote}
+    This sentence is to be read as a \emph{descriptive gloss} on items~i.--iv., not as a separate edge-deletion step performed after some intermediate graph: nothing is ever included in $E_{\swig(W)}$ or $L_{\swig(W)}$ and then deleted, because items~iii.\ and iv.\ build the edge sets directly. With that in mind, the two halves of the gloss are interpreted as follows.
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{``Removing all edges into $W^i$.''} Every directed edge of $G_{\swig(W)}$ has its target tagged $\cdot^o$ (item~iii.), so no directed edge has a target in $W^i$; every bidirected edge of $G_{\swig(W)}$ has both endpoints tagged $\cdot^o$ (item~iv.), so no bidirected edge touches $W^i$ at either endpoint. Hence ``edges into $W^i$'' means both directed and bidirected edges, and the construction admits none of either.
+        \item \emph{``Removing all edges out of $W^o$.''} Here the LN's ``edges'' is to be read as referring to \emph{directed} edges only: every directed edge of $G_{\swig(W)}$ has its source tagged $\cdot^i$ (item~iii.), so no directed edge has a source in $W^o$. \emph{Bidirected} edges, by contrast, may legitimately have an endpoint in $W^o$: item~iv.\ places, for every bidirected edge $w_1 \huh w_2 \in L$ with $w_1, w_2 \in W$, the bidirected edge $w_1^o \huh w_2^o \in L_{\swig(W)}$ with both endpoints in $W^o$. So ``edges out of $W^o$'' must \emph{not} be read as ``all edges incident to $W^o$''; the LN's sentence is faithful to items~iii.--iv.\ only under the ``directed-only'' reading of ``out of''.
+    \end{enumerate}
+
+    \emph{Self-loops on $W$ produce no cycles in $G_{\swig(W)}$.}
+    The CDMG type of def \ref{def-cdmg} does \emph{not} require $E$ to be self-loop-free: the directed-self-loop case $(w, w) \in E$ for $w \in J \cup V$ is admitted. For $w \in W$ with $(w, w) \in E$, item~iii.\ produces the lifted edge $(w^i, w^o) \in E_{\swig(W)}$, with $w^i \in W^i \ins J_{\swig(W)}$ and $w^o \in W^o \ins V_{\swig(W)}$; this is \emph{not} a self-loop, since $w^i \neq w^o$ by the tagged-copy construction. Moreover it does not form a length-$2$ cycle with any other edge in $E_{\swig(W)}$: any other directed edge in $E_{\swig(W)}$ has a $\cdot^i$-tagged (or $J \cup (V \sm W)$) source and a $\cdot^o$-tagged (or $V \sm W$) target by item~iii., so in particular no edge in $E_{\swig(W)}$ has $w^o$ as a source. Consequently no cycle in $G_{\swig(W)}$ is produced by a directed self-loop on $W$, in contrast to the node-splitting construction of def \ref{def:G_node-splitting}, where the same self-loop $(w, w) \in E$ would produce a length-$2$ directed cycle $w^0 \tuh w^1 \tuh w^0$ together with the transfer edge $(w^0, w^1)$; no such transfer edge is included in $E_{\swig(W)}$. (Bidirected self-loops are vacuous in either construction, since $L$ is irreflexive by def \ref{def-cdmg}.)
 \end{Def}
 
 \end{document}

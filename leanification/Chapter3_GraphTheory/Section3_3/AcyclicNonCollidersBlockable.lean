@@ -1,331 +1,426 @@
 import Chapter3_GraphTheory.Section3_1.Acyclicity
 import Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable
 
--- TeX proof: claim_3_20_proof_AcyclicNonCollidersBlockable.tex
+namespace Causality
 
 /-!
-# Acyclic CDMGs make all non-colliders blockable (claim_3_20)
+# Acyclic ⟹ every non-collider position is blockable (`claim_3_20`)
 
-This file formalises *claim 3.20* of the lecture notes (Forré
-& Mooij, `lecture-notes/lecture_notes/graphs.tex`, lines
-1256 -- 1261): a `\begin{claimmark}\begin{Rem}...\end{Rem}\end{claimmark}`
-remark sitting between def_3_16 (blockable / unblockable
-non-colliders) and def_3_17 ($\sigma$-blocked walks):
+This file formalises the LN remark `claim_3_20`
+(`\label{rem-AcyclicNonCollidersBlockable}` in `graphs.tex`):
 
-> If $G$ is acyclic then all non-colliders are blockable.
+> If `G` is acyclic then all non-colliders are blockable.
 
-Under the def_3_16 paradigm, "all non-colliders are blockable"
-reads pointwise: for every walk $\pi$ in $G$ and every position
-$k$ on $\pi$, the implication
-`IsNonColliderAt k → IsBlockableNonColliderAt k` holds whenever
-`G` is acyclic.
+The authoritative spec is the canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_3/tex/`
+`claim_3_20_statement_AcyclicNonCollidersBlockable.tex`,
+verified equivalent to the LN block augmented with one operator
+clarification:
 
-## What this file contributes
+* `[acyclic_does_not_imply_directed_in_text]` — in this remark `G` is a
+  CDMG (per the surrounding context); "acyclic" means CDMG-acyclic per
+  `def_3_6`.  The edge orientations needed to define (non-)colliders are
+  already part of the ambient structure.
 
-A single `theorem`,
-`Walk.isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic`,
-with the pointwise universal closure described above as its
-signature:
+After the rewrite the LN's prose unfolds into the universally-
+quantified implication: for every CDMG `G` with `G.IsAcyclic`, every
+walk `π : Walk G u v` (per `def_3_4` item i.), and every position
+`k : ℕ`, `π.IsNonCollider k → π.IsBlockableNonCollider k`, where the
+per-position predicates are reused verbatim from `def_3_15`
+(`CollidersAndNon.lean`) and `def_3_16` (`BlockableAndUnblockable.lean`).
 
-```
-(hG : G.IsAcyclic) (π : Walk G v w) {k : ℕ}
-  (hk : π.IsNonColliderAt k) → π.IsBlockableNonColliderAt k
-```
+## Lean shape
 
-The proof goes via a private helper
-`not_isUnblockableNonColliderAt_of_isAcyclic` that derives `False`
-from any `IsUnblockableNonColliderAt` witness: every
-`IsUnblockableJoint` produces a directed walk into the joint vertex
-(via the SCC ⊆ Anc inclusion supplied by the joint condition)
-which, combined with the strict outgoing edge underlying the
-unblockable step, closes a directed cycle through the joint —
-contradicting `IsAcyclic`. The TeX proof's three patterns (left
-chain, right chain, fork) line up with the head-step case analysis
-in the helper.
+* `G : CDMG Node` explicit, mirroring the LN's "Let `G` be a CDMG"
+  standing hypothesis.
+* `hG : G.IsAcyclic` from `def_3_6` (`Acyclicity.lean`) — the
+  acyclicity hypothesis is named exactly as in the LN.
+* `{u v : Node}` implicit (synthesised from the walk's type), `(π :
+  Walk G u v)` and `(k : ℕ)` explicit, mirroring the binder shape of
+  `def_3_16`'s `IsBlockableNonCollider`.
+* Conclusion is the implication
+  `π.IsNonCollider k → π.IsBlockableNonCollider k`, exactly as the
+  canonical tex spells it.
+* No separate `k ≤ π.length` hypothesis is needed: `IsNonCollider`
+  already carries `k ≤ p.length` as a conjunct, so out-of-range `k`
+  makes the antecedent `False` and the implication vacuous — matching
+  the LN's "for every position `k ∈ {0, …, n}`" scoping.
 
-## Downstream usage
-
-* **def_3_17** ($\sigma$-blocked walks, `graphs.tex` lines
-  1326 -- 1348) -- the LN's $C$-$\sigma$-open / $\sigma$-blocked
-  conditions reference *blockable* non-colliders specifically; in
-  the acyclic case this claim collapses "blockable non-collider
-  in $C$" to "any non-collider in $C$".
-* **claim_3_21** (`graphs.tex` lines 1344 -- 1346) --
-  "unblockable non-colliders are always $C$-$\sigma$-open". The
-  dual fact to claim_3_20: claim_3_20 says acyclicity rules out
-  *unblockable* non-colliders altogether; claim_3_21 says (in any
-  graph, acyclic or not) unblockable non-colliders are $\sigma$-open.
-* **claim_3_24** ($\sigma$-separation equivalences) -- uses
-  claim_3_20 to swap "blockable non-collider" for "non-collider"
-  in the acyclic case.
-* **claim_3_26** (`graphs.tex` lines 1581 -- 1597) -- the
-  *non-remark* twin of this claim in the $i\sigma$-separation
-  section: "If a CDMG $G$ is acyclic then all non-colliders are
-  blockable. So, the partial condition for $i\sigma$-separation
-  ``a blockable non-collider in $C$'' can be simplified to
-  ``(any) non-collider in $C$''." The claim_3_26 row will consume
-  this theorem directly.
-
-## Style precedents
-
-* `Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable` --
-  source of `IsNonColliderAt`, `IsUnblockableNonColliderAt`,
-  `IsBlockableNonColliderAt`. The theorem here sits one floor
-  above and stays in `namespace Walk` so that callers reach for
-  it via dot-projection on a walk.
-* `Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder` --
-  the precedent "one-row claim file": a single `theorem`,
-  module-level docstring summarising the claim and its downstream
-  consumers, LN block reproduced verbatim in a `/- ... -/` quote
-  above the declaration, and a design-choice block.
-* `Chapter3_GraphTheory.Section3_1.Acyclicity` -- source of
-  `CDMG.IsAcyclic`, the precondition.
+The proof follows the tex proof at
+`tex/claim_3_20_proof_AcyclicNonCollidersBlockable.tex`.
 -/
+
+namespace CDMG
+
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited from
+--   `def_3_15` (`CollidersAndNon.lean`) and `def_3_16`
+--   (`BlockableAndUnblockable.lean`): both per-position predicates
+--   require this shape, so the wrapped main theorem signature below
+--   does not type-check without it.  Matches the chapter convention
+--   set by every prior file in this chapter — including the directly
+--   analogous claim-row `claim_3_19` (`MarginalizingOutThe.lean`),
+--   which uses the same `{Node : Type*} [DecidableEq Node]` shape at
+--   its own statement-typing helper block.
+--
+-- *Three-dash `--- start helper` / `--- end helper` markers, not
+--   two-dash `-- start statement`.*  Lean 4's `variable` auto-binding
+--   folds the implicit `Node` and the `DecidableEq Node` instance
+--   into the theorem below — they are *statement-typing
+--   infrastructure*, not the formalised LN content of this row, and
+--   the `start statement` / `end statement` markers must wrap only
+--   the LN-meaningful declaration head (the `theorem
+--   acyclic_non_colliders_blockable …` line itself).  Wrapping the
+--   `variable` line with three-dash helper markers is the standard
+--   chapter-3 convention: see the analogous helper block in
+--   `def_3_15`, `def_3_16`, and `claim_3_19` for prior art.
+-- claim_3_20 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_20 --- end helper
+
+-- Proof helpers (no markers).  Walk-position infrastructure used by
+-- the main proof to extract the `WalkStep` relations at the two
+-- walk-incident edges of an interior position `k`.  These are
+-- proof-only — removing them would not break the wrapped main
+-- theorem signature — so they carry no marker comments per the
+-- chapter convention.
+
+
+
+
+
+
+
+end CDMG
+
+end Causality
 
 namespace Causality
 
-open scoped Causality.CDMG
+namespace CDMG
 
-variable {α : Type*}
+-- ## Design choice — refactor section-wide statement context
+--
+-- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Mirrors the
+--   original `CDMG`-namespace `variable` block at the top of this file
+--   byte-for-byte modulo the refactor's namespace retarget.  Matches the
+--   chapter convention used by every `CDMG`-opening file
+--   (`CDMG.lean`, `Walks.lean`'s refactor section, `Acyclicity.lean`'s
+--   refactor section, `FamilyRelationships.lean`'s refactor section,
+--   `CollidersAndNon.lean`'s refactor section,
+--   `BlockableAndUnblockable.lean`'s refactor section).  The
+--   `cdmg_typed_edges` refactor does NOT alter the carrier-type
+--   discipline — only the `L`-field shape on `CDMG` and the
+--   per-step walk-edge encoding inside `WalkStep` — so the
+--   binders here are byte-identical to the original.
+--
+-- *Three-dash `--- start helper` / `--- end helper` markers.*  Same
+--   rationale as the original block at the top of this file: the
+--   implicit `Node` + `DecidableEq Node` infrastructure is
+--   statement-typing material, not the formalised LN content; the
+--   three-dash flavour is the chapter convention for that distinction.
+-- claim_3_20 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_20 --- end helper
 
-namespace Walk
+-- Helper — packages the acyclicity-cycle argument once.  Given a
+-- directed edge `(x, y) ∈ G.E` and `G.IsAcyclic`, the
+-- target `y` cannot lie in the strongly connected component
+-- `G.Sc x` — otherwise prepending `(x, y)` to a directed
+-- walk `y → x` (witnessed by `y ∈ G.Anc x`) yields a
+-- non-trivial directed walk `x → x`, contradicting acyclicity.
+--
+-- ## Design choice — outgoing_E_not_in_Sc
+--
+-- *Why factor out as a separate helper.*  Under the original encoding
+--   the cycle-construction argument appeared twice in the main proof
+--   (once for the slot-(k-1) sub-case, once for the slot-k sub-case),
+--   each time inlined as an `intro h_in_Sc; ...` block.  Under the
+--   refactor the main theorem delegates the per-slot work to the
+--   `blocking_interior_helper` helper below, and that helper
+--   in turn invokes the acyclicity argument at *exactly* the two slot
+--   branches.  Lifting the cycle-construction to its own lemma both
+--   removes the duplication and makes the load-bearing acyclicity-
+--   to-non-Sc translation visible at the call site.  This is a
+--   net-new declaration (no original counterpart); the cleanup name
+--   is `outgoing_E_not_in_Sc` (Phase 7 cleanup whole-word renames
+--   `outgoing_E_not_in_Sc → outgoing_E_not_in_Sc`).
+--
+-- *Why prepend rather than append.*  The directed walk `ρ : y → x`
+--   from `y ∈ Anc x` provides the right shape for prepending the
+--   single step `(x, y) ∈ G.E` at the head: the resulting cons-cell
+--   `.cons y (.forwardE hxy) ρ : Walk G x x` has source `x`,
+--   middle vertex `y`, and target `x` — a non-trivial closed
+--   directed walk based at `x`.  Appending would require a walk-
+--   concatenation primitive that the refactor does not provide.
+private lemma outgoing_E_not_in_Sc
+    {G : CDMG Node} (hG : G.IsAcyclic)
+    {x y : Node} (hxy : (x, y) ∈ G.E) : y ∉ G.Sc x := by
+  intro h_in_Sc
+  -- y ∈ Sc x → y ∈ Anc x → directed walk y → x.
+  have h_y_Anc : y ∈ G.Anc x := h_in_Sc.1
+  obtain ⟨_, ρ, h_ρ_dir⟩ := h_y_Anc
+  -- Prepend (x, y) ∈ G.E as a `.forwardE`-step to get a closed
+  -- directed walk x → x of length ≥ 1.
+  let ρ_tilde : Walk G x x :=
+    Walk.cons y (.forwardE hxy) ρ
+  have h_ρt_dir : ρ_tilde.IsDirectedWalk := h_ρ_dir
+  have h_ρt_len : ρ_tilde.length ≥ 1 := by
+    change ρ.length + 1 ≥ 1
+    omega
+  have h_x_in_G : x ∈ G := (G.hE_subset hxy).1
+  exact hG x h_x_in_G ⟨ρ_tilde, h_ρt_dir, h_ρt_len⟩
 
-variable {G : CDMG α}
+set_option linter.style.longLine false in
+-- Helper — handles the interior case (1 ≤ k < π.length) of the main
+-- theorem by induction on the walk `π`.  Under acyclicity, at any
+-- interior non-collider position the walk must have a "blocking slot"
+-- (the LN's outgoing-walk-edge-to-a-non-Sc-node witness): either at
+-- slot k - 1 (`HasBlockingLeftSlot`) or at slot k
+-- (`HasBlockingRightSlot`).  The induction's substantive case is
+-- `k = 1` on a `cons _ s₀ (cons _ s₁ _)` cons-cons walk, where the
+-- non-collider hypothesis `¬ (s₀.IsInto vMid ∧ s₁.IsInto vMid)`
+-- splits via `not_and_or` and each branch picks the matching
+-- blocking slot.
+--
+-- ## Design choice — blocking_interior_helper
+--
+-- *Why induction on `π`, not case-split on `k`.*  The original main
+--   theorem case-split on `k = 0` / `k = π.length` / interior, then
+--   inside the interior case read off walk-data at indices `k - 1`
+--   and `k` via the `Walk.walkStep_at` Option-membership helpers.
+--   Under the refactor `Walk.edges` does not exist, so the per-slot
+--   inspection must go through structural pattern-match on the walk
+--   constructors.  This forces a recursion on the walk's cons-chain:
+--   at outer cons cell `cons vMid s₀ (cons _ s₁ _)`, outer position
+--   `k = 1` reads `s₀` and `s₁` simultaneously off the head, and
+--   outer position `k ≥ 2` recurses on the tail with the index
+--   decremented.  This matches the recursion structure of
+--   `IsCollider` and `refactor_HasBlocking*Slot` byte-for-
+--   byte and gives the cleanest port.
+--
+-- *Index-recursion lockstep across `IsCollider`, `HasBlockingLeftSlot`,
+--   `HasBlockingRightSlot`.*  All three helpers step their walk-
+--   argument forward one cons-cell at a time and decrement their
+--   position index in lockstep at outer `k + 2` → tail `k + 1` (for
+--   `IsCollider` and `HasBlockingLeftSlot`) and outer `k + 1` → tail
+--   `k` (for `HasBlockingRightSlot`).  In the inductive step the
+--   substantive observation is that all three step in unison: at
+--   outer cons-cons walk with index `m + 2`, the inner walk
+--   inherits the negated-`IsCollider` hypothesis at position `m + 1`,
+--   and the inductive hypothesis returns `HasBlockingLeftSlot (m + 1)
+--   ∨ HasBlockingRightSlot (m + 1)` on the inner walk, which lifts to
+--   `HasBlockingLeftSlot (m + 2) ∨ HasBlockingRightSlot (m + 2)` on
+--   the outer walk by the pattern equations.
+--
+-- *The `k = 1` substantive case.*  Unfold `¬ IsCollider 1`
+--   at the cons-cons pattern to `¬ (s₀.IsInto vMid ∧
+--   s₁.IsInto vMid)`; apply `not_and_or` to split.  Each
+--   branch case-splits on the relevant WalkStep constructor:
+--   * `¬ s₀.IsInto vMid`: among `.forwardE / .backwardE /
+--     .bidir`, only `.backwardE h` (with `h : (vMid, u) ∈ G.E`,
+--     where `u` is the outer walk's source) leaves `IsInto` falsifiable.
+--     `.forwardE _` makes `IsInto` true via `vMid = vMid`; `.bidir _`
+--     makes it true via `vMid = vMid ∨ vMid = u → vMid = vMid`.  In the
+--     `.backwardE h` branch, `HasBlockingLeftSlot 1` unfolds to
+--     `u ∉ G.Sc vMid`, discharged by `outgoing_E_not_in_Sc hG h`.
+--   * `¬ s₁.IsInto vMid`: only `.forwardE h` (with
+--     `h : (vMid, vNext) ∈ G.E`) leaves `IsInto` falsifiable.
+--     `HasBlockingRightSlot 1` recurses via the outer cons cell to
+--     `(cons vNext s₁ _).HasBlockingRightSlot 0`, which then
+--     matches the `.forwardE _, 0` branch and unfolds to
+--     `vNext ∉ G.Sc vMid` — discharged by
+--     `outgoing_E_not_in_Sc hG h`.
+private lemma blocking_interior_helper
+    {G : CDMG Node} (hG : G.IsAcyclic) :
+    ∀ {u v : Node} (π : Walk G u v) (k : ℕ),
+      1 ≤ k → k < π.length → ¬ π.IsCollider k →
+      π.HasBlockingLeftSlot k ∨ π.HasBlockingRightSlot k := by
+  intro u v π
+  induction π with
+  | nil v hv =>
+      intro k hk_pos hk_lt _
+      -- length (.nil _ _) = 0, so k < 0 is impossible.
+      simp [Walk.length] at hk_lt
+  | @cons uOuter wOuter vMid s₀ π_rest ih =>
+      intro k hk_pos hk_lt h_notCol
+      cases π_rest with
+      | nil v hv =>
+          -- Outer length = 1; combined with 1 ≤ k and k < 1 → impossible.
+          simp [Walk.length] at hk_lt
+          omega
+      | @cons _ _ vNext s₁ π_rest_rest =>
+          -- Substantive interior case: outer walk is cons-cons.
+          -- Outer cons-cell: source = uOuter, middle = vMid, terminus = wOuter
+          -- Inner cons-cell: source = vMid, middle = vNext, terminus = wOuter
+          match k, hk_pos, hk_lt, h_notCol with
+          | 0, hk_pos, _, _ => exact absurd hk_pos (by decide)
+          | 1, _, _, h_notCol =>
+              -- Position 1: read s₀ and s₁ off the head pair.
+              -- IsCollider at (cons vMid s₀ (cons _ s₁ _), 1)
+              -- = s₀.IsInto vMid ∧ s₁.IsInto vMid.
+              have h_notBoth :
+                  ¬ (s₀.IsInto vMid ∧ s₁.IsInto vMid) := h_notCol
+              rcases not_and_or.mp h_notBoth with h_n0 | h_n1
+              · -- ¬ s₀.IsInto vMid → s₀ must be .backwardE.
+                cases s₀ with
+                | forwardE h =>
+                    -- IsInto reduces to `vMid = vMid ∨ _`, which is `True`.
+                    exact absurd
+                      (Or.inl rfl : WalkStep.IsInto
+                        (.forwardE h : WalkStep G uOuter vMid) vMid) h_n0
+                | backwardE h =>
+                    -- h : (vMid, uOuter) ∈ G.E.
+                    -- HasBlockingLeftSlot at (.cons vMid (.backwardE _) _, 1)
+                    -- = uOuter ∉ G.Sc vMid.
+                    refine Or.inl ?_
+                    change uOuter ∉ G.Sc vMid
+                    exact outgoing_E_not_in_Sc hG h
+                | bidir h =>
+                    -- IsInto reduces to `vMid = uOuter ∨ vMid = vMid`, which is `True`.
+                    exact absurd
+                      (Or.inr rfl : WalkStep.IsInto
+                        (.bidir h : WalkStep G uOuter vMid) vMid) h_n0
+              · -- ¬ s₁.IsInto vMid → s₁ must be .forwardE.
+                cases s₁ with
+                | forwardE h =>
+                    -- h : (vMid, vNext) ∈ G.E.
+                    -- HasBlockingRightSlot at outer cons-cons-(k=1):
+                    -- recurses to (cons vNext (.forwardE _) _).HasBlockingRightSlot 0
+                    -- = vNext ∉ G.Sc vMid.
+                    refine Or.inr ?_
+                    -- Step the outer HasBlockingRightSlot 1 down to inner ...Slot 0,
+                    -- which on .forwardE h unfolds to vNext ∉ G.Sc vMid.
+                    -- The outer recursion at k+1 = 1 needs s₀ to be destructed before
+                    -- the matcher can route to the wildcard-cons cons-pattern.
+                    cases s₀ with
+                    | forwardE _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                    | backwardE _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                    | bidir _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                | backwardE h =>
+                    -- IsInto reduces to `vMid = vMid ∨ _`, which is `True`.
+                    exact absurd
+                      (Or.inl rfl : WalkStep.IsInto
+                        (.backwardE h : WalkStep G vMid vNext) vMid) h_n1
+                | bidir h =>
+                    -- IsInto on .bidir : WalkStep G vMid vNext at w = vMid:
+                    -- (vMid = vMid ∨ vMid = vNext), the first disjunct is `True`.
+                    exact absurd
+                      (Or.inl rfl : WalkStep.IsInto
+                        (.bidir h : WalkStep G vMid vNext) vMid) h_n1
+          | m + 2, _, hk_lt, h_notCol =>
+              -- Inductive step.  Outer walk is cons (vMid) s₀ tail
+              -- where tail = cons vNext s₁ π_rest_rest.  The recursion
+              -- equations:
+              --   IsCollider (cons _ _ p) (m + 2) = p.IsCollider (m + 1)
+              --   HasBlockingLeftSlot (cons _ _ p) (m + 2)
+              --     = p.HasBlockingLeftSlot (m + 1)
+              --   HasBlockingRightSlot (cons _ _ p) (m + 2)
+              --     = p.HasBlockingRightSlot (m + 1)
+              -- bring the goal into the form of the inner walk at m + 1.
+              have h_notCol_inner :
+                  ¬ (Walk.cons vNext s₁ π_rest_rest).IsCollider (m + 1) := by
+                exact h_notCol
+              have hk_lt_inner :
+                  m + 1 < (Walk.cons vNext s₁ π_rest_rest).length := by
+                have hlen :
+                    (Walk.cons vMid s₀
+                      (Walk.cons vNext s₁ π_rest_rest)).length
+                       = (Walk.cons vNext s₁ π_rest_rest).length + 1 := rfl
+                omega
+              rcases ih (m + 1) (by omega) hk_lt_inner h_notCol_inner with hL | hR
+              · -- Lift HasBlockingLeftSlot from inner to outer via recursion eq.
+                -- The outer matcher needs s₀ destructed to route via cons-pattern.
+                refine Or.inl ?_
+                cases s₀ with
+                | forwardE _ => exact hL
+                | backwardE _ => exact hL
+                | bidir _ => exact hL
+              · -- Lift HasBlockingRightSlot from inner to outer via recursion eq.
+                refine Or.inr ?_
+                cases s₀ with
+                | forwardE _ => exact hR
+                | backwardE _ => exact hR
+                | bidir _ => exact hR
 
--- claim_3_20
--- title: AcyclicNonCollidersBlockable -- in an acyclic CDMG, every
--- non-collider position on every walk is a blockable non-collider
+set_option linter.style.longLine false in
+-- ## Design choice — acyclic_non_colliders_blockable
 --
--- Pointwise reading of the LN's "all non-colliders are blockable":
--- for every walk `π : Walk G v w` in `G` and every position
--- `k : ℕ` on `π`, if `k` is a non-collider on `π` then `k` is a
--- blockable non-collider on `π`, provided `G.IsAcyclic`.
+-- *Mechanical port of the original `acyclic_non_colliders_blockable`
+--   onto the typed-WalkStep refactor.*  The LN-level proof structure
+--   (Case A: k = 0; Case B: k = π.length; Case C: interior 1 ≤ k <
+--   π.length) carries over verbatim because the disjunction shape of
+--   `IsBlockableNonCollider` mirrors the original's:
+--   end-position arms + two interior arms encoded via the new
+--   `HasBlockingLeftSlot` / `HasBlockingRightSlot`
+--   helpers (instead of the original's Option-membership existentials
+--   over `Walk.edges` walk data).
 --
--- The two ingredients on the right-hand side
--- (`IsNonColliderAt`, `IsBlockableNonColliderAt`) come from
--- def_3_15 / def_3_16 (`Section3_3/CollidersAndNon.lean` and
--- `Section3_3/BlockableAndUnblockable.lean`); the precondition
--- `IsAcyclic` comes from def_3_6 (`Section3_1/Acyclicity.lean`).
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (claim_3_20,
-lines 1256 -- 1261):
+-- *Why the interior case is delegated to a helper.*  Under the refactor
+--   `Walk.edges` does not exist (see `Walks.lean`'s "Why no
+--   `edges`" block), so the per-slot inspection patterns of
+--   the original — which read walk-edge data at indices `k - 1` and
+--   `k` via `p.edges[k - 1]?` / `p.edges[k]?` and the
+--   `Walk.walkStep_at` helpers — must be replaced with structural
+--   pattern-match on the walk's cons-chain.  Pushing this case
+--   analysis into the `blocking_interior_helper` lemma
+--   keeps the main theorem's body short and lets the helper express
+--   the index-recursion lockstep across `IsCollider`,
+--   `HasBlockingLeftSlot`, `HasBlockingRightSlot` cleanly via
+--   induction on the walk.
+--
+-- *Acyclicity-cycle argument also factored out.*  See
+--   `outgoing_E_not_in_Sc` above for the once-and-for-all
+--   packaging of the original's Step C.2 cycle construction.  Under
+--   the refactor that argument is invoked from inside
+--   `blocking_interior_helper` at exactly the two slot
+--   branches (`.backwardE _` at slot 1 → left-slot witness;
+--   `.forwardE _` at the slot-k step → right-slot witness).
+-- ref: claim_3_20
+-- claim_3_20 -- start statement
+theorem acyclic_non_colliders_blockable
+    (G : CDMG Node) (hG : G.IsAcyclic)
+    {u v : Node} (π : Walk G u v) (k : ℕ) :
+    π.IsNonCollider k → π.IsBlockableNonCollider k
+-- claim_3_20 -- end statement
+:= by
+  intro h_nc
+  refine ⟨h_nc, ?_⟩
+  -- Case A — left end-position (k = 0).
+  by_cases h0 : k = 0
+  · exact Or.inl h0
+  -- Case B — right end-position (k = π.length).
+  by_cases hn : k = π.length
+  · exact Or.inr (Or.inl hn)
+  -- Case C — interior position (1 ≤ k ∧ k < π.length).
+  have hk_pos : 1 ≤ k := Nat.one_le_iff_ne_zero.mpr h0
+  obtain ⟨hk_le, h_notCol⟩ := h_nc
+  have hk_lt : k < π.length := lt_of_le_of_ne hk_le hn
+  rcases blocking_interior_helper hG π k hk_pos hk_lt h_notCol with hL | hR
+  · exact Or.inr (Or.inr (Or.inl hL))
+  · exact Or.inr (Or.inr (Or.inr hR))
 
-\begin{claimmark}
-\begin{Rem}
-If $G$ is acyclic then all non-colliders are blockable.
-\end{Rem}
-\end{claimmark}
--/
---
--- ## Design choice
---
--- * **Pointwise universal closure, walk explicit and position
---   implicit.** The LN's "all non-colliders are blockable" reads
---   naturally under the def_3_16 paradigm (which talks about a
---   single walk $\pi$ and a single position $k$) as: for every
---   walk $\pi$ in $G$ and every position $k$ on $\pi$,
---   `IsNonColliderAt k → IsBlockableNonColliderAt k`. We quantify
---   `π` explicitly (callers pass it positionally) and `k`
---   implicitly (inferable from `hk`); the `hk` hypothesis is the
---   LN's "non-collider" antecedent and is not dropped, since the
---   conclusion is genuinely conditional on `k` being a non-collider
---   position.
---
--- * **Alternative shape considered and rejected: drop the `hk`
---   antecedent, conclude `¬ π.IsUnblockableNonColliderAt k`
---   directly.** An equivalent-content version of the same claim
---   would be `(hG : G.IsAcyclic) (π : Walk G v w) {k : ℕ} :
---   ¬ π.IsUnblockableNonColliderAt k`. The two shapes are
---   inter-derivable via
---   `IsNonColliderAt_of_isUnblockableNonColliderAt` in
---   `BlockableAndUnblockable.lean` (its contrapositive supplies
---   `¬ IsUnblockableNonColliderAt` at every non-non-collider
---   position for free, so dropping `hk` does not actually weaken
---   the statement). We reject the negated-unblockable shape for
---   two reasons. **(i) LN-lexical fidelity.** The LN states the
---   conclusion as "blockable" -- the *positive* predicate
---   `IsBlockableNonColliderAt` -- not as "not unblockable" (the
---   negated `IsUnblockableNonColliderAt`); mirroring the LN's
---   vocabulary keeps the Lean conclusion lined up with the prose
---   word-for-word. **(ii) Consumer ergonomics.** The downstream
---   rows that consume this implication -- claim_3_24 and
---   claim_3_26 most directly -- apply it *under def_3_17's
---   universal quantifier over blockable non-collider positions
---   in $C$*, to substitute "blockable non-collider in $C$" by
---   "any non-collider in $C$" once acyclicity is known. Those
---   call sites want a conclusion that already says
---   `IsBlockableNonColliderAt`, so they can dispatch it under the
---   def_3_17 binder directly; the negated-unblockable shape would
---   force an extra `IsBlockableNonColliderAt.intro` (i.e.
---   explicit pairing with the local `hk` via the defining
---   equation in `BlockableAndUnblockable.lean`) at every call
---   site.
---
--- * **`namespace Walk` placement.** The theorem reads as a
---   property of a walk's position predicates, mirroring
---   `isBlockableNonColliderAt_zero` and `isBlockableNonColliderAt_length`
---   in `BlockableAndUnblockable.lean`. Callers reach for it via
---   dot-projection `π.isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic
---   hG hk`.
---
--- * **Name `isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic`.**
---   Standard Mathlib `_of_..._of_...` convention: conclusion first,
---   then each hypothesis in argument order (`hG` for acyclicity,
---   `hk` for non-collider). Reads as "blockable non-collider at
---   $k$, from non-collider at $k$, from acyclicity". The walk `π`
---   and position `k` are bound but unnamed in the theorem name,
---   matching the convention used for `isBlockableNonColliderAt_zero`
---   (the position `0` is in the name; the walk is not).
---
--- * **One-way implication only, mirroring the LN's prose.** The LN
---   claims acyclic ⇒ all non-colliders blockable, and that is the
---   direction we formalise. The converse also holds -- any
---   directed cycle $v_0 \tuh v_1 \tuh \cdots \tuh v_n = v_0$ in
---   $G$ yields, on the length-2 walk $\pi = (v_0 \tuh v_1 \tuh
---   v_2)$ (taking $v_2$ around the cycle back to $v_1$), an
---   unblockable non-collider at position $1$: the joint is a
---   right-chain (`forward, forward`), so the collider conjunct of
---   `IsUnblockableJoint` holds; the backward-SCC clause is
---   vacuous; and the forward-SCC clause $v_2 \in \Sc^G(v_1)$
---   holds because the cycle witnesses $v_1 \to v_2$ and $v_2 \to
---   \cdots \to v_1$. So `∃ π k, π.IsUnblockableNonColliderAt k`
---   contradicts blockability and witnesses `¬ G.IsAcyclic`. We do
---   *not* bundle the iff here because no downstream row needs the
---   converse (claim_3_26 and the other consumers only use the
---   forward direction); a future row can introduce the converse
---   as a separate lemma if a proof requires it.
---
--- * **Mathlib re-use: convention, not content.** The theorem's
---   content -- `CDMG.IsAcyclic`, `IsNonColliderAt`,
---   `IsBlockableNonColliderAt` -- is entirely project-local
---   (defined in `Section3_1/Acyclicity.lean`,
---   `Section3_3/CollidersAndNon.lean`, and
---   `Section3_3/BlockableAndUnblockable.lean`); mathlib has no
---   CDMG / walk-positional / collider-blockability infrastructure
---   to reuse, since these predicates are paradigm-specific to the
---   LN's conditional-directed-mixed-graph setup. What we *do*
---   borrow from mathlib is *naming and placement convention*: the
---   `_of_..._of_...` theorem name (conclusion first, then each
---   hypothesis in argument order) and the `namespace Walk`
---   dot-projection idiom both mirror mathlib's `SimpleGraph.Walk`
---   namespace style. This keeps the theorem feeling at home with
---   mathlib API even though its content is wholly project-local.
---
--- * **Downstream consequences -- see the module-level
---   "Downstream usage" block.** The module docstring above
---   already enumerates the four consumers (def_3_17, claim_3_21,
---   claim_3_24, claim_3_26) and what each does with this
---   theorem; we keep the design rationale and the consumer list
---   *co-located* via this cross-reference rather than duplicating
---   the consumer list here. The takeaway for the design choice
---   is that the chosen shape --
---   `IsNonColliderAt k → IsBlockableNonColliderAt k`, walk `π`
---   and position `k` universally bound -- is exactly the form in
---   which those consumers will dispatch the implication: they sit
---   inside def_3_17's universal "for every blockable non-collider
---   position $k$ in $C$ ..." quantifier and apply this theorem
---   modus-ponens-style to turn the binder's
---   `IsBlockableNonColliderAt` hypothesis into a plain
---   `IsNonColliderAt` one.
---
--- * **Constraint / known limitation: per-walk, not per-vertex.**
---   The theorem fixes a single walk `π` and a single position
---   `k` on it; it does *not* directly assert "for every walk
---   that visits `v` as a non-collider, the visit is blockable"
---   (a universal over walks containing `v` as a vertex). The two
---   statements are inter-derivable -- every downstream consumer
---   quantifies over walks anyway, so the per-walk shape composes
---   cleanly -- but a reader expecting a vertex-indexed flavor
---   should know we keep `π` on the *outside* of the implication.
---   This mirrors def_3_15 / def_3_16's own paradigm (predicates
---   *on* a walk + position, not on a vertex), so the choice is
---   forced by paradigm consistency rather than a fresh design
---   call here.
+-- The pre-refactor proof of `acyclic_non_colliders_blockable` relied on
+-- four `Walk.*` helpers (`Walk.vertices_length_eq`,
+-- `Walk.vertices_head?_eq_source`, `Walk.walkStep_at`,
+-- `Walk.walkStep_at_vertices`) defined above this proof in their own
+-- ORIGINAL blocks.  Under `cdmg_typed_edges` the post-refactor proof
+-- (the `outgoing_E_not_in_Sc` + `blocking_interior_helper` +
+-- `acyclic_non_colliders_blockable` REPLACEMENT trio above) inspects
+-- the typed `WalkStep` constructor directly, so the four helpers are
+-- now dead code.  Because the cleanup script's marker parser truncates
+-- block names at the first non-identifier character, all four
+-- `Walk.<suffix>` ORIGINAL blocks register as a single `Walk` name in
+-- the validator's set diff; this empty REPLACEMENT block pairs all
+-- four of them at once so the finalize-time marker validator passes.
 
-/-- Helper for `not_isUnblockableNonColliderAt_of_isAcyclic`: a
-directed edge `(b, x) ∈ G.E` together with `x ∈ Sc^G(b)` closes a
-directed cycle through `b`, contradicting `G.IsAcyclic`. This is the
-common core of claim_3_20's three TeX patterns (left chain / right
-chain / fork): each pattern instantiates `(b, x)` with the underlying
-strict outgoing edge from the joint and `x ∈ Sc^G(b)` with the LN's
-"$v_{k\pm 1} \in \Sc^G(v_k)$" SCC clause of `IsUnblockableJoint`. -/
-private lemma absurd_isAcyclic_of_directedEdge_Sc
-    (hG : G.IsAcyclic) {b x : α}
-    (h_e : (b, x) ∈ G.E) (h_x : x ∈ G.Sc b) : False := by
-  obtain ⟨⟨_, π, π_dir⟩, _⟩ := h_x
-  exact hG _ (CDMG.mem_iff.mpr (Set.mem_prod.mp (G.E_subset h_e)).1)
-    ⟨Walk.cons (WalkStep.forward h_e) π,
-      by simpa using π_dir,
-      by simp [Walk.length_cons]⟩
-
-/-- Helper for `isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic`:
-under acyclicity, no walk has an *unblockable* non-collider at any
-position. This is the heart of claim_3_20: the TeX proof's three
-patterns (left chain, right chain, fork) collapse into the
-`cons s (cons s' _), 1` case of the recursion below, where each
-`IsUnblockableJoint` SCC clause produces a directed walk back to the
-joint vertex; prepending the strict outgoing edge closes a directed
-cycle through the joint, contradicting `IsAcyclic`. -/
-private lemma not_isUnblockableNonColliderAt_of_isAcyclic
-    (hG : G.IsAcyclic) :
-    ∀ {v w : α} (π : Walk G v w) (k : ℕ),
-      ¬ π.IsUnblockableNonColliderAt k
-  | _, _, .nil _, _, h => h.elim
-  | _, _, .cons _ (.nil _), _, h => h.elim
-  | _, _, .cons _ (.cons _ _), 0, h => h.elim
-  | _, _, .cons s (.cons s' _), 1, hUnblock => by
-      -- `IsUnblockableNonColliderAt` at position 1 of `cons s (cons s' _)`
-      -- unfolds (via the `isUnblockableNonColliderAt_cons_cons_one`
-      -- `Iff.rfl` simp lemma) to `s.IsUnblockableJoint s'`, which is
-      -- `(¬ collider) ∧ (s.IsBackward → a ∈ Sc b) ∧ (s'.IsForward → c ∈ Sc b)`.
-      obtain ⟨hNotColl, hBack, hFwd⟩ := hUnblock
-      -- Case-split on the head step `s`, then on `s'` where needed.
-      -- The four collider configurations of `(s, s')` are discharged via
-      -- `hNotColl`; the three non-collider strict-arrow configurations
-      -- (right chain via `hFwd`, left chain via `hBack`, fork via either)
-      -- dispatch to `absurd_isAcyclic_of_directedEdge_Sc`.
-      cases s with
-      | forward _ =>
-        -- s.HasArrowheadAtTarget = True ⇒ non-collider forces s' = forward.
-        cases s' with
-        | forward h_e =>
-          -- Right-chain pattern: cycle via the strict outgoing arrow `s'`.
-          exact absurd_isAcyclic_of_directedEdge_Sc hG h_e (hFwd (by simp))
-        | backward _ => exact hNotColl ⟨by simp, by simp⟩
-        | bidir _ => exact hNotColl ⟨by simp, by simp⟩
-      | backward h_e =>
-        -- Left-chain / fork pattern: cycle via the strict outgoing arrow `s`.
-        exact absurd_isAcyclic_of_directedEdge_Sc hG h_e (hBack (by simp))
-      | bidir _ =>
-        -- Same as the `forward _` case: s.HasArrowheadAtTarget = True ⇒ s' = forward.
-        cases s' with
-        | forward h_e =>
-          -- Right-chain pattern (bidir variant on left): cycle via `s'`.
-          exact absurd_isAcyclic_of_directedEdge_Sc hG h_e (hFwd (by simp))
-        | backward _ => exact hNotColl ⟨by simp, by simp⟩
-        | bidir _ => exact hNotColl ⟨by simp, by simp⟩
-  | _, _, .cons _ (.cons s' p), k + 2, hUnblock => by
-      -- Recurse: at position `k + 2` of `cons _ (cons s' p)`, the
-      -- definition of `IsUnblockableNonColliderAt` is by `Iff.rfl`
-      -- equal to its value at position `k + 1` of the tail `cons s' p`.
-      exact not_isUnblockableNonColliderAt_of_isAcyclic hG
-        (.cons s' p) (k + 1) hUnblock
-
-/-- claim_3_20 (`AcyclicNonCollidersBlockable`): if `G` is acyclic
-then every non-collider position on every walk in `G` is a
-*blockable* non-collider. Mirrors
-`lecture-notes/lecture_notes/graphs.tex` claim_3_20 (the
-`\begin{claimmark}\begin{Rem}...\end{Rem}\end{claimmark}` block at
-lines 1256 -- 1261) verbatim, with the LN's "all non-colliders"
-unrolled under the def_3_16 paradigm to a universal quantifier over
-walks `π` and positions `k`, and the non-collider antecedent kept as
-the hypothesis `hk : π.IsNonColliderAt k`. -/
-theorem isBlockableNonColliderAt_of_isNonColliderAt_of_isAcyclic
-    (hG : G.IsAcyclic) {v w : α} (π : Walk G v w) {k : ℕ}
-    (hk : π.IsNonColliderAt k) :
-    π.IsBlockableNonColliderAt k :=
-  ⟨hk, not_isUnblockableNonColliderAt_of_isAcyclic hG π k⟩
-
-end Walk
+end CDMG
 
 end Causality

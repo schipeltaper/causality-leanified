@@ -1,10 +1,11 @@
 % Definition file for row def_3_18 -- "ISigmaSeparation".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -15,23 +16,50 @@
 \phantomsection\label{def_3_18}
 
 \begin{Def}[$i\sigma$-separation]\label{def:sigma_separation}
-    Let $G=(J,V,E,L)$ be a CDMG and $A,B,C \ins J \cup V$ (not necessarily disjoint) subset of nodes.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definition of def \ref{def:walks}, item~i., and the $\sigma$-blocking predicate ``$\pi$ is $C$-$\sigma$-blocked'' (equivalently ``$\sigma$-blocked given $C$'') of def \ref{def:sigma_blocking}. Let $A, B, C \ins J \cup V$ be subsets of nodes; $A$, $B$, $C$ are \emph{not} assumed to be pairwise disjoint, nor disjoint from the input-node set $J$, nor non-empty.
+
     We then say that:
     \begin{enumerate}
-        \item \emph{$A$ is $i\sigma$-separated from $B$ given $C$ in $G$}, in symbols:
-    \[ A \isPerp_G B \given C, \]
-    if every walk from a node in $A$ to a node in $J \cup B$ (sic!)\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\label{fn:why-J}} is $\sigma$-blocked by $C$.
-        \item If that property does not hold we will write:
-            \[ A \nisPerp_G B \given C. \]
-        \item We also define the special case:
-                \[ A \isPerp_G B \qquad :\iff \qquad A \isPerp_G B \given \emptyset.\]
-        \item For the special case $J = \emptyset$---that is, if $G$ has no input nodes---$i\sigma$-separation is also called \emph{$\sigma$-separation}, and we write:
-          \[A \sPerp_G B \given C := A \isPerp_G B \given C, \qquad A \nsPerp_G B \given C := A \nisPerp_G B \given C.\]
-          % claim_3_22
-          \begin{claimmark}
-          Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, since when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\sigma$-blocking conditions are invariant under walk reversal.
-          \end{claimmark}
+        \item \emph{$A$ is $i\sigma$-separated from $B$ given $C$ in $G$,} in symbols
+            \[
+                A \isPerp_G B \given C,
+            \]
+            iff: for every integer $n \ge 0$ and every walk
+            \[
+                \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+            \]
+            in $G$ (def \ref{def:walks}, item~i.) with $v_0 \in A$ and $v_n \in J \cup B$\footnote{The choice to include $J$ here in this place is non-standard in the literature. However, if we include $J$ in this definition here the implied (asymmetric) separoid rules for $id$-/$i\sigma$-separation will be of the same form as those for Markov kernels regarding conditional independence. This is the reason we include $J$ here.\label{fn:why-J}}, the walk $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking}.
+
+            \emph{Range of the walk quantifier.} The universal quantifier ranges over \emph{all} walks of every admissible length $n \ge 0$, including the trivial (length-zero) walk: whenever there exists $a \in A \cap (J \cup B)$, the tuple $\pi = (a)$ is, by def \ref{def:walks}, item~i.\ (case $n = 0$), a walk from $a$ to $a$ in $G$ with $v_0 = v_n = a$, hence $v_0 \in A$ and $v_n \in J \cup B$, and is therefore in the scope of the quantifier. Whether such a trivial walk is $C$-$\sigma$-blocked is determined by applying def \ref{def:sigma_blocking} at $n = 0$ (the blocking status reduces to: is the single end-position $k = 0$ a blockable non-collider with $v_0 \in C$, in the sense of def \ref{def:unblockable_noncollider}? --- which is the formalizer's downstream derivation, not part of the literal definition stated here). In particular, the condition is \emph{not} vacuously satisfied when $A \cap (J \cup B)$ is non-empty, and downstream consumers should not assume otherwise.
+
+            \emph{Asymmetric inclusion of $J$ on the right.} The right-hand endpoint constraint $v_n \in J \cup B$ (rather than $v_n \in B$) is the deliberate, non-standard choice flagged in footnote~\ref{fn:why-J} of the LN: with $J$ included on the right, the implied (asymmetric) separoid rules for $i\sigma$-separation match the corresponding rules for conditional independence under Markov kernels. As a direct consequence, the marginal case $B = \emptyset$ is \emph{not} vacuous: $A \isPerp_G \emptyset \given C$ asserts that every walk in $G$ from a node in $A$ to a node in $J$ is $C$-$\sigma$-blocked, which is a genuine condition whenever $J \neq \emptyset$. Only when $J = \emptyset$ does $A \isPerp_G \emptyset \given C$ recover the usual ``separation from the empty set is vacuous'' reading.
+
+        \item \emph{If the property in item~1 does not hold} --- equivalently, if there exist an integer $n \ge 0$ and a walk
+            \[
+                \pi = (v_0, a_0, v_1, \dots, a_{n-1}, v_n)
+            \]
+            in $G$ with $v_0 \in A$, $v_n \in J \cup B$, and $\pi$ is \emph{not} $C$-$\sigma$-blocked (equivalently, $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}) --- we write
+            \[
+                A \nisPerp_G B \given C.
+            \]
+
+        \item The unconditional ($C = \emptyset$) special case is defined as the abbreviation
+            \[
+                A \isPerp_G B \quad :\iff \quad A \isPerp_G B \given \emptyset.
+            \]
+            Unfolded via item~1: $A \isPerp_G B$ iff for every $n \ge 0$ and every walk $\pi$ in $G$ from a node $v_0 \in A$ to a node $v_n \in J \cup B$, $\pi$ is $\emptyset$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking}.
+
+        \item For the special case $J = \emptyset$ --- that is, $G$ has no input nodes --- $i\sigma$-separation is also called \emph{$\sigma$-separation}, and we write
+            \[
+                A \sPerp_G B \given C \;\; := \;\; A \isPerp_G B \given C,
+                \qquad
+                A \nsPerp_G B \given C \;\; := \;\; A \nisPerp_G B \given C.
+            \]
+            Under $J = \emptyset$ the right-hand endpoint constraint $v_n \in J \cup B$ reduces to $v_n \in B$, so $A \sPerp_G B \given C$ unfolds to: for every $n \ge 0$ and every walk $\pi$ in $G$ from a node $v_0 \in A$ to a node $v_n \in B$, $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking}.
     \end{enumerate}
+
+    \emph{Treatment of the trailing LN remark.}
+    The LN source block (\texttt{graphs.tex}, \texttt{\textbackslash label\{def:sigma\_separation\}}) closes item~4 with an embedded \texttt{claimmark} stating that $\sigma$-separation is symmetric ($A \sPerp_G B \given C \iff B \sPerp_G A \given C$ when $J = \emptyset$), justified informally by the observation that walks ``between $A$ and $B$'' are the same regardless of direction and that the $\sigma$-blocking conditions are invariant under walk reversal. Per the convention adopted in the sibling row \texttt{def\_3\_17} (whose embedded \texttt{claimmark} for \texttt{claim\_3\_21} is treated identically), that informal pre-statement is \emph{intentionally excluded} from the formalization of def \ref{def:sigma_separation}: it is not part of the definition proper, and its substantive content is the dedicated separate claim row \texttt{claim\_3\_22} (\emph{$\sigma$-separation is symmetric}), whose statement and proof live in \texttt{claim\_3\_22\_statement\_SigmaSeparationSymmetric.tex} and \texttt{claim\_3\_22\_proof\_SigmaSeparationSymmetric.tex} respectively. The row's authoritative \texttt{addition\_to\_the\_LN} clause \texttt{[sigma\_symmetry\_claim\_invokes\_unstated\_reversal\_invariance]} records (as background, not as a Lean obligation within this definition) the precise sense in which the informal justification is to be read: in a CDMG, a walk per def \ref{def:walks}, item~i.\ is a sequence of incident edges \emph{without regard to traversal orientation}, so reading the tuple in reverse yields another walk with start- and end-nodes swapped; this walk-reversal map is an involution on the set of walks in $G$. Symmetry of $\sigma$-separation (when $J = \emptyset$) is to be understood as resting on this involution together with the fact that the $\sigma$-blocking conditions of def \ref{def:sigma_blocking} on internal positions are stated invariantly under walk reversal --- but this reasoning is the content of the proof of \texttt{claim\_3\_22}, not of the present definition. No Lean obligation is to be derived from the embedded \texttt{claimmark} within this definition.
 \end{Def}
 
 \end{document}

@@ -1,0 +1,48 @@
+% Claim statement file for row claim_3_27 -- "LabelRoman".
+% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling claim_*_proof_*.tex file).
+%
+% Compiles standalone via the `subfiles` package.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_27 (statement)
+% title: LabelRoman
+\def\rowref{claim\_3\_27}
+\phantomsection\label{claim_3_27}
+
+\begin{Lem}[LabelRoman]\label{lem:replace_walk}
+Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma$-open walk in $G$.
+  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
+If we then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
+    \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
+  \end{enumerate}
+  then this new subwalk is entirely within $\Sc^G(v_j)$ and the modified walk $\pi'$ is still $C$-$\sigma$-open.
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma$-blocked on $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$. It is also worth noting that $\pi'$ cannot become $C$-$\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\pi$. So in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$.
+
+Case (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma$-open on $\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$ (if $v_i$ is the left endnode or not). If $v_i \neq v_j$, then the new directed path $v_i \tuh \cdots \tuh v_j$ in $\pi'$ is $C$-$\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).
+
+ Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \hus v_{j+1}$ in $\pi$. 
+ If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). 
+ So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$. So $\pi$ looks as follows:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \sus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \tuh \cdots \tuh v_k \hus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ Since $\pi$ is $C$-$\sigma$-open we have $v_k \in \Anc^G(C)$. Since $v_i \in \Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \in \Anc^G(C)$.
+ So if we replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by the shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ we then get for $\pi'$ the following situation:
+ \[\pi':\qquad \cdots v_{i-1} \suh v_i \hut \cdots \hut  v_j \hus v_{j+1} \cdots, \]
+ which is then $C$-$\sigma$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i=v_j$.
+ If $v_i \neq v_j$ then $v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. 
+
+ So in all cases $\pi'$ stays $C$-$\sigma$-open.
+\end{proof}
+\end{Lem}
+
+\end{document}

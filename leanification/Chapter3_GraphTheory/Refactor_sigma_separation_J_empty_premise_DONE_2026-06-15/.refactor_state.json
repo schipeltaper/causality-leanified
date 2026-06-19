@@ -1,0 +1,12 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_sigma_separation_J_empty_premise",
+  "roots": [
+    "def_3_18"
+  ],
+  "root_ref": "def_3_18",
+  "name": "sigma_separation_J_empty_premise",
+  "chapter": 3,
+  "init_date": "2026-06-15T21:29:20+00:00",
+  "deviations_to_resolve": []
+}

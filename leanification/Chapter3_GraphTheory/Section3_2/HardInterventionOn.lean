@@ -1,303 +1,744 @@
-import Chapter3_GraphTheory.Section3_1.CDMGNotation
-
-/-!
-# Hard intervention on a CDMG (def 3.10)
-
-This file formalises *definition 3.10* of the lecture notes
-(Forré & Mooij, `lecture-notes/lecture_notes/graphs.tex`): given a
-CDMG `G = (J, V, E, L)` and a subset of nodes `W`, the *hard
-intervention* of `G` w.r.t. `W` is a new CDMG `G_{do(W)} =
-(J_{do(W)}, V_{do(W)}, E_{do(W)}, L_{do(W)})` obtained by
-
-  * promoting every vertex of `W` from an output to an input,
-  * removing every directed edge into a vertex of `W`,
-  * removing every bidirected edge incident to a vertex of `W`.
-
-Concretely:
-
-```
-J_{do(W)} := J ∪ W
-V_{do(W)} := V \ W
-E_{do(W)} := E \ { (v, w) | w ∈ W }
-L_{do(W)} := L \ { (v₁, v₂) | v₁ ∈ W ∨ v₂ ∈ W }
-```
-
-This is the foundational operation of Section 3.2; nearly every
-later intervention statement and identification result in
-chapters 4 -- 16 quotes it.
-
-## Where this gets used downstream
-
-* **claim_3_3** (`graphs.tex` Rem 311) -- "if `G` is acyclic then
-  also `G_{do(W)}` is acyclic, and a topological order for `G` is
-  also one for `G_{do(W)}`". Builds directly on the `@[simp]`
-  membership lemmas `mem_hardInterventionOn_E` / `_L` below to
-  track edge preservation under the deletion.
-* **claim_3_4** (`graphs.tex` Lem 317, "hard interventions
-  commute") -- `(G_{do(W₁)})_{do(W₂)} = (G_{do(W₂)})_{do(W₁)} =
-  G_{do(W₁ ∪ W₂)}`. Iteration -- applying `hardInterventionOn` to
-  the *result* of a previous `hardInterventionOn` call -- is the
-  load-bearing compositional test; see the design note about the
-  absence of a `W ⊆ G.J ∪ G.V` precondition.
-* **claim_3_5** (`graphs.tex` Prp 360) -- bifurcations
-  characterised via `Anc^{G_{do(w)}}(v)` for a single-vertex
-  intervention.
-* **claim_3_8 / claim_3_11** -- disjoint hard interventions.
-* **claim_3_12** -- composition with `NodeSplittingOn`.
-* **def_3_13** -- extending CDMGs with intervention nodes.
-* **Chapters 4 -- 16** -- CBNs, do-calculus, iSCMs, identification,
-  and discovery all compose `G_{do(W)}` with the rest of their
-  machinery; the membership simp lemmas below are the gateway.
--/
+import Chapter3_GraphTheory.Section3_1.CDMG
 
 namespace Causality
 
+/-!
+# Hard intervention on CDMGs (`def_3_10`)
+
+This file formalises the LN definition `def_3_10`
+(`\label{def:G_hard_intervention}`) — the *hard intervention*
+operation `G ↦ G_{\doit(W)}` on a CDMG.  Given a CDMG
+`G = (J, V, E, L)` and a subset of nodes `W ⊆ J ∪ V`, the intervened
+CDMG has
+
+* `J_{\doit(W)} := J ∪ W` (every node of `W` becomes an input node),
+* `V_{\doit(W)} := V ∖ W`,
+* `E_{\doit(W)} := E ∖ { (v₁, v₂) ∈ E | v₂ ∈ W }` (every directed
+  edge whose head lies in `W` is removed),
+* `L_{\doit(W)} := L ∖ { (v₁, v₂) ∈ L | v₂ ∈ W }`, *symmetrised*
+  under the `hL_symm` axiom of `def_3_1` so that `L_{\doit(W)}` is a
+  symmetric subset of `(V ∖ W) × (V ∖ W)`.
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_10_HardInterventionOn.tex`,
+verified equivalent to the LN block (`graphs.tex`,
+`\label{def:G_hard_intervention}`).  The symmetrisation of item iv is
+documented in the tex's *"Remark on item iv.\ and the symmetry of
+`L`"*: under `def_3_1`'s ordered-pair encoding the literal one-sided
+removal at item iv does NOT preserve `hL_symm`, so the constructor
+*must* produce a symmetric `L_{\doit(W)}` in order to satisfy the
+CDMG axioms.  The two-sided filter `fun e => e.1 ∉ W ∧ e.2 ∉ W` is
+the unique reading consistent with both (a) the LN's natural-language
+gloss "remove all edges into nodes from `W`" (a bidirected edge is
+into *both* of its endpoints, `def_3_3` item ii) and (b) the LN's own
+assertion that `G_{\doit(W)}` is itself a CDMG.
+
+The substantive design rationale — why this Lean shape, why
+`Finset.filter`, why the asymmetric `e.2 ∉ W` for `E` and the
+symmetric `e.1 ∉ W ∧ e.2 ∉ W` for `L`, how `W ∩ J ≠ ∅` behaves —
+lives in the `--` comment block immediately above the `def`
+declaration.  Read that block before changing a field; it is the
+load-bearing contract for the do-calculus chapters (ch. 5+) and the
+iSCM intervention algebra (ch. 8+).
+-/
+
 namespace CDMG
 
-variable {α : Type*}
+-- def_3_10 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_10 --- end helper
 
--- def_3_10
--- title: HardInterventionOn
+-- ref: def_3_10
 --
--- The *hard intervention* of `G` with respect to a set `W` of
--- nodes replaces `G = (J, V, E, L)` by `(J ∪ W, V \ W, E \ ...,
--- L \ ...)`, turning every vertex of `W` into an input node and
--- stripping out every edge with an endpoint in `W` (every
--- directed edge *into* `W` and every bidirected edge *incident
--- to* `W`). The LN's `\doit(W)` subscript is the same operator
--- written infix.
+-- The *hard intervention on `G` with respect to `W`* is the CDMG
+-- `G.hardInterventionOn W hW` whose four components are
+--
+--   * `J' := G.J ∪ W`                                 — every node of
+--     `W` is converted to an input node;
+--   * `V' := G.V \ W`                                 — every node of
+--     `W` is removed from `V`;
+--   * `E' := { e ∈ G.E | e.2 ∉ W }`                   — every directed
+--     edge whose head is in `W` is removed; every other directed edge
+--     is retained;
+--   * `L' := { e ∈ G.L | e.1 ∉ W ∧ e.2 ∉ W }`         — every
+--     bidirected edge incident at any node of `W` (either endpoint) is
+--     removed.
+--
+-- The hypothesis `hW : W ⊆ G.J ∪ G.V` is the LN's
+-- "$W \subseteq J \cup V$" precondition.
 /-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.10):
+LN tex (rewritten `def_3_10_HardInterventionOn`, items i–iv):
 
-\begin{defmark}
-\begin{Def}[Hard intervention on CDMGs]\label{def:G_hard_intervention}
-    Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
-  The \emph{intervened CDMG} w.r.t.\ $W$ of $G$ is the CDMG:
-  \[ G_{\doit(W)}:=(J_{\doit(W)},V_{\doit(W)},E_{\doit(W)},L_{\doit(W)}),\]
-  where:
-  \begin{enumerate}[label=\roman*.)]
-      \item $J_{\doit(W)}:= J \cup W$,
-      \item $V_{\doit(W)}:= V \sm W$,
-      \item $E_{\doit(W)}:= E \sm \lC v \tuh w \,|\, v \in G, w  \in W  \rC$,
-      \item $L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC$,
-  \end{enumerate}
-  where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$.
-\end{Def}
-\end{defmark}
+    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq J \cup V$.
+    The intervened CDMG of $G$ w.r.t. $W$ is
+    $G_{\doit(W)} := (J_{\doit(W)}, V_{\doit(W)}, E_{\doit(W)},
+                      L_{\doit(W)})$,
+    where
+      i.   $J_{\doit(W)} := J \cup W$;
+      ii.  $V_{\doit(W)} := V \sm W$;
+      iii. $E_{\doit(W)} := E \sm \{ (v_1, v_2) \in E \mid v_2 \in W \}$;
+      iv.  $L_{\doit(W)} := L \sm \{ (v_1, v_2) \in L \mid v_2 \in W \}$,
+           symmetrised in the Lean encoding to preserve `hL_symm`
+           (see "Remark on item iv.\ and the symmetry of $L$" in the
+           tex spec).
+
+LN block (verbatim, for backup):
+
+    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq J \cup V$ a
+    subset of nodes.  The *intervened CDMG* w.r.t. $W$ of $G$ is the
+    CDMG $G_{\doit(W)} := (J_{\doit(W)}, V_{\doit(W)}, E_{\doit(W)},
+    L_{\doit(W)})$, where i.) $J_{\doit(W)} := J \cup W$, ii.)
+    $V_{\doit(W)} := V \sm W$, iii.) $E_{\doit(W)} := E \sm
+    \{ v \tuh w \mid v \in G, w \in W \}$, iv.) $L_{\doit(W)} :=
+    L \sm \{ v \huh w \mid v \in G, w \in W \}$, where we turn all
+    nodes from $W$ into input nodes and remove all edges into nodes
+    from $W$.
 -/
+-- ## Design choice (load-bearing contract for downstream chapter 3 rows)
 --
--- ## Design choice
+-- * **`def`, not `structure` / `inductive` / `class`.** A hard
+--   intervention is a *function* `CDMG Node → Finset Node → … →
+--   CDMG Node`, not new data and not a typeclass-resolvable property.
+--   The CDMG already has its `structure` (`def_3_1`); this row simply
+--   produces a new CDMG from an existing one.  Wrapping the result
+--   in a fresh structure (e.g. a `HardInterventionOn` record carrying
+--   the intervened graph as a field) was rejected because every
+--   downstream consumer in ch. 5 / ch. 8+ destructures the intervened
+--   graph the same way any other CDMG is destructured — via
+--   `(G.hardInterventionOn W hW).J`, `…V`, `…E`, `…L` — and an extra
+--   wrapping layer would force a re-destructuring step at every such
+--   call site.  An `inductive` was rejected for the same reason: it
+--   would force pattern-matching on the constructor where the LN
+--   simply names the four fields.
 --
--- * **No `W ⊆ G.J ∪ G.V` precondition.** The LN literally writes
---   "let `W ⊆ J ∪ V`", but the formulas for the four components
---   `J_{do(W)}`, `V_{do(W)}`, `E_{do(W)}`, `L_{do(W)}` are
---   well-defined for *any* `W : Set α`: a vertex in
---   `W \ (G.J ∪ G.V)` simply gets added to the input set
---   `G.J ∪ W` without affecting any edges (none of `G.E` / `G.L`
---   touch such a vertex by `G.E_subset` / `G.L_subset`), and
---   `G.V \ W` collapses to `G.V \ (W ∩ G.V)` -- the same set we
---   would get from the LN's restricted `W`. Choosing *no*
---   precondition has two concrete payoffs:
+-- * **`hW : W ⊆ G.J ∪ G.V` is an explicit argument, not a sub-condition
+--   threaded through the body.**  The LN's "Let $W \subseteq J \cup V$"
+--   is part of the *signature* of the hard intervention operation;
+--   without it the resulting tuple would still satisfy the five CDMG
+--   axioms (the typing constraints on `G.E` and `G.L` alone are
+--   strong enough — see the "$W \cap J \neq \emptyset$" bullet below
+--   for why `hW` is not consumed in the proofs), but the LN-faithful
+--   *statement* requires `hW` at the signature level.  Making it an
+--   explicit argument keeps the precondition visible at every call
+--   site and is the natural place for downstream lemmas about
+--   `G.hardInterventionOn W` to plug it in.  Pushing `hW` into an
+--   instance was rejected: subset facts are not typeclass-resolvable
+--   in any general way and would force every caller to manually
+--   discharge the membership.
 --
---     1. **Iteration works unconditionally** (claim_3_4). The
---        outer call in `(G_{do(W₁)})_{do(W₂)}` would otherwise
---        need a hypothesis `W₂ ⊆ (G_{do(W₁)}).J ∪
---        (G_{do(W₁)}).V`. The LN's prose for claim_3_4 -- "let
---        `W₁, W₂ ⊆ J ∪ V`" -- states the precondition only for
---        the *base* graph `G`, never re-proves it for the inner
---        intervention, and quietly relies on `(W₁ ∪ W₂) ⊆ J ∪ V`
---        on the RHS. Dropping the precondition matches that
---        informal usage exactly.
---     2. **Every caller is one hypothesis shorter.** Downstream
---        uses (claim_3_5 with a single vertex `w`, claim_3_8 /
---        3_11 with disjoint `W₁, W₂`, the chapter 4 -- 16
---        do-calculus and identification machinery) never need to
---        thread the `W ⊆ G` hypothesis through their statements.
+-- * **`Finset.filter` for the edge-set removals, not `Finset.image` /
+--   recursion / a quotient.**  The LN writes the removal sets in
+--   set-builder form `E \setminus \{ … \mid … \}`.  Lean's
+--   `Finset.filter` is the closest primitive (`Finset.mem_filter`
+--   gives exactly `e ∈ s.filter p ↔ e ∈ s ∧ p e`), shares the
+--   `Finset (Node × Node)` carrier with every other consumer in
+--   chapter 3 (`def_3_5`'s family-set filters, `def_3_8`'s
+--   topological-order projections), and decidability of the
+--   filter-predicate follows from `[DecidableEq Node]`.
+--   `Finset.image` was rejected because the LN takes a *difference*
+--   with the original edge set, not a re-mapping; recursion is
+--   overkill for a single set-comprehension.  A quotient encoding
+--   was rejected at the `def_3_1` design stage (see `CDMG.lean`); we
+--   inherit the ordered-pair-plus-symmetry choice here.
 --
---   The trade-off: a user who passes a `W` *not* contained in
---   `G.J ∪ G.V` gets a CDMG that disagrees with the LN's prose
---   on the spurious vertices in `W \ (G.J ∪ G.V)` (they show up
---   as input nodes). The membership simp lemmas below make this
---   precise. In practice every claim that *reasons* about
---   `G_{do(W)}` adds `W ⊆ G.J ∪ G.V` (or a stronger form) at the
---   *claim* level, not at the *definition* level -- exactly as
---   the LN does.
+-- * **Directed-edge removal is one-sided (`e.2 ∉ W`); bidirected-edge
+--   removal is two-sided (`e.1 ∉ W ∧ e.2 ∉ W`).**  Item iii of the
+--   rewritten tex says "remove every directed edge whose head lies
+--   in `W`": the head of `(v₁, v₂) ∈ G.E` is `v₂`, so the
+--   kept-condition is `e.2 ∉ W` — no symmetrisation needed on the
+--   directed channel because `G.E` itself is not symmetric.
+--   Item iv literally writes the analogous one-sided condition
+--   `v₂ ∈ W` for `L`, but, crucially, under `def_3_1`'s ordered-pair
+--   encoding of `L` (with `hL_symm` enforcing
+--   `(v₁, v₂) ∈ L ↔ (v₂, v₁) ∈ L`), the one-sided filter does *not*
+--   preserve symmetry: for `w ∈ W ∩ V` and `v ∈ V \ W`, both pairs
+--   `(v, w)` and `(w, v)` lie in `G.L` and together represent the
+--   same bidirected edge; the one-sided rule deletes `(v, w)` (its
+--   second slot is `w`) but retains `(w, v)` (its second slot is
+--   `v`), so `L'` would fail `hL_symm` and the four-tuple would
+--   *not* be a CDMG.  The tex's "Remark on item iv.\ and the
+--   symmetry of `L`" explicitly defers the reconciliation to this
+--   Lean encoding: the constructor *must* produce a symmetric
+--   `L_{\doit(W)}`.  Two independent arguments pin down the
+--   two-sided reading as the unique LN-faithful one:
 --
--- * **`L_{do(W)}` removes pairs with *either* endpoint in `W`,
---   not just the second endpoint.** The LN writes
---   `L \ {v ↔ w | v ∈ G, w ∈ W}`, where `↔` is the *unordered*
---   bidirected-edge relation. In Lean we encode bidirected edges
---   as a `Set (α × α)` of ordered pairs together with a
---   symmetry field (`CDMG.L_symm`, def_3_1). A literal port
---   `L \ { (v, w) | w ∈ W }` would remove only one of each
---   symmetric pair: if `(a, b) ∈ G.L` with `a ∉ W` and `b ∈ W`,
---   the pair `(a, b)` would be deleted but its symmetric
---   partner `(b, a)` would survive -- and then `L_{do(W)}` would
---   no longer satisfy `L_symm`, breaking the very next field's
---   obligation when reassembling the intervened CDMG. The LN's
---   prose immediately after the four bullets -- "we ... remove
---   all edges into nodes from `W`" -- combined with the
---   unordered reading of `↔` makes the intended semantics
---   unambiguous: remove every bidirected edge with *any*
---   endpoint in `W`. We encode this as
---   `L \ { (v₁, v₂) | v₁ ∈ W ∨ v₂ ∈ W }`, which is
---   `L_symm`-preserving and equivalent to the LN's set
---   difference modulo the unordered convention.
+--     (a) The LN's own natural-language gloss "remove all edges into
+--         nodes from `W`".  A bidirected edge `v₁ \huh v₂` is into
+--         *both* endpoints by `def_3_3` item ii (the `L`-clause of
+--         `into`), so the LN's gloss reads "delete every bidirected
+--         edge with an endpoint in `W`".  This is exactly the
+--         two-sided filter.
 --
--- * **Drop the `v ∈ G` clause from `E_{do(W)}`.** The LN writes
---   `E \ { v → w | v ∈ G, w ∈ W }`, but every directed edge
---   `(v, w) ∈ G.E` already satisfies `v ∈ G.J ∪ G.V = G` by
---   `G.E_subset`, so the `v ∈ G` clause is redundant on the set
---   being removed: the two formulations
---   `E \ { (v, w) | v ∈ G ∧ w ∈ W }` and `E \ { (v, w) | w ∈ W }`
---   are equal as subsets of `G.E`. We encode the cleaner second
---   form `G.E \ { p | p.2 ∈ W }`. The LN's claim_3_4 proof
---   itself drops the `v ∈ G` clause when computing
---   `E_{(G_{do(W₁)})_{do(W₂)}}`, so our simplification matches
---   the LN's working-out style. The bidirected case keeps the
---   `v₁ ∈ W ∨ v₂ ∈ W` disjunction (rather than `p.2 ∈ W`) for
---   the symmetry reason above.
+--     (b) The LN's assertion that `G_{\doit(W)}` is itself a CDMG.
+--         Symmetry of `L_{\doit(W)}` is required by the `def_3_1`
+--         axiom `hL_symm`; the one-sided rule does not deliver it;
+--         the two-sided rule does.
 --
--- * **Name `hardInterventionOn`, dot-projection
---   `G.hardInterventionOn W`.** The row title is
---   `HardInterventionOn` and the LN macro is `\doit(W)`; the
---   Lean identifier we choose has to be searchable and
---   pronounceable. `hardInterventionOn` reads as the prose name;
---   the dot-notation `G.hardInterventionOn W` lines up with the
---   LN's `G_{do(W)}` / "the hard intervention of `G` on `W`"
---   phrasing. CamelCase matches Mathlib's convention for
---   definitions taking arguments (`Set.image`, `Finset.filter`,
---   ...).
+--   Any future row asserting "`G_{\doit(W)}` has no bidirected edge
+--   incident at `W`" (e.g. the iSCM intervention-edge lemmas of
+--   ch. 8+, or the disjoint-intervention commutativity rows
+--   `claim_3_8` / `claim_3_11`) builds on this contract.
 --
--- * **No new notation at this row.** The LN macro `\doit(W)` /
---   subscript `G_{do(W)}` is convenient mathematically but
---   introducing it now would create a notational dependency
---   before any downstream proof exists to motivate the precise
---   token / precedence choice. Callers in claim_3_3 / claim_3_4
---   will write `G.hardInterventionOn W` explicitly; a later row
---   (e.g. one introduced specifically for `\doit` notation) can
---   add `notation` syntax if the volume of use cases makes the
---   prose form clunky. Keeping notation out of this row keeps
---   the definition trivially usable from any file without
---   needing `open scoped`.
+--   This is a *registered content deviation* from the LN's literal
+--   item iv; the register entry is
+--   `hard_intervention_l_symmetrized_removal` in
+--   `leanification/deviations.json` (grep that id for the full
+--   rationale, the manager-accepted status, and the recorded two-node
+--   counter-example: `G2` over `Fin 2`, `G.L = {(0,1),(1,0)}`,
+--   `W = {1}` — the LN-literal one-sided filter yields `{(1,0)}`
+--   whereas the Lean two-sided filter yields `∅`).  The deviation is
+--   *structural* (forced by `def_3_1`'s ordered-pair encoding of `L`
+--   with `hL_symm` as a separate axiom), not stylistic: any literal
+--   reading would not type-check as a CDMG.
 --
--- * **Structural fields discharged in-place.** The seven CDMG
---   obligations (`disjoint_JV`, `E_subset`, `L_subset`,
---   `L_irrefl`, `L_symm`, `disjoint_EL`) are each a one- to
---   three-line consequence of the corresponding `G.*` field
---   plus a set-membership manipulation:
+--   The `hL_irrefl` and `hL_symm` proof obligations of `G_{\doit(W)}`
+--   transport from `G`'s axioms.  Since `L'` is a `Finset.filter` of
+--   `G.L`, every pair in `L'` is also in `G.L`, so `G.hL_irrefl`
+--   applies pointwise.  For `hL_symm`: if `(v₁, v₂) ∈ L'` then
+--   `(v₁, v₂) ∈ G.L` and `v₁ ∉ W ∧ v₂ ∉ W`; `G.hL_symm` gives
+--   `(v₂, v₁) ∈ G.L`, and the predicate `e.1 ∉ W ∧ e.2 ∉ W` is
+--   *symmetric* under the swap (the two conjuncts commute), so
+--   `(v₂, v₁) ∈ L'`.  The one-sided filter would not deliver this
+--   second step — that is the load-bearing reason the symmetric form
+--   is the only one that fits the structure constructor.
 --
---     * `disjoint_JV` -- a vertex in `(G.J ∪ W) ∩ (G.V \ W)` is
---       either in `G.J ∩ (G.V \ W) ⊆ G.J ∩ G.V` (vacuous by
---       `G.disjoint_JV`) or in `W ∩ (G.V \ W)` (vacuous by `\`).
---     * `E_subset` -- a directed edge `(v, w)` of `E_{do(W)}`
---       has `(v, w) ∈ G.E`, so `w ∈ G.V` and `w ∉ W` give
---       `w ∈ G.V \ W`; the source `v` is in `G.J ∪ G.V`, which
---       is contained in `(G.J ∪ W) ∪ (G.V \ W)` by a three-case
---       split on `v` (`v ∈ G.J`, or `v ∈ G.V ∩ W`, or
---       `v ∈ G.V \ W`).
---     * `L_subset` -- both endpoints of a surviving bidirected
---       edge are in `G.V` (by `G.L_subset`) and `∉ W` (by the
---       set-difference deletion), so in `G.V \ W`.
---     * `L_irrefl`, `disjoint_EL` -- monotone in `G.L` /
---       `G.E` / `G.L`; the deletions only shrink each set, so
---       the original irreflexivity / disjointness lift
---       directly.
---     * `L_symm` -- our both-endpoints removal makes the
---       deleted set itself symmetric in `(v₁, v₂)`, so
---       symmetry of `G.L` lifts to `L_{do(W)}` exactly. This
---       is the field that the design choice on `L_{do(W)}`
---       above is engineered to satisfy.
+--   WARNING — membership reasoning on `(G.hardInterventionOn W hW).L`.
+--   A reader cribbing the LN's one-sided item iv is liable to write
+--     `(v, w) ∈ (G.hardInterventionOn W hW).L
+--        ↔ (v, w) ∈ G.L ∧ w ∉ W`            -- WRONG
+--   That biconditional is *false* in this Lean encoding: take
+--   `v ∈ W ∩ V` and `w ∉ W`.  The pair `(v, w)` lies in `G.L` and
+--   satisfies `w ∉ W`, so the wrong rule would put it in `L'`; but
+--   the actual two-sided filter rejects it because `v ∈ W`.  The
+--   correct membership rule is
+--     `(v, w) ∈ (G.hardInterventionOn W hW).L
+--        ↔ (v, w) ∈ G.L ∧ v ∉ W ∧ w ∉ W`.
+--   The expected downstream lemma is `mem_hardInterventionOn_L_iff`
+--   (two-sided, paralleling `Finset.mem_filter`); do *not* introduce
+--   a one-sided convenience variant — it will silently mis-handle the
+--   mirror pair and quietly contradict `hL_symm`.
 --
---   Discharging the seven fields here (rather than via a helper
---   lemma) keeps the proof obligations colocated with the
---   construction, matching the Mathlib house style for
---   one-shot structure builders.
+-- * **Items i, ii are verbatim LN translations; item iii's `v ∈ G`
+--   clause is folded into `def_3_1`'s `hE_subset` typing.**  Items i
+--   (`J' := G.J ∪ W`) and ii (`V' := G.V \ W`) are direct, literal
+--   translations of the LN set-builder formulae — no design choice
+--   beyond the `Finset` carrier was made, and no deviation exists
+--   there.  In item iii the LN's set-builder reads
+--   `{ v \tuh w | v ∈ G, w ∈ W }`; per the tex's "Disambiguation of
+--   the LN's `v ∈ G` quantifier" paragraph, the informal `v ∈ G`
+--   abbreviates `v ∈ J ∪ V`.  Under `def_3_1`'s
+--   `hE_subset : (v₁, v₂) ∈ E → v₁ ∈ J ∪ V ∧ v₂ ∈ V`, the clause
+--   `v₁ ∈ J ∪ V` is *automatic* on every element of `G.E`, so the
+--   `Finset.filter` predicate reduces to the single conjunct
+--   `e.2 ∉ W`.  This is a *presentation simplification*, not a
+--   content deviation: a reader comparing the Lean filter to the LN
+--   set-builder line-by-line should treat the missing `v₁ ∈ J ∪ V`
+--   clause as redundant (already discharged by `hE_subset`), not
+--   missing.
+--
+-- * **`hJV_disj` for `G_{\doit(W)}` is one line of set algebra.**
+--   `(G.J ∪ W) ∩ (G.V \ W) = ∅` decomposes as the union of (i)
+--   `G.J ∩ (G.V \ W) = ∅`, which follows from `G.hJV_disj`
+--   (`G.J ∩ G.V = ∅`) and `(G.V \ W) ⊆ G.V`, and (ii)
+--   `W ∩ (G.V \ W) = ∅`, which is immediate from `Finset.sdiff`.
+--   The proof does not consume `hW`; the disjointness is structural,
+--   independent of the `W ⊆ J ∪ V` precondition.
+--
+-- * **`W ∩ J ≠ ∅` is admitted; behaviour matches the tex
+--   case-analysis.**  The LN hypothesis is `W ⊆ J ∪ V`; we do *not*
+--   additionally require `W ∩ J = ∅`.  The tex's "On the case
+--   $W \cap J \neq \emptyset$" paragraph spells out the behaviour:
+--   items i and ii are *idempotent* on `W ∩ J` (`G.J ∪ W` is unchanged
+--   at those nodes; `G.V \ W` is unaffected because `G.J` is disjoint
+--   from `G.V` by `hJV_disj`); items iii and iv still mechanically
+--   fire on edges with head in `W ∩ J`, but `def_3_1`'s typing
+--   constraints `E ⊆ (J ∪ V) × V` and `L ⊆ V × V` forbid any edge
+--   from having its head in `J` in the first place, so the filters
+--   are *de facto* no-ops on `W ∩ J`.  We do not bake the idempotency
+--   into the type; any downstream row that wants "intervening on a
+--   subset of `J` is the identity" derives it as a lemma.  This is
+--   also the reason `hW` is not consumed in the five proof
+--   obligations below: the typing constraints from `G` already
+--   exclude every problematic case, and `hW` is carried purely for
+--   LN-faithfulness of the *signature*.
+--
+-- * **Argument order `(G : CDMG Node) (W : Finset Node) (hW : …)`.**
+--   `G` first matches the convention of every chapter-3 predicate
+--   (`G.tuh`, `G.huh`, `G.adjacent`, `G.into`, `G.outOf`), enabling
+--   dot-notation `G.hardInterventionOn W hW`.  `W` precedes `hW`
+--   so the call site reads left-to-right like the LN's "let
+--   `W ⊆ J ∪ V` be a subset".
+--
+-- * **`where` syntax with named fields, not anonymous-constructor
+--   `⟨ … ⟩`.**  The CDMG `structure` has nine fields (`J`, `V`,
+--   `hJV_disj`, `E`, `hE_subset`, `L`, `hL_subset`, `hL_irrefl`,
+--   `hL_symm`).  An anonymous-constructor form would interleave data
+--   and proof obligations in a positional list, making the
+--   correspondence with `def_3_1`'s `structure` opaque at a glance.
+--   `where … J := … V := …` keeps every field labelled and lets
+--   the proof obligations sit next to the data they refer to.
+--
+-- * **Downstream consumers.**  Every do-calculus row of ch. 5 (the
+--   interventional CBN factorisation `do(W)`, the three rules of
+--   do-calculus, identifiability via the ID algorithm), the iSCM
+--   intervention algebra of ch. 8–10 (composition of hard
+--   interventions, disjoint-intervention commutativity), and the
+--   marginalisation-intervention interaction of `claim_3_18`, as
+--   well as the topological-order preservation of `claim_3_3` /
+--   `claim_3_13`, all rest on the four field assignments above.
+--   The symmetric-removal choice in `L_{\doit(W)}` is the *contract*
+--   those rows rely on; any deviation would break the
+--   "`G_{\doit(W)}` is itself a CDMG" assumption every one of them
+--   silently uses.
 
-/-- The *hard intervention* of the CDMG `G` with respect to a set
-of nodes `W ⊆ α`: the new CDMG `G_{do(W)}` obtained by promoting
-every vertex of `W` to an input node, removing every directed
-edge whose *target* lies in `W`, and removing every bidirected
-edge incident to *any* vertex of `W`. See
-`lecture-notes/lecture_notes/graphs.tex` definition
-`def:G_hard_intervention` (def 3.10 of the LN).
+end CDMG
 
-This is intentionally well-defined for *every* `W : Set α`, with
-no `W ⊆ G.J ∪ G.V` precondition -- see the design note above for
-why (the iterated form `(G.hardInterventionOn W₁).hardInterventionOn
-W₂` of claim_3_4 needs this generality). The four `@[simp]` lemmas
-`hardInterventionOn_J`, `hardInterventionOn_V`,
-`mem_hardInterventionOn_E`, `mem_hardInterventionOn_L` below
-characterise the four components of the result. -/
-def hardInterventionOn (G : CDMG α) (W : Set α) : CDMG α where
+namespace CDMG
+
+-- def_3_10 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_10 --- end helper
+
+-- ref: def_3_10
+--
+-- The *hard intervention on `G` with respect to `W`* is the
+-- `CDMG` `G.hardInterventionOn W hW` whose four
+-- components are
+--
+--   * `J' := G.J ∪ W`                                 — every node of
+--     `W` is converted to an input node;
+--   * `V' := G.V \ W`                                 — every node of
+--     `W` is removed from `V`;
+--   * `E' := { e ∈ G.E | e.2 ∉ W }`                   — every directed
+--     edge whose head is in `W` is removed; every other directed edge
+--     is retained;
+--   * `L' := { s ∈ G.L | ∀ v ∈ s, v ∉ W }`            — every
+--     bidirected edge incident at any node of `W` (any endpoint of the
+--     unordered pair) is removed.
+--
+-- The hypothesis `hW : W ⊆ G.J ∪ G.V` is the LN's
+-- "$W \subseteq J \cup V$" precondition.
+--
+-- This declaration is the post-refactor port of `def_3_10` against the
+-- `cdmg_typed_edges` design (`def_3_1` shape:
+-- `L : Finset (Sym2 Node)`, no `hL_symm` axiom).  The deviation
+-- `hard_intervention_l_symmetrized_removal` recorded against the
+-- pre-refactor encoding is structurally resolved here: under the
+-- `Sym2` typing of `L`, the LN's item iv. set-builder
+-- `L \sm \{ (v_1, v_2) \in L \mid v_2 \in W \}` and its
+-- natural-language gloss "remove all edges into nodes from `W`"
+-- collapse to a single LN-literal reading — there is no ordered
+-- "second component" on a `Sym2 Node` value to test, so the only
+-- sensible filter is "any endpoint of the unordered pair lies in
+-- `W`", which is what the predicate
+-- `fun s => ∀ v ∈ s, v ∉ W` (kept-condition) expresses.  No
+-- symmetrisation step is required, because swap-symmetry is
+-- *definitional* on `Sym2` (`s(v, w) = s(w, v)`).
+/-
+LN tex (rewritten `def_3_10_HardInterventionOn`, items i–iv):
+
+    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq J \cup V$.
+    The intervened CDMG of $G$ w.r.t. $W$ is
+    $G_{\doit(W)} := (J_{\doit(W)}, V_{\doit(W)}, E_{\doit(W)},
+                      L_{\doit(W)})$,
+    where
+      i.   $J_{\doit(W)} := J \cup W$;
+      ii.  $V_{\doit(W)} := V \sm W$;
+      iii. $E_{\doit(W)} := E \sm \{ (v_1, v_2) \in E \mid v_2 \in W \}$;
+      iv.  $L_{\doit(W)} := L \sm \{ (v_1, v_2) \in L \mid v_2 \in W \}$.
+
+LN block (verbatim, for backup):
+
+    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq J \cup V$ a
+    subset of nodes.  The *intervened CDMG* w.r.t. $W$ of $G$ is the
+    CDMG $G_{\doit(W)} := (J_{\doit(W)}, V_{\doit(W)}, E_{\doit(W)},
+    L_{\doit(W)})$, where i.) $J_{\doit(W)} := J \cup W$, ii.)
+    $V_{\doit(W)} := V \sm W$, iii.) $E_{\doit(W)} := E \sm
+    \{ v \tuh w \mid v \in G, w \in W \}$, iv.) $L_{\doit(W)} :=
+    L \sm \{ v \huh w \mid v \in G, w \in W \}$, where we turn all
+    nodes from $W$ into input nodes and remove all edges into nodes
+    from $W$.
+-/
+-- ## Design choice (load-bearing contract for downstream chapter 3 rows)
+--
+-- * **`def`, not `structure` / `inductive` / `class`.**  A hard
+--   intervention is a *function*
+--   `CDMG Node → Finset Node → … → CDMG Node`, not
+--   new data and not a typeclass-resolvable property.  The CDMG
+--   already has its `structure` (`def_3_1`); this row simply produces
+--   a new CDMG from an existing one.  Wrapping the result in a fresh
+--   structure (e.g. a `HardInterventionOn` record carrying the
+--   intervened graph as a field) was rejected because every downstream
+--   consumer in ch. 5 / ch. 8+ destructures the intervened graph the
+--   same way any other CDMG is destructured — via
+--   `(G.hardInterventionOn W hW).J`, `…V`, `…E`, `…L` — and
+--   an extra wrapping layer would force a re-destructuring step at
+--   every such call site.  An `inductive` was rejected for the same
+--   reason: it would force pattern-matching on the constructor where
+--   the LN simply names the four fields.
+--
+-- * **`hW : W ⊆ G.J ∪ G.V` is an explicit argument, not a
+--   sub-condition threaded through the body.**  The LN's
+--   "Let $W \subseteq J \cup V$" is part of the *signature* of the
+--   hard intervention operation; without it the resulting tuple would
+--   still satisfy the four `CDMG` axioms (the typing
+--   constraints on `G.E` and `G.L` alone are strong enough — see the
+--   "$W \cap J \neq \emptyset$" bullet below for why `hW` is not
+--   consumed in the proofs), but the LN-faithful *statement* requires
+--   `hW` at the signature level.  Making it an explicit argument
+--   keeps the precondition visible at every call site and is the
+--   natural place for downstream lemmas about
+--   `G.hardInterventionOn W` to plug it in.  Pushing `hW`
+--   into an instance was rejected: subset facts are not
+--   typeclass-resolvable in any general way and would force every
+--   caller to manually discharge the membership.
+--
+-- * **`Finset.filter` for the edge-set removals, not `Finset.image` /
+--   recursion / a quotient.**  The LN writes the removal sets in
+--   set-builder form `E \setminus \{ … \mid … \}` (and analogously for
+--   `L`).  Lean's `Finset.filter` is the closest primitive
+--   (`Finset.mem_filter` gives exactly
+--   `e ∈ s.filter p ↔ e ∈ s ∧ p e`), shares the
+--   `Finset (Node × Node)` carrier for `E` with every other
+--   chapter-3 consumer (`def_3_5`'s family-set filters, `def_3_8`'s
+--   topological-order projections), and decidability of the filter
+--   predicate follows from `[DecidableEq Node]` plus, for the `L`
+--   filter, the locally-provided `Sym2.Mem`-based decidable
+--   instance (see the "L-filter predicate decidability" bullet
+--   below).  `Finset.image` was rejected because the LN takes a
+--   *difference* with the original edge set, not a re-mapping;
+--   recursion is overkill for a single set-comprehension.
+--
+-- * **Directed-edge removal is one-sided (`e.2 ∉ W`); bidirected-edge
+--   removal is endpoint-universal (`∀ v ∈ s, v ∉ W`).**  Item iii of
+--   the rewritten tex says "remove every directed edge whose head
+--   lies in `W`": the head of `(v₁, v₂) ∈ G.E` is `v₂`, so the
+--   kept-condition is `e.2 ∉ W` — no symmetrisation needed on the
+--   directed channel because `G.E` itself is not symmetric.
+--
+--   Item iv now lives on `Finset (Sym2 Node)`.  A `Sym2 Node` value
+--   is an *unordered* pair, so there is no "first" / "second"
+--   component to test against `W` — both endpoints sit on the same
+--   footing.  The LN's literal set-builder
+--   `L \sm \{ (v_1, v_2) \in L \mid v_2 \in W \}` (and the verbatim
+--   `\{ v \huh w \mid v \in G, w \in W \}` in the original block) is
+--   *unambiguous* under this typing once we resolve "$v_2$" to "any
+--   endpoint of the unordered pair", which is the only well-defined
+--   reading.  The kept-condition is
+--   `fun s => ∀ v ∈ s, v ∉ W` (i.e. "no endpoint of `s` lies in
+--   `W`"), which is structurally symmetric *by construction* on the
+--   `Sym2` quotient — there is no orientation to commute over, no
+--   `hL_symm` axiom to preserve, and no two-sided workaround needed.
+--
+--   This is the load-bearing reason the post-refactor encoding is
+--   strictly more LN-faithful than the pre-refactor encoding it
+--   replaces: under the pre-refactor `L : Finset (Node × Node)` plus
+--   `hL_symm` form, the LN's literal one-sided filter
+--   `e.2 ∈ W` did not preserve symmetry on mirror pairs `(v, w)`
+--   vs `(w, v)`, so the constructor had to *symmetrise* the removal
+--   to `e.1 ∉ W ∧ e.2 ∉ W` in order to satisfy `hL_symm`.  That
+--   symmetrisation was a registered deviation
+--   (`hard_intervention_l_symmetrized_removal` in
+--   `leanification/deviations.json`).  Under the `Sym2` encoding
+--   there is no mirror-pair to symmetrise *over* — `s(v, w)` and
+--   `s(w, v)` are *equal* elements of `Sym2 Node` — so the literal
+--   LN filter reads cleanly as "any endpoint in `W`" and the
+--   deviation is *structurally resolved*: the post-refactor Lean is
+--   the literal reading of the LN under `def_3_1`'s post-refactor
+--   shape.  The deviation register entry stays in
+--   `deviations.json` for historical record (Phase 7 cleanup
+--   handles its retirement); we do not remove it ourselves.
+--
+--   This also discharges wording-check subtlety
+--   `bidirected_edge_removal_assumes_symmetric_representation`
+--   (`leanification/working_subtlety_register.json`), which flagged
+--   the LN's literal item iv as ambiguous between an
+--   ordered-representation reading (only edges with the in-`W`
+--   endpoint in the *second* slot are removed) and the symmetric
+--   reading the natural-language gloss intends.  Under `Sym2 Node`
+--   there are no slots, so the ambiguity is vacuous: the filter
+--   `∀ v ∈ s, v ∉ W` is the only well-defined reading and matches
+--   the intended symmetric semantics by construction.
+--
+--   The *load-bearing downstream consumer* driving this structural
+--   orientation-freeness is `claim_3_22` (σ-separation symmetry).
+--   Under the post-refactor typed `WalkStep` of `def_3_4`, a
+--   bidirected step `.bidir (h : s ∈ G.L)` reverses to a `.bidir`
+--   step on the *same* `s` (because `s(v, w) = s(w, v)` is
+--   definitional on `Sym2`), so the symmetry theorem reduces to a
+--   clean structural induction over typed walk steps — no
+--   `hL_symm` invocation, no orientation swap, no case-split on
+--   which endpoint sat in `W`.  Under the pre-refactor encoding the
+--   same theorem hit an irreducible obstruction on writing-mirror
+--   CDMGs (graphs where some `(v, w)` sits in both `E` and `L`
+--   simultaneously); the `cdmg_typed_edges` refactor exists
+--   primarily so that `claim_3_22` and its sibling rows
+--   (`claim_3_16`–`claim_3_19`) can close.  Symmetric removal of
+--   bidirected edges under hard intervention being *structural*
+--   (not enforced by a side condition like the pre-refactor
+--   `hL_symm`-driven two-sided filter) is the load-bearing
+--   contract `claim_3_22`'s proof relies on at this row.
+--
+--   The `hL_irrefl` proof obligation of
+--   `G.hardInterventionOn W hW` transports cleanly from
+--   `G.hL_irrefl`: since `L' = G.L.filter (fun s => ∀ v ∈ s, v ∉ W)`
+--   is a subset of `G.L`, every `s ∈ L'` satisfies
+--   `¬ s.IsDiag` because `G.hL_irrefl` says so for every `s ∈ G.L`.
+--   The `hL_subset` obligation likewise transports: for `s ∈ L'`
+--   and `v ∈ s`, the filter predicate gives `v ∉ W`, and
+--   `G.hL_subset` (applied to `s ∈ G.L` and `v ∈ s`) gives `v ∈ G.V`;
+--   combine to land in `G.V \ W`.
+--
+--   Membership rule on `(G.hardInterventionOn W hW).L` is
+--   now the clean, single-equation form
+--     `s ∈ (G.hardInterventionOn W hW).L
+--        ↔ s ∈ G.L ∧ ∀ v ∈ s, v ∉ W`,
+--   directly from `Finset.mem_filter`.  No mirror-pair gotcha can
+--   arise — the pre-refactor file had a WARNING block flagging the
+--   gotcha under the `Finset (Node × Node)` encoding (a one-sided
+--   convenience read silently mishandled the mirror pair and
+--   contradicted `hL_symm`).  Under `Sym2`, there is no mirror pair
+--   to mishandle.
+--
+-- * **Items i, ii are verbatim LN translations; item iii's `v ∈ G`
+--   clause is folded into `def_3_1`'s `hE_subset` typing; item iv's
+--   `v ∈ G` clause becomes vacuous under the `Sym2.Mem` quantifier.**
+--   Items i (`J' := G.J ∪ W`) and ii (`V' := G.V \ W`) are direct,
+--   literal translations of the LN set-builder formulae — no design
+--   choice beyond the `Finset` carrier was made, and no deviation
+--   exists there.  In item iii the LN's set-builder reads
+--   `\{ v \tuh w \mid v \in G, w \in W \}`; per the tex's
+--   "Disambiguation of the LN's `v ∈ G` quantifier" paragraph, the
+--   informal `v ∈ G` abbreviates `v ∈ J ∪ V`.  Under `def_3_1`'s
+--   `hE_subset`, the clause `v_1 ∈ J ∪ V` is *automatic* on every
+--   element of `G.E`, so the `Finset.filter` predicate reduces to the
+--   single conjunct `e.2 ∉ W`.  In item iv the LN's set-builder
+--   reads `\{ v \huh w \mid v \in G, w \in W \}`; under the `Sym2`
+--   typing the "$v$ and $w$" of the LN are both endpoints of an
+--   unordered pair (no privileged role), and the bounded quantifier
+--   `∀ v ∈ s, v ∉ W` ranges precisely over the two endpoints — the
+--   "$v \in G$" clause is automatically discharged by
+--   `def_3_1`'s `hL_subset` (every endpoint of every `s ∈ G.L`
+--   lies in `G.V ⊆ G.J ∪ G.V`).
+--
+-- * **`hJV_disj` for `G_{\doit(W)}` is one line of set algebra.**
+--   `(G.J ∪ W) ∩ (G.V \ W) = ∅` decomposes as the union of (i)
+--   `G.J ∩ (G.V \ W) = ∅`, which follows from `G.hJV_disj`
+--   (`G.J ∩ G.V = ∅`) and `(G.V \ W) ⊆ G.V`, and (ii)
+--   `W ∩ (G.V \ W) = ∅`, which is immediate from `Finset.sdiff`.
+--   The proof does not consume `hW`; the disjointness is structural,
+--   independent of the `W ⊆ J ∪ V` precondition.  Unchanged from the
+--   pre-refactor encoding (`J`, `V`, `hJV_disj` are untouched by the
+--   refactor).
+--
+-- * **`hE_subset` for `G_{\doit(W)}` follows from `G.hE_subset`
+--   plus the head-not-in-`W` filter.**  For every surviving
+--   `e ∈ G.E.filter (fun e => e.2 ∉ W)`, the unfiltered axiom
+--   `G.hE_subset` gives `e.1 ∈ G.J ∪ G.V` and `e.2 ∈ G.V`; the
+--   filter clause gives `e.2 ∉ W`, so `e.2 ∈ G.V \ W` immediately.
+--   For `e.1`, a case-split on which of `G.J`, `W ∩ G.V`, or
+--   `G.V \ W` it belongs to lands it in `(G.J ∪ W) ∪ (G.V \ W)`.
+--   No constraint on `e.1 ∈ W` is imposed by the filter — that is
+--   intentional: directed edges *out of* a node in `W ∩ G.V` are
+--   retained, matching the LN's "remove all edges *into* nodes
+--   from `W`" gloss (a directed edge `(v, w)` is *into* `w`, not
+--   *into* `v`, per `def_3_3` item i).  Unchanged from the
+--   pre-refactor encoding (`E`'s ordered-pair typing is untouched
+--   by the refactor; only the `L`-side filter changed).
+--
+-- * **`W ∩ J ≠ ∅` is admitted; behaviour matches the tex
+--   case-analysis.**  The LN hypothesis is `W ⊆ J ∪ V`; we do *not*
+--   additionally require `W ∩ J = ∅`.  Wording-check subtlety
+--   `intervention_on_already_input_nodes_admits_nontrivial_edge_changes`
+--   (`leanification/working_subtlety_register.json`) flagged the
+--   LN's asymmetry between the node-set rule (idempotent on `W ∩ J`
+--   for both `J' := G.J ∪ W` and `V' := G.V \ W`) and the edge-set
+--   rule (literally fires on edges with an endpoint in `W ∩ J`) as
+--   potentially diverging from the natural-language "we turn all
+--   nodes from `W` into input nodes" intuition (which reads as if
+--   nodes already in `J` are exempt).  We follow the literal LN's
+--   reading; the divergence is harmless under `def_3_1`'s typing
+--   constraints, as the next sentences explain.  The tex's "On the
+--   case $W \cap J \neq \emptyset$" paragraph spells out the
+--   behaviour:
+--   items i and ii are *idempotent* on `W ∩ J` (`G.J ∪ W` is unchanged
+--   at those nodes; `G.V \ W` is unaffected because `G.J` is disjoint
+--   from `G.V` by `hJV_disj`); items iii and iv still mechanically
+--   fire on edges with an endpoint in `W ∩ J`, but `def_3_1`'s typing
+--   constraints `E ⊆ (J ∪ V) × V` and the `Sym2`-`hL_subset`
+--   restriction of `L` to pairs in `G.V` forbid any edge from having
+--   a relevant endpoint in `J` in the first place, so the filters
+--   are *de facto* no-ops on `W ∩ J`.  We do not bake the idempotency
+--   into the type; any downstream row that wants "intervening on a
+--   subset of `J` is the identity" derives it as a lemma.  This is
+--   also the reason `hW` is not consumed in the four proof
+--   obligations below: the typing constraints from `G` already
+--   exclude every problematic case, and `hW` is carried purely for
+--   LN-faithfulness of the *signature*.
+--
+-- * **Argument order
+--   `(G : CDMG Node) (W : Finset Node) (hW : …)`.**
+--   `G` first matches the convention of every chapter-3 predicate
+--   (`G.tuh`, `G.huh`, `G.adjacent`, `G.into`, `G.outOf`), enabling
+--   dot-notation `G.hardInterventionOn W hW`.  `W` precedes
+--   `hW` so the call site reads left-to-right like the LN's "let
+--   `W ⊆ J ∪ V` be a subset".
+--
+-- * **`where` syntax with named fields, not anonymous-constructor
+--   `⟨ … ⟩`.**  The `CDMG` `structure` has eight fields
+--   (`J`, `V`, `hJV_disj`, `E`, `hE_subset`, `L`, `hL_subset`,
+--   `hL_irrefl`) — one fewer than the pre-refactor nine, because
+--   `hL_symm` is gone (swap-symmetry is definitional on `Sym2`).
+--   An anonymous-constructor form would interleave data and proof
+--   obligations in a positional list, making the correspondence with
+--   `def_3_1`'s `structure` opaque at a glance.
+--   `where … J := … V := …` keeps every field labelled and lets the
+--   proof obligations sit next to the data they refer to.
+--
+-- * **L-filter predicate decidability.**  The filter
+--   `G.L.filter (fun s => ∀ v ∈ s, v ∉ W)` requires
+--   `DecidablePred (fun s => ∀ v ∈ s, v ∉ W)` to type-check.
+--   `Sym2.Mem` is decidable on individual elements via
+--   `Sym2.Mem.decidable [DecidableEq α]`, but a *bounded universal*
+--   over `Sym2.Mem` (`∀ v ∈ s, P v`) needs its own
+--   `DecidablePred` instance.  We supply one locally via
+--   `Sym2.recOnSubsingleton` + `Sym2.ball` (the Mathlib lemma
+--   `(∀ c ∈ s(a, b), p c) ↔ p a ∧ p b`): every `s : Sym2 Node` is
+--   `s(a, b)` for some `a, b`; the universal reduces to
+--   `a ∉ W ∧ b ∉ W`; conjunction of decidable propositions is
+--   decidable.  This is preferable to (a) opening `Classical`
+--   project-wide (which would silently desugar every decidable lookup
+--   to `Classical.dec` and lose the kernel-computable behaviour the
+--   `Finset` API depends on) and (b) reformulating the filter
+--   predicate via `Sym2.lift` + a custom subtype-of-pair-function
+--   (which would create boilerplate at every membership-reasoning
+--   site).  No `[Decidable]` instance burden propagates to
+--   consumers of `G.hardInterventionOn W hW`: this private
+--   instance is found automatically by typeclass resolution at the
+--   `Finset.filter` elaboration site, and the only typeclass
+--   parameter consumers see remains `[DecidableEq Node]` — the same
+--   one `def_3_1`'s `CDMG` already requires.
+--
+-- * **`def`, not `noncomputable def`.**  Both filters
+--   (`G.E.filter (fun e => e.2 ∉ W)` and
+--   `G.L.filter (fun s => ∀ v ∈ s, v ∉ W)`) are kernel-computable:
+--   `Finset.filter` is computable whenever its predicate is
+--   `Decidable`, and `Sym2 Node`'s `DecidableEq` is itself derived
+--   from `[DecidableEq Node]` by Mathlib (so `s ∈ G.L` is
+--   decidable, and the local `DecidablePred` instance above
+--   handles the bounded universal `∀ v ∈ s, v ∉ W`).  The
+--   intervened CDMG is therefore a *computable* construction,
+--   matching the pre-refactor design and keeping
+--   `#eval (G.hardInterventionOn W hW).L` available for
+--   inspecting the intervened graph on small concrete examples
+--   (the same channel `verify_with_examples` exercised to validate
+--   this row).  No `Classical.dec`-style shortcut was needed —
+--   opening `Classical` project-wide was rejected at the `def_3_1`
+--   design stage precisely to keep the entire CDMG API
+--   kernel-computable, and the local `DecidablePred` instance
+--   above preserves that property for the `L`-side filter without
+--   leaking anything to consumers.
+--
+-- * **Downstream consumers.**  Every do-calculus row of ch. 5 (the
+--   interventional CBN factorisation `do(W)`, the three rules of
+--   do-calculus, identifiability via the ID algorithm), the iSCM
+--   intervention algebra of ch. 8–10 (composition of hard
+--   interventions, disjoint-intervention commutativity), and the
+--   marginalisation-intervention interaction of `claim_3_18`, as
+--   well as the topological-order preservation of `claim_3_3` /
+--   `claim_3_13`, all rest on the four field assignments above.
+--   Post-refactor, these consumers see the `Sym2`-native L filter —
+--   no symmetrisation step is needed in any of them, and the
+--   membership rule on `(G.hardInterventionOn W hW).L`
+--   reduces to a single `Finset.mem_filter` application without
+--   case-splitting on which endpoint sat in `W`.  This is the
+--   primary downstream payoff of the `cdmg_typed_edges` refactor
+--   at the `def_3_10` row.
+-- ## Proof helpers for the four CDMG axioms under hard intervention
+--
+-- The four private lemmas below discharge the four proof obligations
+-- of `def_3_1`'s post-refactor `CDMG` structure
+-- (`hJV_disj`, `hE_subset`, `hL_subset`, `hL_irrefl`) for the
+-- hard-intervention construction.  One fewer than the pre-refactor
+-- five, because the pre-refactor `hL_symm` obligation has gone away
+-- — swap-symmetry is definitional on `Sym2`.  They are factored out
+-- of the structure-literal body of `hardInterventionOn` so
+-- the def body is pure data + lemma references — the website builder
+-- renders the def's signature, and a reader sees the data
+-- assignments without proof clutter.  Per the `W ∩ J ≠ ∅`
+-- design-choice bullet above, none of the obligations consume `hW`;
+-- `hW` is carried on the def's signature purely for LN-faithfulness.
+
+private lemma hardInterventionOn_hJV_disj
+    (G : CDMG Node) (W : Finset Node) :
+    Disjoint (G.J ∪ W) (G.V \ W) := by
+  refine Finset.disjoint_union_left.mpr ⟨?_, ?_⟩
+  · exact Finset.disjoint_left.mpr fun a haJ haVW =>
+      Finset.disjoint_left.mp G.hJV_disj haJ (Finset.mem_sdiff.mp haVW).1
+  · exact Finset.disjoint_left.mpr fun a haW haVW =>
+      (Finset.mem_sdiff.mp haVW).2 haW
+
+private lemma hardInterventionOn_hE_subset
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : Node × Node⦄, e ∈ G.E.filter (fun e => e.2 ∉ W) →
+      e.1 ∈ (G.J ∪ W) ∪ (G.V \ W) ∧ e.2 ∈ G.V \ W := by
+  intro e he
+  obtain ⟨heE, he2⟩ := Finset.mem_filter.mp he
+  obtain ⟨he1, he2V⟩ := G.hE_subset heE
+  refine ⟨?_, Finset.mem_sdiff.mpr ⟨he2V, he2⟩⟩
+  rcases Finset.mem_union.mp he1 with hJ | hV
+  · exact Finset.mem_union_left _ (Finset.mem_union_left _ hJ)
+  · by_cases hW1 : e.1 ∈ W
+    · exact Finset.mem_union_left _ (Finset.mem_union_right _ hW1)
+    · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, hW1⟩)
+
+-- Local decidability instance for the L-filter predicate.  See the
+-- "L-filter predicate decidability" design-choice bullet above for
+-- the rationale; the instance is `private` because no downstream
+-- consumer should need to reach in and reference it by name (Lean's
+-- typeclass resolution finds it automatically at the `Finset.filter`
+-- elaboration site).
+private instance hardInterventionOn_decidable_bAll
+    (W : Finset Node) :
+    DecidablePred (fun s : Sym2 Node => ∀ v ∈ s, v ∉ W) := fun s =>
+  s.recOnSubsingleton fun _ _ => decidable_of_iff' _ Sym2.ball
+
+private lemma hardInterventionOn_hL_subset
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃s : Sym2 Node⦄, s ∈ G.L.filter (fun s => ∀ v ∈ s, v ∉ W) →
+      ∀ ⦃v : Node⦄, v ∈ s → v ∈ G.V \ W := by
+  intro s hs v hv
+  obtain ⟨hsL, hsW⟩ := Finset.mem_filter.mp hs
+  exact Finset.mem_sdiff.mpr ⟨G.hL_subset hsL hv, hsW v hv⟩
+
+private lemma hardInterventionOn_hL_irrefl
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃s : Sym2 Node⦄, s ∈ G.L.filter (fun s => ∀ v ∈ s, v ∉ W) →
+      ¬ s.IsDiag := by
+  intro s hs
+  exact G.hL_irrefl (Finset.mem_filter.mp hs).1
+
+-- `hW` is bound on the signature for LN-faithfulness ("Let
+-- `W ⊆ J ∪ V`") but is not consumed by any of the four obligations —
+-- `def_3_1`'s typing constraints already exclude every problematic
+-- case (see the `W ∩ J ≠ ∅` design-choice bullet above).  The
+-- `set_option` keeps the linter quiet without dropping the binder
+-- from the signature (which is part of the LN-faithful encoding and
+-- the call-site contract `G.hardInterventionOn W hW`).
+set_option linter.unusedVariables false in
+-- def_3_10 -- start statement
+def hardInterventionOn (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node
+-- def_3_10 -- end statement
+    where
   J := G.J ∪ W
   V := G.V \ W
-  disjoint_JV := by
-    rw [Set.disjoint_left]
-    rintro x (hJ | hW) ⟨hV, hnW⟩
-    · exact Set.disjoint_left.mp G.disjoint_JV hJ hV
-    · exact hnW hW
-  E := G.E \ { p : α × α | p.2 ∈ W }
-  E_subset := by
-    rintro ⟨v, w⟩ ⟨hE, hnW⟩
-    obtain ⟨hv, hw⟩ := G.E_subset hE
-    refine ⟨?_, hw, hnW⟩
-    rcases hv with hJ | hV
-    · exact Or.inl (Or.inl hJ)
-    · by_cases hW : v ∈ W
-      · exact Or.inl (Or.inr hW)
-      · exact Or.inr ⟨hV, hW⟩
-  L := G.L \ { p : α × α | p.1 ∈ W ∨ p.2 ∈ W }
-  L_subset := by
-    rintro ⟨v₁, v₂⟩ ⟨hL, hnW⟩
-    obtain ⟨h1, h2⟩ := G.L_subset hL
-    exact ⟨⟨h1, fun hW => hnW (Or.inl hW)⟩, ⟨h2, fun hW => hnW (Or.inr hW)⟩⟩
-  L_irrefl := by
-    intro v₁ v₂ h
-    exact G.L_irrefl h.1
-  L_symm := by
-    intro v₁ v₂ h
-    exact ⟨G.L_symm h.1, fun hh => h.2 hh.symm⟩
-  disjoint_EL := by
-    rw [Set.disjoint_left]
-    rintro p ⟨hE, _⟩ ⟨hL, _⟩
-    exact Set.disjoint_left.mp G.disjoint_EL hE hL
-
-/-- The *input* nodes of the hard intervention `G.hardInterventionOn
-W` are exactly `G.J ∪ W` -- promotion of every vertex of `W` to an
-input. By definition. -/
-@[simp] theorem hardInterventionOn_J (G : CDMG α) (W : Set α) :
-    (G.hardInterventionOn W).J = G.J ∪ W := rfl
-
-/-- The *output* nodes of the hard intervention
-`G.hardInterventionOn W` are exactly `G.V \ W` -- removal of every
-vertex of `W` from the output set. By definition. -/
-@[simp] theorem hardInterventionOn_V (G : CDMG α) (W : Set α) :
-    (G.hardInterventionOn W).V = G.V \ W := rfl
-
-/-- *Directed-edge* membership in the hard intervention: a pair
-`p = (v, w)` is a directed edge of `G.hardInterventionOn W` iff
-it is a directed edge of `G` and its target `w = p.2` is not in
-`W`. The `v ∈ G` clause of the LN's literal set-builder is
-dropped -- it is redundant given `G.E_subset` (see the file's
-design notes). Holds by `Iff.rfl`. -/
-@[simp] theorem mem_hardInterventionOn_E
-    (G : CDMG α) (W : Set α) {p : α × α} :
-    p ∈ (G.hardInterventionOn W).E ↔ p ∈ G.E ∧ p.2 ∉ W := Iff.rfl
-
-/-- *Bidirected-edge* membership in the hard intervention: a
-pair `p = (v₁, v₂)` is a bidirected edge of
-`G.hardInterventionOn W` iff it is a bidirected edge of `G` and
-*neither* endpoint is in `W`. The both-endpoints exclusion is
-the LN's "remove all edges into nodes from `W`" prose, encoded
-so that the symmetry field `L_symm` survives the intervention
-(see the file's design notes for why a single-endpoint exclusion
-would break symmetry). -/
-@[simp] theorem mem_hardInterventionOn_L
-    (G : CDMG α) (W : Set α) {p : α × α} :
-    p ∈ (G.hardInterventionOn W).L ↔ p ∈ G.L ∧ p.1 ∉ W ∧ p.2 ∉ W := by
-  change p ∈ G.L \ _ ↔ _
-  simp only [Set.mem_diff, Set.mem_setOf_eq, not_or]
+  hJV_disj := hardInterventionOn_hJV_disj G W
+  E := G.E.filter (fun e => e.2 ∉ W)
+  hE_subset := hardInterventionOn_hE_subset G W
+  L := G.L.filter (fun s => ∀ v ∈ s, v ∉ W)
+  hL_subset := hardInterventionOn_hL_subset G W
+  hL_irrefl := hardInterventionOn_hL_irrefl G W
 
 end CDMG
 

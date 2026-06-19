@@ -1,10 +1,11 @@
 % Definition file for row def_3_11 -- "NodeSplittingOn".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -16,27 +17,56 @@
 
 \begin{Def}[Node-splitting on CDMGs]
   \label{def:G_node-splitting}
-    Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of the output nodes.
-    The \emph{node-split graph} w.r.t.\ $W$ of $G$ is the CDMG: 
-    \[ G_{\spl(W)} :=\lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},L_{\spl(W)} \rp,\]
-    %\[ G_{\spl(W)} := G':=(J',V',E',L'),\]
-    %\[G((V\sm W) \dcup W^o|\doit(W^i \dcup J)):=G':=(J',V',E',L'),\]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let $W \ins V$ be a subset of the output nodes; in particular $W \cap J = \emptyset$, since $W \ins V$ and $J \cap V = \emptyset$, so the splitting acts only on output-side nodes.
+
+    The \emph{node-split graph} w.r.t.\ $W$ of $G$ is the CDMG
+    \[ G_{\spl(W)} := \lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)}, L_{\spl(W)} \rp, \]
     constructed as follows.
-    We first make two disjont copies of the nodes in $W$:
-    \[ W^0:=\lC w^0\st w \in W \rC, \qquad W^1:=\lC w^1 \st w \in W \rC.  \]
-    Note that we consider $w^0 \neq w^1$ for $w \in W$.
-    Additionally (for convenience), for $v \in J \cup V \sm W$ we put:
-  \[ v^0:=v^1:=v.  \]
-  We then define:
-  \begin{enumerate}[label=\roman*.)]
-      \item $J_{\spl(W)} := J$,
-      \item $V_{\spl(W)} := (V \sm W) \dcup W^0 \dcup W^1$, %which could be identified with $V$ again if we want to make the identification $W=W^0$.
-      \item $E_{\spl(W)} := \lC v^1_1 \tuh v_2^0 \st v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \st w \in W \rC$,
-      \item $L_{\spl(W)} :=\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC$.
-  \end{enumerate}
-  So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$,
-  all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$,
-  and edges $w^0 \tuh w^1$ are added for all nodes in $W$.
+
+    \emph{Tagged copies of $W$.}
+    We introduce two \emph{tagged} copies of the nodes in $W$,
+    \[ W^0 := \lC w^0 \st w \in W \rC, \qquad W^1 := \lC w^1 \st w \in W \rC, \]
+    where $w \mapsto w^0$ and $w \mapsto w^1$ are injective and produce elements that are of a formally distinct kind from every element of $J \cup V$ and from each other: in a formal encoding, $W^0$ and $W^1$ are realised as tagged copies (e.g.\ via a $\Sigma$-type or tagged sum over $W$) so that the disjointness assertions
+    \[ W^0 \cap V \;=\; W^1 \cap V \;=\; W^0 \cap J \;=\; W^1 \cap J \;=\; W^0 \cap W^1 \;=\; \emptyset \]
+    hold \emph{automatically by typing} rather than being asserted as a side condition; in particular $w^0 \neq w^1$ for every $w \in W$.
+
+    \emph{Notational shorthand for unsplit nodes.}
+    For $v \in J \cup (V \sm W)$ we put
+    \[ v^0 \;:=\; v^1 \;:=\; v, \]
+    purely as notational shorthand to be used \emph{inside} the set-builder definitions of $E_{\spl(W)}$ and $L_{\spl(W)}$ below. This convention does \emph{not} reassign such $v$ into either tagged-copy carrier $W^0$ or $W^1$: untagged nodes $v \in J \cup (V \sm W)$ remain of their original kind in the ambient carrier, and the writings $v^0$, $v^1$ are simply two labels for $v$ itself. (Note that $J \cup (V \sm W)$ is itself a disjoint union, since $J \cap V = \emptyset$ and $V \sm W \ins V$.)
+
+    With these conventions in place, the four components of $G_{\spl(W)}$ are defined as follows.
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Input nodes:}
+            \[ J_{\spl(W)} := J. \]
+        \item \emph{Output nodes:}
+            \[ V_{\spl(W)} := (V \sm W) \dcup W^0 \dcup W^1, \]
+            understood as a type-level disjoint union per the tagged construction above: each $w^0$ and each $w^1$ is automatically distinct from every element of $V \sm W$ (and from every element of $J$), and $w^0 \neq w^1$ for every $w \in W$.
+        \item \emph{Directed edges:}
+            \[
+                E_{\spl(W)} \;:=\; \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E \rC \;\cup\; \lC (w^0, w^1) \st w \in W \rC.
+            \]
+            Here the first set-builder ranges over $(v_1, v_2) \in E$, so $v_1 \in J \cup V$ and $v_2 \in V$ by the typing $E \ins (J \cup V) \times V$, and the shorthand $v_1^1, v_2^0$ resolves as follows:
+            \begin{itemize}
+                \item if $v_1 \in W$, then $v_1^1$ denotes the tagged copy of $v_1$ in $W^1$; otherwise $v_1 \in J \cup (V \sm W)$ and $v_1^1 = v_1$ denotes $v_1$ itself (untagged);
+                \item if $v_2 \in W$, then $v_2^0$ denotes the tagged copy of $v_2$ in $W^0$; otherwise $v_2 \in V \sm W$ and $v_2^0 = v_2$ denotes $v_2$ itself (untagged).
+            \end{itemize}
+            The second set-builder ranges over $w \in W$ and contributes the \emph{transfer} edges $(w^0, w^1)$, with $w^0 \in W^0$ and $w^1 \in W^1$ both genuinely tagged. Equivalently, rendered through def \ref{not-cdmg}, item~2: every directed edge $v_1 \tuh v_2 \in E$ of $G$ is lifted to a directed edge $v_1^1 \tuh v_2^0 \in E_{\spl(W)}$, and additionally a transfer edge $w^0 \tuh w^1$ is included in $E_{\spl(W)}$ for every $w \in W$.
+        \item \emph{Bidirected edges:}
+            \[
+                L_{\spl(W)} \;:=\; \lC (v_1^0, v_2^0) \st (v_1, v_2) \in L \rC.
+            \]
+            Here the set-builder ranges over $(v_1, v_2) \in L$, so $v_1, v_2 \in V$ by the typing $L \ins V \times V$, and the shorthand $v_i^0$ (for $i \in \{1, 2\}$) resolves as: if $v_i \in W$ then $v_i^0$ denotes the tagged copy of $v_i$ in $W^0$; otherwise $v_i \in V \sm W$ and $v_i^0 = v_i$ denotes $v_i$ itself. Equivalently, rendered through def \ref{not-cdmg}: every bidirected edge $v_1 \huh v_2 \in L$ of $G$ is lifted to a bidirected edge $v_1^0 \huh v_2^0 \in L_{\spl(W)}$. Note that \emph{both} endpoints carry the same superscript $^0$; no element of $W^1$ appears as an endpoint of any bidirected edge of $G_{\spl(W)}$.
+    \end{enumerate}
+    The CDMG axioms (def \ref{def-cdmg}) hold for $G_{\spl(W)}$: $J_{\spl(W)} \cap V_{\spl(W)} = \emptyset$ (since $J \cap V = \emptyset$, $J \cap W^0 = J \cap W^1 = \emptyset$ by the tagged construction); the typing $E_{\spl(W)} \ins (J_{\spl(W)} \cup V_{\spl(W)}) \times V_{\spl(W)}$ holds by case analysis on the two set-builder clauses (every lifted source $v_1^1$ lies in $J_{\spl(W)} \cup V_{\spl(W)}$ and every lifted target $v_2^0$ lies in $V_{\spl(W)}$; every transfer-edge source $w^0$ and target $w^1$ lies in $V_{\spl(W)}$); the typing $L_{\spl(W)} \ins V_{\spl(W)} \times V_{\spl(W)}$ holds analogously; symmetry of $L_{\spl(W)}$ follows from symmetry of $L$ (the set-builder commutes with swapping the two coordinates); and irreflexivity of $L_{\spl(W)}$ follows from irreflexivity of $L$ together with injectivity of $v \mapsto v^0$ on $V$.
+
+    Informally: every incoming directed edge onto a node $w \in W$ becomes an incoming directed edge into $w^0$; every outgoing directed edge out of a node $w \in W$ becomes an outgoing directed edge out of $w^1$; a transfer edge $w^0 \tuh w^1$ is added for every $w \in W$; and every bidirected edge whose endpoint was in $W$ is reattached at the $W^0$-copy of that endpoint.
+
+    \emph{Asymmetry between directed and bidirected edges at $W^0$ vs.\ $W^1$.}
+    The construction at item iv.\ is intentionally one-sided: every lifted bidirected edge uses the $^0$ superscript on \emph{both} endpoints, so no element of $W^1$ appears as an endpoint of any bidirected edge of $L_{\spl(W)}$. Concretely, for $w_1, w_2 \in W$, a bidirected edge $w_1 \huh w_2 \in L$ of $G$ lifts only to $w_1^0 \huh w_2^0 \in L_{\spl(W)}$ -- never to $w_1^1 \huh w_2^1$, never to a mixed pair $w_1^0 \huh w_2^1$ or $w_1^1 \huh w_2^0$. The informal end-paragraph above mentions only directed edges (incoming / outgoing / transfer) and gives no hint of this asymmetry; we record it here explicitly because it is the LN's literal reading, and downstream rows that reason about the bidirected / latent structure of $G_{\spl(W)}$ (sibling relations, m-separation, latent projection, and the SWIG construction of def \ref{def:G_node-splitting_intervention}) build on this one-sided convention and cannot equivalently swap $W^0$ for $W^1$ on the bidirected side.
+
+    \emph{Self-loops on $W$ produce $2$-cycles, and $G_{\spl(W)}$ is still a CDMG.}
+    The CDMG type of def \ref{def-cdmg} does \emph{not} require $E$ to be self-loop-free: the directed-self-loop case $(v, v) \in E$ for $v \in J \cup V$ is admitted, and acyclicity is the separate downstream notion of def \ref{def-acylic}. Consequently, for $w \in W$ with $(w, w) \in E$, the first set-builder in item iii.\ produces the lifted edge $(w^1, w^0) \in E_{\spl(W)}$; together with the transfer edge $(w^0, w^1) \in E_{\spl(W)}$ from the second set-builder, this realises a length-$2$ directed cycle $w^0 \tuh w^1 \tuh w^0$ in $G_{\spl(W)}$. This does not invalidate the CDMG axioms of def \ref{def-cdmg} (the typing-and-symmetry case analysis above goes through unchanged), so $G_{\spl(W)}$ remains a well-defined CDMG even when $G$ carries self-loops on $W$. Any downstream claim that node-splitting preserves acyclicity (cf.\ the lemma on split topological orders downstream of this row) must therefore add a precondition that $G$ has no directed self-loops on $W$ -- or, more strongly, that $G$ is acyclic in the sense of def \ref{def-acylic} -- since it cannot be derived from the splitting construction alone.
 \end{Def}
 
 \end{document}

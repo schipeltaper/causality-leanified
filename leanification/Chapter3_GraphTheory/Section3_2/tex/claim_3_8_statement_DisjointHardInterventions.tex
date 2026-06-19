@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_8 -- "DisjointHardInterventions".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_8_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -14,10 +19,27 @@
 \def\rowref{claim\_3\_8}
 \phantomsection\label{claim_3_8}
 
-\begin{Lem}[Disjoint hard interventions and node-splittings commute]
-   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes of $G$.
-   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.
-      \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\doit(W_1)}.   \]
+\begin{Lem}[Disjoint hard interventions and node-splittings commute]\label{disjoint-hard-interventions-node-splittings-commute}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let
+    \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq V \]
+    be two subsets of nodes of $G$, subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \subseteq J \cup V$'', and ``for every $W_2 \subseteq V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted.
+
+    \emph{Well-typedness of the inner splitting on the LHS.}
+    The LHS $\lp G_{\doit(W_1)} \rp_{\spl(W_2)}$ requires its outer $\spl(W_2)$ to act on a CDMG whose output-node set contains $W_2$, i.e.\ $W_2 \subseteq V_{\doit(W_1)}$ per def \ref{def:G_node-splitting}'s precondition. By item ii.\ of def \ref{def:G_hard_intervention} we have $V_{\doit(W_1)} = V \sm W_1$, and the inclusion
+    \[ W_2 \;\subseteq\; V \sm W_1 \;=\; V_{\doit(W_1)} \]
+    follows from $W_2 \subseteq V$ together with $W_1 \cap W_2 = \emptyset$. Hence the LHS is defined per def \ref{def:G_node-splitting}. Well-typedness of the RHS $\lp G_{\spl(W_2)} \rp_{\doit(W_1)}$ is spelled out in the carrier-reading paragraph below the displayed equality.
+
+    \emph{The conclusion.}
+    The CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ equals the CDMG obtained from first node-splitting $W_2$ and then hard intervening on $W_1$:
+    \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} \;=\; \lp G_{\spl(W_2)} \rp_{\doit(W_1)}. \]
+    The equality is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}; the conjunctive unpacking into the four field-by-field equalities is deferred to the proof.
+
+    \medskip\emph{Carrier reading of the equality.}
+    By def \ref{def:G_node-splitting} the operation $\spl(W_2)$ shifts the carrier from $J \cup V$ to the tagged-disjoint-union carrier
+    \[ J_{\spl(W_2)} \cup V_{\spl(W_2)} \;=\; J \;\cup\; \lp (V \sm W_2) \dcup W_2^0 \dcup W_2^1 \rp, \]
+    while by def \ref{def:G_hard_intervention} the operation $\doit(W)$ preserves the carrier $J \cup V$ of its input as a set (items i.\ and ii.\ give $J_{\doit(W)} \cup V_{\doit(W)} = (J \cup W) \cup (V \sm W) = J \cup V$ whenever $W \subseteq J \cup V$). Thus both sides of the displayed equality live in a CDMG over the same $\spl(W_2)$-carrier just displayed, and the asserted equality is a \emph{literal} $=$ of CDMGs (def \ref{def-cdmg}) — \emph{not} an equality up to a carrier-relabelling map. On the right-hand side, $\doit(W_1)$ is read as hard-intervening on the \emph{unsplit copies} of the nodes of $W_1$ inside the split-graph carrier: every $w \in W_1$ satisfies $w \in J \cup V$ (by $W_1 \subseteq J \cup V$) and $w \notin W_2$ (by $W_1 \cap W_2 = \emptyset$), so $w \in J \cup (V \sm W_2)$, which is the untagged piece of $J_{\spl(W_2)} \cup V_{\spl(W_2)}$ under def \ref{def:G_node-splitting}'s notational shorthand ``$v^0 := v^1 := v$ for $v \in J \cup (V \sm W_2)$'' (i.e.\ $W_1$ injects into the split-graph carrier as the unsplit injection $w \mapsto w$). The precondition $W_1 \subseteq J_{\spl(W_2)} \cup V_{\spl(W_2)}$ of def \ref{def:G_hard_intervention} is thereby met by the unsplit copies, so the RHS is also defined per def \ref{def:G_hard_intervention}, and the LN's $G_{\spl(W_2)}$ carrier reading agrees with the unique LN-faithful reading of $\doit(W_1)$ on it.
 \end{Lem}
 
 \end{document}

@@ -20,7 +20,7 @@ The Python code in `scaffold/` is **not the formalizer**. It is a thin loop that
 - parses each agent's reply for a structured action tag,
 - dispatches the next agent based on that action.
 
-Every spawned agent runs on **Opus 4.7 1M context window at `--effort max`** (`CLAUDE_MODEL` and `CLAUDE_EFFORT` in `scaffold/solve_chapter.py`). Every subprocess call uses `--output-format json` so the orchestrator can capture each agent's session id and let the manager **resume past agents** by id (see §6 and §7).
+Every spawned agent runs on **Opus 4.7 1M context window at `--effort max`** (`CLAUDE_MODEL` and `CLAUDE_EFFORT` in `scaffold/scripts/phase3_solving/solve_chapter.py`). Every subprocess call uses `--output-format json` so the orchestrator can capture each agent's session id and let the manager **resume past agents** by id (see §6 and §7).
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
@@ -60,7 +60,7 @@ Every spawned agent runs on **Opus 4.7 1M context window at `--effort max`** (`C
 
 ## 2. The data model — one chapter, one `data.json`
 
-Canonical column order (see `scaffold/initialize_chapter.py:create_data`):
+Canonical column order (see `scaffold/scripts/phase2_initialization/initialize_chapter.py:create_data`):
 
 | field | type | meaning |
 | --- | --- | --- |
@@ -68,7 +68,7 @@ Canonical column order (see `scaffold/initialize_chapter.py:create_data`):
 | `ref` | string | unique identifier: `def_<ch>_<n>` or `claim_<ch>_<n>`, e.g. `claim_3_5` |
 | `section` | string | the subsection number from the LN, e.g. `"3.1"`. Empty for marks before any `\subsection` |
 | `title` | short PascalCase string | filename-safe label used in `def_<ref>_<title>.tex`, etc. Auto-extracted from `\begin{Env}[…]` where possible, otherwise filled by a per-row title-picker agent at init |
-| `type` | string | the LaTeX environment kind: `definition`, `theorem`, `lemma`, `remark`, `notation`, … (see `ENV_TYPES` in `scaffold/create_data.py`) |
+| `type` | string | the LaTeX environment kind: `definition`, `theorem`, `lemma`, `remark`, `notation`, … (see `ENV_TYPES` in `scaffold/scripts/phase2_initialization/create_data.py`) |
 | `formalized` | `"yes"` / `"no"` | a Lean declaration matching the LN block exists |
 | `proven` | `"proven"` / `"disproven"` / `"not proven"` / `"n/a"` | claims only; `"n/a"` for defs |
 | `solved` | `"yes"` / `"no"` | overall checkmark: def → formalized; claim → formalized AND (proven OR disproven) |
@@ -108,23 +108,23 @@ leanification/
 
 ## 3. Chapter initialization
 
-**Entry point:** `python3 scaffold/initialize_chapter.py` (calls `initialize()`).
+**Entry point:** `python3 scaffold/scripts/phase2_initialization/initialize_chapter.py` (calls `initialize()`).
 
 Assumes `scaffold/global_vars.json` has the right `current_chapter` set.
 
 | step | function | location | what it does |
 | --- | --- | --- | --- |
-| 1 | `get_title_and_tex_file_chapter(chapter)` | `scaffold/initialize_chapter.py` | walks `lecture-notes/lecture_notes/main.tex`'s `\input` chain, counts `\section{...}` titles, returns `(title, tex_file)` for the chapter-th one |
-| 2 | `create_folder(chapter, title)` | `scaffold/initialize_chapter.py` | makes `leanification/Chapter<N>_<PascalCaseTitle>/` |
-| 3 | `create_data(chapter, title)` | `scaffold/initialize_chapter.py` | drops an empty `data.json` with the schema's `columns` list |
-| 4 | `ensure_chapter_aggregator_stub(module)` | `scaffold/initialize_chapter.py` | writes `leanification/Chapter<N>_<Title>.lean` (empty aggregator with header comment) |
-| 5 | `ensure_lakefile_globs_for_chapter(module)` | `scaffold/initialize_chapter.py` | idempotently adds `"Chapter<N>_<Title>"` and `"Chapter<N>_<Title>.+"` to the `Causality` lib's `globs` in `lakefile.toml` |
-| 6 | `ensure_causality_imports_chapter(module)` | `scaffold/initialize_chapter.py` | appends `import Chapter<N>_<Title>` to `leanification/Causality.lean` |
-| 7 | `mark_defs_and_claims(chapter, tex_file)` | `scaffold/initialize_chapter.py` | spawns the `find_def_claim` agent (`scaffold/claude_prompts/chapter_setup/mark_definitions_and_claims_in_tex.md`); the agent edits the LN tex in place, wrapping every def with `\begin{defmark}` / `\end{defmark}` and every claim with `\begin{claimmark}` / `\end{claimmark}` |
-| 8 | `fill_data(chapter, tex_file, data_path)` | `scaffold/create_data.py` | walks the marked tex file, extracts one row per mark in render order with `kind`, `type`, `section`, `tex_block`, and an auto-extracted `title` (via `_extract_title`). `_insert_ref_markers` also adds `% def_<n>` / `% claim_<n>` comment lines above each block so the row's location is greppable. |
-| 9 | **title pass** | `scaffold/initialize_chapter.py:initialize` | for every row whose title is still empty (no `\begin{Env}[…]` argument in the LN), spawn `pick_title_for_row` (`scaffold/solve_chapter.py`) — a one-shot claude call with a focused prompt that returns a short PascalCase identifier |
-| 10 | `regenerate_subsection_main_tex(data_path, data, section)` | `scaffold/solve_chapter.py` | for every section with rows, writes `Section<N>_<M>/main.tex` from the template and creates per-row subfile stubs via `ensure_row_subfiles` (def: tex_block content; claim_statement: tex_block content; claim_proof: `% TODO` placeholder) |
-| 11 | `ensure_request_from_human_file(chapter_folder)` | `scaffold/solve_chapter.py` | drops `leanification/Chapter<N>_<Title>/request_from_human.tex` from the template so the human-request channel exists from the start |
+| 1 | `get_title_and_tex_file_chapter(chapter)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | walks `lecture-notes/lecture_notes/main.tex`'s `\input` chain, counts `\section{...}` titles, returns `(title, tex_file)` for the chapter-th one |
+| 2 | `create_folder(chapter, title)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | makes `leanification/Chapter<N>_<PascalCaseTitle>/` |
+| 3 | `create_data(chapter, title)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | drops an empty `data.json` with the schema's `columns` list |
+| 4 | `ensure_chapter_aggregator_stub(module)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | writes `leanification/Chapter<N>_<Title>.lean` (empty aggregator with header comment) |
+| 5 | `ensure_lakefile_globs_for_chapter(module)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | idempotently adds `"Chapter<N>_<Title>"` and `"Chapter<N>_<Title>.+"` to the `Causality` lib's `globs` in `lakefile.toml` |
+| 6 | `ensure_causality_imports_chapter(module)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | appends `import Chapter<N>_<Title>` to `leanification/Causality.lean` |
+| 7 | `mark_defs_and_claims(chapter, tex_file)` | `scaffold/scripts/phase2_initialization/initialize_chapter.py` | spawns the `find_def_claim` agent (`scaffold/claude_prompts/phase1_pre_initialization/mark_definitions_and_claims_in_tex.md`); the agent edits the LN tex in place, wrapping every def with `\begin{defmark}` / `\end{defmark}` and every claim with `\begin{claimmark}` / `\end{claimmark}` |
+| 8 | `fill_data(chapter, tex_file, data_path)` | `scaffold/scripts/phase2_initialization/create_data.py` | walks the marked tex file, extracts one row per mark in render order with `kind`, `type`, `section`, `tex_block`, and an auto-extracted `title` (via `_extract_title`). `_insert_ref_markers` also adds `% def_<n>` / `% claim_<n>` comment lines above each block so the row's location is greppable. |
+| 9 | **title pass** | `scaffold/scripts/phase2_initialization/initialize_chapter.py:initialize` | for every row whose title is still empty (no `\begin{Env}[…]` argument in the LN), spawn `pick_title_for_row` (`scaffold/scripts/phase3_solving/solve_chapter.py`) — a one-shot claude call with a focused prompt that returns a short PascalCase identifier |
+| 10 | `regenerate_subsection_main_tex(data_path, data, section)` | `scaffold/scripts/phase3_solving/solve_chapter.py` | for every section with rows, writes `Section<N>_<M>/main.tex` from the template and creates per-row subfile stubs via `ensure_row_subfiles` (def: tex_block content; claim_statement: tex_block content; claim_proof: `% TODO` placeholder) |
+| 11 | `ensure_request_from_human_file(chapter_folder)` | `scaffold/scripts/phase3_solving/solve_chapter.py` | drops `leanification/Chapter<N>_<Title>/request_from_human.tex` from the template so the human-request channel exists from the start |
 
 Result: chapter folder is wired up, `lake build` is green, the data file has one row per mark in lecture-notes order each with a meaningful title, every subsection has a `main.tex` aggregator and pre-populated tex stubs, and the human-request channel is ready.
 
@@ -132,7 +132,7 @@ Result: chapter folder is wired up, `lake build` is green, the data file has one
 
 ## 4. Solving one row
 
-**Entry point:** `python3 scaffold/solve_chapter.py` (calls `solve_current_row()`).
+**Entry point:** `python3 scaffold/scripts/phase3_solving/solve_chapter.py` (calls `solve_current_row()`).
 
 Each invocation drives the first unsolved row to a terminal state (`solved="yes"`, or an applied `reorder`, or a written-out `request_from_human`). Re-invoke in a loop to walk through a whole chapter.
 
@@ -155,12 +155,12 @@ When the manager wakes up for turn 1, every artefact it might need already exist
 For each turn (up to `MAX_TURNS = 200`, capped by `MAX_RUNTIME_SECONDS = 8 hours`):
 
 1. **Build the manager prompt** via `build_manager_prompt(state)`:
-    - `scaffold/claude_prompts/manager.md` (the full instructions),
+    - `scaffold/claude_prompts/phase3_solving/manager.md` (the full instructions),
     - the row context (`render_row_context`) — `ref`, `kind`, `section`, `title`, `tex_file`, subsection folder, **workspace path**, **agent registry** listing every past agent spawned for this row, the **carried-over tips**, current state of `formalized`/`proven`/`solved`, and the verbatim `tex_block`,
     - the running history of previous turns (`render_history`),
     - any one-off `extra_note` from the orchestrator (e.g. verifier feedback parsed from a `BEGIN[feedback]…END[feedback]` block).
 2. **Spawn the manager** via `run_claude` — `subprocess.run(["claude", "-p", <prompt>, "--dangerously-skip-permissions", "--model", "claude-opus-4-7[1m]", "--effort", "max", "--output-format", "json"])`. The returned JSON envelope yields `(text, session_id)`. The session id is recorded in the row's `agent_registry`.
-3. **Parse the action tag** with `parse_action_tag`. The manager's reply must end with `BEGIN[<action>]\n<body>\nEND[<action>]`. On parse failure, `extra_note` is set to a corrective note that **repeats the full action list** (pulled from `ACTIONS` in `scaffold/create_data.py`); next turn the manager tries again.
+3. **Parse the action tag** with `parse_action_tag`. The manager's reply must end with `BEGIN[<action>]\n<body>\nEND[<action>]`. On parse failure, `extra_note` is set to a corrective note that **repeats the full action list** (pulled from `ACTIONS` in `scaffold/scripts/phase2_initialization/create_data.py`); next turn the manager tries again.
 4. **Increment `actions_tracking[action]`** for the row (`increment_action_count`).
 5. **Dispatch on action** (see §5). Most handlers either:
     - spawn a worker (`run_claude` with a worker prompt + the row context + the manager's body) — session id captured into registry,
@@ -182,7 +182,7 @@ The loop ends when the row is marked solved, the manager triggers an approved `r
 
 ## 5. The action set
 
-The list lives in `scaffold/create_data.py` (`ACTIONS`) — that is the single source of truth. Adding a new action means appending there (so the row's `actions_tracking` counter exists) and wiring it into one of the dispatch maps in `scaffold/solve_chapter.py`.
+The list lives in `scaffold/scripts/phase2_initialization/create_data.py` (`ACTIONS`) — that is the single source of truth. Adding a new action means appending there (so the row's `actions_tracking` counter exists) and wiring it into one of the dispatch maps in `scaffold/scripts/phase3_solving/solve_chapter.py`.
 
 Three dispatch tables in the orchestrator:
 
@@ -366,7 +366,7 @@ Hard rules (in `claude.md`):
 
 ## 9. Key functions, by file
 
-### `scaffold/solve_chapter.py`
+### `scaffold/scripts/phase3_solving/solve_chapter.py`
 
 - `solve_current_row()` — the main loop. Pre-flight (title, workspace, template subfiles, request-from-human file), manager loop, terminates on `solved`/applied-`reorder`/threshold-`request_from_human`/budget.
 - `run_claude(prompt, label, *, resume_session=None)` — wraps `subprocess.run(["claude", "-p", ..., "--model", CLAUDE_MODEL, "--effort", CLAUDE_EFFORT, "--output-format", "json"])`. Returns `(text, session_id)`. With `resume_session` set, passes `-r <id>` so claude continues that conversation.
@@ -383,7 +383,7 @@ Hard rules (in `claude.md`):
 - `_continue_agent_from_body(state, body, turn)` — parses `AGENT_ID:`, resumes the session, surfaces reply to manager.
 - `_handle_request_from_human(state, body, data)` — gated by `HUMAN_REQUEST_THRESHOLD`; writes to `request_from_human.tex` once threshold is hit.
 
-### `scaffold/initialize_chapter.py`
+### `scaffold/scripts/phase2_initialization/initialize_chapter.py`
 
 - `initialize()` — the chapter-init entry point. Now also: runs the title-picker post-pass over rows whose title is still empty after `_extract_title`; creates `request_from_human.tex`.
 - `get_title_and_tex_file_chapter(chapter)` — resolves chapter number → (title, tex_file).
@@ -391,7 +391,7 @@ Hard rules (in `claude.md`):
 - `mark_defs_and_claims(chapter, tex_file)` — spawns the `find_def_claim` agent.
 - `ensure_chapter_aggregator_stub`, `ensure_lakefile_globs_for_chapter`, `ensure_causality_imports_chapter` — wire a new chapter into the Lean build (idempotent).
 
-### `scaffold/create_data.py`
+### `scaffold/scripts/phase2_initialization/create_data.py`
 
 - `fill_data(chapter, tex_file, data_path)` — main parser. One row per `defmark`/`claimmark`.
 - `_extract_title(tex_block)` — first-pass title extraction from `\begin{Env}[…]`.
@@ -418,13 +418,13 @@ Templates live in `scaffold/tex_templates/`:
 - `claim_proof.tex.template` — claim proof subfile; body starts as a `% TODO` placeholder.
 - `request_from_human.tex.template` — chapter-level communication channel.
 
-Substitution is placeholder-based: `__REF__`, `__TITLE__`, `__SECTION__`, `__SECTION_TITLE__`, `__BODY__`, `__SUBFILE_INCLUDES__`, `__CHAPTER__`. See `_render_template` in `scaffold/solve_chapter.py`.
+Substitution is placeholder-based: `__REF__`, `__TITLE__`, `__SECTION__`, `__SECTION_TITLE__`, `__BODY__`, `__SUBFILE_INCLUDES__`, `__CHAPTER__`. See `_render_template` in `scaffold/scripts/phase3_solving/solve_chapter.py`.
 
 ---
 
 ## 11. Configuration knobs
 
-All in `scaffold/solve_chapter.py` (top of the file):
+All in `scaffold/scripts/phase3_solving/solve_chapter.py` (top of the file):
 
 | name | default | meaning |
 | --- | --- | --- |
@@ -485,4 +485,4 @@ And in `scaffold/global_vars.json`:
 
 ---
 
-That's the scaffold end to end. The actions list (`ACTIONS` in `scaffold/create_data.py`) is the system's vocabulary; the manager prompt is its grammar; the per-row workers + verifiers are its verbs. The agent registry, the workspace scratchpad, and the carried-over tips are the memory it uses to stay coherent across turns and runs.
+That's the scaffold end to end. The actions list (`ACTIONS` in `scaffold/scripts/phase2_initialization/create_data.py`) is the system's vocabulary; the manager prompt is its grammar; the per-row workers + verifiers are its verbs. The agent registry, the workspace scratchpad, and the carried-over tips are the memory it uses to stay coherent across turns and runs.

@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_4 -- "HardInterventionsCommute".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_4_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -15,9 +20,29 @@
 \phantomsection\label{claim_3_4}
 
 \begin{Lem}[Hard interventions commute]\label{hard-interventions-commute}
-    Let $G:=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two  subsets of nodes from $G$. 
-      Then we have:
-      \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)} =  G_{\doit(W_1 \cup W_2)}. \]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let
+    \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq J \cup V \]
+    be two subsets of nodes (no disjointness between $W_1$ and $W_2$ is assumed, and overlap with $J$ is permitted, as per def \ref{def:G_hard_intervention}'s precondition). All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \subseteq J \cup V$'', and ``for every $W_2 \subseteq J \cup V$'' are read \emph{universally}.
+
+    \emph{Carrier matching for the iterated hard interventions.} The inner two terms of the equality below are iterated hard interventions of the form $(G_{\doit(W_i)})_{\doit(W_j)}$, in which $\doit(W_j)$ is applied to the CDMG $G_{\doit(W_i)}$ produced by def \ref{def:G_hard_intervention}. For this outer application to be well-typed per def \ref{def:G_hard_intervention}'s precondition ``$W \subseteq J \cup V$ of the input CDMG'', we need $W_j$ to be a subset of the carrier of $G_{\doit(W_i)}$, i.e.\
+    \[ W_j \;\subseteq\; J_{\doit(W_i)} \cup V_{\doit(W_i)}. \]
+    This holds because hard intervention preserves the carrier $J \cup V$ as a set: by items i.\ and ii.\ of def \ref{def:G_hard_intervention},
+    \[
+        J_{\doit(W_i)} \cup V_{\doit(W_i)} \;=\; (J \cup W_i) \cup (V \sm W_i) \;=\; J \cup V,
+    \]
+    where the second equality uses $W_i \subseteq J \cup V$ (as in the carrier-matching paragraph of \ref{claim_3_3}). Hence $W_j \subseteq J \cup V = J_{\doit(W_i)} \cup V_{\doit(W_i)}$, so $(G_{\doit(W_i)})_{\doit(W_j)}$ is defined. The same observation applied to $W_1 \cup W_2 \subseteq J \cup V$ shows that the right-hand side $G_{\doit(W_1 \cup W_2)}$ is also defined per def \ref{def:G_hard_intervention}.
+
+    \emph{The conclusion.} The CDMGs $(G_{\doit(W_1)})_{\doit(W_2)}$, $(G_{\doit(W_2)})_{\doit(W_1)}$, and $G_{\doit(W_1 \cup W_2)}$ (all constructed via def \ref{def:G_hard_intervention} as just verified) coincide. Concretely, the LN's displayed triple equality
+    \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)} = G_{\doit(W_1 \cup W_2)} \]
+    is the conjunction of the two following equalities of CDMGs:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Composition with $W_1$ then $W_2$.}
+              \[ \lp G_{\doit(W_1)} \rp_{\doit(W_2)} \;=\; G_{\doit(W_1 \cup W_2)}. \]
+        \item \emph{Composition with $W_2$ then $W_1$.}
+              \[ \lp G_{\doit(W_2)} \rp_{\doit(W_1)} \;=\; G_{\doit(W_1 \cup W_2)}. \]
+    \end{enumerate}
+    Together (a) and (b) yield the LN's ``symmetry under swap'' reading $\lp G_{\doit(W_1)} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(W_1)}$ by transitivity of equality. The equality of CDMGs in (a) and (b) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}, but the conjunctive unpacking into the four field-by-field equalities is deferred to the proof.
+
       %This shows that our notion:
       %\[ G(V \sm (W_1 \cup W_2) | \doit(W_1 \cup W_2 \cup J))   \]
       %is unambiguous.

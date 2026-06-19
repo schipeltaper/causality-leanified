@@ -1,10 +1,11 @@
 % Definition file for row def_3_15 -- "CollidersAndNon".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -14,23 +15,57 @@
 \def\rowref{def\_3\_15}
 \phantomsection\label{def_3_15}
 
-\begin{Def}[Colliders and non-colliders]
-  Let $G=(J,V,E,L)$ be a CDMG and $\pi$ a walk in $G$:
-  \[ \pi =\lp  v_0 \sus \cdots \sus v_n \rp.  \]
-  A node $v_k$, or more precisely, the position $k \in \lC 0,\dots, n \rC$,
-  on the walk $\pi$ is called:
-     \begin{enumerate}
-     \item a \emph{non-collider} on $\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\ if it falls into one of the following cases:
-  \[\begin{array}{rccl}
-    \text{ end-node: } & k \in \lC 0,n \rC, \\
-    \text{ left chain: } & v_{k-1} \hut v_k \hus v_{k+1}, \\
-    \text{ right chain: } & v_{k-1} \suh v_k \tuh v_{k+1},\\
-    \text{ fork: } & v_{k-1} \hut v_k \tuh v_{k+1};
-    \end{array}\]
-  \item a \emph{collider} on $\pi$, if it is of the form: 
-             \[v_{k-1} \suh v_k \hus v_{k+1},\] 
-             i.e.\ if there are two arrowheads pointing towards $v_k$ on the walk $\pi$.
-     \end{enumerate}
+\begin{Def}[Colliders and non-colliders]\label{def:collider_noncollider}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and the edge classifications of def \ref{def-edge-relations}. Let
+    \[
+        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    be a walk in $G$ (def \ref{def:walks}, item~i.) for some integer $n \ge 0$, with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$ satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\lor\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr).
+    \]
+
+    \emph{Arrowhead count at a position.}
+    For a position $k \in \{0, 1, \dots, n\}$, the \emph{arrowhead count at $v_k$ on $\pi$}, denoted $\mathrm{ah}_\pi(k)$, is the cardinality
+    \[
+        \mathrm{ah}_\pi(k)
+            := \Bigl|\Bigl\{\, i \in \{k - 1, k\} \,\Bigm|\, 0 \le i \le n - 1 \,\land\, a_i \text{ is an edge into } v_k \text{ in } G \,\Bigr\}\Bigr|,
+    \]
+    where ``$a_i$ is an edge into $v_k$ in $G$'' is in the sense of def \ref{def-edge-relations}, item~ii.; spelled out, for any $i \in \{0, 1, \dots, n - 1\}$ writing $a_i = (e_1, e_2)$,
+    \[
+        a_i \text{ is an edge into } v_k
+        \quad\iff\quad
+        \bigl(a_i \in E \;\land\; e_2 = v_k\bigr)
+            \;\lor\;
+        \bigl(a_i \in L \;\land\; (e_1 = v_k \,\lor\, e_2 = v_k)\bigr).
+    \]
+    The index set defining $\mathrm{ah}_\pi(k)$ ranges only over the (at most two) walk-incident edges at position $k$, namely $a_{k-1}$ (when $k \ge 1$) and $a_k$ (when $k \le n - 1$); edges of $G$ that are not incident to $v_k$ along $\pi$ are excluded by construction. At an end-position $k \in \{0, n\}$ at most one such index is admissible, so $\mathrm{ah}_\pi(k) \le 1$ automatically (and $\mathrm{ah}_\pi(0) = 0$ on the trivial walk $n = 0$, where neither index is admissible). At an interior position $1 \le k \le n - 1$ both indices are admissible, so $\mathrm{ah}_\pi(k) \in \{0, 1, 2\}$.
+
+    \emph{Classification.}
+    The position $k \in \{0, 1, \dots, n\}$ on the walk $\pi$ -- or, by abuse, the node $v_k$ at position $k$ -- is called:
+    \begin{enumerate}[label=\roman*.)]
+        \item a \emph{non-collider on $\pi$} iff $\mathrm{ah}_\pi(k) \le 1$;
+        \item a \emph{collider on $\pi$} iff $\mathrm{ah}_\pi(k) = 2$.
+    \end{enumerate}
+    By construction these two classifications are mutually exclusive and jointly exhaustive over $\{0, 1, \dots, n\}$: every position $k$ on $\pi$ is exactly one of a non-collider or a collider on $\pi$.
+
+    \emph{Reconciliation with the source-block pattern writings.}
+    The source block characterises non-colliders by a list of four pattern-cases (end-node, left chain, right chain, fork) glossed as ``at most one arrowhead pointing towards $v_k$'', and colliders by a single pattern-case glossed as ``two arrowheads pointing towards $v_k$ on the walk $\pi$''. Below we reconcile these visual writings with the count-based classification, taking the count-based classification (the LN's ``i.e.''\ gloss) as canonical. The visual writings $v_{k-1} \tuh v_k$, $v_{k-1} \hut v_k$, $v_{k-1} \huh v_k$, $v_{k-1} \suh v_k$, $v_{k-1} \hus v_k$ are unfolded per def \ref{not-cdmg}, items~2--6.
+    \begin{itemize}
+        \item \textbf{end-node} ($k \in \{0, n\}$): $\mathrm{ah}_\pi(k) \le 1$ holds automatically, hence the position is a non-collider on $\pi$. (For the trivial walk $n = 0$, the unique position $k = 0 = n$ has $\mathrm{ah}_\pi(0) = 0$ and is a non-collider.)
+        \item \textbf{left chain} ($1 \le k \le n - 1$; LN writing $v_{k-1} \hut v_k \hus v_{k+1}$): the walk's $a_{k-1}$ is \emph{not} an edge into $v_k$, while its $a_k$ \emph{is} an edge into $v_k$. Spelled out via the walk constraint, $a_{k-1} = (v_k, v_{k-1}) \in E$ (a directed edge with arrowhead at $v_{k-1}$ and tail at $v_k$), and either $a_k = (v_{k+1}, v_k) \in E$ or $a_k = (v_k, v_{k+1}) \in L$. Count: $0 + 1 = 1$; non-collider.
+        \item \textbf{right chain} ($1 \le k \le n - 1$; LN writing $v_{k-1} \suh v_k \tuh v_{k+1}$): the walk's $a_{k-1}$ \emph{is} an edge into $v_k$, while its $a_k$ is \emph{not} an edge into $v_k$. Spelled out, either $a_{k-1} = (v_{k-1}, v_k) \in E$ or $a_{k-1} = (v_{k-1}, v_k) \in L$, and $a_k = (v_k, v_{k+1}) \in E$. Count: $1 + 0 = 1$; non-collider.
+        \item \textbf{fork} ($1 \le k \le n - 1$; LN writing $v_{k-1} \hut v_k \tuh v_{k+1}$): neither walk-incident edge is an edge into $v_k$. Spelled out, $a_{k-1} = (v_k, v_{k-1}) \in E$ and $a_k = (v_k, v_{k+1}) \in E$. Count: $0 + 0 = 0$; non-collider.
+        \item \textbf{collider} ($1 \le k \le n - 1$; LN writing $v_{k-1} \suh v_k \hus v_{k+1}$): both walk-incident edges $a_{k-1}, a_k$ are edges into $v_k$. Spelled out, $a_{k-1} \in E \cup L$ with right-component $v_k$ if directed (or either component $v_k$ if bidirected), and analogously for $a_k$ with left-component $v_k$ if directed (or either component $v_k$ if bidirected). Count: $1 + 1 = 2$; collider.
+    \end{itemize}
+    The four non-collider patterns realise exactly the interior counts $\{0, 1\}$, and the collider pattern realises exactly the interior count $2$; together with the end-node case they exhaust the positions of $\pi$. The pattern-cases consult \emph{walk-incident} edges $a_{k-1}, a_k$ only -- arrowheads contributed by edges of $G$ that are not on $\pi$ at $v_k$ are excluded from $\mathrm{ah}_\pi(k)$ by construction. (This fixes the scope of the LN's gloss ``at most one (resp.\ two) arrowheads pointing towards $v_k$''.)
+
+    \emph{Treatment of directed self-loops.}
+    A directed self-loop $(v, v) \in E$ is admitted by def \ref{def-cdmg} (the irreflexivity restriction applies to $L$, not to $E$). If a walk-incident edge $a_i$ happens to be such a self-loop -- so $a_i = (v_i, v_{i+1}) = (v, v) \in E$ with $v_i = v_{i+1} = v$, and we are evaluating $\mathrm{ah}_\pi(k)$ at a position $k \in \{i, i + 1\}$ for which $v_k = v$ -- then $a_i$ \emph{is} an edge into $v_k$ in the sense of def \ref{def-edge-relations}, item~ii.\ (the $E$-clause fires via $e_2 = v = v_k$), so $a_i$ contributes $1$ to $\mathrm{ah}_\pi(k)$. The count-based classification above then assigns a single, well-defined collider/non-collider status to $k$ on $\pi$ regardless of self-loop traversals.
+
+    The visual pattern-match writings of the source block do \emph{not} share this property at directed self-loops: the conditions ``$v_{k-1} \tuh v_k$'' and ``$v_{k-1} \hut v_k$'' (def \ref{not-cdmg}, items~2--3) unfold to $(v_{k-1}, v_k) \in E$ and $(v_k, v_{k-1}) \in E$ respectively, which coincide as the single condition $(v, v) \in E$ when $v_{k-1} = v_k = v$, so a single interior position $k$ traversing a directed self-loop can simultaneously satisfy the ``left chain'', ``right chain'', ``fork'', and ``collider'' pattern conjunctions. The count-based classification above is taken as the canonical reading and uniformly resolves this apparent overlap: at such a $k$ the classification is whichever of non-collider / collider matches $\mathrm{ah}_\pi(k)$ under the ``edge into $v_k$'' count of the walk-incident edges $a_{k-1}, a_k$.
 \end{Def}
 
 \end{document}

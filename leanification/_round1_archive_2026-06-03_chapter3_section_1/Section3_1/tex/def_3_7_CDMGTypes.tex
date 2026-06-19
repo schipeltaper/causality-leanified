@@ -1,0 +1,31 @@
+% Definition file for row def_3_7 -- "CDMGTypes".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker dispatched by it) fills the body below with the
+% Lean-faithful definition statement(s). Stays close to the lecture notes.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: def_3_7
+% title: CDMGTypes
+\def\rowref{def\_3\_7}
+\phantomsection\label{def_3_7}
+
+\begin{Def}[CDMGTypes]
+    A  Conditional Directed Mixed Graph (CDMG)  $G=(J,V,E,L)$  is called:
+   \begin{enumerate}
+       \item Conditional Acyclic Directed Mixed Graph (CADMG) if $G$ is acyclic.
+       \item Directed Mixed Graph (DMG) if $J = \emptyset$.
+       \item Acyclic Directed Mixed Graph (ADMG) if $G$ is acyclic and $J = \emptyset$.
+       \item Conditional Directed Graph (CDG) if $L = \emptyset$.
+       \item Directed Graph (DG) if $J = \emptyset$ and $L = \emptyset$.
+       \item Conditional Directed Acyclic Graph (CDAG) if $G$ is acyclic and $L = \emptyset$.
+       \item Directed Acyclic Graph (DAG) if $G$ is acyclic, $J=\emptyset$ and $L = \emptyset$.
+   \end{enumerate}
+\end{Def}
+
+\end{document}

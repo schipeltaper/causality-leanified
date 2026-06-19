@@ -1,0 +1,263 @@
+% Claim proof TWIN file for row claim_3_9 -- "SwigAcyclic".
+% This is the refactor twin produced under refactor `cdmg_typed_edges` for
+% the DEPENDENT row claim_3_9. The original pre-refactor proof lives at the
+% sibling file `claim_3_9_proof_SwigAcyclic.tex` and remains untouched until
+% the Phase 7 cleanup script renames this twin over it.
+%
+% Why a verbatim port suffices here: both sub-claims of claim_3_9 live
+% entirely on the (J, V, E)-skeleton -- sub-claim (a) is acyclicity via
+% directed walks on E, sub-claim (b) is a topological order built from
+% Pa^G, which is defined from E alone -- and the bidirected-edge channel
+% L plays no role in either sub-claim. This is recorded explicitly in the
+% closing paragraph of the statement block below: "The bidirected-edge set
+% $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic})
+% is defined via the non-existence of non-trivial directed walks (which
+% use only $E$), and a topological order (def \ref{def-topological-order})
+% is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which
+% is defined from $E$ alone)." The refactor `cdmg_typed_edges` changes
+% only the encoding of L (from a Finset (Node x Node) carrier with a
+% symmetry axiom to a quotient Finset (Sym2 Node) carrier with no
+% symmetry axiom), and that change is invisible to the prose of this
+% remark: the tex talks about CADMGs, edges, walks, topological orders,
+% and parent sets abstractly and never references the Lean-side typing of
+% L. Hence the statement block (synced verbatim with the canonical
+% statement file `claim_3_9_statement_SwigAcyclic.tex`) and the proof
+% body (ported verbatim from the existing pre-refactor proof file
+% `claim_3_9_proof_SwigAcyclic.tex`) are identical to their pre-refactor
+% counterparts. No `addition_to_the_LN` is attached to this row.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_9 (proof twin for refactor `cdmg_typed_edges`, with statement restated for readability)
+% title: SwigAcyclic
+\def\rowref{claim\_3\_9}
+\phantomsection\label{claim_3_9}
+
+% --- statement (restated, synced verbatim with claim_3_9_statement_SwigAcyclic.tex) -----
+\begin{Rem}[SwigAcyclic]
+    Let $G = (J, V, E, L)$ be a CADMG, i.e.\ a CDMG (def \ref{def-cdmg}) that is acyclic in the sense of def \ref{def-acylic} (equivalently, $G$ satisfies the attribute ``CADMG'' of def \ref{def-cdmg-types}, item~i.); throughout we use the notation of def \ref{not-cdmg}, the family-relationship notation of def \ref{def_3_5}, the topological-order definition of def \ref{def-topological-order}, and the SWIG (node-splitting hard-intervention) construction of def \ref{def:G_node-splitting_intervention}. Let
+    \[ W \ins V \]
+    be a subset of the output-node set of $G$, and let
+    \[ G_{\swig(W)} \;=\; \lp J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)}, L_{\swig(W)} \rp \]
+    be the SWIG of $G$ w.r.t.\ $W$ as constructed in def \ref{def:G_node-splitting_intervention}. Both quantifiers ``for every CADMG $G$'' and ``for every $W \ins V$'' are read \emph{universally}, with the side condition $W \ins V$ inherited verbatim from def \ref{def:G_node-splitting_intervention}; the case $W = \emptyset$ is admitted (then $W^o = W^i = \emptyset$ and $G_{\swig(W)} = G$ by items i.--iv.\ of def \ref{def:G_node-splitting_intervention}).
+
+    \emph{Carrier of $G_{\swig(W)}$.} By items i.\ and ii.\ of def \ref{def:G_node-splitting_intervention},
+    \[
+        J_{\swig(W)} \cup V_{\swig(W)} \;=\; J \cup (V \sm W) \dcup W^o \dcup W^i,
+    \]
+    where $W^o := \lC w^o \st w \in W \rC$ and $W^i := \lC w^i \st w \in W \rC$ are the two tagged copies of $W$ introduced in def \ref{def:G_node-splitting_intervention}. The four constituents $J$, $V \sm W$, $W^o$, $W^i$ are pairwise type-level disjoint by def \ref{def:G_node-splitting_intervention}: $J \cap V = \emptyset$ (def \ref{def-cdmg}), $(V \sm W) \cap W = \emptyset$, and the tagged copies $W^o$, $W^i$ are formally distinct from each element of $J \cup V$ and from each other ($W^o \cap W^i = \emptyset$, $w^o \neq w^i$ for every $w \in W$).
+
+    \emph{Finiteness and indexing of $J \cup V$.} By def \ref{def-cdmg} items~i.--ii., the set $J \cup V$ is finite; set
+    \[ n \;:=\; |J \cup V|. \]
+
+    \emph{The remark.} The following conjunction of sub-claims holds.
+
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{$G_{\swig(W)}$ is acyclic.}
+              The CDMG $G_{\swig(W)}$ is acyclic in the sense of def \ref{def-acylic}, i.e.\ for every $x \in J_{\swig(W)} \cup V_{\swig(W)} = J \cup (V \sm W) \dcup W^o \dcup W^i$, there does not exist any non-trivial directed walk from $x$ to itself in $G_{\swig(W)}$.
+
+        \item \emph{An explicit topological order on $G_{\swig(W)}$ obtained from any topological order on $G$.}
+              For every topological order $<$ of $G$ in the sense of def \ref{def-topological-order}, presented in the equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form'') as a bijection
+              \[
+                  \{1, 2, \dots, n\} \;\longrightarrow\; J \cup V, \qquad i \;\longmapsto\; v_i,
+              \]
+              with $v_1 < v_2 < \cdots < v_n$ (so that ``parents precede children'' holds in this enumeration: $v_i \in \Pa^G(v_j) \Rightarrow i < j$), the binary relation $<_{\swig}$ on $J_{\swig(W)} \cup V_{\swig(W)}$ defined below is a topological order of $G_{\swig(W)}$ in the sense of def \ref{def-topological-order}.
+
+              \emph{Index map.}
+              Define the index map
+              \[ \phi \,:\, J_{\swig(W)} \cup V_{\swig(W)} \;\longrightarrow\; \Q \]
+              by case analysis on the disjoint-union carrier $J \cup (V \sm W) \dcup W^o \dcup W^i$:
+              \begin{itemize}
+                  \item \emph{Unsplit nodes retain their original index.}
+                        For every $x \in J \cup (V \sm W)$, write $x = v_j$ with $j \in \{1, 2, \dots, n\}$ the unique index given by the enumeration of $J \cup V$ above, and put
+                        \[ \phi(x) \;:=\; j. \]
+                  \item \emph{Tagged copies of $W$ are placed symmetrically around the original index, with the output-side copy first.}
+                        For every $w \in W$, write $w = v_j$ with $j \in \{1, 2, \dots, n\}$ the unique index given by the enumeration of $J \cup V$ above, and put
+                        \[
+                            \phi(w^o) \;:=\; j - \tfrac{1}{3}, \qquad \phi(w^i) \;:=\; j + \tfrac{1}{3}.
+                        \]
+              \end{itemize}
+
+              \emph{Order from index map.}
+              Define
+              \[
+                  x \;<_{\swig}\; y \quad :\Longleftrightarrow\quad \phi(x) \,<\, \phi(y) \qquad \text{for } x, y \in J_{\swig(W)} \cup V_{\swig(W)},
+              \]
+              where the right-hand inequality is the standard strict order on $\Q$.
+    \end{enumerate}
+
+    \emph{Where each clause of the LN's prose lands.}
+    The LN's clauses ``$v_j^o$ the index $j - \tfrac{1}{3}$'' and ``$v_j^i$ the index $j + \tfrac{1}{3}$'' for $v_j \in W$ are the second bullet of the index map above. The LN's closing prose ``and then ordering all nodes according to their index value'' is the definition of $<_{\swig}$ from $\phi$ via the strict order on $\Q$. The first bullet of the index map -- ``unsplit nodes $v_j \in J \cup (V \sm W)$ retain index $j$'' -- is the rule the LN leaves implicit: the LN's literal text assigns indices only to the tagged copies $v_j^o$, $v_j^i$ of split nodes $v_j \in W$ and says nothing about the indices of $v_j \in J \cup (V \sm W)$, but the closing instruction ``order all nodes according to their index value'' is well-defined on the carrier $J_{\swig(W)} \cup V_{\swig(W)}$ only if the unsplit nodes also carry an index. The natural and only-consistent reading is that the original index $j$ is retained for unsplit nodes; the first bullet records this retention rule explicitly.
+
+    \emph{Load-bearing role of the offset $\tfrac{1}{3}$.}
+    The LN's specific numerical choice $\tfrac{1}{3}$ for the offset is not aesthetic: any value $\delta \in (0, \tfrac{1}{2})$ would equally well define a strict total order $<_{\swig}$ on $J_{\swig(W)} \cup V_{\swig(W)}$ realising the topological-order property, but $\delta = \tfrac{1}{2}$ already fails. Concretely, if $v_j \in W$ and $v_{j+1} \in W$ are two consecutively-indexed split nodes, then with $\delta = \tfrac{1}{2}$ the values $\phi(v_j^i) = j + \tfrac{1}{2}$ and $\phi(v_{j+1}^o) = (j+1) - \tfrac{1}{2} = j + \tfrac{1}{2}$ collide, so the relation ``order all nodes according to their index value'' fails to be a strict total order on the carrier. We adopt the LN's literal choice $\tfrac{1}{3}$ here; the role this choice plays in the proof of the topological-order property is deferred to the proof file.
+
+    \emph{Dependence on the no-transfer-edge clause of def \ref{def:G_node-splitting_intervention}, item iii.}
+    The index assignment $\phi(w^o) = j - \tfrac{1}{3} < j + \tfrac{1}{3} = \phi(w^i)$ places the output-side copy $w^o$ strictly before the input-side copy $w^i$ in $<_{\swig}$. Sub-claim~(b)'s topological-order assertion is consistent with this choice only because def \ref{def:G_node-splitting_intervention}, item~iii., introduces \emph{no} transfer edge in the $w^o \to w^i$ direction: the typing of item~iii.\ forces every directed edge of $G_{\swig(W)}$ to have its source tagged $\cdot^i$ (or in $J \cup (V \sm W)$ under the shorthand of def \ref{def:G_node-splitting_intervention}) and its target tagged $\cdot^o$ (or in $V \sm W$ under that shorthand); hence $(w^o, w^i) \notin E_{\swig(W)}$ by the structural typing alone, no matter what edges $E$ contains. The opposite direction $(w^i, w^o)$ is structurally permitted by item~iii.\ (it would lift from a directed self-loop $(w, w) \in E$ under the set-builder), but it is ruled out under the standing CADMG hypothesis on $G$ -- see the next paragraph. (Contrast with def \ref{def:G_node-splitting}, item~iii., which \emph{does} introduce a transfer edge $(w^0, w^1) \in E_{\spl(W)}$ for every $w \in W$ -- the analogous claim for the node-splitting construction, claim_3_6, has its topological-order assignment $\phi(w^0) = j - \tfrac{1}{3}$, $\phi(w^1) = j + \tfrac{1}{3}$ aligned precisely with the source/target slots of that transfer edge, so that $w^0 <_{\spl} w^1$ is forced by the topological-order property. For the SWIG, no transfer edge in either direction constrains the relative order of $w^o$ and $w^i$, and the choice $w^o <_{\swig} w^i$ is recorded by the index assignment itself.)
+
+    \emph{Role of the CADMG (acyclicity) precondition.}
+    The construction of def \ref{def:G_node-splitting_intervention} on its own does not produce a graph that satisfies sub-claims~(a) and~(b) for an arbitrary CDMG $G$; the standing CADMG hypothesis on $G$ (i.e.\ acyclicity of $G$ in the sense of def \ref{def-acylic}) is needed in two ways.
+    \begin{itemize}
+        \item For sub-claim~(a) (acyclicity of $G_{\swig(W)}$): a directed cycle $v_{i_1} \tuh v_{i_2} \tuh \cdots \tuh v_{i_k} \tuh v_{i_1}$ in $G$ whose nodes lie in $V \sm W$ (none of the cycle's nodes belonging to $W$) lifts under item~iii.\ to a directed cycle of the same length in $G_{\swig(W)}$, because the shorthand $v^i = v^o = v$ for $v \notin W$ makes each lifted edge $v_{i_a}^i \tuh v_{i_{a+1}}^o$ coincide with the original edge $v_{i_a} \tuh v_{i_{a+1}}$. Acyclicity of $G$ rules out all such cycles in $G$ outright.
+        \item For sub-claim~(b) (the index assignment is a topological order): a directed self-loop $(w, w) \in E$ for some $w \in W$ would lift under item~iii.\ to the directed edge $(w^i, w^o) \in E_{\swig(W)}$, whose index values satisfy $\phi(w^i) = j + \tfrac{1}{3} > j - \tfrac{1}{3} = \phi(w^o)$, contradicting the parent-precedence requirement $\phi(\mathrm{source}) < \phi(\mathrm{target})$ of def \ref{def-topological-order}. Acyclicity of $G$ -- specifically the consequence ``no directed self-loops on $V$'' established from def \ref{def-acylic} -- rules this out: $(w, w) \notin E$ for every $w \in V$, hence for every $w \in W \ins V$.
+    \end{itemize}
+    Note that, in contrast to claim_3_6 for the node-splitting construction, no directed self-loop $(w, w) \in E$ for $w \in W$ can produce a length-$2$ cycle $w^o \tuh w^i \tuh w^o$ in $G_{\swig(W)}$ here, because no transfer edge $(w^o, w^i)$ is included in $E_{\swig(W)}$ by item~iii.'s typing (cf.\ def \ref{def:G_node-splitting_intervention}, closing paragraph ``Self-loops on $W$ produce no cycles in $G_{\swig(W)}$''); the self-loop is nevertheless ruled out by the CADMG hypothesis for the topological-order reason above. The bidirected-edge set $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic}) is defined via the non-existence of non-trivial directed walks (which use only $E$), and a topological order (def \ref{def-topological-order}) is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which is defined from $E$ alone).
+\end{Rem}
+
+% --- proof (ported verbatim from claim_3_9_proof_SwigAcyclic.tex) -----
+\begin{proof}
+% The LN's claim_3_9 block in lecture-notes/lecture_notes/graphs.tex:612--623
+% is a \begin{Rem} that only describes the construction (the $j \pm 1/3$
+% index map for split nodes $v_j \in W$) and does NOT contain a \begin{proof}
+% block. We therefore construct the proof from scratch, in the LN paradigm,
+% mirroring the structure of \refrow{claim_3_6}'s proof (the direct
+% architectural analog for the node-splitting construction of
+% def \ref{def:G_node-splitting}); the SWIG (hard-intervention) variant of
+% def \ref{def:G_node-splitting_intervention} is a structural simplification
+% in the proof because the SWIG construction's edge-set definition (item iii.)
+% omits the transfer-edge set-builder that the plain node-splitting
+% construction carries -- consequently the lifted-edge case is the only case
+% of Lemma~(1) below (the transfer-edge case of \refrow{claim_3_6}'s
+% Lemma~(1) is absent).
+%
+% Strategy: prove (b) first via two key lemmas about the index map $\phi$
+% -- (i) $\phi$ is injective, (ii) $\phi$ is strictly increasing along
+% every directed edge of $G_{\swig(W)}$ -- and then derive (a) as an
+% immediate corollary of (ii) via the standard cycle-vs-strict-increase
+% contradiction.
+
+We prove the two sub-claims in the order (b), then (a). Sub-claim~(a) is derived from the same key lemma about the index map $\phi$ that drives sub-claim~(b): that $\phi$ is strictly increasing along every directed edge of $G_{\swig(W)}$. Throughout the proof we use the explicit form of the carrier and edge set of $G_{\swig(W)}$ given in def \ref{def:G_node-splitting_intervention}, namely
+\[
+    J_{\swig(W)} \cup V_{\swig(W)} \;=\; J \cup (V \sm W) \dcup W^o \dcup W^i
+\]
+(items i.\ and ii.\ of def \ref{def:G_node-splitting_intervention}, type-level disjoint by the tagged construction recalled in the statement block above), and
+\[
+    E_{\swig(W)} \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC
+\]
+(item iii.\ of def \ref{def:G_node-splitting_intervention}, the \emph{lifted-edge} set-builder). This is a strict simplification compared with the node-splitting construction of def \ref{def:G_node-splitting}, item iii., whose edge-set definition adds an extra transfer-edge set-builder $\lC (w^0, w^1) \st w \in W \rC$ -- the SWIG construction omits this transfer-edge set-builder, so the case analysis of Lemma~(1) below has only the lifted-edge case (in contrast with \refrow{claim_3_6}'s Lemma~(1), which has two cases). The bidirected-edge set $L_{\swig(W)}$ plays no role in either sub-claim, for the reason recorded in the closing paragraph of the statement block above (acyclicity, def \ref{def-acylic}, and topological orders, def \ref{def-topological-order}, are both defined from $E$ alone).
+
+Fix once and for all an enumeration $\{1, 2, \dots, n\} \to J \cup V$, $i \mapsto v_i$, of the carrier of $G$ as in the statement of sub-claim~(b), and let $\phi : J_{\swig(W)} \cup V_{\swig(W)} \to \Q$ be the index map defined there. For $x \in J \cup (V \sm W)$, the unique $j \in \{1, \dots, n\}$ with $x = v_j$ exists by bijectivity of the enumeration; for $w \in W$, the unique $j \in \{1, \dots, n\}$ with $w = v_j$ exists for the same reason. Hence $\phi$ is well-defined on the disjoint-union carrier $J \cup (V \sm W) \dcup W^o \dcup W^i$ by the two-bullet case analysis: every $x \in J_{\swig(W)} \cup V_{\swig(W)}$ lies in exactly one of the four constituents and the corresponding bullet supplies $\phi(x)$ unambiguously.
+
+\medskip\noindent\emph{(0) Lemma: $\phi$ is injective.}
+Let $x, y \in J_{\swig(W)} \cup V_{\swig(W)}$ with $\phi(x) = \phi(y)$; we show $x = y$ by case analysis on which of the four constituents each of $x$ and $y$ lies in.
+
+By the definition of $\phi$ via the two bullets and the disjointness of $J \cup (V \sm W)$, $W^o$, $W^i$, the value $\phi(x)$ lies in:
+\begin{itemize}
+    \item $\{1, 2, \dots, n\} \subseteq \Z$ if $x \in J \cup (V \sm W)$ (first bullet);
+    \item $\{j - \tfrac{1}{3} : j \in \{1, \dots, n\}\} \subseteq \Z - \tfrac{1}{3}$ if $x \in W^o$ (second bullet, $^o$-half);
+    \item $\{j + \tfrac{1}{3} : j \in \{1, \dots, n\}\} \subseteq \Z + \tfrac{1}{3}$ if $x \in W^i$ (second bullet, $^i$-half);
+\end{itemize}
+and analogously for $\phi(y)$. The three target sets are pairwise disjoint in $\Q$: an integer $j \in \Z$ is never of the form $k - \tfrac{1}{3}$ or $k + \tfrac{1}{3}$ for any integer $k$ (since $\tfrac{1}{3} \notin \Z$), and $j - \tfrac{1}{3} = k + \tfrac{1}{3}$ would force $j - k = \tfrac{2}{3}$, impossible for $j, k \in \Z$. Hence $\phi(x) = \phi(y)$ already forces $x$ and $y$ to lie in the \emph{same} constituent. We consider the three possible such constituents.
+
+\emph{Case 1: $x, y \in J \cup (V \sm W)$.} Write $x = v_{j_x}$ and $y = v_{j_y}$ with $j_x, j_y \in \{1, \dots, n\}$. Then $\phi(x) = j_x$ and $\phi(y) = j_y$ by the first bullet, so $\phi(x) = \phi(y)$ gives $j_x = j_y$, and bijectivity of the enumeration $i \mapsto v_i$ then gives $v_{j_x} = v_{j_y}$, i.e.\ $x = y$.
+
+\emph{Case 2: $x, y \in W^o$.} Write $x = w_x^o$ and $y = w_y^o$ with $w_x, w_y \in W$, and let $j_x, j_y \in \{1, \dots, n\}$ be such that $w_x = v_{j_x}$ and $w_y = v_{j_y}$. Then $\phi(x) = j_x - \tfrac{1}{3}$ and $\phi(y) = j_y - \tfrac{1}{3}$ by the second bullet, so $\phi(x) = \phi(y)$ gives $j_x = j_y$, hence $w_x = v_{j_x} = v_{j_y} = w_y$, and finally $x = w_x^o = w_y^o = y$ (injectivity of $w \mapsto w^o$, def \ref{def:G_node-splitting_intervention}).
+
+\emph{Case 3: $x, y \in W^i$.} Symmetric to Case~2, with $w^i$ in place of $w^o$ and $j + \tfrac{1}{3}$ in place of $j - \tfrac{1}{3}$ throughout.
+
+In each case $x = y$, completing the proof of injectivity of $\phi$.
+
+\medskip\noindent\emph{(1) Lemma: $\phi$ is strictly increasing along every directed edge of $G_{\swig(W)}$.}
+We show that for every $(x, y) \in E_{\swig(W)}$,
+\[
+    \phi(x) \;<\; \phi(y).
+\]
+By the explicit form of $E_{\swig(W)}$ recalled above (item iii.\ of def \ref{def:G_node-splitting_intervention}), every $(x, y) \in E_{\swig(W)}$ is a \emph{lifted} edge $(x, y) = (v_1^i, v_2^o)$ arising from some $(v_1, v_2) \in E$. There is only this one case; in contrast with \refrow{claim_3_6}'s Lemma~(1) for the node-splitting construction, no transfer-edge case is present, because def \ref{def:G_node-splitting_intervention}, item iii., omits the transfer-edge set-builder $\lC (w^0, w^1) \st w \in W \rC$ entirely.
+
+Write $v_1 = v_{j_1}$ and $v_2 = v_{j_2}$ with $j_1, j_2 \in \{1, \dots, n\}$ (using the typing $E \ins (J \cup V) \times V$ of def \ref{def-cdmg}, item~iii., so that both endpoints lie in $J \cup V$ and the enumeration applies to each).
+
+Since $(v_1, v_2) \in E$, the set-builder definition of the parent set in $G$ (def \ref{def_3_5}, item~i.) gives $v_1 \in \Pa^G(v_2)$. The hypothesis that $<$ is a topological order of $G$ (def \ref{def-topological-order}), unwound in its equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form''), then yields
+\[
+    j_1 \;<\; j_2 \qquad \text{in } \{1, 2, \dots, n\} \ins \Z.
+\]
+Since $j_1, j_2$ are integers, $j_1 < j_2$ implies $j_2 - j_1 \ge 1$.
+
+We now bound $\phi(v_1^i)$ from above and $\phi(v_2^o)$ from below by case analysis on the membership of $v_1$ and $v_2$ in $W$, using the shorthand-and-tag convention of def \ref{def:G_node-splitting_intervention} (recalled in the lifted-edge bullets of item iii.\ of def \ref{def:G_node-splitting_intervention}, whereby $v^i = v$ and $v^o = v$ for $v \in J \cup (V \sm W)$):
+\begin{itemize}
+    \item For the \emph{source} $v_1^i$: if $v_1 \in W$, then $v_1^i \in W^i$ is the tagged copy and $\phi(v_1^i) = j_1 + \tfrac{1}{3}$ by the second bullet of the index map; if $v_1 \in J \cup (V \sm W)$, then $v_1^i = v_1$ (the shorthand for unsplit nodes, def \ref{def:G_node-splitting_intervention}) and $\phi(v_1^i) = \phi(v_1) = j_1$ by the first bullet. In either subcase,
+        \[
+            \phi(v_1^i) \;\le\; j_1 + \tfrac{1}{3}.
+        \]
+    \item For the \emph{target} $v_2^o$: by def \ref{def-cdmg}, item~iii., the second endpoint of every directed edge in $E$ lies in $V$, so $v_2 \in V$, and the dichotomy $v_2 \in W$ vs.\ $v_2 \in V \sm W$ is exhaustive. If $v_2 \in W$, then $v_2^o \in W^o$ is the tagged copy and $\phi(v_2^o) = j_2 - \tfrac{1}{3}$ by the second bullet; if $v_2 \in V \sm W$, then $v_2^o = v_2$ (the shorthand for unsplit nodes) and $\phi(v_2^o) = \phi(v_2) = j_2$ by the first bullet. In either subcase,
+        \[
+            \phi(v_2^o) \;\ge\; j_2 - \tfrac{1}{3}.
+        \]
+\end{itemize}
+
+Combining the two displayed bounds with $j_2 - j_1 \ge 1$,
+\[
+    \phi(v_1^i) \;\le\; j_1 + \tfrac{1}{3}
+                \;=\; j_2 - \bigl( (j_2 - j_1) - \tfrac{1}{3} \bigr)
+                \;\le\; j_2 - \bigl( 1 - \tfrac{1}{3} \bigr)
+                \;=\; j_2 - \tfrac{2}{3}
+                \;<\; j_2 - \tfrac{1}{3}
+                \;\le\; \phi(v_2^o),
+\]
+where the strict inequality $j_2 - \tfrac{2}{3} < j_2 - \tfrac{1}{3}$ is $-\tfrac{2}{3} < -\tfrac{1}{3}$ in $\Q$. Hence $\phi(x) = \phi(v_1^i) < \phi(v_2^o) = \phi(y)$, completing the proof of Lemma~(1).
+
+(Side note on the role of the offset $\tfrac{1}{3}$ in the chain above. The chain $j_1 + \tfrac{1}{3} \le j_2 - \tfrac{2}{3} < j_2 - \tfrac{1}{3}$ goes through precisely because $\tfrac{1}{3} + \tfrac{1}{3} = \tfrac{2}{3} < 1$, so the source-bound $j_1 + \tfrac{1}{3}$ and the target-bound $j_2 - \tfrac{1}{3}$ leave a slack of $j_2 - j_1 - \tfrac{2}{3} \ge 1 - \tfrac{2}{3} = \tfrac{1}{3} > 0$. Any offset $\delta \in (0, \tfrac{1}{2})$ would give the analogous slack $j_2 - j_1 - 2\delta \ge 1 - 2\delta > 0$; the choice $\delta = \tfrac{1}{2}$ would zero out this slack (consistent with the collision $j + \tfrac{1}{2} = (j+1) - \tfrac{1}{2}$ flagged in the ``Load-bearing role of the offset $\tfrac{1}{3}$'' paragraph of the statement block above).)
+
+\medskip\noindent\emph{Proof of sub-claim (b): $<_{\swig}$ is a topological order of $G_{\swig(W)}$.}
+
+By def \ref{def-topological-order}, we must verify that $<_{\swig}$ is a strict total order on $J_{\swig(W)} \cup V_{\swig(W)}$ -- i.e.\ irreflexive, transitive, and trichotomous on that carrier -- and that the parent-precedence clause
+\[
+    \forall\, x, y \in J_{\swig(W)} \cup V_{\swig(W)} :\quad x \in \Pa^{G_{\swig(W)}}(y) \;\Longrightarrow\; x <_{\swig} y
+\]
+holds.
+
+\emph{Strict total order on $J_{\swig(W)} \cup V_{\swig(W)}$.} By definition, $x <_{\swig} y \Leftrightarrow \phi(x) < \phi(y)$, with the right-hand $<$ the standard strict order on $\Q$. The standard strict order on $\Q$ is irreflexive, transitive, and trichotomous on $\Q$; we transfer each property to $<_{\swig}$ on $J_{\swig(W)} \cup V_{\swig(W)}$ via the map $\phi : J_{\swig(W)} \cup V_{\swig(W)} \to \Q$.
+\begin{itemize}
+    \item \emph{Irreflexivity.} For every $x \in J_{\swig(W)} \cup V_{\swig(W)}$, $\phi(x) < \phi(x)$ is false in $\Q$ (irreflexivity of $<$ on $\Q$). Hence $x <_{\swig} x$ is false.
+    \item \emph{Transitivity.} For $x, y, z \in J_{\swig(W)} \cup V_{\swig(W)}$ with $x <_{\swig} y$ and $y <_{\swig} z$, we have $\phi(x) < \phi(y)$ and $\phi(y) < \phi(z)$ in $\Q$, hence $\phi(x) < \phi(z)$ by transitivity of $<$ on $\Q$, i.e.\ $x <_{\swig} z$.
+    \item \emph{Trichotomy.} For $x, y \in J_{\swig(W)} \cup V_{\swig(W)}$, trichotomy of $<$ on $\Q$ applied to $\phi(x), \phi(y)$ gives one of the three alternatives
+        \[
+            \phi(x) < \phi(y), \quad \phi(x) = \phi(y), \quad \phi(y) < \phi(x).
+        \]
+        The middle alternative $\phi(x) = \phi(y)$ implies $x = y$ by Lemma~(0). The other two alternatives say $x <_{\swig} y$ and $y <_{\swig} x$ respectively. Hence one of $x <_{\swig} y$, $x = y$, $y <_{\swig} x$ holds for every pair $x, y \in J_{\swig(W)} \cup V_{\swig(W)}$.
+\end{itemize}
+This verifies that $<_{\swig}$ is a strict total order on $J_{\swig(W)} \cup V_{\swig(W)}$.
+
+\emph{Parent-precedence.} Let $x, y \in J_{\swig(W)} \cup V_{\swig(W)}$ with $x \in \Pa^{G_{\swig(W)}}(y)$. By the set-builder definition of the parent set (def \ref{def_3_5}, item~i.) applied to the CDMG $G_{\swig(W)}$,
+\[
+    \Pa^{G_{\swig(W)}}(y) \;=\; \lC u \in J_{\swig(W)} \cup V_{\swig(W)} \,\big|\, (u, y) \in E_{\swig(W)} \rC,
+\]
+so $(x, y) \in E_{\swig(W)}$. By Lemma~(1), $\phi(x) < \phi(y)$, i.e.\ $x <_{\swig} y$.
+
+Both conjuncts of def \ref{def-topological-order} are verified for $<_{\swig}$ on the CDMG $G_{\swig(W)}$, so $<_{\swig}$ is a topological order of $G_{\swig(W)}$, establishing sub-claim~(b).
+
+\medskip\noindent\emph{Proof of sub-claim (a): $G_{\swig(W)}$ is acyclic.}
+
+Sub-claim~(a) makes no reference to any choice of topological order, so the index map $\phi$ used in Lemmas~(0)--(1) above is not provided by the hypotheses of (a) alone. We obtain one as follows. Since $G$ is a CADMG, $G$ is acyclic in the sense of def \ref{def-acylic}; by the $\Rightarrow$ direction of \refrow{claim_3_2} applied to $G$, there exists at least one topological order of $G$ in the sense of def \ref{def-topological-order}. Fix any such order $<$ and present it in its equivalent indexing form (def \ref{def-topological-order}, ``Equivalent indexing form'') as a bijection $\{1, 2, \dots, n\} \to J \cup V$, $i \mapsto v_i$, with $v_1 < v_2 < \cdots < v_n$. With this $<$ and this enumeration in hand, build the index map $\phi : J_{\swig(W)} \cup V_{\swig(W)} \to \Q$ exactly as in the statement of sub-claim~(b), and apply Lemma~(1) (whose statement and proof only require that $<$ is some topological order of $G$): for every $(x, y) \in E_{\swig(W)}$,
+\[
+    \phi(x) \;<\; \phi(y).
+\]
+
+We now argue by contradiction. Suppose, for contradiction, that $G_{\swig(W)}$ admits a non-trivial directed walk from some node to itself, i.e.\ (in the sense of def \ref{def:walks}, item~ii., and def \ref{def-acylic}) a tuple
+\[
+    p \;=\; (x_0, a_0, x_1, a_1, \dots, a_{k-1}, x_k)
+\]
+with $k \ge 1$, $x_0 = x_k \in J_{\swig(W)} \cup V_{\swig(W)}$, each $x_i \in J_{\swig(W)} \cup V_{\swig(W)}$, and each $a_i = (x_i, x_{i+1}) \in E_{\swig(W)}$.
+
+By Lemma~(1) applied to each edge $a_i = (x_i, x_{i+1}) \in E_{\swig(W)}$,
+\[
+    \phi(x_0) \;<\; \phi(x_1) \;<\; \phi(x_2) \;<\; \cdots \;<\; \phi(x_k),
+\]
+hence $\phi(x_0) < \phi(x_k)$ by $k \ge 1$ applications of strict transitivity of $<$ on $\Q$ (the chain is non-degenerate since $k \ge 1$ supplies at least one strict step). But $x_0 = x_k$, so $\phi(x_0) = \phi(x_k)$, contradicting the strict inequality $\phi(x_0) < \phi(x_k)$ via irreflexivity of $<$ on $\Q$.
+
+No such walk $p$ can exist, so $G_{\swig(W)}$ is acyclic in the sense of def \ref{def-acylic}, establishing sub-claim~(a).
+
+\medskip\noindent\emph{Remark on an alternative derivation of (a) as a corollary of (b).}
+Once sub-claim~(b) is established, sub-claim~(a) admits a one-line derivation: pick any topological order $<$ of $G$ (which exists by the $\Rightarrow$ direction of \refrow{claim_3_2}, since $G$ is acyclic by the CADMG hypothesis); by (b), $<_{\swig}$ is a topological order of $G_{\swig(W)}$; and then the $\Leftarrow$ direction of \refrow{claim_3_2} applied to the CDMG $G_{\swig(W)}$ (which is a CDMG by the construction and consistency check of def \ref{def:G_node-splitting_intervention}) yields acyclicity of $G_{\swig(W)}$. Our direct proof of (a) above is the unwinding of this corollary at the level of the index map $\phi$: it makes the chain $\phi(x_0) < \cdots < \phi(x_k)$ explicit instead of bundling it inside the proof of \refrow{claim_3_2}. The two arguments are equivalent; we have presented the direct version because it makes the index-map $\phi$ the single shared mechanism behind both sub-claims.
+
+\medskip\noindent\emph{Closing remark on the role of the CADMG hypothesis.}
+The CADMG hypothesis on $G$ -- i.e.\ acyclicity of $G$ in the sense of def \ref{def-acylic} -- enters the proof in two distinct ways. (i) Sub-claim~(a) invokes the $\Rightarrow$ direction of \refrow{claim_3_2} to obtain a topological order $<$ of $G$; this invocation requires acyclicity of $G$ as its hypothesis. Sub-claim~(b), in contrast, only uses that the supplied $<$ \emph{is} a topological order, not the acyclicity hypothesis on $G$ directly. (ii) Lemma~(1) applied to the lifted edge $(w^i, w^o) \in E_{\swig(W)}$ that would arise from a hypothetical directed self-loop $(w, w) \in E$ on some $w \in W$ would demand $j_1 < j_2$ for $j_1 = j_2 = j$ (the common index of $v_1 = v_2 = w = v_j$), which is impossible; the CADMG hypothesis is precisely what prevents this incoherence from arising upstream, via the consequence ``no directed self-loops on output nodes'' of def \ref{def-acylic}: $(w, w) \notin E$ for every $w \in V$, and in particular for every $w \in W \ins V$, so the lifted edge $(w^i, w^o)$ never enters $E_{\swig(W)}$ via this route.
+
+In contrast with the situation for the node-splitting construction (\refrow{claim_3_6}, ``Role of the CADMG (acyclicity) precondition'' paragraph), there is here \emph{no} length-$2$ cycle hazard arising from a transfer edge $(w^o, w^i)$: the SWIG construction's item iii.\ adds no transfer edge in either direction between $w^o$ and $w^i$, so even were the lifted edge $(w^i, w^o)$ to enter $E_{\swig(W)}$ for some self-loop $(w, w) \in E$ (an event the CADMG hypothesis rules out), no second edge $(w^o, w^i)$ would join it to close a length-$2$ cycle. The CADMG hypothesis is nevertheless still needed for (i) and (ii) above; the role-of-CADMG paragraph in the statement block records both roles and the absence of the 2-cycle hazard in full.
+\end{proof}
+
+\end{document}

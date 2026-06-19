@@ -1,0 +1,43 @@
+% Claim statement file for row claim_3_1 -- "CDMGRestrictions".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_1_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_1 (statement)
+% title: CDMGRestrictions
+\def\rowref{claim\_3\_1}
+\phantomsection\label{claim_3_1}
+
+\begin{Rem}[CDMGRestrictions]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); we use the notation of \ref{not-cdmg} throughout. Recall, per def \ref{def-cdmg}, that $E \subseteq (J \cup V) \times V$, that $L \subseteq V \times V$ with $L$ symmetric and irreflexive, and that $J \cap V = \emptyset$.
+
+    The restrictions encoded in def \ref{def-cdmg} have the following three consequences. In the LN wording, the clauses ``$j \hus v \notin G$'' and ``edges $j \tuh v$ are allowed'' carry an implicit universal quantification over the second-position variable $v$; we surface these quantifiers explicitly below, with $v$ ranging over $J \cup V$ in the first clause and over $V$ only in the second (see also the addition spelled out under sub-claim ii.).
+
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{No edge with an arrowhead at a $J$-node.}
+              For every $j \in J$ and every $v \in J \cup V$,
+              \[ j \hus v \notin G. \]
+              Unfolding the shorthand $\hus$ via def \ref{not-cdmg} item~6 (so $j \hus v \in G$ abbreviates $(v, j) \in E \lor (j, v) \in L$), this is equivalent to the set-theoretic conjunction
+              \[ (v, j) \notin E \;\land\; (j, v) \notin L. \]
+
+        \item \emph{The type of $G$ does not forbid a directed edge from a $J$-node into a $V$-node.}
+              For every $j \in J$ and every $v \in V$, the ordered pair $(j, v)$ satisfies $j \in J \cup V$ and $v \in V$, so the typing constraint $E \subseteq (J \cup V) \times V$ of def \ref{def-cdmg} is compatible with $(j, v) \in E$; equivalently, no restriction in def \ref{def-cdmg} forbids the inclusion of $(j, v)$ in $E$ (in the notation of \ref{not-cdmg}: no restriction forbids $j \tuh v \in G$). This is a \emph{permission} statement, not an existence statement: $(j, v) \in E$ is admissible by the definition for every $(j, v) \in J \times V$, but is not asserted to hold.
+
+        \item \emph{No two $J$-nodes are adjacent.}
+              For every $j_1 \in J$ and every $j_2 \in J$, the nodes $j_1$ and $j_2$ are \emph{not} adjacent in $G$ in the sense of def \ref{def-edge-relations} item~i.; equivalently,
+              \[ (j_1, j_2) \notin E \;\land\; (j_2, j_1) \notin E \;\land\; (j_1, j_2) \notin L. \]
+    \end{enumerate}
+\end{Rem}
+
+\end{document}

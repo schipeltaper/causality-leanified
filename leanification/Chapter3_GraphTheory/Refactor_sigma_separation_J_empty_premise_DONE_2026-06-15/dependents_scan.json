@@ -1,0 +1,10 @@
+{
+  "roots": [
+    "def_3_18"
+  ],
+  "per_root": {
+    "def_3_18": {
+      "consumer_refs": []
+    }
+  }
+}

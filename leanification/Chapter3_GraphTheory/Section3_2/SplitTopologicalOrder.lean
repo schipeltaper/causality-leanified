@@ -1,679 +1,756 @@
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.FamilyRelationships
 import Chapter3_GraphTheory.Section3_1.Acyclicity
+import Chapter3_GraphTheory.Section3_1.CDMGTypes
 import Chapter3_GraphTheory.Section3_1.TopologicalOrder
+import Chapter3_GraphTheory.Section3_1.AcyclicIffTopologicalOrder
 import Chapter3_GraphTheory.Section3_2.NodeSplittingOn
-
--- TeX proof: tex/claim_3_6_proof_SplitTopologicalOrder.tex
-
-/-!
-# Acyclicity and topological orders survive node-splitting (claim_3_6)
-
-This file formalises the lecture notes' remark immediately following
-the definition of the node-splitting `G_{\spl(W)}` (def_3_11): if `G`
-is a CADMG (i.e. acyclic) and `W ⊆ G.V`, then `G.nodeSplittingOn W hW`
-is also acyclic; furthermore, given a topological order `<` of `G`,
-an *explicit* topological order on `G.nodeSplittingOn W hW` can be
-built by interleaving each `v_j ∈ W` with two new index slots
-`j - 1/3` and `j + 1/3` for `v_j^0` and `v_j^1` respectively, then
-re-sorting. See `lecture-notes/lecture_notes/graphs.tex` Rem at
-lines 444 -- 455.
-
-The LN bundles two distinct mathematical statements under one `\Rem`
-block; we split them into two theorems, mirroring `claim_3_3`'s
-two-theorem decomposition (`isAcyclic_hardInterventionOn` +
-`isTopologicalOrder_hardInterventionOn`) for the analogous remark
-attached to `hardInterventionOn`. The two halves carry different
-proof shapes and the per-theorem design notes below justify the
-split:
-
-* `isTopologicalOrder_nodeSplittingOn` -- the **core constructive
-  content** of the remark: from a topological order `r` of `G` and
-  `hW : W ⊆ G.V`, produce a *named* topological order
-  `splitOrder W r` of `G.nodeSplittingOn W hW`. The construction is
-  the LN's "assign `v_j^0` the index `j - 1/3` and `v_j^1` the index
-  `j + 1/3`", encoded as a four-case pattern match on the carrier
-  `α ⊕ ↑W`. No `[Finite α]` is needed: the construction is purely
-  relational (it does not enumerate vertices), and the four
-  `IsTopologicalOrder` fields transport via the `@[simp]`
-  membership lemmas of `NodeSplittingOn.lean`.
-
-* `isAcyclic_nodeSplittingOn` -- acyclicity preservation. The
-  statement-phase signature keeps `[Finite α]` *off* the
-  hypothesis list. Two proof routes are available to the prover:
-  (i) via `isTopologicalOrder_nodeSplittingOn` plus claim_3_2
-  (`isAcyclic_iff_hasTopologicalOrder`), at the cost of pulling in
-  `[Finite α]` for the `→` half of claim_3_2; (ii) a direct
-  walk-lifting argument analogous to claim_3_3 part A, lifting a
-  hypothetical cycle in `G.nodeSplittingOn W hW` back to a cycle in
-  `G` via `Sum.inl ↦ id, Sum.inr ⟨w, _⟩ ↦ w` plus compression of
-  the trivial `Sum.inl w → Sum.inr ⟨w, hw⟩` split edges. Route
-  (ii) is preferred by precedent (claim_3_3 part A is direct and
-  finiteness-free) and would let the iSCM chapters apply this
-  result over not-yet-finitised vertex types; we leave the choice
-  to the prover. If finiteness turns out to be unavoidable, the
-  prover can request a `correct_tex_proof` to add `[Finite α]`.
-
-## Where this gets used downstream
-
-* **claim_3_9** (`graphs.tex` Rem, "SWIG acyclic topological
-  order") -- the SWIG `G_{\swig(W)}` is a node-splitting composed
-  with a hard intervention (def_3_12 `nodeSplittingHard`); its
-  acyclicity / topological-order preservation reads as this
-  claim_3_6 result composed with claim_3_3
-  (`AcyclicUnderIntervention`).
-* **claim_3_7 / claim_3_8 / claim_3_12** (commutation and
-  composition of `nodeSplittingOn` with itself and with
-  `hardInterventionOn`) -- iterated node-splitting reasoning often
-  needs acyclicity of intermediate split graphs to talk about
-  topological orders or directed walks.
-* **Chapters 8 -- 10 (iSCMs, SWIGs and counterfactuals)** -- the
-  Richardson--Robins SWIG machinery and the iSCM uniqueness
-  theory both quote the split graph's topological order along
-  which mechanisms are evaluated. The `splitOrder` defined here
-  is *exactly* the order they use.
-* **Chapters 11 -- 16 (causal discovery)** -- FCI and related
-  algorithms reduce reasoning about latent confounding to
-  reasoning on a derived split-and-projected graph; acyclicity of
-  the split graph is the (often implicit) sanity check.
--/
 
 namespace Causality
 
+/-!
+# Split topological order (`claim_3_6`)
+
+This file formalises the LN remark `claim_3_6` (`SplitTopologicalOrder`
+in `graphs.tex`, section 3.2):
+
+> For a CADMG `G = (J, V, E, L)`, also `G_{spl(W)}` is acyclic.  If
+> `<` is any topological order of `G` given by enumerating
+> `J ∪ V = {v_1 < v_2 < ⋯ < v_n}`, then a topological order for
+> `G_{spl(W)}` can be achieved by assigning, for `v_j ∈ W`, the index
+> `j - 1/3` to `v_j^0` and `j + 1/3` to `v_j^1`, and then ordering all
+> nodes according to their index value.
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_2/tex/claim_3_6_statement_SplitTopologicalOrder.tex`,
+verified equivalent to the LN block by `verify_tex_statement_only` and
+`verify_tex_statement_equivalence`.  No `addition_to_the_LN` clauses
+were attached; the rewrite folded the LN-critic's two working-phase
+subtleties directly into the canonical tex as non-load-bearing
+clarifications:
+
+* `unsplit_nodes_implicit_index_retention` — the LN's literal text
+  assigns indices only to the tagged copies `v_j^0`, `v_j^1` of split
+  nodes `v_j ∈ W`, and is silent on the indices of unsplit nodes
+  `v_j ∈ J ∪ (V ∖ W)`.  The canonical tex spec records the natural and
+  only-consistent reading: unsplit nodes retain their original index
+  `j`.
+* `orientation_convention_v0_below_v1` — the construction's correctness
+  rests on the convention `w^0 < w^1` in `<_{spl}`, matching the
+  `def_3_11` tagging convention (transfer edge `(w^0, w^1)`, incoming
+  edges reattached at `w^0`, outgoing edges leaving `w^1`).
+
+The remark bundles two sub-claims under one `\begin{Rem}`:
+
+* (a) **Acyclicity preservation.** `G_{spl(W)}` is acyclic
+  (`def_3_6`'s `IsAcyclic`).
+* (b) **Explicit topological order on `G_{spl(W)}`.** For every
+  topological order `<` of `G`, the relation `<_{spl}` on
+  `SplitNode Node` defined below is a topological order of
+  `G_{spl(W)}` (`def_3_8`'s `IsTopologicalOrder`).
+
+Both sub-claims share the same hypotheses (`G.IsCADMG` and
+`W ⊆ G.V`); they are stated as **two separate theorems**
+(`splAcyclic` and `splTopologicalOrder`) — see the
+"single theorem vs.\ two separate theorems" design-choice bullet
+below for the rationale.
+
+The proof bodies are filled in by `prove_claim_in_lean` (Manager B),
+following the verified TeX proof at
+`tex/claim_3_6_proof_SplitTopologicalOrder.tex`.
+-/
+
 namespace CDMG
 
-variable {α : Type*}
-
-/-! ### The split-order construction
-
-The LN's "index `j` for `v_j`, `j - 1/3` for `v_j^0`, `j + 1/3` for
-`v_j^1`" recipe is encoded below as a four-case pattern match on
-the carrier `α ⊕ ↑W`. We do *not* commit to an actual `Real`-valued
-index function: the index recipe is a *device* for visualising why
-the induced order is a topological order. The induced order itself
-is what we formalise, and it is fully determined by the original
-order `r` and the case-split on which "copy" each endpoint sits in.
-
-The four cases are read off the index recipe as follows. Let
-`idx(v) := j` for `v = v_j` in the original enumeration of
-`G.J ∪ G.V` (so `r v w ↔ idx(v) < idx(w)` for `v, w ∈ G`), with the
-LN's `±1/3` shifts on the split copies:
-
-* **`(Sum.inl v₁, Sum.inl v₂)`** -- both endpoints are 0-copies, so
-  if `v_i ∈ W` they sit at `idx(v_i) − 1/3`, and if `v_i ∉ W` they
-  sit at `idx(v_i)`. In either configuration the LHS--RHS shift is
-  the same, so `idx(v₁) − ε₁ < idx(v₂) − ε₂` iff `idx(v₁) < idx(v₂)`
-  iff `r v₁ v₂`. (Integer-spaced indices and a `1/3` shift cannot
-  reorder pairs that already disagreed on the original integers.)
-* **`(Sum.inr ⟨w₁,_⟩, Sum.inr ⟨w₂,_⟩)`** -- both 1-copies, both
-  shifted by `+1/3`; offsets cancel and the case collapses to
-  `r w₁ w₂`.
-* **`(Sum.inl v, Sum.inr ⟨w,_⟩)`** -- LHS sits at `idx(v)` (or
-  `idx(v) − 1/3` if `v ∈ W`); RHS sits at `idx(w) + 1/3`. The
-  inequality `idx(LHS) < idx(RHS)` is equivalent to
-  `idx(v) ≤ idx(w)` (integer-spaced indices + a `+1/3` gap rule out
-  any non-integer middle ground), i.e. `r v w ∨ v = w`. When
-  `v ∉ W`, the disjunct `v = w` would force `v ∈ W` (since `w ∈ W`),
-  so it vacuously fails and the case collapses to `r v w`. When
-  `v = w ∈ W`, the disjunct *does* fire (it's the "split edge"
-  case: `v^0` precedes `v^1`), and this is exactly the
-  configuration where the split graph adds a fresh directed edge
-  `(Sum.inl w, Sum.inr w)` that `parent_lt` must respect.
-* **`(Sum.inr ⟨w,_⟩, Sum.inl v)`** -- LHS sits at `idx(w) + 1/3`,
-  RHS at `idx(v)` (or `idx(v) − 1/3` if `v ∈ W`). The inequality
-  `idx(LHS) < idx(RHS)` reduces to `idx(w) < idx(v)`, i.e.
-  `r w v`. No `w = v` disjunct: if `v ∈ W` and `w = v`, the LHS is
-  `idx(v) + 1/3` and the RHS is `idx(v) − 1/3`, which is *strictly
-  greater*, not less -- correctly excluded by `r`'s irreflexivity
-  applied to `w = v`.
--/
-
--- ## Design choice (`splitOrder`)
+-- ## Design choice — statement context
 --
--- * **Standalone helper rather than an inlined `match`.** The
---   `splitOrder W r` relation is used in *both* halves of this
---   row (Part A directly; Part B optionally via claim_3_2) and is
---   itself the LN's named construction. Factoring it out gives a
---   single referent for "the topological order on the split graph
---   from a topological order on `G`" -- downstream rows (claim_3_9
---   for SWIGs, the iSCM chapters quoting "the topological order
---   inherited from the split") can talk about this exact relation
---   by name rather than re-deriving the four-case match each time.
--- * **No `G : CDMG α` argument.** The relation is defined purely
---   on the carrier `α ⊕ ↑W` and is parameterised by `W : Set α`
---   and `r : α → α → Prop`; it does not need to inspect any
---   structure of `G`. Keeping `G` out of the signature means
---   `splitOrder` composes with arbitrary preorders / relations on
---   `α`, not just topological orders of some specific CDMG -- e.g.
---   the `IsTopologicalOrder` proof can pattern-match against
---   `splitOrder W r` without first instantiating `G`. The
---   `G.IsTopologicalOrder r` hypothesis enters only when we ask
---   `(G.nodeSplittingOn W hW).IsTopologicalOrder (splitOrder W r)`.
--- * **`Sum`-shaped pattern match, not `dite` on `v ∈ W`.** The
---   carrier `α ⊕ ↑W` already encodes the 0-copy / 1-copy
---   distinction at the type level (via the `Sum.inl` / `Sum.inr`
---   constructors), so a pattern match is the natural shape. A
---   `dite v ∈ W` approach would force every case to
---   `Classical.propDecidable` the membership and would lose the
---   structural recursion that `Sum.casesOn` provides "for free".
--- * **`r v w ∨ v = w` on the `(inl, inr)` case, not just `r v w`.**
---   The disjunct `v = w` is the LN's "split edge" condition: when
---   `v = w ∈ W`, the split graph adds a fresh directed edge
---   `(Sum.inl w, Sum.inr w)`, and `parent_lt` on
---   `(G.nodeSplittingOn W hW).IsTopologicalOrder (splitOrder W r)`
---   demands that this edge be respected. Encoding `v = w` as a
---   disjunct (rather than as a side condition or a separate edge
---   case) keeps the construction first-order and lets the proof
---   of `parent_lt` discharge the split-edge case via `Or.inr rfl`.
---   The asymmetry "the `(inl, inr)` case has the `v = w` disjunct
---   but the `(inr, inl)` case does not" is *not* a typo or
---   oversight: it reflects the directed nature of the LN's
---   split-edge convention `w^0 → w^1`, i.e. the `±1/3` shift
---   makes `(Sum.inl w, Sum.inr w)` an edge but `(Sum.inr w,
---   Sum.inl w)` not an edge.
--- * **`noncomputable`.** The relation `r` is `Prop`-valued and
---   need not be decidable. Marking `splitOrder` `noncomputable`
---   keeps the construction consistent with `NodeSplittingOn`'s
---   own `noncomputable` `nodeSplittingOn`; downstream uses are
---   all `Prop`-valued (membership in `IsTopologicalOrder`), so
---   the choice has no observable cost.
-
-/-- The *split-order* `splitOrder W r` on the carrier `α ⊕ ↑W`,
-induced by a relation `r : α → α → Prop` and a set `W : Set α`.
-This is the LN's interleaving recipe from claim_3_6: assign each
-`v_j ∈ W` two new index slots `j − 1/3` (for `v_j^0 = Sum.inl v_j`)
-and `j + 1/3` (for `v_j^1 = Sum.inr ⟨v_j, hv_j⟩`), then order by
-index value. The four cases of the pattern match correspond to the
-four `(Sum.inl/inr, Sum.inl/inr)` corner pairs; see the design block
-above and the file-level docstring for the index-recipe derivation.
-
-`noncomputable` because we do not assume any decidability on `r` or
-`v ∈ W`; downstream uses are all `Prop`-valued so the classical
-choice has no observable cost. Used by
-`isTopologicalOrder_nodeSplittingOn` (this file) and quoted by name
-in claim_3_9 (SWIG topological order) and the iSCM uniqueness
-theory of chapters 8 -- 10. -/
-noncomputable def splitOrder (W : Set α) (r : α → α → Prop) :
-    (α ⊕ ↑W) → (α ⊕ ↑W) → Prop
-  | Sum.inl v₁, Sum.inl v₂ => r v₁ v₂
-  | Sum.inr ⟨w₁, _⟩, Sum.inr ⟨w₂, _⟩ => r w₁ w₂
-  | Sum.inl v, Sum.inr ⟨w, _⟩ => r v w ∨ v = w
-  | Sum.inr ⟨w, _⟩, Sum.inl v => r w v
-
--- claim_3_6 (part A)
--- title: SplitTopologicalOrder -- topological order preserved
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim from
+--   `def_3_1` (`CDMG.lean`).  Both fixtures are load-bearing for this
+--   row's statement because the signature references `CDMG Node`
+--   (`def_3_1`), `G.IsCADMG` (`def_3_7`), `G.nodeSplittingOn W hW`
+--   (`def_3_11`), `(G.nodeSplittingOn W hW).IsAcyclic` (`def_3_6`),
+--   `G.IsTopologicalOrder lt` (`def_3_8`), and
+--   `(G.nodeSplittingOn W hW).IsTopologicalOrder (splOrder lt)`
+--   (which goes through the split CDMG's
+--   `Pa : SplitNode Node → Set (SplitNode Node)` from `def_3_5`, in
+--   turn requiring `[DecidableEq (SplitNode Node)]` — provided
+--   automatically by `def_3_11`'s `deriving DecidableEq` on the
+--   tagged-sum inductive).  Stronger instances (`Fintype`,
+--   `LinearOrder`) are not needed at the statement level.
 --
--- The LN's "for a CADMG `G = (J, V, E, L)`, also `G_{spl(W)}` is
--- acyclic; if `<` is any topological order of `G` ... then ... a
--- topological order for `G_{spl(W)}` can be achieved by assigning
--- `v_j^0` the index `j - 1/3` and `v_j^1` the index `j + 1/3` and
--- ordering by index value" splits into two formal statements (see
--- the file-level docstring for the rationale). This is the
--- *constructive* half: from a topological order `r` of `G` and the
--- precondition `hW : W ⊆ G.V` (required by `nodeSplittingOn`
--- def_3_11 itself), produce a topological order `splitOrder W r`
--- of `G.nodeSplittingOn W hW`. The construction follows the LN's
--- `± 1/3` interleaving recipe verbatim, encoded as the four-case
--- `splitOrder` pattern match.
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex`
-(Rem 444 -- 455):
+-- *Three-dash `--- start helper` marker (not the two-dash
+--   `-- start statement`).*  Matches the convention in every sibling
+--   file in `Section3_2/` (`HardInterventionOn.lean`,
+--   `AcyclicPreservedUnderDo.lean`, `HardInterventionsCommute.lean`,
+--   `BifurcationAlternative.lean`, `NodeSplittingOn.lean`) and in
+--   `Section3_1/`.  The two-dash marker is reserved for declarations
+--   whose body is the formalised LN content of the row; this
+--   `variable` line is statement-typing infrastructure binding the
+--   implicit `Node` type and its `DecidableEq` instance that the
+--   helper `splOrder` and the two main theorems all reference.
+-- claim_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_6 --- end helper
 
-\begin{claimmark}
-\begin{Rem}
-    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
-    If $<$ is any topological order of $G$ given by enumerating
-    all nodes $v \in J \cup V$ via:
-    \[ v_1 < v_2 < \cdots < v_n,\]
-    then, for instance,
-    a topological order for $G_{\spl(W)}$ can be achieved by
-    assigning for a node $v_j \in W$ with index $j$ the node
-    $v_j^0$ the index $j-\frac{1}{3}$
-    and $v_j^1$ the index $j+\frac{1}{3}$, and then ordering all
-    nodes according to their index value.
-\end{Rem}
-\end{claimmark}
--/
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of `splAcyclic`
+-- and `splTopologicalOrder`.  They are deliberately private, carry no
+-- marker comments, and do not appear in the rendered statement.  See
+-- `tex/claim_3_6_proof_SplitTopologicalOrder.tex` for the TeX proof
+-- these helpers implement.
+--
+-- *`baseOf` / `tagOf`.*  Project a `SplitNode Node` onto its underlying
+--   base node (`.unsplit u`, `.copy0 w`, `.copy1 w` all carry one node
+--   argument) and its copy tag in `{0, 1, 2}` (with the convention
+--   `.copy0 ↦ 0 < .unsplit ↦ 1 < .copy1 ↦ 2` so that the lex order
+--   matches `splOrder`'s case analysis).
+--
+-- *`splOrder_iff`.*  The lex characterisation of `splOrder`: equivalent
+--   to "base node strictly less, OR base nodes equal and tag strictly
+--   less".  Reduces the 27-way case analysis of transitivity (and the
+--   9-way analyses of irreflexivity / trichotomy) on the case-analysis
+--   form to plain lex reasoning.
+--
+-- *`splitNode_ext`.*  Two `SplitNode Node` agreeing on base and tag are
+--   equal.  Used in the trichotomy proof to recover `x = y` from
+--   `baseOf x = baseOf y ∧ tagOf x = tagOf y`.
+--
+-- *`baseOf_mem`.*  Membership `x ∈ G_spl` projects to membership
+--   `baseOf x ∈ G` via the four pieces of the disjoint-union carrier.
+--
+-- *`splOrder_lifted_edge` / `splOrder_transfer_edge`.*  The two
+--   parent-precedence subcases corresponding to `def_3_11`'s two
+--   edge-set clauses (lifted edges from `G.E` and transfer edges
+--   `(w^0, w^1)`).
+--
+-- *`aux_splTopologicalOrder`.*  The shared workhorse: the full
+--   `IsTopologicalOrder` content for the split graph under
+--   `splOrder lt`, used by both `splAcyclic` (which routes through
+--   `claim_3_2`) and `splTopologicalOrder` (which is a direct wrapper).
+--   The private auxiliary form is needed because `splAcyclic` precedes
+--   `splTopologicalOrder` in the file (statement-marker order) but
+--   the corollary route from sub-claim (b) to sub-claim (a) requires
+--   the topological-order content first.
+
+end CDMG
+
+namespace CDMG
+
+-- ## Design choice — statement context (refactor twin)
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Both fixtures are
+--   inherited from `def_3_1`'s refactor twin (`CDMG`).  The
+--   refactor twin's signature references `CDMG Node`
+--   (root `def_3_1`), `G.IsCADMG` (`def_3_7` refactor twin),
+--   `G.nodeSplittingOn W hW` (`def_3_11` refactor twin),
+--   `(G.nodeSplittingOn W hW).IsAcyclic` (`def_3_6`
+--   refactor twin), `G.IsTopologicalOrder lt` (`def_3_8`
+--   refactor twin), and
+--   `(G.nodeSplittingOn W hW).IsTopologicalOrder
+--    (splOrder lt)` (which goes through the split CDMG's
+--   `Pa` from `def_3_5` refactor twin, in turn requiring
+--   `[DecidableEq (SplitNode Node)]` — provided automatically
+--   by `def_3_11`'s refactor twin via `deriving DecidableEq` on the
+--   tagged-sum inductive `SplitNode`).  No new typeclasses
+--   are needed: the mathematical content of the claim is unchanged by
+--   the refactor — the bidirected-edge set `L` plays no role in either
+--   sub-claim, so the `Finset (Node × Node) → Finset (Sym2 Node)`
+--   retyping at root `def_3_1` does not reach this row at all.
+--
+-- *Three-dash `--- start helper` marker.*  Same convention as the
+--   pre-refactor block above and as every sibling refactor twin in
+--   `Section3_1/` and `Section3_2/`.
+-- claim_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_6 --- end helper
+
+-- ## Helper: the LN's `<_{spl}` order on `SplitNode Node`
+--
+-- *One-sentence summary.*  A `Prop`-valued binary relation on
+-- `SplitNode Node` realising the LN's lifted topological
+-- order `<_{spl}` via 9-way case analysis on the two constructor
+-- tags, parameterised by an arbitrary `lt : Node → Node → Prop` on
+-- the underlying node type.
+--
+-- The LN constructs `<_{spl}` via an index map
+-- `φ : J_{spl(W)} ∪ V_{spl(W)} → ℚ` that assigns
+--
+--   * `φ(v_j) := j`         for `v_j ∈ J ∪ (V ∖ W)` (unsplit node
+--     retains its original index `j` from the topological order
+--     enumeration `v_1 < … < v_n`);
+--   * `φ(w^0) := j - 1/3`   for `w = v_j ∈ W`;
+--   * `φ(w^1) := j + 1/3`   for `w = v_j ∈ W`;
+--
+-- and then defines `x <_{spl} y :⇔ φ(x) < φ(y)` via the standard
+-- strict order on `ℚ`.  Since the integer indices `j` are distinct
+-- for distinct nodes and `1/3 < 1`, the inequality `φ(x) < φ(y)`
+-- reduces — case by case on the two constructors — to a comparison
+-- involving only `lt` on the underlying nodes plus, in some mixed-tag
+-- cases, an equality clause `u = w`.  Morally, the resulting relation
+-- is a *lex* order on the pair `(base node, copy tag)` where the copy
+-- tag takes the three values `-1` (`copy0`), `0` (`unsplit`), `+1`
+-- (`copy1`); the 9 cases below are the literal transcription of that
+-- reduction.
 --
 -- ## Design choice
 --
--- * **Why a separate theorem from the acyclicity half.** The LN
---   bundles "$G_{\spl(W)}$ is acyclic" and "an explicit topological
---   order on $G_{\spl(W)}$" under one `\Rem`. We split because:
---     (1) The topological-order half is the *named-construction*
---         result -- downstream callers (claim_3_9 SWIG, iSCM
---         chapters) want `splitOrder W r` by name to plug into
---         their own constructions.
---     (2) The acyclicity half is the *side-condition* result --
---         downstream callers (claim_3_7, claim_3_12, the iSCM
---         well-foundedness theory) want `(G.nodeSplittingOn W
---         hW).IsAcyclic` as a hypothesis without committing to a
---         specific topological order.
---   Bundling them would force the second class of callers to
---   either project (`.1` / `.2` from a conjunction) or to drag in
---   the topological-order data they do not need. Mirrors
---   claim_3_3's two-theorem decomposition exactly.
--- * **`{G}, {W}, hW, {r}, hr` binder choice (and asymmetry vs.
---   claim_3_3 part B).** `G` and `W` are implicit because they
---   are unifiable from the conclusion
---   `(G.nodeSplittingOn W hW).IsTopologicalOrder (splitOrder W r)`
---   *and* from `hW : W ⊆ G.V`. `r` is implicit because it is
---   unifiable from `hr : G.IsTopologicalOrder r`. `hW` is
---   explicit because the LN's "for a CADMG `G = (J, V, E, L)` ..."
---   takes `W ⊆ V` for granted at def_3_11, but in Lean we must
---   pass the precondition every time we mention `nodeSplittingOn`.
---   This matches `NodeSplittingOn.lean`'s `nodeSplittingOn G W hW`
---   signature exactly (where `G` is explicit only because it is
---   the outer dot-projection target). Note that `W` here is
---   implicit (matching the brief), in mild contrast to claim_3_3
---   part A's explicit `W` -- the difference is that claim_3_3
---   part A had `W` *only* in the conclusion (no `hW` hypothesis to
---   recover it from), whereas here `hW : W ⊆ G.V` makes `W`
---   unifiable.
--- * **No `[Finite α]` instance hypothesis.** The construction is
---   purely relational (no enumeration of vertices) and the four
---   `IsTopologicalOrder` fields transport via the `@[simp]`
---   membership lemmas of `NodeSplittingOn.lean`, neither of which
---   needs finiteness. Downstream callers in iSCM chapters
---   working over not-yet-finitised vertex types can apply this
---   result directly.
--- * **Naming follows Mathlib's `<conclusion>_<construction>`
---   convention.** `isTopologicalOrder_nodeSplittingOn` reads as
---   "the result `IsTopologicalOrder` applied to the construction
---   `nodeSplittingOn`", consistent with
---   `isTopologicalOrder_hardInterventionOn` from claim_3_3 part B.
--- * **"For instance" -- non-uniqueness preserved as a hedge.**
---   The LN writes "*for instance*, a topological order for
---   `G_{spl(W)}` can be achieved by ..." -- the `±1/3` interleave
---   is *one* concrete construction, not the canonical one. Our
---   theorem proves that `splitOrder W r` is *a* topological order
---   of the split graph; it does not claim uniqueness, and any
---   other valid interleaving (e.g. swapping the `±1/3` shifts for
---   a global integer renumbering after the splits) would yield a
---   different relation, equally valid. This is the second reason
---   we factor `splitOrder` as a *standalone named def* (alongside
---   the reuse reason in the `splitOrder` block above): downstream
---   callers that quote "the topological order from claim_3_6"
---   (claim_3_9 SWIG; the iSCM chapters' "the topological order
---   inherited from the split") work with *this specific*
---   construction by name, while remaining free to instantiate
---   `IsTopologicalOrder` differently when their context favours
---   a different recipe.
--- * **Proof-phase road map (hint to the prover, not a proof).**
---   The four `IsTopologicalOrder` fields discharge via the
---   `@[simp]` rewrite machinery of `NodeSplittingOn.lean`:
---     - `irrefl`: destruct `v : α ⊕ ↑W` on `Sum.inl` / `Sum.inr`;
---       both cases collapse `splitOrder W r v v` to `r v' v'`
---       for some `v' ∈ G`, then `hr.irrefl` finishes. Node
---       membership in `G.nodeSplittingOn W hW` is unpacked via
---       `nodeSplittingOn_J` and `nodeSplittingOn_V`.
---     - `trans`: case-split on the carrier of the middle
---       element; each of the four sub-shapes reduces to a single
---       `hr.trans` application, with the `r v w ∨ v = w`
---       disjunct on the `(inl, inr)` case collapsing the
---       split-edge sub-case via substitution.
---     - `trichotomous`: destruct both endpoints on
---       `Sum.inl` / `Sum.inr`; each of the four pattern-match
---       cases reduces to `hr.trichotomous` applied to the
---       underlying `α`-elements, with the `r v w ∨ v = w`
---       disjunct on the `(inl, inr)` configuration absorbing
---       `hr.trichotomous`'s `v = w` branch.
---     - `parent_lt`: case-split on the two pieces of
---       `mem_nodeSplittingOn_E`. Piece 1 (relabeled `G.E`
---       edges): `split1_of_mem` / `split1_of_not_mem` rewrite
---       the source dispatch, and the resulting `splitOrder`
---       case reduces to `hr.parent_lt`. Piece 2 (fresh split
---       edges `(Sum.inl w, Sum.inr ⟨w, hw⟩)`): the `(inl, inr)`
---       case of `splitOrder` fires with the `v = w` disjunct
---       via `Or.inr rfl`, no `hr` needed -- this is exactly the
---       payoff of the `r v w ∨ v = w` shape chosen in
---       `splitOrder`.
-
-/-- claim_3_6 part A: if `W ⊆ G.V` and `r` is a topological order
-of `G`, then `splitOrder W r` is a topological order of
-`G.nodeSplittingOn W hW`. Mirrors the constructive half of the
-`\Rem` immediately after def_3_11 in
-`lecture-notes/lecture_notes/graphs.tex` (lines 444 -- 455), with
-the LN's `± 1/3` interleaving recipe encoded as the four-case
-`splitOrder` pattern match.
-
-The `W ⊆ G.V` precondition is structurally required by
-`nodeSplittingOn` itself (def_3_11) -- the split edge
-`Sum.inl w → Sum.inr ⟨w, hw⟩` needs its source `Sum.inl w` to live
-in the split graph's output set, which is true only when
-`w ∈ G.V`. This is not a topological-order condition; it is the
-def_3_11 condition transported.
-
-See `isAcyclic_nodeSplittingOn` below for the acyclicity half of
-the LN remark and the file-level docstring for the rationale
-behind splitting the LN's single `\Rem` into two theorems. -/
-theorem isTopologicalOrder_nodeSplittingOn
-    {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
-    {r : α → α → Prop} (hr : G.IsTopologicalOrder r) :
-    (G.nodeSplittingOn W hW).IsTopologicalOrder (splitOrder W r) := by
-  -- Mirrors `tex/claim_3_6_proof_SplitTopologicalOrder.tex` Part B.
-  -- The TeX proof's Step 1 (`σ` injectivity) is not needed as a
-  -- separate lemma in Lean: our `splitOrder` is relational and the
-  -- four-case pattern match plus `(inl, inr) ↦ r v w ∨ v = w` makes
-  -- the "middle" branch of trichotomy and `parent_lt`'s split-edge
-  -- case discharge directly. Steps 2 -- 5 of the TeX map onto the
-  -- four `IsTopologicalOrder` fields below.
-  -- Helper: `Sum.inl v ∈ G.nodeSplittingOn W hW ↔ v ∈ G`.
-  have mem_inl : ∀ {v : α},
-      (Sum.inl v : α ⊕ ↑W) ∈ G.nodeSplittingOn W hW ↔ v ∈ G := by
-    intro v
-    simp only [CDMG.mem_iff, nodeSplittingOn_J, nodeSplittingOn_V,
-      Set.mem_union, Set.mem_image, Set.mem_range]
-    constructor
-    · rintro (⟨j, hj, hjv⟩ | ⟨v', hv', hvv'⟩ | ⟨w, hw⟩)
-      · cases Sum.inl_injective hjv; exact Or.inl hj
-      · cases Sum.inl_injective hvv'; exact Or.inr hv'
-      · exact nomatch hw
-    · rintro (hJ | hV)
-      · exact Or.inl ⟨v, hJ, rfl⟩
-      · exact Or.inr (Or.inl ⟨v, hV, rfl⟩)
-  -- Helper: every `w ∈ W` is in `G` via `hW : W ⊆ G.V`.
-  have inr_mem_G : ∀ w' : ↑W, (w' : α) ∈ G :=
-    fun w' => Or.inr (hW w'.property)
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · -- (TeX Step 2) irrefl: case-split on `α ⊕ ↑W`; either branch
-    -- collapses `splitOrder W r v v` to `r v' v'` for `v' ∈ G`,
-    -- closed by `hr.irrefl`.
-    rintro (v | ⟨w, hw⟩) hv
-    · exact hr.irrefl v (mem_inl.mp hv)
-    · exact hr.irrefl (w : α) (inr_mem_G ⟨w, hw⟩)
-  · -- (TeX Step 3) trans: case-split on all three carrier shapes
-    -- (8 cases); each collapses to a single `hr.trans` application,
-    -- with the `r v w ∨ v = w` disjunct on `(inl, inr)` branches
-    -- absorbed by substitution.
-    rintro (a | ⟨a, ha⟩) h_a (b | ⟨b, hb⟩) h_b (c | ⟨c, hc⟩) h_c
-    · -- (inl a, inl b, inl c)
-      intro h_ab h_bc
-      exact hr.trans a (mem_inl.mp h_a) b (mem_inl.mp h_b) c (mem_inl.mp h_c)
-        h_ab h_bc
-    · -- (inl a, inl b, inr c) -- h_bc : r b c ∨ b = c
-      rintro h_ab (h_bc | rfl)
-      · exact Or.inl (hr.trans a (mem_inl.mp h_a) b (mem_inl.mp h_b)
-          c (inr_mem_G ⟨c, hc⟩) h_ab h_bc)
-      · exact Or.inl h_ab
-    · -- (inl a, inr b, inl c) -- h_ab : r a b ∨ a = b
-      rintro (h_ab | rfl) h_bc
-      · exact hr.trans a (mem_inl.mp h_a) b (inr_mem_G ⟨b, hb⟩)
-          c (mem_inl.mp h_c) h_ab h_bc
-      · exact h_bc
-    · -- (inl a, inr b, inr c) -- h_ab : r a b ∨ a = b
-      rintro (h_ab | rfl) h_bc
-      · exact Or.inl (hr.trans a (mem_inl.mp h_a) b (inr_mem_G ⟨b, hb⟩)
-          c (inr_mem_G ⟨c, hc⟩) h_ab h_bc)
-      · exact Or.inl h_bc
-    · -- (inr a, inl b, inl c)
-      intro h_ab h_bc
-      exact hr.trans (a : α) (inr_mem_G ⟨a, ha⟩) b (mem_inl.mp h_b)
-        c (mem_inl.mp h_c) h_ab h_bc
-    · -- (inr a, inl b, inr c) -- h_bc : r b c ∨ b = c
-      rintro h_ab (h_bc | rfl)
-      · exact hr.trans (a : α) (inr_mem_G ⟨a, ha⟩) b (mem_inl.mp h_b)
-          c (inr_mem_G ⟨c, hc⟩) h_ab h_bc
-      · exact h_ab
-    · -- (inr a, inr b, inl c)
-      intro h_ab h_bc
-      exact hr.trans (a : α) (inr_mem_G ⟨a, ha⟩) b (inr_mem_G ⟨b, hb⟩)
-        c (mem_inl.mp h_c) h_ab h_bc
-    · -- (inr a, inr b, inr c)
-      intro h_ab h_bc
-      exact hr.trans (a : α) (inr_mem_G ⟨a, ha⟩) b (inr_mem_G ⟨b, hb⟩)
-        c (inr_mem_G ⟨c, hc⟩) h_ab h_bc
-  · -- (TeX Step 4) trichotomous: case-split on both endpoints (4
-    -- cases). Each collapses to `hr.trichotomous` on the underlying
-    -- `α`-elements; the `=`-middle branch maps to `Or.inr (Or.inl _)`
-    -- with `Sum.inl.injEq` / `Subtype.ext` (or `rfl` after `subst`).
-    rintro (a | ⟨a, ha⟩) h_a (b | ⟨b, hb⟩) h_b
-    · -- (inl a, inl b)
-      rcases hr.trichotomous a (mem_inl.mp h_a) b (mem_inl.mp h_b) with
-        h | rfl | h
-      · exact Or.inl h
-      · exact Or.inr (Or.inl rfl)
-      · exact Or.inr (Or.inr h)
-    · -- (inl a, inr b)
-      -- Goal: (r a b ∨ a = b) ∨ Sum.inl a = Sum.inr ⟨b, hb⟩ ∨ r b a
-      rcases hr.trichotomous a (mem_inl.mp h_a) b (inr_mem_G ⟨b, hb⟩) with
-        h | rfl | h
-      · exact Or.inl (Or.inl h)
-      · exact Or.inl (Or.inr rfl)
-      · exact Or.inr (Or.inr h)
-    · -- (inr a, inl b)
-      -- Goal: r a b ∨ Sum.inr ⟨a, ha⟩ = Sum.inl b ∨ (r b a ∨ b = a)
-      rcases hr.trichotomous (a : α) (inr_mem_G ⟨a, ha⟩) b
-        (mem_inl.mp h_b) with h | rfl | h
-      · exact Or.inl h
-      · exact Or.inr (Or.inr (Or.inr rfl))
-      · exact Or.inr (Or.inr (Or.inl h))
-    · -- (inr a, inr b)
-      rcases hr.trichotomous (a : α) (inr_mem_G ⟨a, ha⟩) (b : α)
-        (inr_mem_G ⟨b, hb⟩) with h | h_eq | h
-      · exact Or.inl h
-      · -- h_eq : a = b (as α). Lift to subtype equality.
-        refine Or.inr (Or.inl ?_)
-        exact congrArg Sum.inr (Subtype.ext h_eq)
-      · exact Or.inr (Or.inr h)
-  · -- (TeX Step 5) parent_lt: case-split on the two pieces of
-    -- `mem_nodeSplittingOn_E`.
-    intro v w h_pa
-    obtain ⟨_, h_vw_E⟩ := h_pa
-    -- Unfold `tuh` notation to plain set-membership so `simp only`
-    -- below can fire on `mem_nodeSplittingOn_E`.
-    change (v, w) ∈ (G.nodeSplittingOn W hW).E at h_vw_E
-    rw [mem_nodeSplittingOn_E] at h_vw_E
-    rcases h_vw_E with ⟨v₁, v₂, hE, h_eq⟩ | ⟨w', h_eq⟩
-    · -- (TeX Step 5, Case (i)) relabeled original edge.
-      -- (v, w) = (split1 W v₁, Sum.inl v₂) with (v₁, v₂) ∈ G.E.
-      obtain ⟨hv_eq, hw_eq⟩ : v = split1 W v₁ ∧ w = Sum.inl v₂ := by
-        rw [Prod.mk.injEq] at h_eq; exact h_eq
-      have hv₁_G : v₁ ∈ G :=
-        CDMG.mem_iff.mpr (Set.mem_prod.mp (G.E_subset hE)).1
-      have h_r : r v₁ v₂ := hr.parent_lt ⟨hv₁_G, hE⟩
-      subst hv_eq
-      subst hw_eq
-      -- `splitOrder W r (split1 W v₁) (Sum.inl v₂)` -- dispatch on `v₁ ∈ W`.
-      by_cases hv₁_W : v₁ ∈ W
-      · rw [split1_of_mem hv₁_W]; exact h_r
-      · rw [split1_of_not_mem hv₁_W]; exact h_r
-    · -- (TeX Step 5, Case (ii)) fresh split edge.
-      -- (v, w) = (Sum.inl w'.val, Sum.inr w'). The `(inl, inr)` case
-      -- of `splitOrder` fires with `Or.inr rfl` -- the payoff of the
-      -- `r v w ∨ v = w` shape chosen for `splitOrder`.
-      obtain ⟨hv_eq, hw_eq⟩ : v = Sum.inl (w' : α) ∧ w = Sum.inr w' := by
-        rw [Prod.mk.injEq] at h_eq; exact h_eq
-      subst hv_eq
-      subst hw_eq
-      exact Or.inr rfl
-
--- claim_3_6 (part B)
--- title: SplitTopologicalOrder -- acyclicity preserved
+-- *Case-analysis encoding, not `ℚ`-arithmetic.*  Three reasons to
+--   skip the `ℚ` device.  (a) **Reuses no Mathlib infrastructure.**
+--   The `ℚ`-based encoding would require manually enumerating
+--   `J ∪ V = {v_1 < … < v_n}`, constructing a function
+--   `idx : Node → ℕ` on the carrier `G.J ∪ G.V`, lifting it through
+--   `SplitNode Node`, and then composing with the
+--   `ℚ`-coercion `+ ⅓` / `- ⅓` — all just to produce a relation that
+--   is determined by `lt` and the constructor tag.  No Mathlib lemma
+--   fires automatically on such a custom index function.  (b) **Hides
+--   the lex structure.**  The case-analysis form makes the lex
+--   structure immediate: the trichotomy / transitivity /
+--   parent-precedence proofs in `splTopologicalOrder` can
+--   `cases` on the two constructors and read off the underlying-`lt`
+--   clause directly, with no `ℚ`-arithmetic detour.  (c) **Sidesteps
+--   the implicit-index-retention subtlety.**  The LN-critic surfaced
+--   the working-phase subtlety `unsplit_nodes_implicit_index_retention`:
+--   the LN's literal text leaves the indices of unsplit nodes
+--   implicit.  Encoding `<_{spl}` as case analysis on
+--   `SplitNode Node` makes the rule "unsplit nodes compare
+--   via the underlying `lt`" *structurally* visible (the first
+--   constructor pair below), with no separate `idx : Node → ℕ` axiom
+--   needed.  The canonical tex spec records the same case-analysis
+--   reading as the only-consistent reading of the LN's prose; this
+--   Lean encoding makes that reading literal.
 --
--- The acyclicity half of the LN remark: if `G` is acyclic and
--- `W ⊆ G.V`, then `G.nodeSplittingOn W hW` is acyclic. Two viable
--- proof routes are available (the prover chooses):
+-- *`W` does NOT appear in the signature.*  A naive translation of
+--   the LN would parameterise `<_{spl}` by `W : Finset Node` (since
+--   the construction is *defined* with respect to `W`).  But the
+--   lex / case-analysis encoding depends only on `lt` and the
+--   constructor tags — the `W`-dependence is *absorbed into the
+--   tagged-sum carrier* `SplitNode Node` already (a
+--   `copy0 w` is a distinct constructor from `unsplit w` regardless
+--   of whether `w ∈ W`, because `SplitNode` is a `def_3_11`
+--   `inductive` with three formally-distinct constructors).  Taking
+--   `W` as an extra argument would be pure noise: every call site
+--   `splOrder lt x y` would pass `W` through but never
+--   consume it.  The membership facts that DO depend on `W` (whether
+--   a given `SplitNode Node` inhabits
+--   `J_{spl(W)} ∪ V_{spl(W)}`) live in the underlying CDMG
+--   `G.nodeSplittingOn W hW` and are checked at the
+--   use-site of `IsTopologicalOrder`, not inside
+--   `splOrder` itself.  Downstream theorems
+--   (`splTopologicalOrder`, and any chapter-4 SWIG /
+--   chapter-5 do-calculus consumer that lifts a topological order
+--   through node splitting) quantify `W` at the theorem level and
+--   apply `splOrder lt` against the carrier of
+--   `G.nodeSplittingOn W hW` directly.
 --
---   (i) Via Part A + claim_3_2: from `G.IsAcyclic` pull a
---       topological order via the `→` direction of
---       `isAcyclic_iff_hasTopologicalOrder` (needs `[Finite α]`),
---       apply Part A to lift it to `(G.nodeSplittingOn W
---       hW).IsTopologicalOrder (splitOrder W r)`, then use the `←`
---       direction of claim_3_2 to conclude
---       `(G.nodeSplittingOn W hW).IsAcyclic`. Cleanest, but pulls
---       in `[Finite α]` (which the LN's `\Rem` does not state).
---   (ii) Direct walk-lifting analogous to claim_3_3 part A:
---        project a hypothetical cycle in `G.nodeSplittingOn W hW`
---        down to a cycle in `G` via `Sum.inl v ↦ v, Sum.inr ⟨w,_⟩
---        ↦ w` and compression of the trivial `Sum.inl w → Sum.inr
---        ⟨w, hw⟩` split edges (which project to self-loops, hence
---        not real edges in `G`; they shrink the projected walk).
---        More work but no finiteness needed.
+-- *Lex orientation `copy0 < unsplit < copy1` (for the same base
+--   node) is load-bearing — flipping it invalidates sub-claim (b).*
+--   The case analysis below picks
+--   `splOrder lt (.copy0 w) (.copy1 w) = lt w w ∨ w = w`
+--   (so `.copy0 w < .copy1 w` always) and symmetrically
+--   `.copy0 v < .unsplit u < .copy1 u` whenever the base nodes
+--   agree.  This is not an arbitrary tie-breaking convention — it is
+--   forced by `def_3_11`'s edge-orientation conventions:
+--   (i) the transfer edge added in `def_3_11` item iii is
+--   `(w^0, w^1)` (NOT `(w^1, w^0)`), so the parent-precedence clause
+--   of `def_3_8`'s `IsTopologicalOrder` for
+--   `G.nodeSplittingOn W hW` demands
+--   `.copy0 w < .copy1 w` in any witness order;
+--   (ii) every incoming edge onto `w ∈ W` is reattached at `w^0` and
+--   every outgoing edge from `w` leaves `w^1` (`def_3_11` item iii,
+--   first set-builder: `(v_1, v_2) ∈ G.E` lifts to
+--   `(v_1^1, v_2^0) ∈ E_{spl(W)}`), so an unsplit ancestor `u` of `w`
+--   (with `lt u w`) parents `w^0` and similarly `w^1` parents an
+--   unsplit descendant `u'` of `w` (with `lt w u'`) — both forcing
+--   the same `copy0 < unsplit < copy1` ordering at each base node.
+--   Under the opposite tagging convention (transfer edge
+--   `(w^1, w^0)`, incoming at `w^1`, outgoing from `w^0`), the
+--   symmetric LN index assignment `j ∓ ⅓` to `w^{0/1}` would NOT
+--   produce a topological order.  This is exactly the LN-critic
+--   working-phase subtlety `orientation_convention_v0_below_v1` that
+--   the canonical tex spec records; the Lean encoding bakes the
+--   convention literally into the case analysis, so any future
+--   refactor of `def_3_11`'s tagging convention would force a
+--   coordinated refactor here.
 --
--- Statement-phase keeps both routes open by *not* adding
--- `[Finite α]`. If the prover finds route (ii) infeasible they
--- can request a `correct_tex_proof` to add `[Finite α]`; the
--- statement is then trivially compatible with route (i).
+-- *`Prop`-valued binary relation
+--   `SplitNode Node → SplitNode Node → Prop`, not
+--   a `LT (SplitNode Node)` typeclass or a `Decidable`
+--   instance.*  Mirrors `def_3_8`'s `IsTopologicalOrder`
+--   argument shape: that predicate takes `lt : Node → Node → Prop`
+--   as an explicit external argument (see `TopologicalOrder.lean`'s
+--   "explicit external argument, not a typeclass `[LT Node]`" design
+--   block).  We follow the same convention here so
+--   `(G.nodeSplittingOn W hW).IsTopologicalOrder
+--    (splOrder lt)` reads literally as "the relation
+--   `splOrder lt` is a topological order of the split
+--   graph".  A `[LT (SplitNode Node)]` instance would force
+--   a single canonical order per `SplitNode Node` type,
+--   colliding with the LN's parameterisation by *the* topological
+--   order `lt` we are lifting.
+--
+-- *Three-dash `--- helper` markers, not two-dash `-- statement`
+--   markers.*  `splOrder` is *helper-for-statement*: the
+--   main LN content of the row lives in the two `splAcyclic`
+--   and `splTopologicalOrder` theorems below (each getting
+--   its own two-dash statement markers), and `splOrder`
+--   exists to give `splTopologicalOrder`'s conclusion a
+--   clean handle on the explicitly-constructed lifted order.  The
+--   website builder pulls helper-marked declarations alongside the
+--   main statement so the rendered statement is self-contained.
+--   Matches the convention in `TopologicalOrder.lean`'s
+--   `IsTotalOrder` (the helper supporting
+--   `IsTopologicalOrder`).
+--
+-- *Independent of the bidirected-edge channel `L`.*  This helper
+--   reads only the constructor tag of `SplitNode Node` and
+--   the underlying `lt` on `Node`; it never inspects the `L` field
+--   of any CDMG.  Both sub-claims of `claim_3_6` are
+--   `(J, V, E)`-skeleton claims (acyclicity via directed walks on
+--   `E`; topological order via `Pa` defined from `E` alone),
+--   and `splOrder` reflects this in its signature.  See
+--   `def_3_1`'s docstring on `CDMG` for the canonical
+--   `L`-channel design (typed as `Finset (Sym2 Node)` with
+--   `Sym2.IsDiag`-style irreflexivity) — none of that detail reaches
+--   this helper or the two theorems it supports.
+-- claim_3_6 --- start helper
+def splOrder (lt : Node → Node → Prop) :
+    SplitNode Node → SplitNode Node → Prop
+  | .unsplit u, .unsplit v => lt u v
+  | .unsplit u, .copy0 w   => lt u w
+  | .unsplit u, .copy1 w   => lt u w ∨ u = w
+  | .copy0 v,   .unsplit u => lt v u ∨ v = u
+  | .copy0 v,   .copy0 w   => lt v w
+  | .copy0 v,   .copy1 w   => lt v w ∨ v = w
+  | .copy1 v,   .unsplit u => lt v u
+  | .copy1 v,   .copy0 w   => lt v w
+  | .copy1 v,   .copy1 w   => lt v w
+-- claim_3_6 --- end helper
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of
+-- `splAcyclic` and `splTopologicalOrder`.  They are
+-- deliberately private, carry no helper marker comments, and do not
+-- appear in the rendered statement.  Each is wrapped in its own
+-- REPLACEMENT marker pair so the Phase 7 cleanup script renames
+-- `refactor_<name>` → `<name>` across the codebase.
+
+private def baseOf : SplitNode Node → Node
+  | .unsplit u => u
+  | .copy0 w => w
+  | .copy1 w => w
+
+private def tagOf : SplitNode Node → ℕ
+  | .copy0 _ => 0
+  | .unsplit _ => 1
+  | .copy1 _ => 2
+
+omit [DecidableEq Node] in
+private lemma splOrder_iff (lt : Node → Node → Prop)
+    (x y : SplitNode Node) :
+    splOrder lt x y ↔
+      lt (baseOf x) (baseOf y) ∨
+        (baseOf x = baseOf y ∧
+          tagOf x < tagOf y) := by
+  cases x <;> cases y <;> simp [splOrder, baseOf, tagOf]
+
+omit [DecidableEq Node] in
+private lemma splitNode_ext {x y : SplitNode Node}
+    (hbase : baseOf x = baseOf y)
+    (htag : tagOf x = tagOf y) : x = y := by
+  cases x <;> cases y <;> simp_all [baseOf, tagOf]
+
+private lemma baseOf_mem {G : CDMG Node} {W : Finset Node}
+    (hW : W ⊆ G.V) {x : SplitNode Node}
+    (hx : x ∈ G.nodeSplittingOn W hW) :
+    baseOf x ∈ G := by
+  change baseOf x ∈ G.J ∪ G.V
+  rcases Finset.mem_union.mp hx with hJ | hV
+  · obtain ⟨j, hj, rfl⟩ := Finset.mem_image.mp hJ
+    exact Finset.mem_union_left _ hj
+  · rcases Finset.mem_union.mp hV with hV12 | hC1
+    · rcases Finset.mem_union.mp hV12 with hVuns | hC0
+      · obtain ⟨v, hvVW, rfl⟩ := Finset.mem_image.mp hVuns
+        exact Finset.mem_union_right _ (Finset.mem_sdiff.mp hvVW).1
+      · obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hC0
+        exact Finset.mem_union_right _ (hW hwW)
+    · obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hC1
+      exact Finset.mem_union_right _ (hW hwW)
+
+private lemma splOrder_lifted_edge {lt : Node → Node → Prop}
+    (W : Finset Node) {v1 v2 : Node} (h : lt v1 v2) :
+    splOrder lt (toCopy1 W v1) (toCopy0 W v2) := by
+  unfold toCopy0 toCopy1
+  split_ifs <;> exact h
+
+omit [DecidableEq Node] in
+private lemma splOrder_transfer_edge {lt : Node → Node → Prop} {w : Node} :
+    splOrder lt (SplitNode.copy0 w) (SplitNode.copy1 w) :=
+  Or.inr rfl
+
+private lemma aux_splTopologicalOrder (G : CDMG Node)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
+    (G.nodeSplittingOn W hW).IsTopologicalOrder
+      (splOrder lt) := by
+  obtain ⟨⟨h_irrefl, h_trans, h_tri⟩, h_pa⟩ := hlt
+  refine ⟨⟨?_, ?_, ?_⟩, ?_⟩
+  · -- Irreflexivity
+    intro x hx hsplx
+    rw [splOrder_iff] at hsplx
+    rcases hsplx with hlt_xx | ⟨_, htag⟩
+    · exact h_irrefl (baseOf x) (baseOf_mem hW hx) hlt_xx
+    · exact Nat.lt_irrefl _ htag
+  · -- Transitivity
+    intro x hx y hy z hz hxy hyz
+    rw [splOrder_iff] at hxy hyz ⊢
+    rcases hxy with hlt_xy | ⟨hbase_xy, htag_xy⟩
+    · rcases hyz with hlt_yz | ⟨hbase_yz, _⟩
+      · left
+        exact h_trans (baseOf x) (baseOf_mem hW hx)
+          (baseOf y) (baseOf_mem hW hy)
+          (baseOf z) (baseOf_mem hW hz) hlt_xy hlt_yz
+      · left; rw [← hbase_yz]; exact hlt_xy
+    · rcases hyz with hlt_yz | ⟨hbase_yz, htag_yz⟩
+      · left; rw [hbase_xy]; exact hlt_yz
+      · right
+        exact ⟨hbase_xy.trans hbase_yz, htag_xy.trans htag_yz⟩
+  · -- Trichotomy
+    intro x hx y hy
+    rcases h_tri (baseOf x) (baseOf_mem hW hx)
+      (baseOf y) (baseOf_mem hW hy)
+      with hlt_xy | hbase_eq | hlt_yx
+    · left; rw [splOrder_iff]; left; exact hlt_xy
+    · rcases Nat.lt_trichotomy (tagOf x) (tagOf y)
+        with htag | htag | htag
+      · left; rw [splOrder_iff]; right; exact ⟨hbase_eq, htag⟩
+      · right; left; exact splitNode_ext hbase_eq htag
+      · right; right; rw [splOrder_iff]; right
+        exact ⟨hbase_eq.symm, htag⟩
+    · right; right; rw [splOrder_iff]; left; exact hlt_yx
+  · -- Parent precedence
+    intro u w h_pa_uw
+    obtain ⟨_, h_uw_E⟩ := h_pa_uw
+    rcases Finset.mem_union.mp h_uw_E with hLifted | hTransfer
+    · -- Lifted edge: (u, w) = (toCopy1 W v1, toCopy0 W v2)
+      -- for (v1, v2) ∈ G.E
+      obtain ⟨⟨v1, v2⟩, he_E, h_eq⟩ := Finset.mem_image.mp hLifted
+      simp only [Prod.mk.injEq] at h_eq
+      obtain ⟨h_u_eq, h_w_eq⟩ := h_eq
+      rw [← h_u_eq, ← h_w_eq]
+      have hv1_in_G : v1 ∈ G := (G.hE_subset he_E).1
+      have hlt_v1_v2 : lt v1 v2 := h_pa v1 v2 ⟨hv1_in_G, he_E⟩
+      exact splOrder_lifted_edge W hlt_v1_v2
+    · -- Transfer edge: (u, w) = (.copy0 w', .copy1 w') for w' ∈ W
+      obtain ⟨w', _, h_eq⟩ := Finset.mem_image.mp hTransfer
+      simp only [Prod.mk.injEq] at h_eq
+      obtain ⟨h_u_eq, h_w_eq⟩ := h_eq
+      rw [← h_u_eq, ← h_w_eq]
+      exact splOrder_transfer_edge
+
+-- ref: claim_3_6 (sub-claim (a), acyclicity preservation)
+--
+-- For a CADMG `G` and `W ⊆ G.V`, the node-split graph
+-- `G.nodeSplittingOn W hW` (`def_3_11`) is acyclic in the
+-- sense of `def_3_6`'s `IsAcyclic`.
+--
+-- *Why the `IsCADMG` hypothesis is load-bearing.*  Without
+-- the CADMG precondition, the construction of `def_3_11` does NOT
+-- preserve acyclicity: per the rewritten tex spec's "Role of the
+-- CADMG precondition" paragraph, a directed self-loop
+-- `(w, w) ∈ G.E` for `w ∈ W` would, under `def_3_11`'s item iii,
+-- generate both a lifted edge `(w^1, w^0) ∈ E_{spl(W)}` (from the
+-- first set-builder) and the transfer edge
+-- `(w^0, w^1) ∈ E_{spl(W)}` (from the second set-builder), realising
+-- a length-2 directed cycle `w^0 → w^1 → w^0` in the split graph.
+-- `G.IsCADMG` rules out directed self-loops on `G.V` (via
+-- `def_3_6`'s no-directed-self-loop consequence), which is exactly
+-- the no-2-cycle precondition this sub-claim needs.
 /-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex`
-(Rem 444 -- 455; same block as part A):
+LN tex (sub-claim (a), from the rewritten canonical statement for
+`claim_3_6`):
 
-\begin{claimmark}
-\begin{Rem}
-    For a CADMG $G=(J,V,E,L)$, also $G_{\spl(W)}$ is acyclic.
-    ...
-\end{Rem}
-\end{claimmark}
+  (a) `G_{spl(W)}` is acyclic.  The CDMG `G_{spl(W)}` is acyclic in
+      the sense of def \ref{def-acylic}, i.e.\ for every
+      `x ∈ J_{spl(W)} ∪ V_{spl(W)} = J ∪ (V ∖ W) ⊍ W^0 ⊍ W^1`, there
+      does not exist any non-trivial directed walk from `x` to itself
+      in `G_{spl(W)}`.
 -/
---
 -- ## Design choice
 --
--- * **No `[Finite α]` instance hypothesis at statement phase.**
---   Discussed in the comment block immediately above. The
---   statement signature is intentionally *minimal* -- the prover
---   can add `[Finite α]` if route (i) wins out, but the manager
---   should not pre-commit at the statement phase.
--- * **`{G}, {W}, hW, h` binder choice.** Same rationale as Part A
---   -- `G` and `W` recovered from the conclusion / `hW`; `hW`
---   explicit because `nodeSplittingOn` demands it. `h :
---   G.IsAcyclic` is explicit because it is the hypothesis we are
---   transporting; no opportunity for Lean to unify it from
---   elsewhere.
--- * **Naming `isAcyclic_nodeSplittingOn`.** Mirrors `claim_3_3`
---   part A `isAcyclic_hardInterventionOn` (this section's
---   precedent) and follows Mathlib's
---   `<conclusion>_<construction>` convention. The
---   `IsAcyclic` part comes first because it is the result; the
---   `nodeSplittingOn` part second because it is the construction
---   we are showing preserves acyclicity.
+-- *Single-theorem statement (sub-claim (a) only), separated from
+--   sub-claim (b).*  See the shared "one theorem vs.\ two separate
+--   theorems" bullet in the `splTopologicalOrder` design
+--   block below.  Briefly: `splAcyclic` is the standalone
+--   acyclicity-preservation fact that downstream consumers like
+--   `claim_3_12` HardInterventionNodeSplit are expected to need *on
+--   its own* (without dragging in the topological-order
+--   construction); keeping it as its own theorem lets those
+--   consumers state `G.splAcyclic hCADMG W hW` without
+--   ever mentioning `splOrder` or a chosen `lt`.
+--
+-- *`IsCADMG`, not `IsAcyclic`.*  See the shared
+--   bullet in the `splTopologicalOrder` design block below;
+--   the same choice applies here.  LN-faithful naming (`def_3_7`
+--   item i) wins over the micro-simplification of inlining the
+--   `IsAcyclic` alias — the LN reads "For a CADMG `G`",
+--   referring explicitly to `def_3_7`'s named attribute, so a reader
+--   who greps `CADMG` from the LN finds the matching Lean hypothesis
+--   without a translation step.  At the proof level, `IsCADMG`
+--   unfolds to `IsAcyclic` (`def_3_7` item i), so any proof
+--   step that needs the acyclicity form can `unfold
+--   CDMG.IsCADMG at hCADMG`.
+--
+-- *Hypotheses ordered `(G, hCADMG, W, hW)`.*  Mirrors the LN reading
+--   "For a CADMG `G` ... and `W ⊆ V`, ..."  `hW` follows `W` because
+--   `nodeSplittingOn` takes `(W : Finset Node) (hW : W ⊆ G.V)`
+--   in that order, so the application `G.nodeSplittingOn W hW`
+--   in the conclusion reads left-to-right with the binder block.
+--
+-- *Conclusion `(G.nodeSplittingOn W hW).IsAcyclic`,
+--   not `IsAcyclic (G.nodeSplittingOn W hW)`.*
+--   Dot-notation matches the chapter convention (`G.IsAcyclic`,
+--   `G.IsCADMG`, `G.IsADMG`, …) and reads as "the
+--   split graph is acyclic".  Both spellings are syntactically
+--   equivalent in Lean; dot-notation is preferred for readability.
+--
+-- *Downstream consumers.*  `claim_3_12` (HardInterventionNodeSplit)
+--   needs the acyclicity of the split graph to compose
+--   `nodeSplittingOn` with `hardInterventionOn` in
+--   the SWIG construction (a CADMG goes to a CADMG under both
+--   operations).  `splAcyclic` is the precondition that
+--   lets the composition close (every CADMG can be hard-intervened
+--   on without losing acyclicity, by `claim_3_3` /
+--   `AcyclicPreservedUnderDo.lean`; without `splAcyclic`,
+--   the node-split intermediate stage would not be a CADMG and the
+--   composition would not be well-typed in the
+--   `CADMG → CADMG → CADMG` sense).
+--
+-- *Independent of the bidirected-edge channel `L`.*  None of
+--   `IsCADMG`, `nodeSplittingOn`,
+--   `IsAcyclic` consumes the `L` field of the underlying
+--   CDMG record at the level of *this* statement: acyclicity is a
+--   property of directed walks on the `E`-side alone.  The CDMG
+--   record itself carries an `L`-channel (see `def_3_1`'s docstring
+--   on `CDMG` for the `Finset (Sym2 Node)` encoding), and
+--   `nodeSplittingOn` populates the split graph's
+--   `L`-channel via `Sym2.map (toCopy0 W)`, but acyclicity
+--   of the result reads only the new `E`-side.  Sub-claim (a) is
+--   therefore robust under any future change to the `L`-channel
+--   encoding.
+-- claim_3_6 -- start statement
+theorem splAcyclic (G : CDMG Node) (hCADMG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V) :
+    (G.nodeSplittingOn W hW).IsAcyclic
+-- claim_3_6 -- end statement
+  := by
+  have hAcyclic : G.IsAcyclic := hCADMG
+  obtain ⟨lt, hlt⟩ := (acyclic_iff_topological_order G).mp hAcyclic
+  exact (acyclic_iff_topological_order
+      (G.nodeSplittingOn W hW)).mpr
+    ⟨splOrder lt, aux_splTopologicalOrder G W hW lt hlt⟩
 
-/-- claim_3_6 part B: if `W ⊆ G.V` and `G` is acyclic, then
-`G.nodeSplittingOn W hW` is acyclic. Mirrors the acyclicity half
-of the `\Rem` immediately after def_3_11 in
-`lecture-notes/lecture_notes/graphs.tex` (lines 444 -- 455); see
-`isTopologicalOrder_nodeSplittingOn` above for the constructive
-half and the file-level docstring for the rationale behind
-splitting the LN's single `\Rem` into two theorems.
+-- ref: claim_3_6 (sub-claim (b), explicit topological-order construction)
+--
+-- For a CADMG `G`, a subset `W ⊆ G.V`, and any topological order
+-- `lt` of `G` in the sense of `def_3_8`, the lifted relation
+-- `splOrder lt` (see the helper block above) is a
+-- topological order of the node-split graph
+-- `G.nodeSplittingOn W hW`.
+--
+-- Unfolded,
+-- `(G.nodeSplittingOn W hW).IsTopologicalOrder
+--  (splOrder lt)` asserts (per `def_3_8`):
+--
+--   * `splOrder lt` is a strict total order on
+--     `J_{spl(W)} ∪ V_{spl(W)}` (irreflexive, transitive,
+--     trichotomous; via the nested `IsTotalOrder`
+--     projection);
+--   * for every parent–child pair
+--     `v ∈ (G.nodeSplittingOn W hW).Pa w`,
+--     we have `splOrder lt v w`.
+--
+-- The parent-precedence clause is the load-bearing content of the
+-- construction: every edge of `E_{spl(W)}` is one of (i) a lifted
+-- edge `(v_1^1, v_2^0)` arising from `(v_1, v_2) ∈ G.E` — where
+-- parent-precedence under `splOrder` follows from
+-- parent-precedence under `lt` (which `hlt` provides) plus the
+-- copy-tag inequality, handled by the corresponding mixed-tag case
+-- of `splOrder`; or (ii) a transfer edge `(w^0, w^1)` for
+-- `w ∈ W` — where parent-precedence under `splOrder`
+-- follows from
+-- `splOrder lt (.copy0 w) (.copy1 w) = lt w w ∨ w = w =
+--  True`.
+/-
+LN tex (sub-claim (b), from the rewritten canonical statement for
+`claim_3_6`):
 
-The `W ⊆ G.V` precondition is structurally required by
-`nodeSplittingOn` itself (def_3_11), not by acyclicity per se;
-see `isTopologicalOrder_nodeSplittingOn`. No `[Finite α]`
-hypothesis is added at the statement phase to keep both proof
-routes open (claim_3_2-based vs. direct walk-lifting); see the
-per-theorem design block above for the discussion. -/
-theorem isAcyclic_nodeSplittingOn
-    {G : CDMG α} {W : Set α} (hW : W ⊆ G.V)
-    (h : G.IsAcyclic) :
-    (G.nodeSplittingOn W hW).IsAcyclic := by
-  -- Route (ii) of the per-theorem design block: direct walk-lifting,
-  -- finiteness-free. The projection `α ⊕ ↑W → α` sends
-  -- `Sum.inl v ↦ v` and `Sum.inr ⟨w, _⟩ ↦ w`. Under this
-  -- projection, every "piece-1" edge of `(G.nodeSplittingOn W hW).E`
-  -- (a relabeled `G.E`-edge) projects to a real `G.E`-edge, and every
-  -- "piece-2" edge (a fresh split edge `Sum.inl w → Sum.inr ⟨w, _⟩`)
-  -- projects to a self-loop `(w, w)` which compresses out.
-  --
-  -- The key existence lemma `proj_exists`: any directed walk in the
-  -- split graph projects to a directed walk in `G`. The auxiliary
-  -- "positive-length" clause: for cycles `v → ⋯ → v` (where either
-  -- `v` is `Sum.inl _` or `Sum.inr _`), the projection has positive
-  -- length, because at least one step is a piece-1 relabeled edge
-  -- (the last step is piece-1 if the cycle endpoint is `Sum.inl _`;
-  -- the first step is piece-1 if it is `Sum.inr _`).
-  rintro v hv ⟨π, h_dir, h_pos⟩
-  let proj : α ⊕ ↑W → α := Sum.elim id Subtype.val
-  -- General projection lemma.
-  have proj_exists : ∀ {a b : α ⊕ ↑W} (π : Walk (G.nodeSplittingOn W hW) a b),
-      π.IsDirected →
-      ∃ ρ : Walk G (proj a) (proj b),
-        ρ.IsDirected ∧
-        (1 ≤ π.length →
-          (∃ v₀, b = Sum.inl v₀) ∨ (∃ w', a = Sum.inr w') →
-          1 ≤ ρ.length) := by
-    intro a b π
-    induction π with
-    | nil _ =>
-      intro _
-      refine ⟨Walk.nil _, by simp, ?_⟩
-      intro h_pos _
-      simp at h_pos
-    | @cons _ y b' s p ih =>
-      intro h_dir
-      cases s with
-      | forward h =>
-        have h_p : p.IsDirected := h_dir
-        obtain ⟨ρ_p, h_ρ_p_dir, h_ρ_p_len⟩ := ih h_p
-        -- Dispatch on the edge form via `mem_nodeSplittingOn_E`.
-        change (_, _) ∈ (G.nodeSplittingOn W hW).E at h
-        rw [mem_nodeSplittingOn_E] at h
-        rcases h with ⟨v₁, v₂, hE, h_eq⟩ | ⟨w', h_eq⟩
-        · -- Piece 1 (relabeled edge): a = split1 W v₁, y = Sum.inl v₂.
-          rw [Prod.mk.injEq] at h_eq
-          obtain ⟨ha_eq, hy_eq⟩ := h_eq
-          subst hy_eq
-          -- Dispatch on `v₁ ∈ W` to make `split1 W v₁` concrete in
-          -- `ha_eq`, then `subst` to replace `a` throughout.
-          by_cases hv₁ : v₁ ∈ W
-          · rw [split1_of_mem hv₁] at ha_eq
-            subst ha_eq
-            -- `proj (Sum.inr ⟨v₁, hv₁⟩)` reduces to `v₁` by `Sum.elim` def.
-            refine ⟨Walk.cons (.forward hE) ρ_p, ?_, ?_⟩
-            · simp only [Walk.isDirected_cons_forward]; exact h_ρ_p_dir
-            · intro _ _; simp
-          · rw [split1_of_not_mem hv₁] at ha_eq
-            subst ha_eq
-            refine ⟨Walk.cons (.forward hE) ρ_p, ?_, ?_⟩
-            · simp only [Walk.isDirected_cons_forward]; exact h_ρ_p_dir
-            · intro _ _; simp
-        · -- Piece 2 (split edge): a = Sum.inl w'.val, y = Sum.inr w'.
-          rw [Prod.mk.injEq] at h_eq
-          obtain ⟨ha_eq, hy_eq⟩ := h_eq
-          subst ha_eq
-          subst hy_eq
-          -- proj (Sum.inl w'.val) = w'.val = proj (Sum.inr w'), so
-          -- `ρ_p : Walk G w'.val (proj b')` already has the goal type.
-          refine ⟨ρ_p, h_ρ_p_dir, ?_⟩
-          intro _ h_endpts
-          -- "source is Sum.inr" disjunct of `h_endpts` is false; hence
-          -- "target is Sum.inl" disjunct holds.
-          have hb_inl : ∃ v₀, b' = Sum.inl v₀ := by
-            rcases h_endpts with hb | ⟨w'', hw''⟩
-            · exact hb
-            · cases hw''
-          -- If `p.length = 0` then `p = .nil _` so `b' = Sum.inr w'`,
-          -- contradicting `hb_inl`.
-          have hp_pos : 1 ≤ p.length := by
-            cases p with
-            | nil _ =>
-              exfalso
-              obtain ⟨v₀, hv⟩ := hb_inl
-              cases hv
-            | cons _ _ => simp
-          exact h_ρ_p_len hp_pos (Or.inr ⟨w', rfl⟩)
-      | backward _ => exact absurd h_dir (by simp)
-      | bidir _ => exact absurd h_dir (by simp)
-  -- Apply the lemma to `π`.
-  obtain ⟨ρ, h_ρ_dir, h_ρ_len⟩ := proj_exists π h_dir
-  -- For the cycle (source = target = v), one of the endpoint
-  -- conditions of `proj_exists` holds.
-  have h_endpts : (∃ v₀, v = Sum.inl v₀) ∨ (∃ w', v = Sum.inr w') := by
-    rcases v with v₀ | w'
-    · exact Or.inl ⟨v₀, rfl⟩
-    · exact Or.inr ⟨w', rfl⟩
-  have h_proj_pos : 1 ≤ ρ.length := h_ρ_len h_pos h_endpts
-  -- `proj v ∈ G`.
-  have hv_proj : proj v ∈ G := by
-    simp only [CDMG.mem_iff, nodeSplittingOn_J, nodeSplittingOn_V,
-      Set.mem_union, Set.mem_image, Set.mem_range] at hv
-    rcases v with v₀ | ⟨w, hwW⟩
-    · change v₀ ∈ G
-      rcases hv with ⟨j, hj, hjv⟩ | ⟨v', hv', hvv'⟩ | ⟨w, hw⟩
-      · cases Sum.inl_injective hjv; exact Or.inl hj
-      · cases Sum.inl_injective hvv'; exact Or.inr hv'
-      · exact nomatch hw
-    · change w ∈ G
-      exact Or.inr (hW hwW)
-  -- Derive contradiction with `G.IsAcyclic`.
-  exact h _ hv_proj ⟨ρ, h_ρ_dir, h_proj_pos⟩
+  (b) An explicit topological order on `G_{spl(W)}` obtained from any
+      topological order on `G`.  For every topological order `<` of
+      `G` ..., the binary relation `<_{spl}` on
+      `J_{spl(W)} ∪ V_{spl(W)}` defined below is a topological order
+      of `G_{spl(W)}` in the sense of def \ref{def-topological-order}.
+
+      Index map.  Define `φ : J_{spl(W)} ∪ V_{spl(W)} → ℚ` by case
+      analysis on the disjoint-union carrier
+      `J ∪ (V ∖ W) ⊍ W^0 ⊍ W^1`: ...
+       ... `φ(v_j) := j` for unsplit `v_j ∈ J ∪ (V ∖ W)`;
+       ... `φ(w^0) := j - 1/3`, `φ(w^1) := j + 1/3` for `w = v_j ∈ W`.
+
+      Order from index map.  Define
+        `x <_{spl} y :⇔ φ(x) < φ(y)`
+      for `x, y ∈ J_{spl(W)} ∪ V_{spl(W)}`, where the right-hand
+      inequality is the standard strict order on `ℚ`.
+-/
+-- ## Design choice
+--
+-- *One theorem vs.\ two separate theorems — picked TWO.*  The LN
+--   bundles (a) and (b) inside one `\begin{Rem}`, but the two
+--   sub-claims have *different downstream consumers*: `claim_3_12`
+--   HardInterventionNodeSplit is expected to need only (a) — the
+--   acyclicity of the split graph — to compose
+--   `nodeSplittingOn` with `hardInterventionOn`
+--   in the SWIG construction.  Bundling (a) and (b) into a single
+--   `splAcyclic ∧ splTopologicalOrder`-shaped
+--   theorem would force every such consumer to take a topological-
+--   order argument it does not use (or to project through `.1` /
+--   pattern-match, adding noise at every call site).  Splitting
+--   them keeps each statement focused and matches the chapter
+--   convention in `def_3_7`'s `IsCADMG`, `IsADMG`,
+--   `IsDAG`, … (one atomic-condition predicate per
+--   sub-statement).  The LN-faithful reading of "the remark holds"
+--   is preserved because both theorems are stated under the same
+--   `claim_3_6` ref and read as the two sub-claims of one remark.
+--
+-- *`IsCADMG`, not `IsAcyclic`.*  The LN reads
+--   "For a CADMG `G`", referring explicitly to `def_3_7`'s named
+--   attribute.  `IsCADMG` unfolds to `IsAcyclic`
+--   (`def_3_7` item i — see `CDMGTypes.lean`), so the two would be
+--   interchangeable at the *content* level.  We pick
+--   `IsCADMG` to keep the Lean signature LN-faithful (a
+--   reader greps `CADMG` from the LN and finds the matching Lean
+--   hypothesis without a translation step); the proof body can
+--   `unfold CDMG.IsCADMG at hCADMG` if it needs
+--   the `IsAcyclic` form for downstream lemma matching.
+--   See `BifurcationAlternative.lean` (claim_3_5) for the
+--   precedent — that theorem takes the LN-named hypothesis
+--   `hCADMG : G.IsCADMG` via the analogous reading of "a
+--   CADMG `G`".
+--
+-- *`lt` and `hlt` as explicit positional arguments, not bundled
+--   into an inner `∀ lt, …` quantifier.*  The LN's "for every
+--   topological order `<` of `G`" is universal over `lt`, but
+--   encoding it as an *outer* binder on the theorem is equivalent
+--   and substantially more ergonomic at the call site: consumers
+--   that want to apply `splTopologicalOrder` to a specific
+--   `lt` write
+--   `G.splTopologicalOrder hCADMG W hW lt hlt` directly,
+--   rather than
+--   `(G.splTopologicalOrder hCADMG W hW) lt hlt` after
+--   destructuring the inner forall.  Logically the two forms agree,
+--   so the choice is purely an ergonomic one.  Matches the chapter
+--   convention of carrying universal-quantifier inputs as
+--   outermost positional arguments (cf.\ `def_3_8`'s
+--   `IsTopologicalOrder`'s explicit external `lt` argument
+--   and `def_3_9`'s `Pred` taking `lt` and
+--   `h : G.IsTotalOrder lt` as explicit arguments — see
+--   `TopologicalOrder.lean`).
+--
+-- *`lt` typed as a bare `Node → Node → Prop`, not as a
+--   `[LinearOrder Node]` / `[StrictTotalOrder Node]` / `[LT Node]`
+--   typeclass instance.*  The LN's "for any topological order `<`
+--   of `G`" universally quantifies over an arbitrary binary
+--   relation that *happens* to satisfy `G.IsTopologicalOrder`
+--   (`def_3_8`); it does NOT presume `Node` carries a canonical,
+--   typeclass-resolved order.  Encoding `lt` as a positional
+--   `Node → Node → Prop` argument matches that reading exactly:
+--   every well-foundedness / totality / parent-precedence property
+--   the proof body needs is carried by the *hypothesis*
+--   `hlt : G.IsTopologicalOrder lt`, not by an ambient
+--   instance.  A typeclass formulation would have two ergonomic
+--   costs: (i) every consumer wanting to apply this theorem would
+--   need to manufacture a `LinearOrder Node` instance even when
+--   they only have a one-off topological order in hand (e.g. one
+--   produced by `claim_3_4`'s `refactor_existsTopologicalOrder`
+--   witness), and (ii) a global `[LT Node]` instance would lock in
+--   a single canonical order per `Node` type, colliding with the
+--   LN's parameterisation by *any* topological order.  Matches the
+--   chapter convention in `def_3_8`'s `IsTopologicalOrder`
+--   (see `TopologicalOrder.lean`'s "explicit external argument, not
+--   a typeclass `[LT Node]`" design block), and is the natural
+--   counterpart on the input side of the same
+--   `Prop`-valued-relation design bullet for the output
+--   `splOrder` (see `splOrder`'s design block
+--   above).
+--
+-- *Conclusion `IsTopologicalOrder (splOrder lt)`,
+--   not a fresh indexed-order predicate.*  We reuse `def_3_8`'s
+--   `IsTopologicalOrder` *verbatim* against the *split*
+--   CDMG: every ingredient is already in place because
+--   `G.nodeSplittingOn W hW` is a
+--   `CDMG (SplitNode Node)` (per `def_3_11`'s
+--   return type) and `IsTopologicalOrder` is polymorphic in
+--   the node type.  No
+--   `refactor_IsTopologicalOrderIndexed` /
+--   `refactor_IsTopologicalOrderOnSplit` variant is introduced.
+--   This is what makes the LN's "is a topological order of
+--   `G_{spl(W)}`" formulation transport verbatim onto the Lean side.
+--
+-- *Hypotheses ordered `(G, hCADMG, W, hW, lt, hlt)`.*  Matches the
+--   `splAcyclic` ordering, then adds `(lt, hlt)` at the
+--   end (the *additional* hypotheses sub-claim (b) needs over (a)).
+--   This reads as "for any CADMG `G`, any `W ⊆ G.V`, and any
+--   topological order `lt` of `G`, ..." — LN order modulo the
+--   natural `(W, hW)`-block grouping that downstream consumers
+--   expect.
+--
+-- *`splOrder` (not `splOrder lt W`) in the
+--   conclusion.*  See the "`W` does NOT appear in
+--   `splOrder`'s signature" bullet in `splOrder`'s
+--   design block above.  The `W`-dependence of the split graph
+--   lives entirely in `G.nodeSplittingOn W hW`'s underlying
+--   carrier (`SplitNode Node`) and edge set
+--   (`E_{spl(W)}` parameterised by `W`); `splOrder` itself
+--   reads the constructor tag and the underlying `lt`, no `W`
+--   needed.
+--
+-- *Downstream consumers.*  `claim_3_12` (HardInterventionNodeSplit)
+--   may consume `splTopologicalOrder` if its proof needs to
+--   transport a topological order from `G` to the SWIG composition
+--   `(G.nodeSplittingOn W hW).hardInterventionOn
+--    W' hW'` via this row's lifted order; more typically, however,
+--   that row uses only `splAcyclic` and constructs its own
+--   topological order on the composition fresh.  Chapter-5
+--   do-calculus rule-3 proofs may also consume
+--   `splTopologicalOrder` to give explicit orderings on
+--   SWIG graphs.
+--
+-- *Independent of the bidirected-edge channel `L`.*
+--   `IsTopologicalOrder` only inspects
+--   `IsTotalOrder` (totality conditions on `J ∪ V`) and
+--   `Pa` (parent set from `G.E` alone) — both
+--   `(J, V, E)`-skeleton facts.  `splOrder` reads only the
+--   constructor tag of `SplitNode` and the underlying
+--   `lt`, so it likewise does not touch `L`.  See `def_3_1`'s
+--   docstring on `CDMG` for the canonical `L`-channel
+--   design; none of that detail reaches this theorem.
+-- claim_3_6 -- start statement
+theorem splTopologicalOrder (G : CDMG Node) (hCADMG : G.IsCADMG)
+    (W : Finset Node) (hW : W ⊆ G.V)
+    (lt : Node → Node → Prop) (hlt : G.IsTopologicalOrder lt) :
+    (G.nodeSplittingOn W hW).IsTopologicalOrder (splOrder lt)
+-- claim_3_6 -- end statement
+  := by
+  -- `hCADMG` is carried in the signature for LN-faithfulness (the LN reads
+  -- "For a CADMG `G`") but is not consumed in this proof: the
+  -- topological-order construction of sub-claim~(b) only uses that the
+  -- supplied `lt` *is* a topological order, not acyclicity of `G` directly.
+  -- See the design-choice block above for the LN-faithfulness rationale.
+  let _ := hCADMG
+  exact aux_splTopologicalOrder G W hW lt hlt
 
 end CDMG
 

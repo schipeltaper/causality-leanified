@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_7 -- "TwoDisjointNode".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_7_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -14,10 +19,59 @@
 \def\rowref{claim\_3\_7}
 \phantomsection\label{claim_3_7}
 
+% NOTE on the iterated-splitting carrier mismatch (Lean encoding).
+%
+% In a Lean encoding that follows def_3_11 literally and realises the
+% tagged copies W^0, W^1 as type-level disjoint sums, the carriers of
+% (G_{\spl(W_1)})_{\spl(W_2)} and G_{\spl(W_1 \dcup W_2)} are formally
+% distinct types (twice-tagged vs. once-tagged on J \cup V), even though
+% the LN identifies them set-theoretically via def_3_11's unsplit-
+% injection convention "v^0 := v^1 := v for v \in J \cup (V \sm W)". The
+% one-sentence clarification inside the lemma body below ("=" is read up
+% to the canonical bijection of carriers) is the load-bearing reading;
+% the concrete choice of how to render this identification in Lean
+% (CDMG-transport along a node-bijection, CDMG-isomorphism structure,
+% or some other equivalence layer) is deferred to the Lean-formalization
+% worker. The same wrinkle recurs in later rows of Section 3.2 in which
+% iterated node-splitting (or node-splitting composed with hard
+% intervention, marginalisation, etc.) is involved, so the encoding
+% chosen at the Lean-formalization step here is likely to be re-used.
+% See workspace_claim_3_7.md for the encoding-design discussion.
+
 \begin{Lem}[Two disjoint node-splittings commute]
-   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of the output nodes of $G$.
-   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:
-   \[ \lp G_{\spl(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\spl(W_1)}  =  G_{\spl(W_1 \dcup W_2)}.   \]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, recall the typing and axioms of def \ref{def-cdmg} (namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)), and rely on the node-splitting construction of def \ref{def:G_node-splitting}. Let
+    \[ W_1 \ins V \quad\text{and}\quad W_2 \ins V \]
+    be two subsets of the output-node set of $G$, subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \ins V$'', and ``for every $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted.
+
+    \emph{Reading of ``CDMG'' versus ``CADMG'' in the LN's prose.}
+    The LN's literal text contains a typographical inconsistency: it opens with ``Let $G = (J, V, E, L)$ be a CDMG'' but writes ``the CDMG\ldots is the same CADMG\ldots'' in the prose connecting the two iterated splittings. We read this entire row as a statement about \emph{CDMGs} throughout, in line with the addition-to-the-LN for this row and with def \ref{def:G_node-splitting}, whose construction takes a CDMG to a CDMG with no acyclicity attribute claimed (see in particular the closing paragraphs of def \ref{def:G_node-splitting} recording that $G_{\spl(W)}$ can carry $2$-cycles when $G$ has self-loops on $W$, so $G_{\spl(W)}$ is in general not a CADMG even when $G$ is). The asserted equality below is consequently an equality of CDMGs (def \ref{def-cdmg}).
+
+    \emph{Well-typedness of the iterated splitting.}
+    The inner two terms of the displayed equality below are iterated node-splittings of the form $\lp G_{\spl(W_i)} \rp_{\spl(W_j)}$ (with $\{i, j\} = \{1, 2\}$), in which $\spl(W_j)$ is applied to the CDMG $G_{\spl(W_i)}$ produced by def \ref{def:G_node-splitting}. For this outer application to be well-typed per def \ref{def:G_node-splitting}'s precondition ``$W \ins V$ of the input CDMG'', we need $W_j$ to be (a subset of) the output-node set of $G_{\spl(W_i)}$, i.e.\
+    \[ W_j \;\ins\; V_{\spl(W_i)} \;=\; (V \sm W_i) \;\dcup\; W_i^0 \;\dcup\; W_i^1, \]
+    where the equality of carriers is item ii.\ of def \ref{def:G_node-splitting} and $W_i^0 := \lC w^0 \st w \in W_i \rC$, $W_i^1 := \lC w^1 \st w \in W_i \rC$ are the two tagged copies of $W_i$ introduced there. By the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, every $w \in W_j$ satisfies $w \in V$ (since $W_j \ins V$) and $w \notin W_i$ (by disjointness), so $w \in V \sm W_i$. Through def \ref{def:G_node-splitting}'s notational shorthand ``$v^0 := v^1 := v$ for $v \in J \cup (V \sm W_i)$'', the set $V \sm W_i$ is realised as the untagged piece of the disjoint union $V_{\spl(W_i)} = (V \sm W_i) \dcup W_i^0 \dcup W_i^1$, i.e.\ the inclusion
+    \[ V \sm W_i \;\hookrightarrow\; V_{\spl(W_i)} \]
+    sends $v \mapsto v$ unchanged. Hence
+    \[ W_j \;\ins\; V \sm W_i \;\ins\; V_{\spl(W_i)}, \]
+    so $\lp G_{\spl(W_i)} \rp_{\spl(W_j)}$ is defined per def \ref{def:G_node-splitting}. The analogous spell-out for the swapped pair (with $i$ and $j$ exchanged) is the same argument with the role of $W_1$ and $W_2$ exchanged, using the same disjointness condition $W_1 \cap W_2 = W_2 \cap W_1 = \emptyset$. The right-hand-side single splitting $G_{\spl(W_1 \dcup W_2)}$ is well-typed per def \ref{def:G_node-splitting} because $W_1 \dcup W_2 \ins V$: by $W_1 \ins V$ and $W_2 \ins V$ together with disjointness, the union $W_1 \cup W_2$ is itself a disjoint union $W_1 \dcup W_2$ and remains a subset of $V$.
+
+    \emph{The conclusion.}
+    The CDMGs $\lp G_{\spl(W_1)} \rp_{\spl(W_2)}$, $\lp G_{\spl(W_2)} \rp_{\spl(W_1)}$, and $G_{\spl(W_1 \dcup W_2)}$ (all constructed via def \ref{def:G_node-splitting} as just verified) coincide. Concretely, the LN's displayed triple equality
+    \[ \lp G_{\spl(W_1)} \rp_{\spl(W_2)} \;=\; \lp G_{\spl(W_2)} \rp_{\spl(W_1)} \;=\; G_{\spl(W_1 \dcup W_2)} \]
+    is the conjunction of the two following equalities of CDMGs:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Composition with $W_1$ then $W_2$.}
+              \[ \lp G_{\spl(W_1)} \rp_{\spl(W_2)} \;=\; G_{\spl(W_1 \dcup W_2)}. \]
+        \item \emph{Composition with $W_2$ then $W_1$.}
+              \[ \lp G_{\spl(W_2)} \rp_{\spl(W_1)} \;=\; G_{\spl(W_1 \dcup W_2)}. \]
+    \end{enumerate}
+    Together (a) and (b) yield the LN's ``symmetry under swap'' reading
+    \[ \lp G_{\spl(W_1)} \rp_{\spl(W_2)} \;=\; \lp G_{\spl(W_2)} \rp_{\spl(W_1)} \]
+    by transitivity of equality on the shared right-hand side $G_{\spl(W_1 \dcup W_2)}$. The equality of CDMGs in (a) and (b) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}, but the conjunctive unpacking into the four field-by-field equalities is deferred to the proof.
+
+    The equalities in (a) and (b) are equalities of CDMGs (def \ref{def-cdmg}) read \emph{up to the canonical bijection} of the iterated and single-split output-node carriers induced by def \ref{def:G_node-splitting}'s unsplit-injection convention ``$v^0 := v^1 := v$ for $v \in J \cup (V \sm W)$'' (the iterated carrier $V_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}}$ and the single-step carrier $V_{\spl(W_1 \dcup W_2)}$ are not literally the same set as produced by def \ref{def:G_node-splitting}, but the two are canonically identified by matching corresponding split copies).
 \end{Lem}
 
 \end{document}

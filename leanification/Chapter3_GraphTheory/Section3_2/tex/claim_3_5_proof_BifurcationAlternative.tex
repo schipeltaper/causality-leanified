@@ -1,7 +1,13 @@
 % Claim proof file for row claim_3_5 -- "BifurcationAlternative".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
 %   - Stay close to the lecture notes' proof if one exists (always search
 %     the LN first for a `\begin{proof}` block immediately following the
 %     claim; copy / lightly edit when present).
@@ -9,8 +15,6 @@
 %   - Be self-contained enough that a mathematician can follow it without
 %     re-reading the LN.
 %   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
-%
-% Compiles standalone via the `subfiles` package.
 
 \documentclass[main]{subfiles}
 
@@ -19,19 +23,404 @@
 % title: BifurcationAlternative
 \def\rowref{claim\_3\_5}
 \phantomsection\label{claim_3_5}
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
 % --- statement (restated) ---------------------------------------------------
+% NOTE on the bifurcation-source convention assumed by this proposition.
+%
+% Literal LN def 3.4 (Walks, item vi.) writes a bifurcation as
+%     $v = v_0 \hut v_1 \hut \cdots \hut v_{k-1} \hus v_k \tuh \cdots \tuh v_n = w$
+% with $1 \le k \le n$ and source $v_k$ at the directed hinge. The boundary
+% case $k = n$ with directed hinge (right arm trivial, single edge
+% $w \to v_{n-1}$) would let the source coincide with $w$, contradicting the
+% RHS clause $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$ in any acyclic graph
+% (and in particular whenever $w \in J$, since by claim \ref{claim_3_1}
+% input nodes have no incoming edges, so $\Anc^{G_{\doit(v)}}(w) = \{w\}$).
+%
+% Our def_3_4 encoding has already committed to the strictly-interior-source
+% convention via the chapter-init addition recorded in clause (e) of
+% def \ref{def:walks}, item~vi. ("each end-node has exactly one arrowhead
+% pointing toward it"), which excludes the $k = n$ directed-hinge case. As
+% stated in the closing paragraph "Source of the bifurcation" of
+% def \ref{def:walks}, item~vi., whenever a source $v_k$ is defined we
+% automatically have $1 \le k \le n - 1$, so the source is an interior
+% vertex distinct from both end-nodes $v_0 = v$ and $v_n = w$. Under this
+% convention the LN proposition below is provable as-stated, and no
+% addition_to_the_LN clause is needed for claim_3_5.
+
 \begin{Prp}[BifurcationAlternative]\label{prp:bifurcations_alternative}
-  Let $G = \lt J, V, E, L \rt$ be a CDMG. For $v, w, c \in V \cup J$:
-  there exists a bifurcation between $v$ and $w$ in $G$ with source $c$ if and only if $v \ne w$ and $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$ and $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we
+    use the notation of def \ref{not-cdmg}, the walk definitions of def
+    \ref{def:walks}, the family-relationship notation of def
+    \ref{def_3_5}, and the hard-intervention construction of def
+    \ref{def:G_hard_intervention}. Let
+    \[ v,\ w,\ c \;\in\; J \cup V \]
+    be three (not necessarily distinct) nodes. All four quantifiers
+    ``for every CDMG $G$'', ``for every $v \in J \cup V$'', ``for every
+    $w \in J \cup V$'', and ``for every $c \in J \cup V$'' are read
+    \emph{universally}, and the biconditional below is asserted for every
+    such tuple $(G, v, w, c)$.
+
+    \emph{Hard interventions on singletons.}
+    The expressions $G_{\doit(w)}$ and $G_{\doit(v)}$ appearing on the
+    right-hand side are read as the singleton-set hard interventions
+    $G_{\doit(\{w\})}$ and $G_{\doit(\{v\})}$ in the sense of def
+    \ref{def:G_hard_intervention} (the LN's lowercase $w$, $v$ inside the
+    $\doit(\cdot)$ slot is shorthand for the singleton sets $\{w\}$ and
+    $\{v\}$). Since $\{w\}, \{v\} \subseteq J \cup V$ the precondition of
+    def \ref{def:G_hard_intervention} is met, so both intervened CDMGs
+    are defined; and by items i.\ and ii.\ of def
+    \ref{def:G_hard_intervention},
+    \[
+        J_{\doit(\{w\})} \cup V_{\doit(\{w\})}
+        \;=\; (J \cup \{w\}) \cup (V \sm \{w\}) \;=\; J \cup V,
+    \]
+    and analogously for $\{v\}$ in place of $\{w\}$. Consequently
+    $\Anc^{G_{\doit(w)}}(\cdot)$ and $\Anc^{G_{\doit(v)}}(\cdot)$ (def
+    \ref{def_3_5}, item~iv.) are evaluated on the same carrier $J \cup V$
+    on which $v$, $w$, $c$ range, and the set-minus clauses
+    $\sm \{v\}$ and $\sm \{w\}$ are well-typed.
+
+    \emph{The biconditional.} Propositions (a) and (b) below are
+    equivalent.
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Existence of a bifurcation between $v$ and $w$ with
+              source $c$.}
+              There exists a walk
+              \[
+                  p \;=\; (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+              \]
+              in $G$ from $v$ to $w$ (so $v_0 = v$ and $v_n = w$, in the
+              sense of def \ref{def:walks}, item~i., with some integer
+              $n \ge 0$), together with an index $k$ with
+              $1 \le k \le n$, such that both of the following hold:
+              \begin{itemize}
+                  \item $p$ is a bifurcation between $v$ and $w$ in $G$
+                        with witness index $k$, in the sense of def
+                        \ref{def:walks}, item~vi., i.e.\ all five
+                        clauses (a)--(e) of def \ref{def:walks},
+                        item~vi.\ hold for $p$ at the index $k$;
+                  \item $c$ is a source of this bifurcation, in the sense
+                        of def \ref{def:walks}, item~vi., closing
+                        paragraph ``Source of the bifurcation'', i.e.\
+                        clause~(d) of def \ref{def:walks}, item~vi.\ is
+                        realised at $k$ by the \emph{directed}
+                        alternative $a_{k-1} = (v_k, v_{k-1}) \in E$,
+                        and $c = v_k$.
+              \end{itemize}
+              By clause~(e) of def \ref{def:walks}, item~vi., the
+              combination of these two requirements forces the witness
+              index to satisfy $1 \le k \le n - 1$ (and hence $n \ge 2$);
+              so the source $c = v_k$ is automatically an interior vertex
+              of $p$, with $c \ne v$ and $c \ne w$.
+
+        \item \emph{Set-theoretic ancestral characterisation.}
+              All three of the following clauses hold:
+              \begin{enumerate}[label=(\roman*)]
+                  \item $v \ne w$;
+                  \item $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$;
+                        equivalently, unfolding $\Anc$ via def
+                        \ref{def_3_5}, item~iv., and the singleton-set
+                        reading of $\doit(w)$ above: \emph{$c$ is an
+                        ancestor of $v$ in the do-on-$\{w\}$ intervened
+                        CDMG $G_{\doit(\{w\})}$}, i.e.\ there exists a
+                        directed walk from $c$ to $v$ in
+                        $G_{\doit(\{w\})}$ (def \ref{def:walks},
+                        item~ii.; def \ref{def:G_hard_intervention}),
+                        \emph{and} $c \ne v$;
+                  \item $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$;
+                        equivalently, unfolding $\Anc$ via def
+                        \ref{def_3_5}, item~iv., and the singleton-set
+                        reading of $\doit(v)$ above: \emph{$c$ is an
+                        ancestor of $w$ in the do-on-$\{v\}$ intervened
+                        CDMG $G_{\doit(\{v\})}$}, i.e.\ there exists a
+                        directed walk from $c$ to $w$ in
+                        $G_{\doit(\{v\})}$ (def \ref{def:walks},
+                        item~ii.; def \ref{def:G_hard_intervention}),
+                        \emph{and} $c \ne w$.
+              \end{enumerate}
+              In LN macro form, (b) is the conjunction
+              \[
+                  v \ne w \;\land\;
+                  c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\} \;\land\;
+                  c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\},
+              \]
+              matching the LN's RHS verbatim.
+    \end{enumerate}
 \end{Prp}
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+% Drafted starting from the LN proof at lecture-notes/lecture_notes/graphs.tex:366--371
+% (four lines, sketching both directions). Expanded to make every step rigorous:
+% in (=>) we spell out the decomposition of the bifurcation walk into its two
+% directed arms and the lift of each arm to a directed walk in the appropriate
+% intervened CDMG; in (<=) we use shortest-walk truncation to obtain end-node
+% uniqueness and verify all five clauses (a)--(e) of def \ref{def:walks},
+% item~vi., on the concatenated walk.
+
+The proof is by direct construction in both directions, following the LN
+proof at \texttt{graphs.tex:366--371} expanded to make every step
+rigorous. We use the bifurcation definition (def \ref{def:walks},
+item~vi.), the ancestor definition (def \ref{def_3_5}, item~iv.), and the
+hard-intervention construction (def \ref{def:G_hard_intervention}). As
+discussed in the statement above, $G_{\doit(w)}$ and $G_{\doit(v)}$ are
+read as the singleton-set hard interventions $G_{\doit(\{w\})}$ and
+$G_{\doit(\{v\})}$.
+
+\medskip\noindent\textbf{$(\Rightarrow)$.}\hspace{0.3em}
+Assume (a). By definition of a bifurcation with source $c$ (def
+\ref{def:walks}, item~vi., and its closing paragraph ``Source of the
+bifurcation''), there is a walk
+\[
+    p \;=\; (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+\]
+in $G$ with $v_0 = v$, $v_n = w$, and some integer $n \ge 0$, together
+with an index $k$ with $1 \le k \le n$, such that the five clauses
+(a)--(e) of def \ref{def:walks}, item~vi., hold at $k$, and clause~(d)
+is realised at position $k - 1$ by the \emph{directed} alternative
+$a_{k-1} = (v_k, v_{k-1}) \in E$, with $c = v_k$.
+
+By clause~(e) of def \ref{def:walks}, item~vi.\ (each end-node has
+exactly one arrowhead pointing toward it), combined with the directed
+realisation of clause~(d), the witness index is strictly interior:
+$1 \le k \le n - 1$. Hence $n \ge 2$, $c = v_k \ne v_0 = v$, and
+$c = v_k \ne v_n = w$.
+
+The walk $p$ decomposes at $v_k = c$ into two directed sub-walks in $G$:
+\begin{itemize}
+    \item the \emph{left arm}
+        \[
+            L \;:=\; (v_k,\, a_{k-1},\, v_{k-1},\, a_{k-2},\, \dots,\, v_1,\, a_0,\, v_0),
+        \]
+        which is a directed walk from $c = v_k$ to $v = v_0$ in $G$:
+        clause~(b) of def \ref{def:walks}, item~vi., asserts that for
+        every $0 \le i \le k - 2$ the edge $a_i$ is the directed edge
+        $a_i = (v_{i+1}, v_i) \in E$ (i.e.\ $v_{i+1} \tuh v_i$); the
+        hinge $a_{k-1} = (v_k, v_{k-1}) \in E$ from the directed
+        alternative of clause~(d) is also directed in this same
+        orientation. Read in the order $v_k, v_{k-1}, \dots, v_0$, every
+        edge of $L$ is therefore directed forward in that order;
+    \item the \emph{right arm}
+        \[
+            R \;:=\; (v_k,\, a_k,\, v_{k+1},\, a_{k+1},\, \dots,\, v_{n-1},\, a_{n-1},\, v_n),
+        \]
+        which is a directed walk from $c = v_k$ to $w = v_n$ in $G$:
+        clause~(c) of def \ref{def:walks}, item~vi., asserts that for
+        every $k \le i \le n - 1$ the edge $a_i$ is the directed edge
+        $a_i = (v_i, v_{i+1}) \in E$.
+\end{itemize}
+
+We must establish the three clauses (i)--(iii) of (b).
+
+\emph{Clause (i): $v \ne w$.}  This is part of clause~(a) of def
+\ref{def:walks}, item~vi.
+
+\emph{Clause (ii): $c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$.}  We show
+that the left arm $L$ remains a directed walk in $G_{\doit(\{w\})}$.
+By items iii.\ and iv.\ of def \ref{def:G_hard_intervention},
+\[
+    E_{\doit(\{w\})} \;=\; E \;\sm\; \lC u \tuh w \,\big|\, u \in J \cup V \rC,
+\]
+i.e.\ $E_{\doit(\{w\})}$ contains every directed edge of $E$ \emph{except}
+those whose head is $w$. The set of vertices of $L$ is
+$\{v_k, v_{k-1}, \dots, v_0\}$. By clause~(a) of def \ref{def:walks},
+item~vi., the bifurcation walk $p$ contains $w = v_n$ \emph{exactly
+once}, namely at position $n$. Since $k \le n - 1$, no vertex of $L$
+equals $w$. Each edge of $L$ is a directed edge $(v_{i+1}, v_i) \in E$
+(for some $0 \le i \le k - 1$) whose head $v_i$ is a vertex of $L$,
+hence not $w$. Therefore every edge of $L$ lies in $E_{\doit(\{w\})}$,
+so $L$ is a directed walk in $G_{\doit(\{w\})}$ from $c$ to $v$. By def
+\ref{def_3_5}, item~iv., this yields $c \in \Anc^{G_{\doit(\{w\})}}(v)$.
+Combined with $c \ne v$ established above,
+$c \in \Anc^{G_{\doit(w)}}(v) \sm \{v\}$.
+
+\emph{Clause (iii): $c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.}  The
+argument is symmetric. The vertices of $R$ are
+$\{v_k, v_{k+1}, \dots, v_n\}$. By clause~(a) of def \ref{def:walks},
+item~vi., the walk $p$ contains $v = v_0$ exactly once at position $0$.
+Since $k \ge 1$, no vertex of $R$ equals $v$. Each edge of $R$ is a
+directed edge $(v_i, v_{i+1}) \in E$ (for some $k \le i \le n - 1$) whose
+head $v_{i+1}$ is a vertex of $R$, hence not $v$. So every edge of $R$
+lies in $E_{\doit(\{v\})}$ (by def \ref{def:G_hard_intervention}, items
+iii.\ and iv.), and $R$ is a directed walk in $G_{\doit(\{v\})}$ from
+$c$ to $w$. By def \ref{def_3_5}, item~iv.,
+$c \in \Anc^{G_{\doit(\{v\})}}(w)$. Combined with $c \ne w$,
+$c \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$.
+
+This completes the $(\Rightarrow)$ direction.
+
+\medskip\noindent\textbf{$(\Leftarrow)$.}\hspace{0.3em}
+Assume the three clauses (i)--(iii) of (b). We construct a walk $p$ in
+$G$ and an index $k$ at which all five clauses (a)--(e) of def
+\ref{def:walks}, item~vi., hold, with clause~(d) realised by the
+directed alternative $a_{k-1} = (v_k, v_{k-1}) \in E$ and $v_k = c$.
+
+\emph{Step 1: Extract two directed walks via $\Anc$ and pick shortest
+representatives.}
+By clause (ii) of (b) and def \ref{def_3_5}, item~iv., there exists at
+least one directed walk from $c$ to $v$ in $G_{\doit(\{w\})}$. Choose
+one of \emph{minimum length} and call it
+\[
+    q_v \;=\; (c = u_0,\; b_0,\; u_1,\; b_1,\; \dots,\; b_{r-1},\; u_r = v),
+    \qquad b_j = (u_j, u_{j+1}) \in E_{\doit(\{w\})}.
+\]
+Since clause (ii) also gives $c \ne v$, we have $r \ge 1$. Symmetrically,
+by clause (iii) there exists a directed walk from $c$ to $w$ in
+$G_{\doit(\{v\})}$; pick a minimum-length representative
+\[
+    q_w \;=\; (c = x_0,\; d_0,\; x_1,\; d_1,\; \dots,\; d_{s-1},\; x_s = w),
+    \qquad d_j = (x_j, x_{j+1}) \in E_{\doit(\{v\})},
+\]
+with $s \ge 1$ since $c \ne w$.
+
+\emph{Step 2: $q_v$ and $q_w$ are directed walks in the original $G$.}
+By items iii.\ and iv.\ of def \ref{def:G_hard_intervention},
+$E_{\doit(\{w\})} \subseteq E$ and $E_{\doit(\{v\})} \subseteq E$ (hard
+intervention only removes edges from $E$). Therefore every edge $b_j$ of
+$q_v$ and every edge $d_j$ of $q_w$ also lies in $E$, so $q_v$ and $q_w$
+are directed walks in $G$ as well (def \ref{def:walks}, item~ii.).
+
+\emph{Step 3: Vertex-avoidance properties of $q_v$ and $q_w$.}
+\begin{enumerate}[label=(3.\arabic*)]
+    \item \emph{$w$ does not appear among the vertices of $q_v$.}  By
+        def \ref{def:G_hard_intervention}, item~iii., no edge of
+        $E_{\doit(\{w\})}$ has head $w$. If $u_j = w$ for some
+        $1 \le j \le r$, then the edge
+        $b_{j-1} = (u_{j-1}, u_j) \in E_{\doit(\{w\})}$ would be a
+        directed edge with head $w$ in $G_{\doit(\{w\})}$, contradicting
+        item~iii. The remaining possibility $u_0 = w$ is ruled out by
+        $u_0 = c \ne w$ (clause (iii) of (b)). Hence
+        $w \notin \{u_0, u_1, \dots, u_r\}$.
+
+    \item \emph{$v$ does not appear among $\{u_0, u_1, \dots, u_{r-1}\}$.}
+        Suppose, for contradiction, that $u_j = v$ for some
+        $0 \le j \le r - 1$. By def \ref{def:walks}, item~ii., the
+        prefix $(u_0, b_0, u_1, \dots, b_{j-1}, u_j)$ of $q_v$ is itself
+        a directed walk (each edge $b_{j'}$ for $0 \le j' \le j - 1$
+        retains the form $b_{j'} = (u_{j'}, u_{j'+1}) \in E_{\doit(\{w\})}$).
+        It is therefore a directed walk from $c = u_0$ to $v = u_j$ in
+        $G_{\doit(\{w\})}$ of length $j$. Since $j < r$, this
+        contradicts the minimality of $r$ chosen in Step~1. Hence $v$
+        only occurs in $q_v$ at position $r$.
+
+    \item \emph{Symmetrically, $v \notin \{x_0, x_1, \dots, x_s\}$ and
+        $w \notin \{x_0, x_1, \dots, x_{s-1}\}$.}  The first follows by
+        the same head-of-edge argument as in (3.1) with $\{v\}$ in place
+        of $\{w\}$ and $q_w$ in place of $q_v$, using clause (ii) of
+        (b) for $c \ne v$. The second follows by the same minimality
+        argument as in (3.2) with $q_w$, using clause (iii) for
+        $c \ne w$.
+\end{enumerate}
+
+\emph{Step 4: Construct the candidate walk $p$ by reversing $q_v$ and
+concatenating with $q_w$ at the common endpoint $c$.}
+Set
+\[
+    n \;:=\; r + s, \qquad k \;:=\; r.
+\]
+Define the vertex sequence $v_0, v_1, \dots, v_n$ by
+\[
+    v_i \;:=\; u_{r - i} \quad (0 \le i \le r),
+    \qquad
+    v_{r + j} \;:=\; x_j \quad (0 \le j \le s),
+\]
+which is consistent at the shared index $i = r$ (equivalently $j = 0$),
+where both formulas give $u_0 = x_0 = c$. In particular
+\[
+    v_0 \;=\; u_r \;=\; v, \qquad v_k \;=\; v_r \;=\; u_0 \;=\; c, \qquad v_n \;=\; x_s \;=\; w.
+\]
+Define the edge sequence $a_0, a_1, \dots, a_{n-1}$ by
+\begin{align*}
+    a_i \;&:=\; b_{r - 1 - i} \;=\; (u_{r - 1 - i},\, u_{r - i}) \;=\; (v_{i+1},\, v_i) \;\in\; E
+        && (0 \le i \le r - 1), \\
+    a_{r + j} \;&:=\; d_j \;=\; (x_j,\, x_{j+1}) \;=\; (v_{r+j},\, v_{r+j+1}) \;\in\; E
+        && (0 \le j \le s - 1).
+\end{align*}
+Each $a_i$ lies in $E$ by Step~2, so each $a_i \in E \cup L$ in
+particular. By def \ref{def:walks}, item~i.,
+$p := (v_0, a_0, v_1, a_1, \dots, a_{n-1}, v_n)$ is therefore a walk in
+$G$ from $v = v_0$ to $w = v_n$.
+
+\emph{Step 5: Verify the five clauses (a)--(e) of def \ref{def:walks},
+item~vi., at the split index $k = r$.}
+
+\noindent\emph{Clause (a)} (\emph{$v \ne w$ and end-node uniqueness}).
+\begin{itemize}
+    \item $v \ne w$ is clause (i) of (b).
+    \item $v = v_0$ does not appear at any later position. For
+        $1 \le i \le r$ we have $v_i = u_{r - i} \in \{u_0, \dots, u_{r-1}\}$,
+        and by Step~3 (3.2), $v \notin \{u_0, \dots, u_{r-1}\}$. For
+        $r + 1 \le i \le r + s$ we have
+        $v_i = x_{i - r} \in \{x_1, \dots, x_s\}$, and by Step~3 (3.3),
+        $v \notin \{x_0, \dots, x_s\}$.
+    \item $w = v_n$ does not appear at any earlier position. For
+        $0 \le i \le r$ we have
+        $v_i = u_{r - i} \in \{u_0, \dots, u_r\}$, and by Step~3 (3.1),
+        $w \notin \{u_0, \dots, u_r\}$. For
+        $r + 1 \le i \le r + s - 1$ we have
+        $v_i = x_{i - r} \in \{x_1, \dots, x_{s-1}\}$, and by Step~3
+        (3.3), $w \notin \{x_0, \dots, x_{s-1}\}$.
+\end{itemize}
+
+\noindent\emph{Clause (b)} (\emph{the sub-walk
+$v_0 \hut \cdots \hut v_{k-1}$ is a directed walk from $v_{k-1}$ to
+$v_0$}).  For $0 \le i \le k - 2 = r - 2$, by Step~4
+\[
+    a_i \;=\; b_{r - 1 - i} \;=\; (u_{r - 1 - i},\, u_{r - i}) \;=\; (v_{i+1},\, v_i) \;\in\; E,
+\]
+i.e.\ each such $a_i$ is the directed edge $v_{i+1} \tuh v_i$. Read in
+the order $v_{k-1}, v_{k-2}, \dots, v_0$, these edges form a directed
+walk from $v_{k-1}$ to $v_0$ in the sense of def \ref{def:walks},
+item~ii.
+
+\noindent\emph{Clause (c)} (\emph{the sub-walk
+$v_k \tuh \cdots \tuh v_n$ is a directed walk from $v_k$ to $v_n$}).
+For $k \le i \le n - 1$ (i.e.\ $i = r + j$ with $0 \le j \le s - 1$), by
+Step~4
+\[
+    a_i \;=\; a_{r + j} \;=\; d_j \;=\; (x_j,\, x_{j+1}) \;=\; (v_i,\, v_{i+1}) \;\in\; E,
+\]
+i.e.\ each such $a_i$ is the directed edge $v_i \tuh v_{i+1}$, and the
+right arm is a directed walk from $v_k$ to $v_n$ in the sense of def
+\ref{def:walks}, item~ii.
+
+\noindent\emph{Clause (d)} (\emph{the hinge edge $v_{k-1} \hus v_k$,
+realised by the directed alternative}).  At index $i = k - 1 = r - 1$,
+by Step~4
+\[
+    a_{k-1} \;=\; b_0 \;=\; (u_0,\, u_1) \;=\; (v_k,\, v_{k-1}) \;\in\; E,
+\]
+which is the directed edge $v_k \tuh v_{k-1}$, equivalently
+$v_{k-1} \hut v_k$. Thus clause~(d) is realised at $k - 1$ by the
+directed alternative.
+
+\noindent\emph{Clause (e)} (\emph{each end-node has exactly one
+arrowhead pointing toward it -- the chapter-init addition recorded in
+clause~(e) of def \ref{def:walks}, item~vi.}).
+\begin{itemize}
+    \item $v = v_0$ has on the walk $p$ exactly one incident edge,
+        namely $a_0$. By Step~4 (the first defining formula, at
+        $i = 0$), $a_0 = b_{r-1} = (u_{r-1}, u_r) = (v_1, v_0) \in E$,
+        a directed edge with head $v_0$. So $v_0 = v$ has exactly one
+        arrowhead pointing toward it. (For $k = 1$ the edge $a_0$ is
+        simultaneously the hinge $a_{k-1}$ handled by clause~(d), with
+        the same conclusion.)
+    \item $w = v_n$ has on the walk $p$ exactly one incident edge,
+        namely $a_{n-1}$. By Step~4 (the second defining formula, at
+        $j = s - 1$), $a_{n-1} = d_{s-1} = (x_{s-1}, x_s) =
+        (v_{n-1}, v_n) \in E$, a directed edge with head $v_n$. So
+        $v_n = w$ has exactly one arrowhead pointing toward it.
+    \item The strict-interior consequence $1 \le k \le n - 1$ holds:
+        $k = r \ge 1$ since $r \ge 1$ by Step~1, and
+        $k = r \le r + s - 1 = n - 1$ since $s \ge 1$ by Step~1.
+\end{itemize}
+
+All five clauses (a)--(e) of def \ref{def:walks}, item~vi., are
+verified at $k = r$, so $p$ is a bifurcation between $v$ and $w$ in $G$
+with witness index $k$. Clause~(d) was realised by the directed
+alternative $a_{k-1} = (v_k, v_{k-1}) \in E$, so by the closing
+paragraph ``Source of the bifurcation'' of def \ref{def:walks}, item
+vi., the source of this bifurcation is $v_k = c$. This establishes (a).
 \end{proof}
 
 \end{document}

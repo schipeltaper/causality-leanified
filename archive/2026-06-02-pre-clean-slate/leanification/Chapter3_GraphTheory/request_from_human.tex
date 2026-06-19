@@ -1,0 +1,24 @@
+% Communication channel between the agent swarm and the human, for chapter
+% Chapter3_GraphTheory. Auto-created by `scaffold/initialize_chapter.py` /
+% `scaffold/solving_current_row.py`. Agents APPEND to the Requests section
+% when they call `request_from_human` (and only after several failed
+% attempts -- the action is gated by HUMAN_REQUEST_THRESHOLD in
+% scaffold/solving_current_row.py). The human writes back in the Answers
+% section; the agents see those answers on the next row-start.
+
+\documentclass[12pt, a4paper]{scrartcl}
+\input{../preamble}
+
+\title{Requests from the swarm -- Chapter3_GraphTheory}
+
+\begin{document}
+\maketitle
+
+\section*{Requests from the swarm}
+% Each request is appended here by the `request_from_human` action.
+% Format:  \subsection*{<ref> -- <UTC timestamp>}  followed by the body.
+
+\section*{Answers from the human}
+% The human writes guidance here. The next agent on the row will read this.
+
+\end{document}

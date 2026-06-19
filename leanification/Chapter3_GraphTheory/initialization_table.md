@@ -1,0 +1,2426 @@
+# Initialization decision table — Chapter 3
+
+**Date generated:** 2026-06-02
+**Source register:** `leanification/initial_subtlety_register.json` (127 entry/entries)
+
+Each row below corresponds to one subtlety the `check_ln_wording`
+worker surfaced. For each, fill in the **Decision** column with one of:
+
+- `NONE` — no addition to the LN needed. The formalizer should treat
+  the literal LN reading as authoritative.
+- A free-form clarifying clause that should be appended to the LN's
+  meaning when this row (and any downstream row that depends on it)
+  is formalized. The clause is a *strengthening or disambiguation* of
+  the LN -- it is conjoined with the literal reading. Be precise; the
+  equivalence-checker workers will treat your text as authoritative.
+
+Examples of useful additions:
+
+> "Only bidirected hinges count; backward-E edges as n=1 bifurcations are excluded."
+
+> "A bifurcation between v and w requires both endnodes to have exactly one arrowhead pointing toward them (this rules out the degenerate n=1 backward-E case)."
+
+> "L is treated as a symmetric subset of `V × V` with the irreflexivity constraint, not as a quotient set."
+
+When done, save the file and run::
+
+    python scaffold/scripts/phase2_initialization/process_initialization_table.py --chapter 3
+
+
+### 1. `l_quotient_vs_ordered_pair_typing_inconsistent`
+
+- **Observed by row:** `def_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The definition declares $L \ins V \times V/((v_1,v_2) \sim (v_2,v_1))$, i.e. $L$ is a subset of the *quotient* set whose elements are equivalence classes (effectively unordered pairs). But the very next line writes the constraint as "$(v_1,v_2) \in L \, \implies\, v_1\neq v_2 \land (v_2,v_1) \in L$", treating elements of $L$ as ordered pairs in $V \times V$.
+
+These two readings are mutually inconsistent:
+- If $L$ really is a subset of the quotient, then "$(v_1, v_2) \in L$" is a category error (an ordered pair is not an equivalence class), and the symmetry clause "$(v_2, v_1) \in L$" is automatically vacuous (the two representatives name the same class).
+- If $L$ is morally a subset of $V \times V$ with the symmetry condition being the *non-trivial* content, then the quotient notation in the typing of $L$ is misleading / decorative.
+
+A downstream formalization or proof that "bidirected edge between $v_1$ and $v_2$" iff "$(v_1, v_2) \in L$ iff $(v_2, v_1) \in L$" will hinge on which reading is taken; the literal tex does not commit.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+It just depends how you choose to represent the bi-directed edges. If you choose ordered pairs, make sure both ways are equivalent and are always both in the set or both not.
+```
+
+### 2. `directed_self_loops_in_e_not_prohibited`
+
+- **Observed by row:** `def_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The directed-edge set is declared as $E \ins (J \cup V) \times V$ with no exclusion of the diagonal. So for any $v \in V$, the pair $(v, v)$ is a legal element of $E$ — a directed self-loop $v \to v$. The constraint forbidding self-loops is stated *only* for the bidirected set $L$ ("$v_1 \neq v_2$"); the absence of an analogous clause for $E$ is conspicuous.
+
+For $v \in V$, $(v,v) \in E$ means "$v$ has itself as a parent." In typical causal-graph / SEM usage this is degenerate (a vertex causing itself), and many downstream notions (parents-of, ancestor relation, structural equations indexed by parents) implicitly assume no such loop. If the author intended to allow self-loops, several later results may need re-checking; if not, the omission is a wording gap.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 3. `empty_cdmg_admitted_by_literal_text`
+
+- **Observed by row:** `def_3_1`
+
+**Explanation (from the wording-check worker):**
+
+As actively written, there is no constraint that either $J$ or $V$ be nonempty (the only candidate clause "$J \cup V \neq \emptyset$" is commented out and so not part of the definition). The literal reading therefore admits the corner case $J = V = \emptyset$, which forces $E = L = \emptyset$ — a CDMG with no nodes and no edges.
+
+For $V = \emptyset$ alone (but $J$ possibly nonempty), $E$ is forced empty too (since $E \ins (J \cup V) \times V$ and the target side is empty), and $L$ is forced empty for the same reason. So a CDMG can consist of "pure inputs with nothing to point at." Any downstream definition that quantifies over $v \in V$ ("for every output node …") will be vacuously satisfied — this is the kind of edge case that silently makes universal lemmas trivially true and existential ones unprovable.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 4. `edge_set_disjointness_under_specified`
+
+- **Observed by row:** `def_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The text says "two \emph{(disjoint)} sets of edges" and then types $E$ and $L$ over different spaces ($E \ins (J \cup V) \times V$, $L \ins V \times V / \sim$). Disjointness between sets of objects of different types is either trivially true (different types ⇒ no shared elements) or undefined; either way it does not impose any graph-theoretic constraint such as "no pair of vertices is connected by both a directed and a bidirected edge."
+
+A reader / formalizer might reasonably guess the latter is intended (i.e. for $v_1, v_2 \in V$, you cannot simultaneously have $(v_1,v_2) \in E$ and $\{v_1,v_2\} \in L$), but the literal text does not say this. Downstream results that treat $E$- and $L$-membership as mutually exclusive at the same pair would be relying on an unstated assumption.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+The disjointness is trivially true, because the element represent different things. When you choose to represent both as ordered pairs, (v,w) should be aloud to exist in both E and L
+```
+
+### 5. `sus_omits_tail_tail_despite_star_eq_head_or_tail`
+
+- **Observed by row:** `def_3_2`
+
+**Explanation (from the wording-check worker):**
+
+The block closes with "The star stands for a placeholder to mean: ``arrowhead or tail''." Read literally, item 7 has *two* stars in "$v_1 \sus v_2$", and each star can independently be arrowhead or tail — so a reader taking the placeholder rule at face value expects $2 \times 2 = 4$ cases: tail-tail, tail-head, head-tail, head-head. But item 7 explicitly lists only three: "either $v_1 \tuh v_2 \in G$ or $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$." The tail-tail case "$v_1 \tut v_2$" is silently dropped. The asymmetry is conspicuous because items 5 and 6 each give the *full* $1 \times 2 = 2$ enumeration consistent with the star rule, but item 7 gives only $3$ of the $4$ enumerations. The presumable reason is that CDMGs do not have an undirected/tail-tail edge category, but that justification is nowhere in this block. Downstream consequences: any lemma that case-analyzes on "$\sus$" — e.g. "for every edge $v_1 \sus v_2$, one of {three star configurations} holds" — implicitly relies on the unstated fact that tail-tail is not a CDMG edge type. If a future author introduces undirected edges or extends $G$ with a tail-tail relation, "$\sus$" will silently fail to cover the new case despite the star rule's literal promise.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+Tail tail is not aloud
+```
+
+### 6. `huh_visual_symmetry_vs_ordered_pair_in_L`
+
+- **Observed by row:** `def_3_2`
+
+**Explanation (from the wording-check worker):**
+
+Item 4 reads "$v_1 \huh v_2 \in G$ to mean $(v_1,v_2) \in L$." The symbol "$\huh$" is visually symmetric (two arrowheads, one at each end) and in standard causal-graph practice denotes a bidirected edge, for which $v_1 \huh v_2$ and $v_2 \huh v_1$ should be the same fact. The literal definition, however, encodes this via the *ordered* pair $(v_1,v_2) \in L$. Whether $v_1 \huh v_2 \in G \iff v_2 \huh v_1 \in G$ therefore depends entirely on whether $L$ is required to be a symmetric relation — a condition not visible in this block (it would have to come from the CDMG definition in the preceding row). If $L$ is asymmetric as a subset of ordered pairs, then a reader can have $(v_1,v_2) \in L$ but $(v_2,v_1) \notin L$, in which case "$v_1 \huh v_2$" holds and "$v_2 \huh v_1$" does not — a counter-intuitive asymmetry given the symbol. This propagates into items 5–7: $v_1 \suh v_2$, $v_1 \hus v_2$, and $v_1 \sus v_2$ all inherit whatever asymmetry $L$ carries through their "$\huh$" disjunct. Downstream proofs that swap endpoints on a "$\huh$"-edge (e.g. "by symmetry of bidirected edges, …") tacitly rely on the symmetric reading and would break if $L$ is not required to be symmetric.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+By definition of L: if (v,w) in L then (w,v) in L (if L is represented as ordered pairs)
+```
+
+### 7. `inconsistent_writing_order_enumeration_into_vs_out_of`
+
+- **Observed by row:** `def_3_3`
+
+**Explanation (from the wording-check worker):**
+
+Items 2 and 3 use visibly inconsistent conventions for handling the fact that any directed edge has two equivalent textual writings (e.g. by `not-cdmg` lines 60-61, "$v_1 \tuh v_2$" and "$v_2 \hut v_1$" denote the same fact $(v_1,v_2)\in E$).
+
+Item 3 *explicitly* lists both writings of the same edge:
+> "Edges of the form $v_1 \tuh v_2$ or $v_2 \hut v_1$ are called \emph{out of $v_1$}."
+
+These two patterns describe identical edges; the "or" is redundant under a pattern-variable reading but is included for explicit clarity.
+
+In contrast, item 2 does NOT list alternate writings:
+> "Edges of the form $v_1 \hut v_2$ or $v_1 \huh v_2$ are called \emph{into $v_1$}. \\
+>  Edges of the form $v_1 \tuh v_2$ or $v_1 \huh v_2$ are called \emph{into $v_2$}."
+
+Here the "or" combines two genuinely different edge *types* (directed vs. bidirected), not two writings of the same edge. The two sentences cover head-at-left and head-at-right writings respectively — which together pattern-match all edges with a head at any specified vertex, but only via the renaming convention that $v_1, v_2$ are universally quantified pattern variables.
+
+A careful reader noticing item 3's explicit double-enumeration could reasonably ask: "why doesn't item 2 also list alternate writings like `$v_2 \tuh v_1$` for 'into $v_1$'?" The answer requires assuming the pattern-variable convention, which item 3 simultaneously seems to deny by being redundantly explicit. This is a stylistic incoherence within a single definition that may produce confusion downstream when authors/readers try to determine whether `\hut` vs. `\tuh` writings of a specific edge are being treated as syntactically distinct or semantically identified.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+v->w and w<-v are always the same edge indeed
+```
+
+### 8. `self_loops_in_E_imply_self_adjacency`
+
+- **Observed by row:** `def_3_3`
+
+**Explanation (from the wording-check worker):**
+
+The CDMG definition (`def-cdmg`, line 44) specifies $E \subseteq (J \cup V) \times V$ with no anti-reflexivity constraint — so directed self-loops $(v,v) \in E$ for $v \in V$ are permitted. By contrast, $L$ explicitly forbids self-loops (line 46: "$v_1 \neq v_2$").
+
+In this row's item 1, applied to $v_1 = v_2 = v$, the condition $v \sus v \in G$ becomes (via line 65) "$v \tuh v \in G$ or $v \hut v \in G$ or $v \huh v \in G$", which by lines 60-62 reduces to "$(v,v) \in E$ or $(v,v) \in L$" — and since $L$ disallows self-loops, this simplifies to "$(v,v) \in E$". So whenever a directed self-loop exists, the literal text of item 1 declares $v$ "adjacent to itself in $G$".
+
+This is a genuine corner case the author may not have intended. The natural English reading of "adjacent" implies two distinct vertices, and downstream definitions almost certainly assume this. For example:
+- `def:walks` (line 96, def_3_4) defines a walk as "a finite alternating sequence of adjacent nodes and edges" — if $v$ is self-adjacent, then the sequence $v, (v,v), v$ is a non-trivial walk of length 1 from $v$ to $v$, which then likely leaks into the `\Anc^G(v)` / `\Desc^G(v)` definitions (lines 148, 153) and would make every $v$ with a self-loop its own ancestor and descendant, possibly contradicting acyclicity arguments later (e.g., line 231).
+- Similarly item 2 with $v_1=v_2=v$ would classify a self-loop $v \tuh v$ as both "into $v$" and "out of $v$" simultaneously.
+
+If self-loops are intended to be ruled out, the constraint should be in `def-cdmg`; if allowed, item 1 should either explicitly require $v_1 \ne v_2$ or explicitly acknowledge the self-adjacency consequence.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 9. `out_of_v2_is_never_defined`
+
+- **Observed by row:** `def_3_3`
+
+**Explanation (from the wording-check worker):**
+
+Item 3 defines "out of $v_1$" but provides no companion sentence defining "out of $v_2$", in stark contrast to item 2 which has separate sentences for "into $v_1$" and "into $v_2$".
+
+Quoting:
+> Item 2: "...into $v_1$. \\ ...into $v_2$."
+> Item 3: "...out of $v_1$."
+
+Under a strict literal reading of the definition, the phrase "out of $w$" for an arbitrary vertex $w$ has its meaning only via item 3, which requires pattern-matching $w$ into the $v_1$ slot. A reader expecting parallel structure with item 2 might be momentarily confused whether "out of $v_2$" is also being defined (it is not — though the pattern variable can be renamed).
+
+This isn't a mathematical error, but combined with the redundant double-enumeration in item 3 noted above, it reinforces inconsistency about whether the variables $v_1, v_2$ are being treated as positional labels (item 2 style) or as freely-renameable pattern variables (item 3 style requires the latter). The mixed convention within one definition makes the reader work harder than necessary to extract the intended meaning.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 10. `v_membership_of_j_underspecified`
+
+- **Observed by row:** `claim_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The remark uses "$v \in V$" without clarifying whether $J \subseteq V$ (so $J$ is a subset of the full node set) or $V \cap J = \emptyset$ (so $V$ denotes the non-$J$ nodes). This matters because it determines whether the third sentence carries any new content. If $V \cap J = \emptyset$, then the clause "Nodes $j \in J$ can only point towards nodes $v \in V$" already forbids $j \to j'$ for $j, j' \in J$, and combined with sentence 1 (no arrowheads at $j$) the statement "no two nodes in $J$ are adjacent" is essentially redundant (it would only add a prohibition on bare/undirected $J$-$J$ edges, which CDMG may not even support). Conversely, if $J \subseteq V$, sentence 2 *does* literally permit $j \to j'$ with $j, j' \in J$, and sentence 3 is needed to forbid it. The block does not pin this down, so a reader cannot tell whether the third sentence is a substantive restriction or a redundant reminder.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 11. `self_loop_j_to_j_not_excluded`
+
+- **Observed by row:** `claim_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The clause "Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed" does not exclude the case $v = j$. If $J \subseteq V$ (the natural reading, since $J$ is described as a subset of nodes), then a self-loop $j \tuh j$ is, on the literal reading, an "allowed" edge from $j$ to a node $v = j \in V$. But such a self-loop puts an arrowhead at $j$, which directly contradicts the first sentence ("$j$ will not have any arrowheads pointing towards them"). Concretely, taking $j$ a single node of $J$, the literal text simultaneously allows $j \tuh j$ (via sentence 2) and forbids any arrowhead at $j$ (via sentence 1). The remark needs to either exclude $v = j$ or rule out self-loops explicitly. The third sentence does not save it either, since "no two nodes in $J$ are adjacent" naturally refers to *distinct* pairs.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 12. `implicit_universal_quantifier_in_hus_clause`
+
+- **Observed by row:** `claim_3_1`
+
+**Explanation (from the wording-check worker):**
+
+The phrase "$j \hus v \notin G$" is written as if it were a single concrete fact ("a specific edge is absent"), but the intended meaning is clearly "for all $v$, $j \hus v \notin G$". The universal quantifier is left implicit. A literal reader who took $v$ to be a particular (unbound) node would conclude almost nothing. Similarly for "edges $j \tuh v$ are allowed" — this needs to be read as "for any $v \in V$, such an edge is permitted", not as the existence of any particular edge. A downstream proof that has to enumerate excluded edges might trip over this.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+You are right in what was intended
+```
+
+### 13. `arrowhead_phrase_vs_hus_notation_scope`
+
+- **Observed by row:** `claim_3_1`
+
+**Explanation (from the wording-check worker):**
+
+Sentence 1 makes a broad natural-language claim — "$j$ will not have *any* arrowheads pointing towards them" — and then formalizes it with the single notation "$j \hus v \notin G$". If $\hus$ denotes one specific edge type (say, a directed edge with an arrowhead at $j$ and a tail at $v$), then bidirected edges $j \leftrightarrow v$, which also have an arrowhead at $j$, are not literally ruled out by "$j \hus v \notin G$". The "any arrowheads" phrasing wants to cover bidirected edges too, but the formal clause only covers what $\hus$ literally is. Whether this is an actual gap depends on the definition of $\hus$ in \ref{not-cdmg}, but the block as written conflates a broad claim with a narrower notation. If CDMG admits bidirected edges (typical for "mixed" graphs), this gap matters.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 14. `bifurcation_right_chain_trivial_is_just_directed_walk`
+
+- **Observed by row:** `def_3_4`
+
+**Explanation (from the wording-check worker):**
+
+The bifurcation form is
+  "$v=v_0 \hut v_1 \hut \cdots \hut v_{k-1} \hus v_k \tuh \cdots \tuh v_{n-1} \tuh v_n=w$"
+and the constraint "the subwalk $v_k \tuh \cdots v_n$ is a directed walk from $v_k$ to $v_n$" explicitly allows the right subwalk to be trivial (a directed walk with $n - k = 0$ edges, i.e. just the single node $v_n$, since item 2 admits "$n \ge 0$"). In the extreme corner $k = n$, the bifurcation form collapses to
+  "$v_0 \hut v_1 \hut \cdots \hut v_{n-1} \hus v_n$",
+i.e. all $\hut$ arrows on the left chain and a single hinge edge. If that hinge is directed (the case the text explicitly names: "If the edge $v_{k-1} \hus v_k$ is directed ($v_{k-1} \hut v_k$) then we say that the bifurcation has \emph{source} $v_{k}$"), the *entire* walk is
+  "$v_0 \leftarrow v_1 \leftarrow \cdots \leftarrow v_{n-1} \leftarrow v_n$",
+which is just a directed walk from $v_n$ to $v_0$ — not a fork. Per the literal text this still counts as "a bifurcation between $v$ and $w$" with source $v_n = w$.
+The most extreme instance is $k = n = 1$: a single directed edge $v_0 \leftarrow v_1$ is, by the literal text, "a bifurcation between $v_0$ and $v_1$" with source $v_1$. A reader expecting "bifurcation" to imply an actual split (two non-trivial directed paths emanating from a common source) gets the opposite: a single edge, or a plain directed chain, satisfies the definition. (Note the asymmetry: the case $k = 1$ with $n \ge 2$ produces a genuine fork $v_0 \leftarrow v_1 \to v_2 \to \cdots \to v_n$ — so only the $k = n$ degeneration is troublesome.) Downstream claims that quantify over "bifurcations between $v$ and $w$" — e.g. m-separation lemmas using the existence of a bifurcation as a witness for a non-collider connection — will silently include these directed-walk degeneracies.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+A necessary additional constraint for bifurcation should be: both endnodes have exactly one arrowhead pointing towards them
+```
+
+### 15. `collider_walk_n1_form_contradicts_inline_note`
+
+- **Observed by row:** `def_3_4`
+
+**Explanation (from the wording-check worker):**
+
+The form for a collider walk is
+  "$v=v_0 \suh v_1 \huh \cdots \huh v_{n-1} \hus v_n=w$",
+and the text continues "Note that for $n=1$ this reads: $v\sus w \in G$." But these two readings disagree.
+For $n = 1$, $v_{n-1} = v_0$ and $v_n = v_1$, so the form's first edge "$v_0 \suh v_1$" (arrowhead at $v_1$ side) and its last edge "$v_{n-1} \hus v_n = v_0 \hus v_1$" (arrowhead at $v_0$ side) coincide on the single edge — literally requiring arrowheads at BOTH endpoints, i.e. a bidirected edge $v_0 \huh v_1$. The note, however, then claims "this reads $v \sus w \in G$", where "$\sus$" (per def_3_2 / `not-cdmg`) is the umbrella notation covering *any* edge between $v$ and $w$, including the purely-directed ones $v \tuh w$ and $v \hut w$.
+So: is a single directed edge $v \to w$ a "collider walk of length 1"? The form says no (no arrowhead at $v$); the note says yes (any $\sus$-edge qualifies). A formalization must commit. The choice matters because it affects whether endpoints of a collider walk can be non-colliders themselves — the explanatory clause "all nodes in between $v$ and $w$ have two arrowheads pointing towards them" deliberately excludes endpoints, suggesting endpoints need not be colliders, which is consistent with the note but inconsistent with the form. Downstream uses (m-connection / m-separation around colliders) may give different answers depending on which reading is adopted.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+It should indeed be v <-> w for n =1
+```
+
+### 16. `walk_l_traversal_only_forward_direction`
+
+- **Observed by row:** `def_3_4`
+
+**Explanation (from the wording-check worker):**
+
+The walk admissibility condition states
+  "for every $k=0,\dots,n-1$ we have that $a_k = (v_k, v_{k+1}) \in E \cup L$ or $a_k = (v_{k+1}, v_k) \in E$".
+The "reverse" alternative $(v_{k+1}, v_k)$ is restricted to $E$ alone; it is NOT extended to $L$. Whether this matters depends on whether $L$ is symmetric as a set of ordered pairs — a question already flagged at def_3_1 (`l_quotient_vs_ordered_pair_typing_inconsistent`) and def_3_2 (`huh_visual_symmetry_vs_ordered_pair_in_L`), and not settled here. If $L$ is symmetric, this is harmless. If $L$ is genuinely a quotient or otherwise only contains one representative of each unordered pair, then a walk's ability to traverse a bidirected edge depends on which orientation is stored — clearly unintended for what should be a symmetric edge type. The fix that would have made this airtight is to write "$a_k \in \{(v_k, v_{k+1}), (v_{k+1}, v_k)\} \cap (E \cup L)$" or to repeat the disjunction for $L$ as well. Concretely: under a strictly literal reading, if the bidirected edge between $u$ and $w$ is stored as $(w, u) \in L$, then the walk $u, a_0, w$ requires $a_0 = (u, w) \in E \cup L$ or $a_0 = (w, u) \in E$ — neither holds — so the edge is not traversable from $u$ to $w$, despite being a bidirected edge between them.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 17. `bifurcation_internal_node_repetition_allowed`
+
+- **Observed by row:** `def_3_4`
+
+**Explanation (from the wording-check worker):**
+
+The bifurcation's path-likeness is enforced only at the endpoints: "such that $v \ne w$, the walk contains both endnodes exactly once". The two halves are required to be *directed walks*, not directed paths, and item 1 explicitly tells us walks may revisit nodes ("The same node may appear multiple times in a walk."). So internal nodes $v_1, \dots, v_{n-1}$ may repeat — including across the two subwalks.
+Concrete corner case: take $n = 4$, $k = 2$, and identify $v_3 = v_1$. The walk reads
+  "$v_0 \hut v_1 \;\; v_1 \hus v_2 \;\; v_2 \tuh v_1 \tuh v_4$".
+Endpoints $v_0, v_4$ each appear exactly once; the left subwalk "$v_0 \hut v_1$" is a (one-edge) directed walk from $v_1$ to $v_0$; the right subwalk "$v_2 \tuh v_1 \tuh v_4$" is a directed walk from $v_2$ to $v_4$. All four bifurcation conditions are satisfied. Yet the two "tines" cross at $v_1$ — visually this is not a fork but a $\Theta$-like figure with a shared internal vertex. Downstream usages that treat a bifurcation as a structural witness of "two disjoint directed paths from a common source to $v$ and to $w$" (a standard way bifurcations get used in m-connection / d-separation arguments) tacitly assume the two subwalks share no internal vertex, which the literal text does not guarantee.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 18. `collider_walk_n0_unaddressed`
+
+- **Observed by row:** `def_3_4`
+
+**Explanation (from the wording-check worker):**
+
+Item 4 admits "$n \ge 0$" but the form
+  "$v=v_0 \suh v_1 \huh \cdots \huh v_{n-1} \hus v_n=w$"
+syntactically presupposes at least one edge (it explicitly displays $\suh$ and $\hus$ edge markers and an intermediate $\huh$ chain). The accompanying note only clarifies the $n=1$ case ("for $n=1$ this reads: $v \sus w \in G$"); $n=0$ is unaddressed. Under a vacuous reading the trivial walk (just $v = w$) would qualify (no in-between nodes need to be colliders), but the form's literal text does not instantiate at $n=0$. The directed-walk and bidirected-walk items have the same surface issue but are far less likely to confuse a reader, since "the trivial walk is a directed walk" is uncontroversial; for collider walks the inclusion or exclusion of the trivial walk is genuinely unclear and may matter for any later lemma of the form "every collider walk satisfies P".
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 19. `self_membership_notes_require_length_zero_walks`
+
+- **Observed by row:** `def_3_5`
+
+**Explanation (from the wording-check worker):**
+
+The Notes "$v \in \Anc^G(v)$", "$v \in \Desc^G(v)$", "$v \in \Sc^G(v)$", and "$v \in \Dist^G(v)$" assert reflexive self-membership, but the literal walk notation in each definition appears to require at least one edge. For ancestors: "$\exists \text{ directed walk: } w \tuh \cdots \tuh v$" written with an explicit arrow. Without either (a) a directed self-loop $v \tuh v$, or (b) an implicit convention that a "walk" may have length 0 (consist of a single vertex with no edges), the literal reading does not yield $v \in \Anc^G(v)$. Whether trivial length-0 walks are admitted is not stated anywhere in this block, so the Notes either silently demand a convention or silently demand a self-loop assumption. Downstream proofs about reflexivity, fixed points of $\Anc/\Desc$, or the claim $A \subseteq \Anc^G(A)$ rely on this unstated convention. The same problem amplifies for $\Dist^G(v)$, where the explicit indexing $v_1, \ldots, v_{n-1}$ makes a length-0 interpretation even harder to justify (see separate subtlety).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+Self membership is always true in these cases, also if no edge exists.
+```
+
+### 20. `type_mismatch_individual_vs_set_versions`
+
+- **Observed by row:** `def_3_5`
+
+**Explanation (from the wording-check worker):**
+
+The preamble declares "$v, w \in V$ and $A \ins J \cup V$". All individual definitions ($\Pa^G(v)$, $\Ch^G(v)$, $\Sib^G(v)$, $\Anc^G(v)$, $\Desc^G(v)$, $\Sc^G(v)$, $\Dist^G(v)$) are therefore defined only for $v \in V$, not for $v \in J$. But the set versions write e.g. "$\Pa^G(A):= \bigcup_{v \in A} \Pa^G(v)$" with $A \ins J \cup V$, so $v$ may range over elements of $J$ for which the individual definition was never given. A literal reader either has to assume the individual definitions silently extend to $J$ (presumably yes, since the set-builder "$w \in G \mid w \tuh v \in G$" makes perfect sense for $v \in J$), or restrict $A$ to $V$. The text does neither explicitly. This also affects the consistency of the Notes: e.g. "$A \ins \Anc^G(A)$" presumes individual reflexivity even when $A$ contains $J$-elements.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+It should have been $v, w \in J \cup V$. Input nodes can also have children for example
+```
+
+### 21. `district_walk_indexing_ambiguous_for_small_n`
+
+- **Observed by row:** `def_3_5`
+
+**Explanation (from the wording-check worker):**
+
+The district walk is written "$\exists \text{ bidirected walk: } v \huh v_1 \huh \cdots \huh v_{n-1} \huh w$". The indexing $v_1, \ldots, v_{n-1}$ only makes sense for $n \geq 2$ (giving walks $v \huh v_1 \huh w$ of length 2 or more). For $n = 1$, the intermediate sequence "$v_1 \huh \cdots \huh v_0$" is ill-formed (one would have to invoke a vacuous-range convention to get the length-1 walk $v \huh w$). For $n = 0$ or self-membership ($w = v$ without a bidirected self-loop), there is no parse at all. This matters concretely for the Note "$v \in \Dist^G(v)$": the smallest witnessing walk under a strict reading of the indexing would seem to require a length-2 bidirected cycle $v \huh v_1 \huh v$, which is far more restrictive than the author likely intends. Contrast with $\Anc^G(v)$'s less restrictive "$w \tuh \cdots \tuh v$", which doesn't introduce explicit intermediate-node names. The notation between the two walk-based definitions is inconsistent and the district version genuinely under-specified for short walks.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+w is in the district of v, if there is a walk from v to w where each edge on the walk is a bi-directed edge. 
+```
+
+### 22. `sibling_self_membership_not_addressed`
+
+- **Observed by row:** `def_3_5`
+
+**Explanation (from the wording-check worker):**
+
+$\Sib^G(v):=\lC w \in G\,|\, v \huh w \in G \rC$ contains $v$ itself whenever there is a bidirected self-loop $v \huh v$. Unlike $\Anc$, $\Desc$, $\Sc$, $\Dist$, no Note states whether $v \in \Sib^G(v)$ is intended, and unlike many texts there is no explicit "$\sm \{v\}$" exclusion. If the ambient definition of CDMG permits bidirected self-loops, then a singleton $\{v\}$ with $v \huh v$ literally is its own sibling — which may or may not be the author's intent. The analogous silent inclusion for $\Pa^G(v)$ via $v \tuh v$ is similarly unaddressed. Any downstream claim of the form "$v \notin \Sib^G(v)$" or "$\Sib^G$ is irreflexive" would fail on graphs with self-loops.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 23. `w_in_G_notation_imprecise`
+
+- **Observed by row:** `def_3_5`
+
+**Explanation (from the wording-check worker):**
+
+Throughout the definition, set-builders write "$w \in G$" (e.g. "$\Pa^G(v):=\lC w \in G\,|\, w \tuh v \in G \rC$"), but $G = (J, V, E, L)$ is a 4-tuple, not a set. The intended meaning is presumably "$w \in J \cup V$" (i.e. $w$ ranges over nodes of $G$). Similarly "$w \tuh v \in G$" means "$w \tuh v \in E$". This is a venial sloppiness rather than a contentful ambiguity, but a strict formalization will need to disambiguate, and the convention should be stated once.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 24. `nontrivial_directed_walk_not_defined_in_block`
+
+- **Observed by row:** `def_3_6`
+
+**Explanation (from the wording-check worker):**
+
+The definition uses "non-trivial directed walk from $v$ to itself"
+but the term "non-trivial" is not defined in this block, nor explicitly defined
+in the cited definition of directed walk (def_3_3, item 2). The reader must
+infer "non-trivial" by combining two pieces from def_3_3:
+  - the "directed walk" definition allows $n \ge 0$, and
+  - the "trivial walk" is defined (under the generic walk item) as "consisting
+    of a single node $v_0$".
+Combining these gives: non-trivial directed walk = directed walk with $n \ge 1$.
+The proof of the topological-order lemma later in the file confirms this
+reading by writing "non-trivial directed walk $v = v_0 \tuh \cdots \tuh v_n = v$
+($n \ge 1$)" (graphs.tex:231).
+
+The ambiguity matters for the corner case $n = 1$ (a self-loop $v \tuh v$).
+Under the inferred reading, a self-loop IS a non-trivial directed walk from $v$
+to itself, so an acyclic CDMG cannot contain self-loops. The CDMG definition
+itself (def_3_1) allows self-loops in $E \subseteq (J \cup V) \times V$ on any
+$v \in V$, and the marginalization footnote at graphs.tex:948 ("Note that this
+may introduce self-cycles") confirms self-loops are first-class in the
+framework. A reader who interpreted "non-trivial" more strongly — e.g., as
+"length $\ge 2$" or "visits at least two distinct nodes" — would conclude a
+graph with a self-loop is still acyclic, which contradicts the intended
+semantics and would later break the topological-order equivalence lemma.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+Trivial walk is simply a walk of length 1. Self loops are non-trivial and may thus not be in an acyclic graph 
+```
+
+### 25. `quantifier_v_in_G_ranges_over_input_nodes_too`
+
+- **Observed by row:** `def_3_6`
+
+**Explanation (from the wording-check worker):**
+
+The wording quantifies "for any node $v \in G$". By the notation
+convention in not-cdmg (def_3_2), "$v \in G$" means $v \in J \cup V$, so this
+includes input nodes $j \in J$. The CDMG remark at graphs.tex:87 establishes
+that no edge in $E$ may point into a $j \in J$ ("$j \hus v \notin G$"). A
+non-trivial directed walk ending at $j$ would need a final edge $v_{n-1} \tuh j$
+(an arrowhead into $j$), which is impossible by that structural constraint, so
+the universal quantifier is vacuously satisfied for every $v \in J$.
+
+This is technically harmless, but two things make it noteworthy:
+(a) the variable name $v$ conventionally suggests $v \in V$ in this document
+    (e.g. the family-relationships definition at line 136 writes "$v, w \in V$"),
+    so a reader may briefly wonder whether the author actually meant $v \in V$
+    rather than $v \in J \cup V$;
+(b) if a downstream consumer of this definition (e.g. a Lean formalization)
+    relies on the literal "$v \in G$" reading, it must allow the $v \in J$ case
+    to fall through trivially rather than excluding it by precondition. Stating
+    the quantifier explicitly as $v \in J \cup V$ (or just $V$, given the
+    constraint) would remove the minor friction.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 26. `w_in_G_membership_notation_ambiguous`
+
+- **Observed by row:** `def_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The set-builder uses "$w\in G$" in both
+\[\Pred^G_<(v) := \lC w\in G\,|\, w < v \rC\]
+and
+\[\Pred^G_\le(v) := \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
+But $G=(J,V,E,L)$ is literally a 4-tuple, so under a strict reading "$w \in G$" picks out one of the components $J$, $V$, $E$, or $L$ — which is clearly not the intended meaning. The intended meaning is almost certainly $w \in J \cup V$ (the nodes/vertices of $G$), matching the domain of the total order $<$. This is standard graph-theory shorthand but is genuinely ambiguous on a literal reading, and a downstream formalization will need to pick a precise convention (e.g. $J \cup V$ versus, say, $J \cup V \cup E$).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 27. `v_not_required_to_be_node_of_G`
+
+- **Observed by row:** `def_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The definition says "the set of \emph{predecessors} of $v$ in $G$" but never imposes "$v \in J \cup V$". The total order $<$ is declared to be "a total order of $J \cup V$", so the relation "$w < v$" inside $\lC w\in G\,|\, w < v \rC$ is only well-defined when $v \in J \cup V$. Corner case: if $v$ is some arbitrary element not in $J \cup V$, then $\Pred^G_<(v)$ requires evaluating "$w < v$" outside the domain of the order, and $\Pred^G_\le(v) = \Pred^G_<(v) \cup \{v\}$ would even contain an element ($v$) that is not a node of $G$ — making "$\Pred^G_\le(v) \subseteq J \cup V$" silently false. Any downstream lemma assuming $\Pred^G_\le(v) \subseteq$ nodes-of-$G$ would need the implicit hypothesis $v \in J \cup V$ stated explicitly.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 28. `pred_le_uses_strict_in_body_with_le_in_symbol`
+
+- **Observed by row:** `def_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The non-strict predecessor set is written as
+\[\Pred^G_\le(v) := \lC w\in G\,|\, w < v \rC \cup \{v\},\]
+i.e. the subscript is "$\le$" but the body still uses the strict "$<$" and then explicitly unions in $\{v\}$. Under the standard reading "$w \le v \iff w < v \lor w = v$" (with $v \in J \cup V$ so equality is the right tiebreaker), this is equivalent to $\lC w \in J\cup V \mid w \le v \rC$, so the two forms coincide. However, the literal form forces $v$ to be in the result even if $v \notin J \cup V$ (see related subtlety) and silently relies on $<$ being irreflexive (so $v$ is not already in $\Pred^G_<(v)$). If $<$ were ever taken as a non-strict order — there is no such hypothesis here, but readers can disagree about "total order" conventions — the symbol $\Pred^G_<$ would inadvertently already include $v$, making the $\Pred^G_\le$ vs $\Pred^G_<$ distinction collapse.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 29. `latent_edge_removal_relies_on_symmetric_huh_reading`
+
+- **Observed by row:** `def_3_10`
+
+**Explanation (from the wording-check worker):**
+
+The formula
+\[ L_{\doit(W)}:= L \sm \lC v \huh w\,|\, v \in G, w \in W \rC \]
+is written with an asymmetric role for the two endpoints: $v$ ranges over all of $G$ while $w$ is constrained to $W$. But $\huh$ denotes a bidirected (latent) edge, which is conventionally symmetric — $v \huh w$ and $w \huh v$ are the same edge. The literal reading only matches "edges where the *right-hand* endpoint is in $W$". For this to correctly strip every latent edge incident to $W$, the reader must interpret $L$ as containing unordered pairs and treat $v \huh w = w \huh v$ as the same element. If $L$ were stored as a set of ordered pairs (which is unusual for bidirected edges but not ruled out by anything in this block), a latent edge $a \huh b$ with $a \in W$ and $b \notin W$ would *not* be removed, because the formula's literal pattern requires the $W$-endpoint to be in the "$w$" position. The block itself never states the symmetry convention for $\huh$, so the correctness of the latent-edge stripping is contingent on a convention defined elsewhere.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 30. `w_may_contain_input_nodes_with_silent_latent_stripping`
+
+- **Observed by row:** `def_3_10`
+
+**Explanation (from the wording-check worker):**
+
+The precondition says $W \ins J \cup V$, so $W$ is allowed to contain *input* nodes ($W \cap J$ may be nonempty). For such a $w \in W \cap J$:
+\begin{itemize}
+\item $J_{\doit(W)} = J \cup W$ leaves $w$ in $J$ where it already was — vacuous.
+\item $V_{\doit(W)} = V \sm W$ does not touch $w$ — vacuous.
+\item The directed-edge removal $E \sm \{v \tuh w \,|\, \ldots\}$ may be vacuous as well, since in many CDMG conventions there are no directed edges into input nodes.
+\item But the latent-edge removal $L \sm \{v \huh w \,|\, \ldots\}$ *can* be non-trivial: bidirected (latent) edges incident to an input node $w \in J$ get silently stripped.
+\end{itemize}
+The closing prose only says "we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$" — this gives the impression that intervening on an existing input node is a no-op, when in fact it can delete latent confounders touching that input. Corner case: $W = \{j\}$ for $j \in J$. Then $G_{\doit(W)}$ has the same nodes and same directed edges as $G$, but loses every latent adjacent to $j$. A reader (or downstream proof) that assumes $G_{\doit(W)} = G$ whenever $W \subseteq J$ would be wrong.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 31. `prose_summary_omits_latent_edge_changes`
+
+- **Observed by row:** `def_3_10`
+
+**Explanation (from the wording-check worker):**
+
+The closing sentence — "where we turn all nodes from $W$ into input nodes and remove all edges into nodes from $W$" — describes only the node-partition change and the directed-edge change. It does not mention $L_{\doit(W)}$ at all. Since "edges into" is a phrase usually reserved for directed edges, a reader could easily take this prose at face value and miss that bidirected latents adjacent to $W$ are also being removed. This is a real prose/formula mismatch: clauses (i)–(iv) include item (iv) for $L$, but the explanatory gloss after the enumeration silently ignores that fourth change.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 32. `v_in_G_informal_quantifier`
+
+- **Observed by row:** `def_3_10`
+
+**Explanation (from the wording-check worker):**
+
+The set-builders use "$v \in G$" as the source quantifier, but $G = (J, V, E, L)$ is a 4-tuple, not a set of vertices. The intended reading is presumably $v \in J \cup V$ (any node of $G$). This is a minor abuse of notation but it is the only place in the block that names the underlying vertex set, so a literal reader can't tell whether $v$ is meant to range over (a) $J \cup V$, (b) $J \cup V \cup W$ (which is the same here since $W \subseteq J \cup V$), or (c) something else such as $E$ or $L$. The likely correct reading is unambiguous in context but the block does not pin it down.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 33. `w_is_free_unquantified_in_claim_body`
+
+- **Observed by row:** `claim_3_3`
+
+**Explanation (from the wording-check worker):**
+
+The variable $W$ appears in $G_{\doit(W)}$ but is never bound or quantified anywhere in the tex block. The statement reads "If $G$ is acyclic then also $G_{\doit(W)}$ is acyclic..." with no "for all $W \subseteq V(G)$" (or analogous restriction) preceding it. A literal reader has to guess whether:
+- $W$ is universally quantified over all subsets of $V(G)$,
+- $W$ is universally quantified over some specific class (e.g. only non-empty $W$, or only $W$ disjoint from some other set),
+- $W$ is a free variable referring to some $W$ fixed earlier in surrounding context that is not visible in this block.
+This matters for formalization: the Lean statement must commit to a quantifier on $W$, and the choice affects whether degenerate $W$ (empty $W$, $W = V(G)$, $W \not\subseteq V(G)$ if that's allowed) are covered. For instance, if $\doit(W)$ is only defined for $W \subseteq V(G)$, the claim implicitly carries that side condition; the tex doesn't say so.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+The context is given in the definition above
+```
+
+### 34. `a_topological_order_indefinite_article_ambiguity`
+
+- **Observed by row:** `claim_3_3`
+
+**Explanation (from the wording-check worker):**
+
+The phrase "a topological order for $G$ is also one for $G_{\doit(W)}$" uses the indefinite article "a", which in mathematical English can mean either "some" (existential) or "any/every" (universal). Read existentially the statement is vacuously weak — clearly the author means the universal reading: *every* topological order of $G$ is also a topological order of $G_{\doit(W)}$. The literal text leaves this slightly ambiguous. A downstream claim that picks a particular topological order of $G$ and uses it on $G_{\doit(W)}$ implicitly relies on the universal reading; if a formalizer encoded the existential reading the result would be trivially true but useless.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 35. `vertex_set_equality_under_do_not_stated`
+
+- **Observed by row:** `claim_3_3`
+
+**Explanation (from the wording-check worker):**
+
+The second conjunct — "a topological order for $G$ is also one for $G_{\doit(W)}$" — silently presupposes that $G$ and $G_{\doit(W)}$ have the same vertex set, since a topological order is an ordering on the vertex set. The tex block does not state this; it is presumably guaranteed by the definition of $\doit(W)$ elsewhere, but the claim's wording does not flag the dependence. If some variant of $\doit$ removed vertices in $W$ (rather than only severing incoming edges), the claim as stated would not type-check: a topological order of $G$ would be over a strictly larger vertex set than that of $G_{\doit(W)}$. The Lean encoder needs to know which convention applies.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 36. `iff_excludes_source_equals_endpoint_degeneracy`
+
+- **Observed by row:** `claim_3_5`
+
+**Explanation (from the wording-check worker):**
+
+The right-hand side of the iff forces $c \notin \{v, w\}$ via the two set-difference clauses "$\sm \{v\}$" and "$\sm \{w\}$": no $c$ on either side can equal $v$ or $w$. But the cited bifurcation definition (def_3_4, `def:walks`) is loose enough to admit "bifurcations" whose source *is* an endpoint, via the degenerate $k = n$ case. Specifically, def_3_4 requires only that "the subwalk $v_k \tuh \cdots v_n$ is a directed walk from $v_k$ to $v_n$", and a directed walk in this document explicitly admits $n=0$ (the trivial walk). So with $k = n$ the right arm collapses to the single node $v_n = w$, the form collapses to "$v_0 \hut v_1 \hut \cdots \hut v_{n-1} \hut v_n$" (a plain directed walk from $w$ to $v$), and the source is $v_k = v_n = w$.
+
+Concrete counterexample to the iff: take a CDMG with $V=\{v,w\}$, $E=\{w\tuh v\}$, $L=J=\emptyset$. The single edge "$v \hut w$" matches the bifurcation form with $k = n = 1$: both the left subwalk (the trivial walk at $v_0$) and the right subwalk (the trivial walk at $v_1$) are directed walks per the literal text, both endnodes appear exactly once, $v \ne w$, and the middle edge is directed ($v_0 \hut v_1$), so per def_3_4 this is a "bifurcation between $v$ and $w$ with source $w$". The LHS of the claim is therefore satisfied for $c = w$. But the RHS for $c = w$ is impossible: the second clause requires $w \in \Anc^{G_{\doit(v)}}(w) \sm \{w\}$, and the set difference removes $w$. So in this graph the iff is literally false in the "$\Rightarrow$" direction.
+
+The mirror-image degeneracy (source = $v$, via a directed walk from $v$ to $w$ read as a bifurcation with the roles of $v$ and $w$ swapped on the $\hut$/$\tuh$ sides of the form) also breaks the iff, since the claim's RHS is symmetric in $v,w$ and thus implicitly reads "bifurcation between $v$ and $w$" as unordered — under which reading source $= v$ is also achievable degenerately.
+
+A second pressure point in the same vein: when $w \in J$, no edge can end at $w$ (per claim_3_1 / `not-cdmg`), so the only bifurcations between $v$ and $w$ are degenerate (right arm trivial, source $= w$); the claim's RHS is then unsatisfiable for every $c$, while the LHS may still hold for $c = w$.
+
+Downstream impact: any Lean formalization of this Prp that quotes the iff verbatim will be unprovable in the "$\Rightarrow$" direction unless either (a) def_3_4 is tightened to require both arms to be non-trivial (i.e. $1 \le k$ and $k \le n - 1$, ruling out $c \in \{v,w\}$ as source), or (b) this proposition's quantifier is restricted to $c \in (V \cup J) \sm \{v, w\}$ and the claim is rephrased to require non-degeneracy. The proof that follows in graphs.tex tacitly assumes the non-degenerate reading by speaking of "non-trivial directed paths" — i.e. the author was thinking of the non-degenerate case all along — but the Prp's text never says so.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 37. `latent_edges_attached_only_to_W0_unexplained`
+
+- **Observed by row:** `def_3_11`
+
+**Explanation (from the wording-check worker):**
+
+The clause
+"$L_{\spl(W)} :=\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC$"
+silently picks the $W^0$-copy as the unique attachment point for every bidirected edge incident to a split node. For $w \in W$ with a latent edge $w \huh u$ in $L$, the result is $w^0 \huh u^0$, with **no** latent edge incident to $w^1$.
+
+This is a meaningful design choice (it bundles the latent confounding with the "input/natural" side of the split rather than the "output" side), but the text neither justifies it nor flags it as a choice. A naive reader could easily expect either (a) latent edges duplicated to both copies, or (b) latent edges attached on the $w^1$ side (the "outgoing" copy), and would not be alerted by the prose that a specific convention was made. Downstream identifiability/d-separation claims that involve nodes in $W$ may depend critically on this convention — e.g. whether bidirected paths can enter $w^1$ at all.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 38. `english_summary_omits_latent_edge_rule`
+
+- **Observed by row:** `def_3_11`
+
+**Explanation (from the wording-check worker):**
+
+The trailing English paraphrase reads
+"So all incoming edges onto nodes in $W$ become incoming edges into the corresponding nodes in $W^0$, all outgoing edges out of nodes in $W$ become outgoing edges out of the corresponding nodes in $W^1$, and edges $w^0 \tuh w^1$ are added for all nodes in $W$."
+This describes only the directed edge set $E_{\spl(W)}$ and the new bridge edges. It says nothing about $L$, despite the formal definition specifying a non-trivial rule (latent edges relocate to the $W^0$ copies). The mismatch between formal definition and prose summary means a reader skimming the summary may miss that bidirected edges are handled — and handled asymmetrically. This is the kind of gap that breeds disagreement when a later proof or another author/encoding reads the definition.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 39. `self_loop_on_W_node_creates_two_cycle`
+
+- **Observed by row:** `def_3_11`
+
+**Explanation (from the wording-check worker):**
+
+Consider $w \in W$ with a self-loop $w \tuh w \in E$ (i.e. $v_1 = v_2 = w$ in the comprehension $\lC v^1_1 \tuh v_2^0 \st v_1 \tuh v_2 \in E \rC$). The literal reading produces the edge $w^1 \tuh w^0$ in $E_{\spl(W)}$. Combined with the always-added bridge edge $w^0 \tuh w^1$, this gives a 2-cycle $w^0 \tuh w^1 \tuh w^0$ in the split graph.
+
+If CDMGs are assumed acyclic, the construction is fine *provided* CDMGs forbid directed self-loops to begin with — but that hypothesis is not stated in this definition, so the literal text admits an input under which the output is no longer acyclic. Any downstream lemma claiming "$G_{\spl(W)}$ is acyclic whenever $G$ is" needs to invoke a self-loop-free assumption, which is not surfaced here.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 40. `disjointness_of_new_copies_only_partially_stipulated`
+
+- **Observed by row:** `def_3_11`
+
+**Explanation (from the wording-check worker):**
+
+The text stipulates "$w^0 \neq w^1$ for $w \in W$" and writes the new vertex set as a disjoint union $(V \sm W) \dcup W^0 \dcup W^1$. However, it does not explicitly require $W^0 \cap V = \emptyset$, $W^1 \cap V = \emptyset$, $W^0 \cap J = \emptyset$, or $W^1 \cap J = \emptyset$. The use of $\dcup$ is *asserting* disjointness rather than constructing it, so under a strict literal reading the construction is only well-defined when the fresh symbols $w^0, w^1$ happen not to coincide with any existing element of $V \cup J$. In a Lean/formal encoding this matters: one cannot rely on prose intent and must produce fresh names (e.g. via $\Sigma$-types or tagged sums). The combination of this with the convention "$v^0 := v^1 := v$ for $v \in J \cup V \sm W$" is mildly slippery, because that latter convention silently *reuses* $v^0, v^1$ as labels for existing nodes — so the same notation $x^0$ means a fresh symbol when $x \in W$ but the original node when $x \notin W$.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+The reason of asserting disjointness, is because the new node sets are of a different `type', so disjointness is trivially true. So it needn't be enforced in any way.
+```
+
+### 41. `indexing_of_unsplit_nodes_left_implicit`
+
+- **Observed by row:** `claim_3_6`
+
+**Explanation (from the wording-check worker):**
+
+The construction explicitly assigns new indices only to the split copies of nodes in $W$ — "assigning for a node $v_j \in W$ with index $j$ the node $v_j^0$ the index $j-\frac{1}{3}$ and $v_j^1$ the index $j+\frac{1}{3}$". But the next clause, "and then ordering all nodes according to their index value", presupposes that every node of $G_{\spl(W)}$ has an index value, including the un-split nodes $v_j \in (J \cup V) \setminus W$. The text never spells out what index those nodes get. The intended (and only sensible) reading is that an unsplit node $v_j$ keeps its original integer index $j$ from the topological order of $G$; under that reading there are no collisions, since the fractional $\pm \tfrac{1}{3}$ offsets keep each split pair $\{v_j^0, v_j^1\}$ strictly between consecutive integers ($v_{j-1}$ at $j-1$ or $v_{j-1}^1$ at $j-\tfrac{2}{3}$, and $v_{j+1}$ at $j+1$ or $v_{j+1}^0$ at $j+\tfrac{2}{3}$). A literal/formal reading needs this convention made explicit, since otherwise the ordering relation is only partially specified by the tex.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 42. `w_scope_not_restricted_to_V`
+
+- **Observed by row:** `claim_3_6`
+
+**Explanation (from the wording-check worker):**
+
+The remark quantifies over "a node $v_j \in W$" where $j$ ranges over the indexing of all nodes $v \in J \cup V$, but the tex never says $W \subseteq V$. A literal reading therefore allows $W$ to contain context (J-)nodes, in which case the construction would split a $v_j \in J \cap W$ into $v_j^0, v_j^1$ — a configuration that is not standard for CADMG splits (where only random vertices in $V$ are typically split). If $W \cap J \neq \emptyset$ is in fact disallowed by the definition of $G_{\spl(W)}$ used elsewhere, the asserted acyclicity and the topological-order construction still go through trivially, but the literal scope of $W$ in this block is unconstrained, and a corner case where $W$ touches $J$ is not ruled out by the wording here.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 43. `cdmg_vs_cadmg_terminology_mismatch`
+
+- **Observed by row:** `claim_3_7`
+
+**Explanation (from the wording-check worker):**
+
+The lemma's setup declares $G = (J, V, E, L)$ to be a "CDMG", but in the very next sentence the terminology shifts:
+
+> "Then the **CDMG** obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same **CADMG** that arises from first node-splitting $W_2$ and then node-splitting $W_1$"
+
+The literal reading thus asserts that "a CDMG = a CADMG". If "CDMG" and "CADMG" denote distinct objects in this document (e.g., a general Conditional Directed Mixed Graph vs. a Conditional *Acyclic* Directed Mixed Graph), this is internally inconsistent: either both iterated splittings produce CDMGs, or both produce CADMGs, but the equality cannot meaningfully hold across two different categories of object. Even if this is a mere typo, downstream consumers of this lemma must decide which type the result inhabits — and whether the node-splitting operation $\spl(\cdot)$ takes a CDMG to a CDMG, or to a CADMG, or both depending on the input. The displayed equation also bakes this ambiguity in: the LHS is a splitting applied to $G_{\spl(W_1)}$, which the prose calls a "CDMG", while the same expression on the next side is called a "CADMG". A future proof that relies on closure of $\spl$ under a specific class will need this disambiguated.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I think it should be CDMG all the way through. 
+```
+
+### 44. `w_is_free_variable_in_remark`
+
+- **Observed by row:** `claim_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The remark opens with "For a CADMG $G=(J,V,E,L)$, also $G_{\swig(W)}$ is acyclic." Here $W$ is a free variable — it is neither universally quantified, existentially quantified, nor introduced as a parameter of the remark. The literal text gives no constraint on $W$ (e.g. $W \subseteq V$, $W$ non-empty, etc.). The reader must rely on the external definition of $G_{\swig(W)}$ to infer what $W$ is allowed to be. Strict readings of this remark are technically incomplete; the corner case "$W = \emptyset$" makes the construction trivially the original order, while "$W$ contains a node in $J$" (if not externally forbidden) makes the notation $v_j^o, v_j^i$ for a context node ill-defined under standard swig conventions.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 45. `non_w_node_indices_unspecified`
+
+- **Observed by row:** `claim_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The construction states only: "assigning for a node $v_j \in W$ with index $j$ the node $v_j^o$ the index $j-\frac{1}{3}$ and $v_j^i$ the index $j+\frac{1}{3}$". This assigns new indices only to the *split* copies of nodes in $W$. For every other node — i.e. $v_j \in J$ and $v_j \in V \setminus W$ — the remark never explicitly assigns an index in the new order. The remark then says "ordering all nodes according to their index value," which presupposes every node has an index. The natural reading is "non-$W$ nodes keep their original integer index $j$," but this is not stated. A pedantic reader could interpret the literal text as defining a partial order only on the split copies, leaving unsplit nodes index-less and therefore unordered. The corner case that makes this concrete: if $V = W$ then every $V$-node is split and only nodes in $J$ are missing an index assignment under the literal reading; the construction silently relies on $J$-nodes inheriting integer indices from the original $<$.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 46. `topological_order_claim_unverified`
+
+- **Observed by row:** `claim_3_9`
+
+**Explanation (from the wording-check worker):**
+
+The remark asserts that the index assignment produces a topological order for $G_{\swig(W)}$ ("a topological order for $G_{\swig(W)}$ can be achieved by..."), but provides no argument that the new ordering actually respects the edges of $G_{\swig(W)}$. The swig operation introduces fresh edges involving $v_j^o$ and $v_j^i$ (e.g. inherited parents/children of the split node $v_j$), and the claim implicitly requires that every such edge runs from a lower index to a higher index under the new assignment. The verification is straightforward but is not present in the literal text — the remark is in effect "here is a construction, trust it." A downstream proof that wants to use *this specific* topological order will need to supply the missing edge-by-edge check (parents of $v_j$ go to $v_j^i$ at $j+\tfrac{1}{3}$; $v_j^o$ at $j-\tfrac{1}{3}$ goes to children of $v_j$; the random edge $v_j^o \to v_j^i$ goes from $j-\tfrac{1}{3}$ to $j+\tfrac{1}{3}$), none of which is in the text.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 47. `nested_swig_requires_w2_in_modified_output_partition`
+
+- **Observed by row:** `claim_3_10`
+
+**Explanation (from the wording-check worker):**
+
+The formula $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$ applies $\swig(W_2)$ to the CADMG produced by $\swig(W_1)$ on $G$. The text only establishes that "$W_1, W_2 \ins V$" where $V$ is the output partition of the *original* $G$, and calls them "two disjoint subsets of the output nodes from $G$". For the inner $\swig(W_2)$ to be well-typed, $W_2$ must lie in the output partition of $G_{\swig(W_1)}$, not merely of $G$.
+
+Depending on how $\swig$ is defined elsewhere, the output partition of $G_{\swig(W_1)}$ may differ from $V$:
+- If $\swig$ moves the intervened nodes into the context/input partition $J$ (a common SWIG convention), then the new output partition is $V \setminus W_1$, and we need $W_2 \subseteq V \setminus W_1$ — which follows from disjointness, but only because of disjointness.
+- If $\swig$ adds new "fixed" copies of $W_1$ alongside the originals, the output partition might still contain $W_2$ for unrelated reasons.
+
+The lemma is correct under both conventions, but the disjointness hypothesis is doing load-bearing work to make the nested expression well-typed, and the tex never says so. A Lean formalization will need to pin down the type of $\swig$ and prove (or build in) that $W_2$ remains a valid intervention target on the inner result — likely as a side condition or as a lemma about how $\swig$ acts on the output partition. The right-hand side $G_{\swig(W_1 \dcup W_2)}$ does not suffer from this issue, since $W_1 \dcup W_2 \subseteq V$ directly.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 48. `w1_may_intersect_context_j_asymmetric_with_w2`
+
+- **Observed by row:** `claim_3_11`
+
+**Explanation (from the wording-check worker):**
+
+The hypothesis is asymmetric in a notable way: the text writes "$W_1 \ins J \cup V$ and $W_2 \ins V$". So the hard-intervention set $W_1$ is *allowed* to include context (fixed) nodes from $J$, while the node-splitting set $W_2$ is restricted to random nodes $V$.
+
+This literal reading raises a corner case: take $W_1 = \{j\}$ for some $j \in J$ (so $W_1 \subseteq J$ entirely) and $W_2 = \{v\}$ for some $v \in V$ with $v \neq j$. They are disjoint. The claim then asserts
+\[(G_{\doit(\{j\})})_{\swig(\{v\})} = (G_{\swig(\{v\})})_{\doit(\{j\})}.\]
+For this to be meaningful, $\doit(W_1)$ must be defined when $W_1$ contains nodes that are already in $J$. There are two natural readings:
+
+1. $\doit$ on a node already in $J$ is a no-op (since context nodes are already "fixed" by conditioning). Then the inclusion of $J$ in the scope of $W_1$ is harmless but vacuous, and commutativity in that subcase is trivial.
+
+2. $\doit$ requires its argument to be a subset of $V$ (i.e., only random nodes can be intervened on). Then the claim as stated is ill-formed whenever $W_1 \cap J \neq \emptyset$.
+
+The tex of this row does not pick a side. Likewise, after performing $\swig(W_2)$, the resulting CADMG has $W_2$ nodes split into a "random" copy and a "fixed/intervention" copy; the text then applies $\doit(W_1)$ to that new graph, but $W_1$ was originally defined as a subset of $G$'s node set $J \cup V$, not the (larger) node set of $G_{\swig(W_2)}$. Because $W_1 \cap W_2 = \emptyset$, the nodes of $W_1$ survive splitting unchanged, so this is fine — but the equality of the two resulting CADMGs is checked over node sets that include the post-split copies of $W_2$, and the text doesn't make explicit that the labels/identities of those split copies are the same on the LHS and RHS. (A formalization will need to confirm that splitting $w \in W_2$ produces the same named split-node regardless of whether $\doit(W_1)$ was applied first or second.)
+
+A downstream formalization should commit on whether the LN's definition of $\doit$ accepts $W_1 \subseteq J \cup V$ or only $W_1 \subseteq V$, and reconcile this claim's scope with that choice.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 49. `ins_macro_likely_typo_for_subseteq`
+
+- **Observed by row:** `claim_3_12`
+
+**Explanation (from the wording-check worker):**
+
+The expression "$w \in W_1 \cap W_2 \ins V$" contains the
+command `\ins`, which is not standard LaTeX (`\in` is "element of",
+`\ni` is "owns"). Read as a chained relation, the intended meaning
+appears to be "$w \in W_1 \cap W_2 \subseteq V$" — i.e. the author
+likely meant `\subseteq` (since $W_1 \cap W_2$ is a subset, not an
+element, of $V$). If `\ins` is not a custom macro defined elsewhere
+in the project, the literal source either fails to compile or
+renders as undefined text. Worth verifying against the macros file;
+if no macro exists, this is a typo that obscures the (presumably
+intended) subset relation.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+
+
+
+
+### 50. `node_split_on_input_node_semantics_left_implicit`
+
+- **Observed by row:** `claim_3_12`
+
+**Explanation (from the wording-check worker):**
+
+The phrase "a node-splitting hard intervention (if we would
+define it for input nodes) would not change $w^i$" treats the
+behavior of node-splitting on an input node as a counterfactual
+("if we would define it") while simultaneously asserting a definite
+outcome ("would not change $w^i$"). The literal reading is
+ambiguous between (a) "we hereby adopt the convention that
+node-splitting on input nodes is the identity" and (b) "if one were
+to extend the definition, the natural extension would be the
+identity — but we are not committing to that". Downstream
+reasoning about the composition `split ∘ hard-intervene` when
+$W_1 \cap W_2 \neq \emptyset$ implicitly depends on (a), but the
+text never formally adopts it. A reader following the literal
+counterfactual phrasing could legitimately wonder whether the
+composition is well-defined at all on the overlap.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+This remark should not be formalized, and can thus be immediately marked as 'solved'. It is not meant as a claim, more as something to think about.
+```
+
+### 51. `two_input_node_plural_typo`
+
+- **Observed by row:** `claim_3_12`
+
+**Explanation (from the wording-check worker):**
+
+The sentence "So in the latter case we are left with two
+input node $(w^o)^i$, ... and $w^i$, ..." reads literally as
+"two input node" (singular). The intended plural is presumably
+"two input nodes". Minor, but in a passage that already uses
+several variant superscript notations ($w^i$, $w^o$, $(w^o)^i$),
+clean plural agreement helps the reader parse which symbols
+denote which nodes.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+This remark should not be formalized, and can thus be immediately marked as 'solved'. It is not meant as a claim, more as something to think about.
+```
+
+### 52. `intervention_on_context_node_is_structural_noop`
+
+- **Observed by row:** `def_3_13`
+
+**Explanation (from the wording-check worker):**
+
+The literal definition makes "intervening on a context node $j \in J$" produce no structural change to the graph. Concretely:
+- $I_j := j$ for $j \in J \cap W$ (so the "intervention node" *is* the context node itself).
+- The new-node clause (i) uses $\{I_w \mid w \in W \sm J\}$, so no new node is added for $w \in J \cap W$.
+- The new-edge clause (iii) uses $\{I_w \tuh w \mid w \in W \sm J\}$, so no new edge $I_w \tuh w$ is added for $w \in J \cap W$.
+
+Corner case: if $W \subseteq J$ (e.g., $W = J$, or any singleton $W = \{j\}$ with $j \in J$), then $W \sm J = \emptyset$ and $G_{\doit(I_W)} = G$ on the nose. A reader who interprets "the extended CDMG w.r.t. nodes $W$" as "add an intervention marker for each node in $W$" would be surprised that intervention on context nodes is invisible at the graph level.
+
+The author's commented-out side note ("%not W \sm J, makes weak and hard interventions commute") signals this is a *deliberate* design choice, but the definition itself never states the design rationale or the consequence "$G_{\doit(I_W)} = G$ whenever $W \subseteq J$". Downstream lemmas asserting properties about $G_{\doit(I_W)}$ for arbitrary $W$ will silently reduce to trivial statements when $W$ is purely context-side, and any "preservation under intervention" claims need to be read with this in mind.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 53. `fresh_intervention_symbols_only_implicit`
+
+- **Observed by row:** `def_3_13`
+
+**Explanation (from the wording-check worker):**
+
+Clauses (i) and (iii) use the disjoint-union symbol $\dotcup$:
+- $J_{\doit(I_W)} := J \,\dot{\cup}\, \{I_w \mid w \in W \sm J\}$
+- $E_{\doit(I_W)} := E \,\dot{\cup}\, \{I_w \tuh w \mid w \in W \sm J\}$
+
+The $\dotcup$ presupposes that the symbols $I_w$ for $w \in W \sm J$ are (a) fresh, i.e. not already present in $J \cup V$, and (b) pairwise distinct for distinct $w$. Neither condition is stated explicitly: the definition only writes "with $I_j := j$ for $j \in J \cap W$" and leaves the value of $I_w$ for $w \in V \cap W$ entirely unspecified — the reader has to infer "$I_w$ is a fresh symbol indexed by $w$".
+
+If one tries to apply the definition to a CDMG that happens to already contain a node whose name collides with some $I_w$ (e.g. a node literally called "$I_{v_3}$"), the disjoint union is ill-defined as written. A faithful reading needs an explicit precondition or an explicit construction (e.g. "let $I_w$ denote the formal symbol $(w, *)$" or similar).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 54. `I_W_mixes_fresh_nodes_and_existing_context_nodes`
+
+- **Observed by row:** `def_3_13`
+
+**Explanation (from the wording-check worker):**
+
+The set $I_W = \{I_w \mid w \in W\}$ has heterogeneous membership under the convention $I_j := j$ for $j \in J \cap W$:
+- For $w \in J \cap W$: $I_w = w$, so $I_W$ contains the *existing context node* $w \in J$.
+- For $w \in V \cap W$: $I_w$ is a fresh symbol disjoint from $J \cup V$.
+
+Consequently $I_W \cap J = J \cap W$, which may be non-empty. This contradicts the natural reading of the phrase "corresponding intervention nodes $I_W$" as a set of newly-introduced nodes, and it makes the subscript $\doit(I_W)$ in $G_{\doit(I_W)}$ refer to a *mixed* set of pre-existing context nodes plus fresh markers.
+
+Concrete consequence: if a later result or claim writes something like "for each $i \in I_W$, …", that quantifier ranges over a mix of pre-existing $J$-nodes and brand-new intervention symbols, which behave very differently in the extended graph (the former have whatever edges $G$ already gave them, the latter have a single outgoing $\tuh$ edge). Any property indexed by $I_W$ needs to be checked separately on these two regimes.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+The intervention nodes are new nodes. They did not exist in the graph before the intervention operation was applied.
+```
+
+### 55. `do_intervention_topo_order_reverse_direction_depends_on_edge_removal`
+
+- **Observed by row:** `claim_3_13`
+
+**Explanation (from the wording-check worker):**
+
+The remark states "a topological order for $G_{\doit(I_W)}$ is also one for $G$". The truth of this depends critically on the (unstated-in-this-block) convention for what $G_{\doit(I_W)}$ does to the original incoming edges of each $w \in W$:
+
+- If hard intervention REMOVES the original incoming edges of each $w \in W$ (the standard Pearl-style $\mathrm{do}$-operator convention), then $G_{\doit(I_W)}$ has strictly *fewer* ordering constraints on $V$ than $G$. Concretely, if $v \to w$ is an edge of $G$ with $w \in W$, that edge is gone in $G_{\doit(I_W)}$, so a topological order on $V \cup I_W$ is free to place $w$ before $v$. Restricting that order back to $V$ then violates $G$'s constraint $v \prec w$, and the claim "is also one for $G$" is FALSE.
+
+  Concrete corner case: take $G$ with $V=\{v,w\}$, single edge $v \to w$, and $W=\{w\}$. Under edge-removal $\doit$, $G_{\doit(I_W)}$ has vertices $\{v,w,I_w\}$ and only the edge $I_w \to w$. The ordering $(I_w, w, v)$ is a valid topological order of $G_{\doit(I_W)}$, but its restriction $(w,v)$ to $V$ is NOT a topological order of $G$.
+
+- If hard intervention PRESERVES the original edges (e.g., an augmented-DAG convention where $I_w$ is added as an extra parent of $w$ without deleting the existing parent edges), then every constraint of $G$ still holds in $G_{\doit(I_W)}$, and the claim holds.
+
+Note that the *forward* direction in the next sentence — "any topological order of $G$ can be extended ... by putting all the $I_w$ nodes first" — is fine under either convention, because adding source nodes never breaks a topological order. The asymmetry is precisely what makes the reverse direction the load-bearing subtle one.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 56. `topo_order_vertex_sets_of_g_and_g_do_differ_implicit_restriction`
+
+- **Observed by row:** `claim_3_13`
+
+**Explanation (from the wording-check worker):**
+
+A topological order for $G_{\doit(I_W)}$ is, strictly speaking, an ordering of *its* vertex set — which from the same paragraph's later sentence is clearly $V \cup I_W$ (the original vertices plus the freshly added intervention vertices $I_w$, one per $w \in W$). A topological order for $G$ is an ordering of $V$ alone. The bare phrase "a topological order for $G_{\doit(I_W)}$ is also one for $G$" therefore does not type-check on its face: the two objects live in different ambient sets. The author presumably means "its restriction to $V$ is a topological order for $G$", but the restriction is left implicit. The companion sentence avoids this issue by using the word "extended", which makes the direction (and the vertex-set growth) unambiguous, but the converse sentence quoted above does not. A formalization will have to supply the restriction explicitly and then face the issue described in `do_intervention_topo_order_reverse_direction_depends_on_edge_removal`.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 57. `doit_overloaded_for_node_addition_vs_hard_intervention`
+
+- **Observed by row:** `claim_3_14`
+
+**Explanation (from the wording-check worker):**
+
+The notation $G_{\doit(\cdot)}$ is used with two structurally different meanings inside this single lemma. In the second equation, $G_{\doit(W_2)}$ has $W_2 \subset J \cup V$ as its argument — these are pre-existing nodes of $G$ and the operation is presumably the standard hard intervention (severing incoming edges into $W_2$). But in both equations the expression $G_{\doit(I_{W_1})}$ has $I_{W_1}$ as its argument — and $I_{W_1}$, per the lemma title "Adding intervention nodes ...", is a set of intervention nodes *added* to $G$ rather than already in $G$. So $G_{\doit(I_{W_1})}$ cannot be plain hard intervention (you cannot hard-intervene on nodes that are not in the graph); it must be a compound operation that first introduces $I_{W_1}$ into the graph and then does something. The same syntactic form $\doit(\cdot)$ thus denotes two genuinely different graph operations, distinguished only by whether its argument is a set of pre-existing nodes or a set of fresh intervention nodes. A reader who looks only at this block has to infer the distinction from the argument's type.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+In this lemma the do() operation is used in two different ways. Say W is a subsect of J union V. If we see G_{do(I_W)} then it refers to adding intervention nodes, and G_{do(W)} refers to the hard intervention operation on W. So we we see both in the same do(), this is notation of having done both operations.
+```
+
+### 58. `compound_doit_two_argument_notation_unspecified`
+
+- **Observed by row:** `claim_3_14`
+
+**Explanation (from the wording-check worker):**
+
+The RHS of the second equation, $G_{\doit(I_{W_1}, W_2)}$, uses a comma-separated two-argument form of $\doit$ that does not appear anywhere else in the block and is not given an independent definition. It is being implicitly *introduced* by the equation as "the common value of the two orderings on the LHS", i.e. "add intervention nodes for $W_1$ and hard-intervene on $W_2$, in either order". But syntactically nothing in the tex tells the reader that the comma here means a combined mixed-type operation rather than, e.g., union (as in the first equation's $I_{W_1 \cup W_2}$) or left-to-right sequencing. The lemma is therefore simultaneously asserting commutativity and silently defining the joint notation, which is a confusing thing to do in a single equation. Downstream uses of $G_{\doit(I_{W_1}, W_2)}$ would inherit this implicit definition.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 59. `first_equation_not_a_hard_intervention_statement`
+
+- **Observed by row:** `claim_3_14`
+
+**Explanation (from the wording-check worker):**
+
+The lemma title reads "Adding intervention nodes commutes with disjoint hard interventions", but the first displayed equation
+\[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} = G_{\doit(I_{W_1 \cup W_2})} \]
+contains no hard intervention at all — both operations on either side are intervention-node-additions. Only the second equation matches the title's description (one node-addition vs. one hard intervention). This is mostly an editorial mismatch rather than a logical defect, but it can mislead a reader who scans the title and assumes both displayed equations involve a mix of the two operations, and it suggests the lemma is really doing two things at once ("addition commutes with addition" and "addition commutes with hard intervention") that arguably should be stated separately.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 60. `W_subset_may_contain_existing_intervention_nodes_in_J`
+
+- **Observed by row:** `claim_3_14`
+
+**Explanation (from the wording-check worker):**
+
+The hypothesis is "$W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$". Taking $J$ to be the set of intervention / decision nodes of the CDMG (consistent with the tuple $G = (J, V, E, L)$), this explicitly permits $W_1$ or $W_2$ to contain elements already in $J$. The lemma then writes $I_{W_1}$ and $I_{W_2}$ without restricting $W_i$ to non-intervention nodes. If the convention is that $I_W$ attaches a fresh intervention node $I_v$ for each $v \in W$, then for $v \in J$ the operation $I_W$ is adding an intervention node *for a node that is already itself an intervention node* — a degenerate corner case that the lemma's literal statement does not exclude or comment on. The commutation in either equation might still hold there, but only if $I_W$ is well-defined (and unique up to renaming) on intervention-node inputs, which the lemma does not establish or even acknowledge. A reader formalizing this strictly would need to either restrict $W_i \subseteq V$ or pin down the behavior of $I_W$ on $W \cap J$.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 61. `w2_may_include_existing_intervention_nodes_in_j`
+
+- **Observed by row:** `claim_3_15`
+
+**Explanation (from the wording-check worker):**
+
+The hypothesis states "$W_2 \ins J \cup V$", explicitly allowing $W_2$ to include nodes already in $J$ — i.e., existing context/intervention nodes of the CADMG. The phrase "introducing intervention nodes $I_{W_2}$" and the operation "$\doit(I_{W_2})$" are not pinned down by this statement in the corner case $W_2 \cap J \neq \emptyset$: for some $j \in J \cap W_2$, the "introduced intervention node $I_j$" is being attached to a node that is already an intervention node. A literal reader cannot tell from this lemma alone whether $\doit$ on such $j$ is a no-op, adds a further intervention layer, or is undefined. A concrete corner case: $W_1 = \emptyset$ and $W_2 \subseteq J$. Both sides reduce to $G_{\doit(I_{W_2})}$ where every "newly introduced" intervention node points to something already in $J$ — the result depends entirely on a convention not stated here. If a downstream proof unfolds either side definitionally and relies on $W_2 \subseteq V$ implicitly, the lemma's stated hypothesis is broader than what the proof actually supports.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 62. `prose_and_equation_orders_are_swapped`
+
+- **Observed by row:** `claim_3_15`
+
+**Explanation (from the wording-check worker):**
+
+The prose describes the equality as: "the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$." Reading left-to-right, the prose-LHS is intro-then-split, i.e., $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$, and the prose-RHS is split-then-intro, i.e., $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$. But the displayed equation writes $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$ — the two sides are swapped relative to the prose. The claim is symmetric so the truth value is unaffected, but a strict reader matching the verbal "first... then..." order to equation sides has to do a mental swap. This is harmless for the lemma's content but slightly internally inconsistent in presentation.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+
+### 63. `bifurcation_index_boundary_excludes_natural_cases`
+
+- **Observed by row:** `def_3_14`
+
+**Explanation (from the wording-check worker):**
+
+The bifurcation in (iv) is written as
+"$\ul{v} \hut w_1 \hut \cdots \hut w_{k-1} \hus w_k \tuh \cdots \tuh w_{n-1} \tuh \ol{v}$, where all intermediate nodes $w_1,\dots,w_{n-1} \in W$ (if any)."
+
+Read strictly, the only $w_i$'s that exist are $w_1, \ldots, w_{n-1}$. The bidirected edge sits at $w_{k-1} \leftrightarrow w_k$, so for both endpoints of the bidirected edge to appear in the list of intermediates we need $k-1 \geq 1$ AND $k \leq n-1$, hence $2 \leq k \leq n-1$, which forces $n \geq 3$.
+
+Under that strict reading, the following natural marginalization cases are *not* captured:
+- $n=1$: a preserved direct bidirected edge $\ul{v} \leftrightarrow \ol{v}$ already present in $L$ (no intermediates at all).
+- $n=2, k=1$: a "Y" of the form $\ul{v} \leftrightarrow w_1 \to \ol{v}$ with $w_1 \in W$.
+- $n=2, k=n=2$: the mirror Y $\ul{v} \leftarrow w_1 \leftrightarrow \ol{v}$ with $w_1 \in W$.
+
+Yet the "(if any)" qualifier on $w_1, \dots, w_{n-1}$ is intended to permit zero intermediates ($n=1$). That qualifier is only consistent with the bifurcation if the reader silently identifies $w_0 := \ul{v}$ and $w_n := \ol{v}$, allowing $k$ to range over $\{1, \dots, n\}$ — so $k=1$ means "$\ul{v}$ is the left side of the bidirected edge" and $k=n$ means "$\ol{v}$ is the right side". This convention is nowhere stated in the tex.
+
+Concrete consequence: a downstream encoder/proof that takes the displayed index range literally will (a) fail to preserve plain bidirected edges already in $L$ on nodes of $V \setminus W$, and (b) miss Y-structures where one of the marginalized endpoints sits directly at the bidirected fork. Any later theorem of the form "if $G$ had a bidirected edge between two survivors, so does $G^{\sm W}$" would be unprovable from the literal text.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+Use the definition of bifurcation that is already formalized. That is the correct one.
+```
+
+### 64. `self_cycle_asymmetry_between_directed_and_bidirected`
+
+- **Observed by row:** `def_3_14`
+
+**Explanation (from the wording-check worker):**
+
+Clause (iii) places no inequality constraint on $\ul{v}, \ol{v}$ for new directed edges, and the footnote explicitly endorses the resulting self-cycles: "Note that this may introduce self-cycles." So a closed directed walk $v \to w_1 \to \cdots \to w_{n-1} \to v$ with all $w_i \in W$ produces a self-loop $v \to v$ in $E^{\sm W}$.
+
+Clause (iv), by contrast, requires "$\ul{v}, \ol{v} \in V \sm W, \ul{v} \neq \ol{v}$". So a "self-bifurcation" $v \leftarrow w_1 \leftrightarrow w_2 \to v$ with $w_1, w_2 \in W$ — which the bifurcation schema literally admits as a walk-shaped structure — is silently dropped, with no analogous footnote justifying the asymmetry. The bidirected case forbids what the directed case explicitly tolerates.
+
+This is a real interpretive asymmetry, not a typo: it is built into the text via the explicit "$\ul{v} \neq \ol{v}$" gate plus the absent footnote. A reader following the directed analogy might wrongly expect self-bidirected edges; conversely, a strict reader might wonder whether the "$\ul{v} \neq \ol{v}$" was actually intended to also rule out the directed self-loops (and the footnote is a concession that it does not). It would be worth pinning down which side the formalization should follow. Likely intent: directed self-loops survive (footnote), bidirected self-loops do not (explicit inequality) — and this asymmetry should be carried through faithfully rather than "fixed" in either direction by an encoder thinking it is harmonizing the two clauses.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+The observed assymetry is correct. One thing I will add: that a directed walk of length 1 (where all intermediate nodes, which are none, are in W) should not result in the self-cycle. These directed walks should have length at least 2 (note that in the case of length=2, we also don't have intermediate nodes in W, but then that is fine and that edge should remain) 
+```
+
+### 65. `walk_vs_path_unspecified_for_bifurcation`
+
+- **Observed by row:** `def_3_14`
+
+**Explanation (from the wording-check worker):**
+
+In (iii) the text is explicit: "there exists a directed walk in $G$" — walks allow repeated vertices and edges, which is the standard convention. In (iv), the analogous existential reads only "there exists a bifurcation in $G$: $\ul{v} \hut w_1 \hut \cdots \hus w_k \tuh \cdots \tuh w_{n-1} \tuh \ol{v}$" with no walk-vs-path qualifier. The notation alone does not constrain whether the $w_i$ may repeat (i.e., whether the two arms can revisit the same $W$-vertex or even cross each other).
+
+In existential, set-level semantics this almost certainly does not change which bidirected edges land in $L^{\sm W}$ — any "walk-style" bifurcation can be shortened to a "path-style" one with the same endpoints — so the *output* of the definition is probably the same either way. But the literal text leaves the structural class of "bifurcation" under-specified, and an encoder will have to choose (a) walk-style (e.g., allow repeats) for symmetry with (iii), or (b) path-style (e.g., distinct intermediates) as a separately motivated choice. The text gives no anchor for the choice.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 66. `bifurcation_optional_v3_phrasing_ambiguity`
+
+- **Observed by row:** `claim_3_16`
+
+**Explanation (from the wording-check worker):**
+
+Part 2's wording "For $v_1,v_2 \in G \sm W$ (and, optionally, $v_3 \in G\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$" packages two distinct mathematical statements into one sentence via the unusual parenthetical "(and, optionally, ...)".
+
+The intended natural reading appears to be: "the biconditional holds in two forms — (a) the existence form, omitting the parenthetical '(with source $v_3$)' from both sides, and (b) the source-specific form, including '(with source $v_3$)' on both sides with $v_3 \in G \sm W$." But "optionally" applied to a quantifier is not standard mathematical English and a reader might instead parse "(and, optionally, $v_3 \in G\sm W$)" as introducing an existential clause ("there optionally exists a $v_3$..."), which is not well-formed.
+
+The remark would be unambiguous if split into two separate statements rather than overloading one sentence with an "optionally" parenthetical.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+Part 2 is basically two claims. Once read without the parenthesese, and once read with the parentheses
+```
+
+### 67. `bifurcation_source_in_W_silently_unaddressed`
+
+- **Observed by row:** `claim_3_16`
+
+**Explanation (from the wording-check worker):**
+
+Part 2's source-specific form restricts to $v_3 \in G \sm W$ ("optionally, $v_3 \in G\sm W$"). This explicitly leaves out the case where the source of a bifurcation in $G$ lies in $W$ itself.
+
+Concrete corner case: suppose $w \in W$ has directed paths to two nodes $v_1, v_2 \in G \sm W$. Then $(v_1, v_2)$ has a bifurcation in $G$ with source $w \in W$. The source-specific biconditional says nothing about this case because $v_3 \notin G \sm W$. The existence form of the biconditional (the "without $v_3$" version) is what implicitly covers it — but only by asserting "some bifurcation exists in $G^{\sm W}$", which requires the source to silently transform from $w$ (now marginalized away) to some new source $v_3' \in G \sm W$.
+
+This source-transformation is a substantive fact about marginalization that is hidden inside the existence form. A reader who only carries away the source-specific form (which looks more precise) would walk away thinking marginalization preserves bifurcations only when the source is already in $G \sm W$ — and would miss that bifurcations with sources in $W$ are also preserved (with a different source). Downstream proofs invoking "the source $v_3$ in $G$ is the source $v_3$ in $G^{\sm W}$" only work when $v_3 \in G \sm W$, and may silently fail if applied to a bifurcation whose original $G$-source happened to be in $W$.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 68. `trailing_similar_statement_two_unstated_claims`
+
+- **Observed by row:** `claim_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The lemma's final sentence reads: "A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions." This packages two additional commutativity claims into the lemma without ever stating them. A reader (or a downstream proof) that wants to cite "marginalization commutes with adding intervention nodes" or "marginalization commutes with node-splitting interventions" has nothing precise to cite — neither the operands' types, nor the side conditions analogous to "$W_1 \ins J \cup V$, $W_2 \ins V$, disjoint", nor the operations themselves are spelled out. In particular, "adding intervention nodes" and "node-splitting interventions" are referenced by name only; their precise interaction with marginalization (e.g. which nodes you are allowed to add intervention to, what disjointness condition is needed, what the resulting CDMG components are) is left implicit. Downstream, any proof that wants to use these two facts will either need to re-derive a precise statement or risk an unintended reading. If the formalization is meant to capture the whole lemma faithfully, only the explicit equation is actually capturable; the other two "statements" are not stated.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+There are in fact 3 claims being made here. The main one, and then two additional claims in the final sentence. All 3 should be formalized.
+```
+
+### 69. `doit_on_W1_intersect_J_corner_case`
+
+- **Observed by row:** `claim_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The hypothesis allows $W_1 \ins J \cup V$, so $W_1$ may contain nodes that are already intervention nodes (in $J$). The operation $G_{\doit(W_1)}$ is then being applied with an argument that may include nodes already in $J$. The literal reading of "intervene on a node that is already an intervention node" depends on whether $\doit$ is defined to act idempotently on $J$-nodes, to be a no-op there, or only to act on the $V$-part. Corner case: if $W_1 \ins J$ entirely (so $W_1 \cap V = \emptyset$), then both sides should reduce to $G^{\sm W_2}$ (since $\doit$ on already-$J$ nodes does nothing) — but this hinges on a convention that is not stated in this block. If a downstream proof of the equality unfolds $\doit(W_1)$ by case-splitting on $W_1 \cap V$ vs $W_1 \cap J$, the $W_1 \ins J$ corner is the one most likely to expose an unstated convention.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 70. `title_singular_intervention_vs_three_claims`
+
+- **Observed by row:** `claim_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The lemma's title is "Marginalization and intervention commute" (singular "intervention"), but the body asserts three distinct commutativity facts: the explicit one for $\doit$, plus the two trailing "similar statement" claims for "adding intervention nodes" and "node-splitting interventions." A reader using the title as a search anchor will think the lemma covers a single $\doit$/marginalization commutation, and miss that the lemma also implicitly carries two further commutation claims. This is a mild ambiguity between the title's scope and the body's scope.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+
+### 71. `left_right_chain_admit_bidirected_far_edge`
+
+- **Observed by row:** `def_3_15`
+
+**Explanation (from the wording-check worker):**
+
+The non-collider cases "left chain" and "right chain" use the wildcard mark `s` at the far endpoint, which the parallel macros (`\sus` for a generic walk edge, `\suh` / `\hus` in the collider's both endpoints) strongly suggest is a "this endpoint mark is unspecified / could be head or tail" wildcard rather than a fixed third mark.
+
+- left chain `v_{k-1} \hut v_k \hus v_{k+1}`: the left edge is pinned to `v_{k-1} \leftarrow v_k` (head at `v_{k-1}`, tail at `v_k`), but the right edge fixes only head-at-`v_k`; the mark at `v_{k+1}` is the wildcard `s`.
+- right chain `v_{k-1} \suh v_k \tuh v_{k+1}`: symmetric — the right edge is pinned to `v_k \to v_{k+1}`, but the left edge fixes only head-at-`v_k`; the mark at `v_{k-1}` is the wildcard `s`.
+
+Concretely, "left chain" therefore includes the configuration `v_{k-1} \leftarrow v_k \leftrightarrow v_{k+1}` (a directed edge into `v_{k-1}` followed by a bidirected edge into `v_{k+1}`), and "right chain" includes `v_{k-1} \leftrightarrow v_k \to v_{k+1}`. Neither of these is a "chain" in the colloquial sense of a path of co-oriented directed edges — yet the literal definition labels them as such, because the position `v_k` only sees a `(t,h)` (resp. `(h,t)`) mark pair regardless of what the far edge does.
+
+Contrast with the fork case `v_{k-1} \hut v_k \tuh v_{k+1}`, which carries *no* wildcards: it pins both far endpoints to be heads, so a "fork" is strictly the classical `v_{k-1} \leftarrow v_k \to v_{k+1}` (directed–directed). The asymmetry — fork being strict, chains being lax — is logically consistent with the "at most one arrowhead at `v_k`" criterion (since `(t,t)` at `v_k` in a graph with only directed and bidirected edges forces both edges to be directed), but it is not signposted by the case names.
+
+Why this matters downstream: any later result that invokes "let `v_k` be on a left chain" and silently assumes the far edge is directed (e.g., "then `v_{k+1}` is an ancestor of `v_{k-1}` via `v_k`") would be incorrect for the bidirected-far-edge instance. Conversely, a Lean encoding that defines `LeftChain` as a directed-directed configuration would *under*-classify positions that the LN considers left chains and thereby *over*-classify them as colliders, breaking the partition.
+
+A specific corner case worth pinning: with `n = 2` and walk `v_0 \leftarrow v_1 \leftrightarrow v_2`, position `k = 1` is, by the literal definition, a non-collider of "left chain" type, even though there is no actual second leftward arrow.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 72. `unblockable_vacuous_no_outgoing_arrow_case`
+
+- **Observed by row:** `def_3_16`
+
+**Explanation (from the wording-check worker):**
+
+The defining condition "it only has outgoing edges on $\pi$ to nodes in the same strongly connected component of $G$" is naturally read as a universally quantified statement — every outgoing edge of $v_k$ on $\pi$ targets a node in $\Sc^G(v_k)$ — and is therefore *vacuously satisfied* whenever $v_k$ has no outgoing edge on $\pi$ at all. The follow-up "That is, it is one of the following patterns:" claims equivalence with three specific configurations (left chain, right chain, fork), but every one of those patterns commits $v_k$ to at least one outgoing edge: the left chain forces a tail at $v_k$ via "\hut" on the left, the right chain forces a tail at $v_k$ via "\tuh" on the right, and the fork forces tails at $v_k$ on both sides. So the prose condition and the patterns coincide only under the implicit assumption that every non-collider on $\pi$ has at least one outgoing arrow at $v_k$.
+
+In a standard ADMG/MAG setting where marks at $v_k$ are restricted to {head, tail}, this assumption holds automatically: "not a collider" means "not both heads", hence at least one tail = at least one outgoing edge. But if the CDMG framework admits any richer mark — e.g. an undirected/line mark, a PAG-style circle, or any third mark that is neither "head" nor "tail" in the directed-arrow sense the blockable clause uses — then a non-collider $v_k$ with, say, one circle/undirected end and one head end (or two circles/undirected ends) has no outgoing arrow $v_k \to v_{k\pm 1}$, and the prose condition is vacuously true while no listed pattern matches.
+
+The "Otherwise / This means" clause for blockable compounds this: it lists exactly "end-node ($k \in \{0,n\}$)" or "$v_k \to v_{k\pm 1}$ with $v_{k\pm 1} \notin \Sc^G(v_k)$". An interior non-collider with no outgoing arrow at $v_k$ satisfies neither disjunct, so the "This means" description does not actually capture the strict logical complement of the unblockable prose under the vacuous reading. The classification of such a node is therefore ambiguous on the page: vacuously unblockable per the prose, but blockable if we instead take "matches no pattern" as the operative criterion. A downstream proof that walks through the patterns case-by-case (e.g. proving that a non-blockable non-collider always sits in an SCC with both its $\pi$-neighbors) silently relies on this implicit "at least one outgoing edge" assumption, and would break in any CDMG whose edge alphabet contains a third mark beyond head and tail.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 73. `non_collider_path_quantification_unspecified`
+
+- **Observed by row:** `claim_3_20`
+
+**Explanation (from the wording-check worker):**
+
+The remark asserts "all non-colliders are blockable" without
+specifying the path context. In standard graph/causal-inference terminology,
+being a (non-)collider is a property of a vertex *relative to a specific
+path* — a vertex $v$ can be a collider on one path and a non-collider on
+another (e.g. in $u \to v \leftarrow w$ vs. $u \to v \to x$ where $v$ has
+both an incoming and an outgoing arrow). The literal phrase "all
+non-colliders" leaves three readings open:
+  (a) every vertex $v$ that is a non-collider on *some* path,
+  (b) every vertex $v$ that is a non-collider on *every* path it lies on
+      (i.e. is "never a collider"),
+  (c) every (path $\pi$, vertex $v$) pair where $v$ is a non-collider
+      on $\pi$.
+Reading (a) makes the statement nearly trivial; (b) excludes many vertices
+that one would intuitively want covered (any vertex with two parents is
+a collider on some path so would be silently dropped); (c) is the
+canonical d-separation reading and is presumably what is meant, but the
+tex does not say so. A downstream proof that invokes this remark to claim
+"path $\pi$ can be blocked because its non-collider $v$ is blockable" relies
+on reading (c), and a careful reader cannot derive that from the literal
+text.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 74. `acyclic_does_not_imply_directed_in_text`
+
+- **Observed by row:** `claim_3_20`
+
+**Explanation (from the wording-check worker):**
+
+The remark begins "If $G$ is acyclic then..." but does not
+state that $G$ is directed. "Acyclic" is also a meaningful adjective for
+undirected graphs (a forest is undirected and acyclic) and for mixed
+graphs. The notion of "collider" only makes sense once edge orientation
+or some bidirected/undirected convention is fixed; in particular,
+non-colliders on an undirected path collapse to a different notion. The
+literal hypothesis "$G$ is acyclic" is therefore weaker than what the
+conclusion seems to need (presumably DAG-acyclicity). If $G$ is implicitly
+typed as a DAG by surrounding context, the remark should restate the
+hypothesis as e.g. "if $G$ is a DAG" so the claim stands alone.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+From context we see G is a CDMG
+```
+
+### 75. `blockable_undefined_within_block_with_vacuity_risk`
+
+- **Observed by row:** `claim_3_20`
+
+**Explanation (from the wording-check worker):**
+
+"Blockable" is used without local definition. The literal
+remark therefore has no checkable content without reference to an earlier
+definition. More importantly, depending on the definition of "blockable",
+edge cases lurk: e.g. if "$v$ is blockable" means "there exists a
+conditioning set $Z$ with $v \in Z$ that blocks every path through $v$",
+then a non-collider that is itself a path endpoint (degenerate path of
+length 0 or 1) may not be "on" any path in the sense the definition
+requires, making the universal "all non-colliders" either vacuously true
+or undefined for these vertices. A reader relying on the remark for a
+result like "every path has a blockable non-collider" needs reassurance
+that path-endpoint non-colliders are handled, which this remark does not
+provide.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 76. `claim_type_mismatch_vertex_vs_walk`
+
+- **Observed by row:** `def_3_17`
+
+**Explanation (from the wording-check worker):**
+
+The trailing claim states "unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C \ins V \cup J$." However, the property "$C$-$\sigma$-open" is defined in this block only for walks $\pi$, not for individual vertices. An "unblockable non-collider" is (per the commented hint and the referenced Definition~\ref{def:unblockable_noncollider}) a vertex on a walk, so calling it "$C$-$\sigma$-open" is a literal type mismatch. The author presumably means "an unblockable non-collider on a walk never causes that walk to fail clause 1.(ii) of $C$-$\sigma$-openness" — but that is not what the text says. A strict reader (or a formalizer) cannot extract a well-typed statement from the sentence as written.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+We can leave out this trailing claim that states unblockable non-colliders are C-sigma-open. We don't need to include this in our formalization as it is not part of the definition. And it is not important enough to have a separate claim row dedicated to it.
+```
+
+### 77. `noncollider_endpoint_inclusion_unspecified`
+
+- **Observed by row:** `def_3_17`
+
+**Explanation (from the wording-check worker):**
+
+The walk is written $\pi = (v_0 \sus \cdots \sus v_n)$ and the openness/blockedness clauses range over "all blockable non-colliders $v_k$ on $\pi$" / "there exists a … $v_k$ on $\pi$" with no restriction to $0 < k < n$. Under the literal reading, whether the endpoints $v_0, v_n$ are eligible to be (blockable) non-colliders depends on the upstream definition of "non-collider": if "non-collider" simply means "not a collider", then $v_0$ and $v_n$ qualify (they vacuously fail the collider condition because $v_{-1}$ / $v_{n+1}$ do not exist on the walk). In that case, if either endpoint is classified as "blockable" and lies in $C$, the walk is automatically $C$-$\sigma$-blocked whenever an endpoint lies in $C$ — even though, in standard d/σ-separation conventions, endpoints are the query vertices and are not supposed to participate in the blocking analysis. Corner case: a length-1 walk $\pi = (v_0 \sus v_1)$ with $v_1 \in C$ and $v_1$ classed as a blockable non-collider would be "$\sigma$-blocked" under the literal reading, despite no interior vertex existing. Downstream claims that, e.g., relate $\sigma$-connection between $v_0$ and $v_n$ to existence of a $\sigma$-open walk could be affected if the convention is not pinned down.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 78. `trivial_walk_vacuously_sigma_open`
+
+- **Observed by row:** `def_3_17`
+
+**Explanation (from the wording-check worker):**
+
+The walk notation $\pi = (v_0 \sus \cdots \sus v_n)$ does not stipulate $n \geq 2$ (or even $n \geq 1$). For $n = 0$ (a single-vertex walk $\pi = (v_0)$) or, on the assumption that endpoints cannot be colliders/non-colliders, also for $n = 1$, there is no $v_k$ that qualifies as a collider or non-collider. The two universal clauses of $C$-$\sigma$-open are then vacuously satisfied, so $\pi$ is $C$-$\sigma$-open for any $C$ (including $C \ni v_0$). Conversely, the two existential clauses of $C$-$\sigma$-blocked are vacuously false. So under the literal reading, every trivial walk is $\sigma$-open relative to every conditioning set. This is internally consistent (open and blocked remain negations of each other), and is the standard convention in the d-/σ-separation literature, but it is worth flagging because a downstream proof that, e.g., shows "$\pi$ is $\sigma$-blocked $\Rightarrow$ some vertex on $\pi$ witnesses blocking" must handle the vacuous-existential case (no such witness exists, but the antecedent is also false).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 79. `c_sigma_open_typed_to_walks_not_to_vertices`
+
+- **Observed by row:** `claim_3_21`
+
+**Explanation (from the wording-check worker):**
+
+The surrounding Definition 3.17 (`def:sigma_blocking`, line 1327) defines `C-σ-open` strictly as a property of *walks*: "the walk $\pi$ is $C$-$\sigma$-open if and only if (i) all colliders ... are in $\Anc^G(C)$, and (ii) all blockable non-colliders ... are not in $C$." The claim, however, applies the same predicate to *vertices*: "unblockable non-colliders are always $C$-$\sigma$-open". There is a type mismatch between the literal grammar and the definition just stated. A formalizer reading the claim strictly will not find a defined predicate "vertex $v$ is $C$-$\sigma$-open". Plausible intended readings include:
+(a) "the *walk* is $C$-$\sigma$-open whenever every non-endpoint non-collider on it is unblockable" — but this is false in general, since the walk could still be blocked by a collider not in $\Anc^G(C)$;
+(b) "an unblockable non-collider $v_k$ at position $k$ on a walk $\pi$ never contributes to $\sigma$-blocking $\pi$ at that position, for any $C$";
+(c) "the predicate 'unblockable non-collider $v_k$ on $\pi$' implies the σ-open clause at index $k$ holds vacuously for $v_k$, for any $C$".
+Reading (b)/(c) is presumably intended, but the literal text does not say this — it asserts a property of the *vertex*, not of *its position in the σ-open condition*.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will forcefully put this row on solved, because I don't see the point in trying to formalize this.
+```
+
+### 80. `claim_is_tautology_against_def_3_17`
+
+- **Observed by row:** `claim_3_21`
+
+**Explanation (from the wording-check worker):**
+
+Inspecting Definition 3.17 (just above the claim, lines 1327–1342): both the σ-open and σ-blocked clauses range only over "colliders $v_k$" and "blockable non-colliders $v_k$" — the term "unblockable non-collider" never appears in either set of bullet conditions. Hence the literal content of "unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C$" reduces, under reading (b)/(c) above, to a direct unpacking of the definition: the σ-blocking criteria simply impose no constraint at unblockable-non-collider positions. There is nothing to prove. This is worth flagging because the row is registered as a `claim` (suggesting non-trivial content), whereas the literal reading makes it a definitional triviality — a formalizer may be tempted to encode a substantive statement that is not actually present.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will forcefully put this row on solved, because I don't see the point in trying to formalize this.
+```
+
+### 81. `implicit_walk_context_for_unblockable_noncollider`
+
+- **Observed by row:** `claim_3_21`
+
+**Explanation (from the wording-check worker):**
+
+Definition 3.16 (`def:unblockable_noncollider`, line 1240) makes "unblockable non-collider" a property of a vertex *on a specific walk $\pi$*: "We call a non-collider $v_k$ on $\pi$ an *unblockable non-collider on $\pi$* if ...". The claim, "unblockable non-colliders are always $C$-$\sigma$-open, regardless of the subset $C$", does not introduce or bind any walk $\pi$. The walk is implicit — presumably the same $\pi$ being discussed in the enclosing Definition 3.17 — but a reader (or formalizer) treating the claimmark in isolation has no syntactic anchor for which walk the unblockable-non-collider property is taken relative to. A corner case: if one re-reads "unblockable non-collider" walk-independently (i.e., "non-collider $v_k$ on *some* walk such that …"), the meaning shifts, since unblockability is genuinely walk-relative (the same vertex can be unblockable on one walk and blockable on another, depending on which neighbours appear on the walk and whether they share its SCC).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will forcefully put this row on solved, because I don't see the point in trying to formalize this.
+```
+
+### 82. `c_subset_ordering_inconsistent_with_surrounding_def`
+
+- **Observed by row:** `claim_3_21`
+
+**Explanation (from the wording-check worker):**
+
+Minor but worth recording: the enclosing Definition 3.17 (line 1328) writes the conditioning set as "$C \ins J \cup V$", while the claim writes "$C \ins V \cup J$". The sets are equal, so this is cosmetic, but the swap is the kind of small inconsistency that a literal formalizer might (briefly) treat as a different set. Worth normalizing to the same ordering for clarity.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will forcefully put this row on solved, because I don't see the point in trying to formalize this.
+```
+
+### 83. `a_intersects_j_makes_target_set_trivially_hit`
+
+- **Observed by row:** `def_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The definition permits $A \subseteq J \cup V$, so $A$ may contain input nodes — $A \cap J \neq \emptyset$ is allowed. Combined with the explicit (flagged "sic!") choice that walks must reach $J \cup B$ rather than just $B$, any node $v \in A \cap J$ is automatically also in $J \subseteq J \cup B$. If the underlying walk definition admits length-0 walks (i.e., the trivial single-node walk at $v$), then for any $v \in (A \cap J) \setminus C$ the trivial walk has no intermediate nodes to be blocked by $C$, so $A \not\isPerp_G B \given C$ holds regardless of $B$. Concretely: take $A = \{j\}$ with $j \in J$, $C = \emptyset$, $B = \emptyset$. Naively one might expect $A \isPerp_G \emptyset \given \emptyset$ to be vacuously true (no walks since $B$ is empty), but $J \cup B = J \ni j$, and the length-0 walk at $j$ falsifies it. The footnote (`fn:why-J`) justifies the $J \cup B$ choice only by appeal to separoid-rule alignment with Markov kernels; it does not address the $A \cap J$ interaction. Any downstream claim that uses "vacuous separation when $B = \emptyset$" or that treats $A$ symmetrically with $B$ would be at risk.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 84. `nondisjoint_sets_admit_trivial_self_walks`
+
+- **Observed by row:** `def_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The parenthetical "(not necessarily disjoint)" explicitly permits $A \cap B \neq \emptyset$ (and $A \cap C \neq \emptyset$, $B \cap C \neq \emptyset$). For any $v \in A \cap B$, we have $v \in A$ and $v \in B \subseteq J \cup B$, so the length-0 walk at $v$ is a walk "from a node in $A$ to a node in $J \cup B$" in the literal sense. Whether this trivial walk is $\sigma$-blocked by $C$ depends entirely on the prior $\sigma$-blocking definition's treatment of length-0 walks — which is not addressed in this block. If length-0 walks are unblocked whenever their single node lies outside $C$, then $A \isPerp_G B \given C$ literally fails whenever $A \cap B \not\subseteq C$. For example, $A = B = \{v\}$, $C = \emptyset$ would force $A \not\isPerp_G B$, which may or may not be the intended behavior. A reader cannot determine from this block alone whether the author intended to exclude length-0 walks or to handle them via the $\sigma$-blocking definition.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 85. `sigma_symmetry_claim_invokes_unstated_reversal_invariance`
+
+- **Observed by row:** `def_3_18`
+
+**Explanation (from the wording-check worker):**
+
+The claim "$\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$" is justified by two assertions: (a) "when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction", and (b) "the $\sigma$-blocking conditions are invariant under walk reversal". Both are load-bearing but not proven here. (a) is slightly imprecise — directionally, walks from $A$ to $B$ and walks from $B$ to $A$ are different sequences; they are in bijection via reversal only if every walk in the underlying CDMG walk definition can be reversed (which is non-trivial when edges are directed and the graph admits bidirected/self-loop edges). (b) is a substantive property of the $\sigma$-blocking definition (likely depending on collider vs. non-collider status at internal nodes, which often depends on edge orientations) that is asserted without reference to where it is established. Downstream proofs that lean on $\sigma$-separation symmetry — and there will likely be many — inherit this unproven assumption.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+A walk from A to B is also a walk from B to A, because a walk is just a collection of neighbouring edges no matter their directions.
+```
+
+### 86. `justification_only_covers_J_empty_case`
+
+- **Observed by row:** `claim_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The claim states symmetry of σ-separation in full generality:
+"$A \sPerp_G B \given C \iff B \sPerp_G A \given C$" — with no restriction
+on the parameters. But the justification immediately conditions on a special
+case: "since **when $J = \emptyset$** the set of walks between $A$ and $B$ is
+the same regardless of direction". The literal reading leaves the $J \neq
+\emptyset$ case completely unaddressed. This is either (a) a tacit claim
+that symmetry only holds when $J = \emptyset$ — in which case the iff
+statement as written is too strong and should be qualified — or (b) the
+author meant the justification to cover the general case but wrote it as if
+only the $J=\emptyset$ branch mattered. Either way, the symbol $J$ is
+introduced here without local explanation, so a reader cannot tell from this
+block alone whether the symmetry is meant to be universal or restricted.
+Downstream, any proof that invokes "by symmetry of σ-separation" in a context
+with $J \neq \emptyset$ would be relying on a strictly stronger statement
+than the justification given here actually licenses.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 87. `walk_reversal_invariance_asserted_without_argument`
+
+- **Observed by row:** `claim_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The claim asserts that "the $\sigma$-blocking conditions are
+invariant under walk reversal" as if this were obvious. For ordinary
+$d$-separation this is reasonable because the collider/non-collider status
+of an interior vertex on a walk depends on the pair of incident edges at
+that vertex, which is preserved under reversal. But σ-blocking adds
+conditions about σ-strong/chain components and about which interior vertices
+are colliders relative to the conditioning set — and σ-blocking is typically
+defined directionally in cyclic SCMs. The literal text gives no argument
+that all of those component-based conditions are reversal-invariant; it
+just asserts it. If a corner case exists where σ-blocking treats a walk
+$v_0, e_1, v_1, \ldots, v_n$ differently from its reversal $v_n, \bar
+e_n, v_{n-1}, \ldots, v_0$ — for instance through an asymmetry in how
+endpoints in $A$ vs $B$ interact with $C$ — the justification silently
+breaks. This matters because the entire symmetry claim hinges on this
+sentence being correct.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 88. `walks_between_A_and_B_direction_phrase_ambiguous`
+
+- **Observed by row:** `claim_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The phrase "the set of walks between $A$ and $B$ is the same
+regardless of direction" is ambiguous. It could mean (i) walks between
+$A$ and $B$ are by definition undirected/unordered objects, so the set
+literally coincides as a set, or (ii) walks are ordered/directed and the
+two sets ("walks from $A$ to $B$" and "walks from $B$ to $A$") are merely
+in bijection via reversal. These are different mathematical statements,
+and which one is intended affects how the σ-blocking-invariance step has
+to be carried out. If walks are taken as ordered sequences (as is standard
+when "walk reversal" is later invoked — reversal only makes sense for
+ordered objects), then interpretation (i) is false and the justification
+is conflating two distinct sets that are merely in bijection. The
+phrasing should commit to one reading.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 89. `w1_equals_w2_corner_case_trivial_path_walk`
+
+- **Observed by row:** `claim_3_23`
+
+**Explanation (from the wording-check worker):**
+
+The claim asserts equivalence "for $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$" without restricting to $w_1 \neq w_2$. The literal text covers the case $w_1 = w_2$, where the meaning of "path between $w_1$ and $w_2$" and "walk between $w_1$ and $w_2$" depends on whether length-0 (trivial) paths/walks are admitted in the underlying definitions.
+
+Concrete corner case: suppose the convention is that a "path" must have length $\geq 1$ (so no path exists from a vertex to itself, since paths cannot repeat vertices), but a "walk" can have length 0 (so the trivial walk consisting of just $w_1$ exists). When $w_1 = w_2$:
+- Condition (1) fails: no non-trivial path from $w_1$ to itself exists.
+- Conditions (2) and (3): the trivial walk has no colliders, so "all its colliders lie in $C$" is vacuously true, and "$C$-$\sigma$-open" reduces to whatever endpoint condition the underlying definition imposes on $w_1$.
+
+In that scenario, (2) $\Rightarrow$ (1) would fail at $w_1 = w_2$ whenever the trivial walk is admitted-and-open, breaking the equivalence. Conversely, if both paths and walks uniformly include length-0 (or both uniformly exclude it), the equivalence at $w_1 = w_2$ holds (trivially true or trivially false). The claim's text does not pin down this convention, so its correctness at the diagonal $w_1 = w_2$ rides entirely on alignment between the path-definition and walk-definition in the surrounding theory. A downstream proof that constructs a path from a walk by "contracting cycles" may need to special-case the $w_1 = w_2$ closed-walk situation explicitly.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 90. `shortest_qualifier_reference_class_ambiguous`
+
+- **Observed by row:** `claim_3_24`
+
+**Explanation (from the wording-check worker):**
+
+Items 2(a) and 2(b) both use the parenthetical "(shortest)" — e.g. "there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$". The literal text never says what class the walk is shortest *among*. In 2(b) this matters: the natural readings are
+  (i) shortest among all walks from $A$ to $J\cup B$ that satisfy *both* "$\sigma$-open" and "all colliders in $C$",
+  (ii) shortest among $C$-$\sigma$-open walks from $A$ to $J\cup B$, which then happens to also satisfy "all colliders in $C$".
+These are genuinely different claims — reading (ii) is much stronger because it asserts that the minimum-length $\sigma$-open walk has the collider property, while (i) only asserts that *some* walk with both properties exists. Downstream proofs that take "the shortest open walk" and then invoke the collider property are implicitly relying on reading (ii). The parenthetical hides which is intended. The same ambiguity sits more mildly in 2(a) since there is no extra "such that …" clause.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+It is sufficient to prove 2a and 2b with the parenthesese, so proving there exists a shortest... We would need to define shortest path first, if we haven't already.
+```
+
+### 91. `double_C_in_C_sigma_blocked_by_C`
+
+- **Observed by row:** `claim_3_24`
+
+**Explanation (from the wording-check worker):**
+
+Items 1(a) and 1(b) both end with "is $C$-$\sigma$-blocked by $C$". The symbol $C$ appears twice in close adjacency, and the literal text is ambiguous about whether
+  - "$C$-$\sigma$-blocked" is a single fixed adjective so that "by $C$" is redundant emphasis, or
+  - the two $C$'s could in principle refer to different sets (in which case the wording invites a confusing notational mismatch).
+A careful reader can resolve this from the surrounding context, but the wording itself is at best redundant and at worst suggests two distinct roles for $C$ that are not separated notationally.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 92. `disjointness_of_A_B_C_and_zero_length_walks_unaddressed`
+
+- **Observed by row:** `claim_3_24`
+
+**Explanation (from the wording-check worker):**
+
+The block speaks of "every walk from a node in $A$ to a node in $J \cup B$" and "there exists a … walk from a node in $A$ to a node in $J \cup B$" without saying whether $A$, $B$, $C$ (or $J$) are required to be pairwise disjoint or whether walks of length 0 are admitted. If $A \cap (J \cup B) \neq \emptyset$ and zero-length walks are walks, then for any $v \in A \cap (J \cup B)$ the length-0 "walk" $v$ has no edges and hence no colliders or non-colliders, making it vacuously $C$-$\sigma$-open. Under that convention:
+  - item 1 fails (or is trivially false) whenever the sets overlap, regardless of graph structure;
+  - item 2(b)'s existence claim becomes trivially witnessed by a length-0 walk, and the "all its colliders lie in $C$" qualifier is vacuous (no colliders to check).
+The block does not textually address this corner case; the equivalence and the existence claims therefore implicitly depend on a convention (e.g. "walks have length ≥ 1" or "$A$, $B$, $C$ disjoint") that lives outside this Remark.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 93. `any_parenthetical_ambiguous_universal_vs_existential`
+
+- **Observed by row:** `claim_3_26`
+
+**Explanation (from the wording-check worker):**
+
+The text replaces ``a blockable non-collider in $C$'' with ``(any) non-collider in $C$''. The parenthetical ``(any)'' is genuinely ambiguous in literal English:
+
+- It could be read as a hedge meaning "a (without further qualification) non-collider", i.e., the original existential clause with the ``blockable'' modifier dropped (the author's clearly-intended reading, supported by the surrounding sentence ``all non-colliders are blockable'').
+- It could be read as a universal quantifier: "(every) non-collider in $C$", i.e., every non-collider on the path is in $C$.
+
+In path-blocking criteria the relevant clause is conventionally existential — a path is blocked at a non-collider iff *some* non-collider on it lies in $C$ — but a literal reader unfamiliar with that convention can plausibly arrive at the universal reading because of the explicit parenthetical ``(any)''. The original phrase ``a blockable non-collider'' was unambiguously existential (article ``a''); swapping to ``(any)'' weakens that grammatical cue. If a downstream formal statement or proof of $id$-separation is written by someone who reads ``(any) non-collider in $C$'' as the universal version, they will encode the wrong criterion (e.g., requiring every non-collider on the path to be in $C$, which is a much stronger blocking condition).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will mark this row as solved, as I don't see the point in formalizing it
+```
+
+### 94. `more_general_concept_semantics_unclear`
+
+- **Observed by row:** `claim_3_26`
+
+**Explanation (from the wording-check worker):**
+
+The text asserts: ``in the non-acyclic case $i\sigma$-separation is the more general concept''. But ``more general'' is ambiguous between two opposite readings:
+
+- *Logical generality* (weaker / holds more often). Under this reading, $id$-separation — which uses the broader clause ``(any) non-collider in $C$'' instead of the more restrictive ``blockable non-collider in $C$'' — is the one with the easier-to-satisfy blocking condition, hence blocks more paths, hence separates more triples. So $id$-sep is logically weaker / "more general" in the standard mathematical sense.
+- *Generality of correct applicability*. Under this reading, $i\sigma$-sep is "more general" because it remains the right notion of (in)dependence in both acyclic and non-acyclic settings, whereas $id$-sep is correct only in the acyclic case.
+
+The text clearly intends the second reading (it parenthetically adds ``and as said above it also captures the acyclic case equivalently well''), but a careful reader trained to parse "more general" formally would read it the first way and arrive at the opposite implication arrow. A downstream proof that cites "the more general concept" without clarification risks invoking the wrong direction of implication between $id$-sep and $i\sigma$-sep.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+I will mark this row as solved, as I don't see the point in formalizing it
+```
+
+### 95. `case_i_fork_to_chain_sigma_save_lost_at_v_j`
+
+- **Observed by row:** `claim_3_27`
+
+**Explanation (from the wording-check worker):**
+
+In Case (i), the proof hand-waves: "By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma$-open on $\pi'$."
+
+The literal "fork or right chain" case-split shows the author knows $v_j$ on $\pi$ has two possible local configurations. But on $\pi'$ the new predecessor edge is $v_{j-1}' \tuh v_j$ (head at $v_j$ from the new node), so on $\pi'$ the node $v_j$ is **always** a right chain — the fork case has been collapsed into a chain. The phrase "same blocking criteria apply" papers over this transition.
+
+Concrete corner case: suppose $v_j \in C$, $v_j$ is a fork on $\pi$ (tails to both $v_{j-1}$ and $v_{j+1}$), with $v_{j-1} \in \Sc^G(v_j)$ but $v_{j+1} \notin \Sc^G(v_j)$. Under the usual walk-edge-based $\sigma$-rule for non-colliders ("$v \in C$ blocks unless $v$ has a tail edge on the walk to a node in $\Sc^G(v)$"), $\pi$ is unblocked at $v_j$ via the left tail to $v_{j-1}$. But on $\pi'$, the only tail at $v_j$ is to $v_{j+1} \notin \Sc^G(v_j)$ (the new $v_{j-1}'$ is connected by a head, not a tail), so $v_j$ now blocks $\pi'$.
+
+Compare with Case (ii)'s treatment of the same node, which is explicit: "$v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component". Case (ii) names the tail-to-SCC mechanism. Case (i) doesn't, and a literal reader is left to guess whether (a) the author silently assumes a graph-based (not walk-based) $\sigma$-rule under which the fork→chain transition is irrelevant, or (b) some unstated graph property rules out the fork-with-$v_{j+1}\notin\Sc^G(v_j)$ case.
+
+A formalizer encoding the literal statement of this lemma would have to pin down which $\sigma$-blocking rule is in force and either extend the case analysis or prove the missing implication.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 96. `existence_of_first_collider_v_k_asserted_not_proven`
+
+- **Observed by row:** `claim_3_27`
+
+**Explanation (from the wording-check worker):**
+
+The Case (ii) proof asserts: "So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$" with no justification for the existential.
+
+The argument implicitly relies on the CDMG edge-mark inventory being restricted to {tail, head} (so every edge has one of those at $v_k$). Under that restriction the chain of forced marks works: $v_i$ has a head from $v_{i-1}$ (from $v_{i-1} \suh v_i$); if $v_i$ is not a collider, the only escape is $v_i \tuh v_{i+1}$, which puts a head at $v_{i+1}$; iterating, we eventually reach $v_j$ which already has a head from $v_{j+1}$ and is forced to be a collider.
+
+But the lemma uses $\sus$ as the generic walk-edge symbol, and "side" reads naturally as a third mark or wildcard, not necessarily reducible to tail/head. If a "tail–tail" (undirected) edge is admitted anywhere on the subwalk between $v_i$ and $v_j$, the head-propagation argument dies and a collider need not appear — making the "must" false.
+
+Corner case: $v_{i-1} \suh v_i \tut v_{i+1} \tut \cdots \tut v_{j-1} \tut v_j \hus v_{j+1}$ with $\tut$ a hypothetical tail–tail edge. Every interior node is a fork; no collider exists in $\{v_i,\dots,v_j\}$, and the proof's subsequent appeal to "$v_k \in \Anc^G(C)$" has nothing to bind to.
+
+A faithful formalizer needs to know the CDMG edge-mark inventory before this step can be discharged. The text never states it.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 97. `v_i_equals_v_j_trivial_directed_path_notation`
+
+- **Observed by row:** `claim_3_27`
+
+**Explanation (from the wording-check worker):**
+
+The lemma's hypothesis "$v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$" is **trivially** satisfied whenever the same vertex of $G$ appears at two positions on the walk (i.e., $v_i = v_j$ as graph-nodes, even though $i \ne j$ as positions). Every vertex lies in its own SCC.
+
+In that degenerate case, the prescribed replacement reads "a shortest directed path $v_i \tuh \cdots \tuh v_j$" — which is the empty path of length 0, i.e., the singleton vertex $\{v_i\}$ with no edges. The notation "$v_i \tuh \cdots \tuh v_j$" textually suggests at least one $\tuh$ edge, leaving it genuinely under-specified whether the trivial 0-edge path is admitted.
+
+The proof does address this case ("If $v_i=v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$ (if $v_i$ is the left endnode or not)"), so the author clearly intends the trivial path to be allowed. But the *statement* of the lemma is ambiguous on this point, and the consequence is non-trivial: replacing a subwalk of $j-i \ge 1$ edges with a 0-edge "path" silently merges positions $i$ and $j$ on the walk and inherits the left mark from index $i$ on $\pi$ and the right mark from index $j$ on $\pi$.
+
+A formalizer who reads "$v_i \tuh \cdots \tuh v_j$" as requiring $\ge 1$ edge will exclude this case from the statement and then be unable to discharge the proof's "$v_i = v_j$" branch.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+### 98. `end_nodes_as_noncolliders_unstated_endpoint_in_C_convention`
+
+- **Observed by row:** `claim_3_28`
+
+**Explanation (from the wording-check worker):**
+
+The remark says
+
+> "If we consider end-nodes, left chains, right chains and forks as \emph{non-colliders} then we can simply state: $\pi$ is $d$-blocked by $C$ if and only if it either contains a non-collider in $C$ or a collider not in $\Anc^G(C)$."
+
+Classifying end-nodes (the two endpoints of the path $\pi$) as non-colliders has a sharp literal consequence: whenever an endpoint of $\pi$ lies in $C$, the path $\pi$ "contains a non-collider in $C$", and so by the biconditional $\pi$ is $d$-blocked by $C$.
+
+Concrete corner case. Let $\pi = v \to w$ be a length-$1$ path. It has no intermediate node — only the two endpoints $v$ and $w$, both of which are now non-colliders. Under the literal reading of the remark, $\pi$ is $d$-blocked iff $v \in C$ or $w \in C$. But the standard chain/fork/collider classification (as in Pearl) applies only to the "middle node" of a three-node window, because an endpoint of a path has only one neighbor on the path and thus no native classification. Under that standard reading, a single-edge path would not be blocked just because an endpoint happens to lie in $C$.
+
+For the biconditional to faithfully recover the d-separation criterion presumably defined earlier in the document, one of two unstated conventions must hold: either (a) the endpoints of $\pi$ are required by convention to be disjoint from $C$ (the usual setup when speaking of $d$-separation between sets $X$ and $Y$ given $C$), or (b) the underlying definition of "d-blocked" already treats endpoint membership in $C$ as automatically blocking. The remark adopts neither convention explicitly, so a reader who applies the simplified criterion to a path whose endpoint lies in $C$ may end up with a strictly broader notion of "d-blocked" than the underlying definition gives.
+
+Downstream impact: any subsequent argument that quantifies over "all paths between $X$ and $Y$" and applies this simplified criterion without first restricting to paths whose endpoints are outside $C$ — or, conversely, a proof that needs the biconditional to fail in some specific direction at endpoint-in-$C$ — could silently rely on the convention being one way or the other.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+NONE
+```
+
+<!-- --- processed until here --- -->
+
+### 99. `id_sep_asymmetric_due_to_J_union_B_target`
+
+- **Observed by row:** `def_3_20`
+
+**Explanation (from the wording-check worker):**
+
+The definition requires "every walk from a node in $A$ to a node in $J \cup B$ (sic!)" be $C$-$d$-blocked. The "(sic!)" with a footnote signals the author knows this wording is unusual, but it has a sharp consequence that a reader could easily miss: $id$-separation is **not symmetric in $A$ and $B$** in general. Concretely:
+- $A \idPerp_G B \given C$ ⟺ every walk from $A$ to $J \cup B$ is blocked.
+- $B \idPerp_G A \given C$ ⟺ every walk from $B$ to $J \cup A$ is blocked.
+These are different conditions whenever $J \neq \emptyset$ and $A \neq B$. The closing claim only asserts symmetry of $d$-separation (the $J = \emptyset$ special case, where $J \cup B = B$ and $J \cup A = A$), which sidesteps this asymmetry. Any downstream formalization or proof that assumes $A \idPerp_G B \given C \Leftrightarrow B \idPerp_G A \given C$ would be wrong in the general $id$-case. Corner case: take $A = \{v\}$, $B = \emptyset$, $J = \{j\}$. Then $A \idPerp_G \emptyset \given C$ is a non-trivial condition (every walk from $v$ to $j$ must be blocked), even though $B$ is empty.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 100. `sets_not_disjoint_interaction_with_J_or_B`
+
+- **Observed by row:** `def_3_20`
+
+**Explanation (from the wording-check worker):**
+
+The LN explicitly says "$A,B,C \ins J \cup V$ (not necessarily disjoint)", so overlaps are permitted. Combined with the asymmetric "$J \cup B$" target, this creates degenerate cases the definition does not address textually:
+- If $j \in A \cap J$, then $j$ itself lies in $A$ *and* in $J \subseteq J \cup B$. Whether the trivial/length-0 "walk" from $j$ to $j$ counts as "a walk from a node in $A$ to a node in $J \cup B$" depends entirely on the walk and $d$-blocking conventions, which the block doesn't restate. If length-0 walks are admitted and are not $d$-blocked, then $A \idPerp_G B \given C$ silently forces $A \cap J \subseteq C$ (or similar) — likely not the author's intent.
+- Similarly, if $v \in A \cap B$, the walk $v$-to-$v$ from $A$ into $B \subseteq J \cup B$ has the same status.
+- The same question arises for $C$ overlapping $A$ or $B$ — does conditioning on a node in $A$ or $B$ trivially block all walks through it?
+The LN does not say "walks of length $\geq 1$" or otherwise rule out these degenerate paths, so the literal reading is genuinely under-specified at these corner cases, and the answer is load-bearing for any formalization.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 101. `doubled_C_in_C_d_blocked_by_C_phrasing`
+
+- **Observed by row:** `def_3_20`
+
+**Explanation (from the wording-check worker):**
+
+The phrase "is $C$-$d$-blocked by $C$" mentions $C$ twice. The most charitable reading is that "$C$-$d$-blocked" is a defined compound term (a $d$-blocked walk parameterized by conditioning set $C$) and "by $C$" is an English-language restatement of the conditioning set. But on the strictest literal reading, "$C$-$d$-blocked" could be parsed as a single property name and the "by $C$" as a redundant or even contradictory qualifier. This is a minor wording issue but worth flagging because the exact name of the underlying notion ("$d$-blocked relative to $C$" vs. "$C$-$d$-blocked" as an atomic predicate) governs how the formalization looks up the prerequisite definition.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 102. `similar_result_unspecified_proposition_analog`
+
+- **Observed by row:** `claim_3_30`
+
+**Explanation (from the wording-check worker):**
+
+Item 1 says "A similar result from Proposition \ref{prp:sigma_opens} holds for $id$-separation as well." The word "similar" is genuinely under-specified here. The literal text never states *what* the analog result actually is — it only points to another proposition and asserts that something analogous holds. A reader must decide:
+- whether **every** clause of `prp:sigma_opens` carries over verbatim with "σ-opens" replaced by an `id`-separation analog, or only a particular clause;
+- what the precise substitution rule is (e.g., does "σ-opens" map to "`id`-opens", or to some other construction the author has in mind?);
+- whether the hypotheses transfer unchanged, or whether some sub-hypothesis must be strengthened/weakened in the `id`-separation setting.
+
+Concrete corner case: if `prp:sigma_opens` has multiple sub-parts or hypotheses with side-conditions (e.g., "provided the underlying graph is acyclic"), the literal reading "a similar result … holds" leaves it open whether those side-conditions remain in force for `id`-separation. A downstream user could end up proving a strictly weaker (or stronger) version than intended.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 103. `stability_marginalization_unspecified_analog`
+
+- **Observed by row:** `claim_3_30`
+
+**Explanation (from the wording-check worker):**
+
+Item 2 says "$id$-separation is stable under marginalization, similar to Lemma \ref{lem:stability_separation_marginalization}." The phrase "similar to" again leaves the precise form of the stability statement to the reader's imagination. "Stable under marginalization" admits several non-equivalent literal readings: (a) marginalizing the joint distribution preserves all `id`-separation relations that held before, (b) marginalizing preserves *some* designated subset, (c) `id`-separations in the marginal graph correspond to `id`-separations in the original under a specific translation. Without naming the variables that are marginalized out, the set in which separation is asserted, or the direction of the implication, the claim is not a single well-defined statement.
+
+Corner case worth flagging: marginalizing out a node that participates in the `id`-separation criterion (e.g., a node whose `id`-label is what triggers a particular path block) could plausibly break stability under reading (a) but preserve it under reading (c). The literal text gives no way to disambiguate.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 104. `remark_wrapped_as_claim_no_formal_statement`
+
+- **Observed by row:** `claim_3_30`
+
+**Explanation (from the wording-check worker):**
+
+The block is a `\begin{Rem}` wrapped in `\begin{claimmark}`. Both enumerated items are *meta-pointers* ("a similar result … holds", "stable … similar to Lemma …") rather than self-contained mathematical assertions. There is no quantifier, no displayed equation, and no statement of the form "for all X, Y holds." Taken literally, the only content of this "claim" is that two analogies *exist* — a meta-claim about the theory's structure, not a theorem with verifiable hypotheses and conclusion. Any attempt to formalize this row will be forced to silently invent the actual statement by unpacking the two referenced results, which means the formalization is not faithful to the literal tex but to some reconstructed intent.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 105. `asymmetric_scc_unrolling_directed_vs_bidirected_in_iii`
+
+- **Observed by row:** `def_3_21`
+
+**Explanation (from the wording-check worker):**
+
+Clauses (iii)(a) and (iii)(b) quantify over SCCs asymmetrically in a way that is easy to miss on a first reading. Clause (iii)(a) says
+
+  "$i \tuh j \in E'$ iff there exists a node $j' \in \Sc^G(j)$ such that $i \tuh j' \in E$"
+
+— note that **only the target's SCC is unrolled**; the source $i$ is held fixed (no $i' \in \Sc^G(i)$ is quantified). By contrast, (iii)(b) for bidirected edges unrolls **both** endpoints' SCCs:
+
+  "$i \huh j \in L'$ iff there exist nodes $i' \in \Sc^G(i), j' \in \Sc^G(j)$ such that $i' \huh j' \in L$"
+
+Concrete corner case showing this has bite: let $G$ have nodes $\{a, b, c\}$ with $a, b$ in one SCC (edges $a \tuh b$ and $b \tuh a$) and $c$ in a singleton SCC, with the only inter-SCC edge being $b \tuh c$. Then by (iii)(a):
+- For $(b, c)$: $\exists c' = c \in \Sc^G(c)$ with $b \tuh c \in E$, so $b \tuh c \in E'$.
+- For $(a, c)$: $\Sc^G(c) = \{c\}$ and $a \tuh c \notin E$, so $a \tuh c \notin E'$ — even though $a$ and $b$ are in the same SCC of $G$, so the SCC $\{a,b\}$ does have a direct out-edge to $c$.
+
+A symmetric reading (unrolling $\Sc^G(i)$ on the source side too) would yield $a \tuh c \in E'$. The literal text does not.
+
+This may be intentional (some treatments of acyclification deliberately treat directed edges as "specific source → smeared target" while treating bidirected confounding as a set-to-set relation), but the LN gives no signal either way, and a downstream proof that, e.g., reasons about "every node in $\Sc^G(i)$ inherits $i$'s out-edges in the acyclification" would silently fail. If the author *did* intend symmetric source-unrolling for (iii)(a), the wording is wrong; if they intended the asymmetric reading, it is at least worth a sentence of justification because the parallel structure of (a) and (b) misleads.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 106. `non_disjoint_abc_degenerate_overlap`
+
+- **Observed by row:** `claim_3_31`
+
+**Explanation (from the wording-check worker):**
+
+The claim explicitly says "$A, B, C \subseteq V \cup J$ (not necessarily disjoint) subsets of nodes" — i.e., the author is *deliberately* allowing $A \cap B$, $A \cap C$, $B \cap C$ to be nonempty. The literal text never clarifies what the three relations $\isPerp_G$, $\isPerp_{G'}$, $\idPerp_{G'}$ are supposed to do in these degenerate cases, and this leaves an unintended-consequence corner case open.
+
+Concrete worry: take any node $v \in A \cap B$ with $v \notin C$. There is a trivial length-0 "path" from $v$ to itself entirely outside $C$. Under most standard formulations of d-separation / σ-separation, this means $A$ is **not** separated from $B$ given $C$ — purely by accident of the overlap, with no real graph-theoretic content. The equivalence in the claim then degenerates into "all three sides are simultaneously false because of a shared node", which is technically true but probably not the content the author intends to assert.
+
+Similarly, if $A \cap C \neq \emptyset$ (or $B \cap C$), some conventions implicitly absorb the shared elements into the conditioning set, others leave them as nodes in $A$ that happen to also be conditioned on. The choice of convention has to be the *same* on all three sides for the biconditional to hold; the LN does not nail down which convention is in force.
+
+This matters downstream: any proof of the claim must either (i) assume the convention is uniform across $\isPerp_G$, $\isPerp_{G'}$, $\idPerp_{G'}$ and just dispose of the degenerate cases up front, or (ii) work harder. Right now the tex just waves at "not necessarily disjoint" without saying which.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 107. `l_prime_first_clause_existential_vars_unused`
+
+- **Observed by row:** `def_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The first clause of $L'$ introduces existentially quantified variables $v_1'$ and $v_2'$ but never uses them in the body of the condition:
+
+```
+L' := \lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, \exists v_1' \in \Sc^G(v_1), v_2' \in \Sc^G(v_2):\, v_1 \huh v_2 \in L \rC
+```
+
+The condition is literally "$v_1 \huh v_2 \in L$" — it does not say "$v_1' \huh v_2' \in L$". Since $\Sc^G(v_1)$ contains $v_1$ and $\Sc^G(v_2)$ contains $v_2$ (used elsewhere in the proof, e.g. "$v_1 \in \Sc^G(v_1)$"), the existential is automatically satisfiable and the condition collapses to just "$v_1 \huh v_2 \in L$".
+
+Under the literal reading, the first clause of $L'$ degenerates to "keep all bidirected edges of $L$ between distinct vertices of $V$" — the SCC structure is ignored, and bidirected edges are not propagated across SCC members. This is almost certainly not what the author intends; the analogous clause for $E'$ does use $v_2'$ ("$v_1 \tuh v_2' \in E$"), strongly suggesting the body of the $L'$ first clause should be "$v_1' \huh v_2' \in L$". Any downstream proof that needs $v_1 \huh v_2 \in L'$ whenever some pair of SCC representatives is connected by a bidirected edge in $L$ will fail under the literal reading.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 108. `e_prime_asymmetric_source_vs_target_treatment`
+
+- **Observed by row:** `def_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The $E'$ definition treats source and target asymmetrically. The condition
+
+```
+\exists v_2' \in \Sc^G(v_2):\, v_1 \tuh v_2' \in E
+```
+
+uses the original $v_1$ as the source (no quantifier over $\Sc^G(v_1)$) but quantifies the target over $\Sc^G(v_2)$. So an original edge $v_1' \tuh v_2'$ in $G$ with $v_1' \in \Sc^G(v_1) \setminus \{v_1\}$ contributes nothing to "$v_1 \tuh v_2 \in E'$" unless $v_1$ itself separately has an edge into $\Sc^G(v_2)$.
+
+Concrete corner case: let $G$ have $\Sc^G(a) = \Sc^G(b) = \{a,b\}$ (so $a,b$ form a 2-cycle), with $c$ in a different SCC, and the only inter-SCC edge being $b \tuh c$ (no edge $a \tuh c$ in $G$). Under the literal reading, $b \tuh c \in E'$ but $a \tuh c \notin E'$ — even though $a$ and $b$ are in the same SCC. A reader expecting the standard SCC-quotient-style construction (where edges depend only on the SCC of the source) would not get that here.
+
+The acyclicity proof still works under this literal reading (since $v_i$ literally reaches $v'_{i+1}$ in $G$), so this is not a bug in the proof, but it is a non-obvious modelling choice that could affect downstream results that assume the construction is symmetric over the source's SCC.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 109. `l_prime_second_clause_asymmetric_sc_condition`
+
+- **Observed by row:** `def_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The second clause of $L'$:
+
+```
+\lC v_1 \huh v_2  \st v_1,v_2 \in V, v_1 \neq v_2, v_1 \in \Sc^G(v_2) \rC
+```
+
+only requires "$v_1 \in \Sc^G(v_2)$" and not the symmetric "$v_2 \in \Sc^G(v_1)$". The edge type $\huh$ is bidirected (symmetric), so the reader expects the membership condition to be symmetric as well.
+
+If $\Sc^G$ denotes the strongly-connected component of a vertex, then $v_1 \in \Sc^G(v_2) \iff v_2 \in \Sc^G(v_1)$ and the asymmetry is harmless. But $\Sc^G$ is not defined within this block; if it denotes something like "strong ancestors" or "strong descendants" (rather than the symmetric SCC relation), then the literal asymmetric condition can hold for $(v_1, v_2)$ but not for $(v_2, v_1)$. Combined with the question of whether "$v_1 \huh v_2$" is an ordered or unordered pair (the set-builder writes ordered tuples), this leaves a genuine ambiguity about whether $L'$ ends up symmetric.
+
+A reader/formalizer needs the precise definition of $\Sc^G$ (likely def_3_? in the same file) to disambiguate.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 110. `cyclic_walk_index_k_eq_1_handled_via_self_loop_ruleout`
+
+- **Observed by row:** `def_3_22`
+
+**Explanation (from the wording-check worker):**
+
+The proof writes the cyclic walk as
+
+```
+v_1 \tuh v_2 \tuh \cdots \tuh v_k \tuh v_1, \quad k \ge 1
+```
+
+and then argues "$k \ge 2$ because clearly $v_1 \in \Sc^G(v_1)$, which rules out the existence of an edge $v_1 \tuh v_1 \in G'$."
+
+This is correct but worth flagging: the wording "non-trivial cyclic directed walk... for some $k \ge 1$" is slightly off in two ways. First, "non-trivial" already excludes the length-0 walk, so the natural lower bound from the assumption is exactly $k \ge 1$. Second, the $k = 1$ case is the self-loop $v_1 \tuh v_1$ — which is degenerate ("non-trivial" includes self-loops here). The argument that $v_1 \in \Sc^G(v_1)$ rules out $v_1 \tuh v_1 \in E'$ depends on $\Sc^G$ being reflexive (i.e. $v \in \Sc^G(v)$ always). This reflexivity is used silently and is not established within this block; it relies on the external definition of $\Sc^G$. A literal reader for whom $\Sc^G$ might be the *open* strongly-reachable set (not containing $v$ itself) would not see why self-loops in $G'$ are immediately ruled out.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 111. `empty_set_asymmetry_between_left_and_right_redundancy`
+
+- **Observed by row:** `def_3_23`
+
+**Explanation (from the wording-check worker):**
+
+The literal reading of axioms (a) and (b) produces an asymmetric
+treatment of the empty set that a casual reader is unlikely to notice. Axiom
+(a) "Extended Left Redundancy: $D \ins A \implies D \iPerp B \given A$" has
+no constraint preventing $D = \emptyset$. Since $\emptyset \subseteq A$ holds
+for *every* $A$ (including $A = \emptyset$), the literal axiom yields
+$\emptyset \iPerp B \given A$ for arbitrary $A, B$ — no $J$ requirement on
+the conditioning set. In contrast, axiom (b) "$J$-Restricted Right Redundancy:
+$A \iPerp \emptyset \given C \cup J$ always holds" explicitly requires $J$ in
+the conditioning. So empty-on-the-left is trivially separated by anything,
+but empty-on-the-right is only "axiomatically" guaranteed when conditioning
+contains $J$. The name "$J$-Restricted" on (b) flags this asymmetry, but
+the name "Extended" on (a) does NOT flag that no $J$-restriction is needed
+there. This may be intentional (it reflects the directional nature of the
+relation), but a formalizer transcribing (b) might mistakenly add a parallel
+"$J$-Restricted Left Redundancy" or, conversely, drop the $J$ from (b)
+expecting symmetry.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 112. `iperp_meta_variable_for_two_distinct_relations`
+
+- **Observed by row:** `def_3_23`
+
+**Explanation (from the wording-check worker):**
+
+The opening sentence says "the ternary relations $\iPerp =
+\idPerp_G$ and $\iPerp = \isPerp_G$ satisfy the following rules". The
+intended meaning is clearly "both relations independently satisfy each rule
+listed below", with $\iPerp$ used as a meta-variable inside each axiom. But
+the literal punctuation "$\iPerp = \idPerp_G$ AND $\iPerp = \isPerp_G$"
+reads as a conjunction of two equalities, which would force
+$\idPerp_G = \isPerp_G$ — generally false. The two equivalences at the
+bottom of the block, and rule (l), also use $\iPerp$ and inherit the same
+ambiguity: are they claims about one relation, the other, or both? In the
+DefThm context the intended reading is "both", but the same letter being
+used for two different relations within a single statement is a notational
+hazard. A downstream formalization must duplicate every axiom for both
+relations and prove each twice.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 113. `selective_cross_and_flipped_contraction_axioms_unmotivated`
+
+- **Observed by row:** `def_3_23`
+
+**Explanation (from the wording-check worker):**
+
+The list includes (i) Right Contraction, (j) Right Cross
+Contraction (premise $D \iPerp A$ instead of $A \iPerp D$), and (k) Flipped
+Left Cross Contraction (premise $B \iPerp D$ and conclusion $B \iPerp A
+\cup D$). Several combinatorially-sibling variants are conspicuously absent:
+e.g. an unflipped "Left Cross Contraction"
+$(A \iPerp B \given D \cup C) \land (B \iPerp D \given C) \implies A \cup D
+\iPerp B \given C$, or a "Right Flipped Contraction" with conclusion
+swapped, etc. The text gives no criterion for which variants are listed and
+which are omitted. Under $J = \emptyset$ (where (l) yields full symmetry)
+the cross/flipped variants collapse onto their non-cross counterparts, so
+the asymmetric set matters only when $J \neq \emptyset$. A reader trying to
+understand the axiom system as a complete characterization may incorrectly
+infer that the missing variants are *false*, when in fact the wording does
+not commit either way — they may simply not be needed for the proofs the
+authors care about.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 114. `j_inverted_right_decomposition_interacts_oddly_with_overlap`
+
+- **Observed by row:** `def_3_23`
+
+**Explanation (from the wording-check worker):**
+
+Axiom (c) reads "$A \iPerp B \given C \implies A \iPerp J \cup
+B \given C$" with no restriction on how $J$ relates to $A$, $B$, or $C$.
+The "$J$-Inverted" name flags that it ADDS to the right side (contra usual
+right-decomposition), but corner cases are not discussed. If $J$ overlaps
+$A$ (in particular if $J \subseteq A$), then from any non-trivial
+separation $A \iPerp B \given C$ one obtains $A \iPerp J \cup B \given C$,
+and via (e) Right Decomposition $A \iPerp J \given C$ — i.e. $A$ is
+"separated from" a subset of itself given an unrelated $C$. This is a
+strong claim about the relation. Combined with (b) and (e) it forces
+$A \iPerp J \given C \cup J$ for all $A, C$, which is consistent (it
+matches (a) with $D := J \subseteq C \cup J$) but is a chain of
+consequences a formalizer may need to anticipate when checking that
+$\idPerp_G$ and $\isPerp_G$ actually satisfy (c).
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 115. `we_also_get_framing_blurs_axiom_vs_derived_status_for_l`
+
+- **Observed by row:** `def_3_23`
+
+**Explanation (from the wording-check worker):**
+
+The block uses "In particular, we have the equivalences ..."
+to introduce two derived biconditionals, then says "We also get:" before
+re-opening the enumerated list with (l) $J$-Restricted Symmetry. The
+phrase "we also get" suggests a derivation, but the structural placement
+(a resumed enumerate at the same level as a–k) suggests another asserted
+axiom on equal footing with the rest. Since the environment is a `DefThm`,
+the most natural reading is that (l) is part of the asserted package — but
+a careful reader could legitimately wonder whether (l) is meant to be
+provable from a–k alone (in which case the asymmetric content of (j), (k)
+would matter for the derivation) or stipulated separately. The two
+readings differ in what a future proof obligation looks like.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 116. `iperp_overloaded_as_two_distinct_relations`
+
+- **Observed by row:** `claim_3_33`
+
+**Explanation (from the wording-check worker):**
+
+The intro reads "Then the ternary relations $\iPerp = \idPerp_G$
+and $\iPerp = \isPerp_G$ satisfy the following rules". A strict literal reading
+asserts $\iPerp$ equals both $\idPerp_G$ and $\isPerp_G$, which by transitivity
+of equality would force $\idPerp_G = \isPerp_G$. But these two relations
+(id-separation and i-sigma-separation, per the DefThm header
+"(Asymmetric) separoid axioms for $i\sigma$-separation/$id$-separation") are
+conceptually distinct objects in this framework — that's precisely why the
+statement bundles them. The intent is "the listed rules hold for each of
+$\idPerp_G$ and $\isPerp_G$, where $\iPerp$ is a placeholder that ranges over
+the two", but the literal text uses "=" as if it were a single defining
+equation in each conjunct. A formalization must disambiguate: either state
+each axiom parametrically over a generic ternary relation and instantiate
+twice (once per relation), or state every axiom twice with explicit names —
+the bundled reading "$\iPerp$ is both" is not formalizable.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 117. `axioms_apply_to_arbitrary_overlapping_subsets_with_j`
+
+- **Observed by row:** `claim_3_33`
+
+**Explanation (from the wording-check worker):**
+
+The intro declares "$A,B,C,D \ins J \cup V$ subsets of nodes"
+with no disjointness condition — these sets may overlap each other and may
+overlap $J$. The axioms then quantify over arbitrary such subsets and form
+unions ($A \cup D$, $J \cup B$, $D \cup C$, etc.) without saying how
+$\iPerp$ behaves when the resulting sets share nodes. This bites most
+visibly in axiom (c) "$J$-Inverted Right Decomposition:
+$A \iPerp B \given C \implies A \iPerp J \cup B \given C$". Corner case:
+take any $A$ with $A \cap J \neq \emptyset$ (allowed since $A \ins J \cup V$
+is unrestricted) — then the conclusion's left side $A$ shares nodes with
+its right side $J \cup B$, even when $C$ does not contain that overlap.
+Whether the conclusion is vacuously true, trivially true via some implicit
+conditioning convention, or a genuine constraint depends on a definition
+not stated in this block. The same issue affects axiom (a)
+"$D \ins A \implies D \iPerp B \given A$": there is no constraint on $B$,
+so $B$ may overlap $A$ or even contain $D$, and the literal axiom still
+claims separation. Downstream proofs that quote these axioms with
+overlapping inputs (especially $A$ touching $J$ when applying (c), or
+$B$ touching $A$ in (a)) lean on a convention that the block does not
+make explicit.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 118. `intersection_rules_only_one_disjointness_each_stated`
+
+- **Observed by row:** `claim_3_34`
+
+**Explanation (from the wording-check worker):**
+
+For both Intersection rules, the author states a single disjointness precondition — "If $A \cap D = \emptyset$" for Left Intersection and "If $B \cap D = \emptyset$" for Right Intersection — and is silent on every other pairwise intersection involving $D$ (e.g. $D \cap B$, $D \cap C$ for Left Intersection; $D \cap A$, $D \cap C$ for Right Intersection).
+
+The stated conditions are individually necessary. Without $A \cap D = \emptyset$ in Left Intersection, taking $A = D = \{x\}$ collapses both premises to the same trivial statement $\{x\} \iPerp B \given \{x\} \cup C$ (conditioning on $x$ makes $x$ independent of everything else under d-separation), while the conclusion $\{x\} \iPerp B \given C$ stays substantive — so the rule would be unsound. The symmetric collapse happens for Right Intersection with $B = D = \{y\}$.
+
+But the literal reading also admits cases the rule likely should not cover. For example, in Left Intersection with $D \cap B \neq \emptyset$ (take $B = D = \{y\}$, $A = \{x\}$, $C = \emptyset$, so $A \cap D = \emptyset$ holds): the first premise $(A \iPerp B \given D \cup C)$ becomes $\{x\} \iPerp \{y\} \given \{y\}$, where the target $B$ literally appears in the conditioning set; the second premise $(D \iPerp B \given A \cup C)$ becomes $\{y\} \iPerp \{y\} \given \{x\}$, i.e. "$y$ independent of itself given $x$". Whether these are defined, trivially true, or ill-formed depends entirely on the d-separation-with-overlapping-sets convention inherited from Theorem \ref{d-sep-separoid-axioms}, which this remark does not restate.
+
+So the remark implicitly relies on unstated baseline disjointness for non-$D$ pairs (presumably each $X \iPerp Y \given Z$ statement has $X, Y, Z$ pairwise disjoint by inheritance) and adds only the $D$-specific disjointness it explicitly states. The phrasing "If $A \cap D = \emptyset$" suggests this is the ONLY extra condition, which is correct only under the right inheritance assumption. A downstream proof of these rules would need to either (i) rely on premise well-formedness already enforcing the other disjointness, or (ii) prove additional disjointness conditions that the remark does not mention. The asymmetric, single-condition framing leaves this choice ambiguous in the literal text.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 119. `a_intersect_j_makes_rhs_target_overlap`
+
+- **Observed by row:** `claim_3_35`
+
+**Explanation (from the wording-check worker):**
+
+The lemma quantifies over arbitrary $A, B, C \subseteq J \cup V$ with no disjointness assumption stated. Consider $A \cap J \neq \emptyset$: pick any context node $j \in A \cap J$. On the RHS, the target of the separation is $B \cup J$, which contains $j$. So $A \cap (B \cup J) \supseteq \{j\} \neq \emptyset$. In the standard reading of d-/m-/σ-separation, a node is "connected" to itself by the trivial path of length 0, so $A \sPerp_{\bar G} (B \cup J) \given C$ is trivially false whenever the two sets share a node. For the equivalence as literally written to hold, $A \isPerp_G B \given C$ must also be trivially false in this case. The text gives no such restriction, no disjointness hypothesis, and no comment that the lemma is implicitly assuming $A \cap J = \emptyset$ — a degenerate corner case (take $A = J$ and any $B$) makes the lemma claim "an automatically-false RHS iff something on the LHS", which a careful reader (or a downstream proof relying on this equivalence with $A \subseteq V$ implicitly) would want flagged. The commented-out (iii) version even uses $A \sm J$ instead of $A$, suggesting the author did consider this issue but the active form silently does not.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 120. `b_cap_j_is_silently_absorbed_by_union_with_j`
+
+- **Observed by row:** `claim_3_35`
+
+**Explanation (from the wording-check worker):**
+
+On the RHS, the target set is "$B \cup J$". Because $J \subseteq B \cup J$ always, the value $B \cup J$ depends only on $B \cap V$, not on $B \cap J$ — i.e., choosing $B = \emptyset$, $B = J$, or $B = $ any subset of $J$ all yield the same RHS predicate $A \sPerp_{\bar{G}} J \given C$. By the asserted equivalence, the LHS $A \isPerp_G B \given C$ must therefore also be insensitive to $B \cap J$. This is a substantive (and non-obvious) constraint on $\isPerp_G$ baked into the literal lemma: $\isPerp_G$ on the CDMG cannot "see" which context nodes are in $B$. A reader who naively expects $\isPerp_G$ to behave like ordinary separation on $J \cup V$ would be surprised — a downstream claim that distinguishes $A \isPerp_G B$ from $A \isPerp_G (B \cup J')$ for some $J' \subseteq J$ would contradict this lemma.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 121. `c_intersect_j_and_b_cup_j_overlap_unaddressed`
+
+- **Observed by row:** `claim_3_35`
+
+**Explanation (from the wording-check worker):**
+
+The conditioning set $C$ is also drawn freely from $J \cup V$, so $C \cap J$ can be nonempty. On the RHS, $C \cap J \subseteq J \subseteq B \cup J$, so any context node in $C$ also appears in the target. Most separation conventions treat conditioning on target-side nodes as benign (it just blocks paths through them), but combined with the issue in `a_intersect_j_makes_rhs_target_overlap`, it means the RHS quietly "moves" any $j \in C \cap J$ into both the conditioning set and the target. Note that the commented-out alternative (iii) reads $C \cup (J \sm B)$ on the conditioning side and $B \cup (J \sm C)$ on the target side — a partition of $J$ across the two sides depending on $C$ vs $B$ membership. The active form forces all of $J$ onto the target side regardless of $C$, which is a real semantic choice, not a notational shortcut. The literal text doesn't note that these forms differ on $C \cap J$ and that the choice may matter when $C$ contains context variables.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 122. `mixed_given_pipe_notation_in_lhs`
+
+- **Observed by row:** `claim_3_36`
+
+**Explanation (from the wording-check worker):**
+
+The two halves of the disjunction on the LHS use inconsistent notation for conditioning: the first half is written `A \isPerp_G B \given C` (using `\given`), while the second is written `B \isPerp_G A | C` (using `|`). This is almost certainly a typo, but a careful reader will pause to ask whether the two notations are intended to mean different things (e.g. is `|` here separator syntax inside a larger expression rather than conditioning?). If `\given` is the project's canonical macro for conditioning, the `|` should be replaced for uniformity.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 123. `disjoint_union_vs_union_in_node_set_definition`
+
+- **Observed by row:** `claim_3_36`
+
+**Explanation (from the wording-check worker):**
+
+The lemma defines $\bar{V} := V \dcup J$ (disjoint union) but the next clause quantifies over subsets `$A, B, C \subseteq J \cup V$` (plain union). If $V$ and $J$ might overlap in $G$, then $\bar{V}$ (as a disjoint union) contains *tagged* copies and is strictly larger than $J \cup V$; a subset of $J \cup V$ then does not canonically embed into $\bar{V}$, and the statement `$A \sPerp_{\bar{G}} B \given C$` is ambiguous (which copy of an element in $V \cap J$ is meant?). Conversely, if $V$ and $J$ are guaranteed disjoint as part of the CDMG signature, then $\dcup$ is unnecessary decoration and the same symbol should be used throughout. Either way the discrepancy is a real ambiguity that downstream readers (and the corresponding Lean formalization) will have to resolve.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 124. `tfae_phrasing_for_single_iff`
+
+- **Observed by row:** `claim_3_36`
+
+**Explanation (from the wording-check worker):**
+
+The lemma says "the following are equivalent:" and then displays a single `\iff` formula `$A \isPerp_G B \given C \lor B \isPerp_G A | C \iff A \sPerp_{\bar{G}} B \given C$`. "The following are equivalent" idiomatically introduces a list of $\geq 2$ statements that are pairwise equivalent; for a single biconditional, the natural phrasing would be "then" or "we have". As written, a reader may parse the displayed line as the *operand* of "are equivalent" (i.e. treating the whole iff as one of several to-be-equivalent statements that never appear), or be unsure whether the precedence is `(\lor) \iff (...)` versus `... \lor (... \iff ...)`. Adding parentheses or rephrasing would remove the doubt.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 125. `bidirected_edge_set_double_lists_unordered_pairs`
+
+- **Observed by row:** `claim_3_36`
+
+**Explanation (from the wording-check worker):**
+
+The added bidirected edges are written `$\{j \huh j' : j, j' \in J, j \ne j'\}$`. Bidirected edges are normally unordered, i.e. `$j \huh j' = j' \huh j$`. But the set-builder enumerates over ordered pairs $(j, j')$ with $j \ne j'$, so for every unordered pair $\{j, j'\}$ the comprehension produces *both* $j \huh j'$ and $j' \huh j$. Whether this matters depends on how `$\bar{L}$` is represented (a set of unordered pairs collapses the duplicate; a set or multiset of ordered-pair tokens does not). A reader / formalizer has to know the underlying convention to interpret this correctly. The literal text does not say.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 126. `no_disjointness_constraint_on_A_B_C`
+
+- **Observed by row:** `claim_3_36`
+
+**Explanation (from the wording-check worker):**
+
+The lemma quantifies "for $A, B, C \subseteq J \cup V$" with no requirement that $A, B, C$ be pairwise disjoint (or even that $A \cap B = \emptyset$). Many separation / i-separation conventions either require these to be disjoint or have unintuitive behavior in the degenerate cases. For instance, when $A \cap B \ne \emptyset$, is $A \isPerp_G B \given C$ ever true? When $A \subseteq C$ or $B \subseteq C$, does the i-separation hold trivially? If the equivalence is meant to be claimed for *all* such $A, B, C$ including the overlapping cases, then both sides must agree even in those degenerate situations — and the lemma is silently asserting more than a domain expert would default to. If the lemma is implicitly assuming the standard disjoint-triple convention, that assumption should be stated explicitly.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+### 127. `directed_edge_augmentation_admits_2_cycles_among_J`
+
+- **Observed by row:** `claim_3_37`
+
+**Explanation (from the wording-check worker):**
+
+The literal upper bound on $\bar{E}$ is $E \cup \{j \tuh j' : j, j' \in J, j \ne j'\}$. The enumeration ranges over ordered pairs of *distinct* context nodes, so for every pair $(j, j')$ with $j \ne j'$, *both* $j \tuh j'$ and $j' \tuh j$ are in the augmentation set. Consequently, the maximal admissible $\bar{E}$ (under just the upper bound) contains a directed 2-cycle on every pair of context nodes.
+
+Whether this is a true ambiguity depends entirely on the paper's reading of "DMG":
+- If "DMG" in this paper means a directed mixed graph that *permits cycles* (a common convention, distinguishing it from "ADMG"), then the maximal $\bar{E}$ is a valid DMG and the lemma is universally quantified over a large family including these highly cyclic augmentations.
+- If "DMG" tacitly carries an acyclicity constraint (some authors use "DMG" loosely for ADMG), then the "Let $\bar{G}$ be a DMG" preamble silently restricts $\bar{E}$ to acyclic subsets of the upper bound — i.e., the explicit constraint set $E \subseteq \bar{E} \subseteq E \cup \{\cdots\}$ overstates the actual admissible family.
+
+A concrete corner case for $|J| = 2$, $J = \{j_1, j_2\}$: the choice $\bar{E} = E \cup \{j_1 \tuh j_2, j_2 \tuh j_1\}$ produces a 2-cycle on $J$. Under the literal reading this is a valid $\bar{E}$; under an acyclicity-flavored reading it is not. Any downstream formalizer or proof must commit to one interpretation; the wording in this row alone does not disambiguate. The hypothesis $J \subseteq B \cup C$ makes the biconditional plausibly invariant to the choice of $\bar{E}$ (since paths through J are either blocked by conditioning or terminate as targets), but the proof obligation differs significantly between the cyclic-allowed and acyclic-required readings.
+
+**Decision** (replace `TODO` with `NONE` or your clarifying clause):
+
+```
+TODO
+```
+
+---
+
+## Additional notes (global)
+
+Anything you write under `### Notes` below is treated as a **truly
+global** addition to the LN -- merged into every row's
+`addition_to_the_LN` field (prefixed with `[global]`). Use this for
+project-wide assumptions that genuinely apply to every row -- e.g.
+"interventions are always hard interventions unless otherwise specified".
+
+Format: one assumption per paragraph. Leave the section empty if no
+truly-global additions apply.
+
+If an assumption only applies to a *specific* row (e.g. "the CDMG
+defined in def_3_1 has finite node sets"), put it in the
+**Manual row-specific additions** section below instead -- otherwise
+it pollutes the spec for every other row.
+
+### Notes
+
+<!-- write your truly-global LN additions below this line; one paragraph per assumption -->
+
+
+---
+
+## Manual row-specific additions
+
+Each paragraph here is appended to a single row's `addition_to_the_LN`.
+This is the place for operator-authored constraints that aren't tied
+to a discovered subtlety -- typically project assumptions targeting
+one specific definition or claim. Each is agent-translated like the
+per-subtlety decisions above (use `--verbatim` to skip).
+
+Format: each paragraph must start with `[<ref>]` (e.g. `[def_3_1]`).
+The rest of the paragraph is your constraint, written informally;
+the interpreter worker rewrites it as a self-contained clause and
+appends `[manual_<n>] <formal clause>` to the named row's
+`addition_to_the_LN`.
+
+### Row-specific additions
+
+[def_3_1] Node sets J and V are both finite.
+
+

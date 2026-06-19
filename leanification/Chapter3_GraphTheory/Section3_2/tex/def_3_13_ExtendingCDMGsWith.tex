@@ -1,10 +1,11 @@
 % Definition file for row def_3_13 -- "ExtendingCDMGsWith".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -15,23 +16,50 @@
 \phantomsection\label{def_3_13}
 
 \begin{Def}[Extending CDMGs with intervention nodes]\label{def:cdmg_intervention_nodes}
-  Let $G=(J,V,E,L)$ be a CDMG and $W \ins J \cup V$ a subset of nodes.
-  The \emph{extended CDMG} of $G$ w.r.t.\ nodes $W \ins J \cup V$  and corresponding \emph{intervention nodes} 
-%  $I_W = \{I_w \,|\, w \in W\}$ \Joris{with $I_j:=j$ for $j \in J$},
-  $I_W = \{I_w \,|\, w \in W\}$ with $I_j:=j$ for $j \in J \cap W$,
-  is the CDMG: 
-  \[ G_{\doit(I_W)}:=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
-  %\[G(V|\doit(J \dcup I_W)):=G_{\doit(I_W)}=(J_{\doit(I_W)},V_{\doit(I_W)},E_{\doit(I_W)},L_{\doit(I_W)}),\]
-  where:
-  \begin{enumerate}[label=\roman*.)]
-%      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \Joris{\sm J} \rC$, %not W \sm J, makes weak and hard interventions commute
-      \item $J_{\doit(I_W)}:= J\, \dot{\cup} \, \lC I_w\,|\, w \in W \sm J \rC$, %not W \sm J, makes weak and hard interventions commute
-      \item $V_{\doit(I_W)}:= V$,
-      \item $E_{\doit(I_W)}:= E\, \dot{\cup} \, \lC I_w \tuh w \,|\, w \in W\sm J \rC$,
-      \item $L_{\doit(I_W)}:= L$,
-  \end{enumerate}
-%  where we just add \Joris{nodes $I_w$ for $w \in W \sm J$ and} edges $I_w \tuh w$ for $ w \in W \sm J$. 
-  where we just add nodes $I_w$ for $w \in W \sm J$ and edges $I_w \tuh w$ for $ w \in W \sm J$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let $W \ins J \cup V$ be a subset of nodes; we do \emph{not} require $W \cap J = \emptyset$, i.e.\ $W$ is permitted to overlap the input-node set $J$.
+
+    The \emph{extended CDMG} of $G$ w.r.t.\ nodes $W$ and corresponding \emph{intervention nodes} $I_W := \lC I_w \st w \in W \rC$ is the CDMG
+    \[ G_{\doit(I_W)} \;:=\; \lp J_{\doit(I_W)},\, V_{\doit(I_W)},\, E_{\doit(I_W)},\, L_{\doit(I_W)} \rp, \]
+    constructed as follows.
+
+    \emph{Fresh intervention nodes.}
+    For each $w \in W \sm J$ we introduce a single \emph{fresh} intervention symbol $I_w$: a brand-new element of a formally distinct kind from every element of $J \cup V$ and from every other $I_{w'}$ with $w' \in W \sm J$, $w' \neq w$. In a formal encoding, the family
+    \[ \lC I_w \st w \in W \sm J \rC \]
+    is realised as a \emph{tagged copy} of $W \sm J$ (e.g.\ via a $\Sigma$-type or tagged sum); concretely, the downstream Lean rendering uses an \texttt{inductive} tagged-sum carrier with one constructor that lifts every original node of $J \cup V$ and a separate constructor that produces the new symbol $I_w$ for each $w \in W \sm J$. Under this convention, the disjointness assertions
+    \[ \lC I_w \st w \in W \sm J \rC \cap (J \cup V) \;=\; \emptyset, \qquad \text{and} \qquad I_{w_1} \neq I_{w_2} \text{ for distinct } w_1, w_2 \in W \sm J, \]
+    hold \emph{automatically by typing} rather than being asserted as a side condition; in particular each fresh symbol $I_w$ is type-disjoint from $J$, from $V$, and from every other fresh $I_{w'}$.
+
+    \emph{Notational shorthand $I_j := j$ for $j \in J \cap W$.}
+    For $j \in J \cap W$ we put $I_j := j$ purely as a notational shorthand: the symbol $I_j$ is a label for the pre-existing input node $j \in J$ itself, and \emph{no new node is introduced on the $J \cap W$ branch}. In particular, the pre-existing $j \in J$ retains in $G_{\doit(I_W)}$ all edges that $G$ already assigned to it, with no fresh symbol added next to it and no extra edge added pointing at it. This convention is needed solely so that $I_W = \lC I_w \st w \in W \rC$ is well-defined as a set indexed by the entirety of $W$: without it, the symbol $I_w$ would have no referent on the $J \cap W$ branch. With the convention, $I_W$ decomposes as
+    \[ I_W \;=\; (J \cap W) \;\cup\; \lC I_w \st w \in W \sm J \rC, \]
+    where the first component contains the (notational) $I_j = j$ for $j \in J \cap W$ and the second component contains the genuinely fresh symbols $I_w$ for $w \in W \sm J$, the latter type-disjoint from the former by the freshness clause.
+
+    With these conventions in place, the four components of $G_{\doit(I_W)}$ are defined as follows.
+    \begin{enumerate}[label=\roman*.)]
+        \item \emph{Input nodes:}
+            \[ J_{\doit(I_W)} \;:=\; J \;\cup\; \lC I_w \st w \in W \sm J \rC. \]
+            The LN's $\dot\cup$ between $J$ and $\lC I_w \st w \in W \sm J \rC$ is automatically disjoint: by the freshness clause, every $I_w$ with $w \in W \sm J$ is type-disjoint from every element of $J$, so $J \cap \lC I_w \st w \in W \sm J \rC = \emptyset$ holds without a separate side condition.
+        \item \emph{Output nodes:}
+            \[ V_{\doit(I_W)} \;:=\; V. \]
+        \item \emph{Directed edges:}
+            \[ E_{\doit(I_W)} \;:=\; E \;\cup\; \lC (I_w,\, w) \st w \in W \sm J \rC. \]
+            The LN's $\dot\cup$ between $E$ and $\lC (I_w, w) \st w \in W \sm J \rC$ is automatically disjoint: every pair $(I_w, w)$ in the second set-builder has its source $I_w$ in $\lC I_{w'} \st w' \in W \sm J \rC$, which by the freshness clause is type-disjoint from $J \cup V$; but every edge in $E$ has its source in $J \cup V$ (by $E \ins (J \cup V) \times V$), so no edge of $E$ can coincide with any $(I_w, w)$. Equivalently, rendered through def \ref{not-cdmg}, item~2: every directed edge $v_1 \tuh v_2$ already in $E$ is retained, and additionally a single new directed edge $I_w \tuh w$ is included for every $w \in W \sm J$ (and \emph{none} for $w \in J \cap W$).
+        \item \emph{Bidirected edges:}
+            \[ L_{\doit(I_W)} \;:=\; L. \]
+    \end{enumerate}
+
+    \emph{CDMG axioms for $G_{\doit(I_W)}$.}
+    The CDMG axioms (def \ref{def-cdmg}) hold for $G_{\doit(I_W)}$, with the new intervention nodes landing in $J_{\doit(I_W)}$ and the bidirected side and output side untouched:
+    \begin{itemize}
+        \item \emph{Input--output disjointness, $J_{\doit(I_W)} \cap V_{\doit(I_W)} = \emptyset$:} $J \cap V = \emptyset$ by hypothesis on $G$, and $\lC I_w \st w \in W \sm J \rC \cap V = \emptyset$ by the freshness clause (each $I_w$ is type-disjoint from $V$); since $V_{\doit(I_W)} = V$ and $J_{\doit(I_W)} = J \cup \lC I_w \st w \in W \sm J \rC$, distribution of $\cap$ over $\cup$ gives $J_{\doit(I_W)} \cap V_{\doit(I_W)} = (J \cap V) \cup (\lC I_w \st w \in W \sm J \rC \cap V) = \emptyset$.
+        \item \emph{Directed-edge typing, $E_{\doit(I_W)} \ins (J_{\doit(I_W)} \cup V_{\doit(I_W)}) \times V_{\doit(I_W)}$:} for every $(v_1, v_2) \in E$ we have $v_1 \in J \cup V \ins J_{\doit(I_W)} \cup V_{\doit(I_W)}$ and $v_2 \in V = V_{\doit(I_W)}$, by the hypothesis $E \ins (J \cup V) \times V$ on $G$; for every new edge $(I_w, w)$ with $w \in W \sm J$, the source $I_w$ lies in $\lC I_{w'} \st w' \in W \sm J \rC \ins J_{\doit(I_W)}$, and the target $w$ lies in $V_{\doit(I_W)} = V$ (the latter because $w \in W \sm J$ together with $W \ins J \cup V$ forces $w \in V$).
+        \item \emph{Bidirected-edge typing, $L_{\doit(I_W)} \ins V_{\doit(I_W)} \times V_{\doit(I_W)}$:} since $L_{\doit(I_W)} = L$ and $V_{\doit(I_W)} = V$, this is exactly the hypothesis $L \ins V \times V$ on $G$, transported unchanged.
+        \item \emph{Irreflexivity of $L_{\doit(I_W)}$:} since $L_{\doit(I_W)} = L$, this is exactly irreflexivity of $L$, transported unchanged.
+        \item \emph{Symmetry of $L_{\doit(I_W)}$:} since $L_{\doit(I_W)} = L$, this is exactly symmetry of $L$, transported unchanged.
+    \end{itemize}
+    In particular, none of the three $L$-axioms requires re-checking: $L$ is unchanged and $V$ is unchanged, so the three bidirected-side axioms transport directly from $G$. Only the directed-edge typing and the input--output disjointness involve genuinely new content, and both reduce to the freshness clause above.
+
+    Informally: for every node $w \in W \sm J$ we add a single fresh intervention node $I_w$ to the input side, together with a single new directed edge $I_w \tuh w$ pointing at $w$ (which by $W \ins J \cup V$ and $w \notin J$ must lie in $V$); for every node $w \in J \cap W$ we add nothing, since the identification $I_w := w$ is purely notational and the pre-existing input node $w$ plays the role of its own intervention node. The output-node set $V$ and the bidirected-edge set $L$ are not touched. Each fresh intervention node $I_w$ (for $w \in W \sm J$) has exactly one outgoing directed edge in $G_{\doit(I_W)}$, namely $I_w \tuh w$, and is the target of no edge of $G_{\doit(I_W)}$: it is the target of no pre-existing edge in $E$ (since $I_w \notin J \cup V$, while every edge in $E$ has its target in $V$ and so cannot point at $I_w$), and it is the target of no new edge in $\lC (I_{w'}, w') \st w' \in W \sm J \rC$ (since each such edge has its target $w' \in V$, type-disjoint from $I_w$).
 \end{Def}
 
 \end{document}

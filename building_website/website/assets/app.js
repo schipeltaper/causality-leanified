@@ -69,6 +69,10 @@ const KATEX_MACROS = {
   "\\marg": "\\mathrm{mar}",  "\\moral": "\\mathrm{mor}",
   "\\ske":  "\\mathrm{ske}",  "\\can":  "\\mathrm{can}",
   "\\aug":  "\\mathrm{aug}",  "\\acy":  "\\mathrm{acy}",
+  "\\Sym":  "\\mathrm{Sym}",
+  "\\checkmark": "\\text{\\unicode{0x2713}}",
+  "\\Finset": "\\mathrm{Finset}",
+  "\\Node":   "\\mathrm{Node}",
 
   /* (conditional) independence — the full Perp / iPerp family */
   "\\Indep":   "\\mathrel{\\perp\\!\\!\\!\\perp}",
@@ -160,11 +164,12 @@ function renderMath(root) {
 /* ----------------------------------------------------------------------
    Lean pane.
 
-   Schema (v3): the row's JSON carries a single `lean_code_with_comments`
-   string + a parallel `lean_code_without_comments` string. The website
-   shows one code panel; a small toggle above the code switches between
-   the two. No per-part / multi-slide carousel — the orchestrator
-   produces one curated code blob per row.
+   The row's JSON carries `lean_blocks: [{kind, code}]`, one entry per
+   marker-wrapped region in the .lean source. `kind` is "main" for the
+   row's headline declaration and "helper" for supporting decls the main
+   one needs to type-check. Each block renders as its own block with a
+   small label so the reader can tell support code apart from the
+   headline declaration.
    ---------------------------------------------------------------------- */
 
 /* Highlight every Lean code block inside `root` (idempotent). */
@@ -177,41 +182,144 @@ function highlightLeanIn(root) {
   });
 }
 
-/* Build the Lean pane body — a single <pre><code> plus, when the
-   row carries a comments-off variant, a toggle that swaps between
-   them in place. Returns {body, toggle} so the caller can hoist the
-   toggle into the pane-label row. */
+/* Lean pane. Each block renders with:
+     - a label (kind: main / helper)
+     - a per-block "Comments ▾" button that flips this block's code
+       between its bare `code` and its `code_annotated` variant (the
+       same code with a `--` comment line above each non-trivial line).
+       Default: off. Each block toggles independently.
+     - a per-block "Explain ▾" button that toggles a Markdown
+       explanation panel beneath the code (disabled if no explanation
+       was generated). */
 function buildLeanPane(data) {
-  const withC    = data.lean_code_with_comments    || "";
-  const withoutC = data.lean_code_without_comments || "";
-  const codeNode = el("code", { class: "language-lean" }, withC);
-  const pre      = el("pre", {}, codeNode);
-  const body     = el("div", { class: "pane-body lean-pane-body" }, pre);
-
-  if (!withoutC || withoutC === withC) {
-    return { body, toggle: null };
+  const body = el("div", { class: "pane-body lean-pane-body" });
+  const blocks = data.lean_blocks || [];
+  if (blocks.length === 0) {
+    const userSkipped = data.status &&
+      data.status.solved === "yes" &&
+      data.status.formalized === "no";
+    if (userSkipped) {
+      body.append(el("div", { class: "user-skipped" },
+        "User did not deem it necessary to formalize this into Lean."));
+    } else {
+      body.append(el("div", { class: "missing" }, "(no Lean blocks marked)"));
+    }
+    return body;
   }
 
-  let showingComments = true;
-  const toggle = el("button", {
-    class: "lean-comments-toggle on",
-    type: "button",
-    "aria-label": "Toggle Lean comments",
-    title: "Show or hide the comments embedded in the Lean code",
-  }, "Comments: on");
-  toggle.addEventListener("click", () => {
-    showingComments = !showingComments;
-    const next = showingComments ? withC : withoutC;
-    pre.innerHTML = "";
-    const nc = el("code", { class: "language-lean" }, next);
-    pre.append(nc);
-    highlightLeanIn(pre);
-    toggle.textContent = `Comments: ${showingComments ? "on" : "off"}`;
-    toggle.classList.toggle("on",  showingComments);
-    toggle.classList.toggle("off", !showingComments);
-  });
+  for (const b of blocks) {
+    const kind = b.kind === "main" ? "main" : "helper";
+    const codeNode = el("code", { class: "language-lean" }, b.code);
+    const codePre  = el("pre", {}, codeNode);
 
-  return { body, toggle };
+    // Per-block comments toggle (only when a non-trivial annotated
+    // version exists).
+    const hasAnnotated = !!(b.code_annotated && b.code_annotated.trim() && b.code_annotated !== b.code);
+    let commentsOn = false;
+    const commentsBtn = el("button", {
+      class: "block-comments-btn", type: "button",
+      "aria-label": "Toggle line-by-line comments in this block",
+      title: hasAnnotated
+        ? "Show or hide a `-- comment` line above each non-trivial Lean line in this block."
+        : "No annotated variant generated for this block.",
+    }, "Comments");
+    if (!hasAnnotated) {
+      commentsBtn.disabled = true;
+      commentsBtn.classList.add("disabled");
+    } else {
+      commentsBtn.textContent = "Comments ▾";
+      commentsBtn.addEventListener("click", () => {
+        commentsOn = !commentsOn;
+        const next = commentsOn ? b.code_annotated : b.code;
+        codePre.innerHTML = "";
+        codePre.append(el("code", { class: "language-lean" }, next));
+        commentsBtn.textContent = commentsOn ? "Comments ▴" : "Comments ▾";
+        commentsBtn.classList.toggle("on", commentsOn);
+        highlightLeanIn(codePre);
+      });
+    }
+
+    // Per-block explanation panel.
+    const explanation = (b.explanation || "").trim();
+    const explanationDiv = el("div", { class: "block-explanation markdown-body" });
+    if (explanation) {
+      explanationDiv.innerHTML = typeof marked !== "undefined"
+        ? marked.parse(explanation, { gfm: true, breaks: false })
+        : `<pre>${explanation}</pre>`;
+    }
+    let explainOpen = false;
+    const explainBtn = el("button", {
+      class: "block-explain-btn", type: "button",
+      "aria-label": "Toggle the human-language explanation for this block",
+    }, "Explain");
+    if (!explanation) {
+      explainBtn.disabled = true;
+      explainBtn.classList.add("disabled");
+      explainBtn.title = "No explanation generated for this block yet.";
+    } else {
+      explainBtn.textContent = "Explain ▾";
+      explainBtn.addEventListener("click", () => {
+        explainOpen = !explainOpen;
+        explainBtn.textContent = explainOpen ? "Explain ▴" : "Explain ▾";
+        explainBtn.classList.toggle("open", explainOpen);
+        explanationDiv.classList.toggle("open", explainOpen);
+        if (explainOpen) renderMath(explanationDiv);
+      });
+    }
+
+    body.append(
+      el("div", { class: `lean-block lean-block-${kind}` },
+        el("div", { class: "lean-block-header" },
+          el("div", { class: "lean-block-label" }, kind),
+          el("div", { class: "lean-block-controls" }, commentsBtn, explainBtn),
+        ),
+        codePre,
+        explanationDiv,
+      ),
+    );
+  }
+
+  return body;
+}
+
+/* The TeX pane has two versions: the original LN excerpt
+   (`tex_block_html`) shown by default, and the worker's unambiguous
+   version (`tex_statement.html`) reachable via a toggle. The pane
+   label updates to match. */
+function buildTexPane(data) {
+  const origHtml    = data.tex_block_html || "";
+  const unambigHtml = (data.tex_statement && data.tex_statement.html) || "";
+  const body        = el("div", { class: "pane-body" });
+  const labelText   = el("span", { class: "pane-label-main" });
+  const toggle      = el("button", { class: "tex-version-toggle", type: "button" });
+
+  // If only one version is available, fall through to that one and hide
+  // the toggle entirely.
+  const haveBoth = !!(origHtml && unambigHtml);
+  let showingOriginal = !!origHtml;  // default: original; falls back to unambig when only that exists
+
+  function paint() {
+    const html = showingOriginal ? origHtml : unambigHtml;
+    body.innerHTML = html || "<em>(missing)</em>";
+    labelText.textContent = showingOriginal
+      ? "Statement (lecture notes)"
+      : "Statement (unambiguous)";
+    toggle.textContent = showingOriginal
+      ? "Unambiguous version →"
+      : "← Back to original";
+    renderMath(body);
+  }
+  if (!haveBoth) {
+    toggle.style.display = "none";
+  } else {
+    toggle.addEventListener("click", () => { showingOriginal = !showingOriginal; paint(); });
+  }
+  paint();
+
+  return el("section", { class: "pane pane-tex" },
+    el("div", { class: "pane-label" }, labelText, toggle),
+    body,
+  );
 }
 
 /* Lean 4 grammar for highlight.js. Registered as the canonical `lean` /
@@ -366,14 +474,18 @@ function renderEntry(data) {
   const nIn = data.ref.split("_").pop();
 
   // ---- header ----
-  const statusBadges = [
-    data.status.formalized === "yes" ? el("span", { class: "badge badge-ok" }, "Formalised") : null,
-    data.kind === "def"
-      ? el("span", { class: "badge badge-note" }, "No proof (definition)")
-      : (data.status.proven === "yes"
-          ? el("span", { class: "badge badge-ok" }, "Proof complete")
-          : el("span", { class: "badge badge-warn" }, "Proof in progress")),
-  ];
+  const userSkippedFormalization = data.status.solved === "yes"
+    && data.status.formalized === "no";
+  const statusBadges = userSkippedFormalization
+    ? [el("span", { class: "badge badge-note" }, "Not formalised — by choice")]
+    : [
+        data.status.formalized === "yes" ? el("span", { class: "badge badge-ok" }, "Formalised") : null,
+        data.kind === "def"
+          ? el("span", { class: "badge badge-note" }, "No proof (definition)")
+          : (data.status.proven === "yes"
+              ? el("span", { class: "badge badge-ok" }, "Proof complete")
+              : el("span", { class: "badge badge-warn" }, "Proof in progress")),
+      ];
 
   const header = el("header", { class: "entry-header" },
     el("div", { class: "entry-kind" }, `${kindWord} ${sectionNum.split(".")[0]}.${nIn}`),
@@ -381,19 +493,11 @@ function renderEntry(data) {
     el("div", { class: "entry-status" }, ...statusBadges),
   );
 
-  // ---- split ----
-  const texPane = el("section", { class: "pane pane-tex" },
-    el("div", { class: "pane-label" }, "Statement (lecture notes)"),
-    el("div", { class: "pane-body", html: data.tex_statement.html || "<em>(missing)</em>" }),
-  );
-
-  // One code block, with a comments-on/off toggle hoisted into the pane label.
-  const { body: leanBody, toggle: leanToggle } = buildLeanPane(data);
+  // ---- split: TeX (LN original ↔ unambiguous) | Lean (per-block panels) ----
+  const texPane = buildTexPane(data);
+  const leanBody = buildLeanPane(data);
   const leanPane = el("section", { class: "pane pane-lean" },
-    el("div", { class: "pane-label" },
-      el("span", {}, "Formalisation"),
-      leanToggle,
-    ),
+    el("div", { class: "pane-label" }, "Formalisation"),
     leanBody,
   );
 
@@ -401,11 +505,10 @@ function renderEntry(data) {
 
   // ---- actions ----
   //
-  // Four buttons (in this order):
-  //   1. View TeX proof   — claims only; navigates to the proof page
-  //   2. View Lean source — always; opens the .lean file on GitHub
-  //   3. Lean explanation — toggles the panel below; disabled until LLM-populated
-  //   4. Design choices   — toggles the panel below; disabled until LLM-populated
+  // Three buttons (in this order):
+  //   1. View TeX proof   — claims only; navigates to #proof/<ref>
+  //   2. View Lean source — always; opens main_lean_file on GitHub
+  //   3. Design choices   — toggles the panel below; disabled until LLM-populated
   const actions = el("footer", { class: "entry-actions" });
 
   if (data.kind === "claim" && data.tex_proof && data.tex_proof.html) {
@@ -420,18 +523,13 @@ function renderEntry(data) {
     }, "View TeX proof"));
   }
 
-  // One "View Lean source" button per Lean file the row touches —
-  // typically one entry, sometimes 2-3 for rows formalised across
-  // several files (e.g. def_3_4 spans Walks.lean / WalkPredicates.lean
-  // / Bifurcation.lean). URLs come pre-built with #L<start>-L<end>
-  // anchors from the orchestrator.
-  for (const src of data.lean_source_urls || []) {
+  if (data.lean_source_url) {
     actions.append(el("a", {
       class: "btn",
-      href: src.url,
+      href: data.lean_source_url,
       target: "_blank", rel: "noopener",
-      title: src.url,
-    }, `View ${src.title}`));
+      title: data.lean_source_url,
+    }, "View Lean source"));
   }
 
   function explanationButton(label, panelId, content) {
@@ -449,10 +547,9 @@ function renderEntry(data) {
       },
     }, label);
   }
-  actions.append(explanationButton("Lean explanation", `${data.ref}--lean-expl`, data.lean_explanation));
-  actions.append(explanationButton("Design choices",   `${data.ref}--design`,    data.design_choices));
+  actions.append(explanationButton("Design choices", `${data.ref}--design`, data.design_choices));
 
-  // ---- Explanation panels (initially hidden, toggled by the buttons above) ----
+  // ---- Explanation panel (initially hidden, toggled by the button above) ----
   function explanationPanel(panelId, title, markdown) {
     if (!markdown || !markdown.trim()) return null;
     const rendered = typeof marked !== "undefined"
@@ -463,16 +560,15 @@ function renderEntry(data) {
       el("div", { class: "pane-body markdown-body", html: rendered }),
     );
   }
-  const leanExplPanel      = explanationPanel(`${data.ref}--lean-expl`, "Lean explanation", data.lean_explanation);
-  const designChoicesPanel = explanationPanel(`${data.ref}--design`,    "Design choices",   data.design_choices);
+  const designChoicesPanel = explanationPanel(`${data.ref}--design`, "Design choices", data.design_choices);
 
-  // ---- assemble (no inline TeX/Lean proof panes; those live on the
-  //                 dedicated proof page) ----
+  // The page-wide "Lean explanation" button + panel is gone — per-block
+  // Explain buttons (rendered inline within each .lean-block) replace it.
+
   const article = el("article", { class: "entry", id: data.ref },
     header,
     split,
     actions,
-    leanExplPanel,
     designChoicesPanel,
   );
   return article;
@@ -488,6 +584,7 @@ function renderProofPage(data) {
   const sectionNum = data.section;
 
   const header = el("header", { class: "entry-header" },
+    el("a", { class: "back-link", href: `#${data.ref}` }, "← Back to statement"),
     el("div", { class: "entry-kind" }, `Proof of Claim ${sectionNum.split(".")[0]}.${nIn}`),
     el("h1", { class: "entry-title" }, data.tex_statement.env_title || data.title),
   );
@@ -568,6 +665,102 @@ function renderHome(manifest) {
       // el("p", { class: "home-coverage" },
       //   `Coverage right now: ${covered} / ${total} rows from section 3.1 of chapter 3 (Graph Theory). Later sections are queued.`,
       // ),
+    ),
+
+    el("section", { class: "home-section" },
+      el("h2", {}, "How to read this website"),
+
+      el("p", {},
+        "Use the sidebar to navigate by chapter → section → row. Each row " +
+        "is one definition, claim, lemma, remark, or notation block from the " +
+        "lecture notes. The left pane renders the authors' original text — " +
+        "math via KaTeX, cross-references between rows clickable. The right " +
+        "pane shows the Lean 4 formalisation.",
+      ),
+
+      el("p", {},
+        "Lean code is split into labelled blocks. A ",
+        el("strong", {}, "main"),
+        " block holds the row's headline declaration — what the row formally " +
+        "states. For a definition that's the ",
+        el("code", {}, "def"), " / ", el("code", {}, "structure"),
+        " itself; for a claim it's the ",
+        el("code", {}, "theorem"),
+        " signature. A ",
+        el("strong", {}, "helper"),
+        " block holds a supporting declaration the main couldn't type-check " +
+        "without — typically a ",
+        el("code", {}, "variable {Node : Type*} [DecidableEq Node]"),
+        " line that auto-binds implicits into every subsequent declaration, " +
+        "or a small ",
+        el("code", {}, "def"),
+        " of a relation / inductive type / instance the main signature " +
+        "references. Helpers exist purely to make the main well-typed; the " +
+        "labels let you see at a glance which lines are the mathematical " +
+        "content and which are infrastructure.",
+      ),
+
+      el("p", {},
+        el("strong", {}, "Proofs are not displayed."),
+        " The Lean pane shows each declaration's signature and data shape; " +
+        "the proof tactics and well-formedness obligations live in the " +
+        "underlying ",
+        el("code", {}, ".lean"),
+        " file but are deliberately omitted here. For a claim that means " +
+        "the ",
+        el("code", {}, ":= by <tactics>"),
+        " body sits outside the rendered slice. For a definition that " +
+        "constructs a record (e.g. a CDMG-operator like ",
+        el("code", {}, "hardInterventionOn"),
+        "), the same applies to the structure's proof-shaped fields (",
+        el("code", {}, "hJV_disj"),
+        ", ", el("code", {}, "hE_subset"), ", ", el("code", {}, "hL_symm"),
+        ", …): each is discharged by a named ",
+        el("code", {}, "private lemma"),
+        " declared above the def, so the ",
+        el("code", {}, "h*"),
+        " field reads as a one-line lemma reference rather than a multi-step " +
+        "tactic proof. The intent is to surface what the row ",
+        el("em", {}, "states"),
+        ", not how the proof obligations are discharged. The full ",
+        el("code", {}, ".lean"),
+        " file — proofs included — is one click away via ",
+        el("strong", {}, "View Lean source"),
+        ".",
+      ),
+
+      el("p", {},
+        "Each block has two toggles: ",
+        el("strong", {}, "Comments ▾"),
+        " flips the source between bare and an annotated version with ",
+        el("code", {}, "--"),
+        " comments inserted above each non-trivial line, and ",
+        el("strong", {}, "Explain ▾"),
+        " opens a short Markdown article on what the block does and which " +
+        "Mathlib idioms it uses. Three buttons sit in the row's footer: ",
+        el("strong", {}, "View TeX proof"),
+        " (claims only) opens the lecture-notes proof on a separate page; ",
+        el("strong", {}, "View Lean source"),
+        " links to the ",
+        el("code", {}, ".lean"),
+        " file on GitHub; ",
+        el("strong", {}, "Design choices"),
+        " expands a panel distilling the formalisation trade-offs the worker " +
+        "considered (which Mathlib structure, which encoding, which side of " +
+        "an LN ambiguity, …), one paragraph per choice with a bolded " +
+        "one-line summary.",
+      ),
+
+      el("p", {},
+        "A small number of rows are ",
+        el("strong", {}, "user-skipped"),
+        " — typically remarks or expository asides whose content adds no " +
+        "claim worth formalising. These appear with a ",
+        el("em", {}, "“Not formalised — by choice”"),
+        " badge and a single italic line in place of the Lean code pane: ",
+        el("em", {}, "“User did not deem it necessary to formalize this into Lean.”"),
+        " The LN statement is still rendered on the left.",
+      ),
     ),
 
     el("section", { class: "home-section" },

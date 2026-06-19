@@ -1,0 +1,1057 @@
+{
+  "chapter": 3,
+  "title": "Refactor: claim_3_2_no_finite (root: claim_3_2)",
+  "refactor": true,
+  "refactor_name": "claim_3_2_no_finite",
+  "refactor_root": "claim_3_2",
+  "created_at": "2026-05-30T17:49:34+00:00",
+  "columns": [
+    "def_or_claim",
+    "ref",
+    "section",
+    "title",
+    "type",
+    "formalized",
+    "proven",
+    "solved",
+    "date_solved",
+    "tips",
+    "tex_file",
+    "main_lean_file",
+    "lean_files",
+    "actions_tracking",
+    "tex_block",
+    "agent_registry",
+    "time_needed_to_solve",
+    "refactor"
+  ],
+  "rows": [
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_2",
+      "section": "3.1",
+      "title": "AcyclicIffTopologicalOrder",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_1/AcyclicIffTopologicalOrder.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 1,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 1
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}\n        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ccf57719-f9ef-4892-9bb2-29947f511599",
+          "first_seen": "2026-05-30T18:25:54+00:00",
+          "last_used": "2026-05-30T18:25:54+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c9cc4e44-c1f9-436b-9595-750e0dc0f9dd",
+          "first_seen": "2026-05-30T18:30:02+00:00",
+          "last_used": "2026-05-30T18:30:02+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "42f5a3f4-b378-4e7e-aaeb-fa5054234294",
+          "first_seen": "2026-05-30T18:32:40+00:00",
+          "last_used": "2026-05-30T18:32:40+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "9dc0f9ae-ebcd-4b3f-8387-6bfaa18ac595",
+          "first_seen": "2026-05-30T18:34:56+00:00",
+          "last_used": "2026-05-30T18:34:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "af031be4-d877-45d7-95dc-4bd251c1722c",
+          "first_seen": "2026-05-30T18:36:01+00:00",
+          "last_used": "2026-05-30T18:36:01+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "ac03e0da-cb45-404f-a82d-ca30b5156482",
+          "first_seen": "2026-05-30T18:37:42+00:00",
+          "last_used": "2026-05-30T18:37:42+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "50d1307a-2dc7-42c3-a6fe-d5272287d9b9",
+          "first_seen": "2026-05-30T18:39:03+00:00",
+          "last_used": "2026-05-30T18:39:03+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "d1d98308-234a-40f1-9ea6-97d25d0154c7",
+          "first_seen": "2026-05-30T18:44:33+00:00",
+          "last_used": "2026-05-30T18:44:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aa045f2f-fe66-4ddc-a552-b82b92a3dbe4",
+          "first_seen": "2026-05-30T18:47:05+00:00",
+          "last_used": "2026-05-30T18:47:05+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "05f10e10-3273-4a54-97dc-1245d77190e5",
+          "first_seen": "2026-05-30T18:48:28+00:00",
+          "last_used": "2026-05-30T18:48:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "809569b3-7cc4-46b5-9390-a9c1d27abcb0",
+          "first_seen": "2026-05-30T18:52:40+00:00",
+          "last_used": "2026-05-30T18:52:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a7152ff3-cfe4-4b01-9d90-bc1b92c9bf4a",
+          "first_seen": "2026-05-30T18:53:40+00:00",
+          "last_used": "2026-05-30T18:53:40+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "889b3af7-b3e3-4c8b-b000-5d654a83ce46",
+          "first_seen": "2026-05-30T18:55:34+00:00",
+          "last_used": "2026-05-30T18:55:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5e7d6028-ae6e-40ab-a3d2-637f458816e1",
+          "first_seen": "2026-05-30T18:56:37+00:00",
+          "last_used": "2026-05-30T18:56:37+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "d26ccfdf-7a11-4ac2-9ce8-6218477d9ae7",
+          "first_seen": "2026-05-30T18:58:30+00:00",
+          "last_used": "2026-05-30T18:58:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "25fd916d-1481-4e22-9636-8cb12b866c61",
+          "first_seen": "2026-05-30T18:59:24+00:00",
+          "last_used": "2026-05-30T18:59:24+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "0ec21e7c-36b8-47fd-ae6a-d936acac0195",
+          "first_seen": "2026-05-30T19:02:17+00:00",
+          "last_used": "2026-05-30T19:02:17+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2633,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_6",
+      "section": "3.2",
+      "title": "SplitTopologicalOrder",
+      "type": "remark",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/SplitTopologicalOrder.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 1,
+        "review_design": 0,
+        "verify_equivalence": 0,
+        "simplify_proof": 1,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    For a CADMG $G=(J,V,E,L)$, also $G_{\\spl(W)}$ is acyclic.\n    If $<$ is any topological order of $G$ given by enumerating all nodes $v \\in J \\cup V$ via:\n    \\[ v_1 < v_2 < \\cdots < v_n,\\]\n    then, for instance, \n    a topological order for $G_{\\spl(W)}$ can be achieved by assigning for a node $v_j \\in W$ with index $j$ the node \n    $v_j^0$ the index $j-\\frac{1}{3}$\n    and $v_j^1$ the index $j+\\frac{1}{3}$, and then ordering all nodes according to their index value.\n\\end{Rem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "68b8827c-5de5-4861-92ba-5eaa1e9e3892",
+          "first_seen": "2026-05-30T19:07:44+00:00",
+          "last_used": "2026-05-30T19:07:44+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "efd33fb0-4753-4445-b25c-fb26c6d4d41b",
+          "first_seen": "2026-05-30T19:19:04+00:00",
+          "last_used": "2026-05-30T19:19:04+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e80f317f-a4d5-465c-a6c1-8607aabd418c",
+          "first_seen": "2026-05-30T19:19:53+00:00",
+          "last_used": "2026-05-30T19:19:53+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "19898319-6319-4db1-9f2a-21adeee94067",
+          "first_seen": "2026-05-30T19:25:10+00:00",
+          "last_used": "2026-05-30T19:25:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "960dc9b7-c47d-45bb-99f2-2fb35b4802be",
+          "first_seen": "2026-05-30T19:26:07+00:00",
+          "last_used": "2026-05-30T19:26:07+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8594792f-793a-4859-b020-5c0780d1b63c",
+          "first_seen": "2026-05-30T19:31:07+00:00",
+          "last_used": "2026-05-30T19:31:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bcce1692-48e5-444e-a6a8-51e006763f7b",
+          "first_seen": "2026-05-30T19:32:02+00:00",
+          "last_used": "2026-05-30T19:32:02+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "d355a701-71e6-41b1-9471-dce6666f0a0c",
+          "first_seen": "2026-05-30T19:33:16+00:00",
+          "last_used": "2026-05-30T19:33:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dd7c8a60-a6d8-4bce-9a3a-fbadde61f39d",
+          "first_seen": "2026-05-30T19:33:35+00:00",
+          "last_used": "2026-05-30T19:33:35+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "2db7c6e1-3366-4211-85d4-922137968ab0",
+          "first_seen": "2026-05-30T19:35:22+00:00",
+          "last_used": "2026-05-30T19:35:22+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2776,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_12",
+      "section": "3.2",
+      "title": "HardInterventionNodeSplitOrder",
+      "type": "remark",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplitOrder.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/HardInterventionNodeSplitOrder.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 4,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 1,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    Note that if $W_1$ and $W_2$ are not disjoint and $w \\in W_1 \\cap W_2 \\ins V$\n    then first hard intervening on $w$ turns $w$ into an input node, for now indicated as $w^i$, and a node-splitting hard intervention (if we would define it for input nodes) would not change $w^i$.\n    If, on the other hand, we would first split the node $w$ into $w^o$ and $w^i$ then we would first need to resolve the ambiguity on which of those two the hard intervention should be applied. A hard intervention on $w^i$ would not do anything, but would leave the additional output node $w^o$ in the graph, while hard intervening on $w^o$ would turn $w^o$ into an additional input node, for now indicated as $(w^o)^i$. So in the latter case we are left with two input node $(w^o)^i$, which does not have any edges, and $w^i$, which might have outgoing edges.\n\\end{Rem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a77c5f4d-28fb-4765-b2e9-70cf9bb63a75",
+          "first_seen": "2026-05-30T19:54:37+00:00",
+          "last_used": "2026-05-30T19:54:37+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "db6add68-c167-48df-82c6-e577aff936d9",
+          "first_seen": "2026-05-30T19:57:30+00:00",
+          "last_used": "2026-05-30T19:57:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6dd04ba3-4d2e-4c18-977b-54511907214f",
+          "first_seen": "2026-05-30T19:58:08+00:00",
+          "last_used": "2026-05-30T19:58:08+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "0c8422d5-95c0-449f-8c5d-7ffa6c43044f",
+          "first_seen": "2026-05-30T20:01:11+00:00",
+          "last_used": "2026-05-30T20:01:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "58a19580-34b4-44cb-bb6f-306a1508d39f",
+          "first_seen": "2026-05-30T20:03:00+00:00",
+          "last_used": "2026-05-30T20:03:00+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "463a3061-e0b4-4efd-9f5c-da7d626b049d",
+          "first_seen": "2026-05-30T20:05:31+00:00",
+          "last_used": "2026-05-30T20:05:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9de5906d-82e1-42d9-a296-9468c6e12d08",
+          "first_seen": "2026-05-30T20:07:58+00:00",
+          "last_used": "2026-05-30T20:07:58+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d9c04da4-5361-4702-b5fc-e226fa9c6980",
+          "first_seen": "2026-05-30T20:12:27+00:00",
+          "last_used": "2026-05-30T20:12:27+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9e312064-e96b-4392-98d0-07353bc9a51b",
+          "first_seen": "2026-05-30T20:13:01+00:00",
+          "last_used": "2026-05-30T20:13:01+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "4db4fa51-3e2c-4273-8853-2cf519ad60c6",
+          "first_seen": "2026-05-30T20:16:26+00:00",
+          "last_used": "2026-05-30T20:16:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1801e71d-fee4-431f-b750-c91b7c400d5f",
+          "first_seen": "2026-05-30T20:16:53+00:00",
+          "last_used": "2026-05-30T20:16:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "d8faf718-0680-4669-9f6c-05378fb0a622",
+          "first_seen": "2026-05-30T20:18:29+00:00",
+          "last_used": "2026-05-30T20:18:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2688af47-5630-49a2-967b-b16d1dfe3dc0",
+          "first_seen": "2026-05-30T20:29:14+00:00",
+          "last_used": "2026-05-30T20:29:14+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "fceb0c8f-3414-4ca0-94cd-f88ff61107af",
+          "first_seen": "2026-05-30T20:39:46+00:00",
+          "last_used": "2026-05-30T20:39:46+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "35b2a45a-ec90-4cc0-953e-3b8b2396880a",
+          "first_seen": "2026-05-30T20:40:31+00:00",
+          "last_used": "2026-05-30T20:40:31+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "894d19a6-193d-4813-9177-2a0d430e0642",
+          "first_seen": "2026-05-30T20:47:01+00:00",
+          "last_used": "2026-05-30T20:47:01+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3812,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_16",
+      "section": "3.2",
+      "title": "MarginalizationPreserves",
+      "type": "remark",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationPreserves.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationPreserves.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 3,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 1,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "accept_deviation": 1
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Rem}\\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}\nMarginalization preserves ancestral relations, bifurcations and acyclicity:\n    \\begin{enumerate}\n        \\item For $v_1,v_2 \\in G$ with $v_1,v_2 \\notin W$ we have the equivalence:\n            \\[ v_1 \\in \\Anc^G(v_2)\\quad \\iff \\quad v_1 \\in \\Anc^{G^{\\sm W}}(v_2).   \\]\n          \\item\\label{rem:marg_preserves_bifurcations} \n            For $v_1,v_2 \\in G \\sm W$ (and, optionally, $v_3 \\in G\\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\\sm W}$.\n        \\item If the CDMG $G$ is acyclic then so is $G^{\\sm W}$ and a topological order of $G$ induces a\n            topological order on $G^{\\sm W}$ (by just ignoring the nodes from $W$).\n    \\end{enumerate}\n\\end{Rem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1869dbed-98b3-41f1-8e63-4cf0bc84ac0e",
+          "first_seen": "2026-05-30T20:56:23+00:00",
+          "last_used": "2026-05-30T20:56:23+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "68dbccaa-592a-480c-83d4-b103175c7975",
+          "first_seen": "2026-05-30T21:00:33+00:00",
+          "last_used": "2026-05-30T21:00:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ee7309cb-62c8-415f-90bb-f9e7eb8f6281",
+          "first_seen": "2026-05-30T21:01:02+00:00",
+          "last_used": "2026-05-30T21:01:02+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "8061f428-b460-4985-b8ee-30c98259dbfe",
+          "first_seen": "2026-05-30T21:03:06+00:00",
+          "last_used": "2026-05-30T21:03:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "51b5a732-fb77-4e0c-9569-4366ca816dd6",
+          "first_seen": "2026-05-30T21:03:40+00:00",
+          "last_used": "2026-05-30T21:03:40+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "48bb0a66-5387-41e3-a1a4-6c2bda1f000d",
+          "first_seen": "2026-05-30T21:05:36+00:00",
+          "last_used": "2026-05-30T21:05:36+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ffdc2511-4de0-4066-af7c-fbe5a6664c17",
+          "first_seen": "2026-05-30T21:06:51+00:00",
+          "last_used": "2026-05-30T21:06:51+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "4c7e8fdf-de37-4b8b-99ab-3105cfc4b185",
+          "first_seen": "2026-05-30T21:10:54+00:00",
+          "last_used": "2026-05-30T21:10:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "857c01ba-6fb3-4629-befd-ac5e5d78fccf",
+          "first_seen": "2026-05-30T21:11:28+00:00",
+          "last_used": "2026-05-30T21:11:28+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5a967aa4-c8d7-4420-9db2-f6fe5da60ecd",
+          "first_seen": "2026-05-30T21:13:51+00:00",
+          "last_used": "2026-05-30T21:13:51+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5ac92b49-29f9-473a-9acd-6697289881d5",
+          "first_seen": "2026-05-30T21:24:13+00:00",
+          "last_used": "2026-05-30T21:24:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8e491439-bec5-4744-86ca-d6c635465e21",
+          "first_seen": "2026-05-30T22:12:43+00:00",
+          "last_used": "2026-05-30T22:12:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0dc9cba9-31bb-49f7-8bda-85aace4bc6a0",
+          "first_seen": "2026-05-30T22:15:32+00:00",
+          "last_used": "2026-05-30T22:15:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e6bd0ab0-23f4-4403-bb80-390cffc535f9",
+          "first_seen": "2026-05-30T22:15:51+00:00",
+          "last_used": "2026-05-30T22:15:51+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "cc89ef2e-9de8-4a97-94e2-a84cc60651a7",
+          "first_seen": "2026-05-30T22:19:28+00:00",
+          "last_used": "2026-05-30T22:19:28+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5178,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_17",
+      "section": "3.2",
+      "title": "MarginalizationsCommute",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationsCommute.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 1,
+        "solved": 3,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 0,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizations commute]\\label{marginalizations-commute}\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of output nodes.\n      Then we have:\n      \\[ \\lp G^{\\sm W_1} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp^{\\sm W_1} =  G^{\\sm (W_1 \\cup W_2)}. \\]\n     % This shows that the notation:\n     % \\[ G(V \\sm (W_1 \\cup W_2)|\\doit(J))  \\]\n     % is unambiguous.\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aa2daf5d-483f-462d-ac1a-fcf1cbd4ecae",
+          "first_seen": "2026-05-30T22:22:16+00:00",
+          "last_used": "2026-05-30T22:22:16+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5650c70a-f408-45ba-b2a5-dd9df0fddb5d",
+          "first_seen": "2026-05-30T22:24:48+00:00",
+          "last_used": "2026-05-30T22:24:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e52eec23-051e-47a3-8c84-a146c9a18994",
+          "first_seen": "2026-05-30T22:25:20+00:00",
+          "last_used": "2026-05-30T22:25:20+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "b3d0314b-bec0-4a67-bd73-1807395f4916",
+          "first_seen": "2026-05-30T22:28:35+00:00",
+          "last_used": "2026-05-30T22:28:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9ae0118c-8be9-46b8-8976-c089bd317cb8",
+          "first_seen": "2026-05-30T22:29:18+00:00",
+          "last_used": "2026-05-30T22:29:18+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "ebd42e94-a63f-4519-a116-d07e49d1c466",
+          "first_seen": "2026-05-30T22:30:41+00:00",
+          "last_used": "2026-05-30T22:30:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0240c2e0-fbbf-42c3-9697-b8305b1a73a3",
+          "first_seen": "2026-05-30T22:32:56+00:00",
+          "last_used": "2026-05-30T22:32:56+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "66e63dc7-5adc-4f49-aa5b-87c0f9df9656",
+          "first_seen": "2026-05-30T22:36:55+00:00",
+          "last_used": "2026-05-30T22:36:55+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4620d998-55de-4560-860c-951294a2660e",
+          "first_seen": "2026-05-30T22:37:20+00:00",
+          "last_used": "2026-05-30T22:37:20+00:00"
+        },
+        {
+          "kind": "simplify_proof",
+          "spawned_by": "manager",
+          "session_id": "3082ac84-8a07-487d-acb8-989aaf22a32f",
+          "first_seen": "2026-05-30T22:39:18+00:00",
+          "last_used": "2026-05-30T22:39:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "22aaae45-de8d-407a-a349-1a54b8d4ad82",
+          "first_seen": "2026-05-30T22:39:45+00:00",
+          "last_used": "2026-05-30T22:39:45+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "c7d62cbb-ae5d-4557-a584-014cba0813b6",
+          "first_seen": "2026-05-30T22:42:27+00:00",
+          "last_used": "2026-05-30T22:42:27+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1558,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_18",
+      "section": "3.2",
+      "title": "MarginalizationAndIntervention",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 0,
+        "solved": 2,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 1,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7b2f07df-d007-426d-bf69-93b03634b5e8",
+          "first_seen": "2026-05-30T22:49:07+00:00",
+          "last_used": "2026-05-30T22:49:07+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "708f63e3-02c1-4902-a6c4-2c7a28081104",
+          "first_seen": "2026-05-30T22:58:34+00:00",
+          "last_used": "2026-05-30T22:58:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a6ba647b-50ac-464f-9ab2-2c3558541328",
+          "first_seen": "2026-05-30T22:59:00+00:00",
+          "last_used": "2026-05-30T22:59:00+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "e3340548-49c8-4d8b-9efb-90108fe3b4cc",
+          "first_seen": "2026-05-30T23:00:17+00:00",
+          "last_used": "2026-05-30T23:00:17+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "02c7afdd-72a2-48e8-8628-13ca85f46b23",
+          "first_seen": "2026-05-30T23:02:20+00:00",
+          "last_used": "2026-05-30T23:02:20+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "0471889a-ea7d-478a-86d8-28b037aeca7d",
+          "first_seen": "2026-05-30T23:02:59+00:00",
+          "last_used": "2026-05-30T23:02:59+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ba019845-ac69-4912-a7ef-2f50d06d81a1",
+          "first_seen": "2026-05-30T23:04:18+00:00",
+          "last_used": "2026-05-30T23:04:18+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "946924c4-8f1c-477d-ab30-06cd5e92188a",
+          "first_seen": "2026-05-30T23:07:10+00:00",
+          "last_used": "2026-05-30T23:07:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "81fb4178-6f98-4935-98b6-36073e24165d",
+          "first_seen": "2026-05-30T23:08:04+00:00",
+          "last_used": "2026-05-30T23:08:04+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "59466d64-62db-4964-8889-16be4787ac5b",
+          "first_seen": "2026-05-30T23:10:11+00:00",
+          "last_used": "2026-05-30T23:10:11+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2025,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_19",
+      "section": "3.2",
+      "title": "MarginalizingOutThe",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-30",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutSplitOutput.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutSplitOutput.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 0,
+        "verify_equivalence": 0,
+        "simplify_proof": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 0,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "dfa5d73b-889c-401e-880d-e4cf4caf86a8",
+          "first_seen": "2026-05-30T23:23:25+00:00",
+          "last_used": "2026-05-30T23:23:25+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "b9cff946-7ec1-4742-b2d5-c0f6d54cf2e3",
+          "first_seen": "2026-05-30T23:26:35+00:00",
+          "last_used": "2026-05-30T23:26:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 1861,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_27",
+      "section": "3.3",
+      "title": "LabelRoman",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-31",
+      "tips": "REFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean",
+        "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanHelpers.lean",
+        "leanification/Chapter3_GraphTheory/Section3_3/WalkPrefixSuffix.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "simplify_proof": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 0,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0,
+        "verify_equivalence_strict": 1
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}\\label{lem:replace_walk}\nLet $G=(J,V,E,L)$ be a CDMG, $C \\subseteq V \\cup J$ and $\\pi = \\lp  v_0 \\sus \\cdots \\sus v_n \\rp$ be a $C$-$\\sigma$-open walk in $G$.\n  Suppose $v_i \\in \\Sc^G(v_j)$ for some $i,j \\in \\{0,\\dots,n\\}$ with $i < j$.\nIf we then replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by \n  \\begin{enumerate}[label=(\\roman*)]\n      \\item a shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$ if $j = n$ or if $v_j \\tuh v_{j+1}$ on $\\pi$, or \n    \\item a shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ otherwise,\n  \\end{enumerate}\n  then this new subwalk is entirely within $\\Sc^G(v_j)$ and the modified walk $\\pi'$ is still $C$-$\\sigma$-open.\n\\begin{proof}\n$\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the initial nodes $v_0, \\dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \\dots, v_n$ on $\\pi'$, since these nodes occur in the same local configuration on $\\pi$ and are not $C$-$\\sigma$-blocked on $\\pi$ by assumption.\nFurthermore, $\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\\Sc^G(v_j)$. It is also worth noting that $\\pi'$ cannot become $C$-$\\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\\pi$. So in the following we can w.l.o.g.\\ assume that both $v_i$ and $v_j$ are non-endnodes of $\\pi$ and thus $\\pi'$.\n\nCase (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\\pi$ that is $C$-$\\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\\pi'$ it remains $C$-$\\sigma$-open on $\\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$ (if $v_i$ is the left endnode or not). If $v_i \\neq v_j$, then the new directed path $v_i \\tuh \\cdots \\tuh v_j$ in $\\pi'$ is $C$-$\\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).\n\n Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \\hus v_{j+1}$ in $\\pi$. \n If $v_{i-1} \\hut v_i$ on $\\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). \n So we can also assume that we have $i > 0$ and $v_{i-1} \\suh v_i$ on $\\pi$. So $\\pi$ looks as follows:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\sus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n So there must be a smallest number $k \\in \\lC i,\\dots,j\\rC$ such that a collider appears at $v_k$ on $\\pi$:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\tuh \\cdots \\tuh v_k \\hus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n Since $\\pi$ is $C$-$\\sigma$-open we have $v_k \\in \\Anc^G(C)$. Since $v_i \\in \\Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \\in \\Anc^G(C)$.\n So if we replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by the shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ we then get for $\\pi'$ the following situation:\n \\[\\pi':\\qquad \\cdots v_{i-1} \\suh v_i \\hut \\cdots \\hut  v_j \\hus v_{j+1} \\cdots, \\]\n which is then $C$-$\\sigma$-open at $v_i$ as $v_i \\in \\Anc^G(C)$. Note that this holds also when $v_i=v_j$.\n If $v_i \\neq v_j$ then $v_j$ is also $C$-$\\sigma$-open on $\\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. \n\n So in all cases $\\pi'$ stays $C$-$\\sigma$-open.\n\\end{proof}\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "895d8931-6051-4ebf-976f-ddd9c5be2dd7",
+          "first_seen": "2026-05-31T00:03:35+00:00",
+          "last_used": "2026-05-31T00:03:35+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "4b067591-c15c-472d-af5c-e7066771fc08",
+          "first_seen": "2026-05-31T00:05:58+00:00",
+          "last_used": "2026-05-31T00:05:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9a8e103d-5850-4aa9-9a19-33a76b344638",
+          "first_seen": "2026-05-31T00:06:30+00:00",
+          "last_used": "2026-05-31T00:06:30+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "d37cc50c-c42c-4519-b349-eb61eae37306",
+          "first_seen": "2026-05-31T00:08:21+00:00",
+          "last_used": "2026-05-31T00:08:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e96d154e-957c-4302-bc9b-d7cd052fab76",
+          "first_seen": "2026-05-31T00:10:21+00:00",
+          "last_used": "2026-05-31T00:10:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bb2aa651-b3c1-411b-bacd-65bfed651119",
+          "first_seen": "2026-05-31T00:16:53+00:00",
+          "last_used": "2026-05-31T00:16:53+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "36e7f84b-6fde-45dd-8158-b75303b1bbd0",
+          "first_seen": "2026-05-31T00:22:01+00:00",
+          "last_used": "2026-05-31T00:22:01+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2259,
+      "refactor": true
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_23",
+      "section": "3.3",
+      "title": "SigmaOpenPathWalk",
+      "type": "note",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-05-31",
+      "tips": "reorder applied @ 2026-05-27: deferred behind claim_3_27. Manager's rationale:\nPRECEDES: claim_3_27\n\n# Reorder request — claim_3_27 (`LabelRoman` / `lem:replace_walk`) must precede claim_3_23\n\n## What's blocking\n\nThe LN's proof of `prp:sigma_opens` (= claim_3_23, this row) sits at `lecture-notes/lecture_notes/graphs.tex` lines 1655–1673. It is structured as:\n\n- `3 → 2`, `1 → 2`: trivial (\"paths are walks\").\n- `2 → 3`: collider-replacement using `AncSet`-witness directed paths. Uses walk-splicing primitives — **does not** use `lem:replace_walk`.\n- `2 → 1`: **explicitly invokes `Lemma~\\ref{lem:replace_walk}`** at LN line 1669: *\"We now use Lemma~\\ref{lem:replace_walk} to construct a new walk $\\pi'$ from $\\pi$ by replacing the subwalk between $v_i$ and $v_j$ of $\\pi$ by a particular directed path in $\\Sc^G(w)$ between $v_i$ and $v_j$ in such a way that $\\pi'$ is still $C$-$\\sigma$-open.\"*\n\n`lem:replace_walk` is **claim_3_27** in our `data.json` (`title: LabelRoman`, currently `formalized=no`, `proven=not proven`, `solved=no`). Without it formalized, the `2 → 1` arrow of `sigmaOpens_TFAE` cannot be discharged in Lean — it is a single-line citation of a major lemma, not a self-contained tactic.\n\n## Why this is a reorder, not a \"push forward\" / `sorry`\n\nThree options were considered:\n\n1. **Push forward (discharge only the trivial halves, leave `2 → 1` as `sorry`).** Rejected: the row's `solved=yes` terminal state forbids `sorry`. Marking solved with an unsoundness gap is not an option here.\n2. **Write the tex proof transcribing the LN, verify it (the tex proo\n\nREFACTOR row (part of refactor `claim_3_2_no_finite`, root `claim_3_2`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaOpenPathWalk.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 0,
+        "review_design": 0,
+        "verify_equivalence": 0,
+        "simplify_proof": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 0,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "no_action": 0,
+        "add_design_choice_comments": 0
+      },
+      "tex_block": "\\begin{claimmark}\n\\begin{restatable}{Prp}{restateprpsigmaopens}\\label{prp:sigma_opens}\n  Let $G=(J,V,E,L)$ be a CDMG. For $C \\subseteq J \\cup V$, and $w_1, w_2 \\in J \\cup V$, the following are\n  equivalent:\n  \\begin{enumerate}\n      \\item there exists a $C$-$\\sigma$-open \\emph{path} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$;\n      \\item there exists a $C$-$\\sigma$-open \\emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\\Anc^G(C)$).\n  \\end{enumerate}\n\\end{restatable}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7fa9cd8d-ace1-47f5-b69f-c6a64117295c",
+          "first_seen": "2026-05-31T00:38:23+00:00",
+          "last_used": "2026-05-31T00:38:23+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "72d1e971-3861-4d1b-9e0c-7d596f1d3cee",
+          "first_seen": "2026-05-31T00:43:53+00:00",
+          "last_used": "2026-05-31T00:43:53+00:00"
+        }
+      ],
+      "time_needed_to_solve": 917,
+      "refactor": true
+    }
+  ]
+}

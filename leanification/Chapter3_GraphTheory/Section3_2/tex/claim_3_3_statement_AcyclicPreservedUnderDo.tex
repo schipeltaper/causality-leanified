@@ -1,0 +1,47 @@
+% Claim statement file for row claim_3_3 -- "AcyclicPreservedUnderDo".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_3_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_3 (statement)
+% title: AcyclicPreservedUnderDo
+\def\rowref{claim\_3\_3}
+\phantomsection\label{claim_3_3}
+
+\begin{Rem}[AcyclicPreservedUnderDo]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let
+    \[ W \subseteq J \cup V \]
+    be a subset of nodes, and let $G_{\doit(W)} = (J_{\doit(W)}, V_{\doit(W)}, E_{\doit(W)}, L_{\doit(W)})$ be the hard-intervention CDMG of $G$ w.r.t.\ $W$, as constructed in def \ref{def:G_hard_intervention}. Both quantifiers ``for every CDMG $G$'' and ``for every $W \subseteq J \cup V$'' are read \emph{universally}: the side condition $W \subseteq J \cup V$ is the one inherited verbatim from def \ref{def:G_hard_intervention} (so $W$ is permitted to overlap the input-node set $J$), and the LN's free occurrence of $W$ in the claim body ranges over all such $W$ for which $G_{\doit(W)}$ is defined per that definition.
+
+    \emph{Carrier matching.} Before stating the two conclusions, observe that the node carriers of $G$ and $G_{\doit(W)}$ coincide as subsets of the ambient universe:
+    \[
+        J_{\doit(W)} \cup V_{\doit(W)} \;=\; (J \cup W) \cup (V \sm W) \;=\; J \cup V,
+    \]
+    where the first equality is items i.\ and ii.\ of def \ref{def:G_hard_intervention} and the second equality uses $W \subseteq J \cup V$: the inclusion $(J \cup W) \cup (V \sm W) \subseteq J \cup V$ follows from $J \subseteq J \cup V$, $W \subseteq J \cup V$, and $V \sm W \subseteq V \subseteq J \cup V$; the reverse inclusion $J \cup V \subseteq (J \cup W) \cup (V \sm W)$ follows by case analysis on $x \in J \cup V$, namely $x \in J \Rightarrow x \in J \cup W$, $x \in V \cap W \Rightarrow x \in W \subseteq J \cup W$, and $x \in V \sm W \Rightarrow x \in V \sm W$. Consequently, a binary relation $<$ on $J \cup V$ is, without any re-indexing, the very same binary relation on $J_{\doit(W)} \cup V_{\doit(W)}$, and the predicate ``$<$ is a topological order'' (def \ref{def-topological-order}) is well-typed both for $G$ and for $G_{\doit(W)}$ with this single carrier.
+
+    \emph{The remark.} If $G$ is acyclic (in the sense of def \ref{def-acylic}), then the following conjunction of sub-claims holds:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Acyclicity is preserved by $\doit(W)$.}
+              The CDMG $G_{\doit(W)}$ is acyclic in the sense of def \ref{def-acylic}, i.e.\ for every $v \in J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$, there does not exist any non-trivial directed walk from $v$ to itself in $G_{\doit(W)}$.
+        \item \emph{Every topological order of $G$ is a topological order of $G_{\doit(W)}$.}
+              For every strict total order $<$ on $J \cup V$,
+              \[
+                  \bigl(\, <\ \text{is a topological order of } G \,\bigr) \;\Longrightarrow\; \bigl(\, <\ \text{is a topological order of } G_{\doit(W)} \,\bigr),
+              \]
+              where both occurrences of ``topological order'' are in the sense of def \ref{def-topological-order} and the second occurrence uses the carrier-matching equality $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$ above to view $<$ unchanged as a strict total order on the carrier of $G_{\doit(W)}$. The LN's indefinite article in ``a topological order for $G$ is also one for $G_{\doit(W)}$'' is read \emph{universally} (every such $<$, not merely some such $<$).
+    \end{enumerate}
+    The bidirected-edge set $L$ plays no role in either sub-claim: acyclicity (def \ref{def-acylic}) is defined via the non-existence of non-trivial directed walks (which use only $E$), and a topological order (def \ref{def-topological-order}) is defined via the parent-set $\Pa^G$ (def \ref{def_3_5}, item~i., which is defined from $E$ alone).
+\end{Rem}
+
+\end{document}

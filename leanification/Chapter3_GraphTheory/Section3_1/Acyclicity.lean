@@ -1,186 +1,262 @@
-import Chapter3_GraphTheory.Section3_1.WalkPredicates
-
-/-!
-# Acyclicity of a CDMG (def 3.6)
-
-This file formalises *definition 3.6* of the lecture notes
-(Forré & Mooij, `lecture-notes/lecture_notes/graphs.tex`):
-a Conditional Directed Mixed Graph is *acyclic* exactly when no node
-admits a non-trivial directed walk back to itself.
-
-The predicate `Causality.CDMG.IsAcyclic G` sits one floor above the
-walk data layer of def_3_4: it quantifies over every node `v ∈ G` and
-denies the existence of any directed walk `π : Walk G v v` whose
-`length` is at least one. The two ingredients --
-`Walk.IsDirected` from `WalkPredicates.lean` (def_3_4 item 2) and
-`Walk.length` from `Walks.lean` (def_3_4 item 1) -- already capture
-the LN's notions of "directed walk" and "non-trivial" exactly, so the
-formalisation is a one-liner on top of them.
-
-## Where this gets used downstream
-
-Acyclicity is a recurring side condition throughout the lecture notes;
-every later chapter pattern-matches against it:
-
-* **def_3_7** -- the seven CDMG-shape names (CADMG, ADMG, CDG, DG,
-  CDAG, DAG) are defined by combining `IsAcyclic` with `J = ∅` and/or
-  `L = ∅`.
-* **claim_3_2** -- "$G$ is acyclic iff $G$ has a topological order"
-  (`AcyclicIffTopologicalOrder.lean`). The `←` direction unfolds
-  `IsAcyclic` and derives a contradiction from `v_0 < v_1 < \cdots <
-  v_n = v_0` along the witnessing directed walk; the `→` direction
-  builds a topological order by repeatedly selecting a parent-free
-  node, using `IsAcyclic` to keep the induced subgraphs cycle-free.
-* **chapter 4 (CBNs)** -- causal Bayesian networks factorise along a
-  DAG / CADMG, so the underlying CDMG is required acyclic.
-* **chapter 5 (do-calculus)** -- the soundness of do-calculus rules is
-  proved on acyclic graphs (`claim_3_8` shows acyclicity is preserved
-  under hard interventions, so the algebra closes).
-* **chapters 8 -- 10 (SCMs / iSCMs)** -- the unique-solution theory of
-  structural causal models with inputs proceeds by recursion on a
-  topological order of the underlying CDMG, which exists exactly when
-  the graph is acyclic (claim_3_2 again).
-* **chapter 11 -- 16 (causal discovery)** -- the FCI / IC algorithms
-  and their soundness theorems assume an underlying acyclic ground
-  truth (ADMG / CADMG), so every reduction goes through `IsAcyclic`.
-
-The downstream uses are *all* via the LN's "$G$ is acyclic" prose,
-which is exactly what the dot-projection `G.IsAcyclic` reads as. The
-single Prop-valued predicate here is therefore the entry point for
-every later acyclicity precondition in the Lean formalisation.
--/
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_1.CDMGNotation
+import Chapter3_GraphTheory.Section3_1.Walks
 
 namespace Causality
 
+/-!
+# Acyclicity of CDMGs (`def_3_6`)
+
+This file formalises the LN definition block `def_3_6`
+(`\label{def-acylic}` in `graphs.tex`):
+
+> A CDMG `G = (J, V, E, L)` is called *acyclic* iff there does not exist
+> any non-trivial directed walk from `v` to itself in `G` for any node
+> `v ∈ J ∪ V`.
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_1/tex/def_3_6_Acyclicity.tex`,
+verified equivalent to the LN block augmented with one operator
+clarification:
+
+* `[nontrivial_directed_walk_not_defined_in_block]` — a "non-trivial"
+  directed walk is one of length `n ≥ 1` (i.e.\ it traverses at least
+  one edge); the length-`0` trivial walk `(v_0)` at a single vertex is
+  excluded. Consequence: an acyclic CDMG contains no directed
+  self-loops on any `v ∈ V`.
+
+The predicate is built on `def_3_4`'s `Walk` inductive (`Walks.lean`)
+together with its `Walk.IsDirectedWalk` predicate and `Walk.length`
+function: a *directed walk* from `v` to `v` is a `Walk G v v` carrying
+the `IsDirectedWalk` witness, and *non-trivial* is encoded as
+`Walk.length p ≥ 1`.  The membership `v ∈ G` (`Membership Node (CDMG
+Node)` instance from `CDMGNotation.lean`, `def_3_2`) supplies the
+quantifier scope `v ∈ J ∪ V` from the LN.
+-/
+
 namespace CDMG
 
-variable {α : Type*}
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim from
+--   `def_3_1` (`CDMG.lean`).  The typeclass is load-bearing for this
+--   row's statement specifically because (i) `Walk.IsDirectedWalk`
+--   (`Walks.lean`, `def_3_4` item~ii) recurses on per-edge
+--   `a ∈ G.E` checks that need decidable pair equality on `Node`,
+--   and (ii) the `Membership Node (CDMG Node)` instance from
+--   `def_3_2` (`CDMGNotation.lean`) — the dispatch driving the
+--   `v ∈ G` quantifier below — reduces to `Finset.mem` on
+--   `G.J ∪ G.V`, which in turn requires `DecidableEq Node`.
+--   Dropping either fixture would make this statement fail to
+--   type-check.  Stronger instances (`Fintype`, `LinearOrder`) are
+--   not needed and are deferred to use sites that consume them.
+--
+-- *Three-dash `--- start helper` marker (not the two-dash
+--   `-- start statement`).*  The two-dash marker is reserved for
+--   declarations whose body is the formalised LN content of the row.
+--   This `variable` line is *statement-typing infrastructure* — it
+--   binds the implicit parameters that the `IsAcyclic` def below
+--   relies on, but is not itself part of the LN definition.  The
+--   three-dash flavour signals this to the tex/Lean reconciliation
+--   tooling and the website extractor (both of which read by marker).
+--   Matches the convention in `CDMG.lean`, `CDMGNotation.lean`,
+--   `Walks.lean`, `EdgeRelations.lean`, `CDMGRestrictions.lean`.
+-- def_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_6 --- end helper
 
--- def_3_6
--- title: Acyclicity
---
--- A CDMG `G` is *acyclic* iff no node has a non-trivial directed walk
--- back to itself. Concretely: for every `v ∈ G` (i.e. `v ∈ G.J ∪
--- G.V`), there is no `π : Walk G v v` with `π.IsDirected` and
--- `1 ≤ π.length`.
---
--- The three building blocks all line up with the LN vocabulary:
---   * `v ∈ G` -- the `Membership α (CDMG α)` instance from def_3_2
---     (`CDMGNotation.lean`) defines `v ∈ G` to mean
---     `v ∈ G.J ∪ G.V`, so the LN's shorthand "$v \in G$" lifts to
---     this `∀ v ∈ G, ...` quantifier verbatim.
---   * `Walk G v v` -- the umbrella walk inductive from def_3_4 item 1
---     (`Walks.lean`), with both endpoints `v`. The trivial walk
---     `Walk.nil v : Walk G v v` always exists and contributes
---     `length = 0`; non-trivial directed walks from `v` to itself
---     are the witnesses that acyclicity forbids.
---   * `π.IsDirected ∧ 1 ≤ π.length` -- the LN's "non-trivial directed
---     walk". `Walk.IsDirected` from def_3_4 item 2
---     (`WalkPredicates.lean`) requires every step to be a `forward`
---     step (LN's `\tuh`), matching "all arrowheads point in the
---     direction of $w$". `1 ≤ π.length` rules out the trivial walk;
---     see the design-choice block below for why we use length rather
---     than `π ≠ Walk.nil v`.
+-- ref: def_3_6
+-- A CDMG `G = (J, V, E, L)` is *acyclic* iff there does not exist any
+-- non-trivial directed walk from `v` to itself in `G`, for any node
+-- `v ∈ J ∪ V`.  A non-trivial directed walk is one of length `n ≥ 1`
+-- (i.e. it traverses at least one edge); equivalently, for `p : Walk G
+-- v v` carrying `p.IsDirectedWalk` we require `p.length ≥ 1` for `p`
+-- to be "non-trivial".  Quantifier scope `v ∈ G` is the LN's `v ∈ J ∪
+-- V` via the `Membership Node (CDMG Node)` instance from `def_3_2`.
 /-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.6):
+LN tex (rewritten canonical statement for `def_3_6`):
 
-\begin{defmark}
-\begin{Def}[Acyclicity]
-    \label{def-acylic}
-    A  CDMG  $G=(J,V,E,L)$  is called \emph{acyclic} if there does not exist
-    any non-trivial directed walk from $v$ to itself in $G$ for any node $v \in G$.
-\end{Def}
-\end{defmark}
+  The CDMG $G$ is called *acyclic* iff
+    for every $v \in J \cup V$,
+    there does not exist any non-trivial directed walk from $v$ to
+    itself in $G$.
 -/
---
 -- ## Design choice
 --
--- * **Namespace `Causality.CDMG.IsAcyclic`, dot-projection `G.IsAcyclic`.**
---   The LN's prose -- "the CDMG $G$ is acyclic" -- treats acyclicity
---   as a property *of* the graph. Placing the predicate in the
---   `CDMG` namespace means downstream callers write `G.IsAcyclic`,
---   which reads as "$G$ is acyclic" and matches every later sentence
---   in the LN that invokes it (def_3_7's "if $G$ is acyclic",
---   claim_3_2's "$G$ is acyclic iff ...", claim_3_8's "if $G$ is
---   acyclic then $G_{\doit(W)}$ is acyclic", etc.). The convention
---   parallels the existing CDMG-level predicates in this folder --
---   `CDMG.Adjacent`, `CDMG.EdgeInto`, `CDMG.EdgeOutOf` from
---   `EdgeRelations.lean` and `CDMG.tuh` / `CDMG.hut` / ... from
---   `CDMGNotation.lean` -- so a reader familiar with those names
---   recognises this one on sight. The alternative `Causality.IsAcyclic
---   G` (top-level) would be slightly more compact but disconnect
---   acyclicity from the CDMG family of operators and read less like
---   the LN's "$G$ is ..." prose.
+-- *Quantifier scope `∀ v ∈ G`, mirroring the LN's literal "for any
+--   node `v ∈ G`".*  Per `def_3_2`'s `Membership Node (CDMG Node)`
+--   instance (`CDMGNotation.lean`), `v ∈ G` unfolds to `v ∈ G.J ∪
+--   G.V`, so the LN phrasing transports onto the Lean text verbatim
+--   — no notation macro, no helper function.  The LN-critic
+--   wording-check flagged this scope as ambiguous (subtlety
+--   `node_quantifier_scope_v_in_G_unclear_J_versus_V`: should `v`
+--   range over `G.V` only, or `G.J ∪ G.V`?).  We resolve to the
+--   wider scope `J ∪ V`, and the choice is *safe* because the
+--   `J`-half is vacuous: `def_3_1`'s `hE_subset` forces every
+--   directed edge's target into `G.V`, and `hJV_disj` makes
+--   `J ∩ V = ∅`, so no length-≥ 1 directed walk can start and
+--   return to any `j ∈ G.J` (it would require `j ∈ G.V`,
+--   contradicting disjointness).  Restricting to `∀ v ∈ G.V` would
+--   be logically equivalent but would no longer match the LN's
+--   literal text and would force every downstream destructuring of
+--   `v ∈ G` to carry an extra `J`-vs-`V` case split.
 --
--- * **`v ∈ G` quantifier, not `v ∈ G.J ∪ G.V`.** Both unfold to the
---   same proposition via the `Membership α (CDMG α)` instance from
---   def_3_2 (`CDMG.mem_iff` is `Iff.rfl`). We prefer the `v ∈ G`
---   form because the LN literally writes "any node $v \in G$", and
---   the project's convention -- documented in `FamilyDirect.lean`
---   and used uniformly in all four `Family*.lean` operators -- is to
---   mirror that prose. Callers who need to peel `v ∈ G` back to
---   `v ∈ G.J ∪ G.V` reach for `simp [CDMG.mem_iff]` or
---   `Set.mem_union`.
+-- *"Non-trivial" encoded as `p.length ≥ 1`, per
+--   `[nontrivial_directed_walk_not_defined_in_block]`.*  The LN
+--   block uses "non-trivial" without defining it; the operator's
+--   addition pins it to "length `n ≥ 1`" — i.e.\ the walk traverses
+--   at least one edge — and explicitly admits a self-loop
+--   `v ⇀ v` as a non-trivial walk of length 1.  `Walk.length`
+--   (`Walks.lean`) counts edges via `nil ↦ 0` / `cons ↦ length p +
+--   1`, so `p.length ≥ 1` is exactly "at least one `cons`
+--   constructor" — i.e.\ at least one edge — matching the
+--   addition's reading on the nose.  The wording-check subtlety
+--   `non_trivial_walk_undefined_admits_self_loop_and_2cycle_ambiguity`
+--   surfaced two plausible readings (length ≥ 1 vs.\ length ≥ 2 —
+--   only the latter would let an acyclic CDMG carry self-loops);
+--   the addition resolves to reading (a), and the rewritten tex
+--   spec spells out the no-self-loop consequence in its
+--   "Consequence" paragraph.  Alternative encodings `0 < p.length`,
+--   `¬ p.length = 0`, or `p ≠ Walk.nil v hv` would all be
+--   logically equivalent, but `p.length ≥ 1` reads most directly
+--   off the LN's `$n \ge 1$`.
 --
--- * **"Non-trivial" as `1 ≤ π.length`, not `π ≠ Walk.nil v` or
---   `π.length ≠ 0`.** All three are propositionally equivalent (the
---   trivial walk is the unique walk of length zero from `v` to
---   itself once you discharge structural equality), but
---   `1 ≤ π.length` is the LN's own framing: def_3_4 parameterises
---   walks by `n ≥ 0` and `Walks.lean:294`'s docstring already
---   commits the project to "non-trivial directed walk means
---   `length ≥ 1`". Choosing `1 ≤ π.length` keeps the predicate
---   compositional with later length-based arguments -- claim_3_2's
---   `→` proof inducts on walk length, chapter 16's bifurcation
---   bounds compare `π.length` with `support.length`, etc. The
---   alternative `π ≠ Walk.nil v` would force an awkward `Walk.nil`
---   case distinction at every use site and is *not* equivalent
---   without the endpoint match `v = v` -- for `π : Walk G v w` with
---   `v ≠ w`, length zero is impossible structurally, but for
---   `π : Walk G v v` (our case) one must still produce the equality
---   witness. The `Nat`-level form sidesteps that bookkeeping.
+-- *`Walk G v v` rather than a fresh `Cycle` / `Path` type.*  The
+--   upstream `def_3_4` `Walk` inductive (`Walks.lean`) indexes on
+--   endpoints, so "from `v` to itself" lives in the *type*
+--   `Walk G v v` — no side condition "`p` starts and ends at `v`"
+--   needs to be threaded through.  Re-introducing a separate
+--   `Cycle G v` type would force a forgetful `Cycle → Walk`
+--   coercion at every downstream site that mixes acyclicity with
+--   general-walk reasoning (`def_3_8` topological order,
+--   `claim_3_2` acyclic-iff-topological-order, chapters 6–7
+--   d-/σ-separation arguments that case-split on whether a sub-walk
+--   is directed), duplicating `Walk`'s structural recursion for no
+--   gain.  A `Path` type (Nodup vertex sequence) would *exclude*
+--   the LN-admitted "non-trivial" self-loop case of length 1 —
+--   wrong shape for this row's predicate.
 --
--- * **`Prop`, not `Type _` (no `IsAcyclic` *witness* type).** The LN
---   uses acyclicity only as a precondition -- "if $G$ is acyclic,
---   then ..." -- never as data carrying constructive information.
---   A `Type _`-valued formulation would force every later "$G$ is
---   acyclic" hypothesis to carry an explicit witness around, which
---   would clutter signatures and serve no proof-theoretic purpose
---   (the predicate is decidable only in restricted settings anyway,
---   so the constructive content would not be useful). `Prop` matches
---   how acyclicity is used downstream and matches Mathlib's
---   `SimpleGraph.IsAcyclic` precedent.
+-- *Conjunction `p.IsDirectedWalk ∧ p.length ≥ 1` under the
+--   existential, not a subtype or bundled `DirectedCycle` struct.*
+--   Mirrors the LN's prose "a non-trivial directed walk" — two
+--   independent constraints on the same walk `p`.  A subtype
+--   `{p : Walk G v v // p.IsDirectedWalk ∧ p.length ≥ 1}` would
+--   force every consumer of `¬ ∃ p, …` to unpack `Subtype.mk` /
+--   `Subtype.property` before reaching the underlying walk; a
+--   bundled `DirectedCycle` structure would commit downstream rows
+--   to a parallel walk-flavoured notion that does not otherwise
+--   appear in the chapter.  A plain `∧` keeps inversion ergonomic:
+--   a hypothesis `¬ ∃ p, p.IsDirectedWalk ∧ p.length ≥ 1` decomposes
+--   by `rintro ⟨p, hp_dir, hp_len⟩` directly — exactly the shape
+--   `claim_3_2` (acyclic ⟺ topological order) will pattern-match
+--   against when constructing or rejecting witness cycles, and
+--   exactly the shape `def_3_8`'s topological-order construction
+--   needs when ruling out backward edges.
 --
--- * **Inline conjunction, no helper `IsNonTrivialDirectedCycle`.**
---   The inner predicate `π.IsDirected ∧ 1 ≤ π.length` reads
---   cleanly inline and is used in only this one place; introducing
---   a named alias would add a layer of unfolding for downstream
---   simp/rewrite steps without compensating readability gains. If a
---   later row repeatedly references the same conjunction (e.g.
---   claim_3_2 might want to name "directed cycle through $v$"),
---   that row can introduce the helper locally.
+-- *Mathlib re-use.*  Built on our own `Walk` (`def_3_4`); mathlib's
+--   `SimpleGraph.Walk` is for undirected single-channel graphs and
+--   has no notion of directed-vs-bidirected edges or `J`/`V`
+--   partition, so it cannot encode a CDMG walk.  Mathlib's
+--   `SimpleGraph.IsAcyclic` forbids only undirected cycles of
+--   length ≥ 3 — neither the LN's "directed walk" constraint nor
+--   the self-loop case of length 1 fits.  Rolling our own
+--   `IsAcyclic` on top of our own `Walk` is the only option that
+--   stays close to the LN definition.
 --
--- * **No simp characterisation lemma.** The defining body is the
---   shape downstream callers want to reason against; an
---   `isAcyclic_iff` lemma would just be `Iff.rfl` and offer no
---   rewriting power. The negation form `¬ G.IsAcyclic ↔ ∃ v ∈ G,
---   ∃ π : Walk G v v, π.IsDirected ∧ 1 ≤ π.length` (via
---   `push_neg`) is a one-line derivation any caller can do; we
---   leave it for the row that first needs it (most likely
---   `AcyclicIffTopologicalOrder.lean` for claim_3_2's `←`
---   direction) rather than pre-emptively committing this file to a
---   choice between bundled-`Exists` / unbundled-`bex` shapes.
-/-- The CDMG `G` is *acyclic*: no node admits a non-trivial directed
-walk to itself. Mirrors `lecture-notes/lecture_notes/graphs.tex` def
-3.6 (`\label{def-acylic}`) verbatim, with "non-trivial" read as
-`1 ≤ π.length` per `Walks.lean`'s `Walk.length` doc. The trivial walk
-`Walk.nil v` is excluded by the `1 ≤ π.length` conjunct (it has
-length zero), so a witness against acyclicity is genuinely a
-directed cycle through `v` of one or more steps. Used as the
-precondition for claim_3_2 (`AcyclicIffTopologicalOrder`), def_3_7
-(graph type names), and pervasively in chapters 4 -- 16. -/
-def IsAcyclic (G : CDMG α) : Prop :=
-  ∀ v ∈ G, ¬ ∃ π : Walk G v v, π.IsDirected ∧ 1 ≤ π.length
+-- *Known limitations.*  (i) The rewritten tex spec's "Consequence:
+--   no directed self-loops on output nodes" paragraph is *implied*
+--   by `IsAcyclic` (a directed self-loop `(v, v) ∈ G.E` yields the
+--   length-1 directed walk `Walk.cons v (v, v) _ (Walk.nil v _)`
+--   from `v` to itself) but is not exposed as a separate field
+--   here; it lives as a future lemma
+--   `IsAcyclic G → ∀ v ∈ G.V, (v, v) ∉ G.E`.  Intentional:
+--   `def_3_6` formalises the definition, not its corollaries.
+--   (ii) Acyclicity is silent about *bidirected* self-loops
+--   `(v, v) ∈ G.L`; those are already excluded by `def_3_1`'s
+--   `hL_irrefl` at the foundational structure level, so no extra
+--   constraint here is needed or wanted.  (iii) The predicate
+--   lives in `Prop`, not as a `Decidable` instance — acyclicity is
+--   decidable in principle (finite `G.J ∪ G.V`, finitely many
+--   simple cycles to enumerate) but no current chapter consumes
+--   such an instance, so the decidability plumbing is deferred to
+--   the use site that needs it (e.g.\ causal-discovery algorithms
+--   in chapters 11+).
+
+end CDMG
+
+namespace CDMG
+
+-- def_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_6 --- end helper
+
+-- ref: def_3_6 (acyclicity) — refactor
+--
+-- *Structural port of the original `IsAcyclic`* (`namespace CDMG`,
+-- lines ~39–187 above) onto the `cdmg_typed_edges` refactor's new
+-- upstream types (DEPENDENT row; roots `def_3_1`, `def_3_4`). The
+-- mathematical design — quantifier scope `∀ v ∈ G` resolved to
+-- `J ∪ V`, "non-trivial" as `p.length ≥ 1`, predicate built on
+-- `Walk + IsDirectedWalk` (not on a separate `Cycle` / `Path`
+-- type), conjunction-under-`∃` instead of a subtype or bundled
+-- `DirectedCycle`, the Mathlib `SimpleGraph.IsAcyclic` re-use
+-- trade-off, and the three known-limitations notes — is
+-- **unchanged**.  See the original block above for the full
+-- rationale; the resolutions of wording-check subtleties
+-- `node_quantifier_scope_v_in_G_unclear_J_versus_V` and
+-- `non_trivial_walk_undefined_admits_self_loop_and_2cycle_ambiguity`
+-- carry over verbatim.
+--
+-- *Upstream-type shifts (and only those).*
+--   `CDMG Node          → CDMG Node`
+--   `Walk G v v         → Walk G v v`
+--   `p.IsDirectedWalk   → p.IsDirectedWalk`
+--   `p.length           → p.length`
+-- The `∀ v ∈ G` quantifier reads verbatim via the
+-- `instMembership` instance in `CDMGNotation.lean`
+-- (`def_3_2` refactor twin), and the structural argument that the
+-- `J`-half of the quantifier is vacuous — relying on `hE_subset`
+-- and `hJV_disj` — is unchanged: both fields exist on
+-- `CDMG` with identical signatures.
+--
+-- ## Refactor-specific design deltas (choices made *against* the
+-- new typed-edge shape)
+--
+-- *Predicate-on-walk, not structural recursion on typed
+--   `WalkStep`.*  Because `Walk` now carries
+--   each step's channel in the type
+--   (`.forwardE` / `.backwardE` / `.bidir`), `IsAcyclic` *could*
+--   have been re-encoded directly via the inductive — e.g.\ "no
+--   `Walk G v v` of length ≥ 1 has every step
+--   `.forwardE`", inlining `IsDirectedWalk` into the
+--   predicate.  Rejected on two counts: (i) the LN speaks of
+--   "directed walks" as a separate notion and the strict-
+--   equivalence solved-gate compares against that LN text, so
+--   collapsing the two would obscure the LN-to-Lean
+--   correspondence at this row; (ii) downstream consumers
+--   (`def_3_8` topological order, `claim_3_2`, chs.\ 6–7
+--   d-/σ-separation) re-use `IsDirectedWalk`
+--   independently of acyclicity, so layering `IsAcyclic` *on top
+--   of* `IsDirectedWalk` shares the inversion / recursion
+--   lemmas across rows rather than re-proving them per consumer.
+--
+-- *Non-triviality stays `length ≥ 1`, not baked into
+--   `Walk` as a "non-empty walk" constructor split.*  The
+--   `def_3_4` refactor preserved the `nil` / `cons` constructor
+--   shape of `Walk` (only the per-step datum moved from an
+--   untyped `Node × Node` pair to a typed `WalkStep`),
+--   so the length-counting story is unchanged.  A constructor-
+--   level non-triviality split on `Walk` would force
+--   every walk-predicate recursion (`IsDirectedWalk`,
+--   `IsColliderWalk`, `IsBidirectedWalk`,
+--   `IsBifurcationWithSplit`, …) to branch on it,
+--   propagating the change far beyond this row for no local
+--   benefit.  `length ≥ 1` keeps the encoding local and
+--   matches the LN's `n \ge 1` literally.
+-- def_3_6 -- start statement
+def IsAcyclic (G : CDMG Node) : Prop :=
+  ∀ v ∈ G, ¬ ∃ p : Walk G v v, p.IsDirectedWalk ∧ p.length ≥ 1
+-- def_3_6 -- end statement
 
 end CDMG
 

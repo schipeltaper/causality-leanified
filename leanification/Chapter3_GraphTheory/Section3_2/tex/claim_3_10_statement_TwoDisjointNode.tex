@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_10 -- "TwoDisjointNode".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_10_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -14,10 +19,69 @@
 \def\rowref{claim\_3\_10}
 \phantomsection\label{claim_3_10}
 
+% NOTE on the iterated-splitting carrier mismatch (Lean encoding).
+%
+% In a Lean encoding that follows def_3_12 literally and realises the
+% tagged copies W^o, W^i as type-level disjoint sums, the carriers of
+% (G_{\swig(W_1)})_{\swig(W_2)} and G_{\swig(W_1 \dcup W_2)} are formally
+% distinct types (twice-tagged vs. once-tagged on J \cup V), even though
+% the LN identifies them set-theoretically via def_3_12's unsplit-
+% injection convention "v^o := v^i := v for v \in J \cup (V \sm W)". The
+% one-sentence clarification inside the lemma body below ("=" is read up
+% to the canonical bijection of carriers) is the load-bearing reading;
+% the concrete choice of how to render this identification in Lean
+% (CDMG-transport along a node-bijection, CDMG-isomorphism structure,
+% or some other equivalence layer) is deferred to the Lean-formalization
+% worker, which is expected to reuse the `flattenSplit` map already
+% introduced in claim_3_7's solved file (TwoDisjointNode.lean) -- the
+% same constructor algebra applies here because def_3_12 reuses
+% def_3_11's tagged-copy convention. See workspace_claim_3_10.md for
+% the encoding-design discussion.
+
 \begin{Lem}[Two disjoint node-splitting hard interventions commute]
-   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \ins V$ two disjoint subsets of the output nodes from $G$. 
-   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:
-   \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\swig(W_1)}  =  G_{\swig(W_1 \dcup W_2)}.   \]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, recall the typing and axioms of def \ref{def-cdmg} (namely $J \cap V = \emptyset$, $E \ins (J \cup V) \times V$, $L \ins V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)), and rely on the node-splitting hard intervention (SWIG) construction of def \ref{def:G_node-splitting_intervention}. Let
+    \[ W_1 \ins V \quad\text{and}\quad W_2 \ins V \]
+    be two subsets of the output-node set of $G$, subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \ins V$'', and ``for every $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted.
+
+    \emph{Reading of ``CDMG'' versus ``CADMG'' in the LN's prose.}
+    The LN's literal text opens with ``Let $G = (J, V, E, L)$ be a CADMG'' and concludes ``the CADMG\ldots is the same CADMG\ldots'', referring to all three of the iterated SWIGs in the displayed equality as CADMGs. We read this entire row as a statement about \emph{CDMGs} throughout, in line with how def \ref{def:G_node-splitting_intervention} is implemented at the Lean type level (its constructor takes a CDMG to a CDMG with no acyclicity attribute checked internally), and in parallel with the analogous reading made in \ref{claim_3_7} for the regular node-splitting case. The bridge between this CDMG-level reading and the LN's literal CADMG-level reading is supplied by \ref{claim_3_9} (\emph{SwigAcyclic}): under the standing CADMG hypothesis on $G$ (which adds the acyclicity hypothesis of def \ref{def-acylic} on top of the CDMG typing of def \ref{def-cdmg}), \ref{claim_3_9} establishes that $G_{\swig(W)}$ is itself acyclic, hence a CADMG; iterating this twice, both $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$ and $\lp G_{\swig(W_2)} \rp_{\swig(W_1)}$ are CADMGs, and so is the right-hand side $G_{\swig(W_1 \dcup W_2)}$. The asserted equality below is consequently first an equality of CDMGs (def \ref{def-cdmg}) at the type level; the upgrade to an equality of CADMGs is recovered by transporting the CADMG-witnesses of \ref{claim_3_9} along this CDMG-equality (acyclicity is a propositional condition on a fixed CDMG, so the upgrade is automatic once both sides are known to be acyclic CDMGs).
+
+    \emph{Recap of def \ref{def:G_node-splitting_intervention}'s carrier shape (set-theoretic).}
+    For a CDMG $G = (J, V, E, L)$ and $W \ins V$, def \ref{def:G_node-splitting_intervention} defines $G_{\swig(W)} = (J_{\swig(W)}, V_{\swig(W)}, E_{\swig(W)}, L_{\swig(W)})$ by
+    \begin{align*}
+        J_{\swig(W)} \;&:=\; J \dcup W^i, \\
+        V_{\swig(W)} \;&:=\; (V \sm W) \dcup W^o, \\
+        E_{\swig(W)} \;&:=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC, \\
+        L_{\swig(W)} \;&:=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC,
+    \end{align*}
+    where $W^o := \lC w^o \st w \in W \rC$ and $W^i := \lC w^i \st w \in W \rC$ are two type-level-tagged copies of $W$ (formally distinct from each other and from every element of $J \cup V$), and the LN's shorthand $v^o := v^i := v$ for $v \in J \cup (V \sm W)$ governs how the source/target labels in the set-builders for $E_{\swig(W)}$ and $L_{\swig(W)}$ resolve when the underlying node lies outside $W$. In particular the input-side tags $W^i$ are placed into the input-node set $J_{\swig(W)}$ and \emph{not} into the output-node set $V_{\swig(W)}$: this is the key difference from regular node-splitting (def \ref{def:G_node-splitting}, item~ii.), whose output-node set carries \emph{both} $W^0$ and $W^1$ copies. In the Lean encoding underlying the project's formalisation, the tagged copies $W^o$, $W^i$ and the untagged $V \sm W$ piece are realised as the three constructors \texttt{SplitNode.copy0}, \texttt{SplitNode.copy1}, \texttt{SplitNode.unsplit} of the same \texttt{SplitNode} type used for def \ref{def:G_node-splitting} (def_3_11), reusing its constructor algebra; here the LN's superscripts $^o$ and $^i$ collapse onto \texttt{SplitNode.copy0} and \texttt{SplitNode.copy1} respectively, and $J \cup (V \sm W)$ collapses onto \texttt{SplitNode.unsplit} via the LN's shorthand convention. (Identifying $^o$ with \texttt{copy0} and $^i$ with \texttt{copy1} matches the convention used in def_3_11/claim_3_7 in this subsection.)
+
+    \emph{Well-typedness of the iterated SWIG.}
+    The inner two terms of the displayed equality below are iterated SWIGs of the form $\lp G_{\swig(W_i)} \rp_{\swig(W_j)}$ (with $\{i, j\} = \{1, 2\}$), in which $\swig(W_j)$ is applied to the CDMG $G_{\swig(W_i)}$ produced by def \ref{def:G_node-splitting_intervention}. For this outer application to be well-typed per def \ref{def:G_node-splitting_intervention}'s precondition ``$W \ins V$ of the input CDMG'', we need $W_j$ to be (a subset of) the output-node set of $G_{\swig(W_i)}$, i.e.\
+    \[ W_j \;\ins\; V_{\swig(W_i)} \;=\; (V \sm W_i) \;\dcup\; W_i^o, \]
+    where the equality of carriers is item~ii.\ of def \ref{def:G_node-splitting_intervention} and $W_i^o := \lC w^o \st w \in W_i \rC$ is the output-side tagged copy of $W_i$ introduced there (note that, in contrast to regular node-splitting, the input-side copy $W_i^i$ sits in $J_{\swig(W_i)}$ rather than $V_{\swig(W_i)}$, so the iterated output-node set carries only the single tagged copy $W_i^o$). By the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, every $w \in W_j$ satisfies $w \in V$ (since $W_j \ins V$) and $w \notin W_i$ (by disjointness), so $w \in V \sm W_i$. Through def \ref{def:G_node-splitting_intervention}'s notational shorthand ``$v^o := v^i := v$ for $v \in J \cup (V \sm W_i)$'', the set $V \sm W_i$ is realised as the untagged piece of the disjoint union $V_{\swig(W_i)} = (V \sm W_i) \dcup W_i^o$, i.e.\ the inclusion
+    \[ V \sm W_i \;\hookrightarrow\; V_{\swig(W_i)} \]
+    sends $v \mapsto v$ unchanged. Hence
+    \[ W_j \;\ins\; V \sm W_i \;\ins\; V_{\swig(W_i)}, \]
+    so $\lp G_{\swig(W_i)} \rp_{\swig(W_j)}$ is defined per def \ref{def:G_node-splitting_intervention}. The analogous spell-out for the swapped pair (with $i$ and $j$ exchanged) is the same argument with the roles of $W_1$ and $W_2$ exchanged, using the same disjointness condition $W_1 \cap W_2 = W_2 \cap W_1 = \emptyset$. The right-hand-side single SWIG $G_{\swig(W_1 \dcup W_2)}$ is well-typed per def \ref{def:G_node-splitting_intervention} because $W_1 \dcup W_2 \ins V$: by $W_1 \ins V$ and $W_2 \ins V$ together with disjointness, the union $W_1 \cup W_2$ is itself a disjoint union $W_1 \dcup W_2$ and remains a subset of $V$.
+
+    \emph{The conclusion.}
+    The CDMGs $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$, $\lp G_{\swig(W_2)} \rp_{\swig(W_1)}$, and $G_{\swig(W_1 \dcup W_2)}$ (all constructed via def \ref{def:G_node-splitting_intervention} as just verified) coincide. Concretely, the LN's displayed triple equality
+    \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} \;=\; \lp G_{\swig(W_2)} \rp_{\swig(W_1)} \;=\; G_{\swig(W_1 \dcup W_2)} \]
+    is the conjunction of the two following equalities of CDMGs:
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Composition with $W_1$ then $W_2$.}
+              \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} \;=\; G_{\swig(W_1 \dcup W_2)}. \]
+        \item \emph{Composition with $W_2$ then $W_1$.}
+              \[ \lp G_{\swig(W_2)} \rp_{\swig(W_1)} \;=\; G_{\swig(W_1 \dcup W_2)}. \]
+    \end{enumerate}
+    Together (a) and (b) yield the LN's ``symmetry under swap'' reading
+    \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} \;=\; \lp G_{\swig(W_2)} \rp_{\swig(W_1)} \]
+    by transitivity of equality on the shared right-hand side $G_{\swig(W_1 \dcup W_2)}$. The equality of CDMGs in (a) and (b) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}, but the conjunctive unpacking into the four field-by-field equalities is deferred to the proof.
+
+    The equalities in (a) and (b) are equalities of CDMGs (def \ref{def-cdmg}) read \emph{up to the canonical bijection} of the iterated and single-SWIG node-set carriers induced by def \ref{def:G_node-splitting_intervention}'s unsplit-injection convention ``$v^o := v^i := v$ for $v \in J \cup (V \sm W)$'' (the iterated carriers $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$, $V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$ and the single-step carriers $J_{\swig(W_1 \dcup W_2)}$, $V_{\swig(W_1 \dcup W_2)}$ are not literally the same sets as produced by def \ref{def:G_node-splitting_intervention}, but the corresponding pairs are canonically identified by matching corresponding tagged copies: under the Lean \texttt{SplitNode} encoding this identification is exactly the \texttt{flattenSplit} map introduced in \ref{claim_3_7}, which collapses \texttt{SplitNode (SplitNode Node)} onto \texttt{SplitNode Node} by sending nested \texttt{copy0}/\texttt{copy1}/\texttt{unsplit} constructors to the appropriate single-level constructor, and the present row's Lean file is expected to import that map verbatim from claim_3_7's solved file).
 \end{Lem}
 
 \end{document}

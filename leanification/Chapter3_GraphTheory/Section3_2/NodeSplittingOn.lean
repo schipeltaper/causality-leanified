@@ -1,593 +1,1054 @@
-import Chapter3_GraphTheory.Section3_1.CDMGNotation
-
-/-!
-# Node-splitting on a CDMG (def 3.11)
-
-This file formalises *definition 3.11* of the lecture notes
-(Forré & Mooij, `lecture-notes/lecture_notes/graphs.tex`): given a
-CDMG `G = (J, V, E, L)` and a subset `W ⊆ V` of output nodes, the
-*node-split graph* `G_{spl(W)}` duplicates every `w ∈ W` into a
-"0-copy" `w^0` (the new sink for all edges incoming to `w`) and a
-"1-copy" `w^1` (the new source of all edges outgoing from `w`),
-with a fresh directed edge `w^0 → w^1` for every `w ∈ W`.
-Bidirected edges between output nodes attach to the 0-copies of
-their endpoints (using the convention `v^0 := v` for `v ∉ W`).
-
-Concretely, the resulting CDMG lives over a *new* ambient type
-`α ⊕ ↑W` with the convention
-
-* `w^0 := Sum.inl w` for `w ∈ W` (the 0-copies, *the canonical
-  observation copy*, are identified with the originals via the
-  `inl` embedding -- this is the LN's hint
-  "%which could be identified with $V$ again if we want to make
-  the identification $W = W^0$" in def_3_11 and the analogous
-  hint at def_3_12 "$W = W^o$", which matches the
-  Richardson--Robins SWIG convention `X = X^o`);
-* `w^1 := Sum.inr ⟨w, hw⟩` for `w ∈ W` (the 1-copies, the fresh
-  intervention-input labels, are indexed by `W`);
-* `v^0 := v^1 := Sum.inl v` for `v ∉ W` (matching the LN's
-  identity convention on the unsplit nodes).
-
-This is the second of the two "intervention-style" operations of
-Section 3.2 (the first being `hardInterventionOn` of def 3.10);
-nearly every later split-related statement in the chapter and the
-SWIG / counterfactual machinery of chapters 8 -- 16 quotes it.
-
-## Where this gets used downstream
-
-* **claim_3_6** (`graphs.tex` Rem 446, "split topological order")
-  -- if `G` is acyclic with topological order `<`, then
-  `G_{spl(W)}` is also acyclic; an explicit topological order on
-  the split graph is built from `<` by interleaving each
-  `w^0, w^1` immediately around `w`.
-* **claim_3_7** (`graphs.tex` Lem 458, "two disjoint
-  node-splittings commute") --
-  `(G_{spl(W₁)})_{spl(W₂)} = (G_{spl(W₂)})_{spl(W₁)} =
-  G_{spl(W₁ ⊔ W₂)}`. Iteration here is type-changing
-  (the carrier nests as `(α ⊕ ↑W₁) ⊕ ↑W₂` etc.), so the equality
-  is stated modulo a re-labeling equivalence.
-* **claim_3_8** (`graphs.tex` Lem 497) -- disjoint hard
-  interventions and node-splittings commute; combines the present
-  `@[simp]` membership lemmas with their `HardInterventionOn`
-  counterparts.
-* **claim_3_12** (`graphs.tex` Lem) -- composition of
-  `HardInterventionOn` with `NodeSplittingOn`.
-* **def_3_12** (`graphs.tex` Def 580, `G_{swig(W)}`,
-  single-world intervention graph) -- a SWIG is a node-splitting
-  followed by a hard intervention on the `W^1` copies; the
-  building blocks for the SWIG definition are the
-  `@[simp]` membership lemmas below.
--/
+import Chapter3_GraphTheory.Section3_1.CDMG
 
 namespace Causality
 
+/-!
+# Node-splitting on CDMGs (`def_3_11`)
+
+This file formalises the LN definition `def_3_11`
+(`\label{def:G_node-splitting}` in `graphs.tex`) — the *node-splitting*
+operation `G ↦ G_{\spl(W)}` on a CDMG.  Given a CDMG
+`G = (J, V, E, L)` and a subset `W ⊆ V` of output nodes, the
+node-split graph has
+
+* `J_{\spl(W)} := J` (input nodes unchanged);
+* `V_{\spl(W)} := (V ∖ W) ⊍ W^0 ⊍ W^1` (each `w ∈ W` replaced by
+  two tagged copies `w^0`, `w^1`);
+* `E_{\spl(W)} := { (v_1^1, v_2^0) | (v_1, v_2) ∈ E } ∪
+                   { (w^0, w^1) | w ∈ W }`
+  (every directed edge of `G` is lifted to point from the `^1`-copy
+  of its source to the `^0`-copy of its target, plus a *transfer
+  edge* `w^0 → w^1` for every `w ∈ W`);
+* `L_{\spl(W)} := { (v_1^0, v_2^0) | (v_1, v_2) ∈ L }` (every
+  bidirected edge of `G` is lifted with **both** endpoints carrying
+  the `^0` superscript — no element of `W^1` appears as the endpoint
+  of any bidirected edge).
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_2/tex/def_3_11_NodeSplittingOn.tex`,
+verified equivalent to the LN block (`graphs.tex`,
+`\label{def:G_node-splitting}`) augmented with the operator
+clarification
+`[disjointness_of_new_copies_only_partially_stipulated]`:
+the disjointness assertions
+`W^0 ∩ V = W^1 ∩ V = W^0 ∩ J = W^1 ∩ J = W^0 ∩ W^1 = ∅`
+are realised **at the type level** — `W^0` and `W^1` are constructed
+as *tagged copies* (here via an `inductive` `SplitNode Node` with
+distinct constructors), so disjointness is a *typing* fact rather
+than a side condition.
+
+The substantive design rationale — the choice of an `inductive`
+`SplitNode` over a `Sum`-based encoding, the encoding of the
+`v^0 := v^1 := v` notational shorthand as helper functions
+`toCopy0` / `toCopy1`, the literal `Finset.image`-based set-builders
+for `E_{\spl(W)}` and `L_{\spl(W)}`, and how each CDMG axiom of
+`def_3_1` is discharged on the tagged-sum carrier — lives in the
+`--` comment block immediately above the `def` declaration.  Read
+that block before changing a field; it is the load-bearing contract
+for downstream chapter-3 rows that compose node-splitting with hard
+intervention (`def_3_12` SWIG) or that reason about topological
+orders on the split graph (`claim_3_6` SplitTopologicalOrder).
+-/
+
 namespace CDMG
 
-variable {α : Type*}
 
-/-! ## 1-copy encoding helper -/
+end CDMG
 
--- ## Design choice (`split1`)
+namespace CDMG
+
+-- def_3_11 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_11 --- end helper
+
+-- ## Helper: the tagged-sum node universe of the split graph
 --
--- * **Standalone helper rather than an inlined `dite`.** The
---   1-copy operation `v ↦ v^1` shows up at *the source endpoint*
---   of every original directed edge (LN item iii) and at every
---   later split-related lemma (claim_3_6 builds a topological
---   order by interleaving `w^0, w^1`; claim_3_7 / claim_3_8
---   pattern-match on `split1` membership; def_3_12 composes a
---   `split1`-source with a hard intervention). Factoring it out
---   under a single name -- with the two `@[simp]` reduction
---   lemmas `split1_of_mem` / `split1_of_not_mem` -- lets `simp`
---   discharge the case-split once per call site, instead of
---   forcing every downstream proof to re-derive the same `dite`.
--- * **`noncomputable` + global `open Classical` over a
---   `[Decidable (v ∈ W)]` parameter.** The LN takes `W : Set V`
---   with no decidability hypothesis; matching that, our signature
---   is `W : Set α` and `v ∈ W` is a `Prop`, not a `Bool`.
---   Threading a `[Decidable (v ∈ W)]` instance through `split1`,
---   every membership lemma, and every downstream `simp` call
---   would be intrusive for zero computational payoff:
---   `nodeSplittingOn` is `Prop`-valued (sets of vertices and
---   edges) -- no caller ever *evaluates* `split1` at runtime, so
---   classical choice in the construction has no observable cost.
---   We mark the helper `noncomputable` to make the choice loud
---   rather than implicit; this is consistent with how the rest of
---   Section 3.2 (and `hardInterventionOn` downstream) is written.
--- * **No companion `split0` helper.** Under our identification
---   convention `Sum.inl = 0-copy` (canonical observation copy;
---   see the design block on `nodeSplittingOn` below), the LN's
---   0-copy operation `v ↦ v^0` is the canonical `Sum.inl`
---   embedding with *no* case-split on `v ∈ W`. So a hypothetical
---   `split0 W v` would be a no-op alias for `Sum.inl v`; we use
---   `Sum.inl` directly. This asymmetry is the entire payoff of
---   fixing the identification direction `inl = 0`: only the
---   1-copy needs a `dite`-style helper.
--- * **`α ⊕ ↑W` codomain rather than a parameter.** The
---   codomain `α ⊕ ↑W` is the carrier of the about-to-be-built
---   `nodeSplittingOn G W hW`. Making it a separate type
---   parameter (or a `[Decidable]`-style universe shuffle) would
---   force every caller to instantiate the carrier explicitly;
---   inlining it keeps the helper a one-call away from the main
---   construction.
-
-/-- The "1-copy" encoding of a vertex `v : α` in the carrier
-`α ⊕ ↑W` of a node-split graph:
-
-* if `v ∈ W`: returns `Sum.inr ⟨v, hv⟩`, the fresh `W^1`
-  intervention-input label for `v`;
-* if `v ∉ W`: returns `Sum.inl v`, matching the LN's convention
-  `v^1 := v` for vertices outside `W`.
-
-The complementary "0-copy" encoding `v^0 := Sum.inl v` is plain
-`Sum.inl` -- the *canonical observation copy*, identified with the
-original vertex (cf. the LN comment "we ... make the
-identification $W = W^0$" in def_3_11). No wrapper needed (see the
-design notes above for the asymmetry).
-
-Noncomputable because membership in a general `Set α` need not be
-decidable: we use `Classical.propDecidable` via `open Classical`.
-Used Prop-valued only, so the classical choice has no observable
-cost downstream. -/
-noncomputable def split1 (W : Set α) (v : α) : α ⊕ ↑W :=
-  open Classical in
-  if h : v ∈ W then Sum.inr ⟨v, h⟩ else Sum.inl v
-
-/-- `split1 W v = Sum.inl v` when `v ∉ W`, matching the LN's
-convention `v^1 := v` on the unsplit vertices. -/
-@[simp] theorem split1_of_not_mem {W : Set α} {v : α} (hv : v ∉ W) :
-    split1 W v = Sum.inl v := by
-  unfold split1
-  exact dif_neg hv
-
-/-- `split1 W v = Sum.inr ⟨v, hv⟩` when `v ∈ W`, the fresh
-`W^1` intervention-input label. -/
-@[simp] theorem split1_of_mem {W : Set α} {v : α} (hv : v ∈ W) :
-    split1 W v = Sum.inr ⟨v, hv⟩ := by
-  unfold split1
-  exact dif_pos hv
-
-/-- A `Sum.inl x` value equals `split1 W u` precisely when
-`u ∉ W` and `x = u` -- the 0-copy / unsplit form of `split1`. -/
-private theorem inl_eq_split1_iff {W : Set α} {u x : α} :
-    (Sum.inl x : α ⊕ ↑W) = split1 W u ↔ u ∉ W ∧ x = u := by
-  constructor
-  · intro h
-    by_cases hu : u ∈ W
-    · rw [split1_of_mem hu] at h
-      exact nomatch h
-    · rw [split1_of_not_mem hu] at h
-      exact ⟨hu, (Sum.inl_injective h)⟩
-  · rintro ⟨hu, rfl⟩
-    rw [split1_of_not_mem hu]
-
-/-! ## The node-splitting CDMG construction -/
-
--- def_3_11
--- title: NodeSplittingOn
+-- *One-sentence summary.*  The carrier of the node-split graph:
+-- a tagged-sum `Type*` whose three constructors `.unsplit`,
+-- `.copy0`, `.copy1` realise the LN's three node-kinds
+-- (`J ∪ (V \ W)`, `W^0`, `W^1`) as type-level disjoint inhabitants
+-- of a single Lean type.
 --
--- The *node-splitting* of a CDMG `G = (J, V, E, L)` with respect
--- to a subset `W ⊆ V` of output nodes is the CDMG `G_{spl(W)}`
--- over the carrier type `α ⊕ ↑W` obtained by duplicating every
--- `w ∈ W` into two copies: a 0-copy `w^0 := Sum.inl w` (the
--- *canonical observation copy*, identified with the original
--- vertex via `inl`) that receives the incoming edges of `w`, and
--- a 1-copy `w^1 := Sum.inr ⟨w, hw⟩` (fresh `inr`-label, the
--- intervention-input copy) that sends out the outgoing edges of
--- `w`. Between the two copies we add a fresh directed edge
--- `w^0 → w^1`. Bidirected edges relabel both endpoints to the
--- corresponding 0-copies (which here means: just `Sum.inl`).
--- The LN's `\spl(W)` subscript is the same operator written
--- infix.
+-- This is the post-refactor port of `SplitNode` for the
+-- `cdmg_typed_edges` design (`def_3_1` shape:
+-- `L : Finset (Sym2 Node)`, no `hL_symm` axiom).  The inductive
+-- carrier itself is *structurally unchanged* from the pre-refactor
+-- encoding: `SplitNode Node` references neither `L`'s typing nor any
+-- field of `CDMG` / `CDMG` — it is a pure construction on
+-- the ambient `Node` type — so the three named constructors and the
+-- `deriving DecidableEq` carry over verbatim, only the namespace
+-- changes.
+--
+-- *Driver from `addition_to_the_LN`.*  Addition
+-- `[disjointness_of_new_copies_only_partially_stipulated]` is the
+-- load-bearing spec for this carrier: it requires that the LN's
+-- five disjointness assertions
+-- `W^0 ∩ V = W^1 ∩ V = W^0 ∩ J = W^1 ∩ J = W^0 ∩ W^1 = ∅` be
+-- realised *at the type level* — via a `Σ`-type or tagged sum —
+-- rather than as side conditions on a single-sort encoding.
+-- `SplitNode` discharges this by being a fresh
+-- `inductive` whose three constructors are tag-distinct by
+-- construction, making each of the five LN intersections vacuous
+-- (`unsplit v = copy0 w` is structurally impossible, etc.).  The
+-- addition also clarifies that the LN's `v^0 := v^1 := v` for
+-- `v ∈ J ∪ (V \ W)` is *purely notational shorthand* that does
+-- *not* reassign such `v` to either tagged-copy carrier; the
+-- third constructor `.unsplit` realises this by keeping
+-- untagged nodes in their *own* lane of the same Lean type
+-- (rather than embedding them via `.copy0` or `.copy1`).  This is
+-- the addition-driven design choice that fixes the three-
+-- constructor shape over a two-constructor `Sum`-of-tagged-copies
+-- alternative.
+--
+-- *`inductive` with three named constructors, not `Sum Node (Node ×
+--   Bool)` or `Σ b : Fin 2, Node` or `Sum (V \ W) (W × Fin 2)`.*
+--   The LN's "two tagged copies `W^0`, `W^1` plus the unsplit
+--   nodes" reads as three distinguishable kinds of element; the
+--   named constructors `unsplit`, `copy0`, `copy1` mirror the LN
+--   symbols `v`, `w^0`, `w^1` one-for-one and let downstream
+--   pattern matches read `| .unsplit v => …` / `| .copy0 w => …` /
+--   `| .copy1 w => …` instead of nested `Sum.inl` / `Sum.inr`
+--   destructuring.  Three alternatives considered:
+--
+--   - **`Sum Node (Node × Bool)`** (`Sum.inl v` for unsplit,
+--     `Sum.inr (w, false)` for `w^0`, `Sum.inr (w, true)` for
+--     `w^1`) was the workspace's expected fallback; we picked the
+--     named-constructor form because it is identical in
+--     expressive power, shorter at every use site, and matches
+--     the LN notation without a translation table.
+--   - **`Σ b : Fin 2, Node`** (a dependent pair indexing the
+--     "copy bit" by `Fin 2`) was rejected because it cannot
+--     express the *third* kind (the unsplit nodes) without a
+--     coproduct wrapper — yielding `Sum Node (Σ b : Fin 2, Node)`,
+--     which is even less direct than `Sum Node (Node × Bool)`.
+--   - **`Sum (V \ W) (W × Fin 2)`** (encoding membership in `W`
+--     in the type itself) was rejected because (i) it makes the
+--     carrier depend on `G.V` and `W`, so a single
+--     `SplitNode Node` cannot be re-used across different
+--     graphs / different `W`-subsets, and (ii) `DecidableEq` on a
+--     subtype requires decidability of the underlying predicate,
+--     adding instance bookkeeping at every use site.
+--
+-- *`deriving DecidableEq`.*  `def_3_1`'s post-refactor
+--   `CDMG` carrier requires `[DecidableEq Node]`; the split
+--   graph lives over `SplitNode Node`, so we need
+--   `[DecidableEq (SplitNode Node)]` to satisfy
+--   `CDMG (SplitNode Node)`.  This is also what
+--   makes `Sym2 (SplitNode Node)` decidably-comparable
+--   (Mathlib's derived instance lifts `DecidableEq` through `Sym2`),
+--   which the `L`-side `Finset.image (Sym2.map …)` construction
+--   below relies on.  The `deriving` handler generates the instance
+--   `[DecidableEq Node] → DecidableEq (SplitNode Node)` for
+--   free.
+--
+-- *No membership predicates on `W` or proofs `hv : v ∉ W` /
+--   `hw : w ∈ W` baked into the constructors.*  A richer
+--   `inductive SplitNode (Node : Type*) (W : Set Node)`
+--   carrying per-constructor membership proofs would force every
+--   consumer to manipulate those proofs through every pattern match
+--   (and would make `DecidableEq` non-trivial because the proof
+--   argument has `Prop` type with `Eq` undecidable in general).
+--   Disjointness of the three constructors is structural; whether a
+--   `copy0 w` is "valid" (i.e.\ `w ∈ W`) is then enforced by the
+--   *`Finset`* level of `J_{\spl(W)}` / `V_{\spl(W)}` membership
+--   rather than by the *type* itself.  This matches the LN reading:
+--   `W^0` is a `Finset` inside the carrier `SplitNode
+--   Node`, not a separate type.
+-- def_3_11 --- start helper
+inductive SplitNode (Node : Type*) where
+  | unsplit (v : Node) : SplitNode Node
+  | copy0 (w : Node) : SplitNode Node
+  | copy1 (w : Node) : SplitNode Node
+  deriving DecidableEq
+-- def_3_11 --- end helper
+
+-- ## Helper: the `v^0` notational shorthand
+--
+-- *One-sentence summary.*  The Lean rendering of the LN's `v^0`
+-- shorthand: a function `Node → SplitNode Node` that
+-- branches on `v ∈ W` and returns either the `.copy0` tagged
+-- copy or the `.unsplit` lift, used to lift directed-edge targets
+-- and *both* endpoints of bidirected edges into the split graph.
+--
+-- *Driver from `addition_to_the_LN`.*  Addition
+-- `[disjointness_of_new_copies_only_partially_stipulated]`
+-- explicitly clarifies the LN's convention `v^0 := v^1 := v` for
+-- `v ∈ J ∪ (V \ W)` as *purely notational shorthand* used inside
+-- the `E_{\spl(W)}` / `L_{\spl(W)}` set-builders; it "does not
+-- reassign these elements to the tagged copy types".  The Lean
+-- function `toCopy0 W` realises this reading literally:
+-- on the `W`-branch it returns the *tagged* `.copy0 v`, on the
+-- complement (`v ∈ J ∪ (V \ W)`) it returns the *untagged*
+-- `.unsplit v` — keeping `v` in the ambient lane of
+-- `SplitNode Node`, not re-routing it through a `.copy0`
+-- tag.  This is the addition-driven design choice that fixes the
+-- `.unsplit`-on-the-complement branch over a hypothetical
+-- `.copy0`-on-the-complement variant.
+--
+-- *Function `Node → SplitNode Node`, parameterised by
+--   `W : Finset Node`.*  The LN convention is `v^0 := v` if
+--   `v ∈ J ∪ (V ∖ W)` and `v^0 := (the tagged copy of v in W^0)` if
+--   `v ∈ W`.  In Lean this is a single function: branch on `v ∈ W`
+--   (decidable from `[DecidableEq Node]` on `Finset Node`), return
+--   the tagged constructor on the `W`-branch and the unsplit
+--   injection on the complement.  Encoding this as a *function*
+--   (rather than as two separate cases inside every set-builder)
+--   directly mirrors the LN's "notational shorthand" framing and
+--   keeps the `E_{\spl(W)}` / `L_{\spl(W)}` definitions terse and
+--   uniform.  Unchanged from the pre-refactor encoding, only the
+--   namespace prefix changes.
+--
+-- *Why no `v ∈ W`-precondition subtype argument.*  An alternative
+--   `toCopy0 (v : Node) (hv : v ∈ W) : SplitNode
+--   Node := .copy0 v` would have made the function partial — only
+--   defined on `W`-elements — and would have forced every caller
+--   (the `E'` / `L'` set-builders) to first prove membership
+--   `e.2 ∈ W` before lifting.  We picked the total, branching form
+--   because (i) the LN treats the shorthand `v^0` as defined on
+--   *all* of `J ∪ V` (not just `W`), and (ii) keeping the function
+--   total makes `Sym2.map (toCopy0 W)` (the `L`-side lift)
+--   type-check without an outer `Sym2.attach`-style subtype dance.
+--
+-- *Total on all of `Node`, not partial.*  The function is defined on
+--   *every* `v : Node`, including `v ∈ G.J` and `v ∈ G.V ∖ W`.  At
+--   those `v`-values the function returns `.unsplit v`, exactly the
+--   LN's "`v^0 := v`" convention — extended literally to the entire
+--   ambient `Node` type so the function has a single uniform
+--   signature.  Restricting to a subtype was rejected as gratuitous
+--   typing noise: every set-builder in `E_{\spl(W)}` / `L_{\spl(W)}`
+--   ranges over pairs coming from `G.E` / `G.L`, whose endpoints
+--   already satisfy the subtype condition by `def_3_1`'s typing
+--   axioms.  In the `L`-side construction below this matters: we
+--   lift via `Sym2.map (toCopy0 W)`, and `Sym2.map`
+--   requires a *total* function on the underlying carrier.
+-- def_3_11 --- start helper
+def toCopy0 (W : Finset Node) (v : Node) : SplitNode Node :=
+  if v ∈ W then SplitNode.copy0 v else SplitNode.unsplit v
+-- def_3_11 --- end helper
+
+-- ## Helper: the `v^1` notational shorthand
+--
+-- Same shape as `toCopy0` above, returning
+-- `SplitNode.copy1 v` on the `W`-branch instead of
+-- `SplitNode.copy0 v`.  See the design block above
+-- `toCopy0` for the rationale; the two helpers differ only
+-- in which tagged copy they pick on the `W`-branch.  Unchanged from
+-- the pre-refactor encoding except for the namespace prefix.
+-- def_3_11 --- start helper
+def toCopy1 (W : Finset Node) (v : Node) : SplitNode Node :=
+  if v ∈ W then SplitNode.copy1 v else SplitNode.unsplit v
+-- def_3_11 --- end helper
+
+-- ## Helper: injectivity of `toCopy0 W` on `Node`
+--
+-- *One-sentence summary.*  A private structural lemma: the
+-- `toCopy0 W` function is injective on `Node`, used by
+-- `nodeSplittingOn_hL_irrefl` to lift `G.hL_irrefl`'s
+-- conclusion through `Sym2.isDiag_map` in the post-refactor
+-- `cdmg_typed_edges` setting.
+--
+-- *Why a standalone private helper, not inlined into
+-- `hL_irrefl`?*  Mathlib's `Sym2.isDiag_map` has the form
+-- `Function.Injective f → ((Sym2.map f s).IsDiag ↔ s.IsDiag)` —
+-- it requires its function argument to come paired with a bare
+-- injectivity premise.  Extracting `toCopy0_inj` as a
+-- standalone lemma (i) lets it be cited once via the thunk
+-- `(fun _ _ => toCopy0_inj)` at the `hL_irrefl` call
+-- site without a four-case `by_cases` inline, and (ii) keeps it
+-- available for any future row that lifts via
+-- `Sym2.map (toCopy0 W)` (anticipated in
+-- `claim_3_22`-style σ-separation-symmetry arguments downstream).
+--
+-- *Proof strategy.*  Case-analysis on `a ∈ W`, `b ∈ W`: the two
+-- cross-cases (`a ∈ W, b ∉ W` and `a ∉ W, b ∈ W`) close
+-- structurally by constructor mismatch (`.copy0` vs `.unsplit`
+-- are distinct inductive constructors); the two matched cases
+-- close by constructor injectivity (`.copy0 a = .copy0 b →
+-- a = b` and `.unsplit a = .unsplit b → a = b`).  Unchanged from
+-- the pre-refactor `toCopy0_inj`; only the namespace prefix
+-- changes.
+--
+-- *No analogous `refactor_toCopy1_inj` is defined.*  The `L`-side
+-- (the only consumer of `Sym2.isDiag_map`-style reasoning in
+-- this row) only lifts via `toCopy0` — by the LN's
+-- one-sided convention `L_{\spl(W)} := \{(v_1^0, v_2^0) \st …\}`
+-- (cf. wording-check subtlety `spl_L_attached_to_W0_only_silently`
+-- and the rewritten tex's "Asymmetry between directed and
+-- bidirected edges at `W^0` vs. `W^1`" paragraph), so no
+-- `toCopy1`-injectivity result is needed here.  The
+-- `E`-side uses `toCopy1` on the source of every lifted
+-- directed edge, but `hE_subset`'s typing-only obligation never
+-- requires injectivity of the source lift — only membership of
+-- the produced node in the right Finset image, which routes
+-- through `Finset.mem_image` rather than through `Sym2.isDiag_map`.
+private lemma toCopy0_inj {W : Finset Node} {a b : Node}
+    (h : toCopy0 W a = toCopy0 W b) : a = b := by
+  unfold toCopy0 at h
+  by_cases hWa : a ∈ W
+  · by_cases hWb : b ∈ W
+    · rw [if_pos hWa, if_pos hWb] at h
+      injection h
+    · rw [if_pos hWa, if_neg hWb] at h
+      cases h
+  · by_cases hWb : b ∈ W
+    · rw [if_neg hWa, if_pos hWb] at h
+      cases h
+    · rw [if_neg hWa, if_neg hWb] at h
+      injection h
+
+-- ref: def_3_11
+--
+-- The *node-splitting on `G` with respect to `W`* is the
+-- `CDMG` `G.nodeSplittingOn W hW` over the carrier
+-- `SplitNode Node` whose four components are
+--
+--   * `J' := G.J.image .unsplit`                       — input nodes
+--     unchanged, lifted into `SplitNode Node` via the
+--     `unsplit` constructor;
+--   * `V' := (G.V \ W).image .unsplit ∪
+--             W.image .copy0 ∪ W.image .copy1`         — output
+--     nodes partition into the unsplit part `V \ W` (still injected
+--     via `unsplit`) and the two tagged copies `W^0`, `W^1`;
+--   * `E' := G.E.image (fun e => (toCopy1 W e.1,
+--             toCopy0 W e.2)) ∪
+--             W.image (fun w => (.copy0 w, .copy1 w))` — every
+--     directed edge `v_1 → v_2 ∈ G.E` is lifted with `v_1^1` on the
+--     source and `v_2^0` on the target; the transfer edges
+--     `w^0 → w^1` for `w ∈ W` are added in a separate clause;
+--   * `L' := G.L.image (Sym2.map (toCopy0 W))` — every
+--     bidirected (unordered) edge `s(v_1, v_2) ∈ G.L` is lifted
+--     pointwise on both endpoints via `toCopy0 W`, so both
+--     endpoints carry the `^0` superscript.  No element of `W^1`
+--     ever appears in `L'`.
+--
+-- The hypothesis `hW : W ⊆ G.V` is the LN's "$W \subseteq V$"
+-- precondition.
+--
+-- This declaration is the post-refactor port of `def_3_11` against
+-- the `cdmg_typed_edges` design (`def_3_1` shape:
+-- `L : Finset (Sym2 Node)`, no `hL_symm` axiom).  The `L`-side
+-- construction now lifts each *unordered* edge `s ∈ G.L` via
+-- `Sym2.map (toCopy0 W)`; under the `Sym2` typing this is
+-- the literal, structural reading of the LN's item iv set-builder
+-- (no two-endpoints destructure, no `hL_symm`-driven sym-axiom
+-- preservation, no need to manually commute over the swap), and it
+-- preserves the LN-faithful asymmetric `^0`-only convention by
+-- construction.
 /-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (def 3.11):
+LN tex (rewritten `def_3_11_NodeSplittingOn`, items i–iv):
 
-\begin{defmark}
-\begin{Def}[Node-splitting on CDMGs]
-  \label{def:G_node-splitting}
-    Let $G=(J,V,E,L)$ be a CDMG and $W \ins V$ a subset of the output nodes.
-    The \emph{node-split graph} w.r.t.\ $W$ of $G$ is the CDMG:
-    \[ G_{\spl(W)} :=\lp J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},L_{\spl(W)} \rp,\]
-    constructed as follows.
-    We first make two disjont copies of the nodes in $W$:
-    \[ W^0:=\lC w^0\st w \in W \rC, \qquad W^1:=\lC w^1 \st w \in W \rC.  \]
-    Note that we consider $w^0 \neq w^1$ for $w \in W$.
-    Additionally (for convenience), for $v \in J \cup V \sm W$ we put:
-  \[ v^0:=v^1:=v.  \]
-  We then define:
-  \begin{enumerate}[label=\roman*.)]
-      \item $J_{\spl(W)} := J$,
-      \item $V_{\spl(W)} := (V \sm W) \dcup W^0 \dcup W^1$,
-      \item $E_{\spl(W)} := \lC v^1_1 \tuh v_2^0 \st v_1 \tuh v_2 \in E \rC
-                              \cup \lC w^0 \tuh w^1 \st w \in W \rC$,
-      \item $L_{\spl(W)} :=\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC$.
-  \end{enumerate}
-  So all incoming edges onto nodes in $W$ become incoming edges into the
-  corresponding nodes in $W^0$, all outgoing edges out of nodes in $W$ become
-  outgoing edges out of the corresponding nodes in $W^1$, and edges
-  $w^0 \tuh w^1$ are added for all nodes in $W$.
-\end{Def}
-\end{defmark}
+    Let $G = (J, V, E, L)$ be a CDMG and $W \subseteq V$ a subset of
+    output nodes.  The node-split graph w.r.t. $W$ is the CDMG
+    $G_{\spl(W)} := (J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},
+                      L_{\spl(W)})$,
+    where (using the tagged copies $W^0 := \{w^0 \mid w \in W\}$,
+    $W^1 := \{w^1 \mid w \in W\}$ realised at the type level, and the
+    convention $v^0 := v^1 := v$ for $v \in J \cup (V \setminus W)$
+    as notational shorthand inside the set-builders below):
+      i.   $J_{\spl(W)} := J$;
+      ii.  $V_{\spl(W)} := (V \setminus W) \dcup W^0 \dcup W^1$;
+      iii. $E_{\spl(W)} := \{ (v_1^1, v_2^0) \mid (v_1, v_2) \in E \}
+                         \cup \{ (w^0, w^1) \mid w \in W \}$;
+      iv.  $L_{\spl(W)} := \{ (v_1^0, v_2^0) \mid (v_1, v_2) \in L \}$.
+
+LN block (verbatim, for backup):
+
+    Let $G=(J,V,E,L)$ be a CDMG and $W \subseteq V$ a subset of the
+    output nodes.  The node-split graph w.r.t. $W$ of $G$ is the
+    CDMG $G_{\spl(W)} := (J_{\spl(W)}, V_{\spl(W)}, E_{\spl(W)},
+    L_{\spl(W)})$, constructed as follows.  We first make two
+    disjoint copies of the nodes in $W$: $W^0 := \{w^0 \mid w \in W\}$,
+    $W^1 := \{w^1 \mid w \in W\}$.  Note that we consider
+    $w^0 \neq w^1$ for $w \in W$.  Additionally (for convenience), for
+    $v \in J \cup V \setminus W$ we put $v^0 := v^1 := v$.  We then
+    define:
+      i.   $J_{\spl(W)} := J$,
+      ii.  $V_{\spl(W)} := (V \setminus W) \dcup W^0 \dcup W^1$,
+      iii. $E_{\spl(W)} := \{ v_1^1 \to v_2^0 \mid v_1 \to v_2 \in E \}
+                         \cup \{ w^0 \to w^1 \mid w \in W \}$,
+      iv.  $L_{\spl(W)} := \{ v_1^0 \leftrightarrow v_2^0
+                              \mid v_1 \leftrightarrow v_2 \in L \}$.
 -/
+-- ## Design choice (load-bearing contract for downstream chapter 3 rows)
 --
--- ## Design choice
+-- * **Post-refactor port — `L : Finset (Sym2 (SplitNode
+--   Node))`.**  The only field whose Lean *shape* changes versus the
+--   pre-refactor encoding is `L_{\spl(W)}`.  Pre-refactor:
+--     `L := G.L.image (fun e => (toCopy0 W e.1, toCopy0 W e.2))`
+--   over `Finset (Node × Node)`, requiring a separate `hL_symm`
+--   proof obligation that explicitly swaps the underlying pair and
+--   re-routes it through `G.hL_symm`.  Post-refactor:
+--     `L := G.L.image (Sym2.map (toCopy0 W))`
+--   over `Finset (Sym2 (SplitNode Node))`.  Under the
+--   `Sym2` typing the obligation reduces by *three* structural
+--   simplifications:
 --
--- * **Carrier type `α ⊕ ↑W`.** Unlike `hardInterventionOn` --
---   which is a `CDMG α → Set α → CDMG α` because hard
---   intervention never introduces new labels -- node-splitting
---   *does* introduce new labels (the 1-copies `W^1`), so the
---   result must live over a strictly larger type. We weigh three
---   shapes:
+--   - **No two-endpoints destructure.**  `Sym2.map` lifts the
+--     unordered-pair structure pointwise.  The pre-refactor
+--     `fun e => (toCopy0 W e.1, toCopy0 W e.2)` had to project to
+--     each ordered component separately; `Sym2.map (toCopy0
+--     W)` does the same job in a single closed form.  Membership
+--     reasoning at L-manipulation sites uses `Sym2.mem_map`
+--     (`v ∈ Sym2.map f s ↔ ∃ w ∈ s, f w = v`), so every endpoint of
+--     every lifted edge is reached via a single bounded existential.
 --
---     1. **`α ⊕ ↑W`** (this choice) -- one fresh copy of `W`
---        (the 1-copies, via `Sum.inr`); the original `α`
---        continues to host `J`, `V ∖ W`, and the 0-copies (via
---        `Sum.inl`). Effectively identifies `w^0 := w` for
---        `w ∈ W`. Smallest carrier, no quotient, and the LN's
---        identity convention `v^0 := v^1 := v` for `v ∉ W`
---        becomes the *canonical* `inl` embedding rather than a
---        case-split rule.
---     2. **`α ⊕ ↑W ⊕ ↑W`** -- two fresh copies of `W`; the
---        original `W` is "ghosted" out of the result. The most
---        literal reading of "two disjoint copies", but doubles
---        the carrier-shifting work in every downstream proof and
---        loses the natural `inl`-as-identity correspondence.
---     3. **`α ⊕ α`** -- doubles everything; forces an explicit
---        identification on `J ∪ V ∖ W` (collapse `inl = inr`
---        there) to recover LN semantics. Awkward and wasteful.
+--   - **No `hL_symm` obligation.**  The pre-refactor encoding had to
+--     prove `(v_2, v_1) ∈ L'` whenever `(v_1, v_2) ∈ L'` (a fifth
+--     proof obligation on the structure literal), routing through
+--     `G.hL_symm`.  Under `Sym2`, `s(v_1, v_2) = s(v_2, v_1)` is
+--     *definitional*, so the entire obligation goes away
+--     structurally — exactly the same simplification `def_3_10`
+--     (HardInterventionOn) sees, paying off the
+--     `cdmg_typed_edges` refactor's central design commitment.
 --
---   We choose option 1. The LN's "we consider `w^0 ≠ w^1`" is
---   captured exactly by `inl w ≠ inr ⟨w, _⟩` (distinct `Sum`
---   constructors). Downstream rows (claim_3_6
---   `SplitTopologicalOrder`, def_3_12 `NodeSplittingHard`,
---   claim_3_7, claim_3_12) pattern-match on this shape; the
---   `inl` embedding gives a clean way to recover the original
---   CDMG's structure under the split.
+--   - **The `^0`-only-on-`L` convention is preserved structurally.**
+--     `Sym2.map (toCopy0 W)` of an edge `s(w_1, w_2) ∈ G.L`
+--     with `w_1, w_2 ∈ W` lands on `s(.copy0 w_1, .copy0 w_2)` —
+--     never on `.copy1 w_1` or `.copy1 w_2`, nor on a mixed
+--     `s(.copy0 w_1, .copy1 w_2)`.  This is the load-bearing LN-
+--     faithful asymmetric convention flagged by wording-check
+--     subtlety `spl_L_attached_to_W0_only_silently`: bidirected
+--     edges live on `W^0` only, and the structural construction
+--     enforces it without any side-condition.  Downstream SWIG
+--     semantics (`def_3_12`, etc.) rests on exactly this: each
+--     `w^0`-copy represents the *natural* / observational side of
+--     `w` (on which latent confounding is inherited from `G`), while
+--     each `w^1`-copy represents the *intervened* / `do`-side
+--     (causally isolated from latent confounding by design).
 --
--- * **Direction of the identification: `Sum.inl = 0-copy`
---   (canonical observation copy), `Sum.inr = 1-copy` (fresh
---   intervention-input label).** The LN gives two explicit
---   hints that the 0-copy is the canonical one:
+--   This is the *primary* downstream payoff of the
+--   `cdmg_typed_edges` refactor at the `def_3_11` row.  Compare with
+--   `def_3_10`'s REPLACEMENT block above (the load-bearing
+--   "structurally resolved deviation" reasoning is identical in
+--   spirit, though the pre-refactor `def_3_10` had a *registered
+--   content deviation* `hard_intervention_l_symmetrized_removal`
+--   in `deviations.json` while `def_3_11`'s pre-refactor `^0`-only
+--   convention was already structurally LN-faithful — the
+--   `Sym2.image (Sym2.map …)` lift now expresses that convention in
+--   a single closed-form clause without manual pair-destructuring).
 --
---     * def_3_11 itself, the commented-out line right next to
---       the `V_{spl(W)}` definition: "%which could be identified
---       with $V$ again if we want to make the identification
---       $W = W^0$";
---     * def_3_12 (`G_{swig(W)}`), the analogous hint: "...if we
---       want to make the identification $W = W^o$" (the LN uses
---       superscript `o` for observation = 0).
+-- * **`def`, not `structure` / `inductive` / `class`.**  Node
+--   splitting is a *function* `CDMG Node → Finset Node →
+--   … → CDMG (SplitNode Node)`, not new data and
+--   not a typeclass-resolvable property.  The CDMG already has its
+--   `structure` (`def_3_1`); this row produces a new CDMG over the
+--   tagged-sum carrier `SplitNode Node` from an existing
+--   one.  Wrapping the result in a fresh structure (e.g. a
+--   `NodeSplittingOn` record carrying the split graph as a field)
+--   was rejected because every downstream consumer (SWIG `def_3_12`,
+--   `claim_3_6` SplitTopologicalOrder, `claim_3_12`
+--   HardInterventionNodeSplit) destructures the split graph the same
+--   way any other CDMG is destructured — via
+--   `(G.nodeSplittingOn W hW).J`, `…V`, `…E`, `…L` — and an
+--   extra wrapping layer would force a re-destructuring step at
+--   every such call site.  Mirrors the sibling `def_3_10`
+--   (`hardInterventionOn`).
 --
---   This is also the Richardson--Robins SWIG convention used
---   throughout the counterfactuals literature: `X = X^o = W^0`.
---   The original variable corresponds to the *observation*, with
---   the 1-copy / `^i` being the fresh intervention-input label.
---   Going the other way -- identifying the 1-copy with `α` --
---   would force every downstream SWIG / iSCM / counterfactual
---   mechanism statement to mentally invert the convention; see
---   in particular def_3_12 where post-SWIG output set becomes
---   `Sum.inl '' G.V` (exactly `X = X^o`) under our direction,
---   versus needing an extra `Sum.inl ''` re-lift if we went the
---   other way.
+-- * **Carrier of the result is `SplitNode Node`, NOT
+--   `Node`.**  This is the load-bearing departure from `def_3_10`:
+--   hard intervention keeps the same node universe (`Finset Node`
+--   operations on `J ∪ W` / `V \ W`), whereas node splitting
+--   *creates new nodes* (`w^0`, `w^1`) that must be type-level
+--   distinct from the original `Node` and from each other.  The
+--   `addition_to_the_LN`
+--   `[disjointness_of_new_copies_only_partially_stipulated]` fixes
+--   the semantics: disjointness is at the *type level*, encoded via
+--   an `inductive` `SplitNode` with three named
+--   constructors so the LN's
+--   `W^0 ∩ V = W^1 ∩ V = W^0 ∩ J = W^1 ∩ J = W^0 ∩ W^1 = ∅`
+--   becomes a typing fact, not a `Disjoint` proof obligation.
+--   Downstream consumers see the carrier change in the return type
+--   `CDMG (SplitNode Node)` and pattern-match on
+--   `.unsplit` / `.copy0` / `.copy1` as needed (or, when the
+--   unsplit-only branch suffices, project through the `unsplit`
+--   constructor).
 --
--- * **Precondition `W ⊆ G.V` is structurally required.**
---   `hardInterventionOn` opted to drop the LN's `W ⊆ J ∪ V`
---   precondition because the construction remained well-defined
---   for any `W`. Here, the precondition is *load-bearing*: the
---   split edge `w^0 → w^1 = (Sum.inl w, Sum.inr ⟨w, _⟩)` needs
---   its source `inl w` to live in `V_split`, and `V_split` only
---   contains `inl`-labels that lie in `G.V`. Without `W ⊆ G.V`,
---   for `w ∈ W ∖ G.V` the split edge would violate `E_subset`.
---   Adding `hW : W ⊆ G.V` to the signature is therefore the
---   cleanest fix and matches the LN ("`W ⊆ V` a subset of the
---   output nodes") exactly.
+-- * **`hW : W ⊆ G.V` is an explicit argument, not a sub-condition
+--   threaded through the body.**  The LN's "Let $W \subseteq V$" is
+--   part of the *signature* of node splitting.  In contrast with
+--   `def_3_10`'s `W ⊆ G.J ∪ G.V` (which permits `W ∩ G.J ≠ ∅`),
+--   node splitting requires `W ⊆ G.V` strictly: the construction
+--   *removes* members of `W` from `V` and creates tagged copies, so
+--   it only makes sense on output nodes.  `hW` is part of the
+--   signature but is not consumed in every proof obligation (the
+--   type-level disjointness of the three `SplitNode`
+--   constructors already discharges most of the work); the few
+--   obligations that do consume it are the `hJV_disj` and
+--   `hE_subset` / `hL_subset` set-membership cases that route the
+--   unsplit `G.V \ W` branch through the `unsplit` constructor.
 --
--- * **`J_split := Sum.inl '' G.J`.** Lifting `G.J` along `inl`.
---   Equivalent to "treat the inputs as unchanged"; the carrier
---   is now `α ⊕ ↑W` but no input is split (the LN restricts
---   `W ⊆ V`), so we copy `G.J` verbatim under `inl`. The LN's
---   `J_{spl(W)} := J` reads as the same set after identifying
---   `α` with its `inl`-image in `α ⊕ ↑W`.
+-- * **`Finset.image` for every set-builder, not `Finset.filter` /
+--   recursion / a quotient.**  The LN writes the four components as
+--   set-builders ranging over `G.E` / `G.L` / `W`.  Lean's
+--   `Finset.image` is the closest primitive (`Finset.mem_image` gives
+--   exactly `b ∈ s.image f ↔ ∃ a ∈ s, f a = b`), shares the
+--   `Finset (SplitNode Node × SplitNode Node)`
+--   carrier between the directed image clauses and the
+--   `Finset (Sym2 (SplitNode Node))` carrier for the `L`-
+--   side image, and decidability of `Finset.image` construction
+--   follows from the `DecidableEq` instances on `Node` and
+--   `SplitNode Node` (and from Mathlib's derived
+--   `DecidableEq (Sym2 _)` instance for the `L`-side).  `Finset.
+--   filter` was rejected because the construction *creates* new
+--   elements via `toCopy0` / `toCopy1`, not selects
+--   a subset of existing ones; recursion is overkill for a single
+--   set-comprehension.  The `Sym2` quotient encoding is precisely
+--   what the post-refactor `L` carrier needs — `Finset.image` over
+--   `Sym2.map (toCopy0 W)` reads the LN's
+--   "$L_{\spl(W)} := \{ s(v_1^0, v_2^0) \mid s(v_1, v_2) \in L \}$"
+--   literally on the unordered-pair carrier.
 --
--- * **`V_split := Sum.inl '' G.V ∪ Set.range Sum.inr`.** The
---   LN's `(V ∖ W) ⊔ W^0 ⊔ W^1` simplifies, under `W ⊆ V` and
---   our identification `w^0 := w` (0 = canonical), to
---   `V ∪ W^1` (since `(V ∖ W) ∪ W = V` when `W ⊆ V`, and
---   `W^0 = W` under the identification). Encoded:
---   `inl '' V ∪ inr '' univ`. The `inl '' V` piece carries the
---   0-copies (i.e. all of `V`, since `w^0 = w` for `w ∈ W`); the
---   `Set.range Sum.inr` piece carries the 1-copies (fresh
---   labels indexed by `↑W`).
+-- * **Notational shorthand `v^0 := v^1 := v` as helper *functions*
+--   `toCopy0` / `toCopy1`, not as a coercion.**
+--   The LN's "$v^0 := v^1 := v$ for $v \in J \cup (V \setminus W)$"
+--   is *meta-notation* used inside the set-builders for items iii
+--   and iv; it is NOT a coercion that re-assigns the meaning of `v`
+--   in the ambient carrier (per the operator clarification,
+--   "untagged nodes $v \in J \cup (V \sm W)$ remain of their
+--   original kind in the ambient carrier").  The Lean rendering as
+--   a function `toCopy0 W : Node → SplitNode Node`
+--   (branching on `v ∈ W` to pick either `SplitNode.copy0
+--   v` or `SplitNode.unsplit v`) captures exactly this
+--   reading: the *original* `v : Node` continues to inhabit `Node`,
+--   and the function is just the per-set-builder lift into
+--   `SplitNode Node`.  A `Coe Node (SplitNode
+--   Node)` instance was rejected because (i) `Node` is polymorphic
+--   and a global coercion would fire across the chapter, and
+--   (ii) there are *two* such lifts (`toCopy0` and
+--   `toCopy1`) differing only on `W` — neither is canonical.
 --
--- * **`split1` helper.** The LN's "1-copy" operation `v ↦ v^1`
---   is defined by cases on `v ∈ W`. Lean expresses this
---   naturally as a `dite` (`if h : v ∈ W then Sum.inr ⟨v, h⟩
---   else Sum.inl v`), but `v ∈ W` is not in general decidable,
---   so we lift the case-split to `Classical.propDecidable`,
---   making `split1` noncomputable. This is fine because every
---   downstream use of `split1` is in a `Prop`-valued context
---   (membership of edges in the split graph). The two `@[simp]`
---   lemmas `split1_of_mem` / `split1_of_not_mem` discharge the
---   case-split at use-sites; the private `inl_eq_split1_iff`
---   characterises *when* a given `Sum.inl x` equals `split1 W u`,
---   and is the workhorse lemma of the `disjoint_EL` proof.
---   We do *not* need a `split0` helper because `v^0 := Sum.inl v`
---   has no case-split (it is the canonical embedding).
+-- * **Items i, ii: literal `Finset.image` translations.**  Item i
+--   (`J' := G.J.image .unsplit`) injects every input node through
+--   the `unsplit` constructor; item ii's three-piece union
+--   `(G.V \ W).image .unsplit ∪ W.image .copy0 ∪ W.image .copy1`
+--   spells out the LN's `(V \ W) \dcup W^0 \dcup W^1` literally,
+--   with the LN's three pieces in left-to-right order.  Unchanged
+--   from the pre-refactor encoding (`J`, `V`, `hJV_disj` are
+--   untouched by the refactor — only `L`-side typing changed).
 --
--- * **`E_split` as a binary union of images.**
+-- * **Item iii: two-clause union, lifted edges plus transfer edges.**
+--   The first clause
+--   `G.E.image (fun e => (toCopy1 W e.1,
+--                         toCopy0 W e.2))`
+--   lifts every directed edge `v_1 → v_2 ∈ G.E` to the LN's
+--   `(v_1^1, v_2^0)`.  The second clause
+--   `W.image (fun w => (.copy0 w, .copy1 w))` adds the *transfer
+--   edges* `w^0 → w^1` for every `w ∈ W`.  These two clauses are
+--   semantically disjoint (the transfer edges have `.copy0` on the
+--   source side, which the first clause's `toCopy1` cannot
+--   produce on `v_1 ∈ G.J ∪ G.V`); the union is taken literally for
+--   LN-faithfulness, not because the disjointness is content-
+--   bearing.  Unchanged from the pre-refactor encoding (`E`'s
+--   ordered-pair typing is untouched by the refactor).
 --
---     * Piece 1: `(fun (v₁, v₂) => (split1 W v₁, Sum.inl v₂))
---       '' G.E`. Each original directed edge `(v₁, v₂) ∈ G.E`
---       relabels its source `v₁ ↦ v₁^1 = split1 W v₁` (outgoing
---       edges out of `w ∈ W` become outgoing out of `w^1`) and
---       its target `v₂ ↦ v₂^0 = Sum.inl v₂` (incoming edges into
---       `w ∈ W` become incoming into `w^0`, which is just
---       `inl w`). The `split1` dispatch lives on the source
---       only; the target needs no dispatch because the 0-copy
---       is the canonical `inl` embedding.
---     * Piece 2: `Set.range (fun w : ↑W => (Sum.inl w,
---       Sum.inr w))`. The fresh split edges `w^0 → w^1` for
---       `w ∈ W`, i.e. `(Sum.inl w, Sum.inr ⟨w, hw⟩)`.
+-- * **Item iv: single-clause `Finset.image (Sym2.map …)`, both
+--   endpoints via `toCopy0`.**  The LN's *asymmetric*
+--   choice of `^0` on both endpoints of every lifted bidirected edge
+--   (per the wording-check subtlety
+--   `spl_L_attached_to_W0_only_silently`) is the load-bearing
+--   convention.  No bidirected edge in `L_{\spl(W)}` has `.copy1 w`
+--   as an endpoint.  Downstream rows that reason about the
+--   bidirected/latent structure (c-components, m-separation,
+--   confounding ancestry) build on this one-sided convention, and
+--   swapping `^0` for `^1` would change the chapter's semantics.
+--   The semantic motivation is the SWIG-style reading composed
+--   downstream in `def_3_12` (NodeSplittingHard): each `w^0`-copy
+--   represents the *natural* / observational side of `w` (its pre-
+--   intervention identity, on which latent confounding and ancestry
+--   are inherited from `G`), while each `w^1`-copy represents the
+--   *intervened* / `do`-side, which is causally isolated from its
+--   observational counterpart.  Bidirected edges encode latent
+--   confounding, which by SWIG semantics lives entirely on the
+--   natural (`W^0`) side; the intervened `W^1`-copies have no latent
+--   structure by design.  This is what makes the one-sided lift the
+--   unique LN-faithful reading and not a typo — `review_design`
+--   PASS surfaced exactly this point pre-refactor, and the
+--   `Sym2.map` lift now expresses it in a single closed form rather
+--   than as two coordinated pair-projection clauses.
 --
---   The two pieces map one-to-one to the two `\cup`-clauses of
---   the LN's `E_{spl(W)}`.
+-- * **Self-loops `(v, v) ∈ E` for `v ∈ W` produce 2-cycles
+--   `v^0 → v^1 → v^0` in `E_{\spl(W)}`; the result is still a CDMG.**
+--   Per the wording-check subtlety
+--   `spl_self_loop_creates_two_cycle_in_split` and the rewritten
+--   tex's "Self-loops on $W$ produce $2$-cycles" paragraph: the
+--   first clause of item iii produces the lifted edge `(v^1, v^0)`
+--   and the second clause adds the transfer edge `(v^0, v^1)`,
+--   yielding a directed 2-cycle.  This does NOT invalidate the
+--   `CDMG` axioms (`def_3_1` does not require acyclicity);
+--   it only means downstream claims about node-splitting preserving
+--   acyclicity (cf. `claim_3_6` SplitTopologicalOrder) must add a
+--   self-loop-free precondition on `G`.  Unchanged from the pre-
+--   refactor encoding (this subtlety lives entirely on the `E`-side,
+--   which the refactor does not touch).
 --
--- * **`L_split` as a plain `Sum.inl × Sum.inl` image.**
---   `(fun (v₁, v₂) => (Sum.inl v₁, Sum.inl v₂)) '' G.L`. Each
---   bidirected edge `(v₁, v₂) ∈ G.L` relabels *both* endpoints to
---   their 0-copies, matching the LN's
---   `\lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC`. Under our
---   convention (0 = `inl`), no case-split is needed -- the entire
---   relabeling is just `Sum.inl` applied to both endpoints. This
---   is the key downstream payoff of choosing the LN-aligned
---   direction: `L_subset`, `L_irrefl`, `L_symm` all collapse to
---   short two-line proofs, and the piece-2-vs-L case in
---   `disjoint_EL` is immediate (constructor mismatch).
+-- * **Type-level disjointness collapses the `hJV_disj` /
+--   `hE_subset` / `hL_subset` proof obligations.**  Because
+--   `SplitNode.unsplit`, `SplitNode.copy0`,
+--   `SplitNode.copy1` are distinct constructors of an
+--   `inductive` type, any `Disjoint`-style obligation between two
+--   of the three `Finset` images reduces to a per-element
+--   `Finset.mem_image` check and a constructor-mismatch `cases` or
+--   `noConfusion`.  The only non-trivial case in `hJV_disj` is the
+--   `J vs (V \ W)` branch where both Finsets route through
+--   `unsplit`; there the injectivity of `unsplit` reduces the
+--   obligation to `G.hJV_disj`.  On the `L`-side, `hL_subset` reads
+--   each endpoint of a lifted `Sym2` edge via `Sym2.mem_map` and
+--   case-splits `w ∈ W`: the `.copy0`-branch lands in
+--   `W.image .copy0`; the `.unsplit`-branch combines `w ∈ G.V`
+--   (from `G.hL_subset`) and `w ∉ W` to land in
+--   `(G.V \ W).image .unsplit`.
 --
--- * **Structural fields discharged in-place.** As in
---   `hardInterventionOn`, the seven CDMG obligations are short
---   consequences of the corresponding `G.*` field:
+-- * **`hL_irrefl` transports pointwise from `G.hL_irrefl` via
+--   `toCopy0`-injectivity.**  Each `s ∈ L'` factors as
+--   `s = Sym2.map (toCopy0 W) s₀` for some `s₀ ∈ G.L`.
+--   `Sym2.IsDiag (Sym2.map f s₀)` is equivalent to `s₀.IsDiag`
+--   *when `f` is injective* (Mathlib's `Sym2.isDiag_map`); we have
+--   `toCopy0_inj` precisely for this, so `s.IsDiag` would
+--   contradict `G.hL_irrefl s₀ hs₀L`.  This is the post-refactor
+--   replacement for the pre-refactor obligation "`v_1 ≠ v_2`": the
+--   `Sym2`-level irreflexivity predicate combines naturally with
+--   `Sym2.map` and lifts cleanly through any injective node-map.
+--   No `hL_symm` obligation to discharge — swap-symmetry is
+--   definitional on `Sym2`, structurally collapsing the pre-
+--   refactor fifth obligation.
 --
---     * `disjoint_JV` -- `inl '' G.J` and `inl '' G.V ∪ range inr`
---       are disjoint because `inl '' G.J ∩ inl '' G.V = ∅` (by
---       `G.disjoint_JV` + injectivity of `inl`) and
---       `inl '' G.J ∩ range inr = ∅` (different constructors).
---     * `E_subset` -- piece 1 splits source on `split1`, target
---       lands in `inl '' G.V` via `G.E_subset`; piece 2 needs the
---       precondition `hW : W ⊆ G.V` precisely to put the source
---       `Sum.inl w` into `V_split = inl '' G.V ∪ range inr`.
---     * `L_subset` -- both endpoints of a relabeled bidirected
---       edge are `Sum.inl v_i` with `v_i ∈ G.V` (by
---       `G.L_subset`), so directly in `inl '' G.V ⊆ V_split`.
---     * `L_irrefl` -- `(Sum.inl v₁, Sum.inl v₂) ∈ L_split` with
---       `Sum.inl v₁ = Sum.inl v₂` forces `v₁ = v₂` via
---       `Sum.inl_injective`; `G.L_irrefl` finishes.
---     * `L_symm` -- direct from `G.L_symm` since the relabeling
---       is symmetric in the two endpoints.
---     * `disjoint_EL` -- the two pieces of `E_split` are
---       inspected separately; piece 1 (source-dispatch image)
---       intersected with `L_split` (`Sum.inl × Sum.inl` image)
---       forces `split1 W v_1 = Sum.inl u_1` (so `v_1 ∉ W` and
---       `v_1 = u_1` via `inl_eq_split1_iff`) and
---       `Sum.inl v_2 = Sum.inl u_2`, whereupon `(v_1, v_2) ∈
---       G.E ∩ G.L` contradicts `G.disjoint_EL`; piece 2
---       (split edges, target `Sum.inr`) is *immediate* by
---       constructor mismatch -- `Sum.inr` cannot equal
---       `Sum.inl u_2` from any `L_split` membership.
+-- * **Argument order `(G : CDMG Node) (W : Finset Node)
+--   (hW : …)`.**  Matches the convention of every chapter-3
+--   predicate (`G.tuh`, `G.huh`, `G.adjacent`,
+--   `G.hardInterventionOn`), enabling dot-notation
+--   `G.nodeSplittingOn W hW`.  `W` precedes `hW` so the
+--   call site reads left-to-right like the LN's "Let `W ⊆ V` be a
+--   subset".  Mirrors `hardInterventionOn`'s argument
+--   order verbatim.
+--
+-- * **`where` syntax with named fields, not anonymous-constructor
+--   `⟨ … ⟩`.**  The `CDMG` `structure` has eight fields —
+--   one fewer than the pre-refactor nine, because `hL_symm` is gone
+--   (swap-symmetry is definitional on `Sym2`).  An anonymous-
+--   constructor form would interleave data and proof obligations in
+--   a positional list, making the correspondence with `def_3_1`'s
+--   `structure` opaque at a glance.  `where … J := … V := …` keeps
+--   every field labelled and lets the proof obligations sit next to
+--   the data they refer to.  Mirrors `hardInterventionOn`'s
+--   choice.
+--
+-- * **No local `Decidable` instance for the L-side filter.**
+--   `def_3_10`'s `hardInterventionOn` needs a private
+--   `DecidablePred (fun s : Sym2 Node => ∀ v ∈ s, v ∉ W)` instance
+--   because it uses `Finset.filter` on a `Sym2`-bounded-universal
+--   predicate.  This row uses `Finset.image (Sym2.map …)` instead,
+--   which only requires `DecidableEq` of the image-carrier type
+--   (`Sym2 (SplitNode Node)`); Mathlib's derived
+--   `DecidableEq (Sym2 _)` instance handles that from
+--   `[DecidableEq Node]` plus `deriving DecidableEq` on
+--   `SplitNode`.  No `Sym2.Mem`-bounded-universal predicate
+--   appears in any of the four CDMG-axiom proof obligations, so no
+--   local `DecidablePred` instance is needed.  The L-side
+--   construction is therefore strictly simpler than `def_3_10`'s,
+--   not more complex — the refactor's structural benefit lands at
+--   this row without any boilerplate price.
+--
+-- * **`def`, not `noncomputable def`.**  Both the `E`-side and `L`-
+--   side images are kernel-computable: `Finset.image` is computable
+--   whenever the target carrier has `DecidableEq`, and `Sym2.map` is
+--   a `Quot.map` of a function (kernel-computable) on the underlying
+--   pair.  The resulting `CDMG` is therefore a *computable*
+--   construction, matching the pre-refactor design and keeping
+--   `#eval (G.nodeSplittingOn W hW).L` available for
+--   inspecting the split graph on small concrete examples.  No
+--   `Classical.dec`-style shortcut was needed.
+--
+-- * **Downstream consumers.**  SWIG `def_3_12` (the composition of
+--   node splitting with hard intervention on the `W^1`-copies),
+--   `claim_3_6` SplitTopologicalOrder (a topological order on the
+--   acyclic, self-loop-free `G` induces one on `G_{\spl(W)}`),
+--   `claim_3_12` HardInterventionNodeSplit (the interaction between
+--   node splitting and disjoint hard intervention).  Each of these
+--   rests on the four field assignments above; the tagged-sum
+--   carrier `SplitNode Node` is the contract those rows
+--   rely on.  Post-refactor, these consumers see the `Sym2`-native
+--   `L` image — no manual `(toCopy0, toCopy0)` pair-construction is
+--   needed in any of them, and the membership rule on
+--   `(G.nodeSplittingOn W hW).L` reduces to a single
+--   `Finset.mem_image.mp` + `Sym2.mem_map.mp` chain without case-
+--   splitting on which endpoint was the LN's "$v_1$" vs "$v_2$".
+--
+-- * **Working-phase wording-check subtleties are non-issues for the
+--   `Sym2` port.**  Two subtleties were surfaced at this row's
+--   working-phase check (`Section3_2/workspace_def_3_11.md`):
+--   (a) `spl_self_loop_creates_two_cycle_in_split` — admitted as
+--   above (the construction does produce 2-cycles on `E`-self-loops
+--   into `W`; this is unchanged from pre-refactor because the
+--   refactor touches only the `L`-side); (b)
+--   `spl_L_attached_to_W0_only_silently` — preserved *structurally*
+--   by `Sym2.map (toCopy0 W)`, which never produces a
+--   `.copy1 w` endpoint in `L_{\spl(W)}` by construction.  Both are
+--   non-issues for this port; the manager will decide whether to
+--   `register_ln_subtlety` after review.
+-- ## Proof helpers for the four CDMG axioms under node splitting
+--
+-- The four private lemmas below discharge the four proof obligations
+-- of `def_3_1`'s post-refactor `CDMG` structure
+-- (`hJV_disj`, `hE_subset`, `hL_subset`, `hL_irrefl`) for the
+-- node-splitting construction.  One fewer than the pre-refactor five
+-- (`nodeSplittingOn_hL_symm` is gone — swap-symmetry is definitional
+-- on `Sym2`).  They are factored out of the structure-literal body
+-- of `nodeSplittingOn` so the def body is pure data + lemma
+-- references — the website builder renders the def's signature, and
+-- a reader sees the data assignments without proof clutter.  Per
+-- the `hW`-unused design-choice bullet above, none of the
+-- obligations consume `hW`; `hW` is carried on the def's signature
+-- purely for LN-faithfulness (the LN's "Let `W ⊆ V`").
 
-/-- The *node-splitting* of the CDMG `G` with respect to a set
-`W ⊆ G.V` of output nodes: the new CDMG `G_{spl(W)}` over the
-carrier `α ⊕ ↑W` obtained by duplicating each `w ∈ W` into a
-0-copy `Sum.inl w` (receiving incoming edges; identified with the
-original `w` via the canonical `inl` embedding) and a 1-copy
-`Sum.inr ⟨w, hw⟩` (fresh intervention-input label; sends outgoing
-edges), with a fresh directed edge `w^0 → w^1` for each
-`w ∈ W`. See `lecture-notes/lecture_notes/graphs.tex` definition
-`def:G_node-splitting` (def 3.11 of the LN).
+-- ### Proof helper 1 / 4 — `J' ∩ V' = ∅` after the split lift
+--
+-- *What this discharges.*  The `hJV_disj` field of `CDMG`
+-- for the node-split graph: the lifted input set
+-- `G.J.image .unsplit` is disjoint from the three-piece union
+-- forming the lifted output set
+-- `(G.V \ W).image .unsplit ∪ W.image .copy0 ∪ W.image .copy1`.
+--
+-- *Refactor port note.*  The post-refactor `def_3_1.hJV_disj`
+-- field is *unchanged* from the pre-refactor encoding — the
+-- `cdmg_typed_edges` refactor only touched `L`-side fields.  So
+-- this obligation is a mechanical port of the pre-refactor
+-- `nodeSplittingOn_hJV_disj`; only the namespace prefix and
+-- constructor names change.
+--
+-- *Design choice — `private lemma` factored out of the structure
+-- literal.*  Per the convention in `claude.md` (formalize-def
+-- pattern) and the "where syntax with named fields" design-choice
+-- bullet above the main `def`, constructor-proof obligations live
+-- *outside* the structure literal so the def body stays pure
+-- data + lemma references.  This lemma is purely proof-side
+-- scaffolding for the constructor: it is NOT part of the row's
+-- statement (no `-- def_3_11 --- start helper` markers wrap it),
+-- and the `private` modifier keeps it scoped to this file.
+--
+-- *Design choice — proof strategy leverages type-level
+-- disjointness.*  Three of the four image-vs-image overlap cases
+-- close *structurally* by constructor mismatch on
+-- `SplitNode` (`.unsplit ≠ .copy0`, `.unsplit ≠ .copy1`):
+-- `cases hweq` immediately discharges them because there is no
+-- equation between distinct inductive constructors.  The single
+-- non-trivial case (`.unsplit j` for `j ∈ G.J` versus
+-- `.unsplit v` for `v ∈ G.V \ W`) reduces by injectivity of the
+-- `.unsplit` constructor to `j = v`, which contradicts
+-- `G.hJV_disj` on the original CDMG.  This is the load-bearing
+-- payoff of encoding the three node-kinds as distinct constructors
+-- of a single `inductive` (cf. the "type-level disjointness
+-- collapses obligations" design-choice bullet above): a
+-- `Sum`-based or `Finset.disjUnion`-based encoding would have
+-- moved this structural part of the proof into explicit
+-- `Sum.inl`/`Sum.inr` case-splits or
+-- `Finset.disjoint_disjUnion_left` lemma invocations.
+--
+-- *`hW` not on the signature.*  The W-in-V hypothesis is not
+-- consumed: constructor mismatch and `G.hJV_disj` together
+-- discharge every case without needing `W ⊆ G.V`.
+private lemma nodeSplittingOn_hJV_disj
+    (G : CDMG Node) (W : Finset Node) :
+    Disjoint (G.J.image SplitNode.unsplit)
+        ((G.V \ W).image SplitNode.unsplit
+          ∪ W.image SplitNode.copy0
+          ∪ W.image SplitNode.copy1) := by
+  rw [Finset.disjoint_left]
+  rintro x hxJ hxV
+  obtain ⟨j, hjJ, rfl⟩ := Finset.mem_image.mp hxJ
+  rcases Finset.mem_union.mp hxV with hxV12 | hxC1
+  · rcases Finset.mem_union.mp hxV12 with hxVuns | hxC0
+    · obtain ⟨v, hvVW, hveq⟩ := Finset.mem_image.mp hxVuns
+      cases hveq
+      exact Finset.disjoint_left.mp G.hJV_disj hjJ
+        (Finset.mem_sdiff.mp hvVW).1
+    · obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC0
+      cases hweq
+  · obtain ⟨_, _, hweq⟩ := Finset.mem_image.mp hxC1
+    cases hweq
 
-The identification direction `Sum.inl = 0-copy` (canonical) follows
-the LN's own hints in def_3_11 and def_3_12 (and matches the
-Richardson--Robins SWIG convention `X = X^o`); see the design
-notes above.
+-- ### Proof helper 2 / 4 — typing of `E'` after the split lift
+--
+-- *What this discharges.*  The `hE_subset` field of
+-- `CDMG` for the node-split graph: every ordered pair in
+-- the two-clause union forming `E'` satisfies the LN typing
+-- `E' ⊆ (J' ∪ V') × V'` (item iii of `def_3_11`).
+--
+-- *Refactor port note.*  The post-refactor `def_3_1.hE_subset`
+-- field is *unchanged* from the pre-refactor encoding — the
+-- `cdmg_typed_edges` refactor leaves `E`'s ordered-pair typing
+-- alone (only `L`'s carrier moved to `Sym2`).  So this obligation
+-- is a mechanical port of the pre-refactor
+-- `nodeSplittingOn_hE_subset`; only the namespace prefix and
+-- constructor names change.
+--
+-- *Design choice — `private lemma` factored out.*  Same rationale
+-- as `nodeSplittingOn_hJV_disj` above: keeps the def body
+-- pure data + lemma references; not part of the row's statement;
+-- `private`-scoped to this file.
+--
+-- *Proof strategy.*  Case-split on the union clause forming
+-- `e ∈ E'`:
+--
+--   * **Lifted edges (clause 1):** `e = (toCopy1 W e'.1,
+--     toCopy0 W e'.2)` for some `e' ∈ G.E`.  Case-split
+--     on `e'.1 ∈ W`: on the `W`-branch the source unfolds to
+--     `.copy1 e'.1 ∈ W.image .copy1 ⊆ V' ⊆ J' ∪ V'`; on the
+--     complement, the source unfolds to `.unsplit e'.1`, and a
+--     further case-split on whether `e'.1 ∈ G.J` or `e'.1 ∈ G.V`
+--     (from `G.hE_subset`) lands it in `J'` or
+--     `(G.V \ W).image .unsplit ⊆ V'` respectively.  The target
+--     unfolds analogously with `toCopy0`, two branches.
+--
+--   * **Transfer edges (clause 2):** `e = (.copy0 w, .copy1 w)`
+--     for some `w ∈ W`.  Both endpoints land directly in
+--     `W.image .copy0 ⊆ V'` and `W.image .copy1 ⊆ V'` by
+--     construction.
+--
+-- *Design choice — `simp only [toCopy0/1, …, if_true /
+-- if_false]` to unfold the helper.*  The `if`-branches of
+-- `toCopy0` / `toCopy1` are dispatched
+-- explicitly via `simp only` with `if_true` / `if_false`
+-- lemmas, rather than via `unfold` or by-cases on the underlying
+-- decidability.  This keeps each branch's residual goal in the
+-- shape of a literal `.copy0 _` / `.copy1 _` / `.unsplit _`
+-- constructor application, which then matches the right
+-- `Finset.mem_image` shape.  An alternative `unfold` approach
+-- would have left the `if` unevaluated in the goal, forcing
+-- explicit `rfl`-rewrites; the explicit `simp only` is one step
+-- shorter and locally clearer.
+--
+-- *`hW` not on the signature.*  The W-in-V hypothesis is not
+-- consumed: `G.hE_subset` already gives `e'.1 ∈ J ∪ V` (so the
+-- non-W case-split lands in `J' ∪ (G.V \ W).image .unsplit` via
+-- the LN-given typing), and the lifted-edge case never needs
+-- `W ⊆ G.V` to position the target either.
+private lemma nodeSplittingOn_hE_subset
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃e : SplitNode Node × SplitNode Node⦄,
+      e ∈ G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
+          ∪ W.image (fun w =>
+              (SplitNode.copy0 w, SplitNode.copy1 w)) →
+      e.1 ∈ G.J.image SplitNode.unsplit ∪
+              ((G.V \ W).image SplitNode.unsplit
+                ∪ W.image SplitNode.copy0
+                ∪ W.image SplitNode.copy1) ∧
+        e.2 ∈ (G.V \ W).image SplitNode.unsplit
+                ∪ W.image SplitNode.copy0
+                ∪ W.image SplitNode.copy1 := by
+  intro e he
+  rcases Finset.mem_union.mp he with hImg | hTrans
+  · obtain ⟨e', he'E, rfl⟩ := Finset.mem_image.mp hImg
+    obtain ⟨he'1, he'2⟩ := G.hE_subset he'E
+    refine ⟨?_, ?_⟩
+    · by_cases hW1 : e'.1 ∈ W
+      · simp only [toCopy1, hW1, if_true]
+        refine Finset.mem_union_right _ ?_
+        refine Finset.mem_union_right _ ?_
+        exact Finset.mem_image.mpr ⟨e'.1, hW1, rfl⟩
+      · simp only [toCopy1, hW1, if_false]
+        rcases Finset.mem_union.mp he'1 with hJ | hV
+        · exact Finset.mem_union_left _ (Finset.mem_image.mpr ⟨e'.1, hJ, rfl⟩)
+        · refine Finset.mem_union_right _ ?_
+          refine Finset.mem_union_left _ ?_
+          refine Finset.mem_union_left _ ?_
+          exact Finset.mem_image.mpr
+            ⟨e'.1, Finset.mem_sdiff.mpr ⟨hV, hW1⟩, rfl⟩
+    · by_cases hW2 : e'.2 ∈ W
+      · simp only [toCopy0, hW2, if_true]
+        refine Finset.mem_union_left _ ?_
+        refine Finset.mem_union_right _ ?_
+        exact Finset.mem_image.mpr ⟨e'.2, hW2, rfl⟩
+      · simp only [toCopy0, hW2, if_false]
+        refine Finset.mem_union_left _ ?_
+        refine Finset.mem_union_left _ ?_
+        exact Finset.mem_image.mpr
+          ⟨e'.2, Finset.mem_sdiff.mpr ⟨he'2, hW2⟩, rfl⟩
+  · obtain ⟨w, hwW, rfl⟩ := Finset.mem_image.mp hTrans
+    refine ⟨?_, ?_⟩
+    · refine Finset.mem_union_right _ ?_
+      refine Finset.mem_union_left _ ?_
+      refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
+    · refine Finset.mem_union_right _ ?_
+      exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
 
-The four `@[simp]` projection / membership lemmas
-`nodeSplittingOn_J`, `nodeSplittingOn_V`, `mem_nodeSplittingOn_E`,
-`mem_nodeSplittingOn_L` below characterise the four components of
-the result and are the gateway for every downstream rewrite. -/
-noncomputable def nodeSplittingOn (G : CDMG α) (W : Set α)
-    (hW : W ⊆ G.V) : CDMG (α ⊕ ↑W) where
-  J := Sum.inl '' G.J
-  V := Sum.inl '' G.V ∪ Set.range (Sum.inr : ↑W → α ⊕ ↑W)
-  disjoint_JV := by
-    rw [Set.disjoint_left]
-    rintro x ⟨j, hj, rfl⟩ hxV
-    rcases hxV with ⟨v, hv, hjv⟩ | ⟨w, hjw⟩
-    · cases Sum.inl_injective hjv
-      exact Set.disjoint_left.mp G.disjoint_JV hj hv
-    · exact nomatch hjw
-  E := (fun p : α × α => (split1 W p.1, Sum.inl p.2)) '' G.E
-     ∪ Set.range (fun w : ↑W => ((Sum.inl (w : α) : α ⊕ ↑W), Sum.inr w))
-  E_subset := by
-    rintro ⟨a, b⟩ h
-    rcases h with ⟨⟨v₁, v₂⟩, hE, hab⟩ | ⟨w, hab⟩
-    · -- piece 1: original edge (v₁, v₂) ∈ G.E, relabeled.
-      simp only [Prod.mk.injEq] at hab
-      obtain ⟨rfl, rfl⟩ := hab
-      refine ⟨?_, ?_⟩
-      · -- a = split1 W v₁ in J_split ∪ V_split
-        by_cases hv₁ : v₁ ∈ W
-        · rw [split1_of_mem hv₁]
-          exact Or.inr (Or.inr ⟨⟨v₁, hv₁⟩, rfl⟩)
-        · rw [split1_of_not_mem hv₁]
-          rcases (G.E_subset hE).1 with hJ | hV
-          · exact Or.inl ⟨v₁, hJ, rfl⟩
-          · exact Or.inr (Or.inl ⟨v₁, hV, rfl⟩)
-      · -- b = Sum.inl v₂ in V_split
-        exact Or.inl ⟨v₂, (G.E_subset hE).2, rfl⟩
-    · -- piece 2: split edge (Sum.inl w, Sum.inr w) for w ∈ ↑W.
-      simp only [Prod.mk.injEq] at hab
-      obtain ⟨rfl, rfl⟩ := hab
-      refine ⟨?_, ?_⟩
-      · -- a = Sum.inl w.val in V_split (uses hW : W ⊆ G.V)
-        exact Or.inr (Or.inl ⟨(w : α), hW w.property, rfl⟩)
-      · -- b = Sum.inr w in V_split
-        exact Or.inr ⟨w, rfl⟩
-  L := (fun p : α × α => ((Sum.inl p.1 : α ⊕ ↑W), Sum.inl p.2)) '' G.L
-  L_subset := by
-    rintro ⟨a, b⟩ ⟨⟨v₁, v₂⟩, hL, hab⟩
-    simp only [Prod.mk.injEq] at hab
-    obtain ⟨rfl, rfl⟩ := hab
-    obtain ⟨hv₁V, hv₂V⟩ := G.L_subset hL
-    exact ⟨Or.inl ⟨v₁, hv₁V, rfl⟩, Or.inl ⟨v₂, hv₂V, rfl⟩⟩
-  L_irrefl := by
-    rintro a₁ a₂ ⟨⟨v₁, v₂⟩, hL, hab⟩
-    simp only [Prod.mk.injEq] at hab
-    obtain ⟨rfl, rfl⟩ := hab
-    intro heq
-    exact G.L_irrefl hL (Sum.inl_injective heq)
-  L_symm := by
-    rintro a₁ a₂ ⟨⟨v₁, v₂⟩, hL, hab⟩
-    refine ⟨(v₂, v₁), G.L_symm hL, ?_⟩
-    simp only [Prod.mk.injEq] at hab ⊢
-    exact ⟨hab.2, hab.1⟩
-  disjoint_EL := by
-    rw [Set.disjoint_left]
-    rintro p hE ⟨⟨u₁, u₂⟩, huL, rfl⟩
-    -- p has been substituted by (Sum.inl u₁, Sum.inl u₂).
-    rcases hE with ⟨⟨v₁, v₂⟩, hvE, hvb⟩ | ⟨w, hvb⟩
-    · -- piece 1: (split1 W v₁, Sum.inl v₂) = (Sum.inl u₁, Sum.inl u₂).
-      simp only [Prod.mk.injEq] at hvb
-      obtain ⟨h1, h2⟩ := hvb
-      -- h1 : split1 W v₁ = Sum.inl u₁ ; h2 : Sum.inl v₂ = Sum.inl u₂.
-      obtain ⟨_, hv₁u₁⟩ := inl_eq_split1_iff.mp h1.symm
-      have hv₂u₂ : v₂ = u₂ := Sum.inl_injective h2
-      subst hv₁u₁
-      subst hv₂u₂
-      exact Set.disjoint_left.mp G.disjoint_EL hvE huL
-    · -- piece 2: (Sum.inl w.val, Sum.inr w) = (Sum.inl u₁, Sum.inl u₂).
-      -- Target Sum.inr cannot equal Sum.inl -- immediate contradiction.
-      simp only [Prod.mk.injEq] at hvb
-      exact nomatch hvb.2
+-- ### Proof helper 3 / 4 — typing of `L'` after the split lift
+--
+-- *What this discharges.*  The `hL_subset` field of
+-- `CDMG` for the node-split graph: every endpoint of
+-- every bidirected edge in `L'` lies in the lifted output set
+-- `V' = (G.V \ W).image .unsplit ∪ W.image .copy0 ∪ W.image .copy1`.
+--
+-- *Refactor port note — load-bearing signature change.*  The
+-- post-refactor `def_3_1.hL_subset` signature *changed* under
+-- `cdmg_typed_edges`: it is now universally quantified via
+-- `Sym2.Mem` (`∀ ⦃s⦄, s ∈ L → ∀ ⦃v⦄, v ∈ s → v ∈ V`) on the
+-- `Sym2 Node` carrier, NOT the pre-refactor
+-- `e.1 ∈ V ∧ e.2 ∈ V` on ordered pairs.  This obligation is the
+-- load-bearing *consumer* of the post-refactor shape at this row;
+-- the proof exercises both (i) `Sym2.mem_map` to extract the
+-- underlying ordered-pair witness from a `Sym2.map`-image, and
+-- (ii) the `Sym2.Mem`-style quantification at the call site.
+--
+-- *Design choice — `private lemma` factored out.*  Same rationale
+-- as the previous two helpers: keeps the def body pure data +
+-- lemma references; not part of the row's statement;
+-- `private`-scoped to this file.
+--
+-- *Proof strategy.*  Each `s ∈ L'` factors as
+-- `s = Sym2.map (toCopy0 W) s₀` for some `s₀ ∈ G.L` (via
+-- `Finset.mem_image`).  Each endpoint `v ∈ s` factors as
+-- `v = toCopy0 W w` for some `w ∈ s₀` (via
+-- `Sym2.mem_map`).  From `G.hL_subset` we obtain `w ∈ G.V`.
+-- Then case-split `w ∈ W`:
+--
+--   * on the `W`-branch, `v = .copy0 w` lands in
+--     `W.image .copy0 ⊆ V'`;
+--   * on the complement, `v = .unsplit w` with `w ∈ G.V \ W`
+--     lands in `(G.V \ W).image .unsplit ⊆ V'`.
+--
+-- *Design choice — dispatch via `Sym2.mem_map`, not `Sym2.ind` to
+-- destructure through `Sym2.mk`.*  `Sym2.mem_map` is the
+-- canonical Mathlib idiom for "what does a `Sym2.map f s` edge
+-- contain"; it returns `∃ w ∈ s, f w = v` directly, bypassing the
+-- need to pick a representative of the quotient.  The alternative
+-- (`Sym2.ind` to lift `s₀` to an ordered pair `(a, b)` and then
+-- case-split on which coordinate `v` matches) would force a
+-- representative choice that the swap quotient makes arbitrary —
+-- exactly what the `cdmg_typed_edges` refactor exists to avoid
+-- (`Sym2.map` lifts pointwise, and `Sym2.mem_map` reads off the
+-- pre-image pointwise without quotient bookkeeping).
+--
+-- *`hW` not on the signature.*  The W-in-V hypothesis is not
+-- consumed: the case-split on `w ∈ W` versus `w ∈ G.V \ W` is
+-- decidable from `[DecidableEq Node]` on `Finset Node` without
+-- needing `W ⊆ G.V`.
+private lemma nodeSplittingOn_hL_subset
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃s : Sym2 (SplitNode Node)⦄,
+      s ∈ G.L.image (Sym2.map (toCopy0 W)) →
+      ∀ ⦃v : SplitNode Node⦄, v ∈ s →
+        v ∈ (G.V \ W).image SplitNode.unsplit
+            ∪ W.image SplitNode.copy0
+            ∪ W.image SplitNode.copy1 := by
+  intro s hs v hv
+  obtain ⟨s₀, hs₀L, rfl⟩ := Finset.mem_image.mp hs
+  obtain ⟨w, hwS, rfl⟩ := Sym2.mem_map.mp hv
+  have hwV : w ∈ G.V := G.hL_subset hs₀L hwS
+  by_cases hwW : w ∈ W
+  · simp only [toCopy0, hwW, if_true]
+    refine Finset.mem_union_left _ ?_
+    refine Finset.mem_union_right _ ?_
+    exact Finset.mem_image.mpr ⟨w, hwW, rfl⟩
+  · simp only [toCopy0, hwW, if_false]
+    refine Finset.mem_union_left _ ?_
+    refine Finset.mem_union_left _ ?_
+    exact Finset.mem_image.mpr
+      ⟨w, Finset.mem_sdiff.mpr ⟨hwV, hwW⟩, rfl⟩
 
-/-! ## `@[simp]` projection / membership lemmas
+-- ### Proof helper 4 / 4 — irreflexivity of `L'` after the split lift
+--
+-- *What this discharges.*  The `hL_irrefl` field of
+-- `CDMG` for the node-split graph: no bidirected edge of
+-- `L'` is a self-pair (`¬ s.IsDiag`).
+--
+-- *Refactor port note — load-bearing signature change.*  The
+-- post-refactor `def_3_1.hL_irrefl` signature *changed* under
+-- `cdmg_typed_edges`: it is now `¬ s.IsDiag` (Mathlib's canonical
+-- "this unordered pair is a self-pair" predicate on `Sym2 _`),
+-- NOT the pre-refactor `v₁ ≠ v₂` on ordered pairs.  The two are
+-- mathematically equivalent (`Sym2.IsDiag s(x, y) ↔ x = y`), but
+-- the `Sym2`-level idiom composes cleanly with `Sym2.map` via
+-- Mathlib's `Sym2.isDiag_map`, which is the central lift used by
+-- this proof.  This is the single largest proof simplification of
+-- the `cdmg_typed_edges` refactor at this row: pre-refactor, the
+-- analogous `nodeSplittingOn_hL_irrefl` had to destructure
+-- `s = s(a, b)` via `Sym2.ind`, manipulate ordered-pair-with-
+-- symmetry through `G.hL_symm`, and re-route through the
+-- `≠`-flavored conclusion of `G.hL_irrefl`.  Post-refactor the
+-- entire pipeline collapses to a single `Sym2.isDiag_map` lift.
+--
+-- *Design choice — `private lemma` factored out.*  Same rationale
+-- as the previous three helpers: keeps the def body pure data +
+-- lemma references; not part of the row's statement;
+-- `private`-scoped to this file.
+--
+-- *Proof strategy.*  Each `s ∈ L'` factors as
+-- `s = Sym2.map (toCopy0 W) s₀` for some `s₀ ∈ G.L`
+-- (via `Finset.mem_image`).  Suppose `s.IsDiag`.  By
+-- `Sym2.isDiag_map` (Mathlib's "diag-preservation under
+-- injective lift") and `toCopy0_inj` (the
+-- private-helper injectivity result proved above the main
+-- block), we conclude `s₀.IsDiag`.  This contradicts
+-- `G.hL_irrefl s₀ hs₀L`, completing the proof.
+--
+-- *Design choice — `Sym2.isDiag_map` over manual destructuring.*
+-- Mathlib's `Sym2.isDiag_map : Function.Injective f →
+-- (Sym2.map f s).IsDiag ↔ s.IsDiag` is the right idiom because
+-- (i) it accepts a *bare* injectivity premise (no `Sym2`-quotient
+-- bookkeeping required at the call site), and (ii) it discharges
+-- in *one rewrite step* what would otherwise be a four-case
+-- destructure (`Sym2.ind` on `s₀`, then a case-split on whether
+-- each endpoint is in `W`, then constructor-mismatch reasoning
+-- on the four `.copy0 _ = .copy0 _` / `.copy0 _ = .unsplit _` /
+-- `.unsplit _ = .copy0 _` / `.unsplit _ = .unsplit _` cases).
+-- The pre-refactor proof had to do (variants of) this manual
+-- destructure because pre-refactor `hL_irrefl` was phrased on
+-- ordered pairs.
+--
+-- *Design choice — why `toCopy0_inj` is a separate
+-- helper.*  `Sym2.isDiag_map` requires the function argument to
+-- satisfy `Function.Injective f` in the precise Mathlib sense
+-- `∀ a b, f a = f b → a = b`.  Factoring `toCopy0_inj`
+-- as a standalone private lemma lets it be referenced here with
+-- a single `(fun _ _ => toCopy0_inj)` thunk and avoids
+-- inlining the four-case `by_cases` proof at every potential
+-- `Sym2.isDiag_map` call site.  This is the only call site at
+-- present; if any downstream row lifts via
+-- `Sym2.map (toCopy0 W)` (anticipated for
+-- `claim_3_22`-style σ-separation-symmetry arguments), the
+-- helper is already available.
+--
+-- *`hW` not on the signature.*  The W-in-V hypothesis is not
+-- consumed: `Sym2.isDiag_map` and
+-- `G.hL_irrefl` together discharge the goal without needing
+-- `W ⊆ G.V`.
+private lemma nodeSplittingOn_hL_irrefl
+    (G : CDMG Node) (W : Finset Node) :
+    ∀ ⦃s : Sym2 (SplitNode Node)⦄,
+      s ∈ G.L.image (Sym2.map (toCopy0 W)) →
+      ¬ s.IsDiag := by
+  intro s hs hDiag
+  obtain ⟨s₀, hs₀L, rfl⟩ := Finset.mem_image.mp hs
+  have hs₀Diag : s₀.IsDiag :=
+    (Sym2.isDiag_map (fun _ _ => toCopy0_inj)).mp hDiag
+  exact G.hL_irrefl hs₀L hs₀Diag
 
-These four lemmas are the workhorses for downstream proofs that
-manipulate node-split graphs. They mirror the four `@[simp]`
-lemmas attached to `hardInterventionOn`. Together with the
-`split1_of_mem` / `split1_of_not_mem` helpers above, they let
-`simp` rewrite any membership / projection statement on
-`G.nodeSplittingOn W hW` into terms of `G.J`, `G.V`, `G.E`,
-`G.L` and `W` -- *without* unfolding the underlying `where`-block
-of `nodeSplittingOn`. Downstream rows (claim_3_6 / claim_3_7 /
-claim_3_8 / claim_3_12 and def_3_12) pattern-match against these
-lemmas; rewriting them is the entry point for every later
-node-splitting proof. Two design notes that apply to all four:
-
-* **Projection form rather than `Sum.inl v ∈ ... ↔ v ∈ G.V`
-  rewrites.** We expose the *whole* `J` / `V` / `E` / `L`
-  components rather than a constructor-indexed family of
-  membership rewrites (e.g. `Sum.inl v ∈ V_split ↔ v ∈ G.V` and
-  `Sum.inr w ∈ V_split ↔ True`). The projection form is what
-  `dsimp` / `Iff.rfl` can deliver from the `where`-block
-  directly, and the constructor-indexed form is a one-line
-  derivative of it. Downstream proofs that *do* want the
-  constructor-indexed form (e.g. claim_3_7 splitting cases on
-  `Sum.inl` vs. `Sum.inr`) compose this lemma with
-  `Set.mem_union`, `Set.mem_image`, and `Sum.inl_injective` --
-  a `simp`-trivial step.
-* **Why `@[simp]`.** Marking them `@[simp]` means a single `simp`
-  call inside a downstream proof unfolds `(G.nodeSplittingOn W
-  hW).{J,V,E,L}` into the LN's set-builder form without
-  exposing the internals of the construction. This is essential
-  for the iterated-splitting proofs in claim_3_7 / claim_3_8,
-  where the inner `nodeSplittingOn` should never need to be
-  unfolded by hand. -/
-
-/-- The *input* nodes of `G.nodeSplittingOn W hW` are `Sum.inl ''
-G.J` -- the original input nodes embedded under `inl`. The LN's
-`J_{spl(W)} := J` reads as the same set under the identification
-`α ≅ inl '' α`. Used by claim_3_8 (disjoint hard interventions
-and node-splittings commute) and def_3_12 (SWIG = node-split +
-hard intervention) -- both quote `J_{spl(W)}` to compute the
-input set of the composite. By definition. -/
-@[simp] theorem nodeSplittingOn_J (G : CDMG α) (W : Set α)
-    (hW : W ⊆ G.V) :
-    (G.nodeSplittingOn W hW).J = Sum.inl '' G.J := rfl
-
-/-- The *output* nodes of `G.nodeSplittingOn W hW` are
-`Sum.inl '' G.V ∪ Set.range Sum.inr` -- the original output nodes
-embedded under `inl` (which carries the canonical 0-copies of all
-of `V`, including `W^0 = inl '' W`), plus the fresh 1-copies
-`Set.range Sum.inr` (i.e. `W^1`). The LN's
-`(V ∖ W) ⊔ W^0 ⊔ W^1` simplifies to this form via
-`(V ∖ W) ∪ W^0 = V` (using `W^0 = W` under our identification, and
-`W ⊆ V` from the precondition). Used by claim_3_6 (acyclicity of
-the split graph, where the topological order ranges over
-`V_{spl(W)}`), claim_3_7 (the node-set equality for the
-disjoint-splittings commutation), and def_3_12 (the SWIG retains
-`Sum.inl '' G.V` as its observation outputs). By definition. -/
-@[simp] theorem nodeSplittingOn_V (G : CDMG α) (W : Set α)
-    (hW : W ⊆ G.V) :
-    (G.nodeSplittingOn W hW).V =
-      Sum.inl '' G.V ∪ Set.range (Sum.inr : ↑W → α ⊕ ↑W) := rfl
-
-/-- *Directed-edge* membership in `G.nodeSplittingOn W hW`: a pair
-`p` is a directed edge of the split graph iff *either* it is the
-relabeling `(split1 W v₁, Sum.inl v₂)` of some `(v₁, v₂) ∈ G.E`
-(this captures the LN's first set-builder
-`{v_1^1 → v_2^0 | v_1 → v_2 ∈ E}` -- the source dispatches on
-`v_1 ∈ W` via `split1`, the target is always the canonical
-`Sum.inl`), *or* it is a fresh split edge `(Sum.inl w.val,
-Sum.inr w)` for some `w : ↑W` (this captures the LN's second
-set-builder `{w^0 → w^1 | w ∈ W}`). The asymmetry source vs.
-target (split1 vs. plain inl) is intentional and LN-faithful --
-see the `E_split` bullet in the design block. Used by claim_3_6
-(edge preservation under split), claim_3_7 / claim_3_8
-(case-splitting on the two pieces of `E_split` during the
-commutation proofs), and claim_3_12 / def_3_12 (the SWIG / HI
-composition rewrites this membership). -/
-@[simp] theorem mem_nodeSplittingOn_E (G : CDMG α) (W : Set α)
-    (hW : W ⊆ G.V) {p : (α ⊕ ↑W) × (α ⊕ ↑W)} :
-    p ∈ (G.nodeSplittingOn W hW).E ↔
-      (∃ v₁ v₂, (v₁, v₂) ∈ G.E ∧ p = (split1 W v₁, Sum.inl v₂)) ∨
-      (∃ w : ↑W, p = (Sum.inl (w : α), Sum.inr w)) := by
-  change p ∈ (fun q : α × α => (split1 W q.1, Sum.inl q.2)) '' G.E
-           ∪ Set.range (fun w : ↑W => ((Sum.inl (w : α) : α ⊕ ↑W), Sum.inr w)) ↔ _
-  simp only [Set.mem_union, Set.mem_image, Set.mem_range, Prod.exists]
-  refine or_congr ?_ ?_
-  · constructor
-    · rintro ⟨v₁, v₂, hE, h⟩
-      exact ⟨v₁, v₂, hE, h.symm⟩
-    · rintro ⟨v₁, v₂, hE, rfl⟩
-      exact ⟨v₁, v₂, hE, rfl⟩
-  · constructor
-    · rintro ⟨w, h⟩
-      exact ⟨w, h.symm⟩
-    · rintro ⟨w, rfl⟩
-      exact ⟨w, rfl⟩
-
-/-- *Bidirected-edge* membership in `G.nodeSplittingOn W hW`: a
-pair `p` is a bidirected edge of the split graph iff it is the
-double-`inl` relabeling `(Sum.inl v₁, Sum.inl v₂)` of some
-`(v₁, v₂) ∈ G.L`. This matches the LN's
-`L_{spl(W)} = {v_1^0 ↔ v_2^0 | v_1 ↔ v_2 ∈ L}`. Under our
-direction (0 = canonical `inl`), no case-split is needed: both
-endpoints just get `inl`-lifted -- the latent confounder never
-points at the 1-copy, which is the LN's deliberate choice (not an
-oversight; see the `L_split` bullet in the design block). Used
-by claim_3_7 (the bidirected-edge equality reduces to a
-`Sum.inl × Sum.inl` image equality) and claim_3_8 (the
-disjoint-HI/NS commutation needs `L_split` to compose cleanly
-with the LN's `\doit(W_1)` deletion). -/
-@[simp] theorem mem_nodeSplittingOn_L (G : CDMG α) (W : Set α)
-    (hW : W ⊆ G.V) {p : (α ⊕ ↑W) × (α ⊕ ↑W)} :
-    p ∈ (G.nodeSplittingOn W hW).L ↔
-      ∃ v₁ v₂, (v₁, v₂) ∈ G.L ∧ p = (Sum.inl v₁, Sum.inl v₂) := by
-  change p ∈ (fun q : α × α => ((Sum.inl q.1 : α ⊕ ↑W), Sum.inl q.2)) '' G.L ↔ _
-  simp only [Set.mem_image, Prod.exists]
-  constructor
-  · rintro ⟨v₁, v₂, hL, h⟩
-    exact ⟨v₁, v₂, hL, h.symm⟩
-  · rintro ⟨v₁, v₂, hL, rfl⟩
-    exact ⟨v₁, v₂, hL, rfl⟩
+-- `hW` is bound on the signature for LN-faithfulness ("Let
+-- `W ⊆ V`") but is not consumed by any of the four obligations — the
+-- type-level distinction of `SplitNode`'s three
+-- constructors and `G`'s own axioms discharge them.  The
+-- `set_option` keeps the linter quiet without dropping the binder
+-- from the signature (which is part of the LN-faithful encoding and
+-- the call-site contract `G.nodeSplittingOn W hW`).
+set_option linter.unusedVariables false in
+-- def_3_11 -- start statement
+def nodeSplittingOn (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) : CDMG (SplitNode Node)
+-- def_3_11 -- end statement
+    where
+  J := G.J.image SplitNode.unsplit
+  V := (G.V \ W).image SplitNode.unsplit
+        ∪ W.image SplitNode.copy0
+        ∪ W.image SplitNode.copy1
+  hJV_disj := nodeSplittingOn_hJV_disj G W
+  E := G.E.image (fun e => (toCopy1 W e.1, toCopy0 W e.2))
+        ∪ W.image (fun w =>
+            (SplitNode.copy0 w, SplitNode.copy1 w))
+  hE_subset := by exact nodeSplittingOn_hE_subset G W
+  L := G.L.image (Sym2.map (toCopy0 W))
+  hL_subset := by exact nodeSplittingOn_hL_subset G W
+  hL_irrefl := by exact nodeSplittingOn_hL_irrefl G W
 
 end CDMG
 

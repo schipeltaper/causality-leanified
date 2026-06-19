@@ -1,0 +1,34 @@
+% Claim statement file for row claim_3_16 -- "MarginalizationPreserves".
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
+% manager agent (or a worker it dispatches) fills the body below with the
+% claim's statement(s) from the lecture notes -- statement only, no proof
+% (proofs live in the sibling `claim_3_16_proof_*.tex` file).
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_16 (statement)
+% title: MarginalizationPreserves
+\def\rowref{claim\_3\_16}
+\phantomsection\label{claim_3_16}
+
+\begin{Rem}[MarginalizationPreserves]\label{rem:marg_preserves_ancestors_bifurcations_acyclicity}
+Marginalization preserves ancestral relations, bifurcations and acyclicity:
+    \begin{enumerate}
+        \item For $v_1,v_2 \in G$ with $v_1,v_2 \notin W$ we have the equivalence:
+            \[ v_1 \in \Anc^G(v_2)\quad \iff \quad v_1 \in \Anc^{G^{\sm W}}(v_2).   \]
+          \item\label{rem:marg_preserves_bifurcations} 
+            For $v_1,v_2 \in G \sm W$ (and, optionally, $v_3 \in G\sm W$): there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G$ if and only if there is a bifurcation between $v_1$ and $v_2$ (with source $v_3$) in $G^{\sm W}$.
+        \item If the CDMG $G$ is acyclic then so is $G^{\sm W}$ and a topological order of $G$ induces a
+            topological order on $G^{\sm W}$ (by just ignoring the nodes from $W$).
+    \end{enumerate}
+\end{Rem}
+
+\end{document}

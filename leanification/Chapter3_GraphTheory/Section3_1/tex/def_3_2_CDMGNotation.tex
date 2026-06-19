@@ -1,10 +1,11 @@
 % Definition file for row def_3_2 -- "CDMGNotation".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker dispatched by it) fills the body below with the
 % Lean-faithful definition statement(s). Stays close to the lecture notes.
 %
-% Compiles standalone via the `subfiles` package -- the parent main.tex in
-% this folder provides the preamble.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it compile both standalone (resolving its
+% preamble via `main.tex`) and as part of `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -16,19 +17,36 @@
 
 \begin{Not}[CDMGNotation]
     \label{not-cdmg}
-    Let $G=(J,V,E,L)$ be a CDMG.
-    We will write:
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}).
+    We introduce the following seven shorthand notations, each defined as a literal abbreviation for a set-theoretic statement over the four components $J, V, E, L$ of $G$.
+    The visual macros $\tuh, \hut, \huh, \suh, \hus, \sus$ are notation only; the load-bearing definitional content is the right-hand side of each abbreviation below.
     \begin{enumerate}
         %\item $G(V|\doit(J))$ to represent the graph $(J,V,E,L)$, where $E$ and $L$ are kept implicit in this notation.
-        \item $v \in G$ to mean $v \in J \cup V$,
-        \item $v_1 \tuh v_2 \in G$ to mean $(v_1,v_2) \in E$,
-        \item $v_1 \hut v_2 \in G$ to mean $(v_2,v_1) \in E$,
-        \item $v_1 \huh v_2 \in G$ to mean $(v_1,v_2) \in L$,
-        \item $v_1 \suh v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \huh v_2 \in G$,
-        \item $v_1 \hus v_2 \in G$ to mean that either $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$,
-        \item $v_1 \sus v_2 \in G$ to mean that either $v_1 \tuh v_2 \in G$ or $v_1 \hut v_2 \in G$ or $v_1 \huh v_2 \in G$.
+        \item $v \in G \;:\Longleftrightarrow\; v \in J \cup V$.
+        \item $v_1 \tuh v_2 \in G \;:\Longleftrightarrow\; (v_1, v_2) \in E$.
+        \item $v_1 \hut v_2 \in G \;:\Longleftrightarrow\; (v_2, v_1) \in E$.
+        \item $v_1 \huh v_2 \in G \;:\Longleftrightarrow\; (v_1, v_2) \in L$.
+              Because $L$ is required to be symmetric by the CDMG definition (def \ref{def-cdmg}: $(v_1, v_2) \in L \Longleftrightarrow (v_2, v_1) \in L$ for all $v_1, v_2$), this abbreviation is itself symmetric in its two arguments:
+              \[ v_1 \huh v_2 \in G \;\Longleftrightarrow\; v_2 \huh v_1 \in G. \]
+        \item $v_1 \suh v_2 \in G \;:\Longleftrightarrow\; \bigl(v_1 \tuh v_2 \in G\bigr) \,\lor\, \bigl(v_1 \huh v_2 \in G\bigr)$, equivalently $(v_1, v_2) \in E \,\lor\, (v_1, v_2) \in L$.
+              Because the $\huh$-disjunct is symmetric in its arguments (item~4), swapping $v_1 \leftrightarrow v_2$ in this disjunction turns $\suh$ into $\hus$:
+              \[ v_1 \suh v_2 \in G \;\Longleftrightarrow\; v_2 \hus v_1 \in G. \]
+        \item $v_1 \hus v_2 \in G \;:\Longleftrightarrow\; \bigl(v_1 \hut v_2 \in G\bigr) \,\lor\, \bigl(v_1 \huh v_2 \in G\bigr)$, equivalently $(v_2, v_1) \in E \,\lor\, (v_1, v_2) \in L$.
+              By the same $\huh$-symmetry of item~4, $\hus$ becomes $\suh$ under swap of its arguments:
+              \[ v_1 \hus v_2 \in G \;\Longleftrightarrow\; v_2 \suh v_1 \in G. \]
+        \item $v_1 \sus v_2 \in G \;:\Longleftrightarrow\; \bigl(v_1 \tuh v_2 \in G\bigr) \,\lor\, \bigl(v_1 \hut v_2 \in G\bigr) \,\lor\, \bigl(v_1 \huh v_2 \in G\bigr)$, equivalently $(v_1, v_2) \in E \,\lor\, (v_2, v_1) \in E \,\lor\, (v_1, v_2) \in L$.
+
+              \emph{Exhaustiveness of the three disjuncts.}
+              These three configurations enumerate every edge configuration a CDMG admits between an ordered pair of nodes $(v_1, v_2)$.
+              Although mechanically reading the placeholder convention ``$\star$ stands for arrowhead or tail'' would suggest a fourth, tail-tail case ``$v_1 \tut v_2$'', no edge type of a CDMG carries tails on both ends: per def \ref{def-cdmg}, directed edges in $E$ have one tail and one head, and bidirected edges in $L$ have two heads, so no tail-tail edge type exists.
+              The case $v_1 \tut v_2$ is therefore vacuous as a CDMG edge and is excluded by definition, not omitted by oversight.
+              Any case analysis on ``$v_1 \sus v_2 \in G$'' may assume exhaustiveness over exactly the three listed alternatives $\{\tuh, \hut, \huh\}$.
+
+              \emph{Symmetry of $\sus$.}
+              Under the swap $v_1 \leftrightarrow v_2$, the three disjuncts pair off: $v_1 \tuh v_2 \in G$ exchanges with $v_2 \hut v_1 \in G$ (items~2~$\leftrightarrow$~3), and $v_1 \huh v_2 \in G$ exchanges with $v_2 \huh v_1 \in G$ by the $\huh$-symmetry of item~4. Hence $\sus$ is symmetric in its two arguments:
+              \[ v_1 \sus v_2 \in G \;\Longleftrightarrow\; v_2 \sus v_1 \in G. \]
     \end{enumerate}
-    The star stands for a placeholder to mean: ``arrowhead or tail''.
+    A ``$\star$'' appearing in the diagrammatic shorthands ($\suh$, $\hus$, $\sus$) is a placeholder reading ``arrowhead or tail''; in $\sus$ the would-be tail-tail combination is vacuous as a CDMG edge type (see item~7), so $\sus$ ranges over exactly the three configurations enumerated there.
 \end{Not}
 
 \end{document}

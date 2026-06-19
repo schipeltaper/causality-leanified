@@ -1,1068 +1,3516 @@
-import Chapter3_GraphTheory.Section3_2.MarginalizationPreserves
+import Chapter3_GraphTheory.Section3_1.CDMG
+import Chapter3_GraphTheory.Section3_2.MarginalizationAK
+import Chapter3_GraphTheory.Section3_2.MargPreservesAncestors
 
--- TeX statement: tex/claim_3_17_statement_MarginalizationsCommute.tex
--- TeX proof:    tex/claim_3_17_proof_MarginalizationsCommute.tex
-
-/-!
-# Marginalizations commute (claim_3_17)
-
-This file formalises the lecture notes' lemma "marginalizations
-commute" -- `lecture-notes/lecture_notes/graphs.tex` Lem at lines
-995 -- 1005. The LN states the chained equality
-
-  `(G^{\sm W₁})^{\sm W₂} = (G^{\sm W₂})^{\sm W₁} = G^{\sm (W₁ ∪ W₂)}`
-
-under the preconditions `W₁, W₂ ⊆ V` and `W₁, W₂` disjoint. In our
-Lean encoding the `W₁, W₂ ⊆ G.V` part is unnecessary:
-`G.marginalize W` is well-defined for every `W : Set α` (see the
-design notes in `Section3_2/Marginalization.lean` lines 258 -- 286,
-which cite *this very row* as one of the load-bearing iteration tests
-that justified dropping the precondition). The disjointness
-hypothesis is kept -- it is load-bearing in the LN's statement and in
-the walk-concatenation argument of the LN's proof.
-
-Mirroring the proven `HardInterventionsCommute.lean` (claim_3_11),
-the LN's chained equality is split into two theorems:
-
-* `marginalize_marginalize` -- the **fusion** lemma, the central
-  content of the LN's triple equality:
-  `(G.marginalize W₁).marginalize W₂ = G.marginalize (W₁ ∪ W₂)`.
-  This is the natural rewrite rule and the form every downstream
-  consumer actually uses.
-* `marginalize_comm` -- the **commute** corollary: a one-line
-  consequence of the fusion lemma plus `Set.union_comm`. Pairs
-  naturally with the fusion form so callers that need to *reorder*
-  two marginalizations (without collapsing) have a direct lemma to
-  hand.
-
-## Where this gets used downstream
-
-* **`graphs.tex` line 984** -- the bifurcation-preservation argument
-  of the LN's Remark on marginalization + bifurcations does
-  `induction on #W`, peeling one node `w ∈ W` at a time and citing
-  `Lemma~\ref{marginalizations-commute}` to flatten the resulting
-  iterated marginalization back into `G^{\sm W}`. In Lean this is
-  exactly an `induction`-step rewrite via the fusion lemma below.
-* **`graphs.tex` line 1426** -- the d-separation invariance theorem
-  ("d-separation is preserved under marginalization of nodes outside
-  `A ∪ B ∪ C`") opens its proof by citing
-  `Lemma~\ref{marginalizations-commute}` and inducting on `#D`,
-  reducing to the single-node case `D = {u}`. Again the fusion lemma
-  is the load-bearing rewrite that closes the inductive step.
-* **claim_3_18** (`graphs.tex` Lem at line 1122, "Marginalization and
-  intervention commute") -- composes both marginalization equalities
-  with `hardInterventionOn` rewrites; iteration of latent projections
-  past an intervention is exactly what the fusion form lets us
-  perform.
-* **Chapter 4 onwards** -- every latent-projection / hidden-variable
-  compression argument that iterates marginalization uses the fusion
-  lemma as a `rw` step. CBNs, do-calculus, iSCMs, identification, and
-  the FCI / ICDF discovery pipeline all reuse this collapse.
--/
-
+-- TeX proof: claim_3_17_proof_MarginalizationsCommute.tex
+--
+-- The walk-algebra plumbing this file consumes (Walk.comp,
+-- Walk.reverseDirected, Walk.mkBifurcation,
+-- expand_directed_walk_marginalize, find_first_non_W_directed,
+-- exists_arms_of_bifurcation_*, etc.) lives one file over in
+-- `MargPreservesAncestors.lean`.  Those helpers were the proof
+-- infrastructure for `claim_3_16` and have been promoted from
+-- `private` so this row's proof can import them as a single source
+-- of truth (the `expand` / `find_first_non_W` / `mkBifurcation`
+-- patterns powering claim_3_16 reappear verbatim in claim_3_17 with
+-- only the W-tracking strengthened).
 namespace Causality
 
-open scoped Causality.CDMG
+/-!
+# Marginalizations commute (`claim_3_17`)
+
+This file formalises the LN lemma `claim_3_17`
+(`\label{marginalizations-commute}` in `graphs.tex`):
+
+> Let `G = (J, V, E, L)` be a CDMG and `W₁, W₂ ⊆ V` two disjoint
+> subsets of output nodes.  Then
+> `(G^{∖W₁})^{∖W₂} = (G^{∖W₂})^{∖W₁} = G^{∖(W₁ ∪ W₂)}`.
+
+The authoritative spec is the rewritten canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_2/tex/`
+`claim_3_17_statement_MarginalizationsCommute.tex`, verified equivalent
+to the LN block.  `addition_to_the_LN` is empty for this row.  The
+rewritten tex decomposes the LN's displayed triple equality into the
+conjunction of two binary equalities:
+
+* (a) `(G^{∖W₁})^{∖W₂} = G^{∖(W₁ ∪ W₂)}`,
+* (b) `(G^{∖W₂})^{∖W₁} = G^{∖(W₁ ∪ W₂)}`.
+
+Transitivity of equality recovers the LN's "swap symmetry" reading
+`(G^{∖W₁})^{∖W₂} = (G^{∖W₂})^{∖W₁}` from (a) ∧ (b).
+
+The disjointness hypothesis `W₁ ∩ W₂ = ∅` is load-bearing for the
+*typing* of the iterated marginalisations: `def_3_14`
+(`MarginalizationAK.lean`) requires its `W` argument to be a subset of
+the input CDMG's output-node set `V`, and the inner marginalisation
+`G.marginalize W₁ hW₁` has output-node set `G.V \ W₁`; the outer
+marginalisation by `W₂` is therefore well-typed iff
+`W₂ ⊆ G.V \ W₁`, which follows from `W₂ ⊆ G.V` plus
+`Disjoint W₁ W₂`.  Symmetric for the mirror.  The joint
+marginalisation needs only `W₁ ∪ W₂ ⊆ G.V`, immediate from `hW₁`
+and `hW₂` via `Finset.union_subset` (disjointness is *not* needed on
+the joint side).
+
+The body is filled in by `prove_claim_in_lean` (Manager B), following
+the to-be-written tex proof at
+`tex/claim_3_17_proof_MarginalizationsCommute.tex`.
+-/
+
 
 namespace CDMG
 
-variable {α : Type*}
+-- ## Refactor replacements — Phase A (variable + subset_sdiff_of_disjoint)
+--
+-- Each replacement below is paired (where applicable) with the
+-- corresponding original above via the same-file
+-- `REFACTOR-BLOCK-ORIGINAL` / `REFACTOR-BLOCK-REPLACEMENT` marker
+-- convention.  Identifiers are prefixed `refactor_*` so the
+-- replacements coexist with the originals during the refactor window;
+-- the Phase 7 cleanup script renames `refactor_<Name>` → `<Name>`
+-- globally and strips the markers.
+--
+-- The variable line is a net-new (no paired ORIGINAL) marker block —
+-- the namespace is freshly opened so the outer `Causality.CDMG`
+-- `variable` does not propagate here.  `subset_sdiff_of_disjoint` is
+-- a pure-`Finset` helper with no `CDMG` / `Walk` dependency; the body
+-- is identical modulo the `refactor_` prefix.
 
-/-! ## Helpers for `marginalize_marginalize` (mixed private / public)
+-- claim_3_17 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_17 --- end helper
 
-These helpers package the recurring component-wise pattern of the proof
-(`mk_eq_of_data` for CDMG-extensionality) and the interior-tracking
-walk-translation idiom (bifurcation arms expand / contract through
-`W₁` using the directed translators of `MarginalizationPreserves`).
-The `marg_*` and walk translator helpers in
-`MarginalizationPreserves.lean` are reused directly.
+-- claim_3_17 --- start helper
+private lemma subset_sdiff_of_disjoint {S T : Finset Node}
+    {U : Finset Node} (hS : S ⊆ U) (hDisj : Disjoint S T) :
+    S ⊆ U \ T
+-- claim_3_17 --- end helper
+:= Finset.subset_sdiff.mpr ⟨hS, hDisj⟩
 
-**Visibility split.** The CDMG-extensionality / list-massaging glue
-(`mk_eq_of_data`, `list_tail_dropLast`, `start_in_support_dropLast`,
-`support_append_dropLast`, `support_tail_in_V_of_isDirected`) stays
-`private` -- those are one-shot tools for this file's main proof.
-The seven *interior-tracking walk translators*
-(`lift_directed_walk`, `shrink_directed_walk`,
-`directed_walk_iff`, `directed_walk_iff_no_length`,
-`lift_bifurcation_walk`, `shrink_bifurcation_walk`,
-`bifurcation_walk_iff_no_length`) are **public**: they form the
-walk-translation API between `G` and `G.marginalize W` that
-`Section3_3/SigmaOpenWalkMarginalization.lean` (the per-vertex
-lift / contract layer used by claim_3_25) needs. The seven were
-originally `private` -- they existed only to support the
-`marginalize_marginalize` proof below -- but the
-σ-open walk preservation argument needed in
-`lem:stability_separation_marginalization` (claim_3_25) requires
-exactly this `(G, G.marginalize W)` interior-tracking layer, with no
-clean route through any other existing public API. Manager sign-off
-for the cross-subsection promotion is recorded in
-`Section3_3/workspace_claim_3_25.md` Manager B turn 4 (and §D.2 of
-the leanification diagnostic). Public exposure is API-only: nothing
-about the proofs changes, signatures stay identical, and no
-downstream caller in `Section3_2/` depends on the visibility (the
-sole consumer here is `marginalize_marginalize`, in the same file). -/
+-- ## Refactor replacements — Phase B (E-field machinery, 8 lemmas)
+--
+-- All E-field only — no L-field references — so the ports are
+-- structural renames + the `WalkStep`-construction rewrite
+-- (`Or.inl ⟨rfl, Or.inl h_edge⟩` → `.forwardE h_edge`) plus the
+-- corresponding `Walk.cons` argument-arity drop (4-arg → 3-arg) and
+-- the `IsDirectedWalk`-witness simplification (the cons-cell's
+-- `IsDirectedWalk` on a `.forwardE` step reduces
+-- definitionally to the tail's `IsDirectedWalk`, so the
+-- triple `⟨rfl, h_edge, hq_tail_dir⟩` collapses to `hq_tail_dir`).
+-- All walk-algebra and marg-membership helpers come from
+-- `MargPreservesAncestors.lean` (`find_first_non_W_directed`,
+-- `Walk.target_in_GV_of_directedWalk_pos`,
+-- `Walk.vertices_eq_head_cons_tail`,
+-- `Walk.tail_vertices_ne_nil_of_pos`,
+-- `Walk.vertices_ne_nil`,
+-- `Walk.head_mem_vertices`,
+-- `expand_directed_walk_marginalize`,
+-- `notW_of_mem_marginalize`).
 
-/-- CDMG-extensionality helper: two CDMGs are equal as soon as their
-four data fields `J / V / E / L` agree. The six prop fields close by
-`rfl` once the data fields are pinned down (proof irrelevance under
-Lean 4's definitional rule). Mirrors `mk_eq_of_data` in
-`HardInterventionsCommute.lean`; kept `private` because it is a
-one-shot shortcut used only by `marginalize_marginalize` below. -/
-private theorem mk_eq_of_data {G H : CDMG α}
-    (hJ : G.J = H.J) (hV : G.V = H.V) (hE : G.E = H.E) (hL : G.L = H.L) :
-    G = H := by
-  obtain ⟨_, _, _, _, _, _, _, _, _, _⟩ := G
-  obtain ⟨_, _, _, _, _, _, _, _, _, _⟩ := H
-  subst hJ
-  subst hV
-  subst hE
-  subst hL
-  rfl
-
-/-- A small list-level commutation: `l.tail.dropLast = l.dropLast.tail`.
-Mirrors the analogous `list_tail_dropLast` in
-`BifurcationAlternative.lean`; copied locally because that one is
-`private`. Used pervasively below to swap between the
-`Walk.InteriorIn`-expanding form `support.tail.dropLast` and the
-form `support.dropLast.tail` that arises from `support_cons`-style
-unfolding. -/
-private lemma list_tail_dropLast {β : Type*} (l : List β) :
-    l.tail.dropLast = l.dropLast.tail := by
-  cases l with
-  | nil => rfl
-  | cons a rest =>
-    cases rest with
-    | nil => rfl
-    | cons b rest' => rfl
-
-
-/-- Lift a directed walk in `G.marginalize W₁` with interior in `W₂`
-to a directed walk in `G` with interior in `W₁ ∪ W₂` of at least the
-same length. Each step of the input expands (via `mem_marginalize_E`)
-to a length-≥-1 directed walk in `G` whose interior lies in `W₁`;
-the meeting vertices between consecutive expansions are interior
-vertices of the input, hence lie in `W₂`. -/
-lemma lift_directed_walk (G : CDMG α) (W₁ W₂ : Set α) :
-    ∀ {a b : α} (π : Walk (G.marginalize W₁) a b),
-      π.IsDirected → π.InteriorIn W₂ →
-      ∃ ρ : Walk G a b, ρ.IsDirected ∧ ρ.InteriorIn (W₁ ∪ W₂) ∧
-        π.length ≤ ρ.length := by
-  intro a b π
-  induction π with
-  | nil v =>
-    intros _ _
-    refine ⟨Walk.nil v, by simp, ?_, by simp⟩
-    intro x hx; simp at hx
-  | @cons a₀ m b₀ step p' ih =>
-    intro hπ_dir hπ_int
-    cases step with
-    | forward h =>
-      have hp'_dir : p'.IsDirected := by simpa using hπ_dir
-      -- Extract σ : Walk G a₀ m via mem_marginalize_E.
-      have h_E : (a₀, m) ∈ (G.marginalize W₁).E := h
-      rw [CDMG.mem_marginalize_E] at h_E
-      obtain ⟨_, _, σ, hσ_dir, hσ_int_W₁, hσ_pos⟩ := h_E
-      -- Casework on p' to derive p'.InteriorIn W₂ and m ∈ W₂ (when p' is non-trivial).
-      cases p' with
-      | nil =>
-        -- p' = nil, so b₀ = m. ρ = σ.
-        refine ⟨σ, hσ_dir, ?_, ?_⟩
-        · intro x hx
-          exact Or.inl (hσ_int_W₁ x hx)
-        · simp [Walk.length_cons]
-          exact hσ_pos
-      | @cons _ s' _ step' p'' =>
-        -- p' = cons step' p''.  s' is the intermediate vertex (target of step').
-        -- The walk (cons step' p'') has type Walk (G.marg W₁) m b₀.
-        -- Derive m ∈ W₂ and p'.InteriorIn W₂.
-        have hm_in_W₂ : m ∈ W₂ := by
-          apply hπ_int
-          -- π.support = a₀ :: m :: p''.support; .tail.dropLast = m :: p''.support.dropLast
-          show m ∈ (Walk.cons (.forward h) (Walk.cons step' p'')).support.tail.dropLast
-          rw [show (Walk.cons (.forward h) (Walk.cons step' p'')).support
-                = a₀ :: m :: p''.support from by simp [Walk.support_cons],
-              List.tail_cons, List.dropLast_cons_of_ne_nil p''.marg_support_ne_nil]
-          exact List.mem_cons_self
-        have hp'_int : (Walk.cons step' p'').InteriorIn W₂ := by
-          intro x hx
-          apply hπ_int
-          show x ∈ (Walk.cons (.forward h) (Walk.cons step' p'')).support.tail.dropLast
-          rw [show (Walk.cons (.forward h) (Walk.cons step' p'')).support
-                = a₀ :: m :: p''.support from by simp [Walk.support_cons],
-              List.tail_cons, List.dropLast_cons_of_ne_nil p''.marg_support_ne_nil]
-          refine List.mem_cons.mpr (Or.inr ?_)
-          show x ∈ p''.support.dropLast
-          rw [show (Walk.cons step' p'').support.tail.dropLast = p''.support.dropLast
-                from by simp [Walk.support_cons]] at hx
-          exact hx
-        obtain ⟨ρ_p', hρ_p'_dir, hρ_p'_int, hρ_p'_len⟩ := ih hp'_dir hp'_int
-        -- ρ = σ.append ρ_p'
-        refine ⟨σ.append ρ_p', ?_, ?_, ?_⟩
-        · rw [Walk.marg_isDirected_append]
-          exact ⟨hσ_dir, hρ_p'_dir⟩
-        · -- ρ.InteriorIn (W₁ ∪ W₂)
-          intro x hx
-          -- ρ.support = σ.support.dropLast ++ ρ_p'.support
-          -- ρ.support.tail.dropLast: needs careful list reasoning.
-          -- We use the fact: ρ.support = σ.support.dropLast ++ ρ_p'.support.
-          -- σ.length ≥ 1, so σ.support has length ≥ 2, so σ.support.dropLast is non-empty.
-          -- σ.support.dropLast starts with a₀ (the first vertex of σ).
-          -- So ρ.support.tail = σ.support.dropLast.tail ++ ρ_p'.support.
-          -- Now whether the dropLast cuts into ρ_p'.support or into σ.support.dropLast.tail depends on ρ_p'.support.
-          -- ρ_p'.support is non-empty (always). If ρ_p'.length ≥ 1, ρ_p'.support has length ≥ 2, so .dropLast non-empty.
-          -- Then ρ.support.tail.dropLast = σ.support.dropLast.tail ++ ρ_p'.support.dropLast.
-          -- Set-wise: ⊆ σ.support.tail.dropLast ∪ {m} ∪ ρ_p'.support.dropLast.tail ∪ {m}? Hmm.
-          -- Let me just go through the cases.
-          rw [Walk.marg_support_append] at hx
-          -- hx : x ∈ (σ.support.dropLast ++ ρ_p'.support).tail.dropLast
-          -- σ.support.dropLast is non-empty (σ.length ≥ 1 means σ.support has length ≥ 2).
-          have hσ_dl_ne : σ.support.dropLast ≠ [] := by
-            intro h
-            have hlen : σ.support.dropLast.length = 0 := by rw [h]; rfl
-            rw [List.length_dropLast, Walk.support_length] at hlen
-            omega
-          have hρ_p'_ne : ρ_p'.support ≠ [] := ρ_p'.marg_support_ne_nil
-          -- (σ.support.dropLast ++ ρ_p'.support).tail = σ.support.dropLast.tail ++ ρ_p'.support.
-          rw [Walk.list_tail_append_of_ne_nil _ hσ_dl_ne] at hx
-          -- Now hx : x ∈ (σ.support.dropLast.tail ++ ρ_p'.support).dropLast
-          -- ρ_p'.support is non-empty so dropLast strips its last.
-          rw [List.dropLast_append_of_ne_nil hρ_p'_ne] at hx
-          -- hx : x ∈ σ.support.dropLast.tail ++ ρ_p'.support.dropLast
-          rcases List.mem_append.mp hx with hxL | hxR
-          · -- x ∈ σ.support.dropLast.tail, i.e., x ∈ σ.support.tail.dropLast (set-wise).
-            -- So x ∈ σ's interior ⊆ W₁.
-            have hxσ : x ∈ σ.support.tail.dropLast := by
-              rw [list_tail_dropLast]; exact hxL
-            exact Or.inl (hσ_int_W₁ x hxσ)
-          · -- x ∈ ρ_p'.support.dropLast.
-            -- ρ_p'.support.dropLast = m :: ρ_p'.support.dropLast.tail (when length ≥ 1)
-            --    OR ρ_p'.support.dropLast = [] when ρ_p'.length = 0.
-            -- In either case, x ∈ ρ_p'.support.dropLast means x = m or x ∈ ρ_p'.support.dropLast.tail.
-            -- (ρ_p'.support.dropLast.tail = ρ_p'.support.tail.dropLast = ρ_p's interior).
-            -- ρ_p'.support starts with m (always: ρ_p' : Walk G m b₀, support.head = m).
-            -- So ρ_p'.support = m :: ρ_p'.support.tail.
-            -- ρ_p'.support.dropLast = (m :: ρ_p'.support.tail).dropLast.
-            -- If ρ_p'.support.tail = []: ρ_p'.support.dropLast = (m :: []).dropLast = [].
-            --   So x ∈ [] is impossible.
-            -- If ρ_p'.support.tail ≠ []: ρ_p'.support.dropLast = m :: ρ_p'.support.tail.dropLast.
-            --   So x = m or x ∈ ρ_p'.support.tail.dropLast (= ρ_p's interior).
-            by_cases h_tail_empty : ρ_p'.support.tail = []
-            · -- This means ρ_p'.support has length 1, so ρ_p' = nil. So ρ_p'.support.dropLast = [].
-              have hsupp : ρ_p'.support = [m] := by
-                rw [Walk.marg_support_cons_form, h_tail_empty]
-              have hdrop : ρ_p'.support.dropLast = [] := by
-                rw [hsupp]; simp
-              rw [hdrop] at hxR
-              simp at hxR
-            · have hsupp_eq : ρ_p'.support = m :: ρ_p'.support.tail :=
-                Walk.marg_support_cons_form ρ_p'
-              rw [hsupp_eq, List.dropLast_cons_of_ne_nil h_tail_empty] at hxR
-              rcases List.mem_cons.mp hxR with rfl | hxR'
-              · exact Or.inr hm_in_W₂
-              · -- hxR' : x ∈ ρ_p'.support.tail.dropLast
-                exact hρ_p'_int x hxR'
-        · -- length bound
-          rw [Walk.length_cons, Walk.length_append]
-          omega
-    | backward _ => simp at hπ_dir
-    | bidir _ => simp at hπ_dir
-
-/-- For a walk `p : Walk G u v` with `1 ≤ p.length`, `u ∈ p.support.dropLast`. -/
-private lemma start_in_support_dropLast {G : CDMG α} {u v : α}
-    (p : Walk G u v) (h : 1 ≤ p.length) :
-    u ∈ p.support.dropLast := by
-  rw [Walk.marg_support_cons_form p]
-  have h_tail_ne : p.support.tail ≠ [] := by
-    intro he
-    have : p.support.tail.length = 0 := by rw [he]; rfl
-    rw [List.length_tail, Walk.support_length] at this
-    omega
-  rw [List.dropLast_cons_of_ne_nil h_tail_ne]
-  exact List.mem_cons_self
-
-/-- `(p.append q).support.dropLast = p.support.dropLast ++ q.support.dropLast`
-when `q.support` is non-empty (always the case). Useful for relating
-`Walk.append` to per-summand `dropLast` membership. -/
-private lemma support_append_dropLast {G : CDMG α} {u v w : α}
-    (p : Walk G u v) (q : Walk G v w) :
-    (p.append q).support.dropLast =
-      p.support.dropLast ++ q.support.dropLast := by
-  rw [Walk.marg_support_append, List.dropLast_append_of_ne_nil q.marg_support_ne_nil]
-
-/-- Shrink a directed walk in `G` to a directed walk in `G.marginalize W₁`,
-with the strict invariant that the marginalized walk's interior is a
-subset of the source walk's interior (as a set), and the marginalized
-walk has length ≤ the source's length (so triviality is preserved in
-both directions). Mirrors `exists_marg_directed_of_directed` but
-additionally tracks `π.support.tail.dropLast ⊆ σ.support.tail.dropLast`
-and `π.length ≤ σ.length`, which together with the length-pos
-preservation are needed by claim_3_17's E-component proof to derive
-`π.InteriorIn W₂` from `σ.InteriorIn (W₁ ∪ W₂)` and to obtain
-`1 ≤ π.length`. -/
-lemma shrink_directed_walk (G : CDMG α) (W₁ : Set α) :
-    ∀ (n : ℕ) {a b : α} (σ : Walk G a b), σ.length ≤ n →
-      σ.IsDirected →
-      a ∈ G.J ∪ (G.V \ W₁) → b ∉ W₁ →
-      ∃ π : Walk (G.marginalize W₁) a b, π.IsDirected ∧
-        (∀ x ∈ π.support.tail.dropLast, x ∈ σ.support.tail.dropLast) ∧
-        π.length ≤ σ.length ∧
-        (1 ≤ σ.length → 1 ≤ π.length) := by
+set_option linter.style.longLine false in
+private lemma project_walk_marg_with_interior_aux
+    {G : CDMG Node} {S T : Finset Node} {hS : S ⊆ G.V} :
+    ∀ (n : ℕ) {u v : Node} (p : Walk G u v),
+      p.length ≤ n →
+      p.IsDirectedWalk → p.length ≥ 1 →
+      u ∈ G.marginalize S hS → v ∈ G.marginalize S hS →
+      (∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T) →
+      ∃ (q : Walk (G.marginalize S hS) u v),
+        q.IsDirectedWalk ∧ q.length ≥ 1 ∧
+        (∀ x ∈ q.vertices.tail.dropLast, x ∈ T) := by
   intro n
   induction n with
   | zero =>
-    intros a b σ hlen _ _ _
-    cases σ with
-    | nil _ =>
-      refine ⟨Walk.nil _, by simp, ?_, by simp, by intro h; simp at h⟩
-      intro x hx; simp at hx
-    | @cons _ _ _ _ _ => rw [Walk.length_cons] at hlen; omega
+      intros u v p hp_len _ hp_pos _ _ _
+      omega
   | succ k ih =>
-    intros a b σ hlen hσ_dir ha hb
-    cases σ with
-    | nil _ =>
-      refine ⟨Walk.nil _, by simp, ?_, by simp, by intro h; simp at h⟩
-      intro x hx; simp at hx
-    | @cons _ w _ step p' =>
-      cases step with
-      | forward h =>
-        have hp'_dir : p'.IsDirected := by simpa using hσ_dir
-        have hp'_len : p'.length ≤ k := by
-          rw [Walk.length_cons] at hlen; omega
-        have h_uw_E : (a, w) ∈ G.E := h
-        have h_uw_prod : (a, w) ∈ (G.J ∪ G.V) ×ˢ G.V := G.E_subset h_uw_E
-        have h_w_V : w ∈ G.V := (Set.mem_prod.mp h_uw_prod).2
-        have hp'_ne : p'.support ≠ [] := p'.marg_support_ne_nil
-        -- π.support.tail.dropLast = p'.support.dropLast (the "target" set).
-        have hπ_int_eq : (Walk.cons (.forward h) p').support.tail.dropLast
-            = p'.support.dropLast := by
-          rw [Walk.support_cons, List.tail_cons]
-        by_cases hw : w ∈ W₁
-        · -- w ∈ W₁ branch.
-          obtain ⟨z, p_skip, p_rest, hz, hp_skip_dir, hp_rest_dir,
-                  hp_skip_int, hp'_eq⟩ :=
-            Walk.exists_first_not_in_W W₁ p' hp'_dir hb
-          have h_p_skip_pos : 1 ≤ p_skip.length := by
-            cases p_skip with
-            | nil _ => exact absurd hw hz
-            | cons _ _ => simp
-          have h_chunk_dir : (Walk.cons (.forward h) p_skip).IsDirected := by
-            simpa using hp_skip_dir
-          have h_chunk_pos : 1 ≤ (Walk.cons (.forward h) p_skip).length := by simp
-          have h_chunk_int : (Walk.cons (.forward h) p_skip).InteriorIn W₁ := by
-            intro x hx
-            rw [show (Walk.cons (.forward h) p_skip).support.tail.dropLast
-                  = p_skip.support.dropLast from by
-                  rw [Walk.support_cons, List.tail_cons]] at hx
-            exact hp_skip_int x hx
-          have h_z_in : z ∈ G.V \ W₁ :=
-            ⟨Walk.marg_end_in_V_of_isDirected_pos p_skip hp_skip_dir h_p_skip_pos, hz⟩
-          have h_marg_edge : (a, z) ∈ (G.marginalize W₁).E := by
-            rw [CDMG.mem_marginalize_E]
-            exact ⟨ha, h_z_in,
-                   Walk.cons (.forward h) p_skip,
-                   h_chunk_dir, h_chunk_int, h_chunk_pos⟩
-          have h_p_rest_len : p_rest.length ≤ k := by
-            have : p'.length = p_skip.length + p_rest.length := by
-              rw [hp'_eq, Walk.length_append]
-            omega
-          have h_z_in_marg : z ∈ G.J ∪ (G.V \ W₁) := Or.inr h_z_in
-          obtain ⟨π_rest, hπ_rest_dir, hπ_rest_strict, hπ_rest_len, hπ_rest_pos⟩ :=
-            ih p_rest h_p_rest_len hp_rest_dir h_z_in_marg hb
-          have h_p_rest_ne : p_rest.support ≠ [] := p_rest.marg_support_ne_nil
-          refine ⟨Walk.cons (.forward h_marg_edge) π_rest, ?_, ?_, ?_, ?_⟩
-          · simpa using hπ_rest_dir
-          · -- Strict tracking: π.support.tail.dropLast ⊆ σ.support.tail.dropLast = p'.support.dropLast.
-            -- π.support.tail.dropLast = π_rest.support.dropLast.
-            -- p'.support.dropLast = p_skip.support.dropLast ++ p_rest.support.dropLast.
-            intro x hx
-            rw [Walk.support_cons, List.tail_cons] at hx
-            -- x ∈ π_rest.support.dropLast.
-            -- Cases on whether π_rest is non-trivial.
-            show x ∈ (Walk.cons (.forward h) p').support.tail.dropLast
-            rw [hπ_int_eq, hp'_eq, support_append_dropLast]
-            -- Goal: x ∈ p_skip.support.dropLast ++ p_rest.support.dropLast.
-            -- Sub-goal: show x ∈ p_rest.support.dropLast.
-            refine List.mem_append.mpr (Or.inr ?_)
-            -- π_rest.support.dropLast ⊆ p_rest.support.dropLast.
-            -- π_rest.support = z :: π_rest.support.tail. π_rest.support.dropLast = z :: π_rest.support.tail.dropLast OR [].
-            -- Either way, x = z or x ∈ π_rest.support.tail.dropLast.
-            by_cases h_π_rest_len : 1 ≤ π_rest.length
-            · -- π_rest non-trivial. π_rest.support.dropLast = z :: π_rest.support.tail.dropLast.
-              have h_π_rest_tail_ne : π_rest.support.tail ≠ [] := by
-                intro he
-                have : π_rest.support.tail.length = 0 := by rw [he]; rfl
-                rw [List.length_tail, Walk.support_length] at this
-                omega
-              rw [Walk.marg_support_cons_form π_rest,
-                  List.dropLast_cons_of_ne_nil h_π_rest_tail_ne] at hx
-              rcases List.mem_cons.mp hx with rfl | hxr
-              · -- x = z. Need z ∈ p_rest.support.dropLast.
-                -- π_rest non-trivial AND hπ_rest_len : π_rest.length ≤ p_rest.length
-                -- → p_rest.length ≥ 1 → z is in p_rest.support.dropLast (head of dropLast).
-                have h_p_rest_pos : 1 ≤ p_rest.length :=
-                  le_trans h_π_rest_len hπ_rest_len
-                exact start_in_support_dropLast p_rest h_p_rest_pos
-              · -- x ∈ π_rest.support.tail.dropLast. By IH (strict tracking).
-                have h_in_p_rest_int : x ∈ p_rest.support.tail.dropLast :=
-                  hπ_rest_strict x hxr
-                -- p_rest.support.tail.dropLast ⊆ p_rest.support.dropLast (set-wise).
-                rw [list_tail_dropLast] at h_in_p_rest_int
-                exact List.mem_of_mem_tail h_in_p_rest_int
-            · -- π_rest trivial. π_rest.support.dropLast = [].
-              push_neg at h_π_rest_len
-              cases π_rest with
-              | nil _ => simp at hx
-              | cons _ _ => simp [Walk.length_cons] at h_π_rest_len
-          · -- Length bound: π.length ≤ σ.length.
-            -- π.length = 1 + π_rest.length ≤ 1 + p_rest.length ≤ 1 + p'.length = σ.length.
-            rw [Walk.length_cons, Walk.length_cons]
-            have h_p'_len_eq : p'.length = p_skip.length + p_rest.length := by
-              rw [hp'_eq, Walk.length_append]
-            omega
-          · intro _; simp [Walk.length_cons]
-        · -- w ∉ W₁ branch.
-          have h_w_in : w ∈ G.V \ W₁ := ⟨h_w_V, hw⟩
-          have h_marg_edge : (a, w) ∈ (G.marginalize W₁).E := by
-            rw [CDMG.mem_marginalize_E]
-            refine ⟨ha, h_w_in, Walk.cons (.forward h) (Walk.nil w),
-                    ?_, Walk.marg_single_edge_interior W₁ h, ?_⟩
-            · simp
-            · simp
-          have h_w_in_marg : w ∈ G.J ∪ (G.V \ W₁) := Or.inr h_w_in
-          obtain ⟨π_rest, hπ_rest_dir, hπ_rest_strict, hπ_rest_len, hπ_rest_pos⟩ :=
-            ih p' hp'_len hp'_dir h_w_in_marg hb
-          refine ⟨Walk.cons (.forward h_marg_edge) π_rest, ?_, ?_, ?_, ?_⟩
-          · simpa using hπ_rest_dir
-          · -- Strict tracking: π.support.tail.dropLast ⊆ p'.support.dropLast.
-            intro x hx
-            rw [Walk.support_cons, List.tail_cons] at hx
-            show x ∈ (Walk.cons (.forward h) p').support.tail.dropLast
-            rw [hπ_int_eq]
-            -- x ∈ π_rest.support.dropLast.
-            by_cases h_π_rest_len_pos : 1 ≤ π_rest.length
-            · have h_π_rest_tail_ne : π_rest.support.tail ≠ [] := by
-                intro he
-                have : π_rest.support.tail.length = 0 := by rw [he]; rfl
-                rw [List.length_tail, Walk.support_length] at this
-                omega
-              rw [Walk.marg_support_cons_form π_rest,
-                  List.dropLast_cons_of_ne_nil h_π_rest_tail_ne] at hx
-              rcases List.mem_cons.mp hx with rfl | hxr
-              · -- x = w. Need w ∈ p'.support.dropLast. p'.length ≥ 1 by length bound.
-                have h_p'_pos : 1 ≤ p'.length :=
-                  le_trans h_π_rest_len_pos hπ_rest_len
-                exact start_in_support_dropLast p' h_p'_pos
-              · -- x ∈ π_rest.support.tail.dropLast → x ∈ p'.support.tail.dropLast ⊆ p'.support.dropLast.
-                have h_in_p'_int : x ∈ p'.support.tail.dropLast :=
-                  hπ_rest_strict x hxr
-                rw [list_tail_dropLast] at h_in_p'_int
-                exact List.mem_of_mem_tail h_in_p'_int
-            · push_neg at h_π_rest_len_pos
-              cases π_rest with
-              | nil _ => simp at hx
-              | cons _ _ => simp [Walk.length_cons] at h_π_rest_len_pos
-          · -- Length bound: π.length ≤ σ.length.
-            rw [Walk.length_cons, Walk.length_cons]
-            omega
-          · intro _; simp [Walk.length_cons]
-      | backward _ => simp at hσ_dir
-      | bidir _ => simp at hσ_dir
+      intros u v p hp_len hp_dir hp_pos hu hv h_inter
+      have hv_notS : v ∉ S := notW_of_mem_marginalize hS hv
+      obtain ⟨m, head, tail, h_head_dir, h_tail_dir, h_head_pos,
+              hm_notS, h_head_inter, h_lens, h_p_eq⟩ :=
+        find_first_non_W_directed S p hp_dir hp_pos hv_notS
+      have hm_V : m ∈ G.V :=
+        Walk.target_in_GV_of_directedWalk_pos
+          head h_head_dir h_head_pos
+      have hm_marg : m ∈ G.marginalize S hS := by
+        change m ∈ G.J ∪ (G.V \ S)
+        exact Finset.mem_union_right _
+          (Finset.mem_sdiff.mpr ⟨hm_V, hm_notS⟩)
+      have h_edge : (u, m) ∈ (G.marginalize S hS).E := by
+        change (u, m) ∈ ((G.J ∪ (G.V \ S)) ×ˢ (G.V \ S)).filter
+              (fun e => G.MarginalizationΦE S e.1 e.2)
+        refine Finset.mem_filter.mpr ⟨?_, ?_⟩
+        · refine Finset.mem_product.mpr ⟨hu, ?_⟩
+          exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notS⟩
+        · exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
+      have h_head_drop_ne : head.vertices.dropLast ≠ [] := by
+        rw [Walk.vertices_eq_head_cons_tail head]
+        have h_h_t_ne : head.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos head h_head_pos
+        rw [List.dropLast_cons_of_ne_nil h_h_t_ne]
+        simp
+      have h_tail_vs_ne : tail.vertices ≠ [] :=
+        Walk.vertices_ne_nil tail
+      by_cases h_tail_pos : tail.length ≥ 1
+      · have h_tail_t_ne : tail.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos tail h_tail_pos
+        have h_tail_vs :
+            tail.vertices = m :: tail.vertices.tail :=
+          Walk.vertices_eq_head_cons_tail tail
+        have hm_in_p_int : m ∈ p.vertices.tail.dropLast := by
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne,
+              List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          apply List.mem_append.mpr
+          right
+          rw [h_tail_vs, List.dropLast_cons_of_ne_nil h_tail_t_ne]
+          exact List.mem_cons_self
+        have hm_in_T : m ∈ T := by
+          rcases h_inter m hm_in_p_int with h_S | h_T
+          · exact absurd h_S hm_notS
+          · exact h_T
+        have h_tail_inter :
+            ∀ x ∈ tail.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+          intro x hx
+          apply h_inter
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne,
+              List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          apply List.mem_append.mpr
+          right
+          rw [h_tail_vs, List.dropLast_cons_of_ne_nil h_tail_t_ne]
+          exact List.mem_cons_of_mem _ hx
+        have h_tail_len : tail.length ≤ k := by omega
+        obtain ⟨q_tail, hq_tail_dir, hq_tail_pos, hq_tail_inter⟩ :=
+          ih tail h_tail_len h_tail_dir h_tail_pos hm_marg hv h_tail_inter
+        refine ⟨Walk.cons m (.forwardE h_edge) q_tail,
+                hq_tail_dir, ?_, ?_⟩
+        · change q_tail.length + 1 ≥ 1; omega
+        · intro x hx
+          change x ∈ (u :: q_tail.vertices).tail.dropLast at hx
+          rw [List.tail_cons] at hx
+          have h_qtv :
+              q_tail.vertices = m :: q_tail.vertices.tail :=
+            Walk.vertices_eq_head_cons_tail q_tail
+          rw [h_qtv] at hx
+          have h_qtt_ne : q_tail.vertices.tail ≠ [] :=
+            Walk.tail_vertices_ne_nil_of_pos q_tail hq_tail_pos
+          rw [List.dropLast_cons_of_ne_nil h_qtt_ne] at hx
+          rcases List.mem_cons.mp hx with rfl | hx_inner
+          · exact hm_in_T
+          · exact hq_tail_inter x hx_inner
+      · have h_tail_zero : tail.length = 0 := by omega
+        match tail, h_tail_zero with
+        | .nil m' hm', _ =>
+            refine ⟨Walk.cons m' (.forwardE h_edge)
+                      (Walk.nil m' hv),
+                    trivial, ?_, ?_⟩
+            · change 1 ≥ 1; omega
+            · intro x hx
+              change x ∈ (u :: [m'] : List Node).tail.dropLast at hx
+              simp at hx
 
-/-- For a directed walk in `G` of length ≥ 1, every vertex of
-`support.tail` (i.e., every non-head vertex) lies in `G.V`. The
-support's tail consists of targets of forward steps; each target is
-in `G.V` by `G.E_subset`. -/
-private lemma support_tail_in_V_of_isDirected {G : CDMG α} {a b : α} :
-    ∀ (π : Walk G a b), π.IsDirected → ∀ x ∈ π.support.tail, x ∈ G.V := by
-  intro π
-  induction π with
-  | nil v =>
-    intro _ x hx
-    simp at hx
-  | @cons a₀ w _ step p' ih =>
-    intro hπ x hx
-    cases step with
-    | forward h =>
-      have hp'_dir : p'.IsDirected := by simpa using hπ
-      rw [Walk.support_cons, List.tail_cons, p'.marg_support_cons_form] at hx
-      rcases List.mem_cons.mp hx with hxw | hxr
-      · -- hxw : x = w. h : a₀ ⟶[G] w gives w ∈ G.V via E_subset.
-        rw [hxw]
-        exact (Set.mem_prod.mp (G.E_subset (h : (a₀, w) ∈ G.E))).2
-      · exact ih hp'_dir x hxr
-    | backward _ => simp at hπ
-    | bidir _ => simp at hπ
+set_option linter.style.longLine false in
+private lemma project_walk_marg_with_interior {G : CDMG Node}
+    {S T : Finset Node} {hS : S ⊆ G.V}
+    {u v : Node} (p : Walk G u v)
+    (hp_dir : p.IsDirectedWalk) (hp_pos : p.length ≥ 1)
+    (hu : u ∈ G.marginalize S hS)
+    (hv : v ∈ G.marginalize S hS)
+    (h_inter : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T) :
+    ∃ (q : Walk (G.marginalize S hS) u v),
+      q.IsDirectedWalk ∧ q.length ≥ 1 ∧
+      (∀ x ∈ q.vertices.tail.dropLast, x ∈ T) :=
+  project_walk_marg_with_interior_aux (S := S) (T := T) (hS := hS)
+    p.length p le_rfl hp_dir hp_pos hu hv h_inter
 
-/-- Directed-walk iff (E component): under the right endpoint
-constraints, the existence of a directed walk in `G.marginalize W₁`
-with interior in `W₂` is equivalent to the existence of a directed
-walk in `G` with interior in `W₁ ∪ W₂`. Both directions go through
-the lift / shrink helpers above; the `InteriorIn W₂` extraction in
-the shrink direction combines the strict-interior tracking with the
-fact that vertices in `(G.marginalize W₁)` walks avoid `W₁`. -/
-lemma directed_walk_iff (G : CDMG α) (W₁ W₂ : Set α)
-    {a b : α} (ha : a ∈ G.J ∪ (G.V \ (W₁ ∪ W₂)))
-    (hb : b ∈ G.V \ (W₁ ∪ W₂)) :
-    (∃ π : Walk (G.marginalize W₁) a b,
-        π.IsDirected ∧ π.InteriorIn W₂ ∧ 1 ≤ π.length)
-    ↔ (∃ σ : Walk G a b,
-        σ.IsDirected ∧ σ.InteriorIn (W₁ ∪ W₂) ∧ 1 ≤ σ.length) := by
+set_option linter.style.longLine false in
+-- Strengthened projection: returns both vertex bounds (vertices ⊆ source's vertices,
+-- and respective .dropLast / .tail bounds) AND T-interior bound.
+private lemma project_walk_marg_full_aux {G : CDMG Node}
+    {S T : Finset Node} {hS : S ⊆ G.V} :
+    ∀ (n : ℕ) {u v : Node} (p : Walk G u v),
+      p.length ≤ n →
+      p.IsDirectedWalk → p.length ≥ 1 →
+      u ∈ G.marginalize S hS → v ∈ G.marginalize S hS →
+      (∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T) →
+      ∃ (q : Walk (G.marginalize S hS) u v),
+        q.IsDirectedWalk ∧ q.length ≥ 1 ∧
+        (∀ x ∈ q.vertices, x ∈ p.vertices) ∧
+        (∀ x ∈ q.vertices.dropLast,
+          x ∈ p.vertices.dropLast) ∧
+        (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail) ∧
+        (∀ x ∈ q.vertices.tail.dropLast, x ∈ T) := by
+  intro n
+  induction n with
+  | zero =>
+      intros u v p hp_len _ hp_pos _ _ _
+      omega
+  | succ k ih =>
+      intros u v p hp_len hp_dir hp_pos hu hv h_inter
+      have hv_notS : v ∉ S := notW_of_mem_marginalize hS hv
+      obtain ⟨m, head, tail, h_head_dir, h_tail_dir, h_head_pos,
+              hm_notS, h_head_inter, h_lens, h_p_eq⟩ :=
+        find_first_non_W_directed S p hp_dir hp_pos hv_notS
+      have hm_V : m ∈ G.V :=
+        Walk.target_in_GV_of_directedWalk_pos
+          head h_head_dir h_head_pos
+      have hm_marg : m ∈ G.marginalize S hS := by
+        change m ∈ G.J ∪ (G.V \ S)
+        exact Finset.mem_union_right _
+          (Finset.mem_sdiff.mpr ⟨hm_V, hm_notS⟩)
+      have h_edge : (u, m) ∈ (G.marginalize S hS).E := by
+        change (u, m) ∈ ((G.J ∪ (G.V \ S)) ×ˢ (G.V \ S)).filter
+              (fun e => G.MarginalizationΦE S e.1 e.2)
+        refine Finset.mem_filter.mpr ⟨?_, ?_⟩
+        · refine Finset.mem_product.mpr ⟨hu, ?_⟩
+          exact Finset.mem_sdiff.mpr ⟨hm_V, hm_notS⟩
+        · exact ⟨head, h_head_dir, h_head_pos, h_head_inter⟩
+      -- p.vertices = head.vertices.dropLast ++ tail.vertices.
+      have h_head_drop_ne : head.vertices.dropLast ≠ [] := by
+        rw [Walk.vertices_eq_head_cons_tail head]
+        have h_h_t_ne : head.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos head h_head_pos
+        rw [List.dropLast_cons_of_ne_nil h_h_t_ne]
+        simp
+      have h_tail_vs_ne : tail.vertices ≠ [] :=
+        Walk.vertices_ne_nil tail
+      have h_u_in_head_drop : u ∈ head.vertices.dropLast := by
+        rw [Walk.vertices_eq_head_cons_tail head,
+            List.dropLast_cons_of_ne_nil
+              (Walk.tail_vertices_ne_nil_of_pos
+                head h_head_pos)]
+        exact List.mem_cons_self
+      have h_m_in_tail : m ∈ tail.vertices :=
+        Walk.head_mem_vertices tail
+      by_cases h_tail_pos : tail.length ≥ 1
+      · have h_tail_t_ne : tail.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos tail h_tail_pos
+        have h_tail_vs :
+            tail.vertices = m :: tail.vertices.tail :=
+          Walk.vertices_eq_head_cons_tail tail
+        have hm_in_p_int : m ∈ p.vertices.tail.dropLast := by
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne,
+              List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          apply List.mem_append.mpr
+          right
+          rw [h_tail_vs, List.dropLast_cons_of_ne_nil h_tail_t_ne]
+          exact List.mem_cons_self
+        have hm_in_T : m ∈ T := by
+          rcases h_inter m hm_in_p_int with h_S | h_T
+          · exact absurd h_S hm_notS
+          · exact h_T
+        have h_tail_inter :
+            ∀ x ∈ tail.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+          intro x hx
+          apply h_inter
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne,
+              List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          apply List.mem_append.mpr
+          right
+          rw [h_tail_vs, List.dropLast_cons_of_ne_nil h_tail_t_ne]
+          exact List.mem_cons_of_mem _ hx
+        have h_tail_len : tail.length ≤ k := by omega
+        obtain ⟨q_tail, hq_tail_dir, hq_tail_pos,
+                hq_tail_sub, hq_tail_drop_sub, hq_tail_tail_sub, hq_tail_inter⟩ :=
+          ih tail h_tail_len h_tail_dir h_tail_pos hm_marg hv h_tail_inter
+        refine ⟨Walk.cons m (.forwardE h_edge) q_tail,
+                hq_tail_dir, ?_, ?_, ?_, ?_, ?_⟩
+        · change q_tail.length + 1 ≥ 1; omega
+        · -- q.vertices ⊆ p.vertices.
+          intro x hx
+          change x ∈ u :: q_tail.vertices at hx
+          rw [h_p_eq]
+          rcases List.mem_cons.mp hx with rfl | hx_in
+          · exact List.mem_append.mpr (Or.inl h_u_in_head_drop)
+          · exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx_in))
+        · -- q.vertices.dropLast ⊆ p.vertices.dropLast.
+          intro x hx
+          have h_qt_vs_ne : q_tail.vertices ≠ [] :=
+            Walk.vertices_ne_nil q_tail
+          change x ∈ (u :: q_tail.vertices).dropLast at hx
+          rw [List.dropLast_cons_of_ne_nil h_qt_vs_ne] at hx
+          rw [h_p_eq, List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          rcases List.mem_cons.mp hx with rfl | hx_in
+          · exact List.mem_append.mpr (Or.inl h_u_in_head_drop)
+          · exact List.mem_append.mpr (Or.inr (hq_tail_drop_sub x hx_in))
+        · -- q.vertices.tail ⊆ p.vertices.tail.
+          intro x hx
+          change x ∈ q_tail.vertices at hx
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne]
+          -- head.vertices.dropLast.tail = head.vertices.tail.dropLast.
+          -- We just need x ∈ p.vertices.tail.
+          exact List.mem_append.mpr (Or.inr (hq_tail_sub x hx))
+        · -- q.vertices.tail.dropLast ⊆ T.
+          intro x hx
+          change x ∈ (u :: q_tail.vertices).tail.dropLast at hx
+          rw [List.tail_cons] at hx
+          have h_qtv :
+              q_tail.vertices = m :: q_tail.vertices.tail :=
+            Walk.vertices_eq_head_cons_tail q_tail
+          rw [h_qtv] at hx
+          have h_qtt_ne : q_tail.vertices.tail ≠ [] :=
+            Walk.tail_vertices_ne_nil_of_pos q_tail hq_tail_pos
+          rw [List.dropLast_cons_of_ne_nil h_qtt_ne] at hx
+          rcases List.mem_cons.mp hx with rfl | hx_inner
+          · exact hm_in_T
+          · exact hq_tail_inter x hx_inner
+      · have h_tail_zero : tail.length = 0 := by omega
+        have hmv_eq : m = v := by
+          generalize htail_eq : tail.length = ℓ at h_tail_zero
+          subst h_tail_zero
+          match tail, htail_eq with
+          | .nil _ _, _ => rfl
+        subst hmv_eq
+        refine ⟨Walk.cons m (.forwardE h_edge)
+                  (Walk.nil m hv),
+                trivial, ?_, ?_, ?_, ?_, ?_⟩
+        · change 1 ≥ 1; omega
+        · intro x hx
+          change x ∈ ([u, m] : List Node) at hx
+          rw [h_p_eq]
+          rcases List.mem_cons.mp hx with rfl | hx_rest
+          · exact List.mem_append.mpr (Or.inl h_u_in_head_drop)
+          · rw [List.mem_singleton] at hx_rest
+            subst hx_rest
+            exact List.mem_append.mpr
+              (Or.inr (Walk.head_mem_vertices _))
+        · intro x hx
+          change x ∈ ([u, m] : List Node).dropLast at hx
+          simp [List.dropLast] at hx
+          subst hx
+          rw [h_p_eq, List.dropLast_append_of_ne_nil h_tail_vs_ne]
+          exact List.mem_append.mpr (Or.inl h_u_in_head_drop)
+        · intro x hx
+          change x ∈ ([u, m] : List Node).tail at hx
+          simp [List.tail] at hx
+          subst hx
+          rw [h_p_eq, List.tail_append_of_ne_nil h_head_drop_ne]
+          apply List.mem_append.mpr
+          right
+          exact Walk.head_mem_vertices _
+        · intro x hx
+          change x ∈ (u :: [m] : List Node).tail.dropLast at hx
+          simp at hx
+
+private lemma project_walk_marg_full {G : CDMG Node}
+    {S T : Finset Node} {hS : S ⊆ G.V}
+    {u v : Node} (p : Walk G u v)
+    (hp_dir : p.IsDirectedWalk) (hp_pos : p.length ≥ 1)
+    (hu : u ∈ G.marginalize S hS)
+    (hv : v ∈ G.marginalize S hS)
+    (h_inter : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T) :
+    ∃ (q : Walk (G.marginalize S hS) u v),
+      q.IsDirectedWalk ∧ q.length ≥ 1 ∧
+      (∀ x ∈ q.vertices, x ∈ p.vertices) ∧
+      (∀ x ∈ q.vertices.dropLast,
+        x ∈ p.vertices.dropLast) ∧
+      (∀ x ∈ q.vertices.tail, x ∈ p.vertices.tail) ∧
+      (∀ x ∈ q.vertices.tail.dropLast, x ∈ T) :=
+  project_walk_marg_full_aux (S := S) (T := T) (hS := hS)
+    p.length p le_rfl hp_dir hp_pos hu hv h_inter
+
+set_option linter.style.longLine false in
+private lemma mem_marg_of_notin_union_V {G : CDMG Node}
+    (S T : Finset Node) (hS : S ⊆ G.V) {u : Node}
+    (hu : u ∈ G.J ∪ (G.V \ (S ∪ T))) :
+    u ∈ G.marginalize S hS := by
+  change u ∈ G.J ∪ (G.V \ S)
+  rcases Finset.mem_union.mp hu with hJ | hVW
+  · exact Finset.mem_union_left _ hJ
+  · refine Finset.mem_union_right _ ?_
+    rw [Finset.mem_sdiff] at hVW ⊢
+    refine ⟨hVW.1, ?_⟩
+    intro hu_in_S
+    exact hVW.2 (Finset.mem_union_left _ hu_in_S)
+
+set_option linter.style.longLine false in
+private lemma mem_marg_of_notin_union_VnoJ {G : CDMG Node}
+    (S T : Finset Node) (hS : S ⊆ G.V) {v : Node}
+    (hv : v ∈ G.V \ (S ∪ T)) :
+    v ∈ G.marginalize S hS := by
+  change v ∈ G.J ∪ (G.V \ S)
+  refine Finset.mem_union_right _ ?_
+  rw [Finset.mem_sdiff] at hv ⊢
+  refine ⟨hv.1, ?_⟩
+  intro hv_in_S
+  exact hv.2 (Finset.mem_union_left _ hv_in_S)
+
+-- ## E-membership iff (parametric in `S, T`).
+private lemma marg_PhiE_iff {G : CDMG Node}
+    (S T : Finset Node)
+    (hS : S ⊆ G.V) (_hT : T ⊆ G.V) (_hDisj : Disjoint S T)
+    {u v : Node}
+    (hu : u ∈ G.J ∪ (G.V \ (S ∪ T))) (hv : v ∈ G.V \ (S ∪ T)) :
+    (G.marginalize S hS).MarginalizationΦE T u v ↔
+      G.MarginalizationΦE (S ∪ T) u v := by
   constructor
-  · rintro ⟨π, hπ_dir, hπ_int, hπ_pos⟩
-    obtain ⟨σ, hσ_dir, hσ_int, hσ_len⟩ :=
-      lift_directed_walk G W₁ W₂ π hπ_dir hπ_int
-    exact ⟨σ, hσ_dir, hσ_int, le_trans hπ_pos hσ_len⟩
-  · rintro ⟨σ, hσ_dir, hσ_int, hσ_pos⟩
-    have ha' : a ∈ G.J ∪ (G.V \ W₁) := by
-      rcases ha with hJ | hV
-      · exact Or.inl hJ
-      · exact Or.inr ⟨hV.1, fun h => hV.2 (Or.inl h)⟩
-    have hb' : b ∉ W₁ := fun h => hb.2 (Or.inl h)
-    obtain ⟨π, hπ_dir, hπ_strict, _, hπ_pos⟩ :=
-      shrink_directed_walk G W₁ σ.length σ le_rfl hσ_dir ha' hb'
-    refine ⟨π, hπ_dir, ?_, hπ_pos hσ_pos⟩
-    intro x hx
-    -- x ∈ π.support.tail.dropLast → x ∈ σ.support.tail.dropLast → x ∈ W₁ ∪ W₂.
-    have hx_σ : x ∈ σ.support.tail.dropLast := hπ_strict x hx
-    have hx_in : x ∈ W₁ ∪ W₂ := hσ_int x hx_σ
-    -- x ∉ W₁ (interior vertex of π : Walk (G.marg W₁) ...).
-    have hx_not_W₁ : x ∉ W₁ := by
-      have hx_tail : x ∈ π.support.tail := List.dropLast_subset _ hx
-      have hx_V : x ∈ (G.marginalize W₁).V :=
-        support_tail_in_V_of_isDirected π hπ_dir x hx_tail
-      rw [CDMG.marginalize_V] at hx_V
-      exact hx_V.2
-    rcases hx_in with hW₁ | hW₂
-    · exact absurd hW₁ hx_not_W₁
-    · exact hW₂
+  · rintro ⟨p, hp_dir, hp_pos, hp_inter⟩
+    obtain ⟨q, hq_dir, hq_len, _, _, _, hq_inter⟩ :=
+      expand_directed_walk_marginalize p hp_dir
+    refine ⟨q, hq_dir, ?_, ?_⟩
+    · omega
+    · intro x hx
+      rcases hq_inter x hx with hxp | hxS
+      · exact Finset.mem_union_right _ (hp_inter x hxp)
+      · exact Finset.mem_union_left _ hxS
+  · rintro ⟨q, hq_dir, hq_pos, hq_inter⟩
+    have hu_marg : u ∈ G.marginalize S hS :=
+      mem_marg_of_notin_union_V S T hS hu
+    have hv_marg : v ∈ G.marginalize S hS :=
+      mem_marg_of_notin_union_VnoJ S T hS hv
+    have h_inter : ∀ x ∈ q.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+      intro x hx
+      have hin := hq_inter x hx
+      rcases Finset.mem_union.mp hin with hS_in | hT_in
+      · exact Or.inl hS_in
+      · exact Or.inr hT_in
+    obtain ⟨p, hp_dir, hp_pos, hp_inter⟩ :=
+      project_walk_marg_with_interior (S := S) (T := T) (hS := hS)
+        q hq_dir hq_pos hu_marg hv_marg h_inter
+    exact ⟨p, hp_dir, hp_pos, hp_inter⟩
 
-/-- Directed-walk iff for the L-component "no directed walk" clauses
-(no length constraint). Given distinct endpoints, the trivial walk
-is unavailable, so any witness has length ≥ 1; this reduces to
-`directed_walk_iff` modulo the `(... ∧ 1 ≤ length) ↔ (...)` reshuffle. -/
-lemma directed_walk_iff_no_length (G : CDMG α) (W₁ W₂ : Set α)
-    {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂))
-    (hb : b ∈ G.V \ (W₁ ∪ W₂)) (hab : a ≠ b) :
-    (∃ π : Walk (G.marginalize W₁) a b, π.IsDirected ∧ π.InteriorIn W₂)
-    ↔ (∃ σ : Walk G a b, σ.IsDirected ∧ σ.InteriorIn (W₁ ∪ W₂)) := by
-  have h_aux : ∀ {γ : CDMG α} {a' b' : α} (π : Walk γ a' b'),
-      a' ≠ b' → 1 ≤ π.length := by
-    intro γ a' b' π hne
-    cases π with
-    | nil _ => exact absurd rfl hne
-    | cons _ _ => simp
-  have ha' : a ∈ G.J ∪ (G.V \ (W₁ ∪ W₂)) := Or.inr ha
+-- ## E-field equality (parametric in `S, T`).
+private lemma marg_E_field_eq {G : CDMG Node}
+    (S T : Finset Node)
+    (hS : S ⊆ G.V) (hT : T ⊆ G.V) (hDisj : Disjoint S T) :
+    ((G.marginalize S hS).marginalize T
+        (subset_sdiff_of_disjoint hT hDisj.symm)).E
+      = (G.marginalize (S ∪ T) (Finset.union_subset hS hT)).E := by
+  change ((G.J ∪ ((G.V \ S) \ T)) ×ˢ ((G.V \ S) \ T)).filter
+          (fun e =>
+            (G.marginalize S hS).MarginalizationΦE T e.1 e.2)
+        = ((G.J ∪ (G.V \ (S ∪ T))) ×ˢ (G.V \ (S ∪ T))).filter
+          (fun e => G.MarginalizationΦE (S ∪ T) e.1 e.2)
+  have h_sd : (G.V \ S) \ T = G.V \ (S ∪ T) := sdiff_sdiff_left
+  rw [h_sd]
+  apply Finset.filter_congr
+  intro e he
+  rw [Finset.mem_product] at he
+  exact marg_PhiE_iff S T hS hT hDisj he.1 he.2
+
+-- ## Refactor replacements — Phase C (4 small L-field setup lemmas)
+--
+-- Net-new ports (no paired ORIGINAL block — these are `private
+-- lemma`s with no markers in the original).  All four are pure
+-- list-arithmetic about `vertices` / `dropLast` /
+-- `tail`; the only structural shifts beyond the Phase B set are:
+-- (i)  `Walk.mkBifurcation` / `Walk.mkBifurcationBidir` and their
+--      `vertices_*` companions retarget to the `Walk.*`
+--      variants from `MargPreservesAncestors.lean`;
+-- (ii) `vertices_tail_dropLast_mkBifurcationBidir_Lpos`'s L-edge
+--      hypothesis `(vL, vR) ∈ G.L` (ordered pair) becomes
+--      `s(vL, vR) ∈ G.L` (Sym2 quotient) to match
+--      `mkBifurcationBidir`'s signature.
+
+set_option linter.style.longLine false in
+-- ## Helper: source uniqueness of bif `p` upgrades "c ∈ p.tail and
+-- c ∈ p.dropLast" to "c ∈ p.tail.dropLast".
+private lemma mem_interior_of_arm_source
+    {G : CDMG Node} {u v : Node}
+    {p : Walk G u v} (hu_p_tail : u ∉ p.vertices.tail)
+    (hp_pos : p.length ≥ 1)
+    {c : Node}
+    (hc_p_tail : c ∈ p.vertices.tail)
+    (hc_p_drop : c ∈ p.vertices.dropLast) :
+    c ∈ p.vertices.tail.dropLast := by
+  have h_p_tail_ne : p.vertices.tail ≠ [] :=
+    Walk.tail_vertices_ne_nil_of_pos p hp_pos
+  have h_p_vs_eq : p.vertices = u :: p.vertices.tail :=
+    Walk.vertices_eq_head_cons_tail p
+  have h_p_drop_eq :
+      p.vertices.dropLast = u :: p.vertices.tail.dropLast := by
+    conv_lhs => rw [h_p_vs_eq]
+    exact List.dropLast_cons_of_ne_nil h_p_tail_ne
+  rw [h_p_drop_eq] at hc_p_drop
+  rcases List.mem_cons.mp hc_p_drop with h_c_eq_u | h_in
+  · exact absurd (h_c_eq_u ▸ hc_p_tail) hu_p_tail
+  · exact h_in
+
+set_option linter.style.longLine false in
+-- ## Helper: vertices_tail_dropLast for mkBifurcation with both arms positive.
+private lemma vertices_tail_dropLast_mkBifurcation
+    {G : CDMG Node} {c v w : Node}
+    (qv : Walk G c v) (hqv_dir : qv.IsDirectedWalk)
+    (hqv_pos : qv.length ≥ 1)
+    (qw : Walk G c w) (_hqw_pos : qw.length ≥ 1) :
+    (Walk.mkBifurcation qv hqv_dir hqv_pos qw).vertices.tail.dropLast
+      = qv.vertices.tail.dropLast.reverse
+          ++ qw.vertices.dropLast := by
+  have h_vs :=
+    Walk.vertices_mkBifurcation qv hqv_dir hqv_pos qw
+  have h_rev_drop :
+      qv.vertices.reverse.dropLast = qv.vertices.tail.reverse :=
+    Walk.vertices_reverse_dropLast qv
+  have h_aux : ∀ (l : List Node), l.reverse.tail = l.dropLast.reverse := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons a rest ih =>
+        by_cases h : rest = []
+        · subst h; rfl
+        · rw [List.reverse_cons, List.dropLast_cons_of_ne_nil h]
+          rw [List.reverse_cons]
+          rw [List.tail_append_of_ne_nil]
+          · rw [ih]
+          · intro hr_empty
+            exact h (List.reverse_eq_nil_iff.mp hr_empty)
+  have h_qv_tail_ne : qv.vertices.tail ≠ [] :=
+    Walk.tail_vertices_ne_nil_of_pos qv hqv_pos
+  have h_qv_rev_drop_ne : qv.vertices.reverse.dropLast ≠ [] := by
+    rw [h_rev_drop]
+    intro hempty
+    apply h_qv_tail_ne
+    have : qv.vertices.tail = qv.vertices.tail.reverse.reverse := by
+      rw [List.reverse_reverse]
+    rw [this, hempty]; rfl
+  have h_qw_vs_ne : qw.vertices ≠ [] :=
+    Walk.vertices_ne_nil qw
+  rw [h_vs]
+  rw [List.tail_append_of_ne_nil h_qv_rev_drop_ne]
+  rw [List.dropLast_append_of_ne_nil h_qw_vs_ne]
+  rw [h_rev_drop, h_aux]
+
+set_option linter.style.longLine false in
+-- ## Helper: vertices_tail_dropLast for mkBifurcationBidir with L positive.
+-- Refactor: `(vL, vR) ∈ G.L` (ordered pair) → `s(vL, vR) ∈ G.L`
+-- (Sym2 quotient) to match `mkBifurcationBidir`'s signature.
+private lemma vertices_tail_dropLast_mkBifurcationBidir_Lpos
+    {G : CDMG Node} {vL vR v1 v2 : Node}
+    (L : Walk G vL v1) (hL_dir : L.IsDirectedWalk)
+    (R : Walk G vR v2) (hLR : s(vL, vR) ∈ G.L)
+    (hL_pos : L.length ≥ 1) :
+    (Walk.mkBifurcationBidir L hL_dir R hLR).vertices.tail.dropLast
+      = L.vertices.tail.dropLast.reverse
+          ++ (vL :: R.vertices).dropLast := by
+  have h_vs :=
+    Walk.vertices_mkBifurcationBidir L hL_dir R hLR
+  have h_rev_drop :
+      L.vertices.reverse.dropLast = L.vertices.tail.reverse :=
+    Walk.vertices_reverse_dropLast L
+  have h_aux : ∀ (l : List Node), l.reverse.tail = l.dropLast.reverse := by
+    intro l
+    induction l with
+    | nil => rfl
+    | cons a rest ih =>
+        by_cases h : rest = []
+        · subst h; rfl
+        · rw [List.reverse_cons, List.dropLast_cons_of_ne_nil h]
+          rw [List.reverse_cons]
+          rw [List.tail_append_of_ne_nil]
+          · rw [ih]
+          · intro hr_empty
+            exact h (List.reverse_eq_nil_iff.mp hr_empty)
+  have h_L_tail_ne : L.vertices.tail ≠ [] :=
+    Walk.tail_vertices_ne_nil_of_pos L hL_pos
+  have h_L_rev_drop_ne : L.vertices.reverse.dropLast ≠ [] := by
+    rw [h_rev_drop]
+    intro hempty
+    apply h_L_tail_ne
+    have : L.vertices.tail = L.vertices.tail.reverse.reverse := by
+      rw [List.reverse_reverse]
+    rw [this, hempty]; rfl
+  have h_cons_ne : (vL :: R.vertices) ≠ [] := by simp
+  rw [h_vs]
+  rw [List.tail_append_of_ne_nil h_L_rev_drop_ne]
+  rw [List.dropLast_append_of_ne_nil h_cons_ne]
+  rw [h_rev_drop, h_aux]
+
+-- ## Helper: inclusive variant of `find_first_non_W_directed`.
+--
+-- Unlike `find_first_non_W_directed` (which always returns a
+-- non-trivial head, skipping the source `u`), this variant lets the source
+-- `u` itself be the "first non-W" vertex: if `u ∉ W`, then `m := u`,
+-- `head := nil`, `tail := p`.  Used by the backward bidirected-hinge case
+-- where the bidirected hinge endpoints `s(vL, vR) ∈ G.L` might or might not
+-- lie in `S`, so the "first non-S vertex starting from vL inclusive" search
+-- needs to handle both possibilities uniformly.  The post-condition
+-- `∀ x ∈ head.vertices.dropLast, x ∈ W` is *inclusive* of the source
+-- (all of head's vertices except the target are in `W`); when `head` is
+-- trivial this is vacuous.
+private lemma find_first_non_W_directed_inclusive
+    {G : CDMG Node} (W : Finset Node)
+    {u v : Node} (p : Walk G u v)
+    (hp_dir : p.IsDirectedWalk) (hv_notW : v ∉ W) :
+    ∃ (m : Node) (head : Walk G u m) (tail : Walk G m v),
+      head.IsDirectedWalk ∧ tail.IsDirectedWalk ∧
+      m ∉ W ∧
+      (∀ x ∈ head.vertices.dropLast, x ∈ W) ∧
+      head.length + tail.length = p.length ∧
+      p.vertices =
+        head.vertices.dropLast ++ tail.vertices := by
+  by_cases hu_W : u ∈ W
+  · have hu_ne_v : u ≠ v := fun heq => hv_notW (heq ▸ hu_W)
+    have hp_pos : p.length ≥ 1 :=
+      Walk.length_pos_of_ne p hu_ne_v
+    obtain ⟨m, head, tail, h_head_dir, h_tail_dir, h_head_pos, hm_notW,
+            h_head_inter, h_lens, h_p_eq⟩ :=
+      find_first_non_W_directed W p hp_dir hp_pos hv_notW
+    refine ⟨m, head, tail, h_head_dir, h_tail_dir, hm_notW, ?_, h_lens, h_p_eq⟩
+    intro x hx
+    have h_head_t_ne : head.vertices.tail ≠ [] :=
+      Walk.tail_vertices_ne_nil_of_pos head h_head_pos
+    have h_head_drop_eq :
+        head.vertices.dropLast = u :: head.vertices.tail.dropLast := by
+      conv_lhs => rw [Walk.vertices_eq_head_cons_tail head]
+      exact List.dropLast_cons_of_ne_nil h_head_t_ne
+    rw [h_head_drop_eq] at hx
+    rcases List.mem_cons.mp hx with rfl | hx_rest
+    · exact hu_W
+    · exact h_head_inter x hx_rest
+  · have hu_in_G : u ∈ G :=
+      Walk.mem_of_mem_vertices p
+        (Walk.head_mem_vertices p)
+    refine ⟨u, Walk.nil u hu_in_G, p, trivial, hp_dir, hu_W, ?_, ?_, ?_⟩
+    · intro x hx
+      change x ∈ ([u] : List Node).dropLast at hx
+      simp at hx
+    · change 0 + p.length = p.length; omega
+    · change p.vertices = ([u] : List Node).dropLast ++ p.vertices
+      simp
+
+
+set_option linter.style.longLine false in
+private lemma forward_marg_to_g_bif_one_orientation
+    {G : CDMG Node} (S T : Finset Node)
+    (hS : S ⊆ G.V) {a b : Node}
+    (ha_VST : a ∈ G.V \ (S ∪ T)) (hb_VST : b ∈ G.V \ (S ∪ T))
+    (ha_marg : a ∈ G.marginalize S hS) (hb_marg : b ∈ G.marginalize S hS)
+    (p : Walk (G.marginalize S hS) a b)
+    (hp_bif : p.IsBifurcation)
+    (hp_inter : ∀ x ∈ p.vertices.tail.dropLast, x ∈ T) :
+    ∃ q : Walk G a b, q.IsBifurcation ∧
+      ∀ x ∈ q.vertices.tail.dropLast, x ∈ S ∪ T := by
+  have ha_notSuT : a ∉ S ∪ T := (Finset.mem_sdiff.mp ha_VST).2
+  have hb_notSuT : b ∉ S ∪ T := (Finset.mem_sdiff.mp hb_VST).2
+  have ha_notS : a ∉ S := fun h => ha_notSuT (Finset.mem_union_left _ h)
+  have hb_notS : b ∉ S := fun h => hb_notSuT (Finset.mem_union_left _ h)
+  have hp_pos : p.length ≥ 1 := Walk.length_pos_of_isBifurcation hp_bif
+  obtain ⟨hab_ne, ha_p_tail, hb_p_drop, i, hp_split⟩ := hp_bif
+  by_cases h_dir : p.IsBifurcationDirectedHingeWithSplit i
+  · -- DIRECTED HINGE CASE: source `c` in marg.
+    obtain ⟨c, L_p, R_p, hL_p_dir, hR_p_dir, hL_p_pos, hR_p_pos, _,
+            hL_p_sub, hR_p_sub, hL_p_drop_sub, hR_p_drop_sub⟩ :=
+      Walk.exists_arms_of_bifurcation_directed_hinge_strong p i h_dir
+    -- c is the bifurcation source; trace c ∈ p.tail.dropLast → c ∈ T.
+    have hc_in_L_p : c ∈ L_p.vertices := Walk.head_mem_vertices L_p
+    have hc_in_R_p : c ∈ R_p.vertices := Walk.head_mem_vertices R_p
+    have hc_in_p_drop : c ∈ p.vertices.dropLast := hL_p_sub _ hc_in_L_p
+    have hc_in_p_tail : c ∈ p.vertices.tail := hR_p_sub _ hc_in_R_p
+    have hc_in_p_inter : c ∈ p.vertices.tail.dropLast :=
+      mem_interior_of_arm_source ha_p_tail hp_pos hc_in_p_tail hc_in_p_drop
+    have hc_T : c ∈ T := hp_inter c hc_in_p_inter
+    -- Expand each arm into G.
+    obtain ⟨L_g, hL_g_dir, hL_g_len, hL_g_sub_S, hL_g_drop_sub_S,
+            _, hL_g_tdL_sub_S⟩ :=
+      expand_directed_walk_marginalize L_p hL_p_dir
+    obtain ⟨R_g, hR_g_dir, hR_g_len, hR_g_sub_S, hR_g_drop_sub_S,
+            _, hR_g_tdL_sub_S⟩ :=
+      expand_directed_walk_marginalize R_p hR_p_dir
+    have hL_g_pos : L_g.length ≥ 1 := by omega
+    have hR_g_pos : R_g.length ≥ 1 := by omega
+    -- Trace L_p's interior to T (similarly for R_p).
+    have hL_p_inter_T : ∀ x ∈ L_p.vertices.tail.dropLast, x ∈ T := by
+      intro x hx
+      have h_t_ne : L_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos L_p hL_p_pos
+      have h_drop_eq : L_p.vertices.dropLast = c :: L_p.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_p]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have hx_L_p_drop : x ∈ L_p.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have hx_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub _ hx_L_p_drop
+      have hx_L_p : x ∈ L_p.vertices := List.mem_of_mem_dropLast hx_L_p_drop
+      have hx_p_drop : x ∈ p.vertices.dropLast := hL_p_sub _ hx_L_p
+      have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+      exact hp_inter _ hx_p_inter
+    have hR_p_inter_T : ∀ x ∈ R_p.vertices.tail.dropLast, x ∈ T := by
+      intro x hx
+      have h_t_ne : R_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos R_p hR_p_pos
+      have h_drop_eq : R_p.vertices.dropLast = c :: R_p.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_p]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have hx_R_p_drop : x ∈ R_p.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have hx_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub _ hx_R_p_drop
+      have hx_R_p : x ∈ R_p.vertices := List.mem_of_mem_dropLast hx_R_p_drop
+      have hx_p_tail : x ∈ p.vertices.tail := hR_p_sub _ hx_R_p
+      have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+      exact hp_inter _ hx_p_inter
+    -- Vertex bounds for L_g, R_g (a/b in correct positions).
+    have ha_notin_L_g_drop : a ∉ L_g.vertices.dropLast := by
+      intro h_in
+      rcases hL_g_drop_sub_S a h_in with h_in_L_p | h_in_S
+      · exact ha_p_tail (hL_p_drop_sub a h_in_L_p)
+      · exact ha_notS h_in_S
+    have ha_notin_R_g : a ∉ R_g.vertices := by
+      intro h_in
+      rcases hR_g_sub_S a h_in with h_in_R_p | h_in_S
+      · exact ha_p_tail (hR_p_sub a h_in_R_p)
+      · exact ha_notS h_in_S
+    have hb_notin_L_g : b ∉ L_g.vertices := by
+      intro h_in
+      rcases hL_g_sub_S b h_in with h_in_L_p | h_in_S
+      · exact hb_p_drop (hL_p_sub b h_in_L_p)
+      · exact hb_notS h_in_S
+    have hb_notin_R_g_drop : b ∉ R_g.vertices.dropLast := by
+      intro h_in
+      rcases hR_g_drop_sub_S b h_in with h_in_R_p | h_in_S
+      · exact hb_p_drop (hR_p_drop_sub b h_in_R_p)
+      · exact hb_notS h_in_S
+    -- Build the bifurcation in G.
+    refine ⟨Walk.mkBifurcation L_g hL_g_dir hL_g_pos R_g, ?_, ?_⟩
+    · have h_src := Walk.mkBifurcation_isBifurcationSource L_g hL_g_dir hL_g_pos
+                      R_g hR_g_dir hR_g_pos
+                      hab_ne ha_notin_L_g_drop ha_notin_R_g hb_notin_L_g
+                      hb_notin_R_g_drop
+      exact Walk.isBifurcationSource_to_isBifurcation _ c h_src
+    · intro x hx
+      rw [vertices_tail_dropLast_mkBifurcation L_g hL_g_dir hL_g_pos R_g
+            hR_g_pos] at hx
+      rcases List.mem_append.mp hx with hx_L | hx_R
+      · rw [List.mem_reverse] at hx_L
+        rcases hL_g_tdL_sub_S x hx_L with hx_L_p_inter | hx_S
+        · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p_inter)
+        · exact Finset.mem_union_left _ hx_S
+      · have h_R_t_ne : R_g.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos R_g hR_g_pos
+        rw [Walk.vertices_eq_head_cons_tail R_g,
+            List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R
+        rcases List.mem_cons.mp hx_R with rfl | hx_inner
+        · exact Finset.mem_union_right _ hc_T
+        · rcases hR_g_tdL_sub_S x hx_inner with hx_R_p_inter | hx_S
+          · exact Finset.mem_union_right _ (hR_p_inter_T x hx_R_p_inter)
+          · exact Finset.mem_union_left _ hx_S
+  · -- BIDIRECTED HINGE CASE.
+    obtain ⟨vL_p, vR_p, L_p, R_p, hL_p_dir, hR_p_dir, hLR_p_marg, _,
+            hL_p_sub, hR_p_sub, hL_p_drop_sub, hR_p_drop_sub⟩ :=
+      Walk.exists_arms_of_bifurcation_bidir_hinge_strong
+        p i hp_split h_dir
+    -- Unfold marg.L via the Sym2-image iff (Batch-1 net-new helper in MPA).
+    obtain ⟨e, he1_VS, he2_VS, _he_ne, h_phi_L_e, hs_eq⟩ :=
+      (marginalize_L_iff G S hS).mp hLR_p_marg
+    -- `Sym2.eq_iff` case-split: `s(vL_p, vR_p) = s(e.1, e.2)` admits two
+    -- orientations; in either we obtain `vL_p, vR_p ∈ G.V \ S` and the
+    -- symmetric `Φ_L S vL_p vR_p` (via `Or.symm` in the swap case).
+    have h_pack : vL_p ∈ G.V \ S ∧ vR_p ∈ G.V \ S ∧
+                  G.MarginalizationΦL S vL_p vR_p := by
+      rcases Sym2.eq_iff.mp hs_eq with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · exact ⟨he1_VS, he2_VS, h_phi_L_e⟩
+      · exact ⟨he2_VS, he1_VS, h_phi_L_e.symm⟩
+    obtain ⟨hvL_VS, hvR_VS, h_phi_L⟩ := h_pack
+    have hvL_notS : vL_p ∉ S := (Finset.mem_sdiff.mp hvL_VS).2
+    have hvR_notS : vR_p ∉ S := (Finset.mem_sdiff.mp hvR_VS).2
+    have hvL_in_L_p : vL_p ∈ L_p.vertices := Walk.head_mem_vertices L_p
+    have hvL_in_p_drop : vL_p ∈ p.vertices.dropLast := hL_p_sub _ hvL_in_L_p
+    have hvR_in_R_p : vR_p ∈ R_p.vertices := Walk.head_mem_vertices R_p
+    have hvR_in_p_tail : vR_p ∈ p.vertices.tail := hR_p_sub _ hvR_in_R_p
+    -- Expand each arm into G (may have length 0 in the bid case).
+    obtain ⟨L_g, hL_g_dir, hL_g_len, hL_g_sub_S, hL_g_drop_sub_S,
+            _, hL_g_tdL_sub_S⟩ :=
+      expand_directed_walk_marginalize L_p hL_p_dir
+    obtain ⟨R_g, hR_g_dir, hR_g_len, hR_g_sub_S, hR_g_drop_sub_S,
+            _, hR_g_tdL_sub_S⟩ :=
+      expand_directed_walk_marginalize R_p hR_p_dir
+    -- Helper: trace L_p's interior to T.
+    have hL_p_inter_T : ∀ x ∈ L_p.vertices.tail.dropLast, x ∈ T := by
+      intro x hx
+      by_cases h_L_p_pos : L_p.length ≥ 1
+      · have h_t_ne : L_p.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos L_p h_L_p_pos
+        have h_drop_eq :
+            L_p.vertices.dropLast = vL_p :: L_p.vertices.tail.dropLast := by
+          conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_p]
+          exact List.dropLast_cons_of_ne_nil h_t_ne
+        have hx_L_p_drop : x ∈ L_p.vertices.dropLast := by
+          rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+        have hx_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub _ hx_L_p_drop
+        have hx_L_p : x ∈ L_p.vertices := List.mem_of_mem_dropLast hx_L_p_drop
+        have hx_p_drop : x ∈ p.vertices.dropLast := hL_p_sub _ hx_L_p
+        have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+          mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+        exact hp_inter _ hx_p_inter
+      · have h_zero : L_p.length = 0 := by omega
+        match L_p, h_zero with
+        | .nil _ _, _ => simp [Walk.vertices, List.tail, List.dropLast] at hx
+    have hR_p_inter_T : ∀ x ∈ R_p.vertices.tail.dropLast, x ∈ T := by
+      intro x hx
+      by_cases h_R_p_pos : R_p.length ≥ 1
+      · have h_t_ne : R_p.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos R_p h_R_p_pos
+        have h_drop_eq :
+            R_p.vertices.dropLast = vR_p :: R_p.vertices.tail.dropLast := by
+          conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_p]
+          exact List.dropLast_cons_of_ne_nil h_t_ne
+        have hx_R_p_drop : x ∈ R_p.vertices.dropLast := by
+          rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+        have hx_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub _ hx_R_p_drop
+        have hx_R_p : x ∈ R_p.vertices := List.mem_of_mem_dropLast hx_R_p_drop
+        have hx_p_tail : x ∈ p.vertices.tail := hR_p_sub _ hx_R_p
+        have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+          mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+        exact hp_inter _ hx_p_inter
+      · have h_zero : R_p.length = 0 := by omega
+        match R_p, h_zero with
+        | .nil _ _, _ => simp [Walk.vertices, List.tail, List.dropLast] at hx
+    -- vL_p ∈ T (when L_p.length ≥ 1, i.e., vL_p ≠ a).
+    have hvL_T_if_L_p_pos : L_p.length ≥ 1 → vL_p ∈ T := by
+      intro h_L_p_pos
+      have h_t_ne : L_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos L_p h_L_p_pos
+      have hvL_in_L_p_drop : vL_p ∈ L_p.vertices.dropLast := by
+        rw [Walk.vertices_eq_head_cons_tail L_p,
+            List.dropLast_cons_of_ne_nil h_t_ne]
+        exact List.mem_cons_self
+      have hvL_p_tail : vL_p ∈ p.vertices.tail :=
+        hL_p_drop_sub _ hvL_in_L_p_drop
+      have hvL_p_inter : vL_p ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hvL_p_tail hvL_in_p_drop
+      exact hp_inter _ hvL_p_inter
+    -- vR_p ∈ T (when R_p.length ≥ 1, i.e., vR_p ≠ b).
+    have hvR_T_if_R_p_pos : R_p.length ≥ 1 → vR_p ∈ T := by
+      intro h_R_p_pos
+      have h_t_ne : R_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos R_p h_R_p_pos
+      have hvR_in_R_p_drop : vR_p ∈ R_p.vertices.dropLast := by
+        rw [Walk.vertices_eq_head_cons_tail R_p,
+            List.dropLast_cons_of_ne_nil h_t_ne]
+        exact List.mem_cons_self
+      have hvR_p_drop : vR_p ∈ p.vertices.dropLast :=
+        hR_p_drop_sub _ hvR_in_R_p_drop
+      have hvR_p_inter : vR_p ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hvR_in_p_tail hvR_p_drop
+      exact hp_inter _ hvR_p_inter
+    -- Vertex bounds for L_g, R_g (a/b in correct positions).
+    have ha_notin_L_g_drop : a ∉ L_g.vertices.dropLast := by
+      intro h_in
+      rcases hL_g_drop_sub_S a h_in with h_in_L_p | h_in_S
+      · exact ha_p_tail (hL_p_drop_sub a h_in_L_p)
+      · exact ha_notS h_in_S
+    have ha_notin_R_g : a ∉ R_g.vertices := by
+      intro h_in
+      rcases hR_g_sub_S a h_in with h_in_R_p | h_in_S
+      · exact ha_p_tail (hR_p_sub a h_in_R_p)
+      · exact ha_notS h_in_S
+    have hb_notin_L_g : b ∉ L_g.vertices := by
+      intro h_in
+      rcases hL_g_sub_S b h_in with h_in_L_p | h_in_S
+      · exact hb_p_drop (hL_p_sub b h_in_L_p)
+      · exact hb_notS h_in_S
+    have hb_notin_R_g_drop : b ∉ R_g.vertices.dropLast := by
+      intro h_in
+      rcases hR_g_drop_sub_S b h_in with h_in_R_p | h_in_S
+      · exact hb_p_drop (hR_p_drop_sub b h_in_R_p)
+      · exact hb_notS h_in_S
+    -- Case split on Φ_L S vL_p vR_p (Or).
+    rcases h_phi_L with ⟨M, hM_bif, hM_W⟩ | ⟨M, hM_bif, hM_W⟩
+    · -- Inl case: M : Walk G vL_p vR_p.
+      have hM_split_ex : ∃ k, M.IsBifurcationWithSplit k := hM_bif.2.2.2
+      obtain ⟨k_M, hM_split⟩ := hM_split_ex
+      have hM_pos : M.length ≥ 1 := Walk.length_pos_of_isBifurcation hM_bif
+      have hvL_M_tail : vL_p ∉ M.vertices.tail := hM_bif.2.1
+      have hvR_M_drop : vR_p ∉ M.vertices.dropLast := hM_bif.2.2.1
+      by_cases h_M_dir : M.IsBifurcationDirectedHingeWithSplit k_M
+      · -- Inl + directed M-hinge.
+        obtain ⟨c_M, M_L, M_R, hM_L_dir, hM_R_dir, hM_L_pos, hM_R_pos, hidx_M,
+                hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
+          Walk.exists_arms_of_bifurcation_directed_hinge_strong M k_M h_M_dir
+        -- Combined L: M_L.comp L_g : c_M → a.
+        -- Combined R: M_R.comp R_g : c_M → b.
+        have hLc_dir : (M_L.comp L_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_L L_g hM_L_dir hL_g_dir
+        have hRc_dir : (M_R.comp R_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_R R_g hM_R_dir hR_g_dir
+        have hLc_pos : (M_L.comp L_g).length ≥ 1 := by
+          rw [Walk.length_comp]; omega
+        have hRc_pos : (M_R.comp R_g).length ≥ 1 := by
+          rw [Walk.length_comp]; omega
+        -- M_L.dropLast ⊆ S (via M's interior).
+        have hM_L_drop_S : ∀ x ∈ M_L.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
+            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx))
+        have hM_R_drop_S : ∀ x ∈ M_R.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W
+            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub
+        -- a ∉ M_L.dropLast (since a ∉ S).
+        have ha_notin_M_L_drop : a ∉ M_L.vertices.dropLast := fun h_in =>
+          ha_notS (hM_L_drop_S a h_in)
+        have ha_notin_M_R_drop : a ∉ M_R.vertices.dropLast := fun h_in =>
+          ha_notS (hM_R_drop_S a h_in)
+        have hb_notin_M_L_drop : b ∉ M_L.vertices.dropLast := fun h_in =>
+          hb_notS (hM_L_drop_S b h_in)
+        have hb_notin_M_R_drop : b ∉ M_R.vertices.dropLast := fun h_in =>
+          hb_notS (hM_R_drop_S b h_in)
+        -- Vertex bounds for combined walks via vertices_comp.
+        have h_Lc_vs :
+            (M_L.comp L_g).vertices = M_L.vertices.dropLast ++ L_g.vertices :=
+          Walk.vertices_comp M_L L_g
+        have h_Rc_vs :
+            (M_R.comp R_g).vertices = M_R.vertices.dropLast ++ R_g.vertices :=
+          Walk.vertices_comp M_R R_g
+        have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
+        have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
+        have h_Lc_drop : (M_L.comp L_g).vertices.dropLast
+            = M_L.vertices.dropLast ++ L_g.vertices.dropLast := by
+          rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
+        have h_Rc_drop : (M_R.comp R_g).vertices.dropLast
+            = M_R.vertices.dropLast ++ R_g.vertices.dropLast := by
+          rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
+        have ha_notin_Lc_drop : a ∉ (M_L.comp L_g).vertices.dropLast := by
+          rw [h_Lc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact ha_notin_M_L_drop h_M
+          · exact ha_notin_L_g_drop h_L
+        have ha_notin_Rc : a ∉ (M_R.comp R_g).vertices := by
+          rw [h_Rc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact ha_notin_M_R_drop h_M
+          · exact ha_notin_R_g h_R
+        have hb_notin_Lc : b ∉ (M_L.comp L_g).vertices := by
+          rw [h_Lc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact hb_notin_M_L_drop h_M
+          · exact hb_notin_L_g h_L
+        have hb_notin_Rc_drop : b ∉ (M_R.comp R_g).vertices.dropLast := by
+          rw [h_Rc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact hb_notin_M_R_drop h_M
+          · exact hb_notin_R_g_drop h_R
+        refine ⟨Walk.mkBifurcation (M_L.comp L_g) hLc_dir hLc_pos
+                  (M_R.comp R_g), ?_, ?_⟩
+        · have h_src := Walk.mkBifurcation_isBifurcationSource
+              (M_L.comp L_g) hLc_dir hLc_pos (M_R.comp R_g) hRc_dir hRc_pos
+              hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+          exact Walk.isBifurcationSource_to_isBifurcation _ c_M h_src
+        · -- Interior bound: ∀ x ∈ (mkBifurcation Lc Rc).tail.dropLast, x ∈ S ∪ T.
+          intro x hx
+          rw [vertices_tail_dropLast_mkBifurcation (M_L.comp L_g) hLc_dir hLc_pos
+                (M_R.comp R_g) hRc_pos] at hx
+          rcases List.mem_append.mp hx with hx_L | hx_R
+          · -- x ∈ (M_L.comp L_g).vertices.tail.dropLast.reverse.
+            rw [List.mem_reverse] at hx_L
+            -- x ∈ Lc.tail.dropLast → x ∈ Lc.tail ⊆ Lc.vertices.
+            have hx_Lc : x ∈ (M_L.comp L_g).vertices :=
+              List.mem_of_mem_tail (List.mem_of_mem_dropLast hx_L)
+            rw [h_Lc_vs] at hx_Lc
+            rcases List.mem_append.mp hx_Lc with hxM | hxL
+            · -- x ∈ M_L.vertices.dropLast → x ∈ S.
+              exact Finset.mem_union_left _ (hM_L_drop_S x hxM)
+            · -- x ∈ L_g.vertices.
+              -- Need: x ∈ S ∪ T.  Split based on x ∈ L_g.tail.dropLast or boundary.
+              have hLg_vs_eq : L_g.vertices = vL_p :: L_g.vertices.tail :=
+                Walk.vertices_eq_head_cons_tail L_g
+              rw [hLg_vs_eq] at hxL
+              rcases List.mem_cons.mp hxL with hxL_eq | hxL_tail
+              · -- hxL_eq : x = vL_p.  Need x ∈ S ∪ T.
+                by_cases h_L_p_pos : L_p.length ≥ 1
+                · rw [hxL_eq]
+                  exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                · -- L_p.length = 0 → vL_p = a → x = a → contradiction.
+                  have h_L_p_zero : L_p.length = 0 := by omega
+                  have hvL_eq_a : vL_p = a := by
+                    by_contra h_ne
+                    have := Walk.length_pos_of_ne L_p h_ne
+                    omega
+                  have hx_eq_a : x = a := hxL_eq.trans hvL_eq_a
+                  rw [hx_eq_a] at hx_L
+                  -- a ∈ Lc.tail.dropLast → a ∈ Lc.dropLast (via Lc.dropLast = c_M :: Lc.tail.dropLast).
+                  have h_Lc_t_ne : (M_L.comp L_g).vertices.tail ≠ [] :=
+                    Walk.tail_vertices_ne_nil_of_pos _ hLc_pos
+                  have h_Lc_drop_eq :
+                      (M_L.comp L_g).vertices.dropLast
+                        = c_M :: (M_L.comp L_g).vertices.tail.dropLast := by
+                    conv_lhs => rw [Walk.vertices_eq_head_cons_tail (M_L.comp L_g)]
+                    exact List.dropLast_cons_of_ne_nil h_Lc_t_ne
+                  have hx_Lc_drop : a ∈ (M_L.comp L_g).vertices.dropLast := by
+                    rw [h_Lc_drop_eq]; exact List.mem_cons_of_mem _ hx_L
+                  exact absurd hx_Lc_drop ha_notin_Lc_drop
+              · -- x ∈ L_g.vertices.tail.
+                by_cases h_L_g_pos : L_g.length ≥ 1
+                · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                    Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                  have h_Lg_t_last :=
+                    Walk.tail_getLast_of_pos L_g h_L_g_pos
+                  have h_Lg_decomp :
+                      L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                    have := List.dropLast_append_getLast h_Lg_t_ne
+                    rw [h_Lg_t_last] at this
+                    exact this.symm
+                  rw [h_Lg_decomp] at hxL_tail
+                  rcases List.mem_append.mp hxL_tail with hxL_int | hxL_a
+                  · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                    · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                    · exact Finset.mem_union_left _ hx_S
+                  · rw [List.mem_singleton] at hxL_a
+                    rw [hxL_a] at hx_L
+                    have h_Lc_t_ne : (M_L.comp L_g).vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos _ hLc_pos
+                    have h_Lc_drop_eq :
+                        (M_L.comp L_g).vertices.dropLast
+                          = c_M :: (M_L.comp L_g).vertices.tail.dropLast := by
+                      conv_lhs => rw [Walk.vertices_eq_head_cons_tail (M_L.comp L_g)]
+                      exact List.dropLast_cons_of_ne_nil h_Lc_t_ne
+                    have hx_Lc_drop : a ∈ (M_L.comp L_g).vertices.dropLast := by
+                      rw [h_Lc_drop_eq]; exact List.mem_cons_of_mem _ hx_L
+                    exact absurd hx_Lc_drop ha_notin_Lc_drop
+                · -- L_g.length = 0 → L_g.tail = []. Contradiction with hxL_tail.
+                  have h_L_g_zero : L_g.length = 0 := by omega
+                  match L_g, h_L_g_zero with
+                  | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxL_tail
+          · -- x ∈ (M_R.comp R_g).vertices.dropLast.
+            rw [h_Rc_drop] at hx_R
+            rcases List.mem_append.mp hx_R with hxM | hxR
+            · exact Finset.mem_union_left _ (hM_R_drop_S x hxM)
+            · -- x ∈ R_g.vertices.dropLast.
+              by_cases h_R_g_pos : R_g.length ≥ 1
+              · have h_Rg_t_ne : R_g.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos R_g h_R_g_pos
+                have h_Rg_drop_eq :
+                    R_g.vertices.dropLast = vR_p :: R_g.vertices.tail.dropLast := by
+                  conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_g]
+                  exact List.dropLast_cons_of_ne_nil h_Rg_t_ne
+                rw [h_Rg_drop_eq] at hxR
+                rcases List.mem_cons.mp hxR with hxR_eq | hxR_int
+                · -- hxR_eq : x = vR_p.  Need x ∈ S ∪ T (vR_p ∉ S, so need ∈ T).
+                  by_cases h_R_p_pos : R_p.length ≥ 1
+                  · rw [hxR_eq]
+                    exact Finset.mem_union_right _ (hvR_T_if_R_p_pos h_R_p_pos)
+                  · -- R_p.length = 0 → vR_p = b → x = b → contradiction.
+                    have h_R_p_zero : R_p.length = 0 := by omega
+                    have hvR_eq_b : vR_p = b := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne R_p h_ne
+                      omega
+                    have hx_eq_b : x = b := hxR_eq.trans hvR_eq_b
+                    rw [hx_eq_b] at hx_R
+                    exact absurd hx_R (h_Rc_drop ▸ hb_notin_Rc_drop)
+                · rcases hR_g_tdL_sub_S x hxR_int with hx_R_p | hx_S
+                  · exact Finset.mem_union_right _ (hR_p_inter_T x hx_R_p)
+                  · exact Finset.mem_union_left _ hx_S
+              · -- R_g.length = 0 → R_g.dropLast = []. Contradiction with hxR.
+                have h_R_g_zero : R_g.length = 0 := by omega
+                match R_g, h_R_g_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.dropLast] at hxR
+      · -- Inl + bid M-hinge.
+        obtain ⟨vML, vMR, M_L, M_R, hM_L_dir, hM_R_dir, hMLR_G, _,
+                hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
+          Walk.exists_arms_of_bifurcation_bidir_hinge_strong M k_M hM_split h_M_dir
+        -- M_L : Walk G vML vL_p. M_R : Walk G vMR vR_p. (vML, vMR) ∈ G.L.
+        have hLc_dir : (M_L.comp L_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_L L_g hM_L_dir hL_g_dir
+        have hRc_dir : (M_R.comp R_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_R R_g hM_R_dir hR_g_dir
+        have hM_L_drop_S : ∀ x ∈ M_L.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
+            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx))
+        have hM_R_drop_S : ∀ x ∈ M_R.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W
+            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub
+        have ha_notin_M_L_drop : a ∉ M_L.vertices.dropLast := fun h_in =>
+          ha_notS (hM_L_drop_S a h_in)
+        have ha_notin_M_R_drop : a ∉ M_R.vertices.dropLast := fun h_in =>
+          ha_notS (hM_R_drop_S a h_in)
+        have hb_notin_M_L_drop : b ∉ M_L.vertices.dropLast := fun h_in =>
+          hb_notS (hM_L_drop_S b h_in)
+        have hb_notin_M_R_drop : b ∉ M_R.vertices.dropLast := fun h_in =>
+          hb_notS (hM_R_drop_S b h_in)
+        have h_Lc_vs :
+            (M_L.comp L_g).vertices = M_L.vertices.dropLast ++ L_g.vertices :=
+          Walk.vertices_comp M_L L_g
+        have h_Rc_vs :
+            (M_R.comp R_g).vertices = M_R.vertices.dropLast ++ R_g.vertices :=
+          Walk.vertices_comp M_R R_g
+        have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
+        have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
+        have h_Lc_drop : (M_L.comp L_g).vertices.dropLast
+            = M_L.vertices.dropLast ++ L_g.vertices.dropLast := by
+          rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
+        have h_Rc_drop : (M_R.comp R_g).vertices.dropLast
+            = M_R.vertices.dropLast ++ R_g.vertices.dropLast := by
+          rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
+        have ha_notin_Lc_drop : a ∉ (M_L.comp L_g).vertices.dropLast := by
+          rw [h_Lc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact ha_notin_M_L_drop h_M
+          · exact ha_notin_L_g_drop h_L
+        have ha_notin_Rc : a ∉ (M_R.comp R_g).vertices := by
+          rw [h_Rc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact ha_notin_M_R_drop h_M
+          · exact ha_notin_R_g h_R
+        have hb_notin_Lc : b ∉ (M_L.comp L_g).vertices := by
+          rw [h_Lc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact hb_notin_M_L_drop h_M
+          · exact hb_notin_L_g h_L
+        have hb_notin_Rc_drop : b ∉ (M_R.comp R_g).vertices.dropLast := by
+          rw [h_Rc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact hb_notin_M_R_drop h_M
+          · exact hb_notin_R_g_drop h_R
+        refine ⟨Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                  (M_R.comp R_g) hMLR_G, ?_, ?_⟩
+        · exact Walk.mkBifurcationBidir_isBifurcation (M_L.comp L_g) hLc_dir
+            (M_R.comp R_g) hRc_dir hMLR_G hab_ne ha_notin_Lc_drop ha_notin_Rc
+            hb_notin_Lc hb_notin_Rc_drop
+        · -- Interior bound.
+          intro x hx
+          -- bif vertices = Lc.vertices.reverse.dropLast ++ (vML :: Rc.vertices).
+          -- Need: x ∈ bif.vertices.tail.dropLast → x ∈ S ∪ T.
+          -- We argue from x ∈ bif.vertices.
+          have hx_bif_vs : x ∈
+              (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                (M_R.comp R_g) hMLR_G).vertices :=
+            List.mem_of_mem_tail (List.mem_of_mem_dropLast hx)
+          rw [Walk.vertices_mkBifurcationBidir
+                (M_L.comp L_g) hLc_dir (M_R.comp R_g) hMLR_G] at hx_bif_vs
+          rcases List.mem_append.mp hx_bif_vs with hx_Lc_rev | hx_Rc
+          · -- x ∈ Lc.vertices.reverse.dropLast → x ∈ Lc.vertices and x ≠ a (Lc's target).
+            have hx_Lc_vs : x ∈ (M_L.comp L_g).vertices := by
+              have := List.mem_of_mem_dropLast hx_Lc_rev
+              rwa [List.mem_reverse] at this
+            -- x ≠ a, since otherwise hx_bif (tail.dropLast) would contradict by giving
+            -- a in tail.dropLast.  Actually we need a stronger argument.
+            -- We'll show x ∈ Lc.dropLast (excluding the target a).
+            -- x ∈ Lc.reverse.dropLast → x is in Lc.reverse but not the last (= a).
+            -- Equivalently, x ∈ Lc.tail (= Lc.reverse.dropLast.reverse).
+            -- We have hx_Lc_rev : x ∈ Lc.reverse.dropLast.
+            -- Lc.reverse = a :: ... (since Lc ends at a). Lc.reverse.dropLast drops the last.
+            -- Hmm, this is getting complicated. Let me use a direct approach:
+            -- Lc.reverse.dropLast = Lc.tail.reverse (Walk.vertices_reverse_dropLast).
+            rw [Walk.vertices_reverse_dropLast (M_L.comp L_g)] at hx_Lc_rev
+            -- hx_Lc_rev : x ∈ Lc.vertices.tail.reverse.
+            rw [List.mem_reverse] at hx_Lc_rev
+            -- hx_Lc_rev : x ∈ Lc.vertices.tail.
+            -- x ∈ Lc.vertices.tail = (M_L.dropLast ++ L_g.vertices).tail.
+            -- Case-split on M_L.length.
+            by_cases h_M_L_pos : M_L.length ≥ 1
+            · -- M_L.dropLast ≠ [].  Lc.tail = M_L.dropLast.tail ++ L_g.vertices.
+              have h_M_L_drop_ne : M_L.vertices.dropLast ≠ [] := by
+                have h_M_L_t_ne : M_L.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos M_L h_M_L_pos
+                rw [Walk.vertices_eq_head_cons_tail M_L,
+                    List.dropLast_cons_of_ne_nil h_M_L_t_ne]
+                exact List.cons_ne_nil _ _
+              rw [h_Lc_vs, List.tail_append_of_ne_nil h_M_L_drop_ne] at hx_Lc_rev
+              rcases List.mem_append.mp hx_Lc_rev with hxM | hxL
+              · -- x ∈ M_L.vertices.dropLast.tail.
+                have hxM_in_drop : x ∈ M_L.vertices.dropLast :=
+                  List.mem_of_mem_tail hxM
+                exact Finset.mem_union_left _ (hM_L_drop_S x hxM_in_drop)
+              · -- x ∈ L_g.vertices.  Same analysis as before (with vL_p, L_p.length cases).
+                have hLg_vs_eq : L_g.vertices = vL_p :: L_g.vertices.tail :=
+                  Walk.vertices_eq_head_cons_tail L_g
+                rw [hLg_vs_eq] at hxL
+                rcases List.mem_cons.mp hxL with hx_eq_vL | hxL_tail
+                · -- x = vL_p.
+                  by_cases h_L_p_pos : L_p.length ≥ 1
+                  · rw [hx_eq_vL]
+                    exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                  · -- L_p.length = 0 → vL_p = a → x = a, contradicting hx in bif.tail.dropLast.
+                    have h_L_p_zero : L_p.length = 0 := by omega
+                    have hvL_eq_a : vL_p = a := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne L_p h_ne
+                      omega
+                    -- x = vL_p = a. But hx_bif_vs derived from hx in bif.tail.dropLast.
+                    -- a ∉ bif.tail.dropLast (a is the bif walk's head).
+                    -- More concretely, we need a contradiction via hx.
+                    have hx_a : x = a := hx_eq_vL.trans hvL_eq_a
+                    rw [hx_a] at hx
+                    -- hx : a ∈ bif.tail.dropLast → a ∈ bif.tail → false (a is bif's head).
+                    -- Use the bif's IsBifurcation: head ∉ tail.
+                    have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                      (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                      hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                    have h_head_notin_tail := hbif_bif.2.1
+                    -- h_head_notin_tail : a ∉ bif.vertices.tail.
+                    have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                    exact absurd hx_bif_tail h_head_notin_tail
+                · -- x ∈ L_g.vertices.tail.  Case-split on L_g.length.
+                  by_cases h_L_g_pos : L_g.length ≥ 1
+                  · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                    have h_Lg_t_last :=
+                      Walk.tail_getLast_of_pos L_g h_L_g_pos
+                    have h_Lg_decomp :
+                        L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                      have := List.dropLast_append_getLast h_Lg_t_ne
+                      rw [h_Lg_t_last] at this
+                      exact this.symm
+                    rw [h_Lg_decomp] at hxL_tail
+                    rcases List.mem_append.mp hxL_tail with hxL_int | hxL_a
+                    · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                      · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                      · exact Finset.mem_union_left _ hx_S
+                    · rw [List.mem_singleton] at hxL_a
+                      rw [hxL_a] at hx
+                      have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                        (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                        hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                      have h_head_notin_tail := hbif_bif.2.1
+                      have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                      exact absurd hx_bif_tail h_head_notin_tail
+                  · -- L_g.length = 0 → L_g.tail = []. hxL_tail vacuous.
+                    have h_L_g_zero : L_g.length = 0 := by omega
+                    match L_g, h_L_g_zero with
+                    | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxL_tail
+            · -- M_L.length = 0 → M_L = nil, vML = vL_p.
+              -- M_L.dropLast = []. Lc.vertices = [] ++ L_g.vertices = L_g.vertices.
+              -- Lc.vertices.tail = L_g.vertices.tail.
+              have h_M_L_zero : M_L.length = 0 := by omega
+              have hM_L_drop_empty : M_L.vertices.dropLast = [] := by
+                match M_L, h_M_L_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.dropLast]
+              rw [h_Lc_vs, hM_L_drop_empty, List.nil_append] at hx_Lc_rev
+              -- hx_Lc_rev : x ∈ L_g.vertices.tail.
+              by_cases h_L_g_pos : L_g.length ≥ 1
+              · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                have h_Lg_t_last :=
+                  Walk.tail_getLast_of_pos L_g h_L_g_pos
+                have h_Lg_decomp :
+                    L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                  have := List.dropLast_append_getLast h_Lg_t_ne
+                  rw [h_Lg_t_last] at this
+                  exact this.symm
+                rw [h_Lg_decomp] at hx_Lc_rev
+                rcases List.mem_append.mp hx_Lc_rev with hxL_int | hxL_a
+                · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                  · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                  · exact Finset.mem_union_left _ hx_S
+                · rw [List.mem_singleton] at hxL_a
+                  rw [hxL_a] at hx
+                  have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                    (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                    hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                  have h_head_notin_tail := hbif_bif.2.1
+                  have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                  exact absurd hx_bif_tail h_head_notin_tail
+              · -- L_g.length = 0 → L_g.tail = []. Contradiction.
+                have h_L_g_zero : L_g.length = 0 := by omega
+                match L_g, h_L_g_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx_Lc_rev
+          · -- x ∈ vML :: Rc.vertices.
+            rcases List.mem_cons.mp hx_Rc with hx_eq_vML | hx_Rc_vs
+            · -- x = vML.
+              -- vML's status: either vML ∈ S (if M_L.length ≥ 1) or vML = vL_p
+              -- (if M_L = nil), in which case the vL_p analysis applies.
+              by_cases h_M_L_pos : M_L.length ≥ 1
+              · -- vML ∈ M_L.dropLast (head). M_L.dropLast ⊆ S. So vML ∈ S.
+                have h_M_L_t_ne : M_L.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos M_L h_M_L_pos
+                have hvML_in_M_L_drop : vML ∈ M_L.vertices.dropLast := by
+                  rw [Walk.vertices_eq_head_cons_tail M_L,
+                      List.dropLast_cons_of_ne_nil h_M_L_t_ne]
+                  exact List.mem_cons_self
+                rw [hx_eq_vML]
+                exact Finset.mem_union_left _ (hM_L_drop_S vML hvML_in_M_L_drop)
+              · -- M_L.length = 0 → vML = vL_p. Then either vL_p ∈ T (L_p.length ≥ 1)
+                -- or vL_p = a (then x = a contradicts hx).
+                have h_M_L_zero : M_L.length = 0 := by omega
+                have hvML_eq_vL : vML = vL_p := by
+                  by_contra h_ne
+                  have := Walk.length_pos_of_ne M_L h_ne
+                  omega
+                by_cases h_L_p_pos : L_p.length ≥ 1
+                · rw [hx_eq_vML, hvML_eq_vL]
+                  exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                · -- L_p.length = 0 → vL_p = a → vML = a → x = a → contradiction.
+                  have h_L_p_zero : L_p.length = 0 := by omega
+                  have hvL_eq_a : vL_p = a := by
+                    by_contra h_ne
+                    have := Walk.length_pos_of_ne L_p h_ne
+                    omega
+                  have hx_a : x = a := hx_eq_vML.trans (hvML_eq_vL.trans hvL_eq_a)
+                  rw [hx_a] at hx
+                  have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                    (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                    hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                  have h_head_notin_tail := hbif_bif.2.1
+                  have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                  exact absurd hx_bif_tail h_head_notin_tail
+            · -- x ∈ Rc.vertices = M_R.dropLast ++ R_g.vertices.
+              rw [h_Rc_vs] at hx_Rc_vs
+              rcases List.mem_append.mp hx_Rc_vs with hxM | hxR
+              · exact Finset.mem_union_left _ (hM_R_drop_S x hxM)
+              · -- x ∈ R_g.vertices.
+                have hRg_vs_eq : R_g.vertices = vR_p :: R_g.vertices.tail :=
+                  Walk.vertices_eq_head_cons_tail R_g
+                rw [hRg_vs_eq] at hxR
+                rcases List.mem_cons.mp hxR with hx_eq_vR | hxR_tail
+                · -- x = vR_p.
+                  by_cases h_R_p_pos : R_p.length ≥ 1
+                  · rw [hx_eq_vR]
+                    exact Finset.mem_union_right _ (hvR_T_if_R_p_pos h_R_p_pos)
+                  · -- R_p.length = 0 → vR_p = b → x = b → contradiction (b is bif's last).
+                    have h_R_p_zero : R_p.length = 0 := by omega
+                    have hvR_eq_b : vR_p = b := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne R_p h_ne
+                      omega
+                    have hx_b : x = b := hx_eq_vR.trans hvR_eq_b
+                    rw [hx_b] at hx
+                    -- hx : b ∈ bif.tail.dropLast.  b is bif's last.
+                    have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                      (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                      hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                    have h_last_notin_drop := hbif_bif.2.2.1
+                    -- h_last_notin_drop : b ∉ bif.vertices.dropLast.
+                    -- hx : b ∈ bif.vertices.tail.dropLast → b ∈ bif.vertices.dropLast.
+                    -- (Because tail.dropLast ⊆ dropLast for non-trivial walks.)
+                    have h_bif_t_ne : (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                         (M_R.comp R_g) hMLR_G).vertices.tail ≠ [] := by
+                      have h_bif_pos := Walk.length_pos_of_isBifurcation hbif_bif
+                      exact Walk.tail_vertices_ne_nil_of_pos _ h_bif_pos
+                    have h_bif_drop_eq :
+                        (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                          (M_R.comp R_g) hMLR_G).vertices.dropLast
+                        = a :: (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                  (M_R.comp R_g) hMLR_G).vertices.tail.dropLast := by
+                      conv_lhs => rw [Walk.vertices_eq_head_cons_tail _]
+                      exact List.dropLast_cons_of_ne_nil h_bif_t_ne
+                    have hx_bif_drop : b ∈ (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                              (M_R.comp R_g) hMLR_G).vertices.dropLast := by
+                      rw [h_bif_drop_eq]; exact List.mem_cons_of_mem _ hx
+                    exact absurd hx_bif_drop h_last_notin_drop
+                · -- x ∈ R_g.vertices.tail.  Case-split on R_g.length.
+                  by_cases h_R_g_pos : R_g.length ≥ 1
+                  · have h_Rg_t_ne : R_g.vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos R_g h_R_g_pos
+                    have h_Rg_t_last :=
+                      Walk.tail_getLast_of_pos R_g h_R_g_pos
+                    have h_Rg_decomp :
+                        R_g.vertices.tail = R_g.vertices.tail.dropLast ++ [b] := by
+                      have := List.dropLast_append_getLast h_Rg_t_ne
+                      rw [h_Rg_t_last] at this
+                      exact this.symm
+                    rw [h_Rg_decomp] at hxR_tail
+                    rcases List.mem_append.mp hxR_tail with hxR_int | hxR_b
+                    · rcases hR_g_tdL_sub_S x hxR_int with hx_R_p | hx_S
+                      · exact Finset.mem_union_right _ (hR_p_inter_T x hx_R_p)
+                      · exact Finset.mem_union_left _ hx_S
+                    · rw [List.mem_singleton] at hxR_b
+                      rw [hxR_b] at hx
+                      have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                        (M_L.comp L_g) hLc_dir (M_R.comp R_g) hRc_dir hMLR_G
+                        hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                      have h_last_notin_drop := hbif_bif.2.2.1
+                      have h_bif_t_ne : (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                           (M_R.comp R_g) hMLR_G).vertices.tail ≠ [] := by
+                        have h_bif_pos := Walk.length_pos_of_isBifurcation hbif_bif
+                        exact Walk.tail_vertices_ne_nil_of_pos _ h_bif_pos
+                      have h_bif_drop_eq :
+                          (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                            (M_R.comp R_g) hMLR_G).vertices.dropLast
+                          = a :: (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                    (M_R.comp R_g) hMLR_G).vertices.tail.dropLast := by
+                        conv_lhs => rw [Walk.vertices_eq_head_cons_tail _]
+                        exact List.dropLast_cons_of_ne_nil h_bif_t_ne
+                      have hx_bif_drop : b ∈ (Walk.mkBifurcationBidir (M_L.comp L_g) hLc_dir
+                                                (M_R.comp R_g) hMLR_G).vertices.dropLast := by
+                        rw [h_bif_drop_eq]; exact List.mem_cons_of_mem _ hx
+                      exact absurd hx_bif_drop h_last_notin_drop
+                  · -- R_g.length = 0 → R_g.tail = []. Contradiction.
+                    have h_R_g_zero : R_g.length = 0 := by omega
+                    match R_g, h_R_g_zero with
+                    | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxR_tail
+    · -- Inr case: M : Walk G vR_p vL_p.
+      have hM_split_ex : ∃ k, M.IsBifurcationWithSplit k := hM_bif.2.2.2
+      obtain ⟨k_M, hM_split⟩ := hM_split_ex
+      have hM_pos : M.length ≥ 1 := Walk.length_pos_of_isBifurcation hM_bif
+      -- For inr orientation: M.head = vR_p, M.tail's last = vL_p.
+      have hvR_M_tail : vR_p ∉ M.vertices.tail := hM_bif.2.1
+      have hvL_M_drop : vL_p ∉ M.vertices.dropLast := hM_bif.2.2.1
+      by_cases h_M_dir : M.IsBifurcationDirectedHingeWithSplit k_M
+      · -- Inr + directed M-hinge.
+        obtain ⟨c_M, M_L, M_R, hM_L_dir, hM_R_dir, hM_L_pos, hM_R_pos, _,
+                hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
+          Walk.exists_arms_of_bifurcation_directed_hinge_strong M k_M h_M_dir
+        -- M_L : Walk G c_M vR_p, M_R : Walk G c_M vL_p.
+        -- Combined L (to a via vL_p): M_R.comp L_g : Walk G c_M a.
+        -- Combined R (to b via vR_p): M_L.comp R_g : Walk G c_M b.
+        have hLc_dir : (M_R.comp L_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_R L_g hM_R_dir hL_g_dir
+        have hRc_dir : (M_L.comp R_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_L R_g hM_L_dir hR_g_dir
+        have hLc_pos : (M_R.comp L_g).length ≥ 1 := by
+          rw [Walk.length_comp]; omega
+        have hRc_pos : (M_L.comp R_g).length ≥ 1 := by
+          rw [Walk.length_comp]; omega
+        -- M_L.dropLast ⊆ S, M_R.dropLast ⊆ S via M's interior.
+        have hM_L_drop_S : ∀ x ∈ M_L.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
+            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx))
+        have hM_R_drop_S : ∀ x ∈ M_R.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W
+            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub
+        have ha_notin_M_L_drop : a ∉ M_L.vertices.dropLast := fun h_in =>
+          ha_notS (hM_L_drop_S a h_in)
+        have ha_notin_M_R_drop : a ∉ M_R.vertices.dropLast := fun h_in =>
+          ha_notS (hM_R_drop_S a h_in)
+        have hb_notin_M_L_drop : b ∉ M_L.vertices.dropLast := fun h_in =>
+          hb_notS (hM_L_drop_S b h_in)
+        have hb_notin_M_R_drop : b ∉ M_R.vertices.dropLast := fun h_in =>
+          hb_notS (hM_R_drop_S b h_in)
+        have h_Lc_vs :
+            (M_R.comp L_g).vertices = M_R.vertices.dropLast ++ L_g.vertices :=
+          Walk.vertices_comp M_R L_g
+        have h_Rc_vs :
+            (M_L.comp R_g).vertices = M_L.vertices.dropLast ++ R_g.vertices :=
+          Walk.vertices_comp M_L R_g
+        have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
+        have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
+        have h_Lc_drop : (M_R.comp L_g).vertices.dropLast
+            = M_R.vertices.dropLast ++ L_g.vertices.dropLast := by
+          rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
+        have h_Rc_drop : (M_L.comp R_g).vertices.dropLast
+            = M_L.vertices.dropLast ++ R_g.vertices.dropLast := by
+          rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
+        have ha_notin_Lc_drop : a ∉ (M_R.comp L_g).vertices.dropLast := by
+          rw [h_Lc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact ha_notin_M_R_drop h_M
+          · exact ha_notin_L_g_drop h_L
+        have ha_notin_Rc : a ∉ (M_L.comp R_g).vertices := by
+          rw [h_Rc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact ha_notin_M_L_drop h_M
+          · exact ha_notin_R_g h_R
+        have hb_notin_Lc : b ∉ (M_R.comp L_g).vertices := by
+          rw [h_Lc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact hb_notin_M_R_drop h_M
+          · exact hb_notin_L_g h_L
+        have hb_notin_Rc_drop : b ∉ (M_L.comp R_g).vertices.dropLast := by
+          rw [h_Rc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact hb_notin_M_L_drop h_M
+          · exact hb_notin_R_g_drop h_R
+        refine ⟨Walk.mkBifurcation (M_R.comp L_g) hLc_dir hLc_pos
+                  (M_L.comp R_g), ?_, ?_⟩
+        · have h_src := Walk.mkBifurcation_isBifurcationSource
+              (M_R.comp L_g) hLc_dir hLc_pos (M_L.comp R_g) hRc_dir hRc_pos
+              hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+          exact Walk.isBifurcationSource_to_isBifurcation _ c_M h_src
+        · intro x hx
+          rw [vertices_tail_dropLast_mkBifurcation (M_R.comp L_g) hLc_dir hLc_pos
+                (M_L.comp R_g) hRc_pos] at hx
+          rcases List.mem_append.mp hx with hx_L | hx_R
+          · rw [List.mem_reverse] at hx_L
+            have hx_Lc : x ∈ (M_R.comp L_g).vertices :=
+              List.mem_of_mem_tail (List.mem_of_mem_dropLast hx_L)
+            rw [h_Lc_vs] at hx_Lc
+            rcases List.mem_append.mp hx_Lc with hxM | hxL
+            · exact Finset.mem_union_left _ (hM_R_drop_S x hxM)
+            · have hLg_vs_eq : L_g.vertices = vL_p :: L_g.vertices.tail :=
+                Walk.vertices_eq_head_cons_tail L_g
+              rw [hLg_vs_eq] at hxL
+              rcases List.mem_cons.mp hxL with hx_eq_vL | hxL_tail
+              · by_cases h_L_p_pos : L_p.length ≥ 1
+                · rw [hx_eq_vL]
+                  exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                · have h_L_p_zero : L_p.length = 0 := by omega
+                  have hvL_eq_a : vL_p = a := by
+                    by_contra h_ne
+                    have := Walk.length_pos_of_ne L_p h_ne
+                    omega
+                  have hx_eq_a : x = a := hx_eq_vL.trans hvL_eq_a
+                  rw [hx_eq_a] at hx_L
+                  have h_Lc_t_ne : (M_R.comp L_g).vertices.tail ≠ [] :=
+                    Walk.tail_vertices_ne_nil_of_pos _ hLc_pos
+                  have h_Lc_drop_eq :
+                      (M_R.comp L_g).vertices.dropLast
+                        = c_M :: (M_R.comp L_g).vertices.tail.dropLast := by
+                    conv_lhs => rw [Walk.vertices_eq_head_cons_tail (M_R.comp L_g)]
+                    exact List.dropLast_cons_of_ne_nil h_Lc_t_ne
+                  have hx_Lc_drop : a ∈ (M_R.comp L_g).vertices.dropLast := by
+                    rw [h_Lc_drop_eq]; exact List.mem_cons_of_mem _ hx_L
+                  exact absurd hx_Lc_drop ha_notin_Lc_drop
+              · by_cases h_L_g_pos : L_g.length ≥ 1
+                · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                    Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                  have h_Lg_t_last :=
+                    Walk.tail_getLast_of_pos L_g h_L_g_pos
+                  have h_Lg_decomp :
+                      L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                    have := List.dropLast_append_getLast h_Lg_t_ne
+                    rw [h_Lg_t_last] at this
+                    exact this.symm
+                  rw [h_Lg_decomp] at hxL_tail
+                  rcases List.mem_append.mp hxL_tail with hxL_int | hxL_a
+                  · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                    · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                    · exact Finset.mem_union_left _ hx_S
+                  · rw [List.mem_singleton] at hxL_a
+                    rw [hxL_a] at hx_L
+                    have h_Lc_t_ne : (M_R.comp L_g).vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos _ hLc_pos
+                    have h_Lc_drop_eq :
+                        (M_R.comp L_g).vertices.dropLast
+                          = c_M :: (M_R.comp L_g).vertices.tail.dropLast := by
+                      conv_lhs => rw [Walk.vertices_eq_head_cons_tail (M_R.comp L_g)]
+                      exact List.dropLast_cons_of_ne_nil h_Lc_t_ne
+                    have hx_Lc_drop : a ∈ (M_R.comp L_g).vertices.dropLast := by
+                      rw [h_Lc_drop_eq]; exact List.mem_cons_of_mem _ hx_L
+                    exact absurd hx_Lc_drop ha_notin_Lc_drop
+                · have h_L_g_zero : L_g.length = 0 := by omega
+                  match L_g, h_L_g_zero with
+                  | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxL_tail
+          · rw [h_Rc_drop] at hx_R
+            rcases List.mem_append.mp hx_R with hxM | hxR
+            · exact Finset.mem_union_left _ (hM_L_drop_S x hxM)
+            · by_cases h_R_g_pos : R_g.length ≥ 1
+              · have h_Rg_t_ne : R_g.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos R_g h_R_g_pos
+                have h_Rg_drop_eq :
+                    R_g.vertices.dropLast = vR_p :: R_g.vertices.tail.dropLast := by
+                  conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_g]
+                  exact List.dropLast_cons_of_ne_nil h_Rg_t_ne
+                rw [h_Rg_drop_eq] at hxR
+                rcases List.mem_cons.mp hxR with hxR_eq | hxR_int
+                · by_cases h_R_p_pos : R_p.length ≥ 1
+                  · rw [hxR_eq]
+                    exact Finset.mem_union_right _ (hvR_T_if_R_p_pos h_R_p_pos)
+                  · have h_R_p_zero : R_p.length = 0 := by omega
+                    have hvR_eq_b : vR_p = b := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne R_p h_ne
+                      omega
+                    have hx_eq_b : x = b := hxR_eq.trans hvR_eq_b
+                    rw [hx_eq_b] at hx_R
+                    exact absurd hx_R (h_Rc_drop ▸ hb_notin_Rc_drop)
+                · rcases hR_g_tdL_sub_S x hxR_int with hx_R_p | hx_S
+                  · exact Finset.mem_union_right _ (hR_p_inter_T x hx_R_p)
+                  · exact Finset.mem_union_left _ hx_S
+              · have h_R_g_zero : R_g.length = 0 := by omega
+                match R_g, h_R_g_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.dropLast] at hxR
+      · -- Inr + bid M-hinge.
+        obtain ⟨vML, vMR, M_L, M_R, hM_L_dir, hM_R_dir, hMLR_G, _,
+                hM_L_sub, hM_R_sub, hM_L_drop_sub, hM_R_drop_sub⟩ :=
+          Walk.exists_arms_of_bifurcation_bidir_hinge_strong M k_M hM_split h_M_dir
+        -- M_L : Walk G vML vR_p. M_R : Walk G vMR vL_p.
+        -- s(vML, vMR) ∈ G.L from the bidirected hinge.
+        -- Combined L (to a via vL_p): M_R.comp L_g : Walk G vMR a.
+        -- Combined R (to b via vR_p): M_L.comp R_g : Walk G vML b.
+        -- Hinge swap: refactor's `G.L : Finset (Sym2 Node)` is
+        -- definitionally swap-symmetric; original code used
+        -- `G.hL_symm hMLR_G` which has no counterpart under refactor.
+        -- We rewrite via `Sym2.eq_swap` to align the orientation.
+        have hMLR_sym : s(vMR, vML) ∈ G.L := by rw [Sym2.eq_swap]; exact hMLR_G
+        have hLc_dir : (M_R.comp L_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_R L_g hM_R_dir hL_g_dir
+        have hRc_dir : (M_L.comp R_g).IsDirectedWalk :=
+          Walk.isDirectedWalk_comp M_L R_g hM_L_dir hR_g_dir
+        have hM_L_drop_S : ∀ x ∈ M_L.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W hM_L_drop_sub
+            (fun x hx => hM_L_sub x (List.mem_of_mem_dropLast hx))
+        have hM_R_drop_S : ∀ x ∈ M_R.vertices.dropLast, x ∈ S :=
+          Walk.arm_dropLast_in_W hM_bif hM_W
+            (fun x hx => hM_R_sub x (List.mem_of_mem_dropLast hx)) hM_R_drop_sub
+        have ha_notin_M_L_drop : a ∉ M_L.vertices.dropLast := fun h_in =>
+          ha_notS (hM_L_drop_S a h_in)
+        have ha_notin_M_R_drop : a ∉ M_R.vertices.dropLast := fun h_in =>
+          ha_notS (hM_R_drop_S a h_in)
+        have hb_notin_M_L_drop : b ∉ M_L.vertices.dropLast := fun h_in =>
+          hb_notS (hM_L_drop_S b h_in)
+        have hb_notin_M_R_drop : b ∉ M_R.vertices.dropLast := fun h_in =>
+          hb_notS (hM_R_drop_S b h_in)
+        have h_Lc_vs :
+            (M_R.comp L_g).vertices = M_R.vertices.dropLast ++ L_g.vertices :=
+          Walk.vertices_comp M_R L_g
+        have h_Rc_vs :
+            (M_L.comp R_g).vertices = M_L.vertices.dropLast ++ R_g.vertices :=
+          Walk.vertices_comp M_L R_g
+        have h_L_g_ne : L_g.vertices ≠ [] := Walk.vertices_ne_nil L_g
+        have h_R_g_ne : R_g.vertices ≠ [] := Walk.vertices_ne_nil R_g
+        have h_Lc_drop : (M_R.comp L_g).vertices.dropLast
+            = M_R.vertices.dropLast ++ L_g.vertices.dropLast := by
+          rw [h_Lc_vs]; exact List.dropLast_append_of_ne_nil h_L_g_ne
+        have h_Rc_drop : (M_L.comp R_g).vertices.dropLast
+            = M_L.vertices.dropLast ++ R_g.vertices.dropLast := by
+          rw [h_Rc_vs]; exact List.dropLast_append_of_ne_nil h_R_g_ne
+        have ha_notin_Lc_drop : a ∉ (M_R.comp L_g).vertices.dropLast := by
+          rw [h_Lc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact ha_notin_M_R_drop h_M
+          · exact ha_notin_L_g_drop h_L
+        have ha_notin_Rc : a ∉ (M_L.comp R_g).vertices := by
+          rw [h_Rc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact ha_notin_M_L_drop h_M
+          · exact ha_notin_R_g h_R
+        have hb_notin_Lc : b ∉ (M_R.comp L_g).vertices := by
+          rw [h_Lc_vs]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_L
+          · exact hb_notin_M_R_drop h_M
+          · exact hb_notin_L_g h_L
+        have hb_notin_Rc_drop : b ∉ (M_L.comp R_g).vertices.dropLast := by
+          rw [h_Rc_drop]
+          intro h_in
+          rcases List.mem_append.mp h_in with h_M | h_R
+          · exact hb_notin_M_L_drop h_M
+          · exact hb_notin_R_g_drop h_R
+        refine ⟨Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                  (M_L.comp R_g) hMLR_sym, ?_, ?_⟩
+        · exact Walk.mkBifurcationBidir_isBifurcation (M_R.comp L_g) hLc_dir
+            (M_L.comp R_g) hRc_dir hMLR_sym hab_ne ha_notin_Lc_drop ha_notin_Rc
+            hb_notin_Lc hb_notin_Rc_drop
+        · -- Interior bound.
+          intro x hx
+          have hx_bif_vs : x ∈
+              (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                (M_L.comp R_g) hMLR_sym).vertices :=
+            List.mem_of_mem_tail (List.mem_of_mem_dropLast hx)
+          rw [Walk.vertices_mkBifurcationBidir
+                (M_R.comp L_g) hLc_dir (M_L.comp R_g) hMLR_sym] at hx_bif_vs
+          rcases List.mem_append.mp hx_bif_vs with hx_Lc_rev | hx_Rc
+          · rw [Walk.vertices_reverse_dropLast (M_R.comp L_g)] at hx_Lc_rev
+            rw [List.mem_reverse] at hx_Lc_rev
+            by_cases h_M_R_pos : M_R.length ≥ 1
+            · have h_M_R_drop_ne : M_R.vertices.dropLast ≠ [] := by
+                have h_M_R_t_ne : M_R.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos M_R h_M_R_pos
+                rw [Walk.vertices_eq_head_cons_tail M_R,
+                    List.dropLast_cons_of_ne_nil h_M_R_t_ne]
+                exact List.cons_ne_nil _ _
+              rw [h_Lc_vs, List.tail_append_of_ne_nil h_M_R_drop_ne] at hx_Lc_rev
+              rcases List.mem_append.mp hx_Lc_rev with hxM | hxL
+              · have hxM_in_drop : x ∈ M_R.vertices.dropLast :=
+                  List.mem_of_mem_tail hxM
+                exact Finset.mem_union_left _ (hM_R_drop_S x hxM_in_drop)
+              · have hLg_vs_eq : L_g.vertices = vL_p :: L_g.vertices.tail :=
+                  Walk.vertices_eq_head_cons_tail L_g
+                rw [hLg_vs_eq] at hxL
+                rcases List.mem_cons.mp hxL with hx_eq_vL | hxL_tail
+                · by_cases h_L_p_pos : L_p.length ≥ 1
+                  · rw [hx_eq_vL]
+                    exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                  · have h_L_p_zero : L_p.length = 0 := by omega
+                    have hvL_eq_a : vL_p = a := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne L_p h_ne
+                      omega
+                    have hx_a : x = a := hx_eq_vL.trans hvL_eq_a
+                    rw [hx_a] at hx
+                    have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                      (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                      hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                    have h_head_notin_tail := hbif_bif.2.1
+                    have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                    exact absurd hx_bif_tail h_head_notin_tail
+                · by_cases h_L_g_pos : L_g.length ≥ 1
+                  · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                    have h_Lg_t_last :=
+                      Walk.tail_getLast_of_pos L_g h_L_g_pos
+                    have h_Lg_decomp :
+                        L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                      have := List.dropLast_append_getLast h_Lg_t_ne
+                      rw [h_Lg_t_last] at this
+                      exact this.symm
+                    rw [h_Lg_decomp] at hxL_tail
+                    rcases List.mem_append.mp hxL_tail with hxL_int | hxL_a
+                    · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                      · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                      · exact Finset.mem_union_left _ hx_S
+                    · rw [List.mem_singleton] at hxL_a
+                      rw [hxL_a] at hx
+                      have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                        (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                        hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                      have h_head_notin_tail := hbif_bif.2.1
+                      have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                      exact absurd hx_bif_tail h_head_notin_tail
+                  · have h_L_g_zero : L_g.length = 0 := by omega
+                    match L_g, h_L_g_zero with
+                    | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxL_tail
+            · have h_M_R_zero : M_R.length = 0 := by omega
+              have hM_R_drop_empty : M_R.vertices.dropLast = [] := by
+                match M_R, h_M_R_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.dropLast]
+              rw [h_Lc_vs, hM_R_drop_empty, List.nil_append] at hx_Lc_rev
+              by_cases h_L_g_pos : L_g.length ≥ 1
+              · have h_Lg_t_ne : L_g.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos L_g h_L_g_pos
+                have h_Lg_t_last :=
+                  Walk.tail_getLast_of_pos L_g h_L_g_pos
+                have h_Lg_decomp :
+                    L_g.vertices.tail = L_g.vertices.tail.dropLast ++ [a] := by
+                  have := List.dropLast_append_getLast h_Lg_t_ne
+                  rw [h_Lg_t_last] at this
+                  exact this.symm
+                rw [h_Lg_decomp] at hx_Lc_rev
+                rcases List.mem_append.mp hx_Lc_rev with hxL_int | hxL_a
+                · rcases hL_g_tdL_sub_S x hxL_int with hx_L_p | hx_S
+                  · exact Finset.mem_union_right _ (hL_p_inter_T x hx_L_p)
+                  · exact Finset.mem_union_left _ hx_S
+                · rw [List.mem_singleton] at hxL_a
+                  rw [hxL_a] at hx
+                  have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                    (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                    hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                  have h_head_notin_tail := hbif_bif.2.1
+                  have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                  exact absurd hx_bif_tail h_head_notin_tail
+              · have h_L_g_zero : L_g.length = 0 := by omega
+                match L_g, h_L_g_zero with
+                | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx_Lc_rev
+          · -- x ∈ vMR :: Rc.vertices.
+            rcases List.mem_cons.mp hx_Rc with hx_eq_vMR | hx_Rc_vs
+            · -- x = vMR.
+              by_cases h_M_R_pos : M_R.length ≥ 1
+              · have h_M_R_t_ne : M_R.vertices.tail ≠ [] :=
+                  Walk.tail_vertices_ne_nil_of_pos M_R h_M_R_pos
+                have hvMR_in_M_R_drop : vMR ∈ M_R.vertices.dropLast := by
+                  rw [Walk.vertices_eq_head_cons_tail M_R,
+                      List.dropLast_cons_of_ne_nil h_M_R_t_ne]
+                  exact List.mem_cons_self
+                rw [hx_eq_vMR]
+                exact Finset.mem_union_left _ (hM_R_drop_S vMR hvMR_in_M_R_drop)
+              · -- M_R.length = 0 → vMR = vL_p.
+                have h_M_R_zero : M_R.length = 0 := by omega
+                have hvMR_eq_vL : vMR = vL_p := by
+                  by_contra h_ne
+                  have := Walk.length_pos_of_ne M_R h_ne
+                  omega
+                by_cases h_L_p_pos : L_p.length ≥ 1
+                · rw [hx_eq_vMR, hvMR_eq_vL]
+                  exact Finset.mem_union_right _ (hvL_T_if_L_p_pos h_L_p_pos)
+                · have h_L_p_zero : L_p.length = 0 := by omega
+                  have hvL_eq_a : vL_p = a := by
+                    by_contra h_ne
+                    have := Walk.length_pos_of_ne L_p h_ne
+                    omega
+                  have hx_a : x = a := hx_eq_vMR.trans (hvMR_eq_vL.trans hvL_eq_a)
+                  rw [hx_a] at hx
+                  have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                    (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                    hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                  have h_head_notin_tail := hbif_bif.2.1
+                  have hx_bif_tail : a ∈ _ := List.mem_of_mem_dropLast hx
+                  exact absurd hx_bif_tail h_head_notin_tail
+            · rw [h_Rc_vs] at hx_Rc_vs
+              rcases List.mem_append.mp hx_Rc_vs with hxM | hxR
+              · exact Finset.mem_union_left _ (hM_L_drop_S x hxM)
+              · have hRg_vs_eq : R_g.vertices = vR_p :: R_g.vertices.tail :=
+                  Walk.vertices_eq_head_cons_tail R_g
+                rw [hRg_vs_eq] at hxR
+                rcases List.mem_cons.mp hxR with hx_eq_vR | hxR_tail
+                · by_cases h_R_p_pos : R_p.length ≥ 1
+                  · rw [hx_eq_vR]
+                    exact Finset.mem_union_right _ (hvR_T_if_R_p_pos h_R_p_pos)
+                  · have h_R_p_zero : R_p.length = 0 := by omega
+                    have hvR_eq_b : vR_p = b := by
+                      by_contra h_ne
+                      have := Walk.length_pos_of_ne R_p h_ne
+                      omega
+                    have hx_b : x = b := hx_eq_vR.trans hvR_eq_b
+                    rw [hx_b] at hx
+                    have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                      (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                      hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                    have h_last_notin_drop := hbif_bif.2.2.1
+                    have h_bif_t_ne :
+                        (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                            (M_L.comp R_g) hMLR_sym).vertices.tail ≠ [] := by
+                      have h_bif_pos := Walk.length_pos_of_isBifurcation hbif_bif
+                      exact Walk.tail_vertices_ne_nil_of_pos _ h_bif_pos
+                    have h_bif_drop_eq :
+                        (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                            (M_L.comp R_g) hMLR_sym).vertices.dropLast
+                        = a :: (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                                    (M_L.comp R_g) hMLR_sym).vertices.tail.dropLast := by
+                      conv_lhs => rw [Walk.vertices_eq_head_cons_tail _]
+                      exact List.dropLast_cons_of_ne_nil h_bif_t_ne
+                    have hx_bif_drop : b ∈
+                        (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                            (M_L.comp R_g) hMLR_sym).vertices.dropLast := by
+                      rw [h_bif_drop_eq]; exact List.mem_cons_of_mem _ hx
+                    exact absurd hx_bif_drop h_last_notin_drop
+                · by_cases h_R_g_pos : R_g.length ≥ 1
+                  · have h_Rg_t_ne : R_g.vertices.tail ≠ [] :=
+                      Walk.tail_vertices_ne_nil_of_pos R_g h_R_g_pos
+                    have h_Rg_t_last :=
+                      Walk.tail_getLast_of_pos R_g h_R_g_pos
+                    have h_Rg_decomp :
+                        R_g.vertices.tail = R_g.vertices.tail.dropLast ++ [b] := by
+                      have := List.dropLast_append_getLast h_Rg_t_ne
+                      rw [h_Rg_t_last] at this
+                      exact this.symm
+                    rw [h_Rg_decomp] at hxR_tail
+                    rcases List.mem_append.mp hxR_tail with hxR_int | hxR_b
+                    · rcases hR_g_tdL_sub_S x hxR_int with hx_R_p | hx_S
+                      · exact Finset.mem_union_right _ (hR_p_inter_T x hx_R_p)
+                      · exact Finset.mem_union_left _ hx_S
+                    · rw [List.mem_singleton] at hxR_b
+                      rw [hxR_b] at hx
+                      have hbif_bif := Walk.mkBifurcationBidir_isBifurcation
+                        (M_R.comp L_g) hLc_dir (M_L.comp R_g) hRc_dir hMLR_sym
+                        hab_ne ha_notin_Lc_drop ha_notin_Rc hb_notin_Lc hb_notin_Rc_drop
+                      have h_last_notin_drop := hbif_bif.2.2.1
+                      have h_bif_t_ne :
+                          (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                              (M_L.comp R_g) hMLR_sym).vertices.tail ≠ [] := by
+                        have h_bif_pos := Walk.length_pos_of_isBifurcation hbif_bif
+                        exact Walk.tail_vertices_ne_nil_of_pos _ h_bif_pos
+                      have h_bif_drop_eq :
+                          (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                              (M_L.comp R_g) hMLR_sym).vertices.dropLast
+                          = a :: (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                                      (M_L.comp R_g) hMLR_sym).vertices.tail.dropLast := by
+                        conv_lhs => rw [Walk.vertices_eq_head_cons_tail _]
+                        exact List.dropLast_cons_of_ne_nil h_bif_t_ne
+                      have hx_bif_drop : b ∈
+                          (Walk.mkBifurcationBidir (M_R.comp L_g) hLc_dir
+                              (M_L.comp R_g) hMLR_sym).vertices.dropLast := by
+                        rw [h_bif_drop_eq]; exact List.mem_cons_of_mem _ hx
+                      exact absurd hx_bif_drop h_last_notin_drop
+                  · have h_R_g_zero : R_g.length = 0 := by omega
+                    match R_g, h_R_g_zero with
+                    | .nil _ _, _ => simp [Walk.vertices, List.tail] at hxR_tail
+
+-- ## Phase D.2 port — backward, bidirected-hinge bif, single orientation.
+--
+-- The novel refactor sites inside this lemma are confined to the
+-- bifurcation-source extraction block: the original's
+-- `(G.hL_subset hLR_G).1 / .2` pair (extracting `vL_h, vR_h ∈ G.V`
+-- from an ordered-pair `hLR_G : (vL_h, vR_h) ∈ G.L`) becomes the
+-- `Sym2.Mem`-quantified `G.hL_subset hLR_G (Sym2.mem_mk_left vL_h vR_h)`
+-- and `G.hL_subset hLR_G (Sym2.mem_mk_right vL_h vR_h)`; the original's
+-- `G.hL_irrefl hLR_G heq` (where `heq : vL_h = vR_h`) becomes
+-- `G.hL_irrefl hLR_G (Sym2.mk_isDiag_iff.mpr heq)` (matching the exact
+-- `Sym2.mk_isDiag_iff` idiom used in
+-- `MarginalizationAK.marginalize_hL_irrefl`).  The
+-- `s(β, γ) ∈ marg.L` assembly at the L-edge construction site goes via
+-- `marginalize_L_iff` (Batch-1 net-new helper from
+-- `MargPreservesAncestors`) rather than peeling
+-- `Finset.mem_filter` + `Finset.mem_product` inline (which is ill-typed
+-- on the post-refactor `Finset.image`-built `marg.L`).
+set_option linter.style.longLine false in
+private lemma backward_marg_to_g_bif_bidir_hinge_one_orientation
+    {G : CDMG Node} (S T : Finset Node)
+    (hS : S ⊆ G.V) {a b : Node}
+    (ha_VST : a ∈ G.V \ (S ∪ T)) (hb_VST : b ∈ G.V \ (S ∪ T))
+    (ha_marg : a ∈ G.marginalize S hS) (hb_marg : b ∈ G.marginalize S hS)
+    (p : Walk G a b)
+    (hp_bif : p.IsBifurcation)
+    (hp_inter : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∪ T)
+    (i : ℕ) (hp_split : p.IsBifurcationWithSplit i)
+    (h_not_dir : ¬ p.IsBifurcationDirectedHingeWithSplit i) :
+    ∃ q : Walk (G.marginalize S hS) a b, q.IsBifurcation ∧
+      ∀ x ∈ q.vertices.tail.dropLast, x ∈ T := by
+  have ha_notSuT : a ∉ S ∪ T := (Finset.mem_sdiff.mp ha_VST).2
+  have hb_notSuT : b ∉ S ∪ T := (Finset.mem_sdiff.mp hb_VST).2
+  have ha_notS : a ∉ S := fun h => ha_notSuT (Finset.mem_union_left _ h)
+  have hb_notS : b ∉ S := fun h => hb_notSuT (Finset.mem_union_left _ h)
+  have hp_pos : p.length ≥ 1 :=
+    Walk.length_pos_of_isBifurcation hp_bif
+  obtain ⟨hab_ne, ha_p_tail, hb_p_drop, _⟩ := hp_bif
+  have hp_inter_ST : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T :=
+    fun x hx => Finset.mem_union.mp (hp_inter x hx)
+  -- Extract bidirected hinge arms.
+  obtain ⟨vL_h, vR_h, L_p, R_p, hL_p_dir, hR_p_dir, hLR_G, _,
+          hL_p_sub, hR_p_sub, hL_p_drop_sub, hR_p_drop_sub⟩ :=
+    Walk.exists_arms_of_bifurcation_bidir_hinge_strong
+      p i hp_split h_not_dir
+  -- Sym2-quantified hL_subset extracts vL_h, vR_h ∈ G.V.
+  have hvL_h_V : vL_h ∈ G.V :=
+    G.hL_subset hLR_G (Sym2.mem_mk_left vL_h vR_h)
+  have hvR_h_V : vR_h ∈ G.V :=
+    G.hL_subset hLR_G (Sym2.mem_mk_right vL_h vR_h)
+  have hvL_h_g : vL_h ∈ G := Finset.mem_union_right _ hvL_h_V
+  have hvR_h_g : vR_h ∈ G := Finset.mem_union_right _ hvR_h_V
+  -- Sym2.IsDiag idiom: G.hL_irrefl returns ¬ s(vL_h, vR_h).IsDiag.
+  have hvLR_h_ne : vL_h ≠ vR_h := fun heq =>
+    G.hL_irrefl hLR_G (Sym2.mk_isDiag_iff.mpr heq)
+  -- L_p, R_p vertex bounds.
+  have ha_notin_L_p_drop : a ∉ L_p.vertices.dropLast := fun h_in =>
+    ha_p_tail (hL_p_drop_sub a h_in)
+  have ha_notin_R_p : a ∉ R_p.vertices := fun h_in =>
+    ha_p_tail (hR_p_sub a h_in)
+  have hb_notin_L_p : b ∉ L_p.vertices := fun h_in =>
+    hb_p_drop (hL_p_sub b h_in)
+  have hb_notin_R_p_drop : b ∉ R_p.vertices.dropLast := fun h_in =>
+    hb_p_drop (hR_p_drop_sub b h_in)
+  -- L_p, R_p interior ⊆ S ∨ T.
+  have hL_p_inter_ST : ∀ x ∈ L_p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+    intro x hx
+    by_cases h_L_p_pos : L_p.length ≥ 1
+    · have h_t_ne : L_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos L_p h_L_p_pos
+      have h_drop_eq :
+          L_p.vertices.dropLast = vL_h :: L_p.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_p]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have hx_L_p_drop : x ∈ L_p.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have hx_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub _ hx_L_p_drop
+      have hx_L_p : x ∈ L_p.vertices := List.mem_of_mem_dropLast hx_L_p_drop
+      have hx_p_drop : x ∈ p.vertices.dropLast := hL_p_sub _ hx_L_p
+      have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+      exact hp_inter_ST _ hx_p_inter
+    · have h_zero : L_p.length = 0 := by omega
+      match L_p, h_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  have hR_p_inter_ST : ∀ x ∈ R_p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+    intro x hx
+    by_cases h_R_p_pos : R_p.length ≥ 1
+    · have h_t_ne : R_p.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos R_p h_R_p_pos
+      have h_drop_eq :
+          R_p.vertices.dropLast = vR_h :: R_p.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_p]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have hx_R_p_drop : x ∈ R_p.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have hx_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub _ hx_R_p_drop
+      have hx_R_p : x ∈ R_p.vertices := List.mem_of_mem_dropLast hx_R_p_drop
+      have hx_p_tail : x ∈ p.vertices.tail := hR_p_sub _ hx_R_p
+      have hx_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos hx_p_tail hx_p_drop
+      exact hp_inter_ST _ hx_p_inter
+    · have h_zero : R_p.length = 0 := by omega
+      match R_p, h_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  -- Apply inclusive find_first_non_W on each arm.
+  obtain ⟨β, L_head, L_tail, hL_head_dir, hL_tail_dir, hβ_notS,
+          hL_head_dL_S, _hL_lens, hL_p_vs_eq⟩ :=
+    find_first_non_W_directed_inclusive S L_p hL_p_dir ha_notS
+  obtain ⟨γ, R_head, R_tail, hR_head_dir, hR_tail_dir, hγ_notS,
+          hR_head_dL_S, _hR_lens, hR_p_vs_eq⟩ :=
+    find_first_non_W_directed_inclusive S R_p hR_p_dir hb_notS
+  -- β, γ ∈ G.V (target of L_head / R_head, or vL_h / vR_h if head is nil).
+  have hβ_V : β ∈ G.V := by
+    by_cases h_pos : L_head.length ≥ 1
+    · exact Walk.target_in_GV_of_directedWalk_pos L_head hL_head_dir h_pos
+    · have h_zero : L_head.length = 0 := by omega
+      have h_vL_eq_β : vL_h = β := by
+        match L_head, h_zero with
+        | .nil _ _, _ => rfl
+      rw [← h_vL_eq_β]; exact hvL_h_V
+  have hγ_V : γ ∈ G.V := by
+    by_cases h_pos : R_head.length ≥ 1
+    · exact Walk.target_in_GV_of_directedWalk_pos R_head hR_head_dir h_pos
+    · have h_zero : R_head.length = 0 := by omega
+      have h_vR_eq_γ : vR_h = γ := by
+        match R_head, h_zero with
+        | .nil _ _, _ => rfl
+      rw [← h_vR_eq_γ]; exact hvR_h_V
+  -- β, γ ∈ G.V \ S → β, γ ∈ G.marginalize S hS.
+  have hβ_VS : β ∈ G.V \ S := Finset.mem_sdiff.mpr ⟨hβ_V, hβ_notS⟩
+  have hγ_VS : γ ∈ G.V \ S := Finset.mem_sdiff.mpr ⟨hγ_V, hγ_notS⟩
+  have hβ_marg : β ∈ G.marginalize S hS := by
+    change β ∈ G.J ∪ (G.V \ S); exact Finset.mem_union_right _ hβ_VS
+  have hγ_marg : γ ∈ G.marginalize S hS := by
+    change γ ∈ G.J ∪ (G.V \ S); exact Finset.mem_union_right _ hγ_VS
+  -- Vertex memberships of L_head, R_head, L_tail, R_tail back into L_p / R_p / p.
+  have hL_head_dL_sub_L_p : ∀ x ∈ L_head.vertices.dropLast,
+      x ∈ L_p.vertices := by
+    intro x hx; rw [hL_p_vs_eq]; exact List.mem_append.mpr (Or.inl hx)
+  have hL_tail_sub_L_p : ∀ x ∈ L_tail.vertices, x ∈ L_p.vertices := by
+    intro x hx; rw [hL_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+  have hR_head_dL_sub_R_p : ∀ x ∈ R_head.vertices.dropLast,
+      x ∈ R_p.vertices := by
+    intro x hx; rw [hR_p_vs_eq]; exact List.mem_append.mpr (Or.inl hx)
+  have hR_tail_sub_R_p : ∀ x ∈ R_tail.vertices, x ∈ R_p.vertices := by
+    intro x hx; rw [hR_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+  -- DropLast bounds for L_tail, R_tail (via L_p / R_p).
+  have hL_tail_ne : L_tail.vertices ≠ [] :=
+    Walk.vertices_ne_nil L_tail
+  have hR_tail_ne : R_tail.vertices ≠ [] :=
+    Walk.vertices_ne_nil R_tail
+  have hL_tail_dL_sub_L_p_dL :
+      ∀ x ∈ L_tail.vertices.dropLast, x ∈ L_p.vertices.dropLast := by
+    intro x hx
+    rw [hL_p_vs_eq, List.dropLast_append_of_ne_nil hL_tail_ne]
+    exact List.mem_append.mpr (Or.inr hx)
+  have hR_tail_dL_sub_R_p_dL :
+      ∀ x ∈ R_tail.vertices.dropLast, x ∈ R_p.vertices.dropLast := by
+    intro x hx
+    rw [hR_p_vs_eq, List.dropLast_append_of_ne_nil hR_tail_ne]
+    exact List.mem_append.mpr (Or.inr hx)
+  -- L_tail's interior ⊆ S ∪ T.
+  have hL_tail_inter_ST : ∀ x ∈ L_tail.vertices.tail.dropLast,
+      x ∈ S ∨ x ∈ T := by
+    intro x hx
+    have h_t : x ∈ L_tail.vertices.tail := List.mem_of_mem_dropLast hx
+    have h_v : x ∈ L_tail.vertices := List.mem_of_mem_tail h_t
+    have h_L_p : x ∈ L_p.vertices := hL_tail_sub_L_p _ h_v
+    have h_x_p_drop : x ∈ p.vertices.dropLast := hL_p_sub _ h_L_p
+    by_cases h_pos : L_tail.length ≥ 1
+    · have h_t_ne : L_tail.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos L_tail h_pos
+      have h_drop_eq :
+          L_tail.vertices.dropLast = β :: L_tail.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_tail]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have h_drop : x ∈ L_tail.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have h_L_p_drop : x ∈ L_p.vertices.dropLast := hL_tail_dL_sub_L_p_dL _ h_drop
+      have h_x_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub _ h_L_p_drop
+      have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+      exact hp_inter_ST _ h_x_p_inter
+    · have h_zero : L_tail.length = 0 := by omega
+      match L_tail, h_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  have hR_tail_inter_ST : ∀ x ∈ R_tail.vertices.tail.dropLast,
+      x ∈ S ∨ x ∈ T := by
+    intro x hx
+    have h_t : x ∈ R_tail.vertices.tail := List.mem_of_mem_dropLast hx
+    have h_v : x ∈ R_tail.vertices := List.mem_of_mem_tail h_t
+    have h_R_p : x ∈ R_p.vertices := hR_tail_sub_R_p _ h_v
+    have h_x_p_tail : x ∈ p.vertices.tail := hR_p_sub _ h_R_p
+    by_cases h_pos : R_tail.length ≥ 1
+    · have h_t_ne : R_tail.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos R_tail h_pos
+      have h_drop_eq :
+          R_tail.vertices.dropLast = γ :: R_tail.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_tail]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have h_drop : x ∈ R_tail.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have h_R_p_drop : x ∈ R_p.vertices.dropLast := hR_tail_dL_sub_R_p_dL _ h_drop
+      have h_x_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub _ h_R_p_drop
+      have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+      exact hp_inter_ST _ h_x_p_inter
+    · have h_zero : R_tail.length = 0 := by omega
+      match R_tail, h_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  -- Vertex bounds: a, b vs L_tail, R_tail.
+  have ha_notin_L_tail_dL : a ∉ L_tail.vertices.dropLast := fun h_in =>
+    ha_notin_L_p_drop (hL_tail_dL_sub_L_p_dL a h_in)
+  have ha_notin_R_tail : a ∉ R_tail.vertices := fun h_in =>
+    ha_notin_R_p (hR_tail_sub_R_p a h_in)
+  have hb_notin_L_tail : b ∉ L_tail.vertices := fun h_in =>
+    hb_notin_L_p (hL_tail_sub_L_p b h_in)
+  have hb_notin_R_tail_dL : b ∉ R_tail.vertices.dropLast := fun h_in =>
+    hb_notin_R_p_drop (hR_tail_dL_sub_R_p_dL b h_in)
+  -- Case-split on β = γ.
+  by_cases hβγ_eq : β = γ
+  · -- β = γ.  Build mkBifurcation with source β.
+    subst hβγ_eq
+    have hβ_ne_a : β ≠ a := by
+      intro heq
+      have h_in_R_tail : β ∈ R_tail.vertices :=
+        Walk.head_mem_vertices R_tail
+      have h_in_R_p : β ∈ R_p.vertices := hR_tail_sub_R_p _ h_in_R_tail
+      have h_p_tail : β ∈ p.vertices.tail := hR_p_sub _ h_in_R_p
+      exact ha_p_tail (heq ▸ h_p_tail)
+    have hβ_ne_b : β ≠ b := by
+      intro heq
+      have h_in_L_tail : β ∈ L_tail.vertices :=
+        Walk.head_mem_vertices L_tail
+      have h_in_L_p : β ∈ L_p.vertices := hL_tail_sub_L_p _ h_in_L_tail
+      have h_p_drop : β ∈ p.vertices.dropLast := hL_p_sub _ h_in_L_p
+      exact hb_p_drop (heq ▸ h_p_drop)
+    have hL_tail_pos : L_tail.length ≥ 1 :=
+      Walk.length_pos_of_ne L_tail hβ_ne_a
+    have hR_tail_pos : R_tail.length ≥ 1 :=
+      Walk.length_pos_of_ne R_tail hβ_ne_b
+    -- Project L_tail, R_tail to marg.
+    obtain ⟨L_marg, hL_marg_dir, hL_marg_pos, hL_marg_vs_sub, hL_marg_dL_sub,
+            _, hL_marg_inter_T⟩ :=
+      project_walk_marg_full (S := S) (T := T) (hS := hS)
+        L_tail hL_tail_dir hL_tail_pos hβ_marg ha_marg hL_tail_inter_ST
+    obtain ⟨R_marg, hR_marg_dir, hR_marg_pos, hR_marg_vs_sub, hR_marg_dL_sub,
+            _, hR_marg_inter_T⟩ :=
+      project_walk_marg_full (S := S) (T := T) (hS := hS)
+        R_tail hR_tail_dir hR_tail_pos hβ_marg hb_marg hR_tail_inter_ST
+    -- Vertex bounds in marg.
+    have ha_notin_L_marg_dL : a ∉ L_marg.vertices.dropLast := fun h_in =>
+      ha_notin_L_tail_dL (hL_marg_dL_sub a h_in)
+    have ha_notin_R_marg : a ∉ R_marg.vertices := fun h_in =>
+      ha_notin_R_tail (hR_marg_vs_sub a h_in)
+    have hb_notin_L_marg : b ∉ L_marg.vertices := fun h_in =>
+      hb_notin_L_tail (hL_marg_vs_sub b h_in)
+    have hb_notin_R_marg_dL : b ∉ R_marg.vertices.dropLast := fun h_in =>
+      hb_notin_R_tail_dL (hR_marg_dL_sub b h_in)
+    -- Build the bifurcation.
+    refine ⟨Walk.mkBifurcation L_marg hL_marg_dir hL_marg_pos R_marg, ?_, ?_⟩
+    · have h_src := Walk.mkBifurcation_isBifurcationSource
+        L_marg hL_marg_dir hL_marg_pos R_marg hR_marg_dir hR_marg_pos
+        hab_ne ha_notin_L_marg_dL ha_notin_R_marg hb_notin_L_marg hb_notin_R_marg_dL
+      exact Walk.isBifurcationSource_to_isBifurcation _ β h_src
+    · intro x hx
+      rw [vertices_tail_dropLast_mkBifurcation
+            L_marg hL_marg_dir hL_marg_pos R_marg hR_marg_pos] at hx
+      rcases List.mem_append.mp hx with hx_L | hx_R
+      · rw [List.mem_reverse] at hx_L
+        exact hL_marg_inter_T x hx_L
+      · -- x ∈ R_marg.vertices.dropLast.  R_marg starts at β (the source).
+        have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos
+        rw [Walk.vertices_eq_head_cons_tail R_marg,
+            List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R
+        rcases List.mem_cons.mp hx_R with rfl | hx_inner
+        · -- x = β.  Need β ∈ T via mem_interior_of_arm_source.
+          have h_x_in_L_p : x ∈ L_p.vertices :=
+            hL_tail_sub_L_p _ (Walk.head_mem_vertices L_tail)
+          have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+            hL_p_sub _ h_x_in_L_p
+          have h_x_in_R_p : x ∈ R_p.vertices :=
+            hR_tail_sub_R_p _ (Walk.head_mem_vertices R_tail)
+          have h_x_in_p_tail : x ∈ p.vertices.tail :=
+            hR_p_sub _ h_x_in_R_p
+          have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+            mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+          rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+          · exact absurd h_S hβ_notS
+          · exact h_T
+        · exact hR_marg_inter_T x hx_inner
+  · -- β ≠ γ.  Build L-edge s(β, γ) ∈ marg.L via Φ_L S.
+    -- First, construct the G-bif witness using mkBifurcationBidir.
+    -- Vertex bounds (since β ∉ S, γ ∉ S, and L_head/R_head interiors ⊆ S):
+    have hβ_notin_L_head_dL : β ∉ L_head.vertices.dropLast := fun h_in =>
+      hβ_notS (hL_head_dL_S β h_in)
+    have hγ_notin_R_head_dL : γ ∉ R_head.vertices.dropLast := fun h_in =>
+      hγ_notS (hR_head_dL_S γ h_in)
+    -- R_head.vertices = R_head.vertices.dropLast ++ [γ] (via getLast).
+    have hR_head_decomp :
+        R_head.vertices = R_head.vertices.dropLast ++ [γ] := by
+      have h_ne : R_head.vertices ≠ [] :=
+        Walk.vertices_ne_nil R_head
+      have h_last : R_head.vertices.getLast h_ne = γ :=
+        Walk.vertices_getLast R_head
+      have := List.dropLast_append_getLast h_ne
+      rw [h_last] at this
+      exact this.symm
+    have hL_head_decomp :
+        L_head.vertices = L_head.vertices.dropLast ++ [β] := by
+      have h_ne : L_head.vertices ≠ [] :=
+        Walk.vertices_ne_nil L_head
+      have h_last : L_head.vertices.getLast h_ne = β :=
+        Walk.vertices_getLast L_head
+      have := List.dropLast_append_getLast h_ne
+      rw [h_last] at this
+      exact this.symm
+    have hβ_notin_R_head : β ∉ R_head.vertices := by
+      intro h_in
+      rw [hR_head_decomp] at h_in
+      rcases List.mem_append.mp h_in with h_dL | h_last
+      · exact hβ_notS (hR_head_dL_S β h_dL)
+      · rw [List.mem_singleton] at h_last; exact hβγ_eq h_last
+    have hγ_notin_L_head : γ ∉ L_head.vertices := by
+      intro h_in
+      rw [hL_head_decomp] at h_in
+      rcases List.mem_append.mp h_in with h_dL | h_last
+      · exact hγ_notS (hL_head_dL_S γ h_dL)
+      · rw [List.mem_singleton] at h_last; exact hβγ_eq h_last.symm
+    -- G-bif IsBifurcation.
+    have h_G_bif_is_bif :
+        (Walk.mkBifurcationBidir L_head hL_head_dir
+            R_head hLR_G).IsBifurcation :=
+      Walk.mkBifurcationBidir_isBifurcation
+        L_head hL_head_dir R_head hR_head_dir hLR_G
+        hβγ_eq hβ_notin_L_head_dL hβ_notin_R_head hγ_notin_L_head hγ_notin_R_head_dL
+    -- G-bif's interior ⊆ S.
+    have h_G_bif_inter_S :
+        ∀ x ∈ (Walk.mkBifurcationBidir L_head hL_head_dir
+                R_head hLR_G).vertices.tail.dropLast, x ∈ S := by
+      intro x hx
+      have h_bif_vs :=
+        Walk.vertices_mkBifurcationBidir L_head hL_head_dir
+          R_head hLR_G
+      by_cases hL_head_pos : L_head.length ≥ 1
+      · rw [vertices_tail_dropLast_mkBifurcationBidir_Lpos
+              L_head hL_head_dir R_head hLR_G hL_head_pos] at hx
+        rcases List.mem_append.mp hx with hx_L | hx_R
+        · -- x ∈ L_head.vertices.tail.dropLast.reverse → x ∈ L_head.tail.dropLast.
+          rw [List.mem_reverse] at hx_L
+          have h_x_in_L_head_dL : x ∈ L_head.vertices.dropLast := by
+            have h_t : x ∈ L_head.vertices.tail :=
+              List.mem_of_mem_dropLast hx_L
+            have h_t_ne : L_head.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos L_head hL_head_pos
+            have h_drop_eq :
+                L_head.vertices.dropLast
+                  = vL_h :: L_head.vertices.tail.dropLast := by
+              conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_head]
+              exact List.dropLast_cons_of_ne_nil h_t_ne
+            rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx_L
+          exact hL_head_dL_S x h_x_in_L_head_dL
+        · -- x ∈ (vL_h :: R_head.vertices).dropLast.
+          have h_R_head_ne : R_head.vertices ≠ [] :=
+            Walk.vertices_ne_nil R_head
+          rw [List.dropLast_cons_of_ne_nil h_R_head_ne] at hx_R
+          rcases List.mem_cons.mp hx_R with rfl | hx_R_dL
+          · have h_t_ne : L_head.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos L_head hL_head_pos
+            have hx_in_dL : x ∈ L_head.vertices.dropLast := by
+              rw [Walk.vertices_eq_head_cons_tail L_head,
+                  List.dropLast_cons_of_ne_nil h_t_ne]
+              exact List.mem_cons_self
+            exact hL_head_dL_S _ hx_in_dL
+          · exact hR_head_dL_S x hx_R_dL
+      · -- L_head.length = 0 → vL_h = β → L_head = nil.
+        have h_zero : L_head.length = 0 := by omega
+        have hvL_eq_β : vL_h = β := by
+          match L_head, h_zero with
+          | .nil _ _, _ => rfl
+        have h_L_head_vs : L_head.vertices = [vL_h] := by
+          match L_head, h_zero with
+          | .nil _ _, _ => simp [Walk.vertices]
+        rw [h_bif_vs, h_L_head_vs] at hx
+        change x ∈ ((vL_h :: R_head.vertices) : List Node).tail.dropLast at hx
+        change x ∈ R_head.vertices.dropLast at hx
+        exact hR_head_dL_S x hx
+    -- L-edge: s(β, γ) ∈ marg.L via Φ_L S (Sym2-image iff from MPA).
+    have hβ_ne_γ : β ≠ γ := hβγ_eq
+    have hβγ_in_margL : s(β, γ) ∈ (G.marginalize S hS).L := by
+      refine (marginalize_L_iff G S hS).mpr
+        ⟨(β, γ), hβ_VS, hγ_VS, hβ_ne_γ, ?_, rfl⟩
+      -- Φ_L S β γ via the G-bif we just constructed.
+      exact Or.inl ⟨Walk.mkBifurcationBidir L_head hL_head_dir
+                      R_head hLR_G,
+                    h_G_bif_is_bif, h_G_bif_inter_S⟩
+    -- Construct marg arms via inline case-splits on L_tail.length
+    -- and R_tail.length (cf. the original lemma's commentary on
+    -- nil-vs-pos branches).
+    by_cases hL_tail_pos : L_tail.length ≥ 1
+    · -- L_tail.length ≥ 1.  Project L_tail to marg.
+      obtain ⟨L_marg, hL_marg_dir, hL_marg_pos, hL_marg_vs, hL_marg_dL,
+              _, hL_marg_inter⟩ :=
+        project_walk_marg_full (S := S) (T := T) (hS := hS)
+          L_tail hL_tail_dir hL_tail_pos hβ_marg ha_marg hL_tail_inter_ST
+      have ha_notin_L_marg_dL : a ∉ L_marg.vertices.dropLast := fun h_in =>
+        ha_notin_L_tail_dL (hL_marg_dL a h_in)
+      have hb_notin_L_marg : b ∉ L_marg.vertices := fun h_in =>
+        hb_notin_L_tail (hL_marg_vs b h_in)
+      by_cases hR_tail_pos : R_tail.length ≥ 1
+      · -- L_tail pos, R_tail pos.
+        obtain ⟨R_marg, hR_marg_dir, hR_marg_pos, hR_marg_vs, hR_marg_dL,
+                _, hR_marg_inter⟩ :=
+          project_walk_marg_full (S := S) (T := T) (hS := hS)
+            R_tail hR_tail_dir hR_tail_pos hγ_marg hb_marg hR_tail_inter_ST
+        have ha_notin_R_marg : a ∉ R_marg.vertices := fun h_in =>
+          ha_notin_R_tail (hR_marg_vs a h_in)
+        have hb_notin_R_marg_dL : b ∉ R_marg.vertices.dropLast := fun h_in =>
+          hb_notin_R_tail_dL (hR_marg_dL b h_in)
+        refine ⟨Walk.mkBifurcationBidir L_marg hL_marg_dir R_marg
+                  hβγ_in_margL, ?_, ?_⟩
+        · exact Walk.mkBifurcationBidir_isBifurcation
+            L_marg hL_marg_dir R_marg hR_marg_dir hβγ_in_margL hab_ne ha_notin_L_marg_dL
+            ha_notin_R_marg hb_notin_L_marg hb_notin_R_marg_dL
+        · intro x hx
+          rw [vertices_tail_dropLast_mkBifurcationBidir_Lpos
+                L_marg hL_marg_dir R_marg hβγ_in_margL hL_marg_pos] at hx
+          rcases List.mem_append.mp hx with hx_L | hx_R
+          · rw [List.mem_reverse] at hx_L
+            exact hL_marg_inter x hx_L
+          · have h_R_marg_ne : R_marg.vertices ≠ [] :=
+              Walk.vertices_ne_nil R_marg
+            rw [List.dropLast_cons_of_ne_nil h_R_marg_ne] at hx_R
+            rcases List.mem_cons.mp hx_R with rfl | hx_R_dL
+            · -- x = β.
+              have h_x_in_L_p : x ∈ L_p.vertices :=
+                hL_tail_sub_L_p _ (Walk.head_mem_vertices L_tail)
+              have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+                hL_p_sub _ h_x_in_L_p
+              have h_L_marg_t_ne : L_marg.vertices.tail ≠ [] :=
+                Walk.tail_vertices_ne_nil_of_pos L_marg hL_marg_pos
+              have hβ_in_L_marg_dL : x ∈ L_marg.vertices.dropLast := by
+                rw [Walk.vertices_eq_head_cons_tail L_marg,
+                    List.dropLast_cons_of_ne_nil h_L_marg_t_ne]
+                exact List.mem_cons_self
+              have hβ_in_L_tail_dL : x ∈ L_tail.vertices.dropLast :=
+                hL_marg_dL _ hβ_in_L_marg_dL
+              have hβ_in_L_p_dL : x ∈ L_p.vertices.dropLast :=
+                hL_tail_dL_sub_L_p_dL _ hβ_in_L_tail_dL
+              have h_x_in_p_tail : x ∈ p.vertices.tail :=
+                hL_p_drop_sub _ hβ_in_L_p_dL
+              have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+                mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+              rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+              · exact absurd h_S hβ_notS
+              · exact h_T
+            · -- x ∈ R_marg.vertices.dropLast.
+              have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+                Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos
+              rw [Walk.vertices_eq_head_cons_tail R_marg,
+                  List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R_dL
+              rcases List.mem_cons.mp hx_R_dL with rfl | hx_R_inner
+              · -- x = γ.
+                have h_x_in_R_p : x ∈ R_p.vertices :=
+                  hR_tail_sub_R_p _ (Walk.head_mem_vertices R_tail)
+                have h_x_in_p_tail : x ∈ p.vertices.tail :=
+                  hR_p_sub _ h_x_in_R_p
+                have hγ_in_R_marg_dL : x ∈ R_marg.vertices.dropLast := by
+                  rw [Walk.vertices_eq_head_cons_tail R_marg,
+                      List.dropLast_cons_of_ne_nil h_R_t_ne]
+                  exact List.mem_cons_self
+                have hγ_in_R_tail_dL : x ∈ R_tail.vertices.dropLast :=
+                  hR_marg_dL _ hγ_in_R_marg_dL
+                have hγ_in_R_p_dL : x ∈ R_p.vertices.dropLast :=
+                  hR_tail_dL_sub_R_p_dL _ hγ_in_R_tail_dL
+                have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+                  hR_p_drop_sub _ hγ_in_R_p_dL
+                have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+                  mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+                rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+                · exact absurd h_S hγ_notS
+                · exact h_T
+              · exact hR_marg_inter x hx_R_inner
+      · -- L_tail pos, R_tail = 0 → γ = b (after subst, b is eliminated).
+        have h_R_zero : R_tail.length = 0 := by omega
+        have hγb_eq : γ = b := by
+          match R_tail, h_R_zero with
+          | .nil _ _, _ => rfl
+        subst hγb_eq
+        refine ⟨Walk.mkBifurcationBidir L_marg hL_marg_dir
+                  (Walk.nil γ hγ_marg) hβγ_in_margL, ?_, ?_⟩
+        · refine Walk.mkBifurcationBidir_isBifurcation L_marg hL_marg_dir
+            (Walk.nil γ hγ_marg) trivial hβγ_in_margL hab_ne ha_notin_L_marg_dL
+            ?_ hb_notin_L_marg ?_
+          · intro h_in
+            change a ∈ ([γ] : List Node) at h_in
+            rw [List.mem_singleton] at h_in
+            exact ha_notin_R_tail
+              (by rw [h_in]; exact Walk.head_mem_vertices R_tail)
+          · intro h_in
+            change γ ∈ ([γ] : List Node).dropLast at h_in
+            simp at h_in
+        · intro x hx
+          rw [vertices_tail_dropLast_mkBifurcationBidir_Lpos
+                L_marg hL_marg_dir (Walk.nil γ hγ_marg) hβγ_in_margL
+                hL_marg_pos] at hx
+          rcases List.mem_append.mp hx with hx_L | hx_R
+          · rw [List.mem_reverse] at hx_L
+            exact hL_marg_inter x hx_L
+          · change x ∈ ((β :: [γ]) : List Node).dropLast at hx_R
+            change x ∈ ([β, γ] : List Node).dropLast at hx_R
+            simp [List.dropLast] at hx_R
+            rw [hx_R]
+            have h_β_in_L_p : β ∈ L_p.vertices :=
+              hL_tail_sub_L_p _ (Walk.head_mem_vertices L_tail)
+            have h_β_in_p_drop : β ∈ p.vertices.dropLast :=
+              hL_p_sub _ h_β_in_L_p
+            have h_L_marg_t_ne : L_marg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos L_marg hL_marg_pos
+            have hβ_in_L_marg_dL : β ∈ L_marg.vertices.dropLast := by
+              rw [Walk.vertices_eq_head_cons_tail L_marg,
+                  List.dropLast_cons_of_ne_nil h_L_marg_t_ne]
+              exact List.mem_cons_self
+            have hβ_in_L_tail_dL : β ∈ L_tail.vertices.dropLast :=
+              hL_marg_dL _ hβ_in_L_marg_dL
+            have hβ_in_L_p_dL : β ∈ L_p.vertices.dropLast :=
+              hL_tail_dL_sub_L_p_dL _ hβ_in_L_tail_dL
+            have h_β_in_p_tail : β ∈ p.vertices.tail :=
+              hL_p_drop_sub _ hβ_in_L_p_dL
+            have h_β_in_p_inter : β ∈ p.vertices.tail.dropLast :=
+              mem_interior_of_arm_source ha_p_tail hp_pos h_β_in_p_tail h_β_in_p_drop
+            rcases hp_inter_ST β h_β_in_p_inter with h_S | h_T
+            · exact absurd h_S hβ_notS
+            · exact h_T
+    · -- L_tail.length = 0 → β = a (after subst, a is eliminated, β remains).
+      have h_L_zero : L_tail.length = 0 := by omega
+      have hβa_eq : β = a := by
+        match L_tail, h_L_zero with
+        | .nil _ _, _ => rfl
+      subst hβa_eq
+      by_cases hR_tail_pos : R_tail.length ≥ 1
+      · -- L nil, R pos.  L_marg = nil β.  R_marg = projected R_tail.
+        obtain ⟨R_marg, hR_marg_dir, hR_marg_pos, hR_marg_vs, hR_marg_dL,
+                _, hR_marg_inter⟩ :=
+          project_walk_marg_full (S := S) (T := T) (hS := hS)
+            R_tail hR_tail_dir hR_tail_pos hγ_marg hb_marg hR_tail_inter_ST
+        have hβ_notin_R_marg : β ∉ R_marg.vertices := fun h_in =>
+          ha_notin_R_tail (hR_marg_vs β h_in)
+        have hb_notin_R_marg_dL : b ∉ R_marg.vertices.dropLast := fun h_in =>
+          hb_notin_R_tail_dL (hR_marg_dL b h_in)
+        refine ⟨Walk.mkBifurcationBidir (Walk.nil β hβ_marg)
+                  trivial R_marg hβγ_in_margL, ?_, ?_⟩
+        · refine Walk.mkBifurcationBidir_isBifurcation
+            (Walk.nil β hβ_marg) trivial R_marg hR_marg_dir hβγ_in_margL hab_ne
+            ?_ hβ_notin_R_marg ?_ hb_notin_R_marg_dL
+          · intro h_in
+            change β ∈ ([β] : List Node).dropLast at h_in
+            simp at h_in
+          · intro h_in
+            change b ∈ ([β] : List Node) at h_in
+            rw [List.mem_singleton] at h_in
+            exact hab_ne h_in.symm
+        · intro x hx
+          have h_bif_vs : (Walk.mkBifurcationBidir
+                            (Walk.nil β hβ_marg) trivial
+                            R_marg hβγ_in_margL).vertices = β :: R_marg.vertices := by
+            rw [Walk.vertices_mkBifurcationBidir]
+            change ([β] : List Node).reverse.dropLast ++ (β :: R_marg.vertices)
+                  = β :: R_marg.vertices
+            simp
+          rw [h_bif_vs] at hx
+          change x ∈ R_marg.vertices.dropLast at hx
+          have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+            Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos
+          rw [Walk.vertices_eq_head_cons_tail R_marg,
+              List.dropLast_cons_of_ne_nil h_R_t_ne] at hx
+          rcases List.mem_cons.mp hx with rfl | hx_inner
+          · -- x = γ.
+            have h_x_in_R_p : x ∈ R_p.vertices :=
+              hR_tail_sub_R_p _ (Walk.head_mem_vertices R_tail)
+            have h_x_in_p_tail : x ∈ p.vertices.tail :=
+              hR_p_sub _ h_x_in_R_p
+            have hγ_in_R_marg_dL : x ∈ R_marg.vertices.dropLast := by
+              rw [Walk.vertices_eq_head_cons_tail R_marg,
+                  List.dropLast_cons_of_ne_nil h_R_t_ne]
+              exact List.mem_cons_self
+            have hγ_in_R_tail_dL : x ∈ R_tail.vertices.dropLast :=
+              hR_marg_dL _ hγ_in_R_marg_dL
+            have hγ_in_R_p_dL : x ∈ R_p.vertices.dropLast :=
+              hR_tail_dL_sub_R_p_dL _ hγ_in_R_tail_dL
+            have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+              hR_p_drop_sub _ hγ_in_R_p_dL
+            have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+              mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+            rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+            · exact absurd h_S hγ_notS
+            · exact h_T
+          · exact hR_marg_inter x hx_inner
+      · -- L nil, R nil → γ = b too.
+        have h_R_zero : R_tail.length = 0 := by omega
+        have hγb_eq : γ = b := by
+          match R_tail, h_R_zero with
+          | .nil _ _, _ => rfl
+        subst hγb_eq
+        refine ⟨Walk.mkBifurcationBidir (Walk.nil β hβ_marg) trivial
+                  (Walk.nil γ hγ_marg) hβγ_in_margL, ?_, ?_⟩
+        · refine Walk.mkBifurcationBidir_isBifurcation
+            (Walk.nil β hβ_marg) trivial (Walk.nil γ hγ_marg) trivial
+            hβγ_in_margL hab_ne ?_ ?_ ?_ ?_
+          · intro h_in
+            change β ∈ ([β] : List Node).dropLast at h_in
+            simp at h_in
+          · intro h_in
+            change β ∈ ([γ] : List Node) at h_in
+            rw [List.mem_singleton] at h_in
+            exact hβγ_eq h_in
+          · intro h_in
+            change γ ∈ ([β] : List Node) at h_in
+            rw [List.mem_singleton] at h_in
+            exact hβγ_eq h_in.symm
+          · intro h_in
+            change γ ∈ ([γ] : List Node).dropLast at h_in
+            simp at h_in
+        · intro x hx
+          have h_bif_vs : (Walk.mkBifurcationBidir
+                            (Walk.nil β hβ_marg) trivial
+                            (Walk.nil γ hγ_marg) hβγ_in_margL).vertices
+                              = [β, γ] := by
+            rw [Walk.vertices_mkBifurcationBidir]
+            change ([β] : List Node).reverse.dropLast ++ (β :: [γ]) = [β, γ]
+            simp
+          rw [h_bif_vs] at hx
+          change x ∈ ([β, γ] : List Node).tail.dropLast at hx
+          simp at hx
+
+-- ## Phase D.3 port — backward, directed-hinge bif with source ∈ S and β ≠ γ.
+--
+-- The lemma constructs a `marg`-side bif whose hinge is *bidirected*:
+-- the directed-hinge G-bif at source `c ∈ S` produces a single
+-- `s(vL_exit, vR_exit) ∈ marg.L` edge (witnessed by Φ_L's directed-bif
+-- disjunct, `Or.inl`), and the marg-side arms (`L_marg`, `R_marg`,
+-- projected from `L_marg_seg`, `R_marg_seg` via
+-- `project_walk_marg_full`) are stitched together with that
+-- L-edge via `mkBifurcationBidir`.  The novel refactor sites:
+--
+-- * The L-edge construction uses `marginalize_L_iff.mpr` with
+--   a Sym2 witness `s(vL_exit, vR_exit)` (D.2's pattern), rather than
+--   the original's inline `Finset.mem_filter` + `Finset.mem_product`
+--   chain that is ill-typed on the post-refactor `Finset.image`-built
+--   `marg.L`.
+-- * No `hL_subset` / `hL_irrefl` invocations appear: this lemma never
+--   destructures an L-edge witness — it only *builds* one via
+--   `mkBifurcation` (which by-construction lands in `Φ_L`), so the
+--   Sym2.IsDiag / Sym2.mem_mk_left machinery from D.2 isn't needed.
+-- * The four arm-length sub-cases (L_marg±, R_marg±) port mechanically
+--   from the original; the `Walk.nil` → `Walk.nil` rename and
+--   the `Walk.vertices_mkBifurcationBidir` reduction are the only
+--   sites that touch refactor-specific machinery beyond the
+--   uniform `refactor_*` rename cookbook.
+set_option linter.style.longLine false in
+private lemma backward_marg_to_g_bif_dir_hinge_cInS_betaNeGamma_one_orientation
+    {G : CDMG Node} (S T : Finset Node) (hS : S ⊆ G.V)
+    {a b : Node}
+    (ha_VST : a ∈ G.V \ (S ∪ T)) (hb_VST : b ∈ G.V \ (S ∪ T))
+    (ha_marg : a ∈ G.marginalize S hS) (hb_marg : b ∈ G.marginalize S hS)
+    {p : Walk G a b}
+    (hp_bif : p.IsBifurcation)
+    (hp_inter : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∪ T)
+    {c : Node} (hc_S : c ∈ S)
+    {L_p : Walk G c a} {R_p : Walk G c b}
+    (hL_p_dir : L_p.IsDirectedWalk) (hR_p_dir : R_p.IsDirectedWalk)
+    (hL_p_pos : L_p.length ≥ 1) (hR_p_pos : R_p.length ≥ 1)
+    (hL_p_sub : ∀ x ∈ L_p.vertices, x ∈ p.vertices.dropLast)
+    (hR_p_sub : ∀ x ∈ R_p.vertices, x ∈ p.vertices.tail)
+    (hL_p_drop_sub : ∀ x ∈ L_p.vertices.dropLast, x ∈ p.vertices.tail)
+    (hR_p_drop_sub : ∀ x ∈ R_p.vertices.dropLast, x ∈ p.vertices.dropLast)
+    {vL_exit vR_exit : Node}
+    {L_W_seg : Walk G c vL_exit} {L_marg_seg : Walk G vL_exit a}
+    {R_W_seg : Walk G c vR_exit} {R_marg_seg : Walk G vR_exit b}
+    (hL_W_dir : L_W_seg.IsDirectedWalk)
+    (hL_marg_dir : L_marg_seg.IsDirectedWalk)
+    (hL_W_pos : L_W_seg.length ≥ 1) (hvL_exit_notS : vL_exit ∉ S)
+    (hL_W_inter : ∀ x ∈ L_W_seg.vertices.tail.dropLast, x ∈ S)
+    (hL_p_vs_eq :
+      L_p.vertices = L_W_seg.vertices.dropLast ++ L_marg_seg.vertices)
+    (hR_W_dir : R_W_seg.IsDirectedWalk)
+    (hR_marg_dir : R_marg_seg.IsDirectedWalk)
+    (hR_W_pos : R_W_seg.length ≥ 1) (hvR_exit_notS : vR_exit ∉ S)
+    (hR_W_inter : ∀ x ∈ R_W_seg.vertices.tail.dropLast, x ∈ S)
+    (hR_p_vs_eq :
+      R_p.vertices = R_W_seg.vertices.dropLast ++ R_marg_seg.vertices)
+    (hvL_vR_exit_ne : vL_exit ≠ vR_exit) :
+    ∃ q : Walk (G.marginalize S hS) a b, q.IsBifurcation ∧
+      ∀ x ∈ q.vertices.tail.dropLast, x ∈ T := by
+  -- Unpack hp_bif and derive ancillary facts.
+  have hp_pos : p.length ≥ 1 :=
+    Walk.length_pos_of_isBifurcation hp_bif
+  obtain ⟨hab_ne, ha_p_tail, hb_p_drop, _⟩ := hp_bif
+  have hp_inter_ST : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T :=
+    fun x hx => Finset.mem_union.mp (hp_inter x hx)
+  -- L_p, R_p vertex bounds.
+  have ha_notin_L_p_drop : a ∉ L_p.vertices.dropLast := fun h_in =>
+    ha_p_tail (hL_p_drop_sub a h_in)
+  have ha_notin_R_p : a ∉ R_p.vertices := fun h_in =>
+    ha_p_tail (hR_p_sub a h_in)
+  have hb_notin_L_p : b ∉ L_p.vertices := fun h_in =>
+    hb_p_drop (hL_p_sub b h_in)
+  have hb_notin_R_p_drop : b ∉ R_p.vertices.dropLast := fun h_in =>
+    hb_p_drop (hR_p_drop_sub b h_in)
+  -- vL_exit, vR_exit ∈ G.V, ∈ G.V \ S, ∈ marg.
+  have hvL_exit_GV : vL_exit ∈ G.V :=
+    Walk.target_in_GV_of_directedWalk_pos L_W_seg hL_W_dir hL_W_pos
+  have hvR_exit_GV : vR_exit ∈ G.V :=
+    Walk.target_in_GV_of_directedWalk_pos R_W_seg hR_W_dir hR_W_pos
+  have hvL_exit_VS : vL_exit ∈ G.V \ S :=
+    Finset.mem_sdiff.mpr ⟨hvL_exit_GV, hvL_exit_notS⟩
+  have hvR_exit_VS : vR_exit ∈ G.V \ S :=
+    Finset.mem_sdiff.mpr ⟨hvR_exit_GV, hvR_exit_notS⟩
+  have hvL_exit_marg : vL_exit ∈ G.marginalize S hS := by
+    change vL_exit ∈ G.J ∪ (G.V \ S)
+    exact Finset.mem_union_right _ hvL_exit_VS
+  have hvR_exit_marg : vR_exit ∈ G.marginalize S hS := by
+    change vR_exit ∈ G.J ∪ (G.V \ S)
+    exact Finset.mem_union_right _ hvR_exit_VS
+  -- L_marg_seg, R_marg_seg vertex subsets back into L_p, R_p.
+  have hL_marg_ne : L_marg_seg.vertices ≠ [] :=
+    Walk.vertices_ne_nil L_marg_seg
+  have hR_marg_ne : R_marg_seg.vertices ≠ [] :=
+    Walk.vertices_ne_nil R_marg_seg
+  have hL_marg_sub_L_p :
+      ∀ x ∈ L_marg_seg.vertices, x ∈ L_p.vertices := by
+    intro x hx; rw [hL_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+  have hR_marg_sub_R_p :
+      ∀ x ∈ R_marg_seg.vertices, x ∈ R_p.vertices := by
+    intro x hx; rw [hR_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+  have hL_marg_drop_sub_L_p_drop :
+      ∀ x ∈ L_marg_seg.vertices.dropLast,
+        x ∈ L_p.vertices.dropLast := by
+    intro x hx
+    rw [hL_p_vs_eq, List.dropLast_append_of_ne_nil hL_marg_ne]
+    exact List.mem_append.mpr (Or.inr hx)
+  have hR_marg_drop_sub_R_p_drop :
+      ∀ x ∈ R_marg_seg.vertices.dropLast,
+        x ∈ R_p.vertices.dropLast := by
+    intro x hx
+    rw [hR_p_vs_eq, List.dropLast_append_of_ne_nil hR_marg_ne]
+    exact List.mem_append.mpr (Or.inr hx)
+  -- L_marg_seg, R_marg_seg interior ⊆ S ∨ T.
+  have hL_marg_inter_ST :
+      ∀ x ∈ L_marg_seg.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+    intro x hx
+    by_cases h_L_marg_pos : L_marg_seg.length ≥ 1
+    · have h_t_ne : L_marg_seg.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos L_marg_seg h_L_marg_pos
+      have h_drop_eq : L_marg_seg.vertices.dropLast
+          = vL_exit :: L_marg_seg.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_marg_seg]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have h_drop : x ∈ L_marg_seg.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have h_L_p_drop : x ∈ L_p.vertices.dropLast :=
+        hL_marg_drop_sub_L_p_drop x h_drop
+      have h_x_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub x h_L_p_drop
+      have h_v : x ∈ L_marg_seg.vertices := List.mem_of_mem_dropLast h_drop
+      have h_L_p : x ∈ L_p.vertices := hL_marg_sub_L_p x h_v
+      have h_x_p_drop : x ∈ p.vertices.dropLast := hL_p_sub x h_L_p
+      have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+      exact hp_inter_ST x h_x_p_inter
+    · have h_L_marg_zero : L_marg_seg.length = 0 := by omega
+      match L_marg_seg, h_L_marg_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  have hR_marg_inter_ST :
+      ∀ x ∈ R_marg_seg.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+    intro x hx
+    by_cases h_R_marg_pos : R_marg_seg.length ≥ 1
+    · have h_t_ne : R_marg_seg.vertices.tail ≠ [] :=
+        Walk.tail_vertices_ne_nil_of_pos R_marg_seg h_R_marg_pos
+      have h_drop_eq : R_marg_seg.vertices.dropLast
+          = vR_exit :: R_marg_seg.vertices.tail.dropLast := by
+        conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_marg_seg]
+        exact List.dropLast_cons_of_ne_nil h_t_ne
+      have h_drop : x ∈ R_marg_seg.vertices.dropLast := by
+        rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+      have h_R_p_drop : x ∈ R_p.vertices.dropLast :=
+        hR_marg_drop_sub_R_p_drop x h_drop
+      have h_x_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub x h_R_p_drop
+      have h_v : x ∈ R_marg_seg.vertices := List.mem_of_mem_dropLast h_drop
+      have h_R_p : x ∈ R_p.vertices := hR_marg_sub_R_p x h_v
+      have h_x_p_tail : x ∈ p.vertices.tail := hR_p_sub x h_R_p
+      have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+        mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+      exact hp_inter_ST x h_x_p_inter
+    · have h_R_marg_zero : R_marg_seg.length = 0 := by omega
+      match R_marg_seg, h_R_marg_zero with
+      | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+  -- L_marg_seg, R_marg_seg vertex bounds for a, b.
+  have ha_notin_L_marg_drop : a ∉ L_marg_seg.vertices.dropLast := fun h_in =>
+    ha_notin_L_p_drop (hL_marg_drop_sub_L_p_drop a h_in)
+  have ha_notin_R_marg : a ∉ R_marg_seg.vertices := fun h_in =>
+    ha_notin_R_p (hR_marg_sub_R_p a h_in)
+  have hb_notin_L_marg : b ∉ L_marg_seg.vertices := fun h_in =>
+    hb_notin_L_p (hL_marg_sub_L_p b h_in)
+  have hb_notin_R_marg_drop : b ∉ R_marg_seg.vertices.dropLast := fun h_in =>
+    hb_notin_R_p_drop (hR_marg_drop_sub_R_p_drop b h_in)
+  -- Step 1: Build the marg.L edge s(vL_exit, vR_exit) ∈ marg.L via a
+  -- G-bifurcation `mkBifurcation L_W_seg R_W_seg` with directed-hinge
+  -- source `c`.
+  -- L_W_seg.vertices.dropLast ⊆ S (source c ∈ S + interior ⊆ S).
+  have hL_W_drop_S : ∀ x ∈ L_W_seg.vertices.dropLast, x ∈ S := by
+    intro x hx
+    have h_tail_ne : L_W_seg.vertices.tail ≠ [] :=
+      Walk.tail_vertices_ne_nil_of_pos L_W_seg hL_W_pos
+    have h_drop_eq : L_W_seg.vertices.dropLast
+        = c :: L_W_seg.vertices.tail.dropLast := by
+      conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_W_seg]
+      exact List.dropLast_cons_of_ne_nil h_tail_ne
+    rw [h_drop_eq] at hx
+    rcases List.mem_cons.mp hx with rfl | hx_rest
+    · exact hc_S
+    · exact hL_W_inter x hx_rest
+  have hR_W_drop_S : ∀ x ∈ R_W_seg.vertices.dropLast, x ∈ S := by
+    intro x hx
+    have h_tail_ne : R_W_seg.vertices.tail ≠ [] :=
+      Walk.tail_vertices_ne_nil_of_pos R_W_seg hR_W_pos
+    have h_drop_eq : R_W_seg.vertices.dropLast
+        = c :: R_W_seg.vertices.tail.dropLast := by
+      conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_W_seg]
+      exact List.dropLast_cons_of_ne_nil h_tail_ne
+    rw [h_drop_eq] at hx
+    rcases List.mem_cons.mp hx with rfl | hx_rest
+    · exact hc_S
+    · exact hR_W_inter x hx_rest
+  -- L_W_seg.vertices = L_W_seg.vertices.dropLast ++ [vL_exit].
+  have hL_W_decomp :
+      L_W_seg.vertices = L_W_seg.vertices.dropLast ++ [vL_exit] := by
+    have h_ne : L_W_seg.vertices ≠ [] :=
+      Walk.vertices_ne_nil L_W_seg
+    have h_last : L_W_seg.vertices.getLast h_ne = vL_exit :=
+      Walk.vertices_getLast L_W_seg
+    have := List.dropLast_append_getLast h_ne
+    rw [h_last] at this; exact this.symm
+  have hR_W_decomp :
+      R_W_seg.vertices = R_W_seg.vertices.dropLast ++ [vR_exit] := by
+    have h_ne : R_W_seg.vertices ≠ [] :=
+      Walk.vertices_ne_nil R_W_seg
+    have h_last : R_W_seg.vertices.getLast h_ne = vR_exit :=
+      Walk.vertices_getLast R_W_seg
+    have := List.dropLast_append_getLast h_ne
+    rw [h_last] at this; exact this.symm
+  have hvL_exit_notin_L_W_drop :
+      vL_exit ∉ L_W_seg.vertices.dropLast := fun h_in =>
+    hvL_exit_notS (hL_W_drop_S vL_exit h_in)
+  have hvR_exit_notin_R_W_drop :
+      vR_exit ∉ R_W_seg.vertices.dropLast := fun h_in =>
+    hvR_exit_notS (hR_W_drop_S vR_exit h_in)
+  have hvL_exit_notin_R_W : vL_exit ∉ R_W_seg.vertices := by
+    intro h_in
+    rw [hR_W_decomp] at h_in
+    rcases List.mem_append.mp h_in with h_dL | h_last
+    · exact hvL_exit_notS (hR_W_drop_S vL_exit h_dL)
+    · rw [List.mem_singleton] at h_last
+      exact hvL_vR_exit_ne h_last
+  have hvR_exit_notin_L_W : vR_exit ∉ L_W_seg.vertices := by
+    intro h_in
+    rw [hL_W_decomp] at h_in
+    rcases List.mem_append.mp h_in with h_dL | h_last
+    · exact hvR_exit_notS (hL_W_drop_S vR_exit h_dL)
+    · rw [List.mem_singleton] at h_last
+      exact hvL_vR_exit_ne h_last.symm
+  -- G-bifurcation source c with hinge between vL_exit and vR_exit.
+  have h_G_bif_src :
+      (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
+        R_W_seg).IsBifurcationSource c :=
+    Walk.mkBifurcation_isBifurcationSource L_W_seg hL_W_dir hL_W_pos
+      R_W_seg hR_W_dir hR_W_pos
+      hvL_vR_exit_ne hvL_exit_notin_L_W_drop hvL_exit_notin_R_W
+      hvR_exit_notin_L_W hvR_exit_notin_R_W_drop
+  have h_G_bif_is_bif :
+      (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
+        R_W_seg).IsBifurcation :=
+    Walk.isBifurcationSource_to_isBifurcation _ c h_G_bif_src
+  -- G-bifurcation's interior ⊆ S.
+  have h_G_bif_inter_S :
+      ∀ x ∈ (Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos
+              R_W_seg).vertices.tail.dropLast, x ∈ S := by
+    intro x hx
+    rw [vertices_tail_dropLast_mkBifurcation
+          L_W_seg hL_W_dir hL_W_pos R_W_seg hR_W_pos] at hx
+    rcases List.mem_append.mp hx with hx_L | hx_R
+    · rw [List.mem_reverse] at hx_L
+      exact hL_W_inter x hx_L
+    · exact hR_W_drop_S x hx_R
+  -- The marg.L edge (Sym2-image unwrap via marginalize_L_iff).
+  have hvLvR_in_margL : s(vL_exit, vR_exit) ∈ (G.marginalize S hS).L := by
+    refine (marginalize_L_iff G S hS).mpr
+      ⟨(vL_exit, vR_exit), hvL_exit_VS, hvR_exit_VS, hvL_vR_exit_ne, ?_, rfl⟩
+    exact Or.inl ⟨Walk.mkBifurcation L_W_seg hL_W_dir hL_W_pos R_W_seg,
+                  h_G_bif_is_bif, h_G_bif_inter_S⟩
+  -- Step 2-4: Case-split on L_marg_seg.length, R_marg_seg.length and
+  -- assemble via `mkBifurcationBidir` with hinge s(vL_exit, vR_exit).
+  by_cases hL_marg_pos : L_marg_seg.length ≥ 1
+  · -- L_marg_seg positive.  Project to marg.
+    obtain ⟨L_marg, hL_marg_dir', hL_marg_pos', hL_marg_vs, hL_marg_dL,
+            _, hL_marg_inter⟩ :=
+      project_walk_marg_full (S := S) (T := T) (hS := hS)
+        L_marg_seg hL_marg_dir hL_marg_pos hvL_exit_marg ha_marg hL_marg_inter_ST
+    have ha_notin_L_marg_dL : a ∉ L_marg.vertices.dropLast := fun h_in =>
+      ha_notin_L_marg_drop (hL_marg_dL a h_in)
+    have hb_notin_L_marg' : b ∉ L_marg.vertices := fun h_in =>
+      hb_notin_L_marg (hL_marg_vs b h_in)
+    by_cases hR_marg_pos : R_marg_seg.length ≥ 1
+    · -- L+, R+.
+      obtain ⟨R_marg, hR_marg_dir', hR_marg_pos', hR_marg_vs, hR_marg_dL,
+              _, hR_marg_inter⟩ :=
+        project_walk_marg_full (S := S) (T := T) (hS := hS)
+          R_marg_seg hR_marg_dir hR_marg_pos hvR_exit_marg hb_marg hR_marg_inter_ST
+      have ha_notin_R_marg' : a ∉ R_marg.vertices := fun h_in =>
+        ha_notin_R_marg (hR_marg_vs a h_in)
+      have hb_notin_R_marg_dL : b ∉ R_marg.vertices.dropLast := fun h_in =>
+        hb_notin_R_marg_drop (hR_marg_dL b h_in)
+      refine ⟨Walk.mkBifurcationBidir L_marg hL_marg_dir' R_marg
+                hvLvR_in_margL, ?_, ?_⟩
+      · exact Walk.mkBifurcationBidir_isBifurcation L_marg hL_marg_dir'
+          R_marg hR_marg_dir' hvLvR_in_margL hab_ne
+          ha_notin_L_marg_dL ha_notin_R_marg' hb_notin_L_marg' hb_notin_R_marg_dL
+      · intro x hx
+        rw [vertices_tail_dropLast_mkBifurcationBidir_Lpos
+              L_marg hL_marg_dir' R_marg hvLvR_in_margL hL_marg_pos'] at hx
+        rcases List.mem_append.mp hx with hx_L | hx_R
+        · rw [List.mem_reverse] at hx_L
+          exact hL_marg_inter x hx_L
+        · have h_R_marg_ne : R_marg.vertices ≠ [] :=
+            Walk.vertices_ne_nil R_marg
+          rw [List.dropLast_cons_of_ne_nil h_R_marg_ne] at hx_R
+          rcases List.mem_cons.mp hx_R with rfl | hx_R_dL
+          · -- x = vL_exit.
+            have h_x_in_L_p : x ∈ L_p.vertices :=
+              hL_marg_sub_L_p _ (Walk.head_mem_vertices L_marg_seg)
+            have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+              hL_p_sub _ h_x_in_L_p
+            have h_L_marg_t_ne : L_marg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos L_marg hL_marg_pos'
+            have hvL_in_L_marg_dL : x ∈ L_marg.vertices.dropLast := by
+              rw [Walk.vertices_eq_head_cons_tail L_marg,
+                  List.dropLast_cons_of_ne_nil h_L_marg_t_ne]
+              exact List.mem_cons_self
+            have hvL_in_L_marg_seg_dL : x ∈ L_marg_seg.vertices.dropLast :=
+              hL_marg_dL _ hvL_in_L_marg_dL
+            have hvL_in_L_p_dL : x ∈ L_p.vertices.dropLast :=
+              hL_marg_drop_sub_L_p_drop _ hvL_in_L_marg_seg_dL
+            have h_x_in_p_tail : x ∈ p.vertices.tail :=
+              hL_p_drop_sub _ hvL_in_L_p_dL
+            have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+              mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+            rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+            · exact absurd h_S hvL_exit_notS
+            · exact h_T
+          · -- x ∈ R_marg.vertices.dropLast.
+            have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos'
+            rw [Walk.vertices_eq_head_cons_tail R_marg,
+                List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R_dL
+            rcases List.mem_cons.mp hx_R_dL with rfl | hx_R_inner
+            · -- x = vR_exit.
+              have h_x_in_R_p : x ∈ R_p.vertices :=
+                hR_marg_sub_R_p _ (Walk.head_mem_vertices R_marg_seg)
+              have h_x_in_p_tail : x ∈ p.vertices.tail :=
+                hR_p_sub _ h_x_in_R_p
+              have hvR_in_R_marg_dL : x ∈ R_marg.vertices.dropLast := by
+                rw [Walk.vertices_eq_head_cons_tail R_marg,
+                    List.dropLast_cons_of_ne_nil h_R_t_ne]
+                exact List.mem_cons_self
+              have hvR_in_R_marg_seg_dL : x ∈ R_marg_seg.vertices.dropLast :=
+                hR_marg_dL _ hvR_in_R_marg_dL
+              have hvR_in_R_p_dL : x ∈ R_p.vertices.dropLast :=
+                hR_marg_drop_sub_R_p_drop _ hvR_in_R_marg_seg_dL
+              have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+                hR_p_drop_sub _ hvR_in_R_p_dL
+              have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+                mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+              rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+              · exact absurd h_S hvR_exit_notS
+              · exact h_T
+            · exact hR_marg_inter x hx_R_inner
+    · -- L+, R nil → vR_exit = b (after subst, b is eliminated).
+      have h_R_zero : R_marg_seg.length = 0 := by omega
+      have hvR_b_eq : vR_exit = b := by
+        match R_marg_seg, h_R_zero with
+        | .nil _ _, _ => rfl
+      subst hvR_b_eq
+      refine ⟨Walk.mkBifurcationBidir L_marg hL_marg_dir'
+                (Walk.nil vR_exit hvR_exit_marg) hvLvR_in_margL, ?_, ?_⟩
+      · refine Walk.mkBifurcationBidir_isBifurcation L_marg hL_marg_dir'
+          (Walk.nil vR_exit hvR_exit_marg) trivial hvLvR_in_margL hab_ne
+          ha_notin_L_marg_dL ?_ hb_notin_L_marg' ?_
+        · intro h_in
+          change a ∈ ([vR_exit] : List Node) at h_in
+          rw [List.mem_singleton] at h_in
+          exact ha_notin_R_marg
+            (by rw [h_in]; exact Walk.head_mem_vertices R_marg_seg)
+        · intro h_in
+          change vR_exit ∈ ([vR_exit] : List Node).dropLast at h_in
+          simp at h_in
+      · intro x hx
+        rw [vertices_tail_dropLast_mkBifurcationBidir_Lpos
+              L_marg hL_marg_dir' (Walk.nil vR_exit hvR_exit_marg) hvLvR_in_margL
+              hL_marg_pos'] at hx
+        rcases List.mem_append.mp hx with hx_L | hx_R
+        · rw [List.mem_reverse] at hx_L
+          exact hL_marg_inter x hx_L
+        · -- x ∈ (vL_exit :: [vR_exit]).dropLast = [vL_exit].
+          change x ∈ ((vL_exit :: [vR_exit]) : List Node).dropLast at hx_R
+          change x ∈ ([vL_exit, vR_exit] : List Node).dropLast at hx_R
+          simp [List.dropLast] at hx_R
+          rw [hx_R]
+          have h_x_in_L_p : vL_exit ∈ L_p.vertices :=
+            hL_marg_sub_L_p _ (Walk.head_mem_vertices L_marg_seg)
+          have h_x_in_p_drop : vL_exit ∈ p.vertices.dropLast :=
+            hL_p_sub _ h_x_in_L_p
+          have h_L_marg_t_ne : L_marg.vertices.tail ≠ [] :=
+            Walk.tail_vertices_ne_nil_of_pos L_marg hL_marg_pos'
+          have hvL_in_L_marg_dL : vL_exit ∈ L_marg.vertices.dropLast := by
+            rw [Walk.vertices_eq_head_cons_tail L_marg,
+                List.dropLast_cons_of_ne_nil h_L_marg_t_ne]
+            exact List.mem_cons_self
+          have hvL_in_L_marg_seg_dL : vL_exit ∈ L_marg_seg.vertices.dropLast :=
+            hL_marg_dL _ hvL_in_L_marg_dL
+          have hvL_in_L_p_dL : vL_exit ∈ L_p.vertices.dropLast :=
+            hL_marg_drop_sub_L_p_drop _ hvL_in_L_marg_seg_dL
+          have h_x_in_p_tail : vL_exit ∈ p.vertices.tail :=
+            hL_p_drop_sub _ hvL_in_L_p_dL
+          have h_x_in_p_inter : vL_exit ∈ p.vertices.tail.dropLast :=
+            mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+          rcases hp_inter_ST vL_exit h_x_in_p_inter with h_S | h_T
+          · exact absurd h_S hvL_exit_notS
+          · exact h_T
+  · -- L_marg_seg nil → vL_exit = a (after subst, a is eliminated).
+    have h_L_zero : L_marg_seg.length = 0 := by omega
+    have hvL_a_eq : vL_exit = a := by
+      match L_marg_seg, h_L_zero with
+      | .nil _ _, _ => rfl
+    subst hvL_a_eq
+    by_cases hR_marg_pos : R_marg_seg.length ≥ 1
+    · -- L nil, R+.
+      obtain ⟨R_marg, hR_marg_dir', hR_marg_pos', hR_marg_vs, hR_marg_dL,
+              _, hR_marg_inter⟩ :=
+        project_walk_marg_full (S := S) (T := T) (hS := hS)
+          R_marg_seg hR_marg_dir hR_marg_pos hvR_exit_marg hb_marg hR_marg_inter_ST
+      have hvL_exit_notin_R_marg : vL_exit ∉ R_marg.vertices := fun h_in =>
+        ha_notin_R_marg (hR_marg_vs vL_exit h_in)
+      have hb_notin_R_marg_dL : b ∉ R_marg.vertices.dropLast := fun h_in =>
+        hb_notin_R_marg_drop (hR_marg_dL b h_in)
+      refine ⟨Walk.mkBifurcationBidir
+                (Walk.nil vL_exit hvL_exit_marg) trivial R_marg
+                hvLvR_in_margL, ?_, ?_⟩
+      · refine Walk.mkBifurcationBidir_isBifurcation
+          (Walk.nil vL_exit hvL_exit_marg)
+          trivial R_marg hR_marg_dir' hvLvR_in_margL hab_ne ?_ hvL_exit_notin_R_marg
+          ?_ hb_notin_R_marg_dL
+        · intro h_in
+          change vL_exit ∈ ([vL_exit] : List Node).dropLast at h_in
+          simp at h_in
+        · intro h_in
+          change b ∈ ([vL_exit] : List Node) at h_in
+          rw [List.mem_singleton] at h_in
+          exact hab_ne h_in.symm
+      · intro x hx
+        have h_bif_vs :
+            (Walk.mkBifurcationBidir
+              (Walk.nil vL_exit hvL_exit_marg) trivial R_marg
+              hvLvR_in_margL).vertices = vL_exit :: R_marg.vertices := by
+          rw [Walk.vertices_mkBifurcationBidir]
+          change ([vL_exit] : List Node).reverse.dropLast ++ (vL_exit :: R_marg.vertices)
+                = vL_exit :: R_marg.vertices
+          simp
+        rw [h_bif_vs] at hx
+        change x ∈ R_marg.vertices.dropLast at hx
+        have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos'
+        rw [Walk.vertices_eq_head_cons_tail R_marg,
+            List.dropLast_cons_of_ne_nil h_R_t_ne] at hx
+        rcases List.mem_cons.mp hx with rfl | hx_inner
+        · -- x = vR_exit.
+          have h_x_in_R_p : x ∈ R_p.vertices :=
+            hR_marg_sub_R_p _ (Walk.head_mem_vertices R_marg_seg)
+          have h_x_in_p_tail : x ∈ p.vertices.tail :=
+            hR_p_sub _ h_x_in_R_p
+          have hvR_in_R_marg_dL : x ∈ R_marg.vertices.dropLast := by
+            rw [Walk.vertices_eq_head_cons_tail R_marg,
+                List.dropLast_cons_of_ne_nil h_R_t_ne]
+            exact List.mem_cons_self
+          have hvR_in_R_marg_seg_dL : x ∈ R_marg_seg.vertices.dropLast :=
+            hR_marg_dL _ hvR_in_R_marg_dL
+          have hvR_in_R_p_dL : x ∈ R_p.vertices.dropLast :=
+            hR_marg_drop_sub_R_p_drop _ hvR_in_R_marg_seg_dL
+          have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+            hR_p_drop_sub _ hvR_in_R_p_dL
+          have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+            mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+          rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+          · exact absurd h_S hvR_exit_notS
+          · exact h_T
+        · exact hR_marg_inter x hx_inner
+    · -- L nil, R nil → vR_exit = b.
+      have h_R_zero : R_marg_seg.length = 0 := by omega
+      have hvR_b_eq : vR_exit = b := by
+        match R_marg_seg, h_R_zero with
+        | .nil _ _, _ => rfl
+      subst hvR_b_eq
+      refine ⟨Walk.mkBifurcationBidir
+                (Walk.nil vL_exit hvL_exit_marg) trivial
+                (Walk.nil vR_exit hvR_exit_marg) hvLvR_in_margL, ?_, ?_⟩
+      · refine Walk.mkBifurcationBidir_isBifurcation
+          (Walk.nil vL_exit hvL_exit_marg) trivial
+          (Walk.nil vR_exit hvR_exit_marg) trivial hvLvR_in_margL hab_ne
+          ?_ ?_ ?_ ?_
+        · intro h_in
+          change vL_exit ∈ ([vL_exit] : List Node).dropLast at h_in
+          simp at h_in
+        · intro h_in
+          change vL_exit ∈ ([vR_exit] : List Node) at h_in
+          rw [List.mem_singleton] at h_in
+          exact hvL_vR_exit_ne h_in
+        · intro h_in
+          change vR_exit ∈ ([vL_exit] : List Node) at h_in
+          rw [List.mem_singleton] at h_in
+          exact hvL_vR_exit_ne h_in.symm
+        · intro h_in
+          change vR_exit ∈ ([vR_exit] : List Node).dropLast at h_in
+          simp at h_in
+      · intro x hx
+        have h_bif_vs :
+            (Walk.mkBifurcationBidir
+              (Walk.nil vL_exit hvL_exit_marg) trivial
+              (Walk.nil vR_exit hvR_exit_marg) hvLvR_in_margL).vertices
+              = [vL_exit, vR_exit] := by
+          rw [Walk.vertices_mkBifurcationBidir]
+          change ([vL_exit] : List Node).reverse.dropLast ++ (vL_exit :: [vR_exit])
+                = [vL_exit, vR_exit]
+          simp
+        rw [h_bif_vs] at hx
+        change x ∈ ([vL_exit, vR_exit] : List Node).tail.dropLast at hx
+        simp at hx
+
+-- ## Refactor replacements — Phase E (assembly: Φ_L iff + L-field equality)
+--
+-- Two net-new ports (no paired ORIGINAL — `marg_PhiL_iff` and
+-- `marg_L_field_eq` were `private lemma`s with no markers in the
+-- original).  The Φ_L iff wires the three Phase D auxiliaries
+-- (`forward_marg_to_g_bif_one_orientation`,
+-- `backward_marg_to_g_bif_bidir_hinge_one_orientation`,
+-- `backward_marg_to_g_bif_dir_hinge_cInS_betaNeGamma_one_orientation`)
+-- into a single iff between `marg.Φ_L T` and `G.Φ_L (S ∪ T)`.  The
+-- `L`-field equality lifts that iff to a `Finset` equality on the
+-- post-refactor `marg.L : Finset (Sym2 Node)`.
+--
+-- The only structurally-new refactor surface in this phase is the
+-- extra `Finset.image` layer in `marg_L_field_eq`: under
+-- refactor, `marg.L` is built as `(filter …).image (fun e => s(e.1, e.2))`,
+-- so the proof becomes `congr 1` (peeling the outer `.image` of an
+-- identical `fun e => s(e.1, e.2)`) followed by the same
+-- `Finset.filter_congr` step the original used on its filter-only
+-- `marg.L`.  The Φ_L iff body itself ports one-to-one from the
+-- original; the Sym2-witness machinery was already absorbed into the
+-- Phase D ports underneath.
+
+set_option linter.style.longLine false in
+-- ## Φ_L membership iff (parametric in `S, T`).
+private lemma marg_PhiL_iff {G : CDMG Node} (S T : Finset Node)
+    (hS : S ⊆ G.V) (_hT : T ⊆ G.V) (_hDisj : Disjoint S T)
+    {u v : Node}
+    (hu : u ∈ G.V \ (S ∪ T)) (hv : v ∈ G.V \ (S ∪ T)) :
+    (G.marginalize S hS).MarginalizationΦL T u v ↔
+      G.MarginalizationΦL (S ∪ T) u v := by
+  have hu_g : u ∈ G := Finset.mem_union_right _ (Finset.mem_sdiff.mp hu).1
+  have hv_g : v ∈ G := Finset.mem_union_right _ (Finset.mem_sdiff.mp hv).1
+  have hu_notSuT : u ∉ S ∪ T := (Finset.mem_sdiff.mp hu).2
+  have hv_notSuT : v ∉ S ∪ T := (Finset.mem_sdiff.mp hv).2
+  have hu_notS : u ∉ S := fun h => hu_notSuT (Finset.mem_union_left _ h)
+  have hv_notS : v ∉ S := fun h => hv_notSuT (Finset.mem_union_left _ h)
+  have hu_notT : u ∉ T := fun h => hu_notSuT (Finset.mem_union_right _ h)
+  have hv_notT : v ∉ T := fun h => hv_notSuT (Finset.mem_union_right _ h)
+  have hu_marg : u ∈ G.marginalize S hS :=
+    mem_marg_of_notin_union_VnoJ S T hS hu
+  have hv_marg : v ∈ G.marginalize S hS :=
+    mem_marg_of_notin_union_VnoJ S T hS hv
+  -- Forward direction: delegate to D.1.
+  have forward_one_orientation :
+      ∀ {a b : Node},
+        a ∈ G.V \ (S ∪ T) → b ∈ G.V \ (S ∪ T) →
+        a ∈ G.marginalize S hS → b ∈ G.marginalize S hS →
+        ∀ (p : Walk (G.marginalize S hS) a b),
+          p.IsBifurcation →
+          (∀ x ∈ p.vertices.tail.dropLast, x ∈ T) →
+          ∃ q : Walk G a b, q.IsBifurcation ∧
+            ∀ x ∈ q.vertices.tail.dropLast, x ∈ S ∪ T :=
+    fun ha_VST hb_VST ha_marg hb_marg p hp_bif hp_inter =>
+      forward_marg_to_g_bif_one_orientation S T hS ha_VST hb_VST ha_marg hb_marg
+        p hp_bif hp_inter
+  -- Backward direction helper: inline case-split, delegating heavy
+  -- branches to D.2 (bidirected hinge) and D.3 (directed hinge with
+  -- source ∈ S, β ≠ γ).
+  have backward_one_orientation :
+      ∀ {a b : Node},
+        a ∈ G.V \ (S ∪ T) → b ∈ G.V \ (S ∪ T) →
+        a ∈ G.marginalize S hS → b ∈ G.marginalize S hS →
+        ∀ (p : Walk G a b),
+          p.IsBifurcation →
+          (∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∪ T) →
+          ∃ q : Walk (G.marginalize S hS) a b, q.IsBifurcation ∧
+            ∀ x ∈ q.vertices.tail.dropLast, x ∈ T := by
+    intro a b ha_VST hb_VST ha_marg hb_marg p hp_bif hp_inter
+    have ha_notSuT : a ∉ S ∪ T := (Finset.mem_sdiff.mp ha_VST).2
+    have hb_notSuT : b ∉ S ∪ T := (Finset.mem_sdiff.mp hb_VST).2
+    have ha_notS : a ∉ S := fun h => ha_notSuT (Finset.mem_union_left _ h)
+    have hb_notS : b ∉ S := fun h => hb_notSuT (Finset.mem_union_left _ h)
+    have ha_notT : a ∉ T := fun h => ha_notSuT (Finset.mem_union_right _ h)
+    have hb_notT : b ∉ T := fun h => hb_notSuT (Finset.mem_union_right _ h)
+    have hp_pos : p.length ≥ 1 :=
+      Walk.length_pos_of_isBifurcation hp_bif
+    obtain ⟨hab_ne, ha_p_tail, hb_p_drop, i, hp_split⟩ := hp_bif
+    have hp_inter_ST : ∀ x ∈ p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T :=
+      fun x hx => Finset.mem_union.mp (hp_inter x hx)
+    by_cases h_dir : p.IsBifurcationDirectedHingeWithSplit i
+    · -- DIRECTED HINGE: c = bif source.
+      obtain ⟨c, L_p, R_p, hL_p_dir, hR_p_dir, hL_p_pos, hR_p_pos, hidx,
+              hL_p_sub, hR_p_sub, hL_p_drop_sub, hR_p_drop_sub⟩ :=
+        Walk.exists_arms_of_bifurcation_directed_hinge_strong p i h_dir
+      have ha_notin_L_p_drop : a ∉ L_p.vertices.dropLast := fun h_in =>
+        ha_p_tail (hL_p_drop_sub a h_in)
+      have ha_notin_R_p : a ∉ R_p.vertices := fun h_in =>
+        ha_p_tail (hR_p_sub a h_in)
+      have hb_notin_L_p : b ∉ L_p.vertices := fun h_in =>
+        hb_p_drop (hL_p_sub b h_in)
+      have hb_notin_R_p_drop : b ∉ R_p.vertices.dropLast := fun h_in =>
+        hb_p_drop (hR_p_drop_sub b h_in)
+      -- L_p, R_p interior ⊆ S ∨ T.
+      have hL_p_inter_ST :
+          ∀ x ∈ L_p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+        intro x hx
+        have h_x_in_L_p_tail : x ∈ L_p.vertices.tail := List.mem_of_mem_dropLast hx
+        have h_x_in_L_p : x ∈ L_p.vertices := List.mem_of_mem_tail h_x_in_L_p_tail
+        have h_L_p_t_ne : L_p.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos L_p hL_p_pos
+        have h_L_p_drop_eq :
+            L_p.vertices.dropLast = c :: L_p.vertices.tail.dropLast := by
+          conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_p]
+          exact List.dropLast_cons_of_ne_nil h_L_p_t_ne
+        have h_x_in_L_p_drop : x ∈ L_p.vertices.dropLast := by
+          rw [h_L_p_drop_eq]; exact List.mem_cons_of_mem _ hx
+        have h_x_in_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub x h_x_in_L_p_drop
+        have h_x_in_p_drop : x ∈ p.vertices.dropLast := hL_p_sub x h_x_in_L_p
+        have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+          mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+        exact hp_inter_ST x h_x_in_p_inter
+      have hR_p_inter_ST :
+          ∀ x ∈ R_p.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+        intro x hx
+        have h_x_in_R_p_tail : x ∈ R_p.vertices.tail := List.mem_of_mem_dropLast hx
+        have h_x_in_R_p : x ∈ R_p.vertices := List.mem_of_mem_tail h_x_in_R_p_tail
+        have h_R_p_t_ne : R_p.vertices.tail ≠ [] :=
+          Walk.tail_vertices_ne_nil_of_pos R_p hR_p_pos
+        have h_R_p_drop_eq :
+            R_p.vertices.dropLast = c :: R_p.vertices.tail.dropLast := by
+          conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_p]
+          exact List.dropLast_cons_of_ne_nil h_R_p_t_ne
+        have h_x_in_R_p_drop : x ∈ R_p.vertices.dropLast := by
+          rw [h_R_p_drop_eq]; exact List.mem_cons_of_mem _ hx
+        have h_x_in_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub x h_x_in_R_p_drop
+        have h_x_in_p_tail : x ∈ p.vertices.tail := hR_p_sub x h_x_in_R_p
+        have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+          mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+        exact hp_inter_ST x h_x_in_p_inter
+      by_cases hc_S : c ∈ S
+      · -- c ∈ S.  Apply find_first_non_W_directed S on L_p and R_p.
+        obtain ⟨vL_exit, L_W_seg, L_marg_seg, hL_W_dir, hL_marg_dir, hL_W_pos,
+                hvL_exit_notS, hL_W_inter, _, hL_p_vs_eq⟩ :=
+          find_first_non_W_directed S L_p hL_p_dir hL_p_pos ha_notS
+        obtain ⟨vR_exit, R_W_seg, R_marg_seg, hR_W_dir, hR_marg_dir, hR_W_pos,
+                hvR_exit_notS, hR_W_inter, _, hR_p_vs_eq⟩ :=
+          find_first_non_W_directed S R_p hR_p_dir hR_p_pos hb_notS
+        have hvL_exit_GV : vL_exit ∈ G.V :=
+          Walk.target_in_GV_of_directedWalk_pos L_W_seg hL_W_dir hL_W_pos
+        have hvR_exit_GV : vR_exit ∈ G.V :=
+          Walk.target_in_GV_of_directedWalk_pos R_W_seg hR_W_dir hR_W_pos
+        have hvL_exit_VS : vL_exit ∈ G.V \ S :=
+          Finset.mem_sdiff.mpr ⟨hvL_exit_GV, hvL_exit_notS⟩
+        have hvR_exit_VS : vR_exit ∈ G.V \ S :=
+          Finset.mem_sdiff.mpr ⟨hvR_exit_GV, hvR_exit_notS⟩
+        have hvL_exit_marg : vL_exit ∈ G.marginalize S hS := by
+          change vL_exit ∈ G.J ∪ (G.V \ S)
+          exact Finset.mem_union_right _ hvL_exit_VS
+        have hvR_exit_marg : vR_exit ∈ G.marginalize S hS := by
+          change vR_exit ∈ G.J ∪ (G.V \ S)
+          exact Finset.mem_union_right _ hvR_exit_VS
+        have hL_marg_ne : L_marg_seg.vertices ≠ [] :=
+          Walk.vertices_ne_nil L_marg_seg
+        have hR_marg_ne : R_marg_seg.vertices ≠ [] :=
+          Walk.vertices_ne_nil R_marg_seg
+        have hL_marg_sub_L_p :
+            ∀ x ∈ L_marg_seg.vertices, x ∈ L_p.vertices := by
+          intro x hx; rw [hL_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+        have hR_marg_sub_R_p :
+            ∀ x ∈ R_marg_seg.vertices, x ∈ R_p.vertices := by
+          intro x hx; rw [hR_p_vs_eq]; exact List.mem_append.mpr (Or.inr hx)
+        have hL_marg_drop_sub_L_p_drop :
+            ∀ x ∈ L_marg_seg.vertices.dropLast,
+              x ∈ L_p.vertices.dropLast := by
+          intro x hx
+          rw [hL_p_vs_eq, List.dropLast_append_of_ne_nil hL_marg_ne]
+          exact List.mem_append.mpr (Or.inr hx)
+        have hR_marg_drop_sub_R_p_drop :
+            ∀ x ∈ R_marg_seg.vertices.dropLast,
+              x ∈ R_p.vertices.dropLast := by
+          intro x hx
+          rw [hR_p_vs_eq, List.dropLast_append_of_ne_nil hR_marg_ne]
+          exact List.mem_append.mpr (Or.inr hx)
+        have hL_marg_inter_ST :
+            ∀ x ∈ L_marg_seg.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+          intro x hx
+          have h_t : x ∈ L_marg_seg.vertices.tail := List.mem_of_mem_dropLast hx
+          have h_v : x ∈ L_marg_seg.vertices := List.mem_of_mem_tail h_t
+          have h_L_p : x ∈ L_p.vertices := hL_marg_sub_L_p x h_v
+          have h_x_p_drop : x ∈ p.vertices.dropLast := hL_p_sub x h_L_p
+          by_cases h_L_marg_pos : L_marg_seg.length ≥ 1
+          · have h_t_ne : L_marg_seg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos L_marg_seg h_L_marg_pos
+            have h_drop_eq : L_marg_seg.vertices.dropLast
+                = vL_exit :: L_marg_seg.vertices.tail.dropLast := by
+              conv_lhs => rw [Walk.vertices_eq_head_cons_tail L_marg_seg]
+              exact List.dropLast_cons_of_ne_nil h_t_ne
+            have h_drop : x ∈ L_marg_seg.vertices.dropLast := by
+              rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+            have h_L_p_drop : x ∈ L_p.vertices.dropLast :=
+              hL_marg_drop_sub_L_p_drop x h_drop
+            have h_x_p_tail : x ∈ p.vertices.tail := hL_p_drop_sub x h_L_p_drop
+            have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+              mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+            exact hp_inter_ST x h_x_p_inter
+          · have h_L_marg_zero : L_marg_seg.length = 0 := by omega
+            match L_marg_seg, h_L_marg_zero with
+            | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+        have hR_marg_inter_ST :
+            ∀ x ∈ R_marg_seg.vertices.tail.dropLast, x ∈ S ∨ x ∈ T := by
+          intro x hx
+          have h_t : x ∈ R_marg_seg.vertices.tail := List.mem_of_mem_dropLast hx
+          have h_v : x ∈ R_marg_seg.vertices := List.mem_of_mem_tail h_t
+          have h_R_p : x ∈ R_p.vertices := hR_marg_sub_R_p x h_v
+          have h_x_p_tail : x ∈ p.vertices.tail := hR_p_sub x h_R_p
+          by_cases h_R_marg_pos : R_marg_seg.length ≥ 1
+          · have h_t_ne : R_marg_seg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos R_marg_seg h_R_marg_pos
+            have h_drop_eq : R_marg_seg.vertices.dropLast
+                = vR_exit :: R_marg_seg.vertices.tail.dropLast := by
+              conv_lhs => rw [Walk.vertices_eq_head_cons_tail R_marg_seg]
+              exact List.dropLast_cons_of_ne_nil h_t_ne
+            have h_drop : x ∈ R_marg_seg.vertices.dropLast := by
+              rw [h_drop_eq]; exact List.mem_cons_of_mem _ hx
+            have h_R_p_drop : x ∈ R_p.vertices.dropLast :=
+              hR_marg_drop_sub_R_p_drop x h_drop
+            have h_x_p_drop : x ∈ p.vertices.dropLast := hR_p_drop_sub x h_R_p_drop
+            have h_x_p_inter : x ∈ p.vertices.tail.dropLast :=
+              mem_interior_of_arm_source ha_p_tail hp_pos h_x_p_tail h_x_p_drop
+            exact hp_inter_ST x h_x_p_inter
+          · have h_R_marg_zero : R_marg_seg.length = 0 := by omega
+            match R_marg_seg, h_R_marg_zero with
+            | .nil _ _, _ => simp [Walk.vertices, List.tail] at hx
+        have ha_notin_L_marg_drop : a ∉ L_marg_seg.vertices.dropLast := fun h_in =>
+          ha_notin_L_p_drop (hL_marg_drop_sub_L_p_drop a h_in)
+        have ha_notin_R_marg : a ∉ R_marg_seg.vertices := fun h_in =>
+          ha_notin_R_p (hR_marg_sub_R_p a h_in)
+        have hb_notin_L_marg : b ∉ L_marg_seg.vertices := fun h_in =>
+          hb_notin_L_p (hL_marg_sub_L_p b h_in)
+        have hb_notin_R_marg_drop : b ∉ R_marg_seg.vertices.dropLast := fun h_in =>
+          hb_notin_R_p_drop (hR_marg_drop_sub_R_p_drop b h_in)
+        by_cases hvL_vR_exit_eq : vL_exit = vR_exit
+        · -- Degenerate β = γ.
+          subst hvL_vR_exit_eq
+          have hvL_exit_ne_a : vL_exit ≠ a := by
+            intro heq
+            have h_in : vL_exit ∈ R_p.vertices :=
+              hR_marg_sub_R_p _ (Walk.head_mem_vertices R_marg_seg)
+            have h_p_tail : vL_exit ∈ p.vertices.tail := hR_p_sub _ h_in
+            exact ha_p_tail (heq ▸ h_p_tail)
+          have hvL_exit_ne_b : vL_exit ≠ b := by
+            intro heq
+            have h_in : vL_exit ∈ L_p.vertices :=
+              hL_marg_sub_L_p _ (Walk.head_mem_vertices L_marg_seg)
+            have h_p_drop : vL_exit ∈ p.vertices.dropLast := hL_p_sub _ h_in
+            exact hb_p_drop (heq ▸ h_p_drop)
+          have hL_marg_pos : L_marg_seg.length ≥ 1 :=
+            Walk.length_pos_of_ne L_marg_seg hvL_exit_ne_a
+          have hR_marg_pos : R_marg_seg.length ≥ 1 :=
+            Walk.length_pos_of_ne R_marg_seg hvL_exit_ne_b
+          obtain ⟨L_marg, hL_marg_dir', hL_marg_pos', hL_marg_vs_sub, hL_marg_drop_sub,
+                  hL_marg_tail_sub, hL_marg_inter_T⟩ :=
+            project_walk_marg_full (S := S) (T := T) (hS := hS)
+              L_marg_seg hL_marg_dir hL_marg_pos hvL_exit_marg ha_marg
+              hL_marg_inter_ST
+          obtain ⟨R_marg, hR_marg_dir', hR_marg_pos', hR_marg_vs_sub, hR_marg_drop_sub,
+                  hR_marg_tail_sub, hR_marg_inter_T⟩ :=
+            project_walk_marg_full (S := S) (T := T) (hS := hS)
+              R_marg_seg hR_marg_dir hR_marg_pos hvL_exit_marg hb_marg
+              hR_marg_inter_ST
+          have ha_notin_L_marg' : a ∉ L_marg.vertices.dropLast := fun h_in =>
+            ha_notin_L_marg_drop (hL_marg_drop_sub a h_in)
+          have ha_notin_R_marg' : a ∉ R_marg.vertices := fun h_in =>
+            ha_notin_R_marg (hR_marg_vs_sub a h_in)
+          have hb_notin_L_marg' : b ∉ L_marg.vertices := fun h_in =>
+            hb_notin_L_marg (hL_marg_vs_sub b h_in)
+          have hb_notin_R_marg_drop' : b ∉ R_marg.vertices.dropLast := fun h_in =>
+            hb_notin_R_marg_drop (hR_marg_drop_sub b h_in)
+          refine ⟨Walk.mkBifurcation L_marg hL_marg_dir' hL_marg_pos' R_marg, ?_, ?_⟩
+          · have h_src := Walk.mkBifurcation_isBifurcationSource
+              L_marg hL_marg_dir' hL_marg_pos' R_marg hR_marg_dir' hR_marg_pos'
+              hab_ne ha_notin_L_marg' ha_notin_R_marg' hb_notin_L_marg' hb_notin_R_marg_drop'
+            exact Walk.isBifurcationSource_to_isBifurcation _ vL_exit h_src
+          · intro x hx
+            rw [vertices_tail_dropLast_mkBifurcation
+                  L_marg hL_marg_dir' hL_marg_pos' R_marg hR_marg_pos'] at hx
+            rcases List.mem_append.mp hx with hx_L | hx_R
+            · rw [List.mem_reverse] at hx_L
+              exact hL_marg_inter_T x hx_L
+            · have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+                Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos'
+              rw [Walk.vertices_eq_head_cons_tail R_marg,
+                  List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R
+              rcases List.mem_cons.mp hx_R with rfl | hx_inner
+              · have h_x_in_L_p : x ∈ L_p.vertices :=
+                  hL_marg_sub_L_p _ (Walk.head_mem_vertices L_marg_seg)
+                have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+                  hL_p_sub _ h_x_in_L_p
+                have h_x_in_R_p : x ∈ R_p.vertices :=
+                  hR_marg_sub_R_p _ (Walk.head_mem_vertices R_marg_seg)
+                have h_x_in_p_tail : x ∈ p.vertices.tail :=
+                  hR_p_sub _ h_x_in_R_p
+                have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+                  mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+                rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+                · exact absurd h_S hvL_exit_notS
+                · exact h_T
+              · exact hR_marg_inter_T x hx_inner
+        · -- Non-degenerate β ≠ γ.  Delegate to D.3.
+          exact backward_marg_to_g_bif_dir_hinge_cInS_betaNeGamma_one_orientation
+            S T hS ha_VST hb_VST ha_marg hb_marg
+            ⟨hab_ne, ha_p_tail, hb_p_drop, i, hp_split⟩ hp_inter hc_S
+            hL_p_dir hR_p_dir hL_p_pos hR_p_pos
+            hL_p_sub hR_p_sub hL_p_drop_sub hR_p_drop_sub
+            hL_W_dir hL_marg_dir hL_W_pos hvL_exit_notS hL_W_inter hL_p_vs_eq
+            hR_W_dir hR_marg_dir hR_W_pos hvR_exit_notS hR_W_inter hR_p_vs_eq
+            hvL_vR_exit_eq
+      · -- c ∉ S.  c stays as the marg-bif source.
+        have hc_in_G : c ∈ G :=
+          Walk.source_in_G_of_directedWalk_pos L_p hL_p_dir hL_p_pos
+        have hc_marg : c ∈ G.marginalize S hS := by
+          change c ∈ G.J ∪ (G.V \ S)
+          rcases Finset.mem_union.mp hc_in_G with hc_J | hc_V
+          · exact Finset.mem_union_left _ hc_J
+          · exact Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hc_V, hc_S⟩)
+        obtain ⟨L_marg, hL_marg_dir', hL_marg_pos', hL_marg_vs_sub, hL_marg_drop_sub,
+                _, hL_marg_inter_T⟩ :=
+          project_walk_marg_full (S := S) (T := T) (hS := hS)
+            L_p hL_p_dir hL_p_pos hc_marg ha_marg hL_p_inter_ST
+        obtain ⟨R_marg, hR_marg_dir', hR_marg_pos', hR_marg_vs_sub, hR_marg_drop_sub,
+                _, hR_marg_inter_T⟩ :=
+          project_walk_marg_full (S := S) (T := T) (hS := hS)
+            R_p hR_p_dir hR_p_pos hc_marg hb_marg hR_p_inter_ST
+        have ha_notin_L_marg : a ∉ L_marg.vertices.dropLast := fun h_in =>
+          ha_notin_L_p_drop (hL_marg_drop_sub a h_in)
+        have ha_notin_R_marg : a ∉ R_marg.vertices := fun h_in =>
+          ha_notin_R_p (hR_marg_vs_sub a h_in)
+        have hb_notin_L_marg : b ∉ L_marg.vertices := fun h_in =>
+          hb_notin_L_p (hL_marg_vs_sub b h_in)
+        have hb_notin_R_marg_drop : b ∉ R_marg.vertices.dropLast := fun h_in =>
+          hb_notin_R_p_drop (hR_marg_drop_sub b h_in)
+        refine ⟨Walk.mkBifurcation L_marg hL_marg_dir' hL_marg_pos' R_marg, ?_, ?_⟩
+        · have h_src := Walk.mkBifurcation_isBifurcationSource
+            L_marg hL_marg_dir' hL_marg_pos' R_marg hR_marg_dir' hR_marg_pos'
+            hab_ne ha_notin_L_marg ha_notin_R_marg hb_notin_L_marg hb_notin_R_marg_drop
+          exact Walk.isBifurcationSource_to_isBifurcation _ c h_src
+        · intro x hx
+          rw [vertices_tail_dropLast_mkBifurcation
+                L_marg hL_marg_dir' hL_marg_pos' R_marg hR_marg_pos'] at hx
+          rcases List.mem_append.mp hx with hx_L | hx_R
+          · rw [List.mem_reverse] at hx_L
+            exact hL_marg_inter_T x hx_L
+          · have h_R_t_ne : R_marg.vertices.tail ≠ [] :=
+              Walk.tail_vertices_ne_nil_of_pos R_marg hR_marg_pos'
+            rw [Walk.vertices_eq_head_cons_tail R_marg,
+                List.dropLast_cons_of_ne_nil h_R_t_ne] at hx_R
+            rcases List.mem_cons.mp hx_R with rfl | hx_inner
+            · have h_x_in_L_p : x ∈ L_p.vertices :=
+                Walk.head_mem_vertices L_p
+              have h_x_in_p_drop : x ∈ p.vertices.dropLast :=
+                hL_p_sub _ h_x_in_L_p
+              have h_x_in_R_p : x ∈ R_p.vertices :=
+                Walk.head_mem_vertices R_p
+              have h_x_in_p_tail : x ∈ p.vertices.tail :=
+                hR_p_sub _ h_x_in_R_p
+              have h_x_in_p_inter : x ∈ p.vertices.tail.dropLast :=
+                mem_interior_of_arm_source ha_p_tail hp_pos h_x_in_p_tail h_x_in_p_drop
+              rcases hp_inter_ST x h_x_in_p_inter with h_S | h_T
+              · exact absurd h_S hc_S
+              · exact h_T
+            · exact hR_marg_inter_T x hx_inner
+    · -- Bidirected hinge: delegate to D.2.
+      exact backward_marg_to_g_bif_bidir_hinge_one_orientation S T hS
+        ha_VST hb_VST ha_marg hb_marg p ⟨hab_ne, ha_p_tail, hb_p_drop, i, hp_split⟩
+        hp_inter i hp_split h_dir
+  -- Final assembly: 4 inner branches over the Or in MarginalizationΦL.
   constructor
-  · rintro ⟨π, hπ_dir, hπ_int⟩
-    obtain ⟨σ, hσ_dir, hσ_int, _⟩ :=
-      (directed_walk_iff G W₁ W₂ ha' hb).mp ⟨π, hπ_dir, hπ_int, h_aux π hab⟩
-    exact ⟨σ, hσ_dir, hσ_int⟩
-  · rintro ⟨σ, hσ_dir, hσ_int⟩
-    obtain ⟨π, hπ_dir, hπ_int, _⟩ :=
-      (directed_walk_iff G W₁ W₂ ha' hb).mpr ⟨σ, hσ_dir, hσ_int, h_aux σ hab⟩
-    exact ⟨π, hπ_dir, hπ_int⟩
+  · rintro (⟨p, hp_bif, hp_inter⟩ | ⟨p, hp_bif, hp_inter⟩)
+    · obtain ⟨q, hq_bif, hq_inter⟩ :=
+        forward_one_orientation hu hv hu_marg hv_marg p hp_bif hp_inter
+      exact Or.inl ⟨q, hq_bif, hq_inter⟩
+    · obtain ⟨q, hq_bif, hq_inter⟩ :=
+        forward_one_orientation hv hu hv_marg hu_marg p hp_bif hp_inter
+      exact Or.inr ⟨q, hq_bif, hq_inter⟩
+  · rintro (⟨p, hp_bif, hp_inter⟩ | ⟨p, hp_bif, hp_inter⟩)
+    · obtain ⟨q, hq_bif, hq_inter⟩ :=
+        backward_one_orientation hu hv hu_marg hv_marg p hp_bif hp_inter
+      exact Or.inl ⟨q, hq_bif, hq_inter⟩
+    · obtain ⟨q, hq_bif, hq_inter⟩ :=
+        backward_one_orientation hv hu hv_marg hu_marg p hp_bif hp_inter
+      exact Or.inr ⟨q, hq_bif, hq_inter⟩
 
-/-! ## Bifurcation translators for the L component
-
-These helpers handle the bifurcation existential of the L-component
-iff via a two-step reduction:
-
-1. `marginalize_bifurcation_iff` (claim_3_16, public, no interior
-   tracking) gives the bifurcation existence iff between `G` and
-   `G.marginalize W₁`.
-2. The interior tracking follows from the IsBifurcation property
-   (endpoints don't appear in the interior) combined with a support
-   inclusion that we derive separately.
-
-For lift (marg → G): we explicitly construct `σ` using the marg
-witness and our directed translators, with `σ`'s support contained
-in `π'.support ∪ W₁` (and therefore `σ`'s interior, which excludes
-`a, b`, lies in `(π'.support \ {a,b}) ∪ W₁ ⊆ W₂ ∪ W₁`).
-
-For shrink (G → marg): symmetric construction.
-
-In either direction, the hinge case-split (`.backward` vs `.bidir`)
-is the structurally hardest piece. The `.bidir` case uses
-`mem_marginalize_L` (lift) or constructs a new `L^{∼W₁}` edge
-(shrink) for the hinge.
-
-**Implementation note (deferred to follow-up dispatch).** The full
-bifurcation translators with strict interior tracking are large
-(estimated ~1000 LoC per direction). The current implementation
-defers them to the manager's follow-up dispatch. The structure of
-`bifurcation_walk_iff_no_length` is correct: it reduces to two
-helper lemmas, each of which has a clear specification and would
-mirror the existing `Walk.marginalize_bif_backward` /
-`Walk.marginalize_bif_forward` proofs (`MarginalizationPreserves.lean`
-lines 919 / 2285) with an additional support-tracking conjunct
-added throughout. -/
-
-/-- Marg-side bifurcation lifts to a G-side bifurcation with interior
-in `W₁ ∪ W₂`. Proof: invoke
-`Walk.marginalize_bif_backward` (modified to track support inclusion
-in `π.support ∪ W₁`); then derive `σ.InteriorIn (W₁ ∪ W₂)` via the
-following observation: `σ`'s interior consists of vertices `x` that
-are in `σ.support` but distinct from the endpoints `a, b` (by
-`σ.IsBifurcation`'s `a ∉ tail`, `b ∉ dropLast` clauses). By the
-support tracking, `x ∈ π.support ∨ x ∈ W₁`. If `x ∈ W₁`, done. If
-`x ∈ π.support` and `x ≠ a, b`, then `x` is in `π`'s interior, hence
-in `W₂` (by `hint_π`). Either way `x ∈ W₁ ∪ W₂`. -/
-lemma lift_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
-    (_hd : Disjoint W₁ W₂)
-    {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
-    (π : Walk (G.marginalize W₁) a b)
-    (hb_π : π.IsBifurcation) (hint_π : π.InteriorIn W₂) :
-    (∃ σ : Walk G a b, σ.IsBifurcation ∧ σ.InteriorIn (W₁ ∪ W₂)) ∨
-    (∃ σ : Walk G b a, σ.IsBifurcation ∧ σ.InteriorIn (W₁ ∪ W₂)) := by
-  -- Membership facts: a, b ∈ G follow from ha, hb (ha.1 : a ∈ G.V, similarly).
-  have ha_in_G : a ∈ G := Or.inr ha.1
-  have hb_in_G : b ∈ G := Or.inr hb.1
-  have ha_W₁ : a ∉ W₁ := fun h => ha.2 (Or.inl h)
-  have hb_W₁ : b ∉ W₁ := fun h => hb.2 (Or.inl h)
-  have ha_W₂ : a ∉ W₂ := fun h => ha.2 (Or.inr h)
-  have hb_W₂ : b ∉ W₂ := fun h => hb.2 (Or.inr h)
-  -- Apply marginalize_bif_backward (modified to track support in π.support ∪ W₁).
-  rcases Walk.marginalize_bif_backward (W := W₁) ha_in_G hb_in_G ha_W₁ hb_W₁ π hb_π with
-    ⟨σ, hb_σ, hsupp⟩ | ⟨σ, hb_σ, hsupp⟩
-  · -- σ : Walk G a b case.
-    refine Or.inl ⟨σ, hb_σ, ?_⟩
-    -- Show σ.InteriorIn (W₁ ∪ W₂).
-    intro x hx
-    -- x ∈ σ.support.tail.dropLast. Therefore x ∈ σ.support, x ≠ a, x ≠ b.
-    have hx_supp : x ∈ σ.support :=
-      List.mem_of_mem_tail (List.dropLast_subset _ hx)
-    have hx_neq_a : x ≠ a := by
-      intro h_eq
-      have hx_tail : x ∈ σ.support.tail := List.dropLast_subset _ hx
-      rw [h_eq] at hx_tail
-      exact hb_σ.2.1 hx_tail
-    have hx_neq_b : x ≠ b := by
-      intro h_eq
-      have hx_dl_tail : x ∈ σ.support.dropLast.tail := by
-        rw [← list_tail_dropLast]; exact hx
-      have hx_drop : x ∈ σ.support.dropLast := List.mem_of_mem_tail hx_dl_tail
-      rw [h_eq] at hx_drop
-      exact hb_σ.2.2.1 hx_drop
-    -- Use support tracking: x ∈ π.support ∨ x ∈ W₁.
-    rcases hsupp x hx_supp with hxπ | hxW₁
-    · -- x ∈ π.support. Combined with x ≠ a, b, x is in π's interior, hence in W₂.
-      have hx_int_π : x ∈ π.support.tail.dropLast := by
-        rw [Walk.marg_support_eq_dropLast_append_last π] at hxπ
-        rcases List.mem_append.mp hxπ with h_drop | h_end
-        · have h_π_tail_ne : π.support.tail ≠ [] := by
-            intro h
-            have : π.support.tail.length = 0 := by rw [h]; rfl
-            rw [List.length_tail, Walk.support_length] at this
-            have h_π_pos : 1 ≤ π.length := Walk.length_pos_of_isBifurcation hb_π
-            omega
-          rw [Walk.marg_support_cons_form π,
-              List.dropLast_cons_of_ne_nil h_π_tail_ne] at h_drop
-          rcases List.mem_cons.mp h_drop with h_eq | h_int
-          · exact absurd h_eq hx_neq_a
-          · exact h_int
-        · simp at h_end; exact absurd h_end hx_neq_b
-      exact Or.inr (hint_π x hx_int_π)
-    · exact Or.inl hxW₁
-  · -- σ : Walk G b a case.
-    refine Or.inr ⟨σ, hb_σ, ?_⟩
-    intro x hx
-    have hx_supp : x ∈ σ.support :=
-      List.mem_of_mem_tail (List.dropLast_subset _ hx)
-    have hx_neq_b : x ≠ b := by
-      intro h_eq
-      have hx_tail : x ∈ σ.support.tail := List.dropLast_subset _ hx
-      rw [h_eq] at hx_tail
-      exact hb_σ.2.1 hx_tail
-    have hx_neq_a : x ≠ a := by
-      intro h_eq
-      have hx_dl_tail : x ∈ σ.support.dropLast.tail := by
-        rw [← list_tail_dropLast]; exact hx
-      have hx_drop : x ∈ σ.support.dropLast := List.mem_of_mem_tail hx_dl_tail
-      rw [h_eq] at hx_drop
-      exact hb_σ.2.2.1 hx_drop
-    rcases hsupp x hx_supp with hxπ | hxW₁
-    · have hx_int_π : x ∈ π.support.tail.dropLast := by
-        rw [Walk.marg_support_eq_dropLast_append_last π] at hxπ
-        rcases List.mem_append.mp hxπ with h_drop | h_end
-        · have h_π_tail_ne : π.support.tail ≠ [] := by
-            intro h
-            have : π.support.tail.length = 0 := by rw [h]; rfl
-            rw [List.length_tail, Walk.support_length] at this
-            have h_π_pos : 1 ≤ π.length := Walk.length_pos_of_isBifurcation hb_π
-            omega
-          rw [Walk.marg_support_cons_form π,
-              List.dropLast_cons_of_ne_nil h_π_tail_ne] at h_drop
-          rcases List.mem_cons.mp h_drop with h_eq | h_int
-          · exact absurd h_eq hx_neq_a
-          · exact h_int
-        · simp at h_end; exact absurd h_end hx_neq_b
-      exact Or.inr (hint_π x hx_int_π)
-    · exact Or.inl hxW₁
-
-/-- G-side bifurcation shrinks to a marg-side bifurcation with
-interior in `W₂`. Proof: invoke `Walk.marginalize_bif_forward`
-(modified to track support inclusion in `σ.support` and
-W-avoidance); derive `π.InteriorIn W₂` via: for any interior vertex
-`x` of `π`, `x ≠ a, x ≠ b` (by `π.IsBifurcation`), `x ∈ σ.support`
-(support tracking) → `x ∈ σ.support.tail.dropLast` (set-wise
-position analysis) → `x ∈ W₁ ∪ W₂` (by `hint_σ`); combined with
-`x ∉ W₁` (W-avoidance tracking) gives `x ∈ W₂`. -/
-lemma shrink_bifurcation_walk (G : CDMG α) (W₁ W₂ : Set α)
-    (_hd : Disjoint W₁ W₂)
-    {a b : α} (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
-    (σ : Walk G a b)
-    (hb_σ : σ.IsBifurcation) (hint_σ : σ.InteriorIn (W₁ ∪ W₂)) :
-    (∃ π : Walk (G.marginalize W₁) a b,
-        π.IsBifurcation ∧ π.InteriorIn W₂) ∨
-    (∃ π : Walk (G.marginalize W₁) b a,
-        π.IsBifurcation ∧ π.InteriorIn W₂) := by
-  have ha_in_G : a ∈ G := Or.inr ha.1
-  have hb_in_G : b ∈ G := Or.inr hb.1
-  have ha_W₁ : a ∉ W₁ := fun h => ha.2 (Or.inl h)
-  have hb_W₁ : b ∉ W₁ := fun h => hb.2 (Or.inl h)
-  -- Apply marginalize_bif_forward (modified to track support ⊆ σ.support, ∉ W₁).
-  rcases Walk.marginalize_bif_forward (W := W₁) ha_in_G hb_in_G ha_W₁ hb_W₁ σ hb_σ with
-    ⟨π, hb_π, hsupp⟩ | ⟨π, hb_π, hsupp⟩
-  · -- π : Walk (G.marg W₁) a b case.
-    refine Or.inl ⟨π, hb_π, ?_⟩
-    intro x hx
-    -- x ∈ π.support.tail.dropLast. So x ∈ π.support, x ≠ a, x ≠ b.
-    have hx_supp : x ∈ π.support :=
-      List.mem_of_mem_tail (List.dropLast_subset _ hx)
-    have hx_neq_a : x ≠ a := by
-      intro h_eq
-      have hx_tail : x ∈ π.support.tail := List.dropLast_subset _ hx
-      rw [h_eq] at hx_tail
-      exact hb_π.2.1 hx_tail
-    have hx_neq_b : x ≠ b := by
-      intro h_eq
-      have hx_dl_tail : x ∈ π.support.dropLast.tail := by
-        rw [← list_tail_dropLast]; exact hx
-      have hx_drop : x ∈ π.support.dropLast := List.mem_of_mem_tail hx_dl_tail
-      rw [h_eq] at hx_drop
-      exact hb_π.2.2.1 hx_drop
-    -- From support tracking: x ∈ σ.support ∧ x ∉ W₁.
-    have ⟨hx_σ, hx_notW⟩ := hsupp x hx_supp
-    -- x ∈ σ.support, x ≠ a, x ≠ b → x ∈ σ.support.tail.dropLast (interior of σ).
-    have hx_int_σ : x ∈ σ.support.tail.dropLast := by
-      rw [Walk.marg_support_eq_dropLast_append_last σ] at hx_σ
-      rcases List.mem_append.mp hx_σ with h_drop | h_end
-      · have h_σ_tail_ne : σ.support.tail ≠ [] := by
-          intro h
-          have : σ.support.tail.length = 0 := by rw [h]; rfl
-          rw [List.length_tail, Walk.support_length] at this
-          have h_σ_pos : 1 ≤ σ.length := Walk.length_pos_of_isBifurcation hb_σ
-          omega
-        rw [Walk.marg_support_cons_form σ,
-            List.dropLast_cons_of_ne_nil h_σ_tail_ne] at h_drop
-        rcases List.mem_cons.mp h_drop with h_eq | h_int
-        · exact absurd h_eq hx_neq_a
-        · exact h_int
-      · simp at h_end; exact absurd h_end hx_neq_b
-    -- x ∈ W₁ ∪ W₂ (by σ.InteriorIn), x ∉ W₁ → x ∈ W₂.
-    rcases hint_σ x hx_int_σ with hW₁ | hW₂
-    · exact absurd hW₁ hx_notW
-    · exact hW₂
-  · -- π : Walk (G.marg W₁) b a case.
-    refine Or.inr ⟨π, hb_π, ?_⟩
-    intro x hx
-    have hx_supp : x ∈ π.support :=
-      List.mem_of_mem_tail (List.dropLast_subset _ hx)
-    have hx_neq_b : x ≠ b := by
-      intro h_eq
-      have hx_tail : x ∈ π.support.tail := List.dropLast_subset _ hx
-      rw [h_eq] at hx_tail
-      exact hb_π.2.1 hx_tail
-    have hx_neq_a : x ≠ a := by
-      intro h_eq
-      have hx_dl_tail : x ∈ π.support.dropLast.tail := by
-        rw [← list_tail_dropLast]; exact hx
-      have hx_drop : x ∈ π.support.dropLast := List.mem_of_mem_tail hx_dl_tail
-      rw [h_eq] at hx_drop
-      exact hb_π.2.2.1 hx_drop
-    have ⟨hx_σ, hx_notW⟩ := hsupp x hx_supp
-    have hx_int_σ : x ∈ σ.support.tail.dropLast := by
-      rw [Walk.marg_support_eq_dropLast_append_last σ] at hx_σ
-      rcases List.mem_append.mp hx_σ with h_drop | h_end
-      · have h_σ_tail_ne : σ.support.tail ≠ [] := by
-          intro h
-          have : σ.support.tail.length = 0 := by rw [h]; rfl
-          rw [List.length_tail, Walk.support_length] at this
-          have h_σ_pos : 1 ≤ σ.length := Walk.length_pos_of_isBifurcation hb_σ
-          omega
-        rw [Walk.marg_support_cons_form σ,
-            List.dropLast_cons_of_ne_nil h_σ_tail_ne] at h_drop
-        rcases List.mem_cons.mp h_drop with h_eq | h_int
-        · exact absurd h_eq hx_neq_a
-        · exact h_int
-      · simp at h_end; exact absurd h_end hx_neq_b
-    rcases hint_σ x hx_int_σ with hW₁ | hW₂
-    · exact absurd hW₁ hx_notW
-    · exact hW₂
-
-/-- Bifurcation iff (L component): under the right endpoint constraints
-and disjointness of `W₁, W₂`, the existence of a bifurcation in
-`G.marginalize W₁` with interior in `W₂` (in either walk direction)
-is equivalent to the existence of a bifurcation in `G` with interior
-in `W₁ ∪ W₂` (in either walk direction). -/
-lemma bifurcation_walk_iff_no_length (G : CDMG α)
-    (W₁ W₂ : Set α) (hd : Disjoint W₁ W₂) {a b : α}
-    (ha : a ∈ G.V \ (W₁ ∪ W₂)) (hb : b ∈ G.V \ (W₁ ∪ W₂))
-    (hab : a ≠ b) :
-    ((∃ π : Walk (G.marginalize W₁) a b, π.IsBifurcation ∧ π.InteriorIn W₂) ∨
-     (∃ π : Walk (G.marginalize W₁) b a, π.IsBifurcation ∧ π.InteriorIn W₂))
-    ↔
-    ((∃ σ : Walk G a b, σ.IsBifurcation ∧ σ.InteriorIn (W₁ ∪ W₂)) ∨
-     (∃ σ : Walk G b a, σ.IsBifurcation ∧ σ.InteriorIn (W₁ ∪ W₂))) := by
-  constructor
-  · -- (⇒): marg → G. Apply lift_bifurcation_walk on each disjunct.
-    rintro (⟨π, hb_π, hint_π⟩ | ⟨π, hb_π, hint_π⟩)
-    · exact lift_bifurcation_walk G W₁ W₂ hd ha hb π hb_π hint_π
-    · exact (lift_bifurcation_walk G W₁ W₂ hd hb ha π hb_π hint_π).symm
-  · -- (⇐): G → marg. Apply shrink_bifurcation_walk on each disjunct.
-    rintro (⟨σ, hb_σ, hint_σ⟩ | ⟨σ, hb_σ, hint_σ⟩)
-    · exact shrink_bifurcation_walk G W₁ W₂ hd ha hb σ hb_σ hint_σ
-    · exact (shrink_bifurcation_walk G W₁ W₂ hd hb ha σ hb_σ hint_σ).symm
-
--- claim_3_17 (fusion)
--- title: MarginalizationsCommute -- fusion lemma
+set_option linter.style.longLine false in
+-- ## L-field equality (parametric in `S, T`).
 --
--- Iterating two *disjoint* marginalizations collapses to a single
--- marginalization on the union:
--- `(G^{\sm W₁})^{\sm W₂} = G^{\sm (W₁ ∪ W₂)}`. This is the central
--- content of the LN's triple equality; the commute form (below) is
--- an immediate corollary via `Set.union_comm`.
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (Lem 995 -- 1005):
+-- Refactor port: under `marginalize`, `marg.L` is built as
+-- `(filter …).image (fun e => s(e.1, e.2))` rather than the original's
+-- bare filter on ordered pairs.  The proof peels the outer
+-- `Finset.image` layer via `congr 1` (the image function `fun e => s(e.1, e.2)`
+-- is identical on both sides), reducing to filter equality on the inner
+-- ordered-pair Finset, which the original's `Finset.filter_congr` step
+-- handles unchanged (after the `sdiff_sdiff_left` rewrite that lines up the
+-- product carriers).  The inner `Iff` step still closes via
+-- `marg_PhiL_iff`.
+private lemma marg_L_field_eq {G : CDMG Node} (S T : Finset Node)
+    (hS : S ⊆ G.V) (hT : T ⊆ G.V) (hDisj : Disjoint S T) :
+    ((G.marginalize S hS).marginalize T
+        (subset_sdiff_of_disjoint hT hDisj.symm)).L
+      = (G.marginalize (S ∪ T) (Finset.union_subset hS hT)).L := by
+  change ((((G.V \ S) \ T) ×ˢ ((G.V \ S) \ T)).filter
+            (fun e => e.1 ≠ e.2 ∧
+              (G.marginalize S hS).MarginalizationΦL T e.1 e.2)).image
+              (fun e => s(e.1, e.2))
+        = (((G.V \ (S ∪ T)) ×ˢ (G.V \ (S ∪ T))).filter
+            (fun e => e.1 ≠ e.2 ∧ G.MarginalizationΦL (S ∪ T) e.1 e.2)).image
+              (fun e => s(e.1, e.2))
+  have h_sd : (G.V \ S) \ T = G.V \ (S ∪ T) := sdiff_sdiff_left
+  rw [h_sd]
+  congr 1
+  apply Finset.filter_congr
+  intro e he
+  rw [Finset.mem_product] at he
+  refine and_congr Iff.rfl ?_
+  exact marg_PhiL_iff S T hS hT hDisj he.1 he.2
 
-\begin{claimmark}
-\begin{Lem}[Marginalizations commute]\label{marginalizations-commute}
-      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of output nodes.
-      Then we have:
-      \[ \lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1} =  G^{\sm (W_1 \cup W_2)}. \]
-\end{Lem}
-\end{claimmark}
--/
+-- ## Refactor replacements — Phase F (main theorem `marginalize_comm`).
 --
--- ## Design choice
---
--- * **No `W₁, W₂ ⊆ G.V` precondition -- this is a faithful
---   strengthening of the LN, not a divergence.** Mirrors the
---   no-precondition design of `marginalize`
---   (`Section3_2/Marginalization.lean` lines 258 -- 286, which cites
---   claim_3_17 by name as one of the two load-bearing motivating
---   tests that justified dropping the precondition; the verbatim
---   text there names "Iteration works unconditionally (claim_3_17)"
---   as its first reason). The LN's `W_i ⊆ V` clause is informal
---   scaffolding so that `G^{\sm W_i}` reads as "remove output nodes
---   from `G`" in prose; it is not load-bearing in the LN proof.
---   The equality holds component-wise on `(J, V, E, L)` for
---   arbitrary `W₁, W₂ : Set α` because vertices in `W \ G.V` are
---   never on any `Walk G _ _` (interior vertices of a walk of length
---   ≥ 1 force themselves into `G.J ∪ G.V` via `G.E_subset` /
---   `G.L_subset`, so `π.InteriorIn W` only sees the part of `W`
---   inside `G.J ∪ G.V`), hence none of `marginalize_J / V / E / L`
---   are affected by the "spurious" part of `W` outside `G.V`. The
---   outer call in `(G.marginalize W₁).marginalize W₂` would
---   otherwise need a hypothesis `W₂ ⊆ (G.marginalize W₁).V =
---   G.V \ W₁`; the LN proof tacitly assumes `W₂ ⊆ V` (the *base*
---   graph's output set) for *both* marginalization steps without
---   re-justifying it for the inner marginalization, which is
---   exactly the informal usage the no-precondition encoding
---   captures faithfully. Same choice `HardInterventionsCommute.lean`
---   makes for the analogous `hardInterventionOn_*` theorems, for
---   the same iteration-unblocking reason.
---
--- * **Disjointness `Disjoint W₁ W₂` is kept -- load-bearing for
---   both the LN statement and the LN walk-concatenation proof.**
---   The LN states `W_1, W_2` "disjoint" and its proof
---   (`graphs.tex` lines 1007 -- 1117) load-bears on it: a walk
---   through `W₁ ∪ W₂` is split, via disjointness, along
---   intermediate-vertex membership into the contribution from each
---   marginalization step (without disjointness the splitting is
---   ambiguous and the inductive identification of "walks with
---   interior in W₁ ∪ W₂" with the two-step composition breaks).
---   Under our fusion + commute split the *same* hypothesis `h`
---   feeds both: the fusion lemma uses `h` directly, and the
---   commute corollary feeds `h.symm` into the swapped-order
---   fusion call (`marginalize_marginalize G h.symm`). Using
---   mathlib's `Disjoint` from `Mathlib.Order.Disjoint`
---   (transitively imported via `Section3_2/Marginalization.lean`)
---   so that the symmetry call is just `h.symm`, with no manual
---   set-theoretic massaging.
---
--- * **Split the LN's chained equality into fusion + commute,
---   mirroring `HardInterventionsCommute.lean` precedent.** The LN
---   bundles `(G^{\sm W₁})^{\sm W₂} = (G^{\sm W₂})^{\sm W₁} =
---   G^{\sm (W₁ ∪ W₂)}` into one displayed equation, but the natural
---   Lean shape is two named lemmas: a *fusion* rewrite rule (this
---   theorem) and a *commute* corollary (`marginalize_comm` below).
---   This is the direct analogue of
---   `hardInterventionOn_hardInterventionOn` +
---   `hardInterventionOn_comm` for claim_3_11 (see
---   `HardInterventionsCommute.lean` lines 162 -- 184 and
---   286 -- 303 for the same split rationale, made there for the
---   same reasons). Fusion is what every downstream consumer
---   actually rewrites with -- the `graphs.tex` 984 / 1426
---   induction-on-`#W` arguments collapse iterated marginalizations
---   back to a single one via fusion, never via a chained-equality
---   pair; chapter 4+ latent-projection / hidden-variable
---   compression, do-calculus iteration, FCI / ICDF discovery, and
---   iSCM intervention iteration all reach for the fusion form.
---   The commute form is the rare-use corollary, needed only when
---   the downstream argument has fixed which `W_i` comes "first" and
---   wants to reorder without collapsing. An alternative we
---   considered and rejected was packaging the chained equality as
---   a single `⟨_, _⟩`-conjunction (or a triple equality via
---   `Eq.trans`); both would force every consumer to apply `.1` /
---   `.2` (or `.symm.trans`) at the call site, an extra projection
---   step that obscures the rewrite. Two separately-named lemmas is
---   the natural Mathlib shape (cf. `image_image` + `Function.comp`
---   style names; `mul_comm` / `add_comm` for the commute form).
-/-- claim_3_17 fusion lemma: iterating two disjoint marginalizations
-equals a single marginalization on the union,
-`(G.marginalize W₁).marginalize W₂ = G.marginalize (W₁ ∪ W₂)`.
-Mirrors the first half of the chained equality in the `\Lem` at
-`lecture-notes/lecture_notes/graphs.tex` line 997
-(`marginalizations-commute`). -/
-theorem marginalize_marginalize (G : CDMG α) {W₁ W₂ : Set α}
-    (h : Disjoint W₁ W₂) :
-    (G.marginalize W₁).marginalize W₂ = G.marginalize (W₁ ∪ W₂) := by
-  refine mk_eq_of_data ?_ ?_ ?_ ?_
-  · -- J: both `(G.marg W₁).marg W₂.J = G.J` and `G.marg (W₁ ∪ W₂).J = G.J`.
-    show ((G.marginalize W₁).marginalize W₂).J = (G.marginalize (W₁ ∪ W₂)).J
-    rfl
-  · -- V: `(G.V \ W₁) \ W₂ = G.V \ (W₁ ∪ W₂)` via `Set.diff_diff`.
-    show ((G.marginalize W₁).marginalize W₂).V = (G.marginalize (W₁ ∪ W₂)).V
-    simp only [CDMG.marginalize_V, Set.diff_diff]
-  · -- E: walk-existential iff via `directed_walk_iff`.
-    ext p
-    simp only [CDMG.mem_marginalize_E, CDMG.marginalize_J, CDMG.marginalize_V,
-               Set.diff_diff]
-    constructor
-    · rintro ⟨hp1, hp2, hex⟩
-      exact ⟨hp1, hp2, (directed_walk_iff G W₁ W₂ hp1 hp2).mp hex⟩
-    · rintro ⟨hp1, hp2, hex⟩
-      exact ⟨hp1, hp2, (directed_walk_iff G W₁ W₂ hp1 hp2).mpr hex⟩
-  · -- L: bifurcation existential + directed-walk negation clauses.
-    -- Structure: unfold both sides via `mem_marginalize_L`; endpoint conditions
-    -- match via `Set.diff_diff`; `p.1 ≠ p.2` is shared; the two
-    -- `¬ ∃ directed walk` clauses follow from `directed_walk_iff_no_length`;
-    -- the bifurcation `∨` requires interior-tracking bifurcation translators
-    -- (analogue of `lift_directed_walk` / `shrink_directed_walk` for
-    -- bifurcations) -- isolated below in `bifurcation_walk_iff_no_length`.
-    ext p
-    simp only [CDMG.mem_marginalize_L, CDMG.marginalize_V, Set.diff_diff]
-    constructor
-    · rintro ⟨hp1, hp2, hne, hnd12, hnd21, hbif⟩
-      refine ⟨hp1, hp2, hne, ?_, ?_, ?_⟩
-      · -- ¬ ∃ directed walk a → b in G: iff version, contradict via LHS.
-        intro ⟨σ, hσ_dir, hσ_int⟩
-        exact hnd12 ((directed_walk_iff_no_length G W₁ W₂ hp1 hp2 hne).mpr
-                        ⟨σ, hσ_dir, hσ_int⟩)
-      · -- ¬ ∃ directed walk b → a in G: similar with swapped endpoints.
-        intro ⟨σ, hσ_dir, hσ_int⟩
-        exact hnd21 ((directed_walk_iff_no_length G W₁ W₂ hp2 hp1 hne.symm).mpr
-                        ⟨σ, hσ_dir, hσ_int⟩)
-      · -- Bifurcation iff.
-        exact (bifurcation_walk_iff_no_length G W₁ W₂ h hp1 hp2 hne).mp hbif
-    · rintro ⟨hp1, hp2, hne, hnd12, hnd21, hbif⟩
-      refine ⟨hp1, hp2, hne, ?_, ?_, ?_⟩
-      · intro ⟨π, hπ_dir, hπ_int⟩
-        exact hnd12 ((directed_walk_iff_no_length G W₁ W₂ hp1 hp2 hne).mp
-                        ⟨π, hπ_dir, hπ_int⟩)
-      · intro ⟨π, hπ_dir, hπ_int⟩
-        exact hnd21 ((directed_walk_iff_no_length G W₁ W₂ hp2 hp1 hne.symm).mp
-                        ⟨π, hπ_dir, hπ_int⟩)
-      · exact (bifurcation_walk_iff_no_length G W₁ W₂ h hp1 hp2 hne).mpr hbif
-
--- claim_3_17 (commute corollary)
--- title: MarginalizationsCommute -- commute corollary
---
--- The order of two disjoint marginalizations does not matter:
--- `(G^{\sm W₁})^{\sm W₂} = (G^{\sm W₂})^{\sm W₁}`. One-line
--- corollary of the fusion lemma plus `Set.union_comm`.
-/-
-Verbatim from `lecture-notes/lecture_notes/graphs.tex` (Lem 995 -- 1005):
-
-\begin{claimmark}
-\begin{Lem}[Marginalizations commute]\label{marginalizations-commute}
-      Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins V$ two disjoint subsets of output nodes.
-      Then we have:
-      \[ \lp G^{\sm W_1} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp^{\sm W_1} =  G^{\sm (W_1 \cup W_2)}. \]
-\end{Lem}
-\end{claimmark}
--/
---
--- ## Design choice
---
--- * **No `W₁, W₂ ⊆ G.V` precondition** -- same reasoning as the
---   fusion lemma above. The no-precondition design of
---   `G.marginalize` (`Section3_2/Marginalization.lean` lines
---   258 -- 286) makes both this corollary and the fusion lemma
---   hold for arbitrary `W₁, W₂ : Set α`; the LN's `W_i ⊆ V` clause
---   is informal scaffolding, not load-bearing in the LN proof.
---   `verify_equivalence` confirmed this is a *faithful
---   strengthening* of the LN statement, not a divergence: the
---   four-component equality is unchanged on vertices that are
---   actually in `G.V`, and vertices in `W \ G.V` are never on any
---   walk so do not affect any of `marginalize_J / V / E / L`.
---
--- * **Disjointness `Disjoint W₁ W₂` is kept and reused on both
---   sides via symmetry.** Load-bearing in the LN statement and in
---   the LN walk-concatenation proof (see the fusion-lemma design
---   note above for the splitting-along-`W_i` argument). The same
---   hypothesis `h` drives both fusion calls in the proof below:
---   `marginalize_marginalize G h` collapses the LHS to
---   `G.marginalize (W₁ ∪ W₂)`, and `marginalize_marginalize G
---   h.symm` collapses the RHS to `G.marginalize (W₂ ∪ W₁)`.
---   Mathlib's `Disjoint` from `Mathlib.Order.Disjoint` has
---   `Disjoint.symm` built in, so we do not have to thread a
---   separate `Disjoint W₂ W₁` hypothesis through the API.
---
--- * **One-line proof from the fusion lemma.** Both sides collapse
---   via `marginalize_marginalize` to `G.marginalize (W₁ ∪ W₂)` and
---   `G.marginalize (W₂ ∪ W₁)` respectively; `Set.union_comm`
---   identifies the union arguments. The Lean proof is essentially
---   `rw [marginalize_marginalize G h,
---        marginalize_marginalize G h.symm, Set.union_comm]`.
---   This direct dependence on the fusion lemma is the reason the
---   two theorems live in the same file in this order (fusion
---   first, commute as corollary): keeping the corollary in the
---   same file makes the rewrite chain locally checkable and
---   matches `HardInterventionsCommute.lean`'s precedent
---   (`hardInterventionOn_comm` at lines 332 -- 343 there, whose
---   proof is the exact same three-rewrite recipe).
---
--- * **The third equality of the LN's triple, `(G^{\sm W₂})^{\sm W₁}
---   = G^{\sm (W₁ ∪ W₂)}`, is not a separate theorem.** It is
---   exactly `marginalize_marginalize G h.symm` followed by
---   `Set.union_comm` (or equivalently `marginalize_marginalize`
---   applied with `W₁` and `W₂` swapped); any consumer that wants
---   it can derive it in one step from the fusion lemma. Promoting
---   it to a named theorem would just be `marginalize_marginalize`
---   with the arguments swapped -- bloating the API without adding
---   expressive power.
---
--- * **Naming `marginalize_comm`.** Standard Mathlib `_comm` suffix
---   for commutativity-of-an-operator-style lemmas (`add_comm`,
---   `mul_comm`, `Set.union_comm`, `Function.comm`, ...). Pairs
---   naturally with the `marginalize_marginalize` fusion name
---   above; mirrors `hardInterventionOn_comm` of claim_3_11.
-/-- claim_3_17 commute corollary: the order of two disjoint
-marginalizations does not matter,
-`(G.marginalize W₁).marginalize W₂ = (G.marginalize W₂).marginalize W₁`.
-Mirrors the second half (`= (G^{\sm W₂})^{\sm W₁}`) of the chained
-equality in the `\Lem` at `lecture-notes/lecture_notes/graphs.tex`
-line 997 (`marginalizations-commute`). -/
-theorem marginalize_comm (G : CDMG α) {W₁ W₂ : Set α}
-    (h : Disjoint W₁ W₂) :
-    (G.marginalize W₁).marginalize W₂
-      = (G.marginalize W₂).marginalize W₁ := by
-  -- Both sides collapse via `marginalize_marginalize` to `G.marginalize (W₁ ∪ W₂)`
-  -- and `G.marginalize (W₂ ∪ W₁)` respectively; `Set.union_comm` identifies them.
-  rw [marginalize_marginalize G h, marginalize_marginalize G h.symm,
-      Set.union_comm]
+-- Two structural shifts from the original:
+--   1. `CDMG` → `CDMG`: the structure drops from 9 fields to 8
+--      (no `hL_symm`, since `Sym2` makes bidirected-edge symmetry
+--      definitional).  The local `cdmgExt` `have`-lemma's `rintro`
+--      destructure shrinks to 8 anonymous slots accordingly.
+--   2. `marginalize` → `marginalize`: under the refactor,
+--      `.L : Finset (Sym2 Node)` rather than `Finset (Node × Node)`,
+--      but `marg_L_field_eq` absorbs the extra
+--      `Finset.image` layer internally, so the assembly at the
+--      `marginalize_comm` level remains a verbatim
+--      `refine ⟨?_, ?_⟩` + four field equalities per conjunct.
+-- `subset_sdiff_of_disjoint` and `marg_{E,L}_field_eq` calls switch
+-- to their `refactor_*` twins; all other plumbing
+-- (`sdiff_sdiff_left`, `Finset.union_comm`,
+-- `Finset.union_subset`) is pure-`Finset` and ports verbatim.
+set_option linter.style.longLine false in
+-- claim_3_17 -- start statement
+theorem marginalize_comm (G : CDMG Node) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    (G.marginalize W₁ hW₁).marginalize W₂
+        (subset_sdiff_of_disjoint hW₂ hDisj.symm)
+      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)
+    ∧
+    (G.marginalize W₂ hW₂).marginalize W₁
+        (subset_sdiff_of_disjoint hW₁ hDisj)
+      = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂)
+-- claim_3_17 -- end statement
+:= by
+  -- ## CDMG extensionality (8-field destructure; no `hL_symm`).
+  have cdmgExt : ∀ {G₁ G₂ : CDMG Node},
+      G₁.J = G₂.J → G₁.V = G₂.V → G₁.E = G₂.E → G₁.L = G₂.L → G₁ = G₂ := by
+    rintro ⟨J₁, V₁, _, E₁, _, L₁, _, _⟩
+           ⟨J₂, V₂, _, E₂, _, L₂, _, _⟩ hJ hV hE hL
+    obtain rfl := hJ; obtain rfl := hV; obtain rfl := hE; obtain rfl := hL; rfl
+  -- ## L-field equality.
+  have hL_field_eq : ∀ (S T : Finset Node) (hS : S ⊆ G.V) (hT : T ⊆ G.V)
+      (hDisj_ST : Disjoint S T),
+      ((G.marginalize S hS).marginalize T
+          (subset_sdiff_of_disjoint hT hDisj_ST.symm)).L
+        = (G.marginalize (S ∪ T) (Finset.union_subset hS hT)).L := by
+    intro S T hS hT hDisj_ST
+    exact marg_L_field_eq S T hS hT hDisj_ST
+  refine ⟨?_, ?_⟩
+  · refine cdmgExt rfl ?_ ?_ ?_
+    · exact sdiff_sdiff_left
+    · exact marg_E_field_eq W₁ W₂ hW₁ hW₂ hDisj
+    · exact hL_field_eq W₁ W₂ hW₁ hW₂ hDisj
+  · -- (b): apply the auxiliaries with the roles of W₁/W₂ swapped.
+    have heq : G.marginalize (W₂ ∪ W₁) (Finset.union_subset hW₂ hW₁)
+             = G.marginalize (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂) := by
+      congr 1
+      exact Finset.union_comm W₂ W₁
+    refine cdmgExt rfl ?_ ?_ ?_
+    · change (G.V \ W₂) \ W₁ = G.V \ (W₁ ∪ W₂)
+      rw [Finset.union_comm W₁ W₂]
+      exact sdiff_sdiff_left
+    · have h := marg_E_field_eq W₂ W₁ hW₂ hW₁ hDisj.symm
+      rw [heq] at h
+      exact h
+    · have h := hL_field_eq W₂ W₁ hW₂ hW₁ hDisj.symm
+      rw [heq] at h
+      exact h
 
 end CDMG
 

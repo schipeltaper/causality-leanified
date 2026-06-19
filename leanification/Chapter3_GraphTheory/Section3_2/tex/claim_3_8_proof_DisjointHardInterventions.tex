@@ -1,14 +1,36 @@
-% Claim proof file for row claim_3_8 -- "DisjointHardInterventions".
+% Claim proof file (REFACTOR TWIN) for row claim_3_8 -- "DisjointHardInterventions".
+% This is the twin file produced during the `cdmg_typed_edges` refactor;
+% the original `claim_3_8_proof_DisjointHardInterventions.tex` stays
+% untouched until cleanup eventually renames this twin over it.
 %
-% Proof lifted from lecture-notes/lecture_notes/graphs.tex:505--533 (the
-% \Claude{...} block immediately following the claim). Only light edits:
-% explicit \refrow{def_3_10} and \refrow{def_3_11} cross-links the first
-% time \doit and \spl appear in the body, \medskip\noindent\emph{...}
-% section headers mirroring claim_3_4_proof_HardInterventionsCommute.tex,
-% a \checkmark at the end of each component-agree paragraph, and a closing
-% one-liner. The \Claude{...} wrapper from the LN source is dropped.
+% Mathematically the LN-level proof is unchanged by the refactor: at the
+% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
+% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
+% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
+% capture. There are two prose adjustments versus the original:
 %
-% Compiles standalone via the `subfiles` package.
+% (i) the L-axiom recitation in the statement-restatement block drops the
+%     explicit ordered-pair phrasing ($L \subseteq V \times V$, $L$
+%     irreflexive on ordered pairs, $L$ symmetric in the swap of
+%     components) and uses the unordered-pair phrasing instead;
+%
+% (ii) the "Bidirected edges" section of the proof body no longer needs
+%      the "Registered two-sided removal of $L$" deviation paragraph: in
+%      the post-refactor `Sym2`-typed encoding the LN's literal one-sided
+%      removal clause $L \sm \lC v \huh w \mid w \in W_1 \rC$ translates
+%      directly to "all endpoints of the unordered pair lie outside
+%      $W_1$" (there is no ordered "second component" to filter on), so
+%      the LN reading is by construction the same as the Lean encoding
+%      and no symmetrisation step is required. We replace the deviation
+%      paragraph with a short refactor-context note, and use
+%      endpoint-universal wording ("$v_1, v_2 \notin W_1$" read as
+%      "every endpoint of the bidirected edge lies outside $W_1$")
+%      throughout the calculation that follows. The calculation itself
+%      is otherwise unchanged.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
 
 \documentclass[main]{subfiles}
 
@@ -17,87 +39,224 @@
 % title: DisjointHardInterventions
 \def\rowref{claim\_3\_8}
 \phantomsection\label{claim_3_8}
-%
-% Cross-references: see claim_<ref>_statement_<title>.tex in this folder
-% for the corresponding statement.
 
 % --- statement (restated) ---------------------------------------------------
-\begin{Lem}[Disjoint hard interventions and node-splittings commute]
-   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes of $G$.
-   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.
-      \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} =  \lp G_{\spl(W_2)} \rp_{\doit(W_1)}.   \]
+% Statement body below is synced from the canonical statement file
+% `tex/claim_3_8_statement_DisjointHardInterventions.tex`, with one
+% light refactor-aware rewording: the L-axiom recitation drops the
+% explicit-ordered-pair phrasing ("$L \subseteq V \times V$, $L$
+% irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$
+% symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$)") and
+% replaces it with the unordered-pair phrasing "$L$ consists of
+% unordered pairs of distinct vertices in $V$". The mathematics is
+% unchanged and the same as in the LN.
+
+\begin{Lem}[Disjoint hard interventions and node-splittings commute]\label{disjoint-hard-interventions-node-splittings-commute}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, and $L$ consists of unordered pairs of distinct vertices in $V$. Let
+    \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq V \]
+    be two subsets of nodes of $G$, subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \subseteq J \cup V$'', and ``for every $W_2 \subseteq V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted.
+
+    \emph{Well-typedness of the inner splitting on the LHS.}
+    The LHS $\lp G_{\doit(W_1)} \rp_{\spl(W_2)}$ requires its outer $\spl(W_2)$ to act on a CDMG whose output-node set contains $W_2$, i.e.\ $W_2 \subseteq V_{\doit(W_1)}$ per def \ref{def:G_node-splitting}'s precondition. By item ii.\ of def \ref{def:G_hard_intervention} we have $V_{\doit(W_1)} = V \sm W_1$, and the inclusion
+    \[ W_2 \;\subseteq\; V \sm W_1 \;=\; V_{\doit(W_1)} \]
+    follows from $W_2 \subseteq V$ together with $W_1 \cap W_2 = \emptyset$. Hence the LHS is defined per def \ref{def:G_node-splitting}. Well-typedness of the RHS $\lp G_{\spl(W_2)} \rp_{\doit(W_1)}$ is spelled out in the carrier-reading paragraph below the displayed equality.
+
+    \emph{The conclusion.}
+    The CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ equals the CDMG obtained from first node-splitting $W_2$ and then hard intervening on $W_1$:
+    \[ \lp G_{\doit(W_1)} \rp_{\spl(W_2)} \;=\; \lp G_{\spl(W_2)} \rp_{\doit(W_1)}. \]
+    The equality is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}; the conjunctive unpacking into the four field-by-field equalities is deferred to the proof.
+
+    \medskip\emph{Carrier reading of the equality.}
+    By def \ref{def:G_node-splitting} the operation $\spl(W_2)$ shifts the carrier from $J \cup V$ to the tagged-disjoint-union carrier
+    \[ J_{\spl(W_2)} \cup V_{\spl(W_2)} \;=\; J \;\cup\; \lp (V \sm W_2) \dcup W_2^0 \dcup W_2^1 \rp, \]
+    while by def \ref{def:G_hard_intervention} the operation $\doit(W)$ preserves the carrier $J \cup V$ of its input as a set (items i.\ and ii.\ give $J_{\doit(W)} \cup V_{\doit(W)} = (J \cup W) \cup (V \sm W) = J \cup V$ whenever $W \subseteq J \cup V$). Thus both sides of the displayed equality live in a CDMG over the same $\spl(W_2)$-carrier just displayed, and the asserted equality is a \emph{literal} $=$ of CDMGs (def \ref{def-cdmg}) --- \emph{not} an equality up to a carrier-relabelling map. On the right-hand side, $\doit(W_1)$ is read as hard-intervening on the \emph{unsplit copies} of the nodes of $W_1$ inside the split-graph carrier: every $w \in W_1$ satisfies $w \in J \cup V$ (by $W_1 \subseteq J \cup V$) and $w \notin W_2$ (by $W_1 \cap W_2 = \emptyset$), so $w \in J \cup (V \sm W_2)$, which is the untagged piece of $J_{\spl(W_2)} \cup V_{\spl(W_2)}$ under def \ref{def:G_node-splitting}'s notational shorthand ``$v^0 := v^1 := v$ for $v \in J \cup (V \sm W_2)$'' (i.e.\ $W_1$ injects into the split-graph carrier as the unsplit injection $w \mapsto w$). The precondition $W_1 \subseteq J_{\spl(W_2)} \cup V_{\spl(W_2)}$ of def \ref{def:G_hard_intervention} is thereby met by the unsplit copies, so the RHS is also defined per def \ref{def:G_hard_intervention}, and the LN's $G_{\spl(W_2)}$ carrier reading agrees with the unique LN-faithful reading of $\doit(W_1)$ on it.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
+% Proof body adapted from the LN's \Claude{...} block at
+% lecture-notes/lecture_notes/graphs.tex lines 504-534, with the following
+% refinements (carried over verbatim from the pre-refactor twin, except
+% for the bidirected-edge refactor-context note flagged in (iii)):
+% (i) the LN's terse parenthetical "$W_1 \cap W_2^0 = W_1 \cap W_2^1 =
+%     \emptyset$" is replaced with an explicit decomposition of
+%     $((V \sm W_2) \dcup W_2^0 \dcup W_2^1) \sm W_1$ that splits the
+%     intersection across the three disjoint pieces and cites the
+%     disjointness $W_1 \cap W_2 = \emptyset$ at the $(V \sm W_2)$-piece;
+% (ii) the LN's "head $v_2^0 \in W_1$ iff $v_2 \in W_1$" claim is unpacked
+%      into two sub-cases on whether $v_2 \in W_2$ or $v_2 \in V \sm W_2$,
+%      with the disjointness $W_1 \cap W_2 = \emptyset$ cross-checked in
+%      the $v_2 \in W_2$ branch;
+% (iii) in the post-refactor `Sym2`-typed encoding the LN's literal
+%       one-sided removal clause translates directly to "every endpoint
+%       of the unordered pair lies outside $W_1$" (there is no ordered
+%       "second component" to filter on), so the deviation paragraph
+%       carried by the pre-refactor twin is no longer needed; it is
+%       replaced here by a short refactor-context note, and the
+%       calculation that follows uses endpoint-universal wording for the
+%       single removal condition "$v_1, v_2 \notin W_1$".
+% The proof is organised under the LN's three section headings
+% (Node sets / Directed edges / Bidirected edges); the "Node sets" section
+% covers the $J$ and $V$ fields jointly, matching the LN's grouping and
+% the four-field componentwise check of the downstream Lean proof.
 \begin{proof}
-\medskip\noindent\emph{Preamble.}
-Since $W_1 \ins J \cup V$ and $W_2 \ins V$ are disjoint, both operations are
-well-defined in either order: on the left, $\spl(W_2)$ acts on $G_{\doit(W_1)}$
-whose output set $V \sm W_1$ still contains $W_2$ (using $W_1 \cap W_2 = \emptyset$);
-on the right, $\doit(W_1)$ acts on $G_{\spl(W_2)}$, whose input/output universe
-contains every vertex of $W_1 \ins J \cup V$ untouched by the split (again using
-$W_1 \cap W_2 = \emptyset$). For $w \in W_2$ we write $w^0$ (incoming copy) and
-$w^1$ (outgoing copy) for the two split copies of $w$; for $v \notin W_2$ we
-identify $v^0 = v^1 = v$. Each side of the displayed equation is a CDMG presented
-as a 4-tuple $(J_\ast, V_\ast, E_\ast, L_\ast)$, and we verify the four components
-in turn.
+We verify the equality $\lp G_{\doit(W_1)} \rp_{\spl(W_2)} = \lp G_{\spl(W_2)} \rp_{\doit(W_1)}$ componentwise on the four fields $(J, V, E, L)$ of def \ref{def-cdmg}, organised as in the LN under three section headings: ``Node sets'' (covering $J$ and $V$ jointly), ``Directed edges'' (the $E$ field), and ``Bidirected edges'' (the $L$ field). The well-typedness of both iteration orders has been established in the statement block above: the LHS by $W_2 \subseteq V \sm W_1 = V_{\doit(W_1)}$ (using $W_2 \subseteq V$ and the disjointness $W_1 \cap W_2 = \emptyset$), and the RHS by $W_1 \subseteq J_{\spl(W_2)} \cup V_{\spl(W_2)}$ via the unsplit injection of $W_1$ into the split-graph carrier (using $W_1 \subseteq J \cup V$ and $W_1 \cap W_2 = \emptyset$).
+
+\smallskip\noindent\emph{Notational reminder.}
+For $w \in W_2$ we write $w^0$, $w^1$ for the two tagged copies produced by $\spl(W_2)$ per def \ref{def:G_node-splitting} item ii.; these live in the tagged-disjoint-union pieces $W_2^0$ and $W_2^1$ respectively, and are formally distinct from every element of $J \cup V$ (and from each other), per def \ref{def:G_node-splitting}'s tagged-copies disjointness assertions $W_2^0 \cap V = W_2^1 \cap V = W_2^0 \cap J = W_2^1 \cap J = W_2^0 \cap W_2^1 = \emptyset$. For $v \in J \cup (V \sm W_2)$ we use def \ref{def:G_node-splitting}'s unsplit shorthand $v^0 := v^1 := v$, which leaves $v$ in the untagged piece of $J_{\spl(W_2)} \cup V_{\spl(W_2)}$. On the right-hand side, the outer $\doit(W_1)$ is read on the lifted intervention set ``$W_1$ inside the split-graph carrier'', which by the carrier-reading paragraph of the statement is the unsplit image $\lC w \st w \in W_1 \rC \subseteq J \cup (V \sm W_2)$ (using $W_1 \subseteq J \cup V$ and $W_1 \cap W_2 = \emptyset$); throughout the proof we write $W_1$ for this lifted set, using the unsplit shorthand $w = w^0 = w^1$ for $w \in W_1$. ``Head'' of a directed edge $(a, b) \in E$ means its second component $b$; ``endpoints'' of a bidirected edge $v_1 \huh v_2 \in L$ means the unordered pair $\{v_1, v_2\}$ of its two vertices.
 
 \medskip\noindent\emph{Node sets.}
-Left: by \refrow{def_3_10}, $G_{\doit(W_1)}$ has input set $J \cup W_1$ and
-output set $V \sm W_1$; then $\spl(W_2)$~\refrow{def_3_11} (with
-$W_2 \ins V \sm W_1$, by $W_1 \cap W_2 = \emptyset$) gives
+
+\smallskip\noindent\emph{Input nodes ($J$).}
+By def \ref{def:G_hard_intervention} item i.\ applied to $G$ with intervention set $W_1$,
+\[ J_{G_{\doit(W_1)}} \;=\; J \cup W_1. \]
+By def \ref{def:G_node-splitting} item i.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (well-typed by $W_2 \subseteq V \sm W_1 = V_{\doit(W_1)}$),
+\[ J_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}} \;=\; J_{G_{\doit(W_1)}} \;=\; J \cup W_1. \]
+For the RHS, by def \ref{def:G_node-splitting} item i.\ applied to $G$ with split set $W_2$ and then def \ref{def:G_hard_intervention} item i.\ applied to $G_{\spl(W_2)}$ with intervention set $W_1$ (lifted via the unsplit injection),
+\[ J_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}} \;=\; J_{G_{\spl(W_2)}} \cup W_1 \;=\; J \cup W_1. \]
+Hence
+\[ J_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}} \;=\; J \cup W_1 \;=\; J_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}. \]
+
+\smallskip\noindent\emph{Output nodes ($V$).}
+By def \ref{def:G_hard_intervention} item ii.\ applied to $G$ with intervention set $W_1$ and then def \ref{def:G_node-splitting} item ii.\ applied to $G_{\doit(W_1)}$ with split set $W_2 \subseteq V \sm W_1 = V_{\doit(W_1)}$,
 \[
-  J \cup W_1
-  \qquad\text{and}\qquad
-  (V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1.
+    V_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; \lp V_{G_{\doit(W_1)}} \sm W_2 \rp \;\dcup\; W_2^0 \;\dcup\; W_2^1
+    \;=\; \lp (V \sm W_1) \sm W_2 \rp \;\dcup\; W_2^0 \;\dcup\; W_2^1,
 \]
-Right: $G_{\spl(W_2)}$ has input set $J$ and output set $(V \sm W_2) \dcup W_2^0 \dcup W_2^1$;
-then $\doit(W_1)$ (with $W_1 \cap W_2^0 = W_1 \cap W_2^1 = \emptyset$, since
-$W_2^0, W_2^1$ are fresh split copies of vertices in $W_2$ and $W_1 \cap W_2 = \emptyset$)
-gives
+which simplifies (by $(V \sm W_1) \sm W_2 = V \sm W_1 \sm W_2$, the standard ``two-step removal'' identity for set-difference) to
 \[
-  J \cup W_1
-  \qquad\text{and}\qquad
-  (V \sm W_1 \sm W_2) \dcup W_2^0 \dcup W_2^1.
+    V_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^0 \;\dcup\; W_2^1.
 \]
-These agree. \checkmark
+
+For the RHS, by def \ref{def:G_node-splitting} item ii.\ applied to $G$ with split set $W_2$ and then def \ref{def:G_hard_intervention} item ii.\ applied to $G_{\spl(W_2)}$ with intervention set $W_1$ (lifted to the split-graph carrier via the unsplit injection),
+\[
+    V_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}
+    \;=\; V_{G_{\spl(W_2)}} \sm W_1
+    \;=\; \lp (V \sm W_2) \;\dcup\; W_2^0 \;\dcup\; W_2^1 \rp \sm W_1.
+\]
+We simplify the latter by decomposing the set-difference across the three disjoint pieces of the disjoint union, using both the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ (at the untagged piece) and def \ref{def:G_node-splitting}'s tagged-construction disjointness (at the tagged pieces):
+\begin{itemize}
+    \item $W_1 \cap W_2^0 = \emptyset$ and $W_1 \cap W_2^1 = \emptyset$: by def \ref{def:G_node-splitting} item ii.'s tagged-construction disjointness, $W_2^0$ and $W_2^1$ satisfy $W_2^0 \cap (J \cup V) = W_2^1 \cap (J \cup V) = \emptyset$. Since $W_1 \subseteq J \cup V$ (and the lifted $W_1$ in the split-graph carrier sits in the untagged piece $J \cup (V \sm W_2)$, which is a subset of $J \cup V$ under the unsplit injection), the lifted $W_1$ does not meet $W_2^0$ or $W_2^1$. Hence the set-difference acts as the identity on both tagged pieces.
+    \item $(V \sm W_2) \sm W_1 = V \sm W_1 \sm W_2$: indeed, for any $x$, the chain of equivalences $x \in (V \sm W_2) \sm W_1$ iff $x \in V$, $x \notin W_2$, $x \notin W_1$ iff $x \in V$, $x \notin W_1$, $x \notin W_2$ iff $x \in V \sm W_1 \sm W_2$ holds. (Here the disjointness $W_1 \cap W_2 = \emptyset$ is \emph{not} needed for this equality; the two iterated removals commute by associativity of $\sm$ alone.)
+\end{itemize}
+Combining the three piecewise calculations,
+\[
+    \lp (V \sm W_2) \;\dcup\; W_2^0 \;\dcup\; W_2^1 \rp \sm W_1
+    \;=\; \lp (V \sm W_2) \sm W_1 \rp \;\dcup\; W_2^0 \;\dcup\; W_2^1
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^0 \;\dcup\; W_2^1.
+\]
+Hence
+\[
+    V_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; (V \sm W_1 \sm W_2) \;\dcup\; W_2^0 \;\dcup\; W_2^1
+    \;=\; V_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
 
 \medskip\noindent\emph{Directed edges.}
-Left: $E_{\doit(W_1)} = E \sm \lC v \tuh w \mid w \in W_1 \rC$; then $\spl(W_2)$
-yields
+By def \ref{def:G_hard_intervention} item iii.\ applied to $G$ with intervention set $W_1$,
 \[
-  \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC
-  \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC.
+    E_{G_{\doit(W_1)}}
+    \;=\; E \sm \lC (v_1, v_2) \in E \st v_2 \in W_1 \rC
+    \;=\; \lC (v_1, v_2) \in E \st v_2 \notin W_1 \rC.
 \]
-Right: $E_{\spl(W_2)} = \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E \rC \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC$;
-then $\doit(W_1)$ removes the edges with head in $W_1$. An edge $v_1^1 \tuh v_2^0$
-has head $v_2^0 \in W_1$ iff $v_2 \in W_1$ (using $W_1 \cap W_2 = \emptyset$: if
-$v_2 \in W_2$ then $v_2^0$ is a fresh split copy not in $W_1$, and if $v_2 \notin W_2$
-then $v_2^0 = v_2$). The split edges $w^0 \tuh w^1$ have head $w^1 \notin W_1$,
-since $w \in W_2$ and $W_1, W_2$ are disjoint. After removal we obtain
+By def \ref{def:G_node-splitting} item iii.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (each surviving directed edge $(v_1, v_2) \in E_{G_{\doit(W_1)}}$ is lifted to $(v_1^1, v_2^0)$, and each $w \in W_2$ contributes a transfer edge $(w^0, w^1)$),
+\begin{align*}
+    E_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    &= \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E_{G_{\doit(W_1)}} \rC \;\cup\; \lC (w^0, w^1) \st w \in W_2 \rC \\
+    &= \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC \;\cup\; \lC (w^0, w^1) \st w \in W_2 \rC.
+\end{align*}
+
+For the RHS, by def \ref{def:G_node-splitting} item iii.\ applied to $G$ with split set $W_2$,
 \[
-  \lC v_1^1 \tuh v_2^0 \mid v_1 \tuh v_2 \in E,\ v_2 \notin W_1 \rC
-  \cup \lC w^0 \tuh w^1 \mid w \in W_2 \rC,
+    E_{G_{\spl(W_2)}}
+    \;=\; \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E \rC \;\cup\; \lC (w^0, w^1) \st w \in W_2 \rC.
 \]
-which agrees with the left-hand side. \checkmark
+By def \ref{def:G_hard_intervention} item iii.\ applied to $G_{\spl(W_2)}$ with intervention set $W_1$ (lifted to the split-graph carrier via the unsplit injection),
+\[
+    E_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}
+    \;=\; E_{G_{\spl(W_2)}} \sm \lC (a, b) \in E_{G_{\spl(W_2)}} \st b \in W_1 \rC.
+\]
+The removal condition ``$b \in W_1$'' inspects the head $b$ of each candidate generator. We analyse it case by case on the two generator types of $E_{G_{\spl(W_2)}}$.
+
+\begin{itemize}
+    \item \emph{Lifted edges $(v_1^1, v_2^0)$ from $(v_1, v_2) \in E$.}
+    The head is $v_2^0$. By def \ref{def-cdmg}'s typing $E \subseteq (J \cup V) \times V$ we have $v_2 \in V$, so we case-split on whether $v_2 \in W_2$:
+    \begin{itemize}
+        \item \emph{If $v_2 \in W_2$:} $v_2^0 \in W_2^0$ is a tagged copy, lying in the disjoint-union piece $W_2^0$. By def \ref{def:G_node-splitting} item ii.'s tagged-construction disjointness $W_2^0 \cap (J \cup V) = \emptyset$, and since $W_1 \subseteq J \cup V$, we have $v_2^0 \notin W_1$ (read in the split-graph carrier via the unsplit lift). The edge \emph{survives} the RHS removal. Cross-check with the LHS: by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, $v_2 \in W_2$ also forces $v_2 \notin W_1$, so the LHS-side condition ``$v_2 \notin W_1$'' is automatically met --- both sides keep this edge.
+        \item \emph{If $v_2 \in V \sm W_2$:} $v_2^0 = v_2$ (unsplit shorthand, since $v_2 \in V \sm W_2 \subseteq J \cup (V \sm W_2)$). The lifted $W_1$ in the split-graph carrier is the unsplit image $\lC w \st w \in W_1 \rC$, so $v_2^0 \in W_1$ iff $v_2 \in W_1$ (the unsplit injection $J \cup (V \sm W_2) \hookrightarrow J_{\spl(W_2)} \cup V_{\spl(W_2)}$ is injective). The edge is removed by the RHS iff $v_2 \in W_1$, equivalently kept iff $v_2 \notin W_1$. This matches the LHS condition ``$v_2 \notin W_1$'' verbatim.
+    \end{itemize}
+    Combining the two sub-cases, the lifted edge $(v_1^1, v_2^0)$ from $(v_1, v_2) \in E$ survives the RHS removal iff $v_2 \notin W_1$, matching the LHS surviving condition exactly. (In the $v_2 \in W_2$ branch this is supplied automatically by the disjointness $W_1 \cap W_2 = \emptyset$; in the $v_2 \in V \sm W_2$ branch it is read off the unsplit identification.)
+    \item \emph{Transfer edges $(w^0, w^1)$ for $w \in W_2$.}
+    The head is $w^1 \in W_2^1$, a tagged copy in the disjoint-union piece $W_2^1$. By def \ref{def:G_node-splitting} item ii.'s tagged-construction disjointness $W_2^1 \cap (J \cup V) = \emptyset$, and since $W_1 \subseteq J \cup V$, we have $w^1 \notin W_1$ (in the split-graph carrier). Hence every transfer edge survives the RHS removal; the LHS contributes the same transfer edges $\lC (w^0, w^1) \st w \in W_2 \rC$ unchanged.
+\end{itemize}
+Therefore
+\[
+    E_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC \;\cup\; \lC (w^0, w^1) \st w \in W_2 \rC.
+\]
+Comparing with the LHS,
+\[
+    E_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; \lC (v_1^1, v_2^0) \st (v_1, v_2) \in E,\; v_2 \notin W_1 \rC \;\cup\; \lC (w^0, w^1) \st w \in W_2 \rC
+    \;=\; E_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
 
 \medskip\noindent\emph{Bidirected edges.}
-Left: $L_{\doit(W_1)} = L \sm \lC v \huh w \mid w \in W_1 \rC$; then $\spl(W_2)$
-yields
-\[
-  \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC.
-\]
-Right: $L_{\spl(W_2)} = \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L \rC$;
-then $\doit(W_1)$ removes the bidirected edges touching $W_1$. Using
-$v_k^0 \in W_1 \iff v_k \in W_1$ for $k = 1, 2$ (same fresh-copy / identity case
-analysis as for the directed edges, again using $W_1 \cap W_2 = \emptyset$), the
-result is
-\[
-  \lC v_1^0 \huh v_2^0 \mid v_1 \huh v_2 \in L,\ v_1, v_2 \notin W_1 \rC,
-\]
-which agrees with the left-hand side. \checkmark
 
-All four components agree, completing the proof.
+\smallskip\noindent\emph{Refactor-context note on the removal clause of $\doit$ for $L$.}
+At the LN level the bidirected-edge set $L$ consists of unordered pairs of distinct vertices in $V$, and def \ref{def:G_hard_intervention} item iv.\ removes those pairs that touch $W_1$. The LN's literal one-sided gloss ``$L \sm \lC v \huh w \mid w \in W_1 \rC$'' selects an ordered-pair representative of each unordered pair and tests its second component, which presumes an ordered-pair encoding of $L$. The post-refactor encoding of def \ref{def-cdmg} (and downstream def \ref{def:G_hard_intervention}) carries $L$ as a set of \emph{unordered} pairs, so there is no ordered ``second component'' to single out: the structurally well-defined reading of the LN's removal clause is the endpoint-universal form
+\[
+    L_{\doit(W)} \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W,\; v_2 \notin W \rC,
+\]
+i.e.\ ``$v_1 \huh v_2$ survives iff every endpoint of the unordered pair lies outside $W$''. This is precisely the LN's intended ``remove all edges into nodes from $W$'' applied to bidirected edges (which are incident to \emph{both} endpoints) and agrees on the survivor set with the LN's literal one-sided gloss after closing under the implicit swap of representatives. The pre-refactor encoding of def \ref{def:G_hard_intervention} had to spell this symmetrisation out as a registered deviation; under the post-refactor unordered-pair encoding the LN-faithful reading is the literal one and no symmetrisation step is required. We use the endpoint-universal form throughout the calculations below.
+
+By def \ref{def:G_hard_intervention} item iv.\ (endpoint-universal form), applied to $G$ with intervention set $W_1$,
+\[
+    L_{G_{\doit(W_1)}}
+    \;=\; \lC v_1 \huh v_2 \in L \st v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+By def \ref{def:G_node-splitting} item iv.\ applied to $G_{\doit(W_1)}$ with split set $W_2$ (each surviving bidirected edge $v_1 \huh v_2 \in L_{G_{\doit(W_1)}}$ is lifted to $v_1^0 \huh v_2^0$, with \emph{both} endpoints carrying the $^0$ superscript),
+\[
+    L_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; \lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L_{G_{\doit(W_1)}} \rC
+    \;=\; \lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+
+For the RHS, by def \ref{def:G_node-splitting} item iv.\ applied to $G$ with split set $W_2$,
+\[
+    L_{G_{\spl(W_2)}}
+    \;=\; \lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L \rC.
+\]
+By def \ref{def:G_hard_intervention} item iv.\ (endpoint-universal form), applied to $G_{\spl(W_2)}$ with intervention set $W_1$ (lifted to the split-graph carrier via the unsplit injection),
+\[
+    L_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC a \huh b \in L_{G_{\spl(W_2)}} \st a \notin W_1,\; b \notin W_1 \rC.
+\]
+We compute the surviving pairs by analysing each endpoint of the generator $v_1^0 \huh v_2^0$ arising from $v_1 \huh v_2 \in L$. Since $L$ consists of unordered pairs of distinct vertices in $V$, both $v_1, v_2 \in V$. For each $k \in \{1, 2\}$:
+\begin{itemize}
+    \item \emph{If $v_k \in W_2$:} $v_k^0 \in W_2^0$ is a tagged copy. By def \ref{def:G_node-splitting} item ii.'s tagged-construction disjointness $W_2^0 \cap (J \cup V) = \emptyset$, and since $W_1 \subseteq J \cup V$, we have $v_k^0 \notin W_1$ (in the split-graph carrier). Cross-check with the LHS: by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, $v_k \in W_2$ also forces $v_k \notin W_1$, so both the RHS-side condition ``$v_k^0 \notin W_1$'' and the LHS-side condition ``$v_k \notin W_1$'' are satisfied automatically in this branch.
+    \item \emph{If $v_k \in V \sm W_2$:} $v_k^0 = v_k$ (unsplit shorthand, since $v_k \in V \sm W_2 \subseteq J \cup (V \sm W_2)$). The lifted $W_1$ in the split-graph carrier is the unsplit image $\lC w \st w \in W_1 \rC$, so $v_k^0 \in W_1$ iff $v_k \in W_1$ (the unsplit injection is injective). Hence the RHS-side condition ``$v_k^0 \notin W_1$'' is equivalent to the LHS-side condition ``$v_k \notin W_1$''.
+\end{itemize}
+In both sub-cases the condition ``$v_k^0 \notin W_1$'' is equivalent to ``$v_k \notin W_1$''. Applying this to both endpoints $v_1$ and $v_2$ independently,
+\[
+    L_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}
+    \;=\; \lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC.
+\]
+Comparing with the LHS,
+\[
+    L_{\lp G_{\doit(W_1)} \rp_{\spl(W_2)}}
+    \;=\; \lC v_1^0 \huh v_2^0 \st v_1 \huh v_2 \in L,\; v_1 \notin W_1,\; v_2 \notin W_1 \rC
+    \;=\; L_{\lp G_{\spl(W_2)} \rp_{\doit(W_1)}}.
+\]
+\checkmark
+
+\smallskip
+Combining the four componentwise equalities ($J$, $V$, $E$, $L$) above, the CDMGs $\lp G_{\doit(W_1)} \rp_{\spl(W_2)}$ and $\lp G_{\spl(W_2)} \rp_{\doit(W_1)}$ agree field by field on each of $(J, V, E, L)$ and are therefore equal as CDMGs (def \ref{def-cdmg}).
 \end{proof}
 
 \end{document}

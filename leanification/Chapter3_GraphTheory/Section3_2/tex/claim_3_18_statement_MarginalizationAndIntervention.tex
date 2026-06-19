@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_18 -- "MarginalizationAndIntervention".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_18_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -14,13 +19,23 @@
 \def\rowref{claim\_3\_18}
 \phantomsection\label{claim_3_18}
 
-\begin{Lem}[Marginalization and intervention commute]
-      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \ins J \cup V$ and $W_2 \ins V$ two disjoint subsets of nodes from $G$.
-      Then we have:
-      \[ \lp G_{\doit(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(W_1)}. \]
-     % This shows that the following notations are unambiguous:
-     % \[G(V\sm (W_1 \cup W_2)|\doit(W_1 \cup J))=G_{\doit(W_1)}^{\sm W_2}.\]
-      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.
+\begin{Lem}[Marginalization and intervention commute]\label{marginalization-and-intervention-commute}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}). The lemma comprises three commutativity statements -- one per intervention operator: hard intervention (def \ref{def:G_hard_intervention}), adding intervention nodes (def \ref{def:cdmg_intervention_nodes}), and node-splitting (def \ref{def:G_node-splitting}). Each commutes with marginalization (def \ref{def:G_marginalization}). The disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset \]
+    is in force throughout. The typing on $W_1$ varies by part: $W_1 \ins J \cup V$ in parts (i) and (ii) (matching the preconditions of def \ref{def:G_hard_intervention} and def \ref{def:cdmg_intervention_nodes} respectively), and $W_1 \ins V$ in part (iii) (matching the precondition of def \ref{def:G_node-splitting}). In all three parts $W_2 \ins V$ matches the precondition of the marginalization operator $G^{\sm W_2}$ (def \ref{def:G_marginalization}). All quantifiers ``for every CDMG $G$'', ``for every $W_1$'', and ``for every $W_2$'' (subject to the typing and disjointness above) are read \emph{universally}; the degenerate cases $W_1 = \emptyset$, $W_2 = \emptyset$, and $W_1 = W_2 = \emptyset$ are admitted.
+
+    The following three equalities of CDMGs hold:
+    \begin{enumerate}
+        \item[(i)] \emph{(Hard intervention.)} For every $W_1 \ins J \cup V$ and $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$:
+              \[ \lp G_{\doit(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(W_1)}. \]
+        \item[(ii)] \emph{(Adding intervention nodes.)} For every $W_1 \ins J \cup V$ and $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$:
+              \[ \lp G_{\doit(I_{W_1})} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\doit(I_{W_1})}. \]
+        \item[(iii)] \emph{(Node-splitting.)} For every $W_1 \ins V$ and $W_2 \ins V$ with $W_1 \cap W_2 = \emptyset$:
+              \[ \lp G_{\spl(W_1)} \rp^{\sm W_2} = \lp G^{\sm W_2} \rp_{\spl(W_1)}. \]
+    \end{enumerate}
+    Each equality in (i), (ii), (iii) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}: equal input-node sets, equal output-node sets, equal directed-edge sets, and equal bidirected-edge sets; the conjunctive unpacking into these four field-by-field equalities is deferred to the proof.
+    % This shows that the following notations are unambiguous:
+    % \[G(V\sm (W_1 \cup W_2)|\doit(W_1 \cup J))=G_{\doit(W_1)}^{\sm W_2}.\]
 \end{Lem}
 
 \end{document}

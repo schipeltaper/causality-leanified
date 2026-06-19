@@ -1,7 +1,13 @@
 % Claim proof file for row claim_3_2 -- "AcyclicIffTopologicalOrder".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. A
-% manager agent dedicated to writing the TeX proof fills in the body below.
-% The proof must:
+% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
+% agent dedicated to writing the TeX proof fills in the proof body below.
+%
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex` via `\subfile{...}`.
+%
+% The statement is restated above the proof so the file is self-contained
+% when rendered on its own. The proof must:
 %   - Stay close to the lecture notes' proof if one exists (always search
 %     the LN first for a `\begin{proof}` block immediately following the
 %     claim; copy / lightly edit when present).
@@ -9,8 +15,6 @@
 %   - Be self-contained enough that a mathematician can follow it without
 %     re-reading the LN.
 %   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
-%
-% Compiles standalone via the `subfiles` package.
 
 \documentclass[main]{subfiles}
 
@@ -22,13 +26,11 @@
 
 % --- statement (restated) ---------------------------------------------------
 \begin{Lem}[AcyclicIffTopologicalOrder]
-        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}). Then $G$ is acyclic (in the sense of def \ref{def-acylic}) if and only if there exists a topological order of $G$ (in the sense of def \ref{def-topological-order}); equivalently, $G$ is acyclic if and only if there exists a strict total order $<$ on $J \cup V$ -- i.e.\ a binary relation $<$ on $J \cup V$ that is irreflexive, transitive, and trichotomous -- such that, for every $v, w \in J \cup V$, $v \in \Pa^G(w) \implies v < w$ (using the parent-set notation $\Pa^G$ of def \ref{def_3_5}, item~i.). The label set $L$ plays no role on either side of the biconditional.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
-% Proof lifted verbatim from lecture-notes/lecture_notes/graphs.tex, lines 228-244
-% (the \Claude{...} block immediately following the Lem); the outer \Claude{%
-% ... }%end Claude wrapper is stripped.
+% Proof lifted verbatim from the LN at lecture-notes/lecture_notes/graphs.tex:228-244.
 \begin{proof}
 ($\Leftarrow$)
 Suppose $<$ is a topological order of $G$, i.e.\ $v \in \Pa^G(w) \implies v < w$.

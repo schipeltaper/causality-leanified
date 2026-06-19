@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_14 -- "AddingInterventionNodes".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_14_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -14,16 +19,45 @@
 \def\rowref{claim\_3\_14}
 \phantomsection\label{claim_3_14}
 
-\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]
-    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \ins J \cup V$ two disjoint subsets of nodes from $G$.
-      Then we have:
-      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} = \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} 
-      =  G_{\doit(I_{W_1 \cup W_2})}. \]
-      We also have:
-      \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})} =  G_{\doit(I_{W_1}, W_2)}. \]
-   % So there is not ambiguity in the following notations and identifications:
-   % \[ G(V|\doit(J\cup I_{W_1} \cup I_{W_2})) = G(V|\doit(J\cup I_{W_1 \cup W_2})),
-   % \qquad G(V\sm W_2|\doit(W_2 \cup J\cup I_{W_1})).\]
+\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]\label{adding-intervention-nodes-commutes-with-disjoint-hard-interventions}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V$, $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$), and $L$ symmetric ($(v_1, v_2) \in L \Leftrightarrow (v_2, v_1) \in L$). Let
+    \[ W_1 \subseteq J \cup V \quad\text{and}\quad W_2 \subseteq J \cup V \]
+    be two subsets of nodes of $G$ (overlap with $J$ is permitted on either side, matching the preconditions of both def \ref{def:G_hard_intervention} and def \ref{def:cdmg_intervention_nodes}), subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CDMG $G$'', ``for every $W_1 \subseteq J \cup V$'', and ``for every $W_2 \subseteq J \cup V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) case $W_1 = W_2 = \emptyset$ is admitted, and so are the corner cases $W_1 \subseteq J$ or $W_2 \subseteq J$ (in which the corresponding intervention-node addition $\doit(I_{W_i})$ reduces to the identity by def \ref{def:cdmg_intervention_nodes} since $W_i \sm J = \emptyset$, and the corresponding hard intervention $\doit(W_i)$ acts only via its input-side relabelling and the removal of any edges into $W_i \cap V = \emptyset$ by def \ref{def:G_hard_intervention}).
+
+    \emph{Disambiguation of the overloaded $\doit(\cdot)$ notation.}
+    The notation $G_{\doit(\cdot)}$ used in this lemma is overloaded; it is disambiguated by the \emph{kind} of its argument, as follows. For any subset $W \subseteq J \cup V$:
+    \begin{itemize}
+        \item $G_{\doit(W)}$ denotes the \emph{hard intervention} on $W$ (def \ref{def:G_hard_intervention}): the CDMG with components $J_{\doit(W)} := J \cup W$, $V_{\doit(W)} := V \sm W$, $E_{\doit(W)} := E \sm \lC (v_1, v_2) \in E \st v_2 \in W \rC$, and $L_{\doit(W)}$ obtained from $L$ by removing every bidirected edge incident to a node of $W$ (item iv.\ of def \ref{def:G_hard_intervention}, read with the symmetrisation needed for $L_{\doit(W)}$ to satisfy the symmetry axiom of def \ref{def-cdmg}). No new nodes are introduced.
+        \item $G_{\doit(I_W)}$ denotes the \emph{extended CDMG} obtained by adding intervention nodes for $W$ (def \ref{def:cdmg_intervention_nodes}): the CDMG with components $J_{\doit(I_W)} := J \cup \lC I_w \st w \in W \sm J \rC$, $V_{\doit(I_W)} := V$, $E_{\doit(I_W)} := E \cup \lC (I_w, w) \st w \in W \sm J \rC$, and $L_{\doit(I_W)} := L$, where $\lC I_w \st w \in W \sm J \rC$ is the family of fresh intervention symbols introduced by def \ref{def:cdmg_intervention_nodes} (type-disjoint from $J \cup V$ and pairwise type-disjoint), and where the notational shorthand $I_j := j$ for $j \in J \cap W$ means no new node is introduced on the $J \cap W$ branch.
+    \end{itemize}
+    The two constructions are distinguished by the kind of the argument under $\doit$: a node set $W \subseteq J \cup V$ (hard intervention, no new nodes) versus the corresponding intervention-node symbol $I_W$ (extension, fresh intervention nodes added for $W \sm J$).
+
+    \emph{Well-typedness of the iterated operations on both sides.}
+    Each iterated operation appearing in the two displayed equations below is well-typed per its constructor's precondition:
+    \begin{itemize}
+        \item By items i.\ and ii.\ of def \ref{def:cdmg_intervention_nodes}, the carrier of $G_{\doit(I_{W_i})}$ is $J_{\doit(I_{W_i})} \cup V_{\doit(I_{W_i})} = (J \cup V) \cup \lC I_w \st w \in W_i \sm J \rC \supseteq J \cup V$ (canonical inclusion via the ``unsplit'' map $\iota \colon J \cup V \hookrightarrow J_{\doit(I_{W_i})} \cup V_{\doit(I_{W_i})}$, $v \mapsto v$, as in \ref{claim_3_13}). Hence any $W_j \subseteq J \cup V$ satisfies $W_j \subseteq J_{\doit(I_{W_i})} \cup V_{\doit(I_{W_i})}$ (via $\iota$), so both $\lp G_{\doit(I_{W_i})} \rp_{\doit(I_{W_j})}$ and $\lp G_{\doit(I_{W_i})} \rp_{\doit(W_j)}$ are defined (per def \ref{def:cdmg_intervention_nodes} and def \ref{def:G_hard_intervention} respectively).
+        \item By items i.\ and ii.\ of def \ref{def:G_hard_intervention} together with $W_i \subseteq J \cup V$, the carrier of $G_{\doit(W_i)}$ is $J_{\doit(W_i)} \cup V_{\doit(W_i)} = (J \cup W_i) \cup (V \sm W_i) = J \cup V$ as a set. Hence any $W_j \subseteq J \cup V$ satisfies $W_j \subseteq J_{\doit(W_i)} \cup V_{\doit(W_i)}$, so both $\lp G_{\doit(W_i)} \rp_{\doit(W_j)}$ and $\lp G_{\doit(W_i)} \rp_{\doit(I_{W_j})}$ are defined.
+        \item The right-hand-side $G_{\doit(I_{W_1 \cup W_2})}$ is defined per def \ref{def:cdmg_intervention_nodes}, since $W_1 \cup W_2 \subseteq J \cup V$.
+    \end{itemize}
+
+    \emph{Definition of the mixed-argument notation $G_{\doit(I_{W_1}, W_2)}$ (introduced in this lemma).}
+    The expression $G_{\doit(I_{W_1}, W_2)}$ appearing in the second displayed equation below is introduced here for the first time; it is not given by either of the two upstream definitions (def \ref{def:G_hard_intervention} takes a single node set, def \ref{def:cdmg_intervention_nodes} takes a single node set's worth of intervention symbols). We define it explicitly as the composition of the intervention-node-addition operation $\doit(I_{W_1})$ (def \ref{def:cdmg_intervention_nodes}) and the hard-intervention operation $\doit(W_2)$ (def \ref{def:G_hard_intervention}):
+    \[ G_{\doit(I_{W_1}, W_2)} \;:=\; \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)}. \]
+    Sub-claim (b) below asserts that the alternative ordering $\lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})}$ produces the same CDMG, so this definition is order-independent. The comma in ``$\doit(I_{W_1}, W_2)$'' is a separator between two semantically distinct operations (intervention-node addition for $W_1$ on the left, hard intervention on $W_2$ on the right) and does \emph{not} denote a set-union $\doit(I_{W_1} \cup W_2)$, an indexed-set $\doit(I_{W_1, W_2})$, or any other parsing of the comma.
+
+    \emph{The conclusion.} The following two equalities of CDMGs hold.
+    \begin{enumerate}[label=(\alph*)]
+        \item \emph{Adding intervention nodes commutes with itself (disjoint $W_1, W_2$).}
+              The three CDMGs $\lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})}$, $\lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})}$, and $G_{\doit(I_{W_1 \cup W_2})}$ coincide:
+              \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(I_{W_2})} \;=\; \lp G_{\doit(I_{W_2})} \rp_{\doit(I_{W_1})} \;=\; G_{\doit(I_{W_1 \cup W_2})}. \]
+        \item \emph{Adding intervention nodes commutes with hard intervention (disjoint $W_1, W_2$).}
+              The two CDMGs $\lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)}$ and $\lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})}$ coincide and equal the mixed-notation CDMG $G_{\doit(I_{W_1}, W_2)}$ just defined:
+              \[ \lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} \;=\; \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})} \;=\; G_{\doit(I_{W_1}, W_2)}. \]
+              (Equivalently, the equality $\lp G_{\doit(I_{W_1})} \rp_{\doit(W_2)} = \lp G_{\doit(W_2)} \rp_{\doit(I_{W_1})}$ is the genuine content; the third term is a recap of the defining equation of $G_{\doit(I_{W_1}, W_2)}$.)
+    \end{enumerate}
+    Each equality in (a) and (b) is understood componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}: equal input-node sets, equal output-node sets, equal directed-edge sets, and equal bidirected-edge sets; the conjunctive unpacking into these four field-by-field equalities is deferred to the proof.
 \end{Lem}
 
 \end{document}

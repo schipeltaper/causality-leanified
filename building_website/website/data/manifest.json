@@ -31,8 +31,8 @@
             {
               "ref": "claim_3_1",
               "kind": "claim",
-              "label": "claim 3.1 — JNodeProperties",
-              "title": "JNodeProperties",
+              "label": "claim 3.1 — CDMGRestrictions",
+              "title": "CDMGRestrictions",
               "available": true
             },
             {
@@ -59,8 +59,8 @@
             {
               "ref": "def_3_7",
               "kind": "def",
-              "label": "def 3.7 — GraphTypes",
-              "title": "GraphTypes",
+              "label": "def 3.7 — CDMGTypes",
+              "title": "CDMGTypes",
               "available": true
             },
             {
@@ -99,8 +99,8 @@
             {
               "ref": "claim_3_3",
               "kind": "claim",
-              "label": "claim 3.3 — AcyclicUnderIntervention",
-              "title": "AcyclicUnderIntervention",
+              "label": "claim 3.3 — AcyclicPreservedUnderDo",
+              "title": "AcyclicPreservedUnderDo",
               "available": true
             },
             {
@@ -155,8 +155,8 @@
             {
               "ref": "claim_3_9",
               "kind": "claim",
-              "label": "claim 3.9 — SwigAcyclicTopologicalOrder",
-              "title": "SwigAcyclicTopologicalOrder",
+              "label": "claim 3.9 — SwigAcyclic",
+              "title": "SwigAcyclic",
               "available": true
             },
             {
@@ -176,8 +176,8 @@
             {
               "ref": "claim_3_12",
               "kind": "claim",
-              "label": "claim 3.12 — HardInterventionNodeSplitOrder",
-              "title": "HardInterventionNodeSplitOrder",
+              "label": "claim 3.12 — HardInterventionNodeSplit",
+              "title": "HardInterventionNodeSplit",
               "available": true
             },
             {
@@ -190,8 +190,8 @@
             {
               "ref": "claim_3_13",
               "kind": "claim",
-              "label": "claim 3.13 — AcyclicityUnderIntervention",
-              "title": "AcyclicityUnderIntervention",
+              "label": "claim 3.13 — AcyclicHardInterventionTopologicalOrder",
+              "title": "AcyclicHardInterventionTopologicalOrder",
               "available": true
             },
             {
@@ -218,8 +218,8 @@
             {
               "ref": "claim_3_16",
               "kind": "claim",
-              "label": "claim 3.16 — MarginalizationPreserves",
-              "title": "MarginalizationPreserves",
+              "label": "claim 3.16 — MargPreservesAncestors",
+              "title": "MargPreservesAncestors",
               "available": true
             },
             {
@@ -295,81 +295,41 @@
               "kind": "claim",
               "label": "claim 3.22 — SigmaSeparationSymmetric",
               "title": "SigmaSeparationSymmetric",
-              "available": true
-            },
-            {
-              "ref": "claim_3_27",
-              "kind": "claim",
-              "label": "claim 3.27 — LabelRoman",
-              "title": "LabelRoman",
-              "available": true
+              "available": false
             },
             {
               "ref": "claim_3_23",
               "kind": "claim",
-              "label": "claim 3.23 — SigmaOpenPathWalk",
-              "title": "SigmaOpenPathWalk",
-              "available": true
+              "label": "claim 3.23 — SigmaOpenPathsWalks",
+              "title": "SigmaOpenPathsWalks",
+              "available": false
             },
             {
               "ref": "claim_3_24",
               "kind": "claim",
               "label": "claim 3.24 — SigmaSeparationEquivalences",
               "title": "SigmaSeparationEquivalences",
-              "available": true
+              "available": false
             },
             {
               "ref": "claim_3_25",
               "kind": "claim",
               "label": "claim 3.25 — ISigmaSeparation",
               "title": "ISigmaSeparation",
-              "available": true
+              "available": false
             },
             {
               "ref": "claim_3_26",
               "kind": "claim",
-              "label": "claim 3.26 — AcyclicNonCollidersBlockable",
-              "title": "AcyclicNonCollidersBlockable",
-              "available": true
-            }
-          ]
-        },
-        {
-          "section": "3.4",
-          "rows": [
-            {
-              "ref": "def_3_19",
-              "kind": "def",
-              "label": "def 3.19 — DBlockedWalks",
-              "title": "DBlockedWalks",
-              "available": true
-            },
-            {
-              "ref": "claim_3_28",
-              "kind": "claim",
-              "label": "claim 3.28 — NonColliderCharacterization",
-              "title": "NonColliderCharacterization",
-              "available": false
-            },
-            {
-              "ref": "def_3_20",
-              "kind": "def",
-              "label": "def 3.20 — IdSeparation",
+              "label": "claim 3.26 — IdSeparation",
               "title": "IdSeparation",
               "available": false
             },
             {
-              "ref": "claim_3_29",
+              "ref": "claim_3_27",
               "kind": "claim",
-              "label": "claim 3.29 — DSeparationSymmetric",
-              "title": "DSeparationSymmetric",
-              "available": false
-            },
-            {
-              "ref": "claim_3_30",
-              "kind": "claim",
-              "label": "claim 3.30 — IdSeparationProperties",
-              "title": "IdSeparationProperties",
+              "label": "claim 3.27 — LabelRoman",
+              "title": "LabelRoman",
               "available": false
             }
           ]

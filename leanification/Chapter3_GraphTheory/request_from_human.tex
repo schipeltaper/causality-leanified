@@ -1,9 +1,9 @@
 % Communication channel between the agent swarm and the human, for chapter
 % Chapter3_GraphTheory. Auto-created by `scaffold/initialize_chapter.py` /
-% `scaffold/solving_current_row.py`. Agents APPEND to the Requests section
+% `scaffold/solve_chapter.py`. Agents APPEND to the Requests section
 % when they call `request_from_human` (and only after several failed
 % attempts -- the action is gated by HUMAN_REQUEST_THRESHOLD in
-% scaffold/solving_current_row.py). The human writes back in the Answers
+% scaffold/solve_chapter.py). The human writes back in the Answers
 % section; the agents see those answers on the next row-start.
 
 \documentclass[12pt, a4paper]{scrartcl}
@@ -15,6 +15,44 @@
 \maketitle
 
 \section*{Requests from the swarm}
+\subsection*{claim_3_12 — 2026-06-10T16:42:28+00:00}
+**Row:** `claim_3_12` (HardInterventionNodeSplit) — section 3.2, Chapter 3.
+
+**The situation (now framework-level; previous two attempts framed it as a row-level oddity).**
+
+The operator's `addition_to_the_LN` says, in two agreeing clauses, that this row **must not be formalized**:
+
+- `[node_split_on_input_node_semantics_left_implicit]`: "This remark is informal exposition rather than a formal claim, and is not intended to be formalized. ... no Lean encoding is required for this block."
+- `[two_input_node_plural_typo]`: "This remark is not intended as a formal claim and is not to be formalized; it serves only as expository commentary. No Lean encoding or equivalence check is required for this block."
+
+The LN block is purely expository — discussion of why disjointness of `W_1`, `W_2` is desirable in `def_3_12`. `def_3_12` already enforces that disjointness structurally; the remark is motivation, not separate content. Working-phase LN-critic returned `NO_SUBTLETIES`.
+
+**I dug into the orchestrator this turn to find a no-Lean-files path forward. The findings:**
+
+- `mark_solved` in `scaffold/scripts/phase3_solving/solve_chapter.py:3696` accepts empty `lean_files` without error.
+- Strict-equivalence gate at `solve_chapter.py:4080-4083` explicitly skips when `lean_files` is empty.
+- `check_no_sorry([])` trivially passes.
+
+**So if `verify_row_solved` PASSed with no `LEAN_FILES:` lines, the row would correctly mark solved with empty Lean files.**
+
+**But `verify_row_solved` (`scaffold/claude_prompts/phase3_solving/row_workers/verify_row_solved.md`) cannot PASS on this row's current state without contradicting the addition:**
+
+- Item 1 (line 23): demands every theorem block in the row's claimmark be represented by a Lean declaration. The remark would be unrepresented.
+- Item 5 (line 27): demands an actual `\begin{proof}` block. There is nothing to prove.
+- Item 8 (line 30): demands `review_design` and `verify_equivalence` have PASSed (actions_tracking shows both at 0 for this row). Running them requires creating Lean files, which contradicts the addition.
+
+**Three concrete options for you:**
+
+1. **(recommended) Add a `skip_formalization` / `mark_not_applicable` action to the framework.** Extend `ACTIONS` in `scaffold/scripts/phase2_initialization/create_data.py:54` and add a handler in `solve_chapter.py` that flips `formalized="n/a", proven="n/a", solved="yes", lean_files=[], main_lean_file=""` without dispatching `verify_row_solved`. This applies cleanly to any future row where the working-phase wording-check (or you) decides the LN block is non-formalizable expository content. Several other type=remark rows downstream (`claim_3_13`, `claim_3_16`, `claim_3_20`, `claim_3_24`, `claim_3_26`, `claim_3_28`, `claim_3_30`, `claim_3_34`) may hit the same issue.
+
+2. **Manually edit `leanification/Chapter3_GraphTheory/data.json`** for this row: `"solved": "yes"`, `"formalized": "n/a"`, `"proven": "n/a"`. `first_unsolved_row_index` will then skip past it. One-row hack; problem recurs if it hits again.
+
+3. **Override the addition** to say "formalize as a `Unit`-valued placeholder with documentation comments". I would then create `HardInterventionNodeSplit.lean` containing `def hardInterventionNodeSplit_remark : Unit := ()` plus prose comments quoting the LN, run the standard flow with `accept_deviation` to bypass the strict-equivalence gate, and emit `solved`. Honest about being degenerate; visible in the deviation register.
+
+**Why I couldn't avoid escalation.** Both previous managers (sessions `083b1517-7ade-4963-a5fe-fb7c3948325a` and `dffe8db4-3f2d-4475-aadd-e3423efd6c8a`) independently reached the same dead end. I verified their analysis against the orchestrator source this turn and confirmed the constraints are framework-level, not row-level. The orchestrator's nudge ("try a different action") is the right default policy, but here the genuinely different actions either contradict the addition (options 2-3 above need your explicit override) or require framework changes (option 1) — both outside the manager's scope.
+
+**Until you reply** (write into the Answers section of `request_from_human.tex`), this run hard-exits per the orchestrator's design at `solve_chapter.py:3055-3098`. No further rows in the chapter will be attempted. Apologies for the batch-throughput impact; please pick an option and re-launch.
+
 % Each request is appended here by the `request_from_human` action.
 % Format:  \subsection*{<ref> -- <UTC timestamp>}  followed by the body.
 

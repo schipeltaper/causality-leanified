@@ -1,10 +1,15 @@
 % Claim statement file for row claim_3_2 -- "AcyclicIffTopologicalOrder".
-% Auto-generated stub by scaffold/solving_current_row.py at row start. The
+% Auto-generated stub by scaffold/solve_chapter.py at row start. The
 % manager agent (or a worker it dispatches) fills the body below with the
 % claim's statement(s) from the lecture notes -- statement only, no proof
-% (proofs live in the sibling claim_*_proof_*.tex file).
+% (proofs live in the sibling `claim_3_2_proof_*.tex` file).
 %
-% Compiles standalone via the `subfiles` package.
+% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
+% `subfiles` package lets it render both standalone and as part of
+% `main.tex`. Note: `main.tex` does NOT \subfile this statement file -- the
+% sibling `_proof_` file restates the statement above the proof, so
+% including both in `main.tex` would be redundant. This file exists for
+% standalone reading / grep convenience.
 
 \documentclass[main]{subfiles}
 
@@ -15,7 +20,7 @@
 \phantomsection\label{claim_3_2}
 
 \begin{Lem}[AcyclicIffTopologicalOrder]
-        A CDMG  $G=(J,V,E,L)$ is acyclic if and only if it has a topological order.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}). Then $G$ is acyclic (in the sense of def \ref{def-acylic}) if and only if there exists a topological order of $G$ (in the sense of def \ref{def-topological-order}); equivalently, $G$ is acyclic if and only if there exists a strict total order $<$ on $J \cup V$ -- i.e.\ a binary relation $<$ on $J \cup V$ that is irreflexive, transitive, and trichotomous -- such that, for every $v, w \in J \cup V$, $v \in \Pa^G(w) \implies v < w$ (using the parent-set notation $\Pa^G$ of def \ref{def_3_5}, item~i.). The label set $L$ plays no role on either side of the biconditional.
 \end{Lem}
 
 \end{document}
