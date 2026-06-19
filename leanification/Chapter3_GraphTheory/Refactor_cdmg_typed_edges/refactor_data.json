@@ -4788,7 +4788,7 @@
           "last_used": "2026-06-18T15:34:58+00:00"
         }
       ],
-      "time_needed_to_solve": 7038,
+      "time_needed_to_solve": 7061,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -4808,10 +4808,10 @@
       "section": "3.2",
       "title": "MarginalizationAndIntervention",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-19",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
@@ -4821,19 +4821,19 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 6,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -4844,11 +4844,138 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a4b74f46-e6d3-466f-80c1-c24837cefe20",
+          "first_seen": "2026-06-18T15:44:50+00:00",
+          "last_used": "2026-06-18T15:44:50+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "3ea9f666-c803-4b12-bc0c-ede94339edd9",
+          "first_seen": "2026-06-18T15:57:26+00:00",
+          "last_used": "2026-06-18T15:57:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2a3b3d5c-02a3-42e8-a73c-d6b630bc8932",
+          "first_seen": "2026-06-18T15:58:17+00:00",
+          "last_used": "2026-06-18T15:58:17+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "d8372073-9fbe-4ea0-a789-d958ca9d34f4",
+          "first_seen": "2026-06-18T17:42:40+00:00",
+          "last_used": "2026-06-18T17:42:40+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4d54b457-5168-4261-a5bf-ce10b7ddad18",
+          "first_seen": "2026-06-18T17:44:28+00:00",
+          "last_used": "2026-06-18T17:44:28+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "5aeb9d7b-0042-447e-a14d-7fdf5cadee08",
+          "first_seen": "2026-06-18T18:55:23+00:00",
+          "last_used": "2026-06-18T18:55:23+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6515390c-312b-4f1c-92e8-69016f9f38e7",
+          "first_seen": "2026-06-18T18:56:25+00:00",
+          "last_used": "2026-06-18T18:56:25+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "c2b48e2a-d8db-4c26-aa3a-8cc806f5ec7b",
+          "first_seen": "2026-06-18T21:33:37+00:00",
+          "last_used": "2026-06-18T21:33:37+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "65f27492-d6af-496c-bdda-a31b5e470fb5",
+          "first_seen": "2026-06-18T21:35:23+00:00",
+          "last_used": "2026-06-18T21:35:23+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "25972e4d-6808-4387-977b-e33544944e78",
+          "first_seen": "2026-06-19T01:37:50+00:00",
+          "last_used": "2026-06-19T01:37:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "aa7fa1f1-4c7a-4c2d-b142-fba07dc48604",
+          "first_seen": "2026-06-19T01:38:55+00:00",
+          "last_used": "2026-06-19T01:38:55+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "4db56023-6901-4db1-9b06-5074b6aa91eb",
+          "first_seen": "2026-06-19T01:40:33+00:00",
+          "last_used": "2026-06-19T01:40:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "31d9f619-1634-4ca8-892e-3cf924c80876",
+          "first_seen": "2026-06-19T01:41:50+00:00",
+          "last_used": "2026-06-19T01:41:50+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "03b86e44-5e25-4c5a-9068-2240a050c5c2",
+          "first_seen": "2026-06-19T01:42:20+00:00",
+          "last_used": "2026-06-19T01:42:20+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4093d224-c0de-4a8e-9f1e-05f2ab81a6fd",
+          "first_seen": "2026-06-19T01:43:07+00:00",
+          "last_used": "2026-06-19T01:43:07+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "3ff4b2bf-a2e5-44a9-b72d-e5a282752fb7",
+          "first_seen": "2026-06-19T01:51:21+00:00",
+          "last_used": "2026-06-19T01:51:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9999611b-3cd9-402d-9d55-7b4bcc7cd2df",
+          "first_seen": "2026-06-19T01:52:03+00:00",
+          "last_used": "2026-06-19T01:52:03+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "0b0071b8-3ffa-439c-a113-6be52adce34b",
+          "first_seen": "2026-06-19T01:56:08+00:00",
+          "last_used": "2026-06-19T01:56:08+00:00"
+        }
+      ],
+      "time_needed_to_solve": 37211,
       "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
       "wording_check": {
         "done": true,
