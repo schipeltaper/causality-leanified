@@ -78,6 +78,7 @@ KATEX_BUILTINS: set[str] = set("""
     Rightarrow Leftarrow Leftrightarrow rightarrow leftarrow leftrightarrow
     longrightarrow longleftarrow longleftrightarrow
     Longrightarrow Longleftarrow Longleftrightarrow
+    twoheadrightarrow twoheadleftarrow rightarrowtail leftarrowtail
     to gets mapsto Mapsto longmapsto hookrightarrow hookleftarrow
     rightharpoonup leftharpoonup rightharpoondown leftharpoondown
     rightleftarrows leftrightarrows rightleftharpoons leftrightharpoons
