@@ -4481,8 +4481,11 @@ def solve_current_row(data_path: Path | None = None) -> None:
                 # by the line above; a `finally:` persist_time would
                 # otherwise re-dirty the working tree with the wall-
                 # clock spent in the commit script (lake build +
-                # git push), blocking the next finalize.
-                nonlocal time_committed
+                # git push), blocking the next finalize. (No
+                # `nonlocal` needed -- this assignment is at the same
+                # function scope as the `time_committed = False`
+                # declaration above; persist_time reads it via the
+                # standard enclosing-scope rule.)
                 time_committed = True
                 return
 
