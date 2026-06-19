@@ -728,9 +728,7 @@ private lemma hardInterventionOn_hL_irrefl
 set_option linter.unusedVariables false in
 -- def_3_10 -- start statement
 def hardInterventionOn (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.J ∪ G.V) : CDMG Node
--- def_3_10 -- end statement
-    where
+    (hW : W ⊆ G.J ∪ G.V) : CDMG Node where
   J := G.J ∪ W
   V := G.V \ W
   hJV_disj := hardInterventionOn_hJV_disj G W
@@ -739,6 +737,7 @@ def hardInterventionOn (G : CDMG Node) (W : Finset Node)
   L := G.L.filter (fun s => ∀ v ∈ s, v ∉ W)
   hL_subset := hardInterventionOn_hL_subset G W
   hL_irrefl := hardInterventionOn_hL_irrefl G W
+-- def_3_10 -- end statement
 
 end CDMG
 

@@ -7,7 +7,12 @@ Runs in eight phases (each opt-out via ``--skip-<phase>``):
       ``REFACTOR-BLOCK-ORIGINAL-BEGIN: <Name>`` ...
       ``REFACTOR-BLOCK-ORIGINAL-END: <Name>`` blocks; strip the
       surrounding markers around ``REFACTOR-BLOCK-REPLACEMENT-BEGIN``
-      blocks (keeping the body); rename every whole-word
+      blocks (keeping the body); also delete
+      ``REFACTOR-BLOCK-DELETE-BEGIN: <Name>`` ...
+      ``REFACTOR-BLOCK-DELETE-END: <Name>`` blocks (a self-contained
+      "this declaration is going away with no successor" -- use this
+      when the refactor genuinely removes a decl, instead of
+      ORIGINAL+empty-REPLACEMENT). Finally rename every whole-word
       ``refactor_<Name>`` -> ``<Name>`` -- across ALL files at once so
       cross-file references (file A's replacement using ``refactor_X``
       from file B) all flip together.
@@ -104,17 +109,17 @@ import _path_setup                                              # noqa: F401, E4
 # ----- marker regexes ------------------------------------------------
 
 _BEGIN_RE = re.compile(
-    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT)-BEGIN:\s*"
+    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
     r"(?P<name>[A-Za-z_][\w]*)",
     re.IGNORECASE,
 )
 _END_RE = re.compile(
-    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT)-END:\s*"
+    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-END:\s*"
     r"(?P<name>[A-Za-z_][\w]*)",
     re.IGNORECASE,
 )
 _BLOCK_RE = re.compile(
-    r"^[ \t]*--\s*REFACTOR-BLOCK-(ORIGINAL|REPLACEMENT)-BEGIN:\s*"
+    r"^[ \t]*--\s*REFACTOR-BLOCK-(ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
     r"([A-Za-z_][\w]*)[^\n]*\n"
     r"(.*?)"
     r"^[ \t]*--\s*REFACTOR-BLOCK-\1-END:\s*\2[^\n]*\n?",
@@ -217,13 +222,37 @@ def _check_unmatched_markers(content: str, file_path: Path) -> list[str]:
 def _validate_blocks(blocks: list[dict], file_path: Path) -> list[str]:
     orig_names = {b["name"] for b in blocks if b["kind"] == "original"}
     repl_names = {b["name"] for b in blocks if b["kind"] == "replacement"}
+    del_names  = {b["name"] for b in blocks if b["kind"] == "delete"}
     complaints: list[str] = []
+    # ORIGINAL must pair with a REPLACEMENT of the same name. A DELETE
+    # block is a self-contained "this declaration is going away with no
+    # successor"; it does NOT pair with anything and does NOT satisfy a
+    # bare ORIGINAL. If the refactor genuinely removes a decl, use a
+    # DELETE block (alone) -- not an ORIGINAL block.
     only_orig = orig_names - repl_names
     if only_orig:
         complaints.append(
             f"{file_path}: ORIGINAL block(s) without matching "
             f"REPLACEMENT: {sorted(only_orig)} -- refusing to delete "
-            f"originals when the refactor isn't complete")
+            f"originals when the refactor isn't complete. If the "
+            f"declaration is genuinely removed by the refactor, wrap "
+            f"it in `REFACTOR-BLOCK-DELETE-BEGIN/END: <name>` instead.")
+    # DELETE / REPLACEMENT name collisions are a worker mistake: a name
+    # can't both be deleted and replaced.
+    both = del_names & repl_names
+    if both:
+        complaints.append(
+            f"{file_path}: name(s) {sorted(both)} appear as BOTH "
+            f"DELETE and REPLACEMENT blocks. A declaration is either "
+            f"removed or replaced -- pick one.")
+    # ORIGINAL with same name as DELETE is also a worker mistake: the
+    # convention is DELETE *replaces* ORIGINAL for the removal case.
+    orig_del = orig_names & del_names
+    if orig_del:
+        complaints.append(
+            f"{file_path}: name(s) {sorted(orig_del)} appear as BOTH "
+            f"ORIGINAL and DELETE blocks. For genuine removals use "
+            f"DELETE alone (no ORIGINAL).")
     return complaints
 
 
@@ -245,11 +274,19 @@ def _apply_to_content(content: str, file_path: Path,
     new_content = content
     originals_deleted = 0
     replacements_kept = 0
+    deletions_applied = 0
     local_names: list[str] = []
     for b in sorted(blocks, key=lambda x: x["start"], reverse=True):
         if b["kind"] == "original":
             new_content = new_content[:b["start"]] + new_content[b["end"]:]
             originals_deleted += 1
+        elif b["kind"] == "delete":
+            # DELETE behaves like ORIGINAL: span is removed, no body kept.
+            # Distinct kind exists so the validator can let it stand
+            # alone (no paired REPLACEMENT) without weakening the
+            # ORIGINAL-must-pair rule.
+            new_content = new_content[:b["start"]] + new_content[b["end"]:]
+            deletions_applied += 1
         else:                                       # replacement
             new_content = new_content[:b["start"]] + b["body"] + new_content[b["end"]:]
             replacements_kept += 1
@@ -271,6 +308,7 @@ def _apply_to_content(content: str, file_path: Path,
     return new_content, [], {
         "originals_deleted":   originals_deleted,
         "replacements_kept":   replacements_kept,
+        "deletions_applied":   deletions_applied,
         "renamed":             rename_log,
     }
 
@@ -371,6 +409,106 @@ def _strip_refactor_narratives(
     # resulted from strips into a single blank line.
     content = re.sub(r"\n{3,}", "\n\n", content)
 
+    return content, strips
+
+
+# ----- phase 7a pass 4 helpers: prune empty namespace shells ----------
+
+_NAMESPACE_OPEN_RE = re.compile(
+    r"^[ \t]*namespace\s+(?P<name>[A-Za-z_][\w.]*)\s*$",
+    re.MULTILINE,
+)
+_NAMESPACE_CLOSE_RE = re.compile(
+    r"^[ \t]*end\s+(?P<name>[A-Za-z_][\w.]*)\s*$",
+    re.MULTILINE,
+)
+_BLOCK_COMMENT_RE = re.compile(r"/-[^-]?.*?-/", re.DOTALL)
+
+
+def _is_empty_namespace_body(body: str) -> bool:
+    """A namespace body counts as "empty" if every line is one of:
+    blank, a ``--`` line-comment, or a single bare ``variable``
+    declaration. ``/- ... -/`` and ``/-! ... -/`` block comments do
+    NOT count as empty -- they are load-bearing documentation
+    (file-top docstrings, section explainers) and must survive Pass
+    4. Pruning a namespace that contains a block comment would
+    silently strip docs that real readers rely on, with no Lean
+    error to surface the loss. The dual-namespace refactor pattern
+    leaves shells of THIS narrow form behind once Pass 2 deletes
+    the ORIGINAL marker blocks they enclosed; Pass 4 sweeps them
+    away without touching docstring-bearing namespaces."""
+    var_seen = False
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("--"):
+            continue                                # full-line line-comment
+        # Any non-line-comment line that touches block-comment syntax
+        # makes the body non-empty (presence of a `/- ... -/` or
+        # `/-! ... -/` block, possibly multi-line).
+        if "/-" in line or "-/" in line:
+            return False
+        if line.startswith("variable"):
+            if var_seen:
+                return False                       # >1 variable line
+            var_seen = True
+            continue
+        return False
+    return True
+
+
+def _strip_empty_namespace_shells(content: str) -> tuple[str, list[str]]:
+    """Find ``namespace X`` ... ``end X`` blocks whose body is empty
+    (per `_is_empty_namespace_body`) and delete the whole shell.
+
+    Pairs are matched via a simple stack-based pass over open/close
+    lines; only correctly nested pairs are considered (a mismatch
+    leaves the file alone). Idempotent: re-running on already-pruned
+    content is a no-op.
+
+    Returns ``(new_content, descriptions)``. The descriptions list
+    names each pruned shell (empty list if no change)."""
+    strips: list[str] = []
+    while True:
+        # Collect all open/close marker positions in source order.
+        opens = [(m.start(), m.end(), m.group("name"))
+                 for m in _NAMESPACE_OPEN_RE.finditer(content)]
+        closes = [(m.start(), m.end(), m.group("name"))
+                  for m in _NAMESPACE_CLOSE_RE.finditer(content)]
+        events = sorted(
+            [(s, e, n, "open")  for (s, e, n) in opens] +
+            [(s, e, n, "close") for (s, e, n) in closes],
+            key=lambda x: x[0],
+        )
+        # Pair using a stack; find the FIRST innermost empty pair.
+        stack: list[tuple[int, int, str]] = []      # (line_start, line_end, name)
+        pruned = False
+        for (start, end, name, kind) in events:
+            if kind == "open":
+                stack.append((start, end, name))
+            else:
+                if not stack or stack[-1][2] != name:
+                    # mismatch -- bail without touching the file
+                    return content, strips
+                (open_start, open_end, open_name) = stack.pop()
+                body = content[open_end:start]
+                if _is_empty_namespace_body(body):
+                    # Delete from the start of the `namespace X` line
+                    # through the end of the `end X` line (and its
+                    # trailing newline if present).
+                    cut_start = open_start
+                    cut_end = end
+                    if cut_end < len(content) and content[cut_end] == "\n":
+                        cut_end += 1
+                    content = content[:cut_start] + content[cut_end:]
+                    strips.append(f"pruned empty `namespace {name}` shell")
+                    pruned = True
+                    break                          # restart the scan
+        if not pruned:
+            break
+    # Normalize trailing blank-line runs.
+    content = re.sub(r"\n{3,}", "\n\n", content)
     return content, strips
 
 
@@ -575,6 +713,12 @@ def main(argv: list[str]) -> int:
                               "(leaves the `refactor_` prefix in the "
                               "final code; last-resort, you'll need to "
                               "clean up naming by hand).")
+    parser.add_argument("--skip-dup-check", action="store_true",
+                        help="skip Phase 7a Pass 1.7's predicted-"
+                             "duplicate-decl gate. Use only after "
+                             "confirming by inspection that flagged "
+                             "duplicates live in genuinely-different "
+                             "namespaces (which Lean allows).")
     args = parser.parse_args(argv)
 
     # ----- Load and sanity-check refactor table ----------------------
@@ -747,6 +891,60 @@ def main(argv: list[str]) -> int:
                   file=sys.stderr)
             return 1
 
+    # ---- Pass 1.7: post-cleanup duplicate-decl prediction --------------
+    # Synthesize Pass 2's output in memory and scan for top-level
+    # declarations of the same name appearing twice. Catches the
+    # `cdmg_typed_edges` failure mode: unwrapped pre-refactor helpers
+    # sitting next to their marker-wrapped post-refactor twin, which
+    # post-rename collide as duplicate decls and break Phase 7b's lake
+    # build. Doing the check here (before Pass 2 mutates anything) lets
+    # the script abort cleanly with a clear error instead of leaving
+    # the working tree in a half-cleaned state.
+    _DECL_RE = re.compile(
+        r"^(?:[\w]+\s+)?"
+        r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
+        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        re.MULTILINE,
+    )
+    dup_findings: dict[Path, list[str]] = {}
+    if not args.skip_dup_check:
+        for p, content in file_blobs.items():
+            try:
+                synthesized, _, _ = _apply_to_content(
+                    content, p, all_final_names)
+            except Exception:                       # pragma: no cover
+                continue
+            clean = _BLOCK_COMMENT_RE.sub("", synthesized)
+            counts: dict[str, int] = {}
+            for m in _DECL_RE.finditer(clean):
+                n = m.group("name")
+                counts[n] = counts.get(n, 0) + 1
+            dups = sorted(n for n, c in counts.items() if c > 1)
+            if dups:
+                dup_findings[p] = dups
+    if dup_findings:
+        print(f"\n  Predicted duplicate top-level declaration(s) "
+              f"AFTER cleanup (would break Phase 7b lake build):",
+              file=sys.stderr)
+        for p, dups in dup_findings.items():
+            try:
+                rel = p.relative_to(REPO_ROOT)
+            except ValueError:
+                rel = p
+            print(f"    - {rel}: {dups}", file=sys.stderr)
+        print(f"\n  Likely cause: an unwrapped pre-refactor helper "
+              f"sitting next to its marker-wrapped post-refactor twin. "
+              f"Fix: wrap each pre-refactor helper in an ORIGINAL or "
+              f"DELETE marker block (per `manager.md`'s "
+              f"helper-discipline rule), or delete it if it's dead "
+              f"code. Then re-run finalize.\n"
+              f"  (Note: this check does not track namespace scoping; "
+              f"if the duplicates are in genuinely-different "
+              f"namespaces (Lean allows that) and you've confirmed by "
+              f"inspection, re-run with `--skip-dup-check`.)\n",
+              file=sys.stderr)
+        return 1
+
     # Pass 2: apply transforms using the global name set
     transformed_writes: list[tuple[Path, str]] = []
     total_orig_deleted = 0
@@ -764,8 +962,10 @@ def main(argv: list[str]) -> int:
         total_orig_deleted += summary["originals_deleted"]
         total_repl_kept += summary["replacements_kept"]
         rel = p.relative_to(REPO_ROOT)
+        del_applied = summary.get("deletions_applied", 0)
+        del_part = f", -{del_applied} delete" if del_applied else ""
         print(f"  - {rel}: -{summary['originals_deleted']} original, "
-              f"+{summary['replacements_kept']} replacement, "
+              f"+{summary['replacements_kept']} replacement{del_part}, "
               f"rename hits: {summary['renamed']}", file=sys.stderr)
         if args.dry_run:
             sys.stdout.write(_diff(old, new, str(rel)))
@@ -826,6 +1026,50 @@ def main(argv: list[str]) -> int:
             print(f"  pass 3: no narratives to strip", file=sys.stderr)
     elif n_pass3_changed == 0:
         print(f"  pass 3: no narratives to strip", file=sys.stderr)
+
+    # Pass 4: prune empty namespace shells. Pass 2 deletes ORIGINAL
+    # marker blocks; for refactors that used the dual-namespace pattern
+    # (one `namespace CDMG` block for the pre-refactor body, a separate
+    # `namespace CDMG` block for the refactor twin), that leaves an
+    # orphan shell of the form `namespace X / [comments + variable
+    # only] / end X`. Build-correct but noisy. Pass 4 sweeps them.
+    print(f"\n  [pass 4] pruning empty namespace shells ...",
+          file=sys.stderr)
+    n_pass4_changed = 0
+    pass4_writes: list[tuple[Path, str]] = []
+    for p in file_blobs:
+        if args.dry_run:
+            old_for_pass4 = next(
+                (n for fp, n in (pass3_writes or [])
+                 if fp == p),
+                next(
+                    (n for fp, n in transformed_writes if fp == p),
+                    file_blobs[p],
+                ),
+            )
+        else:
+            old_for_pass4 = p.read_text(encoding="utf-8")
+        new_p4, descs = _strip_empty_namespace_shells(old_for_pass4)
+        if not descs:
+            continue
+        n_pass4_changed += 1
+        rel = p.relative_to(REPO_ROOT)
+        print(f"    - {rel}: " + "; ".join(descs), file=sys.stderr)
+        if args.dry_run:
+            sys.stdout.write(_diff(old_for_pass4, new_p4,
+                                   f"{rel} (pass 4)"))
+        else:
+            pass4_writes.append((p, new_p4))
+    if not args.dry_run:
+        for p, new in pass4_writes:
+            p.write_text(new, encoding="utf-8")
+        if n_pass4_changed:
+            print(f"  pass 4 pruned {n_pass4_changed} file(s)",
+                  file=sys.stderr)
+        else:
+            print(f"  pass 4: no empty shells", file=sys.stderr)
+    elif n_pass4_changed == 0:
+        print(f"  pass 4: no empty shells", file=sys.stderr)
 
     # =================================================================
     # Phase 7b: Lake build verification

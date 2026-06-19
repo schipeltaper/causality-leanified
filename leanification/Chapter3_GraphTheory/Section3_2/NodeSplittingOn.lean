@@ -52,11 +52,6 @@ orders on the split graph (`claim_3_6` SplitTopologicalOrder).
 
 namespace CDMG
 
-
-end CDMG
-
-namespace CDMG
-
 -- def_3_11 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_11 --- end helper
@@ -1034,9 +1029,7 @@ private lemma nodeSplittingOn_hL_irrefl
 set_option linter.unusedVariables false in
 -- def_3_11 -- start statement
 def nodeSplittingOn (G : CDMG Node) (W : Finset Node)
-    (hW : W ⊆ G.V) : CDMG (SplitNode Node)
--- def_3_11 -- end statement
-    where
+    (hW : W ⊆ G.V) : CDMG (SplitNode Node) where
   J := G.J.image SplitNode.unsplit
   V := (G.V \ W).image SplitNode.unsplit
         ∪ W.image SplitNode.copy0
@@ -1049,6 +1042,7 @@ def nodeSplittingOn (G : CDMG Node) (W : Finset Node)
   L := G.L.image (Sym2.map (toCopy0 W))
   hL_subset := by exact nodeSplittingOn_hL_subset G W
   hL_irrefl := by exact nodeSplittingOn_hL_irrefl G W
+-- def_3_11 -- end statement
 
 end CDMG
 
