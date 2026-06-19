@@ -7,7 +7,12 @@ Runs in eight phases (each opt-out via ``--skip-<phase>``):
       ``REFACTOR-BLOCK-ORIGINAL-BEGIN: <Name>`` ...
       ``REFACTOR-BLOCK-ORIGINAL-END: <Name>`` blocks; strip the
       surrounding markers around ``REFACTOR-BLOCK-REPLACEMENT-BEGIN``
-      blocks (keeping the body); rename every whole-word
+      blocks (keeping the body); also delete
+      ``REFACTOR-BLOCK-DELETE-BEGIN: <Name>`` ...
+      ``REFACTOR-BLOCK-DELETE-END: <Name>`` blocks (a self-contained
+      "this declaration is going away with no successor" -- use this
+      when the refactor genuinely removes a decl, instead of
+      ORIGINAL+empty-REPLACEMENT). Finally rename every whole-word
       ``refactor_<Name>`` -> ``<Name>`` -- across ALL files at once so
       cross-file references (file A's replacement using ``refactor_X``
       from file B) all flip together.
@@ -104,17 +109,17 @@ import _path_setup                                              # noqa: F401, E4
 # ----- marker regexes ------------------------------------------------
 
 _BEGIN_RE = re.compile(
-    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT)-BEGIN:\s*"
+    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
     r"(?P<name>[A-Za-z_][\w]*)",
     re.IGNORECASE,
 )
 _END_RE = re.compile(
-    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT)-END:\s*"
+    r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-END:\s*"
     r"(?P<name>[A-Za-z_][\w]*)",
     re.IGNORECASE,
 )
 _BLOCK_RE = re.compile(
-    r"^[ \t]*--\s*REFACTOR-BLOCK-(ORIGINAL|REPLACEMENT)-BEGIN:\s*"
+    r"^[ \t]*--\s*REFACTOR-BLOCK-(ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
     r"([A-Za-z_][\w]*)[^\n]*\n"
     r"(.*?)"
     r"^[ \t]*--\s*REFACTOR-BLOCK-\1-END:\s*\2[^\n]*\n?",
@@ -217,13 +222,37 @@ def _check_unmatched_markers(content: str, file_path: Path) -> list[str]:
 def _validate_blocks(blocks: list[dict], file_path: Path) -> list[str]:
     orig_names = {b["name"] for b in blocks if b["kind"] == "original"}
     repl_names = {b["name"] for b in blocks if b["kind"] == "replacement"}
+    del_names  = {b["name"] for b in blocks if b["kind"] == "delete"}
     complaints: list[str] = []
+    # ORIGINAL must pair with a REPLACEMENT of the same name. A DELETE
+    # block is a self-contained "this declaration is going away with no
+    # successor"; it does NOT pair with anything and does NOT satisfy a
+    # bare ORIGINAL. If the refactor genuinely removes a decl, use a
+    # DELETE block (alone) -- not an ORIGINAL block.
     only_orig = orig_names - repl_names
     if only_orig:
         complaints.append(
             f"{file_path}: ORIGINAL block(s) without matching "
             f"REPLACEMENT: {sorted(only_orig)} -- refusing to delete "
-            f"originals when the refactor isn't complete")
+            f"originals when the refactor isn't complete. If the "
+            f"declaration is genuinely removed by the refactor, wrap "
+            f"it in `REFACTOR-BLOCK-DELETE-BEGIN/END: <name>` instead.")
+    # DELETE / REPLACEMENT name collisions are a worker mistake: a name
+    # can't both be deleted and replaced.
+    both = del_names & repl_names
+    if both:
+        complaints.append(
+            f"{file_path}: name(s) {sorted(both)} appear as BOTH "
+            f"DELETE and REPLACEMENT blocks. A declaration is either "
+            f"removed or replaced -- pick one.")
+    # ORIGINAL with same name as DELETE is also a worker mistake: the
+    # convention is DELETE *replaces* ORIGINAL for the removal case.
+    orig_del = orig_names & del_names
+    if orig_del:
+        complaints.append(
+            f"{file_path}: name(s) {sorted(orig_del)} appear as BOTH "
+            f"ORIGINAL and DELETE blocks. For genuine removals use "
+            f"DELETE alone (no ORIGINAL).")
     return complaints
 
 
@@ -245,11 +274,19 @@ def _apply_to_content(content: str, file_path: Path,
     new_content = content
     originals_deleted = 0
     replacements_kept = 0
+    deletions_applied = 0
     local_names: list[str] = []
     for b in sorted(blocks, key=lambda x: x["start"], reverse=True):
         if b["kind"] == "original":
             new_content = new_content[:b["start"]] + new_content[b["end"]:]
             originals_deleted += 1
+        elif b["kind"] == "delete":
+            # DELETE behaves like ORIGINAL: span is removed, no body kept.
+            # Distinct kind exists so the validator can let it stand
+            # alone (no paired REPLACEMENT) without weakening the
+            # ORIGINAL-must-pair rule.
+            new_content = new_content[:b["start"]] + new_content[b["end"]:]
+            deletions_applied += 1
         else:                                       # replacement
             new_content = new_content[:b["start"]] + b["body"] + new_content[b["end"]:]
             replacements_kept += 1
@@ -271,6 +308,7 @@ def _apply_to_content(content: str, file_path: Path,
     return new_content, [], {
         "originals_deleted":   originals_deleted,
         "replacements_kept":   replacements_kept,
+        "deletions_applied":   deletions_applied,
         "renamed":             rename_log,
     }
 
@@ -764,8 +802,10 @@ def main(argv: list[str]) -> int:
         total_orig_deleted += summary["originals_deleted"]
         total_repl_kept += summary["replacements_kept"]
         rel = p.relative_to(REPO_ROOT)
+        del_applied = summary.get("deletions_applied", 0)
+        del_part = f", -{del_applied} delete" if del_applied else ""
         print(f"  - {rel}: -{summary['originals_deleted']} original, "
-              f"+{summary['replacements_kept']} replacement, "
+              f"+{summary['replacements_kept']} replacement{del_part}, "
               f"rename hits: {summary['renamed']}", file=sys.stderr)
         if args.dry_run:
             sys.stdout.write(_diff(old, new, str(rel)))
