@@ -52,11 +52,6 @@ orders on the split graph (`claim_3_6` SplitTopologicalOrder).
 
 namespace CDMG
 
-
-end CDMG
-
-namespace CDMG
-
 -- def_3_11 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_11 --- end helper
