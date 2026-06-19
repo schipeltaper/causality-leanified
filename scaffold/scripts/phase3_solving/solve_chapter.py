@@ -4134,9 +4134,19 @@ def solve_current_row(data_path: Path | None = None) -> None:
     # persist; `persist_time` flushes the delta into `time_needed_to_solve`
     # and re-saves data.json so the value survives interruption.
     time_mark = time.monotonic()
+    # Once the row's per-row commit has landed (and `data.json`'s
+    # `time_needed_to_solve` is captured in that commit), further
+    # `persist_time` calls (notably the `finally:` flush at the end of
+    # solve_current_row) would dirty the working tree with a small
+    # post-commit bump and block `do_refactor.py finalize` on its
+    # "working tree must be clean" gate. Set by the `solved` success
+    # path right after `commit_solved_row`; persist_time then no-ops.
+    time_committed = False
 
     def persist_time() -> None:
         nonlocal time_mark
+        if time_committed:
+            return
         now = time.monotonic()
         delta = now - time_mark
         if delta <= 0:
@@ -4467,6 +4477,13 @@ def solve_current_row(data_path: Path | None = None) -> None:
                 # Per-row commit via the sanctioned script (runs lake build
                 # then `git commit && git push`). Non-fatal on failure.
                 commit_solved_row(state)
+                # Suppress further time-bumps: data.json was committed
+                # by the line above; a `finally:` persist_time would
+                # otherwise re-dirty the working tree with the wall-
+                # clock spent in the commit script (lake build +
+                # git push), blocking the next finalize.
+                nonlocal time_committed
+                time_committed = True
                 return
 
             # Verifier said FAIL (or no verdict). Surface the verifier's
