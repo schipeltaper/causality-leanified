@@ -89,6 +89,26 @@ following the verified TeX proof at
 
 namespace CDMG
 
+
+
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of `extAcyclic`,
+-- `extRestrictsTopologicalOrder`, and `extExtendsTopologicalOrder`.
+-- They are deliberately private, carry no marker comments, and do not
+-- appear in the rendered statement.  Mirrors the analogous block in
+-- `SwigAcyclic.lean` / `SplitTopologicalOrder.lean`; differences from
+-- those precedents flow from `IntExtNode`'s two-constructor shape
+-- (vs `SplitNode`'s three) and from `extOrder`'s lex orientation with
+-- *tag* as the primary key (`.intCopy ↦ 0 < .unsplit ↦ 1`) — encoding
+-- the LN's "fresh intervention nodes first" semantics — rather than
+-- splOrder's lex with *base* as primary key.
+
+end CDMG
+
+namespace CDMG
+
 /-!
 ## Refactor twins for `claim_3_13` against the `def_3_1` retyping
 (`cdmg_typed_edges` refactor)

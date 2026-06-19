@@ -79,6 +79,98 @@ following the verified TeX proof at
 
 namespace CDMG
 
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim from
+--   `def_3_1` (`CDMG.lean`).  Both fixtures are load-bearing for this
+--   row's statement because the signature references `CDMG Node`
+--   (`def_3_1`), `G.IsCADMG` (`def_3_7`),
+--   `G.nodeSplittingHard hCADMG W hW` (`def_3_12`),
+--   `(G.nodeSplittingHard hCADMG W hW).IsAcyclic` (`def_3_6`),
+--   `G.IsTopologicalOrder lt` (`def_3_8`), and
+--   `(G.nodeSplittingHard hCADMG W hW).IsTopologicalOrder (splOrder lt)`
+--   (which goes through the SWIG CDMG's
+--   `Pa : SplitNode Node → Set (SplitNode Node)` from `def_3_5`, in
+--   turn requiring `[DecidableEq (SplitNode Node)]` — provided
+--   automatically by `def_3_11`'s `deriving DecidableEq` on the
+--   tagged-sum inductive that `def_3_12` reuses).  Stronger instances
+--   (`Fintype`, `LinearOrder`) are not needed at the statement level.
+--
+-- *Three-dash `--- start helper` marker (not the two-dash
+--   `-- start statement`).*  Matches the convention in every sibling
+--   file in `Section3_2/` (`HardInterventionOn.lean`,
+--   `AcyclicPreservedUnderDo.lean`, `HardInterventionsCommute.lean`,
+--   `BifurcationAlternative.lean`, `NodeSplittingOn.lean`,
+--   `SplitTopologicalOrder.lean`, `NodeSplittingHard.lean`) and in
+--   `Section3_1/`.  The two-dash marker is reserved for declarations
+--   whose body is the formalised LN content of the row; this
+--   `variable` line is statement-typing infrastructure binding the
+--   implicit `Node` type and its `DecidableEq` instance that the
+--   two main theorems both reference.
+-- claim_3_9 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_9 --- end helper
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of `swigAcyclic`
+-- and `swigTopologicalOrder`.  They are deliberately private, carry no
+-- marker comments, and do not appear in the rendered statement.  Most
+-- mirror their analogs in `SplitTopologicalOrder.lean` (also private
+-- there) and are re-derived here because Lean's `private` mechanism
+-- makes file-scoped helpers invisible across files.  See
+-- `tex/claim_3_9_proof_SwigAcyclic.tex` for the TeX proof these
+-- helpers implement.
+--
+-- *`baseOf` / `tagOf`.*  Same case-analysis projection as in
+--   `SplitTopologicalOrder.lean`: `baseOf` recovers the underlying base
+--   node and `tagOf` records the constructor tag in `{0, 1, 2}` with
+--   the convention `.copy0 ↦ 0 < .unsplit ↦ 1 < .copy1 ↦ 2`, matching
+--   the lex orientation baked into `splOrder`.
+--
+-- *`splOrder_iff`.*  Lex characterisation of `splOrder` —
+--   `splOrder lt x y ↔ lt (baseOf x) (baseOf y) ∨ (baseOf x = baseOf y
+--   ∧ tagOf x < tagOf y)`.  Reduces the 9 / 27-way constructor case
+--   analyses (trichotomy / transitivity) to plain lex reasoning over
+--   the base/tag pair.
+--
+-- *`splitNode_ext`.*  Two `SplitNode Node` agreeing on base and tag
+--   are equal — needed to extract `x = y` from a base/tag equality
+--   inside the trichotomy proof.
+--
+-- *`baseOf_mem_swig`.*  Membership `x ∈ G.nodeSplittingHard hCADMG W
+--   hW` projects to `baseOf x ∈ G`, via case analysis on the SWIG
+--   carrier `(G.J ∪ W^i) ∪ ((G.V ∖ W) ∪ W^o)`.  Differs from
+--   `SplitTopologicalOrder.lean`'s `baseOf_mem` because the SWIG
+--   construction reclassifies `W.image .copy1` into `J` (item i of
+--   `def_3_12`) rather than leaving both tagged copies in `V`.
+--
+-- *`splOrder_lifted_edge`.*  Parent-precedence for a lifted edge
+--   `(toCopy1 W v_1, toCopy0 W v_2)` given `lt v_1 v_2`.  Same proof
+--   as in `SplitTopologicalOrder.lean`; re-derived locally.  Note that
+--   there is *no* analog of `splOrder_transfer_edge` here, because
+--   `def_3_12` item iii omits the transfer-edge set-builder entirely
+--   — see the design block on `swigTopologicalOrder` for the
+--   structural reason.
+--
+-- *`aux_swigTopologicalOrder`.*  Shared workhorse — proves
+--   `(G.nodeSplittingHard hCADMG W hW).IsTopologicalOrder (splOrder
+--   lt)` directly under the hypotheses of sub-claim (b), consumed by
+--   both `swigTopologicalOrder` (as a one-liner wrapper) and
+--   `swigAcyclic` (where the topological-order witness is fed to the
+--   `⇐` direction of `claim_3_2` to derive acyclicity).  Mirrors
+--   `SplitTopologicalOrder.lean`'s `aux_splTopologicalOrder` with one
+--   structural simplification in the parent-precedence branch: only
+--   the lifted-edge sub-case is present (the transfer-edge sub-case
+--   of `aux_splTopologicalOrder` has no analog here).
+
+
+
+
+end CDMG
+
+namespace CDMG
+
 -- ## Design choice — statement context (refactor twin)
 --
 -- *`Node : Type*` with `[DecidableEq Node]`.*  Both fixtures are

@@ -3,6 +3,101 @@ import Chapter3_GraphTheory.Section3_3.BlockableAndUnblockable
 
 namespace Causality
 
+/-!
+# Acyclic ⟹ every non-collider position is blockable (`claim_3_20`)
+
+This file formalises the LN remark `claim_3_20`
+(`\label{rem-AcyclicNonCollidersBlockable}` in `graphs.tex`):
+
+> If `G` is acyclic then all non-colliders are blockable.
+
+The authoritative spec is the canonical tex statement at
+`leanification/Chapter3_GraphTheory/Section3_3/tex/`
+`claim_3_20_statement_AcyclicNonCollidersBlockable.tex`,
+verified equivalent to the LN block augmented with one operator
+clarification:
+
+* `[acyclic_does_not_imply_directed_in_text]` — in this remark `G` is a
+  CDMG (per the surrounding context); "acyclic" means CDMG-acyclic per
+  `def_3_6`.  The edge orientations needed to define (non-)colliders are
+  already part of the ambient structure.
+
+After the rewrite the LN's prose unfolds into the universally-
+quantified implication: for every CDMG `G` with `G.IsAcyclic`, every
+walk `π : Walk G u v` (per `def_3_4` item i.), and every position
+`k : ℕ`, `π.IsNonCollider k → π.IsBlockableNonCollider k`, where the
+per-position predicates are reused verbatim from `def_3_15`
+(`CollidersAndNon.lean`) and `def_3_16` (`BlockableAndUnblockable.lean`).
+
+## Lean shape
+
+* `G : CDMG Node` explicit, mirroring the LN's "Let `G` be a CDMG"
+  standing hypothesis.
+* `hG : G.IsAcyclic` from `def_3_6` (`Acyclicity.lean`) — the
+  acyclicity hypothesis is named exactly as in the LN.
+* `{u v : Node}` implicit (synthesised from the walk's type), `(π :
+  Walk G u v)` and `(k : ℕ)` explicit, mirroring the binder shape of
+  `def_3_16`'s `IsBlockableNonCollider`.
+* Conclusion is the implication
+  `π.IsNonCollider k → π.IsBlockableNonCollider k`, exactly as the
+  canonical tex spells it.
+* No separate `k ≤ π.length` hypothesis is needed: `IsNonCollider`
+  already carries `k ≤ p.length` as a conjunct, so out-of-range `k`
+  makes the antecedent `False` and the implication vacuous — matching
+  the LN's "for every position `k ∈ {0, …, n}`" scoping.
+
+The proof follows the tex proof at
+`tex/claim_3_20_proof_AcyclicNonCollidersBlockable.tex`.
+-/
+
+namespace CDMG
+
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited from
+--   `def_3_15` (`CollidersAndNon.lean`) and `def_3_16`
+--   (`BlockableAndUnblockable.lean`): both per-position predicates
+--   require this shape, so the wrapped main theorem signature below
+--   does not type-check without it.  Matches the chapter convention
+--   set by every prior file in this chapter — including the directly
+--   analogous claim-row `claim_3_19` (`MarginalizingOutThe.lean`),
+--   which uses the same `{Node : Type*} [DecidableEq Node]` shape at
+--   its own statement-typing helper block.
+--
+-- *Three-dash `--- start helper` / `--- end helper` markers, not
+--   two-dash `-- start statement`.*  Lean 4's `variable` auto-binding
+--   folds the implicit `Node` and the `DecidableEq Node` instance
+--   into the theorem below — they are *statement-typing
+--   infrastructure*, not the formalised LN content of this row, and
+--   the `start statement` / `end statement` markers must wrap only
+--   the LN-meaningful declaration head (the `theorem
+--   acyclic_non_colliders_blockable …` line itself).  Wrapping the
+--   `variable` line with three-dash helper markers is the standard
+--   chapter-3 convention: see the analogous helper block in
+--   `def_3_15`, `def_3_16`, and `claim_3_19` for prior art.
+-- claim_3_20 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_20 --- end helper
+
+-- Proof helpers (no markers).  Walk-position infrastructure used by
+-- the main proof to extract the `WalkStep` relations at the two
+-- walk-incident edges of an interior position `k`.  These are
+-- proof-only — removing them would not break the wrapped main
+-- theorem signature — so they carry no marker comments per the
+-- chapter convention.
+
+
+
+
+
+
+
+end CDMG
+
+end Causality
+
+namespace Causality
+
 namespace CDMG
 
 -- ## Design choice — refactor section-wide statement context

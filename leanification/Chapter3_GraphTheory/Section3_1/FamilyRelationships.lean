@@ -101,6 +101,28 @@ namespace CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_5 --- end helper
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end CDMG
+
+namespace CDMG
+
+-- def_3_5 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- def_3_5 --- end helper
+
 -- ref: def_3_5 (item i, parents of a vertex) — refactor
 --
 -- One-line cross-ref: see the `Pa` design block above for the

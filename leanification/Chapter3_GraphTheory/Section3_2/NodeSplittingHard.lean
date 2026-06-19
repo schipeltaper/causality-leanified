@@ -62,6 +62,11 @@ membership.
 
 namespace CDMG
 
+
+end CDMG
+
+namespace CDMG
+
 -- def_3_12 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_12 --- end helper

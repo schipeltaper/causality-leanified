@@ -63,6 +63,82 @@ following the verified TeX proof at
 
 namespace CDMG
 
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim from
+--   `def_3_1` (`CDMG.lean`).  Both fixtures are load-bearing for this
+--   row's statement because the signature references `CDMG Node`
+--   (`def_3_1`), `G.IsCADMG` (`def_3_7`), `G.nodeSplittingOn W hW`
+--   (`def_3_11`), `(G.nodeSplittingOn W hW).IsAcyclic` (`def_3_6`),
+--   `G.IsTopologicalOrder lt` (`def_3_8`), and
+--   `(G.nodeSplittingOn W hW).IsTopologicalOrder (splOrder lt)`
+--   (which goes through the split CDMG's
+--   `Pa : SplitNode Node → Set (SplitNode Node)` from `def_3_5`, in
+--   turn requiring `[DecidableEq (SplitNode Node)]` — provided
+--   automatically by `def_3_11`'s `deriving DecidableEq` on the
+--   tagged-sum inductive).  Stronger instances (`Fintype`,
+--   `LinearOrder`) are not needed at the statement level.
+--
+-- *Three-dash `--- start helper` marker (not the two-dash
+--   `-- start statement`).*  Matches the convention in every sibling
+--   file in `Section3_2/` (`HardInterventionOn.lean`,
+--   `AcyclicPreservedUnderDo.lean`, `HardInterventionsCommute.lean`,
+--   `BifurcationAlternative.lean`, `NodeSplittingOn.lean`) and in
+--   `Section3_1/`.  The two-dash marker is reserved for declarations
+--   whose body is the formalised LN content of the row; this
+--   `variable` line is statement-typing infrastructure binding the
+--   implicit `Node` type and its `DecidableEq` instance that the
+--   helper `splOrder` and the two main theorems all reference.
+-- claim_3_6 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_6 --- end helper
+
+
+-- ## Proof-only helpers (private; live above the theorems)
+--
+-- The lemmas below are infrastructure for the proofs of `splAcyclic`
+-- and `splTopologicalOrder`.  They are deliberately private, carry no
+-- marker comments, and do not appear in the rendered statement.  See
+-- `tex/claim_3_6_proof_SplitTopologicalOrder.tex` for the TeX proof
+-- these helpers implement.
+--
+-- *`baseOf` / `tagOf`.*  Project a `SplitNode Node` onto its underlying
+--   base node (`.unsplit u`, `.copy0 w`, `.copy1 w` all carry one node
+--   argument) and its copy tag in `{0, 1, 2}` (with the convention
+--   `.copy0 ↦ 0 < .unsplit ↦ 1 < .copy1 ↦ 2` so that the lex order
+--   matches `splOrder`'s case analysis).
+--
+-- *`splOrder_iff`.*  The lex characterisation of `splOrder`: equivalent
+--   to "base node strictly less, OR base nodes equal and tag strictly
+--   less".  Reduces the 27-way case analysis of transitivity (and the
+--   9-way analyses of irreflexivity / trichotomy) on the case-analysis
+--   form to plain lex reasoning.
+--
+-- *`splitNode_ext`.*  Two `SplitNode Node` agreeing on base and tag are
+--   equal.  Used in the trichotomy proof to recover `x = y` from
+--   `baseOf x = baseOf y ∧ tagOf x = tagOf y`.
+--
+-- *`baseOf_mem`.*  Membership `x ∈ G_spl` projects to membership
+--   `baseOf x ∈ G` via the four pieces of the disjoint-union carrier.
+--
+-- *`splOrder_lifted_edge` / `splOrder_transfer_edge`.*  The two
+--   parent-precedence subcases corresponding to `def_3_11`'s two
+--   edge-set clauses (lifted edges from `G.E` and transfer edges
+--   `(w^0, w^1)`).
+--
+-- *`aux_splTopologicalOrder`.*  The shared workhorse: the full
+--   `IsTopologicalOrder` content for the split graph under
+--   `splOrder lt`, used by both `splAcyclic` (which routes through
+--   `claim_3_2`) and `splTopologicalOrder` (which is a direct wrapper).
+--   The private auxiliary form is needed because `splAcyclic` precedes
+--   `splTopologicalOrder` in the file (statement-marker order) but
+--   the corollary route from sub-claim (b) to sub-claim (a) requires
+--   the topological-order content first.
+
+end CDMG
+
+namespace CDMG
+
 -- ## Design choice — statement context (refactor twin)
 --
 -- *`Node : Type*` with `[DecidableEq Node]`.*  Both fixtures are

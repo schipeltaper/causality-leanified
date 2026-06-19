@@ -49,6 +49,339 @@ at `leanification/Chapter3_GraphTheory/Section3_2/tex/`
 equivalent to the LN block (`graphs.tex` L877-886).
 -/
 
+namespace CDMG
+
+-- ## Helper — variable binders for this row's declarations
+--
+-- *`variable` block, not `def`-local binders on each declaration.*
+--   Mirrors the convention of every section-3.2 row.  The implicit
+--   `Node : Type*` and `[DecidableEq Node]` auto-bind into the
+--   helpers and the main theorem signature.
+
+-- ## Private helper — `IsCADMG` witness for the inner extension
+--
+-- One-sentence summary: discharges the `IsCADMG` precondition that
+-- the outer `nodeSplittingHard` of the LN-RHS branch (first operand
+-- of `eqViaNodeMap` below) needs on the inner `extendingCDMGsWith`.
+--
+-- The RHS's outer `nodeSplittingHard ?hG ?W ?hW` needs an `IsCADMG`
+-- witness on `G.extendingCDMGsWith W₂ hW₂` (because `def_3_12`
+-- requires acyclicity of its input).  `claim_3_13`'s `extAcyclic`
+-- provides exactly this — and since `IsCADMG := IsAcyclic` by
+-- `def_3_7`, the projection is definitional.  Not LN content
+-- (acyclicity preservation is `claim_3_13`), so unmarked — matches
+-- `claim_3_11`'s use of `hardInterventionOn_isCADMG_of_isCADMG`
+-- inline without a marker.
+--
+-- ## Design choice
+--
+-- *Thin specialisation wrapper, not a re-proof.*  Defined as the
+--   exact term `extAcyclic G W hW hG`, capitalising on the
+--   definitional unfolding `IsCADMG := IsAcyclic`; no separate
+--   acyclicity argument is recomputed here.  Inlining
+--   `extAcyclic hG hW₂` directly at the call site in the main
+--   theorem signature was rejected for readability — the named
+--   helper makes the LN-RHS branch's structure of the theorem head
+--   `(G.extendingCDMGsWith W₂ hW₂).nodeSplittingHard ⟨isCADMG⟩ …`
+--   read more transparently.
+--
+-- *No helper-marker wrap.*  This lemma is not LN content (the LN's
+--   own remark after `def_3_13` is what `claim_3_13` formalises);
+--   it exists purely as a Lean-side plumbing convenience.  Per the
+--   chapter convention, plumbing helpers used only at a single
+--   theorem head and not referenced by name in the LN are kept
+--   marker-less so the website renderer does not pull them out as
+--   first-class declarations.
+
+-- ## Helper — `W₁.image .unsplit ⊆ V_{doit(I_{W₂})}`
+--
+-- The RHS `(G.extendingCDMGsWith W₂ hW₂).nodeSplittingHard _
+-- (W₁.image IntExtNode.unsplit) ?_` requires
+-- `?_ : W₁.image .unsplit ⊆ (G.extendingCDMGsWith W₂ hW₂).V`.
+-- By `def_3_13` item ii, `V_{doit(I_{W₂})} = G.V.image .unsplit`.
+-- Since `W₁ ⊆ G.V` by `hW₁`, every `v ∈ W₁` lifts to
+-- `.unsplit v ∈ G.V.image .unsplit`.  No disjointness needed.
+--
+-- ## Design choice
+--
+-- *Standalone helper, wrapped with three-dash markers — litmus test
+--   for marker wrapping returns YES.*  The RHS's outer
+--   `nodeSplittingHard _ (W₁.image .unsplit) ?_` reads the
+--   conclusion of this lemma as its `?_`-precondition; the wrapped
+--   main theorem head does not type-check without the named term.
+--   Mirrors the `image_unsplit_subset_extendingCDMGsWith_carrier`
+--   helper pattern from `claim_3_14`.
+--
+-- *Implicit `G`, `W₁`, `W₂`; explicit `hW₁`.*  At the call site
+--   `image_unsplit_subset_extendingCDMGsWith_V hW₁`, the implicit
+--   arguments are synthesised from the goal.  `hW₂` is not consumed
+--   (the conclusion mentions `(G.extendingCDMGsWith W₂ hW₂).V`
+--   which forces both `W₂` and `hW₂` via the goal-driven unifier).
+--
+-- *No disjointness consumed.*  Only `hW₁ : W₁ ⊆ G.V` is needed —
+--   the extension preserves `V` literally (`V_{doit(I_W)} := V`,
+--   per `def_3_13` item ii), so disjointness from `W₂` plays no
+--   role on the `V`-component.
+
+-- ## Helper — `W₂.image .unsplit ⊆ J_{swig(W₁)} ∪ V_{swig(W₁)}`
+--
+-- The LHS `(G.nodeSplittingHard hG W₁ hW₁).extendingCDMGsWith
+-- (W₂.image SplitNode.unsplit) ?_` requires
+-- `?_ : W₂.image .unsplit ⊆
+--        (G.nodeSplittingHard hG W₁ hW₁).J ∪
+--        (G.nodeSplittingHard hG W₁ hW₁).V`.
+-- For each `w ∈ W₂`: `w ∈ G.J ∪ G.V` by `hW₂`; if `w ∈ G.J` then
+-- `.unsplit w ∈ G.J.image .unsplit ⊆ J_{swig(W₁)}`; if `w ∈ G.V`
+-- then `w ∉ W₁` by `Disjoint W₁ W₂`, so `w ∈ G.V \ W₁` and
+-- `.unsplit w ∈ (G.V \ W₁).image .unsplit ⊆ V_{swig(W₁)}`.
+-- Parallels the `claim_3_11` helper
+-- `image_unsplit_subset_carrier_of_nodeSplittingHard` but with the
+-- role of `W₁`/`W₂` swapped (here `W₂` is the lifted set and `W₁`
+-- is the split set).
+--
+-- ## Design choice
+--
+-- *Standalone helper, wrapped with three-dash markers — litmus test
+--   returns YES.*  The LHS's outer `extendingCDMGsWith` reads the
+--   conclusion of this lemma as its `?_`-precondition; without the
+--   named term, the wrapped main theorem head does not type-check.
+--
+-- *Implicit `hG`.*  Mirrors `claim_3_11`'s
+--   `image_unsplit_subset_carrier_of_nodeSplittingHard` binder
+--   convention: `hG` is inferred from the
+--   `G.nodeSplittingHard hG W₁ hW₁` expression in the goal.
+--
+-- *Disjointness `Disjoint W₁ W₂` is load-bearing on the
+--   `V`-branch.*  Without it, a `w ∈ W₂ ∩ W₁ ∩ G.V` would *not*
+--   lie in `G.V \ W₁`, so `.unsplit w` could not be routed through
+--   the `(G.V \ W₁).image .unsplit` summand of
+--   `V_{swig(W₁)}` — it would have to land instead in
+--   `W₁.image .copy0`, which has the wrong constructor.  The
+--   well-typedness of the LHS therefore requires `Disjoint W₁ W₂`.
+
+-- ## Helper — the canonical flatten map
+--   `SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)`
+--
+-- Realises the LN's "canonical relabelling identifying" the LHS and
+-- RHS carriers (rewritten tex's "Distinct carriers and the
+-- canonical relabelling identifying them" paragraph).  The two
+-- carriers each encode the same five-piece node universe
+-- `J ∪ (V \ W₁) ∪ W₁^o ∪ W₁^i ∪ {I_w | w ∈ W₂ \ J}` but with the
+-- constructor wrappings in opposite orders.  On the reachable
+-- subset:
+--
+--   .unsplit (.unsplit v) ↦ .unsplit (.unsplit v)
+--                            (v ∈ J ∪ (V \ W₁); original node `v`)
+--   .unsplit (.intCopy w) ↦ .intCopy  (.unsplit w)
+--                            (w ∈ W₂ \ J;       intervention `I_w`)
+--   .copy0   (.unsplit w) ↦ .unsplit (.copy0 w)
+--                            (w ∈ W₁;           output split `w^o`)
+--   .copy1   (.unsplit w) ↦ .unsplit (.copy1 w)
+--                            (w ∈ W₁;           input split `w^i`)
+--   .copy0   (.intCopy w) ↦ .intCopy  (.unsplit w)   (off-carrier)
+--   .copy1   (.intCopy w) ↦ .intCopy  (.unsplit w)   (off-carrier)
+--
+-- The off-carrier cases `.copy0 (.intCopy _)` and `.copy1 (.intCopy _)`
+-- never appear in the RHS carrier: the outer `nodeSplittingHard`
+-- ranges over `W₁.image IntExtNode.unsplit`, every element of which
+-- has the form `.unsplit _`, so the outer `.copy0` / `.copy1` is
+-- only ever applied to `.unsplit` arguments.  The fillers
+-- `.intCopy (.unsplit w)` are chosen for totality and do not affect
+-- the equality this row asserts.
+--
+-- ## Design choice
+--
+-- *Function, not `Equiv` of types.*  A type-level
+--   `SplitNode (IntExtNode Node) ≃ IntExtNode (SplitNode Node)`
+--   does not exist: when `Node` is non-empty, the source has six
+--   reachable constructor combinations per node and the target only
+--   four, so no bijection on the underlying types is possible.
+--   `flattenSwigDoit` is instead injective only when restricted to
+--   the *reachable RHS carrier*, and the disjointness hypothesis
+--   `Disjoint W₁ W₂` is precisely what makes that restricted
+--   injection well-defined (without it, an element of `W₁ ∩ W₂`
+--   would receive two different intervention-vs-split-tag readings
+--   that would collide).  Image-level reasoning via
+--   `Finset.image flattenSwigDoit` is enough for the statement; the
+--   proof phase will only apply `flattenSwigDoit` to elements
+--   actually in the reachable RHS carrier.
+--
+-- *Direction `SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)`
+--   (RHS → LHS), not the reverse.*  Both directions would work
+--   mathematically.  We pick RHS → LHS so the theorem reads
+--   `eqViaNodeMap RHS LHS flattenSwigDoit`, matching the
+--   `eqViaNodeMap iter joint flatten` convention established by
+--   `claim_3_7` (`twoDisjointNodeSplittingsCommute`) and
+--   `claim_3_14` (`addInterventionNodes_comm_disjoint`): the side
+--   whose carrier is being relabelled sits on the left, the side
+--   whose carrier is the chosen "target" sits on the right.  The
+--   LHS's `IntExtNode (SplitNode Node)` is naturally read as the
+--   target because the LN writes the equation `LHS = RHS` with
+--   `LHS` on the left and the "first split then add intervention
+--   nodes on the SWIG carrier" reading is closer to the LN's prose
+--   ("the CDMG that arises from first introducing intervention
+--   nodes ... is the same as the CDMG that arises from first
+--   splitting...").
+--
+-- *Total pattern match on `SplitNode (IntExtNode Node)`.*  Lean
+--   requires total functions; the off-carrier cases are filled in
+--   with the simplest semantically-aligned value.  Mirrors
+--   `claim_3_14`'s `flattenIntExt` and `claim_3_7`'s `flattenSplit`
+--   totality-filler convention.
+--
+-- *Mathlib re-use.*  Rolled our own — Mathlib carries no general
+--   "flatten heterogeneous nested tagged sum" map.
+
+-- ref: claim_3_15
+--
+-- For any CADMG `G : CDMG Node` (`hG : G.IsCADMG`), any subset
+-- `W₁ ⊆ G.V` (`hW₁`), any subset `W₂ ⊆ G.J ∪ G.V` (`hW₂`), and
+-- any disjointness `Disjoint W₁ W₂` (`hDisj`), the LN's displayed
+-- equality
+--   `(G_{swig(W₁)})_{doit(I_{W₂})} = (G_{doit(I_{W₂})})_{swig(W₁)}`
+-- is rendered (per the rewritten tex's "Distinct carriers and the
+-- canonical relabelling identifying them" paragraph) as
+-- `eqViaNodeMap RHS LHS flattenSwigDoit`: the four `Finset` data
+-- fields of the RHS, after applying `flattenSwigDoit` field-wise,
+-- coincide with the four data fields of the LHS.
+/-
+LN tex (rewritten canonical statement for `claim_3_15`):
+
+  Let `G = (J, V, E, L)` be a CADMG and let `W₁ ⊆ V`,
+  `W₂ ⊆ J ∪ V` be subsets with `W₁ ∩ W₂ = ∅`.  Then, modulo the
+  canonical relabelling identifying the two distinct iterated-
+  tagged-sum carriers `IntExtNode (SplitNode Node)` (LHS) and
+  `SplitNode (IntExtNode Node)` (RHS),
+    `(G_{swig(W₁)})_{doit(I_{W₂})} = (G_{doit(I_{W₂})})_{swig(W₁)}`,
+  read componentwise on the four components `(J, V, E, L)` of
+  `def_3_1`.
+
+LN block (verbatim, for backup):
+
+  Let `G = (J, V, E, L)` be a CADMG and `W_1 ⊆ V` and
+  `W_2 ⊆ J ∪ V` two disjoint subsets of nodes from `G`.  Then the
+  CADMG that arises from first introducing intervention nodes
+  `I_{W_2}` and then splitting the nodes from `W_1` is the same
+  as the CADMG that arises from first splitting the nodes from
+  `W_1` and then introducing the intervention nodes `I_{W_2}`:
+    `(G_{swig(W_1)})_{doit(I_{W_2})} = (G_{doit(I_{W_2})})_{swig(W_1)}`.
+-/
+-- ## Design choice
+--
+-- *Single theorem, no conjunction.*  Unlike `claim_3_14`(a) which
+--   asserts a triple coincidence
+--   `iter12 = iter21 = joint` and decomposes into two `eqViaNodeMap`
+--   conjuncts through a shared joint, `claim_3_15` asserts a
+--   *single* binary equality `LHS = RHS` with no third "joint"
+--   form available (the SWIG and the extension are heterogeneous
+--   operations, so there is no `G_{swig+doit(W₁ ∪ W₂)}` collapse).
+--   One `eqViaNodeMap RHS LHS flattenSwigDoit` captures the LN's
+--   equality directly.
+--
+-- *Why `eqViaNodeMap RHS LHS flattenSwigDoit`, not literal `=`.*
+--   LHS lives in `CDMG (IntExtNode (SplitNode Node))`; RHS lives in
+--   `CDMG (SplitNode (IntExtNode Node))`.  These carriers are not
+--   Lean-equal as types, so a literal `LHS = RHS` is not
+--   type-correct.  The LN's displayed `=` is implicitly modulo the
+--   canonical relabelling identifying the two iterated-tagged-sum
+--   carriers (rewritten tex's "Distinct carriers and the canonical
+--   relabelling identifying them" paragraph); we render that
+--   relabelling explicitly via the bijection-on-the-reachable-subset
+--   `flattenSwigDoit`.  The `eqViaNodeMap` predicate from `claim_3_7`
+--   then captures the LN's "the same CDMG up to canonical
+--   relabelling" reading by asserting componentwise equality of the
+--   four `Finset` data fields after applying `flattenSwigDoit`
+--   field-wise.  Same paradigm as `claim_3_14`(a)'s
+--   `eqViaNodeMap iter12 joint flattenIntExt`.
+--
+-- *Explicit mapping LN-equation-side ↔ Lean-operand.*  The LN's
+--   displayed `(G_{swig(W₁)})_{doit(I_{W₂})} =
+--   (G_{doit(I_{W₂})})_{swig(W₁)}` has its LN-LHS on the left of `=`
+--   ("swig first, then extend") and its LN-RHS on the right
+--   ("extend first, then swig").  In the Lean signature below, the
+--   FIRST operand of `eqViaNodeMap` is
+--   `(G.extendingCDMGsWith W₂ hW₂).nodeSplittingHard …` — "extend
+--   first, then split", carrier `SplitNode (IntExtNode Node)` —
+--   which is the *LN-RHS*; and the SECOND operand is
+--   `(G.nodeSplittingHard hG W₁ hW₁).extendingCDMGsWith …` — "split
+--   first, then extend", carrier `IntExtNode (SplitNode Node)` —
+--   which is the *LN-LHS*.  Reading the Lean term: "the LN-RHS,
+--   after `flattenSwigDoit`-relabelling, equals the LN-LHS
+--   componentwise".  The `flattenSwigDoit` arrow points
+--   `SplitNode (IntExtNode Node) → IntExtNode (SplitNode Node)`,
+--   i.e.\ first-operand-carrier → second-operand-carrier =
+--   LN-RHS-carrier → LN-LHS-carrier.
+--
+-- *Hypotheses in the order `(G) (hG) (W₁) (hW₁) (W₂) (hW₂)
+--   (hDisj)`.*  `hG : G.IsCADMG` is a *separate* `Prop`-level
+--   hypothesis adjacent to `G`, not baked into the type of `G`.
+--   The underlying `structure CDMG` (`def_3_1`) is more permissive
+--   than the LN's "CADMG" (it allows cycles); the LN's "Let `G` be
+--   a CADMG" lands as the propositional predicate
+--   `IsCADMG := IsAcyclic` (`def_3_7`) carried as a separate
+--   argument.  This matches `def_3_12` `nodeSplittingHard`'s
+--   signature `(G : CDMG Node) (hG : G.IsCADMG) …`, which is the
+--   constructor consumed by the inner SWIG on the LN-LHS branch,
+--   and the `claim_3_11` `DisjointHardInterventions` binder
+--   convention.  `W₁` precedes `W₂` to match the LN's wording
+--   order ("Let `W_1 ⊆ V` and `W_2 ⊆ J ∪ V`"); each `Wᵢ` is
+--   immediately followed by its `hWᵢ` so the call sites read
+--   left-to-right like the LN.  `hDisj` is last because it
+--   constrains the *pair* `(W₁, W₂)` rather than either set
+--   individually.
+--
+-- *`hW₁ : W₁ ⊆ G.V` (LN's `W_1 ⊆ V`) and
+--   `hW₂ : W₂ ⊆ G.J ∪ G.V` (LN's `W_2 ⊆ J ∪ V`).*  The asymmetry
+--   is dictated by the preconditions of the two constructors:
+--   `nodeSplittingHard` requires `W ⊆ G.V` (acts on output nodes),
+--   while `extendingCDMGsWith` admits any `W ⊆ G.J ∪ G.V` (the
+--   `I_j := j` convention of `def_3_13` makes the `J ∩ W` overlap
+--   harmless).  Matches the rewritten tex's "the typings are
+--   dictated by the preconditions of the two constructors involved"
+--   paragraph.
+--
+-- *Disjointness `Disjoint W₁ W₂` (Mathlib `Finset` form).*
+--   Canonical Lean shape for the LN's `W_1 ∩ W_2 = ∅`.  Required
+--   *for well-typedness* of the LHS's outer `extendingCDMGsWith`
+--   (via `image_unsplit_subset_nodeSplittingHard_carrier`'s
+--   case-split on the `V`-branch), not just for the equality —
+--   so it appears on the signature, not merely as a proof-body
+--   side condition.
+--
+-- *Direction of the `eqViaNodeMap` (RHS on the left, LHS on the
+--   right).*  Following `claim_3_14`(a)'s convention, the side
+--   whose carrier is being relabelled (RHS, via `flattenSwigDoit`
+--   to the LHS carrier) sits on the left of `eqViaNodeMap`, and
+--   the side whose carrier is the chosen target sits on the right.
+--   The reverse direction would also be mathematically correct but
+--   would require a different (inverse) flatten function and would
+--   not match the established convention.
+--
+-- *No case-split in the statement for `W₂ ∩ J ≠ ∅` corner cases.*
+--   The LN-critic surfaced two corner cases of "introducing
+--   intervention nodes `I_{W₂}`" when `W₂` intersects `J`: (i) if
+--   `W₂ ⊆ J` then `G_{doit(I_{W₂})} = G` by `def_3_13`'s `I_j := j`
+--   convention (no fresh nodes, no new edges), and the LN's
+--   displayed equality degenerates to the trivial
+--   `G_{swig(W₁)} = G_{swig(W₁)}`; (ii) if `W₂ ∩ J ≠ ∅` and
+--   `W₂ ∩ V ≠ ∅` then `doit(I_{W₂})` is a *partial* no-op (fresh
+--   `I_w` introduced only for `w ∈ W₂ ∖ J`, with the `W₂ ∩ J`
+--   branch untouched).  The Lean statement contains no case-split
+--   on these — and intentionally so.  `def_3_13`'s carrier-level
+--   encoding (`IntExtNode.intCopy` only ranges over `W ∖ J`, with
+--   the `J ∩ W` branch absorbed by `IntExtNode.unsplit`) makes the
+--   `I_j := j` convention a *type-level* fact rather than a
+--   side-condition: both `extendingCDMGsWith` and the iterated
+--   `nodeSplittingHard ∘ extendingCDMGsWith` automatically degenerate
+--   on the `W₂ ∩ J` branch, and `eqViaNodeMap` together with
+--   `flattenSwigDoit` automatically tracks the degeneration through
+--   both sides of the equality.  A reader expecting case-splits
+--   ("what if `W₂ ⊆ J`?") will not find them; they live one level
+--   below, in the constructor definitions of `IntExtNode` and
+--   `extendingCDMGsWith`.
+
+end CDMG
+
 -- ## Post-refactor port (`cdmg_typed_edges`)
 --
 -- The block below is the refactor twin of the row's declarations

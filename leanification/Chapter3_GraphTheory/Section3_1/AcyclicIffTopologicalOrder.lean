@@ -53,6 +53,204 @@ because they are not statement content.
 
 namespace CDMG
 
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited verbatim from
+--   `def_3_1` (`CDMG.lean`).  Both fixtures are load-bearing here
+--   because the theorem signature references `CDMG Node`, `G.IsAcyclic`
+--   and `G.IsTopologicalOrder`, each of which depends on
+--   `[DecidableEq Node]` (the `Finset`-backed membership tests in
+--   `G.J ∪ G.V`, the `v ∈ G` quantifier scope via the `Membership`
+--   instance from `def_3_2`, and the `Walk.IsDirectedWalk` recursive
+--   check in `def_3_6` all require it).  Stronger instances
+--   (`Fintype`, `LinearOrder`) are not needed at the statement level
+--   and would over-commit — the proof body (handled separately) may
+--   need them locally.
+--
+-- *Three-dash `--- start helper` marker (not the two-dash
+--   `-- start statement`).*  Matches the convention in every sibling
+--   file in this folder (`CDMG.lean`, `CDMGNotation.lean`,
+--   `Walks.lean`, `EdgeRelations.lean`, `CDMGRestrictions.lean`,
+--   `Acyclicity.lean`, `CDMGTypes.lean`, `TopologicalOrder.lean`).
+--   The two-dash marker is reserved for declarations whose body is the
+--   formalised LN content of the row; this `variable` line is
+--   statement-typing infrastructure binding the implicit `Node` type
+--   and its `DecidableEq` instance that the theorem's signature
+--   references.
+-- claim_3_2 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_2 --- end helper
+
+-- ## Proof-only helpers
+--
+-- The lemmas below are infrastructure for the proof of `claim_3_2`.
+-- They are deliberately private and carry no marker comments — markers
+-- are reserved for declarations whose body is the formalised LN content
+-- of a row, and these are just walk-level plumbing the proof needs
+-- (concatenation, length / directedness preservation under
+-- concatenation, target-membership for a non-trivial directed walk, the
+-- single-edge directed walk witnessing the parent → child step).
+-- See `tex/claim_3_2_proof_AcyclicIffTopologicalOrder.tex` for the TeX
+-- proof these helpers implement.
+
+-- ref: claim_3_2
+-- A CDMG `G = (J, V, E, L)` is acyclic (in the sense of `def_3_6`) iff
+-- there exists a topological order of `G` (in the sense of `def_3_8`).
+-- The biconditional has shape `G.IsAcyclic ↔ ∃ lt, G.IsTopologicalOrder lt`.
+/-
+LN tex (rewritten canonical statement for `claim_3_2`):
+
+  Let `G = (J, V, E, L)` be a CDMG.  Then `G` is acyclic (in the sense
+  of def_3_6) iff there exists a topological order of `G` (in the
+  sense of def_3_8); equivalently, `G` is acyclic iff there exists a
+  strict total order `<` on `J ∪ V` — i.e.\ a binary relation `<` on
+  `J ∪ V` that is irreflexive, transitive, and trichotomous — such
+  that, for every `v, w ∈ J ∪ V`, `v ∈ Pa^G(w) ⟹ v < w`.  The label
+  set `L` plays no role on either side of the biconditional.
+-/
+-- ## Design choice
+--
+-- *Shape of the biconditional.*  The signature
+--     `G.IsAcyclic ↔ ∃ lt : Node → Node → Prop, G.IsTopologicalOrder lt`
+--   is the literal rendering of the LN's "is acyclic iff has a
+--   topological order": `↔` for "iff", `∃ lt : Node → Node → Prop` for
+--   "has a", and `IsTopologicalOrder` for "topological order"
+--   -- the predicate from `def_3_8` (`TopologicalOrder.lean`)
+--   characterising which `lt` qualify, with content
+--     `G.IsTotalOrder lt ∧ (∀ v w, v ∈ G.Pa w → lt v w)`
+--   (the strict-total-order helper `IsTotalOrder` plus parent
+--   precedence).  The biconditional is bundled in a single `Iff`:
+--   consumers reach `.mp` (acyclic ⟹ a topological order exists -- the
+--   workhorse projection for chapter 4+ CBN factorisation / do-calculus
+--   that index parent-first traversals over an ADMG, since `IsADMG`
+--   carries `IsAcyclic` as its first conjunct per `CDMGTypes.lean`) or
+--   `.mpr` (topological order ⟹ acyclic -- the certificate route used
+--   by causal-discovery algorithms in chapter 11+ that construct an
+--   ordering and need to conclude acyclicity) without a per-direction
+--   lemma split.  Splitting into two named theorems was considered and
+--   rejected: the LN treats this as one claim, every downstream site
+--   needs only one direction at a time (reached via `.mp` / `.mpr` at
+--   zero cost), and the bundled `↔` keeps the LN ↔ Lean cross-reference
+--   grep-able under a single name.
+--
+-- *Why the nested 2-conjunct shape for "topological order".*  Inherited
+--   from `def_3_8` (`TopologicalOrder.lean`): the four atomic axioms
+--   (irreflexivity, transitivity, trichotomy, parent-precedes) are
+--   packaged so that the first three -- a strict total order on
+--   `J ∪ V` -- live in a separately-named predicate
+--   `IsTotalOrder G lt` that downstream rows (e.g. `def_3_9`'s
+--   `Pred` / `PredLE`) can carry as an explicit hypothesis without
+--   dragging the parent-precedence requirement along.  The LN-level
+--   mathematical content of `claim_3_2` is *unchanged* by this
+--   packaging -- the predicate unfolds to the same four atomic
+--   propositions in the same order -- only how "is a topological order"
+--   is *expressed* in Lean.  Naming the strict-total-order sub-concept
+--   is what makes the rest of the chapter able to refer to it directly;
+--   see `TopologicalOrder.lean` for the predicate definitions and the
+--   sub-concept's motivation.
+--
+-- *Why `∃ lt : Node → Node → Prop` over a bundled order.*  Bare
+--   `Node → Node → Prop` matches the LN's phrasing "has a topological
+--   order" most directly: a topological order is *data* (a relation
+--   between specific nodes), not a typeclass, and `∃` is the most
+--   direct rendering of "has".  Bundled alternatives considered and
+--   rejected:
+--   * `[LinearOrder Node]` typeclass forces totality / transitivity /
+--     antisymmetry on the *full* `Node` type, excluding perfectly
+--     valid orders that leave nodes outside `J ∪ V` unrelated -- the
+--     LN only requires totality on `J ∪ V`.
+--   * Subtype-restricted `LinearOrder ↥(G.J ∪ G.V)` avoids the
+--     over-commitment but forces every consumer to coerce nodes across
+--     the `↥`-boundary at every use site.  `def_3_8`'s predicate
+--     rejected this on the same grounds; we inherit the choice.
+--   * `List Node` ordered by index would bake in a specific enumeration
+--     -- the LN reasons about topological order as a property of a
+--     relation, not as a list, and the proof's parent-less-pick
+--     construction can produce many distinct lists from the same
+--     partial order.
+--   * `∃!`-strengthened or `Classical.choice`-extracted canonical order
+--     would inject uniqueness the LN never claims; many linear
+--     refinements of the parent-precedence partial order qualify.
+--   The chosen shape preserves the LN's reasoning about *which* order
+--   to pick (the proof constructs one by walk-reachability + Szpilrajn
+--   extension) without committing the type to any global order
+--   structure.
+--
+-- *Proof body: witness-assembly via the nested encoding.*  The proof's
+--   *mathematical* structure follows the LN verbatim:
+--   * (⇒) walk-reachability `le₀ u v := u = v ∨ ∃ directed walk
+--     u → v of length ≥ 1` is shown to be a partial order (refl / trans
+--     via `Walk.comp`, antisymm via acyclicity ruling out the cycle
+--     formed by concatenating opposing non-trivial walks), Mathlib's
+--     Szpilrajn `extend_partialOrder` yields a linear refinement `s`,
+--     and `lt u v := s u v ∧ u ≠ v` reads off the strict order
+--     witnessing `IsTopologicalOrder` -- a "semantic"
+--     Leanification of the LN's inductive parent-less-pick
+--     construction.
+--   * (⇐) a hypothetical non-trivial directed cycle `v → ⋯ → v` would
+--     force `lt v v` via `Walk.lt_of_directedWalk_pos` (which walks
+--     along edges using transitivity + parent-precedes), contradicting
+--     irreflexivity.
+--   The *witness assembly* tracks the nested encoding via
+--   `IsTotalOrder`'s natural smart constructor: in (⇒) the
+--   final `refine ⟨fun u v => s u v ∧ u ≠ v, ⟨?_, ?_, ?_⟩, ?_⟩` is the
+--   anonymous-constructor analogue of `IsTotalOrder.intro`
+--   for the three total-order axioms (irreflexivity / transitivity /
+--   trichotomy), followed by the parent-precedes conjunct; in (⇐) the
+--   opening `rintro ⟨lt, ⟨hi, htr, htri⟩, hp⟩` destructures the
+--   existential with the matching nested pattern, putting the four
+--   hypotheses needed for the contradiction in scope under their
+--   natural names.
+--
+-- *Proof-only helpers (above the theorem, outside the marker zone).*
+--   The walk-level plumbing -- `Walk.comp`, `Walk.length_comp`,
+--   `Walk.isDirectedWalk_comp`, `Walk.source_in_G_of_directedWalk_pos`,
+--   `Walk.target_in_G_of_directedWalk_pos`,
+--   `Walk.singleEdge_directedWalk`, `Walk.lt_of_directedWalk_pos` --
+--   is generic infrastructure: it operates on raw
+--   `lt : Node → Node → Prop` plus the directed-walk recursion from
+--   `def_3_6` and does not mention `IsTopologicalOrder`, so it is
+--   unaffected by the predicate's packaging.  See the `## Proof-only
+--   helpers` block at the top of the namespace for the documentation.
+--
+-- *Surface signature minimal.*  Only `(G : CDMG Node)` is hypothesised;
+--   no `[Fintype Node]`, no re-stated CDMG-shape constraints, just the
+--   chapter-standard `[DecidableEq Node]` binder from the surrounding
+--   `variable` line.  Finite `J, V`, `Disjoint J V`, and
+--   `E ⊆ (J ∪ V) × V` are baked into the `CDMG` record (`def_3_1`);
+--   `[DecidableEq Node]` is what `G.IsAcyclic`'s `Walk.IsDirectedWalk`
+--   recursion and `IsTopologicalOrder`'s `G.Pa w` reference
+--   reach through to typecheck.  `[Fintype Node]` was considered (a
+--   constructive topological-sort variant of the (⇒) direction can want
+--   it locally to enumerate `(G.J ∪ G.V).toList`) and rejected at the
+--   statement level: the `Finset`-valued `G.J` / `G.V` already supply
+--   finiteness on `J ∪ V` -- exactly the domain on which the order
+--   must be total -- so leaking the typeclass into the surface
+--   signature would over-constrain consumers for no statement-level
+--   gain.
+--
+-- *Labels `L` absent from both sides.*  `G.IsAcyclic` only inspects
+--   directed walks built from `G.E`; `G.IsTopologicalOrder lt`
+--   only references the parent set `Pa^G(w)` (a directed-edge
+--   construct from `def_3_5`).  Neither reads `G.L`, matching the LN's
+--   silence on labels here -- this is a property of the
+--   `(J, V, E)`-skeleton alone.  Chapter 4+ consumers operating on
+--   labelled (A)DMGs lose nothing by ignoring `G.L` here; acyclicity
+--   and topological order are skeleton-level properties.
+--
+-- *Known limitation: non-canonical witness.*  The `∃` deliberately
+--   does not designate a canonical topological order; many linear
+--   refinements of the parent-precedence partial order qualify, and
+--   the LN never picks one.  Downstream theorems that need to fix a
+--   specific order pass `lt` as an explicit hypothesis or
+--   `Classical.choice`-extract from the existential (inheriting the
+--   non-canonicality).  This matches the LN's treatment and is
+--   intentional, not an API gap.
+
+end CDMG
+
+namespace CDMG
+
 -- ## Design choice — statement context (refactor twin)
 --
 -- Three-dash `--- start helper` markers match the convention used

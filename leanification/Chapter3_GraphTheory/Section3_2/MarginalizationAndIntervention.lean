@@ -45,6 +45,692 @@ The bodies of the three theorems are filled in by `prove_claim_in_lean`
 `tex/claim_3_18_proof_MarginalizationAndIntervention.tex`.
 -/
 
+namespace CDMG
+
+-- ## Design choice — row-level shape (three theorems in one file)
+--
+-- *Three separate theorems, not one parametric "for every intervention
+--   operator" statement.*  The row's `addition_to_the_LN` clause
+--   `[trailing_similar_statement_two_unstated_claims]` factors the LN's
+--   single Lemma into three sub-claims with **different result
+--   carriers** — `CDMG Node` for Part (i), `CDMG (IntExtNode Node)` for
+--   Part (ii), `CDMG (SplitNode Node)` for Part (iii).  Lean has no
+--   natural way to host a parametric quantification over "intervention
+--   operator" that lets the return type vary by operator (each
+--   operator's signature already fixes its return carrier), so the
+--   three-theorem shape mirrors the addition's enumeration verbatim —
+--   and the addition is the spec we must satisfy.  Bundling into one
+--   conjunction would over-couple the three parts and obstruct
+--   selective downstream citation: chapter 5's ID-algorithm
+--   manipulation `G_{\doit(C)}^{\sm B}` (`id-algorithm.tex` 159-161,
+--   485-498) cites only Part (i), and counterfactuals at
+--   `counterfactuals.tex` 238-241 rest on the same Part (i) shape.
+--   Contrast `claim_3_17` (MarginalizationsCommute), which the LN
+--   states as a triple equality `=…=…` and is therefore formalized as
+--   a single conjunctive theorem.
+--
+-- *One Lean file, not three per-part files.*  The three parts share
+--   the same upstream-def chain (`def_3_1`, `def_3_10` / `_11` / `_13`,
+--   `def_3_14`), the same shared lift helpers below
+--   (`subset_sdiff_of_disjoint`, `subset_carrier_of_marginalize`, and
+--   the two `image_unsplit_subset_*` helpers), and the same proof-
+--   strategy template (CDMG-`ext` field-by-field).  Splitting per-part
+--   would re-import the same chain three times and scatter the lift
+--   helpers across files.  Split decision is deferred to a post-proof
+--   refactor if the file passes ~3000 lines (cf.
+--   `MarginalizationsCommute.lean` at 3639 lines).
+
+-- ## Design choice — statement context
+--
+-- *`Node : Type*` with `[DecidableEq Node]`.*  Inherited from `def_3_1`
+--   (`CDMG.lean`), `def_3_10` (`HardInterventionOn.lean`), `def_3_11`
+--   (`NodeSplittingOn.lean`), `def_3_13` (`ExtendingCDMGsWith.lean`),
+--   and `def_3_14` (`MarginalizationAK.lean`); load-bearing because the
+--   signatures of all three theorems below construct `Finset`-backed
+--   subsets of `G.J ∪ G.V` / `G.V`, applications of `Finset.image`
+--   under `IntExtNode.unsplit` / `SplitNode.unsplit`, and the
+--   marginalize / hardInterventionOn / extendingCDMGsWith /
+--   nodeSplittingOn operators (each of which carries a `[DecidableEq]`
+--   constraint into its return type's `CDMG` structure).  Stronger
+--   instances (`Fintype`, `LinearOrder`) are not needed at the
+--   statement level and are deferred to the proof body's use sites.
+-- claim_3_18 --- start helper
+variable {Node : Type*} [DecidableEq Node]
+-- claim_3_18 --- end helper
+
+-- ## Helper — `S ⊆ U \ T` from `S ⊆ U` and `Disjoint S T`
+--
+-- Used twice in the statement signatures: Part (i)'s LHS inner
+-- `marginalize W₂` (needs `W₂ ⊆ (G.hardInterventionOn W₁ hW₁).V =
+-- G.V \ W₁`) and Part (iii)'s RHS outer `nodeSplittingOn W₁` (needs
+-- `W₁ ⊆ (G.marginalize W₂ hW₂).V = G.V \ W₂`).  The lemma is the
+-- direct `.mpr` of mathlib's `Finset.subset_sdiff` and lives here so
+-- the theorem signatures stay free of inline term-mode plumbing.
+--
+-- ## Design choice
+--
+-- *Re-prove locally rather than import from `MarginalizationsCommute.lean`.*
+--   The sibling row's `subset_sdiff_of_disjoint` (claim_3_17) is
+--   `private` to that file; per the per-row scope discipline
+--   (`claude.md` rule 4) we re-prove it here under the same name
+--   rather than promote it to a chapter-wide public helper.  The proof
+--   is a one-liner Mathlib iff direction, so the duplication has
+--   near-zero maintenance cost.
+--
+-- *Disjointness orientation `Disjoint S T`, matching the mathlib
+--   iff.*  At the call sites the caller's `hDisj : Disjoint W₁ W₂`
+--   (LN-symmetric phrasing) is composed with `.symm` when the
+--   operator's argument order flips — see the call sites in Parts (i)
+--   and (iii).
+
+-- ## Helper — `S ⊆ G.J ∪ (G.V ∖ W)` from `S ⊆ G.J ∪ G.V` and `Disjoint S W`
+--
+-- Used twice in the statement signatures: Part (i)'s RHS outer
+-- `hardInterventionOn W₁` and Part (ii)'s RHS outer
+-- `extendingCDMGsWith W₁`, both applied to `G.marginalize W₂ hW₂`.
+-- The outer constructor in each case requires `W₁ ⊆
+-- (G.marginalize W₂ hW₂).J ∪ (G.marginalize W₂ hW₂).V`, which
+-- unfolds (per `def_3_14`'s items i / ii) to `W₁ ⊆ G.J ∪ (G.V ∖ W₂)`.
+-- This lemma discharges that subset from the available hypotheses
+-- `hW₁ : W₁ ⊆ G.J ∪ G.V`, `hW₂ : W₂ ⊆ G.V`, and `hDisj : Disjoint W₁
+-- W₂` via a per-element case split on `v ∈ G.J ∨ v ∈ G.V`.
+--
+-- ## Design choice
+--
+-- *Stand-alone helper, not an inline `by`-block in the theorem
+--   signature.*  Mirrors the helper pattern in the sibling
+--   `MarginalizationsCommute.lean` (`subset_sdiff_of_disjoint`),
+--   `HardInterventionsCommute.lean` (`subset_carrier_of_hard…`), and
+--   `AddingInterventionNodes.lean`
+--   (`image_unsplit_subset_extendingCDMGsWith_carrier`): keeps the
+--   rendered theorem on the website free of bookkeeping clutter, and
+--   shares the lift between Parts (i) and (ii) at one definition
+--   site.
+--
+-- *Disjointness orientation `Disjoint S W`* (`S` first, marginalize-
+--   out `W` second).  Matches the LN's symmetric phrasing and the
+--   natural call-site `subset_carrier_of_marginalize hW₂ hW₁ hDisj`
+--   with `S := W₁`, `W := W₂`, `hDisj := claim_3_18's hDisj : Disjoint
+--   W₁ W₂`.
+--
+-- *Implicit `G`, `W`, `S`; explicit `hW`, `hS`, `hDisj`.*  At the call
+--   site `subset_carrier_of_marginalize hW₂ hW₁ hDisj`, the implicit
+--   arguments are synthesised from the goal type, and the call reads
+--   left-to-right as "the inner marginalization is on `W₂` via `hW₂`;
+--   the transported set is `W₁` via `hW₁`; the disjointness witness
+--   is `hDisj`".
+
+-- ## Helper — `S.image .unsplit ⊆ (G.extendingCDMGsWith W hW).V`
+--
+-- Used once in the statement signatures: Part (ii)'s LHS inner
+-- `marginalize (W₂.image .unsplit)` applied to
+-- `G.extendingCDMGsWith W₁ hW₁`.  The marginalization requires
+-- `W₂.image .unsplit ⊆ (G.extendingCDMGsWith W₁ hW₁).V`, which
+-- unfolds (per `def_3_13` item ii) to `W₂.image .unsplit ⊆
+-- G.V.image .unsplit`.  This lemma is the per-element witness from
+-- `S ⊆ G.V`: `v ∈ S → v ∈ G.V → .unsplit v ∈ G.V.image .unsplit`.
+--
+-- ## Design choice
+--
+-- *Stand-alone helper, not an inline `by`-block in the theorem
+--   signature.*  Same rationale as `subset_carrier_of_marginalize`
+--   above.  Mirrors `image_unsplit_subset_extendingCDMGsWith_V` from
+--   `AddingInterventionNodesSwig.lean` (privately re-defined; we
+--   re-prove locally per the per-row scope discipline).
+--
+-- *No disjointness consumed.*  The `Finset.image .unsplit` lift only
+--   needs the per-element membership `v ∈ G.V`; it does not interact
+--   with the `W` of `extendingCDMGsWith` because `(extendingCDMGsWith
+--   W hW).V` does not depend on `W` (only `J` does, via the
+--   `intCopy`-image addition).  `hW` is bound on the signature for
+--   uniformity with the call site `image_unsplit_subset_extendingCDMGs
+--   With_V hW₁ hW₂`; the `set_option` keeps the linter quiet.
+
+-- ## Helper — `S.image .unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V`
+--
+-- Used once in the statement signatures: Part (iii)'s LHS inner
+-- `marginalize (W₂.image .unsplit)` applied to
+-- `G.nodeSplittingOn W₁ hW₁`.  The marginalization requires
+-- `W₂.image .unsplit ⊆ (G.nodeSplittingOn W₁ hW₁).V`, which
+-- unfolds (per `def_3_11` item ii) to
+-- `W₂.image .unsplit ⊆ (G.V \ W₁).image .unsplit ∪ W₁.image .copy0 ∪
+--    W₁.image .copy1`.  This lemma routes the lift through the
+-- `(G.V \ W₁).image .unsplit` piece: from `v ∈ S ⊆ G.V` and `Disjoint
+-- S W₁` we get `v ∈ G.V \ W₁`, and `.unsplit v` lands in the
+-- corresponding image piece.
+--
+-- ## Design choice
+--
+-- *Stand-alone helper, not an inline `by`-block in the theorem
+--   signature.*  Same rationale as the sibling helpers above.
+--   Mirrors `image_unsplit_subset_carrier_of_nodeSplittingOn` from
+--   `DisjointHardInterventions.lean` (privately re-defined; we
+--   re-prove locally per the per-row scope discipline) but lifts to
+--   `(...).V` rather than `(...).J ∪ (...).V` because our lifted set
+--   `W₂` lives in `G.V` (not `G.J ∪ G.V`).
+--
+-- *Disjointness consumed.*  Unlike `image_unsplit_subset_extendingCDMGs
+--   With_V`, this lift needs `Disjoint S W₁` to route the lifted
+--   `.unsplit v` through the `(G.V \ W₁).image .unsplit` piece of
+--   `(G.nodeSplittingOn W₁ hW₁).V`.  Without disjointness, a `v ∈ S
+--   ∩ W₁` would have `.unsplit v` *not* in `(G.V \ W₁).image .unsplit`
+--   (it would belong to `W₁.image .copy0 / .copy1` after the lift
+--   through `toCopy0 / toCopy1`, but the bare `.unsplit v` lifted from
+--   `S` does not factor through `toCopy{0,1}`).
+--
+-- *Disjointness orientation `Disjoint S W₁`* (`S` first, split-on
+--   `W₁` second).  Matches `subset_carrier_of_marginalize`'s
+--   convention and the natural call-site
+--   `image_unsplit_subset_nodeSplittingOn_V_of_disjoint hW₁ hW₂
+--   hDisj.symm` (with claim_3_18's `hDisj : Disjoint W₁ W₂`).
+
+-- ## Walk surgery for hard intervention (proof-only helpers for Part i).
+--
+-- The `hardInterventionOn` operator removes edges via `Finset.filter`:
+--   `E_{doit(W)} := G.E.filter (e.2 ∉ W)`, `L_{doit(W)} := G.L.filter (e.1 ∉ W ∧ e.2 ∉ W)`.
+-- A walk in `G.hardInterventionOn W hW` therefore canonically casts down to
+-- a walk in `G` (each filtered-edge membership implies the original membership).
+-- The reverse cast — a walk in `G` becomes a walk in `G.hardInterventionOn W hW`
+-- — needs a per-edge filter-survival side condition; for directed walks it
+-- collapses to "every head (every tail vertex) lies outside `W`", and for
+-- general walks (bifurcations) it strengthens to "every vertex lies outside `W`".
+
+
+
+
+
+
+
+
+
+
+
+
+-- ## Predicate iff lemmas for Part (i): Φ_E and Φ_L through doit + marg.
+--
+-- Each direction is handled separately:
+--   * `(⇒)` direction uses `walk_ofDoit` (a structurally simple downward cast,
+--     no side conditions).
+--   * `(⇐)` direction lifts the walk from `G` back into `G.hardInterventionOn W₁ hW₁`,
+--     done inline via `induction` on the walk (this avoids a separate
+--     `walk_toDoit` def whose `by`-block body would block subsequent reduction
+--     for preservation lemmas).
+
+
+
+
+
+-- ## Field-equality lemmas for Part (i).
+
+
+
+-- ref: claim_3_18 (part i / 3 — hard intervention)
+-- For any CDMG `G : CDMG Node`, subsets `W₁ ⊆ G.J ∪ G.V` and
+-- `W₂ ⊆ G.V` with `Disjoint W₁ W₂`, marginalization and hard
+-- intervention commute as a literal `=` of CDMGs over the original
+-- `Node` carrier:
+--   `(G_{doit(W₁)})^{∖W₂} = (G^{∖W₂})_{doit(W₁)}`.
+/-
+LN tex (rewritten canonical statement for `claim_3_18`, part (i)):
+
+  For every `W₁ ⊆ J ∪ V` and `W₂ ⊆ V` with `W₁ ∩ W₂ = ∅`:
+    `(G_{doit(W₁)})^{∖W₂} = (G^{∖W₂})_{doit(W₁)}`.
+
+LN block (verbatim, for backup):
+
+  Let `G = (J, V, E, L)` be a CDMG and `W_1 ⊆ J ∪ V` and `W_2 ⊆ V`
+  two disjoint subsets of nodes from `G`.  Then we have:
+    `(G_{doit(W_1)})^{∖W_2} = (G^{∖W_2})_{doit(W_1)}`.
+-/
+-- ## Design choice
+--
+-- *Literal `=` of CDMGs over `Node`, NOT `eqViaNodeMap`.*  Both sides
+--   live in `CDMG Node`: `hardInterventionOn` preserves the node
+--   carrier (`CDMG α → CDMG α`), and `marginalize` likewise preserves
+--   it.  So the LHS `(G.hardInterventionOn W₁ hW₁).marginalize W₂ _`
+--   and the RHS `(G.marginalize W₂ hW₂).hardInterventionOn W₁ _` are
+--   two CDMGs of identical Lean type, and the asserted equality is a
+--   literal `=`.  Matches `claim_3_4` (HardInterventionsCommute) and
+--   `claim_3_17` (MarginalizationsCommute) — the carrier-preservation
+--   pattern of the original-`Node`-carrier operators.
+--
+-- *Inner-`marginalize` carrier transport via `subset_sdiff_of_disjoint`.*
+--   The LHS's outer `.marginalize W₂` needs a subset proof against
+--   the inner-intervened CDMG's `V`, not against `G.V`.  The helper
+--   `subset_sdiff_of_disjoint hW₂ hDisj.symm` transports the
+--   hypothesis from `W₂ ⊆ G.V` to `W₂ ⊆ G.V \ W₁ =
+--   (G.hardInterventionOn W₁ hW₁).V`, consuming `Disjoint W₂ W₁`
+--   (the symmetric of the LN's `Disjoint W₁ W₂`).
+--
+-- *Outer-`hardInterventionOn` carrier transport via
+--   `subset_carrier_of_marginalize`.*  The RHS's outer
+--   `.hardInterventionOn W₁` needs a subset proof against the
+--   marginalized CDMG's `J ∪ V = G.J ∪ (G.V \ W₂)`.  The helper
+--   `subset_carrier_of_marginalize hW₂ hW₁ hDisj` discharges this from
+--   `hW₁ : W₁ ⊆ G.J ∪ G.V` and `Disjoint W₁ W₂`.
+--
+-- *Disjointness binder `Disjoint W₁ W₂` (LN-symmetric phrasing).*
+--   Matches the LN block's "two disjoint subsets of nodes from `G`"
+--   and the sibling rows' (claim_3_17, claim_3_4, claim_3_8)
+--   convention.  At the lift-helper call sites the orientation is
+--   composed with `.symm` as needed.
+--
+-- *CDMG equality (`=`) is read field-wise.*  Equality of two `CDMG`s
+--   unfolds via the `structure` injectivity from `def_3_1` to the
+--   conjunction of equalities on the four data fields `J`, `V`, `E`,
+--   `L` (the five propositional fields are determined by the data
+--   and discharged by proof irrelevance).  We do not bake the
+--   field-wise unpacking into the statement; it is deferred to the
+--   proof per the rewritten tex's closing remark.
+
+-- ref: claim_3_18 (part ii / 3 — adding intervention nodes)
+-- For any CDMG `G : CDMG Node`, subsets `W₁ ⊆ G.J ∪ G.V` and
+-- `W₂ ⊆ G.V` with `Disjoint W₁ W₂`, marginalization and the
+-- intervention-node extension commute as a literal `=` of CDMGs over
+-- the extended carrier `IntExtNode Node`:
+--   `(G_{doit(I_{W₁})})^{∖W₂} = (G^{∖W₂})_{doit(I_{W₁})}`.
+/-
+LN tex (rewritten canonical statement for `claim_3_18`, part (ii)):
+
+  For every `W₁ ⊆ J ∪ V` and `W₂ ⊆ V` with `W₁ ∩ W₂ = ∅`:
+    `(G_{doit(I_{W₁})})^{∖W₂} = (G^{∖W₂})_{doit(I_{W₁})}`.
+
+LN block (verbatim, for backup): the LN's lemma block (graphs.tex,
+`\label{marginalization-and-intervention-commute}`) closes with
+"A similar statement holds for marginalizations and adding
+intervention nodes, ..."; per the row's `addition_to_the_LN` clause
+`[trailing_similar_statement_two_unstated_claims]`, that trailer is
+authoritative and asserts this part (ii).
+-/
+-- ## Design choice
+--
+-- *Literal `=` of CDMGs over `IntExtNode Node`, NOT `eqViaNodeMap`.*
+--   Carrier analysis: the LHS's outermost operator is `marginalize`
+--   applied to `G.extendingCDMGsWith W₁ hW₁ : CDMG (IntExtNode Node)`,
+--   which preserves the carrier — so LHS : `CDMG (IntExtNode Node)`.
+--   The RHS's outermost operator is `extendingCDMGsWith` applied to
+--   `G.marginalize W₂ hW₂ : CDMG Node`, which carries to `CDMG
+--   (IntExtNode Node)` — so RHS : `CDMG (IntExtNode Node)` also.  Both
+--   sides have identical Lean type, so the asserted equality is a
+--   literal `=` (no `flattenIntExt` workaround needed, unlike
+--   `claim_3_14`'s iterated extension).
+--
+-- *Inner-`marginalize` lifted set `W₂.image IntExtNode.unsplit`.*  The
+--   inner CDMG `G.extendingCDMGsWith W₁ hW₁` lives over `IntExtNode
+--   Node`, so the LHS marginalization's `W` argument must inhabit
+--   `Finset (IntExtNode Node)`.  The natural lift of `W₂ : Finset
+--   Node` is `W₂.image IntExtNode.unsplit`, which targets the
+--   `G.V.image IntExtNode.unsplit = (G.extendingCDMGsWith W₁ hW₁).V`
+--   slice.  The subset proof is discharged by
+--   `image_unsplit_subset_extendingCDMGsWith_V hW₁ hW₂` (no
+--   disjointness needed for this lift).
+--
+-- *Outer-`extendingCDMGsWith` carrier transport via
+--   `subset_carrier_of_marginalize`.*  Same helper as Part (i)'s RHS:
+--   `extendingCDMGsWith` requires its `W₁` argument to sit in
+--   `(G.marginalize W₂ hW₂).J ∪ (G.marginalize W₂ hW₂).V = G.J ∪
+--   (G.V \ W₂)`, discharged by `subset_carrier_of_marginalize hW₂ hW₁
+--   hDisj`.
+--
+-- *Why the LHS marginalizes by `W₂.image .unsplit` and the RHS
+--   extends by the *original* `W₁`.*  This mirrors the LN's "$I_{W_1}$"
+--   semantics: the intervention symbol set lives over the *original*
+--   nodes `W₁`, so `extendingCDMGsWith W₁ _` is applied with the bare
+--   `W₁ : Finset Node` on the RHS.  The LHS's inner extension already
+--   produced the `IntExtNode`-carrier CDMG; from there the only thing
+--   that can be marginalized are `IntExtNode`-flavoured nodes — and
+--   the natural lift of "marginalize the original `W₂`" is the
+--   `.unsplit`-image.  No new "intervention copy" element of
+--   `W₂` is ever marginalized, only the original-side copies.
+--   `verify_equivalence_strict` is the natural place to gate this
+--   carrier-matching choice during Phase A.
+-- ## Walk surgery for `extendingCDMGsWith` (proof-only helpers for Part ii).
+--
+-- Extension adds nodes and edges (no edge removal): every walk in `G` lifts to
+-- a walk in `G.extendingCDMGsWith W hW` via the `.unsplit` constructor.  The
+-- reverse cast — descending a walk in the extension back to a walk in `G` —
+-- needs a per-vertex side condition that no vertex is `.intCopy`-tagged,
+-- equivalently no edge is the fresh transfer edge `(.intCopy w, .unsplit w)`.
+
+
+
+
+
+
+
+
+
+-- ## Walk descent: extension to G, when source is `.unsplit` and walk avoids fresh edges.
+--
+-- Given `p : Walk extension x y` with `x = .unsplit u`, every step's source is
+-- the previous walk vertex.  If the walk's source is `.unsplit`-tagged AND
+-- every intermediate is `.unsplit`-tagged (e.g., all interior vertices lie in
+-- `W₂.image .unsplit`), then no fresh edge `(.intCopy w, .unsplit w)` can
+-- appear (its source `.intCopy w` would have to equal a `.unsplit`-tagged
+-- vertex, contradicting constructor disjointness).
+-- We package this as a recursive lemma that, given proofs that all of `p`'s
+-- vertices are `.unsplit`-tagged, descends `p` to a walk in `G`.
+
+
+-- ## Image-sdiff identity for injective `.unsplit`.
+
+-- ## `.unsplit v ∈ ext` ⟹ `v ∈ G` (carrier descent through `.unsplit`).
+
+-- ## List utility: `(l.map .unsplit).tail = l.tail.map .unsplit`.
+
+-- ## List utility: `(l.map .unsplit).dropLast = l.dropLast.map .unsplit`.
+
+-- ## List utility: `(l.map .unsplit).tail.dropLast = l.tail.dropLast.map .unsplit`.
+
+-- ## Two helpers: a `.unsplit_pair`-lifted edge in `ext.E` / `ext.L` lifts back
+-- to a `G.E` / `G.L` edge.  Fresh edges cannot contribute (their source is
+-- `.intCopy`, not `.unsplit`).
+
+
+-- ## Helper: equality of pairs through `.unsplit`.
+
+-- ## Walk descent: ext → G, when source/target are `.unsplit` and all
+-- vertices are `.unsplit`-tagged.  Returns the descended walk `q` plus
+-- length / vertex-list / edge-list / `IsDirectedWalk` / `IsBifurcationWithSplit`
+-- preservation, in a single unified existence statement.
+
+-- ## Helper: walk in ext from .unsplit u to .unsplit v with interior in
+-- W₂.image .unsplit ⟹ all vertices are .unsplit-tagged.
+
+-- ## Φ_E iff for Part (ii), .unsplit-source case.
+
+-- ## Φ_L iff for Part (ii), .unsplit-endpoints case.
+
+-- ## Helper: a directed walk in ext from `.intCopy w` (for `w ∈ W \ G.J`)
+-- with interior in `W₂.image .unsplit` (and `Disjoint W W₂`) has its target
+-- forced to be `.unsplit w` (i.e., is the single fresh edge).
+
+-- ## E-field equality for Part (ii).
+
+-- ## L-field equality for Part (ii).
+
+
+-- ref: claim_3_18 (part iii / 3 — node-splitting)
+-- For any CDMG `G : CDMG Node`, subsets `W₁, W₂ ⊆ G.V` with `Disjoint
+-- W₁ W₂`, marginalization and node-splitting commute as a literal
+-- `=` of CDMGs over the split carrier `SplitNode Node`:
+--   `(G_{spl(W₁)})^{∖W₂} = (G^{∖W₂})_{spl(W₁)}`.
+/-
+LN tex (rewritten canonical statement for `claim_3_18`, part (iii)):
+
+  For every `W₁ ⊆ V` and `W₂ ⊆ V` with `W₁ ∩ W₂ = ∅`:
+    `(G_{spl(W₁)})^{∖W₂} = (G^{∖W₂})_{spl(W₁)}`.
+
+LN block (verbatim, for backup): the LN's lemma block closes with
+"A similar statement holds for ..., and also for marginalizations
+and node-splitting interventions"; per the row's `addition_to_the_LN`
+clause `[trailing_similar_statement_two_unstated_claims]`, that
+trailer is authoritative and asserts this part (iii) with the typing
+on `W₁` tightened to `W₁ ⊆ V` (matching `def_3_11`'s precondition).
+-/
+-- ## Design choice
+--
+-- *Typing on `W₁` is `W₁ ⊆ G.V`, NOT `W₁ ⊆ G.J ∪ G.V`.*  Departure
+--   from Parts (i) and (ii): `nodeSplittingOn` (`def_3_11`) requires
+--   `W₁ ⊆ G.V` strictly (the construction *removes* `W₁` from `V` and
+--   creates tagged copies, which only makes sense on output nodes).
+--   So Part (iii)'s `W₁`-binder is `hW₁ : W₁ ⊆ G.V`.  Confirmed by
+--   the rewritten canonical statement tex.
+--
+-- *Literal `=` of CDMGs over `SplitNode Node`.*  Carrier analysis:
+--   the LHS's outermost operator is `marginalize` applied to
+--   `G.nodeSplittingOn W₁ hW₁ : CDMG (SplitNode Node)`, preserving
+--   the carrier — so LHS : `CDMG (SplitNode Node)`.  The RHS's
+--   outermost operator is `nodeSplittingOn` applied to `G.marginalize
+--   W₂ hW₂ : CDMG Node`, carrying to `CDMG (SplitNode Node)` — so
+--   RHS : `CDMG (SplitNode Node)` also.  Both sides have identical
+--   Lean type; the equality is a literal `=`.  Same carrier-matching
+--   pattern as Part (ii), now over `SplitNode Node`.
+--
+-- *Inner-`marginalize` lifted set `W₂.image SplitNode.unsplit`.*  The
+--   inner CDMG `G.nodeSplittingOn W₁ hW₁` lives over `SplitNode
+--   Node`, so the LHS marginalization's `W` argument must inhabit
+--   `Finset (SplitNode Node)`.  The natural lift of `W₂ : Finset
+--   Node` is `W₂.image SplitNode.unsplit`, which targets the
+--   `(G.V \ W₁).image .unsplit` slice of `(G.nodeSplittingOn W₁
+--   hW₁).V` (after `W₂ ⊆ G.V` + `Disjoint W₁ W₂` give `W₂ ⊆
+--   G.V \ W₁`).  The subset proof is discharged by
+--   `image_unsplit_subset_nodeSplittingOn_V_of_disjoint hW₁ hW₂
+--   hDisj.symm` (note the `.symm`: the helper consumes
+--   `Disjoint W₂ W₁`, the LN's symmetric phrasing here is `Disjoint
+--   W₁ W₂`).
+--
+-- *Outer-`nodeSplittingOn` carrier transport via
+--   `subset_sdiff_of_disjoint`.*  The RHS's outer `.nodeSplittingOn
+--   W₁` requires `W₁ ⊆ (G.marginalize W₂ hW₂).V = G.V \ W₂`,
+--   discharged by `subset_sdiff_of_disjoint hW₁ hDisj` (LN-direct
+--   `Disjoint W₁ W₂` orientation, no `.symm` needed).
+--
+-- *No `W₂` -side marginalization on `W₁.image .copy0 / .copy1`.*  The
+--   lifted set is `W₂.image SplitNode.unsplit`, not `W₂.image
+--   SplitNode.copy0` or `.copy1`.  This is the LN-faithful reading:
+--   the marginalization is over the *original* output nodes `W₂`,
+--   none of which is a tagged copy — and by disjointness with `W₁`,
+--   none of `W₂`'s elements has a `copy0` / `copy1` in the split
+--   graph anyway.  `verify_equivalence_strict` is the natural place
+--   to gate this carrier-matching choice during Phase A.
+-- ## Image-sdiff identity for injective `SplitNode.unsplit`.
+
+-- ## SplitNode constructor-disjointness helpers (Part iii V field).
+--
+-- `.unsplit v`, `.copy0 w`, `.copy1 w` are constructors of distinct cases of
+-- the `SplitNode` inductive, so the three images do not share elements.
+
+
+
+-- ## `.unsplit v ∈ split` ⟹ `v ∈ G` (carrier descent through `.unsplit`).
+
+-- ## `toCopy0 W v = .unsplit v` when v ∉ W.
+
+
+-- ## Lifted edge `(toCopy1 W₁ u, .unsplit v) ∈ split.E` from `(u, v) ∈ G.E`
+-- when `v ∉ W₁` (target untagged in split).
+
+-- ## Φ_E iff for Part (iii), source/target lifted via toCopy1/toCopy0.
+-- This handles BOTH cases simultaneously: the source/target may be `.unsplit u` or
+-- `.copy1 w` (for source) and `.unsplit v` or `.copy0 w` (for target).  We express
+-- it uniformly via the toCopy lifts.
+--
+-- The lifted equivalence: marg-Φ_E on split (with source toCopy1 W₁ u and target
+-- toCopy0 W₁ v) iff marg-Φ_E on G for (u, v), provided the marg-W₂ side is
+-- compatible (W₁ ∩ W₂ = ∅, W₂ interior on G is also W₂-image-unsplit interior on split).
+
+-- ## `v ∈ G` ⟹ `.unsplit v ∈ split` (carrier ascent for non-`W₁` vertices).
+-- For `v ∈ J ∪ (G.V \ W₁)`, `.unsplit v` lives in `split.J ∪ split.V`.
+
+-- ## `.copy0 w ∈ split` for `w ∈ W₁`.
+
+-- ## `.copy1 w ∈ split` for `w ∈ W₁`.
+
+-- ## Generic E-field lifted edge: `(toCopy1 W₁ u, toCopy0 W₁ v) ∈ split.E`
+-- from `(u, v) ∈ G.E`.  No `W₁`-side condition needed (the toCopy{0,1} helpers
+-- handle the case split internally).
+
+-- ## Generic L-field lifted edge: `(toCopy0 W₁ u, toCopy0 W₁ v) ∈ split.L`
+-- from `(u, v) ∈ G.L`.
+
+-- ## `.unsplit v ∈ split` ⟹ `v ∈ G` AND `v ∉ W₁` (only the `(V\W₁).image .unsplit`
+-- piece of split.V contains `.unsplit`-tagged elements with V-typed underlying).
+
+-- ## `.copy0 w ∈ split` ⟹ `w ∈ W₁`.
+
+-- ## `.copy1 w ∈ split` ⟹ `w ∈ W₁`.
+
+-- ## Walk-step lift: directed step in G lifts to directed step in split via
+-- `(toCopy1 W₁ a.1, toCopy0 W₁ a.2)`.  For the *forward* (Or.inl with E)
+-- case this is direct; for Or.inl with L we get an L-edge lifted via copy0/copy0;
+-- for Or.inr (backward E) we get the reversed lift.  This lemma handles the
+-- generic case (no W₁ restriction); cases where intermediate consistency matters
+-- are handled by the walk-level lift below.
+
+-- ## Walk lift: G-walk u → v with ALL vertices in (J ∪ V) \ W₁ lifts to a
+-- split-walk from `.unsplit u` to `.unsplit v` with all vertices `.unsplit`-tagged
+-- and edges via `(toCopy1, toCopy0)`.
+
+
+
+
+
+
+-- ## Helpers extracting underlying node from toCopy{0,1} equation with `.unsplit`.
+
+
+-- ## Walk-step descent: split-step with `.unsplit` source AND target lifts
+-- back to a G-walk-step.  The split-edge data `a : SplitNode × SplitNode` may
+-- be either a lifted edge `(toCopy1 W₁ e.1, toCopy0 W₁ e.2)` (then `e.1, e.2`
+-- must satisfy toCopy{0,1} = .unsplit, i.e., not in W₁) or a lifted L-edge
+-- `(toCopy0 W₁ e.1, toCopy0 W₁ e.2)`.  Transfer edges `(.copy0 w, .copy1 w)`
+-- are excluded because their endpoints are NOT `.unsplit`-tagged.
+
+-- ## List utility: `(l.map .unsplit).tail = l.tail.map .unsplit` for SplitNode.
+
+
+
+-- ## Helper: equality of pairs through `.unsplit` (SplitNode variant).
+
+-- ## Two helpers analogous to Part (ii)'s: a `.unsplit`-pair-lifted edge in
+-- split.E / split.L descends to a G.E / G.L edge.  Transfer edges cannot
+-- contribute (their source is `.copy0`, not `.unsplit`).
+
+
+-- ## Walk descent: split → G, when source/target are `.unsplit` and all
+-- vertices are `.unsplit`-tagged.  Returns descended walk + length + vertex
+-- list + edge list + IsDirectedWalk + IsBifurcationWithSplit preservation.
+
+-- ## Helper: walk in split from .unsplit u to .unsplit v with interior in
+-- W₂.image .unsplit ⟹ all vertices are .unsplit-tagged.
+
+-- =====================================================================
+-- ## Walk-surgery helpers for Part (iii) — toCopy0 endpoints.
+--
+-- These extend the .unsplit-endpoint machinery above to handle endpoints
+-- landing in W₁ (which then map under toCopy0 to .copy0).  Used by the
+-- E-field and L-field equalities in `marginalize_nodeSplittingOn_comm`.
+-- =====================================================================
+
+-- ## `toCopy0 W₁ v ∈ split` for v ∈ G.
+
+-- ## `toCopy0 W₁` is injective on `Node`.
+
+-- ## `toCopy0 W₁ v ∈ split.V \ W₂.image .unsplit` for `v ∈ G.V \ W₂`.
+
+-- ## A `toCopy0 W₁ x` element of split.V \ W₂.image .unsplit is NOT a .copy1.
+
+-- ## Recover underlying `v' ∈ G.V \ W₂` from a non-.copy1 split.V \ W₂.image .unsplit element.
+
+-- ## Helper 1: lift a G-directed walk u → v whose interior lies in W₂ to a
+-- split-walk from `.unsplit u` to `toCopy0 W₁ v`.  Source u ∉ W₁ is required
+-- (so .unsplit u sits in split.V).  Interior vertices ∈ W₂ are automatically
+-- ∉ W₁ via disjointness, so each intermediate lifts via the
+-- `.unsplit`-pair edge.  Only the LAST edge may land in W₁ (when v ∈ W₁); there
+-- the target lifts to `.copy0 v`, handled by `lifted_E_in_split_E_generic`.
+
+-- ## Helper 2: lift a G-bifurcationWithSplit walk u → v whose interior lies in W₂
+-- to a split-walk from `toCopy0 W₁ u` to `toCopy0 W₁ v`.  Sources/targets may be
+-- in W₁ (lifted to .copy0), interior is in W₂ (so ∉ W₁, lifts via .unsplit).
+-- Three sub-cases inside the cons step (matching `IsBifurcationWithSplit` shape):
+--   * `i = 0, p' = nil`: single bidirected edge (a ∈ G.L).
+--   * `i = 0, p' = cons`: hinge + directed right-arm (uses Helper 1).
+--   * `i = k+1, p' anything`: left-arm reverse-E step + recurse via ih.
+
+-- ## Helper 3: bifurcation lift (combining helpers).  Wraps Helper 2 by
+-- extracting the split index and rebuilding the IsBifurcation conjunction.
+-- The vertex constraints follow because every interior vertex in the lifted
+-- walk is `.unsplit`-tagged (by Helper 1's all-.unsplit-interior structure
+-- and Helper 2's all-.unsplit-interior structure).  We restate the constraint
+-- via a vertex-list-tracking argument on the lifted walk.
+
+-- ## Helper: a directed walk in split from `.copy0 w` (for `w ∈ W₁`)
+-- with interior in `W₂.image .unsplit` (and `Disjoint W₁ W₂`) forces target
+-- to be `.copy1 w` (i.e., is the single transfer edge).
+--
+-- Analogue of Part (ii)'s `walk_intCopy_target_unsplit`: the only outgoing
+-- edge from `.copy0 w` in `split.E` is either the transfer edge
+-- `(.copy0 w, .copy1 w)` or a lifted G-edge `(toCopy1 W₁ a, toCopy0 W₁ b)`
+-- with `toCopy1 W₁ a = .copy0 w` — but `toCopy1 W₁ a ∈ {.unsplit a, .copy1 a}`,
+-- never `.copy0`, so the lifted-edge case is impossible.  Hence the first
+-- (and, by the interior constraint, only) edge is the transfer edge.
+
+-- ## Walk ascent: lift G-walk to split with `toCopy1/toCopy0` endpoints.
+--
+-- Given a G-walk `q : Walk G u v` of positive length (directed, interior in W₂),
+-- produce a split-walk from `toCopy1 W₁ u` to `toCopy0 W₁ v` with interior in
+-- `W₂.image .unsplit`.  Each step lifts the underlying G-edge to its lifted form
+-- `(toCopy1 W₁ a, toCopy0 W₁ b)` ∈ split.E via `lifted_E_in_split_E_generic`.
+-- The length-positivity is required: a 0-length lift would need a walk from
+-- `toCopy1 W₁ u` to `toCopy0 W₁ u`, which doesn't exist when u ∈ W₁
+-- (then `.copy1 u` ≠ `.copy0 u`).
+
+-- ## Walk descent: split → G with `toCopy1/toCopy0` endpoints.
+--
+-- Dual to `walk_G_lift_to_split`.  Given a split walk `p : Walk split x y` with
+-- `x = toCopy1 W₁ u` and `y = toCopy0 W₁ v`, directed, interior in
+-- `W₂.image .unsplit`, produce a G-walk `q : Walk G u v` of equal length with
+-- interior in W₂.  The key observation: the source `toCopy1 W₁ u` is never a
+-- `.copy0` constructor (it's `.unsplit` or `.copy1`), so no transfer edge can
+-- start at `x`; every edge is a lifted G-edge.  Interior `.unsplit z` (z ∈ W₂,
+-- so z ∉ W₁) acts as `toCopy1 W₁ z = toCopy0 W₁ z`, allowing the recursion to
+-- continue with the same `toCopy1/toCopy0` discipline.
+
+-- ## The Part (iii) Φ_E iff for `toCopy1`-source / `toCopy0`-target.
+--
+-- Direct bijection between a directed walk in `G.nodeSplittingOn W₁ hW₁` from
+-- `toCopy1 W₁ u` to `toCopy0 W₁ v` (interior in `W₂.image .unsplit`) and a
+-- directed walk in `G` from `u` to `v` (interior in `W₂`).  Uses the descent
+-- and ascent helpers above.
+
+-- ## Helper: a directed walk in split ending at `.copy1 w` (for `w ∈ W₁`),
+-- with positive length and interior in `W₂.image .unsplit`, has its source equal
+-- to `.copy0 w` (and is the single transfer edge).
+--
+-- Symmetric / dual to `walk_copy0_target_copy1`: the only incoming edge to
+-- `.copy1 w` in `split.E` is either the transfer edge `(.copy0 w, .copy1 w)`
+-- or a lifted G-edge `(toCopy1 W₁ a, toCopy0 W₁ b)` with `toCopy0 W₁ b = .copy1 w` —
+-- but `toCopy0 W₁ b ∈ {.copy0 b, .unsplit b}`, never `.copy1`, so the lifted-edge
+-- case is impossible.  Hence the last edge into `.copy1 w` is the transfer edge,
+-- and any preceding edges must have been impossible (since interior `.unsplit z`
+-- can't be `.copy0 w`).
+
+-- ## E-field equality for Part (iii).
+--
+-- Mirrors Part (ii)'s `ext_marg_E_field_eq`.  The carrier of the LHS includes
+-- a `W₁.image .copy0` summand (transfer-edge source), handled separately via
+-- `walk_copy0_target_copy1` (forces target = `.copy1 w` for the same w).  The
+-- other sources (`.unsplit j ∈ G.J`, `.unsplit v' ∈ (G.V \ W₁) \ W₂`, `.copy1 w`)
+-- all factor through `toCopy1 W₁`, and `split_marg_PhiE_iff` bridges them to the
+-- G-side Φ_E predicate.
+
+-- =====================================================================
+-- ## Part (iii) L-field helpers
+--
+-- The L-field iff and equality.  Both endpoints are `toCopy0`-tagged (which
+-- collapses to `.unsplit`/`.copy0` depending on `W₁`-membership), and we
+-- exclude `.copy1`-tagged endpoints via a bifurcation-walk analysis.
+-- =====================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end CDMG
+
 -- ## `open CDMG` — bring `IntExtNode`, `SplitNode` and the
 -- function-style refactor twins (`extendingCDMGsWith`,
 -- `nodeSplittingOn`, `SplitNode`, `toCopy0/1`)
