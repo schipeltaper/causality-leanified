@@ -706,6 +706,12 @@ def main(argv: list[str]) -> int:
                               "(leaves the `refactor_` prefix in the "
                               "final code; last-resort, you'll need to "
                               "clean up naming by hand).")
+    parser.add_argument("--skip-dup-check", action="store_true",
+                        help="skip Phase 7a Pass 1.7's predicted-"
+                             "duplicate-decl gate. Use only after "
+                             "confirming by inspection that flagged "
+                             "duplicates live in genuinely-different "
+                             "namespaces (which Lean allows).")
     args = parser.parse_args(argv)
 
     # ----- Load and sanity-check refactor table ----------------------
@@ -877,6 +883,60 @@ def main(argv: list[str]) -> int:
                   f"REPLACEMENT marker block and re-run finalize.",
                   file=sys.stderr)
             return 1
+
+    # ---- Pass 1.7: post-cleanup duplicate-decl prediction --------------
+    # Synthesize Pass 2's output in memory and scan for top-level
+    # declarations of the same name appearing twice. Catches the
+    # `cdmg_typed_edges` failure mode: unwrapped pre-refactor helpers
+    # sitting next to their marker-wrapped post-refactor twin, which
+    # post-rename collide as duplicate decls and break Phase 7b's lake
+    # build. Doing the check here (before Pass 2 mutates anything) lets
+    # the script abort cleanly with a clear error instead of leaving
+    # the working tree in a half-cleaned state.
+    _DECL_RE = re.compile(
+        r"^(?:[\w]+\s+)?"
+        r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
+        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        re.MULTILINE,
+    )
+    dup_findings: dict[Path, list[str]] = {}
+    if not args.skip_dup_check:
+        for p, content in file_blobs.items():
+            try:
+                synthesized, _, _ = _apply_to_content(
+                    content, p, all_final_names)
+            except Exception:                       # pragma: no cover
+                continue
+            clean = _BLOCK_COMMENT_RE.sub("", synthesized)
+            counts: dict[str, int] = {}
+            for m in _DECL_RE.finditer(clean):
+                n = m.group("name")
+                counts[n] = counts.get(n, 0) + 1
+            dups = sorted(n for n, c in counts.items() if c > 1)
+            if dups:
+                dup_findings[p] = dups
+    if dup_findings:
+        print(f"\n  Predicted duplicate top-level declaration(s) "
+              f"AFTER cleanup (would break Phase 7b lake build):",
+              file=sys.stderr)
+        for p, dups in dup_findings.items():
+            try:
+                rel = p.relative_to(REPO_ROOT)
+            except ValueError:
+                rel = p
+            print(f"    - {rel}: {dups}", file=sys.stderr)
+        print(f"\n  Likely cause: an unwrapped pre-refactor helper "
+              f"sitting next to its marker-wrapped post-refactor twin. "
+              f"Fix: wrap each pre-refactor helper in an ORIGINAL or "
+              f"DELETE marker block (per `manager.md`'s "
+              f"helper-discipline rule), or delete it if it's dead "
+              f"code. Then re-run finalize.\n"
+              f"  (Note: this check does not track namespace scoping; "
+              f"if the duplicates are in genuinely-different "
+              f"namespaces (Lean allows that) and you've confirmed by "
+              f"inspection, re-run with `--skip-dup-check`.)\n",
+              file=sys.stderr)
+        return 1
 
     # Pass 2: apply transforms using the global name set
     transformed_writes: list[tuple[Path, str]] = []

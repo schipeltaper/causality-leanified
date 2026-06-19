@@ -568,6 +568,8 @@ def cmd_finalize(args: argparse.Namespace) -> int:
         rc_cmd.append("--auto-rename-strays")
     if getattr(args, "allow_strays", False):
         rc_cmd.append("--allow-strays")
+    if getattr(args, "skip_dup_check", False):
+        rc_cmd.append("--skip-dup-check")
     _run(rc_cmd)
 
     if args.dry_run:
@@ -815,6 +817,11 @@ def main(argv: list[str]) -> int:
     p_fin_strays.add_argument("--allow-strays", action="store_true",
                               help="forward --allow-strays to "
                                    "apply_refactor_cleanup; last resort")
+    p_fin.add_argument("--skip-dup-check", action="store_true",
+                       help="forward --skip-dup-check to "
+                            "apply_refactor_cleanup; skips Pass 1.7's "
+                            "predicted-duplicate-decl gate (use only "
+                            "after confirming false positives by hand)")
 
     # merge
     p_merge = sub.add_parser(
