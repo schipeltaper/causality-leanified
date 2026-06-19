@@ -5092,7 +5092,7 @@
           "last_used": "2026-06-19T03:20:20+00:00"
         }
       ],
-      "time_needed_to_solve": 5421,
+      "time_needed_to_solve": 5444,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
@@ -5112,10 +5112,10 @@
       "section": "3.3",
       "title": "CollidersAndNon",
       "type": "definition",
-      "formalized": "no",
+      "formalized": "yes",
       "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "solved": "yes",
+      "date_solved": "2026-06-19",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `cdmg_typed_edges`; it was pulled in because root(s) `def_3_1`, `def_3_4` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
@@ -5126,16 +5126,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
+        "review_design": 2,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 2,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -5150,8 +5150,135 @@
         "verify_tex_statement_equivalence": 0
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Colliders and non-colliders]\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  A node $v_k$, or more precisely, the position $k \\in \\lC 0,\\dots, n \\rC$,\n  on the walk $\\pi$ is called:\n     \\begin{enumerate}\n     \\item a \\emph{non-collider} on $\\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\\ if it falls into one of the following cases:\n  \\[\\begin{array}{rccl}\n    \\text{ end-node: } & k \\in \\lC 0,n \\rC, \\\\\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1}, \\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1},\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1};\n    \\end{array}\\]\n  \\item a \\emph{collider} on $\\pi$, if it is of the form: \n             \\[v_{k-1} \\suh v_k \\hus v_{k+1},\\] \n             i.e.\\ if there are two arrowheads pointing towards $v_k$ on the walk $\\pi$.\n     \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3fb49a83-b9fe-444b-99b5-b402d6a5bf69",
+          "first_seen": "2026-06-19T03:48:01+00:00",
+          "last_used": "2026-06-19T03:48:01+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "cac23976-9275-4c33-bcad-cb3e27a3b422",
+          "first_seen": "2026-06-19T04:03:44+00:00",
+          "last_used": "2026-06-19T04:03:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "acc8ddb7-86a7-4f2a-a90e-ba7b711f2918",
+          "first_seen": "2026-06-19T04:06:30+00:00",
+          "last_used": "2026-06-19T04:06:30+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "ce3fc86c-f2b6-44ec-b230-4623441ec6bb",
+          "first_seen": "2026-06-19T04:21:24+00:00",
+          "last_used": "2026-06-19T04:21:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "cdfa60b5-ed79-4949-9b2c-afe3767f98d4",
+          "first_seen": "2026-06-19T04:22:36+00:00",
+          "last_used": "2026-06-19T04:22:36+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "e44e37b5-efc1-47f4-89bf-7a4d6ff100d4",
+          "first_seen": "2026-06-19T04:27:12+00:00",
+          "last_used": "2026-06-19T04:27:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7b111165-544e-4203-b4a4-9cc0717b27c4",
+          "first_seen": "2026-06-19T04:27:53+00:00",
+          "last_used": "2026-06-19T04:27:53+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "1df0e4ae-9529-42bb-8802-b50de8767204",
+          "first_seen": "2026-06-19T04:31:16+00:00",
+          "last_used": "2026-06-19T04:31:16+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "eff1037d-329a-4b46-a831-7f41a3266d66",
+          "first_seen": "2026-06-19T04:32:14+00:00",
+          "last_used": "2026-06-19T04:32:14+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "03746939-1f5d-4703-b65f-d94fe6d99dab",
+          "first_seen": "2026-06-19T04:54:35+00:00",
+          "last_used": "2026-06-19T04:54:35+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "7147feff-bd15-4e72-afa6-26692b6b6d5d",
+          "first_seen": "2026-06-19T04:56:02+00:00",
+          "last_used": "2026-06-19T04:56:02+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f2b2e6ca-3196-414c-9248-e3dc2b168152",
+          "first_seen": "2026-06-19T05:03:28+00:00",
+          "last_used": "2026-06-19T05:03:28+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a52632da-2e8d-4e73-84bd-68de7d43b64e",
+          "first_seen": "2026-06-19T05:04:45+00:00",
+          "last_used": "2026-06-19T05:04:45+00:00"
+        },
+        {
+          "kind": "verify_equivalence_strict",
+          "spawned_by": "manager",
+          "session_id": "4493d1f1-ca53-4858-a4f0-7e2460c56ec6",
+          "first_seen": "2026-06-19T05:15:54+00:00",
+          "last_used": "2026-06-19T05:15:54+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b89b5375-1c18-4d9a-a7f7-cfaaad26fc90",
+          "first_seen": "2026-06-19T05:16:47+00:00",
+          "last_used": "2026-06-19T05:16:47+00:00"
+        },
+        {
+          "kind": "add_design_choice_comments",
+          "spawned_by": "manager",
+          "session_id": "2eb1fc7d-138f-4fc0-a19a-269a79b8d87c",
+          "first_seen": "2026-06-19T05:26:48+00:00",
+          "last_used": "2026-06-19T05:26:48+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1825c590-2a39-46bc-8287-e6c75740e30b",
+          "first_seen": "2026-06-19T05:27:25+00:00",
+          "last_used": "2026-06-19T05:27:25+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "8fcec608-ddf0-4cd6-92aa-abc057e07dba",
+          "first_seen": "2026-06-19T05:30:10+00:00",
+          "last_used": "2026-06-19T05:30:10+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8805,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
