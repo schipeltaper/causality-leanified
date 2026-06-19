@@ -26,12 +26,6 @@
       "code_annotated": "-- Polymorphic node carrier; `Type*` allows any universe.\n-- `DecidableEq` is needed since `CDMG.E`, `CDMG.L` are `Finset (Node × Node)`.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
-      "kind": "helper",
-      "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "Section-level `variable` declaration that fixes the ambient node type `Node` for the rest of the file. The unbounded universe `Type*` lets `Node` live in any universe, matching the polymorphism style used throughout `CDMG.lean` and `CDMGNotation.lean`. The `[DecidableEq Node]` instance is required because `CDMG.E` and `CDMG.L` are `Finset (Node × Node)`, and Mathlib's `Finset` operations (membership, intersection, decidable equality lifted to pairs) need `DecidableEq` on the underlying carrier. Once declared with `variable`, every subsequent `def adjacent`, `def into`, `def outOf` in this file silently picks up `{Node : Type*} [DecidableEq Node]` as implicit arguments, so the signatures stay terse and uniform.",
-      "code_annotated": "-- Polymorphic node carrier; `Type*` allows any universe.\n-- `DecidableEq` is needed since `CDMG.E`, `CDMG.L` are `Finset (Node × Node)`.\nvariable {Node : Type*} [DecidableEq Node]"
-    },
-    {
       "kind": "main",
       "code": "def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop :=\n  G.sus v1 v2",
       "explanation": "Item i of the LN block: $v_1$ and $v_2$ are *adjacent in $G$* iff some edge of $G$ — directed in either orientation, or bidirected — connects them. The body is a one-line delegation to `G.sus v1 v2`, the *susceptibility* primitive defined in `CDMGNotation.lean`, which already unfolds to the three-way disjunction `(v1, v2) ∈ G.E ∨ (v2, v1) ∈ G.E ∨ s(v1, v2) ∈ G.L`. The `huh`-disjunct uses Mathlib's `Sym2` notation `s(v1, v2)` because `G.L : Finset (Sym2 Node)` is carried by unordered pairs; that detail is absorbed inside `sus` and does not surface here. Symmetry `G.adjacent v1 v2 ↔ G.adjacent v2 v1` is inherited from `sus` — the first two disjuncts swap and the `Sym2` quotient gives `s(v1, v2) = s(v2, v1)` definitionally, so no `hL_symm` invocation is needed. The declaration is a `def`, not an `abbrev`, so it remains a named abstraction at every call site; downstream consumers (`def_3_4` walks, `def_3_5` family relations, chapters 6–7 separations) unfold on demand.",

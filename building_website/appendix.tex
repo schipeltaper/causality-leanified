@@ -77,10 +77,6 @@ structure CDMG (Node : Type*) [DecidableEq Node] where
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 instance instMembership : Membership Node (CDMG Node) where
@@ -136,10 +132,6 @@ def sus (G : CDMG Node) (v1 v2 : Node) : Prop :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def adjacent (G : CDMG Node) (v1 v2 : Node) : Prop :=
@@ -173,10 +165,6 @@ def outOf (G : CDMG Node) (v : Node) (e : Node × Node) : Prop :=
 With the notations \ref{not-cdmg} the restrictions in definition \ref{def-cdmg} mean that the nodes $j \in J$ will not have any arrowheads pointing towards them: $ j \hus v \notin G$. Nodes $j \in J$ can only point towards nodes $v \in V$: edges $j \tuh v$ are allowed. Furthermore, no two nodes in $J$ are adjacent.
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -553,10 +541,6 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def length : ∀ {u v : Node}, Walk G u v → ℕ
   | _, _, .nil _ _ => 0
   | _, _, .cons _ _ p => p.length + 1
@@ -588,10 +572,6 @@ def IsAcyclic (G : CDMG Node) : Prop :=
    \end{enumerate}
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -646,10 +626,6 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def IsTotalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
   (∀ v ∈ G, ¬ lt v v) ∧
   (∀ u ∈ G, ∀ v ∈ G, ∀ w ∈ G, lt u v → lt v w → lt u w) ∧
@@ -677,10 +653,6 @@ def IsTopologicalOrder (G : CDMG Node) (lt : Node → Node → Prop) : Prop :=
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 theorem acyclic_iff_topological_order (G : CDMG Node) :
@@ -704,10 +676,6 @@ theorem acyclic_iff_topological_order (G : CDMG Node) :
    \[\Pred^G_\le(v) : = \lC w\in G\,|\, w < v \rC \cup \{v\}.\]
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -755,10 +723,6 @@ def PredLE (G : CDMG Node) (lt : Node → Node → Prop)
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
 \end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 def hardInterventionOn (G : CDMG Node) (W : Finset Node)
@@ -785,10 +749,6 @@ def hardInterventionOn (G : CDMG Node) (W : Finset Node)
     If $G$ is acyclic then also $G_{\doit(W)}$ is acyclic and a topological order for $G$ is also one for $G_{\doit(W)}$.
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -822,10 +782,6 @@ theorem acyclic_preserved_under_do (G : CDMG Node)
       %is unambiguous.
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -990,10 +946,6 @@ theorem hardInterventionsCommute (G : CDMG Node)
 \end{Prp}
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -1349,10 +1301,6 @@ theorem swigTopologicalOrder (G : CDMG Node)
    \[ \lp G_{\swig(W_1)} \rp_{\swig(W_2)} =  \lp G_{\swig(W_2)} \rp_{\swig(W_1)}  =  G_{\swig(W_1 \dcup W_2)}.   \]
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]
@@ -1932,10 +1880,6 @@ variable {Node : Type*} [DecidableEq Node]
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 private lemma subset_sdiff_of_disjoint {S T : Finset Node}
     {U : Finset Node} (hS : S ⊆ U) (hDisj : Disjoint S T) :
     S ⊆ U \ T
@@ -2301,10 +2245,6 @@ Note that unblockable non-colliders are always $C$-$\sigma$-open, regardless of 
     \end{enumerate}
 \par}
 \smallskip
-{\small\textit{helper}}
-\begin{minted}[fontsize=\appendixLeanSize]{lean4}
-variable {Node : Type*} [DecidableEq Node]
-\end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {Node : Type*} [DecidableEq Node]

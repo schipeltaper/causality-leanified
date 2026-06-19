@@ -26,12 +26,6 @@
       "code_annotated": "-- Section-wide binders; auto-injected into following decls that use `Node`.\n-- `Type*` is universe-polymorphic; `[DecidableEq Node]` powers `Finset` membership.\nvariable {Node : Type*} [DecidableEq Node]"
     },
     {
-      "kind": "helper",
-      "code": "variable {Node : Type*} [DecidableEq Node]",
-      "explanation": "Section-level `variable` declaration introducing the carrier type `Node` (implicit, universe-polymorphic via `Type*`) and a `DecidableEq Node` instance shared across every declaration that follows. Lean's `variable` mechanism auto-binds these arguments into any `def` or `instance` in the same scope that actually references them, so the seven main declarations need not repeat `{Node : Type*} [DecidableEq Node]` individually. `DecidableEq Node` is the prerequisite for `Finset Node` membership to compute: `v ∈ G.J ∪ G.V` and the pair-membership clauses `(v1, v2) ∈ G.E` / `(v1, v2) ∈ G.L` all rely on `Finset`'s decidable membership, which itself needs decidable equality on the element type. Keeping the binder implicit (`{...}`) means call sites write `G.tuh v1 v2`, not `@G.tuh Node _ v1 v2`.",
-      "code_annotated": "-- Section-wide binders; auto-injected into following decls that use `Node`.\n-- `Type*` is universe-polymorphic; `[DecidableEq Node]` powers `Finset` membership.\nvariable {Node : Type*} [DecidableEq Node]"
-    },
-    {
       "kind": "main",
       "code": "instance instMembership : Membership Node (CDMG Node) where\n  mem G v := v ∈ G.J ∪ G.V",
       "explanation": "Registers an instance of Mathlib's `Membership Node (CDMG Node)` typeclass so that the literal LN syntax `v ∈ G` elaborates on a CDMG without needing a custom function call like `G.Mem v`. The `Membership` typeclass dispatches the `∈` symbol based on the second type argument; here it reads `G : CDMG Node` on the right and selects this instance. The body `v ∈ G.J ∪ G.V` reuses `∈` a second time, but now against a `Finset Node`, so Lean transparently resolves the inner `∈` to `Finset.instMembership` and the outer to ours. The disjointness witness `hJV_disj` carried by `CDMG` is deliberately not threaded here: membership only asks whether `v` lies in `J` or `V`, not in exactly one. Downstream rows invoke `hJV_disj` directly when they need the exclusive form.",

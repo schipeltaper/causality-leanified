@@ -423,30 +423,43 @@ _NAMESPACE_CLOSE_RE = re.compile(
     re.MULTILINE,
 )
 _BLOCK_COMMENT_RE = re.compile(r"/-[^-]?.*?-/", re.DOTALL)
+# Non-documentation block comments only (`/- ... -/`, *not* `/-! ... -/`).
+# Lean module docstrings use the `/-!` form; treating them as content lets
+# the pruner skip namespaces that hold load-bearing file-top docs while
+# still allowing it to clean up namespaces whose only block content is
+# code-annotation `/- ... -/` snippets (LN tex pastes, design-choice
+# narratives) that the refactor twin's namespace has already duplicated.
+_NONDOC_BLOCK_COMMENT_RE = re.compile(r"/-(?!!)[\s\S]*?-/", re.DOTALL)
 
 
 def _is_empty_namespace_body(body: str) -> bool:
     """A namespace body counts as "empty" if every line is one of:
-    blank, a ``--`` line-comment, or a single bare ``variable``
-    declaration. ``/- ... -/`` and ``/-! ... -/`` block comments do
-    NOT count as empty -- they are load-bearing documentation
-    (file-top docstrings, section explainers) and must survive Pass
-    4. Pruning a namespace that contains a block comment would
-    silently strip docs that real readers rely on, with no Lean
-    error to surface the loss. The dual-namespace refactor pattern
-    leaves shells of THIS narrow form behind once Pass 2 deletes
-    the ORIGINAL marker blocks they enclosed; Pass 4 sweeps them
-    away without touching docstring-bearing namespaces."""
+    blank, a ``--`` line-comment, content of a non-doc ``/- ... -/``
+    block comment, or a single bare ``variable`` declaration.
+
+    ``/-! ... -/`` *module-doc* block comments do NOT count as empty
+    -- they are file-top docstrings whose silent removal would
+    confuse readers with no Lean error to surface the loss. Non-doc
+    ``/- ... -/`` blocks (LN tex pastes, code-annotation narratives
+    that the refactor twin's namespace already duplicates) are
+    pre-stripped before the check, so the typical dual-namespace
+    pre-refactor shell -- variable + line-comment design notes +
+    non-doc LN tex snippets, no real decls -- gets pruned. The
+    distinction is the `!` after `/-` -- it marks a Lean module
+    docstring."""
+    # Strip non-doc block comments before the line scan; whatever
+    # remains is either content or pure annotations we don't preserve.
+    stripped = _NONDOC_BLOCK_COMMENT_RE.sub("", body)
     var_seen = False
-    for raw in body.splitlines():
+    for raw in stripped.splitlines():
         line = raw.strip()
         if not line:
             continue
         if line.startswith("--"):
             continue                                # full-line line-comment
-        # Any non-line-comment line that touches block-comment syntax
-        # makes the body non-empty (presence of a `/- ... -/` or
-        # `/-! ... -/` block, possibly multi-line).
+        # Any non-line-comment line still touching block-comment syntax
+        # belongs to a `/-! ... -/` module-doc block (post-strip
+        # invariant: only doc blocks remain). Treat as content.
         if "/-" in line or "-/" in line:
             return False
         if line.startswith("variable"):
