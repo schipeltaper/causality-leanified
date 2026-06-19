@@ -2144,6 +2144,121 @@ def _run_solved_gate_strict_check(state: "OrchestrationState",
     return _format_strict_gate_failure(strict, None)
 
 
+def _check_refactor_marker_hygiene(row: dict) -> list[str]:
+    """Solve-time marker-hygiene check for refactor rows.
+
+    Catches the failure modes that broke `cdmg_typed_edges` Phase 7a:
+      - top-level `refactor_<X>` decls NOT inside a REPLACEMENT block
+        (the rename pass would leave them prefixed forever);
+      - ORIGINAL blocks without a paired REPLACEMENT or DELETE block
+        (Phase 7a's validator would refuse to delete the original);
+      - SAME top-level decl name appearing more than once after
+        post-cleanup synthesis (the cdmg_typed_edges duplicate-decl
+        build failure: unwrapped pre-refactor helpers surviving
+        cleanup alongside the renamed REPLACEMENT helpers).
+
+    Returns a list of finding strings (empty = clean). Caller decides
+    whether to bounce back to the manager or surface as warning."""
+    findings: list[str] = []
+    # Lazy import; the cleanup module pulls in scaffold/scripts/_path_setup
+    # which we already have loaded.
+    sys.path.insert(0, str(REPO_ROOT / "extras"))
+    try:
+        import apply_refactor_cleanup as arc  # type: ignore[import]
+    except Exception as e:                          # pragma: no cover
+        return [f"(internal) could not import apply_refactor_cleanup: {e}"]
+
+    lean_files = _row_lean_files(row)
+    if not lean_files:
+        return findings
+
+    _DECL_RE = re.compile(
+        r"^(?:[\w]+\s+)?"
+        r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
+        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        re.MULTILINE,
+    )
+
+    for rel in lean_files:
+        path = REPO_ROOT / rel
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8")
+        blocks = arc._parse_marker_blocks(content)
+        if not blocks:
+            continue                                # not a refactor-touched file
+        semantic = arc._validate_blocks(blocks, path)
+        for s in semantic:
+            findings.append(s)
+
+        # Stray `refactor_*` decls (same check the cleanup script runs;
+        # the manager can fix them BEFORE finalize escalates).
+        repl_names = {b["name"] for b in blocks if b["kind"] == "replacement"}
+        strays = arc._find_stray_refactor_decls(content, repl_names)
+        for ln, match_text, rest in strays:
+            findings.append(
+                f"{rel}:{ln}: stray `refactor_*` declaration "
+                f"`{match_text}` not inside any REPLACEMENT marker "
+                f"block. Wrap it (then Phase 7a will rename it to "
+                f"`{rest}`); or rename it by hand."
+            )
+
+        # Synthesize post-cleanup content for duplicate-name detection.
+        # Use this file's REPLACEMENT names as the rename set (we don't
+        # have the cross-file set here at solve-time, but within-file
+        # duplicates are the failure mode we care about).
+        try:
+            synthesized, errs, _ = arc._apply_to_content(
+                content, path, repl_names)
+        except Exception:                           # pragma: no cover
+            continue
+        if errs:
+            continue                                # already complained above
+        # Count top-level decls by name in synthesized content. Lean
+        # block comments may contain decl-like text; strip them first.
+        clean = arc._BLOCK_COMMENT_RE.sub("", synthesized)
+        seen: dict[str, int] = {}
+        for m in _DECL_RE.finditer(clean):
+            n = m.group("name")
+            seen[n] = seen.get(n, 0) + 1
+        dups = sorted(n for n, c in seen.items() if c > 1)
+        if dups:
+            findings.append(
+                f"{rel}: post-cleanup synthesis predicts duplicate "
+                f"top-level declaration(s): {dups}. Likely cause: an "
+                f"unwrapped pre-refactor helper sitting next to its "
+                f"marker-wrapped post-refactor twin. Either wrap the "
+                f"pre-refactor helper in an ORIGINAL or DELETE marker "
+                f"block (per `manager.md`'s helper-discipline rule), "
+                f"or remove it if it's already dead code."
+            )
+    return findings
+
+
+def _format_marker_hygiene_failure(findings: list[str]) -> str:
+    """Render hygiene-check findings as a manager `extra_note`."""
+    body = ["**Marker-hygiene check FAILED.**",
+            "",
+            "The orchestrator scanned this refactor row's `lean_files` "
+            "and found marker-convention issues that would either "
+            "(a) cause Phase 7a's validator to refuse cleanup, or "
+            "(b) survive cleanup as duplicate / stray declarations "
+            "that break the post-merge `lake build`. Fix these BEFORE "
+            "re-emitting `solved`; otherwise this row's work will "
+            "block finalize for the whole refactor table.",
+            "",
+            "**Findings:**",
+            ""]
+    for f in findings:
+        body.append(f"- {f}")
+    body += ["",
+             "**See `manager.md` § Refactor rows** for the marker "
+             "conventions (ORIGINAL+REPLACEMENT pairs, DELETE-alone "
+             "form, helper-discipline rule, single-vs-dual namespace "
+             "patterns)."]
+    return "\n".join(body)
+
+
 def _format_strict_gate_failure(strict: dict, examples: dict | None
                                 ) -> str:
     """Render the strict-checker (and optional example-verifier)
@@ -4124,6 +4239,26 @@ def solve_current_row(data_path: Path | None = None) -> None:
         worker_summary = ""
 
         if action == "solved":
+            # Refactor-row marker-hygiene gate (runs BEFORE the
+            # equivalence verifier). Catches unwrapped pre-refactor
+            # helpers, stray `refactor_*` decls, ORIGINAL-without-
+            # REPLACEMENT, and predicted post-cleanup duplicates --
+            # the failure modes that broke `cdmg_typed_edges` Phase 7a.
+            # Non-refactor rows skip this entirely.
+            if state.row.get("refactor"):
+                hygiene = _check_refactor_marker_hygiene(state.row)
+                if hygiene:
+                    print(f"[orchestrator] marker-hygiene check FAILED "
+                          f"({len(hygiene)} finding(s)); bouncing back "
+                          f"to manager.", flush=True)
+                    state.history.append(TurnRecord(
+                        turn, action, body,
+                        f"MARKER_HYGIENE_FAIL: {len(hygiene)} finding(s)"))
+                    extra_note = _format_marker_hygiene_failure(hygiene)
+                    save_data(state.data_path, data)
+                    persist_time()
+                    continue
+
             # Independent verifier checks the row before we flip the flag.
             try:
                 verifier_reply, sess = run_claude(
