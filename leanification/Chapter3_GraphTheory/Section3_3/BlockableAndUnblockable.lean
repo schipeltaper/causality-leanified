@@ -514,6 +514,7 @@ def HasBlockingRightSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .cons _ _ p, k + 1 => p.HasBlockingRightSlot k
 -- def_3_16 --- end helper
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsBlockableNonCollider
 -- ref: def_3_16 (paragraph "Blockable non-collider on π") — refactor
 --
 -- `p.IsBlockableNonCollider k` iff position `k` on the walk
@@ -611,7 +612,202 @@ def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
     p.HasBlockingLeftSlot k ∨
     p.HasBlockingRightSlot k )
 -- def_3_16 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsBlockableNonCollider
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsBlockableNonCollider (was: refactor_IsBlockableNonCollider)
+-- ref: def_3_16 (paragraph "Blockable non-collider on π") — side-aware
+--   refactor (`collider_side_aware`).
+--
+-- `p.refactor_IsBlockableNonCollider k` iff position `k` on the walk
+-- `p` is a *side-aware* non-collider on `p` (per `refactor_IsNonCollider`,
+-- the side-aware partner of `def_3_15`'s non-collider classifier) AND
+-- it is either at an end-position (`k = 0` or `k = p.length`) or one of
+-- the two `HasBlocking*Slot` helpers fires at `k`.  Body identical to
+-- the original `IsBlockableNonCollider` (ORIGINAL block above) modulo a
+-- single mechanical retarget of the first conjunct:
+-- `p.IsNonCollider k` → `p.refactor_IsNonCollider k`.  The four-disjunct
+-- shape (two end-position disjuncts + `HasBlockingLeftSlot k` +
+-- `HasBlockingRightSlot k`) is unchanged.
+--
+-- ## Design choice — refactor_IsBlockableNonCollider
+--
+-- *Mechanical retarget only — shape and semantics inherited via
+--   def_3_15.*  This refactor row carries NO head-contribution logic
+--   of its own.  The side-aware reading (arrowhead-presence read off
+--   the WalkStep's *constructor tag* rather than via a node-equality
+--   test against the shared source/target type indices at a self-loop)
+--   is implemented entirely at def_3_15's row in the helpers
+--   `refactor_HeadAtSource` / `refactor_HeadAtTarget`, and propagates
+--   through `refactor_IsCollider` / `refactor_IsNonCollider` to here
+--   as the first-conjunct classifier.  The four-disjunct positive
+--   characterisation (two end-position disjuncts + the two
+--   `HasBlocking*Slot` helpers) is byte-identical to the ORIGINAL,
+--   encoding the LN's spelled-out blockable disjunction (canonical
+--   tex paragraph "Blockable non-collider on π") word-for-word.  No
+--   re-derivation is needed — the ported declaration is shape-for-
+--   shape what it was, only the partner non-collider classifier has
+--   been swapped to the side-aware refactor.
+--
+-- *Why the retarget to `refactor_IsNonCollider` is required during the
+--   refactor window.*  Both `IsNonCollider` (ORIGINAL block in
+--   `CollidersAndNon.lean`) and `refactor_IsNonCollider` (REPLACEMENT
+--   block in `CollidersAndNon.lean`) coexist in scope while the
+--   refactor is in flight.  The unqualified dot-notation
+--   `p.IsNonCollider` in the body would resolve to the ORIGINAL
+--   `Walk.IsNonCollider` (literal-name match wins over namespace
+--   lookup), pairing the side-aware blockable predicate's intended
+--   *non-collider precondition* with the *non-side-aware* ORIGINAL —
+--   breaking the partition the LN demands on walks traversing a
+--   directed self-loop, where the two non-collider readings disagree
+--   (the manager-accepted deviation
+--   `collider_side_aware_at_self_loops` in
+--   `leanification/deviations.json`).  Concretely, on a position
+--   adjacent to a directed self-loop the ORIGINAL `IsNonCollider`
+--   returns `False` (the position is an `IsCollider` under the
+--   `IsInto` reading) but the side-aware `refactor_IsNonCollider`
+--   returns `True` (the side-aware `refactor_IsCollider` does NOT fire
+--   at that position because the self-loop's walk-traversal source
+--   side carries a tail under the constructor-tag reading).  Pairing
+--   the side-aware blockable with the ORIGINAL non-collider
+--   precondition would therefore wrongly reject those positions from
+--   the blockable/unblockable classification entirely, contradicting
+--   the canonical tex's "Treatment of directed self-loops" reading
+--   (every interior position adjacent to a self-loop should fall under
+--   the unblockable/blockable classification).  The REPLACEMENT body
+--   explicitly references `p.refactor_IsNonCollider`, so the pair
+--   (`refactor_IsBlockableNonCollider`, `refactor_IsNonCollider`)
+--   forms the side-aware non-collider/blockable interlock pointwise on
+--   every walk and every position.  After Phase 7 cleanup, the whole-
+--   word renames `refactor_IsNonCollider → IsNonCollider` and
+--   `refactor_IsBlockableNonCollider → IsBlockableNonCollider` restore
+--   the body's surface form to its pre-refactor reading
+--   `p.IsNonCollider k ∧ …` — but now resolving to the *unique*
+--   (post-rename) side-aware def, since the ORIGINAL `IsNonCollider`
+--   and `IsBlockableNonCollider` blocks have been deleted by the same
+--   cleanup pass.
+--
+-- *Inherited self-loop strict refinement (manager-accepted deviation
+--   `collider_side_aware_at_self_loops`).*  A directed self-loop step
+--   at vertex `v` encoded as `.forwardE _ : WalkStep G v v` carries no
+--   head at its walk-traversal source side: the source-side head-
+--   contribution predicate `refactor_HeadAtSource` evaluates to
+--   `False` on the `.forwardE _` branch via the disjunct
+--   `s(u, v) ∈ G.L`, which is *vacuously false* at a self-loop by
+--   `def_3_1`'s `hL_irrefl` (`CDMG.lean:376` rules out
+--   `s.IsDiag ∈ G.L`).  Through the retargeted `refactor_IsCollider`
+--   / `refactor_IsNonCollider`, this strict refinement propagates here
+--   without re-statement: a self-loop step adjacent to position `k`
+--   does not spuriously inflate the arrowhead count at `k`, so
+--   positions that the ORIGINAL `Walk.IsCollider` classified as
+--   colliders (via the node-equality `IsInto` reading collapsing both
+--   self-loop sides) are now *non-colliders* under the side-aware
+--   reading.  On those newly-non-collider interior positions the LN's
+--   "non-collider iff arrowhead count ≤ 1" reading agrees pointwise
+--   with the side-aware reading (canonical tex's "Treatment of
+--   directed self-loops" paragraph), and the position becomes a
+--   genuine candidate for the blockable/unblockable classification.
+--   The blockable/unblockable classification then partitions the
+--   side-aware non-collider fragment exactly as the LN intends, and
+--   the self-loop slot's contribution to the two `HasBlocking*Slot`
+--   helpers is *always* `False` (`v ∈ G.Sc v` trivially via
+--   `def_3_5`'s trivial-walk witness, so `v ∉ G.Sc v` is `False`).
+--   The position therefore ends up blockable or unblockable purely on
+--   the OTHER walk-incident slot's contribution — verbatim what the
+--   canonical tex commits to ("a self-loop alone never disqualifies
+--   an interior position from being unblockable; whether the position
+--   is unblockable depends on the other walk-incident edge -- if any
+--   -- in the standard way").
+--
+-- *`HasBlockingLeftSlot` / `HasBlockingRightSlot` sit OUTSIDE the
+--   REPLACEMENT marker pair on purpose.*  Both helpers pattern-match
+--   on `WalkStep` constructor tags (`.forwardE` / `.backwardE` /
+--   `.bidir`) whose type signature is NOT touched by
+--   `collider_side_aware` — the refactor changes only the head-
+--   contribution predicates `refactor_HeadAtSource` /
+--   `refactor_HeadAtTarget` at def_3_15's row, not the WalkStep type
+--   itself — and they query `G.Sc` (the strongly-connected-component
+--   relation from `FamilyRelationships.lean`), which is also untouched
+--   by the refactor.  They are net-zero under the refactor: their
+--   bodies do not change, no `refactor_*` rename will fire on them at
+--   Phase 7 cleanup, and downstream consumers reference them by their
+--   final names throughout.  Wrapping them in `REFACTOR-BLOCK-ORIGINAL`
+--   / `REPLACEMENT` marker pairs would be marker noise and would force
+--   Phase 7 cleanup to process declarations that do not need
+--   processing.  A future reader should not be alarmed by the
+--   asymmetry: the wrapping markers track *what changes under the
+--   refactor*, not "which declarations live in a refactored row's
+--   file".
+--
+-- *Partition with `refactor_IsUnblockableNonCollider` on the
+--   `refactor_IsNonCollider` sub-class is definitional.*  The
+--   companion `refactor_IsUnblockableNonCollider` predicate has body
+--   `p.refactor_IsNonCollider k ∧ ¬ p.refactor_IsBlockableNonCollider
+--   k`, so by definitional unfolding, on the `refactor_IsNonCollider`
+--   fragment exactly one of `refactor_IsBlockableNonCollider` and
+--   `refactor_IsUnblockableNonCollider` holds at every position `k`.
+--   This realises the LN's "every non-collider position on π is
+--   exactly one of an unblockable non-collider on π or a blockable
+--   non-collider on π" mutual-exclusivity / joint-exhaustiveness
+--   property (canonical tex paragraph "Blockable non-collider on π",
+--   closing sentence) without any external lemma — same partition
+--   discipline as the original `IsBlockableNonCollider` /
+--   `IsUnblockableNonCollider` pair, only now under the side-aware
+--   reading.  See the `refactor_IsUnblockableNonCollider` design
+--   block below for the companion's full de-Morgan-dual discussion.
+--
+-- *End-position disjuncts `k = 0` / `k = p.length` preserved
+--   verbatim.*  The two end-position disjuncts mirror the canonical
+--   tex's `k ∈ {0, n}` disjunct word-for-word — see the canonical
+--   tex's "Reconciliation" item "end-position": "the source-block
+--   elaboration assigns end-positions to the blockable category via
+--   the `k ∈ {0, n}` disjunct".  End-positions are non-colliders
+--   under EITHER the original or the side-aware reading (the
+--   classifier returns `False` at both `k = 0` and `k = p.length`
+--   structurally — see `CollidersAndNon.lean`'s `refactor_IsCollider`
+--   design block, "Recursive pattern-match shape and end-position
+--   handling"), so the `refactor_IsNonCollider` first conjunct fires
+--   at both end-positions either way.  The end-position disjuncts
+--   then make `refactor_IsBlockableNonCollider` automatically true at
+--   both `k = 0` and `k = p.length`, leaving the body's non-trivial
+--   work (the two `HasBlocking*Slot` helpers) to interior positions
+--   only.  This shape is independent of the refactor — it would be
+--   the same under the original `IsCollider` reading too — but it is
+--   load-bearing for the LN-correspondence and must survive the
+--   retarget.
+--
+-- *Shape unchanged from ORIGINAL.*  The four-disjunct positive-
+--   characterisation shape (two end-position disjuncts + the two
+--   `HasBlocking*Slot` helpers) and the asymmetric encoding —
+--   blockable carries the positive disjunction, unblockable is the
+--   derived negation + non-collider conjunct — are preserved verbatim.
+--   Only the first conjunct's reference to the non-collider classifier
+--   retargets.  The two `HasBlocking*Slot` helpers are untouched by
+--   this refactor (they pattern-match on `WalkStep` constructors
+--   `.forwardE` / `.backwardE` / `.bidir`, which are unchanged by
+--   `collider_side_aware`, and they query `G.Sc`, which is unchanged).
+--
+-- *Net-new declaration with no original counterpart at the markered
+--   level beyond the wrapped ORIGINAL block above.*  The original
+--   `Walk.IsBlockableNonCollider` (ORIGINAL block) remains under the
+--   `CDMG.Walk` namespace and continues to compile during the refactor
+--   window, so downstream consumers in `AcyclicNonCollidersBlockable.
+--   lean`, `SigmaBlockedWalks.lean`, etc.\ keep building until those
+--   rows' own refactor entries port them.  The `REFACTOR-BLOCK-
+--   REPLACEMENT` marker pair wraps the entire `def`; Phase 7 cleanup
+--   will rename `refactor_IsBlockableNonCollider` to
+--   `IsBlockableNonCollider` (whole-word) across every refactored
+--   file, leaving a single `def IsBlockableNonCollider` in the final
+--   tree — the LN's intended object name.
+-- def_3_16 -- start statement
+def refactor_IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.refactor_IsNonCollider k ∧
+  ( k = 0 ∨ k = p.length ∨
+    p.HasBlockingLeftSlot k ∨
+    p.HasBlockingRightSlot k )
+-- def_3_16 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsBlockableNonCollider
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsUnblockableNonCollider
 -- ref: def_3_16 (paragraph "Unblockable non-collider on π") — refactor
 --
 -- `p.IsUnblockableNonCollider k` iff position `k` on the walk
@@ -718,6 +914,170 @@ def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
 def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider k
 -- def_3_16 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsUnblockableNonCollider
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsUnblockableNonCollider (was: refactor_*)
+-- ref: def_3_16 (paragraph "Unblockable non-collider on π") — side-aware
+--   refactor (`collider_side_aware`).
+--
+-- `p.refactor_IsUnblockableNonCollider k` iff position `k` on the walk
+-- `p` is a *side-aware* non-collider on `p` (per `refactor_IsNonCollider`)
+-- AND it is NOT a *side-aware* blockable non-collider on `p` (per
+-- `refactor_IsBlockableNonCollider`).  Body identical to the original
+-- `IsUnblockableNonCollider` (ORIGINAL block above) modulo two mechanical
+-- retargets:
+-- - `p.IsNonCollider k` → `p.refactor_IsNonCollider k`; and
+-- - `p.IsBlockableNonCollider k` → `p.refactor_IsBlockableNonCollider k`.
+-- The conjunction-of-two shape (non-collider precondition + negation of
+-- blockable) is unchanged.
+--
+-- ## Design choice — refactor_IsUnblockableNonCollider
+--
+-- *De Morgan dual of `refactor_IsBlockableNonCollider` — partition
+--   must hold on the side-aware non-collider sub-class.*  The LN's
+--   "every non-collider position on π is exactly one of an unblockable
+--   non-collider on π or a blockable non-collider on π" mutual-
+--   exclusivity / joint-exhaustiveness property (canonical tex
+--   paragraph "Blockable non-collider on π", closing sentence)
+--   requires that the blockable / unblockable predicate pair partition
+--   the side-aware non-collider sub-class exactly.  The side-aware
+--   refactor does not change this shape: the unblockable predicate
+--   stays the de Morgan dual of the blockable predicate, restricted
+--   to the `refactor_IsNonCollider` fragment via the first conjunct.
+--   Unfolding `refactor_IsBlockableNonCollider`'s four-disjunct
+--   positive form, the negation distributes to give:
+--   `k ≠ 0 ∧ k ≠ p.length` (negation of the two end-position disjuncts
+--   — the LN's "interior" clause (ii) of the unblockable definition)
+--   ∧ `¬ p.HasBlockingLeftSlot k` ∧ `¬ p.HasBlockingRightSlot k`
+--   (negation of the two slot-blocking helpers — the LN's clause (iii)
+--   "every outgoing walk-edge of v_k along π lands in `Sc^G(v_k)`",
+--   one universal-implication per walk-incident slot), conjoined with
+--   `p.refactor_IsNonCollider k` (the first conjunct here).  Together
+--   this recovers the LN's three-clause unblockable characterisation
+--   case-by-case, just under the side-aware reading.  Mutual
+--   exclusivity with `refactor_IsBlockableNonCollider` on the
+--   `refactor_IsNonCollider` sub-class is *definitional* (literally
+--   `… ∧ ¬ …`), so the LN's "exactly one of" reduces by unfolding
+--   alone — no external lemma needed.
+--
+-- *Mechanical retarget only — shape and semantics inherited via
+--   def_3_15.*  Same rationale as on `refactor_IsBlockableNonCollider`
+--   above: this refactor row carries NO head-contribution logic of
+--   its own.  The side-aware reading is implemented entirely at
+--   def_3_15's row in the helpers `refactor_HeadAtSource` /
+--   `refactor_HeadAtTarget`, and propagates through
+--   `refactor_IsCollider` / `refactor_IsNonCollider` /
+--   `refactor_IsBlockableNonCollider` to here as the two partner-
+--   predicate references in the body.  The conjunction-of-two shape
+--   (non-collider precondition + negation of blockable) is byte-
+--   identical to the ORIGINAL's `IsNonCollider ∧ ¬ IsBlockableNon
+--   Collider` shape; only the two references to the partner
+--   predicates retarget.  The asymmetric encoding — blockable carries
+--   the positive disjunction, unblockable is the derived negation +
+--   non-collider conjunct — is preserved verbatim (downstream walk-
+--   reversal proofs from `claim_3_22` onward reduce to preservation
+--   of the positive predicate, which is the design rationale the
+--   ORIGINAL committed to and which is unchanged here).
+--
+-- *Why the retargets to `refactor_IsNonCollider` and
+--   `refactor_IsBlockableNonCollider` are both required during the
+--   refactor window.*  Both predicates referenced in the body have
+--   coexisting ORIGINAL / REPLACEMENT pairs in scope while the refactor
+--   is in flight: `IsNonCollider` (`CollidersAndNon.lean` ORIGINAL +
+--   REPLACEMENT) and `IsBlockableNonCollider` (this file's ORIGINAL +
+--   REPLACEMENT immediately above).  The unqualified dot-notation
+--   `p.IsNonCollider` / `p.IsBlockableNonCollider` in the body would
+--   each resolve to the ORIGINAL `Walk.IsNonCollider` /
+--   `Walk.IsBlockableNonCollider` (literal-name match wins over
+--   namespace lookup), mis-pairing the side-aware unblockable with the
+--   *non-side-aware* non-collider precondition AND with the *non-side-
+--   aware* blockable predicate that it is supposed to be the negation
+--   of.  Concretely, on a position adjacent to a directed self-loop
+--   the ORIGINAL `IsNonCollider` returns `False` (position is an
+--   `IsCollider` under the `IsInto` reading) but the side-aware
+--   `refactor_IsNonCollider` returns `True`; and on the same position
+--   the ORIGINAL `IsBlockableNonCollider` and `refactor_IsBlockableNon
+--   Collider` therefore also disagree (the ORIGINAL fails its
+--   `IsNonCollider` first-conjunct precondition, the REPLACEMENT
+--   passes its `refactor_IsNonCollider` first-conjunct precondition).
+--   Without the retargets the side-aware unblockable predicate would
+--   neither agree with its intended *non-collider precondition* nor be
+--   the de Morgan dual of its intended *blockable partner* — breaking
+--   both the LN's "every non-collider position is exactly one of
+--   unblockable or blockable" mutual-exclusivity / joint-exhaustiveness
+--   property and the LN's "Treatment of directed self-loops"
+--   classification on walks traversing a self-loop step (the manager-
+--   accepted deviation `collider_side_aware_at_self_loops` in
+--   `leanification/deviations.json`).  The REPLACEMENT body explicitly
+--   references `p.refactor_IsNonCollider` and
+--   `p.refactor_IsBlockableNonCollider`, so the triple
+--   (`refactor_IsNonCollider`, `refactor_IsBlockableNonCollider`,
+--   `refactor_IsUnblockableNonCollider`) forms the side-aware non-
+--   collider/blockable/unblockable partition pointwise on every walk
+--   and every position.  After Phase 7 cleanup, the whole-word renames
+--   `refactor_IsNonCollider → IsNonCollider`,
+--   `refactor_IsBlockableNonCollider → IsBlockableNonCollider`, and
+--   `refactor_IsUnblockableNonCollider → IsUnblockableNonCollider`
+--   restore the body's surface form to its pre-refactor reading
+--   `p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider k` — but now
+--   resolving to the *unique* (post-rename) side-aware defs, since the
+--   ORIGINAL blocks have been deleted by the same cleanup pass.
+--
+-- *Inherited self-loop strict refinement (manager-accepted deviation
+--   `collider_side_aware_at_self_loops`).*  A directed self-loop step
+--   at vertex `v` encoded as `.forwardE _ : WalkStep G v v` carries no
+--   head at its walk-traversal source side: the source-side head-
+--   contribution predicate `refactor_HeadAtSource` evaluates to
+--   `False` on the `.forwardE _` branch via the disjunct
+--   `s(u, v) ∈ G.L`, which is *vacuously false* at a self-loop by
+--   `def_3_1`'s `hL_irrefl` (`CDMG.lean:376` rules out
+--   `s.IsDiag ∈ G.L`).  Through the retargeted `refactor_IsCollider`
+--   / `refactor_IsNonCollider`, this strict refinement propagates here
+--   without re-statement: positions adjacent to a directed self-loop
+--   now become *non-colliders* (where they were colliders under the
+--   old `IsInto` reading), and on those newly-non-collider interior
+--   positions all four disjuncts of `refactor_IsBlockableNonCollider`
+--   evaluate to `False` at the self-loop slot contribution — interior
+--   (so the two end-position disjuncts fail), plus the SC self-
+--   membership knocks out the slot's `HasBlocking*Slot` query (every
+--   vertex is trivially in its own SC component via `def_3_5`'s
+--   trivial-walk witness, so `v ∉ G.Sc v` is `False`).  Hence the
+--   position ends up `refactor_IsUnblockableNonCollider` exactly when
+--   the *other* walk-incident slot is also non-blocking, exactly as
+--   the canonical tex's "Treatment of directed self-loops" paragraph
+--   reads ("a self-loop alone never disqualifies an interior position
+--   from being unblockable; whether the position is unblockable
+--   depends on the other walk-incident edge -- if any -- in the
+--   standard way").  This is the LN-faithful resolution committed to
+--   by the canonical tex.
+--
+-- *Shape unchanged from ORIGINAL.*  The conjunction-of-two shape (non-
+--   collider precondition + negation of blockable) is preserved
+--   verbatim; only the two references to the partner predicates
+--   retarget.  Mutual exclusivity with `refactor_IsBlockableNonColl
+--   ider` on the `refactor_IsNonCollider` sub-class is *definitional*
+--   (literally `… ∧ ¬ …`), so the LN's "every non-collider position
+--   is exactly one of unblockable or blockable" reduces by unfolding
+--   alone — exactly as in the ORIGINAL, just now under the side-aware
+--   reading.
+--
+-- *Net-new declaration with no original counterpart at the markered
+--   level beyond the wrapped ORIGINAL block above.*  The original
+--   `Walk.IsUnblockableNonCollider` (ORIGINAL block) remains under the
+--   `CDMG.Walk` namespace and continues to compile during the refactor
+--   window, so downstream consumers in `AcyclicNonCollidersBlockable.
+--   lean`, `SigmaBlockedWalks.lean`, etc.\ keep building until those
+--   rows' own refactor entries port them.  The `REFACTOR-BLOCK-
+--   REPLACEMENT` marker pair wraps the entire `def`; Phase 7 cleanup
+--   will rename `refactor_IsUnblockableNonCollider` to
+--   `IsUnblockableNonCollider` (whole-word) across every refactored
+--   file, leaving a single `def IsUnblockableNonCollider` in the final
+--   tree — the LN's intended object name.
+-- def_3_16 -- start statement
+def refactor_IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  p.refactor_IsNonCollider k ∧ ¬ p.refactor_IsBlockableNonCollider k
+-- def_3_16 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsUnblockableNonCollider
 
 end Walk
 
