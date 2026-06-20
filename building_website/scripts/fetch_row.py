@@ -94,7 +94,17 @@ def tex_proof_path(row: dict, chapter_folder: Path) -> Path | None:
     if row["def_or_claim"] != "claim":
         return None
     sec = _section_folder(chapter_folder, row["section"])
-    return sec / "tex" / f"{row['ref']}_proof_{row['title']}.tex"
+    # Disproven claims store their proof file as `<ref>_disproof_<title>.tex`
+    # (a Lean counter-example file rather than a positive proof).  Prefer
+    # `_proof_` for the normal case; fall back to `_disproof_` if it's the
+    # only one present.
+    proof_path    = sec / "tex" / f"{row['ref']}_proof_{row['title']}.tex"
+    disproof_path = sec / "tex" / f"{row['ref']}_disproof_{row['title']}.tex"
+    if proof_path.exists():
+        return proof_path
+    if disproof_path.exists():
+        return disproof_path
+    return proof_path  # let downstream `_render_tex` handle the missing file
 
 
 def _render_tex(path: Path, *, whole_file: bool) -> dict:

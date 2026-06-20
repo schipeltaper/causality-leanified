@@ -482,9 +482,11 @@ function renderEntry(data) {
         data.status.formalized === "yes" ? el("span", { class: "badge badge-ok" }, "Formalised") : null,
         data.kind === "def"
           ? el("span", { class: "badge badge-note" }, "No proof (definition)")
-          : (data.status.proven === "yes"
+          : (data.status.proven === "proven"
               ? el("span", { class: "badge badge-ok" }, "Proof complete")
-              : el("span", { class: "badge badge-warn" }, "Proof in progress")),
+              : data.status.proven === "disproven"
+                ? el("span", { class: "badge badge-note" }, "Disproven (counter-example)")
+                : el("span", { class: "badge badge-warn" }, "Proof in progress")),
       ];
 
   const header = el("header", { class: "entry-header" },
@@ -511,16 +513,19 @@ function renderEntry(data) {
   //   3. Design choices   — toggles the panel below; disabled until LLM-populated
   const actions = el("footer", { class: "entry-actions" });
 
+  const proofLabel = data.status.proven === "disproven"
+    ? "View TeX disproof"
+    : "View TeX proof";
   if (data.kind === "claim" && data.tex_proof && data.tex_proof.html) {
     actions.append(el("a", {
       class: "btn",
       href: `#proof/${data.ref}`,
-    }, "View TeX proof"));
+    }, proofLabel));
   } else {
     actions.append(el("button", {
       class: "btn btn-disabled", "aria-disabled": "true", disabled: "",
       title: "Definitions have no proof",
-    }, "View TeX proof"));
+    }, proofLabel));
   }
 
   if (data.lean_source_url) {
