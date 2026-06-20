@@ -20,34 +20,100 @@
 \phantomsection\label{claim_3_27}
 
 \begin{Lem}[LabelRoman]\label{lem:replace_walk}
-Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma$-open walk in $G$.
-  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
-If we then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
-  \begin{enumerate}[label=(\roman*)]
-      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
-    \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
-  \end{enumerate}
-  then this new subwalk is entirely within $\Sc^G(v_j)$ and the modified walk $\pi'$ is still $C$-$\sigma$-open.
-\begin{proof}
-$\pi'$ cannot become $C$-$\sigma$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma$-blocked on $\pi$ by assumption.
-Furthermore, $\pi'$ cannot become $C$-$\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$. It is also worth noting that $\pi'$ cannot become $C$-$\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\pi$. So in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$.
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk and directed-walk definitions of def \ref{def:walks}, items~i.\ and~ii., the family-relationships definition of def \ref{def_3_5} (specifically the ancestor set $\Anc^G(v) \subseteq J \cup V$, the descendant set $\Desc^G(v) \subseteq J \cup V$, and the strongly-connected-component set
+    \[
+        \Sc^G(v) \;:=\; \Anc^G(v) \cap \Desc^G(v) \;\subseteq\; J \cup V
+    \]
+    for each $v \in J \cup V$, with $v \in \Sc^G(v)$ by reflexivity of $\Anc^G$ and $\Desc^G$), the ancestor set of a subset $\Anc^G(C) := \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv.\ (and as used in def \ref{def:sigma_blocking}), the collider/non-collider machinery of def \ref{def:collider_noncollider}, the blockable/unblockable refinement of def \ref{def:unblockable_noncollider}, and the $\sigma$-open/$\sigma$-blocked classification of walks of def \ref{def:sigma_blocking}.
 
-Case (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma$-open on $\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$ (if $v_i$ is the left endnode or not). If $v_i \neq v_j$, then the new directed path $v_i \tuh \cdots \tuh v_j$ in $\pi'$ is $C$-$\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).
+    Let $C \subseteq J \cup V$ be a subset of nodes; $C$ is \emph{not} assumed disjoint from $J$, nor non-empty. Let $n \ge 0$ be an integer and let
+    \[
+        \pi \;=\; (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    be a walk in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$ satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr).
+    \]
+    Assume that $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}.
 
- Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \hus v_{j+1}$ in $\pi$. 
- If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). 
- So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$. So $\pi$ looks as follows:
- \[\pi:\qquad \cdots v_{i-1} \suh v_i \sus \cdots \sus v_j \hus v_{j+1} \cdots. \]
- So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$:
- \[\pi:\qquad \cdots v_{i-1} \suh v_i \tuh \cdots \tuh v_k \hus \cdots \sus v_j \hus v_{j+1} \cdots. \]
- Since $\pi$ is $C$-$\sigma$-open we have $v_k \in \Anc^G(C)$. Since $v_i \in \Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \in \Anc^G(C)$.
- So if we replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by the shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ we then get for $\pi'$ the following situation:
- \[\pi':\qquad \cdots v_{i-1} \suh v_i \hut \cdots \hut  v_j \hus v_{j+1} \cdots, \]
- which is then $C$-$\sigma$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i=v_j$.
- If $v_i \neq v_j$ then $v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. 
+    \emph{Hypothesis on positions $(i, j)$.}
+    Suppose $i, j \in \{0, 1, \dots, n\}$ are positions on $\pi$ with $i < j$ and
+    \[
+        v_i \in \Sc^G(v_j) \quad\bigl(\text{equivalently, } v_i \in \Anc^G(v_j) \;\land\; v_i \in \Desc^G(v_j)\bigr).
+    \]
+    The strict inequality $i < j$ orders the \emph{positions} on $\pi$ but does \emph{not} constrain the underlying \emph{vertices}: per def \ref{def:walks}, item~i., ``the same node may appear multiple times in a walk'', so the special case $v_i = v_j$ is admissible (and is exactly the case in which $v_i \in \Sc^G(v_j) = \Sc^G(v_i)$ is automatic by the reflexivity $v_i \in \Sc^G(v_i)$ of def \ref{def_3_5}).
 
- So in all cases $\pi'$ stays $C$-$\sigma$-open.
-\end{proof}
+    \emph{Shortest directed walk between two nodes.}
+    For nodes $u, w \in J \cup V$ with $u \in \Anc^G(w)$, a \emph{shortest directed walk from $u$ to $w$ in $G$} is a directed walk from $u$ to $w$ in $G$ (def \ref{def:walks}, item~ii.) of minimum length among all directed walks from $u$ to $w$ in $G$. Spelled out: it is a finite sequence
+    \[
+        (u_0, b_0, u_1, b_1, \dots, b_{m-1}, u_m)
+    \]
+    for some integer $m \ge 0$, with $u_0, \dots, u_m \in J \cup V$, $u_0 = u$, $u_m = w$, and $b_l = (u_l, u_{l+1}) \in E$ for every $l \in \{0, 1, \dots, m - 1\}$ (so every walk-edge is a directed edge whose tail is the earlier vertex and whose head is the later vertex on the sequence), such that no directed walk from $u$ to $w$ in $G$ has length strictly less than $m$.
+
+    The hypothesis $u \in \Anc^G(w)$ ensures the set of directed walks from $u$ to $w$ in $G$ is non-empty (def \ref{def_3_5}, item~iv.), so the well-ordering of $\mathbb{N}$ yields a witness of minimum length. The degenerate case $u = w$ is admitted at $m = 0$: the single-vertex tuple $(u_0) = (u)$ is a directed walk from $u$ to $u$ in $G$ in the sense of def \ref{def:walks}, item~ii.\ at $n = 0$ (no walk-edges to constrain), and is therefore the unique shortest directed walk from $u$ to $u$ in $G$ (every other directed walk from $u$ to $u$ in $G$ has length $\ge 1$).
+
+    \emph{Replacement subwalk $\sigma_{ij}$ and modified walk $\pi'$.}
+    Define a finite alternating sequence
+    \[
+        \sigma_{ij} \;=\; (w_0, b_0, w_1, b_1, \dots, b_{m-1}, w_m)
+    \]
+    for some integer $m \ge 0$ (with $m$ and the data $w_0, \dots, w_m \in J \cup V$, $b_0, \dots, b_{m-1} \in E \cup L$ determined by the case below), satisfying $w_0 = v_i$ and $w_m = v_j$, by exactly one of the following two mutually-exclusive jointly-exhaustive cases on the boundary configuration of $\pi$ at position $j$:
+
+    \begin{enumerate}[label=(\roman*)]
+        \item \textbf{Case (i):} $j = n \;\;\lor\;\; a_j = (v_j, v_{j+1}) \in E$.
+
+            (The first disjunct is $j = n$; the second disjunct requires $j \le n - 1$ and asserts that the walk-step $a_j$ is the \emph{directed} edge from $v_j$ to $v_{j+1}$ — equivalently, $a_j$ is an edge in $E$, $a_j$ is \emph{not} an edge into $v_j$ in the sense of def \ref{def:collider_noncollider}, and $a_j$ \emph{is} an outgoing walk-edge of $v_j$ at position $j$ on $\pi$ in the sense of def \ref{def:unblockable_noncollider}.)
+
+            Let $\sigma_{ij}$ be a shortest directed walk from $v_i$ to $v_j$ in $G$:
+            \[
+                (w_0 = v_i, \; b_0, \; w_1, \; b_1, \; \dots, \; b_{m-1}, \; w_m = v_j),
+                \qquad
+                b_l = (w_l, w_{l+1}) \in E \;\;\text{for every } l \in \{0, 1, \dots, m - 1\},
+            \]
+            of minimum length over all directed walks from $v_i$ to $v_j$ in $G$. Existence of such a witness uses $v_i \in \Sc^G(v_j) \subseteq \Anc^G(v_j)$ (def \ref{def_3_5}). When $v_i = v_j$ the minimum length is $m = 0$ and $\sigma_{ij} = (v_i)$ (single vertex, no walk-edges).
+
+        \item \textbf{Case (ii):} $\lnot\,$(case~(i)), i.e.\ $j \le n - 1 \;\;\land\;\; \lnot\bigl(a_j = (v_j, v_{j+1}) \in E\bigr)$.
+
+            (Spelled out via the walk constraint at index $j$: $j \le n - 1$ and either $a_j = (v_j, v_{j+1}) \in L$, or $a_j = (v_{j+1}, v_j) \in E$. Equivalently: $a_j$ is an edge \emph{into} $v_j$ in the sense of def \ref{def:collider_noncollider}'s ``edge into $v_k$'' predicate at $k = j$, and $a_j$ is \emph{not} an outgoing walk-edge of $v_j$ at position $j$ on $\pi$ in the sense of def \ref{def:unblockable_noncollider}.)
+
+            Let $\sigma_{ij}$ be the reversal of a shortest directed walk from $v_j$ to $v_i$ in $G$. Concretely, fix integers $m \ge 0$ and vertices $u_0, \dots, u_m \in J \cup V$ such that the sequence
+            \[
+                (u_0 = v_j, \; c_0, \; u_1, \; c_1, \; \dots, \; c_{m-1}, \; u_m = v_i),
+                \qquad
+                c_l = (u_l, u_{l+1}) \in E \;\;\text{for every } l \in \{0, 1, \dots, m - 1\},
+            \]
+            is a directed walk from $v_j$ to $v_i$ in $G$ of minimum length over all directed walks from $v_j$ to $v_i$ in $G$. Existence of such a witness uses $v_i \in \Sc^G(v_j) \subseteq \Desc^G(v_j)$ (def \ref{def_3_5}, applied in the form $v_j \in \Anc^G(v_i)$).
+
+            Set $w_l := u_{m - l}$ for $l \in \{0, 1, \dots, m\}$ and $b_l := c_{m - 1 - l}$ for $l \in \{0, 1, \dots, m - 1\}$, so that $\sigma_{ij} = (w_0 = v_i, b_0, w_1, \dots, b_{m-1}, w_m = v_j)$ and every walk-edge satisfies
+            \[
+                b_l \;=\; c_{m - 1 - l} \;=\; (u_{m - 1 - l}, u_{m - l}) \;=\; (w_{l+1}, w_l) \;\in\; E
+                \qquad\text{for every } l \in \{0, 1, \dots, m - 1\}.
+            \]
+            (So each $b_l$ is a directed edge in $E$ whose head is $w_l$ and whose tail is $w_{l+1}$ — the second disjunct of the walk constraint of def \ref{def:walks}, item~i., at position $l$ on $\sigma_{ij}$. The sequence $\sigma_{ij}$ is \emph{not} itself a directed walk from $v_i$ to $v_j$ in the sense of def \ref{def:walks}, item~ii.; it is the walk-reversal of the directed walk $(u_0, c_0, \dots, c_{m-1}, u_m)$ from $v_j$ to $v_i$.) When $v_i = v_j$ the minimum length is $m = 0$ and $\sigma_{ij} = (v_i)$ (single vertex, no walk-edges).
+    \end{enumerate}
+
+    The two cases are mutually exclusive and jointly exhaustive over the conditions on $(j, a_j)$ given $j \le n$: case~(i) covers ``$j = n$, or $j \le n - 1$ and $a_j = (v_j, v_{j+1}) \in E$''; case~(ii) covers ``$j \le n - 1$ and the negation of $a_j = (v_j, v_{j+1}) \in E$''. The case-(i)/case-(ii) classification depends on the boundary configuration of $\pi$ at position $j$ only, not on the boundary configuration at position $i$.
+
+    Define the \emph{modified walk} as the concatenation of the prefix $(v_0, a_0, \dots, a_{i-1}, v_i)$ of $\pi$, the replacement subwalk $\sigma_{ij}$ above, and the suffix $(v_j, a_j, v_{j+1}, \dots, a_{n-1}, v_n)$ of $\pi$:
+    \[
+        \pi' \;=\; \bigl(v_0, \, a_0, \, v_1, \, \dots, \, a_{i-1}, \, v_i = w_0, \, b_0, \, w_1, \, b_1, \, \dots, \, b_{m-1}, \, w_m = v_j, \, a_j, \, v_{j+1}, \, \dots, \, a_{n-1}, \, v_n\bigr).
+    \]
+    Then $\pi'$ is a walk in $G$ in the sense of def \ref{def:walks}, item~i., of length $i + m + (n - j)$: the prefix segment $(v_0, a_0, \dots, a_{i-1}, v_i)$ inherits the walk constraint at every $k \in \{0, 1, \dots, i - 1\}$ from $\pi$; the suffix segment $(v_j, a_j, v_{j+1}, \dots, a_{n-1}, v_n)$ inherits the walk constraint at every $k \in \{j, j + 1, \dots, n - 1\}$ from $\pi$; the replacement segment $(w_0, b_0, \dots, b_{m-1}, w_m)$ satisfies the walk constraint at every $l \in \{0, 1, \dots, m - 1\}$ — by the first disjunct $b_l = (w_l, w_{l+1}) \in E$ in case~(i), and by the second disjunct $b_l = (w_{l+1}, w_l) \in E$ in case~(ii).
+
+    \emph{Conclusions.}
+    \begin{enumerate}
+        \item \textbf{The replacement subwalk lies entirely in $\Sc^G(v_j)$:}
+            \[
+                \forall\, l \in \{0, 1, \dots, m\}, \quad w_l \in \Sc^G(v_j).
+            \]
+            (Both endpoints — $w_0 = v_i \in \Sc^G(v_j)$ by the hypothesis on $(i, j)$, and $w_m = v_j \in \Sc^G(v_j)$ by reflexivity — and every interior vertex $w_l$ for $l \in \{1, 2, \dots, m - 1\}$, the last being vacuous when $m \le 1$ and in particular when $m = 0$.)
+        \item \textbf{The modified walk $\pi'$ is $C$-$\sigma$-open} in the sense of def \ref{def:sigma_blocking}.
+    \end{enumerate}
+
+    \emph{Addition to the LN: length-zero replacement when $v_i = v_j$.}
+    The hypothesis $i < j$ pins down the positions on $\pi$ but not the underlying vertices, so the case $v_i = v_j$ is admissible whenever $\pi$ revisits a node. In that case $v_i \in \Sc^G(v_j) = \Sc^G(v_i)$ holds by the reflexivity $v_i \in \Sc^G(v_i)$ of def \ref{def_3_5} alone, and the prescribed ``shortest directed walk from $v_i$ to $v_j$ in $G$'' (case~(i)) or ``shortest directed walk from $v_j$ to $v_i$ in $G$'' (case~(ii)) is the length-$0$ trivial directed walk: the single-vertex tuple $(v_i) = (v_j)$ with empty edge list, per def \ref{def:walks}, item~ii.\ at $n = 0$. Any positive-length directed walk from $v_i$ to $v_i$ in $G$ has length $\ge 1$ and is therefore not shorter than the length-$0$ trivial directed walk, so the trivial directed walk is unconditionally the unique minimum (and in particular the existence of a directed self-loop $(v_i, v_i) \in E$, or of longer directed cycles through $v_i$, does not affect the minimum-length witness selected here). Under this collapse the replacement subwalk is $\sigma_{ij} = (v_i)$ (one vertex, no walk-edges), every vertex of $\sigma_{ij}$ lies in $\Sc^G(v_j)$ trivially, and the modified walk $\pi'$ has length $i + 0 + (n - j) = n - (j - i) < n$ — strictly shorter than $\pi$ (the $j - i$ walk-steps of $\pi$ between positions $i$ and $j$ are dropped). The Lean formalisation admits length-$0$ directed walks uniformly (the single-vertex tuple satisfies the directed-walk constraint of def \ref{def:walks}, item~ii.\ vacuously), so this degenerate branch is included in the statement above without a separate carve-out: the existential ``$\exists \sigma_{ij}, \pi'$'' in the conclusion is witnessed by the length-$0$ subwalk and the suitably-shortened modified walk in this case, and conclusion~(1) (every vertex of $\sigma_{ij}$ in $\Sc^G(v_j)$) and conclusion~(2) ($\pi'$ is $C$-$\sigma$-open) are both met.
 \end{Lem}
 
 \end{document}
