@@ -126,21 +126,27 @@ def main(sections) -> None:
     out_csv = REPO / "results" / f"section{secs_tag}_refactor_times.csv"
     out_md = REPO / "results" / f"section{secs_tag}_refactor_times.md"
 
-    # ---- column totals (blanks/None ignored) --------------------------
-    totals = {}
-    for c in ["initial"] + labels:
-        vals = [row.get(c) for row in table if row.get(c) is not None]
-        totals[c] = sum(vals)
+    cols = ["initial"] + labels
+
+    # ---- column totals (per iteration) and per-row totals -------------
+    # blanks/None ignored throughout.
+    totals = {c: sum(row.get(c) for row in table if row.get(c) is not None)
+              for c in cols}
+    row_total = {row["ref"]: sum(row.get(c) for c in cols
+                                 if row.get(c) is not None)
+                 for row in table}
+    grand_total = sum(totals[c] for c in cols)  # = sum of every cell
 
     # ---- CSV ----------------------------------------------------------
     with out_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["ref", "section", "initial"] + labels)
+        w.writerow(["ref", "section"] + cols + ["row_total"])
         for row in table:
             w.writerow([row["ref"], row["section"]]
                        + [("" if row.get(c) is None else row.get(c))
-                          for c in ["initial"] + labels])
-        w.writerow(["TOTAL", ""] + [totals[c] for c in ["initial"] + labels])
+                          for c in cols]
+                       + [row_total[row["ref"]]])
+        w.writerow(["TOTAL", ""] + [totals[c] for c in cols] + [grand_total])
 
     # ---- Markdown -----------------------------------------------------
     def cell(v):
@@ -149,6 +155,7 @@ def main(sections) -> None:
     hdr = ["ref", "section", "iter 0<br>initial"]
     for i, rf in enumerate(refactors, start=1):
         hdr.append(f"iter {i}<br>{rf['label']}<br>{rf['created_at'][:10]}")
+    hdr.append("**row total**")
 
     lines = [
         f"# Sections {', '.join(sorted(sections))} — "
@@ -167,12 +174,14 @@ def main(sections) -> None:
         cells = [row["ref"], row["section"], cell(row.get("initial"))]
         for rf in refactors:
             cells.append(cell(row.get(rf["label"])))
+        cells.append(f"**{row_total[row['ref']]}**")
         lines.append("| " + " | ".join(cells) + " |")
 
-    # totals row
+    # totals row (per-iteration totals; bottom-right = grand total)
     tcells = ["**TOTAL**", ""]
-    for c in ["initial"] + labels:
+    for c in cols:
         tcells.append(f"**{totals[c]}**")
+    tcells.append(f"**{grand_total}**")
     lines.append("| " + " | ".join(tcells) + " |")
 
     lines += ["", "## Refactor iterations (chronological)", "",
