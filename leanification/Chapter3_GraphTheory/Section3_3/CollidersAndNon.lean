@@ -342,6 +342,110 @@ def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
   | u, v, .bidir _,     w => w = u ∨ w = v
 -- def_3_15 --- end helper
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: HeadAtTarget (was: refactor_HeadAtTarget)
+-- ref: def_3_15 (helper, side-aware "head at walk-traversal target")
+--   -- collider_side_aware refactor.
+--
+-- `s.refactor_HeadAtTarget` iff the typed WalkStep
+-- `s : WalkStep G u v` places an arrowhead at its walk-traversal target
+-- end `v` (per the canonical-tex addition tag
+-- `[collider_side_aware_walkstep_predicates]`):
+--
+-- - `.forwardE _` encodes `(u, v) ∈ G.E`; the directed edge runs
+--   `u → v`, so the arrowhead is at the target `v`.  ↦ `True`.
+-- - `.backwardE _` encodes `(v, u) ∈ G.E`; the directed edge runs
+--   `v → u`, so the constructor-tagged channel places no arrowhead
+--   at the walk-traversal target `v`.  An *additional* L-disjunct
+--   `s(u, v) ∈ G.L` re-fires the L-channel head-contribution at this
+--   side whenever the same stored pair is also in `G.L` (writing-
+--   mirror case).  ↦ `s(u, v) ∈ G.L`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints.
+--   ↦ `True`.
+--
+-- No `w : Node` argument is needed — the walk-step's typed source `u`
+-- and target `v` already carry the "side" information at the type
+-- level.  Reading the side disambiguation off the constructor tag
+-- and type indices is the load-bearing design move: at a directed
+-- self-loop step `(v, v) ∈ G.E` encoded as
+-- `.forwardE _ : WalkStep G v v`, a node-equality-based predicate
+-- (`IsInto w := w = u ∨ w = v ∨ ...`) cannot distinguish the
+-- traversal-target side from the source side because `u = v = w`
+-- collapses both disjuncts trivially; the constructor tag reads the
+-- walk-traversal target side cleanly here.  The opposite-channel
+-- disjunct `s(u, v) ∈ G.L` on the `.backwardE` branch is the
+-- writing-mirror OR-of-channels re-injection required by clause~(c)
+-- of the addition: at a writing-mirror *non-self-loop* pair (stored
+-- pair simultaneously in `G.E` and `G.L`, permitted by `def_3_1` --
+-- see `CDMG.lean` "No `E ∩ L = ∅` field, by intent"), the literal
+-- stored-pair "edge into v_k" test of `def-edge-relations` item~ii.\
+-- fires from the L-channel at *both* endpoints, and the side-aware
+-- reading is committed to match the literal stored-pair test on all
+-- non-self-loop walk-steps; the L-disjunct is what makes that
+-- agreement hold at writing-mirror pairs.  At a directed self-loop
+-- `(v, v) ∈ G.E`, the disjunct `s(v, v) ∈ G.L` is *vacuously false*
+-- by `def_3_1`'s `hL_irrefl` (`CDMG.lean:376` rules out
+-- `s.IsDiag ∈ G.L`), so the strict side-aware disambiguation at self-
+-- loops -- head at walk-traversal target only, no head at source --
+-- is preserved verbatim, exactly matching the manager-accepted
+-- deviation `collider_side_aware_at_self_loops` in
+-- `leanification/deviations.json`.  Paired with
+-- `refactor_HeadAtSource`, the two zero-arg predicates realise the
+-- addition's clause-(b) per-step contribution formula (forward
+-- `E`-step: head at target only; backward `E`-step: head at source
+-- only; bidirected `L`-step: head at both) while also matching the
+-- literal stored-pair OR-of-channels test of `def-edge-relations`
+-- item~ii.\ pointwise at every non-self-loop walk-step.  See
+-- `tex/def_3_15_CollidersAndNon.tex`, the "Encoding note: side-
+-- aware reading via a typed walk-step representation" and
+-- "Treatment of directed self-loops" paragraphs.
+-- def_3_15 --- start helper
+def refactor_HeadAtTarget : ∀ {u v : Node}, WalkStep G u v → Prop
+  | _, _, .forwardE _  => True
+  | u, v, .backwardE _ => s(u, v) ∈ G.L
+  | _, _, .bidir _     => True
+-- def_3_15 --- end helper
+-- REFACTOR-BLOCK-REPLACEMENT-END: HeadAtTarget
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: HeadAtSource (was: refactor_HeadAtSource)
+-- ref: def_3_15 (helper, side-aware "head at walk-traversal source")
+--   -- collider_side_aware refactor.
+--
+-- `s.refactor_HeadAtSource` iff the typed WalkStep
+-- `s : WalkStep G u v` places an arrowhead at its walk-traversal source
+-- end `u` (per the canonical-tex addition tag
+-- `[collider_side_aware_walkstep_predicates]`):
+--
+-- - `.forwardE _` encodes `(u, v) ∈ G.E`; arrowhead at `v`, tail at
+--   `u`; an *additional* L-disjunct `s(u, v) ∈ G.L` re-fires the
+--   L-channel head-contribution at the source side whenever the
+--   stored pair is also in `G.L` (writing-mirror case).
+--   ↦ `s(u, v) ∈ G.L`.
+-- - `.backwardE _` encodes `(v, u) ∈ G.E`; arrowhead at `u`.  ↦ `True`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints.
+--   ↦ `True`.
+--
+-- The mirror of `refactor_HeadAtTarget`, asking the same per-step
+-- arrowhead-contribution question on the walk-traversal *source*
+-- side.  Same writing-mirror OR-of-channels re-injection on the
+-- opposite-channel branch (here `.forwardE`, mirroring
+-- `refactor_HeadAtTarget`'s `.backwardE`) -- see the design-choice
+-- block on `refactor_HeadAtTarget` above and the canonical tex's
+-- "Encoding note" + "Treatment of directed self-loops" paragraphs
+-- for the full justification, including the role of `def_3_1`'s
+-- `hL_irrefl` in keeping the strict side-aware self-loop
+-- disambiguation intact (the disjunct `s(v, v) ∈ G.L` is vacuously
+-- false at a self-loop, so the source-side at a directed self-loop
+-- step encoded as `.forwardE _ : WalkStep G v v` reads `False` --
+-- the manager-accepted deviation
+-- `collider_side_aware_at_self_loops` is preserved verbatim).
+-- def_3_15 --- start helper
+def refactor_HeadAtSource : ∀ {u v : Node}, WalkStep G u v → Prop
+  | u, v, .forwardE _  => s(u, v) ∈ G.L
+  | _, _, .backwardE _ => True
+  | _, _, .bidir _     => True
+-- def_3_15 --- end helper
+-- REFACTOR-BLOCK-REPLACEMENT-END: HeadAtSource
+
 end WalkStep
 
 namespace Walk
@@ -372,6 +476,7 @@ namespace Walk
 variable {G : CDMG Node}
 -- def_3_15 --- end helper
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsCollider
 -- ref: def_3_15 (item ii, collider) — refactor
 --
 -- `p.IsCollider k` iff position `k` on the walk `p` has
@@ -633,7 +738,134 @@ def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
       s₀.IsInto vk ∧ s₁.IsInto vk
   | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)
 -- def_3_15 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsCollider
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsCollider (was: refactor_IsCollider)
+-- ref: def_3_15 (item ii, collider) — side-aware refactor
+--   (`collider_side_aware`, addition `[collider_side_aware_walkstep_predicates]`).
+--
+-- `p.refactor_IsCollider k` iff position `k` on the walk `p` has
+-- arrowhead count `ah_π(k) = 2` under the *side-aware* per-step
+-- arrowhead-contribution reading.  Both walk-incident steps `s_{k-1}`
+-- and `s_k` exist (forcing `1 ≤ k ≤ p.length - 1`, an interior
+-- position) and:
+--   - `s_{k-1} : WalkStep G _ v_k` has its walk-traversal *target* at
+--     `v_k`, so it contributes an arrowhead at `v_k` iff
+--     `s_{k-1}.refactor_HeadAtTarget`;
+--   - `s_k : WalkStep G v_k _` has its walk-traversal *source* at
+--     `v_k`, so it contributes an arrowhead at `v_k` iff
+--     `s_k.refactor_HeadAtSource`.
+-- The clause-1 body is therefore
+-- `s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource` — no `v_k`
+-- node binder is needed, because the typed `WalkStep` indices already
+-- pin which end of each step is at `v_k`.  The four remaining
+-- clauses (trivial walk, length-1, position 0, recursion `k + 2`)
+-- are byte-identical to the original `IsCollider` ORIGINAL block above.
+--
+-- ## Design choice — refactor_IsCollider
+--
+-- *Why the refactor needs to touch this predicate.*  The original's
+--   clause-1 body `s₀.IsInto vk ∧ s₁.IsInto vk` collapses on directed
+--   self-loops: a `.forwardE _ : WalkStep G b b` step has `u = v = b`,
+--   so the `IsInto` test cannot distinguish "arrowhead at `b` on the
+--   source side" from "arrowhead at `b` on the target side" — both
+--   disjuncts of `IsInto`'s `.forwardE` branch (`w = v`,
+--   `s(u, v) ∈ G.L ∧ …`) reduce to the single condition `w = b`.
+--   Consequence: a position-1 walk `a → b → b` (with a directed
+--   self-loop at `b` as the second step) is spuriously classified as a
+--   collider at `b`, even though the self-loop's source side at `b` is
+--   a tail (no arrowhead), not a head.  The side-aware predicates
+--   `refactor_HeadAtTarget` / `refactor_HeadAtSource` disambiguate via
+--   the WalkStep's constructor tag alone (no node-equality test),
+--   making the self-loop's source-side contribution unambiguously
+--   `False` for `.forwardE` and `True` only for `.backwardE` / `.bidir`.
+--
+-- *Intended deviation at directed self-loops; agreement elsewhere.*
+--   The side-aware reading committed to here is a strict refinement
+--   of the literal stored-pair (`def-edge-relations` item~ii.) test:
+--   on walks that traverse no directed self-loop step, the
+--   conjunction `s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource`
+--   classifies every position the same way the literal stored-pair
+--   OR-of-channels test would, position-for-position (per the
+--   canonical tex's "Encoding note" paragraph).  Agreement on non-
+--   self-loop walks is not free of the underlying side-aware
+--   helpers' constructor structure: it is *realised* by the
+--   opposite-channel L-disjunct `s(u, v) ∈ G.L` in
+--   `refactor_HeadAtTarget` / `refactor_HeadAtSource`, which at a
+--   writing-mirror non-self-loop pair (stored pair simultaneously in
+--   `G.E` and `G.L`, permitted by `def_3_1` -- see `CDMG.lean` "No
+--   `E ∩ L = ∅` field, by intent") re-fires the L-channel head-
+--   contribution on the otherwise-zero side, matching the literal
+--   stored-pair test's OR over channels.  The two readings diverge
+--   only at a walk-step that is a directed self-loop
+--   `(v, v) ∈ G.E`: there the literal stored-pair test fires
+--   `e.2 = v` at both adjacent positions unconditionally (the
+--   literal-LN ambiguity flagged by wording-check subtlety
+--   `self_loop_makes_tuh_and_hut_simultaneously_true`), whereas the
+--   side-aware reading places the arrowhead on the walk-traversal
+--   target side only -- the side recorded by the `.forwardE` /
+--   `.backwardE` constructor tag.  The L-disjunct can NOT re-fire
+--   at a self-loop because `def_3_1`'s `hL_irrefl` rules out
+--   `s(v, v) ∈ G.L` outright, so the strict refinement at self-loops
+--   is preserved by construction (this is the manager-accepted
+--   deviation `collider_side_aware_at_self_loops`).  This is the
+--   *intended* canonical disambiguation per the addition tag
+--   `[collider_side_aware_walkstep_predicates]` (see
+--   `tex/def_3_15_CollidersAndNon.tex`, "Treatment of directed
+--   self-loops"), not an accidental divergence: the LN's
+--   `ah_π(k) = 2` count is itself ambiguous at a self-loop step, so
+--   the encoding must commit to one of the two admissible counts,
+--   and the side-aware reading is the one the canonical tex pins
+--   as taking precedence over the literal stored-pair test.  As a
+--   concrete consequence: a position-1 walk `a → b → b` (with a
+--   directed self-loop at `b` as the second step) is *not* a
+--   collider at `b` under the side-aware reading, because the
+--   self-loop's source side at `b` carries a tail, not a head.
+--
+-- *No node-binder `vk` at the clause-1 pattern.*  The pre-refactor
+--   pattern `cons vk s₀ (.cons _ s₁ _), 1` bound the middle vertex
+--   `vk` and passed it explicitly to `IsInto` on each side, since
+--   the node-equality-based reading needed an identifier to test
+--   against.  Under the side-aware reading the side information is
+--   carried at the type level by the WalkStep's indices
+--   (`s₀ : WalkStep G _ vk`, `s₁ : WalkStep G vk _`), so the middle
+--   vertex's identity is not consulted at the runtime level — the
+--   predicate reads off the constructor tag of each step alone.
+--   The cons-cell's middle-vertex slot is therefore a wildcard `_`.
+--
+-- *Recursive pattern-match shape and end-position handling.*  The
+--   five clauses encode the LN's "every position `k ∈ {0, …, n}`"
+--   scope via structural case-analysis on the `Walk` cons-cell and
+--   the `ℕ` index together.  `nil _ _` (trivial walk, `n = 0`) and
+--   `cons _ _ (nil _ _)` (length-1 walk, `n = 1`) have no interior
+--   position, so every `k` falls through to `False` — end-positions
+--   are non-colliders by the LN's convention.  At a cons-cons head
+--   `cons _ s₀ (cons _ s₁ _)`, position `0` is the walk's start
+--   (end-position, `False`) and position `1` is the unique interior
+--   position adjacent to the head pair — the slot where
+--   `s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource` lives, the
+--   side-aware encoding of the LN's `ah_π(1) = 2` condition.  Higher
+--   positions `k + 2` recurse one cons-cell deep with index shift
+--   `k + 2 → k + 1`, matching the LN's walk-tail re-indexing of
+--   positions.  Pattern-match exhaustiveness on `Walk × ℕ` means
+--   out-of-range positions (`k > p.length`) fall through to `False`
+--   automatically without an explicit `1 ≤ k ≤ p.length - 1` bound
+--   check — the structural shape encodes the LN's `n ≥ 2` lower
+--   bound on the walk length for a collider position to even be
+--   admissible.
+-- def_3_15 -- start statement
+def refactor_IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
+  | _, _, .nil _ _, _ => False
+  | _, _, .cons _ _ (.nil _ _), _ => False
+  | _, _, .cons _ _ (.cons _ _ _), 0 => False
+  | _, _, .cons _ s₀ (.cons _ s₁ _), 1 =>
+      s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource
+  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 =>
+      p.refactor_IsCollider (k + 1)
+-- def_3_15 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsCollider
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNonCollider
 -- ref: def_3_15 (item i, non-collider) — refactor
 --
 -- `p.IsNonCollider k` iff position `k` on the walk `p` is in
@@ -710,6 +942,70 @@ def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 def IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   k ≤ p.length ∧ ¬ p.IsCollider k
 -- def_3_15 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsNonCollider
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNonCollider (was: refactor_IsNonCollider)
+-- ref: def_3_15 (item i, non-collider) — side-aware refactor
+--   (`collider_side_aware`, addition `[collider_side_aware_walkstep_predicates]`).
+--
+-- `p.refactor_IsNonCollider k` iff position `k` on the walk `p` is in
+-- range (`k ≤ p.length`) and is *not* a `refactor_IsCollider`, i.e.\
+-- has side-aware arrowhead count `ah_π(k) ≤ 1` under the canonical
+-- side-aware reading committed to by the addition tag
+-- `[collider_side_aware_walkstep_predicates]`.  Body identical to the
+-- original `IsNonCollider` (ORIGINAL block above) modulo a single
+-- retarget of the negation:
+-- `¬ p.IsCollider k` → `¬ p.refactor_IsCollider k`.
+--
+-- ## Design choice — refactor_IsNonCollider
+--
+-- *De Morgan dual of `refactor_IsCollider` — partition must hold.*
+--   The LN's "every position on `π` is exactly one of a non-collider
+--   or a collider on `π`" mutual-exclusivity / joint-exhaustiveness
+--   property (canonical tex `def_3_15`, "Classification" paragraph)
+--   requires that the collider / non-collider predicate pair partition
+--   the in-range index set `{0, 1, …, p.length}` exactly.  The
+--   side-aware refactor does not change this shape: the non-collider
+--   predicate stays the de Morgan negation of the collider predicate,
+--   restricted to the in-range fragment.
+--
+-- *Why the retarget to `refactor_IsCollider` is required during the
+--   refactor window.*  Both `IsCollider` (ORIGINAL block above) and
+--   `refactor_IsCollider` (REPLACEMENT block above) coexist in scope
+--   while the refactor is in flight.  The unqualified dot-notation
+--   `p.IsCollider` in the body would resolve to the ORIGINAL
+--   `Walk.IsCollider` (literal-name match wins over namespace lookup),
+--   pairing the side-aware collider's intended *partner* with the
+--   non-side-aware ORIGINAL — breaking the partition the LN demands
+--   on walks traversing a directed self-loop, where the two collider
+--   readings disagree (the manager-accepted deviation
+--   `collider_side_aware_at_self_loops`).  The REPLACEMENT body
+--   explicitly references `p.refactor_IsCollider`, so the pair
+--   (`refactor_IsCollider`, `refactor_IsNonCollider`) forms the
+--   side-aware partition pointwise on every walk and every position.
+--   After Phase 7 cleanup, the whole-word rename
+--   `refactor_IsCollider → IsCollider` restores the body's surface
+--   form to its pre-refactor reading `¬ p.IsCollider k` — but now
+--   resolving to the *unique* (post-rename) side-aware def, since the
+--   ORIGINAL `IsCollider` block has been deleted by the same cleanup
+--   pass.  The same rename also turns `refactor_IsNonCollider` into
+--   `IsNonCollider` and deletes the ORIGINAL `IsNonCollider` block,
+--   leaving a single `def IsNonCollider` whose body references the
+--   single `def IsCollider` — exactly the pre-refactor shape, now
+--   with the side-aware semantics throughout.
+--
+-- *Shape unchanged from ORIGINAL.*  The `Prop`-level conjunction
+--   `k ≤ p.length ∧ ¬ …`, the bound-via-natural-number-comparison
+--   shape, the LN-correspondence to the canonical tex's "non-collider
+--   iff `ah_π(k) ≤ 1`" reading, the definitional unfolding
+--   `IsNonCollider p k ↔ k ≤ p.length ∧ ¬ IsCollider p k` on the
+--   in-range fragment — all preserved verbatim.  Only the reference
+--   to the collider predicate retargets.
+-- def_3_15 -- start statement
+def refactor_IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
+  k ≤ p.length ∧ ¬ p.refactor_IsCollider k
+-- def_3_15 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsNonCollider
 
 end Walk
 
