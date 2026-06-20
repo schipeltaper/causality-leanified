@@ -128,6 +128,7 @@ private lemma outgoing_E_not_in_Sc
   have h_x_in_G : x ∈ G := (G.hE_subset hxy).1
   exact hG x h_x_in_G ⟨ρ_tilde, h_ρt_dir, h_ρt_len⟩
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: blocking_interior_helper
 set_option linter.style.longLine false in
 -- Helper — handles the interior case (1 ≤ k < π.length) of the main
 -- theorem by induction on the walk `π`.  Under acyclicity, at any
@@ -305,7 +306,190 @@ private lemma blocking_interior_helper
                 | forwardE _ => exact hR
                 | backwardE _ => exact hR
                 | bidir _ => exact hR
+-- REFACTOR-BLOCK-ORIGINAL-END: blocking_interior_helper
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: blocking_interior_helper (was: refactor_blocking_interior_helper)
+set_option linter.style.longLine false in
+-- Helper — side-aware port of `blocking_interior_helper` under the
+-- `collider_side_aware` refactor.  Identical proof skeleton: induction
+-- on the walk `π`, base-case `nil` discharged by `Walk.length = 0`,
+-- inductive step pattern-matches the outer cons-cons head, the
+-- substantive interior case `k = 1` reads `s₀` and `s₁` off the head
+-- pair, and the inductive `k = m + 2` step delegates to the IH on the
+-- tail walk.  Only the per-step "arrowhead at v_k" reading retargets
+-- from the node-equality predicate `WalkStep.IsInto vMid` to the
+-- side-aware constructor-tag pair `s₀.refactor_HeadAtTarget` /
+-- `s₁.refactor_HeadAtSource` of def_3_15's refactor.
+--
+-- ## Design choice — refactor_blocking_interior_helper
+--
+-- *What changed under `collider_side_aware`.*  The hypothesis
+--   `¬ π.IsCollider k` (with `IsCollider` reading per-step head-
+--   contribution via the node-equality predicate `WalkStep.IsInto`)
+--   becomes `¬ π.refactor_IsCollider k` (with `refactor_IsCollider`
+--   reading per-step head-contribution via the constructor-tag-and-
+--   type-index predicates `refactor_HeadAtTarget` /
+--   `refactor_HeadAtSource`).  At the substantive cons-cons-(k=1)
+--   pattern, the unfolding goes
+--   `¬ refactor_IsCollider 1 = ¬ (s₀.refactor_HeadAtTarget ∧
+--   s₁.refactor_HeadAtSource)`, identical in shape to the original's
+--   `¬ (s₀.IsInto vMid ∧ s₁.IsInto vMid)`.  `not_and_or` splits the
+--   conjunction; each disjunct case-splits on the relevant WalkStep
+--   constructor.
+--
+-- *Why the L-disjunct branches of the side-aware helpers stay
+--   trivially dischargeable here.*  At each `cases s₀`/`cases s₁`
+--   constructor branch the matcher reduces `refactor_HeadAtTarget` /
+--   `refactor_HeadAtSource` to one of two values:
+--   - `True` on the "natural-side head" branches (`.forwardE _` for
+--     target, `.backwardE _` for source, `.bidir _` for both);
+--     `¬ True` is absurd, discharged via `absurd trivial h_n*`.
+--   - The opposite-channel L-disjunct on the writing-mirror branches
+--     (`.backwardE _` for target, `.forwardE _` for source) reduces
+--     to `s(u, v) ∈ G.L`.  The proof does NOT need to inspect that
+--     L-disjunct's truth value to discharge the goal: the constructor
+--     parameter `h : (vMid, _) ∈ G.E` (or `(_, vMid) ∈ G.E`,
+--     depending on side) is the witness this proof actually uses.
+--     `outgoing_E_not_in_Sc hG h` discharges the matching
+--     `HasBlockingLeftSlot 1` / `HasBlockingRightSlot 1` goal
+--     directly — exactly as in the original proof.  The L-disjunct's
+--     extra information about `G.L` membership is simply unused here.
+--
+-- *Why agreement-with-the-original on non-self-loop walks is
+--   automatic, and the self-loop deviation does not break the proof.*
+--   The side-aware refinement of `IsCollider` strictly refines the
+--   original `IsCollider` only at positions adjacent to a directed
+--   self-loop (the manager-accepted deviation
+--   `collider_side_aware_at_self_loops`).  Both readings agree
+--   pointwise on every walk that traverses no directed self-loop step,
+--   so `¬ π.refactor_IsCollider k ↔ ¬ π.IsCollider k` on the non-self-
+--   loop fragment of every walk — and on the self-loop fragment the
+--   side-aware reading is *strictly weaker* on the non-collider side
+--   (i.e. more positions classify as non-colliders).  Since this
+--   helper's conclusion is `HasBlockingLeftSlot k ∨ HasBlockingRightSlot
+--   k` (positive disjunction, monotone in the non-collider hypothesis),
+--   the side-aware reading preserves the implication: every position
+--   that the original classified as a non-collider stays a non-collider
+--   under the side-aware reading too, and on those positions the
+--   discharge via `outgoing_E_not_in_Sc hG _` carries over verbatim.
+--   At positions newly-classified as non-colliders under the side-
+--   aware reading (i.e. adjacent to a self-loop), the same discharge
+--   structure fires: the non-collider hypothesis still forces at least
+--   one walk-incident slot at v_k to host an outgoing directed edge
+--   `(v_k, w) ∈ E` (the source-side L-disjunct's negation tells us
+--   the `.forwardE _` slot encodes a real E-edge with v_k as tail,
+--   and acyclicity rules out `w ∈ G.Sc v_k`).
+private lemma refactor_blocking_interior_helper
+    {G : CDMG Node} (hG : G.IsAcyclic) :
+    ∀ {u v : Node} (π : Walk G u v) (k : ℕ),
+      1 ≤ k → k < π.length → ¬ π.refactor_IsCollider k →
+      π.HasBlockingLeftSlot k ∨ π.HasBlockingRightSlot k := by
+  intro u v π
+  induction π with
+  | nil v hv =>
+      intro k hk_pos hk_lt _
+      -- length (.nil _ _) = 0, so k < 0 is impossible.
+      simp [Walk.length] at hk_lt
+  | @cons uOuter wOuter vMid s₀ π_rest ih =>
+      intro k hk_pos hk_lt h_notCol
+      cases π_rest with
+      | nil v hv =>
+          -- Outer length = 1; combined with 1 ≤ k and k < 1 → impossible.
+          simp [Walk.length] at hk_lt
+          omega
+      | @cons _ _ vNext s₁ π_rest_rest =>
+          -- Substantive interior case: outer walk is cons-cons.
+          -- Outer cons-cell: source = uOuter, middle = vMid, terminus = wOuter
+          -- Inner cons-cell: source = vMid, middle = vNext, terminus = wOuter
+          match k, hk_pos, hk_lt, h_notCol with
+          | 0, hk_pos, _, _ => exact absurd hk_pos (by decide)
+          | 1, _, _, h_notCol =>
+              -- Position 1: read s₀ and s₁ off the head pair.
+              -- refactor_IsCollider at (cons vMid s₀ (cons _ s₁ _), 1)
+              -- = s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource.
+              have h_notBoth :
+                  ¬ (s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource) :=
+                h_notCol
+              rcases not_and_or.mp h_notBoth with h_n0 | h_n1
+              · -- ¬ s₀.refactor_HeadAtTarget → s₀ must be .backwardE.
+                cases s₀ with
+                | forwardE h =>
+                    -- refactor_HeadAtTarget on .forwardE _ reduces to True.
+                    exact absurd trivial h_n0
+                | backwardE h =>
+                    -- h : (vMid, uOuter) ∈ G.E.
+                    -- HasBlockingLeftSlot at (.cons vMid (.backwardE _) _, 1)
+                    -- = uOuter ∉ G.Sc vMid.
+                    refine Or.inl ?_
+                    change uOuter ∉ G.Sc vMid
+                    exact outgoing_E_not_in_Sc hG h
+                | bidir h =>
+                    -- refactor_HeadAtTarget on .bidir _ reduces to True.
+                    exact absurd trivial h_n0
+              · -- ¬ s₁.refactor_HeadAtSource → s₁ must be .forwardE.
+                cases s₁ with
+                | forwardE h =>
+                    -- h : (vMid, vNext) ∈ G.E.
+                    -- HasBlockingRightSlot at outer cons-cons-(k=1):
+                    -- recurses to (cons vNext (.forwardE _) _).HasBlockingRightSlot 0
+                    -- = vNext ∉ G.Sc vMid.
+                    refine Or.inr ?_
+                    -- The outer recursion at k+1 = 1 needs s₀ to be destructed before
+                    -- the matcher can route to the wildcard-cons cons-pattern.
+                    cases s₀ with
+                    | forwardE _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                    | backwardE _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                    | bidir _ =>
+                        change vNext ∉ G.Sc vMid
+                        exact outgoing_E_not_in_Sc hG h
+                | backwardE h =>
+                    -- refactor_HeadAtSource on .backwardE _ reduces to True.
+                    exact absurd trivial h_n1
+                | bidir h =>
+                    -- refactor_HeadAtSource on .bidir _ reduces to True.
+                    exact absurd trivial h_n1
+          | m + 2, _, hk_lt, h_notCol =>
+              -- Inductive step.  Outer walk is cons (vMid) s₀ tail
+              -- where tail = cons vNext s₁ π_rest_rest.  The recursion
+              -- equations:
+              --   refactor_IsCollider (cons _ _ p) (m + 2)
+              --     = p.refactor_IsCollider (m + 1)
+              --   HasBlockingLeftSlot (cons _ _ p) (m + 2)
+              --     = p.HasBlockingLeftSlot (m + 1)
+              --   HasBlockingRightSlot (cons _ _ p) (m + 2)
+              --     = p.HasBlockingRightSlot (m + 1)
+              -- bring the goal into the form of the inner walk at m + 1.
+              have h_notCol_inner :
+                  ¬ (Walk.cons vNext s₁ π_rest_rest).refactor_IsCollider (m + 1) := by
+                exact h_notCol
+              have hk_lt_inner :
+                  m + 1 < (Walk.cons vNext s₁ π_rest_rest).length := by
+                have hlen :
+                    (Walk.cons vMid s₀
+                      (Walk.cons vNext s₁ π_rest_rest)).length
+                       = (Walk.cons vNext s₁ π_rest_rest).length + 1 := rfl
+                omega
+              rcases ih (m + 1) (by omega) hk_lt_inner h_notCol_inner with hL | hR
+              · -- Lift HasBlockingLeftSlot from inner to outer via recursion eq.
+                -- The outer matcher needs s₀ destructed to route via cons-pattern.
+                refine Or.inl ?_
+                cases s₀ with
+                | forwardE _ => exact hL
+                | backwardE _ => exact hL
+                | bidir _ => exact hL
+              · -- Lift HasBlockingRightSlot from inner to outer via recursion eq.
+                refine Or.inr ?_
+                cases s₀ with
+                | forwardE _ => exact hR
+                | backwardE _ => exact hR
+                | bidir _ => exact hR
+-- REFACTOR-BLOCK-REPLACEMENT-END: blocking_interior_helper
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: acyclic_non_colliders_blockable
 set_option linter.style.longLine false in
 -- ## Design choice — acyclic_non_colliders_blockable
 --
@@ -362,6 +546,77 @@ theorem acyclic_non_colliders_blockable
   rcases blocking_interior_helper hG π k hk_pos hk_lt h_notCol with hL | hR
   · exact Or.inr (Or.inr (Or.inl hL))
   · exact Or.inr (Or.inr (Or.inr hR))
+-- REFACTOR-BLOCK-ORIGINAL-END: acyclic_non_colliders_blockable
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: acyclic_non_colliders_blockable (was: refactor_acyclic_non_colliders_blockable)
+set_option linter.style.longLine false in
+-- ## Design choice — refactor_acyclic_non_colliders_blockable
+--
+-- *Mechanical port of `acyclic_non_colliders_blockable` onto the
+--   `collider_side_aware` refactor.*  Statement signature retargets
+--   `π.IsNonCollider k → π.IsBlockableNonCollider k` to
+--   `π.refactor_IsNonCollider k → π.refactor_IsBlockableNonCollider k`.
+--   Body retargets the interior-case discharge from
+--   `blocking_interior_helper` to `refactor_blocking_interior_helper`
+--   (and the destructure of `h_nc` unpacks `refactor_IsNonCollider`'s
+--   `k ≤ π.length ∧ ¬ π.refactor_IsCollider k` shape).  All other
+--   structure — the `Case A: k = 0` / `Case B: k = π.length` /
+--   `Case C: interior` split, the disjunct routing via `Or.inl` /
+--   `Or.inr` / `Or.inr (Or.inl _)` / `Or.inr (Or.inr (Or.inl _))` /
+--   `Or.inr (Or.inr (Or.inr _))` — is byte-identical to the original.
+--
+-- *Why agreement-with-original on non-self-loop walks is automatic and
+--   the self-loop deviation does not break the proof.*  The LN-level
+--   mathematics of this claim (interior non-collider yields a blocking
+--   slot via acyclicity) operates purely on the LN's literal stored-
+--   pair / walk-constraint reading; neither leg of the argument
+--   inspects the head/tail attribution at a self-loop step.  See the
+--   design-choice block on `refactor_blocking_interior_helper` above
+--   for the detailed monotonicity argument.  The four-disjunct
+--   blockable conclusion is positive and monotone in the non-collider
+--   precondition; the side-aware reading only refines the precondition
+--   (more positions classify as non-colliders under the side-aware
+--   reading than under the original), so the implication carries over
+--   without modification at every position the side-aware reading
+--   classifies as a non-collider — including the newly-non-collider
+--   positions adjacent to a directed self-loop.
+--
+-- *Why `refactor_blocking_interior_helper` is invoked rather than the
+--   original `blocking_interior_helper`.*  Both helpers coexist in
+--   scope during the refactor window; the original takes a hypothesis
+--   `¬ π.IsCollider k`, the refactor takes `¬ π.refactor_IsCollider k`.
+--   The `h_notCol` extracted from the side-aware `refactor_IsNonCollider`
+--   hypothesis has the latter type, so it routes to the refactor
+--   helper directly.  After Phase 7 cleanup, the whole-word renames
+--   `refactor_IsCollider → IsCollider`, `refactor_IsNonCollider →
+--   IsNonCollider`, `refactor_IsBlockableNonCollider →
+--   IsBlockableNonCollider`, and `refactor_blocking_interior_helper →
+--   blocking_interior_helper` restore the body's surface form to its
+--   pre-refactor reading.
+-- ref: claim_3_20
+-- claim_3_20 -- start statement
+theorem refactor_acyclic_non_colliders_blockable
+    (G : CDMG Node) (hG : G.IsAcyclic)
+    {u v : Node} (π : Walk G u v) (k : ℕ) :
+    π.refactor_IsNonCollider k → π.refactor_IsBlockableNonCollider k
+-- claim_3_20 -- end statement
+:= by
+  intro h_nc
+  refine ⟨h_nc, ?_⟩
+  -- Case A — left end-position (k = 0).
+  by_cases h0 : k = 0
+  · exact Or.inl h0
+  -- Case B — right end-position (k = π.length).
+  by_cases hn : k = π.length
+  · exact Or.inr (Or.inl hn)
+  -- Case C — interior position (1 ≤ k ∧ k < π.length).
+  have hk_pos : 1 ≤ k := Nat.one_le_iff_ne_zero.mpr h0
+  obtain ⟨hk_le, h_notCol⟩ := h_nc
+  have hk_lt : k < π.length := lt_of_le_of_ne hk_le hn
+  rcases refactor_blocking_interior_helper hG π k hk_pos hk_lt h_notCol with hL | hR
+  · exact Or.inr (Or.inr (Or.inl hL))
+  · exact Or.inr (Or.inr (Or.inr hR))
+-- REFACTOR-BLOCK-REPLACEMENT-END: acyclic_non_colliders_blockable
 
 -- The pre-refactor proof of `acyclic_non_colliders_blockable` relied on
 -- four `Walk.*` helpers (`Walk.vertices_length_eq`,

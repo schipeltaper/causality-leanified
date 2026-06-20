@@ -1,0 +1,225 @@
+% Refactor twin of claim_3_20 -- "AcyclicNonCollidersBlockable".
+%
+% Refactor: `collider_side_aware`.  Roots of this refactor are
+% `def_3_15` (`CollidersAndNon.lean`); this row (`claim_3_20`) is a
+% DEPENDENT, pulled in because `def_3_15`'s Lean-side per-step
+% arrowhead-contribution predicate changed underneath it.  The
+% refactor replaces the node-equality reading
+% `WalkStep.IsInto : … → Node → Prop` with the side-aware
+% constructor-tag pair `refactor_HeadAtTarget` /
+% `refactor_HeadAtSource` (zero-arg, reading the WalkStep's
+% constructor tag plus type indices; an opposite-channel
+% `L`-disjunct re-fires at writing-mirror non-self-loop pairs so the
+% encoding still matches the LN's literal stored-pair
+% OR-of-channels test pointwise on every non-self-loop walk-step).
+% The manager-accepted deviation
+% `collider_side_aware_at_self_loops` (see
+% `leanification/deviations.json`) records the precise corner where
+% the side-aware reading strictly refines the literal stored-pair
+% reading: at a directed self-loop step `(v, v) \in E`, the
+% side-aware reading commits to "arrowhead at the walk-traversal
+% target end only, tail at the source end", preserved verbatim by
+% the `hL_irrefl` field of `def_3_1` ruling out
+% `s(v, v) \in L` and hence the L-disjunct re-firing at the
+% self-loop.
+%
+% The LN-level mathematics of this claim -- the implication
+% "non-collider on \pi implies blockable non-collider on \pi", under
+% acyclicity of G -- is **unchanged** by `collider_side_aware`.  The
+% refactor is purely a Lean-side encoding choice for the per-step
+% predicate "edge into v_k"; the LN-prose proof below operates on
+% the LN's literal stored-pair / walk-constraint reading directly,
+% which is the surface the side-aware reading still agrees with on
+% every walk that traverses no directed self-loop step.  At a
+% directed self-loop step the deviation is invisible to this
+% particular proof, because the proof never extracts an arrowhead
+% from a self-loop step: it only argues that the non-collider
+% hypothesis forces at least one walk-incident slot at v_k to host
+% an outgoing directed edge `(v_k, w) \in E`, and that under
+% acyclicity, `w \notin Sc^G(v_k)` (a contradiction with
+% `def_3_5`'s `\Anc \cap \Desc` reading otherwise yielding a
+% non-trivial directed walk from v_k to itself).  Neither leg of
+% the argument inspects the head/tail attribution at a self-loop
+% step; the proof body is therefore byte-for-byte identical to the
+% canonical original
+% (`claim_3_20_proof_AcyclicNonCollidersBlockable.tex`, itself a
+% twin from the previous `cdmg_typed_edges` refactor whose
+% mathematical content already establishes the LN claim).
+%
+% Twin of `claim_3_20_proof_AcyclicNonCollidersBlockable.tex`; the
+% original proof stays in place untouched until the Phase 7 cleanup
+% of `collider_side_aware` swaps this twin over the original.
+% Statement block is synced verbatim from the canonical statement
+% file `claim_3_20_statement_AcyclicNonCollidersBlockable.tex` --
+% the claim is unchanged by the refactor.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_20 (refactor twin proof, with statement restated for readability)
+% title: AcyclicNonCollidersBlockable
+\def\rowref{claim\_3\_20}
+\phantomsection\label{claim_3_20}
+
+% --- statement (restated, synced verbatim from
+% --- claim_3_20_statement_AcyclicNonCollidersBlockable.tex) ----------------
+\begin{Rem}[AcyclicNonCollidersBlockable]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}) and suppose $G$ is acyclic in the sense of def \ref{def-acylic}. Then, for every integer $n \ge 0$, every walk
+    \[
+        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    in $G$ in the sense of def \ref{def:walks}, item~i.\ (so $v_0, \dots, v_n \in J \cup V$, $a_0, \dots, a_{n-1} \in E \cup L$, and the walk constraint
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\lor\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr)
+    \]
+    holds at every $k \in \{0, 1, \dots, n - 1\}$), and every position $k \in \{0, 1, \dots, n\}$, the following implication holds:
+    \[
+        \bigl(\text{$k$ is a non-collider on $\pi$ per def \ref{def:collider_noncollider}, item~i.}\bigr)
+        \;\implies\;
+        \bigl(\text{$k$ is a blockable non-collider on $\pi$ per def \ref{def:unblockable_noncollider}}\bigr).
+    \]
+\end{Rem}
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+% Constructive proof targeting the refactored "blockable" disjunction
+% characterisation of def \ref{def:unblockable_noncollider}'s
+% "Blockable non-collider on \pi" paragraph: end-position, OR outgoing
+% walk-edge at slot k - 1 to a non-Sc node, OR outgoing walk-edge at
+% slot k to a non-Sc node.  Step C.1 reuses Step 2.1 of
+% claim_3_20_proof_AcyclicNonCollidersBlockable.tex (deriving an
+% outgoing walk-edge of v_k from the non-collider count); Step C.3
+% reuses Steps 2.3-2.5 of that original proof (the cycle
+% construction), now in service of v_{k \pm 1} \notin \Sc^G(v_k)
+% rather than False.
+Fix $n \ge 0$, a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ (def \ref{def:walks}, item~i.), and a position $k \in \{0, 1, \dots, n\}$. Suppose $k$ is a non-collider on $\pi$ (def \ref{def:collider_noncollider}, item~i.). We must show $k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider}, namely:
+\begin{itemize}
+    \item[(B1)] $k$ is a non-collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~i.; AND
+    \item[(B2)] the blockable disjunction of def \ref{def:unblockable_noncollider} holds at $k$ on $\pi$:
+        \[
+            k \in \{0, n\}
+            \;\;\lor\;\;
+            \bigl(a_{k-1} = (v_k, v_{k-1}) \in E \;\land\; v_{k-1} \notin \Sc^G(v_k)\bigr)
+            \;\;\lor\;\;
+            \bigl(a_k = (v_k, v_{k+1}) \in E \;\land\; v_{k+1} \notin \Sc^G(v_k)\bigr).
+        \]
+\end{itemize}
+Clause (B1) is the hypothesis. It remains to establish clause (B2). We split on the position $k$ along $\pi$.
+
+\medskip\noindent\textbf{Case A -- left end-position ($k = 0$).}
+The first disjunct of (B2) (namely $k \in \{0, n\}$) holds directly with the $k = 0$ branch. Hence (B2).
+
+\medskip\noindent\textbf{Case B -- right end-position ($k = n$).}
+The first disjunct of (B2) holds directly with the $k = n$ branch. Hence (B2).
+
+\medskip\noindent\textbf{Case C -- interior position ($1 \le k \le n - 1$).}
+Neither end-position disjunct of (B2) fires (since $k \notin \{0, n\}$), so we must establish one of the two existential disjuncts. We do so constructively: we extract from the non-collider hypothesis an outgoing walk-edge of $v_k$ at slot $i^* \in \{k - 1, k\}$, derive that its other endpoint along $\pi$ lies outside $\Sc^G(v_k)$ by an acyclicity argument, and plug both into the matching disjunct.
+
+\smallskip\noindent\emph{Step C.1 -- the non-collider hypothesis yields an outgoing walk-edge of $v_k$.}
+(Reused with light editing from Step~2.1 of the original proof
+\texttt{claim\_3\_20\_proof\_AcyclicNonCollidersBlockable.tex}.) Since $k$ is a non-collider on $\pi$, def \ref{def:collider_noncollider}, item~i.\ gives $\mathrm{ah}_\pi(k) \le 1$, where
+\[
+    \mathrm{ah}_\pi(k) = \Bigl|\Bigl\{\, i \in \{k - 1, k\} \,\Bigm|\, 0 \le i \le n - 1 \,\land\, a_i \text{ is an edge into } v_k \text{ in } G \,\Bigr\}\Bigr|.
+\]
+Since $1 \le k \le n - 1$, both indices $i \in \{k - 1, k\}$ are admissible (they satisfy $0 \le i \le n - 1$), so the index set defining $\mathrm{ah}_\pi(k)$ is $\{k - 1, k\}$ and $|\{k - 1, k\}| = 2$. Hence $\mathrm{ah}_\pi(k) \le 1$ means at least one of the two walk-incident edges $a_{k - 1}, a_k$ is \emph{not} an edge into $v_k$ in the sense of def \ref{def-edge-relations}, item~ii.
+
+We expand what ``not an edge into $v_k$'' forces on each walk-incident edge using the walk constraint of def \ref{def:walks}, item~i.\ (recalled in the statement above). For each admissible index $i \in \{k - 1, k\}$, the walk constraint at $i$ states
+\[
+    \bigl(a_i = (v_i, v_{i+1}) \;\land\; a_i \in E \cup L\bigr)
+        \;\lor\;
+    \bigl(a_i = (v_{i+1}, v_i) \;\land\; a_i \in E\bigr),
+\]
+so $a_i$ is one of three configurations:
+\begin{itemize}
+    \item[(C1)] $a_i = (v_i, v_{i+1}) \in E$ (a directed edge from $v_i$ to $v_{i+1}$);
+    \item[(C2)] $a_i = (v_i, v_{i+1}) \in L$ (a bidirected edge with the ordered-pair writing $(v_i, v_{i+1})$);
+    \item[(C3)] $a_i = (v_{i+1}, v_i) \in E$ (a directed edge from $v_{i+1}$ to $v_i$).
+\end{itemize}
+Applying the ``edge into $v_k$'' predicate of def \ref{def-edge-relations}, item~ii.\ ($a_i \in E$ with second coordinate $v_k$, or $a_i \in L$ with either coordinate $v_k$) to each configuration at slot $i \in \{k - 1, k\}$:
+\begin{itemize}
+    \item For \emph{slot $i = k - 1$} ($v_i = v_{k - 1}, v_{i+1} = v_k$):
+    \begin{itemize}
+        \item (C1) $a_{k-1} = (v_{k-1}, v_k) \in E$: into $v_k$ (the $E$-clause fires, $e_2 = v_k$).
+        \item (C2) $a_{k-1} = (v_{k-1}, v_k) \in L$: into $v_k$ (the $L$-clause fires, $e_2 = v_k$).
+        \item (C3) $a_{k-1} = (v_k, v_{k-1}) \in E$: \emph{not} into $v_k$ (the $E$-clause requires $e_2 = v_k$, but $e_2 = v_{k-1}$; and the $L$-clause is excluded since $a_{k-1} \in E$). This is the only configuration at slot $k - 1$ for which $a_{k - 1}$ fails the ``edge into $v_k$'' predicate.
+    \end{itemize}
+    \item For \emph{slot $i = k$} ($v_i = v_k, v_{i+1} = v_{k+1}$):
+    \begin{itemize}
+        \item (C1) $a_k = (v_k, v_{k+1}) \in E$: \emph{not} into $v_k$ (the $E$-clause requires $e_2 = v_k$, but $e_2 = v_{k+1}$; and the $L$-clause is excluded since $a_k \in E$). This is the only configuration at slot $k$ for which $a_k$ fails the ``edge into $v_k$'' predicate.
+        \item (C2) $a_k = (v_k, v_{k+1}) \in L$: into $v_k$ (the $L$-clause fires, $e_1 = v_k$).
+        \item (C3) $a_k = (v_{k+1}, v_k) \in E$: into $v_k$ (the $E$-clause fires, $e_2 = v_k$).
+    \end{itemize}
+\end{itemize}
+In summary, an admissible slot $i \in \{k - 1, k\}$ has $a_i$ \emph{not} an edge into $v_k$ \emph{iff} either
+\[
+    i = k - 1 \;\text{and}\; a_{k - 1} = (v_k, v_{k - 1}) \in E,
+    \qquad\text{or}\qquad
+    i = k \;\text{and}\; a_k = (v_k, v_{k + 1}) \in E.
+\]
+By the previous paragraph, the non-collider hypothesis forces at least one such slot to occur. We capture this in a single statement: there exists a slot $i^* \in \{k - 1, k\}$ at which $a_{i^*}$ is an \emph{outgoing walk-edge of $v_k$ at position $k$ on $\pi$} in the sense of def \ref{def:unblockable_noncollider} (the predicate ``$a_i \in E \land e_1 = v_k$''), with the two sub-cases:
+\begin{itemize}
+    \item[(O1)] $i^* = k - 1$ with $a_{k - 1} = (v_k, v_{k - 1}) \in E$ -- the other endpoint of $a_{k - 1}$ along $\pi$ is $v_{k - 1}$;
+    \item[(O2)] $i^* = k$ with $a_k = (v_k, v_{k + 1}) \in E$ -- the other endpoint of $a_k$ along $\pi$ is $v_{k + 1}$.
+\end{itemize}
+(Both sub-cases may simultaneously hold -- corresponding to the ``fork'' pattern -- but the argument below requires only that at least one slot $i^*$ exists; we may pick either when both hold, since the resulting witness goes into the matching disjunct of (B2).)
+
+Fix such a slot $i^* \in \{k - 1, k\}$ for the rest of Case~C, and write
+\[
+    w \;:=\; v_{k - 1} \text{ if } i^* = k - 1, \qquad w \;:=\; v_{k + 1} \text{ if } i^* = k.
+\]
+By the case description, $w \in J \cup V$ (it is one of the walk's vertices) and the single directed edge
+\[
+    (v_k, w) \;\in\; E
+\]
+is on the graph $G$ (it is the walk-edge $a_{i^*}$ written with $v_k$ as tail).
+
+\smallskip\noindent\emph{Step C.2 -- the other endpoint $w$ lies outside $\Sc^G(v_k)$.}
+We claim
+\[
+    w \;\notin\; \Sc^G(v_k).
+\]
+Suppose, toward contradiction, that $w \in \Sc^G(v_k)$. We derive a non-trivial directed walk from $v_k$ to itself in $G$, contradicting def \ref{def-acylic}.
+
+\smallskip\noindent\emph{Step C.2.a -- $w \in \Sc^G(v_k)$ supplies a directed walk from $w$ to $v_k$.}
+(Reused from Step~2.3 of the original proof.) By def \ref{def_3_5}, item~vii.,
+\[
+    \Sc^G(v_k) \;=\; \Anc^G(v_k) \,\cap\, \Desc^G(v_k),
+\]
+so $w \in \Sc^G(v_k)$ entails $w \in \Anc^G(v_k)$. By def \ref{def_3_5}, item~iv., $w \in \Anc^G(v_k)$ means there exists a directed walk $\rho$ from $w$ to $v_k$ in $G$ in the sense of def \ref{def:walks}, item~ii.\ -- a tuple
+\[
+    \rho \;=\; (w = u_0, b_0, u_1, b_1, \dots, u_{m-1}, b_{m-1}, u_m = v_k)
+\]
+for some $m \ge 0$, with each $b_j = (u_j, u_{j+1}) \in E$ pointing forward along $\rho$ from $u_j$ to $u_{j+1}$.
+
+\smallskip\noindent\emph{Step C.2.b -- concatenating the single edge $(v_k, w) \in E$ with $\rho$ yields a non-trivial directed walk from $v_k$ to itself.}
+(Reused from Step~2.4 of the original proof.) We assemble the directed walk
+\[
+    \widetilde{\rho} \;:=\; (v_k, \;(v_k, w), \;w = u_0, \;b_0, \;u_1, \;b_1, \;\dots, \;u_{m-1}, \;b_{m-1}, \;u_m = v_k).
+\]
+That is, prepend the node $v_k$ and the edge $(v_k, w) \in E$ to $\rho$. We verify that $\widetilde{\rho}$ is a directed walk from $v_k$ to itself in the sense of def \ref{def:walks}, item~ii.
+\begin{itemize}
+    \item \emph{Node and edge typing.} The nodes of $\widetilde{\rho}$ are $v_k, w = u_0, u_1, \dots, u_m = v_k$, all in $J \cup V$ ($v_k$ from the walk $\pi$, the $u_j$ from $\rho$). The edges are $(v_k, w)$ followed by $b_0, b_1, \dots, b_{m-1}$, all in $E$ ($(v_k, w) \in E$ from Step~C.1, the $b_j \in E$ from $\rho$).
+    \item \emph{Length.} The length of $\widetilde{\rho}$, counted by the number of edges, is $1 + m$, where $m \ge 0$. Hence $1 + m \ge 1$, so $\widetilde{\rho}$ is a non-trivial walk (its length is at least~$1$, i.e.\ it has at least one edge).
+    \item \emph{Endpoints.} The first node of $\widetilde{\rho}$ is $v_k$ (by construction), and the last node is $u_m = v_k$ (the terminus of $\rho$). So $\widetilde{\rho}$ starts and ends at $v_k$.
+    \item \emph{Directed-walk shape.} Per def \ref{def:walks}, item~ii., a directed walk has all its edges of the form ``forward'' $(u_j, u_{j+1}) \in E$ at each successive slot, with arrowheads consistently pointing forward. The first edge of $\widetilde{\rho}$ is $(v_k, w) \in E$, fitting the slot writing $(\text{first node}, \text{second node}) = (v_k, w)$ in $E$; the subsequent edges $b_0, b_1, \dots, b_{m-1}$ are the directed-walk edges of $\rho$, hence fit the same forward-slot writing relative to $\rho$'s nodes; and the join between $(v_k, w)$ and $\rho$ at the node $w = u_0$ is consistent (the head of $(v_k, w)$ equals the start of $\rho$). All arrowheads point forward (from $v_k$ to $w$, then from $u_0$ through to $u_m$); no arrowhead points backward. Hence $\widetilde{\rho}$ has the directed-walk shape of def \ref{def:walks}, item~ii.
+\end{itemize}
+Therefore $\widetilde{\rho}$ is a directed walk from $v_k$ to $v_k$ in $G$ of length at least~$1$ -- equivalently, a \emph{non-trivial} directed walk from $v_k$ to itself in $G$.
+
+\smallskip\noindent\emph{Step C.2.c -- contradiction with acyclicity.}
+By def \ref{def-acylic}, $G$ acyclic asserts that no non-trivial directed walk from any node to itself exists in $G$. But Step~C.2.b has constructed exactly such a walk $\widetilde{\rho}$ at the node $v_k \in J \cup V$. Contradiction. Hence the assumption $w \in \Sc^G(v_k)$ is false, so $w \notin \Sc^G(v_k)$, as claimed.
+
+\smallskip\noindent\emph{Step C.3 -- assemble the disjunction witness.}
+We now combine the directed-edge fact $(v_k, w) \in E$ from Step~C.1 with $w \notin \Sc^G(v_k)$ from Step~C.2, splitting on the two sub-cases of $i^*$ from Step~C.1:
+\begin{itemize}
+    \item \emph{Sub-case~(O1)} ($i^* = k - 1$, $w = v_{k - 1}$): we have $a_{k - 1} = (v_k, v_{k - 1}) \in E$ and $v_{k - 1} \notin \Sc^G(v_k)$. This is exactly the second disjunct of (B2). Hence (B2).
+    \item \emph{Sub-case~(O2)} ($i^* = k$, $w = v_{k + 1}$): we have $a_k = (v_k, v_{k + 1}) \in E$ and $v_{k + 1} \notin \Sc^G(v_k)$. This is exactly the third disjunct of (B2). Hence (B2).
+\end{itemize}
+In both sub-cases of Case~C, (B2) is established.
+
+\medskip
+Across the three cases (left end-position, right end-position, interior), the hypothesis ``$k$ is a non-collider on $\pi$'' yields (B2) in each case. Combining (B1) (from the hypothesis) with (B2), $k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider}.
+\end{proof}
+
+\end{document}
