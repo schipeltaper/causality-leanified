@@ -49,6 +49,7 @@ Cell = `time_needed_to_solve` in seconds for that row in that iteration. Blank =
 | claim_3_24 | 3.3 | 0 |  |  |  |  |  |
 | claim_3_25 | 3.3 | 0 |  |  |  |  |  |
 | claim_3_26 | 3.3 | 0 |  |  |  |  |  |
+| **TOTAL** |  | **308820** | **7843** | **17959** | **12762** | **3436** | **189986** |
 
 ## Refactor iterations (chronological)
 

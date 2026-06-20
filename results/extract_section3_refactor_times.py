@@ -126,6 +126,12 @@ def main(sections) -> None:
     out_csv = REPO / "results" / f"section{secs_tag}_refactor_times.csv"
     out_md = REPO / "results" / f"section{secs_tag}_refactor_times.md"
 
+    # ---- column totals (blanks/None ignored) --------------------------
+    totals = {}
+    for c in ["initial"] + labels:
+        vals = [row.get(c) for row in table if row.get(c) is not None]
+        totals[c] = sum(vals)
+
     # ---- CSV ----------------------------------------------------------
     with out_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -134,6 +140,7 @@ def main(sections) -> None:
             w.writerow([row["ref"], row["section"]]
                        + [("" if row.get(c) is None else row.get(c))
                           for c in ["initial"] + labels])
+        w.writerow(["TOTAL", ""] + [totals[c] for c in ["initial"] + labels])
 
     # ---- Markdown -----------------------------------------------------
     def cell(v):
@@ -161,6 +168,12 @@ def main(sections) -> None:
         for rf in refactors:
             cells.append(cell(row.get(rf["label"])))
         lines.append("| " + " | ".join(cells) + " |")
+
+    # totals row
+    tcells = ["**TOTAL**", ""]
+    for c in ["initial"] + labels:
+        tcells.append(f"**{totals[c]}**")
+    lines.append("| " + " | ".join(tcells) + " |")
 
     lines += ["", "## Refactor iterations (chronological)", "",
               "| iter | refactor | created_at | folder |",
