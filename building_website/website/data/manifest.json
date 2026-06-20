@@ -295,7 +295,14 @@
               "kind": "claim",
               "label": "claim 3.22 — SigmaSeparationSymmetric",
               "title": "SigmaSeparationSymmetric",
-              "available": false
+              "available": true
+            },
+            {
+              "ref": "claim_3_27",
+              "kind": "claim",
+              "label": "claim 3.27 — LabelRoman",
+              "title": "LabelRoman",
+              "available": true
             },
             {
               "ref": "claim_3_23",
@@ -323,13 +330,6 @@
               "kind": "claim",
               "label": "claim 3.26 — IdSeparation",
               "title": "IdSeparation",
-              "available": false
-            },
-            {
-              "ref": "claim_3_27",
-              "kind": "claim",
-              "label": "claim 3.27 — LabelRoman",
-              "title": "LabelRoman",
               "available": false
             }
           ]

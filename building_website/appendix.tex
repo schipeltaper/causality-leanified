@@ -2286,3 +2286,129 @@ def IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
 % NOTES-END def_3_18
 \vspace{\appendixNotesGap}
 %% ROW-END def_3_18
+
+%% ROW-BEGIN claim_3_22
+\noindent\textbf{Claim: $\sigma$-separation is symmetric}\par\smallskip
+{\appendixTexSize
+% ref: claim_3_22 (statement)
+% title: SigmaSeparationSymmetric
+\def\rowref{claim\_3\_22}
+\phantomsection\label{claim_3_22}
+
+\begin{Lem}[$\sigma$-separation is symmetric]\label{lem:sigma_separation_symmetric}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definition of def \ref{def:walks}, item~i., the $\sigma$-blocking predicate (``$\pi$ is $C$-$\sigma$-blocked'') of def \ref{def:sigma_blocking}, and the $i\sigma$-/$\sigma$-separation predicates of def \ref{def:sigma_separation}. Suppose
+    \[
+        J = \emptyset,
+    \]
+    so that, by def \ref{def:sigma_separation}, item~4, the $\sigma$-separation abbreviation
+    \[
+        A \sPerp_G B \given C \;\; := \;\; A \isPerp_G B \given C
+    \]
+    is in scope (and, as recorded there, $A \sPerp_G B \given C$ unfolds under $J = \emptyset$ to: for every integer $n \ge 0$ and every walk $\pi = (v_0, a_0, v_1, \dots, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 \in A$ and $v_n \in B$, the walk $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking}).
+    Let $A, B, C \ins V$ be subsets of nodes --- equivalently $A, B, C \ins J \cup V$, since $J = \emptyset$; $A$, $B$, $C$ are \emph{not} assumed to be pairwise disjoint, nor non-empty.
+
+    Then $\sigma$-separation in $G$ is symmetric in its first two arguments:
+    \[
+        A \sPerp_G B \given C \iff B \sPerp_G A \given C.
+    \]
+\end{Lem}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem sigma_separation_symmetric
+    (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V)
+    (hC : C ⊆ ↑G.J ∪ ↑G.V) :
+    G.IsSigmaSeparated hJ A B C hA hB hC ↔
+      G.IsSigmaSeparated hJ B A C hB hA hC
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_22
+
+% NOTES-END claim_3_22
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_22
+
+%% ROW-BEGIN claim_3_27
+\noindent\textbf{Claim: LabelRoman}\par\smallskip
+{\appendixTexSize
+\label{lem:replace_walk}
+Let $G=(J,V,E,L)$ be a CDMG, $C \subseteq V \cup J$ and $\pi = \lp  v_0 \sus \cdots \sus v_n \rp$ be a $C$-$\sigma$-open walk in $G$.
+  Suppose $v_i \in \Sc^G(v_j)$ for some $i,j \in \{0,\dots,n\}$ with $i < j$.
+If we then replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by 
+  \begin{enumerate}[label=(\roman*)]
+      \item a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ if $j = n$ or if $v_j \tuh v_{j+1}$ on $\pi$, or 
+    \item a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ otherwise,
+  \end{enumerate}
+  then this new subwalk is entirely within $\Sc^G(v_j)$ and the modified walk $\pi'$ is still $C$-$\sigma$-open.
+\begin{proof}
+$\pi'$ cannot become $C$-$\sigma$-blocked at one of the initial nodes $v_0, \dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \dots, v_n$ on $\pi'$, since these nodes occur in the same local configuration on $\pi$ and are not $C$-$\sigma$-blocked on $\pi$ by assumption.
+Furthermore, $\pi'$ cannot become $C$-$\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\Sc^G(v_j)$. It is also worth noting that $\pi'$ cannot become $C$-$\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\pi$. So in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$.
+
+Case (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\pi$ that is $C$-$\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\pi'$ it remains $C$-$\sigma$-open on $\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$ (if $v_i$ is the left endnode or not). If $v_i \neq v_j$, then the new directed path $v_i \tuh \cdots \tuh v_j$ in $\pi'$ is $C$-$\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).
+
+ Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \hus v_{j+1}$ in $\pi$. 
+ If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). 
+ So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$. So $\pi$ looks as follows:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \sus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ So there must be a smallest number $k \in \lC i,\dots,j\rC$ such that a collider appears at $v_k$ on $\pi$:
+ \[\pi:\qquad \cdots v_{i-1} \suh v_i \tuh \cdots \tuh v_k \hus \cdots \sus v_j \hus v_{j+1} \cdots. \]
+ Since $\pi$ is $C$-$\sigma$-open we have $v_k \in \Anc^G(C)$. Since $v_i \in \Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \in \Anc^G(C)$.
+ So if we replace the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by the shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ we then get for $\pi'$ the following situation:
+ \[\pi':\qquad \cdots v_{i-1} \suh v_i \hut \cdots \hut  v_j \hus v_{j+1} \cdots, \]
+ which is then $C$-$\sigma$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i=v_j$.
+ If $v_i \neq v_j$ then $v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. 
+
+ So in all cases $\pi'$ stays $C$-$\sigma$-open.
+\end{proof}
+\par}
+\smallskip
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+variable {Node : Type*} [DecidableEq Node]
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def Walk.replaceWalkCaseI {G : CDMG Node} :
+    ∀ {u v : Node}, Walk G u v → ℕ → Prop
+  | _, _, .nil _ _, 0 => True
+  | _, _, .nil _ _, _ + 1 => False
+  | _, _, .cons _ (.forwardE _) _, 0 => True
+  | _, _, .cons _ (.backwardE _) _, 0 => False
+  | _, _, .cons _ (.bidir _) _, 0 => False
+  | _, _, .cons _ _ p, j + 1 => p.replaceWalkCaseI j
+\end{minted}
+{\small\textit{main}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+theorem not_replace_walk :
+    ∃ (Node : Type) (_inst : DecidableEq Node) (G : CDMG Node)
+      (C : Set Node) (hC : C ⊆ ↑G.J ∪ ↑G.V) (u w : Node)
+      (π : Walk G u w) (hπ : π.IsSigmaOpenGiven C hC)
+      (i j : ℕ) (hij : i < j) (hjn : j ≤ π.length)
+      (v_i v_j : Node)
+      (h_get_i : π.vertices[i]? = some v_i)
+      (h_get_j : π.vertices[j]? = some v_j)
+      (h_Sc : v_i ∈ G.Sc v_j)
+      (σ_ij : Walk G v_i v_j) (π' : Walk G u w),
+      (π.replaceWalkCaseI j →
+         σ_ij.IsDirectedWalk ∧
+         (∀ τ : Walk G v_i v_j, τ.IsDirectedWalk → σ_ij.length ≤ τ.length)) ∧
+      (¬ π.replaceWalkCaseI j →
+         σ_ij.reverse.IsDirectedWalk ∧
+         (∀ τ : Walk G v_j v_i, τ.IsDirectedWalk → σ_ij.reverse.length ≤ τ.length)) ∧
+      (∀ x ∈ σ_ij.vertices, x ∈ G.Sc v_j) ∧
+      π'.vertices = (π.vertices.take (i + 1)).dropLast ++ σ_ij.vertices ++
+          π.vertices.drop (j + 1) ∧
+      ¬ π'.IsSigmaOpenGiven C hC
+\end{minted}
+\smallskip{\small\textit{Notes:}}~%
+% NOTES-BEGIN claim_3_27
+
+% NOTES-END claim_3_27
+\vspace{\appendixNotesGap}
+%% ROW-END claim_3_27
