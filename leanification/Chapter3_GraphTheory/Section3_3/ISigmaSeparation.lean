@@ -128,6 +128,7 @@ namespace CDMG
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_18 --- end helper
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsISigmaSeparated
 -- ref: def_3_18 (item 1) — refactor
 --
 -- `G.IsISigmaSeparated A B C hA hB hC` iff every walk
@@ -431,7 +432,325 @@ def IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
   ∀ {u v : Node} (π : Walk G u v),
       u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.IsSigmaBlockedGiven C hC
 -- def_3_18 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsISigmaSeparated
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsISigmaSeparated (was: refactor_IsISigmaSeparated)
+-- ref: def_3_18 (item 1) — side-aware refactor (`collider_side_aware`).
+--
+-- `G.refactor_IsISigmaSeparated A B C hA hB hC` iff every walk
+-- `π : Walk G u v` with `u ∈ A` and `v ∈ J ∪ B` is `C`-σ-blocked in
+-- the sense of `def_3_17`'s side-aware `refactor_IsSigmaBlockedGiven`.
+-- This is the LN's `A \isPerp_G B \given C` ported against the side-
+-- aware refactor's upstream classifier chain.  Body identical to the
+-- original `IsISigmaSeparated` (ORIGINAL block above) modulo a single
+-- mechanical upstream retarget:
+-- - `π.IsSigmaBlockedGiven C hC` → `π.refactor_IsSigmaBlockedGiven C hC`
+--   (`SigmaBlockedWalks.lean` REPLACEMENT block at lines 709-886).
+-- The universal-over-walks shape, the asymmetric J-inclusion on the
+-- right endpoint (`v ∈ (G.J : Set Node) ∪ B`), the three subset
+-- hypotheses `(hA hB hC)`, the `set_option linter.unusedVariables
+-- false in` prefix, and every design pillar from the ORIGINAL block
+-- carry through verbatim — only the single forwarded reference
+-- retargets.
+--
+-- *Upstream-retarget deltas for this REPLACEMENT (self-contained
+-- record).*  One mechanical retarget propagates into the body
+-- relative to the pre-refactor encoding:
+-- - `π.IsSigmaBlockedGiven C hC` → `π.refactor_IsSigmaBlockedGiven C hC`
+--   (`def_3_17`'s side-aware refactor; `SigmaBlockedWalks.lean`
+--   REPLACEMENT block).  The signature byte-shape of σ-blocked is
+--   unchanged (same `{u v : Node} (p : Walk G u v) (C : Set Node)
+--   (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop` binders); only the body retargets
+--   `p.IsCollider k` → `p.refactor_IsCollider k` and
+--   `p.IsBlockableNonCollider k` → `p.refactor_IsBlockableNonCollider k`
+--   inside the existential disjunction, propagating the side-aware
+--   per-position classification reading through σ-blocked to here.
+--   Everything else in this def's body — the universal quantifier
+--   over walks, the endpoint-membership premises, the set-union
+--   `J ∪ B` on the right, the dot-notation call to σ-blocked — is
+--   byte-identical to the ORIGINAL.
+--
+-- ## Design choice — refactor_IsISigmaSeparated
+--
+-- *DEPENDENT row, not a root.*  This row's `Prop`-level shape
+--   (universal over walks with endpoint-membership premises) does NOT
+--   commit on its own to any particular reading of per-position
+--   arrowhead-presence — it merely quantifies over whichever upstream
+--   `π.refactor_IsSigmaBlockedGiven` predicate the body forwards to.
+--   The `collider_side_aware` refactor's load-bearing design choice
+--   (reading arrowhead-presence off the `WalkStep`'s *constructor
+--   tag* via `refactor_HeadAtSource` / `refactor_HeadAtTarget`
+--   rather than via a node-equality test on shared source/target
+--   type indices at a self-loop) is encapsulated entirely in
+--   `def_3_15`'s row.  This row is pulled into the refactor table as
+--   a DEPENDENT, not as a root: its OWN shape needs no revision;
+--   only its single classifier-reference must retarget to the side-
+--   aware partner for the side-aware semantics to propagate from
+--   `def_3_15` through `def_3_17` to here.  Mechanical port suffices.
+--   Cf. `refactor_IsSigmaBlockedGiven`'s DEPENDENT-framing block
+--   (`SigmaBlockedWalks.lean:733-749`) — that is the canonical
+--   template this design block mirrors, lifted from the per-walk
+--   blocking predicate to the universal-over-walks σ-separation
+--   predicate.
+--
+-- *Why the refactor needs to touch this predicate.*  Mechanically
+--   only, not semantically.  One upstream classifier referenced in
+--   the body has itself been refactored under `collider_side_aware`:
+--   `def_3_17`'s `IsSigmaBlockedGiven` is replaced by the side-aware
+--   `refactor_IsSigmaBlockedGiven` (whose body retargets to
+--   `p.refactor_IsCollider k` / `p.refactor_IsBlockableNonCollider k`,
+--   propagating the side-aware per-position classification reading
+--   through σ-blocked from `def_3_15` / `def_3_16`'s side-aware
+--   classifiers).  σ-separation's body needs to reference the side-
+--   aware partner; otherwise the unqualified dot-notation resolves
+--   to the ORIGINAL non-side-aware def during the refactor window
+--   (see the name-shadowing bullet below).  This row carries NO
+--   head-contribution logic of its own; the side-aware reading is
+--   implemented entirely at `def_3_15`'s row in the helpers
+--   `refactor_HeadAtSource` / `refactor_HeadAtTarget` and propagates
+--   through `refactor_IsCollider` / `refactor_IsNonCollider` /
+--   `refactor_IsBlockableNonCollider` /
+--   `refactor_IsSigmaBlockedGiven` to σ-separation here purely via
+--   the single retargeted reference.  Cf.
+--   `refactor_IsSigmaBlockedGiven`'s mechanical-retarget block
+--   (`SigmaBlockedWalks.lean:751-764`) for the canonical template.
+--
+-- *Agreement on non-self-loop walks; strict refinement at self-loops.*
+--   On every walk that does NOT traverse a directed self-loop step,
+--   the side-aware classifier `refactor_IsSigmaBlockedGiven` agrees
+--   pointwise with the ORIGINAL `IsSigmaBlockedGiven` (see
+--   `SigmaBlockedWalks.lean`'s `refactor_IsSigmaBlockedGiven` design
+--   block, "Agreement on non-self-loop walks; strict refinement of
+--   the blocking-witness set at self-loops").  Composing pointwise:
+--   the universal-over-walks `refactor_IsISigmaSeparated A B C hA hB
+--   hC` holds iff the original `IsISigmaSeparated A B C hA hB hC`
+--   holds, on every CDMG `G` whose walks from `A` to `J ∪ B` do not
+--   traverse any directed self-loop step.  The side-aware encoding's
+--   effect is *localised* to CDMGs admitting such walks, where the
+--   manager-accepted deviation `collider_side_aware_at_self_loops`
+--   from `leanification/deviations.json` propagates from the per-
+--   walk σ-blocked predicate to the universal-over-walks
+--   σ-separation predicate without any new code at this row.
+--   Concretely: on a walk `a → b → b` (the second step a directed
+--   self-loop at `b`), the ORIGINAL `IsSigmaBlockedGiven` could
+--   admit a *spurious* clause-(i) blocking witness from position `1`
+--   because the ORIGINAL `IsCollider`'s `IsInto` reading wrongly
+--   classified `1` as a collider (`u = v = b` collapse); the side-
+--   aware `refactor_IsSigmaBlockedGiven` does not admit this
+--   spurious witness because `refactor_IsCollider` does not fire at
+--   position `1`.  The σ-separation universal therefore *imposes
+--   fewer blocking-obligations* on such walks under the side-aware
+--   reading — exactly the canonical tex's "Treatment of directed
+--   self-loops" disambiguation, transported to the σ-separation
+--   level via this row's single mechanical retarget.
+--
+-- *Why the retarget to `refactor_IsSigmaBlockedGiven` is required
+--   during the refactor window.*  Both `Walk.IsSigmaBlockedGiven`
+--   (ORIGINAL block in `SigmaBlockedWalks.lean`) and
+--   `Walk.refactor_IsSigmaBlockedGiven` (REPLACEMENT block in
+--   `SigmaBlockedWalks.lean`) coexist in scope while the refactor is
+--   in flight.  The unqualified dot-notation `π.IsSigmaBlockedGiven`
+--   in the body would resolve to the ORIGINAL
+--   `Walk.IsSigmaBlockedGiven` (literal-name match wins over
+--   namespace lookup), pairing the side-aware σ-separation
+--   predicate's intended *blocking-obligation* with the *non-side-
+--   aware* ORIGINAL σ-blocked classifier — breaking the property
+--   the refactor exists to fix (the manager-accepted deviation
+--   `collider_side_aware_at_self_loops` from
+--   `leanification/deviations.json`).  Concretely: pairing the
+--   intended side-aware σ-separation with the ORIGINAL σ-blocked
+--   predicate would still admit the spurious clause-(i) blocking
+--   witness at a self-loop-adjacent position discussed above, so
+--   `π.IsSigmaBlockedGiven C hC` would fire on walks the side-aware
+--   reading does *not* require to be blocked — and the universal
+--   `refactor_IsISigmaSeparated` would be a weaker statement (more
+--   walks counted as blocked, hence more pairs `(A, B, C)` declared
+--   σ-separated) than the canonical tex commits to.  The REPLACEMENT
+--   body explicitly references `π.refactor_IsSigmaBlockedGiven`, so
+--   the chain (`refactor_IsCollider`, `refactor_IsNonCollider`,
+--   `refactor_IsBlockableNonCollider`,
+--   `refactor_IsSigmaBlockedGiven`, `refactor_IsISigmaSeparated`)
+--   forms the side-aware classification cascade pointwise on every
+--   walk and every position.  After Phase 7 cleanup, the whole-word
+--   renames collapse the body's surface form back to its pre-
+--   refactor reading `π.IsSigmaBlockedGiven C hC`, now resolving to
+--   the unique side-aware def (the ORIGINAL upstream blocks are
+--   deleted by the same cleanup pass).  Same name-shadowing argument
+--   used in `refactor_IsSigmaBlockedGiven`
+--   (`SigmaBlockedWalks.lean:820-835`).
+--
+-- *Shape unchanged from ORIGINAL.*  The universal-over-walks `Prop`-
+--   level shape, the LN-correspondence to "for every walk π" scope,
+--   the asymmetric J-inclusion on the right endpoint
+--   (`v ∈ (G.J : Set Node) ∪ B`), the `{u v : Node}` implicit-binder
+--   convention, the three subset hypotheses `(hA hB hC)` matching
+--   the chapter-wide convention, the `set_option
+--   linter.unusedVariables false in` prefix suppressing the unused-
+--   binder warning on the LN-faithful-but-body-inert `hA`/`hB`, and
+--   every design pillar from the ORIGINAL block (`Set Node`-valued
+--   subset arguments, `Walk.nil` admitted by the quantifier,
+--   wording-check subtleties for empty-B-non-vacuous and overlap-
+--   with-J-or-target-creates-self-walks) all carry through verbatim.
+--   Only the single classifier reference in the body retargets;
+--   everything else is byte-identical to the ORIGINAL.
+--
+-- *Flat `∀`-over-walks shape preserved through the refactor — NOT a
+--   quotient-by-reversal re-encoding.*  An alternative shape was
+--   considered and rejected: replace the universal over walks with
+--   an existential / universal over reversal-equivalence-classes of
+--   walks under the involution flagged by the operator-authored
+--   addition `[sigma_symmetry_claim_invokes_unstated_reversal_invariance]`.
+--   Three independent reasons rule this out at the σ-separation
+--   layer, all surfaced as PASS findings by the `review_design`
+--   verifier for this row:
+--   (a) The addition is BACKGROUND for the standalone σ-symmetry
+--   claim `claim_3_22` (`SigmaSeparationSymmetric`) and does NOT
+--   motivate a structural re-encoding here — `claim_3_22`'s
+--   `statement` + `proof` tex pair (`claim_3_22_*.tex`) is where the
+--   reversal-involution argument is *used*; this definition
+--   participates only by exposing a flat `∀`-walk shape that the
+--   symmetry claim's proof can transport across the involution.
+--   (b) Every downstream `A ⊥^iσ B | C` consumer (chapter 4+
+--   Markov-property, do-calculus, iSCM identification results, plus
+--   the σ-independence model / causal-relations / minimal-separating-
+--   sets infrastructure) pattern-matches on this def's flat `∀`-over-
+--   walks shape directly — never on an equivalence-class quotient,
+--   never on a structural recursion.  A quotient re-encoding would
+--   force every consumer to dispatch through a quotient lift
+--   (`Quot.mk` / `Quot.lift`) at each invocation, scrambling the
+--   1-to-1 LN-to-Lean correspondence the canonical tex commits to.
+--   (c) The asymmetric `J`-inclusion on the right endpoint
+--   (next bullet) would be *lost* under reversal-class collapse,
+--   because walk reversal swaps endpoints but `J` is not symmetric
+--   in `(u, v)`.  This is a logical incompatibility, not merely a
+--   stylistic preference: the load-bearing separoid alignment of the
+--   next bullet *cannot* survive a reversal-class quotient.
+--   All three reasons carry through verbatim under `collider_side_aware`;
+--   the mechanical port is the right port.
+--
+-- *Asymmetric `J`-inclusion on the right preserved verbatim through
+--   the refactor — LN footnote `fn:why-J` rationale unchanged.*  The
+--   right-endpoint constraint `v ∈ (G.J : Set Node) ∪ B` (rather
+--   than the symmetric `v ∈ B` reading standard in the d-separation
+--   literature) is the LN's deliberate, non-standard choice flagged
+--   in footnote `fn:why-J` of `graphs.tex
+--   \label{def:sigma_separation}` and quoted verbatim on the
+--   canonical tex's "Asymmetric inclusion of `J` on the right"
+--   paragraph.  The footnote's rationale: with `J` included on the
+--   right, the implied (asymmetric) separoid rules for
+--   `id`/`iσ`-separation match the corresponding rules for
+--   conditional independence under Markov kernels — directly
+--   payload-bearing for the separoid axiom "J-Inverted Right
+--   Decomposition" used in `scms4.tex` (PASS-flagged by the
+--   `review_design` verifier for this row as a load-bearing
+--   downstream consumer of this exact asymmetric reading).  The
+--   `collider_side_aware` refactor's encoding change is orthogonal:
+--   it only retargets the per-walk classifier
+--   (`IsSigmaBlockedGiven → refactor_IsSigmaBlockedGiven`), leaving
+--   the universal-over-walks scope, the endpoint-membership
+--   premises, and the `(G.J : Set Node) ∪ B` right-endpoint union
+--   byte-identical to the ORIGINAL.  The wording-check subtlety
+--   `empty_b_non_vacuous_when_j_nonempty` (surfaced by the LN-critic
+--   in the row's report) is the load-bearing corollary preserved
+--   through the refactor: `G.refactor_IsISigmaSeparated A ∅ C hA hB
+--   hC` is NOT vacuously true when `G.J ≠ ∅` — it literally asserts
+--   that every walk from `A` to the input nodes `J` is `C`-σ-blocked,
+--   a genuine condition.  Only at `J = ∅` (the σ-rename of item 4
+--   below, gated by `(hJ : G.J = ∅)`) does the right-endpoint
+--   constraint collapse to `v ∈ B` and recover the usual
+--   "separation from the empty set is vacuous" reading; the
+--   iσ-layer retains the LN-faithful asymmetry under the refactor
+--   exactly as the ORIGINAL did.
+--
+-- ## Refactor-specific rationale
+--
+-- *Why this row did not re-design.*  The typed-WalkStep + side-
+--   aware-classifier encoding change is orthogonal to
+--   `IsISigmaSeparated`'s `Prop`-level shape (universal over walks
+--   with endpoint-membership premises).  The encoding change
+--   *strengthens* the per-walk predicate
+--   `refactor_IsSigmaBlockedGiven` that this def quantifies over —
+--   it now resolves the directed-self-loop ambiguity via the
+--   canonical side-aware reading — but does not motivate a re-design
+--   at the σ-separation layer.  Re-designing σ-separation here (e.g.
+--   as an existential over reversal-pair equivalence classes of
+--   walks, or as a structural recursion on the typed-WalkStep walk
+--   type) was rejected: same three reasons documented in the
+--   ORIGINAL block's "Why NOT re-thinking the def shape under the
+--   refactor" bullet (LN-faithful universal-over-walks shape,
+--   asymmetric J-reading would be lost under reversal-class
+--   collapse, mechanical port preserves LN-grep one-to-one
+--   correspondence).  All three reasons carry through verbatim
+--   under `collider_side_aware`.
+--
+-- *Downstream consumers inheriting this REPLACEMENT.*  The immediate
+--   downstream consumers in this row's namespace are items 2-5 below
+--   (the negation `refactor_IsNotISigmaSeparated`, the unconditional
+--   `C = ∅` abbrev `refactor_IsISigmaSeparatedEmpty`, the `J = ∅`
+--   σ-name aliases `refactor_IsSigmaSeparated` and
+--   `refactor_IsNotSigmaSeparated`), each of which forwards to this
+--   predicate without re-deriving — their REPLACEMENT bodies all
+--   simply propagate the retarget.  The *driving* future downstream
+--   consumer (flagged in `def_3_1`'s and the refactor manager's
+--   design blocks as the load-bearing payoff of `collider_side_aware`)
+--   is the LN's `claim_3_22` `SigmaSeparationSymmetric`: under
+--   `J = ∅`, `G.refactor_IsSigmaSeparated A B C ↔
+--   G.refactor_IsSigmaSeparated B A C`.  Under the side-aware
+--   refactor's structural reversal-invariance (every `WalkStep`
+--   constructor tag flips cleanly under reversal: `.forwardE ↔
+--   .backwardE`, `.bidir ↔ .bidir`, and the side-aware head-
+--   contribution predicates `refactor_HeadAtSource` /
+--   `refactor_HeadAtTarget` swap pointwise under that flip), a walk
+--   witness on one side of the symmetry maps to a walk witness on
+--   the other side with the σ-blocking obligation preserved — so the
+--   universal-over-walks quantification of *this* predicate
+--   transports cleanly via the reversal involution.  The side-aware
+--   resolution of the directed-self-loop ambiguity is what makes
+--   `claim_3_22` close *uniformly* — without the refactor, a self-
+--   loop step's spurious collider classification at the adjacent
+--   position would force the σ-symmetry proof to special-case
+--   writing-mirror CDMGs with self-loop steps, which is exactly the
+--   non-uniformity the refactor exists to eliminate.  Further
+--   downstream (chapter 4+) every Markov-property / do-calculus /
+--   iSCM identification result that mentions `A ⊥^iσ B | C` pattern-
+--   matches on exactly this def's universal-over-walks shape; the
+--   side-aware reading inherited via the upstream chain ensures
+--   these results' conclusions transport cleanly through writing-
+--   mirror CDMGs with directed self-loops without local re-statement.
+--   This is the load-bearing payoff of `collider_side_aware` at this
+--   row — and the reason the row was pulled into the refactor table
+--   as a DEPENDENT.
+--
+-- *Addition `[sigma_symmetry_claim_invokes_unstated_reversal_invariance]`
+--   carried over (operator-authored, treated as part of the LN).*
+--   The LN-faithful reading of the σ-separation-symmetry justification
+--   — walk reversal is an involution on the set of walks, and the
+--   σ-blocking conditions on internal nodes are stated in a manner
+--   invariant under reversal — is preserved verbatim under the side-
+--   aware refactor.  Both ingredients are now *structural* properties
+--   of the typed-WalkStep walk type and the side-aware classifier
+--   helpers: the involution is the cons-cell reversal that flips
+--   constructor tags (`.forwardE ↔ .backwardE`, `.bidir ↔ .bidir`);
+--   the σ-blocking invariance is inherited from
+--   `refactor_IsSigmaBlockedGiven`'s side-aware classifier references,
+--   which read arrowhead-presence off the constructor tag alone (no
+--   orientation-field consultation).  No σ-symmetry-level code in
+--   this file performs the proof; `claim_3_22`'s eventual Lean proof
+--   draws on these structural properties through `Walk` and
+--   `refactor_IsSigmaBlockedGiven` directly — and the side-aware
+--   encoding closes the spurious-collider-at-self-loop divergence as
+--   a *structural* fact, not as a special case the proof has to
+--   handle.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def refactor_IsISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  ∀ {u v : Node} (π : Walk G u v),
+      u ∈ A → v ∈ (G.J : Set Node) ∪ B → π.refactor_IsSigmaBlockedGiven C hC
+-- def_3_18 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsISigmaSeparated
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNotISigmaSeparated
 -- ref: def_3_18 (item 2) — refactor
 --
 -- `G.IsNotISigmaSeparated A B C hA hB hC` is the LN's
@@ -538,7 +857,177 @@ def IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   ¬ G.IsISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsNotISigmaSeparated
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNotISigmaSeparated (was: refactor_IsNotISigmaSeparated)
+-- ref: def_3_18 (item 2) — side-aware refactor (`collider_side_aware`).
+--
+-- `G.refactor_IsNotISigmaSeparated A B C hA hB hC` is the LN's
+-- `A \nisPerp_G B \given C` ported against the side-aware refactor:
+-- the definitional negation of `G.refactor_IsISigmaSeparated A B C`.
+-- Equivalently (by classical De Morgan, not by Lean reduction):
+-- there exists a walk `π : Walk G u v` with `u ∈ A`, `v ∈ J ∪ B`,
+-- and `¬ π.refactor_IsSigmaBlockedGiven C hC`.  Body identical to
+-- the original `IsNotISigmaSeparated` (ORIGINAL block above) modulo
+-- a single mechanical upstream retarget:
+-- - `G.IsISigmaSeparated` → `G.refactor_IsISigmaSeparated`
+--   (item 1 above, ported in this same refactor section).
+--
+-- *Upstream-retarget deltas for this REPLACEMENT (self-contained
+-- record).*  One mechanical retarget relative to the pre-refactor
+-- encoding:
+-- - `G.IsISigmaSeparated A B C hA hB hC` →
+--   `G.refactor_IsISigmaSeparated A B C hA hB hC`.
+-- The named-negation alias shape, the definitional-equality
+-- encoding, the three subset premises, the `set_option
+-- linter.unusedVariables false in` prefix, and every design pillar
+-- from the ORIGINAL block carry through verbatim.
+--
+-- ## Design choice — refactor_IsNotISigmaSeparated
+--
+-- *DEPENDENT row, not a root.*  Same DEPENDENT framing as item 1
+--   above, specialised to the negation alias: the negation shape
+--   `¬ refactor_IsISigmaSeparated …` does NOT commit on its own to
+--   any particular reading of per-position arrowhead-presence — it
+--   merely negates whichever upstream `G.refactor_IsISigmaSeparated`
+--   predicate the body forwards to.  This row is pulled into the
+--   refactor table as a DEPENDENT, not as a root: its OWN shape
+--   needs no revision; only the single predicate-reference must
+--   retarget to the side-aware partner for the side-aware semantics
+--   to propagate from `def_3_15` through `def_3_17` through item 1
+--   to here.  Mechanical port suffices.  This row carries NO head-
+--   contribution logic of its own.
+--
+-- *Why the refactor needs to touch this predicate.*  Mechanically
+--   only, not semantically.  One upstream predicate referenced in
+--   the body has itself been refactored under `collider_side_aware`:
+--   the σ-separation predicate `IsISigmaSeparated` is replaced by
+--   the side-aware `refactor_IsISigmaSeparated` (per item 1 above).
+--   The negation's body needs to reference the side-aware partner;
+--   otherwise the unqualified dot-notation resolves to the ORIGINAL
+--   non-side-aware def during the refactor window (see the name-
+--   shadowing bullet below).  The LN-correspondence to `\nisPerp` as
+--   named notation for the negation of `\isPerp`, the definitional-
+--   equality link with the iσ predicate, and the matching subset
+--   hypotheses are all unchanged.
+--
+-- *Agreement on non-self-loop walks; strict refinement at self-loops
+--   (inherited via item 1).*  Negation of an invariant predicate is
+--   itself invariant: on every CDMG `G` whose walks do not traverse
+--   directed self-loop steps, `refactor_IsISigmaSeparated A B C` and
+--   `IsISigmaSeparated A B C` are pointwise equivalent (per item 1's
+--   "Agreement on non-self-loop walks" bullet), so their negations
+--   are too.  The side-aware encoding's strict refinement at walks
+--   traversing directed self-loops propagates to the negation
+--   automatically: the spurious blocking witnesses item 1 discusses
+--   are eliminated at the underlying σ-blocked layer, which makes
+--   the universal `refactor_IsISigmaSeparated` impose strictly fewer
+--   blocking-obligations on writing-mirror walks (more walks
+--   *failing* the σ-blocked test under the side-aware reading) and
+--   the negation `refactor_IsNotISigmaSeparated` therefore admits
+--   strictly more "non-separation" witnesses than the ORIGINAL
+--   `IsNotISigmaSeparated`.  This is the manager-accepted deviation
+--   `collider_side_aware_at_self_loops` from
+--   `leanification/deviations.json` viewed through the negation — no
+--   new code at this row implements it; the propagation is purely
+--   structural.
+--
+-- *Why the retarget to `refactor_IsISigmaSeparated` is required
+--   during the refactor window.*  Both `CDMG.IsISigmaSeparated`
+--   (ORIGINAL block above) and `CDMG.refactor_IsISigmaSeparated`
+--   (REPLACEMENT block above) coexist in scope while the refactor is
+--   in flight.  The unqualified dot-notation `G.IsISigmaSeparated`
+--   in the body would resolve to the ORIGINAL non-side-aware def
+--   (literal-name match wins over namespace lookup), pairing the
+--   side-aware ¬σ-separation alias's intended *negation target* with
+--   the non-side-aware ORIGINAL σ-separation predicate — making the
+--   negation alias inconsistent with its intended side-aware
+--   partner.  Concretely: on a writing-mirror CDMG admitting a
+--   directed-self-loop-traversing walk from `A` to `J ∪ B`, the
+--   ORIGINAL σ-separation might hold (spurious blocking witness
+--   covers the walk) while the side-aware σ-separation fails (no
+--   side-aware blocking witness), and pairing the side-aware ¬σ
+--   alias with the ORIGINAL σ predicate would give the wrong
+--   negation on such a CDMG.  The REPLACEMENT body explicitly
+--   references `G.refactor_IsISigmaSeparated`, so the pair
+--   (`refactor_IsISigmaSeparated`, `refactor_IsNotISigmaSeparated`)
+--   forms the side-aware iσ-separation/non-separation duality
+--   pointwise on every CDMG and every `(A, B, C)` triple.  After
+--   Phase 7 cleanup, the whole-word renames
+--   `refactor_IsISigmaSeparated → IsISigmaSeparated` and
+--   `refactor_IsNotISigmaSeparated → IsNotISigmaSeparated` restore
+--   the body's surface form to its pre-refactor reading
+--   `¬ G.IsISigmaSeparated A B C hA hB hC` — but now resolving to
+--   the unique (post-rename) side-aware defs.  Same name-shadowing
+--   argument used in `refactor_IsBlockableNonCollider`
+--   (`BlockableAndUnblockable.lean:651-687`).
+--
+-- *Shape unchanged from ORIGINAL.*  The `Prop`-level negation form,
+--   the `set_option linter.unusedVariables false in` prefix (`hA`,
+--   `hB` are LN-faithful binders that flow into the iσ predicate as
+--   arguments but are not pattern-matched here), the three subset
+--   hypotheses signature matching item 1's, the LN-correspondence
+--   to `\nisPerp` as named negation notation, and every design
+--   pillar from the ORIGINAL block (definitional-equality encoding
+--   over positive-existential alternative, matched subset premises)
+--   all carry through verbatim.  Only the single predicate
+--   reference in the body retargets; everything else is byte-
+--   identical to the ORIGINAL.
+--
+-- *Flat `∀`-over-walks shape and asymmetric `J`-inclusion inherited
+--   via item 1 through the negation.*  This row's body is purely
+--   `¬ refactor_IsISigmaSeparated …` — no parallel positive
+--   existential, no quotient over reversal-classes of walks, no
+--   structural recursion.  The two refactor-design choices item 1's
+--   design block commits to (the flat `∀`-over-walks shape that
+--   downstream Markov / do-calculus consumers pattern-match on, and
+--   the asymmetric `J ∪ B` right-endpoint reading footnoted by LN
+--   `fn:why-J` as separoid-rule-matching-Markov-kernel-conditional-
+--   independence-rules) transport definitionally to this negation:
+--   negation of an `J`-asymmetric universal is itself `J`-
+--   asymmetric, and the De Morgan dual is an existential over the
+--   *same* walk set with the same endpoint-membership premises and
+--   the same `J ∪ B` right side.  No new shape-design choices at
+--   this row; the addition
+--   `[sigma_symmetry_claim_invokes_unstated_reversal_invariance]` is
+--   BACKGROUND only (the σ-symmetry argument lives at `claim_3_22`,
+--   not here), and a quotient-by-reversal re-encoding of this
+--   negation alias was rejected for the same three reasons item 1's
+--   design block lists (LN-faithful pattern, downstream consumer
+--   alignment, asymmetric-`J`-incompatibility-with-reversal-class
+--   collapse).
+--
+-- ## Refactor-specific rationale
+--
+-- *Why this row did not re-design.*  Same rationale as item 1:
+--   encoding change orthogonal to the named-negation shape.  The
+--   "positive existential" reformulation noted in the ORIGINAL
+--   block's design pillars was considered and rejected for the same
+--   definitional-link reason (would break the definitional link
+--   with the σ-separation predicate and require a classical
+--   bridging lemma at every interconversion site).  Both reasons
+--   carry through verbatim under `collider_side_aware`.
+--
+-- *Downstream consumers inheriting this REPLACEMENT.*  The immediate
+--   downstream consumer is item 5's `refactor_IsNotSigmaSeparated`,
+--   which renames this predicate under `J = ∅`.  Future consumers
+--   include any claim that pattern-matches on
+--   `A \nisPerp_G B \given C` (chapter 4+ Markov properties,
+--   do-calculus, etc.).  The side-aware semantics propagate through
+--   the negation alias to every downstream witness that exhibits a
+--   "non-separation" walk — and on writing-mirror CDMGs with self-
+--   loop-admitting walks, the side-aware negation admits strictly
+--   more non-separation witnesses than the ORIGINAL, as discussed
+--   in the "Agreement" bullet above.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def refactor_IsNotISigmaSeparated (G : CDMG Node) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  ¬ G.refactor_IsISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsNotISigmaSeparated
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsISigmaSeparatedEmpty
 -- ref: def_3_18 (item 3) — refactor
 --
 -- `G.IsISigmaSeparatedEmpty A B hA hB` is the LN's
@@ -630,7 +1119,141 @@ abbrev IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
 -- def_3_18 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsISigmaSeparatedEmpty
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsISigmaSeparatedEmpty (was: refactor_IsISigmaSeparatedEmpty)
+-- ref: def_3_18 (item 3) — side-aware refactor (`collider_side_aware`).
+--
+-- `G.refactor_IsISigmaSeparatedEmpty A B hA hB` is the LN's
+-- unconditional shorthand `A \isPerp_G B := A \isPerp_G B \given ∅`
+-- ported against the side-aware refactor.  Unfolds eagerly (via
+-- `abbrev`) to `G.refactor_IsISigmaSeparated A B ∅ hA hB
+-- (Set.empty_subset _)`.  Body identical to the original
+-- `IsISigmaSeparatedEmpty` (ORIGINAL block above) modulo a single
+-- mechanical upstream retarget:
+-- - `G.IsISigmaSeparated` → `G.refactor_IsISigmaSeparated`
+--   (item 1 above, ported in this same refactor section).
+--
+-- *Upstream-retarget deltas for this REPLACEMENT (self-contained
+-- record).*  One mechanical retarget relative to the pre-refactor
+-- encoding:
+-- - `G.IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)` →
+--   `G.refactor_IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)`.
+-- The `abbrev` encoding (not `def`), the two-binder signature
+-- (`hA hB`, not three), the empty third subset proof
+-- (`Set.empty_subset _`), and every design pillar from the ORIGINAL
+-- block carry through verbatim.
+--
+-- ## Design choice — refactor_IsISigmaSeparatedEmpty
+--
+-- *DEPENDENT row, not a root.*  Same DEPENDENT framing as item 1
+--   above, specialised to the unconditional `C = ∅` abbreviation:
+--   the `abbrev` shape does NOT commit on its own to any particular
+--   reading of per-position arrowhead-presence — it merely
+--   parameter-fixes `C := ∅` in whichever upstream
+--   `G.refactor_IsISigmaSeparated` predicate the body forwards to.
+--   This row carries NO head-contribution logic of its own.
+--
+-- *Why the refactor needs to touch this abbrev.*  Mechanically only,
+--   not semantically.  One upstream predicate referenced in the body
+--   has itself been refactored: the σ-separation predicate
+--   `IsISigmaSeparated` is replaced by the side-aware
+--   `refactor_IsISigmaSeparated` (per item 1).  The abbrev's body
+--   needs to reference the side-aware partner; otherwise the
+--   unqualified dot-notation resolves to the ORIGINAL non-side-aware
+--   def during the refactor window (same name-shadowing argument as
+--   item 1 / item 2).  The LN-correspondence to "is defined as"
+--   notation, the `abbrev` transparency, and the two-binder
+--   signature reflecting the LN's `A \isPerp_G B` notation are all
+--   unchanged.
+--
+-- *Agreement on non-self-loop walks; strict refinement at self-loops
+--   (inherited via item 1).*  As an `abbrev` that unfolds eagerly to
+--   item 1's σ-separation predicate at every elaboration site, every
+--   property of the underlying σ-separation predicate transports to
+--   this shorthand without restatement — including the side-aware
+--   agreement-on-non-self-loop-walks and strict-refinement-at-self-
+--   loops behaviour discussed in item 1's "Agreement" bullet.  No
+--   re-statement of the manager-accepted deviation
+--   `collider_side_aware_at_self_loops` from
+--   `leanification/deviations.json` is needed here; the propagation
+--   is purely structural via the `abbrev` unfolding.
+--
+-- *Why the retarget to `refactor_IsISigmaSeparated` is required
+--   during the refactor window.*  Same name-shadowing argument as
+--   item 1 / item 2: both `CDMG.IsISigmaSeparated` and
+--   `CDMG.refactor_IsISigmaSeparated` coexist while the refactor is
+--   in flight, and the unqualified `G.IsISigmaSeparated` in the body
+--   would resolve to the ORIGINAL non-side-aware def.  Pairing the
+--   side-aware unconditional abbrev with the ORIGINAL σ-separation
+--   predicate would split the σ-separation / unconditional-abbrev
+--   pair across side-aware vs non-side-aware backings — exactly the
+--   kind of split the refactor exists to prevent.  After Phase 7
+--   cleanup, the whole-word rename
+--   `refactor_IsISigmaSeparatedEmpty → IsISigmaSeparatedEmpty` (and
+--   the parallel rename of item 1) restores the body's surface form
+--   to its pre-refactor reading and the unique post-rename side-
+--   aware def takes over.
+--
+-- *Shape unchanged from ORIGINAL.*  The `abbrev` (not `def`)
+--   encoding for the LN's pure-notation reading, the two-binder
+--   signature (no `hC` — discharged automatically via
+--   `Set.empty_subset _` at the abbrev site), the LN-faithful subset
+--   premises on `A` and `B`, and every design pillar from the
+--   ORIGINAL block (`abbrev` over `def` rationale, no separate
+--   negation alias for the `C = ∅` case) all carry through verbatim.
+--   Only the single predicate reference in the body retargets;
+--   everything else is byte-identical to the ORIGINAL.
+--
+-- *Trivial one-line wrapper shape preserved; asymmetric `J`-
+--   inclusion fully inherited via item 1's `abbrev` unfolding.*  LN
+--   item 3 is *defined* as `A \isPerp_G B := A \isPerp_G B \given ∅`
+--   — a pure notational abbreviation, not a new concept.  The
+--   refactor preserves the wrapper shape verbatim: one `abbrev`,
+--   one-line body that fixes `C := ∅` in the underlying
+--   `refactor_IsISigmaSeparated` and supplies the trivial
+--   `Set.empty_subset _` proof for `hC`.  No re-encoding (e.g. into
+--   a stand-alone universal over walks with hard-coded empty `C`)
+--   was considered worthwhile: `abbrev`'s eager-unfolding semantics
+--   means every consumer of this shorthand pattern-matches on item
+--   1's flat `∀`-over-walks shape directly, with no quotient lift,
+--   no wrapper dispatch, no asymmetric-`J` re-statement.  The
+--   wording-check subtlety `empty_b_non_vacuous_when_j_nonempty`
+--   (the LN-critic flagged that `A \isPerp_G ∅` is NOT vacuous when
+--   `G.J ≠ ∅`) applies *here* literally: unfolding via this `abbrev`
+--   one step yields `G.refactor_IsISigmaSeparated A ∅ ∅ hA hB
+--   (Set.empty_subset _)`, whose body literally asserts every walk
+--   from `A` to `G.J ∪ ∅ = G.J` is `∅`-σ-blocked — a genuine
+--   condition that downstream Markov-property results in chapter 4+
+--   pattern-match on through this `abbrev`'s transparent surface.
+--   The refactor does not invalidate this corollary; it inherits
+--   item 1's preservation of the `J`-asymmetry verbatim through the
+--   `abbrev` unfolding.
+--
+-- ## Refactor-specific rationale
+--
+-- *Why this row did not re-design.*  Same rationale as item 1:
+--   encoding change orthogonal to the LN's pure-notation `abbrev`
+--   semantics.  No re-design opportunity at this layer; the
+--   `abbrev`'s sole role is to drop the trivial `C = ∅` argument
+--   from the LN's "A \isPerp_G B" surface syntax, which is
+--   independent of how the underlying σ-separation predicate reads
+--   per-position arrowhead-presence.
+--
+-- *Downstream consumers inheriting this REPLACEMENT.*  Any LN
+--   statement spelled `A \isPerp_G B` (no conditioning set).
+--   Includes the LN's Markov-property results in chapter 4+ that
+--   quantify over marginal independences.  The side-aware semantics
+--   inherited via item 1's REPLACEMENT propagate through the
+--   `abbrev` transparency to every such downstream consumer.
+-- def_3_18 -- start statement
+abbrev refactor_IsISigmaSeparatedEmpty (G : CDMG Node) (A B : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.refactor_IsISigmaSeparated A B ∅ hA hB (Set.empty_subset _)
+-- def_3_18 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsISigmaSeparatedEmpty
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsSigmaSeparated
 -- ref: def_3_18 (item 4) — refactor
 --
 -- `G.IsSigmaSeparated hJ A B C hA hB hC` is the LN's
@@ -814,7 +1437,216 @@ def IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   G.IsISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsSigmaSeparated
 
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsSigmaSeparated (was: refactor_IsSigmaSeparated)
+-- ref: def_3_18 (item 4) — side-aware refactor (`collider_side_aware`).
+--
+-- `G.refactor_IsSigmaSeparated hJ A B C hA hB hC` is the LN's
+-- `A \sPerp_G B \given C` ported against the side-aware refactor:
+-- the `J = ∅` notation alias of `G.refactor_IsISigmaSeparated A B C`.
+-- The alias keeps the underlying predicate identical — the `J = ∅`
+-- specialisation is a property of the consumer's CDMG, not a logical
+-- condition on the predicate.  Under `J = ∅` the right-endpoint
+-- constraint `v ∈ J ∪ B` reduces to `v ∈ B`, so
+-- `A \sPerp_G B \given C` reads as "every walk from `A` to `B` is
+-- `C`-σ-blocked (under the side-aware σ-blocking reading)" in the
+-- standard literature sense.  Body identical to the original
+-- `IsSigmaSeparated` (ORIGINAL block above) modulo a single
+-- mechanical upstream retarget:
+-- - `G.IsISigmaSeparated` → `G.refactor_IsISigmaSeparated`
+--   (item 1 above, ported in this same refactor section).
+--
+-- *Upstream-retarget deltas for this REPLACEMENT (self-contained
+-- record).*  One mechanical retarget relative to the pre-refactor
+-- encoding:
+-- - `G.IsISigmaSeparated A B C hA hB hC` →
+--   `G.refactor_IsISigmaSeparated A B C hA hB hC`.
+-- The explicit `(hJ : G.J = ∅)` premise, the σ-vs-iσ name
+-- distinction, the three subset hypotheses (`hA hB hC`), the `def`
+-- (not `abbrev`) encoding, the `set_option linter.unusedVariables
+-- false in` prefix, and every design pillar from the ORIGINAL block
+-- carry through verbatim.
+--
+-- ## Design choice — refactor_IsSigmaSeparated
+--
+-- *DEPENDENT row, not a root.*  Same DEPENDENT framing as items
+--   1/2/3 above, specialised to the `J = ∅` notation alias: the
+--   alias shape does NOT commit on its own to any particular reading
+--   of per-position arrowhead-presence — it merely renames whichever
+--   upstream `G.refactor_IsISigmaSeparated` predicate the body
+--   forwards to.  This row carries NO head-contribution logic of its
+--   own.
+--
+-- *Why the refactor needs to touch this rename.*  Mechanically only,
+--   not semantically.  One upstream predicate referenced in the body
+--   has itself been refactored: the σ-separation predicate
+--   `IsISigmaSeparated` is replaced by the side-aware
+--   `refactor_IsISigmaSeparated` (per item 1).  The alias's body
+--   needs to reference the side-aware partner; otherwise the
+--   unqualified dot-notation resolves to the ORIGINAL non-side-aware
+--   def during the refactor window (same name-shadowing argument as
+--   items 1/2/3).  The LN-correspondence to `\sPerp` as renamed
+--   notation for `\isPerp` under `J = ∅`, the explicit `hJ` premise
+--   that keeps the σ-name visible at the call site, and the forward-
+--   to-iσ body are all unchanged.
+--
+-- *Agreement on non-self-loop walks; strict refinement at self-loops
+--   (inherited via item 1).*  As a `def` that forwards to the iσ
+--   predicate, every property of the underlying iσ predicate
+--   transports to this alias — including the side-aware agreement-on-
+--   non-self-loop-walks and strict-refinement-at-self-loops behaviour
+--   discussed in item 1's "Agreement" bullet.  Under `J = ∅` the
+--   right-endpoint constraint reduces to `v ∈ B` and the walk-
+--   universal ranges over walks from `A` to `B` — the standard
+--   literature sense.  On a writing-mirror DMG (CDMG with `J = ∅`)
+--   that admits a directed-self-loop-traversing walk from `A` to
+--   `B`, the side-aware σ-separation imposes strictly fewer blocking
+--   obligations than the ORIGINAL would — exactly the manager-
+--   accepted deviation `collider_side_aware_at_self_loops` from
+--   `leanification/deviations.json`, propagated through item 1 to
+--   this rename.
+--
+-- *Why the retarget to `refactor_IsISigmaSeparated` is required
+--   during the refactor window.*  Same name-shadowing argument as
+--   items 1/2/3: both `CDMG.IsISigmaSeparated` and
+--   `CDMG.refactor_IsISigmaSeparated` coexist while the refactor is
+--   in flight, and the unqualified `G.IsISigmaSeparated` in the body
+--   would resolve to the ORIGINAL non-side-aware def — pairing the
+--   side-aware σ-rename's intended *forward target* with the
+--   *non-side-aware* ORIGINAL σ-separation predicate.  This is
+--   especially load-bearing for the LN's `claim_3_22`
+--   `SigmaSeparationSymmetric`, which is stated and proved purely in
+--   σ-separation language under `J = ∅`: the symmetry proof closes
+--   by walk reversal acting on the σ-blocked existential, and
+--   pairing the σ-rename with the ORIGINAL non-side-aware iσ
+--   predicate would *re-introduce* the spurious-collider-at-self-
+--   loop divergence the refactor is designed to eliminate.  After
+--   Phase 7 cleanup, the whole-word renames
+--   `refactor_IsISigmaSeparated → IsISigmaSeparated` and
+--   `refactor_IsSigmaSeparated → IsSigmaSeparated` restore the
+--   body's surface form to its pre-refactor reading.
+--
+-- *Shape unchanged from ORIGINAL.*  The explicit `(hJ : G.J = ∅)`
+--   premise, the σ-name (drops the leading "i") versus iσ
+--   distinction kept visible via `def` rather than `abbrev`, the
+--   three subset hypotheses signature matching item 1's, the
+--   `set_option linter.unusedVariables false in` prefix (`hJ`, `hA`,
+--   `hB` are LN-faithful binders inert in the body; only `hC` is
+--   consumed through the iσ call), and every design pillar from the
+--   ORIGINAL block (no `DMG` typeclass; addition
+--   `[sigma_symmetry_claim_invokes_unstated_reversal_invariance]`
+--   carried over to background-only treatment; wording-check
+--   subtlety `symmetry_claim_walks_between_wording_imprecise`) all
+--   carry through verbatim.  Only the single predicate reference in
+--   the body retargets; everything else is byte-identical to the
+--   ORIGINAL.
+--
+-- *Trivial one-line wrapper shape preserved; asymmetric `J`-
+--   inclusion preserved on the underlying iσ def, collapsed at the
+--   σ-rename layer only via `(hJ : G.J = ∅)`.*  LN item 4 *renames*
+--   the predicate (drops the leading "$i$") for the special case
+--   `J = ∅`; the same mathematical object acquires a new name when
+--   the input-node set is empty.  The refactor preserves this two-
+--   layer separation verbatim:
+--   - The body forwards directly to
+--     `G.refactor_IsISigmaSeparated A B C hA hB hC` — a single-line
+--     wrapper.  Item 1's load-bearing asymmetric `J`-inclusion (the
+--     LN-footnote `fn:why-J` reading: separoid rules for
+--     `id`/`iσ`-separation match Markov-kernel conditional-
+--     independence rules) is encoded in the underlying iσ def's
+--     body, NOT re-stated here; the σ-rename layer adds NO new
+--     endpoint-membership re-statement.
+--   - The `(hJ : G.J = ∅)` premise is a *property of the consumer's
+--     CDMG*, not a logical condition on the predicate's body.
+--     Consumers use `hJ` to rewrite item 1's `v ∈ (G.J : Set Node)
+--     ∪ B` to `v ∈ B` *at use sites* — the σ-rename's body itself
+--     does not perform the collapse; it forwards untouched to item
+--     1, which retains the `J ∪ B` reading verbatim under the
+--     refactor.  Concretely: `refactor_IsSigmaSeparated hJ A B C hA
+--     hB hC` reduces by `simp only [refactor_IsSigmaSeparated,
+--     refactor_IsISigmaSeparated]` to the universal-over-walks
+--     statement with `v ∈ (G.J : Set Node) ∪ B`; the `hJ` evidence
+--     is available in scope for the consumer to rewrite the union
+--     when they need the literature-standard `v ∈ B` form.  This
+--     layering is precisely the LN's "$\sigma$-separation is
+--     `i\sigma`-separation specialised to `J = ∅`" reading, ported
+--     mechanically.
+--   - No alternative encoding (e.g. a stand-alone σ-separation `def`
+--     with `v ∈ B` hard-coded into the body, or a `DMG`-typeclass
+--     instance argument replacing `hJ`) was considered worthwhile:
+--     either would (a) duplicate item 1's universal-over-walks body
+--     with an `hJ`-rewritten right-endpoint reading, breaking the
+--     definitional link the LN's renaming-under-`hJ` reading
+--     commits to, or (b) introduce a `DMG` typeclass dependency
+--     `def_3_18` does not otherwise need (the `IsDMG` predicate in
+--     `Section3_1/CDMGTypes.lean` `def_3_7` is available for
+--     consumers preferring named property packaging — but as a
+--     consumer choice, not a `def_3_18` precondition).
+--   The flat `∀`-over-walks shape (item 1's design choice) and the
+--   asymmetric `J ∪ B` right-endpoint reading (the LN-footnote
+--   rationale) both transport definitionally through this one-line
+--   wrapper, exactly as the ORIGINAL did.
+--
+-- ## Refactor-specific rationale
+--
+-- *Why this row did not re-design.*  Same rationale as items 1/2/3:
+--   encoding change orthogonal to the rename semantics.  The
+--   refactor does not suggest a new way to encode "the no-input
+--   special case" (e.g. as a separate DMG type rather than an iσ
+--   alias on a J=∅ CDMG); the LN's renaming-under-`hJ` reading is
+--   the right semantics under the refactor too.
+--
+-- *Downstream consumers inheriting this REPLACEMENT.*  The driving
+--   downstream consumer is `claim_3_22`
+--   `SigmaSeparationSymmetric` (stated *purely* in σ-separation
+--   language for `J = ∅`).  Under the side-aware refactor's
+--   structural reversal-invariance (every `WalkStep` constructor tag
+--   flips cleanly under reversal: `.forwardE ↔ .backwardE`,
+--   `.bidir ↔ .bidir`; the side-aware head-contribution predicates
+--   `refactor_HeadAtSource` / `refactor_HeadAtTarget` swap pointwise
+--   under that flip; `def_3_1`'s `Sym2 Node` carrier of `L` makes
+--   the `.bidir` reversal definitional via swap-equality), the
+--   symmetry of σ-separation closes via the reversal involution
+--   uniformly across all CDMGs — including writing-mirror CDMGs
+--   admitting directed-self-loop-traversing walks, where the
+--   refactor's strict refinement at self-loops eliminates the
+--   spurious-blocking-witness divergence the ORIGINAL encoding would
+--   have exhibited.  Other consumers include chapter 4+ Markov-
+--   property results that state the no-input special case in
+--   σ-language before lifting to the general iσ form; the side-aware
+--   semantics inherited via the iσ forward propagate cleanly through
+--   the σ-name rename.
+--
+-- *Addition `[sigma_symmetry_claim_invokes_unstated_reversal_invariance]`
+--   carried over (operator-authored, treated as part of the LN).*
+--   Per the ORIGINAL block's design discussion, the LN-faithful
+--   reading of the symmetry justification — walk reversal is an
+--   involution on the set of walks and the σ-blocking conditions on
+--   internal nodes are stated in a manner invariant under reversal —
+--   is preserved verbatim under the side-aware refactor.  Both
+--   ingredients are now *structural* properties of the typed-
+--   WalkStep walk type and the side-aware classifier helpers: the
+--   involution is the cons-cell reversal that flips constructor
+--   tags (`.forwardE ↔ .backwardE`, `.bidir ↔ .bidir`); the
+--   σ-blocking invariance is inherited from
+--   `refactor_IsSigmaBlockedGiven`'s side-aware classifier
+--   references, which read arrowhead-presence off the constructor
+--   tag alone (no orientation-field consultation).  `claim_3_22`'s
+--   eventual Lean proof draws on these structural properties through
+--   `Walk` and `refactor_IsSigmaBlockedGiven` directly — and the
+--   side-aware encoding closes the spurious-collider-at-self-loop
+--   divergence as a *structural* fact, not as a special case the
+--   proof has to handle.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def refactor_IsSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.refactor_IsISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsSigmaSeparated
+
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: IsNotSigmaSeparated
 -- ref: def_3_18 (item 4, negation) — refactor
 --
 -- `G.IsNotSigmaSeparated hJ A B C hA hB hC` is the LN's
@@ -907,6 +1739,151 @@ def IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
     (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
   G.IsNotISigmaSeparated A B C hA hB hC
 -- def_3_18 -- end statement
+-- REFACTOR-BLOCK-ORIGINAL-END: IsNotSigmaSeparated
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: IsNotSigmaSeparated (was: refactor_IsNotSigmaSeparated)
+-- ref: def_3_18 (item 4, negation) — side-aware refactor
+--   (`collider_side_aware`).
+--
+-- `G.refactor_IsNotSigmaSeparated hJ A B C hA hB hC` is the LN's
+-- `A \nsPerp_G B \given C` ported against the side-aware refactor:
+-- the `J = ∅` notation alias of `G.refactor_IsNotISigmaSeparated
+-- A B C`.  Body identical to the original `IsNotSigmaSeparated`
+-- (ORIGINAL block above) modulo a single mechanical upstream
+-- retarget:
+-- - `G.IsNotISigmaSeparated` → `G.refactor_IsNotISigmaSeparated`
+--   (item 2 above, ported in this same refactor section).
+--
+-- *Upstream-retarget deltas for this REPLACEMENT (self-contained
+-- record).*  One mechanical retarget relative to the pre-refactor
+-- encoding:
+-- - `G.IsNotISigmaSeparated A B C hA hB hC` →
+--   `G.refactor_IsNotISigmaSeparated A B C hA hB hC`.
+-- The mirror with `refactor_IsSigmaSeparated` (paired σ-/¬σ-notation
+-- under `J = ∅`), the explicit `hJ` premise, the three subset
+-- hypotheses, the `def` (not `abbrev`) encoding, the `set_option
+-- linter.unusedVariables false in` prefix, and every design pillar
+-- from the ORIGINAL block carry through verbatim.
+--
+-- ## Design choice — refactor_IsNotSigmaSeparated
+--
+-- *DEPENDENT row, not a root.*  Same DEPENDENT framing as items
+--   1-4 above, specialised to the `J = ∅` negation alias: the alias
+--   shape does NOT commit on its own to any particular reading of
+--   per-position arrowhead-presence — it merely renames whichever
+--   upstream `G.refactor_IsNotISigmaSeparated` predicate the body
+--   forwards to.  This row carries NO head-contribution logic of its
+--   own.
+--
+-- *Why the refactor needs to touch this rename.*  Mechanically only,
+--   not semantically.  One upstream predicate referenced in the body
+--   has itself been refactored: the iσ-non-separation predicate
+--   `IsNotISigmaSeparated` is replaced by the side-aware
+--   `refactor_IsNotISigmaSeparated` (per item 2).  The alias's body
+--   needs to reference the side-aware partner; otherwise the
+--   unqualified dot-notation resolves to the ORIGINAL non-side-aware
+--   def during the refactor window (same name-shadowing argument as
+--   items 1-4).  The LN-correspondence to `\nsPerp` as renamed
+--   notation for `\nisPerp` under `J = ∅`, the pairing-as-a-unit
+--   with `refactor_IsSigmaSeparated`, and the forward-to-non-iσ body
+--   are all unchanged.
+--
+-- *Agreement on non-self-loop walks; strict refinement at self-loops
+--   (inherited via item 2 / item 1).*  Negation of an invariant
+--   predicate is itself invariant: on every CDMG `G` whose walks do
+--   not traverse directed self-loop steps,
+--   `refactor_IsSigmaSeparated` and `IsSigmaSeparated` are pointwise
+--   equivalent, so their negations are too.  The side-aware
+--   encoding's strict refinement at walks traversing directed
+--   self-loops propagates here automatically via item 2's negation
+--   alias and item 1's underlying σ-separation — on writing-mirror
+--   DMGs (CDMGs with `J = ∅`) admitting such walks, the side-aware
+--   `refactor_IsNotSigmaSeparated` admits strictly more "non-
+--   separation" witnesses than the ORIGINAL, exactly matching the
+--   manager-accepted deviation `collider_side_aware_at_self_loops`
+--   from `leanification/deviations.json`.
+--
+-- *Why the retarget to `refactor_IsNotISigmaSeparated` is required
+--   during the refactor window.*  Same name-shadowing argument as
+--   items 1-4: both `CDMG.IsNotISigmaSeparated` and
+--   `CDMG.refactor_IsNotISigmaSeparated` coexist while the refactor
+--   is in flight, and the unqualified `G.IsNotISigmaSeparated` in
+--   the body would resolve to the ORIGINAL non-side-aware def —
+--   pairing the side-aware ¬σ rename's intended *forward target*
+--   with the *non-side-aware* ORIGINAL ¬iσ predicate, breaking the
+--   side-aware σ/¬σ duality at the rename layer.  After Phase 7
+--   cleanup, the whole-word renames
+--   `refactor_IsNotISigmaSeparated → IsNotISigmaSeparated` and
+--   `refactor_IsNotSigmaSeparated → IsNotSigmaSeparated` restore the
+--   body's surface form to its pre-refactor reading.
+--
+-- *Shape unchanged from ORIGINAL.*  The mirror structure with
+--   `refactor_IsSigmaSeparated` (paired σ/¬σ-notation under
+--   `J = ∅`), the explicit `hJ` premise (kept for LN-faithfulness
+--   and σ/¬σ-name pairing symmetry; the negation's truth-value does
+--   not logically require `hJ` since it follows from the iσ
+--   predicate's, but the signature mirrors `IsSigmaSeparated`'s as
+--   a unit), the three subset hypotheses signature, the `def` (not
+--   `abbrev`) encoding rationale (preserve `hJ` evidence in goal
+--   displays), the `set_option linter.unusedVariables false in`
+--   prefix, and every design pillar from the ORIGINAL block all
+--   carry through verbatim.  Only the single predicate reference in
+--   the body retargets; everything else is byte-identical to the
+--   ORIGINAL.
+--
+-- *Trivial one-line wrapper shape preserved; J-layering inherited
+--   via item 2 (which inherits via item 1).*  Same two-layer
+--   separation as `refactor_IsSigmaSeparated` (item 4 above), now
+--   in the negation direction:
+--   - The body forwards directly to
+--     `G.refactor_IsNotISigmaSeparated A B C hA hB hC` — a single-
+--     line wrapper that re-uses item 2's negation-of-item-1 body.
+--     Item 1's load-bearing asymmetric `J ∪ B` right-endpoint
+--     reading and flat `∀`-over-walks shape are encoded once in
+--     item 1's body, propagated through item 2's negation, and
+--     forwarded *unchanged* through this σ-rename wrapper.  No
+--     re-statement of the LN-footnote `fn:why-J` rationale at this
+--     row — the rationale lives at item 1's design block, and the
+--     forward-chain (item 1 → item 2 → item 5) preserves it
+--     definitionally.
+--   - The `(hJ : G.J = ∅)` premise is signature-mirror only: the
+--     negation's truth-value already follows from item 2's
+--     truth-value (which has no `hJ`), so this row's `hJ` is kept
+--     purely for σ/¬σ-name-pairing symmetry with item 4 — the
+--     refactor preserves this signature mirror verbatim, since
+--     downstream case-splits in claim statements alternate between
+--     `\sPerp` and `\nsPerp` with the same `hJ` evidence at both
+--     names.
+--   - No alternative encoding (e.g. a stand-alone positive existential
+--     `∃ walk, …` over `v ∈ B` — the literature-standard σ-non-
+--     separation form) was considered worthwhile: any such re-encoding
+--     would break the definitional link with item 4 via item 2 via
+--     item 1, forcing every σ-vs-¬σ case split through a classical
+--     De Morgan bridging lemma.  The forward-to-non-iσ body is the
+--     right encoding.
+--   Bottom line: this row inherits item 4's "trivial-wrapper +
+--   underlying-iσ-keeps-asymmetric-J" layering in the negation
+--   direction, with no new shape-design choices of its own.
+--
+-- ## Refactor-specific rationale
+--
+-- *Why this row did not re-design.*  Same rationale as items 1-4:
+--   encoding change orthogonal to the rename semantics.  No re-
+--   design opportunity at this layer.
+--
+-- *Downstream consumers inheriting this REPLACEMENT.*  Pairs with
+--   item 4's `refactor_IsSigmaSeparated` in σ-vs-¬σ case splits —
+--   claim statements and proof case splits in chapter 3+ alternate
+--   between the two names.  The side-aware semantics inherited via
+--   item 2's REPLACEMENT propagate through this rename to every
+--   such case split.
+set_option linter.unusedVariables false in
+-- def_3_18 -- start statement
+def refactor_IsNotSigmaSeparated (G : CDMG Node) (hJ : G.J = ∅) (A B C : Set Node)
+    (hA : A ⊆ ↑G.J ∪ ↑G.V) (hB : B ⊆ ↑G.J ∪ ↑G.V) (hC : C ⊆ ↑G.J ∪ ↑G.V) : Prop :=
+  G.refactor_IsNotISigmaSeparated A B C hA hB hC
+-- def_3_18 -- end statement
+-- REFACTOR-BLOCK-REPLACEMENT-END: IsNotSigmaSeparated
 
 end CDMG
 
