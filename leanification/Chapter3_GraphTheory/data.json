@@ -5767,30 +5767,32 @@
       "section": "3.3",
       "title": "SigmaSeparationSymmetric",
       "type": "note",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-20",
       "tips": "OPERATOR HINT (2026-06-16) — walk-reversal strategy for claim_3_22\n\nThe previous solve attempt built a generic walk-reversal helper (`reverseAuxEdge` in a now-discarded local file) that swaps the stored ordered pair for L-edges to satisfy `WalkStep`'s forward-L disjunct via `hL_symm`. That swap creates a 'writing-mirror' artifact: when `(u, v) ∈ G.L` and `(v, u) ∈ G.E` coexist (admitted by the current `def_3_1` per its `[edge_set_disjointness_under_specified]` clarification), the swapped pair coincidentally lands in `G.E` and confuses the literal-pair pattern in `def_3_16`'s `IsBlockableNonCollider` — making the predicate's verdict at the interior vertex differ between the forward and reversed walks. The previous attempt escalated to a `def_3_1` refactor; the operator declined.\n\nSTRATEGY: define a CUSTOM LOCAL walk-reversal helper (or proof technique) for THIS row's proof that preserves the channel information across reversal — without changing `def_3_4` (Walk / WalkStep), `def_3_16` (blockable predicate), or `def_3_1` (CDMG). Possible local approaches:\n\n  (i) Define a custom reversed-walk type alongside `Walk` that tags each step's original channel (E forward / E backward / L). Reverse against the tagged type; the tag survives swap. Predicates destructure the tag directly, no inference from stored pair.\n\n  (ii) Avoid constructing the full reversed `Walk` object. Prove the per-position equivalence `p.IsBlockableNonCollider k ↔ p.reverse.IsBlockableNonCollider (p.length - k)` directly by case-analysing on the original walk's `WalkStep` disjunct (which is propositionally available on the original walk), bypassing the channel-inference-from-stored-pair step entirely.\n\nMATH-LEVEL OBSERVATION: under J = ∅, σ-separation symmetry is trivially true. Every walk's classification at each interior vertex depends only on the EDGES of `G` incident at that vertex (through the LN's 'outgoing E-arrowhead at v_k' notion), not on the walk's traversal direction. The Lean proof should reflect that direction-invariance more or less directly, not through a heavy reversal-construction-and-prove-it-preserves-everything pipeline. If you find yourself spinning up >500 lines of generic walk-reversal infrastructure, you are probably on the wrong path.\n\nIf after a genuine attempt at (i) or (ii) the local approach doesn't pan out, `refactor` is still available (the one-time nudge gate will let you re-emit after one local-fix exploration turn) — but please articulate concretely why each local approach fails in the refactor body.",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -5798,12 +5800,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "07980e45-9c87-4bde-b936-ec043e5a0805",
+          "first_seen": "2026-06-20T00:34:15+00:00",
+          "last_used": "2026-06-20T00:34:15+00:00"
+        }
+      ],
+      "time_needed_to_solve": 8565,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "```\nSUBTLETY:\nid: undefined_J_in_symmetry_justification\nexplanation: The justification clause \"when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction\" introduces a variable $J$ that is never defined in this claim. The claim statement itself mentions only $A$, $B$, $C$, and $G$ — there is no $J$ anywhere in the assertion $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$.\n\nA reader who has not memorized an external definition of $\\sigma$-separation that uses $J$ as some auxiliary parameter (e.g., an intervention set, a partition selector, a set of latent variables) cannot evaluate whether the justification is correct or even meaningful. If $J$ is part of the underlying $\\sigma$-separation definition referenced from another spot in the notes, that reference is implicit and the literal text of this claim leaves $J$ dangling.\nEND_SUBTLETY\n\nSUBTLETY:\nid: claim_unrestricted_but_proof_only_covers_J_empty\nexplanation: The claim states symmetry of $\\sigma$-separation unconditionally: \"$A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$\". However, the justification only addresses the case \"when $J = \\emptyset$\". This is internally inconsistent in one of two ways:\n\n(a) If $J$ is a parameter of $\\sigma$-separation that can be non-empty, then the justification proves symmetry only in the special case $J = \\emptyset$, leaving the general case (which the claim seems to assert) unsupported. A downstream proof relying on this claim for non-empty $J$ would be appealing to something not actually demonstrated.\n\n(b) If $\\sigma$-separation here is implicitly *defined* to require $J = \\emptyset$, then the \"when $J = \\emptyset$\" qualifier is vacuous noise and should be removed.\n\nEither way, the literal text reads as a partial proof of a fully general statement, and the gap is not flagged.\nEND_SUBTLETY\n\nSUBTLETY:\nid: walks_same_regardless_of_direction_ambiguous\nexplanation: The phrase \"the set of walks between $A$ and $B$ is the same regardless of direction\" admits at least two readings:\n\n(i) Walks are considered as *unordered* sequences (i.e., a walk and its reversal are identified). Under this reading the statement is tautological — \"between $A$ and $B$\" already implies undirectedness — and adds nothing.\n\n(ii) Walks are considered as *ordered* sequences. Then a walk from $a \\in A$ to $b \\in B$ is a distinct object from its reversal (a walk from $b$ to $a$), and the *set* of walks is not literally the same — rather, there is a bijection (reversal) between walks-from-$A$-to-$B$ and walks-from-$B$-to-$A$.\n\nFor $\\sigma$-separation specifically, walks have orientations of edges that matter for collider/non-collider classification, so reading (ii) is the technically correct setup. Under reading (ii), the symmetry argument needs the *combination* of (set bijection by reversal) + (invariance of blocking under reversal), and the prose's \"the set is the same\" elides the bijection step. A pedantic reader would object that two sets in bijection are not \"the same set\".\nEND_SUBTLETY\n```",
+        "session": "be083572-6888-4271-a885-ea7f0546dae0"
+      }
     },
     {
       "def_or_claim": "claim",
