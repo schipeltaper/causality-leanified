@@ -1,0 +1,12 @@
+{
+  "source_branch": "server_setting_up_scaffold",
+  "refactor_branch": "refactor_collider_side_aware",
+  "roots": [
+    "def_3_15"
+  ],
+  "root_ref": "def_3_15",
+  "name": "collider_side_aware",
+  "chapter": 3,
+  "init_date": "2026-06-20T09:58:22+00:00",
+  "deviations_to_resolve": []
+}
