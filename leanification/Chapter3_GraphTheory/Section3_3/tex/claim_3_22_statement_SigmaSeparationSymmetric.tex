@@ -19,6 +19,22 @@
 \def\rowref{claim\_3\_22}
 \phantomsection\label{claim_3_22}
 
-Note that $\sigma$-separation is symmetric: $A \sPerp_G B \given C \iff B \sPerp_G A \given C$, since when $J = \emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\sigma$-blocking conditions are invariant under walk reversal.
+\begin{Lem}[$\sigma$-separation is symmetric]\label{lem:sigma_separation_symmetric}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definition of def \ref{def:walks}, item~i., the $\sigma$-blocking predicate (``$\pi$ is $C$-$\sigma$-blocked'') of def \ref{def:sigma_blocking}, and the $i\sigma$-/$\sigma$-separation predicates of def \ref{def:sigma_separation}. Suppose
+    \[
+        J = \emptyset,
+    \]
+    so that, by def \ref{def:sigma_separation}, item~4, the $\sigma$-separation abbreviation
+    \[
+        A \sPerp_G B \given C \;\; := \;\; A \isPerp_G B \given C
+    \]
+    is in scope (and, as recorded there, $A \sPerp_G B \given C$ unfolds under $J = \emptyset$ to: for every integer $n \ge 0$ and every walk $\pi = (v_0, a_0, v_1, \dots, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 \in A$ and $v_n \in B$, the walk $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking}).
+    Let $A, B, C \ins V$ be subsets of nodes --- equivalently $A, B, C \ins J \cup V$, since $J = \emptyset$; $A$, $B$, $C$ are \emph{not} assumed to be pairwise disjoint, nor non-empty.
+
+    Then $\sigma$-separation in $G$ is symmetric in its first two arguments:
+    \[
+        A \sPerp_G B \given C \iff B \sPerp_G A \given C.
+    \]
+\end{Lem}
 
 \end{document}

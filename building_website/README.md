@@ -178,6 +178,35 @@ and substitute a single italic line for the Lean code pane:
 orchestrator's effort before the operator closed it) — it's the same
 table treatment as a fully-formalised row.
 
+## Disproven rows (`proven: disproven`)
+
+A claim is `disproven` when the formalisation work produced a
+counter-example to the lecture-notes claim rather than a positive
+proof.  Concretely, the row's `data.json` entry has
+`formalized: "yes"`, `proven: "disproven"`, `solved: "yes"`, and the
+`main_lean_file` carries a `theorem not_<original_name>` exhibiting
+the counter-example.
+
+Two filename conventions differ from the proven case:
+
+  * The proof `.tex` is at `<ref>_disproof_<title>.tex` (not
+    `<ref>_proof_<title>.tex`).  `fetch_row.py`'s `tex_proof_path`
+    tries `_proof_` first and falls back to `_disproof_`.
+  * The Lean file often carries a `Disproof` suffix (e.g.
+    `LabelRomanDisproof.lean`), but that's just by convention —
+    `fetch_row.py` reads the row's `main_lean_file` field directly,
+    so any name works.
+
+The website renderer detects `status.proven === "disproven"` and:
+
+  * Shows a `Disproven (counter-example)` status badge in place of
+    the `Proof complete` / `Proof in progress` badge.
+  * Labels the footer button `View TeX disproof` instead of
+    `View TeX proof`.
+
+`results.tex` and `appendix.tex` carry the row the same as any
+proven row.
+
 ## Output: what the website consumes
 
 Each row's `data/<ref>.json`:
