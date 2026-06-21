@@ -39,3 +39,4 @@ import Chapter3_GraphTheory.Section3_3.AcyclicNonCollidersBlockable
 import Chapter3_GraphTheory.Section3_3.SigmaBlockedWalks
 import Chapter3_GraphTheory.Section3_3.ISigmaSeparation
 import Chapter3_GraphTheory.Section3_3.SigmaSeparationSymmetric
+import Chapter3_GraphTheory.Section3_3.LabelRoman

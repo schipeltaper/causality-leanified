@@ -826,32 +826,32 @@
       "section": "3.3",
       "title": "LabelRoman",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "no",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-21",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `collider_side_aware`; it was pulled in because root(s) `def_3_15` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
-      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean",
       "lean_files": [
-        "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean"
+        "leanification/Chapter3_GraphTheory/Section3_3/LabelRoman.lean"
       ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 8,
+        "continue_agent": 16,
+        "new_manager": 2,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -862,13 +862,333 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\\label{lem:replace_walk}\nLet $G=(J,V,E,L)$ be a CDMG, $C \\subseteq V \\cup J$ and $\\pi = \\lp  v_0 \\sus \\cdots \\sus v_n \\rp$ be a $C$-$\\sigma$-open walk in $G$.\n  Suppose $v_i \\in \\Sc^G(v_j)$ for some $i,j \\in \\{0,\\dots,n\\}$ with $i < j$.\nIf we then replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by \n  \\begin{enumerate}[label=(\\roman*)]\n      \\item a shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$ if $j = n$ or if $v_j \\tuh v_{j+1}$ on $\\pi$, or \n    \\item a shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ otherwise,\n  \\end{enumerate}\n  then this new subwalk is entirely within $\\Sc^G(v_j)$ and the modified walk $\\pi'$ is still $C$-$\\sigma$-open.\n\\begin{proof}\n$\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the initial nodes $v_0, \\dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \\dots, v_n$ on $\\pi'$, since these nodes occur in the same local configuration on $\\pi$ and are not $C$-$\\sigma$-blocked on $\\pi$ by assumption.\nFurthermore, $\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\\Sc^G(v_j)$. It is also worth noting that $\\pi'$ cannot become $C$-$\\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\\pi$. So in the following we can w.l.o.g.\\ assume that both $v_i$ and $v_j$ are non-endnodes of $\\pi$ and thus $\\pi'$.\n\nCase (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\\pi$ that is $C$-$\\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\\pi'$ it remains $C$-$\\sigma$-open on $\\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$ (if $v_i$ is the left endnode or not). If $v_i \\neq v_j$, then the new directed path $v_i \\tuh \\cdots \\tuh v_j$ in $\\pi'$ is $C$-$\\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).\n\n Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \\hus v_{j+1}$ in $\\pi$. \n If $v_{i-1} \\hut v_i$ on $\\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). \n So we can also assume that we have $i > 0$ and $v_{i-1} \\suh v_i$ on $\\pi$. So $\\pi$ looks as follows:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\sus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n So there must be a smallest number $k \\in \\lC i,\\dots,j\\rC$ such that a collider appears at $v_k$ on $\\pi$:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\tuh \\cdots \\tuh v_k \\hus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n Since $\\pi$ is $C$-$\\sigma$-open we have $v_k \\in \\Anc^G(C)$. Since $v_i \\in \\Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \\in \\Anc^G(C)$.\n So if we replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by the shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ we then get for $\\pi'$ the following situation:\n \\[\\pi':\\qquad \\cdots v_{i-1} \\suh v_i \\hut \\cdots \\hut  v_j \\hus v_{j+1} \\cdots, \\]\n which is then $C$-$\\sigma$-open at $v_i$ as $v_i \\in \\Anc^G(C)$. Note that this holds also when $v_i=v_j$.\n If $v_i \\neq v_j$ then $v_j$ is also $C$-$\\sigma$-open on $\\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. \n\n So in all cases $\\pi'$ stays $C$-$\\sigma$-open.\n\\end{proof}\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 22849,
+      "agent_registry": [
+        {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "105f788a-7dec-4d01-bdc7-5aa667034a9a",
+          "first_seen": "2026-06-21T06:05:09+00:00",
+          "last_used": "2026-06-21T06:05:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e6ea6632-4bd2-4789-89e4-f55bec907efe",
+          "first_seen": "2026-06-21T06:14:23+00:00",
+          "last_used": "2026-06-21T06:14:23+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "59334e41-bd17-4ab7-95a1-a87623c1aaa6",
+          "first_seen": "2026-06-21T06:23:31+00:00",
+          "last_used": "2026-06-21T06:23:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "9b693b4c-52b2-4f67-bdc8-8866700cd8c8",
+          "first_seen": "2026-06-21T06:25:01+00:00",
+          "last_used": "2026-06-21T06:25:01+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "154bc0fa-1d46-45f3-af4d-b1e994b4c741",
+          "first_seen": "2026-06-21T06:30:00+00:00",
+          "last_used": "2026-06-21T06:30:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "64a5b21b-166e-4adf-a736-42b520b8b65a",
+          "first_seen": "2026-06-21T06:31:07+00:00",
+          "last_used": "2026-06-21T06:31:07+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "2778e777-1b72-4ab4-b618-ba38afe2ef56",
+          "first_seen": "2026-06-21T06:34:41+00:00",
+          "last_used": "2026-06-21T06:34:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "49ae2849-825d-4435-9c5d-040da20e6244",
+          "first_seen": "2026-06-21T06:35:52+00:00",
+          "last_used": "2026-06-21T06:35:52+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "0618bb53-0a48-4659-a6d2-77af32e244f3",
+          "first_seen": "2026-06-21T06:43:21+00:00",
+          "last_used": "2026-06-21T06:43:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6fe7a10f-ddff-49f9-a3f7-4dd399f9f0e6",
+          "first_seen": "2026-06-21T06:44:30+00:00",
+          "last_used": "2026-06-21T06:44:30+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "934872c9-2707-4a7f-ba17-d40d0bc5e2a9",
+          "first_seen": "2026-06-21T06:47:37+00:00",
+          "last_used": "2026-06-21T06:47:37+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "b0fdc829-3fa7-403c-be51-de7afee51f68",
+          "first_seen": "2026-06-21T07:09:06+00:00",
+          "last_used": "2026-06-21T07:09:06+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f9495b4f-9846-46e3-95f6-817414172936",
+          "first_seen": "2026-06-21T07:10:01+00:00",
+          "last_used": "2026-06-21T07:10:01+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "a2197a51-b58e-49c4-99b9-4086d901bc0e",
+          "first_seen": "2026-06-21T07:10:56+00:00",
+          "last_used": "2026-06-21T07:10:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "715ae14d-fbcc-4b51-8344-3e159f4374b9",
+          "first_seen": "2026-06-21T07:11:56+00:00",
+          "last_used": "2026-06-21T07:11:56+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "7bf0a0a3-b7ab-43f3-8e91-4d7982d3f120",
+          "first_seen": "2026-06-21T07:22:19+00:00",
+          "last_used": "2026-06-21T07:22:19+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "cf35a953-bfb5-4c15-aa8a-93d9ae08b0e1",
+          "first_seen": "2026-06-21T07:24:22+00:00",
+          "last_used": "2026-06-21T07:24:22+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "f6baeccf-d92e-4cd9-84cd-d957ee9d014c",
+          "first_seen": "2026-06-21T07:50:33+00:00",
+          "last_used": "2026-06-21T11:06:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "142949c5-fc99-42fd-97b4-50a956f1cc23",
+          "first_seen": "2026-06-21T07:52:18+00:00",
+          "last_used": "2026-06-21T07:52:18+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "50091694-c76e-4fcd-9105-c640c327ea54",
+          "first_seen": "2026-06-21T08:20:31+00:00",
+          "last_used": "2026-06-21T08:20:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "823a8728-57be-4c54-bfaf-0440ea823469",
+          "first_seen": "2026-06-21T08:44:39+00:00",
+          "last_used": "2026-06-21T08:44:39+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "29af3c45-cae8-4de5-a504-69a0b50a974e",
+          "first_seen": "2026-06-21T09:13:25+00:00",
+          "last_used": "2026-06-21T09:13:25+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "319987e5-b7f1-42e9-8552-59d2f4062fc0",
+          "first_seen": "2026-06-21T09:29:47+00:00",
+          "last_used": "2026-06-21T09:29:47+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6c1a2e70-290a-4816-abe9-a6a04a3f6d1a",
+          "first_seen": "2026-06-21T09:45:10+00:00",
+          "last_used": "2026-06-21T09:45:10+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e4b433d0-4f96-4fbb-b127-5a4c6b10c5e6",
+          "first_seen": "2026-06-21T09:49:27+00:00",
+          "last_used": "2026-06-21T09:49:27+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "79b75f1a-b686-4c8c-9e49-51845f08a2b0",
+          "first_seen": "2026-06-21T10:05:21+00:00",
+          "last_used": "2026-06-21T10:05:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "522fe334-5137-485a-87d8-dc028dab57e8",
+          "first_seen": "2026-06-21T10:14:03+00:00",
+          "last_used": "2026-06-21T10:14:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "27261346-e1c6-48af-a6f2-6e2d9b175df1",
+          "first_seen": "2026-06-21T10:28:49+00:00",
+          "last_used": "2026-06-21T10:28:49+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "08c980ca-3a4c-4812-a281-9b4e04ba2ae4",
+          "first_seen": "2026-06-21T10:40:38+00:00",
+          "last_used": "2026-06-21T10:40:38+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "51dad609-5b3b-4738-b758-5988c048c3de",
+          "first_seen": "2026-06-21T10:47:12+00:00",
+          "last_used": "2026-06-21T10:47:12+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "29cfc5d0-a643-4194-8b73-c01a7d6904e8",
+          "first_seen": "2026-06-21T10:50:15+00:00",
+          "last_used": "2026-06-21T10:50:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "86f00961-507a-4531-8800-5be05951eb26",
+          "first_seen": "2026-06-21T10:58:56+00:00",
+          "last_used": "2026-06-21T10:58:56+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "f599cae8-ad8f-4377-a4cc-52d325b05bdc",
+          "first_seen": "2026-06-21T11:02:07+00:00",
+          "last_used": "2026-06-21T11:02:07+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6742ffe4-78c3-415a-b0da-ab4d738ad4c0",
+          "first_seen": "2026-06-21T11:05:11+00:00",
+          "last_used": "2026-06-21T11:05:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1d6ba8d5-188f-4cd9-80c7-11e32b8050cb",
+          "first_seen": "2026-06-21T11:08:31+00:00",
+          "last_used": "2026-06-21T11:08:31+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "eb31304c-29cf-4316-b942-8edbd4c3da5b",
+          "first_seen": "2026-06-21T11:12:59+00:00",
+          "last_used": "2026-06-21T11:12:59+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8a9cf07d-42f3-41a1-b4aa-3ceebb125509",
+          "first_seen": "2026-06-21T11:53:03+00:00",
+          "last_used": "2026-06-21T11:53:03+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "131554d0-15b7-466f-9c6a-3d8e57ba725e",
+          "first_seen": "2026-06-21T11:56:04+00:00",
+          "last_used": "2026-06-21T11:56:04+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "6757537b-4569-4dc1-b7ca-7acb10f63d8a",
+          "first_seen": "2026-06-21T13:29:33+00:00",
+          "last_used": "2026-06-21T13:29:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0af923cb-ad60-4679-92af-c420ded74067",
+          "first_seen": "2026-06-21T13:30:55+00:00",
+          "last_used": "2026-06-21T13:30:55+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a52dcc2c-505b-4795-9651-59cef3712528",
+          "first_seen": "2026-06-21T16:13:14+00:00",
+          "last_used": "2026-06-21T16:13:14+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "d4f60349-d084-4be3-93b2-eaac67e19977",
+          "first_seen": "2026-06-21T16:15:56+00:00",
+          "last_used": "2026-06-21T16:15:56+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "957afd92-93fa-4e08-81df-f6fd95e506c4",
+          "first_seen": "2026-06-21T16:35:58+00:00",
+          "last_used": "2026-06-21T16:35:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "875cb19f-5eca-420d-a182-6297f69f60be",
+          "first_seen": "2026-06-21T16:38:11+00:00",
+          "last_used": "2026-06-21T16:38:11+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "b61c5c74-23b2-44fe-bc5b-47791eb3b63d",
+          "first_seen": "2026-06-21T16:43:49+00:00",
+          "last_used": "2026-06-21T16:43:49+00:00"
+        }
+      ],
+      "time_needed_to_solve": 62328,
       "addition_to_the_LN": "",
-      "wording_check": {},
+      "wording_check": {
+        "done": true,
+        "output": "```\nSUBTLETY:\nid: case_i_fork_at_vj_blocking_criteria_overlooked\nexplanation: In Case (i), the proof states: \"By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\\pi$ that is $C$-$\\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\\pi'$ it remains $C$-$\\sigma$-open on $\\pi'$.\"\n\nThis glosses over the fork sub-case. On $\\pi$ a fork at $v_j$ has configuration $v_{j-1} \\leftarrow v_j \\to v_{j+1}$, with two outgoing walk-neighbors. On $\\pi'$ the left edge becomes $w \\to v_j$ (incoming), so $v_j$ turns into a right chain with only $v_{j+1}$ as an outgoing walk-neighbor.\n\nIf the $\\sigma$-separation criterion at a non-collider uses only outgoing walk-neighbors — a convention suggested by the proof's own later wording about intermediate nodes \"only point to nodes in the same strongly connected component $\\Sc^G(v_j)$\" — then the criteria are NOT the same:\n- Fork on $\\pi$: $v_j$ open iff $v_j \\notin C$ or $v_j \\in \\Sc^G(v_{j-1})$ or $v_j \\in \\Sc^G(v_{j+1})$.\n- Right chain on $\\pi'$: $v_j$ open iff $v_j \\notin C$ or $v_j \\in \\Sc^G(v_{j+1})$.\n\nConcrete corner case: $v_j \\in C$, $v_j \\in \\Sc^G(v_{j-1})$, $v_j \\notin \\Sc^G(v_{j+1})$. Then $v_j$ is $\\sigma$-open on $\\pi$ via the fork's left side, but on $\\pi'$ as a right chain neither disjunct of the criterion holds — the new predecessor $w \\in \\Sc^G(v_j)$ is incoming, not outgoing, and so does not help under an outgoing-only convention.\n\nUnder a symmetric convention (any walk-neighbor in $\\Sc^G(v_j)$ suffices) the proof goes through, because $w \\in \\Sc^G(v_j)$ on $\\pi'$. Whether the gap is real therefore depends on the precise definition of $\\sigma$-separation invoked (presumably def_3_18 ISigmaSeparation). Either way, the phrase \"the same blocking criteria apply\" is doing significant work that the proof never unpacks. The \"analogous to case (i)\" reduction in Case (ii) (the $v_{i-1} \\hut v_i$ branch) inherits exactly the same gap when $v_i$ was a fork on $\\pi$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: vi_eq_vj_combined_node_open_not_verified\nexplanation: A walk may revisit vertices, so the hypothesis $i < j$ does NOT preclude $v_i = v_j$ as vertices. In that degenerate case the \"shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$\" (resp. $v_i \\hut \\cdots \\hut v_j$) is the length-0 path consisting of the single vertex, and replacing the subwalk collapses the entire segment $v_i \\sim \\cdots \\sim v_j$ down to one node on $\\pi'$.\n\nOn $\\pi'$ this merged node now sits in a NEW local configuration: its left edge is $v_{i-1} \\sim v_i$ (inherited from $v_i$'s left side on $\\pi$) and its right edge is $v_j \\sim v_{j+1}$ (inherited from $v_j$'s right side on $\\pi$). The left side of $v_j$ on $\\pi$ and the right side of $v_i$ on $\\pi$ are simply discarded.\n\nThe proof dismisses this case with one sentence in Case (i): \"If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$ (if $v_i$ is the left endnode or not)\" (the parenthetical appears garbled — presumably \"whether or not $v_i$ is the left endnode\"), and a parallel one-liner in Case (ii) (\"Note that this holds also when $v_i=v_j$\"). Neither verifies the openness of the combined left-of-$v_i$/right-of-$v_j$ configuration.\n\nConcrete corner case to worry about: on $\\pi$, $v_i$ is open as a collider via $v_i \\in \\Anc^G(C)$ at position $i$, and $v_j (= v_i)$ is open at position $j$ via some criterion involving $v_{j-1}$ (which is being discarded on $\\pi'$). Then on $\\pi'$ the merged node may have no surviving evidence of openness — its walk-neighbors there are $v_{i-1}$ and $v_{j+1}$, neither of which need lie in $\\Sc^G(v_i)$, and the \"collider\" role at position $i$ may not even apply anymore once the right edge changes. The proof's brevity here leaves this verification implicit, and the openness in the $v_i = v_j$ case is not obviously a corollary of the more general argument given for $v_i \\neq v_j$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: shortest_qualifier_unused_in_proof\nexplanation: The lemma stipulates \"a shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$\" (and analogously in Case (ii)), but the proof never uses the shortness. Both conclusions — that the new subwalk lies entirely within $\\Sc^G(v_j)$, and that the intermediate nodes are non-collider chains pointing into the SCC — hold for any directed path from $v_i$ to $v_j$ in $G$ (which exists because $v_i \\in \\Sc^G(v_j)$). The \"shortest\" qualifier is therefore an arbitrary selector that the literal proof does not depend on. This is mild and probably load-bearing for some downstream argument (e.g., to bound walk length / ensure termination of an iterative shortening process), but as written, the qualifier reads as under-motivated — and if a future reader takes it literally, they may wonder whether ties (multiple shortest paths) make the construction non-canonical.\nEND_SUBTLETY\n```",
+        "session": "105f788a-7dec-4d01-bdc7-5aa667034a9a"
+      },
       "refactor": true,
       "refactor_role": "dependent",
       "caused_by_roots": [
