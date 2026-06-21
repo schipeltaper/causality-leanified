@@ -183,6 +183,8 @@ def main() -> None:
     preserved = load_existing_notes(OUT_PATH)
 
     out = [PREAMBLE]
+    out.append("\\chapter{Lean formalizations}\\label{chap:appendix_a}")
+    out.append("")
 
     for chapter in manifest["chapters"]:
         for section in chapter["sections"]:
