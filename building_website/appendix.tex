@@ -2032,6 +2032,20 @@ def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
 \end{minted}
 {\small\textit{helper}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def HeadAtTarget : ∀ {u v : Node}, WalkStep G u v → Prop
+  | _, _, .forwardE _  => True
+  | _, _, .backwardE _ => False
+  | _, _, .bidir _     => True
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
+def HeadAtSource : ∀ {u v : Node}, WalkStep G u v → Prop
+  | _, _, .forwardE _  => False
+  | _, _, .backwardE _ => True
+  | _, _, .bidir _     => True
+\end{minted}
+{\small\textit{helper}}
+\begin{minted}[fontsize=\appendixLeanSize]{lean4}
 variable {G : CDMG Node}
 \end{minted}
 {\small\textit{main}}
@@ -2040,9 +2054,10 @@ def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ _ (.nil _ _), _ => False
   | _, _, .cons _ _ (.cons _ _ _), 0 => False
-  | _, _, .cons vk s₀ (.cons _ s₁ _), 1 =>
-      s₀.IsInto vk ∧ s₁.IsInto vk
-  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)
+  | _, _, .cons _ s₀ (.cons _ s₁ _), 1 =>
+      s₀.HeadAtTarget ∧ s₁.HeadAtSource
+  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 =>
+      p.IsCollider (k + 1)
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
@@ -2385,16 +2400,16 @@ def Walk.replaceWalkCaseI {G : CDMG Node} :
 \end{minted}
 {\small\textit{main}}
 \begin{minted}[fontsize=\appendixLeanSize]{lean4}
-theorem not_replace_walk :
-    ∃ (Node : Type) (_inst : DecidableEq Node) (G : CDMG Node)
-      (C : Set Node) (hC : C ⊆ ↑G.J ∪ ↑G.V) (u w : Node)
-      (π : Walk G u w) (hπ : π.IsSigmaOpenGiven C hC)
-      (i j : ℕ) (hij : i < j) (hjn : j ≤ π.length)
-      (v_i v_j : Node)
-      (h_get_i : π.vertices[i]? = some v_i)
-      (h_get_j : π.vertices[j]? = some v_j)
-      (h_Sc : v_i ∈ G.Sc v_j)
-      (σ_ij : Walk G v_i v_j) (π' : Walk G u w),
+theorem replaceWalk
+    (G : CDMG Node) (C : Set Node) (hC : C ⊆ ↑G.J ∪ ↑G.V)
+    {u w : Node} (π : Walk G u w)
+    (hπ : π.IsSigmaOpenGiven C hC)
+    {i j : ℕ} (hij : i < j) (hjn : j ≤ π.length)
+    {v_i v_j : Node}
+    (h_get_i : π.vertices[i]? = some v_i)
+    (h_get_j : π.vertices[j]? = some v_j)
+    (h_Sc : v_i ∈ G.Sc v_j) :
+    ∃ (σ_ij : Walk G v_i v_j) (π' : Walk G u w),
       (π.replaceWalkCaseI j →
          σ_ij.IsDirectedWalk ∧
          (∀ τ : Walk G v_i v_j, τ.IsDirectedWalk → σ_ij.length ≤ τ.length)) ∧
@@ -2404,7 +2419,7 @@ theorem not_replace_walk :
       (∀ x ∈ σ_ij.vertices, x ∈ G.Sc v_j) ∧
       π'.vertices = (π.vertices.take (i + 1)).dropLast ++ σ_ij.vertices ++
           π.vertices.drop (j + 1) ∧
-      ¬ π'.IsSigmaOpenGiven C hC
+      π'.IsSigmaOpenGiven C hC
 \end{minted}
 \smallskip{\small\textit{Notes:}}~%
 % NOTES-BEGIN claim_3_27
