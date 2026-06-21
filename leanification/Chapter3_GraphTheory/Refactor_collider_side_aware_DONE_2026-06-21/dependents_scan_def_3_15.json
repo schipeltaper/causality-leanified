@@ -1,0 +1,1052 @@
+{
+  "target_ref": "def_3_15",
+  "target_title": "IsCollider",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_blockable_noncollider_first_DONE_2026-06-15/dependents_scan_def_3_16.json",
+      "line": 105,
+      "snippet": "      \"snippet\": \"   `IsCollider` / `IsUnblockableNonCollider` idiom.**  The LN writes\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_blockable_noncollider_first_DONE_2026-06-15/dependents_scan_def_3_16.json",
+      "line": 110,
+      "snippet": "      \"snippet\": \"--   `IsCollider` / `IsUnblockableNonCollider` idiom of `def_3_15`\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 7595,
+      "snippet": "      \"snippet\": \"-- *Namespace-level `variable {G : CDMG Node}`.*  Both `IsCollider`\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 10800,
+      "snippet": "      \"snippet\": \"* `Walk.IsCollider p k` — `ah_π(k) = 2`; both walk-incident edges\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 10835,
+      "snippet": "      \"snippet\": \"--   `Walk.IsCollider G p k`).\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 10850,
+      "snippet": "      \"snippet\": \"--   present `Walk.IsCollider` is the *single-position* predicate at\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 10855,
+      "snippet": "      \"snippet\": \"def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 11015,
+      "snippet": "      \"snippet\": \"  \\\"lean_code_with_comments\\\": \\\"def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=\\\\n  1 ≤ k ∧ ∃ (vk : Node) (a₁ a₂ : Node × Node),\\\\n    p.vertices[k]? = some vk ∧\\\\n  "
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+      "line": 11020,
+      "snippet": "      \"snippet\": \"  \\\"lean_code_without_comments\\\": \\\"def IsCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=\\\\n  1 ≤ k ∧ ∃ (vk : Node) (a₁ a₂ : Node × Node),\\\\n    p.vertices[k]? = some vk ∧\\\\"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 156,
+      "snippet": "--   `IsCollider` and `refactor_HasBlocking*Slot` byte-for-"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 159,
+      "snippet": "-- *Index-recursion lockstep across `IsCollider`, `HasBlockingLeftSlot`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 163,
+      "snippet": "--   `IsCollider` and `HasBlockingLeftSlot`) and outer `k + 1` → tail"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 167,
+      "snippet": "--   inherits the negated-`IsCollider` hypothesis at position `m + 1`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 173,
+      "snippet": "-- *The `k = 1` substantive case.*  Unfold `¬ IsCollider 1`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 194,
+      "snippet": "      1 ≤ k → k < π.length → ¬ π.IsCollider k →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 217,
+      "snippet": "              -- IsCollider at (cons vMid s₀ (cons _ s₁ _), 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 278,
+      "snippet": "              --   IsCollider (cons _ _ p) (m + 2) = p.IsCollider (m + 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 285,
+      "snippet": "                  ¬ (Walk.cons vNext s₁ π_rest_rest).IsCollider (m + 1) := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+      "line": 331,
+      "snippet": "--   the index-recursion lockstep across `IsCollider`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 74,
+      "snippet": "   `CollidersAndNon.lean`'s `IsCollider` / `IsNonCollider` asymmetry."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 90,
+      "snippet": "   some vkp1`.**  Matches `IsCollider`'s `1 ≤ k ∧ ∃ vk a₁ a₂, …`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 215,
+      "snippet": "--   recursion pattern used by `IsCollider`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 583,
+      "snippet": "--   both end-positions (`IsCollider` is `False` at `k = 0`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 587,
+      "snippet": "--   `IsCollider` design block)."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 602,
+      "snippet": "--   the original.  Matches `IsCollider` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+      "line": 712,
+      "snippet": "--   `p.IsCollider k`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 20,
+      "snippet": "* `Walk.IsCollider p k` — `ah_π(k) = 2`; both walk-incident edges"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 47,
+      "snippet": "2. **`IsCollider` as the primary predicate, `IsNonCollider` as the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 68,
+      "snippet": "   unambiguous and is what `IsCollider` / `IsNonCollider` encode."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 157,
+      "snippet": "-- The sole consumer is `Walk.IsCollider` below, which"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 164,
+      "snippet": "--   classification directly into `IsCollider`'s pattern"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 172,
+      "snippet": "--   `IsCollider` mirror the LN's phrasing word-for-word at"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 177,
+      "snippet": "--   tags) at the `k = 1` slot of `IsCollider`, breaking the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 181,
+      "snippet": "--   semantics\" bullet on `IsCollider` below for the self-"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 271,
+      "snippet": "--   `Walk.IsCollider` (`def_3_15` ORIGINAL block above in this file)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 308,
+      "snippet": "--   `IsCollider` below: walks live at `Type _`, their per-"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 313,
+      "snippet": "--   predicate's role as a `Prop`-conjunct inside `IsCollider`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 317,
+      "snippet": "--   `IsCollider` both pass the SAME node `vk` (the position-"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 324,
+      "snippet": "--   This is exactly the call pattern `IsCollider` uses:"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 352,
+      "snippet": "--   `IsCollider` and `IsNonCollider` recurse over /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 362,
+      "snippet": "--   dot-notation on the walk (`p.IsCollider k` rather than"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 363,
+      "snippet": "--   `Walk.IsCollider G p k`)."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 377,
+      "snippet": "-- `p.IsCollider k` iff position `k` on the walk `p` has"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 391,
+      "snippet": "-- ## Design choice — IsCollider"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 394,
+      "snippet": "--   change is required in `IsCollider` itself for the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 406,
+      "snippet": "--   pair, and `IsCollider` / `IsNonCollider` agree"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 418,
+      "snippet": "--   `Walk.IsCollider` (ORIGINAL block above) characterised \"edge into"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 446,
+      "snippet": "--   original's `Walk.IsCollider p 1` evaluates to `True` (both"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 504,
+      "snippet": "--   `IsCollider` itself — the helper absorbs the self-loop"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 527,
+      "snippet": "--   word-for-word.  The original `Walk.IsCollider` (ORIGINAL block)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 557,
+      "snippet": "--   `p.IsCollider (k + 1)` (index shift by 1 because the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 566,
+      "snippet": "--   `p.IsCollider (k + 1)`, not `p.IsCollider k`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 590,
+      "snippet": "--   `tail.IsCollider 1 ↔ s_1.IsInto v_2 ∧ s_2.IsInto v_2`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 592,
+      "snippet": "--   `cons s_0 (cons s_1 …).IsCollider 2`.  Net effect: position 1 is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 619,
+      "snippet": "--   `Walk.IsCollider` (ORIGINAL block) remains under the original"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 621,
+      "snippet": "--   `IsCollider` is a separate `def` under the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 624,
+      "snippet": "--   Phase 7 cleanup will rename `IsCollider` to `IsCollider`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 625,
+      "snippet": "--   (whole-word) across every refactored file, leaving a `def IsCollider`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 628,
+      "snippet": "def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 634,
+      "snippet": "  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 641,
+      "snippet": "-- `ah_π(k) ≤ 1`, equivalently `¬ p.IsCollider k`.  Body"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 646,
+      "snippet": "-- - `p.IsCollider` → `p.IsCollider` (the REPLACEMENT def"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 653,
+      "snippet": "--   themselves been refactored (`p.length` and `p.IsCollider`), so the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 658,
+      "snippet": "--   Note that the `IsCollider` reference now resolves to the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 662,
+      "snippet": "--   `IsCollider` design block for the load-bearing"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 672,
+      "snippet": "--   here because the body's other conjunct (`¬ p.IsCollider k`)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 674,
+      "snippet": "--   the original's `IsCollider` (positive existential with Option-"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 681,
+      "snippet": "--   to `k ≤ p.length ∧ ¬ p.IsCollider k`, so on the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 683,
+      "snippet": "--   `p.IsNonCollider k ↔ ¬ p.IsCollider k` reduces"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 692,
+      "snippet": "--   `IsCollider` fires the `.nil _ _, _` or `.cons _ _ _, 0`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 711,
+      "snippet": "  k ≤ p.length ∧ ¬ p.IsCollider k"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 366,
+      "snippet": "--   the per-walk-position predicates `IsCollider` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+      "line": 743,
+      "snippet": "--   per-position classifiers `IsCollider` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "line": 238,
+      "snippet": "-- are endpoints (not colliders by the IsCollider def's cons-nil"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "line": 261,
+      "snippet": "-- `π'.IsCollider 1` — the load-bearing fact.  At position 1 on `π'`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "line": 271,
+      "snippet": "private lemma π'_isCollider_one : π'.IsCollider 1 :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "line": 421,
+      "snippet": "--   Under the canonical Lean encoding, `Walk.IsCollider π 1`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+      "line": 505,
+      "snippet": "--   `π'.IsCollider 1 = (.forwardE h_ab).IsInto true ∧"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 55,
+      "snippet": "2. **Per-position quantification via the existing `IsCollider` and"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 73,
+      "snippet": "   `IsCollider` / `IsUnblockableNonCollider` idiom.**  The LN writes"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 173,
+      "snippet": "--         `p.IsCollider k` then `vk ∈ G.AncSet C`;"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 183,
+      "snippet": "-- - `p.IsCollider` → `p.IsCollider`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 200,
+      "snippet": "--   `vertices`, `IsCollider`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 222,
+      "snippet": "--   `IsCollider` / `IsBlockableNonCollider` read the channel off the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 237,
+      "snippet": "--   predicates `IsCollider` and"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 291,
+      "snippet": "--   `IsCollider`'s pattern-match shape) was rejected: (a)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 307,
+      "snippet": "--   upstream predicates `IsCollider` and"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 352,
+      "snippet": "-- *Dot-notation `p.IsCollider k` / `p.IsBlockableNonCollider k`.*"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 368,
+      "snippet": "  (∀ (k : ℕ) (vk : Node), p.vertices[k]? = some vk → p.IsCollider k →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 380,
+      "snippet": "--         `p.vertices[k]? = some vk`, `p.IsCollider k`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 411,
+      "snippet": "--   — because the upstream `IsCollider` and"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 455,
+      "snippet": "--   `IsCollider` and `IsBifurcationWithSplit` do)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+      "line": 515,
+      "snippet": "      p.vertices[k]? = some vk ∧ p.IsCollider k ∧ vk ∉ G.AncSet C) ∨"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 109,
+      "snippet": "* Position-correspondence lemmas for `IsCollider` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 273,
+      "snippet": "-- The two successor-shift equations of IsCollider, isolated as"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 279,
+      "snippet": "    (Walk.cons mid s p).IsCollider 0 ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 283,
+      "snippet": "  cases p <;> simp [Walk.IsCollider]"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 285,
+      "snippet": "-- Equational characterisation: `IsCollider` on a cons whose tail is"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 289,
+      "snippet": "    (Walk.cons mid s (Walk.nil mid hw)).IsCollider k = False := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 292,
+      "snippet": "-- IsCollider on the trivial walk is always False."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 294,
+      "snippet": "    (Walk.nil v hv).IsCollider k = False := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 303,
+      "snippet": "    (Walk.cons mid s₀ (Walk.cons mid₂ s₁ q)).IsCollider 1 ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 314,
+      "snippet": "    (Walk.cons mid s₀ (Walk.cons mid₂ s₁ q)).IsCollider (k + 2) ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 315,
+      "snippet": "      (Walk.cons mid₂ s₁ q).IsCollider (k + 1) := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 318,
+      "snippet": "-- IsCollider at the boundary position k = p.length is `False` for any"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 319,
+      "snippet": "-- walk.  Proof by induction on p.  The body of IsCollider only fires"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 325,
+      "snippet": "    ∀ {u v : Node} (p : Walk G u v), p.IsCollider p.length = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 330,
+      "snippet": "      -- length = p'.length + 2.  Use recursive IsCollider case to descend"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 336,
+      "snippet": "      -- Goal: IsCollider at p'.length + 2, which by the recursive"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 337,
+      "snippet": "      -- pattern equals (cons mid₂ s' p').IsCollider (p'.length + 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 338,
+      "snippet": "      change (Walk.cons mid₂ s' p').IsCollider (p'.length + 1) = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 345,
+      "snippet": "-- IsCollider out of range (k > p.length) is also False."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 348,
+      "snippet": "      p.length < k → p.IsCollider k = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 355,
+      "snippet": "      change (Walk.cons mid₂ s' p').IsCollider (k + 1) = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 361,
+      "snippet": "-- Comp invariance for IsCollider at strictly-interior-of-`q` positions."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 363,
+      "snippet": "-- the prefix `q`, so the extension by `r` is invisible to IsCollider."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 367,
+      "snippet": "      ((q.comp r).IsCollider k ↔ q.IsCollider k)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 373,
+      "snippet": "      -- Goal: (cons mid s ((nil _ _).comp r)).IsCollider 0 ↔ (cons mid s (nil _ _)).IsCollider 0"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 374,
+      "snippet": "      -- (nil _ _).comp r = r, so LHS = (cons mid s r).IsCollider 0 = False (regardless of r)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 376,
+      "snippet": "      change (Walk.cons mid s r).IsCollider 0 ↔ (Walk.cons mid s (Walk.nil _ hv)).IsCollider 0"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 377,
+      "snippet": "      have h_rhs : (Walk.cons mid s (Walk.nil _ hv)).IsCollider 0 = False :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 389,
+      "snippet": "      change (Walk.cons mid s ((Walk.cons mid₂ s' p'').comp r)).IsCollider 0 ↔ _"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 393,
+      "snippet": "      change (Walk.cons mid s ((Walk.cons mid₂ s' p'').comp r)).IsCollider 1 ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 394,
+      "snippet": "             (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider 1"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 397,
+      "snippet": "      change ((Walk.cons mid s (Walk.cons mid₂ s' (p''.comp r))).IsCollider 1) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 398,
+      "snippet": "             ((Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 403,
+      "snippet": "      -- q.IsCollider (k+2) = (cons mid₂ s' p'').IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 404,
+      "snippet": "      -- (q.comp r).IsCollider (k+2) = (cons mid₂ s' (p''.comp r)).IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 408,
+      "snippet": "      -- ih: ((cons mid₂ s' p'').comp r).IsCollider (k+1) ↔ (cons mid₂ s' p'').IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 409,
+      "snippet": "      -- Goal: (cons mid s ((cons mid₂ s' p'').comp r)).IsCollider (k+2) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 410,
+      "snippet": "      --       (cons mid s (cons mid₂ s' p'')).IsCollider (k+2)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 412,
+      "snippet": "      change (Walk.cons mid s ((Walk.cons mid₂ s' p'').comp r)).IsCollider (k+2) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 413,
+      "snippet": "             (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider (k+2)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 415,
+      "snippet": "      change (Walk.cons mid s (Walk.cons mid₂ s' (p''.comp r))).IsCollider (k+2) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 416,
+      "snippet": "             (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider (k+2)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 418,
+      "snippet": "      -- LHS = (cons mid₂ s' (p''.comp r)).IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 419,
+      "snippet": "      -- RHS = (cons mid₂ s' p'').IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 420,
+      "snippet": "      -- LHS = ((cons mid₂ s' p'').comp r).IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 421,
+      "snippet": "      -- By IH, equal to (cons mid₂ s' p'').IsCollider (k+1) = RHS. ✓"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 422,
+      "snippet": "      have eq1 : (Walk.cons mid s (Walk.cons mid₂ s' (p''.comp r))).IsCollider (k+2) ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 423,
+      "snippet": "                 (Walk.cons mid₂ s' (p''.comp r)).IsCollider (k+1) := rfl"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 424,
+      "snippet": "      have eq2 : (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider (k+2) ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 425,
+      "snippet": "                 (Walk.cons mid₂ s' p'').IsCollider (k+1) := rfl"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 427,
+      "snippet": "      -- Now: (cons mid₂ s' (p''.comp r)).IsCollider (k+1) ↔ (cons mid₂ s' p'').IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 428,
+      "snippet": "      -- The LHS is ((cons mid₂ s' p'').comp r).IsCollider (k+1) by comp def."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 429,
+      "snippet": "      change ((Walk.cons mid₂ s' p'').comp r).IsCollider (k+1) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 430,
+      "snippet": "             (Walk.cons mid₂ s' p'').IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 433,
+      "snippet": "-- Junction lemma: when the suffix `Y` is cons-cons, IsCollider at the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 442,
+      "snippet": "      (q.comp (Walk.cons mid s (Walk.cons mid₂ s' r))).IsCollider (q.length + 1) ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 446,
+      "snippet": "      change (Walk.cons mid s (Walk.cons mid₂ s' r)).IsCollider 1 ↔ _"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 452,
+      "snippet": "      -- IsCollider at q.length + 1 = 2:"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 453,
+      "snippet": "      -- pattern: cons _ _ (cons _ _ _), k+2 with k = 0 → tail.IsCollider 1"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 454,
+      "snippet": "      -- tail = cons mid s (cons mid₂ s' r), IsCollider 1 = s.IsInto mid ∧ s'.IsInto mid."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 458,
+      "snippet": "      -- (q.comp Y).IsCollider (q.length + 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 460,
+      "snippet": "      -- The recursive case: cons _ _ (cons _ _ _), k+2 → tail.IsCollider (k+1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 462,
+      "snippet": "      -- which reduces to: (cons mid'' s'' (q''.comp Y)).IsCollider ((cons mid'' s'' q'').length + 1)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 467,
+      "snippet": "-- Main IsCollider invariance under walk reversal.  The position"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 471,
+      "snippet": "      p.reverse.IsCollider (p.length - k) ↔ p.IsCollider k"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 474,
+      "snippet": "      have h_rhs : (Walk.nil _ hv).IsCollider k = False := Walk.isCollider_nil hv k"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 475,
+      "snippet": "      have h_lhs : (Walk.nil _ hv).reverse.IsCollider ((Walk.nil _ hv).length - k) = False := by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 476,
+      "snippet": "        change (Walk.nil _ hv).IsCollider _ = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 480,
+      "snippet": "      -- length 1 walk: IsCollider always False."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 483,
+      "snippet": "      -- Both p.IsCollider k and p.reverse.IsCollider (1 - k) are False."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 484,
+      "snippet": "      have h_rhs : (Walk.cons _ s (Walk.nil _ hv)).IsCollider k = False :="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 486,
+      "snippet": "      have h_lhs : (Walk.cons _ s (Walk.nil _ hv)).reverse.IsCollider"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 488,
+      "snippet": "        change (Walk.cons _ s.reverse (Walk.nil _ _)).IsCollider _ = False"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 495,
+      "snippet": "          -- p.IsCollider 0 = False.  p.reverse.IsCollider p.length = False."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 496,
+      "snippet": "          have h_rhs : (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider 0 = False := rfl"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 498,
+      "snippet": "          have h_lhs : (Walk.cons mid s (Walk.cons mid₂ s' p'')).reverse.IsCollider"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 510,
+      "snippet": "              have h_rhs_def : (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider 1 ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 539,
+      "snippet": "                  (Walk.cons mid s (Walk.cons mid₂ s' p'')).IsCollider (k₁ + 2) ="
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 540,
+      "snippet": "                  (Walk.cons mid₂ s' p'').IsCollider (k₁ + 1) := rfl"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 983,
+      "snippet": "-- IsNonCollider invariance under reverse (follows from IsCollider invariance + length)."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+      "line": 1258,
+      "snippet": "-- using IsCollider and IsBlockableNonCollider invariance."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_22_for_website.json",
+      "line": 8,
+      "snippet": "  \"lean_code_with_comments\": \"def WalkStep.reverse {G : CDMG Node} :\\n    ∀ {u v : Node}, WalkStep G u v → WalkStep G v u\\n  | _, _, .forwardE h => .backwardE h\\n  | _, _, .backwardE h => .forwardE h\\"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_22_for_website.json",
+      "line": 9,
+      "snippet": "  \"lean_code_without_comments\": \"def WalkStep.reverse {G : CDMG Node} :\\n    ∀ {u v : Node}, WalkStep G u v → WalkStep G v u\\n  | _, _, .forwardE h => .backwardE h\\n  | _, _, .backwardE h => .forwardE"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 36,
+      "snippet": "    \\texttt{WalkStep.IsInto} and \\texttt{Walk.IsCollider}),"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 169,
+      "snippet": "\\texttt{Walk.IsCollider} (\\texttt{Section3\\_3/CollidersAndNon.lean}"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 180,
+      "snippet": "Symmetric to position~$0$: the recursion of \\texttt{IsCollider} descends"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 188,
+      "snippet": "We compute \\texttt{Walk.IsCollider $\\pi$ 1} by unfolding the cons-cell"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 215,
+      "snippet": "Therefore $\\mathtt{Walk.IsCollider}\\;\\pi\\;1 = \\mathtt{False} \\land"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 320,
+      "snippet": "We recompute \\texttt{Walk.IsCollider} at position~$1$ on $\\pi'$:"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 342,
+      "snippet": "Therefore $\\mathtt{Walk.IsCollider}\\;\\pi'\\;1 = \\mathtt{True} \\land"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+      "line": 361,
+      "snippet": "        \\pi'.\\mathtt{IsCollider}\\,1,\\;\\;"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_for_website.json",
+      "line": 10,
+      "snippet": "  \"lean_explanation\": \"This row is a **disproof** of LN's `lem:replace_walk`. The theorem `not_replace_walk` is an explicit-witness existential: it packs every binder of the prove-side claim together "
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 12,
+      "snippet": "The current formalisation of `def_3_15` (`IsCollider` on a CDMG walk) tests \"arrowhead at the middle vertex `v_k`\" via the helper `WalkStep.IsInto vk`, applied at *both* the left walk-step (`s₀ : Walk"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 22,
+      "snippet": "Consequence: `IsCollider` flags every position-1 walk of shape"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 36,
+      "snippet": "`claim_3_22` (`SigmaSeparationSymmetric`, just solved as `proven` under the buggy encoding) is at risk: the buggy `IsCollider` may have admitted certain walks as colliders that distort the σ-blocking "
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 42,
+      "snippet": "Add two side-aware predicates on `WalkStep` and rewrite `IsCollider`'s `.cons _ s₀ (.cons _ s₁ _), 1` clause to consume them. `IsInto` itself stays unchanged — it expresses a different question (`is t"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 66,
+      "snippet": "Rewrite `IsCollider`'s clause-1 case (at `Section3_3/CollidersAndNon.lean:632-633`) to:"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 69,
+      "snippet": "def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 75,
+      "snippet": "  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 82,
+      "snippet": "`WalkStep.IsInto` is unchanged. It captures a coarser, non-side-aware question (\"is `w` *any* arrowhead-endpoint of this step?\") that has consumers outside the collider definition — most notably `Sigm"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 94,
+      "snippet": "The comment block above `IsCollider` (lines 540-625 approximately) has a \"Why test `IsInto vk` on both sides\" section that codifies the *current* — buggy — choice. Rewrite the relevant bullets to expl"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 100,
+      "snippet": "- **def_3_16** `BlockableAndUnblockable.lean` — defines `IsBlockableNonCollider` / `IsUnblockableNonCollider` over `IsNonCollider` (= `¬ IsCollider`). The Lean signatures are unchanged; bodies recompi"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 101,
+      "snippet": "- **def_3_17** `SigmaBlockedWalks.lean` (`IsSigmaBlockedGiven`, `IsSigmaOpenGiven`) — consumes `IsCollider` / `IsBlockableNonCollider` only via the predicates' public Prop signature, which is unchange"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 103,
+      "snippet": "- **claim_3_20** `AcyclicNonCollidersBlockable.lean` — proof uses an explicit `(s₀.IsInto vMid ∧ s₁.IsInto vMid)` unfolding (line 220). The unfolding must change to `s₀.HeadAtTarget ∧ s₁.HeadAtSource`"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 107,
+      "snippet": "- **claim_3_26** `IdSeparationAlt.lean` (already proven; trivial under any IsCollider semantics) — re-verify; no changes expected."
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 113,
+      "snippet": "- **Defining `IsCollider` directly via a 3 × 3 truth table over `WalkStep` constructor pairs.** Equivalent in semantics; harder to read; encodes the same side-aware logic less compositionally. The two"
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 115,
+      "snippet": "- **Patching `IsCollider` to short-circuit on self-loops by detecting `u = v`.** Hacky and only addresses the symptom on the exact `.forwardE` self-loop shape; doesn't address `.backwardE` self-loops "
+    },
+    {
+      "file": "leanification/refactors/refactor_collider_side_aware.md",
+      "line": 127,
+      "snippet": "`do_refactor.py init` will: create the `refactor_collider_side_aware` branch, run `find_dependents.py` (bullet-proof transitive scan; the rename + lake build pass over `Section3_3/CollidersAndNon.lean"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 634,
+      "col": 50,
+      "snippet": "Invalid field `IsCollider`: The environment does not contain `Causality.CDMG.Walk.IsCollider`, so it is not possible to project the field `IsCollider` from an expression"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
+      "line": 711,
+      "col": 21,
+      "snippet": "Invalid field `IsCollider`: The environment does not contain `Causality.CDMG.Walk.IsCollider`, so it is not possible to project the field `IsCollider` from an expression"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Refactor_blockable_noncollider_first_DONE_2026-06-15/dependents_scan_def_3_16.json",
+    "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+    "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_4.json",
+    "leanification/Chapter3_GraphTheory/Section3_3/AcyclicNonCollidersBlockable.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/BlockableAndUnblockable.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparation.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/SigmaBlockedWalks.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
+    "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_22_for_website.json",
+    "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_disproof_LabelRoman.tex",
+    "leanification/Chapter3_GraphTheory/Section3_3/tex/claim_3_27_for_website.json",
+    "leanification/refactors/refactor_collider_side_aware.md"
+  ],
+  "consumer_refs": [
+    "claim_3_20",
+    "claim_3_22",
+    "claim_3_27",
+    "def_3_16",
+    "def_3_17",
+    "def_3_18"
+  ]
+}

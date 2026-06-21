@@ -1,0 +1,258 @@
+% Claim proof file for row claim_3_27 -- "LabelRoman".
+% Prove-direction artefact under the `collider_side_aware` refactor.
+% The pre-refactor row was disproven; the disprove artefacts were
+% deleted in commit e3634ef (def_3_15 refactor) because the side-aware
+% reading of arrowhead-presence restores the LN's lemma to
+% provability.  See `LabelRoman.lean` (the formalised statement) and
+% `workspace_claim_3_27.md` (the situation analysis from Manager A).
+%
+% The proof body below adapts the LN's `\begin{proof}` block of
+% `lem:replace_walk` in `lecture-notes/lecture_notes/graphs.tex`
+% (lines 1631--1650), filling in:
+%   - the SCC-containment of the replacement subwalk $\sigma_{ij}$
+%     (LN: ``this new subwalk is entirely within $\Sc^G(v_j)$'' is
+%      asserted but not directly justified);
+%   - the unblockable-non-collider classification of the intermediate
+%     $\sigma_{ij}$ vertices on $\pi'$ (LN: ``non-endnode non-colliders
+%      that only point to nodes in the same strongly connected
+%      component'');
+%   - the merged-position verification when $v_i = v_j$ admits the
+%     length-$0$ trivial replacement (the addition to the LN);
+%   - the resolutions of the working-phase wording-check subtleties
+%     `case_i_fork_at_vj_blocking_criteria_overlooked` and
+%     `vi_eq_vj_combined_node_open_not_verified`, and the note that
+%     the `shortest` qualifier is statement-level discipline only.
+
+\documentclass[main]{subfiles}
+
+\begin{document}
+% ref: claim_3_27 (proof, with statement restated for readability)
+% title: LabelRoman
+\def\rowref{claim\_3\_27}
+\phantomsection\label{claim_3_27}
+
+\begin{Lem}[LabelRoman]\label{lem:replace_walk}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk and directed-walk definitions of def \ref{def:walks}, items~i.\ and~ii., the family-relationships definition of def \ref{def_3_5} (specifically the ancestor set $\Anc^G(v) \subseteq J \cup V$, the descendant set $\Desc^G(v) \subseteq J \cup V$, and the strongly-connected-component set
+    \[
+        \Sc^G(v) \;:=\; \Anc^G(v) \cap \Desc^G(v) \;\subseteq\; J \cup V
+    \]
+    for each $v \in J \cup V$, with $v \in \Sc^G(v)$ by reflexivity of $\Anc^G$ and $\Desc^G$), the ancestor set of a subset $\Anc^G(C) := \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv.\ (and as used in def \ref{def:sigma_blocking}), the collider/non-collider machinery of def \ref{def:collider_noncollider}, the blockable/unblockable refinement of def \ref{def:unblockable_noncollider}, and the $\sigma$-open/$\sigma$-blocked classification of walks of def \ref{def:sigma_blocking}.
+
+    Let $C \subseteq J \cup V$ be a subset of nodes; $C$ is \emph{not} assumed disjoint from $J$, nor non-empty. Let $n \ge 0$ be an integer and let
+    \[
+        \pi \;=\; (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+    \]
+    be a walk in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$ satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr).
+    \]
+    Assume that $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}.
+
+    \emph{Hypothesis on positions $(i, j)$.}
+    Suppose $i, j \in \{0, 1, \dots, n\}$ are positions on $\pi$ with $i < j$ and
+    \[
+        v_i \in \Sc^G(v_j) \quad\bigl(\text{equivalently, } v_i \in \Anc^G(v_j) \;\land\; v_i \in \Desc^G(v_j)\bigr).
+    \]
+    The strict inequality $i < j$ orders the \emph{positions} on $\pi$ but does \emph{not} constrain the underlying \emph{vertices}: per def \ref{def:walks}, item~i., ``the same node may appear multiple times in a walk'', so the special case $v_i = v_j$ is admissible (and is exactly the case in which $v_i \in \Sc^G(v_j) = \Sc^G(v_i)$ is automatic by the reflexivity $v_i \in \Sc^G(v_i)$ of def \ref{def_3_5}).
+
+    \emph{Shortest directed walk between two nodes.}
+    For nodes $u, w \in J \cup V$ with $u \in \Anc^G(w)$, a \emph{shortest directed walk from $u$ to $w$ in $G$} is a directed walk from $u$ to $w$ in $G$ (def \ref{def:walks}, item~ii.) of minimum length among all directed walks from $u$ to $w$ in $G$. Spelled out: it is a finite sequence
+    \[
+        (u_0, b_0, u_1, b_1, \dots, b_{m-1}, u_m)
+    \]
+    for some integer $m \ge 0$, with $u_0, \dots, u_m \in J \cup V$, $u_0 = u$, $u_m = w$, and $b_l = (u_l, u_{l+1}) \in E$ for every $l \in \{0, 1, \dots, m - 1\}$ (so every walk-edge is a directed edge whose tail is the earlier vertex and whose head is the later vertex on the sequence), such that no directed walk from $u$ to $w$ in $G$ has length strictly less than $m$.
+
+    The hypothesis $u \in \Anc^G(w)$ ensures the set of directed walks from $u$ to $w$ in $G$ is non-empty (def \ref{def_3_5}, item~iv.), so the well-ordering of $\mathbb{N}$ yields a witness of minimum length. The degenerate case $u = w$ is admitted at $m = 0$: the single-vertex tuple $(u_0) = (u)$ is a directed walk from $u$ to $u$ in $G$ in the sense of def \ref{def:walks}, item~ii.\ at $n = 0$ (no walk-edges to constrain), and is therefore the unique shortest directed walk from $u$ to $u$ in $G$ (every other directed walk from $u$ to $u$ in $G$ has length $\ge 1$).
+
+    \emph{Replacement subwalk $\sigma_{ij}$ and modified walk $\pi'$.}
+    Define a finite alternating sequence
+    \[
+        \sigma_{ij} \;=\; (w_0, b_0, w_1, b_1, \dots, b_{m-1}, w_m)
+    \]
+    for some integer $m \ge 0$ (with $m$ and the data $w_0, \dots, w_m \in J \cup V$, $b_0, \dots, b_{m-1} \in E \cup L$ determined by the case below), satisfying $w_0 = v_i$ and $w_m = v_j$, by exactly one of the following two mutually-exclusive jointly-exhaustive cases on the boundary configuration of $\pi$ at position $j$:
+
+    \begin{enumerate}[label=(\roman*)]
+        \item \textbf{Case (i):} $j = n \;\;\lor\;\; a_j = (v_j, v_{j+1}) \in E$.
+
+            (The first disjunct is $j = n$; the second disjunct requires $j \le n - 1$ and asserts that the walk-step $a_j$ is the \emph{directed} edge from $v_j$ to $v_{j+1}$ — equivalently, $a_j$ is an edge in $E$, $a_j$ is \emph{not} an edge into $v_j$ in the sense of def \ref{def:collider_noncollider}, and $a_j$ \emph{is} an outgoing walk-edge of $v_j$ at position $j$ on $\pi$ in the sense of def \ref{def:unblockable_noncollider}.)
+
+            Let $\sigma_{ij}$ be a shortest directed walk from $v_i$ to $v_j$ in $G$:
+            \[
+                (w_0 = v_i, \; b_0, \; w_1, \; b_1, \; \dots, \; b_{m-1}, \; w_m = v_j),
+                \qquad
+                b_l = (w_l, w_{l+1}) \in E \;\;\text{for every } l \in \{0, 1, \dots, m - 1\},
+            \]
+            of minimum length over all directed walks from $v_i$ to $v_j$ in $G$. Existence of such a witness uses $v_i \in \Sc^G(v_j) \subseteq \Anc^G(v_j)$ (def \ref{def_3_5}). When $v_i = v_j$ the minimum length is $m = 0$ and $\sigma_{ij} = (v_i)$ (single vertex, no walk-edges).
+
+        \item \textbf{Case (ii):} $\lnot\,$(case~(i)), i.e.\ $j \le n - 1 \;\;\land\;\; \lnot\bigl(a_j = (v_j, v_{j+1}) \in E\bigr)$.
+
+            (Spelled out via the walk constraint at index $j$: $j \le n - 1$ and either $a_j = (v_j, v_{j+1}) \in L$, or $a_j = (v_{j+1}, v_j) \in E$. Equivalently: $a_j$ is an edge \emph{into} $v_j$ in the sense of def \ref{def:collider_noncollider}'s ``edge into $v_k$'' predicate at $k = j$, and $a_j$ is \emph{not} an outgoing walk-edge of $v_j$ at position $j$ on $\pi$ in the sense of def \ref{def:unblockable_noncollider}.)
+
+            Let $\sigma_{ij}$ be the reversal of a shortest directed walk from $v_j$ to $v_i$ in $G$. Concretely, fix integers $m \ge 0$ and vertices $u_0, \dots, u_m \in J \cup V$ such that the sequence
+            \[
+                (u_0 = v_j, \; c_0, \; u_1, \; c_1, \; \dots, \; c_{m-1}, \; u_m = v_i),
+                \qquad
+                c_l = (u_l, u_{l+1}) \in E \;\;\text{for every } l \in \{0, 1, \dots, m - 1\},
+            \]
+            is a directed walk from $v_j$ to $v_i$ in $G$ of minimum length over all directed walks from $v_j$ to $v_i$ in $G$. Existence of such a witness uses $v_i \in \Sc^G(v_j) \subseteq \Desc^G(v_j)$ (def \ref{def_3_5}, applied in the form $v_j \in \Anc^G(v_i)$).
+
+            Set $w_l := u_{m - l}$ for $l \in \{0, 1, \dots, m\}$ and $b_l := c_{m - 1 - l}$ for $l \in \{0, 1, \dots, m - 1\}$, so that $\sigma_{ij} = (w_0 = v_i, b_0, w_1, \dots, b_{m-1}, w_m = v_j)$ and every walk-edge satisfies
+            \[
+                b_l \;=\; c_{m - 1 - l} \;=\; (u_{m - 1 - l}, u_{m - l}) \;=\; (w_{l+1}, w_l) \;\in\; E
+                \qquad\text{for every } l \in \{0, 1, \dots, m - 1\}.
+            \]
+            (So each $b_l$ is a directed edge in $E$ whose head is $w_l$ and whose tail is $w_{l+1}$ — the second disjunct of the walk constraint of def \ref{def:walks}, item~i., at position $l$ on $\sigma_{ij}$. The sequence $\sigma_{ij}$ is \emph{not} itself a directed walk from $v_i$ to $v_j$ in the sense of def \ref{def:walks}, item~ii.; it is the walk-reversal of the directed walk $(u_0, c_0, \dots, c_{m-1}, u_m)$ from $v_j$ to $v_i$.) When $v_i = v_j$ the minimum length is $m = 0$ and $\sigma_{ij} = (v_i)$ (single vertex, no walk-edges).
+    \end{enumerate}
+
+    The two cases are mutually exclusive and jointly exhaustive over the conditions on $(j, a_j)$ given $j \le n$: case~(i) covers ``$j = n$, or $j \le n - 1$ and $a_j = (v_j, v_{j+1}) \in E$''; case~(ii) covers ``$j \le n - 1$ and the negation of $a_j = (v_j, v_{j+1}) \in E$''. The case-(i)/case-(ii) classification depends on the boundary configuration of $\pi$ at position $j$ only, not on the boundary configuration at position $i$.
+
+    Define the \emph{modified walk} as the concatenation of the prefix $(v_0, a_0, \dots, a_{i-1}, v_i)$ of $\pi$, the replacement subwalk $\sigma_{ij}$ above, and the suffix $(v_j, a_j, v_{j+1}, \dots, a_{n-1}, v_n)$ of $\pi$:
+    \[
+        \pi' \;=\; \bigl(v_0, \, a_0, \, v_1, \, \dots, \, a_{i-1}, \, v_i = w_0, \, b_0, \, w_1, \, b_1, \, \dots, \, b_{m-1}, \, w_m = v_j, \, a_j, \, v_{j+1}, \, \dots, \, a_{n-1}, \, v_n\bigr).
+    \]
+    Then $\pi'$ is a walk in $G$ in the sense of def \ref{def:walks}, item~i., of length $i + m + (n - j)$: the prefix segment $(v_0, a_0, \dots, a_{i-1}, v_i)$ inherits the walk constraint at every $k \in \{0, 1, \dots, i - 1\}$ from $\pi$; the suffix segment $(v_j, a_j, v_{j+1}, \dots, a_{n-1}, v_n)$ inherits the walk constraint at every $k \in \{j, j + 1, \dots, n - 1\}$ from $\pi$; the replacement segment $(w_0, b_0, \dots, b_{m-1}, w_m)$ satisfies the walk constraint at every $l \in \{0, 1, \dots, m - 1\}$ — by the first disjunct $b_l = (w_l, w_{l+1}) \in E$ in case~(i), and by the second disjunct $b_l = (w_{l+1}, w_l) \in E$ in case~(ii).
+
+    \emph{Conclusions.}
+    \begin{enumerate}
+        \item \textbf{The replacement subwalk lies entirely in $\Sc^G(v_j)$:}
+            \[
+                \forall\, l \in \{0, 1, \dots, m\}, \quad w_l \in \Sc^G(v_j).
+            \]
+            (Both endpoints — $w_0 = v_i \in \Sc^G(v_j)$ by the hypothesis on $(i, j)$, and $w_m = v_j \in \Sc^G(v_j)$ by reflexivity — and every interior vertex $w_l$ for $l \in \{1, 2, \dots, m - 1\}$, the last being vacuous when $m \le 1$ and in particular when $m = 0$.)
+        \item \textbf{The modified walk $\pi'$ is $C$-$\sigma$-open} in the sense of def \ref{def:sigma_blocking}.
+    \end{enumerate}
+
+    \emph{Addition to the LN: length-zero replacement when $v_i = v_j$.}
+    The hypothesis $i < j$ pins down the positions on $\pi$ but not the underlying vertices, so the case $v_i = v_j$ is admissible whenever $\pi$ revisits a node. In that case $v_i \in \Sc^G(v_j) = \Sc^G(v_i)$ holds by the reflexivity $v_i \in \Sc^G(v_i)$ of def \ref{def_3_5} alone, and the prescribed ``shortest directed walk from $v_i$ to $v_j$ in $G$'' (case~(i)) or ``shortest directed walk from $v_j$ to $v_i$ in $G$'' (case~(ii)) is the length-$0$ trivial directed walk: the single-vertex tuple $(v_i) = (v_j)$ with empty edge list, per def \ref{def:walks}, item~ii.\ at $n = 0$. Any positive-length directed walk from $v_i$ to $v_i$ in $G$ has length $\ge 1$ and is therefore not shorter than the length-$0$ trivial directed walk, so the trivial directed walk is unconditionally the unique minimum (and in particular the existence of a directed self-loop $(v_i, v_i) \in E$, or of longer directed cycles through $v_i$, does not affect the minimum-length witness selected here). Under this collapse the replacement subwalk is $\sigma_{ij} = (v_i)$ (one vertex, no walk-edges), every vertex of $\sigma_{ij}$ lies in $\Sc^G(v_j)$ trivially, and the modified walk $\pi'$ has length $i + 0 + (n - j) = n - (j - i) < n$ — strictly shorter than $\pi$ (the $j - i$ walk-steps of $\pi$ between positions $i$ and $j$ are dropped). The Lean formalisation admits length-$0$ directed walks uniformly (the single-vertex tuple satisfies the directed-walk constraint of def \ref{def:walks}, item~ii.\ vacuously), so this degenerate branch is included in the statement above without a separate carve-out: the existential ``$\exists \sigma_{ij}, \pi'$'' in the conclusion is witnessed by the length-$0$ subwalk and the suitably-shortened modified walk in this case, and conclusion~(1) (every vertex of $\sigma_{ij}$ in $\Sc^G(v_j)$) and conclusion~(2) ($\pi'$ is $C$-$\sigma$-open) are both met.
+
+% --- proof ------------------------------------------------------------------
+\begin{proof}
+The proof adapts the LN's proof block of $\textsf{lem:replace\_walk}$ (\texttt{graphs.tex}, lines 1631--1650), filling in the SCC-containment of $\sigma_{ij}$, the unblockable-non-collider verdict on $\sigma_{ij}$'s intermediate vertices on $\pi'$, the merged-position verification when the addition to the LN's length-$0$ replacement fires, and the resolution of the wording-check working-phase subtleties. The two conclusions ($\sigma_{ij} \subseteq \Sc^G(v_j)$ and $\pi'$ is $C$-$\sigma$-open) are established in turn.
+
+\medskip\noindent\textbf{Strategy.}
+By def \ref{def:sigma_blocking}, item~1, $\pi'$ is $C$-$\sigma$-open iff at every position $k' \in \{0, 1, \dots, \pi'.\text{length}\}$, either $k'$ is a collider on $\pi'$ with $v_{k'} \in \Anc^G(C)$ (def \ref{def:collider_noncollider}, item~ii., and def \ref{def_3_5}, item~iv.), or $k'$ is a non-collider on $\pi'$ that is \emph{not} a blockable non-collider in $C$ — equivalently, either $v_{k'} \notin C$, or $v_{k'}$ is an unblockable non-collider on $\pi'$ (def \ref{def:unblockable_noncollider}). We split the positions on $\pi'$ into four disjoint classes — (II.a) the unchanged prefix/suffix, (II.b) the strictly-interior $\sigma_{ij}$-vertices $w_1, \dots, w_{m-1}$, (II.c) the splice endpoints $v_i$ and $v_j$ (with the analyses parametrised by which of case~(i)/(ii) fires and by whether $v_i = v_j$), and the end-positions $0$ and $n$ on $\pi'$ as a degenerate edge-case under (II.a)~/~(II.c) when $i = 0$ or $j = n$. Each class verifies the def \ref{def:sigma_blocking} criteria, completing conclusion~(2). Conclusion~(1) is established first, since the SCC-containment $w_l \in \Sc^G(v_j)$ is used as input to (II.b) and (II.c).
+
+\medskip\noindent\textbf{(I) Conclusion~(1): the replacement subwalk lies entirely in $\Sc^G(v_j)$.}
+The endpoints are immediate: $w_0 = v_i \in \Sc^G(v_j)$ by the hypothesis on $(i, j)$, and $w_m = v_j \in \Sc^G(v_j)$ by reflexivity of $\Anc^G$ and $\Desc^G$ (def \ref{def_3_5}). When $m \le 1$ no interior $w_l$ exists, and the conclusion holds vacuously (this covers the length-$0$ $v_i = v_j$ branch with $m = 0$). For $m \ge 2$ and interior $l \in \{1, 2, \dots, m-1\}$, the two cases of the construction admit a uniform SCC-containment argument:
+
+\smallskip\noindent\emph{Case~(i).} The sequence $(w_0 = v_i, b_0, w_1, b_1, \dots, b_{m-1}, w_m = v_j)$ with $b_l = (w_l, w_{l+1}) \in E$ for every $l$ is a directed walk from $v_i$ to $v_j$ in $G$ in the sense of def \ref{def:walks}, item~ii. The prefix $(w_0, b_0, \dots, b_{l-1}, w_l)$ is then a directed walk from $v_i$ to $w_l$ in $G$, and the suffix $(w_l, b_l, \dots, b_{m-1}, w_m)$ is a directed walk from $w_l$ to $v_j$ in $G$. By the directed-walk-witnesses-ancestry clause of def \ref{def_3_5}, item~iv., we deduce
+\[
+    v_i \in \Anc^G(w_l) \quad \text{(equivalently, } w_l \in \Desc^G(v_i)\text{)}, \qquad
+    w_l \in \Anc^G(v_j).
+\]
+Combined with $v_i \in \Sc^G(v_j) = \Anc^G(v_j) \cap \Desc^G(v_j)$ (so $v_i \in \Desc^G(v_j)$) and the transitivity of $\Desc^G$ in $G$ (def \ref{def_3_5}, item~iii.): $w_l \in \Desc^G(v_i) \subseteq \Desc^G(v_j)$. Hence $w_l \in \Anc^G(v_j) \cap \Desc^G(v_j) = \Sc^G(v_j)$.
+
+\smallskip\noindent\emph{Case~(ii).} The sequence $(u_0 = v_j, c_0, u_1, c_1, \dots, c_{m-1}, u_m = v_i)$ with $c_l = (u_l, u_{l+1}) \in E$ for every $l$ is a directed walk from $v_j$ to $v_i$ in $G$. As in case~(i), the prefix $(u_0, c_0, \dots, c_{l-1}, u_l)$ is a directed walk from $v_j$ to $u_l$ in $G$, and the suffix is a directed walk from $u_l$ to $v_i$ in $G$; hence
+\[
+    v_j \in \Anc^G(u_l), \qquad
+    u_l \in \Anc^G(v_i).
+\]
+Combined with $v_i \in \Sc^G(v_j) \subseteq \Anc^G(v_j)$ (so $v_i \in \Anc^G(v_j)$) and the transitivity of $\Anc^G$: $u_l \in \Anc^G(v_i) \subseteq \Anc^G(v_j)$. Also $u_l \in \Desc^G(v_j)$ directly. Hence $u_l \in \Sc^G(v_j)$. Since $w_l = u_{m-l}$ traverses the same vertex set as $u_l$ as $l$ varies (with the bijection $l \leftrightarrow m - l$), $w_l \in \Sc^G(v_j)$ as well.
+
+\smallskip\noindent\emph{Note (resolution of \texttt{shortest\_qualifier\_unused\_in\_proof}).}
+The argument above does \emph{not} use the ``shortest'' qualifier on $\sigma_{ij}$. Any directed walk from $v_i$ to $v_j$ in $G$ (or its reversal from $v_j$ to $v_i$) lies entirely in $\Sc^G(v_j)$ by the same SCC-containment argument. The ``shortest'' qualifier is statement-level discipline imposed by the LN to ensure the construction is canonical and to enable downstream length-based arguments (e.g., the iterative-shortening procedure of the LN's proof of prp:sigma\_opens, immediately following this lemma); it is not load-bearing inside the present proof body.
+
+\medskip\noindent\textbf{(II) Conclusion~(2): the modified walk $\pi'$ is $C$-$\sigma$-open.}
+
+\smallskip\noindent\emph{(II.a) Positions outside the splice inherit $\sigma$-openness from $\pi$.}
+For $k \in \{0, 1, \dots, i - 1\}$, position $k$ on $\pi'$ has the same vertex $v_k$ as on $\pi$, and both walk-incident slots ($a_{k-1}$ on the left when $k \ge 1$, $a_k$ on the right) are inherited from $\pi$. The local pattern at position $k$ on $\pi'$ — i.e., the arrowhead-count ah$_{\pi'}(k)$, the collider/non-collider classification (def \ref{def:collider_noncollider}), and the unblockable/blockable refinement (def \ref{def:unblockable_noncollider}) — depend only on $v_k$ and the two adjacent slots, so are identical to those at position $k$ on $\pi$. Symmetrically, for $k \in \{j + 1, \dots, n\}$, the corresponding position on $\pi'$ (at index $i + m + (k - j)$, with left slot $a_{k-1}$ and right slot $a_k$ both inherited) has the same local pattern as on $\pi$. Hence: position $k$ is $C$-$\sigma$-blocked on $\pi'$ at one of these indices iff it is $C$-$\sigma$-blocked at position $k$ on $\pi$. By the $\sigma$-open hypothesis on $\pi$, none of these positions are $\sigma$-blocked on $\pi$; hence none are $\sigma$-blocked on $\pi'$.
+
+This covers the end-positions $0$ and $n$ on $\pi'$ when $i \ne 0$ and $j \ne n$ (so $v_0$, $v_n$ lie strictly outside the splice). The remaining end-position scenarios — $i = 0$ or $j = n$ — are handled by (II.c) below, where $v_i$ or $v_j$ \emph{is} the relevant end-position; the end-position $\sigma$-open criterion of def \ref{def:sigma_blocking} (an end-position is a non-collider with at most one walk-incident edge, $\sigma$-open iff its vertex is not in $C$ — see also def \ref{def:unblockable_noncollider}, where the end-position disjunct $k \in \{0, n\}$ makes the position automatically blockable) reduces to ``$v_k \notin C$'', a vertex-level condition preserved across the splice when $v_k$ at the end-position coincides on $\pi$ and $\pi'$.
+
+\smallskip\noindent\emph{(II.b) Strictly-interior $\sigma_{ij}$ positions $w_1, \dots, w_{m-1}$ are unblockable non-colliders on $\pi'$.}
+Vacuous when $m \le 1$ (in particular when $m = 0$). For $m \ge 2$ and interior $l \in \{1, \dots, m - 1\}$, position $i + l$ on $\pi'$ has vertex $w_l$ and walk-incident slots $b_{l-1}$ (left) and $b_l$ (right). We analyse the two cases.
+
+\noindent\emph{Case~(i).} Both $b_{l-1} = (w_{l-1}, w_l) \in E$ and $b_l = (w_l, w_{l+1}) \in E$ are directed E-edges traversed forwards along $\sigma_{ij}$, contributing arrowhead-at-target only: $b_{l-1}$ contributes one arrowhead at $w_l$ on the left (its target), and $b_l$ contributes none at $w_l$ on the right (its source-end is a tail, not a head). Hence ah$_{\pi'}(i + l) = 1$ — a non-collider with the LN pattern of a \emph{right chain} $w_{l-1} \tuh w_l \tuh w_{l+1}$ (head at $w_l$ on the left, tail at $w_l$ on the right; def \ref{def:collider_noncollider} item~i.\ classifies this as a non-collider with $\mathrm{ah}_{\pi'} = 1$). Per def \ref{def:unblockable_noncollider}, the right-chain is unblockable iff $w_{l+1} \in \Sc^G(w_l)$. By (I), $w_l, w_{l+1} \in \Sc^G(v_j)$; two vertices in the same SCC of $G$ have equal strongly-connected components (the SCC is an equivalence class under $\sim_{\Sc^G}$, by def \ref{def_3_5} and the symmetry/transitivity of $\Anc^G \cap \Desc^G$), so $\Sc^G(w_l) = \Sc^G(v_j)$ and hence $w_{l+1} \in \Sc^G(w_l)$. The right-chain at $w_l$ on $\pi'$ is therefore unblockable.
+
+\noindent\emph{Case~(ii).} Both $b_{l-1} = (w_l, w_{l-1}) \in E$ and $b_l = (w_{l+1}, w_l) \in E$ are directed E-edges traversed backwards along $\sigma_{ij}$, contributing arrowhead-at-source only: $b_{l-1}$ contributes no arrowhead at $w_l$ on the left (its target-end is a tail, since the underlying directed edge $(w_l, w_{l-1})$ has its head at $w_{l-1}$, not $w_l$), and $b_l$ contributes one arrowhead at $w_l$ on the right (its source-end is a head, since the underlying directed edge $(w_{l+1}, w_l)$ has its head at $w_l$). Hence ah$_{\pi'}(i + l) = 1$ — a non-collider with the LN pattern of a \emph{left chain} $w_{l-1} \hut w_l \hus w_{l+1}$ (tail at $w_l$ on the left's outgoing E-edge $(w_l, w_{l-1})$, head at $w_l$ on the right's incoming E-edge $(w_{l+1}, w_l)$; def \ref{def:collider_noncollider} item~i.). Per def \ref{def:unblockable_noncollider}, the left-chain is unblockable iff $w_{l-1} \in \Sc^G(w_l)$. By (I) and the equal-SCCs lemma, $\Sc^G(w_l) = \Sc^G(v_j) \ni w_{l-1}$.
+
+In both cases, $w_l$ is an unblockable non-collider on $\pi'$. By \refrow{claim_3_21} (unblockable non-colliders are always $C$-$\sigma$-open, regardless of $C$), $\sigma$-openness of $\pi'$ holds at position $i + l$ for every interior $l$.
+
+\smallskip\noindent\emph{Reduction to non-endnode $v_i$ and $v_j$.}
+By (II.a), the end-positions of $\pi'$ inherit $\sigma$-openness from the end-positions of $\pi$ whenever the end-position vertex coincides on the two walks. The end-position $0$ on $\pi'$ has vertex $v_0$ (regardless of whether $i = 0$); the end-position $n'$ on $\pi'$ (with $n' = i + m + (n - j) = \pi'.\text{length}$) has vertex $v_n$ (regardless of whether $j = n$). Hence the end-position $\sigma$-open criterion (``$v_0 \notin C$'' and ``$v_n \notin C$'') is inherited from $\pi$'s $\sigma$-openness at end-positions $0$ and $n$. So even when $i = 0$ (forcing $v_i = v_0$ to be the left end-position of $\pi'$) or $j = n$ (forcing $v_j = v_n$ to be the right end-position of $\pi'$), the end-position case is settled by inheritance. We henceforth assume $1 \le i$ and $j \le n - 1$, so $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus of $\pi'$; this matches the LN's WLOG ``in the following we can w.l.o.g.\ assume that both $v_i$ and $v_j$ are non-endnodes of $\pi$ and thus $\pi'$''.
+
+\smallskip\noindent\emph{(II.c.i) Case~(i), $v_i \ne v_j$ (so $m \ge 1$).}
+We verify $\sigma$-openness of $\pi'$ at the splice endpoints $v_j$ (position $i + m$) and $v_i$ (position $i$) separately.
+
+\noindent\emph{Position $i + m$ ($= v_j$) on $\pi'$.}
+Left slot: $b_{m-1} = (w_{m-1}, w_m) = (w_{m-1}, v_j) \in E$, the forward E-edge with head at $v_j$ — contributing one arrowhead at $v_j$ on the left. Right slot: $a_j = (v_j, v_{j+1}) \in E$, unchanged from $\pi$ (by the case~(i) hypothesis), with tail at $v_j$ — contributing no arrowhead at $v_j$ on the right. Hence ah$_{\pi'}(i + m) = 1$ — a non-collider with LN pattern $w_{m-1} \tuh v_j \tuh v_{j+1}$ (right chain). Per def \ref{def:unblockable_noncollider}, the right-chain is unblockable iff $v_{j+1} \in \Sc^G(v_j)$.
+
+We claim: if $v_j \in C$, then $v_{j+1} \in \Sc^G(v_j)$ holds (otherwise $\pi'$ trivially $\sigma$-open at $v_j$ via $v_j \notin C$). To see this, recall that on $\pi$ at position $j$, the right slot was the same $a_j = (v_j, v_{j+1}) \in E$, so $v_j$ on $\pi$ had its right side as an outgoing E-walk-edge — i.e., the pattern at $v_j$ on $\pi$ was either a right chain (if $a_{j-1}$ is an edge into $v_j$, head at $v_j$ on the left) or a fork (if $a_{j-1}$ is an outgoing E-walk-edge of $v_j$ on the left, tail at $v_j$). Note that $v_j$ on $\pi$ in case~(i) is \emph{never} a collider: $a_j$ contributes tail (no arrowhead at $v_j$ on the right), so ah$_\pi(j) \le 1$. Hence the unblockable conditions of def \ref{def:unblockable_noncollider} apply: the right chain pattern is unblockable iff $v_{j+1} \in \Sc^G(v_j)$, and the fork pattern is unblockable iff $v_{j-1} \in \Sc^G(v_j) \land v_{j+1} \in \Sc^G(v_j)$. In both sub-patterns, if $v_j \in C$, $\sigma$-openness of $\pi$ at $v_j$ forces unblockability, hence $v_{j+1} \in \Sc^G(v_j)$.
+
+(This is the resolution of the wording-check working-phase subtlety \texttt{case\_i\_fork\_at\_vj\_blocking\_criteria\_overlooked}, which flagged the LN's ``the same blocking criteria apply to $v_j$'' as not obviously transporting from the fork pattern on $\pi$ to the right-chain pattern on $\pi'$. Under our chapter-wide $\sigma$-blocking convention — which queries the outgoing E-walk-edges of $v_k$ on each side independently — a fork at $v_j$ on $\pi$ with $v_j \in C$ and $v_{j+1} \notin \Sc^G(v_j)$ \emph{already} $\sigma$-blocks $\pi$ at the right-slot's outgoing E-walk-edge, contradicting the $\sigma$-open hypothesis on $\pi$. The fork's other (left-slot) blocking condition, $v_{j-1} \notin \Sc^G(v_j)$, is independent and applies only at slot $a_{j-1}$ — which on $\pi'$ in case~(i) becomes the new $b_{m-1}$, an incoming E-walk-edge of $v_j$ on the left, not an outgoing E-walk-edge of $v_j$, so the left-slot blocking criterion vacuously fails to fire on $\pi'$.)
+
+The right-chain at $v_j$ on $\pi'$ is therefore unblockable when $v_j \in C$, and the position is $\sigma$-open on $\pi'$ in either of the two sub-cases ($v_j \notin C$ or $v_j \in C$).
+
+\noindent\emph{Position $i$ ($= v_i$) on $\pi'$.}
+Right slot: $b_0 = (v_i, w_1) \in E$, with tail at $v_i$ — an outgoing E-walk-edge of $v_i$ on the right. By (I), $w_1 \in \Sc^G(v_j) = \Sc^G(v_i)$ (using $v_i \in \Sc^G(v_j)$ to equate SCCs), so the right-slot blocking criterion fails: $w_1 \in \Sc^G(v_i)$. Left slot: $a_{i-1}$, unchanged from $\pi$. We split on the left-slot configuration:
+
+\begin{itemize}
+    \item \emph{Sub-case ($v_{i-1} \hut v_i$ on $\pi$, i.e., $a_{i-1} = (v_i, v_{i-1}) \in E$, an outgoing E-walk-edge of $v_i$ on the left, tail at $v_i$):} The local pattern at $v_i$ on $\pi'$ is the fork $v_{i-1} \hut v_i \tuh w_1$ — ah$_{\pi'}(i) = 0$. Per def \ref{def:unblockable_noncollider}, the fork is unblockable iff both $v_{i-1} \in \Sc^G(v_i)$ and $w_1 \in \Sc^G(v_i)$ hold. The right-slot condition $w_1 \in \Sc^G(v_i)$ already holds. For the left-slot condition: on $\pi$ at position $i$, the same left slot $a_{i-1}$ was an outgoing E-walk-edge of $v_i$; the pattern on $\pi$ was either fork ($a_i$ also tail-at-$v_i$, i.e., $(v_i, v_{i+1}) \in E$) or left chain ($a_i$ head-at-$v_i$). In both sub-patterns, the left-slot blocking criterion is $v_{i-1} \notin \Sc^G(v_i)$; if $v_i \in C$, $\sigma$-openness of $\pi$ at $v_i$ forces the left-slot non-blocking, i.e., $v_{i-1} \in \Sc^G(v_i)$. Hence the fork at $v_i$ on $\pi'$ is unblockable when $v_i \in C$, and the position is $\sigma$-open.
+    \item \emph{Sub-case ($v_{i-1} \suh v_i$ on $\pi$, i.e., $a_{i-1}$ is an edge into $v_i$ from the left — either $a_{i-1} = (v_{i-1}, v_i) \in E$ or $a_{i-1} = (v_{i-1}, v_i) \in L$ — contributing one arrowhead at $v_i$ on the left):} The local pattern at $v_i$ on $\pi'$ is the right chain $v_{i-1} \suh v_i \tuh w_1$ — ah$_{\pi'}(i) = 1$. Per def \ref{def:unblockable_noncollider}, the right chain is unblockable iff $w_1 \in \Sc^G(v_i)$, which already holds. (The left slot is not an outgoing E-walk-edge of $v_i$, so its blocking criterion does not fire — under our chapter-wide $\sigma$-blocking convention, only outgoing E-walk-edges of $v_k$ on a side can block at position $k$.) Hence the right chain at $v_i$ on $\pi'$ is unblockable, and the position is $\sigma$-open.
+\end{itemize}
+
+(In both sub-cases, ``$v_i$ on $\pi'$ is $C$-$\sigma$-open at $v_i$ because all nodes in between lie in the same strongly connected component $\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways)'' — the LN's case-(i) closing sentence — is verified.)
+
+\smallskip\noindent\emph{(II.c.ii) Case~(i), $v_i = v_j$ (length-$0$ trivial replacement; the addition to the LN).}
+By the addition-to-the-LN paragraph in the statement, $\sigma_{ij} = (v_i)$ with $m = 0$. The modified walk $\pi'$ then has length $i + 0 + (n - j) = n - (j - i) < n$ — strictly shorter than $\pi$ — and the merged position on $\pi'$ at index $i = i + m$ has vertex $v_i = v_j$, left slot $a_{i-1}$ (inherited from $\pi$'s position $i$), and right slot $a_j$ (inherited from $\pi$'s position $j$). \emph{The two slots came from different positions on $\pi$}: the left from position $i$'s left, the right from position $j$'s right. The right of $\pi$'s position $i$ and the left of $\pi$'s position $j$ are dropped on the splice. The merged position on $\pi'$ therefore has a new local configuration that must be verified directly — \emph{not} as a consolidation of pre-existing $\sigma$-openness at two distinct $\pi$-positions.
+
+(This is the resolution of the wording-check working-phase subtlety \texttt{vi\_eq\_vj\_combined\_node\_open\_not\_verified}, which flagged the LN's one-sentence dismissal ``If $v_i = v_j$ then also $v_i$ is $C$-$\sigma$-open on $\pi'$'' as under-verified. We now perform the verification head-on.)
+
+By case~(i), $a_j = (v_j, v_{j+1}) \in E$ contributes tail at $v_j = v_i$ on the right (no arrowhead). Hence ah$_{\pi'}$(merged) $\le 1$, the merged position is a \emph{non-collider} on $\pi'$. Per def \ref{def:unblockable_noncollider}, blockability at the merged non-collider depends on the slots' outgoing E-walk-edges:
+\begin{itemize}
+    \item \emph{The right slot} is $a_j = (v_j, v_{j+1}) \in E$, an outgoing E-walk-edge of $v_j = v_i$ on the right; blocking criterion is $v_{j+1} \notin \Sc^G(v_j) = \Sc^G(v_i)$. On $\pi$ at position $j$, the same right slot held, and (as in (II.c.i) above) $v_j$ on $\pi$ in case~(i) was a non-collider — either a right chain or a fork. If $v_j \in C$ (equivalently $v_i \in C$), $\sigma$-openness of $\pi$ at $v_j$ forces the right slot non-blocking, i.e., $v_{j+1} \in \Sc^G(v_j)$. Hence the right slot is non-blocking on $\pi'$ when $v_i \in C$.
+    \item \emph{The left slot} is $a_{i-1}$, the same slot as at position $i$ on $\pi$. The left-slot blocking criterion fires only if $a_{i-1}$ is an outgoing E-walk-edge of $v_i$ on the left, i.e., $a_{i-1} = (v_i, v_{i-1}) \in E$; in that sub-case the condition is $v_{i-1} \notin \Sc^G(v_i)$. On $\pi$ at position $i$, the same left slot held; if $a_{i-1}$ is an outgoing E-walk-edge of $v_i$, then $v_i$ on $\pi$ was either a fork or a left chain — necessarily a non-collider, since $a_{i-1}$'s tail-at-$v_i$ contribution caps ah$_\pi(i) \le 1$. If $v_i \in C$, $\sigma$-openness of $\pi$ at $v_i$ forces the left slot non-blocking, i.e., $v_{i-1} \in \Sc^G(v_i)$. Hence the left slot is non-blocking on $\pi'$ when $v_i \in C$, regardless of $a_{i-1}$'s direction (if $a_{i-1}$ is not an outgoing E-walk-edge of $v_i$, the criterion does not fire).
+\end{itemize}
+Combining: if $v_i \notin C$, the merged position is trivially $\sigma$-open; if $v_i \in C$, both slots are non-blocking on $\pi'$, so the merged non-collider is unblockable, hence $\sigma$-open. Either way, the merged position is $C$-$\sigma$-open.
+
+\smallskip\noindent\emph{(II.c.iii) Case~(ii), $v_i \ne v_j$ (so $m \ge 1$).}
+By the case~(ii) trigger, $a_j$ is an edge into $v_j$ — either $a_j = (v_{j+1}, v_j) \in E$ or $a_j = (v_j, v_{j+1}) \in L$ — contributing one arrowhead at $v_j$ on the right.
+
+\noindent\emph{Position $i + m$ ($= v_j$) on $\pi'$.}
+Left slot: $b_{m-1} = (w_m, w_{m-1}) = (v_j, w_{m-1}) \in E$, an outgoing E-walk-edge of $v_j$ on the left (the underlying directed edge runs $v_j \to w_{m-1}$, head at $w_{m-1}$, tail at $v_j$; the walk-step traverses this edge backwards along $\sigma_{ij}$, contributing no arrowhead at $v_j$ on the left). Right slot: $a_j$, contributing one arrowhead at $v_j$ on the right. Hence ah$_{\pi'}(i + m) = 1$ — a non-collider with LN pattern $w_{m-1} \hut v_j \hus v_{j+1}$ (left chain; or $\hut \, \huh$ when $a_j \in L$, with arrowheads at both endpoints of the $L$-edge). Per def \ref{def:unblockable_noncollider}, the left chain is unblockable iff $w_{m-1} \in \Sc^G(v_j)$. By (I), $w_{m-1} \in \Sc^G(v_j)$. The right slot is not an outgoing E-walk-edge of $v_j$ (it is either an incoming E-walk-edge or an $L$-walk-edge), so the right-slot blocking criterion does not fire under our $\sigma$-blocking convention. Hence the left chain at $v_j$ on $\pi'$ is unblockable, $\sigma$-open.
+
+(This is the LN's case-(ii) closing sentence: ``If $v_i \ne v_j$ then $v_j$ is also $C$-$\sigma$-open on $\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$.'')
+
+\noindent\emph{Position $i$ ($= v_i$) on $\pi'$.}
+Right slot: $b_0 = (w_1, w_0) = (w_1, v_i) \in E$, contributing one arrowhead at $v_i$ on the right (the underlying directed edge runs $w_1 \to v_i$, head at $v_i$; the walk-step traverses this edge backwards along $\sigma_{ij}$, contributing arrowhead-at-source $= v_i$). Left slot: $a_{i-1}$, unchanged from $\pi$. We split on the left-slot configuration, mirroring the LN's case-(ii) sub-case analysis (``If $v_{i-1} \hut v_i$ on $\pi'$ (or $v_i$ the left endnode) then this case is analogous to case~(i). So we can also assume that we have $i > 0$ and $v_{i-1} \suh v_i$ on $\pi$.''):
+
+\begin{itemize}
+    \item \emph{Sub-case (a) ($v_{i-1} \hut v_i$ on $\pi$, i.e., $a_{i-1} = (v_i, v_{i-1}) \in E$, an outgoing E-walk-edge of $v_i$ on the left, contributing no arrowhead at $v_i$ on the left):} The local pattern at $v_i$ on $\pi'$ is the left chain $v_{i-1} \hut v_i \hus w_1$ — ah$_{\pi'}(i) = 0 + 1 = 1$. Per def \ref{def:unblockable_noncollider}, the left chain is unblockable iff $v_{i-1} \in \Sc^G(v_i)$. On $\pi$ at position $i$, the same left slot held; the pattern at $v_i$ on $\pi$ was either left chain or fork — necessarily a non-collider, since $a_{i-1}$'s tail-at-$v_i$ caps ah$_\pi(i) \le 1$. If $v_i \in C$, $\sigma$-openness of $\pi$ at $v_i$ forces the left slot non-blocking, i.e., $v_{i-1} \in \Sc^G(v_i)$. Hence the left chain at $v_i$ on $\pi'$ is unblockable, $\sigma$-open. If $v_i \notin C$, also trivially $\sigma$-open. (This is the LN's ``analogous to case~(i)'' sub-case.)
+    \item \emph{Sub-case (b) ($v_{i-1} \suh v_i$ on $\pi$, i.e., $a_{i-1}$ is an edge into $v_i$ from the left — either $a_{i-1} = (v_{i-1}, v_i) \in E$ or $a_{i-1} = (v_{i-1}, v_i) \in L$ — contributing one arrowhead at $v_i$ on the left):} The local pattern at $v_i$ on $\pi'$ has ah$_{\pi'}(i) = 1 + 1 = 2$ — a \emph{collider} on $\pi'$ (pattern $v_{i-1} \suh v_i \hus w_1$, or analogously with $L$-edge variants). Per def \ref{def:sigma_blocking}, $\sigma$-open at the collider requires $v_i \in \Anc^G(C)$.
+
+        We establish $v_i \in \Anc^G(C)$ by the LN's \emph{first-collider} argument. The configuration on $\pi$ is
+        \[
+            \pi: \qquad \cdots v_{i-1} \suh v_i \sus v_{i+1} \sus \cdots \sus v_j \hus v_{j+1} \cdots,
+        \]
+        with $a_{i-1}$ contributing arrowhead-at-$v_i$ on the right side of slot $i - 1$ (i.e., at position $i$ on $\pi$, the left side has a head) and $a_j$ contributing arrowhead-at-$v_j$ on the left side of slot $j$ (i.e., at position $j$ on $\pi$, the right side has a head). We trace the indices $l \in \{i, i+1, \dots, j\}$ on $\pi$ until the first $l = k$ such that $v_k$ is a collider on $\pi$:
+        \begin{itemize}
+            \item If $a_i$ contributes arrowhead-at-$v_i$ on the right side of slot $i$ (i.e., $a_i$ is an edge into $v_i$ — either $a_i = (v_{i+1}, v_i) \in E$ or $a_i = (v_i, v_{i+1}) \in L$), then position $i$ is a collider on $\pi$: ah$_\pi(i) = 1 + 1 = 2$. Set $k = i$, and the connecting directed walk $v_i \tuh \cdots \tuh v_k$ in $G$ is the trivial length-$0$ walk $(v_i)$ (which is a directed walk from $v_i$ to $v_i$ in $G$ in the sense of def \ref{def:walks}, item~ii.).
+            \item Else $a_i$ contributes tail-at-$v_i$ on the right — i.e., $a_i = (v_i, v_{i+1}) \in E$, a forward directed edge. The configuration after slot $i$ extends as $v_i \tuh v_{i+1} \sus \cdots$, and we examine position $i + 1$. By the same case analysis at position $i + 1$ on $\pi$ (with $a_i$ now playing the role of the left slot of position $i + 1$, contributing arrowhead-at-$v_{i+1}$ on the left): either $a_{i+1}$ is an edge into $v_{i+1}$ (so $v_{i+1}$ is a collider, $k = i + 1$, connecting walk $v_i \tuh v_{i+1}$), or $a_{i+1} = (v_{i+1}, v_{i+2}) \in E$ and we extend the directed chain by one more step.
+            \item Continuing inductively along positions $i, i+1, \dots, j-1$: either we encounter at some smallest position $k \in \{i, \dots, j-1\}$ an $a_k$ that is an edge into $v_k$ — making $v_k$ a collider with connecting directed walk $v_i \tuh v_{i+1} \tuh \cdots \tuh v_k$ in $G$ — or we exhaust all $l < j$ with $a_l = (v_l, v_{l+1}) \in E$ at every such $l$. In the latter terminal case, $a_{j-1} = (v_{j-1}, v_j) \in E$ contributes arrowhead-at-$v_j$ on the left side of slot $j - 1$, and $a_j$ is an edge into $v_j$ (case~(ii) trigger). Position $j$ is therefore a collider on $\pi$ with ah$_\pi(j) = 1 + 1 = 2$. Set $k = j$, with connecting directed walk $v_i \tuh v_{i+1} \tuh \cdots \tuh v_j$ in $G$.
+        \end{itemize}
+        In every sub-case, there is a position $k \in \{i, \dots, j\}$ such that $v_k$ is a collider on $\pi$ and $v_i \tuh v_{i+1} \tuh \cdots \tuh v_k$ is a directed walk from $v_i$ to $v_k$ in $G$ (possibly of length $0$ when $k = i$). By def \ref{def_3_5}, item~iv., a directed walk in $G$ from $v_i$ to $v_k$ witnesses $v_i \in \Anc^G(v_k)$. By the $\sigma$-open hypothesis on $\pi$ at the collider $v_k$, $v_k \in \Anc^G(C)$. By transitivity of $\Anc^G$ in $G$ (def \ref{def_3_5}, item~iii.):
+        \[
+            v_i \in \Anc^G(v_k) \;\subseteq\; \Anc^G(C).
+        \]
+        Hence the collider at $v_i$ on $\pi'$ satisfies the def \ref{def:sigma_blocking} collider clause, and is $\sigma$-open.
+\end{itemize}
+
+\smallskip\noindent\emph{(II.c.iv) Case~(ii), $v_i = v_j$ (length-$0$ trivial replacement; the addition to the LN).}
+By the addition-to-the-LN paragraph, $\sigma_{ij} = (v_i)$ with $m = 0$. The merged position on $\pi'$ at index $i$ has vertex $v_i = v_j$, left slot $a_{i-1}$ (inherited from $\pi$'s position $i$), and right slot $a_j$ (inherited from $\pi$'s position $j$, contributing arrowhead-at-$v_j = v_i$ on the right by the case~(ii) trigger). As in (II.c.ii), the two slots came from different positions on $\pi$; we verify $\sigma$-openness directly.
+
+We split on the left-slot configuration (mirroring (II.c.iii)):
+\begin{itemize}
+    \item \emph{Sub-case (a) ($v_{i-1} \hut v_i$ on $\pi$, i.e., $a_{i-1} = (v_i, v_{i-1}) \in E$, outgoing E-walk-edge of $v_i$ on the left, contributing no arrowhead at $v_i$):} ah$_{\pi'}$(merged) $= 0 + 1 = 1$, a non-collider with pattern $v_{i-1} \hut v_i \hus v_{j+1}$ (left chain). Unblockable iff $v_{i-1} \in \Sc^G(v_i)$. As in (II.c.iii) sub-case~(a), if $v_i \in C$, $\sigma$-openness of $\pi$ at $v_i$ forces $v_{i-1} \in \Sc^G(v_i)$. The right slot is not an outgoing E-walk-edge of $v_j = v_i$ (it is either incoming E or $L$), so its blocking criterion does not fire. Hence the merged position is unblockable when $v_i \in C$ (and trivially $\sigma$-open otherwise).
+    \item \emph{Sub-case (b) ($v_{i-1} \suh v_i$ on $\pi$, contributing arrowhead at $v_i$ on the left):} ah$_{\pi'}$(merged) $= 1 + 1 = 2$, a collider on $\pi'$. $\sigma$-open requires $v_i \in \Anc^G(C)$, which follows from the same first-collider argument as (II.c.iii) sub-case~(b), traced over positions $\{i, \dots, j\}$ on $\pi$. The argument applies verbatim — its premises (head at $v_i$ on the left of $\pi$'s position $i$, head at $v_j$ on the right of $\pi$'s position $j$) are unchanged by $v_i = v_j$, and the conclusion ($v_i \in \Anc^G(v_k) \subseteq \Anc^G(C)$ for some $k \in \{i, \dots, j\}$) follows.
+
+        (The LN explicitly notes: ``which is then $C$-$\sigma$-open at $v_i$ as $v_i \in \Anc^G(C)$. Note that this holds also when $v_i = v_j$.'' The above verification makes the ``also when $v_i = v_j$'' clause explicit.)
+\end{itemize}
+
+\medskip\noindent\textbf{(III) Conclusion.}
+Combining (II.a), (II.b), (II.c.i), (II.c.ii), (II.c.iii), and (II.c.iv): every position $k' \in \{0, 1, \dots, \pi'.\text{length}\}$ on $\pi'$ satisfies the local $\sigma$-open criterion of def \ref{def:sigma_blocking}, item~1 — either $k'$ is a collider with $v_{k'} \in \Anc^G(C)$, or $k'$ is a non-collider that is either unblockable (def \ref{def:unblockable_noncollider}) or has $v_{k'} \notin C$. Hence $\pi'$ is $C$-$\sigma$-open. Combined with the SCC-containment of $\sigma_{ij}$ from (I), both conclusions of the lemma hold: $\sigma_{ij}$ lies entirely in $\Sc^G(v_j)$, and $\pi'$ is $C$-$\sigma$-open. ``So in all cases $\pi'$ stays $C$-$\sigma$-open'' (the LN's closing sentence).
+\end{proof}
+\end{Lem}
+
+\end{document}
