@@ -920,7 +920,7 @@ def main(argv: list[str]) -> int:
     _DECL_RE = re.compile(
         r"^(?:[\w]+\s+)?"
         r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
-        r"\s+(?P<name>[^\W\d][\w']*)(?![\w'])",
+        r"\s+(?P<name>[^\W\d][\w'.]*)(?![\w'.])",
         re.MULTILINE,
     )
     dup_findings: dict[Path, list[str]] = {}
