@@ -349,59 +349,100 @@ def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
 -- `s.refactor_HeadAtTarget` iff the typed WalkStep
 -- `s : WalkStep G u v` places an arrowhead at its walk-traversal target
 -- end `v` (per the canonical-tex addition tag
--- `[collider_side_aware_walkstep_predicates]`):
+-- `[collider_side_aware_walkstep_predicates]`, clause~(b)):
 --
 -- - `.forwardE _` encodes `(u, v) ∈ G.E`; the directed edge runs
---   `u → v`, so the arrowhead is at the target `v`.  ↦ `True`.
+--   `u → v`, so the walk-traversal target `v` is the arrowhead-
+--   receiving end.  ↦ `True`.
 -- - `.backwardE _` encodes `(v, u) ∈ G.E`; the directed edge runs
---   `v → u`, so the constructor-tagged channel places no arrowhead
---   at the walk-traversal target `v`.  An *additional* L-disjunct
---   `s(u, v) ∈ G.L` re-fires the L-channel head-contribution at this
---   side whenever the same stored pair is also in `G.L` (writing-
---   mirror case).  ↦ `s(u, v) ∈ G.L`.
--- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints.
---   ↦ `True`.
+--   `v → u`, so the walk-traversal target `v` is the *tail* end of
+--   the directed step — no arrowhead at `v`.  The side-aware reading
+--   commits to the walk-step's recorded traversal channel as the
+--   SOLE signal for arrowhead-presence; there is NO opposite-channel
+--   L-disjunct on this branch, even when a coexisting
+--   `s(u, v) ∈ G.L` would, under the literal stored-pair test,
+--   contribute an arrowhead at `v` (writing-mirror case, addressed
+--   in the design block below).  ↦ `False`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints
+--   by the bidirected semantics.  ↦ `True`.
 --
--- No `w : Node` argument is needed — the walk-step's typed source `u`
--- and target `v` already carry the "side" information at the type
--- level.  Reading the side disambiguation off the constructor tag
--- and type indices is the load-bearing design move: at a directed
--- self-loop step `(v, v) ∈ G.E` encoded as
--- `.forwardE _ : WalkStep G v v`, a node-equality-based predicate
--- (`IsInto w := w = u ∨ w = v ∨ ...`) cannot distinguish the
--- traversal-target side from the source side because `u = v = w`
--- collapses both disjuncts trivially; the constructor tag reads the
--- walk-traversal target side cleanly here.  The opposite-channel
--- disjunct `s(u, v) ∈ G.L` on the `.backwardE` branch is the
--- writing-mirror OR-of-channels re-injection required by clause~(c)
--- of the addition: at a writing-mirror *non-self-loop* pair (stored
--- pair simultaneously in `G.E` and `G.L`, permitted by `def_3_1` --
--- see `CDMG.lean` "No `E ∩ L = ∅` field, by intent"), the literal
--- stored-pair "edge into v_k" test of `def-edge-relations` item~ii.\
--- fires from the L-channel at *both* endpoints, and the side-aware
--- reading is committed to match the literal stored-pair test on all
--- non-self-loop walk-steps; the L-disjunct is what makes that
--- agreement hold at writing-mirror pairs.  At a directed self-loop
--- `(v, v) ∈ G.E`, the disjunct `s(v, v) ∈ G.L` is *vacuously false*
--- by `def_3_1`'s `hL_irrefl` (`CDMG.lean:376` rules out
--- `s.IsDiag ∈ G.L`), so the strict side-aware disambiguation at self-
--- loops -- head at walk-traversal target only, no head at source --
--- is preserved verbatim, exactly matching the manager-accepted
--- deviation `collider_side_aware_at_self_loops` in
--- `leanification/deviations.json`.  Paired with
--- `refactor_HeadAtSource`, the two zero-arg predicates realise the
--- addition's clause-(b) per-step contribution formula (forward
--- `E`-step: head at target only; backward `E`-step: head at source
--- only; bidirected `L`-step: head at both) while also matching the
--- literal stored-pair OR-of-channels test of `def-edge-relations`
--- item~ii.\ pointwise at every non-self-loop walk-step.  See
--- `tex/def_3_15_CollidersAndNon.tex`, the "Encoding note: side-
--- aware reading via a typed walk-step representation" and
--- "Treatment of directed self-loops" paragraphs.
+-- ## Design choice — refactor_HeadAtTarget
+--
+-- *Pure constructor-tag pattern, no `w : Node` argument, no opposite-
+--   channel disjunct.*  The walk-step's typed source `u` and target
+--   `v` already carry the "side" information at the type level, and
+--   the body is a pure True / False pattern keyed off the constructor
+--   tag alone: no node-equality test, no L-membership disjunct
+--   anywhere.  This is the load-bearing design move: per clause~(b)
+--   of the canonical-tex addition
+--   `[collider_side_aware_walkstep_predicates]`, the per-step
+--   contribution of `a_i` to `ah_π(k)` at each adjacent position is
+--   determined SOLELY by the recorded traversal channel `c_i`,
+--   "never consulting whether the underlying stored pair also sits
+--   in the opposite channel of `G`".  A directed step (`.forwardE`
+--   or `.backwardE`) commits to its E-side traversal even when a
+--   coexisting `s(u, v) ∈ G.L` is present in `G`; symmetrically,
+--   `.bidir` commits to the L-side bidirected reading even when a
+--   coexisting E-edge is present.  The canonical tex states this
+--   explicitly: "There is *no* additional opposite-channel
+--   $L$-disjunct on the directed branches and *no* additional
+--   $E$-disjunct on the bidirected branch -- the constructor tag
+--   alone carries the side-aware commitment, exactly realising the
+--   per-step contribution formula above."
+--
+-- *Strict deviation from the literal stored-pair test at two corner
+--   kinds.*  Per clause~(c) of the canonical-tex addition, the
+--   side-aware reading strictly deviates from the literal
+--   `def-edge-relations` item~ii test at two corner configurations
+--   admitted by `def_3_1`:
+--   - **directed self-loop walk-steps** (`a_i ∈ G.E` with
+--     `v_i = v_{i+1}`, no coexisting L-edge): the literal test fires
+--     `e.2 = v` at both adjacent positions unconditionally
+--     (contributing `1 + 1 = 2`); the side-aware reading commits via
+--     the constructor tag to a single position (the walk-traversal
+--     target) for the contribution, contributing `1` there and `0`
+--     at the other adjacent position.  The L-channel cannot fire
+--     here because `def_3_1`'s `hL_irrefl` rules out
+--     `s(v, v) ∈ G.L` outright (so the writing-mirror self-loop
+--     sibling `(v, v) ∈ G.E` AND `s(v, v) ∈ G.L` simultaneously is
+--     structurally impossible).  This is the manager-accepted
+--     deviation `collider_side_aware_at_self_loops` in
+--     `leanification/deviations.json`.
+--   - **writing-mirror walk-steps traversed via the E-channel**
+--     (`(v_i, v_{i+1}) ∈ G.E` AND `s(v_i, v_{i+1}) ∈ G.L`, with
+--     `v_i ≠ v_{i+1}`, encoded as `.forwardE` / `.backwardE`):
+--     `def_3_1` does not impose `E ∩ L = ∅` (see `CDMG.lean`'s
+--     "No `E ∩ L = ∅` field, by intent" design pillar), so the same
+--     vertex pair may simultaneously support a directed edge and a
+--     bidirected edge.  The literal stored-pair test's L-disjunct
+--     fires at both adjacent positions regardless of which channel
+--     the walk-step actually traverses; the side-aware reading
+--     ignores the coexisting L-edge entirely when the recorded
+--     traversal channel is `.forwardE` / `.backwardE`, contributing
+--     only at the walk-traversal target of the directed channel.
+--
+-- *Scope of coincidence with the literal stored-pair test.*  The
+--   side-aware contribution formula coincides pointwise with the
+--   literal `def-edge-relations` item~ii test only on walks that
+--   traverse NEITHER a directed self-loop step NOR a writing-mirror
+--   walk-step via the E-channel.  A writing-mirror walk-step
+--   traversed via the L-channel (`.bidir _`) agrees with the literal
+--   test pointwise: the literal test's L-clause already fires
+--   arrowheads at both endpoints, matching `.bidir`'s `↦ True` on
+--   both sides.
+--
+-- Paired with `refactor_HeadAtSource`, the two zero-arg predicates
+-- realise the addition's clause-(b) per-step contribution formula
+-- exactly: forward `E`-step head at target only; backward `E`-step
+-- head at source only; bidirected `L`-step head at both adjacent
+-- positions.  See `tex/def_3_15_CollidersAndNon.tex`, the "Encoding
+-- note: side-aware reading via a typed walk-step representation" and
+-- "Treatment of directed self-loops and writing-mirror walk-steps"
+-- paragraphs for the full canonical spec.
 -- def_3_15 --- start helper
 def refactor_HeadAtTarget : ∀ {u v : Node}, WalkStep G u v → Prop
   | _, _, .forwardE _  => True
-  | u, v, .backwardE _ => s(u, v) ∈ G.L
+  | _, _, .backwardE _ => False
   | _, _, .bidir _     => True
 -- def_3_15 --- end helper
 -- REFACTOR-BLOCK-REPLACEMENT-END: HeadAtTarget
@@ -413,34 +454,46 @@ def refactor_HeadAtTarget : ∀ {u v : Node}, WalkStep G u v → Prop
 -- `s.refactor_HeadAtSource` iff the typed WalkStep
 -- `s : WalkStep G u v` places an arrowhead at its walk-traversal source
 -- end `u` (per the canonical-tex addition tag
--- `[collider_side_aware_walkstep_predicates]`):
+-- `[collider_side_aware_walkstep_predicates]`, clause~(b)):
 --
--- - `.forwardE _` encodes `(u, v) ∈ G.E`; arrowhead at `v`, tail at
---   `u`; an *additional* L-disjunct `s(u, v) ∈ G.L` re-fires the
---   L-channel head-contribution at the source side whenever the
---   stored pair is also in `G.L` (writing-mirror case).
---   ↦ `s(u, v) ∈ G.L`.
--- - `.backwardE _` encodes `(v, u) ∈ G.E`; arrowhead at `u`.  ↦ `True`.
--- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints.
---   ↦ `True`.
+-- - `.forwardE _` encodes `(u, v) ∈ G.E`; the directed edge runs
+--   `u → v`, so the walk-traversal source `u` is the *tail* end of
+--   the directed step — no arrowhead at `u`.  The side-aware reading
+--   commits to the walk-step's recorded traversal channel as the
+--   SOLE signal for arrowhead-presence; there is NO opposite-channel
+--   L-disjunct on this branch, even when a coexisting
+--   `s(u, v) ∈ G.L` would, under the literal stored-pair test,
+--   contribute an arrowhead at `u` (writing-mirror case).
+--   ↦ `False`.
+-- - `.backwardE _` encodes `(v, u) ∈ G.E`; the directed edge runs
+--   `v → u`, so the walk-traversal source `u` is the arrowhead-
+--   receiving end.  ↦ `True`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints
+--   by the bidirected semantics.  ↦ `True`.
 --
 -- The mirror of `refactor_HeadAtTarget`, asking the same per-step
 -- arrowhead-contribution question on the walk-traversal *source*
--- side.  Same writing-mirror OR-of-channels re-injection on the
--- opposite-channel branch (here `.forwardE`, mirroring
--- `refactor_HeadAtTarget`'s `.backwardE`) -- see the design-choice
--- block on `refactor_HeadAtTarget` above and the canonical tex's
--- "Encoding note" + "Treatment of directed self-loops" paragraphs
--- for the full justification, including the role of `def_3_1`'s
--- `hL_irrefl` in keeping the strict side-aware self-loop
--- disambiguation intact (the disjunct `s(v, v) ∈ G.L` is vacuously
--- false at a self-loop, so the source-side at a directed self-loop
--- step encoded as `.forwardE _ : WalkStep G v v` reads `False` --
--- the manager-accepted deviation
--- `collider_side_aware_at_self_loops` is preserved verbatim).
+-- side.  Same pure constructor-tag pattern: no node-equality test
+-- and no opposite-channel L-disjunct anywhere in the body.  A
+-- directed step commits to its E-side traversal even at a writing-
+-- mirror pair, ignoring the coexisting `G.L` edge entirely (the
+-- side-aware reading is the canonical disambiguation per clause~(c)
+-- of the addition `[collider_side_aware_walkstep_predicates]`).
+-- See the design block on `refactor_HeadAtTarget` above for the
+-- full justification, in particular: the two corner kinds where the
+-- side-aware reading strictly deviates from the literal stored-pair
+-- test (directed self-loops AND writing-mirror walk-steps traversed
+-- via the E-channel); the role of `def_3_1`'s `hL_irrefl` in ruling
+-- out the writing-mirror self-loop sibling structurally; and the
+-- scope of coincidence with the literal `def-edge-relations` item~ii
+-- test (walks avoiding both corner kinds).  At a directed self-loop
+-- step encoded as `.forwardE _ : WalkStep G v v`, the source-side
+-- predicate at the loop vertex reads `False` — the manager-accepted
+-- deviation `collider_side_aware_at_self_loops` is preserved
+-- verbatim by the constructor-tag-only body.
 -- def_3_15 --- start helper
 def refactor_HeadAtSource : ∀ {u v : Node}, WalkStep G u v → Prop
-  | u, v, .forwardE _  => s(u, v) ∈ G.L
+  | _, _, .forwardE _  => False
   | _, _, .backwardE _ => True
   | _, _, .bidir _     => True
 -- def_3_15 --- end helper
@@ -780,47 +833,67 @@ def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 --   making the self-loop's source-side contribution unambiguously
 --   `False` for `.forwardE` and `True` only for `.backwardE` / `.bidir`.
 --
--- *Intended deviation at directed self-loops; agreement elsewhere.*
---   The side-aware reading committed to here is a strict refinement
---   of the literal stored-pair (`def-edge-relations` item~ii.) test:
---   on walks that traverse no directed self-loop step, the
---   conjunction `s₀.refactor_HeadAtTarget ∧ s₁.refactor_HeadAtSource`
---   classifies every position the same way the literal stored-pair
---   OR-of-channels test would, position-for-position (per the
---   canonical tex's "Encoding note" paragraph).  Agreement on non-
---   self-loop walks is not free of the underlying side-aware
---   helpers' constructor structure: it is *realised* by the
---   opposite-channel L-disjunct `s(u, v) ∈ G.L` in
---   `refactor_HeadAtTarget` / `refactor_HeadAtSource`, which at a
---   writing-mirror non-self-loop pair (stored pair simultaneously in
---   `G.E` and `G.L`, permitted by `def_3_1` -- see `CDMG.lean` "No
---   `E ∩ L = ∅` field, by intent") re-fires the L-channel head-
---   contribution on the otherwise-zero side, matching the literal
---   stored-pair test's OR over channels.  The two readings diverge
---   only at a walk-step that is a directed self-loop
---   `(v, v) ∈ G.E`: there the literal stored-pair test fires
---   `e.2 = v` at both adjacent positions unconditionally (the
---   literal-LN ambiguity flagged by wording-check subtlety
---   `self_loop_makes_tuh_and_hut_simultaneously_true`), whereas the
---   side-aware reading places the arrowhead on the walk-traversal
---   target side only -- the side recorded by the `.forwardE` /
---   `.backwardE` constructor tag.  The L-disjunct can NOT re-fire
---   at a self-loop because `def_3_1`'s `hL_irrefl` rules out
---   `s(v, v) ∈ G.L` outright, so the strict refinement at self-loops
---   is preserved by construction (this is the manager-accepted
---   deviation `collider_side_aware_at_self_loops`).  This is the
---   *intended* canonical disambiguation per the addition tag
+-- *Intended deviation at two corner kinds; restricted agreement
+--   elsewhere.*  The side-aware reading committed to here is a
+--   strict refinement of the literal stored-pair
+--   (`def-edge-relations` item~ii) test at two corner configurations
+--   admitted by `def_3_1` but ambiguously handled by the LN's
+--   pattern-macro writing.  Per clause~(c) of the canonical-tex
+--   addition `[collider_side_aware_walkstep_predicates]`, the two
+--   readings strictly diverge at:
+--   - **directed self-loop walk-steps** (`a_i ∈ G.E` with
+--     `v_i = v_{i+1}`, no coexisting L-edge): the literal test fires
+--     `e.2 = v` at both adjacent positions unconditionally (the
+--     literal-LN ambiguity flagged by wording-check subtlety
+--     `self_loop_makes_tuh_and_hut_simultaneously_true`), whereas
+--     the side-aware reading places the arrowhead on the walk-
+--     traversal target side only -- the side recorded by the
+--     `.forwardE` / `.backwardE` constructor tag.  The L-channel
+--     cannot fire at a self-loop because `def_3_1`'s `hL_irrefl`
+--     rules out `s(v, v) ∈ G.L` outright (so the writing-mirror
+--     self-loop sibling `(v, v) ∈ G.E` AND `s(v, v) ∈ G.L` is
+--     structurally impossible), so the strict refinement at self-
+--     loops is preserved by construction (this is the manager-
+--     accepted deviation `collider_side_aware_at_self_loops`).
+--   - **writing-mirror walk-steps traversed via the E-channel**
+--     (`(v_i, v_{i+1}) ∈ G.E` AND `s(v_i, v_{i+1}) ∈ G.L`, with
+--     `v_i ≠ v_{i+1}`, encoded as `.forwardE` / `.backwardE`):
+--     `def_3_1` does not impose `E ∩ L = ∅` (see `CDMG.lean`'s
+--     "No `E ∩ L = ∅` field, by intent" design pillar), so the
+--     same vertex pair may simultaneously support a directed edge
+--     in `G.E` and a bidirected edge in `G.L`.  The literal
+--     stored-pair test's L-disjunct fires at both adjacent
+--     positions regardless of which channel the walk-step actually
+--     traverses; the side-aware predicates
+--     `refactor_HeadAtTarget` / `refactor_HeadAtSource` ignore the
+--     coexisting L-edge entirely when the recorded traversal
+--     channel is `.forwardE` / `.backwardE` (their bodies have NO
+--     opposite-channel L-disjunct anywhere), contributing only at
+--     the walk-traversal target of the directed channel.  Clause~(c)
+--     of the addition explicitly extends the strict deviation to
+--     this corner: "the strict deviation from the literal stored-
+--     pair test is preserved at writing-mirror walk-steps traversed
+--     via the E-channel as well as at directed self-loops".
+--   The two readings coincide pointwise only on walks that avoid
+--   BOTH a directed self-loop step AND a writing-mirror walk-step
+--   traversed via the E-channel; a writing-mirror walk-step
+--   traversed via the L-channel (`.bidir _`) agrees with the
+--   literal test pointwise (the L-clause of the literal test
+--   already fires arrowheads at both endpoints, matching `.bidir`'s
+--   `↦ True` on both sides).  Both deviations are the *intended*
+--   canonical disambiguation per the addition tag
 --   `[collider_side_aware_walkstep_predicates]` (see
 --   `tex/def_3_15_CollidersAndNon.tex`, "Treatment of directed
---   self-loops"), not an accidental divergence: the LN's
---   `ah_π(k) = 2` count is itself ambiguous at a self-loop step, so
---   the encoding must commit to one of the two admissible counts,
---   and the side-aware reading is the one the canonical tex pins
---   as taking precedence over the literal stored-pair test.  As a
---   concrete consequence: a position-1 walk `a → b → b` (with a
---   directed self-loop at `b` as the second step) is *not* a
---   collider at `b` under the side-aware reading, because the
---   self-loop's source side at `b` carries a tail, not a head.
+--   self-loops and writing-mirror walk-steps"), not accidental
+--   divergences: the LN's `ah_π(k) = 2` count is itself ambiguous
+--   at both corner kinds, so the encoding must commit to one of
+--   the admissible counts, and the side-aware reading is the one
+--   the canonical tex pins as taking precedence over the literal
+--   stored-pair test.  As a concrete consequence: a position-1 walk
+--   `a → b → b` (with a directed self-loop at `b` as the second
+--   step) is *not* a collider at `b` under the side-aware reading,
+--   because the self-loop's source side at `b` carries a tail, not
+--   a head.
 --
 -- *No node-binder `vk` at the clause-1 pattern.*  The pre-refactor
 --   pattern `cons vk s₀ (.cons _ s₁ _), 1` bound the middle vertex

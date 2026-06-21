@@ -1408,9 +1408,7 @@ namespace WalkStep
 lemma refactor_headAtTarget_reverse {G : CDMG Node} :
     ∀ {u v : Node} (s : WalkStep G u v),
       s.reverse.refactor_HeadAtTarget ↔ s.refactor_HeadAtSource
-  | _, _, .forwardE _ => by
-      change (s(_, _) : Sym2 Node) ∈ G.L ↔ s(_, _) ∈ G.L
-      rw [show (s(_, _) : Sym2 Node) = s(_, _) from Sym2.eq_swap]
+  | _, _, .forwardE _ => Iff.rfl
   | _, _, .backwardE _ => Iff.rfl
   | _, _, .bidir _ => Iff.rfl
 end WalkStep
@@ -1424,9 +1422,7 @@ lemma refactor_headAtSource_reverse {G : CDMG Node} :
     ∀ {u v : Node} (s : WalkStep G u v),
       s.reverse.refactor_HeadAtSource ↔ s.refactor_HeadAtTarget
   | _, _, .forwardE _ => Iff.rfl
-  | _, _, .backwardE _ => by
-      change (s(_, _) : Sym2 Node) ∈ G.L ↔ s(_, _) ∈ G.L
-      rw [show (s(_, _) : Sym2 Node) = s(_, _) from Sym2.eq_swap]
+  | _, _, .backwardE _ => Iff.rfl
   | _, _, .bidir _ => Iff.rfl
 end WalkStep
 -- REFACTOR-BLOCK-REPLACEMENT-END: headAtSource_reverse

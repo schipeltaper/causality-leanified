@@ -41,7 +41,7 @@
       "formalized": "yes",
       "proven": "n/a",
       "solved": "yes",
-      "date_solved": "2026-06-20",
+      "date_solved": "2026-06-21",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a refactor ROOT in `collider_side_aware` (roots: `def_3_15`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/CollidersAndNon.lean",
@@ -54,15 +54,15 @@
         "verify_tex_proof": 0,
         "review_design": 1,
         "verify_equivalence": 1,
-        "verify_equivalence_strict": 4,
+        "verify_equivalence_strict": 1,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
-        "solved": 6,
+        "add_design_choice_comments": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 4,
-        "continue_agent": 2,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
         "reset": 0,
@@ -72,347 +72,144 @@
         "accept_deviation": 1,
         "register_ln_subtlety": 0,
         "no_action": 0,
-        "verify_tex_statement_only": 2,
-        "verify_tex_statement_equivalence": 3
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1
       },
       "tex_block": "\\begin{defmark}\n\\begin{Def}[Colliders and non-colliders]\n  Let $G=(J,V,E,L)$ be a CDMG and $\\pi$ a walk in $G$:\n  \\[ \\pi =\\lp  v_0 \\sus \\cdots \\sus v_n \\rp.  \\]\n  A node $v_k$, or more precisely, the position $k \\in \\lC 0,\\dots, n \\rC$,\n  on the walk $\\pi$ is called:\n     \\begin{enumerate}\n     \\item a \\emph{non-collider} on $\\pi$, if there is at most one arrowhead pointing towards $v_k$, i.e.\\ if it falls into one of the following cases:\n  \\[\\begin{array}{rccl}\n    \\text{ end-node: } & k \\in \\lC 0,n \\rC, \\\\\n    \\text{ left chain: } & v_{k-1} \\hut v_k \\hus v_{k+1}, \\\\\n    \\text{ right chain: } & v_{k-1} \\suh v_k \\tuh v_{k+1},\\\\\n    \\text{ fork: } & v_{k-1} \\hut v_k \\tuh v_{k+1};\n    \\end{array}\\]\n  \\item a \\emph{collider} on $\\pi$, if it is of the form: \n             \\[v_{k-1} \\suh v_k \\hus v_{k+1},\\] \n             i.e.\\ if there are two arrowheads pointing towards $v_k$ on the walk $\\pi$.\n     \\end{enumerate}\n\\end{Def}\n\\end{defmark}",
       "agent_registry": [
         {
+          "kind": "check_ln_wording",
+          "spawned_by": "manager",
+          "session_id": "681f7649-ca59-4c5e-8d26-909e902b8c3b",
+          "first_seen": "2026-06-21T04:27:54+00:00",
+          "last_used": "2026-06-21T04:27:54+00:00"
+        },
+        {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "446ef9b1-1db7-4a7f-8e36-76cf2b7e536e",
-          "first_seen": "2026-06-20T10:52:04+00:00",
-          "last_used": "2026-06-20T10:52:04+00:00"
+          "session_id": "5c0d5deb-6546-4894-8ab2-72922e7d33b2",
+          "first_seen": "2026-06-21T04:33:54+00:00",
+          "last_used": "2026-06-21T04:33:54+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "705a12cc-5dbd-419b-b180-3f774815c31f",
-          "first_seen": "2026-06-20T11:06:00+00:00",
-          "last_used": "2026-06-20T11:51:33+00:00"
+          "session_id": "4d7bb909-479b-4671-a820-b811c20559b9",
+          "first_seen": "2026-06-21T04:44:40+00:00",
+          "last_used": "2026-06-21T04:44:40+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "4d3785f5-639e-4267-a8ca-c98ddab6659f",
-          "first_seen": "2026-06-20T11:07:26+00:00",
-          "last_used": "2026-06-20T11:07:26+00:00"
+          "session_id": "64b5662a-c87b-454d-b1c7-40d37a4d70d1",
+          "first_seen": "2026-06-21T04:45:04+00:00",
+          "last_used": "2026-06-21T04:45:04+00:00"
         },
         {
           "kind": "verify_tex_statement_only",
           "spawned_by": "manager",
-          "session_id": "b45ae640-cdef-4b0d-8646-3dcc43e9db77",
-          "first_seen": "2026-06-20T11:07:58+00:00",
-          "last_used": "2026-06-20T11:07:58+00:00"
+          "session_id": "08bc568e-d9d3-482a-bb6a-cbf3b28dbac4",
+          "first_seen": "2026-06-21T04:45:24+00:00",
+          "last_used": "2026-06-21T04:45:24+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "bb79ffc4-b1cc-46ab-8384-3e1a232079cf",
-          "first_seen": "2026-06-20T11:08:21+00:00",
-          "last_used": "2026-06-20T11:08:21+00:00"
+          "session_id": "2b6352d7-ff7b-40bf-9a72-5aeec3c54d1e",
+          "first_seen": "2026-06-21T04:46:05+00:00",
+          "last_used": "2026-06-21T04:46:05+00:00"
         },
         {
           "kind": "verify_tex_statement_equivalence",
           "spawned_by": "manager",
-          "session_id": "0263db4f-217b-401f-97fe-90307a4e9ba7",
-          "first_seen": "2026-06-20T11:30:09+00:00",
-          "last_used": "2026-06-20T11:30:09+00:00"
+          "session_id": "9c5a8b6e-8b21-48f6-aeee-1af3c044044e",
+          "first_seen": "2026-06-21T04:50:17+00:00",
+          "last_used": "2026-06-21T04:50:17+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "8fb7665b-0721-4728-aaa4-81b6a8b8b4bd",
-          "first_seen": "2026-06-20T11:37:31+00:00",
-          "last_used": "2026-06-20T11:37:31+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "d50bb4e0-4613-4d32-a878-7e4b1644e0f3",
-          "first_seen": "2026-06-20T11:47:00+00:00",
-          "last_used": "2026-06-20T11:47:00+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "0852ce40-3674-4ac8-a065-01f4c03881e9",
-          "first_seen": "2026-06-20T11:52:04+00:00",
-          "last_used": "2026-06-20T11:52:04+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_only",
-          "spawned_by": "manager",
-          "session_id": "e8b2f6d1-fd43-4ee9-9ce1-46ed92e9a6fd",
-          "first_seen": "2026-06-20T11:52:47+00:00",
-          "last_used": "2026-06-20T11:52:47+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "1e9fbac2-c14c-4a08-98b4-37c6fd4864f3",
-          "first_seen": "2026-06-20T11:56:27+00:00",
-          "last_used": "2026-06-20T11:56:27+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_equivalence",
-          "spawned_by": "manager",
-          "session_id": "c33f4861-f7b4-4d09-bdb8-86d956e4a1ab",
-          "first_seen": "2026-06-20T12:01:39+00:00",
-          "last_used": "2026-06-20T12:01:39+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "c1efc6a1-2e59-4e08-840d-4c2715c7107e",
-          "first_seen": "2026-06-20T12:05:27+00:00",
-          "last_used": "2026-06-20T12:05:27+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_equivalence",
-          "spawned_by": "manager",
-          "session_id": "8b8b7de4-730f-49df-adb0-c28abb51b62e",
-          "first_seen": "2026-06-20T12:08:51+00:00",
-          "last_used": "2026-06-20T12:08:51+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "5b9362d5-ff7f-45d8-878d-d5c732f65b77",
-          "first_seen": "2026-06-20T12:09:55+00:00",
-          "last_used": "2026-06-20T12:09:55+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "bdfe1724-9dcd-4e86-b9f2-0b3d20dd1d17",
-          "first_seen": "2026-06-20T12:21:15+00:00",
-          "last_used": "2026-06-20T12:21:15+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "ba8b85a9-2790-47ea-99ff-2e57c1922996",
-          "first_seen": "2026-06-20T12:22:05+00:00",
-          "last_used": "2026-06-20T12:22:05+00:00"
+          "session_id": "4bdd5d31-2ae7-4b1e-aa10-efb05652e5e7",
+          "first_seen": "2026-06-21T04:51:25+00:00",
+          "last_used": "2026-06-21T04:51:25+00:00"
         },
         {
           "kind": "review_design",
           "spawned_by": "manager",
-          "session_id": "e57f8438-58cd-479f-88e8-390811bf1fdc",
-          "first_seen": "2026-06-20T12:27:31+00:00",
-          "last_used": "2026-06-20T12:27:31+00:00"
+          "session_id": "e49d66a1-e6b4-4f6d-a3f2-57dde670d310",
+          "first_seen": "2026-06-21T04:59:22+00:00",
+          "last_used": "2026-06-21T04:59:22+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "070a85f3-6b6a-492a-9912-599250e638a0",
-          "first_seen": "2026-06-20T12:28:14+00:00",
-          "last_used": "2026-06-20T12:28:14+00:00"
+          "session_id": "92a6cef8-0de1-4bac-9426-d07d610c2bb1",
+          "first_seen": "2026-06-21T05:01:02+00:00",
+          "last_used": "2026-06-21T05:01:02+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "26b5c80f-42e8-401e-93b5-e9356f2e4502",
+          "first_seen": "2026-06-21T05:11:09+00:00",
+          "last_used": "2026-06-21T05:11:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5b4d8f68-3a96-4d9f-b24a-964c8643e859",
+          "first_seen": "2026-06-21T05:12:11+00:00",
+          "last_used": "2026-06-21T05:12:11+00:00"
         },
         {
           "kind": "verify_equivalence",
           "spawned_by": "manager",
-          "session_id": "de60c76e-4b33-446a-826c-3b8163c8a027",
-          "first_seen": "2026-06-20T12:32:06+00:00",
-          "last_used": "2026-06-20T12:32:06+00:00"
+          "session_id": "0ef9935e-8e98-4900-a4b5-add87a844946",
+          "first_seen": "2026-06-21T05:14:51+00:00",
+          "last_used": "2026-06-21T05:14:51+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "46b347bb-49fd-4dc6-8797-113bcd693279",
-          "first_seen": "2026-06-20T12:33:16+00:00",
-          "last_used": "2026-06-20T12:33:16+00:00"
+          "session_id": "15243d58-25ee-428e-913d-1a45c54cef55",
+          "first_seen": "2026-06-21T05:16:03+00:00",
+          "last_used": "2026-06-21T05:16:03+00:00"
         },
         {
           "kind": "verify_equivalence_strict",
           "spawned_by": "manager",
-          "session_id": "ffc603d8-c98b-4471-9755-18f486f7f2ce",
-          "first_seen": "2026-06-20T12:40:45+00:00",
-          "last_used": "2026-06-20T12:40:45+00:00"
+          "session_id": "c7365977-c124-458e-bee8-78090168032d",
+          "first_seen": "2026-06-21T05:21:49+00:00",
+          "last_used": "2026-06-21T05:21:49+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "a42492c7-eb25-424a-be96-95f5fdda0aa4",
-          "first_seen": "2026-06-20T12:43:26+00:00",
-          "last_used": "2026-06-20T12:43:26+00:00"
-        },
-        {
-          "kind": "verify_equivalence_strict",
-          "spawned_by": "manager",
-          "session_id": "b9bef9e3-0b35-412e-8046-2609439e3161",
-          "first_seen": "2026-06-20T12:50:21+00:00",
-          "last_used": "2026-06-20T12:50:21+00:00"
+          "session_id": "c6e6f69c-a213-44e3-ae3f-23f81ef15238",
+          "first_seen": "2026-06-21T05:23:16+00:00",
+          "last_used": "2026-06-21T05:23:16+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "0ac2da51-fedc-41f4-b569-8f82b3f7e61f",
-          "first_seen": "2026-06-20T12:51:16+00:00",
-          "last_used": "2026-06-20T12:51:16+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "e21a0dea-1bac-40c2-b4c7-95c5a8e4ec2b",
-          "first_seen": "2026-06-20T13:03:32+00:00",
-          "last_used": "2026-06-20T13:03:32+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "ea6beef1-ea4b-4fbd-ad52-ec79fd728124",
-          "first_seen": "2026-06-20T13:04:00+00:00",
-          "last_used": "2026-06-20T13:04:00+00:00"
+          "session_id": "5f655188-d6b8-42ec-9d7e-53b42b917f75",
+          "first_seen": "2026-06-21T05:23:47+00:00",
+          "last_used": "2026-06-21T05:23:47+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "f4cedfbf-e5df-4b7d-b4f9-2b9935aede7c",
-          "first_seen": "2026-06-20T13:07:01+00:00",
-          "last_used": "2026-06-20T13:07:01+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "d2c9c3ff-23f1-437a-b3a0-659d201d05f3",
-          "first_seen": "2026-06-20T13:09:19+00:00",
-          "last_used": "2026-06-20T13:09:19+00:00"
-        },
-        {
-          "kind": "verify_equivalence_strict",
-          "spawned_by": "manager",
-          "session_id": "9f387bd1-3b07-44a9-8de5-fb343d42c7be",
-          "first_seen": "2026-06-20T13:24:12+00:00",
-          "last_used": "2026-06-20T13:24:12+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "ca87b201-12d0-4524-856a-8f9156397c05",
-          "first_seen": "2026-06-20T13:24:41+00:00",
-          "last_used": "2026-06-20T13:24:41+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "96471934-6db9-44dc-a1f3-bc8e3ef9a419",
-          "first_seen": "2026-06-20T13:28:32+00:00",
-          "last_used": "2026-06-20T13:28:32+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "31dd2f61-4133-42f0-858b-d37ce95a329c",
-          "first_seen": "2026-06-20T13:31:06+00:00",
-          "last_used": "2026-06-20T13:31:06+00:00"
-        },
-        {
-          "kind": "verify_equivalence_strict",
-          "spawned_by": "manager",
-          "session_id": "636b0c30-b520-42d8-9020-75da6aca8e98",
-          "first_seen": "2026-06-20T13:39:07+00:00",
-          "last_used": "2026-06-20T13:39:07+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "429b3305-44ae-4315-b015-5f3eca9cfdea",
-          "first_seen": "2026-06-20T13:39:47+00:00",
-          "last_used": "2026-06-20T13:39:47+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "d5eefcde-0027-4755-b74f-2b72b124dd73",
-          "first_seen": "2026-06-20T13:50:01+00:00",
-          "last_used": "2026-06-20T13:50:01+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "339a1fcb-8c3c-47e7-8783-06adbffb5449",
-          "first_seen": "2026-06-20T14:02:43+00:00",
-          "last_used": "2026-06-20T14:02:43+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "e76c3a84-0659-4048-b5c8-45a9a10fb3f9",
-          "first_seen": "2026-06-20T14:08:17+00:00",
-          "last_used": "2026-06-20T14:08:17+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "0f8aae6d-1333-486d-87b1-b896bbd8f62a",
-          "first_seen": "2026-06-20T14:10:43+00:00",
-          "last_used": "2026-06-20T14:10:43+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "c17c128f-3827-425b-bab9-eeba5ec00161",
-          "first_seen": "2026-06-20T14:25:28+00:00",
-          "last_used": "2026-06-20T14:25:28+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "d8f8d164-9433-460a-9dc0-cda914e7e31f",
-          "first_seen": "2026-06-20T14:33:30+00:00",
-          "last_used": "2026-06-20T14:33:30+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "7c807f8e-ddcd-479b-b7ed-97f558d3dc65",
-          "first_seen": "2026-06-20T14:34:08+00:00",
-          "last_used": "2026-06-20T14:34:08+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "d33adda0-cba2-4eec-967c-3ed2f947b054",
-          "first_seen": "2026-06-20T14:46:34+00:00",
-          "last_used": "2026-06-20T14:46:34+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "47e3828b-7b21-4eba-a779-31dbb640ea7e",
-          "first_seen": "2026-06-20T15:14:45+00:00",
-          "last_used": "2026-06-20T15:14:45+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "fb4e4f28-54a3-4a5a-ba87-e283f282caea",
-          "first_seen": "2026-06-20T15:21:28+00:00",
-          "last_used": "2026-06-20T15:21:28+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "00dc43b8-488e-427a-a5e4-c1f3c04474c5",
-          "first_seen": "2026-06-20T15:21:57+00:00",
-          "last_used": "2026-06-20T15:21:57+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "b12a1d9c-152e-4d41-8f57-b92322d0b514",
-          "first_seen": "2026-06-20T15:25:39+00:00",
-          "last_used": "2026-06-20T15:25:39+00:00"
+          "session_id": "12465a7e-a53f-4ef8-b098-a506b5ae9b95",
+          "first_seen": "2026-06-21T05:27:32+00:00",
+          "last_used": "2026-06-21T05:27:32+00:00"
         }
       ],
-      "time_needed_to_solve": 17739,
-      "addition_to_the_LN": "\\textbf{Addition tag \\texttt{[collider\\_side\\_aware\\_walkstep\\_predicates]}.}\nThis addition refines the literal LN definition by introducing a \\emph{side-aware}\nreading of the per-walk-step contribution to $\\mathrm{ah}_\\pi(k)$ at the two adjacent\nwalk-positions $k \\in \\{i, i+1\\}$ of a walk-step $a_i$ of $\\pi$. The refinement is\nauthorised because the literal LN definition is ambiguous at a walk-incident directed\nself-loop $a_i \\in E$ with $v_i = v_{i+1}$: there both walk-constraint disjuncts of\ndef \\ref{def:walks}, item~i.\\ apply syntactically, and the stored-pair ``$a_i$ is an\nedge into $v_k$'' test of def \\ref{def-edge-relations}, item~ii.\\ fires unconditionally\nat both adjacent positions $k \\in \\{i, i+1\\}$ -- so a single interior position\n$k$ traversing such a self-loop would simultaneously match the LN's ``left chain'',\n``right chain'', ``fork'', and ``collider'' pattern conjunctions and would contribute\n$1 + 1 = 2$ arrowheads via the literal stored-pair count. The side-aware reading\nintroduced here resolves this and refines (and at self-loop walk-steps strictly\noverrides) the literal stored-pair test as the canonical reading of\n$\\mathrm{ah}_\\pi(k)$ used by the collider/non-collider classification.\n\n\\medskip\\noindent\\textbf{(a) Per-step walk-traversal direction is recorded explicitly.}\nEach walk-step $a_i$ of $\\pi$ carries an explicit walk-traversal direction\n$d_i \\in \\{\\textsf{forward}, \\textsf{backward}\\}$, with the convention\n\\[\n    d_i = \\textsf{forward} \\iff \\bigl(a_i = (v_i, v_{i+1}) \\;\\land\\; a_i \\in E \\cup L\\bigr),\n    \\qquad\n    d_i = \\textsf{backward} \\iff \\bigl(a_i = (v_{i+1}, v_i) \\;\\land\\; a_i \\in E\\bigr).\n\\]\nAt a walk-step with distinct endpoints ($v_i \\ne v_{i+1}$) only one of the two\nwalk-constraint disjuncts can fire, so the choice of $d_i$ is forced by the data of\n$\\pi$. At a walk-incident directed self-loop $a_i \\in E$ with $v_i = v_{i+1}$ both\ndisjuncts apply syntactically and the choice of $d_i \\in \\{\\textsf{forward},\n\\textsf{backward}\\}$ is \\emph{recorded explicitly} as part of $\\pi$ (i.e.\\ $\\pi$\ncarries strictly more data at such steps than its underlying vertex/edge sequence\nalone). Bidirected walk-steps $a_i \\in L$ admit only the first disjunct of the walk\nconstraint and are taken with $d_i = \\textsf{forward}$ by convention, but the\nclassification below is invariant under this convention since bidirected steps\ncontribute $1$ at both adjacent positions regardless of $d_i$.\n\n\\medskip\\noindent\\textbf{(b) Side-aware per-step contribution formula at adjacent positions.}\nFor each walk-step $a_i$ of $\\pi$ ($0 \\le i \\le n - 1$) and each adjacent position\n$k \\in \\{i, i+1\\}$, the contribution of $a_i$ to $\\mathrm{ah}_\\pi(k)$ is defined by\nthe following side-aware formula (replacing the literal stored-pair test at all\nwalk-steps, with strict effect only at directed self-loop walk-steps as item~(c) records):\n\\begin{itemize}\n    \\item \\emph{Directed forward step} ($a_i \\in E$, $d_i = \\textsf{forward}$):\n        contributes $1$ at the walk-traversal target $k = i + 1$ and $0$ at the\n        walk-traversal source $k = i$.\n    \\item \\emph{Directed backward step} ($a_i \\in E$, $d_i = \\textsf{backward}$):\n        contributes $1$ at the walk-traversal target $k = i$ and $0$ at the\n        walk-traversal source $k = i + 1$.\n    \\item \\emph{Bidirected step} ($a_i \\in L$): contributes $1$ at both adjacent\n        positions $k \\in \\{i, i+1\\}$, independently of $d_i$.\n\\end{itemize}\nEquivalently, a directed walk-step contributes $1$ at the position playing the role of\nits walk-traversal target -- read off the recorded direction $d_i$, not from the\nstored-pair components -- and $0$ at the position playing the role of its\nwalk-traversal source. The arrowhead count $\\mathrm{ah}_\\pi(k)$ at a position\n$k \\in \\{0, 1, \\dots, n\\}$ is then the sum of these per-step contributions, summed over\nthe (at most two) walk-incident steps $i \\in \\{k - 1, k\\} \\cap \\{0, 1, \\dots, n - 1\\}$.\n\n\\medskip\\noindent\\textbf{(c) Coincidence on walks without directed self-loop steps.}\nOn any walk $\\pi$ in which every directed step $a_i \\in E$ has $v_i \\ne v_{i+1}$\n(equivalently, $\\pi$ traverses no directed self-loop step), the side-aware contribution\nformula of item~(b) coincides pointwise with the literal stored-pair ``$a_i$ is an edge\ninto $v_k$'' test of def \\ref{def-edge-relations}, item~ii.: for such a directed step\n$a_i \\in E$ exactly one of the two walk-constraint disjuncts fires, forcing $d_i$ to\nmatch the stored-pair orientation, and both readings then assign $1$ to the\n$\\mathrm{stored\\text{-}pair}$ target position and $0$ to the source position. Bidirected\nwalk-steps $a_i \\in L$ already contribute $1$ at both adjacent positions under both\nreadings. Therefore the side-aware refinement is \\emph{strictly stronger than the\nliteral stored-pair test only at directed self-loop walk-steps}, where the explicit\n$d_i$ chooses a single adjacent position (the walk-traversal target) for the $a_i$\narrowhead and reads $0$ at the walk-traversal source position -- replacing, at such\nsteps only, the literal stored-pair test's commitment to contribution $1$ at both\nadjacent positions.\n\n\\medskip\\noindent\\textbf{Canonical classification.}\nThe collider / non-collider classification of def \\ref{def:collider_noncollider} is\ndefined using the side-aware $\\mathrm{ah}_\\pi(k)$ of items~(a)--(b): position\n$k \\in \\{0, 1, \\dots, n\\}$ is a non-collider on $\\pi$ iff its side-aware arrowhead\ncount satisfies $\\mathrm{ah}_\\pi(k) \\le 1$, and a collider iff $\\mathrm{ah}_\\pi(k) = 2$.\nThe side-aware reading is the canonical disambiguation of the LN's ``i.e.''\\ gloss\n``at most one arrowhead'' (resp.\\ ``two arrowheads pointing towards $v_k$ on the walk\n$\\pi$''), taking precedence over the literal stored-pair test of def\n\\ref{def-edge-relations}, item~ii.\\ at directed self-loop walk-steps. By item~(c) this\nrefinement is strict only at walks traversing a directed self-loop, and on all other\nwalks the classification is equivalent to the count obtained from the literal\nstored-pair test.\n",
+      "time_needed_to_solve": 21335,
+      "addition_to_the_LN": "\\textbf{Addition tag \\texttt{[collider\\_side\\_aware\\_walkstep\\_predicates]}.}\nThis addition refines the literal LN definition by introducing a \\emph{side-aware}\nreading of the per-walk-step contribution to $\\mathrm{ah}_\\pi(k)$ at the two adjacent\nwalk-positions $k \\in \\{i, i+1\\}$ of a walk-step $a_i$ of $\\pi$. The refinement is\nauthorised because the literal LN definition is ambiguous in two corner configurations:\n(i) at a walk-incident directed self-loop $a_i \\in E$ with $v_i = v_{i+1}$, where both\nwalk-constraint disjuncts of def \\ref{def:walks}, item~i.\\ apply syntactically and the\nstored-pair test of def \\ref{def-edge-relations}, item~ii.\\ fires unconditionally at\nboth adjacent positions; and (ii) at a walk-step traversing a pair that\nsimultaneously sits in $E$ as an ordered pair and in $L$ as an unordered pair -- the\n\\emph{writing-mirror} configuration permitted by def \\ref{def-cdmg} (which does not\nimpose $E \\cap L = \\emptyset$) -- where the literal stored-pair test's L-disjunct fires\nat both adjacent positions regardless of which channel the walk-step actually traverses.\nThe side-aware reading introduced here resolves both corners by committing to the\nwalk-step's recorded traversal channel as the \\emph{sole} signal for which channel\ncontributes to the arrowhead test at this step, refining (and strictly overriding) the\nliteral stored-pair test as the canonical reading of $\\mathrm{ah}_\\pi(k)$ used by the\ncollider/non-collider classification.\n\n\\medskip\\noindent\\textbf{(a) Per-step walk-traversal channel and direction are recorded\nexplicitly.} Each walk-step $a_i$ of $\\pi$ carries an explicit walk-traversal channel\n$c_i \\in \\{\\textsf{forward-}E, \\textsf{backward-}E, \\textsf{bidir-}L\\}$, with the\nconvention\n\\[\n    c_i = \\textsf{forward-}E \\iff \\bigl(a_i = (v_i, v_{i+1}) \\;\\land\\; a_i \\in E\\bigr),\n\\]\n\\[\n    c_i = \\textsf{backward-}E \\iff \\bigl(a_i = (v_{i+1}, v_i) \\;\\land\\; a_i \\in E\\bigr),\n\\]\n\\[\n    c_i = \\textsf{bidir-}L \\iff a_i \\in L \\;\\text{(taken with}\\; a_i = (v_i, v_{i+1})\n    \\;\\text{by convention)}.\n\\]\nAt a walk-step whose endpoints are distinct and that does not sit in a writing-mirror\npair, the channel $c_i$ is forced by the data of $\\pi$. At a writing-mirror walk-step\n($(v_i, v_{i+1}) \\in E$ \\emph{and} $s(v_i, v_{i+1}) \\in L$, with $v_i \\ne v_{i+1}$\nor $v_i = v_{i+1}$), the choice of $c_i \\in \\{\\textsf{forward-}E, \\textsf{backward-}E,\n\\textsf{bidir-}L\\}$ is \\emph{recorded explicitly} as part of $\\pi$ -- i.e.\\ $\\pi$\ncarries strictly more data at such steps than its underlying vertex/edge sequence alone.\nAt a walk-incident directed self-loop $a_i \\in E$ with $v_i = v_{i+1}$, the choice\nbetween $c_i = \\textsf{forward-}E$ and $c_i = \\textsf{backward-}E$ is similarly\nrecorded explicitly.\n\n\\medskip\\noindent\\textbf{(b) Side-aware per-step contribution formula at adjacent positions.}\nFor each walk-step $a_i$ of $\\pi$ ($0 \\le i \\le n - 1$) and each adjacent position\n$k \\in \\{i, i+1\\}$, the contribution of $a_i$ to $\\mathrm{ah}_\\pi(k)$ is determined\n\\emph{solely} by the recorded channel $c_i$, never consulting whether the underlying\nstored pair also sits in the opposite channel:\n\\begin{itemize}\n    \\item \\emph{Forward-$E$ step} ($c_i = \\textsf{forward-}E$): contributes $1$ at the\n        walk-traversal target $k = i + 1$ and $0$ at the walk-traversal source $k = i$.\n    \\item \\emph{Backward-$E$ step} ($c_i = \\textsf{backward-}E$): contributes $1$ at\n        the walk-traversal target $k = i$ and $0$ at the walk-traversal source $k = i + 1$.\n    \\item \\emph{Bidir-$L$ step} ($c_i = \\textsf{bidir-}L$): contributes $1$ at both\n        adjacent positions $k \\in \\{i, i+1\\}$.\n\\end{itemize}\nA directed step (forward-$E$ or backward-$E$) commits to its $E$-side traversal even\nwhen a coexisting $L$-edge $s(v_i, v_{i+1}) \\in L$ would, under the literal stored-pair\ntest, contribute additional arrowheads at the source position. A bidirected step\n($\\textsf{bidir-}L$) commits to the $L$-side bidirected contribution even when a\ncoexisting $E$-edge would, under the literal test, contribute differently. The\narrowhead count $\\mathrm{ah}_\\pi(k)$ at a position $k \\in \\{0, 1, \\dots, n\\}$ is then\nthe sum of these per-step contributions, summed over the (at most two) walk-incident\nsteps $i \\in \\{k - 1, k\\} \\cap \\{0, 1, \\dots, n - 1\\}$.\n\n\\medskip\\noindent\\textbf{(c) Deviation from the literal stored-pair test is strict at\nwriting-mirror walk-steps and at directed self-loops.}\nThe side-aware contribution formula of item~(b) coincides pointwise with the literal\nstored-pair ``$a_i$ is an edge into $v_k$'' test of def \\ref{def-edge-relations},\nitem~ii.\\ on any walk $\\pi$ that traverses neither a writing-mirror configuration nor\na directed self-loop. Where the two readings disagree:\n\\begin{itemize}\n    \\item \\emph{Directed self-loop steps} ($a_i \\in E$ with $v_i = v_{i+1}$, no\n        coexisting $L$-edge): the literal test fires unconditionally at both adjacent\n        positions, contributing $1 + 1 = 2$; the side-aware reading commits via $c_i$\n        to a single position (the walk-traversal target) for the contribution,\n        contributing $1$ at that position and $0$ at the other.\n    \\item \\emph{Writing-mirror walk-steps} ($(v_i, v_{i+1}) \\in E$ \\emph{and}\n        $s(v_i, v_{i+1}) \\in L$, with $v_i \\ne v_{i+1}$): the literal test fires the\n        L-disjunct at both adjacent positions regardless of which channel the\n        walk-step traverses; the side-aware reading ignores the coexisting $L$-edge\n        when $c_i \\in \\{\\textsf{forward-}E, \\textsf{backward-}E\\}$, contributing only\n        at the walk-traversal target of the directed channel.\n    \\item \\emph{Writing-mirror self-loop steps} ($(v, v) \\in E$ \\emph{and}\n        $s(v, v) \\in L$): structurally impossible by def \\ref{def-cdmg}'s\n        \\texttt{hL\\_irrefl}, which forbids self-pair elements in $L$.\n\\end{itemize}\nThe strict-equivalence gate accepts this deviation as the canonical disambiguation of\nthe LN's ``$\\mathrm{ah}_\\pi(k)$ counts arrowheads on the walk $\\pi$'' phrasing -- a\nwalk-step \\emph{is} the traversal of a single channel of the graph, and an arrowhead\nthat the walk's channel does not place at $v_k$ is not part of the walk's count, even\nwhen the same pair sits in the opposite channel of the graph as a separate edge object.\n\n\\medskip\\noindent\\textbf{Canonical classification.}\nThe collider / non-collider classification of def \\ref{def:collider_noncollider} is\ndefined using the side-aware $\\mathrm{ah}_\\pi(k)$ of items~(a)--(b): position\n$k \\in \\{0, 1, \\dots, n\\}$ is a non-collider on $\\pi$ iff its side-aware arrowhead\ncount satisfies $\\mathrm{ah}_\\pi(k) \\le 1$, and a collider iff $\\mathrm{ah}_\\pi(k) = 2$.\nThe side-aware reading is the canonical disambiguation of the LN's ``i.e.''\\ gloss\n``at most one arrowhead'' (resp.\\ ``two arrowheads pointing towards $v_k$ on the walk\n$\\pi$''), taking precedence over the literal stored-pair test at both corner kinds\nlisted in item~(c). On walks avoiding both corners, the classification coincides with\nthe count obtained from the literal stored-pair test.\n",
       "wording_check": {
         "done": true,
-        "output": "I have enough context. Let me also check if `def_3_4` constrains away self-loops in walks.\n\nThe walk definition explicitly allows $a_k = (v_k, v_{k+1}) \\in E$ with the possibility that $v_k = v_{k+1}$ (no distinctness requirement). The CDMG def only forbids self-loops in $L$, not in $E$. The walk also allows \"trivial\" walks ($n=0$).\n\nBased on this analysis, here is my assessment of the tex block of `def_3_15`:\n\nSUBTLETY:\nid: self_loop_makes_tuh_and_hut_simultaneously_true\nexplanation: A directed self-loop $(v,v) \\in E$ is permitted by the CDMG definition (`def-cdmg`: $E \\subseteq (J \\cup V) \\times V$ contains no $v \\ne v$ exclusion — only $L$ explicitly forbids self-loops). Per the notation `def_3_2`, the macros decode to $v_1 \\tuh v_2 \\iff (v_1, v_2) \\in E$ and $v_1 \\hut v_2 \\iff (v_2, v_1) \\in E$. So for a self-loop, $v \\tuh v$ and $v \\hut v$ are **both** true simultaneously, since $(v,v) = (v,v)$.\n\nNow consider a walk position $k$ where $a_{k-1}$ is a directed self-loop at $v$ (so $v_{k-1} = v_k = v$) and $a_k$ is a directed edge into $v_k$ from $v_{k+1}$ (so $v_k \\hut v_{k+1}$ and thus $v_k \\hus v_{k+1}$). The literal tex says position $k$ is a non-collider iff it falls into one of the listed cases, and a collider iff it has the collider form. We compute:\n\n- \"left chain\" $v_{k-1} \\hut v_k \\hus v_{k+1}$: the self-loop satisfies $v_{k-1} \\hut v_k$ (as shown above), and $v_k \\hus v_{k+1}$ holds. **Matches → non-collider.**\n- \"collider\" $v_{k-1} \\suh v_k \\hus v_{k+1}$: the self-loop also satisfies $v_{k-1} \\tuh v_k$, which implies $v_{k-1} \\suh v_k$ (since $\\suh \\iff \\tuh \\lor \\huh$). And $v_k \\hus v_{k+1}$ holds. **Matches → collider.**\n\nSo a single position is *literally classified as both a non-collider and a collider* by the block, breaking the implicit mutual exclusivity that the wording (\"if it falls into **one** of the following cases\" vs. \"is **of the form**\") relies on. The mark-count gloss \"i.e.\\ if there is at most one arrowhead pointing towards $v_k$\" / \"i.e.\\ if there are two arrowheads pointing towards $v_k$\" is also ambiguous for self-loops: the loop has its arrowhead and its tail both anchored at $v_k$, and the tex never specifies whether that contributes 0, 1, or 2 to the count.\n\nThis is not a vacuous corner: the recent \"Refactor_marginalize_loose_self_cycle\" work in this codebase confirms self-cycles are actively handled, and downstream notions (`def_3_16` blockable/unblockable, `def_3_17` $\\sigma$-blocked walks, claim_3_25 / claim_3_27, etc.) inherit this ambiguity for any walk that traverses a self-loop. A faithful encoding will have to pick a tie-breaking convention (e.g. read the walk's $a_{k-1}$ as carrying a *directed* orientation $(v_{k-1}, v_k)$ vs $(v_k, v_{k-1})$ and use only the $v_k$-side mark of that ordered pair), but the literal tex does not commit to one.\nEND_SUBTLETY\n\nSUBTLETY:\nid: arrowhead_count_scope_implicit_not_stated\nexplanation: The non-collider definition says \"if there is at most one arrowhead pointing towards $v_k$\" with no explicit restriction to the walk's two incident edges $a_{k-1}, a_k$. By contrast, the collider half says \"if there are two arrowheads pointing towards $v_k$ **on the walk $\\pi$**\" — the qualifier \"on the walk $\\pi$\" appears in the collider gloss but is absent in the non-collider gloss. A strictly literal reading of the non-collider clause could count arrowheads from *every* edge of $G$ incident to $v_k$ (including non-walk edges); under that reading an end-node $v_0$ that has, say, three other incoming edges in $E$ outside the walk would fail \"at most one arrowhead\" yet still be classified as a non-collider by the end-node bullet — contradicting the \"i.e.\" equivalence. The intended scope is clearly walk-adjacent, but the tex relies on the reader inferring this from the leading \"on $\\pi$\" qualifier rather than stating it consistently with the collider half.\nEND_SUBTLETY",
-        "session": "8714454f-6074-4f4d-bbb4-79d8e5d4d87b"
+        "output": "I have the full context now. Let me consolidate my findings.\n\nKey insights from `not-cdmg` (def_3_2) and `def-cdmg` (def_3_1):\n- CDMG edges are `\\tuh` (→), `\\hut` (←), `\\huh` (↔) — exactly three types.\n- \"Star\" (`s`) is a placeholder explicitly meaning \"arrowhead or tail\" (line 67).\n- `\\suh` = `\\tuh` OR `\\huh` (arrowhead at right).\n- `\\hus` = `\\hut` OR `\\huh` (arrowhead at left).\n- Trivial walk (n=0) is allowed (line 104).\n\nSo the non-collider enumeration IS exhaustive for the {→, ←, ↔} edge set: every middle position has 4 possible (arrowhead-at-v_k from left, arrowhead-at-v_k from right) combinations — fork (t,t), left chain (t,h), right chain (h,t), collider (h,h). And end-nodes only have ≤1 walk-edge so the \"end-node\" case covers them trivially.\n\nThe definition is internally consistent for the CDMG edge set. However, there are a few literal-reading subtleties a formalizer should know.\n\n```\nSUBTLETY:\nid: bidirected_edges_included_in_left_and_right_chain\nexplanation: The \"left chain\" case is written as `v_{k-1} \\hut v_k \\hus v_{k+1}` and the \"right chain\" as `v_{k-1} \\suh v_k \\tuh v_{k+1}`. By def_3_2 (not-cdmg), `\\hus` expands to `\\hut` OR `\\huh`, and `\\suh` expands to `\\tuh` OR `\\huh`. So left chain admits BOTH `v_{k-1} \\hut v_k \\hut v_{k+1}` (classical chain v_{k-1} ← v_k ← v_{k+1}) AND `v_{k-1} \\hut v_k \\huh v_{k+1}` (the mixed configuration v_{k-1} ← v_k ↔ v_{k+1}, where the right edge is bidirected). Right chain similarly admits v_{k-1} ↔ v_k → v_{k+1}. A reader expecting \"chain\" to mean a pure directed sequence (← ← or → →) would miss these bidirected-inclusive cases. Concrete corner case: a position with v_{k-1} ↔ v_k → v_{k+1} has exactly one arrowhead pointing into v_k (from the left bidirected edge), so by the verbal criterion \"at most one arrowhead\" it is a non-collider, and the LN classifies it under \"right chain\" via the wildcard `\\suh`. A formalizer translating \"right chain\" naively as v_{k-1} → v_k → v_{k+1} would under-cover the non-collider cases, leaving the bidirected-mixed case unclassified — which would then leak as a wrong/missing classification in downstream σ-blocking / σ-separation arguments.\nEND_SUBTLETY\n\nSUBTLETY:\nid: collider_term_only_defined_for_middle_positions\nexplanation: The collider clause says \"if it is of the form: $v_{k-1} \\suh v_k \\hus v_{k+1}$, i.e.\\ if there are two arrowheads pointing towards $v_k$ on the walk $\\pi$.\" This literal form mentions both $v_{k-1}$ and $v_{k+1}$, so it tacitly assumes 0 < k < n (middle position). For end-nodes (k=0 or k=n) neither $v_{k-1}$ nor $v_{k+1}$ exists on the relevant side, so the collider form simply does not apply, and the end-node falls under non-collider by the explicit \"end-node: k ∈ {0,n}\" clause. This is consistent and exclusive — every position is exactly one of collider/non-collider — but the LN never spells out the \"middle position\" precondition for the collider clause. A literal reader trying to evaluate \"is the form $v_{k-1} \\suh v_k \\hus v_{k+1}$ satisfied?\" at k=0 would have to decide whether the missing $v_{-1}$ makes the form \"false\" (so non-collider) or \"undefined\" (so undefined). The intended reading is the former, but it's not stated. Particularly worth flagging because for the trivial walk (n=0, just $v_0$), the only position is k=0=n, which is forced into the end-node non-collider case purely by the v_{k-1}/v_{k+1} arguments not existing.\nEND_SUBTLETY\n\nSUBTLETY:\nid: end_node_non_collider_with_arrowhead_pointing_in\nexplanation: The end-node case classifies position k ∈ {0,n} as a non-collider unconditionally, regardless of the mark on its single adjacent walk-edge. Concretely, an end-node v_0 with `v_0 \\hus v_1` (i.e., v_0 ← v_1 or v_0 ↔ v_1, both placing an arrowhead at v_0) is classified as a non-collider, even though there is 1 arrowhead \"pointing towards\" v_0 on the walk. This matches the verbal criterion \"at most one arrowhead\" (1 ≤ 1), but it can be counter-intuitive: a reader (or downstream proof) tempted to characterize colliders as \"any position with an arrowhead pointing into it on the walk\" would misclassify such end-nodes. This is especially relevant for arguments about walk endpoints — e.g., a walk that ends with v_{n-1} ↔ v_n: position n has an incoming arrowhead from the walk yet is non-collider by definition. Downstream σ-blocking definitions typically only require descendants-of-collider for the *interior* positions of a walk, consistent with this convention, but the asymmetry between the end-node case (mark-independent) and the middle cases (mark-dependent) is worth pinning down explicitly when formalizing.\nEND_SUBTLETY\n```",
+        "session": "681f7649-ca59-4c5e-8d26-909e902b8c3b"
       },
       "last_refactored_at": "2026-06-19",
       "refactor": true,
@@ -949,9 +746,9 @@
       "title": "SigmaSeparationSymmetric",
       "type": "note",
       "formalized": "yes",
-      "proven": "proven",
-      "solved": "yes",
-      "date_solved": "2026-06-20",
+      "proven": "no",
+      "solved": "no",
+      "date_solved": "",
       "tips": "OPERATOR HINT (2026-06-16) — walk-reversal strategy for claim_3_22\n\nThe previous solve attempt built a generic walk-reversal helper (`reverseAuxEdge` in a now-discarded local file) that swaps the stored ordered pair for L-edges to satisfy `WalkStep`'s forward-L disjunct via `hL_symm`. That swap creates a 'writing-mirror' artifact: when `(u, v) ∈ G.L` and `(v, u) ∈ G.E` coexist (admitted by the current `def_3_1` per its `[edge_set_disjointness_under_specified]` clarification), the swapped pair coincidentally lands in `G.E` and confuses the literal-pair pattern in `def_3_16`'s `IsBlockableNonCollider` — making the predicate's verdict at the interior vertex differ between the forward and reversed walks. The previous attempt escalated to a `def_3_1` refactor; the operator declined.\n\nSTRATEGY: define a CUSTOM LOCAL walk-reversal helper (or proof technique) for THIS row's proof that preserves the channel information across reversal — without changing `def_3_4` (Walk / WalkStep), `def_3_16` (blockable predicate), or `def_3_1` (CDMG). Possible local approaches:\n\n  (i) Define a custom reversed-walk type alongside `Walk` that tags each step's original channel (E forward / E backward / L). Reverse against the tagged type; the tag survives swap. Predicates destructure the tag directly, no inference from stored pair.\n\n  (ii) Avoid constructing the full reversed `Walk` object. Prove the per-position equivalence `p.IsBlockableNonCollider k ↔ p.reverse.IsBlockableNonCollider (p.length - k)` directly by case-analysing on the original walk's `WalkStep` disjunct (which is propositionally available on the original walk), bypassing the channel-inference-from-stored-pair step entirely.\n\nMATH-LEVEL OBSERVATION: under J = ∅, σ-separation symmetry is trivially true. Every walk's classification at each interior vertex depends only on the EDGES of `G` incident at that vertex (through the LN's 'outgoing E-arrowhead at v_k' notion), not on the walk's traversal direction. The Lean proof should reflect that direction-invariance more or less directly, not through a heavy reversal-construction-and-prove-it-preserves-everything pipeline. If you find yourself spinning up >500 lines of generic walk-reversal infrastructure, you are probably on the wrong path.\n\nIf after a genuine attempt at (i) or (ii) the local approach doesn't pan out, `refactor` is still available (the one-time nudge gate will let you re-emit after one local-fix exploration turn) — but please articulate concretely why each local approach fails in the refactor body.\n\nREFACTOR row. This row is a DEPENDENT in refactor `collider_side_aware`; it was pulled in because root(s) `def_3_15` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationSymmetric.lean",
@@ -961,19 +758,19 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 1,
+        "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 1,
+        "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
-        "solved": 2,
+        "add_design_choice_comments": 0,
+        "solved": 0,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 4,
+        "spawn_agent_sub_task": 0,
         "continue_agent": 0,
-        "new_manager": 1,
+        "new_manager": 0,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -984,158 +781,13 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 1
+        "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "          \\begin{claimmark}\n          Note that $\\sigma$-separation is symmetric: $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$, since when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction, and the $\\sigma$-blocking conditions are invariant under walk reversal.\n          \\end{claimmark}",
-      "agent_registry": [
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "3166022b-023c-4e82-8201-75fe12b45cf5",
-          "first_seen": "2026-06-20T18:43:38+00:00",
-          "last_used": "2026-06-20T18:43:38+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "569d0475-693d-40df-b939-d8b93d05b7c1",
-          "first_seen": "2026-06-20T18:51:23+00:00",
-          "last_used": "2026-06-20T18:51:23+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "f2db50c8-89f7-44bb-abf2-e7889aa4d297",
-          "first_seen": "2026-06-20T18:54:35+00:00",
-          "last_used": "2026-06-20T18:54:35+00:00"
-        },
-        {
-          "kind": "verify_equivalence",
-          "spawned_by": "manager",
-          "session_id": "dcd5f12a-9c40-411f-8753-ec827d8ba1ee",
-          "first_seen": "2026-06-20T18:56:27+00:00",
-          "last_used": "2026-06-20T18:56:27+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "155f9c17-1463-43a2-850b-b8dd8911e660",
-          "first_seen": "2026-06-20T18:57:27+00:00",
-          "last_used": "2026-06-20T18:57:27+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "0c7f7b27-e56a-4f03-9a47-888fe5d7c55c",
-          "first_seen": "2026-06-20T19:02:42+00:00",
-          "last_used": "2026-06-20T19:02:42+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "277e9f7e-ae91-4c71-8e8f-a4e8e7585f45",
-          "first_seen": "2026-06-20T19:04:26+00:00",
-          "last_used": "2026-06-20T19:04:26+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "ede9875a-6247-4524-ab45-c6890c06804c",
-          "first_seen": "2026-06-20T19:08:20+00:00",
-          "last_used": "2026-06-20T19:08:20+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "79c6aa1b-2012-4ccc-8ae1-b8a994443a00",
-          "first_seen": "2026-06-20T19:16:32+00:00",
-          "last_used": "2026-06-20T19:16:32+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "c3fe0bc0-d8b3-455b-ab7c-34b006945d14",
-          "first_seen": "2026-06-20T19:17:16+00:00",
-          "last_used": "2026-06-20T19:17:16+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "56487045-f233-4b36-add9-2691743b2fd6",
-          "first_seen": "2026-06-20T19:18:43+00:00",
-          "last_used": "2026-06-20T19:18:43+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "d35f9644-8d48-478e-a3da-c8688ece21e7",
-          "first_seen": "2026-06-20T19:19:26+00:00",
-          "last_used": "2026-06-20T19:19:26+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "0ee01610-7033-41ff-b618-1d2b38ee0f31",
-          "first_seen": "2026-06-20T19:24:52+00:00",
-          "last_used": "2026-06-20T19:24:52+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "8f9087c1-ffae-42a1-92f8-80c088a2a043",
-          "first_seen": "2026-06-20T19:25:54+00:00",
-          "last_used": "2026-06-20T19:25:54+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "857a9e73-d3f0-4cb6-bb9e-41e866d3e602",
-          "first_seen": "2026-06-20T19:53:29+00:00",
-          "last_used": "2026-06-20T19:53:29+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "978e58bd-0a6a-4699-bbcd-2d4a98220d35",
-          "first_seen": "2026-06-20T19:54:36+00:00",
-          "last_used": "2026-06-20T19:54:36+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6b7d469a-8d5c-44bd-8ee1-9feaad56a1ec",
-          "first_seen": "2026-06-20T20:03:29+00:00",
-          "last_used": "2026-06-20T20:03:29+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "3214e9bd-9a28-43fe-8dff-f47b093898d5",
-          "first_seen": "2026-06-20T20:39:55+00:00",
-          "last_used": "2026-06-20T20:39:55+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6d2b2e75-862d-48ad-b676-3ac77d381c3c",
-          "first_seen": "2026-06-20T20:40:18+00:00",
-          "last_used": "2026-06-20T20:40:18+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "c2f2f182-92e0-4ceb-89d3-0009d191d9be",
-          "first_seen": "2026-06-20T20:44:22+00:00",
-          "last_used": "2026-06-20T20:44:22+00:00"
-        }
-      ],
+      "agent_registry": [],
       "time_needed_to_solve": 7864,
       "addition_to_the_LN": "",
-      "wording_check": {
-        "done": true,
-        "output": "```\nSUBTLETY:\nid: undefined_J_in_symmetry_justification\nexplanation: The justification clause \"when $J = \\emptyset$ the set of walks between $A$ and $B$ is the same regardless of direction\" introduces a variable $J$ that is never defined in this claim. The claim statement itself mentions only $A$, $B$, $C$, and $G$ — there is no $J$ anywhere in the assertion $A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$.\n\nA reader who has not memorized an external definition of $\\sigma$-separation that uses $J$ as some auxiliary parameter (e.g., an intervention set, a partition selector, a set of latent variables) cannot evaluate whether the justification is correct or even meaningful. If $J$ is part of the underlying $\\sigma$-separation definition referenced from another spot in the notes, that reference is implicit and the literal text of this claim leaves $J$ dangling.\nEND_SUBTLETY\n\nSUBTLETY:\nid: claim_unrestricted_but_proof_only_covers_J_empty\nexplanation: The claim states symmetry of $\\sigma$-separation unconditionally: \"$A \\sPerp_G B \\given C \\iff B \\sPerp_G A \\given C$\". However, the justification only addresses the case \"when $J = \\emptyset$\". This is internally inconsistent in one of two ways:\n\n(a) If $J$ is a parameter of $\\sigma$-separation that can be non-empty, then the justification proves symmetry only in the special case $J = \\emptyset$, leaving the general case (which the claim seems to assert) unsupported. A downstream proof relying on this claim for non-empty $J$ would be appealing to something not actually demonstrated.\n\n(b) If $\\sigma$-separation here is implicitly *defined* to require $J = \\emptyset$, then the \"when $J = \\emptyset$\" qualifier is vacuous noise and should be removed.\n\nEither way, the literal text reads as a partial proof of a fully general statement, and the gap is not flagged.\nEND_SUBTLETY\n\nSUBTLETY:\nid: walks_same_regardless_of_direction_ambiguous\nexplanation: The phrase \"the set of walks between $A$ and $B$ is the same regardless of direction\" admits at least two readings:\n\n(i) Walks are considered as *unordered* sequences (i.e., a walk and its reversal are identified). Under this reading the statement is tautological — \"between $A$ and $B$\" already implies undirectedness — and adds nothing.\n\n(ii) Walks are considered as *ordered* sequences. Then a walk from $a \\in A$ to $b \\in B$ is a distinct object from its reversal (a walk from $b$ to $a$), and the *set* of walks is not literally the same — rather, there is a bijection (reversal) between walks-from-$A$-to-$B$ and walks-from-$B$-to-$A$.\n\nFor $\\sigma$-separation specifically, walks have orientations of edges that matter for collider/non-collider classification, so reading (ii) is the technically correct setup. Under reading (ii), the symmetry argument needs the *combination* of (set bijection by reversal) + (invariance of blocking under reversal), and the prose's \"the set is the same\" elides the bijection step. A pedantic reader would object that two sets in bijection are not \"the same set\".\nEND_SUBTLETY\n```",
-        "session": "be083572-6888-4271-a885-ea7f0546dae0"
-      },
+      "wording_check": {},
       "refactor": true,
       "refactor_role": "dependent",
       "caused_by_roots": [
@@ -1149,9 +801,9 @@
       "title": "LabelRoman",
       "type": "lemma",
       "formalized": "no",
-      "proven": "n/a",
+      "proven": "no",
       "solved": "no",
-      "date_solved": null,
+      "date_solved": "",
       "tips": "REFACTOR row. This row is a DEPENDENT in refactor `collider_side_aware`; it was pulled in because root(s) `def_3_15` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/LabelRomanDisproof.lean",
@@ -1188,13 +840,9 @@
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}\\label{lem:replace_walk}\nLet $G=(J,V,E,L)$ be a CDMG, $C \\subseteq V \\cup J$ and $\\pi = \\lp  v_0 \\sus \\cdots \\sus v_n \\rp$ be a $C$-$\\sigma$-open walk in $G$.\n  Suppose $v_i \\in \\Sc^G(v_j)$ for some $i,j \\in \\{0,\\dots,n\\}$ with $i < j$.\nIf we then replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by \n  \\begin{enumerate}[label=(\\roman*)]\n      \\item a shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$ if $j = n$ or if $v_j \\tuh v_{j+1}$ on $\\pi$, or \n    \\item a shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ otherwise,\n  \\end{enumerate}\n  then this new subwalk is entirely within $\\Sc^G(v_j)$ and the modified walk $\\pi'$ is still $C$-$\\sigma$-open.\n\\begin{proof}\n$\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the initial nodes $v_0, \\dots, v_{i-1}$ or at one of the final nodes $v_{j+1}, \\dots, v_n$ on $\\pi'$, since these nodes occur in the same local configuration on $\\pi$ and are not $C$-$\\sigma$-blocked on $\\pi$ by assumption.\nFurthermore, $\\pi'$ cannot become $C$-$\\sigma$-blocked at one of the nodes strictly between $v_i$ and $v_j$ on $\\pi'$ (if there are any), since these nodes are all non-endnode non-colliders that only point to nodes in the same strongly connected component $\\Sc^G(v_j)$. It is also worth noting that $\\pi'$ cannot become $C$-$\\sigma$-blocked at any of its endnodes, which could be $v_i$ or $v_j$ or both, because those are the same in $\\pi$. So in the following we can w.l.o.g.\\ assume that both $v_i$ and $v_j$ are non-endnodes of $\\pi$ and thus $\\pi'$.\n\nCase (i). By assumption $v_j$ is either a fork or a right chain (or the right endnode) on $\\pi$ that is $C$-$\\sigma$-open. Since the same blocking criteria apply to $v_j$ on $\\pi'$ it remains $C$-$\\sigma$-open on $\\pi'$. If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$ (if $v_i$ is the left endnode or not). If $v_i \\neq v_j$, then the new directed path $v_i \\tuh \\cdots \\tuh v_j$ in $\\pi'$ is $C$-$\\sigma$-open at $v_i$ because all nodes in between lie in the same stronly connected component $\\Sc^G(v_i)$ (or $v_i$ is the left endnode anyways).\n\n Case (ii). Since case (i) is solved we can assume that we have $j<n$ with $v_j \\hus v_{j+1}$ in $\\pi$. \n If $v_{i-1} \\hut v_i$ on $\\pi'$ (or $v_i$ the left endnode) then this case is analogous to case (i). \n So we can also assume that we have $i > 0$ and $v_{i-1} \\suh v_i$ on $\\pi$. So $\\pi$ looks as follows:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\sus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n So there must be a smallest number $k \\in \\lC i,\\dots,j\\rC$ such that a collider appears at $v_k$ on $\\pi$:\n \\[\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\tuh \\cdots \\tuh v_k \\hus \\cdots \\sus v_j \\hus v_{j+1} \\cdots. \\]\n Since $\\pi$ is $C$-$\\sigma$-open we have $v_k \\in \\Anc^G(C)$. Since $v_i \\in \\Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing after $v_i$) we thus have that also $v_i \\in \\Anc^G(C)$.\n So if we replace the subwalk $v_i \\sus \\cdots \\sus v_j$ of $\\pi$ by the shortest directed path $v_i \\hut \\cdots \\hut v_j$ in $G$ we then get for $\\pi'$ the following situation:\n \\[\\pi':\\qquad \\cdots v_{i-1} \\suh v_i \\hut \\cdots \\hut  v_j \\hus v_{j+1} \\cdots, \\]\n which is then $C$-$\\sigma$-open at $v_i$ as $v_i \\in \\Anc^G(C)$. Note that this holds also when $v_i=v_j$.\n If $v_i \\neq v_j$ then $v_j$ is also $C$-$\\sigma$-open on $\\pi'$ as $v_j$ points left to a node in the same strongly connected component as $v_j$. \n\n So in all cases $\\pi'$ stays $C$-$\\sigma$-open.\n\\end{proof}\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "time_needed_to_solve": 22849,
       "addition_to_the_LN": "",
-      "wording_check": {
-        "done": true,
-        "output": "Based on my analysis, here are the subtleties found in the lemma's literal text:\n\nSUBTLETY:\nid: vi_equals_vj_trivial_directed_path\nexplanation: The hypothesis \"Suppose $v_i \\in \\Sc^G(v_j)$ for some $i,j \\in \\{0,\\dots,n\\}$ with $i < j$\" requires only that the *positions* differ, not the *vertices* — so $v_i$ and $v_j$ can be the same vertex (when $\\pi$ revisits a node). In that case $v_i \\in \\Sc^G(v_j) = \\Sc^G(v_i)$ holds trivially, and the prescribed replacement \"shortest directed path $v_i \\tuh \\cdots \\tuh v_j$ in $G$\" (case (i)) or \"$v_i \\hut \\cdots \\hut v_j$ in $G$\" (case (ii)) collapses to the trivial path of length $0$ — just the single node $v_i$ — since a CDMG typically has no self-loops and any positive-length directed cycle would not be shorter than the empty path. The literal notation \"$v_i \\tuh \\cdots \\tuh v_j$\" with \"$\\cdots$\" sandwiched between two $\\tuh$-symbols looks like it requires at least one directed edge, so the length-0 reading is not visibly contained in the formula. The proof does acknowledge the case (\"If $v_i=v_j$ then also $v_i$ is $C$-$\\sigma$-open on $\\pi'$\" and the later \"Note that this holds also when $v_i=v_j$\"), but the lemma statement leaves it implicit that the \"shortest directed path\" between a node and itself is the empty path. For a downstream formalization this matters: one has to either carve out $v_i = v_j$ as a separate degenerate branch (the resulting $\\pi'$ is shorter than $\\pi$ by $j-i$ edges — a cycle is collapsed to a point) or explicitly admit the trivial path as a directed path from $v$ to $v$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: case_ii_k_equals_i_diagram_inconsistency\nexplanation: In Case (ii), sub-case 2, the proof writes: \"So there must be a smallest number $k \\in \\lC i,\\dots,j\\rC$ such that a collider appears at $v_k$ on $\\pi$\" and then draws the picture \"$\\pi:\\qquad \\cdots v_{i-1} \\suh v_i \\tuh \\cdots \\tuh v_k \\hus \\cdots \\sus v_j \\hus v_{j+1} \\cdots$\". The diagram literally forces $\\tuh$-edges to live between $v_i$ and $v_k$, which only makes sense when $k > i$. But the definition \"smallest $k \\in \\{i, \\dots, j\\}$\" admits $k = i$, which occurs precisely when $v_i$ itself is the first collider — i.e., when the original subwalk has $v_i \\hus v_{i+1}$ on $\\pi$ (head at $v_i$ on the right). In that case the picture has no $\\tuh$-edges to the left of $v_k$ at all, and the supporting argument \"Since $v_i \\in \\Anc^G(v_k)$ (otherwise $v_k$ would not be the first collider appearing *after* $v_i$)\" reads awkwardly because there is no \"after $v_i$\" — the collider is *at* $v_i$. The conclusion $v_i \\in \\Anc^G(C)$ still holds (trivially, via $v_i = v_k \\in \\Anc^G(C)$ by $\\pi$-openness), so the lemma itself is fine. But the proof's diagram + ancestry justification literally cover only the strict $k > i$ case; the $k = i$ case is silently relegated to \"the reader will see it works trivially\". A strict formalization would need to split on $k = i$ vs.\\ $k > i$ explicitly, because the directed-ancestor chain $v_i \\to \\cdots \\to v_k$ degenerates to the reflexive case.\nEND_SUBTLETY",
-        "session": "1df49b22-30a2-4cc3-b188-270543693204"
-      },
+      "wording_check": {},
       "refactor": true,
       "refactor_role": "dependent",
       "caused_by_roots": [
