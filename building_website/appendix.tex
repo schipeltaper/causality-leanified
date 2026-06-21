@@ -2,8 +2,32 @@
 % Re-running preserves whatever sits between each row's
 % `% NOTES-BEGIN <ref>` / `% NOTES-END <ref>` markers.
 %
-% Preamble (documentclass, packages, custom macros, minted setup) is
-% supplied by the wrapping document; this file only emits body content.
+% Self-contained: bundles the leanification preamble (via \input) plus the
+% minted setup needed for the Lean code blocks.  Compile from this folder
+% (`building_website/`) so the `\input{../leanification/preamble}` relative
+% path resolves.  The user-side workflow:
+%
+%     cd building_website
+%     pdflatex -shell-escape appendix.tex
+%     pdflatex -shell-escape appendix.tex   # second pass for refs
+%
+% `-shell-escape` is required because `minted` invokes pygments.
+
+\documentclass[12pt, a4paper]{report}
+
+% Pull in the canonical leanification preamble — same one each per-row
+% .tex file is rendered against, so every LN-side macro (\Pa, \tuh, \huh,
+% \lC, \rC, \sm, etc.) resolves identically here.
+\input{../leanification/preamble}
+
+% Lean code rendering.  `lean4` requires a pygments lexer named `lean4`;
+% the Lean community ships one as `pygments-lean4` (`pip install pygments-lean4`).
+% `breaklines=true` lets long lines wrap to the next line in narrow columns.
+\usepackage{minted}
+\setminted[lean4]{breaklines=true, breakanywhere=true}
+
+% Trim default margins to fit more side-by-side content per page.
+\usepackage[a4paper, margin=2cm]{geometry}
 
 %% ====== Size / layout knobs — tweak freely ===================
 % Font size of the LN tex.
@@ -13,6 +37,10 @@
 % Vertical space reserved for hand-written notes under each row.
 \providecommand{\appendixNotesGap}{1em}
 %% ==============================================================
+
+\begin{document}
+
+\chapter{Lean formalizations}\label{chap:appendix_a}
 
 \section*{Section 3.1}
 
@@ -2427,3 +2455,4 @@ theorem replaceWalk
 % NOTES-END claim_3_27
 \vspace{\appendixNotesGap}
 %% ROW-END claim_3_27
+\end{document}
