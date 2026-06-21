@@ -110,17 +110,17 @@ import _path_setup                                              # noqa: F401, E4
 
 _BEGIN_RE = re.compile(
     r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
-    r"(?P<name>[A-Za-z_][\w]*)",
+    r"(?P<name>[^\W\d][\w']*)",
     re.IGNORECASE,
 )
 _END_RE = re.compile(
     r"--\s*REFACTOR-BLOCK-(?P<kind>ORIGINAL|REPLACEMENT|DELETE)-END:\s*"
-    r"(?P<name>[A-Za-z_][\w]*)",
+    r"(?P<name>[^\W\d][\w']*)",
     re.IGNORECASE,
 )
 _BLOCK_RE = re.compile(
     r"^[ \t]*--\s*REFACTOR-BLOCK-(ORIGINAL|REPLACEMENT|DELETE)-BEGIN:\s*"
-    r"([A-Za-z_][\w]*)[^\n]*\n"
+    r"([^\W\d][\w']*)[^\n]*\n"
     r"(.*?)"
     r"^[ \t]*--\s*REFACTOR-BLOCK-\1-END:\s*\2[^\n]*\n?",
     re.MULTILINE | re.DOTALL | re.IGNORECASE,
@@ -134,7 +134,7 @@ _BLOCK_RE = re.compile(
 _STRAY_REFACTOR_DECL_RE = re.compile(
     r"^(?P<prefix>(?:[\w]+\s+)?"
     r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)\s+)"
-    r"refactor_(?P<rest>[A-Za-z_][\w]*)",
+    r"refactor_(?P<rest>[^\W\d][\w']*)",
     re.MULTILINE,
 )
 
@@ -294,12 +294,16 @@ def _apply_to_content(content: str, file_path: Path,
 
     # Rename using the GLOBAL name set (cross-file consistency). Process
     # longest-to-shortest to avoid prefix collisions (`Foo_Bar` before `Foo`).
+    # Identifier-boundary character class includes Unicode word chars and
+    # the apostrophe (Lean identifier conventions): so `refactor_π`
+    # matches only when not part of a longer Lean identifier like
+    # `refactor_π_isCollider` or `refactor_π'_vertices`.
     rename_set = set(all_final_names) | set(local_names)
     rename_log: list[str] = []
     for name in sorted(rename_set, key=len, reverse=True):
         pat = re.compile(
-            r"(?<![A-Za-z0-9_])refactor_" + re.escape(name)
-            + r"(?![A-Za-z0-9_])"
+            r"(?<![\w'])refactor_" + re.escape(name)
+            + r"(?![\w'])"
         )
         new_content, n = pat.subn(name, new_content)
         if n > 0:
@@ -916,7 +920,7 @@ def main(argv: list[str]) -> int:
     _DECL_RE = re.compile(
         r"^(?:[\w]+\s+)?"
         r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
-        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        r"\s+(?P<name>[^\W\d][\w']*)(?![\w'])",
         re.MULTILINE,
     )
     dup_findings: dict[Path, list[str]] = {}

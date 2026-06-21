@@ -2223,7 +2223,7 @@ def _check_refactor_marker_hygiene(row: dict) -> list[str]:
     _DECL_RE = re.compile(
         r"^(?:[\w]+\s+)?"
         r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
-        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        r"\s+(?P<name>[^\W\d][\w']*)(?![\w'])",
         re.MULTILINE,
     )
 
