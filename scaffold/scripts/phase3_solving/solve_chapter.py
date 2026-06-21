@@ -581,13 +581,61 @@ def load_data(data_path: Path) -> dict:
     return json.loads(data_path.read_text(encoding="utf-8"))
 
 
+_ORCH_OWNED_ROW_FIELDS = {
+    "solved",
+    "proven",
+    "formalized",
+    "date_solved",
+    "lean_files",
+    "main_lean_file",
+    "time_needed_to_solve",
+    "actions_tracking",
+    "agent_registry",
+    "wording_check",
+}
+
+
 def save_data(data_path: Path, data: dict) -> None:
     """Write the data back to disk pretty-printed and UTF-8 -- the format the
     rest of the scaffold expects.
 
     Atomic via write-temp-and-rename so SIGKILL/OOM/power-loss mid-write
     cannot leave a partial-JSON file that breaks the next invocation.
+
+    Merge-before-save semantics: if a sub-agent (e.g. via the Edit tool)
+    has modified a non-orchestrator-managed field on disk between
+    load_data and this save (the addition_to_the_LN case caught on
+    `collider_side_aware`'s def_3_15 row), preserve the on-disk value
+    rather than overwriting it with the stale in-memory copy. Fields
+    the orchestrator owns (status flags, action counters, registries,
+    timing) always win from memory; everything else falls back to disk
+    if disk differs. New rows (present on disk but not in memory, or
+    vice versa) are not touched; the merge is per-existing-row.
     """
+    if data_path.exists():
+        try:
+            on_disk = json.loads(data_path.read_text(encoding="utf-8"))
+            if isinstance(on_disk, dict) and "rows" in on_disk:
+                disk_rows_by_ref = {
+                    r.get("ref"): r for r in on_disk.get("rows", []) if r.get("ref")
+                }
+                for row in data.get("rows", []):
+                    ref = row.get("ref")
+                    if not ref:
+                        continue
+                    disk_row = disk_rows_by_ref.get(ref)
+                    if disk_row is None:
+                        continue
+                    for k, disk_val in disk_row.items():
+                        if k in _ORCH_OWNED_ROW_FIELDS:
+                            continue                # orchestrator owns -- memory wins
+                        if k not in row:
+                            row[k] = disk_val       # field added on disk only
+                            continue
+                        if row.get(k) != disk_val and row.get(k) in (None, "", [], {}):
+                            row[k] = disk_val       # memory empty, disk has content -- prefer disk
+        except (json.JSONDecodeError, OSError):
+            pass                                    # disk unreadable -- fall through to overwrite
     payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     tmp_path = data_path.with_suffix(data_path.suffix + ".tmp")
     tmp_path.write_text(payload, encoding="utf-8")
@@ -2175,7 +2223,7 @@ def _check_refactor_marker_hygiene(row: dict) -> list[str]:
     _DECL_RE = re.compile(
         r"^(?:[\w]+\s+)?"
         r"(?:def|theorem|lemma|structure|class|abbrev|instance|inductive|opaque)"
-        r"\s+(?P<name>[A-Za-z_][\w]*)\b",
+        r"\s+(?P<name>[^\W\d][\w'.]*)(?![\w'.])",
         re.MULTILINE,
     )
 

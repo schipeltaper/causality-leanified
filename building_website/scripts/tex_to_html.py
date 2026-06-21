@@ -103,6 +103,16 @@ def strip_subfiles_wrapper(tex: str) -> str:
     tex = re.sub(r"\\def\\row(ref|title)\{[^}]*\}", "", tex)
     tex = re.sub(r"\\phantomsection", "", tex)
     tex = re.sub(r"\\label\{[^}]*\}", "", tex)
+    # Strip `\providecommand{\foo}{<body>}` and `\newcommand{\foo}{<body>}`
+    # preamble definitions — these are TeX-side macro setup that has no
+    # visible output; leaving them in passes through as ugly literal text
+    # on the website.  The body may contain `\mathrm{...}`, `<code>...</code>`,
+    # etc.; we don't try to honor it — KaTeX macros are registered in
+    # `app.js`'s KATEX_MACROS, and the website-only macros are inline `<code>`.
+    tex = re.sub(
+        r"\\(?:provide|new|renew)command\{\\[A-Za-z]+\}(?:\[\d+\])?\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}",
+        "", tex,
+    )
     # Strip LaTeX comments: any unescaped `%` runs to end of line.  Matches both
     # whole-line `%`-prefixed comments and inline trailing `%`-comments; the
     # negative lookbehind preserves escaped `\%` (literal percent in TeX).

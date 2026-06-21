@@ -121,68 +121,18 @@ namespace Causality
 
 namespace CDMG
 
--- ## Design choice — refactor section-wide statement context
---
--- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Same chapter
---   convention used by the original `CDMG` namespace above and by every
---   other `CDMG`-opening file in the chapter
---   (`CollidersAndNon.lean`'s refactor section, `Walks.lean:1201-1203`,
---   `CDMG.lean`, `CDMGNotation.lean`, `EdgeRelations.lean`).  The
---   refactor does not alter the carrier-type discipline — only (a)
---   `def_3_1`'s `L`-field shape (`Finset (Sym2 Node)` with
---   `hL_irrefl : ∀ ⦃s⦄, s ∈ L → ¬ s.IsDiag`) and (b) `def_3_4`'s
---   per-step walk-edge data (typed `WalkStep` with three
---   constructors `.forwardE / .backwardE / .bidir`) and the `cons`-cell
---   of `Walk` — so the binders below are byte-identical to the
---   original `CDMG`-namespace variable line at the top of this file.
---
--- *Three-dash `--- start helper` / `--- end helper`, not two-dash
---   `-- start statement`.*  Lean 4's `variable` auto-binding folds these
---   implicit binders into every refactored declaration below exactly as
---   it does for the originals.  The three-dash flavour tags this as
---   helper-level wrapping, consistent with how the original `variable`
---   line at the top of this file and the `CDMG` section-wide
---   `variable` at `CollidersAndNon.lean`'s refactor section are tagged.
---   The Phase 7 cleanup script's whole-word rename
---   (`refactor_<Name>` → `<Name>`) leaves the `def_3_16` marker text
---   inside this block untouched (the marker is a documentation comment,
---   not a declaration name).
 -- def_3_16 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_16 --- end helper
 
 namespace Walk
 
--- ## Design choice — Walk-namespace statement context
---
--- *Why a namespace-level `variable {G : CDMG Node}`.*  Both
---   `IsBlockableNonCollider` and `IsUnblockableNonCollider`
---   (and their helpers `HasBlockingLeftSlot` /
---   `HasBlockingRightSlot`) recurse over / take a walk
---   `p : Walk G u v` and reach into `G` for `G.Sc`.
---   Without the namespace-wide `variable`, every signature would carry
---   an explicit `{G : CDMG Node}` binder; the auto-binding
---   keeps the signatures readable and matches the LN's "Let
---   $G = (J, V, E, L)$ be a CDMG" once-at-the-top quantifier.  Mirrors
---   the original `namespace Walk` opening earlier in this file and the
---   refactor `namespace Walk` opening at
---   `CollidersAndNon.lean`'s refactor section byte-for-byte modulo the
---   `CDMG → CDMG` type retarget.  `{G}` is implicit because
---   downstream consumers reach into `G` via dot-notation on the walk
---   (`p.IsBlockableNonCollider k`).
---
--- *Three-dash helper marker, not two-dash statement marker.*  Same
---   rationale as the original (Walk-namespace block above) and as the
---   refactor section's section-wide `variable` immediately above: this
---   `{G}` binder is load-bearing infrastructure that the tex/Lean
---   reconciliation tooling and the Phase 7 cleanup script must recognise
---   as helper-flavour.
 -- def_3_16 --- start helper
 variable {G : CDMG Node}
 -- def_3_16 --- end helper
 
 -- ref: def_3_16 (helper, "outgoing E-walk-edge at the (k-1)-slot
--- pointing outside Sc^G(v_k)") — refactor
+-- pointing outside Sc^G(v_k)")
 --
 -- `p.HasBlockingLeftSlot k` iff the slot `i = k - 1` on the
 -- walk `p` (i.e. the step that ENDS at outer position `k`) is an
@@ -196,31 +146,21 @@ variable {G : CDMG Node}
 --
 -- ## Design choice — HasBlockingLeftSlot
 --
--- *Why a net-new helper at all (no original counterpart).*  The
---   original `Walk.IsBlockableNonCollider` (ORIGINAL block above)
---   spelled the slot-`(k-1)` "outgoing E-walk-edge of v_k with other
---   endpoint outside Sc^G(v_k)" conjunct via the Option-membership
---   `p.edges[k - 1]? = some (vk, vkm1) ∧ (vk, vkm1) ∈ G.E ∧
---   vkm1 ∉ G.Sc vk`.  Under the typed-WalkStep refactor (a)
---   `p.edges` does NOT exist — the original's `Walk.edges` block has
---   been intentionally dropped under the refactor (see
---   `Walks.lean:1631-1685`'s "Why no `edges`" block), so any
---   port that goes through `p.edges`-style indexing is non-buildable;
---   and (b) the channel/direction information that the original read
---   off the ordered pair `(vk, vkm1) ∈ G.E` is now carried by the
---   WalkStep's constructor tag (channel: `.forwardE` / `.backwardE` /
---   `.bidir`) and its type indices (source/target endpoints).  Per-slot
---   inspection must therefore go through structural constructor
---   pattern-match on `Walk`'s cons cells — exactly the
---   recursion pattern used by `IsCollider`
---   (`CollidersAndNon.lean`'s refactor section) and by
---   `IsBifurcationWithSplit` / `IsColliderRest` /
---   `intoEnd` / `outOfEnd` in `Walks.lean`.  The
---   helper's "blocking at the left slot of outer position k" framing
---   matches the canonical tex's "Blockable non-collider on π"
---   paragraph's first `∃`-disjunct verbatim, one conjunct per slot,
---   one helper per slot — paired with `HasBlockingRightSlot`
---   immediately below for the slot-`k` mirror.
+-- *Why this helper.*  `Walk` does not expose an `edges` accessor (see
+--   `Walks.lean:1631-1685`'s "Why no `edges`" block), so per-slot
+--   inspection of the LN's slot-`(k-1)` "outgoing E-walk-edge of v_k
+--   with other endpoint outside Sc^G(v_k)" conjunct must go through
+--   structural pattern-match on `Walk`'s cons cells.  The
+--   channel/direction information for slot `i = k - 1` lives in the
+--   WalkStep's constructor tag (`.forwardE` / `.backwardE` / `.bidir`)
+--   and its source/target type indices — same recursion pattern used by
+--   `IsCollider` (`CollidersAndNon.lean`) and by
+--   `IsBifurcationWithSplit` / `IsColliderRest` / `intoEnd` /
+--   `outOfEnd` in `Walks.lean`.  The helper's "blocking at the left
+--   slot of outer position k" framing matches the canonical tex's
+--   "Blockable non-collider on π" paragraph's first `∃`-disjunct
+--   verbatim, one conjunct per slot, one helper per slot — paired with
+--   `HasBlockingRightSlot` immediately below for the slot-`k` mirror.
 --
 -- *Constructor-tag-only / no writing-mirror union.*  At the slot-of-
 --   interest branch, the helper fires ONLY on the `.backwardE _`
@@ -255,34 +195,7 @@ variable {G : CDMG Node}
 --   `\tuh` is E-only by definition, so no union semantics is needed
 --   (and adding one would diverge from the LN's "outgoing walk-edge"
 --   reading by silently broadening the slot-of-interest predicate to
---   include L-channel steps).  The original was ALSO constructor-
---   choice-dependent at writing-mirror walks (the walker's `p.edges`
---   storage choice determined whether the disjunct fired — if the
---   walker stored `a_{k-1} = (v_k, v_{k-1})` to land in E, the
---   original's predicate fired; if the walker stored a different
---   ordered-pair representation, even of the same underlying walk
---   position, the original's predicate did not fire); the refactor
---   preserves that dependence via the constructor-tag reading.  The
---   resolution this helper inherits from `def_3_15`'s canonical-tex
---   "Reconciliation with the source-block pattern writings" paragraph
---   — adopting the walk-edge-based reading as canonical — applies
---   word-for-word to the slot-`(k-1)` outgoing-walk-edge predicate.
---
--- *Wording-check subtleties this helper inherits.*  Three subtleties
---   were registered on this row's solving — `pattern_shorthands_
---   existential_in_g_not_walk_specific`,
---   `self_loop_pattern_overlap_inherited`, and
---   `blockable_clause_says_arrow_not_outgoing_edge`.  This helper's
---   resolution preserves each: (1) by reading slot `i = k - 1` off the
---   walk's specific WalkStep `s_{k-1}` via the cons-cell pattern (not
---   off an existence claim about edges in G) we resolve subtlety~1;
---   (2) the self-loop overlap is resolved via the helper's
---   node-equality-free check on the SC component — see the "Self-loop
---   semantics" bullet below; (3) the "outgoing arrow" reading of the
---   blockable elaboration is encoded by gating on the `.backwardE`
---   constructor (i.e. the WALK's specific edge at slot `i = k - 1`),
---   not by querying for an existence claim about E-membership in G
---   independent of the walk — resolving subtlety~3.
+--   include L-channel steps).
 --
 -- *Index arithmetic justification.*  The OUTER walk has cons-cells
 --   (head-step `s_0` peeled off, then tail walk).  Outer slot `i = k -
@@ -298,26 +211,25 @@ variable {G : CDMG Node}
 --   collapses into the structural pattern" bullet below for the
 --   rationale on those branches.
 --
--- *The `1 ≤ k` guard from the original collapses into the structural
---   pattern.*  The original's "slot `i = k - 1` is only admissible
---   when `1 ≤ k`" guard (canonical tex paragraph "Walk-incident
---   indices and outgoing walk-edges at a position") is encoded
---   structurally via the `(.cons _ _ _, 0) → False` branch: at outer
---   position `k = 0` the slot `i = -1` does not exist, so the
---   predicate is `False` by structural pattern.  No explicit `1 ≤ k`
---   conjunct is needed in the predicate body.
+-- *The `1 ≤ k` guard collapses into the structural pattern.*  The
+--   "slot `i = k - 1` is only admissible when `1 ≤ k`" guard
+--   (canonical tex paragraph "Walk-incident indices and outgoing
+--   walk-edges at a position") is encoded structurally via the
+--   `(.cons _ _ _, 0) → False` branch: at outer position `k = 0` the
+--   slot `i = -1` does not exist, so the predicate is `False` by
+--   structural pattern.  No explicit `1 ≤ k` conjunct is needed in
+--   the predicate body.
 --
 -- *Out-of-range `k > p.length`.*  At positions beyond the
 --   walk's length, the recursion descends through cons-cells with
 --   index decrementing from `k + 2` to `k + 1` and eventually hits
 --   `.nil _ _, _` (the trivial-walk base case), which returns
 --   `False`.  Out-of-range positions therefore return `False` without
---   an explicit bound check, exactly as the original did via the
---   `p.edges[k - 1]? = none` Option-membership failure.  Additionally,
---   the surrounding `IsBlockableNonCollider` conjunct
---   `p.IsNonCollider k` requires `k ≤ p.length` (see
---   `CollidersAndNon.lean`'s `IsNonCollider` design block),
---   so the predicate is False on out-of-range positions either way.
+--   an explicit bound check.  Additionally, the surrounding
+--   `IsBlockableNonCollider` conjunct `p.IsNonCollider k` requires
+--   `k ≤ p.length` (see `CollidersAndNon.lean`'s `IsNonCollider`
+--   design block), so the predicate is False on out-of-range positions
+--   either way.
 --
 -- *Why `.bidir _` returns False at the slot-of-interest branches even
 --   though L-edges are bidirected.*  An L-edge `s(v_{k-1}, v_k) ∈ G.L`
@@ -367,13 +279,11 @@ variable {G : CDMG Node}
 --   position `v` on the `.cons v step tail` is `Walk.cons`'s
 --   first explicit constructor argument — the `(v : Node)` slot of
 --   `cons {u w : Node} (v : Node) (s : WalkStep G u v) (p :
---   Walk G v w)`.  Binding the cons-cell's middle vertex
---   reads exactly v_k, which is what the original's
---   `p.vertices[k]? = some vk` lookup yielded.  Implicit binders
---   `{u}` are also bound by the pattern (as `u`) because the
---   `.backwardE _ : WalkStep G u v` carries the target `v`
---   and we need `u` to test against `G.Sc v` (the binding
---   `u` is the walk's v_{k-1}).
+--   Walk G v w)`.  Binding the cons-cell's middle vertex reads
+--   exactly v_k.  Implicit binders `{u}` are also bound by the
+--   pattern (as `u`) because the `.backwardE _ : WalkStep G u v`
+--   carries the target `v` and we need `u` to test against `G.Sc v`
+--   (the binding `u` is the walk's v_{k-1}).
 -- def_3_16 --- start helper
 def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
@@ -385,7 +295,7 @@ def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 -- def_3_16 --- end helper
 
 -- ref: def_3_16 (helper, "outgoing E-walk-edge at the k-slot
--- pointing outside Sc^G(v_k)") — refactor
+-- pointing outside Sc^G(v_k)")
 --
 -- `p.HasBlockingRightSlot k` iff the slot `i = k` on the walk
 -- `p` (i.e. the step that STARTS at outer position `k`) is an
@@ -399,28 +309,21 @@ def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 --
 -- ## Design choice — HasBlockingRightSlot
 --
--- *Mirror of `HasBlockingLeftSlot` on the slot-`k` side.*
---   Same recursion shape, same constructor-tag-only / no-writing-
---   mirror-union convention, same self-loop semantics absorbed via the
---   `Sc` self-membership.  See the
---   `HasBlockingLeftSlot` design block above for the full
---   justification of (a) why a net-new helper exists rather than a
---   port that goes through a `p.edges` lookup (the original's `p.edges`
---   has no refactor counterpart — see `Walks.lean:1631-1685`'s "Why no
---   `edges`" block); (b) the constructor-tag-only convention
---   matching `outOfStart` / `outOfEnd`; (c) inheritance
---   of the three LN-critic subtleties
---   (`pattern_shorthands_existential_in_g_not_walk_specific`,
---   `self_loop_pattern_overlap_inherited`,
---   `blockable_clause_says_arrow_not_outgoing_edge`) via the same
---   walk-edge-based reading.  The only semantic difference between
---   this helper and the left-slot one is the choice of constructor:
---   here the slot-of-interest is the HEAD step `s_k`, so the
---   "outgoing E-walk-edge of v_k" condition fires on `.forwardE _`
---   (encoding `(v_k, v_{k+1}) ∈ G.E` with v_k as tail), where the
---   left-slot version fired on `.backwardE _` (encoding `(v_k,
---   v_{k-1}) ∈ G.E` with v_k as tail, but seen from the *target* side
---   of `s_{k-1}`).
+-- *Mirror of `HasBlockingLeftSlot` on the slot-`k` side.*  Same
+--   recursion shape, same constructor-tag-only / no-writing-mirror-
+--   union convention, same self-loop semantics absorbed via the
+--   `Sc` self-membership.  See the `HasBlockingLeftSlot` design block
+--   above for the full justification of (a) why we recurse over cons
+--   cells rather than indexing into an edges accessor (see
+--   `Walks.lean:1631-1685`'s "Why no `edges`" block) and (b) the
+--   constructor-tag-only convention matching `outOfStart` / `outOfEnd`.
+--   The only semantic difference between this helper and the left-slot
+--   one is the choice of constructor: here the slot-of-interest is the
+--   HEAD step `s_k`, so the "outgoing E-walk-edge of v_k" condition
+--   fires on `.forwardE _` (encoding `(v_k, v_{k+1}) ∈ G.E` with v_k as
+--   tail), where the left-slot version fired on `.backwardE _`
+--   (encoding `(v_k, v_{k-1}) ∈ G.E` with v_k as tail, but seen from
+--   the *target* side of `s_{k-1}`).
 --
 -- *Why the slot-of-interest binds `.forwardE _` (not `.backwardE _`).*
 --   At outer position `k`, the step `s_k : WalkStep G v_k
@@ -456,11 +359,10 @@ def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 --   cells with index decrementing from `k + 1` to `k` and eventually
 --   reaches `.nil _ _, _` (the trivial-walk base case), which returns
 --   `False`.  Out-of-range positions therefore return `False` without
---   an explicit bound check, exactly as the original did via the
---   `p.edges[k]? = none` Option-membership failure.  Additionally,
---   the surrounding `IsBlockableNonCollider` conjunct
---   `p.IsNonCollider k` requires `k ≤ p.length`,
---   so the predicate is False on out-of-range positions either way.
+--   an explicit bound check.  Additionally, the surrounding
+--   `IsBlockableNonCollider` conjunct `p.IsNonCollider k` requires
+--   `k ≤ p.length`, so the predicate is False on out-of-range
+--   positions either way.
 --
 -- *Why `.bidir _` returns False at the slot-of-interest branch even
 --   though L-edges are bidirected.*  Same rationale as the
@@ -501,10 +403,7 @@ def HasBlockingLeftSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
 --   slot-k step's SOURCE index) to query `G.Sc u` and test
 --   `v ∉ G.Sc u`.  Pattern positions `u` (implicit) and `v`
 --   (explicit) on the `.cons v step tail` bind exactly the walk's v_k
---   and v_{k+1}.  The original's `p.vertices[k]? = some vk ∧
---   p.vertices[k + 1]? = some vkp1` is replaced by these structural
---   pattern bindings — same information, sourced from the cons-cell's
---   type indices instead of from a vertex-list Option lookup.
+--   and v_{k+1}.
 -- def_3_16 --- start helper
 def HasBlockingRightSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
@@ -514,96 +413,70 @@ def HasBlockingRightSlot : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .cons _ _ p, k + 1 => p.HasBlockingRightSlot k
 -- def_3_16 --- end helper
 
--- ref: def_3_16 (paragraph "Blockable non-collider on π") — refactor
+
+-- ref: def_3_16 (paragraph "Blockable non-collider on π")
 --
 -- `p.IsBlockableNonCollider k` iff position `k` on the walk
--- `p` is a non-collider on `p` (per `def_3_15`) AND it is either at
--- an end-position (`k = 0` or `k = p.length`) or there is
--- some outgoing walk-edge of v_k on π whose other walk-endpoint along
--- π lies outside `G.Sc v_k`.  Mechanically retargets the
--- original `Walk.IsBlockableNonCollider` (ORIGINAL block above)
--- against the typed-WalkStep / Sym2 refactor: the slot-(k-1) and
--- slot-k existential conjuncts of the original become the helpers
--- `HasBlockingLeftSlot` and `HasBlockingRightSlot`
--- (defined above), one for each slot of interest.  Encodes the LN's
--- "blockable disjunction" elaboration (canonical tex's spelled-out
--- disjunction form) one-for-one as a clean four-disjunct mirror.
+-- `p` is a non-collider on `p` (per `IsNonCollider`, `def_3_15`'s
+-- non-collider classifier) AND it is either at an end-position
+-- (`k = 0` or `k = p.length`) or one of the two `HasBlocking*Slot`
+-- helpers fires at `k`.  Four disjuncts: two end-position disjuncts +
+-- `HasBlockingLeftSlot k` + `HasBlockingRightSlot k`.
 --
 -- ## Design choice — IsBlockableNonCollider
 --
--- *Why no internal recursion at this level.*  The recursion lives
---   inside the two helpers (`HasBlockingLeftSlot` /
---   `HasBlockingRightSlot`), each of which descends the
---   cons-chain to the slot of interest and queries the WalkStep
---   constructor.  At this level the def is a flat four-disjunct
---   mirroring the canonical tex's "Blockable non-collider on π"
---   paragraph word-for-word: `k = 0` / `k = p.length` /
---   `HasBlockingLeftSlot k` / `HasBlockingRightSlot k`.  This is a
---   different shape from the original
---   `Walk.IsBlockableNonCollider` (which embedded the Option-
---   membership lookups inline at the same level as the end-position
---   disjuncts), but the LN-correspondence is unchanged: the four
---   disjuncts of this def are exactly the four disjuncts of the
---   canonical tex's spelled-out blockable disjunction.
+-- *Self-loop handling.*  A directed self-loop step at vertex `v`
+--   encoded as `.forwardE _ : WalkStep G v v` carries no head at its
+--   walk-traversal source side: the source-side head-contribution
+--   predicate `HeadAtSource` evaluates to `False` on the `.forwardE _`
+--   branch via the disjunct `s(u, v) ∈ G.L`, which is *vacuously
+--   false* at a self-loop by `def_3_1`'s `hL_irrefl` (`CDMG.lean:376`
+--   rules out `s.IsDiag ∈ G.L`).  Through `IsCollider` /
+--   `IsNonCollider`, this propagates here without re-statement: a
+--   self-loop step adjacent to position `k` does not spuriously
+--   inflate the arrowhead count at `k`, so interior positions adjacent
+--   to a directed self-loop are non-colliders and become genuine
+--   candidates for the blockable/unblockable classification.  The
+--   self-loop slot's contribution to the two `HasBlocking*Slot`
+--   helpers is *always* `False` (`v ∈ G.Sc v` trivially via
+--   `def_3_5`'s trivial-walk witness, so `v ∉ G.Sc v` is `False`).
+--   The position therefore ends up blockable or unblockable purely on
+--   the OTHER walk-incident slot's contribution — verbatim what the
+--   canonical tex commits to in its "Treatment of directed self-loops"
+--   paragraph ("a self-loop alone never disqualifies an interior
+--   position from being unblockable; whether the position is
+--   unblockable depends on the other walk-incident edge -- if any --
+--   in the standard way").
 --
--- *Mirror four-disjunct shape preserved from the canonical tex.*
---   The canonical tex spells the blockable disjunction as `k ∈
---   {0, n} ∨ (a_{k-1} = (v_k, v_{k-1}) ∈ E ∧ v_{k-1} ∉ Sc^G(v_k)) ∨
---   (a_k = (v_k, v_{k+1}) ∈ E ∧ v_{k+1} ∉ Sc^G(v_k))`, with the
---   trailing parenthetical "(the latter two disjuncts implicitly
---   requiring k ≥ 1 resp. k ≤ n − 1, and being vacuously false outside
---   that range)".  We mirror this verbatim: end-position disjuncts
---   `k = 0` / `k = p.length` are spelled separately
---   (following the canonical tex's `k ∈ {0, n}` split), and the
---   slot-`(k-1)` / slot-`k` predicates are encapsulated into the
---   helpers above (each of which is structurally `False` at the
---   out-of-range positions, mirroring the canonical tex's
---   parenthetical).
+-- *Partition with `IsUnblockableNonCollider` on the
+--   `IsNonCollider` sub-class is definitional.*  The
+--   companion `IsUnblockableNonCollider` predicate has body
+--   `p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider k`, so by
+--   definitional unfolding, on the `IsNonCollider` fragment exactly
+--   one of `IsBlockableNonCollider` and `IsUnblockableNonCollider`
+--   holds at every position `k`.  This realises the LN's "every
+--   non-collider position on π is exactly one of an unblockable
+--   non-collider on π or a blockable non-collider on π" mutual-
+--   exclusivity / joint-exhaustiveness property (canonical tex
+--   paragraph "Blockable non-collider on π", closing sentence) without
+--   any external lemma.  See the `IsUnblockableNonCollider` design
+--   block below for the companion's full de-Morgan-dual discussion.
 --
--- *Mutual exclusivity with `IsUnblockableNonCollider` is
---   definitional on the non-collider sub-class.*  See the
---   `IsUnblockableNonCollider` design block immediately
---   below for the full discussion; in short,
---   `IsUnblockableNonCollider p k := p.IsNonCollider
---   k ∧ ¬ p.IsBlockableNonCollider k`, so for any `k`
---   satisfying `p.IsNonCollider k` exactly one of the two
---   holds, by unfolding.  Mirrors the original's
---   `IsBlockableNonCollider` / `IsUnblockableNonCollider` asymmetry.
+-- *End-position disjuncts `k = 0` / `k = p.length`.*  The two
+--   end-position disjuncts mirror the canonical tex's `k ∈ {0, n}`
+--   disjunct word-for-word — see the canonical tex's "Reconciliation"
+--   item "end-position": "the source-block elaboration assigns end-
+--   positions to the blockable category via the `k ∈ {0, n}` disjunct".
+--   End-positions are non-colliders (the classifier returns `False` at
+--   both `k = 0` and `k = p.length` structurally — see
+--   `CollidersAndNon.lean`'s `IsCollider` design block, "Recursive
+--   pattern-match shape and end-position handling"), so the
+--   `IsNonCollider` first conjunct fires at both end-positions.  The
+--   end-position disjuncts then make `IsBlockableNonCollider`
+--   automatically true at both `k = 0` and `k = p.length`, leaving
+--   the body's non-trivial work (the two `HasBlocking*Slot` helpers)
+--   to interior positions only.
 --
--- *End-position disjuncts `k = 0` / `k = p.length` are
---   spelled separately.*  Mirrors the canonical tex's "(latter two
---   disjuncts implicitly requiring k ≥ 1 resp. k ≤ n − 1, and being
---   vacuously false outside that range)" reading — the LN puts end-
---   positions in the blockable class explicitly (canonical tex's
---   "Reconciliation" item "end-position": "the source-block
---   elaboration assigns end-positions to the blockable category via
---   the `k ∈ {0, n}` disjunct").  At both end-positions
---   `IsBlockableNonCollider` reduces to `IsNonCollider ∧
---   True = IsNonCollider`, and `IsNonCollider` is `True` at
---   both end-positions (`IsCollider` is `False` at `k = 0`
---   via the `(.cons _ _ _, 0) → False` branch and at `k =
---   p.length` via the recursion bottoming out at a `.nil` or
---   `.cons _ _ (.nil _ _)` tail — see `CollidersAndNon.lean`'s
---   `IsCollider` design block).
---
--- *The `IsNonCollider k` conjunct is load-bearing, not
---   cosmetic.*  Without it the predicate would over-fire on collider
---   positions: an interior collider `k` might happen to admit a
---   `.forwardE _` step at slot `i = k` (encoding some `(v_k, v_{k+1})
---   ∈ G.E`) with `v_{k+1} ∉ G.Sc v_k`, and would then be
---   mis-classified as blockable.  The LN restricts "blockable" to the
---   non-collider sub-class — they are a classification *of non-
---   colliders*, not of all walk positions — and the
---   `IsNonCollider k` conjunct is the predicate-level
---   encoding of that restriction.  Same rationale as the original
---   (ORIGINAL block above's design notes).
---
--- *No `Decidable` instance, `Prop`-only.*  Same chapter convention as
---   the original.  Matches `IsCollider` /
---   `IsNonCollider` (`CollidersAndNon.lean`'s refactor
---   section), the typed-WalkStep walk-class predicates in
---   `Walks.lean`'s refactor section, and the original's `Prop`-only
---   shape.
 -- def_3_16 -- start statement
 def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧
@@ -612,108 +485,64 @@ def IsBlockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
     p.HasBlockingRightSlot k )
 -- def_3_16 -- end statement
 
--- ref: def_3_16 (paragraph "Unblockable non-collider on π") — refactor
+
+-- ref: def_3_16 (paragraph "Unblockable non-collider on π")
 --
 -- `p.IsUnblockableNonCollider k` iff position `k` on the walk
--- `p` is a non-collider on `p` (per `def_3_15`) AND it is NOT a
--- blockable non-collider on `p`.  Unfolding the negation of
--- `IsBlockableNonCollider`'s disjunction recovers the LN's
--- two-implication unblockable characterisation: `k` is interior
--- (`k ≠ 0 ∧ k ≠ p.length`) and every outgoing walk-edge of
--- v_k on π lands in `G.Sc v_k`.  Body identical to the
--- original `Walk.IsUnblockableNonCollider` (ORIGINAL block above)
--- modulo the mechanical retargets `IsNonCollider →
--- IsNonCollider`, `IsBlockableNonCollider →
--- IsBlockableNonCollider`.
+-- `p` is a non-collider on `p` (per `IsNonCollider`) AND it is NOT
+-- a blockable non-collider on `p` (per `IsBlockableNonCollider`).
+-- Conjunction-of-two shape: non-collider precondition + negation of
+-- blockable.
 --
 -- ## Design choice — IsUnblockableNonCollider
 --
--- *Asymmetric encoding: negation of blockable + non-collider
---   conjunct.*  Mirrors the original `IsUnblockableNonCollider`
---   design (ORIGINAL block above's design notes): the LN's
---   "unblockable" classifier is the *non-blockable* sub-class of
---   non-collider positions; the canonical tex's "Unblockable non-
---   collider on π" paragraph spells out exactly this characterisation
---   ("k is a non-collider on π ... and k is not an unblockable non-
---   collider on π"... [sic, the canonical tex's wording — read as
---   "blockable iff non-collider AND not unblockable" / "unblockable
---   iff non-collider AND not blockable", definitionally interlocked]).
---   Encoding the conjunction directly makes the LN's mutual
---   exclusivity ("every non-collider position is exactly one of
---   unblockable or blockable") definitional: for any `k` satisfying
---   `p.IsNonCollider k`, exactly one of
---   `IsBlockableNonCollider k` and
---   `IsUnblockableNonCollider k` holds, by unfolding.  Both
---   predicates are definitionally interlocked on the
---   `IsNonCollider` sub-class.
+-- *De Morgan dual of `IsBlockableNonCollider` — partition must hold
+--   on the non-collider sub-class.*  The LN's "every non-collider
+--   position on π is exactly one of an unblockable non-collider on π
+--   or a blockable non-collider on π" mutual-exclusivity /
+--   joint-exhaustiveness property (canonical tex paragraph "Blockable
+--   non-collider on π", closing sentence) requires that the blockable
+--   / unblockable predicate pair partition the non-collider sub-class
+--   exactly.  The unblockable predicate is the de Morgan dual of the
+--   blockable predicate, restricted to the `IsNonCollider` fragment
+--   via the first conjunct.  Unfolding `IsBlockableNonCollider`'s
+--   four-disjunct positive form, the negation distributes to give:
+--   `k ≠ 0 ∧ k ≠ p.length` (negation of the two end-position disjuncts
+--   — the LN's "interior" clause (ii) of the unblockable definition)
+--   ∧ `¬ p.HasBlockingLeftSlot k` ∧ `¬ p.HasBlockingRightSlot k`
+--   (negation of the two slot-blocking helpers — the LN's clause (iii)
+--   "every outgoing walk-edge of v_k along π lands in `Sc^G(v_k)`",
+--   one universal-implication per walk-incident slot), conjoined with
+--   `p.IsNonCollider k` (the first conjunct here).  Together this
+--   recovers the LN's three-clause unblockable characterisation
+--   case-by-case.  Mutual exclusivity with `IsBlockableNonCollider` on
+--   the `IsNonCollider` sub-class is *definitional* (literally
+--   `… ∧ ¬ …`), so the LN's "exactly one of" reduces by unfolding
+--   alone — no external lemma needed.
 --
--- *Why the original's "primary positive disjunction" rationale
---   carries through unchanged.*  The original (ORIGINAL block above)
---   adopted the LN's "blockable" elaboration as the PRIMARY positive
---   disjunction and `IsUnblockableNonCollider` as the derived
---   predicate via negation, with the rationale that downstream walk-
---   reversal proofs (claim_3_22 onward) reduce to preservation of the
---   positive predicate.  The refactor preserves this design pillar
---   verbatim: `IsBlockableNonCollider` is still the primary
---   positive disjunction (four disjuncts: two end-position +
---   `HasBlockingLeftSlot` + `HasBlockingRightSlot`), and
---   `IsUnblockableNonCollider` is still the derived
---   predicate via negation.  Only the helper-level surface retargets
---   (the original's Option-membership lookups become the
---   `HasBlocking*Slot` recursive helpers); the asymmetric encoding
---   and its downstream consequences are unchanged.
+-- *Self-loop handling.*  A directed self-loop step at vertex `v`
+--   encoded as `.forwardE _ : WalkStep G v v` carries no head at its
+--   walk-traversal source side: the source-side head-contribution
+--   predicate `HeadAtSource` evaluates to `False` on the `.forwardE _`
+--   branch via the disjunct `s(u, v) ∈ G.L`, which is *vacuously
+--   false* at a self-loop by `def_3_1`'s `hL_irrefl` (`CDMG.lean:376`
+--   rules out `s.IsDiag ∈ G.L`).  Through `IsCollider` /
+--   `IsNonCollider`, this propagates here without re-statement:
+--   positions adjacent to a directed self-loop are non-colliders, and
+--   on those interior positions all four disjuncts of
+--   `IsBlockableNonCollider` evaluate to `False` at the self-loop slot
+--   contribution — interior (so the two end-position disjuncts fail),
+--   plus the SC self-membership knocks out the slot's
+--   `HasBlocking*Slot` query (every vertex is trivially in its own SC
+--   component via `def_3_5`'s trivial-walk witness, so `v ∉ G.Sc v` is
+--   `False`).  Hence the position ends up `IsUnblockableNonCollider`
+--   exactly when the *other* walk-incident slot is also non-blocking,
+--   exactly as the canonical tex's "Treatment of directed self-loops"
+--   paragraph reads ("a self-loop alone never disqualifies an interior
+--   position from being unblockable; whether the position is
+--   unblockable depends on the other walk-incident edge -- if any --
+--   in the standard way").
 --
--- *Mutual exclusivity on the non-collider sub-class is definitional.*
---   `IsUnblockableNonCollider p k` literally unfolds to
---   `p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider
---   k`, so for any `k` satisfying `p.IsNonCollider k` the
---   statement `p.IsUnblockableNonCollider k ↔
---   ¬ p.IsBlockableNonCollider k` reduces by definitional
---   unfolding alone — no external theorem needed.  The original's
---   symmetry property (ORIGINAL block above's design notes) is
---   preserved verbatim through the mechanical retarget.
---
--- *The `IsNonCollider k` conjunct is load-bearing (same
---   rationale as on `IsBlockableNonCollider`).*  Without it
---   the predicate would over-fire on collider positions: any
---   collider `k` automatically satisfies `¬
---   IsBlockableNonCollider k` (because
---   `IsBlockableNonCollider` carries
---   `IsNonCollider` as its first conjunct, so colliders fail
---   it), so dropping the `IsNonCollider` conjunct here would
---   mis-classify every collider as unblockable.  The LN restricts
---   both "unblockable" and "blockable" to the non-collider sub-class
---   — they are mutually exclusive classifications *of non-colliders*,
---   not of all walk positions — and the `IsNonCollider k`
---   conjunct is the predicate-level encoding of that restriction.
---
--- *Why the LN's intended meaning survives the negation.*  By
---   unfolding `IsBlockableNonCollider`, the negation
---   distributes over the four-disjunct disjunction and gives: `k ≠ 0
---   ∧ k ≠ p.length` (negation of the end-position disjuncts
---   — the LN's "interior" clause (ii)) ∧ `¬ HasBlockingLeftSlot k` ∧
---   `¬ HasBlockingRightSlot k` ∧ `IsNonCollider k` (positive
---   conjunct preserved by the conjunction here).  Negating each
---   helper gives a universal implication on the corresponding slot:
---   `¬ HasBlockingLeftSlot k` says "if slot `i = k - 1` is a
---   `.backwardE _` (encoding `(v_k, v_{k-1}) ∈ G.E`), then `v_{k-1}
---   ∈ G.Sc v_k`"; similarly for `¬ HasBlockingRightSlot k`
---   on slot `i = k`.  Together these recover the exact two
---   implications of LN clause (iii) of the unblockable definition.
---   So derivedness preserves the LN's unblockable characterisation
---   case-by-case.
---
--- *Dot-notation `p.IsBlockableNonCollider k`.*
---   `IsBlockableNonCollider` is declared in the same
---   `namespace Walk` and takes `p : Walk G u v` as
---   its first explicit positional argument, so the dot-notation
---   resolves to `Walk.IsBlockableNonCollider p k`
---   — same idiom used by `p.IsNonCollider k`,
---   `p.IsCollider k`.
---
--- *No `Decidable` instance, `Prop`-only.*  Same rationale as
---   `IsBlockableNonCollider` above and the original
---   `IsUnblockableNonCollider`.
 -- def_3_16 -- start statement
 def IsUnblockableNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   p.IsNonCollider k ∧ ¬ p.IsBlockableNonCollider k
