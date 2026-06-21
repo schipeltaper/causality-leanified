@@ -13,10 +13,7 @@ from the same panel data:
 - **`results.tex`** — solve-duration table per section, sourced from
   each chapter's `data.json` (`time_needed_to_solve`, in seconds).
 
-`appendix.tex` is self-contained (it bundles the leanification preamble
-via `\input{../leanification/preamble}` and a `\chapter` heading);
-`results.tex` is body-only (preamble supplied by the wrapping document).
-Both live at the root of this folder.
+Both are body-only (no preamble) and live at the root of this folder.
 
 ```
 building_website/
@@ -451,36 +448,19 @@ each `data/<ref>.json` and the LN source at
    preserves whatever sits between those markers on re-run**, so
    hand-written notes survive panel updates.
 
-The output is **self-contained**: `appendix.tex` carries its own
-`\documentclass{report}`, `\input{../leanification/preamble}` (DRY
-reference to the canonical LN preamble, so every `\Pa` / `\tuh` /
-`\lC` / `\sm` etc. resolves identically here), `\usepackage{minted}`
-+ `\setminted[lean4]{breaklines=true, breakanywhere=true}` for the
-Lean code, an `[a4paper, margin=2cm]{geometry}` margin trim, and a
-`\chapter{Lean formalizations}\label{chap:appendix_a}` heading at
-the top of `\begin{document}`.
-
-Compile from this folder (the relative `\input` resolves there):
-
-```bash
-cd building_website
-pdflatex -shell-escape appendix.tex
-pdflatex -shell-escape appendix.tex   # second pass for refs
-```
-
-`-shell-escape` is required because `minted` invokes pygments.  The
-`lean4` lexer is shipped by the Lean community as `pygments-lean4`
-(`pip install pygments-lean4`).
-
 Size and layout knobs sit at the top of `appendix.tex` as
-`\providecommand`s — edit the file directly, or override before
-`\input`-ing if you're embedding into a larger document:
+`\providecommand`s — override them in the wrapping document if you want
+different defaults:
 
 ```latex
 \providecommand{\appendixTexSize}{\footnotesize}
 \providecommand{\appendixLeanSize}{\footnotesize}
 \providecommand{\appendixNotesGap}{1em}
 ```
+
+Preamble (documentclass, custom macros from the LN, `minted` setup with
+a `lean4` lexer) is supplied by the wrapping document — `appendix.tex`
+only emits body content.
 
 ### `build_results.py`
 
@@ -501,9 +481,7 @@ Size knob at the top of `results.tex`:
 \providecommand{\resultsSize}{\small}
 ```
 
-Body-only — supply your own preamble in the wrapping document
-(typically the same one you'd use for `appendix.tex` if it weren't
-self-contained).
+Body-only — same convention as `appendix.tex`.
 
 ### `check_render.py`
 
