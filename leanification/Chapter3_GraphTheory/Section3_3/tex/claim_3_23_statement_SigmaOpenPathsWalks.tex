@@ -20,13 +20,30 @@
 \phantomsection\label{claim_3_23}
 
 \begin{Note}[SigmaOpenPathsWalks]{Prp}{restateprpsigmaopens}\label{prp:sigma_opens}
-  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$, the following are
-  equivalent:
-  \begin{enumerate}
-      \item there exists a $C$-$\sigma$-open \emph{path} between $w_1$ and $w_2$ in $G$;
-      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$;
-      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\Anc^G(C)$).
-  \end{enumerate}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk and path definitions of def \ref{def:walks}, items~i.\ (a \emph{walk} in $G$ is a finite alternating sequence $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ for some integer $n \ge 0$, with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr),
+    \]
+    and ``the same node may appear multiple times in a walk'') and~v.\ (a \emph{path} in $G$ is a walk in which no node occurs more than once), the collider/non-collider classification of def \ref{def:collider_noncollider}, item~ii.\ (collider position on a walk), and the $C$-$\sigma$-open predicate of def \ref{def:sigma_blocking}, item~1.\ (``$\pi$ is $C$-$\sigma$-open'', with $\Anc^G(C) := \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv.). Let $C \subseteq J \cup V$ be a subset of nodes ($C$ is \emph{not} assumed disjoint from $J$, nor non-empty), and let $w_1, w_2 \in J \cup V$ be two nodes ($w_1$ and $w_2$ are \emph{not} assumed distinct: the corner case $w_1 = w_2$ is admissible and witnessed across all three statements below by the length-$0$ trivial walk $\pi = (v_0)$ with $v_0 = w_1 = w_2$, admitted by def \ref{def:walks}, item~i.\ at $n = 0$; it has no positions in $\{0, 1, \dots, n - 1\}$ and no interior positions $k \in \{1, \dots, n - 1\}$, hence no walk-edges, no colliders, and no blockable non-colliders, so it is vacuously a path, vacuously $C$-$\sigma$-open, and vacuously has every collider in $C$).
+
+    Then the following three existential statements are equivalent:
+    \begin{enumerate}
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that
+            \[
+                \bigl(\pi \text{ is a path in } G \text{ in the sense of def \ref{def:walks}, item~v.}\bigr) \;\land\; \bigl(\pi \text{ is } C\text{-}\sigma\text{-open in the sense of def \ref{def:sigma_blocking}, item~1.}\bigr);
+            \]
+            spelled out, ``$\pi$ is a path'' is $\forall\, k, l \in \{0, 1, \dots, n\},\; k \ne l \implies v_k \ne v_l$, and ``$\pi$ is $C$-$\sigma$-open'' is the predicate of def \ref{def:sigma_blocking}, item~1.\ (every collider position $v_k$ on $\pi$ lies in $\Anc^G(C)$, and every blockable non-collider position $v_k$ on $\pi$, in the sense of def \ref{def:unblockable_noncollider}, lies outside $C$);
+
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.;
+
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that
+            \[
+                \bigl(\pi \text{ is } C\text{-}\sigma\text{-open in the sense of def \ref{def:sigma_blocking}, item~1.}\bigr) \;\land\; \bigl(\forall\, k \in \{0, 1, \dots, n\},\; (k \text{ is a collider on } \pi) \implies v_k \in C\bigr),
+            \]
+            where ``$k$ is a collider on $\pi$'' is in the sense of def \ref{def:collider_noncollider}, item~ii. (The second conjunct strengthens the collider clause already enforced by $C$-$\sigma$-openness in def \ref{def:sigma_blocking}, item~1., from $v_k \in \Anc^G(C)$ to $v_k \in C$ --- this is the literal LN parenthetical ``and not just in $\Anc^G(C)$''. The non-collider clause of $C$-$\sigma$-openness is unchanged between (2) and (3).)
+    \end{enumerate}
 \end{Note}
 
 \end{document}

@@ -7,14 +7,22 @@
 % `main.tex` via `\subfile{...}`.
 %
 % The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+% when rendered on its own. The at-the-top `\begin{Note}...\end{Note}`
+% block is the verified-equivalent rewrite from the canonical statement
+% file `claim_3_23_statement_SigmaOpenPathsWalks.tex` (Manager A,
+% 2026-06-21; verified by `verify_tex_statement_equivalence` against the
+% LN block at `graphs.tex` line 1384).  The proof body below was lifted
+% and lightly expanded from the LN's `\restateprpsigmaopens*` proof at
+% `graphs.tex` lines 1655--1673; the load-bearing tool for the
+% $(2) \implies (1)$ direction is `lem:replace_walk` (our \refrow{claim_3_27},
+% \texttt{Section3\_3/LabelRoman.lean:2112}, proven 2026-06-20).
+% Differences from the LN body: the corner case $w_1 = w_2$ is disposed of
+% upfront via the length-$0$ trivial walk; the (III) $(2) \implies (3)$
+% collider pull-in argument is spelled out at the per-position
+% $C$-$\sigma$-open level and equipped with an explicit termination
+% measure $M$; the (IV) $(2) \implies (1)$ contraction argument is
+% equipped with an explicit termination measure $R$ and an explicit
+% citation of \ref{lem:replace_walk} / \refrow{claim_3_27}.
 
 \documentclass[main]{subfiles}
 
@@ -24,20 +32,160 @@
 \def\rowref{claim\_3\_23}
 \phantomsection\label{claim_3_23}
 
-% --- statement (restated) ---------------------------------------------------
+% --- statement (restated, synced verbatim from
+% --- claim_3_23_statement_SigmaOpenPathsWalks.tex) -------------------------
 \begin{Note}[SigmaOpenPathsWalks]{Prp}{restateprpsigmaopens}\label{prp:sigma_opens}
-  Let $G=(J,V,E,L)$ be a CDMG. For $C \subseteq J \cup V$, and $w_1, w_2 \in J \cup V$, the following are
-  equivalent:
-  \begin{enumerate}
-      \item there exists a $C$-$\sigma$-open \emph{path} between $w_1$ and $w_2$ in $G$;
-      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$;
-      \item there exists a $C$-$\sigma$-open \emph{walk} between $w_1$ and $w_2$ in $G$ such that all its colliders lie in $C$ (and not just in $\Anc^G(C)$).
-  \end{enumerate}
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk and path definitions of def \ref{def:walks}, items~i.\ (a \emph{walk} in $G$ is a finite alternating sequence $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ for some integer $n \ge 0$, with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr),
+    \]
+    and ``the same node may appear multiple times in a walk'') and~v.\ (a \emph{path} in $G$ is a walk in which no node occurs more than once), the collider/non-collider classification of def \ref{def:collider_noncollider}, item~ii.\ (collider position on a walk), and the $C$-$\sigma$-open predicate of def \ref{def:sigma_blocking}, item~1.\ (``$\pi$ is $C$-$\sigma$-open'', with $\Anc^G(C) := \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv.). Let $C \subseteq J \cup V$ be a subset of nodes ($C$ is \emph{not} assumed disjoint from $J$, nor non-empty), and let $w_1, w_2 \in J \cup V$ be two nodes ($w_1$ and $w_2$ are \emph{not} assumed distinct: the corner case $w_1 = w_2$ is admissible and witnessed across all three statements below by the length-$0$ trivial walk $\pi = (v_0)$ with $v_0 = w_1 = w_2$, admitted by def \ref{def:walks}, item~i.\ at $n = 0$; it has no positions in $\{0, 1, \dots, n - 1\}$ and no interior positions $k \in \{1, \dots, n - 1\}$, hence no walk-edges, no colliders, and no blockable non-colliders, so it is vacuously a path, vacuously $C$-$\sigma$-open, and vacuously has every collider in $C$).
+
+    Then the following three existential statements are equivalent:
+    \begin{enumerate}
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that
+            \[
+                \bigl(\pi \text{ is a path in } G \text{ in the sense of def \ref{def:walks}, item~v.}\bigr) \;\land\; \bigl(\pi \text{ is } C\text{-}\sigma\text{-open in the sense of def \ref{def:sigma_blocking}, item~1.}\bigr);
+            \]
+            spelled out, ``$\pi$ is a path'' is $\forall\, k, l \in \{0, 1, \dots, n\},\; k \ne l \implies v_k \ne v_l$, and ``$\pi$ is $C$-$\sigma$-open'' is the predicate of def \ref{def:sigma_blocking}, item~1.\ (every collider position $v_k$ on $\pi$ lies in $\Anc^G(C)$, and every blockable non-collider position $v_k$ on $\pi$, in the sense of def \ref{def:unblockable_noncollider}, lies outside $C$);
+
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.;
+
+        \item there exist an integer $n \ge 0$ and a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 = w_1$ and $v_n = w_2$, such that
+            \[
+                \bigl(\pi \text{ is } C\text{-}\sigma\text{-open in the sense of def \ref{def:sigma_blocking}, item~1.}\bigr) \;\land\; \bigl(\forall\, k \in \{0, 1, \dots, n\},\; (k \text{ is a collider on } \pi) \implies v_k \in C\bigr),
+            \]
+            where ``$k$ is a collider on $\pi$'' is in the sense of def \ref{def:collider_noncollider}, item~ii. (The second conjunct strengthens the collider clause already enforced by $C$-$\sigma$-openness in def \ref{def:sigma_blocking}, item~1., from $v_k \in \Anc^G(C)$ to $v_k \in C$ --- this is the literal LN parenthetical ``and not just in $\Anc^G(C)$''. The non-collider clause of $C$-$\sigma$-openness is unchanged between (2) and (3).)
+    \end{enumerate}
 \end{Note}
 
 % --- proof ------------------------------------------------------------------
 \begin{proof}
-% TODO: write the proof body.
+The proof chains four directional implications: $(3) \implies (2)$ (I) and $(1) \implies (2)$ (II), both trivial weakenings of the existential body; $(2) \implies (3)$ (III), an iterated local-surgery argument that pulls each non-$C$ collider into $C$; and $(2) \implies (1)$ (IV), an iterated subwalk-contraction argument that invokes \ref{lem:replace_walk} (our \refrow{claim_3_27}) to collapse repeated-SCC subwalks into directed paths. Combining the four implications: $(1) \iff (2)$ from (I)+(IV) (via (II) giving $(1) \implies (2)$ and (IV) giving $(2) \implies (1)$), and $(2) \iff (3)$ from (I)+(III) (via (I) giving $(3) \implies (2)$ and (III) giving $(2) \implies (3)$); by transitivity, the three statements are pairwise equivalent.
+
+\medskip\noindent\textbf{(0) Corner case $w_1 = w_2$.}
+If $w_1 = w_2$, the length-$0$ trivial walk $\pi = (v_0)$ with $v_0 := w_1 = w_2$ is admitted by def \ref{def:walks}, item~i.\ at $n = 0$ (the single-node sequence with no edges; the walk constraint at slots $k \in \{0, 1, \dots, n - 1\} = \emptyset$ holds vacuously). This $\pi$ has no positions $k \in \{0, 1, \dots, n - 1\}$ and, in particular, no interior positions $k \in \{1, \dots, n - 1\}$, hence no walk-edges, no colliders in the sense of \refrow{def_3_15}, item~ii., and no blockable non-colliders in the sense of \refrow{def_3_16}. Therefore $\pi$ is vacuously a path in the sense of def \ref{def:walks}, item~v.\ (the no-repeat constraint $\forall\, k, l \in \{0\},\, k \ne l \implies v_k \ne v_l$ holds vacuously since the antecedent $k \ne l$ is never satisfied), vacuously $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.\ (no collider position to test against $\Anc^G(C)$, no blockable non-collider position to test against $C$), and vacuously has every collider position in $C$ (no collider position exists). So $\pi$ jointly witnesses (1), (2), and (3): the equivalence collapses to a tautology at $w_1 = w_2$.
+
+In the remainder of the proof we make no assumption $w_1 \ne w_2$: the arguments (I)--(IV) work uniformly for any walk of length $n \ge 0$ between $w_1$ and $w_2$, and the trivial walk is a vacuous instance of each surgery step. The corner case is therefore subsumed by the general arguments below; we record it explicitly only to make the LN's universal quantification ``for $w_1, w_2 \in J \cup V$'' completely transparent.
+
+\medskip\noindent\textbf{(I) $(3) \implies (2)$: drop the collider strengthening.}
+Suppose (3) holds with witness walk $\pi$ from $w_1$ to $w_2$, satisfying ($\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.) AND ($\forall\, k \in \{0, 1, \dots, n\},\;$ $k$ is a collider on $\pi$ in the sense of \refrow{def_3_15}, item~ii. $\implies v_k \in C$). The existential body of (2) is the \emph{first} conjunct of the existential body of (3); dropping the second (collider-strengthening) conjunct preserves the witness. Hence the same $\pi$ witnesses (2).
+
+\medskip\noindent\textbf{(II) $(1) \implies (2)$: drop the path conjunct.}
+Suppose (1) holds with witness walk $\pi$ from $w_1$ to $w_2$, satisfying ($\pi$ is a path in $G$ in the sense of def \ref{def:walks}, item~v.) AND ($\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.). The existential body of (2) is the \emph{second} conjunct of the existential body of (1); dropping the first (path) conjunct preserves the witness. Concretely, def \ref{def:walks}, item~v.\ defines ``$\pi$ is a path'' as the no-repeat constraint on a walk of $\pi$'s underlying type (def \ref{def:walks}, item~i.), so the very same walk-data of $\pi$ -- read without the additional no-repeat side condition -- witnesses the existential ``$\exists\, n \ge 0,\, \exists\, \pi$ walk in $G$ with $v_0 = w_1,\, v_n = w_2$ such that $\pi$ is $C$-$\sigma$-open'' of (2). Hence the same $\pi$ witnesses (2).
+
+\medskip\noindent\textbf{(III) $(2) \implies (3)$: pull each non-$C$ collider into $C$.}
+Suppose (2) holds with witness walk $\pi = (v_0 \sus a_0 \sus v_1 \sus a_1 \sus \cdots \sus a_{n-1} \sus v_n)$ from $w_1$ to $w_2$ ($v_0 = w_1$, $v_n = w_2$), $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1. We construct, by iterated local surgery on $\pi$, a $C$-$\sigma$-open walk $\pi^\star$ from $w_1$ to $w_2$ with the property that every collider position on $\pi^\star$ (in the sense of \refrow{def_3_15}, item~ii.) lies in $C$ -- the pair ($\pi^\star$ $C$-$\sigma$-open) $\land$ ($\forall\,k,\,k$ a collider on $\pi^\star \implies v_k \in C$) witnesses (3).
+
+\smallskip\noindent\emph{Termination measure.}
+Define
+\[
+    M(\pi) \;:=\; \#\bigl\{\,k \in \{0, 1, \dots, n\} \;:\; k \text{ is a collider on } \pi \text{ in the sense of \refrow{def_3_15}, item~ii., and } v_k \notin C\,\bigr\}.
+\]
+Then $M(\pi) \in \mathbb{Z}_{\ge 0}$, and we will show below that one surgery step strictly decreases $M$ by exactly $1$. Iteration therefore terminates after $M(\pi)$ steps, at which point the walk has no collider position outside $C$ -- the property required by (3).
+
+\smallskip\noindent\emph{Surgery step.}
+If $M(\pi) = 0$, then every collider position on $\pi$ already has its node in $C$, and $\pi$ itself witnesses (3); take $\pi^\star := \pi$. Otherwise let $k$ be the smallest position such that $k$ is a collider on $\pi$ and $v_k \notin C$. Since $\pi$ is $C$-$\sigma$-open, the collider clause of def \ref{def:sigma_blocking}, item~1.\ forces $v_k \in \Anc^G(C)$; combined with $v_k \notin C$ we obtain $v_k \in \Anc^G(C) \setminus C$. By the definition of $\Anc^G(C)$ as the closure under directed-edge predecessors (\refrow{def_3_5}, item~iv.), and since the empty directed path is admitted when the source already lies in $C$, the condition $v_k \in \Anc^G(C)$ together with $v_k \notin C$ guarantees the existence of a directed path in $G$ from $v_k$ to some node of $C$ of length $\ge 1$. Choose such a directed path of \emph{minimal length}:
+\[
+    v_k \tuh u_1 \tuh u_2 \tuh \cdots \tuh u_{m-1} \tuh u_m, \qquad m \ge 1, \quad u_m \in C.
+\]
+By minimality, the interior nodes $u_1, \dots, u_{m-1}$ all lie \emph{outside} $C$: if some interior $u_p \in C$ with $1 \le p \le m - 1$ existed, the truncated directed path $v_k \tuh u_1 \tuh \cdots \tuh u_p$ would land in $C$ at length $p < m$, contradicting minimality. Write $c_k := u_m \in C$ for the endpoint.
+
+Since $k$ is a collider on $\pi$ in the sense of \refrow{def_3_15}, item~ii., the local edge configuration of $\pi$ around position $k$ is
+\[
+    \pi:\;\;\cdots \sus v_{k-1} \suh v_k \hus v_{k+1} \sus \cdots,
+\]
+with arrowheads at $v_k$ from both adjacent edges; in particular $1 \le k \le n - 1$ (both adjacent positions $v_{k-1}, v_{k+1}$ must exist for the collider pattern). Define $\pi'$ to be the walk obtained from $\pi$ by replacing the collider segment at $v_k$ by the directed path and its reverse:
+\[
+    \pi':\;\;\cdots \sus v_{k-1} \suh v_k \tuh u_1 \tuh \cdots \tuh c_k \hut \cdots \hut u_1 \hut v_k \hus v_{k+1} \sus \cdots,
+\]
+where the spliced-in segment, read left to right, is: the forward directed path $v_k \tuh u_1 \tuh \cdots \tuh u_{m-1} \tuh c_k$ (using each directed edge $u_{p-1} \tuh u_p$ once, in its forward orientation, $u_0 := v_k$); then the same directed edges traversed in their reverse orientation $c_k \hut u_{m-1} \hut \cdots \hut u_1 \hut v_k$ (so the walk-traversal direction is opposite to each edge's orientation, but each edge is still in $E$, satisfying the second disjunct of the walk constraint of def \ref{def:walks}, item~i.). The portions of $\pi'$ before $v_{k-1} \suh v_k$ and after $v_k \hus v_{k+1}$ are copied verbatim from $\pi$. The resulting $\pi'$ is a walk from $w_1$ to $w_2$ in $G$ in the sense of def \ref{def:walks}, item~i.
+
+\smallskip\noindent\emph{$\pi'$ is $C$-$\sigma$-open.}
+We verify the $C$-$\sigma$-open predicate of def \ref{def:sigma_blocking}, item~1.\ at every position of $\pi'$, by considering three regions.
+\begin{itemize}
+    \item \emph{Positions of $\pi'$ outside the splice (positions at or to the left of $v_{k-1}$ on $\pi'$, and positions at or to the right of $v_{k+1}$ on $\pi'$).} The local edge configuration of $\pi'$ at each such position is verbatim the local edge configuration of $\pi$ at the corresponding position of $\pi$: the splice is contained strictly between the edges $v_{k-1} \suh v_k$ and $v_k \hus v_{k+1}$, and both these edges (and their outer endpoints $v_{k-1}, v_{k+1}$) are preserved by the splice. Hence the collider/non-collider classification (\refrow{def_3_15}) and the blockable/unblockable classification (\refrow{def_3_16}) at every such position on $\pi'$ are the same as on $\pi$. Since $\pi$ is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1., each such position contributes neither a ``collider not in $\Anc^G(C)$'' nor a ``blockable non-collider in $C$'' to the $\sigma$-blocking disjunction; the same holds on $\pi'$ at the corresponding position.
+    \item \emph{The two copies of $v_k$ at the inner boundaries of the splice.} The \emph{first} copy of $v_k$ (the original position $k$ of $\pi$, now sitting at the same index in $\pi'$) has local edge configuration $v_{k-1} \suh v_k \tuh u_1$: head at $v_k$ from the left edge $v_{k-1} \suh v_k$ (the right side of $\suh$ carries the arrowhead), and tail at $v_k$ from the right edge $v_k \tuh u_1$ (the left side of $\tuh$ carries the tail). This is the right-chain pattern of \refrow{def_3_15}, item~i., with exactly one arrowhead at $v_k$, hence a non-collider on $\pi'$. Since $v_k \notin C$, the blockable-non-collider-in-$C$ clause of def \ref{def:sigma_blocking}, item~1.\ is not triggered at this position, regardless of whether the non-collider is blockable (\refrow{def_3_16}) or unblockable. The collider clause is also not triggered (the position is not a collider). So the first copy of $v_k$ is $C$-$\sigma$-open on $\pi'$.
+
+    The \emph{second} copy of $v_k$ (after the reverse half of the splice, just before $v_{k+1}$) has local edge configuration $u_1 \hut v_k \hus v_{k+1}$: tail at $v_k$ from the left edge $u_1 \hut v_k$ (the right side of $\hut$ carries the tail), and head at $v_k$ from the right edge $v_k \hus v_{k+1}$ (the left side of $\hus$ carries the arrowhead). This is the left-chain-style pattern of \refrow{def_3_15}, item~i., with exactly one arrowhead at $v_k$, hence again a non-collider. Since $v_k \notin C$, the blockable-non-collider-in-$C$ clause is not triggered; the collider clause is not triggered. So the second copy of $v_k$ is $C$-$\sigma$-open on $\pi'$.
+    \item \emph{Interior positions of the splice, i.e.\ $u_1, \dots, u_{m-1}$ on the forward half, the centre $c_k$, and $u_{m-1}, \dots, u_1$ on the reverse half.}
+        \begin{itemize}
+            \item Each forward-half $u_p$ ($1 \le p \le m - 1$) has local edge configuration $u_{p-1} \tuh u_p \tuh u_{p+1}$ (with $u_0 := v_k$ when $p = 1$ and $u_{p+1} := c_k$ when $p = m - 1$). Right-chain pattern, one arrowhead at $u_p$, non-collider. Since $u_p \notin C$, the blockable-non-collider-in-$C$ clause is not triggered; collider clause not triggered. $C$-$\sigma$-open.
+            \item The centre $c_k$ has local edge configuration $u_{m-1} \tuh c_k \hut u_{m-1}'$ (where $u_{m-1}'$ is the reverse-half copy of the node $u_{m-1}$ -- the walk may revisit the same node; by def \ref{def:walks}, item~i., ``the same node may appear multiple times in a walk''). Both adjacent edges have arrowheads at $c_k$: the left edge $u_{m-1} \tuh c_k$ carries its arrowhead on the right (at $c_k$), and the right edge $c_k \hut u_{m-1}'$ carries its arrowhead on the left (at $c_k$). So $c_k$ is a collider on $\pi'$ in the sense of \refrow{def_3_15}, item~ii. Since $c_k \in C$ and $C \subseteq \Anc^G(C)$ (every node is its own ancestor via the empty directed walk -- \refrow{def_3_5}, item~iv.), the collider clause $v_k \in \Anc^G(C)$ of def \ref{def:sigma_blocking}, item~1.\ holds at $c_k$. Moreover the strengthened collider clause $v_k \in C$ of variant (3) also holds at $c_k$, by construction. So $c_k$ is $C$-$\sigma$-open on $\pi'$ and satisfies the (3)-strengthening.
+            \item Each reverse-half $u_p$ ($1 \le p \le m - 1$) has local edge configuration $u_{p+1}' \hut u_p \hut u_{p-1}'$ (with $u_{m}' := c_k$ when $p = m - 1$ and $u_0' := v_k$ when $p = 1$, again using ``the same node may appear multiple times in a walk''). Tail at $u_p$ from the left edge $u_{p+1}' \hut u_p$, head at $u_p$ from the right edge $u_p \hut u_{p-1}'$. Left-chain-style pattern, one arrowhead at $u_p$, non-collider. Since $u_p \notin C$, the blockable-non-collider-in-$C$ clause is not triggered; collider clause not triggered. $C$-$\sigma$-open.
+        \end{itemize}
+\end{itemize}
+Combining the three regions: every position of $\pi'$ contributes neither a ``collider not in $\Anc^G(C)$'' nor a ``blockable non-collider in $C$'' to the $\sigma$-blocking disjunction of def \ref{def:sigma_blocking}, item~1. Hence $\pi'$ is $C$-$\sigma$-open.
+
+\smallskip\noindent\emph{$M$ strictly decreases by exactly $1$.}
+The collider positions of $\pi'$ are: (a) the collider positions of $\pi$ at indices $\ne k$ (with their local edge configurations preserved verbatim by the splice, so their collider status is preserved); and (b) the new collider $c_k$ in the centre of the splice. The collider position $k$ of $\pi$ is \emph{destroyed} on $\pi'$ (both copies of $v_k$ in the splice are non-colliders, by the analysis above).
+
+The contribution to $M(\pi)$ from position $k$ was $1$ (since $v_k \notin C$); this contribution is gone on $\pi'$ (no copy of $v_k$ is a collider any more). The new collider $c_k$ on $\pi'$ has $c_k \in C$, so it contributes $0$ to $M(\pi')$. All other collider positions (at indices $\ne k$, unchanged in local configuration and node label) contribute to $M(\pi')$ exactly as they contributed to $M(\pi)$. Therefore
+\[
+    M(\pi') = M(\pi) - 1.
+\]
+
+\smallskip\noindent\emph{Iteration.}
+Starting with $\pi^{(0)} := \pi$ and applying the surgery step iteratively to produce $\pi^{(1)}, \pi^{(2)}, \dots$, we have $M(\pi^{(t+1)}) = M(\pi^{(t)}) - 1$ as long as $M(\pi^{(t)}) > 0$. After exactly $M(\pi)$ iterations we obtain a walk $\pi^\star := \pi^{(M(\pi))}$ with $M(\pi^\star) = 0$, i.e.\ every collider position on $\pi^\star$ has its node in $C$. Each iteration preserves $C$-$\sigma$-openness (by the verification above), so $\pi^\star$ is $C$-$\sigma$-open. The pair $(\pi^\star,\, \pi^\star\,\text{$C$-$\sigma$-open} \land \forall\,k,\,k$ a collider on $\pi^\star \implies v_k \in C)$ witnesses (3).
+
+\medskip\noindent\textbf{(IV) $(2) \implies (1)$: contract repeated-SCC subwalks into directed paths via \ref{lem:replace_walk}.}
+Suppose (2) holds with witness walk $\pi = (v_0 \sus a_0 \sus v_1 \sus a_1 \sus \cdots \sus a_{n-1} \sus v_n)$ from $w_1$ to $w_2$ that is $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1. We construct, by iterated application of \ref{lem:replace_walk} (our \refrow{claim_3_27}, theorem \texttt{Causality.CDMG.replaceWalk} at \texttt{Section3\_3/LabelRoman.lean:2112}, proven 2026-06-20), a $C$-$\sigma$-open path $\pi^\star$ from $w_1$ to $w_2$, witnessing (1).
+
+\smallskip\noindent\emph{Termination measure.}
+Define
+\[
+    R(\pi) \;:=\; \#\bigl\{\,w \in J \cup V \;:\; w \text{ occurs at more than one position on } \pi\,\bigr\}
+\]
+to be the number of \emph{distinct} nodes of $J \cup V$ that appear at more than one position on $\pi$ (a non-repeat counts as one node appearing at $\le 1$ positions; a node appearing twice or more counts as one node in this set, regardless of multiplicity). Then $R(\pi) \in \mathbb{Z}_{\ge 0}$, and we will show below that one surgery step strictly decreases $R$ by at least $1$. Iteration therefore terminates after at most $R(\pi)$ steps, at which point the walk has no node appearing more than once -- by def \ref{def:walks}, item~v., the walk is a path.
+
+\smallskip\noindent\emph{Surgery step.}
+If $R(\pi) = 0$, no node of $\pi$ is repeated; by def \ref{def:walks}, item~v., $\pi$ is already a path; take $\pi^\star := \pi$ and the witness ($\pi^\star$ is a path) $\land$ ($\pi^\star$ is $C$-$\sigma$-open) for (1) is established.
+
+Otherwise, fix any node $w$ that occurs at more than one position on $\pi$ (the choice of $w$ does not affect the construction below; any repeated node works). Set
+\[
+    i \;:=\; \min\bigl\{\, p \in \{0, 1, \dots, n\} \;:\; v_p \in \Sc^G(w) \,\bigr\},
+    \qquad
+    j \;:=\; \max\bigl\{\, p \in \{0, 1, \dots, n\} \;:\; v_p \in \Sc^G(w) \,\bigr\}.
+\]
+Both sets are non-empty (the first and last positions of $w$ on $\pi$ lie in the set, since $w \in \Sc^G(w)$ trivially -- the strongly connected component of $w$ contains $w$ itself via the length-$0$ directed walks; \refrow{def_3_5}, item~vii.), so $i, j \in \{0, 1, \dots, n\}$ are well-defined. Moreover $i < j$: $w$ occurs at $\ge 2$ positions on $\pi$ by hypothesis, the smallest and largest of which are distinct, so
+\[
+    i \;\le\; (\text{first occurrence of $w$ on $\pi$})
+    \;<\; (\text{last occurrence of $w$ on $\pi$})
+    \;\le\; j.
+\]
+Since $v_i, v_j \in \Sc^G(w)$ and strongly connected components partition $J \cup V$ in the sense of \refrow{def_3_5}, item~vii.\ (the SCC relation is an equivalence relation on $J \cup V$, with equivalence classes the strongly connected components), we have $\Sc^G(v_i) = \Sc^G(v_j) = \Sc^G(w)$; in particular $v_i \in \Sc^G(v_j)$.
+
+The hypothesis of \ref{lem:replace_walk} (our \refrow{claim_3_27}) -- ``$\pi$ is a $C$-$\sigma$-open walk and $v_i \in \Sc^G(v_j)$ for some $i < j$'' -- is therefore satisfied at this $\pi$, $i$, $j$.
+
+Apply \refrow{claim_3_27} to the input ($\pi$, $i$, $j$): the lemma replaces the subwalk $v_i \sus \cdots \sus v_j$ of $\pi$ by either a shortest directed path $v_i \tuh \cdots \tuh v_j$ in $G$ (\refrow{claim_3_27} case~(i): if $j = n$ or $v_j \tuh v_{j+1}$ on $\pi$) or a shortest directed path $v_i \hut \cdots \hut v_j$ in $G$ (\refrow{claim_3_27} case~(ii): otherwise), producing a new walk $\pi'$ from $w_1$ to $w_2$. By the conclusion of \refrow{claim_3_27}, the replacement subwalk lies entirely within $\Sc^G(v_j) = \Sc^G(w)$, and $\pi'$ is still $C$-$\sigma$-open in the sense of def \ref{def:sigma_blocking}, item~1.
+
+\smallskip\noindent\emph{$R$ strictly decreases.}
+Let $j' \ge i$ be the new end-position of the replacement subwalk on $\pi'$, so that the replacement spans positions $i, i + 1, \dots, j'$ on $\pi'$ and uses $j' - i + 1$ nodes from $\Sc^G(w)$ (one per position in this range). The nodes of the replacement subwalk are pairwise distinct -- a (forward or backward) directed path traverses each of its nodes at most once -- so the $j' - i + 1$ nodes at positions $i, \dots, j'$ on $\pi'$ are distinct elements of $\Sc^G(w)$. Positions of $\pi'$ outside $[i, j']$ are exactly the positions of $\pi$ outside $[i, j]$ (in the same left-to-right order, possibly shifted by the change of segment length $j - i \mapsto j' - i$), with their node-labels copied verbatim from $\pi$.
+
+By the definition of $i$ and $j$ (\emph{first} and \emph{last} positions of any $\Sc^G(w)$-node on $\pi$), every $\Sc^G(w)$-node occurrence on $\pi$ lies at a position in $[i, j]$ -- there are no $\Sc^G(w)$-node occurrences strictly to the left of $i$ or strictly to the right of $j$. The replacement removes the $\Sc^G(w)$-node occurrences on $[i, j]$ and substitutes the new distinct $\Sc^G(w)$-nodes on $[i, j']$. So on $\pi'$, the $\Sc^G(w)$-node occurrences are exactly the nodes of the replacement subwalk, which are pairwise distinct. In particular, every node $w' \in \Sc^G(w)$ occurs at most once on $\pi'$ (it occurs once if $w'$ is one of the $j' - i + 1$ replacement nodes, and zero times otherwise). In particular $w$ itself, which was repeated on $\pi$ (by hypothesis), now occurs at most once on $\pi'$.
+
+Compare $R(\pi')$ to $R(\pi)$ node by node:
+\begin{itemize}
+    \item Nodes outside $\Sc^G(w)$: their occurrence-multiset on $\pi'$ is exactly the same as on $\pi$ (their occurrences on $\pi$ were all outside $[i, j]$ by definition of $i$ and $j$; the splice does not touch positions outside $[i, j]$, so their occurrences on $\pi'$ are at the shifted-but-same positions of $\pi$). So a node outside $\Sc^G(w)$ contributes to $R(\pi')$ iff it contributed to $R(\pi)$.
+    \item Nodes inside $\Sc^G(w)$: each occurs at most once on $\pi'$ (by the analysis above), so each contributes $0$ to $R(\pi')$.
+\end{itemize}
+Therefore the set $\{w' : w'$ occurs more than once on $\pi'\}$ is a subset of $\{w' : w'$ occurs more than once on $\pi\,\}\cap\,(J \cup V \setminus \Sc^G(w))$. Since $w \in \Sc^G(w)$ was a node occurring more than once on $\pi$ (so it belonged to the right-hand set $\{w' : w'$ occurs more than once on $\pi\}$) but $w \notin J \cup V \setminus \Sc^G(w)$ (so $w$ does \emph{not} belong to the intersection on the right), the inclusion is strict, and at least one node ($w$ itself) has been removed from the ``more-than-once'' set. Hence $R(\pi') \le R(\pi) - 1$.
+
+\smallskip\noindent\emph{Iteration.}
+Starting with $\pi^{(0)} := \pi$ and applying the surgery step iteratively to produce $\pi^{(1)}, \pi^{(2)}, \dots$, we have $R(\pi^{(t+1)}) \le R(\pi^{(t)}) - 1$ as long as $R(\pi^{(t)}) > 0$. Since $R(\cdot) \in \mathbb{Z}_{\ge 0}$, after at most $R(\pi)$ iterations we obtain a walk $\pi^\star$ with $R(\pi^\star) = 0$, i.e.\ no node of $J \cup V$ occurs more than once on $\pi^\star$ -- by def \ref{def:walks}, item~v., $\pi^\star$ is a path. Each iteration preserves $C$-$\sigma$-openness (by the conclusion of \refrow{claim_3_27}), so $\pi^\star$ is $C$-$\sigma$-open. The pair $(\pi^\star,\, \pi^\star\,\text{is a path} \land \pi^\star\,\text{is $C$-$\sigma$-open})$ witnesses (1).
+
+\medskip\noindent\textbf{(V) Combining the four implications.}
+By (I), $(3) \implies (2)$. By (II), $(1) \implies (2)$. By (III), $(2) \implies (3)$. By (IV), $(2) \implies (1)$. Hence
+\[
+    (1) \iff (2)
+    \quad\text{from (II) and (IV)},
+    \qquad
+    (2) \iff (3)
+    \quad\text{from (I) and (III)},
+\]
+and by transitivity of $\iff$, $(1) \iff (2) \iff (3)$ as required. The three existential statements (1), (2), (3) of the proposition are pairwise equivalent.
 \end{proof}
 
 \end{document}

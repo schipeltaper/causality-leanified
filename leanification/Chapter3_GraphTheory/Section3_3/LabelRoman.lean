@@ -172,16 +172,16 @@ markers).  Organised top-down:
 
 -- ## Anc / Desc / Sc helper lemmas
 
-private lemma mem_Anc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
+lemma mem_Anc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
     v ∈ G.Anc v := ⟨hv, ⟨Walk.nil v hv, trivial⟩⟩
 
-private lemma mem_Desc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
+lemma mem_Desc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
     v ∈ G.Desc v := ⟨hv, ⟨Walk.nil v hv, trivial⟩⟩
 
-private lemma mem_Sc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
+lemma mem_Sc_refl {G : CDMG Node} {v : Node} (hv : v ∈ G) :
     v ∈ G.Sc v := ⟨mem_Anc_refl hv, mem_Desc_refl hv⟩
 
-private lemma mem_Anc_trans {G : CDMG Node} {u v w : Node}
+lemma mem_Anc_trans {G : CDMG Node} {u v w : Node}
     (huv : u ∈ G.Anc v) (hvw : v ∈ G.Anc w) : u ∈ G.Anc w := by
   obtain ⟨huG, p_uv, hp_uv⟩ := huv
   obtain ⟨_hvG, p_vw, hp_vw⟩ := hvw
@@ -197,7 +197,7 @@ private lemma mem_Sc_of_Sc {G : CDMG Node} {u v w : Node}
     (huv : u ∈ G.Sc v) (hvw : v ∈ G.Sc w) : u ∈ G.Sc w :=
   ⟨mem_Anc_trans huv.1 hvw.1, mem_Desc_trans huv.2 hvw.2⟩
 
-private lemma Walk.target_mem {G : CDMG Node} :
+lemma Walk.target_mem {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → v ∈ G
   | _, _, .nil _ hv => hv
   | _, _, .cons _ _ p => Walk.target_mem p
@@ -230,7 +230,7 @@ private lemma Sc_eq_of_mem_Sc {G : CDMG Node} {u v : Node}
 
 /-- Split `p : Walk G u w` at position `k ≤ p.length` into a prefix
     of length `k` and a suffix of length `p.length - k`. -/
-private def Walk.splitAt {G : CDMG Node} :
+def Walk.splitAt {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ), k ≤ p.length →
       Σ' (mid : Node), (Walk G u mid) × (Walk G mid w)
   | _, _, .nil v hv, 0, _ => ⟨v, .nil v hv, .nil v hv⟩
@@ -243,7 +243,7 @@ private def Walk.splitAt {G : CDMG Node} :
         .cons mid s (p.splitAt k (Nat.le_of_succ_le_succ hk)).2.1,
         (p.splitAt k (Nat.le_of_succ_le_succ hk)).2.2⟩
 
-private lemma Walk.splitAt_length_left {G : CDMG Node} :
+lemma Walk.splitAt_length_left {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       (p.splitAt k hk).2.1.length = k
   | _, _, .nil _ _, 0, _ => rfl
@@ -255,7 +255,7 @@ private lemma Walk.splitAt_length_left {G : CDMG Node} :
       change (p.splitAt k _).2.1.length + 1 = k + 1
       rw [Walk.splitAt_length_left p k]
 
-private lemma Walk.splitAt_length_right {G : CDMG Node} :
+lemma Walk.splitAt_length_right {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       (p.splitAt k hk).2.2.length = p.length - k
   | _, _, .nil _ _, 0, _ => rfl
@@ -269,7 +269,7 @@ private lemma Walk.splitAt_length_right {G : CDMG Node} :
       change p.length - k = p.length + 1 - (k + 1)
       omega
 
-private lemma Walk.splitAt_comp {G : CDMG Node} :
+lemma Walk.splitAt_comp {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       (p.splitAt k hk).2.1.comp (p.splitAt k hk).2.2 = p
   | _, _, .nil _ _, 0, _ => rfl
@@ -284,7 +284,7 @@ private lemma Walk.splitAt_comp {G : CDMG Node} :
             = Walk.cons mid s p
       rw [Walk.splitAt_comp p k]
 
-private lemma Walk.splitAt_vertices_left {G : CDMG Node} :
+lemma Walk.splitAt_vertices_left {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       (p.splitAt k hk).2.1.vertices = p.vertices.take (k + 1)
   | _, _, .nil _ _, 0, _ => by
@@ -299,7 +299,7 @@ private lemma Walk.splitAt_vertices_left {G : CDMG Node} :
       rw [Walk.splitAt_vertices_left p k]
       rfl
 
-private lemma Walk.splitAt_vertices_right {G : CDMG Node} :
+lemma Walk.splitAt_vertices_right {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       (p.splitAt k hk).2.2.vertices = p.vertices.drop k
   | _, _, .nil _ _, 0, _ => rfl
@@ -312,7 +312,7 @@ private lemma Walk.splitAt_vertices_right {G : CDMG Node} :
       rw [Walk.splitAt_vertices_right p k]
       rfl
 
-private lemma Walk.splitAt_mid_get {G : CDMG Node} :
+lemma Walk.splitAt_mid_get {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w) (k : ℕ) (hk : k ≤ p.length),
       p.vertices[k]? = some (p.splitAt k hk).1
   | _, _, .nil _ _, 0, _ => rfl
@@ -325,7 +325,7 @@ private lemma Walk.splitAt_mid_get {G : CDMG Node} :
 
 -- ## Shortest directed walk extraction
 
-private noncomputable def Walk.shortestDirectedWalk {G : CDMG Node}
+noncomputable def Walk.shortestDirectedWalk {G : CDMG Node}
     {u v : Node} (h : ∃ p : Walk G u v, p.IsDirectedWalk) :
     {p : Walk G u v //
       p.IsDirectedWalk ∧
@@ -371,7 +371,7 @@ private lemma Walk.reverse_nil {G : CDMG Node} (v : Node) (hv : v ∈ G) :
 
 -- ## Directed-walk decomposition through composition
 
-private lemma Walk.IsDirectedWalk_of_comp_left {G : CDMG Node} :
+lemma Walk.IsDirectedWalk_of_comp_left {G : CDMG Node} :
     ∀ {u v w : Node} (p1 : Walk G u v) (p2 : Walk G v w),
       (p1.comp p2).IsDirectedWalk → p1.IsDirectedWalk
   | _, _, _, .nil _ _, _, _ => trivial
@@ -383,7 +383,7 @@ private lemma Walk.IsDirectedWalk_of_comp_left {G : CDMG Node} :
       | backwardE _ => exact h.elim
       | bidir _ => exact h.elim
 
-private lemma Walk.IsDirectedWalk_of_comp_right {G : CDMG Node} :
+lemma Walk.IsDirectedWalk_of_comp_right {G : CDMG Node} :
     ∀ {u v w : Node} (p1 : Walk G u v) (p2 : Walk G v w),
       (p1.comp p2).IsDirectedWalk → p2.IsDirectedWalk
   | _, _, _, .nil _ _, _, h => h
@@ -396,7 +396,7 @@ private lemma Walk.IsDirectedWalk_of_comp_right {G : CDMG Node} :
 -- ## Every vertex on a directed walk is in `Desc` of the source and
 -- `Anc` of the target.
 
-private lemma Walk.directed_vertex_mem_Desc {G : CDMG Node} :
+lemma Walk.directed_vertex_mem_Desc {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w), p.IsDirectedWalk →
       ∀ {x : Node}, x ∈ p.vertices → x ∈ G.Desc u
   | _, _, .nil v hv, _, x, hx => by
@@ -422,7 +422,7 @@ private lemma Walk.directed_vertex_mem_Desc {G : CDMG Node} :
         | backwardE _ => exact h_dir.elim
         | bidir _ => exact h_dir.elim
 
-private lemma Walk.directed_vertex_mem_Anc {G : CDMG Node} :
+lemma Walk.directed_vertex_mem_Anc {G : CDMG Node} :
     ∀ {u w : Node} (p : Walk G u w), p.IsDirectedWalk →
       ∀ {x : Node}, x ∈ p.vertices → x ∈ G.Anc w
   | _, _, .nil v hv, _, x, hx => by
@@ -453,32 +453,32 @@ private lemma Walk.directed_vertex_mem_Anc {G : CDMG Node} :
 -- ## Cast lemmas: target-type rewrites are benign for vertex / length /
 -- IsDirectedWalk computations.
 
-private lemma Walk.vertices_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.vertices_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) :
     (h ▸ p).vertices = p.vertices := by
   subst h; rfl
 
-private lemma Walk.length_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.length_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) :
     (h ▸ p).length = p.length := by
   subst h; rfl
 
-private lemma Walk.IsDirectedWalk_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.IsDirectedWalk_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) :
     (h ▸ p).IsDirectedWalk ↔ p.IsDirectedWalk := by
   subst h; rfl
 
-private lemma Walk.vertices_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.vertices_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) :
     (h ▸ p).vertices = p.vertices := by
   subst h; rfl
 
-private lemma Walk.length_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.length_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) :
     (h ▸ p).length = p.length := by
   subst h; rfl
 
-private lemma Walk.IsDirectedWalk_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.IsDirectedWalk_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) :
     (h ▸ p).IsDirectedWalk ↔ p.IsDirectedWalk := by
   subst h; rfl
@@ -501,7 +501,7 @@ private lemma Walk.last_vertex_eq_target {G : CDMG Node} :
 -- so the outer match on `p1` aligns with `Walk.comp`'s unfolding and
 -- the inner case-split on `k` aligns with each predicate's recursion.
 
-private lemma Walk.refactor_IsCollider_comp_left {G : CDMG Node}
+lemma Walk.refactor_IsCollider_comp_left {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), k < p1.length →
       (p1.comp p2).IsCollider k = p1.IsCollider k := by
@@ -535,7 +535,7 @@ private lemma Walk.refactor_IsCollider_comp_left {G : CDMG Node}
               simp only [Walk.comp, Walk.IsCollider]
               exact ih p2 (k + 1) hk'
 
-private lemma Walk.HasBlockingLeftSlot_comp_left {G : CDMG Node}
+lemma Walk.HasBlockingLeftSlot_comp_left {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), k ≤ p1.length →
       (p1.comp p2).HasBlockingLeftSlot k = p1.HasBlockingLeftSlot k := by
@@ -566,7 +566,7 @@ private lemma Walk.HasBlockingLeftSlot_comp_left {G : CDMG Node}
               simp only [Walk.comp, Walk.HasBlockingLeftSlot]
               exact ih p2 (k + 1) hk'
 
-private lemma Walk.HasBlockingRightSlot_comp_left {G : CDMG Node}
+lemma Walk.HasBlockingRightSlot_comp_left {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), k < p1.length →
       (p1.comp p2).HasBlockingRightSlot k = p1.HasBlockingRightSlot k := by
@@ -599,7 +599,7 @@ private lemma Walk.HasBlockingRightSlot_comp_left {G : CDMG Node}
 -- position k > p1.length on (p1.comp p2), the predicate's value reads
 -- entirely off p2 at position (k - p1.length).
 
-private lemma Walk.refactor_IsCollider_comp_right {G : CDMG Node}
+lemma Walk.refactor_IsCollider_comp_right {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), p1.length < k →
       (p1.comp p2).IsCollider k = p2.IsCollider (k - p1.length) := by
@@ -627,7 +627,7 @@ private lemma Walk.refactor_IsCollider_comp_right {G : CDMG Node}
       | cons mid' s' p1'' =>
           exact ih p2 (k' + 1) hk_ih
 
-private lemma Walk.HasBlockingLeftSlot_comp_right {G : CDMG Node}
+lemma Walk.HasBlockingLeftSlot_comp_right {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), p1.length < k →
       (p1.comp p2).HasBlockingLeftSlot k = p2.HasBlockingLeftSlot (k - p1.length) := by
@@ -649,7 +649,7 @@ private lemma Walk.HasBlockingLeftSlot_comp_right {G : CDMG Node}
       simp only [Walk.comp, Walk.HasBlockingLeftSlot]
       exact ih p2 (k' + 1) hk_ih
 
-private lemma Walk.HasBlockingRightSlot_comp_right {G : CDMG Node}
+lemma Walk.HasBlockingRightSlot_comp_right {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), p1.length ≤ k →
       (p1.comp p2).HasBlockingRightSlot k = p2.HasBlockingRightSlot (k - p1.length) := by
@@ -673,32 +673,32 @@ private lemma Walk.HasBlockingRightSlot_comp_right {G : CDMG Node}
 
 -- ## Cast invariance for the per-position predicates
 
-private lemma Walk.refactor_IsCollider_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.refactor_IsCollider_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).IsCollider k = p.IsCollider k := by
   subst h; rfl
 
-private lemma Walk.refactor_IsCollider_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.refactor_IsCollider_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).IsCollider k = p.IsCollider k := by
   subst h; rfl
 
-private lemma Walk.HasBlockingLeftSlot_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.HasBlockingLeftSlot_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).HasBlockingLeftSlot k = p.HasBlockingLeftSlot k := by
   subst h; rfl
 
-private lemma Walk.HasBlockingLeftSlot_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.HasBlockingLeftSlot_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).HasBlockingLeftSlot k = p.HasBlockingLeftSlot k := by
   subst h; rfl
 
-private lemma Walk.HasBlockingRightSlot_cast_target {G : CDMG Node} {u : Node}
+lemma Walk.HasBlockingRightSlot_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).HasBlockingRightSlot k = p.HasBlockingRightSlot k := by
   subst h; rfl
 
-private lemma Walk.HasBlockingRightSlot_cast_source {G : CDMG Node} {v : Node}
+lemma Walk.HasBlockingRightSlot_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) (k : ℕ) :
     (h ▸ p).HasBlockingRightSlot k = p.HasBlockingRightSlot k := by
   subst h; rfl
@@ -710,7 +710,7 @@ private lemma Walk.HasBlockingRightSlot_cast_source {G : CDMG Node} {v : Node}
 -- because each adjacent step is `.forwardE _`, whose
 -- `HeadAtSource` is `False`.
 
-private lemma Walk.IsDirectedWalk.interior_not_collider {G : CDMG Node} :
+lemma Walk.IsDirectedWalk.interior_not_collider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsDirectedWalk →
       ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.IsCollider k := by
   intros u v p
@@ -757,14 +757,14 @@ private lemma Walk.IsDirectedWalk.interior_not_collider {G : CDMG Node} :
 -- `HeadAtTarget(.backwardE _) = False`, `HeadAtSource(.backwardE _) = True`,
 -- so `IsCollider = False ∧ True = False`.
 
-private def Walk.IsBackwardDirectedWalk {G : CDMG Node} :
+def Walk.IsBackwardDirectedWalk {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => True
   | _, _, .cons _ (.backwardE _) p => p.IsBackwardDirectedWalk
   | _, _, .cons _ (.forwardE _) _ => False
   | _, _, .cons _ (.bidir _) _ => False
 
-private lemma Walk.IsBackwardDirectedWalk.interior_not_collider {G : CDMG Node} :
+lemma Walk.IsBackwardDirectedWalk.interior_not_collider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsBackwardDirectedWalk →
       ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.IsCollider k := by
   intros u v p
@@ -805,7 +805,7 @@ private lemma Walk.IsBackwardDirectedWalk.interior_not_collider {G : CDMG Node} 
 -- IsBackwardDirectedWalk distributes over Walk.comp (mirror of
 -- `Walk.isDirectedWalk_comp` from `MargPreservesAncestors.lean`).
 
-private lemma Walk.isBackwardDirectedWalk_comp {G : CDMG Node} :
+lemma Walk.isBackwardDirectedWalk_comp {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
       p.IsBackwardDirectedWalk → q.IsBackwardDirectedWalk →
         (p.comp q).IsBackwardDirectedWalk
@@ -817,7 +817,7 @@ private lemma Walk.isBackwardDirectedWalk_comp {G : CDMG Node} :
 
 -- A reversed directed walk is backward-directed.
 
-private lemma Walk.reverse_isBackwardDirected_of_directed {G : CDMG Node} :
+lemma Walk.reverse_isBackwardDirected_of_directed {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsDirectedWalk →
       p.reverse.IsBackwardDirectedWalk
   | _, _, .nil _ _, _ => trivial
@@ -859,7 +859,7 @@ private lemma Walk.reverse_isBackwardDirected_of_directed {G : CDMG Node} :
     shape for the boundary helper below to avoid universal
     quantification over the first step's identifier (which would
     require `cons.injEq`-style destructuring at every call site). -/
-private def Walk.firstStepHeadAtSource {G : CDMG Node} :
+def Walk.firstStepHeadAtSource {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ s _ => s.HeadAtSource
@@ -891,7 +891,7 @@ private lemma Walk.firstStepHeadAtSource_cast_source {G : CDMG Node}
     `.cons _ _ (p_inner@(.cons _ _ _)), k + 2 => p_inner.IsCollider (k + 1)`
     branch to step from outer position `p.length` to inner position
     `p'.length`. -/
-private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_source
+lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_source
     {G : CDMG Node} {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (q : Walk G v w),
       ¬ q.firstStepHeadAtSource →
@@ -1116,7 +1116,7 @@ private lemma Walk.replaceWalkCaseI_at_length {G : CDMG Node} :
     as the "left-head at v_i on π" condition at the splice endpoint A' in
     Case (ii), and as the "no head at target" hypothesis for the C
     endpoint boundary helper. -/
-private def Walk.lastStepHeadAtTarget {G : CDMG Node} :
+def Walk.lastStepHeadAtTarget {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
   | _, _, .cons _ s (.nil _ _) => s.HeadAtTarget
@@ -1177,7 +1177,7 @@ private lemma Walk.lastStepHeadAtTarget_comp_cons_nil {G : CDMG Node}
     `s.HeadAtTarget ∧ ...`, conjunction whose first conjunct
     contradicts the hypothesis; at longer `p`, the recursion descends one
     cons-cell. -/
-private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_target
+lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_target
     {G : CDMG Node} {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (q : Walk G v w),
       ¬ p.lastStepHeadAtTarget →
@@ -1226,7 +1226,7 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_target
     cons-cell.  Used in the `.backwardE` / `.bidir` base case of
     `firstColliderAncestor_comp` to discharge the splice-endpoint collider
     obligation directly via `hπ.1`. -/
-private lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
+lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
     {G : CDMG Node} {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (q : Walk G v w),
       p.lastStepHeadAtTarget →
@@ -1265,7 +1265,7 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
     whose `HeadAtTarget = False`.  Hence `lastStepHeadAtTarget`
     evaluates to `False`.  Mirror in spirit of
     `IsBackwardDirectedWalk.interior_not_collider`. -/
-private lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node} :
+lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsBackwardDirectedWalk →
       0 < p.length → ¬ p.lastStepHeadAtTarget := by
   intros u v p
@@ -1321,7 +1321,7 @@ private lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node
 --    discharger of the BLOCKABLE clause, mirroring the COLLIDER
 --    clause's `interior_not_collider` Region-B discharger.
 
-private lemma Walk.IsDirectedWalk.no_HasBlockingLeftSlot {G : CDMG Node} :
+lemma Walk.IsDirectedWalk.no_HasBlockingLeftSlot {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsDirectedWalk →
       ∀ (k : ℕ), ¬ p.HasBlockingLeftSlot k := by
   intros u v p
@@ -1343,7 +1343,7 @@ private lemma Walk.IsDirectedWalk.no_HasBlockingLeftSlot {G : CDMG Node} :
       | backwardE _ => exact h_dir.elim
       | bidir _ => exact h_dir.elim
 
-private lemma Walk.no_HasBlockingRightSlot_of_all_in_SCC {G : CDMG Node}
+lemma Walk.no_HasBlockingRightSlot_of_all_in_SCC {G : CDMG Node}
     {z : Node} :
     ∀ {u v : Node} (p : Walk G u v),
       (∀ x ∈ p.vertices, x ∈ G.Sc z) →
@@ -1392,7 +1392,7 @@ private lemma Walk.no_HasBlockingRightSlot_of_all_in_SCC {G : CDMG Node}
       show x ∈ u :: p'.vertices
       exact List.mem_cons.mpr (Or.inr hx)
 
-private lemma Walk.IsDirectedWalk.interior_not_blockable {G : CDMG Node}
+lemma Walk.IsDirectedWalk.interior_not_blockable {G : CDMG Node}
     {z : Node} {u v : Node} (p : Walk G u v) (hp_dir : p.IsDirectedWalk)
     (hp_SCC : ∀ x ∈ p.vertices, x ∈ G.Sc z) :
     ∀ (k : ℕ), 1 ≤ k → k < p.length →
@@ -1430,7 +1430,7 @@ private lemma Walk.IsDirectedWalk.interior_not_blockable {G : CDMG Node}
 --      `IsDirectedWalk.interior_not_blockable`, combining (1), (2), and
 --      the existing `IsBackwardDirectedWalk.interior_not_collider`.
 
-private lemma Walk.IsBackwardDirectedWalk.no_HasBlockingRightSlot {G : CDMG Node} :
+lemma Walk.IsBackwardDirectedWalk.no_HasBlockingRightSlot {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsBackwardDirectedWalk →
       ∀ (k : ℕ), ¬ p.HasBlockingRightSlot k := by
   intros u v p
@@ -1451,7 +1451,7 @@ private lemma Walk.IsBackwardDirectedWalk.no_HasBlockingRightSlot {G : CDMG Node
           | k' + 1 => exact ih hp' k' h
       | bidir _ => exact h_back.elim
 
-private lemma Walk.no_HasBlockingLeftSlot_of_all_in_SCC {G : CDMG Node}
+lemma Walk.no_HasBlockingLeftSlot_of_all_in_SCC {G : CDMG Node}
     {z : Node} :
     ∀ {u v : Node} (p : Walk G u v),
       (∀ x ∈ p.vertices, x ∈ G.Sc z) →
@@ -1488,7 +1488,7 @@ private lemma Walk.no_HasBlockingLeftSlot_of_all_in_SCC {G : CDMG Node}
       show x ∈ u :: p'.vertices
       exact List.mem_cons.mpr (Or.inr hx)
 
-private lemma Walk.IsBackwardDirectedWalk.interior_not_blockable {G : CDMG Node}
+lemma Walk.IsBackwardDirectedWalk.interior_not_blockable {G : CDMG Node}
     {z : Node} {u v : Node} (p : Walk G u v) (hp_back : p.IsBackwardDirectedWalk)
     (hp_SCC : ∀ x ∈ p.vertices, x ∈ G.Sc z) :
     ∀ (k : ℕ), 1 ≤ k → k < p.length →
@@ -1508,13 +1508,13 @@ private lemma Walk.IsBackwardDirectedWalk.interior_not_blockable {G : CDMG Node}
 -- position 0 (when `i = 0`) or position `π.length` (when
 -- `j = π.length`) without needing to inspect π's local pattern there.
 
-private lemma Walk.refactor_IsCollider_zero_eq_False {G : CDMG Node} :
+lemma Walk.refactor_IsCollider_zero_eq_False {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), ¬ p.IsCollider 0
   | _, _, .nil _ _ => fun h => h
   | _, _, .cons _ _ (.nil _ _) => fun h => h
   | _, _, .cons _ _ (.cons _ _ _) => fun h => h
 
-private lemma Walk.refactor_IsCollider_length_eq_False {G : CDMG Node} :
+lemma Walk.refactor_IsCollider_length_eq_False {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), ¬ p.IsCollider p.length := by
   intros u v p
   induction p with
@@ -1530,12 +1530,12 @@ private lemma Walk.refactor_IsCollider_length_eq_False {G : CDMG Node} :
 -- Used in the splice-endpoint BLOCKABLE clauses to identify `vk` at the
 -- end-positions.
 
-private lemma Walk.vertices_zero_eq_source {G : CDMG Node} :
+lemma Walk.vertices_zero_eq_source {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.vertices[0]? = some u
   | _, _, .nil _ _ => rfl
   | _, _, .cons _ _ _ => rfl
 
-private lemma Walk.vertices_length_eq_target {G : CDMG Node} :
+lemma Walk.vertices_length_eq_target {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.vertices[p.length]? = some v := by
   intros u v p
   induction p with
@@ -1549,7 +1549,7 @@ private lemma Walk.vertices_length_eq_target {G : CDMG Node} :
 /-- At position `p.length` on `p.comp q`, the vertex is the midpoint
     `v` (the source of `q`, the target of `p`).  Used in the splice-
     endpoint cases to identify the merged vertex. -/
-private lemma Walk.vertices_comp_at_left_length {G : CDMG Node} :
+lemma Walk.vertices_comp_at_left_length {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w),
       (p.comp q).vertices[p.length]? = some v := by
   intros u v w p q
@@ -1561,7 +1561,7 @@ private lemma Walk.vertices_comp_at_left_length {G : CDMG Node} :
 
 /-- More general position-shift on a composition: at position
     `p.length + k` on `p.comp q`, the vertex equals `q.vertices[k]?`. -/
-private lemma Walk.vertices_comp_right_shift {G : CDMG Node} :
+lemma Walk.vertices_comp_right_shift {G : CDMG Node} :
     ∀ {u v w : Node} (p : Walk G u v) (q : Walk G v w) (k : ℕ),
       (p.comp q).vertices[p.length + k]? = q.vertices[k]? := by
   intros u v w p q k
