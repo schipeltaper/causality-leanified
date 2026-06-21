@@ -1,28 +1,53 @@
-% Claim proof file for row claim_3_22 -- "SigmaSeparationSymmetric".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Twin claim-proof file for row claim_3_22 -- "SigmaSeparationSymmetric"
+% under the `collider_side_aware` refactor (root: def_3_15).
 %
-% This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
-% `subfiles` package lets it render both standalone and as part of
-% `main.tex` via `\subfile{...}`.
+% This is the REFACTOR TWIN of `claim_3_22_proof_SigmaSeparationSymmetric.tex`.
+% The original sibling file stays in place untouched until Phase 7 cleanup,
+% at which point the cleanup script renames THIS file over the original.
+% The two files render the same mathematical claim with the same overall
+% proof strategy; the side-aware refactor changes only the *per-step
+% arrowhead-contribution reading* used in beats (III.a) and (III.b) below.
+% The LN block being proven is unchanged.
 %
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
+% Source of the proof framework: the original tex proof
+% `tex/claim_3_22_proof_SigmaSeparationSymmetric.tex` (beats I, II, III.c,
+% IV, V carried over essentially verbatim; beats III.a and III.b rewritten
+% to thread the side-aware reading through explicitly).
+%
+% Authoritative references for the side-aware reading:
+%   - `tex/def_3_15_CollidersAndNon.tex`, paragraphs "Encoding note: side-
+%     aware reading via a typed walk-step representation" and "Treatment
+%     of directed self-loops"; addition tag
+%     `[collider_side_aware_walkstep_predicates]`.
+%   - `leanification/Chapter3_GraphTheory/Section3_1/CDMG.lean:376`
+%     (`hL_irrefl : ∀ ⦃s : Sym2 Node⦄, s ∈ L → ¬ s.IsDiag`) — closes the
+%     L-disjunct vacuously at a directed self-loop.
+%   - `leanification/deviations.json`, manager-accepted deviation
+%     `collider_side_aware_at_self_loops` — fixes the canonical
+%     disambiguation at directed-self-loop steps.
 
 \documentclass[main]{subfiles}
 
 \begin{document}
-% ref: claim_3_22 (proof, with statement restated for readability)
+% ref: claim_3_22 (proof, with statement restated for readability; refactor twin)
 % title: SigmaSeparationSymmetric
 \def\rowref{claim\_3\_22}
 \phantomsection\label{claim_3_22}
+
+% Local macros for the side-aware encoding helpers used in beats (III.a)
+% and (III.b). Scoped to this file via `\providecommand` (no-op if the
+% identifier is later upstreamed into the shared preamble). Match the
+% Lean identifiers from `def_3_15` / `def_3_16` for grep-readability.
+\providecommand{\HeadAtTarget}{\mathrm{HeadAtTarget}}
+\providecommand{\HeadAtSource}{\mathrm{HeadAtSource}}
+\providecommand{\IsCollider}{\mathrm{IsCollider}}
+\providecommand{\IsNonCollider}{\mathrm{IsNonCollider}}
+\providecommand{\HasBlockingLeftSlot}{\mathrm{HasBlockingLeftSlot}}
+\providecommand{\HasBlockingRightSlot}{\mathrm{HasBlockingRightSlot}}
+\providecommand{\WalkStep}{\texttt{WalkStep}}
+\providecommand{\Node}{\texttt{Node}}
+\providecommand{\IsDiag}{\mathrm{IsDiag}}
+\providecommand{\Sym}{\mathrm{Sym}}
 
 % --- statement (restated, synced verbatim from
 % --- claim_3_22_statement_SigmaSeparationSymmetric.tex) -------------------
@@ -54,6 +79,23 @@ The proof has three main beats:
 \end{enumerate}
 The substantive content lives in beats (II) and (III): once walk reversal is set up as an involution that maps $C$-$\sigma$-blocked walks to $C$-$\sigma$-blocked walks (and back), the biconditional drops out by direct chase.
 
+The mathematical content of this proof is identical to that of the sibling original tex proof file
+\texttt{tex/claim\_3\_22\_proof\_SigmaSeparationSymmetric.tex}; the differences with the original
+lie entirely in beats (III.a) and (III.b), where the per-step arrowhead-contribution reading is the
+\emph{side-aware} one of \refrow{def_3_15}'s addition tag
+\texttt{[collider\_side\_aware\_walkstep\_predicates]} -- reading per-step head contributions off
+the typed walk-step's constructor-tagged channel and walk-traversal direction (forward-$E$ /
+backward-$E$ / bidirected-$L$), with an opposite-side $L$-channel re-firing disjunct that catches
+writing-mirror pairs and that is vacuously false at directed self-loops by \refrow{def_3_1}'s
+\texttt{hL\_irrefl} restriction.  The side-aware reading agrees pointwise with the literal
+stored-pair ``edge into $v_k$'' test of def \ref{def-edge-relations}, item~ii.\ on all walks that
+traverse no directed self-loop step, and refines it at directed-self-loop steps (cf.\ \refrow{def_3_15}'s
+``Treatment of directed self-loops'' paragraph; manager-accepted deviation
+\texttt{collider\_side\_aware\_at\_self\_loops}).  The walk-reversal involution and the $\sigma$-blocking
+disjunctive structure are unchanged, so beats (I), (II), (III.c), (IV), and (V) carry over from the
+original modulo a clarifying re-statement of beat (II)'s case-clauses in terms of the typed walk-
+step constructors.
+
 \medskip\noindent\textbf{(I) Unfold and reduce to one direction.}
 Throughout, fix $G = (J, V, E, L)$ a CDMG (def \ref{def-cdmg}) with $J = \emptyset$, and $A, B, C \ins V = J \cup V$. By def \ref{def:sigma_separation}, item~4, the abbreviation $A \sPerp_G B \given C$ is in scope and unfolds (under $J = \emptyset$, so $J \cup B = B$ and $J \cup A = A$) to
 \[
@@ -80,32 +122,38 @@ For $i \in \{0, 1, \dots, n - 1\}$, the walk constraint at slot $i$ of $\pi$ sta
     \;\lor\;
     \bigl(a_i = (v_{i+1}, v_i) \;\land\; a_i \in E\bigr).
 \]
-The slot $i$ of $\pi$ contributes an edge $a_i \in E \cup L$ to the walk; we define the reversed edge $a_i^*$ at slot $n - 1 - i$ of $\pi^*$ as follows, by case-analysis on which disjunct of the walk constraint fires at slot $i$ of $\pi$:
+The slot $i$ of $\pi$ contributes an edge $a_i \in E \cup L$ to the walk; the typed encoding records, in addition to the stored ordered pair, the \emph{channel and walk-traversal direction} via one of three constructor tags --- one tag per disjunct of the walk constraint, plus a third tag for the bidirected $L$-channel:
 \begin{itemize}
-    \item[(F$_E$)] If $a_i = (v_i, v_{i+1}) \in E$ (directed edge of $G$ with tail $v_i$ and head $v_{i+1}$, traversed forwards from $v_i$ to $v_{i+1}$ on $\pi$), set
+    \item[(F$_E$)] The first disjunct's $E$-instance ($a_i = (v_i, v_{i+1}) \in E$) corresponds to the constructor tag \texttt{forwardE}, encoding a directed graph-edge of $G$ with tail $v_i$ and head $v_{i+1}$, traversed forwards $v_i \to v_{i+1}$ on $\pi$.
+    \item[(B$_E$)] The second disjunct ($a_i = (v_{i+1}, v_i) \in E$) corresponds to the constructor tag \texttt{backwardE}, encoding a directed graph-edge with tail $v_{i+1}$ and head $v_i$, traversed backwards $v_i \leftarrow v_{i+1}$ on $\pi$ (i.e.\ in the walk-traversal direction $v_i \to v_{i+1}$).
+    \item[(L)] The first disjunct's $L$-instance ($a_i = (v_i, v_{i+1}) \in L$, equivalently $s(v_i, v_{i+1}) \in L$ with $L$ stored as $\Sym_2$-typed unordered pairs per def \ref{def-cdmg}) corresponds to the constructor tag \texttt{bidir}, encoding a bidirected graph-edge with arrowheads at both endpoints.
+\end{itemize}
+We define the reversed edge $a_i^*$ at slot $n - 1 - i$ of $\pi^*$ as follows, by case-analysis on which constructor tag is recorded at slot $i$ of $\pi$:
+\begin{itemize}
+    \item[(F$_E$)] If the slot is a \texttt{forwardE} step with $a_i = (v_i, v_{i+1}) \in E$, set
         \[
             a_i^* := (v_i, v_{i+1}) \in E,
         \]
-        i.e.\ the \emph{same} directed graph-edge, but now occupying slot $n - 1 - i$ of $\pi^*$ between the nodes $v_{i+1}$ (left) and $v_i$ (right). The walk constraint of def \ref{def:walks}, item~i.\ at slot $n - 1 - i$ of $\pi^*$ is then satisfied via its \emph{second} disjunct ($a_i^* = (\text{right-node}, \text{left-node}) = (v_i, v_{i+1}) \in E$); a directed graph-edge that was traversed forwards on $\pi$ is read backwards on $\pi^*$.
-    \item[(B$_E$)] If $a_i = (v_{i+1}, v_i) \in E$ (directed graph-edge with tail $v_{i+1}$ and head $v_i$, traversed backwards from $v_i$ to $v_{i+1}$ on $\pi$), set
+        the \emph{same} directed graph-edge, but now occupying slot $n - 1 - i$ of $\pi^*$ between the nodes $v_{i+1}$ (left) and $v_i$ (right). The walk constraint of def \ref{def:walks}, item~i.\ at slot $n - 1 - i$ of $\pi^*$ is then satisfied via its \emph{second} disjunct ($a_i^* = (\text{right-node}, \text{left-node}) = (v_i, v_{i+1}) \in E$), i.e.\ the constructor tag at slot $n - 1 - i$ of $\pi^*$ is \texttt{backwardE}: a directed graph-edge that was traversed forwards on $\pi$ is read backwards on $\pi^*$.
+    \item[(B$_E$)] If the slot is a \texttt{backwardE} step with $a_i = (v_{i+1}, v_i) \in E$, set
         \[
             a_i^* := (v_{i+1}, v_i) \in E,
         \]
-        i.e.\ the same directed graph-edge, now occupying slot $n - 1 - i$ of $\pi^*$ between $v_{i+1}$ (left) and $v_i$ (right). The walk constraint at slot $n - 1 - i$ of $\pi^*$ is satisfied via its \emph{first} disjunct ($a_i^* = (\text{left-node}, \text{right-node}) = (v_{i+1}, v_i) \in E \subseteq E \cup L$); a directed graph-edge traversed backwards on $\pi$ becomes one traversed forwards on $\pi^*$.
-    \item[(L)] If $a_i = (v_i, v_{i+1}) \in L$ (bidirected graph-edge of $G$), set
+        the same directed graph-edge, now occupying slot $n - 1 - i$ of $\pi^*$ between $v_{i+1}$ (left) and $v_i$ (right). The walk constraint at slot $n - 1 - i$ of $\pi^*$ is satisfied via its \emph{first} disjunct ($a_i^* = (\text{left-node}, \text{right-node}) = (v_{i+1}, v_i) \in E \subseteq E \cup L$), so the constructor tag at slot $n - 1 - i$ of $\pi^*$ is \texttt{forwardE}: a directed graph-edge traversed backwards on $\pi$ becomes one traversed forwards on $\pi^*$.
+    \item[(L)] If the slot is a \texttt{bidir} step with $a_i \in L$ stored as $s(v_i, v_{i+1}) \in L$, set
         \[
-            a_i^* := (v_{i+1}, v_i) \in L.
+            a_i^* := s(v_{i+1}, v_i) \in L = s(v_i, v_{i+1}) \in L,
         \]
-        Here we use the standing convention of def \ref{def-cdmg} that the bidirected-edge set $L$ consists of unordered (symmetric) pairs of nodes: if $(v_i, v_{i+1}) \in L$ then $(v_{i+1}, v_i) \in L$. (Equivalently, $L$ is closed under the swap $(u, w) \leftrightarrow (w, u)$; in the LN-typed graph-edge set, an $L$-edge is unoriented.) The walk constraint at slot $n - 1 - i$ of $\pi^*$ is satisfied via its first disjunct ($a_i^* = (v_{i+1}, v_i) \in L \subseteq E \cup L$).
+        using the canonical $\Sym_2$ identification $s(v_{i+1}, v_i) = s(v_i, v_{i+1})$ (def \ref{def-cdmg}: $L$ is stored as unordered pairs over $V$). The walk constraint at slot $n - 1 - i$ of $\pi^*$ is satisfied via its first disjunct ($a_i^* \in L \subseteq E \cup L$, with left-node $v_{i+1}$ and right-node $v_i$), so the constructor tag at slot $n - 1 - i$ of $\pi^*$ is again \texttt{bidir}: a bidirected graph-edge is bidirected in both directions.
 \end{itemize}
-The reversed walk is then the tuple
+At the constructor-tag level the reversal acts as the involution \texttt{forwardE} $\leftrightarrow$ \texttt{backwardE}, \texttt{bidir} $\leftrightarrow$ \texttt{bidir}. The reversed walk is then the tuple
 \[
     \pi^* \;:=\; (v_n, \; a_{n-1}^*, \; v_{n-1}, \; a_{n-2}^*, \; \dots, \; a_1^*, \; v_1, \; a_0^*, \; v_0),
 \]
 i.e.\ the same node sequence read in reverse, paired with the slot-by-slot edge construction above. By the per-slot verification, $\pi^*$ satisfies the walk constraint of def \ref{def:walks}, item~i.\ at each of its $n$ slots, so $\pi^*$ is a walk in $G$ from $v_n$ to $v_0$.
 
 \smallskip\noindent\emph{Involution.}
-Each of the three cases above is its own inverse: applying the construction once produces an edge whose ``forward'' vs.\ ``backward'' traversal is flipped, and applying it a second time flips it back. Concretely, in case (F$_E$) the reverse of $\pi^*$ at slot $n - 1 - (n - 1 - i) = i$ is again $a_i = (v_i, v_{i+1}) \in E$ (we read $\pi^*$'s slot $n - 1 - i$, whose stored edge is $(v_i, v_{i+1}) \in E$, in case (B$_E$) of the reversal construction applied to $\pi^*$ -- the second-disjunct walk-constraint case -- and recover the first-disjunct configuration of the original $\pi$). Cases (B$_E$) and (L) are analogous (the L case using $((v_{i+1}, v_i)$ swapped $) = (v_i, v_{i+1})$). Hence $(\pi^*)^* = \pi$ on the nose, so $\pi \mapsto \pi^*$ is an involution on the set of walks in $G$.
+Each of the three cases above is its own inverse at the constructor-tag level: applying the construction once flips the constructor tag (\texttt{forwardE} $\leftrightarrow$ \texttt{backwardE}; \texttt{bidir} $\leftrightarrow$ \texttt{bidir}) and rewrites the stored pair / $\Sym_2$-witness accordingly, and applying it a second time flips it back. Concretely, in case (F$_E$) the reverse of $\pi^*$ at slot $n - 1 - (n - 1 - i) = i$ is again $a_i = (v_i, v_{i+1}) \in E$ (we read $\pi^*$'s slot $n - 1 - i$, whose stored edge is $(v_i, v_{i+1}) \in E$ with constructor tag \texttt{backwardE}, in case (B$_E$) of the reversal construction applied to $\pi^*$, and recover the first-disjunct/\texttt{forwardE} configuration of the original $\pi$). Cases (B$_E$) and (L) are analogous (the L case using the $\Sym_2$ identification $s(v_{i+1}, v_i) = s(v_i, v_{i+1})$ canonically). Hence $(\pi^*)^* = \pi$ on the nose, so $\pi \mapsto \pi^*$ is an involution on the set of walks in $G$.
 
 \smallskip\noindent\emph{Bijection between walk-spaces.}
 For fixed source-set $A$ and target-set $B$, the involution restricts to a bijection between
@@ -132,59 +180,87 @@ By construction (II), the node at position $k$ on $\pi$ -- namely $v_k$ -- is th
     \item slot $n - k - 1$ of $\pi^*$ corresponds to slot $n - 1 - (n - k - 1) = k$ of $\pi$ (i.e.\ to $a_k$, the right-incident slot at position $k$ on $\pi$), with the edge stored as $a_k^*$ per case (F$_E$)/(B$_E$)/(L) above;
     \item slot $n - k$ of $\pi^*$ corresponds to slot $n - 1 - (n - k) = k - 1$ of $\pi$ (i.e.\ to $a_{k-1}$, the left-incident slot at position $k$ on $\pi$), with the edge stored as $a_{k-1}^*$.
 \end{itemize}
-In words: the left-incident slot of $\pi^*$ at position $n - k$ is the reversal of the right-incident slot of $\pi$ at position $k$, and the right-incident slot of $\pi^*$ at position $n - k$ is the reversal of the left-incident slot of $\pi$ at position $k$. The walk-incident index sets at position $k$ on $\pi$ and at position $n - k$ on $\pi^*$ are therefore in canonical bijection (with the two slots swapped).
+In words: the left-incident slot of $\pi^*$ at position $n - k$ is the reversal of the right-incident slot of $\pi$ at position $k$, and the right-incident slot of $\pi^*$ at position $n - k$ is the reversal of the left-incident slot of $\pi$ at position $k$. The walk-incident index sets at position $k$ on $\pi$ and at position $n - k$ on $\pi^*$ are therefore in canonical bijection (with the two slots swapped). Symbolically, abbreviating the walk-incident slots at position $k$ of $\pi$ as the typed pair $(s_{k-1}, s_k)$ (per the typed walk-step convention of \refrow{def_3_4}), the walk-incident slots at position $n - k$ of $\pi^*$ are $(s_k^*, s_{k-1}^*)$, where $s_j^*$ denotes the per-slot reversal of $s_j$.
 
 \smallskip\noindent\emph{(III.a) Collider invariance.}
-We show: position $k$ is a collider on $\pi$ (def \ref{def:collider_noncollider}, item~ii.) iff position $n - k$ is a collider on $\pi^*$.
+We show: position $k$ is a collider on $\pi$ (\refrow{def_3_15}, item~ii., under the side-aware reading committed to by the addition tag \texttt{[collider\_side\_aware\_walkstep\_predicates]}) iff position $n - k$ is a collider on $\pi^*$ in the same sense.
 
-Per def \ref{def:collider_noncollider}, item~ii., position $k$ is a collider on $\pi$ iff $\mathrm{ah}_\pi(k) = 2$, i.e.\ both walk-incident edges at position $k$ -- $a_{k-1}$ (slot $k - 1$, present when $k \ge 1$) and $a_k$ (slot $k$, present when $k \le n - 1$) -- are ``edges into $v_k$'' in the sense of def \ref{def:collider_noncollider} (the formal predicate from def \ref{def-edge-relations}, item~ii.: ``$a_i \in E$ with right-component $v_k$, or $a_i \in L$ with either component $v_k$'').
-
-We must show that, under the bijection of walk-incident slots described above, ``edge into $v_k$ at slot $k - 1$ of $\pi$'' translates to ``edge into $v_k$ at slot $n - k$ of $\pi^*$'' (the corresponding reversed-slot), and similarly slot $k$ of $\pi$ translates to slot $n - k - 1$ of $\pi^*$. We check each of the three case-clauses (F$_E$), (B$_E$), (L) of the reversal construction:
+Per \refrow{def_3_15}, item~ii., position $k$ is a collider on $\pi$ iff $\mathrm{ah}_\pi(k) = 2$, i.e.\ both walk-incident edges at position $k$ -- $a_{k-1}$ (slot $k - 1$, present when $k \ge 1$) and $a_k$ (slot $k$, present when $k \le n - 1$) -- contribute an arrowhead at $v_k$. Under the side-aware reading the per-step contribution is read off the typed walk-step's constructor tag and walk-traversal direction (\refrow{def_3_15}, ``Encoding note: side-aware reading via a typed walk-step representation'' paragraph). The relevant predicates are the two per-step helpers:
 \begin{itemize}
-    \item \emph{Case (F$_E$) at slot $i$ of $\pi$: $a_i = (v_i, v_{i+1}) \in E$.}
-        For $\pi$: $a_i$ is an edge into $v_k$ iff its $E$-clause fires with second component $v_k$, iff $v_{i+1} = v_k$. (This happens at $i = k - 1$, giving an edge into $v_k$ at slot $k - 1$.)
-        For $\pi^*$ at slot $n - 1 - i$: $a_i^* = (v_i, v_{i+1}) \in E$, still a directed graph-edge, occupying slot $n - 1 - i$ of $\pi^*$ between the nodes $v_{i+1}$ (left) and $v_i$ (right). The right-component of $a_i^*$, in the sense of the $E$-clause of def \ref{def-edge-relations}, item~ii., is $v_{i+1}$ (the second component of the stored ordered pair). So $a_i^*$ is an edge into $v_k$ at $\pi^*$'s position $n - k$ iff $v_{i+1} = v_k$, exactly as for $\pi$. Both walks register the same arrowhead at $v_k$.
-    \item \emph{Case (B$_E$) at slot $i$ of $\pi$: $a_i = (v_{i+1}, v_i) \in E$.}
-        For $\pi$: $a_i$ is an edge into $v_k$ iff $v_i = v_k$. (This happens at $i = k$, giving an edge into $v_k$ at slot $k$.)
-        For $\pi^*$ at slot $n - 1 - i$: $a_i^* = (v_{i+1}, v_i) \in E$, with right-component $v_i$. So $a_i^*$ is an edge into $v_k$ at $\pi^*$'s position $n - k$ iff $v_i = v_k$, exactly as for $\pi$.
-    \item \emph{Case (L) at slot $i$ of $\pi$: $a_i \in L$.}
-        For $\pi$: $a_i$ is an edge into $v_k$ iff its $L$-clause fires, i.e.\ $v_k$ is one of $a_i$'s two endpoints in $L$. By symmetry of $L$, this depends only on the underlying bidirected graph-edge -- a property invariant under the swap performed by case (L).
-        For $\pi^*$: $a_i^* = (v_{i+1}, v_i) \in L$ (same bidirected graph-edge as $a_i$, with the ordered-pair writing swapped). The $L$-clause then likewise fires iff $v_k$ is an endpoint -- the same condition.
+    \item ``$s$ contributes an arrowhead on its walk-traversal \emph{target} side'', written $\HeadAtTarget(s)$, which fires iff (a) $s$'s constructor tag is \texttt{forwardE} (a directed edge $(\text{source}, \text{target}) \in E$ traversed forwards has its head at the target), or (b) $s$'s constructor tag is \texttt{bidir} (a bidirected edge has heads at both endpoints), or (c) $s$'s constructor tag is \texttt{backwardE} \emph{and} the same stored pair simultaneously lies in $L$ (the writing-mirror re-firing disjunct $s(\text{source}, \text{target}) \in L$);
+    \item ``$s$ contributes an arrowhead on its walk-traversal \emph{source} side'', written $\HeadAtSource(s)$, which is the symmetric predicate: it fires iff $s$'s constructor tag is \texttt{backwardE}, or \texttt{bidir}, or \texttt{forwardE} with the writing-mirror re-firing disjunct $s(\text{source}, \text{target}) \in L$.
 \end{itemize}
-In each case, ``$a_i$ is an edge into $v_k$ in $G$ along $\pi$'' is equivalent to ``$a_i^*$ is an edge into $v_k$ in $G$ along $\pi^*$ at the corresponding reversed slot''.
+At position $k$ on $\pi$ with walk-incident slots $(s_{k-1}, s_k)$, the node $v_k$ is the \emph{target} index of $s_{k-1}$ (the left-incident slot terminates at $v_k$) and the \emph{source} index of $s_k$ (the right-incident slot starts at $v_k$). Therefore the side-aware collider condition $\mathrm{ah}_\pi(k) = 2$ at an interior position $1 \le k \le n - 1$ reads, exactly,
+\begin{equation}
+    \IsCollider_\pi(k)
+    \quad\iff\quad
+    \HeadAtTarget(s_{k-1}) \;\land\; \HeadAtSource(s_k). \tag{$\ddagger$}
+\end{equation}
+(At end-positions $k \in \{0, n\}$ at most one of the two walk-incident slots exists, so $\mathrm{ah}_\pi(k) \le 1$ and the position is automatically a non-collider; the formula above is consistent with the side-aware classifier returning \emph{False} structurally at end-positions, since the relevant conjunct simply has no walk-incident slot to query.)
 
-Combining over the two walk-incident slots at position $k$ on $\pi$ (and at position $n - k$ on $\pi^*$), we get
+We need a per-step reversal-invariance lemma. Let $s : \WalkStep G u v$ be a typed walk-step (with walk-traversal source $u$ and target $v$), and let $s^* : \WalkStep G v u$ denote its per-slot reversal as constructed in (II). The constructor-tag flip from (II) gives, on each branch:
+\begin{itemize}
+    \item If $s$ is \texttt{forwardE} (stored pair $(u, v) \in E$), then $s^*$ is \texttt{backwardE} (stored pair $(u, v) \in E$, viewed at type indices $v \to u$ now). Then $\HeadAtTarget(s^*)$ (asking for a head at the new target $u$) reads, by the \texttt{backwardE} branch's clause (c)-mirror, the writing-mirror disjunct at the new step's source/target indices: $s(v, u) \in L$. By the canonical $\Sym_2$ identity $s(v, u) = s(u, v)$ (def \ref{def-cdmg}: $L$ is stored as unordered pairs), this equals $s(u, v) \in L$. On the original step's $\HeadAtSource(s)$ side, the \texttt{forwardE} branch's clause (c) reads $s(u, v) \in L$. \emph{Match}: $\HeadAtTarget(s^*) \iff \HeadAtSource(s)$. Symmetrically $\HeadAtSource(s^*)$ on the \texttt{backwardE} branch reads True; $\HeadAtTarget(s)$ on the \texttt{forwardE} branch reads True; match.
+    \item If $s$ is \texttt{backwardE} (stored pair $(v, u) \in E$ in the original type-indexing $u \to v$, equivalently a directed edge $v \to u$ in $G$), then $s^*$ is \texttt{forwardE} (stored pair $(v, u) \in E$, viewed at type indices $v \to u$). Then $\HeadAtTarget(s^*)$ on the \texttt{forwardE} branch reads True; $\HeadAtSource(s)$ on the \texttt{backwardE} branch reads True; match. Symmetrically $\HeadAtSource(s^*)$ on the \texttt{forwardE} branch's clause (c) reads $s(v, u) \in L$, and $\HeadAtTarget(s)$ on the \texttt{backwardE} branch's clause (c)-mirror reads $s(u, v) \in L = s(v, u) \in L$ (by $\Sym_2$); match.
+    \item If $s$ is \texttt{bidir} (stored witness $s(u, v) \in L$), then $s^*$ is \texttt{bidir} (stored witness $s(v, u) \in L = s(u, v) \in L$). All four readings ($\HeadAtTarget(s^*)$, $\HeadAtSource(s^*)$, $\HeadAtTarget(s)$, $\HeadAtSource(s)$) reduce to \emph{True} on their respective \texttt{bidir} branches; match.
+\end{itemize}
+Combining the three cases, we have the per-step reversal-invariance lemma:
+\begin{equation}
+    \HeadAtTarget(s^*) \;\iff\; \HeadAtSource(s)
+    \qquad\text{and}\qquad
+    \HeadAtSource(s^*) \;\iff\; \HeadAtTarget(s),
+    \tag{rev}
+\end{equation}
+the equivalence in each constructor branch holding either by reflection ($\texttt{bidir}$, or the two ``always True'' clauses) or by the $\Sym_2$-canonical identity $s(u, v) = s(v, u)$ on the writing-mirror $L$-disjunct.
+
+We now combine $(\ddagger)$, the position-shift bookkeeping, and (rev) to prove collider invariance. Fix a position $k$ on $\pi$.
+\begin{itemize}
+    \item \emph{Interior case $1 \le k \le n - 1$.} The walk-incident slots at position $k$ on $\pi$ are $(s_{k-1}, s_k)$; at position $n - k$ on $\pi^*$ they are $(s_k^*, s_{k-1}^*)$ (per the position-shift bookkeeping above: the left-incident slot of $\pi^*$ at position $n - k$ is the reversal of the right-incident slot $s_k$ of $\pi$ at position $k$, and the right-incident slot of $\pi^*$ at position $n - k$ is the reversal of the left-incident slot $s_{k-1}$ of $\pi$ at position $k$). The node $v_k$ on $\pi^*$ is the target index of the new left-incident slot $s_k^*$ and the source index of the new right-incident slot $s_{k-1}^*$ (just as it was target of $s_{k-1}$ and source of $s_k$ on $\pi$; the role-swap follows from the slot-swap under reversal). Therefore, by $(\ddagger)$ applied at position $n - k$ on $\pi^*$,
+    \[
+        \IsCollider_{\pi^*}(n - k)
+        \;\iff\; \HeadAtTarget(s_k^*) \;\land\; \HeadAtSource(s_{k-1}^*)
+        \;\overset{\mathrm{(rev)}}{\iff}\; \HeadAtSource(s_k) \;\land\; \HeadAtTarget(s_{k-1})
+        \;\overset{\mathrm{And.comm}}{\iff}\; \HeadAtTarget(s_{k-1}) \;\land\; \HeadAtSource(s_k)
+        \;\overset{(\ddagger)}{\iff}\; \IsCollider_\pi(k).
+    \]
+    \item \emph{End-position case $k \in \{0, n\}$.} Both ends map to each other under the position-shift ($k = 0$ on $\pi$ corresponds to $n - 0 = n$ on $\pi^*$ and vice versa). Both are non-collider end-positions on each respective walk by the LN's count bound $\mathrm{ah}_{\cdot}(k) \le 1$ at an end-position (\refrow{def_3_15}'s ``Arrowhead count at a position'' paragraph), so $\IsCollider_\pi(k)$ and $\IsCollider_{\pi^*}(n - k)$ are both False; the biconditional holds trivially.
+\end{itemize}
+Combining the two cases: position $k$ is a collider on $\pi$ iff position $n - k$ is a collider on $\pi^*$. By the side-aware ``non-collider iff arrowhead count $\le 1$'' classification (\refrow{def_3_15}, item~i.), which is the definitional negation of the side-aware collider predicate on the in-range fragment $\{0, 1, \dots, n\}$, the corresponding non-collider statement also follows:
 \[
-    \mathrm{ah}_\pi(k) \;=\; \mathrm{ah}_{\pi^*}(n - k).
+    \IsNonCollider_\pi(k) \;\iff\; \IsNonCollider_{\pi^*}(n - k).
 \]
-In particular $\mathrm{ah}_\pi(k) = 2$ iff $\mathrm{ah}_{\pi^*}(n - k) = 2$, so position $k$ is a collider on $\pi$ iff position $n - k$ is a collider on $\pi^*$ (def \ref{def:collider_noncollider}, item~ii.). The same equation $\mathrm{ah}_\pi(k) = \mathrm{ah}_{\pi^*}(n - k)$ gives the corresponding non-collider statement $\mathrm{ah}_\pi(k) \le 1 \iff \mathrm{ah}_{\pi^*}(n - k) \le 1$ (def \ref{def:collider_noncollider}, item~i.), which we use below.
+
+\smallskip\noindent\emph{Self-loop addendum (manager-accepted deviation \texttt{collider\_side\_aware\_at\_self\_loops}).}
+At a walk-incident directed self-loop step $a_i = (v, v) \in E$ with $v_i = v_{i+1} = v$, the literal stored-pair test ``$a_i$ is an edge into $v_k$'' of def \ref{def-edge-relations}, item~ii.\ fires unconditionally at both adjacent positions $k \in \{i, i + 1\}$ for which $v_k = v$ (its $E$-clause's $e_2 = v_k$ condition reduces to $v = v$). The side-aware reading is strictly finer: at a self-loop step encoded as \texttt{forwardE} (type \texttt{WalkStep}$\,G\,v\,v$), $\HeadAtTarget$ on the \texttt{forwardE} branch reads True (the head is at the walk-traversal target side), while $\HeadAtSource$ reads $s(v, v) \in L$ via the writing-mirror disjunct. By \refrow{def_3_1}'s irreflexivity restriction \texttt{hL\_irrefl} on the bidirected channel ($\texttt{leanification/Chapter3\_GraphTheory/Section3\_1/CDMG.lean:376}$: $\forall \llbracket s : \Sym_2\,\Node \rrbracket,\ s \in L \to \neg\, s.\IsDiag$), the $\Sym_2$-diagonal witness $s(v, v)$ cannot lie in $L$. Hence the writing-mirror disjunct is \emph{vacuously false} at a self-loop, $\HeadAtSource$ on a \texttt{forwardE} self-loop step reduces to False, and the self-loop contributes exactly $1$ to $\mathrm{ah}_\pi(k)$ at its walk-traversal target position ($k = i + 1$) and $0$ at its walk-traversal source position ($k = i$). The same reading applies symmetrically to a self-loop encoded as \texttt{backwardE}, with the head moved to the source side.
+
+Under reversal, the self-loop's constructor tag flips per (II): a \texttt{forwardE} self-loop step in $\pi$ at slot $i$ becomes a \texttt{backwardE} step in $\pi^*$ at slot $n - 1 - i$, and the $\HeadAtTarget$ / $\HeadAtSource$ counters at the two adjacent positions transpose accordingly. Both adjacent positions are the same physical node $v$ (since $v_i = v_{i+1} = v$), so the side-aware count $\mathrm{ah}_{\pi}(k) = \mathrm{ah}_{\pi^*}(n - k)$ remains balanced across reversal: whichever adjacent position carried the self-loop's $1$ on $\pi$ now carries the self-loop's $1$ on $\pi^*$ at the position-shifted index, with no double-counting and no artifact. In particular, the equality $\mathrm{ah}_\pi(k) = \mathrm{ah}_{\pi^*}(n - k)$ derived in the interior-case argument above goes through unchanged at self-loop positions: the per-step reversal-invariance lemma (rev) absorbs the self-loop case via the same constructor-tag-flip plus $\Sym_2$-canonical identity, with the writing-mirror disjunct vacuously false on both sides of the biconditional by \texttt{hL\_irrefl}. This is consistent with the canonical count of $1$ at a self-loop step recorded in \refrow{def_3_15}'s ``Treatment of directed self-loops'' paragraph.
 
 \smallskip\noindent\emph{(III.b) Blockable non-collider invariance.}
-We show: position $k$ is a blockable non-collider on $\pi$ (def \ref{def:unblockable_noncollider}, paragraph ``Blockable non-collider on $\pi$'') iff position $n - k$ is a blockable non-collider on $\pi^*$.
+We show: position $k$ is a blockable non-collider on $\pi$ (\refrow{def_3_16}, paragraph ``Blockable non-collider on $\pi$'', under the side-aware reading committed to by \refrow{def_3_15}'s addition tag) iff position $n - k$ is a blockable non-collider on $\pi^*$.
 
-Per def \ref{def:unblockable_noncollider}, position $k$ is a blockable non-collider on $\pi$ iff (i)~it is a non-collider on $\pi$ (def \ref{def:collider_noncollider}, item~i.), AND (ii)~the blockable disjunction holds at $k$ on $\pi$:
+Per \refrow{def_3_16}, position $k$ is a blockable non-collider on $\pi$ iff (i)~it is a non-collider on $\pi$ (\refrow{def_3_15}, item~i., side-aware reading), AND (ii)~the blockable disjunction holds at $k$ on $\pi$:
 \[
     k \in \{0, n\}
     \;\;\lor\;\;
-    \bigl(a_{k-1} = (v_k, v_{k-1}) \in E \;\land\; v_{k-1} \notin \Sc^G(v_k)\bigr)
+    \HasBlockingLeftSlot_\pi(k)
     \;\;\lor\;\;
-    \bigl(a_k = (v_k, v_{k+1}) \in E \;\land\; v_{k+1} \notin \Sc^G(v_k)\bigr).
+    \HasBlockingRightSlot_\pi(k),
 \]
+where the two helpers $\HasBlockingLeftSlot$ and $\HasBlockingRightSlot$ pattern-match on the walk-incident slot's constructor tag directly -- \emph{they do not consult any ``edge into $v_k$'' stored-pair test} -- and read $\HasBlockingLeftSlot_\pi(k) \iff a_{k-1} = (v_k, v_{k-1}) \in E \land v_{k-1} \notin \Sc^G(v_k)$ (slot $k - 1$ is a \texttt{backwardE} step with source $v_k$, target $v_{k-1}$, and the target lies outside $\Sc^G(v_k)$), respectively $\HasBlockingRightSlot_\pi(k) \iff a_k = (v_k, v_{k+1}) \in E \land v_{k+1} \notin \Sc^G(v_k)$ (slot $k$ is a \texttt{forwardE} step with source $v_k$, target $v_{k+1}$, and the target lies outside $\Sc^G(v_k)$). These two helpers are \emph{unchanged} between the original \refrow{def_3_16} encoding and the side-aware refactor (the refactor changes only the non-collider classifier referenced by clause (i)); they are net-zero under the refactor.
+
 We show invariance of clauses (i) and (ii) separately.
 \begin{itemize}
-    \item \emph{Clause (i) -- non-collider status} -- is invariant under the position-shift $k \leftrightarrow n - k$ by (III.a): $\mathrm{ah}_\pi(k) \le 1 \iff \mathrm{ah}_{\pi^*}(n - k) \le 1$.
-    \item \emph{Clause (ii) -- the blockable disjunction} -- we check each of the three disjuncts.
+    \item \emph{Clause (i) -- non-collider status} -- is invariant under the position-shift $k \leftrightarrow n - k$ by (III.a): $\IsNonCollider_\pi(k) \iff \IsNonCollider_{\pi^*}(n - k)$, where both classifiers are the side-aware \refrow{def_3_15}, item~i.\ predicate. (At a position $k$ adjacent to a directed self-loop, the side-aware non-collider classifier returns True at both the position on $\pi$ and the position-shifted index on $\pi^*$, since the side-aware self-loop classification is the strict refinement noted in the self-loop addendum to (III.a) and the count is reversal-invariant; the same is true on walks with no self-loops, where the side-aware and stored-pair readings coincide.)
+    \item \emph{Clause (ii) -- the blockable disjunction} -- we check each of the three disjuncts. Throughout, recall from the position-shift bookkeeping that the right-incident slot of $\pi$ at position $k$ (slot $k$, recorded edge $a_k$, constructor tag at that slot) corresponds under reversal to the left-incident slot of $\pi^*$ at position $n - k$ (slot $n - k - 1$, recorded edge $a_k^*$), with the constructor tag flipped per (II)'s rules (\texttt{forwardE} $\leftrightarrow$ \texttt{backwardE}; \texttt{bidir} $\leftrightarrow$ \texttt{bidir}). Symmetrically the left-incident slot of $\pi$ at $k$ becomes the right-incident slot of $\pi^*$ at $n - k$.
         \begin{itemize}
             \item \emph{End-position $k \in \{0, n\}$.} Under the position-shift $k \mapsto n - k$, the set $\{0, n\}$ is mapped to itself (with $0 \leftrightarrow n$), so $k \in \{0, n\}$ on $\pi$ iff $n - k \in \{0, n\}$ on $\pi^*$.
-            \item \emph{Outgoing E-walk-edge at slot $k - 1$ of $\pi$ ($a_{k-1} = (v_k, v_{k-1}) \in E$, with $v_{k-1} \notin \Sc^G(v_k)$).} This is configuration (B$_E$) of slot $k - 1$ of $\pi$ (with $v_{i+1} := v_k$ and $v_i := v_{k-1}$ in case (B$_E$)'s notation, the directed graph-edge being $(v_k, v_{k-1}) \in E$, tail $v_k$, head $v_{k-1}$, traversed backwards on $\pi$). Under reversal, case (B$_E$) sends slot $k - 1$ of $\pi$ to slot $n - 1 - (k - 1) = n - k$ of $\pi^*$, with stored edge $a_{k-1}^* = (v_k, v_{k-1}) \in E$. The first disjunct of the walk constraint at slot $n - k$ of $\pi^*$ then fires: $a_{k-1}^* = (v_k, v_{k-1}) = (\text{left-node at slot } n - k \text{ of } \pi^*, \text{right-node at slot } n - k \text{ of } \pi^*)$ -- because the left node of slot $n - k$ on $\pi^*$ is the position-$n - k$ node $v_k$ and the right node is the position-$(n - k + 1)$ node $v_{k-1}$ -- and lives in $E$. Reading this against the predicate ``outgoing E-walk-edge of $v_k$ at $\pi^*$'s position $n - k$ on the right-incident slot $n - k$'' from def \ref{def:unblockable_noncollider}: the predicate ``$a_i \in E$ with first component $v_k$'' fires for $a_{k-1}^*$ (its first component is $v_k$, by construction), so $a_{k-1}^*$ is the outgoing E-walk-edge of $v_k$ on the right-incident slot of $\pi^*$'s position $n - k$, with the other endpoint along $\pi^*$ being $v_{k-1}$ -- the same node as the other endpoint along $\pi$.
-
-            Conversely, an outgoing E-walk-edge of $v_k$ on the right-incident slot of $\pi^*$'s position $n - k$ -- i.e.\ $a_{k-1}^* = (v_k, v_{k-1}) \in E$ -- reverses (by involution) to the same directed graph-edge at slot $k - 1$ of $\pi$. Specifically, applying construction (II) to $\pi^*$ at slot $n - k$ via case (F$_E$) gives back $a_{k-1} = (v_k, v_{k-1}) \in E$ at slot $k - 1$ of $\pi$, with tail $v_k$ at the position-$k$ end -- precisely the original outgoing E-walk-edge on $\pi$. Hence the ``outgoing E-walk-edge of $v_k$ at position $k$ on the left-incident slot of $\pi$'' corresponds bijectively to the ``outgoing E-walk-edge of $v_k$ at position $n - k$ on the right-incident slot of $\pi^*$''.
-            \item \emph{Outgoing E-walk-edge at slot $k$ of $\pi$ ($a_k = (v_k, v_{k+1}) \in E$, with $v_{k+1} \notin \Sc^G(v_k)$).} This is configuration (F$_E$) of slot $k$ of $\pi$ (directed graph-edge $(v_k, v_{k+1}) \in E$, tail $v_k$, head $v_{k+1}$, traversed forwards on $\pi$). Under reversal, case (F$_E$) sends slot $k$ of $\pi$ to slot $n - 1 - k$ of $\pi^*$, with stored edge $a_k^* = (v_k, v_{k+1}) \in E$. At slot $n - 1 - k$ of $\pi^*$, the left node is $v_{k+1}$ and the right node is $v_k$; the second disjunct of the walk constraint fires: $a_k^* = (\text{right-node}, \text{left-node}) = (v_k, v_{k+1}) \in E$. Reading this against the predicate ``outgoing E-walk-edge of $v_k$ at $\pi^*$'s position $n - k$ on the left-incident slot $n - k - 1$'' from def \ref{def:unblockable_noncollider}: the predicate ``$a_i \in E$ with first component $v_k$'' fires for $a_k^*$ (its first component is $v_k$, by construction), so $a_k^*$ is the outgoing E-walk-edge of $v_k$ on the left-incident slot of $\pi^*$'s position $n - k$, with the other endpoint along $\pi^*$ being $v_{k+1}$ -- the same node as the other endpoint along $\pi$.
+            \item \emph{Left-slot disjunct on $\pi$: $\HasBlockingLeftSlot_\pi(k)$.} Suppose $a_{k-1} = (v_k, v_{k-1}) \in E$ and $v_{k-1} \notin \Sc^G(v_k)$, i.e.\ the slot $k - 1$ of $\pi$ has constructor tag \texttt{backwardE} with stored pair $(v_k, v_{k-1}) \in E$, source $v_{k-1}$ and target $v_k$ at the slot's typed indices. Per (II) case (B$_E$), slot $k - 1$ of $\pi$ reverses to slot $n - 1 - (k - 1) = n - k$ of $\pi^*$ with constructor tag \texttt{forwardE}, stored pair $(v_k, v_{k-1}) \in E$, source $v_k$ and target $v_{k-1}$ at the reversed slot's typed indices. At position $n - k$ on $\pi^*$, slot $n - k$ is the right-incident slot; its constructor tag is \texttt{forwardE} and its source is $v_k$, so the right-slot helper at $\pi^*$, position $n - k$, fires precisely when its target $v_{k-1}$ lies outside $\Sc^G(v_k)$ -- which is the same condition as on $\pi$ (since $\Sc^G(\cdot)$ is a property of $G$ alone). Therefore $\HasBlockingLeftSlot_\pi(k) \iff \HasBlockingRightSlot_{\pi^*}(n - k)$.
+            \item \emph{Right-slot disjunct on $\pi$: $\HasBlockingRightSlot_\pi(k)$.} Symmetric to the previous bullet via (II) case (F$_E$). Suppose $a_k = (v_k, v_{k+1}) \in E$ and $v_{k+1} \notin \Sc^G(v_k)$, i.e.\ slot $k$ of $\pi$ has constructor tag \texttt{forwardE} with stored pair $(v_k, v_{k+1}) \in E$, source $v_k$ and target $v_{k+1}$. Per (II) case (F$_E$), slot $k$ of $\pi$ reverses to slot $n - 1 - k$ of $\pi^*$ with constructor tag \texttt{backwardE}, stored pair $(v_k, v_{k+1}) \in E$, source $v_{k+1}$ and target $v_k$ at the reversed slot's typed indices. At position $n - k$ on $\pi^*$, slot $n - 1 - k = n - k - 1$ is the left-incident slot; its constructor tag is \texttt{backwardE} and its target (in the typed-walk-step indexing) is $v_k$, so the left-slot helper at $\pi^*$, position $n - k$, fires precisely when its source $v_{k+1}$ lies outside $\Sc^G(v_k)$ -- again the same condition as on $\pi$. Therefore $\HasBlockingRightSlot_\pi(k) \iff \HasBlockingLeftSlot_{\pi^*}(n - k)$.
         \end{itemize}
 \end{itemize}
-The disjunction at $k$ on $\pi$ -- end-position OR left-incident-slot outgoing E-walk-edge to a non-$\Sc^G(v_k)$ node OR right-incident-slot outgoing E-walk-edge to a non-$\Sc^G(v_k)$ node -- maps under the position-shift $k \leftrightarrow n - k$ to the disjunction at $n - k$ on $\pi^*$ -- end-position OR right-incident-slot outgoing E-walk-edge OR left-incident-slot outgoing E-walk-edge -- which is the \emph{same} three-disjunct, just with the two ``outgoing'' disjuncts in swapped order. The ``other endpoint $\notin \Sc^G(v_k)$'' clause attaches to the underlying graph-edge's other endpoint and to the node $v_k$ at the position, both of which transport verbatim under reversal; the membership predicate $\Sc^G(\cdot) = \Anc^G(\cdot) \cap \Desc^G(\cdot)$ (def \ref{def_3_5}, item~vii.) is a property of $G$ alone -- not of the walk -- and is therefore unaffected by reversal.
+Combining the three disjuncts: the blockable disjunction at $k$ on $\pi$ (end-position OR left-slot OR right-slot) is equivalent to the blockable disjunction at $n - k$ on $\pi^*$ (end-position OR \emph{right}-slot OR \emph{left}-slot), which is the same three-disjunct disjunction with the two interior disjuncts swapped in order. The ``other endpoint $\notin \Sc^G(v_k)$'' clause attaches to the underlying graph-edge's other endpoint and to the node $v_k$ at the position, both of which transport verbatim under reversal; the membership predicate $\Sc^G(\cdot) = \Anc^G(\cdot) \cap \Desc^G(\cdot)$ (def \ref{def_3_5}, item~vii.) is a property of $G$ alone -- not of the walk -- and is therefore unaffected by reversal.
 
-Combining: clause (i) and clause (ii) at $k$ on $\pi$ jointly transport, by (III.a) and the case-by-case check above, to clause (i) and clause (ii) at $n - k$ on $\pi^*$. Hence position $k$ is a blockable non-collider on $\pi$ iff position $n - k$ is a blockable non-collider on $\pi^*$.
+Combining: clause (i) and clause (ii) at $k$ on $\pi$ jointly transport, by (III.a) and the case-by-case check above, to clause (i) and clause (ii) at $n - k$ on $\pi^*$. Hence position $k$ is a (side-aware) blockable non-collider on $\pi$ iff position $n - k$ is a (side-aware) blockable non-collider on $\pi^*$.
 
 \smallskip\noindent\emph{(III.c) $C$-$\sigma$-blocking invariance.}
 We now show $(\dagger)$. Per def \ref{def:sigma_blocking}, $\pi$ is $C$-$\sigma$-blocked iff at least one of the following two existentials holds:
@@ -192,9 +268,9 @@ We now show $(\dagger)$. Per def \ref{def:sigma_blocking}, $\pi$ is $C$-$\sigma$
     \item[(B1)] there exists a position $k \in \{0, 1, \dots, n\}$ such that $k$ is a collider on $\pi$ and $v_k \notin \Anc^G(C)$;
     \item[(B2)] there exists a position $k \in \{0, 1, \dots, n\}$ such that $k$ is a blockable non-collider on $\pi$ and $v_k \in C$.
 \end{itemize}
-We must show the same disjunction holds for $\pi^*$.
+Both ``collider on $\pi$'' and ``blockable non-collider on $\pi$'' are read in the side-aware sense of \refrow{def_3_15} / \refrow{def_3_16} above; the $\sigma$-blocked predicate of def \ref{def:sigma_blocking} consumes whichever reading the side-aware refactor commits to, and the two existentials above are the verbatim side-aware unfolding. We must show the same disjunction holds for $\pi^*$.
 
-Suppose (B1) holds for $\pi$, with witness position $k$ and node $v_k$. By (III.a), position $n - k$ is a collider on $\pi^*$, and the node at position $n - k$ on $\pi^*$ is the same node $v_k$ (the node identity transports under reversal: $\pi^*$'s node-sequence is just $\pi$'s node-sequence read backwards). The condition $v_k \notin \Anc^G(C)$ is a condition on the node $v_k$ and on $G$ alone (def \ref{def_3_5}, item~iv.; the ancestor set in $G$ is independent of any walk), so it is unaffected by which walk we are considering. Hence position $n - k$ on $\pi^*$ is a collider with $v_k \notin \Anc^G(C)$, so (B1) holds for $\pi^*$ at position $n - k$.
+Suppose (B1) holds for $\pi$, with witness position $k$ and node $v_k$. By (III.a), position $n - k$ is a collider on $\pi^*$ (under the side-aware reading), and the node at position $n - k$ on $\pi^*$ is the same node $v_k$ (the node identity transports under reversal: $\pi^*$'s node-sequence is just $\pi$'s node-sequence read backwards). The condition $v_k \notin \Anc^G(C)$ is a condition on the node $v_k$ and on $G$ alone (def \ref{def_3_5}, item~iv.; the ancestor set in $G$ is independent of any walk), so it is unaffected by which walk we are considering. Hence position $n - k$ on $\pi^*$ is a collider with $v_k \notin \Anc^G(C)$, so (B1) holds for $\pi^*$ at position $n - k$.
 
 Suppose (B2) holds for $\pi$, with witness position $k$ and node $v_k$. By (III.b), position $n - k$ is a blockable non-collider on $\pi^*$, and the node at position $n - k$ on $\pi^*$ is $v_k$. The condition $v_k \in C$ is a condition on the node $v_k$ alone, so it transports verbatim. Hence (B2) holds for $\pi^*$ at position $n - k$.
 
