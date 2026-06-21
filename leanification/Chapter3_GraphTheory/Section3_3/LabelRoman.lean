@@ -22,67 +22,15 @@ statement at
 admitted when $v_i = v_j$) and expands the LN's case-(i)/(ii)
 discriminant explicitly.
 
-## Refactor pivot — from disprove to prove
-
-This row was previously *disproven* under the pre-refactor
-`def_3_15` semantics: the prior counter-example exploited the
-fact that `WalkStep.IsInto` fires for *both* endpoints of a
-directed self-loop encoded as `.forwardE` (by node-equality on
-type indices), so the case-(i) replacement at a self-loop
-introduced a spurious `IsCollider` at the boundary between the
-new path and the original suffix, breaking σ-openness.  Under
-the `collider_side_aware` refactor (`def_3_15` REPLACEMENT
-block) the side-aware predicates `refactor_HeadAtSource` /
-`refactor_HeadAtTarget` disambiguate via the WalkStep's
-constructor tag alone (no node-equality test).  For a
-`.forwardE _` step at a self-loop the source-side reads
-`False`, so the spurious collider is structurally eliminated.
-The prior counter-example is invalidated; this file therefore
-formalises the *positive* lemma direction (Manager B will
-discharge the `sorry` body in the proof phase).
-
-The deeper reason this restores LN provability (not merely
-"plausibility"): the LN's `lem:replace_walk` argument is a
-local σ-openness analysis at the splice boundary, which the LN
-informally reads by inspecting the *walk-traversal direction*
-of each adjacent step — exactly what the side-aware predicates
-encode at the type level via the WalkStep's source/target
-indices.  The pre-refactor `IsInto`-based reading conflated the
-two ends of a self-loop step (both source and target equal the
-loop vertex, so node-equality fires on both sides), creating an
-encoding-only collider with no LN counterpart in the walk's
-arrowhead pattern; the side-aware reading reads "is there an
-arrowhead at the walk-traversal source / target?" off the
-constructor tag alone, matching the LN's informal walk-diagram
-inspection step-for-step.  Under that matching, the LN's
-splice-boundary case analysis transports verbatim, and every
-splice $\pi'$ admitted by the LN's case-(i)/case-(ii)
-construction is σ-open in our Lean encoding.  Concretely the
-self-loop counter-example $\pi = (a \leftarrow b, b \to b)$,
-splice $\sigma_{ij} = (a \to b)$ giving
-$\pi' = (a \to b, b \to b)$, is no longer a counter-example:
-position 1 on $\pi'$ now has `HeadAtTarget = True` (from
-$a \to b$'s target) but `HeadAtSource = False` (from $b \to b$
-as `.forwardE`, whose walk-traversal-source side carries a
-tail), so $\pi'$ is *not* a collider at position 1 — exactly the
-classification the LN's walk-diagram inspection would give.
-
-## Side-aware predicates used in the signature
+## Side-aware predicates
 
 The σ-openness hypothesis on $\pi$ and the σ-openness
-conclusion on $\pi'$ both reference the REPLACEMENT predicate
-`Walk.refactor_IsSigmaOpenGiven`
-(`SigmaBlockedWalks.lean`, REPLACEMENT block).  This is
-load-bearing: until Phase 7 cleanup renames `refactor_*` to
-`*`, both the ORIGINAL and REPLACEMENT predicates coexist in
-scope, and an unqualified `IsSigmaOpenGiven` would resolve to
-the broken pre-refactor reading — under which the prior
-disproof's counter-example is still valid and the positive
-lemma is *false*.  Using the side-aware
-`refactor_IsSigmaOpenGiven` is what restores the lemma to
-provability and matches the canonical-tex semantics committed
-to by the addition tag
-`[collider_side_aware_walkstep_predicates]`.
+conclusion on $\pi'$ both reference `Walk.IsSigmaOpenGiven`
+(`SigmaBlockedWalks.lean`).  Its underlying `WalkStep`
+predicates `HeadAtSource` and `HeadAtTarget` read each step's
+arrowhead pattern off the constructor tag alone, so the
+splice-boundary σ-openness analysis transports verbatim from
+the LN's informal walk-diagram inspection.
 -/
 
 namespace Causality
@@ -97,7 +45,7 @@ namespace CDMG
 --   `Section3_3/SigmaSeparationSymmetric.lean:88` for the same block
 --   in `claim_3_22`, and `Section3_3/SigmaBlockedWalks.lean` for the
 --   same block in `def_3_17`.  The `CDMG`, `Walk`, `G.Sc`,
---   `refactor_IsSigmaOpenGiven`, `IsDirectedWalk`, and `Walk.reverse`
+--   `IsSigmaOpenGiven`, `IsDirectedWalk`, and `Walk.reverse`
 --   definitions used in the theorem signature are all parameterised
 --   over this same implicit binder block, so the theorem signature
 --   below auto-binds these binders into its type.
@@ -556,7 +504,7 @@ private lemma Walk.last_vertex_eq_target {G : CDMG Node} :
 private lemma Walk.refactor_IsCollider_comp_left {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), k < p1.length →
-      (p1.comp p2).refactor_IsCollider k = p1.refactor_IsCollider k := by
+      (p1.comp p2).IsCollider k = p1.IsCollider k := by
   induction p1 with
   | nil v hv =>
       intros p2 k hk
@@ -584,7 +532,7 @@ private lemma Walk.refactor_IsCollider_comp_left {G : CDMG Node}
               have hk' : k + 1 < (Walk.cons mid' s' p1'').length := by
                 simp [Walk.length] at hk ⊢
                 omega
-              simp only [Walk.comp, Walk.refactor_IsCollider]
+              simp only [Walk.comp, Walk.IsCollider]
               exact ih p2 (k + 1) hk'
 
 private lemma Walk.HasBlockingLeftSlot_comp_left {G : CDMG Node}
@@ -654,11 +602,11 @@ private lemma Walk.HasBlockingRightSlot_comp_left {G : CDMG Node}
 private lemma Walk.refactor_IsCollider_comp_right {G : CDMG Node}
     {u v w : Node} (p1 : Walk G u v) :
     ∀ (p2 : Walk G v w) (k : ℕ), p1.length < k →
-      (p1.comp p2).refactor_IsCollider k = p2.refactor_IsCollider (k - p1.length) := by
+      (p1.comp p2).IsCollider k = p2.IsCollider (k - p1.length) := by
   induction p1 with
   | nil v hv =>
       intros p2 k _
-      show p2.refactor_IsCollider k = p2.refactor_IsCollider (k - 0)
+      show p2.IsCollider k = p2.IsCollider (k - 0)
       rfl
   | cons mid s p1' ih =>
       intros p2 k hk
@@ -670,7 +618,7 @@ private lemma Walk.refactor_IsCollider_comp_right {G : CDMG Node}
                    k' + 1 - p1'.length := by
         simp only [Walk.length]; omega
       rw [h_sub]
-      simp only [Walk.comp, Walk.refactor_IsCollider]
+      simp only [Walk.comp, Walk.IsCollider]
       cases p1' with
       | nil _ _ =>
           cases p2 with
@@ -727,12 +675,12 @@ private lemma Walk.HasBlockingRightSlot_comp_right {G : CDMG Node}
 
 private lemma Walk.refactor_IsCollider_cast_target {G : CDMG Node} {u : Node}
     {v v' : Node} (h : v = v') (p : Walk G u v) (k : ℕ) :
-    (h ▸ p).refactor_IsCollider k = p.refactor_IsCollider k := by
+    (h ▸ p).IsCollider k = p.IsCollider k := by
   subst h; rfl
 
 private lemma Walk.refactor_IsCollider_cast_source {G : CDMG Node} {v : Node}
     {u u' : Node} (h : u = u') (p : Walk G u v) (k : ℕ) :
-    (h ▸ p).refactor_IsCollider k = p.refactor_IsCollider k := by
+    (h ▸ p).IsCollider k = p.IsCollider k := by
   subst h; rfl
 
 private lemma Walk.HasBlockingLeftSlot_cast_target {G : CDMG Node} {u : Node}
@@ -758,13 +706,13 @@ private lemma Walk.HasBlockingRightSlot_cast_source {G : CDMG Node} {v : Node}
 -- ## Splice-interior helper: directed walk interior is non-collider
 --
 -- For a `.IsDirectedWalk` p of length ≥ 2, every interior position
--- k ∈ [1, p.length - 1] satisfies `p.refactor_IsCollider k = False`,
+-- k ∈ [1, p.length - 1] satisfies `p.IsCollider k = False`,
 -- because each adjacent step is `.forwardE _`, whose
--- `refactor_HeadAtSource` is `False`.
+-- `HeadAtSource` is `False`.
 
 private lemma Walk.IsDirectedWalk.interior_not_collider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsDirectedWalk →
-      ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.refactor_IsCollider k := by
+      ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.IsCollider k := by
   intros u v p
   induction p with
   | nil _ _ =>
@@ -784,9 +732,9 @@ private lemma Walk.IsDirectedWalk.interior_not_collider {G : CDMG Node} :
                   cases s' with
                   | forwardE _ =>
                       intro h_coll
-                      simp [Walk.refactor_IsCollider,
-                            WalkStep.refactor_HeadAtTarget,
-                            WalkStep.refactor_HeadAtSource] at h_coll
+                      simp [Walk.IsCollider,
+                            WalkStep.HeadAtTarget,
+                            WalkStep.HeadAtSource] at h_coll
                   | backwardE _ => exact hp'.elim
                   | bidir _ => exact hp'.elim
           | k' + 2 =>
@@ -818,7 +766,7 @@ private def Walk.IsBackwardDirectedWalk {G : CDMG Node} :
 
 private lemma Walk.IsBackwardDirectedWalk.interior_not_collider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v), p.IsBackwardDirectedWalk →
-      ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.refactor_IsCollider k := by
+      ∀ (k : ℕ), 1 ≤ k → k < p.length → ¬ p.IsCollider k := by
   intros u v p
   induction p with
   | nil _ _ =>
@@ -840,9 +788,9 @@ private lemma Walk.IsBackwardDirectedWalk.interior_not_collider {G : CDMG Node} 
                   | forwardE _ => exact hp'.elim
                   | backwardE _ =>
                       intro h_coll
-                      simp [Walk.refactor_IsCollider,
-                            WalkStep.refactor_HeadAtTarget,
-                            WalkStep.refactor_HeadAtSource] at h_coll
+                      simp [Walk.IsCollider,
+                            WalkStep.HeadAtTarget,
+                            WalkStep.HeadAtSource] at h_coll
                   | bidir _ => exact hp'.elim
           | k' + 2 =>
               have hk1' : 1 ≤ k' + 1 := by omega
@@ -907,14 +855,14 @@ private lemma Walk.reverse_isBackwardDirected_of_directed {G : CDMG Node} :
 
 /-- The "first step's source-side arrowhead contribution" predicate on
     walks: `False` for `.nil` (no first step at all) and the head
-    step's `refactor_HeadAtSource` for `.cons`.  Used as a hypothesis-
+    step's `HeadAtSource` for `.cons`.  Used as a hypothesis-
     shape for the boundary helper below to avoid universal
     quantification over the first step's identifier (which would
     require `cons.injEq`-style destructuring at every call site). -/
 private def Walk.firstStepHeadAtSource {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
-  | _, _, .cons _ s _ => s.refactor_HeadAtSource
+  | _, _, .cons _ s _ => s.HeadAtSource
 
 /-- Source-cast invariance of `firstStepHeadAtSource`: the predicate's
     value depends only on the walk's structure (constructor tag and
@@ -929,30 +877,30 @@ private lemma Walk.firstStepHeadAtSource_cast_source {G : CDMG Node}
   subst h; rfl
 
 /-- At position `p.length` on the composition `p.comp q`, the
-    `refactor_IsCollider` check evaluates to `False` whenever the
+    `IsCollider` check evaluates to `False` whenever the
     walk `q`'s first-step source-side arrowhead contribution is
     `False`.  The proof is by structural induction on `p`: in the
     base case `p = .nil`, `p.comp q = q` and the collider check at
     position 0 is `False` for every walk (covered by the
     `.nil`-branch and `.cons-.nil`-branch and `.cons-.cons-0` branches
-    of `refactor_IsCollider`'s definition).  In the inductive step,
+    of `IsCollider`'s definition).  In the inductive step,
     the recursion descends one `cons`-cell on `p`; the boundary
     behaviour at `(.cons _ s (.nil _ _))` (length-1 `p`) is handled
     by the `.cons _ _ (.nil _ _), _` and `.cons _ s₀ (.cons _ s₁ _), 1`
     branches; for longer `p`, the recursion call on `p'` uses the
-    `.cons _ _ (p_inner@(.cons _ _ _)), k + 2 => p_inner.refactor_IsCollider (k + 1)`
+    `.cons _ _ (p_inner@(.cons _ _ _)), k + 2 => p_inner.IsCollider (k + 1)`
     branch to step from outer position `p.length` to inner position
     `p'.length`. -/
 private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_source
     {G : CDMG Node} {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (q : Walk G v w),
       ¬ q.firstStepHeadAtSource →
-      ¬ (p.comp q).refactor_IsCollider p.length := by
+      ¬ (p.comp q).IsCollider p.length := by
   induction p with
   | nil _ _ =>
       intros w q hq h
       -- p.length = 0, p.comp q = q
-      -- h : q.refactor_IsCollider 0 — False for every walk shape at position 0.
+      -- h : q.IsCollider 0 — False for every walk shape at position 0.
       cases q with
       | nil _ _ => exact h
       | cons _ _ q_rest =>
@@ -966,17 +914,17 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_source
           -- p.length = 1. p.comp q = .cons mid s q.
           cases q with
           | nil _ _ =>
-              -- (.cons mid s .nil).refactor_IsCollider 1 = False (the .cons _ _ (.nil _ _), _ branch).
+              -- (.cons mid s .nil).IsCollider 1 = False (the .cons _ _ (.nil _ _), _ branch).
               exact h
           | cons _ s_q q_rest =>
-              -- (.cons mid s (.cons _ s_q q_rest)).refactor_IsCollider 1
-              -- = s.refactor_HeadAtTarget ∧ s_q.refactor_HeadAtSource
-              -- hq : ¬ s_q.refactor_HeadAtSource (via q.firstStepHeadAtSource = s_q.refactor_HeadAtSource)
+              -- (.cons mid s (.cons _ s_q q_rest)).IsCollider 1
+              -- = s.HeadAtTarget ∧ s_q.HeadAtSource
+              -- hq : ¬ s_q.HeadAtSource (via q.firstStepHeadAtSource = s_q.HeadAtSource)
               -- h.2 has the right shape after Lean's definitional reduction.
               exact hq h.2
       | cons mid' s' p'' =>
           -- p.length = p''.length + 2. Recursion via the
-          -- .cons _ _ (q'@(.cons _ _ _)), k + 2 => q'.refactor_IsCollider (k + 1) branch.
+          -- .cons _ _ (q'@(.cons _ _ _)), k + 2 => q'.IsCollider (k + 1) branch.
           exact ih q hq h
 
 /-- Connect the suffix walk's first step (when it exists) back to
@@ -985,7 +933,7 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_source
     is `.nil` (when `j = π.length`, so `firstStepHeadAtSource` is
     `False` by definition), or the suffix is `.cons _ s_j _` with
     `s_j = .forwardE _` (when `j < π.length` and the case-(i)
-    trigger `a_j ∈ G.E` fires; `(.forwardE _).refactor_HeadAtSource`
+    trigger `a_j ∈ G.E` fires; `(.forwardE _).HeadAtSource`
     evaluates to `False`).  Proof by structural induction on `π` with
     the position index `j` simultaneously consumed: the case-split on
     the head step's constructor at `j = 0` aligns the
@@ -1015,12 +963,12 @@ private lemma Walk.replaceWalkCaseI_suffix_firstStepHeadAtSource_eq_False
       cases j with
       | zero =>
           -- splitAt 0 on .cons mid s_h p' = ⟨_, .nil _ _, .cons mid s_h p'⟩
-          -- .2.2 = .cons mid s_h p'. .firstStepHeadAtSource = s_h.refactor_HeadAtSource.
+          -- .2.2 = .cons mid s_h p'. .firstStepHeadAtSource = s_h.HeadAtSource.
           -- h_caseI : (.cons mid s_h p').replaceWalkCaseI 0 — value depends on s_h.
           intro h
           cases s_h with
           | forwardE _ =>
-              -- (.forwardE _).refactor_HeadAtSource = False. h is False.
+              -- (.forwardE _).HeadAtSource = False. h is False.
               exact h
           | backwardE _ =>
               -- h_caseI = False, contradicts.
@@ -1044,9 +992,9 @@ private lemma Walk.replaceWalkCaseI_suffix_firstStepHeadAtSource_eq_False
 
 /-- Mirror of `Walk.replaceWalkCaseI_suffix_firstStepHeadAtSource_eq_False`:
     in Case (ii) (where `¬ π.replaceWalkCaseI j`), the suffix walk's first
-    step has `refactor_HeadAtSource = True`.  Concretely: by `¬ replaceWalkCaseI j`,
+    step has `HeadAtSource = True`.  Concretely: by `¬ replaceWalkCaseI j`,
     we have `j < π.length` AND `s_j` on `π` is `.backwardE _` or `.bidir _`,
-    both of which have `refactor_HeadAtSource = True`.  Proof by structural
+    both of which have `HeadAtSource = True`.  Proof by structural
     induction on π with the position index j simultaneously consumed (same
     pattern as the existing eq_False helper). -/
 private lemma Walk.not_replaceWalkCaseI_suffix_firstStepHeadAtSource
@@ -1073,7 +1021,7 @@ private lemma Walk.not_replaceWalkCaseI_suffix_firstStepHeadAtSource
           --   .forwardE → True (h_ncaseI : ¬ True, contradiction).
           --   .backwardE → False (h_ncaseI : ¬ False = True, OK).
           --   .bidir → False (similar to .backwardE).
-          -- Goal: (.cons mid s_h p').firstStepHeadAtSource = s_h.refactor_HeadAtSource.
+          -- Goal: (.cons mid s_h p').firstStepHeadAtSource = s_h.HeadAtSource.
           cases s_h with
           | forwardE _ =>
               exfalso; exact h_ncaseI trivial
@@ -1117,7 +1065,7 @@ private lemma Walk.replaceWalkCaseI_at_length {G : CDMG Node} :
 -- walk: every step is `.backwardE _`.  The asymmetric pair of
 -- "head-at-source / head-at-target" predicates flips: at the splice
 -- endpoint A' (= position i on π'), the right slot is σ_ij's first step
--- — a `.backwardE _` whose `refactor_HeadAtSource = True`.  So the boundary
+-- — a `.backwardE _` whose `HeadAtSource = True`.  So the boundary
 -- collider check on π' at A' reduces to "(last step of prefix).HeadAtTarget",
 -- and the discharge route diverges between sub-cases (a) and (b) of the
 -- LN proof's case (ii) (tex `claim_3_27_proof_LabelRoman.tex` (II.c.iii)):
@@ -1128,21 +1076,21 @@ private lemma Walk.replaceWalkCaseI_at_length {G : CDMG Node} :
 --     the first collider at some k ∈ [i, j], and conclude v_i ∈ Anc(v_k)
 --     ⊆ AncSet C via the directed forward chain.
 -- At endpoint C (= position j on π'), σ_ij.length > 0 gives σ_ij's last
--- step = `.backwardE _` → `refactor_HeadAtTarget = False`.  So the
+-- step = `.backwardE _` → `HeadAtTarget = False`.  So the
 -- boundary collider check on π' at C is uniformly False (the discharge
 -- bypasses h_col).
 --
 -- Helpers added below:
 --   1. `Walk.lastStepHeadAtTarget`: dual of `firstStepHeadAtSource`,
 --      defined as `False` for `.nil`, and as the head step's
---      `refactor_HeadAtTarget` for a length-1 `.cons _ _ .nil`, with
+--      `HeadAtTarget` for a length-1 `.cons _ _ .nil`, with
 --      recursion through the tail for longer walks.
 --   2. `Walk.lastStepHeadAtTarget_cast_target`: cast-invariance for
 --      target-side type-rewrites; mirror of the existing
 --      `firstStepHeadAtSource_cast_source` for source-side rewrites.
 --   3. `Walk.lastStepHeadAtTarget_comp_cons_nil`: a length-1 right-
 --      operand version: `(p.comp (.cons _ s (.nil _ _))).lastStepHeadAtTarget
---      = s.refactor_HeadAtTarget`.  Used in the first-collider recursion to
+--      = s.HeadAtTarget`.  Used in the first-collider recursion to
 --      establish the new-prefix's "left-head" condition after appending a
 --      `.forwardE` step.
 --   4. `Walk.refactor_IsCollider_comp_at_p_length_no_head_target`: mirror
@@ -1150,20 +1098,20 @@ private lemma Walk.replaceWalkCaseI_at_length {G : CDMG Node} :
 --      C endpoint via `¬ p.lastStepHeadAtTarget`.
 --   5. `Walk.refactor_IsCollider_comp_at_p_length_of_heads`: the positive
 --      bridge `p.lastStepHeadAtTarget → q.firstStepHeadAtSource →
---      (p.comp q).refactor_IsCollider p.length`.  Used in the first-collider
+--      (p.comp q).IsCollider p.length`.  Used in the first-collider
 --      recursion at the .backwardE / .bidir base case (where the head-source
 --      condition fires and the splice endpoint becomes a collider on π').
 --   6. `Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget`: discharger
 --      for the C endpoint's hypothesis input: a backward-directed walk
 --      of positive length has its last step `.backwardE _`, whose
---      `refactor_HeadAtTarget = False`.
+--      `HeadAtTarget = False`.
 --   7. `Walk.firstColliderAncestor_comp`: the first-collider trace lemma.
 --      Recursive on the suffix walk `q` (= sub-walk of π from position i
 --      forward).  Given a "left-head at x = q's source on the composed
 --      walk p.comp q" and a "right-head at position d on q", concludes
 --      `x ∈ G.AncSet C` via the LN's first-collider chain.
 
-/-- Dual of `Walk.firstStepHeadAtSource`: returns `s.refactor_HeadAtTarget`
+/-- Dual of `Walk.firstStepHeadAtSource`: returns `s.HeadAtTarget`
     for the LAST step of a non-trivial walk, and `False` for `.nil`.  Used
     as the "left-head at v_i on π" condition at the splice endpoint A' in
     Case (ii), and as the "no head at target" hypothesis for the C
@@ -1171,7 +1119,7 @@ private lemma Walk.replaceWalkCaseI_at_length {G : CDMG Node} :
 private def Walk.lastStepHeadAtTarget {G : CDMG Node} :
     ∀ {u v : Node}, Walk G u v → Prop
   | _, _, .nil _ _ => False
-  | _, _, .cons _ s (.nil _ _) => s.refactor_HeadAtTarget
+  | _, _, .cons _ s (.nil _ _) => s.HeadAtTarget
   | _, _, .cons _ _ p@(.cons _ _ _) => p.lastStepHeadAtTarget
 
 /-- Target-cast invariance of `lastStepHeadAtTarget`: the predicate's
@@ -1187,7 +1135,7 @@ private lemma Walk.lastStepHeadAtTarget_cast_target {G : CDMG Node}
 /-- A length-1 right-operand version of `Walk.lastStepHeadAtTarget` under
     composition: when the right operand is a length-1 walk `.cons w s (.nil w hw)`,
     the last step of `p.comp (...)` is `s`, so `lastStepHeadAtTarget`
-    evaluates to `s.refactor_HeadAtTarget`.  Proof by induction on `p`.
+    evaluates to `s.HeadAtTarget`.  Proof by induction on `p`.
     Used in the `.forwardE` recursive branch of
     `firstColliderAncestor_comp` to establish the new-prefix's
     "left-head" condition after appending a `.forwardE` step. -/
@@ -1195,11 +1143,11 @@ private lemma Walk.lastStepHeadAtTarget_comp_cons_nil {G : CDMG Node}
     {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (s : WalkStep G v w) (hw : w ∈ G),
       (p.comp (Walk.cons w s (Walk.nil w hw))).lastStepHeadAtTarget
-        = s.refactor_HeadAtTarget := by
+        = s.HeadAtTarget := by
   induction p with
   | nil _ _ =>
       -- (.nil).comp (.cons w s (.nil w hw)) = .cons w s (.nil w hw).
-      -- lastStepHeadAtTarget on .cons _ s (.nil _ _) = s.refactor_HeadAtTarget.
+      -- lastStepHeadAtTarget on .cons _ s (.nil _ _) = s.HeadAtTarget.
       intros w s hw
       simp only [Walk.comp, Walk.lastStepHeadAtTarget]
   | cons _ _ p' ih =>
@@ -1208,7 +1156,7 @@ private lemma Walk.lastStepHeadAtTarget_comp_cons_nil {G : CDMG Node}
       | nil _ _ =>
           -- p = .cons _ _ .nil. (.cons _ _ .nil).comp q = .cons _ _ q where q = .cons w s (.nil w hw).
           -- So result = .cons _ _ (.cons w s (.nil w hw)). Outer matches clause 3 → inner.
-          -- Inner = .cons w s (.nil w hw) matches clause 2 → s.refactor_HeadAtTarget.
+          -- Inner = .cons w s (.nil w hw) matches clause 2 → s.HeadAtTarget.
           simp only [Walk.comp, Walk.lastStepHeadAtTarget]
       | cons _ _ _ =>
           -- p = .cons _ _ (.cons _ _ _). Outer comp = .cons _ _ ((.cons _ _ _).comp q).
@@ -1219,25 +1167,25 @@ private lemma Walk.lastStepHeadAtTarget_comp_cons_nil {G : CDMG Node}
           exact ih s hw
 
 /-- At position `p.length` on the composition `p.comp q`, the
-    `refactor_IsCollider` check evaluates to `False` whenever the walk
+    `IsCollider` check evaluates to `False` whenever the walk
     `p`'s last-step target-side arrowhead contribution is `False`.
     Mirror of `refactor_IsCollider_comp_at_p_length_no_head_source` (which
     handles the right-operand head-source side).  Proof by induction on
     `p`: at `p = .nil`, `p.length = 0` and the collider check at 0 is
     uniformly `False`; at `p = .cons _ s .nil` (length 1), the collider
     check at 1 is either `False` (when `q = .nil`) or
-    `s.refactor_HeadAtTarget ∧ ...`, conjunction whose first conjunct
+    `s.HeadAtTarget ∧ ...`, conjunction whose first conjunct
     contradicts the hypothesis; at longer `p`, the recursion descends one
     cons-cell. -/
 private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_target
     {G : CDMG Node} {u v : Node} (p : Walk G u v) :
     ∀ {w : Node} (q : Walk G v w),
       ¬ p.lastStepHeadAtTarget →
-      ¬ (p.comp q).refactor_IsCollider p.length := by
+      ¬ (p.comp q).IsCollider p.length := by
   induction p with
   | nil _ _ =>
       intros w q _ h
-      -- p.length = 0, p.comp q = q. refactor_IsCollider q 0 = False for any q.
+      -- p.length = 0, p.comp q = q. IsCollider q 0 = False for any q.
       cases q with
       | nil _ _ => exact h
       | cons _ _ q_rest =>
@@ -1248,32 +1196,32 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_no_head_target
       intros w q hp h
       cases p' with
       | nil _ _ =>
-          -- p = .cons mid s .nil. p.length = 1. p.lastStepHeadAtTarget = s.refactor_HeadAtTarget.
-          -- hp : ¬ s.refactor_HeadAtTarget (after definitional unfolding).
+          -- p = .cons mid s .nil. p.length = 1. p.lastStepHeadAtTarget = s.HeadAtTarget.
+          -- hp : ¬ s.HeadAtTarget (after definitional unfolding).
           cases q with
           | nil _ _ => exact h
           | cons _ s_q _ =>
               -- (.cons mid s .nil).comp (.cons _ s_q _) = .cons mid s (.cons _ s_q _).
-              -- refactor_IsCollider 1 = s.refactor_HeadAtTarget ∧ s_q.refactor_HeadAtSource.
-              -- h.1 : s.refactor_HeadAtTarget. Contradiction with hp.
+              -- IsCollider 1 = s.HeadAtTarget ∧ s_q.HeadAtSource.
+              -- h.1 : s.HeadAtTarget. Contradiction with hp.
               simp only [Walk.lastStepHeadAtTarget] at hp
               exact hp h.1
       | cons mid' s' p'' =>
           -- p = .cons mid s (.cons mid' s' p''). p.length = p''.length + 2.
           -- p.lastStepHeadAtTarget = (.cons mid' s' p'').lastStepHeadAtTarget = p'.lastStepHeadAtTarget.
-          -- p.comp q = .cons mid s (p'.comp q). refactor_IsCollider at p.length recurses to
-          -- (p'.comp q).refactor_IsCollider p'.length.
+          -- p.comp q = .cons mid s (p'.comp q). IsCollider at p.length recurses to
+          -- (p'.comp q).IsCollider p'.length.
           simp only [Walk.lastStepHeadAtTarget] at hp
           exact ih q hp h
 
 /-- Positive bridge: at position `p.length` on the composition `p.comp q`,
-    the `refactor_IsCollider` check evaluates to `True` whenever both
+    the `IsCollider` check evaluates to `True` whenever both
     `p`'s last-step target-side arrowhead AND `q`'s first-step source-side
     arrowhead are `True`.  Mirror of the negative
     `_no_head_source` / `_no_head_target` helpers.  Proof by induction on
     `p`: at `p = .nil`, `p.lastStepHeadAtTarget = False`, so the hypothesis
     is vacuous; at `p = .cons _ s .nil` (length 1), the collider check at 1
-    is exactly `s.refactor_HeadAtTarget ∧ q_head.refactor_HeadAtSource`,
+    is exactly `s.HeadAtTarget ∧ q_head.HeadAtSource`,
     matching the hypothesis; at longer `p`, recursion descends one
     cons-cell.  Used in the `.backwardE` / `.bidir` base case of
     `firstColliderAncestor_comp` to discharge the splice-endpoint collider
@@ -1283,7 +1231,7 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
     ∀ {w : Node} (q : Walk G v w),
       p.lastStepHeadAtTarget →
       q.firstStepHeadAtSource →
-      (p.comp q).refactor_IsCollider p.length := by
+      (p.comp q).IsCollider p.length := by
   induction p with
   | nil _ _ =>
       intros w q hp _
@@ -1293,8 +1241,8 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
       intros w q hp hq
       cases p' with
       | nil _ _ =>
-          -- p = .cons mid s .nil. p.length = 1. p.lastStepHeadAtTarget = s.refactor_HeadAtTarget.
-          -- hp : s.refactor_HeadAtTarget.
+          -- p = .cons mid s .nil. p.length = 1. p.lastStepHeadAtTarget = s.HeadAtTarget.
+          -- hp : s.HeadAtTarget.
           simp only [Walk.lastStepHeadAtTarget] at hp
           cases q with
           | nil _ _ =>
@@ -1302,19 +1250,19 @@ private lemma Walk.refactor_IsCollider_comp_at_p_length_of_heads
               simp only [Walk.firstStepHeadAtSource] at hq
           | cons _ s_q _ =>
               -- (.cons mid s .nil).comp (.cons _ s_q _) = .cons mid s (.cons _ s_q _).
-              -- refactor_IsCollider 1 = s.refactor_HeadAtTarget ∧ s_q.refactor_HeadAtSource.
+              -- IsCollider 1 = s.HeadAtTarget ∧ s_q.HeadAtSource.
               -- ⟨hp, hq⟩.
               exact ⟨hp, hq⟩
       | cons mid' s' p'' =>
           -- p = .cons mid s (.cons mid' s' p''). p.length = p''.length + 2.
           -- p.lastStepHeadAtTarget = (.cons mid' s' p'').lastStepHeadAtTarget = p'.lastStepHeadAtTarget.
-          -- p.comp q = .cons mid s (p'.comp q). refactor_IsCollider at p.length recurses to
-          -- (p'.comp q).refactor_IsCollider p'.length.
+          -- p.comp q = .cons mid s (p'.comp q). IsCollider at p.length recurses to
+          -- (p'.comp q).IsCollider p'.length.
           simp only [Walk.lastStepHeadAtTarget] at hp
           exact ih q hp hq
 
 /-- A backward-directed walk of positive length has its last step `.backwardE _`,
-    whose `refactor_HeadAtTarget = False`.  Hence `lastStepHeadAtTarget`
+    whose `HeadAtTarget = False`.  Hence `lastStepHeadAtTarget`
     evaluates to `False`.  Mirror in spirit of
     `IsBackwardDirectedWalk.interior_not_collider`. -/
 private lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node} :
@@ -1333,10 +1281,10 @@ private lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node
           have hp' : p'.IsBackwardDirectedWalk := h
           cases p' with
           | nil _ _ =>
-              -- p = .cons _ (.backwardE _) .nil. lastStepHeadAtTarget = (.backwardE _).refactor_HeadAtTarget = False.
+              -- p = .cons _ (.backwardE _) .nil. lastStepHeadAtTarget = (.backwardE _).HeadAtTarget = False.
               intro h_target
               simp only [Walk.lastStepHeadAtTarget,
-                WalkStep.refactor_HeadAtTarget] at h_target
+                WalkStep.HeadAtTarget] at h_target
           | cons mid' s' p'' =>
               -- p = .cons _ (.backwardE _) (.cons mid' s' p''). lastStepHeadAtTarget = (.cons mid' s' p'').lastStepHeadAtTarget.
               -- Apply IH to the tail .cons mid' s' p''.
@@ -1369,7 +1317,7 @@ private lemma Walk.IsBackwardDirectedWalk.no_lastStepHeadAtTarget {G : CDMG Node
 -- 3. `IsDirectedWalk.interior_not_blockable`: combining the two above
 --    with `interior_not_collider`, every strict-interior position of a
 --    directed walk whose vertices lie in a shared SCC is *not* a
---    `refactor_IsBlockableNonCollider`.  This is the Region-B vacuous
+--    `IsBlockableNonCollider`.  This is the Region-B vacuous
 --    discharger of the BLOCKABLE clause, mirroring the COLLIDER
 --    clause's `interior_not_collider` Region-B discharger.
 
@@ -1448,7 +1396,7 @@ private lemma Walk.IsDirectedWalk.interior_not_blockable {G : CDMG Node}
     {z : Node} {u v : Node} (p : Walk G u v) (hp_dir : p.IsDirectedWalk)
     (hp_SCC : ∀ x ∈ p.vertices, x ∈ G.Sc z) :
     ∀ (k : ℕ), 1 ≤ k → k < p.length →
-      ¬ p.refactor_IsBlockableNonCollider k := by
+      ¬ p.IsBlockableNonCollider k := by
   intros k hk1 hk2 h
   obtain ⟨_, h_disj⟩ := h
   rcases h_disj with hk_eq | hk_eq | h_blkleft | h_blkright
@@ -1544,7 +1492,7 @@ private lemma Walk.IsBackwardDirectedWalk.interior_not_blockable {G : CDMG Node}
     {z : Node} {u v : Node} (p : Walk G u v) (hp_back : p.IsBackwardDirectedWalk)
     (hp_SCC : ∀ x ∈ p.vertices, x ∈ G.Sc z) :
     ∀ (k : ℕ), 1 ≤ k → k < p.length →
-      ¬ p.refactor_IsBlockableNonCollider k := by
+      ¬ p.IsBlockableNonCollider k := by
   intros k hk1 hk2 h
   obtain ⟨_, h_disj⟩ := h
   rcases h_disj with hk_eq | hk_eq | h_blkleft | h_blkright
@@ -1556,18 +1504,18 @@ private lemma Walk.IsBackwardDirectedWalk.interior_not_blockable {G : CDMG Node}
 -- End-position non-collider helpers: any walk is a non-collider at
 -- position 0 and at position `p.length`, irrespective of the
 -- WalkStep tags.  Used in the splice-endpoint cases of the BLOCKABLE
--- clause to build `π.refactor_IsBlockableNonCollider` witnesses at
+-- clause to build `π.IsBlockableNonCollider` witnesses at
 -- position 0 (when `i = 0`) or position `π.length` (when
 -- `j = π.length`) without needing to inspect π's local pattern there.
 
 private lemma Walk.refactor_IsCollider_zero_eq_False {G : CDMG Node} :
-    ∀ {u v : Node} (p : Walk G u v), ¬ p.refactor_IsCollider 0
+    ∀ {u v : Node} (p : Walk G u v), ¬ p.IsCollider 0
   | _, _, .nil _ _ => fun h => h
   | _, _, .cons _ _ (.nil _ _) => fun h => h
   | _, _, .cons _ _ (.cons _ _ _) => fun h => h
 
 private lemma Walk.refactor_IsCollider_length_eq_False {G : CDMG Node} :
-    ∀ {u v : Node} (p : Walk G u v), ¬ p.refactor_IsCollider p.length := by
+    ∀ {u v : Node} (p : Walk G u v), ¬ p.IsCollider p.length := by
   intros u v p
   induction p with
   | nil _ _ => exact fun h => h
@@ -1625,15 +1573,15 @@ private lemma Walk.vertices_comp_right_shift {G : CDMG Node} :
 
 -- Side-aware blockable-slot helpers: HasBlockingLeftSlot k forces the
 -- slot-(k-1) step to be `.backwardE _` (which has
--- `refactor_HeadAtTarget = False`), so the position cannot be a
+-- `HeadAtTarget = False`), so the position cannot be a
 -- side-aware collider.  Symmetrically, HasBlockingRightSlot k forces
 -- the slot-k step to be `.forwardE _` (which has
--- `refactor_HeadAtSource = False`), again ruling out a collider at
+-- `HeadAtSource = False`), again ruling out a collider at
 -- position k.
 
 private lemma Walk.HasBlockingLeftSlot.not_refactor_IsCollider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v) (k : ℕ),
-      p.HasBlockingLeftSlot k → ¬ p.refactor_IsCollider k := by
+      p.HasBlockingLeftSlot k → ¬ p.IsCollider k := by
   intros u v p
   induction p with
   | nil _ _ =>
@@ -1660,7 +1608,7 @@ private lemma Walk.HasBlockingLeftSlot.not_refactor_IsCollider {G : CDMG Node} :
 
 private lemma Walk.HasBlockingRightSlot.not_refactor_IsCollider {G : CDMG Node} :
     ∀ {u v : Node} (p : Walk G u v) (k : ℕ),
-      p.HasBlockingRightSlot k → ¬ p.refactor_IsCollider k := by
+      p.HasBlockingRightSlot k → ¬ p.IsCollider k := by
   intros u v p
   induction p with
   | nil _ _ =>
@@ -1726,12 +1674,12 @@ private lemma Walk.HasBlockingRightSlot.not_refactor_IsCollider {G : CDMG Node} 
 private lemma Walk.unblockable_imp_sigma_open_at {G : CDMG Node}
     {u v : Node} (p : Walk G u v) (k : ℕ) (vk : Node)
     (h_lookup : p.vertices[k]? = some vk)
-    (h_unblockable : p.refactor_IsUnblockableNonCollider k)
+    (h_unblockable : p.IsUnblockableNonCollider k)
     (C : Set Node) :
     -- Not a collider, so the collider-clause is vacuous.
     -- Not blockable, so the blockable-clause is vacuous.
-    (p.refactor_IsCollider k → vk ∈ G.AncSet C) ∧
-    (p.refactor_IsBlockableNonCollider k → vk ∉ C) := by
+    (p.IsCollider k → vk ∈ G.AncSet C) ∧
+    (p.IsBlockableNonCollider k → vk ∉ C) := by
   refine ⟨?_, ?_⟩
   · intro h_coll
     obtain ⟨h_nc, _⟩ := h_unblockable
@@ -1775,7 +1723,7 @@ private lemma Walk.unblockable_imp_sigma_open_at {G : CDMG Node}
       `p.lastStepHeadAtTarget`, position `p.length` on `p.comp q` is a
       collider (via `refactor_IsCollider_comp_at_p_length_of_heads`).
       The vertex there is `x`.  By
-      `(p.comp q).refactor_IsSigmaOpenGiven`'s collider clause,
+      `(p.comp q).IsSigmaOpenGiven`'s collider clause,
       `x ∈ G.AncSet C`.
     - If `q.head = .forwardE h_E`: HeadAtSource = False, so the
       "right-head at position 0" fails.  But the directed edge
@@ -1788,7 +1736,7 @@ private lemma Walk.unblockable_imp_sigma_open_at {G : CDMG Node}
 private lemma Walk.firstColliderAncestor_comp
     {G : CDMG Node} {C : Set Node} {hC : C ⊆ ↑G.J ∪ ↑G.V} :
     ∀ {x w : Node} (q : Walk G x w) {u : Node} (p : Walk G u x),
-      (p.comp q).refactor_IsSigmaOpenGiven C hC →
+      (p.comp q).IsSigmaOpenGiven C hC →
       p.lastStepHeadAtTarget →
       ∀ (d : ℕ) (hd : d < q.length),
         (q.splitAt d (Nat.le_of_lt hd)).2.2.firstStepHeadAtSource →
@@ -1803,9 +1751,9 @@ private lemma Walk.firstColliderAncestor_comp
           match d, hd, h_right with
           | 0, _, h_right_at_0 =>
               -- (.cons _ (.forwardE _) q').splitAt 0 _.2.2 = .cons _ (.forwardE _) q'.
-              -- firstStepHeadAtSource = (.forwardE _).refactor_HeadAtSource = False.
+              -- firstStepHeadAtSource = (.forwardE _).HeadAtSource = False.
               simp only [Walk.splitAt, Walk.firstStepHeadAtSource,
-                WalkStep.refactor_HeadAtSource] at h_right_at_0
+                WalkStep.HeadAtSource] at h_right_at_0
           | d' + 1, hd', h_right_at_succ =>
               -- d = d' + 1. Recurse on q' with d'.
               have hmid_mem : mid ∈ G :=
@@ -1823,9 +1771,9 @@ private lemma Walk.firstColliderAncestor_comp
                 rw [Walk.comp_assoc]
                 rfl
               -- σ-open hypothesis transfers via h_comp_eq.
-              have hπ_new : (new_prefix.comp q').refactor_IsSigmaOpenGiven C hC := by
+              have hπ_new : (new_prefix.comp q').IsSigmaOpenGiven C hC := by
                 rw [h_comp_eq]; exact hπ
-              -- new_prefix.lastStepHeadAtTarget = (.forwardE _).refactor_HeadAtTarget
+              -- new_prefix.lastStepHeadAtTarget = (.forwardE _).HeadAtTarget
               -- = True.
               have h_new_left : new_prefix.lastStepHeadAtTarget := by
                 change (p.comp one_step).lastStepHeadAtTarget
@@ -1861,14 +1809,14 @@ private lemma Walk.firstColliderAncestor_comp
               exact ⟨c, hc, h_x_anc_c⟩
       | backwardE h_E =>
           -- q = .cons _ (.backwardE _) q'. q.firstStepHeadAtSource = True.
-          -- Use positive bridge to get (p.comp q).refactor_IsCollider p.length
+          -- Use positive bridge to get (p.comp q).IsCollider p.length
           -- = True.  Then apply hπ.1 at p.length to conclude x ∈ AncSet C.
           have h_first_head :
               (Walk.cons mid (.backwardE h_E) q').firstStepHeadAtSource := by
-            change (WalkStep.backwardE h_E).refactor_HeadAtSource
+            change (WalkStep.backwardE h_E).HeadAtSource
             trivial
           have h_coll :
-              (p.comp (Walk.cons mid (.backwardE h_E) q')).refactor_IsCollider p.length :=
+              (p.comp (Walk.cons mid (.backwardE h_E) q')).IsCollider p.length :=
             Walk.refactor_IsCollider_comp_at_p_length_of_heads p _ h_left h_first_head
           have h_vert :
               (p.comp (Walk.cons mid (.backwardE h_E) q')).vertices[p.length]? = some x :=
@@ -1879,10 +1827,10 @@ private lemma Walk.firstColliderAncestor_comp
           -- Same as .backwardE case.
           have h_first_head :
               (Walk.cons mid (.bidir h_L) q').firstStepHeadAtSource := by
-            change (WalkStep.bidir h_L).refactor_HeadAtSource
+            change (WalkStep.bidir h_L).HeadAtSource
             trivial
           have h_coll :
-              (p.comp (Walk.cons mid (.bidir h_L) q')).refactor_IsCollider p.length :=
+              (p.comp (Walk.cons mid (.bidir h_L) q')).IsCollider p.length :=
             Walk.refactor_IsCollider_comp_at_p_length_of_heads p _ h_left h_first_head
           have h_vert :
               (p.comp (Walk.cons mid (.bidir h_L) q')).vertices[p.length]? = some x :=
@@ -1957,7 +1905,7 @@ private lemma Walk.firstStepHeadAtSource_splitAt_at_j {G : CDMG Node} :
     concludes via `splitAt_comp` that the comp equals π. -/
 private lemma Walk.firstColliderAncestor_π_at_pos
     {G : CDMG Node} {C : Set Node} {hC : C ⊆ ↑G.J ∪ ↑G.V}
-    {u w : Node} (π : Walk G u w) (hπ : π.refactor_IsSigmaOpenGiven C hC)
+    {u w : Node} (π : Walk G u w) (hπ : π.IsSigmaOpenGiven C hC)
     (i : ℕ) (hi_le : i ≤ π.length)
     (h_left : (π.splitAt i hi_le).2.1.lastStepHeadAtTarget)
     (j : ℕ) (hij : i ≤ j) (hj_lt : j < π.length)
@@ -1969,7 +1917,7 @@ private lemma Walk.firstColliderAncestor_π_at_pos
   -- p.comp q = π (by splitAt_comp).
   have h_pq_eq_π : (π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2 = π :=
     Walk.splitAt_comp π i hi_le
-  have hπ_comp : ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2).refactor_IsSigmaOpenGiven C hC := by
+  have hπ_comp : ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2).IsSigmaOpenGiven C hC := by
     rw [h_pq_eq_π]; exact hπ
   -- Right-head: bridge (π.splitAt j _).2.2.firstStepHeadAtSource to
   -- the (j-i)-th suffix of (π.splitAt i _).2.2.firstStepHeadAtSource via
@@ -1984,34 +1932,6 @@ private lemma Walk.firstColliderAncestor_π_at_pos
     hπ_comp h_left (j - i) hd h_right_q
 
 -- ## Design choice — `replaceWalk` (the main theorem)
---
--- *Why the side-aware `refactor_IsSigmaOpenGiven`, not the ORIGINAL
---   `IsSigmaOpenGiven`.*  Both the ORIGINAL and REPLACEMENT σ-open
---   predicates coexist in scope during the refactor window.  An
---   unqualified `IsSigmaOpenGiven` reference would resolve to the
---   ORIGINAL (`SigmaBlockedWalks.lean` ORIGINAL block) and inherit
---   the pre-refactor `IsInto`-based reading — under which the prior
---   counter-example for this row is still valid and the positive
---   lemma is *false*.  Routing the hypothesis on $\pi$ and the
---   conclusion on $\pi'$ through `refactor_IsSigmaOpenGiven` is what
---   restores the lemma to provability under the side-aware reading
---   committed to by the addition tag
---   `[collider_side_aware_walkstep_predicates]`.  After Phase 7
---   cleanup the whole-word rename
---   `refactor_IsSigmaOpenGiven → IsSigmaOpenGiven` restores the
---   pre-refactor surface form here, since the ORIGINAL block will
---   have been deleted by the same cleanup pass.
---
--- *No `refactor_` prefix on the theorem name itself.*  This file is
---   the prove-side reincarnation of a row whose prior disprove file
---   (`LabelRomanDisproof.lean`, deleted in the `def_3_15` refactor
---   commit) is gone — there is no original positive theorem named
---   `replaceWalk` to coexist with, so no `refactor_*` prefix /
---   REPLACEMENT marker dance is needed.  The file is purely net-new
---   prove-side artefact.  (The helper `Walk.replaceWalkCaseI` is
---   also net-new under this branch's history; it shares the file
---   purely for proximity to its only consumer and carries
---   conventional helper markers — no REPLACEMENT markers either.)
 --
 -- *Existential conclusion, not a function returning a specific
 --   witness walk.*  The LN writes "if we replace $\dots$ then
@@ -2081,16 +2001,14 @@ private lemma Walk.firstColliderAncestor_π_at_pos
 --   prefix / suffix walk binders) collapses the splice constraint
 --   into a single equation that the prover can `simp`/`rfl` against
 --   without needing a `Walk.prefix` / `Walk.suffix` infrastructure
---   (which has no counterpart under the refactored typed `WalkStep`).
+--   (which has no counterpart under the typed `WalkStep`).
 --   The `dropLast` on the prefix is load-bearing: `π.vertices.take
 --   (i + 1)` reads positions $0, \dots, i$ (length $i + 1$), and its
 --   `dropLast` strips the duplicate $v_i$ that would otherwise be
 --   appended to $\sigma_{ij}$'s opening $w_0 = v_i$.  Similarly,
 --   `π.vertices.drop (j + 1)` reads positions $j + 1, \dots, n$,
 --   stripping the duplicate $v_j$ from $\sigma_{ij}$'s closing
---   $w_m = v_j$.  The encoding is the same one used by the prior
---   disprove file (which was verified equivalent to the canonical
---   tex's structural description on this same row).
+--   $w_m = v_j$.
 --
 -- *Why a `(σ_ij : Walk G v_i v_j)` binder of the typed walk shape,
 --   not a separate `m : ℕ` + raw vertex list.*  The typed
@@ -2165,7 +2083,7 @@ private lemma Walk.firstColliderAncestor_π_at_pos
 --   not as a consolidation of pre-existing openness at two distinct
 --   $\pi$-positions.  The Lean statement leaves the verification to
 --   the proof phase via the trailing
---   `π'.refactor_IsSigmaOpenGiven C hC` conjunct of the existential;
+--   `π'.IsSigmaOpenGiven C hC` conjunct of the existential;
 --   no signature-level corner-case is needed because the length-$0$
 --   trivial-replacement is admitted uniformly.
 --
@@ -2181,28 +2099,20 @@ private lemma Walk.firstColliderAncestor_π_at_pos
 --
 -- *`(C : Set Node)` and `(hC : C ⊆ ↑G.J ∪ ↑G.V)` matching the
 --   chapter-wide σ-blocking convention.*  Same convention as
---   `refactor_IsSigmaOpenGiven` (`SigmaBlockedWalks.lean`
---   REPLACEMENT block): `C` is a `Set Node` (untruncated to
+--   `IsSigmaOpenGiven` (`SigmaBlockedWalks.lean`): `C` is
+--   a `Set Node` (untruncated to
 --   $J \cup V$) and the LN's "$C \subseteq J \cup V$" precondition
 --   is propagated as the explicit `hC` hypothesis — which is what
---   `refactor_IsSigmaOpenGiven`'s signature itself takes.  The
+--   `IsSigmaOpenGiven`'s signature itself takes.  The
 --   `↑G.J ∪ ↑G.V` shape on the RHS is the
 --   `Finset Node → Set Node` coercion form used throughout the
 --   chapter (so the union is computed at the `Set` level after
 --   coercion).
---
--- *Statement-level `:= by sorry` is intentional.*  This file is the
---   Manager A statement step for the prove direction; the proof
---   obligation will be discharged by the `prove_claim_in_lean`
---   worker (Manager B) after `write_tex_proof` / `verify_tex_proof`
---   have produced and verified the mathematical proof.  Filling the
---   proof body here is explicitly NOT this worker's scope — only the
---   statement port is.
 -- claim_3_27 -- start statement
 theorem replaceWalk
     (G : CDMG Node) (C : Set Node) (hC : C ⊆ ↑G.J ∪ ↑G.V)
     {u w : Node} (π : Walk G u w)
-    (hπ : π.refactor_IsSigmaOpenGiven C hC)
+    (hπ : π.IsSigmaOpenGiven C hC)
     {i j : ℕ} (hij : i < j) (hjn : j ≤ π.length)
     {v_i v_j : Node}
     (h_get_i : π.vertices[i]? = some v_i)
@@ -2218,7 +2128,7 @@ theorem replaceWalk
       (∀ x ∈ σ_ij.vertices, x ∈ G.Sc v_j) ∧
       π'.vertices = (π.vertices.take (i + 1)).dropLast ++ σ_ij.vertices ++
           π.vertices.drop (j + 1) ∧
-      π'.refactor_IsSigmaOpenGiven C hC
+      π'.IsSigmaOpenGiven C hC
 -- claim_3_27 -- end statement
 := by
   -- # Preliminary facts
@@ -2312,16 +2222,16 @@ theorem replaceWalk
         · -- Region B (strict interior of σ_ij, vacuous via interior_not_collider)
           obtain ⟨hk_lo, hk_hi⟩ := hk_int_strict
           have h_iscoll_eq1 :
-              (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-              (σ_ij.comp suffix_walk).refactor_IsCollider
+              (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+              (σ_ij.comp suffix_walk).IsCollider
                 (k - prefix_walk.length) :=
             Walk.refactor_IsCollider_comp_right
               prefix_walk (σ_ij.comp suffix_walk) k hk_lo
           have hk' : k - prefix_walk.length < σ_ij.length := by omega
           have h_iscoll_eq2 :
-              (σ_ij.comp suffix_walk).refactor_IsCollider
+              (σ_ij.comp suffix_walk).IsCollider
                 (k - prefix_walk.length) =
-              σ_ij.refactor_IsCollider (k - prefix_walk.length) :=
+              σ_ij.IsCollider (k - prefix_walk.length) :=
             Walk.refactor_IsCollider_comp_left σ_ij suffix_walk
               (k - prefix_walk.length) hk'
           rw [h_iscoll_eq1, h_iscoll_eq2] at h_col
@@ -2335,26 +2245,26 @@ theorem replaceWalk
           · -- Region D (suffix interior, position-shift to π)
             have hk_lo : prefix_walk.length < k := by omega
             have h_eq1 :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have hk_lo2 : σ_ij.length < k - prefix_walk.length := by omega
             have h_eq2 :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) :=
               Walk.refactor_IsCollider_comp_right σ_ij suffix_walk
                 (k - prefix_walk.length) hk_lo2
             rw [h_eq1, h_eq2] at h_col
             have h_eq3 :
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) =
-                (π.splitAt j hjn).2.2.refactor_IsCollider
+                (π.splitAt j hjn).2.2.IsCollider
                   (k - prefix_walk.length - σ_ij.length) := by
-              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).refactor_IsCollider _ = _
+              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).IsCollider _ = _
               rw [Walk.refactor_IsCollider_cast_source hmid_j_eq]
             rw [h_eq3] at h_col
             have h_split_len : (π.splitAt j hjn).2.1.length = j :=
@@ -2364,10 +2274,10 @@ theorem replaceWalk
                   j + (k - prefix_walk.length - σ_ij.length) := by
               rw [h_split_len]; omega
             have h_eq4 :
-                Walk.refactor_IsCollider
+                Walk.IsCollider
                     ((π.splitAt j hjn).2.1.comp (π.splitAt j hjn).2.2)
                   (j + (k - prefix_walk.length - σ_ij.length)) =
-                Walk.refactor_IsCollider (π.splitAt j hjn).2.2
+                Walk.IsCollider (π.splitAt j hjn).2.2
                   ((j + (k - prefix_walk.length - σ_ij.length)) -
                     (π.splitAt j hjn).2.1.length) :=
               Walk.refactor_IsCollider_comp_right
@@ -2378,7 +2288,7 @@ theorem replaceWalk
                           k - prefix_walk.length - σ_ij.length := by omega
             rw [h_arith] at h_eq4
             rw [← h_eq4] at h_col
-            -- h_col : π.refactor_IsCollider (j + k - prefix.length - σ_ij.length)
+            -- h_col : π.IsCollider (j + k - prefix.length - σ_ij.length)
             -- Derive vertex correspondence inline via π'.vertices computation.
             have h_prefix_v : prefix_walk.vertices = π.vertices.take (i + 1) := by
               show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).vertices = π.vertices.take (i + 1)
@@ -2424,14 +2334,14 @@ theorem replaceWalk
             by_cases hk_a : k < prefix_walk.length
             · -- Region A (prefix interior, k < i)
               have h_eq1 :
-                  (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                  prefix_walk.refactor_IsCollider k :=
+                  (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                  prefix_walk.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   prefix_walk (σ_ij.comp suffix_walk) k hk_a
               have h_eq2 :
-                  prefix_walk.refactor_IsCollider k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k := by
-                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).refactor_IsCollider k = _
+                  prefix_walk.IsCollider k =
+                  (π.splitAt i hi_le).2.1.IsCollider k := by
+                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).IsCollider k = _
                 rw [Walk.refactor_IsCollider_cast_target hmid_i_eq]
               rw [h_eq1, h_eq2] at h_col
               have h_split_len : (π.splitAt i hi_le).2.1.length = i :=
@@ -2439,9 +2349,9 @@ theorem replaceWalk
               have hk_split : k < (π.splitAt i hi_le).2.1.length := by
                 rw [h_split_len, ← h_prefix_len]; exact hk_a
               have h_eq3 :
-                  Walk.refactor_IsCollider
+                  Walk.IsCollider
                       ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2) k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k :=
+                  (π.splitAt i hi_le).2.1.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3
@@ -2493,7 +2403,7 @@ theorem replaceWalk
               -- (see tex/claim_3_27_proof_LabelRoman.tex II.c.i):
               --   - at A' the right slot is `σ_ij`'s first step, which is
               --     `.forwardE` (or absent when `σ_ij = .nil`), so the
-              --     side-aware `refactor_HeadAtSource` reads `False` (or
+              --     side-aware `HeadAtSource` reads `False` (or
               --     falls through to `suffix_walk`'s first step, also
               --     `.forwardE` by `h_caseI`);
               --   - at C the right slot is `suffix_walk`'s first step,
@@ -2525,10 +2435,10 @@ theorem replaceWalk
                 | cons _ s_head σ_ij_rest =>
                     -- σ_ij = .cons _ s_head σ_ij_rest ⇒
                     -- σ_ij.comp suffix_walk = .cons _ s_head (...)
-                    -- ⇒ firstStepHeadAtSource = s_head.refactor_HeadAtSource
+                    -- ⇒ firstStepHeadAtSource = s_head.HeadAtSource
                     cases s_head with
                     | forwardE _ =>
-                        -- (.forwardE _).refactor_HeadAtSource = False
+                        -- (.forwardE _).HeadAtSource = False
                         intro h_false; exact h_false
                     | backwardE _ => exact hσ_dir.elim
                     | bidir _ => exact hσ_dir.elim
@@ -2557,9 +2467,9 @@ theorem replaceWalk
                     have : 0 < σ_ij.length := Nat.pos_of_ne_zero hσ_len
                     omega
                   have h_eq1 :
-                      (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider
+                      (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider
                           (prefix_walk.length + σ_ij.length) =
-                      (σ_ij.comp suffix_walk).refactor_IsCollider
+                      (σ_ij.comp suffix_walk).IsCollider
                           (prefix_walk.length + σ_ij.length - prefix_walk.length) :=
                     Walk.refactor_IsCollider_comp_right
                       prefix_walk (σ_ij.comp suffix_walk)
@@ -2575,7 +2485,7 @@ theorem replaceWalk
       · -- BLOCKABLE clause: mirrors the COLLIDER clause's region
         -- partition (Region B / Region D / Region A / splice endpoints
         -- A' or C), with the COLLIDER predicate replaced by the
-        -- BLOCKABLE predicate `refactor_IsBlockableNonCollider`.  At
+        -- BLOCKABLE predicate `IsBlockableNonCollider`.  At
         -- each region, either:
         --   (i)   the predicate is vacuously False on π' (Region B's
         --         σ_ij interior, by `interior_not_blockable`);
@@ -2651,15 +2561,15 @@ theorem replaceWalk
             intro h_coll_σ
             apply h_nc.2
             have h_eq1 :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have h_eq2 :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                σ_ij.refactor_IsCollider (k - prefix_walk.length) :=
+                σ_ij.IsCollider (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_left σ_ij suffix_walk
                 (k - prefix_walk.length) (by omega)
             rw [h_eq1, h_eq2]
@@ -2715,30 +2625,30 @@ theorem replaceWalk
               rw [h_split_len]; omega
             -- IsCollider transport
             have h_eq1_coll :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have h_eq2_coll :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) :=
               Walk.refactor_IsCollider_comp_right σ_ij suffix_walk
                 (k - prefix_walk.length) hk_lo2
             have h_eq3_coll :
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) =
-                (π.splitAt j hjn).2.2.refactor_IsCollider
+                (π.splitAt j hjn).2.2.IsCollider
                   (k - prefix_walk.length - σ_ij.length) := by
-              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).refactor_IsCollider _ = _
+              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).IsCollider _ = _
               rw [Walk.refactor_IsCollider_cast_source hmid_j_eq]
             have h_eq4_coll :
-                Walk.refactor_IsCollider
+                Walk.IsCollider
                     ((π.splitAt j hjn).2.1.comp (π.splitAt j hjn).2.2)
                   (j + (k - prefix_walk.length - σ_ij.length)) =
-                Walk.refactor_IsCollider (π.splitAt j hjn).2.2
+                Walk.IsCollider (π.splitAt j hjn).2.2
                   ((j + (k - prefix_walk.length - σ_ij.length)) -
                     (π.splitAt j hjn).2.1.length) :=
               Walk.refactor_IsCollider_comp_right
@@ -2814,8 +2724,8 @@ theorem replaceWalk
                   rw [h_split_len]; omega)
             rw [Walk.splitAt_comp π j hjn] at h_eq4_right
             rw [h_split_len, h_arith] at h_eq4_right
-            -- Build π.refactor_IsBlockableNonCollider k_π
-            have h_nc_π : π.refactor_IsNonCollider k_π := by
+            -- Build π.IsBlockableNonCollider k_π
+            have h_nc_π : π.IsNonCollider k_π := by
               refine ⟨hk_π_le, ?_⟩
               intro h_coll_π
               apply h_nc.2
@@ -2864,19 +2774,19 @@ theorem replaceWalk
                 rw [h_split_len, ← h_prefix_len]; exact hk_a
               -- IsCollider transport: π' k → prefix k → split.2.1 k → π k
               have h_eq1_coll :
-                  (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                  prefix_walk.refactor_IsCollider k :=
+                  (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                  prefix_walk.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   prefix_walk (σ_ij.comp suffix_walk) k hk_a
               have h_eq2_coll :
-                  prefix_walk.refactor_IsCollider k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k := by
-                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).refactor_IsCollider k = _
+                  prefix_walk.IsCollider k =
+                  (π.splitAt i hi_le).2.1.IsCollider k := by
+                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).IsCollider k = _
                 rw [Walk.refactor_IsCollider_cast_target hmid_i_eq]
               have h_eq3_coll :
-                  Walk.refactor_IsCollider
+                  Walk.IsCollider
                       ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2) k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k :=
+                  (π.splitAt i hi_le).2.1.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3_coll
@@ -2916,8 +2826,8 @@ theorem replaceWalk
                 Walk.HasBlockingRightSlot_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3_right
-              -- Build π.refactor_IsBlockableNonCollider k
-              have h_nc_π : π.refactor_IsNonCollider k := by
+              -- Build π.IsBlockableNonCollider k
+              have h_nc_π : π.IsNonCollider k := by
                 refine ⟨by omega, ?_⟩
                 intro h_coll_π
                 apply h_nc.2
@@ -3304,16 +3214,16 @@ theorem replaceWalk
         · -- Region B (strict interior of σ_ij, vacuous via backward interior_not_collider)
           obtain ⟨hk_lo, hk_hi⟩ := hk_int_strict
           have h_iscoll_eq1 :
-              (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-              (σ_ij.comp suffix_walk).refactor_IsCollider
+              (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+              (σ_ij.comp suffix_walk).IsCollider
                 (k - prefix_walk.length) :=
             Walk.refactor_IsCollider_comp_right
               prefix_walk (σ_ij.comp suffix_walk) k hk_lo
           have hk' : k - prefix_walk.length < σ_ij.length := by omega
           have h_iscoll_eq2 :
-              (σ_ij.comp suffix_walk).refactor_IsCollider
+              (σ_ij.comp suffix_walk).IsCollider
                 (k - prefix_walk.length) =
-              σ_ij.refactor_IsCollider (k - prefix_walk.length) :=
+              σ_ij.IsCollider (k - prefix_walk.length) :=
             Walk.refactor_IsCollider_comp_left σ_ij suffix_walk
               (k - prefix_walk.length) hk'
           rw [h_iscoll_eq1, h_iscoll_eq2] at h_col
@@ -3327,26 +3237,26 @@ theorem replaceWalk
           · -- Region D (suffix interior, position-shift to π)
             have hk_lo : prefix_walk.length < k := by omega
             have h_eq1 :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have hk_lo2 : σ_ij.length < k - prefix_walk.length := by omega
             have h_eq2 :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) :=
               Walk.refactor_IsCollider_comp_right σ_ij suffix_walk
                 (k - prefix_walk.length) hk_lo2
             rw [h_eq1, h_eq2] at h_col
             have h_eq3 :
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) =
-                (π.splitAt j hjn).2.2.refactor_IsCollider
+                (π.splitAt j hjn).2.2.IsCollider
                   (k - prefix_walk.length - σ_ij.length) := by
-              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).refactor_IsCollider _ = _
+              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).IsCollider _ = _
               rw [Walk.refactor_IsCollider_cast_source hmid_j_eq]
             rw [h_eq3] at h_col
             have h_split_len : (π.splitAt j hjn).2.1.length = j :=
@@ -3356,10 +3266,10 @@ theorem replaceWalk
                   j + (k - prefix_walk.length - σ_ij.length) := by
               rw [h_split_len]; omega
             have h_eq4 :
-                Walk.refactor_IsCollider
+                Walk.IsCollider
                     ((π.splitAt j hjn).2.1.comp (π.splitAt j hjn).2.2)
                   (j + (k - prefix_walk.length - σ_ij.length)) =
-                Walk.refactor_IsCollider (π.splitAt j hjn).2.2
+                Walk.IsCollider (π.splitAt j hjn).2.2
                   ((j + (k - prefix_walk.length - σ_ij.length)) -
                     (π.splitAt j hjn).2.1.length) :=
               Walk.refactor_IsCollider_comp_right
@@ -3414,14 +3324,14 @@ theorem replaceWalk
             by_cases hk_a : k < prefix_walk.length
             · -- Region A (prefix interior, k < i)
               have h_eq1 :
-                  (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                  prefix_walk.refactor_IsCollider k :=
+                  (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                  prefix_walk.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   prefix_walk (σ_ij.comp suffix_walk) k hk_a
               have h_eq2 :
-                  prefix_walk.refactor_IsCollider k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k := by
-                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).refactor_IsCollider k = _
+                  prefix_walk.IsCollider k =
+                  (π.splitAt i hi_le).2.1.IsCollider k := by
+                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).IsCollider k = _
                 rw [Walk.refactor_IsCollider_cast_target hmid_i_eq]
               rw [h_eq1, h_eq2] at h_col
               have h_split_len : (π.splitAt i hi_le).2.1.length = i :=
@@ -3429,9 +3339,9 @@ theorem replaceWalk
               have hk_split : k < (π.splitAt i hi_le).2.1.length := by
                 rw [h_split_len, ← h_prefix_len]; exact hk_a
               have h_eq3 :
-                  Walk.refactor_IsCollider
+                  Walk.IsCollider
                       ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2) k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k :=
+                  (π.splitAt i hi_le).2.1.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3
@@ -3574,12 +3484,12 @@ theorem replaceWalk
                 · -- σ_ij.length > 0. Discharge via no_head_target.
                   have hσ_pos : 0 < σ_ij.length := Nat.pos_of_ne_zero hσ_len
                   exfalso
-                  -- Reduce h_col via _comp_right: π'.refactor_IsCollider (prefix + σ_ij.length)
-                  -- = (σ_ij.comp suffix).refactor_IsCollider σ_ij.length.
+                  -- Reduce h_col via _comp_right: π'.IsCollider (prefix + σ_ij.length)
+                  -- = (σ_ij.comp suffix).IsCollider σ_ij.length.
                   have h_eq1 :
-                      (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider
+                      (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider
                           (prefix_walk.length + σ_ij.length) =
-                      (σ_ij.comp suffix_walk).refactor_IsCollider σ_ij.length := by
+                      (σ_ij.comp suffix_walk).IsCollider σ_ij.length := by
                     have := Walk.refactor_IsCollider_comp_right prefix_walk
                       (σ_ij.comp suffix_walk) (prefix_walk.length + σ_ij.length) (by omega)
                     rw [show prefix_walk.length + σ_ij.length - prefix_walk.length =
@@ -3668,15 +3578,15 @@ theorem replaceWalk
             intro h_coll_σ
             apply h_nc.2
             have h_eq1 :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have h_eq2 :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                σ_ij.refactor_IsCollider (k - prefix_walk.length) :=
+                σ_ij.IsCollider (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_left σ_ij suffix_walk
                 (k - prefix_walk.length) (by omega)
             rw [h_eq1, h_eq2]
@@ -3729,30 +3639,30 @@ theorem replaceWalk
               rw [h_split_len]; omega
             -- IsCollider transport
             have h_eq1_coll :
-                (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) :=
               Walk.refactor_IsCollider_comp_right
                 prefix_walk (σ_ij.comp suffix_walk) k hk_lo
             have h_eq2_coll :
-                (σ_ij.comp suffix_walk).refactor_IsCollider
+                (σ_ij.comp suffix_walk).IsCollider
                   (k - prefix_walk.length) =
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) :=
               Walk.refactor_IsCollider_comp_right σ_ij suffix_walk
                 (k - prefix_walk.length) hk_lo2
             have h_eq3_coll :
-                suffix_walk.refactor_IsCollider
+                suffix_walk.IsCollider
                   (k - prefix_walk.length - σ_ij.length) =
-                (π.splitAt j hjn).2.2.refactor_IsCollider
+                (π.splitAt j hjn).2.2.IsCollider
                   (k - prefix_walk.length - σ_ij.length) := by
-              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).refactor_IsCollider _ = _
+              show (hmid_j_eq ▸ (π.splitAt j hjn).2.2).IsCollider _ = _
               rw [Walk.refactor_IsCollider_cast_source hmid_j_eq]
             have h_eq4_coll :
-                Walk.refactor_IsCollider
+                Walk.IsCollider
                     ((π.splitAt j hjn).2.1.comp (π.splitAt j hjn).2.2)
                   (j + (k - prefix_walk.length - σ_ij.length)) =
-                Walk.refactor_IsCollider (π.splitAt j hjn).2.2
+                Walk.IsCollider (π.splitAt j hjn).2.2
                   ((j + (k - prefix_walk.length - σ_ij.length)) -
                     (π.splitAt j hjn).2.1.length) :=
               Walk.refactor_IsCollider_comp_right
@@ -3828,8 +3738,8 @@ theorem replaceWalk
                   rw [h_split_len]; omega)
             rw [Walk.splitAt_comp π j hjn] at h_eq4_right
             rw [h_split_len, h_arith] at h_eq4_right
-            -- Build π.refactor_IsBlockableNonCollider k_π
-            have h_nc_π : π.refactor_IsNonCollider k_π := by
+            -- Build π.IsBlockableNonCollider k_π
+            have h_nc_π : π.IsNonCollider k_π := by
               refine ⟨hk_π_le, ?_⟩
               intro h_coll_π
               apply h_nc.2
@@ -3873,19 +3783,19 @@ theorem replaceWalk
                 rw [h_split_len, ← h_prefix_len]; exact hk_a
               -- IsCollider transport: π' k → prefix k → split.2.1 k → π k
               have h_eq1_coll :
-                  (prefix_walk.comp (σ_ij.comp suffix_walk)).refactor_IsCollider k =
-                  prefix_walk.refactor_IsCollider k :=
+                  (prefix_walk.comp (σ_ij.comp suffix_walk)).IsCollider k =
+                  prefix_walk.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   prefix_walk (σ_ij.comp suffix_walk) k hk_a
               have h_eq2_coll :
-                  prefix_walk.refactor_IsCollider k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k := by
-                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).refactor_IsCollider k = _
+                  prefix_walk.IsCollider k =
+                  (π.splitAt i hi_le).2.1.IsCollider k := by
+                show (hmid_i_eq ▸ (π.splitAt i hi_le).2.1).IsCollider k = _
                 rw [Walk.refactor_IsCollider_cast_target hmid_i_eq]
               have h_eq3_coll :
-                  Walk.refactor_IsCollider
+                  Walk.IsCollider
                       ((π.splitAt i hi_le).2.1.comp (π.splitAt i hi_le).2.2) k =
-                  (π.splitAt i hi_le).2.1.refactor_IsCollider k :=
+                  (π.splitAt i hi_le).2.1.IsCollider k :=
                 Walk.refactor_IsCollider_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3_coll
@@ -3925,8 +3835,8 @@ theorem replaceWalk
                 Walk.HasBlockingRightSlot_comp_left
                   (π.splitAt i hi_le).2.1 (π.splitAt i hi_le).2.2 k hk_split
               rw [Walk.splitAt_comp π i hi_le] at h_eq3_right
-              -- Build π.refactor_IsBlockableNonCollider k
-              have h_nc_π : π.refactor_IsNonCollider k := by
+              -- Build π.IsBlockableNonCollider k
+              have h_nc_π : π.IsNonCollider k := by
                 refine ⟨by omega, ?_⟩
                 intro h_coll_π
                 apply h_nc.2
