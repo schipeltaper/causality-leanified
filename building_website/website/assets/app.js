@@ -73,6 +73,14 @@ const KATEX_MACROS = {
   "\\checkmark": "\\text{\\unicode{0x2713}}",
   "\\Finset": "\\mathrm{Finset}",
   "\\Node":   "\\mathrm{Node}",
+  "\\WalkStep": "\\mathrm{WalkStep}",
+  "\\IsCollider":          "\\mathrm{IsCollider}",
+  "\\IsNonCollider":       "\\mathrm{IsNonCollider}",
+  "\\HeadAtTarget":        "\\mathrm{HeadAtTarget}",
+  "\\HeadAtSource":        "\\mathrm{HeadAtSource}",
+  "\\HasBlockingLeftSlot":  "\\mathrm{HasBlockingLeftSlot}",
+  "\\HasBlockingRightSlot": "\\mathrm{HasBlockingRightSlot}",
+  "\\IsDiag":              "\\mathrm{IsDiag}",
 
   /* (conditional) independence — the full Perp / iPerp family */
   "\\Indep":   "\\mathrel{\\perp\\!\\!\\!\\perp}",

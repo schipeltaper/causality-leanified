@@ -56,23 +56,12 @@ namespace Causality
 
 namespace CDMG
 
--- ## Design choice — refactor section-wide statement context
+-- ## Design choice — section-wide statement context
 --
--- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Mirrors the
---   original `CDMG`-namespace `variable` block at the top of this file
---   byte-for-byte modulo the refactor's namespace retarget.  Matches the
---   chapter convention used by every `CDMG`-opening file
---   (`CDMG.lean`, `Walks.lean`'s refactor section, `Acyclicity.lean`'s
---   refactor section, `FamilyRelationships.lean`'s refactor section,
---   `CollidersAndNon.lean`'s refactor section,
---   `BlockableAndUnblockable.lean`'s refactor section).  The
---   `cdmg_typed_edges` refactor does NOT alter the carrier-type
---   discipline — only the `L`-field shape on `CDMG` and the
---   per-step walk-edge encoding inside `WalkStep` — so the
---   binders here are byte-identical to the original.
+-- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Matches the
+--   chapter convention used by every `CDMG`-opening file.
 --
--- *Three-dash `--- start helper` / `--- end helper` markers.*  Same
---   rationale as the original block at the top of this file: the
+-- *Three-dash `--- start helper` / `--- end helper` markers.*  The
 --   implicit `Node` + `DecidableEq Node` infrastructure is
 --   statement-typing material, not the formalised LN content; the
 --   three-dash flavour is the chapter convention for that distinction.
@@ -89,27 +78,18 @@ variable {Node : Type*} [DecidableEq Node]
 --
 -- ## Design choice — outgoing_E_not_in_Sc
 --
--- *Why factor out as a separate helper.*  Under the original encoding
---   the cycle-construction argument appeared twice in the main proof
---   (once for the slot-(k-1) sub-case, once for the slot-k sub-case),
---   each time inlined as an `intro h_in_Sc; ...` block.  Under the
---   refactor the main theorem delegates the per-slot work to the
---   `blocking_interior_helper` helper below, and that helper
---   in turn invokes the acyclicity argument at *exactly* the two slot
---   branches.  Lifting the cycle-construction to its own lemma both
---   removes the duplication and makes the load-bearing acyclicity-
---   to-non-Sc translation visible at the call site.  This is a
---   net-new declaration (no original counterpart); the cleanup name
---   is `outgoing_E_not_in_Sc` (Phase 7 cleanup whole-word renames
---   `outgoing_E_not_in_Sc → outgoing_E_not_in_Sc`).
+-- *Why factor out as a separate helper.*  The cycle-construction
+--   argument fires at two slot branches inside
+--   `blocking_interior_helper`; lifting it to its own lemma removes
+--   the duplication and makes the load-bearing acyclicity-to-non-Sc
+--   translation visible at the call site.
 --
 -- *Why prepend rather than append.*  The directed walk `ρ : y → x`
 --   from `y ∈ Anc x` provides the right shape for prepending the
 --   single step `(x, y) ∈ G.E` at the head: the resulting cons-cell
 --   `.cons y (.forwardE hxy) ρ : Walk G x x` has source `x`,
 --   middle vertex `y`, and target `x` — a non-trivial closed
---   directed walk based at `x`.  Appending would require a walk-
---   concatenation primitive that the refactor does not provide.
+--   directed walk based at `x`.
 private lemma outgoing_E_not_in_Sc
     {G : CDMG Node} (hG : G.IsAcyclic)
     {x y : Node} (hxy : (x, y) ∈ G.E) : y ∉ G.Sc x := by
@@ -128,66 +108,38 @@ private lemma outgoing_E_not_in_Sc
   have h_x_in_G : x ∈ G := (G.hE_subset hxy).1
   exact hG x h_x_in_G ⟨ρ_tilde, h_ρt_dir, h_ρt_len⟩
 
+
 set_option linter.style.longLine false in
--- Helper — handles the interior case (1 ≤ k < π.length) of the main
--- theorem by induction on the walk `π`.  Under acyclicity, at any
--- interior non-collider position the walk must have a "blocking slot"
--- (the LN's outgoing-walk-edge-to-a-non-Sc-node witness): either at
--- slot k - 1 (`HasBlockingLeftSlot`) or at slot k
--- (`HasBlockingRightSlot`).  The induction's substantive case is
--- `k = 1` on a `cons _ s₀ (cons _ s₁ _)` cons-cons walk, where the
--- non-collider hypothesis `¬ (s₀.IsInto vMid ∧ s₁.IsInto vMid)`
--- splits via `not_and_or` and each branch picks the matching
--- blocking slot.
+-- Helper — induction on the walk `π`, base-case `nil` discharged by
+-- `Walk.length = 0`, inductive step pattern-matches the outer
+-- cons-cons head, the substantive interior case `k = 1` reads `s₀`
+-- and `s₁` off the head pair, and the inductive `k = m + 2` step
+-- delegates to the IH on the tail walk.  The per-step "arrowhead at
+-- v_k" reading uses the constructor-tag pair `s₀.HeadAtTarget` /
+-- `s₁.HeadAtSource` from `def_3_15`.
 --
 -- ## Design choice — blocking_interior_helper
 --
--- *Why induction on `π`, not case-split on `k`.*  The original main
---   theorem case-split on `k = 0` / `k = π.length` / interior, then
---   inside the interior case read off walk-data at indices `k - 1`
---   and `k` via the `Walk.walkStep_at` Option-membership helpers.
---   Under the refactor `Walk.edges` does not exist, so the per-slot
---   inspection must go through structural pattern-match on the walk
---   constructors.  This forces a recursion on the walk's cons-chain:
---   at outer cons cell `cons vMid s₀ (cons _ s₁ _)`, outer position
---   `k = 1` reads `s₀` and `s₁` simultaneously off the head, and
---   outer position `k ≥ 2` recurses on the tail with the index
---   decremented.  This matches the recursion structure of
---   `IsCollider` and `refactor_HasBlocking*Slot` byte-for-
---   byte and gives the cleanest port.
+-- *Unfolding at the cons-cons-(k=1) pattern.*  At position 1 the
+--   hypothesis `¬ π.IsCollider 1` unfolds to
+--   `¬ (s₀.HeadAtTarget ∧ s₁.HeadAtSource)`.  `not_and_or` splits
+--   the conjunction; each disjunct case-splits on the relevant
+--   `WalkStep` constructor.
 --
--- *Index-recursion lockstep across `IsCollider`, `HasBlockingLeftSlot`,
---   `HasBlockingRightSlot`.*  All three helpers step their walk-
---   argument forward one cons-cell at a time and decrement their
---   position index in lockstep at outer `k + 2` → tail `k + 1` (for
---   `IsCollider` and `HasBlockingLeftSlot`) and outer `k + 1` → tail
---   `k` (for `HasBlockingRightSlot`).  In the inductive step the
---   substantive observation is that all three step in unison: at
---   outer cons-cons walk with index `m + 2`, the inner walk
---   inherits the negated-`IsCollider` hypothesis at position `m + 1`,
---   and the inductive hypothesis returns `HasBlockingLeftSlot (m + 1)
---   ∨ HasBlockingRightSlot (m + 1)` on the inner walk, which lifts to
---   `HasBlockingLeftSlot (m + 2) ∨ HasBlockingRightSlot (m + 2)` on
---   the outer walk by the pattern equations.
---
--- *The `k = 1` substantive case.*  Unfold `¬ IsCollider 1`
---   at the cons-cons pattern to `¬ (s₀.IsInto vMid ∧
---   s₁.IsInto vMid)`; apply `not_and_or` to split.  Each
---   branch case-splits on the relevant WalkStep constructor:
---   * `¬ s₀.IsInto vMid`: among `.forwardE / .backwardE /
---     .bidir`, only `.backwardE h` (with `h : (vMid, u) ∈ G.E`,
---     where `u` is the outer walk's source) leaves `IsInto` falsifiable.
---     `.forwardE _` makes `IsInto` true via `vMid = vMid`; `.bidir _`
---     makes it true via `vMid = vMid ∨ vMid = u → vMid = vMid`.  In the
---     `.backwardE h` branch, `HasBlockingLeftSlot 1` unfolds to
---     `u ∉ G.Sc vMid`, discharged by `outgoing_E_not_in_Sc hG h`.
---   * `¬ s₁.IsInto vMid`: only `.forwardE h` (with
---     `h : (vMid, vNext) ∈ G.E`) leaves `IsInto` falsifiable.
---     `HasBlockingRightSlot 1` recurses via the outer cons cell to
---     `(cons vNext s₁ _).HasBlockingRightSlot 0`, which then
---     matches the `.forwardE _, 0` branch and unfolds to
---     `vNext ∉ G.Sc vMid` — discharged by
---     `outgoing_E_not_in_Sc hG h`.
+-- *Why the L-disjunct branches stay trivially dischargeable.*  At each
+--   `cases s₀`/`cases s₁` constructor branch the matcher reduces
+--   `HeadAtTarget` / `HeadAtSource` to one of two values:
+--   - `True` on the "natural-side head" branches (`.forwardE _` for
+--     target, `.backwardE _` for source, `.bidir _` for both);
+--     `¬ True` is absurd, discharged via `absurd trivial h_n*`.
+--   - The opposite-channel L-disjunct on the writing-mirror branches
+--     (`.backwardE _` for target, `.forwardE _` for source) reduces
+--     to `s(u, v) ∈ G.L`.  The proof does not need to inspect that
+--     L-disjunct's truth value: the constructor parameter
+--     `h : (vMid, _) ∈ G.E` (or `(_, vMid) ∈ G.E`, depending on side)
+--     is the witness used here.  `outgoing_E_not_in_Sc hG h`
+--     discharges the matching `HasBlockingLeftSlot 1` /
+--     `HasBlockingRightSlot 1` goal directly.
 private lemma blocking_interior_helper
     {G : CDMG Node} (hG : G.IsAcyclic) :
     ∀ {u v : Node} (π : Walk G u v) (k : ℕ),
@@ -215,17 +167,16 @@ private lemma blocking_interior_helper
           | 1, _, _, h_notCol =>
               -- Position 1: read s₀ and s₁ off the head pair.
               -- IsCollider at (cons vMid s₀ (cons _ s₁ _), 1)
-              -- = s₀.IsInto vMid ∧ s₁.IsInto vMid.
+              -- = s₀.HeadAtTarget ∧ s₁.HeadAtSource.
               have h_notBoth :
-                  ¬ (s₀.IsInto vMid ∧ s₁.IsInto vMid) := h_notCol
+                  ¬ (s₀.HeadAtTarget ∧ s₁.HeadAtSource) :=
+                h_notCol
               rcases not_and_or.mp h_notBoth with h_n0 | h_n1
-              · -- ¬ s₀.IsInto vMid → s₀ must be .backwardE.
+              · -- ¬ s₀.HeadAtTarget → s₀ must be .backwardE.
                 cases s₀ with
                 | forwardE h =>
-                    -- IsInto reduces to `vMid = vMid ∨ _`, which is `True`.
-                    exact absurd
-                      (Or.inl rfl : WalkStep.IsInto
-                        (.forwardE h : WalkStep G uOuter vMid) vMid) h_n0
+                    -- HeadAtTarget on .forwardE _ reduces to True.
+                    exact absurd trivial h_n0
                 | backwardE h =>
                     -- h : (vMid, uOuter) ∈ G.E.
                     -- HasBlockingLeftSlot at (.cons vMid (.backwardE _) _, 1)
@@ -234,11 +185,9 @@ private lemma blocking_interior_helper
                     change uOuter ∉ G.Sc vMid
                     exact outgoing_E_not_in_Sc hG h
                 | bidir h =>
-                    -- IsInto reduces to `vMid = uOuter ∨ vMid = vMid`, which is `True`.
-                    exact absurd
-                      (Or.inr rfl : WalkStep.IsInto
-                        (.bidir h : WalkStep G uOuter vMid) vMid) h_n0
-              · -- ¬ s₁.IsInto vMid → s₁ must be .forwardE.
+                    -- HeadAtTarget on .bidir _ reduces to True.
+                    exact absurd trivial h_n0
+              · -- ¬ s₁.HeadAtSource → s₁ must be .forwardE.
                 cases s₁ with
                 | forwardE h =>
                     -- h : (vMid, vNext) ∈ G.E.
@@ -246,8 +195,6 @@ private lemma blocking_interior_helper
                     -- recurses to (cons vNext (.forwardE _) _).HasBlockingRightSlot 0
                     -- = vNext ∉ G.Sc vMid.
                     refine Or.inr ?_
-                    -- Step the outer HasBlockingRightSlot 1 down to inner ...Slot 0,
-                    -- which on .forwardE h unfolds to vNext ∉ G.Sc vMid.
                     -- The outer recursion at k+1 = 1 needs s₀ to be destructed before
                     -- the matcher can route to the wildcard-cons cons-pattern.
                     cases s₀ with
@@ -261,21 +208,17 @@ private lemma blocking_interior_helper
                         change vNext ∉ G.Sc vMid
                         exact outgoing_E_not_in_Sc hG h
                 | backwardE h =>
-                    -- IsInto reduces to `vMid = vMid ∨ _`, which is `True`.
-                    exact absurd
-                      (Or.inl rfl : WalkStep.IsInto
-                        (.backwardE h : WalkStep G vMid vNext) vMid) h_n1
+                    -- HeadAtSource on .backwardE _ reduces to True.
+                    exact absurd trivial h_n1
                 | bidir h =>
-                    -- IsInto on .bidir : WalkStep G vMid vNext at w = vMid:
-                    -- (vMid = vMid ∨ vMid = vNext), the first disjunct is `True`.
-                    exact absurd
-                      (Or.inl rfl : WalkStep.IsInto
-                        (.bidir h : WalkStep G vMid vNext) vMid) h_n1
+                    -- HeadAtSource on .bidir _ reduces to True.
+                    exact absurd trivial h_n1
           | m + 2, _, hk_lt, h_notCol =>
               -- Inductive step.  Outer walk is cons (vMid) s₀ tail
               -- where tail = cons vNext s₁ π_rest_rest.  The recursion
               -- equations:
-              --   IsCollider (cons _ _ p) (m + 2) = p.IsCollider (m + 1)
+              --   IsCollider (cons _ _ p) (m + 2)
+              --     = p.IsCollider (m + 1)
               --   HasBlockingLeftSlot (cons _ _ p) (m + 2)
               --     = p.HasBlockingLeftSlot (m + 1)
               --   HasBlockingRightSlot (cons _ _ p) (m + 2)
@@ -306,39 +249,17 @@ private lemma blocking_interior_helper
                 | backwardE _ => exact hR
                 | bidir _ => exact hR
 
+
 set_option linter.style.longLine false in
 -- ## Design choice — acyclic_non_colliders_blockable
 --
--- *Mechanical port of the original `acyclic_non_colliders_blockable`
---   onto the typed-WalkStep refactor.*  The LN-level proof structure
---   (Case A: k = 0; Case B: k = π.length; Case C: interior 1 ≤ k <
---   π.length) carries over verbatim because the disjunction shape of
---   `IsBlockableNonCollider` mirrors the original's:
---   end-position arms + two interior arms encoded via the new
---   `HasBlockingLeftSlot` / `HasBlockingRightSlot`
---   helpers (instead of the original's Option-membership existentials
---   over `Walk.edges` walk data).
---
--- *Why the interior case is delegated to a helper.*  Under the refactor
---   `Walk.edges` does not exist (see `Walks.lean`'s "Why no
---   `edges`" block), so the per-slot inspection patterns of
---   the original — which read walk-edge data at indices `k - 1` and
---   `k` via `p.edges[k - 1]?` / `p.edges[k]?` and the
---   `Walk.walkStep_at` helpers — must be replaced with structural
---   pattern-match on the walk's cons-chain.  Pushing this case
---   analysis into the `blocking_interior_helper` lemma
---   keeps the main theorem's body short and lets the helper express
---   the index-recursion lockstep across `IsCollider`,
---   `HasBlockingLeftSlot`, `HasBlockingRightSlot` cleanly via
---   induction on the walk.
---
--- *Acyclicity-cycle argument also factored out.*  See
---   `outgoing_E_not_in_Sc` above for the once-and-for-all
---   packaging of the original's Step C.2 cycle construction.  Under
---   the refactor that argument is invoked from inside
---   `blocking_interior_helper` at exactly the two slot
---   branches (`.backwardE _` at slot 1 → left-slot witness;
---   `.forwardE _` at the slot-k step → right-slot witness).
+-- *Three-case proof structure.*  The proof splits on the position `k`:
+--   `Case A: k = 0` (left end), `Case B: k = π.length` (right end),
+--   `Case C: 1 ≤ k < π.length` (interior).  The interior case is
+--   delegated to `blocking_interior_helper`; the disjunct routing via
+--   `Or.inl` / `Or.inr (Or.inl _)` / `Or.inr (Or.inr (Or.inl _))` /
+--   `Or.inr (Or.inr (Or.inr _))` mirrors the four-disjunct shape of
+--   `IsBlockableNonCollider`.
 -- ref: claim_3_20
 -- claim_3_20 -- start statement
 theorem acyclic_non_colliders_blockable
@@ -362,20 +283,6 @@ theorem acyclic_non_colliders_blockable
   rcases blocking_interior_helper hG π k hk_pos hk_lt h_notCol with hL | hR
   · exact Or.inr (Or.inr (Or.inl hL))
   · exact Or.inr (Or.inr (Or.inr hR))
-
--- The pre-refactor proof of `acyclic_non_colliders_blockable` relied on
--- four `Walk.*` helpers (`Walk.vertices_length_eq`,
--- `Walk.vertices_head?_eq_source`, `Walk.walkStep_at`,
--- `Walk.walkStep_at_vertices`) defined above this proof in their own
--- ORIGINAL blocks.  Under `cdmg_typed_edges` the post-refactor proof
--- (the `outgoing_E_not_in_Sc` + `blocking_interior_helper` +
--- `acyclic_non_colliders_blockable` REPLACEMENT trio above) inspects
--- the typed `WalkStep` constructor directly, so the four helpers are
--- now dead code.  Because the cleanup script's marker parser truncates
--- block names at the first non-identifier character, all four
--- `Walk.<suffix>` ORIGINAL blocks register as a single `Walk` name in
--- the validator's set diff; this empty REPLACEMENT block pairs all
--- four of them at once so the finalize-time marker validator passes.
 
 end CDMG
 

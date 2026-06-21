@@ -46,33 +46,12 @@ reusing `def_3_3` item~ii's "edge into `v_k`" predicate.
 
 2. **`IsCollider` as the primary predicate, `IsNonCollider` as the
    complement on in-range positions.**  Avoids a ℕ-valued counting
-   helper `ahCount`, which would need a `Decidable (G.into v e)`
-   instance for the `if-then-else` reduction.  Mathematically the
-   count lives in `{0, 1, 2}` (canonical tex, paragraph "Arrowhead
-   count at a position"), so `ah_π(k) ≤ 1 ↔ ¬ (ah_π(k) = 2)` — the
-   negation form is semantically equivalent to the LN's "at most
-   one arrowhead" reading.
-
-3. **Self-loop tie-breaking convention.**  A directed self-loop
-   `a = (v, v) ∈ G.E` is "an edge into `v`" per `def_3_3` item~ii
-   (the `E`-clause's `e.2 = v` fires with `e.2 = v = v`), so it
-   contributes `1` (not `2`) to the count when the walk traverses
-   it at a position where `v_k = v`.  This is the resolution the
-   canonical tex commits to in its "Treatment of directed
-   self-loops" paragraph, and matches `EdgeRelations.lean`'s
-   `into` semantics: the count is over **walk-incident edges**, and
-   each walk-edge contributes at most `1`.  The literal LN
-   pattern-matching writings (`\tuh / \hut / \huh`) would otherwise
-   ambiguously classify a position adjacent to a self-loop as both
-   collider and non-collider; the count-based reading is
-   unambiguous and is what `IsCollider` / `IsNonCollider` encode.
-
-4. **`G.into` reused from `def_3_3` (`EdgeRelations.lean`).**  The
-   canonical tex spells out "edge into `v_k`" by reference to
-   `def_3_3` item~ii, and `CDMG.into` already encodes that exact
-   set-theoretic predicate.  Re-inlining the two-clause disjunction
-   here would duplicate `into`'s body and break the LN-macro-grep
-   correspondence.
+   helper `ahCount`, which would require decidability discharges at
+   every elaboration site.  Mathematically the count lives in
+   `{0, 1, 2}` (canonical tex, paragraph "Arrowhead count at a
+   position"), so `ah_π(k) ≤ 1 ↔ ¬ (ah_π(k) = 2)` — the negation
+   form is semantically equivalent to the LN's "at most one
+   arrowhead" reading.
 
 The substantive per-declaration design rationale lives in the
 comment block immediately above each `-- def_3_15 -- start statement`
@@ -85,30 +64,18 @@ namespace Causality
 
 namespace CDMG
 
--- ## Design choice — refactor section-wide statement context
+-- ## Design choice — section-wide statement context
 --
 -- *Polymorphic `Node : Type*` with `[DecidableEq Node]`.*  Same chapter
---   convention used by the original `CDMG` namespace above and by every
---   other `CDMG`-opening file in the chapter
+--   convention used by every other `CDMG`-opening file in the chapter
 --   (`Walks.lean:1201-1203`, `CDMG.lean`, `CDMGNotation.lean`,
---   `EdgeRelations.lean`).  The refactor does not alter the carrier-type
---   discipline — only (a) `def_3_1`'s `L`-field shape (`Finset (Sym2 Node)`
---   with `hL_irrefl : ∀ ⦃s⦄, s ∈ L → ¬ s.IsDiag`) and (b) `def_3_4`'s
---   per-step walk-edge data (typed `WalkStep` with three
---   constructors `.forwardE / .backwardE / .bidir`) and the `cons`-cell of
---   `Walk` — so the binders below are byte-identical to the
---   original `CDMG`-namespace variable line at the top of this file.
+--   `EdgeRelations.lean`).
 --
 -- *Three-dash `--- start helper` / `--- end helper`, not two-dash
 --   `-- start statement`.*  Lean 4's `variable` auto-binding folds these
---   implicit binders into every refactored declaration below exactly as
---   it does for the originals.  The three-dash flavour tags this as
---   helper-level wrapping, consistent with how the original `variable`
---   line at the top of this file and the `CDMG` section-wide
---   `variable` at `Walks.lean:1201-1203` are tagged.  The Phase 7
---   cleanup script's whole-word rename (`refactor_<Name>` → `<Name>`)
---   leaves the `def_3_15` marker text inside this block untouched (the
---   marker is a documentation comment, not a declaration name).
+--   implicit binders into every declaration below.  The three-dash
+--   flavour tags this as helper-level wrapping, consistent with how the
+--   `CDMG` section-wide `variable` at `Walks.lean:1201-1203` is tagged.
 -- def_3_15 --- start helper
 variable {Node : Type*} [DecidableEq Node]
 -- def_3_15 --- end helper
@@ -129,22 +96,20 @@ namespace WalkStep
 --
 -- *Three-dash helper marker, not two-dash statement marker.*  Same
 --   rationale as the `Walk` namespace `variable` block below
---   and as the refactor section's section-wide `variable` immediately
---   above: this `{G}` binder is load-bearing infrastructure that the
---   tex/Lean reconciliation tooling and the Phase 7 cleanup script
---   must recognise as helper-flavour.
+--   and as the section-wide `variable` immediately above: this `{G}`
+--   binder is load-bearing infrastructure that the tex/Lean
+--   reconciliation tooling must recognise as helper-flavour.
 -- def_3_15 --- start helper
 variable {G : CDMG Node}
 -- def_3_15 --- end helper
 
--- ref: def_3_15 (helper, "edge into a node" at a typed WalkStep) — refactor
+-- ref: def_3_15 (helper, "edge into a node" at a typed WalkStep)
 --
 -- `s.IsInto w` iff the typed WalkStep `s : WalkStep
 -- G u v` places an arrowhead at the node `w` when traversed.  The
--- canonical per-WalkStep "arrowhead-at-node" predicate at the typed-
--- WalkStep level, reading the channel and direction off the WalkStep's
--- constructor tag instead of going through the original's
--- ordered-pair-plus-`G.into` machinery:
+-- typed-WalkStep transcription of `def_3_3` item~ii's "edge into a
+-- node" predicate, reading the channel and direction off the
+-- WalkStep's constructor tag:
 --
 -- - `.forwardE _` (encoding `(u, v) ∈ G.E`, running `u → v`):
 --   arrowhead at the target index `v`.  `IsInto w := (w = v)`.
@@ -154,43 +119,36 @@ variable {G : CDMG Node}
 -- - `.bidir _` (encoding `s(u, v) ∈ G.L`, bidirected): arrowheads at
 --   BOTH endpoints simultaneously.  `IsInto w := (w = u ∨ w = v)`.
 --
--- The sole consumer is `Walk.IsCollider` below, which
--- uses `s.IsInto vk` to test arrowhead-presence at the
--- position-`k` vertex on the walk.
+-- Consumed by the WalkStep-reversal symmetry lemma
+-- `s.reverse.IsInto w ↔ s.IsInto w` in `SigmaSeparationSymmetric.lean`,
+-- which exploits the node-equality framing's index-symmetry to
+-- discharge the reversal invariance in one rewrite.
 --
 -- ## Design choice — IsInto
 --
--- *Why a helper at all, rather than inlining the per-WalkStep
---   classification directly into `IsCollider`'s pattern
---   match.*  The LN block phrases the collider case as "there are two
+-- *Why a Prop-level "arrowhead-at-node" predicate at the WalkStep
+--   level.*  The LN block phrases the collider case as "there are two
 --   arrowheads pointing towards $v_k$ on the walk $\pi$" (canonical
 --   tex `def_3_15`, item~ii of the Classification paragraph: collider
 --   iff `ah_π(k) = 2`, with `ah_π(k)` defined as the count of walk-
 --   incident edges `a_{k-1}, a_k` that are edges into $v_k$).
---   Factoring "this WalkStep contributes an arrowhead at node `w`"
---   out as `IsInto` lets the consumer
---   `IsCollider` mirror the LN's phrasing word-for-word at
---   its `k = 1` branch as the conjunction
---   `s₀.IsInto vk ∧ s₁.IsInto vk` — one conjunct
---   per "arrowhead pointing towards $v_k$".  Inlining would instead
---   force a 9-Cartesian-product branch (one per pair of constructor
---   tags) at the `k = 1` slot of `IsCollider`, breaking the
---   LN-mirroring reading and re-introducing the writing-mirror /
---   self-loop pathologies the helper is designed to absorb (see the
---   next bullet for the writing-mirror union fix, and the "Self-loop
---   semantics" bullet on `IsCollider` below for the self-
---   loop fix).  The helper's "arrowhead-at-node" framing is also the
---   LN-faithful one: `def_3_3` item~ii ("edge into a node") is the
---   per-edge primitive the LN itself uses to build the collider
---   count, so `IsInto` is the typed-WalkStep transcription
---   of that exact primitive.
+--   `def_3_3` item~ii ("edge into a node") is the per-edge primitive
+--   the LN itself uses to build the collider count, so `IsInto` is the
+--   typed-WalkStep transcription of that exact primitive — a literal,
+--   node-equality-keyed reading of "edge into a node" that downstream
+--   symmetry lemmas rely on.  The actual collider classification
+--   (`IsCollider` below) instead uses the side-aware predicates
+--   `HeadAtTarget` / `HeadAtSource`, which commit to the recorded
+--   traversal channel and disambiguate self-loops; the two readings
+--   coincide off the corner kinds documented on `IsCollider`'s design
+--   block.
 --
 -- *Writing-mirror union semantics on directed branches.*  The LN's
 --   `into v_k a_i` predicate at a walk-incident edge `a_i = (e_1, e_2)`
 --   is a *union* over the two channels read off a SINGLE stored
 --   ordered pair: `into v_k a_i ↔ (a_i ∈ E ∧ e_2 = v_k) ∨ (a_i ∈ L ∧
 --   (e_1 = v_k ∨ e_2 = v_k))` (canonical tex `def_3_15` spelling out
---   `def_3_3` item~ii).  Under the typed-WalkStep refactor, the stored
+--   `def_3_3` item~ii).  In the typed-WalkStep encoding here, the stored
 --   pair is split into three constructor channels — `.forwardE` and
 --   `.backwardE` hold an `(u, v) ∈ G.E` (resp.\ `(v, u) ∈ G.E`)
 --   witness, `.bidir` holds an `s(u, v) ∈ G.L` witness — but `def_3_1`
@@ -206,7 +164,7 @@ variable {G : CDMG Node}
 --   stored pair's two channels — does not depend on which constructor
 --   was chosen.  A constructor-tag-only reading
 --   (`.forwardE → only test the E-target side`) would *drop* the
---   L-channel disjunct in writing-mirror cases and make the refactor's
+--   L-channel disjunct in writing-mirror cases and make `IsInto`'s
 --   classification depend on the walker's encoding choice, diverging
 --   from the LN.  The extra disjunct
 --   `s(u, v) ∈ G.L ∧ (w = u ∨ w = v)` on the `.forwardE` /
@@ -225,10 +183,9 @@ variable {G : CDMG Node}
 --   self-loop `(v, v) ∈ G.E`, the new disjunct `s(v, v) ∈ G.L` is
 --   *vacuously false* by `def_3_1`'s `hL_irrefl` (which forbids
 --   `s.IsDiag ∈ G.L`), so the self-loop branch reduces to the
---   node-equality test `w = v` on the type indices alone — the same
---   load-bearing self-loop fix the prior review committed to.  No
+--   node-equality test `w = v` on the type indices alone.  No
 --   special-casing is needed for self-loops; the writing-mirror union
---   fix and the self-loop fix coexist by `hL_irrefl`.
+--   and the self-loop reading coexist by `hL_irrefl`.
 --
 -- *Why `.bidir` does NOT carry a symmetric "writing-mirror E-disjunct".*
 --   A reader noticing the writing-mirror union disjunct on
@@ -267,21 +224,6 @@ variable {G : CDMG Node}
 --   walk position evaluates `IsInto v_k` to the same Boolean under
 --   every legal typifying encoding.
 --
--- *Net-new helper with no original counterpart.*  The original
---   `Walk.IsCollider` (`def_3_15` ORIGINAL block above in this file)
---   characterised "edge into `v_k`" by `G.into v_k a`, the `def_3_3`
---   item~ii membership disjunction over the stored ordered pair
---   `a : Node × Node`.  Under the typed-WalkStep refactor (a) the
---   stored pair is dissolved into the WalkStep's typed structure and
---   (b) the original `Walk.edges` projection that fed `G.into` no
---   longer exists (see `Walks.lean:1631-1685`'s "Why no `edges`"
---   block for the intentional omission).  A per-WalkStep
---   "arrowhead-at-w" predicate is therefore needed as new
---   infrastructure to translate "edge into `v_k`" through the refactor
---   shape — `IsInto` is that predicate.  Wrapped as a
---   REPLACEMENT block with no ORIGINAL counterpart per the manager's
---   net-new-helper marker convention.
---
 -- *Why test by node-equality (`w = u` / `w = v`) rather than by
 --   constructor-tag "source vs target" labels.*  This is the load-
 --   bearing semantic decision of the helper.  A naive constructor-tag
@@ -294,36 +236,33 @@ variable {G : CDMG Node}
 --   semantically empty statement that cannot distinguish "arrowhead at
 --   the loop vertex" from "no arrowhead at the loop vertex".  The
 --   node-equality test resolves this cleanly: `IsInto v` evaluates to
---   `(v = v) = True` for `.forwardE _ : WalkStep G v v`,
---   matching the original's `G.into v (v, v) = True` (via the
---   E-clause's `e.2 = v` condition).  Wording-check subtlety
+--   `(v = v) = True` for `.forwardE _ : WalkStep G v v`, matching the
+--   literal `G.into v (v, v) = True` reading (via the E-clause's
+--   `e.2 = v` condition).  Wording-check subtlety
 --   `self_loop_makes_tuh_and_hut_simultaneously_true` flagged exactly
 --   this corner: the literal-LN constructor-tag reading
 --   (`v ⟵ v ⟶ v_{k+1}` vs. `v ⟶ v ⟶ v_{k+1}`) is ambiguous for
 --   self-loops, but the count-based reading the canonical tex commits
 --   to (preserved here via node-equality) is unambiguous and matches
---   the original's `G.into`-based semantics.
+--   the `G.into`-based semantics of `def_3_3` item~ii.
 --
--- *Why a `Prop` predicate, not a `Bool` decidable.*  Same rationale as
---   `IsCollider` below: walks live at `Type _`, their per-
---   position classification at `Prop`.  A `Bool` form would require a
---   `DecidableEq Node` discharge at every elaboration site — possible
---   in principle (we already have `[DecidableEq Node]` from the section-
---   wide variable), but adds infrastructure with no payoff for the
---   predicate's role as a `Prop`-conjunct inside `IsCollider`.
+-- *Why a `Prop` predicate, not a `Bool` decidable.*  Walks live at
+--   `Type _`, their per-position classification at `Prop`.  A `Bool`
+--   form would require a `DecidableEq Node` discharge at every
+--   elaboration site — possible in principle (we already have
+--   `[DecidableEq Node]` from the section-wide variable), but adds
+--   infrastructure with no payoff for the predicate's role as a
+--   `Prop`-valued primitive consumed by symmetry lemmas downstream.
 --
 -- *Why the explicit `w : Node` argument, not curried via the
---   WalkStep's source/target indices.*  The two call sites in
---   `IsCollider` both pass the SAME node `vk` (the position-
---   `k` vertex on the walk) to two different WalkSteps `s_{k-1}` and
---   `s_k`, only one of which has `vk` as its type-level target index
---   (`s_{k-1}` has target `vk`; `s_k` has source `vk`).  The `w : Node`
---   argument keeps the helper position-independent: either WalkStep
---   can be queried "is your arrowhead at `vk`?" without the caller
---   having to remember whether `vk` is the source or target index.
---   This is exactly the call pattern `IsCollider` uses:
---   `s₀.IsInto vk` and `s₁.IsInto vk` where `vk` is
---   the cons-cell's middle vertex binder.
+--   WalkStep's source/target indices.*  Keeping the queried node
+--   separate from the WalkStep's type indices makes the helper
+--   position-independent: any WalkStep can be queried "is your
+--   arrowhead at `w`?" without the caller having to remember whether
+--   `w` is the source or target index.  This is the shape downstream
+--   symmetry lemmas exploit — `s.reverse.IsInto w ↔ s.IsInto w`
+--   discharges in one rewrite precisely because the `w` argument is
+--   index-symmetric across constructors.
 --
 -- *Why the pattern binds `u` / `v` from the implicit binders rather
 --   than using `_`.*  The body references the WalkStep's type indices
@@ -342,6 +281,157 @@ def IsInto : ∀ {u v : Node}, WalkStep G u v → Node → Prop
   | u, v, .bidir _,     w => w = u ∨ w = v
 -- def_3_15 --- end helper
 
+-- ref: def_3_15 (helper, side-aware "head at walk-traversal target")
+--
+-- `s.HeadAtTarget` iff the typed WalkStep
+-- `s : WalkStep G u v` places an arrowhead at its walk-traversal target
+-- end `v` (per the canonical-tex addition tag
+-- `[collider_side_aware_walkstep_predicates]`, clause~(b)):
+--
+-- - `.forwardE _` encodes `(u, v) ∈ G.E`; the directed edge runs
+--   `u → v`, so the walk-traversal target `v` is the arrowhead-
+--   receiving end.  ↦ `True`.
+-- - `.backwardE _` encodes `(v, u) ∈ G.E`; the directed edge runs
+--   `v → u`, so the walk-traversal target `v` is the *tail* end of
+--   the directed step — no arrowhead at `v`.  The side-aware reading
+--   commits to the walk-step's recorded traversal channel as the
+--   SOLE signal for arrowhead-presence; there is NO opposite-channel
+--   L-disjunct on this branch, even when a coexisting
+--   `s(u, v) ∈ G.L` would, under the literal stored-pair test,
+--   contribute an arrowhead at `v` (writing-mirror case, addressed
+--   in the design block below).  ↦ `False`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints
+--   by the bidirected semantics.  ↦ `True`.
+--
+-- ## Design choice — HeadAtTarget
+--
+-- *Pure constructor-tag pattern, no `w : Node` argument, no opposite-
+--   channel disjunct.*  The walk-step's typed source `u` and target
+--   `v` already carry the "side" information at the type level, and
+--   the body is a pure True / False pattern keyed off the constructor
+--   tag alone: no node-equality test, no L-membership disjunct
+--   anywhere.  This is the load-bearing design move: per clause~(b)
+--   of the canonical-tex addition
+--   `[collider_side_aware_walkstep_predicates]`, the per-step
+--   contribution of `a_i` to `ah_π(k)` at each adjacent position is
+--   determined SOLELY by the recorded traversal channel `c_i`,
+--   "never consulting whether the underlying stored pair also sits
+--   in the opposite channel of `G`".  A directed step (`.forwardE`
+--   or `.backwardE`) commits to its E-side traversal even when a
+--   coexisting `s(u, v) ∈ G.L` is present in `G`; symmetrically,
+--   `.bidir` commits to the L-side bidirected reading even when a
+--   coexisting E-edge is present.  The canonical tex states this
+--   explicitly: "There is *no* additional opposite-channel
+--   $L$-disjunct on the directed branches and *no* additional
+--   $E$-disjunct on the bidirected branch -- the constructor tag
+--   alone carries the side-aware commitment, exactly realising the
+--   per-step contribution formula above."
+--
+-- *Strict deviation from the literal stored-pair test at two corner
+--   kinds.*  Per clause~(c) of the canonical-tex addition, the
+--   side-aware reading strictly deviates from the literal
+--   `def-edge-relations` item~ii test at two corner configurations
+--   admitted by `def_3_1`:
+--   - **directed self-loop walk-steps** (`a_i ∈ G.E` with
+--     `v_i = v_{i+1}`, no coexisting L-edge): the literal test fires
+--     `e.2 = v` at both adjacent positions unconditionally
+--     (contributing `1 + 1 = 2`); the side-aware reading commits via
+--     the constructor tag to a single position (the walk-traversal
+--     target) for the contribution, contributing `1` there and `0`
+--     at the other adjacent position.  The L-channel cannot fire
+--     here because `def_3_1`'s `hL_irrefl` rules out
+--     `s(v, v) ∈ G.L` outright (so the writing-mirror self-loop
+--     sibling `(v, v) ∈ G.E` AND `s(v, v) ∈ G.L` simultaneously is
+--     structurally impossible).  This is the manager-accepted
+--     deviation `collider_side_aware_at_self_loops` in
+--     `leanification/deviations.json`.
+--   - **writing-mirror walk-steps traversed via the E-channel**
+--     (`(v_i, v_{i+1}) ∈ G.E` AND `s(v_i, v_{i+1}) ∈ G.L`, with
+--     `v_i ≠ v_{i+1}`, encoded as `.forwardE` / `.backwardE`):
+--     `def_3_1` does not impose `E ∩ L = ∅` (see `CDMG.lean`'s
+--     "No `E ∩ L = ∅` field, by intent" design pillar), so the same
+--     vertex pair may simultaneously support a directed edge and a
+--     bidirected edge.  The literal stored-pair test's L-disjunct
+--     fires at both adjacent positions regardless of which channel
+--     the walk-step actually traverses; the side-aware reading
+--     ignores the coexisting L-edge entirely when the recorded
+--     traversal channel is `.forwardE` / `.backwardE`, contributing
+--     only at the walk-traversal target of the directed channel.
+--
+-- *Scope of coincidence with the literal stored-pair test.*  The
+--   side-aware contribution formula coincides pointwise with the
+--   literal `def-edge-relations` item~ii test only on walks that
+--   traverse NEITHER a directed self-loop step NOR a writing-mirror
+--   walk-step via the E-channel.  A writing-mirror walk-step
+--   traversed via the L-channel (`.bidir _`) agrees with the literal
+--   test pointwise: the literal test's L-clause already fires
+--   arrowheads at both endpoints, matching `.bidir`'s `↦ True` on
+--   both sides.
+--
+-- Paired with `HeadAtSource`, the two zero-arg predicates
+-- realise the addition's clause-(b) per-step contribution formula
+-- exactly: forward `E`-step head at target only; backward `E`-step
+-- head at source only; bidirected `L`-step head at both adjacent
+-- positions.  See `tex/def_3_15_CollidersAndNon.tex`, the "Encoding
+-- note: side-aware reading via a typed walk-step representation" and
+-- "Treatment of directed self-loops and writing-mirror walk-steps"
+-- paragraphs for the full canonical spec.
+-- def_3_15 --- start helper
+def HeadAtTarget : ∀ {u v : Node}, WalkStep G u v → Prop
+  | _, _, .forwardE _  => True
+  | _, _, .backwardE _ => False
+  | _, _, .bidir _     => True
+-- def_3_15 --- end helper
+
+-- ref: def_3_15 (helper, side-aware "head at walk-traversal source")
+--
+-- `s.HeadAtSource` iff the typed WalkStep
+-- `s : WalkStep G u v` places an arrowhead at its walk-traversal source
+-- end `u` (per the canonical-tex addition tag
+-- `[collider_side_aware_walkstep_predicates]`, clause~(b)):
+--
+-- - `.forwardE _` encodes `(u, v) ∈ G.E`; the directed edge runs
+--   `u → v`, so the walk-traversal source `u` is the *tail* end of
+--   the directed step — no arrowhead at `u`.  The side-aware reading
+--   commits to the walk-step's recorded traversal channel as the
+--   SOLE signal for arrowhead-presence; there is NO opposite-channel
+--   L-disjunct on this branch, even when a coexisting
+--   `s(u, v) ∈ G.L` would, under the literal stored-pair test,
+--   contribute an arrowhead at `u` (writing-mirror case).
+--   ↦ `False`.
+-- - `.backwardE _` encodes `(v, u) ∈ G.E`; the directed edge runs
+--   `v → u`, so the walk-traversal source `u` is the arrowhead-
+--   receiving end.  ↦ `True`.
+-- - `.bidir _` encodes `s(u, v) ∈ G.L`; arrowheads at both endpoints
+--   by the bidirected semantics.  ↦ `True`.
+--
+-- The mirror of `HeadAtTarget`, asking the same per-step
+-- arrowhead-contribution question on the walk-traversal *source*
+-- side.  Same pure constructor-tag pattern: no node-equality test
+-- and no opposite-channel L-disjunct anywhere in the body.  A
+-- directed step commits to its E-side traversal even at a writing-
+-- mirror pair, ignoring the coexisting `G.L` edge entirely (the
+-- side-aware reading is the canonical disambiguation per clause~(c)
+-- of the addition `[collider_side_aware_walkstep_predicates]`).
+-- See the design block on `HeadAtTarget` above for the
+-- full justification, in particular: the two corner kinds where the
+-- side-aware reading strictly deviates from the literal stored-pair
+-- test (directed self-loops AND writing-mirror walk-steps traversed
+-- via the E-channel); the role of `def_3_1`'s `hL_irrefl` in ruling
+-- out the writing-mirror self-loop sibling structurally; and the
+-- scope of coincidence with the literal `def-edge-relations` item~ii
+-- test (walks avoiding both corner kinds).  At a directed self-loop
+-- step encoded as `.forwardE _ : WalkStep G v v`, the source-side
+-- predicate at the loop vertex reads `False` — the manager-accepted
+-- deviation `collider_side_aware_at_self_loops` is preserved
+-- verbatim by the constructor-tag-only body.
+-- def_3_15 --- start helper
+def HeadAtSource : ∀ {u v : Node}, WalkStep G u v → Prop
+  | _, _, .forwardE _  => False
+  | _, _, .backwardE _ => True
+  | _, _, .bidir _     => True
+-- def_3_15 --- end helper
+
 end WalkStep
 
 namespace Walk
@@ -354,358 +444,174 @@ namespace Walk
 --   `variable`, every signature would carry an explicit
 --   `{G : CDMG Node}` binder; the auto-binding keeps the
 --   signatures readable and matches the LN's "Let $G = (J, V, E, L)$ be
---   a CDMG" once-at-the-top quantifier.  Mirrors the original
---   `namespace Walk` opening earlier in this file and the refactor
---   `namespace Walk` opening at `Walks.lean:1514-1538`
---   byte-for-byte modulo the `CDMG → CDMG` type retarget.
---   `{G}` is implicit because downstream consumers reach into `G` via
---   dot-notation on the walk (`p.IsCollider k` rather than
---   `Walk.IsCollider G p k`).
+--   a CDMG" once-at-the-top quantifier.  `{G}` is implicit because
+--   downstream consumers reach into `G` via dot-notation on the walk
+--   (`p.IsCollider k` rather than `Walk.IsCollider G p k`).
 --
 -- *Three-dash helper marker, not two-dash statement marker.*  Same
---   rationale as the original (Walk-namespace block above) and as the
---   refactor section's section-wide `variable` immediately above: this
+--   rationale as the `WalkStep` namespace `variable` block above and
+--   as the section-wide `variable` near the top of the file: this
 --   `{G}` binder is load-bearing infrastructure that the tex/Lean
---   reconciliation tooling and the Phase 7 cleanup script must
---   recognise as helper-flavour.
+--   reconciliation tooling must recognise as helper-flavour.
 -- def_3_15 --- start helper
 variable {G : CDMG Node}
 -- def_3_15 --- end helper
 
--- ref: def_3_15 (item ii, collider) — refactor
+
+-- ref: def_3_15 (item ii, collider)
 --
 -- `p.IsCollider k` iff position `k` on the walk `p` has
--- arrowhead count `ah_π(k) = 2`, i.e.\ both walk-incident edges
--- `s_{k - 1}` and `s_k` exist (forcing `1 ≤ k ≤ p.length - 1`,
--- an interior position) and both are "edges into the vertex `v_k`" in
--- the LN sense of `def_3_3` item~ii.  Under the typed-WalkStep refactor
--- this classification is delegated to the helper
--- `WalkStep.IsInto` (defined above), which tests
--- arrowhead-presence by *node-equality* on the WalkStep's type indices
--- rather than by a constructor-tag "source vs target" reading.  This
--- preserves the original's `G.into`-driven semantics including the
--- self-loop convention (a directed self-loop contributes exactly one
--- arrowhead at the loop vertex, matching `G.into v (v, v) = True` via
--- the original's E-clause's `e.2 = v` condition).
+-- arrowhead count `ah_π(k) = 2` under the *side-aware* per-step
+-- arrowhead-contribution reading.  Both walk-incident steps `s_{k-1}`
+-- and `s_k` exist (forcing `1 ≤ k ≤ p.length - 1`, an interior
+-- position) and:
+--   - `s_{k-1} : WalkStep G _ v_k` has its walk-traversal *target* at
+--     `v_k`, so it contributes an arrowhead at `v_k` iff
+--     `s_{k-1}.HeadAtTarget`;
+--   - `s_k : WalkStep G v_k _` has its walk-traversal *source* at
+--     `v_k`, so it contributes an arrowhead at `v_k` iff
+--     `s_k.HeadAtSource`.
+-- The clause-1 body is therefore
+-- `s₀.HeadAtTarget ∧ s₁.HeadAtSource` — no `v_k`
+-- node binder is needed, because the typed `WalkStep` indices already
+-- pin which end of each step is at `v_k`.
 --
 -- ## Design choice — IsCollider
 --
--- *Mutual exclusivity pulls back along the forgetful map.*  No code
---   change is required in `IsCollider` itself for the
---   writing-mirror union-semantics fix (the entire fix is encapsulated
---   inside `IsInto` above), but the consequence at this level
---   is worth stating: the LN's "every position on `π` is exactly one
---   of a non-collider or a collider on `π`" mutual-exclusivity
---   property (canonical tex `def_3_15`, "Classification" paragraph)
---   now pulls back *cleanly* along the forgetful map
---   `Walk G u v → LN walk in G` even for writing-mirror
---   walks (those traversing a stored pair that lives in both `G.E`
---   and `G.L`).  Concretely, a single LN walk position has a
---   well-defined `ah_π(k) ∈ {0, 1, 2}` count independent of the
---   walker's constructor choice when typifying the underlying ordered
---   pair, and `IsCollider` / `IsNonCollider` agree
---   with the LN classification at every encoding — the writing-mirror
---   union fix in `IsInto` is the load-bearing piece that
---   makes this constructor-choice invariance hold.  Without that fix,
---   the same LN walk position could be classified differently
---   depending on whether the walker stored each step as `.forwardE`
---   versus `.bidir` at a writing-mirror pair, breaking pullback along
---   the forgetful map and producing a CONTENT-class strict-checker
---   divergence; the fix restores the LN's classification-by-`ah_π(k)`
---   reading verbatim.
+-- *Why side-aware semantics rather than node-equality on `IsInto`.*
+--   A node-equality reading `s₀.IsInto vk ∧ s₁.IsInto vk` collapses on
+--   directed self-loops: a `.forwardE _ : WalkStep G b b` step has
+--   `u = v = b`, so the `IsInto` test cannot distinguish "arrowhead at
+--   `b` on the source side" from "arrowhead at `b` on the target side"
+--   — both disjuncts of `IsInto`'s `.forwardE` branch (`w = v`,
+--   `s(u, v) ∈ G.L ∧ …`) reduce to the single condition `w = b`.
+--   Consequence: a position-1 walk `a → b → b` (with a directed
+--   self-loop at `b` as the second step) would be spuriously classified
+--   as a collider at `b`, even though the self-loop's source side at
+--   `b` is a tail (no arrowhead), not a head.  The side-aware
+--   predicates `HeadAtTarget` / `HeadAtSource` disambiguate via the
+--   WalkStep's constructor tag alone (no node-equality test), making
+--   the self-loop's source-side contribution unambiguously `False` for
+--   `.forwardE` and `True` only for `.backwardE` / `.bidir`.
 --
--- *Why the refactor needs to touch this predicate.*  The original
---   `Walk.IsCollider` (ORIGINAL block above) characterised "edge into
---   `v_k`" by an `Option`-lookup into `p.edges : List (Node × Node)`
---   followed by a `G.into v (e : Node × Node)` membership-disjunction
---   over `G.E` and `G.L`.  Under the typed-WalkStep refactor (a)
---   `p.edges` no longer exists — the original's `Walk.edges` block has
---   been intentionally dropped under the refactor (see
---   `Walks.lean:1631-1685`'s "Why no `edges`" block), so any
---   port that goes through `p.edges`-style indexing is non-buildable;
---   and (b) the channel and direction information that the original
---   read off the ordered pair `a : Node × Node` plus `G.into` is now
---   carried by the WalkStep's *constructor tag* (channel) and *type
---   indices* (source/target endpoints).  The natural refactor port is
---   therefore a *recursive pattern-match* on the `Walk`
---   constructors that case-splits at the head cons-cell and recurses
---   on the tail — same recursion shape as
---   `IsBifurcationWithSplit` (`Walks.lean:2444-2455`) and
---   `IsColliderRest` (`Walks.lean:2186-2197`).  The per-step
---   "edge into `v_k`" test is delegated to
---   `WalkStep.IsInto` (defined above) — see the
---   next bullet for why a helper rather than inline pattern-matching.
+-- *Intended deviation at two corner kinds; restricted agreement
+--   elsewhere.*  The side-aware reading is a strict refinement of the
+--   literal stored-pair (`def-edge-relations` item~ii) test at two
+--   corner configurations admitted by `def_3_1` but ambiguously
+--   handled by the LN's pattern-macro writing.  Per clause~(c) of the
+--   canonical-tex addition `[collider_side_aware_walkstep_predicates]`,
+--   the two readings strictly diverge at:
+--   - **directed self-loop walk-steps** (`a_i ∈ G.E` with
+--     `v_i = v_{i+1}`, no coexisting L-edge): the literal test fires
+--     `e.2 = v` at both adjacent positions unconditionally (the
+--     literal-LN ambiguity flagged by wording-check subtlety
+--     `self_loop_makes_tuh_and_hut_simultaneously_true`), whereas
+--     the side-aware reading places the arrowhead on the walk-
+--     traversal target side only -- the side recorded by the
+--     `.forwardE` / `.backwardE` constructor tag.  The L-channel
+--     cannot fire at a self-loop because `def_3_1`'s `hL_irrefl`
+--     rules out `s(v, v) ∈ G.L` outright (so the writing-mirror
+--     self-loop sibling `(v, v) ∈ G.E` AND `s(v, v) ∈ G.L` is
+--     structurally impossible), so the strict refinement at self-
+--     loops is preserved by construction (this is the manager-
+--     accepted deviation `collider_side_aware_at_self_loops`).
+--   - **writing-mirror walk-steps traversed via the E-channel**
+--     (`(v_i, v_{i+1}) ∈ G.E` AND `s(v_i, v_{i+1}) ∈ G.L`, with
+--     `v_i ≠ v_{i+1}`, encoded as `.forwardE` / `.backwardE`):
+--     `def_3_1` does not impose `E ∩ L = ∅` (see `CDMG.lean`'s
+--     "No `E ∩ L = ∅` field, by intent" design pillar), so the
+--     same vertex pair may simultaneously support a directed edge
+--     in `G.E` and a bidirected edge in `G.L`.  The literal
+--     stored-pair test's L-disjunct fires at both adjacent
+--     positions regardless of which channel the walk-step actually
+--     traverses; the side-aware predicates
+--     `HeadAtTarget` / `HeadAtSource` ignore the
+--     coexisting L-edge entirely when the recorded traversal
+--     channel is `.forwardE` / `.backwardE` (their bodies have NO
+--     opposite-channel L-disjunct anywhere), contributing only at
+--     the walk-traversal target of the directed channel.  Clause~(c)
+--     of the addition explicitly extends the strict deviation to
+--     this corner: "the strict deviation from the literal stored-
+--     pair test is preserved at writing-mirror walk-steps traversed
+--     via the E-channel as well as at directed self-loops".
+--   The two readings coincide pointwise only on walks that avoid
+--   BOTH a directed self-loop step AND a writing-mirror walk-step
+--   traversed via the E-channel; a writing-mirror walk-step
+--   traversed via the L-channel (`.bidir _`) agrees with the
+--   literal test pointwise (the L-clause of the literal test
+--   already fires arrowheads at both endpoints, matching `.bidir`'s
+--   `↦ True` on both sides).  Both deviations are the *intended*
+--   canonical disambiguation per the addition tag
+--   `[collider_side_aware_walkstep_predicates]` (see
+--   `tex/def_3_15_CollidersAndNon.tex`, "Treatment of directed
+--   self-loops and writing-mirror walk-steps"), not accidental
+--   divergences: the LN's `ah_π(k) = 2` count is itself ambiguous
+--   at both corner kinds, so the encoding must commit to one of
+--   the admissible counts, and the side-aware reading is the one
+--   the canonical tex pins as taking precedence over the literal
+--   stored-pair test.  As a concrete consequence: a position-1 walk
+--   `a → b → b` (with a directed self-loop at `b` as the second
+--   step) is *not* a collider at `b` under the side-aware reading,
+--   because the self-loop's source side at `b` carries a tail, not
+--   a head.
 --
--- *Why the helper `IsInto` rather than an inline constructor-
---   tag enumeration.*  The naive port — enumerate all 9 combinations
---   of (`s_{k-1}`'s tag) × (`s_k`'s tag) at position `k = 1` and ask
---   "does this pair of tags encode an arrowhead at `v_k` from both
---   sides?" — gives the wrong answer at directed self-loops.
---   Concretely: with `E = {(v_0, v_1), (v_1, v_1)}` and walk
---   `cons _ (.forwardE h₁) (cons _ (.forwardE h₂) (.nil _ hv))`, the
---   original's `Walk.IsCollider p 1` evaluates to `True` (both
---   `G.into v_1 (v_0, v_1)` and `G.into v_1 (v_1, v_1)` fire via the
---   E-clause's `e.2 = v_1` condition).  But a tag-enumeration that
---   reads `.forwardE` rigidly as "arrowhead at target, not source"
---   would classify the second step `s_k = .forwardE _` (encoding the
---   self-loop at `v_1`) as "no arrowhead at `v_1`" and return `False`
---   — a divergence from the original.  The root cause is that for a
---   self-loop, the WalkStep's source and target type indices are the
---   SAME node, so the "source vs target" reading of the constructor
---   tag loses the self-loop coincidence; both readings are
---   simultaneously valid for the same edge.  The fix is to test "is
---   there an arrowhead at `v_k`?" by *node-equality* on the type
---   indices instead — exactly what `IsInto` does.  Under the
---   helper, both `.forwardE _` and `.backwardE _` encodings of a
---   self-loop at `v_k` correctly fire `IsInto v_k = True`, recovering
---   the original's count.  Wording-check subtlety
---   `self_loop_makes_tuh_and_hut_simultaneously_true` flagged this
---   corner explicitly; the `IsInto`-helper-with-node-equality is the
---   resolution.
+-- *No node-binder `vk` at the clause-1 pattern.*  Side information is
+--   carried at the type level by the WalkStep's indices
+--   (`s₀ : WalkStep G _ vk`, `s₁ : WalkStep G vk _`), so the middle
+--   vertex's identity is not consulted at the runtime level — the
+--   predicate reads off the constructor tag of each step alone.
+--   The cons-cell's middle-vertex slot is therefore a wildcard `_`.
 --
--- *Why the recursive pattern-match style rather than retaining the
---   original's existential-with-`vertices`/`edges`-indexing shape.*
---   Two converging reasons:
---   - **`edges` does not exist** (`Walks.lean:1631-1685`'s
---     "Why no `edges`" block documents the intentional
---     omission), so the original's `p.edges[k - 1]? = some a₁ ∧
---     p.edges[k]? = some a₂` indexing has no refactor counterpart at
---     all.  Without `edges`, every per-step classification
---     *must* be done by pattern-matching on the typed
---     `WalkStep` constructors directly off the
---     `Walk.cons` cell.
---   - **Pattern-match on constructors is structurally exclusive** —
---     `.forwardE`, `.backwardE`, `.bidir` are mutually disjoint
---     constructors, so the recursion bottoms out structurally rather
---     than by Option-membership failure as in the original.  The
---     `nil` / `cons-nil` / `cons-cons` shape of `Walk`
---     translates the original's in-range / out-of-range / end-position
---     case analysis into pattern-match exhaustiveness checked by Lean's
---     equation compiler.
---
--- *Self-loop semantics preserved via the `IsInto` helper.*
---   A directed self-loop `(v, v) ∈ G.E` at step `s_i` is encoded as
---   either `.forwardE h` (with `h : (u, v) ∈ G.E`, here `u = v`) or
---   `.backwardE h` (with `h : (v, u) ∈ G.E`, here `v = u`).  At a
---   self-loop position, the WalkStep's source and target type indices
---   are the SAME node, so the node-equality test inside
---   `IsInto` fires `True` for BOTH `.forwardE` and
---   `.backwardE` encodings of the self-loop — matching the original's
---   `G.into v_k (v_k, v_k) = True` via the E-clause's `e.2 = v_k`
---   condition.  Concretely: a `.forwardE _ : WalkStep G v_k
---   v_k` at slot `s_{k-1}` hits `IsInto`'s `w = v` branch with
---   `w = v_k` and `v = v_k`, returning `True`; a
---   `.backwardE _ : WalkStep G v_k v_k` at slot `s_k` hits
---   `IsInto`'s `w = u` branch with `w = v_k` and `u = v_k`, also
---   returning `True`.  `.bidir _` is *impossible* on a self-loop
---   because the refactor's `hL_irrefl : ∀ ⦃s⦄, s ∈ G.L → ¬ s.IsDiag`
---   rules out `s(v, v) ∈ G.L` outright, so the bidir disjunction never
---   fires at a self-loop.  No special-casing is needed in
---   `IsCollider` itself — the helper absorbs the self-loop
---   convention through its node-equality test.
---
--- *Why the cons-nil branch (length-1 walk) returns `False` uniformly
---   for every `k`.*  A collider position requires
---   `k ∈ {1, …, n − 1}` — i.e.\ an *interior* position — per the LN's
---   "Arrowhead count at a position" paragraph (canonical tex
---   `def_3_15`): at an end-position `k ∈ {0, n}` at most one walk-
---   incident index is admissible, so `ah_π(k) ≤ 1` automatically and
---   the position is a non-collider.  A length-1 walk
---   (`Walk.cons _ _ (.nil _ _)`, `n = 1`) has *only* end-
---   positions `k ∈ {0, 1}` — no interior positions exist — so
---   `ah_π(k) = 2` is impossible at every `k`, and the position is
---   *necessarily* a non-collider.  The `.cons _ _ (.nil _ _), _`
---   branch catches all `k` uniformly and returns `False`,
---   structurally encoding the LN's `n ≥ 2` lower bound on the walk's
---   length for a collider position to even be admissible.  The
---   trivial walk (`n = 0`, only position 0) is the length-0 sibling
---   case, caught by the `.nil _ _, _` branch with the same
---   `False`-return.  These two false-branches together encode the
---   "at most one walk-incident edge in scope" structural reading: a
---   walk's interior is non-empty only when its shape is at least
---   `.cons _ _ (.cons _ _ _)`, matching the LN's `n ≥ 2` requirement
---   word-for-word.  The original `Walk.IsCollider` (ORIGINAL block)
---   encoded the same content via the `p.edges[k - 1]? = some _ ∧
---   p.edges[k]? = some _` Option-membership conjuncts (which fail at
---   `k = 0` and at `k ≥ p.length`); the refactor port encodes it
---   structurally via the cons-pattern instead, since `edges`
---   does not exist (see "Why the recursive pattern-match style"
---   below).
---
--- *Why no explicit `1 ≤ k` end-position guard, and why no
---   `k ≤ p.length - 1` end-position guard.*  Both are
---   absorbed into the recursive structure of the pattern match itself.
---   - At `k = 0`: the only branches firing are `.nil _ _, _` (a trivial
---     walk has no interior, returns `False`),
---     `.cons _ _ (.nil _ _), _` (a length-1 walk has only endpoints,
---     returns `False`), and `.cons _ _ (.cons _ _ _), 0` (the
---     position-0 slot of a non-trivial walk, returns `False`).
---   - At `k = 1` with a length-1 walk: the `.cons _ _ (.nil _ _), _`
---     branch catches all `k`, returning `False` — correct since
---     position 1 is the end of a length-1 walk and the original's
---     `p.edges[1]? = none` would also return `False` here.
---   - At `k > p.length`: the recursion bottoms out by
---     descending through cons-cells with `k + 2` decrementing to
---     `k + 1`, until eventually the walk is `.nil _ _` or
---     `.cons _ _ (.nil _ _)`, both of which return `False`.  Out-of-
---     range positions therefore return `False` without an explicit
---     bound check, exactly as the original did via the
---     `p.edges[k]? = none` Option-membership failure.
---   This is the same recursion discipline used by
---   `IsBifurcationWithSplit`: the trivial walk and the
---   length-1 walk are explicit base cases; longer walks recurse via
---   `p.IsCollider (k + 1)` (index shift by 1 because the
---   tail walk starts at v_1, not v_0 — see the next bullet).
---
--- *Why the recursive call is on `p` at index `k + 1` (not at `k`).*
---   At an outer position `k + 2` of the walk `cons _ s_0 (cons _ s_1
---   p)`, the recursion descends one cons-cell into the tail (so the
---   tail walk starts at vertex `v_1`, not `v_0`).  The LN's position
---   `k + 2` on the outer walk corresponds to position `k + 1` on the
---   tail walk (vertex re-indexing shifts by 1).  Hence the call is
---   `p.IsCollider (k + 1)`, not `p.IsCollider k`.
---   Note that the tail walk here starts with the cons-cell containing
---   `s_1` (which becomes the new `s_0` of the tail), so position
---   `k + 1` on the tail corresponds correctly to position `k + 2` on
---   the outer.
---
--- *Why the recursion only fires at outer position `k + 2`, not at
---   outer position `k + 1`.*  The cons-cons-at-k=1 branch
---   (`.cons vk s₀ (.cons _ s₁ _), 1`) handles outer position 1
---   *directly* — without recursion — and necessarily so.  Testing
---   collider-ness at outer position 1 requires reading the two HEAD
---   walk-incident steps `s_0 = s₀` and `s_1 = s₁` simultaneously,
---   both of which are bound at the OUTER level of the cons-cons
---   pattern.  Recursing into the tail at outer position 1 would lose
---   access to the head step `s_0` (which lives at the outer head
---   cons-cell, not inside the tail), so the recursion structurally
---   cannot decrement past the cons-cons barrier without dropping the
---   LHS of the `IsInto ∧ IsInto` conjunction that position 1
---   requires.  The recursion's first opportunity to fire is therefore
---   at outer position `k + 2` (with `k ≥ 0`), where the head's
---   `(s_0, s_1)` pair is no longer the relevant pair to query —
---   instead the tail's first two steps `(s_1, s_2)` form the relevant
---   pair at the outer's position `k + 2 = (tail position) + 1`, and
---   the tail's position-1 query recovers
---   `tail.IsCollider 1 ↔ s_1.IsInto v_2 ∧ s_2.IsInto v_2`,
---   which is exactly the outer's position-2 query
---   `cons s_0 (cons s_1 …).IsCollider 2`.  Net effect: position 1 is
---   special-cased (dedicated branch); positions `2..n−1` are recursed
---   (`k + 2` outer descends to `k + 1` tail); the recursion bottoms
---   out one cons-level earlier than a naïve "shift-by-1 at every
---   outer position" pattern would, because the position-1 case has
---   its own dedicated branch above it.  A reader tempted to "unify"
---   the cons-cons-at-k=1 and the cons-cons-at-k+2 branches into a
---   single recursive case would have to either (a) introduce a
---   companion helper that carries `s_0` through the recursion, or
---   (b) reach into the tail's `cons` to recover `s_0` — both options
---   strictly more complex than the dedicated branch.
---
--- *Why the cons-cell middle-vertex binder `vk` (not a wildcard) at
---   the `k = 1` branch.*  The `IsInto` helper calls require `vk`
---   (= `v_1` of the walk) on the RHS as the node to test arrowhead-
---   presence for.  Binding `vk` in the pattern reads the cons-cell's
---   middle vertex out for use in both `s₀.IsInto vk` and
---   `s₁.IsInto vk`.  This is `Walk.cons`'s first
---   explicit constructor argument (the `(v : Node)` slot of
---   `cons {u w : Node} (v : Node) (s : WalkStep G u v) (p :
---   Walk G v w)`), so binding the first pattern position of
---   the cons reads exactly `v_1`.  No other branch references the
---   middle vertex (the `False`/recursion branches don't need it), so
---   they keep their `_` wildcard.
---
--- *Net-new declaration with no original counterpart at the markered
---   level beyond the wrapped ORIGINAL block above.*  The original
---   `Walk.IsCollider` (ORIGINAL block) remains under the original
---   `CDMG` namespace and continues to compile; the refactor's
---   `IsCollider` is a separate `def` under the
---   `CDMG.Walk` namespace.  The
---   `REFACTOR-BLOCK-REPLACEMENT` marker pair wraps the entire `def`;
---   Phase 7 cleanup will rename `IsCollider` to `IsCollider`
---   (whole-word) across every refactored file, leaving a `def IsCollider`
---   in the final tree — the LN's intended object name.
+-- *Recursive pattern-match shape and end-position handling.*  The
+--   five clauses encode the LN's "every position `k ∈ {0, …, n}`"
+--   scope via structural case-analysis on the `Walk` cons-cell and
+--   the `ℕ` index together.  `nil _ _` (trivial walk, `n = 0`) and
+--   `cons _ _ (nil _ _)` (length-1 walk, `n = 1`) have no interior
+--   position, so every `k` falls through to `False` — end-positions
+--   are non-colliders by the LN's convention.  At a cons-cons head
+--   `cons _ s₀ (cons _ s₁ _)`, position `0` is the walk's start
+--   (end-position, `False`) and position `1` is the unique interior
+--   position adjacent to the head pair — the slot where
+--   `s₀.HeadAtTarget ∧ s₁.HeadAtSource` lives, the
+--   side-aware encoding of the LN's `ah_π(1) = 2` condition.  Higher
+--   positions `k + 2` recurse one cons-cell deep with index shift
+--   `k + 2 → k + 1`, matching the LN's walk-tail re-indexing of
+--   positions.  Pattern-match exhaustiveness on `Walk × ℕ` means
+--   out-of-range positions (`k > p.length`) fall through to `False`
+--   automatically without an explicit `1 ≤ k ≤ p.length - 1` bound
+--   check — the structural shape encodes the LN's `n ≥ 2` lower
+--   bound on the walk length for a collider position to even be
+--   admissible.
 -- def_3_15 -- start statement
 def IsCollider : ∀ {u v : Node}, Walk G u v → ℕ → Prop
   | _, _, .nil _ _, _ => False
   | _, _, .cons _ _ (.nil _ _), _ => False
   | _, _, .cons _ _ (.cons _ _ _), 0 => False
-  | _, _, .cons vk s₀ (.cons _ s₁ _), 1 =>
-      s₀.IsInto vk ∧ s₁.IsInto vk
-  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 => p.IsCollider (k + 1)
+  | _, _, .cons _ s₀ (.cons _ s₁ _), 1 =>
+      s₀.HeadAtTarget ∧ s₁.HeadAtSource
+  | _, _, .cons _ _ (p@(.cons _ _ _)), k + 2 =>
+      p.IsCollider (k + 1)
 -- def_3_15 -- end statement
 
--- ref: def_3_15 (item i, non-collider) — refactor
+
+-- ref: def_3_15 (item i, non-collider)
 --
 -- `p.IsNonCollider k` iff position `k` on the walk `p` is in
--- range (`k ≤ p.length`) and has arrowhead count
--- `ah_π(k) ≤ 1`, equivalently `¬ p.IsCollider k`.  Body
--- identical to the original `Walk.IsNonCollider` (ORIGINAL block above)
--- modulo two mechanical retargets:
--- - `p.length` → `p.length` (the refactor-ported walk-length
---   helper at `Walks.lean:1590-1593`); and
--- - `p.IsCollider` → `p.IsCollider` (the REPLACEMENT def
---   immediately above).
+-- range (`k ≤ p.length`) and is *not* a `IsCollider`, i.e.\
+-- has side-aware arrowhead count `ah_π(k) ≤ 1` under the canonical
+-- side-aware reading committed to by the addition tag
+-- `[collider_side_aware_walkstep_predicates]`.
 --
 -- ## Design choice — IsNonCollider
 --
--- *Why the refactor needs to touch this predicate.*  Mechanically only,
---   not semantically.  The body references two walk-helpers that have
---   themselves been refactored (`p.length` and `p.IsCollider`), so the
---   def needs to be re-stated using the refactored helpers.  The
---   `Prop`-level conjunction `k ≤ … ∧ ¬ …`, the bound-via-natural-
---   number-comparison shape, the LN-correspondence to the canonical
---   tex's "non-collider iff `ah_π(k) ≤ 1`" reading — all unchanged.
---   Note that the `IsCollider` reference now resolves to the
---   `IsInto`-helper-based predicate immediately above, so the self-
---   loop convention (a self-loop contributes exactly one arrowhead at
---   the loop vertex) is preserved through this indirection — see the
---   `IsCollider` design block for the load-bearing
---   node-equality-based reading.
---
--- *Why `k ≤ p.length` rather than the Option-membership style
---   (`p.vertices[k]? = some _`).*  Same rationale as the
---   original (ORIGINAL block above's design notes): the LN's "every
---   position on `π`" scope is `{0, 1, …, n}`, and the bound
---   `k ≤ p.length` is the exact ℕ-comparison encoding of this
---   index set.  An Option-membership encoding would force every
---   downstream consumer to destructure the witness, which is not needed
---   here because the body's other conjunct (`¬ p.IsCollider k`)
---   does not consume a `v_k` witness.  Preserving the asymmetry between
---   the original's `IsCollider` (positive existential with Option-
---   membership) and `IsNonCollider` (bounded negation with explicit
---   range check) — the refactor preserves this asymmetry verbatim, only
---   the helper-level surface retargets to the typed-WalkStep API.
---
--- *Why mutual exclusivity on the in-range fragment stays definitional
---   after the port.*  `IsNonCollider p k` literally unfolds
---   to `k ≤ p.length ∧ ¬ p.IsCollider k`, so on the
---   in-range fragment `k ≤ p.length` the statement
---   `p.IsNonCollider k ↔ ¬ p.IsCollider k` reduces
---   by definitional unfolding alone — no external theorem needed.  The
---   original's symmetry property (ORIGINAL block above's design notes)
---   is preserved verbatim through the mechanical retarget; only the
---   referenced helpers change, not the logical shape of the predicate.
---
--- *End-positions are non-colliders automatically (preserved).*  Both
---   `k = 0` (`0 ≤ p.length` always holds) and
---   `k = p.length` satisfy the in-range bound.  At `k = 0`,
---   `IsCollider` fires the `.nil _ _, _` or `.cons _ _ _, 0`
---   branches, returning `False`.  At `k = p.length`, the
---   recursion eventually descends into a `.nil _ _` or
---   `.cons _ _ (.nil _ _)` tail at the indexed position, also returning
---   `False`.  Either way `IsNonCollider` evaluates to `True`,
---   preserving the LN's "end-positions are non-colliders by
---   construction" reading without modification.
---
--- *Net-new declaration with no original counterpart at the markered
---   level beyond the wrapped ORIGINAL block above.*  The original
---   `Walk.IsNonCollider` (ORIGINAL block) remains under the original
---   `CDMG` namespace and continues to compile; the refactor's
---   `IsNonCollider` is a separate `def` under the
---   `CDMG.Walk` namespace.  Phase 7 cleanup will
---   rename `IsNonCollider` to `IsNonCollider` (whole-word)
---   across every refactored file, leaving a `def IsNonCollider` in the
---   final tree — the LN's intended object name.
+-- *De Morgan dual of `IsCollider` — partition must hold.*
+--   The LN's "every position on `π` is exactly one of a non-collider
+--   or a collider on `π`" mutual-exclusivity / joint-exhaustiveness
+--   property (canonical tex `def_3_15`, "Classification" paragraph)
+--   requires that the collider / non-collider predicate pair partition
+--   the in-range index set `{0, 1, …, p.length}` exactly.  The
+--   non-collider predicate is the de Morgan negation of the collider
+--   predicate, restricted to the in-range fragment.
 -- def_3_15 -- start statement
 def IsNonCollider {u v : Node} (p : Walk G u v) (k : ℕ) : Prop :=
   k ≤ p.length ∧ ¬ p.IsCollider k
