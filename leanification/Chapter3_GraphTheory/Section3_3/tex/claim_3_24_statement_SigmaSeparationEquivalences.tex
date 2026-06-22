@@ -20,19 +20,86 @@
 \phantomsection\label{claim_3_24}
 
 \begin{Rem}[SigmaSeparationEquivalences]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk and path definitions of def \ref{def:walks}, items~i.\ (a \emph{walk} in $G$ is a finite alternating sequence $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ for some integer $n \ge 0$, with $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$:
+    \[
+        \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+        \;\;\lor\;\;
+        \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr),
+    \]
+    with ``the same node may appear multiple times in a walk'') and~v.\ (a \emph{path} in $G$ is a walk in which no node occurs more than once: $\forall\, k, l \in \{0, 1, \dots, n\},\; k \ne l \implies v_k \ne v_l$), the collider classification of def \ref{def:collider_noncollider}, item~ii.\ (``$k$ is a collider on $\pi$'' iff $\mathrm{ah}_\pi(k) = 2$), the $C$-$\sigma$-open/$C$-$\sigma$-blocked predicates of def \ref{def:sigma_blocking}, item~1.\ (``$\pi$ is $C$-$\sigma$-open'' iff every collider position $v_k$ on $\pi$ lies in $\Anc^G(C) := \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv., and every blockable non-collider position $v_k$ on $\pi$ lies outside $C$) together with its De Morgan dual (``$\pi$ is $C$-$\sigma$-blocked'' iff $\pi$ is not $C$-$\sigma$-open --- the two notions are by construction mutually exclusive and jointly exhaustive over walks in $G$, per the De Morgan paragraph of def \ref{def:sigma_blocking}), and the $i\sigma$-separation predicate ``$A \isPerp_G B \given C$'' (resp.\ its negation ``$A \nisPerp_G B \given C$'') of def \ref{def:sigma_separation}, items~1--2. Let
+    \[
+        A, B, C \ins J \cup V
+    \]
+    be subsets of nodes; $A$, $B$, $C$ are \emph{not} assumed to be pairwise disjoint, nor disjoint from the input-node set $J$, nor non-empty (matching the permissiveness of def \ref{def:sigma_separation}, item~1).
+
+    \emph{Length of a walk/path (used by item~2 below).}
+    For a walk $\pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)$ in $G$ in the sense of def \ref{def:walks}, item~i., the \emph{length} of $\pi$ is the integer $n \ge 0$ recording the number of edge positions in the tuple (equivalently, the number of walk-steps $a_0, a_1, \dots, a_{n-1}$). The same definition is used for paths (which are walks per def \ref{def:walks}, item~v.). The minimum-length witnesses asserted in item~2 below refer to this length; the trivial walk $\pi = (v_0)$ at $n = 0$ has length $0$.
+
+    Then by Proposition \ref{prp:sigma_opens} (= claim\_3\_23, the three-way equivalence between existence of a $C$-$\sigma$-open path, existence of a $C$-$\sigma$-open walk, and existence of a $C$-$\sigma$-open walk whose colliders all lie in $C$), we have the following two structurally distinct statements (statement~1 is an equivalence \emph{of} the $i\sigma$-separation predicate; statement~2 is a pair of existential consequences of its negation):
+
     \begin{enumerate}
-        \item By Proposition \ref{prp:sigma_opens} we have that $A \isPerp_G B \given C$ is equivalent to either of the following:
-  \begin{enumerate}
-      \item every walk from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$;
-      \item every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked by $C$.
-  \end{enumerate}
-    \item Proposition \ref{prp:sigma_opens} also shows that if $A \nisPerp_G B \given C$ holds then:
-  \begin{enumerate}
-      \item there exists a (shortest) $C$-$\sigma$-open path from a node in $A$ to a node in $J \cup B$;
-      \item there exists a (shortest) $C$-$\sigma$-open walk from a node in $A$ to a node in $J \cup B$ such that all its colliders lie in $C$.
-  \end{enumerate}
-  \end{enumerate}
-  In practice we usually check if every path is $C$-$\sigma$-blocked or not. This is because there are, in contrast to walks, only a finite number of paths in a (finite) graph. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).
+        \item \emph{Equivalent characterisations of $A \isPerp_G B \given C$.}
+            The predicate $A \isPerp_G B \given C$ of def \ref{def:sigma_separation}, item~1, is equivalent to each of the following two universal statements. (Throughout, the doubled writing ``$C$-$\sigma$-blocked by $C$'' of the literal LN block refers to the same set $C$ on both occurrences: the prefix ``$C$-'' fixes the conditioning-set parameter of the predicate ``$\sigma$-blocked'' of def \ref{def:sigma_blocking}, and the trailing ``by $C$'' merely re-states that conditioning set; no second set is in play.)
+            \begin{enumerate}
+                \item For every integer $n \ge 0$ and every walk
+                    \[
+                        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+                    \]
+                    in $G$ in the sense of def \ref{def:walks}, item~i., with $v_0 \in A$ and $v_n \in J \cup B$, the walk $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking} (i.e.\ \emph{not} $C$-$\sigma$-open per def \ref{def:sigma_blocking}, item~1.). This is exactly the unfolded form of def \ref{def:sigma_separation}, item~1.
+
+                \item For every integer $n \ge 0$ and every walk
+                    \[
+                        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+                    \]
+                    in $G$ in the sense of def \ref{def:walks}, item~i.\ which is additionally a \emph{path} in $G$ in the sense of def \ref{def:walks}, item~v.\ (i.e.\ $\forall\, k, l \in \{0, 1, \dots, n\},\; k \ne l \implies v_k \ne v_l$), with $v_0 \in A$ and $v_n \in J \cup B$, the walk $\pi$ is $C$-$\sigma$-blocked in the sense of def \ref{def:sigma_blocking} (i.e.\ not $C$-$\sigma$-open per def \ref{def:sigma_blocking}, item~1.).
+            \end{enumerate}
+
+            \emph{Length-zero/overlap corner case (side remark).} The walk quantifier in (1a) ranges over all admissible lengths $n \ge 0$, including the trivial walk $\pi = (v_0)$ at $n = 0$ admitted by def \ref{def:walks}, item~i. A trivial walk has no walk-step indices in $\{0, 1, \dots, n - 1\}$ and no position $k$ that is a collider or a blockable non-collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~ii.\ or def \ref{def:unblockable_noncollider}, so it is vacuously $C$-$\sigma$-open per def \ref{def:sigma_blocking}, item~1., hence \emph{not} $C$-$\sigma$-blocked. Whenever $A \cap (J \cup B) \ne \emptyset$, picking any $v \in A \cap (J \cup B)$, the trivial walk $\pi = (v)$ is a walk from $A$ to $J \cup B$ that fails the blocking condition; consequently, under (1a) (and equivalently (1b), since a trivial walk is also a path), the predicate $A \isPerp_G B \given C$ forces in particular $A \cap (J \cup B) = \emptyset$. This matches the convention already recorded in def \ref{def:sigma_separation}, item~1 (``Range of the walk quantifier'' paragraph), and is the canonical handling of the overlap corner case.
+
+        \item \emph{Existential consequences of $A \nisPerp_G B \given C$.}
+            Suppose $A \nisPerp_G B \given C$ holds in the sense of def \ref{def:sigma_separation}, item~2 --- equivalently, the universal condition (1a) of item~1 above \emph{fails}, i.e.\ there exists at least one walk from a node in $A$ to a node in $J \cup B$ which is $C$-$\sigma$-open. Then both of the following existential statements hold (independently of each other; each follows from a separate clause of Proposition \ref{prp:sigma_opens}):
+            \begin{enumerate}
+                \item There exist an integer $n \ge 0$ and a walk
+                    \[
+                        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+                    \]
+                    in $G$ in the sense of def \ref{def:walks}, item~i., such that all four of the following conjuncts hold simultaneously:
+                    \begin{itemize}
+                        \item $v_0 \in A$;
+                        \item $v_n \in J \cup B$;
+                        \item $\pi$ is a path in $G$ in the sense of def \ref{def:walks}, item~v.\ ($\forall\, k, l \in \{0, 1, \dots, n\},\; k \ne l \implies v_k \ne v_l$), and $\pi$ is $C$-$\sigma$-open in $G$ in the sense of def \ref{def:sigma_blocking}, item~1.;
+                        \item the length $n$ of $\pi$ is \emph{minimum} among all non-negative integers $m \ge 0$ for which there exists a walk $\pi' = (v'_0, a'_0, v'_1, \dots, v'_{m-1}, a'_{m-1}, v'_m)$ of length $m$ in $G$ (def \ref{def:walks}, item~i.) with $v'_0 \in A$, $v'_m \in J \cup B$, $\pi'$ a path in $G$ (def \ref{def:walks}, item~v.), and $\pi'$ $C$-$\sigma$-open in $G$ (def \ref{def:sigma_blocking}, item~1.) --- that is, the minimization range is exactly the class
+                            \[
+                                \mathcal{P}_{A \to J \cup B}^{C\text{-}\sigma\text{-open}} := \bigl\{\, \pi' \text{ walk in } G \,\bigm|\, \text{start-node of } \pi' \in A,\ \text{end-node of } \pi' \in J \cup B,\ \pi' \text{ is a path},\ \pi' \text{ is } C\text{-}\sigma\text{-open} \,\bigr\}.
+                            \]
+                            Per the addition tag \texttt{[shortest\_qualifier\_reference\_class\_ambiguous]}, the parenthetical ``(shortest)'' in the literal LN block is part of the existence claim: the witnessing path is asserted to be of minimum length among all paths satisfying \emph{all} of the stated conditions (start in $A$, end in $J \cup B$, $C$-$\sigma$-open); ``shortest'' is \emph{not} taken among all paths in $G$ from $A$ to $J \cup B$ irrespective of openness.
+                    \end{itemize}
+
+                \item There exist an integer $n \ge 0$ and a walk
+                    \[
+                        \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+                    \]
+                    in $G$ in the sense of def \ref{def:walks}, item~i., such that all four of the following conjuncts hold simultaneously:
+                    \begin{itemize}
+                        \item $v_0 \in A$;
+                        \item $v_n \in J \cup B$;
+                        \item $\pi$ is $C$-$\sigma$-open in $G$ in the sense of def \ref{def:sigma_blocking}, item~1., \emph{and} every collider of $\pi$ lies in $C$ (not merely in $\Anc^G(C)$):
+                            \[
+                                \forall\, k \in \{0, 1, \dots, n\},\; \bigl(k \text{ is a collider on } \pi \text{ in the sense of def \ref{def:collider_noncollider}, item~ii.}\bigr) \implies v_k \in C.
+                            \]
+                            The trailing collider clause is a \emph{substantive strengthening} of $C$-$\sigma$-openness (whose collider clause, def \ref{def:sigma_blocking}, item~1.i., only demands $v_k \in \Anc^G(C)$), \emph{not} a translation of the walk-version of (2a); the strengthening is the LN's parenthetical ``and not just in $\Anc^G(C)$'' from Proposition \ref{prp:sigma_opens}(3). The non-collider clause of $C$-$\sigma$-openness (def \ref{def:sigma_blocking}, item~1.ii.) is unchanged on $\pi$.
+                        \item the length $n$ of $\pi$ is \emph{minimum} among all non-negative integers $m \ge 0$ for which there exists a walk $\pi' = (v'_0, a'_0, v'_1, \dots, v'_{m-1}, a'_{m-1}, v'_m)$ of length $m$ in $G$ (def \ref{def:walks}, item~i.) such that $v'_0 \in A$, $v'_m \in J \cup B$, $\pi'$ is $C$-$\sigma$-open in $G$ (def \ref{def:sigma_blocking}, item~1.), \emph{and} every collider position $k' \in \{0, 1, \dots, m\}$ on $\pi'$ (in the sense of def \ref{def:collider_noncollider}, item~ii.) has $v'_{k'} \in C$ --- that is, the minimization range is exactly the \emph{joint} class
+                            \[
+                                \mathcal{W}_{A \to J \cup B}^{C\text{-}\sigma\text{-open},\ \text{colliders} \subseteq C}
+                                := \bigl\{\, \pi' \text{ walk in } G \,\bigm|\, \text{start-node of } \pi' \in A,\ \text{end-node of } \pi' \in J \cup B,\ \pi' \text{ is } C\text{-}\sigma\text{-open},\ \forall\, k' \text{ collider of } \pi',\ v'_{k'} \in C \,\bigr\}.
+                            \]
+                            Per the addition tag \texttt{[shortest\_qualifier\_reference\_class\_ambiguous]}, this is the disambiguating reading for item~(b): the minimum is taken within the joint class ``$C$-$\sigma$-open walk \emph{and} all colliders in $C$'', \emph{not} within the wider class of $C$-$\sigma$-open walks alone (under which the witness would not necessarily have all colliders in $C$).
+                    \end{itemize}
+            \end{enumerate}
+    \end{enumerate}
+
+    \emph{Practice remark (preserved verbatim in content from the LN block).}
+    In practice we usually check if every path from a node in $A$ to a node in $J \cup B$ is $C$-$\sigma$-blocked or not, i.e., we work with characterisation (1b) above. This is because, in contrast to walks, there are only a finite number of paths in a (finite) graph (def \ref{def:walks}, item~v.\ forbids repeated nodes, bounding the path length by $|J \cup V|$). In proofs, though, it often is easier to make use of walks --- i.e., characterisation (1a) and existential form (2b) --- since walks can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).
 \end{Rem}
 
 \end{document}

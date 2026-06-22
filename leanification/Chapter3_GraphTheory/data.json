@@ -6270,30 +6270,32 @@
       "section": "3.3",
       "title": "SigmaSeparationEquivalences",
       "type": "remark",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-22",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationEquivalences.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/SigmaSeparationEquivalences.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 4,
         "continue_agent": 0,
-        "new_manager": 0,
+        "new_manager": 1,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -6301,12 +6303,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Rem}\n    \\begin{enumerate}\n        \\item By Proposition \\ref{prp:sigma_opens} we have that $A \\isPerp_G B \\given C$ is equivalent to either of the following:\n  \\begin{enumerate}\n      \\item every walk from a node in $A$ to a node in $J \\cup B$ is $C$-$\\sigma$-blocked by $C$;\n      \\item every path from a node in $A$ to a node in $J \\cup B$ is $C$-$\\sigma$-blocked by $C$.\n  \\end{enumerate}\n    \\item Proposition \\ref{prp:sigma_opens} also shows that if $A \\nisPerp_G B \\given C$ holds then:\n  \\begin{enumerate}\n      \\item there exists a (shortest) $C$-$\\sigma$-open path from a node in $A$ to a node in $J \\cup B$;\n      \\item there exists a (shortest) $C$-$\\sigma$-open walk from a node in $A$ to a node in $J \\cup B$ such that all its colliders lie in $C$.\n  \\end{enumerate}\n  \\end{enumerate}\n  In practice we usually check if every path is $C$-$\\sigma$-blocked or not. This is because there are, in contrast to walks, only a finite number of paths in a (finite) graph. In proofs, though, it often is easier to make use of walks, since these can be concatenated into walks (while one cannot in general concatenate two paths and again obtain a path).\n\\end{Rem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": "[shortest_qualifier_reference_class_ambiguous] In items 2(a) and 2(b), the parenthetical \"(shortest)\" is part of the existence claim: the asserted walk (resp. path) is of minimum length among those satisfying all of the stated conditions. In 2(b) in particular, the minimization ranges over $C$-$\\sigma$-open walks from a node in $A$ to a node in $J \\cup B$ whose colliders all lie in $C$ — i.e., the shortest is taken within this joint class, not within the wider class of $C$-$\\sigma$-open walks. Length of a walk/path is taken to be its number of edges; if a length notion has not yet been fixed, it must be defined before this statement is used."
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "1720b8f1-1400-4ba2-a1f8-ca0bbedb5167",
+          "first_seen": "2026-06-22T00:36:02+00:00",
+          "last_used": "2026-06-22T00:36:02+00:00"
+        }
+      ],
+      "time_needed_to_solve": 5528,
+      "addition_to_the_LN": "[shortest_qualifier_reference_class_ambiguous] In items 2(a) and 2(b), the parenthetical \"(shortest)\" is part of the existence claim: the asserted walk (resp. path) is of minimum length among those satisfying all of the stated conditions. In 2(b) in particular, the minimization ranges over $C$-$\\sigma$-open walks from a node in $A$ to a node in $J \\cup B$ whose colliders all lie in $C$ — i.e., the shortest is taken within this joint class, not within the wider class of $C$-$\\sigma$-open walks. Length of a walk/path is taken to be its number of edges; if a length notion has not yet been fixed, it must be defined before this statement is used.",
+      "wording_check": {
+        "done": true,
+        "output": "I'll audit the tex block for `claim_3_24` SigmaSeparationEquivalences. Let me read carefully what the LN literally says.\n\nLooking at the block, I find several places where the literal wording admits unintended or ambiguous readings.\n\nSUBTLETY:\nid: shortest_parenthetical_ambiguity_in_existence_clauses\nexplanation: Items 2(a) and 2(b) both contain a parenthesized \"(shortest)\" qualifier:\n\n- 2(a): \"there exists a (shortest) $C$-$\\sigma$-open path from a node in $A$ to a node in $J \\cup B$\"\n- 2(b): \"there exists a (shortest) $C$-$\\sigma$-open walk from a node in $A$ to a node in $J \\cup B$ such that all its colliders lie in $C$\"\n\nThe parenthetical phrasing \"a (shortest) X\" is genuinely ambiguous. Three readings are textually admissible:\n\n(i) \"there exists an $X$, and in fact one of minimum length\";\n(ii) \"there exists an $X$ that happens to be a/the shortest $X$\";\n(iii) \"the (literally) shortest $X$ between $A$ and $J\\cup B$ — i.e., among all paths/walks — is $C$-$\\sigma$-open\".\n\nReading (iii) is too strong: the shortest path between $A$ and $J\\cup B$ tout court need not be $C$-$\\sigma$-open. Reading (i) or (ii) is presumably what's intended, but then \"shortest\" must be qualified by *over what set*: shortest among open paths? shortest overall paths that happen to be open? In 2(b) the ambiguity compounds — is the walk shortest among $C$-$\\sigma$-open walks, or shortest among $C$-$\\sigma$-open walks with all colliders in $C$? Also, \"the\" shortest may not be unique, which the indefinite article \"a\" half-acknowledges but doesn't fully resolve. Downstream proofs that pick \"the shortest witness\" inherit this ambiguity.\nEND_SUBTLETY\n\nSUBTLETY:\nid: walk_colliders_strictly_in_C_is_strengthening_not_translation\nexplanation: Item 2(b) reads \"there exists a (shortest) $C$-$\\sigma$-open walk from a node in $A$ to a node in $J \\cup B$ **such that all its colliders lie in $C$**\". The structure of the remark — 2(a) gives an open path, 2(b) gives an open walk — invites the reader to read 2(b) as the \"walk version\" of 2(a). But the trailing clause \"such that all its colliders lie in $C$\" is a substantive strengthening, not a translation:\n\n- A $C$-$\\sigma$-open walk allows colliders to be in $\\San(C)$ (the σ-ancestors of $C$, which generally strictly contains $C$).\n- \"All its colliders lie in $C$\" requires every collider to be in $C$ itself, not merely a σ-ancestor of $C$.\n\nSo 2(b) is asserting the existence of a witness with a property strictly stronger than mere $C$-$\\sigma$-openness. The remark cites this as a consequence of `prp:sigma_opens` but doesn't flag that this is a non-trivial strengthening. A reader skimming the remark for the \"walk version of 2(a)\" may not register that the existential is making a sharper claim, which matters if 2(b) is later invoked as a hypothesis or used to construct probabilistic counter-examples.\nEND_SUBTLETY\n\nSUBTLETY:\nid: overlap_between_A_and_J_union_B_via_length_zero_walk\nexplanation: The characterizations in 1(a)/1(b) quantify over \"every walk/path from a node in $A$ to a node in $J \\cup B$\" without any disjointness assumption on $A$, $B$, $C$, $J$. If $A \\cap (J \\cup B) \\neq \\emptyset$ — e.g., some node $v \\in A \\cap B$ — then the length-0 walk consisting of $v$ alone is, literally, a walk from a node in $A$ ($v$) to a node in $J \\cup B$ ($v$).\n\nA length-0 walk has no edges, no colliders, and no non-colliders, so on the standard reading of \"$C$-$\\sigma$-blocked\" (which requires *some* node on the walk to do the blocking work) it is not blocked. Under the literal reading of 1(a)/1(b), $A \\isPerp_G B \\given C$ would then **fail** whenever $A$ and $J \\cup B$ overlap, even in trivial situations the author might have intended to allow (or might have intended to forbid by external convention — but the block doesn't say).\n\nConcrete corner case: take $A = B = \\{v\\}$, $C = \\emptyset$, $J = \\emptyset$. Then the trivial walk $v$ witnesses non-blocking, so $A \\nisPerp_G B \\given C$. If this is the intended behavior, fine; but the block neither states nor justifies it, and any downstream proposition that wants σ-separation in the overlap case will silently fail this characterization.\nEND_SUBTLETY\n\nSUBTLETY:\nid: doubled_C_in_C_sigma_blocked_by_C\nexplanation: Both 1(a) and 1(b) end with the phrase \"$C$-$\\sigma$-blocked by $C$\". The predicate \"$C$-$\\sigma$-blocked\" already carries $C$ as a parameter (the conditioning set being the $C$ in the prefix), and then \"by $C$\" repeats it. Literally read, the two $C$s could be:\n\n(i) the same set $C$ — in which case \"by $C$\" is redundant decoration;\n(ii) two distinct sets that happen to share the symbol — which is nonsensical, but a non-expert reader who doesn't know which $C$ \"belongs\" to the predicate name could parse it that way;\n(iii) \"$\\sigma$-blocked by $C$\" with \"$C$-\" being a decorative qualifier of the predicate (e.g., the σ-variant *as parameterized by* $C$) — same set, different parsing.\n\nThis is a minor wording issue rather than a logical defect, but the doubled symbol invites a momentary parse stall and could confuse a reader trying to match the LN sentence to a formal definition. A cleaner phrasing would be either \"is $C$-$\\sigma$-blocked\" or \"is $\\sigma$-blocked by $C$\", not both.\nEND_SUBTLETY",
+        "session": "77e377f7-3614-4f1f-9418-767075b39dd2"
+      }
     },
     {
       "def_or_claim": "claim",
